@@ -1,0 +1,115 @@
+appId: software.captureflow
+productName: CaptureFlow
+directories:
+  buildResources: build
+# Auto-update channel — generic provider served from our own Cloudflare CDN
+# (R2 bucket `captureflow-releases` → dl.captureflow.xyz). The build generates
+# `latest-mac.yml` + the .zip/.dmg/blockmaps; we upload those (and the per-
+# version release-notes markdown) to the bucket. The running app polls
+# dl.captureflow.xyz for `latest-mac.yml` via electron-updater. Squirrel still
+# verifies the Developer ID signature before swapping the bundle, so a hijacked
+# CDN can't ship a forged binary.
+publish:
+  provider: generic
+  url: https://dl.captureflow.xyz
+  channel: latest
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  # Native binaries ship via `extraResources` below; their .swift sources
+  # don't belong in the asar (and including them risks size-mismatch races
+  # with anything written during the build).
+  - '!native/**/*'
+  # `build-mac.sh` tees its output into `build.log` while it runs. If
+  # electron-builder snapshots build.log's size, then the size grows
+  # before the bytes get copied into the asar, every later file's data
+  # shifts and the bundled main becomes unparseable JS — main process
+  # exits silently on launch. Keep build artifacts out of the asar.
+  - '!build.log'
+  - '!build/*.log'
+  - '!dist/**/*'
+extraResources:
+  - from: native/screen-recorder/bin
+    to: native/screen-recorder/bin
+    filter:
+      - '**/*'
+  - from: native/cursor-monitor/bin
+    to: native/cursor-monitor/bin
+    filter:
+      - '**/*'
+  - from: native/window-detector/bin
+    to: native/window-detector/bin
+    filter:
+      - '**/*'
+asarUnpack:
+  - resources/**
+  - node_modules/ffmpeg-static/**/*
+  - node_modules/uiohook-napi/**/*
+mac:
+  minimumSystemVersion: '13.2'
+  category: public.app-category.video
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  target:
+    - target: dmg
+      arch:
+        - arm64
+    - target: zip
+      arch:
+        - arm64
+  # `extendInfo` MUST be a YAML mapping, not a sequence. List-of-singletons
+  # form (`- Key: value`) makes electron-builder slot each entry under a
+  # numeric index in Info.plist (e.g. `3 = { NSDownloadsFolderUsageDescription
+  # = ... }`) instead of merging keys into the top-level dict, which silently
+  # falls back to Electron's generic permission strings.
+  extendInfo:
+    NSCameraUsageDescription: CaptureFlow needs camera access to include webcam in recordings.
+    NSMicrophoneUsageDescription: CaptureFlow needs microphone access to capture audio commentary.
+    NSAudioCaptureUsageDescription: CaptureFlow needs audio capture access to record system audio.
+    NSDownloadsFolderUsageDescription: CaptureFlow needs access to save exports to your Downloads folder.
+    # Custom `captureflow://` URL scheme. captureflow.xyz/auth/callback
+    # bounces the desktop client back through this scheme after a
+    # successful web sign-in, carrying the freshly-minted device
+    # token. macOS hands the URL to us via `app.on('open-url')`.
+    CFBundleURLTypes:
+      - CFBundleURLName: software.captureflow.auth
+        CFBundleTypeRole: Viewer
+        CFBundleURLSchemes:
+          - captureflow
+  # Ship English only — drops ~270 Electron locale .pak files. Each one would
+  # otherwise need a `codesign --timestamp` roundtrip to Apple's TSA at build
+  # time (several minutes saved per build). Add more locales here when we
+  # actually localize the UI.
+  electronLanguages:
+    - en
+  # Notarization is opt-in per-build via APPLE_KEYCHAIN_PROFILE=captureflow-notary.
+  # In v26 the only object form accepted here is `{ teamId }`; the keychain
+  # profile must come from the env, and `notarize` itself must be a boolean.
+  notarize: false
+dmg:
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  # NOTE: electron-builder generates a default 540x380 background TIFF and the
+  # mounted DMG window opens at the *background image size* — `window.width`
+  # is ignored unless we ship a custom background at the new size. So we keep
+  # the standard 540x380 and size icons + spacing to fit cleanly within it.
+  # x/y is the icon CENTER. Icons at 135 / 405 give equal 135px side margins
+  # and a 270px gap between centers, with 128px icons = 71px margin from each
+  # window edge. y=160 (not the geometric 190) so the icon+label combo reads
+  # as visually centered — the label below adds ~25px of visual weight.
+  iconSize: 128
+  iconTextSize: 14
+  contents:
+    - x: 135
+      y: 160
+      type: file
+    - x: 405
+      y: 160
+      type: link
+      path: /Applications
+npmRebuild: false

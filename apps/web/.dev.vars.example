@@ -1,0 +1,109 @@
+# =============================================================================
+# CaptureFlow web (@captureflow/web) — local dev secrets & vars
+# =============================================================================
+# Copy this file to `.dev.vars` and fill in. It is loaded by wrangler /
+# OpenNext when you run `pnpm --filter @captureflow/web cf:preview` (or
+# `wrangler dev`). It is the LOCAL-DEV equivalent of:
+#   - vars        -> declared in wrangler.jsonc "vars" (non-secret, public)
+#   - secrets     -> set in production with `wrangler secret put <NAME>`
+#
+# In production you do NOT use this file. Public vars already live in
+# wrangler.jsonc; secrets are pushed with `wrangler secret put`. See DEPLOY.md.
+#
+# Notes:
+#   - NEXT_PUBLIC_* values are inlined into the client bundle at build time and
+#     are therefore PUBLIC. Never put a secret behind a NEXT_PUBLIC_ name.
+#   - Everything below except BETTER_AUTH_SECRET is OPTIONAL for a basic
+#     self-host: recording, sharing, dashboard, and quotas all work without
+#     billing or email configured.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# REQUIRED — auth
+# -----------------------------------------------------------------------------
+
+# Server-side signing secret for Better Auth sessions. Generate with:
+#   openssl rand -hex 32
+# In prod set with: wrangler secret put BETTER_AUTH_SECRET
+BETTER_AUTH_SECRET=replace-with-`openssl rand -hex 32`
+
+# Public base URL Better Auth issues/validates sessions against.
+# Local dev: http://localhost:3000 (or :3032 for the Workers preview).
+# Prod: https://captureflow.xyz (declared in wrangler.jsonc "vars").
+BETTER_AUTH_URL=http://localhost:3000
+
+
+# -----------------------------------------------------------------------------
+# OPTIONAL — managed-tier billing (Lemon Squeezy)
+# Leave ALL of these empty to run fully self-hosted with billing disabled.
+# When unset, the lemon webhook returns "not configured" and the upgrade CTA
+# is hidden (empty checkout URL).
+# -----------------------------------------------------------------------------
+
+# HMAC-SHA256 signing secret from the Lemon Squeezy webhook settings. We verify
+# the raw request body against the X-Signature header before trusting any
+# subscription event. (Name is LEMON_WEBHOOK_SECRET — not LEMON_SQUEEZY_*.)
+# In prod set with: wrangler secret put LEMON_WEBHOOK_SECRET
+LEMON_WEBHOOK_SECRET=
+
+# Subscription variant IDs (strings, matching Lemon Squeezy's payload encoding).
+# Looked up at webhook time to derive the billing cycle ('monthly' | 'annual')
+# from the incoming variant_id. The *_TEST_* pair lets a single deployment
+# accept webhooks from BOTH Lemon Squeezy test and live modes during the test
+# purchase flow without swapping secrets.
+LEMON_MONTHLY_VARIANT_ID=
+LEMON_ANNUAL_VARIANT_ID=
+LEMON_TEST_MONTHLY_VARIANT_ID=
+LEMON_TEST_ANNUAL_VARIANT_ID=
+
+# Public Lemon Squeezy checkout link, shown by the "Upgrade to Pro" CTA in the
+# dashboard / storage-quota UI. PUBLIC (inlined into the client bundle).
+# Leave empty to disable billing UI entirely. Declared in wrangler.jsonc "vars"
+# for prod; set here only if you want the upgrade CTA in local dev.
+NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL=
+
+
+# -----------------------------------------------------------------------------
+# OPTIONAL — transactional email (Resend), used for workspace invites.
+# When RESEND_API_KEY is unset, invite emails are skipped (logged + best-effort)
+# and the invite link can still be shared manually.
+# -----------------------------------------------------------------------------
+
+# Resend API key. In prod set with: wrangler secret put RESEND_API_KEY
+RESEND_API_KEY=
+
+# "From" address Resend sends invites as. Must be a verified domain in your
+# Resend account. Defaults to "CaptureFlow <hello@captureflow.xyz>" if unset.
+RESEND_FROM_ADDRESS=CaptureFlow <hello@captureflow.xyz>
+
+
+# -----------------------------------------------------------------------------
+# OPTIONAL — public site / CDN URLs.
+# Prod values are already declared in wrangler.jsonc "vars"; override here only
+# to point local dev at a non-default host. All default to the unified worker
+# origin (captureflow.xyz) or the R2 CDN (cdn.captureflow.xyz) in code.
+# All NEXT_PUBLIC_* are PUBLIC (inlined into the client bundle).
+# -----------------------------------------------------------------------------
+
+# Dashboard / app-web origin (auth, usage, account reads).
+NEXT_PUBLIC_APP_WEB_SITE_URL=http://localhost:3000
+# Share viewer origin (served by the unified worker; same host in prod).
+NEXT_PUBLIC_SHARE_SITE_URL=http://localhost:3000
+# Snap viewer origin (served by the unified worker; snaps live under /s).
+NEXT_PUBLIC_SNAP_SITE_URL=http://localhost:3000
+# Marketing/landing root; share + snap view pages build URLs off this.
+NEXT_PUBLIC_MARKETING_SITE_URL=http://localhost:3000
+# CDN origin for direct R2 reads (share posters/videos, snap PNGs under snaps/).
+# Server code reads R2_PUBLIC_BASE_URL; some client components read the
+# NEXT_PUBLIC_ form below.
+R2_PUBLIC_BASE_URL=http://localhost:3000/api/r/media
+NEXT_PUBLIC_R2_PUBLIC_BASE_URL=http://localhost:3000/api/r/media
+
+# Desktop deep-link scheme the app registers (captureflow://...). Keep in sync
+# with the desktop deep-link parser. Declared in wrangler.jsonc "vars" for prod.
+APP_DEEP_LINK_SCHEME=captureflow
+
+# Server-only public URL used when composing invite links. Defaults to
+# https://captureflow.xyz in code; override for local dev if needed.
+APP_WEB_PUBLIC_URL=http://localhost:3000

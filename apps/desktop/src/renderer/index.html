@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>CaptureFlow</title>
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!-- blob: in script-src is required for AudioWorkletNode +
+         createObjectURL(blob) — the share pipeline's system-audio
+         encoder builds the worklet processor inline so we don't ship
+         a separate static asset. Without this, addModule throws
+         "Unable to load a worklet's module" and the share encoder
+         can't open. worker-src covers the same path on Chromium
+         versions that route worklets through that directive.
+         'wasm-unsafe-eval' permits WebAssembly compilation (Skottie /
+         canvaskit-wasm) without allowing arbitrary JS eval.
+         connect-src allows the opt-in PostHog usage-analytics client to
+         POST events to *.posthog.com (us/eu ingest + assets). Session
+         recording, surveys, and the toolbar are disabled, so no remote
+         scripts load — only XHR/fetch to the ingest host. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' blob: 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.posthog.com"
+    />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

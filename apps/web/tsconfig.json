@@ -1,0 +1,29 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2023"],
+    "jsx": "preserve",
+    "plugins": [{ "name": "next" }],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    // Dashboard/viewer code expects strict mode but NOT
+    // noUncheckedIndexedAccess / verbatimModuleSyntax, so disable both
+    // here to keep it type-checking as-is.
+    "noUncheckedIndexedAccess": false,
+    "verbatimModuleSyntax": false,
+    "module": "esnext",
+    "incremental": true,
+    "noEmit": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "cloudflare-env.d.ts",
+    "upng.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules", ".next", ".open-next", ".wrangler"]
+}

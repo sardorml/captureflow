@@ -1,0 +1,410 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.935 0 0);
+  --foreground: oklch(0.18 0 0);
+  --card: oklch(0.985 0 0);
+  --card-foreground: oklch(0.18 0 0);
+  --popover: oklch(0.985 0 0);
+  --popover-foreground: oklch(0.18 0 0);
+  --primary: oklch(0.22 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.91 0 0);
+  --secondary-foreground: oklch(0.22 0 0);
+  --muted: oklch(0.91 0 0);
+  --muted-foreground: oklch(0.46 0 0);
+  --accent: oklch(0.91 0 0);
+  --accent-foreground: oklch(0.22 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.87 0 0);
+  --input: oklch(0.87 0 0);
+  --ring: oklch(0.62 0 0);
+  --sidebar: oklch(0.96 0 0);
+  --sidebar-foreground: oklch(0.18 0 0);
+  --sidebar-primary: oklch(0.22 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.91 0 0);
+  --sidebar-accent-foreground: oklch(0.22 0 0);
+  --sidebar-border: oklch(0.87 0 0);
+  --sidebar-ring: oklch(0.62 0 0);
+}
+
+.dark {
+  /* Tailwind Neutral palette */
+  --background: oklch(0.21 0.006 286); /* ~#1b1a1e, neutral dark (Figma-style) */
+  --foreground: oklch(0.97 0 0); /* neutral-50 */
+  --card: oklch(0.17 0 0); /* dimmer than neutral-900 */
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.17 0 0); /* match card */
+  --popover-foreground: oklch(0.97 0 0);
+  --primary: oklch(0.97 0 0); /* neutral-50 */
+  --primary-foreground: oklch(0.145 0 0);
+  --secondary: oklch(0.269 0 0); /* neutral-800 */
+  --secondary-foreground: oklch(0.922 0 0); /* neutral-200 */
+  --muted: oklch(0.269 0 0); /* neutral-800 */
+  --muted-foreground: oklch(0.708 0 0); /* neutral-300 */
+  --accent: oklch(0.269 0 0); /* neutral-800 */
+  --accent-foreground: oklch(0.922 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.269 0 0 / 60%); /* neutral-800 @ 60% */
+  --input: oklch(0.269 0 0 / 70%);
+  --ring: oklch(0.556 0 0); /* neutral-400 */
+  --sidebar: oklch(0.17 0 0); /* match card */
+  --sidebar-foreground: oklch(0.97 0 0);
+  --sidebar-primary: oklch(0.97 0 0);
+  --sidebar-primary-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(0.269 0 0); /* neutral-800 */
+  --sidebar-accent-foreground: oklch(0.922 0 0);
+  --sidebar-border: oklch(0.269 0 0 / 60%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --radius: 0.625rem;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: oklch(0.646 0.222 41.116);
+  --color-chart-2: oklch(0.6 0.118 184.704);
+  --color-chart-3: oklch(0.398 0.07 227.392);
+  --color-chart-4: oklch(0.828 0.189 84.429);
+  --color-chart-5: oklch(0.769 0.188 70.08);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    -webkit-user-select: none;
+    user-select: none;
+    outline: none;
+  }
+  *:focus,
+  *:focus-visible {
+    outline: none;
+  }
+  button,
+  select,
+  input,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  img {
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+}
+
+/*
+ * macOS-style range input. Chromium can't embed a real AppKit NSSlider in the
+ * renderer process, so this replicates the macOS Settings slider visually:
+ * 3px rounded track, blue fill on the left, light-gray circular thumb, and
+ * (when the input has a `list`) tiny gray tick dots. Set `--progress` (0..100)
+ * inline so the fill split tracks the value without JS reflows on the track.
+ */
+.macos-slider {
+  --progress: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 16px;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+.macos-slider:focus {
+  outline: none;
+}
+.macos-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #0a84ff 0%,
+    #0a84ff calc(var(--progress) * 1%),
+    rgba(255, 255, 255, 0.16) calc(var(--progress) * 1%),
+    rgba(255, 255, 255, 0.16) 100%
+  );
+}
+.macos-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px; /* center 16px thumb on 4px track */
+  border-radius: 50%;
+  /* Subtle top-to-bottom shading replicates the AppKit knob's 3D look. */
+  background: linear-gradient(to bottom, #f4f4f4 0%, #dcdcdc 100%);
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.35),
+    0 2px 3px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: transform 100ms ease;
+}
+.macos-slider:active::-webkit-slider-thumb {
+  background: linear-gradient(to bottom, #ffffff 0%, #e6e6e6 100%);
+}
+.macos-slider[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Tick dots overlay — drawn by a wrapper because <datalist> markers don't
+   render once the track is custom-styled. Positions are evenly spaced; the
+   first/last sit at the edges of the track inside the thumb's gutter. */
+.macos-slider-track-ticks {
+  position: absolute;
+  inset: 0;
+  margin: 0 8px; /* match thumb radius so end ticks align with thumb extremes */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.macos-slider-track-ticks > span {
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+@keyframes icon-sway {
+  0% {
+    transform: translateX(0);
+  }
+  7% {
+    transform: translateX(-4px);
+  }
+  16% {
+    transform: translateX(4px);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  34% {
+    transform: translateX(3px);
+  }
+  44% {
+    transform: translateX(-2px);
+  }
+  54% {
+    transform: translateX(2px);
+  }
+  65% {
+    transform: translateX(-1px);
+  }
+  76% {
+    transform: translateX(1px);
+  }
+  85% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes cursor-ripple {
+  0% {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes cursor-pressure {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* Native macOS-style permission dialog. The window itself uses HUD vibrancy
+ * (set in main process), so the surface is transparent and the OS provides
+ * the dark blur behind it. */
+.permission-dialog {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: rgba(255, 255, 255, 0.95);
+  padding: 18px 18px 14px;
+  background: transparent;
+}
+
+.permission-dialog__icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 0 14px;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+.permission-dialog__title {
+  font-size: 14.5px;
+  font-weight: 700;
+  text-align: left;
+  line-height: 1.3;
+  margin: 0 0 8px;
+  color: rgba(255, 255, 255, 0.98);
+  letter-spacing: -0.01em;
+}
+
+.permission-dialog__body {
+  font-size: 12.5px;
+  font-weight: 400;
+  text-align: left;
+  line-height: 1.45;
+  margin: 0 0 16px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.permission-dialog__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.permission-dialog__btn {
+  width: 100%;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  height: 26px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.95);
+  cursor: default;
+  transition: background 80ms ease-out;
+  letter-spacing: -0.01em;
+}
+
+.permission-dialog__btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.permission-dialog__btn:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.permission-dialog__btn:focus {
+  outline: none;
+}
+
+.permission-dialog__btn--primary {
+  background: #007aff;
+  color: white;
+}
+
+.permission-dialog__btn--primary:hover {
+  background: #1a8aff;
+}
+
+/* Share preview player — flash overlay on play/pause toggle. Mirrors
+   the share web player's keyframe so the modal preview matches the
+   public share page exactly. */
+@keyframes share-icon-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+.animate-share-icon-pop {
+  animation: share-icon-pop 750ms cubic-bezier(0.2, 0.7, 0.3, 1.05) both;
+}
+
+/* Diagonal shimmer that sweeps across the bg-updating overlay so the
+   "Updating background…" state visibly telegraphs work-in-progress
+   rather than reading as a static dim layer. */
+@keyframes share-bg-shimmer {
+  0% {
+    background-position: -110% 0;
+  }
+  100% {
+    background-position: 110% 0;
+  }
+}
+
+/* Soft pulse on the sparkle prefix of the recording toolbar's
+   left-side status nudge. Keeps the text itself fully legible
+   while still giving the row a subtle "alive" feel. */
+@keyframes toolbar-nudge-twinkle {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+.toolbar-nudge-twinkle {
+  display: inline-block;
+  animation: toolbar-nudge-twinkle 2.4s ease-in-out infinite;
+}
+
+.permission-dialog__btn--primary:active {
+  background: #0066d6;
+}

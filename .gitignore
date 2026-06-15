@@ -1,0 +1,29 @@
+node_modules/
+.nx/
+dist/
+out/
+.next/
+.open-next/
+.wrangler/
+.vite/
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets / local env
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# logs / os
+*.log
+.DS_Store
+
+# local agent tooling — skills installed via `skills add`, not part of the product
+.agents/
+skills-lock.json
+
+# stale build caches (turborepo removed in favor of nx)
+.turbo/

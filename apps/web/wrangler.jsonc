@@ -1,0 +1,49 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "captureflow-web",
+  // Custom worker wrapper: re-exports OpenNext's fetch handler + adds the
+  // scheduled() cron handlers (multipart GC + retention sweep). It imports
+  // ./.open-next/worker.js, produced by `opennextjs-cloudflare build`.
+  "main": "worker.ts",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  // Cron Triggers → worker.ts scheduled(): hourly multipart GC + daily
+  // retention sweep against D1 + R2.
+  "triggers": {
+    "crons": ["0 * * * *", "0 4 * * *"]
+  },
+  // Create with `wrangler d1 create captureflow`, then paste the id.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "captureflow",
+      "database_id": "REPLACE_AFTER_wrangler_d1_create"
+    }
+  ],
+  // All ported share/snap r2.ts read env.BUCKET. Prefixes: videos/, posters/, snaps/.
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "captureflow-recordings"
+    }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_APP_WEB_SITE_URL": "https://captureflow.xyz",
+    "NEXT_PUBLIC_SHARE_SITE_URL": "https://captureflow.xyz",
+    "NEXT_PUBLIC_SNAP_SITE_URL": "https://captureflow.xyz",
+    "NEXT_PUBLIC_MARKETING_SITE_URL": "https://captureflow.xyz",
+    "R2_PUBLIC_BASE_URL": "https://cdn.captureflow.xyz",
+    "BETTER_AUTH_URL": "https://captureflow.xyz",
+    // Desktop registers the captureflow:// scheme; keep it until the desktop
+    // deep-link parser is rebranded in lockstep.
+    "APP_DEEP_LINK_SCHEME": "captureflow",
+    "NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL": ""
+  }
+}

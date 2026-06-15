@@ -1,0 +1,71 @@
+@import 'tailwindcss';
+@import '../../../packages/ui/src/styles/tokens.css';
+
+/* Tailwind v4 only auto-scans the app's own source tree. The shared
+   @captureflow/ui package lives outside it, so its utility classes need
+   this opt-in or they get tree-shaken out. (SharePlayer + the snap/
+   share viewers now live under app/_components and are auto-scanned.) */
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont,
+    'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Brief play/pause flash overlay on the SharePlayer. Shared between the
+   edit-page preview and the public viewer so they match pixel for
+   pixel. */
+@keyframes share-icon-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+.animate-share-icon-pop {
+  animation: share-icon-pop 750ms cubic-bezier(0.2, 0.7, 0.3, 1.05) both;
+}
+
+/* Reaction emoji rises up from below the scrubber to its position
+   above it, with a tiny overshoot bounce — used by the /r viewer's
+   ReactionMarkers. translateX(-50%) is preserved at every keyframe so
+   the marker stays horizontally centered on its timestamp. */
+@keyframes reaction-rise {
+  0% {
+    transform: translateX(-50%) translateY(28px) scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-50%) translateY(-6px) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+.animate-reaction-rise {
+  animation: reaction-rise 600ms cubic-bezier(0.2, 0.7, 0.3, 1.2) both;
+}

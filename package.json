@@ -1,0 +1,39 @@
+{
+  "name": "captureflow",
+  "private": true,
+  "version": "0.1.0",
+  "description": "CaptureFlow — open-source, self-hostable screen recording with instant shareable links.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "packageManager": "pnpm@10.30.0",
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "scripts": {
+    "build": "nx run-many -t build",
+    "dev": "nx run-many -t dev",
+    "lint": "nx run-many -t lint",
+    "typecheck": "nx run-many -t typecheck",
+    "graph": "nx graph",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,jsonc,css}\""
+  },
+  "devDependencies": {
+    "nx": "22.6.0",
+    "png-to-ico": "^3.0.1",
+    "prettier": "^3.4.2",
+    "sharp": "^0.35.1",
+    "typescript": "catalog:"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild",
+      "sharp",
+      "workerd",
+      "uiohook-napi",
+      "koffi",
+      "ffmpeg-static",
+      "nx"
+    ]
+  }
+}
