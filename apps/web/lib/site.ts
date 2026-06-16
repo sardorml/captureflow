@@ -25,6 +25,25 @@ export const PRODUCT_NAME = 'CaptureFlow';
 // operators must preserve it.
 export const SOURCE_REPO_URL = 'https://github.com/sardorml/captureflow';
 
+// Documentation site (VitePress, apps/docs). In production it's a separate
+// host; in development it points at the local docs dev server (which is pinned
+// to port 3033 in apps/docs/package.json). Override either with
+// NEXT_PUBLIC_DOCS_URL.
+export const DOCS_URL =
+  process.env.NEXT_PUBLIC_DOCS_URL ??
+  (process.env.NODE_ENV === 'production'
+    ? 'https://docs.captureflow.xyz'
+    : 'http://localhost:3033');
+
+// GitHub releases — the desktop recorder ships its builds here (and
+// electron-updater pulls updates from the same place).
+export const RELEASES_URL = `${SOURCE_REPO_URL}/releases`;
+
+// Direct desktop-app download. Defaults to the latest GitHub release; once a
+// CDN-hosted .dmg exists, override with NEXT_PUBLIC_DOWNLOAD_URL.
+export const DOWNLOAD_URL =
+  process.env.NEXT_PUBLIC_DOWNLOAD_URL ?? `${SOURCE_REPO_URL}/releases/latest`;
+
 // Public viewer URL for a share. The id is the share's public slug;
 // the viewer lives at captureflow.xyz/r/<id>.
 export function viewUrlFor(id: string): string {
