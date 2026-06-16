@@ -1,22 +1,47 @@
-# CaptureFlow
+<div align="center">
+  <img src="apps/web/public/logo.png" width="112" alt="CaptureFlow" />
+  <h1>CaptureFlow</h1>
+  <p>
+    <strong>Open-source, self-hostable screen recording with instant shareable links.</strong>
+  </p>
+  <p>
+    <a href="https://captureflow.xyz">Website</a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/sardorml/captureflow/releases">Download</a>
+    &nbsp;·&nbsp;
+    <a href="https://docs.captureflow.xyz">Docs</a>
+    &nbsp;·&nbsp;
+    <a href="./DEPLOY.md">Self-hosting</a>
+    &nbsp;·&nbsp;
+    <a href="./LICENSE">License</a>
+  </p>
+  <p>
+    <a href="./LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-2563EB.svg" /></a>
+    <img alt="Platform: macOS" src="https://img.shields.io/badge/platform-macOS-111111.svg" />
+    <a href="https://github.com/sardorml/captureflow/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/sardorml/captureflow?color=2563EB" /></a>
+  </p>
+  <br />
+  <img src="apps/web/public/og-image.png" alt="CaptureFlow — screen recording with instant shareable links" width="100%" />
+</div>
 
-**Open-source, self-hostable screen recording with instant shareable links.**
+<br />
 
-CaptureFlow is a native screen recorder plus a Cloudflare-hosted dashboard:
-record your screen, get an instant share link, done. It's fully open source
-(AGPL-3.0) and self-hostable on your own Cloudflare account. A managed-hosting
-tier is available for people who'd rather not run their own infra — but
-**every feature ships in the open-source build**. The subscription pays for
-managed hosting, not a feature gate.
+CaptureFlow is a native macOS screen recorder plus a Cloudflare-hosted dashboard
+and share pages: record your screen, get an instant link, done. It's fully open
+source (AGPL-3.0) and self-hostable on your own Cloudflare account — **every
+feature ships in the open-source build**.
 
 ## Monorepo layout
 
 ```
 apps/
-  web/        Next.js 16 dashboard + share pages + API → Cloudflare Workers (OpenNext)
-  desktop/    Electron screen recorder
+  web/        Next.js 16 dashboard + share/snap pages + API → Cloudflare Workers (OpenNext)
+  desktop/    Electron screen recorder (macOS)
+  docs/       VitePress documentation site
 packages/
   shared/     Types & constants shared by web + desktop
+  ui/         Shared React UI components + design tokens
+  quota/      Storage quota, limits & workspace logic
 ```
 
 ## Requirements
