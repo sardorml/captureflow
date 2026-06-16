@@ -1,0 +1,17 @@
+{
+  "name": "@captureflow/docs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CaptureFlow documentation site (VitePress).",
+  "scripts": {
+    "dev": "vitepress dev --port 3033 --strictPort",
+    "build": "vitepress build",
+    "preview": "vitepress preview --port 4173",
+    "cf:deploy": "vitepress build && wrangler pages deploy .vitepress/dist --project-name captureflow-docs"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.3",
+    "wrangler": "^4.40.0"
+  }
+}
