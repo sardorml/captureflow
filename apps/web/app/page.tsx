@@ -1,11 +1,19 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Link2, Camera, Server, Lock, Zap } from 'lucide-react';
+import { headers } from 'next/headers';
+import { Link2, Video, Camera, ArrowRight, BookOpen, Download, Play, Check, Clock } from 'lucide-react';
+import { ThemeToggle, readThemeFromCookieHeader, type Theme } from '@captureflow/ui';
 import { loadSession } from '@/lib/session-guard';
+import { DOCS_URL } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
 const GITHUB_URL = 'https://github.com/sardorml/captureflow';
+
+// Wide content container.
+const WIDE = 'mx-auto w-full max-w-[1280px] px-6 sm:px-10';
+// Navbar spans the wider docs layout width (VitePress --vp-layout-max-width).
+const NAV_WIDE = 'mx-auto w-full max-w-[1440px] px-6 sm:px-10';
 
 // lucide-react v1 dropped brand glyphs, so the GitHub mark is inline.
 function GitHubIcon({ className }: { className?: string }) {
@@ -17,145 +25,259 @@ function GitHubIcon({ className }: { className?: string }) {
 }
 
 // Custom CaptureFlow landing. Signed-in visitors go straight to the
-// dashboard; everyone else gets the open-core pitch.
+// dashboard; everyone else gets the open-core pitch. Themed via the shared
+// data-theme token system (toggle in the nav).
 export default async function Home() {
   const session = await loadSession();
   if (session) redirect('/shares');
 
+  const theme = readThemeFromCookieHeader((await headers()).get('cookie'));
+
   return (
-    <div className="min-h-screen bg-white text-zinc-900">
-      <Nav />
+    <div className="min-h-screen bg-canvas text-fg">
+      <Nav theme={theme} />
       <Hero />
       <Features />
+      <Roadmap />
       <SelfHost />
       <Footer />
     </div>
   );
 }
 
-function Nav() {
+function Nav({ theme }: { theme: Theme }) {
   return (
-    <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-      <div className="flex items-center gap-2.5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo-round.png" alt="" width={30} height={30} className="rounded-lg" />
-        <span className="text-lg font-semibold tracking-tight">CaptureFlow</span>
+    <header className="sticky top-0 z-10 border-b border-line bg-canvas/80 backdrop-blur">
+      <div className={`${NAV_WIDE} flex items-center justify-between py-4`}>
+        <div className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" width={30} height={30} className="rounded-lg" />
+          <span className="text-lg font-semibold tracking-tight">CaptureFlow</span>
+        </div>
+        <nav className="flex items-center gap-1 text-sm sm:gap-2">
+          <a
+            href={DOCS_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-lg px-3 py-2 font-medium text-fg-muted transition-colors hover:text-fg"
+          >
+            Docs
+          </a>
+          <a
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="hidden items-center gap-1.5 rounded-lg px-3 py-2 font-medium text-fg-muted transition-colors hover:text-fg sm:flex"
+          >
+            <GitHubIcon className="h-4 w-4" /> GitHub
+          </a>
+          <Link
+            href="/login"
+            className="rounded-lg px-3 py-2 font-medium text-fg-muted transition-colors hover:text-fg"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/signup"
+            className="rounded-lg bg-accent-bg px-4 py-2 font-medium text-white transition-colors hover:bg-accent-bg-hover"
+          >
+            Get started
+          </Link>
+          <ThemeToggle initialTheme={theme} className="ml-1" />
+        </nav>
       </div>
-      <nav className="flex items-center gap-3 text-sm">
-        <a
-          href={GITHUB_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="hidden items-center gap-1.5 rounded-lg px-3 py-2 font-medium text-zinc-600 transition-colors hover:text-zinc-900 sm:flex"
-        >
-          <GitHubIcon className="h-4 w-4" /> GitHub
-        </a>
-        <Link
-          href="/login"
-          className="rounded-lg px-3 py-2 font-medium text-zinc-600 transition-colors hover:text-zinc-900"
-        >
-          Sign in
-        </Link>
-        <Link
-          href="/signup"
-          className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700"
-        >
-          Get started
-        </Link>
-      </nav>
     </header>
   );
 }
 
 function Hero() {
   return (
-    <section className="mx-auto max-w-3xl px-6 pb-20 pt-16 text-center sm:pt-24">
-      <a
-        href={GITHUB_URL}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3.5 py-1.5 text-sm text-zinc-600 transition-colors hover:border-zinc-300"
-      >
-        <span className="font-medium text-zinc-900">Open source</span>
-        <span className="text-zinc-300">·</span>
-        <span>self-host or use the cloud</span>
-      </a>
-      <h1 className="mt-6 text-4xl font-semibold tracking-tight text-zinc-900 sm:text-6xl">
-        Record. Share. <span className="text-zinc-400">Done.</span>
-      </h1>
-      <p className="mx-auto mt-5 max-w-xl text-lg text-zinc-600">
-        CaptureFlow turns a screen recording or screenshot into an instant shareable link — no
-        upload wait, no editing detour. Open-core and self-hostable, so your captures stay on
-        infrastructure you control.
-      </p>
-      <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <Link
-          href="/signup"
-          className="w-full rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto"
-        >
-          Get started free
-        </Link>
-        <a
-          href={GITHUB_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 px-6 py-3 text-sm font-medium text-zinc-700 transition-colors hover:border-zinc-400 sm:w-auto"
-        >
-          <GitHubIcon className="h-4 w-4" /> Star on GitHub
-        </a>
+    <section className={`${WIDE} pt-16 pb-12 sm:pt-24`}>
+      <div className="grid items-center gap-12 lg:grid-cols-2">
+        <div>
+          <h1 className="text-5xl font-bold leading-[1.05] tracking-tight text-fg-strong sm:text-7xl">
+            Screen recording with instant share links.
+          </h1>
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-fg-muted">
+            Open-source and self-hostable. Record your screen, get a link, done — on your own
+            Cloudflare account.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/download"
+              className="inline-flex items-center gap-2 rounded-full bg-accent-bg px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-bg-hover"
+            >
+              <Download className="h-4 w-4" /> Download for macOS
+            </Link>
+            <a
+              href={DOCS_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-line-strong px-6 py-3 text-sm font-medium text-fg transition-colors hover:bg-overlay"
+            >
+              <BookOpen className="h-4 w-4" /> Read the docs
+            </a>
+          </div>
+        </div>
+        <div className="w-full">
+          <DemoMock />
+        </div>
       </div>
-      <p className="mt-4 text-sm text-zinc-400">macOS · AGPL-3.0 licensed</p>
     </section>
+  );
+}
+
+// Placeholder product demo shown in the hero — a fake share-page video player.
+// Swap the dark "stage" for a real recording (poster image / <video>) later.
+function DemoMock() {
+  return (
+    <div className="group relative mx-auto w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl shadow-blue-500/10">
+      {/* browser chrome */}
+      <div className="flex items-center gap-2 border-b border-line bg-canvas-2 px-4 py-3">
+        <span className="h-3 w-3 rounded-full bg-red-400/80" />
+        <span className="h-3 w-3 rounded-full bg-amber-400/80" />
+        <span className="h-3 w-3 rounded-full bg-green-400/80" />
+        <div className="ml-3 flex-1 truncate rounded-md bg-overlay px-3 py-1 text-xs text-fg-subtle">
+          captureflow.xyz/r/demo
+        </div>
+      </div>
+      {/* video stage (intentionally dark in both themes, like a real player) */}
+      <div className="relative aspect-video bg-gradient-to-br from-blue-600 to-indigo-800">
+        <span className="absolute left-3 top-3 rounded-full bg-white/15 px-2 py-0.5 text-xs font-medium text-white">
+          Demo
+        </span>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-blue-600 shadow-lg transition-transform duration-200 group-hover:scale-105">
+            <Play className="h-7 w-7 translate-x-0.5 fill-current" />
+          </span>
+        </div>
+        {/* fake scrubber */}
+        <div className="absolute inset-x-4 bottom-4 flex items-center gap-3 text-xs text-white/90">
+          <span>0:12</span>
+          <div className="relative h-1 flex-1 rounded-full bg-white/25">
+            <div className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-white" />
+          </div>
+          <span>0:42</span>
+        </div>
+      </div>
+    </div>
   );
 }
 
 const FEATURES = [
   {
+    icon: Video,
+    title: 'Record in seconds',
+    body: 'A native macOS recorder for full screen, a single window, or a region — with an optional webcam bubble and smooth cursor.',
+    link: { text: 'How to record', href: `${DOCS_URL}/guide/recording` },
+  },
+  {
     icon: Link2,
     title: 'Instant share links',
-    body: 'Stop recording and the link is already in your clipboard. Viewers watch in the browser — no app, no download.',
+    body: 'The recording uploads while you record. The moment you stop, a shareable link is ready to paste anywhere.',
+    link: { text: 'Sharing & visibility', href: `${DOCS_URL}/guide/sharing` },
   },
   {
     icon: Camera,
-    title: 'Screenshots that travel',
-    body: 'Snap any window or region, annotate, and share the same way. One flow for video and stills.',
-  },
-  {
-    icon: Server,
-    title: 'Self-hostable',
-    body: 'Deploy the whole stack to your own Cloudflare account in minutes, or let us host it for you.',
-  },
-  {
-    icon: Lock,
-    title: 'Your data, your rules',
-    body: 'Recordings live in your R2 bucket and your D1 database. Visibility controls per share — public, workspace, or private.',
-  },
-  {
-    icon: Zap,
-    title: 'Built for speed',
-    body: 'Native ScreenCaptureKit recording streams straight to storage while you talk. No re-encode, no spinner.',
-  },
-  {
-    icon: GitHubIcon,
-    title: 'Open core',
-    body: 'Every feature ships in the open-source repo. The managed cloud is a convenience, never a paywall.',
+    title: 'Snaps',
+    body: 'Capture an annotated screenshot and get an instant link, just like a recording.',
+    link: { text: 'About snaps', href: `${DOCS_URL}/guide/snaps` },
   },
 ];
 
 function Features() {
   return (
-    <section className="border-t border-zinc-100 bg-zinc-50/60 py-20">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map(({ icon: Icon, title, body }) => (
-            <div key={title}>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-white">
-                <Icon className="h-5 w-5 text-zinc-700" />
-              </div>
-              <h3 className="mt-4 text-base font-semibold text-zinc-900">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-600">{body}</p>
+    <section className={`${WIDE} pb-24`}>
+      <div className="grid gap-5 md:grid-cols-3">
+        {FEATURES.map(({ icon: Icon, title, body, link }) => (
+          <div
+            key={title}
+            className="rounded-2xl border border-line bg-surface p-6 transition-colors hover:border-line-strong"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-canvas-2">
+              <Icon className="h-5 w-5 text-fg-muted" />
             </div>
-          ))}
+            <h3 className="mt-4 text-base font-semibold text-fg-strong">{title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-fg-muted">{body}</p>
+            <a
+              href={link.href}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:text-accent-strong"
+            >
+              {link.text} <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+const ROADMAP_NOW = [
+  'Native macOS recorder',
+  'Instant share links',
+  'Snaps (screenshots)',
+  'Self-hosting on Cloudflare',
+  'Workspaces & visibility controls',
+];
+
+const ROADMAP_PLANNED = ['Windows app', 'Chrome extension'];
+
+function RoadmapColumn({
+  label,
+  items,
+  done,
+}: {
+  label: string;
+  items: string[];
+  done?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-line bg-surface p-6">
+      <span
+        className={
+          done
+            ? 'inline-block rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-600 dark:text-green-400'
+            : 'inline-block rounded-full bg-overlay px-3 py-1 text-xs font-semibold text-fg-muted'
+        }
+      >
+        {label}
+      </span>
+      <ul className="mt-5 space-y-3">
+        {items.map((item) => (
+          <li key={item} className="flex items-center gap-3 text-sm">
+            <span
+              className={
+                done
+                  ? 'flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-500/15 text-green-600 dark:text-green-400'
+                  : 'flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-overlay text-fg-subtle'
+              }
+            >
+              {done ? <Check className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+            </span>
+            <span className={done ? 'text-fg' : 'text-fg-muted'}>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Roadmap() {
+  return (
+    <section className="border-t border-line">
+      <div className={`${WIDE} py-20`}>
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-semibold tracking-tight text-fg-strong">Roadmap</h2>
+          <p className="mt-4 text-fg-muted">
+            CaptureFlow ships fast and fully in the open. Here&apos;s what&apos;s live today and
+            what&apos;s coming next.
+          </p>
+        </div>
+        <div className="mx-auto mt-12 grid max-w-3xl gap-6 md:grid-cols-2">
+          <RoadmapColumn label="Available now" items={ROADMAP_NOW} done />
+          <RoadmapColumn label="Planned" items={ROADMAP_PLANNED} />
         </div>
       </div>
     </section>
@@ -164,29 +286,33 @@ function Features() {
 
 function SelfHost() {
   return (
-    <section className="mx-auto max-w-3xl px-6 py-24 text-center">
-      <h2 className="text-3xl font-semibold tracking-tight text-zinc-900">
-        Run it yourself, or let us run it
-      </h2>
-      <p className="mx-auto mt-4 max-w-xl text-zinc-600">
-        Clone the repo and deploy to Cloudflare Workers + R2 + D1 — the same stack the hosted
-        version runs on. Subscriptions pay for managed hosting, not for features.
-      </p>
-      <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <a
-          href={GITHUB_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-        >
-          <GitHubIcon className="h-4 w-4" /> Read the docs
-        </a>
-        <Link
-          href="/signup"
-          className="rounded-lg border border-zinc-300 px-6 py-3 text-sm font-medium text-zinc-700 transition-colors hover:border-zinc-400"
-        >
-          Use the cloud
-        </Link>
+    <section className="border-t border-line">
+      <div className="mx-auto max-w-3xl px-6 py-20 text-center">
+        <h2 className="text-3xl font-semibold tracking-tight text-fg-strong">
+          Run it yourself, or use our managed service
+        </h2>
+        <p className="mx-auto mt-4 max-w-xl text-fg-muted">
+          Clone the repo and deploy to Cloudflare Workers + R2 + D1 — the same stack the hosted
+          version runs on. Every feature ships in the open-source build.
+        </p>
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a
+            href={`${DOCS_URL}/self-hosting/overview`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-accent-bg px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-bg-hover"
+          >
+            <BookOpen className="h-4 w-4" /> Deploy guide
+          </a>
+          <a
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-line-strong px-6 py-3 text-sm font-medium text-fg transition-colors hover:bg-overlay"
+          >
+            <GitHubIcon className="h-4 w-4" /> View source
+          </a>
+        </div>
       </div>
     </section>
   );
@@ -194,18 +320,21 @@ function SelfHost() {
 
 function Footer() {
   return (
-    <footer className="border-t border-zinc-100">
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-zinc-500 sm:flex-row">
+    <footer className="border-t border-line">
+      <div className={`${WIDE} flex flex-col items-center justify-between gap-4 py-8 text-sm text-fg-subtle sm:flex-row`}>
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-round.png" alt="" width={22} height={22} className="rounded-md" />
+          <img src="/logo.png" alt="" width={22} height={22} className="rounded-md" />
           <span>© CaptureFlow</span>
         </div>
         <div className="flex items-center gap-5">
-          <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-zinc-900">
+          <a href={DOCS_URL} target="_blank" rel="noreferrer" className="transition-colors hover:text-fg">
+            Docs
+          </a>
+          <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="transition-colors hover:text-fg">
             GitHub
           </a>
-          <Link href="/login" className="hover:text-zinc-900">
+          <Link href="/login" className="transition-colors hover:text-fg">
             Sign in
           </Link>
         </div>
