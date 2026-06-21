@@ -18,8 +18,8 @@ import {
 // point it at their own LS product. When it's unset, the buy button
 // is hidden so the modal still renders its pricing/feature view.
 
-const MONTHLY_PRICE = 19;
-const ANNUAL_PRICE_PER_MONTH = 9;
+const MONTHLY_PRICE = 9;
+const ANNUAL_PRICE_PER_MONTH = 6;
 const ANNUAL_SAVINGS_PERCENT = Math.round(
   (1 - ANNUAL_PRICE_PER_MONTH / MONTHLY_PRICE) * 100,
 );
@@ -28,12 +28,8 @@ const CHECKOUT_BASE_URL =
   process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ?? '';
 
 const BENEFITS = [
-  'Unlimited Studio recordings',
-  'Studio exports up to 4K',
-  '50 GB cloud storage',
-  'Higher quality shareable recordings',
-  'Longer shareable recordings (up to 1 hour)',
-  'Priority support',
+  '100 GB cloud storage (up from 200 MB)',
+  'Up to 1,000 active shares & Snaps (up from 100)',
 ] as const;
 
 type Cycle = 'monthly' | 'annual';
@@ -90,8 +86,7 @@ export function UpgradeModal({ email, trigger }: Props) {
             Upgrade to CaptureFlow Pro
           </SmoothDialogTitle>
           <SmoothDialogDescription>
-            Studio exports, more storage, and longer shareable recordings.
-            Cancel any time.
+            More cloud storage for your shares and Snaps. Cancel any time.
           </SmoothDialogDescription>
         </SmoothDialogHeader>
 
