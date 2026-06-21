@@ -76,3 +76,35 @@ jobs:
       # from apps/web/wrangler.jsonc.
       - name: Build & deploy worker
         run: pnpm --filter @captureflow/web cf:deploy
+
+  # Deploy the VitePress docs site (apps/docs) to Cloudflare Pages on push to
+  # main, gated behind the same build + secret-scan as the worker. Independent
+  # of the worker deploy (separate concurrency group), so neither blocks the
+  # other. NOTE: the CLOUDFLARE_API_TOKEN must additionally carry
+  # "Cloudflare Pages: Edit" for this job — the Workers/D1/R2 token alone is not
+  # enough. After the first successful deploy, bind docs.captureflow.xyz to the
+  # captureflow-docs Pages project in the dashboard (Pages → Custom domains).
+  deploy-docs:
+    needs: [build, secret-scan]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: cloudflare-deploy-docs
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Create the Pages project on the first run; a no-op (|| true) afterwards.
+      - name: Ensure Pages project exists
+        run: pnpm --filter @captureflow/docs exec wrangler pages project create captureflow-docs --production-branch main || true
+      # vitepress build → wrangler pages deploy .vitepress/dist
+      - name: Build & deploy docs
+        run: pnpm --filter @captureflow/docs cf:deploy
