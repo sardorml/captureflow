@@ -109,7 +109,7 @@ export function RecorderMockup() {
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
         viewport={{ once: true, margin: '-80px' }}
         transition={{ type: 'spring', stiffness: 90, damping: 18, mass: 0.9 }}
-        className="relative overflow-hidden rounded-[20px] border border-white/10 bg-neutral-950 shadow-2xl shadow-blue-950/40 ring-1 ring-black/5 sm:rounded-[24px]"
+        className="relative overflow-hidden rounded-[14px] border border-white/10 bg-neutral-950 shadow-2xl shadow-blue-950/40 ring-1 ring-black/5 sm:rounded-[16px]"
       >
         {/* ── Link/share header — macOS traffic lights + the instant-link
             payoff (URL · Copy link · share), in place of full window chrome.
