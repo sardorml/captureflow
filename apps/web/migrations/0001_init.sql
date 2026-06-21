@@ -1,5 +1,5 @@
 PRAGMA defer_foreign_keys=TRUE;
-CREATE TABLE shares (
+CREATE TABLE IF NOT EXISTS shares (
   slug              TEXT PRIMARY KEY,
   device_id         TEXT NOT NULL,
   storage_key       TEXT NOT NULL,
@@ -20,19 +20,14 @@ CREATE TABLE shares (
   CHECK (source IN ('instant', 'edited')),
   CHECK (preset IN ('share'))
 ) STRICT;
-CREATE TABLE share_reactions (
+CREATE TABLE IF NOT EXISTS share_reactions (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   slug          TEXT NOT NULL,
   emoji         TEXT NOT NULL,
   timestamp_ms  INTEGER NOT NULL,
   created_at    INTEGER NOT NULL
 , user_id   TEXT, user_name TEXT) STRICT;
-CREATE TABLE d1_migrations(
-		id         INTEGER PRIMARY KEY AUTOINCREMENT,
-		name       TEXT UNIQUE,
-		applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
@@ -41,7 +36,7 @@ CREATE TABLE users (
   createdAt INTEGER NOT NULL,
   updatedAt INTEGER NOT NULL
 );
-CREATE TABLE sessions (
+CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY,
   expiresAt INTEGER NOT NULL,
   token TEXT NOT NULL UNIQUE,
@@ -52,7 +47,7 @@ CREATE TABLE sessions (
   userId TEXT NOT NULL,
   FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE TABLE accounts (
+CREATE TABLE IF NOT EXISTS accounts (
   id TEXT PRIMARY KEY,
   accountId TEXT NOT NULL,
   providerId TEXT NOT NULL,
@@ -68,7 +63,7 @@ CREATE TABLE accounts (
   updatedAt INTEGER NOT NULL,
   FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE TABLE verifications (
+CREATE TABLE IF NOT EXISTS verifications (
   id TEXT PRIMARY KEY,
   identifier TEXT NOT NULL,
   value TEXT NOT NULL,
@@ -76,7 +71,7 @@ CREATE TABLE verifications (
   createdAt INTEGER,
   updatedAt INTEGER
 );
-CREATE TABLE device_tokens (
+CREATE TABLE IF NOT EXISTS device_tokens (
   id            TEXT PRIMARY KEY,
   user_id       TEXT NOT NULL,
   token_hash    TEXT NOT NULL UNIQUE,
@@ -86,7 +81,7 @@ CREATE TABLE device_tokens (
   revoked_at    INTEGER,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE TABLE user_quotas (
+CREATE TABLE IF NOT EXISTS user_quotas (
   user_id                TEXT PRIMARY KEY,
   
   
@@ -99,7 +94,7 @@ CREATE TABLE user_quotas (
   note                   TEXT,
   updated_at             INTEGER NOT NULL
 ) STRICT;
-CREATE TABLE snaps (
+CREATE TABLE IF NOT EXISTS snaps (
   id              TEXT PRIMARY KEY,
   
   
@@ -131,7 +126,7 @@ CREATE TABLE snaps (
   view_count      INTEGER NOT NULL DEFAULT 0, workspace_id TEXT REFERENCES workspace(id), visibility TEXT NOT NULL DEFAULT 'public',
   CHECK (state IN ('ready', 'deleted'))
 ) STRICT;
-CREATE TABLE pro_subscription (
+CREATE TABLE IF NOT EXISTS pro_subscription (
   
   
   
@@ -165,7 +160,7 @@ CREATE TABLE pro_subscription (
   created_at             INTEGER NOT NULL,
   updated_at             INTEGER NOT NULL
 ) STRICT;
-CREATE TABLE workspace (
+CREATE TABLE IF NOT EXISTS workspace (
   
   
   
@@ -190,7 +185,7 @@ CREATE TABLE workspace (
   created_at      INTEGER NOT NULL,
   updated_at      INTEGER NOT NULL
 , logo_key             TEXT, allow_public_links   INTEGER NOT NULL DEFAULT 1, allow_member_uploads INTEGER NOT NULL DEFAULT 1) STRICT;
-CREATE TABLE workspace_member (
+CREATE TABLE IF NOT EXISTS workspace_member (
   workspace_id    TEXT NOT NULL REFERENCES workspace(id) ON DELETE CASCADE,
   user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   
@@ -200,7 +195,7 @@ CREATE TABLE workspace_member (
   joined_at       INTEGER NOT NULL,
   PRIMARY KEY (workspace_id, user_id)
 ) STRICT;
-CREATE TABLE workspace_invite (
+CREATE TABLE IF NOT EXISTS workspace_invite (
   id                   TEXT PRIMARY KEY,
   workspace_id         TEXT NOT NULL REFERENCES workspace(id) ON DELETE CASCADE,
   
@@ -216,7 +211,7 @@ CREATE TABLE workspace_invite (
   
   accepted_at          INTEGER
 ) STRICT;
-CREATE TABLE share_comments (
+CREATE TABLE IF NOT EXISTS share_comments (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   slug        TEXT NOT NULL,
   user_id     TEXT NOT NULL,
@@ -224,7 +219,7 @@ CREATE TABLE share_comments (
   body        TEXT NOT NULL,
   created_at  INTEGER NOT NULL
 , timestamp_ms INTEGER) STRICT;
-CREATE TABLE share_activity (
+CREATE TABLE IF NOT EXISTS share_activity (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   slug          TEXT NOT NULL,
   kind          TEXT NOT NULL CHECK (kind IN ('reaction', 'comment')),
@@ -244,59 +239,59 @@ CREATE TABLE share_activity (
   created_at    INTEGER NOT NULL
 ) STRICT;
 DELETE FROM sqlite_sequence;
-CREATE INDEX idx_shares_device
+CREATE INDEX IF NOT EXISTS idx_shares_device
   ON shares (device_id, created_at DESC);
-CREATE INDEX idx_shares_gc
+CREATE INDEX IF NOT EXISTS idx_shares_gc
   ON shares (last_viewed_at)
   WHERE state = 'ready';
-CREATE INDEX idx_shares_pending_gc
+CREATE INDEX IF NOT EXISTS idx_shares_pending_gc
   ON shares (created_at)
   WHERE state = 'pending';
-CREATE INDEX idx_reactions_slug
+CREATE INDEX IF NOT EXISTS idx_reactions_slug
   ON share_reactions (slug, timestamp_ms);
-CREATE INDEX sessions_userId_idx ON sessions(userId);
-CREATE INDEX accounts_userId_idx ON accounts(userId);
-CREATE INDEX verifications_identifier_idx ON verifications(identifier);
-CREATE INDEX idx_shares_user
+CREATE INDEX IF NOT EXISTS sessions_userId_idx ON sessions(userId);
+CREATE INDEX IF NOT EXISTS accounts_userId_idx ON accounts(userId);
+CREATE INDEX IF NOT EXISTS verifications_identifier_idx ON verifications(identifier);
+CREATE INDEX IF NOT EXISTS idx_shares_user
   ON shares (user_id, created_at DESC)
   WHERE user_id IS NOT NULL;
-CREATE INDEX idx_device_tokens_user
+CREATE INDEX IF NOT EXISTS idx_device_tokens_user
   ON device_tokens (user_id, last_used_at DESC);
-CREATE INDEX idx_snaps_user
+CREATE INDEX IF NOT EXISTS idx_snaps_user
   ON snaps (user_id, created_at DESC);
-CREATE INDEX idx_snaps_active
+CREATE INDEX IF NOT EXISTS idx_snaps_active
   ON snaps (user_id, state);
-CREATE INDEX idx_snaps_gc
+CREATE INDEX IF NOT EXISTS idx_snaps_gc
   ON snaps (last_viewed_at)
   WHERE state = 'ready';
-CREATE INDEX idx_pro_subscription_email
+CREATE INDEX IF NOT EXISTS idx_pro_subscription_email
   ON pro_subscription(ls_customer_email);
-CREATE INDEX idx_pro_subscription_user_id
+CREATE INDEX IF NOT EXISTS idx_pro_subscription_user_id
   ON pro_subscription(user_id) WHERE user_id IS NOT NULL;
-CREATE INDEX idx_workspace_owner
+CREATE INDEX IF NOT EXISTS idx_workspace_owner
   ON workspace(owner_user_id);
-CREATE UNIQUE INDEX idx_workspace_owner_personal
+CREATE UNIQUE INDEX IF NOT EXISTS idx_workspace_owner_personal
   ON workspace(owner_user_id) WHERE kind = 'personal';
-CREATE INDEX idx_workspace_member_user
+CREATE INDEX IF NOT EXISTS idx_workspace_member_user
   ON workspace_member(user_id);
-CREATE INDEX idx_workspace_invite_workspace
+CREATE INDEX IF NOT EXISTS idx_workspace_invite_workspace
   ON workspace_invite(workspace_id);
-CREATE INDEX idx_workspace_invite_email
+CREATE INDEX IF NOT EXISTS idx_workspace_invite_email
   ON workspace_invite(LOWER(email));
-CREATE UNIQUE INDEX idx_workspace_invite_pending_unique
+CREATE UNIQUE INDEX IF NOT EXISTS idx_workspace_invite_pending_unique
   ON workspace_invite(workspace_id, LOWER(email))
   WHERE accepted_at IS NULL;
-CREATE INDEX idx_shares_workspace
+CREATE INDEX IF NOT EXISTS idx_shares_workspace
   ON shares(workspace_id, created_at DESC)
   WHERE workspace_id IS NOT NULL;
-CREATE INDEX idx_snaps_workspace
+CREATE INDEX IF NOT EXISTS idx_snaps_workspace
   ON snaps(workspace_id, created_at DESC)
   WHERE workspace_id IS NOT NULL;
-CREATE INDEX idx_share_comments_slug
+CREATE INDEX IF NOT EXISTS idx_share_comments_slug
   ON share_comments (slug, created_at DESC);
-CREATE INDEX idx_activity_slug_created
+CREATE INDEX IF NOT EXISTS idx_activity_slug_created
   ON share_activity (slug, created_at DESC);
-CREATE INDEX idx_activity_slug_ts
+CREATE INDEX IF NOT EXISTS idx_activity_slug_ts
   ON share_activity (slug, timestamp_ms);
-CREATE INDEX idx_activity_slug_kind
+CREATE INDEX IF NOT EXISTS idx_activity_slug_kind
   ON share_activity (slug, kind);
