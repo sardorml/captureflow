@@ -14,6 +14,13 @@
   "observability": {
     "enabled": true
   },
+  // Apex captureflow.xyz routes to this worker as a Cloudflare Workers Custom
+  // Domain. Bind it once in the dashboard (Workers & Pages → captureflow-web →
+  // Settings → Domains & Routes → Add → Custom domain → captureflow.xyz), which
+  // overrides the parked DNS record. This entry keeps it declarative so future
+  // deploys preserve the binding; custom_domain:true lets Cloudflare manage the
+  // apex DNS record for the worker.
+  "routes": [{ "pattern": "captureflow.xyz", "custom_domain": true }],
   // Cron Triggers → worker.ts scheduled(): hourly multipart GC + daily
   // retention sweep against D1 + R2.
   "triggers": {
