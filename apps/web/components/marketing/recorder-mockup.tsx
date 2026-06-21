@@ -54,28 +54,53 @@ export function RecorderMockup() {
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
+    let raf = 0;
     const syncDuration = () => {
       if (Number.isFinite(v.duration) && v.duration > 0) setDuration(v.duration);
     };
     const syncTime = () => setCurrent(v.currentTime);
     const syncPlaying = () => setPlaying(!v.paused);
+    // While playing, sample currentTime every animation frame so the scrubber
+    // advances continuously. `timeupdate` alone fires only ~4x/sec, which makes
+    // the playhead + fill visibly jump in ~250ms steps; rAF tracks playback at
+    // the display's refresh rate. React only re-touches the playhead's `left`
+    // each frame — the bars change class only at bar boundaries — so it's cheap.
+    const loop = () => {
+      setCurrent(v.currentTime);
+      raf = requestAnimationFrame(loop);
+    };
+    const startLoop = () => {
+      syncPlaying();
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(loop);
+    };
+    const stopLoop = () => {
+      syncPlaying();
+      cancelAnimationFrame(raf);
+      setCurrent(v.currentTime); // settle on the exact final position
+    };
     // Catch up on anything that already happened before this effect ran.
     syncDuration();
     syncTime();
     syncPlaying();
+    if (!v.paused) startLoop();
     v.addEventListener('loadedmetadata', syncDuration);
     v.addEventListener('durationchange', syncDuration);
+    // Keeps `current` accurate while paused / after a seek (loop is idle then).
     v.addEventListener('timeupdate', syncTime);
-    v.addEventListener('play', syncPlaying);
-    v.addEventListener('pause', syncPlaying);
-    v.addEventListener('ended', syncPlaying);
+    v.addEventListener('play', startLoop);
+    v.addEventListener('playing', startLoop);
+    v.addEventListener('pause', stopLoop);
+    v.addEventListener('ended', stopLoop);
     return () => {
+      cancelAnimationFrame(raf);
       v.removeEventListener('loadedmetadata', syncDuration);
       v.removeEventListener('durationchange', syncDuration);
       v.removeEventListener('timeupdate', syncTime);
-      v.removeEventListener('play', syncPlaying);
-      v.removeEventListener('pause', syncPlaying);
-      v.removeEventListener('ended', syncPlaying);
+      v.removeEventListener('play', startLoop);
+      v.removeEventListener('playing', startLoop);
+      v.removeEventListener('pause', stopLoop);
+      v.removeEventListener('ended', stopLoop);
     };
   }, []);
 
