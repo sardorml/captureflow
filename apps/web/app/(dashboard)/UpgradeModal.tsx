@@ -28,8 +28,10 @@ const CHECKOUT_BASE_URL =
   process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ?? '';
 
 const BENEFITS = [
-  '100 GB cloud storage (up from 200 MB)',
-  'Up to 1,000 active shares & Snaps (up from 100)',
+  '200 GB cloud storage (up from 200 MB)',
+  'No cap on the number of shares & Snaps',
+  'Automatic backups & monitoring',
+  'Priority support',
 ] as const;
 
 type Cycle = 'monthly' | 'annual';

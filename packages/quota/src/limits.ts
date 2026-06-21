@@ -48,13 +48,17 @@ export const ACCOUNT_LIMITS = {
 export type AccountLimits = typeof ACCOUNT_LIMITS;
 
 // Managed paid tier (Monthly / Annual on the hosted cloud). Stacks on top
-// of ACCOUNT_LIMITS — when a subscription is active, the storage cap and
-// active-artifact count are lifted to these. This is a CAPACITY tier, not
-// a feature unlock: the same code self-hosts for free with ACCOUNT_LIMITS.
+// of ACCOUNT_LIMITS — when a subscription is active, the storage cap is
+// lifted to 200 GB and the active-artifact count is effectively removed, so
+// storage is the ONLY cap. This is a CAPACITY tier, not a feature unlock:
+// the same code self-hosts for free with ACCOUNT_LIMITS.
 export const PRO_SUBSCRIPTION_LIMITS = {
-  totalStorageBytes: 100 * 1024 * 1024 * 1024, // 100 GB
-  activeArtifactsPerAccount: 1000,
-  // Matches the free tier's duration ceiling; the higher storage/artifact
-  // caps are what the subscription buys.
+  totalStorageBytes: 200 * 1024 * 1024 * 1024, // 200 GB
+  // No cap on the number of active shares / Snaps for subscribers — set far
+  // above any reachable count so the `activeCount >= limit` upload checks
+  // never trip. Storage (above) is the sole Pro limit.
+  activeArtifactsPerAccount: Number.MAX_SAFE_INTEGER,
+  // Matches the free tier's duration ceiling; the higher storage cap is what
+  // the subscription buys.
   perShareDurationMs: 3602 * 1000,
 } as const;
