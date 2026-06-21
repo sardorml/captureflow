@@ -1,8 +1,15 @@
 {
   "name": "@captureflow/desktop",
-  "version": "0.1.0-beta",
+  "version": "0.1.0",
   "private": true,
   "description": "CaptureFlow desktop screen recorder (Electron).",
+  "author": "CaptureFlow",
+  "homepage": "https://captureflow.xyz",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sardorml/captureflow.git"
+  },
+  "license": "AGPL-3.0-only",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
