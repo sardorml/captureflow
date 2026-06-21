@@ -32,6 +32,15 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Optional, gitignored local convenience (apps/desktop/.env.signing): a
+# maintainer's own signing identity + notary profile, so `pnpm build:mac` runs
+# with no per-shell exports — matching Framely's one-command build. The public
+# repo ships no signing material; forkers either create this file or export
+# APPLE_SIGNING_IDENTITY / APPLE_KEYCHAIN_PROFILE themselves (see header above).
+if [ -f .env.signing ]; then
+  set -a; . ./.env.signing; set +a
+fi
+
 NOTARIZE=true
 for arg in "$@"; do
   case "$arg" in
