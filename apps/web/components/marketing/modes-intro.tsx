@@ -51,7 +51,7 @@ function Divider() {
 // 2×3 grip-dot pattern — the app's right-edge drag handle.
 function GripDots() {
   return (
-    <div className="grid grid-cols-2 gap-[5px] self-center" aria-hidden>
+    <div className="grid grid-cols-2 gap-x-[5px] gap-y-[3px] self-center" aria-hidden>
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="h-[3px] w-[3px] rounded-full bg-white/40" />
       ))}
