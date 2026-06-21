@@ -634,15 +634,6 @@ const EDITOR_BACKGROUNDS = [
   'bg-neutral-200',
 ];
 
-const REACTION_POSITIONS = [
-  { top: 16, left: 12 },
-  { top: 16, left: 50 },
-  { top: 16, left: 88 },
-  { top: 84, left: 12 },
-  { top: 84, left: 50 },
-  { top: 84, left: 88 },
-];
-
 const FEEDBACK_EMOJI = ['👍', '🎉', '🔥', '❤️', '👏', '😮'];
 
 // Feedback body — interactive share-viewer surface: the recording plays on the
@@ -658,33 +649,17 @@ function FeedbackBody() {
   // prefers-reduced-motion: keep the looping demo video on its poster frame.
   const reduceMotion = useReducedMotion();
   const [bgIndex, setBgIndex] = useState(0);
-  const [reactionPos, setReactionPos] = useState(5);
   const [emojiIndex, setEmojiIndex] = useState(0);
   const [commentsOn, setCommentsOn] = useState(true);
   const [reactionsOn, setReactionsOn] = useState(true);
 
-  const reaction = REACTION_POSITIONS[reactionPos];
   const permissions: Array<{
     label: string;
     on: boolean;
     set: React.Dispatch<React.SetStateAction<boolean>>;
-    icon: string;
-    off: string;
   }> = [
-    {
-      label: em.micLabel,
-      on: commentsOn,
-      set: setCommentsOn,
-      icon: 'chat_bubble',
-      off: 'chat_bubble_outline',
-    },
-    {
-      label: em.systemLabel,
-      on: reactionsOn,
-      set: setReactionsOn,
-      icon: 'favorite',
-      off: 'favorite_border',
-    },
+    { label: em.micLabel, on: commentsOn, set: setCommentsOn },
+    { label: em.systemLabel, on: reactionsOn, set: setReactionsOn },
   ];
 
   return (
@@ -701,26 +676,9 @@ function FeedbackBody() {
           }`}
         >
           <DemoStage />
-          <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1">
-            {permissions.map((p) => (
-              <span
-                key={p.label}
-                className={`flex size-4 items-center justify-center rounded-full ring-1 ring-inset transition-colors ${
-                  p.on
-                    ? 'bg-black/55 text-white ring-white/20'
-                    : 'bg-black/40 text-white/45 ring-white/10'
-                }`}
-              >
-                <Icon name={p.on ? p.icon : p.off} size={9} />
-              </span>
-            ))}
-          </div>
-          <div
-            className="absolute flex size-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-base shadow-lg ring-2 ring-white transition-[top,left] duration-300 ease-out sm:size-9 sm:text-lg"
-            style={{ top: `${reaction.top}%`, left: `${reaction.left}%` }}
-          >
-            {/* Floating reaction bubble — drops onto the recording where a
-                viewer tapped, matching the real viewer's react-in-place feel. */}
+          <div className="absolute bottom-[6%] right-[6%] flex size-7 items-center justify-center rounded-full bg-white text-base shadow-lg ring-2 ring-white sm:size-9 sm:text-lg">
+            {/* Floating reaction bubble — pinned bottom-right. Picking a
+                reaction in the rail swaps the emoji, not the position. */}
             {FEEDBACK_EMOJI[emojiIndex]}
           </div>
         </div>
@@ -753,36 +711,22 @@ function FeedbackBody() {
         <div>
           <div className="mb-2 h-2 w-20 rounded-full bg-black/10" />
           <div className="grid grid-cols-3 gap-1.5">
-            {REACTION_POSITIONS.map((_, i) => {
-              const colAlign = [
-                'justify-start',
-                'justify-center',
-                'justify-end',
-              ][i % 3];
-              const rowAlign = i < 3 ? 'items-start' : 'items-end';
-              const selected = reactionPos === i;
+            {FEEDBACK_EMOJI.map((emoji, i) => {
+              const selected = emojiIndex === i;
               return (
                 <button
-                  key={i}
+                  key={emoji}
                   type="button"
-                  aria-label={em.cameraPositionAria.replace(
-                    '{n}',
-                    String(i + 1),
-                  )}
+                  aria-label={`React with ${emoji}`}
                   aria-pressed={selected}
-                  onClick={() => {
-                    setReactionPos(i);
-                    setEmojiIndex(i);
-                  }}
-                  className={`flex aspect-[4/3] cursor-pointer rounded-sm p-1 ${colAlign} ${rowAlign} ${
+                  onClick={() => setEmojiIndex(i)}
+                  className={`flex aspect-[4/3] cursor-pointer items-center justify-center rounded-sm p-1 ${
                     selected
                       ? 'bg-blue-500/20 ring-1 ring-inset ring-blue-500'
                       : 'bg-black/[0.06] hover:bg-black/10'
                   }`}
                 >
-                  <span className="text-[9px] leading-none">
-                    {FEEDBACK_EMOJI[i]}
-                  </span>
+                  <span className="text-[11px] leading-none">{emoji}</span>
                 </button>
               );
             })}
