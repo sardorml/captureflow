@@ -2,17 +2,17 @@ appId: software.captureflow
 productName: CaptureFlow
 directories:
   buildResources: build
-# Auto-update channel — generic provider served from our own Cloudflare CDN
-# (R2 bucket `captureflow-releases` → dl.captureflow.xyz). The build generates
-# `latest-mac.yml` + the .zip/.dmg/blockmaps; we upload those (and the per-
-# version release-notes markdown) to the bucket. The running app polls
-# dl.captureflow.xyz for `latest-mac.yml` via electron-updater. Squirrel still
-# verifies the Developer ID signature before swapping the bundle, so a hijacked
-# CDN can't ship a forged binary.
+# Auto-update channel — GitHub Releases (provider: github). The build generates
+# `latest-mac.yml` + the .zip/.dmg/blockmaps; attach those to the GitHub release
+# tagged `v<version>`. The running app polls this repo's releases for
+# `latest-mac.yml` via electron-updater and prompts before downloading. Squirrel
+# still verifies the Developer ID signature before swapping the bundle, so a
+# tampered release asset can't ship a forged binary. Tags MUST be `v`-prefixed
+# (electron-updater's default, vPrefixedTagName) — e.g. v0.1.0.
 publish:
-  provider: generic
-  url: https://dl.captureflow.xyz
-  channel: latest
+  provider: github
+  owner: sardorml
+  repo: captureflow
 files:
   - '!**/.vscode/*'
   - '!src/*'

@@ -4,14 +4,14 @@ import { is } from '@electron-toolkit/utils'
 import captureflowIconPath from '../../../resources/icon.png?asset'
 import { logInfo, logError } from './logger'
 
-// Wires up electron-updater against our Cloudflare CDN (generic provider,
-// dl.captureflow.xyz — configured in electron-builder.yml). The flow is
-// prompt-based: when a newer version is found we ask the user (native dialog,
-// Cap-style) before downloading anything; only "Update" downloads and installs.
-// Squirrel validates the Developer ID signature before swapping the bundle,
-// so a hijacked CDN can't ship a forged binary.
+// Wires up electron-updater against GitHub Releases (github provider —
+// configured in electron-builder.yml). The flow is prompt-based: when a newer
+// version is found we ask the user (native dialog, Cap-style) before downloading
+// anything; only "Update" downloads and installs. Squirrel validates the
+// Developer ID signature before swapping the bundle, so a tampered release asset
+// can't ship a forged binary.
 export function initAutoUpdater(): void {
-  // No-op in dev. electron-updater would otherwise hit the CDN on every
+  // No-op in dev. electron-updater would otherwise hit GitHub on every
   // launch, and the running binary isn't signed with our Developer ID, so
   // Squirrel would reject any "update" anyway.
   if (is.dev) return
