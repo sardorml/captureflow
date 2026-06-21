@@ -1,7 +1,18 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+import { Inter } from 'next/font/google';
 import { headers } from 'next/headers';
 import { readThemeFromCookieHeader } from '@captureflow/ui';
+
+// Inter — the marketing/landing typeface (CapCut-style). Loaded via next/font
+// and exposed as `--font-inter`; marketing.css points the landing's
+// `--font-sans`/`--font-system` at it inside the `.marketing-root` subtree.
+// The dashboard keeps its own font; only this CSS variable is shared on <html>.
+const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
+  display: 'swap',
+});
 import { SITE_URL } from '@/lib/site';
 import './globals.css';
 import './material-symbols-subset.css';
@@ -62,7 +73,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // no falling through to the CSS dark default while the toggle says light).
   const theme = readThemeFromCookieHeader((await headers()).get('cookie'));
   return (
-    <html lang="en" data-theme={theme}>
+    <html lang="en" data-theme={theme} className={inter.variable}>
       <body>{children}</body>
     </html>
   );

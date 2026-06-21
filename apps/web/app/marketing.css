@@ -1,0 +1,600 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Marketing surface stylesheet (copied + scoped from framely-landing).
+
+   This file backs the logged-out landing home + the (marketing) route group
+   (/plan, /download, /changelog). It is imported ONLY by:
+     - app/(marketing)/layout.tsx
+     - the root landing render (the <MarketingRoot> wrapper in app/page.tsx)
+
+   SCOPING CONTRACT — why everything hangs off `.marketing-root`:
+   app-web's dashboard themes itself with @framely/ui tokens (bg-canvas /
+   text-fg / data-theme on <html>). The landing, by contrast, defines its own
+   black palette via `--background`, `--foreground`, `--muted-foreground`, …
+   and a single TASA-Orbiter face. If those root-level values and the landing's
+   `@layer base` resets (body { bg-background }, html { font-sans }) were
+   applied globally they would clobber the dashboard.
+
+   So every value definition and base reset that the landing put on `:root` /
+   `body` / `html` is re-homed under the `.marketing-root` wrapper class. The
+   custom properties cascade down from that wrapper, so Tailwind utilities like
+   `bg-background`, `text-muted-foreground`, `border-border` resolve to the
+   landing palette WITHIN the marketing tree and resolve to nothing (dashboard
+   keeps its own tokens) everywhere else.
+
+   `@theme inline` must stay at the top level — it only tells Tailwind to
+   generate the `bg-background` / `text-foreground` / `font-mono` utilities and
+   point them at `var(--…)`; the actual values still come from the cascade, so
+   scoping the values to `.marketing-root` is enough to keep the dashboard
+   untouched.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+/* Pull Tailwind's scanner over the marketing component tree + the shared UI
+   primitives the landing sections import (raised-button, badge, separator,
+   accordion, …). Without this, their utility classes get tree-shaken out. */
+@source "../components/marketing/**/*.{ts,tsx}";
+@source "../components/ui/**/*.{ts,tsx}";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Theme (utility ↔ variable mapping) ─────────────────────────────────────
+   Top-level so Tailwind emits the utilities. Values are defined on
+   `.marketing-root` below, NOT on :root, so the dashboard is unaffected. */
+
+@theme inline {
+  --color-background: var(--mk-background);
+  --color-foreground: var(--mk-foreground);
+  /* Single-typeface site: mono, heading, and body all track `--font-sans`,
+     so the rendered face is whatever `--font-sans` resolves to per surface
+     (Helvetica-family on the landing — see the `.marketing-root` override
+     below). `font-mono` stays wired because lots of label call sites use it,
+     but it points at the sans variable so nothing renders in a mono face. */
+  --font-mono: var(--font-sans);
+  --font-heading: var(--font-sans), serif;
+  /* Body/system stack — re-pointed to the landing typeface inside
+     `.marketing-root`; this @theme default only applies to marketing content
+     rendered outside that wrapper (currently none). */
+  --font-system:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  --color-sidebar-ring: var(--mk-sidebar-ring);
+  --color-sidebar-border: var(--mk-sidebar-border);
+  --color-sidebar-accent-foreground: var(--mk-sidebar-accent-foreground);
+  --color-sidebar-accent: var(--mk-sidebar-accent);
+  --color-sidebar-primary-foreground: var(--mk-sidebar-primary-foreground);
+  --color-sidebar-primary: var(--mk-sidebar-primary);
+  --color-sidebar-foreground: var(--mk-sidebar-foreground);
+  --color-sidebar: var(--mk-sidebar);
+  --color-chart-5: var(--mk-chart-5);
+  --color-chart-4: var(--mk-chart-4);
+  --color-chart-3: var(--mk-chart-3);
+  --color-chart-2: var(--mk-chart-2);
+  --color-chart-1: var(--mk-chart-1);
+  --color-ring: var(--mk-ring);
+  --color-input: var(--mk-input);
+  --color-border: var(--mk-border);
+  --color-destructive: var(--mk-destructive);
+  --color-accent-foreground: var(--mk-accent-foreground);
+  /* `--color-accent` is the ONE @theme key that collides with @framely/ui
+     (it maps `--color-accent: var(--accent)` for the dashboard). Whichever
+     stylesheet imports last would otherwise win the `bg-accent`/`text-accent`
+     utility globally. The nested fallback keeps both surfaces correct
+     regardless of import order: inside `.marketing-root`, `--mk-accent` is
+     defined (landing grey); everywhere else it's unset, so this resolves to
+     the dashboard's own `--accent` token. */
+  --color-accent: var(--mk-accent, var(--accent));
+  --color-muted-foreground: var(--mk-muted-foreground);
+  --color-muted: var(--mk-muted);
+  --color-secondary-foreground: var(--mk-secondary-foreground);
+  --color-secondary: var(--mk-secondary);
+  --color-primary-foreground: var(--mk-primary-foreground);
+  --color-primary: var(--mk-primary);
+  --color-popover-foreground: var(--mk-popover-foreground);
+  --color-popover: var(--mk-popover);
+  --color-card-foreground: var(--mk-card-foreground);
+  --color-card: var(--mk-card);
+  --radius-sm: calc(var(--mk-radius) * 0.6);
+  --radius-md: calc(var(--mk-radius) * 0.8);
+  --radius-lg: var(--mk-radius);
+  --radius-xl: calc(var(--mk-radius) * 1.4);
+  --radius-2xl: calc(var(--mk-radius) * 1.8);
+  --radius-3xl: calc(var(--mk-radius) * 2.2);
+  --radius-4xl: calc(var(--mk-radius) * 2.6);
+}
+
+/* ─── Palette values — scoped to the marketing tree only ──────────────────── */
+
+.marketing-root {
+  /* CapCut-style light layout with Framely's blue brand: white canvas
+     (soft pastel mesh in the hero), near-black navy text (#090c14 — the same
+     as CapCut's --awesome-text-primary), blue brand accent (#2563eb), pale
+     blue surfaces. Typeface matches CapCut exactly: Inter (CapCut ships
+     Inter Regular/Medium/SemiBold). Inter is self-hosted via next/font in
+     app/layout.tsx and exposed as `--font-inter`; the dashboard keeps its own
+     TASA Orbiter face. Referencing the variable avoids a render-blocking
+     remote @import and the FOUT it causes. */
+  --font-sans:
+    var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-system:
+    var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  /* Headings (h1–h6 + the `font-heading` utility) must also use Inter. The
+     @theme default points --font-heading at the dashboard's TASA Orbiter, so
+     without this override every landing heading renders in Orbiter, not Inter
+     — which is exactly the bug we hit. CapCut's headings are Inter SemiBold. */
+  --font-heading:
+    var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  --mk-background: #ffffff;
+  --mk-foreground: #090c14; /* CapCut text navy-black */
+  --mk-card: #f5f6f7; /* CapCut light surface */
+  --mk-card-foreground: #090c14;
+  --mk-popover: #ffffff;
+  --mk-popover-foreground: #090c14;
+  --mk-primary: #2563eb; /* Framely blue (blue-600) */
+  --mk-primary-foreground: #ffffff; /* white reads on blue */
+  --mk-secondary: #eff6ff; /* pale blue tint (blue-50) */
+  --mk-secondary-foreground: #090c14;
+  --mk-muted: #f5f6f7;
+  --mk-muted-foreground: #5b6675; /* cool grey */
+  --mk-accent: #dbeafe; /* pale blue (blue-100) */
+  --mk-accent-foreground: #090c14;
+  --mk-destructive: oklch(0.577 0.245 27.325);
+  --mk-border: oklch(0 0 0 / 9%); /* hairline on light */
+  --mk-input: oklch(0 0 0 / 12%);
+  --mk-ring: #2563eb;
+  --mk-chart-1: oklch(0.585 0.233 264);
+  --mk-chart-2: oklch(0.556 0 0);
+  --mk-chart-3: oklch(0.639 0 0);
+  --mk-chart-4: oklch(0.731 0 0);
+  --mk-chart-5: oklch(0.83 0 0);
+  --mk-radius: 0.625rem;
+  --mk-sidebar: oklch(0.985 0 0);
+  --mk-sidebar-foreground: oklch(0.21 0 0);
+  --mk-sidebar-primary: oklch(0.585 0.233 264);
+  --mk-sidebar-primary-foreground: oklch(0.98 0 0);
+  --mk-sidebar-accent: oklch(0.96 0 0);
+  --mk-sidebar-accent-foreground: oklch(0.25 0 0);
+  --mk-sidebar-border: oklch(0 0 0 / 10%);
+  --mk-sidebar-ring: oklch(0.585 0.233 264);
+
+  /* ─── Neutral scale lock — pin the STANDARD Tailwind neutral scale so the
+     landing's raw `bg-neutral-*` / `text-neutral-*` utilities are deterministic
+     regardless of the dashboard's cookie theme. The root <html> carries the
+     dashboard's @framely/ui theme, whose tokens.css redefines the whole
+     `--color-neutral-*` scale (inverted on `[data-theme='light']`) and those
+     custom properties INHERIT down into this marketing subtree. Re-pin the
+     canonical Tailwind values (50 = lightest … 950 = darkest) so light-mode
+     surfaces (neutral-50/100/200) and text (neutral-700/800/900) resolve
+     predictably and never get inverted by the dashboard theme. */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
+}
+
+/* ─── Document-root background on marketing pages ────────────────────────────
+   The shared root layout paints <html>/<body> with `bg-canvas`, which in the
+   dashboard's light theme is #fafafa (white). Overscroll / rubber-band bounce
+   at the top of the page exposes that document background — a white band above
+   the dark landing. `.marketing-root` only covers the content box, not the
+   document root, so paint the root black too — but ONLY when marketing content
+   is present (`:has(.marketing-root)`). marketing.css is imported solely by the
+   landing + marketing layout, so this never reaches the dashboard. */
+html:has(.marketing-root),
+html:has(.marketing-root) body {
+  background-color: #ffffff;
+}
+
+/* ─── Base resets — scoped to the marketing wrapper ──────────────────────────
+   The landing put these on bare body/html/*. Re-homed under `.marketing-root`
+   so the dashboard's body/html/global element styling is left intact. */
+
+.marketing-root {
+  background-color: var(--mk-background);
+  color: var(--mk-foreground);
+  font-family:
+    var(--font-sans),
+    -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro Text',
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  scroll-padding-top: var(--header-height, 78px);
+}
+
+.marketing-root * {
+  border-color: var(--mk-border);
+}
+
+.marketing-root :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-heading), serif;
+  letter-spacing: -0.025em;
+}
+
+/* ─── Background texture ────────────────────────────────────────────────────── */
+
+.dot-pattern {
+  position: relative;
+  isolation: isolate;
+}
+
+.dot-pattern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  background-size:
+    24px 24px,
+    256px 256px;
+  background-image:
+    radial-gradient(circle, oklch(0 0 0 / 4%) 1px, transparent 1px),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* ─── Hero mesh gradient — exact copy of CapCut's hero aurora ─────────────────
+   CapCut's hero background: large, very soft, low-saturation pastel blooms on
+   white — a blue/periwinkle cluster down the LEFT edge and a pink/rose cluster
+   down the RIGHT edge, with a bright near-white band kept through the centre so
+   the headline stays legible. Multi-hue on purpose (blue + pink + lavender) to
+   match CapCut, not Framely's blue-only palette. Sits behind the hero + the
+   translucent fixed nav. */
+.hero-mesh {
+  /* CapCut's field is a smooth, evenly-spread 4-corner pastel mesh, not blobs
+     on white: pale blue down the LEFT (top-left + bottom-left), lavender/pink
+     across the RIGHT (top-right + bottom-right), all very low-saturation and
+     overlapping so they blend into one continuous wash with a bright,
+     faintly-warm centre. Base is a barely-tinted white so the centre is never a
+     hard pure-white hole. */
+  background-color: #fcfbfd;
+  /* Leading linear-gradient (top-most layer) only whites-out the very bottom so
+     the mesh meets the white section below seamlessly — the corner colour still
+     fills most of the hero, as on CapCut. */
+  background-image:
+    linear-gradient(to bottom, transparent 0%, transparent 90%, #ffffff 100%),
+    /* Pale, low-opacity blooms with a gentle feather — airy like CapCut, not
+       saturated bands piled at the edges. No separate centre wash; the soft
+       corner falloff leaves a naturally light middle. */
+    /* top-left — blue / periwinkle */
+    radial-gradient(
+        80% 80% at 0% 0%,
+        rgba(214, 225, 247, 0.65) 0%,
+        transparent 72%
+      ),
+    /* bottom-left — lavender-blue */
+    radial-gradient(
+        76% 80% at 0% 100%,
+        rgba(217, 219, 242, 0.55) 0%,
+        transparent 72%
+      ),
+    /* top-right — lavender / soft blue */
+    radial-gradient(
+        80% 80% at 100% 0%,
+        rgba(232, 221, 244, 0.65) 0%,
+        transparent 72%
+      ),
+    /* bottom-right — pink / rose */
+    radial-gradient(
+        80% 82% at 100% 100%,
+        rgba(246, 227, 238, 0.65) 0%,
+        transparent 74%
+      );
+}
+
+/* Static brand-blue aurora — see components/marketing/scroll-aura.tsx.
+   z-0 sits above the white page background but below the z-10 content layer,
+   so it tints the transparent sections without covering text. Fixed positions,
+   no scroll reactivity. Brand blue/purple only. */
+.scroll-aura {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(
+      46% 40% at 16% 22%,
+      rgba(147, 197, 253, 0.16) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      42% 38% at 84% 72%,
+      rgba(147, 197, 253, 0.13) 0%,
+      transparent 60%
+    );
+}
+
+/* ─── Animations ────────────────────────────────────────────────────────────── */
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out both;
+}
+
+.animation-delay-100 {
+  animation-delay: 0.1s;
+}
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+.animation-delay-300 {
+  animation-delay: 0.3s;
+}
+.animation-delay-400 {
+  animation-delay: 0.4s;
+}
+.animation-delay-500 {
+  animation-delay: 0.5s;
+}
+.animation-delay-600 {
+  animation-delay: 0.6s;
+}
+
+/* ─── Border glow ───────────────────────────────────────────────────────────── */
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes border-rotate {
+  to {
+    --angle: 360deg;
+  }
+}
+
+.animate-border-glow {
+  position: relative;
+  border: none !important;
+}
+
+.animate-border-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--angle),
+    transparent 65%,
+    rgba(99, 102, 241, 0.4) 80%,
+    rgba(99, 102, 241, 0.7) 90%,
+    transparent 95%
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: border-rotate 10s linear infinite;
+  pointer-events: none;
+}
+
+/* ─── Shine sweep ───────────────────────────────────────────────────────────── */
+
+/*
+ * Sweep takes 2s. Idle between sweeps is controlled by --shine-interval.
+ * Total loop = 2s (sweep) + interval (idle).
+ *
+ * Keyframe %s are tuned for interval = 2s (loop = 4s → sweep = 50%).
+ * At other intervals the sweep still takes 50% of the loop, so speed drifts.
+ * For precise tuning, recompute: sweep_start% = 100 × interval / (interval + 2).
+ */
+
+@keyframes shine-sweep {
+  /* Idle phase: 0% → 50% of loop (2s when interval = 2s) */
+  0%,
+  50% {
+    transform: translateX(-150%) skewX(-12deg);
+    opacity: 0;
+  }
+  /* Sweep phase: 50% → 100% of loop (2s when interval = 2s) */
+  55% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(400%) skewX(-12deg);
+    opacity: 0;
+  }
+}
+
+@keyframes shine-sweep-once {
+  0% {
+    transform: translateX(-150%) skewX(-12deg);
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(400%) skewX(-12deg);
+    opacity: 0;
+  }
+}
+
+.animate-shine {
+  --shine-interval: 2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 35%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.1) 65%,
+    transparent 100%
+  );
+  transform: translateX(-150%) skewX(-12deg);
+  opacity: 0;
+  animation: shine-sweep calc(2s + var(--shine-interval)) ease-in-out infinite;
+  pointer-events: none;
+}
+
+.group:hover .animate-shine::after,
+.animate-shine:hover::after {
+  animation: shine-sweep-once 0.7s ease-out;
+}
+
+/* ─── Legal prose ───────────────────────────────────────────────────────────── */
+
+.legal-prose h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.legal-prose .legal-updated {
+  color: var(--mk-muted-foreground);
+  font-size: 0.875rem;
+  margin-bottom: 3rem;
+  display: block;
+}
+
+.legal-prose h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.legal-prose p {
+  color: var(--mk-muted-foreground);
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+.legal-prose ul {
+  color: var(--mk-muted-foreground);
+  line-height: 1.8;
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.legal-prose li {
+  margin-bottom: 0.25rem;
+}
+
+.legal-prose a {
+  color: var(--mk-foreground);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-prose a:hover {
+  color: oklch(0.585 0.233 264);
+}
+
+/* ─── Blog prose ────────────────────────────────────────────────────────────── */
+
+.blog-prose h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.blog-prose h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.blog-prose p {
+  color: var(--mk-muted-foreground);
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+.blog-prose ul,
+.blog-prose ol {
+  color: var(--mk-muted-foreground);
+  line-height: 1.8;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.blog-prose ul {
+  list-style: disc;
+}
+.blog-prose ol {
+  list-style: decimal;
+}
+
+.blog-prose li {
+  margin-bottom: 0.25rem;
+}
+
+.blog-prose strong {
+  color: var(--mk-foreground);
+  font-weight: 600;
+}
+
+.blog-prose a {
+  color: oklch(0.585 0.233 264);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.blog-prose a:hover {
+  opacity: 0.8;
+}
+
+.blog-prose hr {
+  border-color: var(--mk-border);
+  margin: 2rem 0;
+}

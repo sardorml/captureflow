@@ -24,7 +24,7 @@
     {
       "binding": "DB",
       "database_name": "captureflow",
-      "database_id": "REPLACE_AFTER_wrangler_d1_create"
+      "database_id": "87523f52-ad6f-474f-85e8-87f267a98763"
     }
   ],
   // All ported share/snap r2.ts read env.BUCKET. Prefixes: videos/, posters/, snaps/.

@@ -14,7 +14,7 @@
 // PostHog product analytics (web). Use the SAME project key as the desktop app
 // (its POSTHOG_KEY) so the cross-surface funnel — landing →
 // download → install → first recording → upgrade — stitches into one journey.
-export const POSTHOG_KEY = 'phc_ALidxdiTar6cFk3gPMYiBNn7aSiwHrDz42wPoD4knzPB';
+export const POSTHOG_KEY = 'phc_rX8yKmqsTKMUQ5dUkyW2aCv3vV8pAfQztbKgXag8cY73';
 export const POSTHOG_HOST = 'https://us.i.posthog.com';
 
 // Cloudflare Web Analytics. captureflow.xyz is proxied through Cloudflare, so

@@ -16,6 +16,10 @@ import { getSessionCookie } from 'better-auth/cookies';
 //   - `/invite/*`                 → workspace invite landing.
 //   - `/download`                 → public "get the app" page (linked from
 //                                   the landing's Download button).
+//   - `/plan`                     → public pricing page (PricingSection +
+//                                   ComparePlansSection + FAQ).
+//   - `/suggest-feature`          → public feature-suggestion form (linked
+//                                   from the landing's roadmap section).
 //   - `/r/[id]`, `/s/[id]`        → public share + snap viewers (visibility
 //                                   enforced inside the route, not here).
 //   - `/api/auth`, `/api/r/*`, `/api/s/*`, `/api/usage`, `/api/workspaces`,
@@ -33,7 +37,7 @@ export const config = {
     // The trailing `(?!...\\.[\\w]+$)` excludes any top-level static file in
     // /public so the gate never redirects an asset to /login. `_next/`
     // already covers the build output + the /_next/image optimizer.
-    '/((?!_next/|favicon\\.ico|robots\\.txt|ingest/|api/auth|api/lemon-webhook|api/usage|api/verify-session|api/workspaces|api/request-access|api/r/|api/s/|r/|r$|s/|s$|login|signup|download|auth/callback|auth/clear|invite|.*\\.[\\w]+$).*)',
+    '/((?!_next/|favicon\\.ico|robots\\.txt|ingest/|api/auth|api/lemon-webhook|api/usage|api/verify-session|api/workspaces|api/request-access|api/r/|api/s/|r/|r$|s/|s$|login|signup|download|plan|suggest-feature|auth/callback|auth/clear|invite|.*\\.[\\w]+$).*)',
   ],
 };
 
