@@ -240,6 +240,56 @@ and publishes the worker with its D1/R2 bindings, vars, and cron triggers from
 
 ---
 
+## Continuous deployment (auto-deploy on push to `main`)
+
+Once a manual `cf:deploy` works (steps 1–8), CI can publish for you. The
+`deploy` job in **`.github/workflows/ci.yml`** runs on every push to `main`,
+**after** the `build` job (typecheck + `next build`) passes, and:
+
+1. applies any new D1 migrations to the production DB (`db:apply:remote`), then
+2. builds with OpenNext and publishes the worker (`cf:deploy`).
+
+Pull requests never deploy. Deploys are serialized (`concurrency`) so two
+pushes can't publish at once.
+
+### One-time setup
+
+1. **Finish provisioning first.** The job deploys whatever is in the repo, so
+   the real D1 `database_id` must be committed in `apps/web/wrangler.jsonc`
+   (step 2) and the R2 bucket + runtime secrets must already exist (steps 3–4).
+   Runtime secrets stay in Cloudflare via `wrangler secret put` — they are
+   **not** GitHub secrets and are never needed by CI.
+
+2. **Create a Cloudflare API token.** Dashboard → My Profile → API Tokens →
+   *Create Token* → use the **"Edit Cloudflare Workers"** template, scope
+   *Account Resources* to your account, and make sure these permissions are
+   included (add any that are missing):
+
+   - Account · **Workers Scripts** · Edit
+   - Account · **D1** · Edit
+   - Account · **Workers R2 Storage** · Edit
+
+3. **Add two GitHub Actions secrets** (repo → Settings → Secrets and variables →
+   Actions → *New repository secret*):
+
+   | Secret | Value |
+   | --- | --- |
+   | `CLOUDFLARE_API_TOKEN` | the token from step 2 |
+   | `CLOUDFLARE_ACCOUNT_ID` | your Cloudflare account id (Workers & Pages → Account details, or `wrangler whoami`) |
+
+That's it — push to `main` and watch the **deploy** job in the Actions tab. To
+deploy manually instead, keep running `pnpm --filter @captureflow/web cf:deploy`
+locally; the two paths are equivalent.
+
+> Prefer Cloudflare's native Git integration? You can instead connect the repo
+> under **Workers & Pages → Workers Builds** with build command
+> `pnpm --filter @captureflow/web cf:build` and deploy command
+> `pnpm --filter @captureflow/web exec opennextjs-cloudflare deploy`. The
+> GitHub Actions job above is the in-repo, reproducible default and needs no
+> dashboard wiring beyond the two secrets.
+
+---
+
 ## 9. Point the desktop recorder at your backend
 
 The desktop app (`apps/desktop`) talks to the web backend through four

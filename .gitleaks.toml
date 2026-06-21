@@ -1,0 +1,30 @@
+# gitleaks config for CaptureFlow (open source). Extends the built-in ruleset
+# and allowlists values/paths that are public BY DESIGN. Used by both the
+# pre-push hook (.githooks/pre-push) and the CI `secret-scan` job.
+title = "CaptureFlow gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public-by-design values and generated / non-source paths"
+
+# PostHog PROJECT keys (phc_…) are write-only ingest keys, designed to ship in
+# client code — not secrets. See apps/web/lib/public-analytics.ts.
+regexes = [
+  '''phc_[A-Za-z0-9]{30,}''',
+]
+
+# Never scan generated, vendored, or binary files. We deliberately do NOT
+# exclude *.example env templates: they must hold only placeholders, so the
+# scanner still catches a real secret accidentally pasted into one (e.g. a
+# real value in apps/web/.dev.vars.example, one keystroke from the gitignored
+# .dev.vars). Real secrets live only in .env / .dev.vars, which are gitignored.
+paths = [
+  '''(^|/)pnpm-lock\.yaml$''',
+  '''(^|/)node_modules/''',
+  '''(^|/)\.next/''',
+  '''(^|/)\.open-next/''',
+  '''(^|/)\.wrangler/''',
+  '''\.(png|jpe?g|gif|webp|ico|woff2?|ttf|otf|mp4|webm|pdf)$''',
+]

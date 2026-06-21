@@ -15,7 +15,9 @@
     "lint": "nx run-many -t lint",
     "typecheck": "nx run-many -t typecheck",
     "graph": "nx graph",
-    "format": "prettier --write \"**/*.{ts,tsx,md,json,jsonc,css}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,jsonc,css}\"",
+    "scan:secrets": "gitleaks git . --config .gitleaks.toml --redact --no-banner",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "nx": "22.6.0",

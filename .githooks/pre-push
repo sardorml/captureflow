@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Pre-push secret scan. Blocks the push if gitleaks detects any credential or
+# secret in the commits being pushed. CaptureFlow is open source — a leaked key
+# in git history is public forever — so this gate runs on every push.
+#
+# Enabled via core.hooksPath=.githooks, wired automatically by the root
+# package.json `prepare` script on `pnpm install`. Emergency bypass:
+# `git push --no-verify` (avoid — CI's gitleaks job will still flag it).
+set -uo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+config="$repo_root/.gitleaks.toml"
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  cat >&2 <<'EOF'
+✖ gitleaks is not installed — required to scan for secrets before pushing.
+  Install it:  brew install gitleaks
+  (or see https://github.com/gitleaks/gitleaks#installing)
+EOF
+  exit 1
+fi
+
+ZERO="0000000000000000000000000000000000000000"
+status=0
+
+# Pre-push hands us one line per ref on stdin:
+#   <local ref> <local oid> <remote ref> <remote oid>
+while read -r local_ref local_oid remote_ref remote_oid; do
+  [ "$local_oid" = "$ZERO" ] && continue        # branch deletion — nothing to scan
+
+  if [ "$remote_oid" = "$ZERO" ]; then
+    log_opts="$local_oid"                        # new remote branch — scan all reachable
+  else
+    log_opts="$remote_oid..$local_oid"           # existing branch — scan only new commits
+  fi
+
+  echo "🔍 gitleaks: scanning commits ($log_opts)…"
+  if ! gitleaks git "$repo_root" --config "$config" \
+        --log-opts="$log_opts" --redact --no-banner; then
+    status=1
+  fi
+done
+
+if [ "$status" -ne 0 ]; then
+  cat >&2 <<'EOF'
+
+✖ Push blocked — gitleaks found a potential secret in the commits above
+  (values redacted in the report).
+
+  • Remove the secret and amend/rewrite the commit that introduced it — a value
+    already in history stays there until the history is rewritten.
+  • Rotate the exposed credential; assume it is compromised.
+  • False positive? Add an allowlist entry to .gitleaks.toml, then re-push.
+EOF
+  exit 1
+fi
+
+echo "✅ gitleaks: no secrets in the pushed commits."
+exit 0
