@@ -86,8 +86,8 @@ export const MESSAGES = {
     titleMain: 'Loom Alternative',
     titleSuffix: 'for Everyone',
     subtitleLine1:
-      'macOS screen recorder that hands you a share link the moment you stop.',
-    subtitleLine2: 'For demos, bug reports, and async updates.',
+      'Easily record and share video messages with your',
+    subtitleLine2: 'teammates and customers to supercharge productivity.',
     // Primary CTA label (public-beta stage).
     ctaLabel: 'Try CaptureFlow for free',
     // Secondary grey hero button — scrolls to the #pricing section.
