@@ -83,8 +83,8 @@ export const MESSAGES = {
   hero: {
     // The h1 renders as: <violet>aiWord</violet> titleMain <br/> titleSuffix.
     aiWord: 'Open-Source',
-    titleMain: 'Screen Recorder',
-    titleSuffix: 'for macOS',
+    titleMain: 'Loom Alternative',
+    titleSuffix: 'for Everyone',
     subtitleLine1:
       'macOS screen recorder that hands you a share link the moment you stop.',
     subtitleLine2: 'For demos, bug reports, and async updates.',
