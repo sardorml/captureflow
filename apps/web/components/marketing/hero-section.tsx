@@ -7,6 +7,7 @@ import { Icon } from '@/components/ui/icon';
 import { CURRENT_STAGE } from '@/lib/marketing/constants';
 import { track } from '@/lib/marketing/track';
 import { WaitlistForm } from './waitlist-form';
+import { PlatformAvailability } from './platform-availability';
 import { RecorderMockup } from './recorder-mockup';
 import { HaloEffect } from './halo-effect';
 import { useLocalizedHref, useMessages } from './i18n-provider';
@@ -152,9 +153,7 @@ export function HeroSection() {
                     {m.hero.secondaryCta}
                   </a>
                 </div>
-                <p className="mt-4 animate-fade-in text-sm font-medium text-neutral-500 animation-delay-500 sm:text-base">
-                  {m.hero.noCreditCard}
-                </p>
+                <PlatformAvailability />
               </>
             ) : (
               <div className="mt-4 flex animate-fade-in-up justify-center animation-delay-400">
