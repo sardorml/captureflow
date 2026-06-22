@@ -6,7 +6,7 @@
 export const SITE_URL = 'https://captureflow.xyz';
 export const SITE_NAME = 'CaptureFlow';
 export const SITE_TITLE =
-  'Open-Source Screen Recorder for Mac with Instant Share Links — CaptureFlow';
+  'Open-Source Loom Alternative & Screen Recorder — CaptureFlow';
 export const SITE_DESCRIPTION =
   'CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated Snaps — record, share, and snap from one menu bar app. Free and self-hostable on your own Cloudflare account.';
 export const SUPPORT_EMAIL = 'captureflow.support@gmail.com';

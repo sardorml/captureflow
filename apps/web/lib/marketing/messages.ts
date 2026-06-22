@@ -15,7 +15,7 @@ export const MESSAGES = {
   // <head> metadata for the marketing pages — the document <title> and meta
   // description (also reused for OG/Twitter copy).
   meta: {
-    title: 'Open-Source Screen Recorder for Mac with Instant Share Links — CaptureFlow',
+    title: 'Open-Source Loom Alternative & Screen Recorder — CaptureFlow',
     description:
       'CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated Snaps — record, share, and snap from one menu bar app. Free and self-hostable on your own Cloudflare account.',
   },
