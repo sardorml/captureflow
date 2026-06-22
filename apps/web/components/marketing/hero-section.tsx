@@ -156,7 +156,7 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                     </svg>
                     GitHub
                     {stars && (
-                      <span className="flex items-center gap-1 border-l border-neutral-400/50 pl-2.5 text-neutral-500">
+                      <span className="flex items-center gap-1 border-l border-neutral-400/50 pl-2.5">
                         <Icon name="star" size={16} />
                         {stars}
                       </span>
