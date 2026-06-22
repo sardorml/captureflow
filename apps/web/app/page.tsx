@@ -8,6 +8,7 @@ import './marketing.css';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { loadSession } from '@/lib/session-guard';
+import { getStarCount, formatStars } from '@/lib/github';
 import { Nav } from '@/components/marketing/nav';
 import { HeroSection } from '@/components/marketing/hero-section';
 import { ModesIntro } from '@/components/marketing/modes-intro';
@@ -64,6 +65,12 @@ export default async function RootPage() {
   const session = await loadSession();
   if (session) redirect('/shares');
 
+  // Live GitHub star count for the hero's repo button (cached ~1h in github.ts;
+  // null before the repo is public or if the API is unreachable → button hides
+  // the count).
+  const starCount = await getStarCount();
+  const stars = starCount != null ? formatStars(starCount) : null;
+
   return (
     <I18nProvider>
       <MarketingShell>
@@ -75,7 +82,7 @@ export default async function RootPage() {
           {/* Nav is position: fixed, so push content down by the bar's
               measured height (--header-height, set in nav.tsx). */}
           <main style={{ paddingTop: 'var(--header-height, 68px)' }}>
-            <HeroSection />
+            <HeroSection stars={stars} />
             <ModesIntro />
             <CollaborationSection />
             <PricingSection />
