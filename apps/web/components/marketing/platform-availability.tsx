@@ -50,7 +50,7 @@ export function PlatformAvailability() {
           aria-label={`${name}: ${status}`}
           className={`flex items-center gap-2.5 ${live ? 'text-neutral-800' : 'text-neutral-400'}`}
         >
-          <Logo className="h-7 w-7" />
+          <Logo className="h-6 w-6" />
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
               live ? 'bg-blue-100 text-blue-700' : 'bg-neutral-100 text-neutral-400'
