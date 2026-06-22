@@ -155,7 +155,7 @@ export function PermissionsWindow(): React.JSX.Element {
             className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
               agreed
                 ? 'border-blue-500 bg-blue-600 text-white'
-                : 'border-border bg-card text-transparent hover:border-muted-foreground'
+                : 'border-muted-foreground/70 bg-white/[0.04] text-transparent hover:border-muted-foreground hover:bg-white/[0.07]'
             }`}
           >
             <Check className="h-3 w-3" strokeWidth={3} />
