@@ -126,7 +126,7 @@ export function AnimatedTooltip({
                 : { opacity: 1, scale: 1, x: 0, y: 0 }
             }
             className={cn(
-              'pointer-events-none absolute z-50 w-max max-w-xs rounded-md bg-foreground px-3 py-1.5 text-sm text-background shadow-md',
+              'pointer-events-none absolute z-50 w-max max-w-xs rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white shadow-md',
               placementStyles[placement],
               className
             )}
@@ -144,7 +144,7 @@ export function AnimatedTooltip({
             <span
               aria-hidden="true"
               className={cn(
-                'absolute -z-10 size-2 rotate-45 rounded-[2px] bg-foreground',
+                'absolute -z-10 size-2 rotate-45 rounded-[2px] bg-neutral-900',
                 arrowStyles[placement]
               )}
             />

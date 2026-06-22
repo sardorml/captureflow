@@ -10,22 +10,21 @@ import {
 import { getPosthogDistinctId, track } from '@/lib/marketing/track';
 import { useMessages } from './i18n-provider';
 
-// Managed card — the dark, highlighted paid plan, and the second card. A single
-// monthly price (the annual cycle was removed): the price, footnote, and
-// checkout come straight from the monthly catalog block.
+// Managed card — the dark, highlighted paid plan. A single monthly price
+// ($9/month) with 200 GB of managed cloud storage.
 export function ManagedCard() {
   const m = useMessages();
   const copy = m.pricing.monthly;
 
   const baseHref = MONTHLY_SUBSCRIPTION_CHECKOUT_URL
-    ? `${MONTHLY_SUBSCRIPTION_CHECKOUT_URL}?utm_source=site&utm_medium=pricing&utm_content=monthly`
+    ? `${MONTHLY_SUBSCRIPTION_CHECKOUT_URL}?utm_source=site&utm_medium=pricing&utm_content=managed`
     : '#pricing';
 
   // PostHog distinct_id is appended at CLICK time (it doesn't exist on the
   // server at render) so the signup flow can stitch the purchase back to the
   // web session.
   const handleCheckoutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    track('checkout_opened', { cycle: 'monthly' });
+    track('checkout_opened', { plan: 'managed' });
     if (!MONTHLY_SUBSCRIPTION_CHECKOUT_URL) return;
     const distinctId = getPosthogDistinctId();
     if (!distinctId) return; // plain attributed href still works
@@ -78,6 +77,7 @@ export function ManagedCard() {
         {[
           m.pricing.highlights.allFeatures,
           m.pricing.highlights.shareableLinks,
+          m.pricing.highlights.teamSeats,
         ].map((label) => (
           <li key={label} className="flex items-center gap-3 text-base">
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full ring-1 ring-white/15">
@@ -87,14 +87,6 @@ export function ManagedCard() {
           </li>
         ))}
       </ul>
-
-      {/* Storage tiers are expanding — signal that 100 GB isn't the ceiling.
-          Plain dot instead of a Material <Icon>: the marketing icon font is a
-          ligature subset and a "soon"/"schedule" glyph would leak as text. */}
-      <div className="mt-6 flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-neutral-300">
-        <span aria-hidden className="size-1.5 rounded-full bg-blue-400" />
-        More storage options coming soon
-      </div>
     </div>
   );
 }

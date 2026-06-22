@@ -182,14 +182,14 @@ export const MESSAGES = {
         title: 'Shareable recordings',
         features: {
           editor: {
-            title: 'React and comment on the web',
-            linkText: 'Drop reactions and threaded comments',
-            body: '— feedback lands right on the recording, no re-record.',
+            title: 'Edit recording',
+            linkText: 'Recolor and choose who can react',
+            body: '— polish your share on the web, no re-record.',
           },
           viewer: {
-            title: 'Stop recording, link is ready',
-            linkText: 'The URL hits your clipboard the moment you stop',
-            body: '— it uploads while you record, no render wait.',
+            title: 'Share, react and comment',
+            linkText: 'Drop reactions and threaded comments',
+            body: '— feedback lands right on the recording, no re-record.',
           },
           dashboard: {
             title: 'Your shares, your dashboard',
@@ -201,15 +201,15 @@ export const MESSAGES = {
       snap: {
         title: 'Snap screenshots',
         features: {
-          markup: {
-            title: 'Annotate before you share',
-            linkText: 'Add arrows, text, or blur',
-            body: 'over any capture — every annotation stays on the Snap.',
-          },
           capture: {
             title: 'Region, window, or full screen',
             linkText: 'One shortcut, three ways to grab',
             body: '— drag a region, click a window, or take the whole display.',
+          },
+          markup: {
+            title: 'Annotate before you share',
+            linkText: 'Add arrows, text, or blur',
+            body: 'over any capture — every annotation stays on the Snap.',
           },
           share: {
             title: 'One link, ready to share',
@@ -310,14 +310,14 @@ export const MESSAGES = {
     // Managed card highlights (two bullets — the full capability breakdown
     // lives in the compare table).
     highlights: {
-      allFeatures: 'Fully managed hosting — no Cloudflare setup required',
-      shareableLinks:
-        'Instant share links, Snaps, workspaces & 100 GB cloud storage we run for you',
+      allFeatures: 'Fully managed — no Cloudflare setup',
+      shareableLinks: 'Shareable recordings, screenshots & 200 GB cloud storage',
+      teamSeats: 'Whole team included — no per-seat fees',
     },
     monthly: {
       badgePro: 'Managed',
       badgeCycle: 'Monthly',
-      title: 'CaptureFlow Managed',
+      title: 'Managed hosting',
       subtitle: 'Fully hosted, billed monthly.',
       period: '/month',
       note: 'Cancel anytime.',

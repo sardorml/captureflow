@@ -57,15 +57,15 @@ const CATEGORIES: Category[] = [
     features: [
       {
         key: 'editor',
-        title: 'React and comment on the web',
-        linkText: 'Drop reactions and threaded comments',
-        body: '— feedback lands right on the recording, no re-record.',
+        title: 'Edit recording',
+        linkText: 'Recolor and choose who can react',
+        body: '— polish your share on the web, no re-record.',
       },
       {
         key: 'viewer',
-        title: 'Stop recording, link is ready',
-        linkText: 'The URL hits your clipboard the moment you stop',
-        body: '— it uploads while you record, no render wait.',
+        title: 'Share, react and comment',
+        linkText: 'Drop reactions and threaded comments',
+        body: '— feedback lands right on the recording, no re-record.',
       },
       {
         key: 'dashboard',
@@ -82,16 +82,16 @@ const CATEGORIES: Category[] = [
     title: 'Snap screenshots',
     features: [
       {
-        key: 'markup',
-        title: 'Annotate before you share',
-        linkText: 'Add arrows, text, or blur',
-        body: 'over any capture — every annotation stays on the Snap.',
-      },
-      {
         key: 'capture',
         title: 'Region, window, or full screen',
         linkText: 'One shortcut, three ways to grab',
         body: '— drag a region, click a window, or take the whole display.',
+      },
+      {
+        key: 'markup',
+        title: 'Annotate before you share',
+        linkText: 'Add arrows, text, or blur',
+        body: 'over any capture — every annotation stays on the Snap.',
       },
       {
         key: 'share',
@@ -548,6 +548,7 @@ function ViewerBody() {
   // prefers-reduced-motion: don't auto-run the looping demo video — the
   // poster frame carries the mockup just fine.
   const reduceMotion = useReducedMotion();
+  const [emojiIndex, setEmojiIndex] = useState(0);
   const REACTIONS = [
     { emoji: '👍', count: 12 },
     { emoji: '🎉', count: 7 },
@@ -561,10 +562,47 @@ function ViewerBody() {
   ];
   return (
     <div className="flex h-full w-full">
-      <div className="relative flex-1 overflow-hidden">
-        <div className={`absolute inset-0 ${EDITOR_BACKGROUNDS[0]}`} />
-        <div className="absolute inset-[8%] overflow-hidden rounded-lg bg-black shadow-xl ring-1 ring-black/10">
-          <DemoStage />
+      {/* Left — the recording with a reactions bar directly below it. */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="relative min-h-0 flex-1 overflow-hidden">
+          <div className={`absolute inset-0 ${EDITOR_BACKGROUNDS[0]}`} />
+          <div className="absolute inset-[8%] overflow-hidden rounded-lg bg-black shadow-xl ring-1 ring-black/10">
+            <DemoStage />
+            {/* Floating reaction bubble — picking one in the bar below pops it
+                here over the recording. */}
+            <motion.div
+              key={emojiIndex}
+              initial={reduceMotion ? false : { scale: 0.3, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+              className="absolute bottom-[6%] right-[6%] flex size-7 items-center justify-center rounded-full bg-white text-base shadow-lg ring-2 ring-white sm:size-9 sm:text-lg"
+            >
+              {FEEDBACK_EMOJI[emojiIndex]}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Reactions bar — pick one and it pops over the recording above. */}
+        <div className="flex shrink-0 items-center justify-center gap-1.5 border-t border-black/[0.06] bg-neutral-50 px-3 py-2 sm:gap-2 sm:py-2.5">
+          {FEEDBACK_EMOJI.map((emoji, i) => {
+            const selected = emojiIndex === i;
+            return (
+              <button
+                key={emoji}
+                type="button"
+                aria-label={`React with ${emoji}`}
+                aria-pressed={selected}
+                onClick={() => setEmojiIndex(i)}
+                className={`flex size-7 cursor-pointer items-center justify-center rounded-full text-sm transition sm:size-8 ${
+                  selected
+                    ? 'bg-blue-500/20 ring-1 ring-inset ring-blue-500'
+                    : 'bg-black/[0.04] hover:bg-black/10'
+                }`}
+              >
+                <span className="leading-none">{emoji}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
       <aside className="flex w-[26%] shrink-0 flex-col gap-3 border-l border-black/[0.06] bg-neutral-50 p-3 sm:gap-3.5 sm:p-3.5">
@@ -637,12 +675,11 @@ const EDITOR_BACKGROUNDS = [
 const FEEDBACK_EMOJI = ['👍', '🎉', '🔥', '❤️', '👏', '😮'];
 
 // Feedback body — interactive share-viewer surface: the recording plays on the
-// left while a reaction emoji floats over it; the right rail lets you pick the
-// reaction emoji and toggle who can react/comment. Click a swatch to recolor
-// the viewer's accent, a reaction tile to move the floating emoji, or a switch
-// to flip the comment/reaction permissions. (Reinterpreted from Framely's
-// background/camera/audio editor — same scaffolding, retargeted to CaptureFlow's
-// "react and comment on the web" story so the mockup matches the copy.)
+// left with a reactions bar directly below it; picking a reaction pops it over
+// the recording. The right rail recolors the viewer's accent and toggles who
+// can react/comment. (Reinterpreted from Framely's background/camera/audio
+// editor — same scaffolding, retargeted to CaptureFlow's "react and comment on
+// the web" story so the mockup matches the copy.)
 function FeedbackBody() {
   const m = useMessages();
   const em = m.collaboration.editorMockup;
@@ -664,26 +701,59 @@ function FeedbackBody() {
 
   return (
     <div className="flex h-full w-full">
-      <div className="relative flex-1 overflow-hidden border-r border-black/[0.06]">
-        <div
-          className={`absolute inset-0 transition-colors duration-300 ${EDITOR_BACKGROUNDS[bgIndex]}`}
-        />
-        <div
-          className={`absolute overflow-hidden bg-black transition-[inset] duration-300 ${
-            bgIndex === 3
-              ? 'inset-0'
-              : 'inset-[8%] rounded-lg shadow-xl ring-1 ring-black/10'
-          }`}
-        >
-          <DemoStage />
-          <div className="absolute bottom-[6%] right-[6%] flex size-7 items-center justify-center rounded-full bg-white text-base shadow-lg ring-2 ring-white sm:size-9 sm:text-lg">
-            {/* Floating reaction bubble — pinned bottom-right. Picking a
-                reaction in the rail swaps the emoji, not the position. */}
-            {FEEDBACK_EMOJI[emojiIndex]}
+      {/* Left — the recording, with a reactions bar directly below it. */}
+      <div className="flex min-w-0 flex-1 flex-col border-r border-black/[0.06]">
+        <div className="relative min-h-0 flex-1 overflow-hidden">
+          <div
+            className={`absolute inset-0 transition-colors duration-300 ${EDITOR_BACKGROUNDS[bgIndex]}`}
+          />
+          <div
+            className={`absolute overflow-hidden bg-black transition-[inset] duration-300 ${
+              bgIndex === 3
+                ? 'inset-0'
+                : 'inset-[8%] rounded-lg shadow-xl ring-1 ring-black/10'
+            }`}
+          >
+            <DemoStage />
+            {/* Floating reaction bubble — pinned bottom-right. Picking a reaction
+                in the bar below swaps the emoji (and pops it), not the position. */}
+            <motion.div
+              key={emojiIndex}
+              initial={reduceMotion ? false : { scale: 0.3, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+              className="absolute bottom-[6%] right-[6%] flex size-7 items-center justify-center rounded-full bg-white text-base shadow-lg ring-2 ring-white sm:size-9 sm:text-lg"
+            >
+              {FEEDBACK_EMOJI[emojiIndex]}
+            </motion.div>
           </div>
+        </div>
+
+        {/* Reactions bar — pick one and it pops over the recording above. */}
+        <div className="flex shrink-0 items-center justify-center gap-1.5 border-t border-black/[0.06] bg-neutral-50 px-3 py-2 sm:gap-2 sm:py-2.5">
+          {FEEDBACK_EMOJI.map((emoji, i) => {
+            const selected = emojiIndex === i;
+            return (
+              <button
+                key={emoji}
+                type="button"
+                aria-label={`React with ${emoji}`}
+                aria-pressed={selected}
+                onClick={() => setEmojiIndex(i)}
+                className={`flex size-7 cursor-pointer items-center justify-center rounded-full text-sm transition sm:size-8 ${
+                  selected
+                    ? 'bg-blue-500/20 ring-1 ring-inset ring-blue-500'
+                    : 'bg-black/[0.04] hover:bg-black/10'
+                }`}
+              >
+                <span className="leading-none">{emoji}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
+      {/* Right — accent swatches + who-can-react/comment toggles. */}
       <div className="flex w-[28%] flex-col gap-3 bg-neutral-50 p-3 sm:gap-4 sm:p-4">
         <div>
           <div className="mb-2 h-2 w-16 rounded-full bg-black/10" />
@@ -706,30 +776,6 @@ function FeedbackBody() {
                 }`}
               />
             ))}
-          </div>
-        </div>
-        <div>
-          <div className="mb-2 h-2 w-20 rounded-full bg-black/10" />
-          <div className="grid grid-cols-3 gap-1.5">
-            {FEEDBACK_EMOJI.map((emoji, i) => {
-              const selected = emojiIndex === i;
-              return (
-                <button
-                  key={emoji}
-                  type="button"
-                  aria-label={`React with ${emoji}`}
-                  aria-pressed={selected}
-                  onClick={() => setEmojiIndex(i)}
-                  className={`flex aspect-[4/3] cursor-pointer items-center justify-center rounded-sm p-1 ${
-                    selected
-                      ? 'bg-blue-500/20 ring-1 ring-inset ring-blue-500'
-                      : 'bg-black/[0.06] hover:bg-black/10'
-                  }`}
-                >
-                  <span className="text-[11px] leading-none">{emoji}</span>
-                </button>
-              );
-            })}
           </div>
         </div>
         <div className="space-y-2">
@@ -832,28 +878,60 @@ function CaptureBody() {
   const m = useMessages();
   const cm = m.collaboration.captureMockup;
   return (
-    <div className="relative h-full w-full bg-neutral-100">
+    <div
+      className="relative h-full w-full overflow-hidden bg-neutral-800 bg-cover bg-center"
+      style={{ backgroundImage: "url('/capture-wallpaper.webp')" }}
+    >
+      {/* Dim the desktop wallpaper so the selection + toolbar read on top. */}
       <div className="absolute inset-0 bg-black/40" />
 
-      <div className="absolute inset-0 flex items-center justify-center pb-[18%]">
-        <div className="relative h-[80%] w-[52%] rounded-sm ring-1 ring-white">
-          {[
-            'top-0 left-0 -translate-x-1/2 -translate-y-1/2',
-            'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2',
-            'top-0 right-0 translate-x-1/2 -translate-y-1/2',
-            'top-1/2 left-0 -translate-x-1/2 -translate-y-1/2',
-            'top-1/2 right-0 translate-x-1/2 -translate-y-1/2',
-            'bottom-0 left-0 -translate-x-1/2 translate-y-1/2',
-            'bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2',
-            'bottom-0 right-0 translate-x-1/2 translate-y-1/2',
-          ].map((cls) => (
-            <span
-              key={cls}
-              className={`absolute size-1.5 rounded-sm bg-white ring-1 ring-neutral-950 ${cls}`}
-            />
-          ))}
-          <div className="absolute -bottom-7 right-0 rounded-sm bg-black/80 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-neutral-200">
-            {cm.dimensions}
+      <div className="absolute inset-x-0 top-[7%] bottom-[24%] flex justify-center">
+        {/* The window being captured, with the capture resizer framed over it. */}
+        <div className="relative h-full w-[58%]">
+          {/* App window sitting on the desktop wallpaper. */}
+          <div className="absolute inset-0 flex flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-black/10">
+            <div className="flex shrink-0 items-center gap-1.5 bg-neutral-100 px-3 py-2">
+              <span className="size-2 rounded-full bg-[#ff5f57]" />
+              <span className="size-2 rounded-full bg-[#febc2e]" />
+              <span className="size-2 rounded-full bg-[#28c840]" />
+              <div className="ml-2 h-2 w-20 rounded-full bg-black/10" />
+            </div>
+            <div className="flex min-h-0 flex-1 gap-3 p-3 sm:p-4">
+              <div className="flex w-1/4 flex-col gap-2">
+                <div className="h-2 w-3/4 rounded-full bg-black/10" />
+                <div className="h-2 w-1/2 rounded-full bg-black/[0.06]" />
+                <div className="h-2 w-2/3 rounded-full bg-black/[0.06]" />
+                <div className="h-2 w-1/2 rounded-full bg-black/[0.06]" />
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <div className="h-3 w-1/2 rounded-full bg-black/15" />
+                <div className="h-2 w-full rounded-full bg-black/[0.06]" />
+                <div className="h-2 w-[88%] rounded-full bg-black/[0.06]" />
+                <div className="mt-1 min-h-0 flex-1 rounded-md bg-gradient-to-br from-blue-400 to-indigo-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Capture resizer — sits over the window, framing it. */}
+          <div className="absolute -inset-[4%] rounded-sm ring-[1.5px] ring-white">
+            {[
+              'top-0 left-0 -translate-x-1/2 -translate-y-1/2',
+              'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2',
+              'top-0 right-0 translate-x-1/2 -translate-y-1/2',
+              'top-1/2 left-0 -translate-x-1/2 -translate-y-1/2',
+              'top-1/2 right-0 translate-x-1/2 -translate-y-1/2',
+              'bottom-0 left-0 -translate-x-1/2 translate-y-1/2',
+              'bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2',
+              'bottom-0 right-0 translate-x-1/2 translate-y-1/2',
+            ].map((cls) => (
+              <span
+                key={cls}
+                className={`absolute size-2 rounded-full bg-white shadow-sm ring-1 ring-black/20 ${cls}`}
+              />
+            ))}
+            <div className="absolute -bottom-7 right-0 rounded-sm bg-black/80 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-neutral-200">
+              {cm.dimensions}
+            </div>
           </div>
         </div>
       </div>
@@ -891,25 +969,27 @@ function CaptureBody() {
 function MarkupBody() {
   return (
     <div className="relative h-full w-full bg-neutral-100">
-      <div className="absolute inset-x-[12%] bottom-[6%] top-[16%] overflow-hidden rounded-md ring-1 ring-inset ring-black/10">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-sky-500 to-blue-600" />
-
-        <div className="absolute inset-x-[10%] bottom-[10%] top-[14%] flex overflow-hidden rounded-md bg-neutral-100 ring-1 ring-inset ring-white/20">
-          <div className="flex w-[8%] flex-col items-center gap-2 bg-neutral-200/70 py-3">
-            <div className="size-2 rounded-sm bg-neutral-400" />
-            <div className="size-2 rounded-sm bg-neutral-300" />
-          </div>
-          <div className="flex-1 px-4 py-3 sm:px-6 sm:py-4">
-            <div className="h-2.5 w-1/3 rounded-full bg-neutral-400" />
-            <div className="mt-3 space-y-1.5">
-              <div className="h-1.5 w-full rounded-full bg-neutral-300" />
-              <div className="h-1.5 w-[92%] rounded-full bg-neutral-300" />
-              <div className="h-1.5 w-[76%] rounded-full bg-neutral-300" />
+      {/* Centered square screenshot on a tight blue mat — kept small so the
+          neutral canvas reads around it; nudged down for top padding. */}
+      <div className="absolute inset-0 flex items-center justify-center pt-[6%]">
+        <div className="aspect-square h-[64%] overflow-hidden rounded-xl bg-gradient-to-br from-blue-400 via-sky-500 to-blue-600 p-[4%] shadow-lg ring-1 ring-inset ring-black/10">
+          <div className="flex h-full w-full overflow-hidden rounded-md bg-neutral-100 ring-1 ring-inset ring-white/20">
+            <div className="flex w-[10%] flex-col items-center gap-2 bg-neutral-200/70 py-3">
+              <div className="size-2 rounded-sm bg-neutral-400" />
+              <div className="size-2 rounded-sm bg-neutral-300" />
             </div>
-            <div className="mt-3 h-2 w-1/4 rounded-full bg-neutral-400" />
-            <div className="mt-2 space-y-1.5">
-              <div className="h-1.5 w-[88%] rounded-full bg-neutral-300" />
-              <div className="h-1.5 w-[70%] rounded-full bg-neutral-300" />
+            <div className="flex-1 px-3 py-3 sm:px-4 sm:py-4">
+              <div className="h-2.5 w-1/3 rounded-full bg-neutral-400" />
+              <div className="mt-3 space-y-1.5">
+                <div className="h-1.5 w-full rounded-full bg-neutral-300" />
+                <div className="h-1.5 w-[92%] rounded-full bg-neutral-300" />
+                <div className="h-1.5 w-[76%] rounded-full bg-neutral-300" />
+              </div>
+              <div className="mt-3 h-2 w-1/4 rounded-full bg-neutral-400" />
+              <div className="mt-2 space-y-1.5">
+                <div className="h-1.5 w-[88%] rounded-full bg-neutral-300" />
+                <div className="h-1.5 w-[70%] rounded-full bg-neutral-300" />
+              </div>
             </div>
           </div>
         </div>

@@ -184,13 +184,13 @@ export function RecorderMockup() {
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
         viewport={{ once: true, margin: '-80px' }}
         transition={{ type: 'spring', stiffness: 90, damping: 18, mass: 0.9 }}
-        className="relative overflow-hidden rounded-[14px] bg-neutral-950 shadow-2xl shadow-blue-950/40 sm:rounded-[16px]"
+        className="relative overflow-hidden rounded-[14px] bg-neutral-900 shadow-2xl shadow-blue-950/40 sm:rounded-[16px]"
       >
         {/* ── Link/share header — macOS traffic lights + the instant-link
             payoff (URL · Copy link · share), in place of full window chrome.
             One slim row. The parent's `overflow-hidden rounded` clips its top
             corners. ──────────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3 border-b border-white/[0.06] bg-gradient-to-b from-neutral-900 to-neutral-950 px-4 py-2 sm:px-5">
+        <div className="flex items-center gap-3 border-b border-white/[0.06] bg-gradient-to-b from-neutral-800 to-neutral-900 px-4 py-2 sm:px-5">
           {/* Traffic lights */}
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
@@ -232,7 +232,7 @@ export function RecorderMockup() {
 
         {/* ── Stage — embeds the demo clip. Poster shows until the visitor
             clicks play; the play control toggles playback. ──────────────── */}
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-900">
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-800">
           <video
             ref={videoRef}
             src="/demo.mp4"
@@ -324,7 +324,7 @@ export function RecorderMockup() {
         </div>
 
         {/* ── Waveform scrubber — tracks the clip's real playback position. */}
-        <div className="flex items-center gap-4 border-t border-white/[0.06] bg-neutral-950 px-4 py-4 sm:px-6">
+        <div className="flex items-center gap-4 border-t border-white/[0.06] bg-neutral-900 px-4 py-4 sm:px-6">
           <span className="font-mono text-[11px] tabular-nums text-neutral-400">
             {fmt(current)}
           </span>

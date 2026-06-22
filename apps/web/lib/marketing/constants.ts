@@ -120,8 +120,8 @@ export const PRO_CARD_HIGHLIGHTS: ReadonlyArray<string> = [
   'Instant share links, Snaps, workspaces & cloud storage we run for you',
 ];
 
-// Managed plan is a single monthly price (no annual cycle).
-export const MONTHLY_PRICE = 2.99;
+// Managed plan — a single monthly price with 200 GB of managed cloud storage.
+export const MONTHLY_PRICE = 9;
 
 // Managed-plan checkout. CaptureFlow itself is free and open source — this URL
 // sends the visitor to the hosted-plan signup (the managed entitlement).
@@ -177,7 +177,7 @@ export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
     rows: [
       { label: 'Hosting', free: 'Your Cloudflare', monthly: 'Fully managed' },
       { label: 'Setup', free: 'You deploy it', monthly: 'Zero setup' },
-      { label: 'Cloud storage', free: 'Your R2 bucket', monthly: '100 GB' },
+      { label: 'Cloud storage', free: 'Your R2 bucket', monthly: '200 GB' },
       { label: 'Backups & monitoring', free: false, monthly: true },
     ],
   },
@@ -543,7 +543,7 @@ export const APP_SCHEMA = {
   url: SITE_URL,
   description: SITE_DESCRIPTION,
   // One Offer per plan: the free self-hosted tier plus the managed plan
-  // (a single monthly price, no annual cycle).
+  // ($9/month, 200 GB cloud storage).
   offers: [
     {
       '@type': 'Offer',
@@ -559,7 +559,7 @@ export const APP_SCHEMA = {
       priceCurrency: 'USD',
       name: 'Managed',
       description:
-        'Fully managed hosting — instant share links, Snaps, team workspaces, and 100 GB cloud storage we run for you, no Cloudflare setup',
+        'Fully managed hosting — instant share links, Snaps, team workspaces, and 200 GB cloud storage we run for you, no Cloudflare setup',
     },
   ],
 };

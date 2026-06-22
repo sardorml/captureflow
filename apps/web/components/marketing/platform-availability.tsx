@@ -56,7 +56,7 @@ export function PlatformAvailability() {
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                 live
-                ? 'bg-emerald-100 text-emerald-700'
+                ? 'bg-violet-100 text-violet-700'
                 : 'bg-neutral-100 text-neutral-400'
               }`}
             >

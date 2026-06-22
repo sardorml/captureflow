@@ -18,13 +18,14 @@ import {
 // point it at their own LS product. When it's unset, the buy button
 // is hidden so the modal still renders its pricing/feature view.
 
-const MONTHLY_PRICE = 2.99;
+// Entry tier — the managed plan starts at 100 GB; larger tiers live on the site.
+const MONTHLY_PRICE = 9;
 
 const CHECKOUT_BASE_URL =
   process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ?? '';
 
 const BENEFITS = [
-  '100 GB cloud storage (up from 200 MB)',
+  '200 GB cloud storage (up from 200 MB)',
   'No cap on the number of shares & Snaps',
   'Automatic backups & monitoring',
   'Priority support',
