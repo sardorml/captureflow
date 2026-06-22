@@ -13,6 +13,7 @@ import '../marketing.css';
 import type { Metadata } from 'next';
 import { I18nProvider } from '@/components/marketing/i18n-provider';
 import { MarketingShell } from '@/components/marketing/marketing-shell';
+import { getStarCount, formatStars } from '@/lib/github';
 import { Nav } from '@/components/marketing/nav';
 import { PricingSection } from '@/components/marketing/pricing-section';
 import { ComparePlansSection } from '@/components/marketing/compare-plans-section';
@@ -27,14 +28,16 @@ export const metadata: Metadata = {
   alternates: { canonical: '/plan' },
 };
 
-export default function PlanPage() {
+export default async function PlanPage() {
   const m = MESSAGES.plan;
+  const starCount = await getStarCount();
+  const stars = starCount != null ? formatStars(starCount) : null;
 
   return (
     <I18nProvider>
       <MarketingShell>
         <div className="relative flex min-h-screen flex-col font-system">
-          <Nav />
+          <Nav stars={stars} />
           {/* Nav is position: fixed, so push content down by the bar's
               measured height (--header-height, set in nav.tsx). */}
           <main style={{ paddingTop: 'var(--header-height, 68px)' }}>

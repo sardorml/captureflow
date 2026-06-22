@@ -78,7 +78,7 @@ export default async function RootPage() {
           <JsonLd
             data={[WEBSITE_SCHEMA, ORGANIZATION_SCHEMA, APP_SCHEMA, FAQ_SCHEMA]}
           />
-          <Nav />
+          <Nav stars={stars} />
           {/* Nav is position: fixed, so push content down by the bar's
               measured height (--header-height, set in nav.tsx). */}
           <main style={{ paddingTop: 'var(--header-height, 68px)' }}>

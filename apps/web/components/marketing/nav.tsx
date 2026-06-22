@@ -13,7 +13,7 @@ import { useLocalizedHref, useMessages } from './i18n-provider';
 // DOCS_URL is env-aware (localhost docs in dev, docs.captureflow.xyz in prod).
 const GITHUB_URL = 'https://github.com/sardorml/captureflow';
 
-export function Nav() {
+export function Nav({ stars = null }: { stars?: string | null }) {
   const m = useMessages();
   // Prefixes in-app marketing hrefs with the active locale so clicking nav
   // keeps the language in the URL. Same-page `#anchor` hrefs and non-marketing
@@ -146,6 +146,7 @@ export function Nav() {
           >
             <Icon name="star" size={18} />
             Star on GitHub
+            {stars && <span>({stars})</span>}
           </a>
           {/* Sign in — quiet light-grey secondary. Routes to the standalone
             login page. */}
@@ -213,6 +214,7 @@ export function Nav() {
             >
               <Icon name="star" size={20} className="text-neutral-400" />
               Star on GitHub
+              {stars && <span>({stars})</span>}
             </a>
             {/* Same emphasis as desktop: Sign in = quiet grey, Download =
               primary dark CTA. */}
