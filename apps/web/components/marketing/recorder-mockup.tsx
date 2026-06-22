@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { Play, Link2, Copy, Share } from 'lucide-react';
+import { Play, Pause, Link2, Copy, Check, Share } from 'lucide-react';
 
 // CaptureFlow's hero product demo — replaces Framely's video-editor mockup.
 // It reads as a CaptureFlow share page (captureflow.xyz/r/…): a dark, rounded
@@ -28,6 +28,11 @@ const WAVEFORM = [
   54, 36, 60, 78, 90, 66, 44, 30, 50, 74,
 ];
 
+// The demo share link shown in the header pill + "Link copied" toast.
+const SHARE_PATH = 'captureflow.xyz/r/8kx2pnq4';
+// What the Copy link button writes to the clipboard — the bare site URL.
+const SHARE_URL = 'https://captureflow.xyz';
+
 // m:ss — clamps NaN/negatives (duration is NaN until metadata loads).
 function fmt(s: number): string {
   if (!Number.isFinite(s) || s < 0) s = 0;
@@ -41,6 +46,16 @@ export function RecorderMockup() {
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
+  // Tap feedback mirroring the /r share player: a dark icon "pop" on each
+  // play/pause transition (the share-icon-pop keyframe lives in globals.css,
+  // loaded globally by the root layout).
+  const [overlayIcon, setOverlayIcon] = useState<'play' | 'pause' | null>(null);
+  const [prevPlaying, setPrevPlaying] = useState(false);
+  // "Copy link" feedback: clicking the header button writes the share URL to the
+  // clipboard and bumps copyCount, which re-keys the toast so its entrance
+  // animation replays; `copied` swaps the button label to a check for ~1.6s.
+  const [copyCount, setCopyCount] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   // Media listeners are attached imperatively (not as React on* props) to dodge
   // a hydration race: `preload="metadata"` starts loading the clip the instant
@@ -104,6 +119,23 @@ export function RecorderMockup() {
     };
   }, []);
 
+  // Clear the pop overlay once its 750ms animation has run (same duration as
+  // the share-icon-pop keyframe).
+  useEffect(() => {
+    if (overlayIcon === null) return;
+    const t = setTimeout(() => setOverlayIcon(null), 750);
+    return () => clearTimeout(t);
+  }, [overlayIcon]);
+
+  // Reset the button's "Copied" label ~1.6s after each copy (keyed on copyCount
+  // so rapid re-clicks restart the timer instead of letting it lapse early).
+  useEffect(() => {
+    if (copyCount === 0) return;
+    setCopied(true);
+    const t = setTimeout(() => setCopied(false), 1600);
+    return () => clearTimeout(t);
+  }, [copyCount]);
+
   const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
@@ -116,9 +148,27 @@ export function RecorderMockup() {
     }
   };
 
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard?.writeText(SHARE_URL);
+    } catch {
+      // Clipboard can be unavailable (insecure context / denied permission) —
+      // still replay the toast so the interaction always feels responsive.
+    }
+    setCopyCount((c) => c + 1);
+  };
+
   // Playback progress 0..1, driving the waveform fill + scrubber head.
   const progress = duration > 0 ? Math.min(1, current / duration) : 0;
   const playedCount = Math.round(progress * WAVEFORM.length);
+
+  // Derive the pop icon from play/pause transitions during render — the same
+  // pattern the /r share player uses. Shows a pause-pop as playback starts;
+  // pausing brings the persistent play button back instead.
+  if (prevPlaying !== playing) {
+    setPrevPlaying(playing);
+    setOverlayIcon(playing ? 'pause' : 'play');
+  }
 
   return (
     <div className="relative mx-auto w-full max-w-5xl px-5 pb-24 pt-6 sm:px-8">
@@ -152,16 +202,28 @@ export function RecorderMockup() {
           <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5">
             <Link2 className="size-3.5 shrink-0 text-blue-400" />
             <span className="truncate font-mono text-xs text-neutral-300">
-              captureflow.xyz/r/8kx2pnq4
+              {SHARE_PATH}
             </span>
           </div>
 
-          {/* Copy + share */}
+          {/* Copy + share. Copy link is the live affordance: it writes the share
+              URL to the clipboard and replays the "Link copied" toast. */}
           <div className="flex shrink-0 items-center gap-2">
-            <span className="flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 py-1.5 text-xs font-semibold text-blue-300">
-              <Copy className="size-3.5" />
-              <span className="hidden sm:inline">Copy link</span>
-            </span>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              aria-label="Copy share link"
+              className="flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 py-1.5 text-xs font-semibold text-blue-300 transition-colors hover:bg-blue-500/20 active:bg-blue-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+            >
+              {copied ? (
+                <Check className="size-3.5" />
+              ) : (
+                <Copy className="size-3.5" />
+              )}
+              <span className="hidden sm:inline">
+                {copied ? 'Copied' : 'Copy link'}
+              </span>
+            </button>
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-neutral-400">
               <Share className="size-4" />
             </span>
@@ -201,36 +263,63 @@ export function RecorderMockup() {
               }`}
             />
 
-            {/* Large white play control, centred — hidden during playback. */}
+            {/* Loom-style play control — a solid blue core inside a thick
+                translucent ring, with a white play glyph. Static (no pulse).
+                Fades + lifts in/out on play/pause; grows slightly on hover. */}
             <span
-              className={`relative flex h-20 w-20 items-center justify-center rounded-full bg-white/95 shadow-2xl shadow-blue-500/30 ring-8 ring-white/10 backdrop-blur transition-all duration-300 group-hover:scale-105 sm:h-24 sm:w-24 ${
-                playing ? 'scale-90 opacity-0' : 'opacity-100'
+              className={`relative flex h-24 w-24 items-center justify-center rounded-full bg-blue-600 shadow-2xl shadow-blue-950/40 ring-[10px] ring-blue-600/30 transition-[opacity,transform] duration-200 ease-out group-hover:scale-[1.06] sm:h-28 sm:w-28 ${
+                playing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
               }`}
             >
-              <Play className="size-10 translate-x-0.5 fill-current text-neutral-900 sm:size-11" />
+              <Play className="size-10 translate-x-0.5 fill-white text-white sm:size-11" />
             </span>
           </button>
 
+          {/* Play/pause tap feedback — the /r share player's dark icon "pop"
+              (share-icon-pop). Shown only while playing so it never stacks with
+              the persistent play button; keyed so back-to-back toggles restart
+              the animation from frame 0. */}
+          {overlayIcon && playing ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div
+                key={overlayIcon}
+                className="animate-share-icon-pop flex h-[116px] w-[116px] items-center justify-center rounded-full bg-[#171717]/90 sm:h-[132px] sm:w-[132px]"
+              >
+                {overlayIcon === 'pause' ? (
+                  <Pause className="size-10 text-white sm:size-11" fill="currentColor" />
+                ) : (
+                  <Play className="size-10 translate-x-0.5 text-white sm:size-11" fill="currentColor" />
+                )}
+              </div>
+            </div>
+          ) : null}
+
           {/* "Link copied" toast — the instant-share moment, floating top-right.
-              Fades out during playback so it doesn't cover the clip. */}
+              Hidden during playback (so it doesn't cover the clip) UNLESS the
+              visitor just hit Copy link. The inner card is keyed by copyCount so
+              each copy remounts it and replays the spring entrance. */}
           <div
             className={`pointer-events-none absolute right-4 top-4 transition-opacity duration-300 sm:right-5 sm:top-5 ${
-              playing ? 'opacity-0' : 'opacity-100'
+              playing && !copied ? 'opacity-0' : 'opacity-100'
             }`}
           >
-            <div className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-neutral-900/80 px-3 py-2 shadow-xl shadow-black/40 backdrop-blur-md">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500/20">
-                <svg viewBox="0 0 24 24" className="size-3.5 text-blue-400" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <motion.div
+              key={copyCount}
+              initial={{ opacity: 0, y: -8, scale: 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 26, mass: 0.7 }}
+              className="flex items-center gap-2.5 rounded-xl border border-black/5 bg-white/95 px-3 py-2 shadow-xl shadow-black/10 backdrop-blur-md"
+            >
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600">
+                <svg viewBox="0 0 24 24" className="size-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d="M20 6 9 17l-5-5" />
                 </svg>
               </span>
               <div className="leading-tight">
-                <p className="text-[11px] font-semibold text-white">Link copied</p>
-                <p className="font-mono text-[10px] text-neutral-400">
-                  captureflow.xyz/r/8kx2pnq4
-                </p>
+                <p className="text-[11px] font-semibold text-neutral-900">Link copied</p>
+                <p className="font-mono text-[10px] text-neutral-500">{SHARE_PATH}</p>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
 

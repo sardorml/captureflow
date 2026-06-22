@@ -7,6 +7,8 @@
 // We don't use the Material Symbols <Icon> here: it's a ligature subset with no
 // brand glyphs, so Apple/Windows/Chrome would leak as literal text.
 
+import { AnimatedTooltip } from '@/components/ui/smooth-tooltip';
+
 type LogoProps = { className?: string };
 
 function AppleLogo({ className }: LogoProps) {
@@ -36,29 +38,32 @@ function ChromeLogo({ className }: LogoProps) {
 }
 
 const PLATFORMS = [
-  { name: 'macOS', status: 'Beta', live: true, Logo: AppleLogo },
-  { name: 'Windows', status: 'Soon', live: false, Logo: WindowsLogo },
-  { name: 'Chrome', status: 'Soon', live: false, Logo: ChromeLogo },
+  { name: 'macOS', status: 'Beta', live: true, Logo: AppleLogo, tip: 'Available now — download the macOS beta' },
+  { name: 'Windows', status: 'Soon', live: false, Logo: WindowsLogo, tip: 'Windows app in the works' },
+  { name: 'Chrome', status: 'Soon', live: false, Logo: ChromeLogo, tip: 'Chrome extension in the works' },
 ] as const;
 
 export function PlatformAvailability() {
   return (
-    <div className="mt-7 flex animate-fade-in flex-wrap items-center justify-center gap-x-7 gap-y-3 animation-delay-500">
-      {PLATFORMS.map(({ name, status, live, Logo }) => (
-        <div
-          key={name}
-          aria-label={`${name}: ${status}`}
-          className={`flex items-center gap-2.5 ${live ? 'text-neutral-800' : 'text-neutral-400'}`}
-        >
-          <Logo className="h-6 w-6" />
+    <div className="mt-7 flex animate-fade-in flex-wrap items-center justify-center gap-x-6 gap-y-3 animation-delay-500">
+      {PLATFORMS.map(({ name, status, live, Logo, tip }) => (
+        <AnimatedTooltip key={name} content={tip} placement="bottom">
           <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-              live ? 'bg-blue-100 text-blue-700' : 'bg-neutral-100 text-neutral-400'
-            }`}
+            className={`flex cursor-default items-center gap-2 ${live ? 'text-neutral-800' : 'text-neutral-400'}`}
           >
-            {status}
+            <Logo className="h-4 w-4" />
+            <span className="text-xs font-medium">{name}</span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                live
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-neutral-100 text-neutral-400'
+              }`}
+            >
+              {status}
+            </span>
           </span>
-        </div>
+        </AnimatedTooltip>
       ))}
     </div>
   );

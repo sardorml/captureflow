@@ -32,9 +32,8 @@ export function PricingSection({
         )}
 
         {/* Two plans side by side: Self-Hosted (light, free) and CaptureFlow
-            Managed (dark, highlighted). The Managed card carries a Monthly/
-            Annual switch that flips its price in place. The compare table below
-            draws the full Self-Hosted-vs-Managed capability line. */}
+            Managed (dark, highlighted). The compare table below draws the full
+            Self-Hosted-vs-Managed capability line. */}
         <div className="mx-auto mt-12 grid max-w-4xl gap-6 sm:grid-cols-2">
           <FreeCard />
           <ManagedCard />

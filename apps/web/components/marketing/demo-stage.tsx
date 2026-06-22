@@ -16,7 +16,7 @@ export function DemoStage() {
         <span className="size-1.5 animate-rec-breathe rounded-full bg-red-500" /> REC
       </div>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="flex size-10 items-center justify-center rounded-full bg-white/90 text-blue-600">
+        <span className="flex size-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-950/40 ring-[5px] ring-blue-600/30">
           <Play className="size-4 translate-x-px fill-current" />
         </span>
       </div>

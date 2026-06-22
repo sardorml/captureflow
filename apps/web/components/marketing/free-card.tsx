@@ -16,9 +16,9 @@ const GITHUB_REPO_URL = X_URL;
 // Free / Self-Hosted card — the light, first card. CaptureFlow is open source
 // under the AGPL and runs on your own Cloudflare account at no cost, so this is
 // the "run it yourself" entry point. Pairs with the dark ManagedCard (the paid,
-// fully-hosted option with a Monthly/Annual switch). The Server badge icon is
-// lucide, not the Material Symbols <Icon>: the marketing icon font is a ligature
-// SUBSET, and a name that isn't in it renders as raw literal text.
+// fully-hosted option). The Server badge icon is lucide, not the Material
+// Symbols <Icon>: the marketing icon font is a ligature SUBSET, and a name that
+// isn't in it renders as raw literal text.
 export function FreeCard() {
   const m = useMessages();
   const f = m.pricing.free;
@@ -26,8 +26,8 @@ export function FreeCard() {
   return (
     <div className="rounded-xl bg-white p-12 ring-1 ring-black/10">
       {/* min-h-8 keeps this badge row the SAME height as the Managed card's
-          row (whose Monthly/Annual switch is taller than a plain badge), so the
-          two cards' titles, prices, and CTAs stay aligned side by side. */}
+          badge row, so the two cards' titles, prices, and CTAs stay aligned
+          side by side. */}
       <div className="mb-4 flex min-h-8 items-center gap-2">
         <Badge className="border-0 bg-neutral-200 text-neutral-900 hover:bg-neutral-200 gap-1 text-sm">
           <Server size={14} />

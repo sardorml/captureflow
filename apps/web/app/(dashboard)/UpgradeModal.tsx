@@ -18,23 +18,17 @@ import {
 // point it at their own LS product. When it's unset, the buy button
 // is hidden so the modal still renders its pricing/feature view.
 
-const MONTHLY_PRICE = 9;
-const ANNUAL_PRICE_PER_MONTH = 6;
-const ANNUAL_SAVINGS_PERCENT = Math.round(
-  (1 - ANNUAL_PRICE_PER_MONTH / MONTHLY_PRICE) * 100,
-);
+const MONTHLY_PRICE = 2.99;
 
 const CHECKOUT_BASE_URL =
   process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ?? '';
 
 const BENEFITS = [
-  '200 GB cloud storage (up from 200 MB)',
+  '100 GB cloud storage (up from 200 MB)',
   'No cap on the number of shares & Snaps',
   'Automatic backups & monitoring',
   'Priority support',
 ] as const;
-
-type Cycle = 'monthly' | 'annual';
 
 type Props = {
   // Email pre-fills the LS checkout so signed-in dashboard users
@@ -45,24 +39,22 @@ type Props = {
   trigger: ReactNode;
 };
 
-// Builds the checkout URL from the single configured base. Billing
-// cycle is passed as a query param so a deployer can branch on it in
-// their LS product (or ignore it); email pre-fills the LS form. When
-// no base is configured, returns null so callers hide the buy button.
-function checkoutUrlFor(cycle: Cycle, email: string): string | null {
+// Builds the checkout URL from the single configured base. A `billing=monthly`
+// query param is set so a deployer can branch on it in their LS product (or
+// ignore it); email pre-fills the LS form. When no base is configured, returns
+// null so callers hide the buy button.
+function checkoutUrlFor(email: string): string | null {
   if (!CHECKOUT_BASE_URL) return null;
   const u = new URL(CHECKOUT_BASE_URL);
-  u.searchParams.set('billing', cycle);
+  u.searchParams.set('billing', 'monthly');
   if (email) u.searchParams.set('checkout[email]', email);
   return u.toString();
 }
 
 export function UpgradeModal({ email, trigger }: Props) {
   const [open, setOpen] = useState(false);
-  const [cycle, setCycle] = useState<Cycle>('monthly');
-  const isAnnual = cycle === 'annual';
-  const price = isAnnual ? ANNUAL_PRICE_PER_MONTH : MONTHLY_PRICE;
-  const checkoutUrl = checkoutUrlFor(cycle, email);
+  const price = MONTHLY_PRICE;
+  const checkoutUrl = checkoutUrlFor(email);
 
   // The trigger is authored by the caller (the TopBar builds the candy
   // "Upgrade" button) and handed to Radix's `asChild` Slot, which injects
@@ -92,43 +84,7 @@ export function UpgradeModal({ email, trigger }: Props) {
           </SmoothDialogDescription>
         </SmoothDialogHeader>
 
-        {/* Cycle toggle — segmented control. Defaults to Monthly so
-            the visitor sees the lowest entry price first and chooses
-            Annual deliberately once the savings tag registers. */}
-        <div className="mt-5 flex h-10 items-center gap-1 rounded-full bg-overlay p-1 text-sm">
-          <button
-            type="button"
-            onClick={() => setCycle('monthly')}
-            aria-pressed={!isAnnual}
-            className={`flex-1 rounded-full px-3.5 py-1.5 font-medium transition-colors ${
-              !isAnnual
-                ? 'bg-canvas-2 text-fg shadow-sm'
-                : 'text-fg-muted hover:text-fg'
-            }`}
-          >
-            Monthly
-          </button>
-          <button
-            type="button"
-            onClick={() => setCycle('annual')}
-            aria-pressed={isAnnual}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 font-medium transition-colors ${
-              isAnnual
-                ? 'bg-canvas-2 text-fg shadow-sm'
-                : 'text-fg-muted hover:text-fg'
-            }`}
-          >
-            Annual
-            <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-700 dark:text-emerald-300">
-              −{ANNUAL_SAVINGS_PERCENT}%
-            </span>
-          </button>
-        </div>
-
-        {/* Price headline + cadence footnote. The annual cycle still
-            quotes a /month price for easy comparison; the secondary
-            line states the actual yearly charge so there's no
-            surprise at checkout. */}
+        {/* Price headline + cadence footnote. */}
         <div className="mt-5">
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-bold tabular-nums text-fg">
@@ -137,9 +93,7 @@ export function UpgradeModal({ email, trigger }: Props) {
             <span className="text-sm text-fg-subtle">/month</span>
           </div>
           <p className="mt-1 text-xs text-fg-subtle">
-            {isAnnual
-              ? `Billed $${price * 12} once a year. Cancel anytime.`
-              : 'Billed monthly. Cancel anytime.'}
+            Billed monthly. Cancel anytime.
           </p>
         </div>
 
@@ -162,7 +116,7 @@ export function UpgradeModal({ email, trigger }: Props) {
           >
             <a href={checkoutUrl} target="_blank" rel="noopener noreferrer">
               <Sparkles className="h-4 w-4" />
-              {isAnnual ? 'Get Annual' : 'Get Monthly'}
+              Upgrade now
             </a>
           </SmoothButton>
         ) : (

@@ -84,7 +84,7 @@ export const MESSAGES = {
     // The h1 renders as: <violet>aiWord</violet> titleMain <br/> titleSuffix.
     aiWord: 'Open-Source',
     titleMain: 'Loom Alternative',
-    titleSuffix: 'for Everyone',
+    titleSuffix: 'for Your Team',
     subtitleLine1:
       'Easily record and share video messages with your',
     subtitleLine2: 'teammates and customers to supercharge productivity.',
@@ -286,7 +286,7 @@ export const MESSAGES = {
     heading: 'Pricing',
     subheading:
       'Self-host for free — it is open source. Or let us host it for you with the managed plan.',
-    guarantee: 'Open source under the AGPL — run it yourself, no strings attached.',
+    guarantee: 'Open source under the AGPL — run it yourself.',
     // Free / self-hosted plan card — the light, first card. Open source under
     // the AGPL, runs on your own Cloudflare account at no cost.
     free: {
@@ -307,12 +307,12 @@ export const MESSAGES = {
       // GitHub repo, not a prebuilt download.
       cta: 'Build from source',
     },
-    // Shared Managed highlights for both billing cards (two bullets — the full
-    // capability breakdown lives in the compare table).
+    // Managed card highlights (two bullets — the full capability breakdown
+    // lives in the compare table).
     highlights: {
       allFeatures: 'Fully managed hosting — no Cloudflare setup required',
       shareableLinks:
-        'Instant share links, Snaps, workspaces & cloud storage we run for you',
+        'Instant share links, Snaps, workspaces & 100 GB cloud storage we run for you',
     },
     monthly: {
       badgePro: 'Managed',
@@ -454,29 +454,36 @@ export const MESSAGES = {
     // Same order/length as ROADMAP_GROUPS. `badge` is the column status label.
     groups: [
       {
+        title: 'Backlog',
+        subtitle: 'On the radar — not scheduled yet.',
+        badge: 'Backlog',
+        items: [
+          {
+            label: 'AI summaries & chapters',
+            description:
+              'Auto-generate a title, summary, and chapters from every recording.',
+          },
+          {
+            label: 'Filler-word & silence removal',
+            description:
+              "Automatically cut 'ums', 'uhs', and dead air from your recording.",
+          },
+          {
+            label: 'Transcripts & translations',
+            description:
+              'AI transcripts with one-click translation into other languages.',
+          },
+        ],
+      },
+      {
         title: 'To Do',
         subtitle: 'The next few months, by priority.',
         badge: 'To Do',
         items: [
           {
-            label: 'One-click Cloudflare deploy',
+            label: 'Windows support',
             description:
-              'Spin up your own self-hosted instance from a single button.',
-          },
-          {
-            label: 'Trim before you share',
-            description:
-              'Clip the start and end of a recording without leaving the app.',
-          },
-          {
-            label: 'Auto-redact sensitive content',
-            description:
-              'Finds API keys, emails, and secrets on screen and blurs them.',
-          },
-          {
-            label: 'Password-protected links',
-            description:
-              'Gate any share behind a password for extra-private clips.',
+              "Bring CaptureFlow's recording and instant share links to Windows.",
           },
         ],
       },
@@ -486,34 +493,9 @@ export const MESSAGES = {
         badge: 'In progress',
         items: [
           {
-            label: 'Comment threads on the viewer',
+            label: 'Chrome extension',
             description:
-              'Threaded, timestamped comments right on the shared recording.',
-          },
-          {
-            label: 'Auto captions',
-            description:
-              'Generated from your mic audio, with style and timing controls.',
-          },
-          {
-            label: 'Custom domains for shares',
-            description: 'Serve your share links from your own domain.',
-          },
-        ],
-      },
-      {
-        title: 'Done',
-        subtitle: 'Shipped and live.',
-        badge: 'Done',
-        items: [
-          {
-            label: 'Instant share links',
-            description: 'Record straight to a link you can share anywhere.',
-          },
-          {
-            label: 'Reactions & view counts',
-            description:
-              'Viewers can react to a share and see how many have watched.',
+              'Record and share straight from the browser — no desktop install.',
           },
         ],
       },

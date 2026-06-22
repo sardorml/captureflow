@@ -110,31 +110,21 @@ export const FEATURES = [
 
 // Two-tier model: Self-Hosted (free, open source, run it on your own
 // Cloudflare account) and Managed (we host it for you, no Cloudflare setup).
-// The Monthly + Annual cards both list what the Managed plan covers; the
-// compare table draws Self-Hosted vs Managed across the same rows.
+// The Managed card lists what the plan covers; the compare table draws
+// Self-Hosted vs Managed across the same rows.
 
-// Managed card highlights — a deliberately short list shared by both the
-// Monthly and Annual cards (the cycle changes price/cadence, not what's
-// covered). The full capability breakdown lives in the compare table below
-// the cards.
+// Managed card highlights — a deliberately short list. The full capability
+// breakdown lives in the compare table below the cards.
 export const PRO_CARD_HIGHLIGHTS: ReadonlyArray<string> = [
   'Fully managed hosting — no Cloudflare setup required',
   'Instant share links, Snaps, workspaces & cloud storage we run for you',
 ];
 
-export const MONTHLY_PRICE = 9;
-// Annual subscription priced per-month for display; billed once per year.
-// 12 * ANNUAL_PRICE_PER_MONTH is the annual charge; savings against the
-// monthly cycle compute as 1 - (ANNUAL_PRICE_PER_MONTH / MONTHLY_PRICE).
-export const ANNUAL_PRICE_PER_MONTH = 6;
-export const ANNUAL_SAVINGS_PERCENT = Math.round(
-  (1 - ANNUAL_PRICE_PER_MONTH / MONTHLY_PRICE) * 100,
-);
+// Managed plan is a single monthly price (no annual cycle).
+export const MONTHLY_PRICE = 2.99;
 
-// Managed-plan checkout. CaptureFlow itself is free and open source — these
-// URLs send the visitor to the hosted-plan signup. Both the monthly and annual
-// CTAs flow into the same managed entitlement; the variant chosen dictates the
-// cadence.
+// Managed-plan checkout. CaptureFlow itself is free and open source — this URL
+// sends the visitor to the hosted-plan signup (the managed entitlement).
 //
 // Dev / preview builds reuse the same signup URL so the flow can be exercised
 // end-to-end. Next inlines NODE_ENV at build time, so this selection happens
@@ -142,16 +132,11 @@ export const ANNUAL_SAVINGS_PERCENT = Math.round(
 const IS_DEV_LS_CHECKOUT = process.env.NODE_ENV !== 'production';
 
 const MONTHLY_SUBSCRIPTION_LIVE_URL = 'https://captureflow.xyz/signup';
-const ANNUAL_SUBSCRIPTION_LIVE_URL = 'https://captureflow.xyz/signup';
 const MONTHLY_SUBSCRIPTION_TEST_URL = 'https://captureflow.xyz/signup';
-const ANNUAL_SUBSCRIPTION_TEST_URL = 'https://captureflow.xyz/signup';
 
 export const MONTHLY_SUBSCRIPTION_CHECKOUT_URL = IS_DEV_LS_CHECKOUT
   ? MONTHLY_SUBSCRIPTION_TEST_URL
   : MONTHLY_SUBSCRIPTION_LIVE_URL;
-export const ANNUAL_SUBSCRIPTION_CHECKOUT_URL = IS_DEV_LS_CHECKOUT
-  ? ANNUAL_SUBSCRIPTION_TEST_URL
-  : ANNUAL_SUBSCRIPTION_LIVE_URL;
 
 // Compare-plans matrix. Each row is one capability spanning both plans.
 // A boolean renders as ✓ / —; a string renders verbatim (used for rows
@@ -192,7 +177,7 @@ export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
     rows: [
       { label: 'Hosting', free: 'Your Cloudflare', monthly: 'Fully managed' },
       { label: 'Setup', free: 'You deploy it', monthly: 'Zero setup' },
-      { label: 'Cloud storage', free: 'Your R2 bucket', monthly: 'Included' },
+      { label: 'Cloud storage', free: 'Your R2 bucket', monthly: '100 GB' },
       { label: 'Backups & monitoring', free: false, monthly: true },
     ],
   },
@@ -410,83 +395,61 @@ export const FAQ_ITEMS: { question: string; answer: string }[] = [
 
 export const ROADMAP_GROUPS = [
   {
+    title: 'Backlog',
+    subtitle: 'On the radar — not scheduled yet.',
+    items: [
+      {
+        label: 'AI summaries & chapters',
+        description:
+          'Auto-generate a title, summary, and chapters from every recording.',
+        category: 'Share',
+      },
+      {
+        label: 'Filler-word & silence removal',
+        description:
+          "Automatically cut 'ums', 'uhs', and dead air from your recording.",
+        category: 'Record',
+      },
+      {
+        label: 'Transcripts & translations',
+        description:
+          'AI transcripts with one-click translation into other languages.',
+        category: 'Share',
+      },
+    ],
+    badgeLabel: 'Backlog',
+    badgeClass: 'text-neutral-400',
+    markerIcon: 'bookmark',
+    markerClass: 'text-neutral-400',
+  },
+  {
     title: 'To Do',
     subtitle: 'The next few months, by priority.',
     items: [
       {
-        label: 'One-click Cloudflare deploy',
+        label: 'Windows support',
         description:
-          'Spin up your own self-hosted instance from a single button.',
+          "Bring CaptureFlow's recording and instant share links to Windows.",
         category: 'Core',
-      },
-      {
-        label: 'Trim before you share',
-        description:
-          'Clip the start and end of a recording without leaving the app.',
-        category: 'Record',
-      },
-      {
-        label: 'Auto-redact sensitive content',
-        description:
-          'Finds API keys, emails, and secrets on screen and blurs them.',
-        category: 'Core',
-      },
-      {
-        label: 'Password-protected links',
-        description:
-          'Gate any share behind a password for extra-private clips.',
-        category: 'Share',
       },
     ],
     badgeLabel: 'To Do',
-    badgeClass: 'text-neutral-400',
-    markerIcon: 'bookmark',
-    markerClass: 'text-neutral-400',
+    badgeClass: 'text-neutral-500',
+    markerIcon: 'bolt',
+    markerClass: 'text-neutral-500',
   },
   {
     title: 'In Progress',
     subtitle: "Features I'm actively working on.",
     items: [
       {
-        label: 'Comment threads on the viewer',
+        label: 'Chrome extension',
         description:
-          'Threaded, timestamped comments right on the shared recording.',
-        category: 'Share',
-      },
-      {
-        label: 'Auto captions',
-        description:
-          'Generated from your mic audio, with style and timing controls.',
-        category: 'Record',
-      },
-      {
-        label: 'Custom domains for shares',
-        description: 'Serve your share links from your own domain.',
-        category: 'Share',
+          'Record and share straight from the browser — no desktop install.',
+        category: 'Core',
       },
     ],
     badgeLabel: 'In progress',
-    badgeClass: 'text-neutral-500',
-    markerIcon: 'bolt',
-    markerClass: 'text-neutral-500',
-  },
-  {
-    title: 'Done',
-    subtitle: 'Shipped and live.',
-    items: [
-      {
-        label: 'Instant share links',
-        description: 'Record straight to a link you can share anywhere.',
-        category: 'Share',
-      },
-      {
-        label: 'Reactions & view counts',
-        description:
-          'Viewers can react to a share and see how many have watched.',
-        category: 'Share',
-      },
-    ],
-    badgeLabel: 'Done',
     badgeClass: 'text-neutral-500',
     markerIcon: 'check_circle',
     markerClass: 'text-neutral-500',
@@ -579,9 +542,8 @@ export const APP_SCHEMA = {
   operatingSystem: 'macOS',
   url: SITE_URL,
   description: SITE_DESCRIPTION,
-  // One Offer per plan/cycle: the free self-hosted tier plus both managed
-  // billing cycles. The annual offer's price is the yearly charge
-  // (12 × $6 = $72).
+  // One Offer per plan: the free self-hosted tier plus the managed plan
+  // (a single monthly price, no annual cycle).
   offers: [
     {
       '@type': 'Offer',
@@ -595,16 +557,9 @@ export const APP_SCHEMA = {
       '@type': 'Offer',
       price: String(MONTHLY_PRICE),
       priceCurrency: 'USD',
-      name: 'Managed (monthly)',
+      name: 'Managed',
       description:
-        'Fully managed hosting — instant share links, Snaps, team workspaces, and cloud storage we run for you, no Cloudflare setup',
-    },
-    {
-      '@type': 'Offer',
-      price: String(ANNUAL_PRICE_PER_MONTH * 12),
-      priceCurrency: 'USD',
-      name: 'Managed (annual)',
-      description: 'All managed features, billed annually at $6/month ($72/year)',
+        'Fully managed hosting — instant share links, Snaps, team workspaces, and 100 GB cloud storage we run for you, no Cloudflare setup',
     },
   ],
 };
