@@ -21,39 +21,33 @@ import type { AddReactionResponse, ShareReaction } from '@/lib/share/types';
 type Props = {
   videoUrl: string;
   posterUrl?: string;
-  // Optional companion webcam video, rendered as a bottom-right PiP
-  // overlay and synced to the main player. Carries mic audio; the
-  // main video carries system audio (independently muteable). Absent
-  // when the recording had no camera (server-side webcam_state='none')
-  // or when the webcam upload hasn't finalized yet.
+  // Companion webcam video, rendered as a bottom-right PiP synced to the
+  // main player. Carries mic audio; the main video carries system audio
+  // (independently muteable). Absent when the recording had no camera
+  // (webcam_state='none') or the webcam upload hasn't finalized yet.
   webcamUrl?: string;
   slug: string;
   initialReactions: ShareReaction[];
-  // Authoritative duration from the share record. Used to position
-  // reaction clusters before the <video> element knows its duration.
+  // Authoritative duration from the share record. Positions reaction
+  // clusters before the <video> element knows its duration.
   serverDurationMs: number | null;
-  // Server-known intrinsic dimensions for the player container's
-  // aspect-ratio reservation.
+  // Intrinsic dimensions for the player container's aspect-ratio reservation.
   serverWidth: number | null;
   serverHeight: number | null;
-  // Persisted presentation config (bg, cam PiP, per-track mute defaults).
   config: ShareConfig;
   // When false, taps on the reaction bar surface a "Sign in to react"
   // hint instead of firing the POST — the API would 401 anyway and the
   // sidebar can't attribute the reaction without a real user.
   viewerSignedIn?: boolean;
-  // Fires after a reaction lands on the server so the activity sidebar
-  // (rendered alongside this player) can append it to its timeline.
-  // Receives the persisted row, not the optimistic shell.
+  // Fires after a reaction lands on the server so the activity sidebar can
+  // append it. Receives the persisted row, not the optimistic shell.
   onReactionAdded?: (reaction: ShareReaction) => void;
-  // Click handler for "Sign in to react" CTA when viewerSignedIn=false.
   onSignInRequested?: () => void;
-  // Forwarded handle so the parent (ShareViewer) can call seekTo from
-  // the activity sidebar's timestamp chips.
+  // Forwarded handle so the parent can call seekTo from the activity
+  // sidebar's timestamp chips.
   handleRef?: Ref<SharePlayerHandle | null>;
-  // Click target for the inline "Comment" button below the player —
-  // the parent uses this to focus the activity sidebar's textarea so
-  // the visitor can type without scrolling.
+  // Focuses the activity sidebar's textarea so the visitor can comment
+  // without scrolling.
   onCommentClick?: () => void;
 };
 
@@ -61,12 +55,10 @@ type Props = {
 // cluster bubble. ~3% feels right at typical share lengths.
 const REACTION_CLUSTER_FRACTION = 0.03;
 
-// Public viewer's wrapper around the shared SharePlayer. The shared
-// player handles all the playback chrome; this wrapper adds reactions
-// (markers above the progress bar + the emoji bar below the player).
-// Both layers read the player's live currentTime via the imperative
-// handle, so reactions land at the exact moment of click instead of
-// React's batched render time.
+// Wraps the shared SharePlayer to add reactions (markers above the
+// progress bar + the emoji bar below the player). Both layers read the
+// player's live currentTime via the imperative handle, so reactions land
+// at the exact moment of click instead of React's batched render time.
 export function SharePlayer({
   videoUrl,
   posterUrl,
@@ -85,10 +77,9 @@ export function SharePlayer({
 }: Props) {
   const playerRef = useRef<SharePlayerHandle | null>(null);
 
-  // Callback ref that mirrors the handle to both our local playerRef
-  // (used by sendReaction below for `getCurrentTime`) AND the parent's
-  // handleRef so the activity sidebar can call .seekTo when a
-  // timestamp chip is clicked.
+  // Mirrors the handle to both the local playerRef (sendReaction reads
+  // getCurrentTime) and the parent's handleRef (sidebar calls seekTo on
+  // timestamp-chip clicks).
   const setHandle = useCallback(
     /* eslint-disable react-hooks/immutability */
     (handle: SharePlayerHandle | null) => {
@@ -105,12 +96,10 @@ export function SharePlayer({
   );
 
   const [reactions, setReactions] = useState<ShareReaction[]>(initialReactions);
-  // Brief glow on the tapped emoji button (visual feedback that the
-  // reaction landed). Clears after the animation duration.
+  // Brief glow on the tapped emoji button; cleared after the animation.
   const [pulseEmoji, setPulseEmoji] = useState<string | null>(null);
-  // IDs of reactions that just landed — drive the rise-up animation
-  // on the matching cluster bubble. Cleared after the animation
-  // completes so the cluster settles in place.
+  // IDs of just-landed reactions; drive the rise-up animation on the
+  // matching cluster bubble, then cleared so the cluster settles.
   const [freshIds, setFreshIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
@@ -119,9 +108,8 @@ export function SharePlayer({
     return () => clearTimeout(t);
   }, [pulseEmoji]);
 
-  // Per-emoji totals so the bar can show "yay 5" tooltips. Includes
-  // optimistic inserts — feels broken otherwise since the tooltip
-  // would lag the click.
+  // Per-emoji totals for the bar's tooltips. Includes optimistic inserts
+  // so the count doesn't lag the click.
   const reactionCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const r of reactions) {
@@ -131,9 +119,8 @@ export function SharePlayer({
   }, [reactions]);
 
   const sendReaction = (emoji: string): void => {
-    // Auth gate: anonymous viewers can't react. The API would 401
-    // anyway, but failing the optimistic insert client-side avoids a
-    // flicker on the markers + lets the CTA explain why.
+    // Anonymous viewers can't react. The API would 401 anyway, but
+    // gating client-side avoids a marker flicker and lets the CTA explain.
     if (!viewerSignedIn) {
       onSignInRequested?.();
       return;
@@ -142,9 +129,8 @@ export function SharePlayer({
     const tMs = Math.max(0, Math.floor(tSec * 1000));
     setPulseEmoji(emoji);
 
-    // Optimistic insert — the cluster shows up over the scrubber
-    // immediately. Server-assigned id arrives via the response; if
-    // the request fails we drop it back out.
+    // Optimistic insert so the cluster shows over the scrubber immediately.
+    // The server-assigned id arrives via the response; on failure we drop it.
     const optimistic: ShareReaction = {
       id: -Date.now(),
       slug,
@@ -163,9 +149,9 @@ export function SharePlayer({
       next.add(optimistic.id);
       return next;
     });
-    // Match the rise animation duration in globals.css. We clear the
-    // id after the animation so the cluster transitions from "fresh"
-    // (animated) to "settled" (static) — same shape, no flicker.
+    // Must match the rise animation duration in globals.css: clearing the
+    // id after the animation transitions the cluster from fresh (animated)
+    // to settled (static) without a flicker.
     window.setTimeout(() => {
       setFreshIds((prev) => {
         if (!prev.has(optimistic.id)) return prev;
@@ -197,10 +183,9 @@ export function SharePlayer({
       serverWidth={serverWidth}
       serverHeight={serverHeight}
       config={config}
-      // Cap the landscape player height so the reaction bar directly
-      // below it stays in view without scrolling. Reserves room for the
-      // nav, title header, padding, and the bar (~19rem total); shrinks
-      // further on short viewports, and never exceeds 34rem on tall ones.
+      // Cap the landscape player height so the reaction bar below it stays
+      // in view without scrolling. The 19rem reserves nav + title header +
+      // padding + the bar; the 34rem caps height on tall viewports.
       landscapeMaxHeightCss="min(34rem, calc(100vh - 19rem))"
       progressOverlay={({ durationSeconds, controlsVisible }) => (
         <ReactionOverlay
@@ -262,14 +247,14 @@ function ReactionOverlay({
 
 type ReactionCluster = {
   fraction: number;
-  emoji: string; // emoji that occurs most in this cluster
-  count: number; // total reactions in the cluster (any emoji)
-  isFresh: boolean; // true if any reaction here was just added
+  emoji: string; // the most frequent emoji in this cluster
+  count: number; // total reactions in the cluster, across all emoji
+  isFresh: boolean; // any reaction here was just added
 };
 
-// Group reactions whose timestamps land within REACTION_CLUSTER_FRACTION
-// of each other into one bubble. Within a cluster the displayed emoji is
-// the one with the highest count.
+// Group reactions whose timestamps fall within REACTION_CLUSTER_FRACTION
+// of each other into one bubble, displaying the cluster's most frequent
+// emoji.
 function clusterReactions(
   reactions: ShareReaction[],
   durationSeconds: number,
@@ -343,8 +328,8 @@ async function postReaction(
   return json.reaction;
 }
 
-// Approximate rendered width of a single cluster bubble in pixels —
-// the 20px emoji plus its optional count badge and a small gap.
+// Approximate rendered width of a cluster bubble: the 20px emoji plus
+// its optional count badge and a small gap.
 const CLUSTER_VISUAL_WIDTH_PX = 32;
 
 function ReactionMarkers({ clusters }: { clusters: ReactionCluster[] }) {
@@ -365,8 +350,8 @@ function ReactionMarkers({ clusters }: { clusters: ReactionCluster[] }) {
     };
   }, []);
 
-  // Drop visually-overlapping clusters. Iterate by count desc so the
-  // dominant clusters always win their spot.
+  // Drop visually-overlapping clusters, iterating by count desc so the
+  // dominant clusters win their spot.
   const visible = useMemo(() => {
     if (clusters.length === 0) return clusters;
     const minFraction =
@@ -452,9 +437,8 @@ function ReactionBar({
             >
               <span aria-hidden="true">{r.emoji}</span>
             </button>
-            {/* Hover tooltip — pops above the button with label +
-                count (e.g. "Heart 5"). Hidden when no reactions yet for
-                that emoji so empty surfaces stay quiet. */}
+            {/* Hover tooltip with label + count (e.g. "Heart 5"); the
+                count badge is hidden until that emoji has reactions. */}
             <div className="pointer-events-none absolute -top-11 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-lg bg-inverse px-2.5 py-1.5 text-sm font-medium text-on-inverse opacity-0 shadow-lg transition-opacity duration-100 group-hover:opacity-100">
               <span>{r.label}</span>
               {count > 0 ? (

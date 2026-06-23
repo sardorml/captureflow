@@ -10,7 +10,6 @@ export function WebcamBubble(): React.JSX.Element {
     document.body.style.background = 'transparent'
   }, [])
 
-  // Listen for device ID from main process
   useEffect(() => {
     return window.electronAPI.onWebcamBubbleInit((id: string) => {
       setDeviceId(id)
@@ -37,7 +36,6 @@ export function WebcamBubble(): React.JSX.Element {
     setIsReady(false)
   }
 
-  // Acquire webcam stream
   useEffect(() => {
     if (!deviceId) return
     let active = true

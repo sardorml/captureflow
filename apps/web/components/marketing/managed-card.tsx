@@ -10,8 +10,7 @@ import {
 import { getPosthogDistinctId, track } from '@/lib/marketing/track';
 import { useMessages } from './i18n-provider';
 
-// Managed card — the dark, highlighted paid plan. A single monthly price
-// ($9/month) with 200 GB of managed cloud storage.
+// The dark, highlighted paid plan card.
 export function ManagedCard() {
   const m = useMessages();
   const copy = m.pricing.monthly;
@@ -20,9 +19,8 @@ export function ManagedCard() {
     ? `${MONTHLY_SUBSCRIPTION_CHECKOUT_URL}?utm_source=site&utm_medium=pricing&utm_content=managed`
     : '#pricing';
 
-  // PostHog distinct_id is appended at CLICK time (it doesn't exist on the
-  // server at render) so the signup flow can stitch the purchase back to the
-  // web session.
+  // Append the PostHog distinct_id at click time (it isn't available server-side
+  // at render) so the signup flow can stitch the purchase back to the web session.
   const handleCheckoutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     track('checkout_opened', { plan: 'managed' });
     if (!MONTHLY_SUBSCRIPTION_CHECKOUT_URL) return;
@@ -39,8 +37,7 @@ export function ManagedCard() {
 
   return (
     <div className="rounded-xl bg-neutral-900 p-12 text-white">
-      {/* min-h-8 matches the Free card's badge row so both columns stay
-          aligned. */}
+      {/* min-h-8 matches the Free card's badge row so both columns stay aligned. */}
       <div className="mb-4 flex min-h-8 flex-wrap items-center gap-1.5">
         <Badge className="bg-white/10 text-white hover:bg-white/10 gap-1 text-xs">
           <Icon name="workspace_premium" size={14} fill />

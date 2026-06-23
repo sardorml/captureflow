@@ -11,19 +11,16 @@ import {
   useLocalizedHref,
 } from '@/components/marketing/i18n-provider';
 
-// FormSubmit relays the suggestion to CaptureFlow's support inbox. The plain
-// `ajax/<email>` endpoint (no project token) means the first submission triggers
-// FormSubmit's one-time confirmation email to SUPPORT_EMAIL; once confirmed,
-// later submissions deliver silently. Matches the "Delivered via FormSubmit"
-// disclosure in the copy.
+// The token-less `ajax/<email>` endpoint means FormSubmit sends a one-time
+// confirmation email to SUPPORT_EMAIL on the first submission; once confirmed,
+// later submissions deliver silently.
 const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${SUPPORT_EMAIL}`;
 
-// Interactive feature-suggestion form. Split out from page.tsx so the route's
-// page.tsx can stay a Server Component and export `metadata` (Next.js disallows
-// a metadata export from a 'use client' module). The success-state bulb is a
-// lucide glyph, not the Material Symbols <Icon> — the marketing icon font is a
-// ligature SUBSET that doesn't include `lightbulb`, so it would render as raw
-// literal text.
+// Split out from page.tsx so the route can stay a Server Component and export
+// `metadata` (Next.js disallows a metadata export from a 'use client' module).
+// The success-state bulb is a lucide glyph, not the Material Symbols <Icon>:
+// the marketing icon font is a ligature subset missing `lightbulb`, which would
+// otherwise render as literal text.
 export function SuggestFeatureClient() {
   const m = useMessages();
   const lh = useLocalizedHref();

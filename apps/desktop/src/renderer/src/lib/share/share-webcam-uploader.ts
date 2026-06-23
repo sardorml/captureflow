@@ -126,10 +126,9 @@ export class ShareWebcamUploader {
   }
 
   private cleanupStream(): void {
-    // We don't own the source tracks (caller does for the webcam +
-    // mic streams), but the combined wrapper can be released.
+    // Drop only the combined wrapper — the source tracks belong to the
+    // caller (webcam + mic streams), so we must not stop them here.
     if (this.combinedStream) {
-      // Just drop the reference; tracks belong to the originals.
       this.combinedStream = null
     }
   }

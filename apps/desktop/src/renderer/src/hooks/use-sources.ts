@@ -29,7 +29,6 @@ export function useSources(): { refresh: () => void } {
 
       const { selectedSource, setSelectedSource } = useRecordingStore.getState()
       if (selectedSource) {
-        // Update thumbnail only if the new one is valid and different
         const updated = sources.find((s) => s.id === selectedSource.id)
         if (
           updated &&

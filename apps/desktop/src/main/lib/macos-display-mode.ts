@@ -1,13 +1,9 @@
-// Toggles macOS chrome that the user opts out of for a "clean" display
-// recording — currently just Finder's desktop icons. The change is
-// reversible; we snapshot the live value before mutating so the user always
-// lands on whatever they had set up before recording.
+// Toggles macOS chrome for a "clean" display recording — currently just
+// Finder's desktop icons. We snapshot the live value before mutating so the
+// user is restored to their prior setup afterward.
 //
-// `defaults write com.apple.finder CreateDesktop` followed by `killall
-// Finder`. There's no AppleScript path that works — `CreateDesktop` is read
-// at Finder launch, so the relaunch is unavoidable. Open Finder windows are
-// lost across the toggle; that's the cost of this technique (CleanShot,
-// Screen Studio, etc. all do the same).
+// Toggling CreateDesktop requires relaunching Finder (killall), which loses
+// any open Finder windows — that's the unavoidable cost of this technique.
 import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { logWarn } from './logger'

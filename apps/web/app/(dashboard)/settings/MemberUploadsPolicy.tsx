@@ -4,8 +4,8 @@ import { Users, UserX } from 'lucide-react';
 import { setMemberUploadsPolicyAction } from './actions';
 import { PolicyCardButton } from './PolicyCardButton';
 
-// Mirrors AccessPolicy's two-card pattern. Pending state lives in the
-// shared PolicyCardButton so both policies read identically.
+// Two-card radio for the member-uploads policy. Pending state lives in
+// the shared PolicyCardButton.
 
 export function MemberUploadsPolicy({
   allowMemberUploads,

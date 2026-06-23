@@ -31,8 +31,7 @@ export async function putSnap(
   id: string,
   body: ArrayBuffer,
   // `no-cache` so the editor's PUT replaces are visible on next view
-  // without waiting for an edge cache TTL. Mirror what the share
-  // surface does for its replace flow.
+  // without waiting for an edge cache TTL.
   cacheControl = 'no-cache'
 ): Promise<void> {
   const bucket = await getBucket();

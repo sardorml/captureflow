@@ -1,6 +1,5 @@
-// "Posted by · Avatar + Name" — the right-side identity strip in the
-// snap navbar. Hidden on narrow viewports to keep the top row tidy
-// (the copy-link button is the higher-priority affordance on mobile).
+// Avatar + name identity strip in the snap navbar. Hidden on narrow
+// viewports, where the copy-link button is the higher-priority action.
 import type { ReactElement } from 'react';
 import { avatarInitial, displayName } from './display-name';
 

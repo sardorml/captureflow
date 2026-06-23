@@ -5,16 +5,10 @@ import { listWorkspacesForUser } from '@captureflow/quota';
 import { getAppWebEnv } from '@/lib/cf-env';
 import { resolveDeviceToken } from '@/lib/device-tokens';
 
-// GET /api/workspaces
-//
-// Device-bearer endpoint that returns the list of workspaces the
-// signed-in user belongs to (owner + member rows). The desktop calls
-// this on sign-in / app start so the workspace switcher chip on the
-// recording toolbar can show "where this recording will be posted."
-//
-// Same auth + CORS shape as /api/usage — bearer device token in the
-// Authorization header, x-captureflow-device for device id. Read-only,
-// so we don't gate on a session cookie; the bearer is sufficient.
+// GET /api/workspaces — device-bearer endpoint returning the workspaces the
+// signed-in user belongs to (owner + member rows). Same auth + CORS shape as
+// /api/usage. Read-only, so we gate on the bearer token alone, not a session
+// cookie.
 
 const DEVICE_HEADER = 'x-captureflow-device';
 

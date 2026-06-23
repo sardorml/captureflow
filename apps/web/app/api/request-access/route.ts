@@ -8,14 +8,13 @@ import { viewUrlFor, snapViewUrlFor } from '@/lib/site';
 
 // POST /api/request-access
 //
-// Called from share.captureflow.xyz and snap.captureflow.xyz when a
-// signed-in viewer hits a workspace/private artifact they can't see
-// and clicks "Request access". We look up the owner and email them
-// with a link to /members so they can invite the requester.
+// A signed-in viewer hits a workspace/private artifact they can't see and
+// clicks "Request access"; we look up the owner and email them a /members
+// link to invite the requester.
 //
-// The cross-subdomain cookie set on `.captureflow.xyz` carries the
-// viewer's session here, so we can identify the requester by their
-// better-auth session — no client-supplied email to spoof.
+// The cross-subdomain cookie on `.captureflow.xyz` carries the viewer's
+// session, so the requester is identified from their better-auth session —
+// no client-supplied email to spoof.
 
 const ALLOWED_ORIGINS = new Set([
   // The /r + /s viewers POST here same-origin.

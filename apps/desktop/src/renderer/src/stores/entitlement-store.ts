@@ -1,13 +1,10 @@
 import { create } from 'zustand'
 import type { ShareAuthState, ShareUsageState } from '../../../shared/types'
 
-// Pro entitlement, app-wide. CaptureFlow is **subscription-only** — there is no
-// local license model. "Pro" means the signed-in captureflow.xyz account
-// has an active Monthly/Annual subscription, surfaced as `proSubscriptionActive`
-// on /api/usage. Main broadcasts usage changes to every window
-// (SHARE_USAGE_CHANGED), so this store mirrors that one signal and every Pro
-// gate in the app (capture modes, export tabs, the title-bar badge) reads from
-// it via `selectIsPro`.
+// App-wide Pro entitlement. Subscription-only: "Pro" means the signed-in
+// account has an active subscription, surfaced as `proSubscriptionActive` on
+// /api/usage. Main broadcasts usage changes to every window, so this store
+// mirrors that signal; every Pro gate reads from it via `selectIsPro`.
 
 type EntitlementState = {
   isPro: boolean
@@ -28,10 +25,8 @@ export const useEntitlementStore = create<EntitlementState>((set) => ({
 
 export const selectIsPro = (s: EntitlementState): boolean => s.isPro
 
-// ── Dev-only Pro override ─────────────────────────────────────────────────
-// The app has no in-app purchase that flips Pro on yet, so in dev builds the
-// Dev Toggles modal can force Pro true to exercise Pro-gated features (4K/HEVC
-// export, Share/Snap, the badge) without a real subscription. Persisted in
+// Dev-only Pro override: in dev builds the Dev Toggles modal can force Pro on
+// to exercise Pro-gated features without a real subscription. Persisted in
 // localStorage so it survives reloads; gated on `import.meta.env.DEV`, so it's
 // inert in a packaged build. The key is shared across windows — the store
 // listens for `storage` events so flipping it in the editor updates the toolbar

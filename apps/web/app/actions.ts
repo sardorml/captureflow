@@ -36,11 +36,9 @@ import {
 } from '@/lib/share-config';
 import { revokeDeviceToken } from '@/lib/device-tokens';
 
-// Every action revalidates the session first. Middleware
-// redirects unauthenticated requests
-// before they reach a page, but a direct action invocation
-// (forged cookie, replayed RSC payload) lands here unchecked
-// otherwise.
+// Every action re-checks the session. Middleware redirects
+// unauthenticated page requests, but a direct action invocation
+// (forged cookie, replayed RSC payload) bypasses it and lands here.
 async function requireUserId(): Promise<string> {
   const auth = await getAuth();
   const session = await auth.api.getSession({ headers: await headers() });
@@ -109,10 +107,9 @@ export async function deleteShareAction(slug: string): Promise<{
   if (!row) {
     return { error: 'Share not found' };
   }
-  // R2 objects first, then reactions, then the row. Same order as
-  // the admin app — leaves at worst a row pointing at a missing
-  // object on R2 failure, which the user can re-trigger by clicking
-  // delete again.
+  // R2 objects first, then reactions, then the row. On R2 failure
+  // this leaves at worst a row pointing at a missing object, which
+  // the user can clean up by clicking delete again.
   try {
     await deleteObject(row.storageKey);
     if (row.posterKey) {
@@ -132,10 +129,10 @@ export async function deleteShareAction(slug: string): Promise<{
 }
 
 // Persist the share's presentation config to its R2 sidecar. The
-// public viewer + dashboard edit page both read the same file, so a
-// single PUT here updates every surface on next fetch. No D1
-// migration — this is presentation-layer state (bg, cam PiP, mute
-// toggles) and lives alongside the immutable video bytes.
+// public viewer and dashboard edit page read the same file, so one
+// PUT updates every surface on next fetch. Kept as a sidecar rather
+// than a D1 column to avoid a migration — this is presentation-layer
+// state (bg, cam PiP, mute toggles) living beside the video bytes.
 export async function saveShareConfigAction(
   slug: string,
   raw: unknown
@@ -180,8 +177,6 @@ export async function revokeDeviceTokenAction(tokenId: string): Promise<{
   revalidatePath('/');
   return { error: null };
 }
-
-// ── Snap actions ──────────────────────────────────────────────────
 
 // Soft-deletes the snap row (state → 'deleted') and drops the R2
 // object so the public view 404s and the bytes stop counting against
@@ -243,10 +238,9 @@ export async function renameSnapAction(
   const trimmed = typeof title === 'string' ? title.trim().slice(0, 200) : '';
   const ok = await renameSnap(cleanId, userId, trimmed || null);
   if (!ok) return { error: 'Snap not found' };
-  // Dashboard list, editor header, and the public viewer all read
-  // `snaps.title` — revalidate every surface so the rename is visible
-  // immediately (the public viewer is a separate Worker but Next still
-  // tags its data fetcher when we hit the route here).
+  // Dashboard list, editor header, and public viewer all read
+  // `snaps.title` — revalidate every surface so the rename shows
+  // immediately.
   revalidatePath('/snaps');
   revalidatePath(`/snaps/${cleanId}/edit`);
   return { error: null };

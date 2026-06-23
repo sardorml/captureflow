@@ -30,31 +30,27 @@ import {
 } from 'react-konva';
 import Konva from 'konva';
 // Konva ships filters as separate modules — `Konva.Filters.Blur` is
-// undefined unless the Blur filter file is side-effect-imported.
-// Without this import the blur tool would silently no-op (the cached
-// node has filters=[undefined]) which looked like "click does nothing".
+// undefined unless this is side-effect-imported. Without it the blur
+// tool silently no-ops (the cached node gets filters=[undefined]).
 import 'konva/lib/filters/Blur';
 import { GridLoader, SmoothButton } from '@captureflow/ui';
 import { AnimatedTooltip } from '@/lib/animated-tooltip';
 import type { SnapEditorProps } from './SnapEditor';
 import { renameSnapAction, saveSnapAction } from '../../../actions';
 
-// Loom-style image editor. MVP tools: select, text, rect, arrow.
-// Background presets (transparent + 4 gradients). Undo/redo via
-// snapshot stack. Save → canvas.toBlob → server action that writes
-// the PNG to R2 and bumps edited_at + size_bytes. Crop is intentionally
-// deferred — the open-ended tools are higher leverage for v1.
-
-// ── Types ────────────────────────────────────────────────────────
+// Image editor. Tools: select, text, rect, arrow, blur. Background
+// presets (transparent + gradients). Undo/redo via snapshot stack.
+// Save → canvas.toBlob → server action that writes the PNG to R2 and
+// bumps edited_at + size_bytes.
 
 type Tool = 'select' | 'text' | 'rect' | 'arrow' | 'blur';
 
-// `Background` is stored on disk as a plain string so the state JSON
-// stays tiny + diffable. Three shapes are recognised:
-//   - 'transparent'        → no fill, the editor body shows through
-//   - <preset key>         → one of the named gradient presets below
-//   - '#rrggbb'/'#rgb'     → a solid fill from the color picker / swatch
-// Anything else is normalised back to 'transparent' on hydrate so a
+// Stored on disk as a plain string so the state JSON stays tiny +
+// diffable. Three recognised shapes:
+//   - 'transparent'    → no fill, the editor body shows through
+//   - <preset key>     → one of the named gradient presets below
+//   - '#rrggbb'/'#rgb' → a solid fill from the color picker / swatch
+// Anything else normalises back to 'transparent' on hydrate so a
 // malformed sidecar can't poison the renderer.
 type Background = string;
 
@@ -117,15 +113,12 @@ type EditorState = {
   annotations: Annotation[];
 };
 
-// ── Background presets ──────────────────────────────────────────
-
 // Konva's fillLinearGradientColorStops takes an interleaved
 // (offset, color, offset, color, …) tuple — numbers and strings mixed.
 type GradientStops = (number | string)[];
 
-// Each gradient is a Konva linear-gradient stops array: [t, color,
-// t, color, ...]. Hand-picked so the framed image reads as bordered,
-// not lost in a busy backdrop.
+// Hand-picked so the framed image reads as bordered, not lost in a
+// busy backdrop.
 const GRADIENT_PRESETS: Record<
   GradientKey,
   { label: string; stops: GradientStops }
@@ -168,9 +161,8 @@ const GRADIENT_PRESETS: Record<
   },
 };
 
-// Quick-pick solid colors (rendered as circular swatches in the
-// picker footer). Custom shades live behind the color-picker input
-// on the right side of that row.
+// Quick-pick solid colors; custom shades live behind the color-picker
+// input at the end of the picker footer row.
 const SOLID_PALETTE = [
   '#2563eb', // blue
   '#0ea5e9', // teal
@@ -201,18 +193,11 @@ const STROKE_PALETTE = [
   '#0f172a', // near-black
 ];
 
-// Constant frame ratio between the screenshot and the stage edge.
-// Applied regardless of background selection so the on-screen stage
-// (and the editor body padding around it) doesn't change size when
-// a background is toggled — in transparent mode the inset shows the
-// editor body through; in coloured mode the BackgroundLayer paints
-// the frame.
-// snap-editor-stage-pad-marker-v3
+// Frame ratio between the screenshot and the stage edge. Applied
+// regardless of background so toggling a background doesn't resize the
+// stage: transparent mode shows the editor body through the inset,
+// coloured mode lets BackgroundLayer paint the frame.
 const BG_PADDING_RATIO = 0.12;
-
-// Render dimensions — the stage paints at native resolution so the
-// exported PNG matches the captured snap; CSS scales it down to fit
-// the viewport.
 
 function newId(): string {
   return Math.random().toString(36).slice(2, 10);
@@ -289,33 +274,28 @@ function defaultBlurFromDrag(
   };
 }
 
-// ── Component ───────────────────────────────────────────────────
-
-// Narrow whatever the sidecar JSON stored under `background` into one
-// of the three shapes the renderer accepts. Anything unrecognised
-// falls back to 'transparent' so a future preset (or a corrupted file)
-// can't crash the editor on hydrate.
+// Narrow the sidecar's stored `background` into one of the three shapes
+// the renderer accepts. Anything unrecognised falls back to
+// 'transparent' so a future preset (or corrupted file) can't crash the
+// editor on hydrate.
 //
 // `raw === null` means the user has never saved this snap (no
-// `.state.json` sidecar yet). For those we open with the first
-// gradient preset already applied so the editor doesn't look bare
-// and the user has a one-click path to a polished public link. Once
-// they save, this becomes 'violet' on disk — subsequent reopens
-// follow whatever they last chose.
+// `.state.json` sidecar yet); open those with a gradient preset already
+// applied so the editor doesn't look bare. After the first save this
+// persists, and reopens follow whatever they last chose.
 function hydrateBackground(raw: string | null): Background {
   if (raw === null) return 'violet';
   if (typeof raw !== 'string') return 'transparent';
   if (raw === 'transparent') return 'transparent';
   if (isGradientKey(raw)) return raw;
   if (isHexColor(raw)) return raw;
-  // Legacy: 'slate' was a gradient in an earlier build. Drop it to
+  // Legacy: 'slate' was a gradient in an earlier build — drop it to
   // transparent so old snaps re-open cleanly under the new picker.
   return 'transparent';
 }
 
-// Annotations come back as `unknown[]` because the action is shared
-// with the server (which can't pull in the Konva types). We trust
-// shapes we wrote ourselves but still gate on a defensively-typed
+// Annotations arrive as `unknown[]` because the action is shared with
+// the server (which can't pull in the Konva types). Gate on a
 // kind check so a corrupted sidecar can't poison the renderer.
 function hydrateAnnotations(raw: unknown[] | null): Annotation[] {
   if (!Array.isArray(raw)) return [];
@@ -344,10 +324,9 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     initialAnnotations,
   } = props;
 
-  // Editable title state — backed by `renameSnapAction`. Live string
-  // tracks the input + the static label; both flip into edit mode on
-  // pencil click. The action persists; we update the in-memory copy
-  // so the header label matches without waiting on a router refresh.
+  // Editable title, backed by `renameSnapAction`. We mirror the saved
+  // value in local state so the header label updates without waiting
+  // on a router refresh.
   const [title, setTitle] = useState<string>(initialTitle ?? '');
   const [titleDraft, setTitleDraft] = useState<string>(initialTitle ?? '');
   const [titleEditing, setTitleEditing] = useState(false);
@@ -359,29 +338,26 @@ export function SnapEditorImpl(props: SnapEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inspectorRef = useRef<HTMLDivElement>(null);
 
-  // Reference to each annotation Konva node by id, so the Transformer
-  // can resolve `.nodes([node])` from `selectedId`.
+  // Annotation Konva node by id, so the Transformer can resolve
+  // `.nodes([node])` from `selectedId`.
   const nodeRefs = useRef<Map<string, Konva.Node>>(new Map());
 
-  // Image element loaded async so Konva.Image has a real source.
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [imageLoadError, setImageLoadError] = useState<string | null>(null);
 
-  // The source image's natural dimensions drive every layout
-  // calculation below. We can't use `imgW`/`imgH` from props because
-  // those are the D1 row's width/height, which after the first save
-  // hold the *composed* stage size (image + bg padding). Loading the
-  // pristine source PNG and reading `naturalWidth/Height` always
-  // gives the dimensions of the actual pixels — no stretching when
-  // the editor reopens a previously-saved snap.
+  // The source image's natural dimensions drive every layout calc
+  // below. We can't use `imgW`/`imgH` from props: after the first save
+  // the D1 row holds the *composed* stage size (image + bg padding), so
+  // reusing it would stretch the image on reopen. Reading
+  // `naturalWidth/Height` off the loaded PNG always gives true pixels.
   const [naturalSize, setNaturalSize] = useState<{
     w: number;
     h: number;
   } | null>(null);
 
-  // Editor state + undo/redo stack. `state` is current; `past` /
-  // `future` hold snapshots. Annotation drags + transforms call
-  // `commit` on end so each completed gesture is one undo step.
+  // Editor state + undo/redo stack: `past` / `future` hold snapshots.
+  // Drags + transforms call `commit` on end so each completed gesture
+  // is one undo step.
   const [state, setState] = useState<EditorState>(() => ({
     background: hydrateBackground(initialBackground),
     annotations: hydrateAnnotations(initialAnnotations),
@@ -392,31 +368,26 @@ export function SnapEditorImpl(props: SnapEditorProps) {
   const [tool, setTool] = useState<Tool>('select');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Drag-out state for rect / arrow placement. Discriminated union so
-  // `drawing.current` narrows to the right annotation shape (TS can
-  // then check `.points` / `.width` access correctly).
+  // Drag-out state for rect / arrow / blur placement. Discriminated
+  // union so `drawing.current` narrows to the right annotation shape.
   type DrawingState =
     | { kind: 'rect'; start: { x: number; y: number }; current: RectAnno }
     | { kind: 'arrow'; start: { x: number; y: number }; current: ArrowAnno }
     | { kind: 'blur'; start: { x: number; y: number }; current: BlurAnno };
   const [drawing, setDrawing] = useState<DrawingState | null>(null);
 
-  // Saving state — disables the button + paints a spinner. After a
-  // successful save we copy the public link and show a "Copied!"
-  // confirmation flash.
+  // After a successful save we copy the public link and flash a
+  // confirmation; `savedJustNow` drives that flash.
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedJustNow, setSavedJustNow] = useState(false);
 
   // We measure the canvas-surface box and pass it to Konva as explicit
-  // pixel dimensions. Pure-CSS sizing doesn't work here because Konva
-  // mounts a child <canvas> per Layer and sizes each canvas from the
-  // Stage's `width`/`height` props directly (the Stage `style` only
-  // affects the wrapper div, not the nested canvases). Without an
-  // explicit pixel size we'd either overflow at native res or paint
-  // at 0×0. A single ref callback owns both the ref and a
-  // ResizeObserver — no useEffect, no window listener, cleans itself
-  // up when React calls the callback with `null` on unmount.
+  // pixel dimensions. Pure-CSS sizing doesn't work: Konva sizes each
+  // Layer's child <canvas> from the Stage `width`/`height` props (the
+  // Stage `style` only affects the wrapper div), so without an explicit
+  // size we'd overflow at native res or paint at 0×0. A single ref
+  // callback owns both the ref and a ResizeObserver.
   const [containerBox, setContainerBox] = useState<{
     w: number;
     h: number;
@@ -432,24 +403,20 @@ export function SnapEditorImpl(props: SnapEditorProps) {
       measure();
       const ro = new ResizeObserver(measure);
       ro.observe(node);
-      // React 19 calls the ref callback's return function on unmount,
-      // matching the cleanup contract of useEffect — disconnect there.
+      // React 19 calls a ref callback's returned function on unmount.
       return () => ro.disconnect();
     },
     []
   );
 
-  // ── Image load ────────────────────────────────────────────────
-  // We deliberately go through `fetch` + `URL.createObjectURL` instead
-  // of pointing the <img> element directly at the R2 URL. Reason:
-  // browsers (Brave especially) cache the pre-CORS response of a CDN
-  // asset once, then refuse to swap it out even after the bucket gains
-  // CORS headers — because `<img crossOrigin>` only matches a cached
-  // entry that was originally fetched with CORS. `fetch({ cache:
-  // 'reload' })` forces a network revalidation with the right Origin
-  // so we always get a fresh, CORS-tagged response. Once that lands
-  // we hand the bytes to Konva via an object URL, which is
-  // same-origin and never gets reflected back through the disk cache.
+  // Go through `fetch` + `URL.createObjectURL` rather than pointing the
+  // <img> at the R2 URL directly. Some browsers (Brave especially) cache
+  // the pre-CORS response of a CDN asset and refuse to swap it even
+  // after the bucket gains CORS headers, because `<img crossOrigin>`
+  // only matches a cache entry originally fetched with CORS. `fetch({
+  // cache: 'reload' })` forces a revalidation with the right Origin; the
+  // resulting object URL is same-origin so it never round-trips the disk
+  // cache.
   useEffect(() => {
     let cancelled = false;
     let objectUrl: string | null = null;
@@ -490,7 +457,6 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     };
   }, [imageUrl]);
 
-  // ── Transformer wiring ────────────────────────────────────────
   useEffect(() => {
     if (!transformerRef.current) return;
     if (!selectedId) {
@@ -504,10 +470,10 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     }
   }, [selectedId, state.annotations]);
 
-  // Clicks anywhere outside the Stage container and the floating
-  // ElementInspector clear the selection. Clicks inside the Stage
-  // already route through `handleStageMouseDown`, which handles
-  // empty-area deselect on its own — we deliberately skip those.
+  // Clicks outside the Stage container and the floating
+  // ElementInspector clear the selection. Clicks inside the Stage route
+  // through `handleStageMouseDown`, which handles deselect itself, so we
+  // skip those here.
   useEffect(() => {
     if (!selectedId) return;
     const onPointerDown = (e: MouseEvent): void => {
@@ -521,7 +487,6 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     return () => document.removeEventListener('mousedown', onPointerDown);
   }, [selectedId]);
 
-  // ── State helpers ─────────────────────────────────────────────
   const commit = useCallback(
     (next: EditorState): void => {
       setPast((p) => [...p, state]);
@@ -549,17 +514,14 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     setSelectedId(null);
   };
 
-  // Reset clears every annotation + restores the default transparent
-  // background. Goes through `commit` so the wipe is itself one undo
-  // step — the user can still recover from an accidental reset.
+  // Goes through `commit` so the wipe is itself one undo step — the user
+  // can recover from an accidental reset.
   const reset = (): void => {
     setSelectedId(null);
     commit({ background: 'transparent', annotations: [] });
   };
 
-  // Title rename — submit on Enter / blur / explicit Save. Reverts
-  // the draft on cancel so the static label always reflects what's
-  // actually on the server.
+  // Title rename, submitted on Enter / blur / explicit Save.
   const commitTitle = async (): Promise<void> => {
     const next = titleDraft.trim();
     if (next === (title ?? '').trim()) {
@@ -587,9 +549,8 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     setTitleError(null);
   };
 
-  // Becomes true once the user has actually made edits worth resetting
-  // — keeps the button disabled on a pristine snap so the tooltip
-  // doesn't promise something the click can't deliver.
+  // True once there's something to reset — keeps the Reset button
+  // disabled on a pristine snap.
   const hasEdits =
     state.annotations.length > 0 || state.background !== 'transparent';
 
@@ -614,17 +575,14 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     setSelectedId(null);
   };
 
-  // Cancel selection / drawing on Escape; Delete removes selection;
-  // ⌘Z / ⌘⇧Z drive undo + redo. The handler reads `past` / `future`
-  // / `state` so they're listed as deps — without them, the listener
-  // closed over the first-render's (empty) history and undo never
-  // popped anything. The bind/unbind churn is one pair per snapshot,
-  // which is fine. Declared after `undo`/`redo`/`removeSelected` so
-  // the handler closes over real references instead of forward decls.
+  // Escape cancels selection/drawing; Delete removes selection; ⌘Z /
+  // ⌘⇧Z drive undo + redo. The deps include `past`/`future`/`state`:
+  // without them the listener would close over the first render's empty
+  // history and undo would never pop anything. Declared after
+  // `undo`/`redo`/`removeSelected` so it closes over real references.
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      // Don't hijack keystrokes while the user is typing into a real
-      // input (the title-edit field below, etc).
+      // Don't hijack keystrokes while the user is typing into an input.
       const target = e.target as HTMLElement | null;
       if (target && /^(input|textarea)$/i.test(target.tagName)) return;
       if (e.key === 'Escape') {
@@ -636,9 +594,8 @@ export function SnapEditorImpl(props: SnapEditorProps) {
         e.preventDefault();
         removeSelected();
       }
-      // `e.code === 'KeyZ'` so the binding survives layouts where
-      // `e.key` reports the localized character. `e.metaKey` covers
-      // macOS, `e.ctrlKey` covers Linux/Windows.
+      // Match on `e.code` so the binding survives layouts where `e.key`
+      // reports a localized character. metaKey = macOS, ctrlKey = Win/Linux.
       const isMeta = e.metaKey || e.ctrlKey;
       if (isMeta && e.code === 'KeyZ' && !e.shiftKey) {
         e.preventDefault();
@@ -662,20 +619,17 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     commit({ ...state, background });
   };
 
-  // ── Stage event handlers ─────────────────────────────────────
   const handleStageMouseDown = (
     e: Konva.KonvaEventObject<MouseEvent>
   ): void => {
-    // Click on the stage background (not on a child) deselects.
     const clickedOnEmpty = e.target === e.target.getStage();
 
     if (tool === 'select') {
       // Transformer anchor — let Konva handle the resize gesture.
       if (e.target.hasName('_anchor')) return;
-      // Walk up to see if the click landed on an annotation node.
-      // If so, select it; otherwise the click is on the background
-      // (Stage itself, the KonvaImage screenshot, decorative rects)
-      // and should deselect.
+      // Walk up to find the annotation node the click landed on and
+      // select it; a click on the background (Stage, the KonvaImage,
+      // decorative rects) falls through to deselect.
       let node: Konva.Node | null = e.target;
       const stage = e.target.getStage();
       while (node && node !== stage) {
@@ -697,14 +651,12 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     const pos = stage.getRelativePointerPosition();
     if (!pos) return;
 
-    // Two early-exits keep draw tools from stomping on selection:
-    //  (a) the Konva Transformer's anchor handles also fire
-    //      stage-level mousedown when grabbed — without this bail,
-    //      a resize gesture also creates a brand-new shape on top.
-    //  (b) clicking the BODY of an existing annotation should select
-    //      it (and flip to the select tool so the user can drag /
-    //      resize the next instant) instead of layering a new shape
-    //      over the one they tried to grab.
+    // Keep draw tools from stomping on selection:
+    //  (a) Transformer anchors also fire stage-level mousedown when
+    //      grabbed — without this bail a resize also spawns a new shape.
+    //  (b) clicking the body of an existing annotation should select it
+    //      (and flip to the select tool) instead of layering a new shape
+    //      over the one the user tried to grab.
     if (!clickedOnEmpty) {
       if (e.target.hasName('_anchor')) return;
       let node: Konva.Node | null = e.target;
@@ -720,10 +672,9 @@ export function SnapEditorImpl(props: SnapEditorProps) {
       }
     }
 
-    // Annotations live in stage coords (native image resolution). The
-    // canvas is CSS-scaled to fit the viewport via `displayScale`, so
-    // a default size of "28 stage-px" would render as `28 * displayScale`
-    // on screen. We invert the scale so defaults stay screen-sized.
+    // Annotations live in stage coords (native resolution) but the
+    // canvas is CSS-scaled by `displayScale`, so invert it to keep
+    // default shape sizes screen-sized rather than `28 * displayScale`.
     const sizeScale = displayScale > 0 ? 1 / displayScale : 1;
 
     if (tool === 'text') {
@@ -786,10 +737,8 @@ export function SnapEditorImpl(props: SnapEditorProps) {
   const handleStageMouseUp = (): void => {
     if (!drawing) return;
     // Single-click without drag → promote to a default-sized shape
-    // centered on the click point. Earlier behaviour was to discard
-    // anything < 4px which made the tool feel broken ("I clicked rect
-    // and nothing happened"). Loom + CleanShot both insert a default
-    // shape on click; drag overrides the size.
+    // centered on the click point. Discarding sub-4px drags instead
+    // made the tool feel broken ("I clicked rect and nothing happened").
     const sizeScale = displayScale > 0 ? 1 / displayScale : 1;
     const tooSmall =
       drawing.kind === 'rect' || drawing.kind === 'blur'
@@ -826,15 +775,13 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     });
     setSelectedId(toCommit.id);
     setDrawing(null);
-    // Switch back to `select` so the shape we just created becomes
-    // immediately draggable / resizable. If we kept the draw tool
-    // active, the next mousedown on the shape would (a) be ignored
-    // by Konva's drag system (draggable was false during that down-
-    // event) and (b) fall through to creating yet another shape.
+    // Switch to `select` so the new shape is immediately draggable.
+    // Staying on the draw tool would (a) leave it non-draggable to
+    // Konva (draggable was false on that mousedown) and (b) spawn yet
+    // another shape on the next click.
     setTool('select');
   };
 
-  // ── Save flow ─────────────────────────────────────────────────
   const handleSave = async (): Promise<void> => {
     if (saving) return;
     setSaving(true);
@@ -843,32 +790,20 @@ export function SnapEditorImpl(props: SnapEditorProps) {
       const stage = stageRef.current;
       if (!stage) throw new Error('Editor not mounted');
 
-      // De-select so the transformer's handles aren't baked into
-      // the exported PNG.
+      // De-select so the transformer handles aren't baked into the PNG.
       const previouslySelected = selectedId;
       setSelectedId(null);
-      // Allow React + Konva to commit the deselect before the toBlob.
+      // Let React + Konva commit the deselect before exporting.
       await new Promise((r) => requestAnimationFrame(r));
 
-      // Export the full padded stage so the chosen background and
-      // every annotation get baked into the public PNG — that's what
-      // makes the shared link look like what the user previewed
-      // (a Loom-style framed screenshot).
+      // Export the full padded stage so the background and every
+      // annotation get baked into the public PNG.
       //
-      // The Stage is rendered at `stageW × displayScale` on-screen so
-      // it fits the viewport. With `pixelRatio: 1` the export would
-      // come out at that downscaled size (~30% of native on big
-      // displays) and the public PNG would be blurry. Counter the
-      // on-screen scale with `1 / displayScale` so the export is
-      // always at the snap's native pixel resolution regardless of
-      // how the stage happens to be sized in the editor.
-      //
-      // `canvas.toBlob('image/png')` runs in a browser worker thread
-      // and finishes in ~200ms for a 3500×2400 canvas. We used to
-      // pipe the RGBA through upng-js for a ~25% smaller PNG, but
-      // that ran on the main thread and froze the save button for
-      // 2-5 seconds. The size hit is small enough to absorb in the
-      // server-action body limit instead.
+      // The Stage renders at `stageW × displayScale` on-screen to fit
+      // the viewport. With `pixelRatio: 1` the export would come out at
+      // that downscaled size (~30% of native on big displays) and be
+      // blurry. Counter the on-screen scale with `1 / displayScale` so
+      // the export is always at the snap's native pixel resolution.
       const exportCanvas = stage.toCanvas({
         pixelRatio: 1 / displayScale,
       });
@@ -876,11 +811,10 @@ export function SnapEditorImpl(props: SnapEditorProps) {
       const exportH = exportCanvas.height;
 
       // Pull RGBA bytes and ship them to a Web Worker for palette
-      // re-encoding (UPNG with cnum: 256). Loom/CleanShot ship
-      // PNG-8 here — same visual quality on screenshots, 5-10x
-      // smaller bytes (~500 KB vs ~3 MB for a retina capture with
-      // bg). The encode itself is 2-5 s of pure-JS deflate; running
-      // it off-thread keeps the save button responsive.
+      // re-encoding (UPNG, cnum: 256). PNG-8 is visually identical on
+      // screenshots but 5-10x smaller (~500 KB vs ~3 MB for a retina
+      // capture with bg). The encode is 2-5 s of pure-JS deflate, so
+      // running it off-thread keeps the save button responsive.
       const exportCtx = exportCanvas.getContext('2d');
       if (!exportCtx) throw new Error('Could not acquire export canvas');
       const rgba = exportCtx.getImageData(0, 0, exportW, exportH);
@@ -903,8 +837,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
           worker.terminate();
           reject(new Error(e.message || 'PNG encode worker crashed'));
         };
-        // Transfer the RGBA buffer into the worker — zero-copy
-        // across the boundary on a multi-MB payload.
+        // Transfer (not copy) the multi-MB RGBA buffer into the worker.
         const transferable = rgba.data.buffer as ArrayBuffer;
         worker.postMessage(
           {
@@ -928,18 +861,15 @@ export function SnapEditorImpl(props: SnapEditorProps) {
         setSaveError(res.error);
         return;
       }
-      // Copy the public view URL — Loom-style "save and copy link"
-      // matches the desktop's existing share-modal CTA.
       try {
         await navigator.clipboard.writeText(viewUrl);
       } catch {
-        // Clipboard might be unavailable (insecure context); the link
-        // is still visible in the header.
+        // Clipboard may be unavailable (insecure context); the link is
+        // still visible in the header.
       }
       setSavedJustNow(true);
       setTimeout(() => setSavedJustNow(false), 2000);
-      // Restore selection (rare but if the user edits again right
-      // after save, they expect their selection back).
+      // Restore selection so editing right after a save keeps it.
       if (previouslySelected) setSelectedId(previouslySelected);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : String(err));
@@ -948,18 +878,12 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     }
   };
 
-  // ── Derived: stage dimensions ────────────────────────────────
-  // The stage is ALWAYS the natural screenshot size — picking a
-  // background never grows the canvas. Instead the screenshot itself
-  // scales down inside the constant stage so the bg can fill the
-  // newly-visible strip around it. This keeps the outer editor
-  // padding rock-stable: toggling between transparent and any bg
-  // moves zero pixels in the editor body.
+  // Transparent → stage is exactly the screenshot. With a background,
+  // the stage grows to add a symmetric frame around the image.
   const stageDims = useMemo(() => {
-    // `naturalSize` is set once the source PNG actually loads. Until
-    // then we fall back to the D1 row's dims so the wrapper has a
-    // placeholder size — the Stage itself doesn't render until the
-    // image is in place so users never see the placeholder.
+    // `naturalSize` is set once the source PNG loads; until then fall
+    // back to the D1 row's dims for a placeholder size (the Stage
+    // doesn't render until the image is in place, so it's never seen).
     const w = naturalSize?.w ?? imgW;
     const h = naturalSize?.h ?? imgH;
     const hasBg = state.background !== 'transparent';
@@ -973,12 +897,10 @@ export function SnapEditorImpl(props: SnapEditorProps) {
         imgRenderH: h,
       };
     }
-    // Equal pixel pad on every side. Anchor to the smaller of w/h
-    // so the strip looks symmetric on both axes. Grow the stage by
-    // `2 * pad` in each dimension so the screenshot keeps its native
-    // aspect inside the frame — shrinking the image into an unchanged
-    // stage stretched landscape snaps and was the source of repeated
-    // user complaints.
+    // Equal pad on every side, sized off the smaller of w/h so the
+    // strip looks symmetric. Growing the stage by `2 * pad` (rather
+    // than shrinking the image into a fixed stage) keeps the native
+    // aspect — the shrink approach stretched landscape snaps.
     const pad = Math.round(Math.min(w, h) * BG_PADDING_RATIO);
     return {
       stageW: w + pad * 2,
@@ -990,14 +912,12 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     };
   }, [imgW, imgH, naturalSize, state.background]);
 
-  // Fit the (constant-size) stage into whatever box the canvas
-  // surface actually has after `p-16 md:p-20`. `min(1, …)` so we
-  // never *upscale* a smaller snap past native res — fractional
-  // pixels get blurry fast on text annotations. Recomputes on
-  // container resize via the box state above. React Compiler handles
-  // the memoization; a manual useMemo over `stageDims` (itself a
-  // useMemo whose return identity can't be preserved through here)
-  // tripped react-hooks/preserve-manual-memoization on CI.
+  // Fit the stage into the measured canvas-surface box. `min(1, …)`
+  // never upscales a smaller snap past native res — fractional pixels
+  // blur text annotations fast. Left as a plain expression (not a
+  // useMemo): a manual memo over `stageDims` tripped
+  // react-hooks/preserve-manual-memoization on CI; React Compiler
+  // handles the memoization.
   const displayScale =
     containerBox.w <= 0 || containerBox.h <= 0
       ? 1
@@ -1011,8 +931,6 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     ? state.annotations.find((a) => a.id === selectedId)
     : null;
 
-  // ── Render ───────────────────────────────────────────────────
-
   if (imageLoadError) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-neutral-950 text-center text-sm text-neutral-400">
@@ -1024,19 +942,13 @@ export function SnapEditorImpl(props: SnapEditorProps) {
 
   return (
     <main className="flex h-screen flex-col bg-neutral-950">
-      {/* ── Top bar ──────────────────────────────────────────
-          Back arrow on the left, annotation toolbar centered,
-          undo/redo + save flush right. Sized at h-16 so the
-          centered toolbar has room to breathe and the row stays
-          aligned with the editor's larger control surface.
-      */}
+      {/* Top bar: title (left), annotation toolbar (center), undo/redo
+          + save (right). */}
       <header className="relative flex h-20 shrink-0 items-center justify-between border-b border-line px-4">
-        {/* On `lg:` and up the annotation toolbar sits centered in
-            the header, so cap the title cluster at `calc(50% - 220px)`
-            and let it ellipsise before it can slide underneath the
-            toolbar tiles. Below `lg:` the toolbar is hidden — drop
-            the cap so the title can stretch into the freed space and
-            ellipsise only against the right-hand cluster. */}
+        {/* On `lg:`+ the centered toolbar shares the header, so cap the
+            title cluster at `calc(50% - 220px)` and ellipsise it before
+            it can slide under the toolbar. Below `lg:` the toolbar is
+            hidden, so drop the cap and let the title use the freed space. */}
         <div className="flex min-w-0 flex-1 items-center gap-2 lg:max-w-[calc(50%-220px)]">
           <IconButton
             onClick={() => router.push('/snaps')}
@@ -1045,10 +957,8 @@ export function SnapEditorImpl(props: SnapEditorProps) {
           >
             <ArrowLeft className="h-5 w-5" />
           </IconButton>
-          {/* Editable title. Hover the static label → pencil hint;
-              click to edit, Enter or blur commits via renameSnapAction.
-              Marketing-style headlines are long, so cap the static
-              span with truncate to keep the header at one row. */}
+          {/* Editable title: click the label to edit, Enter or blur
+              commits. Long headlines truncate to keep the header one row. */}
           {titleEditing ? (
             <form
               className="flex min-w-0 items-center gap-1"
@@ -1095,15 +1005,11 @@ export function SnapEditorImpl(props: SnapEditorProps) {
           )}
         </div>
 
-        {/* Absolute-positioned middle slot so the toolbar is anchored
-            to the actual page center, independent of the left/right
-            cluster widths — `flex-1 justify-center` only centers
-            within the leftover space, which shifts every time the
-            right-hand cluster grows (e.g. "Saved · link copied").
-            Hidden below `lg:` — the annotation toolbar requires a
-            pointer canvas big enough to draw on, and small-viewport
-            users mainly view/save, so we drop it to free header
-            room until there's enough width to draw comfortably. */}
+        {/* Absolutely centered so the toolbar anchors to the true page
+            center regardless of the side clusters — `flex-1
+            justify-center` would shift it every time the right cluster
+            grows (e.g. "Saved · link copied"). Hidden below `lg:`,
+            where there isn't room to draw on the canvas anyway. */}
         <div className="pointer-events-none absolute inset-0 hidden items-center justify-center lg:flex">
           <div className="pointer-events-auto">
             <Toolbar
@@ -1166,22 +1072,14 @@ export function SnapEditorImpl(props: SnapEditorProps) {
         </div>
       )}
 
-      {/* ── Canvas surface ───────────────────────────────────────
-          Two nested divs:
-          - Outer (`p-16 md:p-20`): paints the breathing-room
-            padding around the canvas. `overflow-hidden` clips any
-            stray Konva descendant that ignores its parent's size.
-          - Inner (measured by `containerRefCb`): the actual space
-            the Stage gets to fill. We must measure the *inner* box,
-            not the outer one — `getBoundingClientRect()` includes
-            padding, so measuring the outer div would scale the
-            Stage up to fill the padded region too and the visible
-            gutter would vanish (which is exactly what kept happening).
-          The Stage paints at scaled pixel size so each Konva-managed
-          <canvas> child comes out at the right size — pure CSS
-          sizing on the Stage wrapper alone doesn't reach those
-          nested canvases.
-      */}
+      {/* Canvas surface. The outer div paints the padding gutter and
+          clips stray Konva descendants; the inner div (measured by
+          `containerRefCb`) is the box the Stage fills. We must measure
+          the inner box: `getBoundingClientRect()` includes padding, so
+          measuring the outer would scale the Stage over the gutter and
+          the visible padding would vanish. The Stage paints at scaled
+          pixel size so its nested <canvas> children come out right —
+          CSS sizing on the wrapper alone doesn't reach them. */}
       <div className="relative flex flex-1 min-h-0 overflow-hidden p-2 md:p-10">
         {selectedAnno && (
           <div className="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex justify-center">
@@ -1324,8 +1222,6 @@ export function SnapEditorImpl(props: SnapEditorProps) {
   );
 }
 
-// ── Sub-components ──────────────────────────────────────────────
-
 function Toolbar({
   tool,
   onTool,
@@ -1360,10 +1256,8 @@ function Toolbar({
       >
         <ArrowUpRight className="h-4 w-4" />
       </ToolButton>
-      {/* Blur tool removed for now — the cached-image-filter pipeline
-          ships in db-level annotations but the click-to-insert UX
-          isn't stable yet. Drop the toolbar button so no new blurs
-          can be created; existing rendering paths stay so legacy
+      {/* No blur button: the click-to-insert UX isn't stable yet, so
+          new blurs can't be created. The rendering paths stay so legacy
           saved blurs still resolve. */}
       <div className="mx-1 h-5 w-px bg-overlay-strong" />
       <BackgroundPicker active={background} onChange={onBackground} />
@@ -1371,9 +1265,8 @@ function Toolbar({
   );
 }
 
-// Header icon button — wraps the trigger in the shared AnimatedTooltip
-// (same component the desktop app uses) so edge buttons don't clip
-// their label and the tooltip animates consistently across services.
+// Header icon button — wraps the trigger in AnimatedTooltip so edge
+// buttons don't clip their label.
 function IconButton({
   onClick,
   disabled,
@@ -1430,8 +1323,8 @@ function ToolButton({
   );
 }
 
-// Trigger swatch shown inside the toolbar's ToolButton — compact
-// 20×20 square that visually reflects the active background.
+// Compact swatch reflecting the active background, shown in the
+// toolbar trigger.
 function BackgroundSwatch({ bg }: { bg: Background }) {
   if (bg === 'transparent') {
     return (
@@ -1473,9 +1366,8 @@ function gradientCss(stops: GradientStops): string {
   return `linear-gradient(135deg, ${parts.join(', ')})`;
 }
 
-// Popover picker. Mirrors the Loom/CleanShot pattern: a labelled
-// dialog with a 3-col grid of gradient tiles ("None" + 9 presets)
-// and a footer row of solid swatches + a native color picker.
+// Popover picker: a 3-col grid of gradient tiles ("None" + presets)
+// over a footer row of solid swatches + a native color picker.
 function BackgroundPicker({
   active,
   onChange,
@@ -1510,9 +1402,8 @@ function BackgroundPicker({
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            {/* "None" tile sits in the grid as the first cell so the
-                user reads it as the off-state of the same picker
-                instead of a separate toggle. */}
+            {/* "None" sits in-grid as the first cell so it reads as the
+                off-state of the picker, not a separate toggle. */}
             <button
               type="button"
               onClick={() => {
@@ -1567,9 +1458,8 @@ function BackgroundPicker({
                 aria-label={`Solid ${hex}`}
               />
             ))}
-            {/* Native color picker — the `<input type="color">` is
-                visually hidden behind a circular trigger painted with
-                a conic rainbow so it reads as "custom color". */}
+            {/* The `<input type="color">` is hidden behind a conic-
+                rainbow circle so it reads as "custom color". */}
             <label
               className="relative inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-full ring-1 ring-line-strong hover:ring-line-strong"
               style={{
@@ -1646,18 +1536,16 @@ function AnnotationNode({
   registerNode: (node: Konva.Node | null) => void;
   onSelect: () => void;
   onChange: (patch: Partial<Annotation>) => void;
-  // The underlying snap image + its placement on the stage. Needed so
-  // blur annotations can re-render a clipped, Gaussian-blurred copy of
-  // the source pixels under the blur rect.
+  // The snap image + its stage placement, needed so blur annotations
+  // can re-render a clipped, blurred copy of the source pixels.
   sourceImage?: HTMLImageElement | null;
   imgRect?: { x: number; y: number; w: number; h: number };
 }) {
-  // Common drag commit — invoked on dragEnd so each drag is one undo
-  // step instead of one per pointermove.
+  // Commit on dragEnd so each drag is one undo step, not one per move.
   const onDragEnd = (e: Konva.KonvaEventObject<DragEvent>): void => {
     if (annotation.kind === 'arrow') {
-      // Arrow drag offset → bake into points so we don't accumulate
-      // a transform on top of the points array.
+      // Bake the drag offset into the points so we don't accumulate a
+      // transform on top of the points array.
       const node = e.target;
       const dx = node.x();
       const dy = node.y();
@@ -1694,16 +1582,15 @@ function AnnotationNode({
         verticalAlign="top"
         {...commonProps}
         onDblClick={() => {
-          // Quick in-place edit via a prompt() — a full inline contentEditable
-          // would be richer but prompt keeps the editor MVP focused. The
-          // Transformer still handles resize.
+          // Edit via prompt() for now; a full inline contentEditable
+          // would be richer. The Transformer still handles resize.
           const next = window.prompt('Text', annotation.text);
           if (next !== null) onChange({ text: next } as Partial<Annotation>);
         }}
         onTransformEnd={(e) => {
           const node = e.target as Konva.Text;
           const scaleX = node.scaleX();
-          // Reset scale and bake into width + fontSize so subsequent
+          // Reset scale and bake it into width + fontSize so subsequent
           // transforms don't compound.
           const nextWidth = Math.max(20, node.width() * scaleX);
           const nextFontSize = Math.max(8, annotation.fontSize * scaleX);
@@ -1731,9 +1618,8 @@ function AnnotationNode({
         stroke={annotation.stroke}
         strokeWidth={annotation.strokeWidth}
         cornerRadius={annotation.cornerRadius}
-        // Visually outline-only, but a fully transparent fill keeps
-        // the body of the rect hit-testable so users can grab and
-        // drag from anywhere inside — not just the 4px stroke.
+        // Outline-only visually, but a transparent fill keeps the body
+        // hit-testable so it's draggable from inside, not just the stroke.
         fillEnabled
         fill="rgba(0,0,0,0)"
         {...commonProps}
@@ -1769,7 +1655,6 @@ function AnnotationNode({
     );
   }
 
-  // arrow
   return (
     <Arrow
       ref={(n) => registerNode(n)}
@@ -1786,12 +1671,11 @@ function AnnotationNode({
   );
 }
 
-// Gaussian-blur annotation. A Konva Group acts as both the draggable
-// handle and the clip window — its clipFunc cuts a rect-shaped hole
-// through which a blurred copy of the source image shows. The inner
-// image is offset by `-annotation.x/y` so the blurred pixels stay
-// pinned to the underlying source: dragging the group reveals the
-// blur at the NEW location while keeping the source content aligned.
+// Gaussian-blur annotation. The Group is both the draggable handle and
+// the clip window: its clipFunc cuts a rect through which a blurred copy
+// of the source image shows. The inner image is offset by
+// `-annotation.x/y` so the blurred pixels stay pinned to the source —
+// dragging reveals the blur at the new spot with content still aligned.
 function BlurNode({
   annotation,
   sourceImage,
@@ -1811,17 +1695,16 @@ function BlurNode({
 }) {
   const imageRef = useRef<Konva.Image | null>(null);
 
-  // Imperatively (re-)apply the Blur filter whenever geometry or
-  // radius changes. We can't rely on the react-konva `filters` prop
-  // alone — filters take effect only on a cached node, and the cache
-  // must be re-taken after every position / size / radius shift.
+  // Re-apply the Blur filter whenever geometry or radius changes. The
+  // react-konva `filters` prop alone isn't enough: filters only apply
+  // to a cached node, and the cache must be re-taken after every shift.
   useEffect(() => {
     const node = imageRef.current;
     if (!node) return;
     node.filters([Konva.Filters.Blur]);
     node.blurRadius(annotation.blurRadius);
-    // cache() reads the underlying HTMLImageElement; it's already
-    // loaded at this point so the snapshot is valid synchronously.
+    // cache() reads the HTMLImageElement, already loaded here, so the
+    // snapshot is valid synchronously.
     node.cache();
     node.getLayer()?.batchDraw();
   }, [

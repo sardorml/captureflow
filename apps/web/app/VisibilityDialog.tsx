@@ -14,12 +14,10 @@ import {
   VisibilityPicker,
 } from '@captureflow/ui';
 
-// Dashboard visibility picker — modal flavour. Mirrors the share
-// viewer's ShareActions dialog so the "Public / Workspace / Private"
-// choice reads identically wherever a user changes it. The trigger
-// element is the row's existing chip; clicking it opens the modal,
-// the radio cards drive `onChange`, and the dialog stays open while
-// the server transition runs so the user sees the affordance settle.
+// Dashboard visibility picker, modal flavour. Mirrors the share viewer's
+// ShareActions dialog so the "Public / Workspace / Private" choice reads
+// identically wherever a user changes it. The dialog stays open while the
+// server transition runs so the user sees the affordance settle.
 
 export type Visibility = 'public' | 'workspace' | 'private';
 

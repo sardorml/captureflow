@@ -10,15 +10,14 @@ import { optionsResponse, withCors } from '@/lib/snap/cors';
 import type { SnapApiError } from '@/lib/snap/types';
 import { snapViewUrlForRequest } from '@/lib/site';
 
-// /api/snaps/[id]
+// /api/s/snaps/[id] — owner-only snap management.
 //
-// GET    bearer → snap metadata (owner-only)
-// PUT    bearer → replace PNG bytes (editor save)
-// DELETE bearer → soft-delete (R2 object dropped by cron)
+// GET    snap metadata
+// PUT    replace PNG bytes (editor save)
+// DELETE soft-delete (R2 bytes dropped inline)
 //
-// All three require bearer + ownership of the snap row. Public reads
-// of the PNG go through GET /[id] (the SSR view page) which doesn't
-// need auth.
+// All require a bearer token + ownership of the snap row. Public PNG
+// reads go through the SSR view page, which needs no auth.
 
 function extractBearerToken(req: NextRequest): string | null {
   const h = req.headers.get('authorization') ?? '';
@@ -60,8 +59,7 @@ async function authorise(
     }
   } else if (allowSession) {
     // Fall back to the session cookie so the snap viewer's overflow
-    // menu can call DELETE without holding a device token. Matches the
-    // share-side pattern.
+    // menu can call DELETE without holding a device token.
     const cookieHeader = (await headers()).get('cookie');
     const visitor = await verifySessionOrNull(cookieHeader);
     if (!visitor) {
@@ -145,9 +143,9 @@ export async function DELETE(
   if (a.kind === 'error') return a.res;
 
   await softDeleteSnap(a.snap.id);
-  // Drop the R2 object immediately — there's no cron sweep yet for
-  // snaps, so without this the bytes linger indefinitely. Soft-delete
-  // still wins for race-safety on the row itself.
+  // Drop the R2 object inline: there's no cron sweep for snaps yet, so
+  // otherwise the bytes would linger indefinitely. The soft-delete above
+  // still handles row-level race safety.
   try {
     await deleteSnapBytes(a.snap.id);
   } catch (err) {

@@ -6,12 +6,9 @@ import { motion } from 'motion/react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../lib/cn';
 
-// Motion-driven sibling of <Button>. Same variant API + a spring-loaded
-// tap scale so the press feedback feels physical rather than the flat
-// CSS `active:scale` shadcn ships. The `candy` variant is the signature
-// gradient flavour callers reach for when they want the chrome to read
-// as "primary, but elevated" (Share dialog confirm, the segmented
-// Share+Copy chip on the share viewer, etc.).
+// Motion-driven <Button>: same variant API plus a spring-loaded tap
+// scale so press feedback feels physical rather than the flat CSS
+// `active:scale` shadcn ships.
 const smoothButtonVariants = cva(
   'relative inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',
   {
@@ -44,8 +41,7 @@ const smoothButtonVariants = cva(
   }
 );
 
-// Spring tuned to feel like a physical button click — fast, slightly
-// overdamped so it doesn't bounce back past 1.
+// Fast, slightly overdamped so the tap doesn't bounce back past scale 1.
 const TAP_SPRING = { type: 'spring' as const, stiffness: 520, damping: 32 };
 
 type SmoothButtonProps = Omit<
@@ -58,10 +54,9 @@ type SmoothButtonProps = Omit<
   | 'onDrag'
 > &
   VariantProps<typeof smoothButtonVariants> & {
-    // Render as the child element (Radix Slot pattern) — used by
-    // anchor-style buttons so a <Link> picks up the variant classes
-    // without losing semantic <a>. The animated wrapper is dropped
-    // when asChild is true to avoid double-stacking motion props on a
+    // Render as the child element (Radix Slot) so e.g. a <Link> picks up
+    // the variant classes without losing semantic <a>. When set, the
+    // motion wrapper is dropped to avoid stacking motion props onto a
     // host element that may not accept them.
     asChild?: boolean;
   };

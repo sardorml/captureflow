@@ -28,7 +28,6 @@ import { RecordingModeToggle } from './RecordingModeToggle'
 import { ToolbarStatusNudge } from './ToolbarStatusNudge'
 import AnimatedTooltip from '@/components/ui/animated-tooltip'
 
-// Source picker entries — icon segment mirroring the capture-mode segment.
 const SOURCES: { mode: SelectionOverlayMode; icon: LucideIcon; label: string; tooltip: string }[] =
   [
     { mode: 'display', icon: Monitor, label: 'Display', tooltip: 'Record an entire display' },
@@ -36,8 +35,7 @@ const SOURCES: { mode: SelectionOverlayMode; icon: LucideIcon; label: string; to
     { mode: 'area', icon: Scan, label: 'Area', tooltip: 'Record a custom region' }
   ]
 
-// Hairline divider between toolbar clusters. Sits in the drag region so the
-// gaps between clusters stay grabbable.
+// Sits in the drag region so the gaps between clusters stay grabbable.
 function Divider(): React.JSX.Element {
   return (
     <div
@@ -50,7 +48,6 @@ function Divider(): React.JSX.Element {
   )
 }
 
-// 2×3 grip-dot pattern — flanking drag handles on both edges.
 function GripDots({ className }: { className?: string }): React.JSX.Element {
   return (
     <div
@@ -148,9 +145,6 @@ function DeviceCell({
   onChange,
   tooltip
 }: {
-  // Lucide glyph standing in for the control — the icon does the labelling
-  // work; tooltip + aria-label carry the explanatory copy. `offIcon` is the
-  // crossed-out variant shown (in red) when the device is off.
   icon: LucideIcon
   offIcon: LucideIcon
   iconLabel: string
@@ -160,15 +154,14 @@ function DeviceCell({
   onChange: (value: string) => void
   tooltip: string
 }): React.JSX.Element {
-  // Icon + caret only — the active selection lives in the tooltip/native
-  // dropdown, keeping the toolbar compact. The hidden <select> overlays the
-  // whole cell so the click opens the native menu. When off, the glyph swaps
-  // to its crossed-out variant in red so a disabled device reads at a glance.
+  // The hidden <select> overlays the whole cell so a click opens the native
+  // menu. When off, the glyph swaps to its crossed-out variant (red) so a
+  // disabled device reads at a glance.
   const Glyph = isActive ? Icon : OffIcon
   return (
     <AnimatedTooltip content={tooltip} placement="bottom">
-      {/* Hover matches the mode/source segment buttons: a flat rounded-lg
-          highlight, not the springy HoverItem wash. */}
+      {/* Flat highlight to match the mode/source segment buttons, not the
+          springy HoverItem wash. */}
       <div
         className="relative flex h-8 items-center gap-0.5 rounded-lg px-1.5 cursor-pointer transition-colors hover:bg-white/5"
         aria-label={iconLabel}
@@ -219,9 +212,8 @@ function IdleToolbar(): React.JSX.Element {
   const systemAudioEnabled = useRecordingStore((s) => s.systemAudioEnabled)
   const setSystemAudioEnabled = useRecordingStore((s) => s.setSystemAudioEnabled)
   const recordingMode = useRecordingStore((s) => s.recordingMode)
-  // Snapshot mode doesn't pipe audio or camera, so the cam/mic/sound
-  // cells are hidden entirely; the toolbar window shrinks to match
-  // (driven by the RESIZE_TOOLBAR IPC fired from the mode toggle).
+  // Screenshot mode doesn't pipe audio or camera, so the cells are hidden and
+  // the toolbar window shrinks (via the RESIZE_TOOLBAR IPC from the mode toggle).
   const showDeviceCells = recordingMode !== 'screenshot'
 
   const handleCameraChange = async (value: string): Promise<void> => {
@@ -252,11 +244,11 @@ function IdleToolbar(): React.JSX.Element {
       window.electronAPI.closeSelectionOverlay()
     } else {
       setOverlayMode(mode)
-      // The overlay's record handlers gate on these flags so it can prompt
-      // the permission dialog before showing the "Preparing…" spinner.
+      // The overlay's record handlers gate on these flags so it can prompt the
+      // permission dialog before showing the "Preparing…" spinner.
       // Dev-only: forward the "Record self" toggle so the picker's hover
-      // detector includes CaptureFlow's own windows (otherwise the editor is
-      // invisible to the window picker and can't be selected).
+      // detector includes CaptureFlow's own windows — otherwise the editor is
+      // invisible to the window picker and can't be selected.
       const includeSelf =
         import.meta.env.DEV && localStorage.getItem('captureflow.dev.recordSelf') === '1'
       window.electronAPI.openSelectionOverlay(
@@ -270,7 +262,6 @@ function IdleToolbar(): React.JSX.Element {
     }
   }
 
-  // Reset overlay mode on Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape' && overlayMode) {
@@ -282,9 +273,8 @@ function IdleToolbar(): React.JSX.Element {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [overlayMode])
 
-  // Main cancels the overlay if the user swipes to a different macOS Space
-  // while it's open — the overlay window is hidden behind the scenes and the
-  // toolbar's mode button has to reset so the next click reopens cleanly.
+  // Main cancels the overlay when the user swipes to a different macOS Space.
+  // Reset the mode button so the next click reopens cleanly.
   useEffect(() => {
     return window.electronAPI.onSelectionOverlayCancelled(() => {
       setOverlayMode(null)
@@ -335,12 +325,12 @@ function IdleToolbar(): React.JSX.Element {
 
   return (
     <>
-      {/* Capture mode: Share · Screenshot (icon segment) */}
+      {/* Capture mode: Share · Screenshot */}
       <RecordingModeToggle />
 
       <Divider />
 
-      {/* Source: Display · Window · Area (icon segment) */}
+      {/* Source: Display · Window · Area */}
       <div
         className="flex items-center gap-1 rounded-[10px] bg-black/20 p-1"
         style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
@@ -368,11 +358,11 @@ function IdleToolbar(): React.JSX.Element {
 
       <Divider />
 
-      {/* Devices: camera ▾  mic ▾  system-audio ▾ (icon + caret).
-          Screenshot is a still — camera/mic/audio don't apply — so in that
-          mode the cells go `invisible` (they still reserve their exact width
-          so the bar never resizes between modes) and a centred hint is
-          overlaid on top. The hint truncates rather than widening the bar. */}
+      {/* In Screenshot mode the device cells go `invisible` rather than being
+          removed: they still reserve their exact width so the bar never
+          resizes between modes. A centred hint is overlaid on top and
+          truncates rather than widening the bar — keeping the layout fixed
+          regardless of which mode is active. */}
       <div className="relative flex items-center">
         <div
           data-testid="recording-device-cells"
@@ -441,9 +431,9 @@ export function RecordingToolbar(): React.JSX.Element {
 
   const recordingMode = useRecordingStore((s) => s.recordingMode)
 
-  // Mirror main's share-auth state into the store + subscribe to
-  // changes. The SelectionOverlay reads the same value to decide
-  // whether to show a lock icon on Start recording.
+  // Mirror main's share-auth state into the store and subscribe to changes.
+  // The SelectionOverlay reads the same value to decide whether to show a lock
+  // icon on Start recording.
   useEffect(() => {
     void window.electronAPI.getShareAuth().then((state) => {
       useRecordingStore.getState().setShareAuth(state)
@@ -497,7 +487,6 @@ export function RecordingToolbar(): React.JSX.Element {
     })
   }, [])
 
-  // Listen for source selection from picker/overlay
   useEffect(() => {
     return window.electronAPI.onSourceSelected((source) => {
       setSelectedSource(source)
@@ -554,7 +543,6 @@ export function RecordingToolbar(): React.JSX.Element {
     // Camera still selected but mode hides the bubble (Screenshot).
     // Soft-hide keeps the stream warm; toggling back is instant.
     if (prev.device === wantDevice && wantDevice !== null) {
-      // Same device, just mode toggled — soft hide only.
       window.electronAPI.softHideWebcamBubble().catch(() => {})
     } else {
       window.electronAPI.hideWebcamBubble().catch(() => {})
@@ -653,12 +641,12 @@ export function RecordingToolbar(): React.JSX.Element {
       className="relative flex flex-col"
       style={{ background: 'transparent', height: TOOLBAR_HEIGHT }}
     >
-      {/* Nudge + bar live in one centered column with `items-start`, so the
-          status pill's left edge aligns with the (auto-width) bar's left
-          edge. `mt-auto` pins the column to the window's bottom edge; the
-          headroom above is tooltip space. The bar itself is a single row:
-          capture-mode segment · close · source segment · devices · grip,
-          with `layout` animating the reflow when Screenshot drops devices. */}
+      {/* Nudge + bar share one centered column with `items-start` so the
+          status pill's left edge aligns with the (auto-width) bar's left edge.
+          `mt-auto` pins the column to the window's bottom edge; the headroom
+          above is tooltip space. `layout` animates the bar's reflow when
+          Screenshot mode drops the device cells and the width shrinks to
+          match the remaining clusters. */}
       <div className="mt-auto flex justify-center" style={{ marginBottom: TOOLBAR_TOOLTIP_BELOW }}>
         <div className="flex flex-col items-start gap-1.5">
           <ToolbarStatusNudge visible={status === 'idle'} />

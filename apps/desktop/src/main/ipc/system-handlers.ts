@@ -43,9 +43,8 @@ export function registerSystemHandlers(): void {
       const status = systemPreferences.getMediaAccessStatus(kind)
       if (status === 'granted') return true
 
-      // First-run — fire the native macOS TCC consent dialog directly.
-      // askForMediaAccess only shows the prompt once per app, so we only
-      // call it when the status is actually 'not-determined'.
+      // First-run: fire the native macOS TCC consent dialog. askForMediaAccess
+      // only ever prompts once per app, so call it only while 'not-determined'.
       if (status === 'not-determined') {
         return systemPreferences.askForMediaAccess(kind)
       }
@@ -87,16 +86,13 @@ export function registerSystemHandlers(): void {
   })
 
   // Bug reports route through the main process because the renderer's CSP
-  // (`default-src 'self'`) blocks outbound HTTP. We forward to the same
-  // FormSubmit endpoint the landing site already uses for contact + feature
-  // requests, with build/runtime metadata appended so the email is useful
-  // without the user having to type it.
+  // (`default-src 'self'`) blocks outbound HTTP. We post to the same FormSubmit
+  // endpoint the landing site uses, with build/runtime metadata appended.
   //
-  // FormSubmit's `/ajax/` path soft-rejects requests with no `Origin`
-  // header (returns 200 + `{success:"false"}` rather than HTTP 4xx), so
-  // we mirror the landing site's origin and parse `success` from the
-  // response body — checking only `res.ok` showed false-positive
-  // "Report sent" toasts while no email actually delivered.
+  // FormSubmit's `/ajax/` path soft-rejects requests with no `Origin` header
+  // (returns 200 + `{success:"false"}` rather than HTTP 4xx), so we mirror the
+  // landing site's origin and parse `success` from the body — checking only
+  // `res.ok` produced false-positive "Report sent" toasts with no email sent.
   ipcMain.handle(
     IPC_CHANNELS.SEND_BUG_REPORT,
     async (_event, payload: BugReportPayload): Promise<BugReportResult> => {

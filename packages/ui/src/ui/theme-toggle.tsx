@@ -6,30 +6,26 @@ import { motion } from 'motion/react';
 import { cn } from '../lib/cn';
 import { type Theme, THEME_COOKIE } from '../lib/theme';
 
-// Sun/moon toggle button — writes the theme cookie + flips the
-// `data-theme` attribute on <html> for instant feedback, then nudges
-// the router so server components re-render with the new attribute on
-// the next paint (matters for pages that look up theme during SSR).
-//
-// Accepts `initialTheme` from the server-resolved cookie so the
-// rendered icon doesn't flash the wrong glyph during hydration.
+// Sun/moon toggle. Writes the theme cookie and flips <html>'s
+// `data-theme` for instant feedback, then nudges the router so SSR'd
+// server components re-render with the new attribute. Takes
+// `initialTheme` from the server-resolved cookie so the icon doesn't
+// flash the wrong glyph during hydration.
 
 type Props = {
   initialTheme: Theme;
   className?: string;
-  // Optional callback so the consuming app can run `router.refresh()`
-  // after the cookie flips — kept out of this package to avoid a hard
-  // dependency on next/navigation here.
+  // Lets the consuming app run `router.refresh()` after the cookie
+  // flips, so this package avoids a hard dependency on next/navigation.
   onAfterToggle?: (next: Theme) => void;
 };
 
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
-// When the toggle runs on a `*.captureflow.xyz` host, scope the
-// cookie to the apex domain so app / share / snap all read the same
-// preference. On localhost (or any other host) we leave Domain off so
-// the cookie defaults to the current origin — setting a Domain on a
-// hostname without a public suffix is silently dropped by browsers.
+// On a `*.captureflow.xyz` host, scope the cookie to the apex domain so
+// app/share/snap share one preference. Elsewhere (e.g. localhost) leave
+// Domain off: browsers silently drop a Domain set on a host without a
+// public suffix.
 function cookieDomainFor(hostname: string): string | null {
   if (
     hostname.endsWith('.captureflow.xyz') ||
@@ -41,8 +37,8 @@ function cookieDomainFor(hostname: string): string | null {
 }
 
 function writeThemeCookie(value: Theme) {
-  // SameSite=Lax + 1-year horizon mirrors better-auth's defaults; the
-  // toggle is a preference, not a session secret.
+  // SameSite=Lax + 1-year horizon: this is a UI preference, not a
+  // session secret.
   const domain = cookieDomainFor(window.location.hostname);
   const isHttps = window.location.protocol === 'https:';
   const parts = [
@@ -59,9 +55,8 @@ function writeThemeCookie(value: Theme) {
 export function ThemeToggle({ initialTheme, className, onAfterToggle }: Props) {
   const [theme, setTheme] = React.useState<Theme>(initialTheme);
 
-  // Keep React state synced with the SSR-resolved attribute so a hard
-  // refresh after the cookie flipped doesn't strand us on the prior
-  // icon. Runs once on mount.
+  // On mount, sync state with the SSR-resolved attribute so a hard
+  // refresh after the cookie flipped doesn't strand us on the old icon.
   React.useEffect(() => {
     const attr = document.documentElement.getAttribute('data-theme');
     if (attr === 'light' || attr === 'dark') setTheme(attr);

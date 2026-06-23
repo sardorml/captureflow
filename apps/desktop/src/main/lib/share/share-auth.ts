@@ -6,18 +6,17 @@ import type { ShareAuthState } from '../../../shared/types'
 import { logInfo, logWarn } from '../logger'
 import { setShareConnectivity } from './share-connectivity'
 
-// Local cache of the device token issued by captureflow.xyz
-// during the deep-link auth handoff. Stored at
+// Local cache of the device token issued by captureflow.xyz during the
+// deep-link auth handoff, persisted at
 //   ~/Library/Application Support/CaptureFlow/share-auth.json
 //
 // The raw token is the credential the share API checks via the
-// Authorization header — keep it out of logs and never round-trip
-// it to the renderer.
+// Authorization header — keep it out of logs and never round-trip it to
+// the renderer.
 
 const FILE_NAME = 'share-auth.json'
 
-// File-on-disk shape. Adds `token` (the load-bearing secret) on top
-// of the renderer-safe state.
+// On-disk shape: the renderer-safe state plus the raw `token` secret.
 type StoredAuth = {
   token: string
   tokenId: string
@@ -104,22 +103,19 @@ export async function setShareAuth(input: {
   return state
 }
 
-// Probes the worker to make sure the cached bearer is still live AND
-// that captureflow.xyz is reachable at all. Called at app
-// startup (after loadShareAuth) and on a 15s background interval —
-// catches both the "user revoked the device on captureflow.xyz
-// while CaptureFlow was already running" case AND the "user just lost
-// internet" case, so the lock icon flips back on without waiting
-// until the next /api/init attempt fails.
+// Probes the worker to confirm the cached bearer is still live AND that
+// captureflow.xyz is reachable. Called at startup (after loadShareAuth)
+// and on a 15s interval, so the lock icon flips back on without waiting
+// for the next /api/init to fail — covering both a remotely-revoked
+// device and lost internet.
 //
-// Runs even when there's no token cached, purely to track
-// connectivity (anonymous flow needs the lock icon too once offline).
-// `/auth/check` returns 400 for no bearer, which still counts as
-// online — only thrown network errors (DNS/TCP failure, fetch abort
-// on timeout) flip connectivity to offline.
+// Runs even with no token cached, purely to track connectivity (the
+// anonymous flow needs the lock icon offline too). /auth/check returns
+// 400 for no bearer, which still counts as online; only thrown network
+// errors (DNS/TCP failure, timeout abort) flip connectivity to offline.
 //
-// Network errors never sign the user out — they only flip connectivity.
-// Only an explicit 401/invalid_token from the worker clears the auth.
+// Network errors never sign the user out — only an explicit 401 from the
+// worker clears the auth.
 const AUTH_CHECK_BASE = process.env.CAPTUREFLOW_SHARE_API_BASE ?? 'https://captureflow.xyz/api/r'
 const AUTH_CHECK_TIMEOUT_MS = 8_000
 
@@ -133,8 +129,8 @@ export async function validateShareAuth(): Promise<ShareAuthState> {
       headers,
       signal: AbortSignal.timeout(AUTH_CHECK_TIMEOUT_MS)
     })
-    // Any HTTP response means the host is reachable — 400 (no bearer)
-    // and 401 (expired bearer) both count as online.
+    // Any HTTP response means the host is reachable, including 400 (no
+    // bearer) and 401 (expired bearer).
     setShareConnectivity('online')
     if (token && res.status === 401) {
       logInfo('share-auth', 'remote check rejected token; clearing local session')

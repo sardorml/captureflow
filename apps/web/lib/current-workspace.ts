@@ -11,24 +11,21 @@ import {
 } from '@captureflow/quota';
 import { getAppWebEnv } from './cf-env';
 
-// Cookie-backed "current workspace" for the dashboard. v1 always
-// rendered the user's personal workspace; v2 lets a user with multiple
-// workspaces (their own + any they accepted invites to) flip which
-// workspace the dashboard pages scope to.
+// Cookie-backed "current workspace" for the dashboard, letting a user with
+// multiple workspaces flip which one the dashboard pages scope to.
 //
-// The cookie just holds a workspace id. Validity is re-checked on
-// every request — if the cookie points at a workspace the user no
-// longer belongs to (revoked invitation, deleted workspace), we
-// silently fall back to their personal workspace so the dashboard
-// can't be hard-wedged by a stale cookie.
+// The cookie just holds a workspace id, re-validated on every request: if it
+// points at a workspace the user no longer belongs to (revoked invitation,
+// deleted workspace), fall back to their personal workspace so a stale cookie
+// can't hard-wedge the dashboard.
 
 export const CURRENT_WORKSPACE_COOKIE = 'captureflow-workspace';
 
 export type CurrentWorkspace = {
   workspace: WorkspaceRow;
   role: WorkspaceRole;
-  // All workspaces the user belongs to. Hand-off to the switcher
-  // dropdown so we don't re-query in the header component.
+  // All workspaces the user belongs to, handed to the switcher dropdown so the
+  // header component doesn't re-query.
   memberships: WorkspaceMembership[];
 };
 
@@ -42,13 +39,12 @@ export async function resolveCurrentWorkspace(
   }
   const memberships = await listWorkspacesForUser(env.DB, userId);
 
-  // Cookie store is read-only inside Server Components; that's all we
-  // need here (writes go through the server action).
+  // Cookie store is read-only inside Server Components; writes go through the
+  // server action.
   const cookieStore = await cookies();
   const requested = cookieStore.get(CURRENT_WORKSPACE_COOKIE)?.value ?? null;
 
-  // Validate the cookie's workspace against the user's membership set —
-  // if it's not in the list we treat it as missing.
+  // A cookie workspace not in the membership set is treated as missing.
   const inMembership = memberships.find((m) => m.workspace_id === requested);
   if (requested && inMembership) {
     const row = await getWorkspaceById(env.DB, requested);
@@ -57,11 +53,10 @@ export async function resolveCurrentWorkspace(
     }
   }
 
-  // Fall back to the personal workspace. ensurePersonalWorkspace
-  // double-covers the edge case where a brand-new account hits the
-  // dashboard before the signup hook persisted a row.
+  // Fall back to the personal workspace. ensurePersonalWorkspace also covers a
+  // brand-new account hitting the dashboard before the signup hook persisted a
+  // row.
   const personal = await ensurePersonalWorkspace(env.DB, userId, userName);
-  // Owner role by definition for the personal workspace.
   return {
     workspace: personal,
     role: 'owner',

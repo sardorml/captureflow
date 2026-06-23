@@ -2,25 +2,22 @@
 
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
-// Centralised binding lookup. Returns the D1 / R2 bindings declared
-// in wrangler.toml plus auth secrets, scoped to the current request.
-// Returns `null` if invoked outside a Cloudflare runtime (e.g. unit
-// tests) so callers can throw a clear error instead of crashing on a
-// missing binding deep in a query.
+// Centralised, request-scoped binding lookup (D1 / R2 plus auth secrets
+// from wrangler.toml). Returns `null` outside a Cloudflare runtime (e.g.
+// unit tests) so callers can throw a clear error instead of crashing on
+// a missing binding deep in a query.
 
 export type AppWebBindings = {
   DB?: D1Database;
   BUCKET?: R2Bucket;
   NEXT_PUBLIC_APP_WEB_SITE_URL?: string;
   NEXT_PUBLIC_SHARE_SITE_URL?: string;
-  // Legacy standalone-snap host. The snap viewer lives
-  // under `/s` on the marketing root and builds its URLs off
-  // NEXT_PUBLIC_MARKETING_SITE_URL; this is retained for parity with the
-  // standalone snap worker until cutover.
+  // Legacy standalone-snap host. The snap viewer now lives under `/s` on
+  // the marketing root and builds URLs off NEXT_PUBLIC_MARKETING_SITE_URL;
+  // retained for parity with the standalone snap worker until cutover.
   NEXT_PUBLIC_SNAP_SITE_URL?: string;
-  // Marketing/landing root, read by the share view pages
-  // and snap view pages. Set in wrangler.toml
-  // [vars]. Snap view URLs are captureflow.xyz/s/<id>.
+  // Marketing/landing root, read by the share and snap view pages
+  // (snap URLs are captureflow.xyz/s/<id>). Set in wrangler.toml [vars].
   NEXT_PUBLIC_MARKETING_SITE_URL?: string;
   // CDN origin for direct R2 reads — share posters/videos and snap PNGs
   // (snaps live under the `snaps/` prefix). Set in wrangler.toml [vars].
@@ -32,12 +29,10 @@ export type AppWebBindings = {
   // settings; we verify HMAC-SHA256 of the raw request body against
   // the X-Signature header before trusting any subscription event.
   LEMON_WEBHOOK_SECRET?: string;
-  // Monthly and annual subscription variant IDs, looked up at webhook
-  // time to derive the `cycle` column ('monthly' | 'annual') from
-  // LS's variant_id. Strings to match LS's payload encoding. Test-mode
-  // variants live in *_TEST_* so a single deployment can accept
-  // webhooks from both LS test and live modes during the test purchase
-  // flow without flipping secrets.
+  // Subscription variant IDs, matched against LS's variant_id at webhook
+  // time to derive the `cycle` column ('monthly' | 'annual'). Strings to
+  // match LS's payload encoding. The *_TEST_* variants let one deployment
+  // accept both LS test- and live-mode webhooks without flipping secrets.
   LEMON_MONTHLY_VARIANT_ID?: string;
   LEMON_ANNUAL_VARIANT_ID?: string;
   LEMON_TEST_MONTHLY_VARIANT_ID?: string;
@@ -45,8 +40,8 @@ export type AppWebBindings = {
   // Resend API key for transactional email (workspace invites). Set via
   // `wrangler secret put RESEND_API_KEY`.
   RESEND_API_KEY?: string;
-  // The "from" address Resend sends invite emails as. Must be a verified
-  // domain in the Resend account, e.g. "CaptureFlow <hello@captureflow.xyz>".
+  // "From" address for invite emails. Must use a domain verified in the
+  // Resend account, e.g. "CaptureFlow <hello@captureflow.xyz>".
   RESEND_FROM_ADDRESS?: string;
 };
 

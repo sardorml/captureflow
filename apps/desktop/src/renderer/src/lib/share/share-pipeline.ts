@@ -37,12 +37,9 @@ import type { CursorPosition, ShareFrameEvent } from '../../../../shared/types'
 import { logRendererInfo, logRendererWarn } from './share-log'
 
 export type ShareArmOptions = {
-  // Whether system audio will arrive on the share fd. Comes from
-  // recording-store.systemAudioEnabled. When false, the encoder is
-  // constructed as soon as the video format arrives; when true, init
-  // waits for the first audio-format event so the muxer can reserve
-  // an audio track up front (mp4-muxer can't add tracks after the
-  // fact).
+  // Whether system audio will arrive on the share fd. When true, init
+  // waits for the first audio-format event so the muxer can reserve an
+  // audio track up front (mp4-muxer can't add tracks after the fact).
   audioExpected: boolean
 }
 
@@ -114,10 +111,8 @@ class SharePipeline {
     window.electronAPI.onShareFrameEvent((event) => this.handleEvent(event))
   }
 
-  /** Mark a new recording session as expecting share frames.
-   *  The native side will start emitting H.264 chunks via
-   *  SHARE_FRAME_EVENT; handleEvent() instantiates a
-   *  CompositingShareEncoder on the first 'format' event. */
+  /** Mark a new recording session as expecting share frames. The
+   *  encoder is instantiated lazily on the first 'format' event. */
   arm(options: ShareArmOptions): void {
     this.encoder?.cancel()
     this.encoder = null
@@ -146,9 +141,8 @@ class SharePipeline {
     this.setState({ status: 'armed' })
   }
 
-  /** Finalize the encoder. Streaming uploader (main) gets the last
-   *  muxed bytes via onChunkBytes during the muxer.finalize() pass.
-   *  Returns the encoder result (size/duration/frames). */
+  /** Finalize the encoder. Main gets the last muxed bytes via
+   *  onChunkBytes during the muxer.finalize() pass. */
   async finish(): Promise<ShareEncoderResult | null> {
     this.armed = false
     const current = this.encoder

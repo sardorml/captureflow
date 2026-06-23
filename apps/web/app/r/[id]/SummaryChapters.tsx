@@ -4,23 +4,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ListVideo, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { SmoothButton } from '@captureflow/ui';
 
-// Loom-style Summary + Chapters block, rendered below the reactions
-// bar on the share viewer. Persisted as a sidecar JSON in R2 so every
-// viewer sees the same content — owners write, anonymous viewers
-// just render. The initial state is server-rendered from the page so
-// there's no fetch flash on hydration.
+// Summary + Chapters block for the share viewer. Persisted as a sidecar
+// JSON in R2 so every viewer sees the same content — owners write,
+// anonymous viewers only render. Initial state is server-rendered to
+// avoid a fetch flash on hydration.
 
 type Props = {
   slug: string;
   isOwner: boolean;
   initialSummary: string;
   initialChapters: Chapter[];
-  // Player seek hook — wired from ShareViewer so chapter rows can
-  // jump the playhead.
   onSeek: (ms: number) => void;
-  // Active player time in ms, polled on a slow timer so the chapter
-  // row that corresponds to the current playhead highlights. Optional
-  // — without it we just don't highlight.
+  // Active player time in ms. Optional — without it, no chapter highlights.
   getCurrentMs?: () => number;
 };
 
@@ -37,8 +32,8 @@ function formatTimestamp(ms: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-// Parse a freeform "M:SS" or "MM:SS" or "1:23:45" input into ms.
-// Returns null if the input doesn't look like a timestamp.
+// Parse "M:SS", "MM:SS", or "H:MM:SS" into ms. Returns null when the
+// input doesn't look like a timestamp.
 function parseTimestamp(raw: string): number | null {
   const parts = raw.trim().split(':');
   if (parts.length < 1 || parts.length > 3) return null;
@@ -70,10 +65,10 @@ export function SummaryChapters({
   const [saveError, setSaveError] = useState<string | null>(null);
   const summaryTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // PUTs the whole sidecar — summary + chapters — so the server stays
-  // a single source of truth. We pass the in-flight values directly
-  // (rather than reading state) because React state updates are
-  // batched and we want to persist the user's exact action.
+  // PUTs the whole sidecar so the server stays the single source of
+  // truth. Takes the in-flight values directly rather than reading
+  // state, since React batches updates and we must persist exactly
+  // what the user just did.
   const persistAll = useCallback(
     async (nextSummary: string, nextChapters: Chapter[]) => {
       try {
@@ -97,9 +92,8 @@ export function SummaryChapters({
     [slug]
   );
 
-  // Lightweight tick to track the active chapter highlight. 500ms is
-  // slow enough that the polling is cheap; the chapter row only needs
-  // to flip on big timeline jumps anyway.
+  // Poll for the active chapter highlight. 500ms keeps it cheap; the
+  // highlight only needs to flip on big timeline jumps.
   useEffect(() => {
     if (!getCurrentMs) return;
     const id = window.setInterval(() => {
@@ -174,7 +168,7 @@ export function SummaryChapters({
   const startSummaryEdit = () => {
     setSummaryDraft(summary);
     setSummaryEditing(true);
-    // Focus after render
+    // Defer focus until after the textarea renders.
     window.setTimeout(() => summaryTextareaRef.current?.focus(), 0);
   };
 
@@ -186,8 +180,8 @@ export function SummaryChapters({
   const hasSummary = summary.trim().length > 0;
   const hasChapters = chapters.length > 0;
 
-  // Skip rendering entirely for viewers when there's nothing to show —
-  // empty sections only make sense to owners (who get edit affordances).
+  // Empty sections only make sense to owners (who get edit affordances),
+  // so render nothing for viewers when there's nothing to show.
   if (!isOwner && !hasSummary && !hasChapters) return null;
 
   return (

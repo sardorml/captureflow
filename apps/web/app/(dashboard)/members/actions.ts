@@ -18,10 +18,9 @@ import {
 } from '@/lib/current-workspace';
 import { sendWorkspaceInviteEmail } from '@/lib/email';
 
-// Server actions for the workspace Members page. Every action gates on
-// session + workspace ownership — the dashboard middleware already
-// blocks signed-out traffic, but actions can be replayed directly so we
-// re-verify here.
+// Server actions for the Members page. Each one re-verifies session and
+// workspace ownership: middleware blocks signed-out traffic, but actions
+// can be replayed directly, so the gate can't live only in the UI.
 
 type FormState = {
   error: string | null;
@@ -46,9 +45,6 @@ async function requireSession(): Promise<{
 }
 
 function getBaseUrl(): string {
-  // Hard-coded for prod; in local dev the BETTER_AUTH_URL binding could
-  // override, but the invite link only needs to land on the right host
-  // — the route handles the rest.
   return process.env.APP_WEB_PUBLIC_URL ?? 'https://captureflow.xyz';
 }
 
@@ -63,9 +59,8 @@ export async function inviteMemberAction(
   const emailRaw = formData.get('email');
   const email = typeof emailRaw === 'string' ? emailRaw.trim() : '';
   if (!email) return { error: 'Enter an email address', ok: null };
-  // Cheap shape check — we accept anything that looks email-like, the
-  // recipient still has to click through and sign in with the same
-  // address so a typo just no-ops.
+  // Loose shape check is enough: the recipient must sign in with this
+  // exact address to accept, so a typo just no-ops rather than misdelivers.
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: 'That doesn’t look like a valid email', ok: null };
   }
@@ -73,10 +68,9 @@ export async function inviteMemberAction(
     return { error: 'You’re already in your own workspace', ok: null };
   }
 
-  // Invite goes to whichever workspace the switcher has the user
-  // viewing. Non-owners shouldn't have been able to render the invite
-  // form, but re-check role here so a forged form submission can't
-  // bypass it.
+  // Invite targets the workspace the switcher currently has selected.
+  // Re-check ownership: the form is owner-only in the UI, but a forged
+  // submission must not bypass that.
   const current = await resolveCurrentWorkspace(session.userId, session.name);
   if (current.role !== 'owner') {
     return {
@@ -141,10 +135,9 @@ export async function revokeInviteAction(formData: FormData): Promise<void> {
   revalidatePath('/members');
 }
 
-// Owner-only: drop a member from the workspace. Membership row is
-// removed; their existing shares + snaps stay in the workspace
-// (owner keeps the content), but they lose viewing access via the
-// workspace gate and the workspace disappears from their switcher.
+// Owner-only: drop a member. Only the membership row is removed — their
+// shares and snaps stay in the workspace, but they lose viewing access
+// and the workspace drops out of their switcher.
 export async function removeMemberAction(formData: FormData): Promise<void> {
   const session = await requireSession();
   const env = await getAppWebEnv();
@@ -155,19 +148,18 @@ export async function removeMemberAction(formData: FormData): Promise<void> {
 
   const current = await resolveCurrentWorkspace(session.userId, session.name);
   if (current.role !== 'owner') return;
-  // Owners can't remove themselves through this path — the helper
-  // rejects it anyway, but bail early so the no-op isn't silent.
+  // Owners can't remove themselves via this path; the helper rejects it
+  // anyway, but bail early.
   if (memberUserId === session.userId) return;
 
   await removeWorkspaceMember(env.DB, current.workspace.id, memberUserId);
   revalidatePath('/members');
 }
 
-// Self-leave: a member walks away from a workspace they were invited
-// to. Owners can't use this (their personal workspace can't be
+// Self-leave for non-owners (an owner's personal workspace can't be
 // abandoned; team-workspace deletion is a separate flow). Clears the
-// "current workspace" cookie so the next render falls back to the
-// caller's personal workspace.
+// current-workspace cookie so the next render falls back to the caller's
+// personal workspace.
 export async function leaveWorkspaceAction(): Promise<void> {
   const session = await requireSession();
   const env = await getAppWebEnv();
@@ -189,10 +181,9 @@ export async function leaveWorkspaceAction(): Promise<void> {
   redirect('/shares');
 }
 
-// Accept-invite flow. Called from app/invite/[token]/page.tsx after the
-// user signs in. Verifies that the signed-in user's email matches the
-// invite recipient before mutating membership — otherwise an attacker
-// who stole a link could join workspaces they weren't invited to.
+// Called from app/invite/[token]/page.tsx after sign-in. The signed-in
+// email must match the invite recipient before membership is mutated,
+// or a stolen link could join workspaces it wasn't invited to.
 export async function acceptInviteAction(formData: FormData): Promise<void> {
   const session = await requireSession();
   const env = await getAppWebEnv();

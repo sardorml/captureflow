@@ -3,12 +3,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-// Session sync. The snap viewer lives under `/s` on the same app
-// as better-auth, so a sign-in/out writes the cookie this tab
-// will see — but the cookie change doesn't re-render an already-open tab.
-// This component re-checks the SAME-origin verify-session on focus /
-// visibilitychange and refreshes the route when the user differs from
-// what we last rendered. (Mirrors the /r share AuthSync.)
+// A sign-in/out in another tab writes the session cookie this tab will
+// see, but the cookie change doesn't re-render an already-open tab.
+// Re-check verify-session on focus/visibilitychange and refresh the
+// route when the user differs from what we last rendered.
 const VERIFY_URL = '/api/verify-session';
 
 type Props = {

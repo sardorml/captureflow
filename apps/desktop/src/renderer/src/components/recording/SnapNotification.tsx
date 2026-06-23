@@ -24,16 +24,12 @@ type SnapState =
     }
   | { kind: 'failed'; localPath: string | null; sourceTitle: string | null; reason: string }
 
-// Bottom-right "snap ready" modal (mirrors Loom's post-capture
-// receipt). Lifecycle:
-//   1. main pushes SNAP_CAPTURED with the local PNG path + source
-//      title the moment SCScreenshotManager returns — modal opens in
-//      `capturing` state showing a thumbnail + spinner.
-//   2. main pushes SNAP_UPLOAD_COMPLETE with the public + edit URLs
-//      once captureflow.xyz's /api/upload lands — buttons flip
-//      to enabled and "Edit in CaptureFlow" / "Copy link" become live.
-//   3. main pushes SNAP_UPLOAD_FAILED if the upload errors out —
-//      modal shows the reason and just exposes a close button.
+// Bottom-right "snap ready" modal. Lifecycle driven by main-process IPC:
+//   1. SNAP_CAPTURED (local PNG path + source title) the moment
+//      SCScreenshotManager returns → `capturing` state (thumbnail + spinner).
+//   2. SNAP_UPLOAD_COMPLETE (public + edit URLs) once /api/upload lands →
+//      Edit / Copy link buttons become live.
+//   3. SNAP_UPLOAD_FAILED → modal shows the reason and only a close button.
 export function SnapNotification(): React.JSX.Element {
   const [state, setState] = useState<SnapState>({
     kind: 'capturing',
@@ -53,8 +49,8 @@ export function SnapNotification(): React.JSX.Element {
     const off1 = window.electronAPI.onSnapCaptured(({ localPath, sourceTitle }): void => {
       setState((prev) => {
         if (prev.kind === 'ready') {
-          // A fresh capture lands on top of a not-yet-dismissed
-          // ready modal — reset to capturing and forget the old urls.
+          // Fresh capture on top of a not-yet-dismissed ready modal —
+          // reset to capturing and drop the stale urls.
           return { kind: 'capturing', localPath, sourceTitle }
         }
         return { kind: 'capturing', localPath, sourceTitle }
@@ -118,9 +114,8 @@ export function SnapNotification(): React.JSX.Element {
 
   const handleOpenInBrowser = (): void => {
     if (state.kind !== 'ready') return
-    // Use the public viewer route — snapOpenEdit is reserved for the
-    // editor. The bare view URL opens in the user's default browser
-    // via the same shell.openExternal path.
+    // Reuses snapOpenEdit (shell.openExternal) but with the public view
+    // URL rather than the editor URL.
     window.electronAPI.snapOpenEdit(state.viewUrl)
     setMenuOpen(false)
   }
@@ -162,10 +157,8 @@ export function SnapNotification(): React.JSX.Element {
   return (
     <div className="h-screen w-screen p-3 select-none" style={{ background: 'transparent' }}>
       <div className="relative flex h-full w-full flex-col overflow-hidden rounded-2xl bg-neutral-900 text-white shadow-2xl ring-1 ring-white/10">
-        {/* Preview pane — fills the upper portion. The PNG sits on
-            a dark backdrop so transparent regions (rare for a
-            screenshot but possible for a windowed capture with
-            shadow alpha) are visually contained. */}
+        {/* Dark backdrop so transparent regions of the PNG (windowed
+            captures with shadow alpha) stay visually contained. */}
         <div className="relative flex-1 overflow-hidden bg-neutral-950">
           {previewSrc ? (
             <img
@@ -180,8 +173,7 @@ export function SnapNotification(): React.JSX.Element {
             </div>
           )}
 
-          {/* Spinner overlay during upload. Dropped the moment
-              SNAP_UPLOAD_COMPLETE lands. */}
+          {/* Upload spinner; dropped on SNAP_UPLOAD_COMPLETE. */}
           {state.kind === 'capturing' && (
             <div
               data-testid="snap-spinner"
@@ -191,9 +183,8 @@ export function SnapNotification(): React.JSX.Element {
             </div>
           )}
 
-          {/* Top-left ⋯ menu — Reveal in Finder, Open in browser,
-              Delete. Disabled until the upload completes (delete +
-              open-in-browser need the server id / view URL). */}
+          {/* Top-left ⋯ menu. Disabled until upload completes, since
+              delete + open-in-browser need the server id / view URL. */}
           <div ref={menuRef} className="absolute left-3 top-3">
             <button
               type="button"
@@ -242,8 +233,8 @@ export function SnapNotification(): React.JSX.Element {
             )}
           </div>
 
-          {/* Top-right × close. Always available so the user can
-              dismiss the modal even mid-upload. */}
+          {/* Close — always available, so the modal can be dismissed
+              mid-upload. */}
           <button
             type="button"
             onClick={handleClose}
@@ -254,10 +245,8 @@ export function SnapNotification(): React.JSX.Element {
           </button>
         </div>
 
-        {/* Source title row — between the preview and the actions.
-            For window captures this is the captured window's title;
-            for display/area captures it falls back to a generic
-            label main supplies. */}
+        {/* Source title: the captured window's title for window
+            captures, else a generic label from main. */}
         <div className="flex items-center gap-3 border-t border-white/5 px-4 py-3">
           <img
             src={logoRound}
@@ -275,9 +264,8 @@ export function SnapNotification(): React.JSX.Element {
           </span>
         </div>
 
-        {/* Action row — Edit + Copy link. Both render disabled-ish
-            until the upload lands; clicking the disabled state is a
-            no-op (main also ignores the IPC). */}
+        {/* Edit + Copy link, disabled until upload lands. Clicking the
+            disabled state is a no-op (main also ignores the IPC). */}
         <div className="flex gap-2 px-3 pb-3">
           <button
             type="button"

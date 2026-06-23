@@ -6,16 +6,12 @@ import { GridLoader } from '@captureflow/ui';
 // Rendered when the SSR call to verify-session fails transiently
 // (cold-start, network blip, 5xx) on a gated snap. Distinct from
 // RequestAccess: SSR doesn't yet know whether the visitor is an
-// authorized owner/member — so we show a neutral "loading snap" frame
+// authorized owner/member, so we show a neutral "loading snap" frame
 // and immediately probe from the browser. Once verify-session resolves
 // either way we location.replace() back into the same URL and let SSR
-// re-run with the cookies in hand.
-//
-// Mirrors the share viewer's SessionLoadingShell (snap had
-// no equivalent because its old cross-origin verifySession couldn't
-// surface 'unknown' — the in-process one now does). Falls back to
-// re-running SSR after the retry budget exhausts so a genuinely-broken
-// backend doesn't trap the visitor on a spinner.
+// re-run with the cookies in hand. After the retry budget exhausts we
+// re-run SSR anyway so a genuinely-broken backend doesn't trap the
+// visitor on a spinner.
 
 type Props = {
   appWebUrl: string;

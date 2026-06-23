@@ -15,7 +15,7 @@ type DropdownItem = {
   hoverClassName?: string
 }
 
-// Same motion as RecordingToolbar's AnimatedHoverBg: zoom from the cursor.
+// Hover bg zooms in from the cursor position.
 function DropdownMenuItem({
   item,
   onActivate

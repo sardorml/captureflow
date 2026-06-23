@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
 
-// Permissive CORS for the snap API. Mirrors the share CORS posture —
-// endpoints authenticate via x-captureflow-device + bearer, not
-// origin, so allow-any-origin is fine.
+// Permissive CORS for the snap API. Endpoints authenticate via
+// x-captureflow-device + bearer, not origin, so allow-any-origin is fine.
 
 const ALLOW_ORIGIN = '*';
 const ALLOW_METHODS = 'GET, HEAD, POST, PUT, DELETE, OPTIONS';
 // Includes the custom upload headers the /api/s/upload route reads, so a
-// browser-origin preflight doesn't strip them (the desktop uploads from
-// the Electron main process via Node fetch, which has no preflight).
+// browser-origin preflight doesn't strip them. (Desktop uploads via Node
+// fetch from the Electron main process, which has no preflight.)
 const ALLOW_HEADERS =
   'Content-Type, Authorization, x-captureflow-device, x-captureflow-workspace, x-captureflow-snap-width, x-captureflow-snap-height, x-captureflow-snap-title';
 const MAX_AGE = '86400';

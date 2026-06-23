@@ -24,34 +24,24 @@ import {
 } from '@captureflow/ui';
 import type { ShareVisibility } from '@/lib/share/types';
 
-// Loom-style action cluster for the share viewer's top-right corner.
-// Segmented Share/link button on the left, overflow menu on the right.
-// The Share button opens a modal with visibility controls (owner) +
-// copy link; the overflow holds Download and (owner-only) Delete.
+// Action cluster for the share viewer: Share/copy-link button plus an
+// owner-only overflow menu with the destructive Delete action.
 
 type Props = {
   slug: string;
   shareUrl: string;
-  // Dashboard editor URL on app.captureflow.xyz. Renders an Edit
-  // chip left of the Share button for owners; non-owners can't edit
-  // so the chip is suppressed.
   editUrl: string;
   initialVisibility: ShareVisibility;
-  // Owner of the share — gates the destructive actions + visibility
-  // selector. Anonymous + non-owner viewers see a simplified menu
-  // (Download only) and a read-only visibility row in the modal.
+  // Gates the destructive actions and the visibility selector. Non-owners
+  // see a simplified menu and a read-only visibility row in the modal.
   isOwner: boolean;
-  // Workspace name shown in the visibility section ("Anyone in
-  // {workspaceName}") when the workspace option is offered. Null
-  // when the share has no workspace (legacy anonymous uploads).
+  // Null when the share has no workspace (legacy anonymous uploads).
   workspaceName: string | null;
-  // Workspace policy: when false, the Public visibility option is
-  // hidden so the owner can't bypass the workspace's link policy
-  // from the viewer page.
+  // When false, the Public option is hidden so the owner can't bypass the
+  // workspace's link policy from the viewer page.
   allowPublicLinks: boolean;
-  // Signed-in flag. Anonymous viewers only see Copy link — the Share
-  // dialog needs an account to attribute reactions/comments, so we
-  // don't surface it for logged-out visitors.
+  // The Share dialog needs an account to attribute reactions/comments, so
+  // anonymous viewers only get Copy link.
   signedIn: boolean;
 };
 
@@ -128,7 +118,7 @@ export function ShareActions({
           method: 'DELETE',
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        // Bounce to marketing — the share row + R2 objects are gone.
+        // The share row and R2 objects are gone, so leave the viewer page.
         router.replace('/');
       } catch (err) {
         setError(
@@ -138,9 +128,7 @@ export function ShareActions({
     });
   };
 
-  // Workspace visibility only makes sense when the share has a
-  // workspace; legacy anonymous uploads (no userId/workspaceId)
-  // shouldn't see the option.
+  // Workspace visibility only applies when the share has a workspace.
   const showWorkspace = !!workspaceName;
   const showPublic = allowPublicLinks || visibility === 'public';
 

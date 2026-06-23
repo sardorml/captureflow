@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Lock, Mail, ArrowRight, Check } from 'lucide-react';
 
-// Loom-style access-request screen for snaps. Mirrors the share
-// worker's RequestAccess — see that file for the full rationale.
+// Access-request screen shown when a visitor isn't authorized for a snap.
 
 type Props = {
   appWebUrl: string;
@@ -30,11 +29,11 @@ export function RequestAccess({
   const [error, setError] = useState<string | null>(null);
 
   // Self-heal: the SSR gate occasionally renders RequestAccess when the
-  // session cookie didn't reach the worker on the first hit (cross-tab
-  // open with stripped referrer, worker cold-start tail, Brave shields
-  // racing the navigation). Probe verify-session client-side on mount —
-  // if a session actually exists, reload so the SSR re-renders the
-  // viewer instead of forcing the user to refresh manually.
+  // session cookie didn't reach the server on the first hit (cross-tab
+  // open with stripped referrer, cold-start tail, Brave shields racing
+  // the navigation). Probe verify-session on mount — if a session
+  // actually exists, reload so SSR re-renders the viewer instead of
+  // forcing a manual refresh.
   useEffect(() => {
     let cancelled = false;
     const t = window.setTimeout(async () => {

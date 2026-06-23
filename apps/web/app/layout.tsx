@@ -4,9 +4,8 @@ import { Inter } from 'next/font/google';
 import { headers } from 'next/headers';
 import { readThemeFromCookieHeader } from '@captureflow/ui';
 
-// Inter — the marketing/landing typeface (CapCut-style). Loaded via next/font
-// and exposed as `--font-inter`; marketing.css points the landing's
-// `--font-sans`/`--font-system` at it inside the `.marketing-root` subtree.
+// Inter, the marketing/landing typeface, exposed as `--font-inter`. marketing.css
+// points the landing's `--font-sans`/`--font-system` at it inside `.marketing-root`.
 // The dashboard keeps its own font; only this CSS variable is shared on <html>.
 const inter = Inter({
   variable: '--font-inter',
@@ -37,9 +36,8 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
-  // Default share card for the homepage + app surfaces. The /r and /s
-  // viewers override openGraph in their own generateMetadata with the
-  // per-share poster, so this is the fallback for everything else.
+  // Fallback share card. The /r and /s viewers override openGraph in their own
+  // generateMetadata with the per-share poster.
   openGraph: {
     type: 'website',
     siteName: 'CaptureFlow',
@@ -68,9 +66,9 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  // Resolve the theme server-side from the cookie and stamp it on <html>
-  // so the data-theme token set is correct on first paint (no flash, and
-  // no falling through to the CSS dark default while the toggle says light).
+  // Resolve the theme server-side and stamp it on <html> so the token set is
+  // correct on first paint (no flash, no falling through to the CSS dark default
+  // while the toggle says light).
   const theme = readThemeFromCookieHeader((await headers()).get('cookie'));
   return (
     <html lang="en" data-theme={theme} className={inter.variable}>

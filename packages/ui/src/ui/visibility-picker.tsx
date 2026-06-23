@@ -4,15 +4,11 @@ import { Check, Globe, Lock, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
 
-// Shared "Public / Workspace / Private" radio cards used by every
-// surface that lets the user change a share or snap's visibility:
-// the share viewer, snap viewer, and dashboard.
-//
-// Keeping the markup + colour treatment in one place means the three
-// surfaces can't drift on hover/selected styling or copy. Theme-aware
-// token classes drive the active state so light mode stays readable
-// (the inline copies previously rendered blue-100 text on a
-// blue-500/15 background — invisible against a white card).
+// Shared "Public / Workspace / Private" radio cards for every surface
+// that changes a share or snap's visibility. Centralizing the markup and
+// colour treatment keeps hover/selected styling and copy from drifting.
+// Active state uses theme-aware token classes so light mode stays readable
+// (a literal blue-100-on-blue-500/15 treatment was invisible on a white card).
 
 export type Visibility = 'public' | 'workspace' | 'private';
 
@@ -31,13 +27,12 @@ export const VISIBILITY_DESCRIPTIONS: Record<Visibility, string> = {
 type PickerProps = {
   value: Visibility;
   onChange: (next: Visibility) => void;
-  // Toggles visibility of the Public option. Used by surfaces that
-  // know the workspace policy disallows public links — they still want
-  // to show "Public" as the current selection if the row was uploaded
-  // before the policy changed, otherwise it should be hidden entirely.
+  // Hides the Public option when workspace policy disallows public links.
+  // It still renders if the current value is already 'public' (the row was
+  // uploaded before the policy changed) so the selection stays visible.
   showPublic?: boolean;
-  // Toggles the Workspace option. Legacy anonymous uploads have no
-  // workspace and shouldn't see the option.
+  // Hides the Workspace option for legacy anonymous uploads, which have
+  // no workspace.
   showWorkspace?: boolean;
   // Appended to the workspace option's label ("Workspace · Acme").
   workspaceName?: string | null;
@@ -92,9 +87,8 @@ export function VisibilityPicker({
   );
 }
 
-// Read-only single-row variant for visitors who are not the owner
-// (the dialog still surfaces the current visibility so they understand
-// why they can or can't access).
+// Read-only single-row variant for non-owners, so visitors can see why
+// they can or can't access the content.
 export function ReadonlyVisibilityRow({ value }: { value: Visibility }) {
   const Icon =
     value === 'public' ? Globe : value === 'workspace' ? Users : Lock;

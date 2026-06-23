@@ -93,7 +93,7 @@ export const useRecordingStore = create<RecordingState>((set, get) => ({
     try {
       if (deviceId) {
         localStorage.setItem('captureflow-mic', deviceId)
-        // Persist label for instant display on next launch
+        // Persist label too, for instant display on next launch.
         const label = get().audioDevices.find((d) => d.deviceId === deviceId)?.label
         if (label) localStorage.setItem('captureflow-mic-label', label)
       } else {

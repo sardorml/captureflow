@@ -11,9 +11,8 @@ import {
   type WindowBounds
 } from '../../../shared/types'
 
-// Share page title — just the source's primary identifier:
-//   - Window capture: ownerName (e.g. "Brave Browser")
-//   - Display capture: source.name (e.g. "Entire screen")
+// Share page title: the source's primary identifier — ownerName for a window
+// capture (e.g. "Brave Browser"), source.name for a display ("Entire screen").
 function formatShareTitle(source: CaptureSource | null): string | null {
   if (!source) return null
   if (isWindowSource(source)) {
@@ -32,42 +31,38 @@ export function useRecorder(): {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const webcamStreamRef = useRef<MediaStream | null>(null)
   const micStreamRef = useRef<MediaStream | null>(null)
-  // The webcam+mic uploader streams the companion file alongside the
-  // screen MP4. System audio no longer needs a renderer-side acquire —
-  // native AAC-encodes the SCK audio tap and pipes packets through fd 3
-  // alongside video chunks.
+  // The webcam+mic uploader streams the companion file alongside the screen
+  // MP4. System audio needs no renderer-side acquire — native AAC-encodes the
+  // SCK audio tap and pipes packets through fd 3 alongside video chunks.
   const shareWebcamUploaderRef = useRef<ShareWebcamUploader | null>(null)
-  // Edit URL stashed at shareStart so the renderer can open the
-  // browser immediately on stop (Loom-style), without waiting for
-  // /api/finalize to round-trip. The web edit page's PendingShare
-  // shell covers the few-second window until the streamer finalize
-  // lands and the row flips to 'ready'.
+  // Edit URL stashed at shareStart so the renderer can open the browser
+  // immediately on stop, without waiting for /api/finalize to round-trip. The
+  // web edit page's PendingShare shell covers the few-second window until the
+  // streamer finalize lands and the row flips to 'ready'.
   const shareEditUrlRef = useRef<string | null>(null)
-  // In-flight share prep kicked off from the SelectionOverlay's
-  // SHARE_PREP_START IPC (sent at countdown start, ~3 s before native
-  // begins). beginCapture awaits this instead of running shareStart
-  // inline — so the post-countdown "preparing share…" delay disappears.
+  // In-flight share prep kicked off from the SelectionOverlay's SHARE_PREP_START
+  // IPC (sent at countdown start, ~3 s before native begins). beginCapture awaits
+  // this instead of running shareStart inline, so the post-countdown "preparing
+  // share…" delay disappears.
   type SharePrep = {
     shareStartPromise: Promise<import('../../../shared/types').ShareStartResult>
   }
   const sharePrepRef = useRef<SharePrep | null>(null)
-  // In-flight prepareCapture (webcam + mic getUserMedia) started during
-  // the countdown. Camera-init alone runs 200–500 ms; running it in
-  // parallel with the visible 3 s countdown means by the time the user
-  // sees the count clear, the streams are already in webcamStreamRef +
-  // micStreamRef. startRecording awaits this if set, otherwise runs
-  // prepareCapture inline (cold path — e.g. toolbar Record button
-  // without a countdown).
+  // In-flight prepareCapture (webcam + mic getUserMedia) started during the
+  // countdown. Camera-init alone runs 200–500 ms; running it in parallel with
+  // the visible 3 s countdown means the streams are ready by the time the count
+  // clears. startRecording awaits this if set, otherwise runs prepareCapture
+  // inline (cold path — e.g. toolbar Record button without a countdown).
   const prepCapturePromiseRef = useRef<Promise<void> | null>(null)
   // Single in-flight prepareCapture promise. Distinct from prepCapturePromiseRef
   // (which the cancel handler nulls): this dedup guard survives a cancel so a
   // record-right-after-cancel can't fire a SECOND getUserMedia in parallel with
   // the first and strand the camera/mic device.
   const prepareInFlightRef = useRef<Promise<void> | null>(null)
-  // Cursor-tracking samples captured from stopCursorTracking on stop. Share
-  // compositing reads live cursor frames from the share-pipeline's
-  // onCursorPosition buffer during the recording; this holds the final
-  // sample set so it isn't silently dropped at finalize.
+  // Final cursor-tracking samples from stopCursorTracking. Share compositing
+  // reads live cursor frames from the share-pipeline's onCursorPosition buffer
+  // during recording; this holds the final sample set so it isn't dropped at
+  // finalize.
   const trackingDataRef = useRef<unknown>(null)
 
   const cleanup = useCallback(() => {
@@ -100,8 +95,8 @@ export function useRecorder(): {
       window.electronAPI.hideWebcamBubble().catch(() => {})
       window.electronAPI.restoreRecordingDisplayMode().catch(() => {})
 
-      // Mic + webcam are combined into a single MediaRecorder owned by
-      // ShareWebcamUploader (mic is the webcam companion's audio track).
+      // Mic + webcam share a single MediaRecorder owned by ShareWebcamUploader
+      // (mic is the webcam companion's audio track).
       const shareWebcamUploader = shareWebcamUploaderRef.current
       shareWebcamUploaderRef.current = null
 
@@ -127,12 +122,11 @@ export function useRecorder(): {
       }
 
       // Open the edit URL IMMEDIATELY on stop (slug was reserved at
-      // record-start), then fire /api/finalize + /api/webcam-finalize in
-      // the background. The web edit page's PendingShare shell polls
-      // /api/state and swaps to the real player the moment the row flips
-      // to 'ready'. This is the Loom-style instant-link UX: stop → tab
-      // opens within ~200ms, viewer sees a brief "Preparing your share…"
-      // then the editor.
+      // record-start), then fire /api/finalize + /api/webcam-finalize in the
+      // background. The web edit page's PendingShare shell polls /api/state and
+      // swaps to the real player the moment the row flips to 'ready'. Net effect:
+      // stop → tab opens within ~200 ms, viewer sees a brief "Preparing your
+      // share…" then the editor.
       if (shareResult) {
         window.electronAPI.log(
           'info',
@@ -141,11 +135,10 @@ export function useRecorder(): {
         )
         const editUrl = shareEditUrlRef.current
         if (editUrl) window.electronAPI.shareReadyOpenLink(editUrl)
-        // Ship the OG/Twitter poster — first composited frame captured by
-        // the encoder. Fire-and-forget: missing poster is a degraded state
-        // (no chat thumbnail) but the share itself works. The worker
-        // accepts poster uploads in parallel with `pending`, so we don't
-        // wait on shareFinish.
+        // Ship the OG/Twitter poster (first composited frame). Fire-and-forget:
+        // a missing poster is degraded (no chat thumbnail) but the share still
+        // works, and the worker accepts poster uploads in parallel with
+        // `pending`, so we don't wait on shareFinish.
         if (shareResult.posterBlob) {
           void shareResult.posterBlob
             .arrayBuffer()
@@ -207,13 +200,12 @@ export function useRecorder(): {
   )
 
   const prepareCapture = useCallback(async () => {
-    // Acquires the renderer-side capture streams (webcam, mic). Used by
-    // both the cold path (startRecording inline) and the warm path
-    // (SHARE_PREP_START during the countdown — fires before the
-    // SelectionOverlay sends SOURCE_SELECTED, so selectedSource is
-    // null but the device IDs are already in the store). The inner
-    // conditionals guard on device presence so a null selectedSource
-    // doesn't matter here.
+    // Acquire the renderer-side capture streams (webcam, mic). Used by both the
+    // cold path (startRecording inline) and the warm path (SHARE_PREP_START
+    // during the countdown, which fires before the SelectionOverlay sends
+    // SOURCE_SELECTED — so selectedSource is null but the device IDs are already
+    // in the store). The conditionals below guard on device presence, so a null
+    // selectedSource doesn't matter here.
     const { selectedAudioDevice, selectedVideoDevice } = useRecordingStore.getState()
 
     if (selectedVideoDevice) {
@@ -275,10 +267,9 @@ export function useRecorder(): {
 
       if (shareMode) {
         // 1. Share prep was kicked off at countdown start (see the
-        //    useEffect that listens for onSharePrepStart). By the time
-        //    we hit beginCapture — ~3s after that — shareStart has
-        //    usually already resolved. If the prep ref is missing
-        //    (cancel race or non-overlay entry path) run the inline
+        //    onSharePrepStart useEffect), so by the time we reach beginCapture
+        //    ~3 s later shareStart has usually resolved. If the prep ref is
+        //    missing (cancel race or non-overlay entry path) run the inline
         //    fallback so we never lose the slug.
         const prep = sharePrepRef.current
         sharePrepRef.current = null
@@ -301,13 +292,12 @@ export function useRecorder(): {
         //    mp4-muxer locks its track set at construction time.
         sharePipeline.arm({ audioExpected: systemAudioEnabled })
 
-        // 3. Webcam+mic uploader is started AFTER startNativeRecording
-        //    resolves (further down) so MediaRecorder's wall-clock
-        //    start aligns with the screen MP4's wall-clock start. The
-        //    previous "start before native" pattern caused the WebM to
-        //    contain mic/cam content from BEFORE the screen began — so
-        //    at playback time 0 the cam was showing content from earlier
-        //    real-time than the screen, surfacing as visible mic lag.
+        // 3. Webcam+mic uploader starts AFTER startNativeRecording resolves
+        //    (further down) so MediaRecorder's wall-clock start aligns with the
+        //    screen MP4's. Starting before native made the WebM contain mic/cam
+        //    content from BEFORE the screen began — at playback time 0 the cam
+        //    showed earlier real-time than the screen, surfacing as visible mic
+        //    lag.
       }
 
       const result = await window.electronAPI.startNativeRecording({
@@ -327,11 +317,10 @@ export function useRecorder(): {
         .startCursorTracking(source.displayId, windowBounds, wallClockMs)
         .catch(() => {})
 
-      // Kick off the combined webcam+mic uploader NOW — immediately after
-      // native confirmed its session started — so the MediaRecorder's
-      // wall-clock start ≈ the screen MP4's wall-clock start. Tight
-      // alignment here is the only way the SharePlayer's per-element
-      // currentTime mapping can keep mic audio on top of video.
+      // Start the combined webcam+mic uploader NOW — right after native confirms
+      // its session started — so the MediaRecorder's wall-clock start ≈ the
+      // screen MP4's. Tight alignment here is the only way the SharePlayer's
+      // per-element currentTime mapping can keep mic audio on top of video.
       if (shareMode && webcamStreamRef.current) {
         const uploader = new ShareWebcamUploader()
         uploader.start({
@@ -404,9 +393,8 @@ export function useRecorder(): {
     store.setStatus('preparing')
 
     try {
-      // If the countdown already started prepareCapture, await that.
-      // Cold path (e.g. toolbar Record button without a countdown) runs
-      // prepareCapture inline.
+      // If the countdown already started prepareCapture, await that; the cold
+      // path (e.g. toolbar Record button without a countdown) runs it inline.
       const pending = prepCapturePromiseRef.current
       prepCapturePromiseRef.current = null
       await (pending ?? ensurePrepare())
@@ -503,26 +491,23 @@ export function useRecorder(): {
     sharePipeline.attach()
   }, [])
 
-  // Prep listener — fired by the SelectionOverlay at countdown start.
-  // Two overlapping tasks the user shouldn't have to wait for after
-  // the count clears:
-  //   1. prepareCapture (webcam + mic getUserMedia). Camera init alone
-  //      is 200–500 ms.
-  //   2. shareStart (POST /api/init) — reserves the slug + multipart
-  //      uploads so they exist before the first frame.
-  // Cancel signal discards both: prep streams are torn down, share
-  // session aborted.
+  // Prep listener fired by the SelectionOverlay at countdown start. Two
+  // overlapping tasks the user shouldn't wait for after the count clears:
+  //   1. prepareCapture (webcam + mic getUserMedia) — camera init alone is
+  //      200–500 ms.
+  //   2. shareStart (POST /api/init) — reserves the slug + multipart uploads so
+  //      they exist before the first frame.
+  // The cancel signal discards both: prep streams torn down, share aborted.
   useEffect(() => {
     const offStart = window.electronAPI.onSharePrepStart(() => {
       const state = useRecordingStore.getState()
-      // Pre-acquire camera + mic. Safe because the WebcamBubble requests
-      // the same 1080p constraints, so the shared capture session runs at
-      // full resolution from the bubble's first acquire — no concurrent-
-      // getUserMedia downgrade.
+      // Pre-acquire camera + mic. Safe because the WebcamBubble requests the
+      // same 1080p constraints, so the shared capture session runs at full
+      // resolution from the bubble's first acquire — no concurrent-getUserMedia
+      // downgrade.
       if (!prepCapturePromiseRef.current) {
         prepCapturePromiseRef.current = ensurePrepare()
       }
-      // Init prewarm for share recordings.
       if (state.recordingMode === 'share') {
         if (sharePrepRef.current) {
           window.electronAPI.shareAbort()

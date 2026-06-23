@@ -6,14 +6,11 @@ import { motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Motion-driven dialog. Radix owns the open/close state machine, focus
-// trap, escape, scroll lock, and aria wiring — we only animate the
-// content children on mount via a spring. The overlay still uses
-// Radix's data-state fade so its exit feels right; the inner content
-// pops in with a scale+translate that matches the rest of the smoothui
-// chrome. No AnimatePresence wrapping (an earlier attempt broke the
-// Portal anchor — Radix lost track of the Content while the wrapper
-// conditionally rendered).
+// Motion-driven dialog. Radix owns state, focus trap, escape, scroll
+// lock, and aria; we only spring-animate the content children on mount.
+// The overlay keeps Radix's data-state fade so its exit reads right.
+// No AnimatePresence wrapper: conditionally rendering it broke the
+// Portal anchor (Radix lost track of the Content).
 
 const SmoothDialog = DialogPrimitive.Root;
 const SmoothDialogTrigger = DialogPrimitive.Trigger;
@@ -46,9 +43,8 @@ const SmoothDialogOverlay = React.forwardRef<
 const SmoothDialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
-    // Suppresses the default top-right Close so callers can render
-    // their own inline close affordance (used by SearchTrigger so the
-    // X sits on the same row as the search input).
+    // Suppress the default top-right Close so callers can render their
+    // own inline close affordance.
     hideClose?: boolean;
   }
 >(function SmoothDialogContent(

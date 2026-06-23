@@ -1,19 +1,16 @@
 'use client';
 
-// Violet primary "Copy link" button shared between the snap viewer
-// and (anywhere else that wants the same CTA — e.g. the editor's
-// share menu). Caller supplies the URL it should write; we own the
-// clipboard call + the 1.5s "Copied" affordance so consumers don't
-// reimplement the same state machine twice.
+// Shared "Copy link" button. Caller supplies the URL; this component
+// owns the clipboard write and the 1.5s "Copied" affordance so
+// consumers don't reimplement that state machine.
 import { useState, type ReactElement } from 'react';
 import { Check, Link2 } from 'lucide-react';
 
 export type CopyLinkButtonProps = {
   url: string;
   className?: string;
-  // Optional label override — defaults to "Copy link". The
-  // post-copy "Copied" label is intentionally fixed so the visual
-  // feedback is recognisable regardless of caller.
+  // Defaults to "Copy link". The post-copy "Copied" label is fixed so
+  // the feedback stays recognizable regardless of caller.
   label?: string;
 };
 
@@ -30,8 +27,8 @@ export function CopyLinkButton({
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      // Clipboard may be unavailable (insecure context, denied). The
-      // URL is still in the address bar, so silently swallow.
+      // Clipboard may be unavailable (insecure context, permission
+      // denied). The URL is still in the address bar, so swallow.
     }
   };
 

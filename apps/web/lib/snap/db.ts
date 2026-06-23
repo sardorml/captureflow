@@ -4,9 +4,7 @@ import { getCloudflareEnv } from './cf-env';
 import type { SnapRow, SnapState, SnapVisibility } from './types';
 
 // D1 helpers for the snaps table. Single-shot inserts/updates only —
-// no multipart staging, since snaps upload as a single POST body. The
-// shape mirrors the share D1 db layer but is intentionally smaller:
-// snaps don't have reactions, posters, or upload-id state.
+// no multipart staging, since snaps upload as a single POST body.
 
 type D1SnapRow = {
   id: string;
@@ -99,11 +97,10 @@ export async function getSnap(id: string): Promise<SnapRow | null> {
   return r ? rowFromD1(r) : null;
 }
 
-// Public-view variant: snap row + the owning user's display fields.
-// Single round-trip via LEFT JOIN against the better-auth `users`
-// table — name + email are nullable because the join can miss if a
-// user record was hard-deleted (we soft-delete via state column on
-// snaps, but the auth tables don't go through this code).
+// Snap row plus the owning user's display fields via a single LEFT JOIN.
+// name + email are nullable because the join can miss if the user was
+// hard-deleted (snaps soft-delete via the state column, but the
+// better-auth tables don't go through this code).
 export type SnapWithOwner = SnapRow & {
   ownerName: string | null;
   ownerEmail: string | null;
@@ -140,9 +137,8 @@ export async function getSnapWithOwner(
   };
 }
 
-// Editor save: overwrites the PNG in R2 and updates the size + edited_at
-// fields. Title can be tweaked at the same time so the user-rename path
-// doesn't need a separate endpoint.
+// Editor save: updates size + edited_at after the PNG is overwritten in R2.
+// Title can be patched in the same call so rename needs no separate endpoint.
 export async function updateSnapAfterEdit(
   id: string,
   patch: { sizeBytes: number; title?: string | null }
@@ -165,10 +161,8 @@ export async function updateSnapAfterEdit(
   return r ? rowFromD1(r) : null;
 }
 
-// Owner-driven visibility flip. Callers (POST /api/snaps/[id]/visibility)
-// have already confirmed the requesting user owns the row; we just
-// patch the column + bump updated_at. Returns the resulting row so the
-// caller can echo it back if useful.
+// Visibility flip. Callers must already have confirmed the requesting
+// user owns the row; this only patches the column + bumps updated_at.
 export async function updateSnapVisibility(
   id: string,
   visibility: 'public' | 'workspace' | 'private'

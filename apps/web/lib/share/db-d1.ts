@@ -10,9 +10,8 @@ import type {
 import type { ShareSource, SharePreset, ShareState } from './limits';
 import type { ShareDb } from './db-types';
 
-// Row shape as it lives on disk in D1. snake_case columns; we map to/from
-// the camelCase `ShareRow` at the boundary so the rest of the codebase
-// doesn't care about storage details.
+// Row shape as stored in D1 (snake_case). Mapped to/from the camelCase
+// `ShareRow` at the boundary so the rest of the codebase ignores storage.
 type D1Row = {
   slug: string;
   device_id: string;
@@ -123,12 +122,12 @@ const COLUMNS_SELECT =
 
 export function createD1Db(d1: D1Database): ShareDb {
   // Prepared statements are reused across requests within the same Worker
-  // isolate. D1 caches the parsed query, so each call only pays for the
-  // bind + execute, not the parse.
-  // bake_status is omitted; the column still exists in D1 from the
-  // legacy /api/replace flow but always defaults to 'none' now (no
-  // post-finalize replace path remains). We can drop the column in a
-  // follow-up migration once existing rows have been swept.
+  // isolate. D1 caches the parsed query, so each call pays only for bind +
+  // execute, not the parse.
+  // bake_status is omitted: the column lingers in D1 from the legacy
+  // /api/replace flow but always defaults to 'none' now (no post-finalize
+  // replace path remains). Drop it in a follow-up migration once existing
+  // rows have been swept.
   const stmtInsert = d1.prepare(
     `INSERT INTO shares (
        slug, device_id, storage_key, poster_key, upload_id,
@@ -179,10 +178,9 @@ export function createD1Db(d1: D1Database): ShareDb {
        WHERE slug = ?1`
   );
 
-  // Reactions + comments live in the unified `share_activity` table
-  // (see migration 0012). The query layer keeps the historical
-  // ShareReaction / ShareComment shapes by filtering on `kind` and
-  // selecting the matching payload column.
+  // Reactions + comments share the unified `share_activity` table (migration
+  // 0012). The historical ShareReaction / ShareComment shapes are preserved
+  // by filtering on `kind` and selecting the matching payload columns.
   const stmtAddReaction = d1.prepare(
     `INSERT INTO share_activity (slug, kind, emoji, timestamp_ms, created_at, user_id, user_name)
      VALUES (?1, 'reaction', ?2, ?3, ?4, ?5, ?6)
@@ -269,8 +267,8 @@ export function createD1Db(d1: D1Database): ShareDb {
     },
 
     async updateShare(slug, patch) {
-      // Build the SET clause dynamically since callers patch arbitrary
-      // subsets. Columns are an allowlist (no caller-supplied SQL).
+      // SET clause is built dynamically since callers patch arbitrary
+      // subsets. Columns come from an allowlist — no caller-supplied SQL.
       const sets: string[] = [];
       const binds: unknown[] = [];
       const map: Partial<Record<keyof ShareRow, string>> = {
@@ -320,8 +318,8 @@ export function createD1Db(d1: D1Database): ShareDb {
 
     async deleteShare(slug) {
       const res = await stmtDelete.bind(slug).run();
-      // D1's RunResult exposes the number of affected rows under
-      // `meta.changes` — useful for telling existed-vs-already-gone apart.
+      // meta.changes is the affected-row count — distinguishes existed from
+      // already-gone.
       return (res.meta?.changes ?? 0) > 0;
     },
 

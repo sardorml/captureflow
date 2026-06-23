@@ -7,10 +7,9 @@ import { getAuth } from '@/lib/auth';
 import { getAppWebEnv } from '@/lib/cf-env';
 import { deleteObject, putObject } from '@/lib/r2';
 
-// Server actions for /profile. The display-name edit flows through
-// better-auth's client `updateUser` because it has built-in handling for
-// session/cookie refresh; avatar uploads need raw R2 + a `users.image`
-// write which doesn't fit better-auth's surface, so we keep them here.
+// Server actions for /profile. Display-name edits go through better-auth's
+// client `updateUser` for its session/cookie refresh; avatar uploads need
+// raw R2 + a direct `users.image` write that better-auth doesn't cover.
 
 type FormState = { error: string | null; ok: string | null };
 
@@ -117,9 +116,9 @@ export async function removeUserAvatarAction(): Promise<void> {
   revalidatePath('/', 'layout');
 }
 
-// Pull the R2 object key back out of a CDN URL so we can clean up the
-// prior upload. Returns null when the stored value doesn't match our
-// CDN host (e.g. a legacy gravatar URL set before we owned avatars).
+// Recover the R2 object key from a CDN URL so we can delete the prior
+// upload. Returns null when the stored value isn't on our CDN host
+// (e.g. a legacy gravatar URL set before we owned avatars).
 function extractKey(image: string): string | null {
   if (!image.startsWith(CDN_BASE + '/')) return null;
   const rest = image.slice(CDN_BASE.length + 1);

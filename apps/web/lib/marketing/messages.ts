@@ -1,19 +1,13 @@
-// CaptureFlow's static marketing copy — single-locale (English), adapted from the
-// Framely catalog. CaptureFlow is an open-source, self-hostable macOS screen
-// recorder with instant share links and Snaps (annotated screenshots) — not a
-// video editor, and no AI features.
+// Static marketing copy, English-only.
 //
 // Conventions:
-//   • Brand/product names ("CaptureFlow", "Record", "Share", "Snap") and person
-//     names in mockups stay as-is.
 //   • `{n}`, `{total}`, `{amount}` (and other `{…}`) are runtime placeholders the
 //     components fill with `.replace()` — keep them verbatim.
 //   • Arrays (faq.items, roadmap.groups[].items, pricing.compare.sections, etc.)
 //     keep the SAME length and order so components can zip them with the
 //     structural data in lib/marketing/constants.ts by index.
 export const MESSAGES = {
-  // <head> metadata for the marketing pages — the document <title> and meta
-  // description (also reused for OG/Twitter copy).
+  // Document <title> and meta description, also reused for OG/Twitter copy.
   meta: {
     title: 'Open-Source Loom Alternative & Screen Recorder — CaptureFlow',
     description:
@@ -28,14 +22,14 @@ export const MESSAGES = {
     changelog: 'Changelog',
     login: 'Log in',
     download: 'Download',
-    // Accessible label for the language button (which itself shows the
-    // current locale's endonym).
+    // Aria label for the language button, which displays the locale endonym
+    // rather than readable text.
     languageAria: 'Change language',
   },
   languagePicker: {
     title: 'Select your language',
     close: 'Close',
-    // Full-screen overlay shown while a newly selected language's catalog loads.
+    // Shown in a full-screen overlay while the selected language's catalog loads.
     loading: 'Loading…',
   },
   auth: {
@@ -88,9 +82,8 @@ export const MESSAGES = {
     subtitleLine1:
       'Easily record and share video messages with your',
     subtitleLine2: 'teammates and customers to supercharge productivity.',
-    // Primary CTA label (public-beta stage).
     ctaLabel: 'Try captureflow for free',
-    // Secondary grey hero button — scrolls to the #pricing section.
+    // Scrolls to the #pricing section.
     secondaryCta: 'See pricing',
     badge: '🎉 Open source — free to run',
     noCreditCard: 'No credit card required',
@@ -108,9 +101,7 @@ export const MESSAGES = {
     },
   },
   modes: {
-    // Rendered on two lines (split at the em dash by the component). The app's
-    // toolbar has two capture modes — Share and Snap — so the copy is built
-    // around those two outputs (no separate Record mode).
+    // Rendered on two lines, split at the em dash by the component.
     headingLine1: 'Recordings and screenshots',
     headingLine2: '— one toolbar.',
     subtitleLine1: 'Share a screen recording when it needs to go out now,',
@@ -126,12 +117,9 @@ export const MESSAGES = {
     titleLine2: 'Sharing',
     subtitle:
       'From quick bug reports to polished demos — record, share, and snap in one app.',
-    // Right-hand selector labels (one per reel) — keyed by FEATURES id; they
-    // name the capability each reel shows. `feature-camera` is no longer shown
-    // (dropped from FEATURES) but its key is retained so locale catalogs typed
-    // `Messages = typeof MESSAGES` still type-check until the pipeline
-    // regenerates them. (This whole features section is being dropped from the
-    // page; keys are kept so nothing referencing them breaks.)
+    // Right-hand selector labels, keyed by FEATURES id. `feature-camera` is no
+    // longer in FEATURES; its key is retained so locale catalogs typed
+    // `Messages = typeof MESSAGES` still type-check.
     tags: {
       'feature-zoom': 'Instant links',
       'feature-export': 'Self-hosted',
@@ -287,8 +275,7 @@ export const MESSAGES = {
     subheading:
       'Self-host for free — it is open source. Or let us host it for you with the managed plan.',
     guarantee: 'Open source under the AGPL — run it yourself.',
-    // Free / self-hosted plan card — the light, first card. Open source under
-    // the AGPL, runs on your own Cloudflare account at no cost.
+    // Free / self-hosted plan card — the light, first card.
     free: {
       name: 'Self-Hosted',
       badge: 'Open source',
@@ -303,12 +290,11 @@ export const MESSAGES = {
         'Open source (AGPL), no watermark',
         'macOS menu bar app',
       ],
-      // Self-hosters build the macOS app from source — the CTA goes to the
-      // GitHub repo, not a prebuilt download.
+      // Links to the GitHub repo, not a prebuilt download.
       cta: 'Build from source',
     },
-    // Managed card highlights (two bullets — the full capability breakdown
-    // lives in the compare table).
+    // Managed card highlights; the full capability breakdown lives in the
+    // compare table.
     highlights: {
       allFeatures: 'Fully managed — no Cloudflare setup',
       shareableLinks: 'Shareable recordings, screenshots & 200 GB cloud storage',
@@ -568,9 +554,8 @@ export const MESSAGES = {
     earlyAccessPrompt: 'Want early access?',
     earlyAccessLink: 'Become a beta tester',
   },
-  // ─── Sub-pages ─────────────────────────────────────────────────────────────
-  // Shared form chrome reused across the contact / suggest-feature / beta-tester
-  // forms.
+  // Shared form chrome reused across the contact / suggest-feature /
+  // beta-tester forms.
   forms: {
     name: 'Name',
     email: 'Email',
@@ -593,7 +578,7 @@ export const MESSAGES = {
     // Shown when delivery fails. {email} is rendered as a mailto link.
     errorBody:
       "Your message couldn't be sent. Please try again, or email me directly at {email}.",
-    // Honest disclosure: the form is relayed by a third-party service.
+    // The form is relayed by a third-party service (FormSubmit).
     deliveredVia: 'Delivered via FormSubmit.',
   },
   suggestFeature: {
@@ -620,7 +605,7 @@ export const MESSAGES = {
     // Shown when delivery fails. {email} is rendered as a mailto link.
     errorBody:
       "Your idea couldn't be sent. Please try again, or email me directly at {email}.",
-    // Honest disclosure: the form is relayed by a third-party service.
+    // The form is relayed by a third-party service (FormSubmit).
     deliveredVia: 'Delivered via FormSubmit.',
   },
   betaTester: {
@@ -669,8 +654,8 @@ export const MESSAGES = {
     // {version} = "macOS 14 (Sonoma)".
     requires: 'Requires {version} or later on Apple Silicon.',
     // Static variant (no placeholder) for surfaces that don't interpolate.
-    // Verified against the app's build config: the DMG ships for Apple
-    // Silicon (arm64) only, and Snaps require macOS 14.
+    // Per the build config, the DMG ships for Apple Silicon (arm64) only and
+    // Snaps require macOS 14.
     requirements: 'Requires macOS 14 or later on Apple Silicon.',
     // Trust line under the download button. {version} = app version
     // (e.g. "0.9.1-beta"); {size} = approximate DMG size in MB.

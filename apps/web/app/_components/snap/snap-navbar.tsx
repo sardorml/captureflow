@@ -1,33 +1,21 @@
-// Top navbar shared by the snap viewer + (optionally) the snap
-// editor. Left side carries the brand chip, snap title, and a
-// time-ago line; the trailing `right` slot lets callers drop their
-// own action mix (copy-link, save, undo/redo, etc.) without
-// re-implementing the chrome. The owner identity strip slots in
-// between actions and the brand on the right side via
-// `postedByName`/`postedByEmail` props — pass nulls to omit it.
+// Top navbar for snap views. Left side carries the brand chip, title,
+// and time-ago line; the `right` slot lets callers supply their own
+// actions (copy-link, save, etc.) without re-implementing the chrome.
 import type { ReactElement, ReactNode } from 'react';
 import { PostedBy } from './posted-by';
 import { timeAgo } from './time';
 
 export type SnapNavbarProps = {
-  // App-level title for the brand-link aria-label and logo wrapper.
-  // Defaults to "CaptureFlow"; the chip itself shows the logo mark
-  // regardless.
+  // Brand-link aria-label. Defaults to "CaptureFlow"; the chip shows
+  // the logo mark regardless.
   brandLabel?: string;
-  // Where the brand chip points. Same external marketing site
-  // across services — set to "/" or "#" if you want to keep the
-  // navigation in-app.
   brandHref?: string;
-  // Snap-specific row content.
   title: string;
   createdAt: number;
-  // Identity strip on the right, before any custom actions. Pass
-  // both as null to hide.
+  // Identity strip; pass both as null to hide it.
   postedByName?: string | null;
   postedByEmail?: string | null;
-  // Caller-supplied right-side action area (typically a
-  // CopyLinkButton or a Save button). Rendered between the title
-  // row and the PostedBy strip.
+  // Right-side action area, rendered before the PostedBy strip.
   right?: ReactNode;
   className?: string;
 };

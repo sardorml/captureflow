@@ -1,9 +1,8 @@
 /**
- * Single-channel renderer→main logger for share-related telemetry.
- * Routes through window.electronAPI.log so every share message lands
- * in the same `share` log stream as the main-process modules. Falls
- * through to console.* when the bridge isn't installed (tests, mounts
- * before preload finishes).
+ * Renderer→main logger for share telemetry. Routes through
+ * window.electronAPI.log so share messages land in the same `share`
+ * stream as the main-process modules. Falls back to console.* when the
+ * bridge isn't installed (tests, mounts before preload finishes).
  */
 
 type LogLevel = 'info' | 'warn' | 'error'
@@ -16,8 +15,7 @@ function emit(level: LogLevel, message: string): void {
   }
   if (level === 'error') console.error(`[share] ${message}`)
   else if (level === 'warn') console.warn(`[share] ${message}`)
-  // Drop info-level when no bridge — we don't want a flood of
-  // console.log noise in tests.
+  // Drop info-level when no bridge to avoid console.log noise in tests.
 }
 
 export function logRendererInfo(message: string): void {

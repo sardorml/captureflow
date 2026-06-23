@@ -1,9 +1,8 @@
 import { SmoothButton } from '@captureflow/ui';
 
-// Loom-style auth chip cluster for the share viewer's top-right when
-// the visitor is anonymous. Pricing → marketing site, Log in → the
-// dashboard login (with `next` chained so the visitor lands back on
-// the share after signing in), Get CaptureFlow free → marketing root.
+// Auth chip cluster for the share viewer's top-right when the visitor
+// is anonymous. Log in chains `next` so the visitor lands back on the
+// share after signing in.
 
 type Props = {
   marketingUrl: string;

@@ -22,11 +22,10 @@ export function OPTIONS() {
 //
 // Flips the share row's visibility. Two auth paths are accepted:
 //   1. Desktop client: x-captureflow-device header matching the row's
-//      deviceId (legacy, keeps older builds working).
-//   2. Browser viewer: better-auth session cookie that resolves to
-//      the share owner. The share viewer's Share modal uses this so
-//      the owner can flip visibility without bouncing to the
-//      dashboard.
+//      deviceId (legacy, kept so older builds keep working).
+//   2. Browser viewer: better-auth session cookie resolving to the
+//      share owner, so the viewer's Share modal can flip visibility
+//      without bouncing to the dashboard.
 
 export async function POST(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('slug');

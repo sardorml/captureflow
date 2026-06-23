@@ -3,9 +3,8 @@ import { cn } from '@/lib/utils'
 
 export type RaisedButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>
 
-// Raised keycap button with reliable press feedback across mouse + touch.
-// Uses pointer events + React state so quick taps still visibly depress
-// (macOS / trackpad sometimes skips the :active pseudo on fast clicks).
+// Raised keycap button. Tracks press state via pointer events instead of :active
+// because macOS / trackpad sometimes skips the :active pseudo on fast clicks.
 export const RaisedButton = forwardRef<HTMLButtonElement, RaisedButtonProps>(function RaisedButton(
   { className, onPointerDown, onPointerUp, onPointerLeave, onPointerCancel, ...props },
   ref

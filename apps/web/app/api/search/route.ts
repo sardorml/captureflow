@@ -3,17 +3,15 @@ import { getAppWebEnv } from '@/lib/cf-env';
 import { loadSession } from '@/lib/session-guard';
 import { viewUrlFor, snapViewUrlFor } from '@/lib/site';
 
-// Top-bar cmd-K search across the visitor's own shares + snaps. Lives
-// here (not in shares-db / snaps-db) because the result shape is a
-// merged ranked list — those modules return dashboard rows, which is a
-// different surface.
+// Top-bar cmd-K search across the visitor's own shares + snaps. Lives here
+// rather than in shares-db / snaps-db because it returns a merged ranked list,
+// not the dashboard rows those modules produce.
 //
-// The implementation is intentionally simple — case-insensitive LIKE
-// against `title` for both tables, capped at 8 each, then merged and
-// re-sorted by recency. Better ranking (FTS5, tags, transcript) is a
-// later pass once we know what people actually want to find.
+// Ranking is deliberately naive: case-insensitive LIKE on `title` per table,
+// capped per kind, merged and re-sorted by recency. FTS5/tags/transcript can
+// come later once we know what people actually search for.
 
-// Cookie-gated; never serve a cached response.
+// Cookie-gated, so never serve a cached response.
 export const dynamic = 'force-dynamic';
 
 export type SearchHit = {

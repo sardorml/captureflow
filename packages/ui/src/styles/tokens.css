@@ -1,69 +1,44 @@
-/* Map Tailwind's `dark:` variant to our explicit `data-theme=dark`
- * attribute so opt-in light/dark overrides like `text-red-600
- * dark:text-red-300` work the same way the rest of the codebase
- * already toggles theme. Without this, Tailwind v4 falls back to
- * `prefers-color-scheme: dark` which we don't track. */
+/* Bind Tailwind's `dark:` variant to our `data-theme=dark` attribute.
+ * Without this, Tailwind v4 falls back to `prefers-color-scheme: dark`,
+ * which we don't track. */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-/* CaptureFlow semantic color tokens.
- *
- * The dashboard, share viewer and snap viewer all import this file so
- * a single source of truth defines the theme. Each token is exposed
- * as a Tailwind utility (`bg-canvas`, `text-fg`, `border-line`, etc.)
- * via the `@theme inline` block at the bottom.
- *
- * Themes are switched by setting `data-theme="light"` or `dark` on
- * <html>. The default (no attribute) matches `dark`, mirroring the
- * pre-theme dark-only build.
- */
+/* Semantic color tokens, exposed as Tailwind utilities (`bg-canvas`,
+ * `text-fg`, etc.) via the `@theme inline` block below. Themes switch
+ * via `data-theme="light"`/`"dark"` on <html>; the default (no
+ * attribute) matches dark. */
 
 :root,
 [data-theme='dark'] {
-  /* Backgrounds */
-  --canvas: #0a0a0a; /* page background — was bg-neutral-950 */
-  --canvas-2: #171717; /* sidebar / header — was bg-neutral-900 */
-  --surface: #1f1f1f; /* cards / popovers — between 900 and 800 */
-  --surface-2: #262626; /* raised surface — was bg-neutral-800 */
+  --canvas: #0a0a0a; /* page background */
+  --canvas-2: #171717; /* sidebar / header */
+  --surface: #1f1f1f; /* cards / popovers */
+  --surface-2: #262626; /* raised surface */
 
-  /* Foreground */
-  --fg: #f5f5f5; /* primary text — was text-neutral-100 */
-  --fg-strong: #fafafa; /* headings — was text-neutral-50 */
-  --fg-muted: #a3a3a3; /* secondary — was text-neutral-400 */
-  --fg-subtle: #737373; /* tertiary — was text-neutral-500 */
+  --fg: #f5f5f5;
+  --fg-strong: #fafafa; /* headings */
+  --fg-muted: #a3a3a3; /* secondary text */
+  --fg-subtle: #737373; /* tertiary text */
 
-  /* Lines + overlays */
   --line: rgb(255 255 255 / 0.05);
   --line-strong: rgb(255 255 255 / 0.1);
   --overlay: rgb(255 255 255 / 0.06);
   --overlay-strong: rgb(255 255 255 / 0.12);
 
-  /* Inverse — sits opposite the canvas (used for pills/badges that
-     should pop against the background regardless of theme). */
+  /* Sits opposite the canvas, for pills/badges that should pop against
+     the background regardless of theme. */
   --inverse: #ffffff;
   --on-inverse: #0a0a0a;
 
-  /* Accent — blue brand colour, themed for legibility on each
-     background. Use these instead of raw `text-blue-700
-     dark:text-blue-100` patches:
-       text-accent          primary accent text (links, selected labels)
-       text-accent-strong   hover / emphasized accent text
-       bg-accent            solid accent fill (buttons)
-       bg-accent-hover      solid accent fill hover
-       bg-accent-soft       tinted background (selected cards)
-       ring-accent          focus / selected ring */
-  --accent: #93c5fd; /* blue-300 — accent text on dark */
-  --accent-strong: #bfdbfe; /* blue-200 */
-  --accent-bg: #2563eb; /* blue-600 — solid fills (buttons) */
-  --accent-bg-hover: #3b82f6; /* blue-500 — lighter on hover (dark) */
-  --accent-bg-soft: rgb(59 130 246 / 0.18); /* blue-500 tint */
-  --accent-ring: rgb(59 130 246 / 0.4);
+  /* Blue accent, themed per background for legibility. */
+  --accent: #93c5fd; /* accent text (links, selected labels) */
+  --accent-strong: #bfdbfe; /* hover / emphasized accent text */
+  --accent-bg: #2563eb; /* solid fill (buttons) */
+  --accent-bg-hover: #3b82f6; /* lighter on hover (dark) */
+  --accent-bg-soft: rgb(59 130 246 / 0.18); /* tinted background (selected cards) */
+  --accent-ring: rgb(59 130 246 / 0.4); /* focus / selected ring */
 
-  /* Danger — red, themed for legibility. Use these instead of raw
-     `text-red-400 dark:hover:text-red-300` patches:
-       text-danger          primary danger text
-       text-danger-strong   hover danger text
-       bg-danger-soft       tinted hover background for destructive
-                            menu items / Remove buttons */
+  /* Red danger, themed per background for legibility. */
   --danger: #f87171;
   --danger-strong: #fca5a5;
   --danger-bg-soft: rgb(239 68 68 / 0.12);
@@ -88,28 +63,22 @@
   --inverse: #0a0a0a;
   --on-inverse: #fafafa;
 
-  /* Accent — readable blue on light backgrounds. */
-  --accent: #2563eb; /* blue-600 — accent text on light */
-  --accent-strong: #1d4ed8; /* blue-700 */
-  --accent-bg: #2563eb; /* blue-600 */
-  --accent-bg-hover: #1d4ed8; /* blue-700 — darker on hover (light) */
-  --accent-bg-soft: rgb(37 99 235 / 0.12); /* blue-600 tint */
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --accent-bg: #2563eb;
+  --accent-bg-hover: #1d4ed8; /* darker on hover (light) */
+  --accent-bg-soft: rgb(37 99 235 / 0.12);
   --accent-ring: rgb(37 99 235 / 0.35);
 
-  /* Danger — readable red on light backgrounds. */
   --danger: #dc2626;
   --danger-strong: #b91c1c;
   --danger-bg-soft: rgb(220 38 38 / 0.08);
 }
 
-/* Palette fallback. The codebase has ~900 hardcoded `bg-neutral-*`,
- * `text-neutral-*`, `border-neutral-*` references — too many to
- * migrate in one pass. Overriding the neutral scale inside
- * `[data-theme="light"]` flips those existing utilities into a sane
- * light palette so unmigrated surfaces stay coherent while semantic
- * tokens (canvas/surface/fg/line/overlay) carry the new code. New
- * code should still prefer the semantic tokens; this block is the
- * scaffolding under it. */
+/* Palette fallback. The codebase still has ~900 hardcoded `*-neutral-*`
+ * references — too many to migrate at once. Inverting the neutral scale
+ * here flips those utilities into a coherent light palette while the
+ * semantic tokens carry new code. Prefer semantic tokens in new code. */
 [data-theme='light'] {
   --color-neutral-50: #0a0a0a;
   --color-neutral-100: #171717;

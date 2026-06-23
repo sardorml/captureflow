@@ -1,8 +1,6 @@
-// Snap ID generator. Same alphabet + length as share slugs so the
-// URL surface reads as the same product (snap.captureflow.xyz/<id>
-// next to share.captureflow.xyz/<slug>). 10 chars of base-54
-// (no 0/O/1/I/l ambiguities) — collision probability is
-// effectively zero up to ~10^7 snaps.
+// Snap ID generator. 10 chars of base-54, excluding 0/O/1/I/l to avoid
+// visual ambiguity — collision probability is effectively zero up to
+// ~10^7 snaps.
 
 const ALPHABET = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 

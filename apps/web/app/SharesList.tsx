@@ -37,11 +37,8 @@ import {
 } from './actions';
 import { VisibilityDialog } from './VisibilityDialog';
 
-// Public share viewer links are built by the canonical helper so the
-// merged `/r/<id>` path + host stay in one place (lib/site.ts). The CDN
-// origin for poster/video reads honors NEXT_PUBLIC_R2_PUBLIC_BASE_URL so
-// local dev can point card thumbnails at the local R2 proxy; prod falls
-// back to cdn.captureflow.xyz.
+// CDN origin for poster/video reads. NEXT_PUBLIC_R2_PUBLIC_BASE_URL lets local
+// dev point card thumbnails at the local R2 proxy; prod falls back to the CDN.
 const CDN_BASE_URL =
   process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? 'https://cdn.captureflow.xyz';
 
@@ -49,15 +46,12 @@ type SharesListProps = {
   shares: DashboardShareRow[];
   viewerUserId?: string;
   viewerIsWorkspaceOwner?: boolean;
-  // Workspace policy: when false, the Public option is hidden from
-  // the visibility select for new flips. Defaults to true to preserve
-  // pre-policy behaviour.
+  // When false, hide the Public option from the visibility select. Defaults to
+  // true to preserve pre-policy behaviour.
   allowPublicLinks?: boolean;
-  // user_id → display name for every workspace member, so we can
-  // surface the author chip on every card (owner included).
+  // user_id → display name, for the author chip on every card.
   ownerNames?: Record<string, string>;
-  // user_id → avatar URL — same lookup, rendered as <AvatarImage> on
-  // each card when present, otherwise the seeded fallback.
+  // user_id → avatar URL, rendered as <AvatarImage> when present, else fallback.
   ownerImages?: Record<string, string>;
 };
 
@@ -127,25 +121,22 @@ function ShareCard({
   );
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  // When the overflow menu is open we lock the hover cluster to
-  // visible so the menu doesn't appear to float over a hidden anchor
-  // (mouse leaves the thumbnail while the popover sticks open).
+  // While the overflow menu is open, force the hover cluster visible so the menu
+  // doesn't float over a hidden anchor when the mouse leaves the thumbnail.
   const [menuOpen, setMenuOpen] = useState(false);
 
   const shareUrl = viewUrlFor(share.slug);
   const posterUrl = share.posterKey
     ? `${CDN_BASE_URL}/${share.posterKey}`
     : null;
-  // Streaming-upload shares don't generate a static poster; pull the
-  // first frame straight from the source video with preload=metadata
-  // so the browser fetches ~100 KB instead of the whole file.
+  // Streaming-upload shares have no static poster; pull the first frame from the
+  // source video with preload=metadata so the browser fetches ~100 KB, not all.
   const videoThumbUrl =
     share.state === 'ready' && !posterUrl
       ? `${CDN_BASE_URL}/${share.storageKey}?v=${share.sizeBytes}`
       : null;
-  // Card click always opens the public share page (in a new tab —
-  // cross-subdomain, and the dashboard tab stays put). The pencil/
-  // settings icon in the row actions is the path to the editor.
+  // Card click opens the public share page in a new tab (cross-subdomain, and
+  // the dashboard tab stays put). The pencil icon is the path to the editor.
   const thumbnailHref = shareUrl;
   const thumbnailTarget = '_blank';
   const thumbnailRel = 'noreferrer';
@@ -246,9 +237,9 @@ function ShareCard({
           </span>
         )}
 
-        {/* Hover-revealed action cluster — Loom posture. Pinned to the
-            top-right of the thumbnail; eats clicks (stopPropagation +
-            preventDefault) so the underlying Link doesn't fire. */}
+        {/* Hover-revealed action cluster, pinned top-right of the thumbnail.
+            Eats clicks (stopPropagation + preventDefault) so the underlying
+            Link doesn't fire. */}
         <div
           className={
             'absolute right-2 top-2 flex items-center gap-1.5 transition-opacity ' +
@@ -344,9 +335,8 @@ function ShareCard({
                 {formatRelative(share.createdAt)}
               </span>
             </div>
-            {/* Visibility as plain text + chevron, Loom posture. Same
-                modal trigger as before; the chip styling is gone so it
-                reads as metadata, not chrome. */}
+            {/* Visibility as plain text + chevron so it reads as metadata,
+                not chrome, while still triggering the change modal. */}
             {canManage ? (
               <VisibilityDialog
                 value={visibility}
@@ -459,11 +449,9 @@ function visibilityLabel(v: ShareVisibility): string {
   return 'Private';
 }
 
-// Plain-text visibility affordance, Loom posture — sits directly
-// under the author name with a small chevron to hint "click to change."
-// No background, no border; reads as metadata, not as a control. When
-// non-interactive (viewer is read-only) we render a <span> so it
-// doesn't look pressable.
+// Plain-text visibility affordance: a chevron hints "click to change" with no
+// background or border, so it reads as metadata. Non-interactive (read-only)
+// viewers get a <span> so it doesn't look pressable.
 const VisibilityText = forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement> & {

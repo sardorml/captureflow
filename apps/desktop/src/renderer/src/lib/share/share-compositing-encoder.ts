@@ -13,16 +13,16 @@
  * `window.electronAPI.sharePartScreen(bytes)` as soon as the muxer
  * emits them.
  *
- * Audio architecture (post-refactor):
- *   The renderer no longer captures system audio via
- *   getDisplayMedia / WebCodecs AudioEncoder — that path returned an
- *   already-ended MediaStreamTrack on Electron 39 and produced silent
- *   6-byte AAC frames. Instead, the native Swift recorder AAC-encodes
- *   SCK's audio tap and writes the packets directly to fd 3 alongside
- *   video chunks. The renderer receives them as `audio-chunk` events
- *   and hands the raw bytes to the muxer — no decode, no re-encode.
- *   This module's responsibility is purely the video composite plus
- *   muxing both streams.
+ * Audio architecture:
+ *   The renderer does not capture system audio via getDisplayMedia /
+ *   WebCodecs AudioEncoder — that path returned an already-ended
+ *   MediaStreamTrack on Electron 39 and produced silent 6-byte AAC
+ *   frames. Instead, the native Swift recorder AAC-encodes SCK's audio
+ *   tap and writes the packets directly to fd 3 alongside video chunks.
+ *   The renderer receives them as `audio-chunk` events and hands the
+ *   raw bytes to the muxer — no decode, no re-encode. This module's
+ *   responsibility is purely the video composite plus muxing both
+ *   streams.
  */
 
 import { Muxer, StreamTarget } from 'mp4-muxer'

@@ -6,21 +6,17 @@ import { memoryDb } from './db-memory';
 import { createD1Db } from './db-d1';
 import { getCloudflareEnv } from './cf-env';
 
-// Resolve the active backend per call. On Cloudflare Workers (prod) and
-// during `next dev` (OpenNext maps bindings into the dev runtime), the
-// D1 binding is reachable via `getCloudflareEnv()`. When unreachable
-// (e.g. running under a non-Cloudflare runtime, or in unit tests), we
-// fall through to the in-memory store.
+// Resolve the active backend per call. The D1 binding is reachable via
+// `getCloudflareEnv()` on Cloudflare Workers and under `next dev` (OpenNext
+// maps bindings into the dev runtime); otherwise (non-Cloudflare runtime,
+// unit tests) we fall through to the in-memory store.
 //
-// Caching across calls is unsafe — D1 binding is request-scoped, so a
-// stale reference would leak data between requests. The cost of
-// re-resolving is one property lookup.
+// Resolving per call is required: the D1 binding is request-scoped, so a
+// cached reference would leak data between requests.
 async function resolveDb(): Promise<ShareDb> {
   const env = await getCloudflareEnv();
   return env?.DB ? createD1Db(env.DB) : memoryDb;
 }
-
-// Public API — same signatures the route handlers already call.
 
 export async function insertShare(row: ShareRow): Promise<void> {
   return (await resolveDb()).insertShare(row);
@@ -51,13 +47,10 @@ export async function listSharesForUser(userId: string): Promise<ShareRow[]> {
   return (await resolveDb()).listSharesForUser(userId);
 }
 
-// Owner-name lookup for the public share page byline. Joins to the
-// better-auth `users` table by id. Returns null when the share is
-// anonymous (user_id was null on /api/init) or the user row was
-// removed since the share was uploaded. Kept as a standalone
-// function instead of widening ShareRow so the metadata + page
-// renderers can opt in to the extra D1 round trip without changing
-// every callsite.
+// Owner-name lookup for the public share page byline, against the better-auth
+// `users` table. Returns null when the share is anonymous (user_id null on
+// /api/init) or the user row was removed. Standalone rather than widening
+// ShareRow so callers opt in to the extra D1 round trip.
 export async function getOwnerName(userId: string): Promise<string | null> {
   const env = await getCloudflareEnv();
   if (!env?.DB) return null;
@@ -77,12 +70,9 @@ export async function activeShareCountForDevice(
   return (await resolveDb()).activeShareCountForDevice(deviceId);
 }
 
-// User-scoped aggregations (totalStorageForUser /
-// activeArtifactCountForUser) now live in lib/share/quota.ts, which
-// resolves the @captureflow/quota helpers against env.DB or the in-memory
-// fallback. They aggregate across shares ∪ snaps for the combined
-// account quota, so the share-only ShareDb backend no longer owns
-// them.
+// User-scoped aggregations (totalStorageForUser / activeArtifactCountForUser)
+// live in lib/share/quota.ts because they span shares ∪ snaps for the combined
+// account quota, which the share-only ShareDb backend can't compute.
 
 export async function bumpLastViewed(slug: string): Promise<void> {
   return (await resolveDb()).bumpLastViewed(slug);

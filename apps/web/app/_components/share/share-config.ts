@@ -1,10 +1,8 @@
-// Share-config sidecar — parallel to lib/snap-keys.ts. The screen MP4
-// is uploaded once by the desktop and never re-encoded; bg, camera PiP
+// The screen MP4 is uploaded once and never re-encoded; bg, camera PiP
 // placement, and per-track mute state are applied at play time on top
-// of the immutable bytes. We persist that config as a JSON sidecar
-// next to the video in R2 so both the public viewer and the dashboard
-// edit page read the same source of truth (no D1 migration needed for
-// what is effectively a presentation-layer dictionary).
+// of the immutable bytes. Config is persisted as a JSON sidecar next to
+// the video in R2 so the public viewer and the dashboard edit page share
+// one source of truth without a D1 migration.
 
 const MP4 = '.mp4';
 
@@ -56,9 +54,7 @@ export const SHARE_GRADIENT_KEYS = [
 ] as const;
 export type ShareGradientKey = (typeof SHARE_GRADIENT_KEYS)[number];
 
-// Same gradients the snap editor ships — kept in sync so a user's
-// mental model carries between snap edits and share edits. Stops are
-// CSS-friendly: each tuple `(offset%, color)` is rendered into a
+// Each `(offset, color)` stop is rendered into a
 // `linear-gradient(135deg, …)` by `shareGradientCss`.
 export const SHARE_GRADIENT_PRESETS: Record<
   ShareGradientKey,

@@ -1,8 +1,6 @@
-// Public "Suggest a feature" page — linked from the landing's roadmap section.
-// Sits OUTSIDE the auth gate (see middleware.ts): anyone can propose an idea
-// without signing in. The `.marketing-root` wrapper (MarketingShell) + imported
-// marketing.css scope the light landing palette + Inter typeface to this
-// subtree; I18nProvider supplies the static English copy to the client form.
+// Public "Suggest a feature" page. Sits OUTSIDE the auth gate (see
+// middleware.ts): anyone can propose an idea without signing in. MarketingShell
+// + marketing.css scope the light landing palette to this subtree.
 import '../marketing.css';
 import type { Metadata } from 'next';
 import { I18nProvider } from '@/components/marketing/i18n-provider';

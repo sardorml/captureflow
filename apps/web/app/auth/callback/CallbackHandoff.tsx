@@ -7,22 +7,19 @@ type CallbackHandoffProps = {
   email: string;
 };
 
-// Renders the "Open CaptureFlow" deep-link handoff. We do NOT navigate to
-// the captureflow:// URL during SSR (it can't run there) and we don't
-// auto-navigate on first paint either — Safari treats unsolicited
-// `location.href = 'custom-scheme:'` as a popup-class action and may
-// suppress the prompt. The user-visible button is the trigger; the
-// useEffect just primes a one-shot auto-redirect a moment after mount
-// so the happy path needs no clicks for users who already trust the
-// app.
+// "Open CaptureFlow" deep-link handoff. The visible button is the real
+// trigger: Safari treats an unsolicited `location.href = 'custom-scheme:'`
+// as a popup-class action and may suppress the prompt, so we don't navigate
+// during SSR or on first paint. The useEffect only primes a one-shot
+// auto-redirect shortly after mount so the happy path needs no clicks.
 
 export function CallbackHandoff({ deepLink, email }: CallbackHandoffProps) {
   const [opened, setOpened] = useState(false);
   const anchorRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
-    // Slight delay so the browser has a chance to register the
-    // current page as the originator. 250ms is a safe floor in Safari.
+    // Delay lets the browser register this page as the originator;
+    // 250ms is a safe floor in Safari.
     const id = setTimeout(() => {
       anchorRef.current?.click();
       setOpened(true);

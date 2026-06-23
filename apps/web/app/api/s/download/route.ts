@@ -4,14 +4,11 @@ import { getSnapBody } from '@/lib/snap/r2';
 import { isValidSnapId } from '@/lib/snap/id';
 import type { SnapApiError } from '@/lib/snap/types';
 
-// Same-origin proxy that streams the snap PNG back with
-// `Content-Disposition: attachment` so the browser triggers a real
-// download instead of an inline preview. The HTML `download`
-// attribute is silently ignored on cross-origin links unless the
-// origin sends `Content-Disposition: attachment` itself, and the
-// public CDN host (cdn.captureflow.xyz) is cross-origin to the
-// snap page (snap.captureflow.xyz). Routing through this endpoint
-// keeps the link same-origin so `<a download>` works uniformly.
+// Same-origin proxy that streams the snap PNG with `Content-Disposition:
+// attachment` to force a real download. The HTML `download` attribute is
+// ignored on cross-origin links unless the origin sends the attachment
+// header itself, and the CDN (cdn.captureflow.xyz) is cross-origin to the
+// snap page (snap.captureflow.xyz). Proxying keeps the link same-origin.
 
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('id');

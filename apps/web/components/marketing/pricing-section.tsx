@@ -6,9 +6,8 @@ import { FreeCard } from './free-card';
 import { ManagedCard } from './managed-card';
 
 type PricingSectionProps = {
-  // When the host page already paints its own pricing heading (e.g.
-  // /pricing), suppress the in-section "Pricing" / subheading so the
-  // header doesn't appear twice.
+  // Suppress the in-section heading when the host page (e.g. /pricing) already
+  // paints its own, so it doesn't appear twice.
   hideHeading?: boolean;
 };
 
@@ -31,9 +30,6 @@ export function PricingSection({
           </>
         )}
 
-        {/* Two plans side by side: Self-Hosted (light, free) and CaptureFlow
-            Managed (dark, highlighted). The compare table below draws the full
-            Self-Hosted-vs-Managed capability line. */}
         <div className="mx-auto mt-12 grid max-w-4xl gap-6 sm:grid-cols-2">
           <FreeCard />
           <ManagedCard />

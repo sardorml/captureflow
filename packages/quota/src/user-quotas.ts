@@ -7,20 +7,18 @@ import { getActiveProSubscription } from './pro-subscription';
 //   1. explicit admin override row in `user_quotas` (per-column),
 //   2. active Pro subscription in `pro_subscription` (bumps both caps),
 //   3. ACCOUNT_LIMITS defaults.
-// Lifetime licences (LS license-key product) are NOT consulted here —
-// lifetime unlocks Studio export locally in the desktop app but does not
-// raise the cloud cap. Only an active monthly/annual subscription does.
+// Lifetime licences are NOT consulted here: they unlock Studio export
+// locally in the desktop app but do not raise the cloud cap. Only an
+// active monthly/annual subscription does.
 
 export type EffectiveLimits = {
   storageBytes: number;
   activeArtifacts: number;
-  // Per-share duration cap (ms). Pro bumps this from the free 5min to
-  // 1h — the share-init route uses it to reject in-spec uploads that
-  // would exceed the caller's tier.
+  // Per-share duration cap (ms); the share-init route rejects uploads
+  // that exceed the caller's tier.
   perShareDurationMs: number;
   // Surfaced so callers (api/me, the desktop's storage modal) can show
-  // "Pro · 50 GB" vs "Free · 500 MB" without re-querying the
-  // subscription table.
+  // the tier without re-querying the subscription table.
   proSubscriptionActive: boolean;
 };
 

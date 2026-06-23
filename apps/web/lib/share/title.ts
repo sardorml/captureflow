@@ -1,11 +1,9 @@
 import { PRODUCT_NAME } from '../site';
 
-// Shared brand suffix for share-page headlines. Used to build the
-// full string stored in `shares.title` at insert time so dashboard
-// renames (admin + user) can edit the entire headline — including
-// the brand + date bits the renderer used to append at draw time.
-// Storing the formatted string means the title field is the single
-// source of truth; the renderer no longer composes anything.
+// Brand suffix baked into the full headline stored in `shares.title` at
+// insert time, so dashboard renames can edit the whole string (brand +
+// date included) and the title field is the single source of truth — the
+// renderer composes nothing.
 const SHARE_BRAND_LINE = `${PRODUCT_NAME} | Free Screen & Video Recording for macOS`;
 
 const TITLE_MAX_CHARS = 200;
@@ -18,16 +16,16 @@ function formatDateLabel(epochMs: number): string {
   });
 }
 
-// Builds the Loom-style headline. `sourceTitle` is the variable bit
-// the desktop client sends (window owner name or display label);
-// when absent, the headline drops the leading segment.
+// Builds the headline. `sourceTitle` is the variable bit the desktop
+// client sends (window owner name or display label); when absent, the
+// leading segment is dropped.
 //
 // Examples:
 //   sourceTitle='Brave Browser'  → 'Brave Browser — CaptureFlow | Free Screen & Video Recording for macOS — May 11, 2026'
 //   sourceTitle=null             → 'CaptureFlow | Free Screen & Video Recording for macOS — May 11, 2026'
 //
-// Clipped to TITLE_MAX_CHARS so a hostile / extra-long window name
-// can't push the row past D1's column ergonomics.
+// Clipped to TITLE_MAX_CHARS so a hostile / extra-long window name can't
+// bloat the D1 column.
 export function buildShareHeadline(
   sourceTitle: string | null,
   createdAt: number
@@ -42,9 +40,8 @@ export function buildShareHeadline(
     : joined;
 }
 
-// Trims and length-clips a raw caller-supplied title to the same
-// 200-char ceiling. Returns null for non-strings / empty input so
-// the build helper above (or the API caller) can treat "no title"
+// Trims and clips a caller-supplied title to TITLE_MAX_CHARS. Returns
+// null for non-strings / empty input so callers can treat "no title"
 // uniformly.
 export function sanitizeSourceTitle(v: unknown): string | null {
   if (typeof v !== 'string') return null;

@@ -365,7 +365,7 @@ export function registerWindowHandlers(
         win.setMinimumSize(opts.minWidth || 520, opts.minHeight || 420)
       }
 
-      // Cancel any in-progress resize animation for this window
+      // A new resize can arrive mid-animation; cancel the prior one first.
       const prevTimer = resizeTimers.get(win.id)
       if (prevTimer) clearInterval(prevTimer)
 

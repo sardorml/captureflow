@@ -1,7 +1,6 @@
-// Single barrel for the @captureflow/ui primitives. Callers can import
-// from the root (`import { Button } from '@captureflow/ui'`) or from a
-// subpath (`import { Button } from '@captureflow/ui/button'`) — both
-// resolve to the same module via the package's exports map.
+// Barrel for the @captureflow/ui primitives. Root and subpath imports
+// (`@captureflow/ui` vs `@captureflow/ui/button`) resolve to the same
+// module via the package's exports map.
 
 export { cn } from './lib/cn';
 export {
@@ -49,13 +48,10 @@ export { Label } from './ui/label';
 export { RadioGroup, RadioGroupItem } from './ui/radio-group';
 export { Separator } from './ui/separator';
 export { Textarea } from './ui/textarea';
-// Motion-driven smoothui-flavoured variants. Same Radix substrate as
-// the shadcn primitives above; the open/close + press feedback runs
-// through `motion` springs so the chrome reads as "alive" instead of
-// CSS-keyframed. Adopt these gradually — they're not drop-in renames
-// because the Dialog/DropdownMenu Root components own controlled open
-// state, so a few call sites that read Radix internals would need a
-// tweak.
+// Motion-driven variants over the same Radix substrate as the primitives
+// above; open/close + press feedback runs through `motion` springs. Not
+// drop-in replacements: the Dialog/DropdownMenu Root components own
+// controlled open state, so call sites reading Radix internals need a tweak.
 export { SmoothButton, smoothButtonVariants } from './ui/smooth-button';
 export type { SmoothButtonProps } from './ui/smooth-button';
 export {

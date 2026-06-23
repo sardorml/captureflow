@@ -40,16 +40,15 @@ export default function BasicModal({
   const generatedTitleId = useId()
   const titleId = title ? `modal-title-${generatedTitleId}` : undefined
 
-  // Focus management: Save previous focus and restore on close
+  // Save the previously focused element on open and restore it on close.
   useEffect(() => {
     if (isOpen) {
       previousActiveElementRef.current = document.activeElement as HTMLElement
-      // Focus the close button or first focusable element when modal opens
+      // Defer focus so it lands after the modal has mounted and animated in.
       setTimeout(() => {
         closeButtonRef.current?.focus()
       }, 100)
     } else if (previousActiveElementRef.current) {
-      // Restore focus when modal closes
       previousActiveElementRef.current.focus()
     }
   }, [isOpen])
@@ -66,7 +65,7 @@ export default function BasicModal({
         return
       }
 
-      // Focus trap: keep focus within modal
+      // Focus trap: wrap Tab/Shift+Tab around the modal's focusable elements.
       if (e.key === 'Tab' && modalRef.current) {
         const focusableElements = Array.from(
           modalRef.current.querySelectorAll<HTMLElement>(
@@ -77,13 +76,11 @@ export default function BasicModal({
         const lastElement = focusableElements.at(-1)
 
         if (e.shiftKey) {
-          // Shift + Tab
           if (document.activeElement === firstElement) {
             e.preventDefault()
             lastElement?.focus()
           }
         } else if (document.activeElement === lastElement) {
-          // Tab
           e.preventDefault()
           firstElement?.focus()
         }
@@ -94,8 +91,8 @@ export default function BasicModal({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
 
-  // Note: Body scroll locking is handled by the overlay and modal positioning
-  // No need to manually set body overflow as it can conflict with other components
+  // Body overflow is left untouched: manually locking it conflicts with other
+  // components, and the overlay + modal positioning already prevent scroll.
 
   const modalContent = (
     <AnimatePresence>
@@ -153,8 +150,8 @@ export default function BasicModal({
                     }
               }
             >
-              {/* Header — only rendered when there's a title, so the title
-                  shares the row with the close button. */}
+              {/* Rendered only when there's a title, so the title shares the
+                  row with the close button. */}
               {title && (
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <h3 className="font-medium text-xl leading-6" id={titleId}>

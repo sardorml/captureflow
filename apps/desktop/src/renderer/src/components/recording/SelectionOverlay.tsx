@@ -18,10 +18,9 @@ const RECORD_BUTTON_CLASS =
   'text-white text-base font-semibold transition-colors select-none ' +
   'disabled:opacity-60 disabled:cursor-not-allowed'
 
-// Reads the recording mode set by the toolbar via localStorage. Same
-// origin → same storage area, so the overlay (loaded as a separate
-// BrowserWindow under the same renderer build) sees the value the
-// toolbar wrote when the user toggled Share / Screenshot.
+// Reads the recording mode the toolbar wrote to localStorage. Same origin →
+// same storage area, so the overlay (a separate BrowserWindow on the same
+// renderer build) sees the toolbar's Share / Screenshot toggle.
 function readRecordingMode(): 'share' | 'screenshot' {
   try {
     const v = localStorage.getItem('captureflow-mode')
@@ -32,12 +31,9 @@ function readRecordingMode(): 'share' | 'screenshot' {
   }
 }
 
-// Reactive form of `readRecordingMode`. The toolbar writes
-// `captureflow-mode` on every toggle and storage events fire cross-window
-// (same origin), so the overlay re-renders whenever the user flips
-// Share / Screenshot in the toolbar — keeps "Start recording" vs
-// "Capture" copy and the snap-vs-record overlay variants in sync
-// without an explicit IPC message.
+// Reactive form of `readRecordingMode`. Storage events fire cross-window
+// (same origin), so the overlay re-renders on every toolbar toggle — keeping
+// copy and the snap-vs-record variants in sync without an explicit IPC message.
 function useRecordingMode(): 'share' | 'screenshot' {
   const [mode, setMode] = useState<'share' | 'screenshot'>(readRecordingMode)
   useEffect(() => {
@@ -50,13 +46,10 @@ function useRecordingMode(): 'share' | 'screenshot' {
   return mode
 }
 
-// Hook: current share-auth + connectivity + usage + recording-mode +
-// a derived `locked` flag. Locked iff the user picked Share mode AND
-// any of (a) no captureflow.xyz session, (b) can't reach
-// captureflow.xyz, (c) per-device storage cap reached.
-// `lockReason` lets the button + modal differ between "sign in",
-// "no internet", and "quota reached" while sharing the lock affordance.
-// Screenshot mode bypasses the gate — it has its own snap pipeline.
+// Share-auth + connectivity + usage + a derived `locked` flag. Locked when any
+// of: no captureflow.xyz session, can't reach captureflow.xyz, or per-device
+// storage cap reached. `lockReason` lets the button + modal differ between
+// "sign in", "no internet", and "quota reached".
 type LockReason = 'auth' | 'offline' | 'quota' | null
 
 function useShareLockState(): {
@@ -84,10 +77,9 @@ function useShareLockState(): {
   }, [])
 
   useEffect(() => {
-    // Pull the current snapshot AND kick a fresh probe in parallel —
-    // main also refreshes on overlay open, but issuing one from here
-    // guarantees a flip when the overlay is reused inside the same
-    // window (no SELECTION_OVERLAY_INIT event needed).
+    // Pull the current snapshot AND kick a fresh probe in parallel. Main also
+    // refreshes on overlay open, but a probe from here guarantees a flip when
+    // the overlay is reused in the same window (no INIT event fires then).
     void window.electronAPI.getShareUsage().then(setUsage)
     void window.electronAPI.refreshShareUsage()
     const unsub = window.electronAPI.onShareUsageChanged(setUsage)
@@ -95,9 +87,8 @@ function useShareLockState(): {
   }, [])
 
   useEffect(() => {
-    // The toolbar writes 'captureflow-mode' on every toggle. Storage events
-    // fire only on cross-window writes (same origin) — perfect for our
-    // toolbar → overlay handoff.
+    // Storage events fire only on cross-window writes — the toolbar → overlay
+    // handoff for the recording-mode toggle.
     const onStorage = (e: StorageEvent): void => {
       if (e.key === 'captureflow-mode') setMode(readRecordingMode())
     }
@@ -109,12 +100,10 @@ function useShareLockState(): {
     void window.electronAPI.getShareAuth().then(setAuth)
   }, [])
 
-  // Offline takes precedence over auth and quota — if the network is
-  // down none of the other states are actionable. Auth comes next so a
-  // signed-out user sees the sign-in prompt instead of a quota message
-  // they couldn't act on without the dashboard anyway. Screenshot
-  // mode uploads via the same account-scoped quota as Share, so the
-  // same three locks apply.
+  // Precedence: offline first (nothing else is actionable with the network
+  // down), then auth (a signed-out user can't act on a quota message anyway),
+  // then quota. Screenshot uploads share Share's account-scoped quota, so the
+  // same three locks apply to both modes.
   let lockReason: LockReason = null
   if (mode === 'share' || mode === 'screenshot') {
     if (connectivity === 'offline') lockReason = 'offline'
@@ -135,20 +124,17 @@ type LockableRecordButtonProps = {
   loading: boolean
   disabled?: boolean
   onStart: () => void | Promise<void>
-  // Forwarded so the area-overlay can paint the button inside a
-  // pointer-events container without rebuilding the wrapper here.
+  // Forwarded so the area-overlay can wrap the button in a pointer-events
+  // container without rebuilding the wrapper here.
   style?: React.CSSProperties
-  // Switches the button's idle label + icon between the recording
-  // pipeline and screenshot capture. Lock states (auth/offline/quota)
-  // override both — they share the same upgrade / sign-in flow.
+  // Switches the idle label + icon between record and snap. Lock states
+  // (auth/offline/quota) override both.
   variant?: 'record' | 'snap'
 }
 
-// Shared button used by every overlay variant. When `locked` it paints
-// a Lock (auth) or WifiOff (offline) icon + matching copy and
-// intercepts the click to open the appropriate modal — the underlying
-// `onStart` never fires from the locked state, so the caller's
-// recording handler doesn't have to know about auth or connectivity.
+// Shared button for every overlay variant. When locked it shows a Lock/WifiOff
+// icon + matching copy and intercepts the click to open the right modal —
+// `onStart` never fires while locked, so callers stay ignorant of auth/network.
 function LockableRecordButton(props: LockableRecordButtonProps): React.JSX.Element {
   const { locked, lockReason, usage } = useShareLockState()
   const [authPromptOpen, setAuthPromptOpen] = useState(false)
@@ -157,10 +143,9 @@ function LockableRecordButton(props: LockableRecordButtonProps): React.JSX.Eleme
   const variant = props.variant ?? 'record'
 
   const handleClick = (e: React.MouseEvent): void => {
-    // Window overlay listens for clicks on the surrounding cutout div
-    // to (re)lock the selected window. The record button sits inside
-    // that div, so the click would re-trigger selection on the way up
-    // without an explicit stop.
+    // The window overlay relocks the selected window on cutout-div clicks, and
+    // this button sits inside that div — without the stop, clicking it would
+    // re-trigger selection on the way up.
     e.stopPropagation()
     if (lockReason === 'offline') {
       setOfflinePromptOpen(true)
@@ -251,12 +236,9 @@ function LockableRecordButton(props: LockableRecordButtonProps): React.JSX.Eleme
   )
 }
 
-// Painted on top of the dim selection overlay when the device is at
-// or above the per-device storage cap. Two CTAs: "Upgrade to Pro"
-// opens the Lemon Squeezy checkout (the route is baked at build
-// time), "Manage shares" punts to captureflow.xyz where the user
-// can delete existing recordings to free up the cap. Either action
-// drops the overlay so the user can interact with the browser.
+// Shown when the device hits the per-device storage cap. "Upgrade to Pro" opens
+// the Lemon Squeezy checkout; "Manage shares" opens captureflow.xyz to delete
+// recordings. Either drops the overlay so the user can reach the browser.
 function QuotaReachedModal({
   usage,
   onClose
@@ -358,24 +340,21 @@ function formatBytes(n: number): string {
   return `${v.toFixed(v >= 10 || i === 0 ? 0 : 1)} ${units[i]}`
 }
 
-// Three-second countdown surfaced before sendSelectionResult fires.
-// Replaces the old "give H.264 encoder time to release" silent sleep
-// with a visible cue so the user can finish positioning their cursor
-// (or switch app) before the recording actually starts. The hook
-// resolves AFTER the final tick AND after the renderer has committed
-// the cleared-countdown frame — without that wait the overlay window
-// would hide mid-paint and re-open later showing a stale "1".
+// Three-second countdown before sendSelectionResult fires. Replaces a silent
+// sleep (H.264 encoder release window) with a visible cue, giving the user time
+// to position the cursor or switch apps. Resolves only after the renderer has
+// committed the cleared-countdown frame — otherwise the overlay window hides
+// mid-paint and re-opens later showing a stale "1".
 function useRecordCountdown(): {
   countdown: number | null
   runCountdown: () => Promise<{ ok: boolean }>
   cancelCountdown: () => void
 } {
   const [countdown, setCountdown] = useState<number | null>(null)
-  // Mutable cancel flag so an in-flight countdown can short-circuit
-  // before its caller fires sendSelectionResult. Without this, the
-  // setTimeout chain keeps running after the overlay window is
-  // hidden (Escape, cancelled by main) and the recording starts
-  // 1–3 s after the user thought they cancelled.
+  // Mutable cancel flag so an in-flight countdown can short-circuit before
+  // sendSelectionResult fires. Without it the setTimeout chain keeps running
+  // after the overlay is hidden (Escape / cancelled by main) and the recording
+  // starts 1–3 s after the user thought they cancelled.
   const cancelRef = useRef<{ cancelled: boolean }>({ cancelled: false })
 
   const runCountdown = useCallback(async (): Promise<{ ok: boolean }> => {
@@ -386,10 +365,8 @@ function useRecordCountdown(): {
         return { ok: false }
       }
       setCountdown(n)
-      // 1s per tick — slow enough to read, fast enough that the user
-      // doesn't lose patience. Total 3s matches the H.264 encoder
-      // settle time we were sleeping for silently before, so this
-      // doesn't add net latency to the recording start.
+      // 1s per tick; total 3s matches the H.264 encoder settle time we used to
+      // sleep for silently, so this adds no net latency to recording start.
       await new Promise((r) => setTimeout(r, 1000))
     }
     if (cancelRef.current.cancelled) {
@@ -397,12 +374,10 @@ function useRecordCountdown(): {
       return { ok: false }
     }
     setCountdown(null)
-    // Wait two animation frames so React commits the null-state
-    // unmount to the WebContents framebuffer before the caller hides
-    // the overlay window. Hidden BrowserWindows preserve their last
-    // paint, and on the next open the stale paint is shown until
-    // React re-renders — the user sees a flash of "1" when they
-    // open the picker again after a recording.
+    // Wait two animation frames so React commits the null-state unmount to the
+    // WebContents framebuffer before the caller hides the overlay window. Hidden
+    // BrowserWindows keep their last paint and replay it on next open, so
+    // skipping this flashes a stale "1" when reopening the picker.
     await new Promise((r) => requestAnimationFrame(() => r(undefined)))
     await new Promise((r) => requestAnimationFrame(() => r(undefined)))
     return { ok: true }
@@ -416,20 +391,14 @@ function useRecordCountdown(): {
   return { countdown, runCountdown, cancelCountdown }
 }
 
-// Giant spring-scaled digit painted over the selection overlay. Each
-// tick keys a fresh <motion.span> so AnimatePresence cross-fades the
-// old digit out as the new one springs in — gives the count a
-// cinematic "punch" instead of a flat re-render. The container
-// ignores pointer events so any underlying picker still receives
-// hover/leave updates while the count runs.
+// Giant spring-scaled countdown digit. Each tick keys a fresh <motion.span> so
+// AnimatePresence cross-fades digits. The container ignores pointer events so
+// the underlying picker still gets hover/leave updates while the count runs.
 //
-// Unmounts synchronously when `value` is null. Letting AnimatePresence
-// play an exit animation on the final digit would keep "1" painted
-// for the duration of its fade-out — the overlay window hides during
-// that fade, freezing the partial digit in the WebContents, and the
-// next overlay open flashes it. The very last exit is invisible to
-// the user anyway (window is already on its way out), so dropping it
-// costs nothing visually and fixes the flash.
+// Unmounts synchronously when `value` is null rather than playing an exit
+// animation: an exit fade would keep "1" painted as the overlay window hides,
+// freezing the partial digit in the WebContents and flashing it on next open.
+// The final exit is invisible anyway (window is already leaving).
 function CountdownOverlay({ value }: { value: number | null }): React.JSX.Element | null {
   if (value === null) return null
   return (
@@ -461,13 +430,10 @@ function CountdownOverlay({ value }: { value: number | null }): React.JSX.Elemen
   )
 }
 
-// Painted on top of the dim selection overlay when the user tries to
-// record while captureflow.xyz is unreachable. Recording
-// without a network round-trip would just leave them at the
-// share-ready modal's failed state with a cryptic "fetch failed", so
-// we block earlier here. The connectivity probe ticks every 15s
-// (validateShareAuth in main) — once the network comes back the lock
-// clears and the modal can stay dismissed.
+// Shown when the user tries to record while captureflow.xyz is unreachable.
+// We block here rather than let them hit the share-ready modal's cryptic "fetch
+// failed". The connectivity probe ticks every 15s (validateShareAuth in main),
+// so the lock clears on its own once the network returns.
 function NoInternetModal({ onClose }: { onClose: () => void }): React.JSX.Element {
   return (
     <div
@@ -506,12 +472,10 @@ function NoInternetModal({ onClose }: { onClose: () => void }): React.JSX.Elemen
   )
 }
 
-// Modal painted on top of the dim selection overlay. Explains why an
-// account is required and routes the user to captureflow.xyz via
-// the main process (which opens it in the default browser). Once the
-// browser flow finishes, the captureflow:// deep link fires SHARE_AUTH_CHANGED
-// and the lock icon clears on its own — no modal state needs to follow
-// the flow back; the user just clicks Start again.
+// Explains why an account is required and routes the user to captureflow.xyz in
+// the default browser. The captureflow:// deep link fires SHARE_AUTH_CHANGED
+// when the flow finishes, so the lock clears on its own — no modal state needs
+// to follow the flow back; the user just clicks Start again.
 function LoginPromptModal({ onClose }: { onClose: () => void }): React.JSX.Element {
   const [pending, setPending] = useState(false)
   const handleSignIn = async (): Promise<void> => {
@@ -519,12 +483,9 @@ function LoginPromptModal({ onClose }: { onClose: () => void }): React.JSX.Eleme
     setPending(true)
     try {
       await window.electronAPI.signInShareAuth()
-      // Drop the selection overlay so the user can interact with the
-      // browser — the overlay window sits at screen-saver level + is
-      // visible across Spaces, which obscures Chrome/Safari otherwise.
-      // The user picks Share again after signing in; the lock will
-      // already be cleared because SHARE_AUTH_CHANGED fired in the
-      // toolbar window via the deep-link handler.
+      // Drop the overlay so the user can reach the browser — it sits at
+      // screen-saver level and is visible across Spaces, which would otherwise
+      // obscure Chrome/Safari. They pick Share again after signing in.
       await window.electronAPI.closeSelectionOverlay()
     } finally {
       setPending(false)
@@ -588,13 +549,12 @@ type OverlayInit = {
 }
 
 /**
- * Verify camera/mic permissions before the user commits to recording.
- * The macOS TCC pane is opened via the existing requestMediaPermission
- * dialog when access has been revoked since the device was selected.
+ * Verify camera/mic permissions before recording. Opens the macOS TCC dialog
+ * via requestMediaPermission when access was revoked since device selection.
  * Returns false if the user cancels or permission still isn't granted.
  *
- * Closes the selection overlay before raising any dialog so the user
- * isn't looking at a dim screen behind the alert.
+ * Closes the overlay before any dialog so the user isn't staring at a dim
+ * screen behind the alert.
  */
 async function ensureRecordingPermissions(init: OverlayInit): Promise<boolean> {
   if (!init.hasCamera && !init.hasMic) return true
@@ -603,7 +563,6 @@ async function ensureRecordingPermissions(init: OverlayInit): Promise<boolean> {
   const needsMic = init.hasMic && perms.microphone !== 'granted'
   if (!needsCamera && !needsMic) return true
 
-  // Hide the dimmed picker before the native dialog appears.
   await window.electronAPI.closeSelectionOverlay()
 
   if (needsCamera) {
@@ -627,9 +586,8 @@ type HoveredWindow = {
   iconBase64?: string
 }
 
-// Per-display toggles persist across sessions: most users keep the same
-// preference once they've decided whether they want a clean desktop. Stored
-// as '1' / '0' strings to match how the recording-store handles bools.
+// Persisted across sessions. Stored as '1' / '0' strings to match how the
+// recording-store handles bools.
 const HIDE_DESKTOP_STORAGE_KEY = 'captureflow-hide-desktop'
 
 function loadBoolPref(key: string): boolean {
@@ -644,7 +602,7 @@ function savePref(key: string, value: boolean): void {
   try {
     localStorage.setItem(key, value ? '1' : '0')
   } catch {
-    // localStorage unavailable — preference will reset next launch, harmless.
+    // localStorage unavailable — preference resets next launch, harmless.
   }
 }
 
@@ -698,9 +656,8 @@ function DisplayOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
   const sourcesReady = init.sources.length > 0
   const isSnap = useRecordingMode() === 'screenshot'
 
-  // Cancel any in-flight countdown the moment main signals overlay
-  // reset (Escape, cancelSelectionOverlay) so the recording doesn't
-  // fire after the user thought they bailed.
+  // Cancel any in-flight countdown when main signals overlay reset (Escape /
+  // cancelSelectionOverlay) so the recording doesn't fire after the user bailed.
   useEffect(() => {
     return window.electronAPI.onSelectionOverlayReset(() => {
       cancelCountdown()
@@ -715,16 +672,15 @@ function DisplayOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
 
   const handleRecord = async (): Promise<void> => {
     if (loading || !sourcesReady) return
-    // Permission gate runs first so the user sees the deep-link dialog
-    // before the loading spinner kicks in.
+    // Permission gate runs before setLoading so the deep-link dialog shows
+    // before the spinner kicks in.
     if (!(await ensureRecordingPermissions(init))) return
     setLoading(true)
     const screenSource = init.sources.find((s) => s.displayId !== '')
     if (!screenSource) return
 
-    // Screenshot mode short-circuits the recording flow: no countdown,
-    // no sendSelectionResult — just capture the chosen display now
-    // and let main handle upload + notification.
+    // Screenshot mode short-circuits the recording flow: no countdown, no
+    // sendSelectionResult — capture the display now and let main handle upload.
     if (isSnap) {
       const displayIdNum = parseInt(screenSource.displayId, 10)
       if (Number.isFinite(displayIdNum)) {
@@ -736,16 +692,11 @@ function DisplayOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
       return
     }
 
-    // Fire share-prep BEFORE the countdown so shareStart + system
-    // audio acquisition can overlap with the visible 3 s wait. By the
-    // time the countdown reaches 0 the share session is ready and
-    // the native recorder starts immediately — no post-countdown
-    // "preparing share…" delay. Screenshot mode ignores this signal in
-    // the toolbar's useRecorder hook.
+    // Fire share-prep BEFORE the countdown so shareStart + system-audio
+    // acquisition overlap with the visible 3 s wait — the share session is
+    // ready by the time the count hits 0, with no "preparing share…" delay.
     window.electronAPI.notifySharePrepStart()
 
-    // 3-second countdown doubles as the H.264 encoder release window
-    // (the recorder needs ~1s; we get 3 for free, visibly).
     const result = await runCountdown()
     if (!result.ok) {
       window.electronAPI.notifySharePrepCancel()
@@ -763,8 +714,7 @@ function DisplayOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
     requestAnimationFrame(() => setVisible(true))
   }, [])
 
-  // Fade the picker chrome out under the countdown so the giant
-  // number is the only thing the user sees in the final seconds.
+  // Fade the picker chrome out under the countdown so only the digit shows.
   const counting = countdown !== null
 
   return (
@@ -816,9 +766,8 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
   const lastQueryRef = useRef(0)
   const isSnap = useRecordingMode() === 'screenshot'
 
-  // Same cancellation path as DisplayOverlay — Escape / overlay
-  // cancellation by main should abort the pending countdown so the
-  // recording doesn't fire after the user thought they bailed.
+  // Same cancellation path as DisplayOverlay — abort the pending countdown on
+  // overlay reset so the recording doesn't fire after the user bailed.
   useEffect(() => {
     return window.electronAPI.onSelectionOverlayReset(() => {
       cancelCountdown()
@@ -830,8 +779,8 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      // Once a window is locked in by a click, ignore further hover updates
-      // so moving the cursor toward the Start button can't change selection.
+      // Once a window is locked, ignore hover updates so moving toward the
+      // Start button can't change the selection.
       if (locked) return
       const now = Date.now()
       if (now - lastQueryRef.current < 80) return
@@ -853,8 +802,8 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
   const target = locked ?? hovered
 
   const handleSelect = (e: React.MouseEvent): void => {
-    // Click on the highlighted window area locks the selection; further
-    // hover events are ignored until the user unlocks (click background).
+    // Clicking the highlighted window locks the selection; hover is ignored
+    // until the user unlocks by clicking the background.
     e.stopPropagation()
     if (!hovered || locked) return
     setLocked(hovered)
@@ -867,23 +816,21 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
   const sourcesReady = init.sources.length > 0
 
   const handleStart = async (): Promise<void> => {
-    // stopPropagation was historically here to keep the cutout's
-    // onClick from re-locking the already-locked target on the same
-    // click. LockableRecordButton now stops propagation in its own
-    // onClick, so this handler can stay event-agnostic.
+    // No stopPropagation needed here: LockableRecordButton stops it in its own
+    // onClick, so the cutout's onClick can't re-lock the target on this click.
     if (!target || loading || !sourcesReady) return
-    // Permission gate runs before the loading state so any deep-link
-    // dialog shows immediately on click.
+    // Permission gate runs before setLoading so any deep-link dialog shows
+    // immediately on click.
     if (!(await ensureRecordingPermissions(init))) return
     setLoading(true)
-    // Find matching source from desktopCapturer by matching window name + owner
+    // Match the desktopCapturer source by window name + owner.
     const matchingSource = init.sources.find((s) => {
       if (s.displayId !== '') return false
       return s.name === target.name || s.name === target.owner
     })
     if (matchingSource) {
-      // Screenshot mode: fire captureScreenshot with the window id;
-      // skip countdown + sendSelectionResult entirely.
+      // Screenshot mode: capture the window id directly; no countdown or
+      // sendSelectionResult.
       if (isSnap) {
         const windowIdNum = parseInt(matchingSource.id.split(':')[1] ?? '', 10)
         if (Number.isFinite(windowIdNum)) {
@@ -895,18 +842,16 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
         return
       }
 
-      // Kick off share prep in parallel with the countdown — see the
-      // display-picker handleRecord above for the rationale.
+      // Share prep in parallel with the countdown — see DisplayOverlay's
+      // handleRecord for the rationale.
       window.electronAPI.notifySharePrepStart()
-      // 3-second visible countdown also covers the H.264 encoder's
-      // settle window from a prior session.
       const result = await runCountdown()
       if (!result.ok) {
         window.electronAPI.notifySharePrepCancel()
         setLoading(false)
         return
       }
-      // Include the full window bounds (with title bar) for the dim overlay
+      // Include the full window bounds (with title bar) for the dim overlay.
       window.electronAPI.sendSelectionResult({
         ...matchingSource,
         windowBounds: target.bounds,
@@ -917,18 +862,16 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
     }
   }
 
-  // Overlay window's own position for coordinate conversion. The overlay
-  // fills the screen, so bounds.x/y = display.bounds.x/y; client coords =
-  // screen coords - overlay position. Sampled lazily at mount time since the
-  // overlay window doesn't move while the picker is open.
+  // Overlay window position for coordinate conversion: client = screen -
+  // overlay origin. Sampled once at mount since the window doesn't move while
+  // the picker is open.
   const [overlayBounds] = useState(() => ({
     x: window.screenX || 0,
     y: window.screenY || 0
   }))
 
-  // Keep last known bounds in state so we can hold the cutout in place during
-  // the fade-out frame after target clears. Updated inline during render via
-  // the prev-state pattern when target is non-null.
+  // Hold the cutout in place during the fade-out frame after target clears.
+  // Updated inline during render (prev-state pattern) while target is non-null.
   const [lastBounds, setLastBounds] = useState(
     target?.bounds ?? { x: 0, y: 0, width: 0, height: 0 }
   )
@@ -947,9 +890,9 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
       onMouseMove={handleMouseMove}
       onClick={handleUnlock}
     >
-      {/* Full-screen dim — always visible */}
+      {/* Full-screen dim, always visible */}
       <div className="absolute inset-0 bg-black/30 pointer-events-none" />
-      {/* Blue overlay on hovered/locked window */}
+      {/* Cutout highlight on the hovered/locked window */}
       {target && (
         <div
           className={`absolute ${OVERLAY_BG} flex flex-col items-center justify-center transition-shadow`}
@@ -1031,17 +974,16 @@ function RecordAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
   const [loading, setLoading] = useState(false)
   const { countdown, runCountdown, cancelCountdown } = useRecordCountdown()
 
-  // Same cancellation path as the other overlays — Escape / overlay
-  // cancellation by main should abort the pending countdown so the
-  // recording doesn't fire after the user thought they bailed.
+  // Same cancellation path as the other overlays — abort the pending countdown
+  // on overlay reset so the recording doesn't fire after the user bailed.
   useEffect(() => {
     return window.electronAPI.onSelectionOverlayReset(() => {
       cancelCountdown()
       setLoading(false)
     })
   }, [cancelCountdown])
-  // Default selection: 60% of screen, centered. Stored in CSS pixels — the
-  // overlay window matches the display so this is also the screen-coords frame.
+  // Default selection: 60% of screen, centered. CSS pixels — the overlay window
+  // matches the display, so this is also the screen-coords frame.
   const [rect, setRect] = useState<Rect>(() => {
     const w = Math.round(window.innerWidth * 0.6)
     const h = Math.round(window.innerHeight * 0.6)
@@ -1113,15 +1055,15 @@ function RecordAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
 
   const handleStart = async (): Promise<void> => {
     if (loading || !sourcesReady) return
-    // Permission gate runs before the loading state so any deep-link
-    // dialog shows immediately on click.
+    // Permission gate runs before setLoading so any deep-link dialog shows
+    // immediately on click.
     if (!(await ensureRecordingPermissions(init))) return
     setLoading(true)
     const screenSource = init.sources.find((s) => s.displayId !== '')
     if (!screenSource) return
 
-    // Convert CSS-pixel area rect to screen coordinates by adding the overlay
-    // window's origin (which is also the display origin).
+    // CSS-pixel rect → screen coords by adding the overlay origin (= display
+    // origin).
     const originX = window.screenX || 0
     const originY = window.screenY || 0
     const windowBounds = {
@@ -1131,11 +1073,9 @@ function RecordAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
       height: rect.height
     }
 
-    // Kick off share prep in parallel with the countdown — see the
-    // display-picker handleRecord above for the rationale.
+    // Share prep in parallel with the countdown — see DisplayOverlay's
+    // handleRecord for the rationale.
     window.electronAPI.notifySharePrepStart()
-    // 3-second visible countdown also covers the H.264 encoder's
-    // settle window from a prior session.
     const result = await runCountdown()
     if (!result.ok) {
       window.electronAPI.notifySharePrepCancel()
@@ -1149,7 +1089,7 @@ function RecordAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
   }
 
   // Four non-overlapping dim strips around the selection so corners aren't
-  // double-darkened (same trick as the editor's CropWindow).
+  // double-darkened.
   return (
     <div
       className="h-screen w-screen relative cursor-crosshair"
@@ -1169,7 +1109,7 @@ function RecordAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
         style={{ top: rect.y, height: rect.height, left: rect.x + rect.width }}
       />
 
-      {/* Selection rectangle: drag to move, with 8 handles to resize. */}
+      {/* Selection rectangle: drag the body to move, the 8 handles to resize. */}
       <div
         className="absolute border border-white/80 cursor-move"
         style={{
@@ -1224,9 +1164,8 @@ function RecordAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
         </div>
       </div>
 
-      {/* Start button — anchored to the selection so it tracks the area.
-          Default below; flip above when the selection is dragged near the
-          bottom edge, otherwise the button would clip off-screen. */}
+      {/* Start button anchored to the selection. Default below; flip above near
+          the bottom edge so it doesn't clip off-screen. */}
       {(() => {
         const BTN_H = 48
         const GAP = 16
@@ -1265,11 +1204,8 @@ function RecordAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
   )
 }
 
-// Screenshot-mode area picker. Unlike RecordAreaOverlay (which paints
-// a resizable frame so the user can refine before clicking Start),
-// this one is a single-shot drag: press, drag, release → capture
-// fires immediately on pointer-up. Mirrors the macOS screenshot UX
-// (cmd-shift-4) so users don't have to second-guess a stale rectangle.
+// Screenshot-mode area picker. Unlike RecordAreaOverlay's refinable frame, this
+// is a single-shot drag: press, drag, release → capture fires on pointer-up.
 function SnapAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
   const [drag, setDrag] = useState<Rect | null>(null)
   const [capturing, setCapturing] = useState(false)
@@ -1285,9 +1221,7 @@ function SnapAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
   const fireCapture = useCallback(
     async (cropRect: { x: number; y: number; width: number; height: number }) => {
       if (capturing) return
-      // Lock gates run before the network call. Reusing the existing
-      // modal components keeps copy + visuals consistent with the
-      // record path.
+      // Lock gates run before the network call, reusing the record-path modals.
       if (lockState.lockReason === 'offline') {
         setOfflinePromptOpen(true)
         return
@@ -1343,9 +1277,8 @@ function SnapAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
       const y = Math.min(startY, ev.clientY)
       const width = Math.abs(ev.clientX - startX)
       const height = Math.abs(ev.clientY - startY)
-      // Click-without-drag (or sub-minimum drag) shouldn't fire a
-      // capture — the user almost certainly missed the canvas. Reset
-      // and wait for another attempt.
+      // Click-without-drag (or sub-minimum drag) shouldn't fire a capture —
+      // the user likely missed. Reset and wait for another attempt.
       if (width < AREA_MIN_PX || height < AREA_MIN_PX) {
         setDrag(null)
         return
@@ -1417,18 +1350,17 @@ export function SelectionOverlay(): React.JSX.Element {
     })
   }, [])
 
-  // Main fires this whenever the overlay is being hidden — we drop the mode
-  // component so its hover/lock state can't be visible on the next open
-  // before the new INIT arrives.
+  // Main fires this whenever the overlay is being hidden. Drop the mode
+  // component so its stale hover/lock state can't flash on the next open before
+  // the new INIT arrives.
   useEffect(() => {
     return window.electronAPI.onSelectionOverlayReset(() => {
       setInit(null)
     })
   }, [])
 
-  // Sources arrive after init so the overlay can render immediately without
-  // waiting on desktopCapturer. Merge into the existing state so the mode
-  // sub-component sees them on next render.
+  // Sources arrive after init so the overlay renders without waiting on
+  // desktopCapturer. Merge into existing state for the next render.
   useEffect(() => {
     return window.electronAPI.onSelectionOverlaySources((sources) => {
       setInit((prev) => (prev ? { ...prev, sources } : prev))

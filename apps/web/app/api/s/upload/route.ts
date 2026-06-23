@@ -27,24 +27,17 @@ const DEVICE_HEADER = 'x-captureflow-device';
 const WIDTH_HEADER = 'x-captureflow-snap-width';
 const HEIGHT_HEADER = 'x-captureflow-snap-height';
 const TITLE_HEADER = 'x-captureflow-snap-title';
-// Optional target workspace id supplied by the desktop's workspace
-// chip. Falls through to the uploader's personal workspace on any
-// mismatch — see /api/init for the same fallback rationale.
+// Optional target workspace id. Falls through to the uploader's personal
+// workspace on any mismatch — see /api/init for the same fallback rationale.
 const WORKSPACE_HEADER = 'x-captureflow-workspace';
 
-// POST /api/upload
+// Snap upload endpoint. Bearer required (snaps are account-owned); quota is
+// gated up front against the combined shares ∪ snaps total.
 //
-// Body: octet-stream — raw PNG bytes. Single-shot (no multipart).
-// Headers carry width / height / optional title metadata; the body
-// is just the image. Bearer is required (snaps are account-owned).
-// Quota gating happens up front against the combined shares ∪ snaps
-// total via @captureflow/quota.
-//
-// 200 → { id, viewUrl, editUrl }. Desktop opens its bottom-right
-//        notification window with these.
-// 401 → bearer missing/invalid (auth lock takes over on the client)
+// 200 → { id, viewUrl, editUrl }
+// 401 → bearer missing/invalid
 // 413 → snap exceeds per-snap cap
-// 429 → storage_limit / active_limit (client paints the quota lock)
+// 429 → storage_limit / active_limit
 
 function extractBearerToken(req: NextRequest): string | null {
   const h = req.headers.get('authorization') ?? '';
@@ -68,9 +61,8 @@ export async function POST(req: NextRequest) {
   //   - `image/png` (legacy): body is the raw PNG; no source / state
   //   - `multipart/form-data`: fields `composed` (required PNG),
   //     `source` (optional PNG), `state` (optional JSON sidecar)
-  // Desktop bakes the default violet gradient onto the composed PNG
-  // before uploading and posts the multipart variant so the public
-  // viewer + editor agree on the rendered look from the first second.
+  // Desktop bakes the gradient onto the composed PNG before uploading so the
+  // public viewer and editor agree on the rendered look immediately.
   const isMultipart = ctLower.startsWith('multipart/form-data');
   if (!isMultipart && !ctLower.startsWith('image/png')) {
     return jsonError('Unsupported content type', 400, 'invalid_content_type');
@@ -113,11 +105,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Resolve target workspace BEFORE the quota gate so the cap applies
-  // to the workspace OWNER (Pro is per-user; team uploads into the
-  // owner's workspace draw down the owner's quota, not the
-  // uploader's). Falls through to the uploader's personal workspace
-  // on any mismatch so a stale client never blocks.
+  // Resolve target workspace BEFORE the quota gate so the cap applies to the
+  // workspace OWNER: team uploads draw down the owner's quota, not the
+  // uploader's. Falls through to the uploader's personal workspace on any
+  // mismatch so a stale client never blocks.
   let workspaceId: string | null = null;
   const requestedWorkspace = req.headers.get(WORKSPACE_HEADER);
   if (requestedWorkspace) {
@@ -126,8 +117,8 @@ export async function POST(req: NextRequest) {
   if (!workspaceId) {
     workspaceId = await resolveUserWorkspaceId(userId);
   }
-  // Full workspace row — owner_user_id + policy flags. Used for both
-  // quota attribution and member-upload enforcement below.
+  // Full workspace row — owner_user_id + policy flags, used for both quota
+  // attribution and member-upload enforcement below.
   let workspace = workspaceId ? await getWorkspaceForUpload(workspaceId) : null;
   if (
     workspace &&
@@ -217,16 +208,12 @@ export async function POST(req: NextRequest) {
   }
 
   const now = Date.now();
-  // Mirror the share-service behaviour: the desktop sends a raw
-  // source label (display name / window owner / area dim) and the
-  // server bakes the marketing-formatted Loom-style headline so the
-  // public viewer and dashboard see the same string. Renames flow
-  // through the dedicated rename action and overwrite this column.
+  // Desktop sends a raw source label (display name / window owner / area dim);
+  // the server bakes the formatted headline so the public viewer and dashboard
+  // see the same string. Renames flow through the dedicated rename action and
+  // overwrite this column.
   const sourceTitle = sanitizeSourceTitle(req.headers.get(TITLE_HEADER));
   const title = buildSnapHeadline(sourceTitle, now);
-
-  // `workspaceId` was resolved up-front for the quota gate; reuse it
-  // here for the row insert.
 
   try {
     await insertSnap({
@@ -240,11 +227,9 @@ export async function POST(req: NextRequest) {
       height: Math.round(height),
       title,
       state: 'ready',
-      // Workspace policy: when public links are disabled, freshly-
-      // uploaded snaps default to 'workspace' so the public link doesn't
-      // get minted in the first place. Owners can still flip individual
-      // snaps to 'public' later from the dashboard if they re-enable
-      // the policy.
+      // When public links are disabled, new snaps default to 'workspace' so a
+      // public link is never minted; owners can still flip individual snaps to
+      // 'public' later from the dashboard.
       visibility:
         workspace && !workspace.allow_public_links ? 'workspace' : 'public',
       createdAt: now,
@@ -258,7 +243,7 @@ export async function POST(req: NextRequest) {
     try {
       await (await import('@/lib/snap/r2')).deleteSnap(id);
     } catch {
-      // ignore
+      // best effort
     }
     console.error('[snap] insertSnap failed:', err);
     return jsonError('Failed to record snap', 500, 'db_insert_failed');

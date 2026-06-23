@@ -9,9 +9,9 @@ import { PageHeader } from '../PageHeader';
 export const dynamic = 'force-dynamic';
 
 export default async function SharesPage() {
-  // Layout already gated, but its session narrowing doesn't cross the
-  // segment boundary — re-check here so `session.user.id` is non-null
-  // below. Same self-healing path on stale cookies as the layout.
+  // Layout already gated, but its session narrowing doesn't cross the segment
+  // boundary — re-check so `session.user.id` is non-null below. Also self-heals
+  // stale cookies, as in the layout.
   const session = await requireSession();
 
   const current = await resolveCurrentWorkspace(
@@ -29,8 +29,7 @@ export default async function SharesPage() {
       : Promise.resolve(null),
   ]);
   const allowPublicLinks = workspaceRow?.allow_public_links ?? true;
-  // user_id → display name lookup so the list can mark teammate rows
-  // with an owner pill. Falls back to the email if name is empty.
+  // user_id → display name for teammate owner pills; falls back to email.
   const ownerNames = new Map<string, string>(
     members.map((m) => [m.user_id, m.name?.trim() || m.email])
   );

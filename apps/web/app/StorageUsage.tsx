@@ -1,15 +1,12 @@
 import { Sparkles } from 'lucide-react';
 import { UpgradeModal } from './(dashboard)/UpgradeModal';
 
-// Account-scoped storage indicator surfaced in the dashboard sidebar.
-// Compact vertical layout — used + limit on one line, the percentage
-// on the next, then a slim bar. When the cap is reached, a stacked
-// upgrade CTA appears below.
+// Account-scoped storage indicator for the dashboard sidebar.
 //
-// The server's /api/init enforces the same cap by aggregating every
-// share + snap owned by the signed-in user (regardless of device).
-// Admins can bump a user's cap via admin.captureflow.xyz's user_quotas
-// override; the limit prop already reflects that override.
+// /api/init enforces the same cap by aggregating every share + snap owned
+// by the signed-in user (regardless of device). Admins can bump a user's
+// cap via admin.captureflow.xyz's user_quotas override; the limit prop
+// already reflects that override.
 
 const UPGRADE_URL = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ?? '';
 

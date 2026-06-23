@@ -3,18 +3,14 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-// Session sync for the share tab. The better-auth cookie change after
-// a sign-in elsewhere doesn't trigger a re-render on already-open
-// tabs, so this component polls verify-session whenever the share tab
-// becomes visible again and calls router.refresh() if the server's
-// view of the user no longer matches what we rendered with.
+// Session sync for the share tab. A better-auth cookie change after a
+// sign-in elsewhere doesn't re-render already-open tabs, so this polls
+// verify-session whenever the tab becomes visible again and calls
+// router.refresh() if the server's view of the user disagrees with
+// what we rendered. One GET per focus/visibilitychange, debounced 2s.
 //
-// The viewer lives under /r on the SAME origin as
-// better-auth, so this hits the same-origin /api/verify-session
-// directly (no cross-origin CORS request).
-//
-// Cheap: one GET per focus / visibilitychange (debounced 2s), only
-// fires when the tab is foregrounded.
+// The viewer lives under /r on the same origin as better-auth, so this
+// is a same-origin request — no CORS.
 
 const VERIFY_URL = '/api/verify-session';
 

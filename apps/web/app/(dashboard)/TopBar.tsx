@@ -14,10 +14,8 @@ import { SearchTrigger } from './SearchTrigger';
 import { UpgradeModal } from './UpgradeModal';
 import { UserMenu } from './UserMenu';
 
-// Loom-style dashboard topbar: bell on the left, avatar dropdown on the
-// right. Lives inside the main pane so the sidebar gets full vertical
-// height. Server component — fetches subscription so the dropdown can
-// surface the Pro chip without an extra round-trip from the client.
+// Dashboard topbar. Server component — fetches the subscription here so
+// the dropdown can surface the Pro chip without an extra client round-trip.
 
 export async function TopBar() {
   const session = await requireSession();
@@ -34,8 +32,8 @@ export async function TopBar() {
   const cookieHeader = (await headers()).get('cookie');
   const theme = readThemeFromCookieHeader(cookieHeader);
 
-  // Free + Lifetime users get an Upgrade CTA next to the bell. Active
-  // Pro Sub hides it — they're already on the highest tier we sell.
+  // Hide the Upgrade CTA for active Pro subscribers; free and lifetime
+  // users still see it.
   const isPro = subscription?.status === 'active';
 
   return (

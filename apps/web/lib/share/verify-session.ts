@@ -1,28 +1,20 @@
 /// <reference types="@cloudflare/workers-types" />
 
-// In-process session verification for the share viewer.
-//
-// An earlier standalone version of this module made a server-side
-// `fetch` to app.captureflow.xyz/api/verify-session, forwarding the
-// visitor's cookie header across origins (plus a CORS request-access
-// dance). Now the share viewer lives under `/r` on the SAME app as
-// better-auth, so there is no second origin to call: we run the exact
-// session lookup the app's own `app/api/verify-session/route.ts` does —
+// In-process session verification for the share viewer. The viewer lives
+// under `/r` on the same app as better-auth, so this runs the lookup
+// in-process rather than fetching app-web's /api/verify-session across
+// origins (no CORS dance):
 //   1. `auth.api.getSession({ headers })`  (reads the cookie),
 //   2. `listWorkspacesForUser(DB, userId)` for workspace memberships,
 //   3. a `users.image` read for the viewer's avatar.
 //
-// The cross-origin fetch and its CORS allowlist are gone for this path.
-//
-// Return shape is unchanged so the viewer + moved API routes consume it
-// without edits:
+// Return contract:
 //   - VerifiedSession: a valid session was found.
-//   - null:            "definitely no session" — no cookie, or no
-//                      session for the cookie. Render RequestAccess.
-//   - 'unknown':       transient backend failure (e.g. a D1 hiccup or
-//                      the auth lookup throwing). The caller renders a
-//                      neutral loading shell instead of RequestAccess so
-//                      a cold-start blip isn't mistaken for "logged out".
+//   - null:            definitely no session (no cookie, or no session
+//                      for it). Render RequestAccess.
+//   - 'unknown':       transient backend failure (D1 hiccup, auth lookup
+//                      throwing). Render a neutral loading shell so a
+//                      cold-start blip isn't mistaken for "logged out".
 
 import { listWorkspacesForUser } from '@captureflow/quota';
 import { getAuth } from '@/lib/auth';
@@ -32,19 +24,16 @@ export type VerifiedSession = {
   userId: string;
   email: string;
   name: string | null;
-  // Optional avatar URL from better-auth `users.image`. Surfaced so the
-  // viewer's own chip + composer avatar reflect uploads done on app-web.
+  // Avatar URL from better-auth `users.image`, so the viewer's own chip +
+  // composer avatar reflect uploads done on app-web.
   image: string | null;
   workspaceIds: string[];
 };
 
 export type VerifySessionResult = VerifiedSession | null | 'unknown';
 
-// Reconstruct a Headers object carrying just the visitor's cookie so
-// better-auth can read the session cookie out of it — the same way the
-// app-web route passes `req.headers` straight through. Callers hand us
-// the raw cookie header (`(await headers()).get('cookie')`), preserving
-// the original signature so no moved caller needs to change.
+// Wrap the raw cookie header in a Headers object so better-auth can read
+// the session cookie out of it. Callers pass `(await headers()).get('cookie')`.
 function headersFromCookie(cookieHeader: string): Headers {
   const h = new Headers();
   h.set('cookie', cookieHeader);
@@ -61,16 +50,14 @@ export async function verifySession(
   >;
   try {
     const auth = await getAuth();
-    // `auth.api.getSession` reads the cookie out of `headers` — the same
-    // path the dashboard + app-web's /api/verify-session use. With
-    // cross-subdomain cookies enabled the visitor's cookie is present.
+    // Reads the session cookie out of `headers`. Cross-subdomain cookies
+    // are enabled, so the visitor's cookie is present here.
     session = await auth.api.getSession({
       headers: headersFromCookie(cookieHeader),
     });
   } catch (err) {
-    // A thrown lookup is a transient backend failure (cold start, D1
-    // blip) — surface as 'unknown' so the page renders a loading shell
-    // rather than treating it as a hard "logged out".
+    // Treat a thrown lookup as transient (cold start, D1 blip) → 'unknown'
+    // so the page shows a loading shell instead of a hard "logged out".
     console.error('verify-session: getSession threw', err);
     return 'unknown';
   }
@@ -78,9 +65,9 @@ export async function verifySession(
 
   const env = await getAppWebEnv();
   if (!env?.DB) {
-    // No DB binding means we can't resolve workspace memberships. Treat
-    // as transient rather than "no session" so a misconfigured/cold
-    // request doesn't downgrade a logged-in viewer to RequestAccess.
+    // No DB binding → can't resolve workspace memberships. Treat as
+    // transient, not "no session", so a misconfigured/cold request
+    // doesn't downgrade a logged-in viewer to RequestAccess.
     return 'unknown';
   }
 
@@ -104,11 +91,10 @@ export async function verifySession(
   }
 }
 
-// Convenience wrapper for callers that don't distinguish "definitely
-// no session" from "transient backend failure" — API route mutations,
-// for instance, want to fail closed (401) either way. The page-level
-// viewer cares about the distinction so it can render a loading shell
-// instead of RequestAccess.
+// Wrapper for callers that don't distinguish "no session" from
+// "transient failure" — e.g. API route mutations that fail closed (401)
+// either way. The page-level viewer keeps the distinction so it can show
+// a loading shell instead of RequestAccess.
 export async function verifySessionOrNull(
   cookieHeader: string | null
 ): Promise<VerifiedSession | null> {

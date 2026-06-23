@@ -5,8 +5,7 @@ import * as AvatarPrimitive from '@radix-ui/react-avatar';
 import { cn } from '../lib/cn';
 
 // Deterministic palette so the same user lands on the same color
-// across renders and surfaces. Six tones — wide enough to feel
-// individual, narrow enough to stay visually coherent.
+// across renders and surfaces.
 const AVATAR_TONES = [
   'bg-blue-600 text-white',
   'bg-fuchsia-600 text-white',
@@ -56,10 +55,8 @@ const AvatarImage = React.forwardRef<
 type AvatarFallbackProps = React.ComponentPropsWithoutRef<
   typeof AvatarPrimitive.Fallback
 > & {
-  // Optional stable identifier (user id / email / name). When provided
-  // the fallback paints a deterministic tone from the avatar palette
-  // instead of a flat gray. Falls back to the gray when omitted so
-  // legacy call sites stay unchanged.
+  // Stable identifier (user id / email / name). When set, the fallback
+  // paints a deterministic palette tone instead of flat gray.
   seed?: string;
 };
 

@@ -15,13 +15,9 @@ const R2_BASE =
 
 export const dynamic = 'force-dynamic';
 
-// Server wrapper: validate the session, fetch the share row, pull the
-// config sidecar from R2, and hand off to the client editor. This route
-// lives at the top level (not under `(dashboard)`), so it renders its
-// own header (back arrow + title + actions) rather than the dashboard
-// chrome — share edits are a focused management surface. The theme is
-// resolved from the cookie here so the editor's own toggle paints the
-// right glyph on first render.
+// Validate the session, fetch the share row, pull the config sidecar from
+// R2, and hand off to the client editor. Theme is resolved from the cookie
+// server-side so the editor's toggle paints the right glyph on first render.
 export default async function ShareEditPage({
   params,
 }: {
@@ -32,8 +28,8 @@ export default async function ShareEditPage({
   const share = await getShareForUser(session.user.id, id);
   if (!share) notFound();
 
-  // Sidecar config — best-effort. Falls back to defaults if R2 has no
-  // object yet (first edit) or the JSON is unparseable.
+  // Best-effort: falls back to defaults if R2 has no object yet (first
+  // edit) or the JSON is unparseable.
   let savedConfig: unknown = null;
   try {
     savedConfig = await getObjectJson<unknown>(
@@ -44,8 +40,7 @@ export default async function ShareEditPage({
   }
   const initialConfig = hydrateShareConfig(savedConfig);
 
-  // Workspace lookup powers the editor's VisibilityDialog — same
-  // contract as the dashboard cards + share viewer.
+  // Powers the editor's VisibilityDialog.
   const env = await getAppWebEnv();
   const workspaceRow =
     env?.DB && share.workspaceId

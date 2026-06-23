@@ -1,4 +1,4 @@
-/* shadcn-style Kbd + KbdGroup for keyboard shortcut display.
+/* Kbd + KbdGroup for keyboard shortcut display.
  * Usage:
  *   <KbdGroup><Kbd>⌘</Kbd><Kbd>K</Kbd></KbdGroup>
  */

@@ -1,8 +1,6 @@
 import { SmoothButton } from '@captureflow/ui';
 
 // Anonymous-visitor chip cluster for the snap viewer's top-right.
-// Mirrors the share viewer's AuthPrompt so the chrome reads the
-// same across surfaces.
 
 type Props = {
   marketingUrl: string;

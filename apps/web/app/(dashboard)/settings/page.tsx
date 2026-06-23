@@ -28,23 +28,20 @@ export default async function WorkspaceSettingsPage() {
     session.user.id,
     session.user.name ?? null
   );
-  // Owner-only — workspace members get bounced back to /shares so they
-  // can't probe other people's policy state. Sidebar already hides the
-  // link; this is the defence-in-depth gate.
+  // Owner-only: bounce members to /shares so they can't probe policy state.
+  // Sidebar already hides the link; this is defence in depth.
   if (current.role !== 'owner') redirect('/shares');
 
   const env = await getAppWebEnv();
-  // Re-fetch the row directly so we get the full policy + logo state
-  // (resolveCurrentWorkspace returns only a slim WorkspaceMembership).
+  // Re-fetch the row for full policy + logo state; resolveCurrentWorkspace
+  // returns only a slim WorkspaceMembership.
   const workspace = env?.DB
     ? await getWorkspaceById(env.DB, current.workspace.id)
     : null;
   if (!workspace) redirect('/shares');
 
-  // Bust the CDN cache when the owner replaces the logo. logo_key
-  // includes the workspace id but the file overwrites itself per
-  // extension; append updated_at so the dashboard reflects the new
-  // upload immediately.
+  // logo_key overwrites in place per extension, so append updated_at to bust
+  // the CDN cache and surface a replaced logo immediately.
   const logoUrl = workspace.logo_key
     ? `${CDN_BASE}/${workspace.logo_key}?v=${workspace.updated_at}`
     : null;

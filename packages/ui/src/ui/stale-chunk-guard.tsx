@@ -1,29 +1,24 @@
-// Self-heal script for two known browser-side stall modes that show
-// up as "the tab keeps spinning forever in my regular profile but
-// works in incognito":
+// Self-heal script for two browser-side stall modes (tab spins forever
+// in a normal profile but works in incognito):
 //
-//   1. bf-cache restore — the browser revived a stale page from
-//      memory (back/forward navigation). Any state is from a previous
-//      load and may reference resources the worker no longer serves.
+//   1. bf-cache restore — back/forward revived a stale page from memory
+//      whose state may reference resources the worker no longer serves.
 //   2. ChunkLoadError — the cached HTML shell points at
-//      `_next/static/<OLD_BUILD_ID>/…` chunks the worker deleted on
-//      the latest deploy. React hydration stalls trying to fetch
-//      them.
+//      `_next/static/<OLD_BUILD_ID>/…` chunks deleted on the latest
+//      deploy, so React hydration stalls fetching them.
 //
-// Both recover by `window.location.reload()`, which respects the
-// `no-store` cache headers the workers set and pulls a fresh shell +
-// the current chunks together.
+// Both recover via window.location.reload(), which respects the workers'
+// `no-store` headers and pulls a fresh shell + current chunks together.
 //
-// Consumers render this via `next/script` with `strategy="beforeInteractive"`,
-// which injects it into the document <head> server-side so it runs BEFORE
-// React hydrates. A React-level guard wouldn't fire when hydration itself is
-// the thing that's stuck — which is exactly the failure mode we recover from.
+// Inject via `next/script` strategy="beforeInteractive" so it lands in
+// <head> server-side and runs BEFORE hydration — a React-level guard
+// couldn't fire when hydration itself is the thing that's stuck.
 //
-// We export the raw STRING (not a `<script>` element) so this package stays
-// framework-agnostic and so React never client-renders an inline `<script>`,
-// which in React 19 logs "scripts inside React components are never executed
-// when rendering on the client." `next/script` injects the markup itself,
-// outside React's element tree, so no such warning fires.
+// Exported as a raw STRING (not a <script> element) to stay
+// framework-agnostic and because React 19 refuses to execute inline
+// <script> client-rendered inside components ("scripts inside React
+// components are never executed..."). next/script injects the markup
+// outside React's tree, so no warning fires.
 
 export const STALE_CHUNK_GUARD_SCRIPT = `
 (function() {

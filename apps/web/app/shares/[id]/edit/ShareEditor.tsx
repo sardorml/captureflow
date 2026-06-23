@@ -22,21 +22,17 @@ export type ShareEditorProps = {
   initialVisibility: ShareVisibility;
   initialConfig: ShareConfig;
   initialState: ShareState;
-  // Workspace context for the visibility dialog. Mirrors the
-  // dashboard cards + share viewer modal so the picker reads
-  // identically across surfaces.
+  // Workspace context for the visibility dialog.
   workspaceName: string | null;
   allowPublicLinks: boolean;
-  // Server-resolved theme (from the cookie) so the editor's own theme
-  // toggle renders the right glyph on first paint and can flip the app
-  // theme from within the editor — otherwise the only way to change
-  // theme is from the dashboard/viewers, leaving the editor stranded on
-  // whatever the cookie last held.
+  // Server-resolved theme (from the cookie) so the editor's theme toggle
+  // renders the right glyph on first paint and can flip the app theme from
+  // within the editor.
   initialTheme: Theme;
 };
 
-// Share APIs are served by this same app under `/api/r/*`,
-// so the editor polls them same-origin with a relative base.
+// Share APIs are served by this same app, so the editor polls them
+// same-origin with a relative base.
 const SHARE_API = '/r';
 
 const ShareEditorImpl = dynamic(
@@ -47,12 +43,10 @@ const ShareEditorImpl = dynamic(
   }
 );
 
-// While a share is still uploading (desktop opened the edit URL the
-// instant /api/init returned a slug — well before /api/finalize
-// landed), show a clear "Preparing share" affordance and poll
-// /api/state until the worker flips state to 'ready'. The moment it
-// does, router.refresh() re-runs the server component, which now
-// returns 'ready' and renders the real editor in the same paint.
+// Desktop can open the edit URL the instant /api/init returns a slug, well
+// before /api/finalize lands. While the share is still uploading, show a
+// "Preparing share" affordance and poll /api/state; once it flips to 'ready',
+// router.refresh() re-runs the server component and renders the real editor.
 export function ShareEditor(props: ShareEditorProps) {
   const router = useRouter();
   const [state, setState] = useState<ShareState>(props.initialState);

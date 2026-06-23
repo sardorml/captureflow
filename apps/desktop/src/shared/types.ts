@@ -50,17 +50,15 @@ export function getDisplayId(source: CaptureSource): number | undefined {
   return Number.isFinite(n) ? n : undefined
 }
 
-// ── Toolbar Constants ──
-
 export const TOOLBAR_WIDTH = 750
 // Narrower toolbar variant used in Screenshot mode. The cam/mic/sound
 // device cells are hidden (snapshot capture doesn't pipe audio or
 // camera), so the bar shrinks to just the source picker + drag handle.
+// Sized to hug the visible content (close × + Display · Window · Area +
+// grip handle) so there's no empty gap between Area and the drag dots.
 // Main resizes the BrowserWindow on mode change via RESIZE_TOOLBAR IPC,
 // re-centring against the previous bounds so the bar doesn't jump
-// horizontally during the animation. Sized to hug the visible content
-// (close × + Display · Window · Area + grip handle) so the bar
-// doesn't carry an obvious empty gap between Area and the drag dots.
+// horizontally during the animation.
 export const TOOLBAR_WIDTH_SCREENSHOT = 320
 export function toolbarWidthForMode(mode: RecordingMode): number {
   return mode === 'screenshot' ? TOOLBAR_WIDTH_SCREENSHOT : TOOLBAR_WIDTH
@@ -82,8 +80,6 @@ export const TOOLBAR_HEIGHT = 178
 export const TOOLBAR_BAR_BOTTOM_OFFSET = 48
 
 export type RecordingMode = 'share' | 'screenshot'
-
-// ── Cursor Tracking ──
 
 export type CursorType =
   | 'arrow'
@@ -419,7 +415,6 @@ export type ShareFrameEvent =
     }
   | { kind: 'end' }
 
-// ────────────────────────────────────────────────────────────────
 // Streaming-upload types — used by the SHARE_START / SHARE_PART_* /
 // SHARE_FINISH / SHARE_ABORT IPC surface. The desktop reserves a slug
 // at record start, streams screen + webcam parts to /api/part +

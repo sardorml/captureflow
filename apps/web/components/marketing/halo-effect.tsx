@@ -2,18 +2,14 @@
 
 import { useEffect, useRef } from 'react';
 
-// Soft "halo" background: large solid-colour circles that ease to a new random
-// position every `speed` seconds, read as a drifting glow. Performance notes:
+// Soft "halo" background: large solid-colour circles that ease to a new
+// position every `speed` seconds, read as a drifting glow around the hero copy.
+// Performance notes:
 //   • the blur is applied ONCE to the container (not per circle) — blurring many
 //     moving elements individually re-rasterises each every frame and tanks FPS;
 //   • positions are mutated directly on the DOM (no React state / re-renders);
 //   • transforms use translate3d so the compositor handles the motion;
 //   • the drift loop pauses whenever the effect scrolls out of view.
-// Anti-clustering WITHOUT a rigid grid: positions are picked by best-candidate
-// (blue-noise) sampling — each circle tries several random spots and keeps the
-// one farthest from the already-placed ones. The layout stays organic and
-// varied (with breathing room) but the blobs never bunch into one spot.
-// Colours are interleaved so the hues stay mixed spatially.
 // Honours prefers-reduced-motion (renders a single static scatter).
 type ColorSet = { count: number; color: string };
 
@@ -53,8 +49,8 @@ export function HaloEffect({
       '(prefers-reduced-motion: reduce)',
     ).matches;
 
-    // Interleave colours (round-robin) so neighbouring grid cells get different
-    // hues — keeps the palette mixed across the frame.
+    // Interleave colours (round-robin) so neighbouring blobs get different hues,
+    // keeping the palette mixed across the frame.
     const colors: string[] = [];
     const remaining = sets.map((s) => s.count);
     let added = true;
@@ -80,25 +76,21 @@ export function HaloEffect({
       els.push(el);
     }
 
-    // Best-candidate (blue-noise) placement, biased AROUND the hero: candidate
-    // centres inside a central keep-clear ellipse (where the headline + buttons
-    // sit) are rejected, so the blobs ring the content and the middle stays
-    // readable — an organic halo that frames the hero instead of covering it.
+    // Places the blobs in a ring around the hero copy so the middle stays
+    // readable — a halo that frames the content instead of covering it.
     const place = (): void => {
       const hostRect = host.getBoundingClientRect();
       const w = hostRect.width || host.clientWidth || window.innerWidth;
       const h = hostRect.height || host.clientHeight || window.innerHeight;
       const mx = size * 0.2;
       const my = size * 0.2;
-      // Blob's effective radius — half its box plus the container blur halo.
-      // The keep-clear test uses this so it's the visible EDGE of the blob,
-      // not just its centre, that's held off the text.
+      // Blob's effective radius — half its box plus the container blur halo, so
+      // the keep-clear test holds the visible EDGE off the text, not its centre.
       const R = size / 2 + blur;
       const gap = R * 0.15;
 
-      // Keep-clear rectangle = the LIVE bounding box of the hero copy, read
-      // from the DOM each placement so it tracks the real layout at every
-      // breakpoint (no hard-coded guesses about where the headline sits).
+      // Keep-clear rectangle = the LIVE bounding box of the hero copy, read from
+      // the DOM each placement so it tracks the real layout at every breakpoint.
       // Falls back to a centred box if the target can't be found.
       const target = clearSelector
         ? (document.querySelector(clearSelector) as HTMLElement | null)
@@ -117,8 +109,8 @@ export function HaloEffect({
         ry1 = h * 0.78;
       }
 
-      // Proper circle/rect intersection: a blob of radius R centred at (x,y)
-      // overlaps the keep-clear rect.
+      // Circle/rect intersection: does a blob of radius R centred at (x,y)
+      // overlap the keep-clear rect?
       const hitsClear = (x: number, y: number): boolean => {
         const qx = x < rx0 ? rx0 : x > rx1 ? rx1 : x;
         const qy = y < ry0 ? ry0 : y > ry1 ? ry1 : y;
@@ -130,14 +122,13 @@ export function HaloEffect({
       const clampY = (y: number): number => Math.max(my, Math.min(h - my, y));
 
       // Deterministic RING placement: blobs are spread evenly by angle on an
-      // ellipse that hugs the copy box (its half-extents + R + gap), so they
-      // always render and always sit OUTSIDE the text. Rejection-sampling was
-      // dropped because at narrow widths the copy box leaves almost no valid
-      // area, so every blob would collapse into one off-screen pile. A small
-      // per-placement angular jitter keeps the drift organic. If clamping a
-      // ring point back into the host pulls it over the copy (no side room on
-      // a narrow viewport), the blob falls to the open band above/below the
-      // copy instead of overlapping the text.
+      // ellipse hugging the copy box (its half-extents + R + gap), so they always
+      // render and always sit OUTSIDE the text. Rejection sampling was dropped
+      // because at narrow widths the copy box leaves almost no valid area, so the
+      // blobs collapsed into one off-screen pile. Per-placement angular jitter
+      // keeps the drift organic. If clamping a ring point back into the host
+      // pulls it over the copy (no side room on a narrow viewport), the blob
+      // falls to the open band above/below instead of overlapping the text.
       const ecx = (rx0 + rx1) / 2;
       const ecy = (ry0 + ry1) / 2;
       const ax = (rx1 - rx0) / 2 + R + gap;

@@ -1,16 +1,13 @@
 /**
- * ShareFailureWindow (main process)
- * ─────────────────────────────────
- * Lightweight modal — the only surviving in-app share surface after
- * the modal-based UI was retired. Opens when:
+ * ShareFailureWindow (main process) — lightweight failure modal. Opens when:
  *
  *   - `/init` blocks recording (kind: 'init-failed')
  *   - upload finalizes with zero parts on R2 (kind: 'no-link')
  *   - upload finalizes with at least one screen part, so the user
  *     gets a salvageable edit URL (kind: 'partial')
  *
- * Single-instance (only one share session is in flight at a time, so
- * there can be at most one failure modal). No prewarm, no multi-stack.
+ * Single-instance: only one share session is in flight at a time, so there
+ * can be at most one failure modal.
  *
  * Renderer view = 'share-failure' (registered in main.tsx). The modal
  * subscribes to SHARE_FAILURE_INIT for its state and sends

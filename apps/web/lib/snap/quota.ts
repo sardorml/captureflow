@@ -51,9 +51,9 @@ export async function activeArtifactCountForUser(
 }
 
 // Resolve the user's personal workspace id for stamping onto a new
-// snap. Mirrors the share helper — the signup hook normally
-// pre-creates the row; we fall through to ensurePersonalWorkspace as
-// a defensive backstop for any pre-migration accounts.
+// snap. The signup hook normally pre-creates the row; fall through to
+// ensurePersonalWorkspace as a defensive backstop for pre-migration
+// accounts.
 export async function resolveUserWorkspaceId(
   userId: string
 ): Promise<string | null> {

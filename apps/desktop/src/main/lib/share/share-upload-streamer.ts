@@ -16,9 +16,8 @@
  *   abort()                — discard state. Worker cron reaps stale
  *                            `pending` rows; no /abort call.
  *
- * Connectivity: on `setShareConnectivity('offline')` (via the existing
- * event emitter), the streamer pauses POSTs and queues bytes. On
- * `'online'`, it drains.
+ * Connectivity: on `setShareConnectivity('offline')` the streamer pauses
+ * POSTs and queues bytes. On `'online'`, it drains.
  *
  * Single-instance: only one share session is live at a time (the user
  * can only record one stream at a time), so the streamer module holds
@@ -134,7 +133,6 @@ export async function startShareUpload(meta: ShareStartMeta): Promise<ShareStart
       if (!session) return
       session.paused = state === 'offline'
       if (state === 'online') {
-        // Resume both streams from wherever they left off.
         void pumpStream(session, session.screen)
         if (session.webcam.uploadId) void pumpStream(session, session.webcam)
       }
@@ -227,7 +225,6 @@ async function pumpStream(s: Session, stream: Stream): Promise<void> {
       handleUploadError(err, { slug: s.slug, phase: `part ${stream.partPath}` })
     } finally {
       stream.inFlight = null
-      // More buffered already? Drain next part.
       if (stream.bufBytes >= CHUNK_BYTES && !s.paused && !s.aborted) {
         void pumpStream(s, stream)
       }

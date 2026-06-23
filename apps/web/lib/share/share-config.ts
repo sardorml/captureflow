@@ -1,8 +1,7 @@
 // Worker-side (read-only) share config. The dashboard edit page writes
-// this JSON sidecar to R2; the public viewer reads it here at request
-// time and applies it during render. The dashboard writer and this
-// reader are kept in sync by convention — both share the same field
-// names + default values + gradient preset table.
+// this JSON sidecar to R2; the public viewer reads it here at request time.
+// Writer and reader are kept in sync by convention: same field names,
+// default values, and gradient preset table on both sides.
 
 const MP4 = '.mp4';
 

@@ -7,20 +7,16 @@ import { createPortal } from 'react-dom'
 export type AnimatedTooltipPlacement = 'top' | 'bottom' | 'left' | 'right'
 
 export interface AnimatedTooltipProps {
-  /** Content displayed inside the tooltip */
   content: ReactNode
-  /** Placement of the tooltip relative to the trigger */
   placement?: AnimatedTooltipPlacement
   /** Delay in milliseconds before the tooltip appears */
   delay?: number
-  /** The trigger element the tooltip is anchored to */
   children: ReactNode
-  /** Additional CSS class names for the tooltip container */
   className?: string
-  /** Additional CSS class names for the trigger wrapper span.
-   *  Default is `relative inline-flex items-center` — override to opt
-   *  the wrapper into the parent's layout (e.g. `flex flex-1` so it
-   *  takes its share of a segmented flex container). */
+  /** Classes for the trigger wrapper span. Default is
+   *  `relative inline-flex items-center` — override to opt the wrapper into
+   *  the parent's layout (e.g. `flex flex-1` to take its share of a
+   *  segmented flex container). */
   triggerClassName?: string
   /** When true, the tooltip never shows (and hides if already open). Use to
    *  suppress the hint while a flyout/menu anchored to the same trigger is
@@ -145,9 +141,9 @@ const AnimatedTooltip = ({
     setPosition(computePosition(triggerRect, tooltipRect, placement))
   }, [placement])
 
-  // Reset cached anchor position the moment the tooltip hides so the next
-  // show recomputes against fresh DOM. Using the prev-state pattern instead
-  // of a setState-in-effect.
+  // Reset the cached anchor position the moment the tooltip hides so the next
+  // show recomputes against fresh DOM. Uses the prev-state pattern rather than
+  // a setState-in-effect.
   const [prevVisible, setPrevVisible] = useState(isVisible)
   if (prevVisible !== isVisible) {
     setPrevVisible(isVisible)

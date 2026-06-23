@@ -14,22 +14,19 @@ export type StopResult = {
   height: number
 }
 
-// Default share-stream tuning. ScreenCaptureKit downsamples the source
-// (e.g. a 3024×1964 Retina display) to whatever we ask for here, so
-// the cap directly governs how much detail makes it into the encode.
-// 1920×1080 is the sweet spot — large enough to keep small text
-// legible after the renderer's cursor-composite re-encode, small
-// enough to keep upload time + R2 storage reasonable. Bitrate scales
-// with the pixel count (8 Mbps for 1080p ≈ the same per-pixel budget
-// 4 Mbps gave us at 720p). Keep in sync with the renderer-side
-// ENCODE_BITRATE in `share-compositing-encoder.ts`.
+// Share-stream tuning. ScreenCaptureKit downsamples the source to this
+// cap, so it directly governs detail in the encode. 1080p keeps small
+// text legible after the renderer's cursor-composite re-encode while
+// keeping upload + R2 storage reasonable; bitrate matches the per-pixel
+// budget 4 Mbps gave us at 720p. Keep in sync with ENCODE_BITRATE in
+// `share-compositing-encoder.ts`.
 const SHARE_WIDTH = 1920
 const SHARE_HEIGHT = 1080
 const SHARE_FPS = 60
 const SHARE_BITRATE = 8_000_000
 
-// fd index the parent allocates for the binary share-output pipe. The
-// child opens FileHandle(fileDescriptor: 3) and writes length-prefixed
+// fd the parent allocates for the binary share-output pipe. The child
+// opens FileHandle(fileDescriptor: 3) and writes length-prefixed
 // records — see ShareWriter.swift for the on-wire layout.
 const SHARE_FD = 3
 
@@ -54,9 +51,8 @@ export function setOnUnexpectedExit(cb: (() => void) | null): void {
 }
 
 // Subscribe to share-pipeline events forwarded from the native side.
-// Set once at app boot from the recording-handlers wiring; the
-// renderer consumer is responsible for re-keying state across
-// recording sessions.
+// Set once at app boot; the renderer consumer must re-key its state
+// across recording sessions.
 export function setOnShareEvent(cb: ((event: ShareFrameEvent) => void) | null): void {
   onShareEvent = cb
 }
@@ -83,9 +79,8 @@ type RecorderConfig = {
   captureAudio?: boolean
   excludePid?: number
   cropRect?: WindowBounds
-  // Per-session override for the share-pipeline tap. If unset, falls
-  // back to the persisted user pref. Driven by the toolbar's Share /
-  // Screenshot toggle.
+  // Per-session override for the share-pipeline tap (toolbar Share /
+  // Screenshot toggle); falls back to the persisted user pref if unset.
   share?: boolean
 }
 
@@ -100,13 +95,12 @@ const RETRY_DELAY_MS = 500
 
 export async function startNativeRecording(config: RecorderConfig): Promise<StartResult> {
   if (proc) {
-    // Self-heal: the previous recording's stop didn't land cleanly
-    // (renderer crashed mid-stop, IPC raced with an editor-open path,
-    // etc.) and we still hold a live `proc`. Without this branch the
-    // user is wedged — every Start click bounces off "already
-    // running" and the only way out is restarting the app. Try a
-    // graceful stop with a tight 1.5s budget, then SIGKILL whatever
-    // remains so the spawn below has a clean slate.
+    // Self-heal: the previous stop didn't land cleanly (renderer
+    // crashed mid-stop, IPC raced an editor-open path) and we still
+    // hold a live `proc`. Without this the user is wedged — every Start
+    // bounces off "already running" until the app restarts. Try a
+    // graceful stop on a tight 1.5s budget, then SIGKILL the remainder
+    // so the spawn below has a clean slate.
     logWarn('recorder', 'previous proc still resident; cleaning up before start')
     try {
       await Promise.race([
@@ -145,14 +139,12 @@ export async function startNativeRecording(config: RecorderConfig): Promise<Star
 }
 
 async function spawnNativeRecorder(config: RecorderConfig): Promise<StartResult> {
-  // Per-session override (toolbar Share/Screenshot toggle) wins; otherwise
-  // fall back to the persisted user pref.
   const shareEnabled = config.share ?? getUserPrefs().shareEnabled
   // Share mode skips the on-disk .captureflow bundle entirely — no
-  // screen.mp4, no system.m4a, no tracking.json. The native binary
-  // gates its FrameWriter + AudioWriter on share=true and never opens
-  // an output file. Cursor tracker also writes nothing because
-  // getCurrentSessionDir() returns null (createSessionDir wasn't called).
+  // screen.mp4, system.m4a, or tracking.json. The native binary gates
+  // its FrameWriter + AudioWriter on share=true and never opens an
+  // output file; the cursor tracker also writes nothing because
+  // getCurrentSessionDir() returns null when createSessionDir is skipped.
   const sessionDir = shareEnabled ? '' : await createSessionDir()
   if (shareEnabled) setCurrentSessionDir(null)
   const { share: _shareOverride, ...rest } = config
@@ -188,9 +180,6 @@ async function spawnNativeRecorder(config: RecorderConfig): Promise<StartResult>
     const jsonConfig = JSON.stringify(finalConfig)
 
     logInfo('recorder', `spawning: ${binPath}`)
-    // Spike-only: forward CAPTUREFLOW_SHARE_TAP_SPIKE so the recorder
-    // wires the share-tap closure fan-out. See docs/spikes/share-tap.md.
-    // Remove this env override block when the spike concludes.
     // When shareEnabled, allocate a 4th 'pipe' slot so the child's fd 3
     // is wired to a readable stream on this side. The native ShareWriter
     // opens FileHandle(fileDescriptor: 3) and emits length-prefixed
@@ -202,6 +191,8 @@ async function spawnNativeRecorder(config: RecorderConfig): Promise<StartResult>
       stdio,
       env: { ...process.env }
     })
+    // Spike-only diagnostic for the share-tap fan-out (docs/spikes/share-tap.md).
+    // Remove this block when the spike concludes.
     if (process.env.CAPTUREFLOW_SHARE_TAP_SPIKE === '1') {
       logInfo('recorder', 'share-tap spike: env flag forwarded to child')
     }
@@ -248,14 +239,11 @@ async function spawnNativeRecorder(config: RecorderConfig): Promise<StartResult>
             )
             const cb = onStopResolve
             onStopResolve = null
-            // The native side has finalized its files but hasn't always
-            // exited the process voluntarily — especially when stop fires
-            // while ScreenCaptureKit was still in its initial frame-wait.
-            // Capture the proc reference, null the module-level handle,
-            // and force a SIGKILL after a short grace period if the
-            // subprocess is still alive. Without this, health messages
-            // keep streaming and a follow-up startNativeRecording would
-            // collide.
+            // Files are finalized but the native side doesn't always exit
+            // voluntarily — especially when stop fires during
+            // ScreenCaptureKit's initial frame-wait. Null the handle now,
+            // then SIGKILL unconditionally so health/stdout can't keep
+            // streaming into and colliding with the next session.
             const procToKill = proc
             proc = null
             cb({
@@ -265,10 +253,6 @@ async function spawnNativeRecorder(config: RecorderConfig): Promise<StartResult>
               width: msg.width ?? 0,
               height: msg.height ?? 0
             })
-            // File is finalized — terminate immediately so health and
-            // any further stdout never leak into the next session.
-            // Voluntary exit was unreliable when the user stopped before
-            // the first frame, hence the unconditional SIGKILL.
             forceKillProc(procToKill, 'stopped-message')
           } else if (msg.type === 'health') {
             latestHealth = {
@@ -295,7 +279,6 @@ async function spawnNativeRecorder(config: RecorderConfig): Promise<StartResult>
       }
     })
 
-    // Pipe native recorder stderr directly to log file
     proc.stderr?.on('data', (data: Buffer) => {
       logRaw(data.toString())
     })
@@ -323,13 +306,12 @@ async function spawnNativeRecorder(config: RecorderConfig): Promise<StartResult>
   })
 }
 
-// Kill the native subprocess for real. Node's `proc.kill('SIGKILL')` is
-// a no-op on an already-exited process and (we suspect) sometimes
-// silently misfires when stdio is mid-stream. Falling back to
-// `process.kill(pid, 'SIGKILL')` hits the OS-level syscall directly,
-// which is what reliably ends the rogue health stream when the Swift
-// recorder traps SIGTERM. Also detaches stdout listeners so any data
-// still in the pipe buffer doesn't leak into the next session's logs.
+// Kill the native subprocess for real. Node's `proc.kill('SIGKILL')`
+// can silently misfire when stdio is mid-stream, so we also call
+// `process.kill(pid, 'SIGKILL')` to hit the syscall directly — that's
+// what reliably ends the rogue health stream when the Swift recorder
+// traps SIGTERM. Detaches stdio listeners too so buffered pipe data
+// can't leak into the next session's logs.
 function forceKillProc(target: ChildProcess | null, reason: string): void {
   if (!target) return
   const pid = target.pid
@@ -409,11 +391,9 @@ export function resumeNativeRecording(): void {
   proc?.stdin?.write('resume\n')
 }
 
-// ── Share-pipe parser ──────────────────────────────────────────
-//
-// Consumes the binary record stream the native ShareWriter emits on
-// fd 3. Records can split across `data` events, so we keep a rolling
-// Buffer and only emit once a full record's bytes are present.
+// Share-pipe parser. Consumes the binary record stream the native
+// ShareWriter emits on fd 3. Records can split across `data` events, so
+// we keep a rolling Buffer and only emit once a full record is present.
 //
 // On-wire layout (all multi-byte ints little-endian):
 //   tag 0x01 — video format desc, sent once after first encode:
@@ -431,9 +411,9 @@ export function resumeNativeRecording(): void {
 // listener (set by recording-handlers at boot). Parser state is reset
 // per spawn — old fragments must not survive into the next session.
 function attachShareReader(stream: NodeJS.ReadableStream): void {
-  // Hold rolling fragment as plain Buffer — initial empty alloc on
-  // ArrayBuffer would clash with the ReadableStream chunks' looser
-  // ArrayBufferLike backing under TS strict mode.
+  // Plain Buffer for the rolling fragment — an ArrayBuffer-backed alloc
+  // clashes with the stream chunks' looser ArrayBufferLike backing under
+  // TS strict mode.
   let buf: Buffer = Buffer.concat([])
   let shareFrameCount = 0
   let shareKeyCount = 0
@@ -477,8 +457,7 @@ function attachShareReader(stream: NodeJS.ReadableStream): void {
           data
         })
       } else if (tag === 0x03) {
-        // Audio format. Sent once before any audio-chunk. Header:
-        //   u32 sampleRate | u32 channelCount | u32 descLen | descLen bytes (AudioSpecificConfig)
+        // Audio format (tag 0x03 — see layout above).
         if (buf.length < 1 + 12) break
         const sampleRate = buf.readUInt32LE(1)
         const channelCount = buf.readUInt32LE(5)
@@ -495,8 +474,7 @@ function attachShareReader(stream: NodeJS.ReadableStream): void {
           description
         })
       } else if (tag === 0x04) {
-        // Audio chunk (one AAC packet, raw bytes, no ADTS).
-        //   i64 ptsUs | u32 durationUs | u32 dataLen | dataLen bytes
+        // Audio chunk (tag 0x04 — one AAC packet, raw bytes, no ADTS).
         if (buf.length < 1 + 8 + 4 + 4) break
         const ptsUs = Number(buf.readBigInt64LE(1))
         const durationUs = buf.readUInt32LE(9)
@@ -519,9 +497,8 @@ function attachShareReader(stream: NodeJS.ReadableStream): void {
         )
         onShareEvent?.({ kind: 'end' })
       } else {
-        // Unknown tag — wire is desynced. Drop the rest to avoid
-        // misinterpreting payload bytes as headers; the next session's
-        // parser starts fresh.
+        // Unknown tag — wire is desynced. Drop the rest so payload bytes
+        // aren't misread as headers; the next session parses fresh.
         logError(
           'recorder',
           `share-reader: unknown tag 0x${tag.toString(16)}, dropping ${buf.length}B`

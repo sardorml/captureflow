@@ -1,7 +1,6 @@
-// The Apple logo isn't part of Material Symbols (Apple owns the mark).
-// We keep an inline SVG so the rest of the site can use Material Symbols
-// uniformly via `<Icon>`. Path data is a standard Apple silhouette
-// re-traced for screen rendering — no copyrighted glyph data.
+// Inline SVG because the Apple mark isn't in Material Symbols (Apple owns it),
+// letting the rest of the site stay on Material Symbols via `<Icon>`.
+// Path is a re-traced silhouette, not copyrighted glyph data.
 
 type AppleLogoProps = {
   className?: string;

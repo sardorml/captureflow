@@ -19,8 +19,8 @@ export function PermissionsWindow(): React.JSX.Element {
   const [agreed, setAgreed] = useState(false)
   const checkRef = useRef<() => Promise<void>>(async () => {})
 
-  // Reflect the persisted choices so the toggle + agreement checkbox show the
-  // right state on a re-open.
+  // Restore persisted choices so the toggle and agreement checkbox show the
+  // right state on re-open.
   useEffect(() => {
     void window.electronAPI.getUserPrefs().then((p) => {
       setAnalyticsEnabledState(p.analyticsEnabled)
@@ -32,7 +32,7 @@ export function PermissionsWindow(): React.JSX.Element {
     setAnalyticsEnabledState(next)
     await window.electronAPI.setUserPref('analyticsEnabled', next)
     // Apply consent immediately in this window; the prefs-changed broadcast
-    // updates any others.
+    // updates the others.
     const auth = await window.electronAPI.getShareAuth()
     setAnalyticsEnabled(next, auth)
   }
@@ -54,9 +54,9 @@ export function PermissionsWindow(): React.JSX.Element {
     }
   }, [])
 
-  // Proceed into the app. Gated behind both permissions + the ToS/Privacy
-  // agreement (see the disabled state on the button below). Persists the
-  // acceptance so a returning user isn't asked again.
+  // Gated behind both permissions and the ToS/Privacy agreement (see the
+  // button's disabled state). Persists acceptance so a returning user isn't
+  // asked again.
   const handleContinue = async (): Promise<void> => {
     await window.electronAPI.setUserPref('termsAccepted', true)
     await window.electronAPI.permissionsGranted()

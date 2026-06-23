@@ -1,9 +1,6 @@
-// Marketing landing — a CaptureFlow build of the Framely main-branch landing.
-// The `.marketing-root` wrapper (MarketingShell) + imported marketing.css scope
-// the landing's light CapCut-style palette + Inter typeface to this subtree, so
-// the dashboard's @captureflow/ui token theme is never touched. English-only
-// (no locale machinery). The Framely "editor" features section is intentionally
-// dropped — CaptureFlow has no video editor.
+// Marketing landing. The MarketingShell wrapper + marketing.css scope the
+// landing's palette and typeface to this subtree, so the dashboard's
+// @captureflow/ui token theme is never touched.
 import './marketing.css';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
@@ -32,12 +29,11 @@ import {
   SITE_DESCRIPTION,
 } from '@/lib/marketing/constants';
 
-// Anonymous visitors get the live session check, not a cached shell, so a
-// freshly-signed-in user can't see the marketing home from bf-cache.
+// Force a live session check per request, so a freshly-signed-in user can't see
+// the marketing home from a cached shell or bf-cache.
 export const dynamic = 'force-dynamic';
 
-// Public landing SEO — overrides the root layout's app-shell title with the
-// indexable product copy.
+// Overrides the root layout's app-shell title with indexable product copy.
 export const metadata: Metadata = {
   title: { absolute: SITE_TITLE },
   description: SITE_DESCRIPTION,
@@ -59,15 +55,14 @@ export const metadata: Metadata = {
   },
 };
 
-// Root `/` self-branches: signed-in → dashboard (/shares); signed-out → the
-// marketing landing home.
+// Signed-in visitors are redirected to the dashboard; signed-out see the landing.
 export default async function RootPage() {
   const session = await loadSession();
   if (session) redirect('/shares');
 
-  // Live GitHub star count for the hero's repo button (cached ~1h in github.ts;
-  // null before the repo is public or if the API is unreachable → button hides
-  // the count).
+  // Live GitHub star count for the hero's repo button (cached ~1h in github.ts).
+  // null before the repo is public or if the API is unreachable, in which case
+  // the button hides the count.
   const starCount = await getStarCount();
   const stars = starCount != null ? formatStars(starCount) : null;
 

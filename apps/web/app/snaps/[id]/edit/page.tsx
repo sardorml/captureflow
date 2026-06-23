@@ -12,11 +12,9 @@ const R2_BASE =
 export const dynamic = 'force-dynamic';
 
 // Server wrapper: validate the session, fetch the snap row, and hand
-// off to the client editor. The editor is intentionally OUTSIDE the
-// (dashboard) route group so it doesn't inherit the dashboard's
-// max-width container + nav — the Konva canvas wants the full
-// viewport, and the nested session check the layout used to do was
-// already handled by middleware + this page's own check.
+// off to the client editor. Kept OUTSIDE the (dashboard) route group
+// so it doesn't inherit the dashboard max-width container + nav — the
+// Konva canvas wants the full viewport.
 export default async function SnapEditPage({
   params,
 }: {
@@ -27,26 +25,22 @@ export default async function SnapEditPage({
   const snap = await getSnapForUser(id, session.user.id);
   if (!snap) notFound();
 
-  // Cache-bust by the snap's most-recent mutation time. Without this,
-  // a browser that previously fetched the PNG before the R2 bucket
-  // had CORS configured will reuse its cached no-CORS response
-  // forever (the `Access-Control-Allow-Origin` header sits in the
-  // metadata of the cached entry — re-fetching with the same URL
-  // hits the disk cache, not the network).
+  // Cache-bust by most-recent mutation time. Without it, a browser
+  // that fetched the PNG before R2 had CORS configured reuses its
+  // cached no-CORS response forever: the same URL hits the disk cache
+  // (with stale CORS metadata) instead of the network.
   const cacheKey = snap.editedAt ?? snap.updatedAt ?? snap.createdAt;
 
-  // Source-image lookup: once the user has saved at least once we
-  // park the pristine pre-edit screenshot under `<key>.source.png`
-  // so subsequent edits open against clean pixels instead of a
-  // composition that already has the previous bg baked in. We HEAD
-  // the source key server-side; if missing (first edit ever) we
-  // fall back to the primary key — which still holds the original
-  // bytes at that point.
+  // After the first save, the pristine pre-edit screenshot lives at
+  // `<key>.source.png` so later edits open against clean pixels rather
+  // than a composition with the previous bg baked in. HEAD that key;
+  // if missing (first edit ever) fall back to the primary key, which
+  // still holds the original bytes.
   const sourceKey = sourceKeyFor(snap.storageKey);
   const stateKey = stateKeyFor(snap.storageKey);
-  // R2 sidecar reads are best-effort — a network blip or eventual-
-  // consistency miss shouldn't 500 the whole edit page. Fall back to
-  // the primary key + null state in that case.
+  // Sidecar reads are best-effort — a network blip or eventual-
+  // consistency miss shouldn't 500 the edit page. Fall back to the
+  // primary key + null state.
   let hasSource = false;
   let savedState: { background?: string; annotations?: unknown[] } | null =
     null;

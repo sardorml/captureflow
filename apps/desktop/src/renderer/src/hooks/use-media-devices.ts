@@ -26,9 +26,8 @@ export function useMediaDevices(): void {
       setAudioDevices(audio)
       setVideoDevices(video)
 
-      // Drop a selection whose device has disappeared (unplugged between
-      // sessions) so use-recorder doesn't try to acquire a non-existent device
-      // and fail or fall back to the wrong one. Guard on a REAL enumeration (at
+      // Drop a selection whose device has disappeared so use-recorder doesn't
+      // try to acquire a non-existent device. Guard on a REAL enumeration (at
       // least one non-empty deviceId): pre-permission enumerateDevices returns
       // blank ids, and clearing then would wipe a valid selection.
       {

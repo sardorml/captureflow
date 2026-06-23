@@ -12,10 +12,8 @@ import {
 } from 'react';
 import { cn } from '@/lib/utils';
 
-// Flat marketing CTA — a solid blue pill. No shadow at all (flat); the only
-// feedback is a subtle press scale-down (no hover colour shift). The
-// pointer-driven `data-pressed` state is kept (rather than a bare `active:`)
-// because most call sites render an `asChild` <a>, and `:active` on a
+// Press feedback uses a pointer-driven `data-pressed` state rather than a bare
+// `active:` because most call sites render an `asChild` <a>, and `:active` on a
 // navigating anchor is unreliable.
 const ctaButtonVariants = cva(
   'inline-flex cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-blue-600 font-semibold text-white ring-offset-background transition-transform duration-150 ease-out focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-400/60 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 data-[pressed=true]:scale-[0.97]',

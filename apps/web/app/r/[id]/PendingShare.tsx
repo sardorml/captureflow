@@ -8,22 +8,20 @@ import { GridLoader } from '@captureflow/ui';
 type PendingShareProps = {
   slug: string;
   titleLine: string;
-  // Epoch ms — surfaced as a "just now" / "X minutes ago" byline so
-  // the loading shell matches the resolved share page. Owner name is
-  // omitted in the pending state to avoid a second DB hop; it lands
-  // on the next refresh once the row flips to 'ready'.
+  // Epoch ms for the byline. Owner name is omitted in the pending
+  // state to avoid a second DB hop; it lands on the next refresh once
+  // the row flips to 'ready'.
   createdAt: number;
 };
 
 // Loading shell shown when /r/[id] resolves a row in state='pending'.
 // /api/r/init reserves the id at record-start so the desktop can hand
-// the user a copyable link instantly; the bytes themselves arrive over
-// the streaming-multipart upload during recording and the row flips to
-// 'ready' once /api/r/finalize lands. The loader holds the page steady
-// while that's still in flight.
+// the user a copyable link instantly; the bytes arrive over the
+// streaming-multipart upload and the row flips to 'ready' once
+// /api/r/finalize lands.
 //
 // Polls /api/r/state every ~1.5s and router.refresh()-es once the row
-// flips to 'ready'. The same retry budget surfaces a "didn't finish"
+// flips to 'ready'. The retry budget surfaces a "didn't finish"
 // fallback when the upload never completes (desktop died mid-record).
 
 const POLL_INTERVAL_MS = 1500;

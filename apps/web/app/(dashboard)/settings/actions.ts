@@ -14,10 +14,9 @@ import { getAppWebEnv } from '@/lib/cf-env';
 import { resolveCurrentWorkspace } from '@/lib/current-workspace';
 import { deleteObject, putObject } from '@/lib/r2';
 
-// Server actions for /settings. Every action re-verifies the session +
-// workspace ownership server-side — the SidebarNav already hides the
-// page from members, but a replayed action lands here directly so we
-// can't trust the UI.
+// Server actions for /settings. Every action re-verifies session + workspace
+// ownership server-side: the sidebar hides the page from members, but a
+// replayed action lands here directly, so we can't trust the UI.
 
 type FormState = { error: string | null; ok: string | null };
 
@@ -55,15 +54,14 @@ export async function updateWorkspaceNameAction(
 
   const ok = await updateWorkspaceName(env.DB, workspaceId, next);
   if (!ok) return { error: 'Couldn’t save — try again', ok: null };
-  // The sidebar + members header both render the name; revalidate the
-  // dashboard root so every page re-fetches it on next nav.
+  // Sidebar + members header both render the name; revalidate the dashboard
+  // root so every page re-fetches it on next nav.
   revalidatePath('/', 'layout');
   return { error: null, ok: 'Saved' };
 }
 
-// Logo upload. Form action receives a Blob via FormData; we cap size +
-// content type before pushing to R2 so a malicious form can't fill the
-// bucket with arbitrary blobs.
+// Cap logo size + content type before pushing to R2 so a malicious form
+// can't fill the bucket with arbitrary blobs.
 const LOGO_MAX_BYTES = 2 * 1024 * 1024; // 2 MB
 const LOGO_MIME = new Map<string, string>([
   ['image/png', 'png'],
@@ -97,9 +95,8 @@ export async function uploadWorkspaceLogoAction(
     };
   }
 
-  // Use a cache-busting suffix so the CDN doesn't serve a previous
-  // upload after the owner replaces it. R2 key still keys on
-  // workspaceId so old logos get garbage-collected when overwritten.
+  // Key on workspaceId so a re-upload of the same extension overwrites in
+  // place; the page appends updated_at to bust the CDN cache.
   const key = `workspace-logos/${workspaceId}.${ext}`;
   const buffer = (await file.arrayBuffer()) as ArrayBuffer;
   try {
@@ -113,8 +110,8 @@ export async function uploadWorkspaceLogoAction(
     };
   }
 
-  // Drop any previously-stamped key under a different extension so the
-  // bucket doesn't accumulate orphans on format swaps.
+  // Drop the prior key when the extension changed, so format swaps don't
+  // leave orphans in the bucket.
   const existing = await getWorkspaceById(env.DB, workspaceId);
   if (existing?.logo_key && existing.logo_key !== key) {
     void deleteObject(existing.logo_key).catch(() => {});

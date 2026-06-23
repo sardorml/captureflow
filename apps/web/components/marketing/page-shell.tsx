@@ -13,8 +13,8 @@ type PageShellProps = {
 };
 
 const CONTENT_BG = '#ffffff';
-// Inter — CapCut's typeface and the landing's (.marketing-root --font-sans),
-// so every marketing surface renders alike.
+// Match the landing's font (.marketing-root --font-sans) so every marketing
+// surface renders alike.
 const SYSTEM_FONT =
   'var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 

@@ -1,18 +1,16 @@
-// GitHub star count for the source repo, shown in the nav.
-//
-// Fetched live from the public GitHub API and cached for an hour. Before the
-// repo is public (or if the API is unreachable) the live call returns null and
-// the nav simply hides the count — set NEXT_PUBLIC_GITHUB_STARS to force a
-// value in the meantime.
+// GitHub star count for the source repo, shown in the nav. Fetched live from
+// the public GitHub API and cached for an hour. While the repo is private or
+// the API is unreachable the live call returns null and the nav hides the
+// count — set NEXT_PUBLIC_GITHUB_STARS to force a value in the meantime.
 
 import { SOURCE_REPO_URL } from './site';
 
 const REPO_PATH = SOURCE_REPO_URL.replace('https://github.com/', '');
 
 export async function getStarCount(): Promise<number | null> {
-  // Prefer the live count. Only fall back to the env value when the API is
-  // unreachable or the repo is still private (404) — so the moment the repo
-  // goes public the real number takes over without a code change.
+  // Prefer the live count; the env fallback only kicks in when the API is
+  // unreachable or the repo is still private, so the real number takes over
+  // automatically once the repo goes public.
   const live = await fetchLiveStars();
   if (live != null) return live;
 
@@ -31,7 +29,7 @@ async function fetchLiveStars(): Promise<number | null> {
         Accept: 'application/vnd.github+json',
         'User-Agent': 'captureflow-web',
       },
-      // Cache the result for an hour so we don't hit the API on every render.
+      // Cache for an hour so we don't hit the API on every render.
       next: { revalidate: 3600 },
     });
     if (!res.ok) return null;

@@ -8,13 +8,11 @@ import { SectionHeader } from './section-header';
 import { DemoStage } from './demo-stage';
 import { useMessages } from './i18n-provider';
 
-// Sharing + teams, folded into one CapCut-style accordion. Each numbered row
-// is a category (recordings / screenshots / workspaces). The open row paints a
-// soft card, lists its sub-features, and shows a live mockup on the right.
-// Clicking a sub-feature title swaps both its description and the mockup —
-// exactly the CapCut "01 Image → Background Remover / Image Enhancer" rhythm.
-// Only one category is open at a time; the open one never collapses to empty,
-// it's replaced when another row is clicked.
+// Sharing + teams as one accordion. Each numbered row is a category
+// (recordings / screenshots / workspaces). The open row lists its sub-features
+// and shows a live mockup; clicking a sub-feature swaps both its description
+// and the mockup. Exactly one category is open at a time — clicking another row
+// replaces the open one rather than collapsing to empty.
 
 type ShareKey = 'editor' | 'viewer' | 'dashboard';
 type SnapKey = 'markup' | 'capture' | 'share';
@@ -23,8 +21,8 @@ type VisibilityKey = 'public' | 'workspace' | 'private';
 type Feature = {
   key: string;
   title: string;
-  // The description renders as: <linkText (underlined)> + " " + body — the
-  // leading phrase reads as a CapCut-style inline link.
+  // Description renders as: <linkText (underlined)> + " " + body, so the
+  // leading phrase reads as an inline link.
   linkText: string;
   body: string;
 };
@@ -145,11 +143,10 @@ export function CollaborationSection() {
       setActiveCat(idx);
       // Expanding the target row collapses the previously-open one (a 0.45s
       // height animation); if that row sat above the target, the target drifts
-      // upward as it shrinks. A single scroll would either overshoot (done
-      // before the collapse) or read as a scroll-back (done after). Instead
-      // FOLLOW the row each frame for the animation's duration so it stays
-      // pinned to the top — the viewport lands on it at once and tracks it to
-      // rest, no overshoot or scroll-back. scroll-mt-28 supplies the nav offset.
+      // upward as it shrinks. A single scroll would either overshoot (fired
+      // before the collapse) or read as a scroll-back (fired after). So follow
+      // the row each frame for the animation's duration: the viewport lands on
+      // it at once and tracks it to rest. scroll-mt-28 supplies the nav offset.
       const el = document.getElementById(hash);
       if (!el) return;
       const startTs = performance.now();
@@ -466,10 +463,8 @@ function ScaledMockup({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────
 // Share mockup — Safari chrome + a body slot that swaps between the share
 // viewer with its activity rail, the recipient's viewer, and the dashboard.
-// ─────────────────────────────────────────────────────────────────────────
 function ShareFrame({ activeKey }: { activeKey: ShareKey }) {
   const url = SHARE_URLS[activeKey];
   return (
@@ -495,11 +490,9 @@ function ShareFrame({ activeKey }: { activeKey: ShareKey }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────
 // Snap mockup — same chrome, body swaps between the capture overlay, the
 // markup editor, and the dashboard. The capture step shows a status string
 // in the URL pill (no hosted URL yet).
-// ─────────────────────────────────────────────────────────────────────────
 function SnapFrame({ activeKey }: { activeKey: SnapKey }) {
   const url = SNAP_URLS[activeKey];
   const isOverlay = activeKey === 'capture';
@@ -734,9 +727,7 @@ const FEEDBACK_EMOJI = ['👍', '🎉', '🔥', '❤️', '👏', '😮'];
 // Feedback body — interactive share-viewer surface: the recording plays on the
 // left with a reactions bar directly below it; picking a reaction pops it over
 // the recording. The right rail recolors the viewer's accent and toggles who
-// can react/comment. (Reinterpreted from Framely's background/camera/audio
-// editor — same scaffolding, retargeted to CaptureFlow's "react and comment on
-// the web" story so the mockup matches the copy.)
+// can react/comment.
 function FeedbackBody() {
   const m = useMessages();
   const em = m.collaboration.editorMockup;

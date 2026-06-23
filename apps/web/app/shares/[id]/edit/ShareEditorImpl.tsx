@@ -39,14 +39,10 @@ import {
   setVisibilityAction,
 } from '../../../actions';
 
-// Loom-style share edit page. Layout: header with title + back arrow,
-// preview pane with SharePlayer (same component the public viewer
-// uses, so the edit-page preview matches the published page pixel for
-// pixel), and a right rail of config
-// panels (background, camera placement, audio mute toggles). All
-// config changes apply live to the preview; explicit Save persists
-// to the R2 sidecar. Visibility toggle + delete bind to the existing
-// server actions.
+// Share edit page. Renders the preview with SharePlayer (the same
+// component the public viewer uses, so the preview matches the
+// published page pixel for pixel). Config changes apply live to the
+// preview; explicit Save persists to the R2 sidecar.
 
 const SOLID_PALETTE = [
   '#2563eb',
@@ -94,20 +90,18 @@ export function ShareEditorImpl(props: ShareEditorProps) {
     initialTheme,
   } = props;
 
-  // Title state (mirrors snap editor)
   const [title, setTitle] = useState<string>(initialTitle ?? '');
   const [titleDraft, setTitleDraft] = useState<string>(initialTitle ?? '');
   const [titleEditing, setTitleEditing] = useState(false);
   const [titlePending, startTitleTransition] = useTransition();
   const [titleError, setTitleError] = useState<string | null>(null);
 
-  // Visibility + delete
   const [visibility, setVisibility] = useState(initialVisibility);
   const [actionPending, startActionTransition] = useTransition();
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // Live config (drives the preview); savedConfig tracks what's on
-  // disk so we can disable Save when nothing has changed.
+  // savedConfig tracks what's persisted so Save can be disabled when
+  // the live config has no unsaved changes.
   const [config, setConfig] = useState<ShareConfig>(initialConfig);
   const [savedConfig, setSavedConfig] = useState<ShareConfig>(initialConfig);
   const [savePending, startSaveTransition] = useTransition();
@@ -193,7 +187,6 @@ export function ShareEditorImpl(props: ShareEditorProps) {
 
   return (
     <main className="flex min-h-screen flex-col bg-canvas text-fg">
-      {/* Header — back + title + actions */}
       <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-line bg-canvas-2 px-4">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <button
@@ -253,10 +246,9 @@ export function ShareEditorImpl(props: ShareEditorProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Theme toggle — the editor's own surface for flipping
-              light/dark. router.refresh() re-runs the server tree so
-              the new cookie propagates (the toggle also flips the
-              <html> attribute + writes the cookie for instant feedback). */}
+          {/* router.refresh() re-runs the server tree so the new theme
+              cookie propagates (the toggle also flips the <html>
+              attribute + writes the cookie for instant feedback). */}
           <ThemeToggle
             initialTheme={initialTheme}
             onAfterToggle={() => router.refresh()}
@@ -330,7 +322,6 @@ export function ShareEditorImpl(props: ShareEditorProps) {
         </div>
       )}
 
-      {/* Body — preview left, panels right. Stacks on small screens. */}
       <div className="flex flex-1 flex-col gap-6 p-6 lg:flex-row">
         <section className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-4xl">
@@ -665,9 +656,7 @@ function formatDate(ts: number): string {
   });
 }
 
-// Visibility chip used inside the editor's top bar — clicking opens
-// the VisibilityDialog (same modal as dashboard cards + share viewer).
-// Forwarding ref so Radix's DialogTrigger asChild can wire its onClick.
+// forwardRef so Radix's DialogTrigger asChild can wire its onClick.
 const EditorVisibilityChip = forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement> & {

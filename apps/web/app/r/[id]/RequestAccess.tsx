@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { Lock, Mail, ArrowRight, Check } from 'lucide-react';
 import { GridLoader } from '@captureflow/ui';
 
-// Loom-style "Request access" screen rendered when a signed-in viewer
-// (or anonymous visitor) hits a workspace/private share they can't see.
+// "Request access" screen rendered when a signed-in viewer (or
+// anonymous visitor) hits a workspace/private share they can't see.
 //
 // Two states:
 //   - Anonymous: prompts the visitor to sign in on app-web. After

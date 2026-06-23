@@ -2,12 +2,9 @@
 
 import { useLocalizedHref, useMessages } from './i18n-provider';
 
-// Shared section header — title + subtitle left-aligned with a CTA button
-// pinned to the right (CapCut's section-header rhythm). The button is the
-// dark CapCut-style pill (matches the nav's primary Download treatment), flat
-// with no shadow. On narrow screens the button drops below the text. Spans
-// the parent's full content width, so it must sit inside a `max-w-7xl`
-// container.
+// Shared section header: title + subtitle left, CTA button pinned right
+// (dropping below the text on narrow screens). Spans the parent's full content
+// width, so it must sit inside a `max-w-7xl` container.
 export function SectionHeader({
   title,
   children,
@@ -15,8 +12,8 @@ export function SectionHeader({
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
-  // Width (and any other) classes for the title+subtitle block. Defaults to
-  // `max-w-sm`; widen it per-section when a longer subtitle needs more room.
+  // Classes for the title+subtitle block; widen past the `max-w-sm` default
+  // when a longer subtitle needs more room.
   textClassName?: string;
 }) {
   const m = useMessages();

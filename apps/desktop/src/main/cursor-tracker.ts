@@ -10,13 +10,10 @@ import {
 import { startCursorMonitor, stopCursorMonitor, getCurrentCursorType } from './cursor-monitor'
 import { logInfo, logWarn } from './lib/logger'
 
-// Fan out each new cursor position to every renderer window so the
-// real-time share composite (the renderer's share-compositing encoder)
-// can draw the cursor at the correct
-// position per frame instead of waiting for stopCursorTracking to
-// hand back the full TrackingData. Fire-and-forget; failures here
-// don't affect the in-memory `positions` array that drives the final
-// tracking.json.
+// Fan out each new cursor position to every renderer so the real-time share
+// composite can draw the cursor per frame instead of waiting for stopTracking
+// to hand back the full TrackingData. Fire-and-forget; failures here don't
+// affect the in-memory `positions` array that drives the final tracking.json.
 function broadcastCursorPosition(pos: CursorPosition): void {
   for (const win of BrowserWindow.getAllWindows()) {
     if (win.isDestroyed()) continue
@@ -74,7 +71,7 @@ export function startTracking(
     }`
   )
 
-  // Start native cursor type monitoring (graceful — falls back to 'arrow' if unavailable)
+  // Falls back to 'arrow' when the native cursor monitor is unavailable.
   try {
     startCursorMonitor()
   } catch {
@@ -97,7 +94,6 @@ export function startTracking(
     broadcastCursorPosition(pos)
   }, 8) // ~120fps
 
-  // Track mouse clicks
   const onMouseDown = (e: UiohookMouseEvent): void => {
     if (paused) return
     const x = Math.max(0, Math.min(1, (e.x - bounds.x) / bounds.width))

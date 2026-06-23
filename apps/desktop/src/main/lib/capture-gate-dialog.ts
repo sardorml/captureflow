@@ -1,18 +1,13 @@
 /**
- * CaptureGateDialog (main process)
- * ────────────────────────────────
  * Native confirm dialog shown when a user taps a Pro-only capture mode
- * (Share / Screenshot) they can't use yet. Replaces the old in-app
- * upgrade BrowserWindow with a system message box whose buttons depend
- * on account state:
+ * (Share / Screenshot) they can't use yet. Buttons depend on account state:
  *
- *   - signed out      → "Sign in" + "Upgrade to Pro"
+ *   - signed out       → "Sign in" + "Upgrade to Pro"
  *   - signed in (free) → "Open dashboard" + "Upgrade to Pro"
  *
- * Pro is tied to a signed-in captureflow.xyz subscription, so a
- * signed-out user is offered sign-in (the precondition) alongside the
- * upgrade path; a signed-in but free user is steered to the dashboard
- * (manage account) or the checkout.
+ * Pro requires a signed-in captureflow.xyz subscription, so a signed-out user
+ * is offered sign-in (the precondition) alongside the upgrade path; a free
+ * signed-in user is steered to the dashboard or checkout.
  *
  * Registered at module load (imported for side effects from main/index.ts).
  */

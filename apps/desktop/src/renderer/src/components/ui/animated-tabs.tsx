@@ -18,9 +18,8 @@ export type AnimatedTabItem = {
   // fires `onLockedSelect` (e.g. an upgrade prompt) instead of selecting the
   // tab. Pair with `trailing` (lock glyph) + `tooltip`.
   locked?: boolean
-  // Optional stable hook for tests — emitted as `data-testid` on the tab
-  // button so suites can target a specific option without coupling to label
-  // text or the generated layout id.
+  // Stable test hook — emitted as `data-testid` so suites can target a tab
+  // without coupling to label text or the generated layout id.
   testId?: string
 }
 
@@ -36,9 +35,9 @@ export type AnimatedTabsProps = {
   iconOnly?: boolean
   layoutId?: string
   className?: string
-  // Extra classes appended to the sliding active indicator. `cn` here uses
-  // tailwind-merge so passing e.g. `bg-white` overrides the variant's
-  // default bg without disabling other indicator utilities.
+  // Extra classes for the sliding active indicator. `cn` uses tailwind-merge,
+  // so e.g. `bg-white` overrides the variant's default bg without dropping
+  // other indicator utilities.
   indicatorClassName?: string
   // Extra classes appended to the active tab button — pair with
   // `indicatorClassName` to flip the active text color when the override
@@ -102,10 +101,9 @@ export function AnimatedTabs({
       // Locked tabs are clickable (they open an upgrade prompt) but read as
       // gated — dimmed like disabled, with a normal pointer cursor.
       isLocked && 'opacity-40',
-      // Segment uses a tighter vertical rhythm because the segmented
-      // pill sits inside the recording toolbar's mode-toggle slot and
-      // a full `py-2` made the pill heavier than the bar's other
-      // controls. Other variants keep their original padding.
+      // Segment uses tighter vertical padding: it sits in the recording
+      // toolbar's mode-toggle slot, where a full `py-2` made the pill
+      // heavier than the bar's other controls.
       iconOnly ? 'px-2 py-1.5' : variant === 'segment' ? 'px-3 py-1' : 'px-4 py-2',
       'focus-visible:outline-none',
       variant === 'underline' && [
@@ -128,9 +126,8 @@ export function AnimatedTabs({
       'absolute',
       variant === 'underline' && 'right-0 -bottom-px left-0 h-0.5 bg-[#0a84ff]',
       variant === 'pill' && 'inset-0 rounded-full bg-background shadow-sm',
-      // Segment indicator: solid white pill, matching the recording
-      // toolbar's mode toggle (the canonical "toolbar tab" style). Active
-      // label/icon flips to near-black via the active text color above.
+      // Solid white pill matching the recording toolbar's mode toggle; the
+      // active label/icon flips to near-black via the active text color above.
       variant === 'segment' && 'inset-0 rounded-lg bg-white shadow-[0_1px_2px_rgba(0,0,0,0.3)]',
       indicatorClassName
     )
@@ -188,10 +185,9 @@ export function AnimatedTabs({
         )
 
         if (!tooltipContent) return button
-        // Segment tabs use `flex-1` to share width equally; the
-        // tooltip wrapper has to take the same flex slot or the
-        // button collapses to its content size and tabs end up
-        // unevenly distributed.
+        // Segment tabs use `flex-1` to share width equally, so the tooltip
+        // wrapper must take the same flex slot — otherwise the button
+        // collapses to its content size and tabs distribute unevenly.
         const triggerClassName = variant === 'segment' ? 'flex flex-1' : undefined
         return (
           <AnimatedTooltip

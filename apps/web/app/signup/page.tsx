@@ -8,7 +8,7 @@ import { AuthForm } from '@/app/AuthForm';
 
 export const dynamic = 'force-dynamic';
 
-// Full-page sign-up. Same form as /login, opened in signup mode.
+// Full-page sign-up sharing the same AuthForm as /login.
 export default async function SignupPage({
   searchParams,
 }: {

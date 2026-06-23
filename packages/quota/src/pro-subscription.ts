@@ -1,11 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
 
 // Pro subscription entitlement read-side. The `pro_subscription` table is
-// written by the Lemon Squeezy webhook receiver; this
-// module is what the rest of the app reads to answer "is user X on an
-// active Pro subscription right now?" — gating both the cloud storage cap
-// (via getEffectiveLimitsForUser) and the Studio-export entitlement check
-// the desktop app makes on sign-in.
+// written by the Lemon Squeezy webhook receiver; this module answers "is
+// user X on an active Pro subscription right now?" — gating both the cloud
+// storage cap (via getEffectiveLimitsForUser) and the Studio-export
+// entitlement check the desktop app makes on sign-in.
 
 export type ProSubscriptionStatus =
   | 'on_trial'

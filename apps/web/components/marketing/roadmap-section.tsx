@@ -7,8 +7,6 @@ import { Icon } from '@/components/ui/icon';
 import { ROADMAP_GROUPS } from '@/lib/marketing/constants';
 import { useLocalizedHref, useMessages } from './i18n-provider';
 
-// Per-category footer treatment — label text + a matching coloured round dot,
-// the way a Jira ticket shows its project tag + a status swatch.
 const CATEGORY_META: Record<
   string,
   { label: string; icon: string; dotClass: string }
@@ -19,7 +17,7 @@ const CATEGORY_META: Record<
 };
 
 // A flattened ticket plus the column context it belongs to. Captured on click
-// so the detail card (smoothui job-listing style) can morph open from it.
+// so the detail card can morph open from it via a shared layoutId.
 type SelectedTicket = {
   id: string;
   label: string;
@@ -31,7 +29,7 @@ type SelectedTicket = {
 };
 
 // Maps the English `category` string from the constant to its catalog key,
-// so the localized category label can be looked up via m.roadmap.categories.
+// so the localized label can be looked up via m.roadmap.categories.
 const CATEGORY_KEY: Record<string, 'ai' | 'studio' | 'share'> = {
   Core: 'ai',
   Record: 'studio',
@@ -47,7 +45,7 @@ export function RoadmapSection() {
     ? { duration: 0 }
     : { type: 'spring' as const, stiffness: 320, damping: 32 };
 
-  // Escape closes the detail card.
+  // Escape closes the open detail card.
   useEffect(() => {
     if (!selected) return;
     const onKey = (e: KeyboardEvent): void => {
@@ -78,10 +76,8 @@ export function RoadmapSection() {
           </Link>
         </div>
 
-        {/* Jira-style board: each group is a light-grey column with a header
-            (status dot + name + ticket count) and a stack of white ticket
-            tiles. Tiles show the title only; clicking one opens a detail card
-            (smoothui job-listing component) that morphs open via layoutId. */}
+        {/* Each group is a column; tiles show the title only and, on click,
+            morph open into a detail card via a shared layoutId. */}
         <div className="mt-16 grid gap-4 lg:grid-cols-3">
           {ROADMAP_GROUPS.map((group, groupIndex) => {
             const inProgress = group.badgeLabel === 'In progress';
@@ -94,7 +90,7 @@ export function RoadmapSection() {
                   inProgress ? 'bg-neutral-200/60' : 'bg-neutral-100/70'
                 }`}
               >
-                {/* Column header — status dot, column name, ticket count. */}
+                {/* Column header: status dot, name, ticket count. */}
                 <div className="flex items-center gap-2 px-1.5 pb-3 pt-1">
                   <span className={group.badgeClass}>
                     <span
@@ -110,7 +106,7 @@ export function RoadmapSection() {
                   </span>
                 </div>
 
-                {/* Ticket tiles — title only; click to open the detail card. */}
+                {/* Ticket tiles — click to open the detail card. */}
                 <div className="space-y-2.5">
                   {group.items.map((item, itemIndex) => {
                     const category = CATEGORY_META[item.category];
@@ -141,8 +137,7 @@ export function RoadmapSection() {
                         <span className="text-sm font-normal text-foreground">
                           {localizedItem.label}
                         </span>
-                        {/* Footer — category label + matching coloured dot,
-                            right-aligned like a Jira ticket's project tag. */}
+                        {/* Footer: category label + matching coloured dot. */}
                         <span className="flex items-center justify-end gap-2">
                           <span className="text-sm font-medium text-neutral-500">
                             {categoryLabel}
@@ -162,8 +157,8 @@ export function RoadmapSection() {
         </div>
       </div>
 
-      {/* Detail card — morphs open from the clicked ticket (shared layoutId)
-          over a blurred backdrop. Click-outside or Escape closes it. */}
+      {/* Detail card — morphs open from the clicked ticket via the shared
+          layoutId. Click-outside or Escape closes it. */}
       <AnimatePresence>
         {selected && (
           <motion.div

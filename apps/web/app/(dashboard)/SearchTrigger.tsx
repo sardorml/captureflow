@@ -10,11 +10,9 @@ import {
 } from '@captureflow/ui';
 import type { SearchHit } from '@/app/api/search/route';
 
-// Loom-style cmd-K search affordance. The trigger renders as a wide
-// pill in the topbar; clicking (or pressing ⌘K / Ctrl-K) opens a
-// SmoothDialog with an input + empty state. Real search wiring (D1
-// query, transcript scan, member filter) is deferred — the chrome
-// lands first so the bar is part of the layout, then we hook it up.
+// Cmd-K search. The trigger renders as a wide pill in the topbar;
+// clicking (or pressing ⌘K / Ctrl-K) opens a dialog that queries
+// /api/search as the user types.
 
 export function SearchTrigger() {
   const [open, setOpen] = useState(false);
@@ -22,8 +20,7 @@ export function SearchTrigger() {
   const [results, setResults] = useState<SearchHit[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Global cmd/ctrl-K opens the modal. Matches Loom's posture so
-  // muscle memory carries over for new users.
+  // Global cmd/ctrl-K opens the modal.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
@@ -35,10 +32,9 @@ export function SearchTrigger() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Debounced fetch — only fires once the user pauses typing for
-  // 180ms, and only when the query has at least 2 chars. Cancels
-  // inflight calls via AbortController so a fast typer's stale
-  // requests don't clobber the latest results.
+  // Debounced fetch: fires 180ms after the last keystroke, only for
+  // queries of 2+ chars. AbortController cancels inflight calls so a
+  // fast typer's stale requests can't clobber the latest results.
   useEffect(() => {
     if (!open) return;
     const trimmed = query.trim();

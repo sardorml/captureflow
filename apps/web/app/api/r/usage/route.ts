@@ -11,18 +11,11 @@ import type { ShareApiError } from '@/lib/share/types';
 
 const DEVICE_HEADER = 'x-captureflow-device';
 
-// GET /api/usage
-//
-// Reports current storage + active-share usage for the signed-in
-// account so the desktop client can paint the cap-reached lock on
-// its record button before /api/init would have rejected the next
-// upload. Bearer is required — every share is account-owned, so an
-// anonymous probe would have nothing meaningful to report. The
-// desktop only probes once it has a bearer; signed-out clients
-// already paint the auth lock instead of the quota lock.
-//
-// Dev-allowlisted devices always report `capReached: false` to
-// match the bypass in /api/init.
+// Reports storage + active-share usage so the desktop client can paint the
+// cap-reached lock before /api/init would reject the next upload. Bearer is
+// required: every share is account-owned, so an anonymous probe has nothing
+// to report. Dev-allowlisted devices always report capReached:false to match
+// the bypass in /api/init.
 
 function extractBearerToken(req: NextRequest): string | null {
   const h = req.headers.get('authorization') ?? '';

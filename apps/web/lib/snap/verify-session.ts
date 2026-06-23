@@ -1,26 +1,13 @@
 /// <reference types="@cloudflare/workers-types" />
 
-// In-process session verification for the snap viewer.
+// In-process session verification for the snap viewer. Runs the same
+// lookup app-web's /api/verify-session does: getSession (reads the
+// cookie), listWorkspacesForUser, and a users.image read for the avatar.
 //
-// An earlier standalone version of this module made a server-side
-// `fetch` to app.captureflow.xyz/api/verify-session, forwarding the
-// visitor's cookie header across origins (with an explicit Origin for
-// the CORS allowlist, an 8s timeout, and a single retry on cold-start).
-// Now the snap viewer lives under `/s` on the SAME app as better-auth,
-// so there is no second origin to call: we run the exact session lookup
-// the app's own `app/api/verify-session/route.ts` does —
-//   1. `auth.api.getSession({ headers })`  (reads the cookie),
-//   2. `listWorkspacesForUser(DB, userId)` for workspace memberships,
-//   3. a `users.image` read for the viewer's avatar.
-//
-// The cross-origin fetch, its CORS Origin header, the timeout, and the
-// retry are all gone for this path — there is no network hop to fail.
-//
-// This is the byte-for-byte mirror of lib/share/verify-session.ts (the
-// share equivalent). Return shape:
+// Return shape:
 //   - VerifiedSession: a valid session was found.
-//   - null:            "definitely no session" — no cookie, or no
-//                      session for the cookie. Render RequestAccess.
+//   - null:            no session — no cookie, or no session for the
+//                      cookie. Render RequestAccess.
 //   - 'unknown':       transient backend failure (e.g. a D1 hiccup or
 //                      the auth lookup throwing). The caller renders a
 //                      neutral loading shell instead of RequestAccess so
@@ -34,19 +21,17 @@ export type VerifiedSession = {
   userId: string;
   email: string;
   name: string | null;
-  // Optional avatar URL from better-auth `users.image`. Surfaced so the
-  // viewer's own chip reflects uploads done on app-web.
+  // Avatar URL from better-auth `users.image`, so the viewer's own chip
+  // reflects uploads done on app-web.
   image: string | null;
   workspaceIds: string[];
 };
 
 export type VerifySessionResult = VerifiedSession | null | 'unknown';
 
-// Reconstruct a Headers object carrying just the visitor's cookie so
-// better-auth can read the session cookie out of it — the same way the
-// app-web route passes `req.headers` straight through. Callers hand us
-// the raw cookie header (`(await headers()).get('cookie')`), preserving
-// the original signature so no moved caller needs to change.
+// Wrap the visitor's raw cookie header in a Headers object so better-auth
+// can read the session cookie out of it, the same way the app-web route
+// passes `req.headers` straight through.
 function headersFromCookie(cookieHeader: string): Headers {
   const h = new Headers();
   h.set('cookie', cookieHeader);
@@ -63,15 +48,14 @@ export async function verifySession(
   >;
   try {
     const auth = await getAuth();
-    // `auth.api.getSession` reads the cookie out of `headers` — the same
-    // path the dashboard + app-web's /api/verify-session use. With
-    // cross-subdomain cookies enabled the visitor's cookie is present.
+    // getSession reads the cookie out of `headers`; cross-subdomain
+    // cookies must be enabled for the visitor's cookie to be present.
     session = await auth.api.getSession({
       headers: headersFromCookie(cookieHeader),
     });
   } catch (err) {
     // A thrown lookup is a transient backend failure (cold start, D1
-    // blip) — surface as 'unknown' so the page renders a loading shell
+    // blip); surface as 'unknown' so the page renders a loading shell
     // rather than treating it as a hard "logged out".
     console.error('snap verify-session: getSession threw', err);
     return 'unknown';

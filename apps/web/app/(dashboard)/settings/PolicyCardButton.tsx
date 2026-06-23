@@ -3,12 +3,10 @@
 import { useFormStatus } from 'react-dom';
 import { type ReactNode } from 'react';
 
-// Shared submit button for the workspace-settings policy cards
-// (AccessPolicy + MemberUploadsPolicy). Reads the parent form's
-// `useFormStatus()` so the clicked card can render an inline pending
-// state — the radio dot swaps for a spinner and the border tints —
-// while the server action runs. Both policies use identical chrome,
-// so the only divergence is the card's `icon` + `title` + `body`.
+// Shared submit button for the workspace-settings policy cards.
+// Reads the parent form's `useFormStatus()` so only the clicked card
+// renders the pending state (spinner + tinted border) while the server
+// action runs.
 
 type Props = {
   active: boolean;

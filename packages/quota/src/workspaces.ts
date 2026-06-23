@@ -84,9 +84,8 @@ function generateId(): string {
   return crypto.randomUUID().replace(/-/g, '');
 }
 
-// 12-char lowercase hex for workspace slugs. Used in URLs once v2 wires
-// /w/<slug>/... routing; v1 already populates it so we never have to
-// backfill.
+// 12-char lowercase hex for workspace slugs. Populated now even though
+// /w/<slug>/... routing lands in v2, so we never have to backfill.
 function generateSlug(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(6));
   return Array.from(bytes)
@@ -248,11 +247,9 @@ export async function ensurePersonalWorkspace(
   return row;
 }
 
-// ────────────────────────────────────────────────────────────────
-// Owner-editable settings — surfaced on the dashboard /settings page.
-// Each helper trusts the caller to gate on `role = 'owner'`; the
-// server action / API route layer is the single security check.
-// ────────────────────────────────────────────────────────────────
+// Owner-editable settings. Each helper trusts the caller to gate on
+// `role = 'owner'`; the server action / API route layer is the single
+// security check.
 
 export async function updateWorkspaceName(
   db: D1Database,

@@ -4,10 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Camera, Link2, Settings, Users } from 'lucide-react';
 
-// Loom-style grouped sidebar nav. Primary nav (content the viewer
-// owns + a quick invite shortcut) at the top, then an "Admin tools"
-// section below the divider that's only rendered for workspace
-// owners.
+// Grouped sidebar nav: primary content links at the top, with an
+// "Admin tools" section that renders only for workspace owners.
 
 type NavItem = {
   href: string;

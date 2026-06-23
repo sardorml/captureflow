@@ -1,11 +1,6 @@
 import { getAuth } from '@/lib/auth';
 
-// Catch-all for every better-auth endpoint:
-//   POST /api/auth/sign-in/email
-//   POST /api/auth/sign-up/email
-//   POST /api/auth/sign-out
-//   GET  /api/auth/get-session
-//   ...etc
+// Catch-all route delegating every /api/auth/* request to the better-auth handler.
 
 export const dynamic = 'force-dynamic';
 

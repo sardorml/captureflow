@@ -32,87 +32,72 @@ import {
   type ShareConfig,
 } from './share-config';
 
-// Imperative handle exposed via ref so wrapping components (e.g. the
-// public viewer's reactions layer) can read the player's current state
-// at click-time without coupling to React's batched render cycle.
+// Imperative handle so wrapping components (e.g. the public viewer's
+// reactions layer) can read player state at click-time, bypassing
+// React's batched render cycle.
 export type SharePlayerHandle = {
   getCurrentTime(): number;
   getDuration(): number;
-  // Jump to the given offset (seconds) and start playback so the
-  // viewer doesn't have to manually press play after clicking a
-  // timestamped reaction/comment in the activity sidebar.
+  // Seek and start playing, so clicking a timestamped reaction/comment
+  // lands at its moment without a second press-play.
   seekTo(seconds: number): void;
 };
 
-// Info handed to the progressOverlay slot. The slot lives in the
-// shared player so the wrapping component (public viewer) can render
-// reaction cluster bubbles aligned to the player's progress bar
-// without forking the entire player.
+// Info handed to the progressOverlay slot so the public viewer can align
+// reaction cluster bubbles to the progress bar without forking the player.
 export type ProgressOverlayInfo = {
-  // Effective duration in seconds — the player's known duration, with
-  // a fallback to serverDurationMs/1000 before metadata arrives.
+  // Player's known duration, falling back to serverDurationMs/1000
+  // before metadata arrives.
   durationSeconds: number;
-  // Whether the bottom controls bar is currently visible. The overlay
-  // typically shifts its vertical position to stay anchored to the
-  // active progress indicator (scrubber when expanded, slim strip
-  // when collapsed).
+  // The overlay anchors to whichever progress indicator is active:
+  // the scrubber when controls show, the slim strip when collapsed.
   controlsVisible: boolean;
 };
 
 type Props = {
   videoUrl: string;
   posterUrl?: string;
-  // Optional companion webcam video, rendered as a configurable PiP
-  // overlay and synced to the main player. Carries mic audio; the
-  // main video carries system audio (independently muteable). Absent
-  // when the recording had no camera (server-side webcam_state='none')
-  // or when the webcam upload hasn't finalized yet.
+  // Companion webcam video, rendered as a configurable PiP overlay and
+  // synced to the main player. Carries mic audio; the main video carries
+  // system audio (independently muteable). Absent when the recording had
+  // no camera (webcam_state='none') or the upload hasn't finalized.
   webcamUrl?: string;
-  // Authoritative duration from the share record. Used to size the
-  // scrubber before the <video> element knows its duration (which
-  // can take seconds, or never resolve to a finite number for
-  // fragmented MP4s).
+  // Authoritative duration from the share record, used to size the
+  // scrubber before <video> knows its own duration — which can take
+  // seconds, or never resolve to a finite number for fragmented MP4s.
   serverDurationMs: number | null;
-  // Server-known intrinsic dimensions. We use these to reserve the
-  // player's box at the correct aspect ratio on first paint —
-  // without this the container would collapse to 0 until metadata
-  // loads, then jump to its real size and shove the page around.
+  // Server-known intrinsic dimensions, used to reserve the player box at
+  // the right aspect ratio on first paint. Without this the container
+  // collapses to 0 until metadata loads, then jumps and shoves the page.
   serverWidth: number | null;
   serverHeight: number | null;
   // Persisted presentation config (bg, cam PiP corner + size, per-track
-  // mute defaults). On the edit page this is the LIVE config the
-  // sidebar mutates — changes apply immediately so the user previews
-  // exactly what the public viewer will render after Save.
+  // mute defaults). On the edit page this is the LIVE config the sidebar
+  // mutates — changes apply immediately so the user previews exactly what
+  // the public viewer renders after Save.
   config: ShareConfig;
-  // Optional render slot above the progress bar, inside the player
-  // container. Used by the public viewer to plot reaction clusters.
+  // Render slot above the progress bar; the public viewer uses it to
+  // plot reaction clusters.
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
-  // Optional content rendered below the player (still inside the
-  // shared component's outer flex column). Hidden in fullscreen so
-  // the wrapping content stays off the screen. Used by the public
-  // viewer for the reaction bar.
+  // Content below the player, inside the outer flex column. Hidden in
+  // fullscreen (only the player container goes fullscreen). The public
+  // viewer uses it for the reaction bar.
   belowPlayer?: ReactNode;
-  // Optional viewport-aware max-height for LANDSCAPE sources, e.g.
-  // 'min(34rem, calc(100vh - 19rem))'. Without it, landscape players
-  // fill the column width with no height cap (the page just scrolls).
-  // The public viewer passes this so the reaction bar directly below
-  // the player stays in view without scrolling; the editor omits it so
-  // the preview can fill the available panel height.
+  // Viewport-aware max-height for LANDSCAPE sources, e.g.
+  // 'min(34rem, calc(100vh - 19rem))'. The public viewer passes this so
+  // the reaction bar below the player stays in view without scrolling;
+  // the editor omits it so the preview fills the available panel height.
+  // Without it, landscape players fill the column width uncapped.
   landscapeMaxHeightCss?: string;
 };
 
 const SKIP_SECONDS = 5;
 const SPEED_CYCLE = [1, 1.25, 1.5, 2];
 
-// Loom-style custom player. Native HTML5 controls are off — the bg is
-// part of the video's visual composite and a UA control bar painted
-// over it would break the look. The container hugs the video's
-// natural aspect ratio (set once metadata loads) so there are no
-// letterbox bars on either side.
-//
-// Hover anywhere on the video to reveal the control bar; it auto-hides
-// after 2s of inactivity while playing. Click the video body to toggle
-// play/pause; same brief icon flash the editor's VideoPreview shows.
+// Custom player with native HTML5 controls off: the bg is part of the
+// video composite, so a UA control bar painted over it would break the
+// look. The container hugs the video's natural aspect ratio (set once
+// metadata loads) so there are no letterbox bars.
 export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
   function SharePlayer(
     {
@@ -131,19 +116,17 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
   ) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
-    // Companion webcam <video>. Mirrors play/pause/seek/playbackRate
-    // from the main video; carries its own audio track (mic). Null when
-    // webcamUrl is absent.
+    // Companion webcam <video>: mirrors play/pause/seek/playbackRate from
+    // the main video, carries its own audio (mic). Null without webcamUrl.
     const webcamRef = useRef<HTMLVideoElement | null>(null);
     const hideTimerRef = useRef<number | null>(null);
-    // Mirror of `scrubbing` state, read inside the webcam-sync effect's
-    // closures so cam.currentTime writes can be skipped during active
-    // drag (each write glitches mic audio).
+    // Mirror of `scrubbing`, read inside the webcam-sync effect closures
+    // so cam.currentTime writes can be skipped during a drag (each write
+    // glitches mic audio).
     const scrubbingRef = useRef(false);
 
-    // Expose imperative reads for the public viewer's reaction layer.
-    // React state is throttled (~10Hz via the rAF loop below); the
-    // reaction handler needs the freshest currentTime at click instant.
+    // The reaction handler needs the freshest currentTime at the click
+    // instant; React state lags it (throttled ~10Hz via the rAF loop).
     useImperativeHandle(
       handleRef,
       () => ({
@@ -163,8 +146,6 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
           if (!v) return;
           const clamped = Math.max(0, Math.min(seconds, v.duration || seconds));
           v.currentTime = clamped;
-          // Kick playback so the reaction/comment lands at its moment
-          // without the visitor needing a second click.
           void v.play().catch(() => {});
         },
       }),
@@ -175,16 +156,15 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
     const [overlayIcon, setOverlayIcon] = useState<'play' | 'pause' | null>(
       null,
     );
-    // Derive overlayIcon from isPlaying transitions (mirrors the editor's
-    // VideoPreview pattern). This catches every toggle — click, keyboard,
-    // controls bar — without scattering setOverlayIcon calls.
+    // Derive overlayIcon from isPlaying transitions so every toggle —
+    // click, keyboard, controls bar — flashes the icon without scattering
+    // setOverlayIcon calls.
     const [prevPlaying, setPrevPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    // Seed the initial mute state from the persisted config. The volume
-    // slider still defaults to 1.0 — config.systemMuted just sets the
-    // element's `muted` flag on first paint so a deliberately-silent
-    // share opens silent.
+    // Seed mute from the persisted config so a deliberately-silent share
+    // opens silent. The volume slider still defaults to 1.0; this only
+    // sets the element's `muted` flag on first paint.
     const [isMuted, setIsMuted] = useState(config.systemMuted);
     const [volume, setVolume] = useState(1);
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -194,24 +174,21 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
     const [pip, setPip] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [ended, setEnded] = useState(false);
-    // True once the video has buffered enough to paint its first frame.
-    // Drives the loading spinner overlay so the player area is never
-    // visually empty during the initial fetch.
+    // True once the video can paint its first frame; drives the loading
+    // spinner so the player area is never visually empty during fetch.
     const [firstFrameReady, setFirstFrameReady] = useState(false);
-    // Aspect ratio of the actually-encoded video, populated from metadata.
-    // The server-known dim is just a placeholder for the initial SSR
-    // paint — once metadata arrives we trust the video's intrinsic
-    // dimensions so the container's aspect-ratio matches exactly and
-    // object-contain doesn't show stray letterbox bars.
+    // Aspect ratio of the actually-encoded video, from metadata. The
+    // server-known dim is only a placeholder for the SSR paint; once
+    // metadata arrives we trust the video's intrinsic dimensions so the
+    // container aspect matches exactly and object-contain shows no bars.
     const [actualAspect, setActualAspect] = useState<number | null>(null);
 
-    // Belt-and-suspenders: if the browser already has the video buffered
-    // (304 from edge cache, bfcache, etc.), the loadeddata/canplay/
-    // loadedmetadata events can fire before React attaches handlers and
-    // we'd stay stuck on the spinner AND on the wrong container aspect
-    // ratio. Poll on mount + 300ms later, pulling both readyState and
-    // intrinsic dims so the container can correct from the server's
-    // (possibly wrong) placeholder dim to the actual encoded aspect.
+    // If the browser already has the video buffered (304 from edge cache,
+    // bfcache, etc.), loadeddata/canplay/loadedmetadata can fire before
+    // React attaches handlers — leaving us stuck on the spinner and the
+    // wrong container aspect. Poll on mount + 300ms later, pulling both
+    // readyState and intrinsic dims so the container corrects from the
+    // server placeholder to the actual encoded aspect.
     useEffect(() => {
       if (firstFrameReady && actualAspect != null) return;
       const check = (): void => {
@@ -232,9 +209,8 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
     if (prevPlaying !== isPlaying) {
       setPrevPlaying(isPlaying);
       // Suppress the icon flash when the pause came from the video
-      // ending — the "Watch again" overlay takes its place. Without
-      // this we'd briefly flash the play icon under the dim layer
-      // before the watch-again button paints.
+      // ending — the "Watch again" overlay takes its place. Otherwise the
+      // play icon flashes under the dim layer before that button paints.
       if (!ended) {
         setOverlayIcon(isPlaying ? 'pause' : 'play');
       }
@@ -282,12 +258,10 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
       if (cam) cam.muted = config.micMuted;
     }, [webcamUrl, config.micMuted]);
 
-    // Sync the screen video's mute state to the editor's
-    // config.systemMuted whenever the sidebar toggle flips. Without this
-    // the player only reads systemMuted at mount (via useState's initial
-    // value) and the toggle becomes a no-op. We push the change through
-    // setIsMuted + the <video>.muted property so the controls bar's
-    // mute icon also stays in sync.
+    // Sync the screen video's mute to config.systemMuted whenever the
+    // sidebar toggle flips. Without this the player reads systemMuted only
+    // at mount and the toggle becomes a no-op. Push through both setIsMuted
+    // and <video>.muted so the controls-bar mute icon stays in sync too.
     useEffect(() => {
       const v = videoRef.current;
       if (!v) return;
@@ -297,29 +271,25 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
       }
     }, [config.systemMuted]);
 
-    // Webcam sync — main is the master, cam follows. Each cam.currentTime
-    // write triggers a full audio-decoder flush in Chromium and is
-    // audible as a glitch/stutter, so we minimize them ruthlessly:
-    //
-    //   1. Skip redundant writes on play / seeked when cam is already
+    // Webcam sync — main is master, cam follows. Each cam.currentTime
+    // write triggers a full audio-decoder flush in Chromium, audible as a
+    // glitch, so we minimize writes:
+    //   1. Skip redundant writes on play/seeked when cam is already
     //      within HARD_RESYNC_S of main.
     //   2. Close small drifts with playbackRate nudges (±NUDGE_RATE)
     //      instead of seeking — audio stays continuous.
-    //   3. Only fall back to a hard seek when drift exceeds the
-    //      "obviously wrong" threshold.
-    //
-    // Cam stalls never touch main (preserving its audio).
+    //   3. Hard seek only when drift exceeds HARD_RESYNC_S.
+    // Cam stalls never touch main, preserving its audio.
     useEffect(() => {
       if (!webcamUrl) return;
       const main = videoRef.current;
       const cam = webcamRef.current;
       if (!main || !cam) return;
 
-      // Hard-resync only when drift is unmistakable (≥250ms). Below that
-      // we ride a playbackRate nudge so the audio never seeks.
+      // Hard-resync only when drift is unmistakable (≥250ms); below that
+      // a playbackRate nudge avoids seeking.
       const HARD_RESYNC_S = 0.25;
-      // Below this drift we leave cam alone entirely — well within
-      // human-imperceptible AV sync.
+      // Below this drift, leave cam alone — within imperceptible AV sync.
       const NUDGE_DEAD_ZONE_S = 0.04;
       const NUDGE_RATE = 0.04; // ±4% rate adjustment to drift back into sync
 
@@ -339,8 +309,8 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
       };
 
       const onMainPlay = (): void => {
-        // Don't seek cam if it's already in lockstep — the redundant
-        // write is the most common source of "audio glitches on unpause".
+        // seekCamIfFar skips the write when already in lockstep — that
+        // redundant write is the top cause of audio glitches on unpause.
         seekCamIfFar();
         playCam();
       };
@@ -371,9 +341,8 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
             cam.currentTime = main.currentTime;
             cam.playbackRate = main.playbackRate;
           } else if (absDrift > NUDGE_DEAD_ZONE_S) {
-            // Nudge: if cam is behind (drift < 0), speed it up;
-            // if ahead (drift > 0), slow it down. Audio glides without
-            // a seek glitch.
+            // Nudge: speed cam up when behind (drift < 0), slow it when
+            // ahead (drift > 0). Audio glides without a seek glitch.
             const target =
               main.playbackRate + (drift < 0 ? NUDGE_RATE : -NUDGE_RATE);
             if (Math.abs(cam.playbackRate - target) > 0.001) {
@@ -407,10 +376,9 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
       };
     }, [webcamUrl]);
 
-    // Mirror `scrubbing` into the ref the webcam-sync effect closures
-    // read. On scrub-end, sync cam once if it's far enough off that the
-    // playbackRate nudge can't catch up in a reasonable time — otherwise
-    // skip the write entirely so cam audio doesn't glitch.
+    // Mirror `scrubbing` into the ref the webcam-sync closures read. On
+    // scrub-end, sync cam once if it's far enough off that a nudge can't
+    // catch up; otherwise skip the write so cam audio doesn't glitch.
     useEffect(() => {
       scrubbingRef.current = scrubbing;
       if (!scrubbing && webcamUrl) {
@@ -422,14 +390,12 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
       }
     }, [scrubbing, webcamUrl]);
 
-    // Smooth scrubber: rAF loop reads video.currentTime every frame
-    // while playing. The native `timeupdate` event only fires every
-    // ~200-250ms, which makes the progress bar visibly jump. Driving
-    // setCurrentTime from rAF gives 60fps motion. Stops on pause /
-    // unmount so we don't churn. Also stops while the user is dragging
-    // the scrubber — otherwise the tick keeps overwriting the user's
-    // optimistic drag position with the video's lagging currentTime,
-    // which felt like the bar was jittering away from the pointer.
+    // Smooth scrubber: rAF reads video.currentTime each frame while
+    // playing, since native `timeupdate` fires only ~200-250ms apart and
+    // makes the bar visibly jump. Stops on pause/unmount, and while
+    // dragging — otherwise the tick overwrites the user's optimistic drag
+    // position with the video's lagging currentTime, jittering the bar
+    // away from the pointer.
     useEffect(() => {
       if (!isPlaying || scrubbing) return;
       let raf = 0;
@@ -446,10 +412,9 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
     }, [isPlaying, scrubbing]);
 
     // Auto-hide the control bar 2s after the cursor stops moving. Holds
-    // open while scrubbing so the user can fine-tune without the bar
-    // disappearing; otherwise paused + playing both auto-collapse so
-    // viewers always see the same minimal slim-progress-bar treatment
-    // when their mouse isn't on the player.
+    // open while scrubbing so the user can fine-tune; otherwise both
+    // paused and playing collapse to the slim-progress-bar treatment when
+    // the mouse isn't on the player.
     const armHideTimer = (): void => {
       if (hideTimerRef.current !== null) {
         window.clearTimeout(hideTimerRef.current);
@@ -465,10 +430,10 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
       armHideTimer();
     };
 
-    // Showing the bar + holding it open while scrubbing is handled in the
-    // scrub-start handler (an event, not an effect) so we never call setState
-    // directly in this effect's body. Here we only (re)arm the auto-hide once
-    // scrubbing ends and on play/pause changes.
+    // Showing/holding the bar while scrubbing is done in the scrub-start
+    // event handler (not here) so this effect never calls setState in its
+    // body. Here we only (re)arm the auto-hide once scrubbing ends and on
+    // play/pause changes.
     useEffect(() => {
       if (scrubbing) return;
       armHideTimer();
@@ -482,10 +447,10 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
     const togglePlay = (): void => {
       const v = videoRef.current;
       if (!v) return;
-      // Don't set isPlaying or overlayIcon here — the <video> element's
-      // play/pause events update isPlaying, and the prevPlaying derived
-      // effect drives the overlay. This ensures keyboard, click, and
-      // controls-bar toggles all flash the icon consistently.
+      // Don't set isPlaying or overlayIcon here — the <video>'s play/pause
+      // events update isPlaying and the prevPlaying derivation drives the
+      // overlay, so keyboard, click, and controls-bar toggles stay
+      // consistent.
       if (v.paused) {
         void v.play();
       } else {
@@ -498,10 +463,10 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
       togglePlay();
     };
 
-    // Fragmented MP4s (and a few of our share renders, depending on the
-    // muxer path) report `video.duration === Infinity`. We can't divide
-    // currentTime by that, so fall back to the last seekable end — which
-    // the browser keeps current as bytes arrive.
+    // Fragmented MP4s (and some share renders, depending on the muxer
+    // path) report duration === Infinity. We can't divide currentTime by
+    // that, so fall back to the last seekable end, which the browser keeps
+    // current as bytes arrive.
     const effectiveDuration = (v: HTMLVideoElement): number => {
       if (Number.isFinite(v.duration) && v.duration > 0) return v.duration;
       if (v.seekable.length > 0) {
@@ -528,10 +493,9 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
       if (max <= 0) return;
       const next = Math.max(0, Math.min(max, fraction * max));
       v.currentTime = next;
-      // Push the new position to React state synchronously so the
-      // scrubber's white-fill bar follows the pointer in real time.
-      // Without this we'd be waiting on `timeupdate` (~250ms), which
-      // makes dragging feel like it lags + snaps to keyframes.
+      // Push to React state synchronously so the scrubber fill follows the
+      // pointer in real time. Waiting on `timeupdate` (~250ms) makes
+      // dragging feel laggy and snap to keyframes.
       setCurrentTime(next);
     };
 
@@ -565,17 +529,15 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
       const el = containerRef.current;
       const v = videoRef.current;
 
-      // iOS Safari ships only partial fullscreen support: the standard
-      // `document.fullscreenElement` / `element.requestFullscreen()` API
-      // doesn't exist (or only exists prefixed), and even where prefixed
-      // versions exist they only work on `<video>` elements — not on the
-      // container div we use everywhere else. Cascade through every
-      // known shape so the button does something on every browser:
+      // iOS Safari has only partial fullscreen support: the standard
+      // requestFullscreen API may be absent or prefixed, and prefixed
+      // versions work on <video> only, not the container div. Cascade
+      // through every shape so the button works on every browser:
       //   1. Standard API on the container (desktop Chrome/Firefox/Safari)
       //   2. webkit-prefixed API on the container (older WebKit)
-      //   3. webkitEnterFullscreen on the <video> (iOS Safari) — boots
-      //      the native iOS video player. Our custom controls are lost
-      //      here, but the alternative is a no-op button on every iPhone.
+      //   3. webkitEnterFullscreen on the <video> (iOS Safari) — boots the
+      //      native iOS player and loses our custom controls, but the
+      //      alternative is a no-op button on every iPhone.
 
       type WithWebkitFullscreenContainer = HTMLElement & {
         webkitRequestFullscreen?: () => Promise<void> | void;
@@ -628,7 +590,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
           await document.exitPictureInPicture();
           setPip(false);
         } else {
-          // Older Safari + some browsers may not implement requestPictureInPicture
+          // Older Safari + some browsers lack requestPictureInPicture.
           type WithPip = HTMLVideoElement & {
             requestPictureInPicture?: () => Promise<PictureInPictureWindow>;
           };
@@ -670,11 +632,10 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
     };
 
     const fraction = duration > 0 ? currentTime / duration : 0;
-    // Inset the video inside a visible bg frame when a background is
-    // selected. `transparent` keeps the video edge-to-edge — same look
-    // as a player with no bg. inset-[%] preserves aspect because
-    // top/bottom % is relative to container height and left/right % to
-    // container width, so a uniform 4% trim doesn't distort the box.
+    // Inset the video inside a visible bg frame when a background is set;
+    // `transparent` keeps it edge-to-edge. inset-[%] preserves aspect:
+    // top/bottom % is relative to container height, left/right % to width,
+    // so a uniform 4% trim doesn't distort the box.
     const hasFrame = config.background !== 'transparent';
 
     return (
@@ -682,22 +643,19 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
         <div
           ref={containerRef}
           // Container reserves its final size on first paint via the
-          // server-known aspect ratio (passed in from the share row's
-          // width/height). Without this the box collapses to 0 height
-          // until <video> metadata loads, then jumps to its real size —
-          // visible page-shove that the user reported. Fullscreen
-          // overrides with explicit fill + black letterbox.
-          // `@container` makes the inline-size queryable by descendants;
-          // we use it on the controls bar below so Settings + PiP hide
-          // when the player itself is narrow (not when the viewport is
-          // narrow). That lets the player width track the source width
-          // freely — narrow recordings no longer have to inflate just
-          // to fit a controls bar with 8 buttons.
+          // server-known aspect ratio. Without this the box collapses to 0
+          // height until <video> metadata loads, then jumps to its real
+          // size (visible page-shove). Fullscreen overrides with fill +
+          // black letterbox.
+          // `@container` makes the inline-size queryable by descendants:
+          // the controls bar hides Settings + PiP when the *player* is
+          // narrow (not the viewport), so the player width can track the
+          // source width without inflating to fit an 8-button bar.
           //
           // Mobile (max-sm): override the desktop width/height bounds so
-          // the player fills the column and tracks the source's natural
-          // aspect ratio (no height cap — the page just scrolls). The
-          // `!` prefix wins over the inline `width`/`height` below.
+          // the player fills the column at the source's aspect (no height
+          // cap, page scrolls). The `!` prefix wins over the inline
+          // width/height below.
           className={
             '@container group relative overflow-hidden rounded-md bg-neutral-900 focus:outline-none max-sm:h-auto! max-sm:w-full! ' +
             (isFullscreen
@@ -722,11 +680,9 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
           onKeyDown={handleKey}
           tabIndex={0}
         >
-          {/* Bg-frame wrapper. With a bg selected the video inset-shrinks
-            by a uniform 4% per side so the bg paints as a visible frame.
-            With bg=transparent the wrapper fills the container — same
-            edge-to-edge layout as before. rounded-lg on the inner box
-            gives the Loom-style soft-corner inset look. */}
+          {/* Bg-frame wrapper. With a bg selected the video shrinks 4% per
+            side so the bg paints as a visible frame; with bg=transparent
+            the wrapper fills the container edge-to-edge. */}
           <div
             className={
               hasFrame
@@ -738,11 +694,9 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
               ref={videoRef}
               src={videoUrl}
               poster={posterUrl}
-              // Container reserves the size via aspect-ratio; video uses
-              // object-contain so an aspect mismatch (server row's
-              // width/height vs the actual encoded video) shows as a
-              // small letterbox against the container's bg instead of
-              // cropping content.
+              // object-contain so an aspect mismatch (server row dim vs the
+              // actual encoded video) shows as a small letterbox against
+              // the container bg instead of cropping content.
               className="block h-full w-full cursor-pointer object-contain"
               playsInline
               preload="auto"
@@ -751,21 +705,20 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
               onCanPlay={() => setFirstFrameReady(true)}
               onPlaying={() => setFirstFrameReady(true)}
               onPlay={() => {
-                // iOS Safari (and some Android browsers) ignore preload="auto"
-                // and never fire loadeddata/canplay until the user actually
-                // taps play — leaving the spinner stuck on top of a video
-                // that's perfectly ready. Treat the user-initiated play as a
-                // hard signal that we're past the loading state.
+                // iOS Safari (and some Android browsers) ignore
+                // preload="auto" and never fire loadeddata/canplay until the
+                // user taps play, leaving the spinner stuck over a ready
+                // video. The user-initiated play is a hard ready signal.
                 setFirstFrameReady(true);
                 setIsPlaying(true);
                 setEnded(false);
               }}
               onPause={(e) => {
                 // Browsers fire `pause` then `ended` on natural completion.
-                // Detect end-by-time inside onPause too so React batches the
-                // ended=true update with isPlaying=false in a single render
-                // — otherwise the prevPlaying derived check briefly flashes
-                // the play icon before the watch-again overlay appears.
+                // Detect end-by-time here too so React batches ended=true
+                // with isPlaying=false in one render; otherwise the
+                // prevPlaying derivation briefly flashes the play icon
+                // before the watch-again overlay appears.
                 const v = e.currentTarget;
                 if (v.duration > 0 && v.currentTime >= v.duration - 0.1) {
                   setEnded(true);
@@ -775,14 +728,13 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
               onEnded={() => setEnded(true)}
               onTimeUpdate={(e) => {
                 // Refresh duration even while scrubbing — fragmented MP4s
-                // only expose it as bytes arrive, and the user is allowed
-                // to scrub before the full duration is known.
+                // expose it only as bytes arrive, and the user may scrub
+                // before the full duration is known.
                 const d = effectiveDuration(e.currentTarget);
                 if (d > 0 && d !== duration) setDuration(d);
-                // While the user is actively dragging, don't sync the
-                // scrubber's React state to the browser's currentTime —
-                // browsers snap seeks to keyframes, which would yank the
-                // bar away from the user's pointer mid-drag.
+                // While dragging, don't sync scrubber state to currentTime
+                // — browsers snap seeks to keyframes, yanking the bar away
+                // from the pointer mid-drag.
                 if (scrubbing) return;
                 const t = e.currentTarget.currentTime;
                 setCurrentTime(t);
@@ -796,11 +748,11 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
                 if (v.videoWidth > 0 && v.videoHeight > 0) {
                   setActualAspect(v.videoWidth / v.videoHeight);
                 }
-                // On mobile (especially iOS Safari) preload="auto" is a
-                // suggestion — the browser parses the moov atom and fires
-                // loadedmetadata but never advances to loadeddata until the
-                // user taps. Treat loadedmetadata as "ready enough to show
-                // the play affordance" so the spinner doesn't stay forever.
+                // On mobile (especially iOS Safari) preload="auto" is only
+                // a suggestion: the browser fires loadedmetadata but never
+                // advances to loadeddata until the user taps. Treat
+                // loadedmetadata as ready enough to show the play
+                // affordance so the spinner doesn't stay forever.
                 setFirstFrameReady(true);
               }}
               onProgress={(e) => {
@@ -814,23 +766,18 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
             />
           </div>
 
-          {/* Webcam companion PiP. Position + size + initial mute come
-            from the persisted share config (defaults: bottom-right /
-            medium / unmuted). Plays its own audio track (mic) —
-            independently of the main video's system audio. Sync to
-            the main video is wired via the effect that mirrors
-            play/pause/seek/playbackRate from videoRef → webcamRef.
-            Hidden when no webcamUrl. Pointer-none so clicks fall
-            through to the main video's handlers (single play/pause). */}
+          {/* Webcam companion PiP. Position/size/initial-mute come from the
+            persisted config. Plays its own mic audio, synced to the main
+            video via the effect above. Pointer-none so clicks fall through
+            to the main video's play/pause handlers. */}
           {webcamUrl ? (
             <video
               ref={webcamRef}
               src={webcamUrl}
               className={
-                // No z-index: natural stacking order puts the toolbar
-                // (later sibling) on top when controls are visible —
-                // bubble passes UNDER the toolbar like a real video
-                // player's PiP.
+                // No z-index: natural stacking puts the later-sibling
+                // toolbar on top, so the bubble passes under it like a real
+                // PiP.
                 'pointer-events-none absolute aspect-square rounded-full object-cover ' +
                 webcamCornerClass(config.cameraCorner) +
                 ' ' +
@@ -841,25 +788,22 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
             />
           ) : null}
 
-          {/* Loading state while the video buffers its first frame AND
-          we know its real intrinsic dims. Holding through actualAspect
-          means the container's aspect-ratio reservation is already
-          settled by the time the spinner hides — without this, an old
-          share with a stale row dim resizes its container behind the
-          spinner and produces a visible split-second jump on reveal. */}
+          {/* Loading state, held until both the first frame and the real
+          intrinsic dims are known. Gating on actualAspect means the
+          container's aspect reservation has settled before the spinner
+          hides; otherwise an old share with a stale row dim resizes behind
+          the spinner and jumps on reveal. */}
           {!firstFrameReady || actualAspect == null ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-neutral-900">
               <span className="block h-10 w-10 animate-spin rounded-full border-2 border-neutral-700 border-t-neutral-200" />
             </div>
           ) : null}
 
-          {/* Persistent center play button whenever the video is paused
-          (and not at the natural end — the watch-again overlay handles
-          that case). Doubles as the initial-state affordance before
-          first play and as the resume affordance after a manual pause.
-          Hidden until the first frame is decoded AND the aspect is
-          locked so the play button doesn't paint over an empty box or
-          a frame that's about to resize. */}
+          {/* Center play button whenever paused and not at the natural end
+          (watch-again handles that). Serves as both the initial and the
+          resume affordance. Hidden until the first frame is decoded and the
+          aspect is locked, so it doesn't paint over an empty or
+          about-to-resize box. */}
           {firstFrameReady && actualAspect != null && !isPlaying && !ended ? (
             <button
               type="button"
@@ -873,12 +817,10 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
             </button>
           ) : null}
 
-          {/* Toggle pop overlay — flashes briefly on play (pause →
-          play). We deliberately skip the flash on pause because the
-          persistent play button above already paints in that state;
-          stacking both reads as flicker. `key` forces remount so
-          back-to-back toggles within the animation window restart
-          from frame 0. */}
+          {/* Toggle pop overlay — flashes on play only. We skip the pause
+          flash because the play button above already paints then; stacking
+          both reads as flicker. `key` forces remount so back-to-back
+          toggles within the animation window restart from frame 0. */}
           {overlayIcon && isPlaying && !ended ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <div
@@ -894,11 +836,9 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
             </div>
           ) : null}
 
-          {/* End-of-video overlay — dim the frame and surface a centered
-          "Watch again" button. Clicking it seeks to 0 and resumes
-          playback, clearing the ended state. We deliberately do NOT
-          autoplay-loop the video so this overlay always shows on
-          completion (matches Loom's share player). */}
+          {/* End-of-video overlay: dim the frame, surface a "Watch again"
+          button that seeks to 0 and resumes. We deliberately do NOT
+          autoplay-loop, so this overlay always shows on completion. */}
           {ended ? (
             <button
               type="button"
@@ -919,9 +859,9 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
             </button>
           ) : null}
 
-          {/* Collapsed progress strip — slim 3px bar at the bottom edge,
-          shown only while the full controls are auto-hidden. Lets the
-          viewer track playback at a glance without occupying chrome. */}
+          {/* Collapsed progress strip — slim 3px bar shown only while the
+          full controls are auto-hidden, so playback stays trackable at a
+          glance. */}
           <div
             className={`pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-overlay-strong transition-opacity duration-200 ${
               controlsVisible ? 'opacity-0' : 'opacity-100'
@@ -933,11 +873,10 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
             />
           </div>
 
-          {/* Optional overlay above the progress bar (e.g. reaction
-            cluster bubbles on the public viewer). The slot receives
-            the effective duration + controlsVisible so it can anchor
-            itself correctly to either the expanded scrubber or the
-            collapsed slim-strip. */}
+          {/* Overlay above the progress bar (e.g. reaction clusters on the
+            public viewer). Receives duration + controlsVisible so it can
+            anchor to either the expanded scrubber or the collapsed
+            slim-strip. */}
           {progressOverlay
             ? progressOverlay({
                 durationSeconds:
@@ -950,9 +889,8 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
               })
             : null}
 
-          {/* Bottom control bar. Gradient backdrop blends into the video so
-          the bar reads on light + dark content. Fades in/out with the
-          controlsVisible flag. */}
+          {/* Bottom control bar. Gradient backdrop so the bar reads on both
+          light and dark content. */}
           <div
             className={`pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-black/70 via-black/40 to-transparent px-4 pb-3 pt-10 transition-opacity duration-200 ${
               controlsVisible ? 'opacity-100' : 'opacity-0'
@@ -964,7 +902,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
               onSeek={seekTo}
               onScrubStart={() => {
                 setScrubbing(true);
-                // Show the bar and hold it open for the duration of the scrub.
+                // Hold the bar open for the duration of the scrub.
                 setControlsVisible(true);
                 if (hideTimerRef.current !== null) {
                   window.clearTimeout(hideTimerRef.current);
@@ -1061,11 +999,10 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
                     </div>
                   ) : null}
                 </div>
-                {/* PiP isn't reliably supported on iOS Safari for inline
-                  videos and the gear gives the same controls — hide
-                  both when the *player* is narrow (container query, not
-                  viewport) so a small recording on a wide page still
-                  drops these from the controls bar. */}
+                {/* PiP isn't reliable on iOS Safari for inline videos, and
+                  the gear gives the same controls — hide both when the
+                  *player* is narrow (container query, not viewport) so a
+                  small recording on a wide page still drops these. */}
                 <span className="hidden @md:inline-flex">
                   <ControlButton
                     onClick={() => void togglePip()}
@@ -1091,21 +1028,17 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
           </div>
         </div>
 
-        {/* Optional content below the player (e.g. the reaction bar on
-          the public viewer). Hidden in fullscreen — the player
-          container is what gets fullscreened, so a sibling below it
-          is naturally off-screen, but we also skip rendering so any
-          slot side-effects pause too. */}
+        {/* Content below the player (e.g. the reaction bar). Skipped in
+          fullscreen — only the player container goes fullscreen, so we also
+          unmount this to pause any slot side-effects. */}
         {belowPlayer && !isFullscreen ? belowPlayer : null}
       </div>
     );
   },
 );
 
-// Loom-style "back/forward 5s" badge: lucide rotational arrow with a
-// small "5" overlaid in the center. Lucide doesn't ship a single icon
-// with the digit baked in, so we composite one — keeps everything else
-// on lucide for consistency.
+// "Back/forward 5s" badge: a lucide rotational arrow with a "5" overlaid.
+// Lucide ships no single icon with the digit baked in, so we composite one.
 function SkipBadge({ dir }: { dir: 'back' | 'forward' }) {
   const Arrow = dir === 'back' ? RotateCcw : RotateCw;
   return (
@@ -1153,9 +1086,8 @@ function Scrubber({
 }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
 
-  // Pointer-driven scrubbing — captures the pointer so dragging
-  // outside the track still updates seek position. Matches the editor
-  // timeline's drag-anywhere behavior.
+  // Pointer-driven scrubbing — captures the pointer so dragging outside
+  // the track still updates the seek position.
   const seekFromClientX = (clientX: number): void => {
     const el = trackRef.current;
     if (!el) return;
@@ -1171,13 +1103,10 @@ function Scrubber({
     const el = e.currentTarget;
     const pointerId = e.pointerId;
     el.setPointerCapture(pointerId);
-    // Throttle seeks during the drag to ~12Hz. Each pointermove fires
-    // ~120Hz and writing main.currentTime that often flushes the
-    // system-audio decoder on every write — that's the choppy
-    // "stutter, stutter, stutter" the user hears during a scrub.
-    // 80ms intervals give visible per-frame feedback without thrashing
-    // the audio path. The final position lands on pointerup via the
-    // unconditional trailing seek below.
+    // Throttle seeks to ~12Hz (80ms). pointermove fires ~120Hz, and each
+    // main.currentTime write flushes the system-audio decoder — the
+    // stutter heard during a scrub. 80ms still gives visible feedback; the
+    // final position lands on pointerup via the trailing seek below.
     let lastSeekMs = 0;
     let lastClientX = e.clientX;
     let pending = false;
@@ -1202,8 +1131,8 @@ function Scrubber({
       }
     };
     const up = (): void => {
-      // Final seek so the player lands exactly where the user released
-      // — even if the throttle window swallowed the last move.
+      // Final seek so the player lands where the user released, even if the
+      // throttle window swallowed the last move.
       seekFromClientX(lastClientX);
       onScrubEnd();
       el.removeEventListener('pointermove', move as EventListener);
@@ -1264,10 +1193,9 @@ function VolumeControl({
         step={0.01}
         value={effective}
         onChange={(e) => onVolume(Number(e.target.value))}
-        // Background gradient paints the filled track up to the
-        // current value. The default <input range> draws a uniform
-        // track, which read as "empty" against our solid thumb —
-        // viewers reported it looked like volume was off even at full.
+        // Gradient paints the filled track up to the current value. The
+        // default uniform <input range> track read as "empty" against our
+        // solid thumb, looking like volume was off even at full.
         style={{
           backgroundImage: `linear-gradient(to right, rgb(255 255 255) 0%, rgb(255 255 255) ${
             effective * 100
@@ -1291,12 +1219,10 @@ function formatTime(s: number): string {
 }
 
 // Reserved aspect for the loading state. Pre-fix uploads always sent
-// `1280, 720` regardless of the actual encoded dim, so a 16:10
-// MacBook recording (the most common case) had a row claiming 16:9 →
-// the container reserved 16:9, video loaded at 16:10, container
-// resized = visible jump down. We detect that exact suspicious value
-// and fall back to 16:10. Real 16:9 server rows (post-fix uploads)
-// are trusted and reserve correctly.
+// 1280x720 regardless of the real encoded dim, so a 16:10 MacBook
+// recording reserved 16:9, then jumped down when the 16:10 video loaded.
+// Detect that exact suspicious value and fall back to 16:10; trust all
+// other (post-fix) server rows.
 function aspectFromPlaceholder(
   width: number | null,
   height: number | null,
@@ -1307,12 +1233,10 @@ function aspectFromPlaceholder(
 }
 
 // Landscape sources (aspect ≥ LANDSCAPE_THRESHOLD) fill the column
-// edge-to-edge — height comes from `aspect-ratio`. Squarish / portrait
-// sources cap their height at MAX_H, derive width from the source's
-// natural rendered width plus 48px of breathing room, and center
-// within the column. The threshold is chosen so 4:3 (1.33), 16:10
-// (1.6), 16:9 (1.78), and wider all count as landscape; below that
-// (5:4 ≈ 1.25, square, portrait) collapses to the capped path.
+// edge-to-edge, height from `aspect-ratio`. Squarish/portrait sources cap
+// height and center within the column. The threshold counts 4:3 (1.33),
+// 16:10 (1.6), 16:9 (1.78) and wider as landscape; 5:4 (1.25), square and
+// portrait take the capped path.
 const LANDSCAPE_THRESHOLD = 1.3;
 
 function sizeStyleForAspect(
@@ -1322,11 +1246,10 @@ function sizeStyleForAspect(
   const a = aspectAsNumber(aspect);
   if (a >= LANDSCAPE_THRESHOLD) {
     // With a viewport-aware cap (public viewer), derive width from the
-    // capped height so the aspect ratio holds and the player never
-    // grows taller than `landscapeMaxHeightCss`; it stays at most the
-    // full column width (100%). The outer flex column is `items-center`,
-    // so a sub-100% width centers on its own. Without a cap (editor),
-    // keep the original fill-the-column behaviour.
+    // capped height so the aspect holds and the player never exceeds
+    // landscapeMaxHeightCss or the column width. The outer flex column is
+    // items-center, so a sub-100% width self-centers. Without a cap
+    // (editor), fill the column.
     if (landscapeMaxHeightCss) {
       return {
         width: `min(100%, calc(${landscapeMaxHeightCss} * ${a}))`,
@@ -1338,20 +1261,17 @@ function sizeStyleForAspect(
   return {
     height: MAX_HEIGHT_CSS,
     width: `clamp(min(360px, 100%), calc(${MAX_HEIGHT_CSS} * ${a} + 120px), 100%)`,
-    // Mobile (max-sm) overrides h/w via `!h-auto !w-full` classes; in
-    // that mode the explicit height above is gone, so aspect-ratio
-    // takes over to size the container. Without this the portrait
-    // canvas collapsed to 0px tall on mobile.
+    // Mobile (max-sm) drops the explicit height via !h-auto, so
+    // aspect-ratio sizes the container instead. Without it the portrait
+    // canvas collapses to 0px tall on mobile.
     aspectRatio: a,
   };
 }
 
-// Locked player height = 16:9 of the page-column width.
-// Page column: `max-w-4xl` (56rem) inside main with `px-4` (2rem total
-// horizontal padding). On wide viewports the column hits the 56rem cap
-// → height = 56rem * 9/16 = 31.5rem. On narrow viewports the column is
-// `100vw - 2rem` → height = (100vw - 2rem) * 9/16. The `min()` picks
-// whichever applies. Source aspect drives WIDTH; this stays fixed.
+// Capped player height = 16:9 of the page-column width. Column is
+// max-w-4xl (56rem) inside main with px-4 (2rem total). Wide viewports hit
+// the 56rem cap → 31.5rem; narrow ones use (100vw - 2rem) * 9/16. min()
+// picks whichever applies; source aspect drives WIDTH separately.
 const MAX_HEIGHT_CSS = 'min(31.5rem, calc((100vw - 2rem) * 9 / 16))';
 
 function aspectAsNumber(aspect: number): number {
@@ -1359,9 +1279,8 @@ function aspectAsNumber(aspect: number): number {
   return aspect;
 }
 
-// Generous 6 (24px) inset mirrors the studio editor's WebcamBubble
-// margin so the bubble breathes against the edge instead of sitting
-// flush. Same inset for every corner.
+// 24px inset (matching the studio editor's WebcamBubble margin) so the
+// bubble breathes against the edge. Same inset for every corner.
 function webcamCornerClass(corner: ShareCameraCorner): string {
   switch (corner) {
     case 'bottom-right':
@@ -1375,9 +1294,9 @@ function webcamCornerClass(corner: ShareCameraCorner): string {
   }
 }
 
-// Sizes are tighter than the rectangular PiP since a square bubble
-// reads larger at the same width. The studio bubble lands around
-// 14–18% of the canvas; mirror that here.
+// Sizes are tighter than a rectangular PiP since a square bubble reads
+// larger at the same width. Targets ~14-18% of the canvas, matching the
+// studio bubble.
 function webcamSizeClass(size: ShareCameraSize): string {
   switch (size) {
     case 'small':
@@ -1389,11 +1308,9 @@ function webcamSizeClass(size: ShareCameraSize): string {
   }
 }
 
-// Background paint on the player container. `transparent` falls
-// through to the Tailwind `bg-neutral-900` baseline so an unset config
-// renders the same as it always has. Object-contain on the screen
-// video means landscape-letterbox + portrait-pillarbox sources
-// reveal this layer through the empty strips.
+// Background paint on the player container. `transparent` falls through to
+// the Tailwind bg-neutral-900 baseline. object-contain on the video means
+// letterbox/pillarbox strips reveal this layer.
 function shareBackgroundStyle(background: string): React.CSSProperties {
   if (background === 'transparent') return {};
   if (isShareHexColor(background)) return { backgroundColor: background };

@@ -1,7 +1,5 @@
-/* shadcn-style Command palette built on `cmdk`.
- * Trimmed to the pieces we actually use: Dialog host, input, list, empty
- * state, group, item, and shortcut display. Styled with Tailwind to match
- * the app's dark theme.
+/* Command palette built on `cmdk`: dialog host, input, list, empty state,
+ * group, item, and shortcut display.
  */
 import * as React from 'react'
 import { useEffect } from 'react'
@@ -42,7 +40,6 @@ export function CommandDialog({
 }: CommandDialogProps): React.JSX.Element | null {
   const shouldReduceMotion = useReducedMotion()
 
-  // Escape closes the dialog.
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent): void => {
@@ -61,8 +58,8 @@ export function CommandDialog({
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop — slightly heavier dim, lighter blur. The dim does the
-              focus work so the dialog itself can stay near-solid and crisp. */}
+          {/* Heavier dim, lighter blur: the dim does the focus work so the
+              dialog can stay near-solid and crisp. */}
           <motion.div
             key="cmd-backdrop"
             className="fixed inset-0 z-50 bg-black/55 backdrop-blur-sm"
@@ -73,9 +70,7 @@ export function CommandDialog({
             onClick={() => onOpenChange(false)}
             aria-hidden
           />
-          {/* Content — near-solid dark surface so editor content doesn't
-              bleed through. A hairline outer ring + soft inset highlight
-              give crisp edges; the drop shadow is tight rather than dominant. */}
+          {/* Near-solid surface so editor content doesn't bleed through. */}
           <motion.div
             key="cmd-content"
             role="dialog"
@@ -136,9 +131,8 @@ export const CommandList = React.forwardRef<
   const [scrolling, setScrolling] = React.useState(false)
   const hideTimer = React.useRef<number | null>(null)
 
-  // Show the thumb only while actively scrolling, then fade away — mirrors
-  // macOS overlay scrollbar behavior. Listening on the cmdk list element
-  // directly via onScroll keeps this self-contained.
+  // Auto-hiding overlay scrollbar: show the thumb only while actively
+  // scrolling, then fade it out after a brief idle delay.
   const handleScroll = (e: React.UIEvent<HTMLDivElement>): void => {
     onScroll?.(e)
     setScrolling(true)

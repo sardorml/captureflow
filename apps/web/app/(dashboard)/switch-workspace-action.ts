@@ -8,16 +8,9 @@ import { getAuth } from '@/lib/auth';
 import { getAppWebEnv } from '@/lib/cf-env';
 import { CURRENT_WORKSPACE_COOKIE } from '@/lib/current-workspace';
 
-// Form-action that the WorkspaceSwitcher dropdown POSTs to. Sets the
-// `captureflow-workspace` cookie to the chosen workspace id, then revalidates
-// every dashboard surface so the workspace-scoped queries on /shares,
-// /snaps, /members refetch under the new context.
-//
-// Owner of the cookie write: HTTP-only false (we only ever read it
-// server-side, but it's also fine to inspect from client code if a
-// future component wants to). Path is the dashboard root. 30-day
-// max-age matches the better-auth session lifetime so the preference
-// outlives a single tab.
+// Form-action the WorkspaceSwitcher dropdown POSTs to: writes the chosen
+// workspace id to the current-workspace cookie, then revalidates every
+// dashboard surface so workspace-scoped queries refetch under the new context.
 
 export async function switchWorkspaceAction(formData: FormData): Promise<void> {
   const auth = await getAuth();
@@ -30,9 +23,8 @@ export async function switchWorkspaceAction(formData: FormData): Promise<void> {
   const workspaceId = formData.get('workspaceId');
   if (typeof workspaceId !== 'string' || !workspaceId) return;
 
-  // Verify the user actually belongs to the workspace they're trying to
-  // switch to. Without this check a forged form submission could
-  // hand the dashboard a workspace id we'd then leak rows from.
+  // Verify membership: without this check a forged form submission could set
+  // an arbitrary workspace id and leak rows from a workspace the user isn't in.
   const memberships = await listWorkspacesForUser(env.DB, session.user.id);
   const allowed = memberships.some((m) => m.workspace_id === workspaceId);
   if (!allowed) return;
@@ -42,14 +34,13 @@ export async function switchWorkspaceAction(formData: FormData): Promise<void> {
     path: '/',
     sameSite: 'lax',
     secure: true,
-    // No HttpOnly — it's a preference, not a credential, and not
-    // marking it means client-side code could read which workspace is
-    // active if we ever need that.
+    // No HttpOnly: it's a preference, not a credential, and client code may
+    // need to read which workspace is active.
+    // 30-day max-age matches the better-auth session lifetime.
     maxAge: 60 * 60 * 24 * 30,
   });
 
-  // Drop all dashboard caches so the next render reads the cookie and
-  // refetches under the new workspace.
+  // Drop dashboard caches so the next render reads the cookie and refetches.
   revalidatePath('/shares');
   revalidatePath('/snaps');
   revalidatePath('/members');

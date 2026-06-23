@@ -5,17 +5,11 @@ import { isValidSnapId } from '@/lib/snap/id';
 import { verifySessionOrNull } from '@/lib/snap/verify-session';
 import { optionsResponse, withCors } from '@/lib/snap/cors';
 
-// POST /api/snaps/[id]/visibility — owner-only visibility flip from
-// the snap viewer's Share dialog. Authenticated via the session cookie
-// set on .captureflow.xyz (better-auth lives on app.captureflow.xyz
-// and we relay through verifySessionOrNull). Body shape:
-//
-//   { value: 'public' | 'workspace' | 'private' }
-//
-// 401 if no session, 403 if the snap exists but the visitor isn't the
-// owner, 400 on bad body, 404 on missing/deleted snap. Mirrors the
-// share-side /api/visibility contract so the client side reads
-// identically.
+// Owner-only visibility flip. Auth relays through verifySessionOrNull
+// because better-auth lives on app.captureflow.xyz while the session
+// cookie is set on .captureflow.xyz.
+// Body: { value: 'public' | 'workspace' | 'private' }.
+// Must mirror the share-side /api/visibility contract.
 
 export function OPTIONS() {
   return optionsResponse();

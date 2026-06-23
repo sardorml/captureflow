@@ -37,11 +37,10 @@ import { VisibilityDialog } from '../../VisibilityDialog';
 const R2_BASE =
   process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? 'https://cdn.captureflow.xyz';
 
-// The CDN serves R2 with long cache headers, so an edit that
-// overwrites `<id>.png` still hands clients the old bytes from the
-// browser disk + edge cache. Tag the URL with whichever mutation
-// timestamp is freshest so the grid thumbnail flips to the latest
-// save immediately after the editor returns.
+// The CDN serves R2 with long cache headers, so overwriting `<id>.png`
+// still hands clients the old bytes from disk + edge cache. Tag the URL
+// with the freshest mutation timestamp so the thumbnail flips to the
+// latest save immediately after the editor returns.
 function publicSnapImageUrl(snap: DashboardSnapRow): string {
   const v = snap.editedAt ?? snap.updatedAt ?? snap.createdAt;
   return `${R2_BASE}/${snap.storageKey}?v=${v}`;
@@ -165,9 +164,8 @@ function SnapCard({
     });
   };
 
-  // Card click always opens the public snap page (new tab — cross-
-  // subdomain). The pencil icon in the hover actions is the path to
-  // the editor.
+  // Card click opens the public snap page in a new tab (cross-subdomain);
+  // the pencil icon is the only path to the editor.
   const thumbnailHref = viewUrl;
   const thumbnailTarget = '_blank';
   const thumbnailRel = 'noreferrer';
@@ -192,8 +190,8 @@ function SnapCard({
           {snap.width}×{snap.height}
         </span>
 
-        {/* Hover-revealed action cluster — Loom posture. Eats clicks
-            so the underlying Link doesn't fire. */}
+        {/* Hover-revealed action cluster; eats clicks so the underlying
+            Link doesn't fire. */}
         <div
           className={
             'absolute right-2 top-2 flex items-center gap-1.5 transition-opacity ' +
@@ -415,9 +413,9 @@ function visibilityLabel(v: SnapVisibility): string {
   return 'Private';
 }
 
-// Plain-text visibility under the author name — Loom posture. Same
-// modal trigger as the boxed chip used elsewhere, but with no
-// background/border so it reads as metadata.
+// Plain-text visibility under the author name: same modal trigger as the
+// boxed chip used elsewhere, but with no background/border so it reads as
+// metadata.
 const VisibilityText = forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement> & {

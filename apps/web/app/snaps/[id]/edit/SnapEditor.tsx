@@ -2,10 +2,9 @@
 
 import dynamic from 'next/dynamic';
 
-// Konva touches `window` at import time, so the editor impl has to
-// load on the client only. `next/dynamic` with ssr:false works inside
-// a client component (server components can't disable ssr on Next 13+
-// App Router) — this wrapper exists purely to flip the flag.
+// Konva touches `window` at import time, so the impl must load client-only.
+// `ssr:false` only works inside a client component on the App Router, so this
+// wrapper exists purely to flip that flag.
 
 export type SnapEditorProps = {
   snapId: string;
@@ -17,9 +16,8 @@ export type SnapEditorProps = {
   createdAt: number;
   ownerName: string | null;
   ownerEmail: string | null;
-  // Persisted editor state restored from R2 sidecar JSON. `null`
-  // means the user has never saved (first edit) — defaults are
-  // applied by the impl in that case.
+  // Persisted editor state from the R2 sidecar JSON; `null` means the user
+  // has never saved (first edit), so the impl applies defaults.
   initialBackground: string | null;
   initialAnnotations: unknown[] | null;
 };

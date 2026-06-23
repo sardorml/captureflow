@@ -3,10 +3,10 @@ import { is } from '@electron-toolkit/utils'
 import { join } from 'path'
 import { IPC_CHANNELS } from '../../shared/types'
 
-// Bottom-right "snap ready" modal (mirrors Loom's post-capture
-// receipt). Lives in its own frameless BrowserWindow so it can sit
-// above the user's app stack regardless of macOS Space, and so the
-// transparent corners don't leak the main editor's chrome.
+// Bottom-right "snap ready" modal. Lives in its own frameless
+// BrowserWindow so it can sit above the user's app stack regardless of
+// macOS Space, and so the transparent corners don't leak the main
+// editor's chrome.
 //
 // One window at a time — a fresh capture re-uses the same window
 // and pushes a SNAP_CAPTURED event to reset its state.
@@ -125,9 +125,6 @@ export function ensureSnapNotificationWindow(captureBounds: DisplayBounds | null
   })
 
   // Flush any pre-load IPCs once the renderer is actually listening.
-  // `webContents.send` doesn't queue — sending before did-finish-load
-  // silently drops the message, so the modal would stay stuck on its
-  // initial empty state otherwise.
   win.webContents.once('did-finish-load', () => {
     snapReady = true
     if (pendingCaptured) {

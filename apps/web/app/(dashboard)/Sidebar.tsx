@@ -14,29 +14,24 @@ import { SidebarNav } from './SidebarNav';
 import { WorkspaceMembersStack } from './WorkspaceMembersStack';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 
-// Left rail for the dashboard. Server component so the workspace +
+// Left rail for the dashboard. Server component so the workspace and
 // storage lookups (D1 round trips) happen in one render pass.
-//
-// Layout: brand → workspace switcher → primary nav → spacer → storage
-// usage → record CTA pinned to the bottom-left. User profile lives in
-// the TopBar now.
 
 export async function Sidebar() {
   const session = await requireSession();
   const env = await getAppWebEnv();
-  // Storage is workspace-owner-scoped: the pill sums every share +
-  // snap in any workspace the user owns (their personal one + any
-  // team workspaces they created), which matches the cap they're
-  // paying for. Uploads other people make INTO their workspaces count
-  // here; uploads they make into OTHER people's workspaces don't.
+  // Storage is owner-scoped: the pill sums every share + snap across
+  // all workspaces the user owns, matching the cap they pay for.
+  // Uploads others make INTO their workspaces count here; uploads they
+  // make into OTHER people's workspaces don't.
   const [current, usedBytes, limitBytes] = await Promise.all([
     resolveCurrentWorkspace(session.user.id, session.user.name ?? null),
     env?.DB ? totalStorageForUser(env.DB, session.user.id) : Promise.resolve(0),
     getEffectiveStorageLimit(session.user.id),
   ]);
 
-  // Member roster for the avatar stack under the workspace switcher.
-  // The "+" placeholder opens the existing InviteModal — owner-only.
+  // Member roster for the avatar stack; the "+" placeholder opens the
+  // InviteModal, which is owner-only.
   const members = env?.DB
     ? await listMembers(env.DB, current.workspace.id)
     : [];

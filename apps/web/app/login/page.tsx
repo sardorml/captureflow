@@ -8,9 +8,9 @@ import { AuthForm } from '@/app/AuthForm';
 
 export const dynamic = 'force-dynamic';
 
-// Full-page sign-in. Direct links / bookmarks / the desktop app's "Log in"
-// deep link all land here. `loadSession` swallows throws (stale cookie /
-// rotated secret) so a broken cookie never crashes the page.
+// Full-page sign-in; direct links, bookmarks, and the desktop "Log in" deep
+// link all land here. `loadSession` swallows throws (stale cookie / rotated
+// secret) so a broken cookie never crashes the page.
 export default async function LoginPage({
   searchParams,
 }: {

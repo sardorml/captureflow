@@ -3,10 +3,9 @@
 import Zoom from 'react-medium-image-zoom';
 import 'react-medium-image-zoom/dist/styles.css';
 
-// Public viewer image with click-to-zoom (the same library shadcn's
-// image-zoom recipe wraps). Lifted out of SnapView so the server
-// component stays server-only — Zoom uses portals + state and has
-// to live in a 'use client' boundary.
+// Public viewer image with click-to-zoom. Split out of SnapView so the
+// server component stays server-only — Zoom uses portals + state and
+// must live in a 'use client' boundary.
 
 type Props = {
   src: string;

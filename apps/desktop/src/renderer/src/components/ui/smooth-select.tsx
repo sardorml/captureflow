@@ -4,10 +4,6 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-// ---------------------------------------------------------------------------
-// Animation constants
-// ---------------------------------------------------------------------------
-
 const SPRING_DEFAULT = { type: 'spring' as const, stiffness: 300, damping: 25 }
 const SPRING_SNAPPY = { type: 'spring' as const, stiffness: 400, damping: 30 }
 const DURATION_INSTANT = { duration: 0 }
@@ -16,10 +12,6 @@ const CHEVRON_ROTATION = 180
 const DROPDOWN_OFFSET = 4
 const STAGGER_DELAY = 0.02
 const ITEM_HOVER_X = 2
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 export type SelectOptionProps = {
   value: string
@@ -49,10 +41,6 @@ export type SmoothSelectProps = {
   'aria-label'?: string
   'aria-labelledby'?: string
 }
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export function SmoothSelect({
   value: controlledValue,
@@ -101,10 +89,6 @@ export function SmoothSelect({
   })()
 
   const selectedLabel = allOptions.find((opt) => opt.value === selectedValue)?.label
-
-  // ---------------------------------------------------------------------------
-  // Handlers
-  // ---------------------------------------------------------------------------
 
   const handleSelect = useCallback(
     (opt: SelectOptionProps) => {
@@ -219,10 +203,6 @@ export function SmoothSelect({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, allOptions, focusedIndex, handleSelect, handleToggle])
 
-  // ---------------------------------------------------------------------------
-  // Render helpers
-  // ---------------------------------------------------------------------------
-
   const renderItem = (opt: SelectOptionProps, idx: number): React.JSX.Element => {
     const isSelected = opt.value === selectedValue
     const isFocused = idx === focusedIndex
@@ -286,10 +266,6 @@ export function SmoothSelect({
   }
 
   let globalIndex = 0
-
-  // ---------------------------------------------------------------------------
-  // Dropdown content (portalled)
-  // ---------------------------------------------------------------------------
 
   const dropdownContent = (
     <AnimatePresence>
@@ -360,10 +336,6 @@ export function SmoothSelect({
       )}
     </AnimatePresence>
   )
-
-  // ---------------------------------------------------------------------------
-  // Main render
-  // ---------------------------------------------------------------------------
 
   return (
     <>

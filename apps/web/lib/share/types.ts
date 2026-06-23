@@ -2,9 +2,8 @@ import type { ShareSource, SharePreset, ShareState } from './limits';
 
 export type ShareVisibility = 'public' | 'workspace' | 'private';
 
-// Companion webcam stream state. Mirrors the canonical `state` machine
-// for the screen file, plus a `'none'` sentinel for recordings taken
-// without a camera (no companion file uploads).
+// Companion webcam stream state. Mirrors the screen file's `state`
+// machine, plus a `'none'` sentinel for recordings without a camera.
 export type WebcamState = 'none' | 'pending' | 'ready' | 'failed';
 
 export type ShareRow = {
@@ -26,16 +25,14 @@ export type ShareRow = {
   state: ShareState;
   // Owning user from better-auth (null for anonymous / pre-auth shares).
   userId: string | null;
-  // Personal workspace the owning user belongs to. Stamped at upload
-  // time so the viewer auth gate can answer "is this signed-in user a
-  // member of the workspace that owns this share?" in one indexed
-  // lookup, without going user_id → workspace_member. Null for legacy
-  // anonymous uploads (no user → no workspace).
+  // Workspace owning the share, stamped at upload time so the viewer auth
+  // gate can check membership in one indexed lookup (no user_id →
+  // workspace_member hop). Null for legacy anonymous uploads.
   workspaceId: string | null;
   visibility: ShareVisibility;
-  // Companion webcam fields. The desktop uploads a parallel webcam
-  // WebM (video + mic audio) at `webcamStorageKey`; the web edit page
-  // composites it on top of the screen MP4 at play time.
+  // Companion webcam fields. The desktop uploads a parallel webcam WebM
+  // (video + mic audio); the web edit page composites it over the screen
+  // MP4 at play time.
   webcamStorageKey: string | null;
   webcamUploadId: string | null;
   webcamSizeBytes: number;
@@ -50,27 +47,23 @@ export type InitRequest = {
   width?: number;
   height?: number;
   title?: string;
-  // Initial visibility for an authenticated upload. Ignored when the
-  // bearer token is missing/invalid (anonymous uploads always land
-  // public — there's no owner to gate against).
+  // Initial visibility for an authenticated upload. Ignored without a
+  // valid bearer token: anonymous uploads always land public, since
+  // there's no owner to gate against.
   visibility?: ShareVisibility;
-  // True when the desktop will stream a parallel webcam companion to
-  // `/api/webcam-part` alongside the screen file. When set, /api/init
-  // reserves a second R2 multipart upload and the response carries
-  // `webcamUploadId` + `webcamStorageKey`. Omitting / false keeps the
-  // single-stream behaviour for recordings taken without a camera.
+  // When true, /api/init reserves a second R2 multipart upload for a
+  // parallel webcam companion and returns `webcamUploadId` +
+  // `webcamStorageKey`. Omit / false for single-stream (no camera).
   hasWebcam?: boolean;
-  // Target workspace for the new share. The bearer user must be a
-  // member; on mismatch we silently fall back to their personal
-  // workspace so a stale client never blocks an upload. Omitting it
-  // means "personal workspace" (today's behaviour).
+  // Target workspace for the new share. The bearer user must be a member;
+  // on mismatch we silently fall back to their personal workspace so a
+  // stale client never blocks an upload. Omitted means personal workspace.
   workspaceId?: string;
 };
 
-// Single emoji reaction on a share at a specific video timestamp. As
-// of migration 0010 reactions carry the reacting user's better-auth
-// id + display name. Legacy rows (pre-migration) have nulls and
-// render as "Anonymous" on the activity sidebar.
+// Single emoji reaction on a share at a video timestamp. Since migration
+// 0010 reactions carry the user's better-auth id + display name; legacy
+// rows have nulls and render as "Anonymous".
 export type ShareReaction = {
   id: number;
   slug: string;
@@ -79,10 +72,9 @@ export type ShareReaction = {
   createdAt: number;
   userId: string | null;
   userName: string | null;
-  // Joined from `users.image` at read time so an avatar swap on app-web
-  // shows up across every existing reaction/comment row without
-  // backfilling. Null for legacy anonymous rows + visitors who haven't
-  // uploaded an avatar.
+  // Joined from `users.image` at read time so an avatar swap shows up
+  // across existing reaction/comment rows without backfilling. Null for
+  // legacy anonymous rows + visitors with no avatar.
   userImage: string | null;
 };
 
@@ -99,10 +91,10 @@ export type ListReactionsResponse = {
   reactions: ShareReaction[];
 };
 
-// Free-form comment on a share, authored by a signed-in user.
-// `timestampMs` is the optional video offset the comment was anchored
-// to (clicking the chip seeks the player there). Comments live in
-// `share_activity` with `kind='comment'`; see migration 0012.
+// Free-form comment on a share by a signed-in user. `timestampMs` is the
+// optional video offset the comment was anchored to (clicking the chip
+// seeks there). Stored in `share_activity` with `kind='comment'`; see
+// migration 0012.
 export type ShareComment = {
   id: number;
   slug: string;
@@ -132,17 +124,16 @@ export type InitResponse = {
   slug: string;
   uploadId: string;
   storageKey: string;
-  // Only present when the request set `hasWebcam: true`. Mirrors the
-  // screen-side fields above; the desktop streams webcam parts to
-  // `/api/webcam-part?slug=…&part=N` referencing this uploadId.
+  // Present only when the request set `hasWebcam: true`. The desktop
+  // streams webcam parts to `/api/webcam-part?slug=…&part=N` against
+  // this uploadId.
   webcamUploadId?: string;
   webcamStorageKey?: string;
 };
 
-// Part uploads use native R2 bindings (no presigned URLs). The desktop
-// client POSTs each chunk's bytes directly to /api/part?slug=...&part=N
-// and the Worker forwards them to R2. The response carries the ETag
-// the client must echo back in /api/finalize.
+// Part uploads use native R2 bindings (no presigned URLs): the client
+// POSTs each chunk to /api/part?slug=...&part=N and the Worker forwards
+// it to R2. The response ETag must be echoed back in /api/finalize.
 export type PartResponse = {
   partNumber: number;
   etag: string;

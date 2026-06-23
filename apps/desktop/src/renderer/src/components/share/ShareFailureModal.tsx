@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react'
 import { AlertTriangle, ExternalLink } from 'lucide-react'
 import type { ShareFailureState } from '../../../../shared/types'
 
-// Single-state modal: error message + optional salvageable URL + Done.
-// The only in-app share surface — success now opens the browser
-// directly to captureflow.xyz/shares/<slug>/edit; this modal
-// covers init failures, partial uploads, and recorder crashes.
+// Shown only on share failure (init failures, partial uploads, recorder
+// crashes); success opens the share URL in the browser directly.
 export function ShareFailureModal(): React.JSX.Element {
   const [state, setState] = useState<ShareFailureState | null>(null)
 

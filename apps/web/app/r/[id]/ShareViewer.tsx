@@ -28,25 +28,22 @@ type Props = {
     email: string;
     image: string | null;
   } | null;
-  // app-web URL the "Sign in" CTA bounces visitors through. Carries
-  // the share page URL as `returnUrl` so we land them back here after
-  // login.
+  // URL the "Sign in" CTA bounces visitors through. Carries the share
+  // page URL as `returnUrl` so we land them back here after login.
   loginUrl: string;
   headlineText: string;
   ownerName: string | null;
   createdAt: number;
   viewCount: number;
-  // Owner gate for the Summary + Chapters block (only owners get the
-  // edit affordances).
+  // Gates the edit affordances on the Summary + Chapters block.
   isOwner: boolean;
   initialSummary: string;
   initialChapters: ShareChapter[];
 };
 
-// Orchestrates the share page client state: holds the activity feed
-// alongside the player and threads reaction events between them. Lives
-// at the level above SharePlayer + ActivitySidebar so both panes see
-// the same source of truth without re-fetching.
+// Orchestrates the share page client state, threading reaction events
+// between the player and the activity sidebar. Lives above both so they
+// share one source of truth without re-fetching.
 export function ShareViewer({
   slug,
   videoUrl,
@@ -69,13 +66,11 @@ export function ShareViewer({
   initialChapters,
 }: Props) {
   const [liveReactions, setLiveReactions] = useState<ShareReaction[]>([]);
-  // Ref shared between the player + the activity sidebar. Sidebar
-  // calls .seekTo() when a reaction/comment chip is clicked, and
-  // reads .getCurrentTime() when the visitor posts a comment so it
-  // anchors to the right moment.
+  // Shared with the activity sidebar: it calls seekTo() on chip clicks and
+  // getCurrentTime() when posting a comment so the comment anchors to the
+  // right moment.
   const playerRef = useRef<SharePlayerHandle | null>(null);
-  // Comment textarea ref — registered by ActivitySidebar, focused by
-  // the "Comment" button below the player.
+  // Registered by ActivitySidebar, focused by the "Comment" button.
   const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const focusComment = useCallback(() => {
@@ -117,10 +112,9 @@ export function ShareViewer({
               </h1>
               <ContentByline ownerName={ownerName} createdAt={createdAt} />
             </div>
-            {/* Views pill anchored to the far right of the page, not
-                the title's max-width — sits against the viewport edge
-                so the sticky header reads as a single nav-style band
-                instead of a constrained card. */}
+            {/* Views pill anchored to the viewport edge, not the title's
+                max-width, so the sticky header reads as a single nav-style
+                band rather than a constrained card. */}
             <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-overlay px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line lg:right-12">
               {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
             </span>

@@ -102,13 +102,11 @@ const electronAPI = {
   shareReadyOpenLink: (url: string): void =>
     ipcRenderer.send(IPC_CHANNELS.SHARE_READY_OPEN_LINK, url),
 
-  // ────────────────────────────────────────────────────────────────
-  // Streaming-upload bridges. shareStart fires at record START to
-  // reserve a slug via /api/init. sharePartScreen / sharePartWebcam
-  // are fire-and-forget; main buffers bytes per stream and POSTs each
-  // 5+ MiB part to /api/part / /api/webcam-part. shareFinish posts
-  // any tail bytes + finalize calls, returns the edit URL. shareAbort
-  // discards in-flight streamer state on cancel/restart/crash.
+  // Streaming-upload bridges. shareStart reserves a slug via /api/init at
+  // record start. sharePartScreen/sharePartWebcam are fire-and-forget; main
+  // buffers per stream and POSTs each 5+ MiB part. shareFinish flushes tail
+  // bytes + finalizes, returning the edit URL. shareAbort discards in-flight
+  // streamer state on cancel/restart/crash.
   shareStart: (meta: ShareStartMeta): Promise<ShareStartResult> =>
     ipcRenderer.invoke(IPC_CHANNELS.SHARE_START, meta),
   sharePartScreen: (bytes: ArrayBuffer): void =>
@@ -120,9 +118,8 @@ const electronAPI = {
   shareAbort: (): void => ipcRenderer.send(IPC_CHANNELS.SHARE_ABORT),
   shareUploadPoster: (bytes: ArrayBuffer): void =>
     ipcRenderer.send(IPC_CHANNELS.SHARE_UPLOAD_POSTER, bytes),
-  // Selection overlay fires this at countdown start; main forwards to
-  // the main-window's useRecorder hook so shareStart + system-audio
-  // acquisition can run in parallel with the visible 3 s countdown.
+  // Fired at countdown start so main can run shareStart + system-audio
+  // acquisition in parallel with the visible 3 s countdown.
   notifySharePrepStart: (): void => ipcRenderer.send(IPC_CHANNELS.SHARE_PREP_START),
   notifySharePrepCancel: (): void => ipcRenderer.send(IPC_CHANNELS.SHARE_PREP_CANCEL),
   onSharePrepStart: (callback: () => void): (() => void) => {
@@ -135,7 +132,6 @@ const electronAPI = {
     ipcRenderer.on(IPC_CHANNELS.SHARE_PREP_CANCEL, handler)
     return () => ipcRenderer.removeListener(IPC_CHANNELS.SHARE_PREP_CANCEL, handler)
   },
-  // Failure modal lifecycle (renderer-side).
   shareFailureOpen: (state: ShareFailureState): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.SHARE_FAILURE_OPEN, state),
   onShareFailureInit: (callback: (state: ShareFailureState) => void): (() => void) => {
@@ -145,9 +141,9 @@ const electronAPI = {
   },
   shareFailureClose: (): void => ipcRenderer.send(IPC_CHANNELS.SHARE_FAILURE_CLOSE),
 
-  // Pro capture gate. Shows a NATIVE confirm dialog (from the start
-  // toolbar's locked Share/Screenshot tap); main picks the buttons from
-  // account state and routes the choice to sign-in / checkout / dashboard.
+  // Pro capture gate. Shows a native confirm dialog whose buttons main
+  // picks from account state, routing the choice to sign-in / checkout /
+  // dashboard.
   showCaptureGateDialog: (reason: UpgradeReason): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.CAPTURE_GATE_OPEN, reason),
 
@@ -171,10 +167,9 @@ const electronAPI = {
     | { ok: false; error: string; code?: string }
   > => ipcRenderer.invoke(IPC_CHANNELS.CAPTURE_SCREENSHOT, target),
 
-  // Snap-notification window bridge. Mirrors the share-ready modal
-  // pattern: main pushes capture + upload state to the modal window
-  // and the modal sends back action intents (open editor, copy link,
-  // close, delete).
+  // Snap-notification window bridge: main pushes capture + upload state to
+  // the modal window, which sends back action intents (open editor, copy
+  // link, close, delete).
   onSnapCaptured: (
     callback: (payload: {
       localPath: string
@@ -357,10 +352,9 @@ const electronAPI = {
   markReleaseNotesShown: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.RELEASE_NOTES_MARK_SHOWN),
 
-  // ── Share-link account (captureflow.xyz) ──
-  // Lock-icon flow: the share-mode record button reads this to know
-  // whether to start the recording or open the login modal. Sign-in
-  // opens the browser; the captureflow:// deep link does the rest.
+  // Share-link account. The share-mode record button reads this to decide
+  // whether to start recording or open the login modal. Sign-in opens the
+  // browser; the captureflow:// deep link completes auth.
   getShareAuth: (): Promise<ShareAuthState> => ipcRenderer.invoke(IPC_CHANNELS.SHARE_AUTH_GET),
 
   signInShareAuth: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.SHARE_AUTH_SIGN_IN),

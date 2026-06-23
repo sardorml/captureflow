@@ -72,10 +72,9 @@ export async function POST(req: NextRequest) {
   try {
     await completeMultipartUpload(row.storageKey, row.uploadId, body.parts);
   } catch (err) {
-    // R2 rejects with the underlying multipart-complete reason
-    // (etag mismatch, part size, etc). Surface it so the desktop's
-    // failure modal carries something actionable instead of a flat
-    // "HTTP 500 unknown".
+    // Surface R2's underlying multipart-complete reason (etag mismatch,
+    // part size, etc.) so the desktop failure modal has something
+    // actionable instead of a flat "HTTP 500 unknown".
     const reason = err instanceof Error ? err.message : String(err);
     console.error('[finalize] r2 complete failed', {
       slug: row.slug,

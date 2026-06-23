@@ -1,10 +1,8 @@
 import { Play } from 'lucide-react';
 
-// Stand-in for a real screen recording inside the landing mockups. The
-// marketing demo clip isn't bundled, so the share/collaboration mockups paint
-// this dark "stage" — a soft blue under-glow, a breathing REC dot, and a play
-// affordance — instead of an empty <video>. Mirrors the hero RecorderMockup so
-// the whole page reads as one product.
+// Stand-in for a screen recording in the landing mockups. The marketing demo
+// clip isn't bundled, so the share/collaboration mockups paint this dark stage
+// (under-glow, breathing REC dot, play affordance) instead of an empty <video>.
 export function DemoStage() {
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#0b1020]">

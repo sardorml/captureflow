@@ -13,11 +13,8 @@ import { authClient } from '@/lib/auth-client';
 import { Avatar, AvatarFallback, AvatarImage, SmoothButton } from '@captureflow/ui';
 import { removeUserAvatarAction, uploadUserAvatarAction } from './actions';
 
-// Profile settings form. Header card shows the avatar + name + email;
-// hovering the avatar exposes a Camera overlay that opens a file picker
-// so the upload affordance lives on the artifact itself instead of a
-// separate row. Below the divider: display-name editor (better-auth's
-// updateUser) and a read-only email.
+// Profile settings form: avatar (hover overlay opens a file picker),
+// display-name editor (better-auth's updateUser), and a read-only email.
 
 type Props = {
   userId: string;

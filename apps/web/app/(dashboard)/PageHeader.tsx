@@ -1,15 +1,9 @@
 import type { ReactNode } from 'react';
 import { Video } from 'lucide-react';
 
-// Loom-style page header: small `eyebrow` line above the big page
-// title, with right-aligned per-page actions. The Record CTA is
-// rendered alongside any caller-supplied actions so the primary verb
-// is always one click away on top of the page (sidebar carries the
-// duplicate for low-mouse-travel access).
-//
-//   <eyebrow muted>            <- workspace name / breadcrumb
-//   <Title huge>               <- page name
-//   <subtitle muted>           <- 1-sentence description, optional
+// Page header: eyebrow line, title, optional subtitle, and
+// right-aligned per-page actions. The Record CTA is duplicated here
+// (also in the sidebar) so the primary verb is always one click away.
 
 type Props = {
   title: string;

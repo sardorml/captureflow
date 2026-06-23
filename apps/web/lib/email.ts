@@ -2,14 +2,13 @@
 
 import { getAppWebEnv } from './cf-env';
 
-// Resend HTTP client. We don't pull the SDK — it's a single fetch call
-// and avoiding the dep keeps the worker bundle smaller. See
-// https://resend.com/docs/api-reference/emails/send-email for the
-// payload shape.
+// Resend HTTP client. Hand-rolled fetch rather than the SDK to keep the worker
+// bundle smaller; payload shape per
+// https://resend.com/docs/api-reference/emails/send-email
 //
-// All sends are best-effort: failures log + return false so the calling
-// endpoint can still report a recoverable error to the user (e.g.
-// "invite created but email delivery failed — share this link manually").
+// All sends are best-effort: failures log + return false so the caller can
+// still report a recoverable error (e.g. "invite created but email delivery
+// failed — share this link manually").
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 
@@ -67,11 +66,8 @@ function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
-// Workspace-invite email. Body intentionally short — the recipient
-// already knows they're being added to a CaptureFlow workspace (the owner
-// just emailed them out-of-band, or this is the on-app trigger). The
-// accept URL bounces them through /login if they're signed out and
-// drops them on /invite/<token> on success.
+// Workspace-invite email. The accept URL bounces through /login if the
+// recipient is signed out, then lands them on /invite/<token>.
 export async function sendWorkspaceInviteEmail(args: {
   to: string;
   inviterName: string | null;
@@ -127,10 +123,9 @@ export async function sendWorkspaceInviteEmail(args: {
   return sendEmail({ to: args.to, subject, html, text });
 }
 
-// Access-request email — sent to the owner when a signed-in viewer
-// hits a workspace/private artifact they can't see and asks to be
-// let in. Owner-side flow is to open /members and invite the
-// requester's email; we link straight there.
+// Access-request email, sent to the owner when a signed-in viewer asks to be
+// let into a workspace/private artifact they can't see. Links straight to
+// /members so the owner can invite the requester's email.
 export async function sendAccessRequestEmail(args: {
   to: string;
   ownerName: string | null;

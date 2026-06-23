@@ -25,12 +25,10 @@ const MODES: {
 ]
 
 /**
- * Icon-only segmented control for the capture mode (Share / Screenshot),
- * rendered inline as the left-most cluster of the recording toolbar. Both
- * modes are free: CaptureFlow is open-core, so capture is never feature-gated
- * — the managed-hosting tier is the paid offering, not the recorder itself.
- * The active mode fills solid white; the other stays muted on the bar's dark
- * surface. Mode is persisted via recording-store → localStorage.
+ * Segmented control for the capture mode (Share / Screenshot) in the recording
+ * toolbar. Both modes are free: CaptureFlow is open-core, so capture is never
+ * feature-gated — the managed-hosting tier is the paid offering, not the
+ * recorder. Mode is persisted via recording-store → localStorage.
  */
 export function RecordingModeToggle(): React.JSX.Element {
   const mode = useRecordingStore((s) => s.recordingMode)

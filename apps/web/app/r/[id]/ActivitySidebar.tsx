@@ -10,24 +10,15 @@ import type {
 } from '@/lib/share/types';
 import { Avatar, AvatarFallback, AvatarImage, Button } from '@captureflow/ui';
 
-// emoji-picker-react ships a sizeable bundle (~70kb) and uses window
-// APIs at module scope, so we lazy-import it client-side only. The
-// composer mounts the popover on demand, so the picker won't load
-// until the visitor opens it.
+// emoji-picker-react is ~70kb and touches window at module scope, so
+// lazy-import it client-side only; the popover mounts it on demand.
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
   ssr: false,
 });
 
-// Right-rail activity feed for the share page. Renders a chronological
-// timeline of reactions + comments authored by signed-in users.
-//
-// Composer features:
-//   • @ — opens a list of people who have already participated in
-//     this share's activity (reaction or comment); selecting one
-//     inserts `@Name ` at the caret.
-//   • Emoji — opens a full emoji picker (emoji-picker-react);
-//     selecting an emoji inserts it at the caret.
-//   • Submit — anchors the comment to the current video timestamp.
+// Right-rail activity feed for the share page: a chronological timeline
+// of reactions + comments, plus a composer with @-mention and emoji
+// pickers. Submitting anchors the comment to the current video timestamp.
 
 type ActivityEntry =
   | {
@@ -49,13 +40,11 @@ type Props = {
   initialComments: ShareComment[];
   viewerSignedIn: boolean;
   viewerName: string | null;
-  // Stable identifier for the signed-in viewer — used as the avatar
-  // tone seed so the composer chip matches the row this user will
-  // create after posting.
+  // Avatar tone seed for the viewer, so the composer chip matches the
+  // row this user will create after posting.
   viewerUserId: string | null;
-  // Viewer's avatar URL — when set, the composer chip renders it via
-  // AvatarImage instead of the seeded initials fallback. Matches what
-  // teammates already see on app.captureflow.xyz.
+  // When set, the composer chip renders this URL instead of the seeded
+  // initials fallback.
   viewerImageUrl: string | null;
   // Share owners can moderate any comment on their share.
   isOwner: boolean;
@@ -63,9 +52,8 @@ type Props = {
   onSignIn: () => void;
   onSeek: (ms: number) => void;
   getCurrentMs: () => number;
-  // Parent-supplied ref so the "Comment" button below the player can
-  // imperatively focus the textarea (the activity sidebar isn't in
-  // visual reach when the player is full-bleed).
+  // Lets the "Comment" button below the player focus the textarea, which
+  // isn't in visual reach when the player is full-bleed.
   commentInputRef?: React.MutableRefObject<HTMLTextAreaElement | null>;
 };
 
@@ -110,9 +98,9 @@ export function ActivitySidebar({
     }
   };
 
-  // Live player timestamp for the compose button label. Sampled on a
-  // slow interval so we don't churn renders at the player's frame
-  // rate; 250ms is fine for a "Comment at M:SS" label.
+  // Live player timestamp for the compose button label. Sampled at 250ms
+  // rather than the player's frame rate to avoid churning renders; that's
+  // fine for a "Comment at M:SS" label.
   const [previewMs, setPreviewMs] = useState(0);
   useEffect(() => {
     if (!viewerSignedIn) return;
@@ -139,10 +127,9 @@ export function ActivitySidebar({
     })),
   ].sort((a, b) => b.createdAt - a.createdAt);
 
-  // Unique participants across all reactions + comments. Sorted by
-  // first appearance — the order people showed up in the feed is
-  // the most intuitive listing for a mention picker. React Compiler
-  // memoizes this automatically; manual useMemo over `reactions`
+  // Unique participants across reactions + comments, in order of first
+  // appearance (the most intuitive listing for a mention picker). Left to
+  // the React Compiler to memoize: a manual useMemo over `reactions`
   // (rebuilt every render via mergeReactions) tripped
   // react-hooks/preserve-manual-memoization.
   const participants = ((): { userId: string; userName: string }[] => {
@@ -164,9 +151,8 @@ export function ActivitySidebar({
   const [mentionOpen, setMentionOpen] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
 
-  // Global "C" shortcut focuses the comment composer — only when the
-  // viewer is signed in, the key isn't a shortcut combo, and the user
-  // isn't already typing into something.
+  // Global "C" focuses the composer, but only when signed in, the key
+  // isn't part of a modifier combo, and the user isn't already typing.
   useEffect(() => {
     if (!viewerSignedIn) return;
     const onKey = (e: KeyboardEvent) => {
@@ -450,7 +436,7 @@ function MentionPopover({
   onClose: () => void;
   onPick: (name: string) => void;
 }) {
-  // Click-outside dismissal: bind once and tear down with the popover.
+  // Dismiss on click outside the popover.
   const ref = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -508,8 +494,8 @@ function EmojiPopover({
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
   // Mirror the page theme so the picker chrome matches. Reads the
-  // `data-theme` attribute on <html> at mount + listens for changes
-  // (the ThemeToggle mutates the attribute imperatively).
+  // `data-theme` attribute on <html> at mount and watches for changes,
+  // since ThemeToggle mutates that attribute imperatively.
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof document === 'undefined') return 'dark';
     return document.documentElement.getAttribute('data-theme') === 'light'

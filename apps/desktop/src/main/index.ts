@@ -55,10 +55,8 @@ import { logInfo, logWarn, logError, getLogDirPath } from './lib/logger'
 import { loadUserPrefs } from './lib/user-prefs'
 import { loadDeviceId } from './lib/device-id'
 import { initAutoUpdater } from './lib/auto-updater'
-// Share-mode failure modal — opened from share-stream-handlers when
-// the streaming upload can't recover. Imported here only so the IIFE
-// boot ensures the IPC registration; the open call lives in the
-// handler module.
+// Side-effect import: registers the share-failure modal's IPC handler.
+// The open call lives in share-stream-handlers when an upload can't recover.
 import './lib/share/share-failure-window'
 // Side-effect import: registers the CAPTURE_GATE_OPEN IPC handler.
 import './lib/capture-gate-dialog'
@@ -91,12 +89,10 @@ let appIsReady = false
 app.setAsDefaultProtocolClient('captureflow')
 
 const pendingDeepLinks: string[] = []
-// Returns true when the URL was a `captureflow://record` (or
-// `captureflow://new-recording`) link and we've shown / focused the
-// recording toolbar. Anything else falls through to the auth deep-
-// link handler. Lives inline rather than in lib/ because it needs
-// the module-scoped recordingWindow reference and the isNativeRecording
-// guard, both of which are owned by this file.
+// Returns true for a `captureflow://record` link, having surfaced the
+// recording toolbar; anything else falls through to the auth deep-link
+// handler. Lives inline because it needs this file's module-scoped
+// recordingWindow reference and isNativeRecording guard.
 function tryHandleRecordDeepLink(rawUrl: string): boolean {
   if (typeof rawUrl !== 'string') return false
   let parsed: URL
@@ -105,9 +101,8 @@ function tryHandleRecordDeepLink(rawUrl: string): boolean {
   } catch {
     return false
   }
-  // Accept both `captureflow://record` (host=record) and a path-shaped
-  // `captureflow:///record`. macOS / Chromium have inconsistent host vs.
-  // path parsing for custom schemes, so we coerce both shapes.
+  // macOS / Chromium parse custom-scheme URLs inconsistently as host vs.
+  // path, so accept both `captureflow://record` and `captureflow:///record`.
   const key = `${parsed.host}${parsed.pathname}`.replace(/\/+/g, '/')
   if (key !== 'record' && key !== '/record') return false
   showRecordingWindowFromTray()
@@ -130,15 +125,12 @@ let permissionsWindow: BrowserWindow | null = null
 let selectionOverlayWindow: BrowserWindow | null = null
 // Dev-only: when true, the window-picker's hover detector won't filter out
 // CaptureFlow's own windows, so devs can pick the editor as a recording target.
-// Set by openSelectionOverlay() based on the renderer's localStorage flag.
 let overlayIncludeSelfWindows = false
 let tray: Tray | null = null
 
-// Shared by the tray menu's "New Recording" item and the
-// `captureflow://record` deep link. Either way the user is asking us to
-// surface the recording toolbar — if a recording is already running
-// we bail with a system notification instead of yanking the toolbar
-// over the live capture.
+// Shared by the tray's "New Recording" item and the `captureflow://record`
+// deep link: surface the recording toolbar. If a recording is already
+// running, bail with a notification rather than yank the toolbar over it.
 function showRecordingWindowFromTray(): void {
   if (isNativeRecordingActive()) {
     new Notification({
@@ -160,15 +152,11 @@ function showRecordingWindowFromTray(): void {
     recordingWindow.show()
     recordingWindow.focus()
   }
-  // Force the dock icon forward so the toolbar isn't buried behind
-  // the browser the user clicked from. show() alone doesn't activate
-  // the app on macOS when the request originated from open-url.
+  // show() alone doesn't activate the app on macOS when the request came
+  // from open-url, so the toolbar would stay buried behind the browser.
   app.focus({ steal: true })
 }
 
-// Builds and installs the tray menu. The capture mode lives inline on
-// the recording toolbar, so the tray no longer carries any stateful
-// checkboxes — kept the rebuild helper anyway for future entries.
 function refreshTrayMenu(): void {
   if (!tray) return
   const trayMenu = Menu.buildFromTemplate([
@@ -179,11 +167,8 @@ function refreshTrayMenu(): void {
     {
       label: 'Manage shareable links',
       click: () => {
-        // captureflow.xyz is the user-facing dashboard. Same
-        // base URL the share-auth deep link flow opens. We don't
-        // need a per-device label here — the dashboard's auth gate
-        // signs the user in once and then exposes their share list
-        // directly.
+        // The dashboard's own auth gate signs the user in and exposes
+        // their share list, so no per-device routing is needed here.
         const base = process.env.CAPTUREFLOW_APP_WEB_BASE ?? 'https://captureflow.xyz'
         shell.openExternal(base).catch((err) => logError('app', `failed to open dashboard: ${err}`))
       }
@@ -203,27 +188,25 @@ const WEBCAM_BUBBLE_EDGE_PADDING = 24
 
 // RESET clears the overlay renderer's mode-component state so hover/lock
 // from the previous session can't flash on the next open. Sent before
-// hide() so the message lands while the renderer is still live.
+// hide() while the renderer is still live.
 //
-// The actual hide() is deferred ~80 ms so React has time to commit the
-// cleared state (countdown digit, hover ring, etc) to the WebContents
-// framebuffer. Without that delay, hidden BrowserWindows preserve their
-// LAST paint — when the user re-opens the picker, macOS shows the
-// stale "3"/"2"/"1" digit until React re-renders. The countdown
-// hook's own RAF-wait covers the success path; this covers cancel.
+// hide() is deferred ~80 ms so React commits the cleared state to the
+// WebContents framebuffer first. Hidden BrowserWindows preserve their
+// LAST paint, so without the delay re-opening the picker shows the stale
+// countdown digit until React re-renders. (The countdown hook's own
+// RAF-wait covers the success path; this covers cancel.)
 function hideSelectionOverlay(): void {
   if (!selectionOverlayWindow || selectionOverlayWindow.isDestroyed()) return
   selectionOverlayWindow.webContents.send(IPC_CHANNELS.SELECTION_OVERLAY_RESET)
   if (!selectionOverlayWindow.isVisible()) return
-  // Capture the ref locally — the window can be destroyed during the
-  // delay if the user quits CaptureFlow.
+  // Capture the ref locally — the window can be destroyed during the delay
+  // (e.g. user quits CaptureFlow).
   const win = selectionOverlayWindow
   setTimeout(() => {
     if (win && !win.isDestroyed() && win.isVisible()) win.hide()
   }, 80)
 }
 
-// Hide the selection overlay and reset the toolbar's mode button.
 function cancelSelectionOverlay(): void {
   hideSelectionOverlay()
   if (recordingWindow && !recordingWindow.isDestroyed()) {
@@ -242,9 +225,9 @@ export function openPermissionDialogWindow(
 ): Promise<boolean> {
   return new Promise((resolve) => {
     const dialogWin = new BrowserWindow({
-      // No parent / modal — macOS sheet-attaches modal child windows to the
+      // No parent/modal: macOS sheet-attaches modal child windows to the
       // parent's title region, which collides with our frameless toolbar.
-      // Use alwaysOnTop instead so the user can't lose the dialog behind it.
+      // Use alwaysOnTop instead so the dialog can't get lost behind it.
       movable: true,
       resizable: false,
       minimizable: false,
@@ -386,7 +369,7 @@ function openSelectionOverlay(
       : screen.getPrimaryDisplay()
   const win = selectionOverlayWindow!
 
-  // Reposition to match current display (in case of display changes)
+  // Reposition to match the current display in case the layout changed.
   win.setBounds({
     x: display.bounds.x,
     y: display.bounds.y,
@@ -394,11 +377,10 @@ function openSelectionOverlay(
     height: display.size.height
   })
 
-  // Send the overlay init synchronously with an empty source list and show
-  // the window immediately — the dim background must appear instantly so
-  // hover/click feel responsive. Sources arrive via a follow-up message.
-  // (desktopCapturer.getSources can take 150-300ms with thumbnails, which
-  // would otherwise visibly delay the overlay opening.)
+  // Init with an empty source list and show immediately — the dim
+  // background must appear instantly for hover/click to feel responsive.
+  // Sources arrive via a follow-up message because getSources can take
+  // 150-300ms with thumbnails, which would otherwise delay the open.
   const initData = {
     mode,
     displayName: display.label || `Display ${display.id}`,
@@ -428,13 +410,11 @@ function openSelectionOverlay(
     selectionOverlayWindow.webContents.send(IPC_CHANNELS.SELECTION_OVERLAY_SOURCES, sources)
   })
 
-  // Refresh storage-cap state while the user is picking a source. If
-  // they freed up room from captureflow.xyz since the last probe,
-  // the lock clears before they click Start.
+  // Refresh storage-cap state while the user picks a source, so the lock
+  // clears before Start if they freed up room on captureflow.xyz.
   void refreshShareUsage()
-  // And the workspace list — if the user accepted an invite from the
-  // web while CaptureFlow was open, the new workspace shows up in the
-  // chip without restarting.
+  // Refresh the workspace list so an invite accepted on the web while
+  // CaptureFlow was open shows up in the chip without a restart.
   void refreshWorkspaces()
 }
 
@@ -682,11 +662,10 @@ ipcMain.on(IPC_CHANNELS.TOOLBAR_RESIZE_FOR_MODE, () => {
 })
 
 // Screenshot capture pipeline. Fired from the SelectionOverlay when the
-// user picks a Display / Window / Area while in screenshot mode. Spawns
-// the native sidecar (mode='snapshot'), then uploads the PNG to
-// captureflow.xyz in the background. Returns the upload result
-// so the renderer can fire-and-forget; the actual user-facing notice
-// is a native macOS notification with "Edit" + "Copy link" actions.
+// user picks a Display/Window/Area in screenshot mode: spawns the native
+// sidecar (mode='snapshot'), then uploads the PNG to captureflow.xyz in
+// the background. Returns the upload result for the renderer to
+// fire-and-forget; the user-facing notice is a native macOS notification.
 export type CaptureScreenshotResult =
   | { ok: true; id: string; viewUrl: string; editUrl: string; localCopyPath: string | null }
   | { ok: false; error: string; code?: string }
@@ -735,13 +714,10 @@ ipcMain.handle(
         sourceTitle = null
       }
 
-      // Open the modal NOW, before anything else. The React app's
-      // initial state is already `{ kind: 'capturing', localPath: null }`
-      // so it paints the spinner + camera placeholder on first frame —
-      // the user sees an instant response to their click instead of
-      // waiting for the native capture to round-trip. Pre-sizing here
-      // means the modal arrives at its final dimensions so the preview
-      // doesn't jump when the real PNG lands.
+      // Open the modal before the capture round-trips. Its initial state
+      // is `{ kind: 'capturing', localPath: null }`, so it paints the
+      // spinner on first frame and the click feels instant. Pre-sizing
+      // here means the preview doesn't jump when the real PNG lands.
       ensureSnapNotificationWindow(captureBounds)
       if (estimatedWidth > 0 && estimatedHeight > 0) {
         resizeSnapNotificationToAspect(estimatedWidth, estimatedHeight, captureBounds)
@@ -768,9 +744,8 @@ ipcMain.handle(
       } catch {
         // ignore
       }
-      // When CaptureFlow's frontmost window disappears, macOS infers we
-      // lost focus and slides the Dock up on every display whose
-      // autohide is on — even though the toolbar wasn't blocking it.
+      // When CaptureFlow's frontmost window disappears, macOS infers a
+      // focus loss and slides up the autohidden Dock on every display.
       // Raising the topmost non-CaptureFlow app keeps focus stable so the
       // Dock stays hidden. Same trick the recording flow uses.
       try {
@@ -866,11 +841,9 @@ ipcMain.handle(
   }
 )
 
-// ── Snap notification modal: action handlers ─────────────────────
-// Modal → main intents. All four are fire-and-forget from the
-// renderer; main owns the side-effects (open browser, write
-// clipboard, delete row + R2 object, close window).
-
+// Snap notification modal action handlers. All fire-and-forget from the
+// renderer; main owns the side-effects (open browser, write clipboard,
+// delete row + R2 object, close window).
 ipcMain.on(IPC_CHANNELS.SNAP_NOTIFICATION_CLOSE, () => {
   closeSnapNotificationWindow()
 })
@@ -910,11 +883,10 @@ app.whenReady().then(async () => {
     `CaptureFlow started: version=${app.getVersion()}, pid=${process.pid}, logs=${getLogDirPath()}`
   )
 
-  // Without an explicit handler, Chromium silently denies `media` permission
-  // requests in chromeless windows — so getUserMedia rejects before macOS TCC
-  // ever sees the call. Approving CaptureFlow's own renderers here lets the OS
-  // dialog drive the actual grant decision (which is what we want — TCC is
-  // the source of truth, not Chromium's permission UI).
+  // Without an explicit handler, Chromium silently denies `media` requests in
+  // chromeless windows, so getUserMedia rejects before macOS TCC sees the call.
+  // Approving our own renderers here lets the OS dialog drive the real grant
+  // decision — TCC is the source of truth, not Chromium's permission UI.
   session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => {
     if (permission === 'media') return callback(true)
     callback(false)
@@ -923,15 +895,12 @@ app.whenReady().then(async () => {
     return permission === 'media'
   })
 
-  // No setDisplayMediaRequestHandler — share mode used to acquire
-  // system audio via the renderer's getDisplayMedia loopback, but
-  // Electron 39 returns an already-ended audio track from that path
-  // and the resulting MP4 contained only 6-byte silent AAC frames.
-  // System audio now comes from the native Swift recorder: it
-  // AAC-encodes the ScreenCaptureKit audio tap and emits packets on
-  // fd 3 alongside H.264 chunks (see ShareWriter.swift). The renderer
-  // mp4-muxer treats them as a regular audio track — no decode, no
-  // re-encode, no getDisplayMedia at all.
+  // No setDisplayMediaRequestHandler: Electron 39 returns an already-ended
+  // audio track from the renderer's getDisplayMedia loopback, which produced
+  // MP4s with only 6-byte silent AAC frames. System audio now comes from the
+  // native Swift recorder, which AAC-encodes the ScreenCaptureKit audio tap
+  // and emits packets on fd 3 alongside H.264 chunks (see ShareWriter.swift).
+  // The renderer mp4-muxer treats them as a regular audio track.
 
   // --reset-state: wipe web storage (localStorage, IndexedDB, etc.) before any
   // window opens, so the next launch behaves like a fresh install. Recordings
@@ -958,23 +927,16 @@ app.whenReady().then(async () => {
   // any). The lock icon on the share-mode record button reads this
   // through SHARE_AUTH_GET on first paint.
   await loadShareAuth()
-  // Fire-and-forget probe — if the dashboard revoked this device
-  // while CaptureFlow was closed, /api/auth/check returns 401 and
-  // clearShareAuth() flips the lock icon back on before the user
-  // ever hits record. The same fetch doubles as a connectivity probe
-  // (network error → setShareConnectivity('offline')), so a user who
-  // launches CaptureFlow on a dead network sees the WifiOff lock before
-  // they ever hit record. Done in the background so a slow network
-  // doesn't delay app startup; both share-auth and share-connectivity
-  // changes broadcast to every BrowserWindow via SHARE_*_CHANGED.
+  // Fire-and-forget probe: a 401 from /api/auth/check means the dashboard
+  // revoked this device while we were closed, so clearShareAuth() flips the
+  // lock icon back on. The same fetch doubles as a connectivity probe (network
+  // error → 'offline', showing the WifiOff lock). Backgrounded so a slow
+  // network doesn't delay startup; results broadcast via SHARE_*_CHANGED.
   void validateShareAuth()
-  // Background poll → near-real-time revoke + connectivity detection
-  // without a push channel. 15s feels instant for a security-
-  // affordance flip (lock icon appearing), and even with hundreds of
-  // clients this is negligible Worker traffic. Runs regardless of
-  // whether a token is cached — anonymous flows still need the
-  // connectivity signal for the lock icon. We never clearInterval —
-  // process exit reaps it.
+  // Background poll for near-real-time revoke + connectivity detection
+  // without a push channel. Runs even without a cached token — anonymous
+  // flows still need the connectivity signal for the lock icon. Never
+  // cleared; process exit reaps it.
   setInterval(() => {
     void validateShareAuth()
   }, 15_000)
@@ -987,14 +949,11 @@ app.whenReady().then(async () => {
   // the background.
   void loadWorkspaces().then(() => refreshWorkspaces())
 
-  // Dock icon. Dev only: there's no .app bundle in `electron-vite dev`, so we
-  // set a PNG via setIcon. Electron can't feed a .icon to setIcon yet
-  // (electron/electron#48476), so the dev dock won't get the macOS 26 system
-  // squircle — that's expected; verify the real shape in a packaged build.
-  // In production we deliberately DON'T override: the bundle icon compiled
-  // from build/captureflow.icon (mac.icon -> Assets.car + CFBundleIconName) is
-  // drawn by macOS with the system shape, identical to every other app.
-  // Calling setIcon in production would clobber that system-shaped icon.
+  // Dock icon, dev only: there's no .app bundle in `electron-vite dev`, so set
+  // a PNG via setIcon. setIcon can't take a .icon yet (electron/electron#48476),
+  // so the dev dock won't get the macOS 26 squircle — verify the real shape in
+  // a packaged build. In production we deliberately DON'T override: setIcon
+  // would clobber the system-shaped bundle icon (Assets.car + CFBundleIconName).
   if (process.platform === 'darwin' && app.dock && is.dev) {
     app.dock.setIcon(iconDev)
   }
@@ -1008,7 +967,6 @@ app.whenReady().then(async () => {
     const filePath = url.searchParams.get('path') || ''
     const thumbSize = parseInt(url.searchParams.get('thumb') || '0', 10)
 
-    // Serve cached/generated thumbnail for image previews
     if (thumbSize > 0) {
       const cacheKey = `${filePath}:${thumbSize}`
       const cached = thumbCache.get(cacheKey)
@@ -1056,7 +1014,7 @@ app.whenReady().then(async () => {
     const total = stat.size
     const rangeHeader = request.headers.get('Range')
 
-    // Wrap Node ReadStream in a web ReadableStream that handles cancellation
+    // Adapt a Node ReadStream to a web ReadableStream, propagating cancel.
     const toWebStream = (nodeStream: ReturnType<typeof createReadStream>): ReadableStream => {
       return new ReadableStream({
         start(controller) {
@@ -1143,13 +1101,11 @@ app.whenReady().then(async () => {
     })
   })
 
-  // Pre-warm wallpaper thumbnails so BackgroundPanel never paints them
-  // one-by-one. Without this, ~18 thumb requests fire in parallel when the
-  // panel mounts but the main process serves each sequentially (each
-  // nativeImage decode+resize+JPEG is CPU-bound), so users see a visible
-  // top-to-bottom flash of placeholders. With the cache pre-populated the
-  // protocol handler returns the cached Buffer instantly. setImmediate
-  // between images yields the loop so the prewarm doesn't stall startup.
+  // Pre-warm wallpaper thumbnails so BackgroundPanel doesn't flash
+  // placeholders. The ~18 requests fired on mount are served sequentially
+  // (each nativeImage decode+resize+JPEG is CPU-bound), so without the cache
+  // users see a top-to-bottom reveal. setImmediate between images yields the
+  // loop so the prewarm doesn't stall startup.
   void (async () => {
     const { readdir } = await import('fs/promises')
     const wallpapersDir = join(app.getAppPath(), 'resources', 'wallpapers')
@@ -1184,17 +1140,15 @@ app.whenReady().then(async () => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // Register all IPC handlers
   registerRecordingHandlers(() => recordingWindow) // crash notifications route to recording window
   registerWindowHandlers(
     () => recordingWindow,
     () => permissionsWindow !== null && !permissionsWindow.isDestroyed()
   )
-  // Pre-warm the recording overlay so first-show is just a `show()` call.
-  // Constructing the BrowserWindow + transparent panel + data-URL load in the
-  // critical path (after hideWindow + focus handoff) used to add 6-7s of lag
-  // in prod where ScreenCaptureKit/WindowServer deprioritize first paint for
-  // a non-frontmost owner.
+  // Pre-warm the recording overlay so first-show is just a `show()`.
+  // Constructing the window + transparent panel + data-URL load in the
+  // critical path used to add 6-7s of lag in prod, where ScreenCaptureKit /
+  // WindowServer deprioritize first paint for a non-frontmost owner.
   ensureOverlayWindow()
   registerSystemHandlers()
   registerShareAuthHandlers()

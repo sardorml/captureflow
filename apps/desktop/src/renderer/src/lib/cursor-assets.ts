@@ -16,8 +16,8 @@ type CursorAsset = {
   hotspotY: number
 }
 
-// Hotspots derived from macOS NSCursor hotspot values mapped to each SVG's viewBox.
-// Arrow and text report 0x0 from NSCursor; hotspots determined from SVG path geometry.
+// Hotspots map macOS NSCursor values onto each SVG's viewBox. Arrow and text
+// report 0x0 from NSCursor, so theirs come from the SVG path geometry instead.
 const CURSOR_ASSETS: Record<CursorType, CursorAsset> = {
   arrow: { url: arrowUrl, hotspotX: 15 / 32, hotspotY: 13 / 32 },
   pointer: { url: pointerUrl, hotspotX: 16.6 / 32, hotspotY: 14.2 / 33 },

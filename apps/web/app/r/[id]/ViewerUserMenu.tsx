@@ -14,12 +14,10 @@ import {
   SmoothDropdownMenuTrigger,
 } from '@captureflow/ui';
 
-// Loom-style account menu for the share viewer's top-right avatar.
-// Header (name + email), Dashboard / Workspace settings links to
-// app.captureflow.xyz, and a Sign out item that bounces through the
-// existing /auth/clear route (already cookie-shredder).
+// Account menu for the share viewer's top-right avatar. Sign out bounces
+// through app-web's /auth/clear route, which shreds the auth cookies.
 //
-// Lives here rather than in app/_components/snap because the menu pulls in
+// Lives here rather than in app/_components/snap because it pulls in
 // shadcn primitives (@captureflow/ui) — keeping the snap viewer code
 // dependency-free for headless reuse.
 
@@ -29,9 +27,8 @@ type Props = {
   email: string;
   imageUrl: string | null;
   appWebUrl: string;
-  // Where to land after sign-out — defaults to current URL so the
-  // page re-renders with the anonymous branch. Pass an explicit value
-  // (e.g. the marketing site) to drop the visitor elsewhere.
+  // Where to land after sign-out. Defaults to the current URL so the
+  // page re-renders with the anonymous branch.
   signOutReturnUrl?: string;
 };
 
@@ -55,15 +52,14 @@ export function ViewerUserMenu({
     const back =
       signOutReturnUrl ??
       (typeof window !== 'undefined' ? window.location.href : '/');
-    // /auth/clear on app-web wipes every better-auth cookie scoped to
-    // .captureflow.xyz, then redirects to /login. We chain `next`
-    // so the user lands back on the share page (now as anonymous);
-    // AuthSync will re-render with the new state on focus.
+    // /auth/clear wipes every better-auth cookie scoped to
+    // .captureflow.xyz. We chain `next` so the user lands back on the
+    // share page as anonymous; AuthSync re-renders with the new state
+    // on focus.
     window.location.href = `${appWebUrl}/auth/clear?next=${encodeURIComponent(
       back
     )}`;
-    // Fallback for browsers that hold the navigation a tick — make
-    // the spinner stick until the redirect lands.
+    // Keep the spinner up for browsers that hold the navigation a tick.
     router.refresh();
   };
 

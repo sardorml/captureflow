@@ -1,9 +1,7 @@
 import { PRODUCT_NAME } from '@/lib/site';
 
-// Shared brand suffix for snap-page headlines. Mirrors the share
-// service's `buildShareHeadline` so a snap's public title reads the
-// same Loom-style way as a share. Stored in the `snaps.title` column
-// at insert time — dashboard renames overwrite the whole string so
+// Builds snap-page headlines. The result is stored in the `snaps.title`
+// column at insert time; dashboard renames overwrite the whole string so
 // the title field stays the single source of truth (renderer never
 // composes anything at draw time).
 

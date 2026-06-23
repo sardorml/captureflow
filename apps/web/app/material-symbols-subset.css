@@ -1,17 +1,14 @@
 /* Subset replacement for `material-symbols/rounded.css`.
  *
- * The npm package ships the ENTIRE Material Symbols Rounded variable font
- * (~3,500 glyphs, 5.3 MB woff2) with `font-display: block` — by far the
- * largest asset on the site and render-blocking for every icon. This file
- * loads a 125 KB subset containing only the ~114 icon ligatures the app
- * actually uses (all four variation axes — FILL/wght/GRAD/opsz — kept, so
- * the <Icon> component's font-variation-settings keep working).
+ * The npm package ships the entire Material Symbols Rounded variable font
+ * (~3,500 glyphs, 5.3 MB woff2) with `font-display: block` — the largest asset
+ * on the site and render-blocking for every icon. This file loads a 125 KB
+ * subset of only the ~114 ligatures the app uses, keeping all four variation
+ * axes (FILL/wght/GRAD/opsz) so the <Icon> font-variation-settings still work.
  *
- * Regenerate after adding NEW icon names:
- *   scripts/subset-material-symbols.py  (prunes the rlig ligature table to
- *   the names found in source, then subsets — see script header).
- * An icon missing from the subset renders as its raw ligature text, which
- * is the visual cue to re-run the script.
+ * Regenerate after adding NEW icon names via scripts/subset-material-symbols.py
+ * (see its header). An icon missing from the subset renders as its raw ligature
+ * text — the visual cue to re-run the script.
  */
 @font-face {
   font-family: 'Material Symbols Rounded';

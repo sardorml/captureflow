@@ -2,21 +2,16 @@ import UPNG from 'upng-js'
 
 import { logInfo, logWarn } from './logger'
 
-// Bake the default 'violet' gradient background (mirrors the web
-// editor's hydrateBackground(null)) into the captured PNG before
-// upload. The composed bytes are what `captureflow.xyz/<id>`
-// serves; the pristine source bytes (also re-encoded as PNG-8) are
-// what the editor loads from `.source.png` so subsequent edits don't
-// double-bake the gradient.
+// Bake the default 'violet' gradient background into the captured PNG
+// before upload. The composed bytes are served at `captureflow.xyz/<id>`;
+// the pristine source bytes (re-encoded as PNG-8) load into the editor
+// from `.source.png` so subsequent edits don't double-bake the gradient.
 //
-// Stays in sync with the web snap editor's GRADIENT_PRESETS.violet
+// Must stay in sync with the web snap editor's GRADIENT_PRESETS.violet
 // (stops) and BG_PADDING_RATIO (0.12 of min(w,h)).
 //
-// Pure-JS — no native deps so the electron-builder asar bundle stays
-// portable. Pixel ops on a 4300×3000 retina capture run ~150ms; the
-// palette encode runs ~1-2s. The snap-notification modal's spinner
-// already paints during this window so the cost is hidden from the
-// user's foreground action.
+// Pure-JS so the electron-builder asar bundle stays portable (no native
+// deps). Encode runs ~1-2s, hidden behind the snap-notification spinner.
 
 type Stop = { t: number; r: number; g: number; b: number }
 
@@ -27,17 +22,14 @@ const VIOLET_STOPS: Stop[] = [
 ]
 
 const BG_PADDING_RATIO = 0.12
-// Matches the web editor's KonvaImage `cornerRadius={imgRenderW * 0.01}`
-// when a background is applied. 1% of the source width — keep in sync
-// with SnapEditorImpl.tsx's KonvaImage props.
+// 1% of source width — keep in sync with the editor's KonvaImage
+// `cornerRadius={imgRenderW * 0.01}` in SnapEditorImpl.tsx.
 const CORNER_RADIUS_RATIO = 0.01
 
-// Returns the foreground-coverage alpha (0..1) for pixel (x, y) of a
-// w×h rounded-rect with corner radius r. 1 inside the rect, 0 in the
-// clipped corner, and a 1-pixel band of intermediate values along the
-// arc for antialiasing. Fast-paths return 1 when the pixel isn't even
-// in a corner inset; callers skip the call entirely for the central
-// strip so the per-pixel cost only lands on the corner regions.
+// Coverage alpha (0..1) for pixel (x, y) of a w×h rounded-rect with
+// corner radius r: 1 inside, 0 in the clipped corner, and a 1-pixel
+// antialiasing band along the arc. Returns 1 fast when not in a corner
+// inset; callers skip it entirely for the central strip.
 function roundedRectAlpha(x: number, y: number, w: number, h: number, r: number): number {
   if (r <= 0) return 1
   // Pixel center for cleaner AA than corner-anchored sampling.
@@ -68,8 +60,8 @@ function roundedRectAlpha(x: number, y: number, w: number, h: number, r: number)
   return r + 0.5 - dist
 }
 
-// 256-entry lookup so the inner pixel loop avoids a per-pixel branch
-// through the stop list. Computed once at module load.
+// 256-entry lookup so the inner pixel loop avoids a per-pixel walk of
+// the stop list. Built once at module load.
 const GRADIENT_LUT: Uint8Array = (() => {
   const lut = new Uint8Array(256 * 3)
   for (let i = 0; i < 256; i++) {
@@ -139,9 +131,9 @@ export function bakeSnapWithDefaultBackground(input: Buffer): SnapBakeResult {
 
   const decoded = decodeToRGBA(input)
   if (!decoded) {
-    // Decode failure: hand back the raw bytes for both slots so the
-    // upload still proceeds. Caller treats composedBytes === sourceBytes
-    // as the "no bake happened" signal.
+    // Decode failed: hand back raw bytes for both slots so the upload
+    // still proceeds. Caller treats composedBytes === sourceBytes as the
+    // "no bake happened" signal.
     return {
       composedBytes: input,
       sourceBytes: input,
@@ -159,9 +151,8 @@ export function bakeSnapWithDefaultBackground(input: Buffer): SnapBakeResult {
   const ch = srcH + pad * 2
 
   // Linear gradient from (0,0) to (cw,ch) — matches Konva's
-  // fillLinearGradient{Start,End}Point on BackgroundLayer.
-  // t = projection of (x,y) onto direction (cw,ch), normalised by
-  // direction length squared.
+  // fillLinearGradient{Start,End}Point on BackgroundLayer. t is (x,y)
+  // projected onto direction (cw,ch), normalised by its length squared.
   const denom = cw * cw + ch * ch
   const coefX = cw / denom
   const coefY = ch / denom
@@ -184,10 +175,9 @@ export function bakeSnapWithDefaultBackground(input: Buffer): SnapBakeResult {
     }
   }
 
-  // Alpha-blend the source on top, with a rounded-rect mask so the
-  // baked PNG matches the editor's `cornerRadius` look. Most pixels
-  // sit far from any corner and stay on the fast path; only the
-  // corner insets pay the `roundedRectAlpha` call.
+  // Alpha-blend the source on top with a rounded-rect mask so the baked
+  // PNG matches the editor's `cornerRadius` look. Only the corner insets
+  // pay the `roundedRectAlpha` call; the rest stays on the fast path.
   const cornerR = Math.round(srcW * CORNER_RADIUS_RATIO)
   for (let y = 0; y < srcH; y++) {
     const srcRow = y * srcW * 4
@@ -226,10 +216,9 @@ export function bakeSnapWithDefaultBackground(input: Buffer): SnapBakeResult {
     composedBytes = input
   }
 
-  // Re-encode the source as palette PNG so the editor's pristine
-  // sidecar matches the same wire-size profile as the composed PNG.
-  // Bail back to the raw bytes if the palette version grew (rare on
-  // already-quantised PNGs).
+  // Re-encode the source as palette PNG so the editor's pristine sidecar
+  // shares the composed PNG's wire-size profile. Bail to raw bytes if the
+  // palette version grew (rare on already-quantised PNGs).
   let sourceBytes: Buffer
   try {
     sourceBytes = encodePalette(srcRGBA, srcW, srcH)

@@ -5,32 +5,9 @@ import { getSessionCookie } from 'better-auth/cookies';
 // (cheap, no DB hit); per-action and per-page server checks via
 // `auth.api.getSession()` do the actual session-row verification.
 //
-// PUBLIC routes that sit OUTSIDE the gate:
-//   - `/`                         → custom landing (app/page.tsx redirects
-//                                   signed-in users to /shares).
-//   - `/login`, `/signup`         → auth forms.
-//   - `/auth/callback`            → desktop deep-link handoff (does its own
-//                                   session check + redirect to /login).
-//   - `/auth/clear`               → cookie-shredder the session guard sends
-//                                   users to on a dead/invalid session.
-//   - `/invite/*`                 → workspace invite landing.
-//   - `/download`                 → public "get the app" page (linked from
-//                                   the landing's Download button).
-//   - `/plan`                     → public pricing page (PricingSection +
-//                                   ComparePlansSection + FAQ).
-//   - `/suggest-feature`          → public feature-suggestion form (linked
-//                                   from the landing's roadmap section).
-//   - `/r/[id]`, `/s/[id]`        → public share + snap viewers (visibility
-//                                   enforced inside the route, not here).
-//   - `/api/auth`, `/api/r/*`, `/api/s/*`, `/api/usage`, `/api/workspaces`,
-//     `/api/verify-session`, `/api/request-access`, `/api/lemon-webhook`
-//                                 → unauthenticated or bearer-token APIs;
-//                                   excluded so the desktop's bearer calls
-//                                   get a JSON 401 instead of a 302.
-//
-// Dashboard routes (/shares, /snaps, /devices, /members, /settings,
-// /profile, /notifications) stay GATED — a missing session cookie bounces
-// to /login.
+// Public routes are excluded via the matcher below. The bearer-token APIs
+// (`/api/r/*`, `/api/s/*`, `/api/usage`, `/api/workspaces`, ...) are
+// excluded so the desktop's bearer calls get a JSON 401 instead of a 302.
 
 export const config = {
   matcher: [

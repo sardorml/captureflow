@@ -1,12 +1,9 @@
 /**
- * Material Symbols (Rounded) icon wrapper.
+ * Material Symbols (Rounded) icon wrapper. The font is loaded once in
+ * `main.tsx` via `import 'material-symbols/rounded.css'`.
  *
- * The editor uses Google Material Symbols exclusively. The font is loaded
- * once in `main.tsx` via `import 'material-symbols/rounded.css'`, which
- * registers the `material-symbols-rounded` class and the woff2 font file.
- *
- * Pass `name` as any Material Symbols identifier (see fonts.google.com/icons).
- * `size` becomes the font-size (pixels). Use `fill` for the filled variant.
+ * `name` is any Material Symbols identifier (see fonts.google.com/icons).
+ * `size` is the font-size in pixels; `fill` selects the filled variant.
  */
 import type { CSSProperties } from 'react'
 

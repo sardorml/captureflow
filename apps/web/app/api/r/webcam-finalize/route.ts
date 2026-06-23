@@ -6,9 +6,9 @@ import { completeMultipartUpload, headObject } from '@/lib/share/r2';
 import { optionsResponse, withCors } from '@/lib/share/cors';
 import type { FinalizeRequest, ShareApiError } from '@/lib/share/types';
 
-// Mirror of /api/finalize for the webcam companion. Flips webcam_state
-// from 'pending' to 'ready' once R2 multipart completes. Idempotent
-// when called against an already-ready row.
+// Webcam-companion counterpart to /api/finalize. Flips webcam_state from
+// 'pending' to 'ready' once the R2 multipart completes; idempotent against
+// an already-ready row.
 
 const DEVICE_HEADER = 'x-captureflow-device';
 

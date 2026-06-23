@@ -3,18 +3,11 @@ import { resolveDeviceTokenToUser } from '@/lib/share/device-tokens';
 import { optionsResponse, withCors } from '@/lib/share/cors';
 import type { ShareApiError } from '@/lib/share/types';
 
-// GET /api/auth/check
-//
-// Lightweight bearer probe. The desktop calls this at startup and on
-// window focus so a remotely-revoked token can flip the lock icon back
-// on without waiting until the next /api/init attempt fails. 200 → the
-// token is live; 401 → caller should clearShareAuth(); 400 → header
-// wasn't a bearer at all (treat as anonymous, no action needed).
-//
-// We intentionally keep the response minimal — { ok: true, userId } —
-// rather than echoing the label/email here. The desktop already has
-// those from setShareAuth at sign-in time; we only need a yes/no on
-// liveness.
+// Lightweight bearer probe so the desktop can detect a remotely-revoked
+// token at startup/focus instead of waiting for the next /api/init to fail.
+// 200 → token live; 401 → caller should clearShareAuth(); 400 → not a
+// bearer header (treat as anonymous). Response stays minimal ({ ok, userId })
+// since the desktop already has label/email from setShareAuth.
 
 function extractBearer(req: NextRequest): string | null {
   const h = req.headers.get('authorization') ?? '';

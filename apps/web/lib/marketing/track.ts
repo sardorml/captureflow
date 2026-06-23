@@ -1,9 +1,8 @@
-// Tiny client-safe wrapper around PostHog for marketing conversion events.
-//
-// PostHog itself is initialized once by <AnalyticsProvider> in the root
-// layout; capturing on the imported singleton here is safe. Both helpers
-// no-op (and never throw) when analytics is dormant — POSTHOG_KEY empty —
-// or when running outside the browser, so call sites need no guards.
+// Client-safe wrapper around PostHog for marketing conversion events.
+// PostHog is initialized once by <AnalyticsProvider> in the root layout, so
+// capturing on the imported singleton here is safe. Both helpers no-op (and
+// never throw) when analytics is dormant (POSTHOG_KEY empty) or running outside
+// the browser, so call sites need no guards.
 
 import posthog from 'posthog-js';
 import { POSTHOG_KEY } from '@/lib/public-analytics';

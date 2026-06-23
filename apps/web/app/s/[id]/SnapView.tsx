@@ -9,10 +9,7 @@ import { SnapActions } from './SnapActions';
 import { ViewerUserMenu } from './ViewerUserMenu';
 import { ZoomableSnapImage } from './ZoomableSnapImage';
 
-// Public snap viewer — fullscreen screenshot showcase. The violet
-// gradient fills the entire viewport behind the navbar; the image
-// floats centered inside a Card so the screenshot reads as the hero
-// against the gradient (no nested dark wrapper).
+// Public snap viewer — fullscreen screenshot showcase.
 
 type Props = {
   id: string;
@@ -33,8 +30,7 @@ type Props = {
   snapUrl: string;
   editUrl: string;
   theme: Theme;
-  // Login bounce URL — used by the anonymous auth-prompt cluster's
-  // "Log in" button to bring the visitor back here after sign-in.
+  // Login bounce URL — returns the visitor here after sign-in.
   loginUrl: string;
 };
 

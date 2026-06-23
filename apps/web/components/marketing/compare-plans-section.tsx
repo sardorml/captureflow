@@ -4,10 +4,8 @@ import { Icon } from '@/components/ui/icon';
 import { COMPARE_SECTIONS, CURRENT_STAGE } from '@/lib/marketing/constants';
 import { useMessages } from './i18n-provider';
 
-// Compare-plans matrix that sits right under the pricing cards. Sticky
-// three-column header echoes the card headers above; rows are grouped into
-// sections (Recording / Share & Snap) so the reader can scan categories rather
-// than one long list.
+// Compare-plans matrix under the pricing cards. Rows are grouped into sections
+// (Recording / Share & Snap) so the reader can scan categories.
 
 const COLUMNS = [
   { key: 'free' as const, label: 'Self-Hosted', accent: 'text-neutral-600' },
@@ -18,14 +16,10 @@ const COLUMNS = [
   },
 ];
 
-// Tick colour — one green for BOTH plan columns so the Managed column's ticks
-// don't read darker/heavier than Self-Hosted's (the column highlight already
-// distinguishes the plans).
+// One green for both plan columns so the Managed ticks don't read heavier than
+// Self-Hosted's; the column highlight already distinguishes the plans.
 const TICK_COLOR = '#3aa655';
 
-// Section-label treatment (Recording / Share & Snap) — bold Inter, sized to
-// match the column. Section labels only: the plan-column headers now render as
-// plain semibold text (no bold-Inter, no blue).
 const PRO_TITLE_STYLE: React.CSSProperties = {
   fontFamily: 'var(--font-inter)',
   fontWeight: 700,
@@ -49,15 +43,12 @@ export function ComparePlansSection() {
           {compare.subtitle}
         </p>
 
-        {/* Desktop / tablet: the three-column matrix. Hidden on phones, where
-            the narrow value columns wrap badly — a stacked layout renders
-            instead (below). */}
+        {/* Desktop/tablet matrix. Hidden on phones, where the narrow value
+            columns wrap badly — a stacked layout renders instead (below). */}
         <div className="relative mt-10 hidden sm:block">
-          {/* Managed-column highlight — a grid overlay using the exact same
-              template + padding as the rows, so its third cell lines up
-              perfectly with the CaptureFlow Managed column. Sits behind the
-              content (which is lifted with `relative`) and spans the full
-              height. */}
+          {/* Managed-column highlight — a grid overlay using the same template +
+              padding as the rows, so its third cell lines up with the Managed
+              column. Sits behind the content (lifted with `relative`). */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 grid grid-cols-[1.6fr_repeat(2,1fr)] px-2 sm:px-3"
@@ -67,10 +58,9 @@ export function ComparePlansSection() {
             <div className="rounded-2xl bg-blue-200" />
           </div>
 
-          {/* The matrix stays a CSS grid for layout (the Managed-column overlay
-              depends on it), so table semantics are supplied via ARIA roles:
-              table > rowgroup > row > columnheader/rowheader/cell, with an
-              sr-only caption naming the whole thing. */}
+          {/* The layout stays a CSS grid (the Managed-column overlay depends on
+              it), so table semantics come from ARIA roles: table > rowgroup >
+              row > columnheader/rowheader/cell, plus an sr-only caption. */}
           <p id="compare-plans-caption" className="sr-only">
             {compare.heading}
           </p>
@@ -79,9 +69,8 @@ export function ComparePlansSection() {
             role="table"
             aria-labelledby="compare-plans-caption"
           >
-            {/* Header row — fixed plan columns; the left column is just a
-              spacer so the section labels below have something to sit
-              under. Minimal style: no fill, just a divider underneath. */}
+            {/* Header row. The left column is a spacer so the section labels
+                below have something to sit under. */}
             <div
               role="row"
               className="grid grid-cols-[1.6fr_repeat(2,1fr)] border-b border-black/10 px-2 py-4 text-sm sm:px-3 sm:py-5"
@@ -93,10 +82,6 @@ export function ComparePlansSection() {
                 {compare.featureColumn}
               </div>
               {COLUMNS.map((col) => (
-                // Both plan headers render the same — plain semibold text. The
-                // Managed column no longer gets the bold-Inter blue treatment,
-                // so the two headers read evenly (it keeps its darker accent +
-                // the blue highlight band behind the column).
                 <div
                   key={col.key}
                   role="columnheader"
@@ -113,9 +98,8 @@ export function ComparePlansSection() {
                   role="row"
                   className="grid grid-cols-[1.6fr_repeat(2,1fr)] px-2 pt-6 pb-2 sm:px-3"
                 >
-                  {/* Section label — Managed-title treatment, dark, sized to
-                      match the Managed column values. Spans the full row; the
-                      grid spacer is layout-only. */}
+                  {/* Section label spans the full row; the grid spacer that
+                      follows is layout-only. */}
                   <div
                     role="rowheader"
                     aria-colspan={3}
@@ -168,9 +152,8 @@ export function ComparePlansSection() {
         </div>
 
         {/* Mobile: stacked per-feature layout. Each feature is a heading with
-            the two plans listed on their own full-width rows, so values never
-            get squeezed into a narrow column. The Managed row keeps the blue
-            highlight to echo the column above. */}
+            the two plans on their own full-width rows, so values never get
+            squeezed into a narrow column. */}
         <div className="mt-8 sm:hidden">
           {COMPARE_SECTIONS.map((section, sectionIndex) => (
             <div key={section.title} className="mb-8 last:mb-0">
@@ -218,9 +201,8 @@ export function ComparePlansSection() {
   );
 }
 
-// One plan's value for a feature on the mobile layout: plan name on the left,
-// value (text, check, or dash) right-aligned. `highlight` paints the Managed
-// row to match the highlighted column on wider screens.
+// One plan's value for a feature on the mobile layout. `highlight` paints the
+// Managed row to match the highlighted column on wider screens.
 function MobileRow({
   plan,
   value,
@@ -283,8 +265,6 @@ function Cell({
   notIncludedAria: string;
 }) {
   if (typeof value === 'string') {
-    // Both columns render string values at the same normal weight — the paid
-    // column no longer gets the bold "Pro" treatment, so the table reads evenly.
     return (
       <span className="text-center text-sm font-medium text-neutral-900">
         {localizedValue}
@@ -292,9 +272,8 @@ function Cell({
     );
   }
   // Check/dash glyphs are visual-only (the Icon renders aria-hidden), so each
-  // cell carries an sr-only text alternative — more reliable than aria-label
-  // on a generic <span>, which many screen readers ignore. Both columns use the
-  // same tick so the Managed column doesn't read darker/heavier.
+  // cell carries an sr-only text alternative — more reliable than aria-label on
+  // a generic <span>, which many screen readers ignore.
   if (value) {
     return (
       <span

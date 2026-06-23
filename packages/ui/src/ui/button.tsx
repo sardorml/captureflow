@@ -3,10 +3,9 @@ import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../lib/cn';
 
-// Dashboard button primitive. Variants line up with the surfaces the
-// app actually has — `default` is the violet primary CTA, `secondary`
-// is the neutral bordered button, `ghost` is icon-only, `destructive`
-// is the red flavour for delete actions.
+// Button primitive: `default` is the primary CTA, `secondary` is the
+// neutral bordered button, `ghost` is icon-only, `destructive` is for
+// delete actions.
 
 const buttonVariants = cva(
   'inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-1 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',

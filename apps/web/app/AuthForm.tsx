@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { signIn, signUp } from '@/lib/auth-client';
 
-// Plain email+password auth card for CaptureFlow. Replaces the marketing
-// AuthPanel (which dragged in the i18n provider + marketing shell). Drives
-// better-auth's client directly and redirects to `next` on success.
+// Email+password auth card kept separate from the marketing AuthPanel, which
+// pulls in the i18n provider + marketing shell. Drives better-auth's client
+// directly and redirects to `next` on success.
 export function AuthForm({
   next,
   initialMode = 'signin',

@@ -17,10 +17,10 @@ bootEntitlementStore()
 const params = new URLSearchParams(window.location.search)
 const view = params.get('view')
 
-// Boot opt-in usage analytics. Every window runs this so track() works
-// wherever it's called, but `app_opened` fires only from the main toolbar
-// window (no `view`, base hash) to avoid one event per BrowserWindow. Stays
-// fully dormant unless a PostHog key is configured and the user opted in.
+// Every window boots analytics so track() works wherever it's called, but
+// `app_opened` fires only from the main toolbar window (no `view`, base hash)
+// to avoid one event per BrowserWindow. Stays dormant unless a PostHog key is
+// configured and the user opted in.
 const isMainToolbar = !view && (window.location.hash === '' || window.location.hash === '#/')
 void (async (): Promise<void> => {
   try {
@@ -44,18 +44,15 @@ void (async (): Promise<void> => {
   }
 })()
 
-// Transparent BrowserWindows still inherit body's `bg-background` from
-// main.css, so on cold-mount the first paint is dark and `ready-to-show`
-// reveals a black rectangle for a frame before per-component effects can
-// repaint body transparent. Strip the background synchronously here so
-// the first paint is already transparent. Per-component effects become
-// no-ops on these views.
+// Transparent BrowserWindows inherit body's `bg-background` from main.css, so
+// on cold-mount the first paint is dark and `ready-to-show` flashes a black
+// rectangle for a frame before per-component effects repaint body transparent.
+// Strip the background synchronously here so the first paint is already
+// transparent; per-component effects then become no-ops on these views.
 const TRANSPARENT_VIEWS = new Set(['share-failure'])
-// Hash-routed entries inside App.tsx that also live in transparent
-// BrowserWindows. The default route (no hash) is the recording
-// toolbar — the biggest source of the cold-mount black flash, since
-// the toolbar window is mostly transparent and the bar is a small
-// dark pill inside it.
+// Hash-routed entries in App.tsx that also live in transparent BrowserWindows.
+// The default route (no hash) is the recording toolbar — the biggest source of
+// the flash, since the window is mostly transparent around a small dark pill.
 const TRANSPARENT_HASHES = new Set([
   '',
   '#/',

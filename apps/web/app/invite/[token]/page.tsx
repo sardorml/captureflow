@@ -5,17 +5,12 @@ import { loadSession } from '@/lib/session-guard';
 import { getAppWebEnv } from '@/lib/cf-env';
 import { acceptInviteAction } from '../../(dashboard)/members/actions';
 
-// /invite/<plaintext-token>
-//
-// Landing page for emailed workspace invitations. Handles the three
-// states the recipient can be in:
-//
-//   - Signed out → bounce to /login?next=/invite/<token> so better-auth's
-//     sign-in flow returns them here once they're authenticated.
-//   - Signed in, valid invite, email matches → render "Accept" CTA.
-//   - Signed in, valid invite, email mismatch → friendly "wrong account"
-//     screen with a sign-out link.
-//   - Invite expired / accepted / not-found → friendly error screen.
+// Landing page for emailed workspace invitations (/invite/<plaintext-token>).
+// Branches on recipient state:
+//   - Signed out → bounce to /login?next=/invite/<token>.
+//   - Valid invite, email matches → render "Accept" CTA.
+//   - Valid invite, email mismatch → "wrong account" screen with sign-out.
+//   - Invite expired / accepted / not-found → error screen.
 
 export const dynamic = 'force-dynamic';
 
@@ -27,8 +22,7 @@ export default async function InvitePage({ params }: Props) {
   const session = await loadSession();
 
   if (!session) {
-    // Bounce through login. After auth, better-auth's `next` redirect
-    // brings them back here and we re-run this server component.
+    // Bounce through login; better-auth's `next` redirect brings them back here after auth.
     redirect(`/login?next=${encodeURIComponent(`/invite/${token}`)}`);
   }
 

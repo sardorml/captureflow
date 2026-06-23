@@ -104,10 +104,8 @@ async function verifySignature(
   const computed = Array.from(new Uint8Array(sig))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
-  // Constant-time compare. Without it a same-length-but-different-byte
-  // signature would still be rejected (the early-return on length
-  // mismatch already short-circuits), but constant-time on the same-
-  // length path is cheap insurance.
+  // Constant-time compare on the equal-length path to avoid leaking
+  // signature bytes via timing.
   if (computed.length !== signatureHex.length) return false;
   let diff = 0;
   for (let i = 0; i < computed.length; i++) {

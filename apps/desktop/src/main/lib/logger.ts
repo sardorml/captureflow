@@ -10,8 +10,6 @@ let logFilePath: string | null = null
 const MAX_LOG_FILES = 10
 const MAX_LOG_SIZE = 10 * 1024 * 1024 // 10MB per file
 
-// ── ANSI Colors ──
-
 const c = {
   reset: '\x1b[0m',
   bold: '\x1b[1m',
@@ -47,8 +45,6 @@ const levelIcon: Record<string, string> = {
   ERROR: '\u2718'
 }
 
-// ── File Setup ──
-
 function getLogDir(): string {
   if (logDir) return logDir
   logDir = join(app.getPath('home'), 'Library', 'Logs', 'CaptureFlow')
@@ -81,8 +77,6 @@ function getStream(): WriteStream {
   return logStream
 }
 
-// ── Formatting ──
-
 function timestamp(): string {
   const d = new Date()
   const h = String(d.getHours()).padStart(2, '0')
@@ -107,8 +101,6 @@ function terminalLine(level: string, component: string, message: string): string
   const msg = `${levelColor}${message}${c.reset}`
   return `  ${ts} ${badge} ${icon} ${comp} ${msg}`
 }
-
-// ── Public API ──
 
 export function logInfo(component: string, message: string): void {
   getStream().write(fileLine('INFO', component, message))

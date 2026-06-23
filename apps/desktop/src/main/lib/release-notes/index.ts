@@ -5,20 +5,15 @@ import { logInfo, logWarn } from '../logger'
 import type { ReleaseNotesInitPayload } from '../../../shared/types'
 
 // Two sources of release notes:
-//   - `welcome.md` (bundled)  — shown once, on the user's first-ever editor
-//                                open. Doesn't depend on the network.
-//   - CDN markdown (live)     — shown once per `app.getVersion()` per Mac. We
-//                                author `notes/<version>.md` and upload it to
-//                                the releases CDN alongside the build, so
-//                                post-ship typo fixes go live without a
-//                                rebuild.
-// Both follow the same convention: the first `# heading` becomes the modal
-// title, everything after is the body (see `parseNote`).
+//   - `welcome.md` (bundled) — shown once on first-ever editor open; offline.
+//   - CDN markdown (live)    — shown once per app version. We upload
+//     `notes/<version>.md` next to the build so post-ship typo fixes go live
+//     without a rebuild.
+// Both follow the same convention: the first `# heading` is the modal title,
+// the rest is the body (see `parseNote`).
 //
-// Delivery is the renderer's job: this module only PICKS the pending note and
-// returns its payload over IPC (getPendingReleaseNote) and records when it has
-// been seen (markReleaseNotesShown). The editor renders it in an in-app
-// BasicModal — there is no separate native window.
+// This module only PICKS the pending note and records when it's been seen;
+// rendering is the renderer's job (an in-app BasicModal, no native window).
 const RELEASE_NOTES_BASE = 'https://dl.captureflow.xyz/notes'
 
 type ReleaseNote = {
@@ -50,10 +45,9 @@ const WELCOME_NOTE: ReleaseNote | null = (() => {
   return raw ? parseNote(raw) : null
 })()
 
-// Memoize the CDN fetch per version so we don't pay the network cost twice in
-// the same session: once for the pending check, again on open. The cache is
-// per-process and resets on quit, which is what we want — the user only sees
-// notes once per version anyway.
+// Memoize the CDN fetch per version so the pending check and the later open
+// don't both hit the network. Per-process cache; resetting on quit is fine
+// since notes only show once per version anyway.
 const versionNoteCache = new Map<string, ReleaseNote | null>()
 const versionNoteInflight = new Map<string, Promise<ReleaseNote | null>>()
 
@@ -62,9 +56,8 @@ async function fetchVersionNote(version: string): Promise<ReleaseNote | null> {
   const inflight = versionNoteInflight.get(version)
   if (inflight) return inflight
 
-  // We author + upload `notes/<version>.md` to the releases CDN next to the
-  // build (e.g. dl.captureflow.xyz/notes/0.9.0-beta.md). A 404 (notes not
-  // uploaded for this version) just means no modal — handled as null.
+  // A 404 (no `notes/<version>.md` uploaded for this build) just means no
+  // modal — handled as null.
   const url = `${RELEASE_NOTES_BASE}/${encodeURIComponent(version)}.md`
   const promise = (async (): Promise<ReleaseNote | null> => {
     try {
@@ -127,9 +120,8 @@ type PickedNote = {
 async function pickNote(store: Store, force: boolean): Promise<PickedNote | null> {
   const version = app.getVersion()
 
-  // Force-show (dev toggle): prefer the version note from the CDN when one
-  // exists for the current build — that's the most relevant content to QA.
-  // Fall back to welcome if the release isn't published or the fetch fails.
+  // Force-show (dev toggle): prefer the CDN version note for QA, falling back
+  // to welcome if the release isn't published or the fetch fails.
   if (force) {
     const versionNote = await fetchVersionNote(version)
     if (versionNote) return { kind: 'version', version, ...versionNote }
@@ -137,15 +129,14 @@ async function pickNote(store: Store, force: boolean): Promise<PickedNote | null
     return null
   }
 
-  // First-ever editor open on this install — greet the user. Bundled note,
-  // works offline.
+  // First-ever editor open on this install — greet with the bundled note.
   if (!store.welcomed && WELCOME_NOTE) {
     return { kind: 'welcome', version, ...WELCOME_NOTE }
   }
 
-  // Subsequent opens — surface the release body from the CDN once per version.
-  // If the fetch fails (offline, draft release, 404) we return null without
-  // marking the version shown, so we'll retry on the next launch.
+  // Subsequent opens — surface the CDN release body once per version. On fetch
+  // failure we return null without marking the version shown, so a later launch
+  // retries.
   if (!store.shownFor.includes(version)) {
     const versionNote = await fetchVersionNote(version)
     if (versionNote) return { kind: 'version', version, ...versionNote }
@@ -155,9 +146,8 @@ async function pickNote(store: Store, force: boolean): Promise<PickedNote | null
 }
 
 // Returns the pending note's payload (or null), with no side effects. `force`
-// bypasses the seen-checks so the title-bar "What's new" button can re-open it
-// in the same session. The renderer marks it seen via markReleaseNotesShown
-// when the modal is dismissed.
+// bypasses the seen-checks so the title-bar "What's new" button can re-open it.
+// The renderer marks it seen via markReleaseNotesShown on dismiss.
 export async function getPendingReleaseNote(
   force = false
 ): Promise<ReleaseNotesInitPayload | null> {
@@ -173,9 +163,8 @@ export async function getPendingReleaseNote(
   return { version: picked.version, message: picked.message, detail: picked.detail }
 }
 
-// Records that the user has seen the notes: marks them welcomed and the current
-// version shown, so neither the welcome note nor this version's note re-appears
-// on the next launch.
+// Marks both welcomed and the current version shown, so neither the welcome
+// note nor this version's note re-appears on the next launch.
 export async function markReleaseNotesShown(): Promise<void> {
   const store = await readStore()
   const version = app.getVersion()

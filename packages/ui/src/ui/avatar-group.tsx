@@ -4,27 +4,20 @@ import * as React from 'react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/cn';
 
-// Overlapping circle stack (workspace members + dashed "+" slots) —
-// the smoothui "animated avatar group" pattern. Each circle stagger-
-// fades in from the right; hovering nudges the stack to splay. Pair
-// with a trigger slot so the trailing "+" placeholder can open an
-// invite modal without the caller composing portals manually.
+// Overlapping circle stack of workspace members with a trailing dashed
+// "+" slot that the caller can wire as an invite-modal trigger.
 
 export type AvatarGroupItem = {
   // Stable key so the motion stagger keeps identity across re-orders.
   key: string;
-  // First-initial fallback when no image is available.
   initials: string;
-  // Pre-resolved display name for the tooltip / aria-label. Email if
-  // the user hasn't set a name.
+  // Display name for the tooltip / aria-label; email if no name is set.
   label: string;
-  // Optional avatar URL from better-auth `users.image`. When present,
-  // the circle renders the image and the tone/initials become the
-  // load-fail fallback (rendered behind the image).
+  // Avatar URL (better-auth `users.image`). When set, the tone/initials
+  // become the load-fail fallback rendered behind the image.
   image?: string | null;
-  // Optional explicit color override; defaults to a deterministic
-  // palette pick based on the initials so the same user lights the
-  // same color across renders.
+  // Defaults to a deterministic palette pick from the key so the same
+  // user keeps the same color across renders.
   tone?: AvatarTone;
 };
 
@@ -38,17 +31,12 @@ export type AvatarTone =
 
 type Props = {
   items: AvatarGroupItem[];
-  // Hard cap on visible avatars — the rest collapse into a +N chip.
-  // Default 4 keeps the sidebar stack compact.
+  // Max visible avatars; the rest collapse into a +N chip.
   max?: number;
-  // Trailing dashed "+" slot. When provided, renders as an inline
-  // button — the parent typically wires it as a Dialog trigger
-  // (asChild) to open the invite modal. Without this, the group
-  // renders the avatars only (read-only).
+  // Renders a built-in "+" button. Omit for a read-only group.
   onInviteClick?: () => void;
-  // ID hook so the parent can render a DialogTrigger asChild around
-  // the "+" slot (Radix re-parents the ref). Suppressed when
-  // `inviteSlot` is provided to avoid a double-trigger.
+  // Custom trailing slot, e.g. a Radix DialogTrigger asChild. Takes
+  // precedence over onInviteClick to avoid a double trigger.
   inviteSlot?: React.ReactNode;
   className?: string;
 };
@@ -92,7 +80,7 @@ export function AvatarGroup({
   return (
     <div
       className={cn('flex items-center', className)}
-      // Negative margin trick gives each avatar a -8px overlap.
+      // Negative margin overlaps each avatar by 8px.
       style={{ ['--avatar-gap' as string]: '-8px' }}
     >
       {visible.map((item, i) => {
@@ -162,10 +150,8 @@ export function AvatarGroup({
   );
 }
 
-// Standalone dashed "+" pill — exported so the caller can render it
-// inside a Radix DialogTrigger asChild without re-implementing the
-// styles. Forwards the ref + spreads onClick so Radix's controlled
-// open state takes over.
+// Standalone dashed "+" pill exported for use inside a Radix
+// DialogTrigger asChild; forwards the ref so Radix can control it.
 type AvatarInviteSlotProps = Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
   | 'onAnimationStart'

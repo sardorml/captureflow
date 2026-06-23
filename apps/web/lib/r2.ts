@@ -2,12 +2,10 @@
 
 import { getAppWebEnv } from './cf-env';
 
-// R2 access for the user dashboard. Delete + put. Share uploads go
-// through the share multipart API, but snap editor saves write
-// the new PNG bytes directly via this binding (same R2 bucket; the
-// server action that owns the bytes is authenticated against the
-// session cookie, so we don't need a bearer-round-trip through the
-// snap Worker for an editor save).
+// R2 access for the user dashboard. Share uploads go through the share
+// multipart API, but snap editor saves write the new PNG bytes directly via
+// this binding: the server action is authenticated against the session cookie,
+// so an editor save doesn't need a bearer round-trip through the snap Worker.
 
 async function getBucket(): Promise<R2Bucket> {
   const env = await getAppWebEnv();
@@ -28,8 +26,8 @@ export async function putObject(
   key: string,
   body: ArrayBuffer,
   contentType: string,
-  // Snap edits replace the object — pass `no-cache` so viewers see
-  // the new bytes on next fetch instead of waiting on edge TTL.
+  // Snap edits replace the object, so default to `no-cache`: viewers see the
+  // new bytes on next fetch instead of waiting on the edge TTL.
   cacheControl = 'no-cache'
 ): Promise<void> {
   const bucket = await getBucket();
@@ -38,10 +36,9 @@ export async function putObject(
   });
 }
 
-// Read raw bytes for an object — used by the editor save flow to
-// snapshot the unedited screenshot to the `.source` key on the first
-// save so future edits always start from the original (instead of
-// from a prior bake).
+// Read raw bytes for an object. The editor save flow uses this to snapshot the
+// unedited screenshot to the `.source` key on first save, so future edits
+// always start from the original rather than from a prior bake.
 export async function getObjectBytes(key: string): Promise<ArrayBuffer | null> {
   const bucket = await getBucket();
   const obj = await bucket.get(key);
@@ -49,18 +46,17 @@ export async function getObjectBytes(key: string): Promise<ArrayBuffer | null> {
   return obj.arrayBuffer();
 }
 
-// Whether an R2 object exists — cheap HEAD via the bucket binding.
-// Avoids loading the body when we only need to know if the source
-// snapshot was already taken.
+// Cheap existence check via HEAD — avoids loading the body when we only need to
+// know whether the source snapshot was already taken.
 export async function objectExists(key: string): Promise<boolean> {
   const bucket = await getBucket();
   const head = await bucket.head(key);
   return head !== null;
 }
 
-// Tiny JSON read helper for the snap editor's `.state.json` sidecar
-// that stores the background choice + annotations. Returns null on
-// missing / unparseable so callers can fall back to defaults.
+// JSON read helper for the snap editor's `.state.json` sidecar (background
+// choice + annotations). Returns null on missing/unparseable so callers can
+// fall back to defaults.
 export async function getObjectJson<T>(key: string): Promise<T | null> {
   const bucket = await getBucket();
   const obj = await bucket.get(key);

@@ -12,13 +12,11 @@ import {
   SmoothDialogTrigger,
 } from '@captureflow/ui';
 
-// Pricing details — kept inline (rather than pulled from the landing
-// package) so the dashboard build stays self-contained. The Lemon
-// Squeezy checkout base lives in a single public env var; deployers
-// point it at their own LS product. When it's unset, the buy button
-// is hidden so the modal still renders its pricing/feature view.
+// Pricing is kept inline (not pulled from the landing package) so the
+// dashboard build stays self-contained. The Lemon Squeezy checkout base
+// comes from a single public env var; when it's unset the buy button is
+// hidden but the modal still renders its pricing/feature view.
 
-// Entry tier — the managed plan starts at 100 GB; larger tiers live on the site.
 const MONTHLY_PRICE = 9;
 
 const CHECKOUT_BASE_URL =
@@ -32,18 +30,15 @@ const BENEFITS = [
 ] as const;
 
 type Props = {
-  // Email pre-fills the LS checkout so signed-in dashboard users
-  // don't re-type. LS reads `?checkout[email]=` and locks the field.
+  // Pre-fills the LS checkout via `?checkout[email]=`, which LS then locks.
   email: string;
-  // Custom trigger so callers can drop this into any chrome — the
-  // TopBar passes its existing candy "Upgrade" button asChild.
+  // Caller-supplied trigger, handed to Radix's `asChild` Slot.
   trigger: ReactNode;
 };
 
-// Builds the checkout URL from the single configured base. A `billing=monthly`
-// query param is set so a deployer can branch on it in their LS product (or
-// ignore it); email pre-fills the LS form. When no base is configured, returns
-// null so callers hide the buy button.
+// Builds the checkout URL from the configured base. `billing=monthly` lets a
+// deployer branch on it in their LS product; email pre-fills the LS form.
+// Returns null when no base is configured so callers can hide the buy button.
 function checkoutUrlFor(email: string): string | null {
   if (!CHECKOUT_BASE_URL) return null;
   const u = new URL(CHECKOUT_BASE_URL);
@@ -57,13 +52,11 @@ export function UpgradeModal({ email, trigger }: Props) {
   const price = MONTHLY_PRICE;
   const checkoutUrl = checkoutUrlFor(email);
 
-  // The trigger is authored by the caller (the TopBar builds the candy
-  // "Upgrade" button) and handed to Radix's `asChild` Slot, which injects
-  // aria/data attributes + a generated id on the client. Rendering that
-  // wired-up trigger during SSR produces a useId the client can't reproduce
-  // 1:1, so hydration fails — and a failed hydration disables Fast Refresh.
-  // Render the bare trigger until mounted, then swap in the live dialog so
-  // the server and first client render match exactly.
+  // Radix's `asChild` Slot injects a generated id on the client; rendering the
+  // wired-up trigger during SSR produces a useId the client can't reproduce, so
+  // hydration fails (which also disables Fast Refresh). Render the bare trigger
+  // until mounted, then swap in the live dialog so SSR and first client render
+  // match exactly.
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,

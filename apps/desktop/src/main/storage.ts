@@ -3,10 +3,8 @@ import { join } from 'path'
 import { mkdir, writeFile } from 'fs/promises'
 
 function getRecordingsDir(): string {
-  // Sessions live in ~/Movies/CaptureFlow[ Dev] so the user has one place
-  // for everything CaptureFlow produces. Dev split keeps test sessions out
-  // of the production folder. `videos` resolves to NSMoviesDirectory on
-  // macOS (~/Movies).
+  // Separate Dev folder keeps test sessions out of the production folder.
+  // `videos` resolves to NSMoviesDirectory (~/Movies) on macOS.
   const folder = app.isPackaged ? 'CaptureFlow' : 'CaptureFlow Dev'
   return join(app.getPath('videos'), folder)
 }
@@ -17,9 +15,8 @@ export async function ensureRecordingsDir(): Promise<string> {
   return dir
 }
 
-/** Create a session folder for a new recording and return its path.
- *  Folder name ends in `.captureflow` and contains an `Info.plist` so macOS
- *  Finder treats the directory as a single document (package bundle). */
+// A session folder ends in `.captureflow` and holds an `Info.plist` so
+// Finder treats the directory as a single document (package bundle).
 let currentSessionDir: string | null = null
 
 const PACKAGE_INFO_PLIST = `<?xml version="1.0" encoding="UTF-8"?>
@@ -49,7 +46,6 @@ export function getCurrentSessionDir(): string | null {
   return currentSessionDir
 }
 
-/** Adopt an existing session directory as the current one. */
 export function setCurrentSessionDir(dir: string | null): void {
   currentSessionDir = dir
 }

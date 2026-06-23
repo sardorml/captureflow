@@ -1,14 +1,9 @@
 'use client';
 
-// Dark top navbar shared by the share viewer + snap viewer. Wordmark
-// on the left (logoSrc + product name), action chips + optional
-// signed-in avatar on the right. Spans the full viewport width so the
-// chrome reads as application-level, not page-level — matches Loom's
-// posture where the toolbar runs edge-to-edge above the content
-// region.
-//
-// Renderered inside its own `<header>` so callers can drop it above
-// their `<main>` without worrying about nesting landmarks.
+// Dark top navbar shared by the share viewer + snap viewer. Spans the
+// full viewport width so the chrome reads as application-level, not
+// page-level. Rendered inside its own `<header>` so callers can drop it
+// above their `<main>` without nesting landmarks.
 import { useEffect, useState, type ReactElement, type ReactNode } from 'react';
 import { Check, Download, Link2 } from 'lucide-react';
 
@@ -18,46 +13,31 @@ export type ViewerNavViewer = {
 };
 
 export type ViewerNavProps = {
-  // Destination the wordmark links to. The share/snap viewers point
-  // this at app.captureflow.xyz so signed-in users get one click into
-  // their dashboard; anonymous visitors still land on the (login-
-  // gated) app shell.
   homeUrl: string;
-  // Brand name — used as the logo's alt text. Visible label next to
-  // the logo is `label` (falls back to `productName`).
+  // Brand name; also used as the logo's alt text.
   productName: string;
-  // Visible wordmark text. The share viewer passes "Screen recording"
-  // and the snap viewer passes "Screenshot" — the bare product name
-  // doesn't tell visitors what they're looking at on landing.
+  // Visible wordmark text next to the product name (falls back to none).
+  // Tells visitors what they're looking at, e.g. "Screen recording".
   label?: string;
-  // Static asset path — both Next apps publish their own
-  // /public/logo.png so we don't bundle binaries into the workspace
-  // package. Defaults to `/logo.png` which matches the convention.
+  // Static asset path. Each consumer hosts its own /public/logo.png so
+  // we don't bundle binaries into the workspace package.
   logoSrc?: string;
   viewCount?: number;
-  // When provided, the navbar renders a download button alongside
-  // the copy-link affordance. Omit on routes that have no media.
+  // When set, renders a download button alongside copy-link. Omit on
+  // routes that have no media.
   downloadUrl?: string;
   downloadName?: string;
-  // Optional signed-in viewer. When set, an avatar chip renders on
-  // the far right. Anonymous visitors render no chip — they can sign
-  // in via the activity sidebar CTA. Suppressed when `userMenu` is
-  // provided (consumer takes over the slot).
+  // Optional signed-in viewer; when set an avatar chip renders. Ignored
+  // when `userMenu` is provided (that slot takes over).
   viewer?: ViewerNavViewer | null;
-  // Custom react node rendered in place of the default avatar chip.
-  // The share/snap viewer passes a shadcn DropdownMenu (Dashboard /
-  // Workspace settings / Sign out) so the avatar opens a menu
-  // instead of navigating away.
+  // Custom node rendered in place of the default avatar chip, e.g. a
+  // dropdown menu so the avatar opens a menu instead of navigating away.
   userMenu?: ReactNode;
-  // Optional theme toggle node. The share/snap viewer passes the
-  // shared `<ThemeToggle initialTheme={...} />` so visitors can flip
-  // light/dark inline. Hosted in the package as a slot so the nav
-  // doesn't need to import @captureflow/ui directly.
+  // Optional theme toggle node, hosted as a slot so the nav doesn't need
+  // to import @captureflow/ui directly.
   themeToggle?: ReactNode;
-  // When provided, the default action chips (download + copy link)
-  // are suppressed and this slot is rendered instead. The share
-  // viewer uses this to surface the segmented Share button + the
-  // overflow menu (Download / Delete) in their place.
+  // When set, suppresses the default action chips (download + copy link)
+  // and renders this slot instead.
   actions?: ReactNode;
 };
 
@@ -97,9 +77,8 @@ export function ViewerNav({
         rel="noopener noreferrer"
         className="flex items-center gap-2"
       >
-        {/* Plain <img> so the package doesn't hardcode a dependency on
-            next/image — each consumer hosts its own /logo.png and the
-            file size is small enough that <img> is fine. */}
+        {/* Plain <img> so the package doesn't depend on next/image; the
+            logo is small enough that <img> is fine. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={logoSrc}

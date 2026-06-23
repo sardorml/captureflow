@@ -5,29 +5,22 @@ import { logInfo, logWarn } from '../logger'
 import { clearShareAuth, getShareAuthToken } from './share-auth'
 import { setShareConnectivity } from './share-connectivity'
 
-// Share-usage probe. Hits GET /api/usage on captureflow.xyz,
-// caches the result, and fans the snapshot out to every
-// BrowserWindow. The selection overlay reads this to decide whether
-// to lock the record button with an "Upgrade to Pro" modal — locking
-// up front is strictly better than letting /api/init fail mid-
-// recording and stranding the user at the share-failed state.
+// Share-usage probe: caches GET /api/usage and fans the snapshot out
+// to every BrowserWindow. The selection overlay locks the record
+// button up front rather than letting /api/init fail mid-recording and
+// stranding the user at the share-failed state.
 //
-// The cap is account-scoped and lives on app-web alongside auth +
-// subscription state, so the probe targets the same domain that issues
-// the device bearer. /api/usage requires a bearer, so the probe is a
-// no-op when the user is signed out — the SelectionOverlay already
-// paints the auth lock in that case and there's nothing to report.
-// Once a token is cached the probe runs and surfaces account-wide
-// usage (across every device the user has signed in on) along with
-// `proSubscriptionActive` for the Pro pill in the toolbar.
+// The cap is account-scoped, so the probe requires a bearer and is a
+// no-op when signed out (the SelectionOverlay paints the auth lock
+// then). With a token it reports account-wide usage across every
+// signed-in device plus `proSubscriptionActive` for the Pro pill.
 
 const APP_WEB_API_BASE = process.env.CAPTUREFLOW_APP_WEB_API_BASE ?? 'https://captureflow.xyz'
 const USAGE_TIMEOUT_MS = 8_000
 
-// First-paint cap-reached fallback. These MUST mirror the canonical
+// First-paint cap-reached fallback. MUST mirror the canonical
 // ACCOUNT_LIMITS.{totalStorageBytes, activeArtifactsPerAccount} on the web
-// backend, which isn't a (bundled) dependency of the desktop app, so the two
-// values the cap modal needs are duplicated here with the coupling documented.
+// backend, which isn't a desktop dependency, so they're duplicated here.
 // The real account numbers replace these on the next refreshShareUsage().
 const ACCOUNT_STORAGE_LIMIT_BYTES = 500 * 1024 * 1024
 const ACCOUNT_ACTIVE_LIMIT = 50
@@ -53,22 +46,19 @@ function setShareUsage(next: ShareUsageState): void {
 }
 
 // Optimistic flip: called from share-error-handler when /api/init or
-// any part/finalize returns a 429 `storage_limit` / `active_limit`.
-// We don't know the exact usage in that branch
-// (the server only tells us the cap was reached), so we keep the
-// previously cached numbers but force `capReached = true`. The next
-// background refresh corrects the cached bytes once the user deletes
-// a share to free up room.
+// part/finalize returns a 429 `storage_limit` / `active_limit`. The
+// server only tells us the cap was reached, not exact usage, so we keep
+// the cached numbers but force `capReached = true`. The next background
+// refresh corrects the bytes once the user deletes a share.
 export function markShareUsageCapReached(): void {
   if (current.kind === 'known') {
     if (current.capReached) return
     setShareUsage({ ...current, capReached: true, checkedAt: Date.now() })
     return
   }
-  // First-paint case: we have no cached numbers, but we still know
-  // the cap was hit. Use the documented limits as the limit fields
-  // and assume the device is at exactly the cap. The real numbers
-  // land on the next refreshShareUsage().
+  // First-paint case: no cached numbers, but we know the cap was hit.
+  // Use the documented limits and assume usage is exactly at the cap;
+  // the real numbers land on the next refreshShareUsage().
   setShareUsage({
     kind: 'known',
     usedBytes: ACCOUNT_STORAGE_LIMIT_BYTES,
@@ -89,9 +79,9 @@ type UsageResponse = {
   activeLimit: number
   capReached: boolean
   isDev: boolean
-  // Optional for backward compat — older app-web deploys won't include
-  // it. Treated as `false` when missing so the Pro pill only renders
-  // when the server has explicitly told us the subscription is on.
+  // Optional for backward compat — older app-web deploys omit it.
+  // Treated as `false` when missing so the Pro pill only renders when
+  // the server explicitly confirms the subscription is on.
   proSubscriptionActive?: boolean
 }
 
@@ -100,16 +90,14 @@ export async function refreshShareUsage(): Promise<ShareUsageState> {
   const promise = (async (): Promise<ShareUsageState> => {
     const token = getShareAuthToken()
     if (!token) {
-      // No account yet — quota lock isn't actionable until the user
-      // signs in (the auth lock fires first). Drop any stale cached
+      // No account yet — the auth lock fires first. Drop stale cached
       // numbers so the cap doesn't leak across sign-out boundaries.
       if (current.kind !== 'unknown') setShareUsage({ kind: 'unknown' })
       return current
     }
     const deviceId = await loadDeviceId()
-    // Pill always shows the bearer's own storage — the cap they pay
-    // for. Uploads they make into someone else's workspace draw down
-    // that owner's cap (not theirs), so the owner manages that side.
+    // Pill always shows the bearer's own storage. Uploads into someone
+    // else's workspace draw down that owner's cap, not theirs.
     try {
       const res = await fetch(`${APP_WEB_API_BASE}/api/usage`, {
         method: 'GET',
@@ -121,9 +109,9 @@ export async function refreshShareUsage(): Promise<ShareUsageState> {
       })
       // Any HTTP response means the host is reachable.
       setShareConnectivity('online')
-      // 401 = the dashboard revoked this device. Clear the local
-      // session so the lock icon flips back to "sign in" before the
-      // next probe, matching how /api/init handles invalid_token.
+      // 401 = the dashboard revoked this device. Clear the local session
+      // so the lock icon flips back to "sign in" before the next probe,
+      // matching how /api/init handles invalid_token.
       if (res.status === 401) {
         logInfo('share-usage', 'usage probe rejected token; clearing local session')
         void clearShareAuth().catch(() => {})
@@ -167,8 +155,8 @@ export async function refreshShareUsage(): Promise<ShareUsageState> {
         )
         setShareUsage(next)
       } else {
-        // Always update checkedAt even when nothing else moved so
-        // callers can tell a recent probe ran.
+        // Update checkedAt even when nothing else moved so callers can
+        // tell a recent probe ran.
         current = next
       }
       return next

@@ -1,14 +1,11 @@
 import type { CSSProperties } from 'react';
 
-// Material Symbols (Rounded) icon wrapper. Mirrors the desktop app's
-// `Icon` component so the marketing site and the product share the
-// same visual icon language. The font is loaded via the subset stylesheet
-// `app/material-symbols-subset.css` (regenerate with
-// scripts/subset-material-symbols.py after adding icons), which registers the
-// `material-symbols-rounded` class and the woff2 font file.
+// Material Symbols (Rounded) icon wrapper. The font is loaded via the subset
+// stylesheet `app/material-symbols-subset.css` — regenerate with
+// scripts/subset-material-symbols.py after adding new icon names.
 //
-// Pass `name` as any Material Symbols identifier (see fonts.google.com/icons).
-// `size` becomes the font-size (pixels). Use `fill` for the filled variant.
+// `name` is any Material Symbols identifier (see fonts.google.com/icons);
+// `size` becomes the font-size in pixels; `fill` selects the filled variant.
 
 type IconProps = {
   name: string;

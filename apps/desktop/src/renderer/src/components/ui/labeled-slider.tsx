@@ -13,11 +13,10 @@ type LabeledSliderProps = {
   displayValue?: string
   /**
    * When provided, replaces the displayValue badge with a reset button that
-   * snaps the slider back to this value. The button dims when the slider is
-   * already at default so the affordance still reads but doesn't shout.
+   * snaps the slider back to this value. The button dims when already at default.
    */
   defaultValue?: number
-  /** Hover/focus help text shown next to the label via an info icon. */
+  /** Help text shown next to the label via an info icon. */
   tooltip?: ReactNode
   onChange: (value: number) => void
   className?: string
@@ -79,10 +78,9 @@ export function LabeledSlider({
       )}
       <div className="flex items-center gap-3 w-full">
         <div className="relative flex-1">
-          {/* Drag-time value bubble — anchored to the thumb's progress so it
-              tracks the knob during drag. The 8px horizontal margin matches
-              the macos-slider thumb radius so 0% / 100% don't shoot past the
-              track ends. */}
+          {/* Drag-time value bubble anchored to the thumb. The 8px offset
+              matches the macos-slider thumb radius so the bubble stays within
+              the track ends at 0% / 100%. */}
           <div
             aria-hidden
             className={`pointer-events-none absolute z-20 -top-7 mx-2 px-1.5 py-0.5 rounded-md bg-neutral-900/95 border border-white/10 text-[11px] font-normal text-foreground tabular-nums shadow-md transition-opacity duration-150 ${

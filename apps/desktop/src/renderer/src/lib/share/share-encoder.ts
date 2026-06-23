@@ -1,15 +1,8 @@
 /**
- * Share encoder types
- * ───────────────────
- * The new streaming pipeline doesn't need a standalone muxer-only
- * encoder anymore (the legacy ShareEncoder class served as a raw
- * fallback for the modal's bg-replace flow — gone now that the web
- * app owns bg-change). This file is reduced to the wire-format types
- * shared by `share-pipeline.ts` and `share-compositing-encoder.ts`.
- *
- * The compositing encoder owns its own `mp4-muxer` instance and
- * streams muxed bytes out via the StreamTarget's onData callback —
- * see share-compositing-encoder.ts for the full pipeline.
+ * Wire-format types shared by `share-pipeline.ts` and
+ * `share-compositing-encoder.ts`. The compositing encoder owns its own
+ * `mp4-muxer` instance and streams muxed bytes via the StreamTarget's
+ * onData callback — see share-compositing-encoder.ts for the pipeline.
  */
 
 /** Codec config emitted by the native encoder once at startup. */

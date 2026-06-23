@@ -36,8 +36,7 @@ async function getDb(): Promise<D1Database> {
   return env.DB;
 }
 
-// 32 random bytes → 64-hex-char token. Plenty of entropy and friendly
-// to URL-encoded transport.
+// 32 random bytes → 64-hex-char token: ample entropy, safe for URL transport.
 function generateRawToken(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
@@ -51,8 +50,8 @@ async function hashToken(raw: string): Promise<string> {
   return arr.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// 16 random bytes for the row id. Distinct from token_hash so listing
-// + revoking can be done by id without exposing the token.
+// Row id distinct from token_hash so listing/revoking work by id without
+// exposing the token.
 function generateId(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
@@ -86,9 +85,9 @@ export async function issueDeviceToken(
   return { id, rawToken };
 }
 
-// Looks up the owning user for a bearer token. Side effect: bumps
-// last_used_at so the dashboard can show "Last seen X". Returns null
-// for unknown / revoked tokens.
+// Resolves the owning user for a bearer token, returning null for unknown or
+// revoked tokens. Side effect: bumps last_used_at for the dashboard's
+// "Last seen" display.
 export async function resolveDeviceToken(
   rawToken: string
 ): Promise<{ userId: string; id: string } | null> {

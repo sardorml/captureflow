@@ -2,9 +2,8 @@
 
 import { getAppWebEnv } from './cf-env';
 
-// User-dashboard view of the shares table. Parallel to the share
-// API's own db layer but scoped to the signed-in user: every query
-// requires a userId so we never expose other people's rows by accident.
+// User-dashboard view of the shares table, scoped to the signed-in user:
+// every query requires a userId so we never expose other people's rows.
 
 export type ShareVisibility = 'public' | 'workspace' | 'private';
 export type ShareState = 'pending' | 'ready' | 'failed';
@@ -14,9 +13,8 @@ export type WebcamState = 'none' | 'pending' | 'ready' | 'failed';
 
 export type DashboardShareRow = {
   slug: string;
-  // Owner of the share. Surfaced so the row can render an owner-name
-  // pill when the dashboard is currently scoped to a workspace where
-  // the viewer is not the author.
+  // Surfaced so a workspace-scoped dashboard can render an owner-name
+  // pill when the viewer is not the author.
   userId: string;
   storageKey: string;
   posterKey: string | null;
@@ -29,9 +27,8 @@ export type DashboardShareRow = {
   createdAt: number;
   lastViewedAt: number;
   viewCount: number;
-  // Aggregate counts for the dashboard row. Sourced via subselect
-  // against share_comments / share_reactions so the list view doesn't
-  // need a follow-up N+1.
+  // Aggregated via subselect against share_activity so the list view
+  // avoids a follow-up N+1.
   commentCount: number;
   reactionCount: number;
   title: string | null;
@@ -127,11 +124,9 @@ export async function listSharesForUser(
   return res.results.map(rowFromD1);
 }
 
-// Workspace-scoped listing for the dashboard's current-workspace
-// context. Returns shares owned by anyone in the workspace, with
-// private rows hidden from non-owners (the workspace owner sees
-// everyone's public+workspace plus their own private; teammates see
-// public+workspace).
+// Workspace-scoped listing. Private rows are hidden from non-owners:
+// the workspace owner sees everyone's public+workspace plus their own
+// private; teammates see only public+workspace.
 export async function listSharesForWorkspace(
   workspaceId: string,
   viewerUserId: string
@@ -149,9 +144,9 @@ export async function listSharesForWorkspace(
   return res.results.map(rowFromD1);
 }
 
-// Owner-scoped getter. Used as a precondition by the mutation
-// actions — fetch then verify the user_id matches before touching
-// the row, so a forged slug from another user is rejected.
+// Owner-scoped getter: the WHERE clause matches user_id so a forged
+// slug from another user returns null. Used as a precondition by the
+// mutation actions.
 export async function getShareForUser(
   userId: string,
   slug: string
@@ -214,10 +209,9 @@ export async function deleteShareForUser(
   return (res.meta?.changes ?? 0) > 0;
 }
 
-// Admin variants — uploader OR workspace owner can act. Used by the
-// dashboard so a workspace owner can manage storage / visibility on
-// teammates' uploads in their workspace. Renames stay author-only
-// (edits are authoring, not administration).
+// Admin variants — uploader OR workspace owner can act, so a workspace
+// owner can manage visibility/storage on teammates' uploads. Renames
+// stay author-only (authoring, not administration).
 
 export async function getShareForAdmin(
   actorUserId: string,
@@ -285,10 +279,9 @@ export async function deleteShareForAdmin(
   return (res.meta?.changes ?? 0) > 0;
 }
 
-// Sweep both reactions + comments for a share. Used by the cascade
-// path when a share is deleted from the dashboard — keeps the unified
-// `share_activity` table tidy. Name preserved so existing callers
-// don't churn even though it now removes comments too.
+// Sweep all activity (reactions + comments) for a share on the delete
+// cascade. Name kept for caller stability though it now removes comments
+// too.
 export async function deleteReactionsForShare(slug: string): Promise<void> {
   const db = await getDb();
   await db

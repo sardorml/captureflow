@@ -17,22 +17,17 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
   const m = useMessages();
   const lh = useLocalizedHref();
 
-  // Hovering the "AI-Powered" word pops a small CapCut-style teaser card
-  // above it (spring in, slight tilt). The card is pointer-events-none so it
-  // never traps the hover — leaving the word always dismisses it cleanly.
+  // Hovering the "AI-Powered" word pops a small teaser card above it. The card
+  // is pointer-events-none so it never traps the hover — leaving the word always
+  // dismisses it cleanly.
   const [aiHover, setAiHover] = useState(false);
 
   return (
-    // `hero-mesh` paints the CapCut-style soft aurora on white. The negative
-    // top-margin pulls the section up behind the fixed nav (which is transparent
-    // at the top of the page) so the mesh shows through it; the matching
-    // top-padding pushes the hero content back down to clear the bar — net
-    // content position is unchanged.
     <>
       {/* Wraps the hero AND the recorder-mockup demo. Negative top-margin pulls
           it up behind the transparent fixed nav; matching top-padding pushes the
-          hero content back down to clear the bar. No `overflow-hidden` here —
-          the RecorderMockup sits in flow below the hero. */}
+          hero content back down to clear the bar — net position unchanged. No
+          `overflow-hidden` here — the RecorderMockup sits in flow below. */}
       <div
         className="relative"
         style={{
@@ -41,10 +36,9 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
         }}
       >
         {/* Halo background — soft pastel blobs drifting around the hero copy.
-            Pinned to the viewport through the nav, hero, and roughly the first
-            half of the demo, then it releases and scrolls away. The bounded
-            height of this container is what stops the pin; ~80vh keeps it to
-            the hero only. */}
+            Pinned to the viewport, then released to scroll away. This
+            container's bounded height stops the pin; ~80vh keeps it to the
+            hero only. */}
         <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[80vh]">
           <div className="sticky top-0 h-screen w-full overflow-hidden">
             <HaloEffect />
@@ -81,8 +75,7 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                         href={lh('/download')}
                         className="relative block aspect-[16/10] cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 p-5 text-left shadow-2xl shadow-neutral-900/40 transition-transform hover:scale-[1.03]"
                       >
-                        {/* Oversized watermark graphic bleeding off the right edge,
-                        mirroring CapCut's faint product mark. */}
+                        {/* Oversized watermark bleeding off the right edge. */}
                         <Icon
                           name="auto_awesome"
                           size={150}
@@ -114,16 +107,14 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
             </h1>
             <p className="mx-auto mt-6 max-w-2xl animate-fade-in-up text-base leading-relaxed tracking-[-0.01em] text-muted-foreground animation-delay-200">
               {m.hero.subtitleLine1}{' '}
-              {/* Keep the two halves on their own lines on desktop, but let them
-                  flow as one naturally-wrapping sentence on phones — the forced
-                  break leaves an orphaned "your" otherwise. */}
+              {/* Break onto two lines on desktop, but flow as one wrapping
+                  sentence on phones — the forced break orphans "your" otherwise. */}
               <br className="hidden sm:inline" />
               {m.hero.subtitleLine2}
             </p>
             {CURRENT_STAGE.showHeroBuyCta ? (
               <>
-                {/* CTA pair — visible at every breakpoint: stacked full-width
-                    buttons on phones, side-by-side pills from sm up. */}
+                {/* CTA pair: stacked full-width on phones, side-by-side from sm up. */}
                 <div className="mt-8 flex animate-fade-in-up flex-col items-center justify-center gap-3 animation-delay-400 sm:flex-row">
                   <CtaButton
                     size="lg"
@@ -139,7 +130,7 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                       {m.hero.ctaLabel}
                     </a>
                   </CtaButton>
-                  {/* Secondary grey pill — links to the open-source repo. */}
+                  {/* Secondary pill linking to the open-source repo. */}
                   <a
                     href={SOURCE_REPO_URL}
                     target="_blank"
@@ -180,7 +171,7 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
         </div>
       </div>
       {/* Sentinel at the end of the hero demo — the floating CTA appears once
-          this scrolls into view (i.e. the demo has been fully seen). */}
+          this scrolls into view (the demo has been fully seen). */}
       <div id="hero-end" aria-hidden className="h-px w-full" />
     </>
   );

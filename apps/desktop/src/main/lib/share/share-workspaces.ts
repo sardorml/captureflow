@@ -7,24 +7,18 @@ import { loadDeviceId } from '../device-id'
 import { logInfo, logWarn } from '../logger'
 import { getShareAuthToken } from './share-auth'
 
-// Workspace store for the recording toolbar's switcher chip. Tracks
-// which workspace newly-recorded shares + snaps should land in. Hits
-// captureflow.xyz/api/workspaces with the same bearer the rest
-// of the desktop already carries — no separate auth surface.
+// Workspace store for the recording toolbar's switcher chip: tracks
+// which workspace newly-recorded shares + snaps land in, fetched from
+// /api/workspaces with the desktop's existing bearer.
 //
-// State machine:
-//   - boot: cached state read from disk (last known list + active id)
-//   - signed-in: refresh() on app start, on auth-change, on overlay
-//     open. Probe failures keep cached state so the chip never flashes
-//     empty between online checks.
-//   - signed-out: collapse to `unknown`; chip hides alongside the
-//     storage pill.
+// Cached state is read from disk on boot; refresh() reconciles it while
+// signed in (probe failures keep the cache so the chip never flashes
+// empty), and signed-out collapses to `unknown`.
 //
-// Active workspace persists across launches so the user doesn't have
-// to re-pick after relaunch. Selection is validated against the
-// freshly-fetched list — if the server says they're no longer a
+// The active workspace persists across launches. It's revalidated
+// against the fetched list — if the server says they're no longer a
 // member (kicked from a team), we fall back to the first available
-// workspace (which is always their personal one, sorted first).
+// workspace (always their personal one, sorted first).
 
 const APP_WEB_API_BASE = process.env.CAPTUREFLOW_APP_WEB_API_BASE ?? 'https://captureflow.xyz'
 const FETCH_TIMEOUT_MS = 8_000
@@ -116,8 +110,8 @@ export async function refreshWorkspaces(): Promise<WorkspacesState> {
   const promise = (async (): Promise<WorkspacesState> => {
     const token = getShareAuthToken()
     if (!token) {
-      // Signed out — drop any cached state so the chip vanishes
-      // alongside the storage pill. Matches the share-usage shape.
+      // Signed out — drop cached state so the chip vanishes alongside
+      // the storage pill.
       if (current.kind !== 'unknown') setState({ kind: 'unknown' })
       return current
     }
@@ -132,9 +126,8 @@ export async function refreshWorkspaces(): Promise<WorkspacesState> {
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
       })
       if (res.status === 401) {
-        // Token revoked — share-auth itself will clear on the next
-        // /api/usage probe, so just leave our state untouched and
-        // let that path drive the cleanup.
+        // Token revoked — leave our state untouched and let the next
+        // /api/usage probe drive the cleanup via share-auth.
         return current
       }
       if (!res.ok) {
@@ -153,9 +146,8 @@ export async function refreshWorkspaces(): Promise<WorkspacesState> {
           )
         : []
       if (fresh.length === 0) {
-        // Best-effort backoff: if the server says no memberships
-        // (shouldn't happen — the signup hook auto-creates one), we
-        // keep the cached state so the chip stays usable.
+        // No memberships shouldn't happen (the signup hook auto-creates
+        // one); keep the cached state so the chip stays usable.
         logWarn('workspaces', 'refresh: empty membership list, keeping cached')
         return current
       }
@@ -194,8 +186,7 @@ export async function refreshWorkspaces(): Promise<WorkspacesState> {
 }
 
 // Switch the active workspace. No-op if the id isn't in the cached
-// list — keeps a stale renderer from poisoning the active selection
-// across refreshes.
+// list — keeps a stale renderer from poisoning the active selection.
 export async function selectWorkspace(id: string): Promise<WorkspacesState> {
   if (current.kind !== 'known') return current
   if (current.activeId === id) return current

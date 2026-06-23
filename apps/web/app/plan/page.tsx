@@ -1,14 +1,7 @@
-// Public pricing page, reachable at /plan — the deep-link target for "see
-// pricing" links (and the desktop app's upgrade prompt). Renders the SAME
-// PricingSection / ComparePlansSection / FaqSection the landing home uses, so
-// the numbers stay in lockstep. No hero or product story — the visitor came
-// here to compare plans. Sits OUTSIDE the auth gate (see middleware.ts).
-//
-// The `.marketing-root` wrapper (MarketingShell) + imported marketing.css scope
-// the light landing palette + Inter typeface to this subtree; I18nProvider
-// supplies the static English copy to the client sections. The heading text is
-// read straight from MESSAGES here (this is a Server Component, so it can't use
-// the useMessages hook).
+// Public pricing page at /plan, outside the auth gate (see middleware.ts).
+// Reuses the landing's PricingSection / ComparePlansSection / FaqSection so the
+// numbers stay in lockstep. Heading text is read straight from MESSAGES because
+// this is a Server Component and can't use the useMessages hook.
 import '../marketing.css';
 import type { Metadata } from 'next';
 import { I18nProvider } from '@/components/marketing/i18n-provider';
@@ -38,8 +31,8 @@ export default async function PlanPage() {
       <MarketingShell>
         <div className="relative flex min-h-screen flex-col font-system">
           <Nav stars={stars} />
-          {/* Nav is position: fixed, so push content down by the bar's
-              measured height (--header-height, set in nav.tsx). */}
+          {/* Nav is position: fixed; offset content by its measured
+              --header-height (set in nav.tsx). */}
           <main style={{ paddingTop: 'var(--header-height, 68px)' }}>
             <div className="px-10 pt-12 text-center sm:pt-16">
               <h1 className="font-heading text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl">

@@ -19,7 +19,7 @@ export interface Recording {
   ownerId: string | null;
 }
 
-/** Build the canonical share path for a recording id. */
+/** Canonical share path for a recording id — keep all link construction here. */
 export function sharePath(id: string): string {
   return `/r/${id}`;
 }

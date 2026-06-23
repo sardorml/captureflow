@@ -1,8 +1,6 @@
-// ─── Site ────────────────────────────────────────────────────────────────────
-
-// Canonical production host. Used for canonical URLs, the sitemap, robots, and
-// OG/JSON-LD absolute URLs — these must always point at production (never a
-// staging/dev host), so this is intentionally hardcoded rather than env-driven.
+// Canonical production host for canonical URLs, sitemap, robots, and OG/JSON-LD
+// absolute URLs. These must always point at production, so hardcoded by design
+// rather than env-driven.
 export const SITE_URL = 'https://captureflow.xyz';
 export const SITE_NAME = 'CaptureFlow';
 export const SITE_TITLE =
@@ -10,24 +8,14 @@ export const SITE_TITLE =
 export const SITE_DESCRIPTION =
   'CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated Snaps — record, share, and snap from one menu bar app. Free and self-hostable on your own Cloudflare account.';
 export const SUPPORT_EMAIL = 'captureflow.support@gmail.com';
-// Current shipped app version — single source for the download line on
-// /download. The actual binary is the latest GitHub release. Bump on each
-// release.
+// Single source for the download line on /download; bump on each release.
 export const APP_VERSION = '0.9.2-beta';
-// Download points at the latest published GitHub release rather than a
-// self-hosted DMG host — CaptureFlow is open source and ships every build
-// through GitHub Releases.
 export const DOWNLOAD_URL =
   'https://github.com/sardorml/captureflow/releases/latest';
-// Approximate installer size shown on /download, from the published DMG's
-// Content-Length. Update alongside APP_VERSION.
+// Approximate installer size from the published DMG's Content-Length; update
+// alongside APP_VERSION.
 export const DOWNLOAD_DMG_SIZE_MB = 48;
 export const MIN_MACOS_VERSION = 'macOS 14 (Sonoma)';
-
-// ─── Modes ───────────────────────────────────────────────────────────────────
-// Top-level pitch above the demo reels: CaptureFlow is three tools in one menu
-// bar app — full-screen recording (Record), instant-link recording (Share), and
-// annotated screenshots (Snap). The intro band uses these as anchor cards.
 
 export type Mode = {
   id: string;
@@ -64,13 +52,10 @@ export const MODES: readonly Mode[] = [
   },
 ] as const;
 
-// ─── Features ────────────────────────────────────────────────────────────────
-
-// The features section reels. The ids are kept stable (they key the copy
-// catalog + deep-link anchors). Every feature has its own footage in /public
-// (feature-<id>.webm + -poster.jpg, VP9 CRF 32 at native 60fps).
-// Display copy (heading / description) is catalog-driven (see messages.ts
-// features.items); the strings here mirror the English source.
+// ids must stay stable: they key the copy catalog and deep-link anchors.
+// Footage lives in /public as feature-<id>.webm + -poster.jpg (VP9 CRF 32,
+// native 60fps). Display copy is catalog-driven (messages.ts features.items);
+// the strings here mirror the English source.
 export const FEATURES = [
   {
     id: 'feature-timeline',
@@ -106,29 +91,21 @@ export const FEATURES = [
   },
 ] as const;
 
-// ─── Pricing ─────────────────────────────────────────────────────────────────
+// Two-tier model: Self-Hosted (free, run it on your own Cloudflare account) and
+// Managed (we host it). The card lists plan highlights; the compare table below
+// draws both plans across the same rows.
 
-// Two-tier model: Self-Hosted (free, open source, run it on your own
-// Cloudflare account) and Managed (we host it for you, no Cloudflare setup).
-// The Managed card lists what the plan covers; the compare table draws
-// Self-Hosted vs Managed across the same rows.
-
-// Managed card highlights — a deliberately short list. The full capability
-// breakdown lives in the compare table below the cards.
+// Managed card highlights — deliberately short; full breakdown is the compare
+// table below.
 export const PRO_CARD_HIGHLIGHTS: ReadonlyArray<string> = [
   'Fully managed hosting — no Cloudflare setup required',
   'Instant share links, Snaps, workspaces & cloud storage we run for you',
 ];
 
-// Managed plan — a single monthly price with 200 GB of managed cloud storage.
 export const MONTHLY_PRICE = 9;
 
-// Managed-plan checkout. CaptureFlow itself is free and open source — this URL
-// sends the visitor to the hosted-plan signup (the managed entitlement).
-//
-// Dev / preview builds reuse the same signup URL so the flow can be exercised
-// end-to-end. Next inlines NODE_ENV at build time, so this selection happens
-// once at compile, not at request time.
+// Next inlines NODE_ENV at build time, so the checkout-URL selection below
+// happens once at compile, not per request.
 const IS_DEV_LS_CHECKOUT = process.env.NODE_ENV !== 'production';
 
 const MONTHLY_SUBSCRIPTION_LIVE_URL = 'https://captureflow.xyz/signup';
@@ -138,10 +115,9 @@ export const MONTHLY_SUBSCRIPTION_CHECKOUT_URL = IS_DEV_LS_CHECKOUT
   ? MONTHLY_SUBSCRIPTION_TEST_URL
   : MONTHLY_SUBSCRIPTION_LIVE_URL;
 
-// Compare-plans matrix. Each row is one capability spanning both plans.
-// A boolean renders as ✓ / —; a string renders verbatim (used for rows
-// where the answer is a quantity or detail, not yes/no). Grouped into sections
-// so the table can show category labels in the leftmost column.
+// Compare-plans matrix. A boolean cell renders as ✓ / —; a string renders
+// verbatim (for quantity/detail rows, not yes/no). Sections give the table its
+// category labels.
 export type CompareCell = boolean | string;
 export type CompareRow = {
   label: string;
@@ -152,9 +128,9 @@ export type CompareSection = { title: string; rows: ReadonlyArray<CompareRow> };
 
 export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
   {
-    // The macOS app. Self-Hosted ships as SOURCE only: you build it and sign it
-    // with your own Apple ID, so you also self-manage updates. Managed hands you
-    // a signed, notarized build that just runs — and updates itself.
+    // Self-Hosted ships as source: you build, sign with your own Apple ID, and
+    // self-manage updates. Managed hands you a signed, notarized, self-updating
+    // build.
     title: 'Desktop app',
     rows: [
       {
@@ -170,9 +146,8 @@ export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
     ],
   },
   {
-    // The Cloudflare backend (Workers / R2 / D1). Self-Hosted runs on YOUR
-    // Cloudflare account — you deploy it, store on your own R2, and keep it
-    // running. Managed is fully hosted, backed up, and monitored by us.
+    // Cloudflare backend (Workers / R2 / D1). Self-Hosted runs on your own
+    // account; Managed is fully hosted, backed up, and monitored by us.
     title: 'Cloud & hosting',
     rows: [
       { label: 'Hosting', free: 'Your Cloudflare', monthly: 'Fully managed' },
@@ -182,9 +157,8 @@ export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
     ],
   },
   {
-    // The product is identical on both plans — same open-source app, same
-    // capabilities. These rows show that parity (the difference is who signs the
-    // app and runs the cloud, above — not what you can do).
+    // These rows are intentionally identical across plans: the product is the
+    // same; only signing and hosting (above) differ.
     title: 'Recording & sharing',
     rows: [
       {
@@ -212,10 +186,8 @@ export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
   },
 ];
 
-// ─── Launch Stage ────────────────────────────────────────────────────────────
-// Single toggle for the landing page's funnel state.
-// Change LAUNCH_STAGE to flip all stage-dependent copy, pricing, and visibility.
-
+// LAUNCH_STAGE is the single toggle for the landing's funnel state; changing it
+// flips all stage-dependent copy, pricing, and visibility.
 export type LaunchStage =
   | 'waitlist'
   | 'public-beta'
@@ -265,9 +237,8 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     priceFootnote: '',
   },
   'public-beta': {
-    // Badge surfaces the open-source framing; the hero leads with a free
-    // download. The pricing section below still surfaces the managed plan for
-    // teams who'd rather not self-host.
+    // Hero leads with a free download; pricing still surfaces the managed plan
+    // for teams who'd rather not self-host.
     showHeroBadge: false,
     showHeroBuyCta: true,
     showPricingSection: true,
@@ -334,15 +305,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
 
 export const CURRENT_STAGE: StageConfig = STAGE_CONFIG[LAUNCH_STAGE];
 
-// ─── Pricing (derived from current stage) ────────────────────────────────────
-
 export const PRO_PRICE: number = CURRENT_STAGE.price;
-
-// ─── Testimonials ────────────────────────────────────────────────────────────
-// Removed: placeholder testimonials with randomuser.me avatars.
-// Add real testimonials here once available.
-
-// ─── FAQ ─────────────────────────────────────────────────────────────────────
 
 const STATIC_FAQ_ITEMS: { question: string; answer: string }[] = [
   {
@@ -390,8 +353,6 @@ const STATIC_FAQ_ITEMS: { question: string; answer: string }[] = [
 export const FAQ_ITEMS: { question: string; answer: string }[] = [
   ...STATIC_FAQ_ITEMS,
 ];
-
-// ─── Roadmap ─────────────────────────────────────────────────────────────────
 
 export const ROADMAP_GROUPS = [
   {
@@ -456,8 +417,6 @@ export const ROADMAP_GROUPS = [
   },
 ] as const;
 
-// ─── Feature Highlights (bottom grid) ────────────────────────────────────────
-
 export const FEATURE_HIGHLIGHTS = [
   {
     label: 'Three capture modes',
@@ -491,8 +450,6 @@ export const FEATURE_HIGHLIGHTS = [
   },
 ] as const;
 
-// ─── Feature Categories ─────────────────────────────────────────────────────
-
 export const FEATURE_CATEGORIES = [
   'Performance',
   'UI / Design',
@@ -502,8 +459,6 @@ export const FEATURE_CATEGORIES = [
   'Other',
 ] as const;
 
-// ─── Nav ─────────────────────────────────────────────────────────────────────
-
 const ALL_NAV_LINKS: { href: string; label: string }[] = [
   { href: '#modes', label: 'Features' },
   { href: '#pricing', label: 'Pricing' },
@@ -511,14 +466,14 @@ const ALL_NAV_LINKS: { href: string; label: string }[] = [
   { href: '#roadmap', label: 'Roadmap' },
 ];
 
-// No dedicated X/Telegram presence yet — point the social exports at the
-// public GitHub repo and docs so footer/socials still resolve to a real URL.
+// No dedicated X/Telegram presence yet — point the social exports at GitHub and
+// docs so footer/socials still resolve to a real URL.
 export const X_URL = 'https://github.com/sardorml/captureflow';
 export const TELEGRAM_URL = 'https://docs.captureflow.xyz';
 
-// Waitlist stage swaps the homepage anchors for a single Changelog link
-// — there's no pricing section live yet and the changelog gives early
-// visitors something to scan while they wait.
+// Waitlist stage swaps the homepage anchors for a single Changelog link — no
+// pricing section is live yet, and the changelog gives early visitors something
+// to scan.
 const WAITLIST_EXTRA_LINKS: { href: string; label: string }[] = [
   { href: '/changelog', label: 'Changelog' },
 ];
@@ -532,8 +487,6 @@ export const NAV_LINKS: { href: string; label: string }[] =
     ? [...baseLinks, ...WAITLIST_EXTRA_LINKS]
     : baseLinks;
 
-// ─── JSON-LD Schemas ─────────────────────────────────────────────────────────
-
 export const APP_SCHEMA = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -542,8 +495,7 @@ export const APP_SCHEMA = {
   operatingSystem: 'macOS',
   url: SITE_URL,
   description: SITE_DESCRIPTION,
-  // One Offer per plan: the free self-hosted tier plus the managed plan
-  // ($9/month, 200 GB cloud storage).
+  // One Offer per plan: free self-hosted tier plus the managed plan.
   offers: [
     {
       '@type': 'Offer',
@@ -571,17 +523,15 @@ export const ORGANIZATION_SCHEMA = {
   url: SITE_URL,
   email: SUPPORT_EMAIL,
   logo: `${SITE_URL}/logo.png`,
-  // Keep in sync with the footer socials. No X/Telegram presence yet, so the
-  // canonical off-site profile is the GitHub repo.
+  // Keep in sync with the footer socials. No X/Telegram yet, so the canonical
+  // off-site profile is the GitHub repo.
   sameAs: ['https://github.com/sardorml/captureflow'],
 };
 
-// Google's "site name" in search results (the bit above the link) is driven by
-// WebSite JSON-LD on the home page. Organization schema isn't enough — Google's
-// site-name algorithm pulls specifically from `WebSite.name`, falling back to
-// og:site_name → application-name → <title> → host. Without this block Google
-// has no WebSite signal and defaults to the host name. The `alternateName`
-// covers searches that match the bare host.
+// Drives Google's "site name" in search results. The algorithm reads
+// specifically from WebSite.name (falling back og:site_name → application-name
+// → <title> → host); Organization schema is not enough. Without this block
+// Google defaults to the host name. alternateName covers bare-host searches.
 //   See: https://developers.google.com/search/docs/appearance/site-names
 export const WEBSITE_SCHEMA = {
   '@context': 'https://schema.org',

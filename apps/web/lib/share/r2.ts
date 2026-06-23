@@ -3,13 +3,12 @@
 import { getCloudflareEnv } from './cf-env';
 
 // R2 access via the native Workers binding (`BUCKET` in wrangler.toml).
-// All multipart upload state — `R2MultipartUpload` — lives in the bucket
-// itself; we keep only the `uploadId` + `storageKey` in our own DB row.
+// Multipart upload state lives in the bucket itself; we persist only the
+// `uploadId` + `storageKey` in our own DB row.
 //
-// In a non-Cloudflare runtime (unit tests, dev shells without OpenNext
-// initialised), `getCloudflareEnv()` returns null and these helpers
-// throw. Routes should be exercised under `next dev` (with OpenNext) or
-// `pnpm cf:preview`.
+// Outside a Cloudflare runtime (unit tests, dev shells without OpenNext),
+// `getCloudflareEnv()` returns null and these helpers throw. Exercise
+// routes under `next dev` (with OpenNext) or `pnpm cf:preview`.
 
 async function getBucket(): Promise<R2Bucket> {
   const env = await getCloudflareEnv();
@@ -35,11 +34,10 @@ export type R2UploadedPart = {
 export async function createMultipartUpload(
   storageKey: string,
   contentType: string,
-  // Sets the R2 object's cache-control header up front. Without this
-  // the CDN edge caches the multipart upload with R2's default TTL
-  // (long), so a re-uploaded poster regeneration would take a very
-  // long time to propagate. Always pass a short TTL
-  // ('public, max-age=60') for objects we expect to rotate.
+  // Sets the R2 object's cache-control header up front. Without it the CDN
+  // edge caches with R2's long default TTL, so a regenerated poster takes a
+  // long time to propagate. Pass a short TTL ('public, max-age=60') for
+  // objects we expect to rotate.
   cacheControl?: string
 ): Promise<R2MultipartHandle> {
   const bucket = await getBucket();
@@ -91,10 +89,9 @@ export async function putObject(
   storageKey: string,
   body: ArrayBuffer,
   contentType: string,
-  // Forwarded as the R2 object's cache-control header, which becomes
-  // the public CDN response header. Used by /api/poster for the
-  // poster regen path to keep the TTL short so social-embed previews
-  // pick up the new image within ~60s.
+  // Forwarded as the R2 object's cache-control header (the public CDN
+  // response header). /api/poster passes a short TTL on regen so
+  // social-embed previews pick up the new image within ~60s.
   cacheControl?: string
 ): Promise<void> {
   const bucket = await getBucket();
@@ -111,9 +108,9 @@ export async function headObject(storageKey: string): Promise<boolean> {
   return head !== null;
 }
 
-// Tiny JSON write helper paired with `getObjectJson`. Used by
-// sidecar surfaces (share-config, summary+chapters) so owners can
-// persist mutations alongside the immutable video bytes.
+// JSON write helper paired with `getObjectJson`. Used by sidecar surfaces
+// (share-config, summary+chapters) to persist mutations alongside the
+// immutable video bytes.
 export async function putObjectJson<T>(
   storageKey: string,
   value: T
@@ -122,16 +119,15 @@ export async function putObjectJson<T>(
   await bucket.put(storageKey, JSON.stringify(value), {
     httpMetadata: {
       contentType: 'application/json; charset=utf-8',
-      // Sidecars mutate freely (renames, summary edits) so we don't
-      // want the CDN to hold onto them.
+      // Sidecars mutate freely (renames, summary edits), so keep them out
+      // of the CDN cache.
       cacheControl: 'no-store',
     },
   });
 }
 
-// Tiny JSON read helper for the share-config sidecar (parallel to the
-// snap editor's `.state.json` pattern). Returns null on missing /
-// unparseable so callers can fall back to defaults.
+// JSON read helper for the share-config sidecar. Returns null on missing
+// or unparseable objects so callers can fall back to defaults.
 export async function getObjectJson<T>(storageKey: string): Promise<T | null> {
   const bucket = await getBucket();
   const obj = await bucket.get(storageKey);

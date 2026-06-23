@@ -1,5 +1,3 @@
-/* from smoothui.dev/docs/components/animated-file-upload */
-
 import { cn } from '@/lib/utils'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useCallback, useRef, useState } from 'react'
@@ -15,16 +13,6 @@ export interface AnimatedFileUploadProps {
   previewUrl?: string | null
   onClearPreview?: () => void
 }
-
-/* ─────────────────────────────────────────────────────────
- * ANIMATION STORYBOARD
- *
- *    0ms   drop zone visible, dashed border idle
- *  drag    zone scales 1.02, border goes primary, icon floats up
- *  drop    icon bounces back, file rows slide in staggered
- * remove   file row slides out right + fades
- * layout   remaining files reorder with layout animation
- * ───────────────────────────────────────────────────────── */
 
 const SPRING = {
   type: 'spring' as const,

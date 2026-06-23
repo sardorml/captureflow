@@ -1,9 +1,7 @@
 'use client';
 
-// Port of the desktop app's animated-tooltip component — kept
-// source-identical so the web editor's header tooltips feel exactly
-// like the desktop app's. Any future tweak should land in both files
-// (or both should migrate to a shared workspace package).
+// Kept source-identical to the desktop app's animated-tooltip: any
+// change must land in both files (or migrate both to a shared package).
 import { cn } from '@captureflow/ui/cn';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import type { ReactNode } from 'react';
@@ -20,20 +18,16 @@ import { createPortal } from 'react-dom';
 export type AnimatedTooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
 
 export interface AnimatedTooltipProps {
-  /** Content displayed inside the tooltip */
   content: ReactNode;
-  /** Placement of the tooltip relative to the trigger */
   placement?: AnimatedTooltipPlacement;
   /** Delay in milliseconds before the tooltip appears */
   delay?: number;
-  /** The trigger element the tooltip is anchored to */
   children: ReactNode;
-  /** Additional CSS class names for the tooltip container */
   className?: string;
-  /** Additional CSS class names for the trigger wrapper span.
-   *  Default is `relative inline-flex items-center` — override to opt
-   *  the wrapper into the parent's layout (e.g. `flex flex-1` so it
-   *  takes its share of a segmented flex container). */
+  /** Extra classes for the trigger wrapper span. Default is
+   *  `relative inline-flex items-center` — override to opt the wrapper
+   *  into the parent's layout (e.g. `flex flex-1` to take its share of
+   *  a segmented flex container). */
   triggerClassName?: string;
 }
 
@@ -158,8 +152,8 @@ export function AnimatedTooltip({
   }, [placement]);
 
   // Reset cached anchor position the moment the tooltip hides so the next
-  // show recomputes against fresh DOM. Using the prev-state pattern instead
-  // of a setState-in-effect.
+  // show recomputes against fresh DOM. Uses the prev-state pattern rather
+  // than a setState-in-effect.
   const [prevVisible, setPrevVisible] = useState(isVisible);
   if (prevVisible !== isVisible) {
     setPrevVisible(isVisible);

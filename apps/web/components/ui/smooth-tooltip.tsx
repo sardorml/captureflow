@@ -1,9 +1,7 @@
 'use client';
 
-// Animated tooltip from SmoothUI (https://smoothui.dev, MIT) — spring enter/exit
-// with top/bottom/left/right placement, keyboard a11y (focus + Escape), and
-// reduced-motion support. Vendored locally like smooth-button / smooth-accordion;
-// the only change is the cn import path (@/lib/utils).
+// Animated tooltip vendored from SmoothUI (https://smoothui.dev, MIT). Only
+// local change is the cn import path (@/lib/utils).
 
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
@@ -15,13 +13,10 @@ export type AnimatedTooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
 export interface AnimatedTooltipProps {
   /** The trigger element the tooltip is anchored to */
   children: ReactNode;
-  /** Additional CSS class names for the tooltip container */
   className?: string;
-  /** Content displayed inside the tooltip */
   content: ReactNode;
   /** Delay in milliseconds before the tooltip appears */
   delay?: number;
-  /** Placement of the tooltip relative to the trigger */
   placement?: AnimatedTooltipPlacement;
 }
 
@@ -34,9 +29,9 @@ const placementStyles: Record<AnimatedTooltipPlacement, string> = {
   right: 'left-full top-1/2 -translate-y-1/2 ml-2',
 };
 
-// A 8px square rotated 45° that overlaps the tooltip edge: half merges into the
-// body (same bg-foreground), half pokes out as a crisp triangle pointing at the
-// trigger. More robust than CSS border-triangles, which can render as a box.
+// An 8px square rotated 45° overlapping the tooltip edge: half merges into the
+// body, half pokes out as a triangle. More robust than CSS border-triangles,
+// which can render as a box.
 const arrowStyles: Record<AnimatedTooltipPlacement, string> = {
   top: 'top-full -mt-1 left-1/2 -translate-x-1/2',
   bottom: 'bottom-full -mb-1 left-1/2 -translate-x-1/2',

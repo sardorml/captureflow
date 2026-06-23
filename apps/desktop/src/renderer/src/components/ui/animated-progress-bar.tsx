@@ -31,7 +31,6 @@ export function AnimatedProgressBar({
   const shouldReduceMotion = useReducedMotion()
   const clamped = Math.max(MIN_PROGRESS_VALUE, Math.min(MAX_PROGRESS_VALUE, value))
 
-  // Outlined capsule with an inset gradient fill, Instagram-story style.
   const fillBackground = `linear-gradient(90deg, #3b82f6 0%, ${color} 60%, #1d4ed8 100%)`
 
   return (
