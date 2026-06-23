@@ -19,26 +19,6 @@ export {
   CardHeader,
   CardTitle,
 } from './ui/card';
-export {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from './ui/dialog';
-export {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
 export { Input } from './ui/input';
 export { Label } from './ui/label';
 export { RadioGroup, RadioGroupItem } from './ui/radio-group';
