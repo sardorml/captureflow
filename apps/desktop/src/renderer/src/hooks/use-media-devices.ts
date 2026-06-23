@@ -26,10 +26,9 @@ export function useMediaDevices(): void {
       setAudioDevices(audio)
       setVideoDevices(video)
 
-      // Drop a selection whose device has disappeared so use-recorder doesn't
-      // try to acquire a non-existent device. Guard on a REAL enumeration (at
-      // least one non-empty deviceId): pre-permission enumerateDevices returns
-      // blank ids, and clearing then would wipe a valid selection.
+      // Guard on a real enumeration (at least one non-empty deviceId):
+      // pre-permission enumerateDevices returns blank ids, so clearing then
+      // would wipe a valid selection.
       {
         const store = useRecordingStore.getState()
         const realVideo = video.some((d) => d.deviceId !== '')
@@ -50,7 +49,6 @@ export function useMediaDevices(): void {
         }
       }
 
-      // Persist labels for selected devices so next launch shows them instantly
       try {
         const { selectedAudioDevice, selectedVideoDevice } = useRecordingStore.getState()
         const micLabel = audio.find((d) => d.deviceId === selectedAudioDevice)?.label
@@ -58,7 +56,7 @@ export function useMediaDevices(): void {
         const camLabel = video.find((d) => d.deviceId === selectedVideoDevice)?.label
         if (camLabel) localStorage.setItem('captureflow-cam-label', camLabel)
       } catch {
-        // localStorage unavailable — safe to ignore
+        // localStorage unavailable
       }
     } catch (error) {
       console.error('Failed to enumerate devices:', error)

@@ -83,16 +83,20 @@ protocol.registerSchemesAsPrivileged([
 
 let appIsReady = false
 
-// Register the `captureflow://` custom URL scheme so macOS hands deep
-// links from the browser back to us. The actual `open-url` callback
-// (below) buffers early URLs until app.whenReady has finished.
+/*
+ * Register the `captureflow://` custom URL scheme so macOS hands deep
+ * links from the browser back to us. The actual `open-url` callback
+ * (below) buffers early URLs until app.whenReady has finished.
+ */
 app.setAsDefaultProtocolClient('captureflow')
 
 const pendingDeepLinks: string[] = []
-// Returns true for a `captureflow://record` link, having surfaced the
-// recording toolbar; anything else falls through to the auth deep-link
-// handler. Lives inline because it needs this file's module-scoped
-// recordingWindow reference and isNativeRecording guard.
+/*
+ * Returns true for a `captureflow://record` link, having surfaced the
+ * recording toolbar; anything else falls through to the auth deep-link
+ * handler. Lives inline because it needs this file's module-scoped
+ * recordingWindow reference and isNativeRecording guard.
+ */
 function tryHandleRecordDeepLink(rawUrl: string): boolean {
   if (typeof rawUrl !== 'string') return false
   let parsed: URL

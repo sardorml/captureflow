@@ -2,10 +2,6 @@
 
 import { getCloudflareEnv } from './cf-env';
 
-// Bearer-token validator. The `device_tokens` table is populated during
-// the deep-link auth handoff. Stored as hex-encoded SHA-256 of the raw
-// token bytes; the raw token never leaves the desktop once issued.
-
 async function hashToken(raw: string): Promise<string> {
   const data = new TextEncoder().encode(raw);
   const buf = await crypto.subtle.digest('SHA-256', data);

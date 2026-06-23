@@ -1,5 +1,3 @@
-// Avatar + name identity strip in the snap navbar. Hidden on narrow
-// viewports, where the copy-link button is the higher-priority action.
 import type { ReactElement } from 'react';
 import { avatarInitial, displayName } from './display-name';
 

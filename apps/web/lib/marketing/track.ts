@@ -1,9 +1,3 @@
-// Client-safe wrapper around PostHog for marketing conversion events.
-// PostHog is initialized once by <AnalyticsProvider> in the root layout, so
-// capturing on the imported singleton here is safe. Both helpers no-op (and
-// never throw) when analytics is dormant (POSTHOG_KEY empty) or running outside
-// the browser, so call sites need no guards.
-
 import posthog from 'posthog-js';
 import { POSTHOG_KEY } from '@/lib/public-analytics';
 
@@ -12,9 +6,8 @@ export function track(event: string, props?: Record<string, unknown>): void {
   posthog.capture(event, props);
 }
 
-// The visitor's PostHog distinct_id, used to stitch a Lemon Squeezy checkout
-// back to the web session (passed as checkout[custom][ph_distinct_id]).
-// Returns null when analytics is dormant, uninitialized, or unavailable.
+// Passed to Lemon Squeezy as checkout[custom][ph_distinct_id] to stitch a
+// checkout back to the web session.
 export function getPosthogDistinctId(): string | null {
   if (typeof window === 'undefined' || !POSTHOG_KEY) return null;
   try {

@@ -8,12 +8,6 @@ import { app, clipboard, nativeImage, shell } from 'electron'
 
 import { logInfo, logWarn } from './logger'
 
-// Spawns the native screen-recorder binary in `mode: 'snapshot'` to grab
-// a single PNG of a display, window, or area, then copies it to the
-// clipboard, saves a local copy under ~/Pictures/CaptureFlow/Snaps, and
-// plays the macOS shutter sound. Returns the temp PNG path for the caller
-// to hand to snap-upload.ts; the temp file lives until the caller deletes it.
-
 export type SnapTarget =
   | { kind: 'display'; displayId: number }
   | { kind: 'window'; windowId: number }
@@ -45,8 +39,6 @@ async function ensureSnapsDir(): Promise<string> {
 }
 
 function tsFileName(): string {
-  // ISO-ish filename (2026-05-13_14-32-08-123.png): filesystem-safe and
-  // sorts chronologically.
   const d = new Date()
   const pad = (n: number, w = 2): string => String(n).padStart(w, '0')
   return (
@@ -56,10 +48,7 @@ function tsFileName(): string {
   )
 }
 
-// Fire-and-forget macOS shutter sound. Best effort — failure is silent.
 function playShutter(): void {
-  // Grab.aiff is the system screenshot shutter (Cmd-Shift-4); the rest
-  // are fallbacks for systems where it's missing.
   const candidates = [
     '/System/Library/Sounds/Grab.aiff',
     '/System/Library/Sounds/Tink.aiff',
@@ -126,8 +115,6 @@ export async function captureSnapshot(target: SnapTarget): Promise<CaptureResult
     })
     proc.on('error', (err) => reject(err))
     proc.on('close', (code) => {
-      // The Swift binary emits one JSON line on stdout; take the first
-      // line that looks like JSON to tolerate interleaved log noise.
       const line = stdout
         .split('\n')
         .map((l) => l.trim())
@@ -163,8 +150,6 @@ export async function captureSnapshot(target: SnapTarget): Promise<CaptureResult
     })
   })
 
-  // Clipboard, local save, and shutter are all best-effort so a failure
-  // here doesn't block the upload that follows.
   try {
     const buf = await readFile(result.path)
     const img = nativeImage.createFromBuffer(buf)
@@ -194,18 +179,14 @@ export async function captureSnapshot(target: SnapTarget): Promise<CaptureResult
   }
 }
 
-// Reveal the local copy (if any) in Finder. Used by the notification
-// modal's "Show in Finder" action.
 export function revealLocalSnap(localPath: string): void {
   shell.showItemInFolder(localPath)
 }
 
-// Best-effort temp cleanup after the upload reads the bytes.
 export async function deleteTempSnap(tempPath: string): Promise<void> {
   try {
     await unlink(tempPath)
   } catch (err) {
-    // Already gone, or permissions; nothing to do.
     logWarn('snap-capture', `temp cleanup failed: ${String(err)}`)
   }
 }

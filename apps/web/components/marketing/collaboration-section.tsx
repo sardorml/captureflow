@@ -8,12 +8,6 @@ import { SectionHeader } from './section-header';
 import { DemoStage } from './demo-stage';
 import { useMessages } from './i18n-provider';
 
-// Sharing + teams as one accordion. Each numbered row is a category
-// (recordings / screenshots / workspaces). The open row lists its sub-features
-// and shows a live mockup; clicking a sub-feature swaps both its description
-// and the mockup. Exactly one category is open at a time — clicking another row
-// replaces the open one rather than collapsing to empty.
-
 type ShareKey = 'editor' | 'viewer' | 'dashboard';
 type SnapKey = 'markup' | 'capture' | 'share';
 type VisibilityKey = 'public' | 'workspace' | 'private';
@@ -21,14 +15,12 @@ type VisibilityKey = 'public' | 'workspace' | 'private';
 type Feature = {
   key: string;
   title: string;
-  // Description renders as: <linkText (underlined)> + " " + body, so the
-  // leading phrase reads as an inline link.
   linkText: string;
   body: string;
 };
 
 type Category = {
-  id: string; // anchor target (kept so nav #share / #snap still land here)
+  id: string; // anchor target — nav #share / #snap land here
   num: string;
   kind: 'share' | 'snap' | 'workspaces';
   title: string;
@@ -132,21 +124,17 @@ export function CollaborationSection() {
   const m = useMessages();
   const [activeCat, setActiveCat] = useState(0);
 
-  // Let nav anchors (#share / #snap / #workspaces) open the matching row when
-  // jumped to, so the deep-link lands on an expanded category rather than a
-  // collapsed header.
   useEffect(() => {
     const sync = () => {
       const hash = window.location.hash.replace('#', '');
       const idx = CATEGORIES.findIndex((c) => c.id === hash);
       if (idx < 0) return;
       setActiveCat(idx);
-      // Expanding the target row collapses the previously-open one (a 0.45s
-      // height animation); if that row sat above the target, the target drifts
-      // upward as it shrinks. A single scroll would either overshoot (fired
-      // before the collapse) or read as a scroll-back (fired after). So follow
-      // the row each frame for the animation's duration: the viewport lands on
-      // it at once and tracks it to rest. scroll-mt-28 supplies the nav offset.
+      /*
+       * The target row drifts upward as the previously-open row collapses (0.45s
+       * animation), so follow it each frame instead of a single scroll that
+       * would overshoot or read as a scroll-back.
+       */
       const el = document.getElementById(hash);
       if (!el) return;
       const startTs = performance.now();
@@ -184,9 +172,8 @@ export function CollaborationSection() {
               key={cat.id}
               cat={cat}
               isActive={i === activeCat}
-              // Suppress this row's bottom divider when the active card sits
-              // directly below it — otherwise the line paints across the
-              // card's rounded top edge.
+              // Suppress the divider when the active card sits directly below,
+              // else it paints across the card's rounded top edge.
               nextActive={i + 1 === activeCat}
               onActivate={() => setActiveCat(i)}
             />
@@ -210,16 +197,9 @@ function AccordionRow({
 }) {
   const m = useMessages();
   const catTitle = m.collaboration.categories[cat.kind].title;
-  // State lives here (not in the expanded body) so it survives across
-  // collapses and so the title + features + mockup can share it.
   const [featureKey, setFeatureKey] = useState(cat.features[0].key);
-  // Disclosure panel id — both header buttons (collapsed + expanded) point
-  // their aria-controls here.
   const panelId = `${cat.id}-panel`;
 
-  // Numbers are decorative; on phones they eat a wide left gutter, so hide them
-  // there and let the title use the full width (the feature list drops its
-  // matching indent below).
   const numberClass =
     'max-sm:hidden w-8 shrink-0 font-heading text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:w-9 sm:text-[26px]';
   const titleClass =
@@ -232,9 +212,6 @@ function AccordionRow({
         isActive ? 'rounded-[2rem] bg-blue-100' : ''
       }`}
     >
-      {/* Collapsed header — number + title + "+". Clicking opens the row; the
-          open row drops this header and renders the title inside its body, so
-          the mockup beside it can stretch up to the title line. */}
       {!isActive && (
         <button
           type="button"
@@ -268,16 +245,11 @@ function AccordionRow({
             className="overflow-hidden"
           >
             <div className="px-5 py-6 sm:px-9 sm:py-9">
-              {/* Two columns: the left (title + features) stretches to the
-                  mockup's height and uses justify-between so the title pins to
-                  the top and the feature list spreads down beside the mockup. */}
               <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] lg:gap-12">
                 <div className="flex min-w-0 flex-col gap-y-10">
-                  {/* Expanded header — still a real disclosure toggle (the
-                      collapsed <button> unmounts while open), so AT always
-                      finds a button whose aria-expanded reflects the row's
-                      state. Re-clicking keeps it open by design: one category
-                      is always expanded, rows swap rather than collapse. */}
+                  {/* Still a real disclosure toggle: the collapsed <button>
+                      unmounts while open, so AT always finds one whose
+                      aria-expanded reflects state. */}
                   <button
                     type="button"
                     onClick={onActivate}
@@ -286,14 +258,8 @@ function AccordionRow({
                     className="flex items-center gap-16 text-left sm:gap-60"
                   >
                     <span className={numberClass}>{cat.num}</span>
-                    {/* On phones the number is hidden, so offset the title by the
-                        sub-feature sparkle gutter (w-4 + gap-2 = 1.5rem) so the
-                        title lines up with the feature titles + body below it —
-                        the same shared left edge the desktop layout has. */}
                     <span className={`max-sm:ms-6 ${titleClass}`}>{catTitle}</span>
                   </button>
-                  {/* pl aligns the feature text under the title (number width +
-                      gap, minus the sub-feature sparkle gutter). */}
                   <FeatureList
                     cat={cat}
                     featureKey={featureKey}
@@ -326,9 +292,6 @@ function AccordionRow({
   );
 }
 
-// Sub-feature list — all titles visible; the active one carries a sparkle and
-// expands its description. Indented so the feature text lines up under the
-// category title (the sparkle hangs in the gutter to its left).
 function FeatureList({
   cat,
   featureKey,
@@ -339,8 +302,6 @@ function FeatureList({
   setFeatureKey: (key: string) => void;
 }) {
   const m = useMessages();
-  // Localized copy for this category's sub-features, keyed by feature `key`
-  // (which matches the catalog's per-category feature keys exactly).
   const featureCopy = m.collaboration.categories[cat.kind].features as Record<
     string,
     { title: string; linkText: string; body: string }
@@ -358,8 +319,7 @@ function FeatureList({
               aria-pressed={on}
               className="group flex w-full cursor-pointer items-center gap-2 text-left"
             >
-              {/* Reserved gutter — keeps every title's text aligned whether or
-                  not the active sparkle is showing. */}
+              {/* Reserved gutter so titles stay aligned with or without the sparkle. */}
               <span
                 className="flex w-4 shrink-0 justify-center"
                 aria-hidden="true"
@@ -393,9 +353,6 @@ function FeatureList({
                   transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                   className="overflow-hidden"
                 >
-                  {/* ml-6 = gutter (w-4) + gap-2, so the body lines up under the
-                      title text, not the sparkle. pb adds separation from the
-                      next feature title below the expanded description. */}
                   <p className="ms-6 mt-1.5 max-w-md pb-8 text-sm leading-relaxed text-muted-foreground">
                     <span className="text-neutral-900">{copy.linkText}</span>{' '}
                     {copy.body}
@@ -417,18 +374,15 @@ const FADE = {
   transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] as const },
 };
 
-// Every mockup is authored at one reference size (the desktop look) and then
-// uniformly shrunk to fit its column — so the phone shows the *exact same*
-// mockup as the desktop, just smaller, instead of a re-flowed/re-sized variant.
-// All three frames are 11:8, so one reference box fits them all.
+// Mockups are authored at one reference size and uniformly scaled to fit the
+// column, so phone and desktop show the identical mockup. All three frames are
+// 11:8, so one reference box fits them all.
 const REF_WIDTH = 440;
-const REF_HEIGHT = (REF_WIDTH * 8) / 11; // 320
+const REF_HEIGHT = (REF_WIDTH * 8) / 11;
 
-// Renders its child at REF_WIDTH and CSS-`transform`-scales it down to the
-// measured column width (never up — capped at 1). Pure-CSS scaling can't divide
-// length-by-length, so the factor is measured with a ResizeObserver. The
-// wrapper reserves the right height via aspect-ratio (no layout shift before the
-// first measure) and clips the brief pre-measure overflow.
+// Scales the child down to the measured column width (capped at 1). Pure-CSS
+// scaling can't divide length-by-length, so the factor comes from a
+// ResizeObserver; aspect-ratio reserves the height to avoid layout shift.
 function ScaledMockup({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -463,8 +417,6 @@ function ScaledMockup({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Share mockup — Safari chrome + a body slot that swaps between the share
-// viewer with its activity rail, the recipient's viewer, and the dashboard.
 function ShareFrame({ activeKey }: { activeKey: ShareKey }) {
   const url = SHARE_URLS[activeKey];
   return (
@@ -490,9 +442,6 @@ function ShareFrame({ activeKey }: { activeKey: ShareKey }) {
   );
 }
 
-// Snap mockup — same chrome, body swaps between the capture overlay, the
-// markup editor, and the dashboard. The capture step shows a status string
-// in the URL pill (no hosted URL yet).
 function SnapFrame({ activeKey }: { activeKey: SnapKey }) {
   const url = SNAP_URLS[activeKey];
   const isOverlay = activeKey === 'capture';
@@ -519,9 +468,6 @@ function SnapFrame({ activeKey }: { activeKey: SnapKey }) {
   );
 }
 
-// Shared Safari chrome: traffic lights + nav icons + a URL pill that
-// cross-fades when the path changes. `overlay` swaps the lock glyph for a
-// crop icon and paints the URL as a plain status string (capture step).
 function BrowserChrome({
   url,
   overlay = false,
@@ -592,11 +538,7 @@ function BrowserChrome({
   );
 }
 
-// Viewer body — what the share recipient sees: the recording on the left, an
-// activity rail (reactions + comments) on the right.
 function ViewerBody() {
-  // prefers-reduced-motion: don't auto-run the looping demo video — the
-  // poster frame carries the mockup just fine.
   const reduceMotion = useReducedMotion();
   const [emojiIndex, setEmojiIndex] = useState(0);
   const REACTIONS = [
@@ -612,14 +554,11 @@ function ViewerBody() {
   ];
   return (
     <div className="flex h-full w-full">
-      {/* Left — the recording with a reactions bar directly below it. */}
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="relative min-h-0 flex-1 overflow-hidden">
           <div className={`absolute inset-0 ${EDITOR_BACKGROUNDS[0]}`} />
           <div className="absolute inset-[8%] overflow-hidden rounded-lg bg-black shadow-xl ring-1 ring-black/10">
             <DemoStage />
-            {/* Floating reaction bubble — picking one in the bar below pops it
-                here over the recording. */}
             <motion.div
               key={emojiIndex}
               initial={reduceMotion ? false : { scale: 0.3, opacity: 0 }}
@@ -632,7 +571,6 @@ function ViewerBody() {
           </div>
         </div>
 
-        {/* Reactions bar — pick one and it pops over the recording above. */}
         <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/[0.06] bg-neutral-50 px-3 py-2.5">
           {FEEDBACK_EMOJI.map((emoji, i) => {
             const selected = emojiIndex === i;
@@ -724,14 +662,9 @@ const EDITOR_BACKGROUNDS = [
 
 const FEEDBACK_EMOJI = ['👍', '🎉', '🔥', '❤️', '👏', '😮'];
 
-// Feedback body — interactive share-viewer surface: the recording plays on the
-// left with a reactions bar directly below it; picking a reaction pops it over
-// the recording. The right rail recolors the viewer's accent and toggles who
-// can react/comment.
 function FeedbackBody() {
   const m = useMessages();
   const em = m.collaboration.editorMockup;
-  // prefers-reduced-motion: keep the looping demo video on its poster frame.
   const reduceMotion = useReducedMotion();
   const [bgIndex, setBgIndex] = useState(0);
   const [emojiIndex, setEmojiIndex] = useState(0);
@@ -749,7 +682,6 @@ function FeedbackBody() {
 
   return (
     <div className="flex h-full w-full">
-      {/* Left — the recording, with a reactions bar directly below it. */}
       <div className="flex min-w-0 flex-1 flex-col border-r border-black/[0.06]">
         <div className="relative min-h-0 flex-1 overflow-hidden">
           <div
@@ -763,8 +695,6 @@ function FeedbackBody() {
             }`}
           >
             <DemoStage />
-            {/* Floating reaction bubble — pinned bottom-right. Picking a reaction
-                in the bar below swaps the emoji (and pops it), not the position. */}
             <motion.div
               key={emojiIndex}
               initial={reduceMotion ? false : { scale: 0.3, opacity: 0 }}
@@ -777,7 +707,6 @@ function FeedbackBody() {
           </div>
         </div>
 
-        {/* Reactions bar — pick one and it pops over the recording above. */}
         <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/[0.06] bg-neutral-50 px-3 py-2.5">
           {FEEDBACK_EMOJI.map((emoji, i) => {
             const selected = emojiIndex === i;
@@ -801,7 +730,6 @@ function FeedbackBody() {
         </div>
       </div>
 
-      {/* Right — accent swatches + who-can-react/comment toggles. */}
       <div className="flex w-[28%] flex-col gap-4 bg-neutral-50 p-4">
         <div>
           <div className="mb-2 h-2 w-16 rounded-full bg-black/10" />
@@ -854,9 +782,6 @@ function FeedbackBody() {
   );
 }
 
-// Dashboard body — mirrors the app-web dashboard shape: left rail (workspace
-// switcher + member stack + nav) and a card grid. Shared by the recordings
-// dashboard and the screenshots dashboard (only the card title widths differ).
 function DashboardBody({ cards }: { cards: Array<{ titleW: number }> }) {
   return (
     <div className="flex h-full w-full bg-white">
@@ -920,8 +845,6 @@ function DashboardBody({ cards }: { cards: Array<{ titleW: number }> }) {
   );
 }
 
-// Capture body — dim desktop with a lit selection rectangle + the floating
-// CaptureFlow toolbar (Snap mode selected).
 function CaptureBody() {
   const m = useMessages();
   const cm = m.collaboration.captureMockup;
@@ -930,13 +853,10 @@ function CaptureBody() {
       className="relative h-full w-full overflow-hidden bg-neutral-800 bg-cover bg-center"
       style={{ backgroundImage: "url('/capture-wallpaper.webp')" }}
     >
-      {/* Dim the desktop wallpaper so the selection + toolbar read on top. */}
       <div className="absolute inset-0 bg-black/40" />
 
       <div className="absolute inset-x-0 top-[7%] bottom-[24%] flex justify-center">
-        {/* The window being captured, with the capture resizer framed over it. */}
         <div className="relative h-full w-[58%]">
-          {/* App window sitting on the desktop wallpaper. */}
           <div className="absolute inset-0 flex flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-black/10">
             <div className="flex shrink-0 items-center gap-1.5 bg-neutral-100 px-3 py-2">
               <span className="size-2 rounded-full bg-[#ff5f57]" />
@@ -960,7 +880,6 @@ function CaptureBody() {
             </div>
           </div>
 
-          {/* Capture resizer — sits over the window, framing it. */}
           <div className="absolute -inset-[4%] rounded-sm ring-[1.5px] ring-white">
             {[
               'top-0 left-0 -translate-x-1/2 -translate-y-1/2',
@@ -1012,13 +931,9 @@ function CaptureBody() {
   );
 }
 
-// Markup body — Background tab selected; the chosen background paints inside
-// the editor canvas (not the whole window) with the captured screenshot framed.
 function MarkupBody() {
   return (
     <div className="relative h-full w-full bg-neutral-100">
-      {/* Centered square screenshot on a tight blue mat — kept small so the
-          neutral canvas reads around it; nudged down for top padding. */}
       <div className="absolute inset-0 flex items-center justify-center pt-[6%]">
         <div className="aspect-square h-[64%] overflow-hidden rounded-xl bg-gradient-to-br from-blue-400 via-sky-500 to-blue-600 p-[4%] shadow-lg ring-1 ring-inset ring-black/10">
           <div className="flex h-full w-full overflow-hidden rounded-md bg-neutral-100 ring-1 ring-inset ring-white/20">
@@ -1089,9 +1004,6 @@ const VIS_OPTIONS: Array<{
   },
 ];
 
-// Workspace mockup — workspace header, member roster, and a visibility picker
-// driven by the accordion's active sub-feature (and vice-versa: clicking a
-// pill swaps the active sub-feature too).
 function WorkspaceCard({
   visibility,
   onVisibilityChange,
@@ -1101,10 +1013,8 @@ function WorkspaceCard({
 }) {
   const m = useMessages();
   const wm = m.collaboration.workspaceMockup;
-  // prefers-reduced-motion: skip the scroll-driven member-row slide-in.
   const reduceMotion = useReducedMotion();
   const activeDescription = wm.visibility[visibility]?.description ?? '';
-  // Person names stay hardcoded; only the role labels are localized.
   const MEMBERS: Array<{
     initial: string;
     name: string;

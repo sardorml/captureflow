@@ -38,7 +38,6 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         setLoading(false);
         return;
       }
-      // Only count a join the API actually accepted.
       track('waitlist_joined');
       setSubmitted(true);
     } catch {

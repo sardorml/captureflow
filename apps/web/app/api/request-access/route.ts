@@ -6,20 +6,8 @@ import { getAppWebEnv } from '@/lib/cf-env';
 import { sendAccessRequestEmail } from '@/lib/email';
 import { viewUrlFor, snapViewUrlFor } from '@/lib/site';
 
-// POST /api/request-access
-//
-// A signed-in viewer hits a workspace/private artifact they can't see and
-// clicks "Request access"; we look up the owner and email them a /members
-// link to invite the requester.
-//
-// The cross-subdomain cookie on `.captureflow.xyz` carries the viewer's
-// session, so the requester is identified from their better-auth session —
-// no client-supplied email to spoof.
-
 const ALLOWED_ORIGINS = new Set([
-  // The /r + /s viewers POST here same-origin.
   'https://captureflow.xyz',
-  // Preview deploy (push-to-dev → dev.captureflow.xyz).
   'https://dev.captureflow.xyz',
   'http://localhost:3000',
   'http://localhost:3001',
@@ -111,8 +99,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Resolve artifact → owner. Joined against users so we get the
-  // owner's email + name in one query.
   type Row = {
     user_id: string;
     title: string | null;
@@ -136,13 +122,9 @@ export async function POST(req: NextRequest) {
   if (!row || !row.owner_email) {
     return NextResponse.json({ error: 'not-found' }, { status: 404, headers });
   }
-  // Public artifacts don't need a request — the viewer should just see
-  // them. Bail so we don't email the owner over a UI race.
   if (row.visibility === 'public') {
     return NextResponse.json({ ok: true, alreadyPublic: true }, { headers });
   }
-  // Self-request: owner clicking their own page while signed out then
-  // back in. No-op so we don't spam the owner with their own request.
   if (row.user_id === session.user.id) {
     return NextResponse.json({ ok: true, isOwner: true }, { headers });
   }

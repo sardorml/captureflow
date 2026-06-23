@@ -1,18 +1,11 @@
 import type { ReactNode } from 'react';
 import { Video } from 'lucide-react';
 
-// Page header: eyebrow line, title, optional subtitle, and
-// right-aligned per-page actions. The Record CTA is duplicated here
-// (also in the sidebar) so the primary verb is always one click away.
-
 type Props = {
   title: string;
   eyebrow?: string;
   subtitle?: string;
-  // Optional extras rendered before the Record CTA.
   actions?: ReactNode;
-  // Pages that don't want a Record CTA (e.g. settings, notifications)
-  // can opt out.
   showRecord?: boolean;
 };
 

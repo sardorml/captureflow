@@ -14,22 +14,12 @@ import {
   SmoothDropdownMenuTrigger,
 } from '@captureflow/ui';
 
-// Account menu for the share viewer's top-right avatar. Sign out bounces
-// through /auth/clear, which shreds the auth cookies.
-//
-// Lives here rather than in app/_components/snap because it pulls in
-// shadcn primitives (@captureflow/ui) — keeping the snap viewer code
-// dependency-free for headless reuse.
-
 type Props = {
   userId: string;
   name: string | null;
   email: string;
   imageUrl: string | null;
   appWebUrl: string;
-  // Where to land after sign-out — defaults to current URL so the
-  // page re-renders with the anonymous branch. Pass an explicit value
-  // (e.g. the marketing site) to drop the visitor elsewhere.
   signOutReturnUrl?: string;
 };
 
@@ -53,14 +43,9 @@ export function ViewerUserMenu({
     const back =
       signOutReturnUrl ??
       (typeof window !== 'undefined' ? window.location.href : '/');
-    // /auth/clear wipes every better-auth cookie scoped to
-    // .captureflow.xyz, then redirects to /login. Chaining `next`
-    // lands the user back on the share page as anonymous; AuthSync
-    // re-renders with the new state on focus.
     window.location.href = `${appWebUrl}/auth/clear?next=${encodeURIComponent(
       back
     )}`;
-    // Keep the spinner up for browsers that hold the navigation a tick.
     router.refresh();
   };
 

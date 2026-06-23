@@ -2,9 +2,7 @@
 
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-// Drizzle schema for the better-auth tables in the shared D1, mirroring
-// migrations/0001_better_auth.sql so the drizzle adapter can talk to them.
-
+// Must mirror migrations/0001_better_auth.sql.
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),

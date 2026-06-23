@@ -11,7 +11,6 @@ import resizeNsUrl from '@/assets/cursors/Cursor=Resize-North-South.svg'
 
 type CursorAsset = {
   url: string
-  // Hotspot as fraction of image size (0-1)
   hotspotX: number
   hotspotY: number
 }

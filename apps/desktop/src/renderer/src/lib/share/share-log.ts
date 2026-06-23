@@ -1,10 +1,3 @@
-/**
- * Renderer→main logger for share telemetry. Routes through
- * window.electronAPI.log so share messages land in the same `share`
- * stream as the main-process modules. Falls back to console.* when the
- * bridge isn't installed (tests, mounts before preload finishes).
- */
-
 type LogLevel = 'info' | 'warn' | 'error'
 
 function emit(level: LogLevel, message: string): void {

@@ -4,18 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ListVideo, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { SmoothButton } from '@captureflow/ui';
 
-// Summary + Chapters block for the share viewer. Persisted as a sidecar
-// JSON in R2 so every viewer sees the same content — owners write,
-// anonymous viewers only render. Initial state is server-rendered to
-// avoid a fetch flash on hydration.
-
 type Props = {
   slug: string;
   isOwner: boolean;
   initialSummary: string;
   initialChapters: Chapter[];
   onSeek: (ms: number) => void;
-  // Active player time in ms. Optional — without it, no chapter highlights.
   getCurrentMs?: () => number;
 };
 
@@ -32,8 +26,6 @@ function formatTimestamp(ms: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-// Parse "M:SS", "MM:SS", or "H:MM:SS" into ms. Returns null when the
-// input doesn't look like a timestamp.
 function parseTimestamp(raw: string): number | null {
   const parts = raw.trim().split(':');
   if (parts.length < 1 || parts.length > 3) return null;
@@ -65,10 +57,6 @@ export function SummaryChapters({
   const [saveError, setSaveError] = useState<string | null>(null);
   const summaryTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // PUTs the whole sidecar so the server stays the single source of
-  // truth. Takes the in-flight values directly rather than reading
-  // state, since React batches updates and we must persist exactly
-  // what the user just did.
   const persistAll = useCallback(
     async (nextSummary: string, nextChapters: Chapter[]) => {
       try {
@@ -92,8 +80,6 @@ export function SummaryChapters({
     [slug]
   );
 
-  // Poll for the active chapter highlight. 500ms keeps it cheap; the
-  // highlight only needs to flip on big timeline jumps.
   useEffect(() => {
     if (!getCurrentMs) return;
     const id = window.setInterval(() => {
@@ -104,7 +90,6 @@ export function SummaryChapters({
 
   const activeChapterId = useMemo(() => {
     if (chapters.length === 0) return null;
-    // Active = last chapter whose ms is <= currentMs.
     let active = chapters[0];
     for (const c of chapters) {
       if (c.ms <= currentMs) active = c;
@@ -168,7 +153,6 @@ export function SummaryChapters({
   const startSummaryEdit = () => {
     setSummaryDraft(summary);
     setSummaryEditing(true);
-    // Defer focus until after the textarea renders.
     window.setTimeout(() => summaryTextareaRef.current?.focus(), 0);
   };
 
@@ -180,8 +164,6 @@ export function SummaryChapters({
   const hasSummary = summary.trim().length > 0;
   const hasChapters = chapters.length > 0;
 
-  // Empty sections only make sense to owners (who get edit affordances),
-  // so render nothing for viewers when there's nothing to show.
   if (!isOwner && !hasSummary && !hasChapters) return null;
 
   return (
@@ -191,7 +173,6 @@ export function SummaryChapters({
           {saveError}
         </p>
       )}
-      {/* Summary */}
       <section>
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-base font-semibold text-neutral-100">
@@ -244,7 +225,6 @@ export function SummaryChapters({
         )}
       </section>
 
-      {/* Chapters */}
       <section>
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-base font-semibold text-neutral-100">

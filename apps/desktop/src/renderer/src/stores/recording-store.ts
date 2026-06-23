@@ -21,9 +21,7 @@ type RecordingState = {
   devicesReady: boolean
   elapsedTime: number
   error: string | null
-  // Local mirror of main's share-auth state. Drives the lock icon on
-  // the share-mode record button — share mode + signed_out shows a
-  // lock; clicking opens the login modal. Screenshot mode ignores this.
+  // Local mirror of main's share-auth; drives the lock icon on the share-mode record button.
   shareAuth: ShareAuthState
 
   setSources: (sources: CaptureSource[]) => void
@@ -61,11 +59,11 @@ function loadPersistedMode(): RecordingMode {
   }
 }
 
-// Selected mic/camera deviceIds are intentionally NOT loaded from localStorage
-// at startup. The toolbar restores them only after `getPermissions()` confirms
-// TCC has actually granted access — otherwise a stale persisted selection from
-// a prior install causes the bubble window to flash open then closed when the
-// permission check resolves and clears the device. See RecordingToolbar.tsx.
+/*
+ * Selected mic/camera deviceIds are intentionally NOT loaded here: the toolbar
+ * restores them only after `getPermissions()` confirms TCC access, else a stale
+ * selection flashes the bubble window open then closed. See RecordingToolbar.tsx.
+ */
 const initialState = {
   status: 'idle' as RecordingStatus,
   sources: [] as CaptureSource[],
@@ -93,7 +91,6 @@ export const useRecordingStore = create<RecordingState>((set, get) => ({
     try {
       if (deviceId) {
         localStorage.setItem('captureflow-mic', deviceId)
-        // Persist label too, for instant display on next launch.
         const label = get().audioDevices.find((d) => d.deviceId === deviceId)?.label
         if (label) localStorage.setItem('captureflow-mic-label', label)
       } else {
@@ -101,7 +98,7 @@ export const useRecordingStore = create<RecordingState>((set, get) => ({
         localStorage.removeItem('captureflow-mic-label')
       }
     } catch {
-      // localStorage unavailable — safe to ignore
+      // ignore
     }
     set({ selectedAudioDevice: deviceId })
   },
@@ -116,7 +113,7 @@ export const useRecordingStore = create<RecordingState>((set, get) => ({
         localStorage.removeItem('captureflow-cam-label')
       }
     } catch {
-      // localStorage unavailable — safe to ignore
+      // ignore
     }
     set({ selectedVideoDevice: deviceId })
   },
@@ -124,7 +121,7 @@ export const useRecordingStore = create<RecordingState>((set, get) => ({
     try {
       localStorage.setItem('captureflow-sysaudio', enabled ? '1' : '0')
     } catch {
-      // localStorage unavailable — safe to ignore
+      // ignore
     }
     set({ systemAudioEnabled: enabled })
   },
@@ -132,7 +129,7 @@ export const useRecordingStore = create<RecordingState>((set, get) => ({
     try {
       localStorage.setItem('captureflow-mode', mode)
     } catch {
-      // localStorage unavailable — safe to ignore
+      // ignore
     }
     set({ recordingMode: mode })
   },

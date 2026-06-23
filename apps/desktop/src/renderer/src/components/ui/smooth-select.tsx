@@ -118,7 +118,6 @@ export function SmoothSelect({
     setFocusedIndex(-1)
   }, [disabled, isOpen])
 
-  // Position updates on scroll/resize
   useEffect(() => {
     if (!(isOpen && triggerRef.current)) return
 
@@ -141,7 +140,6 @@ export function SmoothSelect({
     }
   }, [isOpen])
 
-  // Click outside to close
   useEffect(() => {
     if (!isOpen) return
 
@@ -162,7 +160,6 @@ export function SmoothSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isOpen])
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (!isOpen) {

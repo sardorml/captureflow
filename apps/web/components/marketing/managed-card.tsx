@@ -10,7 +10,6 @@ import {
 import { getPosthogDistinctId, track } from '@/lib/marketing/track';
 import { useMessages } from './i18n-provider';
 
-// The dark, highlighted paid plan card.
 export function ManagedCard() {
   const m = useMessages();
   const copy = m.pricing.monthly;
@@ -19,13 +18,12 @@ export function ManagedCard() {
     ? `${MONTHLY_SUBSCRIPTION_CHECKOUT_URL}?utm_source=site&utm_medium=pricing&utm_content=managed`
     : '#pricing';
 
-  // Append the PostHog distinct_id at click time (it isn't available server-side
-  // at render) so the signup flow can stitch the purchase back to the web session.
+  // PostHog distinct_id isn't available server-side at render, so append it at click time.
   const handleCheckoutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     track('checkout_opened', { plan: 'managed' });
     if (!MONTHLY_SUBSCRIPTION_CHECKOUT_URL) return;
     const distinctId = getPosthogDistinctId();
-    if (!distinctId) return; // plain attributed href still works
+    if (!distinctId) return;
     try {
       const url = new URL(e.currentTarget.href);
       url.searchParams.set('checkout[custom][ph_distinct_id]', distinctId);

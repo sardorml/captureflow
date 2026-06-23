@@ -14,10 +14,6 @@ function GitHubIcon({ className }: { className?: string }) {
   );
 }
 
-// Mobile-only nav: a theme toggle + a hamburger that opens a full-width
-// dropdown below the sticky header. The desktop nav (in page.tsx) is hidden
-// below `md`, and this is hidden at `md` and up. Closes on link tap, Escape,
-// or an outside click.
 export function MobileNav({
   theme,
   stars,

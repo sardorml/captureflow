@@ -3,9 +3,6 @@
 import { getCloudflareEnv } from './cf-env';
 import type { SnapRow, SnapState, SnapVisibility } from './types';
 
-// D1 helpers for the snaps table. Single-shot inserts/updates only —
-// no multipart staging, since snaps upload as a single POST body.
-
 type D1SnapRow = {
   id: string;
   user_id: string;
@@ -97,10 +94,7 @@ export async function getSnap(id: string): Promise<SnapRow | null> {
   return r ? rowFromD1(r) : null;
 }
 
-// Snap row plus the owning user's display fields via a single LEFT JOIN.
-// name + email are nullable because the join can miss if the user was
-// hard-deleted (snaps soft-delete via the state column, but the
-// better-auth tables don't go through this code).
+// name + email are nullable: the LEFT JOIN can miss if the user was hard-deleted.
 export type SnapWithOwner = SnapRow & {
   ownerName: string | null;
   ownerEmail: string | null;
@@ -137,8 +131,6 @@ export async function getSnapWithOwner(
   };
 }
 
-// Editor save: updates size + edited_at after the PNG is overwritten in R2.
-// Title can be patched in the same call so rename needs no separate endpoint.
 export async function updateSnapAfterEdit(
   id: string,
   patch: { sizeBytes: number; title?: string | null }
@@ -161,8 +153,7 @@ export async function updateSnapAfterEdit(
   return r ? rowFromD1(r) : null;
 }
 
-// Visibility flip. Callers must already have confirmed the requesting
-// user owns the row; this only patches the column + bumps updated_at.
+// Callers must already have confirmed the requesting user owns the row.
 export async function updateSnapVisibility(
   id: string,
   visibility: 'public' | 'workspace' | 'private'

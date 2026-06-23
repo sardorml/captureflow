@@ -13,14 +13,9 @@ export interface AnimatedTooltipProps {
   delay?: number
   children: ReactNode
   className?: string
-  /** Classes for the trigger wrapper span. Default is
-   *  `relative inline-flex items-center` — override to opt the wrapper into
-   *  the parent's layout (e.g. `flex flex-1` to take its share of a
-   *  segmented flex container). */
+  // Classes for the trigger wrapper span. Default is  `relative inline-flex items-center` — override to opt the wrapper into  the parent's layout (e.g. `flex flex-1` to take its share of a  segmented flex container).
   triggerClassName?: string
-  /** When true, the tooltip never shows (and hides if already open). Use to
-   *  suppress the hint while a flyout/menu anchored to the same trigger is
-   *  open. */
+  // When true, the tooltip never shows (and hides if already open). Use to  suppress the hint while a flyout/menu anchored to the same trigger is  open.
   disabled?: boolean
 }
 
@@ -141,9 +136,6 @@ const AnimatedTooltip = ({
     setPosition(computePosition(triggerRect, tooltipRect, placement))
   }, [placement])
 
-  // Reset the cached anchor position the moment the tooltip hides so the next
-  // show recomputes against fresh DOM. Uses the prev-state pattern rather than
-  // a setState-in-effect.
   const [prevVisible, setPrevVisible] = useState(isVisible)
   if (prevVisible !== isVisible) {
     setPrevVisible(isVisible)
@@ -172,8 +164,6 @@ const AnimatedTooltip = ({
   )
 
   const initialTransform = getInitialTransform(placement)
-  // Suppress while disabled so a flyout anchored to the same trigger isn't
-  // covered by the hint (the cursor still sits over the button after click).
   const showTooltip = isVisible && !disabled
 
   return (

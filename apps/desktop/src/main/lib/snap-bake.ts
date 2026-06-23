@@ -2,16 +2,8 @@ import UPNG from 'upng-js'
 
 import { logInfo, logWarn } from './logger'
 
-// Bake the default 'violet' gradient background into the captured PNG
-// before upload. The composed bytes are served at `captureflow.xyz/<id>`;
-// the pristine source bytes (re-encoded as PNG-8) load into the editor
-// from `.source.png` so subsequent edits don't double-bake the gradient.
-//
 // Must stay in sync with the web snap editor's GRADIENT_PRESETS.violet
 // (stops) and BG_PADDING_RATIO (0.12 of min(w,h)).
-//
-// Pure-JS so the electron-builder asar bundle stays portable (no native
-// deps). Encode runs ~1-2s, hidden behind the snap-notification spinner.
 
 type Stop = { t: number; r: number; g: number; b: number }
 
@@ -26,13 +18,10 @@ const BG_PADDING_RATIO = 0.12
 // `cornerRadius={imgRenderW * 0.01}` in SnapEditorImpl.tsx.
 const CORNER_RADIUS_RATIO = 0.01
 
-// Coverage alpha (0..1) for pixel (x, y) of a w×h rounded-rect with
-// corner radius r: 1 inside, 0 in the clipped corner, and a 1-pixel
-// antialiasing band along the arc. Returns 1 fast when not in a corner
-// inset; callers skip it entirely for the central strip.
+// Coverage alpha (0..1) for pixel (x, y) of a w×h rounded-rect with corner
+// radius r: 1 inside, 0 in the clipped corner, 1-pixel AA band along the arc.
 function roundedRectAlpha(x: number, y: number, w: number, h: number, r: number): number {
   if (r <= 0) return 1
-  // Pixel center for cleaner AA than corner-anchored sampling.
   const px = x + 0.5
   const py = y + 0.5
   let cx: number
@@ -60,8 +49,7 @@ function roundedRectAlpha(x: number, y: number, w: number, h: number, r: number)
   return r + 0.5 - dist
 }
 
-// 256-entry lookup so the inner pixel loop avoids a per-pixel walk of
-// the stop list. Built once at module load.
+// 256-entry lookup so the inner pixel loop avoids a per-pixel walk of the stops.
 const GRADIENT_LUT: Uint8Array = (() => {
   const lut = new Uint8Array(256 * 3)
   for (let i = 0; i < 256; i++) {
@@ -131,9 +119,7 @@ export function bakeSnapWithDefaultBackground(input: Buffer): SnapBakeResult {
 
   const decoded = decodeToRGBA(input)
   if (!decoded) {
-    // Decode failed: hand back raw bytes for both slots so the upload
-    // still proceeds. Caller treats composedBytes === sourceBytes as the
-    // "no bake happened" signal.
+    // Caller treats composedBytes === sourceBytes as the "no bake happened" signal.
     return {
       composedBytes: input,
       sourceBytes: input,
@@ -150,9 +136,8 @@ export function bakeSnapWithDefaultBackground(input: Buffer): SnapBakeResult {
   const cw = srcW + pad * 2
   const ch = srcH + pad * 2
 
-  // Linear gradient from (0,0) to (cw,ch) — matches Konva's
-  // fillLinearGradient{Start,End}Point on BackgroundLayer. t is (x,y)
-  // projected onto direction (cw,ch), normalised by its length squared.
+  // Linear gradient (0,0)→(cw,ch), matching Konva's fillLinearGradient points on
+  // BackgroundLayer. t = (x,y) projected onto (cw,ch), normalised by length squared.
   const denom = cw * cw + ch * ch
   const coefX = cw / denom
   const coefY = ch / denom
@@ -175,9 +160,8 @@ export function bakeSnapWithDefaultBackground(input: Buffer): SnapBakeResult {
     }
   }
 
-  // Alpha-blend the source on top with a rounded-rect mask so the baked
-  // PNG matches the editor's `cornerRadius` look. Only the corner insets
-  // pay the `roundedRectAlpha` call; the rest stays on the fast path.
+  // Alpha-blend the source on top with a rounded-rect mask to match the editor's
+  // cornerRadius look. Only corner insets pay roundedRectAlpha; the rest is fast-path.
   const cornerR = Math.round(srcW * CORNER_RADIUS_RATIO)
   for (let y = 0; y < srcH; y++) {
     const srcRow = y * srcW * 4
@@ -192,7 +176,6 @@ export function bakeSnapWithDefaultBackground(input: Buffer): SnapBakeResult {
       const si = srcRow + x * 4
       const di = dstRow + x * 4
       const sa = srcRGBA[si + 3]
-      // Combined alpha = source alpha × corner mask, both in [0,1].
       const a = mask >= 1 ? sa / 255 : (sa / 255) * mask
       if (a >= 0.999) {
         composed[di] = srcRGBA[si]
@@ -204,7 +187,6 @@ export function bakeSnapWithDefaultBackground(input: Buffer): SnapBakeResult {
         composed[di + 1] = (srcRGBA[si + 1] * a + composed[di + 1] * ia) | 0
         composed[di + 2] = (srcRGBA[si + 2] * a + composed[di + 2] * ia) | 0
       }
-      // a === 0 → keep gradient pixel; alpha already 255.
     }
   }
 
@@ -216,9 +198,8 @@ export function bakeSnapWithDefaultBackground(input: Buffer): SnapBakeResult {
     composedBytes = input
   }
 
-  // Re-encode the source as palette PNG so the editor's pristine sidecar
-  // shares the composed PNG's wire-size profile. Bail to raw bytes if the
-  // palette version grew (rare on already-quantised PNGs).
+  // Re-encode the source as palette PNG for the editor's pristine sidecar; bail to
+  // raw bytes if the palette version grew.
   let sourceBytes: Buffer
   try {
     sourceBytes = encodePalette(srcRGBA, srcW, srcH)

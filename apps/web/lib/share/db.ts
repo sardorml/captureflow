@@ -6,13 +6,8 @@ import { memoryDb } from './db-memory';
 import { createD1Db } from './db-d1';
 import { getCloudflareEnv } from './cf-env';
 
-// Resolve the active backend per call. The D1 binding is reachable via
-// `getCloudflareEnv()` on Cloudflare Workers and under `next dev` (OpenNext
-// maps bindings into the dev runtime); otherwise (non-Cloudflare runtime,
-// unit tests) we fall through to the in-memory store.
-//
-// Resolving per call is required: the D1 binding is request-scoped, so a
-// cached reference would leak data between requests.
+// Resolve per call: the D1 binding is request-scoped, so a cached reference
+// would leak data between requests.
 async function resolveDb(): Promise<ShareDb> {
   const env = await getCloudflareEnv();
   return env?.DB ? createD1Db(env.DB) : memoryDb;
@@ -47,10 +42,6 @@ export async function listSharesForUser(userId: string): Promise<ShareRow[]> {
   return (await resolveDb()).listSharesForUser(userId);
 }
 
-// Owner-name lookup for the public share page byline, against the better-auth
-// `users` table. Returns null when the share is anonymous (user_id null on
-// /api/init) or the user row was removed. Standalone rather than widening
-// ShareRow so callers opt in to the extra D1 round trip.
 export async function getOwnerName(userId: string): Promise<string | null> {
   const env = await getCloudflareEnv();
   if (!env?.DB) return null;
@@ -70,9 +61,8 @@ export async function activeShareCountForDevice(
   return (await resolveDb()).activeShareCountForDevice(deviceId);
 }
 
-// User-scoped aggregations (totalStorageForUser / activeArtifactCountForUser)
-// live in lib/share/quota.ts because they span shares ∪ snaps for the combined
-// account quota, which the share-only ShareDb backend can't compute.
+// User-scoped aggregations live in lib/share/quota.ts: they span shares ∪ snaps,
+// which the share-only ShareDb backend can't compute.
 
 export async function bumpLastViewed(slug: string): Promise<void> {
   return (await resolveDb()).bumpLastViewed(slug);

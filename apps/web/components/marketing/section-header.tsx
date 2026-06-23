@@ -2,9 +2,6 @@
 
 import { useLocalizedHref, useMessages } from './i18n-provider';
 
-// Shared section header: title + subtitle left, CTA button pinned right
-// (dropping below the text on narrow screens). Spans the parent's full content
-// width, so it must sit inside a `max-w-7xl` container.
 export function SectionHeader({
   title,
   children,
@@ -12,8 +9,6 @@ export function SectionHeader({
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
-  // Classes for the title+subtitle block; widen past the `max-w-sm` default
-  // when a longer subtitle needs more room.
   textClassName?: string;
 }) {
   const m = useMessages();

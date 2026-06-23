@@ -11,16 +11,12 @@ import {
   useLocalizedHref,
 } from '@/components/marketing/i18n-provider';
 
-// The token-less `ajax/<email>` endpoint means FormSubmit sends a one-time
-// confirmation email to SUPPORT_EMAIL on the first submission; once confirmed,
-// later submissions deliver silently.
+// FormSubmit sends a one-time confirmation email to SUPPORT_EMAIL on the first
+// submission; once confirmed, later submissions deliver silently.
 const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${SUPPORT_EMAIL}`;
 
-// Split out from page.tsx so the route can stay a Server Component and export
-// `metadata` (Next.js disallows a metadata export from a 'use client' module).
-// The success-state bulb is a lucide glyph, not the Material Symbols <Icon>:
-// the marketing icon font is a ligature subset missing `lightbulb`, which would
-// otherwise render as literal text.
+// The success bulb is a lucide glyph because the marketing icon font is a
+// ligature subset missing `lightbulb` (it would render as literal text).
 export function SuggestFeatureClient() {
   const m = useMessages();
   const lh = useLocalizedHref();
@@ -35,8 +31,6 @@ export function SuggestFeatureClient() {
     setLoading(true);
     setError(false);
     const form = e.currentTarget;
-    // Success is only shown on a confirmed 2xx from the relay — a failed
-    // delivery must surface the direct-email fallback, never a fake success.
     try {
       const res = await fetch(FORMSUBMIT_URL, {
         method: 'POST',

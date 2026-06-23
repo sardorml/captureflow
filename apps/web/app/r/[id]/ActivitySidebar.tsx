@@ -10,15 +10,9 @@ import type {
 } from '@/lib/share/types';
 import { Avatar, AvatarFallback, AvatarImage, Button } from '@captureflow/ui';
 
-// emoji-picker-react is ~70kb and touches window at module scope, so
-// lazy-import it client-side only; the popover mounts it on demand.
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
   ssr: false,
 });
-
-// Right-rail activity feed for the share page: a chronological timeline
-// of reactions + comments, plus a composer with @-mention and emoji
-// pickers. Submitting anchors the comment to the current video timestamp.
 
 type ActivityEntry =
   | {
@@ -40,20 +34,13 @@ type Props = {
   initialComments: ShareComment[];
   viewerSignedIn: boolean;
   viewerName: string | null;
-  // Avatar tone seed for the viewer, so the composer chip matches the
-  // row this user will create after posting.
   viewerUserId: string | null;
-  // When set, the composer chip renders this URL instead of the seeded
-  // initials fallback.
   viewerImageUrl: string | null;
-  // Share owners can moderate any comment on their share.
   isOwner: boolean;
   liveReactions: ShareReaction[];
   onSignIn: () => void;
   onSeek: (ms: number) => void;
   getCurrentMs: () => number;
-  // Lets the "Comment" button below the player focus the textarea, which
-  // isn't in visual reach when the player is full-bleed.
   commentInputRef?: React.MutableRefObject<HTMLTextAreaElement | null>;
 };
 
@@ -98,9 +85,6 @@ export function ActivitySidebar({
     }
   };
 
-  // Live player timestamp for the compose button label. Sampled at 250ms
-  // rather than the player's frame rate to avoid churning renders; that's
-  // fine for a "Comment at M:SS" label.
   const [previewMs, setPreviewMs] = useState(0);
   useEffect(() => {
     if (!viewerSignedIn) return;
@@ -127,11 +111,8 @@ export function ActivitySidebar({
     })),
   ].sort((a, b) => b.createdAt - a.createdAt);
 
-  // Unique participants across reactions + comments, in order of first
-  // appearance (the most intuitive listing for a mention picker). Left to
-  // the React Compiler to memoize: a manual useMemo over `reactions`
-  // (rebuilt every render via mergeReactions) tripped
-  // react-hooks/preserve-manual-memoization.
+  // No useMemo: a manual memo over `reactions` (rebuilt every render via
+  // mergeReactions) trips react-hooks/preserve-manual-memoization.
   const participants = ((): { userId: string; userName: string }[] => {
     const seen = new Set<string>();
     const out: { userId: string; userName: string }[] = [];
@@ -151,8 +132,6 @@ export function ActivitySidebar({
   const [mentionOpen, setMentionOpen] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
 
-  // Global "C" focuses the composer, but only when signed in, the key
-  // isn't part of a modifier combo, and the user isn't already typing.
   useEffect(() => {
     if (!viewerSignedIn) return;
     const onKey = (e: KeyboardEvent) => {
@@ -177,8 +156,6 @@ export function ActivitySidebar({
     return () => window.removeEventListener('keydown', onKey);
   }, [viewerSignedIn]);
 
-  // Insert text at the textarea's caret position so picker choices
-  // land where the user is typing, not always at the end.
   const insertAtCaret = (text: string) => {
     const el = composerRef.current;
     if (!el) {
@@ -436,7 +413,6 @@ function MentionPopover({
   onClose: () => void;
   onPick: (name: string) => void;
 }) {
-  // Dismiss on click outside the popover.
   const ref = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -493,9 +469,7 @@ function EmojiPopover({
   onPick: (emoji: string) => void;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
-  // Mirror the page theme so the picker chrome matches. Reads the
-  // `data-theme` attribute on <html> at mount and watches for changes,
-  // since ThemeToggle mutates that attribute imperatively.
+  // Watches <html> data-theme since ThemeToggle mutates it imperatively.
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof document === 'undefined') return 'dark';
     return document.documentElement.getAttribute('data-theme') === 'light'

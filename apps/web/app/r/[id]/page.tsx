@@ -33,8 +33,6 @@ import { MARKETING_SITE_URL } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
-// The dynamic `id` segment IS the share's public slug, so share-lib
-// calls that take a slug receive `id` directly.
 type Params = Promise<{ id: string }>;
 
 export async function generateMetadata({
@@ -51,9 +49,6 @@ export async function generateMetadata({
   if (!row) {
     return { title: PRODUCT_NAME, robots: { index: false, follow: false } };
   }
-  // Pending row (id reserved at record-start): show a "Preparing share…"
-  // tab title rather than "Not found" — the page body renders the loading
-  // shell.
   if (row.state === 'pending') {
     return {
       title: `Preparing share… — ${PRODUCT_NAME}`,
@@ -63,17 +58,12 @@ export async function generateMetadata({
   if (row.state !== 'ready') {
     return { title: PRODUCT_NAME, robots: { index: false, follow: false } };
   }
-  // Non-public shares: anonymous crawlers and unauthorized visitors get a
-  // flat "Not found" so metadata reveals nothing more than a deleted row.
-  // Authorized viewers (workspace member, or owner for private) get the
-  // real title + OG card so the tab/previews match the playing page body.
+  // Non-public shares: unauthorized visitors get a flat "Not found" so
+  // metadata reveals nothing more than a deleted row.
   if (row.visibility !== 'public') {
     const cookieHeader = (await headers()).get('cookie');
     const visitor = await verifySession(cookieHeader);
     let authorized = false;
-    // 'unknown' (transient verify-session failure) collapses to
-    // unauthorized for metadata, same as anonymous. The page body
-    // separately renders a loading shell that re-runs SSR client-side.
     if (visitor && visitor !== 'unknown') {
       if (row.visibility === 'private') {
         authorized = visitor.userId === row.userId;
@@ -88,41 +78,29 @@ export async function generateMetadata({
     if (!authorized) return { title: 'Not found' };
   }
 
-  // shares.title now holds the full pre-baked headline ("source —
-  // brand — date"). Legacy rows fall back to the product name.
   const title = row.title ?? PRODUCT_NAME;
   const description = `A screen recording shared from ${PRODUCT_NAME}.`;
   const [videoUrlRaw, posterUrlRaw] = await Promise.all([
     publicUrlFor(row.storageKey),
     row.posterKey ? publicUrlFor(row.posterKey) : Promise.resolve(undefined),
   ]);
-  // Append a content-version query so any post-finalize mutation of the
-  // same R2 key (poster regeneration, future re-encodes) yields a distinct
-  // URL and bypasses caching. The screen MP4 is immutable post-finalize, so
-  // for it this is mostly future-proofing.
+  // Content-version query so a post-finalize mutation of the same R2 key
+  // (e.g. poster regeneration) yields a distinct URL and bypasses caching.
   const videoUrl = withVersion(videoUrlRaw, row.sizeBytes);
   const posterUrl = posterUrlRaw
     ? withVersion(posterUrlRaw, row.sizeBytes)
     : undefined;
   const pageUrl = viewUrlFor(id);
 
-  // Derive og:image:type from the stored poster extension so the declared
-  // MIME matches the byte stream. Default image/jpeg matches the happy path
-  // (ffmpeg extracts mjpeg → .jpg) without probing R2 headers.
   const posterType = posterMimeOf(row.posterKey);
-  // Crawlers (Facebook/Instagram especially) need explicit og:image
-  // dimensions or they skip the image / downgrade to a bare link. Fall back
-  // to the worker's 1280×720 poster preset when row dims aren't recorded.
+  // Facebook/Instagram skip the image without explicit og:image dimensions.
   const imageWidth = row.width ?? 1280;
   const imageHeight = row.height ?? 720;
 
   return {
     title,
     description,
-    // Public shares carry rich OG for social unfurls but are explicitly
-    // noindex: user-generated recordings must never surface in organic
-    // search. The /r layout sets this too; redeclaring here is defensive
-    // against inheritance changes.
+    // noindex: user-generated recordings must never surface in organic search.
     robots: { index: false, follow: false },
     openGraph: {
       type: 'video.other',
@@ -169,9 +147,6 @@ export async function generateMetadata({
   };
 }
 
-// Appends a content-version query to a public R2 URL so any post-finalize
-// mutation produces a distinct URL and bypasses downstream caching. No-op
-// for a non-positive version (pending upload that hasn't reported size yet).
 function withVersion(url: string, version: number): string {
   if (!Number.isFinite(version) || version <= 0) return url;
   const sep = url.includes('?') ? '&' : '?';
@@ -195,11 +170,9 @@ export default async function SharePage({ params }: { params: Params }) {
 
   const cookieHeader = (await headers()).get('cookie');
   const theme = readThemeFromCookieHeader(cookieHeader);
-  // Pending row: /api/r/init reserves the id at record-start so desktop can
-  // hand the user a copyable link immediately; bytes stream in during the
-  // recording and the row flips to 'ready' on /api/r/finalize. The loading
-  // shell polls /api/r/state and reloads on flip, falling back to a "didn't
-  // finish uploading" message after ~2 minutes.
+  // /api/r/init reserves the id at record-start so desktop hands the user a
+  // copyable link immediately; the row flips to 'ready' on /api/r/finalize
+  // and the loading shell polls /api/r/state to reload on flip.
   if (row.state === 'pending') {
     return (
       <>
@@ -220,28 +193,18 @@ export default async function SharePage({ params }: { params: Params }) {
   }
   if (row.state !== 'ready') notFound();
 
-  // Resolve the visitor once — used for the visibility gate below and for
-  // the ShareViewer reaction/comment auth UI. verifySession does an
-  // in-process better-auth lookup (no cross-origin fetch).
-  //
-  // Returns 'unknown' when the auth lookup failed transiently (cold-start,
-  // D1 blip). Do NOT collapse that to "no session" — it used to flash
-  // RequestAccess at the owner on the first hit from the dashboard. Render a
-  // neutral loading shell instead and let the browser re-probe.
+  // 'unknown' means the auth lookup failed transiently (cold-start, D1 blip).
+  // Do NOT collapse it to "no session" — it used to flash RequestAccess at
+  // the owner on the first hit from the dashboard. Render a loading shell and
+  // let the browser re-probe.
   const visitorResult = await verifySession(cookieHeader);
   if (visitorResult === 'unknown' && row.visibility !== 'public') {
     return <SessionLoadingShell appWebUrl={APP_WEB_SITE_URL} />;
   }
   const visitor = visitorResult === 'unknown' ? null : visitorResult;
 
-  // Non-public shares are gated by the visitor's session:
-  //   - `workspace`: signed-in user must be a member of `row.workspaceId`
-  //   - `private`: signed-in user must be the owner (row.userId)
-  //
-  // Unauthorized branches render <RequestAccess> rather than a flat 404 so
-  // the visitor has a path forward (sign in / ping the owner).
-  // generateMetadata still returns "Not found" so crawlers + previews see
-  // nothing.
+  // Unauthorized branches render <RequestAccess> (a path forward) rather than
+  // a flat 404, while generateMetadata returns "Not found" for crawlers.
   if (row.visibility !== 'public') {
     let authorized = false;
     if (visitor) {
@@ -291,47 +254,30 @@ export default async function SharePage({ params }: { params: Params }) {
     row.webcamStorageKey && row.webcamState === 'ready'
       ? publicUrlFor(row.webcamStorageKey)
       : Promise.resolve(undefined),
-    // Best-effort sidecar fetch. Missing / unparseable JSON resolves to null
-    // which hydrates to DEFAULT_SHARE_CONFIG below, so a never-edited share
-    // renders with defaults (no bg, default PiP corner, audio on).
     getObjectJson<unknown>(shareConfigKeyFor(row.storageKey)).catch(() => null),
     loadSummaryChapters(row.storageKey),
   ]);
   const shareConfig = configRaw
     ? hydrateShareConfig(configRaw)
     : DEFAULT_SHARE_CONFIG;
-  // Same content-version trick as generateMetadata; see that comment for
-  // why a refresh would otherwise serve pre-replace bytes from cache.
   const videoUrl = withVersion(videoUrlRaw, row.sizeBytes);
   const posterUrl = posterUrlRaw
     ? withVersion(posterUrlRaw, row.sizeBytes)
     : undefined;
-  // Webcam companion: only surface when fully ready. Hidden while 'pending'
-  // (still uploading) and absent for 'none' (no camera attached). Versioned
-  // with its own size so an independent re-upload busts cache.
   const webcamUrl =
     webcamUrlRaw && row.webcamSizeBytes > 0
       ? withVersion(webcamUrlRaw, row.webcamSizeBytes)
       : undefined;
 
-  // bumpLastViewed increments view_count atomically but runs AFTER we read
-  // the row, so we add 1 here to reflect the current load. (The next viewer
-  // sees the same number we just showed — close enough for a public counter.)
+  // bumpLastViewed increments atomically but runs after we read the row, so
+  // add 1 to reflect the current load.
   const displayViews = row.viewCount + 1;
-  // The full headline (source + brand line + date) is baked into
-  // `shares.title` at /api/r/init time so dashboard renames can edit the
-  // whole string. Legacy rows fall back to just the product name.
   const headlineText = row.title ?? PRODUCT_NAME;
 
-  // Sign-in CTA routes through app-web login with a `next` param so the
-  // visitor lands back on this share after signing in.
   const loginUrl = `${APP_WEB_SITE_URL}/login?next=${encodeURIComponent(
     viewUrlFor(id),
   )}`;
 
-  // Look up the share's workspace so the Share modal can label the workspace
-  // visibility option ("Workspace · Acme") and honor allow_public_links.
-  // Skipped for legacy rows without a workspace.
   const isOwner = !!(visitor && row.userId && visitor.userId === row.userId);
   const workspaceRow = row.workspaceId
     ? await getWorkspaceForUpload(row.workspaceId)

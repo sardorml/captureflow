@@ -1,10 +1,3 @@
-/**
- * Wire-format types shared by `share-pipeline.ts` and
- * `share-compositing-encoder.ts`. The compositing encoder owns its own
- * `mp4-muxer` instance and streams muxed bytes via the StreamTarget's
- * onData callback — see share-compositing-encoder.ts for the pipeline.
- */
-
 /** Codec config emitted by the native encoder once at startup. */
 export type ShareEncoderFormat = {
   codedWidth: number
@@ -39,9 +32,6 @@ export type ShareEncoderResult = {
   /** Encoded video dims — match the source aspect ratio. */
   width: number
   height: number
-  /** First composited frame as a JPEG (~ 50–200 KiB). Uploaded as the
-   *  share's OG/Twitter poster — viewer links in chat / X / etc. need
-   *  this to show a thumbnail. Null when no frames were composited
-   *  (encoder aborted before frame 0). */
+  // First composited frame as a JPEG (~ 50–200 KiB). Uploaded as the  share's OG/Twitter poster — viewer links in chat / X / etc. need  this to show a thumbnail. Null when no frames were composited  (encoder aborted before frame 0).
   posterBlob: Blob | null
 }

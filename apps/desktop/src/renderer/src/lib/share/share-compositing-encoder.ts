@@ -1,30 +1,3 @@
-/**
- * CompositingShareEncoder
- * ───────────────────────
- * Real-time pipeline:
- *
- *   native H.264 chunks ──▶ VideoDecoder ──▶ OffscreenCanvas composite
- *                                            (screen frame + cursor only)
- *   native AAC packets  ─────────────────────────────────────────▶ passthrough
- *
- *   composited frames + AAC chunks ──▶ mp4-muxer (StreamTarget) ──▶ onChunkBytes(bytes)
- *
- * `onChunkBytes` ships muxed bytes to the main process via
- * `window.electronAPI.sharePartScreen(bytes)` as soon as the muxer
- * emits them.
- *
- * Audio architecture:
- *   The renderer does not capture system audio via getDisplayMedia /
- *   WebCodecs AudioEncoder — that path returned an already-ended
- *   MediaStreamTrack on Electron 39 and produced silent 6-byte AAC
- *   frames. Instead, the native Swift recorder AAC-encodes SCK's audio
- *   tap and writes the packets directly to fd 3 alongside video chunks.
- *   The renderer receives them as `audio-chunk` events and hands the
- *   raw bytes to the muxer — no decode, no re-encode. This module's
- *   responsibility is purely the video composite plus muxing both
- *   streams.
- */
-
 import { Muxer, StreamTarget } from 'mp4-muxer'
 import type { ShareEncoderFormat, ShareEncoderResult, ShareChunk } from './share-encoder'
 import { getCursorHotspot, loadCursorImages, type CursorImageMap } from '../cursor-assets'
@@ -40,35 +13,21 @@ const ENCODE_CODEC_CANDIDATES = [
 
 const CURSOR_DRAW_PX = 36
 
-// Audio config arrives as a separate fd-3 event (tag 0x03). The
-// pipeline holds the encoder construction until both video format AND
-// audio config (when expected) are known, so the muxer can reserve
-// both tracks at construction time — mp4-muxer cannot add a track
-// after the fact.
 export type ShareAudioConfig = {
   sampleRate: number
   numberOfChannels: number
-  // AudioSpecificConfig bytes — the same 2-byte descriptor that lives
-  // inside an MP4 esds box. mp4-muxer accepts it verbatim as the
-  // audio decoderConfig.description on the first chunk.
+  // AudioSpecificConfig bytes — the 2-byte descriptor from the MP4 esds box. mp4-muxer accepts it verbatim as decoderConfig.description.
   description: Uint8Array
 }
 
 export type CompositingShareEncoderOptions = {
   format: ShareEncoderFormat
   cursorPositions: () => CursorPosition[]
-  // Audio config from the native fd-3 audio-format event. Null when
-  // the recording has no system audio (captureAudio=false). When
-  // provided, the muxer reserves an AAC audio track and the
-  // pushAudioChunk() method forwards raw AAC packets through.
+  // Null when the recording has no system audio (captureAudio=false).
   audioConfig: ShareAudioConfig | null
-  // Sink for muxed bytes. Called for every chunk the muxer emits
-  // through its StreamTarget. Position is the byte offset into the
-  // final file (mp4-muxer is StreamTarget-compatible).
   onChunkBytes: (bytes: Uint8Array, position: number) => void
 }
 
-// One AAC packet's worth of input to pushAudioChunk.
 export type ShareAudioChunk = {
   timestamp: number
   duration: number
@@ -123,8 +82,6 @@ export class CompositingShareEncoder {
   private outputFps = OUTPUT_FPS
   private totalBytes = 0
 
-  // First audio chunk carries the decoderConfig.description
-  // (AudioSpecificConfig). Subsequent chunks skip it.
   private audioDescriptionEmitted = false
   private audioChunksMuxed = 0
 
@@ -134,11 +91,6 @@ export class CompositingShareEncoder {
   private finalized = false
   private ready = false
 
-  // First composited frame, captured as a JPEG. Used as the share's
-  // OG/Twitter poster — without it the viewer link in chat / X / etc.
-  // shows no thumbnail. Captured BEFORE re-encoding (same canvas
-  // contents, no extra cost) and held as a Promise so we don't block
-  // frame emission. Resolved once on `outFrameIdx === 0`.
   private posterPromise: Promise<Blob> | null = null
 
   constructor(opts: CompositingShareEncoderOptions) {
@@ -161,14 +113,6 @@ export class CompositingShareEncoder {
     this.outputFps = fps >= OUTPUT_FPS * 2 ? OUTPUT_FPS : fps
     this.sampleStride = Math.max(1, Math.round(fps / this.outputFps))
 
-    // Audio track is optional. When audioConfig is non-null, the
-    // pipeline received an `audio-format` event before init — that
-    // tells us native's AAC encoder produced its first packet and the
-    // sample/channel layout is known. mp4-muxer locks its track set at
-    // construction; the pipeline guarantees both formats have arrived
-    // before calling init() so this single allocation covers both
-    // tracks. If audioConfig is null, the recording is video-only
-    // (e.g. user disabled system audio capture).
     const muxerAudio = this.audioConfig
       ? {
           codec: 'aac' as const,
@@ -188,9 +132,7 @@ export class CompositingShareEncoder {
       target,
       video: { codec: 'avc', width, height, frameRate: this.outputFps },
       audio: muxerAudio,
-      // Fragmented MP4 lets the file start playing before finalize —
-      // required for the share page's "Preparing your share…" loader
-      // to swap to the real player once the slug resolves to ready.
+      // Fragmented MP4 lets the file start playing before finalize.
       fastStart: 'fragmented'
     })
 
@@ -260,10 +202,6 @@ export class CompositingShareEncoder {
     )
   }
 
-  // Pass a native-encoded AAC packet straight to the muxer. The first
-  // call carries the AudioSpecificConfig via decoderConfig; subsequent
-  // calls reuse the configured track. AAC packets are always keyframes
-  // (each is independently decodable).
   pushAudioChunk(chunk: ShareAudioChunk): void {
     if (this.finalized) return
     if (!this.ready || !this.muxer) return
@@ -307,10 +245,7 @@ export class CompositingShareEncoder {
 
     this.muxer.finalize()
     const durationMs = Math.round((this.lastTimestampUs + this.lastDurationUs) / 1_000)
-    // Resolve the poster snapshot — it was scheduled when frame 0 hit
-    // the canvas, so by stop() it's almost always already resolved.
-    // Swallow failures: a missing poster is a degraded but recoverable
-    // state (no OG image, but the share still works).
+    // A missing poster is degraded but recoverable (no OG image, share still works).
     const posterBlob = this.posterPromise ? await this.posterPromise.catch(() => null) : null
     return {
       sizeBytes: this.totalBytes,
@@ -354,13 +289,8 @@ export class CompositingShareEncoder {
       const w = this.format.codedWidth
       const h = this.format.codedHeight
 
-      // Screen frame fills the canvas — no bg framing, no padding.
       ctx.drawImage(frame, 0, 0, w, h)
 
-      // Cursor — interpolated by frame timestamp. The cursor stream is
-      // timestamped in ms relative to recording start; chunk timestamps
-      // are microseconds since the first emitted chunk, which lines up
-      // closely enough for cursor display.
       if (this.cursorImages) {
         const cursors = this.cursorPositions()
         const tsMs = Math.round(frame.timestamp / 1000)
@@ -377,7 +307,6 @@ export class CompositingShareEncoder {
         }
       }
 
-      // Encode the composited canvas — keyframe every ~2 seconds.
       const keyFrame =
         this.outFrameIdx === 0 ||
         this.outFrameIdx % Math.max(1, Math.round(this.outputFps * 2)) === 0
@@ -385,10 +314,6 @@ export class CompositingShareEncoder {
         frame.close()
         return
       }
-      // Snapshot the very first composited frame as the share's poster.
-      // Same pixel content the muxer will key-frame in a moment; capture
-      // here so we don't have to decode the produced MP4 to recover a
-      // thumbnail. JPEG q=0.85 stays well under the worker's 2 MiB cap.
       if (this.outFrameIdx === 0 && !this.posterPromise) {
         this.posterPromise = this.canvas.convertToBlob({
           type: 'image/jpeg',

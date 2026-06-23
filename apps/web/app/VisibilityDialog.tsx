@@ -14,27 +14,15 @@ import {
   VisibilityPicker,
 } from '@captureflow/ui';
 
-// Dashboard visibility picker, modal flavour. Mirrors the share viewer's
-// ShareActions dialog so the "Public / Workspace / Private" choice reads
-// identically wherever a user changes it. The dialog stays open while the
-// server transition runs so the user sees the affordance settle.
-
 export type Visibility = 'public' | 'workspace' | 'private';
 
 type Props = {
   value: Visibility;
   disabled?: boolean;
-  // Fires when the user picks a new option. Caller owns the server
-  // round-trip; we surface the optimistic value back via the chip's
-  // own `value` prop on the next render.
   onChange: (next: Visibility) => Promise<void> | void;
   allowPublic?: boolean;
-  // Optional workspace name appended to the workspace option's label
-  // ("Workspace · Acme"). When omitted, the bare label is used.
   workspaceName?: string | null;
-  // The chip / button that opens the dialog. Rendered inside
-  // SmoothDialogTrigger asChild — must accept a forwarded ref and
-  // click handler.
+  // Rendered inside SmoothDialogTrigger asChild — must accept a forwarded ref.
   trigger: ReactNode;
 };
 
@@ -57,12 +45,11 @@ export function VisibilityDialog({
     });
   };
 
-  // The trigger chip is authored by the caller (often a Server Component) and
-  // handed to Radix's `asChild` Slot, which injects aria/data attributes + a
-  // generated id on the client. Rendering it wired-up during SSR produces a
-  // useId the client can't reproduce 1:1, so hydration fails (and a failed
-  // hydration disables Fast Refresh). Render the bare trigger until mounted,
-  // then swap in the live dialog so server and first client render match.
+  /*
+   * Radix's asChild Slot injects a generated useId the client can't reproduce
+   * 1:1, so wiring the trigger during SSR breaks hydration (and Fast Refresh).
+   * Render the bare trigger until mounted, then swap in the live dialog.
+   */
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,

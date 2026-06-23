@@ -1,6 +1,3 @@
-// Public "Suggest a feature" page. Sits OUTSIDE the auth gate (see
-// middleware.ts): anyone can propose an idea without signing in. MarketingShell
-// + marketing.css scope the light landing palette to this subtree.
 import '../marketing.css';
 import type { Metadata } from 'next';
 import { I18nProvider } from '@/components/marketing/i18n-provider';

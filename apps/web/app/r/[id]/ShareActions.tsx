@@ -24,24 +24,15 @@ import {
 } from '@captureflow/ui';
 import type { ShareVisibility } from '@/lib/share/types';
 
-// Action cluster for the share viewer: Share/copy-link button plus an
-// owner-only overflow menu with the destructive Delete action.
-
 type Props = {
   slug: string;
   shareUrl: string;
   editUrl: string;
   initialVisibility: ShareVisibility;
-  // Gates the destructive actions and the visibility selector. Non-owners
-  // see a simplified menu and a read-only visibility row in the modal.
   isOwner: boolean;
   // Null when the share has no workspace (legacy anonymous uploads).
   workspaceName: string | null;
-  // When false, the Public option is hidden so the owner can't bypass the
-  // workspace's link policy from the viewer page.
   allowPublicLinks: boolean;
-  // The Share dialog needs an account to attribute reactions/comments, so
-  // anonymous viewers only get Copy link.
   signedIn: boolean;
 };
 
@@ -118,7 +109,6 @@ export function ShareActions({
           method: 'DELETE',
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        // The share row and R2 objects are gone, so leave the viewer page.
         router.replace('/');
       } catch (err) {
         setError(
@@ -128,7 +118,6 @@ export function ShareActions({
     });
   };
 
-  // Workspace visibility only applies when the share has a workspace.
   const showWorkspace = !!workspaceName;
   const showPublic = allowPublicLinks || visibility === 'public';
 

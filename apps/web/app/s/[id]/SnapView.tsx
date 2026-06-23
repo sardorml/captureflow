@@ -9,8 +9,6 @@ import { SnapActions } from './SnapActions';
 import { ViewerUserMenu } from './ViewerUserMenu';
 import { ZoomableSnapImage } from './ZoomableSnapImage';
 
-// Public snap viewer — fullscreen screenshot showcase.
-
 type Props = {
   id: string;
   title: string | null;
@@ -30,7 +28,6 @@ type Props = {
   snapUrl: string;
   editUrl: string;
   theme: Theme;
-  // Login bounce URL — returns the visitor here after sign-in.
   loginUrl: string;
 };
 

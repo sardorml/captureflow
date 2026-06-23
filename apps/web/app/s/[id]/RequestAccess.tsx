@@ -28,12 +28,14 @@ export function RequestAccess({
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Self-heal: the SSR gate occasionally renders RequestAccess when the
-  // session cookie didn't reach the server on the first hit (cross-tab
-  // open with stripped referrer, cold-start tail, Brave shields racing
-  // the navigation). Probe verify-session on mount — if a session
-  // actually exists, reload so SSR re-renders the viewer instead of
-  // forcing a manual refresh.
+  /*
+   * Self-heal: the SSR gate occasionally renders RequestAccess when the
+   * session cookie didn't reach the server on the first hit (cross-tab
+   * open with stripped referrer, cold-start tail, Brave shields racing
+   * the navigation). Probe verify-session on mount — if a session
+   * actually exists, reload so SSR re-renders the viewer instead of
+   * forcing a manual refresh.
+   */
   useEffect(() => {
     let cancelled = false;
     const t = window.setTimeout(async () => {

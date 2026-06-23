@@ -4,9 +4,6 @@ import { Users, UserX } from 'lucide-react';
 import { setMemberUploadsPolicyAction } from './actions';
 import { PolicyCardButton } from './PolicyCardButton';
 
-// Two-card radio for the member-uploads policy. Pending state lives in
-// the shared PolicyCardButton.
-
 export function MemberUploadsPolicy({
   allowMemberUploads,
 }: {

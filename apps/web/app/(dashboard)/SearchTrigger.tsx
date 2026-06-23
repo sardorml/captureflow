@@ -10,17 +10,12 @@ import {
 } from '@captureflow/ui';
 import type { SearchHit } from '@/app/api/search/route';
 
-// Cmd-K search. The trigger renders as a wide pill in the topbar;
-// clicking (or pressing ⌘K / Ctrl-K) opens a dialog that queries
-// /api/search as the user types.
-
 export function SearchTrigger() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchHit[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Global cmd/ctrl-K opens the modal.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
@@ -32,9 +27,6 @@ export function SearchTrigger() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Debounced fetch: fires 180ms after the last keystroke, only for
-  // queries of 2+ chars. AbortController cancels inflight calls so a
-  // fast typer's stale requests can't clobber the latest results.
   useEffect(() => {
     if (!open) return;
     const trimmed = query.trim();
@@ -68,7 +60,6 @@ export function SearchTrigger() {
     };
   }, [query, open]);
 
-  // Reset state on close so the next open is a fresh search.
   useEffect(() => {
     if (!open) {
       // eslint-disable-next-line react-hooks/set-state-in-effect

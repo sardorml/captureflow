@@ -1,6 +1,5 @@
-// Sets a custom cornerRadius on a BrowserWindow's contentView layer on macOS.
 // Electron only exposes `roundedCorners: boolean` with the system default
-// radius. We call into libobjc directly with koffi to override it.
+// radius; we call into libobjc with koffi to override it.
 
 import type { BrowserWindow } from 'electron'
 
@@ -38,8 +37,7 @@ function getImpl(): ((view: Buffer, radius: number) => void) | null {
     const selSetCornerRadius = sel_registerName('setCornerRadius:')
 
     setCornerRadiusImpl = (viewHandleBuffer: Buffer, radius: number): void => {
-      // Electron's BrowserWindow.getNativeWindowHandle() returns a Buffer
-      // whose contents are the NSView* pointer bytes.
+      // getNativeWindowHandle() returns a Buffer holding the NSView* pointer bytes.
       const viewPtr = koffi.decode(viewHandleBuffer, 'void*')
       if (!viewPtr) return
       msgSend_setBool(viewPtr, selSetWantsLayer, true)

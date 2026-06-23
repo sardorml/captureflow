@@ -4,33 +4,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAppWebEnv } from '@/lib/cf-env';
 import type { ProSubscriptionStatus } from '@captureflow/quota';
 
-// POST /api/lemon-webhook
-//
-// Lemon Squeezy → CaptureFlow subscription event sink. Lives in the web
-// app because subscriptions bind to user accounts and the auth/user table
-// lives here at app.captureflow.xyz (better-auth). The share + snap viewers
-// read the resulting `pro_subscription` rows out of the same D1 instance
-// to gate cloud storage quotas — see the @captureflow/quota package's
-// pro-subscription entitlement predicate.
-//
-// We deliberately do NOT handle the lifetime license-key product here —
-// lifetime continues to flow through Lemon's licensing endpoints,
-// activated locally on the user's machine via `licenses/activate`.
-//
-// Signature scheme (LS docs): HMAC-SHA256 of the raw request body using
-// the webhook signing secret; hex-encoded; sent in the `X-Signature`
-// header. We have to read the body as text (not JSON) so the bytes hashed
-// match the bytes LS hashed — JSON.stringify(JSON.parse(body)) would
-// change whitespace and the signature would never match.
+/*
+ * Lemon Squeezy subscription event sink. Does NOT handle the lifetime
+ * license-key product — that flows through Lemon's licensing endpoints,
+ * activated locally via `licenses/activate`.
+ *
+ * Signature: HMAC-SHA256 of the raw request body, hex-encoded, in the
+ * X-Signature header. The body must be hashed as text (not re-stringified
+ * JSON) or the bytes won't match LS's and the signature will never verify.
+ */
 
-// Lemon's subscription event payload shape — only the fields we read.
 type LSSubscriptionEvent = {
   meta: {
     event_name: string;
-    // Anything we passed via `checkout[custom][user_id]` lands here. The
-    // checkout link prefills this with the signed-in user's id when we
-    // have one; otherwise the row is unattached until the user signs in
-    // and the claim flow runs.
+    // From `checkout[custom][...]`; carries the signed-in user_id when set.
     custom_data?: Record<string, string> | null;
   };
   data: {
@@ -41,10 +28,7 @@ type LSSubscriptionEvent = {
       user_email: string;
       status: ProSubscriptionStatus | string;
       variant_id: number;
-      // ISO timestamps from LS. We normalise to unix seconds before
-      // writing because every other timestamp in the schema is INTEGER
-      // (seconds since epoch) and mixing units would surprise admin
-      // queries.
+      // ISO from LS; normalised to unix seconds before writing to match the schema's INTEGER timestamp columns.
       renews_at: string | null;
       ends_at: string | null;
       cancelled: boolean;
@@ -54,9 +38,8 @@ type LSSubscriptionEvent = {
   };
 };
 
-// LS uses the *renews_at* field for the active-period end on healthy
-// subscriptions and *ends_at* on cancelled ones. Either gives us the
-// timestamp through which the user retains Pro access.
+// LS reports the active-period end via renews_at on healthy subscriptions
+// and ends_at on cancelled ones.
 function periodEndFromAttributes(
   attrs: LSSubscriptionEvent['data']['attributes']
 ): number | null {
@@ -74,9 +57,7 @@ function cycleFromVariant(
   const v = String(variantId);
   if (annualIds.some((id) => id && id === v)) return 'annual';
   if (monthlyIds.some((id) => id && id === v)) return 'monthly';
-  // Default to 'monthly' so we don't drop the row when env vars are
-  // misconfigured in a dev env — the admin can correct it later via
-  // a direct SQL update. Logging makes the misconfiguration visible.
+  // Default to monthly rather than drop the row on a misconfigured env var.
   console.warn(
     `[lemon-webhook] unknown variant_id=${v}; defaulting to monthly. Set LEMON_{MONTHLY,ANNUAL,TEST_MONTHLY,TEST_ANNUAL}_VARIANT_ID.`
   );
@@ -104,8 +85,7 @@ async function verifySignature(
   const computed = Array.from(new Uint8Array(sig))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
-  // Constant-time compare on the equal-length path to avoid leaking
-  // signature bytes via timing.
+  // Constant-time compare to avoid leaking signature bytes via timing.
   if (computed.length !== signatureHex.length) return false;
   let diff = 0;
   for (let i = 0; i < computed.length; i++) {
@@ -125,8 +105,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'not configured' }, { status: 500 });
   }
 
-  // Read raw body BEFORE parsing — the signature is over the exact bytes
-  // LS sent, including whitespace and key order.
+  // Read raw body BEFORE parsing — the signature is over the exact bytes sent.
   const rawBody = await req.text();
   const signature = req.headers.get('x-signature') ?? '';
   const ok = await verifySignature(rawBody, signature, secret);
@@ -142,10 +121,6 @@ export async function POST(req: NextRequest) {
   }
 
   const name = event.meta?.event_name ?? '';
-  // We only care about subscription_* events. License-key events
-  // (`license_key_created`, etc.) flow through the desktop's own
-  // license-activation IPC against LS's licenses API, not through this
-  // webhook.
   if (!name.startsWith('subscription_')) {
     return NextResponse.json({ ok: true, ignored: name });
   }
@@ -162,14 +137,8 @@ export async function POST(req: NextRequest) {
     [env.LEMON_ANNUAL_VARIANT_ID, env.LEMON_TEST_ANNUAL_VARIANT_ID]
   );
   const periodEnd = periodEndFromAttributes(attrs);
-  // Resolve user_id by either:
-  //   1. explicit `custom_data.user_id` passed at checkout, or
-  //   2. matching `user_email` against the existing better-auth `user`
-  //      table (case-insensitive). The match path covers buyers who
-  //      paid before signing in — the row binds to whichever CaptureFlow
-  //      account already exists with that email. If no account exists
-  //      yet the row stays unattached until the user signs up and the
-  //      claim flow runs.
+  // Resolve user_id from checkout custom_data, else by case-insensitive email
+  // match (covers buyers who paid before signing in); unattached otherwise.
   let userId: string | null = event.meta.custom_data?.user_id ?? null;
   if (!userId && attrs.user_email) {
     const u = await env.DB.prepare(
@@ -181,12 +150,9 @@ export async function POST(req: NextRequest) {
   }
   const cancelledAt = attrs.cancelled ? now : null;
 
-  // Upsert by LS subscription id. ON CONFLICT updates everything but
-  // created_at + user_id — we never want a later event to clobber the
-  // user attachment (e.g. a renewal webhook firing after the user has
-  // already claimed). The COALESCE(excluded.user_id, user_id) guard
-  // means a subscription_updated lacking custom_data won't NULL-out an
-  // already-attached row.
+  // Upsert by LS subscription id. COALESCE(excluded.user_id, user_id) keeps a
+  // later event (e.g. a renewal lacking custom_data) from clobbering an
+  // already-attached user.
   await env.DB.prepare(
     `INSERT INTO pro_subscription (
        ls_subscription_id, user_id, ls_variant_id, ls_customer_id,

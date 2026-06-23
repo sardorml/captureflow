@@ -1,9 +1,6 @@
 import Link from 'next/link';
 import { MARKETING_SITE_URL, PRODUCT_NAME } from '@/lib/site';
 
-// Not-found scoped to the /r viewer segment so it doesn't override the
-// app-wide not-found. Rendered when the page's notFound() fires (invalid
-// id, or a missing/expired/non-ready row).
 export default function ShareNotFound() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-black p-6 text-center">

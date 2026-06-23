@@ -14,9 +14,6 @@ import { SearchTrigger } from './SearchTrigger';
 import { UpgradeModal } from './UpgradeModal';
 import { UserMenu } from './UserMenu';
 
-// Dashboard topbar. Server component — fetches the subscription here so
-// the dropdown can surface the Pro chip without an extra client round-trip.
-
 export async function TopBar() {
   const session = await requireSession();
   const env = await getAppWebEnv();
@@ -32,8 +29,6 @@ export async function TopBar() {
   const cookieHeader = (await headers()).get('cookie');
   const theme = readThemeFromCookieHeader(cookieHeader);
 
-  // Hide the Upgrade CTA for active Pro subscribers; free and lifetime
-  // users still see it.
   const isPro = subscription?.status === 'active';
 
   return (

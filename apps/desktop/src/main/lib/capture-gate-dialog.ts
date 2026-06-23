@@ -1,17 +1,3 @@
-/**
- * Native confirm dialog shown when a user taps a Pro-only capture mode
- * (Share / Screenshot) they can't use yet. Buttons depend on account state:
- *
- *   - signed out       → "Sign in" + "Upgrade to Pro"
- *   - signed in (free) → "Open dashboard" + "Upgrade to Pro"
- *
- * Pro requires a signed-in captureflow.xyz subscription, so a signed-out user
- * is offered sign-in (the precondition) alongside the upgrade path; a free
- * signed-in user is steered to the dashboard or checkout.
- *
- * Registered at module load (imported for side effects from main/index.ts).
- */
-
 import { dialog, ipcMain, nativeImage } from 'electron'
 import captureflowIconPath from '../../../resources/icon.png?asset'
 import { IPC_CHANNELS, type UpgradeReason } from '../../shared/types'
@@ -51,9 +37,7 @@ ipcMain.handle(IPC_CHANNELS.CAPTURE_GATE_OPEN, async (_event, reason: UpgradeRea
     cancelId: 2,
     noLink: true
   }
-  // Freestanding (no parent window): attaching it as a sheet to the
-  // transparent, click-through toolbar window dims that window into a weird
-  // band and makes the sheet undraggable. App-modal shows a clean centered alert.
+  // Freestanding (no parent): sheeting it onto the transparent toolbar window breaks the dialog.
   const { response } = await dialog.showMessageBox(options)
 
   logInfo('capture-gate', `reason=${reason} signedIn=${signedIn} response=${response}`)

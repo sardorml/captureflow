@@ -15,7 +15,6 @@ type DropdownItem = {
   hoverClassName?: string
 }
 
-// Hover bg zooms in from the cursor position.
 function DropdownMenuItem({
   item,
   onActivate
@@ -107,7 +106,6 @@ type AnimatedDropdownProps = {
   placement?: 'bottom' | 'top'
 }
 
-// Match the button press feel: fast ease-out, no bounce.
 const POP = { duration: 0.075, ease: [0, 0, 0.2, 1] as [number, number, number, number] }
 
 export function AnimatedDropdown({

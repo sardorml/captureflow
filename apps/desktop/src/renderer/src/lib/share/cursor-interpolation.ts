@@ -1,8 +1,7 @@
 import type { CursorType } from '../../../../shared/types'
 
-// Catmull-Rom spline + cursor interpolation, kept separate from the editor's
-// video-renderer so the share compositing encoder stays self-contained in the
-// recorder build. Smooths real-time cursor motion between sparse samples.
+// Kept separate from the editor's video-renderer so the share compositing
+// encoder stays self-contained in the recorder build.
 function catmullRom(p0: number, p1: number, p2: number, p3: number, t: number): number {
   return (
     0.5 *
@@ -25,7 +24,6 @@ export function interpolateCursor(
     const last = cursor[cursor.length - 1]
     return { x: last.x, y: last.y, cursorType: last.cursorType ?? 'arrow' }
   }
-  // Binary search for the bracketing samples
   let lo = 0
   let hi = cursor.length - 1
   while (lo < hi - 1) {
@@ -37,11 +35,9 @@ export function interpolateCursor(
   const p2 = cursor[hi]
   const t = (timeMs - p1.time) / (p2.time - p1.time || 1)
 
-  // Get surrounding points for Catmull-Rom (clamp at edges)
   const p0 = cursor[Math.max(0, lo - 1)]
   const p3 = cursor[Math.min(cursor.length - 1, hi + 1)]
 
-  // Use cursor type from the nearest sample (snap, don't interpolate)
   const cursorType = (t < 0.5 ? p1.cursorType : p2.cursorType) ?? 'arrow'
 
   return {

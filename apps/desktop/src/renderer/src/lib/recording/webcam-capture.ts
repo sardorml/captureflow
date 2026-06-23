@@ -1,22 +1,17 @@
-// Webcam + mic capture for share recordings. Returns raw MediaStreams only;
-// ShareWebcamUploader owns the MediaRecorder that streams webcam video + mic
-// audio to the share backend. Nothing is recorded to disk here.
-
 export type WebcamCaptureResult = { stream: MediaStream }
 export type MicCaptureResult = { stream: MediaStream }
 
-// Share companion track: 720p / 30fps. The camera session is driven by its
-// highest-resolution consumer (WebcamBubble preview is always 1080p), so this
-// 720p stream is downscaled from the 1080p session — concurrent acquires never
-// downgrade it.
+/*
+ * The camera session is driven by its highest-resolution consumer
+ * (WebcamBubble preview is always 1080p), so this 720p stream is downscaled
+ * from the 1080p session — concurrent acquires never downgrade it.
+ */
 const WEBCAM_CONSTRAINTS = {
   width: { ideal: 1280 },
   height: { ideal: 720 },
   frameRate: { ideal: 30 }
 } as const
 
-// Video only; mic audio is acquired separately so the two stems stay
-// independent and the uploader recombines them.
 export async function acquireWebcamCapture(deviceId: string): Promise<WebcamCaptureResult | null> {
   try {
     const stream = await acquireWebcamStream(deviceId)
@@ -37,8 +32,7 @@ async function acquireWebcamStream(deviceId: string): Promise<MediaStream> {
       audio: false
     })
   } catch {
-    // Camera rejected the constraints; retry with bare ideals and let it
-    // negotiate rather than fail the recording.
+    // Camera rejected the constraints; retry with bare ideals and let it negotiate.
     return navigator.mediaDevices.getUserMedia({
       video: {
         deviceId: { exact: deviceId },

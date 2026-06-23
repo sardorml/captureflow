@@ -11,10 +11,8 @@ const R2_BASE =
 
 export const dynamic = 'force-dynamic';
 
-// Server wrapper: validate the session, fetch the snap row, and hand
-// off to the client editor. Kept OUTSIDE the (dashboard) route group
-// so it doesn't inherit the dashboard max-width container + nav — the
-// Konva canvas wants the full viewport.
+// Kept OUTSIDE the (dashboard) route group so it doesn't inherit the
+// dashboard max-width container + nav — the Konva canvas wants the full viewport.
 export default async function SnapEditPage({
   params,
 }: {
@@ -25,22 +23,15 @@ export default async function SnapEditPage({
   const snap = await getSnapForUser(id, session.user.id);
   if (!snap) notFound();
 
-  // Cache-bust by most-recent mutation time. Without it, a browser
-  // that fetched the PNG before R2 had CORS configured reuses its
-  // cached no-CORS response forever: the same URL hits the disk cache
-  // (with stale CORS metadata) instead of the network.
+  // Cache-bust by most-recent mutation time so a browser that fetched the
+  // PNG before R2 had CORS configured doesn't reuse its cached no-CORS response.
   const cacheKey = snap.editedAt ?? snap.updatedAt ?? snap.createdAt;
 
-  // After the first save, the pristine pre-edit screenshot lives at
-  // `<key>.source.png` so later edits open against clean pixels rather
-  // than a composition with the previous bg baked in. HEAD that key;
-  // if missing (first edit ever) fall back to the primary key, which
-  // still holds the original bytes.
+  // After the first save the pristine pre-edit screenshot lives at
+  // `<key>.source.png`; fall back to the primary key on the first edit ever.
   const sourceKey = sourceKeyFor(snap.storageKey);
   const stateKey = stateKeyFor(snap.storageKey);
-  // Sidecar reads are best-effort — a network blip or eventual-
-  // consistency miss shouldn't 500 the edit page. Fall back to the
-  // primary key + null state.
+  // Sidecar reads are best-effort — a blip shouldn't 500 the edit page.
   let hasSource = false;
   let savedState: { background?: string; annotations?: unknown[] } | null =
     null;

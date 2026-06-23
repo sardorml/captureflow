@@ -14,24 +14,17 @@ import { SidebarNav } from './SidebarNav';
 import { WorkspaceMembersStack } from './WorkspaceMembersStack';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 
-// Left rail for the dashboard. Server component so the workspace and
-// storage lookups (D1 round trips) happen in one render pass.
-
 export async function Sidebar() {
   const session = await requireSession();
   const env = await getAppWebEnv();
-  // Storage is owner-scoped: the pill sums every share + snap across
-  // all workspaces the user owns, matching the cap they pay for.
-  // Uploads others make INTO their workspaces count here; uploads they
-  // make into OTHER people's workspaces don't.
+  // Storage is owner-scoped: sums share + snap bytes across the user's owned
+  // workspaces (uploads into others' workspaces don't count against their cap).
   const [current, usedBytes, limitBytes] = await Promise.all([
     resolveCurrentWorkspace(session.user.id, session.user.name ?? null),
     env?.DB ? totalStorageForUser(env.DB, session.user.id) : Promise.resolve(0),
     getEffectiveStorageLimit(session.user.id),
   ]);
 
-  // Member roster for the avatar stack; the "+" placeholder opens the
-  // InviteModal, which is owner-only.
   const members = env?.DB
     ? await listMembers(env.DB, current.workspace.id)
     : [];

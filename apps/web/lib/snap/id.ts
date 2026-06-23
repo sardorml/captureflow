@@ -1,7 +1,4 @@
-// Snap ID generator. 10 chars of base-54, excluding 0/O/1/I/l to avoid
-// visual ambiguity — collision probability is effectively zero up to
-// ~10^7 snaps.
-
+// Alphabet excludes 0/O/1/I/l to avoid visual ambiguity.
 const ALPHABET = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 export function generateSnapId(length = 10): string {

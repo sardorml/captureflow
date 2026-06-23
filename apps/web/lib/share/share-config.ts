@@ -1,8 +1,3 @@
-// Worker-side (read-only) share config. The dashboard edit page writes
-// this JSON sidecar to R2; the public viewer reads it here at request time.
-// Writer and reader are kept in sync by convention: same field names,
-// default values, and gradient preset table on both sides.
-
 const MP4 = '.mp4';
 
 export function shareConfigKeyFor(storageKey: string): string {

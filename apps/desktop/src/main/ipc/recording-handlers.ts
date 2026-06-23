@@ -20,9 +20,6 @@ export function registerRecordingHandlers(getRecordingWindow: () => BrowserWindo
     shell.showItemInFolder(path)
   })
 
-  // The live CURSOR_POSITION_EVENT stream (broadcast every tick) feeds the
-  // share compositing encoder; stopTracking returns the full sample set for
-  // finalize. No on-disk persistence — share streams everything to the backend.
   ipcMain.handle(
     IPC_CHANNELS.START_CURSOR_TRACKING,
     (_event, displayId: string, windowBounds?: WindowBounds, wallClockMs?: number) => {
@@ -36,7 +33,6 @@ export function registerRecordingHandlers(getRecordingWindow: () => BrowserWindo
   ipcMain.handle(IPC_CHANNELS.RESUME_CURSOR_TRACKING, () => resumeTracking())
   ipcMain.handle(IPC_CHANNELS.DELETE_CURRENT_SESSION, () => deleteCurrentSession())
 
-  // Native screen recorder (ScreenCaptureKit on macOS)
   setOnUnexpectedExit(() => {
     const recordingWindow = getRecordingWindow()
     if (recordingWindow && !recordingWindow.isDestroyed()) {
@@ -44,9 +40,6 @@ export function registerRecordingHandlers(getRecordingWindow: () => BrowserWindo
     }
   })
 
-  // Forward share-pipeline events from the native recorder to the recording
-  // window, where ShareEncoder consumes them. RecordingToolbar owns the encoder
-  // lifecycle since it persists across recording sessions.
   setOnShareEvent((event) => {
     const recordingWindow = getRecordingWindow()
     if (recordingWindow && !recordingWindow.isDestroyed()) {
@@ -72,8 +65,6 @@ export function registerRecordingHandlers(getRecordingWindow: () => BrowserWindo
       startNativeRecording({
         ...config,
         showsCursor: false,
-        // Dev-only: when includeSelfWindows is true, don't filter CaptureFlow's
-        // own windows out of the capture — lets the editor record itself.
         excludePid: config.includeSelfWindows ? undefined : process.pid
       })
   )
@@ -81,8 +72,4 @@ export function registerRecordingHandlers(getRecordingWindow: () => BrowserWindo
   ipcMain.handle(IPC_CHANNELS.PAUSE_NATIVE_RECORDING, () => pauseNativeRecording())
   ipcMain.handle(IPC_CHANNELS.RESUME_NATIVE_RECORDING, () => resumeNativeRecording())
   ipcMain.handle(IPC_CHANNELS.IS_NATIVE_RECORDING_ACTIVE, () => isNativeRecordingActive())
-
-  // Share IPC lives in share-stream-handlers.ts (SHARE_START / SHARE_PART_* /
-  // SHARE_FINISH / SHARE_ABORT). Share visibility + deletion are managed on the
-  // web edit page, not here.
 }

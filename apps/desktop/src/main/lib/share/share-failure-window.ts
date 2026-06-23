@@ -1,19 +1,3 @@
-/**
- * ShareFailureWindow (main process) — lightweight failure modal. Opens when:
- *
- *   - `/init` blocks recording (kind: 'init-failed')
- *   - upload finalizes with zero parts on R2 (kind: 'no-link')
- *   - upload finalizes with at least one screen part, so the user
- *     gets a salvageable edit URL (kind: 'partial')
- *
- * Single-instance: only one share session is in flight at a time, so there
- * can be at most one failure modal.
- *
- * Renderer view = 'share-failure' (registered in main.tsx). The modal
- * subscribes to SHARE_FAILURE_INIT for its state and sends
- * SHARE_FAILURE_CLOSE on Done.
- */
-
 import { app, BrowserWindow, ipcMain, screen, shell } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
@@ -94,10 +78,6 @@ function activate(win: BrowserWindow): void {
   win.focus()
 }
 
-// IPC handlers — registered at module load so main/index.ts doesn't
-// need an extra call. SHARE_FAILURE_OPEN can be sent by any module
-// that needs to surface a failure (e.g. share-stream-handlers on
-// /init reject); SHARE_FAILURE_CLOSE dismisses the modal.
 ipcMain.handle(IPC_CHANNELS.SHARE_FAILURE_OPEN, (_event, state: ShareFailureState) => {
   openShareFailureWindow(state)
 })
@@ -107,10 +87,7 @@ ipcMain.on(IPC_CHANNELS.SHARE_FAILURE_CLOSE, (event) => {
 })
 ipcMain.on(IPC_CHANNELS.SHARE_READY_OPEN_LINK, (_event, url: string) => {
   if (typeof url !== 'string') return
-  // The link is buildShareEditUrl(CAPTUREFLOW_APP_WEB_BASE). In prod that's
-  // https://captureflow.xyz/…; in local dev it's http://localhost:3032/…,
-  // so allow http on localhost/127.0.0.1 too — otherwise the dev share link
-  // is silently dropped and stopping a recording never opens the browser.
+  // Allow http on localhost/127.0.0.1 for dev links; otherwise the dev share link is silently dropped.
   const ok =
     url.startsWith('https://') ||
     url.startsWith('http://localhost') ||

@@ -30,8 +30,6 @@ export function registerShareAuthHandlers(): void {
     return clearShareAuth()
   })
 
-  // Fan-out to every BrowserWindow on state change. No diffing — subscribers
-  // are tiny, so a per-event broadcast is cheap.
   onShareAuthChange((state) => {
     for (const win of BrowserWindow.getAllWindows()) {
       if (win.isDestroyed()) continue
@@ -54,8 +52,7 @@ export function registerShareAuthHandlers(): void {
     return getShareUsage()
   })
 
-  // The selection overlay calls this on open so a stale cached state can't
-  // paint the wrong lock affordance.
+  // Refreshed on overlay open so a stale cache can't paint the wrong lock affordance.
   ipcMain.handle(IPC_CHANNELS.SHARE_USAGE_REFRESH, async (): Promise<ShareUsageState> => {
     return refreshShareUsage()
   })
@@ -71,9 +68,7 @@ export function registerShareAuthHandlers(): void {
     }
   })
 
-  // Auth flips swap the cap's scope (account vs. per-device) and a different
-  // user has entirely different numbers — refresh so the cached snapshot
-  // doesn't outlive a sign-in/sign-out cycle.
+  // Auth flips swap the cap's scope (account vs. per-device), so refresh on sign-in/out.
   onShareAuthChange(() => {
     void refreshShareUsage()
     void refreshWorkspaces()

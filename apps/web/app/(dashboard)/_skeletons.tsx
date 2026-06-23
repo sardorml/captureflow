@@ -1,7 +1,3 @@
-// Shared dashboard skeletons. Each `loading.tsx` re-exports one so
-// Next.js renders an instant placeholder on link-click while the
-// segment's data fetch lands.
-
 export function PageHeaderSkeleton({
   showRecord = true,
 }: {
@@ -85,8 +81,6 @@ export function FormSectionsSkeleton({ count = 3 }: { count?: number }) {
   );
 }
 
-// `animate-pulse` lives on the outer wrapper so every child block
-// pulses in sync; the `variant` prop picks the body shape.
 export function DashboardLoading({
   variant,
   showRecord = true,

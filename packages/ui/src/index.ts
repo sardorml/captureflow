@@ -1,7 +1,3 @@
-// Barrel for the @captureflow/ui primitives. Root and subpath imports
-// (`@captureflow/ui` vs `@captureflow/ui/button`) resolve to the same
-// module via the package's exports map.
-
 export { cn } from './lib/cn';
 export {
   type Theme,
@@ -48,10 +44,6 @@ export { Label } from './ui/label';
 export { RadioGroup, RadioGroupItem } from './ui/radio-group';
 export { Separator } from './ui/separator';
 export { Textarea } from './ui/textarea';
-// Motion-driven variants over the same Radix substrate as the primitives
-// above; open/close + press feedback runs through `motion` springs. Not
-// drop-in replacements: the Dialog/DropdownMenu Root components own
-// controlled open state, so call sites reading Radix internals need a tweak.
 export { SmoothButton, smoothButtonVariants } from './ui/smooth-button';
 export type { SmoothButtonProps } from './ui/smooth-button';
 export {

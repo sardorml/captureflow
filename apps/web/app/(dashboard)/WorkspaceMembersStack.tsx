@@ -7,9 +7,6 @@ import {
 } from '@captureflow/ui';
 import { InviteModal } from './InviteModal';
 
-// Member avatar stack with a trailing "+" slot that opens the InviteModal.
-// The invite slot is gated to owners, matching the server-side invite action.
-
 type Props = {
   items: AvatarGroupItem[];
   canInvite: boolean;

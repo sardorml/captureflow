@@ -1,7 +1,6 @@
 'use client';
 
-// Kept source-identical to the desktop app's animated-tooltip: any
-// change must land in both files (or migrate both to a shared package).
+// Keep source-identical to the desktop app's animated-tooltip: change both files.
 import { cn } from '@captureflow/ui/cn';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import type { ReactNode } from 'react';
@@ -24,10 +23,7 @@ export interface AnimatedTooltipProps {
   delay?: number;
   children: ReactNode;
   className?: string;
-  /** Extra classes for the trigger wrapper span. Default is
-   *  `relative inline-flex items-center` — override to opt the wrapper
-   *  into the parent's layout (e.g. `flex flex-1` to take its share of
-   *  a segmented flex container). */
+  // Extra classes for the trigger wrapper span. Default is  `relative inline-flex items-center` — override to opt the wrapper  into the parent's layout (e.g. `flex flex-1` to take its share of  a segmented flex container).
   triggerClassName?: string;
 }
 
@@ -151,9 +147,6 @@ export function AnimatedTooltip({
     setPosition(computePosition(triggerRect, tooltipRect, placement));
   }, [placement]);
 
-  // Reset cached anchor position the moment the tooltip hides so the next
-  // show recomputes against fresh DOM. Uses the prev-state pattern rather
-  // than a setState-in-effect.
   const [prevVisible, setPrevVisible] = useState(isVisible);
   if (prevVisible !== isVisible) {
     setPrevVisible(isVisible);

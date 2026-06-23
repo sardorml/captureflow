@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   description: 'Download the CaptureFlow screen recorder for macOS.',
 };
 
-// lucide-react v1 dropped brand glyphs, so the GitHub and Chrome marks are inline.
 function GitHubIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className={className}>

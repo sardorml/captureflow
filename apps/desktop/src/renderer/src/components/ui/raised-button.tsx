@@ -23,7 +23,6 @@ export const RaisedButton = forwardRef<HTMLButtonElement, RaisedButtonProps>(fun
   const up = useCallback(
     (e: React.PointerEvent<HTMLButtonElement>) => {
       if (releaseTimer.current) clearTimeout(releaseTimer.current)
-      // Hold briefly so very fast taps still show the press.
       releaseTimer.current = setTimeout(() => setPressed(false), 120)
       onPointerUp?.(e)
     },

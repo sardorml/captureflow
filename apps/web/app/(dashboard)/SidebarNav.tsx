@@ -4,9 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Camera, Link2, Settings, Users } from 'lucide-react';
 
-// Grouped sidebar nav: primary content links at the top, with an
-// "Admin tools" section that renders only for workspace owners.
-
 type NavItem = {
   href: string;
   label: string;

@@ -1,16 +1,11 @@
 'use client';
 
-// Shared "Copy link" button. Caller supplies the URL; this component
-// owns the clipboard write and the 1.5s "Copied" affordance so
-// consumers don't reimplement that state machine.
 import { useState, type ReactElement } from 'react';
 import { Check, Link2 } from 'lucide-react';
 
 export type CopyLinkButtonProps = {
   url: string;
   className?: string;
-  // Defaults to "Copy link". The post-copy "Copied" label is fixed so
-  // the feedback stays recognizable regardless of caller.
   label?: string;
 };
 
@@ -27,8 +22,7 @@ export function CopyLinkButton({
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      // Clipboard may be unavailable (insecure context, permission
-      // denied). The URL is still in the address bar, so swallow.
+      // Clipboard may be unavailable (insecure context / denied); ignore.
     }
   };
 

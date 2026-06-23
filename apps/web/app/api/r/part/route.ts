@@ -7,7 +7,7 @@ import type { PartResponse, ShareApiError } from '@/lib/share/types';
 
 const DEVICE_HEADER = 'x-captureflow-device';
 const MAX_PART_NUMBER = 10000; // R2 multipart upper bound
-const MAX_PART_BYTES = 100 * 1024 * 1024; // 100 MB hard cap per chunk
+const MAX_PART_BYTES = 100 * 1024 * 1024;
 
 export function OPTIONS() {
   return optionsResponse();
@@ -49,10 +49,7 @@ export async function POST(req: NextRequest) {
     return jsonError('Chunk too large', 413, 'chunk_too_large');
   }
 
-  // R2's `uploadPart` requires a body with a known length. The request's
-  // ReadableStream doesn't carry one, so we buffer the chunk first. At
-  // 5 MB per part this is fine in a Worker (128 MB memory ceiling) and
-  // keeps the upload exact-byte rather than chunked-encoded.
+  // R2's uploadPart needs a known-length body; the request stream has none, so buffer the chunk.
   const buffer = await req.arrayBuffer();
   if (buffer.byteLength === 0) {
     return jsonError('Missing chunk body', 400, 'no_body');

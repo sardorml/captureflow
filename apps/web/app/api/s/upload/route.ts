@@ -31,13 +31,15 @@ const TITLE_HEADER = 'x-captureflow-snap-title';
 // workspace on any mismatch — see /api/init for the same fallback rationale.
 const WORKSPACE_HEADER = 'x-captureflow-workspace';
 
-// Snap upload endpoint. Bearer required (snaps are account-owned); quota is
-// gated up front against the combined shares ∪ snaps total.
-//
-// 200 → { id, viewUrl, editUrl }
-// 401 → bearer missing/invalid
-// 413 → snap exceeds per-snap cap
-// 429 → storage_limit / active_limit
+/*
+ * Snap upload endpoint. Bearer required (snaps are account-owned); quota is
+ * gated up front against the combined shares ∪ snaps total.
+ *
+ * 200 → { id, viewUrl, editUrl }
+ * 401 → bearer missing/invalid
+ * 413 → snap exceeds per-snap cap
+ * 429 → storage_limit / active_limit
+ */
 
 function extractBearerToken(req: NextRequest): string | null {
   const h = req.headers.get('authorization') ?? '';
@@ -57,12 +59,14 @@ export async function POST(req: NextRequest) {
 
   const contentType = req.headers.get('content-type') ?? '';
   const ctLower = contentType.toLowerCase();
-  // Two accepted shapes:
-  //   - `image/png` (legacy): body is the raw PNG; no source / state
-  //   - `multipart/form-data`: fields `composed` (required PNG),
-  //     `source` (optional PNG), `state` (optional JSON sidecar)
-  // Desktop bakes the gradient onto the composed PNG before uploading so the
-  // public viewer and editor agree on the rendered look immediately.
+  /*
+   * Two accepted shapes:
+   *   - `image/png` (legacy): body is the raw PNG; no source / state
+   *   - `multipart/form-data`: fields `composed` (required PNG),
+   *     `source` (optional PNG), `state` (optional JSON sidecar)
+   * Desktop bakes the gradient onto the composed PNG before uploading so the
+   * public viewer and editor agree on the rendered look immediately.
+   */
   const isMultipart = ctLower.startsWith('multipart/form-data');
   if (!isMultipart && !ctLower.startsWith('image/png')) {
     return jsonError('Unsupported content type', 400, 'invalid_content_type');
@@ -105,10 +109,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Resolve target workspace BEFORE the quota gate so the cap applies to the
-  // workspace OWNER: team uploads draw down the owner's quota, not the
-  // uploader's. Falls through to the uploader's personal workspace on any
-  // mismatch so a stale client never blocks.
+  /*
+   * Resolve target workspace BEFORE the quota gate so the cap applies to the
+   * workspace OWNER: team uploads draw down the owner's quota, not the
+   * uploader's. Falls through to the uploader's personal workspace on any
+   * mismatch so a stale client never blocks.
+   */
   let workspaceId: string | null = null;
   const requestedWorkspace = req.headers.get(WORKSPACE_HEADER);
   if (requestedWorkspace) {
@@ -189,9 +195,11 @@ export async function POST(req: NextRequest) {
 
   const id = generateSnapId();
   await putSnap(id, composedBody);
-  // Source + state sidecars are best-effort — if either write fails
-  // we still return success for the composed upload (the editor's
-  // existing fallback path serves the composed PNG as the source).
+  /*
+   * Source + state sidecars are best-effort — if either write fails
+   * we still return success for the composed upload (the editor's
+   * existing fallback path serves the composed PNG as the source).
+   */
   if (sourceBody) {
     try {
       await putSnapSource(id, sourceBody);
@@ -208,10 +216,12 @@ export async function POST(req: NextRequest) {
   }
 
   const now = Date.now();
-  // Desktop sends a raw source label (display name / window owner / area dim);
-  // the server bakes the formatted headline so the public viewer and dashboard
-  // see the same string. Renames flow through the dedicated rename action and
-  // overwrite this column.
+  /*
+   * Desktop sends a raw source label (display name / window owner / area dim);
+   * the server bakes the formatted headline so the public viewer and dashboard
+   * see the same string. Renames flow through the dedicated rename action and
+   * overwrite this column.
+   */
   const sourceTitle = sanitizeSourceTitle(req.headers.get(TITLE_HEADER));
   const title = buildSnapHeadline(sourceTitle, now);
 
@@ -227,9 +237,11 @@ export async function POST(req: NextRequest) {
       height: Math.round(height),
       title,
       state: 'ready',
-      // When public links are disabled, new snaps default to 'workspace' so a
-      // public link is never minted; owners can still flip individual snaps to
-      // 'public' later from the dashboard.
+      /*
+       * When public links are disabled, new snaps default to 'workspace' so a
+       * public link is never minted; owners can still flip individual snaps to
+       * 'public' later from the dashboard.
+       */
       visibility:
         workspace && !workspace.allow_public_links ? 'workspace' : 'public',
       createdAt: now,

@@ -3,11 +3,6 @@
 import { useFormStatus } from 'react-dom';
 import { type ReactNode } from 'react';
 
-// Shared submit button for the workspace-settings policy cards.
-// Reads the parent form's `useFormStatus()` so only the clicked card
-// renders the pending state (spinner + tinted border) while the server
-// action runs.
-
 type Props = {
   active: boolean;
   icon: ReactNode;

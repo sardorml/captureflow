@@ -20,11 +20,11 @@ export async function getSources(): Promise<CaptureSource[]> {
   }
 }
 
-// Welcome-gate probe that fires macOS's Screen Recording prompt on first call
-// and registers the app under System Settings → Privacy → Screen Recording.
-// Skips thumbnails and limits to 'screen' so macOS fires a single TCC request;
-// getSources() above requests window + thumbnails, which can re-fire the prompt
-// (macOS treats it as a still-pending permission negotiation).
+/*
+ * Fires macOS's Screen Recording TCC prompt once. Skips thumbnails and limits
+ * to 'screen' so macOS fires a single request; window + thumbnails (as in
+ * getSources) can re-fire the prompt as a still-pending permission negotiation.
+ */
 export async function probeScreenRecordingPermission(): Promise<void> {
   try {
     await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 0, height: 0 } })

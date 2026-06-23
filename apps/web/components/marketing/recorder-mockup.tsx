@@ -4,27 +4,17 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Play, Pause } from 'lucide-react';
 
-// Hero product demo: the demo clip in a rounded card with a play control and a
-// "Link copied" pill floating over it. Shows the poster frame until the visitor
-// clicks play, then plays through.
-//
-// Icons are lucide-react (not the Material Symbols <Icon>): the marketing icon
-// font is a ligature SUBSET that doesn't include every glyph the mockup needs,
-// and a missing ligature renders as raw literal text. lucide always renders.
+// Icons are lucide-react, not the Material Symbols <Icon>: its ligature subset
+// is missing glyphs this mockup needs, which render as raw literal text.
 
 const SHARE_PATH = 'captureflow.xyz/r/8kx2pnq4';
 
 export function RecorderMockup() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
-  // A dark icon "pop" on each play/pause transition (the share-icon-pop
-  // keyframe lives in globals.css, loaded globally by the root layout).
   const [overlayIcon, setOverlayIcon] = useState<'play' | 'pause' | null>(null);
   const [prevPlaying, setPrevPlaying] = useState(false);
 
-  // Keep `playing` in sync with the element. Attached imperatively (not as React
-  // on* props) so the initial state is read straight off the element when the
-  // effect runs, even if the clip autobuffered before hydration.
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -42,8 +32,6 @@ export function RecorderMockup() {
     };
   }, []);
 
-  // Clear the pop overlay once its 750ms animation has run (same duration as
-  // the share-icon-pop keyframe).
   useEffect(() => {
     if (overlayIcon === null) return;
     const t = setTimeout(() => setOverlayIcon(null), 750);
@@ -54,7 +42,6 @@ export function RecorderMockup() {
     const v = videoRef.current;
     if (!v) return;
     if (v.paused) {
-      // Restart from the top once it's played through.
       if (v.ended || v.currentTime >= v.duration) v.currentTime = 0;
       void v.play();
     } else {
@@ -62,9 +49,6 @@ export function RecorderMockup() {
     }
   };
 
-  // Derive the pop icon from play/pause transitions during render. Shows a
-  // pause-pop as playback starts; pausing brings the persistent play button
-  // back instead.
   if (prevPlaying !== playing) {
     setPrevPlaying(playing);
     setOverlayIcon(playing ? 'pause' : 'play');
@@ -72,7 +56,6 @@ export function RecorderMockup() {
 
   return (
     <div className="relative mx-auto w-full max-w-5xl px-5 pb-24 pt-6 sm:px-8">
-      {/* Soft blue wash behind the clip, tying the demo into the hero's halo. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-10 -z-10 mx-auto h-[70%] max-w-4xl rounded-[40px] bg-gradient-to-b from-blue-500/25 via-blue-400/10 to-transparent blur-3xl"
@@ -94,14 +77,12 @@ export function RecorderMockup() {
           className="absolute inset-0 h-full w-full object-cover"
         />
 
-        {/* Click target across the whole stage, toggling play/pause. */}
         <button
           type="button"
           onClick={togglePlay}
           aria-label={playing ? 'Pause demo' : 'Play demo'}
           className="group absolute inset-0 flex items-center justify-center"
         >
-          {/* Legibility veil while paused so the play control reads. */}
           <span
             aria-hidden
             className={`pointer-events-none absolute inset-0 bg-black/40 transition-opacity duration-300 ${
@@ -118,9 +99,7 @@ export function RecorderMockup() {
           </span>
         </button>
 
-        {/* Play/pause tap feedback (share-icon-pop). Shown only while playing
-            so it never stacks with the persistent play button; keyed so
-            back-to-back toggles restart the animation from frame 0. */}
+        {/* Keyed so back-to-back toggles restart the animation from frame 0. */}
         {overlayIcon && playing ? (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div
@@ -136,8 +115,6 @@ export function RecorderMockup() {
           </div>
         ) : null}
 
-        {/* "Link copied" toast. Hidden during playback so it doesn't cover the
-            clip, and hidden on phones where it crowds the small stage. */}
         <div
           className={`pointer-events-none absolute right-4 top-4 hidden transition-opacity duration-300 sm:right-5 sm:top-5 sm:block ${
             playing ? 'opacity-0' : 'opacity-100'

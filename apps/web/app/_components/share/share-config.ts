@@ -1,9 +1,3 @@
-// The screen MP4 is uploaded once and never re-encoded; bg, camera PiP
-// placement, and per-track mute state are applied at play time on top
-// of the immutable bytes. Config is persisted as a JSON sidecar next to
-// the video in R2 so the public viewer and the dashboard edit page share
-// one source of truth without a D1 migration.
-
 const MP4 = '.mp4';
 
 export function shareConfigKeyFor(storageKey: string): string {
@@ -21,10 +15,6 @@ export type ShareCameraCorner =
 
 export type ShareCameraSize = 'small' | 'medium' | 'large';
 
-// Stored on disk as a tiny JSON blob. Anything unknown narrows to a
-// safe default at hydrate time so a corrupted sidecar can't crash the
-// viewer. `background` follows the snap-editor convention: a gradient
-// preset key, a '#hex' fill, or 'transparent'.
 export type ShareConfig = {
   background: string;
   cameraCorner: ShareCameraCorner;
@@ -54,8 +44,6 @@ export const SHARE_GRADIENT_KEYS = [
 ] as const;
 export type ShareGradientKey = (typeof SHARE_GRADIENT_KEYS)[number];
 
-// Each `(offset, color)` stop is rendered into a
-// `linear-gradient(135deg, …)` by `shareGradientCss`.
 export const SHARE_GRADIENT_PRESETS: Record<
   ShareGradientKey,
   { label: string; stops: { offset: number; color: string }[] }
@@ -150,9 +138,6 @@ export function shareGradientCss(
   return `linear-gradient(135deg, ${parts.join(', ')})`;
 }
 
-// Hydrate sidecar JSON (or null when absent / unparseable) into a
-// validated ShareConfig. Unknown values fall back to defaults so a
-// corrupted blob never crashes the viewer/editor.
 export function hydrateShareConfig(raw: unknown): ShareConfig {
   if (!raw || typeof raw !== 'object') return DEFAULT_SHARE_CONFIG;
   const obj = raw as Record<string, unknown>;

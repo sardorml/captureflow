@@ -3,30 +3,23 @@
 import { ACCOUNT_LIMITS, PRO_SUBSCRIPTION_LIMITS } from './limits';
 import { getActiveProSubscription } from './pro-subscription';
 
-// Per-user effective caps. Reads three sources in priority order:
-//   1. explicit admin override row in `user_quotas` (per-column),
-//   2. active Pro subscription in `pro_subscription` (bumps both caps),
-//   3. ACCOUNT_LIMITS defaults.
-// Lifetime licences are NOT consulted here: they unlock Studio export
-// locally in the desktop app but do not raise the cloud cap. Only an
-// active monthly/annual subscription does.
+/*
+ * Per-user effective caps, resolved in priority order: admin override row,
+ * then active Pro subscription, then ACCOUNT_LIMITS defaults. Lifetime
+ * licences are NOT consulted here — they unlock Studio export locally but
+ * don't raise the cloud cap; only an active subscription does.
+ */
 
 export type EffectiveLimits = {
   storageBytes: number;
   activeArtifacts: number;
-  // Per-share duration cap (ms); the share-init route rejects uploads
-  // that exceed the caller's tier.
   perShareDurationMs: number;
-  // Surfaced so callers (api/me, the desktop's storage modal) can show
-  // the tier without re-querying the subscription table.
   proSubscriptionActive: boolean;
 };
 
 type QuotaRow = {
   storage_bytes_override: number | null;
-  // Column kept verbatim from the original share-only schema; the
-  // semantic now covers both shares and snaps (account-wide
-  // artifact count).
+  // Named for the original share-only schema; now covers shares + snaps.
   active_shares_override: number | null;
 };
 

@@ -5,13 +5,6 @@ import { loadSession } from '@/lib/session-guard';
 import { getAppWebEnv } from '@/lib/cf-env';
 import { acceptInviteAction } from '../../(dashboard)/members/actions';
 
-// Landing page for emailed workspace invitations (/invite/<plaintext-token>).
-// Branches on recipient state:
-//   - Signed out → bounce to /login?next=/invite/<token>.
-//   - Valid invite, email matches → render "Accept" CTA.
-//   - Valid invite, email mismatch → "wrong account" screen with sign-out.
-//   - Invite expired / accepted / not-found → error screen.
-
 export const dynamic = 'force-dynamic';
 
 type Props = { params: Promise<{ token: string }> };
@@ -22,7 +15,6 @@ export default async function InvitePage({ params }: Props) {
   const session = await loadSession();
 
   if (!session) {
-    // Bounce through login; better-auth's `next` redirect brings them back here after auth.
     redirect(`/login?next=${encodeURIComponent(`/invite/${token}`)}`);
   }
 

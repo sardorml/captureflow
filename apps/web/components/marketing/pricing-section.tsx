@@ -6,8 +6,6 @@ import { FreeCard } from './free-card';
 import { ManagedCard } from './managed-card';
 
 type PricingSectionProps = {
-  // Suppress the in-section heading when the host page (e.g. /pricing) already
-  // paints its own, so it doesn't appear twice.
   hideHeading?: boolean;
 };
 

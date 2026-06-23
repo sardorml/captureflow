@@ -3,23 +3,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareEnv } from '@/lib/share/cf-env';
 
-// Local-dev-only inline media proxy for R2 bytes.
-//
-// In production, share/snap posters + videos are read straight from the CDN
-// origin (cdn.captureflow.xyz). But miniflare's local R2 (.wrangler/) has no
-// HTTP origin, so a share recorded against `next dev` can't be played — the
-// <video>/<img> point at a CDN that lacks the local bytes and spin forever.
-//
-// Pointing the local R2 base at this route streams the bytes same-origin from
-// the BUCKET binding, with Range support so the player can seek. The storage
-// key rides in the catch-all PATH (…/api/r/media/videos/<slug>.mp4) rather
-// than a query param, so the editor's `?v=<sizeBytes>` cache-buster stays a
-// clean, separate query. Wire it via:
-//   .env.local  NEXT_PUBLIC_R2_PUBLIC_BASE_URL=http://localhost:3032/api/r/media   (editor reads process.env)
-//   .dev.vars   R2_PUBLIC_BASE_URL=http://localhost:3032/api/r/media               (viewer publicUrlFor reads the binding)
-//
-// Guarded to localhost: in production this route 404s, so it can never stream
-// bytes around the private-share visibility gate that /api/r/download enforces.
+/*
+ * Local-dev-only inline media proxy: miniflare's local R2 (.wrangler/) has no
+ * HTTP origin, so bytes recorded against `next dev` are unreachable from the
+ * CDN. Streams them same-origin from the BUCKET binding instead. Wire it via:
+ *   .env.local  NEXT_PUBLIC_R2_PUBLIC_BASE_URL=http://localhost:3032/api/r/media   (editor reads process.env)
+ *   .dev.vars   R2_PUBLIC_BASE_URL=http://localhost:3032/api/r/media               (viewer publicUrlFor reads the binding)
+ * Guarded to localhost so it can never stream bytes around the private-share
+ * visibility gate that /api/r/download enforces.
+ */
 
 const CONTENT_TYPES: Record<string, string> = {
   mp4: 'video/mp4',
@@ -42,8 +34,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ key: string[] }> }
 ) {
-  // Never serve raw bytes (which bypass visibility checks) from a real
-  // host — this proxy exists only so local miniflare R2 is reachable.
+  // Never serve raw bytes (which bypass visibility checks) from a real host.
   const host = req.nextUrl.hostname;
   if (host !== 'localhost' && host !== '127.0.0.1') {
     return new NextResponse('Not found', { status: 404 });
@@ -58,10 +49,8 @@ export async function GET(
     return new NextResponse('R2 unavailable', { status: 500 });
   }
 
-  // Honor a single `bytes=START-END` Range so <video> seeking works. R2's
-  // `.get` takes { range: { offset, length } }; the returned object's
-  // `.size` is always the FULL object size, with `.body` carrying just the
-  // requested slice.
+  // On a ranged R2 `.get`, `.size` is always the FULL object size while
+  // `.body` carries just the requested slice.
   const rangeHeader = req.headers.get('range');
   let range: { offset: number; length?: number } | undefined;
   let explicitEnd: number | undefined;
@@ -88,7 +77,6 @@ export async function GET(
     contentTypeFor(key, obj.httpMetadata?.contentType)
   );
   headers.set('accept-ranges', 'bytes');
-  // Local proxy — never cache; keeps re-recordings under the same key fresh.
   headers.set('cache-control', 'no-store');
 
   if (range) {

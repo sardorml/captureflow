@@ -2,17 +2,11 @@
 
 import { getAppWebEnv } from './cf-env';
 
-// User-dashboard view of the snaps table. Every query requires a userId
-// so we never expose other people's rows. This module only reads and
-// soft-deletes; new rows come exclusively from the /api/upload route.
-
 export type SnapState = 'ready' | 'deleted';
 export type SnapVisibility = 'public' | 'workspace' | 'private';
 
 export type DashboardSnapRow = {
   id: string;
-  // Owner of the snap; lets the workspace-scoped list mark teammate-owned
-  // snaps with an attribution pill.
   userId: string;
   storageKey: string;
   sizeBytes: number;
@@ -28,9 +22,6 @@ export type DashboardSnapRow = {
   viewCount: number;
 };
 
-// Adds owner name/email via a join so the editor and public viewer can
-// both drive the shared SnapNavbar's posted-by strip without a second
-// round trip.
 export type DashboardSnapWithOwnerRow = DashboardSnapRow & {
   ownerName: string | null;
   ownerEmail: string | null;
@@ -92,8 +83,6 @@ export async function listSnapsForUser(
   return res.results.map(rowFromD1);
 }
 
-// Workspace-scoped listing: private rows stay owner-only across
-// workspace context switches.
 export async function listSnapsForWorkspace(
   workspaceId: string,
   viewerUserId: string
@@ -145,9 +134,6 @@ export async function getSnapForUser(
   };
 }
 
-// Soft-delete: state → 'deleted' so quota math drops it and the
-// public view 404s. The R2 object is dropped opportunistically; if
-// that fails the daily retention cron picks it up.
 export async function softDeleteSnap(
   snapId: string,
   userId: string
@@ -197,10 +183,6 @@ export async function renameSnap(
     .run();
   return (res.meta?.changes ?? 0) > 0;
 }
-
-// Admin variants: uploader OR workspace owner can act, so a workspace
-// owner can delete and flip visibility on a teammate's snap. Renames
-// stay author-only.
 
 export async function getSnapForAdmin(
   snapId: string,
@@ -287,11 +269,8 @@ export async function updateSnapVisibilityForAdmin(
   return (res.meta?.changes ?? 0) > 0;
 }
 
-// Editor save flow. The composed PNG can have different pixel dims than
-// the original upload (bg adds `2 * pad` to each axis), so width/height
-// must update alongside the bytes — otherwise the public viewer keeps
-// the old aspect ratio in its `aspectRatio` container and the saved PNG
-// letterboxes.
+// Composed PNG can have different pixel dims than the original upload, so
+// width/height must update alongside the bytes or the viewer letterboxes.
 export async function updateSnapAfterEdit(
   snapId: string,
   userId: string,

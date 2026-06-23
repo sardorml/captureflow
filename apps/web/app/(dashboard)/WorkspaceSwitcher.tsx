@@ -11,10 +11,6 @@ import {
 } from '@captureflow/ui';
 import { switchWorkspaceAction } from './switch-workspace-action';
 
-// Workspace switcher card with an optional invite affordance. When the
-// caller passes an `inviteSlot` it renders as a bottom section; otherwise
-// the card collapses to just the switcher.
-
 type Props = {
   currentWorkspaceId: string;
   memberships: WorkspaceMembership[];
@@ -96,8 +92,6 @@ export function WorkspaceSwitcher({
         <div className="border-t border-line">{inviteSlot}</div>
       ) : null}
 
-      {/* Hidden form is the real submission target; the buttons above
-          just set workspaceId and call requestSubmit. */}
       <form ref={formRef} action={switchWorkspaceAction} className="hidden">
         <input type="hidden" name="workspaceId" value="" />
       </form>

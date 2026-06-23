@@ -1,10 +1,5 @@
 import { PRODUCT_NAME } from '@/lib/site';
 
-// Builds snap-page headlines. The result is stored in the `snaps.title`
-// column at insert time; dashboard renames overwrite the whole string so
-// the title field stays the single source of truth (renderer never
-// composes anything at draw time).
-
 const SNAP_BRAND_LINE = `${PRODUCT_NAME} | Free Screen & Video Recording for macOS`;
 
 const TITLE_MAX_CHARS = 200;
@@ -17,10 +12,6 @@ function formatDateLabel(epochMs: number): string {
   });
 }
 
-// `sourceTitle` is the variable bit the desktop sends — a display
-// label (`Built-in Retina Display`), a window owner (`Brave`), or
-// an area dimension (`Area · 1280×720`). Absent → drops the leading
-// segment so the headline still reads cleanly.
 export function buildSnapHeadline(
   sourceTitle: string | null,
   createdAt: number

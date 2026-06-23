@@ -1,7 +1,5 @@
 import { SmoothButton } from '@captureflow/ui';
 
-// Anonymous-visitor chip cluster for the snap viewer's top-right.
-
 type Props = {
   marketingUrl: string;
   loginUrl: string;

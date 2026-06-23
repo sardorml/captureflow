@@ -102,11 +102,13 @@ const electronAPI = {
   shareReadyOpenLink: (url: string): void =>
     ipcRenderer.send(IPC_CHANNELS.SHARE_READY_OPEN_LINK, url),
 
-  // Streaming-upload bridges. shareStart reserves a slug via /api/init at
-  // record start. sharePartScreen/sharePartWebcam are fire-and-forget; main
-  // buffers per stream and POSTs each 5+ MiB part. shareFinish flushes tail
-  // bytes + finalizes, returning the edit URL. shareAbort discards in-flight
-  // streamer state on cancel/restart/crash.
+  /*
+   * Streaming-upload bridges. shareStart reserves a slug via /api/init at
+   * record start. sharePartScreen/sharePartWebcam are fire-and-forget; main
+   * buffers per stream and POSTs each 5+ MiB part. shareFinish flushes tail
+   * bytes + finalizes, returning the edit URL. shareAbort discards in-flight
+   * streamer state on cancel/restart/crash.
+   */
   shareStart: (meta: ShareStartMeta): Promise<ShareStartResult> =>
     ipcRenderer.invoke(IPC_CHANNELS.SHARE_START, meta),
   sharePartScreen: (bytes: ArrayBuffer): void =>
@@ -141,9 +143,6 @@ const electronAPI = {
   },
   shareFailureClose: (): void => ipcRenderer.send(IPC_CHANNELS.SHARE_FAILURE_CLOSE),
 
-  // Pro capture gate. Shows a native confirm dialog whose buttons main
-  // picks from account state, routing the choice to sign-in / checkout /
-  // dashboard.
   showCaptureGateDialog: (reason: UpgradeReason): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.CAPTURE_GATE_OPEN, reason),
 
@@ -167,9 +166,6 @@ const electronAPI = {
     | { ok: false; error: string; code?: string }
   > => ipcRenderer.invoke(IPC_CHANNELS.CAPTURE_SCREENSHOT, target),
 
-  // Snap-notification window bridge: main pushes capture + upload state to
-  // the modal window, which sends back action intents (open editor, copy
-  // link, close, delete).
   onSnapCaptured: (
     callback: (payload: {
       localPath: string
@@ -352,9 +348,6 @@ const electronAPI = {
   markReleaseNotesShown: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.RELEASE_NOTES_MARK_SHOWN),
 
-  // Share-link account. The share-mode record button reads this to decide
-  // whether to start recording or open the login modal. Sign-in opens the
-  // browser; the captureflow:// deep link completes auth.
   getShareAuth: (): Promise<ShareAuthState> => ipcRenderer.invoke(IPC_CHANNELS.SHARE_AUTH_GET),
 
   signInShareAuth: (): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.SHARE_AUTH_SIGN_IN),

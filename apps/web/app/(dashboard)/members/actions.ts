@@ -18,9 +18,7 @@ import {
 } from '@/lib/current-workspace';
 import { sendWorkspaceInviteEmail } from '@/lib/email';
 
-// Server actions for the Members page. Each one re-verifies session and
-// workspace ownership: middleware blocks signed-out traffic, but actions
-// can be replayed directly, so the gate can't live only in the UI.
+// Actions can be replayed directly, so each re-verifies session and ownership rather than trusting the UI gate.
 
 type FormState = {
   error: string | null;
@@ -59,8 +57,7 @@ export async function inviteMemberAction(
   const emailRaw = formData.get('email');
   const email = typeof emailRaw === 'string' ? emailRaw.trim() : '';
   if (!email) return { error: 'Enter an email address', ok: null };
-  // Loose shape check is enough: the recipient must sign in with this
-  // exact address to accept, so a typo just no-ops rather than misdelivers.
+  // Loose check suffices: the recipient must sign in with this exact address to accept, so a typo just no-ops.
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: 'That doesn’t look like a valid email', ok: null };
   }
@@ -68,9 +65,7 @@ export async function inviteMemberAction(
     return { error: 'You’re already in your own workspace', ok: null };
   }
 
-  // Invite targets the workspace the switcher currently has selected.
-  // Re-check ownership: the form is owner-only in the UI, but a forged
-  // submission must not bypass that.
+  // Re-check ownership so a forged submission can't bypass the owner-only UI gate.
   const current = await resolveCurrentWorkspace(session.userId, session.name);
   if (current.role !== 'owner') {
     return {
@@ -135,9 +130,7 @@ export async function revokeInviteAction(formData: FormData): Promise<void> {
   revalidatePath('/members');
 }
 
-// Owner-only: drop a member. Only the membership row is removed — their
-// shares and snaps stay in the workspace, but they lose viewing access
-// and the workspace drops out of their switcher.
+// Only the membership row is removed; the member's shares and snaps stay in the workspace.
 export async function removeMemberAction(formData: FormData): Promise<void> {
   const session = await requireSession();
   const env = await getAppWebEnv();
@@ -148,18 +141,13 @@ export async function removeMemberAction(formData: FormData): Promise<void> {
 
   const current = await resolveCurrentWorkspace(session.userId, session.name);
   if (current.role !== 'owner') return;
-  // Owners can't remove themselves via this path; the helper rejects it
-  // anyway, but bail early.
   if (memberUserId === session.userId) return;
 
   await removeWorkspaceMember(env.DB, current.workspace.id, memberUserId);
   revalidatePath('/members');
 }
 
-// Self-leave for non-owners (an owner's personal workspace can't be
-// abandoned; team-workspace deletion is a separate flow). Clears the
-// current-workspace cookie so the next render falls back to the caller's
-// personal workspace.
+// Clears the current-workspace cookie so the next render falls back to the caller's personal workspace.
 export async function leaveWorkspaceAction(): Promise<void> {
   const session = await requireSession();
   const env = await getAppWebEnv();
@@ -181,9 +169,7 @@ export async function leaveWorkspaceAction(): Promise<void> {
   redirect('/shares');
 }
 
-// Called from app/invite/[token]/page.tsx after sign-in. The signed-in
-// email must match the invite recipient before membership is mutated,
-// or a stolen link could join workspaces it wasn't invited to.
+// The signed-in email must match the invite recipient, or a stolen link could join workspaces it wasn't invited to.
 export async function acceptInviteAction(formData: FormData): Promise<void> {
   const session = await requireSession();
   const env = await getAppWebEnv();

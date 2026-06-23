@@ -21,44 +21,23 @@ import type { AddReactionResponse, ShareReaction } from '@/lib/share/types';
 type Props = {
   videoUrl: string;
   posterUrl?: string;
-  // Companion webcam video, rendered as a bottom-right PiP synced to the
-  // main player. Carries mic audio; the main video carries system audio
-  // (independently muteable). Absent when the recording had no camera
-  // (webcam_state='none') or the webcam upload hasn't finalized yet.
   webcamUrl?: string;
   slug: string;
   initialReactions: ShareReaction[];
-  // Authoritative duration from the share record. Positions reaction
-  // clusters before the <video> element knows its duration.
   serverDurationMs: number | null;
-  // Intrinsic dimensions for the player container's aspect-ratio reservation.
   serverWidth: number | null;
   serverHeight: number | null;
   config: ShareConfig;
-  // When false, taps on the reaction bar surface a "Sign in to react"
-  // hint instead of firing the POST — the API would 401 anyway and the
-  // sidebar can't attribute the reaction without a real user.
   viewerSignedIn?: boolean;
-  // Fires after a reaction lands on the server so the activity sidebar can
-  // append it. Receives the persisted row, not the optimistic shell.
   onReactionAdded?: (reaction: ShareReaction) => void;
   onSignInRequested?: () => void;
-  // Forwarded handle so the parent can call seekTo from the activity
-  // sidebar's timestamp chips.
   handleRef?: Ref<SharePlayerHandle | null>;
-  // Focuses the activity sidebar's textarea so the visitor can comment
-  // without scrolling.
   onCommentClick?: () => void;
 };
 
-// Reactions within this fraction of the timeline collapse into one
-// cluster bubble. ~3% feels right at typical share lengths.
+// Reactions within this fraction of the timeline collapse into one cluster.
 const REACTION_CLUSTER_FRACTION = 0.03;
 
-// Wraps the shared SharePlayer to add reactions (markers above the
-// progress bar + the emoji bar below the player). Both layers read the
-// player's live currentTime via the imperative handle, so reactions land
-// at the exact moment of click instead of React's batched render time.
 export function SharePlayer({
   videoUrl,
   posterUrl,
@@ -77,9 +56,6 @@ export function SharePlayer({
 }: Props) {
   const playerRef = useRef<SharePlayerHandle | null>(null);
 
-  // Mirrors the handle to both the local playerRef (sendReaction reads
-  // getCurrentTime) and the parent's handleRef (sidebar calls seekTo on
-  // timestamp-chip clicks).
   const setHandle = useCallback(
     /* eslint-disable react-hooks/immutability */
     (handle: SharePlayerHandle | null) => {
@@ -96,10 +72,7 @@ export function SharePlayer({
   );
 
   const [reactions, setReactions] = useState<ShareReaction[]>(initialReactions);
-  // Brief glow on the tapped emoji button; cleared after the animation.
   const [pulseEmoji, setPulseEmoji] = useState<string | null>(null);
-  // IDs of just-landed reactions; drive the rise-up animation on the
-  // matching cluster bubble, then cleared so the cluster settles.
   const [freshIds, setFreshIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
@@ -108,8 +81,6 @@ export function SharePlayer({
     return () => clearTimeout(t);
   }, [pulseEmoji]);
 
-  // Per-emoji totals for the bar's tooltips. Includes optimistic inserts
-  // so the count doesn't lag the click.
   const reactionCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const r of reactions) {
@@ -119,8 +90,6 @@ export function SharePlayer({
   }, [reactions]);
 
   const sendReaction = (emoji: string): void => {
-    // Anonymous viewers can't react. The API would 401 anyway, but
-    // gating client-side avoids a marker flicker and lets the CTA explain.
     if (!viewerSignedIn) {
       onSignInRequested?.();
       return;
@@ -129,8 +98,6 @@ export function SharePlayer({
     const tMs = Math.max(0, Math.floor(tSec * 1000));
     setPulseEmoji(emoji);
 
-    // Optimistic insert so the cluster shows over the scrubber immediately.
-    // The server-assigned id arrives via the response; on failure we drop it.
     const optimistic: ShareReaction = {
       id: -Date.now(),
       slug,
@@ -149,9 +116,7 @@ export function SharePlayer({
       next.add(optimistic.id);
       return next;
     });
-    // Must match the rise animation duration in globals.css: clearing the
-    // id after the animation transitions the cluster from fresh (animated)
-    // to settled (static) without a flicker.
+    // Must match the rise animation duration in globals.css.
     window.setTimeout(() => {
       setFreshIds((prev) => {
         if (!prev.has(optimistic.id)) return prev;
@@ -183,9 +148,7 @@ export function SharePlayer({
       serverWidth={serverWidth}
       serverHeight={serverHeight}
       config={config}
-      // Cap the landscape player height so the reaction bar below it stays
-      // in view without scrolling. The 19rem reserves nav + title header +
-      // padding + the bar; the 34rem caps height on tall viewports.
+      // 19rem reserves nav + title header + padding + reaction bar; 34rem caps tall viewports.
       landscapeMaxHeightCss="min(34rem, calc(100vh - 19rem))"
       progressOverlay={({ durationSeconds, controlsVisible }) => (
         <ReactionOverlay
@@ -247,14 +210,11 @@ function ReactionOverlay({
 
 type ReactionCluster = {
   fraction: number;
-  emoji: string; // the most frequent emoji in this cluster
-  count: number; // total reactions in the cluster, across all emoji
-  isFresh: boolean; // any reaction here was just added
+  emoji: string;
+  count: number;
+  isFresh: boolean;
 };
 
-// Group reactions whose timestamps fall within REACTION_CLUSTER_FRACTION
-// of each other into one bubble, displaying the cluster's most frequent
-// emoji.
 function clusterReactions(
   reactions: ShareReaction[],
   durationSeconds: number,
@@ -328,8 +288,7 @@ async function postReaction(
   return json.reaction;
 }
 
-// Approximate rendered width of a cluster bubble: the 20px emoji plus
-// its optional count badge and a small gap.
+// Approximate rendered width of a cluster bubble (emoji + count badge + gap).
 const CLUSTER_VISUAL_WIDTH_PX = 32;
 
 function ReactionMarkers({ clusters }: { clusters: ReactionCluster[] }) {
@@ -350,8 +309,6 @@ function ReactionMarkers({ clusters }: { clusters: ReactionCluster[] }) {
     };
   }, []);
 
-  // Drop visually-overlapping clusters, iterating by count desc so the
-  // dominant clusters win their spot.
   const visible = useMemo(() => {
     if (clusters.length === 0) return clusters;
     const minFraction =
@@ -437,8 +394,6 @@ function ReactionBar({
             >
               <span aria-hidden="true">{r.emoji}</span>
             </button>
-            {/* Hover tooltip with label + count (e.g. "Heart 5"); the
-                count badge is hidden until that emoji has reactions. */}
             <div className="pointer-events-none absolute -top-11 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-lg bg-inverse px-2.5 py-1.5 text-sm font-medium text-on-inverse opacity-0 shadow-lg transition-opacity duration-100 group-hover:opacity-100">
               <span>{r.label}</span>
               {count > 0 ? (

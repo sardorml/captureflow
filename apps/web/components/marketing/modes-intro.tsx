@@ -15,20 +15,12 @@ import {
 } from 'lucide-react';
 import { useMessages } from './i18n-provider';
 
-// A static replica of the desktop app's recording toolbar (RecordingToolbar /
-// RecordingModeToggle). Keep the chrome and the mode set (Share = Link2,
-// Snap = Camera) in sync with the app's RecordingModeToggle; the app's toggle is
-// Share + Screenshot only (no Record/Studio mode).
-//
-// An animated cursor loops across the two capture modes, "clicking" each so the
-// active mode swaps. Snap mode hides the device cells (centred hint instead),
-// matching how the real bar reflows.
+// Keep this mode set in sync with the app's RecordingModeToggle (Share + Screenshot only).
 const MODES = [
   { key: 'share', icon: Link2 },
   { key: 'screenshot', icon: Camera },
 ] as const;
 
-// Source segment (Display / Window / Area), static with Display selected.
 const SOURCES = [Monitor, AppWindow, Scan];
 
 function Divider() {
@@ -61,16 +53,12 @@ function DeviceCell({ icon: Glyph }: { icon: typeof Camera }) {
 export function ModesIntro() {
   const m = useMessages();
 
-  // `target` is where the cursor is heading; `active` is the mode the bar has
-  // committed to. They diverge during the brief "cursor arrives → clicks →
-  // mode swaps" window so the click reads as the cause of the swap.
+  // `target` is where the cursor is heading; `active` is the committed mode. They
+  // diverge briefly so the click reads as the cause of the swap.
   const [target, setTarget] = useState(0);
   const [active, setActive] = useState(0);
   const [clicking, setClicking] = useState(false);
 
-  // Measure each mode button's centre (bar-local px) so the cursor + caption sit
-  // over the button, plus the bar's natural size and available width so the mockup
-  // can scale down on narrow screens (the desktop bar is wider than a phone).
   // Read from `offsetLeft`/`offsetWidth` (transform-independent) so the wrapper's
   // fit scale doesn't corrupt the cursor's target coordinates.
   const containerRef = useRef<HTMLDivElement>(null);
@@ -92,8 +80,6 @@ export function ModesIntro() {
       const w = bar.offsetWidth;
       const h = bar.offsetHeight;
       setBarSize({ w, h });
-      // Scale to ~90% of the available width when shrinking, so the bar keeps a
-      // margin from the edges rather than filling them exactly.
       setFit(w > 0 ? Math.min(1, (container.clientWidth * 0.9) / w) : 1);
     };
     measure();
@@ -139,8 +125,6 @@ export function ModesIntro() {
     };
   }, []);
 
-  // In Snap mode the device cells stay `invisible` (reserving width) with a
-  // centred hint overlaid, matching the real bar.
   const showDevices = MODES[active].key !== 'screenshot';
   const cursorX = centers[target] ?? 0;
   const captionX = centers[active] ?? 0;
@@ -160,16 +144,13 @@ export function ModesIntro() {
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-base font-normal leading-[1.4] tracking-[-0.01em] text-[#090c14]">
             {m.modes.subtitleLine1}{' '}
-            {/* Forced break only on desktop; on phones it wraps naturally
-                (the forced break orphans words otherwise). */}
+            {/* Forced break desktop-only; on phones it would orphan words. */}
             <br className="hidden sm:inline" />
             {m.modes.subtitleLine2}
           </p>
         </div>
 
         <div ref={containerRef} className="mt-20 flex justify-center sm:mt-24">
-          {/* Reserves the scaled footprint so the bar never overflows narrow
-              screens; the inner block is the natural-size bar scaled to fit. */}
           <div
             className="relative"
             style={{
@@ -177,16 +158,13 @@ export function ModesIntro() {
               height: barSize.h ? barSize.h * fit : undefined,
             }}
           >
-            {/* Absolute + content-sized so the bar lays out at its natural
-                (desktop) width, unconstrained by the narrower fit wrapper, then
-                scales down as one block. `dir=ltr` keeps the left-to-right
-                cluster order even under RTL locales. */}
+            {/* Content-sized so the bar lays out at natural width, then scales
+                down as one block. `dir=ltr` keeps cluster order under RTL locales. */}
             <div
               className="absolute left-0 top-0 origin-top-left"
               dir="ltr"
               style={{ transform: `scale(${fit})` }}
             >
-              {/* Caption swaps with the active mode, aligned over its button. */}
               <div
                 className="pointer-events-none absolute bottom-full left-0 mb-3 whitespace-nowrap"
                 style={{
@@ -207,12 +185,10 @@ export function ModesIntro() {
                 </AnimatePresence>
               </div>
 
-              {/* The toolbar */}
               <div
                 ref={barRef}
                 className="relative flex h-[50px] items-center gap-1.5 rounded-2xl bg-neutral-700 p-2 shadow-[0_8px_24px_rgba(0,0,0,0.35)] ring-1 ring-white/10"
               >
-                {/* Close */}
                 <div className="ml-0.5 flex items-center self-center rounded-md">
                   <div className="flex items-center justify-center p-1">
                     <X
@@ -222,7 +198,6 @@ export function ModesIntro() {
                   </div>
                 </div>
 
-                {/* Capture mode segment */}
                 <div className="flex items-center gap-1 rounded-[10px] bg-black/20 p-1">
                   {MODES.map((mode, i) => {
                     const Glyph = mode.icon;
@@ -250,7 +225,6 @@ export function ModesIntro() {
 
                 <Divider />
 
-                {/* Source segment */}
                 <div className="flex items-center gap-1 rounded-[10px] bg-black/20 p-1">
                   {SOURCES.map((Glyph, i) => (
                     <div
@@ -266,7 +240,6 @@ export function ModesIntro() {
 
                 <Divider />
 
-                {/* Device cells */}
                 <div className="relative flex items-center">
                   <div
                     className={`flex items-center gap-1 ${
@@ -288,14 +261,11 @@ export function ModesIntro() {
 
                 <Divider />
 
-                {/* Drag grip */}
                 <div className="flex items-center pr-2.5">
                   <GripDots />
                 </div>
               </div>
 
-              {/* Cursor springs to the targeted button's centre and
-                click-bounces on press. */}
               {measured && (
                 <motion.div
                   aria-hidden
@@ -308,8 +278,6 @@ export function ModesIntro() {
                     mass: 0.7,
                   }}
                 >
-                  {/* Press-bounce: dip to 0.7 and back over 300ms, matching the
-                    curve the editor renders for real cursor clicks. */}
                   <motion.svg
                     width={150}
                     height={150}

@@ -7,19 +7,11 @@ export type AnimatedTabItem = {
   id: string
   label: string
   icon?: ReactNode
-  // Rendered after the label — used for a small lock glyph on Pro-gated
-  // tabs that the current entitlement can't select.
   trailing?: ReactNode
   tooltip?: string
-  // Non-interactive: the button paints dimmed, ignores clicks, and drops
-  // out of the tab order. Pair with `trailing` + `tooltip` to explain why.
   disabled?: boolean
-  // Pro-gated: paints dimmed like `disabled` but stays CLICKABLE — clicking
-  // fires `onLockedSelect` (e.g. an upgrade prompt) instead of selecting the
-  // tab. Pair with `trailing` (lock glyph) + `tooltip`.
+  // Dimmed like `disabled` but stays CLICKABLE — fires `onLockedSelect` instead of selecting the tab.
   locked?: boolean
-  // Stable test hook — emitted as `data-testid` so suites can target a tab
-  // without coupling to label text or the generated layout id.
   testId?: string
 }
 
@@ -28,20 +20,14 @@ export type AnimatedTabsProps = {
   activeTab?: string
   defaultTab?: string
   onChange?: (tabId: string) => void
-  // Fired when a `locked` tab is clicked — the tab is NOT selected; the
-  // caller surfaces an upgrade affordance instead.
+  // Fired when a `locked` tab is clicked — the tab is NOT selected.
   onLockedSelect?: (tabId: string) => void
   variant?: 'underline' | 'pill' | 'segment'
   iconOnly?: boolean
   layoutId?: string
   className?: string
-  // Extra classes for the sliding active indicator. `cn` uses tailwind-merge,
-  // so e.g. `bg-white` overrides the variant's default bg without dropping
-  // other indicator utilities.
+  // `cn` uses tailwind-merge, so e.g. `bg-white` overrides the variant default.
   indicatorClassName?: string
-  // Extra classes appended to the active tab button — pair with
-  // `indicatorClassName` to flip the active text color when the override
-  // changes the indicator from a dark wash to a light fill.
   activeTabClassName?: string
 }
 
@@ -98,12 +84,8 @@ export function AnimatedTabs({
     cn(
       'relative z-10 flex items-center justify-center gap-2 font-normal text-[13px] transition-colors',
       isDisabled && 'cursor-not-allowed opacity-40',
-      // Locked tabs are clickable (they open an upgrade prompt) but read as
-      // gated — dimmed like disabled, with a normal pointer cursor.
       isLocked && 'opacity-40',
-      // Segment uses tighter vertical padding: it sits in the recording
-      // toolbar's mode-toggle slot, where a full `py-2` made the pill
-      // heavier than the bar's other controls.
+      // Segment uses tighter vertical padding to fit the recording toolbar slot.
       iconOnly ? 'px-2 py-1.5' : variant === 'segment' ? 'px-3 py-1' : 'px-4 py-2',
       'focus-visible:outline-none',
       variant === 'underline' && [
@@ -126,8 +108,6 @@ export function AnimatedTabs({
       'absolute',
       variant === 'underline' && 'right-0 -bottom-px left-0 h-0.5 bg-[#0a84ff]',
       variant === 'pill' && 'inset-0 rounded-full bg-background shadow-sm',
-      // Solid white pill matching the recording toolbar's mode toggle; the
-      // active label/icon flips to near-black via the active text color above.
       variant === 'segment' && 'inset-0 rounded-lg bg-white shadow-[0_1px_2px_rgba(0,0,0,0.3)]',
       indicatorClassName
     )
@@ -185,9 +165,8 @@ export function AnimatedTabs({
         )
 
         if (!tooltipContent) return button
-        // Segment tabs use `flex-1` to share width equally, so the tooltip
-        // wrapper must take the same flex slot — otherwise the button
-        // collapses to its content size and tabs distribute unevenly.
+        // Segment tabs use `flex-1`, so the tooltip wrapper must take the same
+        // flex slot or the tabs distribute unevenly.
         const triggerClassName = variant === 'segment' ? 'flex flex-1' : undefined
         return (
           <AnimatedTooltip

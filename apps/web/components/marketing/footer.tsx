@@ -8,9 +8,7 @@ import { useLocalizedHref } from './i18n-provider';
 
 const RELEASES_URL = 'https://github.com/sardorml/captureflow/releases';
 
-// Footer wordmark — each letter is nudged up or down so they trace a static
-// arch (highest in the middle, dipping at the edges). Offsets in em, negative
-// = up.
+// Per-letter vertical offsets (em, negative = up) tracing a static arch.
 const WORDMARK_LETTERS = [
   { ch: 'C', offset: 0.16 },
   { ch: 'a', offset: 0.1 },
@@ -30,14 +28,8 @@ export function Footer() {
 
   return (
     <footer className="relative z-10 mt-auto overflow-hidden bg-white pb-40 pt-4">
-      {/* Brand-rise effect — a blue gradient plus a tone-on-tone "CaptureFlow"
-          wordmark anchored to the bottom edge. The layer slides + fades up
-          whenever the footer scrolls into view, so the colour floods in from
-          below. Deliberately NOT `viewport.once`: with `once` the effect latches
-          after the first reveal and never re-fires, so scrolling away and back
-          (or a route remount that restores scroll near the bottom) leaves it
-          stuck at the hidden `initial` state. Re-evaluating on every entry keeps
-          it reliable. */}
+      {/* Deliberately NOT viewport.once: `once` latches at the hidden initial
+          state on scroll-away/remount; re-evaluating on every entry keeps it reliable. */}
       <motion.div
         aria-hidden
         initial={{ y: 90, opacity: 0 }}
@@ -46,12 +38,8 @@ export function Footer() {
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
         className="pointer-events-none absolute inset-0 z-0 hidden sm:block"
       >
-        {/* Bottom wash: a solid blue band plus a central dome, so the colour's
-            top edge rises and falls with the arched wordmark below — high over
-            the tall centre letters, low at the short edge letters. */}
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(37,99,235,0.88)_0%,rgba(37,99,235,0.5)_18%,transparent_46%),radial-gradient(95%_145%_at_50%_122%,rgba(37,99,235,0.62)_0%,transparent_74%)]" />
-        {/* dir="ltr" pins the wordmark so the per-letter spans never reverse —
-            it's a decorative brand mark, always read left-to-right. */}
+        {/* dir="ltr" pins this decorative wordmark so per-letter spans never reverse under RTL. */}
         <div
           dir="ltr"
           className="absolute inset-x-0 bottom-0 flex justify-center overflow-hidden"
@@ -209,10 +197,7 @@ export function Footer() {
           </div>
 
           <div className="col-span-2 sm:col-span-1">
-            {/* suppressHydrationWarning: the year from `new Date()` can differ
-                between server render and client hydration at a year boundary.
-                Without it React flags a mismatch (which also disables Fast
-                Refresh). */}
+            {/* suppressHydrationWarning: the year can differ server/client at a year boundary. */}
             <p
               suppressHydrationWarning
               className="text-sm text-neutral-500 sm:text-right"

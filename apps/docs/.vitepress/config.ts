@@ -2,7 +2,6 @@ import { defineConfig } from 'vitepress'
 
 const GITHUB = 'https://github.com/sardorml/captureflow'
 
-// https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: 'CaptureFlow',
   description:
@@ -27,7 +26,6 @@ export default defineConfig({
     ],
   ],
   themeConfig: {
-    // https://vitepress.dev/reference/default-theme-config
     logo: '/logo.png',
     siteTitle: 'CaptureFlow',
 

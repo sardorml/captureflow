@@ -43,9 +43,8 @@ export function registerShareStreamHandlers(): void {
   ipcMain.on(IPC_CHANNELS.SHARE_ABORT, () => {
     abortShareUpload()
   })
-  // Poster upload — fire-and-forget. The worker accepts posters while
-  // the share is still `pending`, so this races finalize harmlessly.
-  // Failure here is non-fatal: the link still works without an OG image.
+  // The worker accepts posters while the share is `pending`, so this races finalize
+  // harmlessly; failure is non-fatal (link works without the OG image).
   ipcMain.on(IPC_CHANNELS.SHARE_UPLOAD_POSTER, async (_event, bytes: ArrayBuffer) => {
     const slug = getActiveShareSlug()
     const deviceId = getActiveDeviceId()

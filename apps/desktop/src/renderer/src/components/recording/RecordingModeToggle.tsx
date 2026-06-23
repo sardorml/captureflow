@@ -36,7 +36,6 @@ export function RecordingModeToggle(): React.JSX.Element {
 
   const handleChange = (m: (typeof MODES)[number]): void => {
     setMode(m.id)
-    // Screenshot mode hides the device cells; the bar reflows to match.
     window.electronAPI.toolbarResizeForMode(m.id)
   }
 

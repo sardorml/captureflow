@@ -43,14 +43,12 @@ export function registerSystemHandlers(): void {
       const status = systemPreferences.getMediaAccessStatus(kind)
       if (status === 'granted') return true
 
-      // First-run: fire the native macOS TCC consent dialog. askForMediaAccess
-      // only ever prompts once per app, so call it only while 'not-determined'.
+      // askForMediaAccess only ever prompts once per app, so call it only while 'not-determined'.
       if (status === 'not-determined') {
         return systemPreferences.askForMediaAccess(kind)
       }
 
-      // Previously denied — TCC won't show its prompt again, so deep-link
-      // to System Settings is the only path to flip the toggle.
+      // Previously denied — TCC won't reprompt, so deep-link to System Settings instead.
       const allow = await openPermissionDialogWindow(win, { kind, variant: 'denied' })
       if (allow) {
         await shell.openExternal(PRIVACY_PANE[kind])
@@ -85,13 +83,9 @@ export function registerSystemHandlers(): void {
     })
   })
 
-  // Bug reports route through the main process because the renderer's CSP
-  // (`default-src 'self'`) blocks outbound HTTP. We post to the same FormSubmit
-  // endpoint the landing site uses, with build/runtime metadata appended.
-  //
-  // FormSubmit's `/ajax/` path soft-rejects requests with no `Origin` header
-  // (returns 200 + `{success:"false"}` rather than HTTP 4xx), so we mirror the
-  // landing site's origin and parse `success` from the body — checking only
+  // Routed through main because the renderer's CSP (`default-src 'self'`) blocks outbound HTTP.
+  // FormSubmit's `/ajax/` path soft-rejects a missing `Origin` (returns 200 + `{success:"false"}`,
+  // not 4xx), so mirror the landing origin and parse `success` from the body — checking only
   // `res.ok` produced false-positive "Report sent" toasts with no email sent.
   ipcMain.handle(
     IPC_CHANNELS.SEND_BUG_REPORT,

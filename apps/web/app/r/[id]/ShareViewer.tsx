@@ -28,22 +28,16 @@ type Props = {
     email: string;
     image: string | null;
   } | null;
-  // URL the "Sign in" CTA bounces visitors through. Carries the share
-  // page URL as `returnUrl` so we land them back here after login.
   loginUrl: string;
   headlineText: string;
   ownerName: string | null;
   createdAt: number;
   viewCount: number;
-  // Gates the edit affordances on the Summary + Chapters block.
   isOwner: boolean;
   initialSummary: string;
   initialChapters: ShareChapter[];
 };
 
-// Orchestrates the share page client state, threading reaction events
-// between the player and the activity sidebar. Lives above both so they
-// share one source of truth without re-fetching.
 export function ShareViewer({
   slug,
   videoUrl,
@@ -66,11 +60,7 @@ export function ShareViewer({
   initialChapters,
 }: Props) {
   const [liveReactions, setLiveReactions] = useState<ShareReaction[]>([]);
-  // Shared with the activity sidebar: it calls seekTo() on chip clicks and
-  // getCurrentTime() when posting a comment so the comment anchors to the
-  // right moment.
   const playerRef = useRef<SharePlayerHandle | null>(null);
-  // Registered by ActivitySidebar, focused by the "Comment" button.
   const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const focusComment = useCallback(() => {
@@ -112,9 +102,6 @@ export function ShareViewer({
               </h1>
               <ContentByline ownerName={ownerName} createdAt={createdAt} />
             </div>
-            {/* Views pill anchored to the viewport edge, not the title's
-                max-width, so the sticky header reads as a single nav-style
-                band rather than a constrained card. */}
             <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-overlay px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line lg:right-12">
               {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
             </span>

@@ -2,13 +2,8 @@
 
 import { getCloudflareEnv } from './cf-env';
 
-// Bearer-token validator. Rows in `device_tokens` are issued during the
-// deep-link auth handoff; the share API reads them to attach a userId to
-// /api/init uploads (same D1 binding, so a direct read, no cross-worker fetch).
-//
 // Hashing must match the desktop app's token issuer: SHA-256 of the raw token
-// bytes, hex-encoded. The raw token never leaves the desktop app once issued.
-
+// bytes, hex-encoded.
 async function hashToken(raw: string): Promise<string> {
   const data = new TextEncoder().encode(raw);
   const buf = await crypto.subtle.digest('SHA-256', data);
@@ -32,8 +27,7 @@ export async function resolveDeviceTokenToUser(
     .bind(tokenHash)
     .first<{ id: string; user_id: string; revoked_at: number | null }>();
   if (!row || row.revoked_at !== null) return null;
-  // Fire-and-forget bump: the dashboard's "last used" column is best-effort,
-  // so a failed write must not fail auth.
+  // Fire-and-forget bump: a failed best-effort write must not fail auth.
   env.DB.prepare(`UPDATE device_tokens SET last_used_at = ?2 WHERE id = ?1`)
     .bind(row.id, Date.now())
     .run()

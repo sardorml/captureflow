@@ -1,22 +1,9 @@
-/**
- * HTTP plumbing for captureflow.xyz. Every call carries the device-id
- * header and (when present) the share-auth bearer. Lives in main so the
- * renderer's CSP stays narrow and the device-id never leaves the main
- * process.
- *
- * Stateless — callers provide deviceId per request. Higher-level state
- * (slug, uploadId, etag accumulators, connectivity) lives in
- * share-upload-streamer.ts.
- */
-
 import { getShareAuthToken } from './share-auth'
 
 // Override via CAPTUREFLOW_SHARE_API_BASE for one-off staging tests.
 export const SHARE_API_BASE = process.env.CAPTUREFLOW_SHARE_API_BASE ?? 'https://captureflow.xyz/api/r'
 
-// R2 multipart minimum part size (except the last). 5 MiB is the lower
-// bound; the streamer buffers up to this threshold before POSTing a part.
-// The worker's hard cap per part is 100 MiB.
+// R2 multipart minimum part size (except the last); worker caps a part at 100 MiB.
 export const CHUNK_BYTES = 5 * 1024 * 1024
 
 export class ShareApiHttpError extends Error {
@@ -71,8 +58,7 @@ export async function postJson<T>(path: string, deviceId: string, body: unknown)
   return parseResponse<T>(res, path)
 }
 
-// Node's fetch body type rejects a Uint8Array view directly; copy into a
-// fresh ArrayBuffer, which satisfies both Node and DOM lib typings.
+// Node's fetch body type rejects a Uint8Array view directly; copy into a fresh ArrayBuffer.
 function toBody(bytes: Uint8Array): ArrayBuffer {
   const buf = new ArrayBuffer(bytes.byteLength)
   new Uint8Array(buf).set(bytes)
@@ -92,9 +78,7 @@ export async function postBytes<T>(path: string, deviceId: string, bytes: Uint8A
   return parseResponse<T>(res, path)
 }
 
-// Same bearer + device pair as multipart parts, but the worker's route
-// gate (ALLOWED_TYPES) requires image/jpeg (or png/webp) — octet-stream
-// from postBytes would be rejected.
+// Worker's route gate (ALLOWED_TYPES) requires image/jpeg here; octet-stream would be rejected.
 export async function postPoster<T>(path: string, deviceId: string, bytes: Uint8Array): Promise<T> {
   const res = await fetch(`${SHARE_API_BASE}${path}`, {
     method: 'POST',

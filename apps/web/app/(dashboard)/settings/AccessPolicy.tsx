@@ -4,11 +4,6 @@ import { Globe, Lock } from 'lucide-react';
 import { setPublicLinksPolicyAction } from './actions';
 import { PolicyCardButton } from './PolicyCardButton';
 
-// Two-card radio for the public-links policy. Picking a card immediately
-// submits a hidden form — no "Save" button. Pending state lives inside
-// PolicyCardButton via useFormStatus so the clicked card shows a spinner
-// while the server action runs.
-
 export function AccessPolicy({
   allowPublicLinks,
 }: {

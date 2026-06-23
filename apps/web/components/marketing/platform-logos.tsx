@@ -1,7 +1,5 @@
-// Brand logos for the hero CTA button — inline monochrome SVGs (currentColor)
-// so colour and opacity follow the button's text classes. We don't use the
-// Material Symbols <Icon> here: it's a ligature subset with no brand glyphs, so
-// Apple/Chrome would leak as literal text.
+// Inline SVGs, not the Material Symbols <Icon>: its ligature subset has no brand
+// glyphs, so Apple/Chrome would leak as literal text.
 
 type LogoProps = { className?: string };
 

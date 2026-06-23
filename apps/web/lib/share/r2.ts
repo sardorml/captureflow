@@ -2,14 +2,6 @@
 
 import { getCloudflareEnv } from './cf-env';
 
-// R2 access via the native Workers binding (`BUCKET` in wrangler.toml).
-// Multipart upload state lives in the bucket itself; we persist only the
-// `uploadId` + `storageKey` in our own DB row.
-//
-// Outside a Cloudflare runtime (unit tests, dev shells without OpenNext),
-// `getCloudflareEnv()` returns null and these helpers throw. Exercise
-// routes under `next dev` (with OpenNext) or `pnpm cf:preview`.
-
 async function getBucket(): Promise<R2Bucket> {
   const env = await getCloudflareEnv();
   if (!env?.BUCKET) {
@@ -34,10 +26,7 @@ export type R2UploadedPart = {
 export async function createMultipartUpload(
   storageKey: string,
   contentType: string,
-  // Sets the R2 object's cache-control header up front. Without it the CDN
-  // edge caches with R2's long default TTL, so a regenerated poster takes a
-  // long time to propagate. Pass a short TTL ('public, max-age=60') for
-  // objects we expect to rotate.
+  // Pass a short TTL for objects we expect to rotate; without it the CDN caches at R2's long default.
   cacheControl?: string
 ): Promise<R2MultipartHandle> {
   const bucket = await getBucket();
@@ -89,9 +78,6 @@ export async function putObject(
   storageKey: string,
   body: ArrayBuffer,
   contentType: string,
-  // Forwarded as the R2 object's cache-control header (the public CDN
-  // response header). /api/poster passes a short TTL on regen so
-  // social-embed previews pick up the new image within ~60s.
   cacheControl?: string
 ): Promise<void> {
   const bucket = await getBucket();
@@ -108,9 +94,6 @@ export async function headObject(storageKey: string): Promise<boolean> {
   return head !== null;
 }
 
-// JSON write helper paired with `getObjectJson`. Used by sidecar surfaces
-// (share-config, summary+chapters) to persist mutations alongside the
-// immutable video bytes.
 export async function putObjectJson<T>(
   storageKey: string,
   value: T
@@ -119,15 +102,11 @@ export async function putObjectJson<T>(
   await bucket.put(storageKey, JSON.stringify(value), {
     httpMetadata: {
       contentType: 'application/json; charset=utf-8',
-      // Sidecars mutate freely (renames, summary edits), so keep them out
-      // of the CDN cache.
       cacheControl: 'no-store',
     },
   });
 }
 
-// JSON read helper for the share-config sidecar. Returns null on missing
-// or unparseable objects so callers can fall back to defaults.
 export async function getObjectJson<T>(storageKey: string): Promise<T | null> {
   const bucket = await getBucket();
   const obj = await bucket.get(storageKey);

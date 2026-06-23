@@ -22,17 +22,11 @@ export type ShareEditorProps = {
   initialVisibility: ShareVisibility;
   initialConfig: ShareConfig;
   initialState: ShareState;
-  // Workspace context for the visibility dialog.
   workspaceName: string | null;
   allowPublicLinks: boolean;
-  // Server-resolved theme (from the cookie) so the editor's theme toggle
-  // renders the right glyph on first paint and can flip the app theme from
-  // within the editor.
   initialTheme: Theme;
 };
 
-// Share APIs are served by this same app, so the editor polls them
-// same-origin with a relative base.
 const SHARE_API = '/r';
 
 const ShareEditorImpl = dynamic(
@@ -43,10 +37,8 @@ const ShareEditorImpl = dynamic(
   }
 );
 
-// Desktop can open the edit URL the instant /api/init returns a slug, well
-// before /api/finalize lands. While the share is still uploading, show a
-// "Preparing share" affordance and poll /api/state; once it flips to 'ready',
-// router.refresh() re-runs the server component and renders the real editor.
+// Desktop can open the edit URL before /api/finalize lands; poll until the
+// share state flips, then router.refresh() renders the real editor.
 export function ShareEditor(props: ShareEditorProps) {
   const router = useRouter();
   const [state, setState] = useState<ShareState>(props.initialState);
@@ -68,7 +60,7 @@ export function ShareEditor(props: ShareEditorProps) {
           router.refresh();
         }
       } catch {
-        /* transient — retry on the next tick */
+        // retry on the next tick
       }
     };
     void tick();

@@ -1,16 +1,11 @@
 /// <reference types="@cloudflare/workers-types" />
 
-// Aggregate bytes and counts across `shares` ∪ `snaps` for a user,
-// scoped by workspace ownership: every artifact in a workspace the user
-// owns counts toward their cap, regardless of who uploaded it. So a Pro
-// owner who invites teammates pays for team uploads into their workspace;
-// the uploader's own tier only governs their personal workspace.
-//
-// `state = 'ready'` excludes abandoned multipart uploads (the hourly GC
-// reaps stale `pending` rows), so this only sees committed bytes.
-//
-// Both helpers run two scalar subqueries in one statement to keep the
-// call to a single D1 round trip.
+/*
+ * Quota is scoped by workspace ownership: every artifact in a workspace the
+ * user owns counts toward their cap regardless of uploader, so a Pro owner
+ * pays for teammates' uploads into their workspace. `state = 'ready'` excludes
+ * abandoned multipart uploads still being reaped by the hourly GC.
+ */
 
 export async function totalStorageForUser(
   db: D1Database,

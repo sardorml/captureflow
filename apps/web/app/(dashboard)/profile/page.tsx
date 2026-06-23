@@ -10,9 +10,7 @@ export default async function ProfileSettingsPage() {
   const user = session.user;
   const env = await getAppWebEnv();
 
-  // Read the image column directly: the better-auth session payload
-  // doesn't always carry it, and this shows the latest URL right after an
-  // upload-and-revalidate without waiting on the cookie refresh.
+  // Read the image column directly: the better-auth session payload doesn't always carry it.
   let imageUrl: string | null = null;
   if (env?.DB) {
     const row = await env.DB.prepare(

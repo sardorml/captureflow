@@ -36,9 +36,8 @@ import {
 } from '@/lib/share-config';
 import { revokeDeviceToken } from '@/lib/device-tokens';
 
-// Every action re-checks the session. Middleware redirects
-// unauthenticated page requests, but a direct action invocation
-// (forged cookie, replayed RSC payload) bypasses it and lands here.
+// Middleware only guards page requests; a forged/replayed direct action
+// invocation bypasses it, so every action re-checks the session here.
 async function requireUserId(): Promise<string> {
   const auth = await getAuth();
   const session = await auth.api.getSession({ headers: await headers() });
@@ -100,16 +99,13 @@ export async function deleteShareAction(slug: string): Promise<{
   const userId = await requireUserId();
   const cleanSlug = typeof slug === 'string' ? slug.trim() : '';
   if (!cleanSlug) return { error: 'Missing slug' };
-  // getShareForAdmin authorises uploader OR workspace owner — so a
-  // workspace owner managing storage on a teammate's row resolves
-  // here and the subsequent delete is permitted by the same gate.
+  // getShareForAdmin authorises uploader OR workspace owner.
   const row = await getShareForAdmin(userId, cleanSlug);
   if (!row) {
     return { error: 'Share not found' };
   }
-  // R2 objects first, then reactions, then the row. On R2 failure
-  // this leaves at worst a row pointing at a missing object, which
-  // the user can clean up by clicking delete again.
+  // R2 objects first, then reactions, then the row, so a failure strands
+  // at worst a row pointing at a missing object (delete again to clean up).
   try {
     await deleteObject(row.storageKey);
     if (row.posterKey) {
@@ -128,11 +124,8 @@ export async function deleteShareAction(slug: string): Promise<{
   return { error: null };
 }
 
-// Persist the share's presentation config to its R2 sidecar. The
-// public viewer and dashboard edit page read the same file, so one
-// PUT updates every surface on next fetch. Kept as a sidecar rather
-// than a D1 column to avoid a migration — this is presentation-layer
-// state (bg, cam PiP, mute toggles) living beside the video bytes.
+// Public viewer and dashboard edit page read the same R2 sidecar, so one
+// PUT updates every surface on next fetch.
 export async function saveShareConfigAction(
   slug: string,
   raw: unknown
@@ -178,27 +171,18 @@ export async function revokeDeviceTokenAction(tokenId: string): Promise<{
   return { error: null };
 }
 
-// Soft-deletes the snap row (state → 'deleted') and drops the R2
-// object so the public view 404s and the bytes stop counting against
-// quota. Soft-delete-first means we never strand bytes on R2 without
-// a row pointing at them.
 export async function deleteSnapAction(snapId: string): Promise<{
   error: string | null;
 }> {
   const userId = await requireUserId();
   const cleanId = typeof snapId === 'string' ? snapId.trim() : '';
   if (!cleanId) return { error: 'Missing snap id' };
-  // Admin gate — uploader OR workspace owner can wipe the snap so
-  // the owner can free up cap on teammate uploads.
   const snap = await getSnapForAdmin(cleanId, userId);
   if (!snap) return { error: 'Snap not found' };
   const ok = await softDeleteSnapForAdmin(cleanId, userId);
   if (!ok) return { error: 'Snap not found' };
-  // Best-effort cleanup of every R2 object associated with this snap —
-  // the baked PNG, the pristine source sidecar (only present once the
-  // user has saved at least one edit), and the state JSON. Failures
-  // are non-fatal: the row is already soft-deleted and the retention
-  // cron will pick up any stranded bytes.
+  // Best-effort R2 cleanup; row is already soft-deleted and the retention
+  // cron sweeps any stranded bytes.
   await Promise.allSettled([
     deleteObject(snap.storageKey),
     deleteObject(sourceKeyFor(snap.storageKey)),
@@ -238,34 +222,19 @@ export async function renameSnapAction(
   const trimmed = typeof title === 'string' ? title.trim().slice(0, 200) : '';
   const ok = await renameSnap(cleanId, userId, trimmed || null);
   if (!ok) return { error: 'Snap not found' };
-  // Dashboard list, editor header, and public viewer all read
-  // `snaps.title` — revalidate every surface so the rename shows
-  // immediately.
   revalidatePath('/snaps');
   revalidatePath(`/snaps/${cleanId}/edit`);
   return { error: null };
 }
 
-// Editor save: replaces the PNG bytes in R2 and bumps edited_at +
-// size_bytes. Bytes come in as a Uint8Array from the client (canvas
-// → toBlob → arrayBuffer → server action). Cap at the per-snap size
-// limit so the editor can't blow past the upload cap by adding a
-// pile of high-res annotations.
+// Caps an edited snap so high-res annotations can't blow past the upload cap.
 const MAX_SNAP_BYTES = 8 * 1024 * 1024;
 
-// Saved editor state — kept tiny on purpose: just enough so the
-// editor can rehydrate a session without forking a database schema.
-// `background` is the picker key; `annotations` is the JSON-able
-// annotation array (rect / arrow / text). The client serialises this
-// before posting so we don't pull a Konva dependency into the action.
 export type SnapEditState = {
   background: string;
   annotations: unknown[];
-  // Pixel dimensions of the composed PNG. The editor may grow the
-  // canvas beyond the original upload (background padding adds
-  // `2 * pad` on each axis), so the server has to refresh D1's
-  // width/height columns to keep the public viewer's aspect ratio
-  // in sync with the bytes that actually live in R2.
+  // Composed PNG dimensions; the editor may grow the canvas past the
+  // original upload (background padding), so D1's width/height must refresh.
   width: number;
   height: number;
 };
@@ -278,11 +247,8 @@ export async function saveSnapAction(
   try {
     return await saveSnapActionInner(snapId, blob, state);
   } catch (err) {
-    // Server actions that throw bubble up as a 500 + Next's
-    // "Server Components render" error banner with the message
-    // stripped in production. Funnel every throw through this
-    // catch so the client gets a readable string AND we leave a
-    // breadcrumb in `wrangler tail` for diagnosis.
+    // Next strips thrown server-action messages in prod; funnel through here
+    // so the client gets a readable string and we log a breadcrumb.
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[saveSnapAction] uncaught:', msg, err);
     return { error: `Save failed: ${msg}` };
@@ -297,9 +263,8 @@ async function saveSnapActionInner(
   const userId = await requireUserId();
   const cleanId = typeof snapId === 'string' ? snapId.trim() : '';
   if (!cleanId) return { error: 'Missing snap id' };
-  // The client wraps the PNG in a Blob so React's server-action
-  // serializer takes the binary path. Past ~1 MB a raw Uint8Array
-  // trips React's "Maximum array nesting exceeded" guard.
+  // PNG arrives as a Blob: a raw Uint8Array trips React's array-nesting guard
+  // past ~1 MB, so the serializer must take the binary path.
   if (!blob || typeof (blob as Blob).arrayBuffer !== 'function') {
     console.error('[saveSnapAction] bad blob', {
       hasBlob: !!blob,
@@ -322,11 +287,8 @@ async function saveSnapActionInner(
   const buffer = (await (blob as Blob).arrayBuffer()) as ArrayBuffer;
   const byteLength = buffer.byteLength;
 
-  // Snapshot the unedited screenshot to the source sidecar on the
-  // first save. The current primary key still holds the original
-  // pixels (we haven't overwritten yet), so we copy those bytes
-  // verbatim. Subsequent saves skip this — the source stays
-  // pristine forever and the editor reloads from it every time.
+  // On the first save the primary key still holds the original pixels, so
+  // snapshot them to the pristine source sidecar before we overwrite.
   const sourceKey = sourceKeyFor(snap.storageKey);
   const stateKey = stateKeyFor(snap.storageKey);
   try {
@@ -338,9 +300,7 @@ async function saveSnapActionInner(
       }
     }
   } catch {
-    // Snapshotting the source is best-effort — if it fails we don't
-    // block the user from saving their edit. Worst case the next
-    // edit starts from the baked PNG (existing behaviour).
+    // Best-effort: a failed source snapshot must not block the save.
   }
 
   try {
@@ -353,9 +313,6 @@ async function saveSnapActionInner(
     };
   }
 
-  // Persist the editor state alongside the saved PNG. JSON sidecar
-  // (rather than a D1 column) so we avoid a schema migration —
-  // R2 is already the storage of record for snap pixels.
   try {
     const stateJson = JSON.stringify({
       background: state.background,
@@ -372,13 +329,11 @@ async function saveSnapActionInner(
       'application/json'
     );
   } catch {
-    // Same posture as the source snapshot — don't block save on a
-    // sidecar miss. Reloads just won't restore that single state.
+    // Best-effort: a sidecar miss must not block the save.
   }
 
-  // Width/height may not match the original upload (background pad
-  // grows the canvas). Validate before persisting so a malformed
-  // client can't NaN-corrupt the row.
+  // Validate dimensions before persisting so a malformed client can't
+  // NaN-corrupt the row.
   const w =
     Number.isFinite(state.width) && state.width > 0
       ? Math.round(state.width)

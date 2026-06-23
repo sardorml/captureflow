@@ -11,42 +11,23 @@ import { cn } from '@/lib/utils'
 export type RichPopoverProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  // The element the popover anchors to — rendered in place via Radix's
-  // `asChild`, so pass a single focusable node (e.g. a <button>).
+  // Rendered in place via Radix's `asChild`, so pass a single focusable node.
   trigger: React.ReactNode
   title?: string
   icon?: React.ReactNode
   className?: string
-  // White card instead of the default dark surface. Pins --muted-foreground to
-  // the light-mode mid-gray so muted children stay readable on white.
   light?: boolean
-  // macOS-style vibrancy: a translucent surface that blurs whatever sits
-  // behind it. Ignored when `light` is set.
   glass?: boolean
   side?: 'top' | 'bottom' | 'left' | 'right'
   align?: 'start' | 'center' | 'end'
-  // Render a transparent full-window backdrop while open so a click anywhere
-  // outside dismisses the popover. Needed when the trigger lives in the
-  // Electron title-bar drag region (`-webkit-app-region: drag`), which the OS
-  // intercepts before Radix's outside-pointer detection can fire.
+  // Needed when the trigger lives in the Electron title-bar drag region (`-webkit-app-region: drag`), which the OS intercepts before Radix's outside-pointer detection can fire.
   dismissBackdrop?: boolean
-  // Shift along the align axis. With align="end", a negative value nudges the
-  // card further past the trigger's end edge (i.e. to the right).
   alignOffset?: number
-  // Distance (px) from the trigger along the side axis.
   sideOffset?: number
-  // When false, Radix won't slide/flip the card to keep it on-screen — it stays
-  // pinned to `align`/`side`. Use for a trigger near a viewport edge where the
-  // anchored edge matters more than fitting (e.g. left-align under a toolbar
-  // button that sits toward the right). Default true (clamp into view).
   avoidCollisions?: boolean
   children: React.ReactNode
 }
 
-// Radix-anchored card popover with an arrow tail kept pointed at the trigger.
-// Portaled out of the panel so it floats freely instead of clipping inside the
-// sidebar. `forceMount` + AnimatePresence lets the exit animation play before
-// Radix unmounts.
 export function RichPopover({
   open,
   onOpenChange,
@@ -70,9 +51,11 @@ export function RichPopover({
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <AnimatePresence>
         {open && dismissBackdrop && (
-          // The backdrop needs its own portal: Radix's PopoverPortal wraps its
-          // children in a single Slot (`React.Children.only`), so rendering the
-          // backdrop as a sibling of PopoverContent inside one portal throws.
+          /*
+           * The backdrop needs its own portal: Radix's PopoverPortal wraps its
+           * children in a single Slot (`React.Children.only`), so rendering the
+           * backdrop as a sibling of PopoverContent inside one portal throws.
+           */
           <PopoverPortal forceMount>
             <div
               className="fixed inset-0 z-40"
@@ -94,9 +77,6 @@ export function RichPopover({
               sideOffset={sideOffset}
             >
               <motion.div
-                // With collision avoidance off the card stays pinned to `align`
-                // even near a viewport edge, so cap its width to the space Radix
-                // measured; otherwise it keeps full width and clips off-screen.
                 // Width only — capping height would clip the arrow tail.
                 style={
                   avoidCollisions
@@ -117,10 +97,6 @@ export function RichPopover({
                 }
                 className={cn(
                   'relative rounded-xl px-4 py-3 shadow-xl',
-                  // Default is a step lighter than the editor's --background so
-                  // the card lifts. light pins --muted-foreground to a mid-gray
-                  // so muted children stay readable (the dark theme resolves it
-                  // to a near-white that vanishes on white).
                   glass &&
                     !light &&
                     'bg-neutral-800/65 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 text-white',

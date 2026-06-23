@@ -1,14 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
 
-// Personal-workspace helpers. Every user owns exactly one personal
-// workspace (auto-created on signup); teammates join via email invite.
-// Shares + snaps are stamped with a `workspace_id` at upload time so the
-// viewer auth gate can answer "is this signed-in user a member of the
-// workspace that owns this artifact?" in one indexed lookup.
-//
-// All writes here are idempotent — the signup hook can run twice without
-// creating a duplicate workspace, and accepting an invite that's already
-// been accepted is a no-op.
+/*
+ * Every user owns exactly one personal workspace (auto-created on signup).
+ * All writes here are idempotent: the signup hook can run twice without
+ * creating a duplicate, and re-accepting an invite is a no-op.
+ */
 
 export type WorkspaceRole = 'owner' | 'member';
 
@@ -22,17 +18,8 @@ export type WorkspaceRow = {
   owner_user_id: string;
   created_at: number;
   updated_at: number;
-  // R2 key for the optional workspace logo, served via the CDN. Null
-  // when the workspace hasn't uploaded one yet — the UI falls back to
-  // a generated avatar.
   logo_key: string | null;
-  // Policy flags set on /settings. Surfaced as booleans here; stored
-  // in SQLite as 0/1 integers (no native BOOLEAN). When
-  // `allow_public_links` is false the dashboard hides the public
-  // visibility option and the upload endpoints coerce public →
-  // workspace. When `allow_member_uploads` is false, only the owner
-  // can stamp uploads into this workspace — member uploads fall back
-  // to their personal workspace.
+  // When allow_public_links is false the upload endpoints coerce public → workspace; when allow_member_uploads is false, member uploads fall back to their personal workspace.
   allow_public_links: boolean;
   allow_member_uploads: boolean;
 };
@@ -51,9 +38,6 @@ export type WorkspaceMember = {
   user_id: string;
   name: string;
   email: string;
-  // Optional avatar URL from better-auth `users.image`. Surfaced so the
-  // dashboard byline + members table can render a real avatar when
-  // present and fall back to seeded initials otherwise.
   image: string | null;
   role: WorkspaceRole;
   joined_at: number;
@@ -69,23 +53,16 @@ export type WorkspaceInviteRow = {
   accepted_at: number | null;
 };
 
-// Default workspace-invite TTL. Seven days matches the rough cadence at
-// which collaborators triage email; shorter ages out before people open
-// it, longer creates security-tail risk if a mailbox is compromised.
 const DEFAULT_INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function nowMs(): number {
   return Date.now();
 }
 
-// 32-char hex from a v4 UUID — matches the entropy of the backfill IDs
-// (`hex(randomblob(16))` = 32 chars) without dragging in nanoid.
 function generateId(): string {
   return crypto.randomUUID().replace(/-/g, '');
 }
 
-// 12-char lowercase hex for workspace slugs. Populated now even though
-// /w/<slug>/... routing lands in v2, so we never have to backfill.
 function generateSlug(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(6));
   return Array.from(bytes)
@@ -93,9 +70,7 @@ function generateSlug(): string {
     .join('');
 }
 
-// URL-safe base64 of 32 random bytes (~43 chars). Used for the plaintext
-// invite token that lands in the user's inbox; only the SHA-256 hash of
-// it is stored in `workspace_invite.token_hash`.
+// Plaintext invite token; only its SHA-256 hash is stored in token_hash.
 function generateInviteToken(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
   let bin = '';
@@ -111,9 +86,6 @@ async function sha256Hex(input: string): Promise<string> {
     .join('');
 }
 
-// SQLite has no native boolean — policy flags arrive as 0/1 integers.
-// Centralised select + hydrator so getPersonalWorkspaceForUser /
-// getWorkspaceById / future readers all produce a uniform shape.
 const WORKSPACE_COLUMNS =
   'id, slug, kind, name, owner_user_id, created_at, updated_at, ' +
   'logo_key, allow_public_links, allow_member_uploads';
@@ -148,20 +120,17 @@ function hydrateWorkspaceRow(r: WorkspaceD1Row): WorkspaceRow {
 
 function deriveWorkspaceName(displayName: string | null | undefined): string {
   const trimmed = (displayName ?? '').trim();
-  // Use just the first name when we have a multi-word display name —
-  // "Sardor's Workspace" reads better than "Sardor Mamadaliyev's
-  // Workspace". Empty / falsy → generic fallback.
   const firstWord = trimmed.split(/\s+/)[0] ?? '';
   if (firstWord.length === 0) return 'My Workspace';
   return `${firstWord}'s Workspace`;
 }
 
-// Returns the personal workspace the user owns, or null if the hook
-// hasn't run for them yet. The partial unique index
-// `idx_workspace_owner_personal` guarantees this matches at most one
-// row, so v2 'team' workspaces a user might also own don't shadow the
-// personal one. Callers that need to guarantee a row should use
-// ensurePersonalWorkspace() instead.
+/*
+ * Returns null if the signup hook hasn't run yet; the partial unique index
+ * idx_workspace_owner_personal guarantees at most one match so v2 'team'
+ * workspaces don't shadow the personal one. Use ensurePersonalWorkspace to
+ * guarantee a row.
+ */
 export async function getPersonalWorkspaceForUser(
   db: D1Database,
   userId: string
@@ -178,9 +147,6 @@ export async function getPersonalWorkspaceForUser(
   return row ? hydrateWorkspaceRow(row) : null;
 }
 
-// Fetch any workspace by id. Used by the viewer auth gate when the
-// share/snap row carries `workspace_id` — combine with isWorkspaceMember
-// to enforce 'workspace' visibility.
 export async function getWorkspaceById(
   db: D1Database,
   workspaceId: string
@@ -197,10 +163,8 @@ export async function getWorkspaceById(
   return row ? hydrateWorkspaceRow(row) : null;
 }
 
-// Idempotent: creates the user's personal workspace + owner member row
-// if neither exists, otherwise returns the existing workspace. Safe to
-// call from the better-auth post-signup hook and from any code path
-// that needs a workspace_id (e.g. /api/init backfilling legacy users).
+// Idempotent: creates the personal workspace + owner member row if neither
+// exists, otherwise returns the existing workspace.
 export async function ensurePersonalWorkspace(
   db: D1Database,
   userId: string,
@@ -214,10 +178,8 @@ export async function ensurePersonalWorkspace(
   const now = nowMs();
   const name = deriveWorkspaceName(displayName);
 
-  // INSERT OR IGNORE so a race between two concurrent calls (rare, but
-  // the signup hook could race a first-request bootstrap) doesn't fail
-  // on `idx_workspace_owner_personal`. The losing call re-reads via
-  // getPersonalWorkspaceForUser below and returns the winner's row.
+  // INSERT OR IGNORE so concurrent calls don't fail on
+  // idx_workspace_owner_personal; the loser re-reads the winner's row below.
   await db
     .prepare(
       `INSERT OR IGNORE INTO workspace
@@ -238,8 +200,6 @@ export async function ensurePersonalWorkspace(
 
   const row = await getPersonalWorkspaceForUser(db, userId);
   if (!row) {
-    // Shouldn't happen — we just inserted. Throw rather than return a
-    // synthetic row so callers can decide how to surface the error.
     throw new Error(
       `ensurePersonalWorkspace: insert succeeded but lookup returned null for user ${userId}`
     );
@@ -247,10 +207,8 @@ export async function ensurePersonalWorkspace(
   return row;
 }
 
-// Owner-editable settings. Each helper trusts the caller to gate on
-// `role = 'owner'`; the server action / API route layer is the single
-// security check.
-
+// These helpers do NOT gate on ownership; the API route layer is the only
+// security check that role = 'owner'.
 export async function updateWorkspaceName(
   db: D1Database,
   workspaceId: string,
@@ -290,8 +248,7 @@ export type WorkspacePolicyPatch = {
   allowMemberUploads?: boolean;
 };
 
-// Partial-update of the two policy flags. `undefined` means "leave
-// unchanged" so callers can update one without re-stating the other.
+// Partial update: an undefined flag is left unchanged.
 export async function updateWorkspacePolicy(
   db: D1Database,
   workspaceId: string,
@@ -317,8 +274,6 @@ export async function updateWorkspacePolicy(
   return (res.meta?.changes ?? 0) > 0;
 }
 
-// All workspaces the user owns OR has been invited into. Ordered with
-// the user's owned workspace first (joined_at ASC inside each tier).
 export async function listWorkspacesForUser(
   db: D1Database,
   userId: string
@@ -359,8 +314,6 @@ export async function isWorkspaceMember(
   return row !== null;
 }
 
-// Members of a workspace + their user profile. Used by the Members page
-// in the dashboard.
 export async function listMembers(
   db: D1Database,
   workspaceId: string
@@ -387,10 +340,8 @@ export type RemoveMemberResult =
   | { ok: true }
   | { ok: false; reason: 'not_member' | 'cannot_remove_owner' };
 
-// Drop a member from a workspace. Refuses to remove the owner — the
-// owner row is the workspace's anchor (every workspace has exactly
-// one), so deleting it would orphan the rest. To remove the owner
-// you delete the entire workspace, which cascades through the FKs.
+// Refuses to remove the owner; to remove the owner, delete the whole
+// workspace (cascades through the FKs).
 export async function removeWorkspaceMember(
   db: D1Database,
   workspaceId: string,
@@ -421,17 +372,12 @@ export async function removeWorkspaceMember(
 export type CreateInviteResult = {
   ok: true;
   invite: WorkspaceInviteRow;
-  // Plaintext token. Only returned here at creation time — the database
-  // stores only its SHA-256 hash. Email this to the recipient inside the
-  // accept-URL, then drop it.
+  // Returned only at creation time; the DB stores only its SHA-256 hash.
   plaintextToken: string;
 };
 
 export type CreateInviteError = { ok: false; reason: 'already_member' };
 
-// Throws on invariant violations. Returns `{ ok: false, reason }` for
-// soft failures the API should surface to the user (e.g. inviting an
-// existing member).
 export async function createInvite(
   db: D1Database,
   args: {
@@ -441,9 +387,6 @@ export async function createInvite(
     ttlMs?: number;
   }
 ): Promise<CreateInviteResult | CreateInviteError> {
-  // Short-circuit if the invitee is already a member. Without this
-  // check the user would get a confusing email, click through, and
-  // hit the 'already_member' branch in acceptInvite.
   const memberRow = await db
     .prepare(
       `SELECT m.user_id
@@ -456,10 +399,8 @@ export async function createInvite(
     .first<{ user_id: string }>();
   if (memberRow) return { ok: false, reason: 'already_member' };
 
-  // Drop any existing pending invite for the same (workspace, email)
-  // pair so the partial unique index doesn't reject the insert. This
-  // implicitly "resends" the invite — owners trying to nudge a slow
-  // accepter get a fresh email with a new token instead of an error.
+  // Drop any pending invite for the same (workspace, email) so the partial
+  // unique index doesn't reject the insert; this implicitly resends it.
   await db
     .prepare(
       `DELETE FROM workspace_invite
@@ -507,10 +448,9 @@ export async function createInvite(
   return { ok: true, invite, plaintextToken };
 }
 
-// Look up an invite by the plaintext token from the URL. Returns the
-// row only when it's still valid (not expired, not accepted). The
-// caller is responsible for verifying the signed-in user's email
-// matches the invite's email before calling acceptInvite.
+// Returns the row only when still valid (not expired, not accepted). The
+// caller must verify the signed-in user's email matches the invite's email
+// before calling acceptInvite.
 export async function findInviteByToken(
   db: D1Database,
   plaintextToken: string
@@ -539,11 +479,8 @@ export type AcceptInviteResult =
       reason: 'not_found' | 'expired' | 'already_accepted' | 'already_member';
     };
 
-// Marks the invite accepted and inserts a member row. The two writes
-// aren't wrapped in an explicit transaction because D1 doesn't expose
-// BEGIN/COMMIT, but the ON CONFLICT clauses make both writes safe to
-// retry. Callers should verify the user's email matches the invite
-// before calling this.
+// The two writes aren't transactional (D1 has no BEGIN/COMMIT) but are
+// safe to retry. Callers must verify the user's email matches the invite.
 export async function acceptInvite(
   db: D1Database,
   args: { inviteId: string; userId: string }
@@ -570,9 +507,8 @@ export async function acceptInvite(
     args.userId
   );
   if (alreadyMember) {
-    // Mark the invite accepted anyway so it stops showing up as
-    // pending in the dashboard, but report 'already_member' so the
-    // UI can render a "you're already in" message instead of "joined!"
+    // Mark accepted so it stops showing as pending, but report
+    // already_member so the UI doesn't render a "joined!" message.
     await db
       .prepare(`UPDATE workspace_invite SET accepted_at = ?1 WHERE id = ?2`)
       .bind(nowMs(), args.inviteId)
@@ -597,9 +533,6 @@ export async function acceptInvite(
   return { ok: true, workspaceId: invite.workspace_id };
 }
 
-// Pending invites for a workspace, oldest first. Used by the Members
-// page to render the "Pending invitations" section alongside the
-// accepted-member list.
 export async function listPendingInvites(
   db: D1Database,
   workspaceId: string
@@ -623,9 +556,7 @@ export async function revokeInvite(
   db: D1Database,
   args: { inviteId: string; workspaceId: string }
 ): Promise<void> {
-  // Hard delete rather than a soft revoked_at flag — the row carries no
-  // history value once revoked, and dropping it frees the unique
-  // token_hash slot if the owner wants to re-invite the same email.
+  // Hard delete frees the unique token_hash slot for re-inviting the email.
   await db
     .prepare(
       `DELETE FROM workspace_invite

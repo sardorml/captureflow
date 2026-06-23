@@ -10,18 +10,8 @@ import {
   type ShareSummaryChapters,
 } from '@/lib/share/summary-chapters';
 
-// Owner-only persistence for the Summary + Chapters block. The payload is a
-// JSON sidecar in R2 (`<videoKey>.summary-chapters.json`) so every viewer sees
-// the same content. GET follows the share's visibility gate; PUT requires the
-// signed-in owner.
-//
-// Stays on the default Workers runtime (no `runtime = 'edge'`) so
-// `getCloudflareContext` resolves the R2 binding — switching to edge surfaced
-// an env lookup miss in prod where the sidecar PUT silently 500'd.
-
 export const dynamic = 'force-dynamic';
 
-// `id` is the share's public slug, passed straight to the share-lib calls.
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_req: Request, { params }: Params) {

@@ -71,10 +71,8 @@ export function PermissionGuard({ children }: PermissionGuardProps): React.JSX.E
 
   return (
     <div className="h-full flex flex-col items-center justify-center px-10 pb-8">
-      {/* Logo */}
       <img src={logoImg} alt="" className="h-14 w-auto mb-8" />
 
-      {/* Title */}
       <h2 className="text-2xl font-bold text-foreground tracking-tight mb-1.5">
         Welcome to CaptureFlow!
       </h2>
@@ -82,7 +80,6 @@ export function PermissionGuard({ children }: PermissionGuardProps): React.JSX.E
         Before you can start recording, we need to ask you for a few permissions.
       </p>
 
-      {/* Permission rows */}
       <div className="w-full max-w-md space-y-6">
         <PermissionRow
           icon={<Monitor className="w-5 h-5" />}
@@ -103,7 +100,6 @@ export function PermissionGuard({ children }: PermissionGuardProps): React.JSX.E
         />
       </div>
 
-      {/* Continue button */}
       <SmoothButton
         variant="candy"
         size="lg"

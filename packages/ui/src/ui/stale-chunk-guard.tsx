@@ -1,25 +1,12 @@
-// Self-heal script for two browser-side stall modes (tab spins forever
-// in a normal profile but works in incognito):
-//
-//   1. bf-cache restore — back/forward revived a stale page from memory
-//      whose state may reference resources the worker no longer serves.
-//   2. ChunkLoadError — the cached HTML shell points at
-//      `_next/static/<OLD_BUILD_ID>/…` chunks deleted on the latest
-//      deploy, so React hydration stalls fetching them.
-//
-// Both recover via window.location.reload(), which respects the workers'
-// `no-store` headers and pulls a fresh shell + current chunks together.
-//
-// Inject via `next/script` strategy="beforeInteractive" so it lands in
-// <head> server-side and runs BEFORE hydration — a React-level guard
-// couldn't fire when hydration itself is the thing that's stuck.
-//
-// Exported as a raw STRING (not a <script> element) to stay
-// framework-agnostic and because React 19 refuses to execute inline
-// <script> client-rendered inside components ("scripts inside React
-// components are never executed..."). next/script injects the markup
-// outside React's tree, so no warning fires.
-
+/*
+ * Self-heals two browser stall modes (works in incognito but spins in a normal profile):
+ * (1) bf-cache restore of a stale page; (2) ChunkLoadError when the cached HTML shell
+ * points at chunks from an OLD_BUILD_ID deleted on deploy. Both recover via reload().
+ *
+ * Must inject via next/script strategy="beforeInteractive" so it runs BEFORE hydration —
+ * a React-level guard can't fire when hydration itself is stuck. Exported as a raw STRING
+ * because React 19 refuses to execute inline <script> rendered inside components.
+ */
 export const STALE_CHUNK_GUARD_SCRIPT = `
 (function() {
   function isChunkError(s) {

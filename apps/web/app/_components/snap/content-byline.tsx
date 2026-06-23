@@ -1,11 +1,5 @@
 import type { ReactElement } from 'react';
 
-// Byline shown under a snap title: "<author> · <relative time>".
-// The relative bucket is computed once on the server (RSC) — fine for
-// a viewer page that visitors typically open once. The absolute
-// timestamp is revealed on hover via a pure-CSS popover, so the byline
-// ships no client JS.
-
 export type ContentBylineProps = {
   ownerName: string | null;
   createdAt: number;

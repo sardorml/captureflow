@@ -23,27 +23,16 @@ import {
   VisibilityPicker,
 } from '@captureflow/ui';
 
-// Snap viewer's top-right action cluster: Edit chip (owner only),
-// segmented Share+Copy, and an overflow menu holding Delete (owner only).
-// Server calls hit the session-authed snap endpoints:
-// POST /api/s/snaps/[id]/visibility and DELETE /api/s/snaps/[id].
-
 type SnapVisibility = 'public' | 'workspace' | 'private';
 
 type Props = {
   snapId: string;
   snapUrl: string;
-  // Editor URL, surfaced only to owners.
   editUrl: string;
   initialVisibility: SnapVisibility;
   isOwner: boolean;
   workspaceName: string | null;
-  // When false, the Public option is hidden so the owner can't bypass
-  // the workspace's link policy from here. Server enforces too; this
-  // keeps the UI consistent.
   allowPublicLinks: boolean;
-  // Signed-in viewers get the Share dialog; anonymous viewers only get
-  // a standalone Copy link button.
   signedIn: boolean;
 };
 

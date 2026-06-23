@@ -3,10 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-// A sign-in/out in another tab writes the session cookie this tab will
-// see, but the cookie change doesn't re-render an already-open tab.
-// Re-check verify-session on focus/visibilitychange and refresh the
-// route when the user differs from what we last rendered.
+// A sign-in/out in another tab writes the session cookie but does not
+// re-render this already-open tab, so re-check on focus/visibilitychange.
 const VERIFY_URL = '/api/verify-session';
 
 type Props = {
@@ -42,7 +40,7 @@ export function AuthSync({ initialUserId }: Props) {
           router.refresh();
         }
       } catch {
-        // Ignore network failures; the next focus retries.
+        // Next focus retries.
       }
     };
 

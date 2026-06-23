@@ -11,15 +11,6 @@ import {
 import { getAppWebEnv } from '@/lib/cf-env';
 import { resolveDeviceToken } from '@/lib/device-tokens';
 
-// GET /api/usage — account-scoped usage + entitlement.
-//
-// Lives on app-web because account state (auth, subscription, quota
-// overrides) is owned by this service, giving one source of truth across
-// the share + snap workers.
-//
-// Auth: bearer device token from desktop sign-in, resolved via the
-// device-tokens table (one D1 query, no session cookie).
-
 const DEVICE_HEADER = 'x-captureflow-device';
 
 function extractBearerToken(req: NextRequest): string | null {
@@ -80,10 +71,11 @@ export async function GET(req: NextRequest) {
   }
   const bearerUserId = resolved.userId;
 
-  // Optional workspace scope. Pro is per-user, so quota belongs to the
-  // workspace OWNER: a free teammate recording into a Pro owner's
-  // workspace should see the owner's limit, not their own. Verify
-  // membership first — non-members fall back to their own usage view.
+  /*
+   * Pro is per-user, so quota belongs to the workspace owner: a free teammate
+   * in a Pro owner's workspace sees the owner's limit. Non-members fall back
+   * to their own usage view.
+   */
   const requestedWorkspace = new URL(req.url).searchParams.get('workspace_id');
   let quotaUserId = bearerUserId;
   if (requestedWorkspace) {
@@ -104,9 +96,8 @@ export async function GET(req: NextRequest) {
     getEffectiveLimitsForUser(env.DB, quotaUserId),
   ]);
 
-  // capReached is purely numeric here (no dev-allowlist on app-web yet).
-  // The share/snap upload paths enforce caps via their own allowlist, so
-  // a dev device may keep uploading even when this reports capReached.
+  // Purely numeric (no dev-allowlist on app-web yet): a dev device may keep
+  // uploading via the share/snap paths even when this reports capReached.
   const capReached =
     usedBytes >= limits.storageBytes || activeCount >= limits.activeArtifacts;
 

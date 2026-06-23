@@ -13,18 +13,11 @@ import {
 } from '@captureflow/ui';
 import { inviteMemberAction } from './members/actions';
 
-// Invite modal with a chip-input: typing an email and hitting
-// space/comma/enter turns it into a removable chip. Submitting fires
-// one server action per chip and surfaces a combined success/failure
-// summary.
-
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type Result = { sent: string[]; failed: { email: string; error: string }[] };
 
 type InviteModalProps = {
-  // Optional custom trigger, rendered inside DialogTrigger asChild.
-  // When omitted, falls back to the default "Invite teammates" button.
   trigger?: React.ReactNode;
 };
 
@@ -36,11 +29,8 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
   const [result, setResult] = useState<Result | null>(null);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
-  // Radix's asChild Slot injects a generated useId on the client; SSR
-  // can't reproduce it 1:1, so rendering the wired-up trigger during
-  // SSR breaks hydration (which silently disables Fast Refresh). Render
-  // the bare trigger until mounted, then swap in the live dialog so the
-  // server and first client render match exactly.
+  // Radix's asChild Slot injects a client-only generated useId; rendering the wired trigger during SSR
+  // breaks hydration (silently disabling Fast Refresh). Render the bare trigger until mounted.
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -87,7 +77,6 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
     }
   };
 
-  // Pasting "a@x.com, b@y.com" should chip both at once.
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const text = e.clipboardData.getData('text');
     if (!/[\s,]/.test(text)) return;
@@ -118,7 +107,6 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
     setError(null);
     setResult(null);
 
-    // Pending draft text counts toward the submission.
     let toSend = chips;
     if (draft.trim()) {
       if (!commitDraft(draft)) return;
@@ -145,7 +133,6 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
       if (failed.length === 0) {
         setChips([]);
       } else {
-        // Keep the ones that failed so the owner can retry.
         setChips(failed.map((f) => f.email));
       }
     });
@@ -161,7 +148,6 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
     </button>
   );
 
-  // Pre-hydration: bare trigger only; the live dialog mounts next tick.
   if (!mounted) return <>{triggerNode}</>;
 
   return (

@@ -5,11 +5,6 @@ import { uploadPart } from '@/lib/share/r2';
 import { optionsResponse, withCors } from '@/lib/share/cors';
 import type { PartResponse, ShareApiError } from '@/lib/share/types';
 
-// Multipart upload for the optional webcam companion stream. The desktop
-// streams webcam.webm chunks here while recording, in parallel with the
-// screen file's /api/part stream; /api/webcam-finalize completes the
-// upload at stop. Auth and slug ownership match /api/part.
-
 const DEVICE_HEADER = 'x-captureflow-device';
 const MAX_PART_NUMBER = 10000;
 const MAX_PART_BYTES = 100 * 1024 * 1024;

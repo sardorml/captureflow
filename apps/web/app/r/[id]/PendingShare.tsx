@@ -8,27 +8,12 @@ import { GridLoader } from '@captureflow/ui';
 type PendingShareProps = {
   slug: string;
   titleLine: string;
-  // Epoch ms for the byline. Owner name is omitted in the pending
-  // state to avoid a second DB hop; it lands on the next refresh once
-  // the row flips to 'ready'.
   createdAt: number;
 };
 
-// Loading shell shown when /r/[id] resolves a row in state='pending'.
-// /api/r/init reserves the id at record-start so the desktop can hand
-// the user a copyable link instantly; the bytes arrive over the
-// streaming-multipart upload and the row flips to 'ready' once
-// /api/r/finalize lands.
-//
-// Polls /api/r/state every ~1.5s and router.refresh()-es once the row
-// flips to 'ready'. The retry budget surfaces a "didn't finish"
-// fallback when the upload never completes (desktop died mid-record).
-
 const POLL_INTERVAL_MS = 1500;
-// Cap the spin at roughly 2 minutes. /api/r/init → /api/r/finalize is
-// usually <10s; the multipart upload limit is far longer but a stuck
-// pending row past 2 minutes almost always means the desktop client
-// died mid-upload and the cron sweep will GC it within the hour.
+// ~2 min cap. A pending row stuck past this means the desktop client
+// died mid-upload; the cron sweep GCs it within the hour.
 const MAX_ATTEMPTS = 80;
 
 export function PendingShare({
@@ -68,7 +53,7 @@ export function PendingShare({
           }
         }
       } catch {
-        // Transient network error — fall through to the retry.
+        // Fall through to the retry.
       }
       if (attemptsRef.current >= MAX_ATTEMPTS) {
         setExhausted(true);
@@ -95,8 +80,7 @@ export function PendingShare({
           <ContentByline ownerName={null} createdAt={createdAt} />
         </header>
         <div
-          // Match the SharePlayer's container so the loading shell
-          // doesn't reflow the page when the bytes arrive.
+          // Match SharePlayer's container so swapping in the video doesn't reflow.
           className="relative w-full overflow-hidden rounded-xl bg-neutral-900 ring-1 ring-line"
           style={{ aspectRatio: '16 / 9' }}
         >

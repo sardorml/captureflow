@@ -20,8 +20,6 @@ export default async function MembersPage() {
     );
   }
 
-  // Reflects whatever the header switcher has selected: your personal
-  // workspace by default, or one you've been invited into.
   const current = await resolveCurrentWorkspace(
     session.user.id,
     session.user.name ?? null
@@ -31,7 +29,6 @@ export default async function MembersPage() {
 
   const [members, pending] = await Promise.all([
     listMembers(env.DB, workspace.id),
-    // Only owners see pending invitations, so skip the query otherwise.
     isOwner ? listPendingInvites(env.DB, workspace.id) : Promise.resolve([]),
   ]);
 

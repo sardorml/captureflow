@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { signIn, signUp } from '@/lib/auth-client';
 
-// Email+password auth card kept separate from the marketing AuthPanel, which
-// pulls in the i18n provider + marketing shell. Drives better-auth's client
-// directly and redirects to `next` on success.
+// Kept separate from the marketing AuthPanel, which pulls in the i18n provider
+// and marketing shell.
 export function AuthForm({
   next,
   initialMode = 'signin',
@@ -36,7 +35,7 @@ export function AuthForm({
         return;
       }
       // Full navigation so the freshly-set session cookie is read by the
-      // middleware + server components on the destination.
+      // middleware and server components on the destination.
       window.location.assign(next);
     } catch {
       setError('Network error. Please try again.');

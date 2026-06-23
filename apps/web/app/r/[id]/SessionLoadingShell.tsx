@@ -3,17 +3,6 @@
 import { useEffect } from 'react';
 import { GridLoader } from '@captureflow/ui';
 
-// Rendered when the SSR call to /api/verify-session fails transiently
-// (cold-start, network blip, 5xx). Distinct from RequestAccess: SSR
-// doesn't yet know whether the visitor is an authorized owner/member —
-// so we show a neutral "loading recording" frame and immediately probe
-// from the browser. Once verify-session resolves either way we
-// location.replace() back into the same URL and let SSR re-run with
-// the cookies in hand.
-//
-// Falls back to RequestAccess after the retry budget exhausts so a
-// genuinely-broken backend doesn't trap the visitor on a spinner.
-
 type Props = {
   appWebUrl: string;
 };
@@ -35,19 +24,14 @@ export function SessionLoadingShell({ appWebUrl }: Props) {
             cache: 'no-store',
           });
           if (cancelled) return;
-          // Either way we re-enter SSR: a 200 means owner/member and
-          // the gate will render the viewer; a 401 means RequestAccess
-          // — and that's the correct screen, not this spinner.
           if (res.status === 200 || res.status === 401) {
             window.location.replace(window.location.href);
             return;
           }
         } catch {
-          // Same backend is failing the SSR retry; keep trying.
+          // keep trying
         }
       }
-      // Budget exhausted. Fall through to RequestAccess so the visitor
-      // has a path forward instead of staring at a spinner.
       if (!cancelled) window.location.replace(window.location.href);
     })();
 

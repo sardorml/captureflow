@@ -1,11 +1,5 @@
 /// <reference types="@cloudflare/workers-types" />
 
-// Pro subscription entitlement read-side. The `pro_subscription` table is
-// written by the Lemon Squeezy webhook receiver; this module answers "is
-// user X on an active Pro subscription right now?" — gating both the cloud
-// storage cap (via getEffectiveLimitsForUser) and the Studio-export
-// entitlement check the desktop app makes on sign-in.
-
 export type ProSubscriptionStatus =
   | 'on_trial'
   | 'active'
@@ -29,12 +23,7 @@ export type ProSubscriptionRow = {
   updated_at: number;
 };
 
-// LS statuses we treat as "Pro entitlement on". `cancelled` is NOT here —
-// after cancellation the user retains access until `current_period_end`,
-// which we enforce via the `endsAt` check below, NOT by extending the
-// active set. `past_due` is included so a one-day card-decline blip
-// doesn't immediately strip Pro; LS escalates to `unpaid` and then
-// `expired` after a few retries.
+// `cancelled` is excluded — access runs to current_period_end, enforced below. `past_due` is included so a card-decline blip doesn't strip Pro before LS escalates to `unpaid`/`expired`.
 const ACTIVE_STATUSES = new Set<ProSubscriptionStatus>([
   'on_trial',
   'active',
@@ -43,8 +32,6 @@ const ACTIVE_STATUSES = new Set<ProSubscriptionStatus>([
 
 function isProActive(row: ProSubscriptionRow, nowSeconds: number): boolean {
   if (!ACTIVE_STATUSES.has(row.status)) {
-    // A cancelled subscription still entitles the user until the period
-    // they've already paid for runs out.
     if (
       row.status === 'cancelled' &&
       row.current_period_end !== null &&
@@ -54,18 +41,12 @@ function isProActive(row: ProSubscriptionRow, nowSeconds: number): boolean {
     }
     return false;
   }
-  // For an explicit active row with a period-end recorded, gate on that
-  // so a webhook we missed (LS retries 3×) doesn't strand the entitlement
-  // beyond the paid window. NULL period_end means we're in the brief
-  // post-create / pre-first-payment window and should grant access.
+  // Gate on period-end so a missed webhook (LS retries 3×) can't strand entitlement past the paid window. NULL = pre-first-payment window, grant access.
   if (row.current_period_end === null) return true;
   return row.current_period_end > nowSeconds;
 }
 
-// Returns the most recently-updated row for a user. The pro_subscription
-// PK is the LS subscription id, not user_id, so a single account can have
-// historical cancelled rows alongside an active resubscribe — picking the
-// latest by updated_at gives the "current" subscription.
+// PK is the LS subscription id, so one account can have historical cancelled rows alongside an active resubscribe; the latest by updated_at is the current one.
 export async function getActiveProSubscription(
   db: D1Database,
   userId: string
@@ -87,9 +68,6 @@ export async function getActiveProSubscription(
   return isProActive(row, now) ? row : null;
 }
 
-// Same as getActiveProSubscription but keyed by email — used by the
-// claim flow (user signs in for the first time after purchasing; we
-// match their auth email against the LS customer email).
 export async function getUnclaimedProSubscriptionByEmail(
   db: D1Database,
   email: string

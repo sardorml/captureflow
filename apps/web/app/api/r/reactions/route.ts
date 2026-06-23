@@ -24,10 +24,6 @@ export function OPTIONS() {
   return optionsResponse();
 }
 
-// GET /api/reactions?slug=… → list reactions for a share.
-//
-// No auth gate on reads: anyone who can see the share page can see who
-// reacted. Slug validation guards against SQL surprises.
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('slug');
   if (!isValidSlug(slug)) {
@@ -38,12 +34,6 @@ export async function GET(req: NextRequest) {
   return withCors(NextResponse.json(body));
 }
 
-// POST /api/reactions?slug=… → add a reaction at a video timestamp.
-//
-// Reactions are authored: the better-auth session cookie (cross-subdomain
-// on .captureflow.xyz) must resolve to a real user, otherwise we 401. The
-// DB stores both userId and display name so the sidebar can render
-// attribution without a join.
 export async function POST(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('slug');
   if (!isValidSlug(slug)) {
@@ -96,7 +86,6 @@ export async function POST(req: NextRequest) {
     userId: visitor.userId,
     userName: visitor.name?.trim() || visitor.email,
   });
-  // Decorate with the visitor's avatar (matches /api/comments).
   const reaction = { ...inserted, userImage: visitor.image };
   const res: AddReactionResponse = { reaction };
   return withCors(NextResponse.json(res));

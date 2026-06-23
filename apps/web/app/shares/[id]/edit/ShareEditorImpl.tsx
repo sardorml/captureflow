@@ -39,10 +39,12 @@ import {
   setVisibilityAction,
 } from '../../../actions';
 
-// Share edit page. Renders the preview with SharePlayer (the same
-// component the public viewer uses, so the preview matches the
-// published page pixel for pixel). Config changes apply live to the
-// preview; explicit Save persists to the R2 sidecar.
+/*
+ * Share edit page. Renders the preview with SharePlayer (the same
+ * component the public viewer uses, so the preview matches the
+ * published page pixel for pixel). Config changes apply live to the
+ * preview; explicit Save persists to the R2 sidecar.
+ */
 
 const SOLID_PALETTE = [
   '#2563eb',

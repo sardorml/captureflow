@@ -9,9 +9,7 @@ import { PageHeader } from '../PageHeader';
 export const dynamic = 'force-dynamic';
 
 export default async function SharesPage() {
-  // Layout already gated, but its session narrowing doesn't cross the segment
-  // boundary — re-check so `session.user.id` is non-null below. Also self-heals
-  // stale cookies, as in the layout.
+  // Re-check: the layout's session narrowing doesn't cross the segment boundary.
   const session = await requireSession();
 
   const current = await resolveCurrentWorkspace(
@@ -29,7 +27,6 @@ export default async function SharesPage() {
       : Promise.resolve(null),
   ]);
   const allowPublicLinks = workspaceRow?.allow_public_links ?? true;
-  // user_id → display name for teammate owner pills; falls back to email.
   const ownerNames = new Map<string, string>(
     members.map((m) => [m.user_id, m.name?.trim() || m.email])
   );

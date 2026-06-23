@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react'
 import { AlertTriangle, ExternalLink } from 'lucide-react'
 import type { ShareFailureState } from '../../../../shared/types'
 
-// Shown only on share failure (init failures, partial uploads, recorder
-// crashes); success opens the share URL in the browser directly.
 export function ShareFailureModal(): React.JSX.Element {
   const [state, setState] = useState<ShareFailureState | null>(null)
 

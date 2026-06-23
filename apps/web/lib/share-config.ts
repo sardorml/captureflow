@@ -1,10 +1,3 @@
-// Share-config sidecar (parallel to lib/snap-keys.ts). The screen MP4 is
-// uploaded once and never re-encoded; bg, camera PiP placement, and per-track
-// mute state are applied at play time on top of the immutable bytes. We persist
-// that config as a JSON sidecar next to the video in R2 so the public viewer
-// and the dashboard edit page share one source of truth — no D1 migration
-// needed for what is effectively a presentation-layer dictionary.
-
 const MP4 = '.mp4';
 
 export function shareConfigKeyFor(storageKey: string): string {
@@ -22,9 +15,7 @@ export type ShareCameraCorner =
 
 export type ShareCameraSize = 'small' | 'medium' | 'large';
 
-// Unknown values narrow to a safe default at hydrate time so a corrupted
-// sidecar can't crash the viewer. `background` follows the snap-editor
-// convention: a gradient preset key, a '#hex' fill, or 'transparent'.
+// `background` is a gradient preset key, a '#hex' fill, or 'transparent'.
 export type ShareConfig = {
   background: string;
   cameraCorner: ShareCameraCorner;
@@ -54,8 +45,6 @@ export const SHARE_GRADIENT_KEYS = [
 ] as const;
 export type ShareGradientKey = (typeof SHARE_GRADIENT_KEYS)[number];
 
-// Kept in sync with the snap editor's gradients. Each stop `(offset, color)` is
-// rendered into a `linear-gradient(135deg, …)` by `shareGradientCss`.
 export const SHARE_GRADIENT_PRESETS: Record<
   ShareGradientKey,
   { label: string; stops: { offset: number; color: string }[] }
@@ -150,8 +139,6 @@ export function shareGradientCss(
   return `linear-gradient(135deg, ${parts.join(', ')})`;
 }
 
-// Hydrate sidecar JSON (or null when absent/unparseable) into a validated
-// ShareConfig, falling back to defaults for any unknown values.
 export function hydrateShareConfig(raw: unknown): ShareConfig {
   if (!raw || typeof raw !== 'object') return DEFAULT_SHARE_CONFIG;
   const obj = raw as Record<string, unknown>;

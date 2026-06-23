@@ -4,26 +4,15 @@ import { is } from '@electron-toolkit/utils'
 import captureflowIconPath from '../../../resources/icon.png?asset'
 import { logInfo, logError } from './logger'
 
-// Wires up electron-updater against GitHub Releases (github provider —
-// configured in electron-builder.yml). The flow is prompt-based: when a newer
-// version is found we ask the user (native dialog, Cap-style) before downloading
-// anything; only "Update" downloads and installs. Squirrel validates the
-// Developer ID signature before swapping the bundle, so a tampered release asset
-// can't ship a forged binary.
+// Squirrel validates the Developer ID signature before swapping the bundle, so
+// a tampered release asset can't ship a forged binary.
 export function initAutoUpdater(): void {
-  // No-op in dev. electron-updater would otherwise hit GitHub on every
-  // launch, and the running binary isn't signed with our Developer ID, so
-  // Squirrel would reject any "update" anyway.
   if (is.dev) return
 
-  // Don't pull bytes until the user opts in — the dialog drives the download.
   autoUpdater.autoDownload = false
   autoUpdater.autoInstallOnAppQuit = true
 
-  // Guard against a second prompt while one is already open or a chosen
-  // update is downloading (checkForUpdates can fire again on later checks).
   let busy = false
-  // Versions the user dismissed this session — don't nag again until relaunch.
   const ignored = new Set<string>()
 
   autoUpdater.on('checking-for-update', () => {
@@ -70,7 +59,6 @@ export function initAutoUpdater(): void {
 
   autoUpdater.on('update-downloaded', (info) => {
     logInfo('updater', `update downloaded: ${info.version} — quitting to install`)
-    // The user already opted in via the prompt; install + relaunch now.
     autoUpdater.quitAndInstall()
   })
 

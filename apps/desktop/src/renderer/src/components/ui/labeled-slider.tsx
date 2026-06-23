@@ -11,10 +11,7 @@ type LabeledSliderProps = {
   step?: number
   ticks?: number
   displayValue?: string
-  /**
-   * When provided, replaces the displayValue badge with a reset button that
-   * snaps the slider back to this value. The button dims when already at default.
-   */
+  // When provided, replaces the displayValue badge with a reset button that snaps the slider back to this value. The button dims when already at default.
   defaultValue?: number
   /** Help text shown next to the label via an info icon. */
   tooltip?: ReactNode
@@ -78,9 +75,7 @@ export function LabeledSlider({
       )}
       <div className="flex items-center gap-3 w-full">
         <div className="relative flex-1">
-          {/* Drag-time value bubble anchored to the thumb. The 8px offset
-              matches the macos-slider thumb radius so the bubble stays within
-              the track ends at 0% / 100%. */}
+          {/* 8px offset matches the macos-slider thumb radius so the bubble stays within the track at 0%/100%. */}
           <div
             aria-hidden
             className={`pointer-events-none absolute z-20 -top-7 mx-2 px-1.5 py-0.5 rounded-md bg-neutral-900/95 border border-white/10 text-[11px] font-normal text-foreground tabular-nums shadow-md transition-opacity duration-150 ${

@@ -1,6 +1,3 @@
-// Format a unix-ms timestamp as a relative label, falling back to an
-// absolute date past 30 days. Single source of truth — both the viewer
-// and the editor's posted-by row consume this.
 export function timeAgo(ms: number): string {
   const now = Date.now();
   const diff = Math.max(0, now - ms);

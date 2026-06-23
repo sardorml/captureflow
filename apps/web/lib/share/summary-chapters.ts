@@ -1,8 +1,3 @@
-// Server-backed persistence for the share viewer's Summary + Chapters
-// block. Data lives as a JSON sidecar in R2 so all viewers see the same
-// thing regardless of browser; localStorage-only stranded edits on the
-// owner's device.
-
 import { getObjectJson, putObjectJson } from './r2';
 
 export type ShareChapter = {
@@ -22,7 +17,6 @@ export const EMPTY_SUMMARY_CHAPTERS: ShareSummaryChapters = {
   chapters: [],
 };
 
-// Sidecar key `<videoKey>.summary-chapters.json`, next to the video in R2.
 export function summaryChaptersKeyFor(videoStorageKey: string): string {
   return `${videoStorageKey}.summary-chapters.json`;
 }
@@ -31,7 +25,6 @@ export function summaryChaptersKeyFor(videoStorageKey: string): string {
 const MAX_SUMMARY_LENGTH = 4_000;
 const MAX_CHAPTERS = 100;
 
-// Validates/normalizes a client payload, dropping rows that aren't a ShareChapter.
 export function hydrateSummaryChapters(raw: unknown): ShareSummaryChapters {
   if (!raw || typeof raw !== 'object') return EMPTY_SUMMARY_CHAPTERS;
   const r = raw as Record<string, unknown>;

@@ -23,9 +23,7 @@ export function OPTIONS() {
 const MAX_COMMENT_LENGTH = 1000;
 const MAX_COMMENTS_PER_SHARE = 1000;
 
-// Reads are open; visibility is enforced upstream — private/workspace
-// shares are gated at /[slug], so anyone without permission would
-// already have been bounced before reaching this endpoint.
+// Reads are open; visibility is enforced upstream at /[slug].
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('slug');
   if (!isValidSlug(slug)) {
@@ -36,10 +34,8 @@ export async function GET(req: NextRequest) {
   return withCors(NextResponse.json(body));
 }
 
-// Same auth gate as POST /api/reactions: the cookie travels here on
-// .captureflow.xyz, we relay to app-web for the session lookup, and
-// 401 if it fails. The display name is captured at write time so a
-// later rename doesn't rewrite history.
+// The display name is captured at write time so a later rename doesn't
+// rewrite history.
 export async function POST(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('slug');
   if (!isValidSlug(slug)) {
@@ -70,9 +66,7 @@ export async function POST(req: NextRequest) {
     return jsonError('Comment too long', 400, 'too_long');
   }
 
-  // Optional video-relative timestamp. Clamp negatives to 0 and cap
-  // at duration + 1s of slack so a small overshoot from end-of-video
-  // doesn't reject the comment.
+  // 1s of slack past duration so an end-of-video overshoot isn't rejected.
   let timestampMs: number | null = null;
   if (
     typeof body.timestampMs === 'number' &&
@@ -96,9 +90,8 @@ export async function POST(req: NextRequest) {
     body: raw,
     timestampMs,
   });
-  // INSERT...RETURNING in db-d1 can't join `users.image`, so decorate
-  // the response with the visitor's avatar from the already-verified
-  // session to keep post-server state consistent on the next render.
+  // INSERT...RETURNING in db-d1 can't join `users.image`, so decorate from
+  // the verified session.
   const comment = { ...inserted, userImage: visitor.image };
   const res: AddCommentResponse = { comment };
   return withCors(NextResponse.json(res));

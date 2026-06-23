@@ -1,18 +1,3 @@
-/**
- * Centralised side-effect handling for share-upload failures.
- *
- *  - `invalid_token`   → clear share-auth (the desktop lock flips back
- *                        to "sign in" without a restart)
- *  - `storage_limit`   → flip the cached usage state to cap-reached so
- *  - `active_limit`      the next overlay open paints the upgrade lock
- *  - network error     → mark connectivity offline so the SelectionOverlay
- *                        renders the existing offline lock
- *
- * Translates the error into a typed `ShareUploadFailure` for the
- * caller — the streamer turns this into a `ShareFinishResult` or a
- * failure-modal state, depending on whether a salvageable URL exists.
- */
-
 import { clearShareAuth } from './share-auth'
 import { setShareConnectivity } from './share-connectivity'
 import { markShareUsageCapReached, refreshShareUsage } from './share-usage'

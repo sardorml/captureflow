@@ -1,21 +1,10 @@
 import { Sparkles } from 'lucide-react';
 import { UpgradeModal } from './(dashboard)/UpgradeModal';
 
-// Account-scoped storage indicator for the dashboard sidebar.
-//
-// /api/init enforces the same cap by aggregating every share + snap owned
-// by the signed-in user (regardless of device). Admins can bump a user's
-// cap via admin.captureflow.xyz's user_quotas override; the limit prop
-// already reflects that override.
-
-// Public Lemon Squeezy checkout link (not secret) — hardcoded fallback for the
-// same reason as in UpgradeModal/public-analytics. Env still wins when set.
 const UPGRADE_BASE_URL =
   process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ||
   'https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916';
 
-// Pre-fills the LS checkout email so it matches the buyer's account (the webhook
-// links the subscription by email), mirroring UpgradeModal's checkoutUrlFor.
 function upgradeUrlFor(email: string): string {
   const u = new URL(UPGRADE_BASE_URL);
   u.searchParams.set('billing', 'monthly');
@@ -26,7 +15,6 @@ function upgradeUrlFor(email: string): string {
 type StorageUsageProps = {
   usedBytes: number;
   limitBytes: number;
-  // Pre-fills the upgrade modal's checkout so the signed-in user doesn't retype.
   email: string;
 };
 
@@ -36,10 +24,6 @@ export function StorageUsage({
   email,
 }: StorageUsageProps) {
   const limit = limitBytes;
-  // Free tier has no cloud quota (limit 0) — cloud storage is Pro-only. A
-  // 0-byte limit would render a nonsensical "X of 0 B" at a red 0%, so show
-  // the upgrade prompt instead of a meter, with a CTA that opens the same
-  // in-app upgrade modal the topbar uses.
   if (limit <= 0) {
     return (
       <div>

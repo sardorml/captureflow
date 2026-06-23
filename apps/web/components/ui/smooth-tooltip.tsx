@@ -29,9 +29,6 @@ const placementStyles: Record<AnimatedTooltipPlacement, string> = {
   right: 'left-full top-1/2 -translate-y-1/2 ml-2',
 };
 
-// An 8px square rotated 45° overlapping the tooltip edge: half merges into the
-// body, half pokes out as a triangle. More robust than CSS border-triangles,
-// which can render as a box.
 const arrowStyles: Record<AnimatedTooltipPlacement, string> = {
   top: 'top-full -mt-1 left-1/2 -translate-x-1/2',
   bottom: 'bottom-full -mb-1 left-1/2 -translate-x-1/2',

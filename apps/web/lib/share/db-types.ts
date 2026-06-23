@@ -1,8 +1,5 @@
 import type { ShareComment, ShareReaction, ShareRow } from './types';
 
-// Backend-agnostic database interface, implemented by `db-d1.ts` (production)
-// and `db-memory.ts` (local dev). The dispatcher in `db.ts` picks one per call
-// based on whether a Cloudflare D1 binding is reachable in the current request.
 export type ShareDb = {
   insertShare(row: ShareRow): Promise<void>;
   getShare(slug: string): Promise<ShareRow | null>;

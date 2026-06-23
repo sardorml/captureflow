@@ -36,7 +36,6 @@ export function WorkspaceLogoForm({
   );
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Auto-submit on file pick so there's no separate confirm step.
   const submitOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     (e.currentTarget.form as HTMLFormElement).requestSubmit();

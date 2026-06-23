@@ -3,14 +3,6 @@ import { getAppWebEnv } from '@/lib/cf-env';
 import { loadSession } from '@/lib/session-guard';
 import { viewUrlFor, snapViewUrlFor } from '@/lib/site';
 
-// Top-bar cmd-K search across the visitor's own shares + snaps. Lives here
-// rather than in shares-db / snaps-db because it returns a merged ranked list,
-// not the dashboard rows those modules produce.
-//
-// Ranking is deliberately naive: case-insensitive LIKE on `title` per table,
-// capped per kind, merged and re-sorted by recency. FTS5/tags/transcript can
-// come later once we know what people actually search for.
-
 // Cookie-gated, so never serve a cached response.
 export const dynamic = 'force-dynamic';
 

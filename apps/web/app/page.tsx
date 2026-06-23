@@ -1,6 +1,3 @@
-// Marketing landing. The MarketingShell wrapper + marketing.css scope the
-// landing's palette and typeface to this subtree, so the dashboard's
-// @captureflow/ui token theme is never touched.
 import './marketing.css';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
@@ -29,11 +26,8 @@ import {
   SITE_DESCRIPTION,
 } from '@/lib/marketing/constants';
 
-// Force a live session check per request, so a freshly-signed-in user can't see
-// the marketing home from a cached shell or bf-cache.
 export const dynamic = 'force-dynamic';
 
-// Overrides the root layout's app-shell title with indexable product copy.
 export const metadata: Metadata = {
   title: { absolute: SITE_TITLE },
   description: SITE_DESCRIPTION,
@@ -55,14 +49,10 @@ export const metadata: Metadata = {
   },
 };
 
-// Signed-in visitors are redirected to the dashboard; signed-out see the landing.
 export default async function RootPage() {
   const session = await loadSession();
   if (session) redirect('/shares');
 
-  // Live GitHub star count for the hero's repo button (cached ~1h in github.ts).
-  // null before the repo is public or if the API is unreachable, in which case
-  // the button hides the count.
   const starCount = await getStarCount();
   const stars = starCount != null ? formatStars(starCount) : null;
 
@@ -74,8 +64,7 @@ export default async function RootPage() {
             data={[WEBSITE_SCHEMA, ORGANIZATION_SCHEMA, APP_SCHEMA, FAQ_SCHEMA]}
           />
           <Nav stars={stars} />
-          {/* Nav is position: fixed, so push content down by the bar's
-              measured height (--header-height, set in nav.tsx). */}
+          {/* Nav is position: fixed; offset by --header-height (set in nav.tsx). */}
           <main style={{ paddingTop: 'var(--header-height, 68px)' }}>
             <HeroSection stars={stars} />
             <ModesIntro />

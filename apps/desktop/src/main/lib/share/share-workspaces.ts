@@ -7,19 +7,6 @@ import { loadDeviceId } from '../device-id'
 import { logInfo, logWarn } from '../logger'
 import { getShareAuthToken } from './share-auth'
 
-// Workspace store for the recording toolbar's switcher chip: tracks
-// which workspace newly-recorded shares + snaps land in, fetched from
-// /api/workspaces with the desktop's existing bearer.
-//
-// Cached state is read from disk on boot; refresh() reconciles it while
-// signed in (probe failures keep the cache so the chip never flashes
-// empty), and signed-out collapses to `unknown`.
-//
-// The active workspace persists across launches. It's revalidated
-// against the fetched list — if the server says they're no longer a
-// member (kicked from a team), we fall back to the first available
-// workspace (always their personal one, sorted first).
-
 const APP_WEB_API_BASE = process.env.CAPTUREFLOW_APP_WEB_API_BASE ?? 'https://captureflow.xyz'
 const FETCH_TIMEOUT_MS = 8_000
 const FILE_NAME = 'workspaces.json'
@@ -110,8 +97,6 @@ export async function refreshWorkspaces(): Promise<WorkspacesState> {
   const promise = (async (): Promise<WorkspacesState> => {
     const token = getShareAuthToken()
     if (!token) {
-      // Signed out — drop cached state so the chip vanishes alongside
-      // the storage pill.
       if (current.kind !== 'unknown') setState({ kind: 'unknown' })
       return current
     }
@@ -126,8 +111,7 @@ export async function refreshWorkspaces(): Promise<WorkspacesState> {
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
       })
       if (res.status === 401) {
-        // Token revoked — leave our state untouched and let the next
-        // /api/usage probe drive the cleanup via share-auth.
+        // Leave state untouched; the /api/usage probe drives cleanup via share-auth.
         return current
       }
       if (!res.ok) {
@@ -146,8 +130,7 @@ export async function refreshWorkspaces(): Promise<WorkspacesState> {
           )
         : []
       if (fresh.length === 0) {
-        // No memberships shouldn't happen (the signup hook auto-creates
-        // one); keep the cached state so the chip stays usable.
+        // No memberships shouldn't happen (signup hook auto-creates one); keep cache.
         logWarn('workspaces', 'refresh: empty membership list, keeping cached')
         return current
       }
@@ -185,8 +168,6 @@ export async function refreshWorkspaces(): Promise<WorkspacesState> {
   }
 }
 
-// Switch the active workspace. No-op if the id isn't in the cached
-// list — keeps a stale renderer from poisoning the active selection.
 export async function selectWorkspace(id: string): Promise<WorkspacesState> {
   if (current.kind !== 'known') return current
   if (current.activeId === id) return current

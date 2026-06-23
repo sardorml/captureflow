@@ -3,7 +3,6 @@ import { join } from 'path'
 import { mkdir, writeFile } from 'fs/promises'
 
 function getRecordingsDir(): string {
-  // Separate Dev folder keeps test sessions out of the production folder.
   // `videos` resolves to NSMoviesDirectory (~/Movies) on macOS.
   const folder = app.isPackaged ? 'CaptureFlow' : 'CaptureFlow Dev'
   return join(app.getPath('videos'), folder)
@@ -15,8 +14,8 @@ export async function ensureRecordingsDir(): Promise<string> {
   return dir
 }
 
-// A session folder ends in `.captureflow` and holds an `Info.plist` so
-// Finder treats the directory as a single document (package bundle).
+// A session folder ends in `.captureflow` and holds an `Info.plist` so Finder
+// treats the directory as a single document (package bundle).
 let currentSessionDir: string | null = null
 
 const PACKAGE_INFO_PLIST = `<?xml version="1.0" encoding="UTF-8"?>

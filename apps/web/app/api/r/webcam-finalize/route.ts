@@ -6,10 +6,6 @@ import { completeMultipartUpload, headObject } from '@/lib/share/r2';
 import { optionsResponse, withCors } from '@/lib/share/cors';
 import type { FinalizeRequest, ShareApiError } from '@/lib/share/types';
 
-// Webcam-companion counterpart to /api/finalize. Flips webcam_state from
-// 'pending' to 'ready' once the R2 multipart completes; idempotent against
-// an already-ready row.
-
 const DEVICE_HEADER = 'x-captureflow-device';
 
 export function OPTIONS() {
@@ -57,10 +53,7 @@ export async function POST(req: NextRequest) {
   if (!row) return jsonError('Share not found', 404, 'not_found');
   if (row.deviceId !== deviceId)
     return jsonError('Forbidden', 403, 'forbidden');
-  // Idempotent: if the webcam is already ready (or never expected),
-  // return ok rather than 409 — the desktop retries finalize on
-  // recovery and we don't want a transient network hiccup to leave
-  // the row stuck.
+  // Idempotent: desktop retries finalize, so return ok (not 409) if already ready.
   if (row.webcamState === 'ready') {
     return withCors(NextResponse.json({ ok: true }));
   }

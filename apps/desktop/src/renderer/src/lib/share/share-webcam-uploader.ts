@@ -1,33 +1,7 @@
-/**
- * ShareWebcamUploader
- * ───────────────────
- * Combines a webcam video track and a mic audio track into a single
- * MediaStream, instantiates one MediaRecorder over it, and pumps the
- * `dataavailable` chunks to main via `sharePartWebcam(bytes)`. By the
- * time the user clicks stop, most of the webcam companion is already
- * on R2 alongside the screen file.
- *
- * The web viewer plays this companion as a corner PiP overlay; its
- * mic audio plays independently of the screen track's system audio,
- * so each can be muted on its own without re-encoding.
- *
- * Lifecycle:
- *   start({ webcamTrack, micTrack? }) — begin recording + streaming
- *   stop()                            — flush final chunk, return
- *                                       total bytes shipped
- *   abort()                           — cancel without flushing
- */
-
 import { logRendererInfo, logRendererWarn } from './share-log'
 
-// WebM only — the worker reserves the multipart upload with a fixed
-// `videos/{slug}-webcam.webm` storage key and `Content-Type: video/webm`.
-// Letting MediaRecorder pick MP4 (which Chromium supports first) used
-// to produce a .webm-named MP4 file: the share player would download it,
-// the browser would try to decode WebM bytes that were actually MP4, and
-// the <video> element would freeze on the first frame with no audio.
-// Reordering so VP9 is preferred (smaller, sharper at same bitrate)
-// with VP8 as the universally-supported fallback.
+// WebM only — the worker reserves the upload with a fixed video/webm key;
+// an MP4-in-.webm file freezes the share player on the first frame.
 const WEBCAM_MIME_WEBM_VP9_OPUS = 'video/webm;codecs=vp9,opus'
 const WEBCAM_MIME_WEBM_VP8_OPUS = 'video/webm;codecs=vp8,opus'
 
@@ -44,10 +18,7 @@ export class ShareWebcamUploader {
   private recorder: MediaRecorder | null = null
   private combinedStream: MediaStream | null = null
   private totalBytes = 0
-  // Tracks the chain of in-flight ArrayBuffer conversions so we can
-  // await them on stop — without this the recorder.onstop resolves
-  // before the final dataavailable.toArrayBuffer settles, dropping
-  // the last chunk.
+  // Awaited on stop so the final dataavailable conversion isn't dropped.
   private pendingChunks: Promise<void>[] = []
 
   start(inputs: ShareWebcamUploaderInputs): void {
@@ -81,9 +52,6 @@ export class ShareWebcamUploader {
       this.pendingChunks.push(promise)
     }
 
-    // 200ms chunk cadence balances upload latency (lower = bytes hit
-    // R2 sooner) against per-chunk overhead (lower = more HTTP frames
-    // queued in main).
     recorder.start(200)
     this.recorder = recorder
     logRendererInfo(`share-webcam: started (mime=${mimeType})`)
@@ -101,9 +69,6 @@ export class ShareWebcamUploader {
       rec.requestData()
       rec.stop()
     })
-    // Wait for any in-flight ArrayBuffer conversions before reporting
-    // bytes — dropping the tail chunk silently is the worst kind of
-    // bug in a streaming pipeline.
     await Promise.allSettled(this.pendingChunks)
     this.pendingChunks = []
     this.cleanupStream()
@@ -126,8 +91,7 @@ export class ShareWebcamUploader {
   }
 
   private cleanupStream(): void {
-    // Drop only the combined wrapper — the source tracks belong to the
-    // caller (webcam + mic streams), so we must not stop them here.
+    // Drop only the combined wrapper; source tracks belong to the caller.
     if (this.combinedStream) {
       this.combinedStream = null
     }

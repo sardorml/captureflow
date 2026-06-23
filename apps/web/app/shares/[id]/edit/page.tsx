@@ -15,9 +15,6 @@ const R2_BASE =
 
 export const dynamic = 'force-dynamic';
 
-// Validate the session, fetch the share row, pull the config sidecar from
-// R2, and hand off to the client editor. Theme is resolved from the cookie
-// server-side so the editor's toggle paints the right glyph on first render.
 export default async function ShareEditPage({
   params,
 }: {
@@ -28,8 +25,6 @@ export default async function ShareEditPage({
   const share = await getShareForUser(session.user.id, id);
   if (!share) notFound();
 
-  // Best-effort: falls back to defaults if R2 has no object yet (first
-  // edit) or the JSON is unparseable.
   let savedConfig: unknown = null;
   try {
     savedConfig = await getObjectJson<unknown>(
@@ -40,7 +35,6 @@ export default async function ShareEditPage({
   }
   const initialConfig = hydrateShareConfig(savedConfig);
 
-  // Powers the editor's VisibilityDialog.
   const env = await getAppWebEnv();
   const workspaceRow =
     env?.DB && share.workspaceId

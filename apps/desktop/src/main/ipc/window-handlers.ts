@@ -16,10 +16,12 @@ function showDimOverlay(
   const sw = display.size.width
   const sh = display.size.height
 
-  // `type: 'panel'` makes this an NSPanel — the same trick the selection
-  // overlay uses to draw OVER the macOS menu bar. A plain BrowserWindow gets
-  // pushed below the menu bar (which also clips the cutout), no matter what
-  // alwaysOnTop level you give it.
+  /*
+   * `type: 'panel'` makes this an NSPanel — the same trick the selection
+   * overlay uses to draw OVER the macOS menu bar. A plain BrowserWindow gets
+   * pushed below the menu bar (which also clips the cutout), no matter what
+   * alwaysOnTop level you give it.
+   */
   dimWindow = new BrowserWindow({
     width: sw,
     height: sh,
@@ -44,23 +46,29 @@ function showDimOverlay(
   dimWindow.setAlwaysOnTop(true, 'screen-saver')
   dimWindow.setIgnoreMouseEvents(true)
 
-  // ScreenCaptureKit and screen.bounds both use top-left origin in
-  // points/pixels, and the dim window now spans the full display, so
-  // CSS coords map 1:1 to SCWindow.frame.
+  /*
+   * ScreenCaptureKit and screen.bounds both use top-left origin in
+   * points/pixels, and the dim window now spans the full display, so
+   * CSS coords map 1:1 to SCWindow.frame.
+   */
   const bx = Math.round(bounds.x - display.bounds.x)
   const by = Math.round(bounds.y - display.bounds.y)
   const bw = Math.round(bounds.width)
   const bh = Math.round(bounds.height)
-  // Native radius detected by the window detector via SCK alpha sampling.
-  // Falls back to 10pt (the macOS standard window radius) when the source
-  // didn't carry a value (display/area capture, or detection failure).
+  /*
+   * Native radius detected by the window detector via SCK alpha sampling.
+   * Falls back to 10pt (the macOS standard window radius) when the source
+   * didn't carry a value (display/area capture, or detection failure).
+   */
   const radius = Math.max(0, Math.round(cornerRadius ?? 10))
   console.warn('[dim] screen:', sw, 'x', sh, 'window:', bx, by, bw, bh, 'radius:', radius)
-  // Single rounded cutout via box-shadow spread — paints the dim everywhere
-  // *outside* the window rect, with rounded corners that hug the captured
-  // window's actual chrome. Avoids the degenerate 0px-height top/bottom
-  // quadrants that the four-rect approach produced when the window sat
-  // flush against the work-area top or bottom.
+  /*
+   * Single rounded cutout via box-shadow spread — paints the dim everywhere
+   * *outside* the window rect, with rounded corners that hug the captured
+   * window's actual chrome. Avoids the degenerate 0px-height top/bottom
+   * quadrants that the four-rect approach produced when the window sat
+   * flush against the work-area top or bottom.
+   */
   const html = `<!DOCTYPE html>
 <html><head><style>
 * { margin: 0; padding: 0; }

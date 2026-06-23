@@ -1,27 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
 
-// Edge-runtime gate. `getSessionCookie` only reads cookie presence
-// (cheap, no DB hit); per-action and per-page server checks via
-// `auth.api.getSession()` do the actual session-row verification.
-//
-// Public routes are excluded via the matcher below. The bearer-token APIs
-// (`/api/r/*`, `/api/s/*`, `/api/usage`, `/api/workspaces`, ...) are
-// excluded so the desktop's bearer calls get a JSON 401 instead of a 302.
-
 export const config = {
   matcher: [
-    // The trailing `(?!...\\.[\\w]+$)` excludes any top-level static file in
-    // /public so the gate never redirects an asset to /login. `_next/`
-    // already covers the build output + the /_next/image optimizer.
+    // Bearer-token APIs are excluded so desktop bearer calls get a JSON 401, not a 302.
     '/((?!_next/|favicon\\.ico|robots\\.txt|ingest/|api/auth|api/lemon-webhook|api/usage|api/verify-session|api/workspaces|api/request-access|api/r/|api/s/|r/|r$|s/|s$|login|signup|download|plan|suggest-feature|auth/callback|auth/clear|invite|.*\\.[\\w]+$).*)',
   ],
 };
 
 export function middleware(req: NextRequest) {
-  // The bare `/` is the public landing — app/page.tsx self-branches
-  // (renders the landing when logged out, redirects to /shares when logged
-  // in). Never gate it here.
+  // The bare `/` is the public landing (app/page.tsx self-branches); never gate it.
   if (req.nextUrl.pathname === '/') {
     return NextResponse.next();
   }
@@ -33,12 +21,9 @@ export function middleware(req: NextRequest) {
     url.pathname = '/login';
     url.search = next && next !== '/' ? `?next=${encodeURIComponent(next)}` : '';
     const res = NextResponse.redirect(url);
-    // Don't replay a stale 307 after a redeploy.
     res.headers.set('cache-control', 'no-store, must-revalidate');
     return res;
   }
-  // Pin gated HTML to `no-store` so the browser never serves a cached shell
-  // that still references chunks from a previous deploy.
   const res = NextResponse.next();
   res.headers.set('cache-control', 'private, no-store, must-revalidate');
   return res;

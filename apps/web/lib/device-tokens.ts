@@ -2,10 +2,8 @@
 
 import { getAppWebEnv } from './cf-env';
 
-// Long-lived bearer tokens for the Electron desktop app. Issued
-// during the deep-link auth callback after a successful web login;
-// the raw token is shown to the app exactly once and stored as
-// SHA-256 server-side.
+// Long-lived bearer tokens for the desktop app: the raw token is shown to the
+// app exactly once and stored as SHA-256 server-side.
 
 export type DeviceTokenRow = {
   id: string;
@@ -36,7 +34,6 @@ async function getDb(): Promise<D1Database> {
   return env.DB;
 }
 
-// 32 random bytes → 64-hex-char token: ample entropy, safe for URL transport.
 function generateRawToken(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
@@ -50,8 +47,6 @@ async function hashToken(raw: string): Promise<string> {
   return arr.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Row id distinct from token_hash so listing/revoking work by id without
-// exposing the token.
 function generateId(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
@@ -85,9 +80,7 @@ export async function issueDeviceToken(
   return { id, rawToken };
 }
 
-// Resolves the owning user for a bearer token, returning null for unknown or
-// revoked tokens. Side effect: bumps last_used_at for the dashboard's
-// "Last seen" display.
+// Side effect: bumps last_used_at for the dashboard's "Last seen" display.
 export async function resolveDeviceToken(
   rawToken: string
 ): Promise<{ userId: string; id: string } | null> {

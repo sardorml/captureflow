@@ -17,7 +17,6 @@ export async function DELETE(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  // `id` is the share's public slug; the share-lib calls below key on slug.
   const { id } = await ctx.params;
   if (!isValidSlug(id)) {
     return jsonError('Invalid slug', 400, 'invalid_slug');
@@ -26,8 +25,6 @@ export async function DELETE(
   const row = await getShare(id);
   if (!row) return withCors(NextResponse.json({ ok: true }));
 
-  // Accept either the device header (desktop app / older dashboards) or a
-  // browser session cookie resolving to the share owner (viewer-page UI).
   const deviceId = req.headers.get(DEVICE_HEADER);
   let authorized = false;
   if (deviceId) {
@@ -42,9 +39,6 @@ export async function DELETE(
   if (row.uploadId) {
     await abortMultipartUpload(row.storageKey, row.uploadId);
   }
-  // Clean up the webcam companion: abort its in-flight multipart and drop
-  // its R2 object. Non-fatal — a missing object on R2 is already the
-  // success state.
   if (row.webcamUploadId && row.webcamStorageKey) {
     try {
       await abortMultipartUpload(row.webcamStorageKey, row.webcamUploadId);

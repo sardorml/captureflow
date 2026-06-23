@@ -5,22 +5,16 @@ import { usePathname } from 'next/navigation';
 import posthog from 'posthog-js';
 import { POSTHOG_KEY } from '@/lib/public-analytics';
 
-// First-party ingestion path. next.config rewrites /ingest/* → PostHog US
-// cloud, so requests look first-party and slip past ad blockers / Brave
-// Shields that block us.i.posthog.com directly (which was silently dropping
-// every pageview). ui_host keeps PostHog toolbar/app links pointing at the
-// real dashboard.
+/*
+ * next.config rewrites /ingest/* → PostHog US cloud so requests look
+ * first-party and slip past ad blockers / Brave Shields that block
+ * us.i.posthog.com directly. ui_host keeps app links on the real dashboard.
+ */
 const POSTHOG_PROXY_HOST = '/ingest';
 const POSTHOG_UI_HOST = 'https://us.posthog.com';
 
-// Web product analytics via PostHog. Mounted once in the root layout; renders
-// nothing. Dormant unless POSTHOG_KEY is set.
-//
-// Unlike the desktop client (which disables autocapture and only sends a few
-// explicit events), the web side turns autocapture ON so marketing/conversion
-// funnels come for free. Session recording stays OFF. Per the current product
-// decision there is no consent banner — persistence uses cookies so visitors
-// are stitched across sessions; revisit if EU consent becomes a requirement.
+// No consent banner by current product decision; cookie persistence stitches
+// visitors across sessions — revisit if EU consent becomes a requirement.
 
 let initialized = false;
 
@@ -30,8 +24,8 @@ function ensureInit(): boolean {
     posthog.init(POSTHOG_KEY, {
       api_host: POSTHOG_PROXY_HOST,
       ui_host: POSTHOG_UI_HOST,
-      // We send $pageview manually on App Router navigations below — Next's
-      // client-side routing doesn't trigger PostHog's own pageview capture.
+      // Sent manually below; Next client-side routing doesn't trigger
+      // PostHog's own pageview capture.
       capture_pageview: false,
       capture_pageleave: true,
       autocapture: true,
@@ -48,7 +42,6 @@ export function AnalyticsProvider(): null {
 
   useEffect(() => {
     if (!ensureInit()) return;
-    // window.location.href carries the full URL incl. query at capture time.
     posthog.capture('$pageview', { $current_url: window.location.href });
   }, [pathname]);
 

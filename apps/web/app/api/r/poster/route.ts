@@ -13,11 +13,8 @@ export function OPTIONS() {
   return optionsResponse();
 }
 
-// Single-shot upload for the OG/Twitter poster image: posters are tiny
-// (≪ 1 MB), so the whole body goes in one request, no multipart.
 // A poster may be uploaded while the video is still `pending` (the desktop
 // client races them in parallel) and overwritten after `ready`.
-
 export async function POST(req: NextRequest) {
   const deviceId = req.headers.get(DEVICE_HEADER);
   if (!deviceId)
@@ -72,11 +69,6 @@ export async function POST(req: NextRequest) {
   await putObject(posterKey, buffer, contentType, 'no-cache');
   await updateShare(slug, { posterKey });
 
-  // No edge cache-purge needed: the poster object is stored `no-cache` and
-  // the share viewer renders its og:image with a `?v=<sizeBytes>` cache-buster
-  // (see withVersion in app/r/[id]/page.tsx), so a regenerated poster gets a
-  // fresh URL that crawlers refetch. This also drops the CF_API_TOKEN /
-  // CF_ZONE_ID secret dependency the old standalone share worker carried.
   return withCors(
     NextResponse.json({
       posterKey,

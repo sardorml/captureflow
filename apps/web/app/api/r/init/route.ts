@@ -68,22 +68,11 @@ export async function POST(req: NextRequest) {
   }
 
   const durationMs = numberOrNull(body.durationMs);
-  // Duration cap is per-tier; enforced below with the other quota gates
-  // once the user (and thus their tier) is resolved.
 
-  // Desktop sends only the variable bit (window owner / display name);
-  // we expand it server-side into the full headline and persist that.
-  // Dashboard renames edit the full title, so the brand suffix + date
-  // are editable too — the renderer never composes any of it.
   const createdAt = Date.now();
   const sourceTitle = sanitizeSourceTitle(body.title);
   const title = buildShareHeadline(sourceTitle, createdAt);
 
-  // Every share is account-owned, so a missing bearer is rejected up
-  // front — no anonymous fallback, no orphan rows. A present-but-unresolved
-  // bearer (revoked/expired/tampered) returns the same 401 so the desktop's
-  // invalid_token handler clears its cached session without a restart.
-  // Resolved before the cap check so usage scopes to the right account.
   const bearer = extractBearerToken(req);
   if (!bearer) {
     return jsonError('Sign in to create a share link.', 401, 'missing_token');
@@ -97,10 +86,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Resolve target workspace before the quota gate — the cap belongs to
-  // that workspace's owner, so team uploads draw down the owner's quota,
-  // not the uploader's. Falls back to the uploader's personal workspace
-  // on any mismatch so a stale client never blocks.
+  // Quota draws down the workspace owner's cap, not the uploader's.
   let workspaceId: string | null = null;
   if (typeof body.workspaceId === 'string' && body.workspaceId) {
     workspaceId = await validateWorkspaceMembership(userId, body.workspaceId);
@@ -108,11 +94,7 @@ export async function POST(req: NextRequest) {
   if (!workspaceId) {
     workspaceId = await resolveUserWorkspaceId(userId);
   }
-  // Need owner_user_id for quota attribution plus the policy flags below.
   let workspace = workspaceId ? await getWorkspaceForUpload(workspaceId) : null;
-  // If the workspace blocks member uploads and the uploader isn't the
-  // owner, fall back to the uploader's personal workspace. Owners can
-  // always post into their own.
   if (
     workspace &&
     !workspace.allow_member_uploads &&
@@ -121,19 +103,10 @@ export async function POST(req: NextRequest) {
     workspaceId = await resolveUserWorkspaceId(userId);
     workspace = workspaceId ? await getWorkspaceForUpload(workspaceId) : null;
   }
-  // The owner's entitlement and storage cap apply to this upload.
-  // Defaults to the uploader when the workspace lookup is unavailable so
-  // the gate doesn't softfail in DB-less test runs.
   const quotaUserId = workspace?.owner_user_id ?? userId;
 
-  // Dev-allowlisted devices skip the caps so the developer can iterate
-  // against the deployed worker without wiping D1 to free up slots.
   const isDev = await isDevDevice(deviceId);
   if (!isDev) {
-    // Limits default to ACCOUNT_LIMITS, overridden per-user by any
-    // `user_quotas` row, and are resolved against the workspace owner so
-    // a free member uploading into a Pro owner's workspace gates on the
-    // owner's quota. Counts aggregate across shares and snaps the owner owns.
     const [activeCount, storageUsed, limits] = await Promise.all([
       activeArtifactCountForUser(quotaUserId),
       totalStorageForUser(quotaUserId),
@@ -159,22 +132,16 @@ export async function POST(req: NextRequest) {
   const storageKey =
     contentType === 'image/jpeg' ? `posters/${slug}.jpg` : `videos/${slug}.mp4`;
 
-  // `no-cache` makes the browser revalidate against the origin (so a
-  // bg-change replace shows up on refresh) while still reusing the local
-  // copy after a fast etag check. `no-store` was too aggressive — it
-  // forced a full re-download every refresh, leaving some browsers stuck
-  // buffering before first-frame decode.
+  // Must be `no-cache`, not `no-store`: the latter forced a full re-download
+  // every refresh, leaving some browsers stuck buffering before first decode.
   const { uploadId } = await createMultipartUpload(
     storageKey,
     contentType,
     'no-cache'
   );
 
-  // Optional companion webcam stream: reserve a second multipart upload
-  // that the desktop streams to via /api/webcam-part and completes via
-  // /api/webcam-finalize. The viewer composites the two tracks at play
-  // time so cam PiP placement stays editable. Video uploads only —
-  // posters are a single-shot upload.
+  // Optional companion webcam stream: the viewer composites the two tracks at
+  // play time so cam PiP placement stays editable. Video uploads only.
   let webcamStorageKey: string | null = null;
   let webcamUploadId: string | null = null;
   let webcamState: 'none' | 'pending' = 'none';
@@ -189,23 +156,17 @@ export async function POST(req: NextRequest) {
     webcamState = 'pending';
   }
 
-  // Desktop uploads as 'public'; owners flip to 'workspace'/'private' from
-  // the dashboard. We honor a non-public body.visibility only because it
-  // arrives via the dashboard re-record flow.
+  // A non-public body.visibility is honored only for the dashboard re-record flow.
   let visibility: ShareVisibility =
     body.visibility === 'private'
       ? 'private'
       : body.visibility === 'workspace'
       ? 'workspace'
       : 'public';
-  // When the workspace bans public links, coerce a public upload to
-  // 'workspace' so it isn't browsable by anyone with the URL.
   if (workspace && !workspace.allow_public_links && visibility === 'public') {
     visibility = 'workspace';
   }
 
-  // The viewer auth gate later reads this workspaceId column to check
-  // membership without joining through users.
   await insertShare({
     slug,
     deviceId,

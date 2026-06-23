@@ -3,9 +3,6 @@ import { headers } from 'next/headers';
 import { deleteComment, getComment, getShare } from '@/lib/share/db';
 import { verifySessionOrNull } from '@/lib/share/verify-session';
 
-// Authors can delete their own comments; share owners can delete any
-// comment on their share. No anonymous deletes.
-
 export const dynamic = 'force-dynamic';
 
 type Params = { params: Promise<{ id: string }> };
@@ -27,7 +24,6 @@ export async function DELETE(_req: Request, { params }: Params) {
   }
   let authorized = session.userId === comment.userId;
   if (!authorized) {
-    // Share owners can moderate comments on their share.
     const row = await getShare(comment.slug);
     authorized = !!row && row.userId === session.userId;
   }

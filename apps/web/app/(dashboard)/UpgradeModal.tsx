@@ -12,17 +12,10 @@ import {
   SmoothDialogTrigger,
 } from '@captureflow/ui';
 
-// Pricing is kept inline (not pulled from the landing package) so the
-// dashboard build stays self-contained. The Lemon Squeezy checkout base
-// comes from a single public env var; when it's unset the buy button is
-// hidden but the modal still renders its pricing/feature view.
-
 const MONTHLY_PRICE = 9;
 
-// Public Lemon Squeezy checkout link (not secret). Hardcoded for the same
-// reason POSTHOG_KEY is in lib/public-analytics.ts: NEXT_PUBLIC_* aren't inlined
-// into client bundles here, so the env read is empty in this client component.
-// The env still wins when present (e.g. a local override).
+// NEXT_PUBLIC_* aren't inlined into client bundles here, so hardcode the public
+// checkout link; the env still wins when present.
 const CHECKOUT_BASE_URL =
   process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ||
   'https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916';
@@ -35,15 +28,10 @@ const BENEFITS = [
 ] as const;
 
 type Props = {
-  // Pre-fills the LS checkout via `?checkout[email]=`, which LS then locks.
   email: string;
-  // Caller-supplied trigger, handed to Radix's `asChild` Slot.
   trigger: ReactNode;
 };
 
-// Builds the checkout URL from the configured base. `billing=monthly` lets a
-// deployer branch on it in their LS product; email pre-fills the LS form.
-// Returns null when no base is configured so callers can hide the buy button.
 function checkoutUrlFor(email: string): string | null {
   if (!CHECKOUT_BASE_URL) return null;
   const u = new URL(CHECKOUT_BASE_URL);
@@ -57,11 +45,8 @@ export function UpgradeModal({ email, trigger }: Props) {
   const price = MONTHLY_PRICE;
   const checkoutUrl = checkoutUrlFor(email);
 
-  // Radix's `asChild` Slot injects a generated id on the client; rendering the
-  // wired-up trigger during SSR produces a useId the client can't reproduce, so
-  // hydration fails (which also disables Fast Refresh). Render the bare trigger
-  // until mounted, then swap in the live dialog so SSR and first client render
-  // match exactly.
+  // Radix's asChild Slot injects a generated id only on the client, so render
+  // the bare trigger until mounted to keep SSR and first client render matching.
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -83,7 +68,6 @@ export function UpgradeModal({ email, trigger }: Props) {
           </SmoothDialogDescription>
         </SmoothDialogHeader>
 
-        {/* Price headline + cadence footnote. */}
         <div className="mt-5">
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-bold tabular-nums text-fg">
@@ -96,7 +80,6 @@ export function UpgradeModal({ email, trigger }: Props) {
           </p>
         </div>
 
-        {/* Benefit list */}
         <ul className="mt-4 space-y-2">
           {BENEFITS.map((b) => (
             <li key={b} className="flex items-center gap-2.5 text-sm text-fg">

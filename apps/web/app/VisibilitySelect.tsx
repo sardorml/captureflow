@@ -2,22 +2,12 @@
 
 import { Globe, Lock, Users } from 'lucide-react';
 
-// Three-state visibility picker shared by the shares + snaps dashboard
-// rows. Renders the matching icon for the currently-selected value
-// alongside a native <select> so the dropdown chrome stays consistent
-// with the rest of the row's controls. The select is the source of
-// truth; the icon is purely decorative.
-
 export type Visibility = 'public' | 'workspace' | 'private';
 
 type Props = {
   value: Visibility;
   disabled?: boolean;
   onChange: (next: Visibility) => void;
-  // When false, the workspace bans public links — the option is
-  // dropped from the menu so the owner can't accidentally re-expose
-  // existing rows. Server actions still enforce the policy, this is
-  // just the UI affordance.
   allowPublic?: boolean;
 };
 
@@ -33,9 +23,7 @@ export function VisibilitySelect({
   onChange,
   allowPublic = true,
 }: Props) {
-  // Hide the public option when the workspace bans it. A row that's
-  // already public (legacy bytes from before the policy flip) stays
-  // selectable so the owner can still see + flip it to workspace.
+  // Already-public legacy rows stay selectable so the owner can flip them.
   const showPublic = allowPublic || value === 'public';
   return (
     <label

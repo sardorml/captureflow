@@ -1,9 +1,7 @@
 import type { ShareComment, ShareReaction, ShareRow } from './types';
 import type { ShareDb } from './db-types';
 
-// In-memory backend for local Next.js dev (no D1 binding available).
-// State lives only for the process lifetime — restarting the dev server
-// empties it. Production uses the D1 backend instead.
+// In-memory backend for local Next.js dev only; production uses D1.
 const store = new Map<string, ShareRow>();
 const reactions: ShareReaction[] = [];
 const comments: ShareComment[] = [];
@@ -138,9 +136,8 @@ export const memoryDb: ShareDb = {
   },
 };
 
-// Aggregators for the memory backend, used by lib/share/quota.ts as the
-// fallback when no D1 binding is reachable. The snaps table is D1-only, so
-// these walk the shares store alone.
+// Quota fallback when no D1 binding is reachable. The snaps table is D1-only,
+// so these walk the shares store alone.
 
 export function memoryTotalStorageForUser(userId: string): number {
   let total = 0;

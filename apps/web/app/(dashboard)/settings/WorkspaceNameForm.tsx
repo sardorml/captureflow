@@ -13,7 +13,6 @@ export function WorkspaceNameForm({ initialName }: { initialName: string }) {
     INITIAL
   );
   const [name, setName] = useState(initialName);
-  // Success toast; auto-dismissed after 2s by the effect below.
   const [showSaved, setShowSaved] = useState(false);
   useEffect(() => {
     if (!state.ok) return;

@@ -1,7 +1,5 @@
 import { getAuth } from '@/lib/auth';
 
-// Catch-all route delegating every /api/auth/* request to the better-auth handler.
-
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {

@@ -6,12 +6,7 @@ import { motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Motion-driven dialog. Radix owns state, focus trap, escape, scroll
-// lock, and aria; we only spring-animate the content children on mount.
-// The overlay keeps Radix's data-state fade so its exit reads right.
-// No AnimatePresence wrapper: conditionally rendering it broke the
-// Portal anchor (Radix lost track of the Content).
-
+// No AnimatePresence wrapper: conditionally rendering it breaks the Portal anchor (Radix loses the Content).
 const SmoothDialog = DialogPrimitive.Root;
 const SmoothDialogTrigger = DialogPrimitive.Trigger;
 const SmoothDialogPortal = DialogPrimitive.Portal;
@@ -43,8 +38,6 @@ const SmoothDialogOverlay = React.forwardRef<
 const SmoothDialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
-    // Suppress the default top-right Close so callers can render their
-    // own inline close affordance.
     hideClose?: boolean;
   }
 >(function SmoothDialogContent(

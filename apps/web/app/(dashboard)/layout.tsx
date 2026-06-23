@@ -4,14 +4,9 @@ import { TopBar } from './TopBar';
 import { PostHogIdentify } from '../posthog-identify';
 
 export const dynamic = 'force-dynamic';
-// Guards against a cached HTML shell pointing at chunk URLs from a
-// previous deploy. `force-dynamic` implies no-store on the server
-// response, but spelling it on the segment also defeats any edge /
-// browser heuristic that might hold onto a stale tree.
+// Prevents serving a cached HTML shell that points at chunk URLs from a previous deploy.
 export const revalidate = 0;
 
-// Two-pane dashboard shell. Sidebar pinned left; right pane stacks a
-// global TopBar (notifications + user menu) above the per-page content.
 export default async function DashboardLayout({
   children,
 }: {

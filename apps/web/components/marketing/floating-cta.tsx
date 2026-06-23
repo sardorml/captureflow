@@ -5,15 +5,6 @@ import Image from 'next/image';
 import { track } from '@/lib/marketing/track';
 import { useLocalizedHref, useMessages } from './i18n-provider';
 
-// Floating "Try CaptureFlow" pill that slides up once the user reaches the end
-// of the hero demo and slides back down when they return to the top.
-//
-// Visibility is driven by an IntersectionObserver on the `#hero-end` sentinel
-// (a 1px marker at the bottom of the hero demo) rather than a scroll listener.
-// The bar shows when the sentinel scrolls into view (demo fully seen) and stays
-// up as the page continues down (sentinel above the viewport → `top < 0`); it
-// hides again only once the sentinel drops back below the fold near the top. No
-// per-frame scroll math, so it can't jank the page.
 export function FloatingCta() {
   const [visible, setVisible] = useState(false);
   const lh = useLocalizedHref();
@@ -25,9 +16,6 @@ export function FloatingCta() {
     const observer = new IntersectionObserver(
       ([entry]) =>
         setVisible(entry.isIntersecting || entry.boundingClientRect.top < 0),
-      // Negative bottom margin delays the trigger: the sentinel must scroll ~15%
-      // of the viewport past the bottom edge before the bar appears, rather than
-      // the instant the demo's end first touches the fold.
       { threshold: 0, rootMargin: '0px 0px -15% 0px' },
     );
     observer.observe(sentinel);
@@ -35,9 +23,6 @@ export function FloatingCta() {
   }, []);
 
   return (
-    // While hidden the bar must be fully out of the page: aria-hidden for screen
-    // readers, plus `inert` + tabIndex so the link can't be tabbed to behind the
-    // visual fade.
     <div
       aria-hidden={!visible}
       inert={!visible}

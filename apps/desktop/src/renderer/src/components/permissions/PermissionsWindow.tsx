@@ -19,8 +19,6 @@ export function PermissionsWindow(): React.JSX.Element {
   const [agreed, setAgreed] = useState(false)
   const checkRef = useRef<() => Promise<void>>(async () => {})
 
-  // Restore persisted choices so the toggle and agreement checkbox show the
-  // right state on re-open.
   useEffect(() => {
     void window.electronAPI.getUserPrefs().then((p) => {
       setAnalyticsEnabledState(p.analyticsEnabled)
@@ -31,8 +29,6 @@ export function PermissionsWindow(): React.JSX.Element {
   const toggleAnalytics = async (next: boolean): Promise<void> => {
     setAnalyticsEnabledState(next)
     await window.electronAPI.setUserPref('analyticsEnabled', next)
-    // Apply consent immediately in this window; the prefs-changed broadcast
-    // updates the others.
     const auth = await window.electronAPI.getShareAuth()
     setAnalyticsEnabled(next, auth)
   }
@@ -54,22 +50,17 @@ export function PermissionsWindow(): React.JSX.Element {
     }
   }, [])
 
-  // Gated behind both permissions and the ToS/Privacy agreement (see the
-  // button's disabled state). Persists acceptance so a returning user isn't
-  // asked again.
   const handleContinue = async (): Promise<void> => {
     await window.electronAPI.setUserPref('termsAccepted', true)
     await window.electronAPI.permissionsGranted()
   }
 
   const requestScreenRecording = async (): Promise<void> => {
-    // First click: trigger a TCC-protected call so macOS shows its native
-    // prompt and registers CaptureFlow in the Screen Recording list. We can't
-    // rely on `getMediaAccessStatus('screen')` to tell us whether the prompt
-    // will fire — it returns 'denied' for both never-asked and explicitly-
-    // denied states, so a status check would skip the call when it shouldn't.
-    // Subsequent clicks fall back to opening System Settings, since macOS
-    // only shows the prompt once per TCC state.
+    /*
+     * getMediaAccessStatus('screen') returns 'denied' for both never-asked and
+     * denied, so we can't gate on it; first click probes (fires the native
+     * prompt once), later clicks open System Settings.
+     */
     if (!screenRequested) {
       setScreenRequested(true)
       await window.electronAPI.probeScreenRecordingPermission()
@@ -91,7 +82,6 @@ export function PermissionsWindow(): React.JSX.Element {
 
   return (
     <div className="h-screen flex flex-col items-center px-12 pt-14 pb-10 select-none relative">
-      {/* Draggable title bar region */}
       <div
         className="absolute inset-x-0 top-0 h-10"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}

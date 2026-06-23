@@ -1,9 +1,5 @@
 'use client';
 
-// Dark top navbar shared by the share viewer + snap viewer. Spans the
-// full viewport width so the chrome reads as application-level, not
-// page-level. Rendered inside its own `<header>` so callers can drop it
-// above their `<main>` without nesting landmarks.
 import { useEffect, useState, type ReactElement, type ReactNode } from 'react';
 import { Check, Download, Link2 } from 'lucide-react';
 
@@ -14,30 +10,15 @@ export type ViewerNavViewer = {
 
 export type ViewerNavProps = {
   homeUrl: string;
-  // Brand name; also used as the logo's alt text.
   productName: string;
-  // Visible wordmark text next to the product name (falls back to none).
-  // Tells visitors what they're looking at, e.g. "Screen recording".
   label?: string;
-  // Static asset path. Each consumer hosts its own /public/logo.png so
-  // we don't bundle binaries into the workspace package.
   logoSrc?: string;
   viewCount?: number;
-  // When set, renders a download button alongside copy-link. Omit on
-  // routes that have no media.
   downloadUrl?: string;
   downloadName?: string;
-  // Optional signed-in viewer; when set an avatar chip renders. Ignored
-  // when `userMenu` is provided (that slot takes over).
   viewer?: ViewerNavViewer | null;
-  // Custom node rendered in place of the default avatar chip, e.g. a
-  // dropdown menu so the avatar opens a menu instead of navigating away.
   userMenu?: ReactNode;
-  // Optional theme toggle node, hosted as a slot so the nav doesn't need
-  // to import @captureflow/ui directly.
   themeToggle?: ReactNode;
-  // When set, suppresses the default action chips (download + copy link)
-  // and renders this slot instead.
   actions?: ReactNode;
 };
 
@@ -77,8 +58,6 @@ export function ViewerNav({
         rel="noopener noreferrer"
         className="flex items-center gap-2"
       >
-        {/* Plain <img> so the package doesn't depend on next/image; the
-            logo is small enough that <img> is fine. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={logoSrc}

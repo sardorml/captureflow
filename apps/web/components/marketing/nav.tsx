@@ -12,10 +12,7 @@ const GITHUB_URL = 'https://github.com/sardorml/captureflow';
 
 export function Nav({ stars = null }: { stars?: string | null }) {
   const m = useMessages();
-  // Prefixes in-app marketing hrefs with the active locale so the language
-  // stays in the URL. `#anchor` hrefs and non-marketing routes pass through.
   const lh = useLocalizedHref();
-  // Falls back to the constant's English label for any link without a catalog key.
   const navLabel = (link: { href: string; label: string }): string => {
     switch (link.href) {
       case '#modes':
@@ -34,10 +31,8 @@ export function Nav({ stars = null }: { stars?: string | null }) {
   };
 
   const [menuOpen, setMenuOpen] = useState(false);
-  // Transparent over the hero, solid white once scrolled past the fold. Uses
-  // bg-white (a core utility), NOT the marketing `@theme` `bg-background`
-  // token, which doesn't compile into a utility here and so rendered
-  // transparent even when scrolled, letting content bleed through the bar.
+  // Use bg-white, NOT the marketing `bg-background` token: it doesn't compile to a
+  // utility here and rendered transparent, letting content bleed through the bar.
   const [scrolled, setScrolled] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
@@ -66,17 +61,10 @@ export function Nav({ stars = null }: { stars?: string | null }) {
   return (
     <header
       ref={headerRef}
-      // Fixed (not sticky) to avoid iOS Safari re-rasterizing the bar every
-      // frame as it recomputes the sticky offset. Deliberately NO transform /
-      // will-change / filter here: any of those on the bar (or an ancestor)
-      // creates a containing block that makes `position: fixed` resolve
-      // relative to that box, letting the bar scroll with the page. Page
-      // content is pushed below via `padding-top: var(--header-height)` on
-      // <main>, set from the bar's measured offsetHeight.
+      // No transform/will-change/filter here: any creates a containing block that
+      // makes `position: fixed` resolve to it, letting the bar scroll with the page.
       className="fixed inset-x-0 top-0 z-50"
     >
-      {/* Bar background — transparent over the hero, fades to solid white once
-        scrolled past the fold or while the mobile sheet is open. */}
       <div
         className={`pointer-events-none absolute inset-0 bg-white transition-opacity duration-300 ${
           scrolled || menuOpen ? 'opacity-100' : 'opacity-0'
@@ -120,8 +108,6 @@ export function Nav({ stars = null }: { stars?: string | null }) {
           </div>
         </div>
 
-        {/* Right cluster — order runs low-emphasis to primary CTA:
-          GitHub, Sign in, then Download. */}
         <div className="hidden items-center gap-2 md:flex">
           <a
             href={GITHUB_URL}

@@ -1,6 +1,4 @@
-// Share-specific constants. Account-scoped quotas live in
-// `@captureflow/quota`'s ACCOUNT_LIMITS so share and snap surfaces share
-// one source of truth for the cap math.
+// Account-scoped quotas live in `@captureflow/quota`'s ACCOUNT_LIMITS.
 
 export const ALLOWED_CONTENT_TYPES = new Set(['video/mp4', 'image/jpeg']);
 

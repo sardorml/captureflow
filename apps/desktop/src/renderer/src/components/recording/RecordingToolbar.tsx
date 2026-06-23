@@ -154,14 +154,9 @@ function DeviceCell({
   onChange: (value: string) => void
   tooltip: string
 }): React.JSX.Element {
-  // The hidden <select> overlays the whole cell so a click opens the native
-  // menu. When off, the glyph swaps to its crossed-out variant (red) so a
-  // disabled device reads at a glance.
   const Glyph = isActive ? Icon : OffIcon
   return (
     <AnimatedTooltip content={tooltip} placement="bottom">
-      {/* Flat highlight to match the mode/source segment buttons, not the
-          springy HoverItem wash. */}
       <div
         className="relative flex h-8 items-center gap-0.5 rounded-lg px-1.5 cursor-pointer transition-colors hover:bg-white/5"
         aria-label={iconLabel}
@@ -212,8 +207,6 @@ function IdleToolbar(): React.JSX.Element {
   const systemAudioEnabled = useRecordingStore((s) => s.systemAudioEnabled)
   const setSystemAudioEnabled = useRecordingStore((s) => s.setSystemAudioEnabled)
   const recordingMode = useRecordingStore((s) => s.recordingMode)
-  // Screenshot mode doesn't pipe audio or camera, so the cells are hidden and
-  // the toolbar window shrinks (via the RESIZE_TOOLBAR IPC from the mode toggle).
   const showDeviceCells = recordingMode !== 'screenshot'
 
   const handleCameraChange = async (value: string): Promise<void> => {
@@ -244,8 +237,6 @@ function IdleToolbar(): React.JSX.Element {
       window.electronAPI.closeSelectionOverlay()
     } else {
       setOverlayMode(mode)
-      // The overlay's record handlers gate on these flags so it can prompt the
-      // permission dialog before showing the "Preparing…" spinner.
       // Dev-only: forward the "Record self" toggle so the picker's hover
       // detector includes CaptureFlow's own windows — otherwise the editor is
       // invisible to the window picker and can't be selected.
@@ -281,7 +272,6 @@ function IdleToolbar(): React.JSX.Element {
     })
   }, [])
 
-  // Use persisted labels as fallback before device enumeration completes
   const persistedCamLabel = (() => {
     try {
       return localStorage.getItem('captureflow-cam-label')
@@ -325,12 +315,10 @@ function IdleToolbar(): React.JSX.Element {
 
   return (
     <>
-      {/* Capture mode: Share · Screenshot */}
       <RecordingModeToggle />
 
       <Divider />
 
-      {/* Source: Display · Window · Area */}
       <div
         className="flex items-center gap-1 rounded-[10px] bg-black/20 p-1"
         style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
@@ -358,11 +346,7 @@ function IdleToolbar(): React.JSX.Element {
 
       <Divider />
 
-      {/* In Screenshot mode the device cells go `invisible` rather than being
-          removed: they still reserve their exact width so the bar never
-          resizes between modes. A centred hint is overlaid on top and
-          truncates rather than widening the bar — keeping the layout fixed
-          regardless of which mode is active. */}
+      {/* Device cells stay `invisible` (not removed) so they reserve width and the bar never resizes between modes. */}
       <div className="relative flex items-center">
         <div
           data-testid="recording-device-cells"
@@ -423,7 +407,6 @@ export function RecordingToolbar(): React.JSX.Element {
   const setSelectedAudioDevice = useRecordingStore((s) => s.setSelectedAudioDevice)
   const { startRecording } = useRecorder()
 
-  // Force transparent background for frameless window
   useEffect(() => {
     document.documentElement.style.background = 'transparent'
     document.body.style.background = 'transparent'
@@ -431,9 +414,6 @@ export function RecordingToolbar(): React.JSX.Element {
 
   const recordingMode = useRecordingStore((s) => s.recordingMode)
 
-  // Mirror main's share-auth state into the store and subscribe to changes.
-  // The SelectionOverlay reads the same value to decide whether to show a lock
-  // icon on Start recording.
   useEffect(() => {
     void window.electronAPI.getShareAuth().then((state) => {
       useRecordingStore.getState().setShareAuth(state)
@@ -443,12 +423,9 @@ export function RecordingToolbar(): React.JSX.Element {
     })
   }, [])
 
-  // Restore the user's last-used mic/camera from localStorage, but only if
-  // the OS has actually granted TCC access. Without this gate, a stale
-  // persisted deviceId would (a) make the dropdown lie about the current
-  // permission state and (b) cause the webcam bubble to flash open then
-  // closed when our async permission check arrives. getPermissions() is a
-  // status read, not a TCC request, so it's safe to call at startup.
+  // Only restore the persisted mic/camera if the OS has granted TCC; a stale
+  // deviceId without access flashes the webcam bubble. getPermissions is a
+  // status read, not a TCC request, so it's safe at startup.
   useEffect(() => {
     void window.electronAPI.getPermissions().then((perms) => {
       if (perms.camera === 'granted') {
@@ -473,12 +450,9 @@ export function RecordingToolbar(): React.JSX.Element {
   useSources()
   useMediaDevices()
 
-  // Renderer/main resync. If a renderer reload (Vite HMR, full refresh, devtools
-  // crash) drops state while the Swift recorder is still running in main, the
-  // toolbar comes back up in `idle` while a recording is in flight. Hide the
-  // toolbar so the user can't accidentally try to start a second recording —
-  // the stop overlay (a separate BrowserWindow owned by main) is still up and
-  // remains the source of truth for ending the take.
+  // If a renderer reload drops state while the Swift recorder is still running,
+  // the toolbar returns as `idle` mid-recording — hide it so the user can't
+  // start a second recording. The stop overlay remains the source of truth.
   useEffect(() => {
     void window.electronAPI.isNativeRecordingActive().then((active) => {
       if (active) {
@@ -493,11 +467,6 @@ export function RecordingToolbar(): React.JSX.Element {
     })
   }, [setSelectedSource])
 
-  // Auto-start recording when triggered from selection overlay.
-  // No setTimeout gap — startRecording's initial sync work doesn't
-  // touch the toolbar UI, so hideWindow racing it doesn't risk a
-  // visible flash. Skipping the wait shaves the post-countdown delay
-  // by 100 ms.
   useEffect(() => {
     return window.electronAPI.onAutoStartRecording(() => {
       window.electronAPI.hideWindow().catch(() => {})
@@ -505,19 +474,9 @@ export function RecordingToolbar(): React.JSX.Element {
     })
   }, [startRecording])
 
-  // Show/hide webcam bubble window when camera is selected. Fire the IPC
-  // synchronously on selection so the bubble window starts loading the
-  // instant the user picks a camera — the bubble itself paints a loading
-  // state until `getUserMedia` resolves, so we don't gate on the stream.
-  //
-  // Screenshot mode hides the bubble preview but keeps the underlying
-  // MediaStream warm (soft hide) — releasing the camera and re-acquiring
-  // it on toggle-back is a ~1s `getUserMedia` round-trip and shows up as
-  // toolbar lag. With soft-hide the BrowserWindow just toggles visibility
-  // and the camera LED stays on while the camera is selected.
-  //
-  // A ref-tracked guard short-circuits no-op transitions (e.g. Share ↔
-  // Screenshot with the same camera selected) so the IPC fires only when
+  // Screenshot mode soft-hides the bubble (keeps the MediaStream warm) because
+  // re-acquiring the camera is a ~1s getUserMedia round-trip that reads as lag.
+  // The ref guard short-circuits no-op transitions so the IPC fires only when
   // the visible/device state actually changes.
   const lastBubbleStateRef = useRef<{ visible: boolean; device: string | null }>({
     visible: false,
@@ -536,12 +495,10 @@ export function RecordingToolbar(): React.JSX.Element {
       return
     }
     if (!hasDevice) {
-      // Camera deselected — fully release the stream so the LED turns off.
+      // Fully release the stream so the camera LED turns off.
       window.electronAPI.hideWebcamBubble().catch(() => {})
       return
     }
-    // Camera still selected but mode hides the bubble (Screenshot).
-    // Soft-hide keeps the stream warm; toggling back is instant.
     if (prev.device === wantDevice && wantDevice !== null) {
       window.electronAPI.softHideWebcamBubble().catch(() => {})
     } else {
@@ -549,19 +506,13 @@ export function RecordingToolbar(): React.JSX.Element {
     }
   }, [recordingMode, selectedVideoDevice])
 
-  // Re-show webcam bubble when toolbar becomes visible again (e.g., after editor closes)
   useEffect(() => {
     return window.electronAPI.onToolbarVisible(() => {
       const store = useRecordingStore.getState()
-      // Force status back to idle whenever the toolbar reappears.
-      // Without this, a dirty exit (recorder crashed, app force-quit
-      // mid-recording, share-ready window closed without a clean
-      // stop signal) can leave the store stuck on a non-idle status,
-      // and the bar renders with just the close X + grip — IdleToolbar
-      // is gated on `status === 'idle'`. Resetting here is safe: the
-      // toolbar window is hidden during real recording / preparing,
-      // so onToolbarVisible only fires when the user is back at the
-      // start screen anyway.
+      // Force back to idle: a dirty exit can leave the store stuck non-idle,
+      // and IdleToolbar is gated on `status === 'idle'`. Safe because the
+      // window is hidden during real recording, so this only fires at the
+      // start screen.
       if (store.status !== 'idle') {
         store.setStatus('idle')
       }
@@ -571,16 +522,11 @@ export function RecordingToolbar(): React.JSX.Element {
     })
   }, [])
 
-  // Click-through for the toolbar window. The BrowserWindow is much
-  // taller than the visible bar (the mode-toggle pill + tooltip
-  // headroom live above it), and macOS would otherwise route clicks
-  // anywhere inside the window's bounds to CaptureFlow instead of the
-  // app underneath. We publish the union of `[data-toolbar-hit]`
-  // rects (in window-local coords) to main; main polls the global
-  // cursor at ~60 Hz and toggles `setIgnoreMouseEvents` directly.
-  // No mousemove, no IPC roundtrip on every move, and — critically —
-  // no race on focus/activate when the cursor is already inside the
-  // hit region but hasn't generated a move event yet.
+  // Click-through: the window is taller than the visible bar, so clicks in the
+  // empty area should pass to the app underneath. Publish the union of
+  // `[data-toolbar-hit]` rects (window-local coords) to main, which polls the
+  // cursor and toggles `setIgnoreMouseEvents` — avoiding the focus/activate race
+  // when the cursor is already inside the hit region before any move event.
   useEffect(() => {
     const HIT_SLOP = 3
 
@@ -600,10 +546,6 @@ export function RecordingToolbar(): React.JSX.Element {
       window.electronAPI.toolbarSetHitRects(rects)
     }
 
-    // Initial publish, then re-publish whenever anything moves: the
-    // mode-toggle pill animates open/close, the bar animates its
-    // width on Screenshot mode switch, and tooltips/popovers can
-    // shift the bar's vertical position by a few px.
     publish()
     let raf = 0
     const schedule = (): void => {
@@ -616,12 +558,9 @@ export function RecordingToolbar(): React.JSX.Element {
     const ro = new ResizeObserver(schedule)
     const mo = new MutationObserver(schedule)
     document.querySelectorAll<HTMLElement>('[data-toolbar-hit]').forEach((el) => ro.observe(el))
-    // Catch layout changes that don't trigger ResizeObserver on the
-    // hit elements themselves (sibling reflow, status flip removing
-    // the mode pill, etc).
     mo.observe(document.body, { childList: true, subtree: true, attributes: true })
-    // Keep the rects in sync during motion animations — they don't
-    // change the rendered size on each frame but the BCR can shift.
+    // Keep rects in sync during motion animations: the rendered size doesn't
+    // change per frame but the BCR can shift.
     const tick = setInterval(publish, 100)
 
     return () => {
@@ -629,9 +568,7 @@ export function RecordingToolbar(): React.JSX.Element {
       ro.disconnect()
       mo.disconnect()
       clearInterval(tick)
-      // Clear rects so an un-mounted toolbar doesn't keep eating
-      // clicks (main will fall back to ignore-mouse=true since the
-      // cursor will never be "inside" an empty rect set).
+      // Clear rects so an unmounted toolbar doesn't keep eating clicks.
       window.electronAPI.toolbarSetHitRects([])
     }
   }, [])
@@ -641,12 +578,6 @@ export function RecordingToolbar(): React.JSX.Element {
       className="relative flex flex-col"
       style={{ background: 'transparent', height: TOOLBAR_HEIGHT }}
     >
-      {/* Nudge + bar share one centered column with `items-start` so the
-          status pill's left edge aligns with the (auto-width) bar's left edge.
-          `mt-auto` pins the column to the window's bottom edge; the headroom
-          above is tooltip space. `layout` animates the bar's reflow when
-          Screenshot mode drops the device cells and the width shrinks to
-          match the remaining clusters. */}
       <div className="mt-auto flex justify-center" style={{ marginBottom: TOOLBAR_TOOLTIP_BELOW }}>
         <div className="flex flex-col items-start gap-1.5">
           <ToolbarStatusNudge visible={status === 'idle'} />
@@ -663,7 +594,6 @@ export function RecordingToolbar(): React.JSX.Element {
               } as React.CSSProperties
             }
           >
-            {/* Close — borderless X */}
             <AnimatedTooltip content="Close the toolbar" placement="bottom">
               <HoverItem className="self-center ml-0.5">
                 <button
@@ -677,7 +607,6 @@ export function RecordingToolbar(): React.JSX.Element {
 
             {status === 'idle' && <IdleToolbar />}
 
-            {/* Drag handle at the right edge of the cluster. */}
             <Divider />
             <div
               className="flex items-center pr-2.5"

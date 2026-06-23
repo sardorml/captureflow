@@ -3,18 +3,12 @@
 import { ACCOUNT_LIMITS } from '@captureflow/quota';
 import { createD1Db } from './db-d1';
 
-// Cron handlers, invoked by the wrapper worker's `scheduled()` entry.
-//
-//   `0 * * * *` (hourly)          — abort R2 multipart uploads orphaned in
-//                                   `pending` rows that stalled past the
-//                                   multipart TTL window.
-//   `0 4 * * *` (daily 04:00 UTC) — delete shares whose `last_viewed_at` is
-//                                   past the retention window, plus `failed`
-//                                   rows past the short grace window.
-//
-// Both jobs are idempotent and eventually-consistent. The R2 lifecycle rule
-// (delete-objects-after-30d) is the safety net: cron cleans up fast, the
-// lifecycle rule guarantees nothing lingers if cron stays silent.
+/*
+ * Cron handlers, invoked by the wrapper worker's `scheduled()` entry:
+ * runHourlyMultipartGc on `0 * * * *`, runDailyRetentionSweep on `0 4 * * *`.
+ * The R2 lifecycle rule (delete-objects-after-30d) is the safety net if cron
+ * stays silent.
+ */
 
 type CronEnv = {
   DB: D1Database;
@@ -22,7 +16,7 @@ type CronEnv = {
 };
 
 const STALE_PENDING_WINDOW_MS = ACCOUNT_LIMITS.multipartTtlSeconds * 1000;
-const FAILED_RETENTION_MS = 24 * 60 * 60 * 1000; // 24h grace for failed rows
+const FAILED_RETENTION_MS = 24 * 60 * 60 * 1000;
 const RETENTION_MS =
   ACCOUNT_LIMITS.retentionDaysFromLastView * 24 * 60 * 60 * 1000;
 const BATCH_SIZE = 100;
@@ -57,12 +51,8 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
       );
       await upload.abort();
     } catch (err) {
-      // Multipart may already be gone (lifecycle rule, manual abort);
-      // nothing to clean, so fall through to mark the row.
       console.warn(`[cron] abort failed for ${row.slug}:`, err);
     }
-    // Webcam companion: abort its multipart too if one was in flight.
-    // Failures are non-fatal — same lifecycle-rule safety net as the screen.
     if (row.webcamUploadId && row.webcamStorageKey) {
       try {
         const wc = env.BUCKET.resumeMultipartUpload(

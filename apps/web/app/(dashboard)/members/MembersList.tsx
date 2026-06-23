@@ -16,8 +16,6 @@ function initials(name: string, email: string): string {
 
 type Props = {
   members: WorkspaceMember[];
-  // Drives the per-row action: an owner sees a remove button on every
-  // non-owner row; a non-owner sees a leave button on their own row only.
   viewerUserId: string;
   viewerIsOwner: boolean;
 };

@@ -10,10 +10,6 @@ import {
 import { startCursorMonitor, stopCursorMonitor, getCurrentCursorType } from './cursor-monitor'
 import { logInfo, logWarn } from './lib/logger'
 
-// Fan out each new cursor position to every renderer so the real-time share
-// composite can draw the cursor per frame instead of waiting for stopTracking
-// to hand back the full TrackingData. Fire-and-forget; failures here don't
-// affect the in-memory `positions` array that drives the final tracking.json.
 function broadcastCursorPosition(pos: CursorPosition): void {
   for (const win of BrowserWindow.getAllWindows()) {
     if (win.isDestroyed()) continue
@@ -39,16 +35,16 @@ export function startTracking(
   if (windowBounds) {
     bounds = windowBounds
   } else {
-    // Screen source — use display bounds
     const displays = screen.getAllDisplays()
     const display = displays.find((d) => String(d.id) === displayId) ?? screen.getPrimaryDisplay()
     bounds = display.bounds
   }
 
-  // Guard against degenerate bounds (minimized window, stale/0-size display).
-  // Cursor normalization divides by width/height; a zero there yields NaN/±Inf
-  // coordinates that corrupt tracking.json and break editor playback. Substitute
-  // a sane fallback per-axis (don't mutate Electron's display.bounds object).
+  /*
+   * Cursor normalization divides by width/height; a zero yields NaN/±Inf
+   * coords that corrupt tracking.json. Substitute a fallback per-axis (don't
+   * mutate Electron's display.bounds object).
+   */
   if (!(bounds.width > 0) || !(bounds.height > 0)) {
     logWarn('cursor', `invalid capture bounds ${JSON.stringify(bounds)}; falling back to 1920x1080`)
     bounds = {
@@ -71,7 +67,6 @@ export function startTracking(
     }`
   )
 
-  // Falls back to 'arrow' when the native cursor monitor is unavailable.
   try {
     startCursorMonitor()
   } catch {
@@ -92,7 +87,7 @@ export function startTracking(
     }
     positions.push(pos)
     broadcastCursorPosition(pos)
-  }, 8) // ~120fps
+  }, 8)
 
   const onMouseDown = (e: UiohookMouseEvent): void => {
     if (paused) return
@@ -109,18 +104,14 @@ export function startTracking(
 }
 
 export function pauseTracking(): void {
-  // Ignore a pause when already paused: overwriting pauseStart would discard the
-  // first pause segment's elapsed time, undercounting totalPauseDuration and
-  // shifting every subsequent cursor timestamp.
+  // Ignore a double-pause: overwriting pauseStart would undercount totalPauseDuration.
   if (paused) return
   paused = true
   pauseStart = Date.now()
 }
 
 export function resumeTracking(): void {
-  // Ignore a resume when not paused (double-resume / out-of-order IPC). Falling
-  // through would reset pauseStart/paused and could swallow a later pause's
-  // accounting, undercounting totalPauseDuration.
+  // Ignore a resume when not paused (double-resume / out-of-order IPC) to avoid undercounting totalPauseDuration.
   if (!paused) return
   if (pauseStart > 0) {
     totalPauseDuration += Date.now() - pauseStart

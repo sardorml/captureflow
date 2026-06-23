@@ -2,13 +2,8 @@
 
 import { getAppWebEnv } from './cf-env';
 
-// Resend HTTP client. Hand-rolled fetch rather than the SDK to keep the worker
-// bundle smaller; payload shape per
-// https://resend.com/docs/api-reference/emails/send-email
-//
-// All sends are best-effort: failures log + return false so the caller can
-// still report a recoverable error (e.g. "invite created but email delivery
-// failed — share this link manually").
+// All sends are best-effort: failures log and return false so the caller can
+// still report a recoverable error.
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 
@@ -66,8 +61,6 @@ function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
-// Workspace-invite email. The accept URL bounces through /login if the
-// recipient is signed out, then lands them on /invite/<token>.
 export async function sendWorkspaceInviteEmail(args: {
   to: string;
   inviterName: string | null;
@@ -123,9 +116,6 @@ export async function sendWorkspaceInviteEmail(args: {
   return sendEmail({ to: args.to, subject, html, text });
 }
 
-// Access-request email, sent to the owner when a signed-in viewer asks to be
-// let into a workspace/private artifact they can't see. Links straight to
-// /members so the owner can invite the requester's email.
 export async function sendAccessRequestEmail(args: {
   to: string;
   ownerName: string | null;

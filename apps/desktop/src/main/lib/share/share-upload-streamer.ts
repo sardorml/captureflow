@@ -1,30 +1,3 @@
-/**
- * ShareUploadStreamer (main process)
- * ──────────────────────────────────
- * Holds the in-flight state for one share recording. Owns two parallel
- * R2 multipart streams (screen + optional webcam), buffers bytes into
- * 5+ MiB parts, POSTs each via /part + /webcam-part as they
- * fill, and finalizes both at stop.
- *
- * Lifecycle:
- *   start(meta)            — POST /init at record START. Returns
- *                            the slug; renderer arms the pipeline.
- *   pushScreenBytes(buf)   — fire-and-forget; buffers + flushes parts
- *   pushWebcamBytes(buf)     when threshold hit.
- *   finish(meta)           — flush any tails, POST /finalize +
- *                            /webcam-finalize, return edit URL.
- *   abort()                — discard state. Worker cron reaps stale
- *                            `pending` rows; no /abort call.
- *
- * Connectivity: on `setShareConnectivity('offline')` the streamer pauses
- * POSTs and queues bytes. On `'online'`, it drains.
- *
- * Single-instance: only one share session is live at a time (the user
- * can only record one stream at a time), so the streamer module holds
- * a single session ref. Concurrent attempts to start a new session
- * abort the previous one.
- */
-
 import { loadDeviceId } from '../device-id'
 import { logInfo, logWarn } from '../logger'
 import { onShareConnectivityChange, getShareConnectivity } from './share-connectivity'
@@ -51,24 +24,13 @@ type PartResponse = { partNumber: number; etag: string }
 type FinalizeResponse = { url: string }
 
 type Stream = {
-  // R2 multipart upload id; null if this stream isn't in use (e.g.
-  // webcam stream when the recording has no camera).
   uploadId: string | null
   partNumber: number
   etags: { partNumber: number; etag: string }[]
-  // In-memory buffer of un-shipped bytes. Drained into a single part
-  // POST when the buffer reaches CHUNK_BYTES, and again on finish().
   buf: Uint8Array[]
   bufBytes: number
-  // Sum of all bytes ever pushed to this stream (across already-shipped
-  // parts and the pending buffer). Reported to /finalize.
   totalBytes: number
-  // Mutex: only one part POST in flight at a time per stream. Lets the
-  // renderer fire pushBytes() at any rate; the streamer queues bytes
-  // and pumps them out as parts complete.
   inFlight: Promise<void> | null
-  // Path suffix used to build the part URL. Distinguishes screen
-  // (`/part`) from webcam (`/webcam-part`).
   partPath: string
 }
 
@@ -78,18 +40,10 @@ type Session = {
   hasWebcam: boolean
   screen: Stream
   webcam: Stream
-  // Latched when the connectivity emitter says offline; bytes still
-  // buffer in memory, but the flusher returns early until reconnect.
   paused: boolean
   unsubConnectivity: () => void
-  // Marks abort() so any in-flight pushBytes/flush short-circuits
-  // without raising. The streamer module ref is also cleared, so a
-  // new session can claim the slot immediately.
   aborted: boolean
-  // Latched once finishShareUpload starts draining the tail. flushTail claims
-  // part numbers WITHOUT setting stream.inFlight, so a late renderer push must
-  // not also run pumpStream and race for the same part numbers — this flag
-  // stops new pumps for the rest of the session.
+  // flushTail claims part numbers without setting stream.inFlight; this stops new pumps so a late renderer push can't race it for the same part number.
   finishing: boolean
 }
 
@@ -110,8 +64,6 @@ function makeStream(uploadId: string | null, partPath: string): Stream {
 
 export async function startShareUpload(meta: ShareStartMeta): Promise<ShareStartResult> {
   if (session) {
-    // Caller didn't await abort() before re-starting. Discard the
-    // previous session quietly.
     logWarn('share-streamer', 'starting new session while previous still live; aborting prior')
     abortShareUpload()
   }
@@ -124,9 +76,6 @@ export async function startShareUpload(meta: ShareStartMeta): Promise<ShareStart
       preset: 'share',
       title: meta.title ?? undefined,
       hasWebcam: meta.hasWebcam === true,
-      // Drop the toolbar chip's current selection so the new share
-      // lands in the right workspace. Null falls back to personal on
-      // the server, matching the pre-picker behaviour.
       workspaceId: getActiveWorkspaceId() ?? undefined
     })
     const unsubConnectivity = onShareConnectivityChange((state) => {
@@ -167,9 +116,6 @@ export function pushScreenBytes(bytes: ArrayBuffer): void {
   pushBytes(s, s.screen, bytes)
 }
 
-// Slug of the in-flight share, or null when no recording is active.
-// SHARE_UPLOAD_POSTER's handler uses this to route the poster bytes to
-// /poster?slug=… without having to thread the slug through IPC.
 export function getActiveShareSlug(): string | null {
   return session?.slug ?? null
 }
@@ -181,7 +127,7 @@ export function getActiveDeviceId(): string | null {
 export function pushWebcamBytes(bytes: ArrayBuffer): void {
   const s = session
   if (!s || s.aborted) return
-  if (!s.webcam.uploadId) return // No webcam was reserved for this recording.
+  if (!s.webcam.uploadId) return
   pushBytes(s, s.webcam, bytes)
 }
 
@@ -196,14 +142,11 @@ function pushBytes(s: Session, stream: Stream, bytes: ArrayBuffer): void {
 
 async function pumpStream(s: Session, stream: Stream): Promise<void> {
   if (s.aborted) return
-  // finishShareUpload's flushTail owns part-number claims from here on.
   if (s.finishing) return
   if (s.paused) return
   if (stream.inFlight) return
   if (stream.bufBytes < CHUNK_BYTES) return
   if (!stream.uploadId) return
-  // Drain a single chunk; loop is driven by the next push or by the
-  // resume event from connectivity.
   const partBytes = drainPart(stream, CHUNK_BYTES)
   const partNumber = stream.partNumber++
   stream.inFlight = (async () => {
@@ -216,12 +159,7 @@ async function pumpStream(s: Session, stream: Stream): Promise<void> {
         `${stream.partPath} part ${partNumber} ok: ${partBytes.byteLength}B`
       )
     } catch (err) {
-      // Non-fatal at part level — finalize will surface the failure
-      // with whatever parts did land. We log and stop trying for the
-      // rest of the recording; subsequent pumpStream calls will see
-      // inFlight cleared and pump again, but the broken state is
-      // caught at finish() time. The handle-error side-effects
-      // (auth-clear, connectivity flip) run here.
+      // Non-fatal at part level — finalize surfaces the failure with whatever parts landed.
       handleUploadError(err, { slug: s.slug, phase: `part ${stream.partPath}` })
     } finally {
       stream.inFlight = null
@@ -232,9 +170,6 @@ async function pumpStream(s: Session, stream: Stream): Promise<void> {
   })()
 }
 
-// Pull up to `maxBytes` from the head of stream.buf into a single
-// contiguous Uint8Array. Leaves any leftover bytes in the first
-// chunk's buffer for the next part.
 function drainPart(stream: Stream, maxBytes: number): Uint8Array {
   const target = Math.min(stream.bufBytes, maxBytes)
   const out = new Uint8Array(target)
@@ -267,22 +202,13 @@ export async function finishShareUpload(meta: ShareFinishMeta): Promise<ShareFin
     return { ok: false, error: 'Share session was aborted', code: 'aborted' }
   }
 
-  // Stop any further pumpStream from claiming part numbers: flushTail below
-  // drains the tail itself without holding stream.inFlight, so a late renderer
-  // push must not race it for the same part number.
   s.finishing = true
 
   try {
-    // Wait for any in-flight parts to settle, then flush the tail of
-    // each stream. The tail can be < CHUNK_BYTES (R2 allows the last
-    // part to be smaller).
     await flushTail(s, s.screen)
     if (s.webcam.uploadId) await flushTail(s, s.webcam)
 
-    // Screen finalize is the load-bearing call; the webcam is best-
-    // effort. If screen fails outright, we have no URL to give the
-    // user. If webcam fails but screen succeeded, we still return the
-    // URL — viewer falls back to screen-only.
+    // Screen finalize is load-bearing; webcam is best-effort (viewer falls back to screen-only).
     const screenFinal = await finalizeStream(s, s.screen, '/finalize', meta.screenTotalBytes)
     let webcamErr: ShareUploadFailure | null = null
     if (s.webcam.uploadId && s.webcam.etags.length > 0) {
@@ -298,10 +224,6 @@ export async function finishShareUpload(meta: ShareFinishMeta): Promise<ShareFin
       }
     }
 
-    // The worker's /finalize returns the public viewer URL on
-    // `captureflow.xyz/<slug>`. We instead hand the user the
-    // edit URL on captureflow.xyz — keeping the worker's response
-    // available in logs is enough for the desktop's purposes.
     logInfo(
       'share-streamer',
       `finished: slug=${s.slug}, viewerUrl=${screenFinal.url}, screenBytes=${
@@ -312,10 +234,6 @@ export async function finishShareUpload(meta: ShareFinishMeta): Promise<ShareFin
     return { ok: true, slug: s.slug, url: buildShareEditUrl(s.slug) }
   } catch (err) {
     const failure = handleUploadError(err, { slug: s.slug, phase: 'finalize' })
-    // Partial success — if any screen parts landed and finalize failed
-    // mid-flight, the worker may still resolve the row on retry.
-    // Surface the slug-based edit URL so the user has something to
-    // open and inspect.
     const partialUrl = s.screen.etags.length > 0 ? buildShareEditUrl(s.slug) : undefined
     clearSession()
     return {
@@ -329,8 +247,7 @@ export async function finishShareUpload(meta: ShareFinishMeta): Promise<ShareFin
 }
 
 async function flushTail(s: Session, stream: Stream): Promise<void> {
-  // Drain any in-flight part first so we don't double-claim a part
-  // number while a previous POST is still resolving.
+  // Drain any in-flight part first so we don't double-claim a part number.
   if (stream.inFlight) {
     try {
       await stream.inFlight
@@ -341,19 +258,9 @@ async function flushTail(s: Session, stream: Stream): Promise<void> {
   if (stream.bufBytes === 0) return
   if (!stream.uploadId) return
 
-  // R2's `completeMultipartUpload` rejects with
-  //   "All non-trailing parts must have the same length"
-  // when any non-last part differs in size from the others. The
-  // streaming part loop emits exact-5-MiB parts during the recording,
-  // so the running stream is uniform — BUT at stop time the muxer can
-  // flush a large queued tail (audio buffering, mp4-muxer fragment
-  // alignment, etc.) that exceeds 5 MiB. If we shipped that as a
-  // single trailing part, the result was [5 MiB, 5 MiB, 16 MiB], and
-  // even though 16 MiB IS the trailing part, R2's check classifies
-  // anything not matching the established size as a non-trailing
-  // outlier. Split the remainder into N additional 5 MiB parts plus
-  // a single smaller trailing chunk so every non-trailing part has
-  // exactly the same length.
+  // R2's completeMultipartUpload requires all non-trailing parts to share one
+  // length; a tail >CHUNK_BYTES shipped whole would be rejected. Split it into
+  // N more CHUNK_BYTES parts plus one smaller trailing chunk.
   while (stream.bufBytes > CHUNK_BYTES) {
     const partBytes = drainPart(stream, CHUNK_BYTES)
     const partNumber = stream.partNumber++

@@ -4,20 +4,11 @@ import * as React from 'react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/cn';
 
-// Overlapping circle stack of workspace members with a trailing dashed
-// "+" slot that the caller can wire as an invite-modal trigger.
-
 export type AvatarGroupItem = {
-  // Stable key so the motion stagger keeps identity across re-orders.
   key: string;
   initials: string;
-  // Display name for the tooltip / aria-label; email if no name is set.
   label: string;
-  // Avatar URL (better-auth `users.image`). When set, the tone/initials
-  // become the load-fail fallback rendered behind the image.
   image?: string | null;
-  // Defaults to a deterministic palette pick from the key so the same
-  // user keeps the same color across renders.
   tone?: AvatarTone;
 };
 
@@ -31,12 +22,8 @@ export type AvatarTone =
 
 type Props = {
   items: AvatarGroupItem[];
-  // Max visible avatars; the rest collapse into a +N chip.
   max?: number;
-  // Renders a built-in "+" button. Omit for a read-only group.
   onInviteClick?: () => void;
-  // Custom trailing slot, e.g. a Radix DialogTrigger asChild. Takes
-  // precedence over onInviteClick to avoid a double trigger.
   inviteSlot?: React.ReactNode;
   className?: string;
 };
@@ -80,7 +67,6 @@ export function AvatarGroup({
   return (
     <div
       className={cn('flex items-center', className)}
-      // Negative margin overlaps each avatar by 8px.
       style={{ ['--avatar-gap' as string]: '-8px' }}
     >
       {visible.map((item, i) => {
@@ -150,8 +136,6 @@ export function AvatarGroup({
   );
 }
 
-// Standalone dashed "+" pill exported for use inside a Radix
-// DialogTrigger asChild; forwards the ref so Radix can control it.
 type AvatarInviteSlotProps = Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
   | 'onAnimationStart'

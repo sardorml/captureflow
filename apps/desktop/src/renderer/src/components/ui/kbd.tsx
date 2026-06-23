@@ -1,7 +1,3 @@
-/* Kbd + KbdGroup for keyboard shortcut display.
- * Usage:
- *   <KbdGroup><Kbd>⌘</Kbd><Kbd>K</Kbd></KbdGroup>
- */
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 

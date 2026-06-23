@@ -17,17 +17,11 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
   const m = useMessages();
   const lh = useLocalizedHref();
 
-  // Hovering the "AI-Powered" word pops a small teaser card above it. The card
-  // is pointer-events-none so it never traps the hover — leaving the word always
-  // dismisses it cleanly.
   const [aiHover, setAiHover] = useState(false);
 
   return (
     <>
-      {/* Wraps the hero AND the recorder-mockup demo. Negative top-margin pulls
-          it up behind the transparent fixed nav; matching top-padding pushes the
-          hero content back down to clear the bar — net position unchanged. No
-          `overflow-hidden` here — the RecorderMockup sits in flow below. */}
+      {/* Negative top-margin pulls behind the fixed nav; matching top-padding clears it — net position unchanged. No overflow-hidden here. */}
       <div
         className="relative"
         style={{
@@ -35,14 +29,9 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
           paddingTop: 'var(--header-height, 68px)',
         }}
       >
-        {/* Halo background — soft pastel blobs drifting around the hero copy.
-            Pinned to the viewport, then released to scroll away. This
-            container's bounded height stops the pin; ~80vh keeps it to the
-            hero only. */}
         <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[80vh]">
           <div className="sticky top-0 h-screen w-full overflow-hidden">
             <HaloEffect />
-            {/* soften the lower edge so the release into the demo isn't a hard line */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[40vh] bg-gradient-to-b from-transparent to-white" />
           </div>
         </div>
@@ -75,7 +64,6 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                         href={lh('/download')}
                         className="relative block aspect-[16/10] cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 p-5 text-left shadow-2xl shadow-neutral-900/40 transition-transform hover:scale-[1.03]"
                       >
-                        {/* Oversized watermark bleeding off the right edge. */}
                         <Icon
                           name="auto_awesome"
                           size={150}
@@ -107,14 +95,11 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
             </h1>
             <p className="mx-auto mt-6 max-w-2xl animate-fade-in-up text-base leading-relaxed tracking-[-0.01em] text-muted-foreground animation-delay-200">
               {m.hero.subtitleLine1}{' '}
-              {/* Break onto two lines on desktop, but flow as one wrapping
-                  sentence on phones — the forced break orphans "your" otherwise. */}
               <br className="hidden sm:inline" />
               {m.hero.subtitleLine2}
             </p>
             {CURRENT_STAGE.showHeroBuyCta ? (
               <>
-                {/* CTA pair: stacked full-width on phones, side-by-side from sm up. */}
                 <div className="mt-8 flex animate-fade-in-up flex-col items-center justify-center gap-3 animation-delay-400 sm:flex-row">
                   <CtaButton
                     size="lg"
@@ -134,7 +119,6 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                       {m.hero.ctaLabel}
                     </a>
                   </CtaButton>
-                  {/* Secondary pill linking to the open-source repo. */}
                   <a
                     href={SOURCE_REPO_URL}
                     target="_blank"
@@ -176,8 +160,7 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
           <RecorderMockup />
         </div>
       </div>
-      {/* Sentinel at the end of the hero demo — the floating CTA appears once
-          this scrolls into view (the demo has been fully seen). */}
+      {/* Sentinel: the floating CTA appears once this scrolls into view. */}
       <div id="hero-end" aria-hidden className="h-px w-full" />
     </>
   );

@@ -4,18 +4,6 @@ import { useEffect, useState } from 'react';
 import { Lock, Mail, ArrowRight, Check } from 'lucide-react';
 import { GridLoader } from '@captureflow/ui';
 
-// "Request access" screen rendered when a signed-in viewer (or
-// anonymous visitor) hits a workspace/private share they can't see.
-//
-// Two states:
-//   - Anonymous: prompts the visitor to sign in on app-web. After
-//     auth they bounce back here via the `next` param, and the
-//     visibility gate either passes (they were a member all along) or
-//     this same screen renders again — now in the signed-in branch.
-//   - Signed-in: short form (optional message) that POSTs to
-//     app-web's /api/request-access. Backend identifies the requester
-//     from the cross-subdomain cookie and emails the owner.
-
 type Props = {
   appWebUrl: string;
   slug: string;
@@ -24,8 +12,6 @@ type Props = {
     name: string | null;
   } | null;
   returnUrl: string;
-  // Owner name when known — purely cosmetic. Backend never reveals
-  // the owner's email to the requester.
   ownerName: string | null;
 };
 
@@ -40,20 +26,8 @@ export function RequestAccess({
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // When the browser has a session cookie but SSR rendered this page
-  // anyway (cold-start blip, cross-tab cookie race), hide the
-  // RequestAccess copy behind a loading shim while we probe. Without
-  // this the user reads "Sign in to continue" for ~half a second
-  // before the page reloads under them — feels like a bug even when
-  // we recover automatically.
   const [probing, setProbing] = useState(() => hasSessionCookieAtMount());
 
-  // Self-heal: the SSR gate occasionally renders RequestAccess when the
-  // session cookie didn't reach the worker on the first hit (cross-tab
-  // open with stripped referrer, worker cold-start tail, Brave shields
-  // racing the navigation). Probe verify-session client-side on mount —
-  // if a session actually exists, replace the URL so SSR re-renders
-  // the viewer instead of forcing the user to refresh manually.
   useEffect(() => {
     if (!probing) return;
     let cancelled = false;
@@ -66,17 +40,12 @@ export function RequestAccess({
         });
         if (cancelled) return;
         if (res.ok) {
-          // replace() instead of reload() so the back button doesn't
-          // bounce the visitor onto the gate they just escaped.
+          // replace() not reload() so back doesn't bounce onto the gate.
           window.location.replace(window.location.href);
           return;
         }
-        // 401 (or anything else): genuinely no session. Drop the shim
-        // and show the real RequestAccess content.
         setProbing(false);
       } catch {
-        // Network error — show the real content; the visitor can still
-        // sign in or request access manually.
         if (!cancelled) setProbing(false);
       }
     })();
@@ -217,11 +186,6 @@ export function RequestAccess({
   );
 }
 
-// Cheap heuristic: any better-auth cookie name contains `session_token`
-// (default `better-auth.session_token`, secure-prefix variants
-// included). When present we know the visitor *has* a session locally;
-// SSR just didn't see it (cold-start, blocked subrequest, etc.) and we
-// should hide the gate behind a probe instead of flashing it.
 function hasSessionCookieAtMount(): boolean {
   if (typeof document === 'undefined') return false;
   return document.cookie.includes('session_token');

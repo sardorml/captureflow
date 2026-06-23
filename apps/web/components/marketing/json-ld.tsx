@@ -1,6 +1,3 @@
-// Renders one or more schema.org JSON-LD blobs as <script type="application/
-// ld+json"> tags. Server component — emits raw structured HTML, so it runs
-// before hydration and adds no client JS.
 export function JsonLd({
   data,
 }: {

@@ -1,6 +1,3 @@
-/* Command palette built on `cmdk`: dialog host, input, list, empty state,
- * group, item, and shortcut display.
- */
 import * as React from 'react'
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -58,8 +55,6 @@ export function CommandDialog({
     <AnimatePresence>
       {open && (
         <>
-          {/* Heavier dim, lighter blur: the dim does the focus work so the
-              dialog can stay near-solid and crisp. */}
           <motion.div
             key="cmd-backdrop"
             className="fixed inset-0 z-50 bg-black/55 backdrop-blur-sm"
@@ -70,7 +65,6 @@ export function CommandDialog({
             onClick={() => onOpenChange(false)}
             aria-hidden
           />
-          {/* Near-solid surface so editor content doesn't bleed through. */}
           <motion.div
             key="cmd-content"
             role="dialog"
@@ -131,8 +125,6 @@ export const CommandList = React.forwardRef<
   const [scrolling, setScrolling] = React.useState(false)
   const hideTimer = React.useRef<number | null>(null)
 
-  // Auto-hiding overlay scrollbar: show the thumb only while actively
-  // scrolling, then fade it out after a brief idle delay.
   const handleScroll = (e: React.UIEvent<HTMLDivElement>): void => {
     onScroll?.(e)
     setScrolling(true)

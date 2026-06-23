@@ -4,16 +4,8 @@ import { readFile, writeFile, mkdir } from 'fs/promises'
 import { logInfo, logWarn } from '../logger'
 import type { ReleaseNotesInitPayload } from '../../../shared/types'
 
-// Two sources of release notes:
-//   - `welcome.md` (bundled) — shown once on first-ever editor open; offline.
-//   - CDN markdown (live)    — shown once per app version. We upload
-//     `notes/<version>.md` next to the build so post-ship typo fixes go live
-//     without a rebuild.
-// Both follow the same convention: the first `# heading` is the modal title,
-// the rest is the body (see `parseNote`).
-//
-// This module only PICKS the pending note and records when it's been seen;
-// rendering is the renderer's job (an in-app BasicModal, no native window).
+// Two sources: bundled `welcome.md` (shown once on first editor open) and CDN
+// `notes/<version>.md` (shown once per version; editable post-ship without a rebuild).
 const RELEASE_NOTES_BASE = 'https://dl.captureflow.xyz/notes'
 
 type ReleaseNote = {
@@ -45,9 +37,6 @@ const WELCOME_NOTE: ReleaseNote | null = (() => {
   return raw ? parseNote(raw) : null
 })()
 
-// Memoize the CDN fetch per version so the pending check and the later open
-// don't both hit the network. Per-process cache; resetting on quit is fine
-// since notes only show once per version anyway.
 const versionNoteCache = new Map<string, ReleaseNote | null>()
 const versionNoteInflight = new Map<string, Promise<ReleaseNote | null>>()
 
@@ -56,8 +45,7 @@ async function fetchVersionNote(version: string): Promise<ReleaseNote | null> {
   const inflight = versionNoteInflight.get(version)
   if (inflight) return inflight
 
-  // A 404 (no `notes/<version>.md` uploaded for this build) just means no
-  // modal — handled as null.
+  // A 404 (no note uploaded for this build) just means no modal.
   const url = `${RELEASE_NOTES_BASE}/${encodeURIComponent(version)}.md`
   const promise = (async (): Promise<ReleaseNote | null> => {
     try {
@@ -120,8 +108,7 @@ type PickedNote = {
 async function pickNote(store: Store, force: boolean): Promise<PickedNote | null> {
   const version = app.getVersion()
 
-  // Force-show (dev toggle): prefer the CDN version note for QA, falling back
-  // to welcome if the release isn't published or the fetch fails.
+  // Force-show (dev toggle): prefer the CDN note, falling back to welcome.
   if (force) {
     const versionNote = await fetchVersionNote(version)
     if (versionNote) return { kind: 'version', version, ...versionNote }
@@ -129,14 +116,11 @@ async function pickNote(store: Store, force: boolean): Promise<PickedNote | null
     return null
   }
 
-  // First-ever editor open on this install — greet with the bundled note.
   if (!store.welcomed && WELCOME_NOTE) {
     return { kind: 'welcome', version, ...WELCOME_NOTE }
   }
 
-  // Subsequent opens — surface the CDN release body once per version. On fetch
-  // failure we return null without marking the version shown, so a later launch
-  // retries.
+  // On fetch failure we return null without marking the version shown, so a later launch retries.
   if (!store.shownFor.includes(version)) {
     const versionNote = await fetchVersionNote(version)
     if (versionNote) return { kind: 'version', version, ...versionNote }
@@ -145,9 +129,7 @@ async function pickNote(store: Store, force: boolean): Promise<PickedNote | null
   return null
 }
 
-// Returns the pending note's payload (or null), with no side effects. `force`
-// bypasses the seen-checks so the title-bar "What's new" button can re-open it.
-// The renderer marks it seen via markReleaseNotesShown on dismiss.
+// Returns the pending note (or null) with no side effects. `force` bypasses the seen-checks.
 export async function getPendingReleaseNote(
   force = false
 ): Promise<ReleaseNotesInitPayload | null> {
@@ -163,8 +145,6 @@ export async function getPendingReleaseNote(
   return { version: picked.version, message: picked.message, detail: picked.detail }
 }
 
-// Marks both welcomed and the current version shown, so neither the welcome
-// note nor this version's note re-appears on the next launch.
 export async function markReleaseNotesShown(): Promise<void> {
   const store = await readStore()
   const version = app.getVersion()

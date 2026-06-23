@@ -37,12 +37,14 @@ export function useSources(): { refresh: () => void } {
           updated.thumbnailDataUrl !== lastThumbRef.current
         ) {
           lastThumbRef.current = updated.thumbnailDataUrl
-          // Preserve fields set by the SelectionOverlay (ownerName,
-          // windowBounds, cornerRadius, pid) — desktopCapturer's refreshed
-          // sources do not include them, so a plain overwrite would erase
-          // the app name, the alpha-detected window radius (used for the
-          // dim cutout + editor panel rounding), and the pid (used to
-          // raise the captured app at recording start).
+          /*
+           * Preserve fields set by the SelectionOverlay (ownerName,
+           * windowBounds, cornerRadius, pid) — desktopCapturer's refreshed
+           * sources do not include them, so a plain overwrite would erase
+           * the app name, the alpha-detected window radius (used for the
+           * dim cutout + editor panel rounding), and the pid (used to
+           * raise the captured app at recording start).
+           */
           setSelectedSource({
             ...updated,
             ownerName: selectedSource.ownerName ?? updated.ownerName,

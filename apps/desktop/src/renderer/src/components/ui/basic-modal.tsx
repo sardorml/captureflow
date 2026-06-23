@@ -40,11 +40,9 @@ export default function BasicModal({
   const generatedTitleId = useId()
   const titleId = title ? `modal-title-${generatedTitleId}` : undefined
 
-  // Save the previously focused element on open and restore it on close.
   useEffect(() => {
     if (isOpen) {
       previousActiveElementRef.current = document.activeElement as HTMLElement
-      // Defer focus so it lands after the modal has mounted and animated in.
       setTimeout(() => {
         closeButtonRef.current?.focus()
       }, 100)
@@ -53,7 +51,6 @@ export default function BasicModal({
     }
   }, [isOpen])
 
-  // Close on Escape key press and focus trap
   useEffect(() => {
     if (!isOpen) {
       return
@@ -65,7 +62,6 @@ export default function BasicModal({
         return
       }
 
-      // Focus trap: wrap Tab/Shift+Tab around the modal's focusable elements.
       if (e.key === 'Tab' && modalRef.current) {
         const focusableElements = Array.from(
           modalRef.current.querySelectorAll<HTMLElement>(
@@ -98,7 +94,6 @@ export default function BasicModal({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             animate={{ opacity: 1 }}
             className="fixed inset-0 z-[80] bg-background/70 backdrop-blur-sm"
@@ -113,7 +108,6 @@ export default function BasicModal({
             transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
           />
 
-          {/* Modal */}
           <motion.div
             animate={{ opacity: 1 }}
             className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto px-4 py-6 sm:p-0"
@@ -150,8 +144,6 @@ export default function BasicModal({
                     }
               }
             >
-              {/* Rendered only when there's a title, so the title shares the
-                  row with the close button. */}
               {title && (
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <h3 className="font-medium text-xl leading-6" id={titleId}>
@@ -173,9 +165,6 @@ export default function BasicModal({
                 </div>
               )}
 
-              {/* Title-less modals: float the close button into the top-right
-                  corner so the content starts flush at the top (no empty
-                  close-only row pushing everything down). */}
               {!title && !hideClose && (
                 <motion.button
                   aria-label="Close modal"
@@ -190,7 +179,6 @@ export default function BasicModal({
                 </motion.button>
               )}
 
-              {/* Content */}
               <div className="relative">{children}</div>
             </motion.div>
           </motion.div>

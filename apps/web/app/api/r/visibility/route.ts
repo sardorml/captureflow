@@ -17,16 +17,6 @@ export function OPTIONS() {
   return optionsResponse();
 }
 
-// POST /api/visibility?slug=...
-// Body: { value: 'public' | 'workspace' | 'private' }
-//
-// Flips the share row's visibility. Two auth paths are accepted:
-//   1. Desktop client: x-captureflow-device header matching the row's
-//      deviceId (legacy, kept so older builds keep working).
-//   2. Browser viewer: better-auth session cookie resolving to the
-//      share owner, so the viewer's Share modal can flip visibility
-//      without bouncing to the dashboard.
-
 export async function POST(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('slug');
   if (!isValidSlug(slug)) {

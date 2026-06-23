@@ -1,6 +1,4 @@
-// Inline SVG because the Apple mark isn't in Material Symbols (Apple owns it),
-// letting the rest of the site stay on Material Symbols via `<Icon>`.
-// Path is a re-traced silhouette, not copyrighted glyph data.
+// Re-traced Apple silhouette, not copyrighted glyph data (Apple owns the mark).
 
 type AppleLogoProps = {
   className?: string;

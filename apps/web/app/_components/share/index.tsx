@@ -1,8 +1,3 @@
-// Shared SharePlayer + share-config types used by both the public
-// share viewer and the dashboard edit page. The public viewer wraps
-// SharePlayer with reactions via the progressOverlay + belowPlayer
-// slot props; the editor uses SharePlayer directly.
-
 export { SharePlayer } from './SharePlayer';
 export type { SharePlayerHandle, ProgressOverlayInfo } from './SharePlayer';
 

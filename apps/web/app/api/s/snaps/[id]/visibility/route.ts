@@ -5,11 +5,8 @@ import { isValidSnapId } from '@/lib/snap/id';
 import { verifySessionOrNull } from '@/lib/snap/verify-session';
 import { optionsResponse, withCors } from '@/lib/snap/cors';
 
-// Owner-only visibility flip. Auth relays through verifySessionOrNull
-// because better-auth lives on app.captureflow.xyz while the session
-// cookie is set on .captureflow.xyz.
-// Body: { value: 'public' | 'workspace' | 'private' }.
-// Must mirror the share-side /api/visibility contract.
+// Auth relays through verifySessionOrNull because better-auth lives on
+// app.captureflow.xyz while the session cookie is set on .captureflow.xyz.
 
 export function OPTIONS() {
   return optionsResponse();

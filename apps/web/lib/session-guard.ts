@@ -4,12 +4,11 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getAuth, type AuthInstance } from './auth';
 
-// Centralised session lookup for server components. The raw better-auth call
-// (`auth.api.getSession`) sometimes throws on a stale cookie — e.g. the session
-// row was cascade-deleted (user removed by admin), or BETTER_AUTH_SECRET was
-// rotated so the cookie's HMAC no longer verifies. An uncaught throw in a server
-// component stalls the page render on Workers, which the user perceives as "site
-// keeps loading", so we swallow it and return null for callers to redirect on.
+/*
+ * getSession can throw on a stale cookie (deleted session row, rotated
+ * BETTER_AUTH_SECRET); an uncaught throw stalls the page render on Workers, so
+ * we swallow it and return null.
+ */
 
 type Session = NonNullable<
   Awaited<ReturnType<AuthInstance['api']['getSession']>>
@@ -26,9 +25,8 @@ export async function loadSession(): Promise<Session | null> {
   }
 }
 
-// On no-session we route through /auth/clear (a Route Handler, which can delete
-// cookies — server components cannot) so a stale cookie doesn't bounce-loop the
-// browser back into the gated zone on the next navigation.
+// Route through /auth/clear (a Route Handler) to delete the stale cookie;
+// server components can't delete cookies, which would otherwise bounce-loop.
 export async function requireSession(): Promise<Session> {
   const session = await loadSession();
   if (!session) redirect('/auth/clear');

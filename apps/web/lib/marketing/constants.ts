@@ -1,6 +1,3 @@
-// Canonical production host for canonical URLs, sitemap, robots, and OG/JSON-LD
-// absolute URLs. These must always point at production, so hardcoded by design
-// rather than env-driven.
 export const SITE_URL = 'https://captureflow.xyz';
 export const SITE_NAME = 'CaptureFlow';
 export const SITE_TITLE =
@@ -8,12 +5,9 @@ export const SITE_TITLE =
 export const SITE_DESCRIPTION =
   'CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated Snaps — record, share, and snap from one menu bar app. Free and self-hostable on your own Cloudflare account.';
 export const SUPPORT_EMAIL = 'captureflow.support@gmail.com';
-// Single source for the download line on /download; bump on each release.
 export const APP_VERSION = '0.9.2-beta';
 export const DOWNLOAD_URL =
   'https://github.com/sardorml/captureflow/releases/latest';
-// Approximate installer size from the published DMG's Content-Length; update
-// alongside APP_VERSION.
 export const DOWNLOAD_DMG_SIZE_MB = 48;
 export const MIN_MACOS_VERSION = 'macOS 14 (Sonoma)';
 
@@ -53,9 +47,6 @@ export const MODES: readonly Mode[] = [
 ] as const;
 
 // ids must stay stable: they key the copy catalog and deep-link anchors.
-// Footage lives in /public as feature-<id>.webm + -poster.jpg (VP9 CRF 32,
-// native 60fps). Display copy is catalog-driven (messages.ts features.items);
-// the strings here mirror the English source.
 export const FEATURES = [
   {
     id: 'feature-timeline',
@@ -91,12 +82,6 @@ export const FEATURES = [
   },
 ] as const;
 
-// Two-tier model: Self-Hosted (free, run it on your own Cloudflare account) and
-// Managed (we host it). The card lists plan highlights; the compare table below
-// draws both plans across the same rows.
-
-// Managed card highlights — deliberately short; full breakdown is the compare
-// table below.
 export const PRO_CARD_HIGHLIGHTS: ReadonlyArray<string> = [
   'Fully managed hosting — no Cloudflare setup required',
   'Instant share links, Snaps, workspaces & cloud storage we run for you',
@@ -104,8 +89,6 @@ export const PRO_CARD_HIGHLIGHTS: ReadonlyArray<string> = [
 
 export const MONTHLY_PRICE = 9;
 
-// Next inlines NODE_ENV at build time, so the checkout-URL selection below
-// happens once at compile, not per request.
 const IS_DEV_LS_CHECKOUT = process.env.NODE_ENV !== 'production';
 
 const MONTHLY_SUBSCRIPTION_LIVE_URL = 'https://captureflow.xyz/signup';
@@ -115,9 +98,7 @@ export const MONTHLY_SUBSCRIPTION_CHECKOUT_URL = IS_DEV_LS_CHECKOUT
   ? MONTHLY_SUBSCRIPTION_TEST_URL
   : MONTHLY_SUBSCRIPTION_LIVE_URL;
 
-// Compare-plans matrix. A boolean cell renders as ✓ / —; a string renders
-// verbatim (for quantity/detail rows, not yes/no). Sections give the table its
-// category labels.
+// A boolean cell renders as ✓ / —; a string renders verbatim.
 export type CompareCell = boolean | string;
 export type CompareRow = {
   label: string;
@@ -128,9 +109,6 @@ export type CompareSection = { title: string; rows: ReadonlyArray<CompareRow> };
 
 export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
   {
-    // Self-Hosted ships as source: you build, sign with your own Apple ID, and
-    // self-manage updates. Managed hands you a signed, notarized, self-updating
-    // build.
     title: 'Desktop app',
     rows: [
       {
@@ -146,8 +124,6 @@ export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
     ],
   },
   {
-    // Cloudflare backend (Workers / R2 / D1). Self-Hosted runs on your own
-    // account; Managed is fully hosted, backed up, and monitored by us.
     title: 'Cloud & hosting',
     rows: [
       { label: 'Hosting', free: 'Your Cloudflare', monthly: 'Fully managed' },
@@ -157,8 +133,6 @@ export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
     ],
   },
   {
-    // These rows are intentionally identical across plans: the product is the
-    // same; only signing and hosting (above) differ.
     title: 'Recording & sharing',
     rows: [
       {
@@ -186,8 +160,6 @@ export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
   },
 ];
 
-// LAUNCH_STAGE is the single toggle for the landing's funnel state; changing it
-// flips all stage-dependent copy, pricing, and visibility.
 export type LaunchStage =
   | 'waitlist'
   | 'public-beta'
@@ -237,8 +209,6 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     priceFootnote: '',
   },
   'public-beta': {
-    // Hero leads with a free download; pricing still surfaces the managed plan
-    // for teams who'd rather not self-host.
     showHeroBadge: false,
     showHeroBuyCta: true,
     showPricingSection: true,
@@ -466,14 +436,10 @@ const ALL_NAV_LINKS: { href: string; label: string }[] = [
   { href: '#roadmap', label: 'Roadmap' },
 ];
 
-// No dedicated X/Telegram presence yet — point the social exports at GitHub and
-// docs so footer/socials still resolve to a real URL.
+// No dedicated X/Telegram presence yet — these point at GitHub and docs.
 export const X_URL = 'https://github.com/sardorml/captureflow';
 export const TELEGRAM_URL = 'https://docs.captureflow.xyz';
 
-// Waitlist stage swaps the homepage anchors for a single Changelog link — no
-// pricing section is live yet, and the changelog gives early visitors something
-// to scan.
 const WAITLIST_EXTRA_LINKS: { href: string; label: string }[] = [
   { href: '/changelog', label: 'Changelog' },
 ];
@@ -495,7 +461,6 @@ export const APP_SCHEMA = {
   operatingSystem: 'macOS',
   url: SITE_URL,
   description: SITE_DESCRIPTION,
-  // One Offer per plan: free self-hosted tier plus the managed plan.
   offers: [
     {
       '@type': 'Offer',
@@ -523,16 +488,12 @@ export const ORGANIZATION_SCHEMA = {
   url: SITE_URL,
   email: SUPPORT_EMAIL,
   logo: `${SITE_URL}/logo.png`,
-  // Keep in sync with the footer socials. No X/Telegram yet, so the canonical
-  // off-site profile is the GitHub repo.
   sameAs: ['https://github.com/sardorml/captureflow'],
 };
 
-// Drives Google's "site name" in search results. The algorithm reads
-// specifically from WebSite.name (falling back og:site_name → application-name
-// → <title> → host); Organization schema is not enough. Without this block
-// Google defaults to the host name. alternateName covers bare-host searches.
-//   See: https://developers.google.com/search/docs/appearance/site-names
+// Google's "site name" reads specifically from WebSite.name; Organization
+// schema is not enough.
+// See: https://developers.google.com/search/docs/appearance/site-names
 export const WEBSITE_SCHEMA = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',

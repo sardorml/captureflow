@@ -5,14 +5,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import { motion } from 'motion/react';
 import { cn } from '../lib/cn';
 
-// Motion-driven dropdown menu. Radix owns state/keyboard/focus; we only
-// animate the content children on mount, keeping the trigger wiring
-// untouched. Avoid the AnimatePresence + asChild + Portal combo that
-// broke a prior iteration (Content never opened because Radix lost its
-// anchor when Portal rendered conditionally). No exit animation on
-// purpose: dropdowns close fast enough that the missing fade reads as
-// snappy, not abrupt.
-
+// Avoid the AnimatePresence + asChild + Portal combo: Content never opens because Radix loses its anchor when Portal renders conditionally.
 const SmoothDropdownMenu = DropdownMenuPrimitive.Root;
 const SmoothDropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 const SmoothDropdownMenuGroup = DropdownMenuPrimitive.Group;

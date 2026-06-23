@@ -24,12 +24,8 @@ type SnapState =
     }
   | { kind: 'failed'; localPath: string | null; sourceTitle: string | null; reason: string }
 
-// Bottom-right "snap ready" modal. Lifecycle driven by main-process IPC:
-//   1. SNAP_CAPTURED (local PNG path + source title) the moment
-//      SCScreenshotManager returns → `capturing` state (thumbnail + spinner).
-//   2. SNAP_UPLOAD_COMPLETE (public + edit URLs) once /api/upload lands →
-//      Edit / Copy link buttons become live.
-//   3. SNAP_UPLOAD_FAILED → modal shows the reason and only a close button.
+// Bottom-right "snap ready" modal, driven through capturing → ready / failed by
+// main-process IPC.
 export function SnapNotification(): React.JSX.Element {
   const [state, setState] = useState<SnapState>({
     kind: 'capturing',
@@ -49,8 +45,6 @@ export function SnapNotification(): React.JSX.Element {
     const off1 = window.electronAPI.onSnapCaptured(({ localPath, sourceTitle }): void => {
       setState((prev) => {
         if (prev.kind === 'ready') {
-          // Fresh capture on top of a not-yet-dismissed ready modal —
-          // reset to capturing and drop the stale urls.
           return { kind: 'capturing', localPath, sourceTitle }
         }
         return { kind: 'capturing', localPath, sourceTitle }
@@ -114,8 +108,6 @@ export function SnapNotification(): React.JSX.Element {
 
   const handleOpenInBrowser = (): void => {
     if (state.kind !== 'ready') return
-    // Reuses snapOpenEdit (shell.openExternal) but with the public view
-    // URL rather than the editor URL.
     window.electronAPI.snapOpenEdit(state.viewUrl)
     setMenuOpen(false)
   }
@@ -126,7 +118,6 @@ export function SnapNotification(): React.JSX.Element {
     setMenuOpen(false)
   }
 
-  // Outside-click dismiss for the popover.
   useEffect(() => {
     if (!menuOpen) return
     const onClick = (e: MouseEvent): void => {
@@ -157,8 +148,7 @@ export function SnapNotification(): React.JSX.Element {
   return (
     <div className="h-screen w-screen p-3 select-none" style={{ background: 'transparent' }}>
       <div className="relative flex h-full w-full flex-col overflow-hidden rounded-2xl bg-neutral-900 text-white shadow-2xl ring-1 ring-white/10">
-        {/* Dark backdrop so transparent regions of the PNG (windowed
-            captures with shadow alpha) stay visually contained. */}
+        {/* Dark backdrop so transparent PNG regions (shadow alpha) stay contained. */}
         <div className="relative flex-1 overflow-hidden bg-neutral-950">
           {previewSrc ? (
             <img
@@ -173,7 +163,6 @@ export function SnapNotification(): React.JSX.Element {
             </div>
           )}
 
-          {/* Upload spinner; dropped on SNAP_UPLOAD_COMPLETE. */}
           {state.kind === 'capturing' && (
             <div
               data-testid="snap-spinner"
@@ -183,8 +172,7 @@ export function SnapNotification(): React.JSX.Element {
             </div>
           )}
 
-          {/* Top-left ⋯ menu. Disabled until upload completes, since
-              delete + open-in-browser need the server id / view URL. */}
+          {/* Disabled until upload completes: delete + open-in-browser need the server id / view URL. */}
           <div ref={menuRef} className="absolute left-3 top-3">
             <button
               type="button"
@@ -233,8 +221,7 @@ export function SnapNotification(): React.JSX.Element {
             )}
           </div>
 
-          {/* Close — always available, so the modal can be dismissed
-              mid-upload. */}
+          {/* Always available so the modal can be dismissed mid-upload. */}
           <button
             type="button"
             onClick={handleClose}
@@ -245,8 +232,6 @@ export function SnapNotification(): React.JSX.Element {
           </button>
         </div>
 
-        {/* Source title: the captured window's title for window
-            captures, else a generic label from main. */}
         <div className="flex items-center gap-3 border-t border-white/5 px-4 py-3">
           <img
             src={logoRound}
@@ -264,8 +249,6 @@ export function SnapNotification(): React.JSX.Element {
           </span>
         </div>
 
-        {/* Edit + Copy link, disabled until upload lands. Clicking the
-            disabled state is a no-op (main also ignores the IPC). */}
         <div className="flex gap-2 px-3 pb-3">
           <button
             type="button"

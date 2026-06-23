@@ -1,9 +1,5 @@
 import { SmoothButton } from '@captureflow/ui';
 
-// Auth chip cluster for the share viewer's top-right when the visitor
-// is anonymous. Log in chains `next` so the visitor lands back on the
-// share after signing in.
-
 type Props = {
   marketingUrl: string;
   loginUrl: string;

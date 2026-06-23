@@ -4,9 +4,6 @@ import { Icon } from '@/components/ui/icon';
 import { COMPARE_SECTIONS, CURRENT_STAGE } from '@/lib/marketing/constants';
 import { useMessages } from './i18n-provider';
 
-// Compare-plans matrix under the pricing cards. Rows are grouped into sections
-// (Recording / Share & Snap) so the reader can scan categories.
-
 const COLUMNS = [
   { key: 'free' as const, label: 'Self-Hosted', accent: 'text-neutral-600' },
   {
@@ -16,8 +13,6 @@ const COLUMNS = [
   },
 ];
 
-// One green for both plan columns so the Managed ticks don't read heavier than
-// Self-Hosted's; the column highlight already distinguishes the plans.
 const TICK_COLOR = '#3aa655';
 
 const PRO_TITLE_STYLE: React.CSSProperties = {
@@ -43,12 +38,9 @@ export function ComparePlansSection() {
           {compare.subtitle}
         </p>
 
-        {/* Desktop/tablet matrix. Hidden on phones, where the narrow value
-            columns wrap badly — a stacked layout renders instead (below). */}
         <div className="relative mt-10 hidden sm:block">
-          {/* Managed-column highlight — a grid overlay using the same template +
-              padding as the rows, so its third cell lines up with the Managed
-              column. Sits behind the content (lifted with `relative`). */}
+          {/* Highlight overlay uses the same grid template + padding as the rows
+              so its third cell lines up with the Managed column. */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 grid grid-cols-[1.6fr_repeat(2,1fr)] px-2 sm:px-3"
@@ -58,9 +50,8 @@ export function ComparePlansSection() {
             <div className="rounded-2xl bg-blue-200" />
           </div>
 
-          {/* The layout stays a CSS grid (the Managed-column overlay depends on
-              it), so table semantics come from ARIA roles: table > rowgroup >
-              row > columnheader/rowheader/cell, plus an sr-only caption. */}
+          {/* Layout stays a CSS grid (the overlay depends on it), so table
+              semantics come from ARIA roles. */}
           <p id="compare-plans-caption" className="sr-only">
             {compare.heading}
           </p>
@@ -69,8 +60,6 @@ export function ComparePlansSection() {
             role="table"
             aria-labelledby="compare-plans-caption"
           >
-            {/* Header row. The left column is a spacer so the section labels
-                below have something to sit under. */}
             <div
               role="row"
               className="grid grid-cols-[1.6fr_repeat(2,1fr)] border-b border-black/10 px-2 py-4 text-sm sm:px-3 sm:py-5"
@@ -98,8 +87,6 @@ export function ComparePlansSection() {
                   role="row"
                   className="grid grid-cols-[1.6fr_repeat(2,1fr)] px-2 pt-6 pb-2 sm:px-3"
                 >
-                  {/* Section label spans the full row; the grid spacer that
-                      follows is layout-only. */}
                   <div
                     role="rowheader"
                     aria-colspan={3}
@@ -151,9 +138,6 @@ export function ComparePlansSection() {
           </div>
         </div>
 
-        {/* Mobile: stacked per-feature layout. Each feature is a heading with
-            the two plans on their own full-width rows, so values never get
-            squeezed into a narrow column. */}
         <div className="mt-8 sm:hidden">
           {COMPARE_SECTIONS.map((section, sectionIndex) => (
             <div key={section.title} className="mb-8 last:mb-0">
@@ -201,8 +185,6 @@ export function ComparePlansSection() {
   );
 }
 
-// One plan's value for a feature on the mobile layout. `highlight` paints the
-// Managed row to match the highlighted column on wider screens.
 function MobileRow({
   plan,
   value,
@@ -271,9 +253,8 @@ function Cell({
       </span>
     );
   }
-  // Check/dash glyphs are visual-only (the Icon renders aria-hidden), so each
-  // cell carries an sr-only text alternative — more reliable than aria-label on
-  // a generic <span>, which many screen readers ignore.
+  // Glyphs are aria-hidden, so each cell carries an sr-only text alternative —
+  // more reliable than aria-label on a generic <span>.
   if (value) {
     return (
       <span

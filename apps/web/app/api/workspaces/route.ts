@@ -5,11 +5,6 @@ import { listWorkspacesForUser } from '@captureflow/quota';
 import { getAppWebEnv } from '@/lib/cf-env';
 import { resolveDeviceToken } from '@/lib/device-tokens';
 
-// GET /api/workspaces — device-bearer endpoint returning the workspaces the
-// signed-in user belongs to (owner + member rows). Same auth + CORS shape as
-// /api/usage. Read-only, so we gate on the bearer token alone, not a session
-// cookie.
-
 const DEVICE_HEADER = 'x-captureflow-device';
 
 function extractBearerToken(req: NextRequest): string | null {

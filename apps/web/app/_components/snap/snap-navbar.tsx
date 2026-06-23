@@ -1,21 +1,14 @@
-// Top navbar for snap views. Left side carries the brand chip, title,
-// and time-ago line; the `right` slot lets callers supply their own
-// actions (copy-link, save, etc.) without re-implementing the chrome.
 import type { ReactElement, ReactNode } from 'react';
 import { PostedBy } from './posted-by';
 import { timeAgo } from './time';
 
 export type SnapNavbarProps = {
-  // Brand-link aria-label. Defaults to "CaptureFlow"; the chip shows
-  // the logo mark regardless.
   brandLabel?: string;
   brandHref?: string;
   title: string;
   createdAt: number;
-  // Identity strip; pass both as null to hide it.
   postedByName?: string | null;
   postedByEmail?: string | null;
-  // Right-side action area, rendered before the PostedBy strip.
   right?: ReactNode;
   className?: string;
 };

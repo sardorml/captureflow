@@ -16,20 +16,16 @@ export function WebcamBubble(): React.JSX.Element {
     })
   }, [])
 
-  // Main fires this before hiding the bubble window (e.g. when recording
-  // stops). Clearing deviceId trips the acquisition useEffect's cleanup
-  // path, which stops the MediaStream tracks and turns the camera LED off
-  // even though the React component stays mounted.
+  // Clearing deviceId trips the acquisition cleanup, stopping the stream and
+  // turning the camera LED off even though the component stays mounted.
   useEffect(() => {
     return window.electronAPI.onWebcamBubbleRelease(() => {
       setDeviceId(null)
     })
   }, [])
 
-  // Reset the loading overlay only when the device actually changes — a
-  // re-show with the same id (toolbar comes back after delete/restart)
-  // means the stream is still live and `onPlaying` won't fire again, so
-  // forcing `isReady` to false would leave the overlay stuck on top.
+  // Reset only on an actual device change: a re-show with the same id keeps the
+  // stream live, `onPlaying` won't refire, and the overlay would stick.
   const [prevDeviceId, setPrevDeviceId] = useState(deviceId)
   if (prevDeviceId !== deviceId) {
     setPrevDeviceId(deviceId)
@@ -41,11 +37,8 @@ export function WebcamBubble(): React.JSX.Element {
     let active = true
     let mediaStream: MediaStream | null = null
 
-    // Hold the camera open at 1080p. The bubble is the highest-resolution
-    // consumer, so the shared capture session runs at full resolution from
-    // its first acquire; the recording-side acquireWebcamCapture (720p
-    // share companion) then downscales from that session instead of
-    // forcing a lower-res renegotiation.
+    // The bubble is the highest-res consumer, so it opens the shared session at
+    // 1080p; the 720p recording companion downscales instead of renegotiating.
     const acquire = async (): Promise<MediaStream> => {
       try {
         return await navigator.mediaDevices.getUserMedia({
@@ -57,8 +50,7 @@ export function WebcamBubble(): React.JSX.Element {
           }
         })
       } catch {
-        // Fallback for cameras that can't satisfy the 1280×720 floor —
-        // drop the min and let the device pick whatever it can do.
+        // Fallback for cameras that can't satisfy the 1280×720 floor.
         return navigator.mediaDevices.getUserMedia({
           video: {
             deviceId: { exact: deviceId },

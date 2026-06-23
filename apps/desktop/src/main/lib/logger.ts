@@ -8,7 +8,7 @@ let logDir: string | null = null
 let logFilePath: string | null = null
 
 const MAX_LOG_FILES = 10
-const MAX_LOG_SIZE = 10 * 1024 * 1024 // 10MB per file
+const MAX_LOG_SIZE = 10 * 1024 * 1024
 
 const c = {
   reset: '\x1b[0m',
@@ -71,7 +71,7 @@ function getStream(): WriteStream {
       unlinkSync(old.path)
     }
   } catch {
-    // Non-critical
+    /* */
   }
 
   return logStream
@@ -125,7 +125,7 @@ export function logRaw(data: string): void {
 
     getStream().write(`${trimmed}\n`)
 
-    // Parse Swift log format: [timestamp] [LEVEL] [component] message
+    // Swift log format: [timestamp] [LEVEL] [component] message
     const match = trimmed.match(/^\[[\d.]+\]\s+\[(\w+)\]\s+\[(\w+)\]\s+(.+)$/)
     if (match) {
       const [, level, component, message] = match
@@ -157,6 +157,6 @@ export function rotateIfNeeded(): void {
       closeLog()
     }
   } catch {
-    // Ignore
+    /* */
   }
 }

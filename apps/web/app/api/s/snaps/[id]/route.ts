@@ -10,15 +10,6 @@ import { optionsResponse, withCors } from '@/lib/snap/cors';
 import type { SnapApiError } from '@/lib/snap/types';
 import { snapViewUrlForRequest } from '@/lib/site';
 
-// /api/s/snaps/[id] — owner-only snap management.
-//
-// GET    snap metadata
-// PUT    replace PNG bytes (editor save)
-// DELETE soft-delete (R2 bytes dropped inline)
-//
-// All require a bearer token + ownership of the snap row. Public PNG
-// reads go through the SSR view page, which needs no auth.
-
 function extractBearerToken(req: NextRequest): string | null {
   const h = req.headers.get('authorization') ?? '';
   const m = /^bearer\s+(.+)$/i.exec(h.trim());
@@ -58,8 +49,6 @@ async function authorise(
       };
     }
   } else if (allowSession) {
-    // Fall back to the session cookie so the snap viewer's overflow
-    // menu can call DELETE without holding a device token.
     const cookieHeader = (await headers()).get('cookie');
     const visitor = await verifySessionOrNull(cookieHeader);
     if (!visitor) {
@@ -137,15 +126,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  // DELETE accepts either a device bearer (desktop CLI) or the viewer
-  // session cookie (overflow menu on snap.captureflow.xyz).
   const a = await authorise(req, id, { allowSession: true });
   if (a.kind === 'error') return a.res;
 
   await softDeleteSnap(a.snap.id);
-  // Drop the R2 object inline: there's no cron sweep for snaps yet, so
-  // otherwise the bytes would linger indefinitely. The soft-delete above
-  // still handles row-level race safety.
+  // No cron sweep for snaps yet, so drop the R2 object inline.
   try {
     await deleteSnapBytes(a.snap.id);
   } catch (err) {

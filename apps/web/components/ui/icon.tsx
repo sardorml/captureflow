@@ -1,11 +1,7 @@
 import type { CSSProperties } from 'react';
 
-// Material Symbols (Rounded) icon wrapper. The font is loaded via the subset
-// stylesheet `app/material-symbols-subset.css` — regenerate with
-// scripts/subset-material-symbols.py after adding new icon names.
-//
-// `name` is any Material Symbols identifier (see fonts.google.com/icons);
-// `size` becomes the font-size in pixels; `fill` selects the filled variant.
+// Font loaded via the subset stylesheet `app/material-symbols-subset.css` —
+// regenerate with scripts/subset-material-symbols.py after adding icon names.
 
 type IconProps = {
   name: string;

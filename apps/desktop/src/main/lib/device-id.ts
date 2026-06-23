@@ -4,13 +4,12 @@ import { readFile, writeFile, mkdir } from 'fs/promises'
 import { randomBytes } from 'crypto'
 import { logInfo, logWarn } from './logger'
 
-// Per-install identifier sent as `x-captureflow-device` to the share API.
-// Used by the worker to enforce per-device upload quotas, active-share
-// limits, and storage caps. The ID is opaque, never shown to the user,
-// and never tied to anything personal — losing it just means the next
-// install gets a fresh quota.
-//
-// File: ~/Library/Application Support/CaptureFlow/device-id.txt (macOS)
+/*
+ * Per-install identifier sent as `x-captureflow-device` to the share API, where
+ * the worker uses it to enforce per-device quotas. Opaque; losing it just
+ * resets the quota on next install.
+ * File: ~/Library/Application Support/CaptureFlow/device-id.txt (macOS)
+ */
 
 const FILE_NAME = 'device-id.txt'
 
@@ -21,8 +20,7 @@ function filePath(): string {
 }
 
 function generate(): string {
-  // 24 bytes = 32 base64url chars — well inside the worker's
-  // [8, 64] length constraint.
+  // 24 bytes = 32 base64url chars — inside the worker's [8, 64] length constraint.
   return randomBytes(24).toString('base64url')
 }
 
