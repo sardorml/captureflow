@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ContentByline } from '../../_components/snap';
-import { GridLoader } from '@captureflow/ui';
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ContentByline } from "../../_components/snap";
+import { GridLoader } from "@captureflow/ui";
 
 type PendingShareProps = {
   slug: string;
@@ -35,19 +35,19 @@ export function PendingShare({
         const res = await fetch(
           `/api/r/state?slug=${encodeURIComponent(slug)}`,
           {
-            cache: 'no-store',
-          }
+            cache: "no-store",
+          },
         );
         if (cancelled) return;
         if (res.ok) {
           const body = (await res.json()) as {
-            state: 'pending' | 'ready' | 'failed' | 'missing';
+            state: "pending" | "ready" | "failed" | "missing";
           };
-          if (body.state === 'ready') {
+          if (body.state === "ready") {
             router.refresh();
             return;
           }
-          if (body.state === 'failed' || body.state === 'missing') {
+          if (body.state === "failed" || body.state === "missing") {
             setFailed(true);
             return;
           }
@@ -82,7 +82,7 @@ export function PendingShare({
         <div
           // Match SharePlayer's container so swapping in the video doesn't reflow.
           className="relative w-full overflow-hidden rounded-xl bg-neutral-900 ring-1 ring-line"
-          style={{ aspectRatio: '16 / 9' }}
+          style={{ aspectRatio: "16 / 9" }}
         >
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center">
             {showRetry ? (
@@ -92,8 +92,8 @@ export function PendingShare({
                 </p>
                 <p className="max-w-sm text-sm text-neutral-400">
                   The link was created but the video never arrived. Try the link
-                  again in a minute, or record a fresh share from the CaptureFlow
-                  desktop app.
+                  again in a minute, or record a fresh share from the
+                  CaptureFlow desktop app.
                 </p>
               </>
             ) : (

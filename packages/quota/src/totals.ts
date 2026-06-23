@@ -9,7 +9,7 @@
 
 export async function totalStorageForUser(
   db: D1Database,
-  userId: string
+  userId: string,
 ): Promise<number> {
   const r = await db
     .prepare(
@@ -20,7 +20,7 @@ export async function totalStorageForUser(
          COALESCE((SELECT SUM(s.size_bytes) FROM snaps s
                     JOIN workspace w ON w.id = s.workspace_id
                     WHERE w.owner_user_id = ?1 AND s.state = 'ready'), 0)
-         AS total`
+         AS total`,
     )
     .bind(userId)
     .first<{ total: number }>();
@@ -29,7 +29,7 @@ export async function totalStorageForUser(
 
 export async function activeArtifactCountForUser(
   db: D1Database,
-  userId: string
+  userId: string,
 ): Promise<number> {
   const r = await db
     .prepare(
@@ -40,7 +40,7 @@ export async function activeArtifactCountForUser(
          (SELECT COUNT(*) FROM snaps s
             JOIN workspace w ON w.id = s.workspace_id
             WHERE w.owner_user_id = ?1 AND s.state = 'ready')
-         AS n`
+         AS n`,
     )
     .bind(userId)
     .first<{ n: number }>();

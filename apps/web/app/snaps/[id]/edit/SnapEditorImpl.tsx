@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -17,7 +17,7 @@ import {
   Type as TypeIcon,
   Undo2,
   X,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   Arrow,
   Group,
@@ -27,39 +27,39 @@ import {
   Stage,
   Text,
   Transformer,
-} from 'react-konva';
-import Konva from 'konva';
+} from "react-konva";
+import Konva from "konva";
 // Side-effect import: without it `Konva.Filters.Blur` is undefined and the
 // blur tool silently no-ops (the cached node gets filters=[undefined]).
-import 'konva/lib/filters/Blur';
-import { GridLoader, SmoothButton } from '@captureflow/ui';
-import { AnimatedTooltip } from '@/lib/animated-tooltip';
-import type { SnapEditorProps } from './SnapEditor';
-import { renameSnapAction, saveSnapAction } from '../../../actions';
+import "konva/lib/filters/Blur";
+import { GridLoader, SmoothButton } from "@captureflow/ui";
+import { AnimatedTooltip } from "@/lib/animated-tooltip";
+import type { SnapEditorProps } from "./SnapEditor";
+import { renameSnapAction, saveSnapAction } from "../../../actions";
 
-type Tool = 'select' | 'text' | 'rect' | 'arrow' | 'blur';
+type Tool = "select" | "text" | "rect" | "arrow" | "blur";
 
 // Three recognised shapes: 'transparent', a gradient preset key, or a
 // '#rrggbb'/'#rgb' hex; anything else normalises to 'transparent' on hydrate.
 type Background = string;
 
 const GRADIENT_KEYS = [
-  'violet',
-  'sunset',
-  'orchid',
-  'forest',
-  'flamingo',
-  'citrus',
-  'arctic',
-  'ocean',
-  'deep',
+  "violet",
+  "sunset",
+  "orchid",
+  "forest",
+  "flamingo",
+  "citrus",
+  "arctic",
+  "ocean",
+  "deep",
 ] as const;
 type GradientKey = (typeof GRADIENT_KEYS)[number];
 
 type AnnotationBase = { id: string };
 
 type TextAnno = AnnotationBase & {
-  kind: 'text';
+  kind: "text";
   x: number;
   y: number;
   text: string;
@@ -69,7 +69,7 @@ type TextAnno = AnnotationBase & {
 };
 
 type RectAnno = AnnotationBase & {
-  kind: 'rect';
+  kind: "rect";
   x: number;
   y: number;
   width: number;
@@ -80,14 +80,14 @@ type RectAnno = AnnotationBase & {
 };
 
 type ArrowAnno = AnnotationBase & {
-  kind: 'arrow';
+  kind: "arrow";
   points: number[];
   stroke: string;
   strokeWidth: number;
 };
 
 type BlurAnno = AnnotationBase & {
-  kind: 'blur';
+  kind: "blur";
   x: number;
   y: number;
   width: number;
@@ -111,53 +111,53 @@ const GRADIENT_PRESETS: Record<
   { label: string; stops: GradientStops }
 > = {
   violet: {
-    label: 'Violet',
-    stops: [0, '#6366f1', 0.5, '#a855f7', 1, '#e9d5ff'],
+    label: "Violet",
+    stops: [0, "#6366f1", 0.5, "#a855f7", 1, "#e9d5ff"],
   },
   sunset: {
-    label: 'Sunset',
-    stops: [0, '#fcd5b5', 0.55, '#f5946a', 1, '#a47bd6'],
+    label: "Sunset",
+    stops: [0, "#fcd5b5", 0.55, "#f5946a", 1, "#a47bd6"],
   },
   orchid: {
-    label: 'Orchid',
-    stops: [0, '#7c3aed', 0.5, '#ec4899', 1, '#fb923c'],
+    label: "Orchid",
+    stops: [0, "#7c3aed", 0.5, "#ec4899", 1, "#fb923c"],
   },
   forest: {
-    label: 'Forest',
-    stops: [0, '#022c22', 0.5, '#15803d', 1, '#86efac'],
+    label: "Forest",
+    stops: [0, "#022c22", 0.5, "#15803d", 1, "#86efac"],
   },
   flamingo: {
-    label: 'Flamingo',
-    stops: [0, '#9d174d', 0.5, '#db2777', 1, '#fbcfe8'],
+    label: "Flamingo",
+    stops: [0, "#9d174d", 0.5, "#db2777", 1, "#fbcfe8"],
   },
   citrus: {
-    label: 'Citrus',
-    stops: [0, '#f59e0b', 0.4, '#ec4899', 0.8, '#3b82f6', 1, '#1e3a8a'],
+    label: "Citrus",
+    stops: [0, "#f59e0b", 0.4, "#ec4899", 0.8, "#3b82f6", 1, "#1e3a8a"],
   },
   arctic: {
-    label: 'Arctic',
-    stops: [0, '#0ea5e9', 0.5, '#a5f3fc', 1, '#e0f2fe'],
+    label: "Arctic",
+    stops: [0, "#0ea5e9", 0.5, "#a5f3fc", 1, "#e0f2fe"],
   },
   ocean: {
-    label: 'Ocean',
-    stops: [0, '#0c4a6e', 0.5, '#0e7490', 1, '#67e8f9'],
+    label: "Ocean",
+    stops: [0, "#0c4a6e", 0.5, "#0e7490", 1, "#67e8f9"],
   },
   deep: {
-    label: 'Deep',
-    stops: [0, '#312e81', 0.55, '#7c3aed', 1, '#f472b6'],
+    label: "Deep",
+    stops: [0, "#312e81", 0.55, "#7c3aed", 1, "#f472b6"],
   },
 };
 
 const SOLID_PALETTE = [
-  '#2563eb',
-  '#0ea5e9',
-  '#65a30d',
-  '#ca8a04',
-  '#db2777',
-  '#dc2626',
-  '#ea580c',
-  '#64748b',
-  '#0f172a',
+  "#2563eb",
+  "#0ea5e9",
+  "#65a30d",
+  "#ca8a04",
+  "#db2777",
+  "#dc2626",
+  "#ea580c",
+  "#64748b",
+  "#0f172a",
 ];
 
 function isHexColor(v: string): boolean {
@@ -169,13 +169,13 @@ function isGradientKey(v: string): v is GradientKey {
 }
 
 const STROKE_PALETTE = [
-  '#0a84ff',
-  '#ef4444',
-  '#22c55e',
-  '#f59e0b',
-  '#a855f7',
-  '#ffffff',
-  '#0f172a',
+  "#0a84ff",
+  "#ef4444",
+  "#22c55e",
+  "#f59e0b",
+  "#a855f7",
+  "#ffffff",
+  "#0f172a",
 ];
 
 // Frame ratio between the screenshot and the stage edge.
@@ -188,12 +188,12 @@ function newId(): string {
 function defaultTextAt(x: number, y: number, scale: number): TextAnno {
   return {
     id: newId(),
-    kind: 'text',
+    kind: "text",
     x,
     y,
-    text: 'Text',
+    text: "Text",
     fontSize: Math.round(28 * scale),
-    fill: '#ffffff',
+    fill: "#ffffff",
     // 0 = auto-fit; onTransformEnd bakes in a real pixel width on resize.
     width: 0,
   };
@@ -202,7 +202,7 @@ function defaultTextAt(x: number, y: number, scale: number): TextAnno {
 function defaultRectFromDrag(
   start: { x: number; y: number },
   end: { x: number; y: number },
-  scale: number
+  scale: number,
 ): RectAnno {
   const x = Math.min(start.x, end.x);
   const y = Math.min(start.y, end.y);
@@ -210,7 +210,7 @@ function defaultRectFromDrag(
   const height = Math.abs(end.y - start.y);
   return {
     id: newId(),
-    kind: 'rect',
+    kind: "rect",
     x,
     y,
     width,
@@ -224,11 +224,11 @@ function defaultRectFromDrag(
 function defaultArrowFromDrag(
   start: { x: number; y: number },
   end: { x: number; y: number },
-  scale: number
+  scale: number,
 ): ArrowAnno {
   return {
     id: newId(),
-    kind: 'arrow',
+    kind: "arrow",
     points: [start.x, start.y, end.x, end.y],
     stroke: STROKE_PALETTE[0],
     strokeWidth: Math.round(5 * scale),
@@ -238,7 +238,7 @@ function defaultArrowFromDrag(
 function defaultBlurFromDrag(
   start: { x: number; y: number },
   end: { x: number; y: number },
-  scale: number
+  scale: number,
 ): BlurAnno {
   const x = Math.min(start.x, end.x);
   const y = Math.min(start.y, end.y);
@@ -246,7 +246,7 @@ function defaultBlurFromDrag(
   const height = Math.abs(end.y - start.y);
   return {
     id: newId(),
-    kind: 'blur',
+    kind: "blur",
     x,
     y,
     width,
@@ -258,12 +258,12 @@ function defaultBlurFromDrag(
 // `raw === null` means never saved — open with a gradient preset so the
 // editor doesn't look bare. Anything unrecognised falls back to 'transparent'.
 function hydrateBackground(raw: string | null): Background {
-  if (raw === null) return 'violet';
-  if (typeof raw !== 'string') return 'transparent';
-  if (raw === 'transparent') return 'transparent';
+  if (raw === null) return "violet";
+  if (typeof raw !== "string") return "transparent";
+  if (raw === "transparent") return "transparent";
   if (isGradientKey(raw)) return raw;
   if (isHexColor(raw)) return raw;
-  return 'transparent';
+  return "transparent";
 }
 
 // Annotations arrive as `unknown[]` because the action is shared with the
@@ -273,12 +273,12 @@ function hydrateAnnotations(raw: unknown[] | null): Annotation[] {
   return raw.filter(
     (a): a is Annotation =>
       !!a &&
-      typeof a === 'object' &&
-      'kind' in a &&
-      (a.kind === 'text' ||
-        a.kind === 'rect' ||
-        a.kind === 'arrow' ||
-        a.kind === 'blur')
+      typeof a === "object" &&
+      "kind" in a &&
+      (a.kind === "text" ||
+        a.kind === "rect" ||
+        a.kind === "arrow" ||
+        a.kind === "blur"),
   );
 }
 
@@ -295,8 +295,8 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     initialAnnotations,
   } = props;
 
-  const [title, setTitle] = useState<string>(initialTitle ?? '');
-  const [titleDraft, setTitleDraft] = useState<string>(initialTitle ?? '');
+  const [title, setTitle] = useState<string>(initialTitle ?? "");
+  const [titleDraft, setTitleDraft] = useState<string>(initialTitle ?? "");
   const [titleEditing, setTitleEditing] = useState(false);
   const [titleSaving, setTitleSaving] = useState(false);
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -332,13 +332,13 @@ export function SnapEditorImpl(props: SnapEditorProps) {
   const [past, setPast] = useState<EditorState[]>([]);
   const [future, setFuture] = useState<EditorState[]>([]);
 
-  const [tool, setTool] = useState<Tool>('select');
+  const [tool, setTool] = useState<Tool>("select");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   type DrawingState =
-    | { kind: 'rect'; start: { x: number; y: number }; current: RectAnno }
-    | { kind: 'arrow'; start: { x: number; y: number }; current: ArrowAnno }
-    | { kind: 'blur'; start: { x: number; y: number }; current: BlurAnno };
+    | { kind: "rect"; start: { x: number; y: number }; current: RectAnno }
+    | { kind: "arrow"; start: { x: number; y: number }; current: ArrowAnno }
+    | { kind: "blur"; start: { x: number; y: number }; current: BlurAnno };
   const [drawing, setDrawing] = useState<DrawingState | null>(null);
 
   const [saving, setSaving] = useState(false);
@@ -367,7 +367,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
       ro.observe(node);
       return () => ro.disconnect();
     },
-    []
+    [],
   );
 
   /*
@@ -383,9 +383,9 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     void (async () => {
       try {
         const res = await fetch(imageUrl, {
-          cache: 'reload',
-          mode: 'cors',
-          credentials: 'omit',
+          cache: "reload",
+          mode: "cors",
+          credentials: "omit",
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const blob = await res.blob();
@@ -398,13 +398,13 @@ export function SnapEditorImpl(props: SnapEditorProps) {
           setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
         };
         img.onerror = () => {
-          if (!cancelled) setImageLoadError('Failed to decode snap image.');
+          if (!cancelled) setImageLoadError("Failed to decode snap image.");
         };
         img.src = objectUrl;
       } catch {
         if (!cancelled) {
           setImageLoadError(
-            'Could not load the snap image. The bucket may have lost CORS access.'
+            "Could not load the snap image. The bucket may have lost CORS access.",
           );
         }
       }
@@ -440,8 +440,8 @@ export function SnapEditorImpl(props: SnapEditorProps) {
       if (inspectorRef.current?.contains(target)) return;
       setSelectedId(null);
     };
-    document.addEventListener('mousedown', onPointerDown);
-    return () => document.removeEventListener('mousedown', onPointerDown);
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
   }, [selectedId]);
 
   const commit = useCallback(
@@ -450,7 +450,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
       setFuture([]);
       setState(next);
     },
-    [state]
+    [state],
   );
 
   const undo = (): void => {
@@ -474,12 +474,12 @@ export function SnapEditorImpl(props: SnapEditorProps) {
   // Goes through `commit` so the wipe is itself one undo step.
   const reset = (): void => {
     setSelectedId(null);
-    commit({ background: 'transparent', annotations: [] });
+    commit({ background: "transparent", annotations: [] });
   };
 
   const commitTitle = async (): Promise<void> => {
     const next = titleDraft.trim();
-    if (next === (title ?? '').trim()) {
+    if (next === (title ?? "").trim()) {
       setTitleEditing(false);
       return;
     }
@@ -499,24 +499,24 @@ export function SnapEditorImpl(props: SnapEditorProps) {
   };
 
   const cancelTitleEdit = (): void => {
-    setTitleDraft(title ?? '');
+    setTitleDraft(title ?? "");
     setTitleEditing(false);
     setTitleError(null);
   };
 
   const hasEdits =
-    state.annotations.length > 0 || state.background !== 'transparent';
+    state.annotations.length > 0 || state.background !== "transparent";
 
   const updateAnnotation = useCallback(
     (id: string, patch: Partial<Annotation>): void => {
       commit({
         ...state,
         annotations: state.annotations.map((a) =>
-          a.id === id ? ({ ...a, ...patch } as Annotation) : a
+          a.id === id ? ({ ...a, ...patch } as Annotation) : a,
         ),
       });
     },
-    [commit, state]
+    [commit, state],
   );
 
   const removeSelected = (): void => {
@@ -535,32 +535,32 @@ export function SnapEditorImpl(props: SnapEditorProps) {
       // Don't hijack keystrokes while the user is typing into an input.
       const target = e.target as HTMLElement | null;
       if (target && /^(input|textarea)$/i.test(target.tagName)) return;
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         setSelectedId(null);
         setDrawing(null);
-        setTool('select');
+        setTool("select");
       }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {
         e.preventDefault();
         removeSelected();
       }
       // Match on `e.code` so the binding survives non-US keyboard layouts.
       const isMeta = e.metaKey || e.ctrlKey;
-      if (isMeta && e.code === 'KeyZ' && !e.shiftKey) {
+      if (isMeta && e.code === "KeyZ" && !e.shiftKey) {
         e.preventDefault();
         undo();
         return;
       }
       if (
-        (isMeta && e.code === 'KeyZ' && e.shiftKey) ||
-        (isMeta && e.code === 'KeyY')
+        (isMeta && e.code === "KeyZ" && e.shiftKey) ||
+        (isMeta && e.code === "KeyY")
       ) {
         e.preventDefault();
         redo();
       }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, past, future, state]);
 
@@ -569,13 +569,13 @@ export function SnapEditorImpl(props: SnapEditorProps) {
   };
 
   const handleStageMouseDown = (
-    e: Konva.KonvaEventObject<MouseEvent>
+    e: Konva.KonvaEventObject<MouseEvent>,
   ): void => {
     const clickedOnEmpty = e.target === e.target.getStage();
 
-    if (tool === 'select') {
+    if (tool === "select") {
       // Transformer anchor — let Konva handle the resize gesture.
-      if (e.target.hasName('_anchor')) return;
+      if (e.target.hasName("_anchor")) return;
       // Walk up to find the annotation node the click landed on; a click on
       // the background falls through to deselect.
       let node: Konva.Node | null = e.target;
@@ -603,13 +603,13 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     // stage mousedown (would spawn a shape mid-resize), and clicking an
     // existing annotation should select it rather than layer a new shape over it.
     if (!clickedOnEmpty) {
-      if (e.target.hasName('_anchor')) return;
+      if (e.target.hasName("_anchor")) return;
       let node: Konva.Node | null = e.target;
       while (node && node !== stage) {
         for (const [id, ref] of nodeRefs.current.entries()) {
           if (ref === node) {
             setSelectedId(id);
-            setTool('select');
+            setTool("select");
             return;
           }
         }
@@ -621,29 +621,29 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     // `displayScale`; invert it so default shape sizes stay screen-sized.
     const sizeScale = displayScale > 0 ? 1 / displayScale : 1;
 
-    if (tool === 'text') {
+    if (tool === "text") {
       const anno = defaultTextAt(pos.x, pos.y, sizeScale);
       commit({ ...state, annotations: [...state.annotations, anno] });
       setSelectedId(anno.id);
-      setTool('select');
+      setTool("select");
       return;
     }
 
-    if (tool === 'rect') {
+    if (tool === "rect") {
       setDrawing({
-        kind: 'rect',
+        kind: "rect",
         start: pos,
         current: defaultRectFromDrag(pos, pos, sizeScale),
       });
-    } else if (tool === 'arrow') {
+    } else if (tool === "arrow") {
       setDrawing({
-        kind: 'arrow',
+        kind: "arrow",
         start: pos,
         current: defaultArrowFromDrag(pos, pos, sizeScale),
       });
-    } else if (tool === 'blur') {
+    } else if (tool === "blur") {
       setDrawing({
-        kind: 'blur',
+        kind: "blur",
         start: pos,
         current: defaultBlurFromDrag(pos, pos, sizeScale),
       });
@@ -657,21 +657,21 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     const pos = stage.getRelativePointerPosition();
     if (!pos) return;
     const sizeScale = displayScale > 0 ? 1 / displayScale : 1;
-    if (drawing.kind === 'rect') {
+    if (drawing.kind === "rect") {
       setDrawing({
-        kind: 'rect',
+        kind: "rect",
         start: drawing.start,
         current: defaultRectFromDrag(drawing.start, pos, sizeScale),
       });
-    } else if (drawing.kind === 'arrow') {
+    } else if (drawing.kind === "arrow") {
       setDrawing({
-        kind: 'arrow',
+        kind: "arrow",
         start: drawing.start,
         current: defaultArrowFromDrag(drawing.start, pos, sizeScale),
       });
     } else {
       setDrawing({
-        kind: 'blur',
+        kind: "blur",
         start: drawing.start,
         current: defaultBlurFromDrag(drawing.start, pos, sizeScale),
       });
@@ -684,7 +684,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     // the click point, rather than discarding the sub-threshold drag.
     const sizeScale = displayScale > 0 ? 1 / displayScale : 1;
     const tooSmall =
-      drawing.kind === 'rect' || drawing.kind === 'blur'
+      drawing.kind === "rect" || drawing.kind === "blur"
         ? drawing.current.width < 4 || drawing.current.height < 4
         : Math.abs(drawing.current.points[2] - drawing.current.points[0]) < 6 &&
           Math.abs(drawing.current.points[3] - drawing.current.points[1]) < 6;
@@ -692,23 +692,23 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     if (tooSmall) {
       const sx = drawing.start.x;
       const sy = drawing.start.y;
-      if (drawing.kind === 'rect') {
+      if (drawing.kind === "rect") {
         toCommit = defaultRectFromDrag(
           { x: sx - 100 * sizeScale, y: sy - 70 * sizeScale },
           { x: sx + 100 * sizeScale, y: sy + 70 * sizeScale },
-          sizeScale
+          sizeScale,
         );
-      } else if (drawing.kind === 'blur') {
+      } else if (drawing.kind === "blur") {
         toCommit = defaultBlurFromDrag(
           { x: sx - 90 * sizeScale, y: sy - 60 * sizeScale },
           { x: sx + 90 * sizeScale, y: sy + 60 * sizeScale },
-          sizeScale
+          sizeScale,
         );
       } else {
         toCommit = defaultArrowFromDrag(
           { x: sx - 60 * sizeScale, y: sy - 60 * sizeScale },
           { x: sx + 60 * sizeScale, y: sy + 60 * sizeScale },
-          sizeScale
+          sizeScale,
         );
       }
     }
@@ -720,7 +720,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     setDrawing(null);
     // Switch to `select` so the new shape is immediately draggable and the next
     // click doesn't spawn another shape.
-    setTool('select');
+    setTool("select");
   };
 
   const handleSave = async (): Promise<void> => {
@@ -729,7 +729,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
     setSaveError(null);
     try {
       const stage = stageRef.current;
-      if (!stage) throw new Error('Editor not mounted');
+      if (!stage) throw new Error("Editor not mounted");
 
       // De-select so the transformer handles aren't baked into the PNG.
       const previouslySelected = selectedId;
@@ -746,19 +746,19 @@ export function SnapEditorImpl(props: SnapEditorProps) {
       const exportH = exportCanvas.height;
 
       // Ship RGBA bytes to a Web Worker for PNG-8 re-encoding off-thread.
-      const exportCtx = exportCanvas.getContext('2d');
-      if (!exportCtx) throw new Error('Could not acquire export canvas');
+      const exportCtx = exportCanvas.getContext("2d");
+      if (!exportCtx) throw new Error("Could not acquire export canvas");
       const rgba = exportCtx.getImageData(0, 0, exportW, exportH);
 
       const pngBuf = await new Promise<ArrayBuffer>((resolve, reject) => {
         const worker = new Worker(
-          new URL('./encode-worker.ts', import.meta.url),
-          { type: 'module' }
+          new URL("./encode-worker.ts", import.meta.url),
+          { type: "module" },
         );
         worker.onmessage = (
           e: MessageEvent<
             { ok: true; png: ArrayBuffer } | { ok: false; error: string }
-          >
+          >,
         ) => {
           worker.terminate();
           if (e.data.ok) resolve(e.data.png);
@@ -766,7 +766,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
         };
         worker.onerror = (e) => {
           worker.terminate();
-          reject(new Error(e.message || 'PNG encode worker crashed'));
+          reject(new Error(e.message || "PNG encode worker crashed"));
         };
         // Transfer (not copy) the multi-MB RGBA buffer into the worker.
         const transferable = rgba.data.buffer as ArrayBuffer;
@@ -777,10 +777,10 @@ export function SnapEditorImpl(props: SnapEditorProps) {
             height: exportH,
             cnum: 256,
           },
-          [transferable]
+          [transferable],
         );
       });
-      const blob = new Blob([pngBuf], { type: 'image/png' });
+      const blob = new Blob([pngBuf], { type: "image/png" });
 
       const res = await saveSnapAction(snapId, blob, {
         background: state.background,
@@ -812,7 +812,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
   const stageDims = useMemo(() => {
     const w = naturalSize?.w ?? imgW;
     const h = naturalSize?.h ?? imgH;
-    const hasBg = state.background !== 'transparent';
+    const hasBg = state.background !== "transparent";
     if (!hasBg) {
       return {
         stageW: w,
@@ -845,7 +845,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
       : Math.min(
           1,
           containerBox.w / stageDims.stageW,
-          containerBox.h / stageDims.stageH
+          containerBox.h / stageDims.stageH,
         );
 
   const selectedAnno = selectedId
@@ -868,7 +868,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
             on lg:+; below lg: the toolbar is hidden so the cap is dropped. */}
         <div className="flex min-w-0 flex-1 items-center gap-2 lg:max-w-[calc(50%-220px)]">
           <IconButton
-            onClick={() => router.push('/snaps')}
+            onClick={() => router.push("/snaps")}
             tooltip="Back to snaps"
             ariaLabel="Back to snaps"
           >
@@ -888,7 +888,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
                 onChange={(e) => setTitleDraft(e.target.value)}
                 onBlur={() => void commitTitle()}
                 onKeyDown={(e) => {
-                  if (e.key === 'Escape') {
+                  if (e.key === "Escape") {
                     e.preventDefault();
                     cancelTitleEdit();
                   }
@@ -903,14 +903,14 @@ export function SnapEditorImpl(props: SnapEditorProps) {
             <button
               type="button"
               onClick={() => {
-                setTitleDraft(title ?? '');
+                setTitleDraft(title ?? "");
                 setTitleEditing(true);
               }}
               className="group flex min-w-0 items-center gap-1 rounded-md px-2 py-1 text-left hover:bg-overlay"
               title="Rename"
             >
               <span className="truncate text-sm text-neutral-200">
-                {title?.trim() || 'Untitled snap'}
+                {title?.trim() || "Untitled snap"}
               </span>
               <Pencil className="h-3.5 w-3.5 shrink-0 text-neutral-600 opacity-0 transition-opacity group-hover:opacity-100" />
             </button>
@@ -973,7 +973,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
             ) : savedJustNow ? (
               <Check className="h-4 w-4" />
             ) : null}
-            {savedJustNow ? 'Saved · link copied' : 'Save and copy link'}
+            {savedJustNow ? "Saved · link copied" : "Save and copy link"}
           </SmoothButton>
         </div>
       </header>
@@ -996,12 +996,12 @@ export function SnapEditorImpl(props: SnapEditorProps) {
                 onChange={(patch) => updateAnnotation(selectedAnno.id, patch)}
                 onDuplicate={() => {
                   const dup: Annotation =
-                    selectedAnno.kind === 'arrow'
+                    selectedAnno.kind === "arrow"
                       ? {
                           ...selectedAnno,
                           id: newId(),
                           points: selectedAnno.points.map((v, i) =>
-                            i % 2 === 0 ? v + 16 : v + 16
+                            i % 2 === 0 ? v + 16 : v + 16,
                           ),
                         }
                       : ({
@@ -1046,11 +1046,11 @@ export function SnapEditorImpl(props: SnapEditorProps) {
                 onMouseUp={handleStageMouseUp}
                 style={{
                   cursor:
-                    tool === 'text'
-                      ? 'text'
-                      : tool === 'rect' || tool === 'arrow' || tool === 'blur'
-                      ? 'crosshair'
-                      : 'default',
+                    tool === "text"
+                      ? "text"
+                      : tool === "rect" || tool === "arrow" || tool === "blur"
+                        ? "crosshair"
+                        : "default",
                 }}
               >
                 <Layer>
@@ -1066,7 +1066,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
                     width={stageDims.imgRenderW}
                     height={stageDims.imgRenderH}
                     cornerRadius={
-                      state.background === 'transparent'
+                      state.background === "transparent"
                         ? 0
                         : Math.round(stageDims.imgRenderW * 0.01)
                     }
@@ -1076,7 +1076,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
                     <AnnotationNode
                       key={a.id}
                       annotation={a}
-                      selectable={tool === 'select'}
+                      selectable={tool === "select"}
                       registerNode={(node) => {
                         if (node) nodeRefs.current.set(a.id, node);
                         else nodeRefs.current.delete(a.id);
@@ -1143,22 +1143,22 @@ function Toolbar({
   return (
     <div className="inline-flex items-center gap-1 rounded-xl bg-canvas-2 p-1 shadow-sm ring-1 ring-line">
       <ToolButton
-        active={tool === 'text'}
-        onClick={() => onTool('text')}
+        active={tool === "text"}
+        onClick={() => onTool("text")}
         title="Text"
       >
         <TypeIcon className="h-4 w-4" />
       </ToolButton>
       <ToolButton
-        active={tool === 'rect'}
-        onClick={() => onTool('rect')}
+        active={tool === "rect"}
+        onClick={() => onTool("rect")}
         title="Rectangle"
       >
         <Square className="h-4 w-4" />
       </ToolButton>
       <ToolButton
-        active={tool === 'arrow'}
-        onClick={() => onTool('arrow')}
+        active={tool === "arrow"}
+        onClick={() => onTool("arrow")}
         title="Arrow"
       >
         <ArrowUpRight className="h-4 w-4" />
@@ -1216,10 +1216,10 @@ function ToolButton({
       onClick={onClick}
       title={title}
       className={
-        'inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors ' +
+        "inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors " +
         (active
-          ? 'bg-canvas text-fg-strong shadow-md ring-2 ring-fg-muted'
-          : 'text-fg-muted hover:bg-overlay hover:text-fg-strong')
+          ? "bg-canvas text-fg-strong shadow-md ring-2 ring-fg-muted"
+          : "text-fg-muted hover:bg-overlay hover:text-fg-strong")
       }
     >
       {children}
@@ -1228,15 +1228,15 @@ function ToolButton({
 }
 
 function BackgroundSwatch({ bg }: { bg: Background }) {
-  if (bg === 'transparent') {
+  if (bg === "transparent") {
     return (
       <span
         className="block h-5 w-5 rounded-sm"
         style={{
           backgroundImage:
-            'linear-gradient(45deg, #555 25%, transparent 25%), linear-gradient(-45deg, #555 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #555 75%), linear-gradient(-45deg, transparent 75%, #555 75%)',
-          backgroundSize: '8px 8px',
-          backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0',
+            "linear-gradient(45deg, #555 25%, transparent 25%), linear-gradient(-45deg, #555 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #555 75%), linear-gradient(-45deg, transparent 75%, #555 75%)",
+          backgroundSize: "8px 8px",
+          backgroundPosition: "0 0, 0 4px, 4px -4px, -4px 0",
         }}
       />
     );
@@ -1265,7 +1265,7 @@ function gradientCss(stops: GradientStops): string {
   for (let i = 0; i < stops.length; i += 2) {
     parts.push(`${stops[i + 1]} ${(stops[i] as number) * 100}%`);
   }
-  return `linear-gradient(135deg, ${parts.join(', ')})`;
+  return `linear-gradient(135deg, ${parts.join(", ")})`;
 }
 
 function BackgroundPicker({
@@ -1305,14 +1305,14 @@ function BackgroundPicker({
             <button
               type="button"
               onClick={() => {
-                onChange('transparent');
+                onChange("transparent");
                 setOpen(false);
               }}
               className={
-                'flex h-14 items-center justify-center rounded-lg bg-neutral-800 text-sm font-medium text-neutral-100 ring-1 transition-colors ' +
-                (active === 'transparent'
-                  ? 'ring-blue-400'
-                  : 'ring-line hover:ring-line-strong')
+                "flex h-14 items-center justify-center rounded-lg bg-neutral-800 text-sm font-medium text-neutral-100 ring-1 transition-colors " +
+                (active === "transparent"
+                  ? "ring-blue-400"
+                  : "ring-line hover:ring-line-strong")
               }
             >
               None
@@ -1326,10 +1326,10 @@ function BackgroundPicker({
                   setOpen(false);
                 }}
                 className={
-                  'h-14 rounded-lg ring-1 transition-shadow ' +
+                  "h-14 rounded-lg ring-1 transition-shadow " +
                   (active === k
-                    ? 'ring-2 ring-blue-400'
-                    : 'ring-line hover:ring-line-strong')
+                    ? "ring-2 ring-blue-400"
+                    : "ring-line hover:ring-line-strong")
                 }
                 style={{ background: gradientCss(GRADIENT_PRESETS[k].stops) }}
                 title={GRADIENT_PRESETS[k].label}
@@ -1347,10 +1347,10 @@ function BackgroundPicker({
                   setOpen(false);
                 }}
                 className={
-                  'h-6 w-6 rounded-full ring-1 transition-shadow ' +
+                  "h-6 w-6 rounded-full ring-1 transition-shadow " +
                   (active.toLowerCase() === hex.toLowerCase()
-                    ? 'ring-2 ring-blue-400'
-                    : 'ring-line-strong hover:ring-line-strong')
+                    ? "ring-2 ring-blue-400"
+                    : "ring-line-strong hover:ring-line-strong")
                 }
                 style={{ backgroundColor: hex }}
                 aria-label={`Solid ${hex}`}
@@ -1360,14 +1360,14 @@ function BackgroundPicker({
               className="relative inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-full ring-1 ring-line-strong hover:ring-line-strong"
               style={{
                 background:
-                  'conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444)',
+                  "conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444)",
               }}
               aria-label="Pick a custom color"
             >
               <input
                 type="color"
                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                value={isHexColor(active) ? active : '#000000'}
+                value={isHexColor(active) ? active : "#000000"}
                 onChange={(e) => onChange(e.target.value)}
               />
             </label>
@@ -1387,7 +1387,7 @@ function BackgroundLayer({
   width: number;
   height: number;
 }) {
-  if (background === 'transparent') return null;
+  if (background === "transparent") return null;
   if (isHexColor(background)) {
     return (
       <Rect
@@ -1438,7 +1438,7 @@ function AnnotationNode({
 }) {
   // Commit on dragEnd so each drag is one undo step, not one per move.
   const onDragEnd = (e: Konva.KonvaEventObject<DragEvent>): void => {
-    if (annotation.kind === 'arrow') {
+    if (annotation.kind === "arrow") {
       // Bake the drag offset into the points so we don't accumulate a
       // transform on top of the points array.
       const node = e.target;
@@ -1446,7 +1446,7 @@ function AnnotationNode({
       const dy = node.y();
       onChange({
         points: annotation.points.map((v, i) =>
-          i % 2 === 0 ? v + dx : v + dy
+          i % 2 === 0 ? v + dx : v + dy,
         ),
       } as Partial<Annotation>);
       node.position({ x: 0, y: 0 });
@@ -1462,7 +1462,7 @@ function AnnotationNode({
     onDragEnd,
   };
 
-  if (annotation.kind === 'text') {
+  if (annotation.kind === "text") {
     return (
       <Text
         ref={(n) => registerNode(n)}
@@ -1477,7 +1477,7 @@ function AnnotationNode({
         verticalAlign="top"
         {...commonProps}
         onDblClick={() => {
-          const next = window.prompt('Text', annotation.text);
+          const next = window.prompt("Text", annotation.text);
           if (next !== null) onChange({ text: next } as Partial<Annotation>);
         }}
         onTransformEnd={(e) => {
@@ -1499,7 +1499,7 @@ function AnnotationNode({
     );
   }
 
-  if (annotation.kind === 'rect') {
+  if (annotation.kind === "rect") {
     return (
       <Rect
         ref={(n) => registerNode(n)}
@@ -1532,7 +1532,7 @@ function AnnotationNode({
     );
   }
 
-  if (annotation.kind === 'blur') {
+  if (annotation.kind === "blur") {
     if (!sourceImage || !imgRect) return null;
     return (
       <BlurNode
@@ -1666,9 +1666,9 @@ function ElementInspector({
   onDuplicate: () => void;
   onDelete: () => void;
 }) {
-  const hasColor = annotation.kind !== 'blur';
-  const hasStroke = annotation.kind === 'rect' || annotation.kind === 'arrow';
-  const isBlur = annotation.kind === 'blur';
+  const hasColor = annotation.kind !== "blur";
+  const hasStroke = annotation.kind === "rect" || annotation.kind === "arrow";
+  const isBlur = annotation.kind === "blur";
   return (
     <div className="flex items-center justify-center px-3 py-2">
       <div className="inline-flex items-center gap-2 rounded-xl bg-canvas-2 p-1.5 shadow-sm ring-1 ring-line">
@@ -1676,11 +1676,11 @@ function ElementInspector({
           <div className="flex items-center gap-2 px-1">
             {STROKE_PALETTE.map((c) => {
               const current =
-                annotation.kind === 'text'
+                annotation.kind === "text"
                   ? annotation.fill
-                  : annotation.kind === 'rect' || annotation.kind === 'arrow'
-                  ? annotation.stroke
-                  : '';
+                  : annotation.kind === "rect" || annotation.kind === "arrow"
+                    ? annotation.stroke
+                    : "";
               const selected = current === c;
               return (
                 <button
@@ -1688,16 +1688,16 @@ function ElementInspector({
                   type="button"
                   onClick={() =>
                     onChange(
-                      annotation.kind === 'text'
+                      annotation.kind === "text"
                         ? ({ fill: c } as Partial<Annotation>)
-                        : ({ stroke: c } as Partial<Annotation>)
+                        : ({ stroke: c } as Partial<Annotation>),
                     )
                   }
                   className={
-                    'h-5 w-5 rounded-full border transition-transform ' +
+                    "h-5 w-5 rounded-full border transition-transform " +
                     (selected
-                      ? 'border-2 border-fg scale-110'
-                      : 'border-line hover:scale-110')
+                      ? "border-2 border-fg scale-110"
+                      : "border-line hover:scale-110")
                   }
                   style={{ backgroundColor: c }}
                   title={`Color ${c}`}

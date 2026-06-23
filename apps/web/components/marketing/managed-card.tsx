@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { Icon } from '@/components/ui/icon';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Icon } from "@/components/ui/icon";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   MONTHLY_PRICE,
   MONTHLY_SUBSCRIPTION_CHECKOUT_URL,
-} from '@/lib/marketing/constants';
-import { getPosthogDistinctId, track } from '@/lib/marketing/track';
-import { useMessages } from './i18n-provider';
+} from "@/lib/marketing/constants";
+import { getPosthogDistinctId, track } from "@/lib/marketing/track";
+import { useMessages } from "./i18n-provider";
 
 export function ManagedCard() {
   const m = useMessages();
@@ -16,17 +16,17 @@ export function ManagedCard() {
 
   const baseHref = MONTHLY_SUBSCRIPTION_CHECKOUT_URL
     ? `${MONTHLY_SUBSCRIPTION_CHECKOUT_URL}?utm_source=site&utm_medium=pricing&utm_content=managed`
-    : '#pricing';
+    : "#pricing";
 
   // PostHog distinct_id isn't available server-side at render, so append it at click time.
   const handleCheckoutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    track('checkout_opened', { plan: 'managed' });
+    track("checkout_opened", { plan: "managed" });
     if (!MONTHLY_SUBSCRIPTION_CHECKOUT_URL) return;
     const distinctId = getPosthogDistinctId();
     if (!distinctId) return;
     try {
       const url = new URL(e.currentTarget.href);
-      url.searchParams.set('checkout[custom][ph_distinct_id]', distinctId);
+      url.searchParams.set("checkout[custom][ph_distinct_id]", distinctId);
       e.currentTarget.href = url.toString();
     } catch {
       // Malformed URL — keep the plain href rather than block the click.
@@ -43,7 +43,9 @@ export function ManagedCard() {
         </Badge>
       </div>
 
-      <h3 className="text-2xl font-bold text-white sm:text-3xl">{copy.title}</h3>
+      <h3 className="text-2xl font-bold text-white sm:text-3xl">
+        {copy.title}
+      </h3>
       <p className="mt-1 text-sm text-neutral-400 sm:text-base">
         {copy.subtitle}
       </p>

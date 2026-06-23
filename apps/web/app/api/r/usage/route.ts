@@ -1,14 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { isDevDevice } from '@/lib/share/dev-allowlist';
-import { resolveDeviceTokenToUser } from '@/lib/share/device-tokens';
-import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
+import { NextRequest, NextResponse } from "next/server";
+import { isDevDevice } from "@/lib/share/dev-allowlist";
+import { resolveDeviceTokenToUser } from "@/lib/share/device-tokens";
+import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
 import {
-  activeArtifactCountForUser, getEffectiveLimitsForUser, totalStorageForUser, } from '@/lib/share/quota';
+  activeArtifactCountForUser,
+  getEffectiveLimitsForUser,
+  totalStorageForUser,
+} from "@/lib/share/quota";
 
-const DEVICE_HEADER = 'x-captureflow-device';
+const DEVICE_HEADER = "x-captureflow-device";
 
 function extractBearerToken(req: NextRequest): string | null {
-  const h = req.headers.get('authorization') ?? '';
+  const h = req.headers.get("authorization") ?? "";
   const m = /^bearer\s+(.+)$/i.exec(h.trim());
   return m ? m[1].trim() : null;
 }
@@ -29,16 +32,16 @@ export function OPTIONS() {
 export async function GET(req: NextRequest) {
   const deviceId = req.headers.get(DEVICE_HEADER);
   if (!deviceId || deviceId.length < 8 || deviceId.length > 64) {
-    return jsonError('Missing or invalid device header', 400, 'invalid_device');
+    return jsonError("Missing or invalid device header", 400, "invalid_device");
   }
 
   const bearer = extractBearerToken(req);
   if (!bearer) {
-    return jsonError('Sign in to read share usage', 401, 'missing_token');
+    return jsonError("Sign in to read share usage", 401, "missing_token");
   }
   const userId = await resolveDeviceTokenToUser(bearer);
   if (!userId) {
-    return jsonError('Sign-in expired or revoked', 401, 'invalid_token');
+    return jsonError("Sign-in expired or revoked", 401, "invalid_token");
   }
 
   const [usedBytes, activeCount, isDev, limits] = await Promise.all([
@@ -63,4 +66,3 @@ export async function GET(req: NextRequest) {
   };
   return withCors(NextResponse.json(body));
 }
-

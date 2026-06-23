@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Lightbulb } from 'lucide-react';
-import { PageShell } from '@/components/marketing/page-shell';
-import SmoothButton from '@/components/ui/smooth-button';
-import { FEATURE_CATEGORIES, SUPPORT_EMAIL } from '@/lib/marketing/constants';
+import { useState } from "react";
+import Link from "next/link";
+import { Lightbulb } from "lucide-react";
+import { PageShell } from "@/components/marketing/page-shell";
+import SmoothButton from "@/components/ui/smooth-button";
+import { FEATURE_CATEGORIES, SUPPORT_EMAIL } from "@/lib/marketing/constants";
 import {
   useMessages,
   useLocalizedHref,
-} from '@/components/marketing/i18n-provider';
+} from "@/components/marketing/i18n-provider";
 
 // FormSubmit sends a one-time confirmation email to SUPPORT_EMAIL on the first
 // submission; once confirmed, later submissions deliver silently.
@@ -23,8 +23,8 @@ export function SuggestFeatureClient() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [category, setCategory] = useState<string>('');
-  const errorParts = m.suggestFeature.errorBody.split('{email}');
+  const [category, setCategory] = useState<string>("");
+  const errorParts = m.suggestFeature.errorBody.split("{email}");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,8 +33,8 @@ export function SuggestFeatureClient() {
     const form = e.currentTarget;
     try {
       const res = await fetch(FORMSUBMIT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...Object.fromEntries(new FormData(form)),
           category,
@@ -70,7 +70,7 @@ export function SuggestFeatureClient() {
             {m.suggestFeature.successBody}
           </p>
           <SmoothButton asChild size="lg" className="mt-8">
-            <Link href={lh('/')}>{m.pageShell.backToHome}</Link>
+            <Link href={lh("/")}>{m.pageShell.backToHome}</Link>
           </SmoothButton>
         </div>
       ) : (
@@ -137,8 +137,8 @@ export function SuggestFeatureClient() {
                   onClick={() => setCategory(cat)}
                   className={`rounded-lg px-3.5 py-2 text-sm transition-colors ${
                     category === cat
-                      ? 'bg-blue-600 text-white font-medium'
-                      : 'border border-black/10 bg-black/[0.02] text-muted-foreground hover:text-foreground hover:border-black/20'
+                      ? "bg-blue-600 text-white font-medium"
+                      : "border border-black/10 bg-black/[0.02] text-muted-foreground hover:text-foreground hover:border-black/20"
                   }`}
                 >
                   {m.suggestFeature.categoryOptions[index]}

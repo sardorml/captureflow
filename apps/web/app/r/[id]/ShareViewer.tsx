@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useCallback, useRef, useState } from 'react';
-import type { SharePlayerHandle } from '../../_components/share';
-import type { ShareConfig } from '@/lib/share-config';
-import type { ShareComment, ShareReaction } from '@/lib/share/types';
-import type { ShareChapter } from '@/lib/share/summary-chapters';
-import { ContentByline } from '../../_components/snap';
-import { PoweredBy } from '../../_components/powered-by';
-import { SharePlayer } from './SharePlayer';
-import { ActivitySidebar } from './ActivitySidebar';
-import { SummaryChapters } from './SummaryChapters';
+import { useCallback, useRef, useState } from "react";
+import type { SharePlayerHandle } from "../../_components/share";
+import type { ShareConfig } from "@/lib/share-config";
+import type { ShareComment, ShareReaction } from "@/lib/share/types";
+import type { ShareChapter } from "@/lib/share/summary-chapters";
+import { ContentByline } from "../../_components/snap";
+import { PoweredBy } from "../../_components/powered-by";
+import { SharePlayer } from "./SharePlayer";
+import { ActivitySidebar } from "./ActivitySidebar";
+import { SummaryChapters } from "./SummaryChapters";
 
 type Props = {
   slug: string;
@@ -66,8 +66,8 @@ export function ShareViewer({
   const focusComment = useCallback(() => {
     commentInputRef.current?.focus({ preventScroll: false });
     commentInputRef.current?.scrollIntoView({
-      block: 'center',
-      behavior: 'smooth',
+      block: "center",
+      behavior: "smooth",
     });
   }, []);
 
@@ -103,7 +103,7 @@ export function ShareViewer({
               <ContentByline ownerName={ownerName} createdAt={createdAt} />
             </div>
             <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-overlay px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line lg:right-12">
-              {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
+              {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
             </span>
           </div>
         </header>

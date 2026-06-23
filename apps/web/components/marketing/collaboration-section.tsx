@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Sparkle } from 'lucide-react';
-import { Icon } from '@/components/ui/icon';
-import { SectionHeader } from './section-header';
-import { DemoStage } from './demo-stage';
-import { useMessages } from './i18n-provider';
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { Sparkle } from "lucide-react";
+import { Icon } from "@/components/ui/icon";
+import { SectionHeader } from "./section-header";
+import { DemoStage } from "./demo-stage";
+import { useMessages } from "./i18n-provider";
 
-type ShareKey = 'editor' | 'viewer' | 'dashboard';
-type SnapKey = 'markup' | 'capture' | 'share';
-type VisibilityKey = 'public' | 'workspace' | 'private';
+type ShareKey = "editor" | "viewer" | "dashboard";
+type SnapKey = "markup" | "capture" | "share";
+type VisibilityKey = "public" | "workspace" | "private";
 
 type Feature = {
   key: string;
@@ -22,99 +22,99 @@ type Feature = {
 type Category = {
   id: string; // anchor target — nav #share / #snap land here
   num: string;
-  kind: 'share' | 'snap' | 'workspaces';
+  kind: "share" | "snap" | "workspaces";
   title: string;
   features: Feature[];
 };
 
 const SHARE_URLS: Record<ShareKey, string> = {
-  editor: 'captureflow.xyz/s/8kx2pnq4',
-  viewer: 'captureflow.xyz/s/8kx2pnq4',
-  dashboard: 'captureflow.xyz',
+  editor: "captureflow.xyz/s/8kx2pnq4",
+  viewer: "captureflow.xyz/s/8kx2pnq4",
+  dashboard: "captureflow.xyz",
 };
 
 const SNAP_URLS: Record<SnapKey, string> = {
-  markup: 'captureflow.xyz/snaps/8kx2pnq4/edit',
-  capture: 'capture overlay',
-  share: 'captureflow.xyz',
+  markup: "captureflow.xyz/snaps/8kx2pnq4/edit",
+  capture: "capture overlay",
+  share: "captureflow.xyz",
 };
 
 const CATEGORIES: Category[] = [
   {
-    id: 'share',
-    num: '01',
-    kind: 'share',
-    title: 'Shareable recordings',
+    id: "share",
+    num: "01",
+    kind: "share",
+    title: "Shareable recordings",
     features: [
       {
-        key: 'editor',
-        title: 'Edit recording',
-        linkText: 'Recolor and choose who can react',
-        body: '— polish your share on the web, no re-record.',
+        key: "editor",
+        title: "Edit recording",
+        linkText: "Recolor and choose who can react",
+        body: "— polish your share on the web, no re-record.",
       },
       {
-        key: 'viewer',
-        title: 'Share, react and comment',
-        linkText: 'Drop reactions and threaded comments',
-        body: '— feedback lands right on the recording, no re-record.',
+        key: "viewer",
+        title: "Share, react and comment",
+        linkText: "Drop reactions and threaded comments",
+        body: "— feedback lands right on the recording, no re-record.",
       },
       {
-        key: 'dashboard',
-        title: 'Your shares, your dashboard',
-        linkText: 'Track views, search your library, revoke access',
-        body: '— every link organized in one place.',
+        key: "dashboard",
+        title: "Your shares, your dashboard",
+        linkText: "Track views, search your library, revoke access",
+        body: "— every link organized in one place.",
       },
     ],
   },
   {
-    id: 'snap',
-    num: '02',
-    kind: 'snap',
-    title: 'Snap screenshots',
+    id: "snap",
+    num: "02",
+    kind: "snap",
+    title: "Snap screenshots",
     features: [
       {
-        key: 'capture',
-        title: 'Region, window, or full screen',
-        linkText: 'One shortcut, three ways to grab',
-        body: '— drag a region, click a window, or take the whole display.',
+        key: "capture",
+        title: "Region, window, or full screen",
+        linkText: "One shortcut, three ways to grab",
+        body: "— drag a region, click a window, or take the whole display.",
       },
       {
-        key: 'markup',
-        title: 'Annotate before you share',
-        linkText: 'Add arrows, text, or blur',
-        body: 'over any capture — every annotation stays on the Snap.',
+        key: "markup",
+        title: "Annotate before you share",
+        linkText: "Add arrows, text, or blur",
+        body: "over any capture — every annotation stays on the Snap.",
       },
       {
-        key: 'share',
-        title: 'One link, ready to share',
-        linkText: 'The link hits your clipboard',
-        body: '— Snaps and recordings together in one dashboard.',
+        key: "share",
+        title: "One link, ready to share",
+        linkText: "The link hits your clipboard",
+        body: "— Snaps and recordings together in one dashboard.",
       },
     ],
   },
   {
-    id: 'workspaces',
-    num: '03',
-    kind: 'workspaces',
-    title: 'Team workspaces',
+    id: "workspaces",
+    num: "03",
+    kind: "workspaces",
+    title: "Team workspaces",
     features: [
       {
-        key: 'workspace',
-        title: 'Share with your team',
-        linkText: 'Keep links inside your workspace',
-        body: 'so only teammates can open them — private by default.',
+        key: "workspace",
+        title: "Share with your team",
+        linkText: "Keep links inside your workspace",
+        body: "so only teammates can open them — private by default.",
       },
       {
-        key: 'public',
-        title: 'Public when you want',
-        linkText: 'Flip a share public',
-        body: 'and anyone with the link can watch — great for changelogs and demos.',
+        key: "public",
+        title: "Public when you want",
+        linkText: "Flip a share public",
+        body: "and anyone with the link can watch — great for changelogs and demos.",
       },
       {
-        key: 'private',
-        title: 'Keep it to yourself',
-        linkText: 'Lock a share to just you',
-        body: 'while you draft, then share it the moment it’s ready.',
+        key: "private",
+        title: "Keep it to yourself",
+        linkText: "Lock a share to just you",
+        body: "while you draft, then share it the moment it’s ready.",
       },
     ],
   },
@@ -126,7 +126,7 @@ export function CollaborationSection() {
 
   useEffect(() => {
     const sync = () => {
-      const hash = window.location.hash.replace('#', '');
+      const hash = window.location.hash.replace("#", "");
       const idx = CATEGORIES.findIndex((c) => c.id === hash);
       if (idx < 0) return;
       setActiveCat(idx);
@@ -139,14 +139,14 @@ export function CollaborationSection() {
       if (!el) return;
       const startTs = performance.now();
       const follow = () => {
-        el.scrollIntoView({ block: 'start' });
+        el.scrollIntoView({ block: "start" });
         if (performance.now() - startTs < 520) requestAnimationFrame(follow);
       };
       requestAnimationFrame(follow);
     };
     sync();
-    window.addEventListener('hashchange', sync);
-    return () => window.removeEventListener('hashchange', sync);
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
   }, []);
 
   return (
@@ -201,15 +201,15 @@ function AccordionRow({
   const panelId = `${cat.id}-panel`;
 
   const numberClass =
-    'max-sm:hidden w-8 shrink-0 font-heading text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:w-9 sm:text-[26px]';
+    "max-sm:hidden w-8 shrink-0 font-heading text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:w-9 sm:text-[26px]";
   const titleClass =
-    'font-heading text-2xl font-semibold tracking-tight text-neutral-900 sm:text-[26px]';
+    "font-heading text-2xl font-semibold tracking-tight text-neutral-900 sm:text-[26px]";
 
   return (
     <div
       id={cat.id}
       className={`scroll-mt-28 overflow-hidden transition-colors duration-300 ${
-        isActive ? 'rounded-[2rem] bg-blue-100' : ''
+        isActive ? "rounded-[2rem] bg-blue-100" : ""
       }`}
     >
       {!isActive && (
@@ -219,7 +219,7 @@ function AccordionRow({
           aria-expanded={isActive}
           aria-controls={panelId}
           className={`flex w-full cursor-pointer items-center gap-16 px-5 py-6 text-left transition-opacity hover:opacity-60 sm:gap-60 sm:px-9 sm:py-7 ${
-            nextActive ? '' : 'border-b border-black/[0.08]'
+            nextActive ? "" : "border-b border-black/[0.08]"
           }`}
         >
           <span className={numberClass}>{cat.num}</span>
@@ -239,7 +239,7 @@ function AccordionRow({
             key="content"
             id={panelId}
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
@@ -258,7 +258,9 @@ function AccordionRow({
                     className="flex items-center gap-16 text-left sm:gap-60"
                   >
                     <span className={numberClass}>{cat.num}</span>
-                    <span className={`max-sm:ms-6 ${titleClass}`}>{catTitle}</span>
+                    <span className={`max-sm:ms-6 ${titleClass}`}>
+                      {catTitle}
+                    </span>
                   </button>
                   <FeatureList
                     cat={cat}
@@ -269,13 +271,13 @@ function AccordionRow({
 
                 <div className="w-full min-w-0 self-start">
                   <ScaledMockup>
-                    {cat.kind === 'share' && (
+                    {cat.kind === "share" && (
                       <ShareFrame activeKey={featureKey as ShareKey} />
                     )}
-                    {cat.kind === 'snap' && (
+                    {cat.kind === "snap" && (
                       <SnapFrame activeKey={featureKey as SnapKey} />
                     )}
-                    {cat.kind === 'workspaces' && (
+                    {cat.kind === "workspaces" && (
                       <WorkspaceCard
                         visibility={featureKey as VisibilityKey}
                         onVisibilityChange={setFeatureKey}
@@ -336,8 +338,8 @@ function FeatureList({
               <span
                 className={`text-sm font-semibold tracking-[-0.01em] transition-colors ${
                   on
-                    ? 'text-neutral-900 underline decoration-neutral-900 underline-offset-[3px]'
-                    : 'text-neutral-900/80 group-hover:text-neutral-900'
+                    ? "text-neutral-900 underline decoration-neutral-900 underline-offset-[3px]"
+                    : "text-neutral-900/80 group-hover:text-neutral-900"
                 }`}
               >
                 {copy.title}
@@ -348,13 +350,13 @@ function FeatureList({
               {on && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
+                  animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                   className="overflow-hidden"
                 >
                   <p className="ms-6 mt-1.5 max-w-md pb-8 text-sm leading-relaxed text-muted-foreground">
-                    <span className="text-neutral-900">{copy.linkText}</span>{' '}
+                    <span className="text-neutral-900">{copy.linkText}</span>{" "}
                     {copy.body}
                   </p>
                 </motion.div>
@@ -401,7 +403,7 @@ function ScaledMockup({ children }: { children: React.ReactNode }) {
     <div
       ref={ref}
       className="relative mx-auto w-full max-w-[440px] overflow-hidden"
-      style={{ aspectRatio: '11 / 8' }}
+      style={{ aspectRatio: "11 / 8" }}
     >
       <div
         className="absolute left-0 top-0 origin-top-left"
@@ -422,17 +424,17 @@ function ShareFrame({ activeKey }: { activeKey: ShareKey }) {
   return (
     <BrowserChrome url={url}>
       <AnimatePresence mode="wait" initial={false}>
-        {activeKey === 'viewer' && (
+        {activeKey === "viewer" && (
           <motion.div key="viewer" {...FADE} className="absolute inset-0">
             <ViewerBody />
           </motion.div>
         )}
-        {activeKey === 'editor' && (
+        {activeKey === "editor" && (
           <motion.div key="editor" {...FADE} className="absolute inset-0">
             <FeedbackBody />
           </motion.div>
         )}
-        {activeKey === 'dashboard' && (
+        {activeKey === "dashboard" && (
           <motion.div key="dashboard" {...FADE} className="absolute inset-0">
             <DashboardBody cards={[{ titleW: 82 }, { titleW: 70 }]} />
           </motion.div>
@@ -444,21 +446,21 @@ function ShareFrame({ activeKey }: { activeKey: ShareKey }) {
 
 function SnapFrame({ activeKey }: { activeKey: SnapKey }) {
   const url = SNAP_URLS[activeKey];
-  const isOverlay = activeKey === 'capture';
+  const isOverlay = activeKey === "capture";
   return (
     <BrowserChrome url={url} overlay={isOverlay}>
       <AnimatePresence mode="wait" initial={false}>
-        {activeKey === 'capture' && (
+        {activeKey === "capture" && (
           <motion.div key="capture" {...FADE} className="absolute inset-0">
             <CaptureBody />
           </motion.div>
         )}
-        {activeKey === 'markup' && (
+        {activeKey === "markup" && (
           <motion.div key="markup" {...FADE} className="absolute inset-0">
             <MarkupBody />
           </motion.div>
         )}
-        {activeKey === 'share' && (
+        {activeKey === "share" && (
           <motion.div key="share" {...FADE} className="absolute inset-0">
             <DashboardBody cards={[{ titleW: 80 }, { titleW: 88 }]} />
           </motion.div>
@@ -498,7 +500,7 @@ function BrowserChrome({
         </div>
         <div className="flex min-w-0 flex-1 items-center gap-2 truncate rounded-md bg-black/[0.04] px-3 py-1 font-mono text-[11px] text-neutral-600">
           <Icon
-            name={overlay ? 'crop_free' : 'lock'}
+            name={overlay ? "crop_free" : "lock"}
             size={11}
             className="text-neutral-500"
           />
@@ -508,18 +510,18 @@ function BrowserChrome({
               initial={{ opacity: 0, y: 2 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -2 }}
-              transition={{ duration: 0.18, ease: 'easeOut' }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               className="min-w-0 truncate"
             >
               {overlay ? (
                 <span className="text-neutral-500">{url}</span>
-              ) : url.includes('/') ? (
+              ) : url.includes("/") ? (
                 (() => {
-                  const [host, ...rest] = url.split('/');
+                  const [host, ...rest] = url.split("/");
                   return (
                     <>
                       {host}
-                      <span className="text-blue-600">/{rest.join('/')}</span>
+                      <span className="text-blue-600">/{rest.join("/")}</span>
                     </>
                   );
                 })()
@@ -542,15 +544,15 @@ function ViewerBody() {
   const reduceMotion = useReducedMotion();
   const [emojiIndex, setEmojiIndex] = useState(0);
   const REACTIONS = [
-    { emoji: '👍', count: 12 },
-    { emoji: '🎉', count: 7 },
-    { emoji: '🔥', count: 3 },
-    { emoji: '❤️', count: 2 },
+    { emoji: "👍", count: 12 },
+    { emoji: "🎉", count: 7 },
+    { emoji: "🔥", count: 3 },
+    { emoji: "❤️", count: 2 },
   ];
   const COMMENTS = [
-    { initial: 'A', tint: 'bg-black/15', nameW: 36, lineWs: [88, 62] },
-    { initial: 'S', tint: 'bg-black/10', nameW: 28, lineWs: [70] },
-    { initial: 'M', tint: 'bg-black/15', nameW: 44, lineWs: [82, 54] },
+    { initial: "A", tint: "bg-black/15", nameW: 36, lineWs: [88, 62] },
+    { initial: "S", tint: "bg-black/10", nameW: 28, lineWs: [70] },
+    { initial: "M", tint: "bg-black/15", nameW: 44, lineWs: [82, 54] },
   ];
   return (
     <div className="flex h-full w-full">
@@ -563,7 +565,7 @@ function ViewerBody() {
               key={emojiIndex}
               initial={reduceMotion ? false : { scale: 0.3, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+              transition={{ type: "spring", stiffness: 500, damping: 22 }}
               className="absolute bottom-[6%] right-[6%] flex size-9 items-center justify-center rounded-full bg-white text-lg shadow-lg ring-2 ring-white"
             >
               {FEEDBACK_EMOJI[emojiIndex]}
@@ -583,8 +585,8 @@ function ViewerBody() {
                 onClick={() => setEmojiIndex(i)}
                 className={`flex size-8 cursor-pointer items-center justify-center rounded-full text-sm transition ${
                   selected
-                    ? 'bg-blue-500/20 ring-1 ring-inset ring-blue-500'
-                    : 'bg-black/[0.04] hover:bg-black/10'
+                    ? "bg-blue-500/20 ring-1 ring-inset ring-blue-500"
+                    : "bg-black/[0.04] hover:bg-black/10"
                 }`}
               >
                 <span className="leading-none">{emoji}</span>
@@ -654,13 +656,13 @@ function ViewerBody() {
 }
 
 const EDITOR_BACKGROUNDS = [
-  'bg-gradient-to-br from-blue-500 to-indigo-500',
-  'bg-gradient-to-br from-sky-500 to-emerald-400',
-  'bg-gradient-to-br from-amber-400 to-rose-500',
-  'bg-neutral-200',
+  "bg-gradient-to-br from-blue-500 to-indigo-500",
+  "bg-gradient-to-br from-sky-500 to-emerald-400",
+  "bg-gradient-to-br from-amber-400 to-rose-500",
+  "bg-neutral-200",
 ];
 
-const FEEDBACK_EMOJI = ['👍', '🎉', '🔥', '❤️', '👏', '😮'];
+const FEEDBACK_EMOJI = ["👍", "🎉", "🔥", "❤️", "👏", "😮"];
 
 function FeedbackBody() {
   const m = useMessages();
@@ -690,8 +692,8 @@ function FeedbackBody() {
           <div
             className={`absolute overflow-hidden bg-black transition-[inset] duration-300 ${
               bgIndex === 3
-                ? 'inset-0'
-                : 'inset-[8%] rounded-lg shadow-xl ring-1 ring-black/10'
+                ? "inset-0"
+                : "inset-[8%] rounded-lg shadow-xl ring-1 ring-black/10"
             }`}
           >
             <DemoStage />
@@ -699,7 +701,7 @@ function FeedbackBody() {
               key={emojiIndex}
               initial={reduceMotion ? false : { scale: 0.3, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 22 }}
+              transition={{ type: "spring", stiffness: 500, damping: 22 }}
               className="absolute bottom-[6%] right-[6%] flex size-9 items-center justify-center rounded-full bg-white text-lg shadow-lg ring-2 ring-white"
             >
               {FEEDBACK_EMOJI[emojiIndex]}
@@ -719,8 +721,8 @@ function FeedbackBody() {
                 onClick={() => setEmojiIndex(i)}
                 className={`flex size-8 cursor-pointer items-center justify-center rounded-full text-sm transition ${
                   selected
-                    ? 'bg-blue-500/20 ring-1 ring-inset ring-blue-500'
-                    : 'bg-black/[0.04] hover:bg-black/10'
+                    ? "bg-blue-500/20 ring-1 ring-inset ring-blue-500"
+                    : "bg-black/[0.04] hover:bg-black/10"
                 }`}
               >
                 <span className="leading-none">{emoji}</span>
@@ -738,17 +740,17 @@ function FeedbackBody() {
               <button
                 key={i}
                 type="button"
-                aria-label={em.backgroundAria.replace('{n}', String(i + 1))}
+                aria-label={em.backgroundAria.replace("{n}", String(i + 1))}
                 aria-pressed={bgIndex === i}
                 onClick={() => setBgIndex(i)}
                 className={`aspect-square cursor-pointer rounded-sm transition ${
-                  i === 3 ? 'bg-black/[0.06]' : bg
+                  i === 3 ? "bg-black/[0.06]" : bg
                 } ${
                   bgIndex === i
-                    ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-neutral-50'
+                    ? "ring-2 ring-blue-500 ring-offset-1 ring-offset-neutral-50"
                     : i === 3
-                      ? 'ring-1 ring-inset ring-black/15 hover:opacity-80'
-                      : 'hover:opacity-80'
+                      ? "ring-1 ring-inset ring-black/15 hover:opacity-80"
+                      : "hover:opacity-80"
                 }`}
               />
             ))}
@@ -762,15 +764,15 @@ function FeedbackBody() {
                 type="button"
                 role="switch"
                 aria-checked={t.on}
-                aria-label={em.audioToggleAria.replace('{label}', t.label)}
+                aria-label={em.audioToggleAria.replace("{label}", t.label)}
                 onClick={() => t.set((v) => !v)}
                 className={`flex h-3.5 w-7 cursor-pointer items-center rounded-full p-0.5 transition-colors ${
-                  t.on ? 'bg-blue-500' : 'bg-black/20'
+                  t.on ? "bg-blue-500" : "bg-black/20"
                 }`}
               >
                 <span
                   className={`size-2.5 rounded-full bg-white transition-transform ${
-                    t.on ? 'translate-x-3' : 'translate-x-0'
+                    t.on ? "translate-x-3" : "translate-x-0"
                   }`}
                 />
               </button>
@@ -882,14 +884,14 @@ function CaptureBody() {
 
           <div className="absolute -inset-[4%] rounded-sm ring-[1.5px] ring-white">
             {[
-              'top-0 left-0 -translate-x-1/2 -translate-y-1/2',
-              'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2',
-              'top-0 right-0 translate-x-1/2 -translate-y-1/2',
-              'top-1/2 left-0 -translate-x-1/2 -translate-y-1/2',
-              'top-1/2 right-0 translate-x-1/2 -translate-y-1/2',
-              'bottom-0 left-0 -translate-x-1/2 translate-y-1/2',
-              'bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2',
-              'bottom-0 right-0 translate-x-1/2 translate-y-1/2',
+              "top-0 left-0 -translate-x-1/2 -translate-y-1/2",
+              "top-0 left-1/2 -translate-x-1/2 -translate-y-1/2",
+              "top-0 right-0 translate-x-1/2 -translate-y-1/2",
+              "top-1/2 left-0 -translate-x-1/2 -translate-y-1/2",
+              "top-1/2 right-0 translate-x-1/2 -translate-y-1/2",
+              "bottom-0 left-0 -translate-x-1/2 translate-y-1/2",
+              "bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2",
+              "bottom-0 right-0 translate-x-1/2 translate-y-1/2",
             ].map((cls) => (
               <span
                 key={cls}
@@ -906,10 +908,10 @@ function CaptureBody() {
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
         <div className="flex items-center gap-1 rounded-full border border-white/5 bg-neutral-900/95 p-1 shadow-2xl shadow-black/60 backdrop-blur-sm">
           {[
-            { label: cm.toolbar.share, icon: 'link', active: false },
+            { label: cm.toolbar.share, icon: "link", active: false },
             {
               label: cm.toolbar.screenshot,
-              icon: 'screenshot_keyboard',
+              icon: "screenshot_keyboard",
               active: true,
             },
           ].map((mode) => (
@@ -917,8 +919,8 @@ function CaptureBody() {
               key={mode.icon}
               className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] font-medium ${
                 mode.active
-                  ? 'bg-white text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.4)]'
-                  : 'text-neutral-400'
+                  ? "bg-white text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+                  : "text-neutral-400"
               }`}
             >
               <Icon name={mode.icon} size={12} />
@@ -959,14 +961,14 @@ function MarkupBody() {
       </div>
 
       <div className="absolute left-1/2 top-2.5 flex -translate-x-1/2 items-center gap-1 rounded-md bg-white/90 p-1 shadow-sm ring-1 ring-inset ring-black/10 backdrop-blur-sm">
-        {['wallpaper', 'north_east', 'rectangle', 'title', 'blur_on'].map(
+        {["wallpaper", "north_east", "rectangle", "title", "blur_on"].map(
           (icon, i) => (
             <span
               key={icon}
               className={`flex size-6 items-center justify-center rounded ${
                 i === 0
-                  ? 'bg-black/[0.06] text-neutral-900 ring-1 ring-inset ring-black/10'
-                  : 'text-neutral-500'
+                  ? "bg-black/[0.06] text-neutral-900 ring-1 ring-inset ring-black/10"
+                  : "text-neutral-500"
               }`}
             >
               <Icon name={icon} size={14} />
@@ -985,22 +987,22 @@ const VIS_OPTIONS: Array<{
   description: string;
 }> = [
   {
-    key: 'public',
-    label: 'Public',
-    icon: 'public',
-    description: 'Anyone with the link can open this share',
+    key: "public",
+    label: "Public",
+    icon: "public",
+    description: "Anyone with the link can open this share",
   },
   {
-    key: 'workspace',
-    label: 'Workspace',
-    icon: 'groups',
-    description: 'Only teammates can open this share',
+    key: "workspace",
+    label: "Workspace",
+    icon: "groups",
+    description: "Only teammates can open this share",
   },
   {
-    key: 'private',
-    label: 'Private',
-    icon: 'lock',
-    description: 'Only you can open this share',
+    key: "private",
+    label: "Private",
+    icon: "lock",
+    description: "Only you can open this share",
   },
 ];
 
@@ -1014,27 +1016,27 @@ function WorkspaceCard({
   const m = useMessages();
   const wm = m.collaboration.workspaceMockup;
   const reduceMotion = useReducedMotion();
-  const activeDescription = wm.visibility[visibility]?.description ?? '';
+  const activeDescription = wm.visibility[visibility]?.description ?? "";
   const MEMBERS: Array<{
     initial: string;
     name: string;
-    role: 'Admin' | 'Member';
+    role: "Admin" | "Member";
     roleLabel: string;
     tint: string;
   }> = [
     {
-      initial: 'C',
-      name: 'Casey',
-      role: 'Admin',
+      initial: "C",
+      name: "Casey",
+      role: "Admin",
       roleLabel: wm.roleAdmin,
-      tint: 'bg-blue-500/70',
+      tint: "bg-blue-500/70",
     },
     {
-      initial: 'A',
-      name: 'Aiden',
-      role: 'Member',
+      initial: "A",
+      name: "Aiden",
+      role: "Member",
       roleLabel: wm.roleMember,
-      tint: 'bg-black/10',
+      tint: "bg-black/10",
     },
   ];
   return (
@@ -1049,7 +1051,7 @@ function WorkspaceCard({
               {wm.teamName}
             </div>
             <div className="text-[11px] uppercase tracking-wider text-neutral-500">
-              {wm.teamMeta.replace('{count}', String(MEMBERS.length))}
+              {wm.teamMeta.replace("{count}", String(MEMBERS.length))}
             </div>
           </div>
         </div>
@@ -1075,7 +1077,7 @@ function WorkspaceCard({
                 : {
                     initial: { opacity: 0, x: -8 },
                     whileInView: { opacity: 1, x: 0 },
-                    viewport: { once: true, margin: '-80px' },
+                    viewport: { once: true, margin: "-80px" },
                     transition: {
                       duration: 0.45,
                       delay: i * 0.08,
@@ -1094,9 +1096,9 @@ function WorkspaceCard({
               </div>
               <span
                 className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider ${
-                  member.role === 'Admin'
-                    ? 'bg-blue-500/15 text-blue-700 ring-1 ring-inset ring-blue-400/30'
-                    : 'bg-black/[0.06] text-muted-foreground ring-1 ring-inset ring-black/10'
+                  member.role === "Admin"
+                    ? "bg-blue-500/15 text-blue-700 ring-1 ring-inset ring-blue-400/30"
+                    : "bg-black/[0.06] text-muted-foreground ring-1 ring-inset ring-black/10"
                 }`}
               >
                 {member.roleLabel}
@@ -1127,15 +1129,15 @@ function WorkspaceCard({
                 onClick={() => onVisibilityChange(v.key)}
                 className={`relative flex cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   active
-                    ? 'text-white'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? "text-white"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {active && (
                   <motion.span
                     layoutId="workspace-visibility-pill"
                     className="absolute inset-0 rounded-full bg-neutral-900"
-                    transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
                   />
                 )}
                 <span className="relative z-10 flex items-center gap-1.5">

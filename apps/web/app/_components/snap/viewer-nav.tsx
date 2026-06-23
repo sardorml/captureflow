@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState, type ReactElement, type ReactNode } from 'react';
-import { Check, Download, Link2 } from 'lucide-react';
+import { useEffect, useState, type ReactElement, type ReactNode } from "react";
+import { Check, Download, Link2 } from "lucide-react";
 
 export type ViewerNavViewer = {
   name: string | null;
@@ -26,7 +26,7 @@ export function ViewerNav({
   homeUrl,
   productName,
   label,
-  logoSrc = '/logo.png',
+  logoSrc = "/logo.png",
   viewCount,
   downloadUrl,
   downloadName,
@@ -44,7 +44,7 @@ export function ViewerNav({
   }, [copied]);
 
   const handleCopy = (): void => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     void navigator.clipboard
       .writeText(window.location.href)
       .then(() => setCopied(true))
@@ -79,9 +79,9 @@ export function ViewerNav({
         </span>
       </a>
       <div className="flex items-center gap-3">
-        {typeof viewCount === 'number' ? (
+        {typeof viewCount === "number" ? (
           <span className="text-sm tabular-nums text-neutral-400">
-            {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
+            {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
           </span>
         ) : null}
         {actions ? (
@@ -103,12 +103,12 @@ export function ViewerNav({
             <button
               type="button"
               onClick={handleCopy}
-              aria-label={copied ? 'Link copied' : 'Copy link'}
-              title={copied ? 'Link copied' : 'Copy link'}
+              aria-label={copied ? "Link copied" : "Copy link"}
+              title={copied ? "Link copied" : "Copy link"}
               className={`flex h-9 w-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors sm:w-auto sm:px-3 ${
                 copied
-                  ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20'
-                  : 'bg-overlay text-neutral-300 hover:bg-overlay-strong hover:text-fg-strong'
+                  ? "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20"
+                  : "bg-overlay text-neutral-300 hover:bg-overlay-strong hover:text-fg-strong"
               }`}
             >
               {copied ? (
@@ -117,7 +117,7 @@ export function ViewerNav({
                 <Link2 className="size-[18px]" />
               )}
               <span className="hidden sm:inline">
-                {copied ? 'Copied' : 'Copy link'}
+                {copied ? "Copied" : "Copy link"}
               </span>
             </button>
           </>
@@ -139,12 +139,12 @@ export function ViewerNav({
 }
 
 function initials(viewer: ViewerNavViewer): string {
-  const source = (viewer.name ?? '').trim() || viewer.email;
+  const source = (viewer.name ?? "").trim() || viewer.email;
   return source
     .split(/\s+/)
     .map((w) => w[0])
     .filter(Boolean)
     .slice(0, 2)
-    .join('')
+    .join("")
     .toUpperCase();
 }

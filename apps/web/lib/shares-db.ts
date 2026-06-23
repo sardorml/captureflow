@@ -1,12 +1,12 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { getAppWebEnv } from './cf-env';
+import { getAppWebEnv } from "./cf-env";
 
-export type ShareVisibility = 'public' | 'workspace' | 'private';
-export type ShareState = 'pending' | 'ready' | 'failed';
-export type ShareSource = 'instant' | 'edited';
-export type SharePreset = 'share';
-export type WebcamState = 'none' | 'pending' | 'ready' | 'failed';
+export type ShareVisibility = "public" | "workspace" | "private";
+export type ShareState = "pending" | "ready" | "failed";
+export type ShareSource = "instant" | "edited";
+export type SharePreset = "share";
+export type WebcamState = "none" | "pending" | "ready" | "failed";
 
 export type DashboardShareRow = {
   slug: string;
@@ -59,9 +59,9 @@ type D1Row = {
 };
 
 const COLUMNS_SELECT =
-  'slug, user_id, storage_key, poster_key, size_bytes, duration_ms, width, height, ' +
-  'source, preset, created_at, last_viewed_at, view_count, title, state, ' +
-  'visibility, webcam_storage_key, webcam_size_bytes, webcam_state, workspace_id, ' +
+  "slug, user_id, storage_key, poster_key, size_bytes, duration_ms, width, height, " +
+  "source, preset, created_at, last_viewed_at, view_count, title, state, " +
+  "visibility, webcam_storage_key, webcam_size_bytes, webcam_state, workspace_id, " +
   "(SELECT COUNT(*) FROM share_activity WHERE share_activity.slug = shares.slug AND share_activity.kind = 'comment') AS comment_count, " +
   "(SELECT COUNT(*) FROM share_activity WHERE share_activity.slug = shares.slug AND share_activity.kind = 'reaction') AS reaction_count";
 
@@ -84,10 +84,10 @@ function rowFromD1(r: D1Row): DashboardShareRow {
     reactionCount: r.reaction_count ?? 0,
     title: r.title ?? null,
     state: r.state as ShareState,
-    visibility: (r.visibility as ShareVisibility) ?? 'public',
+    visibility: (r.visibility as ShareVisibility) ?? "public",
     webcamStorageKey: r.webcam_storage_key ?? null,
     webcamSizeBytes: r.webcam_size_bytes ?? 0,
-    webcamState: (r.webcam_state as WebcamState) ?? 'none',
+    webcamState: (r.webcam_state as WebcamState) ?? "none",
     workspaceId: r.workspace_id ?? null,
   };
 }
@@ -96,21 +96,21 @@ async function getDb(): Promise<D1Database> {
   const env = await getAppWebEnv();
   if (!env?.DB) {
     throw new Error(
-      'D1 binding (DB) not available. Run under OpenNext / Cloudflare.'
+      "D1 binding (DB) not available. Run under OpenNext / Cloudflare.",
     );
   }
   return env.DB;
 }
 
 export async function listSharesForUser(
-  userId: string
+  userId: string,
 ): Promise<DashboardShareRow[]> {
   const db = await getDb();
   const res = await db
     .prepare(
       `SELECT ${COLUMNS_SELECT} FROM shares
          WHERE user_id = ?1
-         ORDER BY created_at DESC`
+         ORDER BY created_at DESC`,
     )
     .bind(userId)
     .all<D1Row>();
@@ -119,7 +119,7 @@ export async function listSharesForUser(
 
 export async function listSharesForWorkspace(
   workspaceId: string,
-  viewerUserId: string
+  viewerUserId: string,
 ): Promise<DashboardShareRow[]> {
   const db = await getDb();
   const res = await db
@@ -127,7 +127,7 @@ export async function listSharesForWorkspace(
       `SELECT ${COLUMNS_SELECT} FROM shares
          WHERE workspace_id = ?1
            AND (visibility != 'private' OR user_id = ?2)
-         ORDER BY created_at DESC`
+         ORDER BY created_at DESC`,
     )
     .bind(workspaceId, viewerUserId)
     .all<D1Row>();
@@ -136,7 +136,7 @@ export async function listSharesForWorkspace(
 
 export async function getShareForUser(
   userId: string,
-  slug: string
+  slug: string,
 ): Promise<
   (DashboardShareRow & { posterKey: string | null; storageKey: string }) | null
 > {
@@ -145,7 +145,7 @@ export async function getShareForUser(
     .prepare(
       `SELECT ${COLUMNS_SELECT} FROM shares
          WHERE slug = ?1 AND user_id = ?2
-         LIMIT 1`
+         LIMIT 1`,
     )
     .bind(slug, userId)
     .first<D1Row>();
@@ -155,13 +155,13 @@ export async function getShareForUser(
 export async function updateShareTitleForUser(
   userId: string,
   slug: string,
-  title: string | null
+  title: string | null,
 ): Promise<boolean> {
   const db = await getDb();
   const res = await db
     .prepare(
       `UPDATE shares SET title = ?3
-         WHERE slug = ?1 AND user_id = ?2`
+         WHERE slug = ?1 AND user_id = ?2`,
     )
     .bind(slug, userId, title)
     .run();
@@ -171,13 +171,13 @@ export async function updateShareTitleForUser(
 export async function updateShareVisibilityForUser(
   userId: string,
   slug: string,
-  visibility: ShareVisibility
+  visibility: ShareVisibility,
 ): Promise<boolean> {
   const db = await getDb();
   const res = await db
     .prepare(
       `UPDATE shares SET visibility = ?3
-         WHERE slug = ?1 AND user_id = ?2`
+         WHERE slug = ?1 AND user_id = ?2`,
     )
     .bind(slug, userId, visibility)
     .run();
@@ -186,7 +186,7 @@ export async function updateShareVisibilityForUser(
 
 export async function deleteShareForUser(
   userId: string,
-  slug: string
+  slug: string,
 ): Promise<boolean> {
   const db = await getDb();
   const res = await db
@@ -198,7 +198,7 @@ export async function deleteShareForUser(
 
 export async function getShareForAdmin(
   actorUserId: string,
-  slug: string
+  slug: string,
 ): Promise<DashboardShareRow | null> {
   const db = await getDb();
   const r = await db
@@ -212,7 +212,7 @@ export async function getShareForAdmin(
                SELECT id FROM workspace WHERE owner_user_id = ?2
              )
            )
-         LIMIT 1`
+         LIMIT 1`,
     )
     .bind(slug, actorUserId)
     .first<D1Row>();
@@ -222,7 +222,7 @@ export async function getShareForAdmin(
 export async function updateShareVisibilityForAdmin(
   actorUserId: string,
   slug: string,
-  visibility: ShareVisibility
+  visibility: ShareVisibility,
 ): Promise<boolean> {
   const db = await getDb();
   const res = await db
@@ -234,7 +234,7 @@ export async function updateShareVisibilityForAdmin(
              OR workspace_id IN (
                SELECT id FROM workspace WHERE owner_user_id = ?2
              )
-           )`
+           )`,
     )
     .bind(slug, actorUserId, visibility)
     .run();
@@ -243,7 +243,7 @@ export async function updateShareVisibilityForAdmin(
 
 export async function deleteShareForAdmin(
   actorUserId: string,
-  slug: string
+  slug: string,
 ): Promise<boolean> {
   const db = await getDb();
   const res = await db
@@ -255,7 +255,7 @@ export async function deleteShareForAdmin(
              OR workspace_id IN (
                SELECT id FROM workspace WHERE owner_user_id = ?2
              )
-           )`
+           )`,
     )
     .bind(slug, actorUserId)
     .run();

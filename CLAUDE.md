@@ -15,7 +15,7 @@ domains are deliberately forked under `lib/share/` and `lib/snap/` — keep them
 
 1. Behavior-preserving refactors are separate commits from behavior changes — never mixed.
 2. Green baseline before & after: `pnpm typecheck` + relevant build + `pnpm --filter
-   @captureflow/web test`. Add a characterization test before refactoring untested logic.
+@captureflow/web test`. Add a characterization test before refactoring untested logic.
 3. Never trust the client: re-verify auth in every server action/route; validate untrusted
    input via a `hydrate*` function.
 4. Cloudflare bindings are request-scoped — resolve per call via the `cf-env` wrappers,

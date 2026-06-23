@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { Video } from 'lucide-react';
+import type { ReactNode } from "react";
+import { Video } from "lucide-react";
 
 type Props = {
   title: string;

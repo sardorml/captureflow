@@ -1,20 +1,20 @@
-import '../marketing.css';
-import type { Metadata } from 'next';
-import { I18nProvider } from '@/components/marketing/i18n-provider';
-import { MarketingShell } from '@/components/marketing/marketing-shell';
-import { getStarCount, formatStars } from '@/lib/github';
-import { Nav } from '@/components/marketing/nav';
-import { PricingSection } from '@/components/marketing/pricing-section';
-import { ComparePlansSection } from '@/components/marketing/compare-plans-section';
-import { FaqSection } from '@/components/marketing/faq-section';
-import { Footer } from '@/components/marketing/footer';
-import { MESSAGES } from '@/lib/marketing/messages';
+import "../marketing.css";
+import type { Metadata } from "next";
+import { I18nProvider } from "@/components/marketing/i18n-provider";
+import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { getStarCount, formatStars } from "@/lib/github";
+import { Nav } from "@/components/marketing/nav";
+import { PricingSection } from "@/components/marketing/pricing-section";
+import { ComparePlansSection } from "@/components/marketing/compare-plans-section";
+import { FaqSection } from "@/components/marketing/faq-section";
+import { Footer } from "@/components/marketing/footer";
+import { MESSAGES } from "@/lib/marketing/messages";
 
 export const metadata: Metadata = {
-  title: 'Pricing',
+  title: "Pricing",
   description:
-    'Self-host CaptureFlow free on your own Cloudflare account, or let us host it for you with the managed plan — Snaps and cloud workspaces included.',
-  alternates: { canonical: '/plan' },
+    "Self-host CaptureFlow free on your own Cloudflare account, or let us host it for you with the managed plan — Snaps and cloud workspaces included.",
+  alternates: { canonical: "/plan" },
 };
 
 export default async function PlanPage() {
@@ -28,7 +28,7 @@ export default async function PlanPage() {
         <div className="relative flex min-h-screen flex-col font-system">
           <Nav stars={stars} />
           {/* Nav is position: fixed; offset by --header-height (set in nav.tsx). */}
-          <main style={{ paddingTop: 'var(--header-height, 68px)' }}>
+          <main style={{ paddingTop: "var(--header-height, 68px)" }}>
             <div className="px-10 pt-12 text-center sm:pt-16">
               <h1 className="font-heading text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl">
                 {m.heading}

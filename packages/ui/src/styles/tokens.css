@@ -9,7 +9,7 @@
  * attribute) matches dark. */
 
 :root,
-[data-theme='dark'] {
+[data-theme="dark"] {
   --canvas: #0a0a0a; /* page background */
   --canvas-2: #171717; /* sidebar / header */
   --surface: #1f1f1f; /* cards / popovers */
@@ -35,7 +35,9 @@
   --accent-strong: #bfdbfe; /* hover / emphasized accent text */
   --accent-bg: #2563eb; /* solid fill (buttons) */
   --accent-bg-hover: #3b82f6; /* lighter on hover (dark) */
-  --accent-bg-soft: rgb(59 130 246 / 0.18); /* tinted background (selected cards) */
+  --accent-bg-soft: rgb(
+    59 130 246 / 0.18
+  ); /* tinted background (selected cards) */
   --accent-ring: rgb(59 130 246 / 0.4); /* focus / selected ring */
 
   /* Red danger, themed per background for legibility. */
@@ -44,7 +46,7 @@
   --danger-bg-soft: rgb(239 68 68 / 0.12);
 }
 
-[data-theme='light'] {
+[data-theme="light"] {
   --canvas: #fafafa;
   --canvas-2: #ffffff;
   --surface: #ffffff;
@@ -79,7 +81,7 @@
  * references — too many to migrate at once. Inverting the neutral scale
  * here flips those utilities into a coherent light palette while the
  * semantic tokens carry new code. Prefer semantic tokens in new code. */
-[data-theme='light'] {
+[data-theme="light"] {
   --color-neutral-50: #0a0a0a;
   --color-neutral-100: #171717;
   --color-neutral-200: #262626;

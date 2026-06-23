@@ -1,13 +1,13 @@
 /// <reference types="@cloudflare/workers-types" />
 
 export type ProSubscriptionStatus =
-  | 'on_trial'
-  | 'active'
-  | 'paused'
-  | 'past_due'
-  | 'unpaid'
-  | 'cancelled'
-  | 'expired';
+  | "on_trial"
+  | "active"
+  | "paused"
+  | "past_due"
+  | "unpaid"
+  | "cancelled"
+  | "expired";
 
 export type ProSubscriptionRow = {
   ls_subscription_id: string;
@@ -16,7 +16,7 @@ export type ProSubscriptionRow = {
   ls_customer_id: string | null;
   ls_customer_email: string;
   status: ProSubscriptionStatus;
-  cycle: 'monthly' | 'annual';
+  cycle: "monthly" | "annual";
   current_period_end: number | null;
   cancelled_at: number | null;
   created_at: number;
@@ -25,15 +25,15 @@ export type ProSubscriptionRow = {
 
 // `cancelled` is excluded — access runs to current_period_end, enforced below. `past_due` is included so a card-decline blip doesn't strip Pro before LS escalates to `unpaid`/`expired`.
 const ACTIVE_STATUSES = new Set<ProSubscriptionStatus>([
-  'on_trial',
-  'active',
-  'past_due',
+  "on_trial",
+  "active",
+  "past_due",
 ]);
 
 function isProActive(row: ProSubscriptionRow, nowSeconds: number): boolean {
   if (!ACTIVE_STATUSES.has(row.status)) {
     if (
-      row.status === 'cancelled' &&
+      row.status === "cancelled" &&
       row.current_period_end !== null &&
       row.current_period_end > nowSeconds
     ) {
@@ -49,7 +49,7 @@ function isProActive(row: ProSubscriptionRow, nowSeconds: number): boolean {
 // PK is the LS subscription id, so one account can have historical cancelled rows alongside an active resubscribe; the latest by updated_at is the current one.
 export async function getActiveProSubscription(
   db: D1Database,
-  userId: string
+  userId: string,
 ): Promise<ProSubscriptionRow | null> {
   const row = await db
     .prepare(
@@ -59,7 +59,7 @@ export async function getActiveProSubscription(
          FROM pro_subscription
          WHERE user_id = ?1
          ORDER BY updated_at DESC
-         LIMIT 1`
+         LIMIT 1`,
     )
     .bind(userId)
     .first<ProSubscriptionRow>();
@@ -70,7 +70,7 @@ export async function getActiveProSubscription(
 
 export async function getUnclaimedProSubscriptionByEmail(
   db: D1Database,
-  email: string
+  email: string,
 ): Promise<ProSubscriptionRow | null> {
   const row = await db
     .prepare(
@@ -81,7 +81,7 @@ export async function getUnclaimedProSubscriptionByEmail(
          WHERE LOWER(ls_customer_email) = LOWER(?1)
            AND user_id IS NULL
          ORDER BY updated_at DESC
-         LIMIT 1`
+         LIMIT 1`,
     )
     .bind(email)
     .first<ProSubscriptionRow>();
@@ -91,14 +91,14 @@ export async function getUnclaimedProSubscriptionByEmail(
 export async function attachSubscriptionToUser(
   db: D1Database,
   lsSubscriptionId: string,
-  userId: string
+  userId: string,
 ): Promise<void> {
   const now = Math.floor(Date.now() / 1000);
   await db
     .prepare(
       `UPDATE pro_subscription
          SET user_id = ?1, updated_at = ?2
-         WHERE ls_subscription_id = ?3`
+         WHERE ls_subscription_id = ?3`,
     )
     .bind(userId, now, lsSubscriptionId)
     .run();

@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
 import {
   useState,
   useSyncExternalStore,
   useTransition,
   type ReactNode,
-} from 'react';
+} from "react";
 import {
   SmoothDialog,
   SmoothDialogContent,
   SmoothDialogTitle,
   SmoothDialogTrigger,
   VisibilityPicker,
-} from '@captureflow/ui';
+} from "@captureflow/ui";
 
-export type Visibility = 'public' | 'workspace' | 'private';
+export type Visibility = "public" | "workspace" | "private";
 
 type Props = {
   value: Visibility;
@@ -36,7 +36,7 @@ export function VisibilityDialog({
 }: Props) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
-  const showPublic = allowPublic || value === 'public';
+  const showPublic = allowPublic || value === "public";
 
   const pick = (next: Visibility) => {
     if (next === value) return;
@@ -53,7 +53,7 @@ export function VisibilityDialog({
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
-    () => false
+    () => false,
   );
   if (!mounted) return <>{trigger}</>;
 

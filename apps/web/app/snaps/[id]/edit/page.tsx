@@ -1,15 +1,15 @@
-import { notFound } from 'next/navigation';
-import { requireSession } from '@/lib/session-guard';
-import { getSnapForUser } from '@/lib/snaps-db';
-import { getObjectJson, objectExists } from '@/lib/r2';
-import { sourceKeyFor, stateKeyFor } from '@/lib/snap-keys';
-import { snapViewUrlFor } from '@/lib/site';
-import { SnapEditor } from './SnapEditor';
+import { notFound } from "next/navigation";
+import { requireSession } from "@/lib/session-guard";
+import { getSnapForUser } from "@/lib/snaps-db";
+import { getObjectJson, objectExists } from "@/lib/r2";
+import { sourceKeyFor, stateKeyFor } from "@/lib/snap-keys";
+import { snapViewUrlFor } from "@/lib/site";
+import { SnapEditor } from "./SnapEditor";
 
 const R2_BASE =
-  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? 'https://cdn.captureflow.xyz';
+  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Kept OUTSIDE the (dashboard) route group so it doesn't inherit the
 // dashboard max-width container + nav — the Konva canvas wants the full viewport.
@@ -43,7 +43,7 @@ export default async function SnapEditPage({
     hasSource = a;
     savedState = b;
   } catch (err) {
-    console.error('[snap-edit-page] sidecar read failed:', err);
+    console.error("[snap-edit-page] sidecar read failed:", err);
   }
   const imageKey = hasSource ? sourceKey : snap.storageKey;
   const imageUrl = `${R2_BASE}/${imageKey}?v=${cacheKey}`;

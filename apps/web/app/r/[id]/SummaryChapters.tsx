@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ListVideo, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
-import { SmoothButton } from '@captureflow/ui';
-import { formatTimestamp } from '@/lib/format';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ListVideo, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
+import { SmoothButton } from "@captureflow/ui";
+import { formatTimestamp } from "@/lib/format";
 
 type Props = {
   slug: string;
@@ -20,9 +20,8 @@ function newId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-
 function parseTimestamp(raw: string): number | null {
-  const parts = raw.trim().split(':');
+  const parts = raw.trim().split(":");
   if (parts.length < 1 || parts.length > 3) return null;
   const nums = parts.map((p) => Number(p));
   if (nums.some((n) => !Number.isFinite(n) || n < 0)) return null;
@@ -43,11 +42,11 @@ export function SummaryChapters({
 }: Props) {
   const [summary, setSummary] = useState<string>(initialSummary);
   const [summaryEditing, setSummaryEditing] = useState(false);
-  const [summaryDraft, setSummaryDraft] = useState<string>('');
+  const [summaryDraft, setSummaryDraft] = useState<string>("");
 
   const [chapters, setChapters] = useState<Chapter[]>(initialChapters);
   const [chaptersEditing, setChaptersEditing] = useState(false);
-  const [chaptersDraft, setChaptersDraft] = useState<string>('');
+  const [chaptersDraft, setChaptersDraft] = useState<string>("");
   const [currentMs, setCurrentMs] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
   const summaryTextareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -56,23 +55,23 @@ export function SummaryChapters({
     async (nextSummary: string, nextChapters: Chapter[]) => {
       try {
         const res = await fetch(`/api/r/summary-chapters/${slug}`, {
-          method: 'PUT',
-          headers: { 'content-type': 'application/json' },
+          method: "PUT",
+          headers: { "content-type": "application/json" },
           body: JSON.stringify({
             summary: nextSummary,
             chapters: nextChapters,
           }),
         });
         if (!res.ok) {
-          setSaveError('Could not save. Try again.');
+          setSaveError("Could not save. Try again.");
           return;
         }
         setSaveError(null);
       } catch {
-        setSaveError('Could not save. Try again.');
+        setSaveError("Could not save. Try again.");
       }
     },
-    [slug]
+    [slug],
   );
 
   useEffect(() => {
@@ -98,7 +97,7 @@ export function SummaryChapters({
       setSummary(next);
       void persistAll(next, chapters);
     },
-    [persistAll, chapters]
+    [persistAll, chapters],
   );
 
   const persistChapters = useCallback(
@@ -107,7 +106,7 @@ export function SummaryChapters({
       setChapters(sorted);
       void persistAll(summary, sorted);
     },
-    [persistAll, summary]
+    [persistAll, summary],
   );
 
   const onAddChapter = () => {
@@ -124,7 +123,7 @@ export function SummaryChapters({
 
   const startChaptersEdit = () => {
     setChaptersDraft(
-      chapters.map((c) => `${formatTimestamp(c.ms)} ${c.title}`).join('\n')
+      chapters.map((c) => `${formatTimestamp(c.ms)} ${c.title}`).join("\n"),
     );
     setChaptersEditing(true);
   };
@@ -181,7 +180,7 @@ export function SummaryChapters({
               className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-overlay hover:text-neutral-200"
             >
               <Pencil className="h-3.5 w-3.5" />
-              {hasSummary ? 'Edit' : 'Add'}
+              {hasSummary ? "Edit" : "Add"}
             </button>
           )}
         </div>
@@ -215,7 +214,7 @@ export function SummaryChapters({
           </p>
         ) : (
           <p className="mt-2 text-sm text-neutral-500">
-            {isOwner ? 'Add a summary…' : 'No summary yet.'}
+            {isOwner ? "Add a summary…" : "No summary yet."}
           </p>
         )}
       </section>
@@ -254,8 +253,8 @@ export function SummaryChapters({
             <textarea
               value={chaptersDraft}
               onChange={(e) => setChaptersDraft(e.target.value)}
-              rows={Math.max(3, chaptersDraft.split('\n').length)}
-              placeholder={'0:00 Intro\n0:30 Demo\n1:20 Wrap-up'}
+              rows={Math.max(3, chaptersDraft.split("\n").length)}
+              placeholder={"0:00 Intro\n0:30 Demo\n1:20 Wrap-up"}
               className="block w-full resize-none bg-transparent font-mono text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none"
             />
             <p className="text-[11px] text-neutral-500">
@@ -288,10 +287,10 @@ export function SummaryChapters({
                 <li key={c.id}>
                   <div
                     className={
-                      'group flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors ' +
+                      "group flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors " +
                       (active
-                        ? 'bg-blue-500/15 text-blue-700 dark:text-blue-100'
-                        : 'text-neutral-300 hover:bg-overlay')
+                        ? "bg-blue-500/15 text-blue-700 dark:text-blue-100"
+                        : "text-neutral-300 hover:bg-overlay")
                     }
                   >
                     <button
@@ -301,10 +300,10 @@ export function SummaryChapters({
                     >
                       <span
                         className={
-                          'shrink-0 font-mono text-xs ' +
+                          "shrink-0 font-mono text-xs " +
                           (active
-                            ? 'text-blue-700 dark:text-blue-200'
-                            : 'text-neutral-500')
+                            ? "text-blue-700 dark:text-blue-200"
+                            : "text-neutral-500")
                         }
                       >
                         {formatTimestamp(c.ms)}
@@ -331,8 +330,8 @@ export function SummaryChapters({
         ) : (
           <p className="mt-2 text-sm text-neutral-500">
             {isOwner
-              ? 'No chapters yet — add one at the playhead.'
-              : 'No chapters yet.'}
+              ? "No chapters yet — add one at the playhead."
+              : "No chapters yet."}
           </p>
         )}
       </section>

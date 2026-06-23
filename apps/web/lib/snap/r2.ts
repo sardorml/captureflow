@@ -1,12 +1,12 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { getCloudflareEnv } from './cf-env';
+import { getCloudflareEnv } from "./cf-env";
 
 async function getBucket(): Promise<R2Bucket> {
   const env = await getCloudflareEnv();
   if (!env?.BUCKET) {
     throw new Error(
-      'R2 bucket binding (BUCKET) not available. Ensure OpenNext / Cloudflare runtime.'
+      "R2 bucket binding (BUCKET) not available. Ensure OpenNext / Cloudflare runtime.",
     );
   }
   return env.BUCKET;
@@ -28,11 +28,11 @@ export async function putSnap(
   id: string,
   body: ArrayBuffer,
   // `no-cache` so editor PUT replaces are visible without an edge cache TTL.
-  cacheControl = 'no-cache'
+  cacheControl = "no-cache",
 ): Promise<void> {
   const bucket = await getBucket();
   await bucket.put(snapStorageKey(id), body, {
-    httpMetadata: { contentType: 'image/png', cacheControl },
+    httpMetadata: { contentType: "image/png", cacheControl },
   });
 }
 
@@ -54,21 +54,21 @@ export async function deleteSnap(id: string): Promise<void> {
 
 export async function putSnapSource(
   id: string,
-  body: ArrayBuffer
+  body: ArrayBuffer,
 ): Promise<void> {
   const bucket = await getBucket();
   await bucket.put(snapSourceKey(id), body, {
-    httpMetadata: { contentType: 'image/png', cacheControl: 'no-cache' },
+    httpMetadata: { contentType: "image/png", cacheControl: "no-cache" },
   });
 }
 
 export async function putSnapState(
   id: string,
-  body: ArrayBuffer
+  body: ArrayBuffer,
 ): Promise<void> {
   const bucket = await getBucket();
   await bucket.put(snapStateKey(id), body, {
-    httpMetadata: { contentType: 'application/json', cacheControl: 'no-cache' },
+    httpMetadata: { contentType: "application/json", cacheControl: "no-cache" },
   });
 }
 

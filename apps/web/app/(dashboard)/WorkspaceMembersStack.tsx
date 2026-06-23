@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 import {
   AvatarGroup,
   AvatarInviteSlot,
   type AvatarGroupItem,
-} from '@captureflow/ui';
-import { InviteModal } from './InviteModal';
+} from "@captureflow/ui";
+import { InviteModal } from "./InviteModal";
 
 type Props = {
   items: AvatarGroupItem[];

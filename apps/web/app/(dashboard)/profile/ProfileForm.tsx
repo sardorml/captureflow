@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   useActionState,
@@ -6,12 +6,17 @@ import {
   useRef,
   useState,
   useTransition,
-} from 'react';
-import { useRouter } from 'next/navigation';
-import { Camera, Check } from 'lucide-react';
-import { authClient } from '@/lib/auth-client';
-import { Avatar, AvatarFallback, AvatarImage, SmoothButton } from '@captureflow/ui';
-import { removeUserAvatarAction, uploadUserAvatarAction } from './actions';
+} from "react";
+import { useRouter } from "next/navigation";
+import { Camera, Check } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  SmoothButton,
+} from "@captureflow/ui";
+import { removeUserAvatarAction, uploadUserAvatarAction } from "./actions";
 
 type Props = {
   userId: string;
@@ -26,7 +31,7 @@ const AVATAR_INITIAL: FormState = { error: null, ok: null };
 function initials(name: string, email: string): string {
   const source = name.trim() || email;
   const parts = source.split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
+  if (parts.length === 0) return "?";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
@@ -69,7 +74,7 @@ function AvatarUploader({
   const formRef = useRef<HTMLFormElement | null>(null);
   const [state, formAction, uploading] = useActionState(
     uploadUserAvatarAction,
-    AVATAR_INITIAL
+    AVATAR_INITIAL,
   );
   const [removePending, startRemove] = useTransition();
   const busy = uploading || removePending;
@@ -102,8 +107,8 @@ function AvatarUploader({
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={busy}
-          aria-label={imageUrl ? 'Change avatar' : 'Upload avatar'}
-          title={imageUrl ? 'Change avatar' : 'Upload avatar'}
+          aria-label={imageUrl ? "Change avatar" : "Upload avatar"}
+          title={imageUrl ? "Change avatar" : "Upload avatar"}
           className="group relative block rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas-2 disabled:cursor-progress"
         >
           <Avatar className="h-14 w-14">
@@ -129,7 +134,7 @@ function AvatarUploader({
             disabled={busy}
             className="text-fg-muted transition-colors hover:text-danger disabled:opacity-50"
           >
-            {removePending ? 'Removing…' : 'Remove'}
+            {removePending ? "Removing…" : "Remove"}
           </button>
         )}
         {state.error && <span className="text-danger">{state.error}</span>}
@@ -163,7 +168,7 @@ function NameRow({
     e.preventDefault();
     const next = name.trim();
     if (!next) {
-      setError('Name is required.');
+      setError("Name is required.");
       return;
     }
     if (next === initialName.trim()) return;
@@ -173,13 +178,13 @@ function NameRow({
         const res = await authClient.updateUser({ name: next });
         const apiError = (res as { error?: { message?: string } }).error;
         if (apiError) {
-          setError(apiError.message ?? 'Could not update name.');
+          setError(apiError.message ?? "Could not update name.");
           return;
         }
         setSavedAt(Date.now());
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not update name.');
+        setError(err instanceof Error ? err.message : "Could not update name.");
       }
     });
   };
@@ -232,7 +237,7 @@ function NameRow({
           </span>
         )}
         <SmoothButton type="submit" disabled={!dirty || pending}>
-          {pending ? 'Saving…' : 'Save'}
+          {pending ? "Saving…" : "Save"}
         </SmoothButton>
       </div>
     </form>

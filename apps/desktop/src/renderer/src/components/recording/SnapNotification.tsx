@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from "react";
 import {
   Camera,
   Check,
@@ -8,145 +8,169 @@ import {
   Link2,
   MoreHorizontal,
   Trash2,
-  X
-} from 'lucide-react'
-import logoRound from '@/assets/logo-round.png'
+  X,
+} from "lucide-react";
+import logoRound from "@/assets/logo-round.png";
 
 type SnapState =
-  | { kind: 'capturing'; localPath: string | null; sourceTitle: string | null }
+  | { kind: "capturing"; localPath: string | null; sourceTitle: string | null }
   | {
-      kind: 'ready'
-      localPath: string
-      sourceTitle: string | null
-      id: string
-      viewUrl: string
-      editUrl: string
+      kind: "ready";
+      localPath: string;
+      sourceTitle: string | null;
+      id: string;
+      viewUrl: string;
+      editUrl: string;
     }
-  | { kind: 'failed'; localPath: string | null; sourceTitle: string | null; reason: string }
+  | {
+      kind: "failed";
+      localPath: string | null;
+      sourceTitle: string | null;
+      reason: string;
+    };
 
 // Bottom-right "snap ready" modal, driven through capturing → ready / failed by
 // main-process IPC.
 export function SnapNotification(): React.JSX.Element {
   const [state, setState] = useState<SnapState>({
-    kind: 'capturing',
+    kind: "capturing",
     localPath: null,
-    sourceTitle: null
-  })
-  const [copied, setCopied] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement | null>(null)
+    sourceTitle: null,
+  });
+  const [copied, setCopied] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    document.documentElement.style.background = 'transparent'
-    document.body.style.background = 'transparent'
-  }, [])
+    document.documentElement.style.background = "transparent";
+    document.body.style.background = "transparent";
+  }, []);
 
   useEffect(() => {
-    const off1 = window.electronAPI.onSnapCaptured(({ localPath, sourceTitle }): void => {
-      setState((prev) => {
-        if (prev.kind === 'ready') {
-          return { kind: 'capturing', localPath, sourceTitle }
-        }
-        return { kind: 'capturing', localPath, sourceTitle }
-      })
-      setCopied(false)
-    })
-    const off2 = window.electronAPI.onSnapUploadComplete(({ id, viewUrl, editUrl }): void => {
-      setState((prev) => {
-        if (prev.kind === 'capturing' || prev.kind === 'failed') {
-          return {
-            kind: 'ready',
-            localPath: prev.localPath ?? '',
-            sourceTitle: prev.sourceTitle,
-            id,
-            viewUrl,
-            editUrl
+    const off1 = window.electronAPI.onSnapCaptured(
+      ({ localPath, sourceTitle }): void => {
+        setState((prev) => {
+          if (prev.kind === "ready") {
+            return { kind: "capturing", localPath, sourceTitle };
           }
-        }
-        return prev
-      })
-    })
+          return { kind: "capturing", localPath, sourceTitle };
+        });
+        setCopied(false);
+      },
+    );
+    const off2 = window.electronAPI.onSnapUploadComplete(
+      ({ id, viewUrl, editUrl }): void => {
+        setState((prev) => {
+          if (prev.kind === "capturing" || prev.kind === "failed") {
+            return {
+              kind: "ready",
+              localPath: prev.localPath ?? "",
+              sourceTitle: prev.sourceTitle,
+              id,
+              viewUrl,
+              editUrl,
+            };
+          }
+          return prev;
+        });
+      },
+    );
     const off3 = window.electronAPI.onSnapUploadFailed(({ reason }): void => {
       setState((prev) => ({
-        kind: 'failed',
-        localPath: prev.kind === 'capturing' || prev.kind === 'ready' ? prev.localPath : null,
-        sourceTitle: prev.kind === 'capturing' || prev.kind === 'ready' ? prev.sourceTitle : null,
-        reason
-      }))
-    })
+        kind: "failed",
+        localPath:
+          prev.kind === "capturing" || prev.kind === "ready"
+            ? prev.localPath
+            : null,
+        sourceTitle:
+          prev.kind === "capturing" || prev.kind === "ready"
+            ? prev.sourceTitle
+            : null,
+        reason,
+      }));
+    });
     return () => {
-      off1()
-      off2()
-      off3()
-    }
-  }, [])
+      off1();
+      off2();
+      off3();
+    };
+  }, []);
 
   const handleClose = (): void => {
-    window.electronAPI.snapNotificationClose()
-  }
+    window.electronAPI.snapNotificationClose();
+  };
 
   const handleEdit = (): void => {
-    if (state.kind !== 'ready') return
-    window.electronAPI.snapOpenEdit(state.editUrl)
-  }
+    if (state.kind !== "ready") return;
+    window.electronAPI.snapOpenEdit(state.editUrl);
+  };
 
   const handleCopy = (): void => {
-    if (state.kind !== 'ready') return
-    window.electronAPI.snapCopyLink(state.viewUrl)
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1500)
-  }
+    if (state.kind !== "ready") return;
+    window.electronAPI.snapCopyLink(state.viewUrl);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1500);
+  };
 
   const handleRevealInFinder = (): void => {
-    if (state.kind === 'capturing' || state.kind === 'ready' || state.kind === 'failed') {
+    if (
+      state.kind === "capturing" ||
+      state.kind === "ready" ||
+      state.kind === "failed"
+    ) {
       if (state.localPath) {
-        window.electronAPI.showItemInFolder(state.localPath).catch(() => {})
+        window.electronAPI.showItemInFolder(state.localPath).catch(() => {});
       }
     }
-    setMenuOpen(false)
-  }
+    setMenuOpen(false);
+  };
 
   const handleOpenInBrowser = (): void => {
-    if (state.kind !== 'ready') return
-    window.electronAPI.snapOpenEdit(state.viewUrl)
-    setMenuOpen(false)
-  }
+    if (state.kind !== "ready") return;
+    window.electronAPI.snapOpenEdit(state.viewUrl);
+    setMenuOpen(false);
+  };
 
   const handleDelete = (): void => {
-    if (state.kind !== 'ready') return
-    window.electronAPI.snapDelete(state.id)
-    setMenuOpen(false)
-  }
+    if (state.kind !== "ready") return;
+    window.electronAPI.snapDelete(state.id);
+    setMenuOpen(false);
+  };
 
   useEffect(() => {
-    if (!menuOpen) return
+    if (!menuOpen) return;
     const onClick = (e: MouseEvent): void => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false)
+        setMenuOpen(false);
       }
-    }
+    };
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') setMenuOpen(false)
-    }
-    document.addEventListener('mousedown', onClick)
-    document.addEventListener('keydown', onKey)
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
     return () => {
-      document.removeEventListener('mousedown', onClick)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [menuOpen])
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
 
   const previewSrc =
-    state.kind === 'capturing' || state.kind === 'ready' || state.kind === 'failed'
+    state.kind === "capturing" ||
+    state.kind === "ready" ||
+    state.kind === "failed"
       ? state.localPath
         ? `media://snap-preview?path=${encodeURIComponent(state.localPath)}`
         : null
-      : null
-  const isReady = state.kind === 'ready'
-  const isFailed = state.kind === 'failed'
+      : null;
+  const isReady = state.kind === "ready";
+  const isFailed = state.kind === "failed";
 
   return (
-    <div className="h-screen w-screen p-3 select-none" style={{ background: 'transparent' }}>
+    <div
+      className="h-screen w-screen p-3 select-none"
+      style={{ background: "transparent" }}
+    >
       <div className="relative flex h-full w-full flex-col overflow-hidden rounded-2xl bg-neutral-900 text-white shadow-2xl ring-1 ring-white/10">
         {/* Dark backdrop so transparent PNG regions (shadow alpha) stay contained. */}
         <div className="relative flex-1 overflow-hidden bg-neutral-950">
@@ -163,7 +187,7 @@ export function SnapNotification(): React.JSX.Element {
             </div>
           )}
 
-          {state.kind === 'capturing' && (
+          {state.kind === "capturing" && (
             <div
               data-testid="snap-spinner"
               className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40"
@@ -196,9 +220,9 @@ export function SnapNotification(): React.JSX.Element {
                   onClick={handleRevealInFinder}
                   disabled={
                     !(
-                      (state.kind === 'ready' ||
-                        state.kind === 'capturing' ||
-                        state.kind === 'failed') &&
+                      (state.kind === "ready" ||
+                        state.kind === "capturing" ||
+                        state.kind === "failed") &&
                       !!state.localPath
                     )
                   }
@@ -245,7 +269,8 @@ export function SnapNotification(): React.JSX.Element {
           >
             {isFailed
               ? `Upload failed — ${state.reason}`
-              : state.sourceTitle || (isReady ? 'Snap ready' : 'Capturing snap…')}
+              : state.sourceTitle ||
+                (isReady ? "Snap ready" : "Capturing snap…")}
           </span>
         </div>
 
@@ -280,7 +305,7 @@ export function SnapNotification(): React.JSX.Element {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function MenuItem({
@@ -288,13 +313,13 @@ function MenuItem({
   label,
   onClick,
   disabled,
-  destructive
+  destructive,
 }: {
-  icon: React.ReactNode
-  label: string
-  onClick: () => void
-  disabled?: boolean
-  destructive?: boolean
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  destructive?: boolean;
 }): React.JSX.Element {
   return (
     <button
@@ -304,19 +329,23 @@ function MenuItem({
       disabled={disabled}
       className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
         destructive
-          ? 'text-red-400 hover:bg-red-500/15 hover:text-red-300'
-          : 'text-white/90 hover:bg-white/10 hover:text-white'
+          ? "text-red-400 hover:bg-red-500/15 hover:text-red-300"
+          : "text-white/90 hover:bg-white/10 hover:text-white"
       }`}
     >
       <span className="flex h-4 w-4 items-center justify-center">{icon}</span>
       <span>{label}</span>
     </button>
-  )
+  );
 }
 
 function Spinner(): React.JSX.Element {
   return (
-    <svg className="h-10 w-10 animate-spin text-white" viewBox="0 0 16 16" fill="none">
+    <svg
+      className="h-10 w-10 animate-spin text-white"
+      viewBox="0 0 16 16"
+      fill="none"
+    >
       {Array.from({ length: 8 }).map((_, i) => (
         <rect
           key={i}
@@ -331,5 +360,5 @@ function Spinner(): React.JSX.Element {
         />
       ))}
     </svg>
-  )
+  );
 }

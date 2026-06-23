@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import CtaButton from '@/components/ui/cta-button';
-import { Icon } from '@/components/ui/icon';
-import { CURRENT_STAGE } from '@/lib/marketing/constants';
-import { SOURCE_REPO_URL } from '@/lib/site';
-import { track } from '@/lib/marketing/track';
-import { WaitlistForm } from './waitlist-form';
-import { AppleLogo, ChromeLogo } from './platform-logos';
-import { RecorderMockup } from './recorder-mockup';
-import { HaloEffect } from './halo-effect';
-import { useLocalizedHref, useMessages } from './i18n-provider';
+import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import CtaButton from "@/components/ui/cta-button";
+import { Icon } from "@/components/ui/icon";
+import { CURRENT_STAGE } from "@/lib/marketing/constants";
+import { SOURCE_REPO_URL } from "@/lib/site";
+import { track } from "@/lib/marketing/track";
+import { WaitlistForm } from "./waitlist-form";
+import { AppleLogo, ChromeLogo } from "./platform-logos";
+import { RecorderMockup } from "./recorder-mockup";
+import { HaloEffect } from "./halo-effect";
+import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 export function HeroSection({ stars = null }: { stars?: string | null }) {
   const m = useMessages();
@@ -25,8 +25,8 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
       <div
         className="relative"
         style={{
-          marginTop: 'calc(-1 * var(--header-height, 68px))',
-          paddingTop: 'var(--header-height, 68px)',
+          marginTop: "calc(-1 * var(--header-height, 68px))",
+          paddingTop: "var(--header-height, 68px)",
         }}
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[80vh]">
@@ -54,14 +54,14 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                       animate={{ opacity: 1, y: 0, rotate: -7, scale: 0.85 }}
                       exit={{ opacity: 0, y: 14, rotate: -11, scale: 0.72 }}
                       transition={{
-                        type: 'spring',
+                        type: "spring",
                         stiffness: 300,
                         damping: 20,
                       }}
                       className="absolute left-1/2 top-1/2 z-50 block w-80 origin-center -translate-x-1/2 -translate-y-1/2"
                     >
                       <a
-                        href={lh('/download')}
+                        href={lh("/download")}
                         className="relative block aspect-[16/10] cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 p-5 text-left shadow-2xl shadow-neutral-900/40 transition-transform hover:scale-[1.03]"
                       >
                         <Icon
@@ -88,14 +88,13 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                     </motion.span>
                   )}
                 </AnimatePresence>
-              </span>{' '}
+              </span>{" "}
               {m.hero.titleMain}
               <br />
               {m.hero.titleSuffix}
             </h1>
             <p className="mx-auto mt-6 max-w-2xl animate-fade-in-up text-base leading-relaxed tracking-[-0.01em] text-muted-foreground animation-delay-200">
-              {m.hero.subtitleLine1}{' '}
-              <br className="hidden sm:inline" />
+              {m.hero.subtitleLine1} <br className="hidden sm:inline" />
               {m.hero.subtitleLine2}
             </p>
             {CURRENT_STAGE.showHeroBuyCta ? (
@@ -107,9 +106,9 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                     asChild
                   >
                     <a
-                      href={lh('/download')}
+                      href={lh("/download")}
                       onClick={() =>
-                        track('marketing_cta_clicked', { location: 'hero' })
+                        track("marketing_cta_clicked", { location: "hero" })
                       }
                     >
                       <span className="flex items-center gap-1.5">
@@ -124,7 +123,9 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() =>
-                      track('marketing_cta_clicked', { location: 'hero_github' })
+                      track("marketing_cta_clicked", {
+                        location: "hero_github",
+                      })
                     }
                     className="inline-flex h-[3.25rem] w-full max-w-xs items-center justify-center gap-2.5 rounded-2xl bg-neutral-200 px-6 text-base font-semibold text-neutral-900 transition-colors hover:bg-neutral-300 sm:h-[3.75rem] sm:w-auto sm:max-w-none sm:px-8 sm:text-lg"
                   >

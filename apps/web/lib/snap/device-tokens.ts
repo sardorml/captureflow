@@ -1,18 +1,18 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { getCloudflareEnv } from './cf-env';
+import { getCloudflareEnv } from "./cf-env";
 
 async function hashToken(raw: string): Promise<string> {
   const data = new TextEncoder().encode(raw);
-  const buf = await crypto.subtle.digest('SHA-256', data);
+  const buf = await crypto.subtle.digest("SHA-256", data);
   const arr = Array.from(new Uint8Array(buf));
-  return arr.map((b) => b.toString(16).padStart(2, '0')).join('');
+  return arr.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 export async function resolveDeviceTokenToUser(
-  rawToken: string
+  rawToken: string,
 ): Promise<string | null> {
-  if (typeof rawToken !== 'string' || rawToken.length < 32) return null;
+  if (typeof rawToken !== "string" || rawToken.length < 32) return null;
   const env = await getCloudflareEnv();
   if (!env?.DB) return null;
   const tokenHash = await hashToken(rawToken);
@@ -20,7 +20,7 @@ export async function resolveDeviceTokenToUser(
     `SELECT id, user_id, revoked_at
        FROM device_tokens
        WHERE token_hash = ?1
-       LIMIT 1`
+       LIMIT 1`,
   )
     .bind(tokenHash)
     .first<{ id: string; user_id: string; revoked_at: number | null }>();

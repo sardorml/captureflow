@@ -28,10 +28,10 @@ under **Snaps** and count toward your storage quota.
 
 ## Snap vs. recording — which to use?
 
-| Use a **snap** when… | Use a **recording** when… |
-| --- | --- |
-| One frame tells the story | You need to show a flow or motion |
-| You want to annotate a still | Narration or a walkthrough helps |
-| Filing a quick visual bug | Demoing a feature or reproducing steps |
+| Use a **snap** when…         | Use a **recording** when…              |
+| ---------------------------- | -------------------------------------- |
+| One frame tells the story    | You need to show a flow or motion      |
+| You want to annotate a still | Narration or a walkthrough helps       |
+| Filing a quick visual bug    | Demoing a feature or reproducing steps |
 
 Next: run your own instance → [Self-Hosting Overview](/self-hosting/overview).

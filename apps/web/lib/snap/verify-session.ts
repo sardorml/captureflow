@@ -1,8 +1,8 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { listWorkspacesForUser } from '@captureflow/quota';
-import { getAuth } from '@/lib/auth';
-import { getAppWebEnv } from '@/lib/cf-env';
+import { listWorkspacesForUser } from "@captureflow/quota";
+import { getAuth } from "@/lib/auth";
+import { getAppWebEnv } from "@/lib/cf-env";
 
 export type VerifiedSession = {
   userId: string;
@@ -12,21 +12,21 @@ export type VerifiedSession = {
   workspaceIds: string[];
 };
 
-export type VerifySessionResult = VerifiedSession | null | 'unknown';
+export type VerifySessionResult = VerifiedSession | null | "unknown";
 
 function headersFromCookie(cookieHeader: string): Headers {
   const h = new Headers();
-  h.set('cookie', cookieHeader);
+  h.set("cookie", cookieHeader);
   return h;
 }
 
 export async function verifySession(
-  cookieHeader: string | null
+  cookieHeader: string | null,
 ): Promise<VerifySessionResult> {
   if (!cookieHeader) return null;
 
   let session: Awaited<
-    ReturnType<Awaited<ReturnType<typeof getAuth>>['api']['getSession']>
+    ReturnType<Awaited<ReturnType<typeof getAuth>>["api"]["getSession"]>
   >;
   try {
     const auth = await getAuth();
@@ -35,14 +35,14 @@ export async function verifySession(
       headers: headersFromCookie(cookieHeader),
     });
   } catch (err) {
-    console.error('snap verify-session: getSession threw', err);
-    return 'unknown';
+    console.error("snap verify-session: getSession threw", err);
+    return "unknown";
   }
   if (!session) return null;
 
   const env = await getAppWebEnv();
   if (!env?.DB) {
-    return 'unknown';
+    return "unknown";
   }
 
   try {
@@ -60,14 +60,14 @@ export async function verifySession(
       workspaceIds: memberships.map((m) => m.workspace_id),
     };
   } catch (err) {
-    console.error('snap verify-session: membership lookup threw', err);
-    return 'unknown';
+    console.error("snap verify-session: membership lookup threw", err);
+    return "unknown";
   }
 }
 
 export async function verifySessionOrNull(
-  cookieHeader: string | null
+  cookieHeader: string | null,
 ): Promise<VerifiedSession | null> {
   const r = await verifySession(cookieHeader);
-  return r === 'unknown' ? null : r;
+  return r === "unknown" ? null : r;
 }

@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export type AppWebBindings = {
   DB?: D1Database;

@@ -5,7 +5,7 @@ the codebase stays organized, scalable, and safe to evolve. Rules are derived fr
 what the codebase already does well; where practice is inconsistent, the rule states
 which form **wins for new code**. Each rule names a real exemplar to copy.
 
-> If a rule here ever feels wrong, change *the rule* in a PR — don't quietly diverge.
+> If a rule here ever feels wrong, change _the rule_ in a PR — don't quietly diverge.
 > One convention, applied everywhere, is worth more than any local preference.
 
 ---
@@ -154,7 +154,7 @@ which form **wins for new code**. Each rule names a real exemplar to copy.
   `rowFromD1` mapping. (Deliberate, commented exceptions: the lemon-webhook and request-access
   routes, which span both domains.)
 - **Enforce quota up front, attributed to the workspace OWNER** (`quotaUserId =
-  workspace?.owner_user_id ?? userId`): check count/storage/limits together via `Promise.all`
+workspace?.owner_user_id ?? userId`): check count/storage/limits together via `Promise.all`
   before writing bytes; return 429 `active_limit`/`storage_limit` (413 `duration_exceeded`).
   Skip only for `isDevDevice(deviceId)`.
 
@@ -172,7 +172,7 @@ which form **wins for new code**. Each rule names a real exemplar to copy.
   `removeListener` with the captured handler (so `useEffect` can tear it down).
 - **Register handlers in `register<Domain>Handlers()`** in `main/ipc/<domain>-handlers.ts`,
   called once from `app.whenReady`; pass cross-window deps as **getter callbacks** (`() =>
-  recordingWindow`), not direct window-singleton imports (avoids stale captures).
+recordingWindow`), not direct window-singleton imports (avoids stale captures).
 - **Each main subsystem is a module singleton:** state in module-level `let`, `getX()`/`setX()`
   (+ `loadX`/`refreshX`), changes published via a private `EventEmitter` surfaced as
   `onXChange(fn): () => void`. Not a class threaded around.
@@ -215,14 +215,14 @@ which form **wins for new code**. Each rule names a real exemplar to copy.
   binary or wire format, a browser/OS workaround, a spec/bug link. Bias to removal.
 - **Always keep:** tooling suppressions (`eslint-disable`, `@ts-expect-error`, `biome-ignore`,
   …), `///` directives, license headers, `TODO`/`FIXME`.
-- **Style:** ≤2 lines → `//`; >2 lines → a `/* … */` block with ` * ` prefixes. **No comments
+- **Style:** ≤2 lines → `//`; >2 lines → a `/* … */` block with `*` prefixes. **No comments
   inside type/interface declarations** — types are self-explanatory; if one is truly unavoidable
   it must be a single `//` line, never a multi-line block.
 
 ## 9. Testing & verification gates
 
 - **Tooling:** pnpm + nx; `tsc --noEmit` for types; **Vitest** for tests (`pnpm --filter
-  @captureflow/web test`); Prettier for formatting (`pnpm format`). `apps/desktop` has no test
+@captureflow/web test`); Prettier for formatting (`pnpm format`). `apps/desktop` has no test
   harness yet — add one (Vitest) before its bigger refactors.
 - **Pure logic is tested.** New non-trivial pure functions (formatting, auth/visibility gates,
   hydration, quota math) ship with tests. _Examples:_ `lib/format.test.ts`, `lib/visibility.test.ts`.

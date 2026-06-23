@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { Icon } from '@/components/ui/icon';
-import { COMPARE_SECTIONS, CURRENT_STAGE } from '@/lib/marketing/constants';
-import { useMessages } from './i18n-provider';
+import { Icon } from "@/components/ui/icon";
+import { COMPARE_SECTIONS, CURRENT_STAGE } from "@/lib/marketing/constants";
+import { useMessages } from "./i18n-provider";
 
 const COLUMNS = [
-  { key: 'free' as const, label: 'Self-Hosted', accent: 'text-neutral-600' },
+  { key: "free" as const, label: "Self-Hosted", accent: "text-neutral-600" },
   {
-    key: 'monthly' as const,
-    label: 'CaptureFlow Managed',
-    accent: 'text-neutral-900',
+    key: "monthly" as const,
+    label: "CaptureFlow Managed",
+    accent: "text-neutral-900",
   },
 ];
 
-const TICK_COLOR = '#3aa655';
+const TICK_COLOR = "#3aa655";
 
 const PRO_TITLE_STYLE: React.CSSProperties = {
-  fontFamily: 'var(--font-inter)',
+  fontFamily: "var(--font-inter)",
   fontWeight: 700,
 };
 
@@ -24,7 +24,7 @@ export function ComparePlansSection() {
   const m = useMessages();
   if (!CURRENT_STAGE.showPricingSection) return null;
   const compare = m.pricing.compare;
-  const columnLabels: Record<(typeof COLUMNS)[number]['key'], string> = {
+  const columnLabels: Record<(typeof COLUMNS)[number]["key"], string> = {
     free: compare.freeColumn,
     monthly: compare.proColumn,
   };
@@ -103,8 +103,8 @@ export function ComparePlansSection() {
                     role="row"
                     className={`grid grid-cols-[1.6fr_repeat(2,1fr)] items-center px-2 py-3.5 text-sm sm:px-3 ${
                       i !== section.rows.length - 1
-                        ? 'border-b border-black/5'
-                        : ''
+                        ? "border-b border-black/5"
+                        : ""
                     }`}
                   >
                     <div role="rowheader" className="pr-4 text-neutral-900">
@@ -114,7 +114,7 @@ export function ComparePlansSection() {
                       const value = row[col.key];
                       const localizedValue =
                         compare.sections[sectionIndex].rows[i][
-                          col.key === 'free' ? 'free' : 'pro'
+                          col.key === "free" ? "free" : "pro"
                         ];
                       return (
                         <div
@@ -203,17 +203,17 @@ function MobileRow({
   return (
     <div
       className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 ${
-        highlight ? 'bg-blue-100' : 'bg-neutral-100'
+        highlight ? "bg-blue-100" : "bg-neutral-100"
       }`}
     >
       <span
         className={`shrink-0 text-xs font-medium ${
-          highlight ? 'text-neutral-700' : 'text-neutral-500'
+          highlight ? "text-neutral-700" : "text-neutral-500"
         }`}
       >
         {plan}
       </span>
-      {typeof value === 'string' ? (
+      {typeof value === "string" ? (
         <span className="text-right text-sm font-semibold text-neutral-900">
           {localizedValue}
         </span>
@@ -246,7 +246,7 @@ function Cell({
   includedAria: string;
   notIncludedAria: string;
 }) {
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     return (
       <span className="text-center text-sm font-medium text-neutral-900">
         {localizedValue}

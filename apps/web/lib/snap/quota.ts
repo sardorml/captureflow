@@ -10,14 +10,14 @@ import {
   getWorkspaceById,
   isWorkspaceMember,
   totalStorageForUser as totalStorageForUserD1,
-} from '@captureflow/quota';
-import { getCloudflareEnv } from './cf-env';
+} from "@captureflow/quota";
+import { getCloudflareEnv } from "./cf-env";
 
 export { ACCOUNT_LIMITS };
 export type { EffectiveLimits };
 
 export async function getEffectiveLimitsForUser(
-  userId: string
+  userId: string,
 ): Promise<EffectiveLimits> {
   const env = await getCloudflareEnv();
   if (!env?.DB) {
@@ -38,7 +38,7 @@ export async function totalStorageForUser(userId: string): Promise<number> {
 }
 
 export async function activeArtifactCountForUser(
-  userId: string
+  userId: string,
 ): Promise<number> {
   const env = await getCloudflareEnv();
   if (!env?.DB) return 0;
@@ -46,28 +46,28 @@ export async function activeArtifactCountForUser(
 }
 
 export async function resolveUserWorkspaceId(
-  userId: string
+  userId: string,
 ): Promise<string | null> {
   const env = await getCloudflareEnv();
   if (!env?.DB) return null;
   const existing = await getPersonalWorkspaceForUser(env.DB, userId);
   if (existing) return existing.id;
   const profile = await env.DB.prepare(
-    `SELECT name FROM users WHERE id = ?1 LIMIT 1`
+    `SELECT name FROM users WHERE id = ?1 LIMIT 1`,
   )
     .bind(userId)
     .first<{ name: string | null }>();
   const workspace = await ensurePersonalWorkspace(
     env.DB,
     userId,
-    profile?.name ?? null
+    profile?.name ?? null,
   );
   return workspace.id;
 }
 
 // Upload-time quota applies to the OWNER (Pro is per-user; team uploads draw down the owner's cap).
 export async function getWorkspaceOwnerUserId(
-  workspaceId: string
+  workspaceId: string,
 ): Promise<string | null> {
   const env = await getCloudflareEnv();
   if (!env?.DB) return null;
@@ -83,7 +83,7 @@ export async function getWorkspaceForUpload(workspaceId: string) {
 
 export async function validateWorkspaceMembership(
   userId: string,
-  workspaceId: string
+  workspaceId: string,
 ): Promise<string | null> {
   const env = await getCloudflareEnv();
   if (!env?.DB) return null;

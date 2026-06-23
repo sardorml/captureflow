@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { motion } from 'motion/react';
-import { DOWNLOAD_URL, X_URL } from '@/lib/marketing/constants';
-import { DOCS_URL } from '@/lib/site';
-import { useLocalizedHref } from './i18n-provider';
+import Link from "next/link";
+import { motion } from "motion/react";
+import { DOWNLOAD_URL, X_URL } from "@/lib/marketing/constants";
+import { DOCS_URL } from "@/lib/site";
+import { useLocalizedHref } from "./i18n-provider";
 
-const RELEASES_URL = 'https://github.com/sardorml/captureflow/releases';
+const RELEASES_URL = "https://github.com/sardorml/captureflow/releases";
 
 // Per-letter vertical offsets (em, negative = up) tracing a static arch.
 const WORDMARK_LETTERS = [
-  { ch: 'C', offset: 0.16 },
-  { ch: 'a', offset: 0.1 },
-  { ch: 'p', offset: 0.03 },
-  { ch: 't', offset: -0.04 },
-  { ch: 'u', offset: -0.09 },
-  { ch: 'r', offset: -0.12 },
-  { ch: 'e', offset: -0.12 },
-  { ch: 'F', offset: -0.09 },
-  { ch: 'l', offset: -0.04 },
-  { ch: 'o', offset: 0.03 },
-  { ch: 'w', offset: 0.16 },
+  { ch: "C", offset: 0.16 },
+  { ch: "a", offset: 0.1 },
+  { ch: "p", offset: 0.03 },
+  { ch: "t", offset: -0.04 },
+  { ch: "u", offset: -0.09 },
+  { ch: "r", offset: -0.12 },
+  { ch: "e", offset: -0.12 },
+  { ch: "F", offset: -0.09 },
+  { ch: "l", offset: -0.04 },
+  { ch: "o", offset: 0.03 },
+  { ch: "w", offset: 0.16 },
 ];
 
 export function Footer() {
@@ -67,7 +67,7 @@ export function Footer() {
             <ul className="space-y-2 text-base text-muted-foreground">
               <li>
                 <Link
-                  href={lh('/download')}
+                  href={lh("/download")}
                   className="transition-colors hover:text-foreground"
                 >
                   Download
@@ -75,7 +75,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href={lh('/login')}
+                  href={lh("/login")}
                   className="transition-colors hover:text-foreground"
                 >
                   Sign in
@@ -115,7 +115,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href={lh('/#faq')}
+                  href={lh("/#faq")}
                   className="transition-colors hover:text-foreground"
                 >
                   FAQ

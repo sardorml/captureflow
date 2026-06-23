@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useRef, type ReactNode } from 'react';
-import { ChevronsUpDown, Check, LayoutGrid } from 'lucide-react';
-import type { WorkspaceMembership } from '@captureflow/quota';
+import { useRef, type ReactNode } from "react";
+import { ChevronsUpDown, Check, LayoutGrid } from "lucide-react";
+import type { WorkspaceMembership } from "@captureflow/quota";
 import {
   SmoothDropdownMenu,
   SmoothDropdownMenuContent,
   SmoothDropdownMenuItem,
   SmoothDropdownMenuTrigger,
-} from '@captureflow/ui';
-import { switchWorkspaceAction } from './switch-workspace-action';
+} from "@captureflow/ui";
+import { switchWorkspaceAction } from "./switch-workspace-action";
 
 type Props = {
   currentWorkspaceId: string;
@@ -32,7 +32,7 @@ export function WorkspaceSwitcher({
     if (workspaceId === currentWorkspaceId) return;
     if (!formRef.current) return;
     const input = formRef.current.querySelector<HTMLInputElement>(
-      'input[name=workspaceId]'
+      "input[name=workspaceId]",
     );
     if (!input) return;
     input.value = workspaceId;
@@ -76,7 +76,7 @@ export function WorkspaceSwitcher({
                     {m.workspace_name}
                   </div>
                   <div className="truncate text-xs text-neutral-500">
-                    {m.role === 'owner' ? 'You own this' : 'You joined'}
+                    {m.role === "owner" ? "You own this" : "You joined"}
                   </div>
                 </div>
                 {active && (

@@ -3,8 +3,9 @@
 ## `gen-brand-icons.py` — regenerate all brand logos from the `.icon`
 
 The CaptureFlow logo lives as an **Icon Composer `.icon` bundle** (blue squircle
-+ yin-yang). This script is the single source of truth: give it the `.icon` and
-it regenerates every prod raster asset across web, desktop, and docs.
+
+- yin-yang). This script is the single source of truth: give it the `.icon` and
+  it regenerates every prod raster asset across web, desktop, and docs.
 
 ```bash
 # after editing/exporting the .icon in Icon Composer:

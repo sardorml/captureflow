@@ -6,9 +6,9 @@
  * creating a duplicate, and re-accepting an invite is a no-op.
  */
 
-export type WorkspaceRole = 'owner' | 'member';
+export type WorkspaceRole = "owner" | "member";
 
-export type WorkspaceKind = 'personal' | 'team';
+export type WorkspaceKind = "personal" | "team";
 
 export type WorkspaceRow = {
   id: string;
@@ -60,35 +60,35 @@ function nowMs(): number {
 }
 
 function generateId(): string {
-  return crypto.randomUUID().replace(/-/g, '');
+  return crypto.randomUUID().replace(/-/g, "");
 }
 
 function generateSlug(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(6));
   return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 // Plaintext invite token; only its SHA-256 hash is stored in token_hash.
 function generateInviteToken(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
-  let bin = '';
+  let bin = "";
   for (const b of bytes) bin += String.fromCharCode(b);
-  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
 async function sha256Hex(input: string): Promise<string> {
   const bytes = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 const WORKSPACE_COLUMNS =
-  'id, slug, kind, name, owner_user_id, created_at, updated_at, ' +
-  'logo_key, allow_public_links, allow_member_uploads';
+  "id, slug, kind, name, owner_user_id, created_at, updated_at, " +
+  "logo_key, allow_public_links, allow_member_uploads";
 
 type WorkspaceD1Row = {
   id: string;
@@ -107,7 +107,7 @@ function hydrateWorkspaceRow(r: WorkspaceD1Row): WorkspaceRow {
   return {
     id: r.id,
     slug: r.slug,
-    kind: r.kind === 'team' ? 'team' : 'personal',
+    kind: r.kind === "team" ? "team" : "personal",
     name: r.name,
     owner_user_id: r.owner_user_id,
     created_at: r.created_at,
@@ -119,9 +119,9 @@ function hydrateWorkspaceRow(r: WorkspaceD1Row): WorkspaceRow {
 }
 
 function deriveWorkspaceName(displayName: string | null | undefined): string {
-  const trimmed = (displayName ?? '').trim();
-  const firstWord = trimmed.split(/\s+/)[0] ?? '';
-  if (firstWord.length === 0) return 'My Workspace';
+  const trimmed = (displayName ?? "").trim();
+  const firstWord = trimmed.split(/\s+/)[0] ?? "";
+  if (firstWord.length === 0) return "My Workspace";
   return `${firstWord}'s Workspace`;
 }
 
@@ -133,14 +133,14 @@ function deriveWorkspaceName(displayName: string | null | undefined): string {
  */
 export async function getPersonalWorkspaceForUser(
   db: D1Database,
-  userId: string
+  userId: string,
 ): Promise<WorkspaceRow | null> {
   const row = await db
     .prepare(
       `SELECT ${WORKSPACE_COLUMNS}
          FROM workspace
          WHERE owner_user_id = ?1 AND kind = 'personal'
-         LIMIT 1`
+         LIMIT 1`,
     )
     .bind(userId)
     .first<WorkspaceD1Row>();
@@ -149,14 +149,14 @@ export async function getPersonalWorkspaceForUser(
 
 export async function getWorkspaceById(
   db: D1Database,
-  workspaceId: string
+  workspaceId: string,
 ): Promise<WorkspaceRow | null> {
   const row = await db
     .prepare(
       `SELECT ${WORKSPACE_COLUMNS}
          FROM workspace
          WHERE id = ?1
-         LIMIT 1`
+         LIMIT 1`,
     )
     .bind(workspaceId)
     .first<WorkspaceD1Row>();
@@ -168,7 +168,7 @@ export async function getWorkspaceById(
 export async function ensurePersonalWorkspace(
   db: D1Database,
   userId: string,
-  displayName: string | null | undefined
+  displayName: string | null | undefined,
 ): Promise<WorkspaceRow> {
   const existing = await getPersonalWorkspaceForUser(db, userId);
   if (existing) return existing;
@@ -184,7 +184,7 @@ export async function ensurePersonalWorkspace(
     .prepare(
       `INSERT OR IGNORE INTO workspace
          (id, slug, kind, name, owner_user_id, created_at, updated_at)
-         VALUES (?1, ?2, 'personal', ?3, ?4, ?5, ?5)`
+         VALUES (?1, ?2, 'personal', ?3, ?4, ?5, ?5)`,
     )
     .bind(id, slug, name, userId, now)
     .run();
@@ -193,7 +193,7 @@ export async function ensurePersonalWorkspace(
     .prepare(
       `INSERT OR IGNORE INTO workspace_member
          (workspace_id, user_id, role, joined_at)
-         VALUES (?1, ?2, 'owner', ?3)`
+         VALUES (?1, ?2, 'owner', ?3)`,
     )
     .bind(id, userId, now)
     .run();
@@ -201,7 +201,7 @@ export async function ensurePersonalWorkspace(
   const row = await getPersonalWorkspaceForUser(db, userId);
   if (!row) {
     throw new Error(
-      `ensurePersonalWorkspace: insert succeeded but lookup returned null for user ${userId}`
+      `ensurePersonalWorkspace: insert succeeded but lookup returned null for user ${userId}`,
     );
   }
   return row;
@@ -212,7 +212,7 @@ export async function ensurePersonalWorkspace(
 export async function updateWorkspaceName(
   db: D1Database,
   workspaceId: string,
-  name: string
+  name: string,
 ): Promise<boolean> {
   const trimmed = name.trim();
   if (trimmed.length === 0 || trimmed.length > 80) return false;
@@ -220,7 +220,7 @@ export async function updateWorkspaceName(
     .prepare(
       `UPDATE workspace
          SET name = ?2, updated_at = ?3
-         WHERE id = ?1`
+         WHERE id = ?1`,
     )
     .bind(workspaceId, trimmed, nowMs())
     .run();
@@ -230,13 +230,13 @@ export async function updateWorkspaceName(
 export async function updateWorkspaceLogo(
   db: D1Database,
   workspaceId: string,
-  logoKey: string | null
+  logoKey: string | null,
 ): Promise<boolean> {
   const res = await db
     .prepare(
       `UPDATE workspace
          SET logo_key = ?2, updated_at = ?3
-         WHERE id = ?1`
+         WHERE id = ?1`,
     )
     .bind(workspaceId, logoKey, nowMs())
     .run();
@@ -252,15 +252,15 @@ export type WorkspacePolicyPatch = {
 export async function updateWorkspacePolicy(
   db: D1Database,
   workspaceId: string,
-  patch: WorkspacePolicyPatch
+  patch: WorkspacePolicyPatch,
 ): Promise<boolean> {
   const sets: string[] = [];
   const binds: (number | string)[] = [];
-  if (typeof patch.allowPublicLinks === 'boolean') {
+  if (typeof patch.allowPublicLinks === "boolean") {
     sets.push(`allow_public_links = ?${binds.length + 2}`);
     binds.push(patch.allowPublicLinks ? 1 : 0);
   }
-  if (typeof patch.allowMemberUploads === 'boolean') {
+  if (typeof patch.allowMemberUploads === "boolean") {
     sets.push(`allow_member_uploads = ?${binds.length + 2}`);
     binds.push(patch.allowMemberUploads ? 1 : 0);
   }
@@ -268,7 +268,7 @@ export async function updateWorkspacePolicy(
   sets.push(`updated_at = ?${binds.length + 2}`);
   binds.push(nowMs());
   const res = await db
-    .prepare(`UPDATE workspace SET ${sets.join(', ')} WHERE id = ?1`)
+    .prepare(`UPDATE workspace SET ${sets.join(", ")} WHERE id = ?1`)
     .bind(workspaceId, ...binds)
     .run();
   return (res.meta?.changes ?? 0) > 0;
@@ -276,7 +276,7 @@ export async function updateWorkspacePolicy(
 
 export async function listWorkspacesForUser(
   db: D1Database,
-  userId: string
+  userId: string,
 ): Promise<WorkspaceMembership[]> {
   const { results } = await db
     .prepare(
@@ -290,7 +290,7 @@ export async function listWorkspacesForUser(
          FROM workspace_member m
          JOIN workspace w ON w.id = m.workspace_id
          WHERE m.user_id = ?1
-         ORDER BY (CASE WHEN m.role = 'owner' THEN 0 ELSE 1 END), m.joined_at ASC`
+         ORDER BY (CASE WHEN m.role = 'owner' THEN 0 ELSE 1 END), m.joined_at ASC`,
     )
     .bind(userId)
     .all<WorkspaceMembership>();
@@ -300,14 +300,14 @@ export async function listWorkspacesForUser(
 export async function isWorkspaceMember(
   db: D1Database,
   workspaceId: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   const row = await db
     .prepare(
       `SELECT 1 AS hit
          FROM workspace_member
          WHERE workspace_id = ?1 AND user_id = ?2
-         LIMIT 1`
+         LIMIT 1`,
     )
     .bind(workspaceId, userId)
     .first<{ hit: number }>();
@@ -316,7 +316,7 @@ export async function isWorkspaceMember(
 
 export async function listMembers(
   db: D1Database,
-  workspaceId: string
+  workspaceId: string,
 ): Promise<WorkspaceMember[]> {
   const { results } = await db
     .prepare(
@@ -329,7 +329,7 @@ export async function listMembers(
          FROM workspace_member m
          JOIN users u ON u.id = m.user_id
          WHERE m.workspace_id = ?1
-         ORDER BY (CASE WHEN m.role = 'owner' THEN 0 ELSE 1 END), m.joined_at ASC`
+         ORDER BY (CASE WHEN m.role = 'owner' THEN 0 ELSE 1 END), m.joined_at ASC`,
     )
     .bind(workspaceId)
     .all<WorkspaceMember>();
@@ -338,31 +338,31 @@ export async function listMembers(
 
 export type RemoveMemberResult =
   | { ok: true }
-  | { ok: false; reason: 'not_member' | 'cannot_remove_owner' };
+  | { ok: false; reason: "not_member" | "cannot_remove_owner" };
 
 // Refuses to remove the owner; to remove the owner, delete the whole
 // workspace (cascades through the FKs).
 export async function removeWorkspaceMember(
   db: D1Database,
   workspaceId: string,
-  userId: string
+  userId: string,
 ): Promise<RemoveMemberResult> {
   const existing = await db
     .prepare(
       `SELECT role FROM workspace_member
          WHERE workspace_id = ?1 AND user_id = ?2
-         LIMIT 1`
+         LIMIT 1`,
     )
     .bind(workspaceId, userId)
     .first<{ role: string }>();
-  if (!existing) return { ok: false, reason: 'not_member' };
-  if (existing.role === 'owner') {
-    return { ok: false, reason: 'cannot_remove_owner' };
+  if (!existing) return { ok: false, reason: "not_member" };
+  if (existing.role === "owner") {
+    return { ok: false, reason: "cannot_remove_owner" };
   }
   await db
     .prepare(
       `DELETE FROM workspace_member
-         WHERE workspace_id = ?1 AND user_id = ?2`
+         WHERE workspace_id = ?1 AND user_id = ?2`,
     )
     .bind(workspaceId, userId)
     .run();
@@ -376,7 +376,7 @@ export type CreateInviteResult = {
   plaintextToken: string;
 };
 
-export type CreateInviteError = { ok: false; reason: 'already_member' };
+export type CreateInviteError = { ok: false; reason: "already_member" };
 
 export async function createInvite(
   db: D1Database,
@@ -385,7 +385,7 @@ export async function createInvite(
     email: string;
     invitedByUserId: string;
     ttlMs?: number;
-  }
+  },
 ): Promise<CreateInviteResult | CreateInviteError> {
   const memberRow = await db
     .prepare(
@@ -393,11 +393,11 @@ export async function createInvite(
          FROM workspace_member m
          JOIN users u ON u.id = m.user_id
          WHERE m.workspace_id = ?1 AND LOWER(u.email) = LOWER(?2)
-         LIMIT 1`
+         LIMIT 1`,
     )
     .bind(args.workspaceId, args.email)
     .first<{ user_id: string }>();
-  if (memberRow) return { ok: false, reason: 'already_member' };
+  if (memberRow) return { ok: false, reason: "already_member" };
 
   // Drop any pending invite for the same (workspace, email) so the partial
   // unique index doesn't reject the insert; this implicitly resends it.
@@ -406,7 +406,7 @@ export async function createInvite(
       `DELETE FROM workspace_invite
          WHERE workspace_id = ?1
            AND LOWER(email) = LOWER(?2)
-           AND accepted_at IS NULL`
+           AND accepted_at IS NULL`,
     )
     .bind(args.workspaceId, args.email)
     .run();
@@ -423,7 +423,7 @@ export async function createInvite(
       `INSERT INTO workspace_invite
          (id, workspace_id, email, token_hash, invited_by_user_id,
           created_at, expires_at, accepted_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, NULL)`
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, NULL)`,
     )
     .bind(
       id,
@@ -432,7 +432,7 @@ export async function createInvite(
       tokenHash,
       args.invitedByUserId,
       now,
-      expiresAt
+      expiresAt,
     )
     .run();
 
@@ -453,7 +453,7 @@ export async function createInvite(
 // before calling acceptInvite.
 export async function findInviteByToken(
   db: D1Database,
-  plaintextToken: string
+  plaintextToken: string,
 ): Promise<WorkspaceInviteRow | null> {
   const tokenHash = await sha256Hex(plaintextToken);
   const row = await db
@@ -462,7 +462,7 @@ export async function findInviteByToken(
               created_at, expires_at, accepted_at
          FROM workspace_invite
          WHERE token_hash = ?1
-         LIMIT 1`
+         LIMIT 1`,
     )
     .bind(tokenHash)
     .first<WorkspaceInviteRow>();
@@ -476,14 +476,14 @@ export type AcceptInviteResult =
   | { ok: true; workspaceId: string }
   | {
       ok: false;
-      reason: 'not_found' | 'expired' | 'already_accepted' | 'already_member';
+      reason: "not_found" | "expired" | "already_accepted" | "already_member";
     };
 
 // The two writes aren't transactional (D1 has no BEGIN/COMMIT) but are
 // safe to retry. Callers must verify the user's email matches the invite.
 export async function acceptInvite(
   db: D1Database,
-  args: { inviteId: string; userId: string }
+  args: { inviteId: string; userId: string },
 ): Promise<AcceptInviteResult> {
   const invite = await db
     .prepare(
@@ -491,20 +491,20 @@ export async function acceptInvite(
               created_at, expires_at, accepted_at
          FROM workspace_invite
          WHERE id = ?1
-         LIMIT 1`
+         LIMIT 1`,
     )
     .bind(args.inviteId)
     .first<WorkspaceInviteRow>();
 
-  if (!invite) return { ok: false, reason: 'not_found' };
+  if (!invite) return { ok: false, reason: "not_found" };
   if (invite.accepted_at !== null)
-    return { ok: false, reason: 'already_accepted' };
-  if (invite.expires_at <= nowMs()) return { ok: false, reason: 'expired' };
+    return { ok: false, reason: "already_accepted" };
+  if (invite.expires_at <= nowMs()) return { ok: false, reason: "expired" };
 
   const alreadyMember = await isWorkspaceMember(
     db,
     invite.workspace_id,
-    args.userId
+    args.userId,
   );
   if (alreadyMember) {
     // Mark accepted so it stops showing as pending, but report
@@ -513,14 +513,14 @@ export async function acceptInvite(
       .prepare(`UPDATE workspace_invite SET accepted_at = ?1 WHERE id = ?2`)
       .bind(nowMs(), args.inviteId)
       .run();
-    return { ok: false, reason: 'already_member' };
+    return { ok: false, reason: "already_member" };
   }
 
   const now = nowMs();
   await db
     .prepare(
       `INSERT INTO workspace_member (workspace_id, user_id, role, joined_at)
-         VALUES (?1, ?2, 'member', ?3)`
+         VALUES (?1, ?2, 'member', ?3)`,
     )
     .bind(invite.workspace_id, args.userId, now)
     .run();
@@ -535,7 +535,7 @@ export async function acceptInvite(
 
 export async function listPendingInvites(
   db: D1Database,
-  workspaceId: string
+  workspaceId: string,
 ): Promise<WorkspaceInviteRow[]> {
   const { results } = await db
     .prepare(
@@ -545,7 +545,7 @@ export async function listPendingInvites(
          WHERE workspace_id = ?1
            AND accepted_at IS NULL
            AND expires_at > ?2
-         ORDER BY created_at ASC`
+         ORDER BY created_at ASC`,
     )
     .bind(workspaceId, nowMs())
     .all<WorkspaceInviteRow>();
@@ -554,13 +554,13 @@ export async function listPendingInvites(
 
 export async function revokeInvite(
   db: D1Database,
-  args: { inviteId: string; workspaceId: string }
+  args: { inviteId: string; workspaceId: string },
 ): Promise<void> {
   // Hard delete frees the unique token_hash slot for re-inviting the email.
   await db
     .prepare(
       `DELETE FROM workspace_invite
-         WHERE id = ?1 AND workspace_id = ?2 AND accepted_at IS NULL`
+         WHERE id = ?1 AND workspace_id = ?2 AND accepted_at IS NULL`,
     )
     .bind(args.inviteId, args.workspaceId)
     .run();

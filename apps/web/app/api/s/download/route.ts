@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSnap } from '@/lib/snap/db';
-import { getSnapBody } from '@/lib/snap/r2';
-import { isValidSnapId } from '@/lib/snap/id';
-import type { SnapApiError } from '@/lib/snap/types';
+import { NextRequest, NextResponse } from "next/server";
+import { getSnap } from "@/lib/snap/db";
+import { getSnapBody } from "@/lib/snap/r2";
+import { isValidSnapId } from "@/lib/snap/id";
+import type { SnapApiError } from "@/lib/snap/types";
 
 /*
  * Same-origin proxy: the HTML `download` attribute is ignored on cross-origin
@@ -11,34 +11,34 @@ import type { SnapApiError } from '@/lib/snap/types';
  */
 
 export async function GET(req: NextRequest) {
-  const id = req.nextUrl.searchParams.get('id');
+  const id = req.nextUrl.searchParams.get("id");
   if (!isValidSnapId(id)) {
-    return notFoundJson('Invalid id', 'invalid_id');
+    return notFoundJson("Invalid id", "invalid_id");
   }
 
   const row = await getSnap(id);
-  if (!row || row.state !== 'ready') {
-    return notFoundJson('Snap not found', 'not_found');
+  if (!row || row.state !== "ready") {
+    return notFoundJson("Snap not found", "not_found");
   }
 
   const obj = await getSnapBody(id);
   if (!obj) {
-    return notFoundJson('Object missing', 'object_missing');
+    return notFoundJson("Object missing", "object_missing");
   }
 
   const filename = `captureflow-${id}.png`;
   const headers = new Headers();
-  headers.set('content-type', 'image/png');
+  headers.set("content-type", "image/png");
   headers.set(
-    'content-disposition',
+    "content-disposition",
     `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(
-      filename
-    )}`
+      filename,
+    )}`,
   );
-  if (typeof obj.size === 'number') {
-    headers.set('content-length', String(obj.size));
+  if (typeof obj.size === "number") {
+    headers.set("content-length", String(obj.size));
   }
-  headers.set('cache-control', 'no-store');
+  headers.set("cache-control", "no-store");
 
   return new Response(obj.body, { status: 200, headers });
 }

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Check,
   Link2,
@@ -9,7 +9,7 @@ import {
   Pencil,
   Trash2,
   Users,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   ReadonlyVisibilityRow,
   SmoothButton,
@@ -21,9 +21,9 @@ import {
   SmoothDropdownMenuItem,
   SmoothDropdownMenuTrigger,
   VisibilityPicker,
-} from '@captureflow/ui';
+} from "@captureflow/ui";
 
-type SnapVisibility = 'public' | 'workspace' | 'private';
+type SnapVisibility = "public" | "workspace" | "private";
 
 type Props = {
   snapId: string;
@@ -62,7 +62,7 @@ export function SnapActions({
   }, [copied]);
 
   const copyLink = () => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     void navigator.clipboard
       .writeText(snapUrl)
       .then(() => setCopied(true))
@@ -79,16 +79,16 @@ export function SnapActions({
         const res = await fetch(
           `/api/s/snaps/${encodeURIComponent(snapId)}/visibility`,
           {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
+            method: "POST",
+            headers: { "content-type": "application/json" },
             body: JSON.stringify({ value: next }),
-          }
+          },
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
       } catch (err) {
         setVisibility(previous);
         setError(
-          err instanceof Error ? err.message : 'Could not update visibility'
+          err instanceof Error ? err.message : "Could not update visibility",
         );
       }
     });
@@ -97,27 +97,27 @@ export function SnapActions({
   const onDelete = () => {
     if (!isOwner) return;
     const ok = confirm(
-      'Delete this snap permanently? The image and link will stop working immediately.'
+      "Delete this snap permanently? The image and link will stop working immediately.",
     );
     if (!ok) return;
     setError(null);
     startDelete(async () => {
       try {
         const res = await fetch(`/api/s/snaps/${encodeURIComponent(snapId)}`, {
-          method: 'DELETE',
+          method: "DELETE",
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        router.replace('/');
+        router.replace("/");
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : 'Could not delete the snap'
+          err instanceof Error ? err.message : "Could not delete the snap",
         );
       }
     });
   };
 
   const showWorkspace = !!workspaceName;
-  const showPublic = allowPublicLinks || visibility === 'public';
+  const showPublic = allowPublicLinks || visibility === "public";
 
   return (
     <>
@@ -145,8 +145,8 @@ export function SnapActions({
             <button
               type="button"
               onClick={copyLink}
-              aria-label={copied ? 'Link copied' : 'Copy link'}
-              title={copied ? 'Link copied' : 'Copy link'}
+              aria-label={copied ? "Link copied" : "Copy link"}
+              title={copied ? "Link copied" : "Copy link"}
               className="flex items-center justify-center px-3 text-white transition-colors hover:bg-blue-500"
             >
               {copied ? (
@@ -160,8 +160,8 @@ export function SnapActions({
           <button
             type="button"
             onClick={copyLink}
-            aria-label={copied ? 'Link copied' : 'Copy link'}
-            title={copied ? 'Link copied' : 'Copy link'}
+            aria-label={copied ? "Link copied" : "Copy link"}
+            title={copied ? "Link copied" : "Copy link"}
             className="flex h-9 items-center gap-1.5 rounded-lg bg-overlay px-3 text-sm font-medium text-fg transition-colors hover:bg-overlay-strong hover:text-fg-strong"
           >
             {copied ? (
@@ -170,7 +170,7 @@ export function SnapActions({
               <Link2 className="size-[16px]" />
             )}
             <span className="hidden sm:inline">
-              {copied ? 'Copied' : 'Copy link'}
+              {copied ? "Copied" : "Copy link"}
             </span>
           </button>
         )}
@@ -198,7 +198,7 @@ export function SnapActions({
                 className="text-red-600 focus:bg-red-500/10 focus:text-red-700 dark:text-red-300 dark:focus:text-red-200"
               >
                 <Trash2 className="h-4 w-4" />
-                {deleting ? 'Deleting…' : 'Delete snap'}
+                {deleting ? "Deleting…" : "Delete snap"}
               </SmoothDropdownMenuItem>
             </SmoothDropdownMenuContent>
           </SmoothDropdownMenu>

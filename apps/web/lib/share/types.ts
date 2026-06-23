@@ -1,10 +1,10 @@
-import type { ShareSource, SharePreset, ShareState } from './limits';
+import type { ShareSource, SharePreset, ShareState } from "./limits";
 
-export type ShareVisibility = 'public' | 'workspace' | 'private';
+export type ShareVisibility = "public" | "workspace" | "private";
 
 // Companion webcam stream state. Mirrors the screen file's `state`
 // machine, plus a `'none'` sentinel for recordings without a camera.
-export type WebcamState = 'none' | 'pending' | 'ready' | 'failed';
+export type WebcamState = "none" | "pending" | "ready" | "failed";
 
 export type ShareRow = {
   slug: string;

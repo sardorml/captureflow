@@ -1,5 +1,5 @@
-import type { ReactElement } from 'react';
-import { avatarInitial, displayName } from './display-name';
+import type { ReactElement } from "react";
+import { avatarInitial, displayName } from "./display-name";
 
 export type PostedByProps = {
   name: string | null;
@@ -10,7 +10,7 @@ export type PostedByProps = {
 export function PostedBy({
   name,
   email,
-  className = '',
+  className = "",
 }: PostedByProps): ReactElement {
   const owner = displayName(name, email);
   return (

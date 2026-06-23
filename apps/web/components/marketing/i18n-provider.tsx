@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
-import { MESSAGES, type Messages } from '@/lib/marketing/messages';
+import type { ReactNode } from "react";
+import { MESSAGES, type Messages } from "@/lib/marketing/messages";
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   return <>{children}</>;
@@ -16,5 +16,5 @@ export function useLocalizedHref(): (href: string) => string {
 }
 
 export function useLocale(): string {
-  return 'en';
+  return "en";
 }

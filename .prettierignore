@@ -1,0 +1,17 @@
+# Dependencies & lockfiles
+node_modules
+pnpm-lock.yaml
+
+# Build / generated output
+**/dist
+**/build
+**/out
+**/.next
+**/.open-next
+**/.turbo
+**/.vitepress/cache
+**/.vitepress/dist
+**/.wrangler
+**/coverage
+cloudflare-env.d.ts
+**/*.min.*

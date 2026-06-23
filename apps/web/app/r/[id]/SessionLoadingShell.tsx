@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { GridLoader } from '@captureflow/ui';
+import { useEffect } from "react";
+import { GridLoader } from "@captureflow/ui";
 
 type Props = {
   appWebUrl: string;
@@ -19,9 +19,9 @@ export function SessionLoadingShell({ appWebUrl }: Props) {
         if (delay > 0) await sleep(delay);
         try {
           const res = await fetch(`${appWebUrl}/api/verify-session`, {
-            method: 'GET',
-            credentials: 'include',
-            cache: 'no-store',
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
           });
           if (cancelled) return;
           if (res.status === 200 || res.status === 401) {

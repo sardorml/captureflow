@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import Link from 'next/link';
-import { Icon } from '@/components/ui/icon';
-import { ROADMAP_GROUPS } from '@/lib/marketing/constants';
-import { useLocalizedHref, useMessages } from './i18n-provider';
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import Link from "next/link";
+import { Icon } from "@/components/ui/icon";
+import { ROADMAP_GROUPS } from "@/lib/marketing/constants";
+import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 const CATEGORY_META: Record<
   string,
   { label: string; icon: string; dotClass: string }
 > = {
-  Core: { label: 'Core', icon: 'auto_awesome', dotClass: 'bg-blue-500' },
-  Record: { label: 'Record', icon: 'videocam', dotClass: 'bg-amber-500' },
-  Share: { label: 'Share', icon: 'link', dotClass: 'bg-rose-500' },
+  Core: { label: "Core", icon: "auto_awesome", dotClass: "bg-blue-500" },
+  Record: { label: "Record", icon: "videocam", dotClass: "bg-amber-500" },
+  Share: { label: "Share", icon: "link", dotClass: "bg-rose-500" },
 };
 
 type SelectedTicket = {
@@ -26,10 +26,10 @@ type SelectedTicket = {
   markerClass: string;
 };
 
-const CATEGORY_KEY: Record<string, 'ai' | 'studio' | 'share'> = {
-  Core: 'ai',
-  Record: 'studio',
-  Share: 'share',
+const CATEGORY_KEY: Record<string, "ai" | "studio" | "share"> = {
+  Core: "ai",
+  Record: "studio",
+  Share: "share",
 };
 
 export function RoadmapSection() {
@@ -39,15 +39,15 @@ export function RoadmapSection() {
   const reduceMotion = useReducedMotion();
   const layoutTransition = reduceMotion
     ? { duration: 0 }
-    : { type: 'spring' as const, stiffness: 320, damping: 32 };
+    : { type: "spring" as const, stiffness: 320, damping: 32 };
 
   useEffect(() => {
     if (!selected) return;
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') setSelected(null);
+      if (e.key === "Escape") setSelected(null);
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [selected]);
 
   return (
@@ -63,7 +63,7 @@ export function RoadmapSection() {
             </p>
           </div>
           <Link
-            href={lh('/suggest-feature')}
+            href={lh("/suggest-feature")}
             className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-black/10 bg-black/[0.02] px-5 py-2.5 text-base text-neutral-600 transition-colors hover:border-black/10 hover:text-foreground"
           >
             <Icon name="add_comment" size={16} />
@@ -73,14 +73,14 @@ export function RoadmapSection() {
 
         <div className="mt-16 grid gap-4 lg:grid-cols-3">
           {ROADMAP_GROUPS.map((group, groupIndex) => {
-            const inProgress = group.badgeLabel === 'In progress';
+            const inProgress = group.badgeLabel === "In progress";
             const groupTitle = m.roadmap.groups[groupIndex].title;
             return (
               <div
                 key={group.title}
-                id={`roadmap-${group.title.toLowerCase().replace(/\s+/g, '-')}`}
+                id={`roadmap-${group.title.toLowerCase().replace(/\s+/g, "-")}`}
                 className={`scroll-mt-24 rounded-sm p-3 ${
-                  inProgress ? 'bg-neutral-200/60' : 'bg-neutral-100/70'
+                  inProgress ? "bg-neutral-200/60" : "bg-neutral-100/70"
                 }`}
               >
                 <div className="flex items-center gap-2 px-1.5 pb-3 pt-1">
@@ -189,7 +189,7 @@ export function RoadmapSection() {
                     {selected.label}
                   </motion.h3>
                   <p className="mt-0.5 text-sm text-neutral-500">
-                    {selected.status} ·{' '}
+                    {selected.status} ·{" "}
                     {m.roadmap.categories[CATEGORY_KEY[selected.category]]}
                   </p>
                 </div>

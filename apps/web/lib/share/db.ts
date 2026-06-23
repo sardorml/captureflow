@@ -1,10 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import type { ShareComment, ShareReaction, ShareRow } from './types';
-import type { ShareDb } from './db-types';
-import { memoryDb } from './db-memory';
-import { createD1Db } from './db-d1';
-import { getCloudflareEnv } from './cf-env';
+import type { ShareComment, ShareReaction, ShareRow } from "./types";
+import type { ShareDb } from "./db-types";
+import { memoryDb } from "./db-memory";
+import { createD1Db } from "./db-d1";
+import { getCloudflareEnv } from "./cf-env";
 
 // Resolve per call: the D1 binding is request-scoped, so a cached reference
 // would leak data between requests.
@@ -23,7 +23,7 @@ export async function getShare(slug: string): Promise<ShareRow | null> {
 
 export async function updateShare(
   slug: string,
-  patch: Partial<ShareRow>
+  patch: Partial<ShareRow>,
 ): Promise<ShareRow | null> {
   return (await resolveDb()).updateShare(slug, patch);
 }
@@ -33,7 +33,7 @@ export async function deleteShare(slug: string): Promise<boolean> {
 }
 
 export async function listSharesForDevice(
-  deviceId: string
+  deviceId: string,
 ): Promise<ShareRow[]> {
   return (await resolveDb()).listSharesForDevice(deviceId);
 }
@@ -56,7 +56,7 @@ export async function totalStorageForDevice(deviceId: string): Promise<number> {
 }
 
 export async function activeShareCountForDevice(
-  deviceId: string
+  deviceId: string,
 ): Promise<number> {
   return (await resolveDb()).activeShareCountForDevice(deviceId);
 }

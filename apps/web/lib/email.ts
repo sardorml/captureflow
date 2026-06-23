@@ -1,11 +1,11 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { getAppWebEnv } from './cf-env';
+import { getAppWebEnv } from "./cf-env";
 
 // All sends are best-effort: failures log and return false so the caller can
 // still report a recoverable error.
 
-const RESEND_ENDPOINT = 'https://api.resend.com/emails';
+const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
 type SendArgs = {
   to: string;
@@ -17,9 +17,10 @@ type SendArgs = {
 async function sendEmail(args: SendArgs): Promise<boolean> {
   const env = await getAppWebEnv();
   const apiKey = env?.RESEND_API_KEY;
-  const from = env?.RESEND_FROM_ADDRESS ?? 'CaptureFlow <hello@captureflow.xyz>';
+  const from =
+    env?.RESEND_FROM_ADDRESS ?? "CaptureFlow <hello@captureflow.xyz>";
   if (!apiKey) {
-    console.warn('email: RESEND_API_KEY not configured; skipping send', {
+    console.warn("email: RESEND_API_KEY not configured; skipping send", {
       to: args.to,
       subject: args.subject,
     });
@@ -27,10 +28,10 @@ async function sendEmail(args: SendArgs): Promise<boolean> {
   }
   try {
     const res = await fetch(RESEND_ENDPOINT, {
-      method: 'POST',
+      method: "POST",
       headers: {
         authorization: `Bearer ${apiKey}`,
-        'content-type': 'application/json',
+        "content-type": "application/json",
       },
       body: JSON.stringify({
         from,
@@ -41,24 +42,24 @@ async function sendEmail(args: SendArgs): Promise<boolean> {
       }),
     });
     if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      console.error('email: resend send failed', res.status, body);
+      const body = await res.text().catch(() => "");
+      console.error("email: resend send failed", res.status, body);
       return false;
     }
     return true;
   } catch (err) {
-    console.error('email: resend send threw', err);
+    console.error("email: resend send threw", err);
     return false;
   }
 }
 
 function escapeHtml(s: string): string {
   return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 export async function sendWorkspaceInviteEmail(args: {
@@ -75,14 +76,14 @@ export async function sendWorkspaceInviteEmail(args: {
 
   const text = [
     `${inviter} (${args.inviterEmail}) invited you to join the "${args.workspaceName}" workspace on CaptureFlow.`,
-    '',
+    "",
     `Accept the invitation:`,
     args.acceptUrl,
-    '',
+    "",
     `Workspaces let teammates share screen recordings and screenshots privately. The link expires in 7 days.`,
-    '',
+    "",
     `If you weren't expecting this invite, you can ignore this email.`,
-  ].join('\n');
+  ].join("\n");
 
   const inviterSafe = escapeHtml(inviter);
   const inviterEmailSafe = escapeHtml(args.inviterEmail);
@@ -121,7 +122,7 @@ export async function sendAccessRequestEmail(args: {
   ownerName: string | null;
   requesterEmail: string;
   requesterName: string | null;
-  artifactKind: 'share' | 'snap';
+  artifactKind: "share" | "snap";
   artifactTitle: string;
   artifactUrl: string;
   message: string | null;
@@ -130,25 +131,25 @@ export async function sendAccessRequestEmail(args: {
   const requester = args.requesterName?.trim()
     ? args.requesterName.trim()
     : args.requesterEmail;
-  const noun = args.artifactKind === 'share' ? 'recording' : 'snap';
+  const noun = args.artifactKind === "share" ? "recording" : "snap";
   const subject = `${requester} requested access to your ${noun}`;
 
   const textLines = [
     `${requester} (${args.requesterEmail}) requested access to your ${noun} "${args.artifactTitle}" on CaptureFlow.`,
-    '',
+    "",
     `View it: ${args.artifactUrl}`,
   ];
   if (args.message?.trim()) {
-    textLines.push('', `Message:`, args.message.trim());
+    textLines.push("", `Message:`, args.message.trim());
   }
   textLines.push(
-    '',
+    "",
     `Grant access by inviting them to your workspace:`,
     args.manageUrl,
-    '',
-    `If you don't recognise this person, you can ignore this email.`
+    "",
+    `If you don't recognise this person, you can ignore this email.`,
   );
-  const text = textLines.join('\n');
+  const text = textLines.join("\n");
 
   const requesterSafe = escapeHtml(requester);
   const requesterEmailSafe = escapeHtml(args.requesterEmail);
@@ -157,9 +158,9 @@ export async function sendAccessRequestEmail(args: {
   const manageSafe = escapeHtml(args.manageUrl);
   const messageBlock = args.message?.trim()
     ? `<p style="margin:0 0 20px 0; padding:12px 14px; background:#0a0a0a; border-left:2px solid #2563eb; color:#d4d4d4; line-height:1.55; font-style:italic;">${escapeHtml(
-        args.message.trim()
+        args.message.trim(),
       )}</p>`
-    : '';
+    : "";
 
   const html = `<!doctype html>
 <html>

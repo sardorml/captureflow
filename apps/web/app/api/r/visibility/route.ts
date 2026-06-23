@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-import { getShare, updateShare } from '@/lib/share/db';
-import { isValidSlug } from '@/lib/share/slug';
-import { verifySessionOrNull } from '@/lib/share/verify-session';
-import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
-import type { ShareVisibility } from '@/lib/share/types';
+import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { getShare, updateShare } from "@/lib/share/db";
+import { isValidSlug } from "@/lib/share/slug";
+import { verifySessionOrNull } from "@/lib/share/verify-session";
+import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
+import type { ShareVisibility } from "@/lib/share/types";
 
-const DEVICE_HEADER = 'x-captureflow-device';
+const DEVICE_HEADER = "x-captureflow-device";
 const ALLOWED: ReadonlySet<ShareVisibility> = new Set([
-  'public',
-  'workspace',
-  'private',
+  "public",
+  "workspace",
+  "private",
 ]);
 
 export function OPTIONS() {
@@ -18,37 +18,36 @@ export function OPTIONS() {
 }
 
 export async function POST(req: NextRequest) {
-  const slug = req.nextUrl.searchParams.get('slug');
+  const slug = req.nextUrl.searchParams.get("slug");
   if (!isValidSlug(slug)) {
-    return jsonError('Invalid slug', 400, 'invalid_slug');
+    return jsonError("Invalid slug", 400, "invalid_slug");
   }
 
   let body: { value?: unknown };
   try {
     body = (await req.json()) as { value?: unknown };
   } catch {
-    return jsonError('Invalid JSON', 400, 'invalid_json');
+    return jsonError("Invalid JSON", 400, "invalid_json");
   }
   const value = body.value;
-  if (typeof value !== 'string' || !ALLOWED.has(value as ShareVisibility)) {
-    return jsonError('Invalid visibility', 400, 'invalid_visibility');
+  if (typeof value !== "string" || !ALLOWED.has(value as ShareVisibility)) {
+    return jsonError("Invalid visibility", 400, "invalid_visibility");
   }
 
   const row = await getShare(slug);
-  if (!row) return jsonError('Share not found', 404, 'not_found');
+  if (!row) return jsonError("Share not found", 404, "not_found");
 
   const deviceId = req.headers.get(DEVICE_HEADER);
   let authorized = false;
   if (deviceId) {
     authorized = row.deviceId === deviceId;
   } else {
-    const cookieHeader = (await headers()).get('cookie');
+    const cookieHeader = (await headers()).get("cookie");
     const session = await verifySessionOrNull(cookieHeader);
     authorized = !!session && session.userId === row.userId;
   }
-  if (!authorized) return jsonError('Forbidden', 403, 'forbidden');
+  if (!authorized) return jsonError("Forbidden", 403, "forbidden");
 
   await updateShare(slug, { visibility: value as ShareVisibility });
   return withCors(NextResponse.json({ visibility: value }));
 }
-

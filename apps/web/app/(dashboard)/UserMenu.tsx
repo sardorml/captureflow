@@ -1,27 +1,27 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Link from "next/link";
 import {
   HardDrive,
   LogOut,
   Settings,
   Sparkles,
   UserCircle,
-} from 'lucide-react';
-import { signOut } from '@/lib/auth-client';
-import { Avatar, AvatarFallback, AvatarImage } from '@captureflow/ui';
+} from "lucide-react";
+import { signOut } from "@/lib/auth-client";
+import { Avatar, AvatarFallback, AvatarImage } from "@captureflow/ui";
 import {
   SmoothDropdownMenu,
   SmoothDropdownMenuContent,
   SmoothDropdownMenuItem,
   SmoothDropdownMenuSeparator,
   SmoothDropdownMenuTrigger,
-} from '@captureflow/ui';
+} from "@captureflow/ui";
 
 type ProInfo = {
-  cycle: 'monthly' | 'annual';
+  cycle: "monthly" | "annual";
   status: string;
 };
 
@@ -34,13 +34,13 @@ type Props = {
 };
 
 function initials(name: string | null, email: string): string {
-  const source = (name ?? '').trim() || email;
+  const source = (name ?? "").trim() || email;
   return source
     .split(/\s+/)
     .map((w) => w[0])
     .filter(Boolean)
     .slice(0, 2)
-    .join('')
+    .join("")
     .toUpperCase();
 }
 
@@ -53,7 +53,7 @@ export function UserMenu({ userId, name, email, imageUrl, pro }: Props) {
     if (pending) return;
     setPending(true);
     await signOut();
-    router.replace('/login');
+    router.replace("/login");
   };
 
   return (
@@ -89,7 +89,7 @@ export function UserMenu({ userId, name, email, imageUrl, pro }: Props) {
                 <span
                   className="inline-flex items-center gap-0.5 rounded-full bg-overlay px-1.5 text-[10px] font-semibold text-neutral-200 ring-1 ring-line-strong"
                   title={`Pro · ${
-                    pro.cycle === 'annual' ? 'Annual' : 'Monthly'
+                    pro.cycle === "annual" ? "Annual" : "Monthly"
                   }`}
                 >
                   <Sparkles className="h-2.5 w-2.5" />
@@ -128,7 +128,7 @@ export function UserMenu({ userId, name, email, imageUrl, pro }: Props) {
           disabled={pending}
         >
           <LogOut className="h-4 w-4 text-neutral-500" />
-          {pending ? 'Signing out…' : 'Sign out'}
+          {pending ? "Signing out…" : "Sign out"}
         </SmoothDropdownMenuItem>
       </SmoothDropdownMenuContent>
     </SmoothDropdownMenu>

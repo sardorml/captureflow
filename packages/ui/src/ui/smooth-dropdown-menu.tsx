@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
-import { motion } from 'motion/react';
-import { cn } from '../lib/cn';
+import * as React from "react";
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import { motion } from "motion/react";
+import { cn } from "../lib/cn";
 
 // Avoid the AnimatePresence + asChild + Portal combo: Content never opens because Radix loses its anchor when Portal renders conditionally.
 const SmoothDropdownMenu = DropdownMenuPrimitive.Root;
@@ -12,7 +12,7 @@ const SmoothDropdownMenuGroup = DropdownMenuPrimitive.Group;
 const SmoothDropdownMenuPortal = DropdownMenuPrimitive.Portal;
 
 const CONTENT_SPRING = {
-  type: 'spring' as const,
+  type: "spring" as const,
   stiffness: 480,
   damping: 28,
   mass: 0.7,
@@ -23,7 +23,7 @@ const SmoothDropdownMenuContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
 >(function SmoothDropdownMenuContent(
   { className, sideOffset = 6, side, align, children, ...props },
-  ref
+  ref,
 ) {
   const origin = originForSide(side);
   return (
@@ -34,8 +34,8 @@ const SmoothDropdownMenuContent = React.forwardRef<
         side={side}
         align={align}
         className={cn(
-          'z-50 min-w-[12rem] overflow-hidden rounded-lg border border-line-strong bg-neutral-900 p-1 text-sm text-neutral-200 shadow-xl shadow-black/50',
-          className
+          "z-50 min-w-[12rem] overflow-hidden rounded-lg border border-line-strong bg-neutral-900 p-1 text-sm text-neutral-200 shadow-xl shadow-black/50",
+          className,
         )}
         {...props}
       >
@@ -53,18 +53,18 @@ const SmoothDropdownMenuContent = React.forwardRef<
 });
 
 function originForSide(
-  side: 'top' | 'right' | 'bottom' | 'left' | undefined
+  side: "top" | "right" | "bottom" | "left" | undefined,
 ): string {
   switch (side) {
-    case 'top':
-      return 'bottom center';
-    case 'left':
-      return 'right center';
-    case 'right':
-      return 'left center';
-    case 'bottom':
+    case "top":
+      return "bottom center";
+    case "left":
+      return "right center";
+    case "right":
+      return "left center";
+    case "bottom":
     default:
-      return 'top center';
+      return "top center";
   }
 }
 
@@ -78,9 +78,9 @@ const SmoothDropdownMenuItem = React.forwardRef<
     <DropdownMenuPrimitive.Item
       ref={ref}
       className={cn(
-        'relative flex cursor-pointer select-none items-center gap-2 rounded-md px-2.5 py-2 text-sm text-neutral-300 outline-none transition-colors focus:bg-overlay focus:text-neutral-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-        inset && 'pl-8',
-        className
+        "relative flex cursor-pointer select-none items-center gap-2 rounded-md px-2.5 py-2 text-sm text-neutral-300 outline-none transition-colors focus:bg-overlay focus:text-neutral-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        inset && "pl-8",
+        className,
       )}
       {...props}
     />
@@ -95,8 +95,8 @@ const SmoothDropdownMenuLabel = React.forwardRef<
     <DropdownMenuPrimitive.Label
       ref={ref}
       className={cn(
-        'px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-500',
-        className
+        "px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-500",
+        className,
       )}
       {...props}
     />
@@ -110,7 +110,7 @@ const SmoothDropdownMenuSeparator = React.forwardRef<
   return (
     <DropdownMenuPrimitive.Separator
       ref={ref}
-      className={cn('-mx-1 my-1 h-px bg-overlay-strong', className)}
+      className={cn("-mx-1 my-1 h-px bg-overlay-strong", className)}
       {...props}
     />
   );

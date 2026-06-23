@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties } from "react";
 
 // Font loaded via the subset stylesheet `app/material-symbols-subset.css` —
 // regenerate with scripts/subset-material-symbols.py after adding icon names.
@@ -10,7 +10,7 @@ type IconProps = {
   weight?: 100 | 200 | 300 | 400 | 500 | 600 | 700;
   className?: string;
   style?: CSSProperties;
-  'aria-hidden'?: boolean;
+  "aria-hidden"?: boolean;
   title?: string;
 };
 
@@ -19,7 +19,7 @@ export function Icon({
   size = 20,
   fill = false,
   weight = 400,
-  className = '',
+  className = "",
   style,
   title,
 }: IconProps) {

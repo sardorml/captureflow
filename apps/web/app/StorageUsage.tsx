@@ -1,15 +1,15 @@
-import { Sparkles } from 'lucide-react';
-import { formatBytes } from '@/lib/format';
-import { UpgradeModal } from './(dashboard)/UpgradeModal';
+import { Sparkles } from "lucide-react";
+import { formatBytes } from "@/lib/format";
+import { UpgradeModal } from "./(dashboard)/UpgradeModal";
 
 const UPGRADE_BASE_URL =
   process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ||
-  'https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916';
+  "https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916";
 
 function upgradeUrlFor(email: string): string {
   const u = new URL(UPGRADE_BASE_URL);
-  u.searchParams.set('billing', 'monthly');
-  if (email) u.searchParams.set('checkout[email]', email);
+  u.searchParams.set("billing", "monthly");
+  if (email) u.searchParams.set("checkout[email]", email);
   return u.toString();
 }
 
@@ -54,15 +54,15 @@ export function StorageUsage({
   const over = usedBytes >= limit;
   const near = !over && ratio >= 0.8;
   const barColor = over
-    ? 'bg-red-500'
+    ? "bg-red-500"
     : near
-      ? 'bg-amber-400'
-      : 'bg-neutral-300';
+      ? "bg-amber-400"
+      : "bg-neutral-300";
   return (
     <div>
       <div className="flex items-center justify-between text-xs font-medium text-fg-muted">
         <span>Storage</span>
-        <span className={over ? 'text-red-300' : near ? 'text-amber-300' : ''}>
+        <span className={over ? "text-red-300" : near ? "text-amber-300" : ""}>
           {pct}%
         </span>
       </div>
@@ -89,4 +89,3 @@ export function StorageUsage({
     </div>
   );
 }
-

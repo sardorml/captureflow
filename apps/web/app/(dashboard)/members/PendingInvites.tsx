@@ -1,11 +1,11 @@
-import type { WorkspaceInviteRow } from '@captureflow/quota';
-import { Clock } from 'lucide-react';
-import { revokeInviteAction } from './actions';
+import type { WorkspaceInviteRow } from "@captureflow/quota";
+import { Clock } from "lucide-react";
+import { revokeInviteAction } from "./actions";
 
 function formatRelative(ms: number): string {
   const diff = Date.now() - ms;
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return 'just now';
+  if (minutes < 1) return "just now";
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;

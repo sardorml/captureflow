@@ -1,29 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Icon } from '@/components/ui/icon';
-import { NAV_LINKS } from '@/lib/marketing/constants';
-import { DOCS_URL } from '@/lib/site';
-import { useLocalizedHref, useMessages } from './i18n-provider';
+import { useState, useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Icon } from "@/components/ui/icon";
+import { NAV_LINKS } from "@/lib/marketing/constants";
+import { DOCS_URL } from "@/lib/site";
+import { useLocalizedHref, useMessages } from "./i18n-provider";
 
-const GITHUB_URL = 'https://github.com/sardorml/captureflow';
+const GITHUB_URL = "https://github.com/sardorml/captureflow";
 
 export function Nav({ stars = null }: { stars?: string | null }) {
   const m = useMessages();
   const lh = useLocalizedHref();
   const navLabel = (link: { href: string; label: string }): string => {
     switch (link.href) {
-      case '#modes':
+      case "#modes":
         return m.nav.features;
-      case '#pricing':
+      case "#pricing":
         return m.nav.pricing;
-      case '#faq':
+      case "#faq":
         return m.nav.faq;
-      case '#roadmap':
+      case "#roadmap":
         return m.nav.roadmap;
-      case '/changelog':
+      case "/changelog":
         return m.nav.changelog;
       default:
         return link.label;
@@ -39,7 +39,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
   const updateScrollPadding = useCallback(() => {
     if (headerRef.current) {
       document.documentElement.style.setProperty(
-        '--header-height',
+        "--header-height",
         `${headerRef.current.offsetHeight}px`,
       );
     }
@@ -47,15 +47,15 @@ export function Nav({ stars = null }: { stars?: string | null }) {
 
   useEffect(() => {
     updateScrollPadding();
-    window.addEventListener('resize', updateScrollPadding);
-    return () => window.removeEventListener('resize', updateScrollPadding);
+    window.addEventListener("resize", updateScrollPadding);
+    return () => window.removeEventListener("resize", updateScrollPadding);
   }, [updateScrollPadding]);
 
   useEffect(() => {
     const onScroll = (): void => setScrolled(window.scrollY > 8);
     onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
@@ -67,12 +67,12 @@ export function Nav({ stars = null }: { stars?: string | null }) {
     >
       <div
         className={`pointer-events-none absolute inset-0 bg-white transition-opacity duration-300 ${
-          scrolled || menuOpen ? 'opacity-100' : 'opacity-0'
+          scrolled || menuOpen ? "opacity-100" : "opacity-0"
         }`}
       />
       <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-10">
         <div className="flex items-center gap-8">
-          <Link href={lh('/')} className="flex items-center gap-2">
+          <Link href={lh("/")} className="flex items-center gap-2">
             <Image
               src="/logo-round.png"
               alt="CaptureFlow"
@@ -120,13 +120,13 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             {stars && <span>({stars})</span>}
           </a>
           <Link
-            href={lh('/login')}
+            href={lh("/login")}
             className="ms-1 inline-flex h-10 items-center rounded-lg bg-neutral-200 px-5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-300"
           >
             Sign in
           </Link>
           <a
-            href={lh('/download')}
+            href={lh("/download")}
             className="ms-1 inline-flex h-10 items-center rounded-lg bg-neutral-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
           >
             {m.nav.download}
@@ -181,14 +181,14 @@ export function Nav({ stars = null }: { stars?: string | null }) {
               {stars && <span>({stars})</span>}
             </a>
             <Link
-              href={lh('/login')}
+              href={lh("/login")}
               onClick={() => setMenuOpen(false)}
               className="mt-1 inline-flex items-center justify-center rounded-xl bg-neutral-200 px-4 py-3 text-base font-semibold text-neutral-900 transition-colors hover:bg-neutral-300"
             >
               Sign in
             </Link>
             <a
-              href={lh('/download')}
+              href={lh("/download")}
               onClick={() => setMenuOpen(false)}
               className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-neutral-800"
             >

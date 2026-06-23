@@ -1,53 +1,53 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Slot } from '@radix-ui/react-slot';
-import { motion } from 'motion/react';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '../lib/cn';
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { motion } from "motion/react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "../lib/cn";
 
 const smoothButtonVariants = cva(
-  'relative inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',
+  "relative inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          'bg-blue-600 text-white shadow-sm shadow-blue-900/30 hover:bg-blue-500',
+          "bg-blue-600 text-white shadow-sm shadow-blue-900/30 hover:bg-blue-500",
         candy:
-          'bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 text-white hover:from-sky-300 hover:via-blue-400 hover:to-indigo-500',
+          "bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 text-white hover:from-sky-300 hover:via-blue-400 hover:to-indigo-500",
         destructive:
-          'bg-red-600/90 text-white shadow-sm shadow-red-900/30 hover:bg-red-500',
+          "bg-red-600/90 text-white shadow-sm shadow-red-900/30 hover:bg-red-500",
         outline:
-          'border border-line-strong bg-transparent text-fg hover:border-line-strong hover:bg-overlay hover:text-fg-strong',
+          "border border-line-strong bg-transparent text-fg hover:border-line-strong hover:bg-overlay hover:text-fg-strong",
         secondary:
-          'border border-line-strong bg-neutral-900 text-fg hover:border-line-strong hover:bg-overlay hover:text-fg-strong',
-        ghost: 'text-fg-muted hover:bg-overlay hover:text-fg',
-        link: 'text-fg-muted underline-offset-4 hover:text-fg hover:underline',
+          "border border-line-strong bg-neutral-900 text-fg hover:border-line-strong hover:bg-overlay hover:text-fg-strong",
+        ghost: "text-fg-muted hover:bg-overlay hover:text-fg",
+        link: "text-fg-muted underline-offset-4 hover:text-fg hover:underline",
       },
       size: {
-        default: 'h-9 px-3.5 py-2',
-        sm: 'h-8 px-3 text-xs',
-        lg: 'h-11 px-6 text-base',
-        icon: 'h-9 w-9',
+        default: "h-9 px-3.5 py-2",
+        sm: "h-8 px-3 text-xs",
+        lg: "h-11 px-6 text-base",
+        icon: "h-9 w-9",
       },
     },
     defaultVariants: {
-      variant: 'default',
-      size: 'default',
+      variant: "default",
+      size: "default",
     },
-  }
+  },
 );
 
-const TAP_SPRING = { type: 'spring' as const, stiffness: 520, damping: 32 };
+const TAP_SPRING = { type: "spring" as const, stiffness: 520, damping: 32 };
 
 type SmoothButtonProps = Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
-  | 'onAnimationStart'
-  | 'onAnimationEnd'
-  | 'onAnimationIteration'
-  | 'onDragStart'
-  | 'onDragEnd'
-  | 'onDrag'
+  | "onAnimationStart"
+  | "onAnimationEnd"
+  | "onAnimationIteration"
+  | "onDragStart"
+  | "onDragEnd"
+  | "onDrag"
 > &
   VariantProps<typeof smoothButtonVariants> & {
     asChild?: boolean;
@@ -56,7 +56,7 @@ type SmoothButtonProps = Omit<
 const SmoothButton = React.forwardRef<HTMLButtonElement, SmoothButtonProps>(
   function SmoothButton(
     { className, variant, size, asChild = false, ...props },
-    ref
+    ref,
   ) {
     if (asChild) {
       return (
@@ -77,7 +77,7 @@ const SmoothButton = React.forwardRef<HTMLButtonElement, SmoothButtonProps>(
         {...props}
       />
     );
-  }
+  },
 );
 
 export { SmoothButton, smoothButtonVariants };

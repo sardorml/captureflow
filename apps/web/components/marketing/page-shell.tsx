@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { Footer } from './footer';
-import { useMessages, useLocalizedHref } from './i18n-provider';
+import Image from "next/image";
+import Link from "next/link";
+import { Footer } from "./footer";
+import { useMessages, useLocalizedHref } from "./i18n-provider";
 
 type PageShellProps = {
   children: React.ReactNode;
@@ -12,13 +12,13 @@ type PageShellProps = {
   subtitle?: string;
 };
 
-const CONTENT_BG = '#ffffff';
+const CONTENT_BG = "#ffffff";
 const SYSTEM_FONT =
   'var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
 export function PageShell({
   children,
-  maxWidth = 'max-w-5xl',
+  maxWidth = "max-w-5xl",
   title,
   subtitle,
 }: PageShellProps) {
@@ -32,7 +32,7 @@ export function PageShell({
           style={{ backgroundColor: CONTENT_BG }}
         />
         <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-10">
-          <Link href={lh('/')} className="flex items-center gap-2">
+          <Link href={lh("/")} className="flex items-center gap-2">
             <Image
               src="/logo-round.png"
               alt={m.pageShell.logoAlt}
@@ -48,7 +48,7 @@ export function PageShell({
             </span>
           </Link>
           <Link
-            href={lh('/')}
+            href={lh("/")}
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             {m.pageShell.backToHome}
@@ -74,7 +74,7 @@ export function PageShell({
 
           <div
             className={`mx-auto ${maxWidth} px-5 sm:px-10 ${
-              title ? 'pt-4' : 'pt-16'
+              title ? "pt-4" : "pt-16"
             } pb-20`}
           >
             {children}

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { formatBytes, formatDuration } from '@/lib/format';
-import { useCallback, useEffect, useState, useTransition } from 'react';
+import { useRouter } from "next/navigation";
+import { formatBytes, formatDuration } from "@/lib/format";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import {
   ArrowLeft,
   Check,
@@ -18,10 +18,10 @@ import {
   Volume2,
   VolumeX,
   X,
-} from 'lucide-react';
-import { forwardRef } from 'react';
-import { SmoothButton, ThemeToggle } from '@captureflow/ui';
-import { VisibilityDialog } from '@/app/VisibilityDialog';
+} from "lucide-react";
+import { forwardRef } from "react";
+import { SmoothButton, ThemeToggle } from "@captureflow/ui";
+import { VisibilityDialog } from "@/app/VisibilityDialog";
 import {
   SHARE_GRADIENT_KEYS,
   SHARE_GRADIENT_PRESETS,
@@ -30,15 +30,15 @@ import {
   type ShareCameraCorner,
   type ShareCameraSize,
   type ShareConfig,
-} from '@/lib/share-config';
-import { SharePlayer } from '../../../_components/share';
-import type { ShareEditorProps } from './ShareEditor';
+} from "@/lib/share-config";
+import { SharePlayer } from "../../../_components/share";
+import type { ShareEditorProps } from "./ShareEditor";
 import {
   deleteShareAction,
   renameShareAction,
   saveShareConfigAction,
   setVisibilityAction,
-} from '../../../actions';
+} from "../../../actions";
 
 /*
  * Share edit page. Renders the preview with SharePlayer (the same
@@ -48,28 +48,28 @@ import {
  */
 
 const SOLID_PALETTE = [
-  '#2563eb',
-  '#0ea5e9',
-  '#65a30d',
-  '#ca8a04',
-  '#db2777',
-  '#dc2626',
-  '#ea580c',
-  '#64748b',
-  '#0f172a',
+  "#2563eb",
+  "#0ea5e9",
+  "#65a30d",
+  "#ca8a04",
+  "#db2777",
+  "#dc2626",
+  "#ea580c",
+  "#64748b",
+  "#0f172a",
 ];
 
 const CAMERA_CORNERS: { value: ShareCameraCorner; label: string }[] = [
-  { value: 'top-left', label: 'Top left' },
-  { value: 'top-right', label: 'Top right' },
-  { value: 'bottom-left', label: 'Bottom left' },
-  { value: 'bottom-right', label: 'Bottom right' },
+  { value: "top-left", label: "Top left" },
+  { value: "top-right", label: "Top right" },
+  { value: "bottom-left", label: "Bottom left" },
+  { value: "bottom-right", label: "Bottom right" },
 ];
 
 const CAMERA_SIZES: { value: ShareCameraSize; label: string }[] = [
-  { value: 'small', label: 'Small' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'large', label: 'Large' },
+  { value: "small", label: "Small" },
+  { value: "medium", label: "Medium" },
+  { value: "large", label: "Large" },
 ];
 
 export function ShareEditorImpl(props: ShareEditorProps) {
@@ -93,8 +93,8 @@ export function ShareEditorImpl(props: ShareEditorProps) {
     initialTheme,
   } = props;
 
-  const [title, setTitle] = useState<string>(initialTitle ?? '');
-  const [titleDraft, setTitleDraft] = useState<string>(initialTitle ?? '');
+  const [title, setTitle] = useState<string>(initialTitle ?? "");
+  const [titleDraft, setTitleDraft] = useState<string>(initialTitle ?? "");
   const [titleEditing, setTitleEditing] = useState(false);
   const [titlePending, startTitleTransition] = useTransition();
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -121,15 +121,15 @@ export function ShareEditorImpl(props: ShareEditorProps) {
 
   const commitTitle = (): void => {
     const next = titleDraft.trim();
-    if (next === (title ?? '').trim()) {
+    if (next === (title ?? "").trim()) {
       setTitleEditing(false);
       return;
     }
     setTitleError(null);
     startTitleTransition(async () => {
       const fd = new FormData();
-      fd.set('slug', slug);
-      fd.set('title', next);
+      fd.set("slug", slug);
+      fd.set("title", next);
       const res = await renameShareAction({ error: null, slug: null }, fd);
       if (res.error) {
         setTitleError(res.error);
@@ -154,7 +154,7 @@ export function ShareEditorImpl(props: ShareEditorProps) {
 
   const onDelete = (): void => {
     const ok = confirm(
-      'Delete this share permanently? The video and link will stop working immediately.'
+      "Delete this share permanently? The video and link will stop working immediately.",
     );
     if (!ok) return;
     setActionError(null);
@@ -164,7 +164,7 @@ export function ShareEditorImpl(props: ShareEditorProps) {
         setActionError(res.error);
         return;
       }
-      router.push('/');
+      router.push("/");
     });
   };
 
@@ -194,7 +194,7 @@ export function ShareEditorImpl(props: ShareEditorProps) {
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <button
             type="button"
-            onClick={() => router.push('/')}
+            onClick={() => router.push("/")}
             aria-label="Back to shares"
             className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-overlay hover:text-fg-strong"
           >
@@ -214,9 +214,9 @@ export function ShareEditorImpl(props: ShareEditorProps) {
                 onChange={(e) => setTitleDraft(e.target.value)}
                 onBlur={commitTitle}
                 onKeyDown={(e) => {
-                  if (e.key === 'Escape') {
+                  if (e.key === "Escape") {
                     e.preventDefault();
-                    setTitleDraft(title ?? '');
+                    setTitleDraft(title ?? "");
                     setTitleEditing(false);
                     setTitleError(null);
                   }
@@ -231,14 +231,14 @@ export function ShareEditorImpl(props: ShareEditorProps) {
             <button
               type="button"
               onClick={() => {
-                setTitleDraft(title ?? '');
+                setTitleDraft(title ?? "");
                 setTitleEditing(true);
               }}
               className="group flex min-w-0 items-center gap-1 rounded-md px-2 py-1 text-left hover:bg-overlay"
               title="Rename"
             >
               <span className="truncate text-sm text-neutral-200">
-                {title?.trim() || 'Untitled share'}
+                {title?.trim() || "Untitled share"}
               </span>
               <Pencil className="h-3.5 w-3.5 shrink-0 text-neutral-600 opacity-0 transition-opacity group-hover:opacity-100" />
             </button>
@@ -309,7 +309,7 @@ export function ShareEditorImpl(props: ShareEditorProps) {
             ) : savedJustNow ? (
               <Check className="h-4 w-4" />
             ) : null}
-            {savedJustNow ? 'Saved' : 'Save'}
+            {savedJustNow ? "Saved" : "Save"}
           </SmoothButton>
         </div>
       </header>
@@ -395,7 +395,7 @@ function ShareStatsRow({
       <span>{formatBytes(sizeBytes)}</span>
       {durationMs != null ? <span>{formatDuration(durationMs)}</span> : null}
       <span>
-        {viewCount} view{viewCount === 1 ? '' : 's'}
+        {viewCount} view{viewCount === 1 ? "" : "s"}
       </span>
       <span>{formatDate(createdAt)}</span>
     </div>
@@ -417,12 +417,12 @@ function BackgroundPanel({
       <div className="grid grid-cols-5 gap-1.5">
         <button
           type="button"
-          onClick={() => onChange('transparent')}
+          onClick={() => onChange("transparent")}
           className={
-            'flex h-7 items-center justify-center rounded bg-neutral-800 text-[10px] font-medium text-neutral-100 ring-1 transition-colors ' +
-            (background === 'transparent'
-              ? 'ring-blue-400'
-              : 'ring-line hover:ring-line-strong')
+            "flex h-7 items-center justify-center rounded bg-neutral-800 text-[10px] font-medium text-neutral-100 ring-1 transition-colors " +
+            (background === "transparent"
+              ? "ring-blue-400"
+              : "ring-line hover:ring-line-strong")
           }
         >
           None
@@ -434,10 +434,10 @@ function BackgroundPanel({
             onClick={() => onChange(k)}
             title={SHARE_GRADIENT_PRESETS[k].label}
             className={
-              'h-7 rounded ring-1 transition-shadow ' +
+              "h-7 rounded ring-1 transition-shadow " +
               (background === k
-                ? 'ring-2 ring-blue-400'
-                : 'ring-line hover:ring-line-strong')
+                ? "ring-2 ring-blue-400"
+                : "ring-line hover:ring-line-strong")
             }
             style={{
               background: shareGradientCss(SHARE_GRADIENT_PRESETS[k].stops),
@@ -453,10 +453,10 @@ function BackgroundPanel({
             onClick={() => onChange(hex)}
             aria-label={`Solid ${hex}`}
             className={
-              'h-5 w-5 rounded-full ring-1 transition-shadow ' +
+              "h-5 w-5 rounded-full ring-1 transition-shadow " +
               (background.toLowerCase() === hex.toLowerCase()
-                ? 'ring-2 ring-blue-400'
-                : 'ring-line-strong hover:ring-line-strong')
+                ? "ring-2 ring-blue-400"
+                : "ring-line-strong hover:ring-line-strong")
             }
             style={{ backgroundColor: hex }}
           />
@@ -465,14 +465,14 @@ function BackgroundPanel({
           className="relative inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-full ring-1 ring-line-strong hover:ring-line-strong"
           style={{
             background:
-              'conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444)',
+              "conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444)",
           }}
           aria-label="Pick a custom color"
         >
           <input
             type="color"
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-            value={isShareHexColor(background) ? background : '#000000'}
+            value={isShareHexColor(background) ? background : "#000000"}
             onChange={(e) => onChange(e.target.value)}
           />
         </label>
@@ -507,10 +507,10 @@ function CameraPanel({
             type="button"
             onClick={() => onCorner(opt.value)}
             className={
-              'rounded-md border px-3 py-2 text-xs ' +
+              "rounded-md border px-3 py-2 text-xs " +
               (corner === opt.value
-                ? 'border-blue-400/60 bg-blue-500/10 text-blue-200'
-                : 'border-neutral-800 bg-neutral-900 text-neutral-300 hover:border-neutral-700')
+                ? "border-blue-400/60 bg-blue-500/10 text-blue-200"
+                : "border-neutral-800 bg-neutral-900 text-neutral-300 hover:border-neutral-700")
             }
           >
             {opt.label}
@@ -527,10 +527,10 @@ function CameraPanel({
             type="button"
             onClick={() => onSize(opt.value)}
             className={
-              'rounded-md border px-3 py-2 text-xs ' +
+              "rounded-md border px-3 py-2 text-xs " +
               (size === opt.value
-                ? 'border-blue-400/60 bg-blue-500/10 text-blue-200'
-                : 'border-neutral-800 bg-neutral-900 text-neutral-300 hover:border-neutral-700')
+                ? "border-blue-400/60 bg-blue-500/10 text-blue-200"
+                : "border-neutral-800 bg-neutral-900 text-neutral-300 hover:border-neutral-700")
             }
           >
             {opt.label}
@@ -607,8 +607,8 @@ function AudioToggle({
       <span>{label}</span>
       <span
         className={
-          'inline-flex items-center gap-1 text-xs ' +
-          (muted ? 'text-neutral-500' : 'text-blue-300')
+          "inline-flex items-center gap-1 text-xs " +
+          (muted ? "text-neutral-500" : "text-blue-300")
         }
       >
         {muted ? (
@@ -616,7 +616,7 @@ function AudioToggle({
         ) : (
           <OnIcon className="h-3.5 w-3.5" />
         )}
-        {muted ? 'Muted' : 'On'}
+        {muted ? "Muted" : "On"}
       </span>
     </button>
   );
@@ -634,9 +634,9 @@ function shallowEqualConfig(a: ShareConfig, b: ShareConfig): boolean {
 
 function formatDate(ts: number): string {
   return new Date(ts).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -644,24 +644,24 @@ function formatDate(ts: number): string {
 const EditorVisibilityChip = forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    visibility: 'public' | 'workspace' | 'private';
+    visibility: "public" | "workspace" | "private";
   }
 >(function EditorVisibilityChip({ visibility, className, ...props }, ref) {
   const Icon =
-    visibility === 'public' ? Globe : visibility === 'workspace' ? Users : Lock;
+    visibility === "public" ? Globe : visibility === "workspace" ? Users : Lock;
   const label =
-    visibility === 'public'
-      ? 'Public'
-      : visibility === 'workspace'
-      ? 'Workspace'
-      : 'Private';
+    visibility === "public"
+      ? "Public"
+      : visibility === "workspace"
+        ? "Workspace"
+        : "Private";
   return (
     <button
       ref={ref}
       type="button"
       className={
-        'inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-fg-muted transition-colors hover:bg-overlay hover:text-fg' +
-        (className ? ` ${className}` : '')
+        "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-fg-muted transition-colors hover:bg-overlay hover:text-fg" +
+        (className ? ` ${className}` : "")
       }
       {...props}
     >

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Lock, Mail, ArrowRight, Check } from 'lucide-react';
-import { GridLoader } from '@captureflow/ui';
+import { useEffect, useState } from "react";
+import { Lock, Mail, ArrowRight, Check } from "lucide-react";
+import { GridLoader } from "@captureflow/ui";
 
 type Props = {
   appWebUrl: string;
@@ -22,7 +22,7 @@ export function RequestAccess({
   returnUrl,
   ownerName,
 }: Props) {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,9 +34,9 @@ export function RequestAccess({
     (async () => {
       try {
         const res = await fetch(`${appWebUrl}/api/verify-session`, {
-          method: 'GET',
-          credentials: 'include',
-          cache: 'no-store',
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
         });
         if (cancelled) return;
         if (res.ok) {
@@ -61,11 +61,11 @@ export function RequestAccess({
     setError(null);
     try {
       const res = await fetch(`${appWebUrl}/api/request-access`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          kind: 'share',
+          kind: "share",
           key: slug,
           message: message.trim() || null,
         }),
@@ -74,12 +74,12 @@ export function RequestAccess({
         const body = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(body?.error ?? 'request-failed');
+        throw new Error(body?.error ?? "request-failed");
       }
       setSent(true);
     } catch (err) {
-      console.error('request-access submit', err);
-      setError('Something went wrong. Try again in a moment.');
+      console.error("request-access submit", err);
+      setError("Something went wrong. Try again in a moment.");
     } finally {
       setSubmitting(false);
     }
@@ -148,7 +148,7 @@ export function RequestAccess({
             <div className="flex items-center gap-2 text-sm text-neutral-300">
               <Mail className="h-4 w-4 text-neutral-500" aria-hidden />
               <span className="truncate">
-                Asking as{' '}
+                Asking as{" "}
                 <strong className="font-medium text-neutral-100">
                   {viewer.email}
                 </strong>
@@ -174,7 +174,7 @@ export function RequestAccess({
               disabled={submitting}
               className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-60"
             >
-              {submitting ? 'Sending…' : 'Request access'}
+              {submitting ? "Sending…" : "Request access"}
             </button>
             {error && (
               <p className="mt-3 text-center text-sm text-red-400">{error}</p>
@@ -187,6 +187,6 @@ export function RequestAccess({
 }
 
 function hasSessionCookieAtMount(): boolean {
-  if (typeof document === 'undefined') return false;
-  return document.cookie.includes('session_token');
+  if (typeof document === "undefined") return false;
+  return document.cookie.includes("session_token");
 }

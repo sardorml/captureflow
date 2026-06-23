@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Users, UserX } from 'lucide-react';
-import { setMemberUploadsPolicyAction } from './actions';
-import { PolicyCardButton } from './PolicyCardButton';
+import { Users, UserX } from "lucide-react";
+import { setMemberUploadsPolicyAction } from "./actions";
+import { PolicyCardButton } from "./PolicyCardButton";
 
 export function MemberUploadsPolicy({
   allowMemberUploads,

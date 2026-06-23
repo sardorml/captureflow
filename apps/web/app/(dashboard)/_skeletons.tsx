@@ -85,16 +85,16 @@ export function DashboardLoading({
   variant,
   showRecord = true,
 }: {
-  variant: 'grid' | 'rows' | 'form' | 'empty';
+  variant: "grid" | "rows" | "form" | "empty";
   showRecord?: boolean;
 }) {
   return (
     <div className="animate-pulse">
       <PageHeaderSkeleton showRecord={showRecord} />
-      {variant === 'grid' && <CardGridSkeleton />}
-      {variant === 'rows' && <RowListSkeleton />}
-      {variant === 'form' && <FormSectionsSkeleton />}
-      {variant === 'empty' && (
+      {variant === "grid" && <CardGridSkeleton />}
+      {variant === "rows" && <RowListSkeleton />}
+      {variant === "form" && <FormSectionsSkeleton />}
+      {variant === "empty" && (
         <div className="mt-10 h-48 rounded-2xl border border-dashed border-line bg-neutral-900/40" />
       )}
     </div>

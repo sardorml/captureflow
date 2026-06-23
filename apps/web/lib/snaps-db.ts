@@ -1,9 +1,9 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { getAppWebEnv } from './cf-env';
+import { getAppWebEnv } from "./cf-env";
 
-export type SnapState = 'ready' | 'deleted';
-export type SnapVisibility = 'public' | 'workspace' | 'private';
+export type SnapState = "ready" | "deleted";
+export type SnapVisibility = "public" | "workspace" | "private";
 
 export type DashboardSnapRow = {
   id: string;
@@ -54,7 +54,7 @@ function rowFromD1(r: D1Row): DashboardSnapRow {
     height: r.height,
     title: r.title,
     state: r.state as SnapState,
-    visibility: (r.visibility as SnapVisibility) ?? 'public',
+    visibility: (r.visibility as SnapVisibility) ?? "public",
     createdAt: r.created_at,
     updatedAt: r.updated_at,
     editedAt: r.edited_at,
@@ -64,11 +64,11 @@ function rowFromD1(r: D1Row): DashboardSnapRow {
 }
 
 const COLUMNS =
-  'id, user_id, storage_key, size_bytes, width, height, title, state, visibility, ' +
-  'created_at, updated_at, edited_at, last_viewed_at, view_count';
+  "id, user_id, storage_key, size_bytes, width, height, title, state, visibility, " +
+  "created_at, updated_at, edited_at, last_viewed_at, view_count";
 
 export async function listSnapsForUser(
-  userId: string
+  userId: string,
 ): Promise<DashboardSnapRow[]> {
   const env = await getAppWebEnv();
   if (!env?.DB) return [];
@@ -76,7 +76,7 @@ export async function listSnapsForUser(
     `SELECT ${COLUMNS}
        FROM snaps
        WHERE user_id = ?1 AND state = 'ready'
-       ORDER BY created_at DESC`
+       ORDER BY created_at DESC`,
   )
     .bind(userId)
     .all<D1Row>();
@@ -85,7 +85,7 @@ export async function listSnapsForUser(
 
 export async function listSnapsForWorkspace(
   workspaceId: string,
-  viewerUserId: string
+  viewerUserId: string,
 ): Promise<DashboardSnapRow[]> {
   const env = await getAppWebEnv();
   if (!env?.DB) return [];
@@ -95,7 +95,7 @@ export async function listSnapsForWorkspace(
        WHERE workspace_id = ?1
          AND state = 'ready'
          AND (visibility != 'private' OR user_id = ?2)
-       ORDER BY created_at DESC`
+       ORDER BY created_at DESC`,
   )
     .bind(workspaceId, viewerUserId)
     .all<D1Row>();
@@ -104,7 +104,7 @@ export async function listSnapsForWorkspace(
 
 export async function getSnapForUser(
   snapId: string,
-  userId: string
+  userId: string,
 ): Promise<DashboardSnapWithOwnerRow | null> {
   const env = await getAppWebEnv();
   if (!env?.DB) return null;
@@ -112,9 +112,9 @@ export async function getSnapForUser(
     owner_name: string | null;
     owner_email: string | null;
   };
-  const aliased = COLUMNS.split(', ')
+  const aliased = COLUMNS.split(", ")
     .map((c) => `s.${c}`)
-    .join(', ');
+    .join(", ");
   const r = await env.DB.prepare(
     `SELECT ${aliased},
             u.name  AS owner_name,
@@ -122,7 +122,7 @@ export async function getSnapForUser(
        FROM snaps s
        LEFT JOIN users u ON u.id = s.user_id
       WHERE s.id = ?1 AND s.user_id = ?2
-      LIMIT 1`
+      LIMIT 1`,
   )
     .bind(snapId, userId)
     .first<WithOwner>();
@@ -136,14 +136,14 @@ export async function getSnapForUser(
 
 export async function softDeleteSnap(
   snapId: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   const env = await getAppWebEnv();
   if (!env?.DB) return false;
   const res = await env.DB.prepare(
     `UPDATE snaps
        SET state = 'deleted', updated_at = ?3
-       WHERE id = ?1 AND user_id = ?2 AND state = 'ready'`
+       WHERE id = ?1 AND user_id = ?2 AND state = 'ready'`,
   )
     .bind(snapId, userId, Date.now())
     .run();
@@ -153,14 +153,14 @@ export async function softDeleteSnap(
 export async function updateSnapVisibilityForUser(
   userId: string,
   snapId: string,
-  visibility: SnapVisibility
+  visibility: SnapVisibility,
 ): Promise<boolean> {
   const env = await getAppWebEnv();
   if (!env?.DB) return false;
   const res = await env.DB.prepare(
     `UPDATE snaps
        SET visibility = ?3, updated_at = ?4
-       WHERE id = ?1 AND user_id = ?2 AND state = 'ready'`
+       WHERE id = ?1 AND user_id = ?2 AND state = 'ready'`,
   )
     .bind(snapId, userId, visibility, Date.now())
     .run();
@@ -170,14 +170,14 @@ export async function updateSnapVisibilityForUser(
 export async function renameSnap(
   snapId: string,
   userId: string,
-  title: string | null
+  title: string | null,
 ): Promise<boolean> {
   const env = await getAppWebEnv();
   if (!env?.DB) return false;
   const res = await env.DB.prepare(
     `UPDATE snaps
        SET title = ?3, updated_at = ?4
-       WHERE id = ?1 AND user_id = ?2 AND state = 'ready'`
+       WHERE id = ?1 AND user_id = ?2 AND state = 'ready'`,
   )
     .bind(snapId, userId, title, Date.now())
     .run();
@@ -186,7 +186,7 @@ export async function renameSnap(
 
 export async function getSnapForAdmin(
   snapId: string,
-  actorUserId: string
+  actorUserId: string,
 ): Promise<DashboardSnapWithOwnerRow | null> {
   const env = await getAppWebEnv();
   if (!env?.DB) return null;
@@ -194,9 +194,9 @@ export async function getSnapForAdmin(
     owner_name: string | null;
     owner_email: string | null;
   };
-  const aliased = COLUMNS.split(', ')
+  const aliased = COLUMNS.split(", ")
     .map((c) => `s.${c}`)
-    .join(', ');
+    .join(", ");
   const r = await env.DB.prepare(
     `SELECT ${aliased},
             u.name  AS owner_name,
@@ -210,7 +210,7 @@ export async function getSnapForAdmin(
             SELECT id FROM workspace WHERE owner_user_id = ?2
           )
         )
-      LIMIT 1`
+      LIMIT 1`,
   )
     .bind(snapId, actorUserId)
     .first<WithOwner>();
@@ -224,7 +224,7 @@ export async function getSnapForAdmin(
 
 export async function softDeleteSnapForAdmin(
   snapId: string,
-  actorUserId: string
+  actorUserId: string,
 ): Promise<boolean> {
   const env = await getAppWebEnv();
   if (!env?.DB) return false;
@@ -238,7 +238,7 @@ export async function softDeleteSnapForAdmin(
            OR workspace_id IN (
              SELECT id FROM workspace WHERE owner_user_id = ?2
            )
-         )`
+         )`,
   )
     .bind(snapId, actorUserId, Date.now())
     .run();
@@ -248,7 +248,7 @@ export async function softDeleteSnapForAdmin(
 export async function updateSnapVisibilityForAdmin(
   actorUserId: string,
   snapId: string,
-  visibility: SnapVisibility
+  visibility: SnapVisibility,
 ): Promise<boolean> {
   const env = await getAppWebEnv();
   if (!env?.DB) return false;
@@ -262,7 +262,7 @@ export async function updateSnapVisibilityForAdmin(
            OR workspace_id IN (
              SELECT id FROM workspace WHERE owner_user_id = ?2
            )
-         )`
+         )`,
   )
     .bind(snapId, actorUserId, visibility, Date.now())
     .run();
@@ -276,7 +276,7 @@ export async function updateSnapAfterEdit(
   userId: string,
   sizeBytes: number,
   width: number,
-  height: number
+  height: number,
 ): Promise<boolean> {
   const env = await getAppWebEnv();
   if (!env?.DB) return false;
@@ -284,7 +284,7 @@ export async function updateSnapAfterEdit(
   const res = await env.DB.prepare(
     `UPDATE snaps
        SET size_bytes = ?3, width = ?5, height = ?6, updated_at = ?4, edited_at = ?4
-       WHERE id = ?1 AND user_id = ?2 AND state = 'ready'`
+       WHERE id = ?1 AND user_id = ?2 AND state = 'ready'`,
   )
     .bind(snapId, userId, sizeBytes, now, width, height)
     .run();

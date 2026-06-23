@@ -1,11 +1,11 @@
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { findInviteByToken, getWorkspaceById } from '@captureflow/quota';
-import { loadSession } from '@/lib/session-guard';
-import { getAppWebEnv } from '@/lib/cf-env';
-import { acceptInviteAction } from '../../(dashboard)/members/actions';
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { findInviteByToken, getWorkspaceById } from "@captureflow/quota";
+import { loadSession } from "@/lib/session-guard";
+import { getAppWebEnv } from "@/lib/cf-env";
+import { acceptInviteAction } from "../../(dashboard)/members/actions";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ token: string }> };
 
@@ -43,14 +43,14 @@ export default async function InvitePage({ params }: Props) {
   }
 
   const workspace = await getWorkspaceById(env.DB, invite.workspace_id);
-  const workspaceName = workspace?.name ?? 'a CaptureFlow workspace';
+  const workspaceName = workspace?.name ?? "a CaptureFlow workspace";
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-4 py-16">
       <div className="w-full max-w-md rounded-xl border border-line bg-neutral-900 p-8 shadow-xl">
         <h1 className="text-2xl font-bold text-neutral-50">You’re invited</h1>
         <p className="mt-3 text-neutral-300">
-          You’ve been invited to join{' '}
+          You’ve been invited to join{" "}
           <strong className="text-neutral-100">{workspaceName}</strong> on
           CaptureFlow. Workspaces let teammates share screen recordings and
           screenshots privately.

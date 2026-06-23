@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import CtaButton from '@/components/ui/cta-button';
-import { CURRENT_STAGE } from '@/lib/marketing/constants';
-import { track } from '@/lib/marketing/track';
-import { useLocalizedHref, useMessages } from './i18n-provider';
-import { WaitlistForm } from './waitlist-form';
+import CtaButton from "@/components/ui/cta-button";
+import { CURRENT_STAGE } from "@/lib/marketing/constants";
+import { track } from "@/lib/marketing/track";
+import { useLocalizedHref, useMessages } from "./i18n-provider";
+import { WaitlistForm } from "./waitlist-form";
 
 export function CtaSection() {
   const m = useMessages();
@@ -23,9 +23,9 @@ export function CtaSection() {
             {CURRENT_STAGE.showCtaBuyButton ? (
               <CtaButton size="lg" asChild className="rounded-xl">
                 <a
-                  href={lh('/download')}
+                  href={lh("/download")}
                   onClick={() =>
-                    track('marketing_cta_clicked', { location: 'footer-cta' })
+                    track("marketing_cta_clicked", { location: "footer-cta" })
                   }
                 >
                   {m.cta.button}

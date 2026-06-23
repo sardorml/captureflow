@@ -1,6 +1,6 @@
-import { getAuth } from '@/lib/auth';
+import { getAuth } from "@/lib/auth";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const auth = await getAuth();

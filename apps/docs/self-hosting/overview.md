@@ -10,14 +10,14 @@ all API routes, backed by a single D1 database and a single R2 bucket.
 
 ## What you're deploying
 
-| Piece | Tech |
-| --- | --- |
+| Piece                | Tech                                                                             |
+| -------------------- | -------------------------------------------------------------------------------- |
 | Web app (`apps/web`) | Next.js 16, built for Workers via [OpenNext](https://opennext.js.org/cloudflare) |
-| Database | Cloudflare **D1** (`captureflow`) |
-| Object storage | Cloudflare **R2** (`captureflow-recordings`) |
-| Auth | **Better Auth** (session secret) |
-| Scheduled jobs | Cron Triggers (hourly multipart GC + daily retention sweep) |
-| Email (optional) | Resend (workspace invites) |
+| Database             | Cloudflare **D1** (`captureflow`)                                                |
+| Object storage       | Cloudflare **R2** (`captureflow-recordings`)                                     |
+| Auth                 | **Better Auth** (session secret)                                                 |
+| Scheduled jobs       | Cron Triggers (hourly multipart GC + daily retention sweep)                      |
+| Email (optional)     | Resend (workspace invites)                                                       |
 
 The custom `worker.ts` wraps OpenNext's fetch handler and adds the `scheduled()`
 cron handlers.

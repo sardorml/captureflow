@@ -1,9 +1,9 @@
-import { requireSession } from '@/lib/session-guard';
-import { getAppWebEnv } from '@/lib/cf-env';
-import { PageHeader } from '../PageHeader';
-import { ProfileForm } from './ProfileForm';
+import { requireSession } from "@/lib/session-guard";
+import { getAppWebEnv } from "@/lib/cf-env";
+import { PageHeader } from "../PageHeader";
+import { ProfileForm } from "./ProfileForm";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function ProfileSettingsPage() {
   const session = await requireSession();
@@ -14,7 +14,7 @@ export default async function ProfileSettingsPage() {
   let imageUrl: string | null = null;
   if (env?.DB) {
     const row = await env.DB.prepare(
-      `SELECT image FROM users WHERE id = ?1 LIMIT 1`
+      `SELECT image FROM users WHERE id = ?1 LIMIT 1`,
     )
       .bind(user.id)
       .first<{ image: string | null }>();
@@ -32,7 +32,7 @@ export default async function ProfileSettingsPage() {
         <section className="rounded-2xl border border-line bg-canvas-2 p-6">
           <ProfileForm
             userId={user.id}
-            initialName={user.name ?? ''}
+            initialName={user.name ?? ""}
             email={user.email}
             imageUrl={imageUrl}
           />

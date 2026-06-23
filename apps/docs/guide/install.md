@@ -34,12 +34,12 @@ See [Build from source](/developer/build) for prerequisites (Node 24, pnpm 10).
 On first launch macOS will ask for a few permissions. CaptureFlow can't capture
 without them — grant each, then relaunch if prompted:
 
-| Permission | Why it's needed |
-| --- | --- |
-| **Screen & System Audio Recording** | Capture the screen (and system audio). Required. |
-| **Accessibility** | Track the cursor and global hotkeys for smooth cursor + controls. |
-| **Camera** | Only if you enable the webcam bubble. |
-| **Microphone** | Only if you record your voice. |
+| Permission                          | Why it's needed                                                   |
+| ----------------------------------- | ----------------------------------------------------------------- |
+| **Screen & System Audio Recording** | Capture the screen (and system audio). Required.                  |
+| **Accessibility**                   | Track the cursor and global hotkeys for smooth cursor + controls. |
+| **Camera**                          | Only if you enable the webcam bubble.                             |
+| **Microphone**                      | Only if you record your voice.                                    |
 
 You can review or re-grant these any time under **System Settings → Privacy &
 Security**. If a toggle was already on but capture fails, toggle it off and on

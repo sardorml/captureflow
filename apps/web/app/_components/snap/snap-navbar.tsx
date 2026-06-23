@@ -1,6 +1,6 @@
-import type { ReactElement, ReactNode } from 'react';
-import { PostedBy } from './posted-by';
-import { timeAgo } from './time';
+import type { ReactElement, ReactNode } from "react";
+import { PostedBy } from "./posted-by";
+import { timeAgo } from "./time";
 
 export type SnapNavbarProps = {
   brandLabel?: string;
@@ -14,14 +14,14 @@ export type SnapNavbarProps = {
 };
 
 export function SnapNavbar({
-  brandLabel = 'CaptureFlow',
-  brandHref = '/',
+  brandLabel = "CaptureFlow",
+  brandHref = "/",
   title,
   createdAt,
   postedByName = null,
   postedByEmail = null,
   right,
-  className = '',
+  className = "",
 }: SnapNavbarProps): ReactElement {
   const showPostedBy = postedByName !== null || postedByEmail !== null;
   return (

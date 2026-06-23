@@ -1,91 +1,93 @@
-import { X } from 'lucide-react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { useEffect, useId, useRef } from 'react'
-import { createPortal } from 'react-dom'
-import { useOnClickOutside } from 'usehooks-ts'
+import { X } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useId, useRef } from "react";
+import { createPortal } from "react-dom";
+import { useOnClickOutside } from "usehooks-ts";
 
 export interface BasicModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title?: string
-  children: React.ReactNode
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
-  hideClose?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  children: React.ReactNode;
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "full";
+  hideClose?: boolean;
 }
 
 const modalSizes = {
-  xs: 'max-w-xs',
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
-  full: 'max-w-4xl'
-}
+  xs: "max-w-xs",
+  sm: "max-w-sm",
+  md: "max-w-md",
+  lg: "max-w-lg",
+  xl: "max-w-xl",
+  full: "max-w-4xl",
+};
 
 export default function BasicModal({
   isOpen,
   onClose,
   title,
   children,
-  size = 'md',
-  hideClose = false
+  size = "md",
+  hideClose = false,
 }: BasicModalProps): React.JSX.Element | null {
-  const overlayRef = useRef<HTMLDivElement>(null)
-  const modalRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
-  const previousActiveElementRef = useRef<HTMLElement | null>(null)
-  useOnClickOutside(modalRef, () => onClose())
-  const shouldReduceMotion = useReducedMotion()
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(
+    null,
+  ) as React.RefObject<HTMLDivElement>;
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
+  useOnClickOutside(modalRef, () => onClose());
+  const shouldReduceMotion = useReducedMotion();
 
-  const generatedTitleId = useId()
-  const titleId = title ? `modal-title-${generatedTitleId}` : undefined
+  const generatedTitleId = useId();
+  const titleId = title ? `modal-title-${generatedTitleId}` : undefined;
 
   useEffect(() => {
     if (isOpen) {
-      previousActiveElementRef.current = document.activeElement as HTMLElement
+      previousActiveElementRef.current = document.activeElement as HTMLElement;
       setTimeout(() => {
-        closeButtonRef.current?.focus()
-      }, 100)
+        closeButtonRef.current?.focus();
+      }, 100);
     } else if (previousActiveElementRef.current) {
-      previousActiveElementRef.current.focus()
+      previousActiveElementRef.current.focus();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
-      return
+      return;
     }
 
     const handleKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') {
-        onClose()
-        return
+      if (e.key === "Escape") {
+        onClose();
+        return;
       }
 
-      if (e.key === 'Tab' && modalRef.current) {
+      if (e.key === "Tab" && modalRef.current) {
         const focusableElements = Array.from(
           modalRef.current.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-          )
-        )
-        const firstElement = focusableElements[0]
-        const lastElement = focusableElements.at(-1)
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+          ),
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements.at(-1);
 
         if (e.shiftKey) {
           if (document.activeElement === firstElement) {
-            e.preventDefault()
-            lastElement?.focus()
+            e.preventDefault();
+            lastElement?.focus();
           }
         } else if (document.activeElement === lastElement) {
-          e.preventDefault()
-          firstElement?.focus()
+          e.preventDefault();
+          firstElement?.focus();
         }
       }
-    }
+    };
 
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose])
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
   // Body overflow is left untouched: manually locking it conflicts with other
   // components, and the overlay + modal positioning already prevent scroll.
@@ -101,7 +103,7 @@ export default function BasicModal({
             initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
             onClick={(e) => {
               if (e.target === overlayRef.current) {
-                onClose()
+                onClose();
               }
             }}
             ref={overlayRef}
@@ -127,20 +129,24 @@ export default function BasicModal({
                       scale: 0.95,
                       y: 10,
                       opacity: 0,
-                      transition: { duration: 0.15 }
+                      transition: { duration: 0.15 },
                     }
               }
-              initial={shouldReduceMotion ? { opacity: 1 } : { scale: 0.95, y: 10, opacity: 0 }}
+              initial={
+                shouldReduceMotion
+                  ? { opacity: 1 }
+                  : { scale: 0.95, y: 10, opacity: 0 }
+              }
               ref={modalRef}
               role="dialog"
               transition={
                 shouldReduceMotion
                   ? { duration: 0 }
                   : {
-                      type: 'spring',
+                      type: "spring",
                       damping: 25,
                       stiffness: 300,
-                      duration: 0.25
+                      duration: 0.25,
                     }
               }
             >
@@ -185,7 +191,7 @@ export default function BasicModal({
         </>
       )}
     </AnimatePresence>
-  )
+  );
 
-  return createPortal(modalContent, document.body)
+  return createPortal(modalContent, document.body);
 }

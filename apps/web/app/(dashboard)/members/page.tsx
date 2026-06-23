@@ -1,12 +1,12 @@
-import { listMembers, listPendingInvites } from '@captureflow/quota';
-import { requireSession } from '@/lib/session-guard';
-import { getAppWebEnv } from '@/lib/cf-env';
-import { resolveCurrentWorkspace } from '@/lib/current-workspace';
-import { PendingInvites } from './PendingInvites';
-import { MembersList } from './MembersList';
-import { PageHeader } from '../PageHeader';
+import { listMembers, listPendingInvites } from "@captureflow/quota";
+import { requireSession } from "@/lib/session-guard";
+import { getAppWebEnv } from "@/lib/cf-env";
+import { resolveCurrentWorkspace } from "@/lib/current-workspace";
+import { PendingInvites } from "./PendingInvites";
+import { MembersList } from "./MembersList";
+import { PageHeader } from "../PageHeader";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function MembersPage() {
   const session = await requireSession();
@@ -22,10 +22,10 @@ export default async function MembersPage() {
 
   const current = await resolveCurrentWorkspace(
     session.user.id,
-    session.user.name ?? null
+    session.user.name ?? null,
   );
   const workspace = current.workspace;
-  const isOwner = current.role === 'owner';
+  const isOwner = current.role === "owner";
 
   const [members, pending] = await Promise.all([
     listMembers(env.DB, workspace.id),
@@ -39,7 +39,7 @@ export default async function MembersPage() {
         title="Members"
         subtitle={
           isOwner
-            ? 'Invite teammates to share recordings and screenshots privately.'
+            ? "Invite teammates to share recordings and screenshots privately."
             : `You're a member of this workspace.`
         }
         showRecord={false}

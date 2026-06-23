@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { Icon } from '@/components/ui/icon';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Server } from 'lucide-react';
-import { X_URL } from '@/lib/marketing/constants';
-import { track } from '@/lib/marketing/track';
-import { useMessages } from './i18n-provider';
+import { Icon } from "@/components/ui/icon";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Server } from "lucide-react";
+import { X_URL } from "@/lib/marketing/constants";
+import { track } from "@/lib/marketing/track";
+import { useMessages } from "./i18n-provider";
 
 // X_URL is the repo URL despite the legacy name; the self-hosted plan ships no binary.
 const GITHUB_REPO_URL = X_URL;
@@ -46,7 +46,7 @@ export function FreeCard() {
 
       <a
         href={GITHUB_REPO_URL}
-        onClick={() => track('source_opened', { from: 'pricing_free' })}
+        onClick={() => track("source_opened", { from: "pricing_free" })}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-neutral-900 px-7 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black/20 sm:text-base"

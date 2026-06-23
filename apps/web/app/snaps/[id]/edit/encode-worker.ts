@@ -1,4 +1,4 @@
-import UPNG from 'upng-js';
+import UPNG from "upng-js";
 
 type EncodeRequest = {
   buffer: ArrayBuffer; // raw RGBA bytes (width * height * 4)

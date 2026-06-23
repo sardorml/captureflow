@@ -21,13 +21,20 @@ type Resource = {
  * Pass `null` for an unauthenticated/unverified visitor (callers normalize the
  * transient 'unknown' session result to null first).
  */
-export function canViewResource(visitor: Visitor | null, resource: Resource): boolean {
-  if (resource.visibility === 'public') return true;
+export function canViewResource(
+  visitor: Visitor | null,
+  resource: Resource,
+): boolean {
+  if (resource.visibility === "public") return true;
   if (!visitor) return false;
-  if (resource.visibility === 'private') return visitor.userId === resource.userId;
-  if (resource.visibility === 'workspace') {
+  if (resource.visibility === "private")
+    return visitor.userId === resource.userId;
+  if (resource.visibility === "workspace") {
     if (!resource.workspaceId) return false;
-    return visitor.userId === resource.userId || visitor.workspaceIds.includes(resource.workspaceId);
+    return (
+      visitor.userId === resource.userId ||
+      visitor.workspaceIds.includes(resource.workspaceId)
+    );
   }
   return false;
 }

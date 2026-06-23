@@ -1,11 +1,11 @@
-import { create } from 'zustand'
+import { create } from "zustand";
 
 type ThemeStore = {
-  theme: 'dark'
-}
+  theme: "dark";
+};
 
-document.documentElement.classList.add('dark')
+document.documentElement.classList.add("dark");
 
 export const useThemeStore = create<ThemeStore>(() => ({
-  theme: 'dark'
-}))
+  theme: "dark",
+}));

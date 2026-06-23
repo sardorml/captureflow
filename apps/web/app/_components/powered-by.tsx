@@ -1,4 +1,4 @@
-import { PRODUCT_NAME, SOURCE_REPO_URL } from '@/lib/site';
+import { PRODUCT_NAME, SOURCE_REPO_URL } from "@/lib/site";
 
 /*
  * AGPL-3.0 §7(b) attribution notice + provenance canary. Two reasons it exists:
@@ -8,7 +8,7 @@ import { PRODUCT_NAME, SOURCE_REPO_URL } from '@/lib/site';
  *      searchable (Google / Shodan), so removing them both violates the
  *      licence and flags a deployment as an unauthorised fork.
  */
-export function PoweredBy({ className = '' }: { className?: string }) {
+export function PoweredBy({ className = "" }: { className?: string }) {
   return (
     <a
       href={SOURCE_REPO_URL}

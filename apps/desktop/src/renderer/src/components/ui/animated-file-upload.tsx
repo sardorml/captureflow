@@ -1,35 +1,35 @@
-import { cn } from '@/lib/utils'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { useCallback, useRef, useState } from 'react'
+import { cn } from "@/lib/utils";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useCallback, useRef, useState } from "react";
 
 export interface AnimatedFileUploadProps {
-  onFilesSelected: (files: File[]) => void
-  accept?: string
-  multiple?: boolean
-  maxSize?: number
-  className?: string
-  disabled?: boolean
-  hideFileList?: boolean
-  previewUrl?: string | null
-  onClearPreview?: () => void
+  onFilesSelected: (files: File[]) => void;
+  accept?: string;
+  multiple?: boolean;
+  maxSize?: number;
+  className?: string;
+  disabled?: boolean;
+  hideFileList?: boolean;
+  previewUrl?: string | null;
+  onClearPreview?: () => void;
 }
 
 const SPRING = {
-  type: 'spring' as const,
+  type: "spring" as const,
   duration: 0.25,
-  bounce: 0.1
-}
+  bounce: 0.1,
+};
 
 const SPRING_BOUNCY = {
-  type: 'spring' as const,
+  type: "spring" as const,
   duration: 0.3,
-  bounce: 0.2
-}
+  bounce: 0.2,
+};
 
 function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function FileIcon(): React.JSX.Element {
@@ -48,24 +48,32 @@ function FileIcon(): React.JSX.Element {
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }
 
-function UploadIcon({ isDragOver }: { isDragOver: boolean }): React.JSX.Element {
-  const shouldReduceMotion = useReducedMotion()
+function UploadIcon({
+  isDragOver,
+}: {
+  isDragOver: boolean;
+}): React.JSX.Element {
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <motion.div
       animate={
-        shouldReduceMotion ? undefined : isDragOver ? { scale: 1.15, y: -4 } : { scale: 1, y: 0 }
+        shouldReduceMotion
+          ? undefined
+          : isDragOver
+            ? { scale: 1.15, y: -4 }
+            : { scale: 1, y: 0 }
       }
       transition={shouldReduceMotion ? { duration: 0 } : SPRING_BOUNCY}
     >
       <svg
         aria-hidden="true"
         className={cn(
-          'mb-3 h-10 w-10 transition-colors duration-200',
-          isDragOver ? 'text-primary' : 'text-muted-foreground'
+          "mb-3 h-10 w-10 transition-colors duration-200",
+          isDragOver ? "text-primary" : "text-muted-foreground",
         )}
         fill="none"
         stroke="currentColor"
@@ -79,7 +87,7 @@ function UploadIcon({ isDragOver }: { isDragOver: boolean }): React.JSX.Element 
         />
       </svg>
     </motion.div>
-  )
+  );
 }
 
 export default function AnimatedFileUpload({
@@ -91,118 +99,126 @@ export default function AnimatedFileUpload({
   disabled = false,
   hideFileList = false,
   previewUrl = null,
-  onClearPreview
+  onClearPreview,
 }: AnimatedFileUploadProps): React.JSX.Element {
-  const shouldReduceMotion = useReducedMotion()
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [isDragOver, setIsDragOver] = useState(false)
-  const [files, setFiles] = useState<File[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const dragCounter = useRef(0)
+  const shouldReduceMotion = useReducedMotion();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const dragCounter = useRef(0);
 
   const validateFiles = useCallback(
     (newFiles: File[]): File[] => {
-      setError(null)
+      setError(null);
       if (maxSize) {
-        const oversized = newFiles.filter((f) => f.size > maxSize)
+        const oversized = newFiles.filter((f) => f.size > maxSize);
         if (oversized.length > 0) {
-          setError(`${oversized.length} file(s) exceed the ${formatFileSize(maxSize)} limit`)
-          return newFiles.filter((f) => f.size <= maxSize)
+          setError(
+            `${oversized.length} file(s) exceed the ${formatFileSize(maxSize)} limit`,
+          );
+          return newFiles.filter((f) => f.size <= maxSize);
         }
       }
-      return newFiles
+      return newFiles;
     },
-    [maxSize]
-  )
+    [maxSize],
+  );
 
   const handleFiles = useCallback(
     (newFiles: File[]) => {
-      const valid = validateFiles(newFiles)
-      if (valid.length === 0) return
-      const updated = multiple ? [...files, ...valid] : valid.slice(0, 1)
-      setFiles(updated)
-      onFilesSelected(updated)
+      const valid = validateFiles(newFiles);
+      if (valid.length === 0) return;
+      const updated = multiple ? [...files, ...valid] : valid.slice(0, 1);
+      setFiles(updated);
+      onFilesSelected(updated);
     },
-    [files, multiple, onFilesSelected, validateFiles]
-  )
+    [files, multiple, onFilesSelected, validateFiles],
+  );
 
   const removeFile = useCallback(
     (index: number) => {
-      const updated = files.filter((_, i) => i !== index)
-      setFiles(updated)
-      onFilesSelected(updated)
+      const updated = files.filter((_, i) => i !== index);
+      setFiles(updated);
+      onFilesSelected(updated);
     },
-    [files, onFilesSelected]
-  )
+    [files, onFilesSelected],
+  );
 
   const handleDragEnter = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault()
-      if (disabled) return
-      dragCounter.current += 1
-      setIsDragOver(true)
+      e.preventDefault();
+      if (disabled) return;
+      dragCounter.current += 1;
+      setIsDragOver(true);
     },
-    [disabled]
-  )
+    [disabled],
+  );
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    dragCounter.current -= 1
+    e.preventDefault();
+    dragCounter.current -= 1;
     if (dragCounter.current === 0) {
-      setIsDragOver(false)
+      setIsDragOver(false);
     }
-  }, [])
+  }, []);
 
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault()
-      if (disabled) return
+      e.preventDefault();
+      if (disabled) return;
     },
-    [disabled]
-  )
+    [disabled],
+  );
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault()
-      dragCounter.current = 0
-      setIsDragOver(false)
-      if (disabled) return
-      const droppedFiles = Array.from(e.dataTransfer.files)
-      handleFiles(droppedFiles)
+      e.preventDefault();
+      dragCounter.current = 0;
+      setIsDragOver(false);
+      if (disabled) return;
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      handleFiles(droppedFiles);
     },
-    [disabled, handleFiles]
-  )
+    [disabled, handleFiles],
+  );
 
   const handleClick = (): void => {
-    if (!disabled) inputRef.current?.click()
-  }
+    if (!disabled) inputRef.current?.click();
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent): void => {
-    if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
-      e.preventDefault()
-      inputRef.current?.click()
+    if ((e.key === "Enter" || e.key === " ") && !disabled) {
+      e.preventDefault();
+      inputRef.current?.click();
     }
-  }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const selected = e.target.files ? Array.from(e.target.files) : []
-    handleFiles(selected)
-    if (inputRef.current) inputRef.current.value = ''
-  }
+    const selected = e.target.files ? Array.from(e.target.files) : [];
+    handleFiles(selected);
+    if (inputRef.current) inputRef.current.value = "";
+  };
 
   return (
-    <div className={cn('w-full space-y-3', className)}>
+    <div className={cn("w-full space-y-3", className)}>
       <motion.div
-        animate={shouldReduceMotion ? undefined : isDragOver ? { scale: 1.02 } : { scale: 1 }}
+        animate={
+          shouldReduceMotion
+            ? undefined
+            : isDragOver
+              ? { scale: 1.02 }
+              : { scale: 1 }
+        }
         aria-label="File upload area. Drag and drop files or press to browse"
         className={cn(
-          'relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 min-h-[180px]',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          'transition-colors duration-200',
+          "relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 min-h-[180px]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          "transition-colors duration-200",
           isDragOver
-            ? 'border-primary bg-primary/5'
-            : 'border-muted-foreground/25 hover:border-muted-foreground/40 hover:bg-muted/30',
-          disabled && 'pointer-events-none opacity-50'
+            ? "border-primary bg-primary/5"
+            : "border-muted-foreground/25 hover:border-muted-foreground/40 hover:bg-muted/30",
+          disabled && "pointer-events-none opacity-50",
         )}
         onClick={handleClick}
         onDragEnter={handleDragEnter}
@@ -234,8 +250,8 @@ export default function AnimatedFileUpload({
             {onClearPreview && (
               <button
                 onClick={(e) => {
-                  e.stopPropagation()
-                  onClearPreview()
+                  e.stopPropagation();
+                  onClearPreview();
                 }}
                 className="absolute top-2 right-2 z-10 h-7 w-7 rounded-md bg-black/60 hover:bg-black/80 text-white flex items-center justify-center"
                 type="button"
@@ -248,7 +264,11 @@ export default function AnimatedFileUpload({
                   strokeWidth={2}
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             )}
@@ -260,18 +280,28 @@ export default function AnimatedFileUpload({
             <UploadIcon isDragOver={isDragOver} />
             <AnimatePresence initial={false} mode="wait">
               <motion.p
-                animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                animate={
+                  shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }
+                }
                 className="font-medium text-sm text-foreground"
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 4 }}
-                key={isDragOver ? 'drop' : 'idle'}
-                transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.15 }}
+                exit={
+                  shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }
+                }
+                initial={
+                  shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 4 }
+                }
+                key={isDragOver ? "drop" : "idle"}
+                transition={
+                  shouldReduceMotion ? { duration: 0 } : { duration: 0.15 }
+                }
               >
-                {isDragOver ? 'Drop files here' : 'Drag & drop or click to upload'}
+                {isDragOver
+                  ? "Drop files here"
+                  : "Drag & drop or click to upload"}
               </motion.p>
             </AnimatePresence>
             <p className="mt-1 text-xs text-muted-foreground">
-              {accept ? accept.replace(/,/g, ', ') : 'Any file type'}
+              {accept ? accept.replace(/,/g, ", ") : "Any file type"}
               {maxSize && ` \u2022 Max ${formatFileSize(maxSize)}`}
             </p>
           </div>
@@ -302,7 +332,11 @@ export default function AnimatedFileUpload({
           <AnimatePresence initial={false}>
             {files.map((file, index) => (
               <motion.li
-                animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, x: 0, scale: 1 }}
+                animate={
+                  shouldReduceMotion
+                    ? { opacity: 1 }
+                    : { opacity: 1, x: 0, scale: 1 }
+                }
                 className="flex items-center gap-3 rounded-md border bg-muted/50 px-3 py-2"
                 exit={
                   shouldReduceMotion
@@ -311,25 +345,33 @@ export default function AnimatedFileUpload({
                         opacity: 0,
                         x: 24,
                         scale: 0.95,
-                        transition: { duration: 0.15 }
+                        transition: { duration: 0.15 },
                       }
                 }
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -16, scale: 0.95 }}
+                initial={
+                  shouldReduceMotion
+                    ? { opacity: 0 }
+                    : { opacity: 0, x: -16, scale: 0.95 }
+                }
                 key={`${file.name}-${file.size}-${file.lastModified}`}
                 layout={!shouldReduceMotion}
                 transition={shouldReduceMotion ? { duration: 0 } : SPRING}
               >
                 <FileIcon />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-foreground text-sm">{file.name}</p>
-                  <p className="text-muted-foreground text-xs">{formatFileSize(file.size)}</p>
+                  <p className="truncate font-medium text-foreground text-sm">
+                    {file.name}
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    {formatFileSize(file.size)}
+                  </p>
                 </div>
                 <motion.button
                   aria-label={`Remove ${file.name}`}
                   className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    removeFile(index)
+                    e.stopPropagation();
+                    removeFile(index);
                   }}
                   type="button"
                   whileHover={shouldReduceMotion ? undefined : { scale: 1.1 }}
@@ -343,7 +385,11 @@ export default function AnimatedFileUpload({
                     strokeWidth={2}
                     viewBox="0 0 24 24"
                   >
-                    <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M6 18L18 6M6 6l12 12"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </motion.button>
               </motion.li>
@@ -352,5 +398,5 @@ export default function AnimatedFileUpload({
         </ul>
       )}
     </div>
-  )
+  );
 }

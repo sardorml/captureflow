@@ -1,15 +1,15 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { betterAuth, type BetterAuthOptions } from 'better-auth';
-import { drizzleAdapter } from '@better-auth/drizzle-adapter';
-import { drizzle } from 'drizzle-orm/d1';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { betterAuth, type BetterAuthOptions } from "better-auth";
+import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { drizzle } from "drizzle-orm/d1";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
   attachSubscriptionToUser,
   ensurePersonalWorkspace,
   getUnclaimedProSubscriptionByEmail,
-} from '@captureflow/quota';
-import { authSchema } from './auth-schema';
+} from "@captureflow/quota";
+import { authSchema } from "./auth-schema";
 
 // D1 is request-scoped (binding only exists inside a fetch handler), so the
 // auth instance is built per request; build-time imports use a stub adapter.
@@ -31,11 +31,11 @@ function buildAuth(env: AppWebEnv | null, baseURL?: string) {
         typeof drizzle
       >);
 
-  const scheme = env?.APP_DEEP_LINK_SCHEME ?? 'captureflow';
+  const scheme = env?.APP_DEEP_LINK_SCHEME ?? "captureflow";
   const trustedOrigins = [
     `${scheme}://`,
-    ...(env?.BETTER_AUTH_TRUSTED_ORIGINS ?? '')
-      .split(',')
+    ...(env?.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
+      .split(",")
       .map((o) => o.trim())
       .filter(Boolean),
   ];
@@ -45,7 +45,7 @@ function buildAuth(env: AppWebEnv | null, baseURL?: string) {
     trustedOrigins,
     secret: env?.BETTER_AUTH_SECRET,
     database: drizzleAdapter(db, {
-      provider: 'sqlite',
+      provider: "sqlite",
       usePlural: true,
     }),
     emailAndPassword: {
@@ -70,28 +70,28 @@ function buildAuth(env: AppWebEnv | null, baseURL?: string) {
               await ensurePersonalWorkspace(
                 db,
                 user.id,
-                typeof user.name === 'string' ? user.name : null
+                typeof user.name === "string" ? user.name : null,
               );
             } catch (err) {
-              console.error('auth: ensurePersonalWorkspace failed', err);
+              console.error("auth: ensurePersonalWorkspace failed", err);
             }
             try {
-              const email = typeof user.email === 'string' ? user.email : null;
+              const email = typeof user.email === "string" ? user.email : null;
               if (email) {
                 const unclaimed = await getUnclaimedProSubscriptionByEmail(
                   db,
-                  email
+                  email,
                 );
                 if (unclaimed) {
                   await attachSubscriptionToUser(
                     db,
                     unclaimed.ls_subscription_id,
-                    user.id
+                    user.id,
                   );
                 }
               }
             } catch (err) {
-              console.error('auth: pro-subscription claim failed', err);
+              console.error("auth: pro-subscription claim failed", err);
             }
           },
         },

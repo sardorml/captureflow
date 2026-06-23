@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { Check, Globe, Lock, Users } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { cn } from '../lib/cn';
+import { Check, Globe, Lock, Users } from "lucide-react";
+import type { ReactNode } from "react";
+import { cn } from "../lib/cn";
 
-export type Visibility = 'public' | 'workspace' | 'private';
+export type Visibility = "public" | "workspace" | "private";
 
 export const VISIBILITY_LABELS: Record<Visibility, string> = {
-  public: 'Public',
-  workspace: 'Workspace',
-  private: 'Private',
+  public: "Public",
+  workspace: "Workspace",
+  private: "Private",
 };
 
 export const VISIBILITY_DESCRIPTIONS: Record<Visibility, string> = {
-  public: 'Anyone with the link can view',
-  workspace: 'Only signed-in workspace members can view',
-  private: 'Only you can view',
+  public: "Anyone with the link can view",
+  workspace: "Only signed-in workspace members can view",
+  private: "Only you can view",
 };
 
 type PickerProps = {
@@ -38,15 +38,15 @@ export function VisibilityPicker({
   disabled,
   className,
 }: PickerProps) {
-  const renderPublic = showPublic || value === 'public';
-  const renderWorkspace = showWorkspace || value === 'workspace';
+  const renderPublic = showPublic || value === "public";
+  const renderWorkspace = showWorkspace || value === "workspace";
   return (
     <fieldset
       disabled={disabled}
       aria-label="Visibility"
       className={cn(
-        'grid gap-1.5 rounded-lg border border-line-strong bg-canvas-2 p-3',
-        className
+        "grid gap-1.5 rounded-lg border border-line-strong bg-canvas-2 p-3",
+        className,
       )}
     >
       {renderPublic && (
@@ -78,7 +78,7 @@ export function VisibilityPicker({
 
 export function ReadonlyVisibilityRow({ value }: { value: Visibility }) {
   const Icon =
-    value === 'public' ? Globe : value === 'workspace' ? Users : Lock;
+    value === "public" ? Globe : value === "workspace" ? Users : Lock;
   return (
     <div className="flex items-center gap-3 px-2.5 py-2">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-overlay text-fg-muted">
@@ -115,16 +115,16 @@ function Option({
       type="button"
       onClick={() => onChange(value)}
       className={cn(
-        'flex items-start gap-3 rounded-md px-2.5 py-2 text-left transition-colors',
+        "flex items-start gap-3 rounded-md px-2.5 py-2 text-left transition-colors",
         active
-          ? 'bg-accent-soft text-accent ring-1 ring-accent-ring'
-          : 'text-fg hover:bg-overlay'
+          ? "bg-accent-soft text-accent ring-1 ring-accent-ring"
+          : "text-fg hover:bg-overlay",
       )}
     >
       <span
         className={cn(
-          'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md',
-          active ? 'bg-accent-soft text-accent' : 'bg-overlay text-fg-muted'
+          "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+          active ? "bg-accent-soft text-accent" : "bg-overlay text-fg-muted",
         )}
       >
         {icon}
@@ -135,8 +135,8 @@ function Option({
         </span>
         <span
           className={cn(
-            'block text-xs',
-            active ? 'text-accent opacity-80' : 'text-fg-muted'
+            "block text-xs",
+            active ? "text-accent opacity-80" : "text-fg-muted",
           )}
         >
           {VISIBILITY_DESCRIPTIONS[value]}

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useState } from 'react';
-import { Icon } from '@/components/ui/icon';
-import { cn } from '@/lib/utils';
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useState } from "react";
+import { Icon } from "@/components/ui/icon";
+import { cn } from "@/lib/utils";
 
 export type AccordionItem = {
   id: string | number;
@@ -21,7 +21,7 @@ export type SmoothAccordionProps = {
 export function SmoothAccordion({
   items,
   allowMultiple = false,
-  className = '',
+  className = "",
   defaultExpandedIds = [],
 }: SmoothAccordionProps) {
   const [expandedItems, setExpandedItems] =
@@ -39,7 +39,7 @@ export function SmoothAccordion({
   };
 
   return (
-    <div className={cn('flex w-full flex-col gap-2', className)}>
+    <div className={cn("flex w-full flex-col gap-2", className)}>
       {items.map((item) => {
         const isExpanded = expandedItems.includes(item.id);
 
@@ -73,13 +73,13 @@ export function SmoothAccordion({
                 <motion.div
                   animate={
                     shouldReduceMotion
-                      ? { height: 'auto', opacity: 1 }
+                      ? { height: "auto", opacity: 1 }
                       : {
-                          height: 'auto',
+                          height: "auto",
                           opacity: 1,
                           transition: {
                             height: {
-                              type: 'spring',
+                              type: "spring",
                               stiffness: 500,
                               damping: 40,
                               duration: 0.25,
@@ -105,7 +105,7 @@ export function SmoothAccordion({
                   id={`accordion-content-${item.id}`}
                   initial={
                     shouldReduceMotion
-                      ? { height: 'auto', opacity: 1 }
+                      ? { height: "auto", opacity: 1 }
                       : { height: 0, opacity: 0 }
                   }
                   role="region"

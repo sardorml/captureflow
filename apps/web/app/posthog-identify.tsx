@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import posthog from 'posthog-js';
-import { POSTHOG_KEY } from '@/lib/public-analytics';
+import { useEffect } from "react";
+import posthog from "posthog-js";
+import { POSTHOG_KEY } from "@/lib/public-analytics";
 
 // Keyed on email because the desktop client also keys on email, stitching the
 // funnel across both surfaces.

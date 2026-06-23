@@ -1,4 +1,4 @@
-const MP4 = '.mp4';
+const MP4 = ".mp4";
 
 export function shareConfigKeyFor(storageKey: string): string {
   if (storageKey.endsWith(MP4)) {
@@ -8,12 +8,12 @@ export function shareConfigKeyFor(storageKey: string): string {
 }
 
 export type ShareCameraCorner =
-  | 'bottom-right'
-  | 'bottom-left'
-  | 'top-right'
-  | 'top-left';
+  | "bottom-right"
+  | "bottom-left"
+  | "top-right"
+  | "top-left";
 
-export type ShareCameraSize = 'small' | 'medium' | 'large';
+export type ShareCameraSize = "small" | "medium" | "large";
 
 // `background` is a gradient preset key, a '#hex' fill, or 'transparent'.
 export type ShareConfig = {
@@ -25,23 +25,23 @@ export type ShareConfig = {
 };
 
 export const DEFAULT_SHARE_CONFIG: ShareConfig = {
-  background: 'transparent',
-  cameraCorner: 'bottom-right',
-  cameraSize: 'medium',
+  background: "transparent",
+  cameraCorner: "bottom-right",
+  cameraSize: "medium",
   micMuted: false,
   systemMuted: false,
 };
 
 export const SHARE_GRADIENT_KEYS = [
-  'violet',
-  'sunset',
-  'orchid',
-  'forest',
-  'flamingo',
-  'citrus',
-  'arctic',
-  'ocean',
-  'deep',
+  "violet",
+  "sunset",
+  "orchid",
+  "forest",
+  "flamingo",
+  "citrus",
+  "arctic",
+  "ocean",
+  "deep",
 ] as const;
 export type ShareGradientKey = (typeof SHARE_GRADIENT_KEYS)[number];
 
@@ -50,76 +50,76 @@ export const SHARE_GRADIENT_PRESETS: Record<
   { label: string; stops: { offset: number; color: string }[] }
 > = {
   violet: {
-    label: 'Violet',
+    label: "Violet",
     stops: [
-      { offset: 0, color: '#6366f1' },
-      { offset: 0.5, color: '#a855f7' },
-      { offset: 1, color: '#e9d5ff' },
+      { offset: 0, color: "#6366f1" },
+      { offset: 0.5, color: "#a855f7" },
+      { offset: 1, color: "#e9d5ff" },
     ],
   },
   sunset: {
-    label: 'Sunset',
+    label: "Sunset",
     stops: [
-      { offset: 0, color: '#fcd5b5' },
-      { offset: 0.55, color: '#f5946a' },
-      { offset: 1, color: '#a47bd6' },
+      { offset: 0, color: "#fcd5b5" },
+      { offset: 0.55, color: "#f5946a" },
+      { offset: 1, color: "#a47bd6" },
     ],
   },
   orchid: {
-    label: 'Orchid',
+    label: "Orchid",
     stops: [
-      { offset: 0, color: '#7c3aed' },
-      { offset: 0.5, color: '#ec4899' },
-      { offset: 1, color: '#fb923c' },
+      { offset: 0, color: "#7c3aed" },
+      { offset: 0.5, color: "#ec4899" },
+      { offset: 1, color: "#fb923c" },
     ],
   },
   forest: {
-    label: 'Forest',
+    label: "Forest",
     stops: [
-      { offset: 0, color: '#022c22' },
-      { offset: 0.5, color: '#15803d' },
-      { offset: 1, color: '#86efac' },
+      { offset: 0, color: "#022c22" },
+      { offset: 0.5, color: "#15803d" },
+      { offset: 1, color: "#86efac" },
     ],
   },
   flamingo: {
-    label: 'Flamingo',
+    label: "Flamingo",
     stops: [
-      { offset: 0, color: '#9d174d' },
-      { offset: 0.5, color: '#db2777' },
-      { offset: 1, color: '#fbcfe8' },
+      { offset: 0, color: "#9d174d" },
+      { offset: 0.5, color: "#db2777" },
+      { offset: 1, color: "#fbcfe8" },
     ],
   },
   citrus: {
-    label: 'Citrus',
+    label: "Citrus",
     stops: [
-      { offset: 0, color: '#f59e0b' },
-      { offset: 0.4, color: '#ec4899' },
-      { offset: 0.8, color: '#3b82f6' },
-      { offset: 1, color: '#1e3a8a' },
+      { offset: 0, color: "#f59e0b" },
+      { offset: 0.4, color: "#ec4899" },
+      { offset: 0.8, color: "#3b82f6" },
+      { offset: 1, color: "#1e3a8a" },
     ],
   },
   arctic: {
-    label: 'Arctic',
+    label: "Arctic",
     stops: [
-      { offset: 0, color: '#0ea5e9' },
-      { offset: 0.5, color: '#a5f3fc' },
-      { offset: 1, color: '#e0f2fe' },
+      { offset: 0, color: "#0ea5e9" },
+      { offset: 0.5, color: "#a5f3fc" },
+      { offset: 1, color: "#e0f2fe" },
     ],
   },
   ocean: {
-    label: 'Ocean',
+    label: "Ocean",
     stops: [
-      { offset: 0, color: '#0c4a6e' },
-      { offset: 0.5, color: '#0e7490' },
-      { offset: 1, color: '#67e8f9' },
+      { offset: 0, color: "#0c4a6e" },
+      { offset: 0.5, color: "#0e7490" },
+      { offset: 1, color: "#67e8f9" },
     ],
   },
   deep: {
-    label: 'Deep',
+    label: "Deep",
     stops: [
-      { offset: 0, color: '#312e81' },
-      { offset: 0.55, color: '#7c3aed' },
-      { offset: 1, color: '#f472b6' },
+      { offset: 0, color: "#312e81" },
+      { offset: 0.55, color: "#7c3aed" },
+      { offset: 1, color: "#f472b6" },
     ],
   },
 };
@@ -133,18 +133,18 @@ export function isShareHexColor(v: string): boolean {
 }
 
 export function shareGradientCss(
-  stops: { offset: number; color: string }[]
+  stops: { offset: number; color: string }[],
 ): string {
   const parts = stops.map((s) => `${s.color} ${s.offset * 100}%`);
-  return `linear-gradient(135deg, ${parts.join(', ')})`;
+  return `linear-gradient(135deg, ${parts.join(", ")})`;
 }
 
 export function hydrateShareConfig(raw: unknown): ShareConfig {
-  if (!raw || typeof raw !== 'object') return DEFAULT_SHARE_CONFIG;
+  if (!raw || typeof raw !== "object") return DEFAULT_SHARE_CONFIG;
   const obj = raw as Record<string, unknown>;
   const bg =
-    typeof obj.background === 'string' &&
-    (obj.background === 'transparent' ||
+    typeof obj.background === "string" &&
+    (obj.background === "transparent" ||
       isShareGradientKey(obj.background) ||
       isShareHexColor(obj.background))
       ? obj.background
@@ -152,10 +152,10 @@ export function hydrateShareConfig(raw: unknown): ShareConfig {
   const corner = ((): ShareCameraCorner => {
     const v = obj.cameraCorner;
     if (
-      v === 'bottom-right' ||
-      v === 'bottom-left' ||
-      v === 'top-right' ||
-      v === 'top-left'
+      v === "bottom-right" ||
+      v === "bottom-left" ||
+      v === "top-right" ||
+      v === "top-left"
     ) {
       return v;
     }
@@ -163,7 +163,7 @@ export function hydrateShareConfig(raw: unknown): ShareConfig {
   })();
   const size = ((): ShareCameraSize => {
     const v = obj.cameraSize;
-    if (v === 'small' || v === 'medium' || v === 'large') return v;
+    if (v === "small" || v === "medium" || v === "large") return v;
     return DEFAULT_SHARE_CONFIG.cameraSize;
   })();
   return {

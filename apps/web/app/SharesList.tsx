@@ -1,9 +1,14 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { initials, formatBytes, formatDuration, formatRelativeShort as formatRelative } from '@/lib/format';
-import { forwardRef, useState, useTransition } from 'react';
-import type React from 'react';
+import Link from "next/link";
+import {
+  initials,
+  formatBytes,
+  formatDuration,
+  formatRelativeShort as formatRelative,
+} from "@/lib/format";
+import { forwardRef, useState, useTransition } from "react";
+import type React from "react";
 import {
   Check,
   ExternalLink,
@@ -19,9 +24,9 @@ import {
   Smile,
   Trash2,
   Users,
-} from 'lucide-react';
-import type { DashboardShareRow, ShareVisibility } from '@/lib/shares-db';
-import { viewUrlFor } from '@/lib/site';
+} from "lucide-react";
+import type { DashboardShareRow, ShareVisibility } from "@/lib/shares-db";
+import { viewUrlFor } from "@/lib/site";
 import {
   Avatar,
   AvatarFallback,
@@ -30,16 +35,16 @@ import {
   SmoothDropdownMenuContent,
   SmoothDropdownMenuItem,
   SmoothDropdownMenuTrigger,
-} from '@captureflow/ui';
+} from "@captureflow/ui";
 import {
   deleteShareAction,
   renameShareAction,
   setVisibilityAction,
-} from './actions';
-import { VisibilityDialog } from './VisibilityDialog';
+} from "./actions";
+import { VisibilityDialog } from "./VisibilityDialog";
 
 const CDN_BASE_URL =
-  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? 'https://cdn.captureflow.xyz';
+  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
 type SharesListProps = {
   shares: DashboardShareRow[];
@@ -110,9 +115,9 @@ function ShareCard({
   const readOnly = !canAuthor;
   const [pending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
-  const [title, setTitle] = useState(share.title ?? '');
+  const [title, setTitle] = useState(share.title ?? "");
   const [visibility, setVisibility] = useState<ShareVisibility>(
-    share.visibility
+    share.visibility,
   );
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -123,12 +128,12 @@ function ShareCard({
     ? `${CDN_BASE_URL}/${share.posterKey}`
     : null;
   const videoThumbUrl =
-    share.state === 'ready' && !posterUrl
+    share.state === "ready" && !posterUrl
       ? `${CDN_BASE_URL}/${share.storageKey}?v=${share.sizeBytes}`
       : null;
   const thumbnailHref = shareUrl;
-  const thumbnailTarget = '_blank';
-  const thumbnailRel = 'noreferrer';
+  const thumbnailTarget = "_blank";
+  const thumbnailRel = "noreferrer";
 
   const onRename = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -160,7 +165,7 @@ function ShareCard({
 
   const onDelete = () => {
     const ok = confirm(
-      `Delete this share permanently? The video and link will stop working immediately.`
+      `Delete this share permanently? The video and link will stop working immediately.`,
     );
     if (!ok) return;
     setError(null);
@@ -171,7 +176,7 @@ function ShareCard({
   };
 
   const onCopyLink = () => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     void navigator.clipboard
       .writeText(shareUrl)
       .then(() => {
@@ -181,13 +186,13 @@ function ShareCard({
       .catch(() => setCopied(false));
   };
 
-  const displayTitle = share.title?.trim() || 'Untitled share';
-  const authorLabel = authorName ?? 'Unknown';
+  const displayTitle = share.title?.trim() || "Untitled share";
+  const authorLabel = authorName ?? "Unknown";
 
   return (
     <article className="group overflow-hidden rounded-lg border border-line bg-neutral-900 transition-colors hover:border-line-strong">
       <Link
-        aria-label={readOnly ? 'Open share' : 'Edit share'}
+        aria-label={readOnly ? "Open share" : "Edit share"}
         className="relative block aspect-video overflow-hidden bg-neutral-950"
         href={thumbnailHref}
         target={thumbnailTarget}
@@ -220,7 +225,7 @@ function ShareCard({
             {formatDuration(share.durationMs)}
           </span>
         )}
-        {share.state !== 'ready' && (
+        {share.state !== "ready" && (
           <span className="absolute left-2 top-2 rounded-md bg-amber-500/90 px-2 py-0.5 text-[11px] font-medium text-amber-950">
             {share.state}
           </span>
@@ -229,8 +234,8 @@ function ShareCard({
         {/* Eats clicks so the underlying Link doesn't fire. */}
         <div
           className={
-            'absolute right-2 top-2 flex items-center gap-1.5 transition-opacity ' +
-            (menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')
+            "absolute right-2 top-2 flex items-center gap-1.5 transition-opacity " +
+            (menuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100")
           }
           onClick={(e) => {
             e.preventDefault();
@@ -240,13 +245,13 @@ function ShareCard({
           <button
             type="button"
             onClick={onCopyLink}
-            aria-label={copied ? 'Link copied' : 'Copy link'}
-            title={copied ? 'Link copied' : 'Copy link'}
+            aria-label={copied ? "Link copied" : "Copy link"}
+            title={copied ? "Link copied" : "Copy link"}
             className={
-              'flex h-8 w-8 items-center justify-center rounded-md backdrop-blur-md transition-colors ' +
+              "flex h-8 w-8 items-center justify-center rounded-md backdrop-blur-md transition-colors " +
               (copied
-                ? 'bg-emerald-500/85 text-white'
-                : 'bg-white/80 text-fg ring-1 ring-line-strong hover:bg-white dark:bg-black/55 dark:text-white dark:hover:bg-black/70')
+                ? "bg-emerald-500/85 text-white"
+                : "bg-white/80 text-fg ring-1 ring-line-strong hover:bg-white dark:bg-black/55 dark:text-white dark:hover:bg-black/70")
             }
           >
             {copied ? (
@@ -270,7 +275,7 @@ function ShareCard({
               <SmoothDropdownMenuContent align="end" sideOffset={6}>
                 <SmoothDropdownMenuItem
                   onSelect={() => {
-                    window.open(shareUrl, '_blank', 'noreferrer');
+                    window.open(shareUrl, "_blank", "noreferrer");
                   }}
                 >
                   <ExternalLink className="h-4 w-4 text-neutral-500" />
@@ -359,7 +364,7 @@ function ShareCard({
               className="rounded-md border border-line px-2 py-1 text-xs text-neutral-400 hover:text-neutral-200"
               onClick={() => {
                 setEditing(false);
-                setTitle(share.title ?? '');
+                setTitle(share.title ?? "");
                 setError(null);
               }}
               type="button"
@@ -417,9 +422,9 @@ function ShareCard({
 }
 
 function visibilityLabel(v: ShareVisibility): string {
-  if (v === 'public') return 'Public';
-  if (v === 'workspace') return 'Workspace';
-  return 'Private';
+  if (v === "public") return "Public";
+  if (v === "workspace") return "Workspace";
+  return "Private";
 }
 
 const VisibilityText = forwardRef<
@@ -430,13 +435,13 @@ const VisibilityText = forwardRef<
   }
 >(function VisibilityText(
   { visibility, interactive, className, ...props },
-  ref
+  ref,
 ) {
   const base =
-    'inline-flex items-center gap-1 text-xs leading-none text-neutral-500';
+    "inline-flex items-center gap-1 text-xs leading-none text-neutral-500";
   if (!interactive) {
     return (
-      <span className={base + (className ? ` ${className}` : '')}>
+      <span className={base + (className ? ` ${className}` : "")}>
         {visibilityLabel(visibility)}
       </span>
     );
@@ -447,8 +452,8 @@ const VisibilityText = forwardRef<
       type="button"
       className={
         base +
-        ' cursor-pointer rounded-sm transition-colors hover:text-neutral-200' +
-        (className ? ` ${className}` : '')
+        " cursor-pointer rounded-sm transition-colors hover:text-neutral-200" +
+        (className ? ` ${className}` : "")
       }
       {...props}
     >
@@ -457,4 +462,3 @@ const VisibilityText = forwardRef<
     </button>
   );
 });
-

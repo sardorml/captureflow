@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useFormStatus } from 'react-dom';
-import { type ReactNode } from 'react';
+import { useFormStatus } from "react-dom";
+import { type ReactNode } from "react";
 
 type Props = {
   active: boolean;
@@ -20,18 +20,18 @@ export function PolicyCardButton({ active, icon, title, body }: Props) {
       disabled={pending}
       aria-busy={pending}
       className={
-        'group relative flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors disabled:cursor-progress ' +
+        "group relative flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors disabled:cursor-progress " +
         (showPending
-          ? 'border-blue-500/40 bg-neutral-800/60'
+          ? "border-blue-500/40 bg-neutral-800/60"
           : showActive
-          ? 'border-line-strong bg-neutral-800'
-          : 'border-line bg-neutral-950/60 hover:border-line-strong hover:bg-neutral-800/60')
+            ? "border-line-strong bg-neutral-800"
+            : "border-line bg-neutral-950/60 hover:border-line-strong hover:bg-neutral-800/60")
       }
     >
       <span
         className={
-          'mt-0.5 shrink-0 transition-colors ' +
-          (showActive ? 'text-fg dark:text-white' : 'text-neutral-400')
+          "mt-0.5 shrink-0 transition-colors " +
+          (showActive ? "text-fg dark:text-white" : "text-neutral-400")
         }
       >
         {icon}
@@ -50,12 +50,12 @@ export function PolicyCardButton({ active, icon, title, body }: Props) {
       <span
         aria-hidden
         className={
-          'mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors ' +
+          "mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors " +
           (showPending
-            ? 'border-blue-500 bg-neutral-900'
+            ? "border-blue-500 bg-neutral-900"
             : showActive
-            ? 'border-fg bg-fg'
-            : 'border-neutral-600 bg-neutral-950')
+              ? "border-fg bg-fg"
+              : "border-neutral-600 bg-neutral-950")
         }
       >
         {showPending ? (

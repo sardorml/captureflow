@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRef, useState, useSyncExternalStore, useTransition } from 'react';
-import { UserPlus, X } from 'lucide-react';
+import { useRef, useState, useSyncExternalStore, useTransition } from "react";
+import { UserPlus, X } from "lucide-react";
 import {
   SmoothButton,
   SmoothDialog,
@@ -10,8 +10,8 @@ import {
   SmoothDialogHeader,
   SmoothDialogTitle,
   SmoothDialogTrigger,
-} from '@captureflow/ui';
-import { inviteMemberAction } from './members/actions';
+} from "@captureflow/ui";
+import { inviteMemberAction } from "./members/actions";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -24,7 +24,7 @@ type InviteModalProps = {
 export function InviteModal({ trigger }: InviteModalProps = {}) {
   const [open, setOpen] = useState(false);
   const [chips, setChips] = useState<string[]>([]);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -34,18 +34,18 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
-    () => false
+    () => false,
   );
 
   const reset = () => {
     setChips([]);
-    setDraft('');
+    setDraft("");
     setError(null);
     setResult(null);
   };
 
   const commitDraft = (raw: string): boolean => {
-    const email = raw.trim().replace(/,$/, '');
+    const email = raw.trim().replace(/,$/, "");
     if (!email) return true;
     if (!EMAIL_RE.test(email)) {
       setError(`"${email}" isn't a valid email`);
@@ -62,23 +62,23 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (
-      e.key === ' ' ||
-      e.key === ',' ||
-      e.key === 'Enter' ||
-      e.key === 'Tab'
+      e.key === " " ||
+      e.key === "," ||
+      e.key === "Enter" ||
+      e.key === "Tab"
     ) {
       if (draft.trim()) {
         e.preventDefault();
-        if (commitDraft(draft)) setDraft('');
+        if (commitDraft(draft)) setDraft("");
       }
-    } else if (e.key === 'Backspace' && !draft && chips.length > 0) {
+    } else if (e.key === "Backspace" && !draft && chips.length > 0) {
       e.preventDefault();
       setChips((prev) => prev.slice(0, -1));
     }
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const text = e.clipboardData.getData('text');
+    const text = e.clipboardData.getData("text");
     if (!/[\s,]/.test(text)) return;
     e.preventDefault();
     const parts = text
@@ -110,12 +110,12 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
     let toSend = chips;
     if (draft.trim()) {
       if (!commitDraft(draft)) return;
-      setDraft('');
-      toSend = [...chips, draft.trim().replace(/,$/, '')];
+      setDraft("");
+      toSend = [...chips, draft.trim().replace(/,$/, "")];
     }
 
     if (toSend.length === 0) {
-      setError('Add at least one email');
+      setError("Add at least one email");
       return;
     }
 
@@ -124,10 +124,10 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
       const failed: { email: string; error: string }[] = [];
       for (const email of toSend) {
         const fd = new FormData();
-        fd.set('email', email);
+        fd.set("email", email);
         const res = await inviteMemberAction({ error: null, ok: null }, fd);
         if (res.ok) sent.push(email);
-        else failed.push({ email, error: res.error ?? 'Failed' });
+        else failed.push({ email, error: res.error ?? "Failed" });
       }
       setResult({ sent, failed });
       if (failed.length === 0) {
@@ -209,9 +209,9 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
                 onBlur={() => {
-                  if (draft.trim() && commitDraft(draft)) setDraft('');
+                  if (draft.trim() && commitDraft(draft)) setDraft("");
                 }}
-                placeholder={chips.length === 0 ? 'Add emails' : ''}
+                placeholder={chips.length === 0 ? "Add emails" : ""}
                 className="min-w-[8rem] flex-1 bg-transparent px-1 py-1 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none"
               />
             </div>
@@ -225,8 +225,8 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
             <div className="space-y-1 text-sm">
               {result.sent.length > 0 && (
                 <p className="text-emerald-400">
-                  Sent {result.sent.length}{' '}
-                  {result.sent.length === 1 ? 'invite' : 'invites'}.
+                  Sent {result.sent.length}{" "}
+                  {result.sent.length === 1 ? "invite" : "invites"}.
                 </p>
               )}
               {result.failed.length > 0 && (
@@ -253,7 +253,7 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
               type="submit"
               disabled={isPending || (chips.length === 0 && !draft.trim())}
             >
-              {isPending ? 'Sending…' : 'Send Invites'}
+              {isPending ? "Sending…" : "Send Invites"}
             </SmoothButton>
           </div>
         </form>

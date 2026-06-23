@@ -1,10 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { ACCOUNT_LIMITS, getEffectiveLimitsForUser } from '@captureflow/quota';
-import { getAppWebEnv } from './cf-env';
+import { ACCOUNT_LIMITS, getEffectiveLimitsForUser } from "@captureflow/quota";
+import { getAppWebEnv } from "./cf-env";
 
 export async function getEffectiveStorageLimit(
-  userId: string
+  userId: string,
 ): Promise<number> {
   const env = await getAppWebEnv();
   if (!env?.DB) return ACCOUNT_LIMITS.totalStorageBytes;

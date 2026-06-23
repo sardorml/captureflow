@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 type CallbackHandoffProps = {
   deepLink: string;
@@ -29,7 +29,7 @@ export function CallbackHandoff({ deepLink, email }: CallbackHandoffProps) {
     <main className="flex min-h-screen items-center justify-center px-6 py-10">
       <div className="w-full max-w-md text-center">
         <h1 className="text-2xl font-semibold tracking-tight text-neutral-100">
-          {opened ? 'Returning to CaptureFlow…' : 'Signing you in…'}
+          {opened ? "Returning to CaptureFlow…" : "Signing you in…"}
         </h1>
         <p className="mt-2 text-sm text-neutral-400">
           Signed in as <span className="text-neutral-200">{email}</span>.

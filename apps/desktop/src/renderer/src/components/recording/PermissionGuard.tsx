@@ -1,73 +1,88 @@
-import { useEffect, useRef, useState } from 'react'
-import { Monitor, MousePointer2, CheckCircle2 } from 'lucide-react'
-import { SmoothButton } from '@/components/ui/smooth-button'
-import logoImg from '@/assets/logo.png'
+import { useEffect, useRef, useState } from "react";
+import { Monitor, MousePointer2, CheckCircle2 } from "lucide-react";
+import { SmoothButton } from "@/components/ui/smooth-button";
+import logoImg from "@/assets/logo.png";
 
 type PermissionStatus = {
-  screen: string
-  accessibility: boolean
-}
+  screen: string;
+  accessibility: boolean;
+};
 
 type PermissionGuardProps = {
-  children: React.ReactNode
-}
+  children: React.ReactNode;
+};
 
-const ONBOARDING_KEY = 'captureflow-onboarding-complete'
+const ONBOARDING_KEY = "captureflow-onboarding-complete";
 
-export function PermissionGuard({ children }: PermissionGuardProps): React.JSX.Element {
-  const [permissions, setPermissions] = useState<PermissionStatus | null>(null)
-  const [checking, setChecking] = useState(true)
+export function PermissionGuard({
+  children,
+}: PermissionGuardProps): React.JSX.Element {
+  const [permissions, setPermissions] = useState<PermissionStatus | null>(null);
+  const [checking, setChecking] = useState(true);
   const [onboarded, setOnboarded] = useState(() => {
-    const done = localStorage.getItem(ONBOARDING_KEY) === '1'
+    const done = localStorage.getItem(ONBOARDING_KEY) === "1";
     if (done) {
-      window.electronAPI.resizeWindow({ width: 520, height: 720, minWidth: 520, minHeight: 720 })
+      window.electronAPI.resizeWindow({
+        width: 520,
+        height: 720,
+        minWidth: 520,
+        minHeight: 720,
+      });
     }
-    return done
-  })
+    return done;
+  });
 
-  const checkRef = useRef<() => Promise<void>>(async () => {})
+  const checkRef = useRef<() => Promise<void>>(async () => {});
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
     const tick = async (): Promise<void> => {
-      const perms = await window.electronAPI.getPermissions()
-      if (cancelled) return
-      setPermissions({ screen: perms.screen, accessibility: perms.accessibility })
-      setChecking(false)
-    }
-    checkRef.current = tick
-    tick()
-    const interval = setInterval(tick, 2000)
+      const perms = await window.electronAPI.getPermissions();
+      if (cancelled) return;
+      setPermissions({
+        screen: perms.screen,
+        accessibility: perms.accessibility,
+      });
+      setChecking(false);
+    };
+    checkRef.current = tick;
+    tick();
+    const interval = setInterval(tick, 2000);
     return () => {
-      cancelled = true
-      clearInterval(interval)
-    }
-  }, [])
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   const openScreenRecordingSettings = (): void => {
     window.electronAPI.openExternal(
-      'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
-    )
-  }
+      "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture",
+    );
+  };
 
   const requestAccessibility = async (): Promise<void> => {
-    await window.electronAPI.requestAccessibility()
-    void checkRef.current()
-  }
+    await window.electronAPI.requestAccessibility();
+    void checkRef.current();
+  };
 
-  if (checking) return <>{children}</>
+  if (checking) return <>{children}</>;
 
-  const screenOk = permissions?.screen === 'granted'
-  const accessibilityOk = permissions?.accessibility === true
-  const allGranted = screenOk && accessibilityOk
+  const screenOk = permissions?.screen === "granted";
+  const accessibilityOk = permissions?.accessibility === true;
+  const allGranted = screenOk && accessibilityOk;
 
-  if (onboarded && allGranted) return <>{children}</>
+  if (onboarded && allGranted) return <>{children}</>;
 
   const handleContinue = (): void => {
-    localStorage.setItem(ONBOARDING_KEY, '1')
-    window.electronAPI.resizeWindow({ width: 520, height: 720, minWidth: 520, minHeight: 720 })
-    setOnboarded(true)
-  }
+    localStorage.setItem(ONBOARDING_KEY, "1");
+    window.electronAPI.resizeWindow({
+      width: 520,
+      height: 720,
+      minWidth: 520,
+      minHeight: 720,
+    });
+    setOnboarded(true);
+  };
 
   return (
     <div className="h-full flex flex-col items-center justify-center px-10 pb-8">
@@ -77,7 +92,8 @@ export function PermissionGuard({ children }: PermissionGuardProps): React.JSX.E
         Welcome to CaptureFlow!
       </h2>
       <p className="text-[13px] text-muted-foreground text-center mb-10 max-w-xs">
-        Before you can start recording, we need to ask you for a few permissions.
+        Before you can start recording, we need to ask you for a few
+        permissions.
       </p>
 
       <div className="w-full max-w-md space-y-6">
@@ -110,7 +126,7 @@ export function PermissionGuard({ children }: PermissionGuardProps): React.JSX.E
         Continue
       </SmoothButton>
     </div>
-  )
+  );
 }
 
 function PermissionRow({
@@ -119,23 +135,27 @@ function PermissionRow({
   description,
   granted,
   buttonLabel,
-  onRequest
+  onRequest,
 }: {
-  icon: React.ReactNode
-  title: string
-  description: string
-  granted: boolean
-  buttonLabel: string
-  onRequest: () => void
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  granted: boolean;
+  buttonLabel: string;
+  onRequest: () => void;
 }): React.JSX.Element {
   return (
     <div className="flex items-start gap-5">
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <span className={granted ? 'text-blue-400' : 'text-muted-foreground'}>{icon}</span>
+          <span className={granted ? "text-blue-400" : "text-muted-foreground"}>
+            {icon}
+          </span>
           <h3 className="text-sm font-semibold text-foreground">{title}</h3>
         </div>
-        <p className="text-[13px] text-muted-foreground leading-relaxed">{description}</p>
+        <p className="text-[13px] text-muted-foreground leading-relaxed">
+          {description}
+        </p>
       </div>
       <div className="shrink-0 pt-0.5">
         {granted ? (
@@ -153,5 +173,5 @@ function PermissionRow({
         )}
       </div>
     </div>
-  )
+  );
 }

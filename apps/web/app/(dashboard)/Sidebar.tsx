@@ -1,19 +1,19 @@
-import Image from 'next/image';
-import { initials as initialsOf } from '@/lib/format';
-import Link from 'next/link';
-import { Video } from 'lucide-react';
-import { listMembers, totalStorageForUser } from '@captureflow/quota';
-import type { AvatarGroupItem } from '@captureflow/ui';
-import { UserPlus } from 'lucide-react';
-import { getAppWebEnv } from '@/lib/cf-env';
-import { requireSession } from '@/lib/session-guard';
-import { resolveCurrentWorkspace } from '@/lib/current-workspace';
-import { getEffectiveStorageLimit } from '@/lib/user-quota';
-import { StorageUsage } from '../StorageUsage';
-import { InviteModal } from './InviteModal';
-import { SidebarNav } from './SidebarNav';
-import { WorkspaceMembersStack } from './WorkspaceMembersStack';
-import { WorkspaceSwitcher } from './WorkspaceSwitcher';
+import Image from "next/image";
+import { initials as initialsOf } from "@/lib/format";
+import Link from "next/link";
+import { Video } from "lucide-react";
+import { listMembers, totalStorageForUser } from "@captureflow/quota";
+import type { AvatarGroupItem } from "@captureflow/ui";
+import { UserPlus } from "lucide-react";
+import { getAppWebEnv } from "@/lib/cf-env";
+import { requireSession } from "@/lib/session-guard";
+import { resolveCurrentWorkspace } from "@/lib/current-workspace";
+import { getEffectiveStorageLimit } from "@/lib/user-quota";
+import { StorageUsage } from "../StorageUsage";
+import { InviteModal } from "./InviteModal";
+import { SidebarNav } from "./SidebarNav";
+import { WorkspaceMembersStack } from "./WorkspaceMembersStack";
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
 export async function Sidebar() {
   const session = await requireSession();
@@ -29,7 +29,7 @@ export async function Sidebar() {
   const members = env?.DB
     ? await listMembers(env.DB, current.workspace.id)
     : [];
-  const isOwner = current.role === 'owner';
+  const isOwner = current.role === "owner";
   const memberItems: AvatarGroupItem[] = members.map((m) => {
     const display = m.name?.trim() || m.email;
     return {
@@ -107,4 +107,3 @@ export async function Sidebar() {
     </aside>
   );
 }
-

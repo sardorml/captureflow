@@ -26,13 +26,13 @@ uploads don't silently consume space.
 If you self-host, the underlying Cloudflare limits apply. These are **per
 account**, not per domain:
 
-| Resource | Free tier |
-| --- | --- |
-| **R2** storage | 10 GB, then usage-based |
-| **R2** operations | Class A/B daily operation limits |
-| **D1** storage | 5 GB |
-| **D1** rows | Daily read/written row limits |
-| **Workers** requests | 100k/day |
+| Resource             | Free tier                        |
+| -------------------- | -------------------------------- |
+| **R2** storage       | 10 GB, then usage-based          |
+| **R2** operations    | Class A/B daily operation limits |
+| **D1** storage       | 5 GB                             |
+| **D1** rows          | Daily read/written row limits    |
+| **Workers** requests | 100k/day                         |
 
 For a video-heavy workload you'll usually hit **R2 storage and operation
 limits** before anything else. Plan capacity around R2 first.

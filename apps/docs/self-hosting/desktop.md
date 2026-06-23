@@ -9,12 +9,12 @@ you set them **before building** the app.
 All four default to `https://captureflow.xyz` (the unified Worker). If you
 self-host on that domain, you don't need to set anything.
 
-| Env var | Default (prod) |
-| --- | --- |
-| `CAPTUREFLOW_APP_WEB_API_BASE` | `https://captureflow.xyz` |
-| `CAPTUREFLOW_APP_WEB_BASE` | `https://captureflow.xyz` |
-| `CAPTUREFLOW_SHARE_API_BASE` | `https://captureflow.xyz/api/r` |
-| `CAPTUREFLOW_SNAP_API_BASE` | `https://captureflow.xyz/api/s` |
+| Env var                        | Default (prod)                  |
+| ------------------------------ | ------------------------------- |
+| `CAPTUREFLOW_APP_WEB_API_BASE` | `https://captureflow.xyz`       |
+| `CAPTUREFLOW_APP_WEB_BASE`     | `https://captureflow.xyz`       |
+| `CAPTUREFLOW_SHARE_API_BASE`   | `https://captureflow.xyz/api/r` |
+| `CAPTUREFLOW_SNAP_API_BASE`    | `https://captureflow.xyz/api/s` |
 
 In local dev (`pnpm --filter @captureflow/desktop dev`) these default to
 `http://localhost:3032`, so the recorder talks to a locally running Worker.

@@ -1,4 +1,4 @@
-const PNG = '.png';
+const PNG = ".png";
 
 export function sourceKeyFor(storageKey: string): string {
   if (storageKey.endsWith(PNG)) {

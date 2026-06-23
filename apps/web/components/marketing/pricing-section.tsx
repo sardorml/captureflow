@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { CURRENT_STAGE } from '@/lib/marketing/constants';
-import { useMessages } from './i18n-provider';
-import { FreeCard } from './free-card';
-import { ManagedCard } from './managed-card';
+import { CURRENT_STAGE } from "@/lib/marketing/constants";
+import { useMessages } from "./i18n-provider";
+import { FreeCard } from "./free-card";
+import { ManagedCard } from "./managed-card";
 
 type PricingSectionProps = {
   hideHeading?: boolean;

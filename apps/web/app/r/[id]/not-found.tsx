@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { MARKETING_SITE_URL, PRODUCT_NAME } from '@/lib/site';
+import Link from "next/link";
+import { MARKETING_SITE_URL, PRODUCT_NAME } from "@/lib/site";
 
 export default function ShareNotFound() {
   return (

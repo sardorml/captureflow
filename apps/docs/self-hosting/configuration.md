@@ -16,18 +16,18 @@ need it. Most have sensible defaults — the only hard requirement is
 
 ## Bindings (required)
 
-| Binding | Purpose | How to set |
-| --- | --- | --- |
-| `DB` | D1 database | `wrangler d1 create captureflow` → paste id into `wrangler.jsonc` |
-| `BUCKET` | R2 recordings bucket | `wrangler r2 bucket create captureflow-recordings` |
-| `ASSETS` | Static-assets fetcher | Auto-wired by the OpenNext build |
+| Binding  | Purpose               | How to set                                                        |
+| -------- | --------------------- | ----------------------------------------------------------------- |
+| `DB`     | D1 database           | `wrangler d1 create captureflow` → paste id into `wrangler.jsonc` |
+| `BUCKET` | R2 recordings bucket  | `wrangler r2 bucket create captureflow-recordings`                |
+| `ASSETS` | Static-assets fetcher | Auto-wired by the OpenNext build                                  |
 
 ## Auth
 
-| Var | Required? | Scope | Purpose |
-| --- | --- | --- | --- |
-| `BETTER_AUTH_SECRET` | **Required** | secret | Signs Better Auth sessions. Login won't work without it. |
-| `BETTER_AUTH_URL` | Required (has default) | var | Base URL sessions are issued/validated against. |
+| Var                  | Required?              | Scope  | Purpose                                                  |
+| -------------------- | ---------------------- | ------ | -------------------------------------------------------- |
+| `BETTER_AUTH_SECRET` | **Required**           | secret | Signs Better Auth sessions. Login won't work without it. |
+| `BETTER_AUTH_URL`    | Required (has default) | var    | Base URL sessions are issued/validated against.          |
 
 ```bash
 openssl rand -hex 32 | pnpm --filter @captureflow/web exec wrangler secret put BETTER_AUTH_SECRET
@@ -38,24 +38,24 @@ openssl rand -hex 32 | pnpm --filter @captureflow/web exec wrangler secret put B
 All default to `https://captureflow.xyz` / `https://cdn.captureflow.xyz`. Change
 them if you use a different domain.
 
-| Var | Default |
-| --- | --- |
-| `NEXT_PUBLIC_APP_WEB_SITE_URL` | `https://captureflow.xyz` |
-| `NEXT_PUBLIC_SHARE_SITE_URL` | `https://captureflow.xyz` |
-| `NEXT_PUBLIC_SNAP_SITE_URL` | `https://captureflow.xyz` |
-| `NEXT_PUBLIC_MARKETING_SITE_URL` | `https://captureflow.xyz` |
-| `R2_PUBLIC_BASE_URL` | `https://cdn.captureflow.xyz` |
-| `NEXT_PUBLIC_R2_PUBLIC_BASE_URL` | mirrors `R2_PUBLIC_BASE_URL` |
-| `APP_DEEP_LINK_SCHEME` | `captureflow` (the `captureflow://` deep link) |
-| `APP_WEB_PUBLIC_URL` | `https://captureflow.xyz` (invite links) |
+| Var                              | Default                                        |
+| -------------------------------- | ---------------------------------------------- |
+| `NEXT_PUBLIC_APP_WEB_SITE_URL`   | `https://captureflow.xyz`                      |
+| `NEXT_PUBLIC_SHARE_SITE_URL`     | `https://captureflow.xyz`                      |
+| `NEXT_PUBLIC_SNAP_SITE_URL`      | `https://captureflow.xyz`                      |
+| `NEXT_PUBLIC_MARKETING_SITE_URL` | `https://captureflow.xyz`                      |
+| `R2_PUBLIC_BASE_URL`             | `https://cdn.captureflow.xyz`                  |
+| `NEXT_PUBLIC_R2_PUBLIC_BASE_URL` | mirrors `R2_PUBLIC_BASE_URL`                   |
+| `APP_DEEP_LINK_SCHEME`           | `captureflow` (the `captureflow://` deep link) |
+| `APP_WEB_PUBLIC_URL`             | `https://captureflow.xyz` (invite links)       |
 
 ## Email — Resend (optional)
 
 Skip to disable invite emails (invite links can still be shared manually).
 
-| Var | Scope | Purpose |
-| --- | --- | --- |
-| `RESEND_API_KEY` | secret | Resend API key for workspace-invite emails. Unset = sends skipped. |
+| Var                   | Scope      | Purpose                                                                 |
+| --------------------- | ---------- | ----------------------------------------------------------------------- |
+| `RESEND_API_KEY`      | secret     | Resend API key for workspace-invite emails. Unset = sends skipped.      |
 | `RESEND_FROM_ADDRESS` | secret/var | Verified "from" address. Default `CaptureFlow <hello@captureflow.xyz>`. |
 
 ## Local development

@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
-import { PRODUCT_NAME, SITE_URL } from '@/lib/site';
+import type { Metadata } from "next";
+import { PRODUCT_NAME, SITE_URL } from "@/lib/site";
 
 // noindex baseline for the viewer segment: user-generated screenshots must
 // never land in organic search. Per-snap pages still emit their own OG.

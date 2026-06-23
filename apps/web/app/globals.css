@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import '../../../packages/ui/src/styles/tokens.css';
+@import "tailwindcss";
+@import "../../../packages/ui/src/styles/tokens.css";
 
 /* Tailwind v4 only auto-scans the app's own source tree. The shared
    @captureflow/ui package lives outside it, so its utility classes need
@@ -14,8 +14,16 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont,
-    'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    var(--font-sans),
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
 }
 
 /* Play/pause flash overlay on the SharePlayer. Shared between the

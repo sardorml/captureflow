@@ -1,4 +1,4 @@
-import type { ShareComment, ShareReaction, ShareRow } from './types';
+import type { ShareComment, ShareReaction, ShareRow } from "./types";
 
 export type ShareDb = {
   insertShare(row: ShareRow): Promise<void>;

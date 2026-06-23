@@ -1,10 +1,14 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { initials, formatBytes, formatRelativeShort as formatRelative } from '@/lib/format';
-import Link from 'next/link';
-import { forwardRef, useState, useTransition, type FormEvent } from 'react';
-import type React from 'react';
+import Image from "next/image";
+import {
+  initials,
+  formatBytes,
+  formatRelativeShort as formatRelative,
+} from "@/lib/format";
+import Link from "next/link";
+import { forwardRef, useState, useTransition, type FormEvent } from "react";
+import type React from "react";
 import {
   Check,
   ChevronDown,
@@ -16,9 +20,9 @@ import {
   Pencil,
   Smile,
   Trash2,
-} from 'lucide-react';
-import type { DashboardSnapRow, SnapVisibility } from '@/lib/snaps-db';
-import { snapViewUrlFor } from '@/lib/site';
+} from "lucide-react";
+import type { DashboardSnapRow, SnapVisibility } from "@/lib/snaps-db";
+import { snapViewUrlFor } from "@/lib/site";
 import {
   Avatar,
   AvatarFallback,
@@ -27,16 +31,16 @@ import {
   SmoothDropdownMenuContent,
   SmoothDropdownMenuItem,
   SmoothDropdownMenuTrigger,
-} from '@captureflow/ui';
+} from "@captureflow/ui";
 import {
   deleteSnapAction,
   renameSnapAction,
   setSnapVisibilityAction,
-} from '../../actions';
-import { VisibilityDialog } from '../../VisibilityDialog';
+} from "../../actions";
+import { VisibilityDialog } from "../../VisibilityDialog";
 
 const R2_BASE =
-  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? 'https://cdn.captureflow.xyz';
+  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
 // R2 is served with long cache headers, so cache-bust by tagging the URL with
 // the freshest mutation timestamp; otherwise overwrites serve stale bytes.
@@ -121,7 +125,7 @@ function SnapCard({
   const [pending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
   const [renaming, startRenameTransition] = useTransition();
-  const [title, setTitle] = useState(snap.title ?? '');
+  const [title, setTitle] = useState(snap.title ?? "");
   const [renameError, setRenameError] = useState<string | null>(null);
   const [visibility, setVisibility] = useState<SnapVisibility>(snap.visibility);
   const [visibilityError, setVisibilityError] = useState<string | null>(null);
@@ -129,7 +133,7 @@ function SnapCard({
   const viewUrl = publicSnapViewUrl(snap.id);
   const imageUrl = publicSnapImageUrl(snap);
   const displayTitle = snap.title?.trim() || `Snap ${snap.id}`;
-  const authorLabel = authorName ?? 'Unknown';
+  const authorLabel = authorName ?? "Unknown";
 
   const copy = async () => {
     try {
@@ -142,7 +146,7 @@ function SnapCard({
   };
 
   const remove = () => {
-    if (!confirm('Delete this snap? The public link will stop working.'))
+    if (!confirm("Delete this snap? The public link will stop working."))
       return;
     startTransition(async () => {
       await deleteSnapAction(snap.id);
@@ -164,8 +168,8 @@ function SnapCard({
   };
 
   const thumbnailHref = viewUrl;
-  const thumbnailTarget = '_blank';
-  const thumbnailRel = 'noreferrer';
+  const thumbnailTarget = "_blank";
+  const thumbnailRel = "noreferrer";
 
   return (
     <article className="group overflow-hidden rounded-lg border border-line bg-neutral-900 transition-colors hover:border-line-strong">
@@ -190,8 +194,8 @@ function SnapCard({
         {/* Eats clicks so the underlying Link doesn't fire. */}
         <div
           className={
-            'absolute right-2 top-2 flex items-center gap-1.5 transition-opacity ' +
-            (menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')
+            "absolute right-2 top-2 flex items-center gap-1.5 transition-opacity " +
+            (menuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100")
           }
           onClick={(e) => {
             e.preventDefault();
@@ -201,13 +205,13 @@ function SnapCard({
           <button
             type="button"
             onClick={copy}
-            aria-label={copied ? 'Link copied' : 'Copy link'}
-            title={copied ? 'Link copied' : 'Copy link'}
+            aria-label={copied ? "Link copied" : "Copy link"}
+            title={copied ? "Link copied" : "Copy link"}
             className={
-              'flex h-8 w-8 items-center justify-center rounded-md backdrop-blur-md transition-colors ' +
+              "flex h-8 w-8 items-center justify-center rounded-md backdrop-blur-md transition-colors " +
               (copied
-                ? 'bg-emerald-500/85 text-white'
-                : 'bg-white/80 text-fg ring-1 ring-line-strong hover:bg-white dark:bg-black/55 dark:text-white dark:hover:bg-black/70')
+                ? "bg-emerald-500/85 text-white"
+                : "bg-white/80 text-fg ring-1 ring-line-strong hover:bg-white dark:bg-black/55 dark:text-white dark:hover:bg-black/70")
             }
           >
             {copied ? (
@@ -231,7 +235,7 @@ function SnapCard({
               <SmoothDropdownMenuContent align="end" sideOffset={6}>
                 <SmoothDropdownMenuItem
                   onSelect={() => {
-                    window.open(viewUrl, '_blank', 'noreferrer');
+                    window.open(viewUrl, "_blank", "noreferrer");
                   }}
                 >
                   <ExternalLink className="h-4 w-4 text-neutral-500" />
@@ -333,7 +337,7 @@ function SnapCard({
               type="button"
               onClick={() => {
                 setEditing(false);
-                setTitle(snap.title ?? '');
+                setTitle(snap.title ?? "");
                 setRenameError(null);
               }}
               className="rounded-md border border-line px-2 py-1 text-xs text-neutral-400 hover:text-neutral-200"
@@ -392,9 +396,9 @@ function SnapCard({
 }
 
 function visibilityLabel(v: SnapVisibility): string {
-  if (v === 'public') return 'Public';
-  if (v === 'workspace') return 'Workspace';
-  return 'Private';
+  if (v === "public") return "Public";
+  if (v === "workspace") return "Workspace";
+  return "Private";
 }
 
 const VisibilityText = forwardRef<
@@ -405,13 +409,13 @@ const VisibilityText = forwardRef<
   }
 >(function VisibilityText(
   { visibility, interactive, className, ...props },
-  ref
+  ref,
 ) {
   const base =
-    'inline-flex items-center gap-1 text-xs leading-none text-neutral-500';
+    "inline-flex items-center gap-1 text-xs leading-none text-neutral-500";
   if (!interactive) {
     return (
-      <span className={base + (className ? ` ${className}` : '')}>
+      <span className={base + (className ? ` ${className}` : "")}>
         {visibilityLabel(visibility)}
       </span>
     );
@@ -422,8 +426,8 @@ const VisibilityText = forwardRef<
       type="button"
       className={
         base +
-        ' cursor-pointer rounded-sm transition-colors hover:text-neutral-200' +
-        (className ? ` ${className}` : '')
+        " cursor-pointer rounded-sm transition-colors hover:text-neutral-200" +
+        (className ? ` ${className}` : "")
       }
       {...props}
     >
@@ -432,4 +436,3 @@ const VisibilityText = forwardRef<
     </button>
   );
 });
-

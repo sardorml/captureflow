@@ -1,31 +1,31 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   activeArtifactCountForUser,
   getEffectiveLimitsForUser,
   getWorkspaceById,
   isWorkspaceMember,
   totalStorageForUser,
-} from '@captureflow/quota';
-import { getAppWebEnv } from '@/lib/cf-env';
-import { resolveDeviceToken } from '@/lib/device-tokens';
+} from "@captureflow/quota";
+import { getAppWebEnv } from "@/lib/cf-env";
+import { resolveDeviceToken } from "@/lib/device-tokens";
 
-const DEVICE_HEADER = 'x-captureflow-device';
+const DEVICE_HEADER = "x-captureflow-device";
 
 function extractBearerToken(req: NextRequest): string | null {
-  const h = req.headers.get('authorization') ?? '';
+  const h = req.headers.get("authorization") ?? "";
   const m = /^bearer\s+(.+)$/i.exec(h.trim());
   return m ? m[1].trim() : null;
 }
 
 const CORS_HEADERS = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, OPTIONS',
-  'access-control-allow-headers':
-    'Content-Type, Authorization, x-captureflow-device',
-  'access-control-max-age': '86400',
-  vary: 'Origin',
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, OPTIONS",
+  "access-control-allow-headers":
+    "Content-Type, Authorization, x-captureflow-device",
+  "access-control-max-age": "86400",
+  vary: "Origin",
 } as const;
 
 function withCors(res: NextResponse): NextResponse {
@@ -55,19 +55,19 @@ function jsonError(error: string, status: number, code?: string) {
 export async function GET(req: NextRequest) {
   const deviceId = req.headers.get(DEVICE_HEADER);
   if (!deviceId || deviceId.length < 8 || deviceId.length > 64) {
-    return jsonError('Missing or invalid device header', 400, 'invalid_device');
+    return jsonError("Missing or invalid device header", 400, "invalid_device");
   }
   const bearer = extractBearerToken(req);
   if (!bearer) {
-    return jsonError('Sign in to read usage', 401, 'missing_token');
+    return jsonError("Sign in to read usage", 401, "missing_token");
   }
 
   const env = await getAppWebEnv();
-  if (!env?.DB) return jsonError('db unavailable', 500);
+  if (!env?.DB) return jsonError("db unavailable", 500);
 
   const resolved = await resolveDeviceToken(bearer);
   if (!resolved) {
-    return jsonError('Sign-in expired or revoked', 401, 'invalid_token');
+    return jsonError("Sign-in expired or revoked", 401, "invalid_token");
   }
   const bearerUserId = resolved.userId;
 
@@ -76,13 +76,13 @@ export async function GET(req: NextRequest) {
    * in a Pro owner's workspace sees the owner's limit. Non-members fall back
    * to their own usage view.
    */
-  const requestedWorkspace = new URL(req.url).searchParams.get('workspace_id');
+  const requestedWorkspace = new URL(req.url).searchParams.get("workspace_id");
   let quotaUserId = bearerUserId;
   if (requestedWorkspace) {
     const isMember = await isWorkspaceMember(
       env.DB,
       requestedWorkspace,
-      bearerUserId
+      bearerUserId,
     );
     if (isMember) {
       const ws = await getWorkspaceById(env.DB, requestedWorkspace);

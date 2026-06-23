@@ -1,5 +1,5 @@
-export { SharePlayer } from './SharePlayer';
-export type { SharePlayerHandle, ProgressOverlayInfo } from './SharePlayer';
+export { SharePlayer } from "./SharePlayer";
+export type { SharePlayerHandle, ProgressOverlayInfo } from "./SharePlayer";
 
 export {
   DEFAULT_SHARE_CONFIG,
@@ -10,10 +10,10 @@ export {
   isShareHexColor,
   shareConfigKeyFor,
   shareGradientCss,
-} from '@/lib/share-config';
+} from "@/lib/share-config";
 export type {
   ShareCameraCorner,
   ShareCameraSize,
   ShareConfig,
   ShareGradientKey,
-} from '@/lib/share-config';
+} from "@/lib/share-config";

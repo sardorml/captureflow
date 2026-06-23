@@ -1,24 +1,24 @@
-type LogLevel = 'info' | 'warn' | 'error'
+type LogLevel = "info" | "warn" | "error";
 
 function emit(level: LogLevel, message: string): void {
-  const bridge = window.electronAPI?.log
+  const bridge = window.electronAPI?.log;
   if (bridge) {
-    bridge(level, 'share', message)
-    return
+    bridge(level, "share", message);
+    return;
   }
-  if (level === 'error') console.error(`[share] ${message}`)
-  else if (level === 'warn') console.warn(`[share] ${message}`)
+  if (level === "error") console.error(`[share] ${message}`);
+  else if (level === "warn") console.warn(`[share] ${message}`);
   // Drop info-level when no bridge to avoid console.log noise in tests.
 }
 
 export function logRendererInfo(message: string): void {
-  emit('info', message)
+  emit("info", message);
 }
 
 export function logRendererWarn(message: string): void {
-  emit('warn', message)
+  emit("warn", message);
 }
 
 export function logRendererError(message: string): void {
-  emit('error', message)
+  emit("error", message);
 }

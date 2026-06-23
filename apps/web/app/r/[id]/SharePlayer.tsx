@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   useCallback,
@@ -8,15 +8,15 @@ import {
   useState,
   type MutableRefObject,
   type Ref,
-} from 'react';
-import { MessageSquare } from 'lucide-react';
+} from "react";
+import { MessageSquare } from "lucide-react";
 import {
   SharePlayer as BaseSharePlayer,
   type SharePlayerHandle,
-} from '../../_components/share';
-import type { ShareConfig } from '@/lib/share-config';
-import { DEFAULT_REACTIONS } from '@/lib/share/reactions';
-import type { AddReactionResponse, ShareReaction } from '@/lib/share/types';
+} from "../../_components/share";
+import type { ShareConfig } from "@/lib/share-config";
+import { DEFAULT_REACTIONS } from "@/lib/share/reactions";
+import type { AddReactionResponse, ShareReaction } from "@/lib/share/types";
 
 type Props = {
   videoUrl: string;
@@ -60,7 +60,7 @@ export function SharePlayer({
     /* eslint-disable react-hooks/immutability */
     (handle: SharePlayerHandle | null) => {
       playerRef.current = handle;
-      if (typeof handleRef === 'function') {
+      if (typeof handleRef === "function") {
         handleRef(handle);
       } else if (handleRef) {
         (handleRef as MutableRefObject<SharePlayerHandle | null>).current =
@@ -68,7 +68,7 @@ export function SharePlayer({
       }
     },
     /* eslint-enable react-hooks/immutability */
-    [handleRef]
+    [handleRef],
   );
 
   const [reactions, setReactions] = useState<ShareReaction[]>(initialReactions);
@@ -109,7 +109,7 @@ export function SharePlayer({
       userImage: null,
     };
     setReactions((prev) =>
-      [...prev, optimistic].sort((a, b) => a.timestampMs - b.timestampMs)
+      [...prev, optimistic].sort((a, b) => a.timestampMs - b.timestampMs),
     );
     setFreshIds((prev) => {
       const next = new Set(prev);
@@ -129,7 +129,7 @@ export function SharePlayer({
     void postReaction(slug, emoji, tMs)
       .then((real) => {
         setReactions((prev) =>
-          prev.map((r) => (r.id === optimistic.id ? real : r))
+          prev.map((r) => (r.id === optimistic.id ? real : r)),
         );
         onReactionAdded?.(real);
       })
@@ -195,12 +195,12 @@ function ReactionOverlay({
 }) {
   const clusters = useMemo(
     () => clusterReactions(reactions, durationSeconds, freshIds),
-    [reactions, durationSeconds, freshIds]
+    [reactions, durationSeconds, freshIds],
   );
   return (
     <div
       className={`pointer-events-none absolute inset-x-0 px-4 transition-[bottom] duration-200 ${
-        controlsVisible ? 'bottom-[76px]' : 'bottom-[11px]'
+        controlsVisible ? "bottom-[76px]" : "bottom-[11px]"
       }`}
     >
       <ReactionMarkers clusters={clusters} />
@@ -218,7 +218,7 @@ type ReactionCluster = {
 function clusterReactions(
   reactions: ShareReaction[],
   durationSeconds: number,
-  freshIds: Set<number>
+  freshIds: Set<number>,
 ): ReactionCluster[] {
   if (reactions.length === 0 || durationSeconds <= 0) return [];
   const totalMs = durationSeconds * 1000;
@@ -274,11 +274,11 @@ function clusterReactions(
 async function postReaction(
   slug: string,
   emoji: string,
-  timestampMs: number
+  timestampMs: number,
 ): Promise<ShareReaction> {
   const res = await fetch(`/api/r/reactions?slug=${encodeURIComponent(slug)}`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    method: "POST",
+    headers: { "content-type": "application/json" },
     body: JSON.stringify({ emoji, timestampMs }),
   });
   if (!res.ok) {
@@ -302,10 +302,10 @@ function ReactionMarkers({ clusters }: { clusters: ReactionCluster[] }) {
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
-    window.addEventListener('resize', update);
+    window.addEventListener("resize", update);
     return () => {
       ro.disconnect();
-      window.removeEventListener('resize', update);
+      window.removeEventListener("resize", update);
     };
   }, []);
 
@@ -324,7 +324,7 @@ function ReactionMarkers({ clusters }: { clusters: ReactionCluster[] }) {
     const kept: typeof ranked = [];
     for (const item of ranked) {
       const tooClose = kept.some(
-        (k) => Math.abs(k.c.fraction - item.c.fraction) < minFraction
+        (k) => Math.abs(k.c.fraction - item.c.fraction) < minFraction,
       );
       if (!tooClose) kept.push(item);
     }
@@ -339,25 +339,25 @@ function ReactionMarkers({ clusters }: { clusters: ReactionCluster[] }) {
         <div
           key={idx}
           className={`absolute flex items-end gap-0.5 ${
-            c.isFresh ? 'animate-reaction-rise' : ''
+            c.isFresh ? "animate-reaction-rise" : ""
           }`}
           style={{
             left: `${c.fraction * 100}%`,
             bottom: 0,
             transform: `translateX(${-c.fraction * 100}%)`,
-            transformOrigin: 'bottom center',
+            transformOrigin: "bottom center",
           }}
         >
           <span
             className="text-[20px] leading-none"
-            style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))' }}
+            style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }}
           >
             {c.emoji}
           </span>
           {c.count > 1 ? (
             <span
               className="text-[11px] font-semibold tabular-nums leading-none text-white"
-              style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.8))' }}
+              style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.8))" }}
             >
               {c.count}
             </span>
@@ -389,7 +389,7 @@ function ReactionBar({
               onClick={() => onReact(r.emoji)}
               aria-label={r.label}
               className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-xl text-[28px] leading-none transition-transform duration-100 ease-out hover:-translate-y-2 active:translate-y-0 ${
-                isPulsing ? 'animate-share-icon-pop' : ''
+                isPulsing ? "animate-share-icon-pop" : ""
               }`}
             >
               <span aria-hidden="true">{r.emoji}</span>

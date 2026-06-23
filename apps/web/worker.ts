@@ -2,8 +2,8 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — resolved after the OpenNext Cloudflare build runs.
-import openNextWorker from './.open-next/worker.js';
-import { runDailyRetentionSweep, runHourlyMultipartGc } from './lib/share/cron';
+import openNextWorker from "./.open-next/worker.js";
+import { runDailyRetentionSweep, runHourlyMultipartGc } from "./lib/share/cron";
 
 type Env = {
   DB: D1Database;
@@ -16,13 +16,13 @@ const handler: ExportedHandler<Env> = {
   async scheduled(
     event: ScheduledController,
     env: Env,
-    ctx: ExecutionContext
+    ctx: ExecutionContext,
   ): Promise<void> {
     switch (event.cron) {
-      case '0 * * * *':
+      case "0 * * * *":
         ctx.waitUntil(runHourlyMultipartGc(env));
         break;
-      case '0 4 * * *':
+      case "0 4 * * *":
         ctx.waitUntil(runDailyRetentionSweep(env));
         break;
       default:

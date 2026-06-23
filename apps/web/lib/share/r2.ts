@@ -1,13 +1,13 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { getCloudflareEnv } from './cf-env';
+import { getCloudflareEnv } from "./cf-env";
 
 async function getBucket(): Promise<R2Bucket> {
   const env = await getCloudflareEnv();
   if (!env?.BUCKET) {
     throw new Error(
-      'R2 bucket binding (BUCKET) not available. ' +
-        'Ensure you are running under OpenNext / Cloudflare runtime.'
+      "R2 bucket binding (BUCKET) not available. " +
+        "Ensure you are running under OpenNext / Cloudflare runtime.",
     );
   }
   return env.BUCKET;
@@ -27,7 +27,7 @@ export async function createMultipartUpload(
   storageKey: string,
   contentType: string,
   // Pass a short TTL for objects we expect to rotate; without it the CDN caches at R2's long default.
-  cacheControl?: string
+  cacheControl?: string,
 ): Promise<R2MultipartHandle> {
   const bucket = await getBucket();
   const upload = await bucket.createMultipartUpload(storageKey, {
@@ -42,7 +42,7 @@ export async function uploadPart(
   storageKey: string,
   uploadId: string,
   partNumber: number,
-  body: ArrayBuffer | ReadableStream | string
+  body: ArrayBuffer | ReadableStream | string,
 ): Promise<R2UploadedPart> {
   const bucket = await getBucket();
   const upload = bucket.resumeMultipartUpload(storageKey, uploadId);
@@ -53,7 +53,7 @@ export async function uploadPart(
 export async function completeMultipartUpload(
   storageKey: string,
   uploadId: string,
-  parts: R2UploadedPart[]
+  parts: R2UploadedPart[],
 ): Promise<void> {
   const bucket = await getBucket();
   const upload = bucket.resumeMultipartUpload(storageKey, uploadId);
@@ -62,7 +62,7 @@ export async function completeMultipartUpload(
 
 export async function abortMultipartUpload(
   storageKey: string,
-  uploadId: string
+  uploadId: string,
 ): Promise<void> {
   const bucket = await getBucket();
   const upload = bucket.resumeMultipartUpload(storageKey, uploadId);
@@ -78,7 +78,7 @@ export async function putObject(
   storageKey: string,
   body: ArrayBuffer,
   contentType: string,
-  cacheControl?: string
+  cacheControl?: string,
 ): Promise<void> {
   const bucket = await getBucket();
   await bucket.put(storageKey, body, {
@@ -96,13 +96,13 @@ export async function headObject(storageKey: string): Promise<boolean> {
 
 export async function putObjectJson<T>(
   storageKey: string,
-  value: T
+  value: T,
 ): Promise<void> {
   const bucket = await getBucket();
   await bucket.put(storageKey, JSON.stringify(value), {
     httpMetadata: {
-      contentType: 'application/json; charset=utf-8',
-      cacheControl: 'no-store',
+      contentType: "application/json; charset=utf-8",
+      cacheControl: "no-store",
     },
   });
 }
@@ -124,6 +124,6 @@ export async function publicUrlFor(storageKey: string): Promise<string> {
   const base =
     env?.R2_PUBLIC_BASE_URL ??
     process.env.R2_PUBLIC_BASE_URL ??
-    'https://cdn.captureflow.xyz';
+    "https://cdn.captureflow.xyz";
   return `${base}/${storageKey}`;
 }

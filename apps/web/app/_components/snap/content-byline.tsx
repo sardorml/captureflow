@@ -1,5 +1,5 @@
-import type { ReactElement } from 'react';
-import { formatRelativeLong as formatRelative } from '@/lib/format';
+import type { ReactElement } from "react";
+import { formatRelativeLong as formatRelative } from "@/lib/format";
 
 export type ContentBylineProps = {
   ownerName: string | null;
@@ -31,11 +31,11 @@ export function ContentByline({
 }
 
 function formatAbsolute(epochMs: number): string {
-  return new Date(epochMs).toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
+  return new Date(epochMs).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 }

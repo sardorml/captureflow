@@ -1,8 +1,8 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getAppWebEnv } from '@/lib/cf-env';
-import type { ProSubscriptionStatus } from '@captureflow/quota';
+import { NextRequest, NextResponse } from "next/server";
+import { getAppWebEnv } from "@/lib/cf-env";
+import type { ProSubscriptionStatus } from "@captureflow/quota";
 
 /*
  * Lemon Squeezy subscription event sink. Does NOT handle the lifetime
@@ -21,7 +21,7 @@ type LSSubscriptionEvent = {
     custom_data?: Record<string, string> | null;
   };
   data: {
-    type: 'subscriptions';
+    type: "subscriptions";
     id: string;
     attributes: {
       customer_id: number | null;
@@ -41,7 +41,7 @@ type LSSubscriptionEvent = {
 // LS reports the active-period end via renews_at on healthy subscriptions
 // and ends_at on cancelled ones.
 function periodEndFromAttributes(
-  attrs: LSSubscriptionEvent['data']['attributes']
+  attrs: LSSubscriptionEvent["data"]["attributes"],
 ): number | null {
   const iso = attrs.cancelled ? attrs.ends_at : attrs.renews_at;
   if (!iso) return null;
@@ -52,39 +52,39 @@ function periodEndFromAttributes(
 function cycleFromVariant(
   variantId: number,
   monthlyIds: Array<string | undefined>,
-  annualIds: Array<string | undefined>
-): 'monthly' | 'annual' {
+  annualIds: Array<string | undefined>,
+): "monthly" | "annual" {
   const v = String(variantId);
-  if (annualIds.some((id) => id && id === v)) return 'annual';
-  if (monthlyIds.some((id) => id && id === v)) return 'monthly';
+  if (annualIds.some((id) => id && id === v)) return "annual";
+  if (monthlyIds.some((id) => id && id === v)) return "monthly";
   // Default to monthly rather than drop the row on a misconfigured env var.
   console.warn(
-    `[lemon-webhook] unknown variant_id=${v}; defaulting to monthly. Set LEMON_{MONTHLY,ANNUAL,TEST_MONTHLY,TEST_ANNUAL}_VARIANT_ID.`
+    `[lemon-webhook] unknown variant_id=${v}; defaulting to monthly. Set LEMON_{MONTHLY,ANNUAL,TEST_MONTHLY,TEST_ANNUAL}_VARIANT_ID.`,
   );
-  return 'monthly';
+  return "monthly";
 }
 
 async function verifySignature(
   rawBody: string,
   signatureHex: string,
-  secret: string
+  secret: string,
 ): Promise<boolean> {
   if (!signatureHex) return false;
   const key = await crypto.subtle.importKey(
-    'raw',
+    "raw",
     new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
+    { name: "HMAC", hash: "SHA-256" },
     false,
-    ['sign']
+    ["sign"],
   );
   const sig = await crypto.subtle.sign(
-    'HMAC',
+    "HMAC",
     key,
-    new TextEncoder().encode(rawBody)
+    new TextEncoder().encode(rawBody),
   );
   const computed = Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
   // Constant-time compare to avoid leaking signature bytes via timing.
   if (computed.length !== signatureHex.length) return false;
   let diff = 0;
@@ -97,44 +97,44 @@ async function verifySignature(
 export async function POST(req: NextRequest) {
   const env = await getAppWebEnv();
   if (!env?.DB) {
-    return NextResponse.json({ error: 'db unavailable' }, { status: 500 });
+    return NextResponse.json({ error: "db unavailable" }, { status: 500 });
   }
   const secret = env.LEMON_WEBHOOK_SECRET;
   if (!secret) {
-    console.error('[lemon-webhook] LEMON_WEBHOOK_SECRET not configured');
-    return NextResponse.json({ error: 'not configured' }, { status: 500 });
+    console.error("[lemon-webhook] LEMON_WEBHOOK_SECRET not configured");
+    return NextResponse.json({ error: "not configured" }, { status: 500 });
   }
 
   // Read raw body BEFORE parsing — the signature is over the exact bytes sent.
   const rawBody = await req.text();
-  const signature = req.headers.get('x-signature') ?? '';
+  const signature = req.headers.get("x-signature") ?? "";
   const ok = await verifySignature(rawBody, signature, secret);
   if (!ok) {
-    return NextResponse.json({ error: 'invalid signature' }, { status: 401 });
+    return NextResponse.json({ error: "invalid signature" }, { status: 401 });
   }
 
   let event: LSSubscriptionEvent;
   try {
     event = JSON.parse(rawBody) as LSSubscriptionEvent;
   } catch {
-    return NextResponse.json({ error: 'invalid json' }, { status: 400 });
+    return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
 
-  const name = event.meta?.event_name ?? '';
-  if (!name.startsWith('subscription_')) {
+  const name = event.meta?.event_name ?? "";
+  if (!name.startsWith("subscription_")) {
     return NextResponse.json({ ok: true, ignored: name });
   }
 
   const data = event.data;
-  if (!data || data.type !== 'subscriptions' || !data.attributes) {
-    return NextResponse.json({ error: 'unexpected payload' }, { status: 400 });
+  if (!data || data.type !== "subscriptions" || !data.attributes) {
+    return NextResponse.json({ error: "unexpected payload" }, { status: 400 });
   }
   const attrs = data.attributes;
   const now = Math.floor(Date.now() / 1000);
   const cycle = cycleFromVariant(
     attrs.variant_id,
     [env.LEMON_MONTHLY_VARIANT_ID, env.LEMON_TEST_MONTHLY_VARIANT_ID],
-    [env.LEMON_ANNUAL_VARIANT_ID, env.LEMON_TEST_ANNUAL_VARIANT_ID]
+    [env.LEMON_ANNUAL_VARIANT_ID, env.LEMON_TEST_ANNUAL_VARIANT_ID],
   );
   const periodEnd = periodEndFromAttributes(attrs);
   // Resolve user_id from checkout custom_data, else by case-insensitive email
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
   let userId: string | null = event.meta.custom_data?.user_id ?? null;
   if (!userId && attrs.user_email) {
     const u = await env.DB.prepare(
-      `SELECT id FROM users WHERE LOWER(email) = LOWER(?1) LIMIT 1`
+      `SELECT id FROM users WHERE LOWER(email) = LOWER(?1) LIMIT 1`,
     )
       .bind(attrs.user_email)
       .first<{ id: string }>();
@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
        cycle              = excluded.cycle,
        current_period_end = excluded.current_period_end,
        cancelled_at       = excluded.cancelled_at,
-       updated_at         = excluded.updated_at`
+       updated_at         = excluded.updated_at`,
   )
     .bind(
       data.id,
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
       cycle,
       periodEnd,
       cancelledAt,
-      now
+      now,
     )
     .run();
 

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
 // Keep source-identical to the desktop app's animated-tooltip: change both files.
-import { cn } from '@captureflow/ui/cn';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import type { ReactNode } from 'react';
+import { cn } from "@captureflow/ui/cn";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { ReactNode } from "react";
 import {
   useCallback,
   useId,
@@ -11,10 +11,10 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
-} from 'react';
-import { createPortal } from 'react-dom';
+} from "react";
+import { createPortal } from "react-dom";
 
-export type AnimatedTooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
+export type AnimatedTooltipPlacement = "top" | "bottom" | "left" | "right";
 
 export interface AnimatedTooltipProps {
   content: ReactNode;
@@ -28,7 +28,7 @@ export interface AnimatedTooltipProps {
 }
 
 const SPRING = {
-  type: 'spring' as const,
+  type: "spring" as const,
   duration: 0.25,
   bounce: 0.1,
 };
@@ -37,17 +37,17 @@ const GAP = 8;
 const VIEWPORT_PADDING = 8;
 
 const getInitialTransform = (
-  placement: AnimatedTooltipPlacement
+  placement: AnimatedTooltipPlacement,
 ): { opacity: number; scale: number; x: number; y: number } => {
   const base = { opacity: 0, scale: 0.95, x: 0, y: 0 };
   switch (placement) {
-    case 'top':
+    case "top":
       return { ...base, y: 4 };
-    case 'bottom':
+    case "bottom":
       return { ...base, y: -4 };
-    case 'left':
+    case "left":
       return { ...base, x: 4 };
-    case 'right':
+    case "right":
       return { ...base, x: -4 };
   }
 };
@@ -57,24 +57,24 @@ type Position = { top: number; left: number };
 const computePosition = (
   trigger: DOMRect,
   tooltip: { width: number; height: number },
-  placement: AnimatedTooltipPlacement
+  placement: AnimatedTooltipPlacement,
 ): Position => {
   let top = 0;
   let left = 0;
   switch (placement) {
-    case 'top':
+    case "top":
       top = trigger.top - tooltip.height - GAP;
       left = trigger.left + trigger.width / 2 - tooltip.width / 2;
       break;
-    case 'bottom':
+    case "bottom":
       top = trigger.bottom + GAP;
       left = trigger.left + trigger.width / 2 - tooltip.width / 2;
       break;
-    case 'left':
+    case "left":
       top = trigger.top + trigger.height / 2 - tooltip.height / 2;
       left = trigger.left - tooltip.width - GAP;
       break;
-    case 'right':
+    case "right":
       top = trigger.top + trigger.height / 2 - tooltip.height / 2;
       left = trigger.right + GAP;
       break;
@@ -86,11 +86,11 @@ const computePosition = (
   return { top, left };
 };
 
-const HOVER_QUERY = '(hover: hover) and (pointer: fine)';
+const HOVER_QUERY = "(hover: hover) and (pointer: fine)";
 const subscribeHoverDevice = (notify: () => void): (() => void) => {
   const mq = window.matchMedia(HOVER_QUERY);
-  mq.addEventListener('change', notify);
-  return () => mq.removeEventListener('change', notify);
+  mq.addEventListener("change", notify);
+  return () => mq.removeEventListener("change", notify);
 };
 const getHoverDeviceSnapshot = (): boolean =>
   window.matchMedia(HOVER_QUERY).matches;
@@ -98,7 +98,7 @@ const getHoverDeviceServerSnapshot = (): boolean => false;
 
 export function AnimatedTooltip({
   content,
-  placement = 'top',
+  placement = "top",
   delay = 0,
   children,
   className,
@@ -109,7 +109,7 @@ export function AnimatedTooltip({
   const isHoverDevice = useSyncExternalStore(
     subscribeHoverDevice,
     getHoverDeviceSnapshot,
-    getHoverDeviceServerSnapshot
+    getHoverDeviceServerSnapshot,
   );
   const [position, setPosition] = useState<Position | null>(null);
   const tooltipId = useId();
@@ -157,21 +157,21 @@ export function AnimatedTooltip({
     if (!isVisible) return;
     updatePosition();
     const handle = (): void => updatePosition();
-    window.addEventListener('scroll', handle, true);
-    window.addEventListener('resize', handle);
+    window.addEventListener("scroll", handle, true);
+    window.addEventListener("resize", handle);
     return () => {
-      window.removeEventListener('scroll', handle, true);
-      window.removeEventListener('resize', handle);
+      window.removeEventListener("scroll", handle, true);
+      window.removeEventListener("resize", handle);
     };
   }, [isVisible, updatePosition]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         hide();
       }
     },
-    [hide]
+    [hide],
   );
 
   const initialTransform = getInitialTransform(placement);
@@ -179,7 +179,7 @@ export function AnimatedTooltip({
   return (
     <span
       ref={triggerRef}
-      className={cn('relative inline-flex items-center', triggerClassName)}
+      className={cn("relative inline-flex items-center", triggerClassName)}
       onKeyDown={handleKeyDown}
       onMouseEnter={isHoverDevice ? show : undefined}
       onMouseLeave={isHoverDevice ? hide : undefined}
@@ -188,7 +188,7 @@ export function AnimatedTooltip({
         {children}
       </span>
 
-      {typeof document !== 'undefined' &&
+      {typeof document !== "undefined" &&
         createPortal(
           <AnimatePresence>
             {isVisible && (
@@ -200,13 +200,13 @@ export function AnimatedTooltip({
                     : { opacity: 1, scale: 1, x: 0, y: 0 }
                 }
                 className={cn(
-                  'fixed z-50 w-max max-w-xs rounded-md bg-neutral-900 px-3 py-1.5 text-neutral-100 text-xs border border-white/5 shadow-lg pointer-events-none',
-                  className
+                  "fixed z-50 w-max max-w-xs rounded-md bg-neutral-900 px-3 py-1.5 text-neutral-100 text-xs border border-white/5 shadow-lg pointer-events-none",
+                  className,
                 )}
                 style={{
                   top: position?.top ?? 0,
                   left: position?.left ?? 0,
-                  visibility: position ? 'visible' : 'hidden',
+                  visibility: position ? "visible" : "hidden",
                 }}
                 exit={
                   shouldReduceMotion
@@ -225,7 +225,7 @@ export function AnimatedTooltip({
               </motion.span>
             )}
           </AnimatePresence>,
-          document.body
+          document.body,
         )}
     </span>
   );

@@ -1,38 +1,40 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef } from "react";
 
 type CameraPreviewProps = {
-  deviceId: string
-}
+  deviceId: string;
+};
 
-export function CameraPreview({ deviceId }: CameraPreviewProps): React.JSX.Element {
-  const videoRef = useRef<HTMLVideoElement>(null)
+export function CameraPreview({
+  deviceId,
+}: CameraPreviewProps): React.JSX.Element {
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const videoEl = videoRef.current
-    let stream: MediaStream | null = null
+    const videoEl = videoRef.current;
+    let stream: MediaStream | null = null;
 
     async function startPreview(): Promise<void> {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: { exact: deviceId } }
-        })
+          video: { deviceId: { exact: deviceId } },
+        });
         if (videoEl) {
-          videoEl.srcObject = stream
+          videoEl.srcObject = stream;
         }
       } catch (error) {
-        console.error('Camera preview failed:', error)
+        console.error("Camera preview failed:", error);
       }
     }
 
-    startPreview()
+    startPreview();
 
     return () => {
-      stream?.getTracks().forEach((t) => t.stop())
+      stream?.getTracks().forEach((t) => t.stop());
       if (videoEl) {
-        videoEl.srcObject = null
+        videoEl.srcObject = null;
       }
-    }
-  }, [deviceId])
+    };
+  }, [deviceId]);
 
   return (
     <video
@@ -42,5 +44,5 @@ export function CameraPreview({ deviceId }: CameraPreviewProps): React.JSX.Eleme
       playsInline
       className="w-full aspect-video rounded-md bg-muted object-cover"
     />
-  )
+  );
 }

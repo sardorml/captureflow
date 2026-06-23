@@ -1,8 +1,8 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { getAuth, type AuthInstance } from './auth';
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { getAuth, type AuthInstance } from "./auth";
 
 /*
  * getSession can throw on a stale cookie (deleted session row, rotated
@@ -11,7 +11,7 @@ import { getAuth, type AuthInstance } from './auth';
  */
 
 type Session = NonNullable<
-  Awaited<ReturnType<AuthInstance['api']['getSession']>>
+  Awaited<ReturnType<AuthInstance["api"]["getSession"]>>
 >;
 
 export async function loadSession(): Promise<Session | null> {
@@ -20,7 +20,7 @@ export async function loadSession(): Promise<Session | null> {
     const result = await auth.api.getSession({ headers: await headers() });
     return (result ?? null) as Session | null;
   } catch (err) {
-    console.error('[auth] getSession threw:', err);
+    console.error("[auth] getSession threw:", err);
     return null;
   }
 }
@@ -29,6 +29,6 @@ export async function loadSession(): Promise<Session | null> {
 // server components can't delete cookies, which would otherwise bounce-loop.
 export async function requireSession(): Promise<Session> {
   const session = await loadSession();
-  if (!session) redirect('/auth/clear');
+  if (!session) redirect("/auth/clear");
   return session;
 }

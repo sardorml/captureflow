@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
-import { getAppWebEnv } from '@/lib/cf-env';
-import { loadSession } from '@/lib/session-guard';
-import { viewUrlFor, snapViewUrlFor } from '@/lib/site';
+import { NextResponse } from "next/server";
+import { getAppWebEnv } from "@/lib/cf-env";
+import { loadSession } from "@/lib/session-guard";
+import { viewUrlFor, snapViewUrlFor } from "@/lib/site";
 
 // Cookie-gated, so never serve a cached response.
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export type SearchHit = {
-  kind: 'share' | 'snap';
+  kind: "share" | "snap";
   id: string;
   title: string;
   href: string;
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   const env = await getAppWebEnv();
   if (!env?.DB) return NextResponse.json({ hits: [] });
 
-  const q = (new URL(req.url).searchParams.get('q') ?? '').trim();
+  const q = (new URL(req.url).searchParams.get("q") ?? "").trim();
   if (q.length < 2) return NextResponse.json({ hits: [] });
 
   const like = `%${q.replace(/[%_]/g, (m) => `\\${m}`)}%`;
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
           AND state = 'ready'
           AND title LIKE ?2 ESCAPE '\\'
         ORDER BY created_at DESC
-        LIMIT ?3`
+        LIMIT ?3`,
     )
       .bind(session.user.id, like, MAX_PER_KIND)
       .all<{
@@ -54,34 +54,34 @@ export async function GET(req: Request) {
           AND state = 'ready'
           AND title LIKE ?2 ESCAPE '\\'
         ORDER BY created_at DESC
-        LIMIT ?3`
+        LIMIT ?3`,
     )
       .bind(session.user.id, like, MAX_PER_KIND)
       .all<{ id: string; title: string | null; created_at: number }>(),
   ]);
 
-  const CDN = env.R2_PUBLIC_BASE_URL ?? 'https://cdn.captureflow.xyz';
+  const CDN = env.R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
   const shareHits: SearchHit[] = (shares.results ?? []).map((r) => ({
-    kind: 'share',
+    kind: "share",
     id: r.slug,
-    title: r.title ?? 'Untitled recording',
+    title: r.title ?? "Untitled recording",
     href: viewUrlFor(r.slug),
     createdAt: r.created_at,
     thumbnailUrl: r.poster_key ? `${CDN}/${r.poster_key}` : null,
   }));
 
   const snapHits: SearchHit[] = (snaps.results ?? []).map((r) => ({
-    kind: 'snap',
+    kind: "snap",
     id: r.id,
-    title: r.title ?? 'Untitled snap',
+    title: r.title ?? "Untitled snap",
     href: snapViewUrlFor(r.id),
     createdAt: r.created_at,
     thumbnailUrl: `${CDN}/snaps/${r.id}`,
   }));
 
   const hits = [...shareHits, ...snapHits].sort(
-    (a, b) => b.createdAt - a.createdAt
+    (a, b) => b.createdAt - a.createdAt,
   );
   return NextResponse.json({ hits });
 }

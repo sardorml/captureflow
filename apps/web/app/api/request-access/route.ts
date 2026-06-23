@@ -1,42 +1,42 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@/lib/auth';
-import { getAppWebEnv } from '@/lib/cf-env';
-import { sendAccessRequestEmail } from '@/lib/email';
-import { viewUrlFor, snapViewUrlFor } from '@/lib/site';
+import { NextRequest, NextResponse } from "next/server";
+import { getAuth } from "@/lib/auth";
+import { getAppWebEnv } from "@/lib/cf-env";
+import { sendAccessRequestEmail } from "@/lib/email";
+import { viewUrlFor, snapViewUrlFor } from "@/lib/site";
 
 const ALLOWED_ORIGINS = new Set([
-  'https://captureflow.xyz',
-  'https://dev.captureflow.xyz',
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:3002',
-  'http://localhost:3032',
+  "https://captureflow.xyz",
+  "https://dev.captureflow.xyz",
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
+  "http://localhost:3032",
 ]);
 
 function corsHeaders(origin: string | null): Record<string, string> {
   if (origin && ALLOWED_ORIGINS.has(origin)) {
     return {
-      'access-control-allow-origin': origin,
-      'access-control-allow-credentials': 'true',
-      'access-control-allow-methods': 'POST, OPTIONS',
-      'access-control-allow-headers': 'Content-Type, Cookie',
-      vary: 'Origin',
+      "access-control-allow-origin": origin,
+      "access-control-allow-credentials": "true",
+      "access-control-allow-methods": "POST, OPTIONS",
+      "access-control-allow-headers": "Content-Type, Cookie",
+      vary: "Origin",
     };
   }
-  return { vary: 'Origin' };
+  return { vary: "Origin" };
 }
 
 export function OPTIONS(req: NextRequest) {
   return new NextResponse(null, {
     status: 204,
-    headers: corsHeaders(req.headers.get('origin')),
+    headers: corsHeaders(req.headers.get("origin")),
   });
 }
 
 type Body = {
-  kind?: 'share' | 'snap';
+  kind?: "share" | "snap";
   key?: string;
   message?: string | null;
 };
@@ -44,7 +44,7 @@ type Body = {
 const MAX_MESSAGE_LEN = 500;
 
 export async function POST(req: NextRequest) {
-  const origin = req.headers.get('origin');
+  const origin = req.headers.get("origin");
   const headers = corsHeaders(origin);
 
   let body: Body;
@@ -52,24 +52,24 @@ export async function POST(req: NextRequest) {
     body = (await req.json()) as Body;
   } catch {
     return NextResponse.json(
-      { error: 'invalid-json' },
-      { status: 400, headers }
+      { error: "invalid-json" },
+      { status: 400, headers },
     );
   }
-  if (body.kind !== 'share' && body.kind !== 'snap') {
+  if (body.kind !== "share" && body.kind !== "snap") {
     return NextResponse.json(
-      { error: 'invalid-kind' },
-      { status: 400, headers }
+      { error: "invalid-kind" },
+      { status: 400, headers },
     );
   }
-  if (typeof body.key !== 'string' || !body.key) {
+  if (typeof body.key !== "string" || !body.key) {
     return NextResponse.json(
-      { error: 'invalid-key' },
-      { status: 400, headers }
+      { error: "invalid-key" },
+      { status: 400, headers },
     );
   }
   const message =
-    typeof body.message === 'string'
+    typeof body.message === "string"
       ? body.message.slice(0, MAX_MESSAGE_LEN).trim() || null
       : null;
 
@@ -78,24 +78,24 @@ export async function POST(req: NextRequest) {
   try {
     session = await auth.api.getSession({ headers: req.headers });
   } catch (err) {
-    console.error('request-access: getSession threw', err);
+    console.error("request-access: getSession threw", err);
     return NextResponse.json(
-      { error: 'session-lookup-failed' },
-      { status: 401, headers }
+      { error: "session-lookup-failed" },
+      { status: 401, headers },
     );
   }
   if (!session) {
     return NextResponse.json(
-      { error: 'not-signed-in' },
-      { status: 401, headers }
+      { error: "not-signed-in" },
+      { status: 401, headers },
     );
   }
 
   const env = await getAppWebEnv();
   if (!env?.DB) {
     return NextResponse.json(
-      { error: 'db-unavailable' },
-      { status: 500, headers }
+      { error: "db-unavailable" },
+      { status: 500, headers },
     );
   }
 
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
     owner_name: string | null;
   };
   const sql =
-    body.kind === 'share'
+    body.kind === "share"
       ? `SELECT s.user_id, s.title, s.visibility,
                  u.email AS owner_email, u.name AS owner_name
             FROM shares s
@@ -120,21 +120,20 @@ export async function POST(req: NextRequest) {
            WHERE s.id = ?1`;
   const row = await env.DB.prepare(sql).bind(body.key).first<Row>();
   if (!row || !row.owner_email) {
-    return NextResponse.json({ error: 'not-found' }, { status: 404, headers });
+    return NextResponse.json({ error: "not-found" }, { status: 404, headers });
   }
-  if (row.visibility === 'public') {
+  if (row.visibility === "public") {
     return NextResponse.json({ ok: true, alreadyPublic: true }, { headers });
   }
   if (row.user_id === session.user.id) {
     return NextResponse.json({ ok: true, isOwner: true }, { headers });
   }
 
-  const siteUrl =
-    env.NEXT_PUBLIC_APP_WEB_SITE_URL ?? 'https://captureflow.xyz';
+  const siteUrl = env.NEXT_PUBLIC_APP_WEB_SITE_URL ?? "https://captureflow.xyz";
   const artifactUrl =
-    body.kind === 'share' ? viewUrlFor(body.key) : snapViewUrlFor(body.key);
+    body.kind === "share" ? viewUrlFor(body.key) : snapViewUrlFor(body.key);
   const manageUrl = `${siteUrl}/members?invite=${encodeURIComponent(
-    session.user.email
+    session.user.email,
   )}`;
 
   await sendAccessRequestEmail({
@@ -143,7 +142,7 @@ export async function POST(req: NextRequest) {
     requesterEmail: session.user.email,
     requesterName: session.user.name ?? null,
     artifactKind: body.kind,
-    artifactTitle: row.title ?? (body.kind === 'share' ? 'Recording' : 'Snap'),
+    artifactTitle: row.title ?? (body.kind === "share" ? "Recording" : "Snap"),
     artifactUrl,
     message,
     manageUrl,

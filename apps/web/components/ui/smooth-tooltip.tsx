@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
 // Animated tooltip vendored from SmoothUI (https://smoothui.dev, MIT). Only
 // local change is the cn import path (@/lib/utils).
 
-import { cn } from '@/lib/utils';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import type { ReactNode } from 'react';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { cn } from "@/lib/utils";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
-export type AnimatedTooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
+export type AnimatedTooltipPlacement = "top" | "bottom" | "left" | "right";
 
 export interface AnimatedTooltipProps {
   /** The trigger element the tooltip is anchored to */
@@ -20,41 +20,41 @@ export interface AnimatedTooltipProps {
   placement?: AnimatedTooltipPlacement;
 }
 
-const SPRING = { type: 'spring' as const, duration: 0.25, bounce: 0.1 };
+const SPRING = { type: "spring" as const, duration: 0.25, bounce: 0.1 };
 
 const placementStyles: Record<AnimatedTooltipPlacement, string> = {
-  top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-  bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-  left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-  right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+  top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
+  bottom: "top-full left-1/2 -translate-x-1/2 mt-2",
+  left: "right-full top-1/2 -translate-y-1/2 mr-2",
+  right: "left-full top-1/2 -translate-y-1/2 ml-2",
 };
 
 const arrowStyles: Record<AnimatedTooltipPlacement, string> = {
-  top: 'top-full -mt-1 left-1/2 -translate-x-1/2',
-  bottom: 'bottom-full -mb-1 left-1/2 -translate-x-1/2',
-  left: 'left-full -ml-1 top-1/2 -translate-y-1/2',
-  right: 'right-full -mr-1 top-1/2 -translate-y-1/2',
+  top: "top-full -mt-1 left-1/2 -translate-x-1/2",
+  bottom: "bottom-full -mb-1 left-1/2 -translate-x-1/2",
+  left: "left-full -ml-1 top-1/2 -translate-y-1/2",
+  right: "right-full -mr-1 top-1/2 -translate-y-1/2",
 };
 
 const getInitialTransform = (
-  placement: AnimatedTooltipPlacement
+  placement: AnimatedTooltipPlacement,
 ): { opacity: number; scale: number; x: number; y: number } => {
   const base = { opacity: 0, scale: 0.95, x: 0, y: 0 };
   switch (placement) {
-    case 'top':
+    case "top":
       return { ...base, y: 4 };
-    case 'bottom':
+    case "bottom":
       return { ...base, y: -4 };
-    case 'left':
+    case "left":
       return { ...base, x: 4 };
-    case 'right':
+    case "right":
       return { ...base, x: -4 };
   }
 };
 
 export function AnimatedTooltip({
   content,
-  placement = 'top',
+  placement = "top",
   delay = 0,
   children,
   className,
@@ -66,11 +66,12 @@ export function AnimatedTooltip({
   const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const mediaQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
     setIsHoverDevice(mediaQuery.matches);
-    const handleChange = (e: MediaQueryListEvent) => setIsHoverDevice(e.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    const handleChange = (e: MediaQueryListEvent) =>
+      setIsHoverDevice(e.matches);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   const show = useCallback(() => {
@@ -91,9 +92,9 @@ export function AnimatedTooltip({
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
-      if (event.key === 'Escape') hide();
+      if (event.key === "Escape") hide();
     },
-    [hide]
+    [hide],
   );
 
   const initialTransform = getInitialTransform(placement);
@@ -107,7 +108,9 @@ export function AnimatedTooltip({
       onMouseEnter={isHoverDevice ? show : undefined}
       onMouseLeave={isHoverDevice ? hide : undefined}
     >
-      <span aria-describedby={isVisible ? tooltipId : undefined}>{children}</span>
+      <span aria-describedby={isVisible ? tooltipId : undefined}>
+        {children}
+      </span>
 
       <AnimatePresence>
         {isVisible && (
@@ -118,9 +121,9 @@ export function AnimatedTooltip({
                 : { opacity: 1, scale: 1, x: 0, y: 0 }
             }
             className={cn(
-              'pointer-events-none absolute z-50 w-max max-w-xs rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white shadow-md',
+              "pointer-events-none absolute z-50 w-max max-w-xs rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white shadow-md",
               placementStyles[placement],
-              className
+              className,
             )}
             exit={
               shouldReduceMotion
@@ -136,8 +139,8 @@ export function AnimatedTooltip({
             <span
               aria-hidden="true"
               className={cn(
-                'absolute -z-10 size-2 rotate-45 rounded-[2px] bg-neutral-900',
-                arrowStyles[placement]
+                "absolute -z-10 size-2 rotate-45 rounded-[2px] bg-neutral-900",
+                arrowStyles[placement],
               )}
             />
           </motion.span>

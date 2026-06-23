@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { ACCOUNT_LIMITS } from '@captureflow/quota';
-import { createD1Db } from './db-d1';
+import { ACCOUNT_LIMITS } from "@captureflow/quota";
+import { createD1Db } from "./db-d1";
 
 /*
  * Cron handlers, invoked by the wrapper worker's `scheduled()` entry:
@@ -32,7 +32,7 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
       WHERE state = 'pending'
         AND upload_id IS NOT NULL
         AND created_at < ?
-      LIMIT ?`
+      LIMIT ?`,
   )
     .bind(cutoff, BATCH_SIZE)
     .all<{
@@ -47,7 +47,7 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
     try {
       const upload = env.BUCKET.resumeMultipartUpload(
         row.storageKey,
-        row.uploadId
+        row.uploadId,
       );
       await upload.abort();
     } catch (err) {
@@ -57,7 +57,7 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
       try {
         const wc = env.BUCKET.resumeMultipartUpload(
           row.webcamStorageKey,
-          row.webcamUploadId
+          row.webcamUploadId,
         );
         await wc.abort();
       } catch (err) {
@@ -70,7 +70,7 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
               upload_id = NULL,
               webcam_state = CASE WHEN webcam_state = 'pending' THEN 'failed' ELSE webcam_state END,
               webcam_upload_id = NULL
-        WHERE slug = ?`
+        WHERE slug = ?`,
     )
       .bind(row.slug)
       .run();
@@ -88,7 +88,7 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
        FROM shares
       WHERE (state = 'ready' AND last_viewed_at < ?)
          OR (state = 'failed' AND created_at < ?)
-      LIMIT ?`
+      LIMIT ?`,
   )
     .bind(retentionCutoff, failedCutoff, BATCH_SIZE)
     .all<{

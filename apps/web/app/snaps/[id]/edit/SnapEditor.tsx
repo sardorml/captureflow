@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
 // Konva touches `window` at import time, so the impl must load client-only;
 // `ssr:false` only works inside a client component on the App Router.
@@ -21,7 +21,7 @@ export type SnapEditorProps = {
 };
 
 const SnapEditorImpl = dynamic(
-  () => import('./SnapEditorImpl').then((m) => m.SnapEditorImpl),
+  () => import("./SnapEditorImpl").then((m) => m.SnapEditorImpl),
   {
     ssr: false,
     loading: () => (
@@ -29,7 +29,7 @@ const SnapEditorImpl = dynamic(
         Loading editor…
       </div>
     ),
-  }
+  },
 );
 
 export function SnapEditor(props: SnapEditorProps) {

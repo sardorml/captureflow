@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Icon } from '@/components/ui/icon';
-import CtaButton from '@/components/ui/cta-button';
-import { cn } from '@/lib/utils';
-import { track } from '@/lib/marketing/track';
-import { useMessages } from './i18n-provider';
+import { useState } from "react";
+import Link from "next/link";
+import { Icon } from "@/components/ui/icon";
+import CtaButton from "@/components/ui/cta-button";
+import { cn } from "@/lib/utils";
+import { track } from "@/lib/marketing/track";
+import { useMessages } from "./i18n-provider";
 
 type WaitlistFormProps = {
   className?: string;
@@ -23,11 +23,11 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
     setLoading(true);
     setError(null);
     const form = e.currentTarget;
-    const email = (new FormData(form).get('email') as string | null)?.trim();
+    const email = (new FormData(form).get("email") as string | null)?.trim();
     try {
-      const res = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
       if (!res.ok) {
@@ -38,7 +38,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         setLoading(false);
         return;
       }
-      track('waitlist_joined');
+      track("waitlist_joined");
       setSubmitted(true);
     } catch {
       setError(m.waitlist.errors.network);
@@ -51,7 +51,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
     return (
       <div
         className={cn(
-          'inline-flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-700',
+          "inline-flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-700",
           className,
         )}
       >
@@ -65,7 +65,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
     <form
       onSubmit={handleSubmit}
       className={cn(
-        'flex w-full max-w-md flex-col items-stretch gap-2',
+        "flex w-full max-w-md flex-col items-stretch gap-2",
         className,
       )}
     >
@@ -93,7 +93,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         </p>
       )}
       <p className="text-sm text-muted-foreground">
-        {m.waitlist.earlyAccessPrompt}{' '}
+        {m.waitlist.earlyAccessPrompt}{" "}
         <Link
           href="/beta-tester"
           className="text-blue-700 underline underline-offset-2 transition-colors hover:text-blue-600"

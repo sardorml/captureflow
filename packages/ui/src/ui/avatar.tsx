@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import * as AvatarPrimitive from '@radix-ui/react-avatar';
-import { cn } from '../lib/cn';
+import * as React from "react";
+import * as AvatarPrimitive from "@radix-ui/react-avatar";
+import { cn } from "../lib/cn";
 
 const AVATAR_TONES = [
-  'bg-blue-600 text-white',
-  'bg-fuchsia-600 text-white',
-  'bg-emerald-600 text-white',
-  'bg-sky-600 text-white',
-  'bg-amber-500 text-amber-950',
-  'bg-rose-600 text-white',
+  "bg-blue-600 text-white",
+  "bg-fuchsia-600 text-white",
+  "bg-emerald-600 text-white",
+  "bg-sky-600 text-white",
+  "bg-amber-500 text-amber-950",
+  "bg-rose-600 text-white",
 ] as const;
 
 function toneFromSeed(seed: string): string {
@@ -29,8 +29,8 @@ const Avatar = React.forwardRef<
     <AvatarPrimitive.Root
       ref={ref}
       className={cn(
-        'relative flex h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-line-strong',
-        className
+        "relative flex h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-line-strong",
+        className,
       )}
       {...props}
     />
@@ -44,7 +44,7 @@ const AvatarImage = React.forwardRef<
   return (
     <AvatarPrimitive.Image
       ref={ref}
-      className={cn('aspect-square h-full w-full object-cover', className)}
+      className={cn("aspect-square h-full w-full object-cover", className)}
       {...props}
     />
   );
@@ -60,14 +60,14 @@ const AvatarFallback = React.forwardRef<
   React.ComponentRef<typeof AvatarPrimitive.Fallback>,
   AvatarFallbackProps
 >(function AvatarFallback({ className, seed, ...props }, ref) {
-  const tone = seed ? toneFromSeed(seed) : 'bg-neutral-800 text-neutral-300';
+  const tone = seed ? toneFromSeed(seed) : "bg-neutral-800 text-neutral-300";
   return (
     <AvatarPrimitive.Fallback
       ref={ref}
       className={cn(
-        'flex h-full w-full items-center justify-center text-xs font-semibold',
+        "flex h-full w-full items-center justify-center text-xs font-semibold",
         tone,
-        className
+        className,
       )}
       {...props}
     />

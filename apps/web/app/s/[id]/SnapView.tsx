@@ -1,13 +1,13 @@
-import { ContentByline, ViewerNav } from '../../_components/snap';
-import type { ViewerNavViewer } from '../../_components/snap';
-import { PoweredBy } from '../../_components/powered-by';
-import { APP_SITE_URL, MARKETING_SITE_URL, PRODUCT_NAME } from '@/lib/site';
-import { ThemeToggle, type Theme } from '@captureflow/ui';
-import { AuthSync } from './AuthSync';
-import { AuthPrompt } from './AuthPrompt';
-import { SnapActions } from './SnapActions';
-import { ViewerUserMenu } from './ViewerUserMenu';
-import { ZoomableSnapImage } from './ZoomableSnapImage';
+import { ContentByline, ViewerNav } from "../../_components/snap";
+import type { ViewerNavViewer } from "../../_components/snap";
+import { PoweredBy } from "../../_components/powered-by";
+import { APP_SITE_URL, MARKETING_SITE_URL, PRODUCT_NAME } from "@/lib/site";
+import { ThemeToggle, type Theme } from "@captureflow/ui";
+import { AuthSync } from "./AuthSync";
+import { AuthPrompt } from "./AuthPrompt";
+import { SnapActions } from "./SnapActions";
+import { ViewerUserMenu } from "./ViewerUserMenu";
+import { ZoomableSnapImage } from "./ZoomableSnapImage";
 
 type Props = {
   id: string;
@@ -22,7 +22,7 @@ type Props = {
   viewerUserId?: string | null;
   viewerImageUrl?: string | null;
   isOwner: boolean;
-  visibility: 'public' | 'workspace' | 'private';
+  visibility: "public" | "workspace" | "private";
   workspaceName: string | null;
   allowPublicLinks: boolean;
   snapUrl: string;
@@ -77,7 +77,7 @@ export function SnapView({
         userMenu={
           viewer ? (
             <ViewerUserMenu
-              userId={viewerUserId ?? ''}
+              userId={viewerUserId ?? ""}
               name={viewer.name}
               email={viewer.email}
               imageUrl={viewerImageUrl ?? null}

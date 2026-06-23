@@ -1,4 +1,4 @@
-import { SmoothButton } from '@captureflow/ui';
+import { SmoothButton } from "@captureflow/ui";
 
 type Props = {
   marketingUrl: string;

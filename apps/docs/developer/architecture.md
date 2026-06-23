@@ -48,11 +48,11 @@ Tooling:
 
 ## Shared packages
 
-| Package | Responsibility |
-| --- | --- |
-| `@captureflow/shared` | Types and constants used by both web and desktop. |
-| `@captureflow/ui` | Reusable React components, design tokens, theming. |
-| `@captureflow/quota` | Storage limits, per-user quotas, and workspace math. |
+| Package               | Responsibility                                       |
+| --------------------- | ---------------------------------------------------- |
+| `@captureflow/shared` | Types and constants used by both web and desktop.    |
+| `@captureflow/ui`     | Reusable React components, design tokens, theming.   |
+| `@captureflow/quota`  | Storage limits, per-user quotas, and workspace math. |
 
 ## Data model at a glance
 

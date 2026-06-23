@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useActionState, useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
-import { updateWorkspaceNameAction } from './actions';
+import { useActionState, useEffect, useState } from "react";
+import { Check } from "lucide-react";
+import { updateWorkspaceNameAction } from "./actions";
 
 type FormState = { error: string | null; ok: string | null };
 const INITIAL: FormState = { error: null, ok: null };
@@ -10,7 +10,7 @@ const INITIAL: FormState = { error: null, ok: null };
 export function WorkspaceNameForm({ initialName }: { initialName: string }) {
   const [state, formAction, pending] = useActionState(
     updateWorkspaceNameAction,
-    INITIAL
+    INITIAL,
   );
   const [name, setName] = useState(initialName);
   const [showSaved, setShowSaved] = useState(false);
@@ -66,7 +66,7 @@ export function WorkspaceNameForm({ initialName }: { initialName: string }) {
             disabled={pending || !dirty}
             className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
           >
-            {pending ? 'Saving…' : 'Save'}
+            {pending ? "Saving…" : "Save"}
           </button>
         </div>
       </div>

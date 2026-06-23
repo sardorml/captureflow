@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import '@fontsource-variable/inter';
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -65,9 +65,9 @@
 }
 
 @theme inline {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-heading: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --radius: 0.625rem;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -267,7 +267,8 @@
  * (set in main process), so the surface is transparent and the OS provides
  * the dark blur behind it. */
 .permission-dialog {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   color: rgba(255, 255, 255, 0.95);
   padding: 18px 18px 14px;

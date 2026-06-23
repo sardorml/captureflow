@@ -1,7 +1,7 @@
-import type { WorkspaceMember } from '@captureflow/quota';
-import { LogOut, X } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@captureflow/ui';
-import { leaveWorkspaceAction, removeMemberAction } from './actions';
+import type { WorkspaceMember } from "@captureflow/quota";
+import { LogOut, X } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@captureflow/ui";
+import { leaveWorkspaceAction, removeMemberAction } from "./actions";
 
 function initials(name: string, email: string): string {
   const source = name.trim() || email;
@@ -10,7 +10,7 @@ function initials(name: string, email: string): string {
     .map((word) => word[0])
     .filter(Boolean)
     .slice(0, 2)
-    .join('')
+    .join("")
     .toUpperCase();
 }
 
@@ -28,7 +28,7 @@ export function MembersList({ members, viewerUserId, viewerIsOwner }: Props) {
       </h3>
       <ul className="mt-3 divide-y divide-white/5 overflow-hidden rounded-lg border border-line bg-neutral-900">
         {members.map((m) => {
-          const isOwnerRow = m.role === 'owner';
+          const isOwnerRow = m.role === "owner";
           const isSelfRow = m.user_id === viewerUserId;
           return (
             <li
@@ -47,13 +47,13 @@ export function MembersList({ members, viewerUserId, viewerIsOwner }: Props) {
               </div>
               <span
                 className={
-                  'rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-line-strong ' +
+                  "rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-line-strong " +
                   (isOwnerRow
-                    ? 'bg-overlay text-neutral-100'
-                    : 'bg-neutral-800 text-neutral-400')
+                    ? "bg-overlay text-neutral-100"
+                    : "bg-neutral-800 text-neutral-400")
                 }
               >
-                {isOwnerRow ? 'Admin' : 'Member'}
+                {isOwnerRow ? "Admin" : "Member"}
               </span>
               {viewerIsOwner && !isOwnerRow && (
                 <form action={removeMemberAction}>

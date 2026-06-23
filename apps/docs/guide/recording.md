@@ -5,11 +5,11 @@ capture, optionally add your webcam and mic, and hit record.
 
 ## Choose a capture mode
 
-| Mode | What it captures |
-| --- | --- |
-| **Full screen** | An entire display. Pick which one if you have several. |
-| **Window** | A single application window. CaptureFlow detects windows and highlights the one under your cursor. |
-| **Region** | A rectangular area you drag to select. |
+| Mode            | What it captures                                                                                   |
+| --------------- | -------------------------------------------------------------------------------------------------- |
+| **Full screen** | An entire display. Pick which one if you have several.                                             |
+| **Window**      | A single application window. CaptureFlow detects windows and highlights the one under your cursor. |
+| **Region**      | A rectangular area you drag to select.                                                             |
 
 Switch modes from the toolbar's mode toggle before you start.
 

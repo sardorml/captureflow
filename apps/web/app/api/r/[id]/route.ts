@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-import { deleteShare, getShare } from '@/lib/share/db';
-import { isValidSlug } from '@/lib/share/slug';
-import { abortMultipartUpload, deleteObject } from '@/lib/share/r2';
-import { verifySessionOrNull } from '@/lib/share/verify-session';
-import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
+import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { deleteShare, getShare } from "@/lib/share/db";
+import { isValidSlug } from "@/lib/share/slug";
+import { abortMultipartUpload, deleteObject } from "@/lib/share/r2";
+import { verifySessionOrNull } from "@/lib/share/verify-session";
+import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
 
-const DEVICE_HEADER = 'x-captureflow-device';
+const DEVICE_HEADER = "x-captureflow-device";
 
 export function OPTIONS() {
   return optionsResponse();
@@ -14,11 +14,11 @@ export function OPTIONS() {
 
 export async function DELETE(
   req: NextRequest,
-  ctx: { params: Promise<{ id: string }> }
+  ctx: { params: Promise<{ id: string }> },
 ) {
   const { id } = await ctx.params;
   if (!isValidSlug(id)) {
-    return jsonError('Invalid slug', 400, 'invalid_slug');
+    return jsonError("Invalid slug", 400, "invalid_slug");
   }
 
   const row = await getShare(id);
@@ -29,11 +29,11 @@ export async function DELETE(
   if (deviceId) {
     authorized = row.deviceId === deviceId;
   } else {
-    const cookieHeader = (await headers()).get('cookie');
+    const cookieHeader = (await headers()).get("cookie");
     const session = await verifySessionOrNull(cookieHeader);
     authorized = !!session && session.userId === row.userId;
   }
-  if (!authorized) return jsonError('Forbidden', 403, 'forbidden');
+  if (!authorized) return jsonError("Forbidden", 403, "forbidden");
 
   if (row.uploadId) {
     await abortMultipartUpload(row.storageKey, row.uploadId);
@@ -58,4 +58,3 @@ export async function DELETE(
 
   return withCors(NextResponse.json({ ok: true }));
 }
-

@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { cookies } from 'next/headers';
+import { cookies } from "next/headers";
 import {
   ensurePersonalWorkspace,
   getWorkspaceById,
@@ -8,10 +8,10 @@ import {
   type WorkspaceMembership,
   type WorkspaceRole,
   type WorkspaceRow,
-} from '@captureflow/quota';
-import { getAppWebEnv } from './cf-env';
+} from "@captureflow/quota";
+import { getAppWebEnv } from "./cf-env";
 
-export const CURRENT_WORKSPACE_COOKIE = 'captureflow-workspace';
+export const CURRENT_WORKSPACE_COOKIE = "captureflow-workspace";
 
 export type CurrentWorkspace = {
   workspace: WorkspaceRow;
@@ -21,11 +21,11 @@ export type CurrentWorkspace = {
 
 export async function resolveCurrentWorkspace(
   userId: string,
-  userName: string | null
+  userName: string | null,
 ): Promise<CurrentWorkspace> {
   const env = await getAppWebEnv();
   if (!env?.DB) {
-    throw new Error('resolveCurrentWorkspace: DB binding unavailable');
+    throw new Error("resolveCurrentWorkspace: DB binding unavailable");
   }
   const memberships = await listWorkspacesForUser(env.DB, userId);
 
@@ -45,7 +45,7 @@ export async function resolveCurrentWorkspace(
   const personal = await ensurePersonalWorkspace(env.DB, userId, userName);
   return {
     workspace: personal,
-    role: 'owner',
+    role: "owner",
     memberships:
       memberships.length > 0
         ? memberships
@@ -56,7 +56,7 @@ export async function resolveCurrentWorkspace(
               workspace_kind: personal.kind,
               workspace_name: personal.name,
               owner_user_id: personal.owner_user_id,
-              role: 'owner',
+              role: "owner",
               joined_at: personal.created_at,
             },
           ],

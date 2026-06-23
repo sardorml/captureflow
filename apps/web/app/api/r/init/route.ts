@@ -1,22 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
-  ALLOWED_CONTENT_TYPES, ALLOWED_PRESETS, ALLOWED_SOURCES, } from '@/lib/share/limits';
-import { insertShare } from '@/lib/share/db';
+  ALLOWED_CONTENT_TYPES,
+  ALLOWED_PRESETS,
+  ALLOWED_SOURCES,
+} from "@/lib/share/limits";
+import { insertShare } from "@/lib/share/db";
 import {
-  activeArtifactCountForUser, getEffectiveLimitsForUser, getWorkspaceForUpload, resolveUserWorkspaceId, validateWorkspaceMembership, totalStorageForUser, } from '@/lib/share/quota';
-import { resolveDeviceTokenToUser } from '@/lib/share/device-tokens';
-import { generateSlug } from '@/lib/share/slug';
-import { createMultipartUpload } from '@/lib/share/r2';
-import { isDevDevice } from '@/lib/share/dev-allowlist';
-import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
-import { buildShareHeadline, sanitizeSourceTitle } from '@/lib/share/title';
+  activeArtifactCountForUser,
+  getEffectiveLimitsForUser,
+  getWorkspaceForUpload,
+  resolveUserWorkspaceId,
+  validateWorkspaceMembership,
+  totalStorageForUser,
+} from "@/lib/share/quota";
+import { resolveDeviceTokenToUser } from "@/lib/share/device-tokens";
+import { generateSlug } from "@/lib/share/slug";
+import { createMultipartUpload } from "@/lib/share/r2";
+import { isDevDevice } from "@/lib/share/dev-allowlist";
+import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
+import { buildShareHeadline, sanitizeSourceTitle } from "@/lib/share/title";
 import type {
-  InitRequest, InitResponse, ShareVisibility } from '@/lib/share/types';
+  InitRequest,
+  InitResponse,
+  ShareVisibility,
+} from "@/lib/share/types";
 
-const DEVICE_HEADER = 'x-captureflow-device';
+const DEVICE_HEADER = "x-captureflow-device";
 
 function extractBearerToken(req: NextRequest): string | null {
-  const h = req.headers.get('authorization') ?? '';
+  const h = req.headers.get("authorization") ?? "";
   const match = /^bearer\s+(.+)$/i.exec(h.trim());
   return match ? match[1].trim() : null;
 }
@@ -28,30 +40,30 @@ export function OPTIONS() {
 export async function POST(req: NextRequest) {
   const deviceId = req.headers.get(DEVICE_HEADER);
   if (!deviceId || deviceId.length < 8 || deviceId.length > 64) {
-    return jsonError('Missing or invalid device header', 400, 'invalid_device');
+    return jsonError("Missing or invalid device header", 400, "invalid_device");
   }
 
   let body: Partial<InitRequest>;
   try {
     body = (await req.json()) as Partial<InitRequest>;
   } catch {
-    return jsonError('Invalid JSON', 400, 'invalid_json');
+    return jsonError("Invalid JSON", 400, "invalid_json");
   }
 
   const contentType =
-    typeof body.contentType === 'string' ? body.contentType : '';
+    typeof body.contentType === "string" ? body.contentType : "";
   if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
-    return jsonError('Unsupported content type', 400, 'invalid_content_type');
+    return jsonError("Unsupported content type", 400, "invalid_content_type");
   }
 
   const source = body.source;
   if (!source || !ALLOWED_SOURCES.has(source)) {
-    return jsonError('Invalid source', 400, 'invalid_source');
+    return jsonError("Invalid source", 400, "invalid_source");
   }
 
-  const preset = body.preset ?? 'share';
+  const preset = body.preset ?? "share";
   if (!ALLOWED_PRESETS.has(preset)) {
-    return jsonError('Invalid preset', 400, 'invalid_preset');
+    return jsonError("Invalid preset", 400, "invalid_preset");
   }
 
   const durationMs = numberOrNull(body.durationMs);
@@ -62,20 +74,20 @@ export async function POST(req: NextRequest) {
 
   const bearer = extractBearerToken(req);
   if (!bearer) {
-    return jsonError('Sign in to create a share link.', 401, 'missing_token');
+    return jsonError("Sign in to create a share link.", 401, "missing_token");
   }
   const userId = await resolveDeviceTokenToUser(bearer);
   if (!userId) {
     return jsonError(
-      'Sign-in expired or revoked. Sign in again to keep sharing under your account.',
+      "Sign-in expired or revoked. Sign in again to keep sharing under your account.",
       401,
-      'invalid_token'
+      "invalid_token",
     );
   }
 
   // Quota draws down the workspace owner's cap, not the uploader's.
   let workspaceId: string | null = null;
-  if (typeof body.workspaceId === 'string' && body.workspaceId) {
+  if (typeof body.workspaceId === "string" && body.workspaceId) {
     workspaceId = await validateWorkspaceMembership(userId, body.workspaceId);
   }
   if (!workspaceId) {
@@ -101,57 +113,57 @@ export async function POST(req: NextRequest) {
     ]);
 
     if (activeCount >= limits.activeArtifacts) {
-      return jsonError('Too many active artifacts', 429, 'active_limit');
+      return jsonError("Too many active artifacts", 429, "active_limit");
     }
     if (storageUsed >= limits.storageBytes) {
-      return jsonError('Storage cap reached', 429, 'storage_limit');
+      return jsonError("Storage cap reached", 429, "storage_limit");
     }
     if (durationMs !== null && durationMs > limits.perShareDurationMs) {
       return jsonError(
-        'Recording exceeds share duration cap',
+        "Recording exceeds share duration cap",
         413,
-        'duration_exceeded'
+        "duration_exceeded",
       );
     }
   }
 
   const slug = generateSlug();
   const storageKey =
-    contentType === 'image/jpeg' ? `posters/${slug}.jpg` : `videos/${slug}.mp4`;
+    contentType === "image/jpeg" ? `posters/${slug}.jpg` : `videos/${slug}.mp4`;
 
   // Must be `no-cache`, not `no-store`: the latter forced a full re-download
   // every refresh, leaving some browsers stuck buffering before first decode.
   const { uploadId } = await createMultipartUpload(
     storageKey,
     contentType,
-    'no-cache'
+    "no-cache",
   );
 
   // Optional companion webcam stream: the viewer composites the two tracks at
   // play time so cam PiP placement stays editable. Video uploads only.
   let webcamStorageKey: string | null = null;
   let webcamUploadId: string | null = null;
-  let webcamState: 'none' | 'pending' = 'none';
-  if (body.hasWebcam === true && contentType !== 'image/jpeg') {
+  let webcamState: "none" | "pending" = "none";
+  if (body.hasWebcam === true && contentType !== "image/jpeg") {
     webcamStorageKey = `videos/${slug}-webcam.webm`;
     const wcUpload = await createMultipartUpload(
       webcamStorageKey,
-      'video/webm',
-      'no-cache'
+      "video/webm",
+      "no-cache",
     );
     webcamUploadId = wcUpload.uploadId;
-    webcamState = 'pending';
+    webcamState = "pending";
   }
 
   // A non-public body.visibility is honored only for the dashboard re-record flow.
   let visibility: ShareVisibility =
-    body.visibility === 'private'
-      ? 'private'
-      : body.visibility === 'workspace'
-      ? 'workspace'
-      : 'public';
-  if (workspace && !workspace.allow_public_links && visibility === 'public') {
-    visibility = 'workspace';
+    body.visibility === "private"
+      ? "private"
+      : body.visibility === "workspace"
+        ? "workspace"
+        : "public";
+  if (workspace && !workspace.allow_public_links && visibility === "public") {
+    visibility = "workspace";
   }
 
   await insertShare({
@@ -170,7 +182,7 @@ export async function POST(req: NextRequest) {
     lastViewedAt: createdAt,
     viewCount: 0,
     title,
-    state: 'pending',
+    state: "pending",
     userId,
     workspaceId,
     visibility,
@@ -192,5 +204,5 @@ export async function POST(req: NextRequest) {
 }
 
 function numberOrNull(v: unknown): number | null {
-  return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null;
+  return typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null;
 }

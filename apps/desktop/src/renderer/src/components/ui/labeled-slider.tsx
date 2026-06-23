@@ -1,24 +1,24 @@
-import { useState, type CSSProperties, type ReactNode } from 'react'
-import { cn } from '@/lib/utils'
-import { Icon } from './icon'
-import AnimatedTooltip from './animated-tooltip'
+import { useState, type CSSProperties, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import { Icon } from "./icon";
+import AnimatedTooltip from "./animated-tooltip";
 
 type LabeledSliderProps = {
-  label?: string
-  value: number
-  min: number
-  max: number
-  step?: number
-  ticks?: number
-  displayValue?: string
+  label?: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  ticks?: number;
+  displayValue?: string;
   // When provided, replaces the displayValue badge with a reset button that snaps the slider back to this value. The button dims when already at default.
-  defaultValue?: number
+  defaultValue?: number;
   /** Help text shown next to the label via an info icon. */
-  tooltip?: ReactNode
-  onChange: (value: number) => void
-  className?: string
-  disabled?: boolean
-}
+  tooltip?: ReactNode;
+  onChange: (value: number) => void;
+  className?: string;
+  disabled?: boolean;
+};
 
 export function LabeledSlider({
   label,
@@ -32,16 +32,22 @@ export function LabeledSlider({
   tooltip,
   onChange,
   className,
-  disabled = false
+  disabled = false,
 }: LabeledSliderProps): React.JSX.Element {
-  const range = max - min
-  const progress = range > 0 ? ((value - min) / range) * 100 : 0
-  const sliderStyle = { '--progress': progress } as CSSProperties
-  const [isDragging, setIsDragging] = useState(false)
-  const bubbleText = displayValue ?? String(Math.round(value))
+  const range = max - min;
+  const progress = range > 0 ? ((value - min) / range) * 100 : 0;
+  const sliderStyle = { "--progress": progress } as CSSProperties;
+  const [isDragging, setIsDragging] = useState(false);
+  const bubbleText = displayValue ?? String(Math.round(value));
 
   return (
-    <div className={cn('w-full', disabled && 'opacity-40 pointer-events-none', className)}>
+    <div
+      className={cn(
+        "w-full",
+        disabled && "opacity-40 pointer-events-none",
+        className,
+      )}
+    >
       {label && (
         <div className="font-normal text-[13px] font-normal text-foreground/90 mb-2 flex items-center gap-1.5">
           <span className="leading-none">{label}</span>
@@ -79,15 +85,18 @@ export function LabeledSlider({
           <div
             aria-hidden
             className={`pointer-events-none absolute z-20 -top-7 mx-2 px-1.5 py-0.5 rounded-md bg-neutral-900/95 border border-white/10 text-[11px] font-normal text-foreground tabular-nums shadow-md transition-opacity duration-150 ${
-              isDragging ? 'opacity-100' : 'opacity-0'
+              isDragging ? "opacity-100" : "opacity-0"
             }`}
-            style={{ left: `calc(${progress}% - 8px)`, transform: 'translateX(-50%)' }}
+            style={{
+              left: `calc(${progress}% - 8px)`,
+              transform: "translateX(-50%)",
+            }}
           >
             {bubbleText}
           </div>
           <input
             type="range"
-            aria-label={label ?? 'Value'}
+            aria-label={label ?? "Value"}
             min={min}
             max={max}
             step={step}
@@ -114,7 +123,7 @@ export function LabeledSlider({
             type="button"
             onClick={() => onChange(defaultValue)}
             disabled={disabled || value === defaultValue}
-            aria-label={`Reset ${label ?? 'value'} to default`}
+            aria-label={`Reset ${label ?? "value"} to default`}
             title="Reset to default"
             className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-md text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-default"
           >
@@ -129,5 +138,5 @@ export function LabeledSlider({
         )}
       </div>
     </div>
-  )
+  );
 }

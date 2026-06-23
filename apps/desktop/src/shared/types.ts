@@ -1,352 +1,352 @@
 export type CaptureSource = {
-  id: string
-  name: string
-  thumbnailDataUrl: string
-  displayId: string
-  windowBounds?: WindowBounds
+  id: string;
+  name: string;
+  thumbnailDataUrl: string;
+  displayId: string;
+  windowBounds?: WindowBounds;
   // Window sources only; from the native window detector (desktopCapturer doesn't expose it).
-  ownerName?: string
+  ownerName?: string;
   // Window sources only: captured top-left corner radius in points, mirrored by the dim and overlay highlight.
-  cornerRadius?: number
+  cornerRadius?: number;
   // Window sources only: owning OS pid, raised at record start so the target app keeps focus when the toolbar hides.
-  pid?: number
+  pid?: number;
   // Display sources only: when true, record start hides desktop icons via Finder and stop restores them.
-  hideDesktopIcons?: boolean
-}
+  hideDesktopIcons?: boolean;
+};
 
 export type WindowBounds = {
-  x: number
-  y: number
-  width: number
-  height: number
-}
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
 export function isWindowSource(source: CaptureSource): boolean {
-  return source.id.startsWith('window:')
+  return source.id.startsWith("window:");
 }
 
 export function getWindowId(source: CaptureSource): number | undefined {
-  if (!isWindowSource(source)) return undefined
-  return parseInt(source.id.split(':')[1], 10)
+  if (!isWindowSource(source)) return undefined;
+  return parseInt(source.id.split(":")[1], 10);
 }
 
 export function getDisplayId(source: CaptureSource): number | undefined {
-  if (!source.displayId) return undefined
-  const n = parseInt(source.displayId, 10)
-  return Number.isFinite(n) ? n : undefined
+  if (!source.displayId) return undefined;
+  const n = parseInt(source.displayId, 10);
+  return Number.isFinite(n) ? n : undefined;
 }
 
-export const TOOLBAR_WIDTH = 750
-export const TOOLBAR_WIDTH_SCREENSHOT = 320
+export const TOOLBAR_WIDTH = 750;
+export const TOOLBAR_WIDTH_SCREENSHOT = 320;
 export function toolbarWidthForMode(mode: RecordingMode): number {
-  return mode === 'screenshot' ? TOOLBAR_WIDTH_SCREENSHOT : TOOLBAR_WIDTH
+  return mode === "screenshot" ? TOOLBAR_WIDTH_SCREENSHOT : TOOLBAR_WIDTH;
 }
-export const TOOLBAR_BAR_HEIGHT = 50
+export const TOOLBAR_BAR_HEIGHT = 50;
 // Band reserved below the bar so bottom-placed tooltips don't clip the window edge.
-export const TOOLBAR_TOOLTIP_BELOW = 48
+export const TOOLBAR_TOOLTIP_BELOW = 48;
 // Total window height; main pins the bar via the offsets below so this can grow without moving the bar on screen.
-export const TOOLBAR_HEIGHT = 178
-export const TOOLBAR_BAR_BOTTOM_OFFSET = 48
+export const TOOLBAR_HEIGHT = 178;
+export const TOOLBAR_BAR_BOTTOM_OFFSET = 48;
 
-export type RecordingMode = 'share' | 'screenshot'
+export type RecordingMode = "share" | "screenshot";
 
 export type CursorType =
-  | 'arrow'
-  | 'pointer'
-  | 'text'
-  | 'crosshair'
-  | 'open-hand'
-  | 'closed-hand'
-  | 'resize-ew'
-  | 'resize-ns'
+  | "arrow"
+  | "pointer"
+  | "text"
+  | "crosshair"
+  | "open-hand"
+  | "closed-hand"
+  | "resize-ew"
+  | "resize-ns";
 
 export type CursorPosition = {
-  time: number // ms since recording start
-  x: number // normalized 0-1
-  y: number // normalized 0-1
-  cursorType?: CursorType
-}
+  time: number; // ms since recording start
+  x: number; // normalized 0-1
+  y: number; // normalized 0-1
+  cursorType?: CursorType;
+};
 
 export type ClickEvent = {
-  time: number // ms since recording start
-  x: number // normalized 0-1
-  y: number // normalized 0-1
-}
+  time: number; // ms since recording start
+  x: number; // normalized 0-1
+  y: number; // normalized 0-1
+};
 
 export type TrackingData = {
-  cursor: CursorPosition[]
-  clicks?: ClickEvent[]
-}
+  cursor: CursorPosition[];
+  clicks?: ClickEvent[];
+};
 
 export const IPC_CHANNELS = {
-  GET_SOURCES: 'get-sources',
-  GET_RECORDINGS_DIR: 'get-recordings-dir',
-  SHOW_ITEM_IN_FOLDER: 'show-item-in-folder',
-  HIDE_WINDOW: 'hide-window',
-  SHOW_WINDOW: 'show-window',
-  GET_ACTIVE_WINDOW_SOURCE: 'get-active-window-source',
-  SHOW_RECORDING_OVERLAY: 'show-recording-overlay',
-  HIDE_RECORDING_OVERLAY: 'hide-recording-overlay',
-  RESIZE_WINDOW: 'resize-window',
-  SHOW_RECORDING_DIM: 'show-recording-dim',
-  HIDE_RECORDING_DIM: 'hide-recording-dim',
-  START_CURSOR_TRACKING: 'start-cursor-tracking',
+  GET_SOURCES: "get-sources",
+  GET_RECORDINGS_DIR: "get-recordings-dir",
+  SHOW_ITEM_IN_FOLDER: "show-item-in-folder",
+  HIDE_WINDOW: "hide-window",
+  SHOW_WINDOW: "show-window",
+  GET_ACTIVE_WINDOW_SOURCE: "get-active-window-source",
+  SHOW_RECORDING_OVERLAY: "show-recording-overlay",
+  HIDE_RECORDING_OVERLAY: "hide-recording-overlay",
+  RESIZE_WINDOW: "resize-window",
+  SHOW_RECORDING_DIM: "show-recording-dim",
+  HIDE_RECORDING_DIM: "hide-recording-dim",
+  START_CURSOR_TRACKING: "start-cursor-tracking",
   // Pushed from main per cursor-tracker tick (~120fps); timestamped to the recording start clock.
-  CURSOR_POSITION_EVENT: 'cursor-position-event',
-  STOP_CURSOR_TRACKING: 'stop-cursor-tracking',
-  PAUSE_CURSOR_TRACKING: 'pause-cursor-tracking',
-  RESUME_CURSOR_TRACKING: 'resume-cursor-tracking',
-  DELETE_CURRENT_SESSION: 'delete-current-session',
-  FILE_EXISTS: 'file-exists',
-  GET_PERMISSIONS: 'get-permissions',
-  REQUEST_MIC_PERMISSION: 'request-mic-permission',
-  REQUEST_CAMERA_PERMISSION: 'request-camera-permission',
-  START_NATIVE_RECORDING: 'start-native-recording',
-  STOP_NATIVE_RECORDING: 'stop-native-recording',
-  PAUSE_NATIVE_RECORDING: 'pause-native-recording',
-  RESUME_NATIVE_RECORDING: 'resume-native-recording',
-  IS_NATIVE_RECORDING_ACTIVE: 'is-native-recording-active',
-  NATIVE_RECORDER_CRASHED: 'native-recorder-crashed',
-  OPEN_EXTERNAL: 'open-external',
-  REQUEST_ACCESSIBILITY: 'request-accessibility',
-  PROBE_SCREEN_RECORDING_PERMISSION: 'probe-screen-recording-permission',
-  SOURCE_SELECTED: 'source-selected',
-  OPEN_SELECTION_OVERLAY: 'open-selection-overlay',
-  SELECTION_OVERLAY_INIT: 'selection-overlay-init',
-  SELECTION_OVERLAY_SOURCES: 'selection-overlay-sources',
-  SELECTION_OVERLAY_RESULT: 'selection-overlay-result',
-  GET_WINDOW_AT_POINT: 'get-window-at-point',
-  FOCUS_APP_BY_PID: 'focus-app-by-pid',
-  CLOSE_SELECTION_OVERLAY: 'close-selection-overlay',
-  SELECTION_OVERLAY_CANCELLED: 'selection-overlay-cancelled',
-  SELECTION_OVERLAY_RESET: 'selection-overlay-reset',
-  PLAY_SOUND: 'play-sound',
-  PERMISSIONS_GRANTED: 'permissions-granted',
-  SHOW_WEBCAM_BUBBLE: 'show-webcam-bubble',
-  HIDE_WEBCAM_BUBBLE: 'hide-webcam-bubble',
+  CURSOR_POSITION_EVENT: "cursor-position-event",
+  STOP_CURSOR_TRACKING: "stop-cursor-tracking",
+  PAUSE_CURSOR_TRACKING: "pause-cursor-tracking",
+  RESUME_CURSOR_TRACKING: "resume-cursor-tracking",
+  DELETE_CURRENT_SESSION: "delete-current-session",
+  FILE_EXISTS: "file-exists",
+  GET_PERMISSIONS: "get-permissions",
+  REQUEST_MIC_PERMISSION: "request-mic-permission",
+  REQUEST_CAMERA_PERMISSION: "request-camera-permission",
+  START_NATIVE_RECORDING: "start-native-recording",
+  STOP_NATIVE_RECORDING: "stop-native-recording",
+  PAUSE_NATIVE_RECORDING: "pause-native-recording",
+  RESUME_NATIVE_RECORDING: "resume-native-recording",
+  IS_NATIVE_RECORDING_ACTIVE: "is-native-recording-active",
+  NATIVE_RECORDER_CRASHED: "native-recorder-crashed",
+  OPEN_EXTERNAL: "open-external",
+  REQUEST_ACCESSIBILITY: "request-accessibility",
+  PROBE_SCREEN_RECORDING_PERMISSION: "probe-screen-recording-permission",
+  SOURCE_SELECTED: "source-selected",
+  OPEN_SELECTION_OVERLAY: "open-selection-overlay",
+  SELECTION_OVERLAY_INIT: "selection-overlay-init",
+  SELECTION_OVERLAY_SOURCES: "selection-overlay-sources",
+  SELECTION_OVERLAY_RESULT: "selection-overlay-result",
+  GET_WINDOW_AT_POINT: "get-window-at-point",
+  FOCUS_APP_BY_PID: "focus-app-by-pid",
+  CLOSE_SELECTION_OVERLAY: "close-selection-overlay",
+  SELECTION_OVERLAY_CANCELLED: "selection-overlay-cancelled",
+  SELECTION_OVERLAY_RESET: "selection-overlay-reset",
+  PLAY_SOUND: "play-sound",
+  PERMISSIONS_GRANTED: "permissions-granted",
+  SHOW_WEBCAM_BUBBLE: "show-webcam-bubble",
+  HIDE_WEBCAM_BUBBLE: "hide-webcam-bubble",
   // Hides the window without releasing the MediaStream, keeping the camera warm for instant re-show.
-  SOFT_HIDE_WEBCAM_BUBBLE: 'soft-hide-webcam-bubble',
-  WEBCAM_BUBBLE_INIT: 'webcam-bubble-init',
-  WEBCAM_BUBBLE_RELEASE: 'webcam-bubble-release',
-  FIT_WINDOW_TO_CONTENT: 'fit-window-to-content',
-  REQUEST_MEDIA_PERMISSION: 'request-media-permission',
-  PERMISSION_DIALOG_INIT: 'permission-dialog-init',
-  PERMISSION_DIALOG_RESPOND: 'permission-dialog-respond',
-  LOG_FROM_RENDERER: 'log-from-renderer',
-  APPLY_RECORDING_DISPLAY_MODE: 'apply-recording-display-mode',
-  RESTORE_RECORDING_DISPLAY_MODE: 'restore-recording-display-mode',
-  SHOW_RELEASE_NOTES: 'show-release-notes',
-  RELEASE_NOTES_PENDING: 'release-notes-pending',
-  RELEASE_NOTES_MARK_SHOWN: 'release-notes-mark-shown',
-  SEND_BUG_REPORT: 'send-bug-report',
-  GET_USER_PREFS: 'get-user-prefs',
-  SET_USER_PREF: 'set-user-pref',
-  USER_PREFS_CHANGED: 'user-prefs-changed',
-  SHARE_FRAME_EVENT: 'share-frame-event',
+  SOFT_HIDE_WEBCAM_BUBBLE: "soft-hide-webcam-bubble",
+  WEBCAM_BUBBLE_INIT: "webcam-bubble-init",
+  WEBCAM_BUBBLE_RELEASE: "webcam-bubble-release",
+  FIT_WINDOW_TO_CONTENT: "fit-window-to-content",
+  REQUEST_MEDIA_PERMISSION: "request-media-permission",
+  PERMISSION_DIALOG_INIT: "permission-dialog-init",
+  PERMISSION_DIALOG_RESPOND: "permission-dialog-respond",
+  LOG_FROM_RENDERER: "log-from-renderer",
+  APPLY_RECORDING_DISPLAY_MODE: "apply-recording-display-mode",
+  RESTORE_RECORDING_DISPLAY_MODE: "restore-recording-display-mode",
+  SHOW_RELEASE_NOTES: "show-release-notes",
+  RELEASE_NOTES_PENDING: "release-notes-pending",
+  RELEASE_NOTES_MARK_SHOWN: "release-notes-mark-shown",
+  SEND_BUG_REPORT: "send-bug-report",
+  GET_USER_PREFS: "get-user-prefs",
+  SET_USER_PREF: "set-user-pref",
+  USER_PREFS_CHANGED: "user-prefs-changed",
+  SHARE_FRAME_EVENT: "share-frame-event",
   // Streaming-upload protocol: /api/init fires at record START so the slug exists by stop;
   // screen and webcam stream in parallel; SHARE_FINISH finalizes both and returns the edit URL.
-  SHARE_START: 'share-start',
-  SHARE_PART_SCREEN: 'share-part-screen',
-  SHARE_PART_WEBCAM: 'share-part-webcam',
-  SHARE_FINISH: 'share-finish',
-  SHARE_ABORT: 'share-abort',
+  SHARE_START: "share-start",
+  SHARE_PART_SCREEN: "share-part-screen",
+  SHARE_PART_WEBCAM: "share-part-webcam",
+  SHARE_FINISH: "share-finish",
+  SHARE_ABORT: "share-abort",
   // First composited frame as JPEG, posted to /api/poster as the viewer-link OG thumbnail.
-  SHARE_UPLOAD_POSTER: 'share-upload-poster',
+  SHARE_UPLOAD_POSTER: "share-upload-poster",
   // Fired when the user clicks record; kicks off shareStart + audio acquisition during the 3s countdown.
-  SHARE_PREP_START: 'share-prep-start',
-  SHARE_PREP_CANCEL: 'share-prep-cancel',
-  SHARE_READY_OPEN_LINK: 'share-ready-open-link',
-  SHARE_FAILURE_OPEN: 'share-failure-open',
-  SHARE_FAILURE_INIT: 'share-failure-init',
-  SHARE_FAILURE_CLOSE: 'share-failure-close',
+  SHARE_PREP_START: "share-prep-start",
+  SHARE_PREP_CANCEL: "share-prep-cancel",
+  SHARE_READY_OPEN_LINK: "share-ready-open-link",
+  SHARE_FAILURE_OPEN: "share-failure-open",
+  SHARE_FAILURE_INIT: "share-failure-init",
+  SHARE_FAILURE_CLOSE: "share-failure-close",
   // Opened when a capture needs the user to sign in or be online first; main shows a native confirm dialog.
-  CAPTURE_GATE_OPEN: 'capture-gate-open',
+  CAPTURE_GATE_OPEN: "capture-gate-open",
   // Web-account auth: SIGN_IN opens the login URL (returns via captureflow:// deep link); CHANGED fans out to all windows.
-  SHARE_AUTH_GET: 'share-auth-get',
-  SHARE_AUTH_SIGN_IN: 'share-auth-sign-in',
-  SHARE_AUTH_SIGN_OUT: 'share-auth-sign-out',
-  SHARE_AUTH_CHANGED: 'share-auth-changed',
+  SHARE_AUTH_GET: "share-auth-get",
+  SHARE_AUTH_SIGN_IN: "share-auth-sign-in",
+  SHARE_AUTH_SIGN_OUT: "share-auth-sign-out",
+  SHARE_AUTH_CHANGED: "share-auth-changed",
   // Share-backend reachability, separate from auth (a signed-in user can still be offline).
-  SHARE_CONNECTIVITY_GET: 'share-connectivity-get',
-  SHARE_CONNECTIVITY_CHANGED: 'share-connectivity-changed',
-  SHARE_USAGE_GET: 'share-usage-get',
-  SHARE_USAGE_CHANGED: 'share-usage-changed',
-  SHARE_USAGE_REFRESH: 'share-usage-refresh',
-  SHARE_USAGE_OPEN_UPGRADE: 'share-usage-open-upgrade',
+  SHARE_CONNECTIVITY_GET: "share-connectivity-get",
+  SHARE_CONNECTIVITY_CHANGED: "share-connectivity-changed",
+  SHARE_USAGE_GET: "share-usage-get",
+  SHARE_USAGE_CHANGED: "share-usage-changed",
+  SHARE_USAGE_REFRESH: "share-usage-refresh",
+  SHARE_USAGE_OPEN_UPGRADE: "share-usage-open-upgrade",
   // Workspace switcher state; SELECT persists the active target in userData, CHANGED fans out on any change.
-  WORKSPACES_GET: 'workspaces-get',
-  WORKSPACES_REFRESH: 'workspaces-refresh',
-  WORKSPACES_SELECT: 'workspaces-select',
-  WORKSPACES_CHANGED: 'workspaces-changed',
+  WORKSPACES_GET: "workspaces-get",
+  WORKSPACES_REFRESH: "workspaces-refresh",
+  WORKSPACES_SELECT: "workspaces-select",
+  WORKSPACES_CHANGED: "workspaces-changed",
   // Renderer publishes hit rects; main polls the cursor at ~60Hz and toggles setIgnoreMouseEvents so the
   // window's transparent areas above the visible bar don't eat clicks meant for the app underneath.
-  TOOLBAR_SET_HIT_RECTS: 'toolbar-set-hit-rects',
+  TOOLBAR_SET_HIT_RECTS: "toolbar-set-hit-rects",
   // Resize the toolbar window on mode flip; main re-centres against the previous x so the bar doesn't jump.
-  TOOLBAR_RESIZE_FOR_MODE: 'toolbar-resize-for-mode',
+  TOOLBAR_RESIZE_FOR_MODE: "toolbar-resize-for-mode",
   // Screenshot pipeline: main spawns the native sidecar in snapshot mode, copies/saves the PNG, plays the
   // shutter, and uploads it. Replaces the recording-start path for this mode.
-  CAPTURE_SCREENSHOT: 'capture-screenshot',
-  SNAP_CAPTURED: 'snap-captured',
-  SNAP_UPLOAD_COMPLETE: 'snap-upload-complete',
-  SNAP_UPLOAD_FAILED: 'snap-upload-failed',
-  SNAP_NOTIFICATION_CLOSE: 'snap-notification-close',
-  SNAP_OPEN_EDIT: 'snap-open-edit',
-  SNAP_COPY_LINK: 'snap-copy-link',
-  SNAP_DELETE: 'snap-delete'
-} as const
+  CAPTURE_SCREENSHOT: "capture-screenshot",
+  SNAP_CAPTURED: "snap-captured",
+  SNAP_UPLOAD_COMPLETE: "snap-upload-complete",
+  SNAP_UPLOAD_FAILED: "snap-upload-failed",
+  SNAP_NOTIFICATION_CLOSE: "snap-notification-close",
+  SNAP_OPEN_EDIT: "snap-open-edit",
+  SNAP_COPY_LINK: "snap-copy-link",
+  SNAP_DELETE: "snap-delete",
+} as const;
 
 // Renderer-safe; never carries the raw bearer token (main keeps that for outbound calls).
 export type ShareAuthState =
-  | { kind: 'signed_out' }
+  | { kind: "signed_out" }
   | {
-      kind: 'signed_in'
-      tokenId: string
-      label: string | null
-      email: string | null
-    }
+      kind: "signed_in";
+      tokenId: string;
+      label: string | null;
+      email: string | null;
+    };
 
-export type ShareConnectivityState = 'online' | 'offline'
+export type ShareConnectivityState = "online" | "offline";
 
 // `kind: 'unknown'` is the pre-probe boot state, treated as "no lock yet" so a slow network
 // doesn't flash the upgrade modal on launch.
 export type ShareUsageState =
-  | { kind: 'unknown' }
+  | { kind: "unknown" }
   | {
-      kind: 'known'
-      usedBytes: number
-      limitBytes: number
-      activeCount: number
-      activeLimit: number
-      capReached: boolean
-      isDev: boolean
+      kind: "known";
+      usedBytes: number;
+      limitBytes: number;
+      activeCount: number;
+      activeLimit: number;
+      capReached: boolean;
+      isDev: boolean;
       // False (or absent on legacy cached state) means the account is on the free tier.
-      proSubscriptionActive: boolean
-      checkedAt: number
-    }
+      proSubscriptionActive: boolean;
+      checkedAt: number;
+    };
 
 export type WorkspaceSummary = {
-  id: string
-  name: string
-  kind: 'personal' | 'team'
-  role: 'owner' | 'member'
-}
+  id: string;
+  name: string;
+  kind: "personal" | "team";
+  role: "owner" | "member";
+};
 
 // `unknown` hides the chip pre-probe (and when signed out) so a stale paint doesn't flash someone else's workspace.
 export type WorkspacesState =
-  | { kind: 'unknown' }
+  | { kind: "unknown" }
   | {
-      kind: 'known'
-      workspaces: WorkspaceSummary[]
-      activeId: string | null
-    }
+      kind: "known";
+      workspaces: WorkspaceSummary[];
+      activeId: string | null;
+    };
 
 // Persisted user toggles; see src/main/lib/user-prefs.ts for storage.
 export type UserPrefs = {
-  shareEnabled: boolean
+  shareEnabled: boolean;
   // Opt-in PostHog analytics; never captures recording content, only anonymous product-usage events.
-  analyticsEnabled: boolean
-  termsAccepted: boolean
-}
+  analyticsEnabled: boolean;
+  termsAccepted: boolean;
+};
 
 // The native side writes length-prefixed H.264 + AAC LC records on fd 3; main forwards them as these
 // events. See native/screen-recorder/ShareWriter.swift for the on-wire layout.
 export type ShareFrameEvent =
   | {
-      kind: 'format'
-      codedWidth: number
-      codedHeight: number
-      fps: number
+      kind: "format";
+      codedWidth: number;
+      codedHeight: number;
+      fps: number;
       // avcC box bytes (length-prefixed SPS/PPS), ready to hand to mp4-muxer's per-chunk decoderConfig.description.
-      description: Uint8Array
+      description: Uint8Array;
     }
   | {
-      kind: 'chunk'
-      type: 'key' | 'delta'
+      kind: "chunk";
+      type: "key" | "delta";
       // Microseconds since the first emitted chunk.
-      timestamp: number
-      duration: number
+      timestamp: number;
+      duration: number;
       // Length-prefixed NAL units (avc format), ready for muxer.addVideoChunkRaw().
-      data: Uint8Array
+      data: Uint8Array;
     }
   | {
-      kind: 'audio-format'
-      sampleRate: number
-      numberOfChannels: number
+      kind: "audio-format";
+      sampleRate: number;
+      numberOfChannels: number;
       // AudioSpecificConfig bytes (the same 2-byte descriptor that sits inside an MP4 esds box). mp4-muxer's audio decoderConfig accepts these verbatim as `description`.
-      description: Uint8Array
+      description: Uint8Array;
     }
   | {
-      kind: 'audio-chunk'
+      kind: "audio-chunk";
       // Microseconds since the first audio packet — independent from the video clock; the muxer reconciles them via PTS at write time.
-      timestamp: number
-      duration: number
+      timestamp: number;
+      duration: number;
       // Raw AAC packet bytes (no ADTS header), ready for muxer.addAudioChunkRaw().
-      data: Uint8Array
+      data: Uint8Array;
     }
-  | { kind: 'end' }
+  | { kind: "end" };
 
 export type ShareStartMeta = {
-  title: string | null
-  hasWebcam: boolean
-}
+  title: string | null;
+  hasWebcam: boolean;
+};
 
 export type ShareStartResult =
   | { ok: true; slug: string; editUrl: string }
-  | { ok: false; error: string; code?: string; status?: number }
+  | { ok: false; error: string; code?: string; status?: number };
 
 // `webcamTotalBytes` is only meaningful when SHARE_START.hasWebcam was true.
 export type ShareFinishMeta = {
-  durationMs: number
-  screenTotalBytes: number
-  webcamTotalBytes?: number
-}
+  durationMs: number;
+  screenTotalBytes: number;
+  webcamTotalBytes?: number;
+};
 
 export type ShareFinishResult =
   | { ok: true; slug: string; url: string }
   | {
-      ok: false
-      error: string
-      code?: string
-      status?: number
-      partialUrl?: string
-    }
+      ok: false;
+      error: string;
+      code?: string;
+      status?: number;
+      partialUrl?: string;
+    };
 
-export type ShareFailureKind = 'no-link' | 'partial' | 'init-failed'
+export type ShareFailureKind = "no-link" | "partial" | "init-failed";
 
 export type ShareFailureState = {
-  kind: ShareFailureKind
-  message: string
-  url?: string
-}
+  kind: ShareFailureKind;
+  message: string;
+  url?: string;
+};
 
-export type UpgradeReason = 'share' | 'screenshot' | 'cloud'
+export type UpgradeReason = "share" | "screenshot" | "cloud";
 
 export type BugReportPayload = {
-  description: string
-  email?: string
-}
+  description: string;
+  email?: string;
+};
 
-export type BugReportResult = { ok: true } | { ok: false; error: string }
+export type BugReportResult = { ok: true } | { ok: false; error: string };
 
-export type SelectionOverlayMode = 'display' | 'window' | 'area'
+export type SelectionOverlayMode = "display" | "window" | "area";
 
 export type WindowAtPoint = {
-  id: number
-  name: string
-  owner: string
-  pid: number
-  bounds: WindowBounds
-  cornerRadius?: number
-  iconBase64?: string
-} | null
+  id: number;
+  name: string;
+  owner: string;
+  pid: number;
+  bounds: WindowBounds;
+  cornerRadius?: number;
+  iconBase64?: string;
+} | null;
 
 export type ReleaseNotesInitPayload = {
-  version: string
-  message: string
-  detail: string
-}
+  version: string;
+  message: string;
+  detail: string;
+};
 
 export type PermissionDialogInitPayload = {
-  kind: 'camera' | 'microphone'
-  variant: 'first-time' | 'denied'
-}
+  kind: "camera" | "microphone";
+  variant: "first-time" | "denied";
+};

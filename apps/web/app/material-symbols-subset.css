@@ -11,14 +11,14 @@
  * text — the visual cue to re-run the script.
  */
 @font-face {
-  font-family: 'Material Symbols Rounded';
+  font-family: "Material Symbols Rounded";
   font-style: normal;
   font-weight: 100 700;
   font-display: swap;
-  src: url('/fonts/material-symbols-rounded.subset.woff2') format('woff2');
+  src: url("/fonts/material-symbols-rounded.subset.woff2") format("woff2");
 }
 .material-symbols-rounded {
-  font-family: 'Material Symbols Rounded';
+  font-family: "Material Symbols Rounded";
   font-weight: normal;
   font-style: normal;
   font-size: 24px;
@@ -32,5 +32,5 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-feature-settings: 'liga';
+  font-feature-settings: "liga";
 }

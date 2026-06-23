@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useSyncExternalStore, type ReactNode } from 'react';
-import { Check, Sparkles } from 'lucide-react';
+import { useState, useSyncExternalStore, type ReactNode } from "react";
+import { Check, Sparkles } from "lucide-react";
 import {
   SmoothButton,
   SmoothDialog,
@@ -10,7 +10,7 @@ import {
   SmoothDialogHeader,
   SmoothDialogTitle,
   SmoothDialogTrigger,
-} from '@captureflow/ui';
+} from "@captureflow/ui";
 
 const MONTHLY_PRICE = 9;
 
@@ -18,13 +18,13 @@ const MONTHLY_PRICE = 9;
 // checkout link; the env still wins when present.
 const CHECKOUT_BASE_URL =
   process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ||
-  'https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916';
+  "https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916";
 
 const BENEFITS = [
-  '200 GB cloud storage (up from 200 MB)',
-  'No cap on the number of shares & Snaps',
-  'Automatic backups & monitoring',
-  'Priority support',
+  "200 GB cloud storage (up from 200 MB)",
+  "No cap on the number of shares & Snaps",
+  "Automatic backups & monitoring",
+  "Priority support",
 ] as const;
 
 type Props = {
@@ -35,8 +35,8 @@ type Props = {
 function checkoutUrlFor(email: string): string | null {
   if (!CHECKOUT_BASE_URL) return null;
   const u = new URL(CHECKOUT_BASE_URL);
-  u.searchParams.set('billing', 'monthly');
-  if (email) u.searchParams.set('checkout[email]', email);
+  u.searchParams.set("billing", "monthly");
+  if (email) u.searchParams.set("checkout[email]", email);
   return u.toString();
 }
 

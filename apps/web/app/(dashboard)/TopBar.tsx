@@ -1,18 +1,18 @@
-import { Bell, Sparkles } from 'lucide-react';
-import Link from 'next/link';
-import { headers } from 'next/headers';
-import { getActiveProSubscription } from '@captureflow/quota';
-import { getAppWebEnv } from '@/lib/cf-env';
-import { requireSession } from '@/lib/session-guard';
+import { Bell, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { headers } from "next/headers";
+import { getActiveProSubscription } from "@captureflow/quota";
+import { getAppWebEnv } from "@/lib/cf-env";
+import { requireSession } from "@/lib/session-guard";
 import {
   Button,
   SmoothButton,
   ThemeToggle,
   readThemeFromCookieHeader,
-} from '@captureflow/ui';
-import { SearchTrigger } from './SearchTrigger';
-import { UpgradeModal } from './UpgradeModal';
-import { UserMenu } from './UserMenu';
+} from "@captureflow/ui";
+import { SearchTrigger } from "./SearchTrigger";
+import { UpgradeModal } from "./UpgradeModal";
+import { UserMenu } from "./UserMenu";
 
 export async function TopBar() {
   const session = await requireSession();
@@ -26,10 +26,10 @@ export async function TopBar() {
       ])
     : [null, null];
   const userImage = userRow?.image ?? null;
-  const cookieHeader = (await headers()).get('cookie');
+  const cookieHeader = (await headers()).get("cookie");
   const theme = readThemeFromCookieHeader(cookieHeader);
 
-  const isPro = subscription?.status === 'active';
+  const isPro = subscription?.status === "active";
 
   return (
     <div className="flex items-center justify-between gap-4 border-b border-line bg-canvas-2 px-6 py-3">

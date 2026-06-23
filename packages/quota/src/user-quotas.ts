@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { ACCOUNT_LIMITS, PRO_SUBSCRIPTION_LIMITS } from './limits';
-import { getActiveProSubscription } from './pro-subscription';
+import { ACCOUNT_LIMITS, PRO_SUBSCRIPTION_LIMITS } from "./limits";
+import { getActiveProSubscription } from "./pro-subscription";
 
 /*
  * Per-user effective caps, resolved in priority order: admin override row,
@@ -25,7 +25,7 @@ type QuotaRow = {
 
 export async function getEffectiveLimitsForUser(
   db: D1Database,
-  userId: string
+  userId: string,
 ): Promise<EffectiveLimits> {
   const [override, subscription] = await Promise.all([
     db
@@ -33,7 +33,7 @@ export async function getEffectiveLimitsForUser(
         `SELECT storage_bytes_override, active_shares_override
            FROM user_quotas
            WHERE user_id = ?1
-           LIMIT 1`
+           LIMIT 1`,
       )
       .bind(userId)
       .first<QuotaRow>(),

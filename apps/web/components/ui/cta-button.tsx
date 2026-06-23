@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Slot } from '@radix-ui/react-slot';
-import { cva, type VariantProps } from 'class-variance-authority';
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 import {
   type ButtonHTMLAttributes,
   type PointerEvent as ReactPointerEvent,
@@ -9,8 +9,8 @@ import {
   useCallback,
   useRef,
   useState,
-} from 'react';
-import { cn } from '@/lib/utils';
+} from "react";
+import { cn } from "@/lib/utils";
 
 /*
  * Press feedback uses a pointer-driven `data-pressed` state rather than a bare
@@ -18,19 +18,19 @@ import { cn } from '@/lib/utils';
  * navigating anchor is unreliable.
  */
 const ctaButtonVariants = cva(
-  'inline-flex cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-blue-600 font-semibold text-white ring-offset-background transition-transform duration-150 ease-out focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-400/60 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 data-[pressed=true]:scale-[0.97]',
+  "inline-flex cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-blue-600 font-semibold text-white ring-offset-background transition-transform duration-150 ease-out focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-400/60 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 data-[pressed=true]:scale-[0.97]",
   {
     variants: {
       size: {
-        default: 'h-10 px-5 py-2 text-sm',
-        sm: 'h-9 px-4 py-2 text-xs',
-        lg: 'h-12 px-5 text-base',
+        default: "h-10 px-5 py-2 text-sm",
+        sm: "h-9 px-4 py-2 text-xs",
+        lg: "h-12 px-5 text-base",
       },
     },
     defaultVariants: {
-      size: 'default',
+      size: "default",
     },
-  }
+  },
 );
 
 export type CtaButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
@@ -50,9 +50,9 @@ const CtaButton = forwardRef<HTMLButtonElement, CtaButtonProps>(
       onPointerCancel,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const Comp = asChild ? Slot : 'button';
+    const Comp = asChild ? Slot : "button";
     const [pressed, setPressed] = useState(false);
     const releaseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -62,7 +62,7 @@ const CtaButton = forwardRef<HTMLButtonElement, CtaButtonProps>(
         setPressed(true);
         onPointerDown?.(e);
       },
-      [onPointerDown]
+      [onPointerDown],
     );
     const up = useCallback(
       (e: ReactPointerEvent<HTMLButtonElement>) => {
@@ -70,7 +70,7 @@ const CtaButton = forwardRef<HTMLButtonElement, CtaButtonProps>(
         releaseTimer.current = setTimeout(() => setPressed(false), 120);
         onPointerUp?.(e);
       },
-      [onPointerUp]
+      [onPointerUp],
     );
     const release = useCallback(
       (e: ReactPointerEvent<HTMLButtonElement>) => {
@@ -79,13 +79,13 @@ const CtaButton = forwardRef<HTMLButtonElement, CtaButtonProps>(
         onPointerLeave?.(e);
         onPointerCancel?.(e);
       },
-      [onPointerLeave, onPointerCancel]
+      [onPointerLeave, onPointerCancel],
     );
 
     return (
       <Comp
         ref={ref}
-        data-pressed={pressed ? 'true' : undefined}
+        data-pressed={pressed ? "true" : undefined}
         onPointerDown={down}
         onPointerUp={up}
         onPointerLeave={release}
@@ -94,9 +94,9 @@ const CtaButton = forwardRef<HTMLButtonElement, CtaButtonProps>(
         {...props}
       />
     );
-  }
+  },
 );
-CtaButton.displayName = 'CtaButton';
+CtaButton.displayName = "CtaButton";
 
 export default CtaButton;
 export { ctaButtonVariants };

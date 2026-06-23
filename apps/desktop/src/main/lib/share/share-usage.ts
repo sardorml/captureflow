@@ -1,46 +1,49 @@
-import { EventEmitter } from 'events'
-import type { ShareUsageState } from '../../../shared/types'
-import { loadDeviceId } from '../device-id'
-import { logInfo, logWarn } from '../logger'
-import { clearShareAuth, getShareAuthToken } from './share-auth'
-import { setShareConnectivity } from './share-connectivity'
+import { EventEmitter } from "events";
+import type { ShareUsageState } from "../../../shared/types";
+import { loadDeviceId } from "../device-id";
+import { logInfo, logWarn } from "../logger";
+import { clearShareAuth, getShareAuthToken } from "./share-auth";
+import { setShareConnectivity } from "./share-connectivity";
 
-const APP_WEB_API_BASE = process.env.CAPTUREFLOW_APP_WEB_API_BASE ?? 'https://captureflow.xyz'
-const USAGE_TIMEOUT_MS = 8_000
+const APP_WEB_API_BASE =
+  process.env.CAPTUREFLOW_APP_WEB_API_BASE ?? "https://captureflow.xyz";
+const USAGE_TIMEOUT_MS = 8_000;
 
 // MUST mirror the web backend's ACCOUNT_LIMITS.{totalStorageBytes,
 // activeArtifactsPerAccount}, which isn't a desktop dependency.
-const ACCOUNT_STORAGE_LIMIT_BYTES = 500 * 1024 * 1024
-const ACCOUNT_ACTIVE_LIMIT = 50
+const ACCOUNT_STORAGE_LIMIT_BYTES = 500 * 1024 * 1024;
+const ACCOUNT_ACTIVE_LIMIT = 50;
 
-let current: ShareUsageState = { kind: 'unknown' }
-let inflight: Promise<ShareUsageState> | null = null
-const events = new EventEmitter()
+let current: ShareUsageState = { kind: "unknown" };
+let inflight: Promise<ShareUsageState> | null = null;
+const events = new EventEmitter();
 
 export function getShareUsage(): ShareUsageState {
-  return current
+  return current;
 }
 
-export function onShareUsageChange(fn: (state: ShareUsageState) => void): () => void {
-  events.on('change', fn)
+export function onShareUsageChange(
+  fn: (state: ShareUsageState) => void,
+): () => void {
+  events.on("change", fn);
   return () => {
-    events.off('change', fn)
-  }
+    events.off("change", fn);
+  };
 }
 
 function setShareUsage(next: ShareUsageState): void {
-  current = next
-  events.emit('change', next)
+  current = next;
+  events.emit("change", next);
 }
 
 export function markShareUsageCapReached(): void {
-  if (current.kind === 'known') {
-    if (current.capReached) return
-    setShareUsage({ ...current, capReached: true, checkedAt: Date.now() })
-    return
+  if (current.kind === "known") {
+    if (current.capReached) return;
+    setShareUsage({ ...current, capReached: true, checkedAt: Date.now() });
+    return;
   }
   setShareUsage({
-    kind: 'known',
+    kind: "known",
     usedBytes: ACCOUNT_STORAGE_LIMIT_BYTES,
     limitBytes: ACCOUNT_STORAGE_LIMIT_BYTES,
     activeCount: 0,
@@ -48,63 +51,69 @@ export function markShareUsageCapReached(): void {
     capReached: true,
     isDev: false,
     proSubscriptionActive: false,
-    checkedAt: Date.now()
-  })
+    checkedAt: Date.now(),
+  });
 }
 
 type UsageResponse = {
-  usedBytes: number
-  limitBytes: number
-  activeCount: number
-  activeLimit: number
-  capReached: boolean
-  isDev: boolean
+  usedBytes: number;
+  limitBytes: number;
+  activeCount: number;
+  activeLimit: number;
+  capReached: boolean;
+  isDev: boolean;
   // Optional for backward compat — older app-web deploys omit it (treated as false).
-  proSubscriptionActive?: boolean
-}
+  proSubscriptionActive?: boolean;
+};
 
 export async function refreshShareUsage(): Promise<ShareUsageState> {
-  if (inflight) return inflight
+  if (inflight) return inflight;
   const promise = (async (): Promise<ShareUsageState> => {
-    const token = getShareAuthToken()
+    const token = getShareAuthToken();
     if (!token) {
       // Drop stale cached numbers so the cap doesn't leak across sign-out.
-      if (current.kind !== 'unknown') setShareUsage({ kind: 'unknown' })
-      return current
+      if (current.kind !== "unknown") setShareUsage({ kind: "unknown" });
+      return current;
     }
-    const deviceId = await loadDeviceId()
+    const deviceId = await loadDeviceId();
     try {
       const res = await fetch(`${APP_WEB_API_BASE}/api/usage`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'x-captureflow-device': deviceId,
-          authorization: `Bearer ${token}`
+          "x-captureflow-device": deviceId,
+          authorization: `Bearer ${token}`,
         },
-        signal: AbortSignal.timeout(USAGE_TIMEOUT_MS)
-      })
+        signal: AbortSignal.timeout(USAGE_TIMEOUT_MS),
+      });
       // Any HTTP response means the host is reachable.
-      setShareConnectivity('online')
+      setShareConnectivity("online");
       // 401 = device revoked; clear the local session so the lock flips to "sign in".
       if (res.status === 401) {
-        logInfo('share-usage', 'usage probe rejected token; clearing local session')
-        void clearShareAuth().catch(() => {})
-        return current
+        logInfo(
+          "share-usage",
+          "usage probe rejected token; clearing local session",
+        );
+        void clearShareAuth().catch(() => {});
+        return current;
       }
       if (!res.ok) {
-        logWarn('share-usage', `refresh returned ${res.status}; keeping cached`)
-        return current
+        logWarn(
+          "share-usage",
+          `refresh returned ${res.status}; keeping cached`,
+        );
+        return current;
       }
-      const body = (await res.json()) as Partial<UsageResponse>
+      const body = (await res.json()) as Partial<UsageResponse>;
       if (
-        typeof body.usedBytes !== 'number' ||
-        typeof body.limitBytes !== 'number' ||
-        typeof body.capReached !== 'boolean'
+        typeof body.usedBytes !== "number" ||
+        typeof body.limitBytes !== "number" ||
+        typeof body.capReached !== "boolean"
       ) {
-        logWarn('share-usage', 'refresh: malformed response')
-        return current
+        logWarn("share-usage", "refresh: malformed response");
+        return current;
       }
       const next: ShareUsageState = {
-        kind: 'known',
+        kind: "known",
         usedBytes: body.usedBytes,
         limitBytes: body.limitBytes,
         activeCount: body.activeCount ?? 0,
@@ -112,36 +121,36 @@ export async function refreshShareUsage(): Promise<ShareUsageState> {
         capReached: body.capReached,
         isDev: body.isDev ?? false,
         proSubscriptionActive: body.proSubscriptionActive ?? false,
-        checkedAt: Date.now()
-      }
+        checkedAt: Date.now(),
+      };
       const changed =
-        current.kind !== 'known' ||
+        current.kind !== "known" ||
         current.usedBytes !== next.usedBytes ||
         current.activeCount !== next.activeCount ||
         current.capReached !== next.capReached ||
-        current.proSubscriptionActive !== next.proSubscriptionActive
+        current.proSubscriptionActive !== next.proSubscriptionActive;
       if (changed) {
         logInfo(
-          'share-usage',
+          "share-usage",
           `refreshed: ${next.usedBytes}B / ${next.limitBytes}B, ` +
-            `${next.activeCount}/${next.activeLimit} shares, cap=${next.capReached}`
-        )
-        setShareUsage(next)
+            `${next.activeCount}/${next.activeLimit} shares, cap=${next.capReached}`,
+        );
+        setShareUsage(next);
       } else {
         // Update checkedAt without emitting, so callers can tell a recent probe ran.
-        current = next
+        current = next;
       }
-      return next
+      return next;
     } catch (err) {
-      logWarn('share-usage', `refresh failed (network): ${String(err)}`)
-      setShareConnectivity('offline')
-      return current
+      logWarn("share-usage", `refresh failed (network): ${String(err)}`);
+      setShareConnectivity("offline");
+      return current;
     }
-  })()
-  inflight = promise
+  })();
+  inflight = promise;
   try {
-    return await promise
+    return await promise;
   } finally {
-    inflight = null
+    inflight = null;
   }
 }

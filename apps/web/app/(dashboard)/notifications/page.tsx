@@ -1,7 +1,7 @@
-import { Bell } from 'lucide-react';
-import { PageHeader } from '../PageHeader';
+import { Bell } from "lucide-react";
+import { PageHeader } from "../PageHeader";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default function NotificationsPage() {
   return (

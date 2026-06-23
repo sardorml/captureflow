@@ -1,5 +1,5 @@
-import type { ShareComment, ShareReaction, ShareRow } from './types';
-import type { ShareDb } from './db-types';
+import type { ShareComment, ShareReaction, ShareRow } from "./types";
+import type { ShareDb } from "./db-types";
 
 // In-memory backend for local Next.js dev only; production uses D1.
 const store = new Map<string, ShareRow>();
@@ -44,7 +44,7 @@ export const memoryDb: ShareDb = {
   async totalStorageForDevice(deviceId) {
     let total = 0;
     for (const row of store.values()) {
-      if (row.deviceId === deviceId && row.state === 'ready') {
+      if (row.deviceId === deviceId && row.state === "ready") {
         total += row.sizeBytes;
       }
     }
@@ -54,7 +54,7 @@ export const memoryDb: ShareDb = {
   async activeShareCountForDevice(deviceId) {
     let n = 0;
     for (const row of store.values()) {
-      if (row.deviceId === deviceId && row.state === 'ready') n++;
+      if (row.deviceId === deviceId && row.state === "ready") n++;
     }
     return n;
   },
@@ -142,7 +142,7 @@ export const memoryDb: ShareDb = {
 export function memoryTotalStorageForUser(userId: string): number {
   let total = 0;
   for (const row of store.values()) {
-    if (row.userId === userId && row.state === 'ready') {
+    if (row.userId === userId && row.state === "ready") {
       total += row.sizeBytes;
     }
   }
@@ -152,7 +152,7 @@ export function memoryTotalStorageForUser(userId: string): number {
 export function memoryActiveArtifactCountForUser(userId: string): number {
   let n = 0;
   for (const row of store.values()) {
-    if (row.userId === userId && row.state === 'ready') n++;
+    if (row.userId === userId && row.state === "ready") n++;
   }
   return n;
 }

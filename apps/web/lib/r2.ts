@@ -1,12 +1,12 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { getAppWebEnv } from './cf-env';
+import { getAppWebEnv } from "./cf-env";
 
 async function getBucket(): Promise<R2Bucket> {
   const env = await getAppWebEnv();
   if (!env?.BUCKET) {
     throw new Error(
-      'R2 binding (BUCKET) not available. Run under OpenNext / Cloudflare.'
+      "R2 binding (BUCKET) not available. Run under OpenNext / Cloudflare.",
     );
   }
   return env.BUCKET;
@@ -21,7 +21,7 @@ export async function putObject(
   key: string,
   body: ArrayBuffer,
   contentType: string,
-  cacheControl = 'no-cache'
+  cacheControl = "no-cache",
 ): Promise<void> {
   const bucket = await getBucket();
   await bucket.put(key, body, {

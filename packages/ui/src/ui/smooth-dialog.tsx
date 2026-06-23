@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { motion } from 'motion/react';
-import { X } from 'lucide-react';
-import { cn } from '../lib/cn';
+import * as React from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { motion } from "motion/react";
+import { X } from "lucide-react";
+import { cn } from "../lib/cn";
 
 // No AnimatePresence wrapper: conditionally rendering it breaks the Portal anchor (Radix loses the Content).
 const SmoothDialog = DialogPrimitive.Root;
@@ -13,7 +13,7 @@ const SmoothDialogPortal = DialogPrimitive.Portal;
 const SmoothDialogClose = DialogPrimitive.Close;
 
 const CONTENT_SPRING = {
-  type: 'spring' as const,
+  type: "spring" as const,
   stiffness: 360,
   damping: 30,
   mass: 0.9,
@@ -27,8 +27,8 @@ const SmoothDialogOverlay = React.forwardRef<
     <DialogPrimitive.Overlay
       ref={ref}
       className={cn(
-        'fixed inset-0 z-50 bg-black/70 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0',
-        className
+        "fixed inset-0 z-50 bg-black/70 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+        className,
       )}
       {...props}
     />
@@ -42,7 +42,7 @@ const SmoothDialogContent = React.forwardRef<
   }
 >(function SmoothDialogContent(
   { className, children, hideClose, ...props },
-  ref
+  ref,
 ) {
   return (
     <SmoothDialogPortal>
@@ -50,8 +50,8 @@ const SmoothDialogContent = React.forwardRef<
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 outline-none',
-          className
+          "fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 outline-none",
+          className,
         )}
         {...props}
       >
@@ -81,7 +81,7 @@ function SmoothDialogHeader({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('mb-4 flex flex-col gap-1.5', className)} {...props} />
+    <div className={cn("mb-4 flex flex-col gap-1.5", className)} {...props} />
   );
 }
 
@@ -92,8 +92,8 @@ function SmoothDialogFooter({
   return (
     <div
       className={cn(
-        'mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
-        className
+        "mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        className,
       )}
       {...props}
     />
@@ -108,8 +108,8 @@ const SmoothDialogTitle = React.forwardRef<
     <DialogPrimitive.Title
       ref={ref}
       className={cn(
-        'text-lg font-semibold tracking-tight text-neutral-50',
-        className
+        "text-lg font-semibold tracking-tight text-neutral-50",
+        className,
       )}
       {...props}
     />
@@ -123,7 +123,7 @@ const SmoothDialogDescription = React.forwardRef<
   return (
     <DialogPrimitive.Description
       ref={ref}
-      className={cn('text-sm text-neutral-400', className)}
+      className={cn("text-sm text-neutral-400", className)}
       {...props}
     />
   );

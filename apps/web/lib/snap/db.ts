@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { getCloudflareEnv } from './cf-env';
-import type { SnapRow, SnapState, SnapVisibility } from './types';
+import { getCloudflareEnv } from "./cf-env";
+import type { SnapRow, SnapState, SnapVisibility } from "./types";
 
 type D1SnapRow = {
   id: string;
@@ -34,7 +34,7 @@ function rowFromD1(r: D1SnapRow): SnapRow {
     height: r.height,
     title: r.title,
     state: r.state as SnapState,
-    visibility: (r.visibility as SnapVisibility) ?? 'public',
+    visibility: (r.visibility as SnapVisibility) ?? "public",
     createdAt: r.created_at,
     updatedAt: r.updated_at,
     editedAt: r.edited_at,
@@ -44,14 +44,14 @@ function rowFromD1(r: D1SnapRow): SnapRow {
 }
 
 const COLUMNS =
-  'id, user_id, workspace_id, device_id, storage_key, size_bytes, width, height, ' +
-  'title, state, visibility, created_at, updated_at, edited_at, last_viewed_at, view_count';
+  "id, user_id, workspace_id, device_id, storage_key, size_bytes, width, height, " +
+  "title, state, visibility, created_at, updated_at, edited_at, last_viewed_at, view_count";
 
 async function db(): Promise<D1Database> {
   const env = await getCloudflareEnv();
   if (!env?.DB) {
     throw new Error(
-      'D1 binding (DB) not available. Ensure OpenNext / Cloudflare runtime.'
+      "D1 binding (DB) not available. Ensure OpenNext / Cloudflare runtime.",
     );
   }
   return env.DB;
@@ -62,7 +62,7 @@ export async function insertSnap(row: SnapRow): Promise<void> {
   await d
     .prepare(
       `INSERT INTO snaps (${COLUMNS})
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)`
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)`,
     )
     .bind(
       row.id,
@@ -80,7 +80,7 @@ export async function insertSnap(row: SnapRow): Promise<void> {
       row.updatedAt,
       row.editedAt,
       row.lastViewedAt,
-      row.viewCount
+      row.viewCount,
     )
     .run();
 }
@@ -101,16 +101,16 @@ export type SnapWithOwner = SnapRow & {
 };
 
 export async function getSnapWithOwner(
-  id: string
+  id: string,
 ): Promise<SnapWithOwner | null> {
   const d = await db();
   type Row = D1SnapRow & {
     owner_name: string | null;
     owner_email: string | null;
   };
-  const aliased = COLUMNS.split(', ')
+  const aliased = COLUMNS.split(", ")
     .map((c) => `s.${c}`)
-    .join(', ');
+    .join(", ");
   const r = await d
     .prepare(
       `SELECT ${aliased},
@@ -119,7 +119,7 @@ export async function getSnapWithOwner(
          FROM snaps s
          LEFT JOIN users u ON u.id = s.user_id
         WHERE s.id = ?1
-        LIMIT 1`
+        LIMIT 1`,
     )
     .bind(id)
     .first<Row>();
@@ -133,18 +133,18 @@ export async function getSnapWithOwner(
 
 export async function updateSnapAfterEdit(
   id: string,
-  patch: { sizeBytes: number; title?: string | null }
+  patch: { sizeBytes: number; title?: string | null },
 ): Promise<SnapRow | null> {
   const d = await db();
   const now = Date.now();
-  const sets = ['size_bytes = ?2', 'updated_at = ?3', 'edited_at = ?3'];
+  const sets = ["size_bytes = ?2", "updated_at = ?3", "edited_at = ?3"];
   const binds: unknown[] = [id, patch.sizeBytes, now];
   if (patch.title !== undefined) {
     sets.push(`title = ?${binds.length + 1}`);
     binds.push(patch.title);
   }
   const sql = `UPDATE snaps SET ${sets.join(
-    ', '
+    ", ",
   )} WHERE id = ?1 RETURNING ${COLUMNS}`;
   const r = await d
     .prepare(sql)
@@ -156,12 +156,12 @@ export async function updateSnapAfterEdit(
 // Callers must already have confirmed the requesting user owns the row.
 export async function updateSnapVisibility(
   id: string,
-  visibility: 'public' | 'workspace' | 'private'
+  visibility: "public" | "workspace" | "private",
 ): Promise<SnapRow | null> {
   const d = await db();
   const r = await d
     .prepare(
-      `UPDATE snaps SET visibility = ?2, updated_at = ?3 WHERE id = ?1 RETURNING ${COLUMNS}`
+      `UPDATE snaps SET visibility = ?2, updated_at = ?3 WHERE id = ?1 RETURNING ${COLUMNS}`,
     )
     .bind(id, visibility, Date.now())
     .first<D1SnapRow>();
@@ -172,7 +172,7 @@ export async function softDeleteSnap(id: string): Promise<boolean> {
   const d = await db();
   const res = await d
     .prepare(
-      `UPDATE snaps SET state = 'deleted', updated_at = ?2 WHERE id = ?1`
+      `UPDATE snaps SET state = 'deleted', updated_at = ?2 WHERE id = ?1`,
     )
     .bind(id, Date.now())
     .run();
@@ -185,7 +185,7 @@ export async function bumpSnapLastViewed(id: string): Promise<void> {
     .prepare(
       `UPDATE snaps
          SET last_viewed_at = ?2, view_count = view_count + 1
-         WHERE id = ?1`
+         WHERE id = ?1`,
     )
     .bind(id, Date.now())
     .run();

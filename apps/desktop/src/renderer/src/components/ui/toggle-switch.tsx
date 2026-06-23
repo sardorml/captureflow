@@ -1,17 +1,17 @@
-import { AnimatedToggle } from './animated-toggle'
+import { AnimatedToggle } from "./animated-toggle";
 
 type ToggleSwitchProps = {
-  label: string
-  value: boolean
-  onChange: () => void
-  disabled?: boolean
-}
+  label: string;
+  value: boolean;
+  onChange: () => void;
+  disabled?: boolean;
+};
 
 export function ToggleSwitch({
   label,
   value,
   onChange,
-  disabled
+  disabled,
 }: ToggleSwitchProps): React.JSX.Element {
   return (
     <div className="flex items-center justify-between">
@@ -24,5 +24,5 @@ export function ToggleSwitch({
         label={label}
       />
     </div>
-  )
+  );
 }

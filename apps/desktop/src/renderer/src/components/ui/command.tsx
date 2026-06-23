@@ -1,55 +1,56 @@
-import * as React from 'react'
-import { useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import { Command as CommandPrimitive } from 'cmdk'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { Search } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import * as React from "react";
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
+import { Command as CommandPrimitive } from "cmdk";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-type CommandProps = React.ComponentPropsWithoutRef<typeof CommandPrimitive>
+type CommandProps = React.ComponentPropsWithoutRef<typeof CommandPrimitive>;
 
-export const Command = React.forwardRef<React.ElementRef<typeof CommandPrimitive>, CommandProps>(
-  ({ className, ...props }, ref) => (
-    <CommandPrimitive
-      ref={ref}
-      className={cn(
-        'flex h-full w-full flex-col overflow-hidden rounded-2xl text-popover-foreground',
-        className
-      )}
-      {...props}
-    />
-  )
-)
-Command.displayName = CommandPrimitive.displayName
+export const Command = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive>,
+  CommandProps
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive
+    ref={ref}
+    className={cn(
+      "flex h-full w-full flex-col overflow-hidden rounded-2xl text-popover-foreground",
+      className,
+    )}
+    {...props}
+  />
+));
+Command.displayName = CommandPrimitive.displayName;
 
 type CommandDialogProps = {
-  children: React.ReactNode
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  title?: string
-}
+  children: React.ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title?: string;
+};
 
 export function CommandDialog({
   children,
   open,
   onOpenChange,
-  title = 'Command palette'
+  title = "Command palette",
 }: CommandDialogProps): React.JSX.Element | null {
-  const shouldReduceMotion = useReducedMotion()
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') {
-        e.preventDefault()
-        onOpenChange(false)
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onOpenChange(false);
       }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onOpenChange])
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onOpenChange]);
 
-  if (typeof document === 'undefined') return null
+  if (typeof document === "undefined") return null;
 
   return createPortal(
     <AnimatePresence>
@@ -80,12 +81,17 @@ export function CommandDialog({
             exit={
               shouldReduceMotion
                 ? { opacity: 0, transition: { duration: 0 } }
-                : { opacity: 0, scale: 0.97, y: -6, transition: { duration: 0.12 } }
+                : {
+                    opacity: 0,
+                    scale: 0.97,
+                    y: -6,
+                    transition: { duration: 0.12 },
+                  }
             }
             transition={
               shouldReduceMotion
                 ? { duration: 0 }
-                : { type: 'spring', damping: 24, stiffness: 340, mass: 0.7 }
+                : { type: "spring", damping: 24, stiffness: 340, mass: 0.7 }
             }
           >
             <Command className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-2.5 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground/70 [&_[cmdk-input-wrapper]_svg]:h-4 [&_[cmdk-input-wrapper]_svg]:w-4 [&_[cmdk-item]]:px-3 [&_[cmdk-item]]:py-2.5">
@@ -95,48 +101,51 @@ export function CommandDialog({
         </>
       )}
     </AnimatePresence>,
-    document.body
-  )
+    document.body,
+  );
 }
 
 export const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b border-white/8 px-4" {...{ 'cmdk-input-wrapper': '' }}>
+  <div
+    className="flex items-center border-b border-white/8 px-4"
+    {...{ "cmdk-input-wrapper": "" }}
+  >
     <Search className="mr-2.5 h-4 w-4 shrink-0 text-muted-foreground" />
     <CommandPrimitive.Input
       ref={ref}
       autoFocus
       className={cn(
-        'flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50',
-        className
+        "flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
+        className,
       )}
       {...props}
     />
   </div>
-))
-CommandInput.displayName = CommandPrimitive.Input.displayName
+));
+CommandInput.displayName = CommandPrimitive.Input.displayName;
 
 export const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
 >(({ className, onScroll, ...props }, ref) => {
-  const [scrolling, setScrolling] = React.useState(false)
-  const hideTimer = React.useRef<number | null>(null)
+  const [scrolling, setScrolling] = React.useState(false);
+  const hideTimer = React.useRef<number | null>(null);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>): void => {
-    onScroll?.(e)
-    setScrolling(true)
-    if (hideTimer.current !== null) window.clearTimeout(hideTimer.current)
-    hideTimer.current = window.setTimeout(() => setScrolling(false), 700)
-  }
+    onScroll?.(e);
+    setScrolling(true);
+    if (hideTimer.current !== null) window.clearTimeout(hideTimer.current);
+    hideTimer.current = window.setTimeout(() => setScrolling(false), 700);
+  };
 
   React.useEffect(() => {
     return () => {
-      if (hideTimer.current !== null) window.clearTimeout(hideTimer.current)
-    }
-  }, [])
+      if (hideTimer.current !== null) window.clearTimeout(hideTimer.current);
+    };
+  }, []);
 
   return (
     <CommandPrimitive.List
@@ -144,14 +153,14 @@ export const CommandList = React.forwardRef<
       onScroll={handleScroll}
       data-scrolling={scrolling || undefined}
       className={cn(
-        'max-h-80 overflow-y-auto overflow-x-hidden p-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-transparent [&::-webkit-scrollbar-thumb]:transition-colors data-[scrolling]:[&::-webkit-scrollbar-thumb]:bg-white/20',
-        className
+        "max-h-80 overflow-y-auto overflow-x-hidden p-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-transparent [&::-webkit-scrollbar-thumb]:transition-colors data-[scrolling]:[&::-webkit-scrollbar-thumb]:bg-white/20",
+        className,
       )}
       {...props}
     />
-  )
-})
-CommandList.displayName = CommandPrimitive.List.displayName
+  );
+});
+CommandList.displayName = CommandPrimitive.List.displayName;
 
 export const CommandEmpty = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Empty>,
@@ -162,8 +171,8 @@ export const CommandEmpty = React.forwardRef<
     className="py-6 text-center text-sm text-muted-foreground"
     {...props}
   />
-))
-CommandEmpty.displayName = CommandPrimitive.Empty.displayName
+));
+CommandEmpty.displayName = CommandPrimitive.Empty.displayName;
 
 export const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
@@ -171,11 +180,11 @@ export const CommandGroup = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Group
     ref={ref}
-    className={cn('overflow-hidden text-foreground', className)}
+    className={cn("overflow-hidden text-foreground", className)}
     {...props}
   />
-))
-CommandGroup.displayName = CommandPrimitive.Group.displayName
+));
+CommandGroup.displayName = CommandPrimitive.Group.displayName;
 
 export const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
@@ -185,12 +194,12 @@ export const CommandItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex cursor-default select-none items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm outline-none transition-colors aria-selected:bg-white/[0.10] aria-selected:text-foreground data-[disabled='true']:pointer-events-none data-[disabled='true']:opacity-50 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground aria-selected:[&_svg]:text-foreground",
-      className
+      className,
     )}
     {...props}
   />
-))
-CommandItem.displayName = CommandPrimitive.Item.displayName
+));
+CommandItem.displayName = CommandPrimitive.Item.displayName;
 
 export function CommandShortcut({
   className,
@@ -198,8 +207,11 @@ export function CommandShortcut({
 }: React.HTMLAttributes<HTMLSpanElement>): React.JSX.Element {
   return (
     <span
-      className={cn('ml-auto text-xs tracking-widest text-muted-foreground', className)}
+      className={cn(
+        "ml-auto text-xs tracking-widest text-muted-foreground",
+        className,
+      )}
       {...props}
     />
-  )
+  );
 }

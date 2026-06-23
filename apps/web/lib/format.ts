@@ -2,12 +2,12 @@
  * (e.g. a chapter timestamp that dropped the h:mm:ss branch). Keep these pure
  * and side-effect-free so they're trivially testable. */
 
-const pad = (n: number) => n.toString().padStart(2, '0');
+const pad = (n: number) => n.toString().padStart(2, "0");
 
 /** Human-readable byte size, e.g. 1536 -> "1.5 KB", 0 -> "0 B". */
 export function formatBytes(n: number): string {
-  if (!Number.isFinite(n) || n <= 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB'];
+  if (!Number.isFinite(n) || n <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
   let v = n;
   let i = 0;
   while (v >= 1024 && i < units.length - 1) {
@@ -38,9 +38,9 @@ export function formatTimestamp(ms: number): string {
 /** Compact relative time, e.g. "5m ago", "2h ago", "3d ago", "1y ago". */
 export function formatRelativeShort(ts: number): string {
   const diffMs = Date.now() - ts;
-  if (diffMs < 0) return 'just now';
+  if (diffMs < 0) return "just now";
   const sec = Math.floor(diffMs / 1000);
-  if (sec < 60) return 'just now';
+  if (sec < 60) return "just now";
   const min = Math.floor(sec / 60);
   if (min < 60) return `${min}m ago`;
   const hr = Math.floor(min / 60);
@@ -56,32 +56,32 @@ export function formatRelativeShort(ts: number): string {
 /** Verbose relative time, e.g. "5 minutes ago", "about 2 hours ago", "1 week ago". */
 export function formatRelativeLong(epochMs: number): string {
   const diff = Date.now() - epochMs;
-  if (diff < 0) return 'just now';
+  if (diff < 0) return "just now";
   const sec = Math.floor(diff / 1000);
-  if (sec < 60) return 'just now';
+  if (sec < 60) return "just now";
   const min = Math.floor(sec / 60);
-  if (min < 60) return min === 1 ? '1 minute ago' : `${min} minutes ago`;
+  if (min < 60) return min === 1 ? "1 minute ago" : `${min} minutes ago`;
   const hr = Math.floor(min / 60);
-  if (hr < 24) return hr === 1 ? 'about 1 hour ago' : `about ${hr} hours ago`;
+  if (hr < 24) return hr === 1 ? "about 1 hour ago" : `about ${hr} hours ago`;
   const day = Math.floor(hr / 24);
-  if (day < 7) return day === 1 ? '1 day ago' : `${day} days ago`;
+  if (day < 7) return day === 1 ? "1 day ago" : `${day} days ago`;
   const week = Math.floor(day / 7);
-  if (week < 5) return week === 1 ? '1 week ago' : `${week} weeks ago`;
+  if (week < 5) return week === 1 ? "1 week ago" : `${week} weeks ago`;
   const month = Math.floor(day / 30);
-  if (month < 12) return month === 1 ? '1 month ago' : `${month} months ago`;
+  if (month < 12) return month === 1 ? "1 month ago" : `${month} months ago`;
   const year = Math.floor(day / 365);
-  return year === 1 ? '1 year ago' : `${year} years ago`;
+  return year === 1 ? "1 year ago" : `${year} years ago`;
 }
 
 /** Up to two uppercase initials from a name/source string, "?" when empty. */
 export function initials(source: string): string {
   const trimmed = source.trim();
-  if (!trimmed) return '?';
+  if (!trimmed) return "?";
   return trimmed
     .split(/\s+/)
     .map((w) => w[0])
     .filter(Boolean)
     .slice(0, 2)
-    .join('')
+    .join("")
     .toUpperCase();
 }

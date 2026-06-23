@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   forwardRef,
@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
   type ReactNode,
-} from 'react';
+} from "react";
 import {
   Check,
   Maximize,
@@ -21,7 +21,7 @@ import {
   Volume1,
   Volume2,
   VolumeX,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   isShareGradientKey,
   isShareHexColor,
@@ -30,7 +30,7 @@ import {
   type ShareCameraCorner,
   type ShareCameraSize,
   type ShareConfig,
-} from '@/lib/share-config';
+} from "@/lib/share-config";
 
 /*
  * Imperative handle so wrapping components (e.g. the public viewer's
@@ -139,7 +139,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
     );
 
     const [isPlaying, setIsPlaying] = useState(false);
-    const [overlayIcon, setOverlayIcon] = useState<'play' | 'pause' | null>(
+    const [overlayIcon, setOverlayIcon] = useState<"play" | "pause" | null>(
       null,
     );
     /*
@@ -208,7 +208,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
        * play icon flashes under the dim layer before that button paints.
        */
       if (!ended) {
-        setOverlayIcon(isPlaying ? 'pause' : 'play');
+        setOverlayIcon(isPlaying ? "pause" : "play");
       }
     }
 
@@ -234,16 +234,16 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
           v?.webkitDisplayingFullscreen === true;
         setIsFullscreen(active);
       };
-      document.addEventListener('fullscreenchange', onFs);
-      document.addEventListener('webkitfullscreenchange', onFs);
+      document.addEventListener("fullscreenchange", onFs);
+      document.addEventListener("webkitfullscreenchange", onFs);
       const v = videoRef.current;
-      v?.addEventListener('webkitbeginfullscreen', onFs);
-      v?.addEventListener('webkitendfullscreen', onFs);
+      v?.addEventListener("webkitbeginfullscreen", onFs);
+      v?.addEventListener("webkitendfullscreen", onFs);
       return () => {
-        document.removeEventListener('fullscreenchange', onFs);
-        document.removeEventListener('webkitfullscreenchange', onFs);
-        v?.removeEventListener('webkitbeginfullscreen', onFs);
-        v?.removeEventListener('webkitendfullscreen', onFs);
+        document.removeEventListener("fullscreenchange", onFs);
+        document.removeEventListener("webkitfullscreenchange", onFs);
+        v?.removeEventListener("webkitbeginfullscreen", onFs);
+        v?.removeEventListener("webkitendfullscreen", onFs);
       };
     }, []);
 
@@ -358,21 +358,21 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
       };
       rafId = window.requestAnimationFrame(tick);
 
-      main.addEventListener('play', onMainPlay);
-      main.addEventListener('pause', onMainPause);
-      main.addEventListener('ended', onMainEnded);
-      main.addEventListener('seeking', onMainSeeking);
-      main.addEventListener('seeked', onMainSeeked);
-      main.addEventListener('ratechange', onMainRate);
+      main.addEventListener("play", onMainPlay);
+      main.addEventListener("pause", onMainPause);
+      main.addEventListener("ended", onMainEnded);
+      main.addEventListener("seeking", onMainSeeking);
+      main.addEventListener("seeked", onMainSeeked);
+      main.addEventListener("ratechange", onMainRate);
 
       return () => {
         window.cancelAnimationFrame(rafId);
-        main.removeEventListener('play', onMainPlay);
-        main.removeEventListener('pause', onMainPause);
-        main.removeEventListener('ended', onMainEnded);
-        main.removeEventListener('seeking', onMainSeeking);
-        main.removeEventListener('seeked', onMainSeeked);
-        main.removeEventListener('ratechange', onMainRate);
+        main.removeEventListener("play", onMainPlay);
+        main.removeEventListener("pause", onMainPause);
+        main.removeEventListener("ended", onMainEnded);
+        main.removeEventListener("seeking", onMainSeeking);
+        main.removeEventListener("seeked", onMainSeeked);
+        main.removeEventListener("ratechange", onMainRate);
       };
     }, [webcamUrl]);
 
@@ -629,19 +629,19 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
     };
 
     const handleKey = (e: React.KeyboardEvent): void => {
-      if (e.key === ' ' || e.key === 'k') {
+      if (e.key === " " || e.key === "k") {
         e.preventDefault();
         togglePlay();
-      } else if (e.key === 'ArrowLeft' || e.key === 'j') {
+      } else if (e.key === "ArrowLeft" || e.key === "j") {
         e.preventDefault();
         seekBy(-SKIP_SECONDS);
-      } else if (e.key === 'ArrowRight' || e.key === 'l') {
+      } else if (e.key === "ArrowRight" || e.key === "l") {
         e.preventDefault();
         seekBy(SKIP_SECONDS);
-      } else if (e.key === 'm') {
+      } else if (e.key === "m") {
         e.preventDefault();
         toggleMute();
-      } else if (e.key === 'f') {
+      } else if (e.key === "f") {
         e.preventDefault();
         toggleFullscreen();
       }
@@ -654,7 +654,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
      * top/bottom % is relative to container height, left/right % to width,
      * so a uniform 4% trim doesn't distort the box.
      */
-    const hasFrame = config.background !== 'transparent';
+    const hasFrame = config.background !== "transparent";
 
     return (
       <div className="flex flex-col items-center">
@@ -677,10 +677,10 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
            * width/height below.
            */
           className={
-            '@container group relative overflow-hidden rounded-md bg-neutral-900 focus:outline-none max-sm:h-auto! max-sm:w-full! ' +
+            "@container group relative overflow-hidden rounded-md bg-neutral-900 focus:outline-none max-sm:h-auto! max-sm:w-full! " +
             (isFullscreen
-              ? 'flex h-full w-full items-center justify-center rounded-none bg-black'
-              : 'block')
+              ? "flex h-full w-full items-center justify-center rounded-none bg-black"
+              : "block")
           }
           style={
             isFullscreen
@@ -706,8 +706,8 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
           <div
             className={
               hasFrame
-                ? 'absolute inset-[4%] overflow-hidden rounded-lg shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]'
-                : 'absolute inset-0'
+                ? "absolute inset-[4%] overflow-hidden rounded-lg shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]"
+                : "absolute inset-0"
             }
           >
             <video
@@ -812,9 +812,9 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
                  * toolbar on top, so the bubble passes under it like a real
                  * PiP.
                  */
-                'pointer-events-none absolute aspect-square rounded-full object-cover ' +
+                "pointer-events-none absolute aspect-square rounded-full object-cover " +
                 webcamCornerClass(config.cameraCorner) +
-                ' ' +
+                " " +
                 webcamSizeClass(config.cameraSize)
               }
               playsInline
@@ -861,7 +861,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
                 key={overlayIcon}
                 className="animate-share-icon-pop flex h-32 w-32 items-center justify-center rounded-full bg-[#171717]/90"
               >
-                {overlayIcon === 'pause' ? (
+                {overlayIcon === "pause" ? (
                   <Pause className="h-16 w-16 text-white" fill="currentColor" />
                 ) : (
                   <Play className="h-16 w-16 text-white" fill="currentColor" />
@@ -898,7 +898,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
           glance. */}
           <div
             className={`pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-overlay-strong transition-opacity duration-200 ${
-              controlsVisible ? 'opacity-0' : 'opacity-100'
+              controlsVisible ? "opacity-0" : "opacity-100"
             }`}
           >
             <div
@@ -927,7 +927,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
           light and dark content. */}
           <div
             className={`pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-black/70 via-black/40 to-transparent px-4 pb-3 pt-10 transition-opacity duration-200 ${
-              controlsVisible ? 'opacity-100' : 'opacity-0'
+              controlsVisible ? "opacity-100" : "opacity-0"
             }`}
           >
             {/* Scrubber */}
@@ -948,7 +948,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
             <div className="pointer-events-auto flex items-center gap-2 text-white">
               <ControlButton
                 onClick={togglePlay}
-                label={isPlaying ? 'Pause' : 'Play'}
+                label={isPlaying ? "Pause" : "Play"}
               >
                 {isPlaying ? (
                   <Pause className="h-5 w-5" fill="currentColor" />
@@ -977,7 +977,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
               />
 
               <span className="ml-1 select-none whitespace-nowrap text-[12px] tabular-nums text-white/85">
-                {formatTime(currentTime)} /{' '}
+                {formatTime(currentTime)} /{" "}
                 {formatTime(
                   duration > 0
                     ? duration
@@ -1021,10 +1021,10 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
                             setSettingsOpen(false);
                           }}
                           className={`flex w-full cursor-pointer items-center justify-between rounded px-2 py-1.5 text-left transition-colors hover:bg-overlay-strong ${
-                            speed === s ? 'text-white' : 'text-white/80'
+                            speed === s ? "text-white" : "text-white/80"
                           }`}
                         >
-                          <span>{s === 1 ? 'Normal' : `${s}×`}</span>
+                          <span>{s === 1 ? "Normal" : `${s}×`}</span>
                           {speed === s ? (
                             <Check className="h-3.5 w-3.5" />
                           ) : null}
@@ -1041,7 +1041,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
                   <ControlButton
                     onClick={() => void togglePip()}
                     label={
-                      pip ? 'Exit picture-in-picture' : 'Picture-in-picture'
+                      pip ? "Exit picture-in-picture" : "Picture-in-picture"
                     }
                   >
                     <PictureInPicture2 className="h-5 w-5" />
@@ -1049,7 +1049,7 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
                 </span>
                 <ControlButton
                   onClick={toggleFullscreen}
-                  label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                  label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
                 >
                   {isFullscreen ? (
                     <Minimize className="h-5 w-5" />
@@ -1073,8 +1073,8 @@ export const SharePlayer = forwardRef<SharePlayerHandle, Props>(
 
 // "Back/forward 5s" badge: a lucide rotational arrow with a "5" overlaid.
 // Lucide ships no single icon with the digit baked in, so we composite one.
-function SkipBadge({ dir }: { dir: 'back' | 'forward' }) {
-  const Arrow = dir === 'back' ? RotateCcw : RotateCw;
+function SkipBadge({ dir }: { dir: "back" | "forward" }) {
+  const Arrow = dir === "back" ? RotateCcw : RotateCw;
   return (
     <span className="relative inline-flex h-5 w-5 items-center justify-center">
       <Arrow className="h-5 w-5" />
@@ -1169,13 +1169,13 @@ function Scrubber({
       // throttle window swallowed the last move.
       seekFromClientX(lastClientX);
       onScrubEnd();
-      el.removeEventListener('pointermove', move as EventListener);
-      el.removeEventListener('pointerup', up as EventListener);
-      el.removeEventListener('pointercancel', up as EventListener);
+      el.removeEventListener("pointermove", move as EventListener);
+      el.removeEventListener("pointerup", up as EventListener);
+      el.removeEventListener("pointercancel", up as EventListener);
     };
-    el.addEventListener('pointermove', move as EventListener);
-    el.addEventListener('pointerup', up as EventListener);
-    el.addEventListener('pointercancel', up as EventListener);
+    el.addEventListener("pointermove", move as EventListener);
+    el.addEventListener("pointerup", up as EventListener);
+    el.addEventListener("pointercancel", up as EventListener);
   };
 
   return (
@@ -1211,7 +1211,7 @@ function VolumeControl({
   const effective = muted ? 0 : volume;
   return (
     <div className="group/vol flex items-center">
-      <ControlButton onClick={onToggleMute} label={muted ? 'Unmute' : 'Mute'}>
+      <ControlButton onClick={onToggleMute} label={muted ? "Unmute" : "Mute"}>
         {effective === 0 ? (
           <VolumeX className="h-5 w-5" />
         ) : effective < 0.5 ? (
@@ -1245,11 +1245,11 @@ function VolumeControl({
 }
 
 function formatTime(s: number): string {
-  if (!Number.isFinite(s) || s < 0) return '0:00';
+  if (!Number.isFinite(s) || s < 0) return "0:00";
   const total = Math.floor(s);
   const m = Math.floor(total / 60);
   const sec = total % 60;
-  return `${m}:${sec.toString().padStart(2, '0')}`;
+  return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
 // Reserved aspect for the loading state. Pre-fix uploads always sent
@@ -1290,7 +1290,7 @@ function sizeStyleForAspect(
         aspectRatio: a,
       };
     }
-    return { width: '100%', aspectRatio: a };
+    return { width: "100%", aspectRatio: a };
   }
   return {
     height: MAX_HEIGHT_CSS,
@@ -1306,7 +1306,7 @@ function sizeStyleForAspect(
 // max-w-4xl (56rem) inside main with px-4 (2rem total). Wide viewports hit
 // the 56rem cap → 31.5rem; narrow ones use (100vw - 2rem) * 9/16. min()
 // picks whichever applies; source aspect drives WIDTH separately.
-const MAX_HEIGHT_CSS = 'min(31.5rem, calc((100vw - 2rem) * 9 / 16))';
+const MAX_HEIGHT_CSS = "min(31.5rem, calc((100vw - 2rem) * 9 / 16))";
 
 function aspectAsNumber(aspect: number): number {
   if (!Number.isFinite(aspect) || aspect <= 0) return 16 / 9;
@@ -1317,14 +1317,14 @@ function aspectAsNumber(aspect: number): number {
 // bubble breathes against the edge. Same inset for every corner.
 function webcamCornerClass(corner: ShareCameraCorner): string {
   switch (corner) {
-    case 'bottom-right':
-      return 'bottom-6 right-6';
-    case 'bottom-left':
-      return 'bottom-6 left-6';
-    case 'top-right':
-      return 'top-6 right-6';
-    case 'top-left':
-      return 'top-6 left-6';
+    case "bottom-right":
+      return "bottom-6 right-6";
+    case "bottom-left":
+      return "bottom-6 left-6";
+    case "top-right":
+      return "top-6 right-6";
+    case "top-left":
+      return "top-6 left-6";
   }
 }
 
@@ -1333,12 +1333,12 @@ function webcamCornerClass(corner: ShareCameraCorner): string {
 // studio bubble.
 function webcamSizeClass(size: ShareCameraSize): string {
   switch (size) {
-    case 'small':
-      return 'w-[12%] min-w-[80px] max-w-[140px]';
-    case 'medium':
-      return 'w-[16%] min-w-[110px] max-w-[200px]';
-    case 'large':
-      return 'w-[22%] min-w-[150px] max-w-[280px]';
+    case "small":
+      return "w-[12%] min-w-[80px] max-w-[140px]";
+    case "medium":
+      return "w-[16%] min-w-[110px] max-w-[200px]";
+    case "large":
+      return "w-[22%] min-w-[150px] max-w-[280px]";
   }
 }
 
@@ -1346,7 +1346,7 @@ function webcamSizeClass(size: ShareCameraSize): string {
 // the Tailwind bg-neutral-900 baseline. object-contain on the video means
 // letterbox/pillarbox strips reveal this layer.
 function shareBackgroundStyle(background: string): React.CSSProperties {
-  if (background === 'transparent') return {};
+  if (background === "transparent") return {};
   if (isShareHexColor(background)) return { backgroundColor: background };
   if (isShareGradientKey(background)) {
     return {

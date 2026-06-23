@@ -1,20 +1,20 @@
-import { ipcMain, BrowserWindow, dialog, nativeImage, screen } from 'electron'
-import { IPC_CHANNELS } from '../../shared/types'
-import iconAsset from '../../../resources/icon.png?asset'
+import { ipcMain, BrowserWindow, dialog, nativeImage, screen } from "electron";
+import { IPC_CHANNELS } from "../../shared/types";
+import iconAsset from "../../../resources/icon.png?asset";
 
-let overlayWindow: BrowserWindow | null = null
-let dimWindow: BrowserWindow | null = null
-const resizeTimers = new Map<number, ReturnType<typeof setInterval>>()
+let overlayWindow: BrowserWindow | null = null;
+let dimWindow: BrowserWindow | null = null;
+const resizeTimers = new Map<number, ReturnType<typeof setInterval>>();
 
 function showDimOverlay(
   bounds: { x: number; y: number; width: number; height: number },
-  cornerRadius?: number
+  cornerRadius?: number,
 ): void {
-  if (dimWindow && !dimWindow.isDestroyed()) dimWindow.close()
+  if (dimWindow && !dimWindow.isDestroyed()) dimWindow.close();
 
-  const display = screen.getPrimaryDisplay()
-  const sw = display.size.width
-  const sh = display.size.height
+  const display = screen.getPrimaryDisplay();
+  const sw = display.size.width;
+  const sh = display.size.height;
 
   /*
    * `type: 'panel'` makes this an NSPanel — the same trick the selection
@@ -33,35 +33,47 @@ function showDimOverlay(
     focusable: false,
     skipTaskbar: true,
     hasShadow: false,
-    backgroundColor: '#00000000',
+    backgroundColor: "#00000000",
     enableLargerThanScreen: true,
-    type: 'panel',
-    webPreferences: { nodeIntegration: true, contextIsolation: false }
-  })
+    type: "panel",
+    webPreferences: { nodeIntegration: true, contextIsolation: false },
+  });
 
-  dimWindow.setContentProtection(true)
-  dimWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+  dimWindow.setContentProtection(true);
+  dimWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   // screen-saver level + panel type is what draws over the menu bar.
   // Recording controls sit at relativeLevel +1, so the dim stays at +0.
-  dimWindow.setAlwaysOnTop(true, 'screen-saver')
-  dimWindow.setIgnoreMouseEvents(true)
+  dimWindow.setAlwaysOnTop(true, "screen-saver");
+  dimWindow.setIgnoreMouseEvents(true);
 
   /*
    * ScreenCaptureKit and screen.bounds both use top-left origin in
    * points/pixels, and the dim window now spans the full display, so
    * CSS coords map 1:1 to SCWindow.frame.
    */
-  const bx = Math.round(bounds.x - display.bounds.x)
-  const by = Math.round(bounds.y - display.bounds.y)
-  const bw = Math.round(bounds.width)
-  const bh = Math.round(bounds.height)
+  const bx = Math.round(bounds.x - display.bounds.x);
+  const by = Math.round(bounds.y - display.bounds.y);
+  const bw = Math.round(bounds.width);
+  const bh = Math.round(bounds.height);
   /*
    * Native radius detected by the window detector via SCK alpha sampling.
    * Falls back to 10pt (the macOS standard window radius) when the source
    * didn't carry a value (display/area capture, or detection failure).
    */
-  const radius = Math.max(0, Math.round(cornerRadius ?? 10))
-  console.warn('[dim] screen:', sw, 'x', sh, 'window:', bx, by, bw, bh, 'radius:', radius)
+  const radius = Math.max(0, Math.round(cornerRadius ?? 10));
+  console.warn(
+    "[dim] screen:",
+    sw,
+    "x",
+    sh,
+    "window:",
+    bx,
+    by,
+    bw,
+    bh,
+    "radius:",
+    radius,
+  );
   /*
    * Single rounded cutout via box-shadow spread — paints the dim everywhere
    * *outside* the window rect, with rounded corners that hug the captured
@@ -85,20 +97,20 @@ body { background: transparent; overflow: hidden; }
 }
 </style></head><body>
 <div class="cutout"></div>
-</body></html>`
+</body></html>`;
 
-  dimWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+  dimWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
 }
 
 function hideDimOverlay(): void {
   if (dimWindow && !dimWindow.isDestroyed()) {
-    dimWindow.close()
-    dimWindow = null
+    dimWindow.close();
+    dimWindow = null;
   }
 }
 
 function createOverlayWindow(): BrowserWindow {
-  const display = screen.getPrimaryDisplay()
+  const display = screen.getPrimaryDisplay();
   const overlay = new BrowserWindow({
     width: 300,
     height: 48,
@@ -111,24 +123,24 @@ function createOverlayWindow(): BrowserWindow {
     show: false,
     frame: false,
     transparent: true,
-    backgroundColor: '#00000000',
+    backgroundColor: "#00000000",
     resizable: false,
     skipTaskbar: true,
     hasShadow: false,
     focusable: false,
     roundedCorners: false,
-    type: 'panel',
+    type: "panel",
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
-    }
-  })
+      contextIsolation: false,
+    },
+  });
 
-  overlay.setContentProtection(true)
-  overlay.setVisibleOnAllWorkspaces(true)
+  overlay.setContentProtection(true);
+  overlay.setVisibleOnAllWorkspaces(true);
   // Stay one level above the recording dim (also at 'screen-saver') so the
   // controls bar floats over the dim instead of being hidden by it.
-  overlay.setAlwaysOnTop(true, 'screen-saver', 1)
+  overlay.setAlwaysOnTop(true, "screen-saver", 1);
 
   const html = `<!DOCTYPE html>
 <html>
@@ -344,10 +356,10 @@ function createOverlayWindow(): BrowserWindow {
   });
 </script>
 </body>
-</html>`
+</html>`;
 
-  overlay.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
-  return overlay
+  overlay.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+  return overlay;
 }
 
 // Pre-create the overlay window so the BrowserWindow + transparent panel +
@@ -355,97 +367,119 @@ function createOverlayWindow(): BrowserWindow {
 // In prod that lag was 6-7s with the owning app no longer frontmost; with
 // pre-warming it drops to a single show() call.
 export function ensureOverlayWindow(): BrowserWindow {
-  if (overlayWindow && !overlayWindow.isDestroyed()) return overlayWindow
-  overlayWindow = createOverlayWindow()
-  return overlayWindow
+  if (overlayWindow && !overlayWindow.isDestroyed()) return overlayWindow;
+  overlayWindow = createOverlayWindow();
+  return overlayWindow;
 }
 
 export function registerWindowHandlers(
   getRecordingWindow: () => BrowserWindow | null,
-  hasEditorWindows: () => boolean
+  hasEditorWindows: () => boolean,
 ): void {
   ipcMain.handle(
     IPC_CHANNELS.RESIZE_WINDOW,
-    (event, opts: { width: number; height: number; minWidth?: number; minHeight?: number }) => {
-      const win = BrowserWindow.fromWebContents(event.sender)
-      if (!win) return
+    (
+      event,
+      opts: {
+        width: number;
+        height: number;
+        minWidth?: number;
+        minHeight?: number;
+      },
+    ) => {
+      const win = BrowserWindow.fromWebContents(event.sender);
+      if (!win) return;
       if (opts.minWidth || opts.minHeight) {
-        win.setMinimumSize(opts.minWidth || 520, opts.minHeight || 420)
+        win.setMinimumSize(opts.minWidth || 520, opts.minHeight || 420);
       }
 
       // A new resize can arrive mid-animation; cancel the prior one first.
-      const prevTimer = resizeTimers.get(win.id)
-      if (prevTimer) clearInterval(prevTimer)
+      const prevTimer = resizeTimers.get(win.id);
+      if (prevTimer) clearInterval(prevTimer);
 
-      const startBounds = win.getBounds()
-      const endX = Math.round(startBounds.x + (startBounds.width - opts.width) / 2)
-      const endY = Math.round(startBounds.y + (startBounds.height - opts.height) / 2)
+      const startBounds = win.getBounds();
+      const endX = Math.round(
+        startBounds.x + (startBounds.width - opts.width) / 2,
+      );
+      const endY = Math.round(
+        startBounds.y + (startBounds.height - opts.height) / 2,
+      );
 
-      const steps = 20
-      const duration = 300
-      const interval = duration / steps
-      let step = 0
+      const steps = 20;
+      const duration = 300;
+      const interval = duration / steps;
+      let step = 0;
 
       const timer = setInterval(() => {
-        step++
-        const t = 1 - Math.pow(1 - step / steps, 3)
-        const x = Math.round(startBounds.x + (endX - startBounds.x) * t)
-        const y = Math.round(startBounds.y + (endY - startBounds.y) * t)
-        const w = Math.round(startBounds.width + (opts.width - startBounds.width) * t)
-        const h = Math.round(startBounds.height + (opts.height - startBounds.height) * t)
-        win.setBounds({ x, y, width: w, height: h })
+        step++;
+        const t = 1 - Math.pow(1 - step / steps, 3);
+        const x = Math.round(startBounds.x + (endX - startBounds.x) * t);
+        const y = Math.round(startBounds.y + (endY - startBounds.y) * t);
+        const w = Math.round(
+          startBounds.width + (opts.width - startBounds.width) * t,
+        );
+        const h = Math.round(
+          startBounds.height + (opts.height - startBounds.height) * t,
+        );
+        win.setBounds({ x, y, width: w, height: h });
 
         if (step >= steps) {
-          clearInterval(timer)
-          resizeTimers.delete(win.id)
-          win.setBounds({ x: endX, y: endY, width: opts.width, height: opts.height })
+          clearInterval(timer);
+          resizeTimers.delete(win.id);
+          win.setBounds({
+            x: endX,
+            y: endY,
+            width: opts.width,
+            height: opts.height,
+          });
         }
-      }, interval)
-      resizeTimers.set(win.id, timer)
-    }
-  )
+      }, interval);
+      resizeTimers.set(win.id, timer);
+    },
+  );
 
   ipcMain.handle(IPC_CHANNELS.HIDE_WINDOW, (event) => {
-    const win = BrowserWindow.fromWebContents(event.sender)
-    if (win) win.hide()
-  })
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) win.hide();
+  });
   ipcMain.handle(IPC_CHANNELS.SHOW_WINDOW, (event) => {
     // Don't show the recording toolbar while an editor window is open
-    if (hasEditorWindows()) return
-    const win = BrowserWindow.fromWebContents(event.sender)
+    if (hasEditorWindows()) return;
+    const win = BrowserWindow.fromWebContents(event.sender);
     if (win) {
-      win.show()
-      win.focus()
+      win.show();
+      win.focus();
     }
-  })
+  });
   ipcMain.handle(IPC_CHANNELS.GET_ACTIVE_WINDOW_SOURCE, async () => {
-    const { desktopCapturer } = await import('electron')
+    const { desktopCapturer } = await import("electron");
     const sources = await desktopCapturer.getSources({
-      types: ['window'],
-      thumbnailSize: { width: 320, height: 180 }
-    })
-    const ownTitle = BrowserWindow.getAllWindows()[0]?.getTitle() || 'CaptureFlow'
+      types: ["window"],
+      thumbnailSize: { width: 320, height: 180 },
+    });
+    const ownTitle =
+      BrowserWindow.getAllWindows()[0]?.getTitle() || "CaptureFlow";
     const activeSource = sources.find(
-      (s) => !s.name.includes(ownTitle) && !s.name.includes('Electron')
-    )
+      (s) => !s.name.includes(ownTitle) && !s.name.includes("Electron"),
+    );
     if (activeSource) {
       return {
         id: activeSource.id,
         name: activeSource.name,
         thumbnailDataUrl: activeSource.thumbnail.toDataURL(),
-        displayId: activeSource.display_id
-      }
+        displayId: activeSource.display_id,
+      };
     }
-    return null
-  })
+    return null;
+  });
   ipcMain.handle(
     IPC_CHANNELS.SHOW_RECORDING_OVERLAY,
     (_event, opts?: { startedAt?: number; capMs?: number }) => {
-      const overlay = ensureOverlayWindow()
+      const overlay = ensureOverlayWindow();
       // Re-apply the alwaysOnTop level — panels can drop their level after
       // hide()/show() cycles, which would let the window slip behind the
       // recording dim.
-      overlay.setAlwaysOnTop(true, 'screen-saver', 1)
+      overlay.setAlwaysOnTop(true, "screen-saver", 1);
       // Two-call pattern: first call (no startedAt) just makes the overlay
       // visible while CaptureFlow is still frontmost — the WindowServer prioritizes
       // first paint for active apps. Second call (with startedAt) sets the
@@ -454,66 +488,67 @@ export function registerWindowHandlers(
       // backgrounded CaptureFlow, and macOS deferred the panel's first composition
       // by several seconds in prod. capMs (when present) flips the timer to
       // count DOWN from the share cap and auto-fires stop at 0.
-      if (typeof opts?.startedAt === 'number') {
-        overlay.webContents.send('overlay-anchor', {
+      if (typeof opts?.startedAt === "number") {
+        overlay.webContents.send("overlay-anchor", {
           startedAt: opts.startedAt,
-          capMs: opts.capMs
-        })
+          capMs: opts.capMs,
+        });
       }
-      overlay.showInactive()
-    }
-  )
+      overlay.showInactive();
+    },
+  );
   ipcMain.handle(
     IPC_CHANNELS.SHOW_RECORDING_DIM,
     (
       _event,
       bounds: { x: number; y: number; width: number; height: number },
-      cornerRadius?: number
+      cornerRadius?: number,
     ) => {
-      showDimOverlay(bounds, cornerRadius)
-    }
-  )
+      showDimOverlay(bounds, cornerRadius);
+    },
+  );
   ipcMain.handle(IPC_CHANNELS.HIDE_RECORDING_DIM, () => {
-    hideDimOverlay()
-  })
+    hideDimOverlay();
+  });
 
   ipcMain.handle(IPC_CHANNELS.HIDE_RECORDING_OVERLAY, () => {
     if (overlayWindow && !overlayWindow.isDestroyed()) {
-      overlayWindow.webContents.send('overlay-reset')
-      overlayWindow.hide()
+      overlayWindow.webContents.send("overlay-reset");
+      overlayWindow.hide();
     }
-  })
+  });
 
   // Forward overlay button actions to the recording renderer. The delete
   // action discards the in-progress recording — gate it behind a native
   // confirm dialog so an accidental click can't wipe the take.
-  ipcMain.on('overlay-action', async (_event, action: string) => {
-    if (action === 'delete') {
+  ipcMain.on("overlay-action", async (_event, action: string) => {
+    if (action === "delete") {
       // On macOS, omitting `icon` (or passing an empty image) makes the dialog
       // fall back to the bundle icon — which is Electron's atom in dev. Pass
       // the CaptureFlow logo explicitly so the dialog matches the app identity.
       const { response } = await dialog.showMessageBox({
-        type: 'none',
+        type: "none",
         icon: nativeImage.createFromPath(iconAsset),
-        buttons: ['Delete Recording', 'Cancel'],
+        buttons: ["Delete Recording", "Cancel"],
         defaultId: 1,
         cancelId: 1,
-        message: 'Delete this recording?',
-        detail: 'The recording in progress will be discarded. This cannot be undone.'
-      })
-      if (response !== 0) return
+        message: "Delete this recording?",
+        detail:
+          "The recording in progress will be discarded. This cannot be undone.",
+      });
+      if (response !== 0) return;
     }
 
-    const recordingWindow = getRecordingWindow()
+    const recordingWindow = getRecordingWindow();
     if (recordingWindow && !recordingWindow.isDestroyed()) {
-      recordingWindow.webContents.send('overlay-action', action)
+      recordingWindow.webContents.send("overlay-action", action);
     }
-    if (action === 'stop' || action === 'delete') {
+    if (action === "stop" || action === "delete") {
       if (overlayWindow && !overlayWindow.isDestroyed()) {
-        overlayWindow.webContents.send('overlay-reset')
-        overlayWindow.hide()
+        overlayWindow.webContents.send("overlay-reset");
+        overlayWindow.hide();
       }
-      hideDimOverlay()
+      hideDimOverlay();
     }
-  })
+  });
 }

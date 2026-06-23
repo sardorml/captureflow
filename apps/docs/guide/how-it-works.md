@@ -37,12 +37,12 @@ CaptureFlow has two halves that talk to each other over HTTPS:
 
 ## What stores what
 
-| Concern | Where it lives |
-| --- | --- |
-| Video files, poster images, snap PNGs | **R2** (object storage), under `videos/`, `posters/`, `snaps/` |
-| Recording & snap metadata, users, workspaces, reactions, comments, quotas | **D1** (SQLite at the edge) |
-| Auth sessions | Signed by **Better Auth** (`BETTER_AUTH_SECRET`) |
-| Static dashboard / share assets | Served by the Worker's `ASSETS` binding |
+| Concern                                                                   | Where it lives                                                 |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Video files, poster images, snap PNGs                                     | **R2** (object storage), under `videos/`, `posters/`, `snaps/` |
+| Recording & snap metadata, users, workspaces, reactions, comments, quotas | **D1** (SQLite at the edge)                                    |
+| Auth sessions                                                             | Signed by **Better Auth** (`BETTER_AUTH_SECRET`)               |
+| Static dashboard / share assets                                           | Served by the Worker's `ASSETS` binding                        |
 
 ## Housekeeping
 

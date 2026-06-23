@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useLocalizedHref, useMessages } from './i18n-provider';
+import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 export function SectionHeader({
   title,
   children,
-  textClassName = 'max-w-sm',
+  textClassName = "max-w-sm",
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
@@ -24,7 +24,7 @@ export function SectionHeader({
         </p>
       </div>
       <a
-        href={lh('/download')}
+        href={lh("/download")}
         className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center self-start rounded-lg bg-neutral-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 sm:self-auto"
       >
         {m.sectionHeader.cta}

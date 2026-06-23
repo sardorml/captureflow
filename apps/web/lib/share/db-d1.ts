@@ -6,9 +6,9 @@ import type {
   ShareRow,
   ShareVisibility,
   WebcamState,
-} from './types';
-import type { ShareSource, SharePreset, ShareState } from './limits';
-import type { ShareDb } from './db-types';
+} from "./types";
+import type { ShareSource, SharePreset, ShareState } from "./limits";
+import type { ShareDb } from "./db-types";
 
 type D1Row = {
   slug: string;
@@ -78,11 +78,11 @@ function rowFromD1(r: D1Row): ShareRow {
     state: r.state as ShareState,
     userId: r.user_id ?? null,
     workspaceId: r.workspace_id ?? null,
-    visibility: (r.visibility as ShareVisibility) ?? 'public',
+    visibility: (r.visibility as ShareVisibility) ?? "public",
     webcamStorageKey: r.webcam_storage_key ?? null,
     webcamUploadId: r.webcam_upload_id ?? null,
     webcamSizeBytes: r.webcam_size_bytes ?? 0,
-    webcamState: (r.webcam_state as WebcamState) ?? 'none',
+    webcamState: (r.webcam_state as WebcamState) ?? "none",
   };
 }
 
@@ -113,10 +113,10 @@ function commentFromD1(r: D1CommentRow): ShareComment {
 }
 
 const COLUMNS_SELECT =
-  'slug, device_id, storage_key, poster_key, upload_id, ' +
-  'size_bytes, duration_ms, width, height, source, preset, ' +
-  'created_at, last_viewed_at, view_count, title, state, user_id, workspace_id, visibility, ' +
-  'webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state';
+  "slug, device_id, storage_key, poster_key, upload_id, " +
+  "size_bytes, duration_ms, width, height, source, preset, " +
+  "created_at, last_viewed_at, view_count, title, state, user_id, workspace_id, visibility, " +
+  "webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state";
 
 export function createD1Db(d1: D1Database): ShareDb {
   /*
@@ -133,11 +133,11 @@ export function createD1Db(d1: D1Database): ShareDb {
        webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state
      )
      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18,
-             ?19, ?20, ?21, ?22, ?23)`
+             ?19, ?20, ?21, ?22, ?23)`,
   );
 
   const stmtGet = d1.prepare(
-    `SELECT ${COLUMNS_SELECT} FROM shares WHERE slug = ?1 LIMIT 1`
+    `SELECT ${COLUMNS_SELECT} FROM shares WHERE slug = ?1 LIMIT 1`,
   );
 
   const stmtDelete = d1.prepare(`DELETE FROM shares WHERE slug = ?1`);
@@ -145,31 +145,31 @@ export function createD1Db(d1: D1Database): ShareDb {
   const stmtListForDevice = d1.prepare(
     `SELECT ${COLUMNS_SELECT} FROM shares
      WHERE device_id = ?1
-     ORDER BY created_at DESC`
+     ORDER BY created_at DESC`,
   );
 
   const stmtListForUser = d1.prepare(
     `SELECT ${COLUMNS_SELECT} FROM shares
      WHERE user_id = ?1
-     ORDER BY created_at DESC`
+     ORDER BY created_at DESC`,
   );
 
   const stmtTotalStorage = d1.prepare(
     `SELECT COALESCE(SUM(size_bytes), 0) AS total
      FROM shares
-     WHERE device_id = ?1 AND state = 'ready'`
+     WHERE device_id = ?1 AND state = 'ready'`,
   );
 
   const stmtActiveCount = d1.prepare(
     `SELECT COUNT(*) AS n
      FROM shares
-     WHERE device_id = ?1 AND state = 'ready'`
+     WHERE device_id = ?1 AND state = 'ready'`,
   );
 
   const stmtBumpLastViewed = d1.prepare(
     `UPDATE shares
        SET last_viewed_at = ?2, view_count = view_count + 1
-       WHERE slug = ?1`
+       WHERE slug = ?1`,
   );
 
   // Reactions and comments share the unified `share_activity` table
@@ -177,7 +177,7 @@ export function createD1Db(d1: D1Database): ShareDb {
   const stmtAddReaction = d1.prepare(
     `INSERT INTO share_activity (slug, kind, emoji, timestamp_ms, created_at, user_id, user_name)
      VALUES (?1, 'reaction', ?2, ?3, ?4, ?5, ?6)
-     RETURNING id, slug, emoji, timestamp_ms, created_at, user_id, user_name`
+     RETURNING id, slug, emoji, timestamp_ms, created_at, user_id, user_name`,
   );
 
   const stmtListReactions = d1.prepare(
@@ -186,17 +186,17 @@ export function createD1Db(d1: D1Database): ShareDb {
        FROM share_activity AS a
        LEFT JOIN users AS u ON u.id = a.user_id
        WHERE a.slug = ?1 AND a.kind = 'reaction'
-       ORDER BY a.timestamp_ms ASC`
+       ORDER BY a.timestamp_ms ASC`,
   );
 
   const stmtCountReactions = d1.prepare(
-    `SELECT COUNT(*) AS n FROM share_activity WHERE slug = ?1 AND kind = 'reaction'`
+    `SELECT COUNT(*) AS n FROM share_activity WHERE slug = ?1 AND kind = 'reaction'`,
   );
 
   const stmtAddComment = d1.prepare(
     `INSERT INTO share_activity (slug, kind, user_id, user_name, body, created_at, timestamp_ms)
      VALUES (?1, 'comment', ?2, ?3, ?4, ?5, ?6)
-     RETURNING id, slug, user_id, user_name, body, created_at, timestamp_ms`
+     RETURNING id, slug, user_id, user_name, body, created_at, timestamp_ms`,
   );
 
   const stmtListComments = d1.prepare(
@@ -205,22 +205,22 @@ export function createD1Db(d1: D1Database): ShareDb {
        FROM share_activity AS a
        LEFT JOIN users AS u ON u.id = a.user_id
        WHERE a.slug = ?1 AND a.kind = 'comment'
-       ORDER BY a.created_at ASC`
+       ORDER BY a.created_at ASC`,
   );
 
   const stmtCountComments = d1.prepare(
-    `SELECT COUNT(*) AS n FROM share_activity WHERE slug = ?1 AND kind = 'comment'`
+    `SELECT COUNT(*) AS n FROM share_activity WHERE slug = ?1 AND kind = 'comment'`,
   );
 
   const stmtGetComment = d1.prepare(
     `SELECT id, slug, user_id, user_name, body, created_at, timestamp_ms
        FROM share_activity
        WHERE id = ?1 AND kind = 'comment'
-       LIMIT 1`
+       LIMIT 1`,
   );
 
   const stmtDeleteComment = d1.prepare(
-    `DELETE FROM share_activity WHERE id = ?1 AND kind = 'comment'`
+    `DELETE FROM share_activity WHERE id = ?1 AND kind = 'comment'`,
   );
 
   return {
@@ -249,7 +249,7 @@ export function createD1Db(d1: D1Database): ShareDb {
           row.webcamStorageKey,
           row.webcamUploadId,
           row.webcamSizeBytes,
-          row.webcamState
+          row.webcamState,
         )
         .run();
     },
@@ -264,28 +264,28 @@ export function createD1Db(d1: D1Database): ShareDb {
       const sets: string[] = [];
       const binds: unknown[] = [];
       const map: Partial<Record<keyof ShareRow, string>> = {
-        deviceId: 'device_id',
-        storageKey: 'storage_key',
-        posterKey: 'poster_key',
-        uploadId: 'upload_id',
-        sizeBytes: 'size_bytes',
-        durationMs: 'duration_ms',
-        width: 'width',
-        height: 'height',
-        source: 'source',
-        preset: 'preset',
-        createdAt: 'created_at',
-        lastViewedAt: 'last_viewed_at',
-        viewCount: 'view_count',
-        title: 'title',
-        state: 'state',
-        userId: 'user_id',
-        workspaceId: 'workspace_id',
-        visibility: 'visibility',
-        webcamStorageKey: 'webcam_storage_key',
-        webcamUploadId: 'webcam_upload_id',
-        webcamSizeBytes: 'webcam_size_bytes',
-        webcamState: 'webcam_state',
+        deviceId: "device_id",
+        storageKey: "storage_key",
+        posterKey: "poster_key",
+        uploadId: "upload_id",
+        sizeBytes: "size_bytes",
+        durationMs: "duration_ms",
+        width: "width",
+        height: "height",
+        source: "source",
+        preset: "preset",
+        createdAt: "created_at",
+        lastViewedAt: "last_viewed_at",
+        viewCount: "view_count",
+        title: "title",
+        state: "state",
+        userId: "user_id",
+        workspaceId: "workspace_id",
+        visibility: "visibility",
+        webcamStorageKey: "webcam_storage_key",
+        webcamUploadId: "webcam_upload_id",
+        webcamSizeBytes: "webcam_size_bytes",
+        webcamState: "webcam_state",
       };
       let placeholder = 1;
       for (const key of Object.keys(patch) as (keyof ShareRow)[]) {
@@ -298,7 +298,7 @@ export function createD1Db(d1: D1Database): ShareDb {
       if (sets.length === 0) return this.getShare(slug);
 
       const sql = `UPDATE shares SET ${sets.join(
-        ', '
+        ", ",
       )} WHERE slug = ?${placeholder} RETURNING ${COLUMNS_SELECT}`;
       binds.push(slug);
       const result = await d1
@@ -344,7 +344,7 @@ export function createD1Db(d1: D1Database): ShareDb {
       const r = await stmtAddReaction
         .bind(slug, emoji, timestampMs, now, userId, userName)
         .first<D1ReactionRow>();
-      if (!r) throw new Error('addReaction: insert returned no row');
+      if (!r) throw new Error("addReaction: insert returned no row");
       return reactionFromD1(r);
     },
 
@@ -363,7 +363,7 @@ export function createD1Db(d1: D1Database): ShareDb {
       const r = await stmtAddComment
         .bind(slug, userId, userName, body, now, timestampMs)
         .first<D1CommentRow>();
-      if (!r) throw new Error('addComment: insert returned no row');
+      if (!r) throw new Error("addComment: insert returned no row");
       return commentFromD1(r);
     },
 

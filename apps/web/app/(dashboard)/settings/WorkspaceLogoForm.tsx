@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useActionState, useRef } from 'react';
-import { initials } from '@/lib/format';
-import { Upload } from 'lucide-react';
+import { useActionState, useRef } from "react";
+import { initials } from "@/lib/format";
+import { Upload } from "lucide-react";
 import {
   removeWorkspaceLogoAction,
   uploadWorkspaceLogoAction,
-} from './actions';
+} from "./actions";
 
 type FormState = { error: string | null; ok: string | null };
 const INITIAL: FormState = { error: null, ok: null };
@@ -20,7 +20,7 @@ export function WorkspaceLogoForm({
 }) {
   const [state, formAction, pending] = useActionState(
     uploadWorkspaceLogoAction,
-    INITIAL
+    INITIAL,
   );
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -69,7 +69,7 @@ export function WorkspaceLogoForm({
                 className="inline-flex items-center gap-1.5 rounded-md border border-line bg-canvas-2 px-3 py-1.5 text-sm text-fg transition-colors hover:border-line-strong hover:bg-overlay hover:text-fg-strong disabled:opacity-50"
               >
                 <Upload className="h-3.5 w-3.5" />
-                {pending ? 'Uploading…' : logoUrl ? 'Replace' : 'Upload logo'}
+                {pending ? "Uploading…" : logoUrl ? "Replace" : "Upload logo"}
               </button>
               {logoUrl && (
                 <form action={removeWorkspaceLogoAction}>

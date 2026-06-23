@@ -3,30 +3,30 @@ import {
   Content as PopoverContent,
   Portal as PopoverPortal,
   Root as PopoverRoot,
-  Trigger as PopoverTrigger
-} from '@radix-ui/react-popover'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { cn } from '@/lib/utils'
+  Trigger as PopoverTrigger,
+} from "@radix-ui/react-popover";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { cn } from "@/lib/utils";
 
 export type RichPopoverProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   // Rendered in place via Radix's `asChild`, so pass a single focusable node.
-  trigger: React.ReactNode
-  title?: string
-  icon?: React.ReactNode
-  className?: string
-  light?: boolean
-  glass?: boolean
-  side?: 'top' | 'bottom' | 'left' | 'right'
-  align?: 'start' | 'center' | 'end'
+  trigger: React.ReactNode;
+  title?: string;
+  icon?: React.ReactNode;
+  className?: string;
+  light?: boolean;
+  glass?: boolean;
+  side?: "top" | "bottom" | "left" | "right";
+  align?: "start" | "center" | "end";
   // Needed when the trigger lives in the Electron title-bar drag region (`-webkit-app-region: drag`), which the OS intercepts before Radix's outside-pointer detection can fire.
-  dismissBackdrop?: boolean
-  alignOffset?: number
-  sideOffset?: number
-  avoidCollisions?: boolean
-  children: React.ReactNode
-}
+  dismissBackdrop?: boolean;
+  alignOffset?: number;
+  sideOffset?: number;
+  avoidCollisions?: boolean;
+  children: React.ReactNode;
+};
 
 export function RichPopover({
   open,
@@ -37,15 +37,15 @@ export function RichPopover({
   className,
   light = false,
   glass = false,
-  side = 'bottom',
-  align = 'end',
+  side = "bottom",
+  align = "end",
   alignOffset = 0,
   sideOffset = 8,
   avoidCollisions = true,
   dismissBackdrop = false,
-  children
+  children,
 }: RichPopoverProps): React.JSX.Element {
-  const reduce = useReducedMotion()
+  const reduce = useReducedMotion();
   return (
     <PopoverRoot open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
@@ -59,7 +59,7 @@ export function RichPopover({
           <PopoverPortal forceMount>
             <div
               className="fixed inset-0 z-40"
-              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+              style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
               onPointerDown={() => onOpenChange(false)}
             />
           </PopoverPortal>
@@ -81,28 +81,40 @@ export function RichPopover({
                 style={
                   avoidCollisions
                     ? undefined
-                    : { maxWidth: 'var(--radix-popover-content-available-width)' }
+                    : {
+                        maxWidth:
+                          "var(--radix-popover-content-available-width)",
+                      }
                 }
                 animate={
-                  reduce ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }
+                  reduce
+                    ? { opacity: 1 }
+                    : { opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }
                 }
                 exit={
-                  reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 5, filter: 'blur(8px)' }
+                  reduce
+                    ? { opacity: 0 }
+                    : { opacity: 0, scale: 0.95, y: 5, filter: "blur(8px)" }
                 }
                 initial={
-                  reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 5, filter: 'blur(8px)' }
+                  reduce
+                    ? { opacity: 0 }
+                    : { opacity: 0, scale: 0.95, y: 5, filter: "blur(8px)" }
                 }
                 transition={
-                  reduce ? { duration: 0 } : { type: 'spring', stiffness: 500, damping: 30 }
+                  reduce
+                    ? { duration: 0 }
+                    : { type: "spring", stiffness: 500, damping: 30 }
                 }
                 className={cn(
-                  'relative rounded-xl px-4 py-3 shadow-xl',
+                  "relative rounded-xl px-4 py-3 shadow-xl",
                   glass &&
                     !light &&
-                    'bg-neutral-800/65 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 text-white',
-                  light && 'bg-white text-neutral-900 [--muted-foreground:oklch(0.46_0_0)]',
-                  !light && !glass && 'bg-neutral-800 text-white',
-                  className
+                    "bg-neutral-800/65 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 text-white",
+                  light &&
+                    "bg-white text-neutral-900 [--muted-foreground:oklch(0.46_0_0)]",
+                  !light && !glass && "bg-neutral-800 text-white",
+                  className,
                 )}
               >
                 {title && (
@@ -114,7 +126,11 @@ export function RichPopover({
                 {children}
                 <PopoverArrow
                   className={
-                    light ? 'fill-white' : glass ? 'fill-neutral-800/65' : 'fill-neutral-800'
+                    light
+                      ? "fill-white"
+                      : glass
+                        ? "fill-neutral-800/65"
+                        : "fill-neutral-800"
                   }
                   height={7}
                   width={14}
@@ -125,5 +141,5 @@ export function RichPopover({
         )}
       </AnimatePresence>
     </PopoverRoot>
-  )
+  );
 }

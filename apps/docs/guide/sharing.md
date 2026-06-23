@@ -15,11 +15,11 @@ thumbnail, the title, and the activity sidebar.
 Each recording (and snap) has a visibility setting you control from the desktop
 app, the dashboard, or the share page itself:
 
-| Visibility | Who can watch |
-| --- | --- |
-| **Public** | Anyone with the link. |
-| **Private** | Only you (and signed-in teammates you've granted access). |
-| **Workspace** | Members of your workspace. |
+| Visibility    | Who can watch                                             |
+| ------------- | --------------------------------------------------------- |
+| **Public**    | Anyone with the link.                                     |
+| **Private**   | Only you (and signed-in teammates you've granted access). |
+| **Workspace** | Members of your workspace.                                |
 
 If someone without access opens a restricted link, they're prompted to sign in
 or **request access**.

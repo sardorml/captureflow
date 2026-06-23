@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { initials } from '@/lib/format';
-import { useState } from 'react';
-import { LayoutDashboard, LogOut, Settings } from 'lucide-react';
+import { useRouter } from "next/navigation";
+import { initials } from "@/lib/format";
+import { useState } from "react";
+import { LayoutDashboard, LogOut, Settings } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -13,7 +13,7 @@ import {
   SmoothDropdownMenuItem,
   SmoothDropdownMenuSeparator,
   SmoothDropdownMenuTrigger,
-} from '@captureflow/ui';
+} from "@captureflow/ui";
 
 type Props = {
   userId: string;
@@ -43,9 +43,9 @@ export function ViewerUserMenu({
     setSigningOut(true);
     const back =
       signOutReturnUrl ??
-      (typeof window !== 'undefined' ? window.location.href : '/');
+      (typeof window !== "undefined" ? window.location.href : "/");
     window.location.href = `${appWebUrl}/auth/clear?next=${encodeURIComponent(
-      back
+      back,
     )}`;
     router.refresh();
   };
@@ -103,10 +103,9 @@ export function ViewerUserMenu({
           disabled={signingOut}
         >
           <LogOut className="h-4 w-4 text-neutral-500" />
-          {signingOut ? 'Signing out…' : 'Sign out'}
+          {signingOut ? "Signing out…" : "Sign out"}
         </SmoothDropdownMenuItem>
       </SmoothDropdownMenuContent>
     </SmoothDropdownMenu>
   );
 }
-

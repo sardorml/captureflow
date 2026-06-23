@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 type ColorSet = { count: number; color: string };
 
@@ -13,10 +13,10 @@ type HaloEffectProps = {
 };
 
 const DEFAULT_SETS: ColorSet[] = [
-  { count: 11, color: '#FCE6F2' },
-  { count: 11, color: '#E3F6F8' },
-  { count: 11, color: '#E7EEFF' },
-  { count: 11, color: '#EFEAFF' },
+  { count: 11, color: "#FCE6F2" },
+  { count: 11, color: "#E3F6F8" },
+  { count: 11, color: "#E7EEFF" },
+  { count: 11, color: "#EFEAFF" },
 ];
 
 export function HaloEffect({
@@ -24,7 +24,7 @@ export function HaloEffect({
   size = 220,
   speed = 4,
   blur = 50,
-  clearSelector = '#hero-content',
+  clearSelector = "#hero-content",
 }: HaloEffectProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
 
@@ -32,7 +32,7 @@ export function HaloEffect({
     const host = hostRef.current;
     if (!host) return;
     const reduce = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
+      "(prefers-reduced-motion: reduce)",
     ).matches;
 
     const colors: string[] = [];
@@ -51,7 +51,7 @@ export function HaloEffect({
 
     const els: HTMLDivElement[] = [];
     for (const color of colors) {
-      const el = document.createElement('div');
+      const el = document.createElement("div");
       el.style.cssText =
         `position:absolute;top:0;left:0;width:${size}px;height:${size}px;` +
         `border-radius:50%;background:${color};will-change:transform;` +
@@ -115,7 +115,7 @@ export function HaloEffect({
       }
     };
 
-    for (const el of els) el.style.transition = 'none';
+    for (const el of els) el.style.transition = "none";
     place();
     const raf = requestAnimationFrame(() => {
       for (const el of els)

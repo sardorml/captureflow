@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Zoom from 'react-medium-image-zoom';
-import 'react-medium-image-zoom/dist/styles.css';
+import Zoom from "react-medium-image-zoom";
+import "react-medium-image-zoom/dist/styles.css";
 
 type Props = {
   src: string;
@@ -12,10 +12,7 @@ type Props = {
 
 export function ZoomableSnapImage({ src, alt, width, height }: Props) {
   return (
-    <Zoom
-      zoomMargin={48}
-      classDialog="snap-zoom-dialog"
-    >
+    <Zoom zoomMargin={48} classDialog="snap-zoom-dialog">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}

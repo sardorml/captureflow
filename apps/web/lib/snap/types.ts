@@ -1,6 +1,6 @@
-export type SnapState = 'ready' | 'deleted';
+export type SnapState = "ready" | "deleted";
 
-export type SnapVisibility = 'public' | 'workspace' | 'private';
+export type SnapVisibility = "public" | "workspace" | "private";
 
 export type SnapRow = {
   id: string;

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Globe, Lock } from 'lucide-react';
-import { setPublicLinksPolicyAction } from './actions';
-import { PolicyCardButton } from './PolicyCardButton';
+import { Globe, Lock } from "lucide-react";
+import { setPublicLinksPolicyAction } from "./actions";
+import { PolicyCardButton } from "./PolicyCardButton";
 
 export function AccessPolicy({
   allowPublicLinks,

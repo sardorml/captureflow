@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
-import { GridLoader, type Theme } from '@captureflow/ui';
-import { useRouter } from 'next/navigation';
-import type { ShareConfig } from '@/lib/share-config';
-import type { ShareState, ShareVisibility } from '@/lib/shares-db';
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
+import { GridLoader, type Theme } from "@captureflow/ui";
+import { useRouter } from "next/navigation";
+import type { ShareConfig } from "@/lib/share-config";
+import type { ShareState, ShareVisibility } from "@/lib/shares-db";
 
 export type ShareEditorProps = {
   slug: string;
@@ -27,14 +27,14 @@ export type ShareEditorProps = {
   initialTheme: Theme;
 };
 
-const SHARE_API = '/r';
+const SHARE_API = "/r";
 
 const ShareEditorImpl = dynamic(
-  () => import('./ShareEditorImpl').then((m) => m.ShareEditorImpl),
+  () => import("./ShareEditorImpl").then((m) => m.ShareEditorImpl),
   {
     ssr: false,
     loading: () => <PreparingShare />,
-  }
+  },
 );
 
 // Desktop can open the edit URL before /api/finalize lands; poll until the
@@ -44,18 +44,18 @@ export function ShareEditor(props: ShareEditorProps) {
   const [state, setState] = useState<ShareState>(props.initialState);
 
   useEffect(() => {
-    if (state !== 'pending') return;
+    if (state !== "pending") return;
     let cancelled = false;
     const tick = async (): Promise<void> => {
       try {
         const res = await fetch(
           `${SHARE_API}/api/state?slug=${encodeURIComponent(props.slug)}`,
-          { cache: 'no-store' }
+          { cache: "no-store" },
         );
         if (!res.ok) return;
         const data = (await res.json()) as { state?: string };
         if (cancelled) return;
-        if (data.state === 'ready' || data.state === 'failed') {
+        if (data.state === "ready" || data.state === "failed") {
           setState(data.state);
           router.refresh();
         }
@@ -71,8 +71,8 @@ export function ShareEditor(props: ShareEditorProps) {
     };
   }, [state, props.slug, router]);
 
-  if (state === 'pending') return <PreparingShare />;
-  if (state === 'failed') return <ShareFailed />;
+  if (state === "pending") return <PreparingShare />;
+  if (state === "failed") return <ShareFailed />;
   return <ShareEditorImpl {...props} />;
 }
 

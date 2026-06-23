@@ -1,31 +1,31 @@
-import { SmoothSelect } from '@/components/ui/smooth-select'
+import { SmoothSelect } from "@/components/ui/smooth-select";
 
 type DeviceSelectorProps = {
-  label: string
-  devices: { deviceId: string; label: string }[]
-  selectedDeviceId: string | null
-  onSelect: (deviceId: string | null) => void
-  placeholder?: string
-  icon?: React.ReactNode
-  align?: 'left' | 'right'
-}
+  label: string;
+  devices: { deviceId: string; label: string }[];
+  selectedDeviceId: string | null;
+  onSelect: (deviceId: string | null) => void;
+  placeholder?: string;
+  icon?: React.ReactNode;
+  align?: "left" | "right";
+};
 
 export function DeviceSelector({
   label,
   devices,
   selectedDeviceId,
   onSelect,
-  placeholder = 'None',
+  placeholder = "None",
   icon,
-  align = 'left'
+  align = "left",
 }: DeviceSelectorProps): React.JSX.Element {
   const options = [
-    { value: 'none', label: 'None' },
+    { value: "none", label: "None" },
     ...devices.map((device) => ({
       value: device.deviceId,
-      label: device.label
-    }))
-  ]
+      label: device.label,
+    })),
+  ];
 
   return (
     <div className="space-y-1.5">
@@ -34,12 +34,12 @@ export function DeviceSelector({
         {label}
       </label>
       <SmoothSelect
-        value={selectedDeviceId ?? 'none'}
-        onValueChange={(v) => onSelect(v === 'none' ? null : v)}
+        value={selectedDeviceId ?? "none"}
+        onValueChange={(v) => onSelect(v === "none" ? null : v)}
         options={options}
         placeholder={placeholder}
         align={align}
       />
     </div>
-  )
+  );
 }

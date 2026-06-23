@@ -1,30 +1,30 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Camera, Search, Video, X } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Camera, Search, Video, X } from "lucide-react";
 import {
   SmoothDialog,
   SmoothDialogClose,
   SmoothDialogContent,
   SmoothDialogTitle,
-} from '@captureflow/ui';
-import type { SearchHit } from '@/app/api/search/route';
+} from "@captureflow/ui";
+import type { SearchHit } from "@/app/api/search/route";
 
 export function SearchTrigger() {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchHit[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen(true);
       }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   useEffect(() => {
@@ -42,12 +42,12 @@ export function SearchTrigger() {
       try {
         const res = await fetch(
           `/api/search?q=${encodeURIComponent(trimmed)}`,
-          { signal: ctrl.signal }
+          { signal: ctrl.signal },
         );
         const data = (await res.json()) as { hits: SearchHit[] };
         setResults(data.hits ?? []);
       } catch (err) {
-        if ((err as { name?: string })?.name !== 'AbortError') {
+        if ((err as { name?: string })?.name !== "AbortError") {
           setResults([]);
         }
       } finally {
@@ -63,7 +63,7 @@ export function SearchTrigger() {
   useEffect(() => {
     if (!open) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setQuery('');
+      setQuery("");
       setResults([]);
       setLoading(false);
     }
@@ -113,8 +113,8 @@ export function SearchTrigger() {
               </div>
               <p className="text-base font-semibold text-neutral-100">
                 {query.trim().length < 2
-                  ? 'What do you want to find?'
-                  : 'No matches'}
+                  ? "What do you want to find?"
+                  : "No matches"}
               </p>
               <p className="max-w-sm text-sm text-neutral-500">
                 Search your screen recordings and screenshots by title.
@@ -129,7 +129,7 @@ export function SearchTrigger() {
                     className="flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors hover:bg-overlay"
                   >
                     <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-overlay text-neutral-400">
-                      {hit.kind === 'share' ? (
+                      {hit.kind === "share" ? (
                         <Video className="h-4 w-4" />
                       ) : (
                         <Camera className="h-4 w-4" />

@@ -1,29 +1,33 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, useTransition } from 'react';
-import { initials, formatTimestamp, formatRelativeShort as formatRelative } from '@/lib/format';
-import { AtSign, MessageSquare, Smile, Sparkles, Trash2 } from 'lucide-react';
-import dynamic from 'next/dynamic';
+import { useEffect, useRef, useState, useTransition } from "react";
+import {
+  initials,
+  formatTimestamp,
+  formatRelativeShort as formatRelative,
+} from "@/lib/format";
+import { AtSign, MessageSquare, Smile, Sparkles, Trash2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import type {
   AddCommentResponse,
   ShareComment,
   ShareReaction,
-} from '@/lib/share/types';
-import { Avatar, AvatarFallback, AvatarImage, Button } from '@captureflow/ui';
+} from "@/lib/share/types";
+import { Avatar, AvatarFallback, AvatarImage, Button } from "@captureflow/ui";
 
-const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
+const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
   ssr: false,
 });
 
 type ActivityEntry =
   | {
-      kind: 'reaction';
+      kind: "reaction";
       id: string;
       createdAt: number;
       reaction: ShareReaction;
     }
   | {
-      kind: 'comment';
+      kind: "comment";
       id: string;
       createdAt: number;
       comment: ShareComment;
@@ -61,7 +65,7 @@ export function ActivitySidebar({
   commentInputRef,
 }: Props) {
   const [comments, setComments] = useState<ShareComment[]>(initialComments);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [posting, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -73,14 +77,14 @@ export function ActivitySidebar({
     const snapshot = comments;
     setComments((prev) => prev.filter((c) => c.id !== id));
     try {
-      const res = await fetch(`/api/r/comments/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/r/comments/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const text = await res.text();
         throw new Error(text || `HTTP ${res.status}`);
       }
     } catch (err) {
       setComments(snapshot);
-      setError(err instanceof Error ? err.message : 'Could not delete comment');
+      setError(err instanceof Error ? err.message : "Could not delete comment");
     } finally {
       setDeletingId(null);
     }
@@ -99,13 +103,13 @@ export function ActivitySidebar({
 
   const entries: ActivityEntry[] = [
     ...reactions.map<ActivityEntry>((r) => ({
-      kind: 'reaction' as const,
+      kind: "reaction" as const,
       id: `r-${r.id}`,
       createdAt: r.createdAt,
       reaction: r,
     })),
     ...comments.map<ActivityEntry>((c) => ({
-      kind: 'comment' as const,
+      kind: "comment" as const,
       id: `c-${c.id}`,
       createdAt: c.createdAt,
       comment: c,
@@ -136,13 +140,13 @@ export function ActivitySidebar({
   useEffect(() => {
     if (!viewerSignedIn) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'c' && e.key !== 'C') return;
+      if (e.key !== "c" && e.key !== "C") return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const target = e.target as HTMLElement | null;
       if (
         target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
           target.isContentEditable)
       ) {
         return;
@@ -151,10 +155,10 @@ export function ActivitySidebar({
       if (!el) return;
       e.preventDefault();
       el.focus();
-      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      el.scrollIntoView({ block: "nearest", behavior: "smooth" });
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [viewerSignedIn]);
 
   const insertAtCaret = (text: string) => {
@@ -189,25 +193,25 @@ export function ActivitySidebar({
     const optimistic: ShareComment = {
       id: optimisticId,
       slug,
-      userId: 'pending',
-      userName: viewerName ?? 'You',
+      userId: "pending",
+      userName: viewerName ?? "You",
       userImage: viewerImageUrl,
       body,
       createdAt: Date.now(),
       timestampMs,
     };
     setComments((prev) => [...prev, optimistic]);
-    setDraft('');
+    setDraft("");
 
     startTransition(async () => {
       try {
         const res = await fetch(
           `/api/r/comments?slug=${encodeURIComponent(slug)}`,
           {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
+            method: "POST",
+            headers: { "content-type": "application/json" },
             body: JSON.stringify({ body, timestampMs }),
-          }
+          },
         );
         if (!res.ok) {
           const text = await res.text();
@@ -215,17 +219,17 @@ export function ActivitySidebar({
         }
         const json = (await res.json()) as AddCommentResponse;
         setComments((prev) =>
-          prev.map((c) => (c.id === optimisticId ? json.comment : c))
+          prev.map((c) => (c.id === optimisticId ? json.comment : c)),
         );
       } catch (err) {
         setComments((prev) => prev.filter((c) => c.id !== optimisticId));
-        setError(err instanceof Error ? err.message : 'Could not post comment');
+        setError(err instanceof Error ? err.message : "Could not post comment");
       }
     });
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
       e.preventDefault();
       submitComment();
     }
@@ -238,7 +242,7 @@ export function ActivitySidebar({
           Activity
         </h2>
         <span className="text-xs text-neutral-500">
-          {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+          {entries.length} {entries.length === 1 ? "entry" : "entries"}
         </span>
       </header>
 
@@ -253,7 +257,7 @@ export function ActivitySidebar({
           <ol className="space-y-4">
             {entries.map((entry) => (
               <li key={entry.id}>
-                {entry.kind === 'reaction' ? (
+                {entry.kind === "reaction" ? (
                   <ReactionRow reaction={entry.reaction} onSeek={onSeek} />
                 ) : (
                   <CommentRow
@@ -293,7 +297,7 @@ export function ActivitySidebar({
                   className="text-[11px]"
                   seed={viewerUserId ?? undefined}
                 >
-                  {initials(viewerName ?? 'You')}
+                  {initials(viewerName ?? "You")}
                 </AvatarFallback>
               </Avatar>
               <textarea
@@ -357,14 +361,14 @@ export function ActivitySidebar({
                 type="submit"
                 disabled={posting || !draft.trim()}
                 className={
-                  'rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed ' +
+                  "rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed " +
                   (draft.trim() && !posting
-                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-900/20 hover:bg-blue-500'
-                    : 'text-fg-subtle hover:bg-overlay disabled:opacity-60')
+                    ? "bg-blue-600 text-white shadow-sm shadow-blue-900/20 hover:bg-blue-500"
+                    : "text-fg-subtle hover:bg-overlay disabled:opacity-60")
                 }
               >
                 {posting
-                  ? 'Posting…'
+                  ? "Posting…"
                   : `Comment at ${formatTimestamp(previewMs)}`}
               </button>
             </div>
@@ -394,10 +398,10 @@ function ComposerIconButton({
       title={label}
       onClick={onClick}
       className={
-        'rounded-md p-1.5 transition-colors ' +
+        "rounded-md p-1.5 transition-colors " +
         (active
-          ? 'bg-overlay text-neutral-100'
-          : 'text-neutral-500 hover:bg-overlay hover:text-neutral-200')
+          ? "bg-overlay text-neutral-100"
+          : "text-neutral-500 hover:bg-overlay hover:text-neutral-200")
       }
     >
       {children}
@@ -422,8 +426,8 @@ function MentionPopover({
         onClose();
       }
     };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
   }, [onClose]);
 
   return (
@@ -471,20 +475,20 @@ function EmojiPopover({
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
   // Watches <html> data-theme since ThemeToggle mutates it imperatively.
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof document === 'undefined') return 'dark';
-    return document.documentElement.getAttribute('data-theme') === 'light'
-      ? 'light'
-      : 'dark';
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof document === "undefined") return "dark";
+    return document.documentElement.getAttribute("data-theme") === "light"
+      ? "light"
+      : "dark";
   });
   useEffect(() => {
     const obs = new MutationObserver(() => {
-      const attr = document.documentElement.getAttribute('data-theme');
-      setTheme(attr === 'light' ? 'light' : 'dark');
+      const attr = document.documentElement.getAttribute("data-theme");
+      setTheme(attr === "light" ? "light" : "dark");
     });
     obs.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme'],
+      attributeFilter: ["data-theme"],
     });
     return () => obs.disconnect();
   }, []);
@@ -495,8 +499,8 @@ function EmojiPopover({
         onClose();
       }
     };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
   }, [onClose]);
 
   return (
@@ -506,7 +510,7 @@ function EmojiPopover({
     >
       <EmojiPicker
         theme={theme as never}
-        emojiStyle={'native' as never}
+        emojiStyle={"native" as never}
         lazyLoadEmojis
         searchPlaceholder="Search emoji"
         width={320}
@@ -526,12 +530,12 @@ function EmptyState({
   viewerName: string | null;
   commentInputRef?: React.MutableRefObject<HTMLTextAreaElement | null>;
 }) {
-  const firstName = (viewerName ?? '').trim().split(/\s+/)[0] || null;
+  const firstName = (viewerName ?? "").trim().split(/\s+/)[0] || null;
   const focusComposer = () => {
     const el = commentInputRef?.current;
     if (el) {
       el.focus();
-      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      el.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
   };
   return (
@@ -543,12 +547,12 @@ function EmptyState({
         {viewerSignedIn
           ? firstName
             ? `Be the first to comment, ${firstName}`
-            : 'Be the first to comment'
-          : 'No activity yet'}
+            : "Be the first to comment"
+          : "No activity yet"}
       </p>
       {viewerSignedIn ? (
         <p className="mt-1.5 max-w-[18rem] text-xs leading-relaxed text-fg-muted">
-          Hit{' '}
+          Hit{" "}
           <button
             type="button"
             onClick={focusComposer}
@@ -556,7 +560,7 @@ function EmptyState({
             title="Focus the comment box"
           >
             C
-          </button>{' '}
+          </button>{" "}
           to reply or leave a comment at the bottom of this panel.
         </p>
       ) : (
@@ -575,7 +579,7 @@ function ReactionRow({
   reaction: ShareReaction;
   onSeek: (ms: number) => void;
 }) {
-  const name = reaction.userName?.trim() || 'Anonymous';
+  const name = reaction.userName?.trim() || "Anonymous";
   return (
     <div className="flex items-start gap-2.5">
       <Avatar className="h-7 w-7">
@@ -588,10 +592,10 @@ function ReactionRow({
       </Avatar>
       <div className="min-w-0 flex-1">
         <p className="text-sm text-neutral-200">
-          <span className="font-medium text-neutral-100">{name}</span>{' '}
-          <span className="text-neutral-500">reacted</span>{' '}
-          <span className="align-middle text-base">{reaction.emoji}</span>{' '}
-          <span className="text-neutral-500">at</span>{' '}
+          <span className="font-medium text-neutral-100">{name}</span>{" "}
+          <span className="text-neutral-500">reacted</span>{" "}
+          <span className="align-middle text-base">{reaction.emoji}</span>{" "}
+          <span className="text-neutral-500">at</span>{" "}
           <TimestampChip
             ms={reaction.timestampMs}
             onClick={() => onSeek(reaction.timestampMs)}
@@ -681,11 +685,10 @@ function TimestampChip({ ms, onClick }: { ms: number; onClick: () => void }) {
 
 function mergeReactions(
   base: ShareReaction[],
-  live: ShareReaction[]
+  live: ShareReaction[],
 ): ShareReaction[] {
   if (live.length === 0) return base;
   const seen = new Set(base.map((r) => r.id));
   const extras = live.filter((r) => !seen.has(r.id));
   return extras.length ? [...base, ...extras] : base;
 }
-

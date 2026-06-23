@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 /*
  * `.marketing-root` scopes the landing's light palette to the marketing subtree
@@ -15,7 +15,7 @@ export function MarketingShell({
 }) {
   return (
     <div
-      className={cn('marketing-root overflow-x-clip', className)}
+      className={cn("marketing-root overflow-x-clip", className)}
       data-theme="light"
       dir="ltr"
       lang="en"

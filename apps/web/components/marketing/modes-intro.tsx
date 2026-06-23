@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   AppWindow,
   Camera,
@@ -12,13 +12,13 @@ import {
   Scan,
   Volume2,
   X,
-} from 'lucide-react';
-import { useMessages } from './i18n-provider';
+} from "lucide-react";
+import { useMessages } from "./i18n-provider";
 
 // Keep this mode set in sync with the app's RecordingModeToggle (Share + Screenshot only).
 const MODES = [
-  { key: 'share', icon: Link2 },
-  { key: 'screenshot', icon: Camera },
+  { key: "share", icon: Link2 },
+  { key: "screenshot", icon: Camera },
 ] as const;
 
 const SOURCES = [Monitor, AppWindow, Scan];
@@ -33,7 +33,10 @@ function Divider() {
 
 function GripDots() {
   return (
-    <div className="grid grid-cols-2 gap-x-[5px] gap-y-[3px] self-center" aria-hidden>
+    <div
+      className="grid grid-cols-2 gap-x-[5px] gap-y-[3px] self-center"
+      aria-hidden
+    >
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="h-[3px] w-[3px] rounded-full bg-white/40" />
       ))}
@@ -86,10 +89,10 @@ export function ModesIntro() {
     const ro = new ResizeObserver(measure);
     if (barRef.current) ro.observe(barRef.current);
     if (containerRef.current) ro.observe(containerRef.current);
-    window.addEventListener('resize', measure);
+    window.addEventListener("resize", measure);
     return () => {
       ro.disconnect();
-      window.removeEventListener('resize', measure);
+      window.removeEventListener("resize", measure);
     };
   }, []);
 
@@ -125,7 +128,7 @@ export function ModesIntro() {
     };
   }, []);
 
-  const showDevices = MODES[active].key !== 'screenshot';
+  const showDevices = MODES[active].key !== "screenshot";
   const cursorX = centers[target] ?? 0;
   const captionX = centers[active] ?? 0;
   const measured = centers.length === MODES.length;
@@ -143,7 +146,7 @@ export function ModesIntro() {
             {m.modes.headingLine2}
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-base font-normal leading-[1.4] tracking-[-0.01em] text-[#090c14]">
-            {m.modes.subtitleLine1}{' '}
+            {m.modes.subtitleLine1}{" "}
             {/* Forced break desktop-only; on phones it would orphan words. */}
             <br className="hidden sm:inline" />
             {m.modes.subtitleLine2}
@@ -177,7 +180,7 @@ export function ModesIntro() {
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
-                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
                     className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm"
                   >
                     {m.modes.tabs[MODES[active].key].caption}
@@ -213,8 +216,8 @@ export function ModesIntro() {
                         aria-pressed={isActive}
                         className={`flex h-8 w-9 items-center justify-center rounded-lg transition-colors ${
                           isActive
-                            ? 'bg-white text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.3)]'
-                            : 'text-white/55'
+                            ? "bg-white text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.3)]"
+                            : "text-white/55"
                         }`}
                       >
                         <Glyph className="h-[18px] w-[18px]" strokeWidth={2} />
@@ -230,7 +233,7 @@ export function ModesIntro() {
                     <div
                       key={i}
                       className={`flex h-8 w-9 items-center justify-center rounded-lg ${
-                        i === 0 ? 'bg-white/10 text-white' : 'text-white/45'
+                        i === 0 ? "bg-white/10 text-white" : "text-white/45"
                       }`}
                     >
                       <Glyph className="h-[18px] w-[18px]" strokeWidth={2} />
@@ -243,7 +246,7 @@ export function ModesIntro() {
                 <div className="relative flex items-center">
                   <div
                     className={`flex items-center gap-1 ${
-                      showDevices ? '' : 'invisible'
+                      showDevices ? "" : "invisible"
                     }`}
                   >
                     <DeviceCell icon={Camera} />
@@ -272,7 +275,7 @@ export function ModesIntro() {
                   className="pointer-events-none absolute top-1/2 z-20 -mt-[50px] -ml-[70px]"
                   animate={{ left: cursorX }}
                   transition={{
-                    type: 'spring',
+                    type: "spring",
                     stiffness: 90,
                     damping: 18,
                     mass: 0.7,
@@ -290,7 +293,7 @@ export function ModesIntro() {
                         ? {
                             duration: 0.3,
                             times: [0, 0.5, 1],
-                            ease: 'easeInOut',
+                            ease: "easeInOut",
                           }
                         : { duration: 0 }
                     }

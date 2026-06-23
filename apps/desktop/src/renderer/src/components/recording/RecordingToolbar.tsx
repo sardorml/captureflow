@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion } from 'motion/react'
-import { useRecordingStore } from '@/stores/recording-store'
-import { useSources } from '@/hooks/use-sources'
-import { useMediaDevices } from '@/hooks/use-media-devices'
-import { useRecorder } from '@/hooks/use-recorder'
+import { useCallback, useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
+import { useRecordingStore } from "@/stores/recording-store";
+import { useSources } from "@/hooks/use-sources";
+import { useMediaDevices } from "@/hooks/use-media-devices";
+import { useRecorder } from "@/hooks/use-recorder";
 import {
   TOOLBAR_BAR_HEIGHT,
   TOOLBAR_HEIGHT,
   TOOLBAR_TOOLTIP_BELOW,
-  type SelectionOverlayMode
-} from '../../../../shared/types'
+  type SelectionOverlayMode,
+} from "../../../../shared/types";
 import {
   AppWindow,
   Camera,
@@ -21,102 +21,122 @@ import {
   Scan,
   Volume2,
   VolumeX,
-  X
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
-import { RecordingModeToggle } from './RecordingModeToggle'
-import { ToolbarStatusNudge } from './ToolbarStatusNudge'
-import AnimatedTooltip from '@/components/ui/animated-tooltip'
+  X,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { RecordingModeToggle } from "./RecordingModeToggle";
+import { ToolbarStatusNudge } from "./ToolbarStatusNudge";
+import AnimatedTooltip from "@/components/ui/animated-tooltip";
 
-const SOURCES: { mode: SelectionOverlayMode; icon: LucideIcon; label: string; tooltip: string }[] =
-  [
-    { mode: 'display', icon: Monitor, label: 'Display', tooltip: 'Record an entire display' },
-    { mode: 'window', icon: AppWindow, label: 'Window', tooltip: 'Record a single window' },
-    { mode: 'area', icon: Scan, label: 'Area', tooltip: 'Record a custom region' }
-  ]
+const SOURCES: {
+  mode: SelectionOverlayMode;
+  icon: LucideIcon;
+  label: string;
+  tooltip: string;
+}[] = [
+  {
+    mode: "display",
+    icon: Monitor,
+    label: "Display",
+    tooltip: "Record an entire display",
+  },
+  {
+    mode: "window",
+    icon: AppWindow,
+    label: "Window",
+    tooltip: "Record a single window",
+  },
+  {
+    mode: "area",
+    icon: Scan,
+    label: "Area",
+    tooltip: "Record a custom region",
+  },
+];
 
 // Sits in the drag region so the gaps between clusters stay grabbable.
 function Divider(): React.JSX.Element {
   return (
     <div
       className="flex items-center self-stretch px-1.5"
-      style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+      style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
       aria-hidden
     >
       <div className="w-px self-stretch my-2 bg-white/15" />
     </div>
-  )
+  );
 }
 
 function GripDots({ className }: { className?: string }): React.JSX.Element {
   return (
     <div
       className={`grid grid-cols-2 gap-[3px] self-center cursor-grab active:cursor-grabbing ${
-        className ?? ''
+        className ?? ""
       }`}
-      style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+      style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
       aria-label="Drag toolbar"
     >
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="w-[3px] h-[3px] rounded-full bg-white/40" />
       ))}
     </div>
-  )
+  );
 }
 
 function HoverItem({
   children,
   className,
-  active
+  active,
 }: {
-  children: React.ReactNode
-  className?: string
-  active?: boolean
+  children: React.ReactNode;
+  className?: string;
+  active?: boolean;
 }): React.JSX.Element {
-  const ref = useRef<HTMLDivElement>(null)
-  const bgRef = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
 
   const getOrigin = useCallback((e: React.MouseEvent) => {
-    if (!ref.current) return '50% 50%'
-    const rect = ref.current.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
-    return `${x}% ${y}%`
-  }, [])
+    if (!ref.current) return "50% 50%";
+    const rect = ref.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    return `${x}% ${y}%`;
+  }, []);
 
   const handleMouseEnter = useCallback(
     (e: React.MouseEvent) => {
-      if (active || !bgRef.current) return
-      const bg = bgRef.current
-      bg.style.transformOrigin = getOrigin(e)
-      bg.style.transition = 'none'
-      bg.style.transform = 'scale(0.3)'
-      bg.style.opacity = '0'
-      void bg.offsetHeight
-      bg.style.transition = 'transform 150ms ease-out, opacity 80ms ease-out'
-      bg.style.transform = 'scale(1)'
-      bg.style.opacity = '1'
+      if (active || !bgRef.current) return;
+      const bg = bgRef.current;
+      bg.style.transformOrigin = getOrigin(e);
+      bg.style.transition = "none";
+      bg.style.transform = "scale(0.3)";
+      bg.style.opacity = "0";
+      void bg.offsetHeight;
+      bg.style.transition = "transform 150ms ease-out, opacity 80ms ease-out";
+      bg.style.transform = "scale(1)";
+      bg.style.opacity = "1";
     },
-    [active, getOrigin]
-  )
+    [active, getOrigin],
+  );
 
   const handleMouseLeave = useCallback(
     (e: React.MouseEvent) => {
-      if (active || !bgRef.current) return
-      const bg = bgRef.current
-      bg.style.transformOrigin = getOrigin(e)
-      bg.style.transition = 'transform 100ms cubic-bezier(0.5, 0, 0.75, 0), opacity 100ms ease-in'
-      bg.style.transform = 'scale(0.3)'
-      bg.style.opacity = '0'
+      if (active || !bgRef.current) return;
+      const bg = bgRef.current;
+      bg.style.transformOrigin = getOrigin(e);
+      bg.style.transition =
+        "transform 100ms cubic-bezier(0.5, 0, 0.75, 0), opacity 100ms ease-in";
+      bg.style.transform = "scale(0.3)";
+      bg.style.opacity = "0";
     },
-    [active, getOrigin]
-  )
+    [active, getOrigin],
+  );
 
   return (
     <div
       ref={ref}
-      className={`relative rounded-md overflow-hidden flex items-center ${className ?? ''}`}
-      style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+      className={`relative rounded-md overflow-hidden flex items-center ${className ?? ""}`}
+      style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -124,16 +144,16 @@ function HoverItem({
         ref={bgRef}
         className="absolute inset-0 bg-foreground/8 rounded-md pointer-events-none"
         style={{
-          transform: active ? 'scale(1)' : 'scale(0)',
-          transition: 'transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1)'
+          transform: active ? "scale(1)" : "scale(0)",
+          transition: "transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1)",
         }}
       />
       {children}
     </div>
-  )
+  );
 }
 
-type DeviceOption = { value: string; label: string }
+type DeviceOption = { value: string; label: string };
 
 function DeviceCell({
   icon: Icon,
@@ -143,18 +163,18 @@ function DeviceCell({
   isActive,
   options,
   onChange,
-  tooltip
+  tooltip,
 }: {
-  icon: LucideIcon
-  offIcon: LucideIcon
-  iconLabel: string
-  selectValue: string
-  isActive: boolean
-  options: DeviceOption[]
-  onChange: (value: string) => void
-  tooltip: string
+  icon: LucideIcon;
+  offIcon: LucideIcon;
+  iconLabel: string;
+  selectValue: string;
+  isActive: boolean;
+  options: DeviceOption[];
+  onChange: (value: string) => void;
+  tooltip: string;
 }): React.JSX.Element {
-  const Glyph = isActive ? Icon : OffIcon
+  const Glyph = isActive ? Icon : OffIcon;
   return (
     <AnimatedTooltip content={tooltip} placement="bottom">
       <div
@@ -162,11 +182,11 @@ function DeviceCell({
         aria-label={iconLabel}
       >
         <Glyph
-          className={`w-[18px] h-[18px] ${isActive ? 'text-white' : 'text-red-400'}`}
+          className={`w-[18px] h-[18px] ${isActive ? "text-white" : "text-red-400"}`}
           strokeWidth={2}
         />
         <ChevronDown
-          className={`w-3 h-3 shrink-0 ${isActive ? 'text-white/55' : 'text-white/35'}`}
+          className={`w-3 h-3 shrink-0 ${isActive ? "text-white/55" : "text-white/35"}`}
           strokeWidth={2}
         />
         <select
@@ -182,7 +202,7 @@ function DeviceCell({
         </select>
       </div>
     </AnimatedTooltip>
-  )
+  );
 }
 
 /**
@@ -193,125 +213,136 @@ function DeviceCell({
  * in System Settings. `systemPreferences.askForMediaAccess` is the only
  * call that drives the native prompt and the registration.
  */
-async function ensureMediaPermission(kind: 'camera' | 'microphone'): Promise<boolean> {
-  return window.electronAPI.requestMediaPermission(kind)
+async function ensureMediaPermission(
+  kind: "camera" | "microphone",
+): Promise<boolean> {
+  return window.electronAPI.requestMediaPermission(kind);
 }
 
 function IdleToolbar(): React.JSX.Element {
-  const audioDevices = useRecordingStore((s) => s.audioDevices)
-  const videoDevices = useRecordingStore((s) => s.videoDevices)
-  const selectedAudioDevice = useRecordingStore((s) => s.selectedAudioDevice)
-  const selectedVideoDevice = useRecordingStore((s) => s.selectedVideoDevice)
-  const setSelectedAudioDevice = useRecordingStore((s) => s.setSelectedAudioDevice)
-  const setSelectedVideoDevice = useRecordingStore((s) => s.setSelectedVideoDevice)
-  const systemAudioEnabled = useRecordingStore((s) => s.systemAudioEnabled)
-  const setSystemAudioEnabled = useRecordingStore((s) => s.setSystemAudioEnabled)
-  const recordingMode = useRecordingStore((s) => s.recordingMode)
-  const showDeviceCells = recordingMode !== 'screenshot'
+  const audioDevices = useRecordingStore((s) => s.audioDevices);
+  const videoDevices = useRecordingStore((s) => s.videoDevices);
+  const selectedAudioDevice = useRecordingStore((s) => s.selectedAudioDevice);
+  const selectedVideoDevice = useRecordingStore((s) => s.selectedVideoDevice);
+  const setSelectedAudioDevice = useRecordingStore(
+    (s) => s.setSelectedAudioDevice,
+  );
+  const setSelectedVideoDevice = useRecordingStore(
+    (s) => s.setSelectedVideoDevice,
+  );
+  const systemAudioEnabled = useRecordingStore((s) => s.systemAudioEnabled);
+  const setSystemAudioEnabled = useRecordingStore(
+    (s) => s.setSystemAudioEnabled,
+  );
+  const recordingMode = useRecordingStore((s) => s.recordingMode);
+  const showDeviceCells = recordingMode !== "screenshot";
 
   const handleCameraChange = async (value: string): Promise<void> => {
-    if (value === 'none') {
-      setSelectedVideoDevice(null)
-      return
+    if (value === "none") {
+      setSelectedVideoDevice(null);
+      return;
     }
-    if (await ensureMediaPermission('camera')) {
-      setSelectedVideoDevice(value)
+    if (await ensureMediaPermission("camera")) {
+      setSelectedVideoDevice(value);
     }
-  }
+  };
 
   const handleMicChange = async (value: string): Promise<void> => {
-    if (value === 'none') {
-      setSelectedAudioDevice(null)
-      return
+    if (value === "none") {
+      setSelectedAudioDevice(null);
+      return;
     }
-    if (await ensureMediaPermission('microphone')) {
-      setSelectedAudioDevice(value)
+    if (await ensureMediaPermission("microphone")) {
+      setSelectedAudioDevice(value);
     }
-  }
+  };
 
-  const [overlayMode, setOverlayMode] = useState<SelectionOverlayMode | null>(null)
+  const [overlayMode, setOverlayMode] = useState<SelectionOverlayMode | null>(
+    null,
+  );
 
   const toggleOverlay = (mode: SelectionOverlayMode): void => {
     if (overlayMode === mode) {
-      setOverlayMode(null)
-      window.electronAPI.closeSelectionOverlay()
+      setOverlayMode(null);
+      window.electronAPI.closeSelectionOverlay();
     } else {
-      setOverlayMode(mode)
+      setOverlayMode(mode);
       // Dev-only: forward the "Record self" toggle so the picker's hover
       // detector includes CaptureFlow's own windows — otherwise the editor is
       // invisible to the window picker and can't be selected.
       const includeSelf =
-        import.meta.env.DEV && localStorage.getItem('captureflow.dev.recordSelf') === '1'
+        import.meta.env.DEV &&
+        localStorage.getItem("captureflow.dev.recordSelf") === "1";
       window.electronAPI.openSelectionOverlay(
         mode,
         {
           hasCamera: !!selectedVideoDevice,
-          hasMic: !!selectedAudioDevice
+          hasMic: !!selectedAudioDevice,
         },
-        includeSelf
-      )
+        includeSelf,
+      );
     }
-  }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape' && overlayMode) {
-        setOverlayMode(null)
-        window.electronAPI.closeSelectionOverlay()
+      if (e.key === "Escape" && overlayMode) {
+        setOverlayMode(null);
+        window.electronAPI.closeSelectionOverlay();
       }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [overlayMode])
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [overlayMode]);
 
   // Main cancels the overlay when the user swipes to a different macOS Space.
   // Reset the mode button so the next click reopens cleanly.
   useEffect(() => {
     return window.electronAPI.onSelectionOverlayCancelled(() => {
-      setOverlayMode(null)
-    })
-  }, [])
+      setOverlayMode(null);
+    });
+  }, []);
 
   const persistedCamLabel = (() => {
     try {
-      return localStorage.getItem('captureflow-cam-label')
+      return localStorage.getItem("captureflow-cam-label");
     } catch {
-      return null
+      return null;
     }
-  })()
+  })();
   const persistedMicLabel = (() => {
     try {
-      return localStorage.getItem('captureflow-mic-label')
+      return localStorage.getItem("captureflow-mic-label");
     } catch {
-      return null
+      return null;
     }
-  })()
+  })();
 
   const cameraOptions: DeviceOption[] =
     videoDevices.length > 0
       ? [
-          { value: 'none', label: 'No camera' },
-          ...videoDevices.map((d) => ({ value: d.deviceId, label: d.label }))
+          { value: "none", label: "No camera" },
+          ...videoDevices.map((d) => ({ value: d.deviceId, label: d.label })),
         ]
       : [
-          { value: 'none', label: 'No camera' },
+          { value: "none", label: "No camera" },
           ...(selectedVideoDevice && persistedCamLabel
             ? [{ value: selectedVideoDevice, label: persistedCamLabel }]
-            : [])
-        ]
+            : []),
+        ];
 
   const micOptions: DeviceOption[] =
     audioDevices.length > 0
       ? [
-          { value: 'none', label: 'No microphone' },
-          ...audioDevices.map((d) => ({ value: d.deviceId, label: d.label }))
+          { value: "none", label: "No microphone" },
+          ...audioDevices.map((d) => ({ value: d.deviceId, label: d.label })),
         ]
       : [
-          { value: 'none', label: 'No microphone' },
+          { value: "none", label: "No microphone" },
           ...(selectedAudioDevice && persistedMicLabel
             ? [{ value: selectedAudioDevice, label: persistedMicLabel }]
-            : [])
-        ]
+            : []),
+        ];
 
   return (
     <>
@@ -321,10 +352,10 @@ function IdleToolbar(): React.JSX.Element {
 
       <div
         className="flex items-center gap-1 rounded-[10px] bg-black/20 p-1"
-        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
       >
         {SOURCES.map(({ mode, icon: Icon, label, tooltip }) => {
-          const active = overlayMode === mode
+          const active = overlayMode === mode;
           return (
             <AnimatedTooltip key={mode} content={tooltip} placement="bottom">
               <button
@@ -333,14 +364,14 @@ function IdleToolbar(): React.JSX.Element {
                 aria-pressed={active}
                 className={`flex h-8 w-9 items-center justify-center rounded-lg transition-colors ${
                   active
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/45 hover:text-white/85 hover:bg-white/5'
+                    ? "bg-white/10 text-white"
+                    : "text-white/45 hover:text-white/85 hover:bg-white/5"
                 }`}
               >
                 <Icon className="w-[18px] h-[18px]" strokeWidth={2} />
               </button>
             </AnimatedTooltip>
-          )
+          );
         })}
       </div>
 
@@ -350,14 +381,14 @@ function IdleToolbar(): React.JSX.Element {
       <div className="relative flex items-center">
         <div
           data-testid="recording-device-cells"
-          className={`flex items-center gap-1 ${showDeviceCells ? '' : 'invisible'}`}
-          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          className={`flex items-center gap-1 ${showDeviceCells ? "" : "invisible"}`}
+          style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
           <DeviceCell
             icon={Camera}
             offIcon={CameraOff}
             iconLabel="Camera"
-            selectValue={selectedVideoDevice ?? 'none'}
+            selectValue={selectedVideoDevice ?? "none"}
             isActive={!!selectedVideoDevice}
             options={cameraOptions}
             onChange={handleCameraChange}
@@ -367,7 +398,7 @@ function IdleToolbar(): React.JSX.Element {
             icon={Mic}
             offIcon={MicOff}
             iconLabel="Microphone"
-            selectValue={selectedAudioDevice ?? 'none'}
+            selectValue={selectedAudioDevice ?? "none"}
             isActive={!!selectedAudioDevice}
             options={micOptions}
             onChange={handleMicChange}
@@ -377,13 +408,13 @@ function IdleToolbar(): React.JSX.Element {
             icon={Volume2}
             offIcon={VolumeX}
             iconLabel="System audio"
-            selectValue={systemAudioEnabled ? 'on' : 'off'}
+            selectValue={systemAudioEnabled ? "on" : "off"}
             isActive={systemAudioEnabled}
             options={[
-              { value: 'on', label: 'On' },
-              { value: 'off', label: 'Off' }
+              { value: "on", label: "On" },
+              { value: "off", label: "Off" },
             ]}
-            onChange={(v) => setSystemAudioEnabled(v === 'on')}
+            onChange={(v) => setSystemAudioEnabled(v === "on")}
             tooltip="Include audio from your Mac (app sounds, video playback)"
           />
         </div>
@@ -396,59 +427,63 @@ function IdleToolbar(): React.JSX.Element {
         )}
       </div>
     </>
-  )
+  );
 }
 
 export function RecordingToolbar(): React.JSX.Element {
-  const status = useRecordingStore((s) => s.status)
-  const setSelectedSource = useRecordingStore((s) => s.setSelectedSource)
-  const selectedVideoDevice = useRecordingStore((s) => s.selectedVideoDevice)
-  const setSelectedVideoDevice = useRecordingStore((s) => s.setSelectedVideoDevice)
-  const setSelectedAudioDevice = useRecordingStore((s) => s.setSelectedAudioDevice)
-  const { startRecording } = useRecorder()
+  const status = useRecordingStore((s) => s.status);
+  const setSelectedSource = useRecordingStore((s) => s.setSelectedSource);
+  const selectedVideoDevice = useRecordingStore((s) => s.selectedVideoDevice);
+  const setSelectedVideoDevice = useRecordingStore(
+    (s) => s.setSelectedVideoDevice,
+  );
+  const setSelectedAudioDevice = useRecordingStore(
+    (s) => s.setSelectedAudioDevice,
+  );
+  const { startRecording } = useRecorder();
 
   useEffect(() => {
-    document.documentElement.style.background = 'transparent'
-    document.body.style.background = 'transparent'
-  }, [])
+    document.documentElement.style.background = "transparent";
+    document.body.style.background = "transparent";
+  }, []);
 
-  const recordingMode = useRecordingStore((s) => s.recordingMode)
+  const recordingMode = useRecordingStore((s) => s.recordingMode);
 
   useEffect(() => {
     void window.electronAPI.getShareAuth().then((state) => {
-      useRecordingStore.getState().setShareAuth(state)
-    })
+      useRecordingStore.getState().setShareAuth(state);
+    });
     return window.electronAPI.onShareAuthChanged((state) => {
-      useRecordingStore.getState().setShareAuth(state)
-    })
-  }, [])
+      useRecordingStore.getState().setShareAuth(state);
+    });
+  }, []);
 
   // Only restore the persisted mic/camera if the OS has granted TCC; a stale
   // deviceId without access flashes the webcam bubble. getPermissions is a
   // status read, not a TCC request, so it's safe at startup.
   useEffect(() => {
     void window.electronAPI.getPermissions().then((perms) => {
-      if (perms.camera === 'granted') {
+      if (perms.camera === "granted") {
         try {
-          const persisted = localStorage.getItem('captureflow-cam')
-          if (persisted) setSelectedVideoDevice(persisted)
+          const persisted = localStorage.getItem("captureflow-cam");
+          if (persisted) setSelectedVideoDevice(persisted);
         } catch {
           // localStorage unavailable — safe to ignore
         }
       }
-      if (perms.microphone === 'granted') {
+      if (perms.microphone === "granted") {
         try {
-          const persisted = localStorage.getItem('captureflow-mic')
-          if (persisted) setSelectedAudioDevice(persisted)
+          const persisted = localStorage.getItem("captureflow-mic");
+          if (persisted) setSelectedAudioDevice(persisted);
         } catch {
           // localStorage unavailable — safe to ignore
         }
       }
-    })
-  }, [setSelectedVideoDevice, setSelectedAudioDevice])
+    });
+  }, [setSelectedVideoDevice, setSelectedAudioDevice]);
 
-  useSources()
-  useMediaDevices()
+  useSources();
+  useMediaDevices();
 
   // If a renderer reload drops state while the Swift recorder is still running,
   // the toolbar returns as `idle` mid-recording — hide it so the user can't
@@ -456,71 +491,76 @@ export function RecordingToolbar(): React.JSX.Element {
   useEffect(() => {
     void window.electronAPI.isNativeRecordingActive().then((active) => {
       if (active) {
-        window.electronAPI.hideWindow().catch(() => {})
+        window.electronAPI.hideWindow().catch(() => {});
       }
-    })
-  }, [])
+    });
+  }, []);
 
   useEffect(() => {
     return window.electronAPI.onSourceSelected((source) => {
-      setSelectedSource(source)
-    })
-  }, [setSelectedSource])
+      setSelectedSource(source);
+    });
+  }, [setSelectedSource]);
 
   useEffect(() => {
     return window.electronAPI.onAutoStartRecording(() => {
-      window.electronAPI.hideWindow().catch(() => {})
-      void startRecording()
-    })
-  }, [startRecording])
+      window.electronAPI.hideWindow().catch(() => {});
+      void startRecording();
+    });
+  }, [startRecording]);
 
   // Screenshot mode soft-hides the bubble (keeps the MediaStream warm) because
   // re-acquiring the camera is a ~1s getUserMedia round-trip that reads as lag.
   // The ref guard short-circuits no-op transitions so the IPC fires only when
   // the visible/device state actually changes.
-  const lastBubbleStateRef = useRef<{ visible: boolean; device: string | null }>({
+  const lastBubbleStateRef = useRef<{
+    visible: boolean;
+    device: string | null;
+  }>({
     visible: false,
-    device: null
-  })
+    device: null,
+  });
   useEffect(() => {
-    const hasDevice = !!selectedVideoDevice
-    const wantVisible = recordingMode !== 'screenshot' && hasDevice
-    const wantDevice = hasDevice ? selectedVideoDevice : null
-    const last = lastBubbleStateRef.current
-    if (last.visible === wantVisible && last.device === wantDevice) return
-    const prev = last
-    lastBubbleStateRef.current = { visible: wantVisible, device: wantDevice }
+    const hasDevice = !!selectedVideoDevice;
+    const wantVisible = recordingMode !== "screenshot" && hasDevice;
+    const wantDevice = hasDevice ? selectedVideoDevice : null;
+    const last = lastBubbleStateRef.current;
+    if (last.visible === wantVisible && last.device === wantDevice) return;
+    const prev = last;
+    lastBubbleStateRef.current = { visible: wantVisible, device: wantDevice };
     if (wantVisible && selectedVideoDevice) {
-      window.electronAPI.showWebcamBubble(selectedVideoDevice).catch(() => {})
-      return
+      window.electronAPI.showWebcamBubble(selectedVideoDevice).catch(() => {});
+      return;
     }
     if (!hasDevice) {
       // Fully release the stream so the camera LED turns off.
-      window.electronAPI.hideWebcamBubble().catch(() => {})
-      return
+      window.electronAPI.hideWebcamBubble().catch(() => {});
+      return;
     }
     if (prev.device === wantDevice && wantDevice !== null) {
-      window.electronAPI.softHideWebcamBubble().catch(() => {})
+      window.electronAPI.softHideWebcamBubble().catch(() => {});
     } else {
-      window.electronAPI.hideWebcamBubble().catch(() => {})
+      window.electronAPI.hideWebcamBubble().catch(() => {});
     }
-  }, [recordingMode, selectedVideoDevice])
+  }, [recordingMode, selectedVideoDevice]);
 
   useEffect(() => {
     return window.electronAPI.onToolbarVisible(() => {
-      const store = useRecordingStore.getState()
+      const store = useRecordingStore.getState();
       // Force back to idle: a dirty exit can leave the store stuck non-idle,
       // and IdleToolbar is gated on `status === 'idle'`. Safe because the
       // window is hidden during real recording, so this only fires at the
       // start screen.
-      if (store.status !== 'idle') {
-        store.setStatus('idle')
+      if (store.status !== "idle") {
+        store.setStatus("idle");
       }
-      if (store.selectedVideoDevice && store.recordingMode !== 'screenshot') {
-        window.electronAPI.showWebcamBubble(store.selectedVideoDevice).catch(() => {})
+      if (store.selectedVideoDevice && store.recordingMode !== "screenshot") {
+        window.electronAPI
+          .showWebcamBubble(store.selectedVideoDevice)
+          .catch(() => {});
       }
-    })
-  }, [])
+    });
+  }, []);
 
   // Click-through: the window is taller than the visible bar, so clicks in the
   // empty area should pass to the app underneath. Publish the union of
@@ -528,59 +568,69 @@ export function RecordingToolbar(): React.JSX.Element {
   // cursor and toggles `setIgnoreMouseEvents` — avoiding the focus/activate race
   // when the cursor is already inside the hit region before any move event.
   useEffect(() => {
-    const HIT_SLOP = 3
+    const HIT_SLOP = 3;
 
     const publish = (): void => {
-      const els = document.querySelectorAll<HTMLElement>('[data-toolbar-hit]')
-      const rects: { x: number; y: number; width: number; height: number }[] = []
+      const els = document.querySelectorAll<HTMLElement>("[data-toolbar-hit]");
+      const rects: { x: number; y: number; width: number; height: number }[] =
+        [];
       for (const el of els) {
-        const r = el.getBoundingClientRect()
-        if (r.width === 0 || r.height === 0) continue
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) continue;
         rects.push({
           x: Math.round(r.left - HIT_SLOP),
           y: Math.round(r.top - HIT_SLOP),
           width: Math.round(r.width + HIT_SLOP * 2),
-          height: Math.round(r.height + HIT_SLOP * 2)
-        })
+          height: Math.round(r.height + HIT_SLOP * 2),
+        });
       }
-      window.electronAPI.toolbarSetHitRects(rects)
-    }
+      window.electronAPI.toolbarSetHitRects(rects);
+    };
 
-    publish()
-    let raf = 0
+    publish();
+    let raf = 0;
     const schedule = (): void => {
-      if (raf) return
+      if (raf) return;
       raf = requestAnimationFrame(() => {
-        raf = 0
-        publish()
-      })
-    }
-    const ro = new ResizeObserver(schedule)
-    const mo = new MutationObserver(schedule)
-    document.querySelectorAll<HTMLElement>('[data-toolbar-hit]').forEach((el) => ro.observe(el))
-    mo.observe(document.body, { childList: true, subtree: true, attributes: true })
+        raf = 0;
+        publish();
+      });
+    };
+    const ro = new ResizeObserver(schedule);
+    const mo = new MutationObserver(schedule);
+    document
+      .querySelectorAll<HTMLElement>("[data-toolbar-hit]")
+      .forEach((el) => ro.observe(el));
+    mo.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
     // Keep rects in sync during motion animations: the rendered size doesn't
     // change per frame but the BCR can shift.
-    const tick = setInterval(publish, 100)
+    const tick = setInterval(publish, 100);
 
     return () => {
-      cancelAnimationFrame(raf)
-      ro.disconnect()
-      mo.disconnect()
-      clearInterval(tick)
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      mo.disconnect();
+      clearInterval(tick);
       // Clear rects so an unmounted toolbar doesn't keep eating clicks.
-      window.electronAPI.toolbarSetHitRects([])
-    }
-  }, [])
+      window.electronAPI.toolbarSetHitRects([]);
+    };
+  }, []);
 
   return (
     <div
       className="relative flex flex-col"
-      style={{ background: 'transparent', height: TOOLBAR_HEIGHT }}
+      style={{ background: "transparent", height: TOOLBAR_HEIGHT }}
     >
-      <div className="mt-auto flex justify-center" style={{ marginBottom: TOOLBAR_TOOLTIP_BELOW }}>
+      <div
+        className="mt-auto flex justify-center"
+        style={{ marginBottom: TOOLBAR_TOOLTIP_BELOW }}
+      >
         <div className="flex flex-col items-start gap-1.5">
-          <ToolbarStatusNudge visible={status === 'idle'} />
+          <ToolbarStatusNudge visible={status === "idle"} />
           <motion.div
             layout
             data-toolbar-hit
@@ -588,9 +638,9 @@ export function RecordingToolbar(): React.JSX.Element {
             transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
             style={
               {
-                WebkitAppRegion: 'drag',
+                WebkitAppRegion: "drag",
                 margin: 0,
-                height: TOOLBAR_BAR_HEIGHT
+                height: TOOLBAR_BAR_HEIGHT,
               } as React.CSSProperties
             }
           >
@@ -605,12 +655,12 @@ export function RecordingToolbar(): React.JSX.Element {
               </HoverItem>
             </AnimatedTooltip>
 
-            {status === 'idle' && <IdleToolbar />}
+            {status === "idle" && <IdleToolbar />}
 
             <Divider />
             <div
               className="flex items-center pr-2.5"
-              style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+              style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
             >
               <GripDots />
             </div>
@@ -618,5 +668,5 @@ export function RecordingToolbar(): React.JSX.Element {
         </div>
       </div>
     </div>
-  )
+  );
 }

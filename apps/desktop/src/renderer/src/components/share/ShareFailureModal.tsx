@@ -1,28 +1,28 @@
-import { useEffect, useState } from 'react'
-import { AlertTriangle, ExternalLink } from 'lucide-react'
-import type { ShareFailureState } from '../../../../shared/types'
+import { useEffect, useState } from "react";
+import { AlertTriangle, ExternalLink } from "lucide-react";
+import type { ShareFailureState } from "../../../../shared/types";
 
 export function ShareFailureModal(): React.JSX.Element {
-  const [state, setState] = useState<ShareFailureState | null>(null)
+  const [state, setState] = useState<ShareFailureState | null>(null);
 
   useEffect(() => {
-    const off = window.electronAPI.onShareFailureInit((next) => setState(next))
-    return off
-  }, [])
+    const off = window.electronAPI.onShareFailureInit((next) => setState(next));
+    return off;
+  }, []);
 
-  const headline = state ? headlineFor(state.kind) : 'Share didn’t go through'
-  const body = state?.message ?? ''
-  const url = state?.kind === 'partial' ? state.url : undefined
+  const headline = state ? headlineFor(state.kind) : "Share didn’t go through";
+  const body = state?.message ?? "";
+  const url = state?.kind === "partial" ? state.url : undefined;
 
-  const onDone = (): void => window.electronAPI.shareFailureClose()
+  const onDone = (): void => window.electronAPI.shareFailureClose();
   const onOpenLink = (): void => {
-    if (url) window.electronAPI.shareReadyOpenLink(url)
-  }
+    if (url) window.electronAPI.shareReadyOpenLink(url);
+  };
 
   return (
     <div className="fixed inset-0 flex items-stretch justify-stretch bg-background text-foreground">
       <div
-        style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+        style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
         className="flex w-full flex-col"
       >
         <div className="h-9 shrink-0" />
@@ -30,13 +30,19 @@ export function ShareFailureModal(): React.JSX.Element {
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
             <div className="flex flex-col gap-1">
-              <h2 className="text-[15px] font-semibold leading-tight">{headline}</h2>
-              {body ? <p className="text-[13px] text-foreground/70 leading-snug">{body}</p> : null}
+              <h2 className="text-[15px] font-semibold leading-tight">
+                {headline}
+              </h2>
+              {body ? (
+                <p className="text-[13px] text-foreground/70 leading-snug">
+                  {body}
+                </p>
+              ) : null}
             </div>
           </div>
         </div>
         <div
-          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
           className="flex shrink-0 items-center justify-end gap-2 border-t border-white/8 px-5 py-3"
         >
           {url ? (
@@ -59,16 +65,16 @@ export function ShareFailureModal(): React.JSX.Element {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-function headlineFor(kind: ShareFailureState['kind']): string {
+function headlineFor(kind: ShareFailureState["kind"]): string {
   switch (kind) {
-    case 'init-failed':
-      return 'Couldn’t start a share'
-    case 'no-link':
-      return 'Couldn’t upload your recording'
-    case 'partial':
-      return 'Connection dropped — saved what got through'
+    case "init-failed":
+      return "Couldn’t start a share";
+    case "no-link":
+      return "Couldn’t upload your recording";
+    case "partial":
+      return "Connection dropped — saved what got through";
   }
 }

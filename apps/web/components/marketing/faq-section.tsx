@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { SmoothAccordion } from '@/components/ui/smooth-accordion';
-import { FAQ_ITEMS, LAUNCH_STAGE } from '@/lib/marketing/constants';
-import { useMessages } from './i18n-provider';
+import { SmoothAccordion } from "@/components/ui/smooth-accordion";
+import { FAQ_ITEMS, LAUNCH_STAGE } from "@/lib/marketing/constants";
+import { useMessages } from "./i18n-provider";
 
 export function FaqSection() {
   const m = useMessages();
@@ -17,8 +17,8 @@ export function FaqSection() {
             <SmoothAccordion
               items={FAQ_ITEMS.map((item, index) => {
                 const showWaitlistLink =
-                  index === FAQ_ITEMS.length - 1 && LAUNCH_STAGE === 'waitlist';
-                const paragraphs = m.faq.items[index].answer.split('\n\n');
+                  index === FAQ_ITEMS.length - 1 && LAUNCH_STAGE === "waitlist";
+                const paragraphs = m.faq.items[index].answer.split("\n\n");
                 return {
                   id: index,
                   title: m.faq.items[index].question,
@@ -31,7 +31,7 @@ export function FaqSection() {
                             {para}
                             {isLast && showWaitlistLink && (
                               <>
-                                {' '}
+                                {" "}
                                 <a
                                   href="#waitlist"
                                   className="text-blue-600 underline underline-offset-2 transition-colors hover:text-blue-700"

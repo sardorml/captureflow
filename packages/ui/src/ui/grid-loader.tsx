@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { motion } from 'motion/react';
-import { cn } from '../lib/cn';
+import * as React from "react";
+import { motion } from "motion/react";
+import { cn } from "../lib/cn";
 
 type GridLoaderProps = React.HTMLAttributes<HTMLDivElement> & {
   size?: number;
@@ -21,7 +21,7 @@ const GridLoader = React.forwardRef<HTMLDivElement, GridLoaderProps>(
         ref={ref}
         role="status"
         aria-label="Loading"
-        className={cn('inline-grid grid-cols-3 text-neutral-300', className)}
+        className={cn("inline-grid grid-cols-3 text-neutral-300", className)}
         style={{ gap, ...style }}
         {...props}
       >
@@ -35,14 +35,14 @@ const GridLoader = React.forwardRef<HTMLDivElement, GridLoaderProps>(
             transition={{
               duration: CYCLE,
               repeat: Infinity,
-              ease: 'easeInOut',
+              ease: "easeInOut",
               delay: step * STAGGER,
             }}
           />
         ))}
       </div>
     );
-  }
+  },
 );
 
 export { GridLoader };
