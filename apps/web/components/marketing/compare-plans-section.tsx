@@ -18,12 +18,10 @@ const COLUMNS = [
   },
 ];
 
-// Tick colour for the Managed column — same green as the other column's ticks.
-const COMIC_TICK_COLOR = '#2e8b50';
-
-// Managed-column cell treatment — flat, no outline stroke or extrusion shadow.
-// Colour is applied per-cell on top of this.
-const COMIC_STYLE: React.CSSProperties = {};
+// Tick colour — one green for BOTH plan columns so the Managed column's ticks
+// don't read darker/heavier than Self-Hosted's (the column highlight already
+// distinguishes the plans).
+const TICK_COLOR = '#3aa655';
 
 // Section-label treatment (Recording / Share & Snap) — bold Inter, sized to
 // match the column. Section labels only: the plan-column headers now render as
@@ -158,7 +156,6 @@ export function ComparePlansSection() {
                             localizedValue={localizedValue}
                             includedAria={compare.includedAria}
                             notIncludedAria={compare.notIncludedAria}
-                            comic={col.key === 'monthly'}
                           />
                         </div>
                       );
@@ -259,7 +256,7 @@ function MobileRow({
       ) : value ? (
         <span
           className="flex size-5 items-center justify-center"
-          style={{ color: highlight ? COMIC_TICK_COLOR : '#3aa655' }}
+          style={{ color: TICK_COLOR }}
         >
           <Icon name="check" size={18} weight={700} />
           <span className="sr-only">{includedAria}</span>
@@ -279,13 +276,11 @@ function Cell({
   localizedValue,
   includedAria,
   notIncludedAria,
-  comic = false,
 }: {
   value: boolean | string;
   localizedValue: string;
   includedAria: string;
   notIncludedAria: string;
-  comic?: boolean;
 }) {
   if (typeof value === 'string') {
     // Both columns render string values at the same normal weight — the paid
@@ -298,21 +293,14 @@ function Cell({
   }
   // Check/dash glyphs are visual-only (the Icon renders aria-hidden), so each
   // cell carries an sr-only text alternative — more reliable than aria-label
-  // on a generic <span>, which many screen readers ignore.
+  // on a generic <span>, which many screen readers ignore. Both columns use the
+  // same tick so the Managed column doesn't read darker/heavier.
   if (value) {
-    if (comic) {
-      return (
-        <span
-          className="flex size-7 items-center justify-center"
-          style={{ color: COMIC_TICK_COLOR }}
-        >
-          <Icon name="check" size={24} weight={700} style={COMIC_STYLE} />
-          <span className="sr-only">{includedAria}</span>
-        </span>
-      );
-    }
     return (
-      <span className="flex size-5 items-center justify-center text-[#3aa655]">
+      <span
+        className="flex size-5 items-center justify-center"
+        style={{ color: TICK_COLOR }}
+      >
         <Icon name="check" size={16} />
         <span className="sr-only">{includedAria}</span>
       </span>

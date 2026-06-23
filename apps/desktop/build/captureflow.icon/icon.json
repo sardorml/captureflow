@@ -1,13 +1,23 @@
 {
   "fill" : {
-    "automatic-gradient" : "display-p3:0.23733,0.07814,0.96783,1.00000"
+    "automatic-gradient" : "display-p3:0.00000,0.12013,0.96783,1.00000"
   },
   "groups" : [
     {
       "layers" : [
         {
           "blend-mode" : "normal",
-          "fill" : "none",
+          "fill-specializations" : [
+            {
+              "value" : "none"
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            }
+          ],
           "glass" : false,
           "image-name" : "vecteezy_yin-and-yang-vector-illustration_17449552-edited.svg",
           "name" : "vecteezy_yin-and-yang-vector-illustration_17449552-edited",
