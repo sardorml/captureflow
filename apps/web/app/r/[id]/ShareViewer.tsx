@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import type { SharePlayerHandle } from '../../_components/share';
-import type { ShareConfig } from '@/lib/share/share-config';
+import type { ShareConfig } from '@/lib/share-config';
 import type { ShareComment, ShareReaction } from '@/lib/share/types';
 import type { ShareChapter } from '@/lib/share/summary-chapters';
 import { ContentByline } from '../../_components/snap';

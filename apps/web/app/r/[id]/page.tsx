@@ -14,7 +14,7 @@ import {
   DEFAULT_SHARE_CONFIG,
   hydrateShareConfig,
   shareConfigKeyFor,
-} from '@/lib/share/share-config';
+} from '@/lib/share-config';
 import { loadSummaryChapters } from '@/lib/share/summary-chapters';
 import { isValidSlug } from '@/lib/share/slug';
 import { APP_WEB_SITE_URL, PRODUCT_NAME, viewUrlFor } from '@/lib/site';

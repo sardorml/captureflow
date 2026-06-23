@@ -10,10 +10,10 @@ export {
   isShareHexColor,
   shareConfigKeyFor,
   shareGradientCss,
-} from './share-config';
+} from '@/lib/share-config';
 export type {
   ShareCameraCorner,
   ShareCameraSize,
   ShareConfig,
   ShareGradientKey,
-} from './share-config';
+} from '@/lib/share-config';

@@ -14,7 +14,7 @@ import {
   SharePlayer as BaseSharePlayer,
   type SharePlayerHandle,
 } from '../../_components/share';
-import type { ShareConfig } from '@/lib/share/share-config';
+import type { ShareConfig } from '@/lib/share-config';
 import { DEFAULT_REACTIONS } from '@/lib/share/reactions';
 import type { AddReactionResponse, ShareReaction } from '@/lib/share/types';
 

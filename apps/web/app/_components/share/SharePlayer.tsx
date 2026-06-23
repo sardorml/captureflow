@@ -30,7 +30,7 @@ import {
   type ShareCameraCorner,
   type ShareCameraSize,
   type ShareConfig,
-} from './share-config';
+} from '@/lib/share-config';
 
 /*
  * Imperative handle so wrapping components (e.g. the public viewer's
