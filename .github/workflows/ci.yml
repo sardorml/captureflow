@@ -16,6 +16,9 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Format gate: the whole tree must already match Prettier. Cheapest check,
+      # so run it first to fail fast. Fix locally with `pnpm format`.
+      - run: pnpm format:check
       - run: pnpm typecheck
       - run: pnpm --filter @captureflow/web test
       - run: pnpm build
