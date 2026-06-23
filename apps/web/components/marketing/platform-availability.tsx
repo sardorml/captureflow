@@ -1,11 +1,15 @@
 // Hero sub-line: where CaptureFlow runs today and what's next. Replaces the
-// old "No credit card required" line. macOS ships now (beta); the Windows app
-// and Chrome extension are in the pipeline, shown dimmed with a "Soon" badge.
+// old "No credit card required" line. macOS ships now (beta); the Chrome
+// extension is in active development; the Windows app is further out.
+//
+// Three states drive colour + emphasis: the live platform reads dark with a
+// violet badge, the in-progress one reads mid-grey with a blue badge, and the
+// not-yet-started one is dimmed with a neutral badge.
 //
 // Logos are inline monochrome SVGs (currentColor) so colour + opacity come from
-// the row's text classes — the live platform reads dark, the upcoming ones grey.
-// We don't use the Material Symbols <Icon> here: it's a ligature subset with no
-// brand glyphs, so Apple/Windows/Chrome would leak as literal text.
+// the row's text classes. We don't use the Material Symbols <Icon> here: it's a
+// ligature subset with no brand glyphs, so Apple/Windows/Chrome would leak as
+// literal text.
 
 import { AnimatedTooltip } from '@/components/ui/smooth-tooltip';
 
@@ -37,28 +41,38 @@ function ChromeLogo({ className }: LogoProps) {
   );
 }
 
+type PlatformState = 'live' | 'progress' | 'soon';
+
+const TEXT_TONE: Record<PlatformState, string> = {
+  live: 'text-neutral-800',
+  progress: 'text-neutral-800',
+  soon: 'text-neutral-400',
+};
+
+const BADGE_TONE: Record<PlatformState, string> = {
+  live: 'bg-violet-100 text-violet-700',
+  progress: 'bg-blue-100 text-blue-700',
+  soon: 'bg-neutral-100 text-neutral-400',
+};
+
 const PLATFORMS = [
-  { name: 'macOS', status: 'Beta', live: true, Logo: AppleLogo, tip: 'Available now — download the macOS beta' },
-  { name: 'Windows', status: 'Soon', live: false, Logo: WindowsLogo, tip: 'Windows app in the works' },
-  { name: 'Chrome', status: 'Soon', live: false, Logo: ChromeLogo, tip: 'Chrome extension in the works' },
+  { name: 'macOS', status: 'Beta', state: 'live', Logo: AppleLogo, tip: 'Available now — download the macOS beta' },
+  { name: 'Chrome', status: 'In progress', state: 'progress', Logo: ChromeLogo, tip: 'Chrome extension — in active development' },
+  { name: 'Windows', status: 'Soon', state: 'soon', Logo: WindowsLogo, tip: 'Windows app in the works' },
 ] as const;
 
 export function PlatformAvailability() {
   return (
     <div className="mt-7 flex animate-fade-in flex-wrap items-center justify-center gap-x-6 gap-y-3 animation-delay-500">
-      {PLATFORMS.map(({ name, status, live, Logo, tip }) => (
+      {PLATFORMS.map(({ name, status, state, Logo, tip }) => (
         <AnimatedTooltip key={name} content={tip} placement="bottom">
           <span
-            className={`flex cursor-default items-center gap-2 ${live ? 'text-neutral-800' : 'text-neutral-400'}`}
+            className={`flex cursor-default items-center gap-2 ${TEXT_TONE[state]}`}
           >
             <Logo className="h-4 w-4" />
             <span className="text-xs font-medium">{name}</span>
             <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                live
-                ? 'bg-violet-100 text-violet-700'
-                : 'bg-neutral-100 text-neutral-400'
-              }`}
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${BADGE_TONE[state]}`}
             >
               {status}
             </span>

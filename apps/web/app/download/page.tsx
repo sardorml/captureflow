@@ -45,8 +45,8 @@ export default async function DownloadPage() {
         <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-6 py-4 sm:px-10">
           <Link href="/" className="flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" width={30} height={30} className="rounded-lg" />
-            <span className="text-lg font-semibold tracking-tight">CaptureFlow</span>
+            <img src="/logo-round.png" alt="" width={30} height={30} className="rounded-full" />
+            <span className="text-lg font-semibold lowercase tracking-tight">CaptureFlow</span>
           </Link>
           <div className="flex items-center gap-1 sm:gap-2">
             <Link

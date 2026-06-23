@@ -51,6 +51,13 @@ asarUnpack:
   - node_modules/uiohook-napi/**/*
 mac:
   minimumSystemVersion: '13.2'
+  # macOS 26+ app icon. electron-builder compiles this Icon Composer bundle
+  # into an Assets.car (via actool) and wires CFBundleIconName, so macOS draws
+  # it with the SYSTEM squircle — identical shape to every other app. Requires
+  # Xcode 26+/actool on the build machine. build/icon.icns stays as the
+  # pre-26 fallback. Do NOT call app.dock.setIcon in production (see main
+  # index.ts) — it would override this system-shaped icon with a raw PNG.
+  icon: build/captureflow.icon
   category: public.app-category.video
   hardenedRuntime: true
   gatekeeperAssess: false

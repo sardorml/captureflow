@@ -22,7 +22,6 @@ import {
   TOOLBAR_TOOLTIP_BELOW,
   type SelectionOverlayMode
 } from '../shared/types'
-import icon from '../../resources/icon.png?asset'
 import iconDev from '../../resources/icon-dev.png?asset'
 import trayIconPath from '../../resources/trayIcon.png?asset'
 import { getSources, getAllPermissions } from './capture'
@@ -988,9 +987,16 @@ app.whenReady().then(async () => {
   // the background.
   void loadWorkspaces().then(() => refreshWorkspaces())
 
-  // Set dock icon (dev icon in development, prod icon in production)
-  if (process.platform === 'darwin' && app.dock) {
-    app.dock.setIcon(is.dev ? iconDev : icon)
+  // Dock icon. Dev only: there's no .app bundle in `electron-vite dev`, so we
+  // set a PNG via setIcon. Electron can't feed a .icon to setIcon yet
+  // (electron/electron#48476), so the dev dock won't get the macOS 26 system
+  // squircle — that's expected; verify the real shape in a packaged build.
+  // In production we deliberately DON'T override: the bundle icon compiled
+  // from build/captureflow.icon (mac.icon -> Assets.car + CFBundleIconName) is
+  // drawn by macOS with the system shape, identical to every other app.
+  // Calling setIcon in production would clobber that system-shaped icon.
+  if (process.platform === 'darwin' && app.dock && is.dev) {
+    app.dock.setIcon(iconDev)
   }
 
   // Thumbnail cache for wallpaper previews
@@ -1434,9 +1440,9 @@ app.whenReady().then(async () => {
     }
   })
 
-  // Menu bar tray icon
+  // Menu bar tray icon. Rendered in colour (not a template image) so the
+  // CaptureFlow mark keeps its blue across light and dark menu bars.
   const trayImage = nativeImage.createFromPath(trayIconPath)
-  trayImage.setTemplateImage(true)
   tray = new Tray(trayImage)
   tray.setToolTip('CaptureFlow')
   refreshTrayMenu()

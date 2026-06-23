@@ -63,6 +63,7 @@ export function FloatingCta() {
           height={56}
           className="size-10 rounded-full sm:size-12"
           draggable={false}
+          unoptimized
         />
         <span className="hidden text-lg font-semibold text-neutral-900 sm:inline">
           {m.floatingCta.tagline}

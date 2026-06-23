@@ -274,11 +274,11 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     showCtaBuyButton: true,
     showChangelogNav: false,
     heroBadgeLabel: '🎉 Open source — free to run',
-    heroCtaLabel: 'Try CaptureFlow for free',
+    heroCtaLabel: 'Try captureflow for free',
     ctaHeadline: 'Ready to record?',
     ctaSubtitle:
       'Free download. No credit card. Self-host on your own Cloudflare account, or let us run it for you with the managed plan.',
-    ctaButtonLabel: 'Try CaptureFlow for free',
+    ctaButtonLabel: 'Try captureflow for free',
     price: 9,
     originalPrice: null,
     discountBadge: null,

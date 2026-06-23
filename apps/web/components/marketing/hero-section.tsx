@@ -79,7 +79,7 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                     >
                       <a
                         href={lh('/download')}
-                        className="relative block aspect-[16/10] cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 p-5 text-left shadow-xl shadow-blue-500/25 transition-transform hover:scale-[1.03]"
+                        className="relative block aspect-[16/10] cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 p-5 text-left shadow-2xl shadow-neutral-900/40 transition-transform hover:scale-[1.03]"
                       >
                         {/* Oversized watermark graphic bleeding off the right edge,
                         mirroring CapCut's faint product mark. */}

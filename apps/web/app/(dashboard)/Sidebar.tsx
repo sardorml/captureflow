@@ -64,6 +64,7 @@ export async function Sidebar() {
           height={28}
           className="rounded-full"
           priority
+          unoptimized
         />
         <span className="text-xl font-semibold tracking-tight lowercase text-fg">
           captureflow

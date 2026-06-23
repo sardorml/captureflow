@@ -43,8 +43,9 @@ export function PageShell({
               className="h-8 w-auto"
               draggable={false}
               priority
+              unoptimized
             />
-            <span className="font-heading text-xl font-semibold tracking-tight">
+            <span className="font-heading text-xl font-semibold lowercase tracking-tight">
               CaptureFlow
             </span>
           </Link>

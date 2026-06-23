@@ -89,7 +89,7 @@ export const MESSAGES = {
       'Easily record and share video messages with your',
     subtitleLine2: 'teammates and customers to supercharge productivity.',
     // Primary CTA label (public-beta stage).
-    ctaLabel: 'Try CaptureFlow for free',
+    ctaLabel: 'Try captureflow for free',
     // Secondary grey hero button — scrolls to the #pricing section.
     secondaryCta: 'See pricing',
     badge: '🎉 Open source — free to run',
@@ -98,7 +98,7 @@ export const MESSAGES = {
     teaser: {
       title: 'Self-hostable',
       body: 'Run it on your own Cloudflare account.',
-      cta: 'Try CaptureFlow',
+      cta: 'Try captureflow',
     },
     demo: {
       prevAria: 'Previous demo',
@@ -505,10 +505,10 @@ export const MESSAGES = {
     headline: 'Ready to record?',
     subtitle:
       'Free download. No credit card. Self-host on your own Cloudflare account, or let us run it for you with the managed plan.',
-    button: 'Try CaptureFlow for free',
+    button: 'Try captureflow for free',
   },
   sectionHeader: {
-    cta: 'Try CaptureFlow',
+    cta: 'Try captureflow',
   },
   footer: {
     brand: 'CaptureFlow',
@@ -550,7 +550,7 @@ export const MESSAGES = {
   },
   floatingCta: {
     tagline: 'Record. Share. Done.',
-    button: 'Try CaptureFlow',
+    button: 'Try captureflow',
   },
   pageShell: {
     logoAlt: 'CaptureFlow',

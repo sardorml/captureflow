@@ -98,15 +98,16 @@ export function Nav({ stars = null }: { stars?: string | null }) {
         <div className="flex items-center gap-8">
           <Link href={lh('/')} className="flex items-center gap-2">
             <Image
-              src="/logo.png"
+              src="/logo-round.png"
               alt="CaptureFlow"
               width={30}
               height={30}
-              className="rounded-lg"
+              className="rounded-full"
               draggable={false}
               priority
+              unoptimized
             />
-            <span className="font-heading text-xl font-semibold tracking-tight">
+            <span className="font-heading text-xl font-semibold lowercase tracking-tight">
               CaptureFlow
             </span>
           </Link>
