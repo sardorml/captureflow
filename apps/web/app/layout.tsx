@@ -13,6 +13,7 @@ const inter = Inter({
   display: 'swap',
 });
 import { SITE_URL } from '@/lib/site';
+import { AnalyticsProvider } from './analytics-provider';
 import './globals.css';
 import './material-symbols-subset.css';
 
@@ -72,7 +73,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const theme = readThemeFromCookieHeader((await headers()).get('cookie'));
   return (
     <html lang="en" data-theme={theme} className={inter.variable}>
-      <body>{children}</body>
+      <body>
+        <AnalyticsProvider />
+        {children}
+      </body>
     </html>
   );
 }
