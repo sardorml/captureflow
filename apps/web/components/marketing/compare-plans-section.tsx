@@ -51,7 +51,10 @@ export function ComparePlansSection() {
           {compare.subtitle}
         </p>
 
-        <div className="relative mt-10">
+        {/* Desktop / tablet: the three-column matrix. Hidden on phones, where
+            the narrow value columns wrap badly — a stacked layout renders
+            instead (below). */}
+        <div className="relative mt-10 hidden sm:block">
           {/* Managed-column highlight — a grid overlay using the exact same
               template + padding as the rows, so its third cell lines up
               perfectly with the CaptureFlow Managed column. Sits behind the
@@ -166,8 +169,108 @@ export function ComparePlansSection() {
             ))}
           </div>
         </div>
+
+        {/* Mobile: stacked per-feature layout. Each feature is a heading with
+            the two plans listed on their own full-width rows, so values never
+            get squeezed into a narrow column. The Managed row keeps the blue
+            highlight to echo the column above. */}
+        <div className="mt-8 sm:hidden">
+          {COMPARE_SECTIONS.map((section, sectionIndex) => (
+            <div key={section.title} className="mb-8 last:mb-0">
+              <h3
+                className="mb-3 text-base tracking-wide text-neutral-900"
+                style={PRO_TITLE_STYLE}
+              >
+                {compare.sections[sectionIndex].title}
+              </h3>
+              <div className="flex flex-col gap-5">
+                {section.rows.map((row, i) => (
+                  <div key={row.label}>
+                    <div className="mb-2 text-sm font-semibold text-neutral-900">
+                      {compare.sections[sectionIndex].rows[i].label}
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <MobileRow
+                        plan={compare.freeColumn}
+                        value={row.free}
+                        localizedValue={
+                          compare.sections[sectionIndex].rows[i].free
+                        }
+                        includedAria={compare.includedAria}
+                        notIncludedAria={compare.notIncludedAria}
+                      />
+                      <MobileRow
+                        plan={compare.proColumn}
+                        value={row.monthly}
+                        localizedValue={
+                          compare.sections[sectionIndex].rows[i].pro
+                        }
+                        includedAria={compare.includedAria}
+                        notIncludedAria={compare.notIncludedAria}
+                        highlight
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
+  );
+}
+
+// One plan's value for a feature on the mobile layout: plan name on the left,
+// value (text, check, or dash) right-aligned. `highlight` paints the Managed
+// row to match the highlighted column on wider screens.
+function MobileRow({
+  plan,
+  value,
+  localizedValue,
+  includedAria,
+  notIncludedAria,
+  highlight = false,
+}: {
+  plan: string;
+  value: boolean | string;
+  localizedValue: string;
+  includedAria: string;
+  notIncludedAria: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 ${
+        highlight ? 'bg-blue-100' : 'bg-neutral-100'
+      }`}
+    >
+      <span
+        className={`shrink-0 text-xs font-medium ${
+          highlight ? 'text-neutral-700' : 'text-neutral-500'
+        }`}
+      >
+        {plan}
+      </span>
+      {typeof value === 'string' ? (
+        <span className="text-right text-sm font-semibold text-neutral-900">
+          {localizedValue}
+        </span>
+      ) : value ? (
+        <span
+          className="flex size-5 items-center justify-center"
+          style={{ color: highlight ? COMIC_TICK_COLOR : '#3aa655' }}
+        >
+          <Icon name="check" size={18} weight={700} />
+          <span className="sr-only">{includedAria}</span>
+        </span>
+      ) : (
+        <span className="text-neutral-500">
+          <span aria-hidden>—</span>
+          <span className="sr-only">{notIncludedAria}</span>
+        </span>
+      )}
+    </div>
   );
 }
 

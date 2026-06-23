@@ -113,8 +113,11 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
               {m.hero.titleSuffix}
             </h1>
             <p className="mx-auto mt-6 max-w-2xl animate-fade-in-up text-base leading-relaxed tracking-[-0.01em] text-muted-foreground animation-delay-200">
-              {m.hero.subtitleLine1}
-              <br />
+              {m.hero.subtitleLine1}{' '}
+              {/* Keep the two halves on their own lines on desktop, but let them
+                  flow as one naturally-wrapping sentence on phones — the forced
+                  break leaves an orphaned "your" otherwise. */}
+              <br className="hidden sm:inline" />
               {m.hero.subtitleLine2}
             </p>
             {CURRENT_STAGE.showHeroBuyCta ? (

@@ -171,8 +171,10 @@ export function ModesIntro() {
             {m.modes.headingLine2}
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-base font-normal leading-[1.4] tracking-[-0.01em] text-[#090c14]">
-            {m.modes.subtitleLine1}
-            <br />
+            {m.modes.subtitleLine1}{' '}
+            {/* Two balanced lines on desktop; one naturally-wrapping sentence
+                on phones (the forced break orphans words otherwise). */}
+            <br className="hidden sm:inline" />
             {m.modes.subtitleLine2}
           </p>
         </div>

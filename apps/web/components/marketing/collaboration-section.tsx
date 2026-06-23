@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { Sparkle } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { SectionHeader } from './section-header';
 import { DemoStage } from './demo-stage';
@@ -367,9 +368,10 @@ function FeatureList({
                 aria-hidden="true"
               >
                 {on && (
-                  <Icon
-                    name="auto_awesome"
+                  <Sparkle
                     size={16}
+                    fill="currentColor"
+                    strokeWidth={0}
                     className="text-neutral-900"
                   />
                 )}
