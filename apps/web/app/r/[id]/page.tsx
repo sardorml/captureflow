@@ -9,6 +9,7 @@ import {
   listReactions,
 } from '@/lib/share/db';
 import { verifySession } from '@/lib/share/verify-session';
+import { canViewResource } from '@/lib/visibility';
 import { getObjectJson, publicUrlFor } from '@/lib/share/r2';
 import {
   DEFAULT_SHARE_CONFIG,
@@ -62,20 +63,9 @@ export async function generateMetadata({
   // metadata reveals nothing more than a deleted row.
   if (row.visibility !== 'public') {
     const cookieHeader = (await headers()).get('cookie');
-    const visitor = await verifySession(cookieHeader);
-    let authorized = false;
-    if (visitor && visitor !== 'unknown') {
-      if (row.visibility === 'private') {
-        authorized = visitor.userId === row.userId;
-      } else if (row.visibility === 'workspace') {
-        if (row.workspaceId) {
-          const isOwner = visitor.userId === row.userId;
-          const isMember = visitor.workspaceIds.includes(row.workspaceId);
-          authorized = isOwner || isMember;
-        }
-      }
-    }
-    if (!authorized) return { title: 'Not found' };
+    const visitorResult = await verifySession(cookieHeader);
+    const visitor = visitorResult === 'unknown' ? null : visitorResult;
+    if (!canViewResource(visitor, row)) return { title: 'Not found' };
   }
 
   const title = row.title ?? PRODUCT_NAME;
@@ -206,19 +196,7 @@ export default async function SharePage({ params }: { params: Params }) {
   // Unauthorized branches render <RequestAccess> (a path forward) rather than
   // a flat 404, while generateMetadata returns "Not found" for crawlers.
   if (row.visibility !== 'public') {
-    let authorized = false;
-    if (visitor) {
-      if (row.visibility === 'private') {
-        authorized = visitor.userId === row.userId;
-      } else if (row.visibility === 'workspace') {
-        if (row.workspaceId) {
-          const isOwner = visitor.userId === row.userId;
-          const isMember = visitor.workspaceIds.includes(row.workspaceId);
-          authorized = isOwner || isMember;
-        }
-      }
-    }
-    if (!authorized) {
+    if (!canViewResource(visitor, row)) {
       const ownerNameForGate = row.userId
         ? await getOwnerName(row.userId)
         : null;

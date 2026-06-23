@@ -5,6 +5,7 @@ import { isValidSnapId } from '@/lib/snap/id';
 import { bumpSnapLastViewed, getSnap, getSnapWithOwner } from '@/lib/snap/db';
 import { publicSnapUrl } from '@/lib/snap/r2';
 import { verifySession } from '@/lib/snap/verify-session';
+import { canViewResource } from '@/lib/visibility';
 import {
   APP_SITE_URL,
   APP_WEB_SITE_URL,
@@ -34,19 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const cookieHeader = (await headers()).get('cookie');
     const visitorResult = await verifySession(cookieHeader);
     const visitor = visitorResult === 'unknown' ? null : visitorResult;
-    let authorized = false;
-    if (visitor) {
-      if (snap.visibility === 'private') {
-        authorized = visitor.userId === snap.userId;
-      } else if (snap.visibility === 'workspace') {
-        if (snap.workspaceId) {
-          const isOwner = visitor.userId === snap.userId;
-          const isMember = visitor.workspaceIds.includes(snap.workspaceId);
-          authorized = isOwner || isMember;
-        }
-      }
-    }
-    if (!authorized) {
+    if (!canViewResource(visitor, snap)) {
       return { title: PRODUCT_NAME, robots: { index: false, follow: false } };
     }
   }
@@ -89,19 +78,7 @@ export default async function SnapPage({ params }: Props) {
   const visitor = visitorResult === 'unknown' ? null : visitorResult;
 
   if (snap.visibility !== 'public') {
-    let authorized = false;
-    if (visitor) {
-      if (snap.visibility === 'private') {
-        authorized = visitor.userId === snap.userId;
-      } else if (snap.visibility === 'workspace') {
-        if (snap.workspaceId) {
-          const isOwner = visitor.userId === snap.userId;
-          const isMember = visitor.workspaceIds.includes(snap.workspaceId);
-          authorized = isOwner || isMember;
-        }
-      }
-    }
-    if (!authorized) {
+    if (!canViewResource(visitor, snap)) {
       return (
         <RequestAccess
           appWebUrl={APP_SITE_URL}
