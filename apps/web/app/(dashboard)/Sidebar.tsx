@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { initials as initialsOf } from '@/lib/format';
 import Link from 'next/link';
 import { Video } from 'lucide-react';
 import { listMembers, totalStorageForUser } from '@captureflow/quota';
@@ -107,14 +108,3 @@ export async function Sidebar() {
   );
 }
 
-function initialsOf(source: string): string {
-  const trimmed = source.trim();
-  if (!trimmed) return '?';
-  return trimmed
-    .split(/\s+/)
-    .map((w) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}

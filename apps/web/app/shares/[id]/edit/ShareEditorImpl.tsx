@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { formatBytes, formatDuration } from '@/lib/format';
 import { useCallback, useEffect, useState, useTransition } from 'react';
 import {
   ArrowLeft,
@@ -629,25 +630,6 @@ function shallowEqualConfig(a: ShareConfig, b: ShareConfig): boolean {
     a.micMuted === b.micMuted &&
     a.systemMuted === b.systemMuted
   );
-}
-
-function formatBytes(n: number): string {
-  if (!Number.isFinite(n) || n <= 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB'];
-  let v = n;
-  let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i++;
-  }
-  return `${v.toFixed(v >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
-}
-
-function formatDuration(ms: number): string {
-  const total = Math.round(ms / 1000);
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 function formatDate(ts: number): string {

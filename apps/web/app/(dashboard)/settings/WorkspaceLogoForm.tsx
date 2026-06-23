@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useRef } from 'react';
+import { initials } from '@/lib/format';
 import { Upload } from 'lucide-react';
 import {
   removeWorkspaceLogoAction,
@@ -9,19 +10,6 @@ import {
 
 type FormState = { error: string | null; ok: string | null };
 const INITIAL: FormState = { error: null, ok: null };
-
-function initials(name: string): string {
-  return (
-    name
-      .trim()
-      .split(/\s+/)
-      .map((w) => w[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join('')
-      .toUpperCase() || '?'
-  );
-}
 
 export function WorkspaceLogoForm({
   logoUrl,

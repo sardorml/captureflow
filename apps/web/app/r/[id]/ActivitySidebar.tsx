@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
+import { initials, formatTimestamp, formatRelativeShort as formatRelative } from '@/lib/format';
 import { AtSign, MessageSquare, Smile, Sparkles, Trash2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import type {
@@ -678,18 +679,6 @@ function TimestampChip({ ms, onClick }: { ms: number; onClick: () => void }) {
   );
 }
 
-function initials(name: string): string {
-  const trimmed = name.trim();
-  if (!trimmed) return '?';
-  return trimmed
-    .split(/\s+/)
-    .map((w) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
-
 function mergeReactions(
   base: ShareReaction[],
   live: ShareReaction[]
@@ -700,32 +689,3 @@ function mergeReactions(
   return extras.length ? [...base, ...extras] : base;
 }
 
-function formatTimestamp(ms: number): string {
-  const total = Math.round(ms / 1000);
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = total % 60;
-  if (h > 0) {
-    return `${h}:${m.toString().padStart(2, '0')}:${s
-      .toString()
-      .padStart(2, '0')}`;
-  }
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
-
-function formatRelative(ts: number): string {
-  const diffMs = Date.now() - ts;
-  if (diffMs < 0) return 'just now';
-  const sec = Math.floor(diffMs / 1000);
-  if (sec < 60) return 'just now';
-  const min = Math.floor(sec / 60);
-  if (min < 60) return `${min}m ago`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}h ago`;
-  const day = Math.floor(hr / 24);
-  if (day < 30) return `${day}d ago`;
-  const mo = Math.floor(day / 30);
-  if (mo < 12) return `${mo}mo ago`;
-  const yr = Math.floor(day / 365);
-  return `${yr}y ago`;
-}

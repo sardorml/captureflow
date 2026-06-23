@@ -1,4 +1,5 @@
 import { Sparkles } from 'lucide-react';
+import { formatBytes } from '@/lib/format';
 import { UpgradeModal } from './(dashboard)/UpgradeModal';
 
 const UPGRADE_BASE_URL =
@@ -89,14 +90,3 @@ export function StorageUsage({
   );
 }
 
-function formatBytes(n: number): string {
-  if (!Number.isFinite(n) || n <= 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB'];
-  let v = n;
-  let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i++;
-  }
-  return `${v.toFixed(v >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
-}

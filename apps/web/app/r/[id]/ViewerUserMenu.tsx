@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { initials } from '@/lib/format';
 import { useState } from 'react';
 import { LayoutDashboard, LogOut, Settings } from 'lucide-react';
 import {
@@ -109,14 +110,3 @@ export function ViewerUserMenu({
   );
 }
 
-function initials(source: string): string {
-  const trimmed = source.trim();
-  if (!trimmed) return '?';
-  return trimmed
-    .split(/\s+/)
-    .map((w) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
