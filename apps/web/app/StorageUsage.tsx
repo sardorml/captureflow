@@ -12,7 +12,7 @@ import { UpgradeModal } from './(dashboard)/UpgradeModal';
 // same reason as in UpgradeModal/public-analytics. Env still wins when set.
 const UPGRADE_BASE_URL =
   process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ||
-  'https://sardorlabs.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916';
+  'https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916';
 
 // Pre-fills the LS checkout email so it matches the buyer's account (the webhook
 // links the subscription by email), mirroring UpgradeModal's checkoutUrlFor.

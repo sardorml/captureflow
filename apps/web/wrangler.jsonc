@@ -51,6 +51,6 @@
     // Desktop registers the captureflow:// scheme; keep it until the desktop
     // deep-link parser is rebranded in lockstep.
     "APP_DEEP_LINK_SCHEME": "captureflow",
-    "NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL": "https://sardorlabs.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916"
+    "NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL": "https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916"
   }
 }
