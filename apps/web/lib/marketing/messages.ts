@@ -82,7 +82,9 @@ export const MESSAGES = {
     subtitleLine1:
       'Easily record and share video messages with your',
     subtitleLine2: 'teammates and customers to supercharge productivity.',
-    ctaLabel: 'Try captureflow for free',
+    ctaLabel: 'Try it for free',
+    // Supporting line under the hero CTA buttons.
+    ctaSupport: 'Free and open source · No credit card required',
     // Scrolls to the #pricing section.
     secondaryCta: 'See pricing',
     badge: '🎉 Open source — free to run',
