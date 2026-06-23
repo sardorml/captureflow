@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveDeviceTokenToUser } from '@/lib/share/device-tokens';
-import { optionsResponse, withCors } from '@/lib/share/cors';
-import type { ShareApiError } from '@/lib/share/types';
+import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
 
 // Bearer probe: 200 → token live; 401 → caller should clearShareAuth();
 // 400 → not a bearer header (treat as anonymous).
@@ -28,7 +27,3 @@ export async function GET(req: NextRequest) {
   return withCors(NextResponse.json({ ok: true, userId }));
 }
 
-function jsonError(error: string, status: number, code?: string) {
-  const body: ShareApiError = code ? { error, code } : { error };
-  return withCors(NextResponse.json(body, { status }));
-}

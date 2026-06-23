@@ -3,8 +3,8 @@ import { ACCOUNT_LIMITS } from '@captureflow/quota';
 import { getShare, updateShare } from '@/lib/share/db';
 import { isValidSlug } from '@/lib/share/slug';
 import { completeMultipartUpload, headObject } from '@/lib/share/r2';
-import { optionsResponse, withCors } from '@/lib/share/cors';
-import type { FinalizeRequest, ShareApiError } from '@/lib/share/types';
+import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
+import type { FinalizeRequest } from '@/lib/share/types';
 
 const DEVICE_HEADER = 'x-captureflow-device';
 
@@ -89,7 +89,3 @@ export async function POST(req: NextRequest) {
   return withCors(NextResponse.json({ ok: true }));
 }
 
-function jsonError(error: string, status: number, code?: string) {
-  const body: ShareApiError = code ? { error, code } : { error };
-  return withCors(NextResponse.json(body, { status }));
-}

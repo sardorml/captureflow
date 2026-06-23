@@ -4,8 +4,7 @@ import { deleteShare, getShare } from '@/lib/share/db';
 import { isValidSlug } from '@/lib/share/slug';
 import { abortMultipartUpload, deleteObject } from '@/lib/share/r2';
 import { verifySessionOrNull } from '@/lib/share/verify-session';
-import { optionsResponse, withCors } from '@/lib/share/cors';
-import type { ShareApiError } from '@/lib/share/types';
+import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
 
 const DEVICE_HEADER = 'x-captureflow-device';
 
@@ -60,7 +59,3 @@ export async function DELETE(
   return withCors(NextResponse.json({ ok: true }));
 }
 
-function jsonError(error: string, status: number, code?: string) {
-  const body: ShareApiError = code ? { error, code } : { error };
-  return withCors(NextResponse.json(body, { status }));
-}

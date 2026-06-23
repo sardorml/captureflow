@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { ShareApiError } from './types';
 
 const ALLOW_ORIGIN = '*';
 const ALLOW_METHODS = 'GET, HEAD, POST, DELETE, OPTIONS';
@@ -27,4 +28,9 @@ export function optionsResponse(): NextResponse {
     status: 204,
     headers: corsHeaders(),
   });
+}
+
+export function jsonError(error: string, status: number, code?: string): NextResponse {
+  const body: ShareApiError = code ? { error, code } : { error };
+  return withCors(NextResponse.json(body, { status }));
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { SnapApiError } from './types';
 
 // Allow-any-origin is safe: endpoints authenticate via x-captureflow-device + bearer, not origin.
 const ALLOW_ORIGIN = '*';
@@ -30,4 +31,9 @@ export function optionsResponse(): NextResponse {
     status: 204,
     headers: corsHeaders(),
   });
+}
+
+export function jsonError(error: string, status: number, code?: string): NextResponse {
+  const body: SnapApiError = code ? { error, code } : { error };
+  return withCors(NextResponse.json(body, { status }));
 }

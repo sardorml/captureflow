@@ -6,8 +6,7 @@ import { getSnap, softDeleteSnap, updateSnapAfterEdit } from '@/lib/snap/db';
 import { deleteSnap as deleteSnapBytes, putSnap } from '@/lib/snap/r2';
 import { resolveDeviceTokenToUser } from '@/lib/snap/device-tokens';
 import { verifySessionOrNull } from '@/lib/snap/verify-session';
-import { optionsResponse, withCors } from '@/lib/snap/cors';
-import type { SnapApiError } from '@/lib/snap/types';
+import { optionsResponse, withCors, jsonError } from '@/lib/snap/cors';
 import { snapViewUrlForRequest } from '@/lib/site';
 
 function extractBearerToken(req: NextRequest): string | null {
@@ -140,7 +139,3 @@ export async function DELETE(
   return withCors(NextResponse.json({ ok: true }));
 }
 
-function jsonError(error: string, status: number, code?: string) {
-  const body: SnapApiError = code ? { error, code } : { error };
-  return withCors(NextResponse.json(body, { status }));
-}

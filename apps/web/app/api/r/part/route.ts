@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getShare } from '@/lib/share/db';
 import { isValidSlug } from '@/lib/share/slug';
 import { uploadPart } from '@/lib/share/r2';
-import { optionsResponse, withCors } from '@/lib/share/cors';
-import type { PartResponse, ShareApiError } from '@/lib/share/types';
+import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
+import type { PartResponse } from '@/lib/share/types';
 
 const DEVICE_HEADER = 'x-captureflow-device';
 const MAX_PART_NUMBER = 10000; // R2 multipart upper bound
@@ -69,7 +69,3 @@ export async function POST(req: NextRequest) {
   return withCors(NextResponse.json(res));
 }
 
-function jsonError(error: string, status: number, code?: string) {
-  const body: ShareApiError = code ? { error, code } : { error };
-  return withCors(NextResponse.json(body, { status }));
-}

@@ -1,24 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import {
-  addReaction,
-  countReactions,
-  getShare,
-  listReactions,
-} from '@/lib/share/db';
+  addReaction, countReactions, getShare, listReactions, } from '@/lib/share/db';
 import {
-  ALLOWED_REACTION_EMOJIS,
-  MAX_REACTIONS_PER_SHARE,
-} from '@/lib/share/reactions';
+  ALLOWED_REACTION_EMOJIS, MAX_REACTIONS_PER_SHARE, } from '@/lib/share/reactions';
 import { isValidSlug } from '@/lib/share/slug';
 import { verifySessionOrNull } from '@/lib/share/verify-session';
-import { optionsResponse, withCors } from '@/lib/share/cors';
+import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
 import type {
-  AddReactionRequest,
-  AddReactionResponse,
-  ListReactionsResponse,
-  ShareApiError,
-} from '@/lib/share/types';
+  AddReactionRequest, AddReactionResponse, ListReactionsResponse } from '@/lib/share/types';
 
 export function OPTIONS() {
   return optionsResponse();
@@ -91,7 +81,3 @@ export async function POST(req: NextRequest) {
   return withCors(NextResponse.json(res));
 }
 
-function jsonError(error: string, status: number, code?: string) {
-  const body: ShareApiError = code ? { error, code } : { error };
-  return withCors(NextResponse.json(body, { status }));
-}

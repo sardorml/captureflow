@@ -3,8 +3,8 @@ import { headers } from 'next/headers';
 import { getShare, updateShare } from '@/lib/share/db';
 import { isValidSlug } from '@/lib/share/slug';
 import { verifySessionOrNull } from '@/lib/share/verify-session';
-import { optionsResponse, withCors } from '@/lib/share/cors';
-import type { ShareApiError, ShareVisibility } from '@/lib/share/types';
+import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
+import type { ShareVisibility } from '@/lib/share/types';
 
 const DEVICE_HEADER = 'x-captureflow-device';
 const ALLOWED: ReadonlySet<ShareVisibility> = new Set([
@@ -52,7 +52,3 @@ export async function POST(req: NextRequest) {
   return withCors(NextResponse.json({ visibility: value }));
 }
 
-function jsonError(error: string, status: number, code?: string) {
-  const body: ShareApiError = code ? { error, code } : { error };
-  return withCors(NextResponse.json(body, { status }));
-}

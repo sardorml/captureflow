@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isDevDevice } from '@/lib/share/dev-allowlist';
 import { resolveDeviceTokenToUser } from '@/lib/share/device-tokens';
-import { optionsResponse, withCors } from '@/lib/share/cors';
+import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
 import {
-  activeArtifactCountForUser,
-  getEffectiveLimitsForUser,
-  totalStorageForUser,
-} from '@/lib/share/quota';
-import type { ShareApiError } from '@/lib/share/types';
+  activeArtifactCountForUser, getEffectiveLimitsForUser, totalStorageForUser, } from '@/lib/share/quota';
 
 const DEVICE_HEADER = 'x-captureflow-device';
 
@@ -68,7 +64,3 @@ export async function GET(req: NextRequest) {
   return withCors(NextResponse.json(body));
 }
 
-function jsonError(error: string, status: number, code?: string) {
-  const body: ShareApiError = code ? { error, code } : { error };
-  return withCors(NextResponse.json(body, { status }));
-}

@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getShare, updateShare } from '@/lib/share/db';
 import { isValidSlug } from '@/lib/share/slug';
 import { putObject, publicUrlFor } from '@/lib/share/r2';
-import { optionsResponse, withCors } from '@/lib/share/cors';
-import type { ShareApiError } from '@/lib/share/types';
+import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
 
 const DEVICE_HEADER = 'x-captureflow-device';
 const MAX_POSTER_BYTES = 2 * 1024 * 1024;
@@ -77,7 +76,3 @@ export async function POST(req: NextRequest) {
   );
 }
 
-function jsonError(error: string, status: number, code?: string) {
-  const body: ShareApiError = code ? { error, code } : { error };
-  return withCors(NextResponse.json(body, { status }));
-}

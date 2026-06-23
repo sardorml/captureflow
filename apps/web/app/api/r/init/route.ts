@@ -1,30 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  ALLOWED_CONTENT_TYPES,
-  ALLOWED_PRESETS,
-  ALLOWED_SOURCES,
-} from '@/lib/share/limits';
+  ALLOWED_CONTENT_TYPES, ALLOWED_PRESETS, ALLOWED_SOURCES, } from '@/lib/share/limits';
 import { insertShare } from '@/lib/share/db';
 import {
-  activeArtifactCountForUser,
-  getEffectiveLimitsForUser,
-  getWorkspaceForUpload,
-  resolveUserWorkspaceId,
-  validateWorkspaceMembership,
-  totalStorageForUser,
-} from '@/lib/share/quota';
+  activeArtifactCountForUser, getEffectiveLimitsForUser, getWorkspaceForUpload, resolveUserWorkspaceId, validateWorkspaceMembership, totalStorageForUser, } from '@/lib/share/quota';
 import { resolveDeviceTokenToUser } from '@/lib/share/device-tokens';
 import { generateSlug } from '@/lib/share/slug';
 import { createMultipartUpload } from '@/lib/share/r2';
 import { isDevDevice } from '@/lib/share/dev-allowlist';
-import { optionsResponse, withCors } from '@/lib/share/cors';
+import { optionsResponse, withCors, jsonError } from '@/lib/share/cors';
 import { buildShareHeadline, sanitizeSourceTitle } from '@/lib/share/title';
 import type {
-  InitRequest,
-  InitResponse,
-  ShareApiError,
-  ShareVisibility,
-} from '@/lib/share/types';
+  InitRequest, InitResponse, ShareVisibility } from '@/lib/share/types';
 
 const DEVICE_HEADER = 'x-captureflow-device';
 
@@ -202,11 +189,6 @@ export async function POST(req: NextRequest) {
       : {}),
   };
   return withCors(NextResponse.json(res));
-}
-
-function jsonError(error: string, status: number, code?: string) {
-  const body: ShareApiError = code ? { error, code } : { error };
-  return withCors(NextResponse.json(body, { status }));
 }
 
 function numberOrNull(v: unknown): number | null {

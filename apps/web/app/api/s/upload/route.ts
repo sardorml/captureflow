@@ -3,25 +3,15 @@ import { ACCOUNT_LIMITS } from '@captureflow/quota';
 import { generateSnapId } from '@/lib/snap/id';
 import { insertSnap } from '@/lib/snap/db';
 import {
-  putSnap,
-  putSnapSource,
-  putSnapState,
-  snapStorageKey,
-} from '@/lib/snap/r2';
+  putSnap, putSnapSource, putSnapState, snapStorageKey, } from '@/lib/snap/r2';
 import { resolveDeviceTokenToUser } from '@/lib/snap/device-tokens';
 import { isDevDevice } from '@/lib/snap/dev-allowlist';
-import { optionsResponse, withCors } from '@/lib/snap/cors';
+import { optionsResponse, withCors, jsonError } from '@/lib/snap/cors';
 import {
-  activeArtifactCountForUser,
-  getEffectiveLimitsForUser,
-  getWorkspaceForUpload,
-  resolveUserWorkspaceId,
-  totalStorageForUser,
-  validateWorkspaceMembership,
-} from '@/lib/snap/quota';
+  activeArtifactCountForUser, getEffectiveLimitsForUser, getWorkspaceForUpload, resolveUserWorkspaceId, totalStorageForUser, validateWorkspaceMembership, } from '@/lib/snap/quota';
 import { snapEditUrlFor, snapViewUrlForRequest } from '@/lib/site';
 import { buildSnapHeadline, sanitizeSourceTitle } from '@/lib/snap/title';
-import type { SnapApiError, UploadResponse } from '@/lib/snap/types';
+import type { UploadResponse } from '@/lib/snap/types';
 
 const DEVICE_HEADER = 'x-captureflow-device';
 const WIDTH_HEADER = 'x-captureflow-snap-width';
@@ -269,7 +259,3 @@ export async function POST(req: NextRequest) {
   return withCors(NextResponse.json(res));
 }
 
-function jsonError(error: string, status: number, code?: string) {
-  const body: SnapApiError = code ? { error, code } : { error };
-  return withCors(NextResponse.json(body, { status }));
-}
