@@ -8,7 +8,20 @@ import { UpgradeModal } from './(dashboard)/UpgradeModal';
 // cap via admin.captureflow.xyz's user_quotas override; the limit prop
 // already reflects that override.
 
-const UPGRADE_URL = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ?? '';
+// Public Lemon Squeezy checkout link (not secret) — hardcoded fallback for the
+// same reason as in UpgradeModal/public-analytics. Env still wins when set.
+const UPGRADE_BASE_URL =
+  process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ||
+  'https://sardorlabs.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916';
+
+// Pre-fills the LS checkout email so it matches the buyer's account (the webhook
+// links the subscription by email), mirroring UpgradeModal's checkoutUrlFor.
+function upgradeUrlFor(email: string): string {
+  const u = new URL(UPGRADE_BASE_URL);
+  u.searchParams.set('billing', 'monthly');
+  if (email) u.searchParams.set('checkout[email]', email);
+  return u.toString();
+}
 
 type StorageUsageProps = {
   usedBytes: number;
@@ -77,9 +90,9 @@ export function StorageUsage({
       <p className="mt-2 text-xs text-neutral-400">
         {formatBytes(usedBytes)} of {formatBytes(limit)}
       </p>
-      {over && UPGRADE_URL ? (
+      {over ? (
         <a
-          href={UPGRADE_URL}
+          href={upgradeUrlFor(email)}
           target="_blank"
           rel="noreferrer noopener"
           className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-blue-600 px-2 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500"

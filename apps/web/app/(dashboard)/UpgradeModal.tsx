@@ -19,8 +19,13 @@ import {
 
 const MONTHLY_PRICE = 9;
 
+// Public Lemon Squeezy checkout link (not secret). Hardcoded for the same
+// reason POSTHOG_KEY is in lib/public-analytics.ts: NEXT_PUBLIC_* aren't inlined
+// into client bundles here, so the env read is empty in this client component.
+// The env still wins when present (e.g. a local override).
 const CHECKOUT_BASE_URL =
-  process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ?? '';
+  process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ||
+  'https://sardorlabs.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916';
 
 const BENEFITS = [
   '200 GB cloud storage (up from 200 MB)',
