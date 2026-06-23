@@ -68,8 +68,12 @@ const electronAPI = {
   fileExists: (filePath: string): Promise<boolean> =>
     ipcRenderer.invoke(IPC_CHANNELS.FILE_EXISTS, filePath),
 
-  getPermissions: (): Promise<{ screen: string; microphone: string; camera: string }> =>
-    ipcRenderer.invoke(IPC_CHANNELS.GET_PERMISSIONS),
+  getPermissions: (): Promise<{
+    screen: string
+    microphone: string
+    camera: string
+    accessibility: boolean
+  }> => ipcRenderer.invoke(IPC_CHANNELS.GET_PERMISSIONS),
 
   requestMicPermission: (): Promise<boolean> =>
     ipcRenderer.invoke(IPC_CHANNELS.REQUEST_MIC_PERMISSION),
