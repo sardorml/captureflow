@@ -10,32 +10,35 @@ Discipline: each item is one behavior-preserving refactoring, applied in small
 steps against a green baseline (typecheck + build, plus tests where they exist),
 and committed on its own. Never mix a refactoring with a behavior change.
 
-> ⚠️ **No test coverage.** `apps/web` and `apps/desktop` had zero tests at the
-> time of the scan. A Vitest harness is being added; add characterization tests
-> for anything non-trivial before restructuring it.
+> ✅ **Test harness added.** `apps/web` now has Vitest (`pnpm --filter
+> @captureflow/web test`). `apps/desktop` still has none — add one before its
+> bigger refactors. Add characterization tests for anything non-trivial first.
+
+## Progress (branch `refactor/codebase-cleanup`)
+
+Done this pass — each its own verified commit (tsc all projects + tests + web build):
+Vitest harness · `lib/format` consolidation (+tests) · `formatTimestamp` bug ·
+`share-config` de-dup · dead UI families removed · preload `getPermissions` type.
 
 ## Latent bugs surfaced by the scan (fix alongside the related refactor)
 
-- [ ] **`SummaryChapters.tsx:22` `formatTimestamp`** dropped the `h:mm:ss` branch
-  (and uses `Math.floor` vs `ActivitySidebar`'s `Math.round`) → chapters past
-  60 min render as `75:30` though the UI advertises `H:MM:SS`. Fixed by the
-  `lib/format` consolidation.
-- [ ] **Preload type drift** — `preload/index.d.ts` declares
-  `getPermissions(): { …accessibility: boolean }` but the `index.ts` const omits
-  `accessibility`; renderer reads it via the Window augmentation. Fixed by
-  deriving `Window.electronAPI` from `typeof electronAPI`.
+- [x] **`SummaryChapters.tsx` `formatTimestamp`** rendered chapters past 60 min as
+  `75:30`. Fixed via the `lib/format` consolidation (`f265916`).
+- [x] **Preload `getPermissions` type drift** — type omitted `accessibility` the
+  runtime returns. Type aligned (`bc61fb6`). *Full `typeof electronAPI` migration
+  to prevent future drift still pending below.*
 - [ ] **snap/ vs share/ quota fallbacks diverged** — no-DB path returns in-memory
   totals (share) vs `0` (snap). Reconcile during the snap/share consolidation.
 
 ## Quick wins — duplication, small effort, high value
 
-- [ ] **Consolidate formatting helpers → `lib/format.ts`.** `formatBytes` ×4,
-  `formatRelative` ×5 (3 different formats), `formatTimestamp` ×2 (divergent),
-  `initials`/`initialsOf` ×11 (divergent signatures). Pick one canonical
-  relative-time format. *Extract Function / Move Function.*
-- [ ] **De-duplicate `share-config`** — 3 copies (`lib/share-config.ts` [documented,
-  survivor], `lib/share/share-config.ts`, `app/_components/share/share-config.ts`).
-  Keep one canonical module, repoint importers, delete the rest. *Move Function.*
+- [x] **Consolidate formatting helpers → `lib/format.ts`** (`915817b`). Done for
+  the identical copies (`formatBytes`, `formatDuration`, `formatTimestamp`,
+  `formatRelativeShort/Long`, single-arg `initials`). *Still TODO:* the divergent
+  one-offs — two-arg `initials(name, email)` (UserMenu, MembersList, ProfileForm),
+  `viewer-nav`'s object form, and `PendingInvites`' truncated relative format.
+- [x] **De-duplicate `share-config`** (`15df95c`) — collapsed 3 copies to the
+  documented `lib/share-config.ts`, repointed importers, deleted the rest.
 - [ ] **Extract view-authorization predicate.** The visibility ladder
   (`private → owner`; `workspace → owner || member`) is copy-pasted in
   `r/[id]/page.tsx:68,211` and `s/[id]/page.tsx:39,94` (4 copies, security-sensitive).
@@ -46,9 +49,10 @@ and committed on its own. Never mix a refactoring with a behavior change.
 - [ ] **Preload `.d.ts` → `typeof electronAPI`.** ~200 hand-mirrored lines that
   have already drifted. Export the const, set
   `Window.electronAPI: typeof electronAPI`. *Extract Type / single source of truth.*
-- [ ] **Delete dead UI families.** `packages/ui` `dialog.tsx` and
-  `dropdown-menu.tsx` (plain variants) have zero consumers — only the `smooth-*`
-  families are used. *Remove Dead Code* (after confirming no external consumers).
+  (The one already-drifted method was fixed in `bc61fb6`; this is the structural
+  fix to stop future drift — expect it to surface more drifts to reconcile.)
+- [x] **Delete dead UI families** (`ba2f9e6`) — removed the plain `Dialog*` /
+  `DropdownMenu*` families from `packages/ui` (zero consumers; only `smooth-*` used).
 
 ## Bigger structural items — medium/large effort, do incrementally (tests first)
 
