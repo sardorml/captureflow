@@ -59,7 +59,7 @@ export function RoadmapSection() {
 
   return (
     <section id="roadmap" className="relative py-12 sm:py-24">
-      <div className="mx-auto max-w-7xl px-10">
+      <div className="mx-auto max-w-7xl px-5 sm:px-10">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="font-heading text-[28px] font-semibold leading-[1.1] tracking-tight sm:text-[32px] lg:text-[40px]">

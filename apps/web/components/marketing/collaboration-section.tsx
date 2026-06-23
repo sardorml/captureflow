@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Icon } from '@/components/ui/icon';
 import { SectionHeader } from './section-header';
@@ -168,7 +168,7 @@ export function CollaborationSection() {
       id="collaboration"
       className="relative scroll-mt-24 py-16 sm:py-20"
     >
-      <div className="mx-auto max-w-7xl px-10">
+      <div className="mx-auto max-w-7xl px-5 sm:px-10">
         <SectionHeader
           textClassName="sm:max-w-xl"
           title={
@@ -219,8 +219,11 @@ function AccordionRow({
   // their aria-controls here.
   const panelId = `${cat.id}-panel`;
 
+  // Numbers are decorative; on phones they eat a wide left gutter, so hide them
+  // there and let the title use the full width (the feature list drops its
+  // matching indent below).
   const numberClass =
-    'w-8 shrink-0 font-heading text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:w-9 sm:text-[26px]';
+    'max-sm:hidden w-8 shrink-0 font-heading text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:w-9 sm:text-[26px]';
   const titleClass =
     'font-heading text-2xl font-semibold tracking-tight text-neutral-900 sm:text-[26px]';
 
@@ -285,7 +288,11 @@ function AccordionRow({
                     className="flex items-center gap-16 text-left sm:gap-60"
                   >
                     <span className={numberClass}>{cat.num}</span>
-                    <span className={titleClass}>{catTitle}</span>
+                    {/* On phones the number is hidden, so offset the title by the
+                        sub-feature sparkle gutter (w-4 + gap-2 = 1.5rem) so the
+                        title lines up with the feature titles + body below it —
+                        the same shared left edge the desktop layout has. */}
+                    <span className={`max-sm:ms-6 ${titleClass}`}>{catTitle}</span>
                   </button>
                   {/* pl aligns the feature text under the title (number width +
                       gap, minus the sub-feature sparkle gutter). */}
@@ -297,18 +304,20 @@ function AccordionRow({
                 </div>
 
                 <div className="w-full min-w-0 self-start">
-                  {cat.kind === 'share' && (
-                    <ShareFrame activeKey={featureKey as ShareKey} />
-                  )}
-                  {cat.kind === 'snap' && (
-                    <SnapFrame activeKey={featureKey as SnapKey} />
-                  )}
-                  {cat.kind === 'workspaces' && (
-                    <WorkspaceCard
-                      visibility={featureKey as VisibilityKey}
-                      onVisibilityChange={setFeatureKey}
-                    />
-                  )}
+                  <ScaledMockup>
+                    {cat.kind === 'share' && (
+                      <ShareFrame activeKey={featureKey as ShareKey} />
+                    )}
+                    {cat.kind === 'snap' && (
+                      <SnapFrame activeKey={featureKey as SnapKey} />
+                    )}
+                    {cat.kind === 'workspaces' && (
+                      <WorkspaceCard
+                        visibility={featureKey as VisibilityKey}
+                        onVisibilityChange={setFeatureKey}
+                      />
+                    )}
+                  </ScaledMockup>
                 </div>
               </div>
             </div>
@@ -339,7 +348,7 @@ function FeatureList({
     { title: string; linkText: string; body: string }
   >;
   return (
-    <ul className="flex flex-col gap-4 ps-[4.5rem] sm:ps-[15.75rem]">
+    <ul className="flex flex-col gap-4 sm:ps-[15.75rem]">
       {cat.features.map((f) => {
         const on = f.key === featureKey;
         const copy = featureCopy[f.key];
@@ -408,6 +417,52 @@ const FADE = {
   exit: { opacity: 0 },
   transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] as const },
 };
+
+// Every mockup is authored at one reference size (the desktop look) and then
+// uniformly shrunk to fit its column — so the phone shows the *exact same*
+// mockup as the desktop, just smaller, instead of a re-flowed/re-sized variant.
+// All three frames are 11:8, so one reference box fits them all.
+const REF_WIDTH = 440;
+const REF_HEIGHT = (REF_WIDTH * 8) / 11; // 320
+
+// Renders its child at REF_WIDTH and CSS-`transform`-scales it down to the
+// measured column width (never up — capped at 1). Pure-CSS scaling can't divide
+// length-by-length, so the factor is measured with a ResizeObserver. The
+// wrapper reserves the right height via aspect-ratio (no layout shift before the
+// first measure) and clips the brief pre-measure overflow.
+function ScaledMockup({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => setScale(Math.min(1, el.clientWidth / REF_WIDTH));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className="relative mx-auto w-full max-w-[440px] overflow-hidden"
+      style={{ aspectRatio: '11 / 8' }}
+    >
+      <div
+        className="absolute left-0 top-0 origin-top-left"
+        style={{
+          width: REF_WIDTH,
+          height: REF_HEIGHT,
+          transform: `scale(${scale})`,
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────
 // Share mockup — Safari chrome + a body slot that swaps between the share
@@ -575,7 +630,7 @@ function ViewerBody() {
               initial={reduceMotion ? false : { scale: 0.3, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 500, damping: 22 }}
-              className="absolute bottom-[6%] right-[6%] flex size-7 items-center justify-center rounded-full bg-white text-base shadow-lg ring-2 ring-white sm:size-9 sm:text-lg"
+              className="absolute bottom-[6%] right-[6%] flex size-9 items-center justify-center rounded-full bg-white text-lg shadow-lg ring-2 ring-white"
             >
               {FEEDBACK_EMOJI[emojiIndex]}
             </motion.div>
@@ -583,7 +638,7 @@ function ViewerBody() {
         </div>
 
         {/* Reactions bar — pick one and it pops over the recording above. */}
-        <div className="flex shrink-0 items-center justify-center gap-1.5 border-t border-black/[0.06] bg-neutral-50 px-3 py-2 sm:gap-2 sm:py-2.5">
+        <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/[0.06] bg-neutral-50 px-3 py-2.5">
           {FEEDBACK_EMOJI.map((emoji, i) => {
             const selected = emojiIndex === i;
             return (
@@ -593,7 +648,7 @@ function ViewerBody() {
                 aria-label={`React with ${emoji}`}
                 aria-pressed={selected}
                 onClick={() => setEmojiIndex(i)}
-                className={`flex size-7 cursor-pointer items-center justify-center rounded-full text-sm transition sm:size-8 ${
+                className={`flex size-8 cursor-pointer items-center justify-center rounded-full text-sm transition ${
                   selected
                     ? 'bg-blue-500/20 ring-1 ring-inset ring-blue-500'
                     : 'bg-black/[0.04] hover:bg-black/10'
@@ -605,7 +660,7 @@ function ViewerBody() {
           })}
         </div>
       </div>
-      <aside className="flex w-[26%] shrink-0 flex-col gap-3 border-l border-black/[0.06] bg-neutral-50 p-3 sm:gap-3.5 sm:p-3.5">
+      <aside className="flex w-[26%] shrink-0 flex-col gap-3.5 border-l border-black/[0.06] bg-neutral-50 p-3.5">
         <div>
           <div className="mb-1.5 h-1.5 w-12 rounded-full bg-black/10" />
           <div className="flex flex-wrap gap-1">
@@ -722,7 +777,7 @@ function FeedbackBody() {
               initial={reduceMotion ? false : { scale: 0.3, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 500, damping: 22 }}
-              className="absolute bottom-[6%] right-[6%] flex size-7 items-center justify-center rounded-full bg-white text-base shadow-lg ring-2 ring-white sm:size-9 sm:text-lg"
+              className="absolute bottom-[6%] right-[6%] flex size-9 items-center justify-center rounded-full bg-white text-lg shadow-lg ring-2 ring-white"
             >
               {FEEDBACK_EMOJI[emojiIndex]}
             </motion.div>
@@ -730,7 +785,7 @@ function FeedbackBody() {
         </div>
 
         {/* Reactions bar — pick one and it pops over the recording above. */}
-        <div className="flex shrink-0 items-center justify-center gap-1.5 border-t border-black/[0.06] bg-neutral-50 px-3 py-2 sm:gap-2 sm:py-2.5">
+        <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/[0.06] bg-neutral-50 px-3 py-2.5">
           {FEEDBACK_EMOJI.map((emoji, i) => {
             const selected = emojiIndex === i;
             return (
@@ -740,7 +795,7 @@ function FeedbackBody() {
                 aria-label={`React with ${emoji}`}
                 aria-pressed={selected}
                 onClick={() => setEmojiIndex(i)}
-                className={`flex size-7 cursor-pointer items-center justify-center rounded-full text-sm transition sm:size-8 ${
+                className={`flex size-8 cursor-pointer items-center justify-center rounded-full text-sm transition ${
                   selected
                     ? 'bg-blue-500/20 ring-1 ring-inset ring-blue-500'
                     : 'bg-black/[0.04] hover:bg-black/10'
@@ -754,7 +809,7 @@ function FeedbackBody() {
       </div>
 
       {/* Right — accent swatches + who-can-react/comment toggles. */}
-      <div className="flex w-[28%] flex-col gap-3 bg-neutral-50 p-3 sm:gap-4 sm:p-4">
+      <div className="flex w-[28%] flex-col gap-4 bg-neutral-50 p-4">
         <div>
           <div className="mb-2 h-2 w-16 rounded-full bg-black/10" />
           <div className="grid grid-cols-4 gap-1.5">
@@ -812,7 +867,7 @@ function FeedbackBody() {
 function DashboardBody({ cards }: { cards: Array<{ titleW: number }> }) {
   return (
     <div className="flex h-full w-full bg-white">
-      <div className="hidden w-[18%] shrink-0 flex-col gap-2 border-r border-black/[0.06] bg-black/[0.02] p-2 sm:flex">
+      <div className="flex w-[18%] shrink-0 flex-col gap-2 border-r border-black/[0.06] bg-black/[0.02] p-2">
         <div className="rounded-md border border-black/[0.06] bg-black/[0.04] p-1.5">
           <div className="flex items-center gap-1.5">
             <div className="size-3 rounded-sm bg-black/15" />
@@ -837,7 +892,7 @@ function DashboardBody({ cards }: { cards: Array<{ titleW: number }> }) {
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-2 p-3 sm:p-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className="h-1.5 w-12 rounded-full bg-black/10" />
@@ -896,7 +951,7 @@ function CaptureBody() {
               <span className="size-2 rounded-full bg-[#28c840]" />
               <div className="ml-2 h-2 w-20 rounded-full bg-black/10" />
             </div>
-            <div className="flex min-h-0 flex-1 gap-3 p-3 sm:p-4">
+            <div className="flex min-h-0 flex-1 gap-3 p-4">
               <div className="flex w-1/4 flex-col gap-2">
                 <div className="h-2 w-3/4 rounded-full bg-black/10" />
                 <div className="h-2 w-1/2 rounded-full bg-black/[0.06]" />
@@ -978,7 +1033,7 @@ function MarkupBody() {
               <div className="size-2 rounded-sm bg-neutral-400" />
               <div className="size-2 rounded-sm bg-neutral-300" />
             </div>
-            <div className="flex-1 px-3 py-3 sm:px-4 sm:py-4">
+            <div className="flex-1 px-4 py-4">
               <div className="h-2.5 w-1/3 rounded-full bg-neutral-400" />
               <div className="mt-3 space-y-1.5">
                 <div className="h-1.5 w-full rounded-full bg-neutral-300" />
@@ -1081,7 +1136,7 @@ function WorkspaceCard({
   ];
   return (
     <div className="mx-auto flex aspect-[11/8] w-full max-w-[440px] flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-black/10">
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/[0.04] px-5 py-3 sm:px-6">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/[0.04] px-6 py-3">
         <div className="flex items-center gap-3">
           <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 font-heading text-sm font-bold tracking-tight text-white">
             Cf
@@ -1104,7 +1159,7 @@ function WorkspaceCard({
         </button>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-3 sm:px-6">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-3">
         <div className="shrink-0 text-[11px] uppercase tracking-wider text-neutral-500">
           {wm.membersLabel}
         </div>
@@ -1148,7 +1203,7 @@ function WorkspaceCard({
         </ul>
       </div>
 
-      <div className="shrink-0 border-t border-black/[0.04] bg-black/[0.02] px-5 py-3 sm:px-6">
+      <div className="shrink-0 border-t border-black/[0.04] bg-black/[0.02] px-6 py-3">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-[11px] uppercase tracking-wider text-neutral-500">

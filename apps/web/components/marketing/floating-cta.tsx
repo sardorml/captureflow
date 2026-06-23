@@ -45,7 +45,7 @@ export function FloatingCta() {
     <div
       aria-hidden={!visible}
       inert={!visible}
-      className={`fixed bottom-[4.5rem] left-1/2 z-50 -translate-x-1/2 transition-all duration-300 ease-out ${
+      className={`fixed bottom-[4.5rem] left-1/2 z-50 -translate-x-1/2 transition-all duration-300 ease-out max-sm:hidden ${
         visible
           ? 'translate-y-0 opacity-100'
           : 'pointer-events-none translate-y-[180%] opacity-0'
@@ -74,7 +74,7 @@ export function FloatingCta() {
           onClick={() =>
             track('marketing_cta_clicked', { location: 'floating' })
           }
-          className="inline-flex h-11 items-center justify-center rounded-full bg-neutral-900 px-5 text-base font-semibold text-white transition-colors hover:bg-neutral-800 sm:h-14 sm:px-8 sm:text-lg"
+          className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full bg-neutral-900 px-5 text-base font-semibold text-white transition-colors hover:bg-neutral-800 sm:h-14 sm:px-8 sm:text-lg"
         >
           {m.floatingCta.button}
         </a>

@@ -29,33 +29,35 @@ export function FreeCard() {
           badge row, so the two cards' titles, prices, and CTAs stay aligned
           side by side. */}
       <div className="mb-4 flex min-h-8 items-center gap-2">
-        <Badge className="border-0 bg-neutral-200 text-neutral-900 hover:bg-neutral-200 gap-1 text-sm">
+        <Badge className="border-0 bg-neutral-200 text-neutral-900 hover:bg-neutral-200 gap-1 text-xs sm:text-sm">
           <Server size={14} />
           {f.badge}
         </Badge>
-        <Badge className="border-0 bg-neutral-200 text-neutral-900 hover:bg-neutral-200 text-sm">
+        <Badge className="border-0 bg-neutral-200 text-neutral-900 hover:bg-neutral-200 text-xs sm:text-sm">
           {f.badgeFree}
         </Badge>
       </div>
-      <h3 className="text-3xl font-bold">{f.name}</h3>
-      <p className="mt-1 text-base text-muted-foreground">{f.tagline}</p>
+      <h3 className="text-2xl font-bold sm:text-3xl">{f.name}</h3>
+      <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+        {f.tagline}
+      </p>
 
       <div className="mt-5 flex items-baseline gap-2">
-        <span className="text-5xl font-bold text-foreground tabular-nums">
+        <span className="text-4xl font-bold text-foreground tabular-nums sm:text-5xl">
           {f.price}
         </span>
-        <span className="font-mono text-sm text-muted-foreground">
+        <span className="font-mono text-xs text-muted-foreground sm:text-sm">
           {f.period}
         </span>
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">{f.note}</p>
+      <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{f.note}</p>
 
       <a
         href={GITHUB_REPO_URL}
         onClick={() => track('source_opened', { from: 'pricing_free' })}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-neutral-900 px-7 text-base font-semibold text-white transition-colors hover:bg-neutral-800 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black/20"
+        className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-neutral-900 px-7 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black/20 sm:text-base"
       >
         {f.cta}
       </a>
@@ -66,7 +68,10 @@ export function FreeCard() {
       <Separator className="my-5" />
       <ul className="space-y-3.5">
         {f.features.map((label) => (
-          <li key={label} className="flex items-center gap-3 text-base">
+          <li
+            key={label}
+            className="flex items-center gap-3 text-sm sm:text-base"
+          >
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full ring-1 ring-black/15">
               <Icon name="check" size={14} className="text-foreground" />
             </span>

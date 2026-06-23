@@ -33,7 +33,7 @@ export function PageShell({
           className="absolute inset-x-0 top-0 h-16 pointer-events-none mx-auto max-w-7xl "
           style={{ backgroundColor: CONTENT_BG }}
         />
-        <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-10">
+        <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-10">
           <Link href={lh('/')} className="flex items-center gap-2">
             <Image
               src="/logo-round.png"
@@ -64,7 +64,7 @@ export function PageShell({
           style={{ backgroundColor: CONTENT_BG, fontFamily: SYSTEM_FONT }}
         >
           {title && (
-            <div className="mx-auto max-w-5xl px-10 pt-12 pb-8">
+            <div className="mx-auto max-w-5xl px-5 sm:px-10 pt-12 pb-8">
               <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl">
                 {title}
               </h1>
@@ -75,7 +75,7 @@ export function PageShell({
           )}
 
           <div
-            className={`mx-auto ${maxWidth} px-10 ${
+            className={`mx-auto ${maxWidth} px-5 sm:px-10 ${
               title ? 'pt-4' : 'pt-16'
             } pb-20`}
           >

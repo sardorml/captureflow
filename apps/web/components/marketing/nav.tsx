@@ -91,7 +91,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
           scrolled || menuOpen ? 'opacity-100' : 'opacity-0'
         }`}
       />
-      <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-10">
+      <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-10">
         {/* Left cluster — brand + primary nav links grouped together, the
           way CapCut left-aligns its logo and Products/Features/… links so
           they read as one navigational unit. */}
@@ -186,7 +186,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="absolute inset-x-0 top-full z-40 max-h-[calc(100vh-var(--header-height,68px))] overflow-y-auto border-b border-black/10 bg-white/95 backdrop-blur-lg md:hidden">
-          <div className="mx-auto flex max-w-7xl flex-col gap-1 px-10 py-4">
+          <div className="mx-auto flex max-w-7xl flex-col gap-1 px-5 sm:px-10 py-4">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}

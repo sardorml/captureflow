@@ -55,7 +55,7 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
         <section id="hero" className="relative z-10 overflow-hidden">
           <div
             id="hero-content"
-            className="relative mx-auto max-w-7xl px-10 pb-12 pt-20 text-center sm:pt-28 lg:pt-36"
+            className="relative mx-auto max-w-7xl px-5 sm:px-10 pb-12 pt-20 text-center sm:pt-28 lg:pt-36"
           >
             <h1 className="animate-fade-in-up font-heading text-[40px] font-semibold leading-[1.1] tracking-[-0.03em] lg:text-[64px] xl:text-[72px]">
               <span

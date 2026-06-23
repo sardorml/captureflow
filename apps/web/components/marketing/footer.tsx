@@ -77,7 +77,7 @@ export function Footer() {
         </div>
       </motion.div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-10">
+      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-10">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-5">
           {/* Product — the app surfaces. */}
           <div>

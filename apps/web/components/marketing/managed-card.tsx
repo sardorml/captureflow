@@ -48,23 +48,27 @@ export function ManagedCard() {
         </Badge>
       </div>
 
-      <h3 className="text-3xl font-bold text-white">{copy.title}</h3>
-      <p className="mt-1 text-base text-neutral-400">{copy.subtitle}</p>
+      <h3 className="text-2xl font-bold text-white sm:text-3xl">{copy.title}</h3>
+      <p className="mt-1 text-sm text-neutral-400 sm:text-base">
+        {copy.subtitle}
+      </p>
 
       <div className="mt-5 flex items-baseline gap-2">
-        <span className="text-5xl font-bold text-white tabular-nums">
+        <span className="text-4xl font-bold text-white tabular-nums sm:text-5xl">
           ${MONTHLY_PRICE}
         </span>
-        <span className="font-mono text-sm text-neutral-400">{copy.period}</span>
+        <span className="font-mono text-xs text-neutral-400 sm:text-sm">
+          {copy.period}
+        </span>
       </div>
-      <p className="mt-1 text-sm text-neutral-400">{copy.note}</p>
+      <p className="mt-1 text-xs text-neutral-400 sm:text-sm">{copy.note}</p>
 
       <a
         href={baseHref}
         onClick={handleCheckoutClick}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-white px-7 text-base font-semibold text-neutral-900 transition-colors hover:bg-white/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40"
+        className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-white px-7 text-sm font-semibold text-neutral-900 transition-colors hover:bg-white/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40 sm:text-base"
       >
         {copy.cta}
       </a>
@@ -79,7 +83,10 @@ export function ManagedCard() {
           m.pricing.highlights.shareableLinks,
           m.pricing.highlights.teamSeats,
         ].map((label) => (
-          <li key={label} className="flex items-center gap-3 text-base">
+          <li
+            key={label}
+            className="flex items-center gap-3 text-sm sm:text-base"
+          >
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full ring-1 ring-white/15">
               <Icon name="check" size={14} className="text-white" />
             </span>

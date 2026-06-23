@@ -326,7 +326,7 @@ export const MESSAGES = {
     annual: {
       badgePro: 'Managed',
       badgeCycle: 'Annual',
-      title: 'CaptureFlow Managed',
+      title: 'Managed hosting',
       subtitle: 'Fully hosted, billed annually.',
       period: '/month',
       // {amount} = yearly charge, e.g. "$108".
@@ -338,7 +338,7 @@ export const MESSAGES = {
       subtitle: 'What you get on each plan.',
       featureColumn: 'Feature',
       freeColumn: 'Self-Hosted',
-      proColumn: 'CaptureFlow Managed',
+      proColumn: 'Managed hosting',
       includedAria: 'included',
       notIncludedAria: 'not included',
       // Mirrors COMPARE_SECTIONS by index. `free`/`pro` are the display strings

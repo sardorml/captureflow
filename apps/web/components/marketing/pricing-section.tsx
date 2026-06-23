@@ -19,7 +19,7 @@ export function PricingSection({
   if (!CURRENT_STAGE.showPricingSection) return null;
   return (
     <section id="pricing" className="py-12 sm:py-16">
-      <div className="mx-auto max-w-7xl px-10">
+      <div className="mx-auto max-w-7xl px-5 sm:px-10">
         {!hideHeading && (
           <>
             <h2 className="text-center font-heading text-[28px] font-semibold leading-[1.1] tracking-tight sm:text-[32px] lg:text-[40px]">

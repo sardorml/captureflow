@@ -163,7 +163,7 @@ export function ModesIntro() {
       id="modes"
       className="relative scroll-mt-6 pt-20 pb-20 sm:pt-28 sm:pb-28"
     >
-      <div className="mx-auto max-w-7xl px-10">
+      <div className="mx-auto max-w-7xl px-5 sm:px-10">
         <div className="mx-auto max-w-5xl text-center">
           <h2 className="font-heading text-[28px] font-semibold leading-[1.1] tracking-tight sm:text-[32px] lg:text-[40px]">
             {m.modes.headingLine1}
