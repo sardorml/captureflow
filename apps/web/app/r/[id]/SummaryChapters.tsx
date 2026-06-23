@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ListVideo, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { SmoothButton } from '@captureflow/ui';
+import { formatTimestamp } from '@/lib/format';
 
 type Props = {
   slug: string;
@@ -19,12 +20,6 @@ function newId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-function formatTimestamp(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
 
 function parseTimestamp(raw: string): number | null {
   const parts = raw.trim().split(':');
