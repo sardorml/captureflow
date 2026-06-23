@@ -6,14 +6,13 @@
 // between actions and the brand on the right side via
 // `postedByName`/`postedByEmail` props — pass nulls to omit it.
 import type { ReactElement, ReactNode } from 'react';
-import { CaptureFlowMark } from './captureflow-mark';
 import { PostedBy } from './posted-by';
 import { timeAgo } from './time';
 
 export type SnapNavbarProps = {
   // App-level title for the brand-link aria-label and logo wrapper.
-  // Defaults to "CaptureFlow"; the chip itself shows the
-  // CaptureFlowMark glyph regardless.
+  // Defaults to "CaptureFlow"; the chip itself shows the logo mark
+  // regardless.
   brandLabel?: string;
   // Where the brand chip points. Same external marketing site
   // across services — set to "/" or "#" if you want to keep the
@@ -50,10 +49,17 @@ export function SnapNavbar({
     >
       <a
         href={brandHref}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-blue-600 transition-colors hover:bg-blue-500/25"
+        className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg transition-opacity hover:opacity-80"
         aria-label={brandLabel}
       >
-        <CaptureFlowMark />
+        <img
+          src="/logo.png"
+          alt=""
+          width={40}
+          height={40}
+          className="h-full w-full object-contain"
+          draggable={false}
+        />
       </a>
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-base font-semibold tracking-tight text-neutral-900">
