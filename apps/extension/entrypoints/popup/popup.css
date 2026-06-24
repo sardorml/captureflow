@@ -139,6 +139,13 @@ body {
   color: var(--cf-muted);
 }
 
+.cf-hint {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--cf-muted);
+}
+
 .cf-start {
   border: 0;
   border-radius: 10px;

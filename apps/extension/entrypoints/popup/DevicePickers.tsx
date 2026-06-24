@@ -56,6 +56,12 @@ export function DevicePickers() {
           <option value="on">Microphone on</option>
         </select>
       </div>
+      {prefs.camera && (
+        <p className="cf-hint">
+          Your camera bubble appears on normal web pages — not on internal
+          browser pages like this one.
+        </p>
+      )}
     </section>
   );
 }
