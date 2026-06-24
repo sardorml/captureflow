@@ -60,11 +60,11 @@ function StatusLine({
     case "error":
       return (
         <p className="cf-status cf-status--error">
-          {status.detail ?? result?.error ?? "Something went wrong."}
+          {status.detail ?? "Something went wrong."}
         </p>
       );
     default:
-      if (result?.ok && result.url) return <ShareLink url={result.url} />;
+      if (result?.ok) return <ShareLink url={result.url} />;
       return (
         <p className="cf-status cf-status--muted">
           Record your screen and get an instant share link.

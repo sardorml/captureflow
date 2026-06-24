@@ -1,19 +1,19 @@
-// Where the freshly issued device token gets handed back to the client that
-// started the sign-in. The `?return=` param is attacker-influenceable, so it's
-// locked to two safe shapes — anything else falls back to the default deep
-// link. This never widens *who* gets a token (any signed-in visitor to the
-// callback already mints one); it only constrains *where* the token is sent.
-
+/*
+ * Where the freshly issued device token gets handed back to the client that
+ * started sign-in. The `?return=` param is attacker-influenceable, so it's
+ * locked to two safe shapes; anything else is "none" (the caller emits the
+ * default deep link). This never widens *who* gets a token — any signed-in
+ * visitor to the callback already mints one — only *where* it's sent.
+ *   - "extension": the browser extension's https://<id>.chromiumapp.org/ URL.
+ *     chrome.identity.launchWebAuthFlow watches for a redirect there; the host
+ *     is Chrome-reserved and resolvable only inside the flow, so the caller can
+ *     redirect to it server-side.
+ *   - "deeplink": a custom-scheme URL the desktop app's OS handler routes;
+ *     delivered via a client-side anchor click (Safari blocks unsolicited nav).
+ */
 export type ReturnTarget =
-  // Browser-extension flow: chrome.identity.launchWebAuthFlow watches for a
-  // redirect to the extension's https://<id>.chromiumapp.org/ URL. That host is
-  // Chrome-reserved and resolvable only inside the flow, so a server redirect
-  // straight to it is the cleanest handoff.
   | { kind: "extension"; url: string }
-  // Desktop flow: a custom-scheme deep link the OS routes to the app. Delivered
-  // via a client-side anchor click (Safari blocks unsolicited scheme nav).
   | { kind: "deeplink"; url: string }
-  // No usable return — emit the default deep link for the configured scheme.
   | { kind: "none" };
 
 function isExtensionRedirect(raw: string): boolean {

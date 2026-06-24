@@ -8,25 +8,23 @@ type PartRef = { partNumber: number; etag: string };
 
 export type ShareUploadOptions = {
   transport: UploadTransport;
-  // Overridable so tests can drive the part boundaries with small buffers.
   chunkBytes?: number;
 };
 
 export type ShareUpload = {
   readonly slug: string;
   readonly totalBytes: number;
-  // Append recorder output. Cheap and synchronous: it buffers, then drains full
-  // parts in the background (one request in flight at a time).
   push(bytes: Uint8Array): void;
-  // Flush the tail, finalize the multipart upload, and resolve with the viewer
-  // URL. Rejects if any part failed (fail-fast: a dropped part fails the share).
   finish(sizeBytes?: number): Promise<FinalizeResponse>;
   abort(): void;
 };
 
-// Open a multipart share upload and return a handle that streams recorder
-// chunks to it. The caller drives `push`/`finish`; this owns part numbering,
-// chunk sizing, and the single-in-flight pump.
+/*
+ * Open a multipart share upload and return a handle that streams recorder
+ * chunks to it. `push` buffers and drains full parts in the background (one
+ * request in flight); `finish` flushes the tail and finalizes. Fail-fast: a
+ * dropped part rejects `finish` with no retry. The caller owns the lifecycle.
+ */
 export async function startShareUpload(
   init: InitRequest,
   options: ShareUploadOptions,

@@ -1,5 +1,6 @@
 import { createShareTransport } from "../api/client";
 import { startShareUpload, type ShareUpload } from "../api/upload-streamer";
+import type { CaptureContext } from "../messaging";
 import type { RecordingResultPayload, RecordingStatus } from "../storage";
 import { pickScreenMimeType } from "./pick-mime-type";
 
@@ -9,8 +10,6 @@ const MAX_DURATION_MS = 30 * 60 * 1000;
 // MediaRecorder emits a Blob per slice; a few seconds keeps memory flat and
 // starts the multipart upload while recording is still going.
 const TIMESLICE_MS = 3000;
-
-export type RecorderContext = { deviceId: string; token: string };
 
 type Callbacks = {
   onStatus: (status: RecordingStatus) => void;
@@ -24,7 +23,7 @@ export function stopActiveRecording(): void {
 }
 
 export async function recordAndUpload(
-  ctx: RecorderContext,
+  ctx: CaptureContext,
   cb: Callbacks,
 ): Promise<void> {
   if (active) return; // one recording at a time

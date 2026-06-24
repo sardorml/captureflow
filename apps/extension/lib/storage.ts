@@ -12,14 +12,9 @@ export type RecordingStatus = {
   detail?: string;
 };
 
-export type RecordingResultPayload = {
-  ok: boolean;
-  // The viewer link, present on success.
-  url?: string;
-  bytes?: number;
-  durationMs?: number;
-  error?: string;
-};
+export type RecordingResultPayload =
+  | { ok: true; url: string; bytes: number; durationMs: number }
+  | { ok: false; error: string };
 
 export type RecordingResult = RecordingResultPayload & { at: number };
 
