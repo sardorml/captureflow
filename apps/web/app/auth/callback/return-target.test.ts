@@ -8,35 +8,12 @@ describe("classifyReturn", () => {
     ).toEqual({ kind: "deeplink", url: "captureflow://auth/callback" });
   });
 
-  it("accepts an https chromiumapp.org return as the extension flow", () => {
-    const url = "https://abcdefghijklmnop.chromiumapp.org/";
-    expect(classifyReturn(url, "captureflow")).toEqual({
-      kind: "extension",
-      url,
-    });
-  });
-
-  it("rejects non-https chromiumapp.org returns", () => {
-    expect(
-      classifyReturn("http://abc.chromiumapp.org/", "captureflow"),
-    ).toEqual({ kind: "none" });
-  });
-
-  it("rejects hosts that only look like chromiumapp.org", () => {
-    for (const raw of [
-      "https://evilchromiumapp.org/",
-      "https://chromiumapp.org.evil.com/",
-      "https://chromiumapp.org/", // bare apex has no extension subdomain
-    ]) {
-      expect(classifyReturn(raw, "captureflow")).toEqual({ kind: "none" });
-    }
-  });
-
   it("rejects hostile schemes and arbitrary origins", () => {
     for (const raw of [
       "javascript:alert(1)",
       "http://evil.com/",
       "https://evil.com/",
+      "https://abc.chromiumapp.org/", // not a return shape anymore
       "data:text/html,hi",
       "not a url",
     ]) {
