@@ -21,6 +21,7 @@ jobs:
       - run: pnpm format:check
       - run: pnpm typecheck
       - run: pnpm --filter @captureflow/web test
+      - run: pnpm --filter @captureflow/extension test
       - run: pnpm build
 
   # Server-side secret scan — the safety net for the local pre-push hook (which

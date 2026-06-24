@@ -17,7 +17,8 @@
       "outputs": [
         "{projectRoot}/dist",
         "{projectRoot}/out",
-        "{projectRoot}/.next"
+        "{projectRoot}/.next",
+        "{projectRoot}/.output"
       ]
     },
     "typecheck": {

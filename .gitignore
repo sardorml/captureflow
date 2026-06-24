@@ -9,6 +9,10 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 
+# WXT (apps/extension) — generated build output and types
+.output/
+.wxt/
+
 # secrets / local env
 .env
 .env.*
