@@ -3,7 +3,7 @@ import type { ShareApiError } from "./types";
 
 const ALLOW_ORIGIN = "*";
 const ALLOW_METHODS = "GET, HEAD, POST, DELETE, OPTIONS";
-const ALLOW_HEADERS = "Content-Type, x-captureflow-device";
+const ALLOW_HEADERS = "Content-Type, Authorization, x-captureflow-device";
 const MAX_AGE = "86400";
 
 export function corsHeaders(): Record<string, string> {
