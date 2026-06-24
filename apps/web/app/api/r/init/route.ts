@@ -129,7 +129,11 @@ export async function POST(req: NextRequest) {
 
   const slug = generateSlug();
   const storageKey =
-    contentType === "image/jpeg" ? `posters/${slug}.jpg` : `videos/${slug}.mp4`;
+    contentType === "image/jpeg"
+      ? `posters/${slug}.jpg`
+      : contentType === "video/webm"
+        ? `videos/${slug}.webm`
+        : `videos/${slug}.mp4`;
 
   // Must be `no-cache`, not `no-store`: the latter forced a full re-download
   // every refresh, leaving some browsers stuck buffering before first decode.
