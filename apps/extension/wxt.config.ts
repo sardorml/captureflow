@@ -7,8 +7,12 @@ export default defineConfig({
   manifest: ({ browser }) => ({
     name: "CaptureFlow",
     description: "Record your screen and share an instant link.",
-    // The offscreen document calls getDisplayMedia (no extra permission needed
-    // for that); `offscreen` is Chromium-only, so gate it for Firefox.
-    permissions: browser === "firefox" ? ["storage"] : ["storage", "offscreen"],
+    // `identity` drives sign-in via launchWebAuthFlow. `offscreen` (where
+    // getDisplayMedia runs — no extra permission for capture itself) is
+    // Chromium-only, so gate it for Firefox.
+    permissions:
+      browser === "firefox"
+        ? ["storage", "identity"]
+        : ["storage", "offscreen", "identity"],
   }),
 });

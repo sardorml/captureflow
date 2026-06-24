@@ -177,3 +177,23 @@ body {
 .cf-status--error {
   color: var(--cf-error);
 }
+
+.cf-footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--cf-line);
+  padding-top: 10px;
+}
+
+.cf-signout {
+  border: 0;
+  background: transparent;
+  color: var(--cf-muted);
+  font-size: 12px;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.cf-signout:hover {
+  color: var(--cf-fg);
+}

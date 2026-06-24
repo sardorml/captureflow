@@ -6,6 +6,7 @@ type RecorderPanelProps = {
   status: SpikeStatus;
   result: SpikeResult | null;
   onStart: () => void;
+  onSignOut: () => void;
 };
 
 const START_LABEL: Partial<Record<SpikeStatus["kind"], string>> = {
@@ -45,7 +46,12 @@ function StatusLine({
   );
 }
 
-export function RecorderPanel({ status, result, onStart }: RecorderPanelProps) {
+export function RecorderPanel({
+  status,
+  result,
+  onStart,
+  onSignOut,
+}: RecorderPanelProps) {
   const isBusy = status.kind === "preparing" || status.kind === "recording";
 
   return (
@@ -89,6 +95,12 @@ export function RecorderPanel({ status, result, onStart }: RecorderPanelProps) {
       </button>
 
       <StatusLine status={status} result={result} />
+
+      <footer className="cf-footer">
+        <button type="button" className="cf-signout" onClick={onSignOut}>
+          Sign out
+        </button>
+      </footer>
     </div>
   );
 }

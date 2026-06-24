@@ -1,3 +1,4 @@
+import { WEB_BASE } from "../config";
 import type {
   FinalizeRequest,
   FinalizeResponse,
@@ -8,9 +9,6 @@ import type {
   UploadTransport,
 } from "./types";
 
-// The share API lives on the web app. Override the origin for staging via the
-// WXT_WEB_BASE build env (see `.env.example`); defaults to production.
-const WEB_BASE = import.meta.env.WXT_WEB_BASE ?? "https://captureflow.xyz";
 export const SHARE_API_BASE = `${WEB_BASE}/api/r`;
 
 export class ShareApiHttpError extends Error {

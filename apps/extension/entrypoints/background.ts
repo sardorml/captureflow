@@ -1,5 +1,6 @@
 import { onMessage, sendMessage } from "@/lib/messaging";
 import { saveSpikeResult, setSpikeStatus } from "@/lib/storage";
+import { signIn, signOut } from "@/lib/auth/pairing";
 
 const OFFSCREEN_URL = "offscreen.html";
 
@@ -29,6 +30,20 @@ async function reportFailure(message: string): Promise<void> {
 
 export default defineBackground(() => {
   console.log("[CaptureFlow] background service worker started");
+
+  onMessage("startSignIn", async () => {
+    try {
+      await signIn();
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  });
+
+  onMessage("signOut", () => signOut());
 
   onMessage("startSpike", async () => {
     console.log("[CaptureFlow] startSpike received");
