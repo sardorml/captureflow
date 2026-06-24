@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { sendMessage } from "@/lib/messaging";
 import {
+  getCameraBlocked,
   getCapturePrefs,
   setCapturePrefs,
+  watchCameraBlocked,
+  watchCapturePrefs,
   type CapturePrefs,
 } from "@/lib/storage";
 
@@ -11,14 +14,21 @@ export function DevicePickers() {
     camera: false,
     mic: false,
   });
+  const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
     void getCapturePrefs().then(setPrefs);
+    void getCameraBlocked().then(setBlocked);
+    const unwatchPrefs = watchCapturePrefs(setPrefs);
+    const unwatchBlocked = watchCameraBlocked(setBlocked);
+    return () => {
+      unwatchPrefs();
+      unwatchBlocked();
+    };
   }, []);
 
-  // Mic rides with the camera stream (Decision 4), so it's only meaningful with
-  // a camera; turning the camera off clears it. The bubble both previews the
-  // camera and acquires the grant, so reflect the new state on the active tab.
+  // Mic rides the camera stream (Decision 4), so camera-off clears it. The bubble
+  // both previews and seeds the grant, so reflect the new state on the active tab.
   const update = async (partial: Partial<CapturePrefs>) => {
     const next = { ...prefs, ...partial };
     if (!next.camera) next.mic = false;
@@ -26,6 +36,35 @@ export function DevicePickers() {
     await setCapturePrefs(next);
     void sendMessage("setCameraBubble", { on: next.camera, mic: next.mic });
   };
+
+  if (blocked) {
+    return (
+      <section className="cf-section cf-pickers">
+        <div className="cf-picker">
+          <span className="cf-picker-icon" aria-hidden>
+            ◎
+          </span>
+          <select className="cf-select" value="none" disabled>
+            <option value="none">No camera</option>
+          </select>
+        </div>
+        <div className="cf-notice">
+          <p className="cf-notice-title">Camera blocked</p>
+          <p className="cf-hint">
+            Allow the camera for this extension in your browser&rsquo;s camera
+            settings, then try again.
+          </p>
+          <button
+            type="button"
+            className="cf-try"
+            onClick={() => void update({ camera: true })}
+          >
+            Try again
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="cf-section cf-pickers">

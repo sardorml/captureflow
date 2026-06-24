@@ -146,6 +146,39 @@ body {
   color: var(--cf-muted);
 }
 
+.cf-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--cf-surface);
+  border: 1px solid var(--cf-line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.cf-notice-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cf-fg);
+}
+
+.cf-try {
+  border: 0;
+  border-radius: 6px;
+  background: var(--cf-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.cf-try:hover {
+  background: var(--cf-accent-hover);
+}
+
 .cf-start {
   border: 0;
   border-radius: 10px;

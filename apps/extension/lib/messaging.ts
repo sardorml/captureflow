@@ -11,15 +11,14 @@ export type CaptureContext = {
 };
 
 /*
- * Typed cross-context messages. Direction by message: popup→SW for sign-in
- * (openSignIn opens the web login tab) and recording control; SW→offscreen for
- * capture control (beginCapture/stopCapture); offscreen→SW for
- * recordingStatus/recordingResult.
+ * Direction by message: popup→SW for sign-in and recording control;
+ * SW→offscreen for capture control; offscreen→SW for status/result.
  */
 type ProtocolMap = {
   openSignIn(): void;
   signOut(): void;
   setCameraBubble(input: { on: boolean; mic: boolean }): void;
+  cameraStatus(input: { blocked: boolean }): void;
   startRecording(): StartResult;
   stopRecording(): void;
   beginCapture(ctx: CaptureContext): void;

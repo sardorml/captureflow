@@ -38,6 +38,10 @@ const capturePrefsItem = storage.defineItem<CapturePrefs>(
   { fallback: { camera: false, mic: false } },
 );
 
+const cameraBlockedItem = storage.defineItem<boolean>("local:cameraBlocked", {
+  fallback: false,
+});
+
 export const getRecordingStatus = (): Promise<RecordingStatus> =>
   recordingStatusItem.getValue();
 export const setRecordingStatus = (status: RecordingStatus): Promise<void> =>
@@ -62,3 +66,11 @@ export const setCapturePrefs = (prefs: CapturePrefs): Promise<void> =>
 export const watchCapturePrefs = (
   cb: (prefs: CapturePrefs) => void,
 ): (() => void) => capturePrefsItem.watch(cb);
+
+export const getCameraBlocked = (): Promise<boolean> =>
+  cameraBlockedItem.getValue();
+export const setCameraBlocked = (blocked: boolean): Promise<void> =>
+  cameraBlockedItem.setValue(blocked);
+export const watchCameraBlocked = (
+  cb: (blocked: boolean) => void,
+): (() => void) => cameraBlockedItem.watch(cb);
