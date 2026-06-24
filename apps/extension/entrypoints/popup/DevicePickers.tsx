@@ -18,14 +18,19 @@ async function isGranted(name: "camera" | "microphone"): Promise<boolean> {
   }
 }
 
-// getUserMedia only prompts from a tab, so open the grant page when enabling a
-// device that isn't already allowed.
-function openGrantTab(camera: boolean, mic: boolean): void {
+// getUserMedia only prompts from a visible page (never the popup or offscreen
+// doc), so open a small focused window to request access when enabling a device
+// that isn't already allowed.
+function openGrantWindow(camera: boolean, mic: boolean): void {
   const params = new URLSearchParams();
   if (camera) params.set("video", "1");
   if (mic) params.set("audio", "1");
-  void chrome.tabs.create({
+  void chrome.windows.create({
     url: `${chrome.runtime.getURL("permissions.html")}?${params.toString()}`,
+    type: "popup",
+    focused: true,
+    width: 460,
+    height: 300,
   });
 }
 
@@ -49,7 +54,7 @@ export function DevicePickers() {
 
     const needCamera = next.camera && !(await isGranted("camera"));
     const needMic = next.mic && !(await isGranted("microphone"));
-    if (needCamera || needMic) openGrantTab(next.camera, next.mic);
+    if (needCamera || needMic) openGrantWindow(next.camera, next.mic);
   };
 
   return (
