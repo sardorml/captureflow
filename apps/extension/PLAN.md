@@ -329,9 +329,14 @@ Quota attribution already targets the workspace owner; `isDevDevice` already exe
   `device-id.test.ts` pins persistence, `return-target.test.ts` pins the callback allow-list.
   **Remaining: manual end-to-end check** (load unpacked → sign in → record → open the link) —
   the auth window + native picker can't be automated.
-- **Phase 2 — Camera + mic (dual stream).** Webcam recorder + pickers ("No Camera"/"No
-  microphone"), `hasWebcam` init, parallel `webcam-part → webcam-finalize`, poster frame, live cam
-  preview. Ship gate: dual-track share plays with webcam overlay; `webcamState === ready`.
+- **Phase 2 — Camera + mic (dual stream) (BUILT except live preview).** Dual-stream upload client
+  (screen required + best-effort webcam), offscreen webcam recorder (camera + mic, WebM), `hasWebcam`
+  init, `webcam-part → webcam-finalize`, poster frame, camera/mic pickers + a permissions.html grant
+  page (getUserMedia only prompts from a tab). Mic rides the webcam stream (Decision 4), so it's
+  coupled to the camera. **Remaining:** the live cam-bubble preview (a content-script `<video>`) is
+  deferred to land with Phase 3's content-script work; **screen + mic without a camera** isn't
+  recorded yet (route mic to the screen track later). Ship gate (dual-track share, `webcamState ===
+ready`) is met pending the same manual end-to-end check as Phase 1.
 - **Phase 3 — Control-bar UX & effects.** Shadow-DOM control bar (timer/stop/pause/restart/delete/
   cam toggle), re-injection on navigation restoring state from storage, tab-audio loopback via
   `AudioContext`, blur/effects, optional one-click `tabCapture` mode. Ship gate: recording survives
