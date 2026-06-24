@@ -3,9 +3,11 @@ export type ScreenMimeType = {
   contentType: "video/mp4" | "video/webm";
 };
 
-// Preference order: H.264/MP4 (the share backend's happy-path container) when an
-// OS encoder is present, otherwise VP9/VP8 WebM. The empty-mimeType fallback
-// lets the browser choose and is treated as WebM output server-side.
+/*
+ * Preference order: H.264/MP4 (the share backend's happy-path container) when an
+ * OS encoder is present, otherwise VP9/VP8 WebM. The empty-mimeType fallback lets
+ * the browser choose and is treated as WebM output server-side.
+ */
 const SCREEN_CANDIDATES: ReadonlyArray<ScreenMimeType> = [
   {
     mimeType: "video/mp4;codecs=avc1.42E01E,mp4a.40.2",

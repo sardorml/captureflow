@@ -6,10 +6,11 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   manifest: ({ browser, command }) => {
     const isFirefox = browser === "firefox";
-    // The web sign-in page posts the device token back via
-    // chrome.runtime.sendMessage; only these origins may. localhost is dev-only
-    // (`command === "serve"`) — shipping http://localhost/* in a published build
-    // would let any localhost page reach the external-message surface.
+    /*
+     * Origins allowed to post the device token back via runtime.sendMessage.
+     * localhost is dev-only: shipping http://localhost/* in a published build
+     * would let any localhost page reach the external-message surface.
+     */
     const matches =
       command === "serve"
         ? ["https://captureflow.xyz/*", "http://localhost/*"]
@@ -17,10 +18,11 @@ export default defineConfig({
     return {
       name: "CaptureFlow",
       description: "Record your screen and share an instant link.",
-      // `offscreen` (where getDisplayMedia runs — no extra permission for the
-      // capture itself) is Chromium-only, so gate it for Firefox. `scripting` +
-      // `activeTab` inject the camera/mic permission iframe into the current tab
-      // on demand (activeTab keeps it warning-free — no broad host access).
+      /*
+       * `offscreen` (where getDisplayMedia runs) is Chromium-only, so gate it
+       * for Firefox. `scripting` + `activeTab` inject the camera/mic permission
+       * iframe on demand; activeTab keeps it warning-free (no broad host access).
+       */
       permissions: isFirefox
         ? ["storage"]
         : ["storage", "offscreen", "scripting", "activeTab"],

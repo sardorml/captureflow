@@ -1,10 +1,10 @@
 export const BUBBLE_FRAME_ID = "captureflow-camera-bubble";
 
-// Serialized by chrome.scripting and run in the page: mounts (or re-points) a
-// circular, extension-origin iframe in the bottom-left that previews the camera.
-// Running at the extension origin also grabs the camera/mic grant the offscreen
-// recorder reuses. Every value arrives as an argument — the serialized body
-// can't close over module scope.
+/*
+ * Injected via chrome.scripting (serialized): mounts/re-points a circular
+ * extension-origin iframe previewing the camera. Args only — the serialized body
+ * can't close over module scope.
+ */
 export function mountCameraBubble(frameUrl: string, frameId: string): void {
   const existing = document.getElementById(frameId);
   if (existing instanceof HTMLIFrameElement) {

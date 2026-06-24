@@ -22,9 +22,8 @@ export class ShareApiHttpError extends Error {
   }
 }
 
-// Device header identifies the uploader; the bearer token authorizes it. The
-// part route authorizes by device + slug ownership, so byte uploads omit the
-// token (matching the desktop client).
+// Part routes authorize by device + slug ownership, so byte uploads omit the
+// bearer token (matching the desktop client).
 export function shareHeaders(
   deviceId: string,
   token: string | null,
@@ -73,19 +72,22 @@ export async function postJson<T>(
   return parseResponse<T>(res, path);
 }
 
-// Copy into a fresh ArrayBuffer: a Uint8Array view is typed over ArrayBufferLike
-// (which fetch's BodyInit rejects), and this also detaches the slice from the
-// streamer's reused buffers.
+/*
+ * Copy into a fresh ArrayBuffer: a Uint8Array view is typed over
+ * ArrayBufferLike (which fetch's BodyInit rejects), and this detaches the slice
+ * from the streamer's reused buffers.
+ */
 function toBody(bytes: Uint8Array): ArrayBuffer {
   const buf = new ArrayBuffer(bytes.byteLength);
   new Uint8Array(buf).set(bytes);
   return buf;
 }
 
-// content-length is set automatically by the browser (a forbidden header for
-// fetch), so it's omitted here unlike the desktop's Node client. `contentType`
-// matters: octet-stream for media parts, image/jpeg for the poster (the route
-// gates on it).
+/*
+ * No content-length: it's a forbidden fetch header (the browser sets it),
+ * unlike the desktop's Node client. `contentType` is gated by the route:
+ * octet-stream for media parts, image/jpeg for the poster.
+ */
 async function postBytes<T>(
   path: string,
   deviceId: string,
@@ -106,7 +108,6 @@ async function postBytes<T>(
 const partPath = (route: string, slug: string, partNumber: number): string =>
   `/${route}?slug=${encodeURIComponent(slug)}&part=${partNumber}`;
 
-// HTTP-backed transport for the upload streamer.
 export function createShareTransport(
   deviceId: string,
   token: string | null,

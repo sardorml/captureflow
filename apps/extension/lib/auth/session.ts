@@ -1,6 +1,7 @@
-// The device token minted by /auth/callback, exchanged for upload auth. Stored
-// in extension-local storage; the bearer token never leaves the extension
-// except as an Authorization header to the share API.
+/*
+ * The bearer token never leaves the extension except as an Authorization header
+ * to the share API.
+ */
 
 export type AuthSession = {
   token: string;

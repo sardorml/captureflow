@@ -1,8 +1,5 @@
-// Camera/mic getUserMedia only prompts from a visible page — not the popup or
-// the offscreen document. The normal path is the in-page camera bubble; this
-// standalone tab is the fallback for restricted pages (chrome://, the web store,
-// the new tab) where the bubble can't be injected, and it still acquires the
-// grant the offscreen recorder reuses.
+// Grant-tab fallback for restricted pages where the bubble can't inject; seeds
+// the camera/mic grant the offscreen recorder reuses.
 
 function setMessage(title: string, status: string): void {
   const titleEl = document.getElementById("title");

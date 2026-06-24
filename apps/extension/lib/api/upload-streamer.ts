@@ -22,9 +22,8 @@ type PartStream = {
   abort(): void;
 };
 
-// One multipart stream: buffers pushes and drains fixed CHUNK_BYTES parts in the
-// background (a single request in flight, smaller trailing part). Fail-fast — a
-// failed part rejects drain(); no per-part retry.
+// One multipart stream, one request in flight. Fail-fast: a failed part rejects
+// drain().
 function createPartStream(
   uploadPart: PartUploader,
   chunkBytes: number,
@@ -36,8 +35,7 @@ function createPartStream(
   let totalBytes = 0;
   let inFlight: Promise<void> | null = null;
   let aborted = false;
-  // Set once drain() starts claiming part numbers, so a late push can't race
-  // the pump for the same number.
+  // Guards part-number claiming: once draining, a late push can't race the pump.
   let draining = false;
   let failure: unknown = null;
 
@@ -143,10 +141,8 @@ export type ShareUpload = {
 };
 
 /*
- * Open a (dual) multipart share upload. The screen stream is required; a webcam
- * stream is created only when /init reserved one (hasWebcam). pushScreen /
- * pushWebcam buffer recorder chunks; finish flushes both and finalizes. The
- * caller owns the lifecycle.
+ * Open a (dual) multipart share upload. The webcam stream is created only when
+ * /init reserved one. The caller owns the lifecycle.
  */
 export async function startShareUpload(
   init: InitRequest,

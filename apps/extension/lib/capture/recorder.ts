@@ -121,9 +121,8 @@ export async function recordAndUpload(
   };
 
   for (const pipe of pipes) pipe.recorder.onstop = onRecorderStop;
-  // A screen-recorder error ends the whole recording; a webcam error is contained
-  // to its own stream (it just stops itself and flushes) so the load-bearing
-  // screen capture keeps going — the webcam is best-effort.
+  // A screen error ends the whole recording; a webcam error is contained to its
+  // own stream so the load-bearing screen capture keeps going (webcam best-effort).
   screenPipe.recorder.onerror = () => stopActiveRecording();
   if (webcamPipe) {
     webcamPipe.recorder.onerror = () => {
@@ -150,9 +149,10 @@ export async function recordAndUpload(
 
 type RecorderPipe = { recorder: MediaRecorder; settled: () => Promise<void> };
 
-// Wire a MediaRecorder's chunks into `push`, chaining the async blob reads so
-// parts keep recording order. `settled()` resolves once all queued pushes have
-// run (call it after the recorder has stopped).
+/*
+ * Chains the async blob reads so parts keep recording order. `settled()`
+ * resolves once all queued pushes have run; call it after the recorder stops.
+ */
 function pipeRecorder(
   stream: MediaStream,
   mimeType: string,

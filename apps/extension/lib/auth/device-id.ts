@@ -1,6 +1,7 @@
-// A per-install device identifier sent as `x-captureflow-device` on every share
-// request. The API requires 8–64 chars; a prefixed UUID (40 chars) fits and is
-// collision-free. Owned by the service worker, so reads can't race.
+/*
+ * Sent as `x-captureflow-device` on every share request. The API requires 8–64
+ * chars; a prefixed UUID (40 chars) fits. Owned by the SW, so reads can't race.
+ */
 
 const deviceIdItem = storage.defineItem<string | null>("local:deviceId", {
   fallback: null,

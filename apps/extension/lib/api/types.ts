@@ -1,7 +1,8 @@
-// Wire types for the share upload protocol (`/api/r/*`), forked from the web
-// app's `lib/share/types.ts`. The extension depends on zero `@captureflow/*`
-// packages (desktop precedent), so these are a deliberate copy and must stay
-// wire-compatible with the server — change both sides together.
+/*
+ * Wire types for the share upload protocol (`/api/r/*`), a deliberate copy of
+ * the web app's `lib/share/types.ts` (extension depends on zero
+ * `@captureflow/*` packages). Must stay wire-compatible — change both sides.
+ */
 
 export type ShareSource = "instant" | "edited";
 export type SharePreset = "share";
@@ -48,9 +49,8 @@ export type ShareApiError = {
   code?: string;
 };
 
-// The streamer's I/O contract. `lib/api/client.ts` provides the HTTP-backed
-// implementation; tests inject an in-memory fake. finalizeWebcam returns void —
-// the webcam is best-effort, so its `{ ok }` body is unused.
+// finalizeWebcam returns void: the webcam is best-effort, so its `{ ok }` body
+// is unused.
 export type UploadTransport = {
   init(req: InitRequest): Promise<InitResponse>;
   uploadScreenPart(

@@ -7,9 +7,11 @@ export const EXTERNAL_AUTH_KIND = "captureflow-auth";
 
 const AUTH_CALLBACK_PATH = "/auth/callback";
 
-// Defense-in-depth over externally_connectable: only the web app's own callback
-// page may hand us a token — not some other in-scope page or a different
-// localhost port. externally_connectable can't express a path, so check here.
+/*
+ * Defense-in-depth over externally_connectable: only the web app's own callback
+ * page may hand us a token, not some other in-scope page or localhost port.
+ * externally_connectable can't express a path, so check it here.
+ */
 export function isTrustedAuthSender(senderUrl: string | undefined): boolean {
   if (!senderUrl) return false;
   let url: URL;

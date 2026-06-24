@@ -1,8 +1,7 @@
 import { sendMessage } from "@/lib/messaging";
 
-// Fallback view: when signed out the action has no popup, so clicking the icon
-// opens the web sign-in tab directly. This only renders in the brief window
-// before the service worker clears the popup; the button opens that same tab.
+// Only renders in the brief window before the service worker clears the popup
+// for the signed-out action; the button opens the web sign-in tab.
 export function SignInGate() {
   const onSignIn = () => {
     void sendMessage("openSignIn", undefined);
