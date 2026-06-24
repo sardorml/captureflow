@@ -12,6 +12,8 @@
   "scripts": {
     "build": "nx run-many -t build",
     "dev": "nx run-many -t dev",
+    "extension": "pnpm --filter @captureflow/extension dev",
+    "extension:build": "pnpm --filter @captureflow/extension build",
     "lint": "nx run-many -t lint",
     "typecheck": "nx run-many -t typecheck",
     "graph": "nx graph",

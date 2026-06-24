@@ -1,0 +1,179 @@
+:root {
+  --cf-bg: #16181d;
+  --cf-surface: #1f2229;
+  --cf-line: #2c3038;
+  --cf-fg: #e8eaed;
+  --cf-muted: #9aa0aa;
+  --cf-accent: #2f6df6;
+  --cf-accent-hover: #4079f7;
+  --cf-ok: #36c08a;
+  --cf-error: #f06b6b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 320px;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  background: var(--cf-bg);
+  color: var(--cf-fg);
+}
+
+.cf-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+
+.cf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cf-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.cf-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: var(--cf-accent);
+}
+
+.cf-mode {
+  display: inline-flex;
+  background: var(--cf-surface);
+  border: 1px solid var(--cf-line);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.cf-mode-btn {
+  border: 0;
+  background: transparent;
+  color: var(--cf-muted);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cf-mode-btn.is-active {
+  background: var(--cf-accent);
+  color: #fff;
+}
+
+.cf-mode-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.cf-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cf-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cf-muted);
+}
+
+.cf-source {
+  margin: 0;
+  font-size: 13px;
+  color: var(--cf-fg);
+  background: var(--cf-surface);
+  border: 1px solid var(--cf-line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.cf-pickers {
+  gap: 8px;
+}
+
+.cf-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cf-surface);
+  border: 1px solid var(--cf-line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.cf-picker-icon {
+  color: var(--cf-muted);
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+}
+
+.cf-select {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  color: var(--cf-fg);
+  font-size: 13px;
+}
+
+.cf-select:disabled {
+  color: var(--cf-muted);
+}
+
+.cf-start {
+  border: 0;
+  border-radius: 10px;
+  background: var(--cf-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cf-start:hover:not(:disabled) {
+  background: var(--cf-accent-hover);
+}
+
+.cf-start:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.cf-status {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.cf-status--muted {
+  color: var(--cf-muted);
+}
+
+.cf-status--ok {
+  color: var(--cf-ok);
+}
+
+.cf-status--error {
+  color: var(--cf-error);
+}
