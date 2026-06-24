@@ -30,3 +30,18 @@ export function pickScreenMimeType(
   const match = candidates.find((candidate) => isSupported(candidate.mimeType));
   return match ?? { mimeType: "", contentType: "video/webm" };
 }
+
+// The webcam companion is always WebM (the server forces video/webm for it), so
+// only VP9/VP8 candidates. Empty means "browser default", still WebM output.
+const WEBCAM_CANDIDATES: ReadonlyArray<string> = [
+  "video/webm;codecs=vp9,opus",
+  "video/webm;codecs=vp8,opus",
+  "video/webm",
+];
+
+export function pickWebcamMimeType(
+  isSupported: (type: string) => boolean = defaultIsSupported,
+  candidates: ReadonlyArray<string> = WEBCAM_CANDIDATES,
+): string {
+  return candidates.find((type) => isSupported(type)) ?? "";
+}

@@ -1,5 +1,9 @@
 import { onMessage, sendMessage, type StartResult } from "@/lib/messaging";
-import { saveRecordingResult, setRecordingStatus } from "@/lib/storage";
+import {
+  getCapturePrefs,
+  saveRecordingResult,
+  setRecordingStatus,
+} from "@/lib/storage";
 import {
   isTrustedAuthSender,
   openSignInTab,
@@ -83,6 +87,7 @@ export default defineBackground(() => {
       const session = await getAuthSession();
       if (!session) return { ok: false, error: "Sign in to record." };
       const deviceId = await getDeviceId();
+      const prefs = await getCapturePrefs();
       await setRecordingStatus({ kind: "preparing" });
       await ensureOffscreenDocument();
       // Fire-and-forget: the offscreen doc shows the picker and reports back via
@@ -91,6 +96,8 @@ export default defineBackground(() => {
       void sendMessage("beginCapture", {
         deviceId,
         token: session.token,
+        camera: prefs.camera,
+        mic: prefs.mic,
       }).catch((error) => void reportFailure(errorMessage(error)));
       return { ok: true };
     } catch (error) {

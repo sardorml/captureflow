@@ -1,3 +1,8 @@
+export type CapturePrefs = {
+  camera: boolean;
+  mic: boolean;
+};
+
 export type RecordingStatusKind =
   | "idle"
   | "preparing"
@@ -28,6 +33,11 @@ const recordingResultItem = storage.defineItem<RecordingResult | null>(
   { fallback: null },
 );
 
+const capturePrefsItem = storage.defineItem<CapturePrefs>(
+  "local:capturePrefs",
+  { fallback: { camera: false, mic: false } },
+);
+
 export const getRecordingStatus = (): Promise<RecordingStatus> =>
   recordingStatusItem.getValue();
 export const setRecordingStatus = (status: RecordingStatus): Promise<void> =>
@@ -44,3 +54,11 @@ export const saveRecordingResult = (
 export const watchRecordingResult = (
   cb: (result: RecordingResult | null) => void,
 ): (() => void) => recordingResultItem.watch(cb);
+
+export const getCapturePrefs = (): Promise<CapturePrefs> =>
+  capturePrefsItem.getValue();
+export const setCapturePrefs = (prefs: CapturePrefs): Promise<void> =>
+  capturePrefsItem.setValue(prefs);
+export const watchCapturePrefs = (
+  cb: (prefs: CapturePrefs) => void,
+): (() => void) => capturePrefsItem.watch(cb);

@@ -3,7 +3,12 @@ import type { RecordingResultPayload, RecordingStatus } from "./storage";
 
 export type StartResult = { ok: true } | { ok: false; error: string };
 
-export type CaptureContext = { deviceId: string; token: string };
+export type CaptureContext = {
+  deviceId: string;
+  token: string;
+  camera: boolean;
+  mic: boolean;
+};
 
 /*
  * Typed cross-context messages. Direction by message: popup→SW for sign-in

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { pickScreenMimeType } from "../lib/capture/pick-mime-type";
+import {
+  pickScreenMimeType,
+  pickWebcamMimeType,
+} from "../lib/capture/pick-mime-type";
 
 describe("pickScreenMimeType", () => {
   it("prefers MP4/H.264 when the platform supports it", () => {
@@ -23,5 +26,19 @@ describe("pickScreenMimeType", () => {
     const result = pickScreenMimeType(() => false);
     expect(result.mimeType).toBe("");
     expect(result.contentType).toBe("video/webm");
+  });
+});
+
+describe("pickWebcamMimeType", () => {
+  it("prefers VP9/Opus WebM", () => {
+    expect(pickWebcamMimeType(() => true)).toBe("video/webm;codecs=vp9,opus");
+  });
+
+  it("falls back to VP8 when VP9 is unavailable", () => {
+    expect(pickWebcamMimeType((type) => type.includes("vp8"))).toContain("vp8");
+  });
+
+  it("returns an empty mimeType (browser default) when nothing is supported", () => {
+    expect(pickWebcamMimeType(() => false)).toBe("");
   });
 });
