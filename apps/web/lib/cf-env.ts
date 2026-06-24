@@ -26,8 +26,6 @@ export type AppWebBindings = {
   RESEND_API_KEY?: string;
   // Must use a domain verified in Resend, e.g. "CaptureFlow <hello@captureflow.xyz>".
   RESEND_FROM_ADDRESS?: string;
-  // Published browser-extension id. When set, /auth/callback hands the device
-  // token only to this extension; unset (dev) accepts any valid-format id.
   CAPTUREFLOW_EXTENSION_ID?: string;
 };
 
