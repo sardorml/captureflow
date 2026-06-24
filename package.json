@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "nx run-many -t build",
-    "dev": "nx run-many -t dev",
+    "dev": "nx run-many -t dev --parallel=5",
     "extension": "pnpm --filter @captureflow/extension dev",
     "extension:build": "pnpm --filter @captureflow/extension build",
     "lint": "nx run-many -t lint",
