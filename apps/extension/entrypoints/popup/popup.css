@@ -160,6 +160,58 @@ body {
   opacity: 0.7;
 }
 
+.cf-stop {
+  background: var(--cf-error);
+}
+
+.cf-stop:hover:not(:disabled) {
+  background: #f37e7e;
+}
+
+.cf-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cf-linkrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cf-surface);
+  border: 1px solid var(--cf-line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.cf-link {
+  flex: 1;
+  color: var(--cf-accent);
+  font-size: 12px;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cf-link:hover {
+  text-decoration: underline;
+}
+
+.cf-copy {
+  border: 1px solid var(--cf-line);
+  background: transparent;
+  color: var(--cf-fg);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cf-copy:hover {
+  border-color: var(--cf-accent);
+}
+
 .cf-status {
   margin: 0;
   font-size: 12px;

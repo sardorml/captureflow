@@ -1,47 +1,51 @@
-export type SpikeStatusKind =
+export type RecordingStatusKind =
   | "idle"
   | "preparing"
   | "recording"
+  | "uploading"
   | "done"
   | "cancelled"
   | "error";
 
-export type SpikeStatus = {
-  kind: SpikeStatusKind;
+export type RecordingStatus = {
+  kind: RecordingStatusKind;
   detail?: string;
 };
 
-export type SpikeResultPayload = {
+export type RecordingResultPayload = {
   ok: boolean;
-  mimeType: string;
-  bytes: number;
-  durationMs: number;
+  // The viewer link, present on success.
+  url?: string;
+  bytes?: number;
+  durationMs?: number;
   error?: string;
 };
 
-export type SpikeResult = SpikeResultPayload & { at: number };
+export type RecordingResult = RecordingResultPayload & { at: number };
 
-const spikeStatusItem = storage.defineItem<SpikeStatus>("session:spikeStatus", {
-  fallback: { kind: "idle" },
-});
+const recordingStatusItem = storage.defineItem<RecordingStatus>(
+  "session:recordingStatus",
+  { fallback: { kind: "idle" } },
+);
 
-const spikeResultItem = storage.defineItem<SpikeResult | null>(
-  "local:spikeResult",
+const recordingResultItem = storage.defineItem<RecordingResult | null>(
+  "local:recordingResult",
   { fallback: null },
 );
 
-export const getSpikeStatus = (): Promise<SpikeStatus> =>
-  spikeStatusItem.getValue();
-export const setSpikeStatus = (status: SpikeStatus): Promise<void> =>
-  spikeStatusItem.setValue(status);
-export const watchSpikeStatus = (
-  cb: (status: SpikeStatus) => void,
-): (() => void) => spikeStatusItem.watch(cb);
+export const getRecordingStatus = (): Promise<RecordingStatus> =>
+  recordingStatusItem.getValue();
+export const setRecordingStatus = (status: RecordingStatus): Promise<void> =>
+  recordingStatusItem.setValue(status);
+export const watchRecordingStatus = (
+  cb: (status: RecordingStatus) => void,
+): (() => void) => recordingStatusItem.watch(cb);
 
-export const getSpikeResult = (): Promise<SpikeResult | null> =>
-  spikeResultItem.getValue();
-export const saveSpikeResult = (result: SpikeResultPayload): Promise<void> =>
-  spikeResultItem.setValue({ ...result, at: Date.now() });
-export const watchSpikeResult = (
-  cb: (result: SpikeResult | null) => void,
-): (() => void) => spikeResultItem.watch(cb);
+export const getRecordingResult = (): Promise<RecordingResult | null> =>
+  recordingResultItem.getValue();
+export const saveRecordingResult = (
+  result: RecordingResultPayload,
+): Promise<void> => recordingResultItem.setValue({ ...result, at: Date.now() });
+export const watchRecordingResult = (
+  cb: (result: RecordingResult | null) => void,
+): (() => void) => recordingResultItem.watch(cb);

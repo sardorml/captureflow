@@ -1,6 +1,8 @@
-import { onMessage, sendMessage } from "@/lib/messaging";
-import { saveSpikeResult, setSpikeStatus } from "@/lib/storage";
+import { onMessage, sendMessage, type StartResult } from "@/lib/messaging";
+import { saveRecordingResult, setRecordingStatus } from "@/lib/storage";
 import { signIn, signOut } from "@/lib/auth/pairing";
+import { getAuthSession } from "@/lib/auth/session";
+import { getDeviceId } from "@/lib/auth/device-id";
 
 const OFFSCREEN_URL = "offscreen.html";
 
@@ -17,59 +19,57 @@ async function ensureOffscreenDocument(): Promise<void> {
   });
 }
 
-async function reportFailure(message: string): Promise<void> {
-  console.error("[CaptureFlow] startSpike failed:", message);
-  await saveSpikeResult({
-    ok: false,
-    mimeType: "",
-    bytes: 0,
-    durationMs: 0,
-    error: message,
-  });
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 export default defineBackground(() => {
-  console.log("[CaptureFlow] background service worker started");
-
   onMessage("startSignIn", async () => {
     try {
       await signIn();
       return { ok: true };
     } catch (error) {
-      return {
-        ok: false,
-        error: error instanceof Error ? error.message : String(error),
-      };
+      return { ok: false, error: errorMessage(error) };
     }
   });
 
   onMessage("signOut", () => signOut());
 
-  onMessage("startSpike", async () => {
-    console.log("[CaptureFlow] startSpike received");
+  onMessage("startRecording", async (): Promise<StartResult> => {
     try {
-      await setSpikeStatus({ kind: "preparing" });
+      const session = await getAuthSession();
+      if (!session) return { ok: false, error: "Sign in to record." };
+      const deviceId = await getDeviceId();
+      await setRecordingStatus({ kind: "preparing" });
       await ensureOffscreenDocument();
-      // The offscreen doc calls getDisplayMedia, which shows Chrome's native
-      // Screen/Window/Tab picker. chrome.desktopCapture is avoided: from a
-      // service worker it requires a targetTab whose stream the offscreen
-      // document cannot consume.
-      console.log("[CaptureFlow] offscreen ready; requesting display media");
-      await sendMessage("beginCapture", undefined);
+      // Fire-and-forget: the offscreen doc shows the picker and reports back via
+      // recordingStatus/recordingResult; the popup closes when the picker takes
+      // focus, so its return value is moot in practice.
+      void sendMessage("beginCapture", {
+        deviceId,
+        token: session.token,
+      }).catch((error) => void reportFailure(errorMessage(error)));
+      return { ok: true };
     } catch (error) {
-      await reportFailure(
-        error instanceof Error ? error.message : String(error),
-      );
+      const message = errorMessage(error);
+      await reportFailure(message);
+      return { ok: false, error: message };
     }
   });
 
-  onMessage("spikeStatus", ({ data }) => setSpikeStatus(data));
+  onMessage("stopRecording", () => sendMessage("stopCapture", undefined));
 
-  onMessage("spikeResult", async ({ data }) => {
-    await saveSpikeResult(data);
-    await setSpikeStatus({
-      kind: data.ok ? "done" : "error",
-      detail: data.error,
-    });
+  onMessage("recordingStatus", ({ data }) => setRecordingStatus(data));
+
+  onMessage("recordingResult", async ({ data }) => {
+    await saveRecordingResult(data);
+    await setRecordingStatus(
+      data.ok ? { kind: "done" } : { kind: "error", detail: data.error },
+    );
   });
 });
+
+async function reportFailure(message: string): Promise<void> {
+  await saveRecordingResult({ ok: false, error: message });
+  await setRecordingStatus({ kind: "error", detail: message });
+}

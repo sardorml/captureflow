@@ -6,12 +6,12 @@ import {
   type AuthSession,
 } from "@/lib/auth/session";
 import {
-  getSpikeResult,
-  getSpikeStatus,
-  watchSpikeResult,
-  watchSpikeStatus,
-  type SpikeResult,
-  type SpikeStatus,
+  getRecordingResult,
+  getRecordingStatus,
+  watchRecordingResult,
+  watchRecordingStatus,
+  type RecordingResult,
+  type RecordingStatus,
 } from "@/lib/storage";
 import { RecorderPanel } from "./RecorderPanel";
 import { SignInGate } from "./SignInGate";
@@ -21,16 +21,16 @@ type AuthState = AuthSession | null | "loading";
 
 export function App() {
   const [auth, setAuth] = useState<AuthState>("loading");
-  const [status, setStatus] = useState<SpikeStatus>({ kind: "idle" });
-  const [result, setResult] = useState<SpikeResult | null>(null);
+  const [status, setStatus] = useState<RecordingStatus>({ kind: "idle" });
+  const [result, setResult] = useState<RecordingResult | null>(null);
 
   useEffect(() => {
     void getAuthSession().then(setAuth);
-    void getSpikeStatus().then(setStatus);
-    void getSpikeResult().then(setResult);
+    void getRecordingStatus().then(setStatus);
+    void getRecordingResult().then(setResult);
     const unwatchAuth = watchAuthSession(setAuth);
-    const unwatchStatus = watchSpikeStatus(setStatus);
-    const unwatchResult = watchSpikeResult(setResult);
+    const unwatchStatus = watchRecordingStatus(setStatus);
+    const unwatchResult = watchRecordingResult(setResult);
     return () => {
       unwatchAuth();
       unwatchStatus();
@@ -41,9 +41,10 @@ export function App() {
   if (auth === "loading") return null;
   if (!auth) return <SignInGate />;
 
-  // The popup closes as soon as the OS picker takes focus, so the result is
-  // read back from storage when the popup is reopened.
-  const onStart = () => sendMessage("startSpike", undefined);
+  // The popup closes as soon as the OS picker takes focus, so recording state
+  // is read back from storage when the popup is reopened.
+  const onStart = () => sendMessage("startRecording", undefined);
+  const onStop = () => sendMessage("stopRecording", undefined);
   const onSignOut = () => sendMessage("signOut", undefined);
 
   return (
@@ -51,6 +52,7 @@ export function App() {
       status={status}
       result={result}
       onStart={onStart}
+      onStop={onStop}
       onSignOut={onSignOut}
     />
   );
