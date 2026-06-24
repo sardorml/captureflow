@@ -27,6 +27,22 @@ function isInjectable(url: string | undefined): boolean {
   return url !== undefined && /^https?:\/\//.test(url);
 }
 
+// Tab currently hosting the preview bubble, so it can be torn down even after the
+// user switches tabs (and released before recording — see releaseCameraBubble).
+let bubbleTabId: number | undefined;
+
+async function removeBubble(tabId: number): Promise<void> {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: unmountCameraBubble,
+      args: [BUBBLE_FRAME_ID],
+    });
+  } catch {
+    /* tab closed or no longer injectable */
+  }
+}
+
 // The camera preview bubble lives in the page, so the active tab must be able to
 // host content. Reflect the camera on/off state there: mount the bubble (which
 // also grabs the camera/mic grant the offscreen recorder reuses) or remove it.
@@ -38,13 +54,11 @@ async function setCameraBubble(on: boolean, mic: boolean): Promise<void> {
   if (tab?.id === undefined) return;
 
   if (!on) {
-    if (isInjectable(tab.url)) {
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: unmountCameraBubble,
-        args: [BUBBLE_FRAME_ID],
-      });
+    await removeBubble(tab.id);
+    if (bubbleTabId !== undefined && bubbleTabId !== tab.id) {
+      await removeBubble(bubbleTabId);
     }
+    bubbleTabId = undefined;
     return;
   }
 
@@ -57,12 +71,23 @@ async function setCameraBubble(on: boolean, mic: boolean): Promise<void> {
       func: mountCameraBubble,
       args: [frameUrl, BUBBLE_FRAME_ID],
     });
+    bubbleTabId = tab.id;
   } else {
     params.set("video", "1");
     await chrome.tabs.create({
       url: chrome.runtime.getURL(`permissions.html?${params}`),
     });
   }
+}
+
+// One physical camera can't be opened twice at once: the bubble holds it open
+// for the preview, so release it before the offscreen recorder calls
+// getUserMedia for the same device — otherwise the recorder's open throws and
+// the webcam is silently dropped from the recording.
+async function releaseCameraBubble(): Promise<void> {
+  if (bubbleTabId === undefined) return;
+  await removeBubble(bubbleTabId);
+  bubbleTabId = undefined;
 }
 
 // One long-lived offscreen document runs getDisplayMedia + MediaRecorder;
@@ -140,6 +165,7 @@ export default defineBackground(() => {
       const deviceId = await getDeviceId();
       const prefs = await getCapturePrefs();
       await setRecordingStatus({ kind: "preparing" });
+      if (prefs.camera) await releaseCameraBubble();
       await ensureOffscreenDocument();
       // Fire-and-forget: the offscreen doc shows the picker and reports back via
       // recordingStatus/recordingResult; the popup closes when the picker takes
