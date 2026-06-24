@@ -1,6 +1,10 @@
 import { onMessage, sendMessage, type StartResult } from "@/lib/messaging";
 import { saveRecordingResult, setRecordingStatus } from "@/lib/storage";
-import { openSignInTab, parseExternalAuth } from "@/lib/auth/handoff";
+import {
+  isTrustedAuthSender,
+  openSignInTab,
+  parseExternalAuth,
+} from "@/lib/auth/handoff";
 import {
   getAuthSession,
   setAuthSession,
@@ -40,24 +44,32 @@ export default defineBackground(() => {
 
   chrome.action.onClicked.addListener(() => void openSignInTab());
 
-  // The web sign-in page posts the device token here after login.
+  // The web sign-in page posts the device token here after login. Only accept
+  // it from the callback page itself (externally_connectable can't gate by
+  // path/port), and only ever store a shape-valid token.
   chrome.runtime.onMessageExternal.addListener((message, sender, respond) => {
-    const session = parseExternalAuth(message);
+    const session = isTrustedAuthSender(sender.url)
+      ? parseExternalAuth(message)
+      : null;
     if (!session) {
       respond({ ok: false });
       return false;
     }
     void (async () => {
-      await setAuthSession(session);
-      const tabId = sender.tab?.id;
-      if (tabId !== undefined) {
-        try {
-          await chrome.tabs.remove(tabId);
-        } catch {
-          /* tab already closed */
+      try {
+        await setAuthSession(session);
+        const tabId = sender.tab?.id;
+        if (tabId !== undefined) {
+          try {
+            await chrome.tabs.remove(tabId);
+          } catch {
+            /* tab already closed */
+          }
         }
+        respond({ ok: true });
+      } catch {
+        respond({ ok: false });
       }
-      respond({ ok: true });
     })();
     return true; // respond() is called asynchronously
   });

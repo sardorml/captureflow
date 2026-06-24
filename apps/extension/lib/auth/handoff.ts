@@ -5,6 +5,25 @@ import type { AuthSession } from "./session";
 // in sync with apps/web's /auth/callback ExtensionHandoff.
 export const EXTERNAL_AUTH_KIND = "captureflow-auth";
 
+const AUTH_CALLBACK_PATH = "/auth/callback";
+
+// Defense-in-depth over externally_connectable: only the web app's own callback
+// page may hand us a token — not some other in-scope page or a different
+// localhost port. externally_connectable can't express a path, so check here.
+export function isTrustedAuthSender(senderUrl: string | undefined): boolean {
+  if (!senderUrl) return false;
+  let url: URL;
+  try {
+    url = new URL(senderUrl);
+  } catch {
+    return false;
+  }
+  return (
+    url.origin === new URL(WEB_BASE).origin &&
+    url.pathname === AUTH_CALLBACK_PATH
+  );
+}
+
 // Validate an onMessageExternal payload from the web sign-in page. Untrusted
 // input, so narrow defensively; the token must clear the API's 32-char minimum.
 export function parseExternalAuth(message: unknown): AuthSession | null {
