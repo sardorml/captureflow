@@ -1,6 +1,11 @@
-// Camera/mic getUserMedia only prompts from a full tab — not the popup or the
-// offscreen document — so this page exists solely to acquire the grant. Once
-// granted, the offscreen recorder can use getUserMedia silently.
+// Camera/mic getUserMedia only prompts from a visible page — not the popup or
+// the offscreen document — so this page exists solely to acquire the grant. It
+// runs either as a hidden iframe injected into the active tab (the normal path)
+// or as a standalone fallback tab on restricted pages. Once granted, the
+// offscreen recorder can use getUserMedia silently.
+import { PERMISSION_MESSAGE_SOURCE } from "@/lib/permissions/handshake";
+
+const inFrame = window.parent !== window;
 
 function setMessage(title: string, status: string): void {
   const titleEl = document.getElementById("title");
@@ -12,6 +17,16 @@ function setMessage(title: string, status: string): void {
 async function closeSelf(): Promise<void> {
   const tab = await chrome.tabs.getCurrent();
   if (tab?.id !== undefined) await chrome.tabs.remove(tab.id);
+}
+
+// Injected as an iframe → ask the host page's content script to remove us;
+// opened as a fallback tab → close the tab on success.
+function done(ok: boolean): void {
+  if (inFrame) {
+    window.parent.postMessage({ source: PERMISSION_MESSAGE_SOURCE, ok }, "*");
+  } else if (ok) {
+    setTimeout(() => void closeSelf(), 1200);
+  }
 }
 
 async function run(): Promise<void> {
@@ -30,12 +45,13 @@ async function run(): Promise<void> {
       "Access granted ✓",
       "CaptureFlow can now record your camera and microphone. Closing…",
     );
-    setTimeout(() => void closeSelf(), 1200);
+    done(true);
   } catch {
     setMessage(
       "Access was blocked",
       "Allow camera & microphone for this extension in your browser settings, then try again.",
     );
+    done(false);
   }
 }
 

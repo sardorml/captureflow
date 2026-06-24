@@ -15,8 +15,41 @@ import {
   watchAuthSession,
 } from "@/lib/auth/session";
 import { getDeviceId } from "@/lib/auth/device-id";
+import {
+  injectPermissionFrame,
+  PERMISSION_FRAME_ID,
+  PERMISSION_MESSAGE_SOURCE,
+} from "@/lib/permissions/handshake";
 
 const OFFSCREEN_URL = "offscreen.html";
+
+function isInjectable(url: string | undefined): boolean {
+  return url !== undefined && /^https?:\/\//.test(url);
+}
+
+// Camera/mic only prompt from a visible page (never the popup or offscreen doc).
+// Prompt inside the current tab via an injected extension iframe so the grant
+// belongs to the extension; restricted pages (chrome://, the web store, the new
+// tab) can't host content, so fall back to opening the page as a tab.
+async function requestMediaPermission(
+  camera: boolean,
+  mic: boolean,
+): Promise<void> {
+  const params = new URLSearchParams();
+  if (camera) params.set("video", "1");
+  if (mic) params.set("audio", "1");
+  const frameUrl = chrome.runtime.getURL(`permissions.html?${params}`);
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (tab?.id !== undefined && isInjectable(tab.url)) {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: injectPermissionFrame,
+      args: [frameUrl, PERMISSION_FRAME_ID, PERMISSION_MESSAGE_SOURCE],
+    });
+  } else {
+    await chrome.tabs.create({ url: frameUrl });
+  }
+}
 
 // One long-lived offscreen document runs getDisplayMedia + MediaRecorder;
 // creating a second silently kills the first, so always guard on hasDocument().
@@ -81,6 +114,10 @@ export default defineBackground(() => {
   onMessage("openSignIn", () => openSignInTab());
 
   onMessage("signOut", () => setAuthSession(null));
+
+  onMessage("requestMediaPermission", ({ data }) =>
+    requestMediaPermission(data.camera, data.mic),
+  );
 
   onMessage("startRecording", async (): Promise<StartResult> => {
     try {

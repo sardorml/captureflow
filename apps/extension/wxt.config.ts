@@ -18,10 +18,22 @@ export default defineConfig({
       name: "CaptureFlow",
       description: "Record your screen and share an instant link.",
       // `offscreen` (where getDisplayMedia runs — no extra permission for the
-      // capture itself) is Chromium-only, so gate it for Firefox.
-      permissions: isFirefox ? ["storage"] : ["storage", "offscreen"],
+      // capture itself) is Chromium-only, so gate it for Firefox. `scripting` +
+      // `activeTab` inject the camera/mic permission iframe into the current tab
+      // on demand (activeTab keeps it warning-free — no broad host access).
+      permissions: isFirefox
+        ? ["storage"]
+        : ["storage", "offscreen", "scripting", "activeTab"],
       // Firefox MV3 lacks web→extension messaging, so omit it there.
       ...(isFirefox ? {} : { externally_connectable: { matches } }),
+      // The injected iframe loads this extension page inside a web origin.
+      ...(isFirefox
+        ? {}
+        : {
+            web_accessible_resources: [
+              { resources: ["permissions.html"], matches: ["<all_urls>"] },
+            ],
+          }),
     };
   },
 });

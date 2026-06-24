@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { sendMessage } from "@/lib/messaging";
 import {
   getCapturePrefs,
   setCapturePrefs,
@@ -13,25 +14,9 @@ async function isGranted(name: "camera" | "microphone"): Promise<boolean> {
     return status.state === "granted";
   } catch {
     // The query isn't supported for this name — assume not granted and let the
-    // grant page (a no-op if already allowed) sort it out.
+    // grant flow (a no-op if already allowed) sort it out.
     return false;
   }
-}
-
-// getUserMedia only prompts from a visible page (never the popup or offscreen
-// doc), so open a small focused window to request access when enabling a device
-// that isn't already allowed.
-function openGrantWindow(camera: boolean, mic: boolean): void {
-  const params = new URLSearchParams();
-  if (camera) params.set("video", "1");
-  if (mic) params.set("audio", "1");
-  void chrome.windows.create({
-    url: `${chrome.runtime.getURL("permissions.html")}?${params.toString()}`,
-    type: "popup",
-    focused: true,
-    width: 460,
-    height: 300,
-  });
 }
 
 export function DevicePickers() {
@@ -54,7 +39,12 @@ export function DevicePickers() {
 
     const needCamera = next.camera && !(await isGranted("camera"));
     const needMic = next.mic && !(await isGranted("microphone"));
-    if (needCamera || needMic) openGrantWindow(next.camera, next.mic);
+    if (needCamera || needMic) {
+      void sendMessage("requestMediaPermission", {
+        camera: next.camera,
+        mic: next.mic,
+      });
+    }
   };
 
   return (
