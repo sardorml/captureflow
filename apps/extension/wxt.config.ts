@@ -26,12 +26,16 @@ export default defineConfig({
         : ["storage", "offscreen", "scripting", "activeTab"],
       // Firefox MV3 lacks web→extension messaging, so omit it there.
       ...(isFirefox ? {} : { externally_connectable: { matches } }),
-      // The injected iframe loads this extension page inside a web origin.
+      // The injected camera bubble (and the permission-grant fallback) load
+      // these extension pages inside a web origin.
       ...(isFirefox
         ? {}
         : {
             web_accessible_resources: [
-              { resources: ["permissions.html"], matches: ["<all_urls>"] },
+              {
+                resources: ["bubble.html", "permissions.html"],
+                matches: ["<all_urls>"],
+              },
             ],
           }),
     };

@@ -19,7 +19,7 @@ export type CaptureContext = {
 type ProtocolMap = {
   openSignIn(): void;
   signOut(): void;
-  requestMediaPermission(input: { camera: boolean; mic: boolean }): void;
+  setCameraBubble(input: { on: boolean; mic: boolean }): void;
   startRecording(): StartResult;
   stopRecording(): void;
   beginCapture(ctx: CaptureContext): void;

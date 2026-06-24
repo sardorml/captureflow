@@ -16,10 +16,10 @@ import {
 } from "@/lib/auth/session";
 import { getDeviceId } from "@/lib/auth/device-id";
 import {
-  injectPermissionFrame,
-  PERMISSION_FRAME_ID,
-  PERMISSION_MESSAGE_SOURCE,
-} from "@/lib/permissions/handshake";
+  BUBBLE_FRAME_ID,
+  mountCameraBubble,
+  unmountCameraBubble,
+} from "@/lib/overlay/camera-bubble";
 
 const OFFSCREEN_URL = "offscreen.html";
 
@@ -27,27 +27,41 @@ function isInjectable(url: string | undefined): boolean {
   return url !== undefined && /^https?:\/\//.test(url);
 }
 
-// Camera/mic only prompt from a visible page (never the popup or offscreen doc).
-// Prompt inside the current tab via an injected extension iframe so the grant
-// belongs to the extension; restricted pages (chrome://, the web store, the new
-// tab) can't host content, so fall back to opening the page as a tab.
-async function requestMediaPermission(
-  camera: boolean,
-  mic: boolean,
-): Promise<void> {
-  const params = new URLSearchParams();
-  if (camera) params.set("video", "1");
-  if (mic) params.set("audio", "1");
-  const frameUrl = chrome.runtime.getURL(`permissions.html?${params}`);
+// The camera preview bubble lives in the page, so the active tab must be able to
+// host content. Reflect the camera on/off state there: mount the bubble (which
+// also grabs the camera/mic grant the offscreen recorder reuses) or remove it.
+// Restricted pages (chrome://, the web store, the new tab) can't host content,
+// so fall back to a standalone grant tab — the permission is still set, just
+// without a preview.
+async function setCameraBubble(on: boolean, mic: boolean): Promise<void> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (tab?.id !== undefined && isInjectable(tab.url)) {
+  if (tab?.id === undefined) return;
+
+  if (!on) {
+    if (isInjectable(tab.url)) {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: unmountCameraBubble,
+        args: [BUBBLE_FRAME_ID],
+      });
+    }
+    return;
+  }
+
+  const params = new URLSearchParams();
+  if (mic) params.set("audio", "1");
+  if (isInjectable(tab.url)) {
+    const frameUrl = chrome.runtime.getURL(`bubble.html?${params}`);
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: injectPermissionFrame,
-      args: [frameUrl, PERMISSION_FRAME_ID, PERMISSION_MESSAGE_SOURCE],
+      func: mountCameraBubble,
+      args: [frameUrl, BUBBLE_FRAME_ID],
     });
   } else {
-    await chrome.tabs.create({ url: frameUrl });
+    params.set("video", "1");
+    await chrome.tabs.create({
+      url: chrome.runtime.getURL(`permissions.html?${params}`),
+    });
   }
 }
 
@@ -115,8 +129,8 @@ export default defineBackground(() => {
 
   onMessage("signOut", () => setAuthSession(null));
 
-  onMessage("requestMediaPermission", ({ data }) =>
-    requestMediaPermission(data.camera, data.mic),
+  onMessage("setCameraBubble", ({ data }) =>
+    setCameraBubble(data.on, data.mic),
   );
 
   onMessage("startRecording", async (): Promise<StartResult> => {
