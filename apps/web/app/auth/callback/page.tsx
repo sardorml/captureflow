@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { loadSession } from "@/lib/session-guard";
 import { issueDeviceToken } from "@/lib/device-tokens";
 import { CallbackHandoff } from "./CallbackHandoff";
+import { classifyReturn } from "./return-target";
 
 export const dynamic = "force-dynamic";
 
@@ -30,19 +31,25 @@ export default async function CallbackPage({
     redirect(`/login?next=${encodeURIComponent(next)}`);
   }
 
-  // Lock ?return= to the configured scheme so a hostile referrer can't
-  // redirect into javascript: or http:.
+  // ?return= is attacker-influenceable, so it's restricted to two safe shapes
+  // (custom-scheme deep link, or the extension's chromiumapp.org redirect);
+  // anything else falls back to the default deep link.
   const scheme = DEFAULT_SCHEME;
-  const requestedReturn =
-    typeof sp.return === "string" && sp.return.startsWith(`${scheme}://`)
-      ? sp.return
-      : null;
+  const target = classifyReturn(sp.return, scheme);
   const label = typeof sp.label === "string" ? sp.label : null;
 
   const issued = await issueDeviceToken(session.user.id, label);
-  const deepLink = requestedReturn
-    ? appendTokenToReturn(requestedReturn, issued.rawToken, issued.id)
-    : buildDeepLink(scheme, issued.rawToken, issued.id);
+
+  // The extension's https redirect is a real navigation chrome.identity
+  // intercepts, so hand it back server-side — no client click step needed.
+  if (target.kind === "extension") {
+    redirect(appendTokenToReturn(target.url, issued.rawToken, issued.id));
+  }
+
+  const deepLink =
+    target.kind === "deeplink"
+      ? appendTokenToReturn(target.url, issued.rawToken, issued.id)
+      : buildDeepLink(scheme, issued.rawToken, issued.id);
 
   return <CallbackHandoff deepLink={deepLink} email={session.user.email} />;
 }
