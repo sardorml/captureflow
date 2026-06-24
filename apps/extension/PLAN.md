@@ -1,6 +1,7 @@
 # CaptureFlow Browser Extension — Implementation Plan
 
-> Status: **planned, not built.** Decisions below are locked unless revised in a follow-up.
+> Status: **Phases 0–1 built (Phase 1 pending manual verification); Phase 2+ planned.**
+> Decisions below are locked unless revised in a follow-up.
 > Built with [WXT](https://wxt.dev) as a Manifest V3 extension under `apps/extension`.
 > A Loom-style screen recorder that uploads through the **existing** `/api/r/*` (recordings /
 > `share` domain) protocol — it is recording **client #3**, alongside the web dashboard and the
@@ -316,13 +317,18 @@ Quota attribution already targets the workspace owner; `isDevDevice` already exe
   CI wiring. **Capture spike proven: `getDisplayMedia` in the offscreen doc records `video/mp4`**
   — the architecture is validated (this is what ruled out `chrome.desktopCapture`, see Decision 1).
   Ship gate met: loads unpacked, popup opens, recording lands a byte count, `typecheck/build/format` green.
-- **Phase 1 — Auth + screen-only MVP.** `launchWebAuthFlow` + token/device-id storage; land
-  Backend Changes 1, 2 & 3 (separate commits). Offscreen doc records the screen and runs
-  `init → part×N → finalize`; show the returned `{url}`.
+- **Phase 1 — Auth + screen-only MVP (BUILT, pending manual verification).**
+  `launchWebAuthFlow` + token/device-id storage shipped; Backend Changes 1, 2 & 3 landed as
+  separate commits. The offscreen doc records the screen and streams `init → part×N → finalize`,
+  and the popup shows the returned `{url}` with a copy button. Stops on the popup Stop button,
+  the browser's native "Stop sharing" control, or a 30-min client cap.
   _Auth is merged into Phase 1 because `init/route.ts:75` requires a bearer token
   unconditionally — `isDevDevice` only relaxes the quota gate, not auth, so there is no
   "unauthenticated upload" path._ Ship gate: a real recording lands a playable share at
-  `/r/<slug>` attributed to the signed-in user; `upload-streamer.test.ts` pins part numbering/etags.
+  `/r/<slug>` attributed to the signed-in user; `upload-streamer.test.ts` pins part numbering/etags,
+  `device-id.test.ts` pins persistence, `return-target.test.ts` pins the callback allow-list.
+  **Remaining: manual end-to-end check** (load unpacked → sign in → record → open the link) —
+  the auth window + native picker can't be automated.
 - **Phase 2 — Camera + mic (dual stream).** Webcam recorder + pickers ("No Camera"/"No
   microphone"), `hasWebcam` init, parallel `webcam-part → webcam-finalize`, poster frame, live cam
   preview. Ship gate: dual-track share plays with webcam overlay; `webcamState === ready`.
