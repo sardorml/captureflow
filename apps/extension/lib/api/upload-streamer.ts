@@ -1,37 +1,35 @@
-import type { FinalizeResponse, InitRequest, UploadTransport } from "./types";
+import type {
+  FinalizeResponse,
+  InitRequest,
+  PartResponse,
+  UploadTransport,
+} from "./types";
 
 // R2 multipart minimum part size (except the trailing part). All non-trailing
 // parts must share one length, so we drain in fixed CHUNK_BYTES slices.
 export const CHUNK_BYTES = 5 * 1024 * 1024;
 
 type PartRef = { partNumber: number; etag: string };
+type PartUploader = (
+  partNumber: number,
+  bytes: Uint8Array,
+) => Promise<PartResponse>;
 
-export type ShareUploadOptions = {
-  transport: UploadTransport;
-  chunkBytes?: number;
-};
-
-export type ShareUpload = {
-  readonly slug: string;
+type PartStream = {
   readonly totalBytes: number;
   push(bytes: Uint8Array): void;
-  finish(sizeBytes?: number): Promise<FinalizeResponse>;
+  // Flush the buffer and resolve the ordered parts. Rejects (fail-fast) if any
+  // part upload failed — no per-part retry.
+  drain(): Promise<PartRef[]>;
   abort(): void;
 };
 
-/*
- * Open a multipart share upload and return a handle that streams recorder
- * chunks to it. `push` buffers and drains full parts in the background (one
- * request in flight); `finish` flushes the tail and finalizes. Fail-fast: a
- * dropped part rejects `finish` with no retry. The caller owns the lifecycle.
- */
-export async function startShareUpload(
-  init: InitRequest,
-  options: ShareUploadOptions,
-): Promise<ShareUpload> {
-  const { transport, chunkBytes = CHUNK_BYTES } = options;
-  const { slug } = await transport.init(init);
-
+// One multipart stream: buffers pushes and drains fixed CHUNK_BYTES parts in the
+// background (a single request in flight), with a smaller trailing part.
+function createPartStream(
+  uploadPart: PartUploader,
+  chunkBytes: number,
+): PartStream {
   let partNumber = 1;
   const etags: PartRef[] = [];
   let buf: Uint8Array[] = [];
@@ -39,12 +37,12 @@ export async function startShareUpload(
   let totalBytes = 0;
   let inFlight: Promise<void> | null = null;
   let aborted = false;
-  // Set once finish() starts claiming part numbers, so a late push can't race
+  // Set once drain() starts claiming part numbers, so a late push can't race
   // the pump for the same number.
-  let finishing = false;
+  let draining = false;
   let failure: unknown = null;
 
-  function drainPart(maxBytes: number): Uint8Array {
+  function takePart(maxBytes: number): Uint8Array {
     const target = Math.min(bufBytes, maxBytes);
     const out = new Uint8Array(target);
     let written = 0;
@@ -68,85 +66,149 @@ export async function startShareUpload(
   }
 
   function pump(): void {
-    if (aborted || finishing || failure) return;
+    if (aborted || draining || failure) return;
     if (inFlight) return;
     if (bufBytes < chunkBytes) return;
-    const bytes = drainPart(chunkBytes);
+    const bytes = takePart(chunkBytes);
     const n = partNumber++;
     inFlight = (async () => {
       try {
-        const res = await transport.uploadPart(slug, n, bytes);
+        const res = await uploadPart(n, bytes);
         etags.push({ partNumber: res.partNumber, etag: res.etag });
       } catch (err) {
-        // Fail-fast: no per-part retry — abort the share on a dropped part.
         failure = err;
       } finally {
         inFlight = null;
-        if (!failure && !finishing && bufBytes >= chunkBytes) pump();
+        if (!failure && !draining && bufBytes >= chunkBytes) pump();
       }
     })();
   }
 
-  async function flushTail(): Promise<void> {
-    if (inFlight) {
-      try {
-        await inFlight;
-      } catch {
-        /* recorded in `failure` by pump */
-      }
-    }
-    if (failure) throw failure;
-
-    // R2 rejects a non-trailing part that isn't CHUNK_BYTES, so split a tail
-    // larger than one chunk into full parts plus one smaller trailing part.
-    while (bufBytes > chunkBytes) {
-      const res = await transport.uploadPart(
-        slug,
-        partNumber++,
-        drainPart(chunkBytes),
-      );
-      etags.push({ partNumber: res.partNumber, etag: res.etag });
-    }
-    if (bufBytes > 0) {
-      const res = await transport.uploadPart(
-        slug,
-        partNumber++,
-        drainPart(bufBytes),
-      );
-      etags.push({ partNumber: res.partNumber, etag: res.etag });
-    }
-  }
-
   return {
-    get slug() {
-      return slug;
-    },
     get totalBytes() {
       return totalBytes;
     },
     push(bytes: Uint8Array): void {
-      if (aborted || finishing || failure) return;
+      if (aborted || draining || failure) return;
       if (bytes.byteLength === 0) return;
       buf.push(bytes);
       bufBytes += bytes.byteLength;
       totalBytes += bytes.byteLength;
       pump();
     },
-    async finish(sizeBytes?: number): Promise<FinalizeResponse> {
-      if (aborted) throw new Error("Upload was aborted");
-      finishing = true;
-      await flushTail();
-      if (etags.length === 0) throw new Error("No parts uploaded");
-      return transport.finalize({
-        slug,
-        parts: etags,
-        sizeBytes: sizeBytes && sizeBytes > 0 ? sizeBytes : totalBytes,
-      });
+    async drain(): Promise<PartRef[]> {
+      draining = true;
+      if (inFlight) {
+        try {
+          await inFlight;
+        } catch {
+          /* recorded in `failure` by pump */
+        }
+      }
+      if (failure) throw failure;
+      // R2 rejects a non-trailing part that isn't CHUNK_BYTES, so split a tail
+      // larger than one chunk into full parts plus one smaller trailing part.
+      while (bufBytes > chunkBytes) {
+        const res = await uploadPart(partNumber++, takePart(chunkBytes));
+        etags.push({ partNumber: res.partNumber, etag: res.etag });
+      }
+      if (bufBytes > 0) {
+        const res = await uploadPart(partNumber++, takePart(bufBytes));
+        etags.push({ partNumber: res.partNumber, etag: res.etag });
+      }
+      return etags;
     },
     abort(): void {
       aborted = true;
       buf = [];
       bufBytes = 0;
+    },
+  };
+}
+
+export type ShareUploadOptions = {
+  transport: UploadTransport;
+  chunkBytes?: number;
+};
+
+export type ShareUpload = {
+  readonly slug: string;
+  readonly hasWebcam: boolean;
+  readonly screenBytes: number;
+  readonly webcamBytes: number;
+  pushScreen(bytes: Uint8Array): void;
+  pushWebcam(bytes: Uint8Array): void;
+  uploadPoster(bytes: Uint8Array): Promise<void>;
+  // Finalize the screen (load-bearing); the webcam is best-effort — a webcam
+  // failure leaves it pending and the viewer plays screen-only.
+  finish(): Promise<FinalizeResponse>;
+  abort(): void;
+};
+
+/*
+ * Open a (dual) multipart share upload. The screen stream is required; a webcam
+ * stream is created only when /init reserved one (hasWebcam). pushScreen /
+ * pushWebcam buffer recorder chunks; finish flushes both and finalizes. The
+ * caller owns the lifecycle.
+ */
+export async function startShareUpload(
+  init: InitRequest,
+  options: ShareUploadOptions,
+): Promise<ShareUpload> {
+  const { transport, chunkBytes = CHUNK_BYTES } = options;
+  const res = await transport.init(init);
+  const slug = res.slug;
+
+  const screen = createPartStream(
+    (n, bytes) => transport.uploadScreenPart(slug, n, bytes),
+    chunkBytes,
+  );
+  const webcam = res.webcamUploadId
+    ? createPartStream(
+        (n, bytes) => transport.uploadWebcamPart(slug, n, bytes),
+        chunkBytes,
+      )
+    : null;
+
+  return {
+    slug,
+    hasWebcam: webcam !== null,
+    get screenBytes() {
+      return screen.totalBytes;
+    },
+    get webcamBytes() {
+      return webcam?.totalBytes ?? 0;
+    },
+    pushScreen: (bytes) => screen.push(bytes),
+    pushWebcam: (bytes) => webcam?.push(bytes),
+    uploadPoster: (bytes) => transport.uploadPoster(slug, bytes),
+    async finish(): Promise<FinalizeResponse> {
+      const screenParts = await screen.drain();
+      if (screenParts.length === 0) throw new Error("No screen parts uploaded");
+      const result = await transport.finalizeScreen({
+        slug,
+        parts: screenParts,
+        sizeBytes: screen.totalBytes,
+      });
+      if (webcam) {
+        try {
+          const webcamParts = await webcam.drain();
+          if (webcamParts.length > 0) {
+            await transport.finalizeWebcam({
+              slug,
+              parts: webcamParts,
+              sizeBytes: webcam.totalBytes,
+            });
+          }
+        } catch {
+          /* best-effort: leave the webcam pending; the viewer plays screen-only */
+        }
+      }
+      return result;
+    },
+    abort(): void {
+      screen.abort();
+      webcam?.abort();
     },
   };
 }

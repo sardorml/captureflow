@@ -49,13 +49,21 @@ export type ShareApiError = {
 };
 
 // The streamer's I/O contract. `lib/api/client.ts` provides the HTTP-backed
-// implementation; tests inject an in-memory fake.
+// implementation; tests inject an in-memory fake. finalizeWebcam returns void —
+// the webcam is best-effort, so its `{ ok }` body is unused.
 export type UploadTransport = {
   init(req: InitRequest): Promise<InitResponse>;
-  uploadPart(
+  uploadScreenPart(
     slug: string,
     partNumber: number,
     bytes: Uint8Array,
   ): Promise<PartResponse>;
-  finalize(req: FinalizeRequest): Promise<FinalizeResponse>;
+  uploadWebcamPart(
+    slug: string,
+    partNumber: number,
+    bytes: Uint8Array,
+  ): Promise<PartResponse>;
+  finalizeScreen(req: FinalizeRequest): Promise<FinalizeResponse>;
+  finalizeWebcam(req: FinalizeRequest): Promise<void>;
+  uploadPoster(slug: string, bytes: Uint8Array): Promise<void>;
 };

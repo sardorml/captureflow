@@ -76,7 +76,7 @@ export async function recordAndUpload(
     const blob = event.data;
     if (!blob || blob.size === 0) return;
     pushChain = pushChain.then(async () => {
-      upload.push(new Uint8Array(await blob.arrayBuffer()));
+      upload.pushScreen(new Uint8Array(await blob.arrayBuffer()));
     });
   };
 
@@ -93,7 +93,7 @@ export async function recordAndUpload(
       cb.onResult({
         ok: true,
         url,
-        bytes: upload.totalBytes,
+        bytes: upload.screenBytes,
         durationMs: Date.now() - startedAt,
       });
     } catch (err) {

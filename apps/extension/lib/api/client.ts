@@ -83,22 +83,28 @@ function toBody(bytes: Uint8Array): ArrayBuffer {
 }
 
 // content-length is set automatically by the browser (a forbidden header for
-// fetch), so it's omitted here unlike the desktop's Node client.
-export async function postBytes<T>(
+// fetch), so it's omitted here unlike the desktop's Node client. `contentType`
+// matters: octet-stream for media parts, image/jpeg for the poster (the route
+// gates on it).
+async function postBytes<T>(
   path: string,
   deviceId: string,
   bytes: Uint8Array,
+  contentType: string,
 ): Promise<T> {
   const res = await fetch(`${SHARE_API_BASE}${path}`, {
     method: "POST",
     headers: {
-      "content-type": "application/octet-stream",
+      "content-type": contentType,
       "x-captureflow-device": deviceId,
     },
     body: toBody(bytes),
   });
   return parseResponse<T>(res, path);
 }
+
+const partPath = (route: string, slug: string, partNumber: number): string =>
+  `/${route}?slug=${encodeURIComponent(slug)}&part=${partNumber}`;
 
 // HTTP-backed transport for the upload streamer.
 export function createShareTransport(
@@ -108,13 +114,32 @@ export function createShareTransport(
   return {
     init: (req: InitRequest) =>
       postJson<InitResponse>("/init", deviceId, token, req),
-    uploadPart: (slug: string, partNumber: number, bytes: Uint8Array) =>
+    uploadScreenPart: (slug, partNumber, bytes) =>
       postBytes<PartResponse>(
-        `/part?slug=${encodeURIComponent(slug)}&part=${partNumber}`,
+        partPath("part", slug, partNumber),
         deviceId,
         bytes,
+        "application/octet-stream",
       ),
-    finalize: (req: FinalizeRequest) =>
+    uploadWebcamPart: (slug, partNumber, bytes) =>
+      postBytes<PartResponse>(
+        partPath("webcam-part", slug, partNumber),
+        deviceId,
+        bytes,
+        "application/octet-stream",
+      ),
+    finalizeScreen: (req: FinalizeRequest) =>
       postJson<FinalizeResponse>("/finalize", deviceId, token, req),
+    finalizeWebcam: async (req: FinalizeRequest) => {
+      await postJson<{ ok: true }>("/webcam-finalize", deviceId, token, req);
+    },
+    uploadPoster: async (slug: string, bytes: Uint8Array) => {
+      await postBytes<{ posterKey: string; url: string }>(
+        `/poster?slug=${encodeURIComponent(slug)}`,
+        deviceId,
+        bytes,
+        "image/jpeg",
+      );
+    },
   };
 }
