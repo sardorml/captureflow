@@ -4,15 +4,24 @@ import { defineConfig } from "wxt";
 // there is no committed manifest.json.
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],
-  manifest: ({ browser }) => ({
-    name: "CaptureFlow",
-    description: "Record your screen and share an instant link.",
-    // `identity` drives sign-in via launchWebAuthFlow. `offscreen` (where
-    // getDisplayMedia runs — no extra permission for capture itself) is
-    // Chromium-only, so gate it for Firefox.
-    permissions:
-      browser === "firefox"
-        ? ["storage", "identity"]
-        : ["storage", "offscreen", "identity"],
-  }),
+  manifest: ({ browser }) => {
+    const isFirefox = browser === "firefox";
+    return {
+      name: "CaptureFlow",
+      description: "Record your screen and share an instant link.",
+      // `offscreen` (where getDisplayMedia runs — no extra permission for the
+      // capture itself) is Chromium-only, so gate it for Firefox.
+      permissions: isFirefox ? ["storage"] : ["storage", "offscreen"],
+      // The web sign-in page posts the device token back via
+      // chrome.runtime.sendMessage; only these origins may. http://localhost/*
+      // matches any dev port. Firefox MV3 lacks web→extension messaging.
+      ...(isFirefox
+        ? {}
+        : {
+            externally_connectable: {
+              matches: ["https://captureflow.xyz/*", "http://localhost/*"],
+            },
+          }),
+    };
+  },
 });

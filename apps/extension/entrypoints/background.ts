@@ -1,7 +1,11 @@
 import { onMessage, sendMessage, type StartResult } from "@/lib/messaging";
 import { saveRecordingResult, setRecordingStatus } from "@/lib/storage";
-import { signIn, signOut } from "@/lib/auth/pairing";
-import { getAuthSession } from "@/lib/auth/session";
+import { openSignInTab, parseExternalAuth } from "@/lib/auth/handoff";
+import {
+  getAuthSession,
+  setAuthSession,
+  watchAuthSession,
+} from "@/lib/auth/session";
 import { getDeviceId } from "@/lib/auth/device-id";
 
 const OFFSCREEN_URL = "offscreen.html";
@@ -23,17 +27,44 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+// Signed in → the icon opens the recorder popup; signed out → it has no popup so
+// the click fires onClicked, which opens the web sign-in tab (Loom-style).
+async function syncActionPopup(): Promise<void> {
+  const session = await getAuthSession();
+  await chrome.action.setPopup({ popup: session ? "popup.html" : "" });
+}
+
 export default defineBackground(() => {
-  onMessage("startSignIn", async () => {
-    try {
-      await signIn();
-      return { ok: true };
-    } catch (error) {
-      return { ok: false, error: errorMessage(error) };
+  void syncActionPopup();
+  watchAuthSession(() => void syncActionPopup());
+
+  chrome.action.onClicked.addListener(() => void openSignInTab());
+
+  // The web sign-in page posts the device token here after login.
+  chrome.runtime.onMessageExternal.addListener((message, sender, respond) => {
+    const session = parseExternalAuth(message);
+    if (!session) {
+      respond({ ok: false });
+      return false;
     }
+    void (async () => {
+      await setAuthSession(session);
+      const tabId = sender.tab?.id;
+      if (tabId !== undefined) {
+        try {
+          await chrome.tabs.remove(tabId);
+        } catch {
+          /* tab already closed */
+        }
+      }
+      respond({ ok: true });
+    })();
+    return true; // respond() is called asynchronously
   });
 
-  onMessage("signOut", () => signOut());
+  onMessage("openSignIn", () => openSignInTab());
+
+  onMessage("signOut", () => setAuthSession(null));
 
   onMessage("startRecording", async (): Promise<StartResult> => {
     try {

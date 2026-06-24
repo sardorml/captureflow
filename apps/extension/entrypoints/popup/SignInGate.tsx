@@ -1,20 +1,12 @@
-import { useState } from "react";
 import { sendMessage } from "@/lib/messaging";
 
-// Sign-in runs in the service worker. The auth window steals focus and closes
-// this popup, so the happy path completes out of band: App watches the auth
-// session and swaps in the recorder when the SW stores a token. The awaited
-// result only surfaces if the popup survives (e.g. an instant re-auth).
+// Fallback view: when signed out the action has no popup, so clicking the icon
+// opens the web sign-in tab directly. This only renders in the brief window
+// before the service worker clears the popup; the button opens that same tab.
 export function SignInGate() {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const onSignIn = async () => {
-    setBusy(true);
-    setError(null);
-    const res = await sendMessage("startSignIn", undefined);
-    setBusy(false);
-    if (!res.ok) setError(res.error);
+  const onSignIn = () => {
+    void sendMessage("openSignIn", undefined);
+    window.close();
   };
 
   return (
@@ -32,16 +24,9 @@ export function SignInGate() {
         </p>
       </section>
 
-      <button
-        type="button"
-        className="cf-start"
-        onClick={onSignIn}
-        disabled={busy}
-      >
-        {busy ? "Opening sign-in…" : "Sign in"}
+      <button type="button" className="cf-start" onClick={onSignIn}>
+        Sign in
       </button>
-
-      {error && <p className="cf-status cf-status--error">{error}</p>}
     </div>
   );
 }
