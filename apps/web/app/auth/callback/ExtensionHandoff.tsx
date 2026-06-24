@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getRuntime, rememberExtensionId } from "@/lib/extension-bridge";
 
 type ExtensionHandoffProps = {
   extId: string;
@@ -8,24 +9,6 @@ type ExtensionHandoffProps = {
   tokenId: string;
   email: string;
 };
-
-// chrome.runtime is injected only on pages the extension lists in
-// externally_connectable; @types/chrome isn't a web dependency, so type the one
-// method we call. lastError is set (inside the callback) when no matching
-// extension received the message.
-type RuntimeBridge = {
-  sendMessage: (
-    extensionId: string,
-    message: unknown,
-    callback?: (response: unknown) => void,
-  ) => void;
-  lastError?: { message?: string };
-};
-
-function getRuntime(): RuntimeBridge | null {
-  const g = globalThis as { chrome?: { runtime?: RuntimeBridge } };
-  return g.chrome?.runtime ?? null;
-}
 
 type State = "sending" | "done" | "error";
 
@@ -51,7 +34,12 @@ export function ExtensionHandoff({
           !!response &&
           typeof response === "object" &&
           (response as { ok?: unknown }).ok === true;
-        setState(runtime.lastError || !ok ? "error" : "done");
+        if (runtime.lastError || !ok) {
+          setState("error");
+          return;
+        }
+        rememberExtensionId(extId);
+        setState("done");
       },
     );
   }, [extId, token, tokenId]);

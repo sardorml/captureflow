@@ -8,8 +8,9 @@ import {
 } from "@/lib/storage";
 import {
   isTrustedAuthSender,
+  isTrustedWebOrigin,
   openSignInTab,
-  parseExternalAuth,
+  parseExternalMessage,
 } from "@/lib/auth/handoff";
 import {
   getAuthSession,
@@ -117,27 +118,35 @@ export default defineBackground(() => {
   chrome.action.onClicked.addListener(() => void openSignInTab());
 
   /*
-   * Only accept the posted token from the callback page itself
-   * (externally_connectable can't gate by path/port), and only ever store a
-   * shape-valid token.
+   * The web app posts auth (from the callback page) and logout (from any of its
+   * pages) here. externally_connectable can't gate by path/port, so re-check the
+   * sender per kind: auth needs the exact callback page, logout just the origin.
    */
   chrome.runtime.onMessageExternal.addListener((message, sender, respond) => {
-    const session = isTrustedAuthSender(sender.url)
-      ? parseExternalAuth(message)
-      : null;
-    if (!session) {
+    const parsed = parseExternalMessage(message);
+    const trusted =
+      parsed?.kind === "auth"
+        ? isTrustedAuthSender(sender.url)
+        : parsed?.kind === "logout"
+          ? isTrustedWebOrigin(sender.url)
+          : false;
+    if (!parsed || !trusted) {
       respond({ ok: false });
       return false;
     }
     void (async () => {
       try {
-        await setAuthSession(session);
-        const tabId = sender.tab?.id;
-        if (tabId !== undefined) {
-          try {
-            await chrome.tabs.remove(tabId);
-          } catch {
-            /* tab already closed */
+        if (parsed.kind === "logout") {
+          await setAuthSession(null);
+        } else {
+          await setAuthSession(parsed.session);
+          const tabId = sender.tab?.id;
+          if (tabId !== undefined) {
+            try {
+              await chrome.tabs.remove(tabId);
+            } catch {
+              /* tab already closed */
+            }
           }
         }
         respond({ ok: true });

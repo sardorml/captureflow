@@ -11,6 +11,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
+import { notifyExtensionSignOut } from "@/lib/extension-bridge";
 import { Avatar, AvatarFallback, AvatarImage } from "@captureflow/ui";
 import {
   SmoothDropdownMenu,
@@ -53,6 +54,7 @@ export function UserMenu({ userId, name, email, imageUrl, pro }: Props) {
     if (pending) return;
     setPending(true);
     await signOut();
+    notifyExtensionSignOut();
     router.replace("/login");
   };
 
