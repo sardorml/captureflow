@@ -18,14 +18,13 @@ type PartUploader = (
 type PartStream = {
   readonly totalBytes: number;
   push(bytes: Uint8Array): void;
-  // Flush the buffer and resolve the ordered parts. Rejects (fail-fast) if any
-  // part upload failed — no per-part retry.
   drain(): Promise<PartRef[]>;
   abort(): void;
 };
 
 // One multipart stream: buffers pushes and drains fixed CHUNK_BYTES parts in the
-// background (a single request in flight), with a smaller trailing part.
+// background (a single request in flight, smaller trailing part). Fail-fast — a
+// failed part rejects drain(); no per-part retry.
 function createPartStream(
   uploadPart: PartUploader,
   chunkBytes: number,
@@ -139,8 +138,6 @@ export type ShareUpload = {
   pushScreen(bytes: Uint8Array): void;
   pushWebcam(bytes: Uint8Array): void;
   uploadPoster(bytes: Uint8Array): Promise<void>;
-  // Finalize the screen (load-bearing); the webcam is best-effort — a webcam
-  // failure leaves it pending and the viewer plays screen-only.
   finish(): Promise<FinalizeResponse>;
   abort(): void;
 };

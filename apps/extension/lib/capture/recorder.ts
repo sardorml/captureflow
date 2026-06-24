@@ -120,9 +120,15 @@ export async function recordAndUpload(
     }
   };
 
-  for (const pipe of pipes) {
-    pipe.recorder.onstop = onRecorderStop;
-    pipe.recorder.onerror = () => stopActiveRecording();
+  for (const pipe of pipes) pipe.recorder.onstop = onRecorderStop;
+  // A screen-recorder error ends the whole recording; a webcam error is contained
+  // to its own stream (it just stops itself and flushes) so the load-bearing
+  // screen capture keeps going — the webcam is best-effort.
+  screenPipe.recorder.onerror = () => stopActiveRecording();
+  if (webcamPipe) {
+    webcamPipe.recorder.onerror = () => {
+      if (webcamPipe.recorder.state !== "inactive") webcamPipe.recorder.stop();
+    };
   }
   screenPipe.recorder.onstart = () => cb.onStatus({ kind: "recording" });
   activeRecorders = pipes.map((pipe) => pipe.recorder);
