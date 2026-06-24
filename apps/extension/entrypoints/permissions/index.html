@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CaptureFlow — camera & microphone access</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #16181d;
+        color: #e8eaed;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      .box {
+        max-width: 420px;
+        padding: 24px 28px;
+        text-align: center;
+        line-height: 1.5;
+      }
+      h1 {
+        font-size: 16px;
+        margin: 0 0 8px;
+      }
+      p {
+        font-size: 13px;
+        color: #9aa0aa;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <h1 id="title">Requesting camera & microphone access…</h1>
+      <p id="status">Approve the browser prompt to let CaptureFlow record them.</p>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
