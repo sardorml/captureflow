@@ -82,7 +82,7 @@ export function AuthForm({
       <Typography.Paragraph type="secondary" style={{ marginBottom: 24 }}>
         {isSignup
           ? "Start sharing recordings with a public link."
-          : "Sign in to manage your shares and snaps."}
+          : "Sign in to manage your recordings and screenshots."}
       </Typography.Paragraph>
 
       <Form

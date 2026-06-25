@@ -5,7 +5,7 @@ CaptureFlow has two halves that talk to each other over HTTPS:
 - The **desktop recorder** (`apps/desktop`) — an Electron app that captures your
   screen and webcam locally.
 - The **web backend** (`apps/web`) — a Next.js app on Cloudflare Workers that
-  stores recordings, serves share pages, and powers the dashboard.
+  stores recordings, serves recording pages, and powers the dashboard.
 
 ## The recording → link pipeline
 
@@ -17,10 +17,10 @@ CaptureFlow has two halves that talk to each other over HTTPS:
        │                                            │
        │ stop ─► link ready                         ▼
        ▼                                  ┌──────────────────┐
-┌──────────────┐    share link    ┌──────►│  R2 (video/poster)│
+┌──────────────┐    recording link    ┌──────►│  R2 (video/poster)│
 │   Viewer     │ ◄────────────────│       │  D1 (metadata)    │
 │  (browser)   │   plays from CDN │       └──────────────────┘
-└──────────────┘                  └── share viewer page
+└──────────────┘                  └── recording viewer page
 ```
 
 1. **Capture** — the recorder uses native macOS helpers (screen, window
@@ -30,19 +30,19 @@ CaptureFlow has two halves that talk to each other over HTTPS:
    uploads the recording in parts (a multipart upload) as it's being made. By
    the time you stop, most of the bytes are already in storage.
 3. **Finalize** — on stop, the upload is finalized, a poster image is generated,
-   and a row is written to the database. You immediately get a share URL.
-4. **Serve** — viewers open the share page; the video and poster are served from
+   and a row is written to the database. You immediately get a recording URL.
+4. **Serve** — viewers open the recording page; the video and poster are served from
    R2 over your CDN domain, and the metadata (title, visibility, reactions,
    comments) comes from the database.
 
 ## What stores what
 
-| Concern                                                                   | Where it lives                                                 |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Video files, poster images, snap PNGs                                     | **R2** (object storage), under `videos/`, `posters/`, `snaps/` |
-| Recording & snap metadata, users, workspaces, reactions, comments, quotas | **D1** (SQLite at the edge)                                    |
-| Auth sessions                                                             | Signed by **Better Auth** (`BETTER_AUTH_SECRET`)               |
-| Static dashboard / share assets                                           | Served by the Worker's `ASSETS` binding                        |
+| Concern                                                                         | Where it lives                                                       |
+| ------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Video files, poster images, screenshot PNGs                                     | **R2** (object storage), under `videos/`, `posters/`, `screenshots/` |
+| Recording & screenshot metadata, users, workspaces, reactions, comments, quotas | **D1** (SQLite at the edge)                                          |
+| Auth sessions                                                                   | Signed by **Better Auth** (`BETTER_AUTH_SECRET`)                     |
+| Static dashboard / recording assets                                             | Served by the Worker's `ASSETS` binding                              |
 
 ## Housekeeping
 

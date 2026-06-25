@@ -5,9 +5,9 @@ import { Spin } from "antd";
 
 /*
  * Rendered when the SSR call to verify-session fails transiently
- * (cold-start, network blip, 5xx) on a gated snap. Distinct from
+ * (cold-start, network blip, 5xx) on a gated screenshot. Distinct from
  * RequestAccess: SSR doesn't yet know whether the visitor is an
- * authorized owner/member, so we show a neutral "loading snap" frame
+ * authorized owner/member, so we show a neutral "loading screenshot" frame
  * and immediately probe from the browser. Once verify-session resolves
  * either way we location.replace() back into the same URL and let SSR
  * re-run with the cookies in hand. After the retry budget exhausts we
@@ -61,7 +61,7 @@ export function SessionLoadingShell({ appWebUrl }: Props) {
     <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 py-16 text-neutral-300">
       <div className="flex flex-col items-center gap-4">
         <Spin size="large" />
-        <p className="text-sm text-neutral-500">Loading snap…</p>
+        <p className="text-sm text-neutral-500">Loading screenshot…</p>
       </div>
     </div>
   );

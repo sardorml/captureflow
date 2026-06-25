@@ -10,16 +10,16 @@ import type {
   BugReportPayload,
   BugReportResult,
   UserPrefs,
-  ShareFrameEvent,
-  ShareAuthState,
-  ShareConnectivityState,
-  ShareUsageState,
+  RecordingFrameEvent,
+  RecordingAuthState,
+  RecordingConnectivityState,
+  RecordingUsageState,
   WorkspacesState,
-  ShareStartMeta,
-  ShareStartResult,
-  ShareFinishMeta,
-  ShareFinishResult,
-  ShareFailureState,
+  RecordingStartMeta,
+  RecordingStartResult,
+  RecordingFinishMeta,
+  RecordingFinishResult,
+  RecordingFailureState,
   UpgradeReason,
 } from "../shared/types";
 
@@ -115,68 +115,70 @@ const electronAPI = {
       ipcRenderer.removeListener(IPC_CHANNELS.USER_PREFS_CHANGED, handler);
   },
 
-  onShareFrameEvent: (
-    callback: (event: ShareFrameEvent) => void,
+  onRecordingFrameEvent: (
+    callback: (event: RecordingFrameEvent) => void,
   ): (() => void) => {
-    const handler = (_: unknown, event: ShareFrameEvent): void =>
+    const handler = (_: unknown, event: RecordingFrameEvent): void =>
       callback(event);
-    ipcRenderer.on(IPC_CHANNELS.SHARE_FRAME_EVENT, handler);
+    ipcRenderer.on(IPC_CHANNELS.RECORDING_FRAME_EVENT, handler);
     return () =>
-      ipcRenderer.removeListener(IPC_CHANNELS.SHARE_FRAME_EVENT, handler);
+      ipcRenderer.removeListener(IPC_CHANNELS.RECORDING_FRAME_EVENT, handler);
   },
 
-  shareReadyOpenLink: (url: string): void =>
-    ipcRenderer.send(IPC_CHANNELS.SHARE_READY_OPEN_LINK, url),
+  recordingReadyOpenLink: (url: string): void =>
+    ipcRenderer.send(IPC_CHANNELS.RECORDING_READY_OPEN_LINK, url),
 
   /*
-   * Streaming-upload bridges. shareStart reserves a slug via /api/init at
-   * record start. sharePartScreen/sharePartWebcam are fire-and-forget; main
-   * buffers per stream and POSTs each 5+ MiB part. shareFinish flushes tail
-   * bytes + finalizes, returning the edit URL. shareAbort discards in-flight
+   * Streaming-upload bridges. recordingStart reserves a slug via /api/init at
+   * record start. recordingPartScreen/recordingPartWebcam are fire-and-forget; main
+   * buffers per stream and POSTs each 5+ MiB part. recordingFinish flushes tail
+   * bytes + finalizes, returning the edit URL. recordingAbort discards in-flight
    * streamer state on cancel/restart/crash.
    */
-  shareStart: (meta: ShareStartMeta): Promise<ShareStartResult> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SHARE_START, meta),
-  sharePartScreen: (bytes: ArrayBuffer): void =>
-    ipcRenderer.send(IPC_CHANNELS.SHARE_PART_SCREEN, bytes),
-  sharePartWebcam: (bytes: ArrayBuffer): void =>
-    ipcRenderer.send(IPC_CHANNELS.SHARE_PART_WEBCAM, bytes),
-  shareFinish: (meta: ShareFinishMeta): Promise<ShareFinishResult> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SHARE_FINISH, meta),
-  shareAbort: (): void => ipcRenderer.send(IPC_CHANNELS.SHARE_ABORT),
-  shareUploadPoster: (bytes: ArrayBuffer): void =>
-    ipcRenderer.send(IPC_CHANNELS.SHARE_UPLOAD_POSTER, bytes),
-  // Fired at countdown start so main can run shareStart + system-audio
+  recordingStart: (meta: RecordingStartMeta): Promise<RecordingStartResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_START, meta),
+  recordingPartScreen: (bytes: ArrayBuffer): void =>
+    ipcRenderer.send(IPC_CHANNELS.RECORDING_PART_SCREEN, bytes),
+  recordingPartWebcam: (bytes: ArrayBuffer): void =>
+    ipcRenderer.send(IPC_CHANNELS.RECORDING_PART_WEBCAM, bytes),
+  recordingFinish: (
+    meta: RecordingFinishMeta,
+  ): Promise<RecordingFinishResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_FINISH, meta),
+  recordingAbort: (): void => ipcRenderer.send(IPC_CHANNELS.RECORDING_ABORT),
+  recordingUploadPoster: (bytes: ArrayBuffer): void =>
+    ipcRenderer.send(IPC_CHANNELS.RECORDING_UPLOAD_POSTER, bytes),
+  // Fired at countdown start so main can run recordingStart + system-audio
   // acquisition in parallel with the visible 3 s countdown.
-  notifySharePrepStart: (): void =>
-    ipcRenderer.send(IPC_CHANNELS.SHARE_PREP_START),
-  notifySharePrepCancel: (): void =>
-    ipcRenderer.send(IPC_CHANNELS.SHARE_PREP_CANCEL),
-  onSharePrepStart: (callback: () => void): (() => void) => {
+  notifyRecordingPrepStart: (): void =>
+    ipcRenderer.send(IPC_CHANNELS.RECORDING_PREP_START),
+  notifyRecordingPrepCancel: (): void =>
+    ipcRenderer.send(IPC_CHANNELS.RECORDING_PREP_CANCEL),
+  onRecordingPrepStart: (callback: () => void): (() => void) => {
     const handler = (): void => callback();
-    ipcRenderer.on(IPC_CHANNELS.SHARE_PREP_START, handler);
+    ipcRenderer.on(IPC_CHANNELS.RECORDING_PREP_START, handler);
     return () =>
-      ipcRenderer.removeListener(IPC_CHANNELS.SHARE_PREP_START, handler);
+      ipcRenderer.removeListener(IPC_CHANNELS.RECORDING_PREP_START, handler);
   },
-  onSharePrepCancel: (callback: () => void): (() => void) => {
+  onRecordingPrepCancel: (callback: () => void): (() => void) => {
     const handler = (): void => callback();
-    ipcRenderer.on(IPC_CHANNELS.SHARE_PREP_CANCEL, handler);
+    ipcRenderer.on(IPC_CHANNELS.RECORDING_PREP_CANCEL, handler);
     return () =>
-      ipcRenderer.removeListener(IPC_CHANNELS.SHARE_PREP_CANCEL, handler);
+      ipcRenderer.removeListener(IPC_CHANNELS.RECORDING_PREP_CANCEL, handler);
   },
-  shareFailureOpen: (state: ShareFailureState): Promise<void> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SHARE_FAILURE_OPEN, state),
-  onShareFailureInit: (
-    callback: (state: ShareFailureState) => void,
+  recordingFailureOpen: (state: RecordingFailureState): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_FAILURE_OPEN, state),
+  onRecordingFailureInit: (
+    callback: (state: RecordingFailureState) => void,
   ): (() => void) => {
-    const handler = (_: unknown, state: ShareFailureState): void =>
+    const handler = (_: unknown, state: RecordingFailureState): void =>
       callback(state);
-    ipcRenderer.on(IPC_CHANNELS.SHARE_FAILURE_INIT, handler);
+    ipcRenderer.on(IPC_CHANNELS.RECORDING_FAILURE_INIT, handler);
     return () =>
-      ipcRenderer.removeListener(IPC_CHANNELS.SHARE_FAILURE_INIT, handler);
+      ipcRenderer.removeListener(IPC_CHANNELS.RECORDING_FAILURE_INIT, handler);
   },
-  shareFailureClose: (): void =>
-    ipcRenderer.send(IPC_CHANNELS.SHARE_FAILURE_CLOSE),
+  recordingFailureClose: (): void =>
+    ipcRenderer.send(IPC_CHANNELS.RECORDING_FAILURE_CLOSE),
 
   showCaptureGateDialog: (reason: UpgradeReason): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.CAPTURE_GATE_OPEN, reason),
@@ -185,7 +187,7 @@ const electronAPI = {
     rects: { x: number; y: number; width: number; height: number }[],
   ): void => ipcRenderer.send(IPC_CHANNELS.TOOLBAR_SET_HIT_RECTS, rects),
 
-  toolbarResizeForMode: (mode: "share" | "screenshot"): void =>
+  toolbarResizeForMode: (mode: "recording" | "screenshot"): void =>
     ipcRenderer.send(IPC_CHANNELS.TOOLBAR_RESIZE_FOR_MODE, mode),
 
   captureScreenshot: (
@@ -208,7 +210,7 @@ const electronAPI = {
     | { ok: false; error: string; code?: string }
   > => ipcRenderer.invoke(IPC_CHANNELS.CAPTURE_SCREENSHOT, target),
 
-  onSnapCaptured: (
+  onScreenshotCaptured: (
     callback: (payload: {
       localPath: string;
       sourceTitle: string | null;
@@ -225,11 +227,11 @@ const electronAPI = {
         height: number;
       },
     ): void => callback(payload);
-    ipcRenderer.on(IPC_CHANNELS.SNAP_CAPTURED, handler);
+    ipcRenderer.on(IPC_CHANNELS.SCREENSHOT_CAPTURED, handler);
     return () =>
-      ipcRenderer.removeListener(IPC_CHANNELS.SNAP_CAPTURED, handler);
+      ipcRenderer.removeListener(IPC_CHANNELS.SCREENSHOT_CAPTURED, handler);
   },
-  onSnapUploadComplete: (
+  onScreenshotUploadComplete: (
     callback: (payload: {
       id: string;
       viewUrl: string;
@@ -240,27 +242,33 @@ const electronAPI = {
       _: unknown,
       payload: { id: string; viewUrl: string; editUrl: string },
     ): void => callback(payload);
-    ipcRenderer.on(IPC_CHANNELS.SNAP_UPLOAD_COMPLETE, handler);
+    ipcRenderer.on(IPC_CHANNELS.SCREENSHOT_UPLOAD_COMPLETE, handler);
     return () =>
-      ipcRenderer.removeListener(IPC_CHANNELS.SNAP_UPLOAD_COMPLETE, handler);
+      ipcRenderer.removeListener(
+        IPC_CHANNELS.SCREENSHOT_UPLOAD_COMPLETE,
+        handler,
+      );
   },
-  onSnapUploadFailed: (
+  onScreenshotUploadFailed: (
     callback: (payload: { reason: string }) => void,
   ): (() => void) => {
     const handler = (_: unknown, payload: { reason: string }): void =>
       callback(payload);
-    ipcRenderer.on(IPC_CHANNELS.SNAP_UPLOAD_FAILED, handler);
+    ipcRenderer.on(IPC_CHANNELS.SCREENSHOT_UPLOAD_FAILED, handler);
     return () =>
-      ipcRenderer.removeListener(IPC_CHANNELS.SNAP_UPLOAD_FAILED, handler);
+      ipcRenderer.removeListener(
+        IPC_CHANNELS.SCREENSHOT_UPLOAD_FAILED,
+        handler,
+      );
   },
-  snapNotificationClose: (): void =>
-    ipcRenderer.send(IPC_CHANNELS.SNAP_NOTIFICATION_CLOSE),
-  snapOpenEdit: (editUrl: string): void =>
-    ipcRenderer.send(IPC_CHANNELS.SNAP_OPEN_EDIT, editUrl),
-  snapCopyLink: (viewUrl: string): void =>
-    ipcRenderer.send(IPC_CHANNELS.SNAP_COPY_LINK, viewUrl),
-  snapDelete: (id: string): void =>
-    ipcRenderer.send(IPC_CHANNELS.SNAP_DELETE, id),
+  screenshotNotificationClose: (): void =>
+    ipcRenderer.send(IPC_CHANNELS.SCREENSHOT_NOTIFICATION_CLOSE),
+  screenshotOpenEdit: (editUrl: string): void =>
+    ipcRenderer.send(IPC_CHANNELS.SCREENSHOT_OPEN_EDIT, editUrl),
+  screenshotCopyLink: (viewUrl: string): void =>
+    ipcRenderer.send(IPC_CHANNELS.SCREENSHOT_COPY_LINK, viewUrl),
+  screenshotDelete: (id: string): void =>
+    ipcRenderer.send(IPC_CHANNELS.SCREENSHOT_DELETE, id),
 
   permissionsGranted: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.PERMISSIONS_GRANTED),
@@ -333,7 +341,7 @@ const electronAPI = {
     captureAudio?: boolean;
     includeSelfWindows?: boolean;
     cropRect?: WindowBounds;
-    share?: boolean;
+    recording?: boolean;
   }): Promise<{
     windowBounds?: WindowBounds;
     wallClockMs?: number;
@@ -442,58 +450,58 @@ const electronAPI = {
   markReleaseNotesShown: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.RELEASE_NOTES_MARK_SHOWN),
 
-  getShareAuth: (): Promise<ShareAuthState> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SHARE_AUTH_GET),
+  getRecordingAuth: (): Promise<RecordingAuthState> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_AUTH_GET),
 
-  signInShareAuth: (): Promise<void> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SHARE_AUTH_SIGN_IN),
+  signInRecordingAuth: (): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_AUTH_SIGN_IN),
 
-  signOutShareAuth: (): Promise<ShareAuthState> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SHARE_AUTH_SIGN_OUT),
+  signOutRecordingAuth: (): Promise<RecordingAuthState> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_AUTH_SIGN_OUT),
 
-  onShareAuthChanged: (
-    callback: (state: ShareAuthState) => void,
+  onRecordingAuthChanged: (
+    callback: (state: RecordingAuthState) => void,
   ): (() => void) => {
-    const handler = (_: unknown, state: ShareAuthState): void =>
+    const handler = (_: unknown, state: RecordingAuthState): void =>
       callback(state);
-    ipcRenderer.on(IPC_CHANNELS.SHARE_AUTH_CHANGED, handler);
+    ipcRenderer.on(IPC_CHANNELS.RECORDING_AUTH_CHANGED, handler);
     return () =>
-      ipcRenderer.removeListener(IPC_CHANNELS.SHARE_AUTH_CHANGED, handler);
+      ipcRenderer.removeListener(IPC_CHANNELS.RECORDING_AUTH_CHANGED, handler);
   },
 
-  getShareConnectivity: (): Promise<ShareConnectivityState> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SHARE_CONNECTIVITY_GET),
+  getRecordingConnectivity: (): Promise<RecordingConnectivityState> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_CONNECTIVITY_GET),
 
-  onShareConnectivityChanged: (
-    callback: (state: ShareConnectivityState) => void,
+  onRecordingConnectivityChanged: (
+    callback: (state: RecordingConnectivityState) => void,
   ): (() => void) => {
-    const handler = (_: unknown, state: ShareConnectivityState): void =>
+    const handler = (_: unknown, state: RecordingConnectivityState): void =>
       callback(state);
-    ipcRenderer.on(IPC_CHANNELS.SHARE_CONNECTIVITY_CHANGED, handler);
+    ipcRenderer.on(IPC_CHANNELS.RECORDING_CONNECTIVITY_CHANGED, handler);
     return () =>
       ipcRenderer.removeListener(
-        IPC_CHANNELS.SHARE_CONNECTIVITY_CHANGED,
+        IPC_CHANNELS.RECORDING_CONNECTIVITY_CHANGED,
         handler,
       );
   },
 
-  getShareUsage: (): Promise<ShareUsageState> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SHARE_USAGE_GET),
+  getRecordingUsage: (): Promise<RecordingUsageState> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_USAGE_GET),
 
-  refreshShareUsage: (): Promise<ShareUsageState> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SHARE_USAGE_REFRESH),
+  refreshRecordingUsage: (): Promise<RecordingUsageState> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_USAGE_REFRESH),
 
-  openShareUpgradeCheckout: (): Promise<void> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SHARE_USAGE_OPEN_UPGRADE),
+  openRecordingUpgradeCheckout: (): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_USAGE_OPEN_UPGRADE),
 
-  onShareUsageChanged: (
-    callback: (state: ShareUsageState) => void,
+  onRecordingUsageChanged: (
+    callback: (state: RecordingUsageState) => void,
   ): (() => void) => {
-    const handler = (_: unknown, state: ShareUsageState): void =>
+    const handler = (_: unknown, state: RecordingUsageState): void =>
       callback(state);
-    ipcRenderer.on(IPC_CHANNELS.SHARE_USAGE_CHANGED, handler);
+    ipcRenderer.on(IPC_CHANNELS.RECORDING_USAGE_CHANGED, handler);
     return () =>
-      ipcRenderer.removeListener(IPC_CHANNELS.SHARE_USAGE_CHANGED, handler);
+      ipcRenderer.removeListener(IPC_CHANNELS.RECORDING_USAGE_CHANGED, handler);
   },
 
   getWorkspaces: (): Promise<WorkspacesState> =>

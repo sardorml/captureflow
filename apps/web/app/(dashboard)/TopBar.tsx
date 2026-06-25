@@ -48,8 +48,12 @@ export async function TopBar() {
             }
           />
         )}
-        <ThemeToggle initialTheme={theme} />
-        <Link href="/notifications" title="Notifications">
+        <ThemeToggle initialTheme={theme} className="h-8 w-8" />
+        <Link
+          href="/notifications"
+          title="Notifications"
+          style={{ display: "inline-flex" }}
+        >
           <Button
             type="text"
             icon={<Bell size={18} />}

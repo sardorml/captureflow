@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getShare, updateShare } from "@/lib/share/db";
-import { isValidSlug } from "@/lib/share/slug";
-import { abortMultipartUpload } from "@/lib/share/r2";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
-import type { AbortRequest } from "@/lib/share/types";
+import { getRecording, updateRecording } from "@/lib/recording/db";
+import { isValidSlug } from "@/lib/recording/slug";
+import { abortMultipartUpload } from "@/lib/recording/r2";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
+import type { AbortRequest } from "@/lib/recording/types";
 
 const DEVICE_HEADER = "x-captureflow-device";
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     return jsonError("Invalid slug", 400, "invalid_slug");
   }
 
-  const row = await getShare(body.slug);
+  const row = await getRecording(body.slug);
   if (!row) return withCors(NextResponse.json({ ok: true }));
   if (row.deviceId !== deviceId)
     return jsonError("Forbidden", 403, "forbidden");
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   if (row.uploadId) {
     await abortMultipartUpload(row.storageKey, row.uploadId);
   }
-  await updateShare(row.slug, { state: "failed", uploadId: null });
+  await updateRecording(row.slug, { state: "failed", uploadId: null });
 
   return withCors(NextResponse.json({ ok: true }));
 }

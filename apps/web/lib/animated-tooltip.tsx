@@ -23,7 +23,7 @@ export interface AnimatedTooltipProps {
   delay?: number;
   children: ReactNode;
   className?: string;
-  // Extra classes for the trigger wrapper span. Default is  `relative inline-flex items-center` — override to opt the wrapper  into the parent's layout (e.g. `flex flex-1` to take its share of  a segmented flex container).
+  // Extra classes for the trigger wrapper span. Default is  `relative inline-flex items-center` — override to opt the wrapper  into the parent's layout (e.g. `flex flex-1` to take its recording of  a segmented flex container).
   triggerClassName?: string;
 }
 

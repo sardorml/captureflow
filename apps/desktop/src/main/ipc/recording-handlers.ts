@@ -15,7 +15,7 @@ import {
   resumeNativeRecording,
   isNativeRecordingActive,
   setOnUnexpectedExit,
-  setOnShareEvent,
+  setOnRecordingEvent,
 } from "../native-recorder";
 
 export function registerRecordingHandlers(
@@ -54,10 +54,13 @@ export function registerRecordingHandlers(
     }
   });
 
-  setOnShareEvent((event) => {
+  setOnRecordingEvent((event) => {
     const recordingWindow = getRecordingWindow();
     if (recordingWindow && !recordingWindow.isDestroyed()) {
-      recordingWindow.webContents.send(IPC_CHANNELS.SHARE_FRAME_EVENT, event);
+      recordingWindow.webContents.send(
+        IPC_CHANNELS.RECORDING_FRAME_EVENT,
+        event,
+      );
     }
   });
 
@@ -73,7 +76,7 @@ export function registerRecordingHandlers(
         captureAudio?: boolean;
         includeSelfWindows?: boolean;
         cropRect?: WindowBounds;
-        share?: boolean;
+        recording?: boolean;
       },
     ) =>
       startNativeRecording({

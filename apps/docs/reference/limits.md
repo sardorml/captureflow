@@ -10,7 +10,7 @@ Everything you upload lives in R2 and counts toward your quota:
 
 - **Recordings** — the video files (`videos/`) and their poster images
   (`posters/`).
-- **Snaps** — screenshot PNGs (`snaps/`).
+- **Screenshots** — screenshot PNGs (`screenshots/`).
 
 The dashboard's **Storage usage** view shows how much of your quota you've used.
 

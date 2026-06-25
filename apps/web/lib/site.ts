@@ -1,7 +1,7 @@
 export const SITE_URL =
   process.env.NEXT_PUBLIC_MARKETING_SITE_URL ?? "https://captureflow.xyz";
 
-export const SHARE_SITE_URL = SITE_URL;
+export const RECORDING_SITE_URL = SITE_URL;
 export const MARKETING_SITE_URL = SITE_URL;
 
 export const APP_WEB_SITE_URL =
@@ -38,26 +38,26 @@ export function viewUrlForRequest(req: Request, id: string): string {
   }
 }
 
-export const SNAP_SITE_URL = SITE_URL;
+export const SCREENSHOT_SITE_URL = SITE_URL;
 
 export const APP_SITE_URL = APP_WEB_SITE_URL;
 
 export const R2_PUBLIC_BASE_URL =
   process.env.R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
-export function snapViewUrlFor(id: string): string {
+export function screenshotViewUrlFor(id: string): string {
   return `${SITE_URL}/s/${id}`;
 }
 
-export function snapEditUrlFor(id: string): string {
-  return `${APP_WEB_SITE_URL}/snaps/${id}/edit`;
+export function screenshotEditUrlFor(id: string): string {
+  return `${APP_WEB_SITE_URL}/screenshots/${id}/edit`;
 }
 
-export function snapViewUrlForRequest(req: Request, id: string): string {
+export function screenshotViewUrlForRequest(req: Request, id: string): string {
   try {
     const origin = new URL(req.url).origin;
     return `${origin}/s/${id}`;
   } catch {
-    return snapViewUrlFor(id);
+    return screenshotViewUrlFor(id);
   }
 }

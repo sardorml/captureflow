@@ -37,8 +37,10 @@ export function WorkspaceSwitcher({
     key: m.workspace_id,
     label: (
       <div style={{ display: "flex", flexDirection: "column" }}>
-        <span style={{ fontWeight: 500 }}>{m.workspace_name}</span>
-        <span style={{ fontSize: 12, opacity: 0.65 }}>
+        <span className="text-fg" style={{ fontWeight: 500 }}>
+          {m.workspace_name}
+        </span>
+        <span className="text-fg-muted" style={{ fontSize: 12 }}>
           {m.role === "owner" ? "You own this" : "You joined"}
         </span>
       </div>

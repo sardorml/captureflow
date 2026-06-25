@@ -4,7 +4,7 @@ import { app } from "electron";
 import { createSessionDir, setCurrentSessionDir } from "./storage";
 import { logInfo, logWarn, logError, logRaw } from "./lib/logger";
 import { getUserPrefs } from "./lib/user-prefs";
-import type { ShareFrameEvent } from "../shared/types";
+import type { RecordingFrameEvent } from "../shared/types";
 
 export type StopResult = {
   path: string;
@@ -17,21 +17,21 @@ export type StopResult = {
 /*
  * ScreenCaptureKit downsamples the source to this cap, so it governs encode
  * detail. Bitrate matches the per-pixel budget 4 Mbps gave at 720p.
- * Keep in sync with ENCODE_BITRATE in `share-compositing-encoder.ts`.
+ * Keep in sync with ENCODE_BITRATE in `recording-compositing-encoder.ts`.
  */
-const SHARE_WIDTH = 1920;
-const SHARE_HEIGHT = 1080;
-const SHARE_FPS = 60;
-const SHARE_BITRATE = 8_000_000;
+const RECORDING_WIDTH = 1920;
+const RECORDING_HEIGHT = 1080;
+const RECORDING_FPS = 60;
+const RECORDING_BITRATE = 8_000_000;
 
-// fd the parent allocates for the binary share-output pipe; the child opens
+// fd the parent allocates for the binary recording-output pipe; the child opens
 // FileHandle(fileDescriptor: 3) and writes length-prefixed records.
-const SHARE_FD = 3;
+const RECORDING_FD = 3;
 
 let proc: ChildProcess | null = null;
 let onStopResolve: ((result: StopResult) => void | Promise<void>) | null = null;
 let onUnexpectedExit: (() => void) | null = null;
-let onShareEvent: ((event: ShareFrameEvent) => void) | null = null;
+let onRecordingEvent: ((event: RecordingFrameEvent) => void) | null = null;
 let stdoutBuffer = "";
 let stoppedCleanly = false;
 
@@ -48,10 +48,10 @@ export function setOnUnexpectedExit(cb: (() => void) | null): void {
   onUnexpectedExit = cb;
 }
 
-export function setOnShareEvent(
-  cb: ((event: ShareFrameEvent) => void) | null,
+export function setOnRecordingEvent(
+  cb: ((event: RecordingFrameEvent) => void) | null,
 ): void {
-  onShareEvent = cb;
+  onRecordingEvent = cb;
 }
 
 export function getRecorderHealth(): RecorderHealth | null {
@@ -76,8 +76,8 @@ type RecorderConfig = {
   captureAudio?: boolean;
   excludePid?: number;
   cropRect?: WindowBounds;
-  // Per-session override for the share tap; falls back to the user pref if unset.
-  share?: boolean;
+  // Per-session override for the recording tap; falls back to the user pref if unset.
+  recording?: boolean;
 };
 
 type StartResult = {
@@ -138,14 +138,14 @@ export async function startNativeRecording(
 async function spawnNativeRecorder(
   config: RecorderConfig,
 ): Promise<StartResult> {
-  const shareEnabled = config.share ?? getUserPrefs().shareEnabled;
-  // Share mode skips the on-disk .captureflow bundle entirely; the native
-  // binary gates its writers on share=true and never opens an output file.
-  const sessionDir = shareEnabled ? "" : await createSessionDir();
-  if (shareEnabled) setCurrentSessionDir(null);
-  const { share: _shareOverride, ...rest } = config;
-  const finalConfig: Omit<RecorderConfig, "share"> & {
-    share?: {
+  const recordingEnabled = config.recording ?? getUserPrefs().recordingEnabled;
+  // Recording mode skips the on-disk .captureflow bundle entirely; the native
+  // binary gates its writers on recording=true and never opens an output file.
+  const sessionDir = recordingEnabled ? "" : await createSessionDir();
+  if (recordingEnabled) setCurrentSessionDir(null);
+  const { recording: _recordingOverride, ...rest } = config;
+  const finalConfig: Omit<RecorderConfig, "recording"> & {
+    recording?: {
       width: number;
       height: number;
       fps: number;
@@ -153,19 +153,19 @@ async function spawnNativeRecorder(
       fd: number;
     };
   } = { ...rest, outputDir: sessionDir };
-  if (shareEnabled) {
-    finalConfig.share = {
-      width: SHARE_WIDTH,
-      height: SHARE_HEIGHT,
-      fps: SHARE_FPS,
-      bitrate: SHARE_BITRATE,
-      fd: SHARE_FD,
+  if (recordingEnabled) {
+    finalConfig.recording = {
+      width: RECORDING_WIDTH,
+      height: RECORDING_HEIGHT,
+      fps: RECORDING_FPS,
+      bitrate: RECORDING_BITRATE,
+      fd: RECORDING_FD,
     };
   }
 
   logInfo(
     "recorder",
-    `starting native recording: sessionDir=${sessionDir}, share=${shareEnabled ? "on" : "off"}`,
+    `starting native recording: sessionDir=${sessionDir}, recording=${recordingEnabled ? "on" : "off"}`,
   );
 
   return new Promise((resolve, reject) => {
@@ -177,27 +177,29 @@ async function spawnNativeRecorder(
 
     logInfo("recorder", `spawning: ${binPath}`);
     // Allocate a 4th 'pipe' slot so the child's fd 3 is readable here; the
-    // native ShareWriter writes length-prefixed records there (ShareWriter.swift).
-    const stdio: ("pipe" | "ignore")[] = shareEnabled
+    // native RecordingWriter writes length-prefixed records there (RecordingWriter.swift).
+    const stdio: ("pipe" | "ignore")[] = recordingEnabled
       ? ["pipe", "pipe", "pipe", "pipe"]
       : ["pipe", "pipe", "pipe"];
     proc = spawn(binPath, [jsonConfig], {
       stdio,
       env: { ...process.env },
     });
-    // Spike-only diagnostic for the share-tap fan-out (docs/spikes/share-tap.md).
+    // Spike-only diagnostic for the recording-tap fan-out (docs/spikes/recording-tap.md).
     // Remove this block when the spike concludes.
-    if (process.env.CAPTUREFLOW_SHARE_TAP_SPIKE === "1") {
-      logInfo("recorder", "share-tap spike: env flag forwarded to child");
+    if (process.env.CAPTUREFLOW_RECORDING_TAP_SPIKE === "1") {
+      logInfo("recorder", "recording-tap spike: env flag forwarded to child");
     }
-    if (shareEnabled) {
-      const shareStream = proc.stdio[SHARE_FD] as NodeJS.ReadableStream | null;
-      if (shareStream) {
-        attachShareReader(shareStream);
+    if (recordingEnabled) {
+      const recordingStream = proc.stdio[
+        RECORDING_FD
+      ] as NodeJS.ReadableStream | null;
+      if (recordingStream) {
+        attachRecordingReader(recordingStream);
       } else {
         logWarn(
           "recorder",
-          `share enabled but stdio[${SHARE_FD}] not available`,
+          `recording enabled but stdio[${RECORDING_FD}] not available`,
         );
       }
     }
@@ -391,7 +393,7 @@ export function resumeNativeRecording(): void {
   proc?.stdin?.write("resume\n");
 }
 
-// On-wire layout of the binary records the native ShareWriter emits on fd 3
+// On-wire layout of the binary records the native RecordingWriter emits on fd 3
 // (all multi-byte ints little-endian):
 //   tag 0x01 — video format desc, sent once after first encode:
 //     u32 width | u32 height | u32 fps | u32 descLen | descLen bytes (avcC)
@@ -403,12 +405,12 @@ export function resumeNativeRecording(): void {
 //   tag 0x04 — encoded audio chunk, one per AAC packet:
 //     i64 ptsUs | u32 durationUs | u32 dataLen | dataLen bytes (raw AAC)
 //   tag 0xFF — end of stream (1 byte total).
-function attachShareReader(stream: NodeJS.ReadableStream): void {
+function attachRecordingReader(stream: NodeJS.ReadableStream): void {
   // Plain Buffer (not an ArrayBuffer-backed alloc) to match the stream chunks'
   // looser ArrayBufferLike backing under TS strict mode.
   let buf: Buffer = Buffer.concat([]);
-  let shareFrameCount = 0;
-  let shareKeyCount = 0;
+  let recordingFrameCount = 0;
+  let recordingKeyCount = 0;
   let formatEmitted = false;
 
   stream.on("data", (chunk: Buffer) => {
@@ -427,10 +429,10 @@ function attachShareReader(stream: NodeJS.ReadableStream): void {
         buf = buf.slice(total);
         formatEmitted = true;
         logInfo(
-          "share",
+          "recording",
           `format: ${width}x${height}@${fps}fps, descLen=${descLen}`,
         );
-        onShareEvent?.({
+        onRecordingEvent?.({
           kind: "format",
           codedWidth: width,
           codedHeight: height,
@@ -448,9 +450,9 @@ function attachShareReader(stream: NodeJS.ReadableStream): void {
         if (buf.length < total) break;
         const data = new Uint8Array(buf.slice(18, 18 + dataLen));
         buf = buf.slice(total);
-        shareFrameCount++;
-        if (isKey) shareKeyCount++;
-        onShareEvent?.({
+        recordingFrameCount++;
+        if (isKey) recordingKeyCount++;
+        onRecordingEvent?.({
           kind: "chunk",
           type: isKey ? "key" : "delta",
           timestamp: ptsUs,
@@ -467,10 +469,10 @@ function attachShareReader(stream: NodeJS.ReadableStream): void {
         const description = new Uint8Array(buf.slice(13, 13 + descLen));
         buf = buf.slice(total);
         logInfo(
-          "share",
+          "recording",
           `audio-format: ${sampleRate}Hz, ${channelCount}ch, descLen=${descLen}`,
         );
-        onShareEvent?.({
+        onRecordingEvent?.({
           kind: "audio-format",
           sampleRate,
           numberOfChannels: channelCount,
@@ -485,7 +487,7 @@ function attachShareReader(stream: NodeJS.ReadableStream): void {
         if (buf.length < total) break;
         const data = new Uint8Array(buf.slice(17, 17 + dataLen));
         buf = buf.slice(total);
-        onShareEvent?.({
+        onRecordingEvent?.({
           kind: "audio-chunk",
           timestamp: ptsUs,
           duration: durationUs,
@@ -494,16 +496,16 @@ function attachShareReader(stream: NodeJS.ReadableStream): void {
       } else if (tag === 0xff) {
         buf = buf.slice(1);
         logInfo(
-          "share",
-          `end-of-stream: frames=${shareFrameCount}, keyframes=${shareKeyCount}, formatEmitted=${formatEmitted}`,
+          "recording",
+          `end-of-stream: frames=${recordingFrameCount}, keyframes=${recordingKeyCount}, formatEmitted=${formatEmitted}`,
         );
-        onShareEvent?.({ kind: "end" });
+        onRecordingEvent?.({ kind: "end" });
       } else {
         // Unknown tag means the wire is desynced; drop the rest so payload
         // bytes aren't misread as headers.
         logError(
           "recorder",
-          `share-reader: unknown tag 0x${tag.toString(16)}, dropping ${buf.length}B`,
+          `recording-reader: unknown tag 0x${tag.toString(16)}, dropping ${buf.length}B`,
         );
         buf = Buffer.alloc(0);
         break;
@@ -515,12 +517,12 @@ function attachShareReader(stream: NodeJS.ReadableStream): void {
     if (buf.length > 0) {
       logWarn(
         "recorder",
-        `share-reader: ${buf.length}B unparsed at stream end`,
+        `recording-reader: ${buf.length}B unparsed at stream end`,
       );
     }
   });
 
   stream.on("error", (err) => {
-    logError("recorder", `share-reader: stream error: ${err.message}`);
+    logError("recorder", `recording-reader: stream error: ${err.message}`);
   });
 }

@@ -28,7 +28,10 @@ export function PolicyCardButton({ active, icon, title, body }: Props) {
         cursor: pending ? "progress" : "pointer",
       }}
     >
-      <Card hoverable={!pending} variant={showActive ? "borderless" : "outlined"}>
+      <Card
+        hoverable={!pending}
+        variant={showActive ? "borderless" : "outlined"}
+      >
         <Flex gap={12} align="flex-start">
           <span style={{ marginTop: 2, lineHeight: 0 }}>{icon}</span>
           <Flex vertical gap={4} flex={1} style={{ minWidth: 0 }}>

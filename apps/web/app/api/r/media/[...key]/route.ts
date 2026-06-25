@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { NextRequest, NextResponse } from "next/server";
-import { getCloudflareEnv } from "@/lib/share/cf-env";
+import { getCloudflareEnv } from "@/lib/recording/cf-env";
 
 /*
  * Local-dev-only inline media proxy: miniflare's local R2 (.wrangler/) has no
@@ -9,7 +9,7 @@ import { getCloudflareEnv } from "@/lib/share/cf-env";
  * CDN. Streams them same-origin from the BUCKET binding instead. Wire it via:
  *   .env.local  NEXT_PUBLIC_R2_PUBLIC_BASE_URL=http://localhost:3032/api/r/media   (editor reads process.env)
  *   .dev.vars   R2_PUBLIC_BASE_URL=http://localhost:3032/api/r/media               (viewer publicUrlFor reads the binding)
- * Guarded to localhost so it can never stream bytes around the private-share
+ * Guarded to localhost so it can never stream bytes around the private-recording
  * visibility gate that /api/r/download enforces.
  */
 

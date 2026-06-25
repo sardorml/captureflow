@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { loadSession } from "@/lib/session-guard";
-import { viewUrlFor, snapViewUrlFor } from "@/lib/site";
+import { viewUrlFor, screenshotViewUrlFor } from "@/lib/site";
 
 // Cookie-gated, so never serve a cached response.
 export const dynamic = "force-dynamic";
 
 export type SearchHit = {
-  kind: "share" | "snap";
+  kind: "recording" | "screenshot";
   id: string;
   title: string;
   href: string;
@@ -30,10 +30,10 @@ export async function GET(req: Request) {
 
   const like = `%${q.replace(/[%_]/g, (m) => `\\${m}`)}%`;
 
-  const [shares, snaps] = await Promise.all([
+  const [recordings, screenshots] = await Promise.all([
     env.DB.prepare(
       `SELECT slug, title, poster_key, created_at
-         FROM shares
+         FROM recordings
         WHERE user_id = ?1
           AND state = 'ready'
           AND title LIKE ?2 ESCAPE '\\'
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
       }>(),
     env.DB.prepare(
       `SELECT id, title, created_at
-         FROM snaps
+         FROM screenshots
         WHERE user_id = ?1
           AND state = 'ready'
           AND title LIKE ?2 ESCAPE '\\'
@@ -62,8 +62,8 @@ export async function GET(req: Request) {
 
   const CDN = env.R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
-  const shareHits: SearchHit[] = (shares.results ?? []).map((r) => ({
-    kind: "share",
+  const recordingHits: SearchHit[] = (recordings.results ?? []).map((r) => ({
+    kind: "recording",
     id: r.slug,
     title: r.title ?? "Untitled recording",
     href: viewUrlFor(r.slug),
@@ -71,16 +71,16 @@ export async function GET(req: Request) {
     thumbnailUrl: r.poster_key ? `${CDN}/${r.poster_key}` : null,
   }));
 
-  const snapHits: SearchHit[] = (snaps.results ?? []).map((r) => ({
-    kind: "snap",
+  const screenshotHits: SearchHit[] = (screenshots.results ?? []).map((r) => ({
+    kind: "screenshot",
     id: r.id,
-    title: r.title ?? "Untitled snap",
-    href: snapViewUrlFor(r.id),
+    title: r.title ?? "Untitled screenshot",
+    href: screenshotViewUrlFor(r.id),
     createdAt: r.created_at,
-    thumbnailUrl: `${CDN}/snaps/${r.id}`,
+    thumbnailUrl: `${CDN}/screenshots/${r.id}`,
   }));
 
-  const hits = [...shareHits, ...snapHits].sort(
+  const hits = [...recordingHits, ...screenshotHits].sort(
     (a, b) => b.createdAt - a.createdAt,
   );
   return NextResponse.json({ hits });

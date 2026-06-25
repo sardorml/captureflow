@@ -3,45 +3,26 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import {
-  HardDrive,
-  LogOut,
-  Settings,
-  Sparkles,
-  UserCircle,
-} from "lucide-react";
-import { Avatar, Dropdown, Tag, Typography, type MenuProps } from "antd";
+import { HardDrive, Settings, UserCircle } from "lucide-react";
+import type { MenuProps } from "antd";
 import { signOut } from "@/lib/auth-client";
 import { notifyExtensionSignOut } from "@/lib/extension-bridge";
-
-type ProInfo = {
-  cycle: "monthly" | "annual";
-  status: string;
-};
+import {
+  AccountMenu,
+  type AccountMenuProInfo,
+} from "@/app/_components/AccountMenu";
 
 type Props = {
   userId: string;
   name: string | null;
   email: string;
   imageUrl: string | null;
-  pro: ProInfo | null;
+  pro: AccountMenuProInfo | null;
 };
-
-function initials(name: string | null, email: string): string {
-  const source = (name ?? "").trim() || email;
-  return source
-    .split(/\s+/)
-    .map((w) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
 
 export function UserMenu({ name, email, imageUrl, pro }: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const displayName = name?.trim() || email;
 
   const onSignOut = async () => {
     if (pending) return;
@@ -51,31 +32,7 @@ export function UserMenu({ name, email, imageUrl, pro }: Props) {
     router.replace("/login");
   };
 
-  const items: MenuProps["items"] = [
-    {
-      key: "user",
-      type: "group",
-      label: (
-        <div style={{ paddingBlock: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Typography.Text strong>{displayName}</Typography.Text>
-            {pro && (
-              <Tag
-                color="blue"
-                icon={<Sparkles size={10} />}
-                style={{ marginInlineEnd: 0 }}
-              >
-                Pro
-              </Tag>
-            )}
-          </div>
-          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            {email}
-          </Typography.Text>
-        </div>
-      ),
-    },
-    { type: "divider" },
+  const navItems: NonNullable<MenuProps["items"]> = [
     {
       key: "profile",
       icon: <UserCircle size={16} />,
@@ -91,26 +48,17 @@ export function UserMenu({ name, email, imageUrl, pro }: Props) {
       icon: <Settings size={16} />,
       label: <Link href="/settings">Workspace settings</Link>,
     },
-    { type: "divider" },
-    {
-      key: "signout",
-      icon: <LogOut size={16} />,
-      danger: true,
-      disabled: pending,
-      label: pending ? "Signing out…" : "Sign out",
-      onClick: onSignOut,
-    },
   ];
 
   return (
-    <Dropdown menu={{ items }} trigger={["click"]} placement="bottomRight">
-      <Avatar
-        src={imageUrl || undefined}
-        style={{ cursor: "pointer" }}
-        aria-label="Account menu"
-      >
-        {initials(name, email)}
-      </Avatar>
-    </Dropdown>
+    <AccountMenu
+      name={name}
+      email={email}
+      imageUrl={imageUrl}
+      pro={pro}
+      navItems={navItems}
+      signingOut={pending}
+      onSignOut={() => void onSignOut()}
+    />
   );
 }

@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { getShare } from "@/lib/share/db";
-import { isValidSlug } from "@/lib/share/slug";
-import { verifySessionOrNull } from "@/lib/share/verify-session";
+import { getRecording } from "@/lib/recording/db";
+import { isValidSlug } from "@/lib/recording/slug";
+import { verifySessionOrNull } from "@/lib/recording/verify-session";
 import {
   hydrateSummaryChapters,
   loadSummaryChapters,
   saveSummaryChapters,
-  type ShareSummaryChapters,
-} from "@/lib/share/summary-chapters";
+  type RecordingSummaryChapters,
+} from "@/lib/recording/summary-chapters";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ export async function GET(_req: Request, { params }: Params) {
   if (!isValidSlug(id)) {
     return NextResponse.json({ error: "invalid_slug" }, { status: 400 });
   }
-  const row = await getShare(id);
+  const row = await getRecording(id);
   if (!row || row.state !== "ready") {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
@@ -32,7 +32,7 @@ export async function PUT(req: Request, { params }: Params) {
   if (!isValidSlug(id)) {
     return NextResponse.json({ error: "invalid_slug" }, { status: 400 });
   }
-  const row = await getShare(id);
+  const row = await getRecording(id);
   if (!row || row.state !== "ready") {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
@@ -47,7 +47,7 @@ export async function PUT(req: Request, { params }: Params) {
   } catch {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
-  const normalized: ShareSummaryChapters = hydrateSummaryChapters(body);
+  const normalized: RecordingSummaryChapters = hydrateSummaryChapters(body);
   await saveSummaryChapters(row.storageKey, normalized);
   return NextResponse.json(normalized);
 }

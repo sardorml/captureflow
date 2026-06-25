@@ -36,7 +36,8 @@ function initials(name: string, email: string): string {
 const AVATAR_HUES = ["#1677ff", "#52c41a", "#722ed1", "#eb2f96", "#fa8c16"];
 function avatarColor(seed: string): string {
   let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  for (let i = 0; i < seed.length; i++)
+    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
   return AVATAR_HUES[Math.abs(hash) % AVATAR_HUES.length];
 }
 
@@ -132,7 +133,9 @@ function AvatarUploader({
           <Avatar
             size={56}
             src={imageUrl ?? undefined}
-            style={imageUrl ? undefined : { backgroundColor: avatarColor(userId) }}
+            style={
+              imageUrl ? undefined : { backgroundColor: avatarColor(userId) }
+            }
           >
             {initials(name, email)}
           </Avatar>
@@ -145,9 +148,17 @@ function AvatarUploader({
         </button>
       </Upload>
       <Flex align="center" gap={8} style={{ fontSize: 12 }}>
-        {uploading && <Typography.Text type="secondary">Uploading…</Typography.Text>}
+        {uploading && (
+          <Typography.Text type="secondary">Uploading…</Typography.Text>
+        )}
         {!uploading && imageUrl && (
-          <Button type="link" size="small" onClick={onRemove} disabled={busy} style={{ padding: 0 }}>
+          <Button
+            type="link"
+            size="small"
+            onClick={onRemove}
+            disabled={busy}
+            style={{ padding: 0 }}
+          >
             {removePending ? "Removing…" : "Remove"}
           </Button>
         )}
@@ -208,7 +219,7 @@ function NameRow({
         label="Display name"
         validateStatus={error ? "error" : undefined}
         help={error ?? undefined}
-        extra="Shown on shares, snaps, and activity rows."
+        extra="Shown on recordings, screenshots, and activity rows."
       >
         <Input
           value={name}
@@ -220,11 +231,19 @@ function NameRow({
           autoComplete="name"
         />
       </Form.Item>
-      <Form.Item label="Email" help="Used to sign in. Contact support to change.">
+      <Form.Item
+        label="Email"
+        help="Used to sign in. Contact support to change."
+      >
         <Input type="email" value={email} readOnly />
       </Form.Item>
       <Flex align="center" gap={12}>
-        <Button type="primary" htmlType="submit" loading={pending} disabled={!dirty}>
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={pending}
+          disabled={!dirty}
+        >
           {pending ? "Saving…" : "Save"}
         </Button>
         {savedAt && (

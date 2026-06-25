@@ -15,7 +15,7 @@ const BUSY_LABEL: Partial<Record<RecordingStatus["kind"], string>> = {
   uploading: "Uploading…",
 };
 
-function ShareLink({ url }: { url: string }) {
+function RecordingLink({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {
@@ -28,7 +28,7 @@ function ShareLink({ url }: { url: string }) {
   };
   return (
     <div className="cf-result">
-      <p className="cf-status cf-status--ok">Your share link is ready ✓</p>
+      <p className="cf-status cf-status--ok">Your recording link is ready ✓</p>
       <div className="cf-linkrow">
         <a className="cf-link" href={url} target="_blank" rel="noreferrer">
           {url}
@@ -64,10 +64,10 @@ function StatusLine({
         </p>
       );
     default:
-      if (result?.ok) return <ShareLink url={result.url} />;
+      if (result?.ok) return <RecordingLink url={result.url} />;
       return (
         <p className="cf-status cf-status--muted">
-          Record your screen and get an instant share link.
+          Record your screen and get an instant recording link.
         </p>
       );
   }

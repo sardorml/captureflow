@@ -1,6 +1,6 @@
 /*
  * The bearer token never leaves the extension except as an Authorization header
- * to the share API.
+ * to the recording API.
  */
 
 export type AuthSession = {

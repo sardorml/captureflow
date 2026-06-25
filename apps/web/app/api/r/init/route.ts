@@ -3,8 +3,8 @@ import {
   ALLOWED_CONTENT_TYPES,
   ALLOWED_PRESETS,
   ALLOWED_SOURCES,
-} from "@/lib/share/limits";
-import { insertShare } from "@/lib/share/db";
+} from "@/lib/recording/limits";
+import { insertRecording } from "@/lib/recording/db";
 import {
   activeArtifactCountForUser,
   getEffectiveLimitsForUser,
@@ -12,18 +12,21 @@ import {
   resolveUserWorkspaceId,
   validateWorkspaceMembership,
   totalStorageForUser,
-} from "@/lib/share/quota";
-import { resolveDeviceTokenToUser } from "@/lib/share/device-tokens";
-import { generateSlug } from "@/lib/share/slug";
-import { createMultipartUpload } from "@/lib/share/r2";
-import { isDevDevice } from "@/lib/share/dev-allowlist";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
-import { buildShareHeadline, sanitizeSourceTitle } from "@/lib/share/title";
+} from "@/lib/recording/quota";
+import { resolveDeviceTokenToUser } from "@/lib/recording/device-tokens";
+import { generateSlug } from "@/lib/recording/slug";
+import { createMultipartUpload } from "@/lib/recording/r2";
+import { isDevDevice } from "@/lib/recording/dev-allowlist";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
+import {
+  buildRecordingHeadline,
+  sanitizeSourceTitle,
+} from "@/lib/recording/title";
 import type {
   InitRequest,
   InitResponse,
-  ShareVisibility,
-} from "@/lib/share/types";
+  RecordingVisibility,
+} from "@/lib/recording/types";
 
 const DEVICE_HEADER = "x-captureflow-device";
 
@@ -61,7 +64,7 @@ export async function POST(req: NextRequest) {
     return jsonError("Invalid source", 400, "invalid_source");
   }
 
-  const preset = body.preset ?? "share";
+  const preset = body.preset ?? "recording";
   if (!ALLOWED_PRESETS.has(preset)) {
     return jsonError("Invalid preset", 400, "invalid_preset");
   }
@@ -70,11 +73,15 @@ export async function POST(req: NextRequest) {
 
   const createdAt = Date.now();
   const sourceTitle = sanitizeSourceTitle(body.title);
-  const title = buildShareHeadline(sourceTitle, createdAt);
+  const title = buildRecordingHeadline(sourceTitle, createdAt);
 
   const bearer = extractBearerToken(req);
   if (!bearer) {
-    return jsonError("Sign in to create a share link.", 401, "missing_token");
+    return jsonError(
+      "Sign in to create a recording link.",
+      401,
+      "missing_token",
+    );
   }
   const userId = await resolveDeviceTokenToUser(bearer);
   if (!userId) {
@@ -118,9 +125,9 @@ export async function POST(req: NextRequest) {
     if (storageUsed >= limits.storageBytes) {
       return jsonError("Storage cap reached", 429, "storage_limit");
     }
-    if (durationMs !== null && durationMs > limits.perShareDurationMs) {
+    if (durationMs !== null && durationMs > limits.perRecordingDurationMs) {
       return jsonError(
-        "Recording exceeds share duration cap",
+        "Recording exceeds recording duration cap",
         413,
         "duration_exceeded",
       );
@@ -160,7 +167,7 @@ export async function POST(req: NextRequest) {
   }
 
   // A non-public body.visibility is honored only for the dashboard re-record flow.
-  let visibility: ShareVisibility =
+  let visibility: RecordingVisibility =
     body.visibility === "private"
       ? "private"
       : body.visibility === "workspace"
@@ -170,7 +177,7 @@ export async function POST(req: NextRequest) {
     visibility = "workspace";
   }
 
-  await insertShare({
+  await insertRecording({
     slug,
     deviceId,
     storageKey,

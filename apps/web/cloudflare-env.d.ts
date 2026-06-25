@@ -10,8 +10,8 @@ interface CloudflareEnv {
 
   // Vars.
   NEXT_PUBLIC_APP_WEB_SITE_URL: string;
-  NEXT_PUBLIC_SHARE_SITE_URL: string;
-  NEXT_PUBLIC_SNAP_SITE_URL: string;
+  NEXT_PUBLIC_RECORDING_SITE_URL: string;
+  NEXT_PUBLIC_SCREENSHOT_SITE_URL: string;
   NEXT_PUBLIC_MARKETING_SITE_URL: string;
   R2_PUBLIC_BASE_URL: string;
   BETTER_AUTH_URL: string;

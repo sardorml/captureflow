@@ -65,7 +65,7 @@ export function RequestAccess({
         credentials: "include",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          kind: "share",
+          kind: "recording",
           key: slug,
           message: message.trim() || null,
         }),

@@ -1,27 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSnap } from "@/lib/snap/db";
-import { getSnapBody } from "@/lib/snap/r2";
-import { isValidSnapId } from "@/lib/snap/id";
-import type { SnapApiError } from "@/lib/snap/types";
+import { getScreenshot } from "@/lib/screenshot/db";
+import { getScreenshotBody } from "@/lib/screenshot/r2";
+import { isValidScreenshotId } from "@/lib/screenshot/id";
+import type { ScreenshotApiError } from "@/lib/screenshot/types";
 
 /*
  * Same-origin proxy: the HTML `download` attribute is ignored on cross-origin
  * links unless the origin sends the attachment header, and the CDN is
- * cross-origin to the snap page, so we proxy to keep the link same-origin.
+ * cross-origin to the screenshot page, so we proxy to keep the link same-origin.
  */
 
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
-  if (!isValidSnapId(id)) {
+  if (!isValidScreenshotId(id)) {
     return notFoundJson("Invalid id", "invalid_id");
   }
 
-  const row = await getSnap(id);
+  const row = await getScreenshot(id);
   if (!row || row.state !== "ready") {
-    return notFoundJson("Snap not found", "not_found");
+    return notFoundJson("Screenshot not found", "not_found");
   }
 
-  const obj = await getSnapBody(id);
+  const obj = await getScreenshotBody(id);
   if (!obj) {
     return notFoundJson("Object missing", "object_missing");
   }
@@ -44,6 +44,6 @@ export async function GET(req: NextRequest) {
 }
 
 function notFoundJson(error: string, code: string): NextResponse {
-  const body: SnapApiError = { error, code };
+  const body: ScreenshotApiError = { error, code };
   return NextResponse.json(body, { status: 404 });
 }

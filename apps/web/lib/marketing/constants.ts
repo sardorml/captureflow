@@ -3,7 +3,7 @@ export const SITE_NAME = "CaptureFlow";
 export const SITE_TITLE =
   "Open-Source Loom Alternative & Screen Recorder — CaptureFlow";
 export const SITE_DESCRIPTION =
-  "CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated Snaps — record, share, and snap from one menu bar app. Free and self-hostable on your own Cloudflare account.";
+  "CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated screenshots — record, share, and screenshot from one menu bar app. Free and self-hostable on your own Cloudflare account.";
 export const SUPPORT_EMAIL = "captureflow.support@gmail.com";
 export const APP_VERSION = "0.9.2-beta";
 export const DOWNLOAD_URL =
@@ -37,10 +37,10 @@ export const MODES: readonly Mode[] = [
       "Record straight to a copyable link. It uploads while you record, so the URL is on your clipboard the moment you stop.",
   },
   {
-    id: "snap",
-    label: "Snap",
+    id: "screenshot",
+    label: "Screenshot",
     icon: "screenshot_keyboard",
-    anchor: "#snap",
+    anchor: "#screenshot",
     description:
       "Capture a region, window, or whole screen. Annotate with arrows, text, and blur — share a hosted link.",
   },
@@ -50,7 +50,7 @@ export const MODES: readonly Mode[] = [
 export const FEATURES = [
   {
     id: "feature-timeline",
-    heading: "A share viewer built for feedback",
+    heading: "A recording viewer built for feedback",
     description:
       "Every link opens to reactions, comments, and view counts — so your team can react to a recording without leaving the page.",
     video: "/feature-timeline.webm",
@@ -58,7 +58,7 @@ export const FEATURES = [
   },
   {
     id: "feature-backgrounds",
-    heading: "Snaps — annotated screenshots",
+    heading: "Screenshots — annotate and share",
     description:
       "Grab a region, window, or full screen, mark it up with arrows, text, and blur, and share it as an instant link.",
     video: "/feature-backgrounds.webm",
@@ -84,7 +84,7 @@ export const FEATURES = [
 
 export const PRO_CARD_HIGHLIGHTS: ReadonlyArray<string> = [
   "Fully managed hosting — no Cloudflare setup required",
-  "Instant share links, Snaps, workspaces & cloud storage we run for you",
+  "Instant share links, Screenshots, workspaces & cloud storage we run for you",
 ];
 
 export const MONTHLY_PRICE = 9;
@@ -146,7 +146,7 @@ export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
         free: "MP4, GIF, WebM",
         monthly: "MP4, GIF, WebM",
       },
-      { label: "Annotated Snaps", free: true, monthly: true },
+      { label: "Annotated Screenshots", free: true, monthly: true },
       { label: "Workspaces & teammate invites", free: true, monthly: true },
       { label: "Commercial usage", free: true, monthly: true },
     ],
@@ -281,7 +281,7 @@ const STATIC_FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "How does CaptureFlow compare to other screen recorders?",
     answer:
-      "CaptureFlow is three tools in one. Record captures your screen straight to a shareable link — the upload happens while you record, so there is no waiting around. Share is a Loom-style flow: hit stop and the link is already in your clipboard, with workspaces for team sharing and a viewer that has reactions, comments, and view counts. Snap is a screenshot tool with markup and instant share links built in.\n\nMost competitors do one of these well. QuickTime and OBS capture the screen and leave everything else to a separate tool. Loom nails fast sharing but is closed-source and runs only on their cloud. CaptureFlow covers all three — and it is open source, so you can run the whole thing on your own Cloudflare account.",
+      "CaptureFlow is three tools in one. Record captures your screen straight to a shareable link — the upload happens while you record, so there is no waiting around. Share is a Loom-style flow: hit stop and the link is already in your clipboard, with workspaces for team sharing and a viewer that has reactions, comments, and view counts. Screenshot is a screenshot tool with markup and instant share links built in.\n\nMost competitors do one of these well. QuickTime and OBS capture the screen and leave everything else to a separate tool. Loom nails fast sharing but is closed-source and runs only on their cloud. CaptureFlow covers all three — and it is open source, so you can run the whole thing on your own Cloudflare account.",
   },
   {
     question: "How do the instant share links work?",
@@ -291,7 +291,7 @@ const STATIC_FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "Is my data private?",
     answer:
-      "Yes — and with CaptureFlow you control where it lives. When you self-host, recordings and Snaps upload to your own Cloudflare account (R2 storage, D1 database) — nothing touches our servers at all.\n\nWhen you create a share link, that artifact is stored so the recipient can open it from a URL. You control visibility per artifact (public, workspace-only, or private), and you can revoke or delete a link from your dashboard at any time.",
+      "Yes — and with CaptureFlow you control where it lives. When you self-host, recordings and Screenshots upload to your own Cloudflare account (R2 storage, D1 database) — nothing touches our servers at all.\n\nWhen you create a share link, that artifact is stored so the recipient can open it from a URL. You control visibility per artifact (public, workspace-only, or private), and you can revoke or delete a link from your dashboard at any time.",
   },
   {
     question: "Which macOS versions does CaptureFlow support?",
@@ -301,22 +301,22 @@ const STATIC_FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "Can I self-host CaptureFlow?",
     answer:
-      "Yes — that's the whole point. CaptureFlow is open source under the AGPL and runs entirely on Cloudflare: Workers for the API, R2 for storage, and D1 for the database. Deploy it to your own account and you own every recording, Snap, and share link end to end. The repo and deploy guide live on GitHub and docs.captureflow.xyz.",
+      "Yes — that's the whole point. CaptureFlow is open source under the AGPL and runs entirely on Cloudflare: Workers for the API, R2 for storage, and D1 for the database. Deploy it to your own account and you own every recording, Screenshot, and share link end to end. The repo and deploy guide live on GitHub and docs.captureflow.xyz.",
   },
   {
     question: "What's free and what's the managed plan?",
     answer:
-      "Everything is free when you self-host. CaptureFlow is open source under the AGPL — deploy it to your own Cloudflare account and use recording, instant share links, Snaps, and workspaces with no limits and no watermark.\n\nThe managed plan is for teams who would rather not run their own infrastructure: we host CaptureFlow for you, handle storage and updates, and you skip the Cloudflare setup entirely.",
+      "Everything is free when you self-host. CaptureFlow is open source under the AGPL — deploy it to your own Cloudflare account and use recording, instant share links, Screenshots, and workspaces with no limits and no watermark.\n\nThe managed plan is for teams who would rather not run their own infrastructure: we host CaptureFlow for you, handle storage and updates, and you skip the Cloudflare setup entirely.",
   },
   {
     question: "CaptureFlow is in beta — is it stable?",
     answer:
-      "Beta means CaptureFlow is young and improving fast, not that it's fragile — recording, sharing, and Snaps are stable and in daily use. Updates ship frequently, and a few rough edges remain (Intel Macs aren't supported yet, for example). It's open source, so you can read the code, file issues, or send a pull request — feedback directly shapes the roadmap.",
+      "Beta means CaptureFlow is young and improving fast, not that it's fragile — recording, sharing, and Screenshots are stable and in daily use. Updates ship frequently, and a few rough edges remain (Intel Macs aren't supported yet, for example). It's open source, so you can read the code, file issues, or send a pull request — feedback directly shapes the roadmap.",
   },
   {
     question: "Does CaptureFlow add a watermark?",
     answer:
-      "No. CaptureFlow never watermarks your recordings, Snaps, or exports — self-hosted or managed. It's open source, so there are no artificial limits baked in: record at up to 4K, for as long as you want.",
+      "No. CaptureFlow never watermarks your recordings, Screenshots, or exports — self-hosted or managed. It's open source, so there are no artificial limits baked in: record at up to 4K, for as long as you want.",
   },
 ];
 
@@ -391,7 +391,7 @@ export const FEATURE_HIGHLIGHTS = [
   {
     label: "Three capture modes",
     description:
-      "Grab the whole screen, a single window, or a dragged region — Record, Share, and Snap all live in one menu bar app.",
+      "Grab the whole screen, a single window, or a dragged region — Record, Share, and Screenshot all live in one menu bar app.",
   },
   {
     label: "Instant share links",
@@ -404,7 +404,7 @@ export const FEATURE_HIGHLIGHTS = [
       "Every link opens to reactions, threaded comments, and a live view count, so your team reacts without leaving the page.",
   },
   {
-    label: "Annotated Snaps",
+    label: "Annotated Screenshots",
     description:
       "Capture a region, window, or full screen, mark it up with arrows, text, and blur, and share it as a hosted link.",
   },
@@ -468,7 +468,7 @@ export const APP_SCHEMA = {
       priceCurrency: "USD",
       name: "Self-Hosted",
       description:
-        "Open-source recording, instant share links, Snaps, and workspaces — run it on your own Cloudflare account, no watermark",
+        "Open-source recording, instant share links, Screenshots, and workspaces — run it on your own Cloudflare account, no watermark",
     },
     {
       "@type": "Offer",
@@ -476,7 +476,7 @@ export const APP_SCHEMA = {
       priceCurrency: "USD",
       name: "Managed",
       description:
-        "Fully managed hosting — instant share links, Snaps, team workspaces, and 200 GB cloud storage we run for you, no Cloudflare setup",
+        "Fully managed hosting — instant share links, Screenshots, team workspaces, and 200 GB cloud storage we run for you, no Cloudflare setup",
     },
   ],
 };

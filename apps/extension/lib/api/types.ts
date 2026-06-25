@@ -1,22 +1,22 @@
 /*
- * Wire types for the share upload protocol (`/api/r/*`), a deliberate copy of
- * the web app's `lib/share/types.ts` (extension depends on zero
+ * Wire types for the recording upload protocol (`/api/r/*`), a deliberate copy of
+ * the web app's `lib/recording/types.ts` (extension depends on zero
  * `@captureflow/*` packages). Must stay wire-compatible — change both sides.
  */
 
-export type ShareSource = "instant" | "edited";
-export type SharePreset = "share";
-export type ShareVisibility = "public" | "workspace" | "private";
+export type RecordingSource = "instant" | "edited";
+export type RecordingPreset = "recording";
+export type RecordingVisibility = "public" | "workspace" | "private";
 
 export type InitRequest = {
   contentType: string;
-  source: ShareSource;
-  preset?: SharePreset;
+  source: RecordingSource;
+  preset?: RecordingPreset;
   durationMs?: number;
   width?: number;
   height?: number;
   title?: string;
-  visibility?: ShareVisibility;
+  visibility?: RecordingVisibility;
   hasWebcam?: boolean;
   workspaceId?: string;
 };
@@ -44,7 +44,7 @@ export type FinalizeResponse = {
   url: string;
 };
 
-export type ShareApiError = {
+export type RecordingApiError = {
   error: string;
   code?: string;
 };

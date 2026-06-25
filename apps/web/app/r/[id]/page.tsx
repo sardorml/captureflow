@@ -4,32 +4,32 @@ import type { Metadata } from "next";
 import {
   bumpLastViewed,
   getOwnerName,
-  getShare,
+  getRecording,
   listComments,
   listReactions,
-} from "@/lib/share/db";
-import { verifySession } from "@/lib/share/verify-session";
+} from "@/lib/recording/db";
+import { verifySession } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
-import { getObjectJson, publicUrlFor } from "@/lib/share/r2";
+import { getObjectJson, publicUrlFor } from "@/lib/recording/r2";
 import {
-  DEFAULT_SHARE_CONFIG,
-  hydrateShareConfig,
-  shareConfigKeyFor,
-} from "@/lib/share-config";
-import { loadSummaryChapters } from "@/lib/share/summary-chapters";
-import { isValidSlug } from "@/lib/share/slug";
+  DEFAULT_RECORDING_CONFIG,
+  hydrateRecordingConfig,
+  recordingConfigKeyFor,
+} from "@/lib/recording-config";
+import { loadSummaryChapters } from "@/lib/recording/summary-chapters";
+import { isValidSlug } from "@/lib/recording/slug";
 import { APP_WEB_SITE_URL, PRODUCT_NAME, viewUrlFor } from "@/lib/site";
-import { ViewerNav } from "../../_components/snap";
+import { ViewerNav } from "../../_components/screenshot";
 import { ThemeToggle, readThemeFromCookieHeader } from "@captureflow/ui";
-import { getWorkspaceForUpload } from "@/lib/share/quota";
+import { getWorkspaceForUpload } from "@/lib/recording/quota";
 import { AuthSync } from "./AuthSync";
-import { PendingShare } from "./PendingShare";
+import { PendingRecording } from "./PendingRecording";
 import { RequestAccess } from "./RequestAccess";
 import { SessionLoadingShell } from "./SessionLoadingShell";
 import { AuthPrompt } from "./AuthPrompt";
-import { ShareActions } from "./ShareActions";
-import { ShareViewer } from "./ShareViewer";
-import { ViewerUserMenu } from "./ViewerUserMenu";
+import { RecordingActions } from "./RecordingActions";
+import { RecordingViewer } from "./RecordingViewer";
+import { ViewerUserMenu } from "@/app/_components/ViewerUserMenu";
 import { MARKETING_SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -46,20 +46,20 @@ export async function generateMetadata({
     return { title: PRODUCT_NAME, robots: { index: false, follow: false } };
   }
 
-  const row = await getShare(id);
+  const row = await getRecording(id);
   if (!row) {
     return { title: PRODUCT_NAME, robots: { index: false, follow: false } };
   }
   if (row.state === "pending") {
     return {
-      title: `Preparing share… — ${PRODUCT_NAME}`,
+      title: `Preparing recording… — ${PRODUCT_NAME}`,
       robots: { index: false, follow: false },
     };
   }
   if (row.state !== "ready") {
     return { title: PRODUCT_NAME, robots: { index: false, follow: false } };
   }
-  // Non-public shares: unauthorized visitors get a flat "Not found" so
+  // Non-public recordings: unauthorized visitors get a flat "Not found" so
   // metadata reveals nothing more than a deleted row.
   if (row.visibility !== "public") {
     const cookieHeader = (await headers()).get("cookie");
@@ -151,11 +151,11 @@ function posterMimeOf(posterKey: string | null): string {
   return "image/jpeg";
 }
 
-export default async function SharePage({ params }: { params: Params }) {
+export default async function RecordingPage({ params }: { params: Params }) {
   const { id } = await params;
   if (!isValidSlug(id)) notFound();
 
-  const row = await getShare(id);
+  const row = await getRecording(id);
   if (!row) notFound();
 
   const cookieHeader = (await headers()).get("cookie");
@@ -171,9 +171,9 @@ export default async function SharePage({ params }: { params: Params }) {
           productName={PRODUCT_NAME}
           label="recording"
           viewCount={row.viewCount}
-          themeToggle={<ThemeToggle initialTheme={theme} />}
+          themeToggle={<ThemeToggle initialTheme={theme} className="h-8 w-8" />}
         />
-        <PendingShare
+        <PendingRecording
           slug={id}
           titleLine={row.title ?? `${PRODUCT_NAME}`}
           createdAt={row.createdAt}
@@ -232,12 +232,14 @@ export default async function SharePage({ params }: { params: Params }) {
     row.webcamStorageKey && row.webcamState === "ready"
       ? publicUrlFor(row.webcamStorageKey)
       : Promise.resolve(undefined),
-    getObjectJson<unknown>(shareConfigKeyFor(row.storageKey)).catch(() => null),
+    getObjectJson<unknown>(recordingConfigKeyFor(row.storageKey)).catch(
+      () => null,
+    ),
     loadSummaryChapters(row.storageKey),
   ]);
-  const shareConfig = configRaw
-    ? hydrateShareConfig(configRaw)
-    : DEFAULT_SHARE_CONFIG;
+  const recordingConfig = configRaw
+    ? hydrateRecordingConfig(configRaw)
+    : DEFAULT_RECORDING_CONFIG;
   const videoUrl = withVersion(videoUrlRaw, row.sizeBytes);
   const posterUrl = posterUrlRaw
     ? withVersion(posterUrlRaw, row.sizeBytes)
@@ -262,7 +264,7 @@ export default async function SharePage({ params }: { params: Params }) {
     : null;
   const workspaceName = workspaceRow?.name ?? null;
   const allowPublicLinks = workspaceRow?.allow_public_links ?? true;
-  const shareUrl = viewUrlFor(id);
+  const recordingUrl = viewUrlFor(id);
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-fg lg:h-screen lg:overflow-hidden">
@@ -271,7 +273,7 @@ export default async function SharePage({ params }: { params: Params }) {
         homeUrl={APP_WEB_SITE_URL}
         productName={PRODUCT_NAME}
         viewer={visitor ? { name: visitor.name, email: visitor.email } : null}
-        themeToggle={<ThemeToggle initialTheme={theme} />}
+        themeToggle={<ThemeToggle initialTheme={theme} className="h-8 w-8" />}
         userMenu={
           visitor ? (
             <ViewerUserMenu
@@ -286,10 +288,10 @@ export default async function SharePage({ params }: { params: Params }) {
           )
         }
         actions={
-          <ShareActions
+          <RecordingActions
             slug={id}
-            shareUrl={shareUrl}
-            editUrl={`${APP_WEB_SITE_URL}/shares/${id}/edit`}
+            recordingUrl={recordingUrl}
+            editUrl={`${APP_WEB_SITE_URL}/recordings/${id}/edit`}
             initialVisibility={row.visibility}
             isOwner={isOwner}
             workspaceName={workspaceName}
@@ -298,7 +300,7 @@ export default async function SharePage({ params }: { params: Params }) {
           />
         }
       />
-      <ShareViewer
+      <RecordingViewer
         slug={id}
         videoUrl={videoUrl}
         posterUrl={posterUrl}
@@ -306,7 +308,7 @@ export default async function SharePage({ params }: { params: Params }) {
         serverDurationMs={row.durationMs}
         serverWidth={row.width}
         serverHeight={row.height}
-        config={shareConfig}
+        config={recordingConfig}
         initialReactions={reactions}
         initialComments={comments}
         viewer={

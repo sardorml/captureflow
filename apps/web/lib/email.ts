@@ -80,7 +80,7 @@ export async function sendWorkspaceInviteEmail(args: {
     `Accept the invitation:`,
     args.acceptUrl,
     "",
-    `Workspaces let teammates share screen recordings and screenshots privately. The link expires in 7 days.`,
+    `Workspaces let teammates recording screen recordings and screenshots privately. The link expires in 7 days.`,
     "",
     `If you weren't expecting this invite, you can ignore this email.`,
   ].join("\n");
@@ -100,7 +100,7 @@ export async function sendWorkspaceInviteEmail(args: {
           <p style="margin:0 0 20px 0; color:#a3a3a3; line-height:1.55;">
             <strong style="color:#e5e5e5;">${inviterSafe}</strong>
             (<a href="mailto:${inviterEmailSafe}" style="color:#a3a3a3;">${inviterEmailSafe}</a>)
-            invited you to join their workspace on CaptureFlow. Workspaces let teammates share screen recordings and screenshots privately.
+            invited you to join their workspace on CaptureFlow. Workspaces let teammates recording screen recordings and screenshots privately.
           </p>
           <p style="margin:0 0 24px 0;">
             <a href="${acceptSafe}" style="display:inline-block; padding:12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600;">Accept invitation</a>
@@ -122,7 +122,7 @@ export async function sendAccessRequestEmail(args: {
   ownerName: string | null;
   requesterEmail: string;
   requesterName: string | null;
-  artifactKind: "share" | "snap";
+  artifactKind: "recording" | "screenshot";
   artifactTitle: string;
   artifactUrl: string;
   message: string | null;
@@ -131,7 +131,7 @@ export async function sendAccessRequestEmail(args: {
   const requester = args.requesterName?.trim()
     ? args.requesterName.trim()
     : args.requesterEmail;
-  const noun = args.artifactKind === "share" ? "recording" : "snap";
+  const noun = args.artifactKind === "recording" ? "recording" : "screenshot";
   const subject = `${requester} requested access to your ${noun}`;
 
   const textLines = [
@@ -179,7 +179,7 @@ export async function sendAccessRequestEmail(args: {
             <a href="${manageSafe}" style="display:inline-block; padding:12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600;">Invite them to your workspace</a>
           </p>
           <p style="margin:0; color:#737373; font-size:13px; line-height:1.5;">
-            Adding them to your workspace will let them view this and any other workspace-visible recordings or snaps you share there.
+            Adding them to your workspace will let them view this and any other workspace-visible recordings or screenshots you share there.
           </p>
         </td>
       </tr>

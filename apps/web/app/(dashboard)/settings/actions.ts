@@ -31,7 +31,7 @@ async function requireOwnerWorkspace(): Promise<{
     session.user.name ?? null,
   );
   if (current.role !== "owner") {
-    redirect("/shares");
+    redirect("/recordings");
   }
   return { userId: session.user.id, workspaceId: current.workspace.id };
 }

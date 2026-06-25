@@ -42,7 +42,7 @@ The name **must** be `captureflow-recordings`.
 pnpm --filter @captureflow/web exec wrangler r2 bucket create captureflow-recordings
 ```
 
-Prefixes used inside the bucket: `videos/`, `posters/`, `snaps/`.
+Prefixes used inside the bucket: `videos/`, `posters/`, `screenshots/`.
 
 ## 4. Set secrets
 
@@ -103,7 +103,7 @@ and publishes the Worker with its D1/R2 bindings, vars, and cron triggers.
 1. Open your domain — the dashboard/landing should load.
 2. Sign up / log in — confirms `BETTER_AUTH_SECRET` + D1 are wired.
 3. Tail logs: `pnpm --filter @captureflow/web exec wrangler tail captureflow-web`.
-4. Record + share from the desktop app and confirm the link resolves and the
+4. Record + recording from the desktop app and confirm the link resolves and the
    video plays from your CDN domain (confirms R2 + CDN).
 
 ## 9. Point the desktop app at your backend

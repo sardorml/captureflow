@@ -5,10 +5,10 @@
     <title>CaptureFlow</title>
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <!-- blob: in script-src is required for AudioWorkletNode +
-         createObjectURL(blob) — the share pipeline's system-audio
+         createObjectURL(blob) — the recording pipeline's system-audio
          encoder builds the worklet processor inline so we don't ship
          a separate static asset. Without this, addModule throws
-         "Unable to load a worklet's module" and the share encoder
+         "Unable to load a worklet's module" and the recording encoder
          can't open. worker-src covers the same path on Chromium
          versions that route worklets through that directive.
          'wasm-unsafe-eval' permits WebAssembly compilation (Skottie /

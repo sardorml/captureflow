@@ -8,8 +8,8 @@ known cleanup backlog (and the "do NOT apply" design-pattern list).
 
 pnpm + nx monorepo. `apps/web` (Next.js 16 + OpenNext/Cloudflare), `apps/desktop`
 (Electron), `packages/{ui,quota,shared}`. Apps depend on packages, never the reverse;
-apps never depend on each other. The `share` (recordings) and `snap` (screenshots)
-domains are deliberately forked under `lib/share/` and `lib/snap/` — keep them separate.
+apps never depend on each other. The `recording` and `screenshot` domains are deliberately
+forked under `lib/recording/` and `lib/screenshot/` — keep them separate.
 
 ## Non-negotiables
 

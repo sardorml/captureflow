@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getShare } from "@/lib/share/db";
-import { isValidSlug } from "@/lib/share/slug";
-import { uploadPart } from "@/lib/share/r2";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
-import type { PartResponse } from "@/lib/share/types";
+import { getRecording } from "@/lib/recording/db";
+import { isValidSlug } from "@/lib/recording/slug";
+import { uploadPart } from "@/lib/recording/r2";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
+import type { PartResponse } from "@/lib/recording/types";
 
 const DEVICE_HEADER = "x-captureflow-device";
 const MAX_PART_NUMBER = 10000;
@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
     return jsonError("Invalid part number", 400, "invalid_part");
   }
 
-  const row = await getShare(slug);
-  if (!row) return jsonError("Share not found", 404, "not_found");
+  const row = await getRecording(slug);
+  if (!row) return jsonError("Recording not found", 404, "not_found");
   if (row.deviceId !== deviceId)
     return jsonError("Forbidden", 403, "forbidden");
   if (row.webcamState !== "pending") {

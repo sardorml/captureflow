@@ -15,9 +15,9 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const sp = await searchParams;
-  const next = sp.next ?? "/shares";
+  const next = sp.next ?? "/recordings";
   // Only same-origin path redirects — strip a forged "?next=https://evil".
-  const safeNext = next.startsWith("/") ? next : "/shares";
+  const safeNext = next.startsWith("/") ? next : "/recordings";
   const session = await loadSession();
   if (session) redirect(safeNext);
 
@@ -27,6 +27,7 @@ export default async function LoginPage({
     <Flex
       align="center"
       justify="center"
+      className="bg-canvas text-fg"
       style={{ minHeight: "100vh", padding: 24, position: "relative" }}
     >
       <Link href="/" style={{ position: "absolute", left: 16, top: 16 }}>

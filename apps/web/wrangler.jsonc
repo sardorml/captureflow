@@ -34,7 +34,7 @@
       "database_id": "87523f52-ad6f-474f-85e8-87f267a98763",
     },
   ],
-  // All ported share/snap r2.ts read env.BUCKET. Prefixes: videos/, posters/, snaps/.
+  // All ported recording/screenshot r2.ts read env.BUCKET. Prefixes: videos/, posters/, screenshots/.
   "r2_buckets": [
     {
       "binding": "BUCKET",
@@ -43,8 +43,8 @@
   ],
   "vars": {
     "NEXT_PUBLIC_APP_WEB_SITE_URL": "https://captureflow.xyz",
-    "NEXT_PUBLIC_SHARE_SITE_URL": "https://captureflow.xyz",
-    "NEXT_PUBLIC_SNAP_SITE_URL": "https://captureflow.xyz",
+    "NEXT_PUBLIC_RECORDING_SITE_URL": "https://captureflow.xyz",
+    "NEXT_PUBLIC_SCREENSHOT_SITE_URL": "https://captureflow.xyz",
     "NEXT_PUBLIC_MARKETING_SITE_URL": "https://captureflow.xyz",
     "R2_PUBLIC_BASE_URL": "https://cdn.captureflow.xyz",
     "BETTER_AUTH_URL": "https://captureflow.xyz",

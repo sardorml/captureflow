@@ -5,35 +5,35 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAuth } from "@/lib/auth";
 import {
-  deleteReactionsForShare,
-  deleteShareForAdmin,
-  getShareForAdmin,
-  getShareForUser,
-  updateShareTitleForUser,
-  updateShareVisibilityForAdmin,
-  type ShareVisibility,
-} from "@/lib/shares-db";
+  deleteReactionsForRecording,
+  deleteRecordingForAdmin,
+  getRecordingForAdmin,
+  getRecordingForUser,
+  updateRecordingTitleForUser,
+  updateRecordingVisibilityForAdmin,
+  type RecordingVisibility,
+} from "@/lib/recordings-db";
 import {
-  getSnapForAdmin,
-  getSnapForUser,
-  renameSnap,
-  softDeleteSnapForAdmin,
-  updateSnapAfterEdit,
-  updateSnapVisibilityForAdmin,
-  type SnapVisibility,
-} from "@/lib/snaps-db";
+  getScreenshotForAdmin,
+  getScreenshotForUser,
+  renameScreenshot,
+  softDeleteScreenshotForAdmin,
+  updateScreenshotAfterEdit,
+  updateScreenshotVisibilityForAdmin,
+  type ScreenshotVisibility,
+} from "@/lib/screenshots-db";
 import {
   deleteObject,
   getObjectBytes,
   objectExists,
   putObject,
 } from "@/lib/r2";
-import { sourceKeyFor, stateKeyFor } from "@/lib/snap-keys";
+import { sourceKeyFor, stateKeyFor } from "@/lib/screenshot-keys";
 import {
-  hydrateShareConfig,
-  shareConfigKeyFor,
-  type ShareConfig,
-} from "@/lib/share-config";
+  hydrateRecordingConfig,
+  recordingConfigKeyFor,
+  type RecordingConfig,
+} from "@/lib/recording-config";
 import { revokeDeviceToken } from "@/lib/device-tokens";
 
 // Middleware only guards page requests; a forged/replayed direct action
@@ -47,7 +47,7 @@ async function requireUserId(): Promise<string> {
   return session.user.id;
 }
 
-export async function renameShareAction(
+export async function renameRecordingAction(
   _prev: { error: string | null; slug: string | null },
   formData: FormData,
 ): Promise<{ error: string | null; slug: string | null }> {
@@ -63,11 +63,11 @@ export async function renameShareAction(
   if (!slug) {
     return { error: "Missing slug", slug: null };
   }
-  // Same 200-char cap the share /api/init enforces.
+  // Same 200-char cap the recording /api/init enforces.
   const next = title.length === 0 ? null : title.slice(0, 200);
-  const ok = await updateShareTitleForUser(userId, slug, next);
+  const ok = await updateRecordingTitleForUser(userId, slug, next);
   if (!ok) {
-    return { error: "Share not found", slug };
+    return { error: "Recording not found", slug };
   }
   revalidatePath("/");
   return { error: null, slug };
@@ -75,7 +75,7 @@ export async function renameShareAction(
 
 export async function setVisibilityAction(
   slug: string,
-  visibility: ShareVisibility,
+  visibility: RecordingVisibility,
 ): Promise<{ error: string | null }> {
   const userId = await requireUserId();
   const cleanSlug = typeof slug === "string" ? slug.trim() : "";
@@ -87,22 +87,26 @@ export async function setVisibilityAction(
   ) {
     return { error: "Invalid visibility" };
   }
-  const ok = await updateShareVisibilityForAdmin(userId, cleanSlug, visibility);
-  if (!ok) return { error: "Share not found" };
+  const ok = await updateRecordingVisibilityForAdmin(
+    userId,
+    cleanSlug,
+    visibility,
+  );
+  if (!ok) return { error: "Recording not found" };
   revalidatePath("/");
   return { error: null };
 }
 
-export async function deleteShareAction(slug: string): Promise<{
+export async function deleteRecordingAction(slug: string): Promise<{
   error: string | null;
 }> {
   const userId = await requireUserId();
   const cleanSlug = typeof slug === "string" ? slug.trim() : "";
   if (!cleanSlug) return { error: "Missing slug" };
-  // getShareForAdmin authorises uploader OR workspace owner.
-  const row = await getShareForAdmin(userId, cleanSlug);
+  // getRecordingForAdmin authorises uploader OR workspace owner.
+  const row = await getRecordingForAdmin(userId, cleanSlug);
   if (!row) {
-    return { error: "Share not found" };
+    return { error: "Recording not found" };
   }
   // R2 objects first, then reactions, then the row, so a failure strands
   // at worst a row pointing at a missing object (delete again to clean up).
@@ -118,29 +122,29 @@ export async function deleteShareAction(slug: string): Promise<{
       }`,
     };
   }
-  await deleteReactionsForShare(cleanSlug);
-  await deleteShareForAdmin(userId, cleanSlug);
+  await deleteReactionsForRecording(cleanSlug);
+  await deleteRecordingForAdmin(userId, cleanSlug);
   revalidatePath("/");
   return { error: null };
 }
 
 // Public viewer and dashboard edit page read the same R2 sidecar, so one
 // PUT updates every surface on next fetch.
-export async function saveShareConfigAction(
+export async function saveRecordingConfigAction(
   slug: string,
   raw: unknown,
 ): Promise<{ error: string | null }> {
   const userId = await requireUserId();
   const cleanSlug = typeof slug === "string" ? slug.trim() : "";
   if (!cleanSlug) return { error: "Missing slug" };
-  const share = await getShareForUser(userId, cleanSlug);
-  if (!share) return { error: "Share not found" };
-  const config: ShareConfig = hydrateShareConfig(raw);
+  const recording = await getRecordingForUser(userId, cleanSlug);
+  if (!recording) return { error: "Recording not found" };
+  const config: RecordingConfig = hydrateRecordingConfig(raw);
   const json = JSON.stringify(config);
   const bytes = new TextEncoder().encode(json);
   try {
     await putObject(
-      shareConfigKeyFor(share.storageKey),
+      recordingConfigKeyFor(recording.storageKey),
       bytes.buffer.slice(
         bytes.byteOffset,
         bytes.byteOffset + bytes.byteLength,
@@ -149,12 +153,12 @@ export async function saveShareConfigAction(
     );
   } catch (err) {
     return {
-      error: `Could not save share config: ${
+      error: `Could not save recording config: ${
         err instanceof Error ? err.message : String(err)
       }`,
     };
   }
-  revalidatePath(`/shares/${cleanSlug}/edit`);
+  revalidatePath(`/recordings/${cleanSlug}/edit`);
   revalidatePath("/");
   return { error: null };
 }
@@ -171,34 +175,34 @@ export async function revokeDeviceTokenAction(tokenId: string): Promise<{
   return { error: null };
 }
 
-export async function deleteSnapAction(snapId: string): Promise<{
+export async function deleteScreenshotAction(screenshotId: string): Promise<{
   error: string | null;
 }> {
   const userId = await requireUserId();
-  const cleanId = typeof snapId === "string" ? snapId.trim() : "";
-  if (!cleanId) return { error: "Missing snap id" };
-  const snap = await getSnapForAdmin(cleanId, userId);
-  if (!snap) return { error: "Snap not found" };
-  const ok = await softDeleteSnapForAdmin(cleanId, userId);
-  if (!ok) return { error: "Snap not found" };
+  const cleanId = typeof screenshotId === "string" ? screenshotId.trim() : "";
+  if (!cleanId) return { error: "Missing screenshot id" };
+  const screenshot = await getScreenshotForAdmin(cleanId, userId);
+  if (!screenshot) return { error: "Screenshot not found" };
+  const ok = await softDeleteScreenshotForAdmin(cleanId, userId);
+  if (!ok) return { error: "Screenshot not found" };
   // Best-effort R2 cleanup; row is already soft-deleted and the retention
   // cron sweeps any stranded bytes.
   await Promise.allSettled([
-    deleteObject(snap.storageKey),
-    deleteObject(sourceKeyFor(snap.storageKey)),
-    deleteObject(stateKeyFor(snap.storageKey)),
+    deleteObject(screenshot.storageKey),
+    deleteObject(sourceKeyFor(screenshot.storageKey)),
+    deleteObject(stateKeyFor(screenshot.storageKey)),
   ]);
-  revalidatePath("/snaps");
+  revalidatePath("/screenshots");
   return { error: null };
 }
 
-export async function setSnapVisibilityAction(
-  snapId: string,
-  visibility: SnapVisibility,
+export async function setScreenshotVisibilityAction(
+  screenshotId: string,
+  visibility: ScreenshotVisibility,
 ): Promise<{ error: string | null }> {
   const userId = await requireUserId();
-  const cleanId = typeof snapId === "string" ? snapId.trim() : "";
-  if (!cleanId) return { error: "Missing snap id" };
+  const cleanId = typeof screenshotId === "string" ? screenshotId.trim() : "";
+  if (!cleanId) return { error: "Missing screenshot id" };
   if (
     visibility !== "public" &&
     visibility !== "workspace" &&
@@ -206,31 +210,35 @@ export async function setSnapVisibilityAction(
   ) {
     return { error: "Invalid visibility" };
   }
-  const ok = await updateSnapVisibilityForAdmin(userId, cleanId, visibility);
-  if (!ok) return { error: "Snap not found" };
-  revalidatePath("/snaps");
+  const ok = await updateScreenshotVisibilityForAdmin(
+    userId,
+    cleanId,
+    visibility,
+  );
+  if (!ok) return { error: "Screenshot not found" };
+  revalidatePath("/screenshots");
   return { error: null };
 }
 
-export async function renameSnapAction(
-  snapId: string,
+export async function renameScreenshotAction(
+  screenshotId: string,
   title: string,
 ): Promise<{ error: string | null }> {
   const userId = await requireUserId();
-  const cleanId = typeof snapId === "string" ? snapId.trim() : "";
-  if (!cleanId) return { error: "Missing snap id" };
+  const cleanId = typeof screenshotId === "string" ? screenshotId.trim() : "";
+  if (!cleanId) return { error: "Missing screenshot id" };
   const trimmed = typeof title === "string" ? title.trim().slice(0, 200) : "";
-  const ok = await renameSnap(cleanId, userId, trimmed || null);
-  if (!ok) return { error: "Snap not found" };
-  revalidatePath("/snaps");
-  revalidatePath(`/snaps/${cleanId}/edit`);
+  const ok = await renameScreenshot(cleanId, userId, trimmed || null);
+  if (!ok) return { error: "Screenshot not found" };
+  revalidatePath("/screenshots");
+  revalidatePath(`/screenshots/${cleanId}/edit`);
   return { error: null };
 }
 
-// Caps an edited snap so high-res annotations can't blow past the upload cap.
-const MAX_SNAP_BYTES = 8 * 1024 * 1024;
+// Caps an edited screenshot so high-res annotations can't blow past the upload cap.
+const MAX_SCREENSHOT_BYTES = 8 * 1024 * 1024;
 
-export type SnapEditState = {
+export type ScreenshotEditState = {
   background: string;
   annotations: unknown[];
   // Composed PNG dimensions; the editor may grow the canvas past the
@@ -239,34 +247,34 @@ export type SnapEditState = {
   height: number;
 };
 
-export async function saveSnapAction(
-  snapId: string,
+export async function saveScreenshotAction(
+  screenshotId: string,
   blob: Blob,
-  state: SnapEditState,
+  state: ScreenshotEditState,
 ): Promise<{ error: string | null }> {
   try {
-    return await saveSnapActionInner(snapId, blob, state);
+    return await saveScreenshotActionInner(screenshotId, blob, state);
   } catch (err) {
     // Next strips thrown server-action messages in prod; funnel through here
     // so the client gets a readable string and we log a breadcrumb.
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[saveSnapAction] uncaught:", msg, err);
+    console.error("[saveScreenshotAction] uncaught:", msg, err);
     return { error: `Save failed: ${msg}` };
   }
 }
 
-async function saveSnapActionInner(
-  snapId: string,
+async function saveScreenshotActionInner(
+  screenshotId: string,
   blob: Blob,
-  state: SnapEditState,
+  state: ScreenshotEditState,
 ): Promise<{ error: string | null }> {
   const userId = await requireUserId();
-  const cleanId = typeof snapId === "string" ? snapId.trim() : "";
-  if (!cleanId) return { error: "Missing snap id" };
+  const cleanId = typeof screenshotId === "string" ? screenshotId.trim() : "";
+  if (!cleanId) return { error: "Missing screenshot id" };
   // PNG arrives as a Blob: a raw Uint8Array trips React's array-nesting guard
   // past ~1 MB, so the serializer must take the binary path.
   if (!blob || typeof (blob as Blob).arrayBuffer !== "function") {
-    console.error("[saveSnapAction] bad blob", {
+    console.error("[saveScreenshotAction] bad blob", {
       hasBlob: !!blob,
       typeOf: typeof blob,
       constructor:
@@ -278,23 +286,23 @@ async function saveSnapActionInner(
   if (!Number.isFinite(size) || size === 0) {
     return { error: "Missing image bytes" };
   }
-  if (size > MAX_SNAP_BYTES) {
-    return { error: "Edited snap exceeds the per-snap size cap." };
+  if (size > MAX_SCREENSHOT_BYTES) {
+    return { error: "Edited screenshot exceeds the per-screenshot size cap." };
   }
-  const snap = await getSnapForUser(cleanId, userId);
-  if (!snap) return { error: "Snap not found" };
+  const screenshot = await getScreenshotForUser(cleanId, userId);
+  if (!screenshot) return { error: "Screenshot not found" };
 
   const buffer = (await (blob as Blob).arrayBuffer()) as ArrayBuffer;
   const byteLength = buffer.byteLength;
 
   // On the first save the primary key still holds the original pixels, so
   // snapshot them to the pristine source sidecar before we overwrite.
-  const sourceKey = sourceKeyFor(snap.storageKey);
-  const stateKey = stateKeyFor(snap.storageKey);
+  const sourceKey = sourceKeyFor(screenshot.storageKey);
+  const stateKey = stateKeyFor(screenshot.storageKey);
   try {
     const sourceAlreadyExists = await objectExists(sourceKey);
     if (!sourceAlreadyExists) {
-      const original = await getObjectBytes(snap.storageKey);
+      const original = await getObjectBytes(screenshot.storageKey);
       if (original) {
         await putObject(sourceKey, original, "image/png");
       }
@@ -304,10 +312,10 @@ async function saveSnapActionInner(
   }
 
   try {
-    await putObject(snap.storageKey, buffer, "image/png");
+    await putObject(screenshot.storageKey, buffer, "image/png");
   } catch (err) {
     return {
-      error: `Could not save the snap: ${
+      error: `Could not save the screenshot: ${
         err instanceof Error ? err.message : String(err)
       }`,
     };
@@ -345,8 +353,8 @@ async function saveSnapActionInner(
   if (w === null || h === null) {
     return { error: "Save failed: invalid canvas dimensions" };
   }
-  await updateSnapAfterEdit(cleanId, userId, byteLength, w, h);
-  revalidatePath(`/snaps/${cleanId}/edit`);
-  revalidatePath("/snaps");
+  await updateScreenshotAfterEdit(cleanId, userId, byteLength, w, h);
+  revalidatePath(`/screenshots/${cleanId}/edit`);
+  revalidatePath("/screenshots");
   return { error: null };
 }

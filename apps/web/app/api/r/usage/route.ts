@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isDevDevice } from "@/lib/share/dev-allowlist";
-import { resolveDeviceTokenToUser } from "@/lib/share/device-tokens";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
+import { isDevDevice } from "@/lib/recording/dev-allowlist";
+import { resolveDeviceTokenToUser } from "@/lib/recording/device-tokens";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import {
   activeArtifactCountForUser,
   getEffectiveLimitsForUser,
   totalStorageForUser,
-} from "@/lib/share/quota";
+} from "@/lib/recording/quota";
 
 const DEVICE_HEADER = "x-captureflow-device";
 
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   const bearer = extractBearerToken(req);
   if (!bearer) {
-    return jsonError("Sign in to read share usage", 401, "missing_token");
+    return jsonError("Sign in to read recording usage", 401, "missing_token");
   }
   const userId = await resolveDeviceTokenToUser(bearer);
   if (!userId) {

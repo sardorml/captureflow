@@ -10,10 +10,10 @@ import { AtSign, MessageSquare, Smile, Sparkles, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import type {
   AddCommentResponse,
-  ShareComment,
-  ShareReaction,
-} from "@/lib/share/types";
-import { Avatar, Button } from "antd";
+  RecordingComment,
+  RecordingReaction,
+} from "@/lib/recording/types";
+import { Avatar, Button, Dropdown, Popover, theme, type MenuProps } from "antd";
 
 const AVATAR_TONES = [
   "#2563eb",
@@ -42,25 +42,25 @@ type ActivityEntry =
       kind: "reaction";
       id: string;
       createdAt: number;
-      reaction: ShareReaction;
+      reaction: RecordingReaction;
     }
   | {
       kind: "comment";
       id: string;
       createdAt: number;
-      comment: ShareComment;
+      comment: RecordingComment;
     };
 
 type Props = {
   slug: string;
-  initialReactions: ShareReaction[];
-  initialComments: ShareComment[];
+  initialReactions: RecordingReaction[];
+  initialComments: RecordingComment[];
   viewerSignedIn: boolean;
   viewerName: string | null;
   viewerUserId: string | null;
   viewerImageUrl: string | null;
   isOwner: boolean;
-  liveReactions: ShareReaction[];
+  liveReactions: RecordingReaction[];
   onSignIn: () => void;
   onSeek: (ms: number) => void;
   getCurrentMs: () => number;
@@ -82,11 +82,12 @@ export function ActivitySidebar({
   getCurrentMs,
   commentInputRef,
 }: Props) {
-  const [comments, setComments] = useState<ShareComment[]>(initialComments);
+  const [comments, setComments] = useState<RecordingComment[]>(initialComments);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [posting, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const { token } = theme.useToken();
 
   const handleDeleteComment = async (id: number) => {
     if (deletingId != null) return;
@@ -151,6 +152,39 @@ export function ActivitySidebar({
     return out;
   })();
 
+  const mentionItems: MenuProps["items"] = [
+    {
+      type: "group",
+      label: "Mention",
+      children:
+        participants.length === 0
+          ? [
+              {
+                key: "none",
+                disabled: true,
+                label: "No one has reacted or commented yet",
+              },
+            ]
+          : participants.map((p) => ({
+              key: p.userId,
+              label: (
+                <span className="flex items-center gap-2">
+                  <Avatar
+                    size={24}
+                    style={{
+                      backgroundColor: toneFromSeed(p.userId),
+                      fontSize: 10,
+                    }}
+                  >
+                    {initials(p.userName)}
+                  </Avatar>
+                  <span className="truncate">{p.userName}</span>
+                </span>
+              ),
+            })),
+    },
+  ];
+
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const [mentionOpen, setMentionOpen] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
@@ -208,7 +242,7 @@ export function ActivitySidebar({
 
     const timestampMs = getCurrentMs();
     const optimisticId = -Date.now();
-    const optimistic: ShareComment = {
+    const optimistic: RecordingComment = {
       id: optimisticId,
       slug,
       userId: "pending",
@@ -256,10 +290,10 @@ export function ActivitySidebar({
   return (
     <aside className="flex w-full flex-col bg-canvas-2 lg:h-full lg:border-l lg:border-line">
       <header className="sticky top-0 z-10 flex items-center justify-between bg-canvas-2/90 px-5 py-4 backdrop-blur-md lg:static lg:bg-canvas-2 lg:backdrop-blur-none">
-        <h2 className="text-sm font-semibold tracking-tight text-neutral-100">
+        <h2 className="text-sm font-semibold tracking-tight text-fg">
           Activity
         </h2>
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-fg-muted">
           {entries.length} {entries.length === 1 ? "entry" : "entries"}
         </span>
       </header>
@@ -309,13 +343,14 @@ export function ActivitySidebar({
         ) : (
           <form
             onSubmit={submitComment}
-            className="relative rounded-2xl border border-line bg-neutral-900 p-3 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent"
+            className="relative rounded-2xl border border-line p-3 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent"
+            style={{ background: token.colorBgContainer }}
           >
             <div className="flex items-start gap-2.5">
               <Avatar
                 size={28}
                 src={viewerImageUrl || undefined}
-                className="mt-0.5"
+                className="mt-0.5 shrink-0"
                 style={{
                   backgroundColor: toneFromSeed(viewerUserId),
                   fontSize: 11,
@@ -333,67 +368,71 @@ export function ActivitySidebar({
                 onKeyDown={onKeyDown}
                 placeholder="Leave a comment…"
                 rows={1}
-                className="block min-h-[1.5rem] w-full resize-none bg-transparent text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none"
+                className="block min-h-[1.5rem] w-full resize-none bg-transparent text-sm text-fg placeholder:text-fg-subtle focus:outline-none"
               />
             </div>
             <div className="mt-2.5 flex items-center justify-between">
-              <div className="relative flex items-center gap-0.5 text-neutral-500">
-                <ComposerIconButton
-                  label="Mention someone"
-                  onClick={() => {
-                    setEmojiOpen(false);
-                    setMentionOpen((v) => !v);
+              <div className="flex items-center gap-0.5">
+                <Dropdown
+                  trigger={["click"]}
+                  placement="topLeft"
+                  open={mentionOpen}
+                  onOpenChange={(o) => {
+                    setMentionOpen(o);
+                    if (o) setEmojiOpen(false);
                   }}
-                  active={mentionOpen}
-                >
-                  <AtSign className="h-4 w-4" />
-                </ComposerIconButton>
-                <span aria-hidden className="h-4 w-px bg-overlay-strong" />
-                <ComposerIconButton
-                  label="Insert emoji"
-                  onClick={() => {
-                    setMentionOpen(false);
-                    setEmojiOpen((v) => !v);
-                  }}
-                  active={emojiOpen}
-                >
-                  <Smile className="h-4 w-4" />
-                </ComposerIconButton>
-
-                {mentionOpen && (
-                  <MentionPopover
-                    participants={participants}
-                    onClose={() => setMentionOpen(false)}
-                    onPick={(name) => {
-                      insertAtCaret(`@${name} `);
+                  menu={{
+                    items: mentionItems,
+                    onClick: ({ key }) => {
+                      const p = participants.find((x) => x.userId === key);
+                      if (p) insertAtCaret(`@${p.userName} `);
                       setMentionOpen(false);
-                    }}
+                    },
+                  }}
+                >
+                  <Button
+                    type="text"
+                    size="small"
+                    aria-label="Mention someone"
+                    icon={<AtSign className="h-4 w-4" />}
                   />
-                )}
-                {emojiOpen && (
-                  <EmojiPopover
-                    onClose={() => setEmojiOpen(false)}
-                    onPick={(emoji) => {
-                      insertAtCaret(emoji);
-                      setEmojiOpen(false);
-                    }}
+                </Dropdown>
+                <Popover
+                  trigger="click"
+                  placement="topLeft"
+                  open={emojiOpen}
+                  onOpenChange={(o) => {
+                    setEmojiOpen(o);
+                    if (o) setMentionOpen(false);
+                  }}
+                  styles={{ content: { padding: 0 } }}
+                  content={
+                    <EmojiPickerThemed
+                      onPick={(emoji) => {
+                        insertAtCaret(emoji);
+                        setEmojiOpen(false);
+                      }}
+                    />
+                  }
+                >
+                  <Button
+                    type="text"
+                    size="small"
+                    aria-label="Insert emoji"
+                    icon={<Smile className="h-4 w-4" />}
                   />
-                )}
+                </Popover>
               </div>
-              <button
-                type="submit"
+              <Button
+                htmlType="submit"
+                type={draft.trim() ? "primary" : "text"}
+                size="small"
                 disabled={posting || !draft.trim()}
-                className={
-                  "rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed " +
-                  (draft.trim() && !posting
-                    ? "bg-blue-600 text-white shadow-sm shadow-blue-900/20 hover:bg-blue-500"
-                    : "text-fg-subtle hover:bg-overlay disabled:opacity-60")
-                }
               >
                 {posting
                   ? "Posting…"
                   : `Comment at ${formatTimestamp(previewMs)}`}
-              </button>
+              </Button>
             </div>
           </form>
         )}
@@ -403,106 +442,9 @@ export function ActivitySidebar({
   );
 }
 
-function ComposerIconButton({
-  label,
-  active,
-  onClick,
-  children,
-}: {
-  label: string;
-  active?: boolean;
-  onClick?: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-      className={
-        "rounded-md p-1.5 transition-colors " +
-        (active
-          ? "bg-overlay text-neutral-100"
-          : "text-neutral-500 hover:bg-overlay hover:text-neutral-200")
-      }
-    >
-      {children}
-    </button>
-  );
-}
-
-function MentionPopover({
-  participants,
-  onClose,
-  onPick,
-}: {
-  participants: { userId: string; userName: string }[];
-  onClose: () => void;
-  onPick: (name: string) => void;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (!ref.current) return;
-      if (e.target instanceof Node && !ref.current.contains(e.target)) {
-        onClose();
-      }
-    };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, [onClose]);
-
-  return (
-    <div
-      ref={ref}
-      className="absolute bottom-full left-0 z-20 mb-2 w-64 overflow-hidden rounded-lg border border-line bg-neutral-900 shadow-xl shadow-black/40"
-    >
-      <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-        Mention
-      </p>
-      {participants.length === 0 ? (
-        <p className="px-3 pb-3 text-xs text-neutral-500">
-          No one has reacted or commented yet.
-        </p>
-      ) : (
-        <ul className="max-h-60 overflow-y-auto py-1">
-          {participants.map((p) => (
-            <li key={p.userId}>
-              <button
-                type="button"
-                onClick={() => onPick(p.userName)}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-neutral-200 transition-colors hover:bg-overlay"
-              >
-                <Avatar
-                  size={24}
-                  style={{
-                    backgroundColor: toneFromSeed(p.userId),
-                    fontSize: 10,
-                  }}
-                >
-                  {initials(p.userName)}
-                </Avatar>
-                <span className="truncate">{p.userName}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function EmojiPopover({
-  onClose,
-  onPick,
-}: {
-  onClose: () => void;
-  onPick: (emoji: string) => void;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
+function EmojiPickerThemed({ onPick }: { onPick: (emoji: string) => void }) {
   // Watches <html> data-theme since ThemeToggle mutates it imperatively.
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
+  const [emojiTheme, setEmojiTheme] = useState<"light" | "dark">(() => {
     if (typeof document === "undefined") return "dark";
     return document.documentElement.getAttribute("data-theme") === "light"
       ? "light"
@@ -511,7 +453,7 @@ function EmojiPopover({
   useEffect(() => {
     const obs = new MutationObserver(() => {
       const attr = document.documentElement.getAttribute("data-theme");
-      setTheme(attr === "light" ? "light" : "dark");
+      setEmojiTheme(attr === "light" ? "light" : "dark");
     });
     obs.observe(document.documentElement, {
       attributes: true,
@@ -519,32 +461,17 @@ function EmojiPopover({
     });
     return () => obs.disconnect();
   }, []);
-  useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (!ref.current) return;
-      if (e.target instanceof Node && !ref.current.contains(e.target)) {
-        onClose();
-      }
-    };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, [onClose]);
 
   return (
-    <div
-      ref={ref}
-      className="absolute bottom-full left-0 z-20 mb-2 overflow-hidden rounded-lg border border-line shadow-xl shadow-black/40"
-    >
-      <EmojiPicker
-        theme={theme as never}
-        emojiStyle={"native" as never}
-        lazyLoadEmojis
-        searchPlaceholder="Search emoji"
-        width={320}
-        height={380}
-        onEmojiClick={(data: { emoji: string }) => onPick(data.emoji)}
-      />
-    </div>
+    <EmojiPicker
+      theme={emojiTheme as never}
+      emojiStyle={"native" as never}
+      lazyLoadEmojis
+      searchPlaceholder="Search emoji"
+      width={320}
+      height={380}
+      onEmojiClick={(data: { emoji: string }) => onPick(data.emoji)}
+    />
   );
 }
 
@@ -603,7 +530,7 @@ function ReactionRow({
   reaction,
   onSeek,
 }: {
-  reaction: ShareReaction;
+  reaction: RecordingReaction;
   onSeek: (ms: number) => void;
 }) {
   const name = reaction.userName?.trim() || "Anonymous";
@@ -620,17 +547,17 @@ function ReactionRow({
         {initials(name)}
       </Avatar>
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-neutral-200">
-          <span className="font-medium text-neutral-100">{name}</span>{" "}
-          <span className="text-neutral-500">reacted</span>{" "}
+        <p className="text-sm text-fg">
+          <span className="font-medium text-fg">{name}</span>{" "}
+          <span className="text-fg-muted">reacted</span>{" "}
           <span className="align-middle text-base">{reaction.emoji}</span>{" "}
-          <span className="text-neutral-500">at</span>{" "}
+          <span className="text-fg-muted">at</span>{" "}
           <TimestampChip
             ms={reaction.timestampMs}
             onClick={() => onSeek(reaction.timestampMs)}
           />
         </p>
-        <p className="mt-1 text-[11px] text-neutral-500">
+        <p className="mt-1 text-[11px] text-fg-muted">
           {formatRelative(reaction.createdAt)}
         </p>
       </div>
@@ -645,7 +572,7 @@ function CommentRow({
   onDelete,
   deleting,
 }: {
-  comment: ShareComment;
+  comment: RecordingComment;
   onSeek: (ms: number) => void;
   canDelete: boolean;
   onDelete: () => void;
@@ -665,7 +592,7 @@ function CommentRow({
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <span className="text-sm font-medium text-neutral-100">
+          <span className="text-sm font-medium text-fg">
             {comment.userName}
           </span>
           {comment.timestampMs != null && (
@@ -674,11 +601,11 @@ function CommentRow({
               onClick={() => onSeek(comment.timestampMs!)}
             />
           )}
-          <span className="text-[11px] text-neutral-500">
+          <span className="text-[11px] text-fg-muted">
             {formatRelative(comment.createdAt)}
           </span>
         </div>
-        <p className="mt-0.5 whitespace-pre-wrap break-words text-sm text-neutral-200">
+        <p className="mt-0.5 whitespace-pre-wrap break-words text-sm text-fg">
           {comment.body}
         </p>
       </div>
@@ -712,9 +639,9 @@ function TimestampChip({ ms, onClick }: { ms: number; onClick: () => void }) {
 }
 
 function mergeReactions(
-  base: ShareReaction[],
-  live: ShareReaction[],
-): ShareReaction[] {
+  base: RecordingReaction[],
+  live: RecordingReaction[],
+): RecordingReaction[] {
   if (live.length === 0) return base;
   const seen = new Set(base.map((r) => r.id));
   const extras = live.filter((r) => !seen.has(r.id));

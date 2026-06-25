@@ -1,5 +1,5 @@
 import posthog from "posthog-js";
-import type { ShareAuthState } from "../../../shared/types";
+import type { RecordingAuthState } from "../../../shared/types";
 
 /*
  * The key is a write-only ingest key, safe in a client bundle.
@@ -30,7 +30,7 @@ function applyConsent(on: boolean): void {
   else posthog.opt_out_capturing();
 }
 
-function identify(auth: ShareAuthState): void {
+function identify(auth: RecordingAuthState): void {
   if (!started || !enabled) return;
   if (auth.kind === "signed_in") {
     // Key on email so desktop + web events join the same person; web also identifies by email.
@@ -46,7 +46,7 @@ function identify(auth: ShareAuthState): void {
 
 export function initAnalytics(opts: {
   enabled: boolean;
-  auth: ShareAuthState;
+  auth: RecordingAuthState;
 }): void {
   enabled = opts.enabled;
   if (!KEY) return;
@@ -72,7 +72,10 @@ export function initAnalytics(opts: {
   identify(opts.auth);
 }
 
-export function setAnalyticsEnabled(on: boolean, auth: ShareAuthState): void {
+export function setAnalyticsEnabled(
+  on: boolean,
+  auth: RecordingAuthState,
+): void {
   if (!started && on) {
     initAnalytics({ enabled: true, auth });
     return;
@@ -82,7 +85,7 @@ export function setAnalyticsEnabled(on: boolean, auth: ShareAuthState): void {
   if (on) identify(auth);
 }
 
-export function setAnalyticsIdentity(auth: ShareAuthState): void {
+export function setAnalyticsIdentity(auth: RecordingAuthState): void {
   identify(auth);
 }
 

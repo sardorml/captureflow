@@ -8,7 +8,7 @@ import { logInfo, logWarn } from "./logger";
 const FILE_NAME = "prefs.json";
 
 const DEFAULTS: UserPrefs = {
-  shareEnabled: false,
+  recordingEnabled: false,
   analyticsEnabled: false,
   termsAccepted: false,
 };

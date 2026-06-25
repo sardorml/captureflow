@@ -26,9 +26,9 @@ body {
     sans-serif;
 }
 
-/* Play/pause flash overlay on the SharePlayer. Shared between the
+/* Play/pause flash overlay on the RecordingPlayer. Shared between the
    edit-page preview and public viewer so they stay in sync. */
-@keyframes share-icon-pop {
+@keyframes recording-icon-pop {
   0% {
     opacity: 0;
     transform: scale(0.5);
@@ -50,8 +50,8 @@ body {
     transform: scale(0.5);
   }
 }
-.animate-share-icon-pop {
-  animation: share-icon-pop 750ms cubic-bezier(0.2, 0.7, 0.3, 1.05) both;
+.animate-recording-icon-pop {
+  animation: recording-icon-pop 750ms cubic-bezier(0.2, 0.7, 0.3, 1.05) both;
 }
 
 /* Reaction emoji rises from below the scrubber with a small overshoot.
@@ -110,7 +110,43 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-rec-breathe,
   .animate-reveal,
-  .animate-share-icon-pop {
+  .animate-recording-icon-pop {
     animation: none !important;
+  }
+}
+
+/* Align the "Admin tools" group title with the nav icons (item padding is set
+   inline on each item; the group title element has no per-item style hook). */
+.cf-sidebar-menu .ant-menu-item-group-title {
+  padding-inline: 28px 8px !important;
+}
+
+/* Theme switch: a left-to-right wipe. The toggle drives the swap through
+   document.startViewTransition, so the browser cross-fades by default — we
+   override that with the new snapshot clipped in from the left edge while the
+   old one holds underneath. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+  animation: cf-theme-wipe 0.45s ease-in-out forwards;
+}
+@keyframes cf-theme-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root) {
+    animation: none;
   }
 }

@@ -75,7 +75,7 @@ export function SearchTrigger() {
         onClick={() => setOpen(true)}
         prefix={<Search size={16} />}
         suffix={<span style={{ fontSize: 11, opacity: 0.55 }}>⌘K</span>}
-        placeholder="Search your shares and snaps"
+        placeholder="Search your recordings and screenshots"
         style={{ maxWidth: 576, cursor: "pointer" }}
       />
       <Modal
@@ -89,7 +89,7 @@ export function SearchTrigger() {
           autoFocus
           allowClear
           prefix={<Search size={16} />}
-          placeholder="Search your shares and snaps"
+          placeholder="Search your recordings and screenshots"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -120,7 +120,7 @@ export function SearchTrigger() {
                       width: "100%",
                     }}
                   >
-                    {hit.kind === "share" ? (
+                    {hit.kind === "recording" ? (
                       <Video size={16} />
                     ) : (
                       <Camera size={16} />

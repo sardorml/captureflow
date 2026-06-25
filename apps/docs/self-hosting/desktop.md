@@ -9,12 +9,12 @@ you set them **before building** the app.
 All four default to `https://captureflow.xyz` (the unified Worker). If you
 self-host on that domain, you don't need to set anything.
 
-| Env var                        | Default (prod)                  |
-| ------------------------------ | ------------------------------- |
-| `CAPTUREFLOW_APP_WEB_API_BASE` | `https://captureflow.xyz`       |
-| `CAPTUREFLOW_APP_WEB_BASE`     | `https://captureflow.xyz`       |
-| `CAPTUREFLOW_SHARE_API_BASE`   | `https://captureflow.xyz/api/r` |
-| `CAPTUREFLOW_SNAP_API_BASE`    | `https://captureflow.xyz/api/s` |
+| Env var                           | Default (prod)                  |
+| --------------------------------- | ------------------------------- |
+| `CAPTUREFLOW_APP_WEB_API_BASE`    | `https://captureflow.xyz`       |
+| `CAPTUREFLOW_APP_WEB_BASE`        | `https://captureflow.xyz`       |
+| `CAPTUREFLOW_RECORDING_API_BASE`  | `https://captureflow.xyz/api/r` |
+| `CAPTUREFLOW_SCREENSHOT_API_BASE` | `https://captureflow.xyz/api/s` |
 
 In local dev (`pnpm --filter @captureflow/desktop dev`) these default to
 `http://localhost:3032`, so the recorder talks to a locally running Worker.
@@ -27,8 +27,8 @@ Set the four vars to your domain, then build. For a deployment at
 ```bash
 export CAPTUREFLOW_APP_WEB_API_BASE="https://rec.example.com"
 export CAPTUREFLOW_APP_WEB_BASE="https://rec.example.com"
-export CAPTUREFLOW_SHARE_API_BASE="https://rec.example.com/api/r"
-export CAPTUREFLOW_SNAP_API_BASE="https://rec.example.com/api/s"
+export CAPTUREFLOW_RECORDING_API_BASE="https://rec.example.com/api/r"
+export CAPTUREFLOW_SCREENSHOT_API_BASE="https://rec.example.com/api/s"
 
 pnpm --filter @captureflow/desktop build
 ```

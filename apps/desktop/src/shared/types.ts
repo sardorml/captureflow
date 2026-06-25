@@ -48,7 +48,7 @@ export const TOOLBAR_TOOLTIP_BELOW = 48;
 export const TOOLBAR_HEIGHT = 178;
 export const TOOLBAR_BAR_BOTTOM_OFFSET = 48;
 
-export type RecordingMode = "share" | "screenshot";
+export type RecordingMode = "recording" | "screenshot";
 
 export type CursorType =
   | "arrow"
@@ -142,37 +142,37 @@ export const IPC_CHANNELS = {
   GET_USER_PREFS: "get-user-prefs",
   SET_USER_PREF: "set-user-pref",
   USER_PREFS_CHANGED: "user-prefs-changed",
-  SHARE_FRAME_EVENT: "share-frame-event",
+  RECORDING_FRAME_EVENT: "recording-frame-event",
   // Streaming-upload protocol: /api/init fires at record START so the slug exists by stop;
-  // screen and webcam stream in parallel; SHARE_FINISH finalizes both and returns the edit URL.
-  SHARE_START: "share-start",
-  SHARE_PART_SCREEN: "share-part-screen",
-  SHARE_PART_WEBCAM: "share-part-webcam",
-  SHARE_FINISH: "share-finish",
-  SHARE_ABORT: "share-abort",
+  // screen and webcam stream in parallel; RECORDING_FINISH finalizes both and returns the edit URL.
+  RECORDING_START: "recording-start",
+  RECORDING_PART_SCREEN: "recording-part-screen",
+  RECORDING_PART_WEBCAM: "recording-part-webcam",
+  RECORDING_FINISH: "recording-finish",
+  RECORDING_ABORT: "recording-abort",
   // First composited frame as JPEG, posted to /api/poster as the viewer-link OG thumbnail.
-  SHARE_UPLOAD_POSTER: "share-upload-poster",
-  // Fired when the user clicks record; kicks off shareStart + audio acquisition during the 3s countdown.
-  SHARE_PREP_START: "share-prep-start",
-  SHARE_PREP_CANCEL: "share-prep-cancel",
-  SHARE_READY_OPEN_LINK: "share-ready-open-link",
-  SHARE_FAILURE_OPEN: "share-failure-open",
-  SHARE_FAILURE_INIT: "share-failure-init",
-  SHARE_FAILURE_CLOSE: "share-failure-close",
+  RECORDING_UPLOAD_POSTER: "recording-upload-poster",
+  // Fired when the user clicks record; kicks off recordingStart + audio acquisition during the 3s countdown.
+  RECORDING_PREP_START: "recording-prep-start",
+  RECORDING_PREP_CANCEL: "recording-prep-cancel",
+  RECORDING_READY_OPEN_LINK: "recording-ready-open-link",
+  RECORDING_FAILURE_OPEN: "recording-failure-open",
+  RECORDING_FAILURE_INIT: "recording-failure-init",
+  RECORDING_FAILURE_CLOSE: "recording-failure-close",
   // Opened when a capture needs the user to sign in or be online first; main shows a native confirm dialog.
   CAPTURE_GATE_OPEN: "capture-gate-open",
   // Web-account auth: SIGN_IN opens the login URL (returns via captureflow:// deep link); CHANGED fans out to all windows.
-  SHARE_AUTH_GET: "share-auth-get",
-  SHARE_AUTH_SIGN_IN: "share-auth-sign-in",
-  SHARE_AUTH_SIGN_OUT: "share-auth-sign-out",
-  SHARE_AUTH_CHANGED: "share-auth-changed",
-  // Share-backend reachability, separate from auth (a signed-in user can still be offline).
-  SHARE_CONNECTIVITY_GET: "share-connectivity-get",
-  SHARE_CONNECTIVITY_CHANGED: "share-connectivity-changed",
-  SHARE_USAGE_GET: "share-usage-get",
-  SHARE_USAGE_CHANGED: "share-usage-changed",
-  SHARE_USAGE_REFRESH: "share-usage-refresh",
-  SHARE_USAGE_OPEN_UPGRADE: "share-usage-open-upgrade",
+  RECORDING_AUTH_GET: "recording-auth-get",
+  RECORDING_AUTH_SIGN_IN: "recording-auth-sign-in",
+  RECORDING_AUTH_SIGN_OUT: "recording-auth-sign-out",
+  RECORDING_AUTH_CHANGED: "recording-auth-changed",
+  // Recording-backend reachability, separate from auth (a signed-in user can still be offline).
+  RECORDING_CONNECTIVITY_GET: "recording-connectivity-get",
+  RECORDING_CONNECTIVITY_CHANGED: "recording-connectivity-changed",
+  RECORDING_USAGE_GET: "recording-usage-get",
+  RECORDING_USAGE_CHANGED: "recording-usage-changed",
+  RECORDING_USAGE_REFRESH: "recording-usage-refresh",
+  RECORDING_USAGE_OPEN_UPGRADE: "recording-usage-open-upgrade",
   // Workspace switcher state; SELECT persists the active target in userData, CHANGED fans out on any change.
   WORKSPACES_GET: "workspaces-get",
   WORKSPACES_REFRESH: "workspaces-refresh",
@@ -186,17 +186,17 @@ export const IPC_CHANNELS = {
   // Screenshot pipeline: main spawns the native sidecar in snapshot mode, copies/saves the PNG, plays the
   // shutter, and uploads it. Replaces the recording-start path for this mode.
   CAPTURE_SCREENSHOT: "capture-screenshot",
-  SNAP_CAPTURED: "snap-captured",
-  SNAP_UPLOAD_COMPLETE: "snap-upload-complete",
-  SNAP_UPLOAD_FAILED: "snap-upload-failed",
-  SNAP_NOTIFICATION_CLOSE: "snap-notification-close",
-  SNAP_OPEN_EDIT: "snap-open-edit",
-  SNAP_COPY_LINK: "snap-copy-link",
-  SNAP_DELETE: "snap-delete",
+  SCREENSHOT_CAPTURED: "screenshot-captured",
+  SCREENSHOT_UPLOAD_COMPLETE: "screenshot-upload-complete",
+  SCREENSHOT_UPLOAD_FAILED: "screenshot-upload-failed",
+  SCREENSHOT_NOTIFICATION_CLOSE: "screenshot-notification-close",
+  SCREENSHOT_OPEN_EDIT: "screenshot-open-edit",
+  SCREENSHOT_COPY_LINK: "screenshot-copy-link",
+  SCREENSHOT_DELETE: "screenshot-delete",
 } as const;
 
 // Renderer-safe; never carries the raw bearer token (main keeps that for outbound calls).
-export type ShareAuthState =
+export type RecordingAuthState =
   | { kind: "signed_out" }
   | {
       kind: "signed_in";
@@ -205,11 +205,11 @@ export type ShareAuthState =
       email: string | null;
     };
 
-export type ShareConnectivityState = "online" | "offline";
+export type RecordingConnectivityState = "online" | "offline";
 
 // `kind: 'unknown'` is the pre-probe boot state, treated as "no lock yet" so a slow network
 // doesn't flash the upgrade modal on launch.
-export type ShareUsageState =
+export type RecordingUsageState =
   | { kind: "unknown" }
   | {
       kind: "known";
@@ -242,15 +242,15 @@ export type WorkspacesState =
 
 // Persisted user toggles; see src/main/lib/user-prefs.ts for storage.
 export type UserPrefs = {
-  shareEnabled: boolean;
+  recordingEnabled: boolean;
   // Opt-in PostHog analytics; never captures recording content, only anonymous product-usage events.
   analyticsEnabled: boolean;
   termsAccepted: boolean;
 };
 
 // The native side writes length-prefixed H.264 + AAC LC records on fd 3; main forwards them as these
-// events. See native/screen-recorder/ShareWriter.swift for the on-wire layout.
-export type ShareFrameEvent =
+// events. See native/screen-recorder/RecordingWriter.swift for the on-wire layout.
+export type RecordingFrameEvent =
   | {
       kind: "format";
       codedWidth: number;
@@ -285,23 +285,23 @@ export type ShareFrameEvent =
     }
   | { kind: "end" };
 
-export type ShareStartMeta = {
+export type RecordingStartMeta = {
   title: string | null;
   hasWebcam: boolean;
 };
 
-export type ShareStartResult =
+export type RecordingStartResult =
   | { ok: true; slug: string; editUrl: string }
   | { ok: false; error: string; code?: string; status?: number };
 
-// `webcamTotalBytes` is only meaningful when SHARE_START.hasWebcam was true.
-export type ShareFinishMeta = {
+// `webcamTotalBytes` is only meaningful when RECORDING_START.hasWebcam was true.
+export type RecordingFinishMeta = {
   durationMs: number;
   screenTotalBytes: number;
   webcamTotalBytes?: number;
 };
 
-export type ShareFinishResult =
+export type RecordingFinishResult =
   | { ok: true; slug: string; url: string }
   | {
       ok: false;
@@ -311,15 +311,15 @@ export type ShareFinishResult =
       partialUrl?: string;
     };
 
-export type ShareFailureKind = "no-link" | "partial" | "init-failed";
+export type RecordingFailureKind = "no-link" | "partial" | "init-failed";
 
-export type ShareFailureState = {
-  kind: ShareFailureKind;
+export type RecordingFailureState = {
+  kind: RecordingFailureKind;
   message: string;
   url?: string;
 };
 
-export type UpgradeReason = "share" | "screenshot" | "cloud";
+export type UpgradeReason = "recording" | "screenshot" | "cloud";
 
 export type BugReportPayload = {
   description: string;

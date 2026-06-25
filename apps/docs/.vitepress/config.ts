@@ -71,8 +71,8 @@ export default defineConfig({
         items: [
           { text: "Install the app", link: "/guide/install" },
           { text: "Record your screen", link: "/guide/recording" },
-          { text: "Share a recording", link: "/guide/sharing" },
-          { text: "Snaps (screenshots)", link: "/guide/snaps" },
+          { text: "Recording a recording", link: "/guide/sharing" },
+          { text: "Screenshots (screenshots)", link: "/guide/screenshots" },
         ],
       },
       {

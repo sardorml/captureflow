@@ -8,7 +8,7 @@ export const MESSAGES = {
   meta: {
     title: "Open-Source Loom Alternative & Screen Recorder — CaptureFlow",
     description:
-      "CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated Snaps — record, share, and snap from one menu bar app. Free and self-hostable on your own Cloudflare account.",
+      "CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated screenshots — record, share, and screenshot from one menu bar app. Free and self-hostable on your own Cloudflare account.",
   },
   nav: {
     features: "Features",
@@ -28,7 +28,7 @@ export const MESSAGES = {
   },
   auth: {
     title: "Log in or sign up",
-    subtitle: "Record, share, and snap — all from one menu bar app.",
+    subtitle: "Record, share, and screenshot — all from one menu bar app.",
     continueWithGoogle: "Continue with Google",
     continueWithEmail: "Continue with email",
     emailStepTitle: "Continue with email",
@@ -85,24 +85,25 @@ export const MESSAGES = {
     headingLine1: "Recordings and screenshots",
     headingLine2: "— one toolbar.",
     subtitleLine1: "Share a screen recording when it needs to go out now,",
-    subtitleLine2: "Snap when a picture says it. One toolbar, two outputs.",
+    subtitleLine2:
+      "Screenshot when a picture says it. One toolbar, two outputs.",
     tabs: {
       share: { label: "Share", caption: "Instant share link" },
-      screenshot: { label: "Snap", caption: "Annotated screenshots" },
+      screenshot: { label: "Screenshot", caption: "Annotated screenshots" },
     },
   },
   features: {
     titleLine1: "Open Recorder &",
     titleLine2: "Sharing",
     subtitle:
-      "From quick bug reports to polished demos — record, share, and snap in one app.",
+      "From quick bug reports to polished demos — record, share, and screenshot in one app.",
     // `feature-camera` is no longer in FEATURES; its key is retained so locale
     // catalogs typed `Messages = typeof MESSAGES` still type-check.
     tags: {
       "feature-zoom": "Instant links",
       "feature-export": "Self-hosted",
-      "feature-timeline": "Share viewer",
-      "feature-backgrounds": "Snaps",
+      "feature-timeline": "Recording viewer",
+      "feature-backgrounds": "Screenshots",
       "feature-camera": "Camera",
     },
     items: {
@@ -117,12 +118,12 @@ export const MESSAGES = {
           "Run CaptureFlow on your own Cloudflare account — Workers, R2, and D1. AGPL-licensed, free, and yours to control.",
       },
       "feature-timeline": {
-        heading: "A share viewer built for feedback",
+        heading: "A recording viewer built for feedback",
         description:
           "Every link opens to reactions, comments, and view counts — so your team can react to a recording without leaving the page.",
       },
       "feature-backgrounds": {
-        heading: "Snaps — annotated screenshots",
+        heading: "Screenshots — annotate and share",
         description:
           "Grab a region, window, or full screen, mark it up with arrows, text, and blur, and share it as an instant link.",
       },
@@ -147,7 +148,7 @@ export const MESSAGES = {
           editor: {
             title: "Edit recording",
             linkText: "Recolor and choose who can react",
-            body: "— polish your share on the web, no re-record.",
+            body: "— polish your recording on the web, no re-record.",
           },
           viewer: {
             title: "Share, react and comment",
@@ -155,14 +156,14 @@ export const MESSAGES = {
             body: "— feedback lands right on the recording, no re-record.",
           },
           dashboard: {
-            title: "Your shares, your dashboard",
+            title: "Your recordings, your dashboard",
             linkText: "Track views, search your library, revoke access",
             body: "— every link organized in one place.",
           },
         },
       },
-      snap: {
-        title: "Snap screenshots",
+      screenshot: {
+        title: "Capture screenshots",
         features: {
           capture: {
             title: "Region, window, or full screen",
@@ -172,12 +173,12 @@ export const MESSAGES = {
           markup: {
             title: "Annotate before you share",
             linkText: "Add arrows, text, or blur",
-            body: "over any capture — every annotation stays on the Snap.",
+            body: "over any capture — every annotation stays on the Screenshot.",
           },
           share: {
             title: "One link, ready to share",
             linkText: "The link hits your clipboard",
-            body: "— Snaps and recordings together in one dashboard.",
+            body: "— Screenshots and recordings together in one dashboard.",
           },
         },
       },
@@ -191,12 +192,12 @@ export const MESSAGES = {
           },
           public: {
             title: "Public when you want",
-            linkText: "Flip a share public",
+            linkText: "Flip a recording public",
             body: "and anyone with the link can watch — great for changelogs and demos.",
           },
           private: {
             title: "Keep it to yourself",
-            linkText: "Lock a share to just you",
+            linkText: "Lock a recording to just you",
             body: "while you draft, then share it the moment it's ready.",
           },
         },
@@ -214,7 +215,7 @@ export const MESSAGES = {
       toolbar: {
         studio: "Record",
         share: "Share",
-        screenshot: "Snap",
+        screenshot: "Screenshot",
       },
     },
     workspaceMockup: {
@@ -256,7 +257,7 @@ export const MESSAGES = {
       note: "No account, no limits, no watermark.",
       features: [
         "Unlimited recording & share links",
-        "Snaps — annotated screenshots",
+        "Annotated screenshots",
         "Open source (AGPL), no watermark",
         "macOS menu bar app",
       ],
@@ -330,7 +331,7 @@ export const MESSAGES = {
               free: "MP4, GIF, WebM",
               pro: "MP4, GIF, WebM",
             },
-            { label: "Annotated Snaps", free: "", pro: "" },
+            { label: "Annotated Screenshots", free: "", pro: "" },
             { label: "Workspaces & teammate invites", free: "", pro: "" },
             { label: "Commercial usage", free: "", pro: "" },
           ],
@@ -352,7 +353,7 @@ export const MESSAGES = {
       {
         question: "How does CaptureFlow compare to other screen recorders?",
         answer:
-          "CaptureFlow is three tools in one. Record captures your screen straight to a shareable link — the upload happens while you record, so there is no waiting around. Share is a Loom-style flow: hit stop and the link is already in your clipboard, with workspaces for team sharing and a viewer that has reactions, comments, and view counts. Snap is a screenshot tool with markup and instant share links built in.\n\nMost competitors do one of these well. QuickTime and OBS capture the screen and leave everything else to a separate tool. Loom nails fast sharing but is closed-source and runs only on their cloud. CaptureFlow covers all three — and it is open source, so you can run the whole thing on your own Cloudflare account.",
+          "CaptureFlow is three tools in one. Record captures your screen straight to a shareable link — the upload happens while you record, so there is no waiting around. Share is a Loom-style flow: hit stop and the link is already in your clipboard, with workspaces for team sharing and a viewer that has reactions, comments, and view counts. Screenshot is a screenshot tool with markup and instant share links built in.\n\nMost competitors do one of these well. QuickTime and OBS capture the screen and leave everything else to a separate tool. Loom nails fast sharing but is closed-source and runs only on their cloud. CaptureFlow covers all three — and it is open source, so you can run the whole thing on your own Cloudflare account.",
       },
       {
         question: "How do the instant share links work?",
@@ -362,7 +363,7 @@ export const MESSAGES = {
       {
         question: "Is my data private?",
         answer:
-          "Yes — and with CaptureFlow you control where it lives. When you self-host, recordings and Snaps upload to your own Cloudflare account (R2 storage, D1 database) — nothing touches our servers at all.\n\nWhen you create a share link, that artifact is stored so the recipient can open it from a URL. You control visibility per artifact (public, workspace-only, or private), and you can revoke or delete a link from your dashboard at any time.",
+          "Yes — and with CaptureFlow you control where it lives. When you self-host, recordings and Screenshots upload to your own Cloudflare account (R2 storage, D1 database) — nothing touches our servers at all.\n\nWhen you create a share link, that artifact is stored so the recipient can open it from a URL. You control visibility per artifact (public, workspace-only, or private), and you can revoke or delete a link from your dashboard at any time.",
       },
       {
         question: "Which macOS versions does CaptureFlow support?",
@@ -372,22 +373,22 @@ export const MESSAGES = {
       {
         question: "Can I self-host CaptureFlow?",
         answer:
-          "Yes — that's the whole point. CaptureFlow is open source under the AGPL and runs entirely on Cloudflare: Workers for the API, R2 for storage, and D1 for the database. Deploy it to your own account and you own every recording, Snap, and share link end to end. The repo and deploy guide live on GitHub and docs.captureflow.xyz.",
+          "Yes — that's the whole point. CaptureFlow is open source under the AGPL and runs entirely on Cloudflare: Workers for the API, R2 for storage, and D1 for the database. Deploy it to your own account and you own every recording, Screenshot, and share link end to end. The repo and deploy guide live on GitHub and docs.captureflow.xyz.",
       },
       {
         question: "What's free and what's the managed plan?",
         answer:
-          "Everything is free when you self-host. CaptureFlow is open source under the AGPL — deploy it to your own Cloudflare account and use recording, instant share links, Snaps, and workspaces with no limits and no watermark.\n\nThe managed plan is for teams who would rather not run their own infrastructure: we host CaptureFlow for you, handle storage and updates, and you skip the Cloudflare setup entirely.",
+          "Everything is free when you self-host. CaptureFlow is open source under the AGPL — deploy it to your own Cloudflare account and use recording, instant share links, Screenshots, and workspaces with no limits and no watermark.\n\nThe managed plan is for teams who would rather not run their own infrastructure: we host CaptureFlow for you, handle storage and updates, and you skip the Cloudflare setup entirely.",
       },
       {
         question: "CaptureFlow is in beta — is it stable?",
         answer:
-          "Beta means CaptureFlow is young and improving fast, not that it's fragile — recording, sharing, and Snaps are stable and in daily use. Updates ship frequently, and a few rough edges remain (Intel Macs aren't supported yet, for example). It's open source, so you can read the code, file issues, or send a pull request — feedback directly shapes the roadmap.",
+          "Beta means CaptureFlow is young and improving fast, not that it's fragile — recording, sharing, and Screenshots are stable and in daily use. Updates ship frequently, and a few rough edges remain (Intel Macs aren't supported yet, for example). It's open source, so you can read the code, file issues, or send a pull request — feedback directly shapes the roadmap.",
       },
       {
         question: "Does CaptureFlow add a watermark?",
         answer:
-          "No. CaptureFlow never watermarks your recordings, Snaps, or exports — self-hosted or managed. It's open source, so there are no artificial limits baked in: record at up to 4K, for as long as you want.",
+          "No. CaptureFlow never watermarks your recordings, Screenshots, or exports — self-hosted or managed. It's open source, so there are no artificial limits baked in: record at up to 4K, for as long as you want.",
       },
     ],
   },
@@ -603,7 +604,7 @@ export const MESSAGES = {
   download: {
     heading: "Download CaptureFlow",
     subtitle:
-      "Record your screen and get an instant share link — free and open source. Self-host on your own Cloudflare account, with Snaps and workspaces included.",
+      "Record your screen and get an instant share link — free and open source. Self-host on your own Cloudflare account, with Screenshots and workspaces included.",
     button: "Download for Apple Silicon Macs (Beta)",
     requires: "Requires {version} or later on Apple Silicon.",
     requirements: "Requires macOS 14 or later on Apple Silicon.",
@@ -620,14 +621,14 @@ export const MESSAGES = {
   plan: {
     heading: "Pick your plan",
     subtitle:
-      "Self-host CaptureFlow for free on your own Cloudflare account. Prefer not to run infrastructure? The managed plan hosts it for you, with Snaps and cloud workspaces included.",
+      "Self-host CaptureFlow for free on your own Cloudflare account. Prefer not to run infrastructure? The managed plan hosts it for you, with Screenshots and cloud workspaces included.",
   },
   about: {
     title: "About",
     subtitle: "The story behind CaptureFlow.",
     story: [
       "Hi — I'm the solo developer behind CaptureFlow. I built it because recording my screen always meant juggling apps: one to record, one to share, and one to mark up a screenshot. None of them talked to each other, and the good ones were closed-source clouds I couldn't host myself.",
-      "CaptureFlow is my fix: one open-source macOS menu bar app with three tools. Record captures your screen and uploads as you go, so the share link is on your clipboard the moment you stop. Share opens to a viewer with reactions, comments, and view counts. Snap does the same for annotated screenshots. The whole thing runs on your own Cloudflare account — Workers, R2, and D1 — or on our managed service if you would rather not.",
+      "CaptureFlow is my fix: one open-source macOS menu bar app with three tools. Record captures your screen and uploads as you go, so the share link is on your clipboard the moment you stop. Share opens to a viewer with reactions, comments, and view counts. Screenshot does the same for annotated screenshots. The whole thing runs on your own Cloudflare account — Workers, R2, and D1 — or on our managed service if you would rather not.",
       "CaptureFlow is in public beta, which means it's young and improving quickly. It's open source under the AGPL, so updates ship often and the roadmap is shaped by the people using it. If something breaks or you wish it worked differently, open an issue or write to me — every message lands in my inbox, and I reply myself.",
     ],
     reachUs: "Reach me anytime at {email}.",

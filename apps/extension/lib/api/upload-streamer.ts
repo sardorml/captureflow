@@ -6,7 +6,7 @@ import type {
 } from "./types";
 
 // R2 multipart minimum part size (except the trailing part). All non-trailing
-// parts must share one length, so we drain in fixed CHUNK_BYTES slices.
+// parts must be the same length, so we drain in fixed CHUNK_BYTES slices.
 export const CHUNK_BYTES = 5 * 1024 * 1024;
 
 type PartRef = { partNumber: number; etag: string };
@@ -123,12 +123,12 @@ function createPartStream(
   };
 }
 
-export type ShareUploadOptions = {
+export type RecordingUploadOptions = {
   transport: UploadTransport;
   chunkBytes?: number;
 };
 
-export type ShareUpload = {
+export type RecordingUpload = {
   readonly slug: string;
   readonly hasWebcam: boolean;
   readonly screenBytes: number;
@@ -141,13 +141,13 @@ export type ShareUpload = {
 };
 
 /*
- * Open a (dual) multipart share upload. The webcam stream is created only when
+ * Open a (dual) multipart recording upload. The webcam stream is created only when
  * /init reserved one. The caller owns the lifecycle.
  */
-export async function startShareUpload(
+export async function startRecordingUpload(
   init: InitRequest,
-  options: ShareUploadOptions,
-): Promise<ShareUpload> {
+  options: RecordingUploadOptions,
+): Promise<RecordingUpload> {
   const { transport, chunkBytes = CHUNK_BYTES } = options;
   const res = await transport.init(init);
   const slug = res.slug;

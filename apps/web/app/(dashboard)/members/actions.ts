@@ -130,7 +130,7 @@ export async function revokeInviteAction(formData: FormData): Promise<void> {
   revalidatePath("/members");
 }
 
-// Only the membership row is removed; the member's shares and snaps stay in the workspace.
+// Only the membership row is removed; the member's recordings and screenshots stay in the workspace.
 export async function removeMemberAction(formData: FormData): Promise<void> {
   const session = await requireSession();
   const env = await getAppWebEnv();
@@ -166,23 +166,24 @@ export async function leaveWorkspaceAction(): Promise<void> {
     cookieStore.delete(CURRENT_WORKSPACE_COOKIE);
   }
   revalidatePath("/members");
-  redirect("/shares");
+  redirect("/recordings");
 }
 
 // The signed-in email must match the invite recipient, or a stolen link could join workspaces it wasn't invited to.
 export async function acceptInviteAction(formData: FormData): Promise<void> {
   const session = await requireSession();
   const env = await getAppWebEnv();
-  if (!env?.DB) redirect("/shares?invite=db-unavailable");
+  if (!env?.DB) redirect("/recordings?invite=db-unavailable");
 
   const token = formData.get("token");
-  if (typeof token !== "string" || !token) redirect("/shares?invite=invalid");
+  if (typeof token !== "string" || !token)
+    redirect("/recordings?invite=invalid");
 
   const invite = await findInviteByToken(env.DB, token);
-  if (!invite) redirect("/shares?invite=invalid");
+  if (!invite) redirect("/recordings?invite=invalid");
 
   if (invite.email.toLowerCase() !== session.email.toLowerCase()) {
-    redirect("/shares?invite=email-mismatch");
+    redirect("/recordings?invite=email-mismatch");
   }
 
   const result = await acceptInvite(env.DB, {
@@ -192,9 +193,9 @@ export async function acceptInviteAction(formData: FormData): Promise<void> {
 
   if (!result.ok) {
     if (result.reason === "already_member") {
-      redirect("/shares?invite=already-member");
+      redirect("/recordings?invite=already-member");
     }
-    redirect("/shares?invite=invalid");
+    redirect("/recordings?invite=invalid");
   }
 
   revalidatePath("/members");

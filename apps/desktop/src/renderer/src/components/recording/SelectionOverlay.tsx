@@ -3,9 +3,9 @@ import { AnimatePresence, motion } from "motion/react";
 import { Camera, Circle, Lock, Sparkles, WifiOff } from "lucide-react";
 import { track } from "../../lib/analytics";
 import type {
-  ShareAuthState,
-  ShareConnectivityState,
-  ShareUsageState,
+  RecordingAuthState,
+  RecordingConnectivityState,
+  RecordingUsageState,
   SelectionOverlayMode,
   WindowBounds,
   CaptureSource,
@@ -20,18 +20,20 @@ const RECORD_BUTTON_CLASS =
 
 // Reads the mode the toolbar wrote to localStorage; same origin = same storage
 // area, so this separate BrowserWindow sees the toolbar's toggle.
-function readRecordingMode(): "share" | "screenshot" {
+function readRecordingMode(): "recording" | "screenshot" {
   try {
     const v = localStorage.getItem("captureflow-mode");
     if (v === "screenshot") return "screenshot";
-    return "share";
+    return "recording";
   } catch {
-    return "share";
+    return "recording";
   }
 }
 
-function useRecordingMode(): "share" | "screenshot" {
-  const [mode, setMode] = useState<"share" | "screenshot">(readRecordingMode);
+function useRecordingMode(): "recording" | "screenshot" {
+  const [mode, setMode] = useState<"recording" | "screenshot">(
+    readRecordingMode,
+  );
   useEffect(() => {
     const onStorage = (e: StorageEvent): void => {
       if (e.key === "captureflow-mode") setMode(readRecordingMode());
@@ -44,38 +46,40 @@ function useRecordingMode(): "share" | "screenshot" {
 
 type LockReason = "auth" | "offline" | "quota" | null;
 
-function useShareLockState(): {
+function useRecordingLockState(): {
   locked: boolean;
   lockReason: LockReason;
-  auth: ShareAuthState;
-  usage: ShareUsageState;
+  auth: RecordingAuthState;
+  usage: RecordingUsageState;
   reloadAuth: () => void;
 } {
-  const [auth, setAuth] = useState<ShareAuthState>({ kind: "signed_out" });
+  const [auth, setAuth] = useState<RecordingAuthState>({ kind: "signed_out" });
   const [connectivity, setConnectivity] =
-    useState<ShareConnectivityState>("online");
-  const [usage, setUsage] = useState<ShareUsageState>({ kind: "unknown" });
-  const [mode, setMode] = useState<"share" | "screenshot">(readRecordingMode);
+    useState<RecordingConnectivityState>("online");
+  const [usage, setUsage] = useState<RecordingUsageState>({ kind: "unknown" });
+  const [mode, setMode] = useState<"recording" | "screenshot">(
+    readRecordingMode,
+  );
 
   useEffect(() => {
-    void window.electronAPI.getShareAuth().then(setAuth);
-    const unsub = window.electronAPI.onShareAuthChanged(setAuth);
+    void window.electronAPI.getRecordingAuth().then(setAuth);
+    const unsub = window.electronAPI.onRecordingAuthChanged(setAuth);
     return unsub;
   }, []);
 
   useEffect(() => {
-    void window.electronAPI.getShareConnectivity().then(setConnectivity);
+    void window.electronAPI.getRecordingConnectivity().then(setConnectivity);
     const unsub =
-      window.electronAPI.onShareConnectivityChanged(setConnectivity);
+      window.electronAPI.onRecordingConnectivityChanged(setConnectivity);
     return unsub;
   }, []);
 
   useEffect(() => {
     // Probe here too: a reused overlay in the same window fires no INIT event,
     // so main's open-time refresh wouldn't run.
-    void window.electronAPI.getShareUsage().then(setUsage);
-    void window.electronAPI.refreshShareUsage();
-    const unsub = window.electronAPI.onShareUsageChanged(setUsage);
+    void window.electronAPI.getRecordingUsage().then(setUsage);
+    void window.electronAPI.refreshRecordingUsage();
+    const unsub = window.electronAPI.onRecordingUsageChanged(setUsage);
     return unsub;
   }, []);
 
@@ -88,13 +92,13 @@ function useShareLockState(): {
   }, []);
 
   const reloadAuth = useCallback(() => {
-    void window.electronAPI.getShareAuth().then(setAuth);
+    void window.electronAPI.getRecordingAuth().then(setAuth);
   }, []);
 
   // Precedence matters: offline > auth > quota (nothing else is actionable when
-  // a higher lock holds). Screenshot uploads share the same account quota.
+  // a higher lock holds). Screenshot uploads recording the same account quota.
   let lockReason: LockReason = null;
-  if (mode === "share" || mode === "screenshot") {
+  if (mode === "recording" || mode === "screenshot") {
     if (connectivity === "offline") lockReason = "offline";
     else if (auth.kind === "signed_out") lockReason = "auth";
     else if (usage.kind === "known" && usage.capReached) lockReason = "quota";
@@ -114,13 +118,13 @@ type LockableRecordButtonProps = {
   disabled?: boolean;
   onStart: () => void | Promise<void>;
   style?: React.CSSProperties;
-  variant?: "record" | "snap";
+  variant?: "record" | "screenshot";
 };
 
 function LockableRecordButton(
   props: LockableRecordButtonProps,
 ): React.JSX.Element {
-  const { locked, lockReason, usage } = useShareLockState();
+  const { locked, lockReason, usage } = useRecordingLockState();
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [offlinePromptOpen, setOfflinePromptOpen] = useState(false);
   const [quotaPromptOpen, setQuotaPromptOpen] = useState(false);
@@ -144,17 +148,17 @@ function LockableRecordButton(
     void props.onStart();
   };
 
-  const idleLabel = variant === "snap" ? "Capture" : "Start recording";
+  const idleLabel = variant === "screenshot" ? "Capture" : "Start recording";
   const idleAria =
-    variant === "snap" ? "Capture screenshot" : "Start recording";
+    variant === "screenshot" ? "Capture screenshot" : "Start recording";
   const label = props.loading
-    ? variant === "snap"
+    ? variant === "screenshot"
       ? "Capturing…"
       : "Preparing..."
     : lockReason === "offline"
       ? "No internet"
       : lockReason === "auth"
-        ? variant === "snap"
+        ? variant === "screenshot"
           ? "Sign in to capture"
           : "Sign in to record"
         : lockReason === "quota"
@@ -162,15 +166,15 @@ function LockableRecordButton(
           : idleLabel;
   const ariaLabel =
     lockReason === "offline"
-      ? variant === "snap"
+      ? variant === "screenshot"
         ? "Cannot capture while offline"
         : "Cannot record while offline"
       : lockReason === "auth"
-        ? variant === "snap"
+        ? variant === "screenshot"
           ? "Sign in to capture a screenshot"
           : "Sign in to start recording"
         : lockReason === "quota"
-          ? "Storage limit reached — upgrade or delete a share to keep capturing"
+          ? "Storage limit reached — upgrade or delete a recording to keep capturing"
           : idleAria;
 
   return (
@@ -203,7 +207,7 @@ function LockableRecordButton(
           <WifiOff className="w-4 h-4" />
         ) : locked ? (
           <Lock className="w-4 h-4" />
-        ) : variant === "snap" ? (
+        ) : variant === "screenshot" ? (
           <Camera className="w-4 h-4" />
         ) : (
           <Circle className="w-4 h-4 fill-current" />
@@ -230,7 +234,7 @@ function QuotaReachedModal({
   usage,
   onClose,
 }: {
-  usage: ShareUsageState;
+  usage: RecordingUsageState;
   onClose: () => void;
 }): React.JSX.Element {
   const [pendingUpgrade, setPendingUpgrade] = useState(false);
@@ -241,7 +245,7 @@ function QuotaReachedModal({
     setPendingUpgrade(true);
     try {
       track("pro_upgrade_clicked", { source: "selection_overlay" });
-      await window.electronAPI.openShareUpgradeCheckout();
+      await window.electronAPI.openRecordingUpgradeCheckout();
       await window.electronAPI.closeSelectionOverlay();
     } finally {
       setPendingUpgrade(false);
@@ -285,14 +289,15 @@ function QuotaReachedModal({
         </div>
         {usedLabel && limitLabel ? (
           <p className="text-sm leading-relaxed text-white/70">
-            Your free share storage is full ({usedLabel} of {limitLabel}).
+            Your free recording storage is full ({usedLabel} of {limitLabel}).
             Upgrade to Pro to keep recording without limits, or delete an old
-            share to free up room.
+            recording to free up room.
           </p>
         ) : (
           <p className="text-sm leading-relaxed text-white/70">
-            Your free share storage is full. Upgrade to Pro to keep recording
-            without limits, or delete an old share to free up room.
+            Your free recording storage is full. Upgrade to Pro to keep
+            recording without limits, or delete an old recording to free up
+            room.
           </p>
         )}
         <div className="mt-6 flex items-center justify-end gap-2">
@@ -302,7 +307,7 @@ function QuotaReachedModal({
             onClick={handleManage}
             disabled={pendingManage}
           >
-            {pendingManage ? "Opening…" : "Manage shares"}
+            {pendingManage ? "Opening…" : "Manage recordings"}
           </button>
           <button
             type="button"
@@ -415,7 +420,7 @@ function CountdownOverlay({
   );
 }
 
-// The connectivity probe ticks every 15s (validateShareAuth in main), so the
+// The connectivity probe ticks every 15s (validateRecordingAuth in main), so the
 // lock clears on its own once the network returns.
 function NoInternetModal({
   onClose,
@@ -440,7 +445,7 @@ function NoInternetModal({
           </h2>
         </div>
         <p className="text-sm leading-relaxed text-white/70">
-          CaptureFlow couldn&apos;t reach captureflow.xyz, so a share link
+          CaptureFlow couldn&apos;t reach captureflow.xyz, so a recording link
           can&apos;t be created right now.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-white/70">
@@ -471,7 +476,7 @@ function LoginPromptModal({
     if (pending) return;
     setPending(true);
     try {
-      await window.electronAPI.signInShareAuth();
+      await window.electronAPI.signInRecordingAuth();
       // Drop the overlay so it doesn't obscure the browser (it sits at
       // screen-saver level across Spaces).
       await window.electronAPI.closeSelectionOverlay();
@@ -498,8 +503,8 @@ function LoginPromptModal({
           </h2>
         </div>
         <p className="text-sm leading-relaxed text-white/70">
-          A CaptureFlow account lets you manage your share links — rename them,
-          set visibility, and delete the ones you no longer need.
+          A CaptureFlow account lets you manage your recording links — rename
+          them, set visibility, and delete the ones you no longer need.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-white/70">
           We&apos;ll open <span className="text-white">captureflow.xyz</span> in
@@ -648,7 +653,7 @@ function DisplayOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
   );
   const { countdown, runCountdown, cancelCountdown } = useRecordCountdown();
   const sourcesReady = init.sources.length > 0;
-  const isSnap = useRecordingMode() === "screenshot";
+  const isScreenshot = useRecordingMode() === "screenshot";
 
   useEffect(() => {
     return window.electronAPI.onSelectionOverlayReset(() => {
@@ -670,7 +675,7 @@ function DisplayOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
     if (!screenSource) return;
 
     // Screenshot mode short-circuits: capture the display now, no countdown.
-    if (isSnap) {
+    if (isScreenshot) {
       const displayIdNum = parseInt(screenSource.displayId, 10);
       if (Number.isFinite(displayIdNum)) {
         await window.electronAPI.captureScreenshot({
@@ -681,13 +686,13 @@ function DisplayOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
       return;
     }
 
-    // Fire share-prep BEFORE the countdown so shareStart + system-audio
+    // Fire recording-prep BEFORE the countdown so recordingStart + system-audio
     // acquisition overlap with the 3s wait — the session is ready at count 0.
-    window.electronAPI.notifySharePrepStart();
+    window.electronAPI.notifyRecordingPrepStart();
 
     const result = await runCountdown();
     if (!result.ok) {
-      window.electronAPI.notifySharePrepCancel();
+      window.electronAPI.notifyRecordingPrepCancel();
       setLoading(false);
       return;
     }
@@ -721,11 +726,11 @@ function DisplayOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
           {init.displayName}
         </h1>
         <p className="text-lg text-white mb-6">
-          {isSnap
+          {isScreenshot
             ? `${init.displayWidth}×${init.displayHeight}`
             : `${init.displayWidth}×${init.displayHeight} · ${init.displayRefreshRate}FPS`}
         </p>
-        {!isSnap && (
+        {!isScreenshot && (
           <div className="flex flex-col gap-2 mb-8">
             <CleanRecordingToggle
               label="Hide desktop items"
@@ -739,7 +744,7 @@ function DisplayOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
           loading={loading}
           disabled={!sourcesReady}
           onStart={handleRecord}
-          variant={isSnap ? "snap" : "record"}
+          variant={isScreenshot ? "screenshot" : "record"}
         />
       </div>
       <CountdownOverlay value={countdown} />
@@ -753,7 +758,7 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
   const [loading, setLoading] = useState(false);
   const { countdown, runCountdown, cancelCountdown } = useRecordCountdown();
   const lastQueryRef = useRef(0);
-  const isSnap = useRecordingMode() === "screenshot";
+  const isScreenshot = useRecordingMode() === "screenshot";
 
   useEffect(() => {
     return window.electronAPI.onSelectionOverlayReset(() => {
@@ -810,7 +815,7 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
     });
     if (matchingSource) {
       // Screenshot mode: capture the window id directly, no countdown.
-      if (isSnap) {
+      if (isScreenshot) {
         const windowIdNum = parseInt(matchingSource.id.split(":")[1] ?? "", 10);
         if (Number.isFinite(windowIdNum)) {
           await window.electronAPI.captureScreenshot({
@@ -821,11 +826,11 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
         return;
       }
 
-      // Share prep in parallel with the countdown — see DisplayOverlay.
-      window.electronAPI.notifySharePrepStart();
+      // Recording prep in parallel with the countdown — see DisplayOverlay.
+      window.electronAPI.notifyRecordingPrepStart();
       const result = await runCountdown();
       if (!result.ok) {
-        window.electronAPI.notifySharePrepCancel();
+        window.electronAPI.notifyRecordingPrepCancel();
         setLoading(false);
         return;
       }
@@ -906,7 +911,7 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
                 loading={loading}
                 disabled={!sourcesReady}
                 onStart={() => handleStart()}
-                variant={isSnap ? "snap" : "record"}
+                variant={isScreenshot ? "screenshot" : "record"}
               />
             )}
           </div>
@@ -922,7 +927,7 @@ function WindowOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
       >
         <p className="text-white/50 text-sm">
           {locked
-            ? isSnap
+            ? isScreenshot
               ? 'Click "Capture" — or click outside to pick a different window'
               : 'Click "Start recording" — or click outside to pick a different window'
             : hovered
@@ -940,9 +945,9 @@ type Rect = { x: number; y: number; width: number; height: number };
 const AREA_MIN_PX = 80;
 
 function AreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
-  const isSnap = useRecordingMode() === "screenshot";
-  if (isSnap) {
-    return <SnapAreaOverlay init={init} />;
+  const isScreenshot = useRecordingMode() === "screenshot";
+  if (isScreenshot) {
+    return <ScreenshotAreaOverlay init={init} />;
   }
   return <RecordAreaOverlay init={init} />;
 }
@@ -1050,11 +1055,11 @@ function RecordAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
       height: rect.height,
     };
 
-    // Share prep in parallel with the countdown — see DisplayOverlay.
-    window.electronAPI.notifySharePrepStart();
+    // Recording prep in parallel with the countdown — see DisplayOverlay.
+    window.electronAPI.notifyRecordingPrepStart();
     const result = await runCountdown();
     if (!result.ok) {
-      window.electronAPI.notifySharePrepCancel();
+      window.electronAPI.notifyRecordingPrepCancel();
       setLoading(false);
       return;
     }
@@ -1181,10 +1186,14 @@ function RecordAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
 }
 
 // Single-shot drag (vs RecordAreaOverlay's refinable frame): capture fires on pointer-up.
-function SnapAreaOverlay({ init }: { init: OverlayInit }): React.JSX.Element {
+function ScreenshotAreaOverlay({
+  init,
+}: {
+  init: OverlayInit;
+}): React.JSX.Element {
   const [drag, setDrag] = useState<Rect | null>(null);
   const [capturing, setCapturing] = useState(false);
-  const lockState = useShareLockState();
+  const lockState = useRecordingLockState();
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [offlinePromptOpen, setOfflinePromptOpen] = useState(false);
   const [quotaPromptOpen, setQuotaPromptOpen] = useState(false);

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ACCOUNT_LIMITS } from "@captureflow/quota";
-import { getShare, updateShare } from "@/lib/share/db";
-import { isValidSlug } from "@/lib/share/slug";
-import { completeMultipartUpload, headObject } from "@/lib/share/r2";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
+import { getRecording, updateRecording } from "@/lib/recording/db";
+import { isValidSlug } from "@/lib/recording/slug";
+import { completeMultipartUpload, headObject } from "@/lib/recording/r2";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import { viewUrlForRequest } from "@/lib/site";
-import type { FinalizeRequest, FinalizeResponse } from "@/lib/share/types";
+import type { FinalizeRequest, FinalizeResponse } from "@/lib/recording/types";
 
 const DEVICE_HEADER = "x-captureflow-device";
 
@@ -45,13 +45,13 @@ export async function POST(req: NextRequest) {
   if (
     typeof sizeBytes !== "number" ||
     sizeBytes <= 0 ||
-    sizeBytes > ACCOUNT_LIMITS.perShareSizeBytes
+    sizeBytes > ACCOUNT_LIMITS.perRecordingSizeBytes
   ) {
     return jsonError("Invalid size", 400, "invalid_size");
   }
 
-  const row = await getShare(body.slug);
-  if (!row) return jsonError("Share not found", 404, "not_found");
+  const row = await getRecording(body.slug);
+  if (!row) return jsonError("Recording not found", 404, "not_found");
   if (row.deviceId !== deviceId)
     return jsonError("Forbidden", 403, "forbidden");
   if (row.state === "ready") {
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     );
   }
   if (row.state !== "pending" || !row.uploadId) {
-    return jsonError("Share not finalizable", 409, "wrong_state");
+    return jsonError("Recording not finalizable", 409, "wrong_state");
   }
 
   try {
@@ -75,18 +75,18 @@ export async function POST(req: NextRequest) {
       partCount: body.parts.length,
       reason,
     });
-    await updateShare(row.slug, { state: "failed", uploadId: null });
+    await updateRecording(row.slug, { state: "failed", uploadId: null });
     return jsonError(`R2 complete: ${reason}`, 502, "r2_complete_failed");
   }
 
   const exists = await headObject(row.storageKey);
   if (!exists) {
-    await updateShare(row.slug, { state: "failed", uploadId: null });
+    await updateRecording(row.slug, { state: "failed", uploadId: null });
     return jsonError("Object missing after complete", 502, "object_missing");
   }
 
   try {
-    await updateShare(row.slug, {
+    await updateRecording(row.slug, {
       state: "ready",
       uploadId: null,
       sizeBytes,

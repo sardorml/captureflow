@@ -32,45 +32,48 @@ import {
   warmWindowDetector,
 } from "./window-detector";
 import { registerRecordingHandlers } from "./ipc/recording-handlers";
-import { registerShareStreamHandlers } from "./ipc/share-stream-handlers";
+import { registerRecordingStreamHandlers } from "./ipc/recording-stream-handlers";
 import {
   ensureOverlayWindow,
   registerWindowHandlers,
 } from "./ipc/window-handlers";
 import { registerSystemHandlers } from "./ipc/system-handlers";
-import { registerShareAuthHandlers } from "./ipc/share-auth-handlers";
-import { loadShareAuth, validateShareAuth } from "./lib/share/share-auth";
-import { refreshShareUsage } from "./lib/share/share-usage";
+import { registerRecordingAuthHandlers } from "./ipc/recording-auth-handlers";
+import {
+  loadRecordingAuth,
+  validateRecordingAuth,
+} from "./lib/recording/recording-auth";
+import { refreshRecordingUsage } from "./lib/recording/recording-usage";
 import {
   loadWorkspaces,
   refreshWorkspaces,
-} from "./lib/share/share-workspaces";
-import { handleDeepLinkUrl } from "./lib/share/share-auth-deeplink";
+} from "./lib/recording/recording-workspaces";
+import { handleDeepLinkUrl } from "./lib/recording/recording-auth-deeplink";
 import {
   isNativeRecordingActive,
   stopNativeRecording,
 } from "./native-recorder";
 import {
   captureSnapshot,
-  deleteTempSnap,
-  type SnapTarget,
-} from "./lib/snap-capture";
-import { uploadSnap } from "./lib/snap-upload";
+  deleteTempScreenshot,
+  type ScreenshotTarget,
+} from "./lib/screenshot-capture";
+import { uploadScreenshot } from "./lib/screenshot-upload";
 import {
-  closeSnapNotificationWindow,
-  ensureSnapNotificationWindow,
-  resizeSnapNotificationToAspect,
-  sendSnapCaptured,
-  sendSnapUploadComplete,
-  sendSnapUploadFailed,
-} from "./lib/snap-notification-window";
+  closeScreenshotNotificationWindow,
+  ensureScreenshotNotificationWindow,
+  resizeScreenshotNotificationToAspect,
+  sendScreenshotCaptured,
+  sendScreenshotUploadComplete,
+  sendScreenshotUploadFailed,
+} from "./lib/screenshot-notification-window";
 import { logInfo, logWarn, logError, getLogDirPath } from "./lib/logger";
 import { loadUserPrefs } from "./lib/user-prefs";
 import { loadDeviceId } from "./lib/device-id";
 import { initAutoUpdater } from "./lib/auto-updater";
-// Side-effect import: registers the share-failure modal's IPC handler.
-// The open call lives in share-stream-handlers when an upload can't recover.
-import "./lib/share/share-failure-window";
+// Side-effect import: registers the recording-failure modal's IPC handler.
+// The open call lives in recording-stream-handlers when an upload can't recover.
+import "./lib/recording/recording-failure-window";
 // Side-effect import: registers the CAPTURE_GATE_OPEN IPC handler.
 import "./lib/capture-gate-dialog";
 import {
@@ -136,7 +139,7 @@ app.on("open-url", (event, url) => {
   }
   if (tryHandleRecordDeepLink(url)) return;
   handleDeepLinkUrl(url).catch((err) =>
-    logError("share-auth", `open-url ${url.slice(0, 64)} failed: ${err}`),
+    logError("recording-auth", `open-url ${url.slice(0, 64)} failed: ${err}`),
   );
 });
 
@@ -188,7 +191,7 @@ function refreshTrayMenu(): void {
       label: "Manage shareable links",
       click: () => {
         // The dashboard's own auth gate signs the user in and exposes
-        // their share list, so no per-device routing is needed here.
+        // their recording list, so no per-device routing is needed here.
         const base =
           process.env.CAPTUREFLOW_APP_WEB_BASE ?? "https://captureflow.xyz";
         shell
@@ -462,7 +465,7 @@ function openSelectionOverlay(
 
   // Refresh storage-cap state while the user picks a source, so the lock
   // clears before Start if they freed up room on captureflow.xyz.
-  void refreshShareUsage();
+  void refreshRecordingUsage();
   // Refresh the workspace list so an invite accepted on the web while
   // CaptureFlow was open shows up in the chip without a restart.
   void refreshWorkspaces();
@@ -553,7 +556,7 @@ function createWindow(): void {
   // the window so the mode-toggle pill above it never has to move.
   // Doing it natively via setBounds caused a 1–2 frame jitter on
   // the pill because the renderer's repaint and the windowserver's
-  // frame animation don't share a clock.
+  // frame animation don't recording a clock.
   recordingWindow = new BrowserWindow({
     width: toolbarWidth,
     height: toolbarHeight,
@@ -744,7 +747,10 @@ export type CaptureScreenshotResult =
 
 ipcMain.handle(
   IPC_CHANNELS.CAPTURE_SCREENSHOT,
-  async (_event, target: SnapTarget): Promise<CaptureScreenshotResult> => {
+  async (
+    _event,
+    target: ScreenshotTarget,
+  ): Promise<CaptureScreenshotResult> => {
     try {
       // Resolve every UI detail we can up front — display bounds for
       // modal positioning, source title for the title row, and the
@@ -799,9 +805,9 @@ ipcMain.handle(
       // is `{ kind: 'capturing', localPath: null }`, so it paints the
       // spinner on first frame and the click feels instant. Pre-sizing
       // here means the preview doesn't jump when the real PNG lands.
-      ensureSnapNotificationWindow(captureBounds);
+      ensureScreenshotNotificationWindow(captureBounds);
       if (estimatedWidth > 0 && estimatedHeight > 0) {
-        resizeSnapNotificationToAspect(
+        resizeScreenshotNotificationToAspect(
           estimatedWidth,
           estimatedHeight,
           captureBounds,
@@ -849,9 +855,9 @@ ipcMain.handle(
       const capture = await captureSnapshot(target);
 
       // Decide which file path the modal previews. Prefer the
-      // persistent copy in ~/Pictures/CaptureFlow/Snaps; fall back to
+      // persistent copy in ~/Pictures/CaptureFlow/Screenshots; fall back to
       // the temp file (which we'll keep alive while the modal is
-      // open by skipping deleteTempSnap below).
+      // open by skipping deleteTempScreenshot below).
       const previewPath = capture.localCopyPath ?? capture.tempPath;
 
       // Window captures didn't get a pre-size pass (we didn't know
@@ -859,19 +865,19 @@ ipcMain.handle(
       // captured aspect ratio. For display/area the dims usually
       // match the estimate; the call is cheap so re-running doesn't
       // matter.
-      resizeSnapNotificationToAspect(
+      resizeScreenshotNotificationToAspect(
         capture.width,
         capture.height,
         captureBounds,
       );
-      sendSnapCaptured({
+      sendScreenshotCaptured({
         localPath: previewPath,
         sourceTitle,
         width: capture.width,
         height: capture.height,
       });
 
-      const upload = await uploadSnap({
+      const upload = await uploadScreenshot({
         tempPath: capture.tempPath,
         width: capture.width,
         height: capture.height,
@@ -881,16 +887,16 @@ ipcMain.handle(
       // Only safe to delete the temp file once the persistent copy
       // exists — otherwise the modal's preview img would break.
       if (capture.localCopyPath) {
-        deleteTempSnap(capture.tempPath).catch(() => {});
+        deleteTempScreenshot(capture.tempPath).catch(() => {});
       }
 
       if (!upload.ok) {
-        logWarn("snap", `upload failed: ${upload.error}`);
-        sendSnapUploadFailed({ reason: upload.error });
+        logWarn("screenshot", `upload failed: ${upload.error}`);
+        sendScreenshotUploadFailed({ reason: upload.error });
         return { ok: false, error: upload.error, code: upload.code };
       }
 
-      sendSnapUploadComplete({
+      sendScreenshotUploadComplete({
         id: upload.id,
         viewUrl: upload.viewUrl,
         editUrl: upload.editUrl,
@@ -914,9 +920,9 @@ ipcMain.handle(
       };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      logError("snap", `capture failed: ${msg}`);
+      logError("screenshot", `capture failed: ${msg}`);
       new Notification({
-        title: "Snap capture failed",
+        title: "Screenshot capture failed",
         body: msg,
         silent: false,
       }).show();
@@ -924,7 +930,7 @@ ipcMain.handle(
     } finally {
       // Bring the toolbar back. The overlay stays hidden — selection
       // is "done" once the capture fires; the user can re-open it
-      // for the next snap.
+      // for the next screenshot.
       try {
         recordingWindow?.show();
       } catch {
@@ -934,40 +940,43 @@ ipcMain.handle(
   },
 );
 
-// Snap notification modal action handlers. All fire-and-forget from the
+// Screenshot notification modal action handlers. All fire-and-forget from the
 // renderer; main owns the side-effects (open browser, write clipboard,
 // delete row + R2 object, close window).
-ipcMain.on(IPC_CHANNELS.SNAP_NOTIFICATION_CLOSE, () => {
-  closeSnapNotificationWindow();
+ipcMain.on(IPC_CHANNELS.SCREENSHOT_NOTIFICATION_CLOSE, () => {
+  closeScreenshotNotificationWindow();
 });
 
-ipcMain.on(IPC_CHANNELS.SNAP_OPEN_EDIT, (_event, editUrl: string) => {
+ipcMain.on(IPC_CHANNELS.SCREENSHOT_OPEN_EDIT, (_event, editUrl: string) => {
   if (typeof editUrl !== "string" || !editUrl) return;
   shell.openExternal(editUrl).catch(() => {});
-  closeSnapNotificationWindow();
+  closeScreenshotNotificationWindow();
 });
 
-ipcMain.on(IPC_CHANNELS.SNAP_COPY_LINK, async (_event, viewUrl: string) => {
-  if (typeof viewUrl !== "string" || !viewUrl) return;
-  try {
-    const { clipboard } = await import("electron");
-    clipboard.writeText(viewUrl);
-  } catch {
-    // ignore
-  }
-});
+ipcMain.on(
+  IPC_CHANNELS.SCREENSHOT_COPY_LINK,
+  async (_event, viewUrl: string) => {
+    if (typeof viewUrl !== "string" || !viewUrl) return;
+    try {
+      const { clipboard } = await import("electron");
+      clipboard.writeText(viewUrl);
+    } catch {
+      // ignore
+    }
+  },
+);
 
-ipcMain.on(IPC_CHANNELS.SNAP_DELETE, async (_event, id: string) => {
+ipcMain.on(IPC_CHANNELS.SCREENSHOT_DELETE, async (_event, id: string) => {
   if (typeof id !== "string" || !id) return;
-  // Best-effort DELETE through the snap Worker. The bearer token is
-  // the same one snap-upload uses; share-auth.ts owns it.
+  // Best-effort DELETE through the screenshot Worker. The bearer token is
+  // the same one screenshot-upload uses; recording-auth.ts owns it.
   try {
-    const { deleteSnap } = await import("./lib/snap-upload");
-    await deleteSnap(id);
+    const { deleteScreenshot } = await import("./lib/screenshot-upload");
+    await deleteScreenshot(id);
   } catch (err) {
-    logWarn("snap", `delete via modal failed: ${String(err)}`);
+    logWarn("screenshot", `delete via modal failed: ${String(err)}`);
   }
-  closeSnapNotificationWindow();
+  closeScreenshotNotificationWindow();
 });
 
 app.whenReady().then(async () => {
@@ -994,7 +1003,7 @@ app.whenReady().then(async () => {
   // audio track from the renderer's getDisplayMedia loopback, which produced
   // MP4s with only 6-byte silent AAC frames. System audio now comes from the
   // native Swift recorder, which AAC-encodes the ScreenCaptureKit audio tap
-  // and emits packets on fd 3 alongside H.264 chunks (see ShareWriter.swift).
+  // and emits packets on fd 3 alongside H.264 chunks (see RecordingWriter.swift).
   // The renderer mp4-muxer treats them as a regular audio track.
 
   // --reset-state: wipe web storage (localStorage, IndexedDB, etc.) before any
@@ -1015,36 +1024,36 @@ app.whenReady().then(async () => {
 
   electronApp.setAppUserModelId("com.electron");
 
-  // Load persisted user prefs (Instant Share toggle, etc.) before any
+  // Load persisted user prefs (Instant Recording toggle, etc.) before any
   // window opens — the tray menu reads the cached value to seed its
   // initial checkbox state.
   await loadUserPrefs();
 
-  // Lazy-create the per-install device ID for share API auth. First
+  // Lazy-create the per-install device ID for recording API auth. First
   // boot writes a fresh ID; subsequent boots load the cached one.
   await loadDeviceId();
 
   // Restore the user's captureflow.xyz session from disk (if
-  // any). The lock icon on the share-mode record button reads this
-  // through SHARE_AUTH_GET on first paint.
-  await loadShareAuth();
+  // any). The lock icon on the recording-mode record button reads this
+  // through RECORDING_AUTH_GET on first paint.
+  await loadRecordingAuth();
   // Fire-and-forget probe: a 401 from /api/auth/check means the dashboard
-  // revoked this device while we were closed, so clearShareAuth() flips the
+  // revoked this device while we were closed, so clearRecordingAuth() flips the
   // lock icon back on. The same fetch doubles as a connectivity probe (network
   // error → 'offline', showing the WifiOff lock). Backgrounded so a slow
-  // network doesn't delay startup; results broadcast via SHARE_*_CHANGED.
-  void validateShareAuth();
+  // network doesn't delay startup; results broadcast via RECORDING_*_CHANGED.
+  void validateRecordingAuth();
   // Background poll for near-real-time revoke + connectivity detection
   // without a push channel. Runs even without a cached token — anonymous
   // flows still need the connectivity signal for the lock icon. Never
   // cleared; process exit reaps it.
   setInterval(() => {
-    void validateShareAuth();
+    void validateRecordingAuth();
   }, 15_000);
   // Usage probe — paints the storage-cap lock on the record button if
   // the device is already at the per-device cap when the app comes up.
   // Cheap unauthenticated GET against captureflow.xyz.
-  void refreshShareUsage();
+  void refreshRecordingUsage();
   // Workspace list — load cached state first so the toolbar chip has
   // something to render immediately, then refresh from the server in
   // the background.
@@ -1264,8 +1273,8 @@ app.whenReady().then(async () => {
   // WindowServer deprioritize first paint for a non-frontmost owner.
   ensureOverlayWindow();
   registerSystemHandlers();
-  registerShareAuthHandlers();
-  registerShareStreamHandlers();
+  registerRecordingAuthHandlers();
+  registerRecordingStreamHandlers();
   initAutoUpdater();
 
   ipcMain.handle(
@@ -1400,16 +1409,16 @@ app.whenReady().then(async () => {
 
   // Forward "user clicked record, countdown begins" / "countdown
   // cancelled" from the SelectionOverlay window to the toolbar's
-  // useRecorder hook, which runs shareStart + system-audio acquisition
+  // useRecorder hook, which runs recordingStart + system-audio acquisition
   // in parallel with the 3 s visible countdown.
-  ipcMain.on(IPC_CHANNELS.SHARE_PREP_START, () => {
+  ipcMain.on(IPC_CHANNELS.RECORDING_PREP_START, () => {
     if (recordingWindow && !recordingWindow.isDestroyed()) {
-      recordingWindow.webContents.send(IPC_CHANNELS.SHARE_PREP_START);
+      recordingWindow.webContents.send(IPC_CHANNELS.RECORDING_PREP_START);
     }
   });
-  ipcMain.on(IPC_CHANNELS.SHARE_PREP_CANCEL, () => {
+  ipcMain.on(IPC_CHANNELS.RECORDING_PREP_CANCEL, () => {
     if (recordingWindow && !recordingWindow.isDestroyed()) {
-      recordingWindow.webContents.send(IPC_CHANNELS.SHARE_PREP_CANCEL);
+      recordingWindow.webContents.send(IPC_CHANNELS.RECORDING_PREP_CANCEL);
     }
   });
 
@@ -1510,7 +1519,7 @@ app.whenReady().then(async () => {
     // Just hide the BrowserWindow — leaves the MediaStream alive in
     // the renderer so a subsequent SHOW is instantaneous. Camera LED
     // stays on. Use this when toggling modes during the idle toolbar
-    // session; use HIDE_WEBCAM_BUBBLE proper for the recorder/share
+    // session; use HIDE_WEBCAM_BUBBLE proper for the recorder/recording
     // teardown paths that need the camera fully released.
     if (webcamBubbleWindow && !webcamBubbleWindow.isDestroyed()) {
       webcamBubbleWindow.hide();
@@ -1527,7 +1536,7 @@ app.whenReady().then(async () => {
     // Tell the renderer to release its MediaStream before we hide.
     // BrowserWindow.hide() doesn't unmount React, so without this the
     // getUserMedia tracks stay live and the camera LED stays on (e.g.
-    // while the share-ready modal is up after recording stops).
+    // while the recording-ready modal is up after recording stops).
     if (webcamBubbleWindow && !webcamBubbleWindow.isDestroyed()) {
       webcamBubbleWindow.webContents.send(IPC_CHANNELS.WEBCAM_BUBBLE_RELEASE);
       webcamBubbleWindow.hide();
@@ -1574,20 +1583,20 @@ app.whenReady().then(async () => {
   for (const url of pendingDeepLinks.splice(0)) {
     if (tryHandleRecordDeepLink(url)) continue;
     handleDeepLinkUrl(url).catch((err) =>
-      logError("share-auth", `pending deep link failed: ${err}`),
+      logError("recording-auth", `pending deep link failed: ${err}`),
     );
   }
 
-  // Throttle share-auth probes so a stream of activate events (which
+  // Throttle recording-auth probes so a stream of activate events (which
   // macOS fires on every dock click + every cmd-tab back) doesn't hammer
   // /api/auth/check. 60s is enough to catch a revocation the user just
   // performed in the dashboard without being chatty.
-  let lastShareAuthCheck = 0;
+  let lastRecordingAuthCheck = 0;
   app.on("activate", function () {
     const now = Date.now();
-    if (now - lastShareAuthCheck > 60_000) {
-      lastShareAuthCheck = now;
-      void validateShareAuth();
+    if (now - lastRecordingAuthCheck > 60_000) {
+      lastRecordingAuthCheck = now;
+      void validateRecordingAuth();
     }
     // While a recording is in progress the source-picker toolbar is
     // intentionally hidden — clicking the dock icon must not bring it back.

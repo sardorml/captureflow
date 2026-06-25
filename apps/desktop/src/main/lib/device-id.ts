@@ -5,7 +5,7 @@ import { randomBytes } from "crypto";
 import { logInfo, logWarn } from "./logger";
 
 /*
- * Per-install identifier sent as `x-captureflow-device` to the share API, where
+ * Per-install identifier sent as `x-captureflow-device` to the recording API, where
  * the worker uses it to enforce per-device quotas. Opaque; losing it just
  * resets the quota on next install.
  * File: ~/Library/Application Support/CaptureFlow/device-id.txt (macOS)

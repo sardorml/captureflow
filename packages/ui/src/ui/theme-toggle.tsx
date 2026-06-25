@@ -47,10 +47,26 @@ export function ThemeToggle({ initialTheme, className, onAfterToggle }: Props) {
 
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    document.documentElement.setAttribute("data-theme", next);
-    writeThemeCookie(next);
-    onAfterToggle?.(next);
+    const apply = () => {
+      setTheme(next);
+      document.documentElement.setAttribute("data-theme", next);
+      writeThemeCookie(next);
+      onAfterToggle?.(next);
+    };
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    // Left-to-right wipe via the View Transitions API (the animation lives in
+    // the app's global CSS, keyed off ::view-transition-*(root)). Falls back to
+    // an instant swap where the API is unavailable or reduced motion is on.
+    const doc = document as Document & {
+      startViewTransition?: (cb: () => void) => unknown;
+    };
+    if (!reduceMotion && typeof doc.startViewTransition === "function") {
+      doc.startViewTransition(apply);
+    } else {
+      apply();
+    }
   };
 
   const isDark = theme === "dark";

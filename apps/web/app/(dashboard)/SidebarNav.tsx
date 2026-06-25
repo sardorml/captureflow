@@ -3,25 +3,33 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Camera, Link2, Settings, Users } from "lucide-react";
-import { Menu, type MenuProps } from "antd";
+import { ConfigProvider, Menu, theme, type MenuProps } from "antd";
 
-const KEYS = ["/shares", "/snaps", "/members", "/settings"];
+const KEYS = ["/recordings", "/screenshots", "/members", "/settings"];
 
 export function SidebarNav({ isOwner }: { isOwner: boolean }) {
+  const { token } = theme.useToken();
   const pathname = usePathname();
   const selected =
     KEYS.find((k) => pathname === k || pathname.startsWith(k + "/")) ?? "";
 
+  // Inline padding lands on the <li>, overriding antd's class-based indent so
+  // the icon sits at 28px (12px itemMarginInline + 16px) — flush with the
+  // switcher. Margin stays in the token so antd's item width calc matches it.
+  const itemStyle = { paddingInline: "16px 8px" };
+
   const items: MenuProps["items"] = [
     {
-      key: "/shares",
+      key: "/recordings",
       icon: <Link2 size={16} />,
-      label: <Link href="/shares">Shares</Link>,
+      label: <Link href="/recordings">Recordings</Link>,
+      style: itemStyle,
     },
     {
-      key: "/snaps",
+      key: "/screenshots",
       icon: <Camera size={16} />,
-      label: <Link href="/snaps">Snaps</Link>,
+      label: <Link href="/screenshots">Screenshots</Link>,
+      style: itemStyle,
     },
     ...(isOwner
       ? ([
@@ -35,11 +43,13 @@ export function SidebarNav({ isOwner }: { isOwner: boolean }) {
                 key: "/members",
                 icon: <Users size={16} />,
                 label: <Link href="/members">Members</Link>,
+                style: itemStyle,
               },
               {
                 key: "/settings",
                 icon: <Settings size={16} />,
                 label: <Link href="/settings">Workspace</Link>,
+                style: itemStyle,
               },
             ],
           },
@@ -48,11 +58,29 @@ export function SidebarNav({ isOwner }: { isOwner: boolean }) {
   ];
 
   return (
-    <Menu
-      mode="inline"
-      selectedKeys={selected ? [selected] : []}
-      items={items}
-      style={{ borderInlineEnd: 0, background: "transparent" }}
-    />
+    <ConfigProvider
+      theme={{
+        components: {
+          Menu: {
+            itemHeight: 32,
+            itemBorderRadius: 6,
+            itemMarginInline: 12,
+            itemSelectedBg: token.colorPrimaryBgHover,
+            // High-contrast foreground (not the blue colorPrimary) so the
+            // selected label/icon stay legible on the tinted pill — blue-on-blue
+            // read too dark in dark mode.
+            itemSelectedColor: token.colorText,
+          },
+        },
+      }}
+    >
+      <Menu
+        rootClassName="cf-sidebar-menu"
+        mode="inline"
+        selectedKeys={selected ? [selected] : []}
+        items={items}
+        style={{ borderInlineEnd: 0, background: "transparent" }}
+      />
+    </ConfigProvider>
   );
 }

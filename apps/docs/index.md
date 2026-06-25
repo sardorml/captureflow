@@ -30,8 +30,8 @@ infrastructure, but it's just hosting, not a feature unlock.
 - **Instant share links** — streaming upload means the link is ready on stop.
 - **A share viewer** — plays in any browser, with reactions, comments, view
   counts, and auto-generated summary chapters.
-- **Snaps** — annotated screenshots that share exactly like recordings.
-- **A dashboard** — manage your recordings and snaps, set visibility, invite
+- **Screenshots** — annotated images that share exactly like recordings.
+- **A dashboard** — manage your recordings and screenshots, set visibility, invite
   teammates into a workspace, and track storage usage.
 - **A backend you control** — Next.js on Cloudflare Workers, backed by D1 and
   R2, with built-in storage quotas and retention.

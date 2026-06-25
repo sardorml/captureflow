@@ -2,7 +2,7 @@ import { create } from "zustand";
 import type {
   CaptureSource,
   RecordingMode,
-  ShareAuthState,
+  RecordingAuthState,
 } from "../../../shared/types";
 
 export type RecordingStatus =
@@ -30,8 +30,8 @@ type RecordingState = {
   devicesReady: boolean;
   elapsedTime: number;
   error: string | null;
-  // Local mirror of main's share-auth; drives the lock icon on the share-mode record button.
-  shareAuth: ShareAuthState;
+  // Local mirror of main's recording-auth; drives the lock icon on the recording-mode record button.
+  recordingAuth: RecordingAuthState;
 
   setSources: (sources: CaptureSource[]) => void;
   setSelectedSource: (source: CaptureSource | null) => void;
@@ -44,7 +44,7 @@ type RecordingState = {
   setStatus: (status: RecordingStatus) => void;
   setElapsedTime: (time: number) => void;
   setError: (error: string | null) => void;
-  setShareAuth: (state: ShareAuthState) => void;
+  setRecordingAuth: (state: RecordingAuthState) => void;
   reset: () => void;
 };
 
@@ -60,11 +60,11 @@ function loadPersistedBool(key: string, defaultValue: boolean): boolean {
 function loadPersistedMode(): RecordingMode {
   try {
     const v = localStorage.getItem("captureflow-mode");
-    if (v === "share") return "share";
+    if (v === "recording") return "recording";
     if (v === "screenshot") return "screenshot";
-    return "share";
+    return "recording";
   } catch {
-    return "share";
+    return "recording";
   }
 }
 
@@ -86,7 +86,7 @@ const initialState = {
   devicesReady: false,
   elapsedTime: 0,
   error: null as string | null,
-  shareAuth: { kind: "signed_out" } as ShareAuthState,
+  recordingAuth: { kind: "signed_out" } as RecordingAuthState,
 };
 
 export const useRecordingStore = create<RecordingState>((set, get) => ({
@@ -150,7 +150,7 @@ export const useRecordingStore = create<RecordingState>((set, get) => ({
   setStatus: (status): void => set({ status }),
   setElapsedTime: (time): void => set({ elapsedTime: time }),
   setError: (error): void => set({ error }),
-  setShareAuth: (state): void => set({ shareAuth: state }),
+  setRecordingAuth: (state): void => set({ recordingAuth: state }),
   reset: (): void =>
     set((state) => ({
       ...initialState,
@@ -162,6 +162,6 @@ export const useRecordingStore = create<RecordingState>((set, get) => ({
       selectedVideoDevice: state.selectedVideoDevice,
       systemAudioEnabled: state.systemAudioEnabled,
       recordingMode: state.recordingMode,
-      shareAuth: state.shareAuth,
+      recordingAuth: state.recordingAuth,
     })),
 }));

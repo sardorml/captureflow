@@ -21,13 +21,13 @@ export default async function WorkspaceSettingsPage() {
     session.user.id,
     session.user.name ?? null,
   );
-  if (current.role !== "owner") redirect("/shares");
+  if (current.role !== "owner") redirect("/recordings");
 
   const env = await getAppWebEnv();
   const workspace = env?.DB
     ? await getWorkspaceById(env.DB, current.workspace.id)
     : null;
-  if (!workspace) redirect("/shares");
+  if (!workspace) redirect("/recordings");
 
   const logoUrl = workspace.logo_key
     ? `${CDN_BASE}/${workspace.logo_key}?v=${workspace.updated_at}`
@@ -46,7 +46,7 @@ export default async function WorkspaceSettingsPage() {
           title="General"
           extra={
             <span className="text-sm text-fg-muted">
-              Applied to every new recording and snap in this workspace.
+              Applied to every new recording and screenshot in this workspace.
             </span>
           }
         >
@@ -64,7 +64,7 @@ export default async function WorkspaceSettingsPage() {
 
         <Card title="Recording access">
           <p className="mb-4 text-sm text-fg-muted">
-            Decide whether teammates can post recordings + snaps into this
+            Decide whether teammates can post recordings + screenshots into this
             workspace.
           </p>
           <MemberUploadsPolicy

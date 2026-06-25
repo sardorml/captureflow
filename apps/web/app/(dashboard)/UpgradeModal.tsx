@@ -14,7 +14,7 @@ const CHECKOUT_BASE_URL =
 
 const BENEFITS = [
   "200 GB cloud storage (up from 200 MB)",
-  "No cap on the number of shares & Snaps",
+  "No cap on the number of recordings & Screenshots",
   "Automatic backups & monitoring",
   "Priority support",
 ] as const;
@@ -56,7 +56,8 @@ export function UpgradeModal({ email, trigger }: Props) {
         }
       >
         <Typography.Paragraph type="secondary">
-          More cloud storage for your shares and Snaps. Cancel any time.
+          More cloud storage for your recordings and Screenshots. Cancel any
+          time.
         </Typography.Paragraph>
 
         <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>

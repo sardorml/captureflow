@@ -6,7 +6,7 @@ pointing the desktop recorder at it.
 
 The web app is a Next.js 16 app built for Cloudflare Workers via
 [OpenNext](https://opennext.js.org/cloudflare). One unified worker
-(`captureflow-web`) serves the dashboard, auth, the share viewer, the snap
+(`captureflow-web`) serves the dashboard, auth, the recording viewer, the screenshot
 viewer, and all API routes. It is backed by a single D1 database and a single
 R2 bucket. Cron triggers run an hourly multipart-upload GC and a daily
 retention sweep.
@@ -95,9 +95,9 @@ matches `wrangler.jsonc`):
 pnpm --filter @captureflow/web exec wrangler r2 bucket create captureflow-recordings
 ```
 
-Prefixes used inside the bucket: `videos/`, `posters/`, `snaps/`.
+Prefixes used inside the bucket: `videos/`, `posters/`, `screenshots/`.
 
-For public reads over a CDN host (share posters/videos and snap PNGs), bind
+For public reads over a CDN host (recording posters/videos and screenshot PNGs), bind
 `cdn.captureflow.xyz` to this bucket's public domain — see **step 6**. The app
 reads that origin from the `R2_PUBLIC_BASE_URL` var (default
 `https://cdn.captureflow.xyz`).
@@ -170,8 +170,8 @@ The non-secret, public vars already live in `apps/web/wrangler.jsonc` under
 | Var                                      | Default                       |
 | ---------------------------------------- | ----------------------------- |
 | `NEXT_PUBLIC_APP_WEB_SITE_URL`           | `https://captureflow.xyz`     |
-| `NEXT_PUBLIC_SHARE_SITE_URL`             | `https://captureflow.xyz`     |
-| `NEXT_PUBLIC_SNAP_SITE_URL`              | `https://captureflow.xyz`     |
+| `NEXT_PUBLIC_RECORDING_SITE_URL`         | `https://captureflow.xyz`     |
+| `NEXT_PUBLIC_SCREENSHOT_SITE_URL`        | `https://captureflow.xyz`     |
 | `NEXT_PUBLIC_MARKETING_SITE_URL`         | `https://captureflow.xyz`     |
 | `R2_PUBLIC_BASE_URL`                     | `https://cdn.captureflow.xyz` |
 | `BETTER_AUTH_URL`                        | `https://captureflow.xyz`     |
@@ -233,7 +233,7 @@ and publishes the worker with its D1/R2 bindings, vars, and cron triggers from
    ```bash
    pnpm --filter @captureflow/web exec wrangler tail captureflow-web
    ```
-4. Record + share from the desktop app and confirm the share link resolves and
+4. Record + recording from the desktop app and confirm the recording link resolves and
    the video plays from `cdn.captureflow.xyz` (confirms R2 + CDN domain).
 5. (If billing enabled) Send a Lemon Squeezy test webhook and confirm the
    subscription row is written (no `invalid signature` / `not configured`).
@@ -299,12 +299,12 @@ worker), so if you self-host on that domain you don't need to set anything.
 To target a different host, set these before building the desktop app (they are
 inlined at build time via `electron.vite.config.ts`):
 
-| Env var                        | Default (prod fallback)         |
-| ------------------------------ | ------------------------------- |
-| `CAPTUREFLOW_APP_WEB_API_BASE` | `https://captureflow.xyz`       |
-| `CAPTUREFLOW_APP_WEB_BASE`     | `https://captureflow.xyz`       |
-| `CAPTUREFLOW_SHARE_API_BASE`   | `https://captureflow.xyz/api/r` |
-| `CAPTUREFLOW_SNAP_API_BASE`    | `https://captureflow.xyz/api/s` |
+| Env var                           | Default (prod fallback)         |
+| --------------------------------- | ------------------------------- |
+| `CAPTUREFLOW_APP_WEB_API_BASE`    | `https://captureflow.xyz`       |
+| `CAPTUREFLOW_APP_WEB_BASE`        | `https://captureflow.xyz`       |
+| `CAPTUREFLOW_RECORDING_API_BASE`  | `https://captureflow.xyz/api/r` |
+| `CAPTUREFLOW_SCREENSHOT_API_BASE` | `https://captureflow.xyz/api/s` |
 
 In local dev (`pnpm app`) these default to `http://localhost:3032` so the
 desktop app talks to a locally-running worker.
@@ -322,35 +322,35 @@ Scope legend:
 - **build (desktop)** — read by the desktop recorder at build time and inlined
   into the Electron bundle.
 
-| Name                                     | Required?                     | Scope               | Purpose                                                                                | How to set                                                                 |
-| ---------------------------------------- | ----------------------------- | ------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `BETTER_AUTH_SECRET`                     | **Required**                  | worker-secret       | Signs Better Auth sessions.                                                            | `openssl rand -hex 32 \| wrangler secret put BETTER_AUTH_SECRET`           |
-| `BETTER_AUTH_URL`                        | Required (has prod default)   | worker-var          | Base URL Better Auth issues/validates sessions against.                                | `wrangler.jsonc` "vars" (default `https://captureflow.xyz`)                |
-| `NEXT_PUBLIC_APP_WEB_SITE_URL`           | Required (has default)        | worker-var (public) | Dashboard / app-web origin used for account + invite links.                            | `wrangler.jsonc` "vars"                                                    |
-| `NEXT_PUBLIC_SHARE_SITE_URL`             | Required (has default)        | worker-var (public) | Share viewer origin.                                                                   | `wrangler.jsonc` "vars"                                                    |
-| `NEXT_PUBLIC_SNAP_SITE_URL`              | Required (has default)        | worker-var (public) | Snap viewer origin (legacy standalone host).                                           | `wrangler.jsonc` "vars"                                                    |
-| `NEXT_PUBLIC_MARKETING_SITE_URL`         | Required (has default)        | worker-var (public) | Marketing root; share + snap view pages build URLs off it.                             | `wrangler.jsonc` "vars"                                                    |
-| `R2_PUBLIC_BASE_URL`                     | Required (has default)        | worker-var          | CDN origin for direct R2 reads (posters/videos/snaps).                                 | `wrangler.jsonc` "vars" (default `https://cdn.captureflow.xyz`)            |
-| `NEXT_PUBLIC_R2_PUBLIC_BASE_URL`         | Optional (has default)        | worker-var (public) | Client-side CDN origin for poster/video/snap thumbnails; mirrors `R2_PUBLIC_BASE_URL`. | `wrangler.jsonc` "vars" or `.dev.vars`                                     |
-| `APP_DEEP_LINK_SCHEME`                   | Required (has default)        | worker-var          | Desktop deep-link scheme (`captureflow://`).                                           | `wrangler.jsonc` "vars"                                                    |
-| `APP_WEB_PUBLIC_URL`                     | Optional (has default)        | worker-var          | Public URL used when composing workspace-invite links.                                 | `wrangler.jsonc` "vars" or `.dev.vars` (default `https://captureflow.xyz`) |
-| `NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL` | Optional                      | worker-var (public) | Public checkout link for "Upgrade to Pro"; empty disables billing UI.                  | `wrangler.jsonc` "vars"                                                    |
-| `LEMON_WEBHOOK_SECRET`                   | Optional (billing)            | worker-secret       | HMAC secret verifying Lemon Squeezy webhook signatures.                                | `wrangler secret put LEMON_WEBHOOK_SECRET`                                 |
-| `LEMON_MONTHLY_VARIANT_ID`               | Optional (billing)            | worker-secret/var   | Live monthly variant id → billing cycle.                                               | `wrangler secret put` or "vars"                                            |
-| `LEMON_ANNUAL_VARIANT_ID`                | Optional (billing)            | worker-secret/var   | Live annual variant id → billing cycle.                                                | `wrangler secret put` or "vars"                                            |
-| `LEMON_TEST_MONTHLY_VARIANT_ID`          | Optional (billing)            | worker-secret/var   | Test-mode monthly variant id (accept test webhooks).                                   | `wrangler secret put` or "vars"                                            |
-| `LEMON_TEST_ANNUAL_VARIANT_ID`           | Optional (billing)            | worker-secret/var   | Test-mode annual variant id (accept test webhooks).                                    | `wrangler secret put` or "vars"                                            |
-| `RESEND_API_KEY`                         | Optional (email)              | worker-secret       | Resend API key for workspace-invite emails. Unset = sends skipped.                     | `wrangler secret put RESEND_API_KEY`                                       |
-| `RESEND_FROM_ADDRESS`                    | Optional (email, has default) | worker-secret/var   | Verified "from" address for invite emails.                                             | `wrangler secret put` (default `CaptureFlow <hello@captureflow.xyz>`)      |
-| `DB`                                     | **Required** (binding)        | binding             | D1 database binding.                                                                   | `wrangler d1 create captureflow` + paste id into `wrangler.jsonc`          |
-| `BUCKET`                                 | **Required** (binding)        | binding             | R2 recordings bucket binding.                                                          | `wrangler r2 bucket create captureflow-recordings`                         |
-| `ASSETS`                                 | **Required** (binding)        | binding             | Static-assets fetcher; auto-wired by OpenNext build.                                   | `wrangler.jsonc` `assets` (no manual step)                                 |
-| `CAPTUREFLOW_APP_WEB_API_BASE`           | Optional (has default)        | build (desktop)     | Desktop → app-web API base (usage, workspaces).                                        | desktop `.env` (default `https://captureflow.xyz`)                         |
-| `CAPTUREFLOW_APP_WEB_BASE`               | Optional (has default)        | build (desktop)     | Desktop → app-web base (account, edit links).                                          | desktop `.env` (default `https://captureflow.xyz`)                         |
-| `CAPTUREFLOW_SHARE_API_BASE`             | Optional (has default)        | build (desktop)     | Desktop → share API base.                                                              | desktop `.env` (default `https://captureflow.xyz/api/r`)                   |
-| `CAPTUREFLOW_SNAP_API_BASE`              | Optional (has default)        | build (desktop)     | Desktop → snap API base.                                                               | desktop `.env` (default `https://captureflow.xyz/api/s`)                   |
+| Name                                     | Required?                     | Scope               | Purpose                                                                                      | How to set                                                                 |
+| ---------------------------------------- | ----------------------------- | ------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `BETTER_AUTH_SECRET`                     | **Required**                  | worker-secret       | Signs Better Auth sessions.                                                                  | `openssl rand -hex 32 \| wrangler secret put BETTER_AUTH_SECRET`           |
+| `BETTER_AUTH_URL`                        | Required (has prod default)   | worker-var          | Base URL Better Auth issues/validates sessions against.                                      | `wrangler.jsonc` "vars" (default `https://captureflow.xyz`)                |
+| `NEXT_PUBLIC_APP_WEB_SITE_URL`           | Required (has default)        | worker-var (public) | Dashboard / app-web origin used for account + invite links.                                  | `wrangler.jsonc` "vars"                                                    |
+| `NEXT_PUBLIC_RECORDING_SITE_URL`         | Required (has default)        | worker-var (public) | Recording viewer origin.                                                                     | `wrangler.jsonc` "vars"                                                    |
+| `NEXT_PUBLIC_SCREENSHOT_SITE_URL`        | Required (has default)        | worker-var (public) | Screenshot viewer origin (legacy standalone host).                                           | `wrangler.jsonc` "vars"                                                    |
+| `NEXT_PUBLIC_MARKETING_SITE_URL`         | Required (has default)        | worker-var (public) | Marketing root; recording + screenshot view pages build URLs off it.                         | `wrangler.jsonc` "vars"                                                    |
+| `R2_PUBLIC_BASE_URL`                     | Required (has default)        | worker-var          | CDN origin for direct R2 reads (posters/videos/screenshots).                                 | `wrangler.jsonc` "vars" (default `https://cdn.captureflow.xyz`)            |
+| `NEXT_PUBLIC_R2_PUBLIC_BASE_URL`         | Optional (has default)        | worker-var (public) | Client-side CDN origin for poster/video/screenshot thumbnails; mirrors `R2_PUBLIC_BASE_URL`. | `wrangler.jsonc` "vars" or `.dev.vars`                                     |
+| `APP_DEEP_LINK_SCHEME`                   | Required (has default)        | worker-var          | Desktop deep-link scheme (`captureflow://`).                                                 | `wrangler.jsonc` "vars"                                                    |
+| `APP_WEB_PUBLIC_URL`                     | Optional (has default)        | worker-var          | Public URL used when composing workspace-invite links.                                       | `wrangler.jsonc` "vars" or `.dev.vars` (default `https://captureflow.xyz`) |
+| `NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL` | Optional                      | worker-var (public) | Public checkout link for "Upgrade to Pro"; empty disables billing UI.                        | `wrangler.jsonc` "vars"                                                    |
+| `LEMON_WEBHOOK_SECRET`                   | Optional (billing)            | worker-secret       | HMAC secret verifying Lemon Squeezy webhook signatures.                                      | `wrangler secret put LEMON_WEBHOOK_SECRET`                                 |
+| `LEMON_MONTHLY_VARIANT_ID`               | Optional (billing)            | worker-secret/var   | Live monthly variant id → billing cycle.                                                     | `wrangler secret put` or "vars"                                            |
+| `LEMON_ANNUAL_VARIANT_ID`                | Optional (billing)            | worker-secret/var   | Live annual variant id → billing cycle.                                                      | `wrangler secret put` or "vars"                                            |
+| `LEMON_TEST_MONTHLY_VARIANT_ID`          | Optional (billing)            | worker-secret/var   | Test-mode monthly variant id (accept test webhooks).                                         | `wrangler secret put` or "vars"                                            |
+| `LEMON_TEST_ANNUAL_VARIANT_ID`           | Optional (billing)            | worker-secret/var   | Test-mode annual variant id (accept test webhooks).                                          | `wrangler secret put` or "vars"                                            |
+| `RESEND_API_KEY`                         | Optional (email)              | worker-secret       | Resend API key for workspace-invite emails. Unset = sends skipped.                           | `wrangler secret put RESEND_API_KEY`                                       |
+| `RESEND_FROM_ADDRESS`                    | Optional (email, has default) | worker-secret/var   | Verified "from" address for invite emails.                                                   | `wrangler secret put` (default `CaptureFlow <hello@captureflow.xyz>`)      |
+| `DB`                                     | **Required** (binding)        | binding             | D1 database binding.                                                                         | `wrangler d1 create captureflow` + paste id into `wrangler.jsonc`          |
+| `BUCKET`                                 | **Required** (binding)        | binding             | R2 recordings bucket binding.                                                                | `wrangler r2 bucket create captureflow-recordings`                         |
+| `ASSETS`                                 | **Required** (binding)        | binding             | Static-assets fetcher; auto-wired by OpenNext build.                                         | `wrangler.jsonc` `assets` (no manual step)                                 |
+| `CAPTUREFLOW_APP_WEB_API_BASE`           | Optional (has default)        | build (desktop)     | Desktop → app-web API base (usage, workspaces).                                              | desktop `.env` (default `https://captureflow.xyz`)                         |
+| `CAPTUREFLOW_APP_WEB_BASE`               | Optional (has default)        | build (desktop)     | Desktop → app-web base (account, edit links).                                                | desktop `.env` (default `https://captureflow.xyz`)                         |
+| `CAPTUREFLOW_RECORDING_API_BASE`         | Optional (has default)        | build (desktop)     | Desktop → recording API base.                                                                | desktop `.env` (default `https://captureflow.xyz/api/r`)                   |
+| `CAPTUREFLOW_SCREENSHOT_API_BASE`        | Optional (has default)        | build (desktop)     | Desktop → screenshot API base.                                                               | desktop `.env` (default `https://captureflow.xyz/api/s`)                   |
 
 > Desktop-only build extras (not part of the web backend): `LEMON_SQUEEZY_CHECKOUT_URL`
-> / `LEMON_SQUEEZY_TEST_CHECKOUT_URL` (Share-mode upgrade link), `POSTHOG_KEY`
+> / `LEMON_SQUEEZY_TEST_CHECKOUT_URL` (Recording-mode upgrade link), `POSTHOG_KEY`
 > / `POSTHOG_HOST` (opt-in analytics, dormant when unset), and `FORMIK_KEY`.
 > See `apps/desktop/electron.vite.config.ts`.

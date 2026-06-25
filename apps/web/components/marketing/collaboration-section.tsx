@@ -9,7 +9,7 @@ import { DemoStage } from "./demo-stage";
 import { useMessages } from "./i18n-provider";
 
 type ShareKey = "editor" | "viewer" | "dashboard";
-type SnapKey = "markup" | "capture" | "share";
+type ScreenshotKey = "markup" | "capture" | "share";
 type VisibilityKey = "public" | "workspace" | "private";
 
 type Feature = {
@@ -20,9 +20,9 @@ type Feature = {
 };
 
 type Category = {
-  id: string; // anchor target — nav #share / #snap land here
+  id: string; // anchor target — nav #share / #screenshot land here
   num: string;
-  kind: "share" | "snap" | "workspaces";
+  kind: "share" | "screenshot" | "workspaces";
   title: string;
   features: Feature[];
 };
@@ -33,8 +33,8 @@ const SHARE_URLS: Record<ShareKey, string> = {
   dashboard: "captureflow.xyz",
 };
 
-const SNAP_URLS: Record<SnapKey, string> = {
-  markup: "captureflow.xyz/snaps/8kx2pnq4/edit",
+const SCREENSHOT_URLS: Record<ScreenshotKey, string> = {
+  markup: "captureflow.xyz/screenshots/8kx2pnq4/edit",
   capture: "capture overlay",
   share: "captureflow.xyz",
 };
@@ -50,7 +50,7 @@ const CATEGORIES: Category[] = [
         key: "editor",
         title: "Edit recording",
         linkText: "Recolor and choose who can react",
-        body: "— polish your share on the web, no re-record.",
+        body: "— polish your recording on the web, no re-record.",
       },
       {
         key: "viewer",
@@ -60,17 +60,17 @@ const CATEGORIES: Category[] = [
       },
       {
         key: "dashboard",
-        title: "Your shares, your dashboard",
+        title: "Your recordings, your dashboard",
         linkText: "Track views, search your library, revoke access",
         body: "— every link organized in one place.",
       },
     ],
   },
   {
-    id: "snap",
+    id: "screenshot",
     num: "02",
-    kind: "snap",
-    title: "Snap screenshots",
+    kind: "screenshot",
+    title: "Capture screenshots",
     features: [
       {
         key: "capture",
@@ -82,13 +82,13 @@ const CATEGORIES: Category[] = [
         key: "markup",
         title: "Annotate before you share",
         linkText: "Add arrows, text, or blur",
-        body: "over any capture — every annotation stays on the Snap.",
+        body: "over any capture — every annotation stays on the Screenshot.",
       },
       {
         key: "share",
         title: "One link, ready to share",
         linkText: "The link hits your clipboard",
-        body: "— Snaps and recordings together in one dashboard.",
+        body: "— Screenshots and recordings together in one dashboard.",
       },
     ],
   },
@@ -107,13 +107,13 @@ const CATEGORIES: Category[] = [
       {
         key: "public",
         title: "Public when you want",
-        linkText: "Flip a share public",
+        linkText: "Flip a recording public",
         body: "and anyone with the link can watch — great for changelogs and demos.",
       },
       {
         key: "private",
         title: "Keep it to yourself",
-        linkText: "Lock a share to just you",
+        linkText: "Lock a recording to just you",
         body: "while you draft, then share it the moment it’s ready.",
       },
     ],
@@ -274,8 +274,10 @@ function AccordionRow({
                     {cat.kind === "share" && (
                       <ShareFrame activeKey={featureKey as ShareKey} />
                     )}
-                    {cat.kind === "snap" && (
-                      <SnapFrame activeKey={featureKey as SnapKey} />
+                    {cat.kind === "screenshot" && (
+                      <ScreenshotFrame
+                        activeKey={featureKey as ScreenshotKey}
+                      />
                     )}
                     {cat.kind === "workspaces" && (
                       <WorkspaceCard
@@ -444,8 +446,8 @@ function ShareFrame({ activeKey }: { activeKey: ShareKey }) {
   );
 }
 
-function SnapFrame({ activeKey }: { activeKey: SnapKey }) {
-  const url = SNAP_URLS[activeKey];
+function ScreenshotFrame({ activeKey }: { activeKey: ScreenshotKey }) {
+  const url = SCREENSHOT_URLS[activeKey];
   const isOverlay = activeKey === "capture";
   return (
     <BrowserChrome url={url} overlay={isOverlay}>

@@ -4,7 +4,7 @@ import { SuggestFeatureClient } from "./suggest-feature-client";
 export const metadata: Metadata = {
   title: "Suggest a feature",
   description:
-    "Share your ideas to improve CaptureFlow. Submit feature requests and help shape the open-source macOS screen recorder’s roadmap.",
+    "Recording your ideas to improve CaptureFlow. Submit feature requests and help shape the open-source macOS screen recorder’s roadmap.",
   alternates: { canonical: "/suggest-feature" },
 };
 

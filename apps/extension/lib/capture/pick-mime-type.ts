@@ -4,7 +4,7 @@ export type ScreenMimeType = {
 };
 
 /*
- * Preference order: H.264/MP4 (the share backend's happy-path container) when an
+ * Preference order: H.264/MP4 (the recording backend's happy-path container) when an
  * OS encoder is present, otherwise VP9/VP8 WebM. The empty-mimeType fallback lets
  * the browser choose and is treated as WebM output server-side.
  */

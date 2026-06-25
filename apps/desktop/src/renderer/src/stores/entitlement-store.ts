@@ -1,5 +1,8 @@
 import { create } from "zustand";
-import type { ShareAuthState, ShareUsageState } from "../../../shared/types";
+import type {
+  RecordingAuthState,
+  RecordingUsageState,
+} from "../../../shared/types";
 
 type EntitlementState = {
   isPro: boolean;
@@ -28,7 +31,7 @@ export function isDevProEnabled(): boolean {
   );
 }
 
-function proFromUsage(usage: ShareUsageState): boolean {
+function proFromUsage(usage: RecordingUsageState): boolean {
   return (
     isDevProEnabled() || (usage.kind === "known" && usage.proSubscriptionActive)
   );
@@ -42,15 +45,15 @@ export function setDevPro(enabled: boolean): void {
     useEntitlementStore.getState().setPro(true);
   } else {
     localStorage.removeItem(DEV_PRO_KEY);
-    void window.electronAPI.getShareUsage().then((usage) => {
+    void window.electronAPI.getRecordingUsage().then((usage) => {
       useEntitlementStore.getState().setPro(proFromUsage(usage));
     });
   }
 }
 
 export function bootEntitlementStore(): () => void {
-  let auth: ShareAuthState = { kind: "signed_out" };
-  let usage: ShareUsageState = { kind: "unknown" };
+  let auth: RecordingAuthState = { kind: "signed_out" };
+  let usage: RecordingUsageState = { kind: "unknown" };
 
   const recompute = (): void => {
     const store = useEntitlementStore.getState();
@@ -64,21 +67,21 @@ export function bootEntitlementStore(): () => void {
     }
   };
 
-  void window.electronAPI.getShareAuth().then((a) => {
+  void window.electronAPI.getRecordingAuth().then((a) => {
     auth = a;
     recompute();
   });
-  void window.electronAPI.getShareUsage().then((u) => {
+  void window.electronAPI.getRecordingUsage().then((u) => {
     usage = u;
     recompute();
   });
-  void window.electronAPI.refreshShareUsage();
+  void window.electronAPI.refreshRecordingUsage();
 
-  const offAuth = window.electronAPI.onShareAuthChanged((a) => {
+  const offAuth = window.electronAPI.onRecordingAuthChanged((a) => {
     auth = a;
     recompute();
   });
-  const offUsage = window.electronAPI.onShareUsageChanged((u) => {
+  const offUsage = window.electronAPI.onRecordingUsageChanged((u) => {
     usage = u;
     recompute();
   });

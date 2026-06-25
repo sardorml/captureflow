@@ -1,5 +1,5 @@
 // upng-js has no published types. Declare the slim surface the
-// snap-compress module uses on the Electron main side: decode a
+// screenshot-compress module uses on the Electron main side: decode a
 // PNG buffer, project to RGBA, re-encode with `cnum: 256` to get
 // Loom-class palette PNG output.
 

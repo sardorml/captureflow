@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition, type ReactNode } from "react";
-import { Globe, Lock, Users } from "lucide-react";
-import { Modal, Radio, Space, Spin, Typography } from "antd";
+import {
+  ShareVisibilityModal,
+  type Visibility,
+} from "./_components/ShareVisibilityModal";
 
-export type Visibility = "public" | "workspace" | "private";
+export type { Visibility };
 
 type Props = {
   value: Visibility;
@@ -12,14 +14,9 @@ type Props = {
   onChange: (next: Visibility) => Promise<void> | void;
   allowPublic?: boolean;
   workspaceName?: string | null;
+  title?: string;
+  shareUrl?: string;
   trigger: ReactNode;
-};
-
-type Option = {
-  value: Visibility;
-  icon: ReactNode;
-  label: string;
-  description: string;
 };
 
 export function VisibilityDialog({
@@ -28,11 +25,12 @@ export function VisibilityDialog({
   onChange,
   allowPublic = true,
   workspaceName,
+  title = "Share",
+  shareUrl,
   trigger,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
-  const showPublic = allowPublic || value === "public";
 
   const pick = (next: Visibility) => {
     if (next === value) return;
@@ -40,33 +38,6 @@ export function VisibilityDialog({
       await onChange(next);
     });
   };
-
-  const options: Option[] = [
-    ...(showPublic
-      ? [
-          {
-            value: "public" as const,
-            icon: <Globe size={18} />,
-            label: "Public",
-            description: "Anyone with the link can view.",
-          },
-        ]
-      : []),
-    {
-      value: "workspace",
-      icon: <Users size={18} />,
-      label: "Workspace",
-      description: workspaceName
-        ? `Members of ${workspaceName} can view.`
-        : "Members of your workspace can view.",
-    },
-    {
-      value: "private",
-      icon: <Lock size={18} />,
-      label: "Private",
-      description: "Only you can view.",
-    },
-  ];
 
   return (
     <>
@@ -78,57 +49,17 @@ export function VisibilityDialog({
       >
         {trigger}
       </span>
-      <Modal
+      <ShareVisibilityModal
         open={open}
-        onCancel={() => setOpen(false)}
-        footer={null}
-        title={
-          <Space size={8}>
-            Visibility
-            {pending && (
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                <Spin size="small" style={{ marginInlineEnd: 6 }} />
-                Updating…
-              </Typography.Text>
-            )}
-          </Space>
-        }
-      >
-        <Typography.Text
-          type="secondary"
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          General access
-        </Typography.Text>
-        <Radio.Group
-          value={value}
-          disabled={pending || disabled}
-          onChange={(e) => pick(e.target.value as Visibility)}
-          style={{ display: "block", marginTop: 12, width: "100%" }}
-        >
-          <Space direction="vertical" size={8} style={{ width: "100%" }}>
-            {options.map((o) => (
-              <Radio key={o.value} value={o.value} style={{ width: "100%" }}>
-                <Space align="start" size={8}>
-                  {o.icon}
-                  <span>
-                    <Typography.Text strong>{o.label}</Typography.Text>
-                    <br />
-                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                      {o.description}
-                    </Typography.Text>
-                  </span>
-                </Space>
-              </Radio>
-            ))}
-          </Space>
-        </Radio.Group>
-      </Modal>
+        onClose={() => setOpen(false)}
+        title={title}
+        visibility={value}
+        onChange={pick}
+        workspaceName={workspaceName}
+        allowPublic={allowPublic}
+        pending={pending || disabled}
+        shareUrl={shareUrl}
+      />
     </>
   );
 }

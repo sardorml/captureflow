@@ -1,7 +1,7 @@
-/* Shared visibility/authorization gate for shares and snaps. Extracted from four
+/* Shared visibility/authorization gate for recordings and screenshots. Extracted from four
  * byte-identical copies (r/[id] and s/[id], each in generateMetadata and the page
  * body) so the rule can't silently drift between the metadata gate and the render
- * gate. Structurally typed so neither the share nor snap module has to depend on
+ * gate. Structurally typed so neither the recording nor screenshot module has to depend on
  * the other's VerifiedSession / row types. Pure — pinned by tests. */
 
 type Visitor = { userId: string; workspaceIds: string[] };

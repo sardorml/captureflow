@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { sendAccessRequestEmail } from "@/lib/email";
-import { viewUrlFor, snapViewUrlFor } from "@/lib/site";
+import { viewUrlFor, screenshotViewUrlFor } from "@/lib/site";
 
 const ALLOWED_ORIGINS = new Set([
   "https://captureflow.xyz",
@@ -36,7 +36,7 @@ export function OPTIONS(req: NextRequest) {
 }
 
 type Body = {
-  kind?: "share" | "snap";
+  kind?: "recording" | "screenshot";
   key?: string;
   message?: string | null;
 };
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       { status: 400, headers },
     );
   }
-  if (body.kind !== "share" && body.kind !== "snap") {
+  if (body.kind !== "recording" && body.kind !== "screenshot") {
     return NextResponse.json(
       { error: "invalid-kind" },
       { status: 400, headers },
@@ -107,15 +107,15 @@ export async function POST(req: NextRequest) {
     owner_name: string | null;
   };
   const sql =
-    body.kind === "share"
+    body.kind === "recording"
       ? `SELECT s.user_id, s.title, s.visibility,
                  u.email AS owner_email, u.name AS owner_name
-            FROM shares s
+            FROM recordings s
             LEFT JOIN users u ON u.id = s.user_id
            WHERE s.slug = ?1`
       : `SELECT s.user_id, s.title, s.visibility,
                  u.email AS owner_email, u.name AS owner_name
-            FROM snaps s
+            FROM screenshots s
             LEFT JOIN users u ON u.id = s.user_id
            WHERE s.id = ?1`;
   const row = await env.DB.prepare(sql).bind(body.key).first<Row>();
@@ -131,7 +131,9 @@ export async function POST(req: NextRequest) {
 
   const siteUrl = env.NEXT_PUBLIC_APP_WEB_SITE_URL ?? "https://captureflow.xyz";
   const artifactUrl =
-    body.kind === "share" ? viewUrlFor(body.key) : snapViewUrlFor(body.key);
+    body.kind === "recording"
+      ? viewUrlFor(body.key)
+      : screenshotViewUrlFor(body.key);
   const manageUrl = `${siteUrl}/members?invite=${encodeURIComponent(
     session.user.email,
   )}`;
@@ -142,7 +144,8 @@ export async function POST(req: NextRequest) {
     requesterEmail: session.user.email,
     requesterName: session.user.name ?? null,
     artifactKind: body.kind,
-    artifactTitle: row.title ?? (body.kind === "share" ? "Recording" : "Snap"),
+    artifactTitle:
+      row.title ?? (body.kind === "recording" ? "Recording" : "Screenshot"),
     artifactUrl,
     message,
     manageUrl,

@@ -53,7 +53,7 @@ export const metadata: Metadata = {
 
 export default async function RootPage() {
   const session = await loadSession();
-  if (session) redirect("/shares");
+  if (session) redirect("/recordings");
 
   const starCount = await getStarCount();
   const stars = starCount != null ? formatStars(starCount) : null;

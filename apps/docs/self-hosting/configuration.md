@@ -38,16 +38,16 @@ openssl rand -hex 32 | pnpm --filter @captureflow/web exec wrangler secret put B
 All default to `https://captureflow.xyz` / `https://cdn.captureflow.xyz`. Change
 them if you use a different domain.
 
-| Var                              | Default                                        |
-| -------------------------------- | ---------------------------------------------- |
-| `NEXT_PUBLIC_APP_WEB_SITE_URL`   | `https://captureflow.xyz`                      |
-| `NEXT_PUBLIC_SHARE_SITE_URL`     | `https://captureflow.xyz`                      |
-| `NEXT_PUBLIC_SNAP_SITE_URL`      | `https://captureflow.xyz`                      |
-| `NEXT_PUBLIC_MARKETING_SITE_URL` | `https://captureflow.xyz`                      |
-| `R2_PUBLIC_BASE_URL`             | `https://cdn.captureflow.xyz`                  |
-| `NEXT_PUBLIC_R2_PUBLIC_BASE_URL` | mirrors `R2_PUBLIC_BASE_URL`                   |
-| `APP_DEEP_LINK_SCHEME`           | `captureflow` (the `captureflow://` deep link) |
-| `APP_WEB_PUBLIC_URL`             | `https://captureflow.xyz` (invite links)       |
+| Var                               | Default                                        |
+| --------------------------------- | ---------------------------------------------- |
+| `NEXT_PUBLIC_APP_WEB_SITE_URL`    | `https://captureflow.xyz`                      |
+| `NEXT_PUBLIC_RECORDING_SITE_URL`  | `https://captureflow.xyz`                      |
+| `NEXT_PUBLIC_SCREENSHOT_SITE_URL` | `https://captureflow.xyz`                      |
+| `NEXT_PUBLIC_MARKETING_SITE_URL`  | `https://captureflow.xyz`                      |
+| `R2_PUBLIC_BASE_URL`              | `https://cdn.captureflow.xyz`                  |
+| `NEXT_PUBLIC_R2_PUBLIC_BASE_URL`  | mirrors `R2_PUBLIC_BASE_URL`                   |
+| `APP_DEEP_LINK_SCHEME`            | `captureflow` (the `captureflow://` deep link) |
+| `APP_WEB_PUBLIC_URL`              | `https://captureflow.xyz` (invite links)       |
 
 ## Email — Resend (optional)
 

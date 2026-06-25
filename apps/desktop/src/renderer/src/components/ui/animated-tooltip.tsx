@@ -20,7 +20,7 @@ export interface AnimatedTooltipProps {
   delay?: number;
   children: ReactNode;
   className?: string;
-  // Classes for the trigger wrapper span. Default is  `relative inline-flex items-center` — override to opt the wrapper into  the parent's layout (e.g. `flex flex-1` to take its share of a  segmented flex container).
+  // Classes for the trigger wrapper span. Default is  `relative inline-flex items-center` — override to opt the wrapper into  the parent's layout (e.g. `flex flex-1` to take its recording of a  segmented flex container).
   triggerClassName?: string;
   // When true, the tooltip never shows (and hides if already open). Use to  suppress the hint while a flyout/menu anchored to the same trigger is  open.
   disabled?: boolean;

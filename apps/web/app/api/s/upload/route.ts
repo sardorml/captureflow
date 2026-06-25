@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ACCOUNT_LIMITS } from "@captureflow/quota";
-import { generateSnapId } from "@/lib/snap/id";
-import { insertSnap } from "@/lib/snap/db";
+import { generateScreenshotId } from "@/lib/screenshot/id";
+import { insertScreenshot } from "@/lib/screenshot/db";
 import {
-  putSnap,
-  putSnapSource,
-  putSnapState,
-  snapStorageKey,
-} from "@/lib/snap/r2";
-import { resolveDeviceTokenToUser } from "@/lib/snap/device-tokens";
-import { isDevDevice } from "@/lib/snap/dev-allowlist";
-import { optionsResponse, withCors, jsonError } from "@/lib/snap/cors";
+  putScreenshot,
+  putScreenshotSource,
+  putScreenshotState,
+  screenshotStorageKey,
+} from "@/lib/screenshot/r2";
+import { resolveDeviceTokenToUser } from "@/lib/screenshot/device-tokens";
+import { isDevDevice } from "@/lib/screenshot/dev-allowlist";
+import { optionsResponse, withCors, jsonError } from "@/lib/screenshot/cors";
 import {
   activeArtifactCountForUser,
   getEffectiveLimitsForUser,
@@ -18,26 +18,29 @@ import {
   resolveUserWorkspaceId,
   totalStorageForUser,
   validateWorkspaceMembership,
-} from "@/lib/snap/quota";
-import { snapEditUrlFor, snapViewUrlForRequest } from "@/lib/site";
-import { buildSnapHeadline, sanitizeSourceTitle } from "@/lib/snap/title";
-import type { UploadResponse } from "@/lib/snap/types";
+} from "@/lib/screenshot/quota";
+import { screenshotEditUrlFor, screenshotViewUrlForRequest } from "@/lib/site";
+import {
+  buildScreenshotHeadline,
+  sanitizeSourceTitle,
+} from "@/lib/screenshot/title";
+import type { UploadResponse } from "@/lib/screenshot/types";
 
 const DEVICE_HEADER = "x-captureflow-device";
-const WIDTH_HEADER = "x-captureflow-snap-width";
-const HEIGHT_HEADER = "x-captureflow-snap-height";
-const TITLE_HEADER = "x-captureflow-snap-title";
+const WIDTH_HEADER = "x-captureflow-screenshot-width";
+const HEIGHT_HEADER = "x-captureflow-screenshot-height";
+const TITLE_HEADER = "x-captureflow-screenshot-title";
 // Optional target workspace id. Falls through to the uploader's personal
 // workspace on any mismatch — see /api/init for the same fallback rationale.
 const WORKSPACE_HEADER = "x-captureflow-workspace";
 
 /*
- * Snap upload endpoint. Bearer required (snaps are account-owned); quota is
- * gated up front against the combined shares ∪ snaps total.
+ * Screenshot upload endpoint. Bearer required (screenshots are account-owned); quota is
+ * gated up front against the combined recordings ∪ screenshots total.
  *
  * 200 → { id, viewUrl, editUrl }
  * 401 → bearer missing/invalid
- * 413 → snap exceeds per-snap cap
+ * 413 → screenshot exceeds per-screenshot cap
  * 429 → storage_limit / active_limit
  */
 
@@ -92,13 +95,20 @@ export async function POST(req: NextRequest) {
   // Cheap pre-flight on declared size; enforce on actual bytes below.
   const contentLengthRaw = req.headers.get("content-length");
   const declaredSize = contentLengthRaw ? Number(contentLengthRaw) : null;
-  if (declaredSize !== null && declaredSize > ACCOUNT_LIMITS.perSnapSizeBytes) {
-    return jsonError("Snap exceeds per-snap size cap", 413, "size_exceeded");
+  if (
+    declaredSize !== null &&
+    declaredSize > ACCOUNT_LIMITS.perScreenshotSizeBytes
+  ) {
+    return jsonError(
+      "Screenshot exceeds per-screenshot size cap",
+      413,
+      "size_exceeded",
+    );
   }
 
   const bearer = extractBearerToken(req);
   if (!bearer) {
-    return jsonError("Sign in to upload a snap.", 401, "missing_token");
+    return jsonError("Sign in to upload a screenshot.", 401, "missing_token");
   }
   const userId = await resolveDeviceTokenToUser(bearer);
   if (!userId) {
@@ -159,7 +169,7 @@ export async function POST(req: NextRequest) {
     try {
       form = await req.formData();
     } catch (err) {
-      console.error("[snap] failed to parse multipart upload:", err);
+      console.error("[screenshot] failed to parse multipart upload:", err);
       return jsonError("Malformed multipart body", 400, "invalid_multipart");
     }
     const composedField = form.get("composed");
@@ -182,19 +192,26 @@ export async function POST(req: NextRequest) {
   if (composedBody.byteLength === 0) {
     return jsonError("Missing body", 400, "no_body");
   }
-  if (composedBody.byteLength > ACCOUNT_LIMITS.perSnapSizeBytes) {
-    return jsonError("Snap exceeds per-snap size cap", 413, "size_exceeded");
-  }
-  if (sourceBody && sourceBody.byteLength > ACCOUNT_LIMITS.perSnapSizeBytes) {
+  if (composedBody.byteLength > ACCOUNT_LIMITS.perScreenshotSizeBytes) {
     return jsonError(
-      "Source PNG exceeds per-snap size cap",
+      "Screenshot exceeds per-screenshot size cap",
+      413,
+      "size_exceeded",
+    );
+  }
+  if (
+    sourceBody &&
+    sourceBody.byteLength > ACCOUNT_LIMITS.perScreenshotSizeBytes
+  ) {
+    return jsonError(
+      "Source PNG exceeds per-screenshot size cap",
       413,
       "size_exceeded",
     );
   }
 
-  const id = generateSnapId();
-  await putSnap(id, composedBody);
+  const id = generateScreenshotId();
+  await putScreenshot(id, composedBody);
   /*
    * Source + state sidecars are best-effort — if either write fails
    * we still return success for the composed upload (the editor's
@@ -202,16 +219,16 @@ export async function POST(req: NextRequest) {
    */
   if (sourceBody) {
     try {
-      await putSnapSource(id, sourceBody);
+      await putScreenshotSource(id, sourceBody);
     } catch (err) {
-      console.warn("[snap] putSnapSource failed:", err);
+      console.warn("[screenshot] putScreenshotSource failed:", err);
     }
   }
   if (stateBody) {
     try {
-      await putSnapState(id, stateBody);
+      await putScreenshotState(id, stateBody);
     } catch (err) {
-      console.warn("[snap] putSnapState failed:", err);
+      console.warn("[screenshot] putScreenshotState failed:", err);
     }
   }
 
@@ -223,23 +240,23 @@ export async function POST(req: NextRequest) {
    * overwrite this column.
    */
   const sourceTitle = sanitizeSourceTitle(req.headers.get(TITLE_HEADER));
-  const title = buildSnapHeadline(sourceTitle, now);
+  const title = buildScreenshotHeadline(sourceTitle, now);
 
   try {
-    await insertSnap({
+    await insertScreenshot({
       id,
       userId,
       workspaceId,
       deviceId,
-      storageKey: snapStorageKey(id),
+      storageKey: screenshotStorageKey(id),
       sizeBytes: composedBody.byteLength,
       width: Math.round(width),
       height: Math.round(height),
       title,
       state: "ready",
       /*
-       * When public links are disabled, new snaps default to 'workspace' so a
-       * public link is never minted; owners can still flip individual snaps to
+       * When public links are disabled, new screenshots default to 'workspace' so a
+       * public link is never minted; owners can still flip individual screenshots to
        * 'public' later from the dashboard.
        */
       visibility:
@@ -253,18 +270,18 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     // Roll back the R2 put so we don't strand bytes — best effort.
     try {
-      await (await import("@/lib/snap/r2")).deleteSnap(id);
+      await (await import("@/lib/screenshot/r2")).deleteScreenshot(id);
     } catch {
       // best effort
     }
-    console.error("[snap] insertSnap failed:", err);
-    return jsonError("Failed to record snap", 500, "db_insert_failed");
+    console.error("[screenshot] insertScreenshot failed:", err);
+    return jsonError("Failed to record screenshot", 500, "db_insert_failed");
   }
 
   const res: UploadResponse = {
     id,
-    viewUrl: snapViewUrlForRequest(req, id),
-    editUrl: snapEditUrlFor(id),
+    viewUrl: screenshotViewUrlForRequest(req, id),
+    editUrl: screenshotEditUrlFor(id),
   };
   return withCors(NextResponse.json(res));
 }

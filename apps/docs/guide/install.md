@@ -6,7 +6,7 @@ both supported.
 
 > [!NOTE]
 > Windows/Linux recorders aren't shipped yet. The **web backend, dashboard, and
-> share pages are fully cross-platform** — anyone can view and manage recordings
+> recording pages are fully cross-platform** — anyone can view and manage recordings
 > in a browser on any OS.
 
 ## Option A — download a release
@@ -48,7 +48,7 @@ again (a known macOS quirk) and restart the app.
 ## Sign in
 
 The recorder needs an account on a CaptureFlow backend to upload and create
-share links.
+recording links.
 
 - **Managed hosting:** sign in with the account from your provider.
 - **Self-hosted:** the desktop app points at `https://captureflow.xyz` by

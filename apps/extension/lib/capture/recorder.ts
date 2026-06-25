@@ -1,5 +1,8 @@
-import { createShareTransport } from "../api/client";
-import { startShareUpload, type ShareUpload } from "../api/upload-streamer";
+import { createRecordingTransport } from "../api/client";
+import {
+  startRecordingUpload,
+  type RecordingUpload,
+} from "../api/upload-streamer";
 import type { CaptureContext } from "../messaging";
 import type { RecordingResultPayload, RecordingStatus } from "../storage";
 import { pickScreenMimeType, pickWebcamMimeType } from "./pick-mime-type";
@@ -49,7 +52,7 @@ export async function recordAndUpload(
   }
 
   // Webcam (camera + optional mic) is best-effort: if it can't be acquired (no
-  // permission yet, no device), fall back to a screen-only share.
+  // permission yet, no device), fall back to a screen-only recording.
   let webcamStream: MediaStream | null = null;
   if (ctx.camera) {
     try {
@@ -64,10 +67,10 @@ export async function recordAndUpload(
 
   const screen = pickScreenMimeType();
 
-  let upload: ShareUpload;
+  let upload: RecordingUpload;
   try {
-    const transport = createShareTransport(ctx.deviceId, ctx.token);
-    upload = await startShareUpload(
+    const transport = createRecordingTransport(ctx.deviceId, ctx.token);
+    upload = await startRecordingUpload(
       {
         contentType: screen.contentType,
         source: "instant",

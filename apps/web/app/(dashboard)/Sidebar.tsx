@@ -19,7 +19,7 @@ import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 export async function Sidebar() {
   const session = await requireSession();
   const env = await getAppWebEnv();
-  // Storage is owner-scoped: sums share + snap bytes across the user's owned
+  // Storage is owner-scoped: sums recording + screenshot bytes across the user's owned
   // workspaces (uploads into others' workspaces don't count against their cap).
   const [current, usedBytes, limitBytes] = await Promise.all([
     resolveCurrentWorkspace(session.user.id, session.user.name ?? null),
@@ -44,7 +44,7 @@ export async function Sidebar() {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Link
-        href="/shares"
+        href="/recordings"
         style={{ display: "flex", alignItems: "center", gap: 8, padding: 20 }}
       >
         <Image
@@ -90,9 +90,11 @@ export async function Sidebar() {
         </div>
       </div>
 
-      <SidebarNav isOwner={isOwner} />
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+        <SidebarNav isOwner={isOwner} />
+      </div>
 
-      <div style={{ marginTop: "auto", padding: 16 }}>
+      <div style={{ padding: 16 }}>
         <StorageUsage
           usedBytes={usedBytes}
           limitBytes={limitBytes}

@@ -28,7 +28,7 @@ which form **wins for new code**. Each rule names a real exemplar to copy.
    factory beats a class hierarchy or a named GoF pattern. Don't add abstraction for a
    hypothetical future. (§8, §10)
 7. **Respect the boundaries.** Dependency graph is one-directional (apps → packages,
-   never the reverse, never app → app). The `share`/`snap` domains stay forked. (§1)
+   never the reverse, never app → app). The `recording`/`screenshot` domains stay forked. (§1)
 8. **Comments are minimal; types are self-explanatory.** (§8)
 
 ---
@@ -49,20 +49,20 @@ which form **wins for new code**. Each rule names a real exemplar to copy.
   cross-route React under `components/{ui,marketing}`; all non-component logic under `lib/`.
   Use the `@/...` alias, never long relative chains. _Avoid:_ reusable logic inside a route
   folder, or a plain utility under `components/`.
-- **The `share` (recordings, `/r`, `/api/r`) and `snap` (screenshots, `/s`, `/api/s`)
+- **The `recording` (recordings, `/r`, `/api/r`) and `screenshot` (screenshots, `/s`, `/api/s`)
   domains are deliberately forked.** Each has its own `lib/<domain>/` twin set (`db`, `types`,
   `quota`, `r2`, `cf-env`, `verify-session`, `device-tokens`, `cors`, `title`) and its own
   route tree. Add per-domain code in the matching folder; **do not merge them** into a shared
   `lib/media/`. Dashboard list/read helpers are the exception — they live in flat top-level
-  `lib/shares-db.ts` / `lib/snaps-db.ts`.
+  `lib/recordings-db.ts` / `lib/screenshots-db.ts`.
 - **Cloudflare bindings (D1/R2/env) are resolved lazily per request** via the `cf-env`
   accessors; the db wrappers re-resolve on every call. _Why:_ bindings are request-scoped;
-  a cached reference leaks data across requests (see the comment in `lib/share/db.ts`).
+  a cached reference leaks data across requests (see the comment in `lib/recording/db.ts`).
   _Avoid:_ `const db = …` at module top level.
 
 ## 2. Naming
 
-- **Files:** PascalCase `.tsx` for route-/feature-co-located components (`app/r/[id]/ShareViewer.tsx`,
+- **Files:** PascalCase `.tsx` for route-/feature-co-located components (`app/r/[id]/RecordingViewer.tsx`,
   `app/(dashboard)/Sidebar.tsx`); **kebab-case** for everything else — design-system/marketing
   components (`components/ui/button.tsx`, `components/marketing/hero-section.tsx`), all
   `lib/` modules, hooks, stores, package files, and desktop `src/main`/`src/shared`. Next.js
@@ -101,10 +101,10 @@ which form **wins for new code**. Each rule names a real exemplar to copy.
   `verbatimModuleSyntax`).
 - **Validate untrusted/persisted JSON through a `hydrate*(raw: unknown): T`**: narrow to
   `Record<string, unknown>`, check each field, clamp/cap lengths, fall back to a `DEFAULT_*`
-  constant. _Example:_ `lib/share-config.ts` `hydrateShareConfig`. _Avoid:_ `JSON.parse(raw) as T`.
+  constant. _Example:_ `lib/recording-config.ts` `hydrateRecordingConfig`. _Avoid:_ `JSON.parse(raw) as T`.
 - **Map D1 rows in one `rowFromD1()` per module:** type the raw row as a local `D1Row`, apply
-  string-literal casts (`r.col as ShareState`) only here, `?? default` for nullable/legacy
-  columns. Callers consume clean camelCase domain types. _Example:_ `lib/share/db-d1.ts`.
+  string-literal casts (`r.col as RecordingState`) only here, `?? default` for nullable/legacy
+  columns. Callers consume clean camelCase domain types. _Example:_ `lib/recording/db-d1.ts`.
 
 ## 4. React & components
 
@@ -140,7 +140,7 @@ which form **wins for new code**. Each rule names a real exemplar to copy.
   session-relay endpoints `verifySession*(cookie)`. Middleware only guards navigation.
 - **API responses:** errors via the module-local `jsonError(error, status, code?)`, successes
   wrapped in `withCors(NextResponse.json(...))`, plus an `OPTIONS()` returning `optionsResponse()`.
-  Import these from `lib/share/cors.ts` (for `/api/r/*`) or `lib/snap/cors.ts` (`/api/s/*`).
+  Import these from `lib/recording/cors.ts` (for `/api/r/*`) or `lib/screenshot/cors.ts` (`/api/s/*`).
 - **Server actions return `{ error: string | null }`** (plus `slug`/id as needed), never throw
   to the client; wrap risky work in try/catch funneling a readable message; `revalidatePath()`
   every affected surface after a successful mutation.
@@ -148,8 +148,8 @@ which form **wins for new code**. Each rule names a real exemplar to copy.
   anyone, private → owner, workspace → owner or member). For SQL listing, use the `*ForAdmin`
   facade queries that encode the same owner-OR-workspace-owner clause. Never re-implement the
   branching inline. _Pinned by `lib/visibility.test.ts`._
-- **Access D1 only through the db facade modules** (`lib/share/db.ts`, `lib/snap/db.ts`,
-  `lib/snaps-db.ts`, `lib/shares-db.ts`, `lib/device-tokens.ts`) or `@captureflow/quota` — never
+- **Access D1 only through the db facade modules** (`lib/recording/db.ts`, `lib/screenshot/db.ts`,
+  `lib/screenshots-db.ts`, `lib/recordings-db.ts`, `lib/device-tokens.ts`) or `@captureflow/quota` — never
   raw `.prepare()`/`.bind()` SQL in a route/action. The facade owns the `COLUMNS` list and the
   `rowFromD1` mapping. (Deliberate, commented exceptions: the lemon-webhook and request-access
   routes, which span both domains.)
@@ -181,7 +181,7 @@ recordingWindow`), not direct window-singleton imports (avoids stale captures).
   guard `win && !win.isDestroyed()` first. (The fan-out loop is copy-pasted — extract one
   `broadcast()` helper if you touch them.)
 - **Log via `logInfo/logWarn/logError(component, msg)`** from `main/lib/logger.ts`, not
-  `console.*`. **Never log or send secrets** — the share bearer token stays in main and is
+  `console.*`. **Never log or send secrets** — the recording bearer token stays in main and is
   stripped from every renderer-facing state.
 - **Cross-process types live only in `shared/types.ts`** (imported by both processes); IPC
   payloads are `kind`/`ok`-tagged discriminated unions defined there and reused verbatim.

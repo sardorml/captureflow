@@ -16,12 +16,12 @@ No, not for **public** recordings — they play in any browser. **Private** and
 ## What platforms does the recorder run on?
 
 The recorder is **macOS** today (Apple Silicon and Intel) — it uses native macOS
-capture APIs. The dashboard and share/snap pages are **cross-platform** and work
+capture APIs. The dashboard and share/screenshot pages are **cross-platform** and work
 in any modern browser on any OS.
 
 ## Where are my recordings stored?
 
-On a self-hosted instance, in **your** Cloudflare account: video/poster/snap
+On a self-hosted instance, in **your** Cloudflare account: video/poster/screenshot
 files in **R2**, metadata in **D1**. Nothing goes to a third party you didn't
 configure.
 
@@ -37,10 +37,10 @@ Yes. The defaults assume `captureflow.xyz`, but you can point the Worker and CDN
 at any domain you control — edit the vars in `apps/web/wrangler.jsonc`. See
 [Deploy to Cloudflare](/self-hosting/cloudflare).
 
-## What's a "snap"?
+## What's a "screenshot"?
 
 A screenshot that shares exactly like a recording — capture, get an instant link,
-done. See [Snaps](/guide/snaps).
+done. See [Screenshots](/guide/screenshots).
 
 ## Do I need a Cloudflare paid plan?
 

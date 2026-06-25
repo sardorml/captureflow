@@ -15,8 +15,8 @@ export default function NotificationsPage() {
         <Empty
           description={
             <span>
-              You&rsquo;re all caught up. When teammates view your shares, leave
-              feedback, or join your workspace, you&rsquo;ll see it here.
+              You&rsquo;re all caught up. When teammates view your recordings,
+              leave feedback, or join your workspace, you&rsquo;ll see it here.
             </span>
           }
         />

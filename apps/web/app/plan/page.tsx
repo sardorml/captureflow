@@ -13,7 +13,7 @@ import { MESSAGES } from "@/lib/marketing/messages";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Self-host CaptureFlow free on your own Cloudflare account, or let us host it for you with the managed plan — Snaps and cloud workspaces included.",
+    "Self-host CaptureFlow free on your own Cloudflare account, or let us host it for you with the managed plan — Screenshots and cloud workspaces included.",
   alternates: { canonical: "/plan" },
 };
 

@@ -1,7 +1,7 @@
 # Self-hosting overview
 
 CaptureFlow's backend is designed to run on **your own Cloudflare account**. One
-unified Worker serves the dashboard, auth, the share viewer, the snap viewer, and
+unified Worker serves the dashboard, auth, the recording viewer, the screenshot viewer, and
 all API routes, backed by a single D1 database and a single R2 bucket.
 
 > [!TIP]

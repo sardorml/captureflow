@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { resolveDeviceTokenToUser } from "@/lib/share/device-tokens";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
+import { resolveDeviceTokenToUser } from "@/lib/recording/device-tokens";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 
-// Bearer probe: 200 → token live; 401 → caller should clearShareAuth();
+// Bearer probe: 200 → token live; 401 → caller should clearRecordingAuth();
 // 400 → not a bearer header (treat as anonymous).
 
 function extractBearer(req: NextRequest): string | null {

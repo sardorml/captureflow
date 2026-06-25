@@ -12,7 +12,7 @@ thumbnail, the title, and the activity sidebar.
 
 ## Visibility
 
-Each recording (and snap) has a visibility setting you control from the desktop
+Each recording (and screenshot) has a visibility setting you control from the desktop
 app, the dashboard, or the share page itself:
 
 | Visibility    | Who can watch                                             |
@@ -46,11 +46,11 @@ recording isn't just "Untitled."
 
 The web dashboard is your home base:
 
-- **Shares** — all your recordings, with quick visibility and link actions.
-- **Snaps** — your screenshots (see [Snaps](/guide/snaps)).
+- **Recordings** — your full library, with quick visibility and link actions.
+- **Screenshots** — your screenshots (see [Screenshots](/guide/screenshots)).
 - **Members & workspaces** — invite teammates, manage roles, set who can upload.
 - **Devices** — the signed-in recorders on your account.
 - **Settings & profile** — workspace name/logo, access policy, your profile.
 - **Storage usage** — how much of your quota you've used.
 
-Next: [Snaps (screenshots)](/guide/snaps).
+Next: [Screenshots](/guide/screenshots).

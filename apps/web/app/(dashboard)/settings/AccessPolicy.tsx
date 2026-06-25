@@ -19,7 +19,7 @@ export function AccessPolicy({
             active={allowPublicLinks}
             icon={<Globe size={20} />}
             title="Allow public links"
-            body="Members can share recordings + snaps to anyone with the URL."
+            body="Members can share recordings + screenshots to anyone with the URL."
           />
         </form>
       </Col>

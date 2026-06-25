@@ -35,8 +35,8 @@ export async function switchWorkspaceAction(formData: FormData): Promise<void> {
     maxAge: 60 * 60 * 24 * 30,
   });
 
-  revalidatePath("/shares");
-  revalidatePath("/snaps");
+  revalidatePath("/recordings");
+  revalidatePath("/screenshots");
   revalidatePath("/members");
   revalidatePath("/devices");
 }

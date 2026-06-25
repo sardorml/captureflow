@@ -1,5 +1,5 @@
 PRAGMA defer_foreign_keys=TRUE;
-CREATE TABLE IF NOT EXISTS shares (
+CREATE TABLE IF NOT EXISTS recordings (
   slug              TEXT PRIMARY KEY,
   device_id         TEXT NOT NULL,
   storage_key       TEXT NOT NULL,
@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS shares (
   CHECK (webcam_state IN ('none', 'pending', 'ready', 'failed')), workspace_id TEXT REFERENCES workspace(id),
   CHECK (state IN ('pending', 'ready', 'failed')),
   CHECK (source IN ('instant', 'edited')),
-  CHECK (preset IN ('share'))
+  CHECK (preset IN ('recording'))
 ) STRICT;
-CREATE TABLE IF NOT EXISTS share_reactions (
+CREATE TABLE IF NOT EXISTS recording_reactions (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   slug          TEXT NOT NULL,
   emoji         TEXT NOT NULL,
@@ -87,14 +87,14 @@ CREATE TABLE IF NOT EXISTS user_quotas (
   
   
   storage_bytes_override INTEGER,
-  active_shares_override INTEGER,
+  active_recordings_override INTEGER,
   
   
   
   note                   TEXT,
   updated_at             INTEGER NOT NULL
 ) STRICT;
-CREATE TABLE IF NOT EXISTS snaps (
+CREATE TABLE IF NOT EXISTS screenshots (
   id              TEXT PRIMARY KEY,
   
   
@@ -211,7 +211,7 @@ CREATE TABLE IF NOT EXISTS workspace_invite (
   
   accepted_at          INTEGER
 ) STRICT;
-CREATE TABLE IF NOT EXISTS share_comments (
+CREATE TABLE IF NOT EXISTS recording_comments (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   slug        TEXT NOT NULL,
   user_id     TEXT NOT NULL,
@@ -219,7 +219,7 @@ CREATE TABLE IF NOT EXISTS share_comments (
   body        TEXT NOT NULL,
   created_at  INTEGER NOT NULL
 , timestamp_ms INTEGER) STRICT;
-CREATE TABLE IF NOT EXISTS share_activity (
+CREATE TABLE IF NOT EXISTS recording_activity (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   slug          TEXT NOT NULL,
   kind          TEXT NOT NULL CHECK (kind IN ('reaction', 'comment')),
@@ -239,30 +239,30 @@ CREATE TABLE IF NOT EXISTS share_activity (
   created_at    INTEGER NOT NULL
 ) STRICT;
 DELETE FROM sqlite_sequence;
-CREATE INDEX IF NOT EXISTS idx_shares_device
-  ON shares (device_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_shares_gc
-  ON shares (last_viewed_at)
+CREATE INDEX IF NOT EXISTS idx_recordings_device
+  ON recordings (device_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_recordings_gc
+  ON recordings (last_viewed_at)
   WHERE state = 'ready';
-CREATE INDEX IF NOT EXISTS idx_shares_pending_gc
-  ON shares (created_at)
+CREATE INDEX IF NOT EXISTS idx_recordings_pending_gc
+  ON recordings (created_at)
   WHERE state = 'pending';
 CREATE INDEX IF NOT EXISTS idx_reactions_slug
-  ON share_reactions (slug, timestamp_ms);
+  ON recording_reactions (slug, timestamp_ms);
 CREATE INDEX IF NOT EXISTS sessions_userId_idx ON sessions(userId);
 CREATE INDEX IF NOT EXISTS accounts_userId_idx ON accounts(userId);
 CREATE INDEX IF NOT EXISTS verifications_identifier_idx ON verifications(identifier);
-CREATE INDEX IF NOT EXISTS idx_shares_user
-  ON shares (user_id, created_at DESC)
+CREATE INDEX IF NOT EXISTS idx_recordings_user
+  ON recordings (user_id, created_at DESC)
   WHERE user_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_device_tokens_user
   ON device_tokens (user_id, last_used_at DESC);
-CREATE INDEX IF NOT EXISTS idx_snaps_user
-  ON snaps (user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_snaps_active
-  ON snaps (user_id, state);
-CREATE INDEX IF NOT EXISTS idx_snaps_gc
-  ON snaps (last_viewed_at)
+CREATE INDEX IF NOT EXISTS idx_screenshots_user
+  ON screenshots (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_screenshots_active
+  ON screenshots (user_id, state);
+CREATE INDEX IF NOT EXISTS idx_screenshots_gc
+  ON screenshots (last_viewed_at)
   WHERE state = 'ready';
 CREATE INDEX IF NOT EXISTS idx_pro_subscription_email
   ON pro_subscription(ls_customer_email);
@@ -281,17 +281,17 @@ CREATE INDEX IF NOT EXISTS idx_workspace_invite_email
 CREATE UNIQUE INDEX IF NOT EXISTS idx_workspace_invite_pending_unique
   ON workspace_invite(workspace_id, LOWER(email))
   WHERE accepted_at IS NULL;
-CREATE INDEX IF NOT EXISTS idx_shares_workspace
-  ON shares(workspace_id, created_at DESC)
+CREATE INDEX IF NOT EXISTS idx_recordings_workspace
+  ON recordings(workspace_id, created_at DESC)
   WHERE workspace_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_snaps_workspace
-  ON snaps(workspace_id, created_at DESC)
+CREATE INDEX IF NOT EXISTS idx_screenshots_workspace
+  ON screenshots(workspace_id, created_at DESC)
   WHERE workspace_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_share_comments_slug
-  ON share_comments (slug, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_recording_comments_slug
+  ON recording_comments (slug, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_activity_slug_created
-  ON share_activity (slug, created_at DESC);
+  ON recording_activity (slug, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_activity_slug_ts
-  ON share_activity (slug, timestamp_ms);
+  ON recording_activity (slug, timestamp_ms);
 CREATE INDEX IF NOT EXISTS idx_activity_slug_kind
-  ON share_activity (slug, kind);
+  ON recording_activity (slug, kind);

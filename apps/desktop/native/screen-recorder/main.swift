@@ -31,13 +31,13 @@ struct CropRect: Decodable {
   let height: Double
 }
 
-struct ShareConfig: Decodable {
+struct RecordingConfig: Decodable {
   let width: Int
   let height: Int
   let fps: Int
   let bitrate: Int
   /// File descriptor the parent (Electron main) opened for binary
-  /// share-output records. The recorder spawn must include a 4th
+  /// recording-output records. The recorder spawn must include a 4th
   /// stdio pipe so this fd is valid in the child.
   let fd: Int32
 }
@@ -60,7 +60,7 @@ struct CaptureConfig: Decodable {
   let captureAudio: Bool?
   let excludePid: Int32?
   let cropRect: CropRect?
-  let share: ShareConfig?
+  let recording: RecordingConfig?
 
   var summary: String {
     var parts: [String] = []
@@ -75,8 +75,8 @@ struct CaptureConfig: Decodable {
     if let c = cropRect {
       parts.append("cropRect=\(c.x),\(c.y),\(c.width)x\(c.height)")
     }
-    if let s = share {
-      parts.append("share=\(s.width)x\(s.height)@\(s.fps)fps,\(s.bitrate)bps,fd=\(s.fd)")
+    if let s = recording {
+      parts.append("recording=\(s.width)x\(s.height)@\(s.fps)fps,\(s.bitrate)bps,fd=\(s.fd)")
     }
     return parts.joined(separator: ", ")
   }
@@ -591,13 +591,13 @@ class StreamCapture: NSObject, SCStreamOutput, SCStreamDelegate {
   // for each .screen sample buffer. The same buffer is passed through
   // unchanged. The consumer is expected to dispatch to its own queue
   // before doing any heavy work — running synchronously here would
-  // back up the writer. See docs/spikes/share-tap.md.
-  var onShareFrame: ((CMSampleBuffer) -> Void)?
-  // Parallel fan-out for share-mode audio. Wired only when config.share
-  // is set (see SessionManager.start where ShareWriter is constructed).
+  // back up the writer. See docs/spikes/recording-tap.md.
+  var onRecordingFrame: ((CMSampleBuffer) -> Void)?
+  // Parallel fan-out for recording-mode audio. Wired only when config.recording
+  // is set (see SessionManager.start where RecordingWriter is constructed).
   // Studio recordings leave this nil so audio flows only into the
   // on-disk system.m4a AudioWriter, exactly as before.
-  var onShareAudio: ((CMSampleBuffer) -> Void)?
+  var onRecordingAudio: ((CMSampleBuffer) -> Void)?
 
   func start(config: CaptureConfig) async throws -> StreamInfo {
     let content = try await SCShareableContent.excludingDesktopWindows(
@@ -797,10 +797,10 @@ class StreamCapture: NSObject, SCStreamOutput, SCStreamDelegate {
     switch type {
     case .screen:
       onVideoFrame?(sampleBuffer)
-      onShareFrame?(sampleBuffer)
+      onRecordingFrame?(sampleBuffer)
     case .audio:
       onAudioFrame?(sampleBuffer)
-      onShareAudio?(sampleBuffer)
+      onRecordingAudio?(sampleBuffer)
     @unknown default:
       break
     }
@@ -834,24 +834,24 @@ class RecordingSession {
   private var recordingStatusEmitted = false
   // Frames observed off the SCK stream (not necessarily appended to the
   // local writer). Drives the "recording confirmed stable" emission so
-  // the heuristic still fires in share mode where the local writer is
+  // the heuristic still fires in recording mode where the local writer is
   // bypassed and writer.videoFramesWritten stays at 0.
   private var videoFramesObserved = 0
-  // Share mode skips all local-disk writes — no screen.mp4, no
+  // Recording mode skips all local-disk writes — no screen.mp4, no
   // system.m4a, no tracking.json — and just streams to R2 via the
-  // shareWriter (fd 3). Set once from config.share, read everywhere.
-  private var isShare: Bool { config.share != nil }
+  // recordingWriter (fd 3). Set once from config.recording, read everywhere.
+  private var isRecording: Bool { config.recording != nil }
 
-  // Spike-only: holds the share-tap consumer when CAPTUREFLOW_SHARE_TAP_SPIKE=1
-  // AND no production share config is present. Once the share feature
+  // Spike-only: holds the recording-tap consumer when CAPTUREFLOW_RECORDING_TAP_SPIKE=1
+  // AND no production recording config is present. Once the recording feature
   // is fully shipped + stable this can be removed alongside spikes/.
-  private var shareTapSpike: ShareTapSpike?
+  private var recordingTapSpike: RecordingTapSpike?
 
-  // Production share-export pipeline. Initialised when CaptureConfig.share
-  // is non-nil (Electron toggled "Instant Share" + the recording is
+  // Production recording-export pipeline. Initialised when CaptureConfig.recording
+  // is non-nil (Electron toggled "Instant Recording" + the recording is
   // under the 1-min cap). Encodes a downscaled H.264 stream and
   // writes length-prefixed records to the fd opened by the parent.
-  private var shareWriter: ShareWriter?
+  private var recordingWriter: RecordingWriter?
 
   init(config: CaptureConfig) {
     self.config = config
@@ -877,8 +877,8 @@ class RecordingSession {
 
     // Set up writer BEFORE wiring frame callbacks so the writer is
     // guaranteed to be ready when the first forwarded frame arrives.
-    // Skipped entirely in share mode — no screen.mp4 on disk.
-    if !isShare {
+    // Skipped entirely in recording mode — no screen.mp4 on disk.
+    if !isRecording {
       let url = URL(fileURLWithPath: outputPath)
       try writer.setup(
         url: url,
@@ -889,8 +889,8 @@ class RecordingSession {
 
       // Audio goes to a separate AAC container so the editor can remix
       // mic + system independently per segment on export. Also skipped
-      // in share mode — system audio rides the screen MP4 via the
-      // shareWriter's AAC track instead.
+      // in recording mode — system audio rides the screen MP4 via the
+      // recordingWriter's AAC track instead.
       if wantsAudio {
         do {
           let audioUrl = URL(fileURLWithPath: systemAudioPath)
@@ -902,7 +902,7 @@ class RecordingSession {
         }
       }
     } else {
-      log(.info, "session", "share mode: skipping local screen.mp4 + system.m4a writers")
+      log(.info, "session", "recording mode: skipping local screen.mp4 + system.m4a writers")
     }
 
     // NOW wire up frame callbacks — writer is ready, frames will be processed
@@ -916,38 +916,38 @@ class RecordingSession {
       self?.handleStreamError(error)
     }
 
-    // Production share-export wiring. Runs on the same videoQueue as
-    // onVideoFrame; ShareWriter dispatches encoder + fd writes onto
+    // Production recording-export wiring. Runs on the same videoQueue as
+    // onVideoFrame; RecordingWriter dispatches encoder + fd writes onto
     // its own queue so this hot path stays cheap.
-    if let shareCfg = config.share {
-      let writer = ShareWriter(
-        width: shareCfg.width,
-        height: shareCfg.height,
-        fps: shareCfg.fps,
-        bitrate: shareCfg.bitrate,
-        fd: shareCfg.fd
+    if let recordingCfg = config.recording {
+      let writer = RecordingWriter(
+        width: recordingCfg.width,
+        height: recordingCfg.height,
+        fps: recordingCfg.fps,
+        bitrate: recordingCfg.bitrate,
+        fd: recordingCfg.fd
       )
       do {
         try writer.start()
-        shareWriter = writer
-        capture.onShareFrame = { [weak writer] buffer in
+        recordingWriter = writer
+        capture.onRecordingFrame = { [weak writer] buffer in
           writer?.pushFrame(buffer)
         }
-        capture.onShareAudio = { [weak writer] buffer in
+        capture.onRecordingAudio = { [weak writer] buffer in
           writer?.pushAudio(buffer)
         }
-        log(.info, "session", "share-writer enabled: \(shareCfg.width)x\(shareCfg.height)@\(shareCfg.fps)fps")
+        log(.info, "session", "recording-writer enabled: \(recordingCfg.width)x\(recordingCfg.height)@\(recordingCfg.fps)fps")
       } catch {
-        log(.error, "session", "share-writer start failed: \(error) — continuing without share")
+        log(.error, "session", "recording-writer start failed: \(error) — continuing without recording")
       }
-    } else if ProcessInfo.processInfo.environment["CAPTUREFLOW_SHARE_TAP_SPIKE"] == "1" {
-      // Spike-only: closure-based fan-out for the share-tap. Disabled
-      // when the production share writer is active — the two would
-      // race for the single onShareFrame closure.
-      let spike = ShareTapSpike()
-      shareTapSpike = spike
-      capture.onShareFrame = { buffer in spike.handle(buffer) }
-      log(.info, "spike", "share-tap: closure fan-out enabled")
+    } else if ProcessInfo.processInfo.environment["CAPTUREFLOW_RECORDING_TAP_SPIKE"] == "1" {
+      // Spike-only: closure-based fan-out for the recording-tap. Disabled
+      // when the production recording writer is active — the two would
+      // race for the single onRecordingFrame closure.
+      let spike = RecordingTapSpike()
+      recordingTapSpike = spike
+      capture.onRecordingFrame = { buffer in spike.handle(buffer) }
+      log(.info, "spike", "recording-tap: closure fan-out enabled")
     }
 
     log(.info, "session", "frame callbacks wired, waiting for first frame...")
@@ -960,19 +960,19 @@ class RecordingSession {
     stopped = true
     healthTimer?.cancel()
     healthTimer = nil
-    shareTapSpike?.finalReport()
-    shareTapSpike = nil
-    shareWriter?.finish()
-    shareWriter = nil
+    recordingTapSpike?.finalReport()
+    recordingTapSpike = nil
+    recordingWriter?.finish()
+    recordingWriter = nil
 
     capture.stop { [self] in
-      // Share mode: no local writers to finalize. Hand the renderer
-      // empty paths + 0 duration — handleNativeRecordingStopped's share
-      // branch ignores those fields anyway (it reads the share
-      // pipeline's own result for duration/size). The shareWriter was
+      // Recording mode: no local writers to finalize. Hand the renderer
+      // empty paths + 0 duration — handleNativeRecordingStopped's recording
+      // branch ignores those fields anyway (it reads the recording
+      // pipeline's own result for duration/size). The recordingWriter was
       // already flushed via its finish() call above.
-      if isShare {
-        log(.info, "session", "stopped (share): videoFramesObserved=\(self.videoFramesObserved)")
+      if isRecording {
+        log(.info, "session", "stopped (recording): videoFramesObserved=\(self.videoFramesObserved)")
         completion("", nil, 0)
         return
       }
@@ -1016,27 +1016,27 @@ class RecordingSession {
     guard !stopped, !clock.isPaused else { return }
 
     guard sampleBuffer.isValid else {
-      if !isShare { writer.droppedFrames += 1 }
+      if !isRecording { writer.droppedFrames += 1 }
       return
     }
 
-    // Share mode: writer was never set up. Frames flow to shareWriter
-    // via the separate onShareFrame callback wired in start(); here we
+    // Recording mode: writer was never set up. Frames flow to recordingWriter
+    // via the separate onRecordingFrame callback wired in start(); here we
     // just bootstrap the clock (needed for emitRecordingStatus's
     // wallClockMs — without it the renderer's overlay sees elapsed =
     // Date.now() - 0 and tripping the cap-stop within a frame),
     // count observed frames, and emit the "stable" status once the
     // stream has produced enough of them.
-    if isShare {
+    if isRecording {
       let pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
       if !clock.hasStarted {
         clock.markFirstFrame(pts: pts)
-        log(.info, "session", "first share frame, session clock started")
+        log(.info, "session", "first recording frame, session clock started")
       }
       videoFramesObserved += 1
       if !recordingStatusEmitted && videoFramesObserved >= 10 {
         emitRecordingStatus()
-        log(.info, "session", "share recording confirmed stable at \(videoFramesObserved) frames")
+        log(.info, "session", "recording confirmed stable at \(videoFramesObserved) frames")
       }
       return
     }
@@ -1112,10 +1112,10 @@ class RecordingSession {
   }
 
   private func handleAudioFrame(_ sampleBuffer: CMSampleBuffer) {
-    // Share mode: system audio is captured by shareWriter via the
-    // separate onShareAudio callback (PCM → AAC → fd 3). The on-disk
+    // Recording mode: system audio is captured by recordingWriter via the
+    // separate onRecordingAudio callback (PCM → AAC → fd 3). The on-disk
     // audioWriter is never set up, so this path is a no-op.
-    if isShare { return }
+    if isRecording { return }
     guard !stopped, !clock.isPaused, wantsAudio, audioWriterReady else { return }
     guard sampleBuffer.isValid else { return }
     guard writer.hasFailed == false else { return }
@@ -1275,7 +1275,7 @@ func runSnapshotMode(_ config: CaptureConfig) async throws {
   captureConfig.height = pixelHeight
   // Cursor is excluded by default for snapshots. Most product/UI
   // screenshots are cleaner without the pointer baked in; users who
-  // want it can re-snap with a delay and edit it in.
+  // want it can re-screenshot with a delay and edit it in.
   captureConfig.showsCursor = config.showsCursor ?? false
   captureConfig.captureResolution = .best
   if let sr = sourceRect {

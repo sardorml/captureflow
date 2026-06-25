@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { ConfigProvider, theme as antdTheme } from "antd";
 import { type Theme } from "@captureflow/ui";
@@ -18,12 +19,18 @@ export function AntdProvider({
 
   useEffect(() => {
     const root = document.documentElement;
-    const sync = () => {
+    const current = root.dataset.theme;
+    if (current === "light" || current === "dark") setMode(current);
+    // The toggle changes data-theme inside a View Transition. Commit antd's
+    // algorithm synchronously (flushSync) so its CSS-in-JS re-renders before the
+    // browser snapshots the new theme — otherwise antd surfaces pop in after the
+    // CSS-variable colours have already wiped.
+    const observer = new MutationObserver(() => {
       const next = root.dataset.theme;
-      if (next === "light" || next === "dark") setMode(next);
-    };
-    sync();
-    const observer = new MutationObserver(sync);
+      if (next === "light" || next === "dark") {
+        flushSync(() => setMode(next));
+      }
+    });
     observer.observe(root, {
       attributes: true,
       attributeFilter: ["data-theme"],

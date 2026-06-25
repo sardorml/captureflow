@@ -23,7 +23,8 @@ export function PageHeader({
       align="flex-end"
       justify="space-between"
       gap={16}
-      className="border-b border-line pb-6"
+      className="border-b border-line"
+      style={{ paddingBottom: 16 }}
     >
       <div style={{ minWidth: 0 }}>
         {eyebrow && (

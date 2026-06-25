@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { getShare, updateShare } from "@/lib/share/db";
-import { isValidSlug } from "@/lib/share/slug";
-import { verifySessionOrNull } from "@/lib/share/verify-session";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
-import type { ShareVisibility } from "@/lib/share/types";
+import { getRecording, updateRecording } from "@/lib/recording/db";
+import { isValidSlug } from "@/lib/recording/slug";
+import { verifySessionOrNull } from "@/lib/recording/verify-session";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
+import type { RecordingVisibility } from "@/lib/recording/types";
 
 const DEVICE_HEADER = "x-captureflow-device";
-const ALLOWED: ReadonlySet<ShareVisibility> = new Set([
+const ALLOWED: ReadonlySet<RecordingVisibility> = new Set([
   "public",
   "workspace",
   "private",
@@ -30,12 +30,12 @@ export async function POST(req: NextRequest) {
     return jsonError("Invalid JSON", 400, "invalid_json");
   }
   const value = body.value;
-  if (typeof value !== "string" || !ALLOWED.has(value as ShareVisibility)) {
+  if (typeof value !== "string" || !ALLOWED.has(value as RecordingVisibility)) {
     return jsonError("Invalid visibility", 400, "invalid_visibility");
   }
 
-  const row = await getShare(slug);
-  if (!row) return jsonError("Share not found", 404, "not_found");
+  const row = await getRecording(slug);
+  if (!row) return jsonError("Recording not found", 404, "not_found");
 
   const deviceId = req.headers.get(DEVICE_HEADER);
   let authorized = false;
@@ -48,6 +48,6 @@ export async function POST(req: NextRequest) {
   }
   if (!authorized) return jsonError("Forbidden", 403, "forbidden");
 
-  await updateShare(slug, { visibility: value as ShareVisibility });
+  await updateRecording(slug, { visibility: value as RecordingVisibility });
   return withCors(NextResponse.json({ visibility: value }));
 }

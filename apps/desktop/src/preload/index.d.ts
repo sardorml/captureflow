@@ -9,16 +9,16 @@ import type {
   BugReportPayload,
   BugReportResult,
   UserPrefs,
-  ShareFrameEvent,
-  ShareAuthState,
-  ShareConnectivityState,
-  ShareUsageState,
+  RecordingFrameEvent,
+  RecordingAuthState,
+  RecordingConnectivityState,
+  RecordingUsageState,
   WorkspacesState,
-  ShareStartMeta,
-  ShareStartResult,
-  ShareFinishMeta,
-  ShareFinishResult,
-  ShareFailureState,
+  RecordingStartMeta,
+  RecordingStartResult,
+  RecordingFinishMeta,
+  RecordingFinishResult,
+  RecordingFailureState,
   UpgradeReason,
 } from "../shared/types";
 
@@ -79,21 +79,21 @@ declare global {
       }) => Promise<ReleaseNotesInitPayload | null>;
       releaseNotesPending: () => Promise<ReleaseNotesInitPayload | null>;
       markReleaseNotesShown: () => Promise<void>;
-      getShareAuth: () => Promise<ShareAuthState>;
-      signInShareAuth: () => Promise<void>;
-      signOutShareAuth: () => Promise<ShareAuthState>;
-      onShareAuthChanged: (
-        callback: (state: ShareAuthState) => void,
+      getRecordingAuth: () => Promise<RecordingAuthState>;
+      signInRecordingAuth: () => Promise<void>;
+      signOutRecordingAuth: () => Promise<RecordingAuthState>;
+      onRecordingAuthChanged: (
+        callback: (state: RecordingAuthState) => void,
       ) => () => void;
-      getShareConnectivity: () => Promise<ShareConnectivityState>;
-      onShareConnectivityChanged: (
-        callback: (state: ShareConnectivityState) => void,
+      getRecordingConnectivity: () => Promise<RecordingConnectivityState>;
+      onRecordingConnectivityChanged: (
+        callback: (state: RecordingConnectivityState) => void,
       ) => () => void;
-      getShareUsage: () => Promise<ShareUsageState>;
-      refreshShareUsage: () => Promise<ShareUsageState>;
-      openShareUpgradeCheckout: () => Promise<void>;
-      onShareUsageChanged: (
-        callback: (state: ShareUsageState) => void,
+      getRecordingUsage: () => Promise<RecordingUsageState>;
+      refreshRecordingUsage: () => Promise<RecordingUsageState>;
+      openRecordingUpgradeCheckout: () => Promise<void>;
+      onRecordingUsageChanged: (
+        callback: (state: RecordingUsageState) => void,
       ) => () => void;
       getWorkspaces: () => Promise<WorkspacesState>;
       refreshWorkspaces: () => Promise<WorkspacesState>;
@@ -119,7 +119,7 @@ declare global {
         captureAudio?: boolean;
         includeSelfWindows?: boolean;
         cropRect?: WindowBounds;
-        share?: boolean;
+        recording?: boolean;
       }) => Promise<{
         windowBounds?: WindowBounds;
         wallClockMs?: number;
@@ -196,32 +196,36 @@ declare global {
         value: UserPrefs[K],
       ) => Promise<UserPrefs>;
       onUserPrefsChanged: (callback: (prefs: UserPrefs) => void) => () => void;
-      onShareFrameEvent: (
-        callback: (event: ShareFrameEvent) => void,
+      onRecordingFrameEvent: (
+        callback: (event: RecordingFrameEvent) => void,
       ) => () => void;
-      shareReadyOpenLink: (url: string) => void;
+      recordingReadyOpenLink: (url: string) => void;
       // Streaming-upload protocol — see preload/index.ts for the IPC
       // wiring and shared/types.ts for the payload shapes.
-      shareStart: (meta: ShareStartMeta) => Promise<ShareStartResult>;
-      sharePartScreen: (bytes: ArrayBuffer) => void;
-      sharePartWebcam: (bytes: ArrayBuffer) => void;
-      shareFinish: (meta: ShareFinishMeta) => Promise<ShareFinishResult>;
-      shareAbort: () => void;
-      shareUploadPoster: (bytes: ArrayBuffer) => void;
-      notifySharePrepStart: () => void;
-      notifySharePrepCancel: () => void;
-      onSharePrepStart: (callback: () => void) => () => void;
-      onSharePrepCancel: (callback: () => void) => () => void;
-      shareFailureOpen: (state: ShareFailureState) => Promise<void>;
-      onShareFailureInit: (
-        callback: (state: ShareFailureState) => void,
+      recordingStart: (
+        meta: RecordingStartMeta,
+      ) => Promise<RecordingStartResult>;
+      recordingPartScreen: (bytes: ArrayBuffer) => void;
+      recordingPartWebcam: (bytes: ArrayBuffer) => void;
+      recordingFinish: (
+        meta: RecordingFinishMeta,
+      ) => Promise<RecordingFinishResult>;
+      recordingAbort: () => void;
+      recordingUploadPoster: (bytes: ArrayBuffer) => void;
+      notifyRecordingPrepStart: () => void;
+      notifyRecordingPrepCancel: () => void;
+      onRecordingPrepStart: (callback: () => void) => () => void;
+      onRecordingPrepCancel: (callback: () => void) => () => void;
+      recordingFailureOpen: (state: RecordingFailureState) => Promise<void>;
+      onRecordingFailureInit: (
+        callback: (state: RecordingFailureState) => void,
       ) => () => void;
-      shareFailureClose: () => void;
+      recordingFailureClose: () => void;
       showCaptureGateDialog: (reason: UpgradeReason) => Promise<void>;
       toolbarSetHitRects: (
         rects: { x: number; y: number; width: number; height: number }[],
       ) => void;
-      toolbarResizeForMode: (mode: "share" | "screenshot") => void;
+      toolbarResizeForMode: (mode: "recording" | "screenshot") => void;
       captureScreenshot: (
         target:
           | { kind: "display"; displayId: number }
@@ -241,7 +245,7 @@ declare global {
           }
         | { ok: false; error: string; code?: string }
       >;
-      onSnapCaptured: (
+      onScreenshotCaptured: (
         callback: (payload: {
           localPath: string;
           sourceTitle: string | null;
@@ -249,20 +253,20 @@ declare global {
           height: number;
         }) => void,
       ) => () => void;
-      onSnapUploadComplete: (
+      onScreenshotUploadComplete: (
         callback: (payload: {
           id: string;
           viewUrl: string;
           editUrl: string;
         }) => void,
       ) => () => void;
-      onSnapUploadFailed: (
+      onScreenshotUploadFailed: (
         callback: (payload: { reason: string }) => void,
       ) => () => void;
-      snapNotificationClose: () => void;
-      snapOpenEdit: (editUrl: string) => void;
-      snapCopyLink: (viewUrl: string) => void;
-      snapDelete: (id: string) => void;
+      screenshotNotificationClose: () => void;
+      screenshotOpenEdit: (editUrl: string) => void;
+      screenshotCopyLink: (viewUrl: string) => void;
+      screenshotDelete: (id: string) => void;
     };
   }
 }

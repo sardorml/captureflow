@@ -11,9 +11,9 @@ const MODES: {
   tooltip: string;
 }[] = [
   {
-    id: "share",
+    id: "recording",
     icon: Link2,
-    label: "Share",
+    label: "Recording",
     tooltip: "Short clip with an instant share link",
   },
   {
@@ -25,7 +25,7 @@ const MODES: {
 ];
 
 /**
- * Segmented control for the capture mode (Share / Screenshot) in the recording
+ * Segmented control for the capture mode (Recording / Screenshot) in the recording
  * toolbar. Both modes are free: CaptureFlow is open-core, so capture is never
  * feature-gated — the managed-hosting tier is the paid offering, not the
  * recorder. Mode is persisted via recording-store → localStorage.

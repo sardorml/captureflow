@@ -3,21 +3,21 @@ import { headers } from "next/headers";
 import {
   addReaction,
   countReactions,
-  getShare,
+  getRecording,
   listReactions,
-} from "@/lib/share/db";
+} from "@/lib/recording/db";
 import {
   ALLOWED_REACTION_EMOJIS,
-  MAX_REACTIONS_PER_SHARE,
-} from "@/lib/share/reactions";
-import { isValidSlug } from "@/lib/share/slug";
-import { verifySessionOrNull } from "@/lib/share/verify-session";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
+  MAX_REACTIONS_PER_RECORDING,
+} from "@/lib/recording/reactions";
+import { isValidSlug } from "@/lib/recording/slug";
+import { verifySessionOrNull } from "@/lib/recording/verify-session";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import type {
   AddReactionRequest,
   AddReactionResponse,
   ListReactionsResponse,
-} from "@/lib/share/types";
+} from "@/lib/recording/types";
 
 export function OPTIONS() {
   return optionsResponse();
@@ -39,9 +39,9 @@ export async function POST(req: NextRequest) {
     return jsonError("Invalid slug", 400, "invalid_slug");
   }
 
-  const share = await getShare(slug);
-  if (!share || share.state !== "ready") {
-    return jsonError("Share not found", 404, "not_found");
+  const recording = await getRecording(slug);
+  if (!recording || recording.state !== "ready") {
+    return jsonError("Recording not found", 404, "not_found");
   }
 
   const cookieHeader = (await headers()).get("cookie");
@@ -69,12 +69,12 @@ export async function POST(req: NextRequest) {
   if (timestampMs === null) {
     return jsonError("Invalid timestamp", 400, "invalid_timestamp");
   }
-  if (share.durationMs && timestampMs > share.durationMs + 1000) {
+  if (recording.durationMs && timestampMs > recording.durationMs + 1000) {
     return jsonError("Timestamp exceeds video length", 400, "timestamp_oob");
   }
 
   const total = await countReactions(slug);
-  if (total >= MAX_REACTIONS_PER_SHARE) {
+  if (total >= MAX_REACTIONS_PER_RECORDING) {
     return jsonError("Reaction cap reached", 429, "reaction_limit");
   }
 

@@ -4,8 +4,11 @@ import {
   acquireMicCapture,
   acquireWebcamCapture,
 } from "../lib/recording/webcam-capture";
-import { sharePipeline, SHARE_CAP_MS } from "../lib/share/share-pipeline";
-import { ShareWebcamUploader } from "../lib/share/share-webcam-uploader";
+import {
+  recordingPipeline,
+  RECORDING_CAP_MS,
+} from "../lib/recording/recording-pipeline";
+import { RecordingWebcamUploader } from "../lib/recording/recording-webcam-uploader";
 import { track } from "../lib/analytics";
 import {
   getWindowId,
@@ -14,7 +17,7 @@ import {
   type WindowBounds,
 } from "../../../shared/types";
 
-function formatShareTitle(source: CaptureSource | null): string | null {
+function formatRecordingTitle(source: CaptureSource | null): string | null {
   if (!source) return null;
   if (isWindowSource(source)) {
     return source.ownerName?.trim() || source.name?.trim() || null;
@@ -32,14 +35,16 @@ export function useRecorder(): {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const webcamStreamRef = useRef<MediaStream | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
-  const shareWebcamUploaderRef = useRef<ShareWebcamUploader | null>(null);
-  const shareEditUrlRef = useRef<string | null>(null);
-  type SharePrep = {
-    shareStartPromise: Promise<
-      import("../../../shared/types").ShareStartResult
+  const recordingWebcamUploaderRef = useRef<RecordingWebcamUploader | null>(
+    null,
+  );
+  const recordingEditUrlRef = useRef<string | null>(null);
+  type RecordingPrep = {
+    recordingStartPromise: Promise<
+      import("../../../shared/types").RecordingStartResult
     >;
   };
-  const sharePrepRef = useRef<SharePrep | null>(null);
+  const recordingPrepRef = useRef<RecordingPrep | null>(null);
   const prepCapturePromiseRef = useRef<Promise<void> | null>(null);
   /*
    * Dedup guard distinct from prepCapturePromiseRef (which the cancel handler
@@ -58,9 +63,9 @@ export function useRecorder(): {
     webcamStreamRef.current = null;
     micStreamRef.current?.getTracks().forEach((t) => t.stop());
     micStreamRef.current = null;
-    if (shareWebcamUploaderRef.current) {
-      shareWebcamUploaderRef.current.abort();
-      shareWebcamUploaderRef.current = null;
+    if (recordingWebcamUploaderRef.current) {
+      recordingWebcamUploaderRef.current.abort();
+      recordingWebcamUploaderRef.current = null;
     }
   }, []);
 
@@ -79,26 +84,26 @@ export function useRecorder(): {
       window.electronAPI.hideWebcamBubble().catch(() => {});
       window.electronAPI.restoreRecordingDisplayMode().catch(() => {});
 
-      const shareWebcamUploader = shareWebcamUploaderRef.current;
-      shareWebcamUploaderRef.current = null;
+      const recordingWebcamUploader = recordingWebcamUploaderRef.current;
+      recordingWebcamUploaderRef.current = null;
 
       let webcamTotalBytes = 0;
-      if (shareWebcamUploader) {
+      if (recordingWebcamUploader) {
         try {
-          const res = await shareWebcamUploader.stop();
+          const res = await recordingWebcamUploader.stop();
           webcamTotalBytes = res.totalBytes;
         } catch (err) {
           window.electronAPI.log(
             "warn",
-            "share",
-            `share-webcam stop failed: ${String(err)}`,
+            "recording",
+            `recording-webcam stop failed: ${String(err)}`,
           );
         }
       }
       cleanup();
 
-      const shareResult = await sharePipeline.finish();
-      const shareState = sharePipeline.getState();
+      const recordingResult = await recordingPipeline.finish();
+      const recordingState = recordingPipeline.getState();
 
       const trackingResult = await window.electronAPI
         .stopCursorTracking()
@@ -107,43 +112,43 @@ export function useRecorder(): {
         trackingDataRef.current = trackingResult.data;
       }
 
-      if (shareResult) {
+      if (recordingResult) {
         window.electronAPI.log(
           "info",
-          "share",
-          `finalized: ${shareResult.sizeBytes}B, ${shareResult.encodedFrames}fr, ${shareResult.durationMs}ms`,
+          "recording",
+          `finalized: ${recordingResult.sizeBytes}B, ${recordingResult.encodedFrames}fr, ${recordingResult.durationMs}ms`,
         );
-        const editUrl = shareEditUrlRef.current;
-        if (editUrl) window.electronAPI.shareReadyOpenLink(editUrl);
-        if (shareResult.posterBlob) {
-          void shareResult.posterBlob
+        const editUrl = recordingEditUrlRef.current;
+        if (editUrl) window.electronAPI.recordingReadyOpenLink(editUrl);
+        if (recordingResult.posterBlob) {
+          void recordingResult.posterBlob
             .arrayBuffer()
-            .then((buf) => window.electronAPI.shareUploadPoster(buf))
+            .then((buf) => window.electronAPI.recordingUploadPoster(buf))
             .catch((err) =>
               window.electronAPI.log(
                 "warn",
-                "share",
+                "recording",
                 `poster upload failed: ${String(err)}`,
               ),
             );
         }
         void window.electronAPI
-          .shareFinish({
-            durationMs: shareResult.durationMs,
-            screenTotalBytes: shareResult.sizeBytes,
+          .recordingFinish({
+            durationMs: recordingResult.durationMs,
+            screenTotalBytes: recordingResult.sizeBytes,
             webcamTotalBytes,
           })
           .then((finishRes) => {
             if (!finishRes.ok) {
               window.electronAPI.log(
                 "warn",
-                "share",
-                `shareFinish failed: ${finishRes.error}` +
+                "recording",
+                `recordingFinish failed: ${finishRes.error}` +
                   (finishRes.partialUrl
                     ? ` (partial: ${finishRes.partialUrl})`
                     : ""),
               );
-              void window.electronAPI.shareFailureOpen(
+              void window.electronAPI.recordingFailureOpen(
                 finishRes.partialUrl
                   ? {
                       kind: "partial",
@@ -154,21 +159,25 @@ export function useRecorder(): {
               );
             }
           });
-      } else if (shareState.status === "over-cap") {
-        window.electronAPI.log("info", "share", "over-cap; aborting upload");
-        window.electronAPI.shareAbort();
+      } else if (recordingState.status === "over-cap") {
+        window.electronAPI.log(
+          "info",
+          "recording",
+          "over-cap; aborting upload",
+        );
+        window.electronAPI.recordingAbort();
       } else {
         const reason =
-          shareState.status === "aborted" && shareState.reason
-            ? shareState.reason
+          recordingState.status === "aborted" && recordingState.reason
+            ? recordingState.reason
             : "Recording could not be encoded.";
         window.electronAPI.log(
           "info",
-          "share",
-          `no encoder result; state=${shareState.status} reason=${reason}`,
+          "recording",
+          `no encoder result; state=${recordingState.status} reason=${reason}`,
         );
-        window.electronAPI.shareAbort();
-        await window.electronAPI.shareFailureOpen({
+        window.electronAPI.recordingAbort();
+        await window.electronAPI.recordingFailureOpen({
           kind: "init-failed",
           message: reason,
         });
@@ -211,7 +220,7 @@ export function useRecorder(): {
       useRecordingStore.getState();
     const source = selectedSource;
     if (!source) return;
-    const shareMode = recordingMode === "share";
+    const isRecording = recordingMode === "recording";
 
     try {
       window.electronAPI.showRecordingOverlay();
@@ -237,30 +246,30 @@ export function useRecorder(): {
       const cropRect: WindowBounds | undefined =
         windowId === undefined ? source.windowBounds : undefined;
 
-      if (shareMode) {
-        // Share prep was kicked off at countdown start; if the prep ref is
+      if (isRecording) {
+        // Recording prep was kicked off at countdown start; if the prep ref is
         // missing (cancel race or non-overlay entry path) run the inline
         // fallback so we never lose the slug.
-        const prep = sharePrepRef.current;
-        sharePrepRef.current = null;
-        const title = formatShareTitle(source);
+        const prep = recordingPrepRef.current;
+        recordingPrepRef.current = null;
+        const title = formatRecordingTitle(source);
         const hasWebcam = webcamStreamRef.current !== null;
-        const startRes = await (prep?.shareStartPromise ??
-          window.electronAPI.shareStart({ title, hasWebcam }));
+        const startRes = await (prep?.recordingStartPromise ??
+          window.electronAPI.recordingStart({ title, hasWebcam }));
         if (!startRes.ok) {
           window.electronAPI.log(
             "warn",
-            "share",
-            `shareStart failed: ${startRes.error}`,
+            "recording",
+            `recordingStart failed: ${startRes.error}`,
           );
           throw new Error(startRes.error);
         }
-        shareEditUrlRef.current = startRes.editUrl;
+        recordingEditUrlRef.current = startRes.editUrl;
 
         // audioExpected holds encoder init until the first audio-format event
         // arrives — required because mp4-muxer locks its track set at
         // construction time.
-        sharePipeline.arm({ audioExpected: systemAudioEnabled });
+        recordingPipeline.arm({ audioExpected: systemAudioEnabled });
       }
 
       const result = await window.electronAPI.startNativeRecording({
@@ -271,7 +280,7 @@ export function useRecorder(): {
         captureAudio: systemAudioEnabled,
         includeSelfWindows,
         cropRect,
-        share: shareMode,
+        recording: isRecording,
       });
       const windowBounds: WindowBounds | undefined =
         result?.windowBounds ?? source.windowBounds;
@@ -284,20 +293,20 @@ export function useRecorder(): {
       // Start the uploader only after native confirms its session started, so
       // MediaRecorder's wall-clock start aligns with the screen MP4's;
       // starting earlier surfaces as mic lag at playback time 0.
-      if (shareMode && webcamStreamRef.current) {
-        const uploader = new ShareWebcamUploader();
+      if (recordingMode && webcamStreamRef.current) {
+        const uploader = new RecordingWebcamUploader();
         uploader.start({
           webcamStream: webcamStreamRef.current,
           micStream: micStreamRef.current,
         });
-        shareWebcamUploaderRef.current = uploader;
+        recordingWebcamUploaderRef.current = uploader;
       }
 
       store.setStatus("recording");
       store.setElapsedTime(0);
       window.electronAPI.showRecordingOverlay({
         startedAt: wallClockMs ?? Date.now(),
-        capMs: shareMode ? SHARE_CAP_MS : undefined,
+        capMs: recordingMode ? RECORDING_CAP_MS : undefined,
       });
       const dimBounds = windowBounds ?? source.windowBounds;
       const dimRadius = result?.cornerRadius ?? source.cornerRadius;
@@ -316,8 +325,8 @@ export function useRecorder(): {
       }, 1000);
     } catch (error) {
       console.error("Failed to start recording:", error);
-      sharePipeline.abort("start-failed");
-      window.electronAPI.shareAbort();
+      recordingPipeline.abort("start-failed");
+      window.electronAPI.recordingAbort();
       cleanup();
       await window.electronAPI.hideRecordingOverlay();
       window.electronAPI.hideRecordingDim().catch(() => {});
@@ -418,8 +427,8 @@ export function useRecorder(): {
       window.electronAPI.resumeNativeRecording();
     }
 
-    sharePipeline.abort("cancelled");
-    window.electronAPI.shareAbort();
+    recordingPipeline.abort("cancelled");
+    window.electronAPI.recordingAbort();
     window.electronAPI
       .stopNativeRecording()
       .catch(() => {})
@@ -456,31 +465,31 @@ export function useRecorder(): {
   }, [stopAndCleanup, startRecording]);
 
   useEffect(() => {
-    sharePipeline.attach();
+    recordingPipeline.attach();
   }, []);
 
   useEffect(() => {
-    const offStart = window.electronAPI.onSharePrepStart(() => {
+    const offStart = window.electronAPI.onRecordingPrepStart(() => {
       const state = useRecordingStore.getState();
       if (!prepCapturePromiseRef.current) {
         prepCapturePromiseRef.current = ensurePrepare();
       }
-      if (state.recordingMode === "share") {
-        if (sharePrepRef.current) {
-          window.electronAPI.shareAbort();
+      if (state.recordingMode === "recording") {
+        if (recordingPrepRef.current) {
+          window.electronAPI.recordingAbort();
         }
         const source = state.selectedSource;
         const hasWebcam = !!state.selectedVideoDevice;
-        const title = source ? formatShareTitle(source) : "";
-        sharePrepRef.current = {
-          shareStartPromise: window.electronAPI.shareStart({
+        const title = source ? formatRecordingTitle(source) : "";
+        recordingPrepRef.current = {
+          recordingStartPromise: window.electronAPI.recordingStart({
             title,
             hasWebcam,
           }),
         };
       }
     });
-    const offCancel = window.electronAPI.onSharePrepCancel(() => {
+    const offCancel = window.electronAPI.onRecordingPrepCancel(() => {
       const prepPromise = prepCapturePromiseRef.current;
       prepCapturePromiseRef.current = null;
       if (prepPromise) {
@@ -491,13 +500,13 @@ export function useRecorder(): {
           micStreamRef.current = null;
         });
       }
-      const prep = sharePrepRef.current;
+      const prep = recordingPrepRef.current;
       if (prep) {
-        sharePrepRef.current = null;
-        // shareStart may still be in flight; await it so the abort lands after
+        recordingPrepRef.current = null;
+        // recordingStart may still be in flight; await it so the abort lands after
         // the slug is created.
-        void prep.shareStartPromise
-          .then(() => window.electronAPI.shareAbort())
+        void prep.recordingStartPromise
+          .then(() => window.electronAPI.recordingAbort())
           .catch(() => {});
       }
     });
@@ -524,8 +533,8 @@ export function useRecorder(): {
 
     const removeCrashListener = window.electronAPI.onNativeRecorderCrashed(
       async () => {
-        sharePipeline.abort("recorder-crash");
-        window.electronAPI.shareAbort();
+        recordingPipeline.abort("recorder-crash");
+        window.electronAPI.recordingAbort();
         cleanup();
         if (timerRef.current) {
           clearInterval(timerRef.current);

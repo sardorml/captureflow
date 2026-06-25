@@ -65,6 +65,7 @@ export function SuggestFeatureClient() {
     <Flex
       align="center"
       justify="center"
+      className="bg-canvas text-fg"
       style={{ minHeight: "100vh", padding: 24 }}
     >
       <Card style={{ width: "100%", maxWidth: 640 }}>

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { deleteShare, getShare } from "@/lib/share/db";
-import { isValidSlug } from "@/lib/share/slug";
-import { abortMultipartUpload, deleteObject } from "@/lib/share/r2";
-import { verifySessionOrNull } from "@/lib/share/verify-session";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
+import { deleteRecording, getRecording } from "@/lib/recording/db";
+import { isValidSlug } from "@/lib/recording/slug";
+import { abortMultipartUpload, deleteObject } from "@/lib/recording/r2";
+import { verifySessionOrNull } from "@/lib/recording/verify-session";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 
 const DEVICE_HEADER = "x-captureflow-device";
 
@@ -21,7 +21,7 @@ export async function DELETE(
     return jsonError("Invalid slug", 400, "invalid_slug");
   }
 
-  const row = await getShare(id);
+  const row = await getRecording(id);
   if (!row) return withCors(NextResponse.json({ ok: true }));
 
   const deviceId = req.headers.get(DEVICE_HEADER);
@@ -54,7 +54,7 @@ export async function DELETE(
       console.warn(`[delete] webcam r2 delete failed for ${id}:`, err);
     }
   }
-  await deleteShare(id);
+  await deleteRecording(id);
 
   return withCors(NextResponse.json({ ok: true }));
 }

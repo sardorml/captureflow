@@ -13,14 +13,14 @@ import { getActiveProSubscription } from "./pro-subscription";
 export type EffectiveLimits = {
   storageBytes: number;
   activeArtifacts: number;
-  perShareDurationMs: number;
+  perRecordingDurationMs: number;
   proSubscriptionActive: boolean;
 };
 
 type QuotaRow = {
   storage_bytes_override: number | null;
-  // Named for the original share-only schema; now covers shares + snaps.
-  active_shares_override: number | null;
+  // Named for the original recording-only schema; now covers recordings + screenshots.
+  active_recordings_override: number | null;
 };
 
 export async function getEffectiveLimitsForUser(
@@ -30,7 +30,7 @@ export async function getEffectiveLimitsForUser(
   const [override, subscription] = await Promise.all([
     db
       .prepare(
-        `SELECT storage_bytes_override, active_shares_override
+        `SELECT storage_bytes_override, active_recordings_override
            FROM user_quotas
            WHERE user_id = ?1
            LIMIT 1`,
@@ -46,14 +46,14 @@ export async function getEffectiveLimitsForUser(
   const baseArtifacts = subscription
     ? PRO_SUBSCRIPTION_LIMITS.activeArtifactsPerAccount
     : ACCOUNT_LIMITS.activeArtifactsPerAccount;
-  const baseShareDurationMs = subscription
-    ? PRO_SUBSCRIPTION_LIMITS.perShareDurationMs
-    : ACCOUNT_LIMITS.perShareDurationMs;
+  const baseRecordingDurationMs = subscription
+    ? PRO_SUBSCRIPTION_LIMITS.perRecordingDurationMs
+    : ACCOUNT_LIMITS.perRecordingDurationMs;
 
   return {
     storageBytes: override?.storage_bytes_override ?? baseStorage,
-    activeArtifacts: override?.active_shares_override ?? baseArtifacts,
-    perShareDurationMs: baseShareDurationMs,
+    activeArtifacts: override?.active_recordings_override ?? baseArtifacts,
+    perRecordingDurationMs: baseRecordingDurationMs,
     proSubscriptionActive: subscription !== null,
   };
 }

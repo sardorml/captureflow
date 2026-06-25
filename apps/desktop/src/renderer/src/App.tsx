@@ -3,7 +3,7 @@ import { RecordingToolbar } from "./components/recording/RecordingToolbar";
 import { SelectionOverlay } from "./components/recording/SelectionOverlay";
 import { PermissionsWindow } from "./components/permissions/PermissionsWindow";
 import { WebcamBubble } from "./components/recording/WebcamBubble";
-import { SnapNotification } from "./components/recording/SnapNotification";
+import { ScreenshotNotification } from "./components/recording/ScreenshotNotification";
 
 function App(): React.JSX.Element {
   useEffect(() => {
@@ -24,8 +24,8 @@ function App(): React.JSX.Element {
   if (hash === "#/webcam-bubble") {
     return <WebcamBubble />;
   }
-  if (hash === "#/snap-notification") {
-    return <SnapNotification />;
+  if (hash === "#/screenshot-notification") {
+    return <ScreenshotNotification />;
   }
 
   return <RecordingToolbar />;

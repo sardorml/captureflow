@@ -5,7 +5,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 const SPRING_DEFAULT = { type: "spring" as const, stiffness: 300, damping: 25 };
-const SPRING_SNAPPY = { type: "spring" as const, stiffness: 400, damping: 30 };
+const SPRING_SCREENSHOTPY = {
+  type: "spring" as const,
+  stiffness: 400,
+  damping: 30,
+};
 const DURATION_INSTANT = { duration: 0 };
 
 const CHEVRON_ROTATION = 180;
@@ -227,7 +231,7 @@ export function SmoothSelect({
         transition={
           shouldReduceMotion
             ? DURATION_INSTANT
-            : { ...SPRING_SNAPPY, delay: idx * STAGGER_DELAY }
+            : { ...SPRING_SCREENSHOTPY, delay: idx * STAGGER_DELAY }
         }
         whileHover={shouldReduceMotion ? {} : { x: ITEM_HOVER_X }}
       >

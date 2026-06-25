@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getShare } from "@/lib/share/db";
-import { isValidSlug } from "@/lib/share/slug";
-import { getCloudflareEnv } from "@/lib/share/cf-env";
-import type { ShareApiError } from "@/lib/share/types";
+import { getRecording } from "@/lib/recording/db";
+import { isValidSlug } from "@/lib/recording/slug";
+import { getCloudflareEnv } from "@/lib/recording/cf-env";
+import type { RecordingApiError } from "@/lib/recording/types";
 
 // `<a download>` is silently ignored on cross-origin links unless the origin
 // sends `Content-Disposition: attachment`; proxying keeps the link same-origin.
@@ -12,9 +12,9 @@ export async function GET(req: NextRequest) {
     return notFoundJson("Invalid slug", "invalid_slug");
   }
 
-  const row = await getShare(slug);
+  const row = await getRecording(slug);
   if (!row || row.state !== "ready" || row.visibility === "private") {
-    return notFoundJson("Share not found", "not_found");
+    return notFoundJson("Recording not found", "not_found");
   }
 
   const env = await getCloudflareEnv();
@@ -46,11 +46,11 @@ export async function GET(req: NextRequest) {
 }
 
 function notFoundJson(error: string, code: string): NextResponse {
-  const body: ShareApiError = { error, code };
+  const body: RecordingApiError = { error, code };
   return NextResponse.json(body, { status: 404 });
 }
 
 function jsonError(error: string, status: number, code: string): NextResponse {
-  const body: ShareApiError = { error, code };
+  const body: RecordingApiError = { error, code };
   return NextResponse.json(body, { status });
 }

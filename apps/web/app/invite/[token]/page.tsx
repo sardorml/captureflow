@@ -49,6 +49,7 @@ export default async function InvitePage({ params }: Props) {
     <Flex
       align="center"
       justify="center"
+      className="bg-canvas text-fg"
       style={{ minHeight: "100vh", padding: 24 }}
     >
       <Card style={{ width: "100%", maxWidth: 440 }}>
@@ -58,7 +59,7 @@ export default async function InvitePage({ params }: Props) {
         <p className="mt-3 text-fg-muted">
           You&rsquo;ve been invited to join{" "}
           <strong className="text-fg-strong">{workspaceName}</strong> on
-          CaptureFlow. Workspaces let teammates share screen recordings and
+          CaptureFlow. Workspaces let teammates recording screen recordings and
           screenshots privately.
         </p>
         <form action={acceptInviteAction} style={{ marginTop: 24 }}>
@@ -88,6 +89,7 @@ function ErrorFrame({
     <Flex
       align="center"
       justify="center"
+      className="bg-canvas text-fg"
       style={{ minHeight: "100vh", padding: 24 }}
     >
       <Result

@@ -44,7 +44,7 @@ function DeviceRow({ token }: { token: DeviceTokenRow }) {
         <Popconfirm
           key="revoke"
           title="Sign this device out?"
-          description="It will need to sign in again to manage shares."
+          description="It will need to sign in again to manage recordings."
           okText="Revoke"
           okButtonProps={{ danger: true }}
           onConfirm={onRevoke}

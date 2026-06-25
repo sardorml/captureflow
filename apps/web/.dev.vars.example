@@ -88,13 +88,13 @@ RESEND_FROM_ADDRESS=CaptureFlow <hello@captureflow.xyz>
 
 # Dashboard / app-web origin (auth, usage, account reads).
 NEXT_PUBLIC_APP_WEB_SITE_URL=http://localhost:3000
-# Share viewer origin (served by the unified worker; same host in prod).
-NEXT_PUBLIC_SHARE_SITE_URL=http://localhost:3000
-# Snap viewer origin (served by the unified worker; snaps live under /s).
-NEXT_PUBLIC_SNAP_SITE_URL=http://localhost:3000
-# Marketing/landing root; share + snap view pages build URLs off this.
+# Recording viewer origin (served by the unified worker; same host in prod).
+NEXT_PUBLIC_RECORDING_SITE_URL=http://localhost:3000
+# Screenshot viewer origin (served by the unified worker; screenshots live under /s).
+NEXT_PUBLIC_SCREENSHOT_SITE_URL=http://localhost:3000
+# Marketing/landing root; recording + screenshot view pages build URLs off this.
 NEXT_PUBLIC_MARKETING_SITE_URL=http://localhost:3000
-# CDN origin for direct R2 reads (share posters/videos, snap PNGs under snaps/).
+# CDN origin for direct R2 reads (recording posters/videos, screenshot PNGs under screenshots/).
 # Server code reads R2_PUBLIC_BASE_URL; some client components read the
 # NEXT_PUBLIC_ form below.
 R2_PUBLIC_BASE_URL=http://localhost:3000/api/r/media

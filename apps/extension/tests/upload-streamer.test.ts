@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { startShareUpload } from "../lib/api/upload-streamer";
+import { startRecordingUpload } from "../lib/api/upload-streamer";
 import type {
   FinalizeRequest,
   InitRequest,
@@ -82,10 +82,13 @@ function fakeTransport(
 
 const bytes = (n: number): Uint8Array => new Uint8Array(n);
 
-describe("startShareUpload — screen stream", () => {
+describe("startRecordingUpload — screen stream", () => {
   it("buffers below the chunk size and ships one trailing part on finish", async () => {
     const transport = fakeTransport();
-    const upload = await startShareUpload(INIT, { transport, chunkBytes: 100 });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
 
     upload.pushScreen(bytes(50));
     upload.pushScreen(bytes(30));
@@ -104,7 +107,10 @@ describe("startShareUpload — screen stream", () => {
 
   it("splits a large body into equal chunks plus a smaller trailing part", async () => {
     const transport = fakeTransport();
-    const upload = await startShareUpload(INIT, { transport, chunkBytes: 100 });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
 
     upload.pushScreen(bytes(250));
     await upload.finish();
@@ -122,7 +128,10 @@ describe("startShareUpload — screen stream", () => {
       return { partNumber, etag: `s-${partNumber}` };
     });
     const transport = fakeTransport({ overrides: { uploadScreenPart } });
-    const upload = await startShareUpload(INIT, { transport, chunkBytes: 100 });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
 
     upload.pushScreen(bytes(250));
 
@@ -132,15 +141,21 @@ describe("startShareUpload — screen stream", () => {
 
   it("rejects a finish with no screen bytes", async () => {
     const transport = fakeTransport();
-    const upload = await startShareUpload(INIT, { transport, chunkBytes: 100 });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
     await expect(upload.finish()).rejects.toThrow("No screen parts");
   });
 });
 
-describe("startShareUpload — webcam stream", () => {
+describe("startRecordingUpload — webcam stream", () => {
   it("ignores webcam pushes when init reserved no webcam", async () => {
     const transport = fakeTransport({ webcam: false });
-    const upload = await startShareUpload(INIT, { transport, chunkBytes: 100 });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
     expect(upload.hasWebcam).toBe(false);
 
     upload.pushScreen(bytes(40));
@@ -153,7 +168,10 @@ describe("startShareUpload — webcam stream", () => {
 
   it("uploads and finalizes both streams when a webcam was reserved", async () => {
     const transport = fakeTransport({ webcam: true });
-    const upload = await startShareUpload(INIT, { transport, chunkBytes: 100 });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
     expect(upload.hasWebcam).toBe(true);
 
     upload.pushScreen(bytes(120));
@@ -167,7 +185,7 @@ describe("startShareUpload — webcam stream", () => {
     ]);
   });
 
-  it("treats a webcam finalize failure as best-effort (share still succeeds)", async () => {
+  it("treats a webcam finalize failure as best-effort (recording still succeeds)", async () => {
     const finalizeWebcam = vi.fn(async () => {
       throw new Error("webcam finalize 502");
     });
@@ -175,7 +193,10 @@ describe("startShareUpload — webcam stream", () => {
       webcam: true,
       overrides: { finalizeWebcam },
     });
-    const upload = await startShareUpload(INIT, { transport, chunkBytes: 100 });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
 
     upload.pushScreen(bytes(40));
     upload.pushWebcam(bytes(40));
@@ -188,7 +209,10 @@ describe("startShareUpload — webcam stream", () => {
 
   it("does not finalize the webcam when it recorded nothing", async () => {
     const transport = fakeTransport({ webcam: true });
-    const upload = await startShareUpload(INIT, { transport, chunkBytes: 100 });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
 
     upload.pushScreen(bytes(40));
     await upload.finish();
@@ -197,10 +221,13 @@ describe("startShareUpload — webcam stream", () => {
   });
 });
 
-describe("startShareUpload — poster", () => {
+describe("startRecordingUpload — poster", () => {
   it("delegates poster upload to the transport", async () => {
     const transport = fakeTransport();
-    const upload = await startShareUpload(INIT, { transport, chunkBytes: 100 });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
     await upload.uploadPoster(bytes(512));
     expect(transport.posterBytes).toBe(512);
   });

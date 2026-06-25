@@ -6,12 +6,12 @@ export type AppWebBindings = {
   DB?: D1Database;
   BUCKET?: R2Bucket;
   NEXT_PUBLIC_APP_WEB_SITE_URL?: string;
-  NEXT_PUBLIC_SHARE_SITE_URL?: string;
-  // Legacy standalone-snap host, retained for parity until cutover.
-  NEXT_PUBLIC_SNAP_SITE_URL?: string;
-  // Marketing/landing root; snap URLs are captureflow.xyz/s/<id>.
+  NEXT_PUBLIC_RECORDING_SITE_URL?: string;
+  // Legacy standalone-screenshot host, retained for parity until cutover.
+  NEXT_PUBLIC_SCREENSHOT_SITE_URL?: string;
+  // Marketing/landing root; screenshot URLs are captureflow.xyz/s/<id>.
   NEXT_PUBLIC_MARKETING_SITE_URL?: string;
-  // CDN origin for direct R2 reads (snaps live under the `snaps/` prefix).
+  // CDN origin for direct R2 reads (screenshots live under the `screenshots/` prefix).
   R2_PUBLIC_BASE_URL?: string;
   BETTER_AUTH_SECRET?: string;
   BETTER_AUTH_URL?: string;

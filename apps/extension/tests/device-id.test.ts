@@ -3,7 +3,7 @@ import { fakeBrowser } from "wxt/testing";
 import { getDeviceId, newDeviceId } from "../lib/auth/device-id";
 
 describe("newDeviceId", () => {
-  it("fits the share API's 8–64 char device-header bound", () => {
+  it("fits the recording API's 8–64 char device-header bound", () => {
     const id = newDeviceId();
     expect(id.length).toBeGreaterThanOrEqual(8);
     expect(id.length).toBeLessThanOrEqual(64);

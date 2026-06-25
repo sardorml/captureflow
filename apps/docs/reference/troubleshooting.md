@@ -19,9 +19,9 @@ Sign-in completes in the browser and returns via a `captureflow://` deep link.
 Make sure your default browser can open the link, and that your backend's
 `APP_DEEP_LINK_SCHEME` matches the scheme the app registers (`captureflow`).
 
-## Uploads & share links
+## Uploads & recording links
 
-**The share link 404s or the video won't play.**
+**The recording link 404s or the video won't play.**
 The page metadata comes from D1 but the video/poster are served from R2 over your
 CDN domain. Confirm:
 

@@ -4,7 +4,7 @@
 > Decisions below are locked unless revised in a follow-up.
 > Built with [WXT](https://wxt.dev) as a Manifest V3 extension under `apps/extension`.
 > A Loom-style screen recorder that uploads through the **existing** `/api/r/*` (recordings /
-> `share` domain) protocol — it is recording **client #3**, alongside the web dashboard and the
+> `recording` domain) protocol — it is recording **client #3**, alongside the web dashboard and the
 > Electron desktop app. No new backend domain.
 
 ---
@@ -13,22 +13,22 @@
 
 Two assumptions are **wrong against the actual code** and are treated as hard constraints.
 
-1. **CORS for `/api/r/*` does NOT allow the `Authorization` header.** `apps/web/lib/share/cors.ts:6`
+1. **CORS for `/api/r/*` does NOT allow the `Authorization` header.** `apps/web/lib/recording/cors.ts:6`
    sets `ALLOW_HEADERS = "Content-Type, x-captureflow-device"`. The extension calls `init` /
    `usage` / `auth/check` with a Bearer header from a `chrome-extension://` origin, which is
    cross-origin, so the browser sends a CORS preflight listing `authorization`; the current
    response omits it and the preflight fails. Desktop dodges this because Electron's
-   main-process `fetch` is not subject to browser CORS. The **snap** module already lists
-   `Authorization` (`apps/web/lib/snap/cors.ts:9`) — copy that exact spelling. → Backend Change 1.
+   main-process `fetch` is not subject to browser CORS. The **screenshot** module already lists
+   `Authorization` (`apps/web/lib/screenshot/cors.ts:9`) — copy that exact spelling. → Backend Change 1.
 2. **The screen track must be `video/mp4` (or an explicitly allowed `video/webm`).**
-   `apps/web/lib/share/limits.ts` pins `ALLOWED_CONTENT_TYPES = {video/mp4, image/jpeg}` and
+   `apps/web/lib/recording/limits.ts` pins `ALLOWED_CONTENT_TYPES = {video/mp4, image/jpeg}` and
    `apps/web/app/api/r/init/route.ts` hardcodes the screen object key as `videos/${slug}.mp4`.
    Chrome's `MediaRecorder` defaults to WebM/VP9; MP4/H.264 only when an OS encoder is present.
    The webcam companion is already reserved as `video/webm` server-side. → Decision 6 + Backend Change 3.
 
 Everything else checks out: the multipart sequence, `CHUNK_BYTES = 5 MiB` and
 `MAX_PART_BYTES = 100 MiB`, idempotent `finalize` (returns the URL when `state === "ready"`),
-the no-auth `state` probe, `MAX_POSTER_BYTES = 2 MiB`, and `perShareDurationMs ≈ 3602s`
+the no-auth `state` probe, `MAX_POSTER_BYTES = 2 MiB`, and `perRecordingDurationMs ≈ 3602s`
 (`packages/quota/src/limits.ts`).
 
 ---
@@ -79,7 +79,7 @@ desktop flow:
 - Chrome **intercepts** that redirect (it never navigates a tab there) and hands the URL back to
   `launchWebAuthFlow`'s callback; the extension parses `token`/`id` and stores them.
 - All `/api/r/*` calls then send `Authorization: Bearer <token>` + `x-captureflow-device: <id>`,
-  exactly like desktop's `shareHeaders()`.
+  exactly like desktop's `recordingHeaders()`.
 
 Token validity is probed with `GET /api/r/auth/check` on popup open (200 `{ok,userId}` vs 401 →
 clear local auth). The server still enforces everything: `resolveDeviceTokenToUser(bearer)`
@@ -102,12 +102,12 @@ identity).
 
 ### Decision 3 — Upload: reuse `/api/r/*` exactly
 
-Port `apps/desktop/src/main/lib/share/{share-api-client.ts, share-upload-streamer.ts}` and
-`apps/desktop/src/renderer/src/lib/share/share-webcam-uploader.ts` into the offscreen doc.
+Port `apps/desktop/src/main/lib/recording/{recording-api-client.ts, recording-upload-streamer.ts}` and
+`apps/desktop/src/renderer/src/lib/recording/recording-webcam-uploader.ts` into the offscreen doc.
 Exact sequence:
 
-1. **`POST /api/r/init`** — `InitRequest` (`apps/web/lib/share/types.ts`):
-   `{ contentType, source:"instant", preset:"share", durationMs?, width, height, title?,
+1. **`POST /api/r/init`** — `InitRequest` (`apps/web/lib/recording/types.ts`):
+   `{ contentType, source:"instant", preset:"recording", durationMs?, width, height, title?,
 visibility?, hasWebcam, workspaceId? }`; headers `Authorization` + `x-captureflow-device`.
    Returns `InitResponse { slug, uploadId, storageKey, webcamUploadId?, webcamStorageKey? }`.
    **Persist `slug` to `chrome.storage.session` immediately.**
@@ -123,10 +123,10 @@ visibility?, hasWebcam, workspaceId? }`; headers `Authorization` + `x-captureflo
    (verify `< 2 MiB`) → **`POST /api/r/poster?slug=<slug>`** with `content-type: image/jpeg`.
 6. **On stop:** flush both recorders (`requestData()` + await pending) → **`POST /api/r/finalize`**
    `{ slug, parts:[{partNumber,etag}…], sizeBytes }` (+ **`/api/r/webcam-finalize`**). `finalize`
-   returns `{ url }` → show the share link.
+   returns `{ url }` → show the recording link.
 
 **ETag discipline:** echo `PartResponse.etag` verbatim. **`sizeBytes`** = running total of bytes
-POSTed; must be `> 0` and `<= perShareSizeBytes` (500 MiB).
+POSTed; must be `> 0` and `<= perRecordingSizeBytes` (500 MiB).
 
 **Durability (offscreen doc is the source of truth):** the offscreen doc itself writes
 `{ slug, partNumber, etags[], sizeBytes }` to `chrome.storage.session` after each successful
@@ -137,7 +137,7 @@ POSTed; must be `> 0` and `<= perShareSizeBytes` (500 MiB).
 - `init` returns **429 `active_limit`/`storage_limit`** or **413 `duration_exceeded`** → "quota
   reached" UX; do not start recording.
 - Pause both pumps on `navigator.onLine === false`; resume on `online`. **A part that fails
-  mid-flight is fatal** — abort the share (do not retry; matches `share-upload-streamer.ts`).
+  mid-flight is fatal** — abort the recording (do not retry; matches `recording-upload-streamer.ts`).
   Per-part retry is an explicit non-goal for v1; revisit later.
 - On any fatal error or user "delete": **`POST /api/r/abort` `{ slug }`** (the route is POST —
   not DELETE) to release the R2 multipart and avoid orphaned quota.
@@ -148,7 +148,7 @@ POSTed; must be `> 0` and `<= perShareSizeBytes` (500 MiB).
 
 Screen (`/api/r/part` → `/api/r/finalize`) and webcam+mic (`/api/r/webcam-part` →
 `/api/r/webcam-finalize`) are **two independent `MediaRecorder`s**, mapped to the backend's
-existing dual-track model (`ShareRow.webcam*`). The live circular cam bubble is a preview-only
+existing dual-track model (`RecordingRow.webcam*`). The live circular cam bubble is a preview-only
 `<video>` in the content script; the web player overlays the webcam at playback. `pause()`/
 `resume()` are called on both recorders in the same tick.
 
@@ -167,8 +167,8 @@ visibility enum (`public|unlisted|private`) is the **wrong** model (the `/api/r`
 `public|workspace|private`).
 
 Fork the handful of wire types into the extension's own `lib/api/types.ts` (structural copies of
-`InitRequest`/`InitResponse`/`PartResponse`/`FinalizeRequest`/`FinalizeResponse`/`ShareApiError`/
-`ShareVisibility` from `apps/web/lib/share/types.ts`). They are server-validated wire contracts,
+`InitRequest`/`InitResponse`/`PartResponse`/`FinalizeRequest`/`FinalizeResponse`/`RecordingApiError`/
+`RecordingVisibility` from `apps/web/lib/recording/types.ts`). They are server-validated wire contracts,
 so structural duplication is convention-blessed. A **CI text-diff script** (not a cross-app
 import — that would violate the boundary rule) guards against silent drift.
 
@@ -267,8 +267,8 @@ apps/extension/
 Each in its own commit in `apps/web`, behavior-preserving for existing clients (CONVENTIONS §0.1, §11).
 
 1. **(Mandatory) Add `Authorization` to `/api/r/*` CORS allow-headers.**
-   `apps/web/lib/share/cors.ts:6` → `const ALLOW_HEADERS = "Content-Type, Authorization, x-captureflow-device";`
-   (copy `apps/web/lib/snap/cors.ts:9`). `withCors`/`optionsResponse`/`jsonError` need no edits.
+   `apps/web/lib/recording/cors.ts:6` → `const ALLOW_HEADERS = "Content-Type, Authorization, x-captureflow-device";`
+   (copy `apps/web/lib/screenshot/cors.ts:9`). `withCors`/`optionsResponse`/`jsonError` need no edits.
    Desktop unaffected. Add/extend a CORS characterization test asserting `Authorization` is present.
 2. **(Mandatory) Allow a `chromiumapp.org` return in `/auth/callback`.**
    In `apps/web/app/auth/callback/page.tsx`, broaden the return-URL guard to allow-list
@@ -277,7 +277,7 @@ Each in its own commit in `apps/web`, behavior-preserving for existing clients (
    Keep it an explicit allow-list (don't accept arbitrary hosts). **Blocked on the published
    extension ID.**
 3. **(In scope — chosen WebM fallback) Allow `video/webm` screen uploads.**
-   `apps/web/lib/share/limits.ts` → add `"video/webm"` to `ALLOWED_CONTENT_TYPES`; in
+   `apps/web/lib/recording/limits.ts` → add `"video/webm"` to `ALLOWED_CONTENT_TYPES`; in
    `apps/web/app/api/r/init/route.ts` make the screen `storageKey` extension-aware (`.webm` when
    `contentType === "video/webm"`, else `.mp4`; posters stay `.jpg`). Confirm the web player and
    poster pipeline tolerate a `.webm` screen object.
@@ -324,7 +324,7 @@ Quota attribution already targets the workspace owner; `isDevDevice` already exe
   the browser's native "Stop sharing" control, or a 30-min client cap.
   _Auth is merged into Phase 1 because `init/route.ts:75` requires a bearer token
   unconditionally — `isDevDevice` only relaxes the quota gate, not auth, so there is no
-  "unauthenticated upload" path._ Ship gate: a real recording lands a playable share at
+  "unauthenticated upload" path._ Ship gate: a real recording lands a playable recording at
   `/r/<slug>` attributed to the signed-in user; `upload-streamer.test.ts` pins part numbering/etags,
   `device-id.test.ts` pins persistence, `return-target.test.ts` pins the callback allow-list.
   **Remaining: manual end-to-end check** (load unpacked → sign in → record → open the link) —
@@ -335,15 +335,15 @@ Quota attribution already targets the workspace owner; `isDevDevice` already exe
   page (getUserMedia only prompts from a tab). Mic rides the webcam stream (Decision 4), so it's
   coupled to the camera. **Remaining:** the live cam-bubble preview (a content-script `<video>`) is
   deferred to land with Phase 3's content-script work; **screen + mic without a camera** isn't
-  recorded yet (route mic to the screen track later). Ship gate (dual-track share, `webcamState ===
+  recorded yet (route mic to the screen track later). Ship gate (dual-track recording, `webcamState ===
 ready`) is met pending the same manual end-to-end check as Phase 1.
 - **Phase 3 — Control-bar UX & effects.** Shadow-DOM control bar (timer/stop/pause/restart/delete/
   cam toggle), re-injection on navigation restoring state from storage, tab-audio loopback via
   `AudioContext`, blur/effects, optional one-click `tabCapture` mode. Ship gate: recording survives
   a full page navigation with a continuous timer.
-- **Later — Snap (screenshot) mode.** The popup's screenshot toggle captures a still and posts to
-  the **snap** domain (`/api/s/upload`, `apps/web/lib/snap/*`) — a single-shot PUT with its own
-  CORS (already allows `Authorization`). Kept forked from `share` (no shared `lib/media/`).
+- **Later — Screenshot mode.** The popup's screenshot toggle captures a still and posts to
+  the **screenshot** domain (`/api/s/upload`, `apps/web/lib/screenshot/*`) — a single-shot PUT with its own
+  CORS (already allows `Authorization`). Kept forked from `recording` (no shared `lib/media/`).
 
 ---
 
@@ -379,7 +379,7 @@ ready`) is met pending the same manual end-to-end check as Phase 1.
 - Web side: a CORS test asserting `Authorization` in allow-headers (Change 1); a `/auth/callback`
   return allow-list test (Change 2).
 - **Wire-compat guard:** a standalone CI script that reads `apps/extension/lib/api/types.ts` and
-  `apps/web/lib/share/types.ts` textually and flags drift — **not** a cross-app type import.
+  `apps/web/lib/recording/types.ts` textually and flags drift — **not** a cross-app type import.
 
 **Not unit-tested (integration only):** `desktopCapture`/`getUserMedia`/`MediaRecorder`, offscreen
 lifecycle, message routing.
@@ -408,7 +408,7 @@ lifecycle, message routing.
 - **Published extension ID** is required for Backend Change 2 (`chromiumapp.org` allow-list) and is
   a Phase-1 blocker; pin a `key` in the manifest / reserve the Web Store listing to fix the ID early.
 - **Duration cap is mandatory client-side enforcement.** The server only checks
-  `perShareDurationMs` when `durationMs` is sent at `init`, which a streaming recorder doesn't know,
+  `perRecordingDurationMs` when `durationMs` is sent at `init`, which a streaming recorder doesn't know,
   and `finalize` does not re-check duration. → enforce a hard client stop (default **30 min** for
   v1) and/or send a conservative `durationMs` estimate at `init`.
 - **Single offscreen document** — creating a second silently kills the first; guard every
@@ -418,7 +418,7 @@ lifecycle, message routing.
   offscreen doc, not the SW; persist `slug`/`partNumber`/`etags` to `chrome.storage.session` so a
   respawn resumes/aborts.
 - **Abandoned parts on connectivity loss** (inherited from desktop, by choice): a failed in-flight
-  part is fatal → `abort` the share to avoid R2 orphans. The server-side stale-`pending` sweep
+  part is fatal → `abort` the recording to avoid R2 orphans. The server-side stale-`pending` sweep
   should exist.
 - **CORS `*` origin + bearer:** the token lives only in extension storage and is never exposed to
   page/content-script contexts (same posture as desktop). Never inject it into a page.
@@ -432,9 +432,9 @@ lifecycle, message routing.
 ## 9. Key reference files (absolute)
 
 - Routes: `apps/web/app/api/r/{init,part,finalize,abort,webcam-part,webcam-finalize,poster,state,usage,auth/check}/route.ts`
-- Wire types: `apps/web/lib/share/types.ts`
-- **CORS (Change 1):** `apps/web/lib/share/cors.ts:6` (exemplar `apps/web/lib/snap/cors.ts:9`)
-- Limits/quota (Change 3 / attribution): `apps/web/lib/share/limits.ts`, `packages/quota/src/limits.ts`
-- **Auth (Change 2):** `apps/web/app/auth/callback/page.tsx`, `apps/web/lib/device-tokens.ts`, `apps/web/lib/share/device-tokens.ts`
-- Desktop ports: `apps/desktop/src/main/lib/share/{share-api-client.ts,share-upload-streamer.ts}`, `apps/desktop/src/renderer/src/lib/share/share-webcam-uploader.ts`, `apps/desktop/src/main/lib/device-id.ts`, `apps/desktop/src/shared/types.ts`
+- Wire types: `apps/web/lib/recording/types.ts`
+- **CORS (Change 1):** `apps/web/lib/recording/cors.ts:6` (exemplar `apps/web/lib/screenshot/cors.ts:9`)
+- Limits/quota (Change 3 / attribution): `apps/web/lib/recording/limits.ts`, `packages/quota/src/limits.ts`
+- **Auth (Change 2):** `apps/web/app/auth/callback/page.tsx`, `apps/web/lib/device-tokens.ts`, `apps/web/lib/recording/device-tokens.ts`
+- Desktop ports: `apps/desktop/src/main/lib/recording/{recording-api-client.ts,recording-upload-streamer.ts}`, `apps/desktop/src/renderer/src/lib/recording/recording-webcam-uploader.ts`, `apps/desktop/src/main/lib/device-id.ts`, `apps/desktop/src/shared/types.ts`
 - Build/CI: `nx.json`, `tsconfig.base.json`, `.github/workflows/ci.yml`, `.prettierignore`, `.gitignore`, `apps/desktop/package.json` (script-shape exemplar)

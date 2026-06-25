@@ -248,7 +248,7 @@ function createOverlayWindow(): BrowserWindow {
   // Now main sends startedAt (epoch ms) on each show, and we recompute from
   // Date.now() so any first-paint slip is invisible to the user.
   let startedAt = null;
-  let capMs = null;       // share-mode countdown cap; null otherwise
+  let capMs = null;       // recording-mode countdown cap; null otherwise
   let autoStopFired = false;
   let paused = false;
   let pauseStartedAt = null;
@@ -268,7 +268,7 @@ function createOverlayWindow(): BrowserWindow {
     const now = Date.now();
     const livePause = paused && pauseStartedAt != null ? (now - pauseStartedAt) : 0;
     const elapsedMs = Math.max(0, now - startedAt - accumulatedPauseMs - livePause);
-    // Share mode: count DOWN from the cap. Once it hits zero, fire stop
+    // Recording mode: count DOWN from the cap. Once it hits zero, fire stop
     // exactly once (the recorder hook owns teardown). Recording continues
     // visually displayed at 00:00 until main hides the overlay.
     let displayMs = elapsedMs;
@@ -487,7 +487,7 @@ export function registerWindowHandlers(
       // this split, the show() landed after hideWindow() + focusAppByPid() had
       // backgrounded CaptureFlow, and macOS deferred the panel's first composition
       // by several seconds in prod. capMs (when present) flips the timer to
-      // count DOWN from the share cap and auto-fires stop at 0.
+      // count DOWN from the recording cap and auto-fires stop at 0.
       if (typeof opts?.startedAt === "number") {
         overlay.webContents.send("overlay-anchor", {
           startedAt: opts.startedAt,

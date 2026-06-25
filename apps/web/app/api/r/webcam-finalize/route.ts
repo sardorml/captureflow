@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ACCOUNT_LIMITS } from "@captureflow/quota";
-import { getShare, updateShare } from "@/lib/share/db";
-import { isValidSlug } from "@/lib/share/slug";
-import { completeMultipartUpload, headObject } from "@/lib/share/r2";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
-import type { FinalizeRequest } from "@/lib/share/types";
+import { getRecording, updateRecording } from "@/lib/recording/db";
+import { isValidSlug } from "@/lib/recording/slug";
+import { completeMultipartUpload, headObject } from "@/lib/recording/r2";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
+import type { FinalizeRequest } from "@/lib/recording/types";
 
 const DEVICE_HEADER = "x-captureflow-device";
 
@@ -44,13 +44,13 @@ export async function POST(req: NextRequest) {
   if (
     typeof sizeBytes !== "number" ||
     sizeBytes <= 0 ||
-    sizeBytes > ACCOUNT_LIMITS.perShareSizeBytes
+    sizeBytes > ACCOUNT_LIMITS.perRecordingSizeBytes
   ) {
     return jsonError("Invalid size", 400, "invalid_size");
   }
 
-  const row = await getShare(body.slug);
-  if (!row) return jsonError("Share not found", 404, "not_found");
+  const row = await getRecording(body.slug);
+  if (!row) return jsonError("Recording not found", 404, "not_found");
   if (row.deviceId !== deviceId)
     return jsonError("Forbidden", 403, "forbidden");
   // Idempotent: desktop retries finalize, so return ok (not 409) if already ready.
@@ -73,14 +73,14 @@ export async function POST(req: NextRequest) {
 
   const exists = await headObject(row.webcamStorageKey);
   if (!exists) {
-    await updateShare(row.slug, {
+    await updateRecording(row.slug, {
       webcamState: "failed",
       webcamUploadId: null,
     });
     return jsonError("Object missing after complete", 502, "object_missing");
   }
 
-  await updateShare(row.slug, {
+  await updateRecording(row.slug, {
     webcamState: "ready",
     webcamUploadId: null,
     webcamSizeBytes: sizeBytes,

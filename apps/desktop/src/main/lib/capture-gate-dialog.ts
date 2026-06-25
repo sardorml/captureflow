@@ -4,13 +4,13 @@ import { IPC_CHANNELS, type UpgradeReason } from "../../shared/types";
 import {
   openAccountDashboard,
   openUpgrade,
-  signInToShareAccount,
-} from "./share/share-account-actions";
-import { getShareAuthState } from "./share/share-auth";
+  signInToRecordingAccount,
+} from "./recording/recording-account-actions";
+import { getRecordingAuthState } from "./recording/recording-auth";
 import { logInfo } from "./logger";
 
 const REASON_MESSAGE: Record<UpgradeReason, string> = {
-  share: "Sign in to share",
+  recording: "Sign in to share",
   screenshot: "Sign in to share screenshots",
   cloud: "Sign in to use cloud sharing",
 };
@@ -18,7 +18,7 @@ const REASON_MESSAGE: Record<UpgradeReason, string> = {
 ipcMain.handle(
   IPC_CHANNELS.CAPTURE_GATE_OPEN,
   async (_event, reason: UpgradeReason) => {
-    const signedIn = getShareAuthState().kind === "signed_in";
+    const signedIn = getRecordingAuthState().kind === "signed_in";
     const message = REASON_MESSAGE[reason] ?? REASON_MESSAGE.cloud;
 
     // Button index 0 = Upgrade (primary), 1 = secondary (sign-in or dashboard),
@@ -51,7 +51,7 @@ ipcMain.handle(
       await openUpgrade();
     } else if (response === 1) {
       if (signedIn) await openAccountDashboard();
-      else await signInToShareAccount();
+      else await signInToRecordingAccount();
     }
   },
 );

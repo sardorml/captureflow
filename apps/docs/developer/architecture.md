@@ -7,7 +7,7 @@ this docs site.
 
 ```
 apps/
-  web/        Next.js 16 dashboard + share/snap pages + API → Cloudflare Workers (OpenNext)
+  web/        Next.js 16 dashboard + share/screenshot pages + API → Cloudflare Workers (OpenNext)
   desktop/    Electron screen recorder (macOS native helpers)
   docs/       This VitePress documentation site
 packages/
@@ -30,10 +30,10 @@ Tooling:
   OpenNext's fetch handler and adds the cron `scheduled()` handlers.
 - **Better Auth** for sessions (Drizzle adapter).
 - **Drizzle ORM** over **D1** (SQLite). Migrations in `apps/web/migrations/`.
-- **R2** for video/poster/snap objects (`videos/`, `posters/`, `snaps/`).
+- **R2** for video/poster/screenshot objects (`videos/`, `posters/`, `screenshots/`).
 - Route groups: the dashboard (`app/(dashboard)`), the share viewer (`app/r/[id]`),
-  the snap viewer (`app/s/[id]`), auth, and API routes under `app/api/`
-  (`/api/r/*` for recordings, `/api/s/*` for snaps).
+  the screenshot viewer (`app/s/[id]`), auth, and API routes under `app/api/`
+  (`/api/r/*` for recordings, `/api/s/*` for screenshots).
 - Cron triggers: hourly multipart-upload GC and a daily retention sweep.
 
 ## The desktop app (`apps/desktop`)
@@ -44,7 +44,7 @@ Tooling:
   capture, cursor tracking, and window detection.
 - A streaming **share pipeline** that uploads the recording in parts while you
   record, then finalizes for an instant link.
-- Webcam compositing, smoothed cursor rendering, and snap capture.
+- Webcam compositing, smoothed cursor rendering, and screenshot capture.
 
 ## Shared packages
 
@@ -56,7 +56,7 @@ Tooling:
 
 ## Data model at a glance
 
-- **D1** holds users, workspaces & members, recordings (shares), snaps,
+- **D1** holds users, workspaces & members, recordings, screenshots,
   reactions, comments, and quotas.
 - **R2** holds the binary objects, read publicly over your CDN domain.
 - **Better Auth** sessions are signed, not stored in plaintext.

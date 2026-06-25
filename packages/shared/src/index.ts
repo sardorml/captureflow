@@ -2,10 +2,10 @@
 
 export const APP_NAME = "CaptureFlow";
 
-/** How widely a recording can be viewed via its share link. */
+/** How widely a recording can be viewed via its recording link. */
 export type RecordingVisibility = "public" | "unlisted" | "private";
 
-/** A single uploaded recording's metadata — stored in D1, referenced by share links. */
+/** A single uploaded recording's metadata — stored in D1, referenced by recording links. */
 export interface Recording {
   id: string;
   title: string;
@@ -19,7 +19,7 @@ export interface Recording {
   ownerId: string | null;
 }
 
-/** Canonical share path for a recording id — keep all link construction here. */
-export function sharePath(id: string): string {
+/** Canonical recording path for a recording id — keep all link construction here. */
+export function recordingPath(id: string): string {
   return `/r/${id}`;
 }

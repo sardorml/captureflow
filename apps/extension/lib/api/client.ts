@@ -5,18 +5,18 @@ import type {
   InitRequest,
   InitResponse,
   PartResponse,
-  ShareApiError,
+  RecordingApiError,
   UploadTransport,
 } from "./types";
 
-export const SHARE_API_BASE = `${WEB_BASE}/api/r`;
+export const RECORDING_API_BASE = `${WEB_BASE}/api/r`;
 
-export class ShareApiHttpError extends Error {
+export class RecordingApiHttpError extends Error {
   readonly status: number;
   readonly code: string | undefined;
   constructor(message: string, status: number, code?: string) {
     super(message);
-    this.name = "ShareApiHttpError";
+    this.name = "RecordingApiHttpError";
     this.status = status;
     this.code = code;
   }
@@ -24,7 +24,7 @@ export class ShareApiHttpError extends Error {
 
 // Part routes authorize by device + slug ownership, so byte uploads omit the
 // bearer token (matching the desktop client).
-export function shareHeaders(
+export function recordingHeaders(
   deviceId: string,
   token: string | null,
   extra: Record<string, string> = {},
@@ -47,13 +47,13 @@ export async function parseResponse<T>(
   let message = `HTTP ${res.status}`;
   let code: string | undefined;
   try {
-    const err = (await res.json()) as ShareApiError;
+    const err = (await res.json()) as RecordingApiError;
     if (err.error) message = err.error;
     code = err.code;
   } catch {
     /* non-JSON body — keep the HTTP status as the message */
   }
-  throw new ShareApiHttpError(`${path}: ${message}`, res.status, code);
+  throw new RecordingApiHttpError(`${path}: ${message}`, res.status, code);
 }
 
 export async function postJson<T>(
@@ -62,9 +62,9 @@ export async function postJson<T>(
   token: string | null,
   body: unknown,
 ): Promise<T> {
-  const res = await fetch(`${SHARE_API_BASE}${path}`, {
+  const res = await fetch(`${RECORDING_API_BASE}${path}`, {
     method: "POST",
-    headers: shareHeaders(deviceId, token, {
+    headers: recordingHeaders(deviceId, token, {
       "content-type": "application/json",
     }),
     body: JSON.stringify(body),
@@ -94,7 +94,7 @@ async function postBytes<T>(
   bytes: Uint8Array,
   contentType: string,
 ): Promise<T> {
-  const res = await fetch(`${SHARE_API_BASE}${path}`, {
+  const res = await fetch(`${RECORDING_API_BASE}${path}`, {
     method: "POST",
     headers: {
       "content-type": contentType,
@@ -108,7 +108,7 @@ async function postBytes<T>(
 const partPath = (route: string, slug: string, partNumber: number): string =>
   `/${route}?slug=${encodeURIComponent(slug)}&part=${partNumber}`;
 
-export function createShareTransport(
+export function createRecordingTransport(
   deviceId: string,
   token: string | null,
 ): UploadTransport {

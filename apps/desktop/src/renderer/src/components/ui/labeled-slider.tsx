@@ -11,7 +11,7 @@ type LabeledSliderProps = {
   step?: number;
   ticks?: number;
   displayValue?: string;
-  // When provided, replaces the displayValue badge with a reset button that snaps the slider back to this value. The button dims when already at default.
+  // When provided, replaces the displayValue badge with a reset button that screenshots the slider back to this value. The button dims when already at default.
   defaultValue?: number;
   /** Help text shown next to the label via an info icon. */
   tooltip?: ReactNode;

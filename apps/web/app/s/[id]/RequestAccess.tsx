@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { Lock, Mail, ArrowRight, Check } from "lucide-react";
 
-// Access-request screen shown when a visitor isn't authorized for a snap.
+// Access-request screen shown when a visitor isn't authorized for a screenshot.
 
 type Props = {
   appWebUrl: string;
-  snapId: string;
+  screenshotId: string;
   viewer: {
     email: string;
     name: string | null;
@@ -18,7 +18,7 @@ type Props = {
 
 export function RequestAccess({
   appWebUrl,
-  snapId,
+  screenshotId,
   viewer,
   returnUrl,
   ownerName,
@@ -67,8 +67,8 @@ export function RequestAccess({
         credentials: "include",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          kind: "snap",
-          key: snapId,
+          kind: "screenshot",
+          key: screenshotId,
           message: message.trim() || null,
         }),
       });
@@ -96,12 +96,12 @@ export function RequestAccess({
           <Lock className="h-6 w-6 text-neutral-400" aria-hidden />
         </div>
         <h1 className="mt-6 text-center text-2xl font-semibold tracking-tight text-neutral-50">
-          Request access to view this snap
+          Request access to view this screenshot
         </h1>
         <p className="mt-2 text-center text-sm text-neutral-400">
           {ownerName
-            ? `${ownerName} hasn't shared this snap with you yet.`
-            : "The owner hasn't shared this snap with you yet."}
+            ? `${ownerName} hasn't shared this screenshot with you yet.`
+            : "The owner hasn't shared this screenshot with you yet."}
         </p>
 
         {!viewer ? (

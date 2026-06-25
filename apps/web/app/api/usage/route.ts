@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
   ]);
 
   // Purely numeric (no dev-allowlist on app-web yet): a dev device may keep
-  // uploading via the share/snap paths even when this reports capReached.
+  // uploading via the recording/screenshot paths even when this reports capReached.
   const capReached =
     usedBytes >= limits.storageBytes || activeCount >= limits.activeArtifacts;
 

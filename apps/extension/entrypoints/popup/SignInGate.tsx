@@ -19,7 +19,7 @@ export function SignInGate() {
 
       <section className="cf-section">
         <p className="cf-source">
-          Sign in to record your screen and get an instant share link.
+          Sign in to record your screen and get an instant recording link.
         </p>
       </section>
 

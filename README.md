@@ -35,7 +35,7 @@ feature ships in the open-source build**.
 
 ```
 apps/
-  web/        Next.js 16 dashboard + share/snap pages + API → Cloudflare Workers (OpenNext)
+  web/        Next.js 16 dashboard + recording/screenshot pages + API → Cloudflare Workers (OpenNext)
   desktop/    Electron screen recorder (macOS)
   docs/       VitePress documentation site
 packages/

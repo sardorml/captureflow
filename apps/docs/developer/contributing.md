@@ -44,6 +44,6 @@ See [Architecture](/developer/architecture) for the full repo map. Quick
 pointers:
 
 - Recorder UI & capture → `apps/desktop/src`
-- Dashboard, share/snap pages, API → `apps/web/app`
+- Dashboard, recording/screenshot pages, API → `apps/web/app`
 - Backend libs (auth, db, r2, quota) → `apps/web/lib`
 - Shared types/UI/quota → `packages/*`

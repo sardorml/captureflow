@@ -29,7 +29,7 @@ export function PermissionsWindow(): React.JSX.Element {
   const toggleAnalytics = async (next: boolean): Promise<void> => {
     setAnalyticsEnabledState(next);
     await window.electronAPI.setUserPref("analyticsEnabled", next);
-    const auth = await window.electronAPI.getShareAuth();
+    const auth = await window.electronAPI.getRecordingAuth();
     setAnalyticsEnabled(next, auth);
   };
 
@@ -130,9 +130,9 @@ export function PermissionsWindow(): React.JSX.Element {
               Usage data
             </h3>
             <p className="text-[12.5px] text-muted-foreground leading-relaxed">
-              Share anonymous usage data to help improve CaptureFlow. It never
-              includes the content of your recordings, and you can change this
-              anytime in Settings.
+              Recording anonymous usage data to help improve CaptureFlow. It
+              never includes the content of your recordings, and you can change
+              this anytime in Settings.
             </p>
           </div>
           <div className="shrink-0 pt-1">

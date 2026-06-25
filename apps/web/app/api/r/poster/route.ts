@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getShare, updateShare } from "@/lib/share/db";
-import { isValidSlug } from "@/lib/share/slug";
-import { putObject, publicUrlFor } from "@/lib/share/r2";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
+import { getRecording, updateRecording } from "@/lib/recording/db";
+import { isValidSlug } from "@/lib/recording/slug";
+import { putObject, publicUrlFor } from "@/lib/recording/r2";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 
 const DEVICE_HEADER = "x-captureflow-device";
 const MAX_POSTER_BYTES = 2 * 1024 * 1024;
@@ -41,12 +41,12 @@ export async function POST(req: NextRequest) {
     return jsonError("Poster too large", 413, "poster_too_large");
   }
 
-  const row = await getShare(slug);
-  if (!row) return jsonError("Share not found", 404, "not_found");
+  const row = await getRecording(slug);
+  if (!row) return jsonError("Recording not found", 404, "not_found");
   if (row.deviceId !== deviceId)
     return jsonError("Forbidden", 403, "forbidden");
   if (row.state === "failed") {
-    return jsonError("Share is failed", 409, "wrong_state");
+    return jsonError("Recording is failed", 409, "wrong_state");
   }
 
   const buffer = await req.arrayBuffer();
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   const posterKey = `posters/${slug}.${ext}`;
 
   await putObject(posterKey, buffer, contentType, "no-cache");
-  await updateShare(slug, { posterKey });
+  await updateRecording(slug, { posterKey });
 
   return withCors(
     NextResponse.json({

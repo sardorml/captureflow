@@ -30,7 +30,7 @@ export function DashboardShell({
           position: "sticky",
           insetBlockStart: 0,
           blockSize: "100vh",
-          overflow: "auto",
+          overflow: "hidden",
         }}
       >
         {sidebar}

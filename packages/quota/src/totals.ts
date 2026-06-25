@@ -14,10 +14,10 @@ export async function totalStorageForUser(
   const r = await db
     .prepare(
       `SELECT
-         COALESCE((SELECT SUM(s.size_bytes) FROM shares s
+         COALESCE((SELECT SUM(s.size_bytes) FROM recordings s
                     JOIN workspace w ON w.id = s.workspace_id
                     WHERE w.owner_user_id = ?1 AND s.state = 'ready'), 0) +
-         COALESCE((SELECT SUM(s.size_bytes) FROM snaps s
+         COALESCE((SELECT SUM(s.size_bytes) FROM screenshots s
                     JOIN workspace w ON w.id = s.workspace_id
                     WHERE w.owner_user_id = ?1 AND s.state = 'ready'), 0)
          AS total`,
@@ -34,10 +34,10 @@ export async function activeArtifactCountForUser(
   const r = await db
     .prepare(
       `SELECT
-         (SELECT COUNT(*) FROM shares s
+         (SELECT COUNT(*) FROM recordings s
             JOIN workspace w ON w.id = s.workspace_id
             WHERE w.owner_user_id = ?1 AND s.state = 'ready') +
-         (SELECT COUNT(*) FROM snaps s
+         (SELECT COUNT(*) FROM screenshots s
             JOIN workspace w ON w.id = s.workspace_id
             WHERE w.owner_user_id = ?1 AND s.state = 'ready')
          AS n`,

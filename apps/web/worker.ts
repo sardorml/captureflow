@@ -3,7 +3,10 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — resolved after the OpenNext Cloudflare build runs.
 import openNextWorker from "./.open-next/worker.js";
-import { runDailyRetentionSweep, runHourlyMultipartGc } from "./lib/share/cron";
+import {
+  runDailyRetentionSweep,
+  runHourlyMultipartGc,
+} from "./lib/recording/cron";
 
 type Env = {
   DB: D1Database;

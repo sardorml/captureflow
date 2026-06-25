@@ -450,11 +450,11 @@ export function RecordingToolbar(): React.JSX.Element {
   const recordingMode = useRecordingStore((s) => s.recordingMode);
 
   useEffect(() => {
-    void window.electronAPI.getShareAuth().then((state) => {
-      useRecordingStore.getState().setShareAuth(state);
+    void window.electronAPI.getRecordingAuth().then((state) => {
+      useRecordingStore.getState().setRecordingAuth(state);
     });
-    return window.electronAPI.onShareAuthChanged((state) => {
-      useRecordingStore.getState().setShareAuth(state);
+    return window.electronAPI.onRecordingAuthChanged((state) => {
+      useRecordingStore.getState().setRecordingAuth(state);
     });
   }, []);
 

@@ -1,5 +1,5 @@
 /*
- * Sent as `x-captureflow-device` on every share request. The API requires 8–64
+ * Sent as `x-captureflow-device` on every recording request. The API requires 8–64
  * chars; a prefixed UUID (40 chars) fits. Owned by the SW, so reads can't race.
  */
 

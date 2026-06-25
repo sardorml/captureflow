@@ -3,24 +3,24 @@ import { headers } from "next/headers";
 import {
   addComment,
   countComments,
-  getShare,
+  getRecording,
   listComments,
-} from "@/lib/share/db";
-import { isValidSlug } from "@/lib/share/slug";
-import { verifySessionOrNull } from "@/lib/share/verify-session";
-import { optionsResponse, withCors, jsonError } from "@/lib/share/cors";
+} from "@/lib/recording/db";
+import { isValidSlug } from "@/lib/recording/slug";
+import { verifySessionOrNull } from "@/lib/recording/verify-session";
+import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import type {
   AddCommentRequest,
   AddCommentResponse,
   ListCommentsResponse,
-} from "@/lib/share/types";
+} from "@/lib/recording/types";
 
 export function OPTIONS() {
   return optionsResponse();
 }
 
 const MAX_COMMENT_LENGTH = 1000;
-const MAX_COMMENTS_PER_SHARE = 1000;
+const MAX_COMMENTS_PER_RECORDING = 1000;
 
 // Reads are open; visibility is enforced upstream at /[slug].
 export async function GET(req: NextRequest) {
@@ -41,9 +41,9 @@ export async function POST(req: NextRequest) {
     return jsonError("Invalid slug", 400, "invalid_slug");
   }
 
-  const share = await getShare(slug);
-  if (!share || share.state !== "ready") {
-    return jsonError("Share not found", 404, "not_found");
+  const recording = await getRecording(slug);
+  if (!recording || recording.state !== "ready") {
+    return jsonError("Recording not found", 404, "not_found");
   }
 
   const cookieHeader = (await headers()).get("cookie");
@@ -72,13 +72,13 @@ export async function POST(req: NextRequest) {
     Number.isFinite(body.timestampMs)
   ) {
     timestampMs = Math.max(0, Math.floor(body.timestampMs));
-    if (share.durationMs && timestampMs > share.durationMs + 1000) {
+    if (recording.durationMs && timestampMs > recording.durationMs + 1000) {
       return jsonError("Timestamp exceeds video length", 400, "timestamp_oob");
     }
   }
 
   const total = await countComments(slug);
-  if (total >= MAX_COMMENTS_PER_SHARE) {
+  if (total >= MAX_COMMENTS_PER_RECORDING) {
     return jsonError("Comment cap reached", 429, "comment_limit");
   }
 

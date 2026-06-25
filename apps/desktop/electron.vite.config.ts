@@ -48,8 +48,8 @@ export default defineConfig(({ mode }) => {
    * `'' ?? fallback` keeps the empty string and breaks the prod fallback.
    */
   const webBaseDevDefaults = {
-    CAPTUREFLOW_SHARE_API_BASE: "http://localhost:3032/api/r",
-    CAPTUREFLOW_SNAP_API_BASE: "http://localhost:3032/api/s",
+    CAPTUREFLOW_RECORDING_API_BASE: "http://localhost:3032/api/r",
+    CAPTUREFLOW_SCREENSHOT_API_BASE: "http://localhost:3032/api/s",
     CAPTUREFLOW_APP_WEB_BASE: "http://localhost:3032",
     CAPTUREFLOW_APP_WEB_API_BASE: "http://localhost:3032",
   };

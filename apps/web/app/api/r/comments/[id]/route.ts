@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { deleteComment, getComment, getShare } from "@/lib/share/db";
-import { verifySessionOrNull } from "@/lib/share/verify-session";
+import { deleteComment, getComment, getRecording } from "@/lib/recording/db";
+import { verifySessionOrNull } from "@/lib/recording/verify-session";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export async function DELETE(_req: Request, { params }: Params) {
   }
   let authorized = session.userId === comment.userId;
   if (!authorized) {
-    const row = await getShare(comment.slug);
+    const row = await getRecording(comment.slug);
     authorized = !!row && row.userId === session.userId;
   }
   if (!authorized) {

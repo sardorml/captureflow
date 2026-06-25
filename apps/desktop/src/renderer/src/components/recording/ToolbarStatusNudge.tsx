@@ -10,8 +10,8 @@ import {
 import AnimatedTooltip from "@/components/ui/animated-tooltip";
 import logoRound from "@/assets/logo-round.png";
 import type {
-  ShareAuthState,
-  ShareUsageState,
+  RecordingAuthState,
+  RecordingUsageState,
   WorkspacesState,
 } from "../../../../shared/types";
 
@@ -41,12 +41,12 @@ function formatStorage(b: number): string {
 }
 
 function computeNudge(
-  auth: ShareAuthState,
-  usage: ShareUsageState,
+  auth: RecordingAuthState,
+  usage: RecordingUsageState,
 ): Nudge | null {
   if (auth.kind === "signed_out") {
     return {
-      text: "Sign in to get a public share link",
+      text: "Sign in to get a public recording link",
       tone: "info",
       action: "signin",
     };
@@ -70,9 +70,9 @@ function computeNudge(
     }
   }
   // Neutral fallback (boot probe, dev build, or no quota yet) so the toolbar
-  // never goes blank in Share mode.
+  // never goes blank in Recording mode.
   return {
-    text: "Share mode · instant link",
+    text: "Recording mode · instant link",
     tone: "info",
     action: "dashboard",
   };
@@ -90,7 +90,7 @@ function actionDetails(action: NudgeAction): {
       ariaLabel: "Sign in to CaptureFlow",
       icon: <LogIn className="h-3.5 w-3.5" strokeWidth={2} />,
       onClick: () => {
-        window.electronAPI.signInShareAuth().catch(() => {});
+        window.electronAPI.signInRecordingAuth().catch(() => {});
       },
     };
   }
@@ -127,20 +127,20 @@ export function ToolbarStatusNudge({
 }: {
   visible: boolean;
 }): React.JSX.Element | null {
-  const [auth, setAuth] = useState<ShareAuthState>({ kind: "signed_out" });
-  const [usage, setUsage] = useState<ShareUsageState>({ kind: "unknown" });
+  const [auth, setAuth] = useState<RecordingAuthState>({ kind: "signed_out" });
+  const [usage, setUsage] = useState<RecordingUsageState>({ kind: "unknown" });
   const [workspaces, setWorkspaces] = useState<WorkspacesState>({
     kind: "unknown",
   });
 
   useEffect(() => {
-    void window.electronAPI.getShareAuth().then(setAuth);
-    return window.electronAPI.onShareAuthChanged(setAuth);
+    void window.electronAPI.getRecordingAuth().then(setAuth);
+    return window.electronAPI.onRecordingAuthChanged(setAuth);
   }, []);
 
   useEffect(() => {
-    void window.electronAPI.getShareUsage().then(setUsage);
-    return window.electronAPI.onShareUsageChanged(setUsage);
+    void window.electronAPI.getRecordingUsage().then(setUsage);
+    return window.electronAPI.onRecordingUsageChanged(setUsage);
   }, []);
 
   useEffect(() => {
