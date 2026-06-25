@@ -9,6 +9,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { ThemeToggle, readThemeFromCookieHeader } from "@captureflow/ui";
+import { FirefoxLogo } from "@/components/marketing/platform-logos";
 import { DOWNLOAD_URL, RELEASES_URL, DOCS_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -109,15 +110,15 @@ export default async function DownloadPage() {
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-3">
+          <a
+            href={DOWNLOAD_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-accent-bg px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-accent-bg-hover"
+          >
+            <Download className="h-5 w-5" /> Download for macOS
+          </a>
           <div className="flex flex-col items-center gap-3 sm:flex-row">
-            <a
-              href={DOWNLOAD_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-accent-bg px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-accent-bg-hover"
-            >
-              <Download className="h-5 w-5" /> Download for macOS
-            </a>
             <button
               type="button"
               disabled
@@ -129,9 +130,20 @@ export default async function DownloadPage() {
                 Soon
               </span>
             </button>
+            <button
+              type="button"
+              disabled
+              aria-label="Firefox extension — coming soon"
+              className="inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-line bg-surface px-8 py-3.5 text-base font-medium text-fg-muted"
+            >
+              <FirefoxLogo className="h-5 w-5" /> Firefox extension
+              <span className="ml-0.5 rounded-full bg-canvas-2 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-fg-subtle">
+                Soon
+              </span>
+            </button>
           </div>
           <p className="text-sm text-fg-subtle">
-            macOS available now · Chrome extension coming soon
+            macOS available now · Chrome &amp; Firefox extensions coming soon
           </p>
         </div>
 
