@@ -1,7 +1,4 @@
-import "../marketing.css";
 import type { Metadata } from "next";
-import { I18nProvider } from "@/components/marketing/i18n-provider";
-import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { SuggestFeatureClient } from "./suggest-feature-client";
 
 export const metadata: Metadata = {
@@ -12,11 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function SuggestFeaturePage() {
-  return (
-    <I18nProvider>
-      <MarketingShell>
-        <SuggestFeatureClient />
-      </MarketingShell>
-    </I18nProvider>
-  );
+  return <SuggestFeatureClient />;
 }

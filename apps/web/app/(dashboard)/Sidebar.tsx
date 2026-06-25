@@ -1,10 +1,11 @@
 import Image from "next/image";
-import { initials as initialsOf } from "@/lib/format";
 import Link from "next/link";
 import { Video } from "lucide-react";
+import { UserPlus } from "lucide-react";
+import { Button } from "antd";
 import { listMembers, totalStorageForUser } from "@captureflow/quota";
 import type { AvatarGroupItem } from "@captureflow/ui";
-import { UserPlus } from "lucide-react";
+import { initials as initialsOf } from "@/lib/format";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
@@ -41,26 +42,29 @@ export async function Sidebar() {
   });
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line bg-canvas-2 md:flex">
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Link
         href="/shares"
-        className="flex items-center gap-2 px-5 py-5 transition-opacity hover:opacity-80"
+        style={{ display: "flex", alignItems: "center", gap: 8, padding: 20 }}
       >
         <Image
           src="/logo.png"
           alt="CaptureFlow"
           width={28}
           height={28}
-          className="rounded-full"
+          style={{ borderRadius: "9999px" }}
           priority
           unoptimized
         />
-        <span className="text-xl font-semibold tracking-tight lowercase text-fg">
+        <span
+          className="text-fg"
+          style={{ fontSize: 20, fontWeight: 600, textTransform: "lowercase" }}
+        >
           captureflow
         </span>
       </Link>
 
-      <div className="px-3 pb-4">
+      <div style={{ padding: "0 12px 16px" }}>
         <WorkspaceSwitcher
           currentWorkspaceId={current.workspace.id}
           memberships={current.memberships}
@@ -68,26 +72,27 @@ export async function Sidebar() {
             isOwner ? (
               <InviteModal
                 trigger={
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-fg-muted transition-colors hover:bg-overlay hover:text-fg"
+                  <Button
+                    type="text"
+                    block
+                    icon={<UserPlus size={16} />}
+                    style={{ justifyContent: "flex-start" }}
                   >
-                    <UserPlus className="h-4 w-4 text-fg-subtle" />
-                    <span>Invite teammates</span>
-                  </button>
+                    Invite teammates
+                  </Button>
                 }
               />
             ) : undefined
           }
         />
-        <div className="mt-2.5 px-1">
+        <div style={{ marginTop: 10, padding: "0 4px" }}>
           <WorkspaceMembersStack items={memberItems} canInvite={isOwner} />
         </div>
       </div>
 
       <SidebarNav isOwner={isOwner} />
 
-      <div className="mt-auto border-t border-line px-4 py-4">
+      <div style={{ marginTop: "auto", padding: 16 }}>
         <StorageUsage
           usedBytes={usedBytes}
           limitBytes={limitBytes}
@@ -95,15 +100,16 @@ export async function Sidebar() {
         />
       </div>
 
-      <div className="border-t border-line p-3">
-        <a
+      <div style={{ padding: 12 }}>
+        <Button
+          type="primary"
+          block
+          icon={<Video size={16} />}
           href="captureflow://record"
-          className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-900/30 transition-colors hover:bg-blue-500"
         >
-          <Video className="h-4 w-4" />
           Record a video
-        </a>
+        </Button>
       </div>
-    </aside>
+    </div>
   );
 }

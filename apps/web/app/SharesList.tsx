@@ -7,35 +7,37 @@ import {
   formatDuration,
   formatRelativeShort as formatRelative,
 } from "@/lib/format";
-import { forwardRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import type React from "react";
 import {
   Check,
-  ExternalLink,
   ChevronDown,
+  ExternalLink,
   Eye,
   Film,
-  Globe,
   Link2,
-  Lock,
   MessageSquare,
   MoreHorizontal,
   Pencil,
   Smile,
   Trash2,
-  Users,
 } from "lucide-react";
-import type { DashboardShareRow, ShareVisibility } from "@/lib/shares-db";
-import { viewUrlFor } from "@/lib/site";
 import {
   Avatar,
-  AvatarFallback,
-  AvatarImage,
-  SmoothDropdownMenu,
-  SmoothDropdownMenuContent,
-  SmoothDropdownMenuItem,
-  SmoothDropdownMenuTrigger,
-} from "@captureflow/ui";
+  Button,
+  Card,
+  Dropdown,
+  Empty,
+  Flex,
+  Input,
+  Space,
+  Tag,
+  Tooltip,
+  Typography,
+} from "antd";
+import type { MenuProps } from "antd";
+import type { DashboardShareRow, ShareVisibility } from "@/lib/shares-db";
+import { viewUrlFor } from "@/lib/site";
 import {
   deleteShareAction,
   renameShareAction,
@@ -65,10 +67,11 @@ export function SharesList({
 }: SharesListProps) {
   if (shares.length === 0) {
     return (
-      <p className="mt-4 rounded-2xl border border-dashed border-line bg-neutral-900/40 px-4 py-12 text-center text-sm text-neutral-500">
-        You haven&apos;t created any share links yet. Record in the CaptureFlow
-        desktop app and your shares will show up here.
-      </p>
+      <Card style={{ marginTop: 24 }}>
+        <Empty
+          description="You haven't created any share links yet. Record in the CaptureFlow desktop app and your shares will show up here."
+        />
+      </Card>
     );
   }
   return (
@@ -112,7 +115,6 @@ function ShareCard({
   authorImage,
 }: ShareCardProps) {
   const canManage = canAuthor || canAdminister;
-  const readOnly = !canAuthor;
   const [pending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(share.title ?? "");
@@ -121,7 +123,6 @@ function ShareCard({
   );
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const shareUrl = viewUrlFor(share.slug);
   const posterUrl = share.posterKey
@@ -131,9 +132,6 @@ function ShareCard({
     share.state === "ready" && !posterUrl
       ? `${CDN_BASE_URL}/${share.storageKey}?v=${share.sizeBytes}`
       : null;
-  const thumbnailHref = shareUrl;
-  const thumbnailTarget = "_blank";
-  const thumbnailRel = "noreferrer";
 
   const onRename = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -189,235 +187,258 @@ function ShareCard({
   const displayTitle = share.title?.trim() || "Untitled share";
   const authorLabel = authorName ?? "Unknown";
 
-  return (
-    <article className="group overflow-hidden rounded-lg border border-line bg-neutral-900 transition-colors hover:border-line-strong">
-      <Link
-        aria-label={readOnly ? "Open share" : "Edit share"}
-        className="relative block aspect-video overflow-hidden bg-neutral-950"
-        href={thumbnailHref}
-        target={thumbnailTarget}
-        rel={thumbnailRel}
-      >
-        {posterUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            alt=""
-            className="h-full w-full object-cover"
-            decoding="async"
-            loading="lazy"
-            src={posterUrl}
-          />
-        ) : videoThumbUrl ? (
-          <video
-            className="pointer-events-none h-full w-full object-cover"
-            src={videoThumbUrl}
-            preload="metadata"
-            muted
-            playsInline
-          />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center text-neutral-600">
-            <Film className="h-6 w-6" />
-          </span>
-        )}
-        {share.durationMs != null && (
-          <span className="absolute bottom-2 right-2 rounded-md bg-black/75 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
-            {formatDuration(share.durationMs)}
-          </span>
-        )}
-        {share.state !== "ready" && (
-          <span className="absolute left-2 top-2 rounded-md bg-amber-500/90 px-2 py-0.5 text-[11px] font-medium text-amber-950">
-            {share.state}
-          </span>
-        )}
+  const menuItems: MenuProps["items"] = [
+    {
+      key: "open",
+      icon: <ExternalLink size={16} />,
+      label: "Open share",
+    },
+    ...(canAuthor
+      ? [{ key: "rename", icon: <Pencil size={16} />, label: "Rename" }]
+      : []),
+    { type: "divider" as const },
+    {
+      key: "delete",
+      icon: <Trash2 size={16} />,
+      label: "Delete share",
+      danger: true,
+      disabled: pending,
+    },
+  ];
 
-        {/* Eats clicks so the underlying Link doesn't fire. */}
-        <div
-          className={
-            "absolute right-2 top-2 flex items-center gap-1.5 transition-opacity " +
-            (menuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100")
-          }
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
+  const onMenuClick: MenuProps["onClick"] = ({ key }) => {
+    if (key === "open") window.open(shareUrl, "_blank", "noreferrer");
+    else if (key === "rename") setEditing(true);
+    else if (key === "delete") onDelete();
+  };
+
+  const cover = (
+    <Link
+      aria-label={canAuthor ? "Edit share" : "Open share"}
+      href={shareUrl}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        position: "relative",
+        display: "block",
+        aspectRatio: "16 / 9",
+        overflow: "hidden",
+      }}
+    >
+      {posterUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          alt=""
+          style={{ height: "100%", width: "100%", objectFit: "cover" }}
+          decoding="async"
+          loading="lazy"
+          src={posterUrl}
+        />
+      ) : videoThumbUrl ? (
+        <video
+          style={{
+            height: "100%",
+            width: "100%",
+            objectFit: "cover",
+            pointerEvents: "none",
+          }}
+          src={videoThumbUrl}
+          preload="metadata"
+          muted
+          playsInline
+        />
+      ) : (
+        <Flex
+          align="center"
+          justify="center"
+          style={{ height: "100%", width: "100%" }}
+          className="text-fg-subtle"
+        >
+          <Film size={24} />
+        </Flex>
+      )}
+      {share.durationMs != null && (
+        <Tag
+          style={{
+            position: "absolute",
+            right: 8,
+            bottom: 8,
+            margin: 0,
+            background: "rgba(0,0,0,0.75)",
+            color: "#fff",
+            border: "none",
           }}
         >
-          <button
-            type="button"
-            onClick={onCopyLink}
-            aria-label={copied ? "Link copied" : "Copy link"}
-            title={copied ? "Link copied" : "Copy link"}
-            className={
-              "flex h-8 w-8 items-center justify-center rounded-md backdrop-blur-md transition-colors " +
-              (copied
-                ? "bg-emerald-500/85 text-white"
-                : "bg-white/80 text-fg ring-1 ring-line-strong hover:bg-white dark:bg-black/55 dark:text-white dark:hover:bg-black/70")
-            }
-          >
-            {copied ? (
-              <Check className="h-4 w-4" />
-            ) : (
-              <Link2 className="h-4 w-4" />
-            )}
-          </button>
-          {canManage && (
-            <SmoothDropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-              <SmoothDropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="More actions"
-                  title="More actions"
-                  className="flex h-8 w-8 items-center justify-center rounded-md bg-white/80 text-fg ring-1 ring-line-strong backdrop-blur-md transition-colors hover:bg-white dark:bg-black/55 dark:text-white dark:hover:bg-black/70"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
-              </SmoothDropdownMenuTrigger>
-              <SmoothDropdownMenuContent align="end" sideOffset={6}>
-                <SmoothDropdownMenuItem
-                  onSelect={() => {
-                    window.open(shareUrl, "_blank", "noreferrer");
-                  }}
-                >
-                  <ExternalLink className="h-4 w-4 text-neutral-500" />
-                  Open share
-                </SmoothDropdownMenuItem>
-                {canAuthor && (
-                  <SmoothDropdownMenuItem
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      setEditing(true);
-                    }}
-                  >
-                    <Pencil className="h-4 w-4 text-neutral-500" />
-                    Rename
-                  </SmoothDropdownMenuItem>
-                )}
-                <SmoothDropdownMenuItem
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    onDelete();
-                  }}
-                  disabled={pending}
-                  className="text-red-600 focus:bg-red-500/10 focus:text-red-700 dark:text-red-300 dark:focus:text-red-200"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete share
-                </SmoothDropdownMenuItem>
-              </SmoothDropdownMenuContent>
-            </SmoothDropdownMenu>
-          )}
-        </div>
-      </Link>
+          {formatDuration(share.durationMs)}
+        </Tag>
+      )}
+      {share.state !== "ready" && (
+        <Tag
+          color="warning"
+          style={{ position: "absolute", left: 8, top: 8, margin: 0 }}
+        >
+          {share.state}
+        </Tag>
+      )}
 
-      <div className="space-y-3 p-4">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <Avatar className="h-7 w-7">
-            {authorImage ? <AvatarImage src={authorImage} alt="" /> : null}
-            <AvatarFallback className="text-[11px]" seed={share.userId}>
-              {initials(authorLabel)}
-            </AvatarFallback>
+      {/* Eats clicks so the underlying Link doesn't fire. */}
+      <div
+        style={{
+          position: "absolute",
+          right: 8,
+          top: 8,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      >
+        <Tooltip title={copied ? "Link copied" : "Copy link"}>
+          <Button
+            size="small"
+            type={copied ? "primary" : "default"}
+            aria-label={copied ? "Link copied" : "Copy link"}
+            icon={copied ? <Check size={16} /> : <Link2 size={16} />}
+            onClick={onCopyLink}
+          />
+        </Tooltip>
+        {canManage && (
+          <Dropdown
+            menu={{ items: menuItems, onClick: onMenuClick }}
+            trigger={["click"]}
+            placement="bottomRight"
+          >
+            <Button
+              size="small"
+              aria-label="More actions"
+              icon={<MoreHorizontal size={16} />}
+            />
+          </Dropdown>
+        )}
+      </div>
+    </Link>
+  );
+
+  return (
+    <Card cover={cover} styles={{ body: { padding: 16 } }}>
+      <Space direction="vertical" size={12} style={{ width: "100%" }}>
+        <Flex align="center" gap={10} style={{ minWidth: 0 }}>
+          <Avatar size={28} src={authorImage || undefined}>
+            {initials(authorLabel)}
           </Avatar>
-          <div className="flex min-w-0 flex-col leading-tight">
-            <div className="flex min-w-0 items-center gap-1.5 text-sm">
-              <span className="truncate font-semibold text-neutral-100">
+          <div style={{ minWidth: 0, lineHeight: 1.2 }}>
+            <Space size={6} style={{ fontSize: 14 }}>
+              <Typography.Text strong ellipsis>
                 {authorLabel}
-              </span>
-              <span className="shrink-0 text-neutral-600">·</span>
-              <span className="shrink-0 text-neutral-500">
+              </Typography.Text>
+              <Typography.Text type="secondary">·</Typography.Text>
+              <Typography.Text type="secondary">
                 {formatRelative(share.createdAt)}
-              </span>
+              </Typography.Text>
+            </Space>
+            <div>
+              {canManage ? (
+                <VisibilityDialog
+                  value={visibility}
+                  disabled={pending}
+                  onChange={onChangeVisibility}
+                  allowPublic={allowPublicLinks}
+                  trigger={
+                    <VisibilityText visibility={visibility} interactive />
+                  }
+                />
+              ) : (
+                <VisibilityText visibility={visibility} />
+              )}
             </div>
-            {canManage ? (
-              <VisibilityDialog
-                value={visibility}
-                disabled={pending}
-                onChange={onChangeVisibility}
-                allowPublic={allowPublicLinks}
-                trigger={<VisibilityText visibility={visibility} interactive />}
-              />
-            ) : (
-              <VisibilityText visibility={visibility} />
-            )}
           </div>
-        </div>
+        </Flex>
 
         {editing ? (
-          <form className="flex items-center gap-2" onSubmit={onRename}>
+          <form onSubmit={onRename}>
             <input type="hidden" name="slug" value={share.slug} />
-            <input
-              autoFocus
-              className="block w-full rounded-md border border-line bg-neutral-950 px-2 py-1 text-sm text-neutral-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              maxLength={200}
-              name="title"
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Untitled share"
-              value={title}
-            />
-            <button
-              className="rounded-md bg-white px-2 py-1 text-xs font-medium text-neutral-950 disabled:opacity-60"
-              disabled={pending}
-              type="submit"
-            >
-              Save
-            </button>
-            <button
-              className="rounded-md border border-line px-2 py-1 text-xs text-neutral-400 hover:text-neutral-200"
-              onClick={() => {
-                setEditing(false);
-                setTitle(share.title ?? "");
-                setError(null);
-              }}
-              type="button"
-            >
-              Cancel
-            </button>
+            <Space.Compact style={{ width: "100%" }}>
+              <Input
+                autoFocus
+                maxLength={200}
+                name="title"
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Untitled share"
+                value={title}
+              />
+              <Button htmlType="submit" type="primary" loading={pending}>
+                Save
+              </Button>
+              <Button
+                onClick={() => {
+                  setEditing(false);
+                  setTitle(share.title ?? "");
+                  setError(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </Space.Compact>
           </form>
         ) : (
-          <p
-            className="line-clamp-2 text-[15px] font-semibold leading-snug text-neutral-50"
-            title={displayTitle}
+          <Typography.Paragraph
+            strong
+            ellipsis={{ rows: 2, tooltip: displayTitle }}
+            style={{ margin: 0, fontSize: 15 }}
           >
             {displayTitle}
-          </p>
+          </Typography.Paragraph>
         )}
 
-        <div className="flex items-center justify-between border-t border-line pt-3 text-xs text-neutral-400">
-          <div className="flex items-center gap-4">
-            <span className="inline-flex items-center gap-1.5">
-              <Eye className="h-4 w-4 text-neutral-500" />
-              {share.viewCount}
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <MessageSquare className="h-4 w-4 text-neutral-500" />
-              {share.commentCount}
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Smile className="h-4 w-4 text-neutral-500" />
-              {share.reactionCount}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden whitespace-nowrap text-fg-muted sm:inline lg:hidden 2xl:inline">
+        <Flex
+          align="center"
+          justify="space-between"
+          style={{ paddingTop: 12, borderTop: "1px solid var(--ant-color-split, rgba(128,128,128,0.2))" }}
+        >
+          <Space size={16}>
+            <Typography.Text type="secondary">
+              <Space size={6}>
+                <Eye size={16} />
+                {share.viewCount}
+              </Space>
+            </Typography.Text>
+            <Typography.Text type="secondary">
+              <Space size={6}>
+                <MessageSquare size={16} />
+                {share.commentCount}
+              </Space>
+            </Typography.Text>
+            <Typography.Text type="secondary">
+              <Space size={6}>
+                <Smile size={16} />
+                {share.reactionCount}
+              </Space>
+            </Typography.Text>
+          </Space>
+          <Space size={12}>
+            <Typography.Text type="secondary" style={{ whiteSpace: "nowrap" }}>
               {formatBytes(share.sizeBytes)}
-            </span>
-            {canAuthor ? (
-              <Link
-                href={`/shares/${share.slug}/edit`}
-                aria-label="Edit recording"
-                title="Edit recording"
-                className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-overlay hover:text-neutral-100"
-              >
-                <Pencil className="h-4 w-4" />
-              </Link>
-            ) : (
-              <span aria-hidden className="h-7 w-7" />
+            </Typography.Text>
+            {canAuthor && (
+              <Tooltip title="Edit recording">
+                <Link href={`/shares/${share.slug}/edit`} aria-label="Edit recording">
+                  <Button type="text" size="small" icon={<Pencil size={16} />} />
+                </Link>
+              </Tooltip>
             )}
-          </div>
-        </div>
+          </Space>
+        </Flex>
 
-        {error && <p className="text-xs text-red-400">{error}</p>}
-      </div>
-    </article>
+        {error && (
+          <Typography.Text type="danger" style={{ fontSize: 12 }}>
+            {error}
+          </Typography.Text>
+        )}
+      </Space>
+    </Card>
   );
 }
 
@@ -427,38 +448,26 @@ function visibilityLabel(v: ShareVisibility): string {
   return "Private";
 }
 
-const VisibilityText = forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    visibility: ShareVisibility;
-    interactive?: boolean;
-  }
->(function VisibilityText(
-  { visibility, interactive, className, ...props },
-  ref,
-) {
-  const base =
-    "inline-flex items-center gap-1 text-xs leading-none text-neutral-500";
+function VisibilityText({
+  visibility,
+  interactive,
+}: {
+  visibility: ShareVisibility;
+  interactive?: boolean;
+}) {
   if (!interactive) {
     return (
-      <span className={base + (className ? ` ${className}` : "")}>
+      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
         {visibilityLabel(visibility)}
-      </span>
+      </Typography.Text>
     );
   }
   return (
-    <button
-      ref={ref}
-      type="button"
-      className={
-        base +
-        " cursor-pointer rounded-sm transition-colors hover:text-neutral-200" +
-        (className ? ` ${className}` : "")
-      }
-      {...props}
-    >
-      {visibilityLabel(visibility)}
-      <ChevronDown className="h-3 w-3" />
-    </button>
+    <Typography.Link style={{ fontSize: 12 }}>
+      <Space size={2}>
+        {visibilityLabel(visibility)}
+        <ChevronDown size={12} />
+      </Space>
+    </Typography.Link>
   );
-});
+}

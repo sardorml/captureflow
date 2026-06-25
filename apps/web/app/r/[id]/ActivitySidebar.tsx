@@ -13,7 +13,25 @@ import type {
   ShareComment,
   ShareReaction,
 } from "@/lib/share/types";
-import { Avatar, AvatarFallback, AvatarImage, Button } from "@captureflow/ui";
+import { Avatar, Button } from "antd";
+
+const AVATAR_TONES = [
+  "#2563eb",
+  "#c026d3",
+  "#059669",
+  "#0284c7",
+  "#f59e0b",
+  "#e11d48",
+] as const;
+
+function toneFromSeed(seed: string | null | undefined): string | undefined {
+  if (!seed) return undefined;
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return AVATAR_TONES[h % AVATAR_TONES.length];
+}
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
   ssr: false,
@@ -279,8 +297,13 @@ export function ActivitySidebar({
 
       <div className="sticky bottom-0 z-10 border-t border-line bg-canvas-2 p-4 backdrop-blur-md supports-[backdrop-filter]:bg-canvas-2/85">
         {!viewerSignedIn ? (
-          <Button type="button" onClick={onSignIn} size="lg" className="w-full">
-            <Sparkles className="h-4 w-4" />
+          <Button
+            type="primary"
+            size="large"
+            block
+            onClick={onSignIn}
+            icon={<Sparkles size={16} />}
+          >
             Sign in to react &amp; comment
           </Button>
         ) : (
@@ -289,16 +312,16 @@ export function ActivitySidebar({
             className="relative rounded-2xl border border-line bg-neutral-900 p-3 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent"
           >
             <div className="flex items-start gap-2.5">
-              <Avatar className="mt-0.5 h-7 w-7">
-                {viewerImageUrl ? (
-                  <AvatarImage src={viewerImageUrl} alt="" />
-                ) : null}
-                <AvatarFallback
-                  className="text-[11px]"
-                  seed={viewerUserId ?? undefined}
-                >
-                  {initials(viewerName ?? "You")}
-                </AvatarFallback>
+              <Avatar
+                size={28}
+                src={viewerImageUrl || undefined}
+                className="mt-0.5"
+                style={{
+                  backgroundColor: toneFromSeed(viewerUserId),
+                  fontSize: 11,
+                }}
+              >
+                {initials(viewerName ?? "You")}
               </Avatar>
               <textarea
                 ref={(el) => {
@@ -451,10 +474,14 @@ function MentionPopover({
                 onClick={() => onPick(p.userName)}
                 className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-neutral-200 transition-colors hover:bg-overlay"
               >
-                <Avatar className="h-6 w-6">
-                  <AvatarFallback className="text-[10px]" seed={p.userId}>
-                    {initials(p.userName)}
-                  </AvatarFallback>
+                <Avatar
+                  size={24}
+                  style={{
+                    backgroundColor: toneFromSeed(p.userId),
+                    fontSize: 10,
+                  }}
+                >
+                  {initials(p.userName)}
                 </Avatar>
                 <span className="truncate">{p.userName}</span>
               </button>
@@ -582,13 +609,15 @@ function ReactionRow({
   const name = reaction.userName?.trim() || "Anonymous";
   return (
     <div className="flex items-start gap-2.5">
-      <Avatar className="h-7 w-7">
-        {reaction.userImage ? (
-          <AvatarImage src={reaction.userImage} alt="" />
-        ) : null}
-        <AvatarFallback className="text-[11px]" seed={reaction.userId ?? name}>
-          {initials(name)}
-        </AvatarFallback>
+      <Avatar
+        size={28}
+        src={reaction.userImage || undefined}
+        style={{
+          backgroundColor: toneFromSeed(reaction.userId ?? name),
+          fontSize: 11,
+        }}
+      >
+        {initials(name)}
       </Avatar>
       <div className="min-w-0 flex-1">
         <p className="text-sm text-neutral-200">
@@ -624,16 +653,15 @@ function CommentRow({
 }) {
   return (
     <div className="group flex items-start gap-2.5">
-      <Avatar className="h-7 w-7">
-        {comment.userImage ? (
-          <AvatarImage src={comment.userImage} alt="" />
-        ) : null}
-        <AvatarFallback
-          className="text-[11px]"
-          seed={comment.userId ?? comment.userName}
-        >
-          {initials(comment.userName)}
-        </AvatarFallback>
+      <Avatar
+        size={28}
+        src={comment.userImage || undefined}
+        style={{
+          backgroundColor: toneFromSeed(comment.userId ?? comment.userName),
+          fontSize: 11,
+        }}
+      >
+        {initials(comment.userName)}
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">

@@ -8,7 +8,6 @@ import {
   Check,
   History,
   ImageOff,
-  Loader2,
   MoveUpRight,
   Pencil,
   Redo2,
@@ -32,7 +31,7 @@ import Konva from "konva";
 // Side-effect import: without it `Konva.Filters.Blur` is undefined and the
 // blur tool silently no-ops (the cached node gets filters=[undefined]).
 import "konva/lib/filters/Blur";
-import { GridLoader, SmoothButton } from "@captureflow/ui";
+import { Button, Spin } from "antd";
 import { AnimatedTooltip } from "@/lib/animated-tooltip";
 import type { SnapEditorProps } from "./SnapEditor";
 import { renameSnapAction, saveSnapAction } from "../../../actions";
@@ -961,20 +960,16 @@ export function SnapEditorImpl(props: SnapEditorProps) {
           >
             <Redo2 className="h-5 w-5" />
           </IconButton>
-          <SmoothButton
-            type="button"
-            variant="candy"
+          <Button
+            type="primary"
             onClick={handleSave}
             disabled={saving || !image}
+            loading={saving}
+            icon={savedJustNow ? <Check className="h-4 w-4" /> : undefined}
             className="ml-2"
           >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : savedJustNow ? (
-              <Check className="h-4 w-4" />
-            ) : null}
             {savedJustNow ? "Saved · link copied" : "Save and copy link"}
-          </SmoothButton>
+          </Button>
         </div>
       </header>
 
@@ -1026,7 +1021,7 @@ export function SnapEditorImpl(props: SnapEditorProps) {
           className="flex min-h-0 min-w-0 flex-1 items-center justify-center"
         >
           {!image ? (
-            <GridLoader size={9} className="text-neutral-500" />
+            <Spin size="large" />
           ) : (
             <div
               className="rounded-lg"

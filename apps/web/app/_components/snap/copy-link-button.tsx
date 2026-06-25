@@ -2,6 +2,7 @@
 
 import { useState, type ReactElement } from "react";
 import { Check, Link2 } from "lucide-react";
+import { Button } from "antd";
 
 export type CopyLinkButtonProps = {
   url: string;
@@ -11,7 +12,7 @@ export type CopyLinkButtonProps = {
 
 export function CopyLinkButton({
   url,
-  className = "",
+  className,
   label = "Copy link",
 }: CopyLinkButtonProps): ReactElement {
   const [copied, setCopied] = useState(false);
@@ -27,13 +28,13 @@ export function CopyLinkButton({
   };
 
   return (
-    <button
-      type="button"
+    <Button
+      type="primary"
       onClick={handleClick}
-      className={`inline-flex shrink-0 items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 ${className}`}
+      icon={copied ? <Check size={16} /> : <Link2 size={16} />}
+      className={className}
     >
-      {copied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
       {copied ? "Copied" : label}
-    </button>
+    </Button>
   );
 }

@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { Tooltip } from "antd";
 import { formatRelativeLong as formatRelative } from "@/lib/format";
 
 export type ContentBylineProps = {
@@ -13,19 +14,16 @@ export function ContentByline({
   const relative = formatRelative(createdAt);
   const absolute = formatAbsolute(createdAt);
   return (
-    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-sm text-neutral-400">
+    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-sm text-fg-muted">
       {ownerName ? (
         <>
-          <span className="text-neutral-300">{ownerName}</span>
-          <span className="text-neutral-600">·</span>
+          <span className="text-fg">{ownerName}</span>
+          <span className="text-fg-subtle">·</span>
         </>
       ) : null}
-      <span className="group/time relative">
+      <Tooltip title={absolute}>
         <span className="cursor-default">{relative}</span>
-        <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900 px-2.5 py-1 text-xs font-medium text-neutral-100 opacity-0 shadow-lg ring-1 ring-line-strong transition-opacity duration-150 group-hover/time:opacity-100">
-          {absolute}
-        </span>
-      </span>
+      </Tooltip>
     </p>
   );
 }

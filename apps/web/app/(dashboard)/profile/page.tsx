@@ -1,3 +1,4 @@
+import { Card } from "antd";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { PageHeader } from "../PageHeader";
@@ -28,15 +29,15 @@ export default async function ProfileSettingsPage() {
         subtitle="The name and avatar teammates see across CaptureFlow."
         showRecord={false}
       />
-      <div className="mt-6 space-y-8">
-        <section className="rounded-2xl border border-line bg-canvas-2 p-6">
+      <div className="mt-6">
+        <Card>
           <ProfileForm
             userId={user.id}
             initialName={user.name ?? ""}
             email={user.email}
             imageUrl={imageUrl}
           />
-        </section>
+        </Card>
       </div>
     </>
   );

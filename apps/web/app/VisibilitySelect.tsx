@@ -1,6 +1,7 @@
 "use client";
 
 import { Globe, Lock, Users } from "lucide-react";
+import { Select } from "antd";
 
 export type Visibility = "public" | "workspace" | "private";
 
@@ -11,10 +12,10 @@ type Props = {
   allowPublic?: boolean;
 };
 
-function Icon({ value, className }: { value: Visibility; className?: string }) {
-  if (value === "public") return <Globe className={className} />;
-  if (value === "workspace") return <Users className={className} />;
-  return <Lock className={className} />;
+function icon(value: Visibility) {
+  if (value === "public") return <Globe size={14} />;
+  if (value === "workspace") return <Users size={14} />;
+  return <Lock size={14} />;
 }
 
 export function VisibilitySelect({
@@ -25,25 +26,33 @@ export function VisibilitySelect({
 }: Props) {
   // Already-public legacy rows stay selectable so the owner can flip them.
   const showPublic = allowPublic || value === "public";
+  const options = [
+    ...(showPublic
+      ? [{ value: "public", label: "Public", icon: icon("public") }]
+      : []),
+    { value: "workspace", label: "Workspace", icon: icon("workspace") },
+    { value: "private", label: "Private", icon: icon("private") },
+  ];
   return (
-    <label
-      className={
-        "relative inline-flex items-center gap-1 rounded-md border border-neutral-800 bg-neutral-900 pl-2 pr-1 py-1 text-xs text-neutral-300 transition-colors hover:border-neutral-700 hover:text-neutral-100 " +
-        (disabled ? "opacity-60" : "")
-      }
-    >
-      <Icon value={value} className="h-3.5 w-3.5" />
-      <select
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value as Visibility)}
-        className="cursor-pointer appearance-none bg-transparent pr-4 text-xs text-neutral-200 outline-none [&>option]:bg-neutral-900"
-        aria-label="Visibility"
-      >
-        {showPublic && <option value="public">Public</option>}
-        <option value="workspace">Workspace</option>
-        <option value="private">Private</option>
-      </select>
-    </label>
+    <Select<Visibility>
+      size="small"
+      variant="filled"
+      value={value}
+      disabled={disabled}
+      onChange={(next) => onChange(next)}
+      aria-label="Visibility"
+      style={{ minWidth: 130 }}
+      options={options.map((o) => ({
+        value: o.value,
+        label: (
+          <span
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            {o.icon}
+            {o.label}
+          </span>
+        ),
+      }))}
+    />
   );
 }

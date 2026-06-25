@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { Avatar } from "antd";
 import { avatarInitial, displayName } from "./display-name";
 
 export type PostedByProps = {
@@ -15,16 +16,14 @@ export function PostedBy({
   const owner = displayName(name, email);
   return (
     <div
-      className={`hidden items-center gap-2 border-l border-neutral-200 pl-4 sm:flex ${className}`}
+      className={`hidden items-center gap-2 border-l border-line pl-4 sm:flex ${className}`}
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-700">
-        {avatarInitial(owner)}
-      </span>
+      <Avatar size={32}>{avatarInitial(owner)}</Avatar>
       <div className="leading-tight">
-        <p className="text-[11px] uppercase tracking-wider text-neutral-500">
+        <p className="text-[11px] uppercase tracking-wider text-fg-subtle">
           Posted by
         </p>
-        <p className="text-sm font-medium text-neutral-800">{owner}</p>
+        <p className="text-sm font-medium text-fg-strong">{owner}</p>
       </div>
     </div>
   );

@@ -1,21 +1,20 @@
 "use client";
 
-import {
-  useActionState,
-  useEffect,
-  useRef,
-  useState,
-  useTransition,
-} from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
 import {
   Avatar,
-  AvatarFallback,
-  AvatarImage,
-  SmoothButton,
-} from "@captureflow/ui";
+  Button,
+  Divider,
+  Flex,
+  Form,
+  Input,
+  Typography,
+  Upload,
+} from "antd";
+import type { UploadProps } from "antd";
+import { authClient } from "@/lib/auth-client";
 import { removeUserAvatarAction, uploadUserAvatarAction } from "./actions";
 
 type Props = {
@@ -25,9 +24,6 @@ type Props = {
   imageUrl: string | null;
 };
 
-type FormState = { error: string | null; ok: string | null };
-const AVATAR_INITIAL: FormState = { error: null, ok: null };
-
 function initials(name: string, email: string): string {
   const source = name.trim() || email;
   const parts = source.split(/\s+/).filter(Boolean);
@@ -36,23 +32,35 @@ function initials(name: string, email: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+// Stable fallback hue per user, so the avatar color doesn't shuffle on rerender.
+const AVATAR_HUES = ["#1677ff", "#52c41a", "#722ed1", "#eb2f96", "#fa8c16"];
+function avatarColor(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  return AVATAR_HUES[Math.abs(hash) % AVATAR_HUES.length];
+}
+
 export function ProfileForm({ userId, initialName, email, imageUrl }: Props) {
   const displayName = initialName.trim() || email;
   return (
     <div>
-      <div className="flex items-center gap-4">
+      <Flex align="center" gap={16}>
         <AvatarUploader
           userId={userId}
           name={initialName}
           email={email}
           imageUrl={imageUrl}
         />
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-fg">{displayName}</p>
-          <p className="truncate text-xs text-fg-muted">{email}</p>
+        <div style={{ minWidth: 0 }}>
+          <Typography.Text strong ellipsis style={{ display: "block" }}>
+            {displayName}
+          </Typography.Text>
+          <Typography.Text type="secondary" ellipsis style={{ fontSize: 12 }}>
+            {email}
+          </Typography.Text>
         </div>
-      </div>
-      <div className="my-6 h-px bg-overlay" />
+      </Flex>
+      <Divider />
       <NameRow initialName={initialName} email={email} />
     </div>
   );
@@ -70,21 +78,35 @@ function AvatarUploader({
   imageUrl: string | null;
 }) {
   const router = useRouter();
-  const fileRef = useRef<HTMLInputElement | null>(null);
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const [state, formAction, uploading] = useActionState(
-    uploadUserAvatarAction,
-    AVATAR_INITIAL,
-  );
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [removePending, startRemove] = useTransition();
   const busy = uploading || removePending;
 
-  const submitOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length) formRef.current?.requestSubmit();
+  const beforeUpload: UploadProps["beforeUpload"] = (file) => {
+    setError(null);
+    setUploading(true);
+    startUpload(file);
+    return false; // handled manually via the server action
   };
 
-  const onRemove = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const startUpload = (file: File) => {
+    void (async () => {
+      try {
+        const fd = new FormData();
+        fd.set("avatar", file);
+        const res = await uploadUserAvatarAction({ error: null, ok: null }, fd);
+        if (res.error) setError(res.error);
+        else router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Upload failed");
+      } finally {
+        setUploading(false);
+      }
+    })();
+  };
+
+  const onRemove = () => {
     if (busy || !imageUrl) return;
     startRemove(async () => {
       await removeUserAvatarAction();
@@ -93,29 +115,26 @@ function AvatarUploader({
   };
 
   return (
-    <div className="flex flex-col items-start gap-1">
-      <form ref={formRef} action={formAction}>
-        <input
-          ref={fileRef}
-          type="file"
-          name="avatar"
-          accept="image/png,image/jpeg,image/webp,image/gif"
-          className="hidden"
-          onChange={submitOnChange}
-        />
+    <Flex vertical align="flex-start" gap={4}>
+      <Upload
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        showUploadList={false}
+        beforeUpload={beforeUpload}
+        disabled={busy}
+      >
         <button
           type="button"
-          onClick={() => fileRef.current?.click()}
           disabled={busy}
           aria-label={imageUrl ? "Change avatar" : "Upload avatar"}
           title={imageUrl ? "Change avatar" : "Upload avatar"}
-          className="group relative block rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas-2 disabled:cursor-progress"
+          className="group relative block rounded-full border-0 bg-transparent p-0 outline-none disabled:cursor-progress"
         >
-          <Avatar className="h-14 w-14">
-            {imageUrl ? <AvatarImage src={imageUrl} alt="" /> : null}
-            <AvatarFallback className="text-base" seed={userId}>
-              {initials(name, email)}
-            </AvatarFallback>
+          <Avatar
+            size={56}
+            src={imageUrl ?? undefined}
+            style={imageUrl ? undefined : { backgroundColor: avatarColor(userId) }}
+          >
+            {initials(name, email)}
           </Avatar>
           <span
             aria-hidden
@@ -124,22 +143,17 @@ function AvatarUploader({
             <Camera className="h-5 w-5" />
           </span>
         </button>
-      </form>
-      <div className="flex items-center gap-2 text-xs">
-        {uploading && <span className="text-fg-muted">Uploading…</span>}
+      </Upload>
+      <Flex align="center" gap={8} style={{ fontSize: 12 }}>
+        {uploading && <Typography.Text type="secondary">Uploading…</Typography.Text>}
         {!uploading && imageUrl && (
-          <button
-            type="button"
-            onClick={onRemove}
-            disabled={busy}
-            className="text-fg-muted transition-colors hover:text-danger disabled:opacity-50"
-          >
+          <Button type="link" size="small" onClick={onRemove} disabled={busy} style={{ padding: 0 }}>
             {removePending ? "Removing…" : "Remove"}
-          </button>
+          </Button>
         )}
-        {state.error && <span className="text-danger">{state.error}</span>}
-      </div>
-    </div>
+        {error && <Typography.Text type="danger">{error}</Typography.Text>}
+      </Flex>
+    </Flex>
   );
 }
 
@@ -164,8 +178,7 @@ function NameRow({
 
   const dirty = name.trim() !== initialName.trim();
 
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = () => {
     const next = name.trim();
     if (!next) {
       setError("Name is required.");
@@ -190,56 +203,36 @@ function NameRow({
   };
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="grid gap-5 sm:grid-cols-[1fr_auto] sm:items-end"
-    >
-      <div className="space-y-4">
-        <div>
-          <label
-            htmlFor="profile-name"
-            className="block text-sm font-medium text-fg"
-          >
-            Display name
-          </label>
-          <p className="mt-1 text-xs text-fg-muted">
-            Shown on shares, snaps, and activity rows.
-          </p>
-          <input
-            id="profile-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-            autoComplete="name"
-            className="mt-2 w-full max-w-md rounded-md border border-line-strong bg-canvas-2 px-3 py-2 text-sm text-fg placeholder:text-fg-subtle focus:border-accent-ring focus:outline-none focus:ring-1 focus:ring-accent-ring"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-fg">Email</label>
-          <p className="mt-1 text-xs text-fg-muted">
-            Used to sign in. Contact support to change.
-          </p>
-          <input
-            type="email"
-            value={email}
-            readOnly
-            className="mt-2 w-full max-w-md cursor-not-allowed rounded-md border border-line bg-overlay px-3 py-2 text-sm text-fg-muted"
-          />
-        </div>
-        {error && <p className="text-xs text-danger">{error}</p>}
-      </div>
-      <div className="flex items-center gap-3">
-        {savedAt && (
-          <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-300">
-            <Check className="h-3.5 w-3.5" />
-            Saved
-          </span>
-        )}
-        <SmoothButton type="submit" disabled={!dirty || pending}>
+    <Form layout="vertical" onFinish={onSubmit} style={{ maxWidth: 448 }}>
+      <Form.Item
+        label="Display name"
+        validateStatus={error ? "error" : undefined}
+        help={error ?? undefined}
+        extra="Shown on shares, snaps, and activity rows."
+      >
+        <Input
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (error) setError(null);
+          }}
+          placeholder="Your name"
+          autoComplete="name"
+        />
+      </Form.Item>
+      <Form.Item label="Email" help="Used to sign in. Contact support to change.">
+        <Input type="email" value={email} readOnly />
+      </Form.Item>
+      <Flex align="center" gap={12}>
+        <Button type="primary" htmlType="submit" loading={pending} disabled={!dirty}>
           {pending ? "Saving…" : "Save"}
-        </SmoothButton>
-      </div>
-    </form>
+        </Button>
+        {savedAt && (
+          <Typography.Text type="success">
+            <Check className="inline h-3.5 w-3.5" /> Saved
+          </Typography.Text>
+        )}
+      </Flex>
+    </Form>
   );
 }

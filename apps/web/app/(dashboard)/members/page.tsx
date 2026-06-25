@@ -1,3 +1,4 @@
+import { Alert } from "antd";
 import { listMembers, listPendingInvites } from "@captureflow/quota";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
@@ -15,7 +16,12 @@ export default async function MembersPage() {
     return (
       <>
         <PageHeader title="Members" showRecord={false} />
-        <p className="mt-6 text-neutral-400">Database unavailable.</p>
+        <Alert
+          className="mt-6"
+          type="warning"
+          showIcon
+          message="Database unavailable."
+        />
       </>
     );
   }

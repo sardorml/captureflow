@@ -1,5 +1,10 @@
-import { DashboardLoading } from "../_skeletons";
+import { Skeleton } from "antd";
 
 export default function Loading() {
-  return <DashboardLoading variant="rows" showRecord={false} />;
+  return (
+    <div className="space-y-8">
+      <Skeleton active title={{ width: 200 }} paragraph={{ rows: 1 }} />
+      <Skeleton active avatar title={false} paragraph={{ rows: 4 }} />
+    </div>
+  );
 }

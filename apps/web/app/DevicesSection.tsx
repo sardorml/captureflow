@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { Monitor } from "lucide-react";
+import { Button, Empty, List, Popconfirm, Tag } from "antd";
 import type { DeviceTokenRow } from "@/lib/device-tokens";
 import { revokeDeviceTokenAction } from "./actions";
 
@@ -12,18 +13,19 @@ type DevicesSectionProps = {
 export function DevicesSection({ tokens }: DevicesSectionProps) {
   if (tokens.length === 0) {
     return (
-      <p className="mt-4 rounded-lg border border-dashed border-line-strong bg-canvas px-4 py-6 text-center text-sm text-fg-muted">
-        No connected devices. Open the CaptureFlow desktop app and click Sign in
-        on the record bar to link this account.
-      </p>
+      <Empty
+        description="No connected devices. Open the CaptureFlow desktop app and click Sign in on the record bar to link this account."
+        style={{ marginTop: 16 }}
+      />
     );
   }
   return (
-    <ul className="mt-4 divide-y divide-line overflow-hidden rounded-lg border border-line">
-      {tokens.map((t) => (
-        <DeviceRow key={t.id} token={t} />
-      ))}
-    </ul>
+    <List
+      bordered
+      style={{ marginTop: 16 }}
+      dataSource={tokens}
+      renderItem={(token) => <DeviceRow token={token} />}
+    />
   );
 }
 
@@ -31,38 +33,44 @@ function DeviceRow({ token }: { token: DeviceTokenRow }) {
   const [pending, startTransition] = useTransition();
 
   const onRevoke = () => {
-    const ok = confirm(
-      "Sign this device out? It will need to sign in again to manage shares.",
-    );
-    if (!ok) return;
     startTransition(async () => {
       await revokeDeviceTokenAction(token.id);
     });
   };
 
   return (
-    <li className="flex items-center gap-3 px-4 py-3">
-      <Monitor className="h-4 w-4 text-neutral-500" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm text-neutral-200">
-          {token.label || "Unlabelled device"}
-        </p>
-        <p className="mt-0.5 text-xs text-neutral-500">
-          Added {formatDate(token.createdAt)}
-          {token.lastUsedAt
-            ? ` · last used ${formatDate(token.lastUsedAt)}`
-            : ""}
-        </p>
-      </div>
-      <button
-        className="rounded-md px-2.5 py-1 text-xs text-fg-muted transition-colors hover:bg-danger-soft hover:text-danger disabled:opacity-60"
-        disabled={pending}
-        onClick={onRevoke}
-        type="button"
-      >
-        Revoke
-      </button>
-    </li>
+    <List.Item
+      actions={[
+        <Popconfirm
+          key="revoke"
+          title="Sign this device out?"
+          description="It will need to sign in again to manage shares."
+          okText="Revoke"
+          okButtonProps={{ danger: true }}
+          onConfirm={onRevoke}
+        >
+          <Button danger size="small" type="text" loading={pending}>
+            Revoke
+          </Button>
+        </Popconfirm>,
+      ]}
+    >
+      <List.Item.Meta
+        avatar={<Monitor className="h-4 w-4 text-neutral-500" />}
+        title={token.label || "Unlabelled device"}
+        description={
+          <>
+            Added {formatDate(token.createdAt)}
+            {token.lastUsedAt
+              ? ` · last used ${formatDate(token.lastUsedAt)}`
+              : ""}
+            {token.lastUsedAt ? null : (
+              <Tag style={{ marginLeft: 8 }}>Never used</Tag>
+            )}
+          </>
+        }
+      />
+    </List.Item>
   );
 }
 

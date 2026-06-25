@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { Check, Download, Link2 } from "lucide-react";
+import { Avatar, Button, Tooltip } from "antd";
 
 export type ViewerNavViewer = {
   name: string | null;
@@ -67,20 +68,20 @@ export function ViewerNav({
           className="h-7 w-auto"
         />
         <span className="flex items-baseline gap-1.5 text-xl font-semibold tracking-tight lowercase">
-          <span className="text-neutral-100">{productName}</span>
+          <span className="text-fg-strong">{productName}</span>
           {label ? (
             <>
-              <span aria-hidden className="text-neutral-700">
+              <span aria-hidden className="text-fg-subtle">
                 |
               </span>
-              <span className="text-neutral-400">{label}</span>
+              <span className="text-fg-muted">{label}</span>
             </>
           ) : null}
         </span>
       </a>
       <div className="flex items-center gap-3">
         {typeof viewCount === "number" ? (
-          <span className="text-sm tabular-nums text-neutral-400">
+          <span className="text-sm tabular-nums text-fg-muted">
             {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
           </span>
         ) : null}
@@ -89,49 +90,37 @@ export function ViewerNav({
         ) : (
           <>
             {downloadUrl ? (
-              <a
-                href={downloadUrl}
-                download={downloadName ?? true}
-                aria-label="Download"
-                title="Download"
-                className="flex h-9 w-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-overlay text-sm font-medium text-neutral-300 transition-colors hover:bg-overlay-strong hover:text-fg-strong sm:w-auto sm:px-3"
-              >
-                <Download className="size-[18px]" />
-                <span className="hidden sm:inline">Download</span>
-              </a>
+              <Tooltip title="Download">
+                <Button
+                  href={downloadUrl}
+                  download={downloadName ?? true}
+                  aria-label="Download"
+                  icon={<Download size={18} />}
+                >
+                  <span className="hidden sm:inline">Download</span>
+                </Button>
+              </Tooltip>
             ) : null}
-            <button
-              type="button"
-              onClick={handleCopy}
-              aria-label={copied ? "Link copied" : "Copy link"}
-              title={copied ? "Link copied" : "Copy link"}
-              className={`flex h-9 w-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors sm:w-auto sm:px-3 ${
-                copied
-                  ? "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20"
-                  : "bg-overlay text-neutral-300 hover:bg-overlay-strong hover:text-fg-strong"
-              }`}
-            >
-              {copied ? (
-                <Check className="size-[18px]" />
-              ) : (
-                <Link2 className="size-[18px]" />
-              )}
-              <span className="hidden sm:inline">
-                {copied ? "Copied" : "Copy link"}
-              </span>
-            </button>
+            <Tooltip title={copied ? "Link copied" : "Copy link"}>
+              <Button
+                onClick={handleCopy}
+                aria-label={copied ? "Link copied" : "Copy link"}
+                icon={copied ? <Check size={18} /> : <Link2 size={18} />}
+              >
+                <span className="hidden sm:inline">
+                  {copied ? "Copied" : "Copy link"}
+                </span>
+              </Button>
+            </Tooltip>
           </>
         )}
         {themeToggle}
         {userMenu ? (
           userMenu
         ) : viewer ? (
-          <span
-            title={viewer.name?.trim() || viewer.email}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-800 text-xs font-semibold text-neutral-200 ring-1 ring-line-strong"
-          >
-            {initials(viewer)}
-          </span>
+          <Tooltip title={viewer.name?.trim() || viewer.email}>
+            <Avatar size={36}>{initials(viewer)}</Avatar>
+          </Tooltip>
         ) : null}
       </div>
     </header>

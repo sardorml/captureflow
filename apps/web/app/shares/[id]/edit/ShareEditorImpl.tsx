@@ -8,7 +8,6 @@ import {
   Check,
   ExternalLink,
   Globe,
-  Loader2,
   Lock,
   Mic,
   MicOff,
@@ -20,7 +19,8 @@ import {
   X,
 } from "lucide-react";
 import { forwardRef } from "react";
-import { SmoothButton, ThemeToggle } from "@captureflow/ui";
+import { Button } from "antd";
+import { ThemeToggle } from "@captureflow/ui";
 import { VisibilityDialog } from "@/app/VisibilityDialog";
 import {
   SHARE_GRADIENT_KEYS,
@@ -266,51 +266,38 @@ export function ShareEditorImpl(props: ShareEditorProps) {
             workspaceName={workspaceName}
             trigger={<EditorVisibilityChip visibility={visibility} />}
           />
-          <SmoothButton
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onCopyLink}
-            className="bg-overlay text-fg hover:bg-overlay-strong hover:text-fg-strong"
-          >
+          <Button size="small" onClick={onCopyLink}>
             Copy link
-          </SmoothButton>
-          <SmoothButton
-            type="button"
-            variant="ghost"
-            size="sm"
-            asChild
-            className="bg-overlay text-fg hover:bg-overlay-strong hover:text-fg-strong"
+          </Button>
+          <Button
+            size="small"
+            href={viewUrl}
+            target="_blank"
+            rel="noreferrer"
+            iconPosition="end"
+            icon={<ExternalLink className="h-3 w-3" />}
           >
-            <a href={viewUrl} target="_blank" rel="noreferrer">
-              Open <ExternalLink className="h-3 w-3" />
-            </a>
-          </SmoothButton>
-          <SmoothButton
-            type="button"
-            variant="ghost"
-            size="icon"
+            Open
+          </Button>
+          <Button
+            size="small"
+            type="text"
+            danger
             aria-label="Delete share"
             onClick={onDelete}
             disabled={actionPending}
-            className="h-8 w-8 bg-overlay text-fg hover:bg-danger-soft hover:text-danger"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </SmoothButton>
-          <SmoothButton
-            type="button"
-            variant="candy"
+            icon={<Trash2 className="h-3.5 w-3.5" />}
+          />
+          <Button
+            type="primary"
             onClick={onSave}
             disabled={!isDirty || savePending}
+            loading={savePending}
+            icon={savedJustNow ? <Check className="h-4 w-4" /> : undefined}
             className="ml-2"
           >
-            {savePending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : savedJustNow ? (
-              <Check className="h-4 w-4" />
-            ) : null}
             {savedJustNow ? "Saved" : "Save"}
-          </SmoothButton>
+          </Button>
         </div>
       </header>
 

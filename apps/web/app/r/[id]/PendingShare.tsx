@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ContentByline } from "../../_components/snap";
-import { GridLoader } from "@captureflow/ui";
+import { Spin } from "antd";
 
 type PendingShareProps = {
   slug: string;
@@ -98,7 +98,7 @@ export function PendingShare({
               </>
             ) : (
               <>
-                <GridLoader size={9} className="text-blue-300" />
+                <Spin size="large" />
                 <p className="text-sm font-medium text-neutral-200">
                   Preparing your share…
                 </p>

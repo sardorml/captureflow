@@ -4,16 +4,7 @@ import { useRouter } from "next/navigation";
 import { initials } from "@/lib/format";
 import { useState } from "react";
 import { LayoutDashboard, LogOut, Settings } from "lucide-react";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  SmoothDropdownMenu,
-  SmoothDropdownMenuContent,
-  SmoothDropdownMenuItem,
-  SmoothDropdownMenuSeparator,
-  SmoothDropdownMenuTrigger,
-} from "@captureflow/ui";
+import { Avatar, Dropdown, Typography, type MenuProps } from "antd";
 
 type Props = {
   userId: string;
@@ -25,7 +16,6 @@ type Props = {
 };
 
 export function ViewerUserMenu({
-  userId,
   name,
   email,
   imageUrl,
@@ -50,62 +40,53 @@ export function ViewerUserMenu({
     router.refresh();
   };
 
-  return (
-    <SmoothDropdownMenu>
-      <SmoothDropdownMenuTrigger asChild>
-        <button
-          type="button"
-          aria-label="Account menu"
-          className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
-        >
-          <Avatar className="h-9 w-9">
-            {imageUrl ? <AvatarImage src={imageUrl} alt="" /> : null}
-            <AvatarFallback seed={userId}>
-              {initials(displayName)}
-            </AvatarFallback>
-          </Avatar>
-        </button>
-      </SmoothDropdownMenuTrigger>
-      <SmoothDropdownMenuContent align="end" className="min-w-[16rem]">
-        <div className="flex items-center gap-3 px-2.5 py-2">
-          <Avatar className="h-9 w-9">
-            {imageUrl ? <AvatarImage src={imageUrl} alt="" /> : null}
-            <AvatarFallback seed={userId}>
-              {initials(displayName)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-neutral-100">
-              {displayName}
-            </p>
-            <p className="truncate text-xs text-neutral-500">{email}</p>
-          </div>
+  const items: MenuProps["items"] = [
+    {
+      key: "user",
+      type: "group",
+      label: (
+        <div style={{ paddingBlock: 4 }}>
+          <Typography.Text strong>{displayName}</Typography.Text>
+          <Typography.Text
+            type="secondary"
+            style={{ display: "block", fontSize: 12 }}
+          >
+            {email}
+          </Typography.Text>
         </div>
-        <SmoothDropdownMenuSeparator />
-        <SmoothDropdownMenuItem asChild>
-          <a href={dashboardUrl}>
-            <LayoutDashboard className="h-4 w-4 text-neutral-500" />
-            Dashboard
-          </a>
-        </SmoothDropdownMenuItem>
-        <SmoothDropdownMenuItem asChild>
-          <a href={settingsUrl}>
-            <Settings className="h-4 w-4 text-neutral-500" />
-            Workspace settings
-          </a>
-        </SmoothDropdownMenuItem>
-        <SmoothDropdownMenuSeparator />
-        <SmoothDropdownMenuItem
-          onSelect={(e) => {
-            e.preventDefault();
-            onSignOut();
-          }}
-          disabled={signingOut}
-        >
-          <LogOut className="h-4 w-4 text-neutral-500" />
-          {signingOut ? "Signing out…" : "Sign out"}
-        </SmoothDropdownMenuItem>
-      </SmoothDropdownMenuContent>
-    </SmoothDropdownMenu>
+      ),
+    },
+    { type: "divider" },
+    {
+      key: "dashboard",
+      icon: <LayoutDashboard size={16} />,
+      label: <a href={dashboardUrl}>Dashboard</a>,
+    },
+    {
+      key: "settings",
+      icon: <Settings size={16} />,
+      label: <a href={settingsUrl}>Workspace settings</a>,
+    },
+    { type: "divider" },
+    {
+      key: "signout",
+      icon: <LogOut size={16} />,
+      danger: true,
+      disabled: signingOut,
+      label: signingOut ? "Signing out…" : "Sign out",
+      onClick: onSignOut,
+    },
+  ];
+
+  return (
+    <Dropdown menu={{ items }} trigger={["click"]} placement="bottomRight">
+      <Avatar
+        src={imageUrl || undefined}
+        style={{ cursor: "pointer" }}
+        aria-label="Account menu"
+      >
+        {initials(displayName)}
+      </Avatar>
+    </Dropdown>
   );
 }

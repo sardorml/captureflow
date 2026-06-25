@@ -1,4 +1,7 @@
+"use client";
+
 import { Sparkles } from "lucide-react";
+import { Button, Progress, Typography } from "antd";
 import { formatBytes } from "@/lib/format";
 import { UpgradeModal } from "./(dashboard)/UpgradeModal";
 
@@ -24,68 +27,77 @@ export function StorageUsage({
   limitBytes,
   email,
 }: StorageUsageProps) {
-  const limit = limitBytes;
-  if (limit <= 0) {
+  if (limitBytes <= 0) {
     return (
       <div>
-        <div className="flex items-center justify-between text-xs font-medium text-fg-muted">
-          <span>Storage</span>
-        </div>
-        <p className="mt-2 text-xs text-neutral-400">
+        <Typography.Text
+          type="secondary"
+          style={{ fontSize: 12, fontWeight: 500 }}
+        >
+          Storage
+        </Typography.Text>
+        <Typography.Paragraph
+          type="secondary"
+          style={{ fontSize: 12, marginTop: 8 }}
+        >
           Cloud storage is a Pro feature.
-        </p>
+        </Typography.Paragraph>
         <UpgradeModal
           email={email}
           trigger={
-            <button
-              type="button"
-              className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-blue-600 px-2 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500"
+            <Button
+              type="primary"
+              size="small"
+              block
+              icon={<Sparkles size={14} />}
             >
-              <Sparkles className="h-3.5 w-3.5" />
               Upgrade to Pro
-            </button>
+            </Button>
           }
         />
       </div>
     );
   }
-  const ratio = Math.min(1, usedBytes / limit);
+
+  const ratio = Math.min(1, usedBytes / limitBytes);
   const pct = Math.round(ratio * 100);
-  const over = usedBytes >= limit;
+  const over = usedBytes >= limitBytes;
   const near = !over && ratio >= 0.8;
-  const barColor = over
-    ? "bg-red-500"
-    : near
-      ? "bg-amber-400"
-      : "bg-neutral-300";
+
   return (
     <div>
-      <div className="flex items-center justify-between text-xs font-medium text-fg-muted">
-        <span>Storage</span>
-        <span className={over ? "text-red-300" : near ? "text-amber-300" : ""}>
-          {pct}%
-        </span>
-      </div>
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-overlay">
-        <div
-          className={`h-full rounded-full transition-[width] duration-300 ${barColor}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <p className="mt-2 text-xs text-neutral-400">
-        {formatBytes(usedBytes)} of {formatBytes(limit)}
-      </p>
-      {over ? (
-        <a
+      <Typography.Text
+        type="secondary"
+        style={{ fontSize: 12, fontWeight: 500 }}
+      >
+        Storage
+      </Typography.Text>
+      <Progress
+        percent={pct}
+        size="small"
+        status={over ? "exception" : "normal"}
+        strokeColor={near ? "#faad14" : undefined}
+      />
+      <Typography.Paragraph
+        type="secondary"
+        style={{ fontSize: 12, marginTop: 4, marginBottom: 0 }}
+      >
+        {formatBytes(usedBytes)} of {formatBytes(limitBytes)}
+      </Typography.Paragraph>
+      {over && (
+        <Button
+          type="primary"
+          size="small"
+          block
+          icon={<Sparkles size={14} />}
           href={upgradeUrlFor(email)}
           target="_blank"
           rel="noreferrer noopener"
-          className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-blue-600 px-2 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500"
+          style={{ marginTop: 8 }}
         >
-          <Sparkles className="h-3.5 w-3.5" />
           Upgrade to Pro
-        </a>
-      ) : null}
+        </Button>
+      )}
     </div>
   );
 }

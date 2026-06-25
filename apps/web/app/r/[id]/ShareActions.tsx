@@ -4,24 +4,25 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Check,
+  Globe,
   Link2,
+  Lock,
   MoreHorizontal,
   Pencil,
   Trash2,
   Users,
 } from "lucide-react";
 import {
-  ReadonlyVisibilityRow,
-  SmoothButton,
-  SmoothDialog,
-  SmoothDialogContent,
-  SmoothDialogTitle,
-  SmoothDropdownMenu,
-  SmoothDropdownMenuContent,
-  SmoothDropdownMenuItem,
-  SmoothDropdownMenuTrigger,
-  VisibilityPicker,
-} from "@captureflow/ui";
+  Alert,
+  Button,
+  Dropdown,
+  Modal,
+  Radio,
+  Space,
+  Tooltip,
+  type MenuProps,
+  type RadioChangeEvent,
+} from "antd";
 import type { ShareVisibility } from "@/lib/share/types";
 
 type Props = {
@@ -35,6 +36,24 @@ type Props = {
   allowPublicLinks: boolean;
   signedIn: boolean;
 };
+
+const VISIBILITY_LABELS: Record<ShareVisibility, string> = {
+  public: "Public",
+  workspace: "Workspace",
+  private: "Private",
+};
+
+const VISIBILITY_DESCRIPTIONS: Record<ShareVisibility, string> = {
+  public: "Anyone with the link can view",
+  workspace: "Only signed-in workspace members can view",
+  private: "Only you can view",
+};
+
+function VisibilityIcon({ value }: { value: ShareVisibility }) {
+  const Icon =
+    value === "public" ? Globe : value === "workspace" ? Users : Lock;
+  return <Icon className="h-4 w-4" />;
+}
 
 export function ShareActions({
   slug,
@@ -119,145 +138,154 @@ export function ShareActions({
   };
 
   const showWorkspace = !!workspaceName;
-  const showPublic = allowPublicLinks || visibility === "public";
+  // Keep the option visible when the row is already public (uploaded before the
+  // workspace flipped allow_public_links off) so the selection stays shown.
+  const renderPublic = allowPublicLinks || visibility === "public";
+  const renderWorkspace = showWorkspace || visibility === "workspace";
+
+  const visibilityOptions = (
+    [
+      renderPublic ? "public" : null,
+      renderWorkspace ? "workspace" : null,
+      "private",
+    ].filter(Boolean) as ShareVisibility[]
+  ).map((value) => ({
+    value,
+    label: (
+      <div className="flex items-start gap-3 py-1">
+        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-overlay text-fg-muted">
+          <VisibilityIcon value={value} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium text-fg">
+            {value === "workspace" && workspaceName
+              ? `Workspace · ${workspaceName}`
+              : VISIBILITY_LABELS[value]}
+          </span>
+          <span className="block text-xs text-fg-muted">
+            {VISIBILITY_DESCRIPTIONS[value]}
+          </span>
+        </span>
+      </div>
+    ),
+  }));
+
+  const moreItems: MenuProps["items"] = [
+    {
+      key: "delete",
+      danger: true,
+      disabled: deleting,
+      icon: <Trash2 size={16} />,
+      label: deleting ? "Deleting…" : "Delete share",
+      onClick: onDelete,
+    },
+  ];
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <Space size={8}>
         {isOwner && (
-          <a
-            href={editUrl}
-            className="flex h-9 items-center gap-1.5 rounded-lg bg-overlay px-3 text-sm font-medium text-fg transition-colors hover:bg-overlay-strong hover:text-fg-strong"
-          >
-            <Pencil className="size-[16px]" />
+          <Button href={editUrl} icon={<Pencil size={16} />}>
             <span className="hidden sm:inline">Edit recording</span>
-          </a>
+          </Button>
         )}
         {signedIn ? (
-          <div className="flex h-9 items-stretch overflow-hidden rounded-lg bg-blue-600">
-            <button
-              type="button"
+          <Space.Compact>
+            <Button
+              type="primary"
               onClick={() => setOpen(true)}
-              className="flex items-center gap-2 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+              icon={<Users size={18} />}
             >
-              <Users className="size-[18px]" />
               <span className="hidden sm:inline">Share</span>
-            </button>
-            <span aria-hidden className="w-px bg-blue-700/60" />
-            <button
-              type="button"
-              onClick={copyLink}
-              aria-label={copied ? "Link copied" : "Copy link"}
-              title={copied ? "Link copied" : "Copy link"}
-              className="flex items-center justify-center px-3 text-white transition-colors hover:bg-blue-500"
-            >
-              {copied ? (
-                <Check className="size-[18px]" />
-              ) : (
-                <Link2 className="size-[18px]" />
-              )}
-            </button>
-          </div>
+            </Button>
+            <Tooltip title={copied ? "Link copied" : "Copy link"}>
+              <Button
+                type="primary"
+                onClick={copyLink}
+                aria-label={copied ? "Link copied" : "Copy link"}
+                icon={copied ? <Check size={18} /> : <Link2 size={18} />}
+              />
+            </Tooltip>
+          </Space.Compact>
         ) : (
-          <button
-            type="button"
+          <Button
             onClick={copyLink}
             aria-label={copied ? "Link copied" : "Copy link"}
-            title={copied ? "Link copied" : "Copy link"}
-            className="flex h-9 items-center gap-1.5 rounded-lg bg-overlay px-3 text-sm font-medium text-fg transition-colors hover:bg-overlay-strong hover:text-fg-strong"
+            icon={copied ? <Check size={16} /> : <Link2 size={16} />}
           >
-            {copied ? (
-              <Check className="size-[16px]" />
-            ) : (
-              <Link2 className="size-[16px]" />
-            )}
             <span className="hidden sm:inline">
               {copied ? "Copied" : "Copy link"}
             </span>
-          </button>
+          </Button>
         )}
 
         {isOwner && (
-          <SmoothDropdownMenu>
-            <SmoothDropdownMenuTrigger asChild>
-              <SmoothButton
-                variant="ghost"
-                size="icon"
-                aria-label="More actions"
-                title="More actions"
-                className="h-9 w-9"
-              >
-                <MoreHorizontal className="size-[18px]" />
-              </SmoothButton>
-            </SmoothDropdownMenuTrigger>
-            <SmoothDropdownMenuContent align="end" sideOffset={6}>
-              <SmoothDropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  onDelete();
-                }}
-                disabled={deleting}
-                className="text-red-600 focus:bg-red-500/10 focus:text-red-700 dark:text-red-300 dark:focus:text-red-200"
-              >
-                <Trash2 className="h-4 w-4" />
-                {deleting ? "Deleting…" : "Delete share"}
-              </SmoothDropdownMenuItem>
-            </SmoothDropdownMenuContent>
-          </SmoothDropdownMenu>
+          <Dropdown
+            menu={{ items: moreItems }}
+            trigger={["click"]}
+            placement="bottomRight"
+          >
+            <Button
+              type="text"
+              aria-label="More actions"
+              icon={<MoreHorizontal size={18} />}
+            />
+          </Dropdown>
         )}
-      </div>
+      </Space>
 
-      <SmoothDialog open={open} onOpenChange={setOpen}>
-        <SmoothDialogContent className="sm:max-w-md">
-          <SmoothDialogTitle>Share recording</SmoothDialogTitle>
-          <div className="mt-4 space-y-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-fg-muted">
-                General access
-              </p>
-              <div className="mt-2">
-                {isOwner ? (
-                  <VisibilityPicker
-                    value={visibility}
-                    onChange={changeVisibility}
-                    showPublic={showPublic}
-                    showWorkspace={showWorkspace}
-                    workspaceName={workspaceName}
-                    disabled={pending}
-                  />
-                ) : (
-                  <div className="rounded-lg border border-line-strong bg-canvas-2 p-3">
-                    <ReadonlyVisibilityRow value={visibility} />
-                  </div>
-                )}
-              </div>
-              {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
-            </div>
-          </div>
-          <div className="mt-6 flex items-center justify-between border-t border-line-strong pt-4">
-            <button
-              type="button"
+      <Modal
+        open={open}
+        onCancel={() => setOpen(false)}
+        title="Share recording"
+        width={448}
+        footer={
+          <div className="flex items-center justify-between">
+            <Button
+              type="text"
               onClick={copyLink}
-              className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-fg-muted transition-colors hover:bg-overlay hover:text-fg"
+              icon={copied ? <Check size={16} /> : <Link2 size={16} />}
             >
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4 text-emerald-400" />
-                  Link copied
-                </>
-              ) : (
-                <>
-                  <Link2 className="h-4 w-4" />
-                  Copy link
-                </>
-              )}
-            </button>
-            <SmoothButton type="button" onClick={() => setOpen(false)}>
-              Done
-            </SmoothButton>
+              {copied ? "Link copied" : "Copy link"}
+            </Button>
+            <Button onClick={() => setOpen(false)}>Done</Button>
           </div>
-        </SmoothDialogContent>
-      </SmoothDialog>
+        }
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider text-fg-muted">
+          General access
+        </p>
+        <div className="mt-2">
+          {isOwner ? (
+            <Radio.Group
+              value={visibility}
+              onChange={(e: RadioChangeEvent) =>
+                changeVisibility(e.target.value as ShareVisibility)
+              }
+              disabled={pending}
+              options={visibilityOptions}
+              style={{ display: "flex", flexDirection: "column", gap: 4 }}
+            />
+          ) : (
+            <div className="flex items-center gap-3 rounded-lg border border-line-strong bg-canvas-2 px-3 py-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-overlay text-fg-muted">
+                <VisibilityIcon value={visibility} />
+              </span>
+              <div>
+                <p className="text-sm font-medium text-fg">
+                  {VISIBILITY_LABELS[visibility]}
+                </p>
+                <p className="text-xs text-fg-muted">
+                  {VISIBILITY_DESCRIPTIONS[visibility]}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+        {error && (
+          <Alert type="error" message={error} showIcon className="mt-3" />
+        )}
+      </Modal>
     </>
   );
 }

@@ -3,69 +3,56 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Camera, Link2, Settings, Users } from "lucide-react";
+import { Menu, type MenuProps } from "antd";
 
-type NavItem = {
-  href: string;
-  label: string;
-  icon: typeof Link2;
-};
-
-const PRIMARY: NavItem[] = [
-  { href: "/shares", label: "Shares", icon: Link2 },
-  { href: "/snaps", label: "Snaps", icon: Camera },
-];
-
-const ADMIN: NavItem[] = [
-  { href: "/members", label: "Members", icon: Users },
-  { href: "/settings", label: "Workspace", icon: Settings },
-];
+const KEYS = ["/shares", "/snaps", "/members", "/settings"];
 
 export function SidebarNav({ isOwner }: { isOwner: boolean }) {
   const pathname = usePathname();
-  return (
-    <nav className="flex flex-col gap-4">
-      <div className="flex flex-col gap-0.5 px-2">
-        {PRIMARY.map((item) => (
-          <NavLink key={item.href} item={item} pathname={pathname} />
-        ))}
-      </div>
+  const selected =
+    KEYS.find((k) => pathname === k || pathname.startsWith(k + "/")) ?? "";
 
-      {isOwner && (
-        <div className="flex flex-col gap-0.5 px-2">
-          <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-            Admin tools
-          </p>
-          {ADMIN.map((item) => (
-            <NavLink key={item.href} item={item} pathname={pathname} />
-          ))}
-        </div>
-      )}
-    </nav>
-  );
-}
+  const items: MenuProps["items"] = [
+    {
+      key: "/shares",
+      icon: <Link2 size={16} />,
+      label: <Link href="/shares">Shares</Link>,
+    },
+    {
+      key: "/snaps",
+      icon: <Camera size={16} />,
+      label: <Link href="/snaps">Snaps</Link>,
+    },
+    ...(isOwner
+      ? ([
+          { type: "divider" },
+          {
+            key: "admin",
+            type: "group",
+            label: "Admin tools",
+            children: [
+              {
+                key: "/members",
+                icon: <Users size={16} />,
+                label: <Link href="/members">Members</Link>,
+              },
+              {
+                key: "/settings",
+                icon: <Settings size={16} />,
+                label: <Link href="/settings">Workspace</Link>,
+              },
+            ],
+          },
+        ] satisfies MenuProps["items"])
+      : []),
+  ];
 
-function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
-  const active =
-    pathname === item.href ||
-    (item.href !== "/" && pathname.startsWith(item.href + "/"));
-  const Icon = item.icon;
   return (
-    <Link
-      href={item.href}
-      className={
-        "group flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors " +
-        (active
-          ? "bg-accent-soft text-accent"
-          : "text-fg-muted hover:bg-overlay hover:text-fg")
-      }
-    >
-      <Icon
-        className={
-          "h-4 w-4 transition-colors " +
-          (active ? "text-accent" : "text-fg-subtle group-hover:text-fg")
-        }
-      />
-      <span>{item.label}</span>
-    </Link>
+    <Menu
+      mode="inline"
+      selectedKeys={selected ? [selected] : []}
+      items={items}
+      style={{ borderInlineEnd: 0, background: "transparent" }}
+    />
   );
 }

@@ -4,24 +4,26 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Check,
+  Globe,
   Link2,
+  Lock,
   MoreHorizontal,
   Pencil,
   Trash2,
   Users,
 } from "lucide-react";
 import {
-  ReadonlyVisibilityRow,
-  SmoothButton,
-  SmoothDialog,
-  SmoothDialogContent,
-  SmoothDialogTitle,
-  SmoothDropdownMenu,
-  SmoothDropdownMenuContent,
-  SmoothDropdownMenuItem,
-  SmoothDropdownMenuTrigger,
-  VisibilityPicker,
-} from "@captureflow/ui";
+  Alert,
+  Button,
+  Dropdown,
+  Flex,
+  Modal,
+  Radio,
+  Space,
+  Tooltip,
+  Typography,
+  type MenuProps,
+} from "antd";
 
 type SnapVisibility = "public" | "workspace" | "private";
 
@@ -34,6 +36,24 @@ type Props = {
   workspaceName: string | null;
   allowPublicLinks: boolean;
   signedIn: boolean;
+};
+
+const VISIBILITY_LABELS: Record<SnapVisibility, string> = {
+  public: "Public",
+  workspace: "Workspace",
+  private: "Private",
+};
+
+const VISIBILITY_DESCRIPTIONS: Record<SnapVisibility, string> = {
+  public: "Anyone with the link can view",
+  workspace: "Only signed-in workspace members can view",
+  private: "Only you can view",
+};
+
+const VISIBILITY_ICONS: Record<SnapVisibility, typeof Globe> = {
+  public: Globe,
+  workspace: Users,
+  private: Lock,
 };
 
 export function SnapActions({
@@ -116,146 +136,163 @@ export function SnapActions({
     });
   };
 
-  const showWorkspace = !!workspaceName;
-  const showPublic = allowPublicLinks || visibility === "public";
+  const renderPublic = allowPublicLinks || visibility === "public";
+  const renderWorkspace = !!workspaceName || visibility === "workspace";
+
+  const options: SnapVisibility[] = [
+    ...(renderPublic ? (["public"] as const) : []),
+    ...(renderWorkspace ? (["workspace"] as const) : []),
+    "private",
+  ];
+
+  const moreItems: MenuProps["items"] = [
+    {
+      key: "delete",
+      icon: <Trash2 size={16} />,
+      danger: true,
+      disabled: deleting,
+      label: deleting ? "Deleting…" : "Delete snap",
+      onClick: onDelete,
+    },
+  ];
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <Flex align="center" gap={8}>
         {isOwner && (
-          <a
-            href={editUrl}
-            className="flex h-9 items-center gap-1.5 rounded-lg bg-overlay px-3 text-sm font-medium text-fg transition-colors hover:bg-overlay-strong hover:text-fg-strong"
-          >
-            <Pencil className="size-[16px]" />
-            <span className="hidden sm:inline">Edit snap</span>
-          </a>
+          <Button icon={<Pencil size={16} />} href={editUrl}>
+            Edit snap
+          </Button>
         )}
         {signedIn ? (
-          <div className="flex h-9 items-stretch overflow-hidden rounded-lg bg-blue-600">
-            <button
-              type="button"
+          <Space.Compact>
+            <Button
+              type="primary"
+              icon={<Users size={18} />}
               onClick={() => setOpen(true)}
-              className="flex items-center gap-2 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
             >
-              <Users className="size-[18px]" />
-              <span className="hidden sm:inline">Share</span>
-            </button>
-            <span aria-hidden className="w-px bg-blue-700/60" />
-            <button
-              type="button"
-              onClick={copyLink}
-              aria-label={copied ? "Link copied" : "Copy link"}
-              title={copied ? "Link copied" : "Copy link"}
-              className="flex items-center justify-center px-3 text-white transition-colors hover:bg-blue-500"
-            >
-              {copied ? (
-                <Check className="size-[18px]" />
-              ) : (
-                <Link2 className="size-[18px]" />
-              )}
-            </button>
-          </div>
+              Share
+            </Button>
+            <Tooltip title={copied ? "Link copied" : "Copy link"}>
+              <Button
+                type="primary"
+                aria-label={copied ? "Link copied" : "Copy link"}
+                icon={copied ? <Check size={18} /> : <Link2 size={18} />}
+                onClick={copyLink}
+              />
+            </Tooltip>
+          </Space.Compact>
         ) : (
-          <button
-            type="button"
+          <Button
+            icon={copied ? <Check size={16} /> : <Link2 size={16} />}
             onClick={copyLink}
-            aria-label={copied ? "Link copied" : "Copy link"}
-            title={copied ? "Link copied" : "Copy link"}
-            className="flex h-9 items-center gap-1.5 rounded-lg bg-overlay px-3 text-sm font-medium text-fg transition-colors hover:bg-overlay-strong hover:text-fg-strong"
           >
-            {copied ? (
-              <Check className="size-[16px]" />
-            ) : (
-              <Link2 className="size-[16px]" />
-            )}
-            <span className="hidden sm:inline">
-              {copied ? "Copied" : "Copy link"}
-            </span>
-          </button>
+            {copied ? "Copied" : "Copy link"}
+          </Button>
         )}
 
         {isOwner && (
-          <SmoothDropdownMenu>
-            <SmoothDropdownMenuTrigger asChild>
-              <SmoothButton
-                variant="ghost"
-                size="icon"
-                aria-label="More actions"
-                title="More actions"
-                className="h-9 w-9"
-              >
-                <MoreHorizontal className="size-[18px]" />
-              </SmoothButton>
-            </SmoothDropdownMenuTrigger>
-            <SmoothDropdownMenuContent align="end" sideOffset={6}>
-              <SmoothDropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  onDelete();
-                }}
-                disabled={deleting}
-                className="text-red-600 focus:bg-red-500/10 focus:text-red-700 dark:text-red-300 dark:focus:text-red-200"
-              >
-                <Trash2 className="h-4 w-4" />
-                {deleting ? "Deleting…" : "Delete snap"}
-              </SmoothDropdownMenuItem>
-            </SmoothDropdownMenuContent>
-          </SmoothDropdownMenu>
+          <Dropdown
+            menu={{ items: moreItems }}
+            trigger={["click"]}
+            placement="bottomRight"
+          >
+            <Button
+              type="text"
+              aria-label="More actions"
+              icon={<MoreHorizontal size={18} />}
+            />
+          </Dropdown>
         )}
-      </div>
+      </Flex>
 
-      <SmoothDialog open={open} onOpenChange={setOpen}>
-        <SmoothDialogContent className="sm:max-w-md">
-          <SmoothDialogTitle>Share snap</SmoothDialogTitle>
-          <div className="mt-4 space-y-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-fg-muted">
-                General access
-              </p>
-              <div className="mt-2">
-                {isOwner ? (
-                  <VisibilityPicker
-                    value={visibility}
-                    onChange={changeVisibility}
-                    showPublic={showPublic}
-                    showWorkspace={showWorkspace}
-                    workspaceName={workspaceName}
-                    disabled={pending}
-                  />
-                ) : (
-                  <div className="rounded-lg border border-line-strong bg-canvas-2 p-3">
-                    <ReadonlyVisibilityRow value={visibility} />
-                  </div>
-                )}
-              </div>
-              {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
-            </div>
-          </div>
-          <div className="mt-6 flex items-center justify-between border-t border-line-strong pt-4">
-            <button
-              type="button"
+      <Modal
+        open={open}
+        onCancel={() => setOpen(false)}
+        title="Share snap"
+        width={480}
+        footer={
+          <Flex align="center" justify="space-between">
+            <Button
+              type="text"
+              icon={copied ? <Check size={16} /> : <Link2 size={16} />}
               onClick={copyLink}
-              className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-fg-muted transition-colors hover:bg-overlay hover:text-fg"
             >
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4 text-emerald-400" />
-                  Link copied
-                </>
-              ) : (
-                <>
-                  <Link2 className="h-4 w-4" />
-                  Copy link
-                </>
-              )}
-            </button>
-            <SmoothButton type="button" onClick={() => setOpen(false)}>
-              Done
-            </SmoothButton>
+              {copied ? "Link copied" : "Copy link"}
+            </Button>
+            <Button onClick={() => setOpen(false)}>Done</Button>
+          </Flex>
+        }
+      >
+        <Typography.Text
+          type="secondary"
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}
+        >
+          General access
+        </Typography.Text>
+        {isOwner ? (
+          <Radio.Group
+            value={visibility}
+            disabled={pending}
+            onChange={(e) => changeVisibility(e.target.value as SnapVisibility)}
+            style={{ display: "block", marginTop: 12, width: "100%" }}
+          >
+            <Space direction="vertical" size={8} style={{ width: "100%" }}>
+              {options.map((option) => (
+                <Radio key={option} value={option} style={{ width: "100%" }}>
+                  <VisibilityLabel
+                    value={option}
+                    workspaceName={workspaceName}
+                  />
+                </Radio>
+              ))}
+            </Space>
+          </Radio.Group>
+        ) : (
+          <div style={{ marginTop: 12 }}>
+            <VisibilityLabel value={visibility} workspaceName={workspaceName} />
           </div>
-        </SmoothDialogContent>
-      </SmoothDialog>
+        )}
+        {error && (
+          <Alert
+            type="error"
+            message={error}
+            showIcon
+            style={{ marginTop: 12 }}
+          />
+        )}
+      </Modal>
     </>
+  );
+}
+
+function VisibilityLabel({
+  value,
+  workspaceName,
+}: {
+  value: SnapVisibility;
+  workspaceName: string | null;
+}) {
+  const Icon = VISIBILITY_ICONS[value];
+  const label =
+    value === "workspace" && workspaceName
+      ? `Workspace · ${workspaceName}`
+      : VISIBILITY_LABELS[value];
+  return (
+    <Space align="start" size={8}>
+      <Icon size={18} />
+      <span>
+        <Typography.Text strong>{label}</Typography.Text>
+        <br />
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          {VISIBILITY_DESCRIPTIONS[value]}
+        </Typography.Text>
+      </span>
+    </Space>
   );
 }

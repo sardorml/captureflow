@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ListVideo, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
-import { SmoothButton } from "@captureflow/ui";
+import { Button } from "antd";
 import { formatTimestamp } from "@/lib/format";
 
 type Props = {
@@ -195,17 +195,12 @@ export function SummaryChapters({
               className="block w-full resize-none bg-transparent text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none"
             />
             <div className="flex justify-end gap-2">
-              <SmoothButton
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => setSummaryEditing(false)}
-              >
+              <Button size="small" onClick={() => setSummaryEditing(false)}>
                 Cancel
-              </SmoothButton>
-              <SmoothButton type="button" size="sm" onClick={commitSummaryEdit}>
+              </Button>
+              <Button type="primary" size="small" onClick={commitSummaryEdit}>
                 Save
-              </SmoothButton>
+              </Button>
             </div>
           </div>
         ) : hasSummary ? (
@@ -262,21 +257,12 @@ export function SummaryChapters({
               <code> H:MM:SS Title</code>.
             </p>
             <div className="flex justify-end gap-2">
-              <SmoothButton
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => setChaptersEditing(false)}
-              >
+              <Button size="small" onClick={() => setChaptersEditing(false)}>
                 Cancel
-              </SmoothButton>
-              <SmoothButton
-                type="button"
-                size="sm"
-                onClick={commitChaptersEdit}
-              >
+              </Button>
+              <Button type="primary" size="small" onClick={commitChaptersEdit}>
                 Save
-              </SmoothButton>
+              </Button>
             </div>
           </div>
         ) : hasChapters ? (

@@ -2,6 +2,8 @@
 
 import { useFormStatus } from "react-dom";
 import { type ReactNode } from "react";
+import { CheckCircle2 } from "lucide-react";
+import { Card, Flex, Spin, Tag, Typography } from "antd";
 
 type Props = {
   active: boolean;
@@ -12,58 +14,39 @@ type Props = {
 
 export function PolicyCardButton({ active, icon, title, body }: Props) {
   const { pending } = useFormStatus();
-  const showPending = pending;
   const showActive = active && !pending;
+
   return (
     <button
       type="submit"
       disabled={pending}
       aria-busy={pending}
-      className={
-        "group relative flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors disabled:cursor-progress " +
-        (showPending
-          ? "border-blue-500/40 bg-neutral-800/60"
-          : showActive
-            ? "border-line-strong bg-neutral-800"
-            : "border-line bg-neutral-950/60 hover:border-line-strong hover:bg-neutral-800/60")
-      }
+      style={{
+        all: "unset",
+        display: "block",
+        width: "100%",
+        cursor: pending ? "progress" : "pointer",
+      }}
     >
-      <span
-        className={
-          "mt-0.5 shrink-0 transition-colors " +
-          (showActive ? "text-fg dark:text-white" : "text-neutral-400")
-        }
-      >
-        {icon}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-2 text-sm font-semibold text-neutral-100">
-          {title}
-          {showPending && (
-            <span className="text-[11px] font-normal text-blue-300">
-              Updating…
-            </span>
-          )}
-        </p>
-        <p className="mt-1 text-xs text-neutral-400">{body}</p>
-      </div>
-      <span
-        aria-hidden
-        className={
-          "mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors " +
-          (showPending
-            ? "border-blue-500 bg-neutral-900"
-            : showActive
-              ? "border-fg bg-fg"
-              : "border-neutral-600 bg-neutral-950")
-        }
-      >
-        {showPending ? (
-          <span className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
-        ) : showActive ? (
-          <span className="h-1.5 w-1.5 rounded-full bg-canvas" />
-        ) : null}
-      </span>
+      <Card hoverable={!pending} variant={showActive ? "borderless" : "outlined"}>
+        <Flex gap={12} align="flex-start">
+          <span style={{ marginTop: 2, lineHeight: 0 }}>{icon}</span>
+          <Flex vertical gap={4} flex={1} style={{ minWidth: 0 }}>
+            <Flex gap={8} align="center">
+              <Typography.Text strong>{title}</Typography.Text>
+              {pending && <Tag color="processing">Updating…</Tag>}
+            </Flex>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {body}
+            </Typography.Text>
+          </Flex>
+          {pending ? (
+            <Spin size="small" />
+          ) : showActive ? (
+            <CheckCircle2 size={20} color="#1677ff" />
+          ) : null}
+        </Flex>
+      </Card>
     </button>
   );
 }

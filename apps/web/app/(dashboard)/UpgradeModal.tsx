@@ -1,16 +1,8 @@
 "use client";
 
-import { useState, useSyncExternalStore, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Check, Sparkles } from "lucide-react";
-import {
-  SmoothButton,
-  SmoothDialog,
-  SmoothDialogContent,
-  SmoothDialogDescription,
-  SmoothDialogHeader,
-  SmoothDialogTitle,
-  SmoothDialogTrigger,
-} from "@captureflow/ui";
+import { Button, Modal, Typography } from "antd";
 
 const MONTHLY_PRICE = 9;
 
@@ -42,71 +34,84 @@ function checkoutUrlFor(email: string): string | null {
 
 export function UpgradeModal({ email, trigger }: Props) {
   const [open, setOpen] = useState(false);
-  const price = MONTHLY_PRICE;
   const checkoutUrl = checkoutUrlFor(email);
 
-  // Radix's asChild Slot injects a generated id only on the client, so render
-  // the bare trigger until mounted to keep SSR and first client render matching.
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-  if (!mounted) return <>{trigger}</>;
-
   return (
-    <SmoothDialog open={open} onOpenChange={setOpen}>
-      <SmoothDialogTrigger asChild>{trigger}</SmoothDialogTrigger>
-      <SmoothDialogContent className="sm:max-w-lg">
-        <SmoothDialogHeader>
-          <SmoothDialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-blue-500" />
+    <>
+      <span onClick={() => setOpen(true)} style={{ display: "contents" }}>
+        {trigger}
+      </span>
+      <Modal
+        open={open}
+        onCancel={() => setOpen(false)}
+        footer={null}
+        width={520}
+        title={
+          <span
+            style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+          >
+            <Sparkles size={16} />
             Upgrade to CaptureFlow Pro
-          </SmoothDialogTitle>
-          <SmoothDialogDescription>
-            More cloud storage for your shares and Snaps. Cancel any time.
-          </SmoothDialogDescription>
-        </SmoothDialogHeader>
+          </span>
+        }
+      >
+        <Typography.Paragraph type="secondary">
+          More cloud storage for your shares and Snaps. Cancel any time.
+        </Typography.Paragraph>
 
-        <div className="mt-5">
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold tabular-nums text-fg">
-              ${price}
-            </span>
-            <span className="text-sm text-fg-subtle">/month</span>
-          </div>
-          <p className="mt-1 text-xs text-fg-subtle">
-            Billed monthly. Cancel anytime.
-          </p>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <Typography.Title level={2} style={{ margin: 0 }}>
+            ${MONTHLY_PRICE}
+          </Typography.Title>
+          <Typography.Text type="secondary">/month</Typography.Text>
         </div>
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          Billed monthly. Cancel anytime.
+        </Typography.Text>
 
-        <ul className="mt-4 space-y-2">
+        <ul
+          style={{
+            listStyle: "none",
+            padding: 0,
+            margin: "16px 0 0",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
           {BENEFITS.map((b) => (
-            <li key={b} className="flex items-center gap-2.5 text-sm text-fg">
-              <Check className="h-4 w-4 shrink-0 text-emerald-500" />
-              <span>{b}</span>
+            <li
+              key={b}
+              style={{ display: "flex", alignItems: "center", gap: 10 }}
+            >
+              <Check size={16} />
+              <Typography.Text>{b}</Typography.Text>
             </li>
           ))}
         </ul>
 
         {checkoutUrl ? (
-          <SmoothButton
-            variant="candy"
-            size="lg"
-            asChild
-            className="mt-6 w-full"
+          <Button
+            type="primary"
+            size="large"
+            block
+            icon={<Sparkles size={16} />}
+            href={checkoutUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ marginTop: 24 }}
           >
-            <a href={checkoutUrl} target="_blank" rel="noopener noreferrer">
-              <Sparkles className="h-4 w-4" />
-              Upgrade now
-            </a>
-          </SmoothButton>
+            Upgrade now
+          </Button>
         ) : (
-          <p className="mt-6 text-center text-xs text-fg-subtle">
+          <Typography.Paragraph
+            type="secondary"
+            style={{ marginTop: 24, textAlign: "center" }}
+          >
             Checkout isn&apos;t configured for this deployment.
-          </p>
+          </Typography.Paragraph>
         )}
-      </SmoothDialogContent>
-    </SmoothDialog>
+      </Modal>
+    </>
   );
 }

@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { Alert, Button, Card, Flex, Form, Input, Typography } from "antd";
+import type { Rule } from "antd/es/form";
 import { signIn, signUp } from "@/lib/auth-client";
+
+type Mode = "signin" | "signup";
+type Values = { name?: string; email: string; password: string };
 
 // Kept separate from the marketing AuthPanel, which pulls in the i18n provider
 // and marketing shell.
@@ -10,29 +15,28 @@ export function AuthForm({
   initialMode = "signin",
 }: {
   next: string;
-  initialMode?: "signin" | "signup";
+  initialMode?: Mode;
 }) {
-  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const isSignup = mode === "signup";
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function onFinish(values: Values) {
     setError(null);
     setBusy(true);
     try {
       const res = isSignup
         ? await signUp.email({
-            email,
-            password,
-            name: name.trim() || email.split("@")[0],
+            email: values.email,
+            password: values.password,
+            name: values.name?.trim() || values.email.split("@")[0],
           })
-        : await signIn.email({ email, password });
+        : await signIn.email({
+            email: values.email,
+            password: values.password,
+          });
       if (res.error) {
         setError(
           res.error.message ?? "Something went wrong. Please try again.",
@@ -49,116 +53,92 @@ export function AuthForm({
     }
   }
 
+  const passwordRules: Rule[] = [
+    { required: true, message: "Enter your password." },
+    ...(isSignup
+      ? [{ min: 12, message: "Use at least 12 characters." } as Rule]
+      : []),
+  ];
+
   return (
-    <div className="w-full max-w-sm rounded-2xl border border-line bg-canvas-2 p-8 shadow-sm">
-      <div className="mb-6 flex items-center gap-2.5">
+    <Card style={{ width: "100%", maxWidth: 384 }}>
+      <Flex align="center" gap={10} style={{ marginBottom: 24 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo-round.png"
           alt=""
           width={32}
           height={32}
-          className="rounded-lg"
+          style={{ borderRadius: 8 }}
         />
-        <span className="text-lg font-semibold tracking-tight text-fg">
+        <Typography.Text strong style={{ fontSize: 18 }}>
           CaptureFlow
-        </span>
-      </div>
+        </Typography.Text>
+      </Flex>
 
-      <h1 className="text-xl font-semibold tracking-tight text-fg-strong">
+      <Typography.Title level={4} style={{ marginTop: 0, marginBottom: 4 }}>
         {isSignup ? "Create your account" : "Welcome back"}
-      </h1>
-      <p className="mt-1 text-sm text-fg-muted">
+      </Typography.Title>
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 24 }}>
         {isSignup
           ? "Start sharing recordings with a public link."
           : "Sign in to manage your shares and snaps."}
-      </p>
+      </Typography.Paragraph>
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
+      <Form
+        layout="vertical"
+        requiredMark={false}
+        disabled={busy}
+        onFinish={onFinish}
+      >
         {isSignup && (
-          <Field
-            label="Name"
-            type="text"
-            value={name}
-            onChange={setName}
-            placeholder="Your name"
-            autoComplete="name"
-          />
+          <Form.Item label="Name" name="name">
+            <Input placeholder="Your name" autoComplete="name" />
+          </Form.Item>
         )}
-        <Field
+        <Form.Item
           label="Email"
-          type="email"
-          value={email}
-          onChange={setEmail}
-          placeholder="you@example.com"
-          autoComplete="email"
-          required
-        />
-        <Field
-          label="Password"
-          type="password"
-          value={password}
-          onChange={setPassword}
-          placeholder={isSignup ? "At least 12 characters" : "••••••••"}
-          autoComplete={isSignup ? "new-password" : "current-password"}
-          required
-          minLength={isSignup ? 12 : undefined}
-        />
+          name="email"
+          rules={[
+            { required: true, type: "email", message: "Enter a valid email." },
+          ]}
+        >
+          <Input placeholder="you@example.com" autoComplete="email" />
+        </Form.Item>
+        <Form.Item label="Password" name="password" rules={passwordRules}>
+          <Input.Password
+            placeholder={isSignup ? "At least 12 characters" : "••••••••"}
+            autoComplete={isSignup ? "new-password" : "current-password"}
+          />
+        </Form.Item>
 
         {error && (
-          <p
-            className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger"
-            role="alert"
-          >
-            {error}
-          </p>
+          <Form.Item>
+            <Alert type="error" message={error} showIcon />
+          </Form.Item>
         )}
 
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-lg bg-accent-bg px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-bg-hover disabled:opacity-60"
-        >
-          {busy ? "Please wait…" : isSignup ? "Create account" : "Sign in"}
-        </button>
-      </form>
+        <Form.Item style={{ marginBottom: 0 }}>
+          <Button type="primary" htmlType="submit" loading={busy} block>
+            {isSignup ? "Create account" : "Sign in"}
+          </Button>
+        </Form.Item>
+      </Form>
 
-      <p className="mt-6 text-center text-sm text-fg-muted">
-        {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-        <button
-          type="button"
+      <Typography.Paragraph
+        type="secondary"
+        style={{ textAlign: "center", marginTop: 24, marginBottom: 0 }}
+      >
+        {isSignup ? "Already have an account? " : "Don't have an account? "}
+        <Typography.Link
           onClick={() => {
             setMode(isSignup ? "signin" : "signup");
             setError(null);
           }}
-          className="font-medium text-accent underline-offset-2 hover:underline"
         >
           {isSignup ? "Sign in" : "Sign up"}
-        </button>
-      </p>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  ...rest
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-fg">{label}</span>
-      <input
-        {...rest}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-line-strong bg-canvas px-3 py-2 text-sm text-fg outline-none transition-colors placeholder:text-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
-      />
-    </label>
+        </Typography.Link>
+      </Typography.Paragraph>
+    </Card>
   );
 }

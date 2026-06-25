@@ -1,15 +1,11 @@
 import { Bell, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { headers } from "next/headers";
+import { Button, Flex } from "antd";
 import { getActiveProSubscription } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
-import {
-  Button,
-  SmoothButton,
-  ThemeToggle,
-  readThemeFromCookieHeader,
-} from "@captureflow/ui";
+import { ThemeToggle, readThemeFromCookieHeader } from "@captureflow/ui";
 import { SearchTrigger } from "./SearchTrigger";
 import { UpgradeModal } from "./UpgradeModal";
 import { UserMenu } from "./UserMenu";
@@ -32,35 +28,34 @@ export async function TopBar() {
   const isPro = subscription?.status === "active";
 
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-line bg-canvas-2 px-6 py-3">
-      <div className="flex min-w-0 flex-1 justify-center">
+    <Flex
+      align="center"
+      justify="space-between"
+      gap={16}
+      style={{ width: "100%" }}
+    >
+      <Flex flex={1} justify="center" style={{ minWidth: 0 }}>
         <SearchTrigger />
-      </div>
-      <div className="flex items-center gap-2">
+      </Flex>
+      <Flex align="center" gap={8}>
         {!isPro && (
           <UpgradeModal
             email={session.user.email}
             trigger={
-              <SmoothButton variant="candy" size="sm" className="gap-1.5">
-                <Sparkles className="h-4 w-4" />
+              <Button type="primary" icon={<Sparkles size={16} />}>
                 Upgrade
-              </SmoothButton>
+              </Button>
             }
           />
         )}
         <ThemeToggle initialTheme={theme} />
-        <Button
-          asChild
-          variant="ghost"
-          size="icon"
-          aria-label="Notifications"
-          title="Notifications"
-          className="relative h-10 w-10"
-        >
-          <Link href="/notifications">
-            <Bell className="h-5 w-5" />
-          </Link>
-        </Button>
+        <Link href="/notifications" title="Notifications">
+          <Button
+            type="text"
+            icon={<Bell size={18} />}
+            aria-label="Notifications"
+          />
+        </Link>
         <UserMenu
           userId={session.user.id}
           name={session.user.name ?? null}
@@ -75,7 +70,7 @@ export async function TopBar() {
               : null
           }
         />
-      </div>
-    </div>
+      </Flex>
+    </Flex>
   );
 }

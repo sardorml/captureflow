@@ -1,13 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
-import {
-  Download,
-  ArrowLeft,
-  BookOpen,
-  Terminal,
-  ArrowUpRight,
-} from "lucide-react";
+import { Download, ArrowLeft, Terminal, ArrowUpRight } from "lucide-react";
+import { Button, Card, Flex, Tag } from "antd";
 import { ThemeToggle, readThemeFromCookieHeader } from "@captureflow/ui";
 import { FirefoxLogo } from "@/components/marketing/platform-logos";
 import { DOWNLOAD_URL, RELEASES_URL, DOCS_URL } from "@/lib/site";
@@ -80,15 +75,16 @@ export default async function DownloadPage() {
               CaptureFlow
             </span>
           </Link>
-          <div className="flex items-center gap-1 sm:gap-2">
-            <Link
+          <Flex align="center" gap={8}>
+            <Button
+              type="text"
               href="/"
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:text-fg"
+              icon={<ArrowLeft className="h-4 w-4" />}
             >
-              <ArrowLeft className="h-4 w-4" /> Back
-            </Link>
+              Back
+            </Button>
             <ThemeToggle initialTheme={theme} />
-          </div>
+          </Flex>
         </div>
       </header>
 
@@ -109,43 +105,41 @@ export default async function DownloadPage() {
           instant share link, done.
         </p>
 
-        <div className="mt-8 flex flex-col items-center gap-3">
-          <a
+        <Flex vertical align="center" gap={12} style={{ marginTop: 32 }}>
+          <Button
+            type="primary"
+            size="large"
             href={DOWNLOAD_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-accent-bg px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-accent-bg-hover"
+            icon={<Download className="h-5 w-5" />}
           >
-            <Download className="h-5 w-5" /> Download for macOS
-          </a>
-          <div className="flex flex-col items-center gap-3 sm:flex-row">
-            <button
-              type="button"
+            Download for macOS
+          </Button>
+          <Flex wrap align="center" justify="center" gap={12}>
+            <Button
+              size="large"
               disabled
               aria-label="Chrome extension — coming soon"
-              className="inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-line bg-surface px-8 py-3.5 text-base font-medium text-fg-muted"
+              icon={<ChromeIcon className="h-5 w-5" />}
             >
-              <ChromeIcon className="h-5 w-5" /> Chrome extension
-              <span className="ml-0.5 rounded-full bg-canvas-2 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-fg-subtle">
-                Soon
-              </span>
-            </button>
-            <button
-              type="button"
+              Chrome extension
+              <Tag style={{ marginInlineStart: 4 }}>Soon</Tag>
+            </Button>
+            <Button
+              size="large"
               disabled
               aria-label="Firefox extension — coming soon"
-              className="inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-line bg-surface px-8 py-3.5 text-base font-medium text-fg-muted"
+              icon={<FirefoxLogo className="h-5 w-5" />}
             >
-              <FirefoxLogo className="h-5 w-5" /> Firefox extension
-              <span className="ml-0.5 rounded-full bg-canvas-2 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-fg-subtle">
-                Soon
-              </span>
-            </button>
-          </div>
+              Firefox extension
+              <Tag style={{ marginInlineStart: 4 }}>Soon</Tag>
+            </Button>
+          </Flex>
           <p className="text-sm text-fg-subtle">
             macOS available now · Chrome &amp; Firefox extensions coming soon
           </p>
-        </div>
+        </Flex>
 
         <p className="mx-auto mt-8 max-w-md text-sm text-fg-muted">
           On first launch, macOS asks you to grant Screen Recording and
@@ -172,20 +166,22 @@ export default async function DownloadPage() {
                 href={href}
                 target="_blank"
                 rel="noreferrer"
-                className="group rounded-2xl border border-line bg-surface p-5 transition-colors hover:border-line-strong"
+                style={{ display: "block" }}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-canvas-2">
-                    <Icon className="h-5 w-5 text-fg-muted" />
-                  </div>
-                  <ArrowUpRight className="h-4 w-4 text-fg-subtle transition-colors group-hover:text-fg" />
-                </div>
-                <h3 className="mt-4 text-base font-semibold text-fg-strong">
-                  {title}
-                </h3>
-                <p className="mt-1 text-sm leading-relaxed text-fg-muted">
-                  {body}
-                </p>
+                <Card hoverable size="small" styles={{ body: { padding: 20 } }}>
+                  <Flex align="flex-start" justify="space-between">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-canvas-2">
+                      <Icon className="h-5 w-5 text-fg-muted" />
+                    </span>
+                    <ArrowUpRight className="h-4 w-4 text-fg-subtle" />
+                  </Flex>
+                  <h3 className="mt-4 text-base font-semibold text-fg-strong">
+                    {title}
+                  </h3>
+                  <p className="mt-1 text-sm leading-relaxed text-fg-muted">
+                    {body}
+                  </p>
+                </Card>
               </a>
             ))}
           </div>

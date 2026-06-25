@@ -2,7 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { GridLoader, type Theme } from "@captureflow/ui";
+import { Spin } from "antd";
+import { type Theme } from "@captureflow/ui";
 import { useRouter } from "next/navigation";
 import type { ShareConfig } from "@/lib/share-config";
 import type { ShareState, ShareVisibility } from "@/lib/shares-db";
@@ -79,7 +80,7 @@ export function ShareEditor(props: ShareEditorProps) {
 function PreparingShare() {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-sm text-neutral-300">
-      <GridLoader size={9} className="text-blue-300" />
+      <Spin size="large" />
       <p className="font-medium">Preparing share…</p>
       <p className="text-xs text-neutral-500">
         The recording is still uploading. This page will refresh automatically

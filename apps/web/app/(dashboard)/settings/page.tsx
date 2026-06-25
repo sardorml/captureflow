@@ -1,16 +1,9 @@
 import { getWorkspaceById } from "@captureflow/quota";
 import { redirect } from "next/navigation";
+import { Card, Divider, Flex } from "antd";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@captureflow/ui";
-import { Separator } from "@captureflow/ui";
 import { PageHeader } from "../PageHeader";
 import { WorkspaceNameForm } from "./WorkspaceNameForm";
 import { WorkspaceLogoForm } from "./WorkspaceLogoForm";
@@ -48,58 +41,37 @@ export default async function WorkspaceSettingsPage() {
         subtitle="Branding, sharing policies, and content access."
         showRecord={false}
       />
-      <div className="mt-6 space-y-8">
-        <Section
+      <Flex vertical gap={24} style={{ marginTop: 24 }}>
+        <Card
           title="General"
-          description="Settings applied to every new recording and snap in this workspace."
+          extra={
+            <span className="text-sm text-fg-muted">
+              Applied to every new recording and snap in this workspace.
+            </span>
+          }
         >
           <WorkspaceNameForm initialName={workspace.name} />
           <Divider />
           <WorkspaceLogoForm logoUrl={logoUrl} workspaceName={workspace.name} />
-        </Section>
+        </Card>
 
-        <Section
-          title="Access & viewing"
-          description="Control whether content from this workspace can leave the team."
-        >
+        <Card title="Access & viewing">
+          <p className="mb-4 text-sm text-fg-muted">
+            Control whether content from this workspace can leave the team.
+          </p>
           <AccessPolicy allowPublicLinks={workspace.allow_public_links} />
-        </Section>
+        </Card>
 
-        <Section
-          title="Recording access"
-          description="Decide whether teammates can post recordings + snaps into this workspace."
-        >
+        <Card title="Recording access">
+          <p className="mb-4 text-sm text-fg-muted">
+            Decide whether teammates can post recordings + snaps into this
+            workspace.
+          </p>
           <MemberUploadsPolicy
             allowMemberUploads={workspace.allow_member_uploads}
           />
-        </Section>
-      </div>
+        </Card>
+      </Flex>
     </>
   );
-}
-
-function Section({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl border border-line bg-neutral-900 p-6">
-      <div className="mb-5">
-        <h2 className="text-base font-semibold tracking-tight text-neutral-100">
-          {title}
-        </h2>
-        <p className="mt-1 text-sm text-neutral-500">{description}</p>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function Divider() {
-  return <div className="my-5 h-px bg-overlay" />;
 }

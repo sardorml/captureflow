@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState, useRef } from "react";
-import { initials } from "@/lib/format";
 import { Upload } from "lucide-react";
+import { Avatar, Button, Flex, Typography } from "antd";
+import { initials } from "@/lib/format";
 import {
   removeWorkspaceLogoAction,
   uploadWorkspaceLogoAction,
@@ -30,64 +31,55 @@ export function WorkspaceLogoForm({
   };
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
-      <div className="flex-1">
-        <p className="text-sm font-medium text-neutral-200">Workspace logo</p>
-        <p className="mt-1 text-xs text-neutral-500">
+    <Flex gap={24} wrap align="flex-start" justify="space-between">
+      <Flex vertical gap={4} flex={1} style={{ minWidth: 240 }}>
+        <Typography.Text strong>Workspace logo</Typography.Text>
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
           Shown next to your workspace name. PNG, JPEG, WebP, GIF, or SVG. Max 2
           MB.
-        </p>
-      </div>
-      <div className="flex w-full max-w-sm items-center gap-4">
-        {logoUrl ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={logoUrl}
-            alt={`${workspaceName} logo`}
-            className="h-14 w-14 shrink-0 rounded-lg object-cover ring-1 ring-line-strong"
-          />
-        ) : (
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-neutral-800 text-base font-semibold text-neutral-300 ring-1 ring-line-strong">
-            {initials(workspaceName)}
-          </span>
-        )}
-        <div className="flex flex-1 flex-col items-stretch gap-2">
+        </Typography.Text>
+      </Flex>
+      <Flex align="center" gap={16} style={{ width: "100%", maxWidth: 384 }}>
+        <Avatar shape="square" size={56} src={logoUrl ?? undefined}>
+          {initials(workspaceName)}
+        </Avatar>
+        <Flex vertical gap={8} flex={1} align="stretch">
           <form action={formAction}>
             <input
               ref={fileRef}
               type="file"
               name="logo"
               accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-              className="hidden"
+              style={{ display: "none" }}
               onChange={submitOnChange}
             />
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
+            <Flex gap={8} align="center" justify="flex-end">
+              <Button
+                icon={<Upload size={14} />}
+                loading={pending}
                 onClick={() => fileRef.current?.click()}
-                disabled={pending}
-                className="inline-flex items-center gap-1.5 rounded-md border border-line bg-canvas-2 px-3 py-1.5 text-sm text-fg transition-colors hover:border-line-strong hover:bg-overlay hover:text-fg-strong disabled:opacity-50"
               >
-                <Upload className="h-3.5 w-3.5" />
                 {pending ? "Uploading…" : logoUrl ? "Replace" : "Upload logo"}
-              </button>
+              </Button>
               {logoUrl && (
                 <form action={removeWorkspaceLogoAction}>
-                  <button
-                    type="submit"
-                    className="rounded-md px-2 py-1.5 text-xs text-fg-muted transition-colors hover:bg-danger-soft hover:text-danger"
-                  >
+                  <Button type="text" danger htmlType="submit" size="small">
                     Remove
-                  </button>
+                  </Button>
                 </form>
               )}
-            </div>
+            </Flex>
           </form>
           {state.error && (
-            <p className="text-right text-xs text-red-400">{state.error}</p>
+            <Typography.Text
+              type="danger"
+              style={{ fontSize: 12, textAlign: "right" }}
+            >
+              {state.error}
+            </Typography.Text>
           )}
-        </div>
-      </div>
-    </div>
+        </Flex>
+      </Flex>
+    </Flex>
   );
 }
