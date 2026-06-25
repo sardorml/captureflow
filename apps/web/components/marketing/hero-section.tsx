@@ -8,7 +8,7 @@ import { CURRENT_STAGE } from "@/lib/marketing/constants";
 import { SOURCE_REPO_URL } from "@/lib/site";
 import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
-import { AppleLogo, ChromeLogo } from "./platform-logos";
+import { AppleLogo, ChromeLogo, FirefoxLogo } from "./platform-logos";
 import { RecorderMockup } from "./recorder-mockup";
 import { HaloEffect } from "./halo-effect";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
@@ -111,10 +111,6 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                         track("marketing_cta_clicked", { location: "hero" })
                       }
                     >
-                      <span className="flex items-center gap-1.5">
-                        <AppleLogo className="size-5" />
-                        <ChromeLogo className="size-5" />
-                      </span>
                       {m.hero.ctaLabel}
                     </a>
                   </CtaButton>
@@ -146,9 +142,17 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
                     )}
                   </a>
                 </div>
-                <p className="mt-6 animate-fade-in text-sm text-muted-foreground animation-delay-500">
-                  {m.hero.ctaSupport}
-                </p>
+                <div className="mt-6 flex animate-fade-in flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground animation-delay-500">
+                  <span className="inline-flex items-center gap-1.5">
+                    <AppleLogo className="size-4" /> macOS
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <ChromeLogo className="size-4" /> Chrome
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <FirefoxLogo className="size-4" /> Firefox
+                  </span>
+                </div>
               </>
             ) : (
               <div className="mt-4 flex animate-fade-in-up justify-center animation-delay-400">
