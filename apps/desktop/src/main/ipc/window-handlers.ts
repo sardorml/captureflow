@@ -1,5 +1,6 @@
 import { ipcMain, BrowserWindow, dialog, nativeImage, screen } from "electron";
 import { IPC_CHANNELS } from "../../shared/types";
+import { shouldProtectCaptureChrome } from "../lib/demo-capture";
 import iconAsset from "../../../resources/icon.png?asset";
 
 let overlayWindow: BrowserWindow | null = null;
@@ -39,7 +40,7 @@ function showDimOverlay(
     webPreferences: { nodeIntegration: true, contextIsolation: false },
   });
 
-  dimWindow.setContentProtection(true);
+  dimWindow.setContentProtection(shouldProtectCaptureChrome());
   dimWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   // screen-saver level + panel type is what draws over the menu bar.
   // Recording controls sit at relativeLevel +1, so the dim stays at +0.
@@ -136,7 +137,7 @@ function createOverlayWindow(): BrowserWindow {
     },
   });
 
-  overlay.setContentProtection(true);
+  overlay.setContentProtection(shouldProtectCaptureChrome());
   overlay.setVisibleOnAllWorkspaces(true);
   // Stay one level above the recording dim (also at 'screen-saver') so the
   // controls bar floats over the dim instead of being hidden by it.

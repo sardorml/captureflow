@@ -70,6 +70,7 @@ import {
 import { logInfo, logWarn, logError, getLogDirPath } from "./lib/logger";
 import { loadUserPrefs } from "./lib/user-prefs";
 import { loadDeviceId } from "./lib/device-id";
+import { shouldProtectCaptureChrome } from "./lib/demo-capture";
 import { initAutoUpdater } from "./lib/auto-updater";
 // Side-effect import: registers the recording-failure modal's IPC handler.
 // The open call lives in recording-stream-handlers when an upload can't recover.
@@ -1464,7 +1465,7 @@ app.whenReady().then(async () => {
 
         webcamBubbleWindow.setVisibleOnAllWorkspaces(true);
         webcamBubbleWindow.setAlwaysOnTop(true, "screen-saver", 1);
-        webcamBubbleWindow.setContentProtection(true);
+        webcamBubbleWindow.setContentProtection(shouldProtectCaptureChrome());
         webcamBubbleWindow.setMovable(true);
 
         webcamBubbleWindow.on("closed", () => {
