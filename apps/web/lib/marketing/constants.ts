@@ -140,12 +140,6 @@ export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
         free: true,
         monthly: true,
       },
-      { label: "Recording quality", free: "Up to 4K", monthly: "Up to 4K" },
-      {
-        label: "Export formats",
-        free: "MP4, GIF, WebM",
-        monthly: "MP4, GIF, WebM",
-      },
       { label: "Annotated Screenshots", free: true, monthly: true },
       { label: "Workspaces & teammate invites", free: true, monthly: true },
       { label: "Commercial usage", free: true, monthly: true },
@@ -375,6 +369,12 @@ export const ROADMAP_GROUPS = [
     items: [
       {
         label: "Chrome extension",
+        description:
+          "Record and share straight from the browser — no desktop install.",
+        category: "Core",
+      },
+      {
+        label: "Firefox extension",
         description:
           "Record and share straight from the browser — no desktop install.",
         category: "Core",

@@ -1,34 +1,43 @@
 "use client";
 
+import type { ReactNode } from "react";
+import { Button, Flex, Typography } from "antd";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
+
+const { Title, Paragraph } = Typography;
 
 export function SectionHeader({
   title,
   children,
-  textClassName = "max-w-sm",
+  textClassName,
 }: {
-  title: React.ReactNode;
-  children: React.ReactNode;
+  title: ReactNode;
+  children: ReactNode;
   textClassName?: string;
 }) {
   const m = useMessages();
   const lh = useLocalizedHref();
   return (
-    <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-      <div className={textClassName}>
-        <h2 className="font-heading text-[28px] font-semibold leading-[1.1] tracking-tight sm:text-[32px] lg:text-[40px]">
+    <Flex
+      gap={24}
+      vertical
+      className="sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div className={textClassName ?? "max-w-sm"}>
+        <Title level={2} style={{ marginBottom: 12 }}>
           {title}
-        </h2>
-        <p className="mt-3 text-base font-normal leading-[1.4] tracking-[-0.01em] text-[#090c14]">
+        </Title>
+        <Paragraph type="secondary" style={{ marginBottom: 0 }}>
           {children}
-        </p>
+        </Paragraph>
       </div>
-      <a
+      <Button
+        type="primary"
         href={lh("/download")}
-        className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center self-start rounded-lg bg-neutral-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 sm:self-auto"
+        className="self-start sm:self-auto"
       >
         {m.sectionHeader.cta}
-      </a>
-    </div>
+      </Button>
+    </Flex>
   );
 }

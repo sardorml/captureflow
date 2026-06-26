@@ -12,6 +12,7 @@ import {
   Radio,
   Result,
   Typography,
+  theme,
 } from "antd";
 import { FEATURE_CATEGORIES, SUPPORT_EMAIL } from "@/lib/marketing/constants";
 
@@ -28,6 +29,7 @@ type FormValues = {
 };
 
 export function SuggestFeatureClient() {
+  const { token } = theme.useToken();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -65,13 +67,17 @@ export function SuggestFeatureClient() {
     <Flex
       align="center"
       justify="center"
-      className="bg-canvas text-fg"
-      style={{ minHeight: "100vh", padding: 24 }}
+      style={{
+        minHeight: "100vh",
+        padding: 24,
+        background: token.colorBgLayout,
+        color: token.colorText,
+      }}
     >
       <Card style={{ width: "100%", maxWidth: 640 }}>
         {submitted ? (
           <Result
-            icon={<Lightbulb size={48} color="#faad14" />}
+            icon={<Lightbulb size={48} color={token.colorWarning} />}
             title="Idea received!"
             subTitle="Thanks for sharing your idea. I read every suggestion."
             extra={

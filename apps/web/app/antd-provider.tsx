@@ -46,6 +46,13 @@ export function AntdProvider({
             mode === "dark"
               ? antdTheme.darkAlgorithm
               : antdTheme.defaultAlgorithm,
+          token: {
+            colorPrimary: "#2563eb",
+            colorLink: "#2563eb",
+            borderRadius: 8,
+            fontFamily:
+              'var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+          },
         }}
       >
         {children}

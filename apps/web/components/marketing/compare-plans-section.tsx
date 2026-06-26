@@ -1,275 +1,133 @@
 "use client";
 
-import { Icon } from "@/components/ui/icon";
-import { COMPARE_SECTIONS, CURRENT_STAGE } from "@/lib/marketing/constants";
+import type { ReactNode } from "react";
+import { Table, theme, Typography } from "antd";
+import type { ColumnsType } from "antd/es/table";
+import { Check, Minus } from "lucide-react";
+import {
+  type CompareCell,
+  COMPARE_SECTIONS,
+  CURRENT_STAGE,
+} from "@/lib/marketing/constants";
+import { MarketingSection, SectionHeading } from "./_shared";
 import { useMessages } from "./i18n-provider";
 
-const COLUMNS = [
-  { key: "free" as const, label: "Self-Hosted", accent: "text-neutral-600" },
-  {
-    key: "monthly" as const,
-    label: "CaptureFlow Managed",
-    accent: "text-neutral-900",
-  },
-];
+type CellData = { raw: CompareCell; text: string };
 
-const TICK_COLOR = "#3aa655";
-
-const PRO_TITLE_STYLE: React.CSSProperties = {
-  fontFamily: "var(--font-inter)",
-  fontWeight: 700,
-};
+// One row per feature, plus a spanning "section" row before each group so the
+// whole comparison is ONE table with ONE header (not a header per section).
+type CompareRow =
+  | { key: string; section: true; label: string }
+  | {
+      key: string;
+      section?: false;
+      label: string;
+      free: CellData;
+      monthly: CellData;
+    };
 
 export function ComparePlansSection() {
   const m = useMessages();
+  const { token } = theme.useToken();
   if (!CURRENT_STAGE.showPricingSection) return null;
   const compare = m.pricing.compare;
-  const columnLabels: Record<(typeof COLUMNS)[number]["key"], string> = {
-    free: compare.freeColumn,
-    monthly: compare.proColumn,
+
+  // Booleans render a centered icon with the a11y label on the wrapper (NOT a
+  // separate text node, which would shift the icon off-center). width:100% +
+  // center keeps the glyph dead-centre in the column.
+  const renderCell = (cell?: CellData): ReactNode => {
+    if (!cell) return null;
+    if (typeof cell.raw === "string") return cell.text;
+    const included = cell.raw === true;
+    return (
+      <span
+        role="img"
+        aria-label={included ? compare.includedAria : compare.notIncludedAria}
+        style={{
+          display: "flex",
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {included ? (
+          <Check size={16} color={token.colorSuccess} aria-hidden />
+        ) : (
+          <Minus size={16} color={token.colorTextQuaternary} aria-hidden />
+        )}
+      </span>
+    );
   };
+
+  const dataSource: CompareRow[] = [];
+  COMPARE_SECTIONS.forEach((section, sectionIndex) => {
+    const localized = compare.sections[sectionIndex];
+    dataSource.push({
+      key: `section-${sectionIndex}`,
+      section: true,
+      label: localized.title,
+    });
+    section.rows.forEach((row, i) => {
+      dataSource.push({
+        key: `row-${sectionIndex}-${i}`,
+        label: localized.rows[i].label,
+        free: { raw: row.free, text: localized.rows[i].free },
+        monthly: { raw: row.monthly, text: localized.rows[i].pro },
+      });
+    });
+  });
+
+  const columns: ColumnsType<CompareRow> = [
+    {
+      title: compare.featureColumn,
+      dataIndex: "label",
+      width: "44%",
+      onCell: (record) =>
+        record.section
+          ? { colSpan: 3, style: { background: token.colorFillSecondary } }
+          : {},
+      render: (label: string, record) =>
+        record.section ? (
+          <Typography.Text strong>{label}</Typography.Text>
+        ) : (
+          label
+        ),
+    },
+    {
+      title: compare.freeColumn,
+      dataIndex: "free",
+      align: "center",
+      width: "28%",
+      onCell: (record) => (record.section ? { colSpan: 0 } : {}),
+      render: (cell: CellData) => renderCell(cell),
+    },
+    {
+      // Managed is the recommended plan — emphasized via the header label.
+      title: (
+        <span style={{ color: token.colorPrimary }}>{compare.proColumn}</span>
+      ),
+      dataIndex: "monthly",
+      align: "center",
+      width: "28%",
+      onCell: (record) => (record.section ? { colSpan: 0 } : {}),
+      render: (cell: CellData) => renderCell(cell),
+    },
+  ];
+
   return (
-    <section className="py-12 sm:py-16">
-      <div className="mx-auto max-w-5xl px-6">
-        <h2 className="text-center font-heading text-[28px] font-semibold leading-[1.1] tracking-tight sm:text-[32px] lg:text-[40px]">
-          {compare.heading}
-        </h2>
-        <p className="mt-3 text-center text-base font-normal leading-[1.4] tracking-[-0.01em] text-[#090c14]">
-          {compare.subtitle}
-        </p>
-
-        <div className="relative mt-10 hidden sm:block">
-          {/* Highlight overlay uses the same grid template + padding as the rows
-              so its third cell lines up with the Managed column. */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 grid grid-cols-[1.6fr_repeat(2,1fr)] px-2 sm:px-3"
-          >
-            <div />
-            <div />
-            <div className="rounded-2xl bg-blue-200" />
-          </div>
-
-          {/* Layout stays a CSS grid (the overlay depends on it), so table
-              semantics come from ARIA roles. */}
-          <p id="compare-plans-caption" className="sr-only">
-            {compare.heading}
-          </p>
-          <div
-            className="relative"
-            role="table"
-            aria-labelledby="compare-plans-caption"
-          >
-            <div
-              role="row"
-              className="grid grid-cols-[1.6fr_repeat(2,1fr)] border-b border-black/10 px-2 py-4 text-sm sm:px-3 sm:py-5"
-            >
-              <div
-                role="columnheader"
-                className="font-semibold text-neutral-900"
-              >
-                {compare.featureColumn}
-              </div>
-              {COLUMNS.map((col) => (
-                <div
-                  key={col.key}
-                  role="columnheader"
-                  className={`text-center font-semibold ${col.accent}`}
-                >
-                  {columnLabels[col.key]}
-                </div>
-              ))}
-            </div>
-
-            {COMPARE_SECTIONS.map((section, sectionIndex) => (
-              <div key={section.title} role="rowgroup">
-                <div
-                  role="row"
-                  className="grid grid-cols-[1.6fr_repeat(2,1fr)] px-2 pt-6 pb-2 sm:px-3"
-                >
-                  <div
-                    role="rowheader"
-                    aria-colspan={3}
-                    className="inline-block text-base tracking-wide text-neutral-900"
-                    style={PRO_TITLE_STYLE}
-                  >
-                    {compare.sections[sectionIndex].title}
-                  </div>
-                  <div className="col-span-2" aria-hidden />
-                </div>
-                {section.rows.map((row, i) => (
-                  <div
-                    key={row.label}
-                    role="row"
-                    className={`grid grid-cols-[1.6fr_repeat(2,1fr)] items-center px-2 py-3.5 text-sm sm:px-3 ${
-                      i !== section.rows.length - 1
-                        ? "border-b border-black/5"
-                        : ""
-                    }`}
-                  >
-                    <div role="rowheader" className="pr-4 text-neutral-900">
-                      {compare.sections[sectionIndex].rows[i].label}
-                    </div>
-                    {COLUMNS.map((col) => {
-                      const value = row[col.key];
-                      const localizedValue =
-                        compare.sections[sectionIndex].rows[i][
-                          col.key === "free" ? "free" : "pro"
-                        ];
-                      return (
-                        <div
-                          key={col.key}
-                          role="cell"
-                          className="flex items-center justify-center"
-                        >
-                          <Cell
-                            value={value}
-                            localizedValue={localizedValue}
-                            includedAria={compare.includedAria}
-                            notIncludedAria={compare.notIncludedAria}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-8 sm:hidden">
-          {COMPARE_SECTIONS.map((section, sectionIndex) => (
-            <div key={section.title} className="mb-8 last:mb-0">
-              <h3
-                className="mb-3 text-base tracking-wide text-neutral-900"
-                style={PRO_TITLE_STYLE}
-              >
-                {compare.sections[sectionIndex].title}
-              </h3>
-              <div className="flex flex-col gap-5">
-                {section.rows.map((row, i) => (
-                  <div key={row.label}>
-                    <div className="mb-2 text-sm font-semibold text-neutral-900">
-                      {compare.sections[sectionIndex].rows[i].label}
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <MobileRow
-                        plan={compare.freeColumn}
-                        value={row.free}
-                        localizedValue={
-                          compare.sections[sectionIndex].rows[i].free
-                        }
-                        includedAria={compare.includedAria}
-                        notIncludedAria={compare.notIncludedAria}
-                      />
-                      <MobileRow
-                        plan={compare.proColumn}
-                        value={row.monthly}
-                        localizedValue={
-                          compare.sections[sectionIndex].rows[i].pro
-                        }
-                        includedAria={compare.includedAria}
-                        notIncludedAria={compare.notIncludedAria}
-                        highlight
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+    <MarketingSection>
+      <SectionHeading title={compare.heading} subtitle={compare.subtitle} />
+      <div style={{ maxWidth: 960, marginInline: "auto" }}>
+        <Table<CompareRow>
+          columns={columns}
+          dataSource={dataSource}
+          rowKey="key"
+          pagination={false}
+          size="middle"
+          tableLayout="fixed"
+          scroll={{ x: 560 }}
+        />
       </div>
-    </section>
-  );
-}
-
-function MobileRow({
-  plan,
-  value,
-  localizedValue,
-  includedAria,
-  notIncludedAria,
-  highlight = false,
-}: {
-  plan: string;
-  value: boolean | string;
-  localizedValue: string;
-  includedAria: string;
-  notIncludedAria: string;
-  highlight?: boolean;
-}) {
-  return (
-    <div
-      className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 ${
-        highlight ? "bg-blue-100" : "bg-neutral-100"
-      }`}
-    >
-      <span
-        className={`shrink-0 text-xs font-medium ${
-          highlight ? "text-neutral-700" : "text-neutral-500"
-        }`}
-      >
-        {plan}
-      </span>
-      {typeof value === "string" ? (
-        <span className="text-right text-sm font-semibold text-neutral-900">
-          {localizedValue}
-        </span>
-      ) : value ? (
-        <span
-          className="flex size-5 items-center justify-center"
-          style={{ color: TICK_COLOR }}
-        >
-          <Icon name="check" size={18} weight={700} />
-          <span className="sr-only">{includedAria}</span>
-        </span>
-      ) : (
-        <span className="text-neutral-500">
-          <span aria-hidden>—</span>
-          <span className="sr-only">{notIncludedAria}</span>
-        </span>
-      )}
-    </div>
-  );
-}
-
-function Cell({
-  value,
-  localizedValue,
-  includedAria,
-  notIncludedAria,
-}: {
-  value: boolean | string;
-  localizedValue: string;
-  includedAria: string;
-  notIncludedAria: string;
-}) {
-  if (typeof value === "string") {
-    return (
-      <span className="text-center text-sm font-medium text-neutral-900">
-        {localizedValue}
-      </span>
-    );
-  }
-  // Glyphs are aria-hidden, so each cell carries an sr-only text alternative —
-  // more reliable than aria-label on a generic <span>.
-  if (value) {
-    return (
-      <span
-        className="flex size-5 items-center justify-center"
-        style={{ color: TICK_COLOR }}
-      >
-        <Icon name="check" size={16} />
-        <span className="sr-only">{includedAria}</span>
-      </span>
-    );
-  }
-  return (
-    <span className="text-neutral-600">
-      <span aria-hidden>—</span>
-      <span className="sr-only">{notIncludedAria}</span>
-    </span>
+    </MarketingSection>
   );
 }

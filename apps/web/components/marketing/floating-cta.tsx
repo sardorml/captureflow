@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Button, Flex, theme, Typography } from "antd";
 import { track } from "@/lib/marketing/track";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
+
+const { Text } = Typography;
 
 export function FloatingCta() {
   const [visible, setVisible] = useState(false);
   const lh = useLocalizedHref();
   const m = useMessages();
+  const { token } = theme.useToken();
 
   useEffect(() => {
     const sentinel = document.getElementById("hero-end");
@@ -26,36 +30,64 @@ export function FloatingCta() {
     <div
       aria-hidden={!visible}
       inert={!visible}
-      className={`fixed bottom-[4.5rem] left-1/2 z-50 -translate-x-1/2 transition-all duration-300 ease-out max-sm:hidden ${
-        visible
-          ? "translate-y-0 opacity-100"
-          : "pointer-events-none translate-y-[180%] opacity-0"
-      }`}
+      className="max-sm:hidden"
+      style={{
+        position: "fixed",
+        bottom: 72,
+        left: "50%",
+        zIndex: 50,
+        transition: "transform 300ms ease-out, opacity 300ms ease-out",
+        transform: visible
+          ? "translateX(-50%) translateY(0)"
+          : "translateX(-50%) translateY(180%)",
+        opacity: visible ? 1 : 0,
+        pointerEvents: visible ? "auto" : "none",
+      }}
     >
-      <div className="flex items-center gap-3 rounded-full bg-gradient-to-r from-blue-300 via-blue-200 to-blue-300 py-1.5 pl-2 pr-1.5 sm:gap-5 sm:py-2 sm:pl-2.5 sm:pr-2">
+      <Flex
+        align="center"
+        gap={token.marginMD}
+        style={{
+          backgroundColor: token.colorBgContainer,
+          boxShadow: token.boxShadowSecondary,
+          // Concentric with the logo: its 11px radius + the 4px inset padding.
+          borderRadius: 15,
+          border: `1px solid ${token.colorBorderSecondary}`,
+          paddingTop: token.paddingXXS,
+          paddingBottom: token.paddingXXS,
+          paddingLeft: token.paddingXXS,
+          paddingRight: token.paddingXS,
+        }}
+      >
         <Image
-          src="/logo-round.png"
+          src="/logo.png"
           alt=""
           width={56}
           height={56}
-          className="size-10 rounded-full sm:size-12"
+          style={{ width: 48, height: 48, borderRadius: 11 }}
           draggable={false}
           unoptimized
         />
-        <span className="hidden text-lg font-semibold text-neutral-900 sm:inline">
+        <Text
+          strong
+          className="max-sm:hidden"
+          style={{ fontSize: token.fontSizeLG, color: token.colorText }}
+        >
           {m.floatingCta.tagline}
-        </span>
-        <a
+        </Text>
+        <Button
+          type="primary"
+          size="large"
+          style={{ borderRadius: 11 }}
           href={lh("/download")}
           tabIndex={visible ? 0 : -1}
           onClick={() =>
             track("marketing_cta_clicked", { location: "floating" })
           }
-          className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full bg-neutral-900 px-5 text-base font-semibold text-white transition-colors hover:bg-neutral-800 sm:h-14 sm:px-8 sm:text-lg"
         >
           {m.floatingCta.button}
-        </a>
-      </div>
+        </Button>
+      </Flex>
     </div>
   );
 }

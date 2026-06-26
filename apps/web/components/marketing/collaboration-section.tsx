@@ -2,9 +2,28 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Sparkle } from "lucide-react";
-import { Icon } from "@/components/ui/icon";
-import { SectionHeader } from "./section-header";
+import { Card, Col, Collapse, Row, theme, Typography } from "antd";
+import {
+  ArrowUp,
+  ArrowUpRight,
+  Camera,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Droplets,
+  Globe,
+  Image as ImageIcon,
+  Link2,
+  Lock,
+  Plus,
+  RefreshCw,
+  Scan,
+  Sparkle,
+  Square,
+  Type as TypeIcon,
+  Users,
+} from "lucide-react";
+import { MarketingSection, SectionHeading } from "./_shared";
 import { DemoStage } from "./demo-stage";
 import { useMessages } from "./i18n-provider";
 
@@ -26,6 +45,8 @@ type Category = {
   title: string;
   features: Feature[];
 };
+
+const ORDER: ReadonlyArray<string> = ["share", "screenshot", "workspaces"];
 
 const SHARE_URLS: Record<ShareKey, string> = {
   editor: "captureflow.xyz/s/8kx2pnq4",
@@ -122,18 +143,17 @@ const CATEGORIES: Category[] = [
 
 export function CollaborationSection() {
   const m = useMessages();
-  const [activeCat, setActiveCat] = useState(0);
+  const [activeKey, setActiveKey] = useState<string>("share");
 
   useEffect(() => {
     const sync = () => {
       const hash = window.location.hash.replace("#", "");
-      const idx = CATEGORIES.findIndex((c) => c.id === hash);
-      if (idx < 0) return;
-      setActiveCat(idx);
+      if (!ORDER.includes(hash)) return;
+      setActiveKey(hash);
       /*
-       * The target row drifts upward as the previously-open row collapses (0.45s
-       * animation), so follow it each frame instead of a single scroll that
-       * would overshoot or read as a scroll-back.
+       * The target row drifts upward as the previously-open row collapses, so
+       * follow it each frame instead of a single scroll that would overshoot or
+       * read as a scroll-back.
        */
       const el = document.getElementById(hash);
       if (!el) return;
@@ -149,225 +169,162 @@ export function CollaborationSection() {
     return () => window.removeEventListener("hashchange", sync);
   }, []);
 
-  return (
-    <section
-      id="collaboration"
-      className="relative scroll-mt-24 py-16 sm:py-20"
-    >
-      <div className="mx-auto max-w-7xl px-5 sm:px-10">
-        <SectionHeader
-          textClassName="sm:max-w-xl"
-          title={
-            <span className="sm:whitespace-nowrap">
-              {m.collaboration.header.title}
-            </span>
-          }
+  const items = CATEGORIES.map((cat) => {
+    const catTitle = m.collaboration.categories[cat.kind].title;
+    return {
+      key: cat.kind,
+      label: (
+        <span
+          id={cat.id}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 16,
+            scrollMarginTop: 112,
+          }}
         >
-          {m.collaboration.header.subtitle}
-        </SectionHeader>
-
-        <div className="mt-12 flex flex-col sm:mt-14">
-          {CATEGORIES.map((cat, i) => (
-            <AccordionRow
-              key={cat.id}
-              cat={cat}
-              isActive={i === activeCat}
-              // Suppress the divider when the active card sits directly below,
-              // else it paints across the card's rounded top edge.
-              nextActive={i + 1 === activeCat}
-              onActivate={() => setActiveCat(i)}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function AccordionRow({
-  cat,
-  isActive,
-  nextActive,
-  onActivate,
-}: {
-  cat: Category;
-  isActive: boolean;
-  nextActive: boolean;
-  onActivate: () => void;
-}) {
-  const m = useMessages();
-  const catTitle = m.collaboration.categories[cat.kind].title;
-  const [featureKey, setFeatureKey] = useState(cat.features[0].key);
-  const panelId = `${cat.id}-panel`;
-
-  const numberClass =
-    "max-sm:hidden w-8 shrink-0 font-heading text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 sm:w-9 sm:text-[26px]";
-  const titleClass =
-    "font-heading text-2xl font-semibold tracking-tight text-neutral-900 sm:text-[26px]";
-
-  return (
-    <div
-      id={cat.id}
-      className={`scroll-mt-28 overflow-hidden transition-colors duration-300 ${
-        isActive ? "rounded-[2rem] bg-blue-100" : ""
-      }`}
-    >
-      {!isActive && (
-        <button
-          type="button"
-          onClick={onActivate}
-          aria-expanded={isActive}
-          aria-controls={panelId}
-          className={`flex w-full cursor-pointer items-center gap-16 px-5 py-6 text-left transition-opacity hover:opacity-60 sm:gap-60 sm:px-9 sm:py-7 ${
-            nextActive ? "" : "border-b border-black/[0.08]"
-          }`}
-        >
-          <span className={numberClass}>{cat.num}</span>
-          <span className={`flex-1 ${titleClass}`}>{catTitle}</span>
-          <Icon
-            name="add"
-            size={28}
-            weight={600}
-            className="shrink-0 text-neutral-900"
-          />
-        </button>
-      )}
-
-      <AnimatePresence initial={false}>
-        {isActive && (
-          <motion.div
-            key="content"
-            id={panelId}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden"
+          <Typography.Text
+            type="secondary"
+            style={{ fontVariantNumeric: "tabular-nums", fontWeight: 600 }}
           >
-            <div className="px-5 py-6 sm:px-9 sm:py-9">
-              <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] lg:gap-12">
-                <div className="flex min-w-0 flex-col gap-y-10">
-                  {/* Still a real disclosure toggle: the collapsed <button>
-                      unmounts while open, so AT always finds one whose
-                      aria-expanded reflects state. */}
-                  <button
-                    type="button"
-                    onClick={onActivate}
-                    aria-expanded={isActive}
-                    aria-controls={panelId}
-                    className="flex items-center gap-16 text-left sm:gap-60"
-                  >
-                    <span className={numberClass}>{cat.num}</span>
-                    <span className={`max-sm:ms-6 ${titleClass}`}>
-                      {catTitle}
-                    </span>
-                  </button>
-                  <FeatureList
-                    cat={cat}
-                    featureKey={featureKey}
-                    setFeatureKey={setFeatureKey}
-                  />
-                </div>
+            {cat.num}
+          </Typography.Text>
+          <Typography.Text strong style={{ fontSize: 18 }}>
+            {catTitle}
+          </Typography.Text>
+        </span>
+      ),
+      children: <CategoryPanel cat={cat} />,
+    };
+  });
 
-                <div className="w-full min-w-0 self-start">
-                  <ScaledMockup>
-                    {cat.kind === "share" && (
-                      <ShareFrame activeKey={featureKey as ShareKey} />
-                    )}
-                    {cat.kind === "screenshot" && (
-                      <ScreenshotFrame
-                        activeKey={featureKey as ScreenshotKey}
-                      />
-                    )}
-                    {cat.kind === "workspaces" && (
-                      <WorkspaceCard
-                        visibility={featureKey as VisibilityKey}
-                        onVisibilityChange={setFeatureKey}
-                      />
-                    )}
-                  </ScaledMockup>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+  return (
+    <MarketingSection id="collaboration" style={{ scrollMarginTop: 96 }}>
+      <SectionHeading
+        title={m.collaboration.header.title}
+        subtitle={m.collaboration.header.subtitle}
+      />
+      <Collapse
+        accordion
+        size="large"
+        expandIconPlacement="end"
+        activeKey={activeKey}
+        onChange={(key) => {
+          const next = Array.isArray(key) ? key[0] : key;
+          if (next) setActiveKey(next);
+        }}
+        items={items}
+      />
+    </MarketingSection>
   );
 }
 
-function FeatureList({
-  cat,
-  featureKey,
-  setFeatureKey,
-}: {
-  cat: Category;
-  featureKey: string;
-  setFeatureKey: (key: string) => void;
-}) {
+function CategoryPanel({ cat }: { cat: Category }) {
   const m = useMessages();
+  const { token } = theme.useToken();
   const featureCopy = m.collaboration.categories[cat.kind].features as Record<
     string,
     { title: string; linkText: string; body: string }
   >;
-  return (
-    <ul className="flex flex-col gap-4 sm:ps-[15.75rem]">
-      {cat.features.map((f) => {
-        const on = f.key === featureKey;
-        const copy = featureCopy[f.key];
-        return (
-          <li key={f.key}>
-            <button
-              type="button"
-              onClick={() => setFeatureKey(f.key)}
-              aria-pressed={on}
-              className="group flex w-full cursor-pointer items-center gap-2 text-left"
-            >
-              {/* Reserved gutter so titles stay aligned with or without the sparkle. */}
-              <span
-                className="flex w-4 shrink-0 justify-center"
-                aria-hidden="true"
-              >
-                {on && (
-                  <Sparkle
-                    size={16}
-                    fill="currentColor"
-                    strokeWidth={0}
-                    className="text-neutral-900"
-                  />
-                )}
-              </span>
-              <span
-                className={`text-sm font-semibold tracking-[-0.01em] transition-colors ${
-                  on
-                    ? "text-neutral-900 underline decoration-neutral-900 underline-offset-[3px]"
-                    : "text-neutral-900/80 group-hover:text-neutral-900"
-                }`}
-              >
-                {copy.title}
-              </span>
-            </button>
+  const [featureKey, setFeatureKey] = useState(cat.features[0].key);
 
-            <AnimatePresence initial={false}>
-              {on && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                  className="overflow-hidden"
+  return (
+    <Row gutter={[112, 32]} align="middle">
+      <Col xs={{ span: 24, order: 1 }} lg={{ span: 13, order: 2 }}>
+        <div>
+          {cat.features.map((f) => {
+            const on = f.key === featureKey;
+            const copy = featureCopy[f.key];
+            return (
+              <div key={f.key} style={{ padding: "6px 0" }}>
+                <button
+                  type="button"
+                  onClick={() => setFeatureKey(f.key)}
+                  aria-pressed={on}
+                  className="group flex w-full cursor-pointer items-center gap-2 text-left"
+                  style={{ background: "transparent", border: 0, padding: 0 }}
                 >
-                  <p className="ms-6 mt-1.5 max-w-md pb-8 text-sm leading-relaxed text-muted-foreground">
-                    <span className="text-neutral-900">{copy.linkText}</span>{" "}
-                    {copy.body}
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </li>
-        );
-      })}
-    </ul>
+                  <span
+                    className="flex w-4 shrink-0 justify-center"
+                    aria-hidden="true"
+                  >
+                    {on ? (
+                      <Sparkle
+                        size={16}
+                        fill="currentColor"
+                        strokeWidth={0}
+                        color={token.colorText}
+                      />
+                    ) : (
+                      <Check size={14} color={token.colorTextTertiary} />
+                    )}
+                  </span>
+                  <Typography.Text
+                    strong
+                    style={{
+                      color: on ? token.colorText : token.colorTextSecondary,
+                      textDecoration: on ? "underline" : "none",
+                      textUnderlineOffset: 3,
+                    }}
+                  >
+                    {copy.title}
+                  </Typography.Text>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {on && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <Typography.Paragraph
+                        type="secondary"
+                        style={{ maxWidth: 420, margin: "6px 0 8px 24px" }}
+                      >
+                        <span style={{ color: token.colorText }}>
+                          {copy.linkText}
+                        </span>{" "}
+                        {copy.body}
+                      </Typography.Paragraph>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+      </Col>
+
+      <Col xs={{ span: 24, order: 2 }} lg={{ span: 11, order: 1 }}>
+        <Card
+          styles={{ body: { padding: 0 } }}
+          style={{
+            overflow: "hidden",
+            borderRadius: 16,
+            maxWidth: MOCKUP_MAX_WIDTH,
+            marginInline: "auto",
+          }}
+        >
+          <ScaledMockup>
+            {cat.kind === "share" && (
+              <ShareFrame activeKey={featureKey as ShareKey} />
+            )}
+            {cat.kind === "screenshot" && (
+              <ScreenshotFrame activeKey={featureKey as ScreenshotKey} />
+            )}
+            {cat.kind === "workspaces" && (
+              <WorkspaceCard
+                visibility={featureKey as VisibilityKey}
+                onVisibilityChange={setFeatureKey}
+              />
+            )}
+          </ScaledMockup>
+        </Card>
+      </Col>
+    </Row>
   );
 }
 
@@ -383,6 +340,9 @@ const FADE = {
 // 11:8, so one reference box fits them all.
 const REF_WIDTH = 440;
 const REF_HEIGHT = (REF_WIDTH * 8) / 11;
+// The card (and the demo inside it) is capped to this width; the reference-sized
+// mockup scales up to fill it at full size and down on narrower screens.
+const MOCKUP_MAX_WIDTH = 500;
 
 // Scales the child down to the measured column width (capped at 1). Pure-CSS
 // scaling can't divide length-by-length, so the factor comes from a
@@ -394,7 +354,12 @@ function ScaledMockup({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const update = () => setScale(Math.min(1, el.clientWidth / REF_WIDTH));
+    // Fill the card width (the card is capped at MOCKUP_MAX_WIDTH), scaling the
+    // reference-sized mockup up to that cap and down on narrower screens.
+    const update = () =>
+      setScale(
+        Math.min(MOCKUP_MAX_WIDTH / REF_WIDTH, el.clientWidth / REF_WIDTH),
+      );
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
@@ -404,8 +369,9 @@ function ScaledMockup({ children }: { children: React.ReactNode }) {
   return (
     <div
       ref={ref}
-      className="relative mx-auto w-full max-w-[440px] overflow-hidden"
-      style={{ aspectRatio: "11 / 8" }}
+      dir="ltr"
+      className="relative w-full overflow-hidden"
+      style={{ aspectRatio: "11 / 8", maxWidth: MOCKUP_MAX_WIDTH }}
     >
       <div
         className="absolute left-0 top-0 origin-top-left"
@@ -482,30 +448,33 @@ function BrowserChrome({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mx-auto flex aspect-[11/8] w-full max-w-[440px] flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-black/10">
-      <div className="flex shrink-0 items-center gap-3 border-b border-black/[0.06] bg-neutral-50 px-3 py-2.5">
+    <div
+      dir="ltr"
+      className="flex aspect-[11/8] w-full flex-col overflow-hidden bg-white"
+    >
+      <div className="flex shrink-0 items-center gap-3 border-b border-black/[0.06] bg-[#fafafa] px-3 py-2.5">
         <div className="flex items-center gap-1.5">
           <span className="size-3 rounded-full bg-[#ff5f57]" />
           <span className="size-3 rounded-full bg-black/10" />
           <span className="size-3 rounded-full bg-black/10" />
         </div>
-        <div className="flex items-center gap-0.5 text-neutral-500">
+        <div className="flex items-center gap-0.5 text-[#737373]">
           <span className="flex size-6 items-center justify-center">
-            <Icon name="chevron_left" size={16} />
+            <ChevronLeft size={16} />
           </span>
           <span className="flex size-6 items-center justify-center">
-            <Icon name="chevron_right" size={16} />
+            <ChevronRight size={16} />
           </span>
           <span className="flex size-6 items-center justify-center">
-            <Icon name="refresh" size={14} />
+            <RefreshCw size={14} />
           </span>
         </div>
-        <div className="flex min-w-0 flex-1 items-center gap-2 truncate rounded-md bg-black/[0.04] px-3 py-1 font-mono text-[11px] text-neutral-600">
-          <Icon
-            name={overlay ? "crop_free" : "lock"}
-            size={11}
-            className="text-neutral-500"
-          />
+        <div className="flex min-w-0 flex-1 items-center gap-2 truncate rounded-md bg-black/[0.04] px-3 py-1 font-mono text-[11px] text-[#525252]">
+          {overlay ? (
+            <Scan size={11} className="text-[#737373]" />
+          ) : (
+            <Lock size={11} className="text-[#737373]" />
+          )}
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
               key={url}
@@ -516,7 +485,7 @@ function BrowserChrome({
               className="min-w-0 truncate"
             >
               {overlay ? (
-                <span className="text-neutral-500">{url}</span>
+                <span className="text-[#737373]">{url}</span>
               ) : url.includes("/") ? (
                 (() => {
                   const [host, ...rest] = url.split("/");
@@ -575,7 +544,7 @@ function ViewerBody() {
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/[0.06] bg-neutral-50 px-3 py-2.5">
+        <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/[0.06] bg-[#fafafa] px-3 py-2.5">
           {FEEDBACK_EMOJI.map((emoji, i) => {
             const selected = emojiIndex === i;
             return (
@@ -597,7 +566,7 @@ function ViewerBody() {
           })}
         </div>
       </div>
-      <aside className="flex w-[26%] shrink-0 flex-col gap-3.5 border-l border-black/[0.06] bg-neutral-50 p-3.5">
+      <aside className="flex w-[26%] shrink-0 flex-col gap-3.5 border-l border-black/[0.06] bg-[#fafafa] p-3.5">
         <div>
           <div className="mb-1.5 h-1.5 w-12 rounded-full bg-black/10" />
           <div className="flex flex-wrap gap-1">
@@ -607,13 +576,13 @@ function ViewerBody() {
                 className="inline-flex items-center gap-0.5 rounded-full bg-black/[0.04] px-1.5 py-0.5 text-[10px] leading-none ring-1 ring-inset ring-black/[0.08]"
               >
                 <span>{r.emoji}</span>
-                <span className="font-mono text-[8px] tabular-nums text-neutral-500">
+                <span className="font-mono text-[8px] tabular-nums text-[#737373]">
                   {r.count}
                 </span>
               </span>
             ))}
             <span className="inline-flex size-[18px] items-center justify-center rounded-full bg-black/[0.03] ring-1 ring-inset ring-black/[0.08]">
-              <span className="text-[9px] text-neutral-400">+</span>
+              <span className="text-[9px] text-[#a3a3a3]">+</span>
             </span>
           </div>
         </div>
@@ -624,7 +593,7 @@ function ViewerBody() {
             {COMMENTS.map((c, i) => (
               <div key={i} className="flex items-start gap-1.5">
                 <div
-                  className={`flex size-4 shrink-0 items-center justify-center rounded-full ${c.tint} text-[8px] font-semibold text-neutral-600`}
+                  className={`flex size-4 shrink-0 items-center justify-center rounded-full ${c.tint} text-[8px] font-semibold text-[#525252]`}
                 >
                   {c.initial}
                 </div>
@@ -649,7 +618,7 @@ function ViewerBody() {
         <div className="flex items-center gap-1.5 rounded-md bg-black/[0.03] px-1.5 py-1 ring-1 ring-inset ring-black/[0.06]">
           <div className="h-1.5 flex-1 rounded-full bg-black/[0.06]" />
           <div className="flex size-3.5 items-center justify-center rounded-full bg-blue-500">
-            <Icon name="arrow_upward" size={8} className="text-white" />
+            <ArrowUp size={8} className="text-white" />
           </div>
         </div>
       </aside>
@@ -661,7 +630,7 @@ const EDITOR_BACKGROUNDS = [
   "bg-gradient-to-br from-blue-500 to-indigo-500",
   "bg-gradient-to-br from-sky-500 to-emerald-400",
   "bg-gradient-to-br from-amber-400 to-rose-500",
-  "bg-neutral-200",
+  "bg-[#e5e5e5]",
 ];
 
 const FEEDBACK_EMOJI = ["👍", "🎉", "🔥", "❤️", "👏", "😮"];
@@ -711,7 +680,7 @@ function FeedbackBody() {
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/[0.06] bg-neutral-50 px-3 py-2.5">
+        <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/[0.06] bg-[#fafafa] px-3 py-2.5">
           {FEEDBACK_EMOJI.map((emoji, i) => {
             const selected = emojiIndex === i;
             return (
@@ -734,7 +703,7 @@ function FeedbackBody() {
         </div>
       </div>
 
-      <div className="flex w-[28%] flex-col gap-4 bg-neutral-50 p-4">
+      <div className="flex w-[28%] flex-col gap-4 bg-[#fafafa] p-4">
         <div>
           <div className="mb-2 h-2 w-16 rounded-full bg-black/10" />
           <div className="grid grid-cols-4 gap-1.5">
@@ -749,7 +718,7 @@ function FeedbackBody() {
                   i === 3 ? "bg-black/[0.06]" : bg
                 } ${
                   bgIndex === i
-                    ? "ring-2 ring-blue-500 ring-offset-1 ring-offset-neutral-50"
+                    ? "ring-2 ring-blue-500 ring-offset-1 ring-offset-[#fafafa]"
                     : i === 3
                       ? "ring-1 ring-inset ring-black/15 hover:opacity-80"
                       : "hover:opacity-80"
@@ -852,9 +821,13 @@ function DashboardBody({ cards }: { cards: Array<{ titleW: number }> }) {
 function CaptureBody() {
   const m = useMessages();
   const cm = m.collaboration.captureMockup;
+  const toolbar = [
+    { label: cm.toolbar.share, Glyph: Link2, active: false },
+    { label: cm.toolbar.screenshot, Glyph: Camera, active: true },
+  ];
   return (
     <div
-      className="relative h-full w-full overflow-hidden bg-neutral-800 bg-cover bg-center"
+      className="relative h-full w-full overflow-hidden bg-[#262626] bg-cover bg-center"
       style={{ backgroundImage: "url('/capture-wallpaper.webp')" }}
     >
       <div className="absolute inset-0 bg-black/40" />
@@ -862,7 +835,7 @@ function CaptureBody() {
       <div className="absolute inset-x-0 top-[7%] bottom-[24%] flex justify-center">
         <div className="relative h-full w-[58%]">
           <div className="absolute inset-0 flex flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-black/10">
-            <div className="flex shrink-0 items-center gap-1.5 bg-neutral-100 px-3 py-2">
+            <div className="flex shrink-0 items-center gap-1.5 bg-[#f5f5f5] px-3 py-2">
               <span className="size-2 rounded-full bg-[#ff5f57]" />
               <span className="size-2 rounded-full bg-[#febc2e]" />
               <span className="size-2 rounded-full bg-[#28c840]" />
@@ -900,7 +873,7 @@ function CaptureBody() {
                 className={`absolute size-2 rounded-full bg-white shadow-sm ring-1 ring-black/20 ${cls}`}
               />
             ))}
-            <div className="absolute -bottom-7 right-0 rounded-sm bg-black/80 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-neutral-200">
+            <div className="absolute -bottom-7 right-0 rounded-sm bg-black/80 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-[#e5e5e5]">
               {cm.dimensions}
             </div>
           </div>
@@ -908,24 +881,17 @@ function CaptureBody() {
       </div>
 
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
-        <div className="flex items-center gap-1 rounded-full border border-white/5 bg-neutral-900/95 p-1 shadow-2xl shadow-black/60 backdrop-blur-sm">
-          {[
-            { label: cm.toolbar.share, icon: "link", active: false },
-            {
-              label: cm.toolbar.screenshot,
-              icon: "screenshot_keyboard",
-              active: true,
-            },
-          ].map((mode) => (
+        <div className="flex items-center gap-1 rounded-full border border-white/5 bg-[#171717]/95 p-1 shadow-2xl shadow-black/60 backdrop-blur-sm">
+          {toolbar.map((mode) => (
             <div
-              key={mode.icon}
+              key={mode.label}
               className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] font-medium ${
                 mode.active
-                  ? "bg-white text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
-                  : "text-neutral-400"
+                  ? "bg-white text-[#171717] shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+                  : "text-[#a3a3a3]"
               }`}
             >
-              <Icon name={mode.icon} size={12} />
+              <mode.Glyph size={12} />
               {mode.label}
             </div>
           ))}
@@ -935,27 +901,29 @@ function CaptureBody() {
   );
 }
 
+const MARKUP_TOOLS = [ImageIcon, ArrowUpRight, Square, TypeIcon, Droplets];
+
 function MarkupBody() {
   return (
-    <div className="relative h-full w-full bg-neutral-100">
+    <div className="relative h-full w-full bg-[#f5f5f5]">
       <div className="absolute inset-0 flex items-center justify-center pt-[6%]">
         <div className="aspect-square h-[64%] overflow-hidden rounded-xl bg-gradient-to-br from-blue-400 via-sky-500 to-blue-600 p-[4%] shadow-lg ring-1 ring-inset ring-black/10">
-          <div className="flex h-full w-full overflow-hidden rounded-md bg-neutral-100 ring-1 ring-inset ring-white/20">
-            <div className="flex w-[10%] flex-col items-center gap-2 bg-neutral-200/70 py-3">
-              <div className="size-2 rounded-sm bg-neutral-400" />
-              <div className="size-2 rounded-sm bg-neutral-300" />
+          <div className="flex h-full w-full overflow-hidden rounded-md bg-[#f5f5f5] ring-1 ring-inset ring-white/20">
+            <div className="flex w-[10%] flex-col items-center gap-2 bg-[#e5e5e5]/70 py-3">
+              <div className="size-2 rounded-sm bg-[#a3a3a3]" />
+              <div className="size-2 rounded-sm bg-[#d4d4d4]" />
             </div>
             <div className="flex-1 px-4 py-4">
-              <div className="h-2.5 w-1/3 rounded-full bg-neutral-400" />
+              <div className="h-2.5 w-1/3 rounded-full bg-[#a3a3a3]" />
               <div className="mt-3 space-y-1.5">
-                <div className="h-1.5 w-full rounded-full bg-neutral-300" />
-                <div className="h-1.5 w-[92%] rounded-full bg-neutral-300" />
-                <div className="h-1.5 w-[76%] rounded-full bg-neutral-300" />
+                <div className="h-1.5 w-full rounded-full bg-[#d4d4d4]" />
+                <div className="h-1.5 w-[92%] rounded-full bg-[#d4d4d4]" />
+                <div className="h-1.5 w-[76%] rounded-full bg-[#d4d4d4]" />
               </div>
-              <div className="mt-3 h-2 w-1/4 rounded-full bg-neutral-400" />
+              <div className="mt-3 h-2 w-1/4 rounded-full bg-[#a3a3a3]" />
               <div className="mt-2 space-y-1.5">
-                <div className="h-1.5 w-[88%] rounded-full bg-neutral-300" />
-                <div className="h-1.5 w-[70%] rounded-full bg-neutral-300" />
+                <div className="h-1.5 w-[88%] rounded-full bg-[#d4d4d4]" />
+                <div className="h-1.5 w-[70%] rounded-full bg-[#d4d4d4]" />
               </div>
             </div>
           </div>
@@ -963,20 +931,18 @@ function MarkupBody() {
       </div>
 
       <div className="absolute left-1/2 top-2.5 flex -translate-x-1/2 items-center gap-1 rounded-md bg-white/90 p-1 shadow-sm ring-1 ring-inset ring-black/10 backdrop-blur-sm">
-        {["wallpaper", "north_east", "rectangle", "title", "blur_on"].map(
-          (icon, i) => (
-            <span
-              key={icon}
-              className={`flex size-6 items-center justify-center rounded ${
-                i === 0
-                  ? "bg-black/[0.06] text-neutral-900 ring-1 ring-inset ring-black/10"
-                  : "text-neutral-500"
-              }`}
-            >
-              <Icon name={icon} size={14} />
-            </span>
-          ),
-        )}
+        {MARKUP_TOOLS.map((Tool, i) => (
+          <span
+            key={i}
+            className={`flex size-6 items-center justify-center rounded ${
+              i === 0
+                ? "bg-black/[0.06] text-[#171717] ring-1 ring-inset ring-black/10"
+                : "text-[#737373]"
+            }`}
+          >
+            <Tool size={14} />
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -984,28 +950,11 @@ function MarkupBody() {
 
 const VIS_OPTIONS: Array<{
   key: VisibilityKey;
-  label: string;
-  icon: string;
-  description: string;
+  Glyph: typeof Globe;
 }> = [
-  {
-    key: "public",
-    label: "Public",
-    icon: "public",
-    description: "Anyone with the link can open this share",
-  },
-  {
-    key: "workspace",
-    label: "Workspace",
-    icon: "groups",
-    description: "Only teammates can open this share",
-  },
-  {
-    key: "private",
-    label: "Private",
-    icon: "lock",
-    description: "Only you can open this share",
-  },
+  { key: "public", Glyph: Globe },
+  { key: "workspace", Glyph: Users },
+  { key: "private", Glyph: Lock },
 ];
 
 function WorkspaceCard({
@@ -1042,17 +991,20 @@ function WorkspaceCard({
     },
   ];
   return (
-    <div className="mx-auto flex aspect-[11/8] w-full max-w-[440px] flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-black/10">
+    <div
+      dir="ltr"
+      className="flex aspect-[11/8] w-full flex-col overflow-hidden bg-white"
+    >
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/[0.04] px-6 py-3">
         <div className="flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 font-heading text-sm font-bold tracking-tight text-white">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 text-sm font-bold tracking-tight text-white">
             Cf
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-semibold text-foreground">
+            <div className="text-sm font-semibold text-[#171717]">
               {wm.teamName}
             </div>
-            <div className="text-[11px] uppercase tracking-wider text-neutral-500">
+            <div className="text-[11px] uppercase tracking-wider text-[#737373]">
               {wm.teamMeta.replace("{count}", String(MEMBERS.length))}
             </div>
           </div>
@@ -1061,13 +1013,13 @@ function WorkspaceCard({
           type="button"
           className="inline-flex cursor-default items-center gap-1.5 rounded-full bg-blue-500 px-3 py-1.5 text-xs font-medium text-white"
         >
-          <Icon name="add" size={14} />
+          <Plus size={14} />
           {wm.inviteButton}
         </button>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-3">
-        <div className="shrink-0 text-[11px] uppercase tracking-wider text-neutral-500">
+        <div className="shrink-0 text-[11px] uppercase tracking-wider text-[#737373]">
           {wm.membersLabel}
         </div>
         <ul className="mt-3 flex flex-1 flex-col gap-3">
@@ -1094,13 +1046,13 @@ function WorkspaceCard({
                 {member.initial}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-sm text-foreground">{member.name}</div>
+                <div className="text-sm text-[#171717]">{member.name}</div>
               </div>
               <span
                 className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider ${
                   member.role === "Admin"
                     ? "bg-blue-500/15 text-blue-700 ring-1 ring-inset ring-blue-400/30"
-                    : "bg-black/[0.06] text-muted-foreground ring-1 ring-inset ring-black/10"
+                    : "bg-black/[0.06] text-[#525252] ring-1 ring-inset ring-black/10"
                 }`}
               >
                 {member.roleLabel}
@@ -1113,10 +1065,10 @@ function WorkspaceCard({
       <div className="shrink-0 border-t border-black/[0.04] bg-black/[0.02] px-6 py-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-neutral-500">
+            <div className="text-[11px] uppercase tracking-wider text-[#737373]">
               {wm.linkVisibilityLabel}
             </div>
-            <div className="mt-1 text-sm text-foreground">
+            <div className="mt-1 text-sm text-[#171717]">
               {activeDescription}
             </div>
           </div>
@@ -1130,20 +1082,18 @@ function WorkspaceCard({
                 type="button"
                 onClick={() => onVisibilityChange(v.key)}
                 className={`relative flex cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  active
-                    ? "text-white"
-                    : "text-muted-foreground hover:text-foreground"
+                  active ? "text-white" : "text-[#737373] hover:text-[#171717]"
                 }`}
               >
                 {active && (
                   <motion.span
                     layoutId="workspace-visibility-pill"
-                    className="absolute inset-0 rounded-full bg-neutral-900"
+                    className="absolute inset-0 rounded-full bg-[#171717]"
                     transition={{ type: "spring", stiffness: 380, damping: 32 }}
                   />
                 )}
                 <span className="relative z-10 flex items-center gap-1.5">
-                  <Icon name={v.icon} size={14} />
+                  <v.Glyph size={14} />
                   {wm.visibility[v.key].label}
                 </span>
               </button>

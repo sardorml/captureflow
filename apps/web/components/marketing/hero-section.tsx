@@ -1,172 +1,164 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import CtaButton from "@/components/ui/cta-button";
-import { Icon } from "@/components/ui/icon";
+import { Button, Flex, Typography, theme } from "antd";
+import { Code2, Star } from "lucide-react";
 import { CURRENT_STAGE } from "@/lib/marketing/constants";
 import { SOURCE_REPO_URL } from "@/lib/site";
 import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
 import { AppleLogo, ChromeLogo, FirefoxLogo } from "./platform-logos";
 import { RecorderMockup } from "./recorder-mockup";
-import { HaloEffect } from "./halo-effect";
+import { HeroLuminousBg } from "./hero-luminous-bg";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 export function HeroSection({ stars = null }: { stars?: string | null }) {
   const m = useMessages();
   const lh = useLocalizedHref();
+  const { token } = theme.useToken();
 
-  const [aiHover, setAiHover] = useState(false);
+  const bg = token.colorBgContainer;
+  const textShadow = `0 0 4px ${bg}, 0 0 4px ${bg}`;
 
   return (
     <>
-      {/* Negative top-margin pulls behind the fixed nav; matching top-padding clears it — net position unchanged. No overflow-hidden here. */}
-      <div
-        className="relative"
-        style={{
-          marginTop: "calc(-1 * var(--header-height, 68px))",
-          paddingTop: "var(--header-height, 68px)",
-        }}
-      >
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[80vh]">
-          <div className="sticky top-0 h-screen w-full overflow-hidden">
-            <HaloEffect />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[40vh] bg-gradient-to-b from-transparent to-white" />
-          </div>
-        </div>
-        <section id="hero" className="relative z-10 overflow-hidden">
-          <div
-            id="hero-content"
-            className="relative mx-auto max-w-7xl px-5 sm:px-10 pb-12 pt-20 text-center sm:pt-28 lg:pt-36"
+      <section id="hero" style={{ position: "relative", overflow: "hidden" }}>
+        <HeroLuminousBg />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <Flex
+            vertical
+            align="center"
+            style={{
+              maxWidth: 1280,
+              marginInline: "auto",
+              paddingInline: 24,
+              paddingTop: 100,
+              paddingBottom: 56,
+              textAlign: "center",
+            }}
           >
-            <h1 className="animate-fade-in-up font-heading text-[40px] font-semibold leading-[1.1] tracking-[-0.03em] lg:text-[64px] xl:text-[72px]">
-              <span
-                className="relative inline-block"
-                onMouseEnter={() => setAiHover(true)}
-                onMouseLeave={() => setAiHover(false)}
-              >
-                <span className="text-blue-500">{m.hero.aiWord}</span>
-                <AnimatePresence>
-                  {aiHover && (
-                    <motion.span
-                      initial={{ opacity: 0, y: 14, rotate: -11, scale: 0.72 }}
-                      animate={{ opacity: 1, y: 0, rotate: -7, scale: 0.85 }}
-                      exit={{ opacity: 0, y: 14, rotate: -11, scale: 0.72 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 20,
-                      }}
-                      className="absolute left-1/2 top-1/2 z-50 block w-80 origin-center -translate-x-1/2 -translate-y-1/2"
-                    >
-                      <a
-                        href={lh("/download")}
-                        className="relative block aspect-[16/10] cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 p-5 text-left shadow-2xl shadow-neutral-900/40 transition-transform hover:scale-[1.03]"
-                      >
-                        <Icon
-                          name="auto_awesome"
-                          size={150}
-                          fill
-                          className="pointer-events-none absolute -bottom-6 -right-6 text-white/15"
-                        />
-                        <span className="relative flex h-full flex-col justify-between">
-                          <span className="block">
-                            <span className="block font-heading text-4xl font-bold uppercase leading-[0.95] tracking-tight text-white">
-                              {m.hero.teaser.title}
-                            </span>
-                            <span className="mt-2 block max-w-[70%] text-xs font-normal leading-snug tracking-normal text-white/85">
-                              {m.hero.teaser.body}
-                            </span>
-                          </span>
-                          <span className="inline-flex w-fit items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold tracking-normal text-neutral-900">
-                            <Icon name="bolt" size={12} fill />
-                            {m.hero.teaser.cta}
-                          </span>
-                        </span>
-                      </a>
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </span>{" "}
+            <Typography.Title
+              level={1}
+              style={{
+                textShadow,
+                fontSize: "clamp(2.75rem, 1.5rem + 4.8vw, 4.5rem)",
+                fontWeight: 700,
+                lineHeight: 1.1,
+                marginBottom: 16,
+              }}
+            >
+              <span style={{ color: token.colorPrimary }}>{m.hero.aiWord}</span>{" "}
               {m.hero.titleMain}
               <br />
               {m.hero.titleSuffix}
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl animate-fade-in-up text-base leading-relaxed tracking-[-0.01em] text-muted-foreground animation-delay-200">
-              {m.hero.subtitleLine1} <br className="hidden sm:inline" />
-              {m.hero.subtitleLine2}
-            </p>
+            </Typography.Title>
+            <Typography.Paragraph
+              type="secondary"
+              style={{ fontSize: 20, maxWidth: 760, textShadow }}
+            >
+              {m.hero.subtitleLine1} {m.hero.subtitleLine2}
+            </Typography.Paragraph>
+
             {CURRENT_STAGE.showHeroBuyCta ? (
               <>
-                <div className="mt-8 flex animate-fade-in-up flex-col items-center justify-center gap-3 animation-delay-400 sm:flex-row">
-                  <CtaButton
-                    size="lg"
-                    className="h-[3.25rem] w-full max-w-xs px-4 text-base sm:h-[3.75rem] sm:w-auto sm:max-w-none sm:px-6 sm:text-lg"
-                    asChild
+                <Flex
+                  wrap
+                  gap="middle"
+                  justify="center"
+                  align="center"
+                  style={{ marginTop: 8 }}
+                >
+                  <Button
+                    type="primary"
+                    size="large"
+                    href={lh("/download")}
+                    onClick={() =>
+                      track("marketing_cta_clicked", { location: "hero" })
+                    }
                   >
-                    <a
-                      href={lh("/download")}
-                      onClick={() =>
-                        track("marketing_cta_clicked", { location: "hero" })
-                      }
-                    >
-                      {m.hero.ctaLabel}
-                    </a>
-                  </CtaButton>
-                  <a
+                    {m.hero.ctaLabel}
+                  </Button>
+                  <Button
+                    size="large"
                     href={SOURCE_REPO_URL}
                     target="_blank"
                     rel="noopener noreferrer"
+                    icon={<Code2 size={18} />}
                     onClick={() =>
                       track("marketing_cta_clicked", {
                         location: "hero_github",
                       })
                     }
-                    className="inline-flex h-[3.25rem] w-full max-w-xs items-center justify-center gap-2.5 rounded-2xl bg-neutral-200 px-6 text-base font-semibold text-neutral-900 transition-colors hover:bg-neutral-300 sm:h-[3.75rem] sm:w-auto sm:max-w-none sm:px-8 sm:text-lg"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      aria-hidden
-                      className="size-5 shrink-0"
-                    >
-                      <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.014 2.898-.014 3.293 0 .322.216.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
-                    </svg>
                     GitHub
-                    {stars && (
-                      <span className="flex items-center gap-1 border-l border-neutral-400/50 pl-2.5">
-                        <Icon name="star" size={16} />
+                    {stars ? (
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          marginInlineStart: 8,
+                          paddingInlineStart: 8,
+                          borderInlineStart: `1px solid ${token.colorBorder}`,
+                        }}
+                      >
+                        <Star size={14} />
                         {stars}
                       </span>
-                    )}
-                  </a>
-                </div>
-                <div className="mt-6 flex animate-fade-in flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground animation-delay-500">
-                  <span className="inline-flex items-center gap-1.5">
+                    ) : null}
+                  </Button>
+                </Flex>
+                <Flex
+                  wrap
+                  align="center"
+                  justify="center"
+                  gap="middle"
+                  style={{
+                    marginTop: 24,
+                    fontSize: 14,
+                    color: token.colorTextSecondary,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
                     <AppleLogo className="size-4" /> macOS
                   </span>
-                  <span className="inline-flex items-center gap-1.5">
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
                     <ChromeLogo className="size-4" /> Chrome
                   </span>
-                  <span className="inline-flex items-center gap-1.5">
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
                     <FirefoxLogo className="size-4" /> Firefox
                   </span>
-                </div>
+                </Flex>
               </>
             ) : (
-              <div className="mt-4 flex animate-fade-in-up justify-center animation-delay-400">
+              <div style={{ marginTop: 8 }}>
                 <WaitlistForm />
               </div>
             )}
-          </div>
-        </section>
-        <div className="relative z-10">
+          </Flex>
+
           <RecorderMockup />
         </div>
-      </div>
+      </section>
       {/* Sentinel: the floating CTA appears once this scrolls into view. */}
-      <div id="hero-end" aria-hidden className="h-px w-full" />
+      <div id="hero-end" aria-hidden style={{ height: 1, width: "100%" }} />
     </>
   );
 }

@@ -133,7 +133,23 @@ export function ActivitySidebar({
       createdAt: c.createdAt,
       comment: c,
     })),
-  ].sort((a, b) => b.createdAt - a.createdAt);
+  ].sort((a, b) => a.createdAt - b.createdAt);
+
+  // Chronological order puts the newest entry at the bottom (chat-style), so
+  // keep the list pinned there as entries arrive — unless the reader has
+  // scrolled up to read history.
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const stickToBottomRef = useRef(true);
+  const onListScroll = () => {
+    const el = listRef.current;
+    if (!el) return;
+    stickToBottomRef.current =
+      el.scrollHeight - el.scrollTop - el.clientHeight < 64;
+  };
+  useEffect(() => {
+    const el = listRef.current;
+    if (el && stickToBottomRef.current) el.scrollTop = el.scrollHeight;
+  }, [entries.length]);
 
   // No useMemo: a manual memo over `reactions` (rebuilt every render via
   // mergeReactions) trips react-hooks/preserve-manual-memoization.
@@ -298,7 +314,11 @@ export function ActivitySidebar({
         </span>
       </header>
 
-      <div className="flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto">
+      <div
+        ref={listRef}
+        onScroll={onListScroll}
+        className="flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto"
+      >
         {entries.length === 0 ? (
           <EmptyState
             viewerSignedIn={viewerSignedIn}

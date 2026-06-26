@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "motion/react";
+import { Col, Row, Space, Typography, theme as antdTheme } from "antd";
 import { DOWNLOAD_URL, X_URL } from "@/lib/marketing/constants";
-import { DOCS_URL } from "@/lib/site";
+import { DOCS_URL, RELEASES_URL } from "@/lib/site";
 import { useLocalizedHref } from "./i18n-provider";
 
-const RELEASES_URL = "https://github.com/sardorml/captureflow/releases";
+type FooterLink = { label: string; href: string };
+type FooterColumn = { title: string; links: FooterLink[] };
 
 // Per-letter vertical offsets (em, negative = up) tracing a static arch.
 const WORDMARK_LETTERS = [
@@ -23,11 +24,65 @@ const WORDMARK_LETTERS = [
   { ch: "w", offset: 0.16 },
 ];
 
+// Soft neutral-gray glow rising from the bottom (was brand-blue), subtle in both
+// themes — slate reads as gray on white and lightens the dark footer.
+const FOOTER_GLOW =
+  "linear-gradient(to top, rgba(148,163,184,0.1) 0%, rgba(148,163,184,0.06) 18%, transparent 46%)," +
+  "radial-gradient(95% 145% at 50% 122%, rgba(148,163,184,0.08) 0%, transparent 74%)";
+
 export function Footer() {
   const lh = useLocalizedHref();
+  const { token } = antdTheme.useToken();
+
+  const columns: FooterColumn[] = [
+    {
+      title: "Product",
+      links: [
+        { label: "Download", href: lh("/download") },
+        { label: "Sign in", href: lh("/login") },
+        { label: "Releases", href: RELEASES_URL },
+      ],
+    },
+    {
+      title: "Docs",
+      links: [
+        { label: "Recording", href: `${DOCS_URL}/recording` },
+        { label: "Sharing", href: `${DOCS_URL}/sharing` },
+        { label: "FAQ", href: lh("/#faq") },
+      ],
+    },
+    {
+      title: "Self-hosting",
+      links: [
+        { label: "Overview", href: `${DOCS_URL}/self-hosting` },
+        { label: "Cloudflare", href: `${DOCS_URL}/self-hosting/cloudflare` },
+        { label: "Architecture", href: `${DOCS_URL}/architecture` },
+        { label: "Contributing", href: `${DOCS_URL}/contributing` },
+      ],
+    },
+    {
+      title: "Community",
+      links: [
+        { label: "GitHub", href: X_URL },
+        { label: "Issues", href: `${X_URL}/issues` },
+        { label: "Latest release", href: DOWNLOAD_URL },
+      ],
+    },
+  ];
 
   return (
-    <footer className="relative z-10 mt-auto overflow-hidden bg-white pb-40 pt-4">
+    <footer
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        marginTop: "auto",
+        borderTop: `1px solid ${token.colorBorderSecondary}`,
+        background: token.colorBgContainer,
+        /* Extra bottom space so the fixed floating CTA (≈128px tall reach from
+           the page bottom) never overlaps the footer links/copyright. */
+        paddingBlock: "56px 160px",
+      }}
+    >
       {/* Deliberately NOT viewport.once: `once` latches at the hidden initial
           state on scroll-away/remount; re-evaluating on every entry keeps it reliable. */}
       <motion.div
@@ -38,13 +93,16 @@ export function Footer() {
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
         className="pointer-events-none absolute inset-0 z-0 hidden sm:block"
       >
-        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(37,99,235,0.88)_0%,rgba(37,99,235,0.5)_18%,transparent_46%),radial-gradient(95%_145%_at_50%_122%,rgba(37,99,235,0.62)_0%,transparent_74%)]" />
+        <div className="absolute inset-0" style={{ background: FOOTER_GLOW }} />
         {/* dir="ltr" pins this decorative wordmark so per-letter spans never reverse under RTL. */}
         <div
           dir="ltr"
           className="absolute inset-x-0 bottom-0 flex justify-center overflow-hidden"
         >
-          <span className="translate-y-[14%] select-none whitespace-nowrap font-heading text-[17vw] font-bold leading-none tracking-tight text-white/45">
+          <span
+            className="translate-y-[14%] select-none whitespace-nowrap text-[17vw] font-bold leading-none tracking-tight"
+            style={{ color: token.colorFillQuaternary }}
+          >
             {WORDMARK_LETTERS.map((letter, i) => (
               <span
                 key={i}
@@ -58,154 +116,49 @@ export function Footer() {
         </div>
       </motion.div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-10">
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-5">
-          <div>
-            <p className="cursor-arrow mb-3 text-sm font-semibold text-neutral-500">
-              Product
-            </p>
-            <ul className="space-y-2 text-base text-muted-foreground">
-              <li>
-                <Link
-                  href={lh("/download")}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Download
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={lh("/login")}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Sign in
-                </Link>
-              </li>
-              <li>
-                <a
-                  href={RELEASES_URL}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Releases
-                </a>
-              </li>
-            </ul>
-          </div>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          paddingInline: "clamp(20px, 4vw, 56px)",
+        }}
+      >
+        <Row gutter={[32, 32]}>
+          {columns.map((col) => (
+            <Col key={col.title} xs={12} sm={12} md={6}>
+              <Typography.Text
+                type="secondary"
+                style={{
+                  display: "block",
+                  marginBottom: 12,
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                {col.title}
+              </Typography.Text>
+              <Space orientation="vertical" size={8}>
+                {col.links.map((link) => (
+                  <Typography.Link
+                    key={link.label}
+                    href={link.href}
+                    type="secondary"
+                  >
+                    {link.label}
+                  </Typography.Link>
+                ))}
+              </Space>
+            </Col>
+          ))}
+        </Row>
 
-          <div>
-            <p className="cursor-arrow mb-3 text-sm font-semibold text-neutral-500">
-              Docs
-            </p>
-            <ul className="space-y-2 text-base text-muted-foreground">
-              <li>
-                <a
-                  href={`${DOCS_URL}/recording`}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Recording
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`${DOCS_URL}/sharing`}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Sharing
-                </a>
-              </li>
-              <li>
-                <Link
-                  href={lh("/#faq")}
-                  className="transition-colors hover:text-foreground"
-                >
-                  FAQ
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="cursor-arrow mb-3 text-sm font-semibold text-neutral-500">
-              Self-hosting
-            </p>
-            <ul className="space-y-2 text-base text-muted-foreground">
-              <li>
-                <a
-                  href={`${DOCS_URL}/self-hosting`}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Overview
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`${DOCS_URL}/self-hosting/cloudflare`}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Cloudflare
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`${DOCS_URL}/architecture`}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Architecture
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`${DOCS_URL}/contributing`}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Contributing
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="cursor-arrow mb-3 text-sm font-semibold text-neutral-500">
-              Community
-            </p>
-            <ul className="space-y-2 text-base text-muted-foreground">
-              <li>
-                <a
-                  href={X_URL}
-                  className="transition-colors hover:text-foreground"
-                >
-                  GitHub
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`${X_URL}/issues`}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Issues
-                </a>
-              </li>
-              <li>
-                <a
-                  href={DOWNLOAD_URL}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Latest release
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div className="col-span-2 sm:col-span-1">
-            {/* suppressHydrationWarning: the year can differ server/client at a year boundary. */}
-            <p
-              suppressHydrationWarning
-              className="text-sm text-neutral-500 sm:text-right"
-            >
-              &copy; {new Date().getFullYear()} CaptureFlow
-            </p>
-          </div>
-        </div>
+        <Typography.Text
+          type="secondary"
+          suppressHydrationWarning
+          style={{ display: "block", marginTop: 48, fontSize: 13 }}
+        >
+          © {new Date().getFullYear()} CaptureFlow
+        </Typography.Text>
       </div>
     </footer>
   );

@@ -325,12 +325,6 @@ export const MESSAGES = {
           title: "Recording & sharing",
           rows: [
             { label: "Screen recording & instant links", free: "", pro: "" },
-            { label: "Recording quality", free: "Up to 4K", pro: "Up to 4K" },
-            {
-              label: "Export formats",
-              free: "MP4, GIF, WebM",
-              pro: "MP4, GIF, WebM",
-            },
             { label: "Annotated Screenshots", free: "", pro: "" },
             { label: "Workspaces & teammate invites", free: "", pro: "" },
             { label: "Commercial usage", free: "", pro: "" },
@@ -444,6 +438,11 @@ export const MESSAGES = {
         items: [
           {
             label: "Chrome extension",
+            description:
+              "Record and share straight from the browser — no desktop install.",
+          },
+          {
+            label: "Firefox extension",
             description:
               "Record and share straight from the browser — no desktop install.",
           },

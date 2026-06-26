@@ -1,6 +1,7 @@
-import "./marketing.css";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { readThemeFromCookieHeader } from "@captureflow/ui";
 import { loadSession } from "@/lib/session-guard";
 import { getStarCount, formatStars } from "@/lib/github";
 import { Nav } from "@/components/marketing/nav";
@@ -55,31 +56,29 @@ export default async function RootPage() {
   const session = await loadSession();
   if (session) redirect("/recordings");
 
+  const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
   const starCount = await getStarCount();
   const stars = starCount != null ? formatStars(starCount) : null;
 
   return (
     <I18nProvider>
       <MarketingShell>
-        <div className="relative flex min-h-screen flex-col font-system">
-          <JsonLd
-            data={[WEBSITE_SCHEMA, ORGANIZATION_SCHEMA, APP_SCHEMA, FAQ_SCHEMA]}
-          />
-          <Nav stars={stars} />
-          {/* Nav is position: fixed; offset by --header-height (set in nav.tsx). */}
-          <main style={{ paddingTop: "var(--header-height, 68px)" }}>
-            <HeroSection stars={stars} />
-            <ModesIntro />
-            <CollaborationSection />
-            <PricingSection />
-            <ComparePlansSection />
-            <FaqSection />
-            <RoadmapSection />
-            <CtaSection />
-          </main>
-          <Footer />
-          <FloatingCta />
-        </div>
+        <JsonLd
+          data={[WEBSITE_SCHEMA, ORGANIZATION_SCHEMA, APP_SCHEMA, FAQ_SCHEMA]}
+        />
+        <Nav stars={stars} theme={theme} />
+        <main>
+          <HeroSection stars={stars} />
+          <ModesIntro />
+          <CollaborationSection />
+          <PricingSection />
+          <ComparePlansSection />
+          <FaqSection />
+          <RoadmapSection />
+          <CtaSection />
+        </main>
+        <Footer />
+        <FloatingCta />
       </MarketingShell>
     </I18nProvider>
   );

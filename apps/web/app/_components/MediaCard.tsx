@@ -231,7 +231,9 @@ export function MediaCard({
         style={{
           overflow: "hidden",
           transition: "border-color 0.2s, box-shadow 0.2s",
-          borderColor: hovered ? token.colorPrimary : undefined,
+          // colorBorder (not antd's lighter Card default, colorBorderSecondary)
+          // so the card reads as a distinct surface in light mode.
+          borderColor: hovered ? token.colorPrimary : token.colorBorder,
           boxShadow: hovered ? `0 0 0 1px ${token.colorPrimary}` : undefined,
         }}
       >

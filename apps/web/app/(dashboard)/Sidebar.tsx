@@ -52,7 +52,7 @@ export async function Sidebar() {
           alt="CaptureFlow"
           width={28}
           height={28}
-          style={{ borderRadius: "9999px" }}
+          style={{ borderRadius: 6 }}
           priority
           unoptimized
         />

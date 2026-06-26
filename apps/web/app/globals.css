@@ -14,6 +14,13 @@ html,
 body {
   margin: 0;
   padding: 0;
+  /* Kill horizontal overscroll/drag without making <body> a scroll container
+     (which `overflow-x: hidden` would, breaking the sticky nav). */
+  overflow-x: clip;
+  /* Paint the document itself so the rubber-band overscroll past the top/bottom
+     edge matches the page instead of flashing the default white. Mirrors antd's
+     colorBgContainer; the default (no data-theme) is dark per tokens.css. */
+  background-color: #141414;
   font-family:
     var(--font-sans),
     -apple-system,
@@ -24,6 +31,21 @@ body {
     Helvetica,
     Arial,
     sans-serif;
+}
+
+html[data-theme="light"],
+html[data-theme="light"] body {
+  background-color: #ffffff;
+}
+
+/* Showcase panel behind the toolbar mockup — a defined surface in both themes
+   (soft slate in light, raised neutral in dark). Default (no attr) is dark. */
+:root,
+[data-theme="dark"] {
+  --cf-showcase-bg: #1f1f1f;
+}
+[data-theme="light"] {
+  --cf-showcase-bg: #f1f5f9;
 }
 
 /* Play/pause flash overlay on the RecordingPlayer. Shared between the

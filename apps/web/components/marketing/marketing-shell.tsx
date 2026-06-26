@@ -1,26 +1,16 @@
-import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
+"use client";
 
-/*
- * `.marketing-root` scopes the landing's light palette to the marketing subtree
- * (see app/marketing.css) so the dashboard theme is untouched. Use `clip` (not
- * `hidden`) so the fixed nav and vertical sticky behavior keep working.
- */
-export function MarketingShell({
-  className,
-  children,
-}: {
-  className?: string;
-  children: ReactNode;
-}) {
+import type { ReactNode } from "react";
+import { Layout, theme as antdTheme } from "antd";
+
+// Theme-aware root for marketing pages: a full-height antd Layout whose
+// background tracks the active light/dark token. Replaces the old forced-light
+// `.marketing-root` Tailwind scope — the landing now follows the app theme.
+export function MarketingShell({ children }: { children: ReactNode }) {
+  const { token } = antdTheme.useToken();
   return (
-    <div
-      className={cn("marketing-root overflow-x-clip", className)}
-      data-theme="light"
-      dir="ltr"
-      lang="en"
-    >
+    <Layout style={{ minHeight: "100vh", background: token.colorBgContainer }}>
       {children}
-    </div>
+    </Layout>
   );
 }

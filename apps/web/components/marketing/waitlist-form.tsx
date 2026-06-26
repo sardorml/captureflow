@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Icon } from "@/components/ui/icon";
-import CtaButton from "@/components/ui/cta-button";
-import { cn } from "@/lib/utils";
+import { Alert, Button, Flex, Form, Input, Space, Typography } from "antd";
 import { track } from "@/lib/marketing/track";
 import { useMessages } from "./i18n-provider";
 
 type WaitlistFormProps = {
   className?: string;
+};
+
+type WaitlistFormValues = {
+  email: string;
 };
 
 export function WaitlistForm({ className }: WaitlistFormProps) {
@@ -18,17 +20,14 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async ({ email }: WaitlistFormValues) => {
     setLoading(true);
     setError(null);
-    const form = e.currentTarget;
-    const email = (new FormData(form).get("email") as string | null)?.trim();
     try {
       const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: email.trim() }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => null)) as {
@@ -49,59 +48,55 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
 
   if (submitted) {
     return (
-      <div
-        className={cn(
-          "inline-flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-700",
-          className,
-        )}
-      >
-        <Icon name="check" size={16} />
-        {m.waitlist.success}
-      </div>
+      <Alert
+        className={className}
+        type="success"
+        showIcon
+        message={m.waitlist.success}
+      />
     );
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={cn(
-        "flex w-full max-w-md flex-col items-stretch gap-2",
-        className,
-      )}
+    <Flex
+      className={className}
+      vertical
+      gap="small"
+      style={{ width: "100%", maxWidth: 448 }}
     >
-      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-        <input
-          name="email"
-          type="email"
-          required
-          aria-label={m.waitlist.emailPlaceholder}
-          placeholder={m.waitlist.emailPlaceholder}
-          className="h-12 w-full rounded-lg border border-black/10 bg-white px-4 text-base text-foreground placeholder:text-neutral-500 outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:flex-1"
-        />
-        <CtaButton
-          type="submit"
-          disabled={loading}
-          size="lg"
-          className="w-full whitespace-nowrap px-6 sm:w-auto"
-        >
-          {loading ? m.waitlist.buttonLoading : m.waitlist.buttonDefault}
-        </CtaButton>
-      </div>
-      {error && (
-        <p className="text-sm text-red-600" role="alert">
-          {error}
-        </p>
-      )}
-      <p className="text-sm text-muted-foreground">
+      <Form<WaitlistFormValues>
+        layout="inline"
+        onFinish={handleSubmit}
+        requiredMark={false}
+      >
+        <Space.Compact style={{ width: "100%" }}>
+          <Form.Item
+            name="email"
+            rules={[{ required: true, type: "email" }]}
+            style={{ flex: 1, marginInlineEnd: 0 }}
+          >
+            <Input
+              type="email"
+              size="large"
+              aria-label={m.waitlist.emailPlaceholder}
+              placeholder={m.waitlist.emailPlaceholder}
+            />
+          </Form.Item>
+          <Button
+            type="primary"
+            size="large"
+            htmlType="submit"
+            loading={loading}
+          >
+            {loading ? m.waitlist.buttonLoading : m.waitlist.buttonDefault}
+          </Button>
+        </Space.Compact>
+      </Form>
+      {error && <Alert type="error" showIcon message={error} />}
+      <Typography.Text type="secondary">
         {m.waitlist.earlyAccessPrompt}{" "}
-        <Link
-          href="/beta-tester"
-          className="text-blue-700 underline underline-offset-2 transition-colors hover:text-blue-600"
-        >
-          {m.waitlist.earlyAccessLink}
-        </Link>
-        .
-      </p>
-    </form>
+        <Link href="/beta-tester">{m.waitlist.earlyAccessLink}</Link>.
+      </Typography.Text>
+    </Flex>
   );
 }

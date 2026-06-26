@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Card, theme } from "antd";
 import { motion, AnimatePresence } from "motion/react";
 import {
   AppWindow,
@@ -13,6 +14,7 @@ import {
   Volume2,
   X,
 } from "lucide-react";
+import { MarketingSection, SectionHeading } from "./_shared";
 import { useMessages } from "./i18n-provider";
 
 // Keep this mode set in sync with the app's RecordingModeToggle (Share + Screenshot only).
@@ -55,6 +57,7 @@ function DeviceCell({ icon: Glyph }: { icon: typeof Camera }) {
 
 export function ModesIntro() {
   const m = useMessages();
+  const { token } = theme.useToken();
 
   // `target` is where the cursor is heading; `active` is the committed mode. They
   // diverge briefly so the click reads as the cause of the swap.
@@ -134,26 +137,38 @@ export function ModesIntro() {
   const measured = centers.length === MODES.length;
 
   return (
-    <section
-      id="modes"
-      className="relative scroll-mt-6 pt-20 pb-20 sm:pt-28 sm:pb-28"
-    >
-      <div className="mx-auto max-w-7xl px-5 sm:px-10">
-        <div className="mx-auto max-w-5xl text-center">
-          <h2 className="font-heading text-[28px] font-semibold leading-[1.1] tracking-tight sm:text-[32px] lg:text-[40px]">
+    <MarketingSection id="modes" style={{ scrollMarginTop: 24 }}>
+      <SectionHeading
+        title={
+          <>
             {m.modes.headingLine1}
             <br />
             {m.modes.headingLine2}
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-base font-normal leading-[1.4] tracking-[-0.01em] text-[#090c14]">
+          </>
+        }
+        subtitle={
+          <>
             {m.modes.subtitleLine1}{" "}
             {/* Forced break desktop-only; on phones it would orphan words. */}
             <br className="hidden sm:inline" />
             {m.modes.subtitleLine2}
-          </p>
-        </div>
+          </>
+        }
+      />
 
-        <div ref={containerRef} className="mt-20 flex justify-center sm:mt-24">
+      <Card
+        styles={{
+          body: {
+            paddingBlock: "clamp(56px, 9vw, 96px)",
+            paddingInline: 24,
+          },
+        }}
+        style={{
+          background: "var(--cf-showcase-bg)",
+          borderColor: token.colorBorderSecondary,
+        }}
+      >
+        <div ref={containerRef} className="flex justify-center">
           <div
             className="relative"
             style={{
@@ -181,7 +196,7 @@ export function ModesIntro() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm"
+                    className="rounded-lg bg-[#171717] px-3 py-1.5 text-xs font-medium text-white shadow-sm"
                   >
                     {m.modes.tabs[MODES[active].key].caption}
                   </motion.div>
@@ -190,7 +205,7 @@ export function ModesIntro() {
 
               <div
                 ref={barRef}
-                className="relative flex h-[50px] items-center gap-1.5 rounded-2xl bg-neutral-700 p-2 shadow-[0_8px_24px_rgba(0,0,0,0.35)] ring-1 ring-white/10"
+                className="relative flex h-[50px] items-center gap-1.5 rounded-2xl bg-[#404040] p-2 shadow-[0_8px_24px_rgba(0,0,0,0.35)] ring-1 ring-white/10"
               >
                 <div className="ml-0.5 flex items-center self-center rounded-md">
                   <div className="flex items-center justify-center p-1">
@@ -216,7 +231,7 @@ export function ModesIntro() {
                         aria-pressed={isActive}
                         className={`flex h-8 w-9 items-center justify-center rounded-lg transition-colors ${
                           isActive
-                            ? "bg-white text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.3)]"
+                            ? "bg-white text-[#171717] shadow-[0_1px_2px_rgba(0,0,0,0.3)]"
                             : "text-white/55"
                         }`}
                       >
@@ -317,7 +332,7 @@ export function ModesIntro() {
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </Card>
+    </MarketingSection>
   );
 }

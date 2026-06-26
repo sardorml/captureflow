@@ -1,88 +1,122 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { Button, Flex, Typography, theme as antdTheme } from "antd";
+import { ThemeToggle, DEFAULT_THEME, type Theme } from "@captureflow/ui";
 import { Footer } from "./footer";
 import { useMessages, useLocalizedHref } from "./i18n-provider";
 
 type PageShellProps = {
-  children: React.ReactNode;
-  maxWidth?: string;
+  children: ReactNode;
+  maxWidth?: number;
   title?: string;
   subtitle?: string;
+  theme?: Theme;
 };
-
-const CONTENT_BG = "#ffffff";
-const SYSTEM_FONT =
-  'var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
 export function PageShell({
   children,
-  maxWidth = "max-w-5xl",
+  maxWidth = 960,
   title,
   subtitle,
+  theme = DEFAULT_THEME,
 }: PageShellProps) {
   const m = useMessages();
   const lh = useLocalizedHref();
+  const { token } = antdTheme.useToken();
+
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <header className="relative z-50">
-        <div
-          className="absolute inset-x-0 top-0 h-16 pointer-events-none mx-auto max-w-7xl "
-          style={{ backgroundColor: CONTENT_BG }}
-        />
-        <nav className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-10">
-          <Link href={lh("/")} className="flex items-center gap-2">
+    <Flex
+      vertical
+      style={{ minHeight: "100vh", background: token.colorBgContainer }}
+    >
+      <header
+        style={{
+          height: 64,
+          display: "flex",
+          alignItems: "center",
+          borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        }}
+      >
+        <Flex
+          align="center"
+          justify="space-between"
+          style={{
+            width: "100%",
+            paddingInline: "clamp(20px, 4vw, 56px)",
+          }}
+        >
+          <Link
+            href={lh("/")}
+            style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+          >
             <Image
-              src="/logo-round.png"
+              src="/logo.png"
               alt={m.pageShell.logoAlt}
-              width={32}
-              height={32}
-              className="h-8 w-auto"
+              width={30}
+              height={30}
+              style={{ borderRadius: 7 }}
               draggable={false}
               priority
               unoptimized
             />
-            <span className="font-heading text-xl font-semibold lowercase tracking-tight">
-              CaptureFlow
+            <span
+              style={{
+                fontSize: 20,
+                fontWeight: 600,
+                letterSpacing: "-0.01em",
+                color: token.colorText,
+              }}
+            >
+              captureflow
             </span>
           </Link>
-          <Link
-            href={lh("/")}
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {m.pageShell.backToHome}
-          </Link>
-        </nav>
+          <Flex align="center" gap={4}>
+            <Link href={lh("/")}>
+              <Button type="text" icon={<ArrowLeft size={16} />}>
+                {m.pageShell.backToHome}
+              </Button>
+            </Link>
+            <ThemeToggle initialTheme={theme} className="h-8 w-8" />
+          </Flex>
+        </Flex>
       </header>
 
-      <div className="relative flex flex-1 flex-col">
+      <main style={{ flex: 1, width: "100%" }}>
         <div
-          className="mx-auto w-full max-w-7xl flex-1"
-          style={{ backgroundColor: CONTENT_BG, fontFamily: SYSTEM_FONT }}
+          style={{
+            maxWidth,
+            marginInline: "auto",
+            paddingInline: 24,
+            paddingBlock: title ? "48px 64px" : "64px",
+          }}
         >
-          {title && (
-            <div className="mx-auto max-w-5xl px-5 sm:px-10 pt-12 pb-8">
-              <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl">
+          {title ? (
+            <div style={{ marginBottom: 32 }}>
+              <Typography.Title
+                level={1}
+                style={{ marginBottom: subtitle ? 8 : 0 }}
+              >
                 {title}
-              </h1>
-              {subtitle && (
-                <p className="mt-3 text-lg text-muted-foreground">{subtitle}</p>
-              )}
+              </Typography.Title>
+              {subtitle ? (
+                <Typography.Paragraph
+                  type="secondary"
+                  style={{ fontSize: 18, margin: 0 }}
+                >
+                  {subtitle}
+                </Typography.Paragraph>
+              ) : null}
             </div>
-          )}
-
-          <div
-            className={`mx-auto ${maxWidth} px-5 sm:px-10 ${
-              title ? "pt-4" : "pt-16"
-            } pb-20`}
-          >
-            {children}
-          </div>
+          ) : null}
+          {children}
         </div>
-      </div>
+      </main>
 
       <Footer />
-    </div>
+    </Flex>
   );
 }

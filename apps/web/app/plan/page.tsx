@@ -1,14 +1,14 @@
-import "../marketing.css";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { readThemeFromCookieHeader } from "@captureflow/ui";
+import { getStarCount, formatStars } from "@/lib/github";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
-import { getStarCount, formatStars } from "@/lib/github";
 import { Nav } from "@/components/marketing/nav";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { ComparePlansSection } from "@/components/marketing/compare-plans-section";
 import { FaqSection } from "@/components/marketing/faq-section";
 import { Footer } from "@/components/marketing/footer";
-import { MESSAGES } from "@/lib/marketing/messages";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -18,32 +18,20 @@ export const metadata: Metadata = {
 };
 
 export default async function PlanPage() {
-  const m = MESSAGES.plan;
+  const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
   const starCount = await getStarCount();
   const stars = starCount != null ? formatStars(starCount) : null;
 
   return (
     <I18nProvider>
       <MarketingShell>
-        <div className="relative flex min-h-screen flex-col font-system">
-          <Nav stars={stars} />
-          {/* Nav is position: fixed; offset by --header-height (set in nav.tsx). */}
-          <main style={{ paddingTop: "var(--header-height, 68px)" }}>
-            <div className="px-10 pt-12 text-center sm:pt-16">
-              <h1 className="font-heading text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl">
-                {m.heading}
-              </h1>
-              <p className="mx-auto mt-3 max-w-2xl text-base text-muted-foreground sm:text-lg">
-                {m.subtitle}
-              </p>
-            </div>
-
-            <PricingSection hideHeading />
-            <ComparePlansSection />
-            <FaqSection />
-          </main>
-          <Footer />
-        </div>
+        <Nav stars={stars} theme={theme} />
+        <main>
+          <PricingSection />
+          <ComparePlansSection />
+          <FaqSection />
+        </main>
+        <Footer />
       </MarketingShell>
     </I18nProvider>
   );

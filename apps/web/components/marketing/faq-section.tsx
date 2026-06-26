@@ -1,57 +1,58 @@
 "use client";
 
-import { SmoothAccordion } from "@/components/ui/smooth-accordion";
+import { Col, Collapse, Row, Typography } from "antd";
 import { FAQ_ITEMS, LAUNCH_STAGE } from "@/lib/marketing/constants";
+import { MarketingSection, SECTION_TITLE_STYLE } from "./_shared";
 import { useMessages } from "./i18n-provider";
 
 export function FaqSection() {
   const m = useMessages();
+
+  const items = FAQ_ITEMS.map((_item, index) => {
+    const showWaitlistLink =
+      index === FAQ_ITEMS.length - 1 && LAUNCH_STAGE === "waitlist";
+    const paragraphs = m.faq.items[index].answer.split("\n\n");
+    return {
+      key: String(index),
+      label: m.faq.items[index].question,
+      children: paragraphs.map((para, i) => {
+        const isLast = i === paragraphs.length - 1;
+        return (
+          <Typography.Paragraph
+            key={i}
+            style={{ marginBottom: isLast ? 0 : 12 }}
+          >
+            {para}
+            {isLast && showWaitlistLink ? (
+              <>
+                {" "}
+                <Typography.Link href="#waitlist">
+                  {m.faq.waitlistLink}
+                </Typography.Link>
+                .
+              </>
+            ) : null}
+          </Typography.Paragraph>
+        );
+      }),
+    };
+  });
+
   return (
-    <section id="faq" className="py-12 sm:py-16">
-      <div className="mx-auto max-w-7xl px-5 sm:px-10">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,2fr)] lg:gap-16">
-          <h2 className="font-heading text-[28px] font-semibold leading-[1.1] tracking-tight sm:text-[32px] lg:text-[40px]">
+    <MarketingSection id="faq">
+      <Row gutter={[32, 32]}>
+        <Col xs={24} md={8}>
+          <Typography.Title
+            level={2}
+            style={{ ...SECTION_TITLE_STYLE, marginTop: 0 }}
+          >
             {m.faq.heading}
-          </h2>
-          <div>
-            <SmoothAccordion
-              items={FAQ_ITEMS.map((item, index) => {
-                const showWaitlistLink =
-                  index === FAQ_ITEMS.length - 1 && LAUNCH_STAGE === "waitlist";
-                const paragraphs = m.faq.items[index].answer.split("\n\n");
-                return {
-                  id: index,
-                  title: m.faq.items[index].question,
-                  content: (
-                    <div className="space-y-3">
-                      {paragraphs.map((para, i) => {
-                        const isLast = i === paragraphs.length - 1;
-                        return (
-                          <p key={i}>
-                            {para}
-                            {isLast && showWaitlistLink && (
-                              <>
-                                {" "}
-                                <a
-                                  href="#waitlist"
-                                  className="text-blue-600 underline underline-offset-2 transition-colors hover:text-blue-700"
-                                >
-                                  {m.faq.waitlistLink}
-                                </a>
-                                .
-                              </>
-                            )}
-                          </p>
-                        );
-                      })}
-                    </div>
-                  ),
-                };
-              })}
-            />
-          </div>
-        </div>
-      </div>
-    </section>
+          </Typography.Title>
+        </Col>
+        <Col xs={24} md={16}>
+          <Collapse accordion items={items} />
+        </Col>
+      </Row>
+    </MarketingSection>
   );
 }

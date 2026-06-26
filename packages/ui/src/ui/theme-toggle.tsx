@@ -89,7 +89,7 @@ export function ThemeToggle({ initialTheme, className, onAfterToggle }: Props) {
         initial={{ rotate: -45, opacity: 0 }}
         animate={{ rotate: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 380, damping: 22 }}
-        className="absolute inline-flex"
+        className="absolute inset-0 inline-flex items-center justify-center"
       >
         {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
       </motion.span>
