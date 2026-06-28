@@ -188,6 +188,13 @@ recordingWindow`), not direct window-singleton imports (avoids stale captures).
 
 ## 7. Styling & UI
 
+- **Reach for Ant Design (`antd` v6) first for any UI primitive** — `Button`, `Input`, `Select`,
+  `Modal`, `Table`, `Tabs`, `Tooltip`, `Dropdown`, `Menu`, `Flex`, `Card`, `Collapse`, `Form`, …
+  The app surface is built on antd v6 (`app/` + `components/`, 80+ files); only hand-roll a
+  `cn()`/`cva()` element or pull from `@captureflow/ui` when antd has no fitting component. antd is
+  themed app-wide in `app/antd-provider.tsx` (`ConfigProvider`: `colorPrimary: #2563eb`, light/dark
+  `algorithm` synced to `data-theme`); style antd surfaces with `theme.useToken()` tokens, never
+  hardcoded colors. The bullets below cover the custom Tailwind primitives antd doesn't provide.
 - **Merge dynamic classes through `cn(...)`** (twMerge∘clsx), never template-literal class
   concatenation — so a caller's `className` can override the base. Import `cn` from the app's
   canonical module (`@/lib/utils`) within that app.
