@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="apps/web/public/logo.png?v=3" width="112" alt="CaptureFlow" />
+  <img src="apps/web/public/logo.png?v=4" width="112" alt="CaptureFlow" />
   <h1>CaptureFlow</h1>
   <p>
     <strong>Open-source, self-hostable screen recording with instant shareable links.</strong>
@@ -21,7 +21,7 @@
     <a href="https://github.com/sardorml/captureflow/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/sardorml/captureflow?color=2563EB" /></a>
   </p>
   <br />
-  <img src="apps/web/public/og-image.png?v=3" alt="CaptureFlow — screen recording with instant shareable links" width="100%" />
+  <img src="apps/web/public/og-image.png?v=4" alt="CaptureFlow — screen recording with instant shareable links" width="100%" />
 </div>
 
 <br />

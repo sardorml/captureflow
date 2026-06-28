@@ -4,6 +4,7 @@
   },
   "groups" : [
     {
+      "hidden" : true,
       "layers" : [
         {
           "blend-mode" : "normal",
@@ -42,8 +43,23 @@
     },
     {
       "layers" : [
-
+        {
+          "fill" : {
+            "solid" : "display-p3:0.93297,0.96778,0.96783,1.00000"
+          },
+          "glass" : false,
+          "image-name" : "svgviewer-output.svg",
+          "name" : "svgviewer-output",
+          "position" : {
+            "scale" : 7.5,
+            "translation-in-points" : [
+              1.1368683772161603e-13,
+              93.71249999999998
+            ]
+          }
+        }
       ],
+      "name" : "Group",
       "shadow" : {
         "kind" : "neutral",
         "opacity" : 0.5
