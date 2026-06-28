@@ -89,6 +89,14 @@ export const PRO_CARD_HIGHLIGHTS: ReadonlyArray<string> = [
 
 export const MONTHLY_PRICE = 9;
 
+// Managed storage tiers shown as mini pricing cards. Every tier links to the
+// same checkout for now; per-tier checkout URLs land later.
+export const MANAGED_TIERS = [
+  { storageGb: 50, price: "2.99", recommended: false },
+  { storageGb: 100, price: "5.99", recommended: true },
+  { storageGb: 200, price: "9.99", recommended: false },
+] as const;
+
 const IS_DEV_LS_CHECKOUT = process.env.NODE_ENV !== "production";
 
 const MONTHLY_SUBSCRIPTION_LIVE_URL = "https://captureflow.xyz/signup";
@@ -288,11 +296,6 @@ const STATIC_FAQ_ITEMS: { question: string; answer: string }[] = [
       "Yes — and with CaptureFlow you control where it lives. When you self-host, recordings and Screenshots upload to your own Cloudflare account (R2 storage, D1 database) — nothing touches our servers at all.\n\nWhen you create a share link, that artifact is stored so the recipient can open it from a URL. You control visibility per artifact (public, workspace-only, or private), and you can revoke or delete a link from your dashboard at any time.",
   },
   {
-    question: "Which macOS versions does CaptureFlow support?",
-    answer:
-      "CaptureFlow runs on macOS 14 (Sonoma) or later, on Apple Silicon Macs. Intel Mac support is not tested yet but is being worked on. Older macOS versions may work but are unsupported — newer versions get the smoothest experience.",
-  },
-  {
     question: "Can I self-host CaptureFlow?",
     answer:
       "Yes — that's the whole point. CaptureFlow is open source under the AGPL and runs entirely on Cloudflare: Workers for the API, R2 for storage, and D1 for the database. Deploy it to your own account and you own every recording, Screenshot, and share link end to end. The repo and deploy guide live on GitHub and docs.captureflow.xyz.",
@@ -439,6 +442,7 @@ const ALL_NAV_LINKS: { href: string; label: string }[] = [
 // No dedicated X/Telegram presence yet — these point at GitHub and docs.
 export const X_URL = "https://github.com/sardorml/captureflow";
 export const TELEGRAM_URL = "https://docs.captureflow.xyz";
+export const DISCORD_URL = "https://discord.gg/qzeBCaEeNq";
 
 const WAITLIST_EXTRA_LINKS: { href: string; label: string }[] = [
   { href: "/changelog", label: "Changelog" },

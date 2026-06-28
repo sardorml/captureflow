@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { Col, Row, Space, Typography, theme as antdTheme } from "antd";
-import { DOWNLOAD_URL, X_URL } from "@/lib/marketing/constants";
+import { DISCORD_URL, DOWNLOAD_URL, X_URL } from "@/lib/marketing/constants";
 import { DOCS_URL, RELEASES_URL } from "@/lib/site";
 import { useLocalizedHref } from "./i18n-provider";
 
@@ -64,6 +64,7 @@ export function Footer() {
       title: "Community",
       links: [
         { label: "GitHub", href: X_URL },
+        { label: "Discord", href: DISCORD_URL },
         { label: "Issues", href: `${X_URL}/issues` },
         { label: "Latest release", href: DOWNLOAD_URL },
       ],
@@ -99,10 +100,7 @@ export function Footer() {
           dir="ltr"
           className="absolute inset-x-0 bottom-0 flex justify-center overflow-hidden"
         >
-          <span
-            className="translate-y-[14%] select-none whitespace-nowrap text-[17vw] font-bold leading-none tracking-tight"
-            style={{ color: token.colorFillQuaternary }}
-          >
+          <span className="translate-y-[14%] select-none whitespace-nowrap text-[17vw] font-bold leading-none tracking-tight text-[rgba(0,0,0,0.05)] dark:text-[rgba(255,255,255,0.022)]">
             {WORDMARK_LETTERS.map((letter, i) => (
               <span
                 key={i}

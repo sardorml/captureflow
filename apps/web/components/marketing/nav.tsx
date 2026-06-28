@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Button, Drawer, Flex, Grid, Space, theme as antdTheme } from "antd";
+import { Button, Drawer, Flex, theme as antdTheme } from "antd";
 import { Menu as MenuIcon, Star } from "lucide-react";
+import { DiscordOutlined } from "@ant-design/icons";
 import { ThemeToggle, DEFAULT_THEME, type Theme } from "@captureflow/ui";
-import { NAV_LINKS } from "@/lib/marketing/constants";
+import { DISCORD_URL, NAV_LINKS } from "@/lib/marketing/constants";
 import { DOCS_URL } from "@/lib/site";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
@@ -23,7 +24,6 @@ export function Nav({
   const m = useMessages();
   const lh = useLocalizedHref();
   const { token } = antdTheme.useToken();
-  const screens = Grid.useBreakpoint();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLabel = (link: { href: string; label: string }): string => {
@@ -42,8 +42,6 @@ export function Nav({
         return link.label;
     }
   };
-
-  const isDesktop = screens.md;
 
   // Logo: 32×32 mark + 18px bold wordmark, 8px gap — matching the antd header.
   const brand = (
@@ -94,13 +92,25 @@ export function Nav({
   const actions = (
     <>
       <a
+        href={DISCORD_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ display: "inline-flex" }}
+      >
+        <Button
+          type="text"
+          aria-label="Discord"
+          icon={<DiscordOutlined style={{ fontSize: 18 }} />}
+        />
+      </a>
+      <a
         href={GITHUB_URL}
         target="_blank"
         rel="noopener noreferrer"
         style={{ display: "inline-flex" }}
       >
         <Button type="text" icon={<Star size={16} />}>
-          {stars ? `Star ${stars}` : "Star on GitHub"}
+          {stars ? `Star on GitHub (${stars})` : "Star on GitHub"}
         </Button>
       </a>
       <Link href={lh("/login")} style={{ display: "inline-flex" }}>
@@ -129,33 +139,30 @@ export function Nav({
         backdropFilter: "blur(8px)",
       }}
     >
-      <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+      <Flex
+        align="center"
+        justify="space-between"
+        style={{ width: "100%", paddingInline: "clamp(16px, 4vw, 40px)" }}
+      >
         {/* antd logo column has padding-inline-start: 40px on desktop. */}
-        <Flex
-          align="center"
-          gap={24}
-          style={{ paddingInlineStart: isDesktop ? 40 : 16 }}
-        >
+        <Flex align="center" gap={24}>
           {brand}
-          {/* antd menu column-gap is 2px. */}
-          {isDesktop ? <Space size={2}>{links}</Space> : null}
+          {/* Desktop/mobile split is CSS-gated (not JS breakpoints) so the
+              server render matches the viewport — no mobile→desktop flip after
+              hydration. antd menu column-gap is 2px. */}
+          <div className="hidden items-center gap-0.5 md:flex">{links}</div>
         </Flex>
 
-        {isDesktop ? (
-          <Flex align="center" gap={4} style={{ paddingInlineEnd: 16 }}>
-            {actions}
-          </Flex>
-        ) : (
-          <Flex align="center" gap={4} style={{ paddingInlineEnd: 16 }}>
-            <ThemeToggle initialTheme={theme} className="h-8 w-8" />
-            <Button
-              type="text"
-              aria-label="Open menu"
-              icon={<MenuIcon size={20} />}
-              onClick={() => setMenuOpen(true)}
-            />
-          </Flex>
-        )}
+        <div className="hidden items-center gap-1 md:flex">{actions}</div>
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle initialTheme={theme} className="h-8 w-8" />
+          <Button
+            type="text"
+            aria-label="Open menu"
+            icon={<MenuIcon size={20} />}
+            onClick={() => setMenuOpen(true)}
+          />
+        </div>
       </Flex>
 
       <Drawer
@@ -193,7 +200,17 @@ export function Nav({
               icon={<Star size={16} />}
               style={{ justifyContent: "flex-start" }}
             >
-              {stars ? `Star ${stars}` : "Star on GitHub"}
+              {stars ? `Star on GitHub (${stars})` : "Star on GitHub"}
+            </Button>
+          </a>
+          <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">
+            <Button
+              type="text"
+              block
+              icon={<DiscordOutlined style={{ fontSize: 16 }} />}
+              style={{ justifyContent: "flex-start" }}
+            >
+              Discord
             </Button>
           </a>
           <Link href={lh("/login")} onClick={() => setMenuOpen(false)}>
