@@ -1,10 +1,43 @@
--- The recording-domain rename changed the `preset` value 'share' -> 'recording'.
--- Earlier migrations were edited in place, so any database that had already
--- applied them keeps the old CHECK (preset IN ('share')) and rejects inserts of
--- 'recording' — breaking /api/r/init. SQLite cannot alter a CHECK in place, so
--- rebuild the table with the corrected constraint and migrate existing rows.
+-- One-time production reset (prod has no data yet).
+--
+-- Prod's D1 was initialised from an earlier, since-edited-in-place 0001 whose
+-- tables were named `shares`/`snaps` (pre the share->recording / snap->screenshot
+-- rename). wrangler still records 0001 as applied, so it never created the
+-- current `recordings`/`screenshots` schema and `db:apply:remote` fails with
+-- "no such table: recordings". Rather than patch the divergence, drop every
+-- legacy/partial table and rebuild the canonical post-rename schema (identical
+-- to 0001_init.sql). Idempotent: DROP ... IF EXISTS / CREATE ... IF NOT EXISTS,
+-- and it never touches wrangler's own d1_migrations bookkeeping table.
+--
+-- SAFE only because prod is empty; this runs once (wrangler records it on
+-- success) and local/dev seed from db/schema.snapshot.sql, not migrations.
 
-CREATE TABLE recordings_new (
+PRAGMA defer_foreign_keys=TRUE;
+
+-- Drop legacy (pre-rename) and any partially-created current tables.
+DROP TABLE IF EXISTS share_activity;
+DROP TABLE IF EXISTS share_comments;
+DROP TABLE IF EXISTS share_reactions;
+DROP TABLE IF EXISTS shares;
+DROP TABLE IF EXISTS snaps;
+DROP TABLE IF EXISTS recording_activity;
+DROP TABLE IF EXISTS recording_comments;
+DROP TABLE IF EXISTS recording_reactions;
+DROP TABLE IF EXISTS recordings;
+DROP TABLE IF EXISTS screenshots;
+DROP TABLE IF EXISTS workspace_invite;
+DROP TABLE IF EXISTS workspace_member;
+DROP TABLE IF EXISTS workspace;
+DROP TABLE IF EXISTS pro_subscription;
+DROP TABLE IF EXISTS user_quotas;
+DROP TABLE IF EXISTS device_tokens;
+DROP TABLE IF EXISTS verifications;
+DROP TABLE IF EXISTS accounts;
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS users;
+
+-- Rebuild the canonical schema (mirrors 0001_init.sql).
+CREATE TABLE IF NOT EXISTS recordings (
   slug              TEXT PRIMARY KEY,
   device_id         TEXT NOT NULL,
   storage_key       TEXT NOT NULL,
@@ -18,50 +51,284 @@ CREATE TABLE recordings_new (
   preset            TEXT NOT NULL,
   created_at        INTEGER NOT NULL,
   last_viewed_at    INTEGER NOT NULL,
-  state             TEXT NOT NULL,
-  view_count        INTEGER NOT NULL DEFAULT 0,
-  title             TEXT,
-  user_id           TEXT,
-  visibility        TEXT NOT NULL DEFAULT 'public',
-  bake_status       TEXT NOT NULL DEFAULT 'none',
-  webcam_storage_key TEXT,
-  webcam_upload_id   TEXT,
-  webcam_size_bytes  INTEGER NOT NULL DEFAULT 0,
-  webcam_state       TEXT NOT NULL DEFAULT 'none',
-  workspace_id      TEXT REFERENCES workspace(id),
+  state             TEXT NOT NULL, view_count INTEGER NOT NULL DEFAULT 0, title TEXT, user_id TEXT, visibility TEXT NOT NULL DEFAULT 'public', bake_status TEXT NOT NULL DEFAULT 'none'
+  CHECK (bake_status IN ('none', 'expected', 'done')), webcam_storage_key TEXT, webcam_upload_id   TEXT, webcam_size_bytes  INTEGER NOT NULL DEFAULT 0, webcam_state       TEXT NOT NULL DEFAULT 'none'
+  CHECK (webcam_state IN ('none', 'pending', 'ready', 'failed')), workspace_id TEXT REFERENCES workspace(id),
   CHECK (state IN ('pending', 'ready', 'failed')),
   CHECK (source IN ('instant', 'edited')),
-  CHECK (preset IN ('recording')),
-  CHECK (bake_status IN ('none', 'expected', 'done')),
-  CHECK (webcam_state IN ('none', 'pending', 'ready', 'failed'))
+  CHECK (preset IN ('recording'))
 ) STRICT;
-
-INSERT INTO recordings_new (
-  slug, device_id, storage_key, poster_key, upload_id,
-  size_bytes, duration_ms, width, height, source, preset,
-  created_at, last_viewed_at, state, view_count, title, user_id,
-  visibility, bake_status, webcam_storage_key, webcam_upload_id,
-  webcam_size_bytes, webcam_state, workspace_id
-)
-SELECT
-  slug, device_id, storage_key, poster_key, upload_id,
-  size_bytes, duration_ms, width, height, source,
-  CASE WHEN preset = 'share' THEN 'recording' ELSE preset END,
-  created_at, last_viewed_at, state, view_count, title, user_id,
-  visibility, bake_status, webcam_storage_key, webcam_upload_id,
-  webcam_size_bytes, webcam_state, workspace_id
-FROM recordings;
-
-DROP TABLE recordings;
-ALTER TABLE recordings_new RENAME TO recordings;
-
+CREATE TABLE IF NOT EXISTS recording_reactions (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug          TEXT NOT NULL,
+  emoji         TEXT NOT NULL,
+  timestamp_ms  INTEGER NOT NULL,
+  created_at    INTEGER NOT NULL
+, user_id   TEXT, user_name TEXT) STRICT;
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  emailVerified INTEGER NOT NULL DEFAULT 0,
+  image TEXT,
+  createdAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  expiresAt INTEGER NOT NULL,
+  token TEXT NOT NULL UNIQUE,
+  createdAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL,
+  ipAddress TEXT,
+  userAgent TEXT,
+  userId TEXT NOT NULL,
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS accounts (
+  id TEXT PRIMARY KEY,
+  accountId TEXT NOT NULL,
+  providerId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  accessToken TEXT,
+  refreshToken TEXT,
+  idToken TEXT,
+  accessTokenExpiresAt INTEGER,
+  refreshTokenExpiresAt INTEGER,
+  scope TEXT,
+  password TEXT,
+  createdAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL,
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS verifications (
+  id TEXT PRIMARY KEY,
+  identifier TEXT NOT NULL,
+  value TEXT NOT NULL,
+  expiresAt INTEGER NOT NULL,
+  createdAt INTEGER,
+  updatedAt INTEGER
+);
+CREATE TABLE IF NOT EXISTS device_tokens (
+  id            TEXT PRIMARY KEY,
+  user_id       TEXT NOT NULL,
+  token_hash    TEXT NOT NULL UNIQUE,
+  label         TEXT,
+  created_at    INTEGER NOT NULL,
+  last_used_at  INTEGER,
+  revoked_at    INTEGER,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS user_quotas (
+  user_id                TEXT PRIMARY KEY,
+  
+  
+  
+  storage_bytes_override INTEGER,
+  active_recordings_override INTEGER,
+  
+  
+  
+  note                   TEXT,
+  updated_at             INTEGER NOT NULL
+) STRICT;
+CREATE TABLE IF NOT EXISTS screenshots (
+  id              TEXT PRIMARY KEY,
+  
+  
+  user_id         TEXT NOT NULL,
+  
+  
+  
+  
+  device_id       TEXT,
+  
+  
+  storage_key     TEXT NOT NULL,
+  size_bytes      INTEGER NOT NULL,
+  width           INTEGER NOT NULL,
+  height          INTEGER NOT NULL,
+  
+  title           TEXT,
+  
+  
+  
+  state           TEXT NOT NULL DEFAULT 'ready',
+  created_at      INTEGER NOT NULL,
+  updated_at      INTEGER NOT NULL,
+  
+  
+  
+  edited_at       INTEGER,
+  last_viewed_at  INTEGER,
+  view_count      INTEGER NOT NULL DEFAULT 0, workspace_id TEXT REFERENCES workspace(id), visibility TEXT NOT NULL DEFAULT 'public',
+  CHECK (state IN ('ready', 'deleted'))
+) STRICT;
+CREATE TABLE IF NOT EXISTS pro_subscription (
+  
+  
+  
+  ls_subscription_id     TEXT PRIMARY KEY,
+  
+  
+  
+  
+  
+  user_id                TEXT,
+  
+  
+  ls_variant_id          TEXT NOT NULL,
+  ls_customer_id         TEXT,
+  ls_customer_email      TEXT NOT NULL,
+  
+  
+  
+  status                 TEXT NOT NULL,
+  
+  
+  cycle                  TEXT NOT NULL,
+  
+  
+  
+  
+  current_period_end     INTEGER,
+  
+  
+  cancelled_at           INTEGER,
+  created_at             INTEGER NOT NULL,
+  updated_at             INTEGER NOT NULL
+) STRICT;
+CREATE TABLE IF NOT EXISTS workspace (
+  
+  
+  
+  id              TEXT PRIMARY KEY,
+  
+  
+  
+  
+  slug            TEXT NOT NULL UNIQUE,
+  
+  
+  
+  
+  
+  kind            TEXT NOT NULL DEFAULT 'personal',
+  
+  
+  name            TEXT NOT NULL,
+  
+  
+  owner_user_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at      INTEGER NOT NULL,
+  updated_at      INTEGER NOT NULL
+, logo_key             TEXT, allow_public_links   INTEGER NOT NULL DEFAULT 1, allow_member_uploads INTEGER NOT NULL DEFAULT 1) STRICT;
+CREATE TABLE IF NOT EXISTS workspace_member (
+  workspace_id    TEXT NOT NULL REFERENCES workspace(id) ON DELETE CASCADE,
+  user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  
+  
+  
+  role            TEXT NOT NULL DEFAULT 'member',
+  joined_at       INTEGER NOT NULL,
+  PRIMARY KEY (workspace_id, user_id)
+) STRICT;
+CREATE TABLE IF NOT EXISTS workspace_invite (
+  id                   TEXT PRIMARY KEY,
+  workspace_id         TEXT NOT NULL REFERENCES workspace(id) ON DELETE CASCADE,
+  
+  
+  email                TEXT NOT NULL,
+  
+  
+  
+  token_hash           TEXT NOT NULL UNIQUE,
+  invited_by_user_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at           INTEGER NOT NULL,
+  expires_at           INTEGER NOT NULL,
+  
+  accepted_at          INTEGER
+) STRICT;
+CREATE TABLE IF NOT EXISTS recording_comments (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug        TEXT NOT NULL,
+  user_id     TEXT NOT NULL,
+  user_name   TEXT NOT NULL,
+  body        TEXT NOT NULL,
+  created_at  INTEGER NOT NULL
+, timestamp_ms INTEGER) STRICT;
+CREATE TABLE IF NOT EXISTS recording_activity (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug          TEXT NOT NULL,
+  kind          TEXT NOT NULL CHECK (kind IN ('reaction', 'comment')),
+  
+  
+  user_id       TEXT,
+  user_name     TEXT,
+  
+  emoji         TEXT,
+  
+  body          TEXT,
+  
+  
+  
+  
+  timestamp_ms  INTEGER,
+  created_at    INTEGER NOT NULL
+) STRICT;
 CREATE INDEX IF NOT EXISTS idx_recordings_device
   ON recordings (device_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_recordings_gc
-  ON recordings (last_viewed_at) WHERE state = 'ready';
+  ON recordings (last_viewed_at)
+  WHERE state = 'ready';
 CREATE INDEX IF NOT EXISTS idx_recordings_pending_gc
-  ON recordings (created_at) WHERE state = 'pending';
+  ON recordings (created_at)
+  WHERE state = 'pending';
+CREATE INDEX IF NOT EXISTS idx_reactions_slug
+  ON recording_reactions (slug, timestamp_ms);
+CREATE INDEX IF NOT EXISTS sessions_userId_idx ON sessions(userId);
+CREATE INDEX IF NOT EXISTS accounts_userId_idx ON accounts(userId);
+CREATE INDEX IF NOT EXISTS verifications_identifier_idx ON verifications(identifier);
 CREATE INDEX IF NOT EXISTS idx_recordings_user
-  ON recordings (user_id, created_at DESC) WHERE user_id IS NOT NULL;
+  ON recordings (user_id, created_at DESC)
+  WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_device_tokens_user
+  ON device_tokens (user_id, last_used_at DESC);
+CREATE INDEX IF NOT EXISTS idx_screenshots_user
+  ON screenshots (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_screenshots_active
+  ON screenshots (user_id, state);
+CREATE INDEX IF NOT EXISTS idx_screenshots_gc
+  ON screenshots (last_viewed_at)
+  WHERE state = 'ready';
+CREATE INDEX IF NOT EXISTS idx_pro_subscription_email
+  ON pro_subscription(ls_customer_email);
+CREATE INDEX IF NOT EXISTS idx_pro_subscription_user_id
+  ON pro_subscription(user_id) WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_workspace_owner
+  ON workspace(owner_user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_workspace_owner_personal
+  ON workspace(owner_user_id) WHERE kind = 'personal';
+CREATE INDEX IF NOT EXISTS idx_workspace_member_user
+  ON workspace_member(user_id);
+CREATE INDEX IF NOT EXISTS idx_workspace_invite_workspace
+  ON workspace_invite(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_workspace_invite_email
+  ON workspace_invite(LOWER(email));
+CREATE UNIQUE INDEX IF NOT EXISTS idx_workspace_invite_pending_unique
+  ON workspace_invite(workspace_id, LOWER(email))
+  WHERE accepted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_recordings_workspace
-  ON recordings (workspace_id, created_at DESC) WHERE workspace_id IS NOT NULL;
+  ON recordings(workspace_id, created_at DESC)
+  WHERE workspace_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_screenshots_workspace
+  ON screenshots(workspace_id, created_at DESC)
+  WHERE workspace_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_recording_comments_slug
+  ON recording_comments (slug, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_slug_created
+  ON recording_activity (slug, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_slug_ts
+  ON recording_activity (slug, timestamp_ms);
+CREATE INDEX IF NOT EXISTS idx_activity_slug_kind
+  ON recording_activity (slug, kind);
