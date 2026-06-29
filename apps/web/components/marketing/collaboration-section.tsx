@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Card, Col, Collapse, Row, theme, Typography } from "antd";
 import {
@@ -18,6 +19,7 @@ import {
   Plus,
   RefreshCw,
   Scan,
+  Scissors,
   Sparkle,
   Square,
   Type as TypeIcon,
@@ -230,7 +232,7 @@ function CategoryPanel({ cat }: { cat: Category }) {
 
   return (
     <Row gutter={[112, 32]} align="middle">
-      <Col xs={{ span: 24, order: 1 }} lg={{ span: 13, order: 2 }}>
+      <Col xs={{ span: 24, order: 1 }} lg={{ span: 10, order: 2 }}>
         <div>
           {cat.features.map((f) => {
             const on = f.key === featureKey;
@@ -298,12 +300,12 @@ function CategoryPanel({ cat }: { cat: Category }) {
         </div>
       </Col>
 
-      <Col xs={{ span: 24, order: 2 }} lg={{ span: 11, order: 1 }}>
+      <Col xs={{ span: 24, order: 2 }} lg={{ span: 14, order: 1 }}>
         <Card
           styles={{ body: { padding: 0 } }}
           style={{
             overflow: "hidden",
-            borderRadius: 16,
+            borderRadius: token.borderRadiusLG,
             maxWidth: MOCKUP_MAX_WIDTH,
             marginInline: "auto",
           }}
@@ -342,7 +344,7 @@ const REF_WIDTH = 440;
 const REF_HEIGHT = (REF_WIDTH * 8) / 11;
 // The card (and the demo inside it) is capped to this width; the reference-sized
 // mockup scales up to fill it at full size and down on narrower screens.
-const MOCKUP_MAX_WIDTH = 500;
+const MOCKUP_MAX_WIDTH = 600;
 
 // Scales the child down to the measured column width (capped at 1). Pure-CSS
 // scaling can't divide length-by-length, so the factor comes from a
@@ -450,30 +452,30 @@ function BrowserChrome({
   return (
     <div
       dir="ltr"
-      className="flex aspect-[11/8] w-full flex-col overflow-hidden bg-white"
+      className="flex aspect-[11/8] w-full flex-col overflow-hidden bg-white dark:bg-[#1f1f1f]"
     >
-      <div className="flex shrink-0 items-center gap-3 border-b border-black/[0.06] bg-[#fafafa] px-3 py-2.5">
-        <div className="flex items-center gap-1.5">
-          <span className="size-3 rounded-full bg-[#ff5f57]" />
-          <span className="size-3 rounded-full bg-black/10" />
-          <span className="size-3 rounded-full bg-black/10" />
+      <div className="flex shrink-0 items-center gap-2.5 border-b border-black/[0.06] dark:border-white/[0.08] bg-[#fafafa] dark:bg-[#171717] px-3 py-1">
+        <div className="flex items-center gap-1">
+          <span className="size-2.5 rounded-full bg-[#ff5f57]" />
+          <span className="size-2.5 rounded-full bg-black/10 dark:bg-white/15" />
+          <span className="size-2.5 rounded-full bg-black/10 dark:bg-white/15" />
         </div>
-        <div className="flex items-center gap-0.5 text-[#737373]">
-          <span className="flex size-6 items-center justify-center">
-            <ChevronLeft size={16} />
+        <div className="flex items-center gap-0.5 text-[#737373] dark:text-[#8b8b8b]">
+          <span className="flex size-4 items-center justify-center">
+            <ChevronLeft size={13} />
           </span>
-          <span className="flex size-6 items-center justify-center">
-            <ChevronRight size={16} />
+          <span className="flex size-4 items-center justify-center">
+            <ChevronRight size={13} />
           </span>
-          <span className="flex size-6 items-center justify-center">
-            <RefreshCw size={14} />
+          <span className="flex size-4 items-center justify-center">
+            <RefreshCw size={11} />
           </span>
         </div>
-        <div className="flex min-w-0 flex-1 items-center gap-2 truncate rounded-md bg-black/[0.04] px-3 py-1 font-mono text-[11px] text-[#525252]">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 truncate rounded-md bg-black/[0.04] dark:bg-white/[0.06] px-2.5 py-0.5 font-mono text-[9px] text-[#525252] dark:text-[#a3a3a3]">
           {overlay ? (
-            <Scan size={11} className="text-[#737373]" />
+            <Scan size={9} className="text-[#737373] dark:text-[#8b8b8b]" />
           ) : (
-            <Lock size={11} className="text-[#737373]" />
+            <Lock size={9} className="text-[#737373] dark:text-[#8b8b8b]" />
           )}
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
@@ -485,14 +487,18 @@ function BrowserChrome({
               className="min-w-0 truncate"
             >
               {overlay ? (
-                <span className="text-[#737373]">{url}</span>
+                <span className="text-[#737373] dark:text-[#8b8b8b]">
+                  {url}
+                </span>
               ) : url.includes("/") ? (
                 (() => {
                   const [host, ...rest] = url.split("/");
                   return (
                     <>
                       {host}
-                      <span className="text-blue-600">/{rest.join("/")}</span>
+                      <span className="text-blue-600 dark:text-blue-400">
+                        /{rest.join("/")}
+                      </span>
                     </>
                   );
                 })()
@@ -504,7 +510,7 @@ function BrowserChrome({
         </div>
       </div>
 
-      <div className="relative min-h-0 flex-1 overflow-hidden bg-white">
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-white dark:bg-[#1f1f1f]">
         {children}
       </div>
     </div>
@@ -521,30 +527,45 @@ function ViewerBody() {
     { emoji: "❤️", count: 2 },
   ];
   const COMMENTS = [
-    { initial: "A", tint: "bg-black/15", nameW: 36, lineWs: [88, 62] },
-    { initial: "S", tint: "bg-black/10", nameW: 28, lineWs: [70] },
-    { initial: "M", tint: "bg-black/15", nameW: 44, lineWs: [82, 54] },
+    {
+      initial: "A",
+      tint: "bg-black/15 dark:bg-white/20",
+      nameW: 36,
+      lineWs: [88, 62],
+    },
+    {
+      initial: "S",
+      tint: "bg-black/10 dark:bg-white/15",
+      nameW: 28,
+      lineWs: [70],
+    },
+    {
+      initial: "M",
+      tint: "bg-black/15 dark:bg-white/20",
+      nameW: 44,
+      lineWs: [82, 54],
+    },
   ];
   return (
     <div className="flex h-full w-full">
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="relative min-h-0 flex-1 overflow-hidden">
           <div className={`absolute inset-0 ${EDITOR_BACKGROUNDS[0]}`} />
-          <div className="absolute inset-[8%] overflow-hidden rounded-lg bg-black shadow-xl ring-1 ring-black/10">
+          <div className="absolute inset-[8%] overflow-hidden rounded-lg bg-black shadow-xl ring-1 ring-black/10 dark:ring-white/10">
             <DemoStage />
             <motion.div
               key={emojiIndex}
               initial={reduceMotion ? false : { scale: 0.3, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 500, damping: 22 }}
-              className="absolute bottom-[6%] right-[6%] flex size-9 items-center justify-center rounded-full bg-white text-lg shadow-lg ring-2 ring-white"
+              className="absolute bottom-[6%] right-[6%] flex size-9 items-center justify-center rounded-full bg-white text-lg shadow-lg"
             >
               {FEEDBACK_EMOJI[emojiIndex]}
             </motion.div>
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/[0.06] bg-[#fafafa] px-3 py-2.5">
+        <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/[0.06] dark:border-white/[0.08] bg-[#fafafa] dark:bg-[#171717] px-3 py-2.5">
           {FEEDBACK_EMOJI.map((emoji, i) => {
             const selected = emojiIndex === i;
             return (
@@ -557,7 +578,7 @@ function ViewerBody() {
                 className={`flex size-8 cursor-pointer items-center justify-center rounded-full text-sm transition ${
                   selected
                     ? "bg-blue-500/20 ring-1 ring-inset ring-blue-500"
-                    : "bg-black/[0.04] hover:bg-black/10"
+                    : "bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/15"
                 }`}
               >
                 <span className="leading-none">{emoji}</span>
@@ -566,46 +587,46 @@ function ViewerBody() {
           })}
         </div>
       </div>
-      <aside className="flex w-[26%] shrink-0 flex-col gap-3.5 border-l border-black/[0.06] bg-[#fafafa] p-3.5">
+      <aside className="flex w-[26%] shrink-0 flex-col gap-3.5 border-l border-black/[0.06] dark:border-white/[0.08] bg-[#fafafa] dark:bg-[#171717] p-3.5">
         <div>
-          <div className="mb-1.5 h-1.5 w-12 rounded-full bg-black/10" />
+          <div className="mb-1.5 h-1.5 w-12 rounded-full bg-black/10 dark:bg-white/15" />
           <div className="flex flex-wrap gap-1">
             {REACTIONS.map((r) => (
               <span
                 key={r.emoji}
-                className="inline-flex items-center gap-0.5 rounded-full bg-black/[0.04] px-1.5 py-0.5 text-[10px] leading-none ring-1 ring-inset ring-black/[0.08]"
+                className="inline-flex items-center gap-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] px-1.5 py-0.5 text-[10px] leading-none ring-1 ring-inset ring-black/[0.08] dark:ring-white/[0.1]"
               >
                 <span>{r.emoji}</span>
-                <span className="font-mono text-[8px] tabular-nums text-[#737373]">
+                <span className="font-mono text-[8px] tabular-nums text-[#737373] dark:text-[#8b8b8b]">
                   {r.count}
                 </span>
               </span>
             ))}
-            <span className="inline-flex size-[18px] items-center justify-center rounded-full bg-black/[0.03] ring-1 ring-inset ring-black/[0.08]">
+            <span className="inline-flex size-[18px] items-center justify-center rounded-full bg-black/[0.03] dark:bg-white/[0.05] ring-1 ring-inset ring-black/[0.08] dark:ring-white/[0.1]">
               <span className="text-[9px] text-[#a3a3a3]">+</span>
             </span>
           </div>
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-2">
-          <div className="h-1.5 w-14 rounded-full bg-black/10" />
+          <div className="h-1.5 w-14 rounded-full bg-black/10 dark:bg-white/15" />
           <div className="flex flex-col gap-2">
             {COMMENTS.map((c, i) => (
               <div key={i} className="flex items-start gap-1.5">
                 <div
-                  className={`flex size-4 shrink-0 items-center justify-center rounded-full ${c.tint} text-[8px] font-semibold text-[#525252]`}
+                  className={`flex size-4 shrink-0 items-center justify-center rounded-full ${c.tint} text-[8px] font-semibold text-[#525252] dark:text-[#a3a3a3]`}
                 >
                   {c.initial}
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <div
-                    className="h-1.5 rounded-full bg-black/15"
+                    className="h-1.5 rounded-full bg-black/15 dark:bg-white/20"
                     style={{ width: `${c.nameW}%` }}
                   />
                   {c.lineWs.map((w, j) => (
                     <div
                       key={j}
-                      className="h-1 rounded-full bg-black/[0.06]"
+                      className="h-1 rounded-full bg-black/[0.06] dark:bg-white/[0.08]"
                       style={{ width: `${w}%` }}
                     />
                   ))}
@@ -615,8 +636,8 @@ function ViewerBody() {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 rounded-md bg-black/[0.03] px-1.5 py-1 ring-1 ring-inset ring-black/[0.06]">
-          <div className="h-1.5 flex-1 rounded-full bg-black/[0.06]" />
+        <div className="flex items-center gap-1.5 rounded-md bg-black/[0.03] dark:bg-white/[0.05] px-1.5 py-1 ring-1 ring-inset ring-black/[0.06] dark:ring-white/[0.08]">
+          <div className="h-1.5 flex-1 rounded-full bg-black/[0.06] dark:bg-white/[0.08]" />
           <div className="flex size-3.5 items-center justify-center rounded-full bg-blue-500">
             <ArrowUp size={8} className="text-white" />
           </div>
@@ -638,9 +659,7 @@ const FEEDBACK_EMOJI = ["👍", "🎉", "🔥", "❤️", "👏", "😮"];
 function FeedbackBody() {
   const m = useMessages();
   const em = m.collaboration.editorMockup;
-  const reduceMotion = useReducedMotion();
   const [bgIndex, setBgIndex] = useState(0);
-  const [emojiIndex, setEmojiIndex] = useState(0);
   const [commentsOn, setCommentsOn] = useState(true);
   const [reactionsOn, setReactionsOn] = useState(true);
 
@@ -655,7 +674,7 @@ function FeedbackBody() {
 
   return (
     <div className="flex h-full w-full">
-      <div className="flex min-w-0 flex-1 flex-col border-r border-black/[0.06]">
+      <div className="flex min-w-0 flex-1 flex-col border-r border-black/[0.06] dark:border-white/[0.08]">
         <div className="relative min-h-0 flex-1 overflow-hidden">
           <div
             className={`absolute inset-0 transition-colors duration-300 ${EDITOR_BACKGROUNDS[bgIndex]}`}
@@ -664,48 +683,48 @@ function FeedbackBody() {
             className={`absolute overflow-hidden bg-black transition-[inset] duration-300 ${
               bgIndex === 3
                 ? "inset-0"
-                : "inset-[8%] rounded-lg shadow-xl ring-1 ring-black/10"
+                : "inset-[8%] rounded-lg shadow-xl ring-1 ring-black/10 dark:ring-white/10"
             }`}
           >
             <DemoStage />
-            <motion.div
-              key={emojiIndex}
-              initial={reduceMotion ? false : { scale: 0.3, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 22 }}
-              className="absolute bottom-[6%] right-[6%] flex size-9 items-center justify-center rounded-full bg-white text-lg shadow-lg ring-2 ring-white"
-            >
-              {FEEDBACK_EMOJI[emojiIndex]}
-            </motion.div>
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center justify-center gap-2 border-t border-black/[0.06] bg-[#fafafa] px-3 py-2.5">
-          {FEEDBACK_EMOJI.map((emoji, i) => {
-            const selected = emojiIndex === i;
-            return (
-              <button
-                key={emoji}
-                type="button"
-                aria-label={`React with ${emoji}`}
-                aria-pressed={selected}
-                onClick={() => setEmojiIndex(i)}
-                className={`flex size-8 cursor-pointer items-center justify-center rounded-full text-sm transition ${
-                  selected
-                    ? "bg-blue-500/20 ring-1 ring-inset ring-blue-500"
-                    : "bg-black/[0.04] hover:bg-black/10"
-                }`}
-              >
-                <span className="leading-none">{emoji}</span>
-              </button>
-            );
-          })}
+        {/* Timeline editor — trim and scrub the recording on the web (the
+            "edit" affordance; viewer reactions live in ViewerBody instead). */}
+        <div className="flex shrink-0 flex-col gap-2 border-t border-black/[0.06] dark:border-white/[0.08] bg-[#fafafa] dark:bg-[#171717] px-3 py-2.5">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[8px] tabular-nums text-[#525252] dark:text-[#a3a3a3]">
+              0:12 / 0:48
+            </span>
+            <span className="flex size-4 items-center justify-center rounded-[3px] bg-black/[0.04] dark:bg-white/[0.06] text-[#737373] dark:text-[#8b8b8b]">
+              <Scissors size={9} />
+            </span>
+          </div>
+
+          <div className="relative h-7">
+            <div className="absolute inset-0 flex gap-px overflow-hidden rounded-md bg-black/[0.06] dark:bg-white/[0.08]">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-full flex-1 bg-black/10 dark:bg-white/15"
+                />
+              ))}
+            </div>
+            <div className="absolute inset-y-0 left-[10%] right-[22%] rounded-md ring-2 ring-blue-500">
+              <span className="absolute left-0 top-1/2 h-3 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500" />
+              <span className="absolute right-0 top-1/2 h-3 w-1 translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500" />
+            </div>
+            <div className="absolute -top-1.5 bottom-0 left-[38%] w-px bg-blue-600">
+              <span className="absolute -top-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-blue-600 ring-2 ring-[#fafafa] dark:ring-[#171717]" />
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex w-[28%] flex-col gap-4 bg-[#fafafa] p-4">
+      <div className="flex w-[28%] flex-col gap-4 bg-[#fafafa] dark:bg-[#171717] p-4">
         <div>
-          <div className="mb-2 h-2 w-16 rounded-full bg-black/10" />
+          <div className="mb-2 h-2 w-16 rounded-full bg-black/10 dark:bg-white/15" />
           <div className="grid grid-cols-4 gap-1.5">
             {EDITOR_BACKGROUNDS.map((bg, i) => (
               <button
@@ -715,12 +734,12 @@ function FeedbackBody() {
                 aria-pressed={bgIndex === i}
                 onClick={() => setBgIndex(i)}
                 className={`aspect-square cursor-pointer rounded-sm transition ${
-                  i === 3 ? "bg-black/[0.06]" : bg
+                  i === 3 ? "bg-black/[0.06] dark:bg-white/[0.08]" : bg
                 } ${
                   bgIndex === i
                     ? "ring-2 ring-blue-500 ring-offset-1 ring-offset-[#fafafa]"
                     : i === 3
-                      ? "ring-1 ring-inset ring-black/15 hover:opacity-80"
+                      ? "ring-1 ring-inset ring-black/15 dark:ring-white/15 hover:opacity-80"
                       : "hover:opacity-80"
                 }`}
               />
@@ -730,7 +749,7 @@ function FeedbackBody() {
         <div className="space-y-2">
           {permissions.map((t) => (
             <div key={t.label} className="flex items-center justify-between">
-              <div className="h-2 w-12 rounded-full bg-black/10" />
+              <div className="h-2 w-12 rounded-full bg-black/10 dark:bg-white/15" />
               <button
                 type="button"
                 role="switch"
@@ -738,7 +757,7 @@ function FeedbackBody() {
                 aria-label={em.audioToggleAria.replace("{label}", t.label)}
                 onClick={() => t.set((v) => !v)}
                 className={`flex h-3.5 w-7 cursor-pointer items-center rounded-full p-0.5 transition-colors ${
-                  t.on ? "bg-blue-500" : "bg-black/20"
+                  t.on ? "bg-blue-500" : "bg-black/20 dark:bg-white/25"
                 }`}
               >
                 <span
@@ -757,19 +776,19 @@ function FeedbackBody() {
 
 function DashboardBody({ cards }: { cards: Array<{ titleW: number }> }) {
   return (
-    <div className="flex h-full w-full bg-white">
-      <div className="flex w-[18%] shrink-0 flex-col gap-2 border-r border-black/[0.06] bg-black/[0.02] p-2">
-        <div className="rounded-md border border-black/[0.06] bg-black/[0.04] p-1.5">
+    <div className="flex h-full w-full bg-white dark:bg-[#1f1f1f]">
+      <div className="flex w-[18%] shrink-0 flex-col gap-2 border-r border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] p-2">
+        <div className="rounded-md border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.04] dark:bg-white/[0.06] p-1.5">
           <div className="flex items-center gap-1.5">
-            <div className="size-3 rounded-sm bg-black/15" />
-            <div className="h-1.5 flex-1 rounded-full bg-black/10" />
-            <div className="size-2 rounded-sm bg-black/10" />
+            <div className="size-3 rounded-sm bg-black/15 dark:bg-white/20" />
+            <div className="h-1.5 flex-1 rounded-full bg-black/10 dark:bg-white/15" />
+            <div className="size-2 rounded-sm bg-black/10 dark:bg-white/15" />
           </div>
         </div>
         <div className="flex items-center gap-0.5 px-1">
-          <div className="size-3 rounded-full bg-black/15 ring-2 ring-white" />
-          <div className="-ml-1 size-3 rounded-full bg-black/10 ring-2 ring-white" />
-          <div className="-ml-1 size-3 rounded-full border border-dashed border-black/30 bg-black/[0.04] ring-2 ring-white" />
+          <div className="size-3 rounded-full bg-black/15 dark:bg-white/20 ring-2 ring-white dark:ring-[#1f1f1f]" />
+          <div className="-ml-1 size-3 rounded-full bg-black/10 dark:bg-white/15 ring-2 ring-white dark:ring-[#1f1f1f]" />
+          <div className="-ml-1 size-3 rounded-full border border-dashed border-black/30 dark:border-white/30 bg-black/[0.04] dark:bg-white/[0.06] ring-2 ring-white dark:ring-[#1f1f1f]" />
         </div>
         <div className="mt-1 space-y-1">
           <div className="flex items-center gap-1.5 rounded-md bg-blue-500/15 px-1.5 py-1">
@@ -777,8 +796,8 @@ function DashboardBody({ cards }: { cards: Array<{ titleW: number }> }) {
             <div className="h-1.5 w-10 rounded-full bg-blue-500/80" />
           </div>
           <div className="flex items-center gap-1.5 px-1.5 py-1">
-            <div className="size-2 rounded-sm bg-black/15" />
-            <div className="h-1.5 w-8 rounded-full bg-black/10" />
+            <div className="size-2 rounded-sm bg-black/15 dark:bg-white/20" />
+            <div className="h-1.5 w-8 rounded-full bg-black/10 dark:bg-white/15" />
           </div>
         </div>
       </div>
@@ -786,8 +805,8 @@ function DashboardBody({ cards }: { cards: Array<{ titleW: number }> }) {
       <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <div className="h-1.5 w-12 rounded-full bg-black/10" />
-            <div className="h-2.5 w-20 rounded-full bg-black/20" />
+            <div className="h-1.5 w-12 rounded-full bg-black/10 dark:bg-white/15" />
+            <div className="h-2.5 w-20 rounded-full bg-black/20 dark:bg-white/25" />
           </div>
           <div className="flex h-5 w-20 items-center gap-1 rounded-md bg-blue-500 px-1.5">
             <div className="size-1.5 rounded-sm bg-white/90" />
@@ -799,15 +818,15 @@ function DashboardBody({ cards }: { cards: Array<{ titleW: number }> }) {
           {cards.map((c, i) => (
             <div
               key={i}
-              className="flex flex-col gap-1.5 overflow-hidden rounded-md border border-black/5 bg-black/[0.03] p-1.5 shadow-sm"
+              className="flex flex-col gap-1.5 overflow-hidden rounded-md border border-black/5 dark:border-white/[0.08] bg-black/[0.03] dark:bg-white/[0.05] p-1.5 shadow-sm"
             >
-              <div className="aspect-video rounded-sm bg-black/10" />
+              <div className="aspect-video rounded-sm bg-black/10 dark:bg-white/15" />
               <div className="flex items-center gap-1">
-                <div className="size-2 rounded-full bg-black/20" />
-                <div className="h-1 w-6 rounded-full bg-black/10" />
+                <div className="size-2 rounded-full bg-black/20 dark:bg-white/25" />
+                <div className="h-1 w-6 rounded-full bg-black/10 dark:bg-white/15" />
               </div>
               <div
-                className="h-1.5 rounded-full bg-black/15"
+                className="h-1.5 rounded-full bg-black/15 dark:bg-white/20"
                 style={{ width: `${c.titleW}%` }}
               />
             </div>
@@ -834,24 +853,24 @@ function CaptureBody() {
 
       <div className="absolute inset-x-0 top-[7%] bottom-[24%] flex justify-center">
         <div className="relative h-full w-[58%]">
-          <div className="absolute inset-0 flex flex-col overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-black/10">
-            <div className="flex shrink-0 items-center gap-1.5 bg-[#f5f5f5] px-3 py-2">
+          <div className="absolute inset-0 flex flex-col overflow-hidden rounded-lg bg-white dark:bg-[#1f1f1f] shadow-2xl ring-1 ring-black/10 dark:ring-white/10">
+            <div className="flex shrink-0 items-center gap-1.5 bg-[#f5f5f5] dark:bg-[#1f1f1f] px-3 py-2">
               <span className="size-2 rounded-full bg-[#ff5f57]" />
               <span className="size-2 rounded-full bg-[#febc2e]" />
               <span className="size-2 rounded-full bg-[#28c840]" />
-              <div className="ml-2 h-2 w-20 rounded-full bg-black/10" />
+              <div className="ml-2 h-2 w-20 rounded-full bg-black/10 dark:bg-white/15" />
             </div>
             <div className="flex min-h-0 flex-1 gap-3 p-4">
               <div className="flex w-1/4 flex-col gap-2">
-                <div className="h-2 w-3/4 rounded-full bg-black/10" />
-                <div className="h-2 w-1/2 rounded-full bg-black/[0.06]" />
-                <div className="h-2 w-2/3 rounded-full bg-black/[0.06]" />
-                <div className="h-2 w-1/2 rounded-full bg-black/[0.06]" />
+                <div className="h-2 w-3/4 rounded-full bg-black/10 dark:bg-white/15" />
+                <div className="h-2 w-1/2 rounded-full bg-black/[0.06] dark:bg-white/[0.08]" />
+                <div className="h-2 w-2/3 rounded-full bg-black/[0.06] dark:bg-white/[0.08]" />
+                <div className="h-2 w-1/2 rounded-full bg-black/[0.06] dark:bg-white/[0.08]" />
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <div className="h-3 w-1/2 rounded-full bg-black/15" />
-                <div className="h-2 w-full rounded-full bg-black/[0.06]" />
-                <div className="h-2 w-[88%] rounded-full bg-black/[0.06]" />
+                <div className="h-3 w-1/2 rounded-full bg-black/15 dark:bg-white/20" />
+                <div className="h-2 w-full rounded-full bg-black/[0.06] dark:bg-white/[0.08]" />
+                <div className="h-2 w-[88%] rounded-full bg-black/[0.06] dark:bg-white/[0.08]" />
                 <div className="mt-1 min-h-0 flex-1 rounded-md bg-gradient-to-br from-blue-400 to-indigo-500" />
               </div>
             </div>
@@ -905,11 +924,11 @@ const MARKUP_TOOLS = [ImageIcon, ArrowUpRight, Square, TypeIcon, Droplets];
 
 function MarkupBody() {
   return (
-    <div className="relative h-full w-full bg-[#f5f5f5]">
+    <div className="relative h-full w-full bg-[#f5f5f5] dark:bg-[#1f1f1f]">
       <div className="absolute inset-0 flex items-center justify-center pt-[6%]">
-        <div className="aspect-square h-[64%] overflow-hidden rounded-xl bg-gradient-to-br from-blue-400 via-sky-500 to-blue-600 p-[4%] shadow-lg ring-1 ring-inset ring-black/10">
-          <div className="flex h-full w-full overflow-hidden rounded-md bg-[#f5f5f5] ring-1 ring-inset ring-white/20">
-            <div className="flex w-[10%] flex-col items-center gap-2 bg-[#e5e5e5]/70 py-3">
+        <div className="aspect-square h-[64%] overflow-hidden rounded-xl bg-gradient-to-br from-blue-400 via-sky-500 to-blue-600 p-[4%] shadow-lg ring-1 ring-inset ring-black/10 dark:ring-white/10">
+          <div className="flex h-full w-full overflow-hidden rounded-md bg-[#f5f5f5] dark:bg-[#1f1f1f]">
+            <div className="flex w-[10%] flex-col items-center gap-2 bg-[#e5e5e5]/70 dark:bg-[#262626]/70 py-3">
               <div className="size-2 rounded-sm bg-[#a3a3a3]" />
               <div className="size-2 rounded-sm bg-[#d4d4d4]" />
             </div>
@@ -930,14 +949,14 @@ function MarkupBody() {
         </div>
       </div>
 
-      <div className="absolute left-1/2 top-2.5 flex -translate-x-1/2 items-center gap-1 rounded-md bg-white/90 p-1 shadow-sm ring-1 ring-inset ring-black/10 backdrop-blur-sm">
+      <div className="absolute left-1/2 top-2.5 flex -translate-x-1/2 items-center gap-1 rounded-md bg-white/90 dark:bg-[#262626]/95 p-1 shadow-sm ring-1 ring-inset ring-black/10 dark:ring-white/10 backdrop-blur-sm">
         {MARKUP_TOOLS.map((Tool, i) => (
           <span
             key={i}
             className={`flex size-6 items-center justify-center rounded ${
               i === 0
-                ? "bg-black/[0.06] text-[#171717] ring-1 ring-inset ring-black/10"
-                : "text-[#737373]"
+                ? "bg-black/[0.06] dark:bg-white/[0.08] text-[#171717] dark:text-[#f5f5f5] ring-1 ring-inset ring-black/10 dark:ring-white/10"
+                : "text-[#737373] dark:text-[#8b8b8b]"
             }`}
           >
             <Tool size={14} />
@@ -987,24 +1006,30 @@ function WorkspaceCard({
       name: "Aiden",
       role: "Member",
       roleLabel: wm.roleMember,
-      tint: "bg-black/10",
+      tint: "bg-black/10 dark:bg-white/15",
     },
   ];
   return (
     <div
       dir="ltr"
-      className="flex aspect-[11/8] w-full flex-col overflow-hidden bg-white"
+      className="flex aspect-[11/8] w-full flex-col overflow-hidden bg-white dark:bg-[#1f1f1f]"
     >
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/[0.04] px-6 py-3">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/[0.04] dark:border-white/[0.06] px-6 py-3">
         <div className="flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 text-sm font-bold tracking-tight text-white">
-            Cf
-          </div>
+          <Image
+            src="/logo.png"
+            alt=""
+            width={32}
+            height={32}
+            className="size-8 rounded-lg"
+            draggable={false}
+            unoptimized
+          />
           <div className="leading-tight">
-            <div className="text-sm font-semibold text-[#171717]">
+            <div className="text-sm font-semibold text-[#171717] dark:text-[#f5f5f5]">
               {wm.teamName}
             </div>
-            <div className="text-[11px] uppercase tracking-wider text-[#737373]">
+            <div className="text-[11px] uppercase tracking-wider text-[#737373] dark:text-[#8b8b8b]">
               {wm.teamMeta.replace("{count}", String(MEMBERS.length))}
             </div>
           </div>
@@ -1019,7 +1044,7 @@ function WorkspaceCard({
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-3">
-        <div className="shrink-0 text-[11px] uppercase tracking-wider text-[#737373]">
+        <div className="shrink-0 text-[11px] uppercase tracking-wider text-[#737373] dark:text-[#8b8b8b]">
           {wm.membersLabel}
         </div>
         <ul className="mt-3 flex flex-1 flex-col gap-3">
@@ -1046,13 +1071,15 @@ function WorkspaceCard({
                 {member.initial}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-sm text-[#171717]">{member.name}</div>
+                <div className="text-sm text-[#171717] dark:text-[#f5f5f5]">
+                  {member.name}
+                </div>
               </div>
               <span
                 className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider ${
                   member.role === "Admin"
-                    ? "bg-blue-500/15 text-blue-700 ring-1 ring-inset ring-blue-400/30"
-                    : "bg-black/[0.06] text-[#525252] ring-1 ring-inset ring-black/10"
+                    ? "bg-blue-500/15 text-blue-700 dark:text-blue-300 ring-1 ring-inset ring-blue-400/30"
+                    : "bg-black/[0.06] dark:bg-white/[0.08] text-[#525252] dark:text-[#a3a3a3] ring-1 ring-inset ring-black/10 dark:ring-white/10"
                 }`}
               >
                 {member.roleLabel}
@@ -1062,18 +1089,18 @@ function WorkspaceCard({
         </ul>
       </div>
 
-      <div className="shrink-0 border-t border-black/[0.04] bg-black/[0.02] px-6 py-3">
+      <div className="shrink-0 border-t border-black/[0.04] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.04] px-6 py-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-[#737373]">
+            <div className="text-[11px] uppercase tracking-wider text-[#737373] dark:text-[#8b8b8b]">
               {wm.linkVisibilityLabel}
             </div>
-            <div className="mt-1 text-sm text-[#171717]">
+            <div className="mt-1 text-sm text-[#171717] dark:text-[#f5f5f5]">
               {activeDescription}
             </div>
           </div>
         </div>
-        <div className="mt-2.5 grid grid-cols-3 gap-1.5 rounded-full bg-black/[0.04] p-1">
+        <div className="mt-2.5 grid grid-cols-3 gap-1.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] p-1">
           {VIS_OPTIONS.map((v) => {
             const active = v.key === visibility;
             return (
@@ -1082,7 +1109,9 @@ function WorkspaceCard({
                 type="button"
                 onClick={() => onVisibilityChange(v.key)}
                 className={`relative flex cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  active ? "text-white" : "text-[#737373] hover:text-[#171717]"
+                  active
+                    ? "text-white"
+                    : "text-[#737373] dark:text-[#8b8b8b] hover:text-[#171717] dark:hover:text-[#f5f5f5]"
                 }`}
               >
                 {active && (

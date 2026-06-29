@@ -164,7 +164,7 @@ export function ModesIntro() {
           },
         }}
         style={{
-          background: "var(--cf-showcase-bg)",
+          background: token.colorFillTertiary,
           borderColor: token.colorBorderSecondary,
         }}
       >

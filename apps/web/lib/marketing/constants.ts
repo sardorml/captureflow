@@ -89,22 +89,38 @@ export const PRO_CARD_HIGHLIGHTS: ReadonlyArray<string> = [
 
 export const MONTHLY_PRICE = 9;
 
-// Managed storage tiers shown as mini pricing cards. Every tier links to the
-// same checkout for now; per-tier checkout URLs land later.
-export const MANAGED_TIERS = [
-  { storageGb: 50, price: "2.99", recommended: false },
-  { storageGb: 100, price: "5.99", recommended: true },
-  { storageGb: 200, price: "9.99", recommended: false },
-] as const;
+// Managed storage tiers shown as mini pricing cards, each with its own Lemon
+// Squeezy checkout. The 200 GB checkout is the same one the dashboard upgrade
+// flow uses (StorageUsage / UpgradeModal).
+type ManagedTier = {
+  storageGb: number;
+  price: string;
+  checkoutUrl: string;
+  tag?: "recommended" | "mostValue";
+};
 
-const IS_DEV_LS_CHECKOUT = process.env.NODE_ENV !== "production";
-
-const MONTHLY_SUBSCRIPTION_LIVE_URL = "https://captureflow.xyz/signup";
-const MONTHLY_SUBSCRIPTION_TEST_URL = "https://captureflow.xyz/signup";
-
-export const MONTHLY_SUBSCRIPTION_CHECKOUT_URL = IS_DEV_LS_CHECKOUT
-  ? MONTHLY_SUBSCRIPTION_TEST_URL
-  : MONTHLY_SUBSCRIPTION_LIVE_URL;
+export const MANAGED_TIERS: ReadonlyArray<ManagedTier> = [
+  {
+    storageGb: 50,
+    price: "3.99",
+    checkoutUrl:
+      "https://sardorml.lemonsqueezy.com/checkout/buy/93848ab4-4fb5-4df4-ac5b-5bbc198364bb",
+  },
+  {
+    storageGb: 100,
+    price: "5.99",
+    checkoutUrl:
+      "https://sardorml.lemonsqueezy.com/checkout/buy/601f31c9-76c7-46f2-8d9c-48b762e88d93",
+    tag: "recommended",
+  },
+  {
+    storageGb: 200,
+    price: "9.99",
+    checkoutUrl:
+      "https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916",
+    tag: "mostValue",
+  },
+];
 
 // A boolean cell renders as ✓ / —; a string renders verbatim.
 export type CompareCell = boolean | string;

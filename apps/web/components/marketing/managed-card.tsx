@@ -1,25 +1,24 @@
 "use client";
 
-import {
-  MONTHLY_PRICE,
-  MONTHLY_SUBSCRIPTION_CHECKOUT_URL,
-} from "@/lib/marketing/constants";
+import { Card, Flex, Tag, theme, Typography } from "antd";
+import { ArrowRight } from "lucide-react";
+import { MANAGED_TIERS } from "@/lib/marketing/constants";
 import { getPosthogDistinctId, track } from "@/lib/marketing/track";
 import { useMessages } from "./i18n-provider";
-import { PlanCard } from "./plan-card";
+
+const { Title, Text } = Typography;
 
 export function ManagedCard() {
   const m = useMessages();
+  const { token } = theme.useToken();
   const copy = m.pricing.monthly;
 
-  const baseHref = MONTHLY_SUBSCRIPTION_CHECKOUT_URL
-    ? `${MONTHLY_SUBSCRIPTION_CHECKOUT_URL}?utm_source=site&utm_medium=pricing&utm_content=managed`
-    : "#pricing";
+  const checkoutHref = (url: string) =>
+    `${url}?utm_source=site&utm_medium=pricing&utm_content=managed`;
 
   // PostHog distinct_id isn't available server-side at render, so append it at click time.
   const handleCheckoutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     track("checkout_opened", { plan: "managed" });
-    if (!MONTHLY_SUBSCRIPTION_CHECKOUT_URL) return;
     const distinctId = getPosthogDistinctId();
     if (!distinctId) return;
     try {
@@ -32,30 +31,106 @@ export function ManagedCard() {
   };
 
   return (
-    <PlanCard
-      highlighted
-      badges={[
-        { label: copy.badgePro, color: "blue" },
-        { label: copy.badgeCycle },
-      ]}
-      name={copy.title}
-      tagline={copy.subtitle}
-      price={`$${MONTHLY_PRICE}`}
-      period={copy.period}
-      note={copy.note}
-      cta={{
-        label: copy.cta,
-        href: baseHref,
-        primary: true,
-        target: "_blank",
-        onClick: handleCheckoutClick,
-      }}
-      guarantee={m.pricing.guarantee}
-      features={[
-        m.pricing.highlights.allFeatures,
-        m.pricing.highlights.shareableLinks,
-        m.pricing.highlights.teamSeats,
-      ]}
-    />
+    <Card
+      style={{ height: "100%", borderColor: token.colorPrimary }}
+      styles={{ body: { padding: 20 } }}
+    >
+      <Flex vertical gap={12} style={{ height: "100%" }}>
+        <Flex gap={8} wrap style={{ minHeight: 24 }}>
+          <Tag color="blue" variant="filled" style={{ margin: 0 }}>
+            {copy.badgePro}
+          </Tag>
+          <Tag variant="filled" style={{ margin: 0 }}>
+            {copy.badgeCycle}
+          </Tag>
+        </Flex>
+
+        <div>
+          <Title level={3} style={{ margin: 0 }}>
+            {copy.title}
+          </Title>
+          <Text type="secondary">{copy.subtitle}</Text>
+        </div>
+
+        <Flex vertical gap={10}>
+          {MANAGED_TIERS.map((tier) => (
+            <a
+              key={tier.storageGb}
+              href={checkoutHref(tier.checkoutUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleCheckoutClick}
+              aria-label={`${tier.storageGb} GB — $${tier.price}${copy.period}`}
+            >
+              <Card
+                hoverable
+                size="small"
+                styles={{ body: { padding: 14 } }}
+                style={{
+                  borderColor:
+                    tier.tag === "recommended"
+                      ? token.colorPrimary
+                      : tier.tag === "mostValue"
+                        ? token.colorWarning
+                        : undefined,
+                }}
+              >
+                <Flex align="center" justify="space-between" gap={12}>
+                  <div>
+                    <Flex align="center" gap={8}>
+                      <Text strong style={{ fontSize: 17 }}>
+                        {tier.storageGb} GB
+                      </Text>
+                      {tier.tag === "recommended" ? (
+                        <Tag
+                          color="blue"
+                          variant="filled"
+                          style={{ margin: 0 }}
+                        >
+                          {m.pricing.recommended}
+                        </Tag>
+                      ) : tier.tag === "mostValue" ? (
+                        <Tag
+                          color="orange"
+                          variant="filled"
+                          style={{ margin: 0 }}
+                        >
+                          {m.pricing.mostValue}
+                        </Tag>
+                      ) : null}
+                    </Flex>
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      {m.pricing.tierStorageLabel}
+                    </Text>
+                  </div>
+                  <Flex align="baseline" gap={2}>
+                    <Text strong style={{ fontSize: 20 }}>
+                      ${tier.price}
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      {copy.period}
+                    </Text>
+                    <ArrowRight
+                      size={16}
+                      style={{
+                        marginInlineStart: 6,
+                        color: token.colorTextTertiary,
+                      }}
+                    />
+                  </Flex>
+                </Flex>
+              </Card>
+            </a>
+          ))}
+        </Flex>
+
+        <Text
+          type="secondary"
+          style={{ marginTop: "auto", textAlign: "center", fontSize: 12 }}
+        >
+          {copy.note}
+        </Text>
+      </Flex>
+    </Card>
   );
 }

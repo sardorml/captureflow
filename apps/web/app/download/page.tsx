@@ -2,25 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { headers } from "next/headers";
-import {
-  Download,
-  ArrowUpRight,
-  Terminal,
-  Package,
-  BadgeCheck,
-} from "lucide-react";
-import { Button, Card, Col, Flex, Row, Space, Tag } from "antd";
+import { Download, ArrowUpRight, Terminal, Package } from "lucide-react";
+import { Button, Card, Col, Flex, Row, Tag } from "antd";
 import { readThemeFromCookieHeader } from "@captureflow/ui";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
 import { Text, Title, Paragraph } from "@/components/marketing/typography";
 import { PageShell } from "@/components/marketing/page-shell";
 import { ChromeLogo, FirefoxLogo } from "@/components/marketing/platform-logos";
 import { MESSAGES } from "@/lib/marketing/messages";
-import {
-  APP_VERSION,
-  DOWNLOAD_DMG_SIZE_MB,
-  DOWNLOAD_URL,
-} from "@/lib/marketing/constants";
+import { DOWNLOAD_URL } from "@/lib/marketing/constants";
 import { RELEASES_URL, DOCS_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -82,20 +72,6 @@ export default async function DownloadPage() {
               {m.subtitle}
             </Paragraph>
           </div>
-
-          <Space size={8} wrap style={{ justifyContent: "center" }}>
-            <Tag>{m.versionLabel.replace("{version}", APP_VERSION)}</Tag>
-            <Tag>
-              {m.sizeLabel.replace("{size}", String(DOWNLOAD_DMG_SIZE_MB))}
-            </Tag>
-            <Tag
-              color="blue"
-              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-            >
-              <BadgeCheck size={13} />
-              {m.notarized}
-            </Tag>
-          </Space>
 
           <Flex vertical align="center" gap={12}>
             <Button

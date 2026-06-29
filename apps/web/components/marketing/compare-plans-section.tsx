@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Table, theme, Typography } from "antd";
+import { ConfigProvider, Table, Tag, theme, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { Check, Minus } from "lucide-react";
 import {
@@ -102,9 +102,21 @@ export function ComparePlansSection() {
       render: (cell: CellData) => renderCell(cell),
     },
     {
-      // Managed is the recommended plan — emphasized via the header label.
+      // Managed is the recommended plan — emphasized via a tag, not colour.
       title: (
-        <span style={{ color: token.colorPrimary }}>{compare.proColumn}</span>
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+          }}
+        >
+          {compare.proColumn}
+          <Tag color="blue" variant="filled" style={{ margin: 0 }}>
+            {compare.proBadge}
+          </Tag>
+        </span>
       ),
       dataIndex: "monthly",
       align: "center",
@@ -118,15 +130,19 @@ export function ComparePlansSection() {
     <MarketingSection>
       <SectionHeading title={compare.heading} subtitle={compare.subtitle} />
       <div style={{ maxWidth: 960, marginInline: "auto" }}>
-        <Table<CompareRow>
-          columns={columns}
-          dataSource={dataSource}
-          rowKey="key"
-          pagination={false}
-          size="middle"
-          tableLayout="fixed"
-          scroll={{ x: 560 }}
-        />
+        <ConfigProvider
+          theme={{ components: { Table: { headerBorderRadius: 0 } } }}
+        >
+          <Table<CompareRow>
+            columns={columns}
+            dataSource={dataSource}
+            rowKey="key"
+            pagination={false}
+            size="middle"
+            tableLayout="fixed"
+            scroll={{ x: 560 }}
+          />
+        </ConfigProvider>
       </div>
     </MarketingSection>
   );

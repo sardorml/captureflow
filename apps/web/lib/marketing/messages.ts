@@ -247,6 +247,9 @@ export const MESSAGES = {
     subheading:
       "Self-host for free — it is open source. Or let us host it for you with the managed plan.",
     guarantee: "Open source under the AGPL — run it yourself.",
+    tierStorageLabel: "Cloud storage",
+    recommended: "Recommended",
+    mostValue: "Most value",
     free: {
       name: "Self-Hosted",
       badge: "Open source",
@@ -293,6 +296,7 @@ export const MESSAGES = {
       featureColumn: "Feature",
       freeColumn: "Self-Hosted",
       proColumn: "Managed hosting",
+      proBadge: "Recommended",
       includedAria: "included",
       notIncludedAria: "not included",
       // Boolean cells render a check/dash from COMPARE_SECTIONS, so '' here is fine.
@@ -347,7 +351,7 @@ export const MESSAGES = {
       {
         question: "How does CaptureFlow compare to other screen recorders?",
         answer:
-          "CaptureFlow is three tools in one. Record captures your screen straight to a shareable link — the upload happens while you record, so there is no waiting around. Share is a Loom-style flow: hit stop and the link is already in your clipboard, with workspaces for team sharing and a viewer that has reactions, comments, and view counts. Screenshot is a screenshot tool with markup and instant share links built in.\n\nMost competitors do one of these well. QuickTime and OBS capture the screen and leave everything else to a separate tool. Loom nails fast sharing but is closed-source and runs only on their cloud. CaptureFlow covers all three — and it is open source, so you can run the whole thing on your own Cloudflare account.",
+          "CaptureFlow records your screen straight to a shareable link. The upload runs while you record, so the moment you hit stop the link is already on your clipboard — no exporting, uploading, or waiting. You also get annotated screenshots that share the same way, plus team workspaces and a viewer with reactions, comments, and view counts.\n\nMost screen recorders stop at the recording and leave hosting, sharing, and screenshots to other apps. CaptureFlow handles the whole flow in one place, and it is fully open source: use our managed hosting, or run it yourself on your own Cloudflare account and keep your data.",
       },
       {
         question: "How do the instant share links work?",
@@ -358,11 +362,6 @@ export const MESSAGES = {
         question: "Is my data private?",
         answer:
           "Yes — and with CaptureFlow you control where it lives. When you self-host, recordings and Screenshots upload to your own Cloudflare account (R2 storage, D1 database) — nothing touches our servers at all.\n\nWhen you create a share link, that artifact is stored so the recipient can open it from a URL. You control visibility per artifact (public, workspace-only, or private), and you can revoke or delete a link from your dashboard at any time.",
-      },
-      {
-        question: "Which macOS versions does CaptureFlow support?",
-        answer:
-          "CaptureFlow runs on macOS 14 (Sonoma) or later, on Apple Silicon Macs. Intel Mac support is not tested yet but is being worked on. Older macOS versions may work but are unsupported — newer versions get the smoothest experience.",
       },
       {
         question: "Can I self-host CaptureFlow?",
@@ -614,7 +613,8 @@ export const MESSAGES = {
     afterSteps: [
       "Open the downloaded DMG.",
       "Drag CaptureFlow into your Applications folder.",
-      "Launch it — CaptureFlow lives in your menu bar.",
+      "Open CaptureFlow and grant Screen Recording and Accessibility access when prompted.",
+      "Start recording from the menu bar — that's it.",
     ],
   },
   plan: {
