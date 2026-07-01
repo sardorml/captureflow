@@ -75,48 +75,45 @@ export function ManagedCard() {
                         : undefined,
                 }}
               >
-                <Flex align="center" justify="space-between" gap={12}>
-                  <div>
-                    <Flex align="center" gap={8}>
-                      <Text strong style={{ fontSize: 17 }}>
-                        {tier.storageGb} GB
+                <Flex vertical gap={4}>
+                  <Flex align="center" justify="space-between" gap={12}>
+                    <Text strong style={{ fontSize: 17, whiteSpace: "nowrap" }}>
+                      {tier.storageGb} GB
+                    </Text>
+                    <Flex
+                      align="baseline"
+                      gap={2}
+                      flex="none"
+                      style={{ whiteSpace: "nowrap" }}
+                    >
+                      <Text strong style={{ fontSize: 20 }}>
+                        ${tier.price}
                       </Text>
-                      {tier.tag === "recommended" ? (
-                        <Tag
-                          color="blue"
-                          variant="filled"
-                          style={{ margin: 0 }}
-                        >
-                          {m.pricing.recommended}
-                        </Tag>
-                      ) : tier.tag === "mostValue" ? (
-                        <Tag
-                          color="orange"
-                          variant="filled"
-                          style={{ margin: 0 }}
-                        >
-                          {m.pricing.mostValue}
-                        </Tag>
-                      ) : null}
+                      <Text type="secondary" style={{ fontSize: 13 }}>
+                        {copy.period}
+                      </Text>
+                      <ArrowRight
+                        size={16}
+                        style={{
+                          marginInlineStart: 6,
+                          color: token.colorTextTertiary,
+                        }}
+                      />
                     </Flex>
+                  </Flex>
+                  <Flex align="center" gap={8} wrap>
                     <Text type="secondary" style={{ fontSize: 13 }}>
                       {m.pricing.tierStorageLabel}
                     </Text>
-                  </div>
-                  <Flex align="baseline" gap={2}>
-                    <Text strong style={{ fontSize: 20 }}>
-                      ${tier.price}
-                    </Text>
-                    <Text type="secondary" style={{ fontSize: 13 }}>
-                      {copy.period}
-                    </Text>
-                    <ArrowRight
-                      size={16}
-                      style={{
-                        marginInlineStart: 6,
-                        color: token.colorTextTertiary,
-                      }}
-                    />
+                    {tier.tag === "recommended" ? (
+                      <Tag color="blue" variant="filled" style={{ margin: 0 }}>
+                        {m.pricing.recommended}
+                      </Tag>
+                    ) : tier.tag === "mostValue" ? (
+                      <Tag color="orange" variant="filled" style={{ margin: 0 }}>
+                        {m.pricing.mostValue}
+                      </Tag>
+                    ) : null}
                   </Flex>
                 </Flex>
               </Card>
