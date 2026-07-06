@@ -3,7 +3,7 @@ import { useRecordingStore } from "../stores/recording-store";
 import {
   acquireMicCapture,
   acquireWebcamCapture,
-} from "../lib/recording/webcam-capture";
+} from "@captureflow/engine/web";
 import {
   recordingPipeline,
   RECORDING_CAP_MS,

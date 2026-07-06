@@ -92,9 +92,6 @@ importers:
       motion:
         specifier: ^12.38.0
         version: 12.40.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      mp4-muxer:
-        specifier: ^5.2.2
-        version: 5.2.2
       ms:
         specifier: ^2.1.3
         version: 2.1.3
@@ -343,6 +340,10 @@ importers:
         version: 4.100.0(@cloudflare/workers-types@4.20260615.1)
 
   packages/engine:
+    dependencies:
+      mp4-muxer:
+        specifier: ^5.2.2
+        version: 5.2.2
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

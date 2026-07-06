@@ -15,7 +15,7 @@ export type RecordingFrameEvent =
       codedHeight: number;
       fps: number;
       // avcC box bytes (length-prefixed SPS/PPS), ready to hand to mp4-muxer's per-chunk decoderConfig.description.
-      description: Uint8Array;
+      description: Uint8Array<ArrayBuffer>;
     }
   | {
       kind: "chunk";
@@ -31,7 +31,7 @@ export type RecordingFrameEvent =
       sampleRate: number;
       numberOfChannels: number;
       // AudioSpecificConfig bytes (the same 2-byte descriptor that sits inside an MP4 esds box). mp4-muxer's audio decoderConfig accepts these verbatim as `description`.
-      description: Uint8Array;
+      description: Uint8Array<ArrayBuffer>;
     }
   | {
       kind: "audio-chunk";
