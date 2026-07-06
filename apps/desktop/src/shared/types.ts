@@ -1,3 +1,11 @@
+import type { WindowBounds } from "@captureflow/engine";
+
+export type {
+  RecordingFrameEvent,
+  WindowAtPoint,
+  WindowBounds,
+} from "@captureflow/engine";
+
 export type CaptureSource = {
   id: string;
   name: string;
@@ -12,13 +20,6 @@ export type CaptureSource = {
   pid?: number;
   // Display sources only: when true, record start hides desktop icons via Finder and stop restores them.
   hideDesktopIcons?: boolean;
-};
-
-export type WindowBounds = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
 };
 
 export function isWindowSource(source: CaptureSource): boolean {
@@ -210,43 +211,6 @@ export type UserPrefs = {
   termsAccepted: boolean;
 };
 
-// The native side writes length-prefixed H.264 + AAC LC records on fd 3; main forwards them as these
-// events. See native/screen-recorder/RecordingWriter.swift for the on-wire layout.
-export type RecordingFrameEvent =
-  | {
-      kind: "format";
-      codedWidth: number;
-      codedHeight: number;
-      fps: number;
-      // avcC box bytes (length-prefixed SPS/PPS), ready to hand to mp4-muxer's per-chunk decoderConfig.description.
-      description: Uint8Array;
-    }
-  | {
-      kind: "chunk";
-      type: "key" | "delta";
-      // Microseconds since the first emitted chunk.
-      timestamp: number;
-      duration: number;
-      // Length-prefixed NAL units (avc format), ready for muxer.addVideoChunkRaw().
-      data: Uint8Array;
-    }
-  | {
-      kind: "audio-format";
-      sampleRate: number;
-      numberOfChannels: number;
-      // AudioSpecificConfig bytes (the same 2-byte descriptor that sits inside an MP4 esds box). mp4-muxer's audio decoderConfig accepts these verbatim as `description`.
-      description: Uint8Array;
-    }
-  | {
-      kind: "audio-chunk";
-      // Microseconds since the first audio packet — independent from the video clock; the muxer reconciles them via PTS at write time.
-      timestamp: number;
-      duration: number;
-      // Raw AAC packet bytes (no ADTS header), ready for muxer.addAudioChunkRaw().
-      data: Uint8Array;
-    }
-  | { kind: "end" };
-
 export type RecordingStartMeta = {
   title: string | null;
   hasWebcam: boolean;
@@ -291,16 +255,6 @@ export type BugReportPayload = {
 export type BugReportResult = { ok: true } | { ok: false; error: string };
 
 export type SelectionOverlayMode = "display" | "window" | "area";
-
-export type WindowAtPoint = {
-  id: number;
-  name: string;
-  owner: string;
-  pid: number;
-  bounds: WindowBounds;
-  cornerRadius?: number;
-  iconBase64?: string;
-} | null;
 
 export type ReleaseNotesInitPayload = {
   version: string;

@@ -4,5 +4,20 @@
   "private": true,
   "license": "MIT",
   "description": "Cross-app capture engine: macOS recorder sidecars, record-protocol parsing, and fMP4 mux/recording pipelines shared by the desktop app and browser extension.",
-  "type": "module"
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./main": "./src/main/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.main.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "echo \"(engine) lint: TODO\""
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "^4.1.9"
+  }
 }

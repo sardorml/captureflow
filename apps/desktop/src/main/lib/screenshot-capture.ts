@@ -5,9 +5,13 @@ import { tmpdir } from "os";
 import { homedir } from "os";
 import { join } from "path";
 import { clipboard, nativeImage, shell } from "electron";
+import {
+  captureSnapshotPng,
+  type SnapshotConfig,
+} from "@captureflow/engine/main";
 import { engineBinaryPath } from "./engine-paths";
 
-import { logInfo, logWarn } from "./logger";
+import { logInfo, logWarn, logError } from "./logger";
 
 export type ScreenshotTarget =
   | { kind: "display"; displayId: number }
@@ -67,23 +71,8 @@ function playShutter(): void {
 export async function captureSnapshot(
   target: ScreenshotTarget,
 ): Promise<CaptureResult> {
-  const binPath = getBinaryPath();
-  if (!existsSync(binPath)) {
-    throw new Error(`screen-recorder binary not found at ${binPath}`);
-  }
-
   const tempPath = join(tmpdir(), `captureflow-screenshot-${Date.now()}.png`);
-  type ScreenshotConfig = {
-    mode: "snapshot";
-    outputPath: string;
-    displayId?: number;
-    windowId?: number;
-    cropRect?: { x: number; y: number; width: number; height: number };
-    excludePid: number;
-    showsCursor: false;
-  };
-  const config: ScreenshotConfig = {
-    mode: "snapshot",
+  const config: SnapshotConfig = {
     outputPath: tempPath,
     excludePid: process.pid,
     showsCursor: false,
@@ -102,60 +91,10 @@ export async function captureSnapshot(
     `spawning snapshot: target=${JSON.stringify(target)}`,
   );
 
-  const result = await new Promise<{
-    path: string;
-    width: number;
-    height: number;
-    bytes: number;
-  }>((resolve, reject) => {
-    const proc = spawn(binPath, [JSON.stringify(config)], {
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    let stdout = "";
-    let stderr = "";
-    proc.stdout?.on("data", (b: Buffer) => {
-      stdout += b.toString();
-    });
-    proc.stderr?.on("data", (b: Buffer) => {
-      stderr += b.toString();
-    });
-    proc.on("error", (err) => reject(err));
-    proc.on("close", (code) => {
-      const line = stdout
-        .split("\n")
-        .map((l) => l.trim())
-        .find((l) => l.startsWith("{"));
-      if (!line) {
-        reject(
-          new Error(
-            `snapshot produced no output (code=${code}, stderr=${stderr.slice(0, 400)})`,
-          ),
-        );
-        return;
-      }
-      try {
-        const payload = JSON.parse(line) as {
-          ok?: boolean;
-          error?: string;
-          path?: string;
-          width?: number;
-          height?: number;
-          bytes?: number;
-        };
-        if (payload.error || !payload.ok || !payload.path) {
-          reject(new Error(payload.error ?? "snapshot failed"));
-          return;
-        }
-        resolve({
-          path: payload.path,
-          width: payload.width ?? 0,
-          height: payload.height ?? 0,
-          bytes: payload.bytes ?? 0,
-        });
-      } catch (err) {
-        reject(new Error(`failed to parse snapshot output: ${String(err)}`));
-      }
-    });
+  const result = await captureSnapshotPng({
+    binaryPath: getBinaryPath(),
+    config,
+    logger: { info: logInfo, warn: logWarn, error: logError },
   });
 
   try {

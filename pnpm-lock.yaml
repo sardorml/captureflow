@@ -342,7 +342,17 @@ importers:
         specifier: ^4.40.0
         version: 4.100.0(@cloudflare/workers-types@4.20260615.1)
 
-  packages/engine: {}
+  packages/engine:
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.21
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@22.19.21)(vite@8.1.0(@types/node@22.19.21)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.16.9)(yaml@2.9.0))
 
   packages/quota:
     devDependencies:

@@ -10,11 +10,11 @@ transports, auth, quota, and UI stay in the (AGPL-licensed) apps.
 
 Every application that records through the engine produces the same artifacts:
 
-| Artifact | Format |
-| --- | --- |
-| Screen | Fragmented MP4, H.264 (avc1), aspect-fit ≤ 1920×1080, 8 Mbps target, 60 fps target; AAC-LC audio when the platform provides system audio |
-| Webcam | WebM (VP9/VP8 + Opus) |
-| Poster | JPEG (first keyframe) |
+| Artifact | Format                                                                                                                                   |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Screen   | Fragmented MP4, H.264 (avc1), aspect-fit ≤ 1920×1080, 8 Mbps target, 60 fps target; AAC-LC audio when the platform provides system audio |
+| Webcam   | WebM (VP9/VP8 + Opus)                                                                                                                    |
+| Poster   | JPEG (first keyframe)                                                                                                                    |
 
 The constants live in `src/contract.ts` (`ENGINE_OUTPUT`); the fragmented-MP4
 muxer in `src/web/fmp4-mux.ts` is the single mux implementation every frame
@@ -63,13 +63,13 @@ on stdin. When streaming is configured it writes length-prefixed binary
 records to the file descriptor given in the config (the desktop app passes
 fd 3). All multi-byte integers are little-endian:
 
-| Tag | Record | Layout after the tag byte |
-| --- | --- | --- |
-| `0x01` | Video format (once, after first encode) | u32 width, u32 height, u32 fps, u32 descLen, descLen bytes of avcC |
-| `0x02` | Video chunk (one per frame) | u8 flags (bit0 = keyframe), i64 ptsUs, u32 durationUs, u32 dataLen, dataLen bytes of length-prefixed NAL units |
-| `0x03` | Audio format (once, before first audio chunk) | u32 sampleRate, u32 channelCount, u32 descLen, descLen bytes of AudioSpecificConfig |
-| `0x04` | Audio chunk (one per AAC packet) | i64 ptsUs, u32 durationUs, u32 dataLen, dataLen bytes of raw AAC (no ADTS) |
-| `0xFF` | End of stream | (1 byte total) |
+| Tag    | Record                                        | Layout after the tag byte                                                                                      |
+| ------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `0x01` | Video format (once, after first encode)       | u32 width, u32 height, u32 fps, u32 descLen, descLen bytes of avcC                                             |
+| `0x02` | Video chunk (one per frame)                   | u8 flags (bit0 = keyframe), i64 ptsUs, u32 durationUs, u32 dataLen, dataLen bytes of length-prefixed NAL units |
+| `0x03` | Audio format (once, before first audio chunk) | u32 sampleRate, u32 channelCount, u32 descLen, descLen bytes of AudioSpecificConfig                            |
+| `0x04` | Audio chunk (one per AAC packet)              | i64 ptsUs, u32 durationUs, u32 dataLen, dataLen bytes of raw AAC (no ADTS)                                     |
+| `0xFF` | End of stream                                 | (1 byte total)                                                                                                 |
 
 Video PTS is relative to the first emitted chunk; audio PTS to the first
 audio packet — independent clocks the muxer reconciles at write time. The
