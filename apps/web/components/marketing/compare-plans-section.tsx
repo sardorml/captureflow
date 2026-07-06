@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { Tag, theme, Typography } from "antd";
+import { Flex, Tag, theme, Typography } from "antd";
 import { Check, Minus } from "lucide-react";
 import {
   type CompareCell,
@@ -99,11 +99,21 @@ export function ComparePlansSection() {
     alignItems: "center",
     padding: "14px 16px",
   };
+  const sectionLabel: CSSProperties = {
+    fontSize: 12,
+    fontWeight: 600,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: token.colorTextTertiary,
+  };
 
   return (
     <MarketingSection>
       <SectionHeading title={compare.heading} subtitle={compare.subtitle} />
-      <div style={{ maxWidth: 960, marginInline: "auto", overflowX: "auto" }}>
+      <div
+        className="hidden md:block"
+        style={{ maxWidth: 960, marginInline: "auto", overflowX: "auto" }}
+      >
         <div
           role="table"
           aria-label={compare.heading}
@@ -117,7 +127,10 @@ export function ComparePlansSection() {
             >
               <Typography.Text
                 strong
-                style={{ color: token.colorTextSecondary }}
+                style={{
+                  color: token.colorTextSecondary,
+                  whiteSpace: "nowrap",
+                }}
               >
                 {compare.freeColumn}
               </Typography.Text>
@@ -128,12 +141,15 @@ export function ComparePlansSection() {
                 ...valueCell,
                 padding: "18px 16px",
                 gap: 8,
+                flexWrap: "wrap",
                 background: managedBg,
                 borderTopLeftRadius: token.borderRadiusLG,
                 borderTopRightRadius: token.borderRadiusLG,
               }}
             >
-              <Typography.Text strong>{compare.proColumn}</Typography.Text>
+              <Typography.Text strong style={{ whiteSpace: "nowrap" }}>
+                {compare.proColumn}
+              </Typography.Text>
               <Tag color="blue" variant="filled" style={{ margin: 0 }}>
                 {compare.proBadge}
               </Tag>
@@ -147,15 +163,7 @@ export function ComparePlansSection() {
                   role="cell"
                   style={{ padding: "28px 16px 10px", alignSelf: "stretch" }}
                 >
-                  <Typography.Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      color: token.colorTextTertiary,
-                    }}
-                  >
+                  <Typography.Text style={sectionLabel}>
                     {row.label}
                   </Typography.Text>
                 </div>
@@ -212,6 +220,57 @@ export function ComparePlansSection() {
             ),
           )}
         </div>
+      </div>
+
+      <div className="md:hidden">
+        {rows.map((row) =>
+          row.section ? (
+            <div key={row.key} style={{ padding: "24px 0 10px" }}>
+              <Typography.Text style={sectionLabel}>
+                {row.label}
+              </Typography.Text>
+            </div>
+          ) : (
+            <div
+              key={row.key}
+              style={{
+                padding: "12px 0",
+                borderTop: row.first ? "none" : `1px solid ${token.colorSplit}`,
+              }}
+            >
+              <Typography.Text strong>{row.label}</Typography.Text>
+              <Flex
+                align="center"
+                justify="space-between"
+                gap={12}
+                style={{ marginTop: 10, padding: "0 10px" }}
+              >
+                <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                  {compare.freeColumn}
+                </Typography.Text>
+                <div style={{ textAlign: "right" }}>{renderCell(row.free)}</div>
+              </Flex>
+              <Flex
+                align="center"
+                justify="space-between"
+                gap={12}
+                style={{
+                  marginTop: 8,
+                  background: managedBg,
+                  borderRadius: token.borderRadius,
+                  padding: "8px 10px",
+                }}
+              >
+                <Typography.Text style={{ fontSize: 13 }}>
+                  {compare.proColumn}
+                </Typography.Text>
+                <div style={{ textAlign: "right" }}>
+                  {renderCell(row.monthly)}
+                </div>
+              </Flex>
+            </div>
+          ),
+        )}
       </div>
     </MarketingSection>
   );
