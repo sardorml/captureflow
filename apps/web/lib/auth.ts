@@ -22,6 +22,10 @@ type AppWebEnv = {
   BETTER_AUTH_TRUSTED_ORIGINS?: string;
   // Desktop deep-link scheme; trusted so `captureflow://` auth callbacks aren't rejected.
   APP_DEEP_LINK_SCHEME?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  GITHUB_CLIENT_ID?: string;
+  GITHUB_CLIENT_SECRET?: string;
 };
 
 function buildAuth(env: AppWebEnv | null, baseURL?: string) {
@@ -40,6 +44,22 @@ function buildAuth(env: AppWebEnv | null, baseURL?: string) {
       .filter(Boolean),
   ];
 
+  // Providers appear only once their env creds exist, so the sign-in buttons
+  // fail with a clear error instead of a half-configured OAuth redirect.
+  const socialProviders: NonNullable<BetterAuthOptions["socialProviders"]> = {};
+  if (env?.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
+    socialProviders.google = {
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    };
+  }
+  if (env?.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET) {
+    socialProviders.github = {
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
+    };
+  }
+
   const options: BetterAuthOptions = {
     baseURL,
     trustedOrigins,
@@ -53,6 +73,7 @@ function buildAuth(env: AppWebEnv | null, baseURL?: string) {
       autoSignIn: true,
       minPasswordLength: 12,
     },
+    socialProviders,
     session: {
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,

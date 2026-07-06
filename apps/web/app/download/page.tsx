@@ -202,8 +202,9 @@ export default async function DownloadPage() {
           type="secondary"
           style={{ textAlign: "center", marginTop: 40 }}
         >
-          Prefer the cloud? <Link href="/signup">Create an account</Link> and
-          view recordings in your browser.
+          Prefer the cloud?{" "}
+          <Link href="/login?mode=signup">Create an account</Link> and view
+          recordings in your browser.
         </Paragraph>
       </PageShell>
     </I18nProvider>
