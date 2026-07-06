@@ -5,27 +5,18 @@ import { Button, Progress, Typography } from "antd";
 import { formatBytes } from "@/lib/format";
 import { UpgradeModal } from "./(dashboard)/UpgradeModal";
 
-const UPGRADE_BASE_URL =
-  process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ||
-  "https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916";
-
-function upgradeUrlFor(email: string): string {
-  const u = new URL(UPGRADE_BASE_URL);
-  u.searchParams.set("billing", "monthly");
-  if (email) u.searchParams.set("checkout[email]", email);
-  return u.toString();
-}
-
 type StorageUsageProps = {
   usedBytes: number;
   limitBytes: number;
   email: string;
+  userId: string;
 };
 
 export function StorageUsage({
   usedBytes,
   limitBytes,
   email,
+  userId,
 }: StorageUsageProps) {
   if (limitBytes <= 0) {
     return (
@@ -44,6 +35,7 @@ export function StorageUsage({
         </Typography.Paragraph>
         <UpgradeModal
           email={email}
+          userId={userId}
           trigger={
             <Button
               type="primary"
@@ -85,18 +77,21 @@ export function StorageUsage({
         {formatBytes(usedBytes)} of {formatBytes(limitBytes)}
       </Typography.Paragraph>
       {over && (
-        <Button
-          type="primary"
-          size="small"
-          block
-          icon={<Sparkles size={14} />}
-          href={upgradeUrlFor(email)}
-          target="_blank"
-          rel="noreferrer noopener"
-          style={{ marginTop: 8 }}
-        >
-          Upgrade to Pro
-        </Button>
+        <UpgradeModal
+          email={email}
+          userId={userId}
+          trigger={
+            <Button
+              type="primary"
+              size="small"
+              block
+              icon={<Sparkles size={14} />}
+              style={{ marginTop: 8 }}
+            >
+              Upgrade to Pro
+            </Button>
+          }
+        />
       )}
     </div>
   );
