@@ -110,7 +110,11 @@ export function ManagedCard() {
                         {m.pricing.recommended}
                       </Tag>
                     ) : tier.tag === "mostValue" ? (
-                      <Tag color="orange" variant="filled" style={{ margin: 0 }}>
+                      <Tag
+                        color="orange"
+                        variant="filled"
+                        style={{ margin: 0 }}
+                      >
                         {m.pricing.mostValue}
                       </Tag>
                     ) : null}
