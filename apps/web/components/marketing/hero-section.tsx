@@ -8,7 +8,7 @@ import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
 import { AppleLogo, ChromeLogo, FirefoxLogo } from "./platform-logos";
 import { RecorderMockup } from "./recorder-mockup";
-import { HeroLuminousBg } from "./hero-luminous-bg";
+import { HeroGridBg } from "./hero-grid-bg";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 export function HeroSection({ stars = null }: { stars?: string | null }) {
@@ -22,7 +22,7 @@ export function HeroSection({ stars = null }: { stars?: string | null }) {
   return (
     <>
       <section id="hero" style={{ position: "relative", overflow: "hidden" }}>
-        <HeroLuminousBg />
+        <HeroGridBg />
         <div style={{ position: "relative", zIndex: 1 }}>
           <Flex
             vertical

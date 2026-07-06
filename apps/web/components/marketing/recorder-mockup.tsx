@@ -56,16 +56,8 @@ export function RecorderMockup() {
   return (
     <div className="relative mx-auto w-full max-w-7xl px-5 pb-24 pt-6 sm:px-8">
       <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-10 -z-10 mx-auto h-[70%] max-w-4xl rounded-[40px] bg-gradient-to-b from-blue-500/25 via-blue-400/10 to-transparent blur-3xl"
-      />
-
-      <div
         className="relative aspect-[480/301] w-full overflow-hidden"
-        style={{
-          borderRadius: token.borderRadiusLG,
-          boxShadow: token.boxShadowSecondary,
-        }}
+        style={{ borderRadius: token.borderRadiusLG }}
       >
         <video
           ref={videoRef}
