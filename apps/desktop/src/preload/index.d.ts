@@ -77,6 +77,7 @@ declare global {
       getRecordingUsage: () => Promise<RecordingUsageState>;
       refreshRecordingUsage: () => Promise<RecordingUsageState>;
       openRecordingUpgradeCheckout: () => Promise<void>;
+      openRecordingDashboard: () => Promise<void>;
       onRecordingUsageChanged: (
         callback: (state: RecordingUsageState) => void,
       ) => () => void;

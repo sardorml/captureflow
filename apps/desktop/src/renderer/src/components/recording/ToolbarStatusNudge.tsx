@@ -15,8 +15,6 @@ import type {
   WorkspacesState,
 } from "../../../../shared/types";
 
-const APP_WEB_URL = "https://captureflow.xyz";
-
 type NudgeAction = "signin" | "upgrade" | "dashboard";
 
 type NudgeTone = "info" | "warn" | "alert";
@@ -102,7 +100,7 @@ function actionDetails(action: NudgeAction): {
       ariaLabel: "Manage storage on CaptureFlow dashboard",
       icon: <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} />,
       onClick: () => {
-        window.electronAPI.openExternal(APP_WEB_URL).catch(() => {});
+        window.electronAPI.openRecordingDashboard().catch(() => {});
       },
     };
   }
@@ -111,7 +109,7 @@ function actionDetails(action: NudgeAction): {
     ariaLabel: "Open CaptureFlow dashboard",
     icon: <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} />,
     onClick: () => {
-      window.electronAPI.openExternal(APP_WEB_URL).catch(() => {});
+      window.electronAPI.openRecordingDashboard().catch(() => {});
     },
   };
 }

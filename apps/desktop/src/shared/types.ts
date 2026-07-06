@@ -137,6 +137,8 @@ export const IPC_CHANNELS = {
   RECORDING_USAGE_CHANGED: "recording-usage-changed",
   RECORDING_USAGE_REFRESH: "recording-usage-refresh",
   RECORDING_USAGE_OPEN_UPGRADE: "recording-usage-open-upgrade",
+  // Opens the web dashboard in the browser; main owns the URL so dev builds hit localhost.
+  RECORDING_OPEN_DASHBOARD: "recording-open-dashboard",
   // Workspace switcher state; SELECT persists the active target in userData, CHANGED fans out on any change.
   WORKSPACES_GET: "workspaces-get",
   WORKSPACES_REFRESH: "workspaces-refresh",

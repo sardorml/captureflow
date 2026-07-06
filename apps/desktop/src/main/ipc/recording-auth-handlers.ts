@@ -7,6 +7,7 @@ import {
   type WorkspacesState,
 } from "../../shared/types";
 import {
+  openAccountDashboard,
   openUpgrade,
   signInToRecordingAccount,
 } from "../lib/recording/recording-account-actions";
@@ -87,6 +88,13 @@ export function registerRecordingAuthHandlers(): void {
     IPC_CHANNELS.RECORDING_USAGE_OPEN_UPGRADE,
     async (): Promise<void> => {
       await openUpgrade();
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.RECORDING_OPEN_DASHBOARD,
+    async (): Promise<void> => {
+      await openAccountDashboard();
     },
   );
 

@@ -448,6 +448,9 @@ const electronAPI = {
   openRecordingUpgradeCheckout: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.RECORDING_USAGE_OPEN_UPGRADE),
 
+  openRecordingDashboard: (): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_OPEN_DASHBOARD),
+
   onRecordingUsageChanged: (
     callback: (state: RecordingUsageState) => void,
   ): (() => void) => {
