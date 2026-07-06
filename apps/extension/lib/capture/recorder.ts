@@ -1,3 +1,10 @@
+import { ENGINE_OUTPUT } from "@captureflow/engine";
+import {
+  startStreamRecorder,
+  startWebcamRecorder,
+  type StreamRecorder,
+  type WebcamRecorder,
+} from "@captureflow/engine/web";
 import { createRecordingTransport } from "../api/client";
 import {
   startRecordingUpload,
@@ -5,43 +12,45 @@ import {
 } from "../api/upload-streamer";
 import type { CaptureContext } from "../messaging";
 import type { RecordingResultPayload, RecordingStatus } from "../storage";
-import { pickScreenMimeType, pickWebcamMimeType } from "./pick-mime-type";
 
 // The server can't cap a live stream's length (no duration known at init), so
 // enforce a hard client-side ceiling.
 const MAX_DURATION_MS = 30 * 60 * 1000;
-// MediaRecorder emits a Blob per slice; a few seconds keeps memory flat and
-// starts the multipart upload while recording is still going.
-const TIMESLICE_MS = 3000;
 
 type Callbacks = {
   onStatus: (status: RecordingStatus) => void;
   onResult: (result: RecordingResultPayload) => void;
 };
 
-let activeRecorders: MediaRecorder[] = [];
+let sessionActive = false;
+let activeStop: (() => void) | null = null;
 
 export function stopActiveRecording(): void {
-  for (const recorder of activeRecorders) {
-    if (recorder.state !== "inactive") recorder.stop();
-  }
+  activeStop?.();
 }
 
 export async function recordAndUpload(
   ctx: CaptureContext,
   cb: Callbacks,
 ): Promise<void> {
-  if (activeRecorders.length > 0) return; // one recording at a time
+  if (sessionActive) return; // one recording at a time
+  sessionActive = true;
 
   cb.onStatus({ kind: "preparing" });
 
   let screenStream: MediaStream;
   try {
+    // Max constraints make the browser scale to the contract dims (aspect-fit);
+    // the native cursor is captured in-frame by default.
     screenStream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
+      video: {
+        width: { max: ENGINE_OUTPUT.screen.maxWidth },
+        height: { max: ENGINE_OUTPUT.screen.maxHeight },
+      },
       audio: false,
     });
   } catch (err) {
+    sessionActive = false;
     // The picker's Cancel rejects with NotAllowedError — not a real failure.
     if (err instanceof DOMException && err.name === "NotAllowedError") {
       cb.onStatus({ kind: "cancelled" });
@@ -65,20 +74,19 @@ export async function recordAndUpload(
     }
   }
 
-  const screen = pickScreenMimeType();
-
   let upload: RecordingUpload;
   try {
     const transport = createRecordingTransport(ctx.deviceId, ctx.token);
     upload = await startRecordingUpload(
       {
-        contentType: screen.contentType,
+        contentType: "video/mp4",
         source: "instant",
         hasWebcam: webcamStream !== null,
       },
       { transport },
     );
   } catch (err) {
+    sessionActive = false;
     stopTracks(screenStream);
     if (webcamStream) stopTracks(webcamStream);
     cb.onResult({ ok: false, error: errorMessage(err) });
@@ -88,28 +96,54 @@ export async function recordAndUpload(
   const startedAt = Date.now();
   let capTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const screenPipe = pipeRecorder(screenStream, screen.mimeType, (bytes) =>
-    upload.pushScreen(bytes),
-  );
-  const webcamPipe = webcamStream
-    ? pipeRecorder(webcamStream, pickWebcamMimeType(), (bytes) =>
-        upload.pushWebcam(bytes),
-      )
-    : null;
-  const pipes = webcamPipe ? [screenPipe, webcamPipe] : [screenPipe];
-
-  // Finalize once every recorder has stopped and its chunks are flushed.
-  let stopped = 0;
-  const onRecorderStop = async () => {
-    stopped += 1;
-    if (stopped < pipes.length) return;
-    if (capTimer) clearTimeout(capTimer);
+  let screenRecorder: StreamRecorder;
+  try {
+    screenRecorder = await startStreamRecorder({
+      stream: screenStream,
+      // fMP4 fragments are strictly appended, so position is ignorable; copy
+      // because the muxer reuses its output buffer.
+      output: (bytes) => upload.pushScreen(bytes.slice()),
+      // Covers the browser's native "Stop sharing" control and fatal encode
+      // errors — both end the whole recording.
+      onEnded: () => stopActiveRecording(),
+    });
+  } catch (err) {
+    sessionActive = false;
+    upload.abort();
     stopTracks(screenStream);
     if (webcamStream) stopTracks(webcamStream);
-    activeRecorders = [];
+    cb.onResult({ ok: false, error: errorMessage(err) });
+    return;
+  }
+
+  // A webcam recorder failure is contained to its own stream so the
+  // load-bearing screen capture keeps going (webcam best-effort).
+  let webcamRecorder: WebcamRecorder | null = null;
+  if (webcamStream) {
+    try {
+      webcamRecorder = startWebcamRecorder({
+        webcamStream,
+        // Mic rides the same getUserMedia stream as the camera (Decision 4).
+        micStream: webcamStream,
+        onChunk: (buf) => upload.pushWebcam(new Uint8Array(buf)),
+      });
+    } catch {
+      stopTracks(webcamStream);
+      webcamStream = null;
+    }
+  }
+
+  const finalize = async (): Promise<void> => {
+    if (capTimer) clearTimeout(capTimer);
+    activeStop = null;
     cb.onStatus({ kind: "uploading" });
     try {
-      await Promise.all(pipes.map((pipe) => pipe.settled()));
+      await Promise.all([
+        screenRecorder.stop(),
+        webcamRecorder?.stop() ?? Promise.resolve(null),
+      ]);
+      stopTracks(screenStream);
+      if (webcamStream) stopTracks(webcamStream);
       const { url } = await upload.finish();
       cb.onResult({
         ok: true,
@@ -118,62 +152,29 @@ export async function recordAndUpload(
         durationMs: Date.now() - startedAt,
       });
     } catch (err) {
+      stopTracks(screenStream);
+      if (webcamStream) stopTracks(webcamStream);
       upload.abort();
       cb.onResult({ ok: false, error: errorMessage(err) });
+    } finally {
+      sessionActive = false;
     }
   };
 
-  for (const pipe of pipes) pipe.recorder.onstop = onRecorderStop;
-  // A screen error ends the whole recording; a webcam error is contained to its
-  // own stream so the load-bearing screen capture keeps going (webcam best-effort).
-  screenPipe.recorder.onerror = () => stopActiveRecording();
-  if (webcamPipe) {
-    webcamPipe.recorder.onerror = () => {
-      if (webcamPipe.recorder.state !== "inactive") webcamPipe.recorder.stop();
-    };
-  }
-  screenPipe.recorder.onstart = () => cb.onStatus({ kind: "recording" });
-  activeRecorders = pipes.map((pipe) => pipe.recorder);
+  let stopRequested = false;
+  activeStop = () => {
+    if (stopRequested) return;
+    stopRequested = true;
+    void finalize();
+  };
 
-  // The browser's native "Stop sharing" control ends the screen track; mirror
-  // it to a full stop of both recorders.
-  screenStream
-    .getVideoTracks()[0]
-    ?.addEventListener("ended", stopActiveRecording);
   capTimer = setTimeout(stopActiveRecording, MAX_DURATION_MS);
-
-  for (const pipe of pipes) pipe.recorder.start(TIMESLICE_MS);
+  cb.onStatus({ kind: "recording" });
 
   // Poster frame from the screen — best-effort, never gates the recording.
   void capturePoster(screenStream)
     .then((bytes) => (bytes ? upload.uploadPoster(bytes) : undefined))
     .catch(() => undefined);
-}
-
-type RecorderPipe = { recorder: MediaRecorder; settled: () => Promise<void> };
-
-/*
- * Chains the async blob reads so parts keep recording order. `settled()`
- * resolves once all queued pushes have run; call it after the recorder stops.
- */
-function pipeRecorder(
-  stream: MediaStream,
-  mimeType: string,
-  push: (bytes: Uint8Array) => void,
-): RecorderPipe {
-  const recorder = new MediaRecorder(
-    stream,
-    mimeType ? { mimeType } : undefined,
-  );
-  let chain = Promise.resolve();
-  recorder.ondataavailable = (event) => {
-    const blob = event.data;
-    if (!blob || blob.size === 0) return;
-    chain = chain.then(async () =>
-      push(new Uint8Array(await blob.arrayBuffer())),
-    );
-  };
-  return { recorder, settled: () => chain };
 }
 
 async function capturePoster(stream: MediaStream): Promise<Uint8Array | null> {

@@ -171,6 +171,9 @@ importers:
 
   apps/extension:
     dependencies:
+      '@captureflow/engine':
+        specifier: workspace:*
+        version: link:../../packages/engine
       '@webext-core/messaging':
         specifier: ^3.0.2
         version: 3.0.2

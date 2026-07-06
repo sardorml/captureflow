@@ -14,6 +14,12 @@ export {
 } from "./record-pipeline";
 export { decodePosterJpeg, type PosterSource } from "./poster";
 export {
+  startStreamRecorder,
+  type StreamRecorder,
+  type StreamRecorderOptions,
+  type StreamRecorderResult,
+} from "./stream-recorder";
+export {
   acquireMicCapture,
   acquireWebcamCapture,
   pickWebcamMimeType,

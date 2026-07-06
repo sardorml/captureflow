@@ -11,6 +11,8 @@ export const ENGINE_OUTPUT = {
     maxHeight: 1080,
     fps: 60,
     bitrate: 8_000_000,
+    // VideoEncoder codec strings, preferred first: Main 4.1, then Baseline 4.1.
+    h264EncodeCandidates: ["avc1.4D4029", "avc1.42E029"],
   },
   poster: {
     mimeType: "image/jpeg",

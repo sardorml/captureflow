@@ -144,27 +144,36 @@ POSTed; must be `> 0` and `<= perRecordingSizeBytes` (500 MiB).
 - On network failure during finalize: **`GET /api/r/state?slug=<slug>`** (no auth); if `ready`,
   skip finalize (idempotent).
 
-### Decision 4 — Camera + mic: two independent MediaRecorders
+### Decision 4 — Camera + mic: two independent recorders
 
 Screen (`/api/r/part` → `/api/r/finalize`) and webcam+mic (`/api/r/webcam-part` →
-`/api/r/webcam-finalize`) are **two independent `MediaRecorder`s**, mapped to the backend's
+`/api/r/webcam-finalize`) are **two independent recorders**, mapped to the backend's
 existing dual-track model (`RecordingRow.webcam*`). The live circular cam bubble is a preview-only
-`<video>` in the content script; the web player overlays the webcam at playback. `pause()`/
-`resume()` are called on both recorders in the same tick.
+`<video>` in the content script; the web player overlays the webcam at playback.
 
 **Rejected — canvas compositing into one stream.** `canvas.captureStream()` throttles to ~1 fps
 in background tabs and `OffscreenCanvas` has no `captureStream()`, so a composited recording
 stutters the moment the user switches tabs — fatal for record-while-browsing — and discards the
 backend's dual-track model and the editable PiP placement the web edit page provides.
 
-### Decision 5 — Reuse vs fork: depend on zero `@captureflow/*` packages
+**Clarified (engine adoption):** the screen path is now the engine's `stream-recorder`
+(`MediaStreamTrackProcessor` → `VideoEncoder` → shared fMP4 muxer). That pipeline is
+**stream-driven, not rAF/canvas-driven**, so it does not reintroduce the rejected
+background-tab throttling; frames keep flowing at full rate in the offscreen document.
 
-Follow the **desktop precedent** exactly (desktop imports no workspace packages because its
-runtime differs). The MV3 runtime (SW + offscreen + content scripts, WXT `#imports`, `chrome.*`)
-is just as distinct, and the packages are entangled with Cloudflare/Next: `@captureflow/quota`
+### Decision 5 — Reuse vs fork: depend on zero `@captureflow/*` packages (REVERSED for the engine)
+
+Original rationale: follow the desktop precedent (desktop imported no workspace packages), the
+MV3 runtime is distinct, and the packages are entangled with Cloudflare/Next: `@captureflow/quota`
 calls D1; `@captureflow/ui` is shadcn + Next/Tailwind-CSS-config; `@captureflow/shared`'s
 visibility enum (`public|unlisted|private`) is the **wrong** model (the `/api/r` backend uses
 `public|workspace|private`).
+
+**Reversed for `@captureflow/engine`:** the capture engine is a runtime-neutral, MIT-licensed
+workspace package (pure browser APIs + `mp4-muxer`, no Cloudflare/Next/Electron entanglement)
+built precisely so desktop and extension produce identical recordings — the extension now
+consumes `@captureflow/engine` as a dependency (WXT/Vite bundles it). The reasoning above still
+holds for `quota`/`ui`/`shared`.
 
 Fork the handful of wire types into the extension's own `lib/api/types.ts` (structural copies of
 `InitRequest`/`InitResponse`/`PartResponse`/`FinalizeRequest`/`FinalizeResponse`/`RecordingApiError`/
@@ -172,16 +181,17 @@ Fork the handful of wire types into the extension's own `lib/api/types.ts` (stru
 so structural duplication is convention-blessed. A **CI text-diff script** (not a cross-app
 import — that would violate the boundary rule) guards against silent drift.
 
-### Decision 6 — Screen codec: MP4 with WebM fallback (chosen)
+### Decision 6 — Screen codec: MP4 with WebM fallback (SUPERSEDED by the engine adoption)
 
-Record the screen track as **`video/mp4;codecs=avc1.42E01E,mp4a.40.2`** when
+Original: record the screen track as **`video/mp4;codecs=avc1.42E01E,mp4a.40.2`** when
 `MediaRecorder.isTypeSupported` confirms an OS H.264 encoder (init with
-`contentType: "video/mp4"`). **Fallback:** if MP4 is unsupported, record
-`video/webm;codecs=vp9,opus` (then vp8) and init with `contentType: "video/webm"` — which
-requires Backend Change 3. The webcam track is always `video/webm`.
+`contentType: "video/mp4"`), falling back to `video/webm;codecs=vp9,opus` (then vp8) with
+`contentType: "video/webm"`.
 
-This guarantees universal device support while keeping MP4 the zero-storage-surprise happy path.
-(`MP4-only` was rejected: it hard-fails on encoder-less devices.)
+**Superseded:** the screen track is now always fragmented MP4 from the engine's
+`stream-recorder` (`VideoEncoder`, H.264 per the engine output contract) — identical to the
+desktop app's output, init is always `contentType: "video/mp4"`. The WebM screen fallback is
+gone with MediaRecorder; the webcam track is still `video/webm` (engine `webcam.ts`).
 
 ---
 
