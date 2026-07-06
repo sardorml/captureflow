@@ -1,6 +1,9 @@
 # Contributing
 
-Contributions are welcome. CaptureFlow is [AGPL-3.0-only](https://github.com/sardorml/captureflow/blob/main/LICENSE).
+Contributions are welcome. CaptureFlow is [AGPL-3.0-only](https://github.com/sardorml/captureflow/blob/main/LICENSE),
+except the capture engine in `packages/engine`, which is
+[MIT](https://github.com/sardorml/captureflow/blob/main/packages/engine/LICENSE).
+Contributions are accepted under the license covering the files they touch.
 
 ## Workflow
 

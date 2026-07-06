@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 // RecordingWriter.swift
 // ──────────────────
 // Parallel H.264 encoder for the Instant Recording pipeline. Sits next

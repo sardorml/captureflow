@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 // RecordingTapSpike.swift
 // ──────────────────────
 // Spike harness for the link-sharing pipeline. Counts frames + samples

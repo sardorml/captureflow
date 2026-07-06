@@ -37,11 +37,14 @@ which form **wins for new code**. Each rule names a real exemplar to copy.
 
 - **One-directional dependency graph.** `apps/*` depend on `packages/*`; packages never
   import apps; apps never import each other. `apps/web` uses `@captureflow/{ui,quota,shared}`;
-  `apps/desktop` uses none of them and ships its own renderer UI (incompatible runtimes —
+  `apps/desktop` and `apps/extension` consume `@captureflow/engine` (the MIT-licensed capture
+  engine; desktop declares it a devDependency so electron-vite bundles it) and none of the
+  web-oriented packages — desktop ships its own renderer UI (incompatible runtimes —
   Cloudflare vs Electron). _Avoid:_ importing `@captureflow/web` from a package, or
   `@captureflow/ui` from desktop. The desktop/web UI duplication is intentional, not debt.
 - **Packages expose one public surface** via a barrel `src/index.ts` (plus `@captureflow/ui`'s
-  explicit subpaths like `./button`, `./cn`). Import the named export from `@captureflow/<pkg>`;
+  explicit subpaths like `./button`, `./cn`, and `@captureflow/engine`'s runtime-split
+  `./main` and `./web`). Import the named export from `@captureflow/<pkg>`;
   never deep-reach into `@captureflow/quota/src/workspaces`. Adding a UI component means
   re-exporting it from the barrel.
 - **`apps/web` is sorted by kind.** Route segments + route-local components under `app/`

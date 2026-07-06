@@ -3,9 +3,12 @@
 ## Is CaptureFlow really free and open source?
 
 Yes — it's [AGPL-3.0-only](https://github.com/sardorml/captureflow/blob/main/LICENSE)
-and fully self-hostable. **Every feature ships in the open-source build.** There
-is an optional managed-hosting tier for people who'd rather not run their own
-infrastructure, but it doesn't unlock any extra features — it's just hosting.
+and fully self-hostable, with the reusable capture engine
+([`packages/engine`](https://github.com/sardorml/captureflow/tree/main/packages/engine))
+available under the more permissive [MIT license](https://github.com/sardorml/captureflow/blob/main/packages/engine/LICENSE).
+**Every feature ships in the open-source build.** There is an optional
+managed-hosting tier for people who'd rather not run their own infrastructure,
+but it doesn't unlock any extra features — it's just hosting.
 
 ## Do viewers need an account to watch?
 

@@ -1,3 +1,15 @@
+CaptureFlow is licensed under the GNU Affero General Public License v3.0
+(AGPL-3.0-only), reproduced below, with one exception:
+
+  - packages/engine/ (the @captureflow/engine capture engine) is licensed
+    under the MIT License — see packages/engine/LICENSE.
+
+Combined distributions built from this repository (the desktop app and the
+browser extension bundle the engine together with AGPL-licensed code) are
+distributed under AGPL-3.0-only as a whole.
+
+---------------------------------------------------------------------------
+
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 
