@@ -3,7 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Card, Col, Collapse, Row, theme, Typography } from "antd";
+import {
+  Card,
+  Col,
+  Collapse,
+  ConfigProvider,
+  Row,
+  theme,
+  Typography,
+} from "antd";
 import {
   ArrowUp,
   ArrowUpRight,
@@ -206,17 +214,21 @@ export function CollaborationSection() {
         title={m.collaboration.header.title}
         subtitle={m.collaboration.header.subtitle}
       />
-      <Collapse
-        accordion
-        size="large"
-        expandIconPlacement="end"
-        activeKey={activeKey}
-        onChange={(key) => {
-          const next = Array.isArray(key) ? key[0] : key;
-          if (next) setActiveKey(next);
-        }}
-        items={items}
-      />
+      <ConfigProvider
+        theme={{ components: { Collapse: { colorBorder: "transparent" } } }}
+      >
+        <Collapse
+          accordion
+          size="large"
+          expandIconPlacement="end"
+          activeKey={activeKey}
+          onChange={(key) => {
+            const next = Array.isArray(key) ? key[0] : key;
+            if (next) setActiveKey(next);
+          }}
+          items={items}
+        />
+      </ConfigProvider>
     </MarketingSection>
   );
 }

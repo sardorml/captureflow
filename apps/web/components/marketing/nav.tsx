@@ -67,7 +67,7 @@ export function Nav({
           color: token.colorText,
         }}
       >
-        captureflow
+        CaptureFlow
       </span>
     </Link>
   );
@@ -135,7 +135,6 @@ export function Nav({
         display: "flex",
         alignItems: "center",
         background: token.colorBgContainer,
-        boxShadow: token.boxShadowTertiary,
         backdropFilter: "blur(8px)",
       }}
     >
