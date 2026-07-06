@@ -4,7 +4,8 @@ import { copyFile, mkdir, readFile, unlink } from "fs/promises";
 import { tmpdir } from "os";
 import { homedir } from "os";
 import { join } from "path";
-import { app, clipboard, nativeImage, shell } from "electron";
+import { clipboard, nativeImage, shell } from "electron";
+import { engineBinaryPath } from "./engine-paths";
 
 import { logInfo, logWarn } from "./logger";
 
@@ -26,10 +27,7 @@ export type CaptureResult = {
 };
 
 function getBinaryPath(): string {
-  const base = app.isPackaged
-    ? join(process.resourcesPath, "native", "screen-recorder", "bin")
-    : join(__dirname, "../../native/screen-recorder/bin");
-  return join(base, "screen-recorder");
+  return engineBinaryPath("screen-recorder");
 }
 
 async function ensureScreenshotsDir(): Promise<string> {

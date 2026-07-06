@@ -49,6 +49,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@captureflow/engine": "workspace:*",
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@tailwindcss/vite": "^4.2.1",
     "@types/node": "catalog:",

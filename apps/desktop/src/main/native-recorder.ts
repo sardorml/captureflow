@@ -1,6 +1,5 @@
 import { spawn, ChildProcess } from "child_process";
-import { join } from "path";
-import { app } from "electron";
+import { engineBinaryPath } from "./lib/engine-paths";
 import { logInfo, logWarn, logError, logRaw } from "./lib/logger";
 import type { RecordingFrameEvent } from "../shared/types";
 
@@ -57,10 +56,7 @@ export function getRecorderHealth(): RecorderHealth | null {
 }
 
 function getBinaryPath(): string {
-  const base = app.isPackaged
-    ? join(process.resourcesPath, "native", "screen-recorder", "bin")
-    : join(__dirname, "../../native/screen-recorder/bin");
-  return join(base, "screen-recorder");
+  return engineBinaryPath("screen-recorder");
 }
 
 import type { WindowBounds } from "../shared/types";

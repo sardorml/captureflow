@@ -1,6 +1,5 @@
 import { spawn, type ChildProcess } from "child_process";
-import { join } from "path";
-import { app } from "electron";
+import { engineBinaryPath } from "./lib/engine-paths";
 import type { WindowAtPoint } from "../shared/types";
 
 type PendingResolver =
@@ -12,10 +11,7 @@ let pendingResolve: PendingResolver | null = null;
 let buffer = "";
 
 function getBinaryPath(): string {
-  const base = app.isPackaged
-    ? join(process.resourcesPath, "native", "window-detector", "bin")
-    : join(__dirname, "../../native/window-detector/bin");
-  return join(base, "window-detector");
+  return engineBinaryPath("window-detector");
 }
 
 function ensureProcess(): void {
