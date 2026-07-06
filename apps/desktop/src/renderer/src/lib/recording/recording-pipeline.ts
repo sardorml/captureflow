@@ -1,9 +1,6 @@
-import { CompositingRecordingEncoder } from "./recording-compositing-encoder";
+import { RecordingMuxer } from "./recording-mux";
 import type { RecordingEncoderResult } from "./recording-encoder";
-import type {
-  CursorPosition,
-  RecordingFrameEvent,
-} from "../../../../shared/types";
+import type { RecordingFrameEvent } from "../../../../shared/types";
 import { logRendererInfo, logRendererWarn } from "./recording-log";
 
 export type RecordingArmOptions = {
@@ -15,9 +12,6 @@ const AUDIO_FORMAT_WAIT_MS = 1000;
 export const RECORDING_CAP_MS = 300_000;
 const RECORDING_CAP_SLACK_MS = 2_000;
 
-const CURSOR_BUFFER_MAX = 8_000; // ~60s of 120fps samples
-const cursorBuffer: CursorPosition[] = [];
-
 export type RecordingPipelineState =
   | { status: "idle" }
   | { status: "armed" }
@@ -27,16 +21,14 @@ export type RecordingPipelineState =
   | { status: "aborted"; reason: string };
 
 class RecordingPipeline {
-  private encoder: CompositingRecordingEncoder | null = null;
+  private muxer: RecordingMuxer | null = null;
   private state: RecordingPipelineState = { status: "idle" };
   private listeners = new Set<(s: RecordingPipelineState) => void>();
   private attached = false;
   private armed = false;
   private armOptions: RecordingArmOptions | null = null;
-  // Events that arrived before the encoder finished initialising. Drained in order once ready.
+  // Events that arrived before the muxer was created (format wait). Drained in order.
   private pendingChunks: RecordingFrameEvent[] = [];
-  private encoderInitializing = false;
-  private cursorUnsub: (() => void) | null = null;
   private pendingVideoFormat: Extract<
     RecordingFrameEvent,
     { kind: "format" }
@@ -69,44 +61,40 @@ class RecordingPipeline {
   }
 
   /** Mark a new recording session as expecting recording frames. The
-   *  encoder is instantiated lazily on the first 'format' event. */
+   *  muxer is instantiated lazily on the first 'format' event. */
   arm(options: RecordingArmOptions): void {
-    this.encoder?.cancel();
-    this.encoder = null;
+    this.muxer?.cancel();
+    this.muxer = null;
     this.pendingChunks = [];
-    this.encoderInitializing = false;
     this.pendingVideoFormat = null;
     this.pendingAudioFormat = null;
     if (this.audioWaitTimer !== null) {
       window.clearTimeout(this.audioWaitTimer);
       this.audioWaitTimer = null;
     }
-    cursorBuffer.length = 0;
-    this.cursorUnsub?.();
-    this.cursorUnsub = null;
     this.armOptions = options;
     logRendererInfo(
       `recording-pipeline: arm (audioExpected=${options.audioExpected})`,
     );
-
-    this.cursorUnsub = window.electronAPI.onCursorPosition((pos) => {
-      cursorBuffer.push(pos);
-      if (cursorBuffer.length > CURSOR_BUFFER_MAX) {
-        cursorBuffer.splice(0, cursorBuffer.length - CURSOR_BUFFER_MAX);
-      }
-    });
     this.armed = true;
     this.setState({ status: "armed" });
   }
 
-  /** Finalize the encoder. Main gets the last muxed bytes via
+  /** Drop chunks until resume; the native tap keeps emitting while paused. */
+  pause(): void {
+    this.muxer?.pause();
+  }
+
+  resume(): void {
+    this.muxer?.resume();
+  }
+
+  /** Finalize the muxer. Main gets the last muxed bytes via
    *  onChunkBytes during the muxer.finalize() pass. */
   async finish(): Promise<RecordingEncoderResult | null> {
     this.armed = false;
-    const current = this.encoder;
-    this.encoder = null;
-    this.cursorUnsub?.();
-    this.cursorUnsub = null;
+    const current = this.muxer;
+    this.muxer = null;
     if (!current || !current.isReady) return null;
     try {
       const result = await current.stop();
@@ -119,13 +107,11 @@ class RecordingPipeline {
     }
   }
 
-  /** Discard the in-flight encoder. */
+  /** Discard the in-flight muxer. */
   abort(reason: string): void {
     this.armed = false;
-    this.encoder?.cancel();
-    this.encoder = null;
-    this.cursorUnsub?.();
-    this.cursorUnsub = null;
+    this.muxer?.cancel();
+    this.muxer = null;
     this.setState({ status: "aborted", reason });
   }
 
@@ -136,7 +122,7 @@ class RecordingPipeline {
       logRendererInfo(
         `recording-pipeline: video format (${event.codedWidth}x${event.codedHeight}@${event.fps}fps)`,
       );
-      this.tryStartEncoder();
+      this.tryStartMuxer();
       return;
     }
     if (event.kind === "audio-format") {
@@ -148,44 +134,47 @@ class RecordingPipeline {
         window.clearTimeout(this.audioWaitTimer);
         this.audioWaitTimer = null;
       }
-      this.tryStartEncoder();
+      this.tryStartMuxer();
       return;
     }
     if (event.kind === "chunk") {
-      const endUs = event.timestamp + event.duration;
-      const durationMs = Math.round(endUs / 1000);
-      if (durationMs > RECORDING_CAP_MS + RECORDING_CAP_SLACK_MS) {
-        this.encoder?.cancel();
-        this.encoder = null;
-        this.pendingChunks = [];
-        this.setState({ status: "over-cap" });
-        return;
-      }
-      if (this.encoderInitializing || !this.encoder) {
+      if (!this.muxer) {
         this.pendingChunks.push(event);
-        this.setState({ status: "encoding", durationMs });
+        this.setState({
+          status: "encoding",
+          durationMs: Math.round((event.timestamp + event.duration) / 1000),
+        });
         return;
       }
       try {
-        this.encoder.pushChunk({
+        this.muxer.pushChunk({
           type: event.type,
           timestamp: event.timestamp,
           duration: event.duration,
           data: event.data,
         });
-        this.setState({ status: "encoding", durationMs });
       } catch (err) {
         this.abort(err instanceof Error ? err.message : String(err));
+        return;
       }
+      const durationMs = this.muxer.durationMs;
+      if (durationMs > RECORDING_CAP_MS + RECORDING_CAP_SLACK_MS) {
+        this.muxer.cancel();
+        this.muxer = null;
+        this.pendingChunks = [];
+        this.setState({ status: "over-cap" });
+        return;
+      }
+      this.setState({ status: "encoding", durationMs });
       return;
     }
     if (event.kind === "audio-chunk") {
-      if (this.encoderInitializing || !this.encoder) {
+      if (!this.muxer) {
         this.pendingChunks.push(event);
         return;
       }
       try {
-        this.encoder.pushAudioChunk({
+        this.muxer.pushAudioChunk({
           timestamp: event.timestamp,
           duration: event.duration,
           data: event.data,
@@ -204,8 +193,8 @@ class RecordingPipeline {
     logRendererInfo("recording-pipeline: native end-of-stream");
   }
 
-  private tryStartEncoder(): void {
-    if (this.encoder || this.encoderInitializing) return;
+  private tryStartMuxer(): void {
+    if (this.muxer) return;
     if (!this.armOptions) {
       logRendererWarn(
         "recording-pipeline: format event arrived without armOptions",
@@ -220,32 +209,30 @@ class RecordingPipeline {
       if (this.audioWaitTimer === null) {
         this.audioWaitTimer = window.setTimeout(() => {
           this.audioWaitTimer = null;
-          if (this.encoder || this.encoderInitializing) return;
+          if (this.muxer) return;
           logRendererWarn(
             `recording-pipeline: audio-format did not arrive within ${AUDIO_FORMAT_WAIT_MS}ms — proceeding video-only`,
           );
-          this.startEncoder(videoFormat, null);
+          this.startMuxer(videoFormat, null);
         }, AUDIO_FORMAT_WAIT_MS);
       }
       return;
     }
-    this.startEncoder(videoFormat, audioFormat);
+    this.startMuxer(videoFormat, audioFormat);
   }
 
-  private startEncoder(
+  private startMuxer(
     videoFormat: Extract<RecordingFrameEvent, { kind: "format" }>,
     audioFormat: Extract<RecordingFrameEvent, { kind: "audio-format" }> | null,
   ): void {
-    if (this.encoder || this.encoderInitializing) return;
-    const format = {
-      codedWidth: videoFormat.codedWidth,
-      codedHeight: videoFormat.codedHeight,
-      fps: videoFormat.fps,
-      description: videoFormat.description,
-    };
-    const compositing = new CompositingRecordingEncoder({
-      format,
-      cursorPositions: () => cursorBuffer,
+    if (this.muxer) return;
+    this.muxer = new RecordingMuxer({
+      format: {
+        codedWidth: videoFormat.codedWidth,
+        codedHeight: videoFormat.codedHeight,
+        fps: videoFormat.fps,
+        description: videoFormat.description,
+      },
       audioConfig: audioFormat
         ? {
             sampleRate: audioFormat.sampleRate,
@@ -261,47 +248,30 @@ class RecordingPipeline {
         window.electronAPI.recordingPartScreen(out);
       },
     });
-    this.encoder = compositing;
-    this.encoderInitializing = true;
-    void compositing
-      .init()
-      .then(() => {
-        this.encoderInitializing = false;
-        const queued = this.pendingChunks;
-        this.pendingChunks = [];
-        for (const evt of queued) {
-          if (!this.encoder) break;
-          try {
-            if (evt.kind === "chunk") {
-              this.encoder.pushChunk({
-                type: evt.type,
-                timestamp: evt.timestamp,
-                duration: evt.duration,
-                data: evt.data,
-              });
-            } else if (evt.kind === "audio-chunk") {
-              this.encoder.pushAudioChunk({
-                timestamp: evt.timestamp,
-                duration: evt.duration,
-                data: evt.data,
-              });
-            }
-          } catch (err) {
-            this.abort(err instanceof Error ? err.message : String(err));
-            break;
-          }
+    const queued = this.pendingChunks;
+    this.pendingChunks = [];
+    for (const evt of queued) {
+      if (!this.muxer) break;
+      try {
+        if (evt.kind === "chunk") {
+          this.muxer.pushChunk({
+            type: evt.type,
+            timestamp: evt.timestamp,
+            duration: evt.duration,
+            data: evt.data,
+          });
+        } else if (evt.kind === "audio-chunk") {
+          this.muxer.pushAudioChunk({
+            timestamp: evt.timestamp,
+            duration: evt.duration,
+            data: evt.data,
+          });
         }
-      })
-      .catch((err: unknown) => {
-        this.encoderInitializing = false;
-        this.encoder = null;
-        this.pendingChunks = [];
-        const reason = err instanceof Error ? err.message : String(err);
-        logRendererWarn(
-          `recording-pipeline: compositing init failed: ${reason}`,
-        );
-        this.setState({ status: "aborted", reason });
-      });
+      } catch (err) {
+        this.abort(err instanceof Error ? err.message : String(err));
+        return;
+      }
+    }
     this.setState({ status: "encoding", durationMs: 0 });
   }
 

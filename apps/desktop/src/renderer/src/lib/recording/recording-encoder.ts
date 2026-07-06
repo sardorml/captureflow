@@ -19,19 +19,18 @@ export type RecordingChunk = {
   data: Uint8Array;
 };
 
-/** Returned by the compositing encoder's `stop()` after the muxer
- *  finalize callback has drained the last bytes through onData. The
- *  bytes themselves are not held — they were streamed out as they
- *  emerged. */
+/** Returned by the muxer's `stop()` after the finalize callback has
+ *  drained the last bytes through onData. The bytes themselves are not
+ *  held — they were streamed out as they emerged. */
 export type RecordingEncoderResult = {
   /** Total muxed bytes shipped through the StreamTarget callback. */
   sizeBytes: number;
-  /** Encoded video duration in milliseconds. */
+  /** Muxed video duration in milliseconds (pause-adjusted). */
   durationMs: number;
   encodedFrames: number;
-  /** Encoded video dims — match the source aspect ratio. */
+  /** Video dims — match the source aspect ratio. */
   width: number;
   height: number;
-  // First composited frame as a JPEG (~ 50–200 KiB). Uploaded as the  recording's OG/Twitter poster — viewer links in chat / X / etc. need  this to show a thumbnail. Null when no frames were composited  (encoder aborted before frame 0).
+  // First keyframe as a JPEG (~ 50–200 KiB). Uploaded as the recording's OG/Twitter poster — viewer links in chat / X / etc. need this to show a thumbnail. Null when the muxer never saw a keyframe.
   posterBlob: Blob | null;
 };

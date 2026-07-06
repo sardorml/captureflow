@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, CheckCircle2 } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { AnimatedToggle } from "@/components/ui/animated-toggle";
@@ -9,7 +9,6 @@ const PRIVACY_URL = "https://captureflow.xyz/privacy";
 
 type PermissionStatus = {
   screen: string;
-  accessibility: boolean;
 };
 
 export function PermissionsWindow(): React.JSX.Element {
@@ -17,7 +16,6 @@ export function PermissionsWindow(): React.JSX.Element {
   const [screenRequested, setScreenRequested] = useState(false);
   const [analyticsEnabled, setAnalyticsEnabledState] = useState(false);
   const [agreed, setAgreed] = useState(false);
-  const checkRef = useRef<() => Promise<void>>(async () => {});
 
   useEffect(() => {
     void window.electronAPI.getUserPrefs().then((p) => {
@@ -39,13 +37,8 @@ export function PermissionsWindow(): React.JSX.Element {
     let cancelled = false;
     const tick = async (): Promise<void> => {
       const perms = await window.electronAPI.getPermissions();
-      if (!cancelled)
-        setPermissions({
-          screen: perms.screen,
-          accessibility: perms.accessibility,
-        });
+      if (!cancelled) setPermissions({ screen: perms.screen });
     };
-    checkRef.current = tick;
     tick();
     const interval = setInterval(tick, 1000);
     return () => {
@@ -75,14 +68,8 @@ export function PermissionsWindow(): React.JSX.Element {
     );
   };
 
-  const requestAccessibility = async (): Promise<void> => {
-    await window.electronAPI.requestAccessibility();
-    void checkRef.current();
-  };
-
   const screenOk = permissions?.screen === "granted";
-  const accessibilityOk = permissions?.accessibility === true;
-  const canContinue = screenOk && accessibilityOk && agreed;
+  const canContinue = screenOk && agreed;
 
   return (
     <div className="h-screen flex flex-col items-center px-12 pt-14 pb-10 select-none relative">
@@ -113,15 +100,6 @@ export function PermissionsWindow(): React.JSX.Element {
           buttonLabel="Allow Screen Recording"
           grantedLabel="Screen recording enabled"
           onRequest={requestScreenRecording}
-        />
-
-        <PermissionRow
-          title="Accessibility"
-          description="Lets CaptureFlow record cursor movement and keystrokes so the editor can show clicks and shortcuts."
-          granted={accessibilityOk}
-          buttonLabel="Allow Accessibility"
-          grantedLabel="Accessibility access enabled"
-          onRequest={requestAccessibility}
         />
 
         <div className="flex items-start gap-6">

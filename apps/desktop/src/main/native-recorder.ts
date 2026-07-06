@@ -1,9 +1,7 @@
 import { spawn, ChildProcess } from "child_process";
 import { join } from "path";
 import { app } from "electron";
-import { createSessionDir, setCurrentSessionDir } from "./storage";
 import { logInfo, logWarn, logError, logRaw } from "./lib/logger";
-import { getUserPrefs } from "./lib/user-prefs";
 import type { RecordingFrameEvent } from "../shared/types";
 
 export type StopResult = {
@@ -68,7 +66,6 @@ function getBinaryPath(): string {
 import type { WindowBounds } from "../shared/types";
 
 type RecorderConfig = {
-  outputDir: string;
   displayId?: number;
   windowId?: number;
   fps?: number;
@@ -76,8 +73,6 @@ type RecorderConfig = {
   captureAudio?: boolean;
   excludePid?: number;
   cropRect?: WindowBounds;
-  // Per-session override for the recording tap; falls back to the user pref if unset.
-  recording?: boolean;
 };
 
 type StartResult = {
@@ -138,35 +133,22 @@ export async function startNativeRecording(
 async function spawnNativeRecorder(
   config: RecorderConfig,
 ): Promise<StartResult> {
-  const recordingEnabled = config.recording ?? getUserPrefs().recordingEnabled;
-  // Recording mode skips the on-disk .captureflow bundle entirely; the native
-  // binary gates its writers on recording=true and never opens an output file.
-  const sessionDir = recordingEnabled ? "" : await createSessionDir();
-  if (recordingEnabled) setCurrentSessionDir(null);
-  const { recording: _recordingOverride, ...rest } = config;
-  const finalConfig: Omit<RecorderConfig, "recording"> & {
-    recording?: {
-      width: number;
-      height: number;
-      fps: number;
-      bitrate: number;
-      fd: number;
-    };
-  } = { ...rest, outputDir: sessionDir };
-  if (recordingEnabled) {
-    finalConfig.recording = {
+  // outputDir "" keeps the binary's on-disk writers off; encoded records
+  // stream over fd 3 instead (the binary's file mode still exists but the
+  // app is Loom-style only).
+  const finalConfig = {
+    ...config,
+    outputDir: "",
+    recording: {
       width: RECORDING_WIDTH,
       height: RECORDING_HEIGHT,
       fps: RECORDING_FPS,
       bitrate: RECORDING_BITRATE,
       fd: RECORDING_FD,
-    };
-  }
+    },
+  };
 
-  logInfo(
-    "recorder",
-    `starting native recording: sessionDir=${sessionDir}, recording=${recordingEnabled ? "on" : "off"}`,
-  );
+  logInfo("recorder", "starting native recording (streaming)");
 
   return new Promise((resolve, reject) => {
     stdoutBuffer = "";
@@ -178,11 +160,8 @@ async function spawnNativeRecorder(
     logInfo("recorder", `spawning: ${binPath}`);
     // Allocate a 4th 'pipe' slot so the child's fd 3 is readable here; the
     // native RecordingWriter writes length-prefixed records there (RecordingWriter.swift).
-    const stdio: ("pipe" | "ignore")[] = recordingEnabled
-      ? ["pipe", "pipe", "pipe", "pipe"]
-      : ["pipe", "pipe", "pipe"];
     proc = spawn(binPath, [jsonConfig], {
-      stdio,
+      stdio: ["pipe", "pipe", "pipe", "pipe"],
       env: { ...process.env },
     });
     // Spike-only diagnostic for the recording-tap fan-out (docs/spikes/recording-tap.md).
@@ -190,18 +169,13 @@ async function spawnNativeRecorder(
     if (process.env.CAPTUREFLOW_RECORDING_TAP_SPIKE === "1") {
       logInfo("recorder", "recording-tap spike: env flag forwarded to child");
     }
-    if (recordingEnabled) {
-      const recordingStream = proc.stdio[
-        RECORDING_FD
-      ] as NodeJS.ReadableStream | null;
-      if (recordingStream) {
-        attachRecordingReader(recordingStream);
-      } else {
-        logWarn(
-          "recorder",
-          `recording enabled but stdio[${RECORDING_FD}] not available`,
-        );
-      }
+    const recordingStream = proc.stdio[
+      RECORDING_FD
+    ] as NodeJS.ReadableStream | null;
+    if (recordingStream) {
+      attachRecordingReader(recordingStream);
+    } else {
+      logWarn("recorder", `stdio[${RECORDING_FD}] not available`);
     }
     logInfo("recorder", `process spawned: pid=${proc.pid}`);
 

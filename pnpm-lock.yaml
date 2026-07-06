@@ -107,9 +107,6 @@ importers:
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.6.0
-      uiohook-napi:
-        specifier: ^1.5.5
-        version: 1.5.5
       upng-js:
         specifier: ^2.1.0
         version: 2.1.0
@@ -6720,10 +6717,6 @@ packages:
     resolution: {integrity: sha512-LarFH0+6VfriEhqMMcLX2F7SwSXeWwnEAJEsYm5QKWchiVYVvJyV9v7UDvUv+w5HO23ZpQTXDv/GxdDdMyOuoQ==}
     engines: {node: '>= 6.13.0'}
 
-  node-gyp-build@4.8.4:
-    resolution: {integrity: sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==}
-    hasBin: true
-
   node-gyp@12.4.0:
     resolution: {integrity: sha512-OMcPNvqTCFUnNaBlmdgq+lfNqY7gTiSmNRDjY3uAXRyudeKZEZxu3CLtjMQrx4zZxCX2b/mpNqTtwuCJgXhHkw==}
     engines: {node: ^20.17.0 || >=22.9.0}
@@ -7838,10 +7831,6 @@ packages:
 
   uhyphen@0.2.0:
     resolution: {integrity: sha512-qz3o9CHXmJJPGBdqzab7qAYuW8kQGKNEuoHFYrBwV6hWIMcpAmxDLXojcHfFr9US1Pe6zUswEIJIbLI610fuqA==}
-
-  uiohook-napi@1.5.5:
-    resolution: {integrity: sha512-oSlTdnECw2GBfsJPTbBQBeE4v/EXP0EZmX6BJq5nzH/JgFaBE8JpFwEA/kLhiEP7HxQw28FViWiYgdIZzWuuJQ==}
-    engines: {node: '>= 16'}
 
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
@@ -14962,8 +14951,6 @@ snapshots:
 
   node-forge@1.4.0: {}
 
-  node-gyp-build@4.8.4: {}
-
   node-gyp@12.4.0:
     dependencies:
       env-paths: 2.2.1
@@ -16299,10 +16286,6 @@ snapshots:
   ufo@1.6.4: {}
 
   uhyphen@0.2.0: {}
-
-  uiohook-napi@1.5.5:
-    dependencies:
-      node-gyp-build: 4.8.4
 
   undici-types@5.26.5: {}
 

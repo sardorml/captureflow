@@ -59,24 +59,14 @@ export async function requestCameraPermission(): Promise<boolean> {
   return systemPreferences.askForMediaAccess("camera");
 }
 
-export function getAccessibilityStatus(): boolean {
-  return systemPreferences.isTrustedAccessibilityClient(false);
-}
-
-export function requestAccessibility(): boolean {
-  return systemPreferences.isTrustedAccessibilityClient(true);
-}
-
 export function getAllPermissions(): {
   screen: string;
   microphone: string;
   camera: string;
-  accessibility: boolean;
 } {
   return {
     screen: getScreenPermissionStatus(),
     microphone: getMicPermissionStatus(),
     camera: getCameraPermissionStatus(),
-    accessibility: getAccessibilityStatus(),
   };
 }

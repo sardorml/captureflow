@@ -37,10 +37,6 @@ extraResources:
     to: native/screen-recorder/bin
     filter:
       - '**/*'
-  - from: native/cursor-monitor/bin
-    to: native/cursor-monitor/bin
-    filter:
-      - '**/*'
   - from: native/window-detector/bin
     to: native/window-detector/bin
     filter:
@@ -48,7 +44,6 @@ extraResources:
 asarUnpack:
   - resources/**
   - node_modules/ffmpeg-static/**/*
-  - node_modules/uiohook-napi/**/*
 mac:
   minimumSystemVersion: '13.2'
   # macOS 26+ app icon. electron-builder compiles this Icon Composer bundle

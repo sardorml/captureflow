@@ -242,8 +242,7 @@ function cancelSelectionOverlay(): void {
 }
 
 function hasAllPermissions(): boolean {
-  const perms = getAllPermissions();
-  return perms.screen === "granted" && perms.accessibility;
+  return getAllPermissions().screen === "granted";
 }
 
 export function openPermissionDialogWindow(

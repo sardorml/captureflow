@@ -50,37 +50,8 @@ export const TOOLBAR_BAR_BOTTOM_OFFSET = 48;
 
 export type RecordingMode = "recording" | "screenshot";
 
-export type CursorType =
-  | "arrow"
-  | "pointer"
-  | "text"
-  | "crosshair"
-  | "open-hand"
-  | "closed-hand"
-  | "resize-ew"
-  | "resize-ns";
-
-export type CursorPosition = {
-  time: number; // ms since recording start
-  x: number; // normalized 0-1
-  y: number; // normalized 0-1
-  cursorType?: CursorType;
-};
-
-export type ClickEvent = {
-  time: number; // ms since recording start
-  x: number; // normalized 0-1
-  y: number; // normalized 0-1
-};
-
-export type TrackingData = {
-  cursor: CursorPosition[];
-  clicks?: ClickEvent[];
-};
-
 export const IPC_CHANNELS = {
   GET_SOURCES: "get-sources",
-  GET_RECORDINGS_DIR: "get-recordings-dir",
   SHOW_ITEM_IN_FOLDER: "show-item-in-folder",
   HIDE_WINDOW: "hide-window",
   SHOW_WINDOW: "show-window",
@@ -90,13 +61,6 @@ export const IPC_CHANNELS = {
   RESIZE_WINDOW: "resize-window",
   SHOW_RECORDING_DIM: "show-recording-dim",
   HIDE_RECORDING_DIM: "hide-recording-dim",
-  START_CURSOR_TRACKING: "start-cursor-tracking",
-  // Pushed from main per cursor-tracker tick (~120fps); timestamped to the recording start clock.
-  CURSOR_POSITION_EVENT: "cursor-position-event",
-  STOP_CURSOR_TRACKING: "stop-cursor-tracking",
-  PAUSE_CURSOR_TRACKING: "pause-cursor-tracking",
-  RESUME_CURSOR_TRACKING: "resume-cursor-tracking",
-  DELETE_CURRENT_SESSION: "delete-current-session",
   FILE_EXISTS: "file-exists",
   GET_PERMISSIONS: "get-permissions",
   REQUEST_MIC_PERMISSION: "request-mic-permission",
@@ -108,7 +72,6 @@ export const IPC_CHANNELS = {
   IS_NATIVE_RECORDING_ACTIVE: "is-native-recording-active",
   NATIVE_RECORDER_CRASHED: "native-recorder-crashed",
   OPEN_EXTERNAL: "open-external",
-  REQUEST_ACCESSIBILITY: "request-accessibility",
   PROBE_SCREEN_RECORDING_PERMISSION: "probe-screen-recording-permission",
   SOURCE_SELECTED: "source-selected",
   OPEN_SELECTION_OVERLAY: "open-selection-overlay",
@@ -242,7 +205,6 @@ export type WorkspacesState =
 
 // Persisted user toggles; see src/main/lib/user-prefs.ts for storage.
 export type UserPrefs = {
-  recordingEnabled: boolean;
   // Opt-in PostHog analytics; never captures recording content, only anonymous product-usage events.
   analyticsEnabled: boolean;
   termsAccepted: boolean;

@@ -19,7 +19,6 @@ import {
   getAllPermissions,
   requestMicPermission,
   requestCameraPermission,
-  requestAccessibility,
   probeScreenRecordingPermission,
 } from "../capture";
 import { openPermissionDialogWindow } from "../index";
@@ -74,10 +73,6 @@ export function registerSystemHandlers(): void {
       }
       return false;
     },
-  );
-
-  ipcMain.handle(IPC_CHANNELS.REQUEST_ACCESSIBILITY, () =>
-    requestAccessibility(),
   );
 
   ipcMain.handle(IPC_CHANNELS.PROBE_SCREEN_RECORDING_PERMISSION, () =>
