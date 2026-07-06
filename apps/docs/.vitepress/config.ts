@@ -51,7 +51,6 @@ export default defineConfig({
         items: [
           { text: "Changelog", link: `${GITHUB}/releases` },
           { text: "License (AGPL-3.0)", link: `${GITHUB}/blob/main/LICENSE` },
-          { text: "Contributor agreement", link: `${GITHUB}/blob/main/CLA.md` },
         ],
       },
     ],

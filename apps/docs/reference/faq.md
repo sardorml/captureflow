@@ -56,4 +56,4 @@ secret is `BETTER_AUTH_SECRET`.
 
 ## How do I contribute?
 
-See [Contributing](/developer/contributing). You'll need to sign the CLA.
+See [Contributing](/developer/contributing).

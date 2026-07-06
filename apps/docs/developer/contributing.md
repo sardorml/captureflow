@@ -2,12 +2,6 @@
 
 Contributions are welcome. CaptureFlow is [AGPL-3.0-only](https://github.com/sardorml/captureflow/blob/main/LICENSE).
 
-## Sign the CLA
-
-Contributions require signing the
-[Contributor License Agreement](https://github.com/sardorml/captureflow/blob/main/CLA.md).
-The CLA check runs automatically on pull requests.
-
 ## Workflow
 
 1. **Fork & branch** off `main`.
@@ -19,8 +13,7 @@ The CLA check runs automatically on pull requests.
    pnpm build
    ```
    Nx caches results, so re-runs are fast.
-4. **Open a pull request.** CI runs lint, typecheck, and build; the CLA bot
-   checks your signature.
+4. **Open a pull request.** CI runs lint, typecheck, and build.
 
 ## Project conventions
 

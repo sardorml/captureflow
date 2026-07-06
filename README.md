@@ -76,4 +76,4 @@ pnpm --filter @captureflow/web cf:deploy
 
 ## License
 
-[AGPL-3.0-only](./LICENSE). Contributions require signing the [CLA](./CLA.md).
+[AGPL-3.0-only](./LICENSE).
