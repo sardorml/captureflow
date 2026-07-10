@@ -90,8 +90,8 @@ export const PRO_CARD_HIGHLIGHTS: ReadonlyArray<string> = [
 export const MONTHLY_PRICE = 9;
 
 // Managed storage tiers shown as mini pricing cards, each with its own Lemon
-// Squeezy checkout. The 200 GB checkout is the same one the dashboard upgrade
-// flow uses (StorageUsage / UpgradeModal).
+// Squeezy checkout. The dashboard upgrade modal (UpgradeModal) renders these
+// same tiers.
 type ManagedTier = {
   storageGb: number;
   price: string;
@@ -233,11 +233,11 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     showCtaBuyButton: true,
     showChangelogNav: false,
     heroBadgeLabel: "🎉 Open source — free to run",
-    heroCtaLabel: "Try captureflow for free",
+    heroCtaLabel: "Try CaptureFlow for free",
     ctaHeadline: "Ready to record?",
     ctaSubtitle:
       "Free download. No credit card. Self-host on your own Cloudflare account, or let us run it for you with the managed plan.",
-    ctaButtonLabel: "Try captureflow for free",
+    ctaButtonLabel: "Try CaptureFlow for free",
     price: 9,
     originalPrice: null,
     discountBadge: null,

@@ -71,7 +71,7 @@ export function PageShell({
                 color: token.colorText,
               }}
             >
-              captureflow
+              CaptureFlow
             </span>
           </Link>
           <Flex align="center" gap={4}>

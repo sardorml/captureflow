@@ -1,34 +1,26 @@
 "use client";
 
+import Link from "next/link";
 import { Card, Flex, Tag, theme, Typography } from "antd";
 import { ArrowRight } from "lucide-react";
 import { MANAGED_TIERS } from "@/lib/marketing/constants";
-import { getPosthogDistinctId, track } from "@/lib/marketing/track";
-import { useMessages } from "./i18n-provider";
+import { track } from "@/lib/marketing/track";
+import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 const { Title, Text } = Typography;
 
 export function ManagedCard() {
   const m = useMessages();
+  const lh = useLocalizedHref();
   const { token } = theme.useToken();
   const copy = m.pricing.monthly;
 
-  const checkoutHref = (url: string) =>
-    `${url}?utm_source=site&utm_medium=pricing&utm_content=managed`;
-
-  // PostHog distinct_id isn't available server-side at render, so append it at click time.
-  const handleCheckoutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    track("checkout_opened", { plan: "managed" });
-    const distinctId = getPosthogDistinctId();
-    if (!distinctId) return;
-    try {
-      const url = new URL(e.currentTarget.href);
-      url.searchParams.set("checkout[custom][ph_distinct_id]", distinctId);
-      e.currentTarget.href = url.toString();
-    } catch {
-      // Malformed URL — keep the plain href rather than block the click.
-    }
-  };
+  // Checkout requires an account: the lemon-webhook attaches the purchase by
+  // the signed-in user_id, so anonymous checkouts can strand a paid
+  // subscription. Funnel through signup into the dashboard upgrade modal.
+  const signupHref = `${lh("/login")}?mode=signup&next=${encodeURIComponent(
+    "/recordings?upgrade=1",
+  )}`;
 
   return (
     <Card
@@ -54,12 +46,15 @@ export function ManagedCard() {
 
         <Flex vertical gap={10}>
           {MANAGED_TIERS.map((tier) => (
-            <a
+            <Link
               key={tier.storageGb}
-              href={checkoutHref(tier.checkoutUrl)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleCheckoutClick}
+              href={signupHref}
+              onClick={() =>
+                track("upgrade_signup_opened", {
+                  plan: "managed",
+                  storage_gb: tier.storageGb,
+                })
+              }
               aria-label={`${tier.storageGb} GB — $${tier.price}${copy.period}`}
             >
               <Card
@@ -110,14 +105,18 @@ export function ManagedCard() {
                         {m.pricing.recommended}
                       </Tag>
                     ) : tier.tag === "mostValue" ? (
-                      <Tag color="orange" variant="filled" style={{ margin: 0 }}>
+                      <Tag
+                        color="orange"
+                        variant="filled"
+                        style={{ margin: 0 }}
+                      >
                         {m.pricing.mostValue}
                       </Tag>
                     ) : null}
                   </Flex>
                 </Flex>
               </Card>
-            </a>
+            </Link>
           ))}
         </Flex>
 

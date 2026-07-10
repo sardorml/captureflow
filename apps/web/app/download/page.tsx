@@ -8,7 +8,11 @@ import { readThemeFromCookieHeader } from "@captureflow/ui";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
 import { Text, Title, Paragraph } from "@/components/marketing/typography";
 import { PageShell } from "@/components/marketing/page-shell";
-import { ChromeLogo, FirefoxLogo } from "@/components/marketing/platform-logos";
+import {
+  ChromeLogo,
+  FirefoxLogo,
+  WindowsLogo,
+} from "@/components/marketing/platform-logos";
 import { MESSAGES } from "@/lib/marketing/messages";
 import { DOWNLOAD_URL } from "@/lib/marketing/constants";
 import { RELEASES_URL, DOCS_URL } from "@/lib/site";
@@ -86,6 +90,23 @@ export default async function DownloadPage() {
             </Button>
 
             <Flex wrap align="center" justify="center" gap={12}>
+              <Button
+                size="large"
+                disabled
+                aria-label="Windows app — coming soon"
+                icon={<WindowsLogo className="h-[16px] w-[16px]" />}
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  Windows app
+                  <Tag style={{ margin: 0 }}>Soon</Tag>
+                </span>
+              </Button>
               <Button
                 size="large"
                 disabled
@@ -202,8 +223,9 @@ export default async function DownloadPage() {
           type="secondary"
           style={{ textAlign: "center", marginTop: 40 }}
         >
-          Prefer the cloud? <Link href="/signup">Create an account</Link> and
-          view recordings in your browser.
+          Prefer the cloud?{" "}
+          <Link href="/login?mode=signup">Create an account</Link> and view
+          recordings in your browser.
         </Paragraph>
       </PageShell>
     </I18nProvider>

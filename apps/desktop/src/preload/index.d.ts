@@ -1,6 +1,5 @@
 import type {
   CaptureSource,
-  TrackingData,
   WindowBounds,
   SelectionOverlayMode,
   WindowAtPoint,
@@ -26,7 +25,6 @@ declare global {
   interface Window {
     electronAPI: {
       getSources: () => Promise<CaptureSource[]>;
-      getRecordingsDir: () => Promise<string>;
       showItemInFolder: (path: string) => Promise<void>;
       resizeWindow: (opts: {
         width: number;
@@ -34,24 +32,11 @@ declare global {
         minWidth?: number;
         minHeight?: number;
       }) => Promise<void>;
-      startCursorTracking: (
-        displayId: string,
-        windowBounds?: WindowBounds,
-        wallClockMs?: number,
-      ) => Promise<void>;
-      stopCursorTracking: () => Promise<{ data: TrackingData }>;
-      pauseCursorTracking: () => Promise<void>;
-      resumeCursorTracking: () => Promise<void>;
-      deleteCurrentSession: () => Promise<void>;
-      onCursorPosition: (
-        callback: (pos: import("../shared/types").CursorPosition) => void,
-      ) => () => void;
       fileExists: (filePath: string) => Promise<boolean>;
       getPermissions: () => Promise<{
         screen: string;
         microphone: string;
         camera: string;
-        accessibility: boolean;
       }>;
       requestMicPermission: () => Promise<boolean>;
       requestCameraPermission: () => Promise<boolean>;
@@ -92,6 +77,7 @@ declare global {
       getRecordingUsage: () => Promise<RecordingUsageState>;
       refreshRecordingUsage: () => Promise<RecordingUsageState>;
       openRecordingUpgradeCheckout: () => Promise<void>;
+      openRecordingDashboard: () => Promise<void>;
       onRecordingUsageChanged: (
         callback: (state: RecordingUsageState) => void,
       ) => () => void;
@@ -109,17 +95,14 @@ declare global {
         callback: (payload: PermissionDialogInitPayload) => void,
       ) => () => void;
       respondToPermissionDialog: (allow: boolean) => void;
-      requestAccessibility: () => Promise<boolean>;
       probeScreenRecordingPermission: () => Promise<void>;
       startNativeRecording: (config: {
-        outputDir: string;
         displayId?: number;
         windowId?: number;
         fps?: number;
         captureAudio?: boolean;
         includeSelfWindows?: boolean;
         cropRect?: WindowBounds;
-        recording?: boolean;
       }) => Promise<{
         windowBounds?: WindowBounds;
         wallClockMs?: number;

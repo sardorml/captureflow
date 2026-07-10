@@ -1,19 +1,13 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
 import { Check, Sparkles } from "lucide-react";
-import { Button, Modal, Typography } from "antd";
-
-const MONTHLY_PRICE = 9;
-
-// NEXT_PUBLIC_* aren't inlined into client bundles here, so hardcode the public
-// checkout link; the env still wins when present.
-const CHECKOUT_BASE_URL =
-  process.env.NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL ||
-  "https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916";
+import { Card, Flex, Modal, Tag, theme, Typography } from "antd";
+import { MANAGED_TIERS } from "@/lib/marketing/constants";
+import { getPosthogDistinctId, track } from "@/lib/marketing/track";
 
 const BENEFITS = [
-  "200 GB cloud storage (up from 200 MB)",
   "No cap on the number of recordings & Screenshots",
   "Automatic backups & monitoring",
   "Priority support",
@@ -21,20 +15,49 @@ const BENEFITS = [
 
 type Props = {
   email: string;
+  userId: string;
   trigger: ReactNode;
+  // Auto-opens when the URL has ?upgrade — the landing/pricing tiers send
+  // signed-out buyers through /login?mode=signup&next=/recordings?upgrade=1. Enable on
+  // one instance per page or they all pop.
+  openOnUpgradeParam?: boolean;
 };
 
-function checkoutUrlFor(email: string): string | null {
-  if (!CHECKOUT_BASE_URL) return null;
-  const u = new URL(CHECKOUT_BASE_URL);
-  u.searchParams.set("billing", "monthly");
+// checkout[custom][user_id] is what the lemon-webhook attaches the
+// subscription by; the email prefill is UX only and the buyer can edit it.
+function checkoutUrlFor(base: string, email: string, userId: string): string {
+  const u = new URL(base);
   if (email) u.searchParams.set("checkout[email]", email);
+  u.searchParams.set("checkout[custom][user_id]", userId);
   return u.toString();
 }
 
-export function UpgradeModal({ email, trigger }: Props) {
-  const [open, setOpen] = useState(false);
-  const checkoutUrl = checkoutUrlFor(email);
+export function UpgradeModal({
+  email,
+  userId,
+  trigger,
+  openOnUpgradeParam = false,
+}: Props) {
+  const searchParams = useSearchParams();
+  const [open, setOpen] = useState(
+    () => openOnUpgradeParam && searchParams.has("upgrade"),
+  );
+  const { token } = theme.useToken();
+
+  // PostHog distinct_id isn't available server-side at render, so append it
+  // at click time.
+  const handleCheckoutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    track("checkout_opened", { plan: "managed" });
+    const distinctId = getPosthogDistinctId();
+    if (!distinctId) return;
+    try {
+      const url = new URL(e.currentTarget.href);
+      url.searchParams.set("checkout[custom][ph_distinct_id]", distinctId);
+      e.currentTarget.href = url.toString();
+    } catch {
+      // Malformed URL — keep the plain href rather than block the click.
+    }
+  };
 
   return (
     <>
@@ -56,19 +79,73 @@ export function UpgradeModal({ email, trigger }: Props) {
         }
       >
         <Typography.Paragraph type="secondary">
-          More cloud storage for your recordings and Screenshots. Cancel any
-          time.
+          Pick how much cloud storage you need for your recordings and
+          Screenshots. Billed monthly, cancel anytime.
         </Typography.Paragraph>
 
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-          <Typography.Title level={2} style={{ margin: 0 }}>
-            ${MONTHLY_PRICE}
-          </Typography.Title>
-          <Typography.Text type="secondary">/month</Typography.Text>
-        </div>
-        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-          Billed monthly. Cancel anytime.
-        </Typography.Text>
+        <Flex vertical gap={10}>
+          {MANAGED_TIERS.map((tier) => (
+            <a
+              key={tier.storageGb}
+              href={checkoutUrlFor(tier.checkoutUrl, email, userId)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleCheckoutClick}
+              aria-label={`${tier.storageGb} GB — $${tier.price}/month`}
+            >
+              <Card
+                hoverable
+                size="small"
+                styles={{ body: { padding: 14 } }}
+                style={{
+                  borderColor:
+                    tier.tag === "recommended"
+                      ? token.colorPrimary
+                      : tier.tag === "mostValue"
+                        ? token.colorWarning
+                        : undefined,
+                }}
+              >
+                <Flex align="center" justify="space-between" gap={12}>
+                  <Flex align="center" gap={8} wrap>
+                    <Typography.Text
+                      strong
+                      style={{ fontSize: 17, whiteSpace: "nowrap" }}
+                    >
+                      {tier.storageGb} GB
+                    </Typography.Text>
+                    {tier.tag === "recommended" ? (
+                      <Tag color="blue" variant="filled" style={{ margin: 0 }}>
+                        Recommended
+                      </Tag>
+                    ) : tier.tag === "mostValue" ? (
+                      <Tag
+                        color="orange"
+                        variant="filled"
+                        style={{ margin: 0 }}
+                      >
+                        Most value
+                      </Tag>
+                    ) : null}
+                  </Flex>
+                  <Flex
+                    align="baseline"
+                    gap={2}
+                    flex="none"
+                    style={{ whiteSpace: "nowrap" }}
+                  >
+                    <Typography.Text strong style={{ fontSize: 20 }}>
+                      ${tier.price}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                      /month
+                    </Typography.Text>
+                  </Flex>
+                </Flex>
+              </Card>
+            </a>
+          ))}
+        </Flex>
 
         <ul
           style={{
@@ -90,28 +167,6 @@ export function UpgradeModal({ email, trigger }: Props) {
             </li>
           ))}
         </ul>
-
-        {checkoutUrl ? (
-          <Button
-            type="primary"
-            size="large"
-            block
-            icon={<Sparkles size={16} />}
-            href={checkoutUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ marginTop: 24 }}
-          >
-            Upgrade now
-          </Button>
-        ) : (
-          <Typography.Paragraph
-            type="secondary"
-            style={{ marginTop: 24, textAlign: "center" }}
-          >
-            Checkout isn&apos;t configured for this deployment.
-          </Typography.Paragraph>
-        )}
       </Modal>
     </>
   );

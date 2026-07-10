@@ -1,18 +1,16 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { ArrowLeft } from "lucide-react";
-import { Button, Flex } from "antd";
-import { ThemeToggle, readThemeFromCookieHeader } from "@captureflow/ui";
+import { readThemeFromCookieHeader } from "@captureflow/ui";
 import { loadSession } from "@/lib/session-guard";
 import { AuthForm } from "@/app/AuthForm";
+import { AuthShell } from "@/app/AuthShell";
 
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; mode?: string }>;
 }) {
   const sp = await searchParams;
   const next = sp.next ?? "/recordings";
@@ -22,23 +20,11 @@ export default async function LoginPage({
   if (session) redirect(safeNext);
 
   const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
+  const initialMode = sp.mode === "signup" ? "signup" : "signin";
 
   return (
-    <Flex
-      align="center"
-      justify="center"
-      className="bg-canvas text-fg"
-      style={{ minHeight: "100vh", padding: 24, position: "relative" }}
-    >
-      <Link href="/" style={{ position: "absolute", left: 16, top: 16 }}>
-        <Button type="text" icon={<ArrowLeft size={16} />}>
-          Back
-        </Button>
-      </Link>
-      <div style={{ position: "absolute", right: 16, top: 16 }}>
-        <ThemeToggle initialTheme={theme} />
-      </div>
-      <AuthForm next={safeNext} initialMode="signin" />
-    </Flex>
+    <AuthShell theme={theme}>
+      <AuthForm next={safeNext} initialMode={initialMode} />
+    </AuthShell>
   );
 }

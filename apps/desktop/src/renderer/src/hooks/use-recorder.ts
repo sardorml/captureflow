@@ -3,7 +3,7 @@ import { useRecordingStore } from "../stores/recording-store";
 import {
   acquireMicCapture,
   acquireWebcamCapture,
-} from "../lib/recording/webcam-capture";
+} from "@captureflow/engine/web";
 import {
   recordingPipeline,
   RECORDING_CAP_MS,
@@ -52,7 +52,6 @@ export function useRecorder(): {
    * second getUserMedia in parallel and strand the camera/mic device.
    */
   const prepareInFlightRef = useRef<Promise<void> | null>(null);
-  const trackingDataRef = useRef<unknown>(null);
 
   const cleanup = useCallback(() => {
     if (timerRef.current) {
@@ -104,13 +103,6 @@ export function useRecorder(): {
 
       const recordingResult = await recordingPipeline.finish();
       const recordingState = recordingPipeline.getState();
-
-      const trackingResult = await window.electronAPI
-        .stopCursorTracking()
-        .catch(() => null);
-      if (trackingResult?.data) {
-        trackingDataRef.current = trackingResult.data;
-      }
 
       if (recordingResult) {
         window.electronAPI.log(
@@ -235,7 +227,6 @@ export function useRecorder(): {
           .catch(() => {});
       }
 
-      const outputDir = await window.electronAPI.getRecordingsDir();
       const displayId = source.displayId
         ? parseInt(source.displayId, 10)
         : undefined;
@@ -273,22 +264,16 @@ export function useRecorder(): {
       }
 
       const result = await window.electronAPI.startNativeRecording({
-        outputDir,
         displayId,
         windowId,
         fps: 120,
         captureAudio: systemAudioEnabled,
         includeSelfWindows,
         cropRect,
-        recording: isRecording,
       });
       const windowBounds: WindowBounds | undefined =
         result?.windowBounds ?? source.windowBounds;
       const wallClockMs: number | undefined = result?.wallClockMs;
-
-      await window.electronAPI
-        .startCursorTracking(source.displayId, windowBounds, wallClockMs)
-        .catch(() => {});
 
       // Start the uploader only after native confirms its session started, so
       // MediaRecorder's wall-clock start aligns with the screen MP4's;
@@ -412,13 +397,13 @@ export function useRecorder(): {
 
   const pauseRecording = useCallback(() => {
     window.electronAPI.pauseNativeRecording();
-    window.electronAPI.pauseCursorTracking().catch(() => {});
+    recordingPipeline.pause();
     store.setStatus("paused");
   }, [store]);
 
   const resumeRecording = useCallback(() => {
     window.electronAPI.resumeNativeRecording();
-    window.electronAPI.resumeCursorTracking().catch(() => {});
+    recordingPipeline.resume();
     store.setStatus("recording");
   }, [store]);
 
@@ -449,19 +434,9 @@ export function useRecorder(): {
     }
   }, [cleanup]);
 
-  const deleteRecording = useCallback(() => {
-    stopAndCleanup();
-    window.electronAPI.deleteCurrentSession().catch(() => {});
-  }, [stopAndCleanup]);
-
   const restartRecording = useCallback(() => {
     stopAndCleanup();
-    window.electronAPI
-      .deleteCurrentSession()
-      .catch(() => {})
-      .finally(() => {
-        setTimeout(() => startRecording(), 300);
-      });
+    setTimeout(() => startRecording(), 300);
   }, [stopAndCleanup, startRecording]);
 
   useEffect(() => {
@@ -525,7 +500,7 @@ export function useRecorder(): {
       } else if (action === "resume") {
         resumeRecording();
       } else if (action === "delete") {
-        deleteRecording();
+        stopAndCleanup();
       } else if (action === "restart") {
         restartRecording();
       }
@@ -559,7 +534,7 @@ export function useRecorder(): {
     stopRecording,
     pauseRecording,
     resumeRecording,
-    deleteRecording,
+    stopAndCleanup,
     restartRecording,
   ]);
 

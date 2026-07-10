@@ -76,4 +76,7 @@ pnpm --filter @captureflow/web cf:deploy
 
 ## License
 
-[AGPL-3.0-only](./LICENSE). Contributions require signing the [CLA](./CLA.md).
+[AGPL-3.0-only](./LICENSE), with one exception: the reusable capture engine in
+[`packages/engine`](./packages/engine) is [MIT-licensed](./packages/engine/LICENSE).
+Combined builds (the desktop app, the browser extension) are AGPL-3.0-only as a
+whole.

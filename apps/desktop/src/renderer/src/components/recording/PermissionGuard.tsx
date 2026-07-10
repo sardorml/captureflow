@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-import { Monitor, MousePointer2, CheckCircle2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Monitor, CheckCircle2 } from "lucide-react";
 import { SmoothButton } from "@/components/ui/smooth-button";
 import logoImg from "@/assets/logo.png";
 
 type PermissionStatus = {
   screen: string;
-  accessibility: boolean;
 };
 
 type PermissionGuardProps = {
@@ -32,20 +31,14 @@ export function PermissionGuard({
     return done;
   });
 
-  const checkRef = useRef<() => Promise<void>>(async () => {});
-
   useEffect(() => {
     let cancelled = false;
     const tick = async (): Promise<void> => {
       const perms = await window.electronAPI.getPermissions();
       if (cancelled) return;
-      setPermissions({
-        screen: perms.screen,
-        accessibility: perms.accessibility,
-      });
+      setPermissions({ screen: perms.screen });
       setChecking(false);
     };
-    checkRef.current = tick;
     tick();
     const interval = setInterval(tick, 2000);
     return () => {
@@ -60,16 +53,10 @@ export function PermissionGuard({
     );
   };
 
-  const requestAccessibility = async (): Promise<void> => {
-    await window.electronAPI.requestAccessibility();
-    void checkRef.current();
-  };
-
   if (checking) return <>{children}</>;
 
   const screenOk = permissions?.screen === "granted";
-  const accessibilityOk = permissions?.accessibility === true;
-  const allGranted = screenOk && accessibilityOk;
+  const allGranted = screenOk;
 
   if (onboarded && allGranted) return <>{children}</>;
 
@@ -104,15 +91,6 @@ export function PermissionGuard({
           granted={screenOk}
           buttonLabel="Allow Screen Recording"
           onRequest={openScreenRecordingSettings}
-        />
-
-        <PermissionRow
-          icon={<MousePointer2 className="w-5 h-5" />}
-          title="Accessibility"
-          description="CaptureFlow needs accessibility access to track your cursor position and clicks during recording."
-          granted={accessibilityOk}
-          buttonLabel="Allow Accessibility"
-          onRequest={requestAccessibility}
         />
       </div>
 

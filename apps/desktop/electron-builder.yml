@@ -20,10 +20,6 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-  # Native binaries ship via `extraResources` below; their .swift sources
-  # don't belong in the asar (and including them risks size-mismatch races
-  # with anything written during the build).
-  - '!native/**/*'
   # `build-mac.sh` tees its output into `build.log` while it runs. If
   # electron-builder snapshots build.log's size, then the size grows
   # before the bytes get copied into the asar, every later file's data
@@ -32,23 +28,20 @@ files:
   - '!build.log'
   - '!build/*.log'
   - '!dist/**/*'
+# The sidecar binaries live in the MIT-licensed engine package; they land at
+# the same resources/native/<name>/bin paths as before.
 extraResources:
-  - from: native/screen-recorder/bin
+  - from: ../../packages/engine/native/mac/screen-recorder/bin
     to: native/screen-recorder/bin
     filter:
       - '**/*'
-  - from: native/cursor-monitor/bin
-    to: native/cursor-monitor/bin
-    filter:
-      - '**/*'
-  - from: native/window-detector/bin
+  - from: ../../packages/engine/native/mac/window-detector/bin
     to: native/window-detector/bin
     filter:
       - '**/*'
 asarUnpack:
   - resources/**
   - node_modules/ffmpeg-static/**/*
-  - node_modules/uiohook-napi/**/*
 mac:
   minimumSystemVersion: '13.2'
   # macOS 26+ app icon. electron-builder compiles this Icon Composer bundle

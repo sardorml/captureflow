@@ -16,6 +16,7 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@captureflow/engine": "workspace:*",
     "@webext-core/messaging": "^3.0.2",
     "react": "catalog:",
     "react-dom": "catalog:"

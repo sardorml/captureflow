@@ -51,7 +51,10 @@ export default defineConfig({
         items: [
           { text: "Changelog", link: `${GITHUB}/releases` },
           { text: "License (AGPL-3.0)", link: `${GITHUB}/blob/main/LICENSE` },
-          { text: "Contributor agreement", link: `${GITHUB}/blob/main/CLA.md` },
+          {
+            text: "Engine license (MIT)",
+            link: `${GITHUB}/blob/main/packages/engine/LICENSE`,
+          },
         ],
       },
     ],
@@ -115,7 +118,8 @@ export default defineConfig({
     },
 
     footer: {
-      message: "Released under the AGPL-3.0-only license.",
+      message:
+        "Released under the AGPL-3.0-only license (MIT-licensed capture engine).",
       copyright: "Copyright © CaptureFlow contributors",
     },
   },

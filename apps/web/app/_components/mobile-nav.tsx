@@ -96,7 +96,7 @@ export function MobileNav({
               Sign in
             </Link>
             <Link
-              href="/signup"
+              href="/login?mode=signup"
               onClick={() => setOpen(false)}
               className="mt-1 rounded-lg bg-accent-bg px-3 py-2.5 text-center font-medium text-white shadow-[0_1px_2px_rgba(37,99,235,0.25),inset_0_1px_0_rgba(255,255,255,0.18)] transition-colors hover:bg-accent-bg-hover"
             >

@@ -2,7 +2,6 @@ import { contextBridge, ipcRenderer } from "electron";
 import { IPC_CHANNELS } from "../shared/types";
 import type {
   CaptureSource,
-  TrackingData,
   WindowBounds,
   SelectionOverlayMode,
   WindowAtPoint,
@@ -27,9 +26,6 @@ const electronAPI = {
   getSources: (): Promise<CaptureSource[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_SOURCES),
 
-  getRecordingsDir: (): Promise<string> =>
-    ipcRenderer.invoke(IPC_CHANNELS.GET_RECORDINGS_DIR),
-
   showItemInFolder: (path: string): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.SHOW_ITEM_IN_FOLDER, path),
 
@@ -40,42 +36,6 @@ const electronAPI = {
     minHeight?: number;
   }): Promise<void> => ipcRenderer.invoke(IPC_CHANNELS.RESIZE_WINDOW, opts),
 
-  startCursorTracking: (
-    displayId: string,
-    windowBounds?: WindowBounds,
-    wallClockMs?: number,
-  ): Promise<void> =>
-    ipcRenderer.invoke(
-      IPC_CHANNELS.START_CURSOR_TRACKING,
-      displayId,
-      windowBounds,
-      wallClockMs,
-    ),
-
-  stopCursorTracking: (): Promise<{ data: TrackingData }> =>
-    ipcRenderer.invoke(IPC_CHANNELS.STOP_CURSOR_TRACKING),
-
-  pauseCursorTracking: (): Promise<void> =>
-    ipcRenderer.invoke(IPC_CHANNELS.PAUSE_CURSOR_TRACKING),
-
-  resumeCursorTracking: (): Promise<void> =>
-    ipcRenderer.invoke(IPC_CHANNELS.RESUME_CURSOR_TRACKING),
-
-  deleteCurrentSession: (): Promise<void> =>
-    ipcRenderer.invoke(IPC_CHANNELS.DELETE_CURRENT_SESSION),
-
-  onCursorPosition: (
-    callback: (pos: import("../shared/types").CursorPosition) => void,
-  ): (() => void) => {
-    const handler = (
-      _: unknown,
-      pos: import("../shared/types").CursorPosition,
-    ): void => callback(pos);
-    ipcRenderer.on(IPC_CHANNELS.CURSOR_POSITION_EVENT, handler);
-    return () =>
-      ipcRenderer.removeListener(IPC_CHANNELS.CURSOR_POSITION_EVENT, handler);
-  },
-
   fileExists: (filePath: string): Promise<boolean> =>
     ipcRenderer.invoke(IPC_CHANNELS.FILE_EXISTS, filePath),
 
@@ -83,7 +43,6 @@ const electronAPI = {
     screen: string;
     microphone: string;
     camera: string;
-    accessibility: boolean;
   }> => ipcRenderer.invoke(IPC_CHANNELS.GET_PERMISSIONS),
 
   requestMicPermission: (): Promise<boolean> =>
@@ -327,21 +286,16 @@ const electronAPI = {
     ipcRenderer.send("editor-force-close");
   },
 
-  requestAccessibility: (): Promise<boolean> =>
-    ipcRenderer.invoke(IPC_CHANNELS.REQUEST_ACCESSIBILITY),
-
   probeScreenRecordingPermission: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.PROBE_SCREEN_RECORDING_PERMISSION),
 
   startNativeRecording: (config: {
-    outputDir: string;
     displayId?: number;
     windowId?: number;
     fps?: number;
     captureAudio?: boolean;
     includeSelfWindows?: boolean;
     cropRect?: WindowBounds;
-    recording?: boolean;
   }): Promise<{
     windowBounds?: WindowBounds;
     wallClockMs?: number;
@@ -493,6 +447,9 @@ const electronAPI = {
 
   openRecordingUpgradeCheckout: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.RECORDING_USAGE_OPEN_UPGRADE),
+
+  openRecordingDashboard: (): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_OPEN_DASHBOARD),
 
   onRecordingUsageChanged: (
     callback: (state: RecordingUsageState) => void,

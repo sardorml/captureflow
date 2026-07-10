@@ -1,0 +1,27 @@
+{
+  "name": "@captureflow/engine",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Cross-app capture engine: macOS recorder sidecars, record-protocol parsing, and fMP4 mux/recording pipelines shared by the desktop app and browser extension.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./main": "./src/main/index.ts",
+    "./web": "./src/web/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.main.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "echo \"(engine) lint: TODO\""
+  },
+  "dependencies": {
+    "mp4-muxer": "^5.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "^4.1.9"
+  }
+}

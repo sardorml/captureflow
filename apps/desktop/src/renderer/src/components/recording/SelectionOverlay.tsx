@@ -257,7 +257,7 @@ function QuotaReachedModal({
     if (pendingManage) return;
     setPendingManage(true);
     try {
-      await window.electronAPI.openExternal("https://captureflow.xyz");
+      await window.electronAPI.openRecordingDashboard();
       await window.electronAPI.closeSelectionOverlay();
     } finally {
       setPendingManage(false);

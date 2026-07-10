@@ -17,6 +17,8 @@ The loop is deliberately short:
 ## Open source, not feature-gated
 
 CaptureFlow is licensed under [AGPL-3.0](https://github.com/sardorml/captureflow/blob/main/LICENSE)
+(the reusable capture engine in `packages/engine` is
+[MIT](https://github.com/sardorml/captureflow/blob/main/packages/engine/LICENSE))
 and is fully self-hostable on your own Cloudflare account. **Every feature ships
 in the open-source build** — there's nothing gated behind a paywall. An optional
 managed-hosting option exists for people who'd rather not run their own
@@ -25,8 +27,8 @@ infrastructure, but it's just hosting, not a feature unlock.
 ## What you get
 
 - **A native recorder** — full-screen, window, and region capture with an
-  optional webcam bubble and a smoothed cursor. (macOS today; see
-  [Install the app](/guide/install).)
+  optional webcam bubble; the system cursor is recorded in-frame. (macOS today;
+  see [Install the app](/guide/install).)
 - **Instant share links** — streaming upload means the link is ready on stop.
 - **A share viewer** — plays in any browser, with reactions, comments, view
   counts, and auto-generated summary chapters.

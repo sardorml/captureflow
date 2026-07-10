@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { defineConfig, loadEnv } from "electron-vite";
+import { defineConfig, externalizeDepsPlugin, loadEnv } from "electron-vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
@@ -61,9 +61,14 @@ export default defineConfig(({ mode }) => {
       define[`process.env.${key}`] = JSON.stringify(value);
     }
   }
+  // The engine is a devDependency precisely so electron-vite bundles it; the
+  // explicit exclude keeps it bundled even if it ever moves to dependencies.
+  const bundleEngine = externalizeDepsPlugin({
+    exclude: ["@captureflow/engine"],
+  });
   return {
-    main: { define },
-    preload: { define },
+    main: { define, plugins: [bundleEngine] },
+    preload: { define, plugins: [bundleEngine] },
     renderer: {
       define,
       resolve: {

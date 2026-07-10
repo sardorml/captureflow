@@ -8,9 +8,11 @@ this docs site.
 ```
 apps/
   web/        Next.js 16 dashboard + share/screenshot pages + API → Cloudflare Workers (OpenNext)
-  desktop/    Electron screen recorder (macOS native helpers)
+  desktop/    Electron screen recorder (macOS)
+  extension/  WXT/MV3 browser screen recorder (Chromium)
   docs/       This VitePress documentation site
 packages/
+  engine/     MIT-licensed capture engine (macOS sidecars + recording pipelines)
   shared/     Types & constants shared by web + desktop
   ui/         Shared React UI components + design tokens
   quota/      Storage quota, limits & workspace logic
@@ -39,20 +41,32 @@ Tooling:
 ## The desktop app (`apps/desktop`)
 
 - **Electron** + **electron-vite**, React renderer, Zustand stores, Tailwind.
-- **Native macOS helpers** (Swift) under `native/`: `screen-recorder`,
-  `cursor-monitor`, `window-detector` — invoked from the main process for
-  capture, cursor tracking, and window detection.
+- Capture runs through **`@captureflow/engine`**: native macOS sidecars (Swift)
+  under `packages/engine/native/mac/` — `screen-recorder` and
+  `window-detector` — invoked from the main process for capture and window
+  detection. Recordings include the system cursor in-frame.
 - A streaming **share pipeline** that uploads the recording in parts while you
   record, then finalizes for an instant link.
-- Webcam compositing, smoothed cursor rendering, and screenshot capture.
+- Webcam capture and screenshot capture.
+
+## The capture engine (`packages/engine`)
+
+The MIT-licensed engine owns everything between "the OS hands us media" and a
+consistent, uploadable recording: the macOS sidecars and their record
+protocol, and the browser-side recording pipelines (fragmented-MP4 muxer,
+native-record pipeline, `VideoEncoder` stream recorder, webcam recorder).
+Desktop and the browser extension both record through it, so their output is
+identical: fragmented MP4 (H.264) screen video, WebM webcam, JPEG poster. See
+`packages/engine/README.md` for the API map and the record protocol spec.
 
 ## Shared packages
 
-| Package               | Responsibility                                       |
-| --------------------- | ---------------------------------------------------- |
-| `@captureflow/shared` | Types and constants used by both web and desktop.    |
-| `@captureflow/ui`     | Reusable React components, design tokens, theming.   |
-| `@captureflow/quota`  | Storage limits, per-user quotas, and workspace math. |
+| Package               | Responsibility                                           |
+| --------------------- | -------------------------------------------------------- |
+| `@captureflow/engine` | MIT-licensed capture engine used by desktop + extension. |
+| `@captureflow/shared` | Types and constants used by both web and desktop.        |
+| `@captureflow/ui`     | Reusable React components, design tokens, theming.       |
+| `@captureflow/quota`  | Storage limits, per-user quotas, and workspace math.     |
 
 ## Data model at a glance
 

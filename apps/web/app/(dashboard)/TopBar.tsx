@@ -41,6 +41,8 @@ export async function TopBar() {
         {!isPro && (
           <UpgradeModal
             email={session.user.email}
+            userId={session.user.id}
+            openOnUpgradeParam
             trigger={
               <Button type="primary" icon={<Sparkles size={16} />}>
                 Upgrade

@@ -1,3 +1,11 @@
+import type { WindowBounds } from "@captureflow/engine";
+
+export type {
+  RecordingFrameEvent,
+  WindowAtPoint,
+  WindowBounds,
+} from "@captureflow/engine";
+
 export type CaptureSource = {
   id: string;
   name: string;
@@ -12,13 +20,6 @@ export type CaptureSource = {
   pid?: number;
   // Display sources only: when true, record start hides desktop icons via Finder and stop restores them.
   hideDesktopIcons?: boolean;
-};
-
-export type WindowBounds = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
 };
 
 export function isWindowSource(source: CaptureSource): boolean {
@@ -50,37 +51,8 @@ export const TOOLBAR_BAR_BOTTOM_OFFSET = 48;
 
 export type RecordingMode = "recording" | "screenshot";
 
-export type CursorType =
-  | "arrow"
-  | "pointer"
-  | "text"
-  | "crosshair"
-  | "open-hand"
-  | "closed-hand"
-  | "resize-ew"
-  | "resize-ns";
-
-export type CursorPosition = {
-  time: number; // ms since recording start
-  x: number; // normalized 0-1
-  y: number; // normalized 0-1
-  cursorType?: CursorType;
-};
-
-export type ClickEvent = {
-  time: number; // ms since recording start
-  x: number; // normalized 0-1
-  y: number; // normalized 0-1
-};
-
-export type TrackingData = {
-  cursor: CursorPosition[];
-  clicks?: ClickEvent[];
-};
-
 export const IPC_CHANNELS = {
   GET_SOURCES: "get-sources",
-  GET_RECORDINGS_DIR: "get-recordings-dir",
   SHOW_ITEM_IN_FOLDER: "show-item-in-folder",
   HIDE_WINDOW: "hide-window",
   SHOW_WINDOW: "show-window",
@@ -90,13 +62,6 @@ export const IPC_CHANNELS = {
   RESIZE_WINDOW: "resize-window",
   SHOW_RECORDING_DIM: "show-recording-dim",
   HIDE_RECORDING_DIM: "hide-recording-dim",
-  START_CURSOR_TRACKING: "start-cursor-tracking",
-  // Pushed from main per cursor-tracker tick (~120fps); timestamped to the recording start clock.
-  CURSOR_POSITION_EVENT: "cursor-position-event",
-  STOP_CURSOR_TRACKING: "stop-cursor-tracking",
-  PAUSE_CURSOR_TRACKING: "pause-cursor-tracking",
-  RESUME_CURSOR_TRACKING: "resume-cursor-tracking",
-  DELETE_CURRENT_SESSION: "delete-current-session",
   FILE_EXISTS: "file-exists",
   GET_PERMISSIONS: "get-permissions",
   REQUEST_MIC_PERMISSION: "request-mic-permission",
@@ -108,7 +73,6 @@ export const IPC_CHANNELS = {
   IS_NATIVE_RECORDING_ACTIVE: "is-native-recording-active",
   NATIVE_RECORDER_CRASHED: "native-recorder-crashed",
   OPEN_EXTERNAL: "open-external",
-  REQUEST_ACCESSIBILITY: "request-accessibility",
   PROBE_SCREEN_RECORDING_PERMISSION: "probe-screen-recording-permission",
   SOURCE_SELECTED: "source-selected",
   OPEN_SELECTION_OVERLAY: "open-selection-overlay",
@@ -173,6 +137,8 @@ export const IPC_CHANNELS = {
   RECORDING_USAGE_CHANGED: "recording-usage-changed",
   RECORDING_USAGE_REFRESH: "recording-usage-refresh",
   RECORDING_USAGE_OPEN_UPGRADE: "recording-usage-open-upgrade",
+  // Opens the web dashboard in the browser; main owns the URL so dev builds hit localhost.
+  RECORDING_OPEN_DASHBOARD: "recording-open-dashboard",
   // Workspace switcher state; SELECT persists the active target in userData, CHANGED fans out on any change.
   WORKSPACES_GET: "workspaces-get",
   WORKSPACES_REFRESH: "workspaces-refresh",
@@ -242,48 +208,10 @@ export type WorkspacesState =
 
 // Persisted user toggles; see src/main/lib/user-prefs.ts for storage.
 export type UserPrefs = {
-  recordingEnabled: boolean;
   // Opt-in PostHog analytics; never captures recording content, only anonymous product-usage events.
   analyticsEnabled: boolean;
   termsAccepted: boolean;
 };
-
-// The native side writes length-prefixed H.264 + AAC LC records on fd 3; main forwards them as these
-// events. See native/screen-recorder/RecordingWriter.swift for the on-wire layout.
-export type RecordingFrameEvent =
-  | {
-      kind: "format";
-      codedWidth: number;
-      codedHeight: number;
-      fps: number;
-      // avcC box bytes (length-prefixed SPS/PPS), ready to hand to mp4-muxer's per-chunk decoderConfig.description.
-      description: Uint8Array;
-    }
-  | {
-      kind: "chunk";
-      type: "key" | "delta";
-      // Microseconds since the first emitted chunk.
-      timestamp: number;
-      duration: number;
-      // Length-prefixed NAL units (avc format), ready for muxer.addVideoChunkRaw().
-      data: Uint8Array;
-    }
-  | {
-      kind: "audio-format";
-      sampleRate: number;
-      numberOfChannels: number;
-      // AudioSpecificConfig bytes (the same 2-byte descriptor that sits inside an MP4 esds box). mp4-muxer's audio decoderConfig accepts these verbatim as `description`.
-      description: Uint8Array;
-    }
-  | {
-      kind: "audio-chunk";
-      // Microseconds since the first audio packet — independent from the video clock; the muxer reconciles them via PTS at write time.
-      timestamp: number;
-      duration: number;
-      // Raw AAC packet bytes (no ADTS header), ready for muxer.addAudioChunkRaw().
-      data: Uint8Array;
-    }
-  | { kind: "end" };
 
 export type RecordingStartMeta = {
   title: string | null;
@@ -329,16 +257,6 @@ export type BugReportPayload = {
 export type BugReportResult = { ok: true } | { ok: false; error: string };
 
 export type SelectionOverlayMode = "display" | "window" | "area";
-
-export type WindowAtPoint = {
-  id: number;
-  name: string;
-  owner: string;
-  pid: number;
-  bounds: WindowBounds;
-  cornerRadius?: number;
-  iconBase64?: string;
-} | null;
 
 export type ReleaseNotesInitPayload = {
   version: string;

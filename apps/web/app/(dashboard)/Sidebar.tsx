@@ -56,11 +56,8 @@ export async function Sidebar() {
           priority
           unoptimized
         />
-        <span
-          className="text-fg"
-          style={{ fontSize: 20, fontWeight: 600, textTransform: "lowercase" }}
-        >
-          captureflow
+        <span className="text-fg" style={{ fontSize: 20, fontWeight: 600 }}>
+          CaptureFlow
         </span>
       </Link>
 
@@ -99,6 +96,7 @@ export async function Sidebar() {
           usedBytes={usedBytes}
           limitBytes={limitBytes}
           email={session.user.email}
+          userId={session.user.id}
         />
       </div>
 
