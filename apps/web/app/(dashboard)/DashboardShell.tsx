@@ -18,8 +18,11 @@ export function DashboardShell({
     token: { colorBgContainer, colorBorderSecondary },
   } = theme.useToken();
 
+  // The shell owns scrolling (fixed-height layout, Content scrolls) instead of
+  // sticky-in-document-scroll: modals scroll-lock <body>, which turns it into a
+  // scroll container and un-sticks sticky children mid-scroll.
   return (
-    <Layout style={{ minHeight: "100vh" }} hasSider>
+    <Layout style={{ height: "100vh" }} hasSider>
       <Sider
         width={240}
         breakpoint="md"
@@ -27,20 +30,15 @@ export function DashboardShell({
         style={{
           background: colorBgContainer,
           borderInlineEnd: `1px solid ${colorBorderSecondary}`,
-          position: "sticky",
-          insetBlockStart: 0,
           blockSize: "100vh",
           overflow: "hidden",
         }}
       >
         {sidebar}
       </Sider>
-      <Layout>
+      <Layout style={{ minWidth: 0 }}>
         <Header
           style={{
-            position: "sticky",
-            insetBlockStart: 0,
-            zIndex: 30,
             display: "flex",
             alignItems: "center",
             paddingInline: 24,
@@ -50,7 +48,7 @@ export function DashboardShell({
         >
           {header}
         </Header>
-        <Content>
+        <Content style={{ overflowY: "auto" }}>
           <div style={{ maxWidth: 1152, margin: "0 auto", padding: 32 }}>
             {children}
           </div>
