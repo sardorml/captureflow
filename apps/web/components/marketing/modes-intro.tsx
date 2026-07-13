@@ -287,7 +287,7 @@ export function ModesIntro() {
               {measured && (
                 <motion.div
                   aria-hidden
-                  className="pointer-events-none absolute top-1/2 z-20 -mt-[50px] -ml-[70px]"
+                  className="pointer-events-none absolute top-1/2 z-20 -mt-[20px] -ml-[40px]"
                   animate={{ left: cursorX }}
                   transition={{
                     type: "spring",
@@ -314,18 +314,16 @@ export function ModesIntro() {
                     }
                     className="text-black drop-shadow-[0_8px_18px_rgba(0,0,0,0.25)]"
                   >
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M16.501 13.8601L24.884 22.2611C25.937 23.3171 25.19 25.1191 23.699 25.1191L22.475 25.119L23.6908 28.0067C23.9038 28.5127 23.9068 29.0727 23.6998 29.5817C23.4918 30.0917 23.0978 30.4897 22.5898 30.7027C22.3338 30.8097 22.0658 30.8637 21.7918 30.8637C20.9608 30.8637 20.2158 30.3687 19.8938 29.6027L18.616 26.565L17.784 27.3031C16.703 28.2591 15 27.4921 15 26.0481V14.4811C15 13.6971 15.947 13.3051 16.501 13.8601Z"
-                      fill="white"
-                    />
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M15.9995 15.1292C15.9995 14.9982 16.1585 14.9322 16.2505 15.0252L24.1585 22.9502C24.5895 23.3822 24.2835 24.1192 23.6735 24.1192L20.9695 24.1177L22.7691 28.3936C22.9961 28.9336 22.7421 29.5546 22.2031 29.7806C21.6621 30.0076 21.0421 29.7546 20.8161 29.2156L18.9985 24.8917L17.1385 26.5392C16.7225 26.9072 16.0806 26.6507 16.0065 26.1274L15.9995 26.0262V15.1292Z"
-                      fill="currentColor"
-                    />
+                    <g fillRule="evenodd" transform="translate(10 7)">
+                      <path
+                        d="m6.148 18.473 1.863-1.003 1.615-.839-2.568-4.816h4.332l-11.379-11.408v16.015l3.316-3.221z"
+                        fill="#fff"
+                      />
+                      <path
+                        d="m6.431 17 1.765-.941-2.775-5.202h3.604l-8.025-8.043v11.188l2.53-2.442z"
+                        fill="currentColor"
+                      />
+                    </g>
                   </motion.svg>
                 </motion.div>
               )}
