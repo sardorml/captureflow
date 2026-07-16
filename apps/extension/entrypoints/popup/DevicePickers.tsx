@@ -8,6 +8,117 @@ import {
   watchCapturePrefs,
   type CapturePrefs,
 } from "@/lib/storage";
+import {
+  useMediaDevices,
+  type MediaDeviceOption,
+} from "@/hooks/use-media-devices";
+import { MicMeter } from "./MicMeter";
+
+const CAMERA_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <rect
+      x="3"
+      y="6.5"
+      width="12.5"
+      height="11"
+      rx="2.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path
+      d="m16 10.5 4.2-2.4v7.8L16 13.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const MIC_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <rect
+      x="9"
+      y="3.5"
+      width="6"
+      height="11"
+      rx="3"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path
+      d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+async function isMicGranted(): Promise<boolean> {
+  try {
+    const perm = await navigator.permissions.query({
+      name: "microphone" as PermissionName,
+    });
+    return perm.state === "granted";
+  } catch {
+    return false;
+  }
+}
+
+type DeviceRowProps = {
+  icon: React.ReactNode;
+  fallbackLabel: string;
+  devices: MediaDeviceOption[];
+  selectedId: string | undefined;
+  on: boolean;
+  onToggle: () => void;
+  onSelect: (deviceId: string) => void;
+};
+
+function DeviceRow({
+  icon,
+  fallbackLabel,
+  devices,
+  selectedId,
+  on,
+  onToggle,
+  onSelect,
+}: DeviceRowProps) {
+  const hasLabels = devices.some((d) => d.label && d.deviceId);
+  return (
+    <div className={on ? "cf-row is-on" : "cf-row"}>
+      <span className="cf-row-icon" aria-hidden>
+        {icon}
+      </span>
+      {hasLabels ? (
+        <select
+          className="cf-row-select"
+          value={selectedId ?? devices[0]?.deviceId ?? ""}
+          onChange={(event) => onSelect(event.target.value)}
+        >
+          {devices.map((device) => (
+            <option key={device.deviceId} value={device.deviceId}>
+              {device.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <span className="cf-row-label">{fallbackLabel}</span>
+      )}
+      <button
+        type="button"
+        className={on ? "cf-pill is-on" : "cf-pill"}
+        onClick={onToggle}
+      >
+        {on ? "On" : "Off"}
+      </button>
+    </div>
+  );
+}
 
 export function DevicePickers() {
   const [prefs, setPrefs] = useState<CapturePrefs>({
@@ -15,6 +126,7 @@ export function DevicePickers() {
     mic: false,
   });
   const [blocked, setBlocked] = useState(false);
+  const devices = useMediaDevices();
 
   useEffect(() => {
     void getCapturePrefs().then(setPrefs);
@@ -27,27 +139,40 @@ export function DevicePickers() {
     };
   }, []);
 
-  // Mic rides the camera stream (Decision 4), so camera-off clears it. The bubble
-  // both previews and seeds the grant, so reflect the new state on the active tab.
+  /*
+   * Camera preview + grant run through the in-page bubble (getUserMedia can't
+   * prompt from a popup). A camera-less mic needs its own grant, seeded by the
+   * permissions tab.
+   */
   const update = async (partial: Partial<CapturePrefs>) => {
     const next = { ...prefs, ...partial };
-    if (!next.camera) next.mic = false;
     setPrefs(next);
     await setCapturePrefs(next);
-    void sendMessage("setCameraBubble", { on: next.camera, mic: next.mic });
+    if (
+      partial.camera !== undefined ||
+      (next.camera && partial.mic !== undefined)
+    ) {
+      void sendMessage("setCameraBubble", { on: next.camera, mic: next.mic });
+    }
+    if (partial.mic === true && !next.camera && !(await isMicGranted())) {
+      await chrome.tabs.create({
+        url: chrome.runtime.getURL("permissions.html?audio=1"),
+      });
+    }
   };
 
-  if (blocked) {
-    return (
-      <section className="cf-section cf-pickers">
-        <div className="cf-picker">
-          <span className="cf-picker-icon" aria-hidden>
-            ◎
-          </span>
-          <select className="cf-select" value="none" disabled>
-            <option value="none">No camera</option>
-          </select>
-        </div>
+  return (
+    <section className="cf-section cf-pickers">
+      <DeviceRow
+        icon={CAMERA_ICON}
+        fallbackLabel={blocked ? "Camera blocked" : "Camera"}
+        devices={devices.cameras}
+        selectedId={prefs.cameraId}
+        on={prefs.camera && !blocked}
+        onToggle={() => void update({ camera: !prefs.camera })}
+        onSelect={(cameraId) => void update({ cameraId })}
+      />
+      {blocked && (
         <div className="cf-notice">
           <p className="cf-notice-title">Camera blocked</p>
           <p className="cf-hint">
@@ -62,40 +187,18 @@ export function DevicePickers() {
             Try again
           </button>
         </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="cf-section cf-pickers">
-      <div className="cf-picker">
-        <span className="cf-picker-icon" aria-hidden>
-          ◎
-        </span>
-        <select
-          className="cf-select"
-          value={prefs.camera ? "on" : "none"}
-          onChange={(event) => update({ camera: event.target.value === "on" })}
-        >
-          <option value="none">No camera</option>
-          <option value="on">Camera on</option>
-        </select>
-      </div>
-      <div className="cf-picker">
-        <span className="cf-picker-icon" aria-hidden>
-          ⏺
-        </span>
-        <select
-          className="cf-select"
-          value={prefs.mic ? "on" : "none"}
-          disabled={!prefs.camera}
-          onChange={(event) => update({ mic: event.target.value === "on" })}
-        >
-          <option value="none">No microphone</option>
-          <option value="on">Microphone on</option>
-        </select>
-      </div>
-      {prefs.camera && (
+      )}
+      <DeviceRow
+        icon={MIC_ICON}
+        fallbackLabel="Microphone"
+        devices={devices.mics}
+        selectedId={prefs.micId}
+        on={prefs.mic}
+        onToggle={() => void update({ mic: !prefs.mic })}
+        onSelect={(micId) => void update({ micId })}
+      />
+      <MicMeter enabled={prefs.mic} />
+      {prefs.camera && !blocked && (
         <p className="cf-hint">
           Your camera bubble appears on normal web pages — not on internal
           browser pages like this one.

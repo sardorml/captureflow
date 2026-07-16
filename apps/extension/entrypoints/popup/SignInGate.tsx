@@ -12,7 +12,7 @@ export function SignInGate() {
     <div className="cf-panel">
       <header className="cf-header">
         <div className="cf-brand">
-          <span className="cf-logo" aria-hidden />
+          <img className="cf-logo" src="/icon/32.png" alt="" />
           CaptureFlow
         </div>
       </header>
