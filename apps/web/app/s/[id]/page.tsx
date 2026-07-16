@@ -7,13 +7,12 @@ import {
   getScreenshot,
   getScreenshotWithOwner,
 } from "@/lib/screenshot/db";
-import { publicScreenshotUrl } from "@/lib/screenshot/r2";
+import { publicScreenshotUrlFor } from "@/lib/screenshot/r2";
 import { verifySession } from "@/lib/screenshot/verify-session";
 import { canViewResource } from "@/lib/visibility";
 import {
   APP_SITE_URL,
   APP_WEB_SITE_URL,
-  R2_PUBLIC_BASE_URL,
   screenshotViewUrlFor,
   PRODUCT_NAME,
 } from "@/lib/site";
@@ -44,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       return { title: PRODUCT_NAME, robots: { index: false, follow: false } };
     }
   }
-  const imageUrl = publicScreenshotUrl(screenshot.id, R2_PUBLIC_BASE_URL);
+  const imageUrl = await publicScreenshotUrlFor(screenshot.id);
   const title = screenshot.title ?? `${PRODUCT_NAME} screenshot`;
   return {
     title,
@@ -103,10 +102,7 @@ export default async function ScreenshotPage({ params }: Props) {
   // Cache-bust so a re-saved screenshot isn't served from the browser disk cache.
   const cacheKey =
     screenshot.editedAt ?? screenshot.updatedAt ?? screenshot.createdAt;
-  const imageUrl = `${publicScreenshotUrl(
-    screenshot.id,
-    R2_PUBLIC_BASE_URL,
-  )}?v=${cacheKey}`;
+  const imageUrl = `${await publicScreenshotUrlFor(screenshot.id)}?v=${cacheKey}`;
   // +1 so the viewer sees their own (post-read) load reflected.
   const displayViews = screenshot.viewCount + 1;
   const isOwner = !!(
