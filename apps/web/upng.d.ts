@@ -1,7 +1,7 @@
 // upng-js ships no .d.ts. Declare the slim surface we touch — the
 // editor's encode worker calls `UPNG.encode([rgbaBuffer], w, h, cnum)`
-// to produce indexed-palette PNG bytes (`cnum: 256`) that match
-// Loom-class output size for screenshots.
+// to produce indexed-palette PNG bytes (`cnum: 256`) that keep
+// screenshot output compact.
 
 declare module "upng-js" {
   type EncodeBuffer = ArrayBuffer | Uint8Array;

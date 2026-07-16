@@ -44,9 +44,19 @@ export type FinalizeResponse = {
   url: string;
 };
 
+export type AbortRequest = {
+  slug: string;
+};
+
 export type RecordingApiError = {
   error: string;
   code?: string;
+};
+
+// The no-auth probe: /api/r/state answers "ready" once a finalize has been
+// applied, letting the client treat a finalize lost to the network as success.
+export type StateResponse = {
+  state: string;
 };
 
 // finalizeWebcam returns void: the webcam is best-effort, so its `{ ok }` body
@@ -66,4 +76,7 @@ export type UploadTransport = {
   finalizeScreen(req: FinalizeRequest): Promise<FinalizeResponse>;
   finalizeWebcam(req: FinalizeRequest): Promise<void>;
   uploadPoster(slug: string, bytes: Uint8Array): Promise<void>;
+  abort(req: AbortRequest): Promise<void>;
+  state(slug: string): Promise<StateResponse>;
+  viewUrl(slug: string): string;
 };

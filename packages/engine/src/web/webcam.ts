@@ -100,6 +100,8 @@ export type WebcamRecorderOptions = {
 };
 
 export type WebcamRecorder = {
+  pause(): void;
+  resume(): void;
   stop(): Promise<{ totalBytes: number }>;
   abort(): void;
 };
@@ -148,6 +150,13 @@ export function startWebcamRecorder(
   log.info(`webcam-recorder: started (mime=${mimeType})`);
 
   return {
+    // MediaRecorder keeps the WebM timeline continuous across pause/resume.
+    pause() {
+      if (recorder.state === "recording") recorder.pause();
+    },
+    resume() {
+      if (recorder.state === "paused") recorder.resume();
+    },
     async stop() {
       await new Promise<void>((resolve) => {
         if (recorder.state === "inactive") {
