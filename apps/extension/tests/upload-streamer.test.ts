@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { startRecordingUpload } from "../lib/api/upload-streamer";
+import {
+  startRecordingUpload,
+  type OnlineSignal,
+} from "../lib/api/upload-streamer";
 import type {
   FinalizeRequest,
   InitRequest,
@@ -16,6 +19,7 @@ type FakeTransport = UploadTransport & {
   finalizedScreen: FinalizeRequest | null;
   finalizedWebcam: FinalizeRequest | null;
   posterBytes: number | null;
+  abortedSlugs: string[];
 };
 
 function fakeTransport(
@@ -26,6 +30,7 @@ function fakeTransport(
   let finalizedScreen: FinalizeRequest | null = null;
   let finalizedWebcam: FinalizeRequest | null = null;
   let posterBytes: number | null = null;
+  const abortedSlugs: string[] = [];
 
   const base: UploadTransport = {
     init: async () => ({
@@ -57,6 +62,11 @@ function fakeTransport(
     uploadPoster: async (_slug, bytes) => {
       posterBytes = bytes.byteLength;
     },
+    abort: async (req) => {
+      abortedSlugs.push(req.slug);
+    },
+    state: async () => ({ state: "pending" }),
+    viewUrl: (slug) => `https://captureflow.xyz/r/${slug}`,
   };
 
   const transport = { ...base, ...opts.overrides };
@@ -77,10 +87,38 @@ function fakeTransport(
     get posterBytes() {
       return posterBytes;
     },
+    get abortedSlugs() {
+      return abortedSlugs;
+    },
+  };
+}
+
+// Manually driven connectivity: flip `online` and fire the queued listeners.
+function fakeOnline(initial = true) {
+  let online = initial;
+  const listeners = new Set<() => void>();
+  const signal: OnlineSignal = {
+    isOnline: () => online,
+    onOnline: (cb) => {
+      listeners.add(cb);
+      return () => listeners.delete(cb);
+    },
+  };
+  return {
+    signal,
+    set(next: boolean) {
+      online = next;
+      if (online) {
+        for (const cb of [...listeners]) cb();
+      }
+    },
   };
 }
 
 const bytes = (n: number): Uint8Array => new Uint8Array(n);
+
+const tick = (): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, 0));
 
 describe("startRecordingUpload — screen stream", () => {
   it("buffers below the chunk size and ships one trailing part on finish", async () => {
@@ -230,5 +268,99 @@ describe("startRecordingUpload — poster", () => {
     });
     await upload.uploadPoster(bytes(512));
     expect(transport.posterBytes).toBe(512);
+  });
+});
+
+describe("startRecordingUpload — abort", () => {
+  it("releases the server-side upload exactly once", async () => {
+    const transport = fakeTransport();
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
+    upload.pushScreen(bytes(40));
+    upload.abort();
+    upload.abort();
+    await tick();
+    expect(transport.abortedSlugs).toEqual(["abc12345"]);
+  });
+});
+
+describe("startRecordingUpload — offline handling", () => {
+  it("holds queued parts while offline and resumes on the online signal", async () => {
+    const transport = fakeTransport();
+    const net = fakeOnline(false);
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+      online: net.signal,
+    });
+
+    upload.pushScreen(bytes(250));
+    await tick();
+    expect(transport.screenParts).toHaveLength(0);
+
+    net.set(true);
+    await tick();
+    expect(transport.screenParts.map((p) => p.size)).toEqual([100, 100]);
+
+    await upload.finish();
+    expect(transport.screenParts.map((p) => p.size)).toEqual([100, 100, 50]);
+  });
+
+  it("waits for connectivity before draining the tail", async () => {
+    const transport = fakeTransport();
+    const net = fakeOnline(true);
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+      online: net.signal,
+    });
+
+    upload.pushScreen(bytes(40));
+    net.set(false);
+    const finishing = upload.finish();
+    await tick();
+    expect(transport.screenParts).toHaveLength(0);
+
+    net.set(true);
+    await finishing;
+    expect(transport.screenParts).toEqual([{ partNumber: 1, size: 40 }]);
+  });
+});
+
+describe("startRecordingUpload — finalize fallback", () => {
+  it("treats a network-lost finalize as success when the state probe says ready", async () => {
+    const transport = fakeTransport({
+      overrides: {
+        finalizeScreen: async () => {
+          throw new TypeError("fetch failed");
+        },
+        state: async () => ({ state: "ready" }),
+      },
+    });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
+    upload.pushScreen(bytes(40));
+    const res = await upload.finish();
+    expect(res.url).toBe("https://captureflow.xyz/r/abc12345");
+  });
+
+  it("rethrows the finalize failure when the recording is not ready", async () => {
+    const transport = fakeTransport({
+      overrides: {
+        finalizeScreen: async () => {
+          throw new TypeError("fetch failed");
+        },
+      },
+    });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
+    upload.pushScreen(bytes(40));
+    await expect(upload.finish()).rejects.toThrow("fetch failed");
   });
 });
