@@ -14,7 +14,7 @@ import { EditorTranscriptPanel } from "./EditorTranscriptPanel";
 import { EditorToolRail } from "./EditorToolRail";
 import { EditorTimeline } from "./EditorTimeline";
 
-// Loom-style recording editor. The preview uses the same RecordingPlayer as the
+// The recording editor. The preview uses the same RecordingPlayer as the
 // public viewer, so it matches what /r/[id] renders pixel for pixel.
 export function RecordingEditorImpl(props: RecordingEditorProps) {
   const router = useRouter();

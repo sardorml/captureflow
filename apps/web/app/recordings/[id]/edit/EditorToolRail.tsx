@@ -26,7 +26,7 @@ type Props = {
   details: RecordingDetails;
 };
 
-// Far-right tool rail. Each tool opens its controls in a popover, Loom-style;
+// Far-right tool rail. Each tool opens its controls in a popover;
 // "Add overlay" is the one genuine placeholder (no overlay-asset pipeline yet).
 export function EditorToolRail({
   config,
