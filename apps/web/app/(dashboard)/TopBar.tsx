@@ -5,7 +5,7 @@ import { Button } from "@heroui/react";
 import { getActiveProSubscription } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
-import { ThemeToggle, readThemeFromCookieHeader } from "@captureflow/ui";
+import { readThemeFromCookieHeader } from "@captureflow/ui";
 import { SearchTrigger } from "./SearchTrigger";
 import { UpgradeModal } from "./UpgradeModal";
 import { UserMenu } from "./UserMenu";
@@ -46,7 +46,6 @@ export async function TopBar() {
             }
           />
         )}
-        <ThemeToggle initialTheme={theme} className="h-8 w-8" />
         <Link
           href="/notifications"
           title="Notifications"
@@ -57,6 +56,7 @@ export async function TopBar() {
           </Button>
         </Link>
         <UserMenu
+          theme={theme}
           userId={session.user.id}
           name={session.user.name ?? null}
           email={session.user.email}

@@ -1,9 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { LogOut, Sparkles } from "lucide-react";
-import { Avatar, Chip, Dropdown, Separator, Typography } from "@heroui/react";
+import { LogOut } from "lucide-react";
+import { Avatar, Dropdown, Separator, Typography } from "@heroui/react";
+import type { Theme } from "@captureflow/ui";
 import { initials } from "@/lib/format";
+import { ThemeSegments } from "./ThemeSegments";
 
 export type AccountMenuProInfo = {
   cycle: "monthly" | "annual";
@@ -15,6 +17,8 @@ export type AccountMenuNavItem = {
   icon: ReactNode;
   label: string;
   href: string;
+  // Right-aligned accessory — a plan chip, a count. Purely decorative.
+  trailing?: ReactNode;
 };
 
 type Props = {
@@ -28,6 +32,8 @@ type Props = {
    * surface renders the same account menu.
    */
   navItems: AccountMenuNavItem[];
+  // Renders the theme row when the surface can supply the current theme.
+  theme?: Theme;
   signingOut: boolean;
   onSignOut: () => void;
 };
@@ -36,8 +42,8 @@ export function AccountMenu({
   name,
   email,
   imageUrl,
-  pro,
   navItems,
+  theme,
   signingOut,
   onSignOut,
 }: Props) {
@@ -54,31 +60,48 @@ export function AccountMenu({
           <Avatar.Fallback>{initials(displayName)}</Avatar.Fallback>
         </Avatar>
       </Dropdown.Trigger>
-      <Dropdown.Popover placement="bottom end" className="min-w-56">
-        <div className="px-3 py-2">
-          <div className="flex items-center gap-1.5">
-            <Typography weight="semibold">{displayName}</Typography>
-            {pro && (
-              <Chip size="sm" color="accent">
-                <Sparkles size={10} />
-                Pro
-              </Chip>
-            )}
+
+      <Dropdown.Popover placement="bottom end" className="w-64">
+        {/* Identity reads as one block: avatar beside the name and address,
+            rather than the name alone over the address. */}
+        <div className="flex items-center gap-2.5 px-3 py-2.5">
+          <Avatar className="h-9 w-9 shrink-0">
+            {imageUrl && <Avatar.Image src={imageUrl} alt={displayName} />}
+            <Avatar.Fallback>{initials(displayName)}</Avatar.Fallback>
+          </Avatar>
+          <div className="min-w-0">
+            <Typography weight="semibold" className="truncate">
+              {displayName}
+            </Typography>
+            <Typography type="body-xs" color="muted" className="truncate">
+              {email}
+            </Typography>
           </div>
-          <Typography type="body-xs" color="muted">
-            {email}
-          </Typography>
         </div>
+
         <Separator />
+
         <Dropdown.Menu>
           {navItems.map((item) => (
             <Dropdown.Item key={item.key} href={item.href}>
               {item.icon}
               {item.label}
+              {item.trailing ? (
+                <span className="ms-auto ps-2">{item.trailing}</span>
+              ) : null}
             </Dropdown.Item>
           ))}
         </Dropdown.Menu>
+
+        {theme ? (
+          <>
+            <Separator />
+            <ThemeSegments initialTheme={theme} />
+          </>
+        ) : null}
+
         <Separator />
+
         <Dropdown.Menu>
           <Dropdown.Item
             isDisabled={signingOut}

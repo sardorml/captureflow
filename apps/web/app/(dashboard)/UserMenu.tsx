@@ -2,9 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { HardDrive, Settings, UserCircle } from "lucide-react";
+import {
+  HardDrive,
+  Inbox,
+  MessageSquare,
+  Receipt,
+  Settings,
+  UserCircle,
+} from "lucide-react";
+import { Chip } from "@heroui/react";
+import type { Theme } from "@captureflow/ui";
 import { signOut } from "@/lib/auth-client";
 import { notifyExtensionSignOut } from "@/lib/extension-bridge";
+import { SUPPORT_EMAIL } from "@/lib/marketing/constants";
 import {
   AccountMenu,
   type AccountMenuNavItem,
@@ -17,9 +27,10 @@ type Props = {
   email: string;
   imageUrl: string | null;
   pro: AccountMenuProInfo | null;
+  theme: Theme;
 };
 
-export function UserMenu({ name, email, imageUrl, pro }: Props) {
+export function UserMenu({ name, email, imageUrl, pro, theme }: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -33,9 +44,22 @@ export function UserMenu({ name, email, imageUrl, pro }: Props) {
 
   const navItems: AccountMenuNavItem[] = [
     {
+      key: "billing",
+      icon: <Receipt size={16} />,
+      label: "Billing",
+      // No billing page of our own — the plan is bought through the upgrade
+      // modal, which this query param opens.
+      href: "/recordings?upgrade=1",
+      trailing: (
+        <Chip size="sm" color={pro ? "accent" : "default"}>
+          {pro ? "Pro" : "Free"}
+        </Chip>
+      ),
+    },
+    {
       key: "profile",
       icon: <UserCircle size={16} />,
-      label: "Profile settings",
+      label: "Profile",
       href: "/profile",
     },
     {
@@ -47,8 +71,20 @@ export function UserMenu({ name, email, imageUrl, pro }: Props) {
     {
       key: "settings",
       icon: <Settings size={16} />,
-      label: "Workspace settings",
+      label: "Settings",
       href: "/settings",
+    },
+    {
+      key: "feedback",
+      icon: <Inbox size={16} />,
+      label: "Feedback",
+      href: "/suggest-feature",
+    },
+    {
+      key: "support",
+      icon: <MessageSquare size={16} />,
+      label: "Contact support",
+      href: `mailto:${SUPPORT_EMAIL}`,
     },
   ];
 
@@ -59,6 +95,7 @@ export function UserMenu({ name, email, imageUrl, pro }: Props) {
       imageUrl={imageUrl}
       pro={pro}
       navItems={navItems}
+      theme={theme}
       signingOut={pending}
       onSignOut={() => void onSignOut()}
     />
