@@ -15,7 +15,7 @@ export function DashboardShell({
   // sticky-in-document-scroll: modals scroll-lock <body>, which turns it into a
   // scroll container and un-sticks sticky children mid-scroll.
   return (
-    <div className="flex h-screen">
+    <div className="bg-canvas flex h-screen">
       <aside className="hidden h-screen w-60 shrink-0 overflow-hidden border-r border-line bg-canvas-2 md:block">
         {sidebar}
       </aside>

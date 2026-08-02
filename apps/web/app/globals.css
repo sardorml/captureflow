@@ -20,7 +20,8 @@ body {
   overflow-x: clip;
   /* Paint the document itself so the rubber-band overscroll past the top/bottom
      edge matches the page instead of flashing the default white. The default
-     (no data-theme) is dark, per tokens.css. */
+     (no data-theme) is dark, per tokens.css. Kept in step with --cf-canvas —
+     surfaces paint from the token, this literal only shows past the edges. */
   background-color: #0a0a0a;
   font-family:
     var(--font-sans),
