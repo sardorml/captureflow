@@ -85,24 +85,27 @@ export default async function DownloadPage() {
               {m.button}
             </a>
 
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <SoonButton
-                label="Windows app"
-                icon={<WindowsLogo className="h-[16px] w-[16px]" />}
-              />
-              <SoonButton
-                label="Chrome extension"
-                icon={<ChromeLogo className="h-[18px] w-[18px]" />}
-              />
-              <SoonButton
-                label="Firefox extension"
-                icon={<FirefoxLogo className="h-[18px] w-[18px]" />}
-              />
-            </div>
-
             <Text type="secondary" style={{ fontSize: 14 }}>
               {m.requirements}
             </Text>
+
+            {/* Not buttons: nothing here is clickable yet, and three filled
+                pills read as three CTAs competing with the real one. */}
+            <p className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-fg-subtle">
+              <span>Coming soon</span>
+              <SoonPlatform
+                label="Windows"
+                icon={<WindowsLogo className="size-3.5" />}
+              />
+              <SoonPlatform
+                label="Chrome"
+                icon={<ChromeLogo className="size-4" />}
+              />
+              <SoonPlatform
+                label="Firefox"
+                icon={<FirefoxLogo className="size-4" />}
+              />
+            </p>
           </div>
         </div>
 
@@ -168,21 +171,17 @@ export default async function DownloadPage() {
   );
 }
 
-function SoonButton({ label, icon }: { label: string; icon: React.ReactNode }) {
+function SoonPlatform({
+  label,
+  icon,
+}: {
+  label: string;
+  icon: React.ReactNode;
+}) {
   return (
-    <button
-      type="button"
-      disabled
-      aria-label={`${label} — coming soon`}
-      className={buttonVariants({
-        variant: "secondary",
-        size: "lg",
-        className: "gap-1.5",
-      })}
-    >
+    <span className="flex items-center gap-1.5">
       {icon}
       {label}
-      <Chip size="sm">Soon</Chip>
-    </button>
+    </span>
   );
 }
