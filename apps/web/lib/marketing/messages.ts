@@ -609,7 +609,7 @@ export const MESSAGES = {
     heading: "Download CaptureFlow",
     subtitle:
       "Record your screen and get an instant share link — free and open source. Self-host on your own Cloudflare account, with Screenshots and workspaces included.",
-    button: "Download for Apple Silicon Macs (Beta)",
+    button: "Download for macOS",
     requires: "Requires {version} or later on Apple Silicon.",
     requirements: "Requires macOS 14 or later on Apple Silicon.",
     versionLabel: "Version {version}",
