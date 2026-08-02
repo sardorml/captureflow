@@ -1,9 +1,7 @@
 const EXTENSION_ID_KEY = "captureflow:extension-id";
 
-// Mirror EXTERNAL_LOGOUT_KIND / EXTERNAL_SESSION_KIND in apps/extension's
-// lib/auth/handoff.ts.
+// Mirrors EXTERNAL_LOGOUT_KIND in apps/extension's lib/auth/handoff.ts.
 const SIGN_OUT_KIND = "captureflow-logout";
-const SESSION_KIND = "captureflow-session";
 
 // chrome.runtime is injected only on pages the extension lists in
 // externally_connectable; @types/chrome isn't a web dep, so type what we use.
@@ -44,17 +42,4 @@ export function notifyExtensionSignOut(): void {
   const extId = readExtensionId();
   if (!extId) return;
   getRuntime()?.sendMessage?.(extId, { kind: SIGN_OUT_KIND });
-}
-
-/*
- * Tell the extension who this browser is signed in as, so its device token — a
- * separate, far longer-lived credential — can follow an expiry or an account
- * switch instead of recording as whoever signed in first. The extension can't
- * read this for itself: our cookies aren't attached to extension-context
- * fetches, so the page has to volunteer it.
- */
-export function notifyExtensionSession(userId: string | null): void {
-  const extId = readExtensionId();
-  if (!extId) return;
-  getRuntime()?.sendMessage?.(extId, { kind: SESSION_KIND, userId });
 }

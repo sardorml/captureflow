@@ -280,18 +280,16 @@ export default defineBackground(() => {
   chrome.action.onClicked.addListener(() => void onActionClicked());
 
   /*
-   * The web app posts auth (from the callback page), logout, and who it's
-   * signed in as (from any of its pages) here. externally_connectable can't
-   * gate by path/port, so re-check the sender per kind: auth needs the exact
-   * callback page, the other two just the origin — neither can leak a token,
-   * and the worst a hostile same-origin page could do is force a re-login.
+   * The web app posts auth (from the callback page) and logout (from any of its
+   * pages) here. externally_connectable can't gate by path/port, so re-check the
+   * sender per kind: auth needs the exact callback page, logout just the origin.
    */
   chrome.runtime.onMessageExternal.addListener((message, sender, respond) => {
     const parsed = parseExternalMessage(message);
     const trusted =
       parsed?.kind === "auth"
         ? isTrustedAuthSender(sender.url)
-        : parsed
+        : parsed?.kind === "logout"
           ? isTrustedWebOrigin(sender.url)
           : false;
     if (!parsed || !trusted) {
@@ -302,12 +300,6 @@ export default defineBackground(() => {
       try {
         if (parsed.kind === "logout") {
           await setAuthSession(null);
-        } else if (parsed.kind === "session") {
-          await reconcileAuthSession(
-            parsed.userId === null
-              ? { kind: "signed-out" }
-              : { kind: "signed-in", userId: parsed.userId },
-          );
         } else {
           await setAuthSession(parsed.session);
           // Answer before closing the callback tab — removing it first destroys
@@ -334,6 +326,16 @@ export default defineBackground(() => {
   onMessage("openSignIn", () => openSignInTab());
 
   onMessage("signOut", () => setAuthSession(null));
+
+  // The web-origin content script's reading of who this browser is signed in
+  // as. Its matches already bound the sender; re-check anyway, since acting on
+  // it can sign the user out.
+  onMessage("hasAuthSession", async () => (await getAuthSession()) !== null);
+
+  onMessage("webSession", async ({ data, sender }) => {
+    if (!isTrustedWebOrigin(sender?.url)) return;
+    await reconcileAuthSession(data);
+  });
 
   onMessage("setCameraBubble", ({ data }) =>
     setCameraBubble(data.on, data.mic),

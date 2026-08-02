@@ -1,4 +1,5 @@
 import { defineExtensionMessaging } from "@webext-core/messaging";
+import type { WebSession } from "./auth/sync";
 import type {
   ActiveUpload,
   CaptureSource,
@@ -31,6 +32,8 @@ export type CaptureContext = {
 type ProtocolMap = {
   openSignIn(): void;
   signOut(): void;
+  hasAuthSession(): boolean;
+  webSession(web: WebSession): void;
   setCameraBubble(input: { on: boolean; mic: boolean }): void;
   cameraStatus(input: { blocked: boolean }): void;
   ensureMediaGrant(): void;

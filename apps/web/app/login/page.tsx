@@ -4,7 +4,6 @@ import { readThemeFromCookieHeader } from "@captureflow/ui";
 import { loadSession } from "@/lib/session-guard";
 import { AuthForm } from "@/app/AuthForm";
 import { AuthShell } from "@/app/AuthShell";
-import { ExtensionSessionSync } from "@/app/ExtensionSessionSync";
 
 export const dynamic = "force-dynamic";
 
@@ -25,9 +24,6 @@ export default async function LoginPage({
 
   return (
     <AuthShell theme={theme}>
-      {/* Reaching the login page proves this browser has no session; the
-          extension's own token has no other way to learn that. */}
-      <ExtensionSessionSync userId={null} />
       <AuthForm next={safeNext} initialMode={initialMode} />
     </AuthShell>
   );
