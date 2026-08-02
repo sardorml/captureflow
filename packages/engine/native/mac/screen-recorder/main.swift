@@ -722,7 +722,7 @@ class StreamCapture: NSObject, SCStreamOutput, SCStreamDelegate {
     // away. The source content stretches across (height+1) rows of an
     // (height)-row output, which is a vertical scale of (h+1)/h — at
     // 1080p that's 0.09%, well below perceptual threshold. Same
-    // workaround Loom / CleanShotX / Replay use.
+    // workaround other capture apps use.
     streamConfig.destinationRect = CGRect(
       x: 0,
       y: -1,

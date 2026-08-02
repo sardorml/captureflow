@@ -1,9 +1,9 @@
 # CaptureFlow Browser Extension — Implementation Plan
 
-> Status: **Phases 0–1 built (Phase 1 pending manual verification); Phase 2+ planned.**
+> Status: **Phases 0–3 + screenshot mode built (in-page UI); pending manual end-to-end verification.**
 > Decisions below are locked unless revised in a follow-up.
 > Built with [WXT](https://wxt.dev) as a Manifest V3 extension under `apps/extension`.
-> A Loom-style screen recorder that uploads through the **existing** `/api/r/*` (recordings /
+> An instant-share screen recorder that uploads through the **existing** `/api/r/*` (recordings /
 > `recording` domain) protocol — it is recording **client #3**, alongside the web dashboard and the
 > Electron desktop app. No new backend domain.
 
@@ -68,6 +68,13 @@ closes; "record while I browse" requires the long-lived offscreen doc. `chrome.t
 is kept in reserve for a later one-click "record this tab" express mode.
 
 ### Decision 2 — Auth: how the extension gets a credential for `/api/r/*`
+
+**SUPERSEDED (as built):** tab sign-in via `externally_connectable`. A signed-out
+toolbar click opens `${WEB_BASE}/auth/callback?ext=<runtime.id>`; the callback page posts the
+device token back with `chrome.runtime.sendMessage` and the SW verifies the sender
+(`isTrustedAuthSender`: exact origin + `/auth/callback` path). Logout on the web propagates the
+same way. `launchWebAuthFlow`, the `identity` permission, and the `chromiumapp.org` return are
+gone — the original design below is kept for the decision record.
 
 **`chrome.identity.launchWebAuthFlow`**, device-token (Bearer) model, mapped 1:1 onto the
 desktop flow:
@@ -328,8 +335,8 @@ Quota attribution already targets the workspace owner; `isDevDevice` already exe
   — the architecture is validated (this is what ruled out `chrome.desktopCapture`, see Decision 1).
   Ship gate met: loads unpacked, popup opens, recording lands a byte count, `typecheck/build/format` green.
 - **Phase 1 — Auth + screen-only MVP (BUILT, pending manual verification).**
-  `launchWebAuthFlow` + token/device-id storage shipped; Backend Changes 1, 2 & 3 landed as
-  separate commits. The offscreen doc records the screen and streams `init → part×N → finalize`,
+  Tab sign-in via `externally_connectable` (see Decision 2) + token/device-id storage shipped;
+  Backend Changes 1, 2 & 3 landed as separate commits. The offscreen doc records the screen and streams `init → part×N → finalize`,
   and the popup shows the returned `{url}` with a copy button. Stops on the popup Stop button,
   the browser's native "Stop sharing" control, or a 30-min client cap.
   _Auth is merged into Phase 1 because `init/route.ts:75` requires a bearer token
@@ -339,21 +346,42 @@ Quota attribution already targets the workspace owner; `isDevDevice` already exe
   `device-id.test.ts` pins persistence, `return-target.test.ts` pins the callback allow-list.
   **Remaining: manual end-to-end check** (load unpacked → sign in → record → open the link) —
   the auth window + native picker can't be automated.
-- **Phase 2 — Camera + mic (dual stream) (BUILT except live preview).** Dual-stream upload client
+- **Phase 2 — Camera + mic (dual stream) (BUILT, incl. live preview).** Dual-stream upload client
   (screen required + best-effort webcam), offscreen webcam recorder (camera + mic, WebM), `hasWebcam`
   init, `webcam-part → webcam-finalize`, poster frame, camera/mic pickers + a permissions.html grant
-  page (getUserMedia only prompts from a tab). Mic rides the webcam stream (Decision 4), so it's
-  coupled to the camera. **Remaining:** the live cam-bubble preview (a content-script `<video>`) is
-  deferred to land with Phase 3's content-script work; **screen + mic without a camera** isn't
-  recorded yet (route mic to the screen track later). Ship gate (dual-track recording, `webcamState ===
-ready`) is met pending the same manual end-to-end check as Phase 1.
-- **Phase 3 — Control-bar UX & effects.** Shadow-DOM control bar (timer/stop/pause/restart/delete/
-  cam toggle), re-injection on navigation restoring state from storage, tab-audio loopback via
-  `AudioContext`, blur/effects, optional one-click `tabCapture` mode. Ship gate: recording survives
-  a full page navigation with a continuous timer.
-- **Later — Screenshot mode.** The popup's screenshot toggle captures a still and posts to
-  the **screenshot** domain (`/api/s/upload`, `apps/web/lib/screenshot/*`) — a single-shot PUT with its own
-  CORS (already allows `Authorization`). Kept forked from `recording` (no shared `lib/media/`).
+  page (getUserMedia only prompts from a tab). The live cam bubble is an extension-origin iframe
+  (`bubble.html`) injected via `chrome.scripting` (activeTab); it doubles as the grant surface and is
+  released before recording (one camera can't be opened twice). Opening the popup without a
+  camera+mic grant injects an invisible `bubble.html?grant=1` frame that asks for **both in one
+  native prompt**; on Allow both devices flip on and the bubble appears
+  (`permissions.html?video=1&audio=1` tab on restricted pages). **Screen + mic without a camera**
+  records via the engine's AAC mic track muxed into the screen fMP4.
+- **Recorder surface (BUILT).** There is no anchored action popup (a WXT
+  `build:manifestGenerated` hook strips `default_popup`): the toolbar click injects
+  `popup.html?overlay=1` as an extension iframe floating top-right over a blurred/dimmed backdrop.
+  The iframe is sized exactly to the panel — the app reports its content height through the SW
+  (`setOverlayHeight` → `chrome.scripting`; a 600ms page-side fallback shows 440px if no report
+  lands) and the page-side script carries the rounding/shadow — because iframe transparency turns
+  into an opaque white canvas when the host page's color-scheme differs. Backdrop click / Escape close it,
+  and it dismisses itself when the native picker opens. Restricted pages fall back to a standalone
+  popup window (`popup.html?window=1`). Screenshot capture hides the overlay for a frame so the
+  blur never bakes into the image.
+- **Phase 3 — Control-bar UX (BUILT except effects).** Declared content script (`http/https`) renders
+  a Shadow-DOM control bar — stop, countdown timer, pause/resume, restart, delete, draggable — from
+  `session:` recording status, so it re-mounts after navigation with a continuous timer. Pause is
+  gapless: the engine drops frames and shifts later timestamps (webcam pauses via
+  `MediaRecorder.pause()`). Remaining from the original scope: tab-audio loopback, blur/effects
+  (popup stubs), optional one-click `tabCapture` mode.
+- **Screenshot mode (BUILT).** The popup's screenshot tab captures the visible tab
+  (`chrome.tabs.captureVisibleTab`, activeTab) and posts the PNG to the **screenshot** domain
+  (`/api/s/upload`, `apps/web/lib/screenshot/*`) with width/height/title headers. Kept forked from
+  `recording` (no shared `lib/media/`).
+- **Hardening (BUILT).** `POST /api/r/abort` on failure/delete/restart + an SW startup sweep that
+  aborts a crashed upload (`local:activeUpload` marker with no offscreen doc); finalize falls back
+  to the `/api/r/state` probe when the response is lost; part pumps wait out offline windows
+  (mid-flight failures stay fatal); 429/413/401 map to friendly copy and a 401 clears the session;
+  `GET /api/r/auth/check` probes the token on popup open; a Vitest wire-drift guard
+  (`tests/wire-types.test.ts`) pins the forked types against `apps/web/lib/recording/types.ts`.
 
 ---
 
@@ -388,7 +416,7 @@ ready`) is met pending the same manual end-to-end check as Phase 1.
 - `format.ts` — `mm:ss` edge cases.
 - Web side: a CORS test asserting `Authorization` in allow-headers (Change 1); a `/auth/callback`
   return allow-list test (Change 2).
-- **Wire-compat guard:** a standalone CI script that reads `apps/extension/lib/api/types.ts` and
+- **Wire-compat guard:** `tests/wire-types.test.ts` reads `apps/extension/lib/api/types.ts` and
   `apps/web/lib/recording/types.ts` textually and flags drift — **not** a cross-app type import.
 
 **Not unit-tested (integration only):** `desktopCapture`/`getUserMedia`/`MediaRecorder`, offscreen

@@ -44,6 +44,7 @@ DRES = ROOT / "apps/desktop/resources"
 DASSETS = ROOT / "apps/desktop/src/renderer/src/assets"
 DBUILD = ROOT / "apps/desktop/build"
 DOCS = ROOT / "apps/docs/public"
+EXT = ROOT / "apps/extension/public/icon"
 
 ACTOOL = "/Applications/Xcode.app/Contents/Developer/usr/bin/actool"
 
@@ -205,6 +206,11 @@ def generate(master, icon_src):
     square(master, 512).save(DOCS / "logo.png")
     save_ico(master, DOCS / "favicon.ico")
     log("docs logo + favicon")
+
+    # Browser extension (WXT wires public/icon/<size>.png into the manifest)
+    for size in (16, 32, 48, 128):
+        square(master, size).save(EXT / f"{size}.png")
+    log("extension public/icon 16/32/48/128")
 
 
 def swap_og(master, og_path):

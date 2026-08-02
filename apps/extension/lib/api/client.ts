@@ -1,15 +1,20 @@
 import { WEB_BASE } from "../config";
 import type {
+  AbortRequest,
   FinalizeRequest,
   FinalizeResponse,
   InitRequest,
   InitResponse,
   PartResponse,
   RecordingApiError,
+  StateResponse,
   UploadTransport,
 } from "./types";
 
 export const RECORDING_API_BASE = `${WEB_BASE}/api/r`;
+
+export const recordingViewUrl = (slug: string): string =>
+  `${WEB_BASE}/r/${slug}`;
 
 export class RecordingApiHttpError extends Error {
   readonly status: number;
@@ -108,6 +113,25 @@ async function postBytes<T>(
 const partPath = (route: string, slug: string, partNumber: number): string =>
   `/${route}?slug=${encodeURIComponent(slug)}&part=${partNumber}`;
 
+export type AuthCheckResult = "ok" | "invalid" | "unreachable";
+
+// 401 → sign-in revoked (clear the local session); network/5xx → inconclusive,
+// keep the session and let the next recording surface the real error.
+export async function checkAuth(
+  deviceId: string,
+  token: string,
+): Promise<AuthCheckResult> {
+  try {
+    const res = await fetch(`${RECORDING_API_BASE}/auth/check`, {
+      headers: recordingHeaders(deviceId, token),
+    });
+    if (res.ok) return "ok";
+    return res.status === 401 ? "invalid" : "unreachable";
+  } catch {
+    return "unreachable";
+  }
+}
+
 export function createRecordingTransport(
   deviceId: string,
   token: string | null,
@@ -142,5 +166,15 @@ export function createRecordingTransport(
         "image/jpeg",
       );
     },
+    abort: async (req: AbortRequest) => {
+      await postJson<{ ok: true }>("/abort", deviceId, token, req);
+    },
+    state: async (slug: string) => {
+      const res = await fetch(
+        `${RECORDING_API_BASE}/state?slug=${encodeURIComponent(slug)}`,
+      );
+      return parseResponse<StateResponse>(res, "/state");
+    },
+    viewUrl: recordingViewUrl,
   };
 }

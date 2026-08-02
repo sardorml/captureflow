@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Captions, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// The wide right column. Loom keeps it for the transcript only; ours is a
-// placeholder until transcripts are generated. Hidden on narrow viewports so
+// The wide right column: a transcript placeholder until transcripts are
+// generated. Hidden on narrow viewports so
 // the player + tool rail keep room.
 export function EditorTranscriptPanel() {
   const [open, setOpen] = useState(true);

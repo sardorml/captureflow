@@ -26,20 +26,34 @@ export default defineConfig({
       permissions: isFirefox
         ? ["storage"]
         : ["storage", "offscreen", "scripting", "activeTab"],
+      /*
+       * Extension-context fetches to the API need host permission to skip
+       * CORS/Private-Network-Access checks — Brave otherwise blocks extension
+       * frames from reaching localhost in dev. Mirrors the
+       * externally_connectable dev/prod split.
+       */
+      host_permissions: matches,
       // Firefox MV3 lacks web→extension messaging, so omit it there.
       ...(isFirefox ? {} : { externally_connectable: { matches } }),
-      // The injected camera bubble (and the permission-grant fallback) load
-      // these extension pages inside a web origin.
+      // The injected camera bubble, the permission-grant fallback, and the
+      // in-page recorder overlay load these extension pages inside a web origin.
       ...(isFirefox
         ? {}
         : {
             web_accessible_resources: [
               {
-                resources: ["bubble.html", "permissions.html"],
+                resources: ["bubble.html", "permissions.html", "popup.html"],
                 matches: ["<all_urls>"],
               },
             ],
           }),
     };
+  },
+  hooks: {
+    // The recorder opens as an in-page overlay from action.onClicked;
+    // an anchored default_popup would swallow the click.
+    "build:manifestGenerated": (_wxt, manifest) => {
+      if (manifest.action) delete manifest.action.default_popup;
+    },
   },
 });

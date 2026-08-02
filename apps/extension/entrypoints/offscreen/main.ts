@@ -1,5 +1,12 @@
 import { onMessage, sendMessage } from "@/lib/messaging";
-import { recordAndUpload, stopActiveRecording } from "@/lib/capture/recorder";
+import {
+  deleteActiveRecording,
+  pauseActiveRecording,
+  recordAndUpload,
+  restartActiveRecording,
+  resumeActiveRecording,
+  stopActiveRecording,
+} from "@/lib/capture/recorder";
 
 /*
  * getDisplayMedia runs here in an offscreen doc created with the DISPLAY_MEDIA
@@ -10,7 +17,12 @@ onMessage("beginCapture", ({ data }) =>
   recordAndUpload(data, {
     onStatus: (status) => void sendMessage("recordingStatus", status),
     onResult: (result) => void sendMessage("recordingResult", result),
+    onActiveUpload: (upload) => void sendMessage("activeUploadChanged", upload),
   }),
 );
 
 onMessage("stopCapture", () => stopActiveRecording());
+onMessage("pauseCapture", () => pauseActiveRecording());
+onMessage("resumeCapture", () => resumeActiveRecording());
+onMessage("restartCapture", () => restartActiveRecording());
+onMessage("deleteCapture", () => deleteActiveRecording());

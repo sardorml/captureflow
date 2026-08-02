@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS recordings (
   -- Total counts (not unique) — keep MVP simple; uniqueness adds
   -- IP/cookie tracking + server-side dedupe state.
   view_count        INTEGER NOT NULL DEFAULT 0,
-  -- Loom-style header line above the player (e.g. "Brave Browser —
+  -- Header line above the player (e.g. "Brave Browser —
   -- Tab title"). Comes from the recording's selected source name; we
   -- store it verbatim and let the page layer format the date.
   title             TEXT,

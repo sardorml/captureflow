@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { RecordingResult, RecordingStatus } from "@/lib/storage";
+import { MAX_DURATION_MS } from "@/lib/capture/limits";
 import { DevicePickers } from "./DevicePickers";
 
 type RecorderPanelProps = {
@@ -7,8 +8,28 @@ type RecorderPanelProps = {
   result: RecordingResult | null;
   onStart: () => void;
   onStop: () => void;
-  onSignOut: () => void;
 };
+
+const SCREEN_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <rect
+      x="3"
+      y="5"
+      width="18"
+      height="12.5"
+      rx="2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path
+      d="M9 20.5h6"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
 
 const BUSY_LABEL: Partial<Record<RecordingStatus["kind"], string>> = {
   preparing: "Starting…",
@@ -52,7 +73,13 @@ function StatusLine({
     case "preparing":
       return <p className="cf-status">Choose a source in the picker…</p>;
     case "recording":
-      return <p className="cf-status">Recording… stop when you’re done.</p>;
+    case "paused":
+      return (
+        <p className="cf-status">
+          {status.kind === "paused" ? "Paused" : "Recording"} — control it from
+          the bar on the page.
+        </p>
+      );
     case "uploading":
       return <p className="cf-status">Uploading your recording…</p>;
     case "cancelled":
@@ -65,11 +92,7 @@ function StatusLine({
       );
     default:
       if (result?.ok) return <RecordingLink url={result.url} />;
-      return (
-        <p className="cf-status cf-status--muted">
-          Record your screen and get an instant recording link.
-        </p>
-      );
+      return null;
   }
 }
 
@@ -78,43 +101,25 @@ export function RecorderPanel({
   result,
   onStart,
   onStop,
-  onSignOut,
 }: RecorderPanelProps) {
-  const isRecording = status.kind === "recording";
+  const isLive = status.kind === "recording" || status.kind === "paused";
   const isBusy = status.kind === "preparing" || status.kind === "uploading";
 
   return (
-    <div className="cf-panel">
-      <header className="cf-header">
-        <div className="cf-brand">
-          <span className="cf-logo" aria-hidden />
-          CaptureFlow
-        </div>
-        <div className="cf-mode" role="tablist" aria-label="Capture mode">
-          <button type="button" className="cf-mode-btn is-active" aria-selected>
-            Video
-          </button>
-          <button
-            type="button"
-            className="cf-mode-btn"
-            disabled
-            title="Coming soon"
-          >
-            Screenshot
-          </button>
-        </div>
-      </header>
-
+    <>
       <section className="cf-section">
-        <span className="cf-label">Source</span>
-        <p className="cf-source">
-          Pick a screen, window, or browser tab when recording starts.
-        </p>
+        <div className="cf-row">
+          <span className="cf-row-icon" aria-hidden>
+            {SCREEN_ICON}
+          </span>
+          <span className="cf-row-label">Screen, window, or tab</span>
+          <span className="cf-row-note">Pick at start</span>
+        </div>
       </section>
 
       <DevicePickers />
 
-      {isRecording ? (
+      {isLive ? (
         <button type="button" className="cf-start cf-stop" onClick={onStop}>
           Stop Recording
         </button>
@@ -128,14 +133,11 @@ export function RecorderPanel({
           {BUSY_LABEL[status.kind] ?? "Start Recording"}
         </button>
       )}
+      <p className="cf-limit">
+        {Math.round(MAX_DURATION_MS / 60_000)} min recording limit
+      </p>
 
       <StatusLine status={status} result={result} />
-
-      <footer className="cf-footer">
-        <button type="button" className="cf-signout" onClick={onSignOut}>
-          Sign out
-        </button>
-      </footer>
-    </div>
+    </>
   );
 }

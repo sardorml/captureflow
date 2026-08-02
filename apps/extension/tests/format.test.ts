@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { formatBytes } from "../lib/format";
+import { formatBytes, formatClock } from "../lib/format";
+
+describe("formatClock", () => {
+  it("renders mm:ss with zero-padded seconds", () => {
+    expect(formatClock(0)).toBe("0:00");
+    expect(formatClock(9_000)).toBe("0:09");
+    expect(formatClock(65_000)).toBe("1:05");
+    expect(formatClock(30 * 60 * 1000)).toBe("30:00");
+  });
+
+  it("clamps negatives to zero", () => {
+    expect(formatClock(-5_000)).toBe("0:00");
+  });
+});
 
 describe("formatBytes", () => {
   it("renders bytes under 1 KiB without a decimal", () => {

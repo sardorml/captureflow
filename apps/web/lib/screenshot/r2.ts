@@ -77,3 +77,14 @@ export async function putScreenshotState(
 export function publicScreenshotUrl(id: string, r2BaseUrl: string): string {
   return `${r2BaseUrl}/${screenshotStorageKey(id)}`;
 }
+
+// Resolve the base per request: in dev the binding env carries the local
+// media-proxy override (.dev.vars), which process.env never sees.
+export async function publicScreenshotUrlFor(id: string): Promise<string> {
+  const env = await getCloudflareEnv();
+  const base =
+    env?.R2_PUBLIC_BASE_URL ??
+    process.env.R2_PUBLIC_BASE_URL ??
+    "https://cdn.captureflow.xyz";
+  return publicScreenshotUrl(id, base);
+}

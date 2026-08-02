@@ -1,7 +1,7 @@
 // upng-js has no published types. Declare the slim surface the
 // screenshot-compress module uses on the Electron main side: decode a
 // PNG buffer, project to RGBA, re-encode with `cnum: 256` to get
-// Loom-class palette PNG output.
+// compact indexed-palette PNG output.
 
 declare module "upng-js" {
   type EncodeBuffer = ArrayBuffer | Uint8Array;
