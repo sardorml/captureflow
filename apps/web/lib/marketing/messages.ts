@@ -62,7 +62,7 @@ export const MESSAGES = {
   },
   hero: {
     titlePrefix: "Open-Source",
-    titleMain: "Screen recorder",
+    titleMain: "video messaging",
     titleSuffix: "for everyone",
     subtitleLine1: "Easily record and share video messages with your",
     subtitleLine2: "teammates and customers to supercharge productivity.",
