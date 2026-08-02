@@ -29,7 +29,15 @@ export default defineConfig({
        */
       permissions: isFirefox
         ? ["storage"]
-        : ["storage", "offscreen", "scripting", "activeTab"],
+        : [
+            "storage",
+            "offscreen",
+            "scripting",
+            "activeTab",
+            // Records the current tab straight from a stream id, with no
+            // "Choose what to share" step. Chrome-only.
+            "tabCapture",
+          ],
       /*
        * Extension-context fetches to the API need host permission to skip
        * CORS/Private-Network-Access checks — Brave otherwise blocks extension

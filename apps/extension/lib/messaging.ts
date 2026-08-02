@@ -17,6 +17,11 @@ export type CaptureContext = {
   micId?: string;
   // Offscreen docs can't read storage, so the chosen surface rides the message.
   source?: CaptureSource;
+  /*
+   * Set only for the tab source: a chrome.tabCapture stream id the offscreen
+   * doc turns into a stream directly, skipping the getDisplayMedia picker.
+   */
+  tabStreamId?: string;
 };
 
 /*

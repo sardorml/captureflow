@@ -60,6 +60,24 @@ const deviceConstraint = (
 ): MediaTrackConstraints | boolean =>
   deviceId ? { deviceId: { ideal: deviceId } } : true;
 
+/*
+ * A chrome.tabCapture stream id is redeemed through getUserMedia's legacy
+ * chromeMediaSource constraints — there is no modern equivalent, and they are
+ * not in the standard MediaTrackConstraints, hence the cast.
+ */
+async function captureTabStream(streamId: string): Promise<MediaStream> {
+  return navigator.mediaDevices.getUserMedia({
+    video: {
+      mandatory: {
+        chromeMediaSource: "tab",
+        chromeMediaSourceId: streamId,
+        maxWidth: ENGINE_OUTPUT.screen.maxWidth,
+        maxHeight: ENGINE_OUTPUT.screen.maxHeight,
+      },
+    },
+  } as unknown as MediaStreamConstraints);
+}
+
 // Preselects a pane in the native picker; the viewer can still pick another.
 const DISPLAY_SURFACE = {
   screen: "monitor",
@@ -78,16 +96,20 @@ export async function recordAndUpload(
 
   let screenStream: MediaStream;
   try {
-    // Max constraints make the browser scale to the contract dims (aspect-fit);
-    // the native cursor is captured in-frame by default.
-    screenStream = await navigator.mediaDevices.getDisplayMedia({
-      video: {
-        width: { max: ENGINE_OUTPUT.screen.maxWidth },
-        height: { max: ENGINE_OUTPUT.screen.maxHeight },
-        ...(ctx.source ? { displaySurface: DISPLAY_SURFACE[ctx.source] } : {}),
-      },
-      audio: false,
-    });
+    screenStream = ctx.tabStreamId
+      ? await captureTabStream(ctx.tabStreamId)
+      : // Max constraints make the browser scale to the contract dims
+        // (aspect-fit); the native cursor is captured in-frame by default.
+        await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            width: { max: ENGINE_OUTPUT.screen.maxWidth },
+            height: { max: ENGINE_OUTPUT.screen.maxHeight },
+            ...(ctx.source
+              ? { displaySurface: DISPLAY_SURFACE[ctx.source] }
+              : {}),
+          },
+          audio: false,
+        });
   } catch (err) {
     sessionActive = false;
     // The picker's Cancel rejects with NotAllowedError — not a real failure.

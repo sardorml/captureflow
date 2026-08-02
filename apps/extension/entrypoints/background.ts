@@ -157,6 +157,27 @@ const NO_RECEIVER =
   /Receiving end does not exist|Could not establish connection/i;
 
 /*
+ * The tab source records straight from a stream id, so Chrome never shows the
+ * "Choose what to share" step. Resolved against the tab the user is on, before
+ * the overlay is torn down. Any failure falls back to the picker rather than
+ * blocking the start.
+ */
+async function tabStreamIdFor(tabId: number | undefined): Promise<undefined>;
+async function tabStreamIdFor(tabId: number): Promise<string | undefined>;
+async function tabStreamIdFor(
+  tabId: number | undefined,
+): Promise<string | undefined> {
+  if (tabId === undefined || !chrome.tabCapture?.getMediaStreamId) {
+    return undefined;
+  }
+  try {
+    return await chrome.tabCapture.getMediaStreamId({ targetTabId: tabId });
+  } catch {
+    return undefined;
+  }
+}
+
+/*
  * createDocument() resolves once the document exists, not once its module has
  * run and registered onMessage — the first send lands in that gap and rejects
  * with "Receiving end does not exist", which surfaced as a failed start.
@@ -370,6 +391,16 @@ export default defineBackground(() => {
       if (!session) return { ok: false, error: "Sign in to record." };
       const deviceId = await getDeviceId();
       const prefs = await getCapturePrefs();
+      // Resolved before the overlay closes, while the target tab is still the
+      // active one.
+      const [activeTab] =
+        prefs.source === "tab"
+          ? await chrome.tabs.query({ active: true, currentWindow: true })
+          : [undefined];
+      const tabStreamId =
+        activeTab?.id === undefined
+          ? undefined
+          : await tabStreamIdFor(activeTab.id);
       await setRecordingStatus({ kind: "preparing" });
       // The panel gets out of the way before the native picker appears.
       await closeRecorderOverlay();
@@ -385,6 +416,7 @@ export default defineBackground(() => {
         cameraId: prefs.cameraId,
         micId: prefs.micId,
         source: prefs.source,
+        tabStreamId,
       }).catch((error) => void reportFailure(errorMessage(error)));
       return { ok: true };
     } catch (error) {

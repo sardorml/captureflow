@@ -86,24 +86,29 @@ type SourceOption = {
   id: CaptureSource;
   label: string;
   icon: React.ReactNode;
+  // The tab source records straight away; the other two have to go through
+  // Chrome's own picker, which only ever opens on the pane we ask for.
+  hint: string;
 };
 
 const DEFAULT_SOURCE: SourceOption = {
   id: "screen",
   label: "Full screen",
   icon: SCREEN_ICON,
+  hint: "Pick at start",
 };
 
 const SOURCES: SourceOption[] = [
   DEFAULT_SOURCE,
-  { id: "window", label: "Window", icon: WINDOW_ICON },
-  { id: "tab", label: "Browser tab", icon: TAB_ICON },
+  { id: "window", label: "Window", icon: WINDOW_ICON, hint: "Pick at start" },
+  { id: "tab", label: "This tab", icon: TAB_ICON, hint: "Records now" },
 ];
 
 /*
- * Picks which pane the native picker opens on. Chrome treats displaySurface as
- * a hint rather than a constraint, so the row says "opens on" — the viewer can
- * still choose something else once the picker is up.
+ * "This tab" records immediately from a chrome.tabCapture stream id. Full
+ * screen and Window can't: getDisplayMedia always shows Chrome's own picker,
+ * and displaySurface only chooses which pane it opens on. The row says which
+ * of the two you get rather than implying they behave alike.
  */
 function SourcePicker() {
   const [source, setSource] = useState<CaptureSource>("screen");
@@ -132,7 +137,7 @@ function SourcePicker() {
         <span className="flex-1 truncate text-sm font-medium text-foreground">
           {selected.label}
         </span>
-        <span className="text-xs text-muted">Opens on</span>
+        <span className="text-xs text-muted">{selected.hint}</span>
       </Dropdown.Trigger>
       <Dropdown.Popover placement="bottom start" className="min-w-56">
         <Menu
