@@ -90,6 +90,19 @@
   --field-background: var(--cf-field);
 }
 
+/* A field only reads as a field if it sits above whatever it's on, and on a
+ * card or a dialog the container already occupies that step — HeroUI paints
+ * both from --surface/--overlay and keeps one absolute field colour, so an
+ * Input inside one comes out the same value as the thing behind it. Take the
+ * step above there. Inheritance, not specificity, decides: the nearest
+ * ancestor setting the property wins. */
+.card,
+.modal__dialog,
+.drawer__dialog,
+.popover {
+  --field-background: var(--cf-panel-2);
+}
+
 /* Palette fallback. The codebase still has ~900 hardcoded `*-neutral-*`
  * references — too many to migrate at once. Inverting the neutral scale
  * here flips those utilities into a coherent light palette while the
