@@ -61,8 +61,10 @@ export function MicMeter({ enabled }: { enabled: boolean }) {
       maxValue={1}
       size="sm"
       aria-label="Microphone input level"
+      /* Pinned along the row's bottom edge; the row clips it to the rounding. */
+      className="pointer-events-none absolute inset-x-0 bottom-0"
     >
-      <Meter.Track>
+      <Meter.Track className="rounded-none bg-transparent">
         <Meter.Fill className="transition-[width] duration-75 ease-linear" />
       </Meter.Track>
     </Meter>

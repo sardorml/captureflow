@@ -42,6 +42,11 @@ async function hasMediaGrant(): Promise<boolean> {
   }
 }
 
+/* HeroUI already paints the selected pill via .tabs__indicator; only the icon
+   colour is ours. No background on the list itself — the indicator sits at
+   z-index -1 and a parent background would bury it. */
+const TAB_CLASS = "px-4 data-[selected=true]:text-accent";
+
 const HOME_ICON = (
   <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
     <path
@@ -195,10 +200,14 @@ export function App() {
             popup ends up scrolled with the left edge cut off. The bang is
             load-bearing: that selector outranks a plain utility. */}
         <Tabs.List className="w-max min-w-0!">
-          <Tabs.Tab id="video" aria-label="Record video">
+          <Tabs.Tab id="video" aria-label="Record video" className={TAB_CLASS}>
             {VIDEO_ICON}
           </Tabs.Tab>
-          <Tabs.Tab id="screenshot" aria-label="Capture screenshot">
+          <Tabs.Tab
+            id="screenshot"
+            aria-label="Capture screenshot"
+            className={TAB_CLASS}
+          >
             {PHOTO_ICON}
           </Tabs.Tab>
         </Tabs.List>

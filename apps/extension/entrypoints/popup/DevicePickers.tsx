@@ -1,12 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Button,
-  ListBox,
-  Select,
-  Switch,
-  Typography,
-} from "@heroui/react";
+import { Alert, Button, ListBox, Select, Typography } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
 import {
   getCameraBlocked,
@@ -85,6 +78,9 @@ type DeviceRowProps = {
   on: boolean;
   onToggle: (on: boolean) => void;
   onSelect: (deviceId: string) => void;
+  // Rendered along the row's bottom edge rather than under it, so the level
+  // reads as part of the mic row instead of a stray bar.
+  meter?: React.ReactNode;
 };
 
 function DeviceRow({
@@ -95,6 +91,7 @@ function DeviceRow({
   on,
   onToggle,
   onSelect,
+  meter,
 }: DeviceRowProps) {
   // Device labels stay empty until the origin holds a grant; fall back to the
   // static row label rather than rendering a picker of blank entries.
@@ -102,7 +99,7 @@ function DeviceRow({
 
   return (
     <div
-      className="flex items-center gap-2.5 rounded-xl bg-surface px-3 py-2 data-[on=true]:outline data-[on=true]:outline-border"
+      className="relative flex items-center gap-2.5 overflow-hidden rounded-xl bg-surface px-3 py-2.5 data-[on=true]:outline data-[on=true]:outline-border"
       data-on={on}
     >
       <span className="flex text-foreground" aria-hidden>
@@ -137,12 +134,24 @@ function DeviceRow({
           {label}
         </Typography>
       )}
-      <Switch
-        size="sm"
-        isSelected={on}
-        onChange={onToggle}
+      {/* A labelled On/Off pill rather than a switch: at this row height the
+          track read as decoration, and the state now says itself. */}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on}
         aria-label={label}
-      />
+        onClick={() => onToggle(!on)}
+        className={[
+          "shrink-0 cursor-pointer rounded-md border px-1.5 py-0.5 text-[11px] font-semibold transition-colors motion-reduce:transition-none",
+          on
+            ? "border-success text-success"
+            : "border-separator text-muted hover:text-foreground",
+        ].join(" ")}
+      >
+        {on ? "On" : "Off"}
+      </button>
+      {meter}
     </div>
   );
 }
@@ -226,14 +235,8 @@ export function DevicePickers() {
         on={prefs.mic}
         onToggle={(on) => void update({ mic: on })}
         onSelect={(micId) => void update({ micId })}
+        meter={<MicMeter enabled={prefs.mic} />}
       />
-      <MicMeter enabled={prefs.mic} />
-      {prefs.camera && !blocked && (
-        <Typography type="body-xs" color="muted">
-          Your camera bubble appears on normal web pages — not on internal
-          browser pages like this one.
-        </Typography>
-      )}
     </section>
   );
 }

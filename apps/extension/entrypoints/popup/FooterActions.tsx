@@ -37,7 +37,7 @@ const MORE_ICON = (
   </svg>
 );
 
-const TOOL_CLASS = "h-auto flex-col gap-1 px-3.5 py-1.5 text-[11px]";
+const TOOL_CLASS = "h-auto w-full flex-col gap-1 px-2 py-1.5 text-[11px]";
 
 function ComingSoon({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
@@ -45,7 +45,7 @@ function ComingSoon({ icon, label }: { icon: React.ReactNode; label: string }) {
       {/* A disabled button emits no pointer events, so the tooltip anchors to a
           wrapper instead of the control itself. */}
       <Tooltip.Trigger>
-        <span className="inline-flex">
+        <span className="inline-flex w-full">
           <Button variant="ghost" isDisabled className={TOOL_CLASS}>
             {icon}
             {label}
@@ -68,7 +68,7 @@ export function FooterActions() {
   };
 
   return (
-    <footer className="flex justify-around border-t border-separator pt-2.5">
+    <footer className="grid grid-cols-3 items-start gap-1">
       <ComingSoon icon={EFFECTS_ICON} label="Effects" />
       <ComingSoon icon={BLUR_ICON} label="Blur" />
       <Dropdown>

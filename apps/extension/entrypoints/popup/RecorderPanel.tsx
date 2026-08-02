@@ -32,6 +32,11 @@ const SCREEN_ICON = (
   </svg>
 );
 
+/* The one committing action in the panel, so it carries weight the blue
+   accent doesn't: warm fill, squared-off radius, heavier label. */
+const START_CLASS =
+  "h-11 rounded-xl text-[15px] font-semibold [--button-bg:#e8563a] [--button-bg-hover:#d94b30] [--button-bg-pressed:#c44227]";
+
 const BUSY_LABEL: Partial<Record<RecordingStatus["kind"], string>> = {
   preparing: "Starting…",
   uploading: "Uploading…",
@@ -140,7 +145,13 @@ export function RecorderPanel({
       <DevicePickers />
 
       {isLive ? (
-        <Button variant="danger" size="lg" fullWidth onPress={onStop}>
+        <Button
+          variant="danger"
+          size="lg"
+          fullWidth
+          onPress={onStop}
+          className="h-11 rounded-xl text-[15px] font-semibold"
+        >
           Stop Recording
         </Button>
       ) : (
@@ -150,6 +161,7 @@ export function RecorderPanel({
           fullWidth
           isDisabled={isBusy}
           onPress={onStart}
+          className={START_CLASS}
         >
           {isBusy && <Spinner size="sm" color="current" />}
           {BUSY_LABEL[status.kind] ?? "Start Recording"}
