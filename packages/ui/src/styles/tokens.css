@@ -18,8 +18,8 @@
 
 :root,
 [data-theme="dark"] {
-  --cf-canvas: #0a0a0a; /* page background */
-  --cf-canvas-2: #171717; /* sidebar / header */
+  --cf-canvas: #121212; /* page background */
+  --cf-canvas-2: #0a0a0a; /* sidebar / header — chrome sits under the content */
   --cf-panel: #1f1f1f; /* cards / popovers */
   --cf-panel-2: #262626; /* raised surface */
 
@@ -76,12 +76,12 @@
 
 /* HeroUI paints form fields from `--field-*`, and in dark its
  * `--field-background` is the SAME value as `--surface` with a transparent
- * 0px border — so an Input inside a Card is invisible. Recess fields to the
- * canvas and give them a real border, both resolved per theme from the blocks
- * above. Deliberately unprefixed: these are HeroUI's own theming hooks, not
- * tokens of ours. */
+ * 0px border — so an Input inside a Card is invisible. Raise fields above the
+ * card instead and give them a real border, both resolved per theme from the
+ * blocks above. Deliberately unprefixed: these are HeroUI's own theming hooks,
+ * not tokens of ours. */
 :root {
-  --field-background: var(--cf-canvas);
+  --field-background: var(--cf-panel-2);
   --field-border: var(--cf-line-strong);
   --field-border-width: 1px;
 }

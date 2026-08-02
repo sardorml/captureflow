@@ -104,10 +104,10 @@ export default async function SettingsPage() {
 function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
     <section>
-      <Typography weight="semibold" className="mb-2 block">
+      <Typography type="body-sm" weight="semibold" className="mb-2 block">
         {label}
       </Typography>
-      <Card className="p-6">{children}</Card>
+      <Card className="p-5">{children}</Card>
     </section>
   );
 }
