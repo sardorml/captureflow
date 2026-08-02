@@ -184,7 +184,7 @@ export function AuthForm({
               onChange={setEmail}
             >
               <Label className="sr-only">Email address</Label>
-              <InputGroup className="h-[38px] min-h-0 rounded-full text-[13px]">
+              <InputGroup className="h-[38px] min-h-0 text-[13px]">
                 <InputGroup.Prefix>
                   <Mail size={14} />
                 </InputGroup.Prefix>

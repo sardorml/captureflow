@@ -24,6 +24,7 @@
   --cf-canvas-2: #0a0a0a; /* sidebar / header */
   --cf-panel: #1f1f1f; /* cards / popovers */
   --cf-panel-2: #262626; /* raised surface */
+  --cf-field: #171717; /* form fields */
 
   --cf-fg: #f5f5f5;
   --cf-fg-strong: #fafafa; /* headings */
@@ -54,6 +55,7 @@
   --cf-canvas-2: #ffffff;
   --cf-panel: #ffffff;
   --cf-panel-2: #f5f5f5;
+  --cf-field: #f5f5f5;
 
   --cf-fg: #171717;
   --cf-fg-strong: #0a0a0a;
@@ -77,15 +79,15 @@
 }
 
 /* HeroUI paints form fields from `--field-*`, and in dark its
- * `--field-background` is the SAME value as `--surface` with a transparent
- * 0px border — so an Input inside a Card is invisible. Raise fields above the
- * card instead and give them a real border, both resolved per theme from the
- * blocks above. Deliberately unprefixed: these are HeroUI's own theming hooks,
- * not tokens of ours. */
+ * `--field-background` is the SAME value as `--surface` — so an Input inside a
+ * Card is invisible. Point it at our own field fill instead, which sits below
+ * the card in dark and above it in light. That fill is what separates a field
+ * from whatever it sits on, so HeroUI's borderless default stands.
+ * Deliberately unprefixed: this is HeroUI's own theming hook, not a token of
+ * ours. Its `bg-field` utility reads the same value, for the few fields built
+ * by hand. */
 :root {
-  --field-background: var(--cf-panel-2);
-  --field-border: var(--cf-line-strong);
-  --field-border-width: 1px;
+  --field-background: var(--cf-field);
 }
 
 /* Palette fallback. The codebase still has ~900 hardcoded `*-neutral-*`

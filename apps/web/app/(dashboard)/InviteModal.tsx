@@ -123,11 +123,11 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
                   Make sure they sign in with the same address.
                 </Typography.Paragraph>
 
-                {/* The container is the field: it owns the border, background
-                    and focus ring, so the inner control is a bare <input>. A
-                    HeroUI Input here nests its own border/shadow inside this
-                    one — its chrome can't be fully stripped from the wrapper. */}
-                <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-line-strong bg-canvas-2 p-2 transition-colors focus-within:border-accent motion-reduce:transition-none">
+                {/* The container is the field: it owns the fill and the focus
+                    ring, so the inner control is a bare <input>. A HeroUI Input
+                    here nests its own background/shadow inside this one — its
+                    chrome can't be fully stripped from the wrapper. */}
+                <div className="flex flex-wrap items-center gap-1.5 rounded-md bg-field p-2 transition-shadow focus-within:ring-2 focus-within:ring-focus motion-reduce:transition-none">
                   {emails.map((email) => (
                     <Chip key={email} size="sm">
                       {email}

@@ -158,7 +158,7 @@ export function RequestAccess({
               maxLength={500}
               rows={3}
               placeholder="Hi — I'd like a copy of this screenshot from the design review."
-              className="mt-2 w-full resize-none rounded-md border border-line-strong bg-neutral-950 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="focus:ring-focus mt-2 w-full resize-none rounded-md bg-field px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-2"
             />
             <button
               type="submit"

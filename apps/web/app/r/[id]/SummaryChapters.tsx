@@ -185,7 +185,7 @@ export function SummaryChapters({
           )}
         </div>
         {summaryEditing ? (
-          <div className="mt-3 space-y-2 rounded-lg border border-line-strong bg-neutral-950 p-3">
+          <div className="focus-within:ring-focus mt-3 space-y-2 rounded-lg bg-field p-3 focus-within:ring-2">
             <textarea
               ref={summaryTextareaRef}
               value={summaryDraft}
@@ -248,7 +248,7 @@ export function SummaryChapters({
           )}
         </div>
         {chaptersEditing ? (
-          <div className="mt-3 space-y-2 rounded-lg border border-line-strong bg-neutral-950 p-3">
+          <div className="focus-within:ring-focus mt-3 space-y-2 rounded-lg bg-field p-3 focus-within:ring-2">
             <textarea
               value={chaptersDraft}
               onChange={(e) => setChaptersDraft(e.target.value)}

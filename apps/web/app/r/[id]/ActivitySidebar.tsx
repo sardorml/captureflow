@@ -335,8 +335,7 @@ export function ActivitySidebar({
         ) : (
           <form
             onSubmit={submitComment}
-            className="relative rounded-2xl border border-line p-3 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent"
-            style={{ background: "var(--cf-canvas-2)" }}
+            className="focus-within:ring-focus relative rounded-2xl bg-field p-3 focus-within:ring-2"
           >
             <div className="flex items-start gap-2.5">
               <Avatar
