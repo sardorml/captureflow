@@ -75,11 +75,11 @@ export function HeroSection() {
             <InstallButton
               href={DOWNLOAD_URL}
               label={m.hero.installMac}
-              icon={<AppleLogo className="size-4" />}
+              icon={<AppleLogo className="size-[17px]" />}
               location="hero_macos"
               primary
             />
-            <span className="text-sm text-fg-muted">{m.hero.installOr}</span>
+            <span className="text-fg-muted text-sm">{m.hero.installOr}</span>
             <InstallButton
               href={CHROME_WEBSTORE_URL ?? lh("/download")}
               label={m.hero.installChrome}
@@ -153,12 +153,15 @@ function InstallButton({
      recede into the dark page next to the blue primary. Setting .button's own
      colour vars rather than bg and text utilities, so hover and pressed follow
      from the same place instead of needing their own variants. */
+  /* Explicit height: HeroUI's lg is 44px and drops to 40 at md, which reads
+     undersized under a headline this large. */
+  const base = "h-12 gap-2 rounded-full px-6 text-[15px] font-medium";
   const className = buttonVariants({
     variant: primary ? "primary" : "tertiary",
     size: "lg",
     className: primary
-      ? "gap-2 rounded-full"
-      : "gap-2 rounded-full [--button-bg:var(--cf-inverse)] [--button-fg:var(--cf-on-inverse)] [--button-bg-hover:#e5e5e5] [--button-bg-pressed:#d4d4d4]",
+      ? base
+      : `${base} [--button-bg:var(--cf-inverse)] [--button-fg:var(--cf-on-inverse)] [--button-bg-hover:#e5e5e5] [--button-bg-pressed:#d4d4d4]`,
   });
   const onClick = () => track("marketing_cta_clicked", { location });
 
