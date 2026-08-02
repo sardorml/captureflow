@@ -56,11 +56,14 @@ export function Card({
   );
 }
 
+/* default maps to tertiary, not secondary: both take the same grey fill, but
+   secondary paints its label with the soft accent, and blue on grey reads as
+   a disabled button rather than an alternative action. */
 const VARIANT_FOR_TYPE = {
   primary: "primary",
   text: "ghost",
   link: "ghost",
-  default: "secondary",
+  default: "tertiary",
 } as const;
 
 type AntButtonType = keyof typeof VARIANT_FOR_TYPE;

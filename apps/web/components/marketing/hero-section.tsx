@@ -149,8 +149,11 @@ function InstallButton({
   location: string;
   primary?: boolean;
 }) {
+  /* tertiary, not secondary: both take the same grey fill, but secondary
+     paints its label with the soft accent — blue on grey reads as disabled
+     next to the primary button. tertiary leaves it at currentColor. */
   const className = buttonVariants({
-    variant: primary ? "primary" : "secondary",
+    variant: primary ? "primary" : "tertiary",
     size: "lg",
     className: "gap-2 rounded-full",
   });

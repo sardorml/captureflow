@@ -198,7 +198,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
                   href={lh("/login")}
                   onClick={closeMenu}
                   className={buttonVariants({
-                    variant: "secondary",
+                    variant: "tertiary",
                     fullWidth: true,
                   })}
                 >

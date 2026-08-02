@@ -186,7 +186,7 @@ function ChromeInstall() {
       target={published ? "_blank" : undefined}
       rel={published ? "noreferrer" : undefined}
       className={buttonVariants({
-        variant: "secondary",
+        variant: "tertiary",
         size: "lg",
         className: "gap-2",
       })}
