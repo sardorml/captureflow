@@ -24,7 +24,7 @@ export function DashboardShell({
           {header}
         </header>
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[920px] p-6">{children}</div>
+          <div className="mx-auto max-w-[1152px] p-8">{children}</div>
         </main>
       </div>
     </div>

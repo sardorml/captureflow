@@ -48,7 +48,9 @@ export default async function SettingsPage() {
     : null;
 
   return (
-    <>
+    /* Narrower than the shell's grid pages: a column of forms reads badly at
+       full width, where a label and its field end up an inch apart. */
+    <div className="mx-auto max-w-[880px]">
       <PageHeader
         title="Settings"
         subtitle="Manage your account and preferences."
@@ -97,7 +99,7 @@ export default async function SettingsPage() {
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }
 
