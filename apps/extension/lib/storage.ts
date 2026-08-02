@@ -1,8 +1,16 @@
+/*
+ * Which surface the picker opens on. Chrome treats displaySurface as a hint —
+ * it preselects the pane, the viewer can still pick anything — so this is a
+ * starting point, not a constraint.
+ */
+export type CaptureSource = "screen" | "window" | "tab";
+
 export type CapturePrefs = {
   camera: boolean;
   mic: boolean;
   cameraId?: string;
   micId?: string;
+  source?: CaptureSource;
 };
 
 /*
@@ -46,7 +54,7 @@ const recordingResultItem = storage.defineItem<RecordingResult | null>(
 
 const capturePrefsItem = storage.defineItem<CapturePrefs>(
   "local:capturePrefs",
-  { fallback: { camera: false, mic: false } },
+  { fallback: { camera: false, mic: false, source: "screen" } },
 );
 
 const cameraBlockedItem = storage.defineItem<boolean>("local:cameraBlocked", {

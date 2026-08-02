@@ -355,6 +355,7 @@ export default defineBackground(() => {
         mic: prefs.mic,
         cameraId: prefs.cameraId,
         micId: prefs.micId,
+        source: prefs.source,
       }).catch((error) => void reportFailure(errorMessage(error)));
       return { ok: true };
     } catch (error) {

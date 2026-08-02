@@ -60,6 +60,13 @@ const deviceConstraint = (
 ): MediaTrackConstraints | boolean =>
   deviceId ? { deviceId: { ideal: deviceId } } : true;
 
+// Preselects a pane in the native picker; the viewer can still pick another.
+const DISPLAY_SURFACE = {
+  screen: "monitor",
+  window: "window",
+  tab: "browser",
+} as const;
+
 export async function recordAndUpload(
   ctx: CaptureContext,
   cb: Callbacks,
@@ -77,6 +84,7 @@ export async function recordAndUpload(
       video: {
         width: { max: ENGINE_OUTPUT.screen.maxWidth },
         height: { max: ENGINE_OUTPUT.screen.maxHeight },
+        ...(ctx.source ? { displaySurface: DISPLAY_SURFACE[ctx.source] } : {}),
       },
       audio: false,
     });

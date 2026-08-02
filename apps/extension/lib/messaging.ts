@@ -1,6 +1,7 @@
 import { defineExtensionMessaging } from "@webext-core/messaging";
 import type {
   ActiveUpload,
+  CaptureSource,
   RecordingResultPayload,
   RecordingStatus,
 } from "./storage";
@@ -14,6 +15,8 @@ export type CaptureContext = {
   mic: boolean;
   cameraId?: string;
   micId?: string;
+  // Offscreen docs can't read storage, so the chosen surface rides the message.
+  source?: CaptureSource;
 };
 
 /*

@@ -1,6 +1,20 @@
-import { useState } from "react";
-import { Button, Link, Spinner, Typography } from "@heroui/react";
-import type { RecordingResult, RecordingStatus } from "@/lib/storage";
+import { useEffect, useState } from "react";
+import {
+  Button,
+  Dropdown,
+  Link,
+  Menu,
+  Spinner,
+  Typography,
+} from "@heroui/react";
+import {
+  getCapturePrefs,
+  setCapturePrefs,
+  watchCapturePrefs,
+  type CaptureSource,
+  type RecordingResult,
+  type RecordingStatus,
+} from "@/lib/storage";
 import { MAX_DURATION_MS } from "@/lib/capture/limits";
 import { DevicePickers } from "./DevicePickers";
 
@@ -10,6 +24,37 @@ type RecorderPanelProps = {
   onStart: () => void;
   onStop: () => void;
 };
+
+const WINDOW_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <rect
+      x="3.5"
+      y="4.5"
+      width="17"
+      height="15"
+      rx="2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path d="M3.5 10h17M10 10v9.5" stroke="currentColor" strokeWidth="1.8" />
+  </svg>
+);
+
+const TAB_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <rect
+      x="3"
+      y="7"
+      width="18"
+      height="11"
+      rx="2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
 
 const SCREEN_ICON = (
   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
@@ -36,6 +81,76 @@ const SCREEN_ICON = (
    accent doesn't: warm fill, squared-off radius, heavier label. */
 const START_CLASS =
   "h-11 rounded-xl text-[15px] font-semibold [--button-bg:#e8563a] [--button-bg-hover:#d94b30] [--button-bg-pressed:#c44227]";
+
+type SourceOption = {
+  id: CaptureSource;
+  label: string;
+  icon: React.ReactNode;
+};
+
+const DEFAULT_SOURCE: SourceOption = {
+  id: "screen",
+  label: "Full screen",
+  icon: SCREEN_ICON,
+};
+
+const SOURCES: SourceOption[] = [
+  DEFAULT_SOURCE,
+  { id: "window", label: "Window", icon: WINDOW_ICON },
+  { id: "tab", label: "Browser tab", icon: TAB_ICON },
+];
+
+/*
+ * Picks which pane the native picker opens on. Chrome treats displaySurface as
+ * a hint rather than a constraint, so the row says "opens on" — the viewer can
+ * still choose something else once the picker is up.
+ */
+function SourcePicker() {
+  const [source, setSource] = useState<CaptureSource>("screen");
+
+  useEffect(() => {
+    void getCapturePrefs().then((p) => setSource(p.source ?? "screen"));
+    return watchCapturePrefs((p) => setSource(p.source ?? "screen"));
+  }, []);
+
+  const choose = (next: CaptureSource) => {
+    setSource(next);
+    void getCapturePrefs().then((p) => setCapturePrefs({ ...p, source: next }));
+  };
+
+  const selected = SOURCES.find((s) => s.id === source) ?? DEFAULT_SOURCE;
+
+  return (
+    <Dropdown>
+      <Dropdown.Trigger
+        aria-label="Capture source"
+        className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl bg-surface px-3 py-2.5 text-start outline-none"
+      >
+        <span className="flex text-foreground" aria-hidden>
+          {selected.icon}
+        </span>
+        <span className="flex-1 truncate text-sm font-medium text-foreground">
+          {selected.label}
+        </span>
+        <span className="text-xs text-muted">Opens on</span>
+      </Dropdown.Trigger>
+      <Dropdown.Popover placement="bottom start" className="min-w-56">
+        <Menu
+          selectionMode="single"
+          selectedKeys={[source]}
+          onAction={(key) => choose(String(key) as CaptureSource)}
+        >
+          {SOURCES.map((s) => (
+            <Menu.Item key={s.id} id={s.id}>
+              {s.icon}
+              {s.label}
+            </Menu.Item>
+          ))}
+        </Menu>
+      </Dropdown.Popover>
+    </Dropdown>
+  );
+}
 
 const BUSY_LABEL: Partial<Record<RecordingStatus["kind"], string>> = {
   preparing: "Starting…",
@@ -130,17 +245,7 @@ export function RecorderPanel({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2.5 rounded-xl bg-surface px-3 py-2.5">
-        <span className="flex text-foreground" aria-hidden>
-          {SCREEN_ICON}
-        </span>
-        <Typography type="body-sm" weight="medium" className="flex-1">
-          Screen, window, or tab
-        </Typography>
-        <Typography type="body-xs" color="muted">
-          Pick at start
-        </Typography>
-      </div>
+      <SourcePicker />
 
       <DevicePickers />
 
