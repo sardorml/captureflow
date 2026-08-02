@@ -64,9 +64,8 @@ export const MESSAGES = {
     titlePrefix: "Open-Source",
     titleMain: "video messaging",
     titleSuffix: "for everyone",
-    subtitleLine1: "Record a quick walkthrough and share the link the moment",
-    subtitleLine2:
-      "you stop — teammates and customers catch up without a meeting.",
+    subtitleLine1: "Record your screen, get a link, and send it.",
+    subtitleLine2: "Your teammates and customers can watch whenever they want.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Add to Chrome",
     installMac: "Download for free",
