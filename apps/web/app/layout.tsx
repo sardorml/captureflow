@@ -11,7 +11,6 @@ const inter = Inter({
 });
 import { SITE_URL } from "@/lib/site";
 import { AnalyticsProvider } from "./analytics-provider";
-import { AntdProvider } from "./antd-provider";
 import "./globals.css";
 import "./material-symbols-subset.css";
 
@@ -67,7 +66,7 @@ export default async function RootLayout({
     <html lang="en" data-theme={theme} className={inter.variable}>
       <body>
         <AnalyticsProvider />
-        <AntdProvider initialTheme={theme}>{children}</AntdProvider>
+        {children}
       </body>
     </html>
   );

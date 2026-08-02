@@ -2,7 +2,7 @@
 
 import { useState, type ReactElement } from "react";
 import { Check, Link2 } from "lucide-react";
-import { Button } from "antd";
+import { Button } from "@heroui/react";
 
 export type CopyLinkButtonProps = {
   url: string;
@@ -17,7 +17,7 @@ export function CopyLinkButton({
 }: CopyLinkButtonProps): ReactElement {
   const [copied, setCopied] = useState(false);
 
-  const handleClick = async (): Promise<void> => {
+  const handlePress = async (): Promise<void> => {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -28,12 +28,8 @@ export function CopyLinkButton({
   };
 
   return (
-    <Button
-      type="primary"
-      onClick={handleClick}
-      icon={copied ? <Check size={16} /> : <Link2 size={16} />}
-      className={className}
-    >
+    <Button variant="primary" onPress={handlePress} className={className}>
+      {copied ? <Check size={16} /> : <Link2 size={16} />}
       {copied ? "Copied" : label}
     </Button>
   );

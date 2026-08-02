@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDuration } from "@/lib/format";
-import { Card, Empty, Flex, Tag } from "antd";
+import { Card, Chip, EmptyState } from "@heroui/react";
 import { Film } from "lucide-react";
 import type { DashboardRecordingRow } from "@/lib/recordings-db";
 import type { Visibility } from "@/app/VisibilityDialog";
@@ -37,8 +37,11 @@ export function RecordingsList({
 }: RecordingsListProps) {
   if (recordings.length === 0) {
     return (
-      <Card style={{ marginTop: 24 }}>
-        <Empty description="You haven't created any recording links yet. Record in the CaptureFlow desktop app and your recordings will show up here." />
+      <Card className="mt-6 p-6">
+        <EmptyState className="text-center text-sm text-fg-muted">
+          You haven&rsquo;t created any recording links yet. Record in the
+          CaptureFlow desktop app and your recordings will show up here.
+        </EmptyState>
       </Card>
     );
   }
@@ -116,37 +119,22 @@ function RecordingCard({
           playsInline
         />
       ) : (
-        <Flex
-          align="center"
-          justify="center"
-          style={{ height: "100%", width: "100%" }}
-          className="text-fg-subtle"
-        >
+        <div className="flex h-full w-full items-center justify-center text-fg-subtle">
           <Film size={24} />
-        </Flex>
+        </div>
       )}
       {recording.durationMs != null && (
-        <Tag
-          style={{
-            position: "absolute",
-            right: 8,
-            bottom: 8,
-            margin: 0,
-            background: "rgba(0,0,0,0.75)",
-            color: "#fff",
-            border: "none",
-          }}
+        <Chip
+          size="sm"
+          className="absolute right-2 bottom-2 border-none bg-black/75 text-white"
         >
           {formatDuration(recording.durationMs)}
-        </Tag>
+        </Chip>
       )}
       {recording.state !== "ready" && (
-        <Tag
-          color="warning"
-          style={{ position: "absolute", left: 8, top: 8, margin: 0 }}
-        >
+        <Chip size="sm" color="warning" className="absolute top-2 left-2">
           {recording.state}
-        </Tag>
+        </Chip>
       )}
     </>
   );

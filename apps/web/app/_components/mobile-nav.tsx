@@ -51,7 +51,7 @@ export function MobileNav({
   }, [open]);
 
   const linkClass =
-    "rounded-lg px-3 py-2.5 font-medium text-fg-muted transition-colors hover:bg-overlay hover:text-fg";
+    "rounded-lg px-3 py-2.5 font-medium text-fg-muted transition-colors hover:bg-tint hover:text-fg";
 
   return (
     <div ref={ref} className="flex items-center gap-1 md:hidden">
@@ -61,7 +61,7 @@ export function MobileNav({
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-overlay hover:text-fg"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-tint hover:text-fg"
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>

@@ -10,7 +10,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { Button, Dropdown, Flex, Space, Tooltip, type MenuProps } from "antd";
+import { Button, ButtonGroup, Dropdown, buttonVariants } from "@heroui/react";
 import {
   ShareVisibilityModal,
   type Visibility,
@@ -108,66 +108,66 @@ export function ScreenshotActions({
     });
   };
 
-  const moreItems: MenuProps["items"] = [
-    {
-      key: "delete",
-      icon: <Trash2 size={16} />,
-      danger: true,
-      disabled: deleting,
-      label: deleting ? "Deleting…" : "Delete screenshot",
-      onClick: onDelete,
-    },
-  ];
-
   return (
     <>
-      <Flex align="center" gap={8}>
+      <div className="flex items-center gap-2">
         {isOwner && (
-          <Button icon={<Pencil size={16} />} href={editUrl}>
+          <a
+            href={editUrl}
+            className={buttonVariants({ variant: "secondary" })}
+          >
+            <Pencil size={16} />
             Edit screenshot
-          </Button>
+          </a>
         )}
         {signedIn ? (
-          <Space.Compact>
-            <Button
-              type="primary"
-              icon={<Users size={18} />}
-              onClick={() => setOpen(true)}
-            >
+          <ButtonGroup>
+            <Button variant="primary" onPress={() => setOpen(true)}>
+              <Users size={18} />
               Share
             </Button>
-            <Tooltip title={copied ? "Link copied" : "Copy link"}>
-              <Button
-                type="primary"
-                aria-label={copied ? "Link copied" : "Copy link"}
-                icon={copied ? <Check size={18} /> : <Link2 size={18} />}
-                onClick={copyLink}
-              />
-            </Tooltip>
-          </Space.Compact>
+            {/* See RecordingActions: a Tooltip.Trigger wrapper breaks
+                ButtonGroup's first/last-child radii. */}
+            <Button
+              variant="primary"
+              isIconOnly
+              aria-label={copied ? "Link copied" : "Copy link"}
+              onPress={copyLink}
+            >
+              <ButtonGroup.Separator />
+              {copied ? <Check size={18} /> : <Link2 size={18} />}
+            </Button>
+          </ButtonGroup>
         ) : (
-          <Button
-            icon={copied ? <Check size={16} /> : <Link2 size={16} />}
-            onClick={copyLink}
-          >
+          <Button variant="secondary" onPress={copyLink}>
+            {copied ? <Check size={16} /> : <Link2 size={16} />}
             {copied ? "Copied" : "Copy link"}
           </Button>
         )}
 
         {isOwner && (
-          <Dropdown
-            menu={{ items: moreItems }}
-            trigger={["click"]}
-            placement="bottomRight"
-          >
-            <Button
-              type="text"
+          <Dropdown>
+            <Dropdown.Trigger
               aria-label="More actions"
-              icon={<MoreHorizontal size={18} />}
-            />
+              className={buttonVariants({ variant: "ghost", isIconOnly: true })}
+            >
+              <MoreHorizontal size={18} />
+            </Dropdown.Trigger>
+            <Dropdown.Popover placement="bottom end">
+              <Dropdown.Menu>
+                <Dropdown.Item
+                  isDisabled={deleting}
+                  onAction={onDelete}
+                  className="text-danger"
+                >
+                  <Trash2 size={16} />
+                  {deleting ? "Deleting…" : "Delete screenshot"}
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown.Popover>
           </Dropdown>
         )}
-      </Flex>
+      </div>
 
       <ShareVisibilityModal
         open={open}

@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { Tooltip } from "antd";
+import { Tooltip } from "@heroui/react";
 import { formatRelativeLong as formatRelative } from "@/lib/format";
 
 export type ContentBylineProps = {
@@ -21,8 +21,11 @@ export function ContentByline({
           <span className="text-fg-subtle">·</span>
         </>
       ) : null}
-      <Tooltip title={absolute}>
-        <span className="cursor-default">{relative}</span>
+      <Tooltip>
+        <Tooltip.Trigger className="cursor-default" tabIndex={0}>
+          {relative}
+        </Tooltip.Trigger>
+        <Tooltip.Content>{absolute}</Tooltip.Content>
       </Tooltip>
     </p>
   );

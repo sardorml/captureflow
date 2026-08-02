@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Lock, Mail, ArrowRight } from "lucide-react";
-import { Alert, Button, Card, Input, Result, Spin } from "antd";
+import {
+  Alert,
+  Button,
+  Card,
+  Spinner,
+  TextArea,
+  buttonVariants,
+} from "@heroui/react";
 
 type Props = {
   appWebUrl: string;
@@ -91,7 +98,7 @@ export function RequestAccess({
     return (
       <div className="flex min-h-screen items-center justify-center bg-canvas px-6 py-16">
         <div className="flex flex-col items-center gap-4">
-          <Spin />
+          <Spinner />
           <p className="text-sm text-fg-subtle">Loading recording…</p>
         </div>
       </div>
@@ -100,9 +107,9 @@ export function RequestAccess({
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-6 py-16">
-      <Card style={{ width: "100%", maxWidth: 448 }}>
+      <Card className="w-full max-w-md p-6">
         <div className="flex flex-col items-center text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-overlay text-fg-muted ring-1 ring-line-strong">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-tint text-fg-muted ring-1 ring-line-strong">
             <Lock className="h-6 w-6" aria-hidden />
           </span>
           <h1 className="mt-6 text-2xl font-semibold tracking-tight text-fg-strong">
@@ -121,24 +128,27 @@ export function RequestAccess({
               Sign in with your work email — if you&apos;re already on the
               owner&apos;s team you&apos;ll be let straight in.
             </p>
-            <Button
-              type="primary"
-              size="large"
-              block
+            <a
               href={signInUrl}
-              icon={<ArrowRight size={16} />}
-              iconPosition="end"
-              style={{ marginTop: 20 }}
+              className={buttonVariants({
+                variant: "primary",
+                size: "lg",
+                fullWidth: true,
+                className: "mt-5",
+              })}
             >
               Sign in to continue
-            </Button>
+              <ArrowRight size={16} />
+            </a>
           </div>
         ) : sent ? (
-          <Result
-            status="success"
-            title="Request sent"
-            subTitle="We let the owner know. You'll get an email if they grant access."
-          />
+          <div className="mt-8 text-center">
+            <p className="text-lg font-semibold text-fg-strong">Request sent</p>
+            <p className="mt-1 text-sm text-fg-muted">
+              We let the owner know. You&apos;ll get an email if they grant
+              access.
+            </p>
+          </div>
         ) : (
           <form onSubmit={onSubmit} className="mt-8">
             <div className="flex items-center gap-2 text-sm text-fg-muted">
@@ -156,27 +166,32 @@ export function RequestAccess({
             >
               Add a note <span className="text-fg-subtle">(optional)</span>
             </label>
-            <Input.TextArea
+            <TextArea
               id="access-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               maxLength={500}
               rows={3}
               placeholder="Hi — I'd like to watch this recording from yesterday's review."
-              style={{ marginTop: 8, resize: "none" }}
+              className="mt-2 resize-none"
             />
             <Button
-              type="primary"
-              size="large"
-              block
-              htmlType="submit"
-              loading={submitting}
-              style={{ marginTop: 16 }}
+              variant="primary"
+              size="lg"
+              fullWidth
+              type="submit"
+              isDisabled={submitting}
+              className="mt-4"
             >
+              {submitting && <Spinner size="sm" color="current" />}
               {submitting ? "Sending…" : "Request access"}
             </Button>
             {error && (
-              <Alert type="error" message={error} showIcon className="mt-3" />
+              <Alert status="danger" className="mt-3">
+                <Alert.Content>
+                  <Alert.Title>{error}</Alert.Title>
+                </Alert.Content>
+              </Alert>
             )}
           </form>
         )}

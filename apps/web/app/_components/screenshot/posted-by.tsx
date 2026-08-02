@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { Avatar } from "antd";
+import { Avatar } from "@heroui/react";
 import { avatarInitial, displayName } from "./display-name";
 
 export type PostedByProps = {
@@ -18,7 +18,9 @@ export function PostedBy({
     <div
       className={`hidden items-center gap-2 border-l border-line pl-4 sm:flex ${className}`}
     >
-      <Avatar size={32}>{avatarInitial(owner)}</Avatar>
+      <Avatar className="h-8 w-8">
+        <Avatar.Fallback>{avatarInitial(owner)}</Avatar.Fallback>
+      </Avatar>
       <div className="leading-tight">
         <p className="text-[11px] uppercase tracking-wider text-fg-subtle">
           Posted by

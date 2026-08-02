@@ -2,7 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 import { ChevronsUpDown, LayoutGrid } from "lucide-react";
-import { Button, Dropdown, type MenuProps } from "antd";
+import { Dropdown, buttonVariants } from "@heroui/react";
 import type { WorkspaceMembership } from "@captureflow/quota";
 import { switchWorkspaceAction } from "./switch-workspace-action";
 
@@ -33,71 +33,47 @@ export function WorkspaceSwitcher({
     formRef.current.requestSubmit();
   };
 
-  const items: MenuProps["items"] = memberships.map((m) => ({
-    key: m.workspace_id,
-    label: (
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <span className="text-fg" style={{ fontWeight: 500 }}>
-          {m.workspace_name}
-        </span>
-        <span className="text-fg-muted" style={{ fontSize: 12 }}>
-          {m.role === "owner" ? "You own this" : "You joined"}
-        </span>
-      </div>
-    ),
-  }));
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <Dropdown
-        trigger={["click"]}
-        menu={{
-          items,
-          selectable: true,
-          selectedKeys: [currentWorkspaceId],
-          onClick: ({ key }) => choose(key),
-        }}
-      >
-        <Button
+    <div className="flex flex-col gap-1.5">
+      <Dropdown>
+        <Dropdown.Trigger
           aria-label="Switch workspace"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 8,
-            width: "100%",
-          }}
+          className={buttonVariants({
+            variant: "secondary",
+            className: "w-full justify-between gap-2",
+          })}
         >
-          <span
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              minWidth: 0,
-            }}
-          >
+          <span className="flex min-w-0 items-center gap-2">
             <LayoutGrid size={16} />
-            <span
-              style={{
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {current.workspace_name}
-            </span>
+            <span className="truncate">{current.workspace_name}</span>
           </span>
-          <ChevronsUpDown size={14} />
-        </Button>
+          <ChevronsUpDown size={14} className="shrink-0" />
+        </Dropdown.Trigger>
+        <Dropdown.Popover className="min-w-56">
+          <Dropdown.Menu
+            selectionMode="single"
+            selectedKeys={[currentWorkspaceId]}
+            onAction={(key) => choose(String(key))}
+          >
+            {memberships.map((m) => (
+              <Dropdown.Item key={m.workspace_id} id={m.workspace_id}>
+                <span className="flex flex-col">
+                  <span className="font-medium text-fg">
+                    {m.workspace_name}
+                  </span>
+                  <span className="text-xs text-fg-muted">
+                    {m.role === "owner" ? "You own this" : "You joined"}
+                  </span>
+                </span>
+              </Dropdown.Item>
+            ))}
+          </Dropdown.Menu>
+        </Dropdown.Popover>
       </Dropdown>
 
       {inviteSlot}
 
-      <form
-        ref={formRef}
-        action={switchWorkspaceAction}
-        style={{ display: "none" }}
-      >
+      <form ref={formRef} action={switchWorkspaceAction} className="hidden">
         <input type="hidden" name="workspaceId" value="" />
       </form>
     </div>

@@ -13,7 +13,13 @@ import type {
   RecordingComment,
   RecordingReaction,
 } from "@/lib/recording/types";
-import { Avatar, Button, Dropdown, Popover, theme, type MenuProps } from "antd";
+import {
+  Avatar,
+  Button,
+  Dropdown,
+  Popover,
+  buttonVariants,
+} from "@heroui/react";
 
 const AVATAR_TONES = [
   "#2563eb",
@@ -87,7 +93,6 @@ export function ActivitySidebar({
   const [error, setError] = useState<string | null>(null);
   const [posting, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const { token } = theme.useToken();
 
   const handleDeleteComment = async (id: number) => {
     if (deletingId != null) return;
@@ -168,38 +173,10 @@ export function ActivitySidebar({
     return out;
   })();
 
-  const mentionItems: MenuProps["items"] = [
-    {
-      type: "group",
-      label: "Mention",
-      children:
-        participants.length === 0
-          ? [
-              {
-                key: "none",
-                disabled: true,
-                label: "No one has reacted or commented yet",
-              },
-            ]
-          : participants.map((p) => ({
-              key: p.userId,
-              label: (
-                <span className="flex items-center gap-2">
-                  <Avatar
-                    size={24}
-                    style={{
-                      backgroundColor: toneFromSeed(p.userId),
-                      fontSize: 10,
-                    }}
-                  >
-                    {initials(p.userName)}
-                  </Avatar>
-                  <span className="truncate">{p.userName}</span>
-                </span>
-              ),
-            })),
-    },
-  ];
+  const mentionCandidates = participants.map((p) => ({
+    key: p.userId,
+    name: p.userName,
+  }));
 
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const [mentionOpen, setMentionOpen] = useState(false);
@@ -351,32 +328,25 @@ export function ActivitySidebar({
 
       <div className="sticky bottom-0 z-10 border-t border-line bg-canvas-2 p-4 backdrop-blur-md supports-[backdrop-filter]:bg-canvas-2/85">
         {!viewerSignedIn ? (
-          <Button
-            type="primary"
-            size="large"
-            block
-            onClick={onSignIn}
-            icon={<Sparkles size={16} />}
-          >
+          <Button variant="primary" size="lg" fullWidth onPress={onSignIn}>
+            <Sparkles size={16} />
             Sign in to react &amp; comment
           </Button>
         ) : (
           <form
             onSubmit={submitComment}
             className="relative rounded-2xl border border-line p-3 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent"
-            style={{ background: token.colorBgContainer }}
+            style={{ background: "var(--cf-canvas-2)" }}
           >
             <div className="flex items-start gap-2.5">
               <Avatar
-                size={28}
-                src={viewerImageUrl || undefined}
-                className="mt-0.5 shrink-0"
-                style={{
-                  backgroundColor: toneFromSeed(viewerUserId),
-                  fontSize: 11,
-                }}
+                className="h-7 w-7 mt-0.5 shrink-0"
+                style={{ backgroundColor: toneFromSeed(viewerUserId) }}
               >
-                {initials(viewerName ?? "You")}
+                {viewerImageUrl && <Avatar.Image src={viewerImageUrl} alt="" />}
+                <Avatar.Fallback className="text-[11px]">
+                  {initials(viewerName ?? "You")}
+                </Avatar.Fallback>
               </Avatar>
               <textarea
                 ref={(el) => {
@@ -394,60 +364,76 @@ export function ActivitySidebar({
             <div className="mt-2.5 flex items-center justify-between">
               <div className="flex items-center gap-0.5">
                 <Dropdown
-                  trigger={["click"]}
-                  placement="topLeft"
-                  open={mentionOpen}
+                  isOpen={mentionOpen}
                   onOpenChange={(o) => {
                     setMentionOpen(o);
                     if (o) setEmojiOpen(false);
                   }}
-                  menu={{
-                    items: mentionItems,
-                    onClick: ({ key }) => {
-                      const p = participants.find((x) => x.userId === key);
-                      if (p) insertAtCaret(`@${p.userName} `);
-                      setMentionOpen(false);
-                    },
-                  }}
                 >
-                  <Button
-                    type="text"
-                    size="small"
+                  <Dropdown.Trigger
                     aria-label="Mention someone"
-                    icon={<AtSign className="h-4 w-4" />}
-                  />
+                    className={buttonVariants({
+                      variant: "ghost",
+                      size: "sm",
+                      isIconOnly: true,
+                    })}
+                  >
+                    <AtSign className="h-4 w-4" />
+                  </Dropdown.Trigger>
+                  <Dropdown.Popover placement="top start">
+                    <Dropdown.Menu
+                      onAction={(key) => {
+                        const p = participants.find((x) => x.userId === key);
+                        if (p) insertAtCaret(`@${p.userName} `);
+                        setMentionOpen(false);
+                      }}
+                    >
+                      {mentionCandidates.length === 0 ? (
+                        <Dropdown.Item id="none" isDisabled>
+                          No one has reacted or commented yet
+                        </Dropdown.Item>
+                      ) : (
+                        mentionCandidates.map((c) => (
+                          <Dropdown.Item key={c.key} id={c.key}>
+                            {c.name}
+                          </Dropdown.Item>
+                        ))
+                      )}
+                    </Dropdown.Menu>
+                  </Dropdown.Popover>
                 </Dropdown>
                 <Popover
-                  trigger="click"
-                  placement="topLeft"
-                  open={emojiOpen}
+                  isOpen={emojiOpen}
                   onOpenChange={(o) => {
                     setEmojiOpen(o);
                     if (o) setMentionOpen(false);
                   }}
-                  styles={{ content: { padding: 0 } }}
-                  content={
+                >
+                  <Popover.Trigger className="inline-flex">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      isIconOnly
+                      aria-label="Insert emoji"
+                    >
+                      <Smile className="h-4 w-4" />
+                    </Button>
+                  </Popover.Trigger>
+                  <Popover.Content placement="top start" className="p-0">
                     <EmojiPickerThemed
                       onPick={(emoji) => {
                         insertAtCaret(emoji);
                         setEmojiOpen(false);
                       }}
                     />
-                  }
-                >
-                  <Button
-                    type="text"
-                    size="small"
-                    aria-label="Insert emoji"
-                    icon={<Smile className="h-4 w-4" />}
-                  />
+                  </Popover.Content>
                 </Popover>
               </div>
               <Button
-                htmlType="submit"
-                type={draft.trim() ? "primary" : "text"}
-                size="small"
-                disabled={posting || !draft.trim()}
+                type="submit"
+                variant={draft.trim() ? "primary" : "ghost"}
+                size="sm"
+                isDisabled={posting || !draft.trim()}
               >
                 {posting
                   ? "Posting…"
@@ -514,7 +500,7 @@ function EmptyState({
   };
   return (
     <div className="flex h-full flex-col items-center justify-center py-16 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-overlay text-fg-muted ring-1 ring-line-strong">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-tint text-fg-muted ring-1 ring-line-strong">
         <MessageSquare className="h-5 w-5" />
       </div>
       <p className="mt-4 text-base font-semibold text-fg">
@@ -530,7 +516,7 @@ function EmptyState({
           <button
             type="button"
             onClick={focusComposer}
-            className="inline-flex items-center rounded border border-line-strong bg-overlay px-1.5 py-0.5 font-mono text-[10px] font-semibold text-fg transition-colors hover:border-blue-500/40 hover:text-blue-600 dark:hover:text-blue-300"
+            className="inline-flex items-center rounded border border-line-strong bg-tint px-1.5 py-0.5 font-mono text-[10px] font-semibold text-fg transition-colors hover:border-blue-500/40 hover:text-blue-600 dark:hover:text-blue-300"
             title="Focus the comment box"
           >
             C
@@ -557,14 +543,13 @@ function ReactionRow({
   return (
     <div className="flex items-start gap-2.5">
       <Avatar
-        size={28}
-        src={reaction.userImage || undefined}
-        style={{
-          backgroundColor: toneFromSeed(reaction.userId ?? name),
-          fontSize: 11,
-        }}
+        className="h-7 w-7"
+        style={{ backgroundColor: toneFromSeed(reaction.userId ?? name) }}
       >
-        {initials(name)}
+        {reaction.userImage && <Avatar.Image src={reaction.userImage} alt="" />}
+        <Avatar.Fallback className="text-[11px]">
+          {initials(name)}
+        </Avatar.Fallback>
       </Avatar>
       <div className="min-w-0 flex-1">
         <p className="text-sm text-fg">
@@ -601,14 +586,15 @@ function CommentRow({
   return (
     <div className="group flex items-start gap-2.5">
       <Avatar
-        size={28}
-        src={comment.userImage || undefined}
+        className="h-7 w-7"
         style={{
           backgroundColor: toneFromSeed(comment.userId ?? comment.userName),
-          fontSize: 11,
         }}
       >
-        {initials(comment.userName)}
+        {comment.userImage && <Avatar.Image src={comment.userImage} alt="" />}
+        <Avatar.Fallback className="text-[11px]">
+          {initials(comment.userName)}
+        </Avatar.Fallback>
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -651,7 +637,7 @@ function TimestampChip({ ms, onClick }: { ms: number; onClick: () => void }) {
       type="button"
       onClick={onClick}
       title="Jump to this moment"
-      className="rounded bg-overlay px-1.5 py-0.5 font-mono text-[11px] text-fg ring-1 ring-line-strong transition-colors hover:bg-blue-500/15 hover:text-blue-700 hover:ring-blue-500/30 dark:hover:text-blue-100"
+      className="rounded bg-tint px-1.5 py-0.5 font-mono text-[11px] text-fg ring-1 ring-line-strong transition-colors hover:bg-blue-500/15 hover:text-blue-700 hover:ring-blue-500/30 dark:hover:text-blue-100"
     >
       {formatTimestamp(ms)}
     </button>

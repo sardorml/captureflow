@@ -1,24 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { Paragraph, Text, Title } from "./typography";
 import Link from "next/link";
-import {
-  Button,
-  Card,
-  Col,
-  Flex,
-  Modal,
-  Row,
-  Space,
-  Tag,
-  Typography,
-} from "antd";
+import { Col, Flex, Row, Space } from "./layout";
+import { Modal } from "@heroui/react";
+import { Button, Card, Tag } from "./ui";
 import { MessageSquarePlus } from "lucide-react";
 import { ROADMAP_GROUPS } from "@/lib/marketing/constants";
 import {
   MarketingSection,
   SECTION_SUBTITLE_STYLE,
   SECTION_TITLE_STYLE,
+  Eyebrow,
 } from "./_shared";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
@@ -59,18 +53,16 @@ export function RoadmapSection() {
         style={{ marginBottom: 48 }}
       >
         <div style={{ textAlign: "left" }}>
-          <Typography.Title
-            level={2}
-            style={{ ...SECTION_TITLE_STYLE, marginBottom: 12 }}
-          >
+          <Eyebrow>{m.roadmap.eyebrow}</Eyebrow>
+          <Title level={2} style={{ ...SECTION_TITLE_STYLE, marginBottom: 12 }}>
             {m.roadmap.heading}
-          </Typography.Title>
-          <Typography.Paragraph
+          </Title>
+          <Paragraph
             type="secondary"
             style={{ ...SECTION_SUBTITLE_STYLE, maxWidth: 760, margin: 0 }}
           >
             {m.roadmap.subtitle}
-          </Typography.Paragraph>
+          </Paragraph>
         </div>
         <Link href={lh("/suggest-feature")}>
           <Button icon={<MessageSquarePlus size={16} />}>
@@ -85,7 +77,7 @@ export function RoadmapSection() {
           return (
             <Col key={group.title} xs={24} md={8}>
               <Flex align="center" gap={8} style={{ marginBottom: 16 }}>
-                <Typography.Text
+                <Text
                   strong
                   style={{
                     textTransform: "uppercase",
@@ -93,7 +85,7 @@ export function RoadmapSection() {
                   }}
                 >
                   {groupTitle}
-                </Typography.Text>
+                </Text>
                 <Tag>{group.badgeLabel}</Tag>
               </Flex>
 
@@ -108,6 +100,11 @@ export function RoadmapSection() {
                       key={item.label}
                       size="small"
                       hoverable
+                      /* 0 here, not the shim's default 20 — HeroUI's card
+                         already insets 16px, which is the whole padding a
+                         one-line row needs. 36px made these three times
+                         taller than their content. */
+                      styles={{ body: { padding: 0 } }}
                       onClick={() =>
                         setSelected({
                           label: localizedItem.label,
@@ -118,9 +115,7 @@ export function RoadmapSection() {
                       }
                     >
                       <Flex align="center" justify="space-between" gap={8}>
-                        <Typography.Text strong>
-                          {localizedItem.label}
-                        </Typography.Text>
+                        <Text strong>{localizedItem.label}</Text>
                         <Tag
                           color={CATEGORY_COLOR[item.category]}
                           style={{ marginInlineEnd: 0 }}
@@ -138,23 +133,33 @@ export function RoadmapSection() {
       </Row>
 
       <Modal
-        open={selected !== null}
-        onCancel={() => setSelected(null)}
-        footer={null}
-        title={selected?.label}
-        destroyOnHidden
+        isOpen={selected !== null}
+        onOpenChange={(next) => {
+          if (!next) setSelected(null);
+        }}
       >
-        {selected ? (
-          <>
-            <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
-              {selected.status} ·{" "}
-              {m.roadmap.categories[CATEGORY_KEY[selected.category]]}
-            </Typography.Paragraph>
-            <Typography.Paragraph style={{ marginBottom: 0 }}>
-              {selected.description}
-            </Typography.Paragraph>
-          </>
-        ) : null}
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading>{selected?.label}</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
+                {selected ? (
+                  <>
+                    <Paragraph type="secondary" style={{ marginBottom: 12 }}>
+                      {selected.status} ·{" "}
+                      {m.roadmap.categories[CATEGORY_KEY[selected.category]]}
+                    </Paragraph>
+                    <Paragraph style={{ marginBottom: 0 }}>
+                      {selected.description}
+                    </Paragraph>
+                  </>
+                ) : null}
+              </Modal.Body>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </MarketingSection>
   );

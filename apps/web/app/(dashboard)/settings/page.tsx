@@ -1,6 +1,6 @@
 import { getWorkspaceById } from "@captureflow/quota";
 import { redirect } from "next/navigation";
-import { Card, Divider, Flex } from "antd";
+import { Card, Separator } from "@heroui/react";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
@@ -41,37 +41,51 @@ export default async function WorkspaceSettingsPage() {
         subtitle="Branding, sharing policies, and content access."
         showRecord={false}
       />
-      <Flex vertical gap={24} style={{ marginTop: 24 }}>
-        <Card
-          title="General"
-          extra={
+      <div className="mt-6 flex flex-col gap-6">
+        <Card>
+          <Card.Header className="flex flex-wrap items-center justify-between gap-2">
+            <Card.Title>General</Card.Title>
             <span className="text-sm text-fg-muted">
               Applied to every new recording and screenshot in this workspace.
             </span>
-          }
-        >
-          <WorkspaceNameForm initialName={workspace.name} />
-          <Divider />
-          <WorkspaceLogoForm logoUrl={logoUrl} workspaceName={workspace.name} />
+          </Card.Header>
+          <Card.Content>
+            <WorkspaceNameForm initialName={workspace.name} />
+            <Separator className="my-6" />
+            <WorkspaceLogoForm
+              logoUrl={logoUrl}
+              workspaceName={workspace.name}
+            />
+          </Card.Content>
         </Card>
 
-        <Card title="Access & viewing">
-          <p className="mb-4 text-sm text-fg-muted">
-            Control whether content from this workspace can leave the team.
-          </p>
-          <AccessPolicy allowPublicLinks={workspace.allow_public_links} />
+        <Card>
+          <Card.Header>
+            <Card.Title>Access &amp; viewing</Card.Title>
+          </Card.Header>
+          <Card.Content>
+            <p className="mb-4 text-sm text-fg-muted">
+              Control whether content from this workspace can leave the team.
+            </p>
+            <AccessPolicy allowPublicLinks={workspace.allow_public_links} />
+          </Card.Content>
         </Card>
 
-        <Card title="Recording access">
-          <p className="mb-4 text-sm text-fg-muted">
-            Decide whether teammates can post recordings + screenshots into this
-            workspace.
-          </p>
-          <MemberUploadsPolicy
-            allowMemberUploads={workspace.allow_member_uploads}
-          />
+        <Card>
+          <Card.Header>
+            <Card.Title>Recording access</Card.Title>
+          </Card.Header>
+          <Card.Content>
+            <p className="mb-4 text-sm text-fg-muted">
+              Decide whether teammates can post recordings + screenshots into
+              this workspace.
+            </p>
+            <MemberUploadsPolicy
+              allowMemberUploads={workspace.allow_member_uploads}
+            />
+          </Card.Content>
         </Card>
-      </Flex>
+      </div>
     </>
   );
 }

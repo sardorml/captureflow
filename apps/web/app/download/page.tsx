@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { headers } from "next/headers";
 import { Download, ArrowUpRight, Terminal, Package } from "lucide-react";
-import { Button, Card, Col, Flex, Row, Tag } from "antd";
-import { readThemeFromCookieHeader } from "@captureflow/ui";
+import { Card, Chip, buttonVariants } from "@heroui/react";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
 import { Text, Title, Paragraph } from "@/components/marketing/typography";
 import { PageShell } from "@/components/marketing/page-shell";
@@ -40,13 +38,12 @@ const OTHER = [
 ];
 
 export default async function DownloadPage() {
-  const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
   const m = MESSAGES.download;
 
   return (
     <I18nProvider>
-      <PageShell theme={theme}>
-        <Flex vertical align="center" gap={28} style={{ textAlign: "center" }}>
+      <PageShell>
+        <div className="flex flex-col items-center gap-7 text-center">
           <Image
             src="/logo.png"
             alt="CaptureFlow"
@@ -77,146 +74,85 @@ export default async function DownloadPage() {
             </Paragraph>
           </div>
 
-          <Flex vertical align="center" gap={12}>
-            <Button
-              type="primary"
-              size="large"
+          <div className="flex flex-col items-center gap-3">
+            <a
               href={DOWNLOAD_URL}
               target="_blank"
               rel="noreferrer"
-              icon={<Download size={18} />}
+              className={buttonVariants({ variant: "primary", size: "lg" })}
             >
+              <Download size={18} />
               {m.button}
-            </Button>
+            </a>
 
-            <Flex wrap align="center" justify="center" gap={12}>
-              <Button
-                size="large"
-                disabled
-                aria-label="Windows app — coming soon"
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <SoonButton
+                label="Windows app"
                 icon={<WindowsLogo className="h-[16px] w-[16px]" />}
-              >
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  Windows app
-                  <Tag style={{ margin: 0 }}>Soon</Tag>
-                </span>
-              </Button>
-              <Button
-                size="large"
-                disabled
-                aria-label="Chrome extension — coming soon"
+              />
+              <SoonButton
+                label="Chrome extension"
                 icon={<ChromeLogo className="h-[18px] w-[18px]" />}
-              >
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  Chrome extension
-                  <Tag style={{ margin: 0 }}>Soon</Tag>
-                </span>
-              </Button>
-              <Button
-                size="large"
-                disabled
-                aria-label="Firefox extension — coming soon"
+              />
+              <SoonButton
+                label="Firefox extension"
                 icon={<FirefoxLogo className="h-[18px] w-[18px]" />}
-              >
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  Firefox extension
-                  <Tag style={{ margin: 0 }}>Soon</Tag>
-                </span>
-              </Button>
-            </Flex>
+              />
+            </div>
 
             <Text type="secondary" style={{ fontSize: 14 }}>
               {m.requirements}
             </Text>
-          </Flex>
-        </Flex>
+          </div>
+        </div>
 
         <div style={{ marginTop: 56 }}>
           <Title level={4} style={{ textAlign: "center" }}>
             {m.afterTitle}
           </Title>
-          <Flex
-            vertical
-            gap={12}
-            style={{ maxWidth: 420, marginInline: "auto", marginTop: 20 }}
-          >
+          <div className="mx-auto mt-5 flex max-w-105 flex-col gap-3">
             {m.afterSteps.map((step, i) => (
-              <Flex key={step} align="center" gap={12}>
-                <Tag
-                  style={{
-                    width: 26,
-                    height: 26,
-                    margin: 0,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: "50%",
-                    fontWeight: 600,
-                  }}
+              <div key={step} className="flex items-center gap-3">
+                <Chip
+                  size="sm"
+                  className="h-6.5 w-6.5 justify-center rounded-full font-semibold"
                 >
                   {i + 1}
-                </Tag>
+                </Chip>
                 <Text>{step}</Text>
-              </Flex>
+              </div>
             ))}
-          </Flex>
+          </div>
         </div>
 
         <div style={{ marginTop: 56 }}>
           <Title level={4} style={{ textAlign: "center" }}>
             Other ways to get it
           </Title>
-          <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {OTHER.map(({ icon: Icon, title, body, href }) => (
-              <Col key={title} xs={24} sm={12}>
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ display: "block", height: "100%" }}
-                >
-                  <Card
-                    hoverable
-                    size="small"
-                    styles={{ body: { padding: 20 } }}
-                  >
-                    <Flex align="flex-start" justify="space-between">
-                      <Text type="secondary">
-                        <Icon size={22} />
-                      </Text>
-                      <Text type="secondary">
-                        <ArrowUpRight size={16} />
-                      </Text>
-                    </Flex>
-                    <Title level={5} style={{ marginTop: 16, marginBottom: 4 }}>
-                      {title}
-                    </Title>
-                    <Paragraph type="secondary" style={{ margin: 0 }}>
-                      {body}
-                    </Paragraph>
-                  </Card>
-                </a>
-              </Col>
+              <a
+                key={title}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                className="block h-full"
+              >
+                <Card className="h-full p-5 transition-colors hover:bg-tint">
+                  <div className="flex items-start justify-between text-fg-muted">
+                    <Icon size={22} />
+                    <ArrowUpRight size={16} />
+                  </div>
+                  <Title level={5} style={{ marginTop: 16, marginBottom: 4 }}>
+                    {title}
+                  </Title>
+                  <Paragraph type="secondary" style={{ margin: 0 }}>
+                    {body}
+                  </Paragraph>
+                </Card>
+              </a>
             ))}
-          </Row>
+          </div>
         </div>
 
         <Paragraph
@@ -229,5 +165,24 @@ export default async function DownloadPage() {
         </Paragraph>
       </PageShell>
     </I18nProvider>
+  );
+}
+
+function SoonButton({ label, icon }: { label: string; icon: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      disabled
+      aria-label={`${label} — coming soon`}
+      className={buttonVariants({
+        variant: "secondary",
+        size: "lg",
+        className: "gap-1.5",
+      })}
+    >
+      {icon}
+      {label}
+      <Chip size="sm">Soon</Chip>
+    </button>
   );
 }

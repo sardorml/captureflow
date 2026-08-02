@@ -2,7 +2,7 @@
 
 import { useActionState, useRef } from "react";
 import { Upload } from "lucide-react";
-import { Avatar, Button, Flex, Typography } from "antd";
+import { Avatar, Button, Spinner, Typography } from "@heroui/react";
 import { initials } from "@/lib/format";
 import {
   removeWorkspaceLogoAction,
@@ -31,55 +31,58 @@ export function WorkspaceLogoForm({
   };
 
   return (
-    <Flex gap={24} wrap align="flex-start" justify="space-between">
-      <Flex vertical gap={4} flex={1} style={{ minWidth: 240 }}>
-        <Typography.Text strong>Workspace logo</Typography.Text>
-        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+    <div className="flex flex-wrap items-start justify-between gap-6">
+      <div className="flex min-w-60 flex-1 flex-col gap-1">
+        <Typography weight="semibold">Workspace logo</Typography>
+        <Typography type="body-xs" color="muted">
           Shown next to your workspace name. PNG, JPEG, WebP, GIF, or SVG. Max 2
           MB.
-        </Typography.Text>
-      </Flex>
-      <Flex align="center" gap={16} style={{ width: "100%", maxWidth: 384 }}>
-        <Avatar shape="square" size={56} src={logoUrl ?? undefined}>
-          {initials(workspaceName)}
+        </Typography>
+      </div>
+      <div className="flex w-full max-w-96 items-center gap-4">
+        <Avatar className="h-14 w-14 rounded-lg">
+          {logoUrl && <Avatar.Image src={logoUrl} alt={workspaceName} />}
+          <Avatar.Fallback>{initials(workspaceName)}</Avatar.Fallback>
         </Avatar>
-        <Flex vertical gap={8} flex={1} align="stretch">
+        <div className="flex flex-1 flex-col items-stretch gap-2">
           <form action={formAction}>
             <input
               ref={fileRef}
               type="file"
               name="logo"
               accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-              style={{ display: "none" }}
+              className="hidden"
               onChange={submitOnChange}
             />
-            <Flex gap={8} align="center" justify="flex-end">
+            <div className="flex items-center justify-end gap-2">
               <Button
-                icon={<Upload size={14} />}
-                loading={pending}
-                onClick={() => fileRef.current?.click()}
+                variant="secondary"
+                isDisabled={pending}
+                onPress={() => fileRef.current?.click()}
               >
+                {pending ? (
+                  <Spinner size="sm" color="current" />
+                ) : (
+                  <Upload size={14} />
+                )}
                 {pending ? "Uploading…" : logoUrl ? "Replace" : "Upload logo"}
               </Button>
               {logoUrl && (
                 <form action={removeWorkspaceLogoAction}>
-                  <Button type="text" danger htmlType="submit" size="small">
+                  <Button variant="ghost" type="submit" size="sm">
                     Remove
                   </Button>
                 </form>
               )}
-            </Flex>
+            </div>
           </form>
           {state.error && (
-            <Typography.Text
-              type="danger"
-              style={{ fontSize: 12, textAlign: "right" }}
-            >
+            <span className="text-right text-xs text-danger">
               {state.error}
-            </Typography.Text>
+            </span>
           )}
-        </Flex>
-      </Flex>
-    </Flex>
+        </div>
+      </div>
+    </div>
   );
 }

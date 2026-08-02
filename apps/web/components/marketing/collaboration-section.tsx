@@ -1,22 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Paragraph, Text } from "./typography";
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import {
-  Card,
-  Col,
-  Collapse,
-  ConfigProvider,
-  Row,
-  theme,
-  Typography,
-} from "antd";
+import { Col, Row } from "./layout";
+import { Card } from "./ui";
+import { TOKENS } from "./tokens";
 import {
   ArrowUp,
   ArrowUpRight,
   Camera,
-  Check,
   ChevronLeft,
   ChevronRight,
   Droplets,
@@ -28,7 +22,6 @@ import {
   RefreshCw,
   Scan,
   Scissors,
-  Sparkle,
   Square,
   Type as TypeIcon,
   Users,
@@ -50,13 +43,10 @@ type Feature = {
 
 type Category = {
   id: string; // anchor target — nav #share / #screenshot land here
-  num: string;
   kind: "share" | "screenshot" | "workspaces";
   title: string;
   features: Feature[];
 };
-
-const ORDER: ReadonlyArray<string> = ["share", "screenshot", "workspaces"];
 
 const SHARE_URLS: Record<ShareKey, string> = {
   editor: "captureflow.xyz/s/8kx2pnq4",
@@ -73,7 +63,6 @@ const SCREENSHOT_URLS: Record<ScreenshotKey, string> = {
 const CATEGORIES: Category[] = [
   {
     id: "share",
-    num: "01",
     kind: "share",
     title: "Shareable recordings",
     features: [
@@ -99,7 +88,6 @@ const CATEGORIES: Category[] = [
   },
   {
     id: "screenshot",
-    num: "02",
     kind: "screenshot",
     title: "Capture screenshots",
     features: [
@@ -125,7 +113,6 @@ const CATEGORIES: Category[] = [
   },
   {
     id: "workspaces",
-    num: "03",
     kind: "workspaces",
     title: "Team workspaces",
     features: [
@@ -152,90 +139,35 @@ const CATEGORIES: Category[] = [
 ];
 
 export function CollaborationSection() {
-  const m = useMessages();
-  const [activeKey, setActiveKey] = useState<string>("share");
-
-  useEffect(() => {
-    const sync = () => {
-      const hash = window.location.hash.replace("#", "");
-      if (!ORDER.includes(hash)) return;
-      setActiveKey(hash);
-      /*
-       * The target row drifts upward as the previously-open row collapses, so
-       * follow it each frame instead of a single scroll that would overshoot or
-       * read as a scroll-back.
-       */
-      const el = document.getElementById(hash);
-      if (!el) return;
-      const startTs = performance.now();
-      const follow = () => {
-        el.scrollIntoView({ block: "start" });
-        if (performance.now() - startTs < 520) requestAnimationFrame(follow);
-      };
-      requestAnimationFrame(follow);
-    };
-    sync();
-    window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
-  }, []);
-
-  const items = CATEGORIES.map((cat) => {
-    const catTitle = m.collaboration.categories[cat.kind].title;
-    return {
-      key: cat.kind,
-      label: (
-        <span
-          id={cat.id}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 16,
-            scrollMarginTop: 112,
-          }}
-        >
-          <Typography.Text
-            type="secondary"
-            style={{ fontVariantNumeric: "tabular-nums", fontWeight: 600 }}
-          >
-            {cat.num}
-          </Typography.Text>
-          <Typography.Text strong style={{ fontSize: 18 }}>
-            {catTitle}
-          </Typography.Text>
-        </span>
-      ),
-      children: <CategoryPanel cat={cat} />,
-    };
-  });
-
   return (
-    <MarketingSection id="collaboration" style={{ scrollMarginTop: 96 }}>
-      <SectionHeading
-        title={m.collaboration.header.title}
-        subtitle={m.collaboration.header.subtitle}
-      />
-      <ConfigProvider
-        theme={{ components: { Collapse: { colorBorder: "transparent" } } }}
-      >
-        <Collapse
-          accordion
-          size="large"
-          expandIconPlacement="end"
-          activeKey={activeKey}
-          onChange={(key) => {
-            const next = Array.isArray(key) ? key[0] : key;
-            if (next) setActiveKey(next);
-          }}
-          items={items}
-        />
-      </ConfigProvider>
+    <>
+      {CATEGORIES.map((cat, i) => (
+        <CategorySection key={cat.id} cat={cat} flip={i % 2 === 1} />
+      ))}
+    </>
+  );
+}
+
+/*
+ * One standalone section per capability: every mockup is on the page at once,
+ * each gets its own #anchor and its own full section header, and the media side
+ * alternates so the three don't read as one column. The inner feature list
+ * drives which frame that section's mockup shows.
+ */
+function CategorySection({ cat, flip }: { cat: Category; flip: boolean }) {
+  const m = useMessages();
+  const catCopy = m.collaboration.categories[cat.kind];
+  return (
+    <MarketingSection id={cat.id} style={{ scrollMarginTop: 96 }}>
+      <SectionHeading title={catCopy.title} subtitle={catCopy.subtitle} />
+      <CategoryPanel cat={cat} flip={flip} />
     </MarketingSection>
   );
 }
 
-function CategoryPanel({ cat }: { cat: Category }) {
+function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
   const m = useMessages();
-  const { token } = theme.useToken();
+  const token = TOKENS;
   const featureCopy = m.collaboration.categories[cat.kind].features as Record<
     string,
     { title: string; linkText: string; body: string }
@@ -243,76 +175,59 @@ function CategoryPanel({ cat }: { cat: Category }) {
   const [featureKey, setFeatureKey] = useState(cat.features[0].key);
 
   return (
-    <Row gutter={[112, 32]} align="middle">
-      <Col xs={{ span: 24, order: 1 }} lg={{ span: 10, order: 2 }}>
-        <div>
+    <Row gutter={[64, 40]} align="middle">
+      <Col xs={{ span: 24, order: 2 }} lg={{ span: 10, order: flip ? 1 : 2 }}>
+        {/* Every row carries its description rather than revealing it on
+            select: three short paragraphs read as the feature list itself, and
+            nothing shifts vertically when the mockup switches. The active row
+            is marked by a rail + wash, so selection stays legible without the
+            others dimming into placeholders. */}
+        <div className="flex flex-col gap-1">
           {cat.features.map((f) => {
             const on = f.key === featureKey;
             const copy = featureCopy[f.key];
             return (
-              <div key={f.key} style={{ padding: "6px 0" }}>
-                <button
-                  type="button"
-                  onClick={() => setFeatureKey(f.key)}
-                  aria-pressed={on}
-                  className="group flex w-full cursor-pointer items-center gap-2 text-left"
-                  style={{ background: "transparent", border: 0, padding: 0 }}
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setFeatureKey(f.key)}
+                aria-pressed={on}
+                className={[
+                  "w-full cursor-pointer rounded-e-lg border-s-2 py-2.5 ps-4 pe-3 text-left transition-colors motion-reduce:transition-none",
+                  on
+                    ? "border-accent bg-tint"
+                    : "border-line hover:border-line-strong hover:bg-tint",
+                ].join(" ")}
+              >
+                <Text
+                  strong
+                  style={{
+                    color: on ? token.colorText : token.colorTextSecondary,
+                  }}
                 >
-                  <span
-                    className="flex w-4 shrink-0 justify-center"
-                    aria-hidden="true"
-                  >
-                    {on ? (
-                      <Sparkle
-                        size={16}
-                        fill="currentColor"
-                        strokeWidth={0}
-                        color={token.colorText}
-                      />
-                    ) : (
-                      <Check size={14} color={token.colorTextTertiary} />
-                    )}
-                  </span>
-                  <Typography.Text
-                    strong
-                    style={{
-                      color: on ? token.colorText : token.colorTextSecondary,
-                      textDecoration: on ? "underline" : "none",
-                      textUnderlineOffset: 3,
-                    }}
-                  >
-                    {copy.title}
-                  </Typography.Text>
-                </button>
-
-                <AnimatePresence initial={false}>
-                  {on && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                      className="overflow-hidden"
-                    >
-                      <Typography.Paragraph
-                        type="secondary"
-                        style={{ maxWidth: 420, margin: "6px 0 8px 24px" }}
-                      >
-                        <span style={{ color: token.colorText }}>
-                          {copy.linkText}
-                        </span>{" "}
-                        {copy.body}
-                      </Typography.Paragraph>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                  {copy.title}
+                </Text>
+                <Paragraph
+                  type="secondary"
+                  style={{
+                    maxWidth: 420,
+                    margin: "4px 0 0",
+                    fontSize: 14,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <span style={{ color: token.colorTextSecondary }}>
+                    {copy.linkText}
+                  </span>{" "}
+                  {copy.body}
+                </Paragraph>
+              </button>
             );
           })}
         </div>
       </Col>
 
-      <Col xs={{ span: 24, order: 2 }} lg={{ span: 14, order: 1 }}>
+      <Col xs={{ span: 24, order: 1 }} lg={{ span: 14, order: flip ? 2 : 1 }}>
         <Card
           styles={{ body: { padding: 0 } }}
           style={{

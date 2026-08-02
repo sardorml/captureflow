@@ -1,27 +1,31 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { Typography } from "antd";
+import { Typography } from "@heroui/react";
 
 // Shared layout + type primitives so every marketing section keeps one rhythm: a
-// wide centered column (matching the Ant Design homepage), consistent vertical
-// padding, and ONE heading/subtitle scale used everywhere (sections that can't
-// use <SectionHeading/> import the style constants directly so sizes never drift).
+// wide centered column, consistent vertical padding, and ONE heading/subtitle
+// scale used everywhere (sections that can't use <SectionHeading/> import the
+// style constants directly so sizes never drift).
 
-export const MARKETING_MAX_WIDTH = 1200;
+// One rail for the whole landing: sections, the hero column, and the nav's
+// floating pill (max-w-5xl) all resolve to the same 1024px.
+export const MARKETING_MAX_WIDTH = 1024;
 
 // Canonical section title/subtitle sizes. Title is fluid (clamp) so it reads big
-// and bold like the antd homepage while staying responsive.
+// and bold while staying responsive; the negative tracking keeps the large end
+// from looking loose.
 export const SECTION_TITLE_STYLE: CSSProperties = {
-  fontSize: "clamp(1.875rem, 1.1rem + 2.6vw, 2.75rem)",
+  fontSize: "clamp(2.125rem, 1.2rem + 3.2vw, 3.5rem)",
   fontWeight: 700,
-  lineHeight: 1.15,
+  lineHeight: 1.08,
+  letterSpacing: "-0.02em",
   margin: 0,
 };
 
 export const SECTION_SUBTITLE_STYLE: CSSProperties = {
-  fontSize: 17,
-  lineHeight: 1.6,
+  fontSize: 18,
+  lineHeight: 1.55,
   margin: 0,
 };
 
@@ -53,29 +57,51 @@ export function MarketingSection({
   );
 }
 
+/*
+ * Eyebrow → two-tone headline → subtitle. `titleMuted` renders as a second
+ * headline line in the muted foreground, so the pair reads as one sentence
+ * that fades out rather than two headings.
+ */
 export function SectionHeading({
+  eyebrow,
   title,
+  titleMuted,
   subtitle,
   align = "center",
 }: {
+  eyebrow?: ReactNode;
   title: ReactNode;
+  titleMuted?: ReactNode;
   subtitle?: ReactNode;
   align?: "center" | "left";
 }) {
+  /* HeroUI's Typography always emits its own text-align, so the wrapper's
+     value has to be handed to each child rather than inherited. */
+  const heroUiAlign = align === "center" ? "center" : "start";
+
   return (
     <div style={{ textAlign: align, marginBottom: 48 }}>
-      <Typography.Title
+      {eyebrow ? <Eyebrow align={heroUiAlign}>{eyebrow}</Eyebrow> : null}
+      <Typography.Heading
+        align={heroUiAlign}
         level={2}
-        style={{ ...SECTION_TITLE_STYLE, marginBottom: subtitle ? 12 : 0 }}
+        style={{ ...SECTION_TITLE_STYLE, marginBottom: subtitle ? 16 : 0 }}
       >
         {title}
-      </Typography.Title>
+        {titleMuted ? (
+          <>
+            <br />
+            <span className="text-fg-muted">{titleMuted}</span>
+          </>
+        ) : null}
+      </Typography.Heading>
       {subtitle ? (
         <Typography.Paragraph
-          type="secondary"
+          align={heroUiAlign}
+          color="muted"
           style={{
             ...SECTION_SUBTITLE_STYLE,
-            maxWidth: 760,
+            maxWidth: 620,
             marginInline: align === "center" ? "auto" : 0,
           }}
         >
@@ -83,5 +109,24 @@ export function SectionHeading({
         </Typography.Paragraph>
       ) : null}
     </div>
+  );
+}
+
+export function Eyebrow({
+  children,
+  align = "center",
+}: {
+  children: ReactNode;
+  align?: "start" | "center";
+}) {
+  return (
+    <Typography
+      align={align}
+      weight="medium"
+      className="mb-4 block text-base text-accent"
+      style={{ letterSpacing: "-0.01em" }}
+    >
+      {children}
+    </Typography>
   );
 }

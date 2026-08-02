@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { readThemeFromCookieHeader } from "@captureflow/ui";
 import { loadSession } from "@/lib/session-guard";
 import { getStarCount, formatStars } from "@/lib/github";
 import { Nav } from "@/components/marketing/nav";
@@ -13,7 +11,6 @@ import { ComparePlansSection } from "@/components/marketing/compare-plans-sectio
 import { FaqSection } from "@/components/marketing/faq-section";
 import { RoadmapSection } from "@/components/marketing/roadmap-section";
 import { CtaSection } from "@/components/marketing/cta-section";
-import { FloatingCta } from "@/components/marketing/floating-cta";
 import { Footer } from "@/components/marketing/footer";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
@@ -56,7 +53,6 @@ export default async function RootPage() {
   const session = await loadSession();
   if (session) redirect("/recordings");
 
-  const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
   const starCount = await getStarCount();
   const stars = starCount != null ? formatStars(starCount) : null;
 
@@ -66,9 +62,9 @@ export default async function RootPage() {
         <JsonLd
           data={[WEBSITE_SCHEMA, ORGANIZATION_SCHEMA, APP_SCHEMA, FAQ_SCHEMA]}
         />
-        <Nav stars={stars} theme={theme} />
+        <Nav stars={stars} />
         <main>
-          <HeroSection stars={stars} />
+          <HeroSection />
           <ModesIntro />
           <CollaborationSection />
           <PricingSection />
@@ -78,7 +74,6 @@ export default async function RootPage() {
           <CtaSection />
         </main>
         <Footer />
-        <FloatingCta />
       </MarketingShell>
     </I18nProvider>
   );

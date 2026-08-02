@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
-import { readThemeFromCookieHeader } from "@captureflow/ui";
 import { getStarCount, formatStars } from "@/lib/github";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
@@ -18,14 +16,13 @@ export const metadata: Metadata = {
 };
 
 export default async function PlanPage() {
-  const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
   const starCount = await getStarCount();
   const stars = starCount != null ? formatStars(starCount) : null;
 
   return (
     <I18nProvider>
       <MarketingShell>
-        <Nav stars={stars} theme={theme} />
+        <Nav stars={stars} />
         <main>
           <PricingSection />
           <ComparePlansSection />

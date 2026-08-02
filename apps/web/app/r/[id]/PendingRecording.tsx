@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ContentByline } from "../../_components/screenshot";
-import { Spin } from "antd";
+import { Spinner } from "@heroui/react";
 
 type PendingRecordingProps = {
   slug: string;
@@ -98,7 +98,7 @@ export function PendingRecording({
               </>
             ) : (
               <>
-                <Spin size="large" />
+                <Spinner size="lg" />
                 <p className="text-sm font-medium text-neutral-200">
                   Preparing your recording…
                 </p>

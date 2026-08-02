@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Video } from "lucide-react";
 import { UserPlus } from "lucide-react";
-import { Button } from "antd";
+import { Button, buttonVariants } from "@heroui/react";
 import { listMembers, totalStorageForUser } from "@captureflow/quota";
 import type { AvatarGroupItem } from "@captureflow/ui";
 import { initials as initialsOf } from "@/lib/format";
@@ -42,26 +42,21 @@ export async function Sidebar() {
   });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <Link
-        href="/recordings"
-        style={{ display: "flex", alignItems: "center", gap: 8, padding: 20 }}
-      >
+    <div className="flex h-full flex-col">
+      <Link href="/recordings" className="flex items-center gap-2 p-5">
         <Image
           src="/logo.png"
           alt="CaptureFlow"
           width={28}
           height={28}
-          style={{ borderRadius: 6 }}
+          className="rounded-md"
           priority
           unoptimized
         />
-        <span className="text-fg" style={{ fontSize: 20, fontWeight: 600 }}>
-          CaptureFlow
-        </span>
+        <span className="text-xl font-semibold text-fg">CaptureFlow</span>
       </Link>
 
-      <div style={{ padding: "0 12px 16px" }}>
+      <div className="px-3 pb-4">
         <WorkspaceSwitcher
           currentWorkspaceId={current.workspace.id}
           memberships={current.memberships}
@@ -69,12 +64,8 @@ export async function Sidebar() {
             isOwner ? (
               <InviteModal
                 trigger={
-                  <Button
-                    type="text"
-                    block
-                    icon={<UserPlus size={16} />}
-                    style={{ justifyContent: "flex-start" }}
-                  >
+                  <Button variant="ghost" fullWidth className="justify-start">
+                    <UserPlus size={16} />
                     Invite teammates
                   </Button>
                 }
@@ -82,16 +73,16 @@ export async function Sidebar() {
             ) : undefined
           }
         />
-        <div style={{ marginTop: 10, padding: "0 4px" }}>
+        <div className="mt-2.5 px-1">
           <WorkspaceMembersStack items={memberItems} canInvite={isOwner} />
         </div>
       </div>
 
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <SidebarNav isOwner={isOwner} />
       </div>
 
-      <div style={{ padding: 16 }}>
+      <div className="p-4">
         <StorageUsage
           usedBytes={usedBytes}
           limitBytes={limitBytes}
@@ -100,15 +91,14 @@ export async function Sidebar() {
         />
       </div>
 
-      <div style={{ padding: 12 }}>
-        <Button
-          type="primary"
-          block
-          icon={<Video size={16} />}
+      <div className="p-3">
+        <a
           href="captureflow://record"
+          className={buttonVariants({ variant: "primary", fullWidth: true })}
         >
+          <Video size={16} />
           Record a video
-        </Button>
+        </a>
       </div>
     </div>
   );

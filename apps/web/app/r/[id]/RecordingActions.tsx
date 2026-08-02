@@ -10,7 +10,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { Button, Dropdown, Space, Tooltip, type MenuProps } from "antd";
+import { Button, ButtonGroup, Dropdown, buttonVariants } from "@heroui/react";
 import type { RecordingVisibility } from "@/lib/recording/types";
 import { ShareVisibilityModal } from "@/app/_components/ShareVisibilityModal";
 
@@ -108,49 +108,47 @@ export function RecordingActions({
     });
   };
 
-  const moreItems: MenuProps["items"] = [
-    {
-      key: "delete",
-      danger: true,
-      disabled: deleting,
-      icon: <Trash2 size={16} />,
-      label: deleting ? "Deleting…" : "Delete recording",
-      onClick: onDelete,
-    },
-  ];
-
   return (
     <>
-      <Space size={8}>
+      <div className="flex items-center gap-2">
         {isOwner && (
-          <Button href={editUrl} icon={<Pencil size={16} />}>
+          <a
+            href={editUrl}
+            className={buttonVariants({ variant: "secondary" })}
+          >
+            <Pencil size={16} />
             <span className="hidden sm:inline">Edit recording</span>
-          </Button>
+          </a>
         )}
         {signedIn ? (
-          <Space.Compact>
-            <Button
-              type="primary"
-              onClick={() => setOpen(true)}
-              icon={<Users size={18} />}
-            >
+          <ButtonGroup>
+            <Button variant="primary" onPress={() => setOpen(true)}>
+              <Users size={18} />
               <span className="hidden sm:inline">Share</span>
             </Button>
-            <Tooltip title={copied ? "Link copied" : "Copy link"}>
-              <Button
-                type="primary"
-                onClick={copyLink}
-                aria-label={copied ? "Link copied" : "Copy link"}
-                icon={copied ? <Check size={18} /> : <Link2 size={18} />}
-              />
-            </Tooltip>
-          </Space.Compact>
+            {/* No Tooltip here: its Trigger renders a wrapping div, and
+                ButtonGroup's radii key off :first-child/:last-child, so a
+                wrapped button rounds on all sides and collides with Share. The
+                aria-label plus the icon swap already convey the state. */}
+            <Button
+              variant="primary"
+              isIconOnly
+              onPress={copyLink}
+              aria-label={copied ? "Link copied" : "Copy link"}
+            >
+              {/* Absolutely positioned against this button, so it draws the
+                  hairline between the two halves of the split control. */}
+              <ButtonGroup.Separator />
+              {copied ? <Check size={18} /> : <Link2 size={18} />}
+            </Button>
+          </ButtonGroup>
         ) : (
           <Button
-            onClick={copyLink}
+            variant="secondary"
+            onPress={copyLink}
             aria-label={copied ? "Link copied" : "Copy link"}
-            icon={copied ? <Check size={16} /> : <Link2 size={16} />}
           >
+            {copied ? <Check size={16} /> : <Link2 size={16} />}
             <span className="hidden sm:inline">
               {copied ? "Copied" : "Copy link"}
             </span>
@@ -158,19 +156,28 @@ export function RecordingActions({
         )}
 
         {isOwner && (
-          <Dropdown
-            menu={{ items: moreItems }}
-            trigger={["click"]}
-            placement="bottomRight"
-          >
-            <Button
-              type="text"
+          <Dropdown>
+            <Dropdown.Trigger
               aria-label="More actions"
-              icon={<MoreHorizontal size={18} />}
-            />
+              className={buttonVariants({ variant: "ghost", isIconOnly: true })}
+            >
+              <MoreHorizontal size={18} />
+            </Dropdown.Trigger>
+            <Dropdown.Popover placement="bottom end">
+              <Dropdown.Menu>
+                <Dropdown.Item
+                  isDisabled={deleting}
+                  onAction={onDelete}
+                  className="text-danger"
+                >
+                  <Trash2 size={16} />
+                  {deleting ? "Deleting…" : "Delete recording"}
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown.Popover>
           </Dropdown>
         )}
-      </Space>
+      </div>
 
       <ShareVisibilityModal
         open={open}

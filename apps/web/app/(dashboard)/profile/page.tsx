@@ -1,4 +1,4 @@
-import { Card } from "antd";
+import { Card } from "@heroui/react";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { PageHeader } from "../PageHeader";
@@ -30,7 +30,7 @@ export default async function ProfileSettingsPage() {
         showRecord={false}
       />
       <div className="mt-6">
-        <Card>
+        <Card className="p-6">
           <ProfileForm
             userId={user.id}
             initialName={user.name ?? ""}

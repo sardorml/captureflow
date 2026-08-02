@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Card, theme } from "antd";
+import { Card } from "./ui";
+import { TOKENS } from "./tokens";
 import { motion, AnimatePresence } from "motion/react";
 import {
   AppWindow,
@@ -57,7 +58,7 @@ function DeviceCell({ icon: Glyph }: { icon: typeof Camera }) {
 
 export function ModesIntro() {
   const m = useMessages();
-  const { token } = theme.useToken();
+  const token = TOKENS;
 
   // `target` is where the cursor is heading; `active` is the committed mode. They
   // diverge briefly so the click reads as the cause of the swap.
@@ -139,13 +140,9 @@ export function ModesIntro() {
   return (
     <MarketingSection id="modes" style={{ scrollMarginTop: 24 }}>
       <SectionHeading
-        title={
-          <>
-            {m.modes.headingLine1}
-            <br />
-            {m.modes.headingLine2}
-          </>
-        }
+        eyebrow={m.modes.eyebrow}
+        title={m.modes.headingLine1}
+        titleMuted={m.modes.headingLine2}
         subtitle={
           <>
             {m.modes.subtitleLine1}{" "}

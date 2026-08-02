@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
-  Check,
   History,
   ImageOff,
   MoveUpRight,
@@ -31,7 +30,7 @@ import Konva from "konva";
 // Side-effect import: without it `Konva.Filters.Blur` is undefined and the
 // blur tool silently no-ops (the cached node gets filters=[undefined]).
 import "konva/lib/filters/Blur";
-import { Button, Spin } from "antd";
+import { Button, Spinner } from "@heroui/react";
 import { AnimatedTooltip } from "@/lib/animated-tooltip";
 import type { ScreenshotEditorProps } from "./ScreenshotEditor";
 import { renameScreenshotAction, saveScreenshotAction } from "../../../actions";
@@ -342,7 +341,6 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [savedJustNow, setSavedJustNow] = useState(false);
 
   /*
    * Konva sizes each Layer's child <canvas> from the Stage width/height props
@@ -797,9 +795,10 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
       } catch {
         // Clipboard may be unavailable (insecure context); link is in the header.
       }
-      setSavedJustNow(true);
-      setTimeout(() => setSavedJustNow(false), 2000);
       if (previouslySelected) setSelectedId(previouslySelected);
+      // Same terminal step as the recording editor's Finish: land on the view
+      // page rather than sitting in the editor behind a 2s toast.
+      router.push(viewUrl);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -906,7 +905,7 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
                 setTitleDraft(title ?? "");
                 setTitleEditing(true);
               }}
-              className="group flex min-w-0 items-center gap-1 rounded-md px-2 py-1 text-left hover:bg-overlay"
+              className="group flex min-w-0 items-center gap-1 rounded-md px-2 py-1 text-left hover:bg-tint"
               title="Rename"
             >
               <span className="truncate text-sm text-neutral-200">
@@ -962,14 +961,13 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
             <Redo2 className="h-5 w-5" />
           </IconButton>
           <Button
-            type="primary"
-            onClick={handleSave}
-            disabled={saving || !image}
-            loading={saving}
-            icon={savedJustNow ? <Check className="h-4 w-4" /> : undefined}
+            variant="primary"
+            onPress={handleSave}
+            isDisabled={saving || !image}
             className="ml-2"
           >
-            {savedJustNow ? "Saved · link copied" : "Save and copy link"}
+            {saving ? <Spinner size="sm" color="current" /> : null}
+            Finish
           </Button>
         </div>
       </header>
@@ -1022,7 +1020,7 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
           className="flex min-h-0 min-w-0 flex-1 items-center justify-center"
         >
           {!image ? (
-            <Spin size="large" />
+            <Spinner size="lg" />
           ) : (
             <div
               className="rounded-lg"
@@ -1161,7 +1159,7 @@ function Toolbar({
       </ToolButton>
       {/* No blur button (insert UX not stable); rendering paths stay so legacy
           saved blurs still resolve. */}
-      <div className="mx-1 h-5 w-px bg-overlay-strong" />
+      <div className="mx-1 h-5 w-px bg-tint-strong" />
       <BackgroundPicker active={background} onChange={onBackground} />
     </div>
   );
@@ -1187,7 +1185,7 @@ function IconButton({
         onClick={onClick}
         disabled={disabled}
         aria-label={ariaLabel}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-overlay hover:text-fg-strong disabled:opacity-40 disabled:hover:bg-transparent"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-tint hover:text-fg-strong disabled:opacity-40 disabled:hover:bg-transparent"
       >
         {children}
       </button>
@@ -1215,7 +1213,7 @@ function ToolButton({
         "inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors " +
         (active
           ? "bg-canvas text-fg-strong shadow-md ring-2 ring-fg-muted"
-          : "text-fg-muted hover:bg-overlay hover:text-fg-strong")
+          : "text-fg-muted hover:bg-tint hover:text-fg-strong")
       }
     >
       {children}
@@ -1290,7 +1288,7 @@ function BackgroundPicker({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded-md p-1 text-fg-muted hover:bg-overlay hover:text-fg-strong"
+              className="rounded-md p-1 text-fg-muted hover:bg-tint hover:text-fg-strong"
               aria-label="Close background picker"
             >
               <X className="h-4 w-4" />
@@ -1743,7 +1741,7 @@ function ElementInspector({
         <button
           type="button"
           onClick={onDuplicate}
-          className="rounded-md p-1.5 text-fg-muted hover:bg-overlay hover:text-fg-strong"
+          className="rounded-md p-1.5 text-fg-muted hover:bg-tint hover:text-fg-strong"
           title="Duplicate"
         >
           <MoveUpRight className="h-4 w-4" />

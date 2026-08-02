@@ -92,7 +92,7 @@ export function RequestAccess({
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 py-16 text-neutral-100">
       <div className="w-full max-w-md">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-overlay ring-1 ring-line-strong">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-tint ring-1 ring-line-strong">
           <Lock className="h-6 w-6 text-neutral-400" aria-hidden />
         </div>
         <h1 className="mt-6 text-center text-2xl font-semibold tracking-tight text-neutral-50">

@@ -1,4 +1,4 @@
-import { Alert } from "antd";
+import { Alert } from "@heroui/react";
 import { listMembers, listPendingInvites } from "@captureflow/quota";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
@@ -16,12 +16,11 @@ export default async function MembersPage() {
     return (
       <>
         <PageHeader title="Members" showRecord={false} />
-        <Alert
-          className="mt-6"
-          type="warning"
-          showIcon
-          message="Database unavailable."
-        />
+        <Alert className="mt-6" status="warning">
+          <Alert.Content>
+            <Alert.Title>Database unavailable.</Alert.Title>
+          </Alert.Content>
+        </Alert>
       </>
     );
   }

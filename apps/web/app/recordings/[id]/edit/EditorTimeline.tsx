@@ -11,7 +11,7 @@ import {
   type RefObject,
 } from "react";
 import { AudioLines, Scissors, Trash2, ZoomIn, ZoomOut } from "lucide-react";
-import { Tooltip } from "antd";
+import { Tooltip } from "@heroui/react";
 import type { RecordingPlayerHandle } from "@/app/_components/recording";
 
 type Props = {
@@ -133,21 +133,24 @@ export function EditorTimeline({ playerRef, durationMs }: Props) {
             disabled
           />
         </div>
-        <Tooltip title="Zoom (coming soon)">
-          <div className="flex items-center gap-2 text-xs text-fg-muted opacity-60">
-            <span>Fit</span>
-            <ZoomOut className="h-4 w-4" />
-            <input
-              type="range"
-              min={0}
-              max={100}
-              defaultValue={50}
-              disabled
-              aria-label="Timeline zoom (coming soon)"
-              className="h-1 w-28 cursor-not-allowed accent-accent"
-            />
-            <ZoomIn className="h-4 w-4" />
-          </div>
+        <Tooltip>
+          <Tooltip.Trigger tabIndex={0}>
+            <div className="flex items-center gap-2 text-xs text-fg-muted opacity-60">
+              <span>Fit</span>
+              <ZoomOut className="h-4 w-4" />
+              <input
+                type="range"
+                min={0}
+                max={100}
+                defaultValue={50}
+                disabled
+                aria-label="Timeline zoom (coming soon)"
+                className="h-1 w-28 cursor-not-allowed accent-accent"
+              />
+              <ZoomIn className="h-4 w-4" />
+            </div>
+          </Tooltip.Trigger>
+          <Tooltip.Content>Zoom (coming soon)</Tooltip.Content>
         </Tooltip>
       </div>
 
@@ -229,13 +232,21 @@ function ToolButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-fg-muted transition-colors hover:bg-overlay hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
     >
       {icon}
       <span className="hidden md:inline">{label}</span>
     </button>
   );
-  return disabled ? <Tooltip title="Coming soon">{button}</Tooltip> : button;
+  if (!disabled) return button;
+  return (
+    <Tooltip>
+      <Tooltip.Trigger className="inline-flex" tabIndex={0}>
+        {button}
+      </Tooltip.Trigger>
+      <Tooltip.Content>Coming soon</Tooltip.Content>
+    </Tooltip>
+  );
 }
 
 type Tick = { t: number; label: string; leftPct: number };

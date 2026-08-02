@@ -1,4 +1,4 @@
-import { Button, Flex } from "antd";
+import { buttonVariants } from "@heroui/react";
 
 type Props = {
   marketingUrl: string;
@@ -7,16 +7,25 @@ type Props = {
 
 export function AuthPrompt({ marketingUrl, loginUrl }: Props) {
   return (
-    <Flex align="center" gap={6}>
-      <Button type="text" size="small" href={`${marketingUrl}/#pricing`}>
+    <div className="flex items-center gap-1.5">
+      <a
+        href={`${marketingUrl}/#pricing`}
+        className={buttonVariants({ variant: "ghost", size: "sm" })}
+      >
         Pricing
-      </Button>
-      <Button size="small" href={loginUrl}>
+      </a>
+      <a
+        href={loginUrl}
+        className={buttonVariants({ variant: "secondary", size: "sm" })}
+      >
         Log in
-      </Button>
-      <Button type="primary" size="small" href={marketingUrl}>
+      </a>
+      <a
+        href={marketingUrl}
+        className={buttonVariants({ variant: "primary", size: "sm" })}
+      >
         Get CaptureFlow free
-      </Button>
-    </Flex>
+      </a>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Card, Empty, Tag } from "antd";
+import { Card, Chip, EmptyState } from "@heroui/react";
 import type { DashboardScreenshotRow } from "@/lib/screenshots-db";
 import type { Visibility } from "@/app/VisibilityDialog";
 import { screenshotViewUrlFor } from "@/lib/site";
@@ -43,16 +43,12 @@ export function ScreenshotsGrid({
 }: ScreenshotsGridProps) {
   if (screenshots.length === 0) {
     return (
-      <Card style={{ marginTop: 24 }}>
-        <Empty
-          description={
-            <span>
-              No screenshots yet. Open CaptureFlow → Screenshot tab → pick a
-              Display, Window, or Area to capture. Your screenshot appears here
-              automatically.
-            </span>
-          }
-        />
+      <Card className="mt-6 p-6">
+        <EmptyState className="text-center text-sm text-fg-muted">
+          No screenshots yet. Open CaptureFlow → Screenshot tab → pick a
+          Display, Window, or Area to capture. Your screenshot appears here
+          automatically.
+        </EmptyState>
       </Card>
     );
   }
@@ -108,19 +104,12 @@ function ScreenshotCard({
         unoptimized
         style={{ height: "100%", width: "100%", objectFit: "cover" }}
       />
-      <Tag
-        style={{
-          position: "absolute",
-          right: 8,
-          bottom: 8,
-          margin: 0,
-          background: "rgba(0,0,0,0.75)",
-          color: "#fff",
-          border: "none",
-        }}
+      <Chip
+        size="sm"
+        className="absolute right-2 bottom-2 border-none bg-black/75 text-white"
       >
         {screenshot.width}×{screenshot.height}
-      </Tag>
+      </Chip>
     </>
   );
 

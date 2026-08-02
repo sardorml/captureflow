@@ -1,22 +1,19 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  Button,
-  Card,
-  Divider,
-  Flex,
-  Space,
-  Tag,
-  Typography,
-  theme,
-} from "antd";
-import { Check } from "lucide-react";
 
-// One structure for both pricing plans so every row (badges → title → price →
-// CTA → features) lines up across the two cards. Differences are data-only.
+/*
+ * A tinted panel carrying the pitch (icon → name → price → CTA), with the
+ * feature list sitting outside it on the page background rather than inside a
+ * bordered card. Marketing is dark-only, so on-panel text is fixed white rather
+ * than following the theme tokens.
+ */
+export type PlanFeature = { icon: ReactNode; label: string };
+
 export type PlanCardProps = {
-  badges: { label: string; icon?: ReactNode; color?: string }[];
+  panelClassName: string;
+  icon: ReactNode;
+  eyebrow?: string;
   name: string;
   tagline: string;
   price: string;
@@ -25,94 +22,80 @@ export type PlanCardProps = {
   cta: {
     label: string;
     href: string;
-    primary?: boolean;
     target?: string;
     onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   };
-  guarantee: string;
-  features: string[];
-  highlighted?: boolean;
+  features: PlanFeature[];
+  footnote?: string;
+  featured?: boolean;
 };
 
 export function PlanCard(props: PlanCardProps) {
-  const { token } = theme.useToken();
-
   return (
-    <Card
-      style={{
-        height: "100%",
-        borderColor: props.highlighted ? token.colorPrimary : undefined,
-      }}
-      styles={{ body: { padding: 20 } }}
-    >
-      <Flex vertical gap={12} style={{ height: "100%" }}>
-        <Space size={8} wrap style={{ minHeight: 24 }}>
-          {props.badges.map((b) => (
-            <Tag
-              key={b.label}
-              color={b.color}
-              variant="filled"
-              style={{
-                margin: 0,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              {b.icon}
-              {b.label}
-            </Tag>
-          ))}
-        </Space>
-
-        <div>
-          <Typography.Title level={3} style={{ margin: 0 }}>
-            {props.name}
-          </Typography.Title>
-          <Typography.Text type="secondary">{props.tagline}</Typography.Text>
+    /* Outer card holds everything; the tinted panel is inset within it by the
+       p-2, and the list + footnote sit below on the card's own surface. */
+    <div className="grid rounded-2xl border border-line bg-panel-2 p-2 md:row-span-3 md:grid-rows-subgrid">
+      <div
+        className={`relative flex flex-col overflow-hidden rounded-xl p-5 ${props.panelClassName}`}
+      >
+        <div className="flex items-center gap-2">
+          <span className="flex size-6 items-center justify-center rounded-lg bg-white/15 text-white">
+            {props.icon}
+          </span>
+          {props.eyebrow ? (
+            <span className="text-sm font-medium text-white/80">
+              {props.eyebrow}
+            </span>
+          ) : null}
         </div>
 
-        <Flex align="baseline" gap={8}>
-          <Typography.Title level={2} style={{ margin: 0 }}>
-            {props.price}
-          </Typography.Title>
-          <Typography.Text type="secondary">{props.period}</Typography.Text>
-        </Flex>
-        <Typography.Text type="secondary" style={{ marginTop: -6 }}>
-          {props.note}
-        </Typography.Text>
+        <h3 className="mt-3 text-xl font-semibold tracking-[-0.01em] text-white">
+          {props.name}
+        </h3>
+        <p className="mt-1 max-w-72 text-sm leading-snug text-white/70">
+          {props.tagline}
+        </p>
 
-        <Button
-          block
-          size="large"
-          type={props.cta.primary ? "primary" : "default"}
+        <p className="mt-4 text-4xl font-bold tracking-[-0.02em] text-white">
+          {props.price}
+          <span className="ms-1 align-baseline text-base font-normal text-white/70">
+            {props.period}
+          </span>
+        </p>
+        <p className="mt-1.5 mb-5 text-sm text-white/60">{props.note}</p>
+
+        <a
           href={props.cta.href}
           target={props.cta.target}
           rel={
             props.cta.target === "_blank" ? "noopener noreferrer" : undefined
           }
           onClick={props.cta.onClick}
+          className={[
+            "mt-auto flex h-10 w-full shrink-0 items-center justify-center rounded-xl text-sm font-medium transition-colors motion-reduce:transition-none",
+            props.featured
+              ? "bg-white text-neutral-900 hover:bg-white/90"
+              : "bg-black/30 text-white hover:bg-black/45",
+          ].join(" ")}
         >
           {props.cta.label}
-        </Button>
-        <Typography.Text
-          type="secondary"
-          style={{ textAlign: "center", fontSize: 12 }}
-        >
-          {props.guarantee}
-        </Typography.Text>
+        </a>
+      </div>
 
-        <Divider style={{ margin: 0 }} />
+      <ul className="flex flex-1 list-none flex-col gap-2.5 px-3 pt-5 pb-4">
+        {props.features.map((f) => (
+          <li key={f.label} className="flex items-center gap-3">
+            <span className="shrink-0 text-fg-subtle">{f.icon}</span>
+            <span className="text-sm text-fg-muted">{f.label}</span>
+          </li>
+        ))}
+      </ul>
 
-        <Space orientation="vertical" size={10} style={{ width: "100%" }}>
-          {props.features.map((label) => (
-            <Flex key={label} align="center" gap={12}>
-              <Check size={18} color={token.colorSuccess} />
-              <Typography.Text>{label}</Typography.Text>
-            </Flex>
-          ))}
-        </Space>
-      </Flex>
-    </Card>
+      {props.footnote ? (
+        <div className="border-t border-line px-3 pt-3 pb-1">
+          <p className="text-sm text-fg-muted">{props.footnote}</p>
+        </div>
+      ) : null}
+    </div>
   );
 }

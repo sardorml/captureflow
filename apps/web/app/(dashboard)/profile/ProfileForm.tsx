@@ -1,19 +1,28 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check } from "lucide-react";
 import {
   Avatar,
   Button,
-  Divider,
-  Flex,
+  Description,
+  FieldError,
   Form,
   Input,
+  Label,
+  Separator,
+  Spinner,
+  TextField,
   Typography,
-  Upload,
-} from "antd";
-import type { UploadProps } from "antd";
+} from "@heroui/react";
 import { authClient } from "@/lib/auth-client";
 import { removeUserAvatarAction, uploadUserAvatarAction } from "./actions";
 
@@ -45,23 +54,23 @@ export function ProfileForm({ userId, initialName, email, imageUrl }: Props) {
   const displayName = initialName.trim() || email;
   return (
     <div>
-      <Flex align="center" gap={16}>
+      <div className="flex items-center gap-4">
         <AvatarUploader
           userId={userId}
           name={initialName}
           email={email}
           imageUrl={imageUrl}
         />
-        <div style={{ minWidth: 0 }}>
-          <Typography.Text strong ellipsis style={{ display: "block" }}>
+        <div className="min-w-0">
+          <Typography weight="semibold" truncate className="block">
             {displayName}
-          </Typography.Text>
-          <Typography.Text type="secondary" ellipsis style={{ fontSize: 12 }}>
+          </Typography>
+          <Typography type="body-xs" color="muted" truncate>
             {email}
-          </Typography.Text>
+          </Typography>
         </div>
-      </Flex>
-      <Divider />
+      </div>
+      <Separator className="my-6" />
       <NameRow initialName={initialName} email={email} />
     </div>
   );
@@ -82,16 +91,14 @@ function AvatarUploader({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [removePending, startRemove] = useTransition();
+  const fileRef = useRef<HTMLInputElement>(null);
   const busy = uploading || removePending;
 
-  const beforeUpload: UploadProps["beforeUpload"] = (file) => {
+  const onPick = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     setError(null);
     setUploading(true);
-    startUpload(file);
-    return false; // handled manually via the server action
-  };
-
-  const startUpload = (file: File) => {
     void (async () => {
       try {
         const fd = new FormData();
@@ -103,6 +110,7 @@ function AvatarUploader({
         setError(err instanceof Error ? err.message : "Upload failed");
       } finally {
         setUploading(false);
+        if (fileRef.current) fileRef.current.value = "";
       }
     })();
   };
@@ -116,55 +124,53 @@ function AvatarUploader({
   };
 
   return (
-    <Flex vertical align="flex-start" gap={4}>
-      <Upload
+    <div className="flex flex-col items-start gap-1">
+      <input
+        ref={fileRef}
+        type="file"
         accept="image/png,image/jpeg,image/webp,image/gif"
-        showUploadList={false}
-        beforeUpload={beforeUpload}
+        className="hidden"
+        onChange={onPick}
+      />
+      <button
+        type="button"
         disabled={busy}
+        aria-label={imageUrl ? "Change avatar" : "Upload avatar"}
+        onClick={() => fileRef.current?.click()}
+        className="group relative block rounded-full border-0 bg-transparent p-0 outline-none disabled:cursor-progress"
       >
-        <button
-          type="button"
-          disabled={busy}
-          aria-label={imageUrl ? "Change avatar" : "Upload avatar"}
-          title={imageUrl ? "Change avatar" : "Upload avatar"}
-          className="group relative block rounded-full border-0 bg-transparent p-0 outline-none disabled:cursor-progress"
+        <Avatar
+          className="h-14 w-14"
+          style={
+            imageUrl ? undefined : { backgroundColor: avatarColor(userId) }
+          }
         >
-          <Avatar
-            size={56}
-            src={imageUrl ?? undefined}
-            style={
-              imageUrl ? undefined : { backgroundColor: avatarColor(userId) }
-            }
-          >
-            {initials(name, email)}
-          </Avatar>
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
-          >
-            <Camera className="h-5 w-5" />
-          </span>
-        </button>
-      </Upload>
-      <Flex align="center" gap={8} style={{ fontSize: 12 }}>
-        {uploading && (
-          <Typography.Text type="secondary">Uploading…</Typography.Text>
-        )}
+          {imageUrl && <Avatar.Image src={imageUrl} alt={name || email} />}
+          <Avatar.Fallback>{initials(name, email)}</Avatar.Fallback>
+        </Avatar>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+        >
+          <Camera className="h-5 w-5" />
+        </span>
+      </button>
+      <div className="flex items-center gap-2 text-xs">
+        {uploading && <Typography color="muted">Uploading…</Typography>}
         {!uploading && imageUrl && (
           <Button
-            type="link"
-            size="small"
-            onClick={onRemove}
-            disabled={busy}
-            style={{ padding: 0 }}
+            variant="ghost"
+            size="sm"
+            onPress={onRemove}
+            isDisabled={busy}
+            className="h-auto p-0 text-accent underline-offset-4 hover:underline"
           >
             {removePending ? "Removing…" : "Remove"}
           </Button>
         )}
-        {error && <Typography.Text type="danger">{error}</Typography.Text>}
-      </Flex>
-    </Flex>
+        {error && <span className="text-danger">{error}</span>}
+      </div>
+    </div>
   );
 }
 
@@ -189,7 +195,8 @@ function NameRow({
 
   const dirty = name.trim() !== initialName.trim();
 
-  const onSubmit = () => {
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     const next = name.trim();
     if (!next) {
       setError("Name is required.");
@@ -214,44 +221,45 @@ function NameRow({
   };
 
   return (
-    <Form layout="vertical" onFinish={onSubmit} style={{ maxWidth: 448 }}>
-      <Form.Item
-        label="Display name"
-        validateStatus={error ? "error" : undefined}
-        help={error ?? undefined}
-        extra="Shown on recordings, screenshots, and activity rows."
+    <Form onSubmit={onSubmit} className="flex max-w-md flex-col gap-4">
+      <TextField
+        name="name"
+        isInvalid={Boolean(error)}
+        fullWidth
+        value={name}
+        onChange={(next) => {
+          setName(next);
+          if (error) setError(null);
+        }}
       >
-        <Input
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-            if (error) setError(null);
-          }}
-          placeholder="Your name"
-          autoComplete="name"
-        />
-      </Form.Item>
-      <Form.Item
-        label="Email"
-        help="Used to sign in. Contact support to change."
-      >
-        <Input type="email" value={email} readOnly />
-      </Form.Item>
-      <Flex align="center" gap={12}>
-        <Button
-          type="primary"
-          htmlType="submit"
-          loading={pending}
-          disabled={!dirty}
-        >
+        <Label>Display name</Label>
+        <Input placeholder="Your name" autoComplete="name" />
+        {error ? (
+          <FieldError>{error}</FieldError>
+        ) : (
+          <Description>
+            Shown on recordings, screenshots, and activity rows.
+          </Description>
+        )}
+      </TextField>
+
+      <TextField name="email" fullWidth value={email} isReadOnly>
+        <Label>Email</Label>
+        <Input type="email" readOnly />
+        <Description>Used to sign in. Contact support to change.</Description>
+      </TextField>
+
+      <div className="flex items-center gap-3">
+        <Button variant="primary" type="submit" isDisabled={!dirty || pending}>
+          {pending && <Spinner size="sm" color="current" />}
           {pending ? "Saving…" : "Save"}
         </Button>
         {savedAt && (
-          <Typography.Text type="success">
-            <Check className="inline h-3.5 w-3.5" /> Saved
-          </Typography.Text>
+          <span className="inline-flex items-center gap-1 text-success">
+            <Check className="h-3.5 w-3.5" /> Saved
+          </span>
         )}
-      </Flex>
+      </div>
     </Form>
   );
 }

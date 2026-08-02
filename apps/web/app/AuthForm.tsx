@@ -1,10 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { ChevronLeft, Mail } from "lucide-react";
-import { Alert, Button, Flex, Form, Input, Typography } from "antd";
-import type { Rule } from "antd/es/form";
+import {
+  Alert,
+  Button,
+  FieldError,
+  Form,
+  Input,
+  Label,
+  Spinner,
+  TextField,
+  Typography,
+} from "@heroui/react";
 import { signIn, signUp } from "@/lib/auth-client";
 
 /* eslint-disable @next/next/no-img-element */
@@ -12,7 +21,6 @@ import { signIn, signUp } from "@/lib/auth-client";
 type Mode = "signin" | "signup";
 type Method = "chooser" | "email";
 type SocialProvider = "google" | "github";
-type Values = { name?: string; email: string; password: string };
 
 function GoogleIcon() {
   return (
@@ -89,20 +97,23 @@ export function AuthForm({
     }
   }
 
-  async function onFinish(values: Values) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    const email = String(data.get("email") ?? "");
+    const password = String(data.get("password") ?? "");
+    const name = String(data.get("name") ?? "");
+
     setError(null);
     setBusy(true);
     try {
       const res = isSignup
         ? await signUp.email({
-            email: values.email,
-            password: values.password,
-            name: values.name?.trim() || values.email.split("@")[0],
+            email,
+            password,
+            name: name.trim() || email.split("@")[0],
           })
-        : await signIn.email({
-            email: values.email,
-            password: values.password,
-          });
+        : await signIn.email({ email, password });
       if (res.error) {
         setError(
           res.error.message ?? "Something went wrong. Please try again.",
@@ -119,15 +130,8 @@ export function AuthForm({
     }
   }
 
-  const passwordRules: Rule[] = [
-    { required: true, message: "Enter your password." },
-    ...(isSignup
-      ? [{ min: 12, message: "Use at least 12 characters." } as Rule]
-      : []),
-  ];
-
   return (
-    <div style={{ width: "100%", maxWidth: 384 }}>
+    <div className="w-full max-w-96">
       {/* Top-left panel slot: the logo on the chooser, "Go back" on the email
           step — the shell's <main> is the positioning context. */}
       {method === "chooser" ? (
@@ -146,131 +150,142 @@ export function AuthForm({
         </Link>
       ) : (
         <Button
-          type="text"
-          icon={<ChevronLeft size={18} />}
-          disabled={busy}
-          onClick={() => {
+          variant="ghost"
+          isDisabled={busy}
+          onPress={() => {
             setMethod("chooser");
             setError(null);
           }}
-          style={{ position: "absolute", top: 24, left: 24 }}
+          className="absolute top-6 left-6"
         >
+          <ChevronLeft size={18} />
           Go back
         </Button>
       )}
-      <Typography.Title
-        level={3}
-        style={{ marginTop: 0, marginBottom: 4, textAlign: "center" }}
-      >
+
+      <Typography.Heading level={3} align="center" className="mt-0 mb-1">
         {isSignup ? "Create your account" : "Welcome back"}
-      </Typography.Title>
-      <Typography.Paragraph
-        type="secondary"
-        style={{ marginBottom: 24, textAlign: "center" }}
-      >
+      </Typography.Heading>
+      <Typography.Paragraph color="muted" align="center" className="mb-6">
         {isSignup
           ? "Start sharing recordings with a public link."
           : "Sign in to manage your recordings and screenshots."}
       </Typography.Paragraph>
 
       {method === "chooser" ? (
-        <Flex vertical gap={12}>
+        <div className="flex flex-col gap-3">
           <Button
-            type="primary"
-            size="large"
-            block
-            icon={<GoogleIcon />}
-            loading={busyProvider === "google"}
-            disabled={busy && busyProvider !== "google"}
-            onClick={() => onSocial("google")}
+            variant="primary"
+            size="lg"
+            fullWidth
+            isDisabled={busy && busyProvider !== "google"}
+            onPress={() => onSocial("google")}
           >
+            {busyProvider === "google" ? (
+              <Spinner size="sm" color="current" />
+            ) : (
+              <GoogleIcon />
+            )}
             Continue with Google
           </Button>
           <Button
-            size="large"
-            block
-            icon={<GitHubIcon />}
-            loading={busyProvider === "github"}
-            disabled={busy && busyProvider !== "github"}
-            onClick={() => onSocial("github")}
+            variant="secondary"
+            size="lg"
+            fullWidth
+            isDisabled={busy && busyProvider !== "github"}
+            onPress={() => onSocial("github")}
           >
+            {busyProvider === "github" ? (
+              <Spinner size="sm" color="current" />
+            ) : (
+              <GitHubIcon />
+            )}
             Continue with GitHub
           </Button>
           <Button
-            size="large"
-            block
-            icon={<Mail size={16} />}
-            disabled={busy}
-            onClick={() => {
+            variant="secondary"
+            size="lg"
+            fullWidth
+            isDisabled={busy}
+            onPress={() => {
               setMethod("email");
               setError(null);
             }}
           >
+            <Mail size={16} />
             Continue with email
           </Button>
-          {error && <Alert type="error" message={error} showIcon />}
-        </Flex>
+          {error && (
+            <Alert status="danger">
+              <Alert.Content>
+                <Alert.Title>{error}</Alert.Title>
+              </Alert.Content>
+            </Alert>
+          )}
+        </div>
       ) : (
-        <>
-          <Form
-            layout="vertical"
-            requiredMark={false}
-            disabled={busy}
-            onFinish={onFinish}
+        <Form
+          onSubmit={onSubmit}
+          validationBehavior="native"
+          className="flex flex-col gap-4"
+        >
+          {isSignup && (
+            <TextField name="name" fullWidth>
+              <Label>Name</Label>
+              <Input placeholder="Your name" autoComplete="name" />
+            </TextField>
+          )}
+          <TextField name="email" type="email" isRequired fullWidth>
+            <Label>Email</Label>
+            <Input placeholder="you@example.com" autoComplete="email" />
+            <FieldError>Enter a valid email.</FieldError>
+          </TextField>
+          <TextField
+            name="password"
+            type="password"
+            isRequired
+            minLength={isSignup ? 12 : undefined}
+            fullWidth
           >
-            {isSignup && (
-              <Form.Item label="Name" name="name">
-                <Input placeholder="Your name" autoComplete="name" />
-              </Form.Item>
-            )}
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[
-                {
-                  required: true,
-                  type: "email",
-                  message: "Enter a valid email.",
-                },
-              ]}
-            >
-              <Input placeholder="you@example.com" autoComplete="email" />
-            </Form.Item>
-            <Form.Item label="Password" name="password" rules={passwordRules}>
-              <Input.Password
-                placeholder={isSignup ? "At least 12 characters" : "••••••••"}
-                autoComplete={isSignup ? "new-password" : "current-password"}
-              />
-            </Form.Item>
+            <Label>Password</Label>
+            <Input
+              placeholder={isSignup ? "At least 12 characters" : "••••••••"}
+              autoComplete={isSignup ? "new-password" : "current-password"}
+            />
+            <FieldError>
+              {isSignup
+                ? "Use at least 12 characters."
+                : "Enter your password."}
+            </FieldError>
+          </TextField>
 
-            {error && (
-              <Form.Item>
-                <Alert type="error" message={error} showIcon />
-              </Form.Item>
-            )}
+          {error && (
+            <Alert status="danger">
+              <Alert.Content>
+                <Alert.Title>{error}</Alert.Title>
+              </Alert.Content>
+            </Alert>
+          )}
 
-            <Form.Item style={{ marginBottom: 0 }}>
-              <Button type="primary" htmlType="submit" loading={busy} block>
-                {isSignup ? "Create account" : "Sign in"}
-              </Button>
-            </Form.Item>
-          </Form>
-        </>
+          <Button variant="primary" type="submit" fullWidth isDisabled={busy}>
+            {busy && <Spinner size="sm" color="current" />}
+            {isSignup ? "Create account" : "Sign in"}
+          </Button>
+        </Form>
       )}
 
-      <Typography.Paragraph
-        type="secondary"
-        style={{ textAlign: "center", marginTop: 24, marginBottom: 0 }}
-      >
+      <Typography.Paragraph color="muted" align="center" className="mt-6 mb-0">
         {isSignup ? "Already have an account? " : "Don't have an account? "}
-        <Typography.Link
+        <button
+          type="button"
+          className="cursor-pointer text-accent hover:text-accent-strong"
           onClick={() => {
             setMode(isSignup ? "signin" : "signup");
             setError(null);
           }}
         >
           {isSignup ? "Sign in" : "Sign up"}
-        </Typography.Link>
+        </button>
       </Typography.Paragraph>
     </div>
   );

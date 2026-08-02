@@ -1,7 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { Button, Progress, Typography } from "antd";
+import { Button, ProgressBar, Typography } from "@heroui/react";
 import { formatBytes } from "@/lib/format";
 import { UpgradeModal } from "./(dashboard)/UpgradeModal";
 
@@ -21,28 +21,18 @@ export function StorageUsage({
   if (limitBytes <= 0) {
     return (
       <div>
-        <Typography.Text
-          type="secondary"
-          style={{ fontSize: 12, fontWeight: 500 }}
-        >
+        <Typography type="body-xs" color="muted" weight="medium">
           Storage
-        </Typography.Text>
-        <Typography.Paragraph
-          type="secondary"
-          style={{ fontSize: 12, marginTop: 8 }}
-        >
+        </Typography>
+        <Typography.Paragraph size="sm" color="muted" className="mt-2">
           Cloud storage is a Pro feature.
         </Typography.Paragraph>
         <UpgradeModal
           email={email}
           userId={userId}
           trigger={
-            <Button
-              type="primary"
-              size="small"
-              block
-              icon={<Sparkles size={14} />}
-            >
+            <Button variant="primary" size="sm" fullWidth>
+              <Sparkles size={14} />
               Upgrade to Pro
             </Button>
           }
@@ -58,22 +48,17 @@ export function StorageUsage({
 
   return (
     <div>
-      <Typography.Text
-        type="secondary"
-        style={{ fontSize: 12, fontWeight: 500 }}
-      >
+      <Typography type="body-xs" color="muted" weight="medium">
         Storage
-      </Typography.Text>
-      <Progress
-        percent={pct}
-        size="small"
-        status={over ? "exception" : "normal"}
-        strokeColor={near ? "#faad14" : undefined}
+      </Typography>
+      <ProgressBar
+        value={pct}
+        size="sm"
+        color={over ? "danger" : near ? "warning" : "accent"}
+        aria-label="Storage used"
+        className="mt-1"
       />
-      <Typography.Paragraph
-        type="secondary"
-        style={{ fontSize: 12, marginTop: 4, marginBottom: 0 }}
-      >
+      <Typography.Paragraph size="sm" color="muted" className="mt-1">
         {formatBytes(usedBytes)} of {formatBytes(limitBytes)}
       </Typography.Paragraph>
       {over && (
@@ -81,13 +66,8 @@ export function StorageUsage({
           email={email}
           userId={userId}
           trigger={
-            <Button
-              type="primary"
-              size="small"
-              block
-              icon={<Sparkles size={14} />}
-              style={{ marginTop: 8 }}
-            >
+            <Button variant="primary" size="sm" fullWidth className="mt-2">
+              <Sparkles size={14} />
               Upgrade to Pro
             </Button>
           }

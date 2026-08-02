@@ -1,12 +1,16 @@
 "use client";
 
-import { Button, Card, Flex, Typography, theme } from "antd";
+import { Flex } from "./layout";
+import { Paragraph, Title } from "./typography";
+import { Button, Card } from "./ui";
+import { TOKENS } from "./tokens";
 import { CURRENT_STAGE } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
 import {
   MarketingSection,
   SECTION_TITLE_STYLE,
   SECTION_SUBTITLE_STYLE,
+  Eyebrow,
 } from "./_shared";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { WaitlistForm } from "./waitlist-form";
@@ -14,7 +18,7 @@ import { WaitlistForm } from "./waitlist-form";
 export function CtaSection() {
   const m = useMessages();
   const lh = useLocalizedHref();
-  const { token } = theme.useToken();
+  const token = TOKENS;
 
   return (
     <MarketingSection id="waitlist">
@@ -28,13 +32,16 @@ export function CtaSection() {
       >
         <Flex vertical align="center" gap={token.marginLG}>
           <div>
-            <Typography.Title
+            <Eyebrow>{m.cta.eyebrow}</Eyebrow>
+            <Title
+              align="center"
               level={2}
               style={{ ...SECTION_TITLE_STYLE, marginBottom: 12 }}
             >
               {CURRENT_STAGE.ctaHeadline || m.cta.headline}
-            </Typography.Title>
-            <Typography.Paragraph
+            </Title>
+            <Paragraph
+              align="center"
               type="secondary"
               style={{
                 ...SECTION_SUBTITLE_STYLE,
@@ -43,7 +50,7 @@ export function CtaSection() {
               }}
             >
               {CURRENT_STAGE.ctaSubtitle || m.cta.subtitle}
-            </Typography.Paragraph>
+            </Paragraph>
           </div>
           {CURRENT_STAGE.showCtaBuyButton ? (
             <Button

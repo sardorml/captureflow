@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { Camera, Search, Video } from "lucide-react";
-import { Empty, Input, List, Modal, Spin, Tag } from "antd";
+import {
+  Chip,
+  EmptyState,
+  Kbd,
+  ListBox,
+  Modal,
+  SearchField,
+  Spinner,
+} from "@heroui/react";
 import type { SearchHit } from "@/app/api/search/route";
 
 export function SearchTrigger() {
@@ -70,79 +78,78 @@ export function SearchTrigger() {
 
   return (
     <>
-      <Input
-        readOnly
+      <button
+        type="button"
         onClick={() => setOpen(true)}
-        prefix={<Search size={16} />}
-        suffix={<span style={{ fontSize: 11, opacity: 0.55 }}>⌘K</span>}
-        placeholder="Search your recordings and screenshots"
-        style={{ maxWidth: 576, cursor: "pointer" }}
-      />
-      <Modal
-        open={open}
-        onCancel={() => setOpen(false)}
-        footer={null}
-        width={640}
-        title="Search"
+        className="flex h-9 w-full max-w-xl cursor-pointer items-center gap-2 rounded-md border border-line-strong bg-panel px-3 text-sm text-fg-subtle transition-colors hover:bg-tint"
       >
-        <Input
-          autoFocus
-          allowClear
-          prefix={<Search size={16} />}
-          placeholder="Search your recordings and screenshots"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <div style={{ marginTop: 16, maxHeight: 384, overflowY: "auto" }}>
-          {loading ? (
-            <div style={{ textAlign: "center", padding: 24 }}>
-              <Spin />
-            </div>
-          ) : results.length === 0 ? (
-            <Empty
-              description={
-                trimmed.length < 2
-                  ? "Search your recordings and screenshots by title."
-                  : "No matches"
-              }
-            />
-          ) : (
-            <List
-              dataSource={results}
-              renderItem={(hit) => (
-                <List.Item style={{ paddingInline: 0 }}>
-                  <a
-                    href={hit.href}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      width: "100%",
-                    }}
-                  >
-                    {hit.kind === "recording" ? (
-                      <Video size={16} />
-                    ) : (
-                      <Camera size={16} />
-                    )}
-                    <span
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {hit.title}
-                    </span>
-                    <Tag style={{ marginInlineEnd: 0 }}>{hit.kind}</Tag>
-                  </a>
-                </List.Item>
-              )}
-            />
-          )}
-        </div>
+        <Search size={16} />
+        <span className="flex-1 text-left">
+          Search your recordings and screenshots
+        </span>
+        <Kbd>⌘K</Kbd>
+      </button>
+
+      <Modal isOpen={open} onOpenChange={setOpen}>
+        <Modal.Backdrop>
+          <Modal.Container size="lg">
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading>Search</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
+                <SearchField
+                  autoFocus
+                  value={query}
+                  onChange={setQuery}
+                  aria-label="Search your recordings and screenshots"
+                  fullWidth
+                >
+                  <SearchField.Group>
+                    <SearchField.SearchIcon />
+                    <SearchField.Input placeholder="Search your recordings and screenshots" />
+                    <SearchField.ClearButton />
+                  </SearchField.Group>
+                </SearchField>
+
+                <div className="mt-4 max-h-96 overflow-y-auto">
+                  {loading ? (
+                    <div className="p-6 text-center">
+                      <Spinner />
+                    </div>
+                  ) : results.length === 0 ? (
+                    <EmptyState className="py-6 text-center text-sm text-fg-muted">
+                      {trimmed.length < 2
+                        ? "Search your recordings and screenshots by title."
+                        : "No matches"}
+                    </EmptyState>
+                  ) : (
+                    <ListBox aria-label="Search results">
+                      {results.map((hit) => (
+                        <ListBox.Item
+                          key={hit.href}
+                          id={hit.href}
+                          href={hit.href}
+                          textValue={hit.title}
+                        >
+                          {hit.kind === "recording" ? (
+                            <Video size={16} />
+                          ) : (
+                            <Camera size={16} />
+                          )}
+                          <span className="min-w-0 flex-1 truncate">
+                            {hit.title}
+                          </span>
+                          <Chip size="sm">{hit.kind}</Chip>
+                        </ListBox.Item>
+                      ))}
+                    </ListBox>
+                  )}
+                </div>
+              </Modal.Body>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </>
   );

@@ -9,7 +9,7 @@ import {
   Shapes,
   Volume2,
 } from "lucide-react";
-import { Popover, Tooltip } from "antd";
+import { Popover, Toolbar, Tooltip } from "@heroui/react";
 import type { RecordingConfig } from "@/lib/recording-config";
 import {
   AudioControls,
@@ -35,7 +35,11 @@ export function EditorToolRail({
   details,
 }: Props) {
   return (
-    <div className="flex w-[88px] shrink-0 flex-col items-center gap-2 border-l border-line bg-canvas-2 p-2 pt-4">
+    <Toolbar
+      orientation="vertical"
+      aria-label="Recording tools"
+      className="flex w-[88px] shrink-0 flex-col items-center gap-2 border-l border-line bg-canvas-2 p-2 pt-4"
+    >
       <LockedTool icon={<Shapes className="h-5 w-5" />} label="Add overlay" />
       <PopoverTool
         icon={<ImageIcon className="h-5 w-5" />}
@@ -83,7 +87,7 @@ export function EditorToolRail({
         title="Details"
         content={<DetailsList {...details} />}
       />
-    </div>
+    </Toolbar>
   );
 }
 
@@ -99,35 +103,39 @@ function PopoverTool({
   content: ReactNode;
 }) {
   return (
-    <Popover
-      trigger="click"
-      placement="leftTop"
-      title={title}
-      content={<div className="w-60">{content}</div>}
-    >
-      <button
-        type="button"
-        className="flex w-full cursor-pointer flex-col items-center gap-1 rounded-md p-1 text-fg-muted transition-colors hover:text-fg"
-      >
-        <span className="flex h-10 w-10 items-center justify-center rounded-md border border-line bg-canvas transition-colors hover:border-line-strong">
-          {icon}
-        </span>
-        <span className="text-center text-[10px] leading-tight">{label}</span>
-      </button>
+    <Popover>
+      <Popover.Trigger className="w-full">
+        <button
+          type="button"
+          className="flex w-full cursor-pointer flex-col items-center gap-1 rounded-md p-1 text-fg-muted transition-colors hover:text-fg"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-md border border-line bg-canvas transition-colors hover:border-line-strong">
+            {icon}
+          </span>
+          <span className="text-center text-[10px] leading-tight">{label}</span>
+        </button>
+      </Popover.Trigger>
+      <Popover.Content placement="left top" className="w-60">
+        <Popover.Heading>{title}</Popover.Heading>
+        <div className="mt-2">{content}</div>
+      </Popover.Content>
     </Popover>
   );
 }
 
 function LockedTool({ icon, label }: { icon: ReactNode; label: string }) {
   return (
-    <Tooltip title="Coming soon" placement="left">
-      <span className="flex w-full cursor-not-allowed flex-col items-center gap-1 p-1 text-fg-subtle opacity-70">
-        <span className="relative flex h-10 w-10 items-center justify-center rounded-md border border-line bg-canvas">
-          {icon}
-          <Lock className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full bg-canvas-2 p-px" />
+    <Tooltip>
+      <Tooltip.Trigger className="w-full" tabIndex={0}>
+        <span className="flex w-full cursor-not-allowed flex-col items-center gap-1 p-1 text-fg-subtle opacity-70">
+          <span className="relative flex h-10 w-10 items-center justify-center rounded-md border border-line bg-canvas">
+            {icon}
+            <Lock className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full bg-canvas-2 p-px" />
+          </span>
+          <span className="text-center text-[10px] leading-tight">{label}</span>
         </span>
-        <span className="text-center text-[10px] leading-tight">{label}</span>
-      </span>
+      </Tooltip.Trigger>
+      <Tooltip.Content placement="left">Coming soon</Tooltip.Content>
     </Tooltip>
   );
 }

@@ -3,8 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LayoutDashboard, Settings } from "lucide-react";
-import type { MenuProps } from "antd";
-import { AccountMenu } from "./AccountMenu";
+import { AccountMenu, type AccountMenuNavItem } from "./AccountMenu";
 
 type Props = {
   userId: string;
@@ -39,16 +38,18 @@ export function ViewerUserMenu({
     router.refresh();
   };
 
-  const navItems: NonNullable<MenuProps["items"]> = [
+  const navItems: AccountMenuNavItem[] = [
     {
       key: "dashboard",
       icon: <LayoutDashboard size={16} />,
-      label: <a href={`${appWebUrl}/recordings`}>Dashboard</a>,
+      label: "Dashboard",
+      href: `${appWebUrl}/recordings`,
     },
     {
       key: "settings",
       icon: <Settings size={16} />,
-      label: <a href={`${appWebUrl}/settings`}>Workspace settings</a>,
+      label: "Workspace settings",
+      href: `${appWebUrl}/settings`,
     },
   ];
 

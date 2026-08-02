@@ -52,7 +52,7 @@ export function BackgroundPicker({
           onClick={() => onChange("transparent")}
           aria-pressed={background === "transparent"}
           className={cn(
-            "flex h-7 items-center justify-center rounded bg-overlay text-[10px] font-medium text-fg ring-1 transition-colors",
+            "flex h-7 items-center justify-center rounded bg-tint text-[10px] font-medium text-fg ring-1 transition-colors",
             background === "transparent"
               ? "ring-accent"
               : "ring-line hover:ring-line-strong",

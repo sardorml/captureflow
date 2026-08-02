@@ -1,7 +1,7 @@
 import { Bell, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { headers } from "next/headers";
-import { Button, Flex } from "antd";
+import { Button } from "@heroui/react";
 import { getActiveProSubscription } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
@@ -28,23 +28,19 @@ export async function TopBar() {
   const isPro = subscription?.status === "active";
 
   return (
-    <Flex
-      align="center"
-      justify="space-between"
-      gap={16}
-      style={{ width: "100%" }}
-    >
-      <Flex flex={1} justify="center" style={{ minWidth: 0 }}>
+    <div className="flex w-full items-center justify-between gap-4">
+      <div className="flex min-w-0 flex-1 justify-center">
         <SearchTrigger />
-      </Flex>
-      <Flex align="center" gap={8}>
+      </div>
+      <div className="flex items-center gap-2">
         {!isPro && (
           <UpgradeModal
             email={session.user.email}
             userId={session.user.id}
             openOnUpgradeParam
             trigger={
-              <Button type="primary" icon={<Sparkles size={16} />}>
+              <Button variant="primary">
+                <Sparkles size={16} />
                 Upgrade
               </Button>
             }
@@ -54,13 +50,11 @@ export async function TopBar() {
         <Link
           href="/notifications"
           title="Notifications"
-          style={{ display: "inline-flex" }}
+          className="inline-flex"
         >
-          <Button
-            type="text"
-            icon={<Bell size={18} />}
-            aria-label="Notifications"
-          />
+          <Button variant="ghost" isIconOnly aria-label="Notifications">
+            <Bell size={18} />
+          </Button>
         </Link>
         <UserMenu
           userId={session.user.id}
@@ -76,7 +70,7 @@ export async function TopBar() {
               : null
           }
         />
-      </Flex>
-    </Flex>
+      </div>
+    </div>
   );
 }

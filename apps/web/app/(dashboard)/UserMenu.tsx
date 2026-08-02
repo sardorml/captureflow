@@ -2,13 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Link from "next/link";
 import { HardDrive, Settings, UserCircle } from "lucide-react";
-import type { MenuProps } from "antd";
 import { signOut } from "@/lib/auth-client";
 import { notifyExtensionSignOut } from "@/lib/extension-bridge";
 import {
   AccountMenu,
+  type AccountMenuNavItem,
   type AccountMenuProInfo,
 } from "@/app/_components/AccountMenu";
 
@@ -32,21 +31,24 @@ export function UserMenu({ name, email, imageUrl, pro }: Props) {
     router.replace("/login");
   };
 
-  const navItems: NonNullable<MenuProps["items"]> = [
+  const navItems: AccountMenuNavItem[] = [
     {
       key: "profile",
       icon: <UserCircle size={16} />,
-      label: <Link href="/profile">Profile settings</Link>,
+      label: "Profile settings",
+      href: "/profile",
     },
     {
       key: "devices",
       icon: <HardDrive size={16} />,
-      label: <Link href="/devices">Connected devices</Link>,
+      label: "Connected devices",
+      href: "/devices",
     },
     {
       key: "settings",
       icon: <Settings size={16} />,
-      label: <Link href="/settings">Workspace settings</Link>,
+      label: "Workspace settings",
+      href: "/settings",
     },
   ];
 
