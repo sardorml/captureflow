@@ -180,6 +180,18 @@ export default async function DownloadPage() {
 }
 
 /*
+ * White pill against the dark page, matching the plan cards' CTA — it has to
+ * hold its own next to the blue primary rather than recede into the surface.
+ */
+const CHROME_BUTTON_CLASS = [
+  "w-full gap-2",
+  "[--button-bg:var(--cf-inverse)]",
+  "[--button-fg:var(--cf-on-inverse)]",
+  "[--button-bg-hover:#e5e5e5]",
+  "[--button-bg-pressed:#d4d4d4]",
+].join(" ");
+
+/*
  * A live secondary CTA. Falls back to "#" until CHROME_WEBSTORE_URL is set —
  * setting that one constant turns it into the real store link (and opens it in
  * a new tab, which the placeholder must not do).
@@ -191,10 +203,13 @@ function ChromeInstall() {
       href={CHROME_WEBSTORE_URL ?? "#"}
       target={published ? "_blank" : undefined}
       rel={published ? "noreferrer" : undefined}
+      /* Keeps HeroUI's geometry but overrides the two colour vars .button
+         paints from — a Tailwind bg-* utility loses to .button's own
+         background-color rule, which lands later in the cascade. */
       className={buttonVariants({
         variant: "tertiary",
         size: "lg",
-        className: "w-full gap-2",
+        className: CHROME_BUTTON_CLASS,
       })}
     >
       <ChromeLogo className="size-[18px]" />

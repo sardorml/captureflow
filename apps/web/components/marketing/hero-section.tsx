@@ -149,13 +149,15 @@ function InstallButton({
   location: string;
   primary?: boolean;
 }) {
-  /* tertiary, not secondary: both take the same grey fill, but secondary
-     paints its label with the soft accent — blue on grey reads as disabled
-     next to the primary button. tertiary leaves it at currentColor. */
+  /* The alternative install is a white pill, not a grey one: HeroUI's greys
+     recede into the dark page next to the blue primary. Overriding .button's
+     own colour vars rather than passing bg-*, which loses the cascade. */
   const className = buttonVariants({
     variant: primary ? "primary" : "tertiary",
     size: "lg",
-    className: "gap-2 rounded-full",
+    className: primary
+      ? "gap-2 rounded-full"
+      : "gap-2 rounded-full [--button-bg:var(--cf-inverse)] [--button-fg:var(--cf-on-inverse)] [--button-bg-hover:#e5e5e5] [--button-bg-pressed:#d4d4d4]",
   });
   const onClick = () => track("marketing_cta_clicked", { location });
 
