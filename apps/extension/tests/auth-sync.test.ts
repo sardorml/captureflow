@@ -24,20 +24,16 @@ describe("decideAuthSync", () => {
     expect(decideAuthSync(live, { kind: "signed-out" })).toBe("signed-out");
   });
 
-  it("flags a revoked token without consulting the browser", () => {
-    expect(decideAuthSync({ kind: "invalid" }, { kind: "unknown" })).toBe(
-      "revoked",
-    );
+  it("flags a revoked token even when the browser agrees on the user", () => {
+    expect(
+      decideAuthSync({ kind: "invalid" }, { kind: "signed-in", userId: "u" }),
+    ).toBe("revoked");
   });
 
   it("keeps the token when the auth probe is inconclusive", () => {
     expect(
       decideAuthSync({ kind: "unreachable" }, { kind: "signed-out" }),
     ).toBe("unknown");
-  });
-
-  it("keeps the token when the browser session is inconclusive", () => {
-    expect(decideAuthSync(live, { kind: "unknown" })).toBe("unknown");
   });
 });
 

@@ -1,4 +1,5 @@
 import { requireSession } from "@/lib/session-guard";
+import { ExtensionSessionSync } from "@/app/ExtensionSessionSync";
 import { DashboardShell } from "./DashboardShell";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
@@ -17,6 +18,7 @@ export default async function DashboardLayout({
   return (
     <DashboardShell sidebar={<Sidebar />} header={<TopBar />}>
       <PostHogIdentify email={session.user.email} />
+      <ExtensionSessionSync userId={session.user.id} />
       {children}
     </DashboardShell>
   );

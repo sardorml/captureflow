@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   EXTERNAL_AUTH_KIND,
   EXTERNAL_LOGOUT_KIND,
+  EXTERNAL_SESSION_KIND,
   isTrustedAuthSender,
   isTrustedWebOrigin,
   parseExternalMessage,
@@ -43,6 +44,26 @@ describe("parseExternalMessage", () => {
     expect(
       parseExternalMessage({ kind: EXTERNAL_AUTH_KIND, token, id: "" }),
     ).toBeNull();
+  });
+
+  it("parses a session message", () => {
+    expect(
+      parseExternalMessage({ kind: EXTERNAL_SESSION_KIND, userId: "user_1" }),
+    ).toEqual({ kind: "session", userId: "user_1" });
+  });
+
+  it("parses an explicitly signed-out session message", () => {
+    expect(
+      parseExternalMessage({ kind: EXTERNAL_SESSION_KIND, userId: null }),
+    ).toEqual({ kind: "session", userId: null });
+  });
+
+  it("rejects a session message with no user", () => {
+    for (const userId of [undefined, "", 42]) {
+      expect(
+        parseExternalMessage({ kind: EXTERNAL_SESSION_KIND, userId }),
+      ).toBeNull();
+    }
   });
 
   it("rejects non-object payloads", () => {

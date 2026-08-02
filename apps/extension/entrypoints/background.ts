@@ -21,6 +21,7 @@ import {
   parseExternalMessage,
 } from "@/lib/auth/handoff";
 import { getAuthSession, setAuthSession } from "@/lib/auth/session";
+import { reconcileAuthSession } from "@/lib/auth/sync";
 import { getDeviceId } from "@/lib/auth/device-id";
 import {
   BUBBLE_FRAME_ID,
@@ -279,16 +280,18 @@ export default defineBackground(() => {
   chrome.action.onClicked.addListener(() => void onActionClicked());
 
   /*
-   * The web app posts auth (from the callback page) and logout (from any of its
-   * pages) here. externally_connectable can't gate by path/port, so re-check the
-   * sender per kind: auth needs the exact callback page, logout just the origin.
+   * The web app posts auth (from the callback page), logout, and who it's
+   * signed in as (from any of its pages) here. externally_connectable can't
+   * gate by path/port, so re-check the sender per kind: auth needs the exact
+   * callback page, the other two just the origin — neither can leak a token,
+   * and the worst a hostile same-origin page could do is force a re-login.
    */
   chrome.runtime.onMessageExternal.addListener((message, sender, respond) => {
     const parsed = parseExternalMessage(message);
     const trusted =
       parsed?.kind === "auth"
         ? isTrustedAuthSender(sender.url)
-        : parsed?.kind === "logout"
+        : parsed
           ? isTrustedWebOrigin(sender.url)
           : false;
     if (!parsed || !trusted) {
@@ -299,6 +302,12 @@ export default defineBackground(() => {
       try {
         if (parsed.kind === "logout") {
           await setAuthSession(null);
+        } else if (parsed.kind === "session") {
+          await reconcileAuthSession(
+            parsed.userId === null
+              ? { kind: "signed-out" }
+              : { kind: "signed-in", userId: parsed.userId },
+          );
         } else {
           await setAuthSession(parsed.session);
           const tabId = sender.tab?.id;

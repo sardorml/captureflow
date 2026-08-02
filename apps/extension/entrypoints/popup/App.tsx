@@ -3,10 +3,12 @@ import { Button, Tabs, Tooltip } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
 import {
   getAuthSession,
+  getSignedOutReason,
   watchAuthSession,
   type AuthSession,
+  type SignedOutReason,
 } from "@/lib/auth/session";
-import { reconcileAuthSession, type AuthSyncVerdict } from "@/lib/auth/sync";
+import { probeAuthSession } from "@/lib/auth/sync";
 import { WEB_BASE } from "@/lib/config";
 import {
   getCameraBlocked,
@@ -28,9 +30,9 @@ type AuthState = AuthSession | null | "loading";
 
 const LIVE_KINDS = new Set(["preparing", "recording", "paused", "uploading"]);
 
-// Why the panel dropped back to the gate. Silence here would read as the
-// extension logging itself out at random.
-const SYNC_NOTE: Partial<Record<AuthSyncVerdict, string>> = {
+// Why the token was dropped for the user rather than by them. Silence here
+// would read as the extension logging itself out at random.
+const SIGNED_OUT_NOTE: Record<SignedOutReason, string> = {
   revoked: "Your sign-in expired. Sign in again to keep recording.",
   "signed-out":
     "You're signed out of CaptureFlow in this browser, so the extension signed out too.",
@@ -124,13 +126,20 @@ export function App() {
   const [auth, setAuth] = useState<AuthState>("loading");
   const [status, setStatus] = useState<RecordingStatus>({ kind: "idle" });
   const [result, setResult] = useState<RecordingResult | null>(null);
-  const [syncNote, setSyncNote] = useState<string | null>(null);
+  const [reason, setReason] = useState<SignedOutReason | null>(null);
 
   useEffect(() => {
     void getAuthSession().then(setAuth);
+    void getSignedOutReason().then(setReason);
     void getRecordingStatus().then(setStatus);
     void getRecordingResult().then(setResult);
-    const unwatchAuth = watchAuthSession(setAuth);
+    // A drop can land while the panel is open — from the service worker acting
+    // on a dashboard tab, or from the probe below — so the reason is re-read
+    // rather than captured once.
+    const unwatchAuth = watchAuthSession((next) => {
+      setAuth(next);
+      if (!next) void getSignedOutReason().then(setReason);
+    });
     const unwatchStatus = watchRecordingStatus(setStatus);
     const unwatchResult = watchRecordingResult(setResult);
     return () => {
@@ -140,18 +149,14 @@ export function App() {
     };
   }, []);
 
-  /*
-   * Reconcile with the browser's own dashboard session once per open. The
-   * device token outlives the cookie and doesn't follow account switches, so
-   * without this the panel keeps recording as an account the browser can't open
-   * the resulting links with. Skipped mid-recording: dropping the token there
-   * would strand the upload.
-   */
+  // Probe the token once per open; a revocation is the one desync no web page
+  // would have pushed. Skipped mid-recording: dropping the token there would
+  // strand the upload.
   useEffect(() => {
     void (async () => {
       const status = await getRecordingStatus();
       if (LIVE_KINDS.has(status.kind)) return;
-      setSyncNote(SYNC_NOTE[await reconcileAuthSession()] ?? null);
+      await probeAuthSession();
     })();
   }, []);
 
@@ -183,7 +188,9 @@ export function App() {
   }, []);
 
   if (auth === "loading") return null;
-  if (!auth) return <SignInGate note={syncNote} />;
+  if (!auth) {
+    return <SignInGate note={reason ? SIGNED_OUT_NOTE[reason] : null} />;
+  }
 
   const openHome = () => {
     void chrome.tabs.create({ url: `${WEB_BASE}/recordings` });
