@@ -12,7 +12,7 @@ import {
   WindowsLogo,
 } from "@/components/marketing/platform-logos";
 import { MESSAGES } from "@/lib/marketing/messages";
-import { DOWNLOAD_URL } from "@/lib/marketing/constants";
+import { CHROME_WEBSTORE_URL, DOWNLOAD_URL } from "@/lib/marketing/constants";
 import { RELEASES_URL, DOCS_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -57,11 +57,14 @@ export default async function DownloadPage() {
             }}
           />
 
+          {/* align is explicit: HeroUI's Typography emits text-align:start by
+              default, which beats the centered ancestor. */}
           <div>
-            <Title level={1} style={{ marginBottom: 8 }}>
+            <Title align="center" level={1} style={{ marginBottom: 8 }}>
               {m.heading}
             </Title>
             <Paragraph
+              align="center"
               type="secondary"
               style={{
                 fontSize: 18,
@@ -75,15 +78,18 @@ export default async function DownloadPage() {
           </div>
 
           <div className="flex flex-col items-center gap-3">
-            <a
-              href={DOWNLOAD_URL}
-              target="_blank"
-              rel="noreferrer"
-              className={buttonVariants({ variant: "primary", size: "lg" })}
-            >
-              <Download size={18} />
-              {m.button}
-            </a>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <a
+                href={DOWNLOAD_URL}
+                target="_blank"
+                rel="noreferrer"
+                className={buttonVariants({ variant: "primary", size: "lg" })}
+              >
+                <Download size={18} />
+                {m.button}
+              </a>
+              <ChromeInstall />
+            </div>
 
             <Text type="secondary" style={{ fontSize: 14 }}>
               {m.requirements}
@@ -96,10 +102,6 @@ export default async function DownloadPage() {
               <SoonPlatform
                 label="Windows"
                 icon={<WindowsLogo className="size-3.5" />}
-              />
-              <SoonPlatform
-                label="Chrome"
-                icon={<ChromeLogo className="size-4" />}
               />
               <SoonPlatform
                 label="Firefox"
@@ -168,6 +170,30 @@ export default async function DownloadPage() {
         </Paragraph>
       </PageShell>
     </I18nProvider>
+  );
+}
+
+/*
+ * A live secondary CTA. Falls back to "#" until CHROME_WEBSTORE_URL is set —
+ * setting that one constant turns it into the real store link (and opens it in
+ * a new tab, which the placeholder must not do).
+ */
+function ChromeInstall() {
+  const published = CHROME_WEBSTORE_URL !== null;
+  return (
+    <a
+      href={CHROME_WEBSTORE_URL ?? "#"}
+      target={published ? "_blank" : undefined}
+      rel={published ? "noreferrer" : undefined}
+      className={buttonVariants({
+        variant: "secondary",
+        size: "lg",
+        className: "gap-2",
+      })}
+    >
+      <ChromeLogo className="size-[18px]" />
+      Add to Chrome
+    </a>
   );
 }
 
