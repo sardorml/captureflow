@@ -42,7 +42,7 @@ export function toggleRecorderOverlay(
   iframe.allow = "camera; microphone";
   iframe.style.cssText =
     "position:fixed;top:14px;right:14px;width:348px;height:0;border:0;" +
-    "z-index:2147483647;background:#16181d;border-radius:16px;" +
+    "z-index:2147483647;background:#131317;border-radius:16px;" +
     "box-shadow:0 24px 64px rgba(0,0,0,.5);transition:height .15s ease;";
 
   // If no height report ever lands, show the panel at a sane size instead of

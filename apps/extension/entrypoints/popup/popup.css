@@ -3,7 +3,17 @@
 
 /* The panel is dark-only, so index.html pins data-theme="dark" and every
    surface/text colour comes from HeroUI's dark theme. */
+/*
+ * HeroUI's dark background is #060607 — right for a full-page app, but at
+ * 340px floating over someone else's page it reads as a hole punched in the
+ * page rather than a panel. Lift it, and carry the rows and menus with it so
+ * the steps between them survive.
+ */
 body {
+  --background: #131317;
+  --surface: #222228;
+  --overlay: #26262d;
+
   margin: 0;
   width: 340px;
   /* Hard stop: the popup window is sized from content, so anything that
