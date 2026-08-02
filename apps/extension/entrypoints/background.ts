@@ -310,6 +310,9 @@ export default defineBackground(() => {
           );
         } else {
           await setAuthSession(parsed.session);
+          // Answer before closing the callback tab — removing it first destroys
+          // the page that's waiting on the response.
+          respond({ ok: true });
           const tabId = sender.tab?.id;
           if (tabId !== undefined) {
             try {
@@ -318,6 +321,7 @@ export default defineBackground(() => {
               /* tab already closed */
             }
           }
+          return;
         }
         respond({ ok: true });
       } catch {
