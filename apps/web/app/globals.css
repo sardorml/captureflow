@@ -21,7 +21,7 @@ body {
   /* Paint the document itself so the rubber-band overscroll past the top/bottom
      edge matches the page instead of flashing the default white. The default
      (no data-theme) is dark, per tokens.css. */
-  background-color: #121212;
+  background-color: #0a0a0a;
   font-family:
     var(--font-sans),
     -apple-system,

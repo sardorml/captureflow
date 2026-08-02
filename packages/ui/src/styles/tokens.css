@@ -18,8 +18,10 @@
 
 :root,
 [data-theme="dark"] {
-  --cf-canvas: #121212; /* page background */
-  --cf-canvas-2: #0a0a0a; /* sidebar / header — chrome sits under the content */
+  /* Chrome and content are one flat near-black; depth comes from the panels
+     stacked on top, not from tinting the shell. */
+  --cf-canvas: #0a0a0a; /* page background */
+  --cf-canvas-2: #0a0a0a; /* sidebar / header */
   --cf-panel: #1f1f1f; /* cards / popovers */
   --cf-panel-2: #262626; /* raised surface */
 
