@@ -22,8 +22,10 @@ type Mode = "signin" | "signup";
 type Step = "email" | "credentials";
 type SocialProvider = "google" | "github";
 
-// Pill buttons throughout, matching the entry screen's primary action.
-const PILL = "rounded-full";
+/* Every control is one height, so the input and the buttons below it line up.
+   The explicit h-11 is load-bearing: HeroUI's own .button--lg drops to 40px at
+   md and up, and InputGroup is a fixed min-h-9 with no size variant. */
+const CONTROL = "h-11 rounded-full";
 
 function GoogleIcon() {
   return (
@@ -163,7 +165,7 @@ export function AuthForm({
           <Form
             onSubmit={onEmailSubmit}
             validationBehavior="native"
-            className="flex flex-col gap-3"
+            className="flex flex-col gap-5"
           >
             <TextField
               name="email"
@@ -174,7 +176,7 @@ export function AuthForm({
               onChange={setEmail}
             >
               <Label className="sr-only">Email address</Label>
-              <InputGroup>
+              <InputGroup className="min-h-11">
                 <InputGroup.Prefix>
                   <Mail size={16} />
                 </InputGroup.Prefix>
@@ -191,7 +193,7 @@ export function AuthForm({
               size="lg"
               type="submit"
               fullWidth
-              className={PILL}
+              className={CONTROL}
               isDisabled={busy}
             >
               Continue
@@ -200,18 +202,18 @@ export function AuthForm({
 
           {/* Rules flanking the label rather than a bare <hr>: the label has to
               sit on the line, not above it. */}
-          <div className="my-6 flex items-center gap-4">
+          <div className="my-8 flex items-center gap-4">
             <span className="bg-line-strong h-px flex-1" />
             <span className="text-fg-subtle text-xs font-medium">OR</span>
             <span className="bg-line-strong h-px flex-1" />
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-5">
             <Button
               variant="tertiary"
               size="lg"
               fullWidth
-              className={PILL}
+              className={CONTROL}
               isDisabled={busy && busyProvider !== "google"}
               onPress={() => onSocial("google")}
             >
@@ -226,7 +228,7 @@ export function AuthForm({
               variant="tertiary"
               size="lg"
               fullWidth
-              className={PILL}
+              className={CONTROL}
               isDisabled={busy && busyProvider !== "github"}
               onPress={() => onSocial("github")}
             >
@@ -315,7 +317,7 @@ export function AuthForm({
             size="lg"
             type="submit"
             fullWidth
-            className={PILL}
+            className={CONTROL}
             isDisabled={busy}
           >
             {busy && <Spinner size="sm" color="current" />}

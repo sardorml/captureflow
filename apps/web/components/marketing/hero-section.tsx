@@ -150,8 +150,9 @@ function InstallButton({
   primary?: boolean;
 }) {
   /* The alternative install is a white pill, not a grey one: HeroUI's greys
-     recede into the dark page next to the blue primary. Overriding .button's
-     own colour vars rather than passing bg-*, which loses the cascade. */
+     recede into the dark page next to the blue primary. Setting .button's own
+     colour vars rather than bg and text utilities, so hover and pressed follow
+     from the same place instead of needing their own variants. */
   const className = buttonVariants({
     variant: primary ? "primary" : "tertiary",
     size: "lg",
