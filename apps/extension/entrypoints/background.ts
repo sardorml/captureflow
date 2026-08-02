@@ -1,4 +1,9 @@
-import { onMessage, sendMessage, type StartResult } from "@/lib/messaging";
+import {
+  onMessage,
+  sendMessage,
+  type CaptureContext,
+  type StartResult,
+} from "@/lib/messaging";
 import {
   getActiveUpload,
   getCapturePrefs,
@@ -145,6 +150,30 @@ async function ensureOffscreenDocument(): Promise<void> {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+// chrome.runtime's wording when nothing is listening on the other end.
+const NO_RECEIVER =
+  /Receiving end does not exist|Could not establish connection/i;
+
+/*
+ * createDocument() resolves once the document exists, not once its module has
+ * run and registered onMessage — the first send lands in that gap and rejects
+ * with "Receiving end does not exist", which surfaced as a failed start.
+ */
+async function beginCaptureWhenReady(ctx: CaptureContext): Promise<void> {
+  const attempts = 20;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      await sendMessage("beginCapture", ctx);
+      return;
+    } catch (error) {
+      if (attempt === attempts || !NO_RECEIVER.test(errorMessage(error))) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
 }
 
 // Tab hosting the in-page recorder overlay.
@@ -348,7 +377,7 @@ export default defineBackground(() => {
       await ensureOffscreenDocument();
       // Fire-and-forget: the offscreen doc reports back via
       // recordingStatus/recordingResult.
-      void sendMessage("beginCapture", {
+      void beginCaptureWhenReady({
         deviceId,
         token: session.token,
         camera: prefs.camera,
