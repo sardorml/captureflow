@@ -1,4 +1,12 @@
 import { useEffect, useState } from "react";
+import {
+  Alert,
+  Button,
+  ListBox,
+  Select,
+  Switch,
+  Typography,
+} from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
 import {
   getCameraBlocked,
@@ -71,51 +79,70 @@ async function isMicGranted(): Promise<boolean> {
 
 type DeviceRowProps = {
   icon: React.ReactNode;
-  fallbackLabel: string;
+  label: string;
   devices: MediaDeviceOption[];
   selectedId: string | undefined;
   on: boolean;
-  onToggle: () => void;
+  onToggle: (on: boolean) => void;
   onSelect: (deviceId: string) => void;
 };
 
 function DeviceRow({
   icon,
-  fallbackLabel,
+  label,
   devices,
   selectedId,
   on,
   onToggle,
   onSelect,
 }: DeviceRowProps) {
-  const hasLabels = devices.some((d) => d.label && d.deviceId);
+  // Device labels stay empty until the origin holds a grant; fall back to the
+  // static row label rather than rendering a picker of blank entries.
+  const named = devices.filter((d) => d.label && d.deviceId);
+
   return (
-    <div className={on ? "cf-row is-on" : "cf-row"}>
-      <span className="cf-row-icon" aria-hidden>
+    <div
+      className="flex items-center gap-2.5 rounded-xl bg-surface px-3 py-2 data-[on=true]:outline data-[on=true]:outline-border"
+      data-on={on}
+    >
+      <span className="flex text-foreground" aria-hidden>
         {icon}
       </span>
-      {hasLabels ? (
-        <select
-          className="cf-row-select"
-          value={selectedId ?? devices[0]?.deviceId ?? ""}
-          onChange={(event) => onSelect(event.target.value)}
+      {named.length > 0 ? (
+        <Select
+          aria-label={label}
+          selectedKey={selectedId ?? named[0]?.deviceId}
+          onSelectionChange={(key) => onSelect(String(key))}
+          className="min-w-0 flex-1"
         >
-          {devices.map((device) => (
-            <option key={device.deviceId} value={device.deviceId}>
-              {device.label}
-            </option>
-          ))}
-        </select>
+          <Select.Trigger className="w-full justify-between border-0 bg-transparent px-0">
+            <Select.Value className="truncate text-sm font-medium" />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {named.map((device) => (
+                <ListBox.Item
+                  key={device.deviceId}
+                  id={device.deviceId}
+                  textValue={device.label}
+                >
+                  {device.label}
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </Select.Popover>
+        </Select>
       ) : (
-        <span className="cf-row-label">{fallbackLabel}</span>
+        <Typography type="body-sm" weight="medium" className="flex-1 truncate">
+          {label}
+        </Typography>
       )}
-      <button
-        type="button"
-        className={on ? "cf-pill is-on" : "cf-pill"}
-        onClick={onToggle}
-      >
-        {on ? "On" : "Off"}
-      </button>
+      <Switch
+        size="sm"
+        isSelected={on}
+        onChange={onToggle}
+        aria-label={label}
+      />
     </div>
   );
 }
@@ -162,47 +189,50 @@ export function DevicePickers() {
   };
 
   return (
-    <section className="cf-section cf-pickers">
+    <section className="flex flex-col gap-2">
       <DeviceRow
         icon={CAMERA_ICON}
-        fallbackLabel={blocked ? "Camera blocked" : "Camera"}
+        label={blocked ? "Camera blocked" : "Camera"}
         devices={devices.cameras}
         selectedId={prefs.cameraId}
         on={prefs.camera && !blocked}
-        onToggle={() => void update({ camera: !prefs.camera })}
+        onToggle={(on) => void update({ camera: on })}
         onSelect={(cameraId) => void update({ cameraId })}
       />
       {blocked && (
-        <div className="cf-notice">
-          <p className="cf-notice-title">Camera blocked</p>
-          <p className="cf-hint">
-            Allow the camera for this extension in your browser&rsquo;s camera
-            settings, then try again.
-          </p>
-          <button
-            type="button"
-            className="cf-try"
-            onClick={() => void update({ camera: true })}
-          >
-            Try again
-          </button>
-        </div>
+        <Alert status="warning">
+          <Alert.Content>
+            <Alert.Title>Camera blocked</Alert.Title>
+            <Alert.Description>
+              Allow the camera for this extension in your browser&rsquo;s camera
+              settings, then try again.
+            </Alert.Description>
+            <Button
+              variant="primary"
+              size="sm"
+              className="mt-2 self-start"
+              onPress={() => void update({ camera: true })}
+            >
+              Try again
+            </Button>
+          </Alert.Content>
+        </Alert>
       )}
       <DeviceRow
         icon={MIC_ICON}
-        fallbackLabel="Microphone"
+        label="Microphone"
         devices={devices.mics}
         selectedId={prefs.micId}
         on={prefs.mic}
-        onToggle={() => void update({ mic: !prefs.mic })}
+        onToggle={(on) => void update({ mic: on })}
         onSelect={(micId) => void update({ micId })}
       />
       <MicMeter enabled={prefs.mic} />
       {prefs.camera && !blocked && (
-        <p className="cf-hint">
+        <Typography type="body-xs" color="muted">
           Your camera bubble appears on normal web pages — not on internal
           browser pages like this one.
-        </p>
+        </Typography>
       )}
     </section>
   );

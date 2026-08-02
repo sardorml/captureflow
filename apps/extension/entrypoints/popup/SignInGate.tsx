@@ -1,3 +1,4 @@
+import { Button, Card, Typography } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
 
 // Only renders in the brief window before the service worker clears the popup
@@ -9,23 +10,21 @@ export function SignInGate() {
   };
 
   return (
-    <div className="cf-panel">
-      <header className="cf-header">
-        <div className="cf-brand">
-          <img className="cf-logo" src="/icon/32.png" alt="" />
-          CaptureFlow
-        </div>
+    <div className="flex flex-col gap-3 p-3.5">
+      <header className="flex items-center gap-2">
+        <img className="size-4.5 rounded-[5px]" src="/icon/32.png" alt="" />
+        <Typography weight="semibold">CaptureFlow</Typography>
       </header>
 
-      <section className="cf-section">
-        <p className="cf-source">
+      <Card className="p-3">
+        <Typography type="body-sm">
           Sign in to record your screen and get an instant recording link.
-        </p>
-      </section>
+        </Typography>
+      </Card>
 
-      <button type="button" className="cf-start" onClick={onSignIn}>
+      <Button variant="primary" size="lg" fullWidth onPress={onSignIn}>
         Sign in
-      </button>
+      </Button>
     </div>
   );
 }

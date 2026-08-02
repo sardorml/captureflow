@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button, Link, Spinner, Typography } from "@heroui/react";
 import type { RecordingResult, RecordingStatus } from "@/lib/storage";
 import { MAX_DURATION_MS } from "@/lib/capture/limits";
 import { DevicePickers } from "./DevicePickers";
@@ -36,7 +37,7 @@ const BUSY_LABEL: Partial<Record<RecordingStatus["kind"], string>> = {
   uploading: "Uploading…",
 };
 
-function RecordingLink({ url }: { url: string }) {
+export function ResultLink({ url, label }: { url: string; label: string }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {
@@ -48,15 +49,22 @@ function RecordingLink({ url }: { url: string }) {
     }
   };
   return (
-    <div className="cf-result">
-      <p className="cf-status cf-status--ok">Your recording link is ready ✓</p>
-      <div className="cf-linkrow">
-        <a className="cf-link" href={url} target="_blank" rel="noreferrer">
+    <div className="flex flex-col gap-2">
+      <Typography type="body-xs" className="text-success">
+        {label} ✓
+      </Typography>
+      <div className="flex items-center gap-2 rounded-[10px] bg-surface px-2.5 py-2">
+        <Link
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="min-w-0 flex-1 truncate text-xs"
+        >
           {url}
-        </a>
-        <button type="button" className="cf-copy" onClick={copy}>
+        </Link>
+        <Button variant="outline" size="sm" onPress={() => void copy()}>
           {copied ? "Copied" : "Copy"}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -71,27 +79,37 @@ function StatusLine({
 }) {
   switch (status.kind) {
     case "preparing":
-      return <p className="cf-status">Choose a source in the picker…</p>;
+      return (
+        <Typography type="body-xs">Choose a source in the picker…</Typography>
+      );
     case "recording":
     case "paused":
       return (
-        <p className="cf-status">
+        <Typography type="body-xs">
           {status.kind === "paused" ? "Paused" : "Recording"} — control it from
           the bar on the page.
-        </p>
+        </Typography>
       );
     case "uploading":
-      return <p className="cf-status">Uploading your recording…</p>;
+      return <Typography type="body-xs">Uploading your recording…</Typography>;
     case "cancelled":
-      return <p className="cf-status cf-status--muted">Recording cancelled.</p>;
+      return (
+        <Typography type="body-xs" color="muted">
+          Recording cancelled.
+        </Typography>
+      );
     case "error":
       return (
-        <p className="cf-status cf-status--error">
+        <Typography type="body-xs" className="text-danger">
           {status.detail ?? "Something went wrong."}
-        </p>
+        </Typography>
       );
     default:
-      if (result?.ok) return <RecordingLink url={result.url} />;
+      if (result?.ok) {
+        return (
+          <ResultLink url={result.url} label="Your recording link is ready" />
+        );
+      }
       return null;
   }
 }
@@ -106,38 +124,42 @@ export function RecorderPanel({
   const isBusy = status.kind === "preparing" || status.kind === "uploading";
 
   return (
-    <>
-      <section className="cf-section">
-        <div className="cf-row">
-          <span className="cf-row-icon" aria-hidden>
-            {SCREEN_ICON}
-          </span>
-          <span className="cf-row-label">Screen, window, or tab</span>
-          <span className="cf-row-note">Pick at start</span>
-        </div>
-      </section>
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2.5 rounded-xl bg-surface px-3 py-2.5">
+        <span className="flex text-foreground" aria-hidden>
+          {SCREEN_ICON}
+        </span>
+        <Typography type="body-sm" weight="medium" className="flex-1">
+          Screen, window, or tab
+        </Typography>
+        <Typography type="body-xs" color="muted">
+          Pick at start
+        </Typography>
+      </div>
 
       <DevicePickers />
 
       {isLive ? (
-        <button type="button" className="cf-start cf-stop" onClick={onStop}>
+        <Button variant="danger" size="lg" fullWidth onPress={onStop}>
           Stop Recording
-        </button>
+        </Button>
       ) : (
-        <button
-          type="button"
-          className="cf-start"
-          onClick={onStart}
-          disabled={isBusy}
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          isDisabled={isBusy}
+          onPress={onStart}
         >
+          {isBusy && <Spinner size="sm" color="current" />}
           {BUSY_LABEL[status.kind] ?? "Start Recording"}
-        </button>
+        </Button>
       )}
-      <p className="cf-limit">
+      <Typography type="body-xs" color="muted" align="center" className="-mt-2">
         {Math.round(MAX_DURATION_MS / 60_000)} min recording limit
-      </p>
+      </Typography>
 
       <StatusLine status={status} result={result} />
-    </>
+    </div>
   );
 }

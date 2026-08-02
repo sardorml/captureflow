@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Meter } from "@heroui/react";
 
 /*
  * Live input level under the mic row. Only attaches when the extension origin
@@ -54,11 +55,16 @@ export function MicMeter({ enabled }: { enabled: boolean }) {
 
   if (!enabled) return null;
   return (
-    <div className="cf-meter" aria-hidden>
-      <div
-        className="cf-meter-fill"
-        style={{ width: `${Math.round(level * 100)}%` }}
-      />
-    </div>
+    <Meter
+      value={level}
+      minValue={0}
+      maxValue={1}
+      size="sm"
+      aria-label="Microphone input level"
+    >
+      <Meter.Track>
+        <Meter.Fill className="transition-[width] duration-75 ease-linear" />
+      </Meter.Track>
+    </Meter>
   );
 }

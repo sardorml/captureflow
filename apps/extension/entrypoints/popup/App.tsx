@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Button, Tabs, Tooltip } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
 import {
   getAuthSession,
@@ -26,8 +27,6 @@ import { SignInGate } from "./SignInGate";
 
 // "loading" until storage resolves, to avoid flashing the sign-in gate.
 type AuthState = AuthSession | null | "loading";
-
-type Mode = "video" | "screenshot";
 
 const LIVE_KINDS = new Set(["preparing", "recording", "paused", "uploading"]);
 
@@ -112,7 +111,6 @@ export function App() {
   const [auth, setAuth] = useState<AuthState>("loading");
   const [status, setStatus] = useState<RecordingStatus>({ kind: "idle" });
   const [result, setResult] = useState<RecordingResult | null>(null);
-  const [mode, setMode] = useState<Mode>("video");
 
   useEffect(() => {
     void getAuthSession().then(setAuth);
@@ -182,60 +180,62 @@ export function App() {
   const onStop = () => sendMessage("stopRecording", undefined);
 
   return (
-    <div className="cf-panel">
-      <header className="cf-topbar">
-        <button
-          type="button"
-          className="cf-iconbtn"
-          title="Open dashboard"
-          onClick={openHome}
-        >
+    <Tabs
+      defaultSelectedKey="video"
+      aria-label="Capture mode"
+      className="flex flex-col gap-3 p-3.5"
+    >
+      <header className="flex items-center justify-between gap-2">
+        <IconAction label="Open dashboard" onPress={openHome}>
           {HOME_ICON}
-        </button>
-        <div className="cf-tabs" role="tablist" aria-label="Capture mode">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "video"}
-            className={mode === "video" ? "cf-tab is-active" : "cf-tab"}
-            title="Record video"
-            onClick={() => setMode("video")}
-          >
+        </IconAction>
+        <Tabs.List>
+          <Tabs.Tab id="video" aria-label="Record video">
             {VIDEO_ICON}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "screenshot"}
-            className={mode === "screenshot" ? "cf-tab is-active" : "cf-tab"}
-            title="Capture screenshot"
-            onClick={() => setMode("screenshot")}
-          >
+          </Tabs.Tab>
+          <Tabs.Tab id="screenshot" aria-label="Capture screenshot">
             {PHOTO_ICON}
-          </button>
-        </div>
-        <button
-          type="button"
-          className="cf-iconbtn"
-          title="Close"
-          onClick={() => closeSurface()}
-        >
+          </Tabs.Tab>
+        </Tabs.List>
+        <IconAction label="Close" onPress={() => closeSurface()}>
           {CLOSE_ICON}
-        </button>
+        </IconAction>
       </header>
 
-      {mode === "video" ? (
+      <Tabs.Panel id="video">
         <RecorderPanel
           status={status}
           result={result}
           onStart={onStart}
           onStop={onStop}
         />
-      ) : (
+      </Tabs.Panel>
+      <Tabs.Panel id="screenshot">
         <ScreenshotPanel />
-      )}
+      </Tabs.Panel>
 
       <FooterActions />
-    </div>
+    </Tabs>
+  );
+}
+
+function IconAction({
+  label,
+  onPress,
+  children,
+}: {
+  label: string;
+  onPress: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <Tooltip>
+      <Tooltip.Trigger>
+        <Button variant="ghost" isIconOnly aria-label={label} onPress={onPress}>
+          {children}
+        </Button>
+      </Tooltip.Trigger>
+      <Tooltip.Content>{label}</Tooltip.Content>
+    </Tooltip>
   );
 }
