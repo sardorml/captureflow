@@ -24,7 +24,10 @@ import {
   Typography,
 } from "@heroui/react";
 import { authClient } from "@/lib/auth-client";
-import { removeUserAvatarAction, uploadUserAvatarAction } from "./actions";
+import {
+  removeUserAvatarAction,
+  uploadUserAvatarAction,
+} from "./account-actions";
 
 type Props = {
   userId: string;
@@ -54,7 +57,7 @@ function avatarColor(seed: string): string {
   return AVATAR_HUES[Math.abs(hash) % AVATAR_HUES.length];
 }
 
-export function ProfileForm({ userId, initialName, email, imageUrl }: Props) {
+export function AccountForm({ userId, initialName, email, imageUrl }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <AvatarField

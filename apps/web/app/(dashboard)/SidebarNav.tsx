@@ -14,7 +14,7 @@ const MAIN_LINKS: NavLink[] = [
 
 const ADMIN_LINKS: NavLink[] = [
   { href: "/members", icon: <Users size={16} />, label: "Members" },
-  { href: "/settings", icon: <Settings size={16} />, label: "Workspace" },
+  { href: "/settings", icon: <Settings size={16} />, label: "Settings" },
 ];
 
 export function SidebarNav({ isOwner }: { isOwner: boolean }) {

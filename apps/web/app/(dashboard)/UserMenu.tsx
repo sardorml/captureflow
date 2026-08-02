@@ -8,7 +8,6 @@ import {
   MessageSquare,
   Receipt,
   Settings,
-  UserCircle,
 } from "lucide-react";
 import { Chip } from "@heroui/react";
 import type { Theme } from "@captureflow/ui";
@@ -55,12 +54,6 @@ export function UserMenu({ name, email, imageUrl, pro, theme }: Props) {
           {pro ? "Pro" : "Free"}
         </Chip>
       ),
-    },
-    {
-      key: "profile",
-      icon: <UserCircle size={16} />,
-      label: "Profile",
-      href: "/profile",
     },
     {
       key: "devices",
