@@ -113,10 +113,17 @@ async function postBytes<T>(
 const partPath = (route: string, slug: string, partNumber: number): string =>
   `/${route}?slug=${encodeURIComponent(slug)}&part=${partNumber}`;
 
-export type AuthCheckResult = "ok" | "invalid" | "unreachable";
+export type AuthCheckResult =
+  | { kind: "ok"; userId: string }
+  | { kind: "invalid" }
+  | { kind: "unreachable" };
 
-// 401 → sign-in revoked (clear the local session); network/5xx → inconclusive,
-// keep the session and let the next recording surface the real error.
+/*
+ * 401 → sign-in revoked (clear the local session); network/5xx → inconclusive,
+ * keep the session and let the next recording surface the real error. A 200
+ * without a userId is inconclusive too: the token is live, we just can't tell
+ * whose it is, which is what the browser-session comparison needs.
+ */
 export async function checkAuth(
   deviceId: string,
   token: string,
@@ -125,10 +132,17 @@ export async function checkAuth(
     const res = await fetch(`${RECORDING_API_BASE}/auth/check`, {
       headers: recordingHeaders(deviceId, token),
     });
-    if (res.ok) return "ok";
-    return res.status === 401 ? "invalid" : "unreachable";
+    if (res.ok) {
+      const body = (await res.json().catch(() => null)) as {
+        userId?: unknown;
+      } | null;
+      return typeof body?.userId === "string" && body.userId.length > 0
+        ? { kind: "ok", userId: body.userId }
+        : { kind: "unreachable" };
+    }
+    return res.status === 401 ? { kind: "invalid" } : { kind: "unreachable" };
   } catch {
-    return "unreachable";
+    return { kind: "unreachable" };
   }
 }
 

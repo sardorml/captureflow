@@ -3,12 +3,10 @@ import { Button, Tabs, Tooltip } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
 import {
   getAuthSession,
-  setAuthSession,
   watchAuthSession,
   type AuthSession,
 } from "@/lib/auth/session";
-import { getDeviceId } from "@/lib/auth/device-id";
-import { checkAuth } from "@/lib/api/client";
+import { reconcileAuthSession, type AuthSyncVerdict } from "@/lib/auth/sync";
 import { WEB_BASE } from "@/lib/config";
 import {
   getCameraBlocked,
@@ -29,6 +27,16 @@ import { SignInGate } from "./SignInGate";
 type AuthState = AuthSession | null | "loading";
 
 const LIVE_KINDS = new Set(["preparing", "recording", "paused", "uploading"]);
+
+// Why the panel dropped back to the gate. Silence here would read as the
+// extension logging itself out at random.
+const SYNC_NOTE: Partial<Record<AuthSyncVerdict, string>> = {
+  revoked: "Your sign-in expired. Sign in again to keep recording.",
+  "signed-out":
+    "You're signed out of CaptureFlow in this browser, so the extension signed out too.",
+  "other-user":
+    "This browser is signed in to a different CaptureFlow account. Sign in again to match it.",
+};
 
 async function hasMediaGrant(): Promise<boolean> {
   try {
@@ -116,6 +124,7 @@ export function App() {
   const [auth, setAuth] = useState<AuthState>("loading");
   const [status, setStatus] = useState<RecordingStatus>({ kind: "idle" });
   const [result, setResult] = useState<RecordingResult | null>(null);
+  const [syncNote, setSyncNote] = useState<string | null>(null);
 
   useEffect(() => {
     void getAuthSession().then(setAuth);
@@ -131,16 +140,18 @@ export function App() {
     };
   }, []);
 
-  // Probe the token once per popup open; a revoked token flips the UI (and the
-  // action gating) back to signed-out instead of failing at record time.
+  /*
+   * Reconcile with the browser's own dashboard session once per open. The
+   * device token outlives the cookie and doesn't follow account switches, so
+   * without this the panel keeps recording as an account the browser can't open
+   * the resulting links with. Skipped mid-recording: dropping the token there
+   * would strand the upload.
+   */
   useEffect(() => {
     void (async () => {
-      const session = await getAuthSession();
-      if (!session) return;
-      const deviceId = await getDeviceId();
-      if ((await checkAuth(deviceId, session.token)) === "invalid") {
-        await setAuthSession(null);
-      }
+      const status = await getRecordingStatus();
+      if (LIVE_KINDS.has(status.kind)) return;
+      setSyncNote(SYNC_NOTE[await reconcileAuthSession()] ?? null);
     })();
   }, []);
 
@@ -172,7 +183,7 @@ export function App() {
   }, []);
 
   if (auth === "loading") return null;
-  if (!auth) return <SignInGate />;
+  if (!auth) return <SignInGate note={syncNote} />;
 
   const openHome = () => {
     void chrome.tabs.create({ url: `${WEB_BASE}/recordings` });
