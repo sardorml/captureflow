@@ -23,11 +23,11 @@ export function AuthShell({
         <img
           src="/logo-round.png"
           alt=""
-          width={30}
-          height={30}
+          width={26}
+          height={26}
           className="rounded-lg"
         />
-        <span className="text-fg text-lg font-semibold">CaptureFlow</span>
+        <span className="text-fg text-base font-semibold">CaptureFlow</span>
       </Link>
 
       <div className="flex w-full flex-1 items-center justify-center py-12">

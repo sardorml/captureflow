@@ -22,10 +22,10 @@ type Mode = "signin" | "signup";
 type Step = "email" | "credentials";
 type SocialProvider = "google" | "github";
 
-/* Every control is one height, so the input and the buttons below it line up.
-   The explicit h-11 is load-bearing: HeroUI's own .button--lg drops to 40px at
-   md and up, and InputGroup is a fixed min-h-9 with no size variant. */
-const CONTROL = "h-11 rounded-full";
+/* Every control is one height in px, so the input and the buttons line up and
+   the column keeps its proportions whatever the browser's root font size is —
+   HeroUI's own sizes are rem, and .button--lg additionally drops 4px at md. */
+const CONTROL = "h-[38px] rounded-full text-[13px]";
 
 function GoogleIcon() {
   return (
@@ -150,11 +150,19 @@ export function AuthForm({
   ) : null;
 
   return (
-    <div className="w-full max-w-[440px]">
-      <Typography.Heading level={2} align="center" className="mt-0 mb-1">
+    <div className="w-full max-w-[360px]">
+      <Typography.Heading
+        level={2}
+        align="center"
+        className="mt-0 mb-1 text-[22px]"
+      >
         {isSignup ? "Create your account" : "Welcome back!"}
       </Typography.Heading>
-      <Typography.Paragraph color="muted" align="center" className="mb-8">
+      <Typography.Paragraph
+        color="muted"
+        align="center"
+        className="mb-6 text-[13px]"
+      >
         {isSignup
           ? "Start sharing recordings with a link"
           : "Sign in to your CaptureFlow account"}
@@ -165,7 +173,7 @@ export function AuthForm({
           <Form
             onSubmit={onEmailSubmit}
             validationBehavior="native"
-            className="flex flex-col gap-5"
+            className="flex flex-col gap-2.5"
           >
             <TextField
               name="email"
@@ -176,11 +184,12 @@ export function AuthForm({
               onChange={setEmail}
             >
               <Label className="sr-only">Email address</Label>
-              <InputGroup className="min-h-11">
+              <InputGroup className="h-[38px] min-h-0 rounded-full text-[13px]">
                 <InputGroup.Prefix>
-                  <Mail size={16} />
+                  <Mail size={14} />
                 </InputGroup.Prefix>
                 <InputGroup.Input
+                  className="text-[13px]"
                   placeholder="Email address"
                   autoComplete="email"
                 />
@@ -202,13 +211,13 @@ export function AuthForm({
 
           {/* Rules flanking the label rather than a bare <hr>: the label has to
               sit on the line, not above it. */}
-          <div className="my-8 flex items-center gap-4">
+          <div className="my-5 flex items-center gap-3">
             <span className="bg-line-strong h-px flex-1" />
             <span className="text-fg-subtle text-xs font-medium">OR</span>
             <span className="bg-line-strong h-px flex-1" />
           </div>
 
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2.5">
             <Button
               variant="tertiary"
               size="lg"
@@ -242,7 +251,7 @@ export function AuthForm({
             {errorAlert}
           </div>
 
-          <p className="text-fg-muted mt-8 text-center text-sm">
+          <p className="text-fg-muted mt-6 text-center text-[13px]">
             {isSignup ? "Already have an account? " : "Don't have an account? "}
             <button
               type="button"
