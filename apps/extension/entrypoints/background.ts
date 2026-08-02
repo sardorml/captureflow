@@ -201,6 +201,10 @@ async function beginCaptureWhenReady(ctx: CaptureContext): Promise<void> {
 // Tab hosting the in-page recorder overlay.
 let overlayTabId: number | undefined;
 
+// Standalone panel window, the restricted-page fallback. It closes itself, so
+// the only notice of it is chrome.windows.onRemoved.
+let panelWindowId: number | undefined;
+
 /*
  * The recorder opens as an extension iframe floating over a blurred page,
  * injected on toolbar click (there is no anchored action popup).
@@ -210,15 +214,16 @@ async function toggleOverlayOnActiveTab(): Promise<void> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.id === undefined) return;
   if (!isInjectable(tab.url)) {
-    await chrome.windows.create({
+    const win = await chrome.windows.create({
       url: chrome.runtime.getURL("popup.html?window=1"),
       type: "popup",
       width: 372,
       height: 660,
     });
+    panelWindowId = win?.id;
     return;
   }
-  await chrome.scripting.executeScript({
+  const [injection] = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
     func: toggleRecorderOverlay,
     args: [
@@ -227,10 +232,22 @@ async function toggleOverlayOnActiveTab(): Promise<void> {
       RECORDER_BACKDROP_ID,
     ],
   });
+  // A second click closes the panel, and the camera preview goes with it.
+  if (injection?.result === false) {
+    await releaseCameraBubble();
+    overlayTabId = undefined;
+    return;
+  }
   overlayTabId = tab.id;
 }
 
+/*
+ * The camera preview belongs to the panel, not to the page: it's a live
+ * getUserMedia stream in an injected frame, so leaving it behind keeps the
+ * camera light on long after the panel is gone.
+ */
 async function closeRecorderOverlay(tabId?: number): Promise<void> {
+  await releaseCameraBubble();
   const target = tabId ?? overlayTabId;
   if (target === undefined) return;
   try {
@@ -278,6 +295,26 @@ export default defineBackground(() => {
   });
 
   chrome.action.onClicked.addListener(() => void onActionClicked());
+
+  /*
+   * The overlay's backdrop closes the panel page-side, so this raw message is
+   * the only notice the worker gets. Foreign shapes are ignored by the typed
+   * messaging layer, and it ignores this one.
+   */
+  chrome.runtime.onMessage.addListener((message) => {
+    if (
+      (message as { recorderOverlayClosed?: unknown }).recorderOverlayClosed
+    ) {
+      overlayTabId = undefined;
+      void releaseCameraBubble();
+    }
+  });
+
+  chrome.windows.onRemoved.addListener((windowId) => {
+    if (windowId !== panelWindowId) return;
+    panelWindowId = undefined;
+    void releaseCameraBubble();
+  });
 
   /*
    * The web app posts auth (from the callback page) and logout (from any of its
@@ -417,9 +454,10 @@ export default defineBackground(() => {
           ? undefined
           : await tabStreamIdFor(activeTab.id);
       await setRecordingStatus({ kind: "preparing" });
-      // The panel gets out of the way before the native picker appears.
+      // The panel gets out of the way before the native picker appears, taking
+      // the preview with it — one camera can't be opened twice, and the
+      // recorder is about to open this one.
       await closeRecorderOverlay();
-      if (prefs.camera) await releaseCameraBubble();
       await ensureOffscreenDocument();
       // Fire-and-forget: the offscreen doc reports back via
       // recordingStatus/recordingResult.

@@ -15,12 +15,12 @@ export function toggleRecorderOverlay(
   frameUrl: string,
   frameId: string,
   backdropId: string,
-): void {
+): boolean {
   const existing = document.getElementById(frameId);
   if (existing) {
     existing.remove();
     document.getElementById(backdropId)?.remove();
-    return;
+    return false;
   }
 
   const backdrop = document.createElement("div");
@@ -31,6 +31,9 @@ export function toggleRecorderOverlay(
   backdrop.addEventListener("click", () => {
     backdrop.remove();
     document.getElementById(frameId)?.remove();
+    // Closing page-side keeps this instant, but the worker still has to hear
+    // about it — the camera preview it owns outlives the panel otherwise.
+    chrome.runtime.sendMessage({ recorderOverlayClosed: true });
   });
 
   const iframe = document.createElement("iframe");
@@ -53,6 +56,7 @@ export function toggleRecorderOverlay(
 
   document.documentElement.appendChild(backdrop);
   document.documentElement.appendChild(iframe);
+  return true;
 }
 
 // Height reports flow app → SW → this (chrome.scripting), not postMessage:

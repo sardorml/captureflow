@@ -4,11 +4,13 @@ import { sendMessage } from "@/lib/messaging";
 import {
   getCameraBlocked,
   getCapturePrefs,
+  getRecordingStatus,
   setCapturePrefs,
   watchCameraBlocked,
   watchCapturePrefs,
   type CapturePrefs,
 } from "@/lib/storage";
+import { LIVE_KINDS } from "@/lib/capture/status";
 import {
   useMediaDevices,
   type MediaDeviceOption,
@@ -173,6 +175,23 @@ export function DevicePickers() {
       unwatchPrefs();
       unwatchBlocked();
     };
+  }, []);
+
+  /*
+   * The preview is torn down with the panel, so a camera left switched on gets
+   * it back on the next open. Not while recording: that stream already holds
+   * the camera, and a second getUserMedia on it reports back as blocked.
+   */
+  useEffect(() => {
+    void (async () => {
+      const [saved, status] = await Promise.all([
+        getCapturePrefs(),
+        getRecordingStatus(),
+      ]);
+      if (!saved.camera || LIVE_KINDS.has(status.kind)) return;
+      if (await getCameraBlocked()) return;
+      void sendMessage("setCameraBubble", { on: true, mic: saved.mic });
+    })();
   }, []);
 
   /*

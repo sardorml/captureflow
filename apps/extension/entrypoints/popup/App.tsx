@@ -9,6 +9,7 @@ import {
   type SignedOutReason,
 } from "@/lib/auth/session";
 import { probeAuthSession } from "@/lib/auth/sync";
+import { LIVE_KINDS } from "@/lib/capture/status";
 import { WEB_BASE } from "@/lib/config";
 import {
   getCameraBlocked,
@@ -27,8 +28,6 @@ import { SignInGate } from "./SignInGate";
 
 // "loading" until storage resolves, to avoid flashing the sign-in gate.
 type AuthState = AuthSession | null | "loading";
-
-const LIVE_KINDS = new Set(["preparing", "recording", "paused", "uploading"]);
 
 // Why the token was dropped for the user rather than by them. Silence here
 // would read as the extension logging itself out at random.
