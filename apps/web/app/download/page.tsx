@@ -78,12 +78,18 @@ export default async function DownloadPage() {
           </div>
 
           <div className="flex flex-col items-center gap-3">
-            <div className="flex flex-wrap items-center justify-center gap-3">
+            {/* Equal columns rather than shrink-to-fit: the two labels differ
+                in length, so intrinsic widths made the pair look lopsided. */}
+            <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:grid-cols-2">
               <a
                 href={DOWNLOAD_URL}
                 target="_blank"
                 rel="noreferrer"
-                className={buttonVariants({ variant: "primary", size: "lg" })}
+                className={buttonVariants({
+                  variant: "primary",
+                  size: "lg",
+                  className: "w-full gap-2",
+                })}
               >
                 <Download size={18} />
                 {m.button}
@@ -188,7 +194,7 @@ function ChromeInstall() {
       className={buttonVariants({
         variant: "tertiary",
         size: "lg",
-        className: "gap-2",
+        className: "w-full gap-2",
       })}
     >
       <ChromeLogo className="size-[18px]" />
