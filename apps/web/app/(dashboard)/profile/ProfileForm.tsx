@@ -9,7 +9,7 @@ import {
   type FormEvent,
 } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Check } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import {
   Avatar,
   Button,
@@ -17,8 +17,8 @@ import {
   FieldError,
   Form,
   Input,
+  InputGroup,
   Label,
-  Separator,
   Spinner,
   TextField,
   Typography,
@@ -32,6 +32,10 @@ type Props = {
   email: string;
   imageUrl: string | null;
 };
+
+// Mirrors AVATAR_MAX_BYTES and the accepted types in ./actions.
+const AVATAR_HINT = "JPG, PNG, WebP or GIF. 2 MB max.";
+const AVATAR_ACCEPT = "image/png,image/jpeg,image/webp,image/gif";
 
 function initials(name: string, email: string): string {
   const source = name.trim() || email;
@@ -51,32 +55,20 @@ function avatarColor(seed: string): string {
 }
 
 export function ProfileForm({ userId, initialName, email, imageUrl }: Props) {
-  const displayName = initialName.trim() || email;
   return (
-    <div>
-      <div className="flex items-center gap-4">
-        <AvatarUploader
-          userId={userId}
-          name={initialName}
-          email={email}
-          imageUrl={imageUrl}
-        />
-        <div className="min-w-0">
-          <Typography weight="semibold" truncate className="block">
-            {displayName}
-          </Typography>
-          <Typography type="body-xs" color="muted" truncate>
-            {email}
-          </Typography>
-        </div>
-      </div>
-      <Separator className="my-6" />
-      <NameRow initialName={initialName} email={email} />
+    <div className="flex flex-col gap-6">
+      <AvatarField
+        userId={userId}
+        name={initialName}
+        email={email}
+        imageUrl={imageUrl}
+      />
+      <AccountFields userId={userId} initialName={initialName} email={email} />
     </div>
   );
 }
 
-function AvatarUploader({
+function AvatarField({
   userId,
   name,
   email,
@@ -124,23 +116,22 @@ function AvatarUploader({
   };
 
   return (
-    <div className="flex flex-col items-start gap-1">
+    <div>
+      <Typography type="body-sm" weight="medium" className="mb-2 block">
+        Avatar
+      </Typography>
       <input
         ref={fileRef}
         type="file"
-        accept="image/png,image/jpeg,image/webp,image/gif"
+        accept={AVATAR_ACCEPT}
         className="hidden"
         onChange={onPick}
       />
-      <button
-        type="button"
-        disabled={busy}
-        aria-label={imageUrl ? "Change avatar" : "Upload avatar"}
-        onClick={() => fileRef.current?.click()}
-        className="group relative block rounded-full border-0 bg-transparent p-0 outline-none disabled:cursor-progress"
-      >
+      {/* The picker is a labelled button beside the avatar rather than a
+          hover-only overlay on it, which gave no affordance until moused. */}
+      <div className="flex items-center gap-4">
         <Avatar
-          className="h-14 w-14"
+          className="h-14 w-14 shrink-0"
           style={
             imageUrl ? undefined : { backgroundColor: avatarColor(userId) }
           }
@@ -148,36 +139,46 @@ function AvatarUploader({
           {imageUrl && <Avatar.Image src={imageUrl} alt={name || email} />}
           <Avatar.Fallback>{initials(name, email)}</Avatar.Fallback>
         </Avatar>
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
-        >
-          <Camera className="h-5 w-5" />
-        </span>
-      </button>
-      <div className="flex items-center gap-2 text-xs">
-        {uploading && <Typography color="muted">Uploading…</Typography>}
-        {!uploading && imageUrl && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onPress={onRemove}
-            isDisabled={busy}
-            className="h-auto p-0 text-accent underline-offset-4 hover:underline"
-          >
-            {removePending ? "Removing…" : "Remove"}
-          </Button>
-        )}
-        {error && <span className="text-danger">{error}</span>}
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="tertiary"
+              size="sm"
+              isDisabled={busy}
+              onPress={() => fileRef.current?.click()}
+            >
+              {uploading ? "Uploading…" : "Change avatar"}
+            </Button>
+            {imageUrl && !uploading && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={onRemove}
+                isDisabled={busy}
+              >
+                {removePending ? "Removing…" : "Remove"}
+              </Button>
+            )}
+          </div>
+          {error ? (
+            <span className="text-danger text-xs">{error}</span>
+          ) : (
+            <Typography type="body-xs" color="muted">
+              {AVATAR_HINT}
+            </Typography>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function NameRow({
+function AccountFields({
+  userId,
   initialName,
   email,
 }: {
+  userId: string;
   initialName: string;
   email: string;
 }) {
@@ -185,6 +186,7 @@ function NameRow({
   const [name, setName] = useState(initialName);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -192,6 +194,12 @@ function NameRow({
     const id = window.setTimeout(() => setSavedAt(null), 2000);
     return () => window.clearTimeout(id);
   }, [savedAt]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const id = window.setTimeout(() => setCopied(false), 1500);
+    return () => window.clearTimeout(id);
+  }, [copied]);
 
   const dirty = name.trim() !== initialName.trim();
 
@@ -221,41 +229,68 @@ function NameRow({
   };
 
   return (
-    <Form onSubmit={onSubmit} className="flex max-w-md flex-col gap-4">
-      <TextField
-        name="name"
-        isInvalid={Boolean(error)}
-        fullWidth
-        value={name}
-        onChange={(next) => {
-          setName(next);
-          if (error) setError(null);
-        }}
-      >
-        <Label>Display name</Label>
-        <Input placeholder="Your name" autoComplete="name" />
-        {error ? (
-          <FieldError>{error}</FieldError>
-        ) : (
-          <Description>
-            Shown on recordings, screenshots, and activity rows.
-          </Description>
-        )}
-      </TextField>
+    <Form onSubmit={onSubmit} className="flex flex-col gap-4">
+      {/* Name and email pair up on one row; the id spans both since it is long
+          enough to wrap in half the width. */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextField
+          name="name"
+          isInvalid={Boolean(error)}
+          fullWidth
+          value={name}
+          onChange={(next) => {
+            setName(next);
+            if (error) setError(null);
+          }}
+        >
+          <Label>Full name</Label>
+          <Input placeholder="Your name" autoComplete="name" />
+          {error ? (
+            <FieldError>{error}</FieldError>
+          ) : (
+            <Description>
+              Shown on recordings, screenshots, and activity rows.
+            </Description>
+          )}
+        </TextField>
 
-      <TextField name="email" fullWidth value={email} isReadOnly>
-        <Label>Email</Label>
-        <Input type="email" readOnly />
-        <Description>Used to sign in. Contact support to change.</Description>
+        <TextField name="email" fullWidth value={email} isReadOnly>
+          <Label>Email address</Label>
+          <Input type="email" readOnly />
+          <Description>Used to sign in. Contact support to change.</Description>
+        </TextField>
+      </div>
+
+      <TextField name="userId" fullWidth value={userId} isReadOnly>
+        <Label>User ID</Label>
+        <InputGroup>
+          <InputGroup.Input readOnly />
+          <InputGroup.Suffix>
+            <Button
+              variant="ghost"
+              size="sm"
+              isIconOnly
+              aria-label={copied ? "Copied" : "Copy user ID"}
+              onPress={() => {
+                void navigator.clipboard
+                  ?.writeText(userId)
+                  .then(() => setCopied(true));
+              }}
+            >
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+            </Button>
+          </InputGroup.Suffix>
+        </InputGroup>
+        <Description>Quote this when contacting support.</Description>
       </TextField>
 
       <div className="flex items-center gap-3">
         <Button variant="primary" type="submit" isDisabled={!dirty || pending}>
           {pending && <Spinner size="sm" color="current" />}
-          {pending ? "Saving…" : "Save"}
+          {pending ? "Saving…" : "Save changes"}
         </Button>
         {savedAt && (
-          <span className="inline-flex items-center gap-1 text-success">
+          <span className="text-success inline-flex items-center gap-1">
             <Check className="h-3.5 w-3.5" /> Saved
           </span>
         )}

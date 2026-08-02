@@ -1,4 +1,4 @@
-import { Card } from "@heroui/react";
+import { Card, Typography } from "@heroui/react";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { PageHeader } from "../PageHeader";
@@ -25,11 +25,16 @@ export default async function ProfileSettingsPage() {
   return (
     <>
       <PageHeader
-        title="Profile settings"
-        subtitle="The name and avatar teammates see across CaptureFlow."
+        title="Settings"
+        subtitle="Manage your account and preferences."
         showRecord={false}
       />
-      <div className="mt-6">
+      {/* Section label sits above its card, not inside it, so the page reads
+          as labelled groups rather than a stack of titled boxes. */}
+      <section className="mt-6">
+        <Typography type="body-sm" weight="medium" className="mb-2 block">
+          Account
+        </Typography>
         <Card className="p-6">
           <ProfileForm
             userId={user.id}
@@ -38,7 +43,7 @@ export default async function ProfileSettingsPage() {
             imageUrl={imageUrl}
           />
         </Card>
-      </div>
+      </section>
     </>
   );
 }

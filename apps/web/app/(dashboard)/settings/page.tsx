@@ -1,6 +1,7 @@
+import type { ReactNode } from "react";
 import { getWorkspaceById } from "@captureflow/quota";
 import { redirect } from "next/navigation";
-import { Card, Separator } from "@heroui/react";
+import { Card, Separator, Typography } from "@heroui/react";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
@@ -41,51 +42,56 @@ export default async function WorkspaceSettingsPage() {
         subtitle="Branding, sharing policies, and content access."
         showRecord={false}
       />
-      <div className="mt-6 flex flex-col gap-6">
-        <Card>
-          <Card.Header className="flex flex-wrap items-center justify-between gap-2">
-            <Card.Title>General</Card.Title>
-            <span className="text-sm text-fg-muted">
-              Applied to every new recording and screenshot in this workspace.
-            </span>
-          </Card.Header>
-          <Card.Content>
-            <WorkspaceNameForm initialName={workspace.name} />
-            <Separator className="my-6" />
-            <WorkspaceLogoForm
-              logoUrl={logoUrl}
-              workspaceName={workspace.name}
-            />
-          </Card.Content>
-        </Card>
+      {/* Section labels sit above their cards, not inside them, so the page
+          reads as labelled groups rather than a stack of titled boxes. */}
+      <div className="mt-6 flex flex-col gap-8">
+        <Section
+          label="General"
+          hint="Applied to every new recording and screenshot in this workspace."
+        >
+          <WorkspaceNameForm initialName={workspace.name} />
+          <Separator className="my-6" />
+          <WorkspaceLogoForm logoUrl={logoUrl} workspaceName={workspace.name} />
+        </Section>
 
-        <Card>
-          <Card.Header>
-            <Card.Title>Access &amp; viewing</Card.Title>
-          </Card.Header>
-          <Card.Content>
-            <p className="mb-4 text-sm text-fg-muted">
-              Control whether content from this workspace can leave the team.
-            </p>
-            <AccessPolicy allowPublicLinks={workspace.allow_public_links} />
-          </Card.Content>
-        </Card>
+        <Section
+          label="Access & viewing"
+          hint="Control whether content from this workspace can leave the team."
+        >
+          <AccessPolicy allowPublicLinks={workspace.allow_public_links} />
+        </Section>
 
-        <Card>
-          <Card.Header>
-            <Card.Title>Recording access</Card.Title>
-          </Card.Header>
-          <Card.Content>
-            <p className="mb-4 text-sm text-fg-muted">
-              Decide whether teammates can post recordings + screenshots into
-              this workspace.
-            </p>
-            <MemberUploadsPolicy
-              allowMemberUploads={workspace.allow_member_uploads}
-            />
-          </Card.Content>
-        </Card>
+        <Section
+          label="Recording access"
+          hint="Decide whether teammates can post recordings and screenshots into this workspace."
+        >
+          <MemberUploadsPolicy
+            allowMemberUploads={workspace.allow_member_uploads}
+          />
+        </Section>
       </div>
     </>
+  );
+}
+
+function Section({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint: string;
+  children: ReactNode;
+}) {
+  return (
+    <section>
+      <Typography type="body-sm" weight="medium" className="block">
+        {label}
+      </Typography>
+      <Typography type="body-xs" color="muted" className="mt-0.5 mb-2 block">
+        {hint}
+      </Typography>
+      <Card className="p-6">{children}</Card>
+    </section>
   );
 }
