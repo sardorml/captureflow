@@ -138,7 +138,10 @@ export function RoadmapSection() {
           if (!next) setSelected(null);
         }}
       >
-        <Modal.Backdrop>
+        {/* Portalled to <body>, so it lands outside MarketingShell and would
+            otherwise resolve the theme off <html> — a light dialog on the
+            dark-only landing. Re-declare it on the outermost portalled node. */}
+        <Modal.Backdrop data-theme="dark">
           <Modal.Container>
             <Modal.Dialog>
               <Modal.Header>
