@@ -128,7 +128,9 @@ which form **wins for new code**. Each rule names a real exemplar to copy.
   data fields then `setX` actions, `localStorage` access in try/catch, read outside React via
   `getState()`). Don't reach for Context/prop-drilling for cross-window state.
 - **Prefer React 19 ref-as-prop + plain function components.** Use `forwardRef` only to forward
-  a DOM ref to a Radix `asChild`/`Slot` trigger, and set `.displayName` when you do.
+  a DOM ref to a slot-style trigger (desktop's Radix popover), and set `.displayName` when you
+  do. HeroUI composes via a `render` prop instead — `(props, renderProps) => ReactElement`, and
+  it must return the same element type it was given.
 - **Desktop renderer** annotates component returns `: React.JSX.Element` and side-effecting
   functions `: void`/`: Promise<void>`; **web** lets inference handle returns. Match the app.
 
@@ -191,32 +193,47 @@ recordingWindow`), not direct window-singleton imports (avoids stale captures).
 
 ## 7. Styling & UI
 
-- **Reach for Ant Design (`antd` v6) first for any UI primitive** — `Button`, `Input`, `Select`,
-  `Modal`, `Table`, `Tabs`, `Tooltip`, `Dropdown`, `Menu`, `Flex`, `Card`, `Collapse`, `Form`, …
-  The app surface is built on antd v6 (`app/` + `components/`, 80+ files); only hand-roll a
-  `cn()`/`cva()` element or pull from `@captureflow/ui` when antd has no fitting component. antd is
-  themed app-wide in `app/antd-provider.tsx` (`ConfigProvider`: `colorPrimary: #2563eb`, light/dark
-  `algorithm` synced to `data-theme`); style antd surfaces with `theme.useToken()` tokens, never
-  hardcoded colors. The bullets below cover the custom Tailwind primitives antd doesn't provide.
+- **Reach for HeroUI v3 (`@heroui/react`) first for any UI primitive** — `Button`, `Input`,
+  `Select`, `Modal`, `Table`, `Tabs`, `Tooltip`, `Dropdown`, `Menu`, `Card`, `Disclosure`,
+  `Form`, `Switch`, `Meter`, `Alert`, … Only hand-roll a Tailwind element when HeroUI has no
+  fitting component. There is no provider to wire: HeroUI reads the `data-theme` on `<html>`
+  that the app already sets, and `app/globals.css` imports `@heroui/styles` right after
+  `tailwindcss`. HeroUI ships `"use client"` per component file, so server components may
+  import it directly.
+- **HeroUI is React Aria underneath — use its prop vocabulary**, not the DOM one: `onPress`
+  (not `onClick`), `isDisabled` (not `disabled`), `onAction` on menu items, `isSelected`/
+  `onChange` on toggles. Compound parts come off the root as statics (`Card.Header`,
+  `Dropdown.Trigger`, `Select.Popover`, `Alert.Content`). Variants are `variant=` —
+  `primary | secondary | tertiary | outline | ghost | danger | danger-soft` — never `color=`.
+  For an anchor styled as a button, use `buttonVariants({variant, size})` on an `<a>`;
+  `Button` takes no `href`.
 - **Merge dynamic classes through `cn(...)`** (twMerge∘clsx), never template-literal class
   concatenation — so a caller's `className` can override the base. Import `cn` from the app's
   canonical module (`@/lib/utils`) within that app.
-- **Multi-variant components use one `cva()` table** (base + variants + `defaultVariants`) and
-  export both the component and its `*Variants` fn. New shared-kit code threads className
-  outside: `cn(variants({variant, size}), className)`.
-- **Use semantic theme tokens, not raw palette colors.** Product/dashboard: `bg-canvas`,
-  `text-fg`, `border-line-strong`, `text-accent`, … (theme-aware via `data-theme`). Marketing
-  landing: shadcn-style tokens (`text-foreground`, `bg-background`, …) that resolve only inside
-  `.marketing-root`. Don't cross the two systems. (~900 legacy `bg-neutral-*` refs exist — new
-  code uses tokens.)
-- **Animated product surfaces use the `Smooth*` family** from `@captureflow/ui` (Radix +
-  motion springs, with the documented Portal/AnimatePresence workarounds). The marketing tree
-  has its own CSS-keyframe kit — inside `components/marketing/*` use the local kit, inside `app/`
-  use `@captureflow/ui`'s `Smooth*`. Don't hand-wire `motion.div` around raw Radix in product code.
+- **Use semantic theme tokens, not raw palette colors.** Our own ramps live in
+  `packages/ui/src/styles/tokens.css` (`bg-canvas`, `text-fg`, `border-line-strong`, `bg-tint`,
+  …), theme-aware via `data-theme`; the bare semantic colors (`accent`, `danger`, `success`,
+  `surface`, `overlay`, `muted`, `border`, `separator`, `link`, `focus`) belong to HeroUI's
+  theme. (~900 legacy `bg-neutral-*` refs exist — new code uses tokens.)
+- **Every raw custom property we define is `--cf-` prefixed.** `tokens.css` loads _after_
+  `@heroui/styles`, and Tailwind's `@theme inline` compiles `bg-overlay` down to
+  `var(--overlay)` — so an unprefixed token here silently repaints HeroUI's components. A repo
+  `--overlay` (a 6% hover wash) once overwrote HeroUI's opaque menu surface and left every
+  popover, dropdown and tooltip transparent. Never add an unprefixed `--x`, and never alias a
+  `--color-x` that HeroUI already owns.
+- **The 20 marketing sections render through the local shims** in `components/marketing/`
+  (`ui.tsx`, `typography.tsx`, `layout.tsx`, `tokens.ts`) — thin adapters that keep the sections'
+  existing prop shape while HeroUI does the rendering. Inside `components/marketing/*` use the
+  shims; everywhere else import `@heroui/react` directly. Don't grow the shims — new marketing
+  markup should call HeroUI itself.
 - **Hoist spring configs and lookup maps to module-level `as const`**, not inlined per render.
-- **Keyframes live in the surface stylesheet** (`globals.css` product, `marketing.css` landing),
-  loops gated behind `prefers-reduced-motion`, triggered via `animate-*` classes. Tailwind v4 is
-  CSS-configured — opt external dirs in with `@source` or their classes get tree-shaken.
+- **Keyframes live in `app/globals.css`**, loops gated behind `prefers-reduced-motion`,
+  triggered via `animate-*` classes. Tailwind v4 is CSS-configured — opt external dirs in with
+  `@source` or their classes get tree-shaken.
+- **The extension popup is the only React surface in `apps/extension`** and it uses HeroUI
+  (Tailwind is wired through `@tailwindcss/vite` in `wxt.config.ts`). The injected bubble,
+  control bar, permissions page and offscreen document stay vanilla DOM with hand-scoped CSS —
+  never pull a component framework into a content script.
 
 ## 8. Comments
 
