@@ -29,6 +29,8 @@ export type WorkspaceMembership = {
   workspace_slug: string;
   workspace_kind: WorkspaceKind;
   workspace_name: string;
+  workspace_logo_key: string | null;
+  workspace_updated_at: number;
   owner_user_id: string;
   role: WorkspaceRole;
   joined_at: number;
@@ -284,6 +286,8 @@ export async function listWorkspacesForUser(
               w.slug         AS workspace_slug,
               w.kind         AS workspace_kind,
               w.name         AS workspace_name,
+              w.logo_key     AS workspace_logo_key,
+              w.updated_at   AS workspace_updated_at,
               w.owner_user_id,
               m.role,
               m.joined_at

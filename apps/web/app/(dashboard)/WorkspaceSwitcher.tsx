@@ -2,9 +2,38 @@
 
 import { useRef, type ReactNode } from "react";
 import { ChevronsUpDown, LayoutGrid } from "lucide-react";
-import { Dropdown, buttonVariants } from "@heroui/react";
+import { Avatar, Dropdown, buttonVariants } from "@heroui/react";
 import type { WorkspaceMembership } from "@captureflow/quota";
+import { initials } from "@/lib/format";
+import { workspaceLogoUrl } from "@/lib/site";
 import { switchWorkspaceAction } from "./switch-workspace-action";
+
+// The logo the workspace settings promise is "shown next to your workspace
+// name". Workspaces without one keep the generic mark.
+function WorkspaceMark({
+  membership,
+  size,
+}: {
+  membership: WorkspaceMembership;
+  size: number;
+}) {
+  const url = workspaceLogoUrl(
+    membership.workspace_logo_key,
+    membership.workspace_updated_at,
+  );
+  if (!url) return <LayoutGrid size={size} className="shrink-0" />;
+  return (
+    <Avatar
+      className="shrink-0 rounded-[5px]"
+      style={{ width: size, height: size }}
+    >
+      <Avatar.Image src={url} alt="" />
+      <Avatar.Fallback className="text-[10px]">
+        {initials(membership.workspace_name)}
+      </Avatar.Fallback>
+    </Avatar>
+  );
+}
 
 type Props = {
   currentWorkspaceId: string;
@@ -44,7 +73,7 @@ export function WorkspaceSwitcher({
           })}
         >
           <span className="flex min-w-0 items-center gap-2">
-            <LayoutGrid size={16} />
+            <WorkspaceMark membership={current} size={18} />
             <span className="truncate">{current.workspace_name}</span>
           </span>
           <ChevronsUpDown size={14} className="shrink-0" />
@@ -57,6 +86,7 @@ export function WorkspaceSwitcher({
           >
             {memberships.map((m) => (
               <Dropdown.Item key={m.workspace_id} id={m.workspace_id}>
+                <WorkspaceMark membership={m} size={22} />
                 <span className="flex flex-col">
                   <span className="font-medium text-fg">
                     {m.workspace_name}
