@@ -103,6 +103,13 @@
   --field-background: var(--cf-panel-2);
 }
 
+/* HeroUI rounds cards to min(32px, --radius-3xl), which at our scale is 24px —
+ * bubbly on a dense grid, and far off the 12px its own fields use. Set here
+ * rather than by shrinking --radius-3xl, which Tailwind's rounded-3xl shares. */
+.card {
+  border-radius: 16px;
+}
+
 /* Palette fallback. The codebase still has ~900 hardcoded `*-neutral-*`
  * references — too many to migrate at once. Inverting the neutral scale
  * here flips those utilities into a coherent light palette while the
