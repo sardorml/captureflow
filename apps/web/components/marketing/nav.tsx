@@ -152,9 +152,16 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             rel="noreferrer"
             aria-label={starLabel}
             title={starLabel}
-            className={`${TEXT_LINK} inline-flex items-center`}
+            className={`${TEXT_LINK} inline-flex items-center gap-1.5`}
           >
             <GitHubIcon />
+            {/* tabular-nums so the bar doesn't shift width as the count grows
+                into another digit between revalidations. */}
+            {stars && (
+              <span className="text-[13px] font-medium tabular-nums">
+                {stars}
+              </span>
+            )}
           </a>
           <NextLink href={lh("/login")} className={TEXT_LINK}>
             {m.nav.login}
