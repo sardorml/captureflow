@@ -6,6 +6,10 @@
 body {
   margin: 0;
   width: 340px;
+  /* Hard stop: the popup window is sized from content, so anything that
+     overflows widens the window and shifts the panel out of view rather than
+     just spilling. */
+  overflow-x: hidden;
   background: var(--background);
   color: var(--foreground);
 }
