@@ -154,20 +154,13 @@ export function MediaCard({
        leaves the text (Card.Content's own p-4) at double that — the image and
        the copy end up on different rails. Card.Content owns the inset now. */
     <Card className="group gap-0 overflow-hidden p-0 transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)]">
-      {/* The actions are a sibling of the Link, not a child: React Aria's
-          usePress stops the click propagating, so a handler on a wrapper inside
-          the anchor never runs and the anchor navigates anyway. Outside it,
-          there is nothing to suppress. */}
+      {/* The card's one link is stretched over it from the title below, so the
+          thumbnail needs no anchor of its own — and the actions, which sit on
+          top of that overlay, need raising above it. */}
       <div className="relative">
-        <Link
-          aria-label={canAuthor ? `Edit ${noun}` : `Open ${noun}`}
-          href={viewUrl}
-          className="block aspect-video overflow-hidden"
-        >
-          {media}
-        </Link>
+        <div className="aspect-video overflow-hidden">{media}</div>
 
-        <div className="absolute top-2 right-2 flex items-center gap-1.5">
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
           <Tooltip>
             <Tooltip.Trigger className="inline-flex">
               <Button
@@ -247,7 +240,7 @@ export function MediaCard({
                 </span>
               </Typography>
             </div>
-            <div>
+            <div className="relative z-10 w-fit">
               {canManage ? (
                 <VisibilityDialog
                   value={visibility}
@@ -296,12 +289,16 @@ export function MediaCard({
             </ButtonGroup>
           </form>
         ) : (
-          <p
+          /* Stretched link: the anchor is the title, but its ::after covers
+             the whole card, so anywhere that isn't one of the controls above
+             opens the recording. */
+          <Link
+            href={viewUrl}
             title={displayTitle}
-            className="m-0 line-clamp-2 text-[15px] font-semibold text-fg"
+            className="line-clamp-2 text-[15px] font-semibold text-fg after:absolute after:inset-0 after:content-['']"
           >
             {displayTitle}
-          </p>
+          </Link>
         )}
 
         <Separator />
@@ -322,7 +319,7 @@ export function MediaCard({
             </Typography>
             {canAuthor && (
               <Tooltip>
-                <Tooltip.Trigger className="inline-flex">
+                <Tooltip.Trigger className="relative z-10 inline-flex">
                   <Link
                     href={editUrl}
                     aria-label={`Edit ${noun}`}
