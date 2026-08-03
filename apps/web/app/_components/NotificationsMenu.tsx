@@ -7,8 +7,11 @@ import { Dropdown, Separator, Typography, buttonVariants } from "@heroui/react";
  * There is no notification feed yet — the page this links to is the same empty
  * state. The popover exists so the bell answers in place once there is one,
  * and "View all" is the way through to the full list either way.
+ *
+ * `base` is the app origin: the viewer can render on a different one, so its
+ * links have to be absolute, exactly as the account menu's are.
  */
-export function NotificationsMenu() {
+export function NotificationsMenu({ base = "" }: { base?: string }) {
   return (
     <Dropdown>
       <Dropdown.Trigger
@@ -35,7 +38,10 @@ export function NotificationsMenu() {
         <Separator />
 
         <Dropdown.Menu>
-          <Dropdown.Item href="/notifications" className="justify-center">
+          <Dropdown.Item
+            href={`${base}/notifications`}
+            className="justify-center"
+          >
             View all
           </Dropdown.Item>
         </Dropdown.Menu>

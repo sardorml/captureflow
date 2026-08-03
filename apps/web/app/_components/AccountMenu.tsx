@@ -1,10 +1,18 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { LogOut } from "lucide-react";
-import { Avatar, Dropdown, Separator, Typography } from "@heroui/react";
+import {
+  HardDrive,
+  Inbox,
+  LogOut,
+  MessageSquare,
+  Receipt,
+  Settings,
+} from "lucide-react";
+import { Avatar, Chip, Dropdown, Separator, Typography } from "@heroui/react";
 import type { ThemePreference } from "@captureflow/ui";
 import { initials } from "@/lib/format";
+import { SUPPORT_EMAIL } from "@/lib/marketing/constants";
 import { ThemeSegments } from "./ThemeSegments";
 
 export type AccountMenuProInfo = {
@@ -21,16 +29,66 @@ export type AccountMenuNavItem = {
   trailing?: ReactNode;
 };
 
+/*
+ * The one account nav list. Both surfaces build from it so they can't drift:
+ * the viewer renders on a possibly different origin, so it passes an absolute
+ * base, and it has no subscription to hand over — the plan chip is dropped
+ * there rather than guessed at.
+ */
+export function accountNavItems({
+  base = "",
+  pro,
+}: {
+  base?: string;
+  pro?: AccountMenuProInfo | null;
+}): AccountMenuNavItem[] {
+  return [
+    {
+      key: "billing",
+      icon: <Receipt size={16} />,
+      label: "Billing",
+      href: `${base}/billing`,
+      trailing:
+        pro === undefined ? undefined : (
+          <Chip size="sm" color={pro ? "accent" : "default"}>
+            {pro ? "Pro" : "Free"}
+          </Chip>
+        ),
+    },
+    {
+      key: "devices",
+      icon: <HardDrive size={16} />,
+      label: "Connected devices",
+      href: `${base}/devices`,
+    },
+    {
+      key: "settings",
+      icon: <Settings size={16} />,
+      label: "Settings",
+      href: `${base}/settings`,
+    },
+    {
+      key: "feedback",
+      icon: <Inbox size={16} />,
+      label: "Feedback",
+      href: `${base}/suggest-feature`,
+    },
+    {
+      key: "support",
+      icon: <MessageSquare size={16} />,
+      label: "Contact support",
+      href: `mailto:${SUPPORT_EMAIL}`,
+    },
+  ];
+}
+
 type Props = {
   name: string | null;
   email: string;
   imageUrl: string | null;
   pro?: AccountMenuProInfo | null;
-  /*
-   * Surface-specific middle section (dashboard links vs viewer cross-origin
-   * links); the header, divider rhythm, and Sign out are owned here so every
-   * surface renders the same account menu.
-   */
+  // Built by accountNavItems above; taken as a prop so a surface can pass its
+  // own base URL and plan chip.
   navItems: AccountMenuNavItem[];
   // Renders the theme row when the surface can supply the stored preference.
   themePreference?: ThemePreference;

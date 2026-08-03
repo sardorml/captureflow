@@ -2,10 +2,11 @@ import { ContentByline, ViewerNav } from "../../_components/screenshot";
 import type { ViewerNavViewer } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
 import { APP_SITE_URL, MARKETING_SITE_URL, PRODUCT_NAME } from "@/lib/site";
-import { ThemeToggle, type Theme } from "@captureflow/ui";
+import { ThemeToggle, type Theme, type ThemePreference } from "@captureflow/ui";
 import { AuthSync } from "./AuthSync";
 import { AuthPrompt } from "./AuthPrompt";
 import { ScreenshotActions } from "./ScreenshotActions";
+import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
 import { ViewerUserMenu } from "@/app/_components/ViewerUserMenu";
 import { ZoomableScreenshotImage } from "./ZoomableScreenshotImage";
 
@@ -28,6 +29,7 @@ type Props = {
   screenshotUrl: string;
   editUrl: string;
   theme: Theme;
+  themePreference: ThemePreference;
   loginUrl: string;
 };
 
@@ -50,6 +52,7 @@ export function ScreenshotView({
   screenshotUrl,
   editUrl,
   theme,
+  themePreference,
   loginUrl,
 }: Props) {
   const headline = title?.trim() || `${PRODUCT_NAME} screenshot`;
@@ -61,7 +64,14 @@ export function ScreenshotView({
         productName={PRODUCT_NAME}
         viewCount={viewCount}
         viewer={viewer ?? null}
-        themeToggle={<ThemeToggle initialTheme={theme} className="h-8 w-8" />}
+        /* Signed in, the theme lives in the account menu exactly as it does on
+           the dashboard; anonymous viewers have no menu, so they keep the
+           standalone toggle. */
+        themeToggle={
+          viewer ? null : (
+            <ThemeToggle initialTheme={theme} className="h-8 w-8" />
+          )
+        }
         actions={
           <ScreenshotActions
             screenshotId={id}
@@ -74,6 +84,9 @@ export function ScreenshotView({
             signedIn={!!viewer}
           />
         }
+        notifications={
+          viewer ? <NotificationsMenu base={APP_SITE_URL} /> : null
+        }
         userMenu={
           viewer ? (
             <ViewerUserMenu
@@ -82,6 +95,7 @@ export function ScreenshotView({
               email={viewer.email}
               imageUrl={viewerImageUrl ?? null}
               appWebUrl={APP_SITE_URL}
+              themePreference={themePreference}
             />
           ) : (
             <AuthPrompt marketingUrl={MARKETING_SITE_URL} loginUrl={loginUrl} />

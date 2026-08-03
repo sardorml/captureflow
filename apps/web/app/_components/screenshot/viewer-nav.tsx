@@ -19,6 +19,7 @@ export type ViewerNavProps = {
   downloadName?: string;
   viewer?: ViewerNavViewer | null;
   userMenu?: ReactNode;
+  notifications?: ReactNode;
   themeToggle?: ReactNode;
   actions?: ReactNode;
 };
@@ -34,6 +35,7 @@ export function ViewerNav({
   viewer,
   actions,
   userMenu,
+  notifications,
   themeToggle,
 }: ViewerNavProps): ReactElement {
   const [copied, setCopied] = useState(false);
@@ -124,6 +126,7 @@ export function ViewerNav({
             </Tooltip>
           </>
         )}
+        {notifications}
         {themeToggle}
         {userMenu ? (
           userMenu

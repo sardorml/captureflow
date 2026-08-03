@@ -5,7 +5,7 @@ import { getActiveProSubscription } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { readThemePreferenceFromCookieHeader } from "@captureflow/ui";
-import { NotificationsMenu } from "./NotificationsMenu";
+import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
 import { SearchTrigger } from "./SearchTrigger";
 import { UpgradeModal } from "./UpgradeModal";
 import { UserMenu } from "./UserMenu";
