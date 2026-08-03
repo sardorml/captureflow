@@ -18,7 +18,9 @@ export function NotificationsMenu({ base = "" }: { base?: string }) {
         aria-label="Notifications"
         className={buttonVariants({ variant: "ghost", isIconOnly: true })}
       >
-        <Bell size={18} />
+        {/* Class, not the size prop: HeroUI's button sizes the svgs inside it
+            (16px past the sm breakpoint), which a prop can't outrank. */}
+        <Bell className="size-5" />
       </Dropdown.Trigger>
 
       <Dropdown.Popover placement="bottom end" className="w-80">
