@@ -394,7 +394,6 @@ export const MESSAGES = {
     ],
   },
   roadmap: {
-    eyebrow: "Roadmap",
     heading: "What's next",
     subtitle: "Updated as features ship.",
     suggestFeature: "Suggest a feature",

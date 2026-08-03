@@ -12,7 +12,6 @@ import {
   MarketingSection,
   SECTION_SUBTITLE_STYLE,
   SECTION_TITLE_STYLE,
-  Eyebrow,
 } from "./_shared";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
@@ -53,7 +52,6 @@ export function RoadmapSection() {
         style={{ marginBottom: 48 }}
       >
         <div style={{ textAlign: "left" }}>
-          <Eyebrow>{m.roadmap.eyebrow}</Eyebrow>
           <Title level={2} style={{ ...SECTION_TITLE_STYLE, marginBottom: 12 }}>
             {m.roadmap.heading}
           </Title>
