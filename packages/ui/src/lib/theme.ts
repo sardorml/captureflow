@@ -44,12 +44,12 @@ export function readThemeFromCookieHeader(
 }
 
 /*
- * Runs blocking in <head>, ahead of any paint, so a "system" preference never
- * shows the server's guess first. The listener stays for the session and
- * re-reads the cookie each time, so it covers both an OS switch made later and
- * a preference switched to "system" without a reload.
+ * Runs blocking ahead of any paint, so a "system" preference never shows the
+ * server's guess first. The listener stays for the session and re-reads the
+ * cookie each time, so it covers both an OS switch made later and a preference
+ * switched to "system" without a reload.
  */
-export const THEME_INIT_SCRIPT = `(function(){try{
+const THEME_INIT_SCRIPT = `(function(){try{
 var q=window.matchMedia("(prefers-color-scheme: dark)");
 var apply=function(){
 var m=document.cookie.match(/(?:^|; )${THEME_COOKIE}=([^;]*)/);
@@ -59,3 +59,12 @@ document.documentElement.setAttribute("data-theme",q.matches?"dark":"light");
 apply();
 q.addEventListener("change",apply);
 }catch(e){}})()`;
+
+/*
+ * Markup rather than a <script> element on purpose: React never executes a
+ * script it creates on the client and logs an error when a render asks it to,
+ * which every client re-render of the layout holding it does. Written as the
+ * innerHTML of a plain element, the HTML parser is what inserts it on first
+ * load — so it runs — and React only ever rewrites an inert string after that.
+ */
+export const THEME_INIT_HTML = `<script>${THEME_INIT_SCRIPT}</script>`;

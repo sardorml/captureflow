@@ -93,8 +93,13 @@ export function UpgradeModal({
                 {/* Same shape as the managed card on /plan: a tinted panel
                     carrying the switch, price, and CTA, with the benefits
                     listed below it on the dialog surface. The panel is dark in
-                    both themes, so its text is fixed white. */}
-                <div className="flex flex-col overflow-hidden rounded-xl bg-[radial-gradient(120%_100%_at_15%_0%,#2f5bd8_0%,#1b2f73_55%,#131c38_100%)] p-5">
+                    both themes, and says so — light mode inverts the neutral
+                    ramp, which turned the dark text on its white button white
+                    on white. */}
+                <div
+                  data-theme="dark"
+                  className="flex flex-col overflow-hidden rounded-xl bg-[radial-gradient(120%_100%_at_15%_0%,#2f5bd8_0%,#1b2f73_55%,#131c38_100%)] p-5"
+                >
                   {/* The switch rides the badge row, which is otherwise empty,
                       so it costs the panel no extra height. */}
                   <div className="flex items-center justify-between gap-3">

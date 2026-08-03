@@ -4,7 +4,7 @@ export {
   type ThemePreference,
   THEME_COOKIE,
   DEFAULT_THEME,
-  THEME_INIT_SCRIPT,
+  THEME_INIT_HTML,
   isTheme,
   isThemePreference,
   readThemeFromCookieHeader,

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
 import { headers } from "next/headers";
-import { readThemeFromCookieHeader, THEME_INIT_SCRIPT } from "@captureflow/ui";
+import { readThemeFromCookieHeader, THEME_INIT_HTML } from "@captureflow/ui";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -63,13 +63,18 @@ export default async function RootLayout({
 }) {
   const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
   return (
-    <html lang="en" data-theme={theme} className={inter.variable}>
-      <head>
-        {/* Blocking, ahead of first paint: data-theme above is the server's
-            best guess, and a "system" preference can only be resolved here. */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-      </head>
+    /* suppressHydrationWarning: data-theme above is the server's best guess,
+       and the init script below corrects it before React ever sees it. */
+    <html
+      lang="en"
+      data-theme={theme}
+      className={inter.variable}
+      suppressHydrationWarning
+    >
       <body>
+        {/* First thing in the body, so it resolves a "system" preference before
+            anything paints. */}
+        <div hidden dangerouslySetInnerHTML={{ __html: THEME_INIT_HTML }} />
         <AnalyticsProvider />
         {children}
       </body>
