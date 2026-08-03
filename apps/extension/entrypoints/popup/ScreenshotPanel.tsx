@@ -7,6 +7,7 @@ import { friendlyUploadError, isAuthFailure } from "@/lib/api/errors";
 import { sendMessage } from "@/lib/messaging";
 import { isOverlaySurface } from "@/lib/surface";
 import { ResultLink } from "./RecorderPanel";
+import { PANEL_ROW } from "./panel";
 
 type ShotState =
   | { kind: "idle" }
@@ -76,8 +77,8 @@ export function ScreenshotPanel() {
   const isBusy = state.kind === "busy";
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2.5 rounded-xl bg-surface px-3 py-2.5">
+    <div className="flex flex-col gap-2">
+      <div className={PANEL_ROW}>
         <span className="flex text-foreground" aria-hidden>
           {TAB_ICON}
         </span>
@@ -88,10 +89,10 @@ export function ScreenshotPanel() {
 
       <Button
         variant="primary"
-        size="lg"
         fullWidth
         isDisabled={isBusy}
         onPress={() => void capture()}
+        className="h-10 rounded-xl text-sm font-semibold"
       >
         {isBusy && <Spinner size="sm" color="current" />}
         {isBusy ? "Capturing…" : "Capture Screenshot"}

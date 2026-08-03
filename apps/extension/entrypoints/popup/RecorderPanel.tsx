@@ -1,12 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Button,
-  Dropdown,
-  Link,
-  Menu,
-  Spinner,
-  Typography,
-} from "@heroui/react";
+import { Button, Dropdown, Link, Spinner, Typography } from "@heroui/react";
 import {
   getCapturePrefs,
   setCapturePrefs,
@@ -17,6 +10,7 @@ import {
 } from "@/lib/storage";
 import { MAX_DURATION_MS } from "@/lib/capture/limits";
 import { DevicePickers } from "./DevicePickers";
+import { PANEL_ROW } from "./panel";
 
 type RecorderPanelProps = {
   status: RecordingStatus;
@@ -80,7 +74,7 @@ const SCREEN_ICON = (
 /* The one committing action in the panel, so it carries weight the blue
    accent doesn't: warm fill, squared-off radius, heavier label. */
 const START_CLASS =
-  "h-11 rounded-xl text-[15px] font-semibold [--button-bg:#e8563a] [--button-bg-hover:#d94b30] [--button-bg-pressed:#c44227]";
+  "h-10 rounded-xl text-sm font-semibold [--button-bg:#e8563a] [--button-bg-hover:#d94b30] [--button-bg-pressed:#c44227]";
 
 type SourceOption = {
   id: CaptureSource;
@@ -127,31 +121,47 @@ function SourcePicker() {
 
   return (
     <Dropdown>
+      {/* The source is the panel's headline choice, so the row carries the
+          accent instead of sitting in the same grey as the device rows. */}
       <Dropdown.Trigger
         aria-label="Capture source"
-        className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl bg-surface px-3 py-2.5 text-start outline-none"
+        className={`${PANEL_ROW} w-full cursor-pointer bg-accent-soft text-start text-accent-soft-foreground outline-none`}
       >
-        <span className="flex text-foreground" aria-hidden>
+        <span className="flex" aria-hidden>
           {selected.icon}
         </span>
-        <span className="flex-1 truncate text-sm font-medium text-foreground">
+        <span className="flex-1 truncate text-sm font-semibold">
           {selected.label}
         </span>
-        <span className="text-xs text-muted">{selected.hint}</span>
+        <span className="text-xs opacity-70">{selected.hint}</span>
       </Dropdown.Trigger>
-      <Dropdown.Popover placement="bottom start" className="min-w-56">
-        <Menu
+      {/* Opens off the row's left edge rather than under it. It can't clear the
+          panel: both surfaces are sized to their content, so anything outside
+          is clipped rather than drawn over the page. */}
+      <Dropdown.Popover
+        placement="left top"
+        shouldFlip={false}
+        className="min-w-52"
+      >
+        <Dropdown.Menu
           selectionMode="single"
           selectedKeys={[source]}
           onAction={(key) => choose(String(key) as CaptureSource)}
         >
           {SOURCES.map((s) => (
-            <Menu.Item key={s.id} id={s.id}>
+            <Dropdown.Item
+              key={s.id}
+              id={s.id}
+              className="ps-2! pe-7! data-[selected=true]:text-accent"
+            >
               {s.icon}
               {s.label}
-            </Menu.Item>
+              {/* Trailing check, like the row it stands for: HeroUI parks the
+                  indicator at the start, where the source icon already is. */}
+              <Dropdown.ItemIndicator className="start-auto end-2" />
+            </Dropdown.Item>
           ))}
-        </Menu>
+        </Dropdown.Menu>
       </Dropdown.Popover>
     </Dropdown>
   );
@@ -249,7 +259,7 @@ export function RecorderPanel({
   const isBusy = status.kind === "preparing" || status.kind === "uploading";
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <SourcePicker />
 
       <DevicePickers />
@@ -260,7 +270,7 @@ export function RecorderPanel({
           size="lg"
           fullWidth
           onPress={onStop}
-          className="h-11 rounded-xl text-[15px] font-semibold"
+          className="h-10 rounded-xl text-sm font-semibold"
         >
           Stop Recording
         </Button>
@@ -277,7 +287,12 @@ export function RecorderPanel({
           {BUSY_LABEL[status.kind] ?? "Start Recording"}
         </Button>
       )}
-      <Typography type="body-xs" color="muted" align="center" className="-mt-2">
+      <Typography
+        type="body-xs"
+        color="muted"
+        align="center"
+        className="-mt-1.5"
+      >
         {Math.round(MAX_DURATION_MS / 60_000)} min recording limit
       </Typography>
 

@@ -16,6 +16,7 @@ import {
   type MediaDeviceOption,
 } from "@/hooks/use-media-devices";
 import { MicMeter } from "./MicMeter";
+import { PANEL_ROW } from "./panel";
 
 const CAMERA_ICON = (
   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
@@ -101,7 +102,7 @@ function DeviceRow({
 
   return (
     <div
-      className="relative flex items-center gap-2.5 overflow-hidden rounded-xl bg-surface px-3 py-2.5 data-[on=true]:outline data-[on=true]:outline-border"
+      className={`${PANEL_ROW} relative overflow-hidden data-[on=true]:outline data-[on=true]:outline-border`}
       data-on={on}
     >
       <span className="flex text-foreground" aria-hidden>
@@ -114,10 +115,15 @@ function DeviceRow({
           onSelectionChange={(key) => onSelect(String(key))}
           className="min-w-0 flex-1"
         >
-          <Select.Trigger className="w-full justify-between border-0 bg-transparent px-0">
-            <Select.Value className="truncate text-sm font-medium" />
+          {/* Sits in the row rather than in a field of its own: no border, no
+              background, but the chevron so it still reads as a picker. */}
+          <Select.Trigger className="h-auto w-full gap-1 border-0 bg-transparent px-0 py-0">
+            <Select.Value className="min-w-0 flex-1 truncate text-start text-sm font-medium" />
+            <Select.Indicator className="size-3.5 shrink-0 text-muted" />
           </Select.Trigger>
-          <Select.Popover>
+          {/* Clamped to the trigger: a long device name would otherwise widen
+              the popover past the panel, which is clipped, not scrolled. */}
+          <Select.Popover className="max-w-(--trigger-width)">
             <ListBox>
               {named.map((device) => (
                 <ListBox.Item
@@ -217,7 +223,7 @@ export function DevicePickers() {
   };
 
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex flex-col gap-1.5">
       <DeviceRow
         icon={CAMERA_ICON}
         label={blocked ? "Camera blocked" : "Camera"}

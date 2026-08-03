@@ -205,7 +205,7 @@ export function App() {
     <Tabs
       defaultSelectedKey="video"
       aria-label="Capture mode"
-      className="flex w-full min-w-0 flex-col gap-3 p-3.5"
+      className="flex w-full min-w-0 flex-col gap-2.5 p-3"
     >
       <header className="flex items-center justify-between gap-2">
         <IconAction label="Open dashboard" onPress={openHome}>
@@ -216,7 +216,7 @@ export function App() {
             without both, the tabs are bare icons with no selected state.
             HeroUI's .tabs__list[data-orientation] is min-width:100%, which in
             this justify-between header claims the full header width and then
-            the two icon buttons push the document past the 340px body — the
+            the two icon buttons push the document past the body width — the
             popup ends up scrolled with the left edge cut off. The bang is
             load-bearing: that selector outranks a plain utility. */}
         <Tabs.ListContainer className="w-max">

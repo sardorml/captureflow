@@ -4,8 +4,8 @@
 /* The panel is dark-only, so index.html pins data-theme="dark" and every
    surface/text colour comes from HeroUI's dark theme. */
 /*
- * HeroUI's dark background is #060607 — right for a full-page app, but at
- * 340px floating over someone else's page it reads as a hole punched in the
+ * HeroUI's dark background is #060607 — right for a full-page app, but at this
+ * size floating over someone else's page it reads as a hole punched in the
  * page rather than a panel. Lift it, and carry the rows and menus with it so
  * the steps between them survive.
  */
@@ -15,7 +15,7 @@ body {
   --overlay: #26262d;
 
   margin: 0;
-  width: 340px;
+  width: 300px;
   /* Hard stop: the popup window is sized from content, so anything that
      overflows widens the window and shifts the panel out of view rather than
      just spilling. */
@@ -30,5 +30,5 @@ body {
  * turns into a white canvas when the host page's color-scheme differs).
  */
 body.cf-overlay {
-  width: 348px;
+  width: 308px;
 }

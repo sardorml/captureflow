@@ -217,8 +217,8 @@ async function toggleOverlayOnActiveTab(): Promise<void> {
     const win = await chrome.windows.create({
       url: chrome.runtime.getURL("popup.html?window=1"),
       type: "popup",
-      width: 372,
-      height: 660,
+      width: 332,
+      height: 640,
     });
     panelWindowId = win?.id;
     return;
