@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Camera, Link2, Settings, Users } from "lucide-react";
+import { Camera, Link2, Receipt, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type NavLink = { href: string; icon: React.ReactNode; label: string };
 
+// Billing is account-scoped, not workspace-scoped, so it sits here rather than
+// under the owner-only admin tools below.
 const MAIN_LINKS: NavLink[] = [
   { href: "/recordings", icon: <Link2 size={16} />, label: "Recordings" },
   { href: "/screenshots", icon: <Camera size={16} />, label: "Screenshots" },
+  { href: "/billing", icon: <Receipt size={16} />, label: "Billing" },
 ];
 
 const ADMIN_LINKS: NavLink[] = [
