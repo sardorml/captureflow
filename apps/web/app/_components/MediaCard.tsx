@@ -19,6 +19,7 @@ import {
   Button,
   ButtonGroup,
   Card,
+  Checkbox,
   Dropdown,
   Input,
   Separator,
@@ -27,6 +28,7 @@ import {
   Typography,
   buttonVariants,
 } from "@heroui/react";
+import { cn } from "@/lib/utils";
 import {
   initials,
   formatBytes,
@@ -61,6 +63,10 @@ export type MediaCardProps = {
   stats: MediaCardStats;
   sizeBytes: number;
   deleteConfirm: string;
+  // Present only when the surface runs a selection; the checkbox and the
+  // selected outline appear with it.
+  selected?: boolean;
+  onSelectedChange?: (next: boolean) => void;
   onRename: (title: string) => Promise<ActionResult>;
   onDelete: () => Promise<ActionResult>;
   onChangeVisibility: (next: Visibility) => Promise<ActionResult>;
@@ -85,6 +91,8 @@ export function MediaCard({
   stats,
   sizeBytes,
   deleteConfirm,
+  selected = false,
+  onSelectedChange,
   onRename,
   onDelete,
   onChangeVisibility,
@@ -153,12 +161,40 @@ export function MediaCard({
     /* p-0/gap-0: HeroUI's .card pads itself, which insets the thumbnail and
        leaves the text (Card.Content's own p-4) at double that — the image and
        the copy end up on different rails. Card.Content owns the inset now. */
-    <Card className="group gap-0 overflow-hidden p-0 transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)]">
+    <Card
+      className={cn(
+        "group gap-0 overflow-hidden p-0 transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)]",
+        selected &&
+          "border-accent-bg shadow-[0_0_0_1px_var(--color-accent-bg)]",
+      )}
+    >
       {/* The card's one link is stretched over it from the title below, so the
           thumbnail needs no anchor of its own — and the actions, which sit on
           top of that overlay, need raising above it. */}
       <div className="relative">
         <div className="aspect-video overflow-hidden">{media}</div>
+
+        {onSelectedChange && (
+          /* Hidden until the card is hovered or something is selected, so a
+             grid at rest stays as quiet as it was before selection existed. */
+          <Checkbox
+            aria-label={`Select ${displayTitle}`}
+            isSelected={selected}
+            onChange={onSelectedChange}
+            className={cn(
+              "absolute top-2 left-2 z-10 rounded-md bg-canvas/70 p-1 backdrop-blur-sm transition-opacity group-hover:opacity-100 motion-reduce:transition-none",
+              selected ? "opacity-100" : "opacity-0 focus-within:opacity-100",
+            )}
+          >
+            {/* Control and indicator are children, not something the root
+                draws — a bare Checkbox renders an empty box. */}
+            <Checkbox.Content>
+              <Checkbox.Control>
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+            </Checkbox.Content>
+          </Checkbox>
+        )}
 
         <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
           <Tooltip>

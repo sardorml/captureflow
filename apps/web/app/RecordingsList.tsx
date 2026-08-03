@@ -12,6 +12,7 @@ import {
   setVisibilityAction,
 } from "./actions";
 import { MediaCard } from "./_components/MediaCard";
+import { SelectionBar, useSelection } from "./_components/selection";
 
 const CDN_BASE_URL =
   process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
@@ -35,6 +36,11 @@ export function RecordingsList({
   ownerNames,
   ownerImages,
 }: RecordingsListProps) {
+  const manageable = recordings.filter(
+    (r) => !viewerUserId || r.userId === viewerUserId || viewerIsWorkspaceOwner,
+  );
+  const selection = useSelection(manageable.map((r) => r.slug));
+
   if (recordings.length === 0) {
     return (
       <Card className="mt-6 p-6">
@@ -46,24 +52,37 @@ export function RecordingsList({
     );
   }
   return (
-    <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {recordings.map((s) => {
-        const isAuthor = !viewerUserId || s.userId === viewerUserId;
-        const isAdmin = !isAuthor && Boolean(viewerIsWorkspaceOwner);
-        return (
-          <RecordingCard
-            key={s.slug}
-            recording={s}
-            canAuthor={isAuthor}
-            canAdminister={isAdmin}
-            allowPublicLinks={allowPublicLinks}
-            workspaceName={workspaceName}
-            authorName={ownerNames?.[s.userId] ?? null}
-            authorImage={ownerImages?.[s.userId] ?? null}
-          />
-        );
-      })}
-    </div>
+    <>
+      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {recordings.map((s) => {
+          const isAuthor = !viewerUserId || s.userId === viewerUserId;
+          const isAdmin = !isAuthor && Boolean(viewerIsWorkspaceOwner);
+          const canManage = isAuthor || isAdmin;
+          return (
+            <RecordingCard
+              key={s.slug}
+              recording={s}
+              canAuthor={isAuthor}
+              canAdminister={isAdmin}
+              allowPublicLinks={allowPublicLinks}
+              workspaceName={workspaceName}
+              authorName={ownerNames?.[s.userId] ?? null}
+              authorImage={ownerImages?.[s.userId] ?? null}
+              selected={selection.has(s.slug)}
+              onSelectedChange={
+                canManage ? (next) => selection.set(s.slug, next) : undefined
+              }
+            />
+          );
+        })}
+      </div>
+
+      <SelectionBar
+        noun="recording"
+        selection={selection}
+        onDelete={(slug) => deleteRecordingAction(slug)}
+      />
+    </>
   );
 }
 
@@ -75,6 +94,8 @@ type RecordingCardProps = {
   workspaceName?: string | null;
   authorName?: string | null;
   authorImage?: string | null;
+  selected: boolean;
+  onSelectedChange?: (next: boolean) => void;
 };
 
 function RecordingCard({
@@ -85,6 +106,8 @@ function RecordingCard({
   workspaceName,
   authorName,
   authorImage,
+  selected,
+  onSelectedChange,
 }: RecordingCardProps) {
   const posterUrl = recording.posterKey
     ? `${CDN_BASE_URL}/${recording.posterKey}`
@@ -163,6 +186,8 @@ function RecordingCard({
       }}
       sizeBytes={recording.sizeBytes}
       deleteConfirm="Delete this recording permanently? The video and link will stop working immediately."
+      selected={selected}
+      onSelectedChange={onSelectedChange}
       onRename={async (next) => {
         const form = new FormData();
         form.set("slug", recording.slug);

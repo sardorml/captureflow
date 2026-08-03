@@ -11,6 +11,7 @@ import {
   setScreenshotVisibilityAction,
 } from "../../actions";
 import { MediaCard } from "../../_components/MediaCard";
+import { SelectionBar, useSelection } from "../../_components/selection";
 
 const R2_BASE =
   process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
@@ -41,6 +42,11 @@ export function ScreenshotsGrid({
   ownerNames,
   ownerImages,
 }: ScreenshotsGridProps) {
+  const manageable = screenshots.filter(
+    (s) => !viewerUserId || s.userId === viewerUserId || viewerIsWorkspaceOwner,
+  );
+  const selection = useSelection(manageable.map((s) => s.id));
+
   if (screenshots.length === 0) {
     return (
       <Card className="mt-6 p-6">
@@ -53,24 +59,39 @@ export function ScreenshotsGrid({
     );
   }
   return (
-    <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {screenshots.map((screenshot) => {
-        const isAuthor = !viewerUserId || screenshot.userId === viewerUserId;
-        const isAdmin = !isAuthor && Boolean(viewerIsWorkspaceOwner);
-        return (
-          <ScreenshotCard
-            key={screenshot.id}
-            screenshot={screenshot}
-            canAuthor={isAuthor}
-            canAdminister={isAdmin}
-            allowPublicLinks={allowPublicLinks}
-            workspaceName={workspaceName}
-            authorName={ownerNames?.[screenshot.userId] ?? null}
-            authorImage={ownerImages?.[screenshot.userId] ?? null}
-          />
-        );
-      })}
-    </div>
+    <>
+      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {screenshots.map((screenshot) => {
+          const isAuthor = !viewerUserId || screenshot.userId === viewerUserId;
+          const isAdmin = !isAuthor && Boolean(viewerIsWorkspaceOwner);
+          const canManage = isAuthor || isAdmin;
+          return (
+            <ScreenshotCard
+              key={screenshot.id}
+              screenshot={screenshot}
+              canAuthor={isAuthor}
+              canAdminister={isAdmin}
+              allowPublicLinks={allowPublicLinks}
+              workspaceName={workspaceName}
+              authorName={ownerNames?.[screenshot.userId] ?? null}
+              authorImage={ownerImages?.[screenshot.userId] ?? null}
+              selected={selection.has(screenshot.id)}
+              onSelectedChange={
+                canManage
+                  ? (next) => selection.set(screenshot.id, next)
+                  : undefined
+              }
+            />
+          );
+        })}
+      </div>
+
+      <SelectionBar
+        noun="screenshot"
+        selection={selection}
+        onDelete={(id) => deleteScreenshotAction(id)}
+      />
+    </>
   );
 }
 
@@ -82,6 +103,8 @@ function ScreenshotCard({
   workspaceName,
   authorName,
   authorImage,
+  selected,
+  onSelectedChange,
 }: {
   screenshot: DashboardScreenshotRow;
   canAuthor: boolean;
@@ -90,6 +113,8 @@ function ScreenshotCard({
   workspaceName?: string | null;
   authorName?: string | null;
   authorImage?: string | null;
+  selected: boolean;
+  onSelectedChange?: (next: boolean) => void;
 }) {
   const displayTitle =
     screenshot.title?.trim() || `Screenshot ${screenshot.id}`;
@@ -133,6 +158,8 @@ function ScreenshotCard({
       stats={{ views: screenshot.viewCount, comments: 0, reactions: 0 }}
       sizeBytes={screenshot.sizeBytes}
       deleteConfirm="Delete this screenshot? The public link will stop working."
+      selected={selected}
+      onSelectedChange={onSelectedChange}
       onRename={(next) => renameScreenshotAction(screenshot.id, next.trim())}
       onDelete={() => deleteScreenshotAction(screenshot.id)}
       onChangeVisibility={(next: Visibility) =>
