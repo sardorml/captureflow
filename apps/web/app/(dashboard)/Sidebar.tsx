@@ -92,7 +92,7 @@ export async function Sidebar() {
         />
       </div>
 
-      <div className="p-3">
+      <div className="px-3 pt-3 pb-5">
         <a
           href="captureflow://record"
           className={buttonVariants({ variant: "primary", fullWidth: true })}
