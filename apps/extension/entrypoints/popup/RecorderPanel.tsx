@@ -9,6 +9,7 @@ import {
   type RecordingStatus,
 } from "@/lib/storage";
 import { MAX_DURATION_MS } from "@/lib/capture/limits";
+import { isOverlaySurface } from "@/lib/surface";
 import { DevicePickers } from "./DevicePickers";
 import { PANEL_ROW } from "./panel";
 
@@ -135,12 +136,11 @@ function SourcePicker() {
         </span>
         <span className="text-xs opacity-70">{selected.hint}</span>
       </Dropdown.Trigger>
-      {/* Opens off the row's left edge rather than under it. It can't clear the
-          panel: both surfaces are sized to their content, so anything outside
-          is clipped rather than drawn over the page. */}
+      {/* Beside the card, in the overlay frame's gutter. The standalone window
+          has no gutter to open into, so there it drops under the row. */}
       <Dropdown.Popover
-        placement="left top"
-        shouldFlip={false}
+        placement={isOverlaySurface ? "left top" : "bottom start"}
+        shouldFlip={!isOverlaySurface}
         className="min-w-52"
       >
         <Dropdown.Menu

@@ -25,10 +25,20 @@ body {
 }
 
 /*
- * Overlay surface: the iframe is sized exactly to the panel and carries the
- * rounding/shadow page-side, so the document stays opaque (any transparency
- * turns into a white canvas when the host page's color-scheme differs).
+ * Overlay surface: the frame is wider than the card so menus can open beside
+ * it, so the card is what's painted and positioned here — the document itself
+ * is a transparent gutter onto the blurred page, and a click on it closes the
+ * panel the way the backdrop does.
  */
 body.cf-overlay {
+  width: 548px;
+  background: transparent;
+}
+
+body.cf-overlay #root {
   width: 308px;
+  margin-inline-start: auto;
+  border-radius: 16px;
+  background: var(--background);
+  box-shadow: 0 24px 64px rgb(0 0 0 / 0.5);
 }

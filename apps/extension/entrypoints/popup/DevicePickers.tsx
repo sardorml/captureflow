@@ -115,15 +115,10 @@ function DeviceRow({
           onSelectionChange={(key) => onSelect(String(key))}
           className="min-w-0 flex-1"
         >
-          {/* Sits in the row rather than in a field of its own: no border, no
-              background, but the chevron so it still reads as a picker. */}
-          <Select.Trigger className="h-auto w-full gap-1 border-0 bg-transparent px-0 py-0">
-            <Select.Value className="min-w-0 flex-1 truncate text-start text-sm font-medium" />
-            <Select.Indicator className="size-3.5 shrink-0 text-muted" />
+          <Select.Trigger className="w-full justify-between border-0 bg-transparent px-0">
+            <Select.Value className="truncate text-sm font-medium" />
           </Select.Trigger>
-          {/* Clamped to the trigger: a long device name would otherwise widen
-              the popover past the panel, which is clipped, not scrolled. */}
-          <Select.Popover className="max-w-(--trigger-width)">
+          <Select.Popover>
             <ListBox>
               {named.map((device) => (
                 <ListBox.Item

@@ -11,7 +11,7 @@ export function SignInGate({ note }: { note?: string | null }) {
   };
 
   return (
-    <div className="flex flex-col gap-3 p-3.5">
+    <div className="flex flex-col gap-2.5 p-3">
       <header className="flex items-center gap-2">
         <img className="size-4.5 rounded-[5px]" src="/icon/32.png" alt="" />
         <Typography weight="semibold">CaptureFlow</Typography>
