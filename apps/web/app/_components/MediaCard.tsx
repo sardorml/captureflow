@@ -182,14 +182,16 @@ export function MediaCard({
             isSelected={selected}
             onChange={onSelectedChange}
             className={cn(
-              "absolute top-2 left-2 z-10 rounded-md bg-canvas/70 p-1 backdrop-blur-sm transition-opacity group-hover:opacity-100 motion-reduce:transition-none",
+              "absolute top-2 left-2 z-10 p-1 transition-opacity group-hover:opacity-100 motion-reduce:transition-none",
               selected ? "opacity-100" : "opacity-0 focus-within:opacity-100",
             )}
           >
             {/* Control and indicator are children, not something the root
-                draws — a bare Checkbox renders an empty box. */}
+                draws — a bare Checkbox renders an empty box. Its own colours
+                are field colours, which vanish against a thumbnail: fixed
+                white-on-scrim reads over whatever the frame happens to be. */}
             <Checkbox.Content>
-              <Checkbox.Control>
+              <Checkbox.Control className="size-5 border-2 border-white/90 bg-black/40 shadow-sm backdrop-blur-sm">
                 <Checkbox.Indicator />
               </Checkbox.Control>
             </Checkbox.Content>
