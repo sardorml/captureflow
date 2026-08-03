@@ -82,7 +82,8 @@ export async function Sidebar() {
         <SidebarNav isOwner={isOwner} />
       </div>
 
-      <div className="p-4">
+      {/* Same 12px inset as the record button below, so the two line up. */}
+      <div className="px-3 pt-3">
         <StorageUsage
           usedBytes={usedBytes}
           limitBytes={limitBytes}

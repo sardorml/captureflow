@@ -193,13 +193,18 @@ function Meter({
         </Typography>
       </div>
       {!unlimited && (
+        /* The track and fill are children, not something the root draws for
+           you — a childless ProgressBar renders an empty grid. */
         <ProgressBar
           value={pct}
-          size="sm"
           color={ratio >= 1 ? "danger" : ratio >= 0.8 ? "warning" : "accent"}
           aria-label={label}
           className="mt-2"
-        />
+        >
+          <ProgressBar.Track className="h-1.5 rounded-full bg-tint-strong">
+            <ProgressBar.Fill className="rounded-full" />
+          </ProgressBar.Track>
+        </ProgressBar>
       )}
     </div>
   );
