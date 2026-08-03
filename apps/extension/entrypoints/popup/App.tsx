@@ -51,10 +51,10 @@ async function hasMediaGrant(): Promise<boolean> {
   }
 }
 
-/* HeroUI already paints the selected pill via .tabs__indicator; only the icon
-   colour is ours. No background on the list itself — the indicator sits at
-   z-index -1 and a parent background would bury it. */
-const TAB_CLASS = "px-4 data-[selected=true]:text-accent";
+/* The pill comes from Tabs.Indicator inside each tab; only the icon colour is
+   ours. isolate: the indicator sits at z-index -1, so without a stacking
+   context of its own it sinks behind the popup's background. */
+const TAB_CLASS = "isolate px-4 data-[selected=true]:text-accent";
 
 const HOME_ICON = (
   <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
@@ -211,23 +211,34 @@ export function App() {
         <IconAction label="Open dashboard" onPress={openHome}>
           {HOME_ICON}
         </IconAction>
-        {/* HeroUI's .tabs__list[data-orientation] is min-width:100%, which in
+        {/* ListContainer paints the track; the indicator is React Aria's
+            SelectionIndicator, which only exists if the tab renders one —
+            without both, the tabs are bare icons with no selected state.
+            HeroUI's .tabs__list[data-orientation] is min-width:100%, which in
             this justify-between header claims the full header width and then
             the two icon buttons push the document past the 340px body — the
             popup ends up scrolled with the left edge cut off. The bang is
             load-bearing: that selector outranks a plain utility. */}
-        <Tabs.List className="w-max min-w-0!">
-          <Tabs.Tab id="video" aria-label="Record video" className={TAB_CLASS}>
-            {VIDEO_ICON}
-          </Tabs.Tab>
-          <Tabs.Tab
-            id="screenshot"
-            aria-label="Capture screenshot"
-            className={TAB_CLASS}
-          >
-            {PHOTO_ICON}
-          </Tabs.Tab>
-        </Tabs.List>
+        <Tabs.ListContainer className="w-max">
+          <Tabs.List className="w-max min-w-0!">
+            <Tabs.Tab
+              id="video"
+              aria-label="Record video"
+              className={TAB_CLASS}
+            >
+              <Tabs.Indicator />
+              {VIDEO_ICON}
+            </Tabs.Tab>
+            <Tabs.Tab
+              id="screenshot"
+              aria-label="Capture screenshot"
+              className={TAB_CLASS}
+            >
+              <Tabs.Indicator />
+              {PHOTO_ICON}
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
         <IconAction label="Close" onPress={() => closeSurface()}>
           {CLOSE_ICON}
         </IconAction>
