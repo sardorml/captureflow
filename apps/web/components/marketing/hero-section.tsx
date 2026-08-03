@@ -65,12 +65,14 @@ export function HeroSection() {
         </Paragraph>
 
         {CURRENT_STAGE.showHeroBuyCta ? (
+          /* 24, the same as the sign-up line takes below, so the buttons sit
+             centred in their own space instead of hugging the subtitle. */
           <Flex
             wrap
             gap={20}
             justify="center"
             align="center"
-            style={{ marginTop: 8 }}
+            style={{ marginTop: 24 }}
           >
             <InstallButton
               href={DOWNLOAD_URL}
@@ -88,7 +90,7 @@ export function HeroSection() {
             />
           </Flex>
         ) : (
-          <div style={{ marginTop: 8 }}>
+          <div style={{ marginTop: 24 }}>
             <WaitlistForm />
           </div>
         )}
