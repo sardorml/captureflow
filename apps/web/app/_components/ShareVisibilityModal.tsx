@@ -128,7 +128,10 @@ export function ShareVisibilityModal({
                         The tiles carry their own icon, so selection shows as a
                         wash + trailing check rather than a radio dot. */}
                     {options.map((value) => (
-                      <Radio key={value} value={value}>
+                      /* mt-0: a vertical RadioGroup puts mt-4 on every radio
+                         from its own stylesheet, which the group's gap can't
+                         undo — it stacks on top of it. */
+                      <Radio key={value} value={value} className="mt-0">
                         {({ isSelected }) => (
                           <Radio.Content
                             className={[
