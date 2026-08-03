@@ -1,11 +1,11 @@
-import { Bell, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { headers } from "next/headers";
 import { Button } from "@heroui/react";
 import { getActiveProSubscription } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { readThemePreferenceFromCookieHeader } from "@captureflow/ui";
+import { NotificationsMenu } from "./NotificationsMenu";
 import { SearchTrigger } from "./SearchTrigger";
 import { UpgradeModal } from "./UpgradeModal";
 import { UserMenu } from "./UserMenu";
@@ -46,15 +46,7 @@ export async function TopBar() {
             }
           />
         )}
-        <Link
-          href="/notifications"
-          title="Notifications"
-          className="inline-flex"
-        >
-          <Button variant="ghost" isIconOnly aria-label="Notifications">
-            <Bell size={18} />
-          </Button>
-        </Link>
+        <NotificationsMenu />
         <UserMenu
           themePreference={themePreference}
           userId={session.user.id}
