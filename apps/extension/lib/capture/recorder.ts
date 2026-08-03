@@ -272,13 +272,14 @@ async function runSession(
       ]);
       // Release the capture (sharing indicator) before the tail upload.
       stopAllTracks();
-      const { url } = await upload.finish();
+      const durationMs = activeElapsed();
+      const { url } = await upload.finish(durationMs);
       cb.onActiveUpload(null);
       cb.onResult({
         ok: true,
         url,
         bytes: upload.screenBytes + upload.webcamBytes,
-        durationMs: activeElapsed(),
+        durationMs,
       });
     } catch (err) {
       stopAllTracks();

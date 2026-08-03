@@ -38,6 +38,7 @@ export type FinalizeRequest = {
   slug: string;
   parts: { partNumber: number; etag: string }[];
   sizeBytes: number;
+  durationMs?: number;
 };
 
 export type FinalizeResponse = {

@@ -139,6 +139,8 @@ export type FinalizeRequest = {
   slug: string;
   parts: { partNumber: number; etag: string }[];
   sizeBytes: number;
+  // Uploads stream while recording, so /init can't know it yet.
+  durationMs?: number;
 };
 
 export type FinalizeResponse = {

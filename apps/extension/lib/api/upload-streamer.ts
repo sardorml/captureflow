@@ -187,7 +187,8 @@ export type RecordingUpload = {
   pushScreen(bytes: Uint8Array): void;
   pushWebcam(bytes: Uint8Array): void;
   uploadPoster(bytes: Uint8Array): Promise<void>;
-  finish(): Promise<FinalizeResponse>;
+  // durationMs rides finalize because /init runs before the recording exists.
+  finish(durationMs?: number): Promise<FinalizeResponse>;
   abort(): void;
 };
 
@@ -230,7 +231,7 @@ export async function startRecordingUpload(
     pushScreen: (bytes) => screen.push(bytes),
     pushWebcam: (bytes) => webcam?.push(bytes),
     uploadPoster: (bytes) => transport.uploadPoster(slug, bytes),
-    async finish(): Promise<FinalizeResponse> {
+    async finish(durationMs?: number): Promise<FinalizeResponse> {
       const screenParts = await screen.drain();
       if (screenParts.length === 0) throw new Error("No screen parts uploaded");
       let result: FinalizeResponse;
@@ -239,6 +240,7 @@ export async function startRecordingUpload(
           slug,
           parts: screenParts,
           sizeBytes: screen.totalBytes,
+          ...(durationMs && durationMs > 0 ? { durationMs } : {}),
         });
       } catch (err) {
         // A finalize lost to the network may still have been applied — the

@@ -247,6 +247,7 @@ export async function finishRecordingUpload(
       s.screen,
       "/finalize",
       meta.screenTotalBytes,
+      meta.durationMs,
     );
     let webcamErr: RecordingUploadFailure | null = null;
     if (s.webcam.uploadId && s.webcam.etags.length > 0) {
@@ -332,6 +333,7 @@ async function finalizeStream(
   stream: Stream,
   path: string,
   sizeBytes: number,
+  durationMs?: number,
 ): Promise<FinalizeResponse> {
   if (stream.etags.length === 0) {
     throw new RecordingApiHttpError(`${path}: no parts uploaded`, 502);
@@ -340,6 +342,7 @@ async function finalizeStream(
     slug: s.slug,
     parts: stream.etags,
     sizeBytes: sizeBytes > 0 ? sizeBytes : stream.totalBytes,
+    ...(durationMs && durationMs > 0 ? { durationMs } : {}),
   });
 }
 
