@@ -7,17 +7,15 @@ import { cn } from "@/lib/utils";
 
 type NavLink = { href: string; icon: React.ReactNode; label: string };
 
-// Billing is account-scoped, not workspace-scoped, so it sits here rather than
-// under the owner-only admin tools below.
 const MAIN_LINKS: NavLink[] = [
   { href: "/recordings", icon: <Link2 size={16} />, label: "Recordings" },
   { href: "/screenshots", icon: <Camera size={16} />, label: "Screenshots" },
-  { href: "/billing", icon: <Receipt size={16} />, label: "Billing" },
 ];
 
 const ADMIN_LINKS: NavLink[] = [
   { href: "/members", icon: <Users size={16} />, label: "Members" },
   { href: "/settings", icon: <Settings size={16} />, label: "Settings" },
+  { href: "/billing", icon: <Receipt size={16} />, label: "Billing" },
 ];
 
 export function SidebarNav({ isOwner }: { isOwner: boolean }) {
