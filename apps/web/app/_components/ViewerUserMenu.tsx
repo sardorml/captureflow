@@ -2,9 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, Settings } from "lucide-react";
-import type { MenuProps } from "antd";
-import { AccountMenu } from "./AccountMenu";
+import type { ThemePreference } from "@captureflow/ui";
+import { AccountMenu, accountNavItems } from "./AccountMenu";
 
 type Props = {
   userId: string;
@@ -15,6 +14,7 @@ type Props = {
   // absolute and sign-out goes through the cross-origin session-clear relay.
   appWebUrl: string;
   signOutReturnUrl?: string;
+  themePreference?: ThemePreference;
 };
 
 export function ViewerUserMenu({
@@ -23,6 +23,7 @@ export function ViewerUserMenu({
   imageUrl,
   appWebUrl,
   signOutReturnUrl,
+  themePreference,
 }: Props) {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
@@ -39,18 +40,7 @@ export function ViewerUserMenu({
     router.refresh();
   };
 
-  const navItems: NonNullable<MenuProps["items"]> = [
-    {
-      key: "dashboard",
-      icon: <LayoutDashboard size={16} />,
-      label: <a href={`${appWebUrl}/recordings`}>Dashboard</a>,
-    },
-    {
-      key: "settings",
-      icon: <Settings size={16} />,
-      label: <a href={`${appWebUrl}/settings`}>Workspace settings</a>,
-    },
-  ];
+  const navItems = accountNavItems({ base: appWebUrl });
 
   return (
     <AccountMenu
@@ -58,6 +48,7 @@ export function ViewerUserMenu({
       email={email}
       imageUrl={imageUrl}
       navItems={navItems}
+      themePreference={themePreference}
       signingOut={signingOut}
       onSignOut={onSignOut}
     />

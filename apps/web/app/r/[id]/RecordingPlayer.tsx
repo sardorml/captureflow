@@ -401,7 +401,7 @@ function ReactionBar({
             <div className="pointer-events-none absolute -top-11 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-lg bg-inverse px-2.5 py-1.5 text-sm font-medium text-on-inverse opacity-0 shadow-lg transition-opacity duration-100 group-hover:opacity-100">
               <span>{r.label}</span>
               {count > 0 ? (
-                <span className="rounded bg-overlay-strong px-1.5 py-0.5 tabular-nums text-xs text-on-inverse/85">
+                <span className="rounded bg-tint-strong px-1.5 py-0.5 tabular-nums text-xs text-on-inverse/85">
                   {count}
                 </span>
               ) : null}

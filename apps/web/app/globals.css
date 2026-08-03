@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 @import "../../../packages/ui/src/styles/tokens.css";
 
 /* Tailwind v4 only auto-scans the app's own source tree. The shared
@@ -18,9 +19,10 @@ body {
      (which `overflow-x: hidden` would, breaking the sticky nav). */
   overflow-x: clip;
   /* Paint the document itself so the rubber-band overscroll past the top/bottom
-     edge matches the page instead of flashing the default white. Mirrors antd's
-     colorBgContainer; the default (no data-theme) is dark per tokens.css. */
-  background-color: #141414;
+     edge matches the page instead of flashing the default white. The default
+     (no data-theme) is dark, per tokens.css. Kept in step with --cf-canvas —
+     surfaces paint from the token, this literal only shows past the edges. */
+  background-color: #0a0a0a;
   font-family:
     var(--font-sans),
     -apple-system,
@@ -36,6 +38,23 @@ body {
 html[data-theme="light"],
 html[data-theme="light"] body {
   background-color: #ffffff;
+}
+
+/* Marketing is dark-only regardless of the app cookie (see MarketingShell), so
+   the document keeps the dark paint even when <html> says light. Must follow
+   the rule above — equal specificity, so source order decides. */
+html:has([data-marketing]),
+html:has([data-marketing]) body {
+  background-color: #141414;
+}
+
+/* HeroUI's .dropdown__trigger is `display: inline-block`, which lands after
+   buttonVariants' `inline-flex` at equal specificity and wins. Any trigger
+   styled as a button then loses its flex centering: icon-only ones sit on the
+   text baseline instead of centered, and justify-* on the trigger is inert.
+   Scoped to .button so bare triggers (an avatar, say) keep inline-block. */
+.dropdown__trigger.button {
+  display: inline-flex;
 }
 
 /* Showcase panel behind the toolbar mockup — a defined surface in both themes
@@ -166,12 +185,6 @@ html[data-theme="light"] body {
   }
 }
 
-/* Align the "Admin tools" group title with the nav icons (item padding is set
-   inline on each item; the group title element has no per-item style hook). */
-.cf-sidebar-menu .ant-menu-item-group-title {
-  padding-inline: 28px 8px !important;
-}
-
 /* Theme switch: a left-to-right wipe. The toggle drives the swap through
    document.startViewTransition, so the browser cross-fades by default — we
    override that with the new snapshot clipped in from the left edge while the
@@ -199,5 +212,322 @@ html[data-theme="light"] body {
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-new(root) {
     animation: none;
+  }
+}
+
+/* 24-column spans for the marketing <Col> primitive. Breakpoints match the
+   Tailwind defaults used elsewhere; the base span is applied inline. Each
+   basis subtracts the span's share of the row's column-gap (--cf-gutter, set
+   by <Row>) so the spans in a row total exactly 100% and never wrap. */
+@media (min-width: 640px) {
+  .cf-col-sm-1 {
+    flex: 0 0 calc(4.1667% - var(--cf-gutter, 0px) * 0.958333) !important;
+    max-width: calc(4.1667% - var(--cf-gutter, 0px) * 0.958333) !important;
+  }
+  .cf-col-sm-2 {
+    flex: 0 0 calc(8.3333% - var(--cf-gutter, 0px) * 0.916667) !important;
+    max-width: calc(8.3333% - var(--cf-gutter, 0px) * 0.916667) !important;
+  }
+  .cf-col-sm-3 {
+    flex: 0 0 calc(12.5% - var(--cf-gutter, 0px) * 0.875) !important;
+    max-width: calc(12.5% - var(--cf-gutter, 0px) * 0.875) !important;
+  }
+  .cf-col-sm-4 {
+    flex: 0 0 calc(16.6667% - var(--cf-gutter, 0px) * 0.833333) !important;
+    max-width: calc(16.6667% - var(--cf-gutter, 0px) * 0.833333) !important;
+  }
+  .cf-col-sm-5 {
+    flex: 0 0 calc(20.8333% - var(--cf-gutter, 0px) * 0.791667) !important;
+    max-width: calc(20.8333% - var(--cf-gutter, 0px) * 0.791667) !important;
+  }
+  .cf-col-sm-6 {
+    flex: 0 0 calc(25% - var(--cf-gutter, 0px) * 0.75) !important;
+    max-width: calc(25% - var(--cf-gutter, 0px) * 0.75) !important;
+  }
+  .cf-col-sm-7 {
+    flex: 0 0 calc(29.1667% - var(--cf-gutter, 0px) * 0.708333) !important;
+    max-width: calc(29.1667% - var(--cf-gutter, 0px) * 0.708333) !important;
+  }
+  .cf-col-sm-8 {
+    flex: 0 0 calc(33.3333% - var(--cf-gutter, 0px) * 0.666667) !important;
+    max-width: calc(33.3333% - var(--cf-gutter, 0px) * 0.666667) !important;
+  }
+  .cf-col-sm-9 {
+    flex: 0 0 calc(37.5% - var(--cf-gutter, 0px) * 0.625) !important;
+    max-width: calc(37.5% - var(--cf-gutter, 0px) * 0.625) !important;
+  }
+  .cf-col-sm-10 {
+    flex: 0 0 calc(41.6667% - var(--cf-gutter, 0px) * 0.583333) !important;
+    max-width: calc(41.6667% - var(--cf-gutter, 0px) * 0.583333) !important;
+  }
+  .cf-col-sm-11 {
+    flex: 0 0 calc(45.8333% - var(--cf-gutter, 0px) * 0.541667) !important;
+    max-width: calc(45.8333% - var(--cf-gutter, 0px) * 0.541667) !important;
+  }
+  .cf-col-sm-12 {
+    flex: 0 0 calc(50% - var(--cf-gutter, 0px) * 0.5) !important;
+    max-width: calc(50% - var(--cf-gutter, 0px) * 0.5) !important;
+  }
+  .cf-col-sm-13 {
+    flex: 0 0 calc(54.1667% - var(--cf-gutter, 0px) * 0.458333) !important;
+    max-width: calc(54.1667% - var(--cf-gutter, 0px) * 0.458333) !important;
+  }
+  .cf-col-sm-14 {
+    flex: 0 0 calc(58.3333% - var(--cf-gutter, 0px) * 0.416667) !important;
+    max-width: calc(58.3333% - var(--cf-gutter, 0px) * 0.416667) !important;
+  }
+  .cf-col-sm-15 {
+    flex: 0 0 calc(62.5% - var(--cf-gutter, 0px) * 0.375) !important;
+    max-width: calc(62.5% - var(--cf-gutter, 0px) * 0.375) !important;
+  }
+  .cf-col-sm-16 {
+    flex: 0 0 calc(66.6667% - var(--cf-gutter, 0px) * 0.333333) !important;
+    max-width: calc(66.6667% - var(--cf-gutter, 0px) * 0.333333) !important;
+  }
+  .cf-col-sm-17 {
+    flex: 0 0 calc(70.8333% - var(--cf-gutter, 0px) * 0.291667) !important;
+    max-width: calc(70.8333% - var(--cf-gutter, 0px) * 0.291667) !important;
+  }
+  .cf-col-sm-18 {
+    flex: 0 0 calc(75% - var(--cf-gutter, 0px) * 0.25) !important;
+    max-width: calc(75% - var(--cf-gutter, 0px) * 0.25) !important;
+  }
+  .cf-col-sm-19 {
+    flex: 0 0 calc(79.1667% - var(--cf-gutter, 0px) * 0.208333) !important;
+    max-width: calc(79.1667% - var(--cf-gutter, 0px) * 0.208333) !important;
+  }
+  .cf-col-sm-20 {
+    flex: 0 0 calc(83.3333% - var(--cf-gutter, 0px) * 0.166667) !important;
+    max-width: calc(83.3333% - var(--cf-gutter, 0px) * 0.166667) !important;
+  }
+  .cf-col-sm-21 {
+    flex: 0 0 calc(87.5% - var(--cf-gutter, 0px) * 0.125) !important;
+    max-width: calc(87.5% - var(--cf-gutter, 0px) * 0.125) !important;
+  }
+  .cf-col-sm-22 {
+    flex: 0 0 calc(91.6667% - var(--cf-gutter, 0px) * 0.083333) !important;
+    max-width: calc(91.6667% - var(--cf-gutter, 0px) * 0.083333) !important;
+  }
+  .cf-col-sm-23 {
+    flex: 0 0 calc(95.8333% - var(--cf-gutter, 0px) * 0.041667) !important;
+    max-width: calc(95.8333% - var(--cf-gutter, 0px) * 0.041667) !important;
+  }
+  .cf-col-sm-24 {
+    flex: 0 0 calc(100% - var(--cf-gutter, 0px) * 0) !important;
+    max-width: calc(100% - var(--cf-gutter, 0px) * 0) !important;
+  }
+}
+@media (min-width: 768px) {
+  .cf-col-md-1 {
+    flex: 0 0 calc(4.1667% - var(--cf-gutter, 0px) * 0.958333) !important;
+    max-width: calc(4.1667% - var(--cf-gutter, 0px) * 0.958333) !important;
+  }
+  .cf-col-md-2 {
+    flex: 0 0 calc(8.3333% - var(--cf-gutter, 0px) * 0.916667) !important;
+    max-width: calc(8.3333% - var(--cf-gutter, 0px) * 0.916667) !important;
+  }
+  .cf-col-md-3 {
+    flex: 0 0 calc(12.5% - var(--cf-gutter, 0px) * 0.875) !important;
+    max-width: calc(12.5% - var(--cf-gutter, 0px) * 0.875) !important;
+  }
+  .cf-col-md-4 {
+    flex: 0 0 calc(16.6667% - var(--cf-gutter, 0px) * 0.833333) !important;
+    max-width: calc(16.6667% - var(--cf-gutter, 0px) * 0.833333) !important;
+  }
+  .cf-col-md-5 {
+    flex: 0 0 calc(20.8333% - var(--cf-gutter, 0px) * 0.791667) !important;
+    max-width: calc(20.8333% - var(--cf-gutter, 0px) * 0.791667) !important;
+  }
+  .cf-col-md-6 {
+    flex: 0 0 calc(25% - var(--cf-gutter, 0px) * 0.75) !important;
+    max-width: calc(25% - var(--cf-gutter, 0px) * 0.75) !important;
+  }
+  .cf-col-md-7 {
+    flex: 0 0 calc(29.1667% - var(--cf-gutter, 0px) * 0.708333) !important;
+    max-width: calc(29.1667% - var(--cf-gutter, 0px) * 0.708333) !important;
+  }
+  .cf-col-md-8 {
+    flex: 0 0 calc(33.3333% - var(--cf-gutter, 0px) * 0.666667) !important;
+    max-width: calc(33.3333% - var(--cf-gutter, 0px) * 0.666667) !important;
+  }
+  .cf-col-md-9 {
+    flex: 0 0 calc(37.5% - var(--cf-gutter, 0px) * 0.625) !important;
+    max-width: calc(37.5% - var(--cf-gutter, 0px) * 0.625) !important;
+  }
+  .cf-col-md-10 {
+    flex: 0 0 calc(41.6667% - var(--cf-gutter, 0px) * 0.583333) !important;
+    max-width: calc(41.6667% - var(--cf-gutter, 0px) * 0.583333) !important;
+  }
+  .cf-col-md-11 {
+    flex: 0 0 calc(45.8333% - var(--cf-gutter, 0px) * 0.541667) !important;
+    max-width: calc(45.8333% - var(--cf-gutter, 0px) * 0.541667) !important;
+  }
+  .cf-col-md-12 {
+    flex: 0 0 calc(50% - var(--cf-gutter, 0px) * 0.5) !important;
+    max-width: calc(50% - var(--cf-gutter, 0px) * 0.5) !important;
+  }
+  .cf-col-md-13 {
+    flex: 0 0 calc(54.1667% - var(--cf-gutter, 0px) * 0.458333) !important;
+    max-width: calc(54.1667% - var(--cf-gutter, 0px) * 0.458333) !important;
+  }
+  .cf-col-md-14 {
+    flex: 0 0 calc(58.3333% - var(--cf-gutter, 0px) * 0.416667) !important;
+    max-width: calc(58.3333% - var(--cf-gutter, 0px) * 0.416667) !important;
+  }
+  .cf-col-md-15 {
+    flex: 0 0 calc(62.5% - var(--cf-gutter, 0px) * 0.375) !important;
+    max-width: calc(62.5% - var(--cf-gutter, 0px) * 0.375) !important;
+  }
+  .cf-col-md-16 {
+    flex: 0 0 calc(66.6667% - var(--cf-gutter, 0px) * 0.333333) !important;
+    max-width: calc(66.6667% - var(--cf-gutter, 0px) * 0.333333) !important;
+  }
+  .cf-col-md-17 {
+    flex: 0 0 calc(70.8333% - var(--cf-gutter, 0px) * 0.291667) !important;
+    max-width: calc(70.8333% - var(--cf-gutter, 0px) * 0.291667) !important;
+  }
+  .cf-col-md-18 {
+    flex: 0 0 calc(75% - var(--cf-gutter, 0px) * 0.25) !important;
+    max-width: calc(75% - var(--cf-gutter, 0px) * 0.25) !important;
+  }
+  .cf-col-md-19 {
+    flex: 0 0 calc(79.1667% - var(--cf-gutter, 0px) * 0.208333) !important;
+    max-width: calc(79.1667% - var(--cf-gutter, 0px) * 0.208333) !important;
+  }
+  .cf-col-md-20 {
+    flex: 0 0 calc(83.3333% - var(--cf-gutter, 0px) * 0.166667) !important;
+    max-width: calc(83.3333% - var(--cf-gutter, 0px) * 0.166667) !important;
+  }
+  .cf-col-md-21 {
+    flex: 0 0 calc(87.5% - var(--cf-gutter, 0px) * 0.125) !important;
+    max-width: calc(87.5% - var(--cf-gutter, 0px) * 0.125) !important;
+  }
+  .cf-col-md-22 {
+    flex: 0 0 calc(91.6667% - var(--cf-gutter, 0px) * 0.083333) !important;
+    max-width: calc(91.6667% - var(--cf-gutter, 0px) * 0.083333) !important;
+  }
+  .cf-col-md-23 {
+    flex: 0 0 calc(95.8333% - var(--cf-gutter, 0px) * 0.041667) !important;
+    max-width: calc(95.8333% - var(--cf-gutter, 0px) * 0.041667) !important;
+  }
+  .cf-col-md-24 {
+    flex: 0 0 calc(100% - var(--cf-gutter, 0px) * 0) !important;
+    max-width: calc(100% - var(--cf-gutter, 0px) * 0) !important;
+  }
+}
+@media (min-width: 1024px) {
+  .cf-col-lg-1 {
+    flex: 0 0 calc(4.1667% - var(--cf-gutter, 0px) * 0.958333) !important;
+    max-width: calc(4.1667% - var(--cf-gutter, 0px) * 0.958333) !important;
+  }
+  .cf-col-lg-2 {
+    flex: 0 0 calc(8.3333% - var(--cf-gutter, 0px) * 0.916667) !important;
+    max-width: calc(8.3333% - var(--cf-gutter, 0px) * 0.916667) !important;
+  }
+  .cf-col-lg-3 {
+    flex: 0 0 calc(12.5% - var(--cf-gutter, 0px) * 0.875) !important;
+    max-width: calc(12.5% - var(--cf-gutter, 0px) * 0.875) !important;
+  }
+  .cf-col-lg-4 {
+    flex: 0 0 calc(16.6667% - var(--cf-gutter, 0px) * 0.833333) !important;
+    max-width: calc(16.6667% - var(--cf-gutter, 0px) * 0.833333) !important;
+  }
+  .cf-col-lg-5 {
+    flex: 0 0 calc(20.8333% - var(--cf-gutter, 0px) * 0.791667) !important;
+    max-width: calc(20.8333% - var(--cf-gutter, 0px) * 0.791667) !important;
+  }
+  .cf-col-lg-6 {
+    flex: 0 0 calc(25% - var(--cf-gutter, 0px) * 0.75) !important;
+    max-width: calc(25% - var(--cf-gutter, 0px) * 0.75) !important;
+  }
+  .cf-col-lg-7 {
+    flex: 0 0 calc(29.1667% - var(--cf-gutter, 0px) * 0.708333) !important;
+    max-width: calc(29.1667% - var(--cf-gutter, 0px) * 0.708333) !important;
+  }
+  .cf-col-lg-8 {
+    flex: 0 0 calc(33.3333% - var(--cf-gutter, 0px) * 0.666667) !important;
+    max-width: calc(33.3333% - var(--cf-gutter, 0px) * 0.666667) !important;
+  }
+  .cf-col-lg-9 {
+    flex: 0 0 calc(37.5% - var(--cf-gutter, 0px) * 0.625) !important;
+    max-width: calc(37.5% - var(--cf-gutter, 0px) * 0.625) !important;
+  }
+  .cf-col-lg-10 {
+    flex: 0 0 calc(41.6667% - var(--cf-gutter, 0px) * 0.583333) !important;
+    max-width: calc(41.6667% - var(--cf-gutter, 0px) * 0.583333) !important;
+  }
+  .cf-col-lg-11 {
+    flex: 0 0 calc(45.8333% - var(--cf-gutter, 0px) * 0.541667) !important;
+    max-width: calc(45.8333% - var(--cf-gutter, 0px) * 0.541667) !important;
+  }
+  .cf-col-lg-12 {
+    flex: 0 0 calc(50% - var(--cf-gutter, 0px) * 0.5) !important;
+    max-width: calc(50% - var(--cf-gutter, 0px) * 0.5) !important;
+  }
+  .cf-col-lg-13 {
+    flex: 0 0 calc(54.1667% - var(--cf-gutter, 0px) * 0.458333) !important;
+    max-width: calc(54.1667% - var(--cf-gutter, 0px) * 0.458333) !important;
+  }
+  .cf-col-lg-14 {
+    flex: 0 0 calc(58.3333% - var(--cf-gutter, 0px) * 0.416667) !important;
+    max-width: calc(58.3333% - var(--cf-gutter, 0px) * 0.416667) !important;
+  }
+  .cf-col-lg-15 {
+    flex: 0 0 calc(62.5% - var(--cf-gutter, 0px) * 0.375) !important;
+    max-width: calc(62.5% - var(--cf-gutter, 0px) * 0.375) !important;
+  }
+  .cf-col-lg-16 {
+    flex: 0 0 calc(66.6667% - var(--cf-gutter, 0px) * 0.333333) !important;
+    max-width: calc(66.6667% - var(--cf-gutter, 0px) * 0.333333) !important;
+  }
+  .cf-col-lg-17 {
+    flex: 0 0 calc(70.8333% - var(--cf-gutter, 0px) * 0.291667) !important;
+    max-width: calc(70.8333% - var(--cf-gutter, 0px) * 0.291667) !important;
+  }
+  .cf-col-lg-18 {
+    flex: 0 0 calc(75% - var(--cf-gutter, 0px) * 0.25) !important;
+    max-width: calc(75% - var(--cf-gutter, 0px) * 0.25) !important;
+  }
+  .cf-col-lg-19 {
+    flex: 0 0 calc(79.1667% - var(--cf-gutter, 0px) * 0.208333) !important;
+    max-width: calc(79.1667% - var(--cf-gutter, 0px) * 0.208333) !important;
+  }
+  .cf-col-lg-20 {
+    flex: 0 0 calc(83.3333% - var(--cf-gutter, 0px) * 0.166667) !important;
+    max-width: calc(83.3333% - var(--cf-gutter, 0px) * 0.166667) !important;
+  }
+  .cf-col-lg-21 {
+    flex: 0 0 calc(87.5% - var(--cf-gutter, 0px) * 0.125) !important;
+    max-width: calc(87.5% - var(--cf-gutter, 0px) * 0.125) !important;
+  }
+  .cf-col-lg-22 {
+    flex: 0 0 calc(91.6667% - var(--cf-gutter, 0px) * 0.083333) !important;
+    max-width: calc(91.6667% - var(--cf-gutter, 0px) * 0.083333) !important;
+  }
+  .cf-col-lg-23 {
+    flex: 0 0 calc(95.8333% - var(--cf-gutter, 0px) * 0.041667) !important;
+    max-width: calc(95.8333% - var(--cf-gutter, 0px) * 0.041667) !important;
+  }
+  .cf-col-lg-24 {
+    flex: 0 0 calc(100% - var(--cf-gutter, 0px) * 0) !important;
+    max-width: calc(100% - var(--cf-gutter, 0px) * 0) !important;
+  }
+}
+
+/* Per-breakpoint flex order for <Col>. The base order is inline, so these
+   override it; the value rides a custom property set by the component. */
+@media (min-width: 640px) {
+  .cf-col-order-sm {
+    order: var(--cf-col-order-sm) !important;
+  }
+}
+@media (min-width: 768px) {
+  .cf-col-order-md {
+    order: var(--cf-col-order-md) !important;
+  }
+}
+@media (min-width: 1024px) {
+  .cf-col-order-lg {
+    order: var(--cf-col-order-lg) !important;
   }
 }

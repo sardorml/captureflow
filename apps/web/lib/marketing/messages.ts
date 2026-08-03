@@ -61,12 +61,18 @@ export const MESSAGES = {
     genericError: "Something went wrong. Please try again.",
   },
   hero: {
-    aiWord: "Open-Source",
-    titleMain: "Screen recorder",
+    titlePrefix: "Open-Source",
+    titleMain: "video messaging",
     titleSuffix: "for everyone",
-    subtitleLine1: "Easily record and share video messages with your",
-    subtitleLine2: "teammates and customers to supercharge productivity.",
+    subtitleLine1: "Record your screen, get a link, and send it.",
+    subtitleLine2: "Your teammates and customers can watch whenever they want.",
     ctaLabel: "Try CaptureFlow for free",
+    installChrome: "Add to Chrome",
+    installMac: "Download for free",
+    installOr: "or",
+    installSignup: "Sign up free",
+    installNote: "no credit card required",
+    moreDownloads: "More download options",
     secondaryCta: "See pricing",
     badge: "🎉 Open source — free to run",
     noCreditCard: "No credit card required",
@@ -82,6 +88,7 @@ export const MESSAGES = {
     },
   },
   modes: {
+    eyebrow: "Capture modes",
     headingLine1: "Recordings and screenshots",
     headingLine2: "— one toolbar.",
     subtitleLine1: "Share a screen recording when it needs to go out now,",
@@ -136,14 +143,11 @@ export const MESSAGES = {
     },
   },
   collaboration: {
-    header: {
-      title: "Capture it. Share it. Done.",
-      subtitle:
-        "Recordings and screenshots become instant links — react, comment, and keep everything inside your team's workspace.",
-    },
     categories: {
       share: {
         title: "Shareable recordings",
+        subtitle:
+          "Record, trim, and recolor on the web, then send one link — no upload step and no re-record.",
         features: {
           editor: {
             title: "Edit recording",
@@ -164,6 +168,8 @@ export const MESSAGES = {
       },
       screenshot: {
         title: "Capture screenshots",
+        subtitle:
+          "Grab a region, a window, or the whole display, mark it up, and the link is already on your clipboard.",
         features: {
           capture: {
             title: "Region, window, or full screen",
@@ -184,6 +190,8 @@ export const MESSAGES = {
       },
       workspaces: {
         title: "Team workspaces",
+        subtitle:
+          "Private by default. Open a link up to your teammates or to anyone the moment it is ready.",
         features: {
           workspace: {
             title: "Share with your team",
@@ -243,13 +251,12 @@ export const MESSAGES = {
     },
   },
   pricing: {
+    eyebrow: "Plans",
     heading: "Pricing",
     subheading:
       "Self-host for free — it is open source. Or let us host it for you with the managed plan.",
     guarantee: "Open source under the AGPL — run it yourself.",
-    tierStorageLabel: "Cloud storage",
-    recommended: "Recommended",
-    mostValue: "Most value",
+    managedGuarantee: "The same open-source app — we run it for you.",
     free: {
       name: "Self-Hosted",
       badge: "Open source",
@@ -269,7 +276,7 @@ export const MESSAGES = {
     highlights: {
       allFeatures: "Fully managed — no Cloudflare setup",
       shareableLinks:
-        "Shareable recordings, screenshots & 200 GB cloud storage",
+        "Shareable recordings, screenshots & {storage} GB storage",
       teamSeats: "Whole team included — no per-seat fees",
     },
     monthly: {
@@ -291,6 +298,7 @@ export const MESSAGES = {
       cta: "Get started",
     },
     compare: {
+      eyebrow: "Side by side",
       heading: "Compare plans",
       subtitle: "What you get on each plan.",
       featureColumn: "Feature",
@@ -450,6 +458,7 @@ export const MESSAGES = {
     ],
   },
   cta: {
+    eyebrow: "Get started",
     headline: "Ready to record?",
     subtitle:
       "Free download. No credit card. Self-host on your own Cloudflare account, or let us run it for you with the managed plan.",
@@ -495,10 +504,6 @@ export const MESSAGES = {
         twitter: "X / Twitter",
       },
     },
-  },
-  floatingCta: {
-    tagline: "Record. Share. Done.",
-    button: "Try CaptureFlow",
   },
   pageShell: {
     logoAlt: "CaptureFlow",
@@ -603,7 +608,7 @@ export const MESSAGES = {
     heading: "Download CaptureFlow",
     subtitle:
       "Record your screen and get an instant share link — free and open source. Self-host on your own Cloudflare account, with Screenshots and workspaces included.",
-    button: "Download for Apple Silicon Macs (Beta)",
+    button: "Download for macOS",
     requires: "Requires {version} or later on Apple Silicon.",
     requirements: "Requires macOS 14 or later on Apple Silicon.",
     versionLabel: "Version {version}",

@@ -55,6 +55,8 @@ export async function resolveCurrentWorkspace(
               workspace_slug: personal.slug,
               workspace_kind: personal.kind,
               workspace_name: personal.name,
+              workspace_logo_key: personal.logo_key,
+              workspace_updated_at: personal.updated_at,
               owner_user_id: personal.owner_user_id,
               role: "owner",
               joined_at: personal.created_at,

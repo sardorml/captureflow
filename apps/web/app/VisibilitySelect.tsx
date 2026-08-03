@@ -1,7 +1,7 @@
 "use client";
 
 import { Globe, Lock, Users } from "lucide-react";
-import { Select } from "antd";
+import { ListBox, Select } from "@heroui/react";
 
 export type Visibility = "public" | "workspace" | "private";
 
@@ -18,6 +18,12 @@ function icon(value: Visibility) {
   return <Lock size={14} />;
 }
 
+const LABELS: Record<Visibility, string> = {
+  public: "Public",
+  workspace: "Workspace",
+  private: "Private",
+};
+
 export function VisibilitySelect({
   value,
   disabled,
@@ -26,33 +32,34 @@ export function VisibilitySelect({
 }: Props) {
   // Already-public legacy rows stay selectable so the owner can flip them.
   const showPublic = allowPublic || value === "public";
-  const options = [
-    ...(showPublic
-      ? [{ value: "public", label: "Public", icon: icon("public") }]
-      : []),
-    { value: "workspace", label: "Workspace", icon: icon("workspace") },
-    { value: "private", label: "Private", icon: icon("private") },
+  const options: Visibility[] = [
+    ...(showPublic ? (["public"] as const) : []),
+    "workspace",
+    "private",
   ];
+
   return (
-    <Select<Visibility>
-      size="small"
-      variant="filled"
-      value={value}
-      disabled={disabled}
-      onChange={(next) => onChange(next)}
+    <Select
+      selectedKey={value}
+      isDisabled={disabled}
+      onSelectionChange={(next) => onChange(next as Visibility)}
       aria-label="Visibility"
-      style={{ minWidth: 130 }}
-      options={options.map((o) => ({
-        value: o.value,
-        label: (
-          <span
-            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-          >
-            {o.icon}
-            {o.label}
-          </span>
-        ),
-      }))}
-    />
+    >
+      <Select.Trigger className="min-w-[130px]">
+        <Select.Value />
+      </Select.Trigger>
+      <Select.Popover>
+        <ListBox>
+          {options.map((option) => (
+            <ListBox.Item key={option} id={option} textValue={LABELS[option]}>
+              <span className="inline-flex items-center gap-1.5">
+                {icon(option)}
+                {LABELS[option]}
+              </span>
+            </ListBox.Item>
+          ))}
+        </ListBox>
+      </Select.Popover>
+    </Select>
   );
 }

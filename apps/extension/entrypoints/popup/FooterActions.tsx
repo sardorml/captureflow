@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Button, Dropdown, Menu, Tooltip, buttonVariants } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
 import { WEB_BASE } from "@/lib/config";
 import { closeSurface } from "@/lib/surface";
@@ -37,9 +37,27 @@ const MORE_ICON = (
   </svg>
 );
 
-export function FooterActions() {
-  const [menuOpen, setMenuOpen] = useState(false);
+const TOOL_CLASS = "h-auto w-full flex-col gap-1 px-2 py-1.5 text-[11px]";
 
+function ComingSoon({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <Tooltip>
+      {/* A disabled button emits no pointer events, so the tooltip anchors to a
+          wrapper instead of the control itself. */}
+      <Tooltip.Trigger>
+        <span className="inline-flex w-full">
+          <Button variant="ghost" isDisabled className={TOOL_CLASS}>
+            {icon}
+            {label}
+          </Button>
+        </span>
+      </Tooltip.Trigger>
+      <Tooltip.Content>Coming soon</Tooltip.Content>
+    </Tooltip>
+  );
+}
+
+export function FooterActions() {
   const openDashboard = () => {
     void chrome.tabs.create({ url: `${WEB_BASE}/recordings` });
     closeSurface();
@@ -50,45 +68,28 @@ export function FooterActions() {
   };
 
   return (
-    <footer className="cf-tools">
-      <button type="button" className="cf-tool" disabled title="Coming soon">
-        {EFFECTS_ICON}
-        <span>Effects</span>
-      </button>
-      <button type="button" className="cf-tool" disabled title="Coming soon">
-        {BLUR_ICON}
-        <span>Blur</span>
-      </button>
-      <div className="cf-tool-menu-anchor">
-        <button
-          type="button"
-          className="cf-tool"
-          onClick={() => setMenuOpen((open) => !open)}
+    <footer className="grid grid-cols-3 items-start gap-1">
+      <ComingSoon icon={EFFECTS_ICON} label="Effects" />
+      <ComingSoon icon={BLUR_ICON} label="Blur" />
+      <Dropdown>
+        {/* Dropdown.Trigger wraps React Aria's unstyled Button, so the ghost
+            look its two siblings get from <Button> is applied by hand. */}
+        <Dropdown.Trigger
+          className={buttonVariants({
+            variant: "ghost",
+            className: TOOL_CLASS,
+          })}
         >
           {MORE_ICON}
-          <span>More</span>
-        </button>
-        {menuOpen && (
-          <div className="cf-menu" role="menu">
-            <button
-              type="button"
-              className="cf-menu-item"
-              role="menuitem"
-              onClick={openDashboard}
-            >
-              Open dashboard
-            </button>
-            <button
-              type="button"
-              className="cf-menu-item"
-              role="menuitem"
-              onClick={onSignOut}
-            >
-              Sign out
-            </button>
-          </div>
-        )}
-      </div>
+          More
+        </Dropdown.Trigger>
+        <Dropdown.Popover placement="top end">
+          <Menu>
+            <Menu.Item onAction={openDashboard}>Open dashboard</Menu.Item>
+            <Menu.Item onAction={onSignOut}>Sign out</Menu.Item>
+          </Menu>
+        </Dropdown.Popover>
+      </Dropdown>
     </footer>
   );
 }

@@ -1,15 +1,16 @@
-import { Skeleton } from "antd";
+import { Skeleton } from "@heroui/react";
 
 export default function Loading() {
   return (
     <>
-      <Skeleton active title={{ width: 240 }} paragraph={{ rows: 1 }} />
-      <Skeleton
-        active
-        avatar
-        paragraph={{ rows: 1 }}
-        style={{ marginTop: 24 }}
-      />
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-60 rounded-md" />
+        <Skeleton className="h-4 w-full max-w-md rounded-md" />
+      </div>
+      <div className="mt-6 flex items-center gap-3">
+        <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+        <Skeleton className="h-4 w-3/5 rounded-md" />
+      </div>
     </>
   );
 }

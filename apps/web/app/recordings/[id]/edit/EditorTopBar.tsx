@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, History, Pencil, Redo2, Smile, Undo2 } from "lucide-react";
-import { Button, Spin, Tooltip } from "antd";
+import { Button, Spinner, Tooltip } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import type { SaveStatus } from "./use-editor-config";
 
@@ -79,7 +79,7 @@ export function EditorTopBar({
       )}
     >
       {status === "saving" ? (
-        <Spin size="small" />
+        <Spinner size="sm" />
       ) : (
         <Smile className="h-4 w-4" aria-hidden />
       )}
@@ -94,7 +94,7 @@ export function EditorTopBar({
           type="button"
           onClick={onBack}
           aria-label="Back to recording"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-overlay hover:text-fg"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-tint hover:text-fg"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -133,7 +133,7 @@ export function EditorTopBar({
               setDraft(title);
               setEditing(true);
             }}
-            className="group flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 text-left hover:bg-overlay"
+            className="group flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 text-left hover:bg-tint"
             title="Rename"
           >
             <span className="truncate text-sm font-medium text-fg">
@@ -151,14 +151,22 @@ export function EditorTopBar({
 
       <div className="flex shrink-0 items-center gap-1">
         {status === "error" && saveError ? (
-          <Tooltip title={saveError}>{statusNode}</Tooltip>
+          <Tooltip>
+            <Tooltip.Trigger className="inline-flex" tabIndex={0}>
+              {statusNode}
+            </Tooltip.Trigger>
+            <Tooltip.Content>{saveError}</Tooltip.Content>
+          </Tooltip>
         ) : (
           statusNode
         )}
-        <Tooltip title="Version history (coming soon)">
-          <span className="inline-flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-md text-fg-subtle opacity-50">
-            <History className="h-4 w-4" />
-          </span>
+        <Tooltip>
+          <Tooltip.Trigger className="inline-flex" tabIndex={0}>
+            <span className="inline-flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-md text-fg-subtle opacity-50">
+              <History className="h-4 w-4" />
+            </span>
+          </Tooltip.Trigger>
+          <Tooltip.Content>Version history (coming soon)</Tooltip.Content>
         </Tooltip>
         <button
           type="button"
@@ -166,7 +174,7 @@ export function EditorTopBar({
           disabled={!canUndo}
           aria-label="Undo"
           title="Undo"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-overlay hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
         >
           <Undo2 className="h-4 w-4" />
         </button>
@@ -176,11 +184,11 @@ export function EditorTopBar({
           disabled={!canRedo}
           aria-label="Redo"
           title="Redo"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-overlay hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
         >
           <Redo2 className="h-4 w-4" />
         </button>
-        <Button type="primary" onClick={onFinish} className="ml-1">
+        <Button variant="primary" onPress={onFinish} className="ml-1">
           Finish
         </Button>
       </div>

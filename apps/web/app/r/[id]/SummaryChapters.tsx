@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ListVideo, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
-import { Button } from "antd";
+import { Button } from "@heroui/react";
 import { formatTimestamp } from "@/lib/format";
 
 type Props = {
@@ -177,7 +177,7 @@ export function SummaryChapters({
             <button
               type="button"
               onClick={startSummaryEdit}
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-overlay hover:text-neutral-200"
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-tint hover:text-neutral-200"
             >
               <Pencil className="h-3.5 w-3.5" />
               {hasSummary ? "Edit" : "Add"}
@@ -185,7 +185,7 @@ export function SummaryChapters({
           )}
         </div>
         {summaryEditing ? (
-          <div className="mt-3 space-y-2 rounded-lg border border-line-strong bg-neutral-950 p-3">
+          <div className="focus-within:ring-focus mt-3 space-y-2 rounded-lg bg-field p-3 focus-within:ring-2">
             <textarea
               ref={summaryTextareaRef}
               value={summaryDraft}
@@ -195,10 +195,14 @@ export function SummaryChapters({
               className="block w-full resize-none bg-transparent text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none"
             />
             <div className="flex justify-end gap-2">
-              <Button size="small" onClick={() => setSummaryEditing(false)}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => setSummaryEditing(false)}
+              >
                 Cancel
               </Button>
-              <Button type="primary" size="small" onClick={commitSummaryEdit}>
+              <Button variant="primary" size="sm" onPress={commitSummaryEdit}>
                 Save
               </Button>
             </div>
@@ -225,7 +229,7 @@ export function SummaryChapters({
               <button
                 type="button"
                 onClick={onAddChapter}
-                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-overlay hover:text-neutral-200"
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-tint hover:text-neutral-200"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Add at playhead
@@ -234,7 +238,7 @@ export function SummaryChapters({
                 <button
                   type="button"
                   onClick={startChaptersEdit}
-                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-overlay hover:text-neutral-200"
+                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-tint hover:text-neutral-200"
                 >
                   <Pencil className="h-3.5 w-3.5" />
                   Edit
@@ -244,7 +248,7 @@ export function SummaryChapters({
           )}
         </div>
         {chaptersEditing ? (
-          <div className="mt-3 space-y-2 rounded-lg border border-line-strong bg-neutral-950 p-3">
+          <div className="focus-within:ring-focus mt-3 space-y-2 rounded-lg bg-field p-3 focus-within:ring-2">
             <textarea
               value={chaptersDraft}
               onChange={(e) => setChaptersDraft(e.target.value)}
@@ -257,10 +261,14 @@ export function SummaryChapters({
               <code> H:MM:SS Title</code>.
             </p>
             <div className="flex justify-end gap-2">
-              <Button size="small" onClick={() => setChaptersEditing(false)}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => setChaptersEditing(false)}
+              >
                 Cancel
               </Button>
-              <Button type="primary" size="small" onClick={commitChaptersEdit}>
+              <Button variant="primary" size="sm" onPress={commitChaptersEdit}>
                 Save
               </Button>
             </div>
@@ -276,7 +284,7 @@ export function SummaryChapters({
                       "group flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors " +
                       (active
                         ? "bg-blue-500/15 text-blue-700 dark:text-blue-100"
-                        : "text-neutral-300 hover:bg-overlay")
+                        : "text-neutral-300 hover:bg-tint")
                     }
                   >
                     <button
@@ -303,7 +311,7 @@ export function SummaryChapters({
                         type="button"
                         onClick={() => removeChapter(c.id)}
                         aria-label="Remove chapter"
-                        className="rounded p-1 text-neutral-500 opacity-0 transition-opacity hover:bg-overlay hover:text-red-300 group-hover:opacity-100"
+                        className="rounded p-1 text-neutral-500 opacity-0 transition-opacity hover:bg-tint hover:text-red-300 group-hover:opacity-100"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>

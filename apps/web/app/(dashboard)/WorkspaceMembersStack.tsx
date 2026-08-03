@@ -1,9 +1,11 @@
 "use client";
 
-import { Avatar, theme, Tooltip } from "antd";
+import { Avatar, Tooltip } from "@heroui/react";
 import { UserPlus } from "lucide-react";
 import type { AvatarGroupItem } from "@captureflow/ui";
 import { InviteModal } from "./InviteModal";
+
+const MAX_VISIBLE = 4;
 
 type Props = {
   items: AvatarGroupItem[];
@@ -11,33 +13,40 @@ type Props = {
 };
 
 export function WorkspaceMembersStack({ items, canInvite }: Props) {
-  const { token } = theme.useToken();
   if (items.length === 0 && !canInvite) return null;
+  const visible = items.slice(0, MAX_VISIBLE);
+  const overflow = items.length - visible.length;
+
   return (
-    <div
-      style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 32 }}
-    >
-      <Avatar.Group max={{ count: 4 }}>
-        {items.map((m) => (
-          <Tooltip key={m.key} title={m.label}>
-            <Avatar src={m.image || undefined}>{m.initials}</Avatar>
+    <div className="flex min-h-8 items-center gap-2">
+      <div className="flex -space-x-2">
+        {visible.map((m) => (
+          <Tooltip key={m.key}>
+            <Tooltip.Trigger className="inline-flex" tabIndex={0}>
+              <Avatar className="h-8 w-8 ring-2 ring-canvas-2">
+                {m.image && <Avatar.Image src={m.image} alt={m.label} />}
+                <Avatar.Fallback>{m.initials}</Avatar.Fallback>
+              </Avatar>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{m.label}</Tooltip.Content>
           </Tooltip>
         ))}
-      </Avatar.Group>
+        {overflow > 0 && (
+          <Avatar className="h-8 w-8 ring-2 ring-canvas-2">
+            <Avatar.Fallback>+{overflow}</Avatar.Fallback>
+          </Avatar>
+        )}
+      </div>
       {canInvite && (
         <InviteModal
           trigger={
-            <Avatar
-              icon={<UserPlus size={14} />}
-              style={{
-                cursor: "pointer",
-                backgroundColor: "transparent",
-                color: token.colorTextTertiary,
-                borderColor: token.colorBorder,
-                borderWidth: 1,
-                borderStyle: "dashed",
-              }}
-            />
+            <button
+              type="button"
+              aria-label="Invite teammates"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-dashed border-line-strong bg-transparent text-fg-subtle transition-colors hover:text-fg"
+            >
+              <UserPlus size={14} />
+            </button>
           }
         />
       )}

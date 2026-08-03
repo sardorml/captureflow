@@ -1,8 +1,10 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
-import { Button, Progress, Typography } from "antd";
+import type { ReactNode } from "react";
+import { Database, Sparkles } from "lucide-react";
+import { Button, ProgressBar, Typography } from "@heroui/react";
 import { formatBytes } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { UpgradeModal } from "./(dashboard)/UpgradeModal";
 
 type StorageUsageProps = {
@@ -12,87 +14,96 @@ type StorageUsageProps = {
   userId: string;
 };
 
+const NEAR_FULL = 0.8;
+
 export function StorageUsage({
   usedBytes,
   limitBytes,
   email,
   userId,
 }: StorageUsageProps) {
+  const upgrade = (label: string) => (
+    <UpgradeModal
+      email={email}
+      userId={userId}
+      trigger={
+        <Button variant="primary" size="sm" fullWidth className="mt-3">
+          <Sparkles size={14} />
+          {label}
+        </Button>
+      }
+    />
+  );
+
   if (limitBytes <= 0) {
     return (
-      <div>
-        <Typography.Text
-          type="secondary"
-          style={{ fontSize: 12, fontWeight: 500 }}
-        >
-          Storage
-        </Typography.Text>
-        <Typography.Paragraph
-          type="secondary"
-          style={{ fontSize: 12, marginTop: 8 }}
-        >
+      <Panel>
+        <Header />
+        <Typography type="body-xs" color="muted" className="mt-2 block">
           Cloud storage is a Pro feature.
-        </Typography.Paragraph>
-        <UpgradeModal
-          email={email}
-          userId={userId}
-          trigger={
-            <Button
-              type="primary"
-              size="small"
-              block
-              icon={<Sparkles size={14} />}
-            >
-              Upgrade to Pro
-            </Button>
-          }
-        />
-      </div>
+        </Typography>
+        {upgrade("Upgrade to Pro")}
+      </Panel>
     );
   }
 
   const ratio = Math.min(1, usedBytes / limitBytes);
-  const pct = Math.round(ratio * 100);
   const over = usedBytes >= limitBytes;
-  const near = !over && ratio >= 0.8;
+  const near = !over && ratio >= NEAR_FULL;
 
   return (
-    <div>
-      <Typography.Text
-        type="secondary"
-        style={{ fontSize: 12, fontWeight: 500 }}
+    <Panel>
+      <Header trailing={percentLabel(ratio)} />
+
+      <ProgressBar
+        value={Math.round(ratio * 100)}
+        color={over ? "danger" : near ? "warning" : "accent"}
+        aria-label="Storage used"
+        className="mt-2.5"
       >
+        <ProgressBar.Track className="h-1.5 rounded-full bg-tint-strong">
+          {/* Under about half a percent the fill rounds away to nothing, and an
+              empty track reads as broken rather than as nearly empty. */}
+          <ProgressBar.Fill
+            className={cn("rounded-full", usedBytes > 0 && "min-w-1.5")}
+          />
+        </ProgressBar.Track>
+      </ProgressBar>
+
+      <Typography type="body-xs" color="muted" className="mt-2 block">
+        <span className="tabular-nums">{formatBytes(usedBytes)}</span> of{" "}
+        <span className="tabular-nums">{formatBytes(limitBytes)}</span>
+      </Typography>
+
+      {over && upgrade("Get more storage")}
+      {near && upgrade("Upgrade to Pro")}
+    </Panel>
+  );
+}
+
+function Panel({ children }: { children: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-line bg-panel p-3">{children}</div>
+  );
+}
+
+function Header({ trailing }: { trailing?: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-fg-muted">
+        <Database size={13} />
         Storage
-      </Typography.Text>
-      <Progress
-        percent={pct}
-        size="small"
-        status={over ? "exception" : "normal"}
-        strokeColor={near ? "#faad14" : undefined}
-      />
-      <Typography.Paragraph
-        type="secondary"
-        style={{ fontSize: 12, marginTop: 4, marginBottom: 0 }}
-      >
-        {formatBytes(usedBytes)} of {formatBytes(limitBytes)}
-      </Typography.Paragraph>
-      {over && (
-        <UpgradeModal
-          email={email}
-          userId={userId}
-          trigger={
-            <Button
-              type="primary"
-              size="small"
-              block
-              icon={<Sparkles size={14} />}
-              style={{ marginTop: 8 }}
-            >
-              Upgrade to Pro
-            </Button>
-          }
-        />
-      )}
+      </span>
+      {trailing ? (
+        <span className="text-xs font-medium tabular-nums text-fg">
+          {trailing}
+        </span>
+      ) : null}
     </div>
   );
+}
+
+function percentLabel(ratio: number): string {
+  const pct = Math.round(ratio * 100);
+  return ratio > 0 && pct === 0 ? "<1%" : `${pct}%`;
 }

@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react";
+import { Alert, Button, ListBox, Select, Typography } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
 import {
   getCameraBlocked,
   getCapturePrefs,
+  getRecordingStatus,
   setCapturePrefs,
   watchCameraBlocked,
   watchCapturePrefs,
   type CapturePrefs,
 } from "@/lib/storage";
+import { LIVE_KINDS } from "@/lib/capture/status";
 import {
   useMediaDevices,
   type MediaDeviceOption,
 } from "@/hooks/use-media-devices";
 import { MicMeter } from "./MicMeter";
+import { PANEL_ROW } from "./panel";
 
 const CAMERA_ICON = (
   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
@@ -71,51 +75,86 @@ async function isMicGranted(): Promise<boolean> {
 
 type DeviceRowProps = {
   icon: React.ReactNode;
-  fallbackLabel: string;
+  label: string;
   devices: MediaDeviceOption[];
   selectedId: string | undefined;
   on: boolean;
-  onToggle: () => void;
+  onToggle: (on: boolean) => void;
   onSelect: (deviceId: string) => void;
+  // Rendered along the row's bottom edge rather than under it, so the level
+  // reads as part of the mic row instead of a stray bar.
+  meter?: React.ReactNode;
 };
 
 function DeviceRow({
   icon,
-  fallbackLabel,
+  label,
   devices,
   selectedId,
   on,
   onToggle,
   onSelect,
+  meter,
 }: DeviceRowProps) {
-  const hasLabels = devices.some((d) => d.label && d.deviceId);
+  // Device labels stay empty until the origin holds a grant; fall back to the
+  // static row label rather than rendering a picker of blank entries.
+  const named = devices.filter((d) => d.label && d.deviceId);
+
   return (
-    <div className={on ? "cf-row is-on" : "cf-row"}>
-      <span className="cf-row-icon" aria-hidden>
+    <div
+      className={`${PANEL_ROW} relative overflow-hidden data-[on=true]:outline data-[on=true]:outline-border`}
+      data-on={on}
+    >
+      <span className="flex text-foreground" aria-hidden>
         {icon}
       </span>
-      {hasLabels ? (
-        <select
-          className="cf-row-select"
-          value={selectedId ?? devices[0]?.deviceId ?? ""}
-          onChange={(event) => onSelect(event.target.value)}
+      {named.length > 0 ? (
+        <Select
+          aria-label={label}
+          selectedKey={selectedId ?? named[0]?.deviceId}
+          onSelectionChange={(key) => onSelect(String(key))}
+          className="min-w-0 flex-1"
         >
-          {devices.map((device) => (
-            <option key={device.deviceId} value={device.deviceId}>
-              {device.label}
-            </option>
-          ))}
-        </select>
+          <Select.Trigger className="w-full justify-between border-0 bg-transparent px-0">
+            <Select.Value className="truncate text-sm font-medium" />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {named.map((device) => (
+                <ListBox.Item
+                  key={device.deviceId}
+                  id={device.deviceId}
+                  textValue={device.label}
+                >
+                  {device.label}
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </Select.Popover>
+        </Select>
       ) : (
-        <span className="cf-row-label">{fallbackLabel}</span>
+        <Typography type="body-sm" weight="medium" className="flex-1 truncate">
+          {label}
+        </Typography>
       )}
+      {/* A labelled On/Off pill rather than a switch: at this row height the
+          track read as decoration, and the state now says itself. */}
       <button
         type="button"
-        className={on ? "cf-pill is-on" : "cf-pill"}
-        onClick={onToggle}
+        role="switch"
+        aria-checked={on}
+        aria-label={label}
+        onClick={() => onToggle(!on)}
+        className={[
+          "shrink-0 cursor-pointer rounded-md border px-1.5 py-0.5 text-[11px] font-semibold transition-colors motion-reduce:transition-none",
+          on
+            ? "border-success text-success"
+            : "border-separator text-muted hover:text-foreground",
+        ].join(" ")}
       >
         {on ? "On" : "Off"}
       </button>
+      {meter}
     </div>
   );
 }
@@ -137,6 +176,23 @@ export function DevicePickers() {
       unwatchPrefs();
       unwatchBlocked();
     };
+  }, []);
+
+  /*
+   * The preview is torn down with the panel, so a camera left switched on gets
+   * it back on the next open. Not while recording: that stream already holds
+   * the camera, and a second getUserMedia on it reports back as blocked.
+   */
+  useEffect(() => {
+    void (async () => {
+      const [saved, status] = await Promise.all([
+        getCapturePrefs(),
+        getRecordingStatus(),
+      ]);
+      if (!saved.camera || LIVE_KINDS.has(status.kind)) return;
+      if (await getCameraBlocked()) return;
+      void sendMessage("setCameraBubble", { on: true, mic: saved.mic });
+    })();
   }, []);
 
   /*
@@ -162,48 +218,45 @@ export function DevicePickers() {
   };
 
   return (
-    <section className="cf-section cf-pickers">
+    <section className="flex flex-col gap-1.5">
       <DeviceRow
         icon={CAMERA_ICON}
-        fallbackLabel={blocked ? "Camera blocked" : "Camera"}
+        label={blocked ? "Camera blocked" : "Camera"}
         devices={devices.cameras}
         selectedId={prefs.cameraId}
         on={prefs.camera && !blocked}
-        onToggle={() => void update({ camera: !prefs.camera })}
+        onToggle={(on) => void update({ camera: on })}
         onSelect={(cameraId) => void update({ cameraId })}
       />
       {blocked && (
-        <div className="cf-notice">
-          <p className="cf-notice-title">Camera blocked</p>
-          <p className="cf-hint">
-            Allow the camera for this extension in your browser&rsquo;s camera
-            settings, then try again.
-          </p>
-          <button
-            type="button"
-            className="cf-try"
-            onClick={() => void update({ camera: true })}
-          >
-            Try again
-          </button>
-        </div>
+        <Alert status="warning">
+          <Alert.Content>
+            <Alert.Title>Camera blocked</Alert.Title>
+            <Alert.Description>
+              Allow the camera for this extension in your browser&rsquo;s camera
+              settings, then try again.
+            </Alert.Description>
+            <Button
+              variant="primary"
+              size="sm"
+              className="mt-2 self-start"
+              onPress={() => void update({ camera: true })}
+            >
+              Try again
+            </Button>
+          </Alert.Content>
+        </Alert>
       )}
       <DeviceRow
         icon={MIC_ICON}
-        fallbackLabel="Microphone"
+        label="Microphone"
         devices={devices.mics}
         selectedId={prefs.micId}
         on={prefs.mic}
-        onToggle={() => void update({ mic: !prefs.mic })}
+        onToggle={(on) => void update({ mic: on })}
         onSelect={(micId) => void update({ micId })}
+        meter={<MicMeter enabled={prefs.mic} />}
       />
-      <MicMeter enabled={prefs.mic} />
-      {prefs.camera && !blocked && (
-        <p className="cf-hint">
-          Your camera bubble appears on normal web pages — not on internal
-          browser pages like this one.
-        </p>
-      )}
     </section>
   );
 }

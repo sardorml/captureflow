@@ -1,12 +1,15 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Paragraph, Title } from "./typography";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { Button, Flex, Typography, theme as antdTheme } from "antd";
-import { ThemeToggle, DEFAULT_THEME, type Theme } from "@captureflow/ui";
+import { Flex } from "./layout";
+import { Button } from "./ui";
+import { TOKENS } from "./tokens";
 import { Footer } from "./footer";
+import { MarketingShell } from "./marketing-shell";
 import { useMessages, useLocalizedHref } from "./i18n-provider";
 
 type PageShellProps = {
@@ -14,7 +17,6 @@ type PageShellProps = {
   maxWidth?: number;
   title?: string;
   subtitle?: string;
-  theme?: Theme;
 };
 
 export function PageShell({
@@ -22,17 +24,13 @@ export function PageShell({
   maxWidth = 960,
   title,
   subtitle,
-  theme = DEFAULT_THEME,
 }: PageShellProps) {
   const m = useMessages();
   const lh = useLocalizedHref();
-  const { token } = antdTheme.useToken();
+  const token = TOKENS;
 
   return (
-    <Flex
-      vertical
-      style={{ minHeight: "100vh", background: token.colorBgContainer }}
-    >
+    <MarketingShell style={{ display: "flex", flexDirection: "column" }}>
       <header
         style={{
           height: 64,
@@ -74,14 +72,11 @@ export function PageShell({
               CaptureFlow
             </span>
           </Link>
-          <Flex align="center" gap={4}>
-            <Link href={lh("/")}>
-              <Button type="text" icon={<ArrowLeft size={16} />}>
-                {m.pageShell.backToHome}
-              </Button>
-            </Link>
-            <ThemeToggle initialTheme={theme} className="h-8 w-8" />
-          </Flex>
+          <Link href={lh("/")}>
+            <Button type="text" icon={<ArrowLeft size={16} />}>
+              {m.pageShell.backToHome}
+            </Button>
+          </Link>
         </Flex>
       </header>
 
@@ -96,19 +91,13 @@ export function PageShell({
         >
           {title ? (
             <div style={{ marginBottom: 32 }}>
-              <Typography.Title
-                level={1}
-                style={{ marginBottom: subtitle ? 8 : 0 }}
-              >
+              <Title level={1} style={{ marginBottom: subtitle ? 8 : 0 }}>
                 {title}
-              </Typography.Title>
+              </Title>
               {subtitle ? (
-                <Typography.Paragraph
-                  type="secondary"
-                  style={{ fontSize: 18, margin: 0 }}
-                >
+                <Paragraph type="secondary" style={{ fontSize: 18, margin: 0 }}>
                   {subtitle}
-                </Typography.Paragraph>
+                </Paragraph>
               ) : null}
             </div>
           ) : null}
@@ -117,6 +106,6 @@ export function PageShell({
       </main>
 
       <Footer />
-    </Flex>
+    </MarketingShell>
   );
 }

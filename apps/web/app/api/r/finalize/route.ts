@@ -85,12 +85,23 @@ export async function POST(req: NextRequest) {
     return jsonError("Object missing after complete", 502, "object_missing");
   }
 
+  // Bad duration is dropped rather than rejected: the bytes are already in R2,
+  // and a missing badge beats an upload that reports failure.
+  const durationMs =
+    typeof body.durationMs === "number" &&
+    Number.isFinite(body.durationMs) &&
+    body.durationMs > 0 &&
+    body.durationMs <= ACCOUNT_LIMITS.perRecordingDurationMs
+      ? Math.round(body.durationMs)
+      : null;
+
   try {
     await updateRecording(row.slug, {
       state: "ready",
       uploadId: null,
       sizeBytes,
       lastViewedAt: Date.now(),
+      ...(durationMs === null ? {} : { durationMs }),
     });
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);

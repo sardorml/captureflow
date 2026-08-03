@@ -8,6 +8,13 @@ export const SUPPORT_EMAIL = "captureflow.support@gmail.com";
 export const APP_VERSION = "0.9.2-beta";
 export const DOWNLOAD_URL =
   "https://github.com/sardorml/captureflow/releases/latest";
+
+/*
+ * Extension store listings. null until each is published — the hero renders a
+ * disabled "Soon" button for a null entry, so shipping is a one-line change.
+ */
+export const CHROME_WEBSTORE_URL: string | null = null;
+export const FIREFOX_ADDON_URL: string | null = null;
 export const DOWNLOAD_DMG_SIZE_MB = 48;
 export const MIN_MACOS_VERSION = "macOS 14 (Sonoma)";
 

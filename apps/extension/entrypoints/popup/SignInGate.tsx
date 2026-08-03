@@ -1,31 +1,32 @@
+import { Button, Card, Typography } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
+import { closeSurface } from "@/lib/surface";
 
-// Only renders in the brief window before the service worker clears the popup
-// for the signed-out action; the button opens the web sign-in tab.
-export function SignInGate() {
+// `note` explains a session the panel dropped mid-open (expired, signed out
+// elsewhere, or a different account in this browser).
+export function SignInGate({ note }: { note?: string | null }) {
   const onSignIn = () => {
     void sendMessage("openSignIn", undefined);
-    window.close();
+    closeSurface();
   };
 
   return (
-    <div className="cf-panel">
-      <header className="cf-header">
-        <div className="cf-brand">
-          <img className="cf-logo" src="/icon/32.png" alt="" />
-          CaptureFlow
-        </div>
+    <div className="flex flex-col gap-2.5 p-3">
+      <header className="flex items-center gap-2">
+        <img className="size-4.5 rounded-[5px]" src="/icon/32.png" alt="" />
+        <Typography weight="semibold">CaptureFlow</Typography>
       </header>
 
-      <section className="cf-section">
-        <p className="cf-source">
-          Sign in to record your screen and get an instant recording link.
-        </p>
-      </section>
+      <Card className="p-3">
+        <Typography type="body-sm">
+          {note ??
+            "Sign in to record your screen and get an instant recording link."}
+        </Typography>
+      </Card>
 
-      <button type="button" className="cf-start" onClick={onSignIn}>
+      <Button variant="primary" size="lg" fullWidth onPress={onSignIn}>
         Sign in
-      </button>
+      </Button>
     </div>
   );
 }

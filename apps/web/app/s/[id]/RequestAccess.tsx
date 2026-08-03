@@ -92,7 +92,7 @@ export function RequestAccess({
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 py-16 text-neutral-100">
       <div className="w-full max-w-md">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-overlay ring-1 ring-line-strong">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-tint ring-1 ring-line-strong">
           <Lock className="h-6 w-6 text-neutral-400" aria-hidden />
         </div>
         <h1 className="mt-6 text-center text-2xl font-semibold tracking-tight text-neutral-50">
@@ -158,7 +158,7 @@ export function RequestAccess({
               maxLength={500}
               rows={3}
               placeholder="Hi — I'd like a copy of this screenshot from the design review."
-              className="mt-2 w-full resize-none rounded-md border border-line-strong bg-neutral-950 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="focus:ring-focus mt-2 w-full resize-none rounded-md bg-field px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-2"
             />
             <button
               type="submit"

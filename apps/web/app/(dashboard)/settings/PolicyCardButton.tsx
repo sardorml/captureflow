@@ -3,7 +3,7 @@
 import { useFormStatus } from "react-dom";
 import { type ReactNode } from "react";
 import { CheckCircle2 } from "lucide-react";
-import { Card, Flex, Spin, Tag, Typography } from "antd";
+import { Card, Chip, Spinner, Typography } from "@heroui/react";
 
 type Props = {
   active: boolean;
@@ -21,34 +21,36 @@ export function PolicyCardButton({ active, icon, title, body }: Props) {
       type="submit"
       disabled={pending}
       aria-busy={pending}
-      style={{
-        all: "unset",
-        display: "block",
-        width: "100%",
-        cursor: pending ? "progress" : "pointer",
-      }}
+      className={`block w-full text-left ${pending ? "cursor-progress" : "cursor-pointer"}`}
     >
       <Card
-        hoverable={!pending}
-        variant={showActive ? "borderless" : "outlined"}
+        className={
+          showActive
+            ? "border-accent-ring bg-accent-soft p-4"
+            : "p-4 hover:bg-tint"
+        }
       >
-        <Flex gap={12} align="flex-start">
-          <span style={{ marginTop: 2, lineHeight: 0 }}>{icon}</span>
-          <Flex vertical gap={4} flex={1} style={{ minWidth: 0 }}>
-            <Flex gap={8} align="center">
-              <Typography.Text strong>{title}</Typography.Text>
-              {pending && <Tag color="processing">Updating…</Tag>}
-            </Flex>
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 leading-none">{icon}</span>
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Typography weight="semibold">{title}</Typography>
+              {pending && (
+                <Chip size="sm" color="accent">
+                  Updating…
+                </Chip>
+              )}
+            </div>
+            <Typography type="body-xs" color="muted">
               {body}
-            </Typography.Text>
-          </Flex>
+            </Typography>
+          </div>
           {pending ? (
-            <Spin size="small" />
+            <Spinner size="sm" />
           ) : showActive ? (
-            <CheckCircle2 size={20} color="#1677ff" />
+            <CheckCircle2 size={20} className="text-accent" />
           ) : null}
-        </Flex>
+        </div>
       </Card>
     </button>
   );

@@ -17,16 +17,18 @@ import {
 import {
   Avatar,
   Button,
+  ButtonGroup,
   Card,
+  Checkbox,
   Dropdown,
-  Flex,
   Input,
-  Space,
-  theme,
+  Separator,
+  Spinner,
   Tooltip,
   Typography,
-} from "antd";
-import type { MenuProps } from "antd";
+  buttonVariants,
+} from "@heroui/react";
+import { cn } from "@/lib/utils";
 import {
   initials,
   formatBytes,
@@ -61,6 +63,11 @@ export type MediaCardProps = {
   stats: MediaCardStats;
   sizeBytes: number;
   deleteConfirm: string;
+  // Present only when the surface runs a selection; the checkbox and the
+  // selected outline appear with it.
+  selected?: boolean;
+  selectionActive?: boolean;
+  onSelectedChange?: (next: boolean) => void;
   onRename: (title: string) => Promise<ActionResult>;
   onDelete: () => Promise<ActionResult>;
   onChangeVisibility: (next: Visibility) => Promise<ActionResult>;
@@ -85,12 +92,13 @@ export function MediaCard({
   stats,
   sizeBytes,
   deleteConfirm,
+  selected = false,
+  selectionActive = false,
+  onSelectedChange,
   onRename,
   onDelete,
   onChangeVisibility,
 }: MediaCardProps) {
-  const { token } = theme.useToken();
-  const [hovered, setHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(initialTitle);
@@ -145,237 +153,253 @@ export function MediaCard({
     });
   };
 
-  const menuItems: MenuProps["items"] = [
-    { key: "open", icon: <ExternalLink size={16} />, label: `Open ${noun}` },
-    ...(canAuthor
-      ? [{ key: "rename", icon: <Pencil size={16} />, label: "Rename" }]
-      : []),
-    { type: "divider" as const },
-    {
-      key: "delete",
-      icon: <Trash2 size={16} />,
-      label: `Delete ${noun}`,
-      danger: true,
-      disabled: pending,
-    },
-  ];
-
-  const onMenuClick: MenuProps["onClick"] = ({ key }) => {
+  const onMenuAction = (key: React.Key) => {
     if (key === "open") window.open(viewUrl, "_blank", "noreferrer");
     else if (key === "rename") setEditing(true);
     else if (key === "delete") remove();
   };
 
-  const cover = (
-    <Link
-      aria-label={canAuthor ? `Edit ${noun}` : `Open ${noun}`}
-      href={viewUrl}
-      style={{
-        position: "relative",
-        display: "block",
-        aspectRatio: "16 / 9",
-        overflow: "hidden",
-      }}
-    >
-      {media}
-
-      {/* Eats clicks so the underlying Link doesn't fire. */}
-      <div
-        style={{
-          position: "absolute",
-          right: 8,
-          top: 8,
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-        }}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-      >
-        <Tooltip title={copied ? "Link copied" : "Copy link"}>
-          <Button
-            size="small"
-            type={copied ? "primary" : "default"}
-            aria-label={copied ? "Link copied" : "Copy link"}
-            icon={copied ? <Check size={16} /> : <Link2 size={16} />}
-            onClick={copyLink}
-          />
-        </Tooltip>
-        {canManage && (
-          <Dropdown
-            menu={{ items: menuItems, onClick: onMenuClick }}
-            trigger={["click"]}
-            placement="bottomRight"
-          >
-            <Button
-              size="small"
-              aria-label="More actions"
-              icon={<MoreHorizontal size={16} />}
-            />
-          </Dropdown>
-        )}
-      </div>
-    </Link>
-  );
-
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    /* p-0/gap-0: HeroUI's .card pads itself, which insets the thumbnail and
+       leaves the text (Card.Content's own p-4) at double that — the image and
+       the copy end up on different rails. Card.Content owns the inset now. */
+    <Card
+      className={cn(
+        "group gap-0 overflow-hidden p-0 transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)]",
+        selected &&
+          "border-accent-bg shadow-[0_0_0_1px_var(--color-accent-bg)]",
+      )}
     >
-      <Card
-        cover={cover}
-        styles={{ body: { padding: 16 } }}
-        style={{
-          overflow: "hidden",
-          transition: "border-color 0.2s, box-shadow 0.2s",
-          // colorBorder (not antd's lighter Card default, colorBorderSecondary)
-          // so the card reads as a distinct surface in light mode.
-          borderColor: hovered ? token.colorPrimary : token.colorBorder,
-          boxShadow: hovered ? `0 0 0 1px ${token.colorPrimary}` : undefined,
-        }}
-      >
-        <Space direction="vertical" size={12} style={{ width: "100%" }}>
-          <Flex align="center" gap={10} style={{ minWidth: 0 }}>
-            <Avatar size={28} src={authorImage || undefined}>
-              {initials(authorLabel)}
-            </Avatar>
-            <div style={{ minWidth: 0, lineHeight: 1.2 }}>
-              <Space size={6} style={{ fontSize: 14 }}>
-                <Typography.Text strong ellipsis>
-                  {authorLabel}
-                </Typography.Text>
-                <Typography.Text type="secondary">·</Typography.Text>
-                <Typography.Text type="secondary">
-                  <span suppressHydrationWarning>
-                    {formatRelative(createdAt)}
-                  </span>
-                </Typography.Text>
-              </Space>
-              <div>
-                {canManage ? (
-                  <VisibilityDialog
-                    value={visibility}
-                    disabled={pending}
-                    onChange={changeVisibility}
-                    allowPublic={allowPublicLinks}
-                    workspaceName={workspaceName}
-                    title={`Share ${noun}`}
-                    shareUrl={viewUrl}
-                    trigger={
-                      <VisibilityText visibility={visibility} interactive />
-                    }
-                  />
-                ) : (
-                  <VisibilityText visibility={visibility} />
-                )}
-              </div>
-            </div>
-          </Flex>
+      {/* The card's one link is stretched over it from the title below, so the
+          thumbnail needs no anchor of its own — and the actions, which sit on
+          top of that overlay, need raising above it. */}
+      <div className="relative">
+        <div className="aspect-video overflow-hidden">{media}</div>
 
-          {editing ? (
-            <form onSubmit={submitRename}>
-              <Space.Compact style={{ width: "100%" }}>
-                <Input
-                  autoFocus
-                  maxLength={200}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder={titlePlaceholder}
-                  value={title}
-                />
-                <Button htmlType="submit" type="primary" loading={pending}>
-                  Save
-                </Button>
-                <Button
-                  onClick={() => {
-                    setEditing(false);
-                    setTitle(initialTitle);
-                    setError(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-              </Space.Compact>
-            </form>
-          ) : (
-            <Typography.Paragraph
-              strong
-              ellipsis={{ rows: 2, tooltip: displayTitle }}
-              style={{ margin: 0, fontSize: 15 }}
-            >
-              {displayTitle}
-            </Typography.Paragraph>
-          )}
-
-          <Flex
-            align="center"
-            justify="space-between"
-            style={{
-              paddingTop: 12,
-              borderTop:
-                "1px solid var(--ant-color-split, rgba(128,128,128,0.2))",
-            }}
+        {onSelectedChange && (
+          /* Hidden until the card is hovered, so a grid at rest stays as quiet
+             as it was before selection existed. Once anything is selected the
+             whole grid shows its boxes: picking a second card shouldn't mean
+             hunting for a control that only appears under the cursor. */
+          <Checkbox
+            aria-label={`Select ${displayTitle}`}
+            isSelected={selected}
+            onChange={onSelectedChange}
+            className={cn(
+              "absolute top-2 left-2 z-10 p-1 transition-opacity group-hover:opacity-100 motion-reduce:transition-none",
+              selected || selectionActive
+                ? "opacity-100"
+                : "opacity-0 focus-within:opacity-100",
+            )}
           >
-            <Flex align="center" gap={10}>
-              <Stat
-                icon={<Eye size={16} color={token.colorTextSecondary} />}
-                value={stats.views}
-              />
-              <Stat
-                icon={
-                  <MessageSquare size={16} color={token.colorTextSecondary} />
-                }
-                value={stats.comments}
-              />
-              <Stat
-                icon={<Smile size={16} color={token.colorTextSecondary} />}
-                value={stats.reactions}
-              />
-            </Flex>
-            <Flex align="center" gap={12}>
-              <Typography.Text
-                type="secondary"
-                style={{ whiteSpace: "nowrap" }}
+            {/* Control and indicator are children, not something the root
+                draws — a bare Checkbox renders an empty box. Its own colours
+                are field colours, which vanish against a thumbnail: fixed
+                white-on-scrim reads over whatever the frame happens to be. */}
+            <Checkbox.Content>
+              <Checkbox.Control className="size-5 border-2 border-white/90 bg-black/40 shadow-sm backdrop-blur-sm">
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+            </Checkbox.Content>
+          </Checkbox>
+        )}
+
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+          <Tooltip>
+            <Tooltip.Trigger className="inline-flex">
+              <Button
+                size="sm"
+                isIconOnly
+                variant={copied ? "primary" : "secondary"}
+                aria-label={copied ? "Link copied" : "Copy link"}
+                onPress={copyLink}
               >
-                {formatBytes(sizeBytes)}
-              </Typography.Text>
-              {canAuthor && (
-                <Tooltip title={`Edit ${noun}`}>
+                {copied ? <Check size={16} /> : <Link2 size={16} />}
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+              {copied ? "Link copied" : "Copy link"}
+            </Tooltip.Content>
+          </Tooltip>
+          {canManage && (
+            <Dropdown>
+              <Dropdown.Trigger
+                aria-label="More actions"
+                className={buttonVariants({
+                  variant: "secondary",
+                  size: "sm",
+                  isIconOnly: true,
+                })}
+              >
+                <MoreHorizontal size={16} />
+              </Dropdown.Trigger>
+              <Dropdown.Popover placement="bottom end">
+                <Dropdown.Menu onAction={onMenuAction}>
+                  <Dropdown.Item id="open">
+                    <ExternalLink size={16} />
+                    Open {noun}
+                  </Dropdown.Item>
+                  {canAuthor ? (
+                    <Dropdown.Item id="rename">
+                      <Pencil size={16} />
+                      Rename
+                    </Dropdown.Item>
+                  ) : null}
+                  <Dropdown.Item
+                    id="delete"
+                    isDisabled={pending}
+                    className="text-danger"
+                  >
+                    <Trash2 size={16} />
+                    Delete {noun}
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown.Popover>
+            </Dropdown>
+          )}
+        </div>
+      </div>
+
+      <Card.Content className="flex flex-col gap-3 p-4">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Avatar className="h-7 w-7 shrink-0">
+            {authorImage && (
+              <Avatar.Image src={authorImage} alt={authorLabel} />
+            )}
+            <Avatar.Fallback>{initials(authorLabel)}</Avatar.Fallback>
+          </Avatar>
+          <div className="min-w-0 leading-tight">
+            {/* size on each child, not text-sm on the wrapper: Typography
+                always emits its own size class, which wins over inheritance. */}
+            <div className="flex items-center gap-1.5">
+              <Typography weight="semibold" type="body-sm" truncate>
+                {authorLabel}
+              </Typography>
+              <Typography color="muted" type="body-sm">
+                ·
+              </Typography>
+              <Typography color="muted" type="body-sm">
+                <span suppressHydrationWarning>
+                  {formatRelative(createdAt)}
+                </span>
+              </Typography>
+            </div>
+            <div className="relative z-10 w-fit">
+              {canManage ? (
+                <VisibilityDialog
+                  value={visibility}
+                  disabled={pending}
+                  onChange={changeVisibility}
+                  allowPublic={allowPublicLinks}
+                  workspaceName={workspaceName}
+                  title={`Share ${noun}`}
+                  shareUrl={viewUrl}
+                  trigger={
+                    <VisibilityText visibility={visibility} interactive />
+                  }
+                />
+              ) : (
+                <VisibilityText visibility={visibility} />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {editing ? (
+          <form onSubmit={submitRename}>
+            <ButtonGroup className="w-full">
+              <Input
+                autoFocus
+                maxLength={200}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={titlePlaceholder}
+                value={title}
+                fullWidth
+              />
+              <Button type="submit" variant="primary" isDisabled={pending}>
+                {pending && <Spinner size="sm" color="current" />}
+                Save
+              </Button>
+              <Button
+                variant="secondary"
+                onPress={() => {
+                  setEditing(false);
+                  setTitle(initialTitle);
+                  setError(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </ButtonGroup>
+          </form>
+        ) : (
+          /* Stretched link: the anchor is the title, but its ::after covers
+             the whole card, so anywhere that isn't one of the controls above
+             opens the recording. */
+          <Link
+            href={viewUrl}
+            title={displayTitle}
+            className="line-clamp-2 text-[15px] font-semibold text-fg after:absolute after:inset-0 after:content-['']"
+          >
+            {displayTitle}
+          </Link>
+        )}
+
+        <Separator />
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Stat icon={<Eye size={14} />} value={stats.views} />
+            <Stat icon={<MessageSquare size={14} />} value={stats.comments} />
+            <Stat icon={<Smile size={14} />} value={stats.reactions} />
+          </div>
+          <div className="flex items-center gap-3">
+            <Typography
+              color="muted"
+              type="body-sm"
+              className="whitespace-nowrap"
+            >
+              {formatBytes(sizeBytes)}
+            </Typography>
+            {canAuthor && (
+              <Tooltip>
+                <Tooltip.Trigger className="relative z-10 inline-flex">
                   <Link
                     href={editUrl}
                     aria-label={`Edit ${noun}`}
-                    style={{ display: "inline-flex" }}
+                    className={buttonVariants({
+                      variant: "ghost",
+                      size: "sm",
+                      isIconOnly: true,
+                    })}
                   >
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<Pencil size={16} />}
-                    />
+                    <Pencil size={16} />
                   </Link>
-                </Tooltip>
-              )}
-            </Flex>
-          </Flex>
+                </Tooltip.Trigger>
+                <Tooltip.Content>Edit {noun}</Tooltip.Content>
+              </Tooltip>
+            )}
+          </div>
+        </div>
 
-          {error && (
-            <Typography.Text type="danger" style={{ fontSize: 12 }}>
-              {error}
-            </Typography.Text>
-          )}
-        </Space>
-      </Card>
-    </div>
+        {error && (
+          <Typography type="body-xs" className="text-danger">
+            {error}
+          </Typography>
+        )}
+      </Card.Content>
+    </Card>
   );
 }
 
 function Stat({ icon, value }: { icon: ReactNode; value: number }) {
   return (
-    <Flex align="center" gap={4}>
+    <div className="flex items-center gap-1 text-fg-muted">
       {icon}
-      <Typography.Text type="secondary">{value}</Typography.Text>
-    </Flex>
+      <Typography color="muted" type="body-sm">
+        {value}
+      </Typography>
+    </div>
   );
 }
 
@@ -394,17 +418,15 @@ function VisibilityText({
 }) {
   if (!interactive) {
     return (
-      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+      <Typography type="body-xs" color="muted">
         {visibilityLabel(visibility)}
-      </Typography.Text>
+      </Typography>
     );
   }
   return (
-    <Typography.Link style={{ fontSize: 12 }}>
-      <Space size={2}>
-        {visibilityLabel(visibility)}
-        <ChevronDown size={12} />
-      </Space>
-    </Typography.Link>
+    <span className="inline-flex cursor-pointer items-center gap-0.5 text-xs text-accent hover:text-accent-strong">
+      {visibilityLabel(visibility)}
+      <ChevronDown size={12} />
+    </span>
   );
 }

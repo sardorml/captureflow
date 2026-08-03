@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { Spin } from "antd";
+import { Spinner } from "@heroui/react";
 import { type Theme } from "@captureflow/ui";
 import { useRouter } from "next/navigation";
 import type { RecordingConfig } from "@/lib/recording-config";
@@ -80,7 +80,7 @@ export function RecordingEditor(props: RecordingEditorProps) {
 function PreparingRecording() {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-sm text-neutral-300">
-      <Spin size="large" />
+      <Spinner size="lg" />
       <p className="font-medium">Preparing recording…</p>
       <p className="text-xs text-neutral-500">
         The recording is still uploading. This page will refresh automatically

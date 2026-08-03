@@ -1,11 +1,11 @@
 "use client";
 
 import { Play } from "lucide-react";
-import { theme } from "antd";
+import { TOKENS } from "./tokens";
 
 // Stand-in for a screen recording in the landing mockups; the demo clip isn't bundled.
 export function DemoStage() {
-  const { token } = theme.useToken();
+  const token = TOKENS;
 
   return (
     <div

@@ -1,44 +1,7 @@
-import { Card } from "antd";
-import { requireSession } from "@/lib/session-guard";
-import { getAppWebEnv } from "@/lib/cf-env";
-import { PageHeader } from "../PageHeader";
-import { ProfileForm } from "./ProfileForm";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default async function ProfileSettingsPage() {
-  const session = await requireSession();
-  const user = session.user;
-  const env = await getAppWebEnv();
-
-  // Read the image column directly: the better-auth session payload doesn't always carry it.
-  let imageUrl: string | null = null;
-  if (env?.DB) {
-    const row = await env.DB.prepare(
-      `SELECT image FROM users WHERE id = ?1 LIMIT 1`,
-    )
-      .bind(user.id)
-      .first<{ image: string | null }>();
-    imageUrl = row?.image ?? null;
-  }
-
-  return (
-    <>
-      <PageHeader
-        title="Profile settings"
-        subtitle="The name and avatar teammates see across CaptureFlow."
-        showRecord={false}
-      />
-      <div className="mt-6">
-        <Card>
-          <ProfileForm
-            userId={user.id}
-            initialName={user.name ?? ""}
-            email={user.email}
-            imageUrl={imageUrl}
-          />
-        </Card>
-      </div>
-    </>
-  );
+// Account settings merged into /settings; the route is kept so existing links
+// (the account menu shipped in older desktop builds) don't 404.
+export default function ProfileRedirect() {
+  redirect("/settings");
 }

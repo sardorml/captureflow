@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { findInviteByToken, getWorkspaceById } from "@captureflow/quota";
-import { Button, Card, Flex, Result } from "antd";
+import { Button, Card, buttonVariants } from "@heroui/react";
 import { loadSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { acceptInviteAction } from "../../(dashboard)/members/actions";
@@ -46,13 +46,8 @@ export default async function InvitePage({ params }: Props) {
   const workspaceName = workspace?.name ?? "a CaptureFlow workspace";
 
   return (
-    <Flex
-      align="center"
-      justify="center"
-      className="bg-canvas text-fg"
-      style={{ minHeight: "100vh", padding: 24 }}
-    >
-      <Card style={{ width: "100%", maxWidth: 440 }}>
+    <div className="flex min-h-screen items-center justify-center bg-canvas p-6 text-fg">
+      <Card className="w-full max-w-110 p-6">
         <h1 className="text-2xl font-bold text-fg-strong">
           You&rsquo;re invited
         </h1>
@@ -62,9 +57,9 @@ export default async function InvitePage({ params }: Props) {
           CaptureFlow. Workspaces let teammates recording screen recordings and
           screenshots privately.
         </p>
-        <form action={acceptInviteAction} style={{ marginTop: 24 }}>
+        <form action={acceptInviteAction} className="mt-6">
           <input type="hidden" name="token" value={token} />
-          <Button type="primary" htmlType="submit" block>
+          <Button variant="primary" type="submit" fullWidth>
             Accept invitation
           </Button>
         </form>
@@ -72,7 +67,7 @@ export default async function InvitePage({ params }: Props) {
           Signed in as {session.user.email}.
         </p>
       </Card>
-    </Flex>
+    </div>
   );
 }
 
@@ -86,27 +81,24 @@ function ErrorFrame({
   signOut?: boolean;
 }) {
   return (
-    <Flex
-      align="center"
-      justify="center"
-      className="bg-canvas text-fg"
-      style={{ minHeight: "100vh", padding: 24 }}
-    >
-      <Result
-        status="warning"
-        title={title}
-        subTitle={body}
-        extra={[
-          <Button key="home" href="/">
+    <div className="flex min-h-screen items-center justify-center bg-canvas p-6 text-fg">
+      <Card className="w-full max-w-110 p-6 text-center">
+        <h1 className="text-xl font-semibold text-fg-strong">{title}</h1>
+        {body && <p className="mt-2 text-sm text-fg-muted">{body}</p>}
+        <div className="mt-6 flex items-center justify-center gap-2">
+          <a href="/" className={buttonVariants({ variant: "secondary" })}>
             Go to dashboard
-          </Button>,
-          signOut ? (
-            <Button key="signout" type="primary" href="/auth/clear">
+          </a>
+          {signOut && (
+            <a
+              href="/auth/clear"
+              className={buttonVariants({ variant: "primary" })}
+            >
               Sign out
-            </Button>
-          ) : null,
-        ]}
-      />
-    </Flex>
+            </a>
+          )}
+        </div>
+      </Card>
+    </div>
   );
 }

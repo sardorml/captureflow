@@ -105,7 +105,7 @@ export function RecordingViewer({
               </h1>
               <ContentByline ownerName={ownerName} createdAt={createdAt} />
             </div>
-            <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-overlay px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line lg:right-12">
+            <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-tint px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line lg:right-12">
               {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
             </span>
           </div>

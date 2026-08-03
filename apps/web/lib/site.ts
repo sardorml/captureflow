@@ -45,6 +45,19 @@ export const APP_SITE_URL = APP_WEB_SITE_URL;
 export const R2_PUBLIC_BASE_URL =
   process.env.R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
+// The unprefixed var above is server-only; client bundles see just this one.
+const CDN_BASE_URL =
+  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL;
+
+// Versioned by the workspace's own updated_at: the key is stable across
+// replacements, so without it a new logo keeps serving the cached old one.
+export function workspaceLogoUrl(
+  logoKey: string | null,
+  updatedAt: number,
+): string | null {
+  return logoKey ? `${CDN_BASE_URL}/${logoKey}?v=${updatedAt}` : null;
+}
+
 export function screenshotViewUrlFor(id: string): string {
   return `${SITE_URL}/s/${id}`;
 }

@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { Button, Spinner, Typography } from "@heroui/react";
 import { getAuthSession, setAuthSession } from "@/lib/auth/session";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { uploadScreenshot } from "@/lib/api/screenshot";
 import { friendlyUploadError, isAuthFailure } from "@/lib/api/errors";
 import { sendMessage } from "@/lib/messaging";
 import { isOverlaySurface } from "@/lib/surface";
+import { ResultLink } from "./RecorderPanel";
+import { PANEL_ROW } from "./panel";
 
 type ShotState =
   | { kind: "idle" }
@@ -30,7 +33,6 @@ const TAB_ICON = (
 
 export function ScreenshotPanel() {
   const [state, setState] = useState<ShotState>({ kind: "idle" });
-  const [copied, setCopied] = useState(false);
 
   const capture = async () => {
     setState({ kind: "busy" });
@@ -72,63 +74,38 @@ export function ScreenshotPanel() {
     }
   };
 
-  const copy = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* clipboard blocked — the link is still tappable */
-    }
-  };
+  const isBusy = state.kind === "busy";
 
   return (
-    <>
-      <section className="cf-section">
-        <div className="cf-row">
-          <span className="cf-row-icon" aria-hidden>
-            {TAB_ICON}
-          </span>
-          <span className="cf-row-label">Current tab</span>
-        </div>
-      </section>
+    <div className="flex flex-col gap-2">
+      <div className={PANEL_ROW}>
+        <span className="flex text-foreground" aria-hidden>
+          {TAB_ICON}
+        </span>
+        <Typography type="body-sm" weight="medium" className="flex-1">
+          Current tab
+        </Typography>
+      </div>
 
-      <button
-        type="button"
-        className="cf-start"
-        onClick={() => void capture()}
-        disabled={state.kind === "busy"}
+      <Button
+        variant="primary"
+        fullWidth
+        isDisabled={isBusy}
+        onPress={() => void capture()}
+        className="h-10 rounded-xl text-sm font-semibold"
       >
-        {state.kind === "busy" ? "Capturing…" : "Capture Screenshot"}
-      </button>
+        {isBusy && <Spinner size="sm" color="current" />}
+        {isBusy ? "Capturing…" : "Capture Screenshot"}
+      </Button>
 
       {state.kind === "done" && (
-        <div className="cf-result">
-          <p className="cf-status cf-status--ok">
-            Your screenshot link is ready ✓
-          </p>
-          <div className="cf-linkrow">
-            <a
-              className="cf-link"
-              href={state.viewUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {state.viewUrl}
-            </a>
-            <button
-              type="button"
-              className="cf-copy"
-              onClick={() => void copy(state.viewUrl)}
-            >
-              {copied ? "Copied" : "Copy"}
-            </button>
-          </div>
-        </div>
+        <ResultLink url={state.viewUrl} label="Your screenshot link is ready" />
       )}
       {state.kind === "error" && (
-        <p className="cf-status cf-status--error">{state.detail}</p>
+        <Typography type="body-xs" className="text-danger">
+          {state.detail}
+        </Typography>
       )}
-    </>
+    </div>
   );
 }

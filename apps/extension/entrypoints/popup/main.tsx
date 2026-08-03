@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { isOverlaySurface } from "@/lib/surface";
+import { closeSurface, isOverlaySurface } from "@/lib/surface";
 import { sendMessage } from "@/lib/messaging";
 import { App } from "./App";
 import "./popup.css";
@@ -15,6 +15,18 @@ if (isOverlaySurface) {
     }
   };
   new ResizeObserver(reportHeight).observe(document.body);
+
+  /*
+   * The frame reaches past the card so menus can open beside it, which puts
+   * the gutter out of the page-side backdrop's reach — those clicks land on
+   * this document instead, and mean the same thing: close. Not while a menu
+   * is open; that press is the menu's own dismiss.
+   */
+  document.addEventListener("mousedown", (event) => {
+    if (event.target !== document.body) return;
+    if (document.querySelector('[aria-expanded="true"]')) return;
+    closeSurface();
+  });
 }
 
 const container = document.getElementById("root");

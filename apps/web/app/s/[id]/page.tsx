@@ -16,7 +16,10 @@ import {
   screenshotViewUrlFor,
   PRODUCT_NAME,
 } from "@/lib/site";
-import { readThemeFromCookieHeader } from "@captureflow/ui";
+import {
+  readThemeFromCookieHeader,
+  readThemePreferenceFromCookieHeader,
+} from "@captureflow/ui";
 import { RequestAccess } from "./RequestAccess";
 import { SessionLoadingShell } from "./SessionLoadingShell";
 import { ScreenshotView } from "./ScreenshotView";
@@ -74,6 +77,7 @@ export default async function ScreenshotPage({ params }: Props) {
 
   const cookieHeader = (await headers()).get("cookie");
   const theme = readThemeFromCookieHeader(cookieHeader);
+  const themePreference = readThemePreferenceFromCookieHeader(cookieHeader);
 
   // 'unknown' = transient auth failure; on a gated screenshot render a loading shell
   // rather than collapsing to "no session" and flashing RequestAccess.
@@ -138,6 +142,7 @@ export default async function ScreenshotPage({ params }: Props) {
       screenshotUrl={screenshotViewUrlFor(screenshot.id)}
       editUrl={`${APP_SITE_URL}/screenshots/${screenshot.id}/edit`}
       theme={theme}
+      themePreference={themePreference}
       loginUrl={`${APP_SITE_URL}/login?next=${encodeURIComponent(
         screenshotViewUrlFor(screenshot.id),
       )}`}

@@ -905,7 +905,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
           full controls are auto-hidden, so playback stays trackable at a
           glance. */}
           <div
-            className={`pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-overlay-strong transition-opacity duration-200 ${
+            className={`pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-tint-strong transition-opacity duration-200 ${
               controlsVisible ? "opacity-0" : "opacity-100"
             }`}
           >
@@ -999,7 +999,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                 <button
                   type="button"
                   onClick={cycleSpeed}
-                  className="flex h-9 cursor-pointer items-center justify-center rounded-full px-3 text-[12px] font-medium tabular-nums text-white/90 transition-colors hover:bg-overlay-strong hover:text-white"
+                  className="flex h-9 cursor-pointer items-center justify-center rounded-full px-3 text-[12px] font-medium tabular-nums text-white/90 transition-colors hover:bg-tint-strong hover:text-white"
                   aria-label={`Playback speed ${speed}x`}
                   title="Playback speed"
                 >
@@ -1028,7 +1028,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                             setSpeedExact(s);
                             setSettingsOpen(false);
                           }}
-                          className={`flex w-full cursor-pointer items-center justify-between rounded px-2 py-1.5 text-left transition-colors hover:bg-overlay-strong ${
+                          className={`flex w-full cursor-pointer items-center justify-between rounded px-2 py-1.5 text-left transition-colors hover:bg-tint-strong ${
                             speed === s ? "text-white" : "text-white/80"
                           }`}
                         >
@@ -1108,7 +1108,7 @@ function ControlButton({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-white/90 transition-colors hover:bg-overlay-strong hover:text-white"
+      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-white/90 transition-colors hover:bg-tint-strong hover:text-white"
     >
       {children}
     </button>

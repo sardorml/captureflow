@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDuration } from "@/lib/format";
-import { Card, Empty, Flex, Tag } from "antd";
+import { Card, Chip, EmptyState } from "@heroui/react";
 import { Film } from "lucide-react";
 import type { DashboardRecordingRow } from "@/lib/recordings-db";
 import type { Visibility } from "@/app/VisibilityDialog";
@@ -12,6 +12,7 @@ import {
   setVisibilityAction,
 } from "./actions";
 import { MediaCard } from "./_components/MediaCard";
+import { SelectionBar, useSelection } from "./_components/selection";
 
 const CDN_BASE_URL =
   process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
@@ -35,32 +36,54 @@ export function RecordingsList({
   ownerNames,
   ownerImages,
 }: RecordingsListProps) {
+  const manageable = recordings.filter(
+    (r) => !viewerUserId || r.userId === viewerUserId || viewerIsWorkspaceOwner,
+  );
+  const selection = useSelection(manageable.map((r) => r.slug));
+
   if (recordings.length === 0) {
     return (
-      <Card style={{ marginTop: 24 }}>
-        <Empty description="You haven't created any recording links yet. Record in the CaptureFlow desktop app and your recordings will show up here." />
+      <Card className="mt-6 p-6">
+        <EmptyState className="text-center text-sm text-fg-muted">
+          You haven&rsquo;t created any recording links yet. Record in the
+          CaptureFlow desktop app and your recordings will show up here.
+        </EmptyState>
       </Card>
     );
   }
   return (
-    <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {recordings.map((s) => {
-        const isAuthor = !viewerUserId || s.userId === viewerUserId;
-        const isAdmin = !isAuthor && Boolean(viewerIsWorkspaceOwner);
-        return (
-          <RecordingCard
-            key={s.slug}
-            recording={s}
-            canAuthor={isAuthor}
-            canAdminister={isAdmin}
-            allowPublicLinks={allowPublicLinks}
-            workspaceName={workspaceName}
-            authorName={ownerNames?.[s.userId] ?? null}
-            authorImage={ownerImages?.[s.userId] ?? null}
-          />
-        );
-      })}
-    </div>
+    <>
+      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {recordings.map((s) => {
+          const isAuthor = !viewerUserId || s.userId === viewerUserId;
+          const isAdmin = !isAuthor && Boolean(viewerIsWorkspaceOwner);
+          const canManage = isAuthor || isAdmin;
+          return (
+            <RecordingCard
+              key={s.slug}
+              recording={s}
+              canAuthor={isAuthor}
+              canAdminister={isAdmin}
+              allowPublicLinks={allowPublicLinks}
+              workspaceName={workspaceName}
+              authorName={ownerNames?.[s.userId] ?? null}
+              authorImage={ownerImages?.[s.userId] ?? null}
+              selected={selection.has(s.slug)}
+              selectionActive={selection.count > 0}
+              onSelectedChange={
+                canManage ? (next) => selection.set(s.slug, next) : undefined
+              }
+            />
+          );
+        })}
+      </div>
+
+      <SelectionBar
+        noun="recording"
+        selection={selection}
+        onDelete={(slug) => deleteRecordingAction(slug)}
+      />
+    </>
   );
 }
 
@@ -72,6 +95,9 @@ type RecordingCardProps = {
   workspaceName?: string | null;
   authorName?: string | null;
   authorImage?: string | null;
+  selected: boolean;
+  selectionActive: boolean;
+  onSelectedChange?: (next: boolean) => void;
 };
 
 function RecordingCard({
@@ -82,6 +108,9 @@ function RecordingCard({
   workspaceName,
   authorName,
   authorImage,
+  selected,
+  selectionActive,
+  onSelectedChange,
 }: RecordingCardProps) {
   const posterUrl = recording.posterKey
     ? `${CDN_BASE_URL}/${recording.posterKey}`
@@ -116,37 +145,22 @@ function RecordingCard({
           playsInline
         />
       ) : (
-        <Flex
-          align="center"
-          justify="center"
-          style={{ height: "100%", width: "100%" }}
-          className="text-fg-subtle"
-        >
+        <div className="flex h-full w-full items-center justify-center text-fg-subtle">
           <Film size={24} />
-        </Flex>
+        </div>
       )}
       {recording.durationMs != null && (
-        <Tag
-          style={{
-            position: "absolute",
-            right: 8,
-            bottom: 8,
-            margin: 0,
-            background: "rgba(0,0,0,0.75)",
-            color: "#fff",
-            border: "none",
-          }}
+        <Chip
+          size="sm"
+          className="absolute right-2 bottom-2 border-none bg-black/75 text-white"
         >
           {formatDuration(recording.durationMs)}
-        </Tag>
+        </Chip>
       )}
       {recording.state !== "ready" && (
-        <Tag
-          color="warning"
-          style={{ position: "absolute", left: 8, top: 8, margin: 0 }}
-        >
+        <Chip size="sm" color="warning" className="absolute top-2 left-2">
           {recording.state}
-        </Tag>
+        </Chip>
       )}
     </>
   );
@@ -175,6 +189,9 @@ function RecordingCard({
       }}
       sizeBytes={recording.sizeBytes}
       deleteConfirm="Delete this recording permanently? The video and link will stop working immediately."
+      selected={selected}
+      selectionActive={selectionActive}
+      onSelectedChange={onSelectedChange}
       onRename={async (next) => {
         const form = new FormData();
         form.set("slug", recording.slug);

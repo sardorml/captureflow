@@ -1,6 +1,5 @@
 "use client";
 
-import { Col, Row } from "antd";
 import { CURRENT_STAGE } from "@/lib/marketing/constants";
 import { useMessages } from "./i18n-provider";
 import { MarketingSection, SectionHeading } from "./_shared";
@@ -20,19 +19,16 @@ export function PricingSection({
     <MarketingSection id="pricing">
       {!hideHeading && (
         <SectionHeading
+          eyebrow={m.pricing.eyebrow}
           title={CURRENT_STAGE.pricingHeading ?? m.pricing.heading}
           subtitle={CURRENT_STAGE.pricingSubheading ?? m.pricing.subheading}
         />
       )}
-      <div style={{ maxWidth: 860, marginInline: "auto" }}>
-        <Row gutter={[24, 24]} justify="center" align="stretch">
-          <Col xs={24} md={12}>
-            <FreeCard />
-          </Col>
-          <Col xs={24} md={12}>
-            <ManagedCard />
-          </Col>
-        </Row>
+      {/* Subgrid so the two cards share row tracks: both gradient panels get the
+          taller one's height, and both feature lists start at the same y. */}
+      <div className="mx-auto grid max-w-215 gap-6 md:grid-cols-2 md:grid-rows-[auto_1fr_auto]">
+        <FreeCard />
+        <ManagedCard />
       </div>
     </MarketingSection>
   );

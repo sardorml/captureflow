@@ -2,10 +2,8 @@
 
 import type { WorkspaceInviteRow } from "@captureflow/quota";
 import { Clock } from "lucide-react";
-import { Button, List, Typography } from "antd";
+import { Button, Card, Typography } from "@heroui/react";
 import { revokeInviteAction } from "./actions";
-
-const { Text } = Typography;
 
 function formatRelative(ms: number): string {
   const diff = Date.now() - ms;
@@ -26,44 +24,47 @@ export function PendingInvites({
   canRevoke: boolean;
 }) {
   return (
-    <List
-      header={
-        <Text strong>
-          Pending invitations <Text type="secondary">({invites.length})</Text>
-        </Text>
-      }
-      bordered
-      dataSource={invites}
-      rowKey={(invite) => invite.id}
-      renderItem={(invite) => (
-        <List.Item
-          actions={
-            canRevoke
-              ? [
-                  <form action={revokeInviteAction} key="revoke">
-                    <input type="hidden" name="inviteId" value={invite.id} />
-                    <Button danger type="text" size="small" htmlType="submit">
-                      Revoke
-                    </Button>
-                  </form>,
-                ]
-              : undefined
-          }
-        >
-          <List.Item.Meta
-            title={invite.email}
-            description={
-              <Text type="secondary" suppressHydrationWarning>
-                <Clock
-                  size={12}
-                  style={{ verticalAlign: "-2px", marginInlineEnd: 4 }}
-                />
+    <Card>
+      <Card.Header>
+        <Typography weight="semibold">
+          Pending invitations{" "}
+          <Typography color="muted" render={(p) => <span {...p} />}>
+            ({invites.length})
+          </Typography>
+        </Typography>
+      </Card.Header>
+      <ul className="divide-y divide-line border-t border-line">
+        {invites.map((invite) => (
+          <li
+            key={invite.id}
+            className="flex items-center justify-between gap-4 px-4 py-3"
+          >
+            <div className="min-w-0">
+              <p className="truncate text-sm text-fg">{invite.email}</p>
+              <p
+                className="mt-0.5 flex items-center gap-1 text-xs text-fg-muted"
+                suppressHydrationWarning
+              >
+                <Clock size={12} />
                 Invited {formatRelative(invite.created_at)}
-              </Text>
-            }
-          />
-        </List.Item>
-      )}
-    />
+              </p>
+            </div>
+            {canRevoke && (
+              <form action={revokeInviteAction}>
+                <input type="hidden" name="inviteId" value={invite.id} />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  type="submit"
+                  className="text-danger"
+                >
+                  Revoke
+                </Button>
+              </form>
+            )}
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }

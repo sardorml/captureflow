@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check, Globe, Link2, Lock, Users } from "lucide-react";
-import { Alert, Button, Modal, Radio, type RadioChangeEvent } from "antd";
+import { Alert, Button, Modal, Radio, RadioGroup } from "@heroui/react";
 
 export type Visibility = "public" | "workspace" | "private";
 
@@ -33,7 +33,7 @@ function VisibilityTile({
 }) {
   return (
     <div className="flex items-start gap-3 py-1">
-      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-overlay text-fg-muted">
+      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-tint text-fg-muted">
         <VisibilityIcon value={value} />
       </span>
       <span className="min-w-0 flex-1">
@@ -97,63 +97,100 @@ export function ShareVisibilityModal({
 
   const renderPublic = allowPublic || visibility === "public";
   const renderWorkspace = !!workspaceName || visibility === "workspace";
-  const options = (
-    [
-      renderPublic ? "public" : null,
-      renderWorkspace ? "workspace" : null,
-      "private",
-    ].filter(Boolean) as Visibility[]
-  ).map((value) => ({
-    value,
-    label: <VisibilityTile value={value} workspaceName={workspaceName} />,
-  }));
+  const options = [
+    renderPublic ? "public" : null,
+    renderWorkspace ? "workspace" : null,
+    "private",
+  ].filter(Boolean) as Visibility[];
 
   return (
-    <Modal
-      open={open}
-      onCancel={onClose}
-      title={title}
-      width={448}
-      footer={
-        <div className="flex items-center justify-between">
-          {shareUrl ? (
-            <Button
-              type="text"
-              onClick={copyLink}
-              icon={copied ? <Check size={16} /> : <Link2 size={16} />}
-            >
-              {copied ? "Link copied" : "Copy link"}
-            </Button>
-          ) : (
-            <span />
-          )}
-          <Button onClick={onClose}>Done</Button>
-        </div>
-      }
-    >
-      <p className="text-xs font-semibold uppercase tracking-wider text-fg-muted">
-        General access
-      </p>
-      <div className="mt-2">
-        {canEdit ? (
-          <Radio.Group
-            value={visibility}
-            onChange={(e: RadioChangeEvent) =>
-              onChange(e.target.value as Visibility)
-            }
-            disabled={pending}
-            options={options}
-            style={{ display: "flex", flexDirection: "column", gap: 4 }}
-          />
-        ) : (
-          <div className="rounded-lg border border-line-strong bg-canvas-2 px-3 py-2">
-            <VisibilityTile value={visibility} workspaceName={workspaceName} />
-          </div>
-        )}
-      </div>
-      {error && (
-        <Alert type="error" message={error} showIcon className="mt-3" />
-      )}
+    <Modal isOpen={open} onOpenChange={(next) => !next && onClose()}>
+      <Modal.Backdrop>
+        <Modal.Container size="sm">
+          <Modal.Dialog>
+            <Modal.Header>
+              <Modal.Heading>{title}</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              <p className="text-xs font-semibold uppercase tracking-wider text-fg-muted">
+                General access
+              </p>
+              <div className="mt-2">
+                {canEdit ? (
+                  <RadioGroup
+                    value={visibility}
+                    onChange={(next) => onChange(next as Visibility)}
+                    isDisabled={pending}
+                    className="flex flex-col gap-1"
+                  >
+                    {/* Radio.Content is the clickable control; plain children
+                        skip it, so the row renders no selected state at all.
+                        The tiles carry their own icon, so selection shows as a
+                        wash + trailing check rather than a radio dot. */}
+                    {options.map((value) => (
+                      /* mt-0: a vertical RadioGroup puts mt-4 on every radio
+                         from its own stylesheet, which the group's gap can't
+                         undo — it stacks on top of it. */
+                      <Radio key={value} value={value} className="mt-0">
+                        {({ isSelected }) => (
+                          <Radio.Content
+                            className={[
+                              "flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 transition-colors motion-reduce:transition-none",
+                              isSelected
+                                ? "bg-tint ring-1 ring-inset ring-accent"
+                                : "hover:bg-tint",
+                            ].join(" ")}
+                          >
+                            <span className="min-w-0 flex-1">
+                              <VisibilityTile
+                                value={value}
+                                workspaceName={workspaceName}
+                              />
+                            </span>
+                            {isSelected ? (
+                              <Check
+                                size={16}
+                                className="shrink-0 text-accent"
+                              />
+                            ) : null}
+                          </Radio.Content>
+                        )}
+                      </Radio>
+                    ))}
+                  </RadioGroup>
+                ) : (
+                  <div className="rounded-lg border border-line-strong bg-canvas-2 px-3 py-2">
+                    <VisibilityTile
+                      value={visibility}
+                      workspaceName={workspaceName}
+                    />
+                  </div>
+                )}
+              </div>
+              {error && (
+                <Alert status="danger" className="mt-3">
+                  <Alert.Content>
+                    <Alert.Title>{error}</Alert.Title>
+                  </Alert.Content>
+                </Alert>
+              )}
+            </Modal.Body>
+            <Modal.Footer className="flex items-center justify-between">
+              {shareUrl ? (
+                <Button variant="ghost" onPress={copyLink}>
+                  {copied ? <Check size={16} /> : <Link2 size={16} />}
+                  {copied ? "Link copied" : "Copy link"}
+                </Button>
+              ) : (
+                <span />
+              )}
+              <Button variant="secondary" onPress={onClose}>
+                Done
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

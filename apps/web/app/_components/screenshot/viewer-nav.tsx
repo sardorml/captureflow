@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { Check, Download, Link2 } from "lucide-react";
-import { Avatar, Button, Tooltip } from "antd";
+import { Avatar, Button, Tooltip, buttonVariants } from "@heroui/react";
 
 export type ViewerNavViewer = {
   name: string | null;
@@ -19,6 +19,7 @@ export type ViewerNavProps = {
   downloadName?: string;
   viewer?: ViewerNavViewer | null;
   userMenu?: ReactNode;
+  notifications?: ReactNode;
   themeToggle?: ReactNode;
   actions?: ReactNode;
 };
@@ -34,6 +35,7 @@ export function ViewerNav({
   viewer,
   actions,
   userMenu,
+  notifications,
   themeToggle,
 }: ViewerNavProps): ReactElement {
   const [copied, setCopied] = useState(false);
@@ -79,7 +81,10 @@ export function ViewerNav({
           ) : null}
         </span>
       </a>
-      <div className="flex items-center gap-3">
+      {/* One gap for the whole row, matching what the actions use internally:
+          the icon buttons pad their own glyphs, so anything wider here opens a
+          visible hole between two of them. */}
+      <div className="flex items-center gap-2">
         {typeof viewCount === "number" ? (
           <span className="text-sm tabular-nums text-fg-muted">
             {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
@@ -90,36 +95,54 @@ export function ViewerNav({
         ) : (
           <>
             {downloadUrl ? (
-              <Tooltip title="Download">
-                <Button
-                  href={downloadUrl}
-                  download={downloadName ?? true}
-                  aria-label="Download"
-                  icon={<Download size={18} />}
-                >
-                  <span className="hidden sm:inline">Download</span>
-                </Button>
+              <Tooltip>
+                <Tooltip.Trigger className="inline-flex">
+                  <a
+                    href={downloadUrl}
+                    download={downloadName ?? true}
+                    aria-label="Download"
+                    className={buttonVariants({ variant: "secondary" })}
+                  >
+                    <Download size={18} />
+                    <span className="hidden sm:inline">Download</span>
+                  </a>
+                </Tooltip.Trigger>
+                <Tooltip.Content>Download</Tooltip.Content>
               </Tooltip>
             ) : null}
-            <Tooltip title={copied ? "Link copied" : "Copy link"}>
-              <Button
-                onClick={handleCopy}
-                aria-label={copied ? "Link copied" : "Copy link"}
-                icon={copied ? <Check size={18} /> : <Link2 size={18} />}
-              >
-                <span className="hidden sm:inline">
-                  {copied ? "Copied" : "Copy link"}
-                </span>
-              </Button>
+            <Tooltip>
+              <Tooltip.Trigger className="inline-flex">
+                <Button
+                  variant="secondary"
+                  onPress={handleCopy}
+                  aria-label={copied ? "Link copied" : "Copy link"}
+                >
+                  {copied ? <Check size={18} /> : <Link2 size={18} />}
+                  <span className="hidden sm:inline">
+                    {copied ? "Copied" : "Copy link"}
+                  </span>
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content>
+                {copied ? "Link copied" : "Copy link"}
+              </Tooltip.Content>
             </Tooltip>
           </>
         )}
+        {notifications}
         {themeToggle}
         {userMenu ? (
           userMenu
         ) : viewer ? (
-          <Tooltip title={viewer.name?.trim() || viewer.email}>
-            <Avatar size={36}>{initials(viewer)}</Avatar>
+          <Tooltip>
+            <Tooltip.Trigger tabIndex={0}>
+              <Avatar className="h-9 w-9">
+                <Avatar.Fallback>{initials(viewer)}</Avatar.Fallback>
+              </Avatar>
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+              {viewer.name?.trim() || viewer.email}
+            </Tooltip.Content>
           </Tooltip>
         ) : null}
       </div>

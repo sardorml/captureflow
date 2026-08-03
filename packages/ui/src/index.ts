@@ -1,55 +1,21 @@
 export { cn } from "./lib/cn";
 export {
   type Theme,
+  type ThemePreference,
   THEME_COOKIE,
   DEFAULT_THEME,
+  THEME_INIT_HTML,
   isTheme,
+  isThemePreference,
   readThemeFromCookieHeader,
+  readThemePreferenceFromCookieHeader,
 } from "./lib/theme";
 export { ThemeToggle } from "./ui/theme-toggle";
 export { STALE_CHUNK_GUARD_SCRIPT } from "./ui/stale-chunk-guard";
-export { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-export { Badge, badgeVariants } from "./ui/badge";
-export { Button, buttonVariants } from "./ui/button";
-export {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
-export { Input } from "./ui/input";
-export { Label } from "./ui/label";
-export { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-export { Separator } from "./ui/separator";
-export { Textarea } from "./ui/textarea";
-export { SmoothButton, smoothButtonVariants } from "./ui/smooth-button";
-export type { SmoothButtonProps } from "./ui/smooth-button";
-export {
-  SmoothDialog,
-  SmoothDialogTrigger,
-  SmoothDialogClose,
-  SmoothDialogContent,
-  SmoothDialogHeader,
-  SmoothDialogFooter,
-  SmoothDialogTitle,
-  SmoothDialogDescription,
-} from "./ui/smooth-dialog";
 export { GridLoader } from "./ui/grid-loader";
 export type { GridLoaderProps } from "./ui/grid-loader";
 export { AvatarGroup, AvatarInviteSlot } from "./ui/avatar-group";
 export type { AvatarGroupItem, AvatarTone } from "./ui/avatar-group";
-export {
-  SmoothDropdownMenu,
-  SmoothDropdownMenuTrigger,
-  SmoothDropdownMenuGroup,
-  SmoothDropdownMenuPortal,
-  SmoothDropdownMenuContent,
-  SmoothDropdownMenuItem,
-  SmoothDropdownMenuLabel,
-  SmoothDropdownMenuSeparator,
-} from "./ui/smooth-dropdown-menu";
 export {
   VisibilityPicker,
   ReadonlyVisibilityRow,

@@ -1,6 +1,8 @@
 import { defineExtensionMessaging } from "@webext-core/messaging";
+import type { WebSession } from "./auth/sync";
 import type {
   ActiveUpload,
+  CaptureSource,
   RecordingResultPayload,
   RecordingStatus,
 } from "./storage";
@@ -14,6 +16,13 @@ export type CaptureContext = {
   mic: boolean;
   cameraId?: string;
   micId?: string;
+  // Offscreen docs can't read storage, so the chosen surface rides the message.
+  source?: CaptureSource;
+  /*
+   * Set only for the tab source: a chrome.tabCapture stream id the offscreen
+   * doc turns into a stream directly, skipping the getDisplayMedia picker.
+   */
+  tabStreamId?: string;
 };
 
 /*
@@ -23,6 +32,8 @@ export type CaptureContext = {
 type ProtocolMap = {
   openSignIn(): void;
   signOut(): void;
+  hasAuthSession(): boolean;
+  webSession(web: WebSession): void;
   setCameraBubble(input: { on: boolean; mic: boolean }): void;
   cameraStatus(input: { blocked: boolean }): void;
   ensureMediaGrant(): void;

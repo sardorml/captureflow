@@ -2,13 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Link from "next/link";
-import { HardDrive, Settings, UserCircle } from "lucide-react";
-import type { MenuProps } from "antd";
+import type { ThemePreference } from "@captureflow/ui";
 import { signOut } from "@/lib/auth-client";
 import { notifyExtensionSignOut } from "@/lib/extension-bridge";
 import {
   AccountMenu,
+  accountNavItems,
   type AccountMenuProInfo,
 } from "@/app/_components/AccountMenu";
 
@@ -18,9 +17,16 @@ type Props = {
   email: string;
   imageUrl: string | null;
   pro: AccountMenuProInfo | null;
+  themePreference: ThemePreference;
 };
 
-export function UserMenu({ name, email, imageUrl, pro }: Props) {
+export function UserMenu({
+  name,
+  email,
+  imageUrl,
+  pro,
+  themePreference,
+}: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -32,23 +38,7 @@ export function UserMenu({ name, email, imageUrl, pro }: Props) {
     router.replace("/login");
   };
 
-  const navItems: NonNullable<MenuProps["items"]> = [
-    {
-      key: "profile",
-      icon: <UserCircle size={16} />,
-      label: <Link href="/profile">Profile settings</Link>,
-    },
-    {
-      key: "devices",
-      icon: <HardDrive size={16} />,
-      label: <Link href="/devices">Connected devices</Link>,
-    },
-    {
-      key: "settings",
-      icon: <Settings size={16} />,
-      label: <Link href="/settings">Workspace settings</Link>,
-    },
-  ];
+  const navItems = accountNavItems({ pro });
 
   return (
     <AccountMenu
@@ -57,6 +47,7 @@ export function UserMenu({ name, email, imageUrl, pro }: Props) {
       imageUrl={imageUrl}
       pro={pro}
       navItems={navItems}
+      themePreference={themePreference}
       signingOut={pending}
       onSignOut={() => void onSignOut()}
     />

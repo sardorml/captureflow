@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { cloneElement, useState, type ReactElement } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, Sparkles } from "lucide-react";
-import { Card, Flex, Modal, Tag, theme, Typography } from "antd";
+import { Check, Cloud, Sparkles } from "lucide-react";
+import { Modal } from "@heroui/react";
 import { MANAGED_TIERS } from "@/lib/marketing/constants";
 import { getPosthogDistinctId, track } from "@/lib/marketing/track";
 
@@ -16,7 +16,13 @@ const BENEFITS = [
 type Props = {
   email: string;
   userId: string;
-  trigger: ReactNode;
+  /*
+   * Cloned with an onPress rather than wrapped in an onClick handler: React
+   * Aria's usePress calls stopPropagation() on click, so an ancestor's onClick
+   * never fires. Stays an element (not a render prop) because server components
+   * render this and functions can't cross that boundary.
+   */
+  trigger: ReactElement<{ onPress?: () => void }>;
   // Auto-opens when the URL has ?upgrade — the landing/pricing tiers send
   // signed-out buyers through /login?mode=signup&next=/recordings?upgrade=1. Enable on
   // one instance per page or they all pop.
@@ -42,7 +48,15 @@ export function UpgradeModal({
   const [open, setOpen] = useState(
     () => openOnUpgradeParam && searchParams.has("upgrade"),
   );
-  const { token } = theme.useToken();
+
+  // Opens on the recommended tier; the price and the checkout link both follow
+  // the switch, so what's shown is always what the button buys.
+  const [storageGb, setStorageGb] = useState(
+    (MANAGED_TIERS.find((t) => t.tag === "recommended") ?? MANAGED_TIERS[0])
+      .storageGb,
+  );
+  const selected =
+    MANAGED_TIERS.find((t) => t.storageGb === storageGb) ?? MANAGED_TIERS[0];
 
   // PostHog distinct_id isn't available server-side at render, so append it
   // at click time.
@@ -61,112 +75,114 @@ export function UpgradeModal({
 
   return (
     <>
-      <span onClick={() => setOpen(true)} style={{ display: "contents" }}>
-        {trigger}
-      </span>
-      <Modal
-        open={open}
-        onCancel={() => setOpen(false)}
-        footer={null}
-        width={520}
-        title={
-          <span
-            style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
-          >
-            <Sparkles size={16} />
-            Upgrade to CaptureFlow Pro
-          </span>
-        }
-      >
-        <Typography.Paragraph type="secondary">
-          Pick how much cloud storage you need for your recordings and
-          Screenshots. Billed monthly, cancel anytime.
-        </Typography.Paragraph>
+      {cloneElement(trigger, { onPress: () => setOpen(true) })}
+      <Modal isOpen={open} onOpenChange={setOpen}>
+        <Modal.Backdrop>
+          <Modal.Container size="md">
+            <Modal.Dialog>
+              {/* This dialog has no footer action, so the X is the only
+                  in-dialog way out. Positions itself top-right. */}
+              <Modal.CloseTrigger />
+              <Modal.Header>
+                <Modal.Heading className="inline-flex items-center gap-2">
+                  <Sparkles size={16} />
+                  Upgrade to CaptureFlow Pro
+                </Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
+                {/* Same shape as the managed card on /plan: a tinted panel
+                    carrying the switch, price, and CTA, with the benefits
+                    listed below it on the dialog surface. The panel is dark in
+                    both themes, and says so — light mode inverts the neutral
+                    ramp, which turned the dark text on its white button white
+                    on white. */}
+                <div
+                  data-theme="dark"
+                  className="flex flex-col overflow-hidden rounded-xl bg-[radial-gradient(120%_100%_at_15%_0%,#2f5bd8_0%,#1b2f73_55%,#131c38_100%)] p-5"
+                >
+                  {/* The switch rides the badge row, which is otherwise empty,
+                      so it costs the panel no extra height. */}
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex items-center gap-2">
+                      <span className="flex size-6 items-center justify-center rounded-lg bg-white/15 text-white">
+                        <Cloud size={14} />
+                      </span>
+                      <span className="text-sm font-medium text-white/80">
+                        Managed
+                      </span>
+                    </span>
 
-        <Flex vertical gap={10}>
-          {MANAGED_TIERS.map((tier) => (
-            <a
-              key={tier.storageGb}
-              href={checkoutUrlFor(tier.checkoutUrl, email, userId)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleCheckoutClick}
-              aria-label={`${tier.storageGb} GB — $${tier.price}/month`}
-            >
-              <Card
-                hoverable
-                size="small"
-                styles={{ body: { padding: 14 } }}
-                style={{
-                  borderColor:
-                    tier.tag === "recommended"
-                      ? token.colorPrimary
-                      : tier.tag === "mostValue"
-                        ? token.colorWarning
-                        : undefined,
-                }}
-              >
-                <Flex align="center" justify="space-between" gap={12}>
-                  <Flex align="center" gap={8} wrap>
-                    <Typography.Text
-                      strong
-                      style={{ fontSize: 17, whiteSpace: "nowrap" }}
+                    <div
+                      role="radiogroup"
+                      aria-label="Cloud storage"
+                      className="flex shrink-0 items-center gap-0.5 rounded-full bg-white/10 p-0.5"
                     >
-                      {tier.storageGb} GB
-                    </Typography.Text>
-                    {tier.tag === "recommended" ? (
-                      <Tag color="blue" variant="filled" style={{ margin: 0 }}>
-                        Recommended
-                      </Tag>
-                    ) : tier.tag === "mostValue" ? (
-                      <Tag
-                        color="orange"
-                        variant="filled"
-                        style={{ margin: 0 }}
-                      >
-                        Most value
-                      </Tag>
-                    ) : null}
-                  </Flex>
-                  <Flex
-                    align="baseline"
-                    gap={2}
-                    flex="none"
-                    style={{ whiteSpace: "nowrap" }}
-                  >
-                    <Typography.Text strong style={{ fontSize: 20 }}>
-                      ${tier.price}
-                    </Typography.Text>
-                    <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-                      /month
-                    </Typography.Text>
-                  </Flex>
-                </Flex>
-              </Card>
-            </a>
-          ))}
-        </Flex>
+                      {MANAGED_TIERS.map((tier) => {
+                        const on = tier.storageGb === storageGb;
+                        return (
+                          <button
+                            key={tier.storageGb}
+                            type="button"
+                            role="radio"
+                            aria-checked={on}
+                            onClick={() => setStorageGb(tier.storageGb)}
+                            className={[
+                              "cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
+                              on
+                                ? "bg-white text-neutral-900"
+                                : "text-white/70 hover:text-white",
+                            ].join(" ")}
+                          >
+                            {tier.storageGb} GB
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: "16px 0 0",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-          }}
-        >
-          {BENEFITS.map((b) => (
-            <li
-              key={b}
-              style={{ display: "flex", alignItems: "center", gap: 10 }}
-            >
-              <Check size={16} />
-              <Typography.Text>{b}</Typography.Text>
-            </li>
-          ))}
-        </ul>
+                  <h3 className="mt-3 text-xl font-semibold tracking-[-0.01em] text-white">
+                    Managed hosting
+                  </h3>
+                  <p className="mt-1 max-w-72 text-sm leading-snug text-white/70">
+                    {selected.storageGb} GB of cloud storage for your recordings
+                    and Screenshots.
+                  </p>
+
+                  <p className="mt-4 text-4xl font-bold tracking-[-0.02em] text-white">
+                    ${selected.price}
+                    <span className="ms-1 align-baseline text-base font-normal text-white/70">
+                      /month
+                    </span>
+                  </p>
+                  <p className="mt-1.5 mb-5 text-sm text-white/60">
+                    Billed monthly. Cancel anytime.
+                  </p>
+
+                  <a
+                    href={checkoutUrlFor(selected.checkoutUrl, email, userId)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleCheckoutClick}
+                    className="flex h-10 w-full shrink-0 items-center justify-center rounded-xl bg-white text-sm font-medium text-neutral-900 transition-colors hover:bg-white/90 motion-reduce:transition-none"
+                  >
+                    Continue to checkout
+                  </a>
+                </div>
+
+                <ul className="flex list-none flex-col gap-2.5 px-1 pt-5 pb-1">
+                  {BENEFITS.map((b) => (
+                    <li key={b} className="flex items-center gap-3">
+                      <span className="shrink-0 text-fg-subtle">
+                        <Check size={16} />
+                      </span>
+                      <span className="text-sm text-fg-muted">{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Modal.Body>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </>
   );

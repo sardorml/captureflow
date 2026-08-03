@@ -1,4 +1,9 @@
-import { onMessage, sendMessage, type StartResult } from "@/lib/messaging";
+import {
+  onMessage,
+  sendMessage,
+  type CaptureContext,
+  type StartResult,
+} from "@/lib/messaging";
 import {
   getActiveUpload,
   getCapturePrefs,
@@ -16,6 +21,7 @@ import {
   parseExternalMessage,
 } from "@/lib/auth/handoff";
 import { getAuthSession, setAuthSession } from "@/lib/auth/session";
+import { reconcileAuthSession } from "@/lib/auth/sync";
 import { getDeviceId } from "@/lib/auth/device-id";
 import {
   BUBBLE_FRAME_ID,
@@ -147,8 +153,57 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+// chrome.runtime's wording when nothing is listening on the other end.
+const NO_RECEIVER =
+  /Receiving end does not exist|Could not establish connection/i;
+
+/*
+ * The tab source records straight from a stream id, so Chrome never shows the
+ * "Choose what to share" step. Resolved against the tab the user is on, before
+ * the overlay is torn down. Any failure falls back to the picker rather than
+ * blocking the start.
+ */
+async function tabStreamIdFor(tabId: number | undefined): Promise<undefined>;
+async function tabStreamIdFor(tabId: number): Promise<string | undefined>;
+async function tabStreamIdFor(
+  tabId: number | undefined,
+): Promise<string | undefined> {
+  if (tabId === undefined || !chrome.tabCapture?.getMediaStreamId) {
+    return undefined;
+  }
+  try {
+    return await chrome.tabCapture.getMediaStreamId({ targetTabId: tabId });
+  } catch {
+    return undefined;
+  }
+}
+
+/*
+ * createDocument() resolves once the document exists, not once its module has
+ * run and registered onMessage — the first send lands in that gap and rejects
+ * with "Receiving end does not exist", which surfaced as a failed start.
+ */
+async function beginCaptureWhenReady(ctx: CaptureContext): Promise<void> {
+  const attempts = 20;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      await sendMessage("beginCapture", ctx);
+      return;
+    } catch (error) {
+      if (attempt === attempts || !NO_RECEIVER.test(errorMessage(error))) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+}
+
 // Tab hosting the in-page recorder overlay.
 let overlayTabId: number | undefined;
+
+// Standalone panel window, the restricted-page fallback. It closes itself, so
+// the only notice of it is chrome.windows.onRemoved.
+let panelWindowId: number | undefined;
 
 /*
  * The recorder opens as an extension iframe floating over a blurred page,
@@ -159,15 +214,16 @@ async function toggleOverlayOnActiveTab(): Promise<void> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.id === undefined) return;
   if (!isInjectable(tab.url)) {
-    await chrome.windows.create({
+    const win = await chrome.windows.create({
       url: chrome.runtime.getURL("popup.html?window=1"),
       type: "popup",
-      width: 372,
-      height: 660,
+      width: 332,
+      height: 640,
     });
+    panelWindowId = win?.id;
     return;
   }
-  await chrome.scripting.executeScript({
+  const [injection] = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
     func: toggleRecorderOverlay,
     args: [
@@ -176,10 +232,22 @@ async function toggleOverlayOnActiveTab(): Promise<void> {
       RECORDER_BACKDROP_ID,
     ],
   });
+  // A second click closes the panel, and the camera preview goes with it.
+  if (injection?.result === false) {
+    await releaseCameraBubble();
+    overlayTabId = undefined;
+    return;
+  }
   overlayTabId = tab.id;
 }
 
+/*
+ * The camera preview belongs to the panel, not to the page: it's a live
+ * getUserMedia stream in an injected frame, so leaving it behind keeps the
+ * camera light on long after the panel is gone.
+ */
 async function closeRecorderOverlay(tabId?: number): Promise<void> {
+  await releaseCameraBubble();
   const target = tabId ?? overlayTabId;
   if (target === undefined) return;
   try {
@@ -229,6 +297,26 @@ export default defineBackground(() => {
   chrome.action.onClicked.addListener(() => void onActionClicked());
 
   /*
+   * The overlay's backdrop closes the panel page-side, so this raw message is
+   * the only notice the worker gets. Foreign shapes are ignored by the typed
+   * messaging layer, and it ignores this one.
+   */
+  chrome.runtime.onMessage.addListener((message) => {
+    if (
+      (message as { recorderOverlayClosed?: unknown }).recorderOverlayClosed
+    ) {
+      overlayTabId = undefined;
+      void releaseCameraBubble();
+    }
+  });
+
+  chrome.windows.onRemoved.addListener((windowId) => {
+    if (windowId !== panelWindowId) return;
+    panelWindowId = undefined;
+    void releaseCameraBubble();
+  });
+
+  /*
    * The web app posts auth (from the callback page) and logout (from any of its
    * pages) here. externally_connectable can't gate by path/port, so re-check the
    * sender per kind: auth needs the exact callback page, logout just the origin.
@@ -251,6 +339,9 @@ export default defineBackground(() => {
           await setAuthSession(null);
         } else {
           await setAuthSession(parsed.session);
+          // Answer before closing the callback tab — removing it first destroys
+          // the page that's waiting on the response.
+          respond({ ok: true });
           const tabId = sender.tab?.id;
           if (tabId !== undefined) {
             try {
@@ -259,6 +350,7 @@ export default defineBackground(() => {
               /* tab already closed */
             }
           }
+          return;
         }
         respond({ ok: true });
       } catch {
@@ -271,6 +363,16 @@ export default defineBackground(() => {
   onMessage("openSignIn", () => openSignInTab());
 
   onMessage("signOut", () => setAuthSession(null));
+
+  // The web-origin content script's reading of who this browser is signed in
+  // as. Its matches already bound the sender; re-check anyway, since acting on
+  // it can sign the user out.
+  onMessage("hasAuthSession", async () => (await getAuthSession()) !== null);
+
+  onMessage("webSession", async ({ data, sender }) => {
+    if (!isTrustedWebOrigin(sender?.url)) return;
+    await reconcileAuthSession(data);
+  });
 
   onMessage("setCameraBubble", ({ data }) =>
     setCameraBubble(data.on, data.mic),
@@ -341,20 +443,33 @@ export default defineBackground(() => {
       if (!session) return { ok: false, error: "Sign in to record." };
       const deviceId = await getDeviceId();
       const prefs = await getCapturePrefs();
+      // Resolved before the overlay closes, while the target tab is still the
+      // active one.
+      const [activeTab] =
+        prefs.source === "tab"
+          ? await chrome.tabs.query({ active: true, currentWindow: true })
+          : [undefined];
+      const tabStreamId =
+        activeTab?.id === undefined
+          ? undefined
+          : await tabStreamIdFor(activeTab.id);
       await setRecordingStatus({ kind: "preparing" });
-      // The panel gets out of the way before the native picker appears.
+      // The panel gets out of the way before the native picker appears, taking
+      // the preview with it — one camera can't be opened twice, and the
+      // recorder is about to open this one.
       await closeRecorderOverlay();
-      if (prefs.camera) await releaseCameraBubble();
       await ensureOffscreenDocument();
       // Fire-and-forget: the offscreen doc reports back via
       // recordingStatus/recordingResult.
-      void sendMessage("beginCapture", {
+      void beginCaptureWhenReady({
         deviceId,
         token: session.token,
         camera: prefs.camera,
         mic: prefs.mic,
         cameraId: prefs.cameraId,
         micId: prefs.micId,
+        source: prefs.source,
+        tabStreamId,
       }).catch((error) => void reportFailure(errorMessage(error)));
       return { ok: true };
     } catch (error) {

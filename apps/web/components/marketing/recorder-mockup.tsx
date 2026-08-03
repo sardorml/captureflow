@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Tag, Typography, theme } from "antd";
+import { Text } from "./typography";
+import { Tag } from "./ui";
+import { TOKENS } from "./tokens";
 import { Play, Pause, Check } from "lucide-react";
 
 const SHARE_PATH = "captureflow.xyz/r/8kx2pnq4";
 
 export function RecorderMockup() {
-  const { token } = theme.useToken();
+  const token = TOKENS;
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [overlayIcon, setOverlayIcon] = useState<"play" | "pause" | null>(null);
@@ -54,7 +56,7 @@ export function RecorderMockup() {
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-7xl px-5 pb-24 pt-6 sm:px-8">
+    <div className="relative mx-auto w-full max-w-[1172px] px-5 pb-24 pt-6 sm:px-8">
       <div
         className="relative aspect-[480/301] w-full overflow-hidden"
         style={{ borderRadius: token.borderRadiusLG }}
@@ -154,7 +156,7 @@ export function RecorderMockup() {
               <Check size={12} />
               Link copied
             </Tag>
-            <Typography.Text
+            <Text
               type="secondary"
               style={{
                 fontSize: 10,
@@ -162,7 +164,7 @@ export function RecorderMockup() {
               }}
             >
               {SHARE_PATH}
-            </Typography.Text>
+            </Text>
           </div>
         </div>
       </div>

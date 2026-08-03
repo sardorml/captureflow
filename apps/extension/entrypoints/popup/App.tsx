@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
+import { Button, Tabs, Tooltip } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
 import {
   getAuthSession,
-  setAuthSession,
+  getSignedOutReason,
   watchAuthSession,
   type AuthSession,
+  type SignedOutReason,
 } from "@/lib/auth/session";
-import { getDeviceId } from "@/lib/auth/device-id";
-import { checkAuth } from "@/lib/api/client";
+import { probeAuthSession } from "@/lib/auth/sync";
+import { LIVE_KINDS } from "@/lib/capture/status";
 import { WEB_BASE } from "@/lib/config";
 import {
   getCameraBlocked,
@@ -27,9 +29,15 @@ import { SignInGate } from "./SignInGate";
 // "loading" until storage resolves, to avoid flashing the sign-in gate.
 type AuthState = AuthSession | null | "loading";
 
-type Mode = "video" | "screenshot";
-
-const LIVE_KINDS = new Set(["preparing", "recording", "paused", "uploading"]);
+// Why the token was dropped for the user rather than by them. Silence here
+// would read as the extension logging itself out at random.
+const SIGNED_OUT_NOTE: Record<SignedOutReason, string> = {
+  revoked: "Your sign-in expired. Sign in again to keep recording.",
+  "signed-out":
+    "You're signed out of CaptureFlow in this browser, so the extension signed out too.",
+  "other-user":
+    "This browser is signed in to a different CaptureFlow account. Sign in again to match it.",
+};
 
 async function hasMediaGrant(): Promise<boolean> {
   try {
@@ -42,6 +50,11 @@ async function hasMediaGrant(): Promise<boolean> {
     return false;
   }
 }
+
+/* The pill comes from Tabs.Indicator inside each tab; only the icon colour is
+   ours. isolate: the indicator sits at z-index -1, so without a stacking
+   context of its own it sinks behind the popup's background. */
+const TAB_CLASS = "isolate px-4 data-[selected=true]:text-accent";
 
 const HOME_ICON = (
   <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
@@ -112,13 +125,20 @@ export function App() {
   const [auth, setAuth] = useState<AuthState>("loading");
   const [status, setStatus] = useState<RecordingStatus>({ kind: "idle" });
   const [result, setResult] = useState<RecordingResult | null>(null);
-  const [mode, setMode] = useState<Mode>("video");
+  const [reason, setReason] = useState<SignedOutReason | null>(null);
 
   useEffect(() => {
     void getAuthSession().then(setAuth);
+    void getSignedOutReason().then(setReason);
     void getRecordingStatus().then(setStatus);
     void getRecordingResult().then(setResult);
-    const unwatchAuth = watchAuthSession(setAuth);
+    // A drop can land while the panel is open — from the service worker acting
+    // on a dashboard tab, or from the probe below — so the reason is re-read
+    // rather than captured once.
+    const unwatchAuth = watchAuthSession((next) => {
+      setAuth(next);
+      if (!next) void getSignedOutReason().then(setReason);
+    });
     const unwatchStatus = watchRecordingStatus(setStatus);
     const unwatchResult = watchRecordingResult(setResult);
     return () => {
@@ -128,16 +148,14 @@ export function App() {
     };
   }, []);
 
-  // Probe the token once per popup open; a revoked token flips the UI (and the
-  // action gating) back to signed-out instead of failing at record time.
+  // Probe the token once per open; a revocation is the one desync no web page
+  // would have pushed. Skipped mid-recording: dropping the token there would
+  // strand the upload.
   useEffect(() => {
     void (async () => {
-      const session = await getAuthSession();
-      if (!session) return;
-      const deviceId = await getDeviceId();
-      if ((await checkAuth(deviceId, session.token)) === "invalid") {
-        await setAuthSession(null);
-      }
+      const status = await getRecordingStatus();
+      if (LIVE_KINDS.has(status.kind)) return;
+      await probeAuthSession();
     })();
   }, []);
 
@@ -169,7 +187,9 @@ export function App() {
   }, []);
 
   if (auth === "loading") return null;
-  if (!auth) return <SignInGate />;
+  if (!auth) {
+    return <SignInGate note={reason ? SIGNED_OUT_NOTE[reason] : null} />;
+  }
 
   const openHome = () => {
     void chrome.tabs.create({ url: `${WEB_BASE}/recordings` });
@@ -182,60 +202,82 @@ export function App() {
   const onStop = () => sendMessage("stopRecording", undefined);
 
   return (
-    <div className="cf-panel">
-      <header className="cf-topbar">
-        <button
-          type="button"
-          className="cf-iconbtn"
-          title="Open dashboard"
-          onClick={openHome}
-        >
+    <Tabs
+      defaultSelectedKey="video"
+      aria-label="Capture mode"
+      className="flex w-full min-w-0 flex-col gap-2.5 p-3"
+    >
+      <header className="flex items-center justify-between gap-2">
+        <IconAction label="Open dashboard" onPress={openHome}>
           {HOME_ICON}
-        </button>
-        <div className="cf-tabs" role="tablist" aria-label="Capture mode">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "video"}
-            className={mode === "video" ? "cf-tab is-active" : "cf-tab"}
-            title="Record video"
-            onClick={() => setMode("video")}
-          >
-            {VIDEO_ICON}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "screenshot"}
-            className={mode === "screenshot" ? "cf-tab is-active" : "cf-tab"}
-            title="Capture screenshot"
-            onClick={() => setMode("screenshot")}
-          >
-            {PHOTO_ICON}
-          </button>
-        </div>
-        <button
-          type="button"
-          className="cf-iconbtn"
-          title="Close"
-          onClick={() => closeSurface()}
-        >
+        </IconAction>
+        {/* ListContainer paints the track; the indicator is React Aria's
+            SelectionIndicator, which only exists if the tab renders one —
+            without both, the tabs are bare icons with no selected state.
+            HeroUI's .tabs__list[data-orientation] is min-width:100%, which in
+            this justify-between header claims the full header width and then
+            the two icon buttons push the document past the body width — the
+            popup ends up scrolled with the left edge cut off. The bang is
+            load-bearing: that selector outranks a plain utility. */}
+        <Tabs.ListContainer className="w-max">
+          <Tabs.List className="w-max min-w-0!">
+            <Tabs.Tab
+              id="video"
+              aria-label="Record video"
+              className={TAB_CLASS}
+            >
+              <Tabs.Indicator />
+              {VIDEO_ICON}
+            </Tabs.Tab>
+            <Tabs.Tab
+              id="screenshot"
+              aria-label="Capture screenshot"
+              className={TAB_CLASS}
+            >
+              <Tabs.Indicator />
+              {PHOTO_ICON}
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
+        <IconAction label="Close" onPress={() => closeSurface()}>
           {CLOSE_ICON}
-        </button>
+        </IconAction>
       </header>
 
-      {mode === "video" ? (
+      <Tabs.Panel id="video" className="min-w-0">
         <RecorderPanel
           status={status}
           result={result}
           onStart={onStart}
           onStop={onStop}
         />
-      ) : (
+      </Tabs.Panel>
+      <Tabs.Panel id="screenshot" className="min-w-0">
         <ScreenshotPanel />
-      )}
+      </Tabs.Panel>
 
       <FooterActions />
-    </div>
+    </Tabs>
+  );
+}
+
+function IconAction({
+  label,
+  onPress,
+  children,
+}: {
+  label: string;
+  onPress: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <Tooltip>
+      <Tooltip.Trigger>
+        <Button variant="ghost" isIconOnly aria-label={label} onPress={onPress}>
+          {children}
+        </Button>
+      </Tooltip.Trigger>
+      <Tooltip.Content>{label}</Tooltip.Content>
+    </Tooltip>
   );
 }

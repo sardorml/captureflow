@@ -20,7 +20,11 @@ import { loadSummaryChapters } from "@/lib/recording/summary-chapters";
 import { isValidSlug } from "@/lib/recording/slug";
 import { APP_WEB_SITE_URL, PRODUCT_NAME, viewUrlFor } from "@/lib/site";
 import { ViewerNav } from "../../_components/screenshot";
-import { ThemeToggle, readThemeFromCookieHeader } from "@captureflow/ui";
+import {
+  ThemeToggle,
+  readThemeFromCookieHeader,
+  readThemePreferenceFromCookieHeader,
+} from "@captureflow/ui";
 import { getWorkspaceForUpload } from "@/lib/recording/quota";
 import { AuthSync } from "./AuthSync";
 import { PendingRecording } from "./PendingRecording";
@@ -29,6 +33,7 @@ import { SessionLoadingShell } from "./SessionLoadingShell";
 import { AuthPrompt } from "./AuthPrompt";
 import { RecordingActions } from "./RecordingActions";
 import { RecordingViewer } from "./RecordingViewer";
+import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
 import { ViewerUserMenu } from "@/app/_components/ViewerUserMenu";
 import { MARKETING_SITE_URL } from "@/lib/site";
 
@@ -160,6 +165,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
 
   const cookieHeader = (await headers()).get("cookie");
   const theme = readThemeFromCookieHeader(cookieHeader);
+  const themePreference = readThemePreferenceFromCookieHeader(cookieHeader);
   // /api/r/init reserves the id at record-start so desktop hands the user a
   // copyable link immediately; the row flips to 'ready' on /api/r/finalize
   // and the loading shell polls /api/r/state to reload on flip.
@@ -171,7 +177,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
           productName={PRODUCT_NAME}
           label="recording"
           viewCount={row.viewCount}
-          themeToggle={<ThemeToggle initialTheme={theme} className="h-8 w-8" />}
+          themeToggle={<ThemeToggle initialTheme={theme} className="h-9 w-9" />}
         />
         <PendingRecording
           slug={id}
@@ -273,7 +279,17 @@ export default async function RecordingPage({ params }: { params: Params }) {
         homeUrl={APP_WEB_SITE_URL}
         productName={PRODUCT_NAME}
         viewer={visitor ? { name: visitor.name, email: visitor.email } : null}
-        themeToggle={<ThemeToggle initialTheme={theme} className="h-8 w-8" />}
+        /* Signed in, the theme lives in the account menu exactly as it does on
+           the dashboard; anonymous viewers have no menu, so they keep the
+           standalone toggle. */
+        themeToggle={
+          visitor ? null : (
+            <ThemeToggle initialTheme={theme} className="h-9 w-9" />
+          )
+        }
+        notifications={
+          visitor ? <NotificationsMenu base={APP_WEB_SITE_URL} /> : null
+        }
         userMenu={
           visitor ? (
             <ViewerUserMenu
@@ -282,6 +298,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
               email={visitor.email}
               imageUrl={visitor.image}
               appWebUrl={APP_WEB_SITE_URL}
+              themePreference={themePreference}
             />
           ) : (
             <AuthPrompt marketingUrl={MARKETING_SITE_URL} loginUrl={loginUrl} />

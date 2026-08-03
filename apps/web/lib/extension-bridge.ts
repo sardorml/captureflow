@@ -28,15 +28,18 @@ export function rememberExtensionId(extId: string): void {
   }
 }
 
+function readExtensionId(): string | null {
+  try {
+    return localStorage.getItem(EXTENSION_ID_KEY);
+  } catch {
+    return null;
+  }
+}
+
 // Tell the extension that signed in here to drop its session, mirroring the
 // login handshake. No-op if none signed in or it's no longer installed.
 export function notifyExtensionSignOut(): void {
-  let extId: string | null = null;
-  try {
-    extId = localStorage.getItem(EXTENSION_ID_KEY);
-  } catch {
-    return;
-  }
+  const extId = readExtensionId();
   if (!extId) return;
   getRuntime()?.sendMessage?.(extId, { kind: SIGN_OUT_KIND });
 }

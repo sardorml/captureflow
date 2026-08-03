@@ -26,6 +26,13 @@ export function ExtensionHandoff({
       setState("error");
       return;
     }
+    /*
+     * Remember the id BEFORE handing over the token, not in the response
+     * callback: the extension closes this tab as soon as it has the token, so
+     * a callback-time write loses the race and every later push — sign-out, and
+     * the session sync — silently no-ops for want of an id to send to.
+     */
+    rememberExtensionId(extId);
     runtime.sendMessage(
       extId,
       { kind: "captureflow-auth", token, id: tokenId },
@@ -34,12 +41,7 @@ export function ExtensionHandoff({
           !!response &&
           typeof response === "object" &&
           (response as { ok?: unknown }).ok === true;
-        if (runtime.lastError || !ok) {
-          setState("error");
-          return;
-        }
-        rememberExtensionId(extId);
-        setState("done");
+        setState(runtime.lastError || !ok ? "error" : "done");
       },
     );
   }, [extId, token, tokenId]);

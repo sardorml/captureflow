@@ -2,10 +2,8 @@
 
 import type { WorkspaceMember } from "@captureflow/quota";
 import { LogOut, X } from "lucide-react";
-import { Avatar, Button, List, Tag, Typography } from "antd";
+import { Avatar, Button, Card, Chip, Typography } from "@heroui/react";
 import { leaveWorkspaceAction, removeMemberAction } from "./actions";
-
-const { Text } = Typography;
 
 function initials(name: string, email: string): string {
   const source = name.trim() || email;
@@ -26,63 +24,63 @@ type Props = {
 
 export function MembersList({ members, viewerUserId, viewerIsOwner }: Props) {
   return (
-    <List
-      header={
-        <Text strong>
-          Members <Text type="secondary">({members.length})</Text>
-        </Text>
-      }
-      bordered
-      dataSource={members}
-      rowKey={(m) => m.user_id}
-      renderItem={(m) => {
-        const isOwnerRow = m.role === "owner";
-        const isSelfRow = m.user_id === viewerUserId;
-        const action =
-          viewerIsOwner && !isOwnerRow ? (
-            <form action={removeMemberAction}>
-              <input type="hidden" name="userId" value={m.user_id} />
-              <Button
-                type="text"
-                danger
-                size="small"
-                htmlType="submit"
-                aria-label={`Remove ${m.name || m.email}`}
-                title="Remove from workspace"
-                icon={<X size={16} />}
-              />
-            </form>
-          ) : !viewerIsOwner && isSelfRow ? (
-            <form action={leaveWorkspaceAction}>
-              <Button
-                size="small"
-                htmlType="submit"
-                aria-label="Leave workspace"
-                title="Leave workspace"
-                icon={<LogOut size={14} />}
-              >
-                Leave
-              </Button>
-            </form>
-          ) : null;
-
-        return (
-          <List.Item actions={action ? [action] : undefined}>
-            <List.Item.Meta
-              avatar={
-                <Avatar src={m.image || undefined}>
-                  {initials(m.name, m.email)}
-                </Avatar>
-              }
-              title={m.name || m.email}
-              description={m.email}
-            />
-            <Tag color={isOwnerRow ? "blue" : "default"}>
-              {isOwnerRow ? "Admin" : "Member"}
-            </Tag>
-          </List.Item>
-        );
-      }}
-    />
+    <Card>
+      <Card.Header>
+        <Typography weight="semibold">
+          Members{" "}
+          <Typography color="muted" render={(p) => <span {...p} />}>
+            ({members.length})
+          </Typography>
+        </Typography>
+      </Card.Header>
+      <ul className="divide-y divide-line border-t border-line">
+        {members.map((m) => {
+          const isOwnerRow = m.role === "owner";
+          const isSelfRow = m.user_id === viewerUserId;
+          return (
+            <li key={m.user_id} className="flex items-center gap-3 px-4 py-3">
+              <Avatar className="h-9 w-9 shrink-0">
+                {m.image && <Avatar.Image src={m.image} alt={m.name} />}
+                <Avatar.Fallback>{initials(m.name, m.email)}</Avatar.Fallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-fg">{m.name || m.email}</p>
+                <p className="truncate text-xs text-fg-muted">{m.email}</p>
+              </div>
+              <Chip size="sm" color={isOwnerRow ? "accent" : "default"}>
+                {isOwnerRow ? "Admin" : "Member"}
+              </Chip>
+              {viewerIsOwner && !isOwnerRow ? (
+                <form action={removeMemberAction}>
+                  <input type="hidden" name="userId" value={m.user_id} />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    isIconOnly
+                    type="submit"
+                    aria-label={`Remove ${m.name || m.email} from workspace`}
+                    className="text-danger"
+                  >
+                    <X size={16} />
+                  </Button>
+                </form>
+              ) : !viewerIsOwner && isSelfRow ? (
+                <form action={leaveWorkspaceAction}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    type="submit"
+                    aria-label="Leave workspace"
+                  >
+                    <LogOut size={14} />
+                    Leave
+                  </Button>
+                </form>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
   );
 }

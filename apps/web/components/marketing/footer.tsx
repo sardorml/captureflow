@@ -1,74 +1,40 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Col, Row, Space, Typography, theme as antdTheme } from "antd";
-import { DISCORD_URL, DOWNLOAD_URL, X_URL } from "@/lib/marketing/constants";
-import { DOCS_URL, RELEASES_URL } from "@/lib/site";
+import { Text, Link as TypoLink } from "./typography";
+import { TOKENS } from "./tokens";
+import { DISCORD_URL } from "@/lib/marketing/constants";
+import { DOCS_URL, RELEASES_URL, SOURCE_REPO_URL } from "@/lib/site";
 import { useLocalizedHref } from "./i18n-provider";
 
 type FooterLink = { label: string; href: string };
-type FooterColumn = { title: string; links: FooterLink[] };
 
-// Per-letter vertical offsets (em, negative = up) tracing a static arch.
-const WORDMARK_LETTERS = [
-  { ch: "C", offset: 0.16 },
-  { ch: "a", offset: 0.1 },
-  { ch: "p", offset: 0.03 },
-  { ch: "t", offset: -0.04 },
-  { ch: "u", offset: -0.09 },
-  { ch: "r", offset: -0.12 },
-  { ch: "e", offset: -0.12 },
-  { ch: "F", offset: -0.09 },
-  { ch: "l", offset: -0.04 },
-  { ch: "o", offset: 0.03 },
-  { ch: "w", offset: 0.16 },
-];
-
-// Soft neutral-gray glow rising from the bottom (was brand-blue), subtle in both
-// themes — slate reads as gray on white and lightens the dark footer.
-const FOOTER_GLOW =
-  "linear-gradient(to top, rgba(148,163,184,0.1) 0%, rgba(148,163,184,0.06) 18%, transparent 46%)," +
-  "radial-gradient(95% 145% at 50% 122%, rgba(148,163,184,0.08) 0%, transparent 74%)";
+/*
+ * Decorative wordmark: a dashed outline rather than a filled glyph, which only
+ * SVG can do — `-webkit-text-stroke` has no dash control. Drawn in a viewBox so
+ * it scales with the footer; VIEW_W is sized so "CaptureFlow" at FONT_SIZE
+ * spans it, and the baseline sits low enough that descenders clip off the edge.
+ */
+const VIEW_W = 1000;
+const VIEW_H = 220;
+const FONT_SIZE = 176;
+const BASELINE = 190;
 
 export function Footer() {
   const lh = useLocalizedHref();
-  const { token } = antdTheme.useToken();
+  const token = TOKENS;
 
-  const columns: FooterColumn[] = [
-    {
-      title: "Product",
-      links: [
-        { label: "Download", href: lh("/download") },
-        { label: "Sign in", href: lh("/login") },
-        { label: "Releases", href: RELEASES_URL },
-      ],
-    },
-    {
-      title: "Docs",
-      links: [
-        { label: "Recording", href: `${DOCS_URL}/recording` },
-        { label: "Sharing", href: `${DOCS_URL}/sharing` },
-        { label: "FAQ", href: lh("/#faq") },
-      ],
-    },
-    {
-      title: "Self-hosting",
-      links: [
-        { label: "Overview", href: `${DOCS_URL}/self-hosting` },
-        { label: "Cloudflare", href: `${DOCS_URL}/self-hosting/cloudflare` },
-        { label: "Architecture", href: `${DOCS_URL}/architecture` },
-        { label: "Contributing", href: `${DOCS_URL}/contributing` },
-      ],
-    },
-    {
-      title: "Community",
-      links: [
-        { label: "GitHub", href: X_URL },
-        { label: "Discord", href: DISCORD_URL },
-        { label: "Issues", href: `${X_URL}/issues` },
-        { label: "Latest release", href: DOWNLOAD_URL },
-      ],
-    },
+  // One flat row rather than titled columns — the landing is short enough that
+  // a sitemap footer outweighs it.
+  const links: FooterLink[] = [
+    { label: "Docs", href: DOCS_URL },
+    { label: "Download", href: lh("/download") },
+    { label: "Pricing", href: lh("/plan") },
+    { label: "Self-hosting", href: `${DOCS_URL}/self-hosting` },
+    { label: "FAQ", href: lh("/#faq") },
+    { label: "Releases", href: RELEASES_URL },
+    { label: "GitHub", href: SOURCE_REPO_URL },
+    { label: "Discord", href: DISCORD_URL },
   ];
 
   return (
@@ -77,41 +43,47 @@ export function Footer() {
         position: "relative",
         overflow: "hidden",
         marginTop: "auto",
-        borderTop: `1px solid ${token.colorBorderSecondary}`,
         background: token.colorBgContainer,
-        /* Extra bottom space so the fixed floating CTA (≈128px tall reach from
-           the page bottom) never overlaps the footer links/copyright. */
-        paddingBlock: "56px 160px",
+        /* Bottom space is for the decorative wordmark below, not content. */
+        paddingBlock: "72px 140px",
       }}
     >
-      {/* Deliberately NOT viewport.once: `once` latches at the hidden initial
+      {/* dir="ltr" keeps this decorative wordmark upright under RTL.
+          Deliberately NOT viewport.once: `once` latches at the hidden initial
           state on scroll-away/remount; re-evaluating on every entry keeps it reliable. */}
       <motion.div
+        dir="ltr"
         aria-hidden
         initial={{ y: 90, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ amount: 0.4 }}
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-        className="pointer-events-none absolute inset-0 z-0 hidden sm:block"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 hidden overflow-hidden sm:block"
       >
-        <div className="absolute inset-0" style={{ background: FOOTER_GLOW }} />
-        {/* dir="ltr" pins this decorative wordmark so per-letter spans never reverse under RTL. */}
-        <div
-          dir="ltr"
-          className="absolute inset-x-0 bottom-0 flex justify-center overflow-hidden"
+        <svg
+          viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+          preserveAspectRatio="xMidYMax meet"
+          className="w-full translate-y-[22%] select-none text-[rgba(0,0,0,0.1)] dark:text-[rgba(255,255,255,0.08)]"
         >
-          <span className="translate-y-[14%] select-none whitespace-nowrap text-[17vw] font-bold leading-none tracking-tight text-[rgba(0,0,0,0.05)] dark:text-[rgba(255,255,255,0.022)]">
-            {WORDMARK_LETTERS.map((letter, i) => (
-              <span
-                key={i}
-                className="inline-block"
-                style={{ transform: `translateY(${letter.offset}em)` }}
-              >
-                {letter.ch}
-              </span>
-            ))}
-          </span>
-        </div>
+          <text
+            x={VIEW_W / 2}
+            y={BASELINE}
+            textAnchor="middle"
+            fontSize={FONT_SIZE}
+            fontWeight={700}
+            letterSpacing="-0.03em"
+            fill="none"
+            stroke="currentColor"
+            /* Values are in viewBox units, so they scale ~1.5x at a desktop
+               width — a stroke of 2 lands near 3 CSS px on screen. Butt caps:
+               round ones swell each segment and read as a dotted line. */
+            strokeWidth={2}
+            strokeDasharray="12 8"
+            strokeLinecap="butt"
+          >
+            CaptureFlow
+          </text>
+        </svg>
       </motion.div>
 
       <div
@@ -121,42 +93,25 @@ export function Footer() {
           paddingInline: "clamp(20px, 4vw, 56px)",
         }}
       >
-        <Row gutter={[32, 32]}>
-          {columns.map((col) => (
-            <Col key={col.title} xs={12} sm={12} md={6}>
-              <Typography.Text
-                type="secondary"
-                style={{
-                  display: "block",
-                  marginBottom: 12,
-                  fontSize: 13,
-                  fontWeight: 600,
-                }}
-              >
-                {col.title}
-              </Typography.Text>
-              <Space orientation="vertical" size={8}>
-                {col.links.map((link) => (
-                  <Typography.Link
-                    key={link.label}
-                    href={link.href}
-                    type="secondary"
-                  >
-                    {link.label}
-                  </Typography.Link>
-                ))}
-              </Space>
-            </Col>
-          ))}
-        </Row>
-
-        <Typography.Text
-          type="secondary"
-          suppressHydrationWarning
-          style={{ display: "block", marginTop: 48, fontSize: 13 }}
+        <nav
+          aria-label="Footer"
+          className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3"
         >
-          © {new Date().getFullYear()} CaptureFlow
-        </Typography.Text>
+          {links.map((link) => (
+            <TypoLink key={link.label} href={link.href} type="secondary">
+              {link.label}
+            </TypoLink>
+          ))}
+        </nav>
+
+        <Text
+          type="secondary"
+          align="center"
+          suppressHydrationWarning
+          style={{ display: "block", marginTop: 20, fontSize: 14 }}
+        >
+          © {new Date().getFullYear()} CaptureFlow. All rights reserved.
+        </Text>
       </div>
     </footer>
   );

@@ -6,75 +6,108 @@
 /* Semantic color tokens, exposed as Tailwind utilities (`bg-canvas`,
  * `text-fg`, etc.) via the `@theme inline` block below. Themes switch
  * via `data-theme="light"`/`"dark"` on <html>; the default (no
- * attribute) matches dark. */
+ * attribute) matches dark.
+ *
+ * Every raw property is `--cf-` prefixed. This stylesheet loads after
+ * @heroui/styles, so an unprefixed name here would silently overwrite the
+ * identically-named HeroUI theme variable that its components paint with —
+ * `--overlay` did exactly that and left every popover transparent. Keep new
+ * tokens prefixed, and don't reintroduce a `--color-*` alias for a name
+ * HeroUI already owns (accent, danger, surface, overlay, muted, border,
+ * separator, background, foreground, link, focus, success, warning). */
 
 :root,
 [data-theme="dark"] {
-  --canvas: #0a0a0a; /* page background */
-  --canvas-2: #171717; /* sidebar / header */
-  --surface: #1f1f1f; /* cards / popovers */
-  --surface-2: #262626; /* raised surface */
+  /* Chrome and content are one flat near-black; depth comes from the panels
+     stacked on top, not from tinting the shell. */
+  --cf-canvas: #0a0a0a; /* page background */
+  --cf-canvas-2: #0a0a0a; /* sidebar / header */
+  --cf-panel: #1f1f1f; /* cards / popovers */
+  --cf-panel-2: #262626; /* raised surface */
+  --cf-field: #171717; /* form fields */
 
-  --fg: #f5f5f5;
-  --fg-strong: #fafafa; /* headings */
-  --fg-muted: #a3a3a3; /* secondary text */
-  --fg-subtle: #737373; /* tertiary text */
+  --cf-fg: #f5f5f5;
+  --cf-fg-strong: #fafafa; /* headings */
+  --cf-fg-muted: #a3a3a3; /* secondary text */
+  --cf-fg-subtle: #737373; /* tertiary text */
 
-  --line: rgb(255 255 255 / 0.05);
-  --line-strong: rgb(255 255 255 / 0.1);
-  --overlay: rgb(255 255 255 / 0.06);
-  --overlay-strong: rgb(255 255 255 / 0.12);
+  --cf-line: rgb(255 255 255 / 0.05);
+  --cf-line-strong: rgb(255 255 255 / 0.1);
+  --cf-tint: rgb(255 255 255 / 0.06); /* hover / selected wash */
+  --cf-tint-strong: rgb(255 255 255 / 0.12);
 
   /* Sits opposite the canvas, for pills/badges that should pop against
      the background regardless of theme. */
-  --inverse: #ffffff;
-  --on-inverse: #0a0a0a;
+  --cf-inverse: #ffffff;
+  --cf-on-inverse: #0a0a0a;
 
-  /* Blue accent, themed per background for legibility. */
-  --accent: #93c5fd; /* accent text (links, selected labels) */
-  --accent-strong: #bfdbfe; /* hover / emphasized accent text */
-  --accent-bg: #2563eb; /* solid fill (buttons) */
-  --accent-bg-hover: #3b82f6; /* lighter on hover (dark) */
-  --accent-bg-soft: rgb(
-    59 130 246 / 0.18
-  ); /* tinted background (selected cards) */
-  --accent-ring: rgb(59 130 246 / 0.4); /* focus / selected ring */
+  /* Solid blue fill. Accent *text* comes from HeroUI's `--accent`. */
+  --cf-accent-strong: #bfdbfe; /* hover / emphasized accent text */
+  --cf-accent-bg: #2563eb;
+  --cf-accent-bg-hover: #3b82f6; /* lighter on hover (dark) */
+  --cf-accent-ring: rgb(59 130 246 / 0.4); /* focus / selected ring */
 
-  /* Red danger, themed per background for legibility. */
-  --danger: #f87171;
-  --danger-strong: #fca5a5;
-  --danger-bg-soft: rgb(239 68 68 / 0.12);
+  --cf-danger-strong: #fca5a5;
 }
 
 [data-theme="light"] {
-  --canvas: #fafafa;
-  --canvas-2: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #f5f5f5;
+  --cf-canvas: #fafafa;
+  --cf-canvas-2: #ffffff;
+  --cf-panel: #ffffff;
+  --cf-panel-2: #f5f5f5;
+  --cf-field: #f5f5f5;
 
-  --fg: #171717;
-  --fg-strong: #0a0a0a;
-  --fg-muted: #525252;
-  --fg-subtle: #737373;
+  --cf-fg: #171717;
+  --cf-fg-strong: #0a0a0a;
+  --cf-fg-muted: #525252;
+  --cf-fg-subtle: #737373;
 
-  --line: rgb(0 0 0 / 0.08);
-  --line-strong: rgb(0 0 0 / 0.14);
-  --overlay: rgb(0 0 0 / 0.05);
-  --overlay-strong: rgb(0 0 0 / 0.1);
+  --cf-line: rgb(0 0 0 / 0.08);
+  --cf-line-strong: rgb(0 0 0 / 0.14);
+  --cf-tint: rgb(0 0 0 / 0.05);
+  --cf-tint-strong: rgb(0 0 0 / 0.1);
 
-  --inverse: #0a0a0a;
-  --on-inverse: #fafafa;
+  --cf-inverse: #0a0a0a;
+  --cf-on-inverse: #fafafa;
 
-  --accent: #2563eb;
-  --accent-strong: #1d4ed8;
-  --accent-bg: #2563eb;
-  --accent-bg-hover: #1d4ed8; /* darker on hover (light) */
-  --accent-bg-soft: rgb(37 99 235 / 0.12);
-  --accent-ring: rgb(37 99 235 / 0.35);
+  --cf-accent-strong: #1d4ed8;
+  --cf-accent-bg: #2563eb;
+  --cf-accent-bg-hover: #1d4ed8; /* darker on hover (light) */
+  --cf-accent-ring: rgb(37 99 235 / 0.35);
 
-  --danger: #dc2626;
-  --danger-strong: #b91c1c;
-  --danger-bg-soft: rgb(220 38 38 / 0.08);
+  --cf-danger-strong: #b91c1c;
+}
+
+/* HeroUI paints form fields from `--field-*`, and in dark its
+ * `--field-background` is the SAME value as `--surface` — so an Input inside a
+ * Card is invisible. Point it at our own field fill instead, which sits below
+ * the card in dark and above it in light. That fill is what separates a field
+ * from whatever it sits on, so HeroUI's borderless default stands.
+ * Deliberately unprefixed: this is HeroUI's own theming hook, not a token of
+ * ours. Its `bg-field` utility reads the same value, for the few fields built
+ * by hand. */
+:root {
+  --field-background: var(--cf-field);
+}
+
+/* A field only reads as a field if it sits above whatever it's on, and on a
+ * card or a dialog the container already occupies that step — HeroUI paints
+ * both from --surface/--overlay and keeps one absolute field colour, so an
+ * Input inside one comes out the same value as the thing behind it. Take the
+ * step above there. Inheritance, not specificity, decides: the nearest
+ * ancestor setting the property wins. */
+.card,
+.modal__dialog,
+.drawer__dialog,
+.popover {
+  --field-background: var(--cf-panel-2);
+}
+
+/* HeroUI rounds cards to min(32px, --radius-3xl), which at our scale is 24px —
+ * bubbly on a dense grid, and far off the 12px its own fields use. Set here
+ * rather than by shrinking --radius-3xl, which Tailwind's rounded-3xl shares. */
+.card {
+  border-radius: 16px;
 }
 
 /* Palette fallback. The codebase still has ~900 hardcoded `*-neutral-*`
@@ -95,33 +128,48 @@
   --color-neutral-950: #fafafa;
 }
 
+/* The inversion above is inherited, so a dark subtree inside a light root —
+ * MarketingShell, which is dark whatever the cookie says — would keep painting
+ * from the flipped scale: `text-neutral-900` came out white on a white button.
+ * Restore the upright scale for any nested dark theme. Must follow the light
+ * block, and must NOT also match :root or it would undo the inversion there. */
+[data-theme="dark"] {
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
+}
+
 @theme inline {
-  --color-canvas: var(--canvas);
-  --color-canvas-2: var(--canvas-2);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
+  --color-canvas: var(--cf-canvas);
+  --color-canvas-2: var(--cf-canvas-2);
+  --color-panel: var(--cf-panel);
+  --color-panel-2: var(--cf-panel-2);
 
-  --color-fg: var(--fg);
-  --color-fg-strong: var(--fg-strong);
-  --color-fg-muted: var(--fg-muted);
-  --color-fg-subtle: var(--fg-subtle);
+  --color-fg: var(--cf-fg);
+  --color-fg-strong: var(--cf-fg-strong);
+  --color-fg-muted: var(--cf-fg-muted);
+  --color-fg-subtle: var(--cf-fg-subtle);
 
-  --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
-  --color-overlay: var(--overlay);
-  --color-overlay-strong: var(--overlay-strong);
+  --color-line: var(--cf-line);
+  --color-line-strong: var(--cf-line-strong);
+  --color-tint: var(--cf-tint);
+  --color-tint-strong: var(--cf-tint-strong);
 
-  --color-inverse: var(--inverse);
-  --color-on-inverse: var(--on-inverse);
+  --color-inverse: var(--cf-inverse);
+  --color-on-inverse: var(--cf-on-inverse);
 
-  --color-accent: var(--accent);
-  --color-accent-strong: var(--accent-strong);
-  --color-accent-bg: var(--accent-bg);
-  --color-accent-bg-hover: var(--accent-bg-hover);
-  --color-accent-soft: var(--accent-bg-soft);
-  --color-accent-ring: var(--accent-ring);
+  --color-accent-strong: var(--cf-accent-strong);
+  --color-accent-bg: var(--cf-accent-bg);
+  --color-accent-bg-hover: var(--cf-accent-bg-hover);
+  --color-accent-ring: var(--cf-accent-ring);
 
-  --color-danger: var(--danger);
-  --color-danger-strong: var(--danger-strong);
-  --color-danger-soft: var(--danger-bg-soft);
+  --color-danger-strong: var(--cf-danger-strong);
 }

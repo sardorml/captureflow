@@ -1,17 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { Text } from "./typography";
 import Link from "next/link";
-import { Alert, Button, Flex, Form, Input, Space, Typography } from "antd";
+import { Flex, Space } from "./layout";
+import { Alert, Input } from "@heroui/react";
+import { Button } from "./ui";
 import { track } from "@/lib/marketing/track";
 import { useMessages } from "./i18n-provider";
 
 type WaitlistFormProps = {
   className?: string;
-};
-
-type WaitlistFormValues = {
-  email: string;
 };
 
 export function WaitlistForm({ className }: WaitlistFormProps) {
@@ -20,7 +19,9 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async ({ email }: WaitlistFormValues) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const email = String(new FormData(e.currentTarget).get("email") ?? "");
     setLoading(true);
     setError(null);
     try {
@@ -48,12 +49,11 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
 
   if (submitted) {
     return (
-      <Alert
-        className={className}
-        type="success"
-        showIcon
-        message={m.waitlist.success}
-      />
+      <Alert className={className} status="success">
+        <Alert.Content>
+          <Alert.Title>{m.waitlist.success}</Alert.Title>
+        </Alert.Content>
+      </Alert>
     );
   }
 
@@ -64,24 +64,16 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
       gap="small"
       style={{ width: "100%", maxWidth: 448 }}
     >
-      <Form<WaitlistFormValues>
-        layout="inline"
-        onFinish={handleSubmit}
-        requiredMark={false}
-      >
+      <form onSubmit={handleSubmit}>
         <Space.Compact style={{ width: "100%" }}>
-          <Form.Item
+          <Input
             name="email"
-            rules={[{ required: true, type: "email" }]}
-            style={{ flex: 1, marginInlineEnd: 0 }}
-          >
-            <Input
-              type="email"
-              size="large"
-              aria-label={m.waitlist.emailPlaceholder}
-              placeholder={m.waitlist.emailPlaceholder}
-            />
-          </Form.Item>
+            type="email"
+            required
+            fullWidth
+            aria-label={m.waitlist.emailPlaceholder}
+            placeholder={m.waitlist.emailPlaceholder}
+          />
           <Button
             type="primary"
             size="large"
@@ -91,12 +83,18 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
             {loading ? m.waitlist.buttonLoading : m.waitlist.buttonDefault}
           </Button>
         </Space.Compact>
-      </Form>
-      {error && <Alert type="error" showIcon message={error} />}
-      <Typography.Text type="secondary">
+      </form>
+      {error && (
+        <Alert status="danger">
+          <Alert.Content>
+            <Alert.Title>{error}</Alert.Title>
+          </Alert.Content>
+        </Alert>
+      )}
+      <Text type="secondary">
         {m.waitlist.earlyAccessPrompt}{" "}
         <Link href="/beta-tester">{m.waitlist.earlyAccessLink}</Link>.
-      </Typography.Text>
+      </Text>
     </Flex>
   );
 }

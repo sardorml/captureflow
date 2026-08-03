@@ -1,7 +1,17 @@
-import { useState } from "react";
-import type { RecordingResult, RecordingStatus } from "@/lib/storage";
+import { useEffect, useState } from "react";
+import { Button, Dropdown, Link, Spinner, Typography } from "@heroui/react";
+import {
+  getCapturePrefs,
+  setCapturePrefs,
+  watchCapturePrefs,
+  type CaptureSource,
+  type RecordingResult,
+  type RecordingStatus,
+} from "@/lib/storage";
 import { MAX_DURATION_MS } from "@/lib/capture/limits";
+import { isOverlaySurface } from "@/lib/surface";
 import { DevicePickers } from "./DevicePickers";
+import { PANEL_ROW } from "./panel";
 
 type RecorderPanelProps = {
   status: RecordingStatus;
@@ -9,6 +19,37 @@ type RecorderPanelProps = {
   onStart: () => void;
   onStop: () => void;
 };
+
+const WINDOW_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <rect
+      x="3.5"
+      y="4.5"
+      width="17"
+      height="15"
+      rx="2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path d="M3.5 10h17M10 10v9.5" stroke="currentColor" strokeWidth="1.8" />
+  </svg>
+);
+
+const TAB_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <rect
+      x="3"
+      y="7"
+      width="18"
+      height="11"
+      rx="2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
 
 const SCREEN_ICON = (
   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
@@ -31,12 +72,107 @@ const SCREEN_ICON = (
   </svg>
 );
 
+/* The one committing action in the panel, so it carries weight the blue
+   accent doesn't: warm fill, squared-off radius, heavier label. */
+const START_CLASS =
+  "h-10 rounded-xl text-sm font-semibold [--button-bg:#e8563a] [--button-bg-hover:#d94b30] [--button-bg-pressed:#c44227]";
+
+type SourceOption = {
+  id: CaptureSource;
+  label: string;
+  icon: React.ReactNode;
+  // The tab source records straight away; the other two have to go through
+  // Chrome's own picker, which only ever opens on the pane we ask for.
+  hint: string;
+};
+
+const DEFAULT_SOURCE: SourceOption = {
+  id: "screen",
+  label: "Full screen",
+  icon: SCREEN_ICON,
+  hint: "Pick at start",
+};
+
+const SOURCES: SourceOption[] = [
+  DEFAULT_SOURCE,
+  { id: "window", label: "Window", icon: WINDOW_ICON, hint: "Pick at start" },
+  { id: "tab", label: "This tab", icon: TAB_ICON, hint: "Records now" },
+];
+
+/*
+ * "This tab" records immediately from a chrome.tabCapture stream id. Full
+ * screen and Window can't: getDisplayMedia always shows Chrome's own picker,
+ * and displaySurface only chooses which pane it opens on. The row says which
+ * of the two you get rather than implying they behave alike.
+ */
+function SourcePicker() {
+  const [source, setSource] = useState<CaptureSource>("screen");
+
+  useEffect(() => {
+    void getCapturePrefs().then((p) => setSource(p.source ?? "screen"));
+    return watchCapturePrefs((p) => setSource(p.source ?? "screen"));
+  }, []);
+
+  const choose = (next: CaptureSource) => {
+    setSource(next);
+    void getCapturePrefs().then((p) => setCapturePrefs({ ...p, source: next }));
+  };
+
+  const selected = SOURCES.find((s) => s.id === source) ?? DEFAULT_SOURCE;
+
+  return (
+    <Dropdown>
+      {/* The source is the panel's headline choice, so the row carries the
+          accent instead of sitting in the same grey as the device rows. */}
+      <Dropdown.Trigger
+        aria-label="Capture source"
+        className={`${PANEL_ROW} w-full cursor-pointer bg-accent-soft text-start text-accent-soft-foreground outline-none`}
+      >
+        <span className="flex" aria-hidden>
+          {selected.icon}
+        </span>
+        <span className="flex-1 truncate text-sm font-semibold">
+          {selected.label}
+        </span>
+        <span className="text-xs opacity-70">{selected.hint}</span>
+      </Dropdown.Trigger>
+      {/* Beside the card, in the overlay frame's gutter. The standalone window
+          has no gutter to open into, so there it drops under the row. */}
+      <Dropdown.Popover
+        placement={isOverlaySurface ? "left top" : "bottom start"}
+        shouldFlip={!isOverlaySurface}
+        className="min-w-52"
+      >
+        <Dropdown.Menu
+          selectionMode="single"
+          selectedKeys={[source]}
+          onAction={(key) => choose(String(key) as CaptureSource)}
+        >
+          {SOURCES.map((s) => (
+            <Dropdown.Item
+              key={s.id}
+              id={s.id}
+              className="ps-2! pe-7! data-[selected=true]:text-accent"
+            >
+              {s.icon}
+              {s.label}
+              {/* Trailing check, like the row it stands for: HeroUI parks the
+                  indicator at the start, where the source icon already is. */}
+              <Dropdown.ItemIndicator className="start-auto end-2" />
+            </Dropdown.Item>
+          ))}
+        </Dropdown.Menu>
+      </Dropdown.Popover>
+    </Dropdown>
+  );
+}
+
 const BUSY_LABEL: Partial<Record<RecordingStatus["kind"], string>> = {
   preparing: "Starting…",
   uploading: "Uploading…",
 };
 
-function RecordingLink({ url }: { url: string }) {
+export function ResultLink({ url, label }: { url: string; label: string }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {
@@ -48,15 +184,22 @@ function RecordingLink({ url }: { url: string }) {
     }
   };
   return (
-    <div className="cf-result">
-      <p className="cf-status cf-status--ok">Your recording link is ready ✓</p>
-      <div className="cf-linkrow">
-        <a className="cf-link" href={url} target="_blank" rel="noreferrer">
+    <div className="flex flex-col gap-2">
+      <Typography type="body-xs" className="text-success">
+        {label} ✓
+      </Typography>
+      <div className="flex items-center gap-2 rounded-[10px] bg-surface px-2.5 py-2">
+        <Link
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="min-w-0 flex-1 truncate text-xs"
+        >
           {url}
-        </a>
-        <button type="button" className="cf-copy" onClick={copy}>
+        </Link>
+        <Button variant="outline" size="sm" onPress={() => void copy()}>
           {copied ? "Copied" : "Copy"}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -71,27 +214,37 @@ function StatusLine({
 }) {
   switch (status.kind) {
     case "preparing":
-      return <p className="cf-status">Choose a source in the picker…</p>;
+      return (
+        <Typography type="body-xs">Choose a source in the picker…</Typography>
+      );
     case "recording":
     case "paused":
       return (
-        <p className="cf-status">
+        <Typography type="body-xs">
           {status.kind === "paused" ? "Paused" : "Recording"} — control it from
           the bar on the page.
-        </p>
+        </Typography>
       );
     case "uploading":
-      return <p className="cf-status">Uploading your recording…</p>;
+      return <Typography type="body-xs">Uploading your recording…</Typography>;
     case "cancelled":
-      return <p className="cf-status cf-status--muted">Recording cancelled.</p>;
+      return (
+        <Typography type="body-xs" color="muted">
+          Recording cancelled.
+        </Typography>
+      );
     case "error":
       return (
-        <p className="cf-status cf-status--error">
+        <Typography type="body-xs" className="text-danger">
           {status.detail ?? "Something went wrong."}
-        </p>
+        </Typography>
       );
     default:
-      if (result?.ok) return <RecordingLink url={result.url} />;
+      if (result?.ok) {
+        return (
+          <ResultLink url={result.url} label="Your recording link is ready" />
+        );
+      }
       return null;
   }
 }
@@ -106,38 +259,44 @@ export function RecorderPanel({
   const isBusy = status.kind === "preparing" || status.kind === "uploading";
 
   return (
-    <>
-      <section className="cf-section">
-        <div className="cf-row">
-          <span className="cf-row-icon" aria-hidden>
-            {SCREEN_ICON}
-          </span>
-          <span className="cf-row-label">Screen, window, or tab</span>
-          <span className="cf-row-note">Pick at start</span>
-        </div>
-      </section>
+    <div className="flex flex-col gap-2">
+      <SourcePicker />
 
       <DevicePickers />
 
       {isLive ? (
-        <button type="button" className="cf-start cf-stop" onClick={onStop}>
-          Stop Recording
-        </button>
-      ) : (
-        <button
-          type="button"
-          className="cf-start"
-          onClick={onStart}
-          disabled={isBusy}
+        <Button
+          variant="danger"
+          size="lg"
+          fullWidth
+          onPress={onStop}
+          className="h-10 rounded-xl text-sm font-semibold"
         >
+          Stop Recording
+        </Button>
+      ) : (
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          isDisabled={isBusy}
+          onPress={onStart}
+          className={START_CLASS}
+        >
+          {isBusy && <Spinner size="sm" color="current" />}
           {BUSY_LABEL[status.kind] ?? "Start Recording"}
-        </button>
+        </Button>
       )}
-      <p className="cf-limit">
+      <Typography
+        type="body-xs"
+        color="muted"
+        align="center"
+        className="-mt-1.5"
+      >
         {Math.round(MAX_DURATION_MS / 60_000)} min recording limit
-      </p>
+      </Typography>
 
       <StatusLine status={status} result={result} />
-    </>
+    </div>
   );
 }

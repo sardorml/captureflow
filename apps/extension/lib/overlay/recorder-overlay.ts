@@ -6,21 +6,25 @@ export const RECORDER_BACKDROP_ID = "captureflow-recorder-backdrop";
  * a blurred/dimmed backdrop with the extension panel floating top-right. Clicking the backdrop closes it page-side (no SW round-trip).
  * Args only — the serialized body can't close over module scope.
  *
- * The iframe is sized exactly to the panel (the app reports its content height
- * through the SW), with the shadow/rounding painted page-side on the iframe
- * element. No iframe transparency: a color-scheme mismatch with the host page
- * would repaint any transparent area as an opaque white canvas.
+ * The iframe is wider than the panel: the card hugs its right edge and the
+ * gutter is transparent, so the panel's own menus can open beside it instead
+ * of being clipped at its edge. The card paints its rounding and shadow
+ * itself, and clicks on the gutter close the panel from inside.
+ *
+ * color-scheme on the frame is load-bearing: if the panel's used scheme (dark)
+ * differs from the embedder's, the transparent gutter is repainted as an
+ * opaque white canvas over the page.
  */
 export function toggleRecorderOverlay(
   frameUrl: string,
   frameId: string,
   backdropId: string,
-): void {
+): boolean {
   const existing = document.getElementById(frameId);
   if (existing) {
     existing.remove();
     document.getElementById(backdropId)?.remove();
-    return;
+    return false;
   }
 
   const backdrop = document.createElement("div");
@@ -31,6 +35,9 @@ export function toggleRecorderOverlay(
   backdrop.addEventListener("click", () => {
     backdrop.remove();
     document.getElementById(frameId)?.remove();
+    // Closing page-side keeps this instant, but the worker still has to hear
+    // about it — the camera preview it owns outlives the panel otherwise.
+    chrome.runtime.sendMessage({ recorderOverlayClosed: true });
   });
 
   const iframe = document.createElement("iframe");
@@ -38,9 +45,9 @@ export function toggleRecorderOverlay(
   iframe.src = frameUrl;
   iframe.allow = "camera; microphone";
   iframe.style.cssText =
-    "position:fixed;top:14px;right:14px;width:348px;height:0;border:0;" +
-    "z-index:2147483647;background:#16181d;border-radius:16px;" +
-    "box-shadow:0 24px 64px rgba(0,0,0,.5);transition:height .15s ease;";
+    "position:fixed;top:14px;right:14px;width:548px;height:0;border:0;" +
+    "z-index:2147483647;background:transparent;color-scheme:dark;" +
+    "transition:height .15s ease;";
 
   // If no height report ever lands, show the panel at a sane size instead of
   // leaving a 0px (invisible) frame. Literals: serialized body, no outer scope.
@@ -53,6 +60,7 @@ export function toggleRecorderOverlay(
 
   document.documentElement.appendChild(backdrop);
   document.documentElement.appendChild(iframe);
+  return true;
 }
 
 // Height reports flow app → SW → this (chrome.scripting), not postMessage:

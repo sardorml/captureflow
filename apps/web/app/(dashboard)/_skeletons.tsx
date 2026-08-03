@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Flex, Skeleton } from "antd";
+import { Card, Skeleton } from "@heroui/react";
 
 export function PageHeaderSkeleton({
   showRecord = true,
@@ -8,31 +8,24 @@ export function PageHeaderSkeleton({
   showRecord?: boolean;
 }) {
   return (
-    <Flex wrap align="flex-end" justify="space-between" gap={16}>
-      <div style={{ flex: 1, minWidth: 0, maxWidth: 320 }}>
-        <Skeleton
-          active
-          title={{ width: "55%" }}
-          paragraph={{ rows: 1, width: "85%" }}
-        />
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="min-w-0 max-w-80 flex-1 space-y-2">
+        <Skeleton className="h-7 w-[55%] rounded-md" />
+        <Skeleton className="h-4 w-[85%] rounded-md" />
       </div>
-      {showRecord && <Skeleton.Button active style={{ width: 140 }} />}
-    </Flex>
+      {showRecord && <Skeleton className="h-9 w-35 rounded-md" />}
+    </div>
   );
 }
 
 export function CardGridSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div
-      style={{
-        marginTop: 24,
-        display: "grid",
-        gap: 16,
-        gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-      }}
-    >
+    <div className="mt-6 grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
       {Array.from({ length: count }).map((_, i) => (
-        <Card key={i} loading />
+        <Card key={i} className="p-4">
+          <Skeleton className="h-32 w-full rounded-lg" />
+          <Skeleton className="mt-3 h-4 w-3/5 rounded-md" />
+        </Card>
       ))}
     </div>
   );
@@ -40,29 +33,29 @@ export function CardGridSkeleton({ count = 8 }: { count?: number }) {
 
 export function RowListSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <Card style={{ marginTop: 24 }}>
-      <Flex vertical gap={16}>
+    <Card className="mt-6 p-4">
+      <div className="flex flex-col gap-4">
         {Array.from({ length: count }).map((_, i) => (
-          <Skeleton
-            key={i}
-            active
-            avatar
-            title={false}
-            paragraph={{ rows: 1, width: "60%" }}
-          />
+          <div key={i} className="flex items-center gap-3">
+            <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+            <Skeleton className="h-4 w-3/5 rounded-md" />
+          </div>
         ))}
-      </Flex>
+      </div>
     </Card>
   );
 }
 
 export function FormSectionsSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <Flex vertical gap={24} style={{ marginTop: 24 }}>
+    <div className="mt-6 flex flex-col gap-6">
       {Array.from({ length: count }).map((_, i) => (
-        <Card key={i} loading />
+        <Card key={i} className="space-y-3 p-4">
+          <Skeleton className="h-5 w-2/5 rounded-md" />
+          <Skeleton className="h-4 w-4/5 rounded-md" />
+        </Card>
       ))}
-    </Flex>
+    </div>
   );
 }
 
@@ -80,7 +73,7 @@ export function DashboardLoading({
       {variant === "rows" && <RowListSkeleton />}
       {variant === "form" && <FormSectionsSkeleton />}
       {variant === "empty" && (
-        <Card style={{ marginTop: 40, height: 192 }} loading />
+        <Skeleton className="mt-10 h-48 w-full rounded-xl" />
       )}
     </div>
   );

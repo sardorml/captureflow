@@ -1,47 +1,84 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { UserPlus } from "lucide-react";
-import { Alert, Button, Modal, Select, Typography } from "antd";
+import {
+  cloneElement,
+  useState,
+  useTransition,
+  type KeyboardEvent,
+  type ReactElement,
+} from "react";
+import { UserPlus, X } from "lucide-react";
+import { Alert, Button, Chip, Modal, Typography } from "@heroui/react";
 import { inviteMemberAction } from "./members/actions";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SEPARATORS = [",", " ", "Enter"];
 
 type Result = { sent: string[]; failed: { email: string; error: string }[] };
 
 type InviteModalProps = {
-  trigger?: React.ReactNode;
+  /*
+   * Cloned with an onClick rather than wrapped in one: React Aria's usePress
+   * calls stopPropagation() on click, so an ancestor's handler never fires.
+   * onClick (not onPress) because callers pass both HeroUI Buttons and plain
+   * <button>s — React Aria routes onClick through usePress, plain DOM takes it
+   * natively.
+   */
+  trigger?: ReactElement<{ onClick?: () => void }>;
 };
 
 export function InviteModal({ trigger }: InviteModalProps = {}) {
   const [open, setOpen] = useState(false);
   const [emails, setEmails] = useState<string[]>([]);
+  const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const reset = () => {
     setEmails([]);
+    setDraft("");
     setError(null);
     setResult(null);
+  };
+
+  const commitDraft = () => {
+    const value = draft.trim().replace(/,$/, "");
+    if (!value) return;
+    if (!emails.includes(value)) setEmails([...emails, value]);
+    setDraft("");
+    if (error) setError(null);
+  };
+
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (SEPARATORS.includes(e.key)) {
+      e.preventDefault();
+      commitDraft();
+      return;
+    }
+    if (e.key === "Backspace" && !draft && emails.length > 0) {
+      setEmails(emails.slice(0, -1));
+    }
   };
 
   const submit = () => {
     setError(null);
     setResult(null);
-    if (emails.length === 0) {
+    const all = draft.trim() ? [...emails, draft.trim()] : emails;
+    if (all.length === 0) {
       setError("Add at least one email");
       return;
     }
-    const invalid = emails.filter((e) => !EMAIL_RE.test(e));
+    const invalid = all.filter((e) => !EMAIL_RE.test(e));
     if (invalid.length > 0) {
       setError(`Not a valid email: ${invalid.join(", ")}`);
       return;
     }
+    setDraft("");
     startTransition(async () => {
       const sent: string[] = [];
       const failed: { email: string; error: string }[] = [];
-      for (const email of emails) {
+      for (const email of all) {
         const fd = new FormData();
         fd.set("email", email);
         const res = await inviteMemberAction({ error: null, ok: null }, fd);
@@ -54,90 +91,134 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
   };
 
   const triggerNode = trigger ?? (
-    <Button icon={<UserPlus size={16} />}>Invite teammates</Button>
+    <Button variant="secondary">
+      <UserPlus size={16} />
+      Invite teammates
+    </Button>
   );
 
   return (
     <>
-      <span onClick={() => setOpen(true)} style={{ display: "contents" }}>
-        {triggerNode}
-      </span>
+      {cloneElement(triggerNode, { onClick: () => setOpen(true) })}
       <Modal
-        open={open}
-        onCancel={() => {
-          setOpen(false);
-          reset();
+        isOpen={open}
+        onOpenChange={(next) => {
+          if (!next) {
+            setOpen(false);
+            reset();
+          }
         }}
-        onOk={submit}
-        okText={isPending ? "Sending…" : "Send invites"}
-        confirmLoading={isPending}
-        okButtonProps={{ disabled: emails.length === 0 }}
-        title="Invite teammates to your workspace"
       >
-        <Typography.Paragraph type="secondary">
-          They&rsquo;ll get an email with a link that expires in 7 days. Make
-          sure they sign in with the same address.
-        </Typography.Paragraph>
-        <Select
-          mode="tags"
-          open={false}
-          suffixIcon={null}
-          style={{ width: "100%" }}
-          placeholder="Add emails"
-          tokenSeparators={[",", " "]}
-          value={emails}
-          onChange={(value: string[]) => {
-            setEmails(value);
-            if (error) setError(null);
-          }}
-        />
-        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-          Separate emails with a space, comma, or enter.
-        </Typography.Text>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading>
+                  Invite teammates to your workspace
+                </Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
+                <Typography.Paragraph color="muted">
+                  They&rsquo;ll get an email with a link that expires in 7 days.
+                  Make sure they sign in with the same address.
+                </Typography.Paragraph>
 
-        {error && (
-          <Alert
-            type="error"
-            showIcon
-            message={error}
-            style={{ marginTop: 12 }}
-          />
-        )}
-        {result && (
-          <div
-            style={{
-              marginTop: 12,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-            }}
-          >
-            {result.sent.length > 0 && (
-              <Alert
-                type="success"
-                showIcon
-                message={`Sent ${result.sent.length} ${
-                  result.sent.length === 1 ? "invite" : "invites"
-                }.`}
-              />
-            )}
-            {result.failed.length > 0 && (
-              <Alert
-                type="error"
-                showIcon
-                message={
-                  <ul style={{ margin: 0, paddingInlineStart: 16 }}>
-                    {result.failed.map((f) => (
-                      <li key={f.email}>
-                        {f.email}: {f.error}
-                      </li>
-                    ))}
-                  </ul>
-                }
-              />
-            )}
-          </div>
-        )}
+                {/* The container is the field: it owns the fill and the focus
+                    ring, so the inner control is a bare <input>. A HeroUI Input
+                    here nests its own background/shadow inside this one — its
+                    chrome can't be fully stripped from the wrapper. */}
+                <div className="flex flex-wrap items-center gap-1.5 rounded-md bg-field p-2 transition-shadow focus-within:ring-2 focus-within:ring-focus motion-reduce:transition-none">
+                  {emails.map((email) => (
+                    <Chip key={email} size="sm">
+                      {email}
+                      <button
+                        type="button"
+                        aria-label={`Remove ${email}`}
+                        onClick={() =>
+                          setEmails(emails.filter((e) => e !== email))
+                        }
+                        className="ml-1 cursor-pointer"
+                      >
+                        <X size={12} />
+                      </button>
+                    </Chip>
+                  ))}
+                  <input
+                    type="text"
+                    className="min-w-40 flex-1 bg-transparent px-1 py-0.5 text-sm text-fg outline-none placeholder:text-fg-muted"
+                    placeholder="Add emails"
+                    aria-label="Add emails"
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={onKeyDown}
+                    onBlur={commitDraft}
+                  />
+                </div>
+                <Typography type="body-xs" color="muted">
+                  Separate emails with a space, comma, or enter.
+                </Typography>
+
+                {error && (
+                  <Alert status="danger" className="mt-3">
+                    <Alert.Content>
+                      <Alert.Title>{error}</Alert.Title>
+                    </Alert.Content>
+                  </Alert>
+                )}
+                {result && (
+                  <div className="mt-3 flex flex-col gap-2">
+                    {result.sent.length > 0 && (
+                      <Alert status="success">
+                        <Alert.Content>
+                          <Alert.Title>
+                            {`Sent ${result.sent.length} ${
+                              result.sent.length === 1 ? "invite" : "invites"
+                            }.`}
+                          </Alert.Title>
+                        </Alert.Content>
+                      </Alert>
+                    )}
+                    {result.failed.length > 0 && (
+                      <Alert status="danger">
+                        <Alert.Content>
+                          <Alert.Description>
+                            <ul className="m-0 list-disc ps-4">
+                              {result.failed.map((f) => (
+                                <li key={f.email}>
+                                  {f.email}: {f.error}
+                                </li>
+                              ))}
+                            </ul>
+                          </Alert.Description>
+                        </Alert.Content>
+                      </Alert>
+                    )}
+                  </div>
+                )}
+              </Modal.Body>
+              <Modal.Footer className="flex justify-end gap-2">
+                <Button
+                  variant="secondary"
+                  onPress={() => {
+                    setOpen(false);
+                    reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onPress={submit}
+                  isDisabled={
+                    isPending || (emails.length === 0 && !draft.trim())
+                  }
+                >
+                  {isPending ? "Sending…" : "Send invites"}
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </>
   );
