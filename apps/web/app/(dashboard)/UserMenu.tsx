@@ -52,9 +52,7 @@ export function UserMenu({
       key: "billing",
       icon: <Receipt size={16} />,
       label: "Billing",
-      // No billing page of our own — the plan is bought through the upgrade
-      // modal, which this query param opens.
-      href: "/recordings?upgrade=1",
+      href: "/billing",
       trailing: (
         <Chip size="sm" color={pro ? "accent" : "default"}>
           {pro ? "Pro" : "Free"}
