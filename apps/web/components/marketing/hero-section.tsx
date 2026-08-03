@@ -96,7 +96,9 @@ export function HeroSection() {
         )}
 
         {CURRENT_STAGE.showHeroBuyCta ? (
-          <Flex vertical align="center" gap={14} style={{ marginTop: 24 }}>
+          /* Tighter than the 24 above the buttons: this line is their caption,
+             so it belongs to them rather than sitting between equals. */
+          <Flex vertical align="center" gap={14} style={{ marginTop: 16 }}>
             <span className="text-sm text-fg-muted">
               <NextLink
                 href={`${lh("/login")}?mode=signup`}
