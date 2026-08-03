@@ -81,9 +81,12 @@ export function ViewerNav({
           ) : null}
         </span>
       </a>
-      <div className="flex items-center gap-3">
+      {/* One gap for the whole row, matching what the actions use internally:
+          the icon buttons pad their own glyphs, so anything wider here opens a
+          visible hole between two of them. */}
+      <div className="flex items-center gap-2">
         {typeof viewCount === "number" ? (
-          <span className="text-sm tabular-nums text-fg-muted">
+          <span className="me-2 text-sm tabular-nums text-fg-muted">
             {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
           </span>
         ) : null}

@@ -15,6 +15,7 @@ import {
   ShareVisibilityModal,
   type Visibility,
 } from "@/app/_components/ShareVisibilityModal";
+import { cn } from "@/lib/utils";
 
 type Props = {
   screenshotId: string;
@@ -112,9 +113,11 @@ export function ScreenshotActions({
     <>
       <div className="flex items-center gap-2">
         {isOwner && (
+          /* See RecordingActions: filled pills need the extra 8px to sit as far
+             apart as the padded icon buttons later in the row look. */
           <a
             href={editUrl}
-            className={buttonVariants({ variant: "secondary" })}
+            className={cn(buttonVariants({ variant: "secondary" }), "me-2")}
           >
             <Pencil size={16} />
             Edit screenshot
@@ -149,7 +152,11 @@ export function ScreenshotActions({
           <Dropdown>
             <Dropdown.Trigger
               aria-label="More actions"
-              className={buttonVariants({ variant: "ghost", isIconOnly: true })}
+              className={buttonVariants({
+                variant: "ghost",
+                size: "sm",
+                isIconOnly: true,
+              })}
             >
               <MoreHorizontal size={18} />
             </Dropdown.Trigger>
