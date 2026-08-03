@@ -10,7 +10,7 @@ import {
   Settings,
 } from "lucide-react";
 import { Chip } from "@heroui/react";
-import type { Theme } from "@captureflow/ui";
+import type { ThemePreference } from "@captureflow/ui";
 import { signOut } from "@/lib/auth-client";
 import { notifyExtensionSignOut } from "@/lib/extension-bridge";
 import { SUPPORT_EMAIL } from "@/lib/marketing/constants";
@@ -26,10 +26,16 @@ type Props = {
   email: string;
   imageUrl: string | null;
   pro: AccountMenuProInfo | null;
-  theme: Theme;
+  themePreference: ThemePreference;
 };
 
-export function UserMenu({ name, email, imageUrl, pro, theme }: Props) {
+export function UserMenu({
+  name,
+  email,
+  imageUrl,
+  pro,
+  themePreference,
+}: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -88,7 +94,7 @@ export function UserMenu({ name, email, imageUrl, pro, theme }: Props) {
       imageUrl={imageUrl}
       pro={pro}
       navItems={navItems}
-      theme={theme}
+      themePreference={themePreference}
       signingOut={pending}
       onSignOut={() => void onSignOut()}
     />

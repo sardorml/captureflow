@@ -5,7 +5,7 @@ import { Button } from "@heroui/react";
 import { getActiveProSubscription } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
-import { readThemeFromCookieHeader } from "@captureflow/ui";
+import { readThemePreferenceFromCookieHeader } from "@captureflow/ui";
 import { SearchTrigger } from "./SearchTrigger";
 import { UpgradeModal } from "./UpgradeModal";
 import { UserMenu } from "./UserMenu";
@@ -23,7 +23,7 @@ export async function TopBar() {
     : [null, null];
   const userImage = userRow?.image ?? null;
   const cookieHeader = (await headers()).get("cookie");
-  const theme = readThemeFromCookieHeader(cookieHeader);
+  const themePreference = readThemePreferenceFromCookieHeader(cookieHeader);
 
   const isPro = subscription?.status === "active";
 
@@ -56,7 +56,7 @@ export async function TopBar() {
           </Button>
         </Link>
         <UserMenu
-          theme={theme}
+          themePreference={themePreference}
           userId={session.user.id}
           name={session.user.name ?? null}
           email={session.user.email}

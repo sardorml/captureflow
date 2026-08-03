@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Monitor, Moon, Sun } from "lucide-react";
-import { THEME_COOKIE, type Theme } from "@captureflow/ui";
+import { Monitor, Moon, Palette, Sun } from "lucide-react";
+import {
+  isThemePreference,
+  THEME_COOKIE,
+  type ThemePreference,
+} from "@captureflow/ui";
 
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
@@ -15,7 +19,7 @@ function cookieDomainFor(hostname: string): string | null {
   return null;
 }
 
-function writeThemeCookie(value: Theme) {
+function writeThemeCookie(value: ThemePreference) {
   const domain = cookieDomainFor(window.location.hostname);
   const parts = [
     `${THEME_COOKIE}=${value}`,
@@ -28,31 +32,56 @@ function writeThemeCookie(value: Theme) {
   document.cookie = parts.join("; ");
 }
 
-const OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
+const OPTIONS: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
   { value: "light", label: "Light", icon: Sun },
   { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: Monitor },
 ];
+
+// "system" is a preference, not a paint value — resolve it here the same way
+// the head script does.
+function resolve(preference: ThemePreference): "light" | "dark" {
+  if (preference !== "system") return preference;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function readPreferenceCookie(): ThemePreference | null {
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${THEME_COOKIE}=([^;]*)`),
+  );
+  if (!match) return null;
+  const value = decodeURIComponent(match[1]);
+  return isThemePreference(value) ? value : null;
+}
 
 /*
  * The theme row of the account menu: a label with the segmented control
  * inline, so switching doesn't cost a trip to settings. Sits outside
  * Dropdown.Menu — a menu item would close the popover on every press.
  */
-export function ThemeSegments({ initialTheme }: { initialTheme: Theme }) {
-  const [theme, setTheme] = useState<Theme>(initialTheme);
+export function ThemeSegments({
+  initialPreference,
+}: {
+  initialPreference: ThemePreference;
+}) {
+  const [preference, setPreference] =
+    useState<ThemePreference>(initialPreference);
 
   // The cookie is read on the server, but a toggle elsewhere on the page may
-  // have moved the attribute since this rendered.
+  // have written a new one since this rendered. Read the cookie, not the
+  // attribute — the attribute can only ever show a resolved "system".
   useEffect(() => {
-    const attr = document.documentElement.getAttribute("data-theme");
-    if (attr === "light" || attr === "dark") setTheme(attr);
+    const stored = readPreferenceCookie();
+    if (stored) setPreference(stored);
   }, []);
 
-  const choose = (next: Theme) => {
-    if (next === theme) return;
+  const choose = (next: ThemePreference) => {
+    if (next === preference) return;
     const apply = () => {
-      setTheme(next);
-      document.documentElement.setAttribute("data-theme", next);
+      setPreference(next);
+      document.documentElement.setAttribute("data-theme", resolve(next));
       writeThemeCookie(next);
     };
     const reduceMotion = window.matchMedia?.(
@@ -71,7 +100,7 @@ export function ThemeSegments({ initialTheme }: { initialTheme: Theme }) {
   return (
     <div className="flex items-center justify-between gap-3 px-3 py-2">
       <span className="text-fg flex items-center gap-2 text-sm">
-        <Monitor size={16} className="text-fg-muted" />
+        <Palette size={16} className="text-fg-muted" />
         Theme
       </span>
       <div
@@ -80,7 +109,7 @@ export function ThemeSegments({ initialTheme }: { initialTheme: Theme }) {
         className="bg-tint flex items-center gap-0.5 rounded-full p-0.5"
       >
         {OPTIONS.map(({ value, label, icon: Icon }) => {
-          const on = value === theme;
+          const on = value === preference;
           return (
             <button
               key={value}

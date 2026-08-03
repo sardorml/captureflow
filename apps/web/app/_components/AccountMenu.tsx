@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { LogOut } from "lucide-react";
 import { Avatar, Dropdown, Separator, Typography } from "@heroui/react";
-import type { Theme } from "@captureflow/ui";
+import type { ThemePreference } from "@captureflow/ui";
 import { initials } from "@/lib/format";
 import { ThemeSegments } from "./ThemeSegments";
 
@@ -32,8 +32,8 @@ type Props = {
    * surface renders the same account menu.
    */
   navItems: AccountMenuNavItem[];
-  // Renders the theme row when the surface can supply the current theme.
-  theme?: Theme;
+  // Renders the theme row when the surface can supply the stored preference.
+  themePreference?: ThemePreference;
   signingOut: boolean;
   onSignOut: () => void;
 };
@@ -43,7 +43,7 @@ export function AccountMenu({
   email,
   imageUrl,
   navItems,
-  theme,
+  themePreference,
   signingOut,
   onSignOut,
 }: Props) {
@@ -93,10 +93,10 @@ export function AccountMenu({
           ))}
         </Dropdown.Menu>
 
-        {theme ? (
+        {themePreference ? (
           <>
             <Separator />
-            <ThemeSegments initialTheme={theme} />
+            <ThemeSegments initialPreference={themePreference} />
           </>
         ) : null}
 
