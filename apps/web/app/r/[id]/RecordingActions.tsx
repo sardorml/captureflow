@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { Button, ButtonGroup, Dropdown, buttonVariants } from "@heroui/react";
 import type { RecordingVisibility } from "@/lib/recording/types";
-import { cn } from "@/lib/utils";
 import { ShareVisibilityModal } from "@/app/_components/ShareVisibilityModal";
 
 type Props = {
@@ -113,12 +112,9 @@ export function RecordingActions({
     <>
       <div className="flex items-center gap-2">
         {isOwner && (
-          /* me-2: an icon button pads its glyph by 8px, so 8px of gap around a
-             filled pill reads as half the space the same gap leaves between the
-             icons further along the row. Even it out at the source. */
           <a
             href={editUrl}
-            className={cn(buttonVariants({ variant: "secondary" }), "me-2")}
+            className={buttonVariants({ variant: "secondary" })}
           >
             <Pencil size={16} />
             <span className="hidden sm:inline">Edit recording</span>

@@ -86,7 +86,7 @@ export function ViewerNav({
           visible hole between two of them. */}
       <div className="flex items-center gap-2">
         {typeof viewCount === "number" ? (
-          <span className="me-2 text-sm tabular-nums text-fg-muted">
+          <span className="text-sm tabular-nums text-fg-muted">
             {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
           </span>
         ) : null}

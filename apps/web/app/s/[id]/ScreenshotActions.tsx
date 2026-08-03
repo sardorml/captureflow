@@ -15,7 +15,6 @@ import {
   ShareVisibilityModal,
   type Visibility,
 } from "@/app/_components/ShareVisibilityModal";
-import { cn } from "@/lib/utils";
 
 type Props = {
   screenshotId: string;
@@ -113,11 +112,9 @@ export function ScreenshotActions({
     <>
       <div className="flex items-center gap-2">
         {isOwner && (
-          /* See RecordingActions: filled pills need the extra 8px to sit as far
-             apart as the padded icon buttons later in the row look. */
           <a
             href={editUrl}
-            className={cn(buttonVariants({ variant: "secondary" }), "me-2")}
+            className={buttonVariants({ variant: "secondary" })}
           >
             <Pencil size={16} />
             Edit screenshot
