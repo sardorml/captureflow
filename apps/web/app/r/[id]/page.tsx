@@ -177,7 +177,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
           productName={PRODUCT_NAME}
           label="recording"
           viewCount={row.viewCount}
-          themeToggle={<ThemeToggle initialTheme={theme} className="h-8 w-8" />}
+          themeToggle={<ThemeToggle initialTheme={theme} className="h-9 w-9" />}
         />
         <PendingRecording
           slug={id}
@@ -284,7 +284,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
            standalone toggle. */
         themeToggle={
           visitor ? null : (
-            <ThemeToggle initialTheme={theme} className="h-8 w-8" />
+            <ThemeToggle initialTheme={theme} className="h-9 w-9" />
           )
         }
         notifications={

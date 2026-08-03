@@ -69,7 +69,7 @@ export function ScreenshotView({
            standalone toggle. */
         themeToggle={
           viewer ? null : (
-            <ThemeToggle initialTheme={theme} className="h-8 w-8" />
+            <ThemeToggle initialTheme={theme} className="h-9 w-9" />
           )
         }
         actions={

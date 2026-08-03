@@ -16,11 +16,7 @@ export function NotificationsMenu({ base = "" }: { base?: string }) {
     <Dropdown>
       <Dropdown.Trigger
         aria-label="Notifications"
-        className={buttonVariants({
-          variant: "ghost",
-          size: "sm",
-          isIconOnly: true,
-        })}
+        className={buttonVariants({ variant: "ghost", isIconOnly: true })}
       >
         <Bell size={18} />
       </Dropdown.Trigger>

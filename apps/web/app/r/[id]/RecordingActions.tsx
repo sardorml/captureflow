@@ -159,11 +159,7 @@ export function RecordingActions({
           <Dropdown>
             <Dropdown.Trigger
               aria-label="More actions"
-              className={buttonVariants({
-                variant: "ghost",
-                size: "sm",
-                isIconOnly: true,
-              })}
+              className={buttonVariants({ variant: "ghost", isIconOnly: true })}
             >
               <MoreHorizontal size={18} />
             </Dropdown.Trigger>

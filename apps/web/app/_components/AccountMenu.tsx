@@ -113,7 +113,8 @@ export function AccountMenu({
         aria-label="Account menu"
         className="cursor-pointer rounded-full outline-none"
       >
-        <Avatar className="h-8 w-8">
+        {/* 36px, the height of the buttons either side of it. */}
+        <Avatar className="h-9 w-9">
           {imageUrl && <Avatar.Image src={imageUrl} alt={displayName} />}
           <Avatar.Fallback>{initials(displayName)}</Avatar.Fallback>
         </Avatar>
