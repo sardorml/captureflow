@@ -76,6 +76,7 @@ export function ScreenshotsGrid({
               authorName={ownerNames?.[screenshot.userId] ?? null}
               authorImage={ownerImages?.[screenshot.userId] ?? null}
               selected={selection.has(screenshot.id)}
+              selectionActive={selection.count > 0}
               onSelectedChange={
                 canManage
                   ? (next) => selection.set(screenshot.id, next)
@@ -104,6 +105,7 @@ function ScreenshotCard({
   authorName,
   authorImage,
   selected,
+  selectionActive,
   onSelectedChange,
 }: {
   screenshot: DashboardScreenshotRow;
@@ -114,6 +116,7 @@ function ScreenshotCard({
   authorName?: string | null;
   authorImage?: string | null;
   selected: boolean;
+  selectionActive: boolean;
   onSelectedChange?: (next: boolean) => void;
 }) {
   const displayTitle =
@@ -159,6 +162,7 @@ function ScreenshotCard({
       sizeBytes={screenshot.sizeBytes}
       deleteConfirm="Delete this screenshot? The public link will stop working."
       selected={selected}
+      selectionActive={selectionActive}
       onSelectedChange={onSelectedChange}
       onRename={(next) => renameScreenshotAction(screenshot.id, next.trim())}
       onDelete={() => deleteScreenshotAction(screenshot.id)}

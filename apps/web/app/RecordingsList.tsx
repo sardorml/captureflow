@@ -69,6 +69,7 @@ export function RecordingsList({
               authorName={ownerNames?.[s.userId] ?? null}
               authorImage={ownerImages?.[s.userId] ?? null}
               selected={selection.has(s.slug)}
+              selectionActive={selection.count > 0}
               onSelectedChange={
                 canManage ? (next) => selection.set(s.slug, next) : undefined
               }
@@ -95,6 +96,7 @@ type RecordingCardProps = {
   authorName?: string | null;
   authorImage?: string | null;
   selected: boolean;
+  selectionActive: boolean;
   onSelectedChange?: (next: boolean) => void;
 };
 
@@ -107,6 +109,7 @@ function RecordingCard({
   authorName,
   authorImage,
   selected,
+  selectionActive,
   onSelectedChange,
 }: RecordingCardProps) {
   const posterUrl = recording.posterKey
@@ -187,6 +190,7 @@ function RecordingCard({
       sizeBytes={recording.sizeBytes}
       deleteConfirm="Delete this recording permanently? The video and link will stop working immediately."
       selected={selected}
+      selectionActive={selectionActive}
       onSelectedChange={onSelectedChange}
       onRename={async (next) => {
         const form = new FormData();

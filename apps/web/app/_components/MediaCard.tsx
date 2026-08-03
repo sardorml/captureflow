@@ -66,6 +66,7 @@ export type MediaCardProps = {
   // Present only when the surface runs a selection; the checkbox and the
   // selected outline appear with it.
   selected?: boolean;
+  selectionActive?: boolean;
   onSelectedChange?: (next: boolean) => void;
   onRename: (title: string) => Promise<ActionResult>;
   onDelete: () => Promise<ActionResult>;
@@ -92,6 +93,7 @@ export function MediaCard({
   sizeBytes,
   deleteConfirm,
   selected = false,
+  selectionActive = false,
   onSelectedChange,
   onRename,
   onDelete,
@@ -175,15 +177,19 @@ export function MediaCard({
         <div className="aspect-video overflow-hidden">{media}</div>
 
         {onSelectedChange && (
-          /* Hidden until the card is hovered or something is selected, so a
-             grid at rest stays as quiet as it was before selection existed. */
+          /* Hidden until the card is hovered, so a grid at rest stays as quiet
+             as it was before selection existed. Once anything is selected the
+             whole grid shows its boxes: picking a second card shouldn't mean
+             hunting for a control that only appears under the cursor. */
           <Checkbox
             aria-label={`Select ${displayTitle}`}
             isSelected={selected}
             onChange={onSelectedChange}
             className={cn(
               "absolute top-2 left-2 z-10 p-1 transition-opacity group-hover:opacity-100 motion-reduce:transition-none",
-              selected ? "opacity-100" : "opacity-0 focus-within:opacity-100",
+              selected || selectionActive
+                ? "opacity-100"
+                : "opacity-0 focus-within:opacity-100",
             )}
           >
             {/* Control and indicator are children, not something the root
