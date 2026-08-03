@@ -154,21 +154,20 @@ export function MediaCard({
        leaves the text (Card.Content's own p-4) at double that — the image and
        the copy end up on different rails. Card.Content owns the inset now. */
     <Card className="group gap-0 overflow-hidden p-0 transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)]">
-      <Link
-        aria-label={canAuthor ? `Edit ${noun}` : `Open ${noun}`}
-        href={viewUrl}
-        className="relative block aspect-video overflow-hidden"
-      >
-        {media}
-
-        {/* Eats clicks so the underlying Link doesn't fire. */}
-        <div
-          className="absolute top-2 right-2 flex items-center gap-1.5"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
+      {/* The actions are a sibling of the Link, not a child: React Aria's
+          usePress stops the click propagating, so a handler on a wrapper inside
+          the anchor never runs and the anchor navigates anyway. Outside it,
+          there is nothing to suppress. */}
+      <div className="relative">
+        <Link
+          aria-label={canAuthor ? `Edit ${noun}` : `Open ${noun}`}
+          href={viewUrl}
+          className="block aspect-video overflow-hidden"
         >
+          {media}
+        </Link>
+
+        <div className="absolute top-2 right-2 flex items-center gap-1.5">
           <Tooltip>
             <Tooltip.Trigger className="inline-flex">
               <Button
@@ -222,7 +221,7 @@ export function MediaCard({
             </Dropdown>
           )}
         </div>
-      </Link>
+      </div>
 
       <Card.Content className="flex flex-col gap-3 p-4">
         <div className="flex min-w-0 items-center gap-2.5">
