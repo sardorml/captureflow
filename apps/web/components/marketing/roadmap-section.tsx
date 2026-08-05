@@ -84,7 +84,6 @@ export function RoadmapSection() {
                 >
                   {groupTitle}
                 </Text>
-                <Tag>{group.badgeLabel}</Tag>
               </Flex>
 
               <Space orientation="vertical" size={12} style={{ width: "100%" }}>

@@ -63,7 +63,7 @@ export const MESSAGES = {
   hero: {
     titlePrefix: "Open-Source",
     titleMain: "video messaging",
-    titleSuffix: "for everyone",
+    titleSuffix: "for your team",
     subtitleLine1: "Record your screen, get a link, and send it.",
     subtitleLine2: "Your teammates and customers can watch whenever they want.",
     ctaLabel: "Try CaptureFlow for free",
@@ -407,7 +407,6 @@ export const MESSAGES = {
       {
         title: "Backlog",
         subtitle: "On the radar — not scheduled yet.",
-        badge: "Backlog",
         items: [
           {
             label: "AI summaries & chapters",
@@ -429,7 +428,6 @@ export const MESSAGES = {
       {
         title: "To Do",
         subtitle: "The next few months, by priority.",
-        badge: "To Do",
         items: [
           {
             label: "Windows support",
@@ -441,7 +439,6 @@ export const MESSAGES = {
       {
         title: "In Progress",
         subtitle: "Features I'm actively working on.",
-        badge: "In progress",
         items: [
           {
             label: "Chrome extension",
@@ -614,13 +611,6 @@ export const MESSAGES = {
     versionLabel: "Version {version}",
     sizeLabel: "{size} MB DMG",
     notarized: "Signed & notarized by Apple",
-    afterTitle: "After downloading",
-    afterSteps: [
-      "Open the downloaded DMG.",
-      "Drag CaptureFlow into your Applications folder.",
-      "Open CaptureFlow and grant Screen Recording and Accessibility access when prompted.",
-      "Start recording from the menu bar — that's it.",
-    ],
   },
   plan: {
     heading: "Pick your plan",

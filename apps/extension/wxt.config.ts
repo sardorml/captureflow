@@ -20,8 +20,13 @@ export default defineConfig({
         ? ["https://captureflow.xyz/*", "http://localhost/*"]
         : ["https://captureflow.xyz/*"];
     return {
-      name: "CaptureFlow",
-      description: "Record your screen and share an instant link.",
+      // Chrome Web Store ranks the name field heaviest and caps it at 75 chars;
+      // description is the store summary, capped at 132.
+      name: "CaptureFlow — Screen Recorder & Screenshot Tool",
+      description:
+        "Open-source screen recorder and screenshot tool. Record your screen or tab, get an instant shareable link, and send it in seconds.",
+      // Without this the toolbar tooltip inherits the keyword-laden store name.
+      action: { default_title: "CaptureFlow" },
       /*
        * `offscreen` (where getDisplayMedia runs) is Chromium-only, so gate it
        * for Firefox. `scripting` + `activeTab` inject the camera/mic permission

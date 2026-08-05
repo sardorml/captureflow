@@ -31,3 +31,7 @@ skills-lock.json
 
 # stale build caches (turborepo removed in favor of nx)
 .turbo/
+
+# Python bytecode (scripts/)
+__pycache__/
+*.pyc
