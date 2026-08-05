@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import Image from "next/image";
+import { BrandMark } from "../brand-mark";
 import NextLink from "next/link";
 import { Button, Drawer, Header, buttonVariants } from "@heroui/react";
 import { Menu as MenuIcon, Star } from "lucide-react";
@@ -121,17 +121,12 @@ export function Nav({ stars = null }: { stars?: string | null }) {
         ].join(" ")}
       >
         {/* Logo: 32×32 mark + 18px bold wordmark. */}
-        <NextLink href={lh("/")} className="inline-flex items-center gap-2">
-          <Image
-            src="/logo.png"
-            alt="CaptureFlow"
-            width={32}
-            height={32}
-            className="rounded-[7px]"
-            draggable={false}
-            priority
-            unoptimized
-          />
+        <NextLink
+          href={lh("/")}
+          aria-label="CaptureFlow"
+          className="inline-flex items-center gap-2 text-fg"
+        >
+          <BrandMark size={32} />
           <span className="text-lg font-bold tracking-[-0.01em] text-fg">
             CaptureFlow
           </span>

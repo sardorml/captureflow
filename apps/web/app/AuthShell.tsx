@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ThemeToggle, type Theme } from "@captureflow/ui";
-
-/* eslint-disable @next/next/no-img-element */
+import { BrandMark } from "@/components/brand-mark";
 
 // Single centered column: wordmark at the top, the form vertically centered
 // under it. The form owns its own width cap.
@@ -20,13 +19,7 @@ export function AuthShell({
       </div>
 
       <Link href="/" className="flex items-center gap-2.5">
-        <img
-          src="/logo-round.png"
-          alt=""
-          width={26}
-          height={26}
-          className="rounded-lg"
-        />
+        <BrandMark size={26} />
         <span className="text-fg text-base font-semibold">CaptureFlow</span>
       </Link>
 

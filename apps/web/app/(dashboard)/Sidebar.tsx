@@ -1,10 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Video } from "lucide-react";
 import { UserPlus } from "lucide-react";
 import { Button, buttonVariants } from "@heroui/react";
 import { listMembers, totalStorageForUser } from "@captureflow/quota";
 import type { AvatarGroupItem } from "@captureflow/ui";
+import { BrandMark } from "@/components/brand-mark";
 import { initials as initialsOf } from "@/lib/format";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
@@ -44,15 +44,7 @@ export async function Sidebar() {
   return (
     <div className="flex h-full flex-col">
       <Link href="/recordings" className="flex items-center gap-2 p-5">
-        <Image
-          src="/logo.png"
-          alt="CaptureFlow"
-          width={28}
-          height={28}
-          className="rounded-md"
-          priority
-          unoptimized
-        />
+        <BrandMark size={28} className="text-fg" />
         <span className="text-xl font-semibold text-fg">CaptureFlow</span>
       </Link>
 
