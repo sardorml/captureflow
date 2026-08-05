@@ -1,5 +1,8 @@
 <div align="center">
-  <img src="apps/web/public/logo.png?v=5" width="112" alt="CaptureFlow" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/brand-mark-light.svg" />
+    <img src="apps/web/public/brand-mark-dark.svg" width="112" alt="CaptureFlow" />
+  </picture>
   <h1>CaptureFlow</h1>
   <p>
     <strong>Open-source, self-hostable screen recording with instant shareable links.</strong>
