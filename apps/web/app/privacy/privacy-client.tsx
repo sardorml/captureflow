@@ -19,7 +19,9 @@ const SECTIONS: Section[] = [
   },
   {
     heading: "What we collect",
-    body: ["We collect only what is needed to record, store, and share your captures."],
+    body: [
+      "We collect only what is needed to record, store, and share your captures.",
+    ],
     bullets: [
       "Account details — your name and email address, so you can sign in and so recordings can belong to you.",
       "Session details — a session token, your IP address, and your browser's user-agent string, used to keep you signed in and to protect your account against session abuse.",
@@ -78,7 +80,14 @@ export function PrivacyClient() {
                 <Paragraph key={paragraph}>{paragraph}</Paragraph>
               ))}
               {section.bullets ? (
-                <ul style={{ margin: 0, paddingLeft: 22, display: "grid", gap: 10 }}>
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: 22,
+                    display: "grid",
+                    gap: 10,
+                  }}
+                >
                   {section.bullets.map((bullet) => (
                     <li key={bullet}>
                       <Text type="secondary">{bullet}</Text>
