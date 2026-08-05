@@ -4,7 +4,7 @@ export const SITE_TITLE =
   "Open-Source Loom Alternative & Screen Recorder — CaptureFlow";
 export const SITE_DESCRIPTION =
   "CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated screenshots — record, share, and screenshot from one menu bar app. Free and self-hostable on your own Cloudflare account.";
-export const SUPPORT_EMAIL = "captureflow.support@gmail.com";
+export const SUPPORT_EMAIL = "contact@sardor.codes";
 export const APP_VERSION = "0.9.2-beta";
 export const DOWNLOAD_URL =
   "https://github.com/sardorml/captureflow/releases/latest";
