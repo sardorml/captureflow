@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { Download, ArrowUpRight, Terminal, Package } from "lucide-react";
-import { Card, Chip, buttonVariants } from "@heroui/react";
+import { Card, buttonVariants } from "@heroui/react";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
 import { Text, Title, Paragraph } from "@/components/marketing/typography";
 import { PageShell } from "@/components/marketing/page-shell";
@@ -114,25 +114,6 @@ export default async function DownloadPage() {
                 icon={<FirefoxLogo className="size-4" />}
               />
             </p>
-          </div>
-        </div>
-
-        <div style={{ marginTop: 56 }}>
-          <Title level={4} style={{ textAlign: "center" }}>
-            {m.afterTitle}
-          </Title>
-          <div className="mx-auto mt-5 flex max-w-105 flex-col gap-3">
-            {m.afterSteps.map((step, i) => (
-              <div key={step} className="flex items-center gap-3">
-                <Chip
-                  size="sm"
-                  className="h-6.5 w-6.5 justify-center rounded-full font-semibold"
-                >
-                  {i + 1}
-                </Chip>
-                <Text>{step}</Text>
-              </div>
-            ))}
           </div>
         </div>
 
