@@ -2,12 +2,12 @@
 
 import type { ReactNode } from "react";
 import { Paragraph, Title } from "./typography";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Flex } from "./layout";
 import { Button } from "./ui";
 import { TOKENS } from "./tokens";
+import { BrandMark } from "../brand-mark";
 import { Footer } from "./footer";
 import { MarketingShell } from "./marketing-shell";
 import { useMessages, useLocalizedHref } from "./i18n-provider";
@@ -49,18 +49,15 @@ export function PageShell({
         >
           <Link
             href={lh("/")}
-            style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+            aria-label={m.pageShell.logoAlt}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              color: token.colorText,
+            }}
           >
-            <Image
-              src="/logo.png"
-              alt={m.pageShell.logoAlt}
-              width={30}
-              height={30}
-              style={{ borderRadius: 7 }}
-              draggable={false}
-              priority
-              unoptimized
-            />
+            <BrandMark size={30} />
             <span
               style={{
                 fontSize: 20,
