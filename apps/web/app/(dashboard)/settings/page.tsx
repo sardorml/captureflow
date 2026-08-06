@@ -10,11 +10,9 @@ import { WorkspaceNameForm } from "./WorkspaceNameForm";
 import { WorkspaceLogoForm } from "./WorkspaceLogoForm";
 import { AccessPolicy } from "./AccessPolicy";
 import { MemberUploadsPolicy } from "./MemberUploadsPolicy";
+import { CDN_BASE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
-
-const CDN_BASE =
-  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
 export default async function SettingsPage() {
   const session = await requireSession();
@@ -44,7 +42,7 @@ export default async function SettingsPage() {
   }
 
   const logoUrl = workspace?.logo_key
-    ? `${CDN_BASE}/${workspace.logo_key}?v=${workspace.updated_at}`
+    ? `${CDN_BASE_URL}/${workspace.logo_key}?v=${workspace.updated_at}`
     : null;
 
   return (

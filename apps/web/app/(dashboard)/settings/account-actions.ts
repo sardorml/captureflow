@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { deleteObject, putObject } from "@/lib/r2";
+import { CDN_BASE_URL } from "@/lib/site";
 
 type FormState = { error: string | null; ok: string | null };
 
@@ -16,9 +17,6 @@ const AVATAR_MIME = new Map<string, string>([
   ["image/webp", "webp"],
   ["image/gif", "gif"],
 ]);
-
-const CDN_BASE =
-  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
 async function requireUserId(): Promise<string> {
   const auth = await getAuth();
@@ -62,7 +60,7 @@ export async function uploadUserAvatarAction(
   }
 
   // Cache-bust suffix: a stable URL would serve the stale picture from cache.
-  const url = `${CDN_BASE}/${key}?v=${Date.now()}`;
+  const url = `${CDN_BASE_URL}/${key}?v=${Date.now()}`;
 
   // Drop any prior key under a different extension to avoid orphans on format swap.
   const existing = await env.DB.prepare(
@@ -108,8 +106,8 @@ export async function removeUserAvatarAction(): Promise<void> {
 
 // Returns null when the URL isn't on our CDN host (e.g. a legacy gravatar URL).
 function extractKey(image: string): string | null {
-  if (!image.startsWith(CDN_BASE + "/")) return null;
-  const rest = image.slice(CDN_BASE.length + 1);
+  if (!image.startsWith(CDN_BASE_URL + "/")) return null;
+  const rest = image.slice(CDN_BASE_URL.length + 1);
   const q = rest.indexOf("?");
   return q < 0 ? rest : rest.slice(0, q);
 }
