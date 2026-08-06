@@ -61,8 +61,8 @@ export const MESSAGES = {
     genericError: "Something went wrong. Please try again.",
   },
   hero: {
-    titleLead: "Screen Recorder",
-    titleSuffix: "with Shareable Links",
+    titleLead: "Open-source screen recorder",
+    titleSuffix: "with shareable links",
     subtitleLine1: "Record your screen, get a link, and send it.",
     subtitleLine2: "Your teammates and customers can watch whenever they want.",
     ctaLabel: "Try CaptureFlow for free",
