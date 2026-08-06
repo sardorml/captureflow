@@ -65,8 +65,7 @@ export const MESSAGES = {
     titleSuffix: "with shareable links",
     subtitleLine1:
       "Record your screen and the share link is on your clipboard the moment you stop.",
-    subtitleLine2:
-      "Self-host it on your own Cloudflare account, or let us host it for you.",
+    subtitleLine2: "Self-hostable on your Cloudflare account.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Add to Chrome",
     installMac: "Download for free",
