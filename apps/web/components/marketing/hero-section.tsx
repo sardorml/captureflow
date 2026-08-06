@@ -61,7 +61,10 @@ export function HeroSection() {
             maxWidth: 620,
           }}
         >
-          {m.hero.subtitleLine1} {m.hero.subtitleLine2}
+          {m.hero.subtitleLine1}{" "}
+          {/* Forced break desktop-only; on phones it would orphan words. */}
+          <br className="hidden sm:inline" />
+          {m.hero.subtitleLine2}
         </Paragraph>
 
         {CURRENT_STAGE.showHeroBuyCta ? (
