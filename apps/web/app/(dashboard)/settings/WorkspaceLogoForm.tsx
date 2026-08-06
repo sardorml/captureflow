@@ -40,7 +40,7 @@ export function WorkspaceLogoForm({
         </Typography>
       </div>
       <div className="flex w-full max-w-96 items-center gap-4">
-        <Avatar className="h-14 w-14 rounded-lg">
+        <Avatar className="h-14 w-14 rounded-full">
           {logoUrl && <Avatar.Image src={logoUrl} alt={workspaceName} />}
           <Avatar.Fallback>{initials(workspaceName)}</Avatar.Fallback>
         </Avatar>

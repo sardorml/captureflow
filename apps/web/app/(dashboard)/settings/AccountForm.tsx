@@ -134,7 +134,7 @@ function AvatarField({
           hover-only overlay on it, which gave no affordance until moused. */}
       <div className="flex items-center gap-4">
         <Avatar
-          className="h-14 w-14 shrink-0"
+          className="h-14 w-14 shrink-0 rounded-full"
           style={
             imageUrl ? undefined : { backgroundColor: avatarColor(userId) }
           }
