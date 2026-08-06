@@ -5,11 +5,6 @@
  * them by index.
  */
 export const MESSAGES = {
-  meta: {
-    title: "Open-Source Loom Alternative & Screen Recorder — CaptureFlow",
-    description:
-      "CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated screenshots — record, share, and screenshot from one menu bar app. Free and self-hostable on your own Cloudflare account.",
-  },
   nav: {
     features: "Features",
     discover: "Discover",
@@ -61,11 +56,11 @@ export const MESSAGES = {
     genericError: "Something went wrong. Please try again.",
   },
   hero: {
-    titlePrefix: "Open-Source",
-    titleMain: "video messaging",
-    titleSuffix: "for your team",
-    subtitleLine1: "Record your screen, get a link, and send it.",
-    subtitleLine2: "Your teammates and customers can watch whenever they want.",
+    titleLead: "Open-source screen recorder",
+    titleSuffix: "with shareable links",
+    subtitleLine1:
+      "Record, stop, and share with your team, clients, or customers.",
+    subtitleLine2: "Self-hostable on your Cloudflare account.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Add to Chrome",
     installMac: "Download for free",
@@ -89,14 +84,41 @@ export const MESSAGES = {
   },
   modes: {
     eyebrow: "Capture modes",
-    headingLine1: "Recordings and screenshots",
-    headingLine2: "— one toolbar.",
+    headingLine1: "Record or screenshot",
+    headingLine2: "— one panel.",
     subtitleLine1: "Share a screen recording when it needs to go out now,",
-    subtitleLine2:
-      "Screenshot when a picture says it. One toolbar, two outputs.",
+    subtitleLine2: "Screenshot when a picture says it. One panel, two outputs.",
     tabs: {
       share: { label: "Share", caption: "Instant share link" },
       screenshot: { label: "Screenshot", caption: "Annotated screenshots" },
+    },
+    points: {
+      source: {
+        title: "Tab, window, or full screen",
+        body: "Pick the source in the panel and record without ever leaving the page you're on.",
+      },
+      devices: {
+        title: "Camera and mic in the same panel",
+        body: "Flip your webcam and microphone on right before you record — there's no separate setup screen.",
+      },
+      link: {
+        title: "The link is ready when you stop",
+        body: "Your screen uploads while you record, so the share link hits your clipboard the moment you hit stop.",
+      },
+    },
+    panel: {
+      sourceAria: "Capture source",
+      source: "Full screen",
+      sourceHint: "Pick at start",
+      camera: "Camera",
+      microphone: "Microphone",
+      on: "On",
+      off: "Off",
+      startRecording: "Start Recording",
+      limit: "30 min recording limit",
+      effects: "Effects",
+      blur: "Blur",
+      more: "More",
     },
   },
   features: {
@@ -143,6 +165,11 @@ export const MESSAGES = {
     },
   },
   collaboration: {
+    carousel: {
+      previous: "Previous demo",
+      next: "Next demo",
+      slide: "{n} of {total}",
+    },
     categories: {
       share: {
         title: "Shareable recordings",
@@ -296,60 +323,6 @@ export const MESSAGES = {
       period: "/month",
       note: "Billed {amount}/year. Cancel anytime.",
       cta: "Get started",
-    },
-    compare: {
-      eyebrow: "Side by side",
-      heading: "Compare plans",
-      subtitle: "What you get on each plan.",
-      featureColumn: "Feature",
-      freeColumn: "Self-Hosted",
-      proColumn: "Managed hosting",
-      proBadge: "Recommended",
-      includedAria: "included",
-      notIncludedAria: "not included",
-      // Boolean cells render a check/dash from COMPARE_SECTIONS, so '' here is fine.
-      sections: [
-        {
-          title: "Desktop app",
-          rows: [
-            {
-              label: "Installation",
-              free: "Build it yourself",
-              pro: "Download & run",
-            },
-            {
-              label: "Code signing",
-              free: "Self-sign (Apple ID)",
-              pro: "Signed & notarized",
-            },
-          ],
-        },
-        {
-          title: "Cloud & hosting",
-          rows: [
-            { label: "Hosting", free: "Your Cloudflare", pro: "Fully managed" },
-            { label: "Setup", free: "You deploy it", pro: "Zero setup" },
-            { label: "Cloud storage", free: "Your R2 bucket", pro: "Included" },
-            { label: "Backups & monitoring", free: "", pro: "" },
-          ],
-        },
-        {
-          title: "Recording & sharing",
-          rows: [
-            { label: "Screen recording & instant links", free: "", pro: "" },
-            { label: "Annotated Screenshots", free: "", pro: "" },
-            { label: "Workspaces & teammate invites", free: "", pro: "" },
-            { label: "Commercial usage", free: "", pro: "" },
-          ],
-        },
-        {
-          title: "Support",
-          rows: [
-            { label: "Community support", free: "", pro: "" },
-            { label: "Priority support", free: "", pro: "" },
-          ],
-        },
-      ],
     },
   },
   faq: {

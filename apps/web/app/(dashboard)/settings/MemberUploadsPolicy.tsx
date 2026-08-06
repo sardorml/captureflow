@@ -17,7 +17,7 @@ export function MemberUploadsPolicy({
           active={allowMemberUploads}
           icon={<Users size={20} />}
           title="Allow teammates to post here"
-          body="Members can pick this workspace in the desktop chip and record into it."
+          body="Members can record into this workspace."
         />
       </form>
       <form action={setMemberUploadsPolicyAction}>
@@ -26,7 +26,7 @@ export function MemberUploadsPolicy({
           active={!allowMemberUploads}
           icon={<UserX size={20} />}
           title="Only the workspace owner"
-          body="Teammate uploads fall back to their personal workspace."
+          body="Teammate uploads go to their personal workspace."
         />
       </form>
     </div>

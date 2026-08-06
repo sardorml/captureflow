@@ -175,12 +175,31 @@ html:has([data-marketing]) body {
   animation: page-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Carousel autoplay: the active dot fills over the slide's dwell time and the
+   carousel advances on this animation's `animationend`. One clock for both, so
+   pausing the fill (hover/focus) pauses the advance with it, and reduced motion
+   drops the animation — leaving a filled dot and no autoplay at all. The
+   duration is set inline by the component. */
+@keyframes carousel-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.animate-carousel-progress {
+  transform-origin: left center;
+  animation: carousel-progress linear;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-rec-breathe,
   .animate-reveal,
   .animate-recording-icon-pop,
   .animate-page-fade,
-  .animate-page-enter {
+  .animate-page-enter,
+  .animate-carousel-progress {
     animation: none !important;
   }
 }

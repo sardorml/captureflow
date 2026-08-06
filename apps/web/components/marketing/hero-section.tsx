@@ -48,7 +48,7 @@ export function HeroSection() {
             marginBottom: 20,
           }}
         >
-          {m.hero.titlePrefix} {m.hero.titleMain}
+          {m.hero.titleLead}
           <br />
           <span className="text-fg-muted">{m.hero.titleSuffix}</span>
         </Title>
@@ -61,7 +61,10 @@ export function HeroSection() {
             maxWidth: 620,
           }}
         >
-          {m.hero.subtitleLine1} {m.hero.subtitleLine2}
+          {m.hero.subtitleLine1}{" "}
+          {/* Forced break desktop-only; on phones it would orphan words. */}
+          <br className="hidden sm:inline" />
+          {m.hero.subtitleLine2}
         </Paragraph>
 
         {CURRENT_STAGE.showHeroBuyCta ? (

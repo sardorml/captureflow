@@ -7,7 +7,6 @@ import { HeroSection } from "@/components/marketing/hero-section";
 import { ModesIntro } from "@/components/marketing/modes-intro";
 import { CollaborationSection } from "@/components/marketing/collaboration-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
-import { ComparePlansSection } from "@/components/marketing/compare-plans-section";
 import { FaqSection } from "@/components/marketing/faq-section";
 import { RoadmapSection } from "@/components/marketing/roadmap-section";
 import { CtaSection } from "@/components/marketing/cta-section";
@@ -68,7 +67,6 @@ export default async function RootPage() {
           <ModesIntro />
           <CollaborationSection />
           <PricingSection />
-          <ComparePlansSection />
           <FaqSection />
           <RoadmapSection />
           <CtaSection />

@@ -17,7 +17,7 @@ export function AccessPolicy({
           active={allowPublicLinks}
           icon={<Globe size={20} />}
           title="Allow public links"
-          body="Members can share recordings + screenshots to anyone with the URL."
+          body="Members can share links with anyone."
         />
       </form>
       <form action={setPublicLinksPolicyAction}>
@@ -26,7 +26,7 @@ export function AccessPolicy({
           active={!allowPublicLinks}
           icon={<Lock size={20} />}
           title="Only workspace members can view"
-          body="Public visibility is hidden; new uploads default to workspace-only."
+          body="New uploads default to workspace-only."
         />
       </form>
     </div>

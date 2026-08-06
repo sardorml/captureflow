@@ -1,9 +1,9 @@
 export const SITE_URL = "https://captureflow.dev";
 export const SITE_NAME = "CaptureFlow";
 export const SITE_TITLE =
-  "Open-Source Loom Alternative & Screen Recorder — CaptureFlow";
+  "Open-source screen recorder with shareable links — CaptureFlow";
 export const SITE_DESCRIPTION =
-  "CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated screenshots — record, share, and screenshot from one menu bar app. Free and self-hostable on your own Cloudflare account.";
+  "Record, stop, and share with your team, clients, or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
 export const SUPPORT_EMAIL = "contact@sardor.codes";
 export const APP_VERSION = "0.9.2-beta";
 export const DOWNLOAD_URL =
@@ -126,62 +126,6 @@ export const MANAGED_TIERS: ReadonlyArray<ManagedTier> = [
     checkoutUrl:
       "https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916",
     tag: "mostValue",
-  },
-];
-
-// A boolean cell renders as ✓ / —; a string renders verbatim.
-export type CompareCell = boolean | string;
-export type CompareRow = {
-  label: string;
-  free: CompareCell;
-  monthly: CompareCell;
-};
-export type CompareSection = { title: string; rows: ReadonlyArray<CompareRow> };
-
-export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
-  {
-    title: "Desktop app",
-    rows: [
-      {
-        label: "Installation",
-        free: "Build it yourself",
-        monthly: "Download & run",
-      },
-      {
-        label: "Code signing",
-        free: "Self-sign (Apple ID)",
-        monthly: "Signed & notarized",
-      },
-    ],
-  },
-  {
-    title: "Cloud & hosting",
-    rows: [
-      { label: "Hosting", free: "Your Cloudflare", monthly: "Fully managed" },
-      { label: "Setup", free: "You deploy it", monthly: "Zero setup" },
-      { label: "Cloud storage", free: "Your R2 bucket", monthly: "200 GB" },
-      { label: "Backups & monitoring", free: false, monthly: true },
-    ],
-  },
-  {
-    title: "Recording & sharing",
-    rows: [
-      {
-        label: "Screen recording & instant links",
-        free: true,
-        monthly: true,
-      },
-      { label: "Annotated Screenshots", free: true, monthly: true },
-      { label: "Workspaces & teammate invites", free: true, monthly: true },
-      { label: "Commercial usage", free: true, monthly: true },
-    ],
-  },
-  {
-    title: "Support",
-    rows: [
-      { label: "Community support", free: true, monthly: true },
-      { label: "Priority support", free: false, monthly: true },
-    ],
   },
 ];
 
