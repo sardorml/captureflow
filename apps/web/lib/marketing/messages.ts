@@ -97,6 +97,20 @@ export const MESSAGES = {
       share: { label: "Share", caption: "Instant share link" },
       screenshot: { label: "Screenshot", caption: "Annotated screenshots" },
     },
+    points: {
+      source: {
+        title: "Tab, window, or full screen",
+        body: "Pick the source in the panel and record without ever leaving the page you're on.",
+      },
+      devices: {
+        title: "Camera and mic in the same panel",
+        body: "Flip your webcam and microphone on right before you record — there's no separate setup screen.",
+      },
+      link: {
+        title: "The link is ready when you stop",
+        body: "Your screen uploads while you record, so the share link hits your clipboard the moment you hit stop.",
+      },
+    },
     panel: {
       sourceAria: "Capture source",
       source: "Full screen",
@@ -107,8 +121,6 @@ export const MESSAGES = {
       off: "Off",
       startRecording: "Start Recording",
       limit: "30 min recording limit",
-      currentTab: "Current tab",
-      captureScreenshot: "Capture Screenshot",
       effects: "Effects",
       blur: "Blur",
       more: "More",
