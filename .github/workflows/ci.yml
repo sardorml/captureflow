@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   pull_request:
+  # A successful run can't be re-run from the API, so without this the only way
+  # to redeploy an unchanged main is an empty commit. Needed when something
+  # outside the repo drops what the deploy owns — e.g. the custom_domain route's
+  # DNS record.
+  workflow_dispatch:
 
 jobs:
   build:
