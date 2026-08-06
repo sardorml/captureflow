@@ -8,7 +8,9 @@ import { getAppWebEnv } from "@/lib/cf-env";
 // CORS-locked to the allowlisted origins so a malicious origin can't extract
 // a user's workspace list by firing a credentialed request from the browser.
 const ALLOWED_ORIGINS = new Set([
-  "https://captureflow.xyz",
+  "https://captureflow.dev",
+  "https://dev.captureflow.dev",
+  // Staging on the retired domain, until it is torn down.
   "https://dev.captureflow.xyz",
   "http://localhost:3000",
   "http://localhost:3001",

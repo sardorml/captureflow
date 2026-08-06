@@ -4,8 +4,8 @@ import logoImg from "@/assets/logo.png";
 import { AnimatedToggle } from "@/components/ui/animated-toggle";
 import { setAnalyticsEnabled } from "@/lib/analytics";
 
-const TERMS_URL = "https://captureflow.xyz/terms";
-const PRIVACY_URL = "https://captureflow.xyz/privacy";
+const TERMS_URL = "https://captureflow.dev/terms";
+const PRIVACY_URL = "https://captureflow.dev/privacy";
 
 type PermissionStatus = {
   screen: string;

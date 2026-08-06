@@ -79,7 +79,7 @@ gone — the original design below is kept for the decision record.
 **`chrome.identity.launchWebAuthFlow`**, device-token (Bearer) model, mapped 1:1 onto the
 desktop flow:
 
-- Extension calls `launchWebAuthFlow({ interactive: true, url: "https://captureflow.xyz/auth/callback?label=<browser>&return=https://<EXT_ID>.chromiumapp.org/" })`.
+- Extension calls `launchWebAuthFlow({ interactive: true, url: "https://captureflow.dev/auth/callback?label=<browser>&return=https://<EXT_ID>.chromiumapp.org/" })`.
 - The web page authenticates the user, calls `issueDeviceToken(session.user.id, label)`
   (`apps/web/lib/device-tokens.ts` — the same issuer desktop uses), and redirects to
   `https://<EXT_ID>.chromiumapp.org/?token=…&id=…`.
@@ -241,7 +241,7 @@ apps/extension/
 ├─ tsconfig.json                # extends ../../tsconfig.base.json; references .wxt/tsconfig.json
 ├─ wxt.config.ts                # manifest(fn): permissions, host_permissions, web_accessible_resources; React module
 ├─ web-ext.config.ts            # dev browser/profile
-├─ .env.example                 # WXT_WEB_BASE=https://captureflow.xyz
+├─ .env.example                 # WXT_WEB_BASE=https://captureflow.dev
 ├─ public/                      # icon-16/32/48/128.png (auto-wired)
 ├─ assets/                      # bundled, hashed (control-bar icons, cam mask)
 │
@@ -313,7 +313,7 @@ Quota attribution already targets the workspace owner; `isDevDevice` already exe
   `lib: ["ES2023","DOM","DOM.Iterable","WebWorker"]`; `types: ["chrome"]`. Keep base strictness.
 - **`wxt.config.ts`** manifest as a **function** so Chrome-only permissions stay scoped:
   `permissions: [storage, offscreen, desktopCapture, identity, tabs, scripting, activeTab]`
-  (+ `tabCapture` Chrome-only, later), `host_permissions: ["https://captureflow.xyz/*","https://*.captureflow.xyz/*"]`,
+  (+ `tabCapture` Chrome-only, later), `host_permissions: ["https://captureflow.dev/*","https://*.captureflow.dev/*"]`,
   `web_accessible_resources: [{ resources: ["offscreen.html"], matches: ["<all_urls>"] }]`.
 - **`nx.json`** → append `"{projectRoot}/.output"` to `targetDefaults.build.outputs`. nx
   auto-discovers via the `apps/*` glob.

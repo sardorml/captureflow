@@ -1,5 +1,5 @@
 -- Adds ownership + visibility to recordings so signed-in users can manage
--- their own links via app.captureflow.xyz.
+-- their own links via app.captureflow.dev.
 --
 -- user_id is nullable: every recording predating the auth rollout (and any
 -- anonymous record-and-recording from a signed-out app) stays attached to

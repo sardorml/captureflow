@@ -4,7 +4,7 @@
   "private": true,
   "description": "CaptureFlow desktop screen recorder (Electron).",
   "author": "CaptureFlow",
-  "homepage": "https://captureflow.xyz",
+  "homepage": "https://captureflow.dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/sardorml/captureflow.git"

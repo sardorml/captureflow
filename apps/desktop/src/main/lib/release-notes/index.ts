@@ -4,9 +4,14 @@ import { readFile, writeFile, mkdir } from "fs/promises";
 import { logInfo, logWarn } from "../logger";
 import type { ReleaseNotesInitPayload } from "../../../shared/types";
 
-// Two sources: bundled `welcome.md` (shown once on first editor open) and CDN
-// `notes/<version>.md` (shown once per version; editable post-ship without a rebuild).
-const RELEASE_NOTES_BASE = "https://dl.captureflow.xyz/notes";
+/*
+ * Two sources: bundled `welcome.md` (shown once on first editor open) and the
+ * body of the GitHub release for this version (shown once per version). Same
+ * place electron-updater already polls, so there's one thing to publish and
+ * the notes stay editable after ship without a rebuild.
+ */
+const RELEASE_API_BASE =
+  "https://api.github.com/repos/sardorml/captureflow/releases/tags";
 
 type ReleaseNote = {
   message: string;
@@ -47,20 +52,31 @@ async function fetchVersionNote(version: string): Promise<ReleaseNote | null> {
   const inflight = versionNoteInflight.get(version);
   if (inflight) return inflight;
 
-  // A 404 (no note uploaded for this build) just means no modal.
-  const url = `${RELEASE_NOTES_BASE}/${encodeURIComponent(version)}.md`;
+  // A 404 (no release published for this build) just means no modal. Tags are
+  // v-prefixed, matching electron-updater's vPrefixedTagName default.
+  const url = `${RELEASE_API_BASE}/v${encodeURIComponent(version)}`;
   const promise = (async (): Promise<ReleaseNote | null> => {
     try {
-      const res = await fetch(url);
+      // The API rejects requests without a User-Agent.
+      const res = await fetch(url, {
+        headers: {
+          accept: "application/vnd.github+json",
+          "user-agent": "CaptureFlow",
+        },
+      });
       if (!res.ok) {
-        logInfo("release-notes", `cdn fetch ${version} returned ${res.status}`);
+        logInfo(
+          "release-notes",
+          `release fetch ${version} returned ${res.status}`,
+        );
         return null;
       }
-      const body = (await res.text()).trim();
+      const release = (await res.json()) as { body?: string | null };
+      const body = (release.body ?? "").trim();
       if (!body) return null;
       return parseNote(body);
     } catch (err) {
-      logWarn("release-notes", `cdn fetch failed: ${String(err)}`);
+      logWarn("release-notes", `release fetch failed: ${String(err)}`);
       return null;
     }
   })();

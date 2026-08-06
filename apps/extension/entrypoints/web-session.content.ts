@@ -8,8 +8,8 @@ import type { WebSession } from "@/lib/auth/sync";
  */
 const MATCHES =
   import.meta.env.COMMAND === "serve"
-    ? ["https://captureflow.xyz/*", "http://localhost/*"]
-    : ["https://captureflow.xyz/*"];
+    ? ["https://captureflow.dev/*", "http://localhost/*"]
+    : ["https://captureflow.dev/*"];
 
 /*
  * A content script runs in the page's own origin, so this is a same-origin

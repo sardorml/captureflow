@@ -25,7 +25,7 @@ Make sure your default browser can open the link, and that your backend's
 The page metadata comes from D1 but the video/poster are served from R2 over your
 CDN domain. Confirm:
 
-- `cdn.captureflow.xyz` (or your equivalent) is bound to the
+- `cdn.captureflow.dev` (or your equivalent) is bound to the
   `captureflow-recordings` bucket's public access, and
 - `R2_PUBLIC_BASE_URL` matches that host.
 

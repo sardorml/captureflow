@@ -6,7 +6,7 @@ import { verifySessionOrNull } from "@/lib/screenshot/verify-session";
 import { optionsResponse, withCors } from "@/lib/screenshot/cors";
 
 // Auth relays through verifySessionOrNull because better-auth lives on
-// app.captureflow.xyz while the session cookie is set on .captureflow.xyz.
+// app.captureflow.dev while the session cookie is set on .captureflow.dev.
 
 export function OPTIONS() {
   return optionsResponse();

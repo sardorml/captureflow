@@ -34,4 +34,4 @@ pnpm --filter @captureflow/docs cf:deploy
 This builds the site and runs `wrangler pages deploy .vitepress/dist
 --project-name captureflow-docs`. Create the Pages project once in the Cloudflare
 dashboard (or on first deploy), then point a custom domain (e.g.
-`docs.captureflow.xyz`) at it.
+`docs.captureflow.dev`) at it.

@@ -26,7 +26,7 @@ cron handlers.
 
 - A **Cloudflare account** with Workers + D1 + R2 enabled. (R2 requires a card on
   file even on the free tier.)
-- A **domain** you control. The defaults assume `captureflow.xyz`; you can use
+- A **domain** you control. The defaults assume `captureflow.dev`; you can use
   any domain by editing `apps/web/wrangler.jsonc`.
 - **Node 24+** and **pnpm 10** (`packageManager` pins `pnpm@10.30.0`).
 - `openssl` for generating the auth secret (preinstalled on macOS/Linux).

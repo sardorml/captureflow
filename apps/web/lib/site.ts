@@ -1,5 +1,5 @@
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_MARKETING_SITE_URL ?? "https://captureflow.xyz";
+  process.env.NEXT_PUBLIC_MARKETING_SITE_URL ?? "https://captureflow.dev";
 
 export const RECORDING_SITE_URL = SITE_URL;
 export const MARKETING_SITE_URL = SITE_URL;
@@ -17,7 +17,7 @@ export const SOURCE_REPO_URL = "https://github.com/sardorml/captureflow";
 export const DOCS_URL =
   process.env.NEXT_PUBLIC_DOCS_URL ??
   (process.env.NODE_ENV === "production"
-    ? "https://docs.captureflow.xyz"
+    ? "https://docs.captureflow.dev"
     : "http://localhost:3033");
 
 export const RELEASES_URL = `${SOURCE_REPO_URL}/releases`;
@@ -43,7 +43,7 @@ export const SCREENSHOT_SITE_URL = SITE_URL;
 export const APP_SITE_URL = APP_WEB_SITE_URL;
 
 export const R2_PUBLIC_BASE_URL =
-  process.env.R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
+  process.env.R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.dev";
 
 /*
  * The unprefixed var above is server-only; client bundles see just this one.

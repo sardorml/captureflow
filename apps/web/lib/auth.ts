@@ -79,7 +79,7 @@ function buildAuth(env: AppWebEnv | null, baseURL?: string) {
       updateAge: 60 * 60 * 24,
     },
     // Cookie is host-only so prod and preview (shared D1) stay isolated.
-    // Do NOT re-enable crossSubDomainCookies with a .captureflow.xyz domain.
+    // Do NOT re-enable crossSubDomainCookies with a .captureflow.dev domain.
     databaseHooks: {
       user: {
         create: {

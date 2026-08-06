@@ -35,19 +35,19 @@ openssl rand -hex 32 | pnpm --filter @captureflow/web exec wrangler secret put B
 
 ## Site URLs & CDN (public vars)
 
-All default to `https://captureflow.xyz` / `https://cdn.captureflow.xyz`. Change
+All default to `https://captureflow.dev` / `https://cdn.captureflow.dev`. Change
 them if you use a different domain.
 
 | Var                               | Default                                        |
 | --------------------------------- | ---------------------------------------------- |
-| `NEXT_PUBLIC_APP_WEB_SITE_URL`    | `https://captureflow.xyz`                      |
-| `NEXT_PUBLIC_RECORDING_SITE_URL`  | `https://captureflow.xyz`                      |
-| `NEXT_PUBLIC_SCREENSHOT_SITE_URL` | `https://captureflow.xyz`                      |
-| `NEXT_PUBLIC_MARKETING_SITE_URL`  | `https://captureflow.xyz`                      |
-| `R2_PUBLIC_BASE_URL`              | `https://cdn.captureflow.xyz`                  |
+| `NEXT_PUBLIC_APP_WEB_SITE_URL`    | `https://captureflow.dev`                      |
+| `NEXT_PUBLIC_RECORDING_SITE_URL`  | `https://captureflow.dev`                      |
+| `NEXT_PUBLIC_SCREENSHOT_SITE_URL` | `https://captureflow.dev`                      |
+| `NEXT_PUBLIC_MARKETING_SITE_URL`  | `https://captureflow.dev`                      |
+| `R2_PUBLIC_BASE_URL`              | `https://cdn.captureflow.dev`                  |
 | `NEXT_PUBLIC_R2_PUBLIC_BASE_URL`  | mirrors `R2_PUBLIC_BASE_URL`                   |
 | `APP_DEEP_LINK_SCHEME`            | `captureflow` (the `captureflow://` deep link) |
-| `APP_WEB_PUBLIC_URL`              | `https://captureflow.xyz` (invite links)       |
+| `APP_WEB_PUBLIC_URL`              | `https://captureflow.dev` (invite links)       |
 
 ## Email — Resend (optional)
 
@@ -56,7 +56,7 @@ Skip to disable invite emails (invite links can still be shared manually).
 | Var                   | Scope      | Purpose                                                                 |
 | --------------------- | ---------- | ----------------------------------------------------------------------- |
 | `RESEND_API_KEY`      | secret     | Resend API key for workspace-invite emails. Unset = sends skipped.      |
-| `RESEND_FROM_ADDRESS` | secret/var | Verified "from" address. Default `CaptureFlow <hello@captureflow.xyz>`. |
+| `RESEND_FROM_ADDRESS` | secret/var | Verified "from" address. Default `CaptureFlow <hello@captureflow.dev>`. |
 
 ## Local development
 

@@ -127,8 +127,8 @@ export function registerSystemHandlers(): void {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            Origin: "https://captureflow.xyz",
-            Referer: "https://captureflow.xyz/",
+            Origin: "https://captureflow.dev",
+            Referer: "https://captureflow.dev/",
           },
           body: JSON.stringify({
             description,

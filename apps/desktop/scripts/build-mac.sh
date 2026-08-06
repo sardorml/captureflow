@@ -23,8 +23,8 @@
 # to load in the packaged app, rebuild them for Electron's ABI first:
 #   pnpm exec electron-builder install-app-deps
 #
-# Auto-update uses a generic provider on the CDN (R2 captureflow-releases →
-# dl.captureflow.xyz); this script only emits dist/*.{zip,dmg,blockmap} +
+# Auto-update polls GitHub Releases (electron-builder publish: github); this
+# script only emits dist/*.{zip,dmg,blockmap} +
 # latest-mac.yml, which you upload to the bucket afterwards.
 #
 # Output is tee'd to build.log — `tail -f build.log` from another shell.

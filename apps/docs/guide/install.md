@@ -51,7 +51,7 @@ The recorder needs an account on a CaptureFlow backend to upload and create
 recording links.
 
 - **Managed hosting:** sign in with the account from your provider.
-- **Self-hosted:** the desktop app points at `https://captureflow.xyz` by
+- **Self-hosted:** the desktop app points at `https://captureflow.dev` by
   default. To target your own deployment, see
   [Point the desktop app at your backend](/self-hosting/desktop).
 
