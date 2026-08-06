@@ -63,7 +63,7 @@ export const MESSAGES = {
   hero: {
     titleLead: "Open-source screen recorder",
     titleSuffix: "with shareable links",
-    subtitleLine1: "Record, stop, and the share link is on your clipboard.",
+    subtitleLine1: "Record, stop, and share the link with your team.",
     subtitleLine2: "Self-hostable on your Cloudflare account.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Add to Chrome",
