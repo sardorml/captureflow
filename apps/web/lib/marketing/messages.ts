@@ -5,11 +5,6 @@
  * them by index.
  */
 export const MESSAGES = {
-  meta: {
-    title: "Open-Source Loom Alternative & Screen Recorder — CaptureFlow",
-    description:
-      "CaptureFlow is an open-source, self-hostable macOS screen recorder with instant share links and annotated screenshots — record, share, and screenshot from one menu bar app. Free and self-hostable on your own Cloudflare account.",
-  },
   nav: {
     features: "Features",
     discover: "Discover",
