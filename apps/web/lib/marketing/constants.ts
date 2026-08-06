@@ -194,7 +194,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     discountBadge: null,
     pricingHeading: "Pricing",
     pricingSubheading:
-      "Self-host for free — it is open source. Or let us host it for you with the managed plan.",
+      "Self-host for free — it is open source. Or let us host it for you.",
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -236,7 +236,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     discountBadge: null,
     pricingHeading: "Pricing",
     pricingSubheading:
-      "Self-host for free — it is open source. Or let us host it for you with the managed plan.",
+      "Self-host for free — it is open source. Or let us host it for you.",
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
