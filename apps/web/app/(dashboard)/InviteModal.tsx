@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  cloneElement,
   useState,
   useTransition,
   type KeyboardEvent,
@@ -17,14 +16,8 @@ const SEPARATORS = [",", " ", "Enter"];
 type Result = { sent: string[]; failed: { email: string; error: string }[] };
 
 type InviteModalProps = {
-  /*
-   * Cloned with an onClick rather than wrapped in one: React Aria's usePress
-   * calls stopPropagation() on click, so an ancestor's handler never fires.
-   * onClick (not onPress) because callers pass both HeroUI Buttons and plain
-   * <button>s — React Aria routes onClick through usePress, plain DOM takes it
-   * natively.
-   */
-  trigger?: ReactElement<{ onClick?: () => void }>;
+  // Rendered as a child, never cloned — see the wrapper below.
+  trigger?: ReactElement;
 };
 
 export function InviteModal({ trigger }: InviteModalProps = {}) {
@@ -99,7 +92,17 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
 
   return (
     <>
-      {cloneElement(triggerNode, { onClick: () => setOpen(true) })}
+      {/*
+       * The trigger is rendered, never cloned. Server components pass this
+       * prop, and React can deliver a server-created element to a client
+       * component as a lazy reference — cloneElement reads `.type` off that
+       * wrapper, gets undefined, and the whole page dies with "Element type is
+       * invalid". Capture phase, because React Aria's usePress calls
+       * stopPropagation() on click, so a bubbling handler here never fires.
+       */}
+      <span className="contents" onClickCapture={() => setOpen(true)}>
+        {triggerNode}
+      </span>
       <Modal
         isOpen={open}
         onOpenChange={(next) => {

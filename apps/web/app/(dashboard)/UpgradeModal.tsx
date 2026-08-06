@@ -1,6 +1,6 @@
 "use client";
 
-import { cloneElement, useState, type ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check, Cloud, Sparkles } from "lucide-react";
 import { Modal } from "@heroui/react";
@@ -16,13 +16,10 @@ const BENEFITS = [
 type Props = {
   email: string;
   userId: string;
-  /*
-   * Cloned with an onPress rather than wrapped in an onClick handler: React
-   * Aria's usePress calls stopPropagation() on click, so an ancestor's onClick
-   * never fires. Stays an element (not a render prop) because server components
-   * render this and functions can't cross that boundary.
-   */
-  trigger: ReactElement<{ onPress?: () => void }>;
+  // Rendered as a child, never cloned — see the wrapper below. Stays an
+  // element (not a render prop) because server components render this and
+  // functions can't cross that boundary.
+  trigger: ReactElement;
   // Auto-opens when the URL has ?upgrade — the landing/pricing tiers send
   // signed-out buyers through /login?mode=signup&next=/recordings?upgrade=1. Enable on
   // one instance per page or they all pop.
@@ -75,7 +72,16 @@ export function UpgradeModal({
 
   return (
     <>
-      {cloneElement(trigger, { onPress: () => setOpen(true) })}
+      {/*
+       * Rendered, never cloned. React can hand a server-created element to a
+       * client component as a lazy reference, and cloneElement reads `.type`
+       * off that wrapper — undefined, which takes the whole page down with
+       * "Element type is invalid". Capture phase, because React Aria's
+       * usePress calls stopPropagation() on click.
+       */}
+      <span className="contents" onClickCapture={() => setOpen(true)}>
+        {trigger}
+      </span>
       <Modal isOpen={open} onOpenChange={setOpen}>
         <Modal.Backdrop>
           <Modal.Container size="md">
