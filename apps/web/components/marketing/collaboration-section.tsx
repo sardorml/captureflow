@@ -170,7 +170,6 @@ const AUTOPLAY_MS = 6000;
 function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
   const m = useMessages();
   const token = TOKENS;
-  const reduceMotion = useReducedMotion();
   const catCopy = m.collaboration.categories[cat.kind];
   const featureCopy = catCopy.features as Record<
     string,
@@ -186,17 +185,6 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
   const go = (next: number) => setIndex(((next % count) + count) % count);
   const setFeatureKey = (key: string) =>
     go(cat.features.findIndex((f) => f.key === key));
-
-  /*
-   * It advances on its own so all three demos get seen without a click, but
-   * never over a pointer or a focused control, and never against a
-   * reduced-motion preference.
-   */
-  useEffect(() => {
-    if (reduceMotion || paused) return;
-    const id = setInterval(() => setIndex((i) => (i + 1) % count), AUTOPLAY_MS);
-    return () => clearInterval(id);
-  }, [reduceMotion, paused, count]);
 
   return (
     <Row gutter={[64, 40]} align="middle">
@@ -267,12 +255,25 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
                   aria-current={i === index}
                   onClick={() => setIndex(i)}
                   className={[
-                    "h-1.5 cursor-pointer rounded-full transition-all motion-reduce:transition-none",
-                    i === index
-                      ? "w-6 bg-accent"
-                      : "w-1.5 bg-line-strong hover:bg-fg-muted",
+                    "bg-line-strong h-1.5 cursor-pointer overflow-hidden rounded-full",
+                    i === index ? "w-6" : "hover:bg-fg-muted w-1.5",
                   ].join(" ")}
-                />
+                >
+                  {i === index && (
+                    /* The dot IS the timer: it fills over the dwell time and
+                       its animationend is what advances the carousel, so the
+                       bar can never disagree with when the slide turns. */
+                    <span
+                      key={index}
+                      onAnimationEnd={() => go(index + 1)}
+                      style={{
+                        animationDuration: `${AUTOPLAY_MS}ms`,
+                        animationPlayState: paused ? "paused" : "running",
+                      }}
+                      className="animate-carousel-progress bg-accent block h-full w-full rounded-full"
+                    />
+                  )}
+                </button>
               ))}
             </div>
           </div>
