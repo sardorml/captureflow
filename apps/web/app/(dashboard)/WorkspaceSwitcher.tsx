@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type ReactNode } from "react";
-import { ChevronsUpDown, LayoutGrid } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import { Avatar, Dropdown, buttonVariants } from "@heroui/react";
 import type { WorkspaceMembership } from "@captureflow/quota";
 import { initials } from "@/lib/format";
@@ -9,7 +9,9 @@ import { workspaceLogoUrl } from "@/lib/site";
 import { switchWorkspaceAction } from "./switch-workspace-action";
 
 // The logo the workspace settings promise is "shown next to your workspace
-// name". Workspaces without one keep the generic mark.
+// name". Without one it falls back to initials, the same treatment member
+// avatars get — the squared corners are what keep a workspace readable as a
+// place rather than a person.
 function WorkspaceMark({
   membership,
   size,
@@ -21,13 +23,12 @@ function WorkspaceMark({
     membership.workspace_logo_key,
     membership.workspace_updated_at,
   );
-  if (!url) return <LayoutGrid size={size} className="shrink-0" />;
   return (
     <Avatar
       className="shrink-0 rounded-[5px]"
       style={{ width: size, height: size }}
     >
-      <Avatar.Image src={url} alt="" />
+      {url && <Avatar.Image src={url} alt="" />}
       <Avatar.Fallback className="text-[10px]">
         {initials(membership.workspace_name)}
       </Avatar.Fallback>
