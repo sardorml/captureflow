@@ -11,7 +11,7 @@ import {
 } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
-import { AppleLogo, ChromeLogo, FirefoxLogo } from "./platform-logos";
+import { AppleLogo, ChromeLogo } from "./platform-logos";
 import { RecorderMockup } from "./recorder-mockup";
 import { MARKETING_MAX_WIDTH } from "./_shared";
 import NextLink from "next/link";
@@ -116,19 +116,6 @@ export function HeroSection() {
               </NextLink>{" "}
               — {m.hero.installNote}
             </span>
-            {/* Icons only — availability per platform is qualified on the
-                download page, which the link below leads to. */}
-            <div aria-hidden className="flex items-center gap-4 text-fg-subtle">
-              <AppleLogo className="size-5" />
-              <ChromeLogo className="size-5" />
-              <FirefoxLogo className="size-5" />
-            </div>
-            <NextLink
-              href={lh("/download")}
-              className="text-sm text-fg-muted underline underline-offset-4 transition-colors hover:text-fg motion-reduce:transition-none"
-            >
-              {m.hero.moreDownloads}
-            </NextLink>
           </Flex>
         ) : null}
       </Flex>

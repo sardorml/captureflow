@@ -67,7 +67,6 @@ export const MESSAGES = {
     installOr: "or",
     installSignup: "Sign up free",
     installNote: "no credit card required",
-    moreDownloads: "More download options",
     secondaryCta: "See pricing",
     badge: "🎉 Open source — free to run",
     noCreditCard: "No credit card required",
