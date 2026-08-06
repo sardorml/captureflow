@@ -3,11 +3,8 @@ import { requireSession } from "@/lib/session-guard";
 import { getScreenshotForUser } from "@/lib/screenshots-db";
 import { getObjectJson, objectExists } from "@/lib/r2";
 import { sourceKeyFor, stateKeyFor } from "@/lib/screenshot-keys";
-import { screenshotViewUrlFor } from "@/lib/site";
+import { CDN_BASE_URL, screenshotViewUrlFor } from "@/lib/site";
 import { ScreenshotEditor } from "./ScreenshotEditor";
-
-const R2_BASE =
-  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +44,7 @@ export default async function ScreenshotEditPage({
     console.error("[screenshot-edit-page] sidecar read failed:", err);
   }
   const imageKey = hasSource ? sourceKey : screenshot.storageKey;
-  const imageUrl = `${R2_BASE}/${imageKey}?v=${cacheKey}`;
+  const imageUrl = `${CDN_BASE_URL}/${imageKey}?v=${cacheKey}`;
   const viewUrl = screenshotViewUrlFor(screenshot.id);
 
   return (

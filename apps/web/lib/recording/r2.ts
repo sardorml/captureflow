@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { R2_PUBLIC_BASE_URL } from "@/lib/site";
 import { getCloudflareEnv } from "./cf-env";
 
 async function getBucket(): Promise<R2Bucket> {
@@ -121,9 +122,6 @@ export async function getObjectJson<T>(storageKey: string): Promise<T | null> {
 
 export async function publicUrlFor(storageKey: string): Promise<string> {
   const env = await getCloudflareEnv();
-  const base =
-    env?.R2_PUBLIC_BASE_URL ??
-    process.env.R2_PUBLIC_BASE_URL ??
-    "https://cdn.captureflow.xyz";
+  const base = env?.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL;
   return `${base}/${storageKey}`;
 }

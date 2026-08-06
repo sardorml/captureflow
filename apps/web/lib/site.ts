@@ -45,8 +45,12 @@ export const APP_SITE_URL = APP_WEB_SITE_URL;
 export const R2_PUBLIC_BASE_URL =
   process.env.R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
-// The unprefixed var above is server-only; client bundles see just this one.
-const CDN_BASE_URL =
+/*
+ * The unprefixed var above is server-only; client bundles see just this one.
+ * Server code that runs inside a request reads the binding env first — the
+ * var is request-scoped there — and falls back to this.
+ */
+export const CDN_BASE_URL =
   process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL;
 
 // Versioned by the workspace's own updated_at: the key is stable across

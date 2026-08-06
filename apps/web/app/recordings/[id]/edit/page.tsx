@@ -10,11 +10,8 @@ import {
   recordingConfigKeyFor,
   hydrateRecordingConfig,
 } from "@/lib/recording-config";
-import { viewUrlFor } from "@/lib/site";
+import { CDN_BASE_URL, viewUrlFor } from "@/lib/site";
 import { RecordingEditor } from "./RecordingEditor";
-
-const R2_BASE =
-  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
 export const dynamic = "force-dynamic";
 
@@ -44,10 +41,10 @@ export default async function RecordingEditPage({
       ? await getWorkspaceById(env.DB, recording.workspaceId)
       : null;
 
-  const videoUrl = `${R2_BASE}/${recording.storageKey}?v=${recording.sizeBytes}`;
+  const videoUrl = `${CDN_BASE_URL}/${recording.storageKey}?v=${recording.sizeBytes}`;
   const webcamUrl =
     recording.webcamStorageKey && recording.webcamState === "ready"
-      ? `${R2_BASE}/${recording.webcamStorageKey}?v=${recording.webcamSizeBytes}`
+      ? `${CDN_BASE_URL}/${recording.webcamStorageKey}?v=${recording.webcamSizeBytes}`
       : null;
   const viewUrl = viewUrlFor(recording.slug);
   const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
