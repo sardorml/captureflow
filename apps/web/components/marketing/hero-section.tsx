@@ -48,7 +48,7 @@ export function HeroSection() {
             marginBottom: 20,
           }}
         >
-          {m.hero.titlePrefix} {m.hero.titleMain}
+          {m.hero.titleLead}
           <br />
           <span className="text-fg-muted">{m.hero.titleSuffix}</span>
         </Title>
