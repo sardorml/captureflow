@@ -19,7 +19,17 @@ export default defineConfig({
       command === "serve"
         ? ["https://captureflow.xyz/*", "http://localhost/*"]
         : ["https://captureflow.xyz/*"];
+    /*
+     * Chrome derives the extension id from this key, so setting it makes an
+     * unpacked build load under the Web Store id instead of a per-machine one —
+     * which is what /auth/callback pins against. It comes from a gitignored
+     * .env.local, and `pnpm zip` sets WXT_NO_KEY so an uploaded package never
+     * carries it (clearing WXT_EXT_KEY itself wouldn't work — WXT reloads it
+     * from .env.local over anything the shell sets).
+     */
+    const key = process.env.WXT_NO_KEY ? undefined : process.env.WXT_EXT_KEY;
     return {
+      ...(key ? { key } : {}),
       // Chrome Web Store ranks the name field heaviest and caps it at 75 chars;
       // description is the store summary, capped at 132.
       name: "CaptureFlow — Screen Recorder & Screenshot Tool",
