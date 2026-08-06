@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Paragraph, Text } from "./typography";
 import { Col, Row } from "./layout";
 import { Card } from "./ui";
@@ -34,12 +34,40 @@ const POINTS = [
   { key: "link", icon: Link2 },
 ] as const;
 
+/*
+ * The panel is a portrait of the extension popup, so its palette is the
+ * extension's own rather than anything from this page's theme — HeroUI's dark
+ * tokens, plus the three surfaces popup.css lifts (a panel floating over
+ * someone else's page can't sit at HeroUI's near-black). Values are copied from
+ * @heroui/styles' dark theme and apps/extension/entrypoints/popup/popup.css;
+ * they are scoped here so the mockup reads the same under either page theme.
+ */
+const EXT_PALETTE = {
+  "--cf-ext-background": "#131317",
+  "--cf-ext-surface": "#222228",
+  "--cf-ext-foreground": "oklch(0.9911 0 0)",
+  "--cf-ext-muted": "oklch(70.5% 0.015 286.067)",
+  "--cf-ext-border": "oklch(28% 0.006 286.033)",
+  "--cf-ext-separator": "oklch(25% 0.006 286.033)",
+  "--cf-ext-accent": "oklch(0.6204 0.195 253.83)",
+  "--cf-ext-accent-soft":
+    "color-mix(in oklab, oklch(0.6204 0.195 253.83) 12%, transparent)",
+  "--cf-ext-accent-soft-foreground":
+    "color-mix(in oklab, oklch(0.6204 0.195 253.83) 80%, oklch(0.9911 0 0) 30%)",
+  "--cf-ext-success": "oklch(0.7329 0.1935 150.81)",
+  "--cf-ext-default": "oklch(27.4% 0.006 286.033)",
+  "--cf-ext-segment": "oklch(0.3964 0.01 285.93)",
+  // The one committing action carries its own warm fill, not the accent.
+  "--cf-ext-start": "#e8563a",
+} as CSSProperties;
+
 // The panel is authored at the extension popup's real width and scaled as one
 // block, so the mockup keeps the proportions a user actually sees.
 const PANEL_WIDTH = 308;
 const MAX_SCALE = 1.35;
 
-const ROW = "flex items-center gap-2.5 rounded-xl px-2.5 py-2";
+const ROW =
+  "flex items-center gap-2.5 rounded-xl bg-[color:var(--cf-ext-surface)] px-2.5 py-2";
 
 function IconGlyph({ icon: Glyph }: { icon: typeof Camera }) {
   return <Glyph className="h-4 w-4 shrink-0" strokeWidth={1.8} />;
@@ -49,7 +77,9 @@ function StatePill({ on, label }: { on: boolean; label: string }) {
   return (
     <span
       className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${
-        on ? "border-[#22c55e] text-[#22c55e]" : "border-white/20 text-white/45"
+        on
+          ? "border-[color:var(--cf-ext-success)] text-[color:var(--cf-ext-success)]"
+          : "border-[color:var(--cf-ext-separator)] text-[color:var(--cf-ext-muted)]"
       }`}
     >
       {label}
@@ -72,16 +102,17 @@ function DeviceRow({
 }) {
   return (
     <div
-      className={`${ROW} relative overflow-hidden bg-white/[0.06] text-white ${
-        on ? "outline outline-white/15" : ""
+      className={`${ROW} relative overflow-hidden text-[color:var(--cf-ext-foreground)] ${
+        on ? "outline outline-[color:var(--cf-ext-border)]" : ""
       }`}
     >
       <IconGlyph icon={icon} />
-      <span className="flex-1 truncate text-[13px] font-medium">{label}</span>
+      <span className="flex-1 truncate text-sm font-medium">{label}</span>
       <StatePill on={on} label={onLabel} />
       {meter && (
+        // Mic level: a Meter pinned along the row's bottom edge, accent-filled.
         <span
-          className="absolute inset-x-0 bottom-0 h-[3px] bg-[#22c55e]/70"
+          className="absolute inset-x-0 bottom-0 h-1 rounded-xs bg-[color:var(--cf-ext-accent)]"
           style={{ width: "42%" }}
           aria-hidden
         />
@@ -98,7 +129,8 @@ function ToolButton({
   label: string;
 }) {
   return (
-    <span className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[11px] font-medium text-white/55">
+    // Disabled ghost buttons — foreground at HeroUI's --disabled-opacity.
+    <span className="flex flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium text-[color:var(--cf-ext-foreground)] opacity-50">
       <Glyph className="h-4 w-4" strokeWidth={1.8} />
       {label}
     </span>
@@ -214,21 +246,24 @@ export function ModesIntro() {
                   dir="ltr"
                   style={{ transform: `scale(${fit})` }}
                 >
-                  <div className="pointer-events-none absolute bottom-full left-1/2 mb-3 -translate-x-1/2 whitespace-nowrap rounded-lg bg-[#171717] px-3 py-1.5 text-xs font-medium text-white shadow-sm">
+                  <div className="pointer-events-none absolute bottom-full left-1/2 mb-3 -translate-x-1/2 rounded-lg bg-[#171717] px-3 py-1.5 text-xs font-medium whitespace-nowrap text-white shadow-sm">
                     {m.modes.tabs.share.caption}
                   </div>
 
                   <div
                     ref={panelRef}
-                    className="relative flex flex-col gap-2.5 rounded-2xl bg-[#0f0f0f] p-3 shadow-[0_24px_64px_rgba(0,0,0,0.5)] ring-1 ring-white/10"
-                    style={{ width: PANEL_WIDTH }}
+                    className="relative flex flex-col gap-2.5 rounded-2xl bg-[color:var(--cf-ext-background)] p-3 shadow-[0_24px_64px_rgba(0,0,0,0.5)]"
+                    style={{ ...EXT_PALETTE, width: PANEL_WIDTH }}
                   >
-                    <header className="flex items-center justify-between gap-2 text-white">
-                      <span className="flex h-7 w-7 items-center justify-center text-white/55">
+                    <header className="flex items-center justify-between gap-2 text-[color:var(--cf-ext-foreground)]">
+                      <span className="flex h-8 w-8 items-center justify-center">
                         <IconGlyph icon={House} />
                       </span>
 
-                      <div className="flex items-center gap-1 rounded-[10px] bg-white/[0.06] p-1">
+                      {/* Tabs: the list container paints the track, and the
+                          selected tab gets the segment pill with an accent
+                          glyph — HeroUI's indicator, not a white chip. */}
+                      <div className="inline-flex rounded-[20px] bg-[color:var(--cf-ext-default)] p-1">
                         {MODES.map((mode, i) => {
                           const Glyph = mode.icon;
                           const isActive = i === 0;
@@ -236,10 +271,10 @@ export function ModesIntro() {
                             <span
                               key={mode.key}
                               aria-label={m.modes.tabs[mode.key].label}
-                              className={`flex h-7 w-9 items-center justify-center rounded-lg ${
+                              className={`flex h-8 items-center justify-center rounded-3xl px-4 ${
                                 isActive
-                                  ? "bg-white text-[#171717]"
-                                  : "text-white/55"
+                                  ? "bg-[color:var(--cf-ext-segment)] text-[color:var(--cf-ext-accent)]"
+                                  : "text-[color:var(--cf-ext-muted)]"
                               }`}
                             >
                               <Glyph className="h-4 w-4" strokeWidth={1.8} />
@@ -248,7 +283,7 @@ export function ModesIntro() {
                         })}
                       </div>
 
-                      <span className="flex h-7 w-7 items-center justify-center text-white/55">
+                      <span className="flex h-8 w-8 items-center justify-center">
                         <IconGlyph icon={X} />
                       </span>
                     </header>
@@ -257,14 +292,14 @@ export function ModesIntro() {
                       {/* The source is the panel's headline choice, so the row
                           carries the accent the device rows don't. */}
                       <div
-                        className={`${ROW} bg-[#2563eb]/20 text-[#93b4fd]`}
+                        className={`${ROW} bg-[color:var(--cf-ext-accent-soft)] text-[color:var(--cf-ext-accent-soft-foreground)]`}
                         aria-label={copy.sourceAria}
                       >
                         <IconGlyph icon={Monitor} />
-                        <span className="flex-1 truncate text-[13px] font-semibold">
+                        <span className="flex-1 truncate text-sm font-semibold">
                           {copy.source}
                         </span>
-                        <span className="text-[11px] opacity-70">
+                        <span className="text-xs opacity-70">
                           {copy.sourceHint}
                         </span>
                       </div>
@@ -283,10 +318,10 @@ export function ModesIntro() {
                         meter
                       />
 
-                      <span className="flex h-10 items-center justify-center rounded-xl bg-[#e8563a] text-sm font-semibold text-white">
+                      <span className="flex h-10 items-center justify-center rounded-xl bg-[color:var(--cf-ext-start)] text-sm font-semibold text-white">
                         {copy.startRecording}
                       </span>
-                      <span className="text-center text-[11px] text-white/45">
+                      <span className="-mt-1.5 text-center text-xs text-[color:var(--cf-ext-muted)]">
                         {copy.limit}
                       </span>
                     </div>
