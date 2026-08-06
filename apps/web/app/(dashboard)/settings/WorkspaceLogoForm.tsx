@@ -45,16 +45,18 @@ export function WorkspaceLogoForm({
           <Avatar.Fallback>{initials(workspaceName)}</Avatar.Fallback>
         </Avatar>
         <div className="flex flex-1 flex-col items-stretch gap-2">
-          <form action={formAction}>
-            <input
-              ref={fileRef}
-              type="file"
-              name="logo"
-              accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-              className="hidden"
-              onChange={submitOnChange}
-            />
-            <div className="flex items-center justify-end gap-2">
+          {/* Siblings, never nested: the HTML parser drops a <form> inside a
+              <form>, which left Remove submitting the upload action instead. */}
+          <div className="flex items-center justify-end gap-2">
+            <form action={formAction}>
+              <input
+                ref={fileRef}
+                type="file"
+                name="logo"
+                accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                className="hidden"
+                onChange={submitOnChange}
+              />
               <Button
                 variant="secondary"
                 isDisabled={pending}
@@ -67,15 +69,15 @@ export function WorkspaceLogoForm({
                 )}
                 {pending ? "Uploading…" : logoUrl ? "Replace" : "Upload logo"}
               </Button>
-              {logoUrl && (
-                <form action={removeWorkspaceLogoAction}>
-                  <Button variant="ghost" type="submit" size="sm">
-                    Remove
-                  </Button>
-                </form>
-              )}
-            </div>
-          </form>
+            </form>
+            {logoUrl && (
+              <form action={removeWorkspaceLogoAction}>
+                <Button variant="ghost" type="submit" size="sm">
+                  Remove
+                </Button>
+              </form>
+            )}
+          </div>
           {state.error && (
             <span className="text-right text-xs text-danger">
               {state.error}
