@@ -194,7 +194,7 @@ function refreshTrayMenu(): void {
         // The dashboard's own auth gate signs the user in and exposes
         // their recording list, so no per-device routing is needed here.
         const base =
-          process.env.CAPTUREFLOW_APP_WEB_BASE ?? "https://captureflow.xyz";
+          process.env.CAPTUREFLOW_APP_WEB_BASE ?? "https://captureflow.dev";
         shell
           .openExternal(base)
           .catch((err) => logError("app", `failed to open dashboard: ${err}`));
@@ -464,7 +464,7 @@ function openSelectionOverlay(
   });
 
   // Refresh storage-cap state while the user picks a source, so the lock
-  // clears before Start if they freed up room on captureflow.xyz.
+  // clears before Start if they freed up room on captureflow.dev.
   void refreshRecordingUsage();
   // Refresh the workspace list so an invite accepted on the web while
   // CaptureFlow was open shows up in the chip without a restart.
@@ -732,7 +732,7 @@ ipcMain.on(IPC_CHANNELS.TOOLBAR_RESIZE_FOR_MODE, () => {
 
 // Screenshot capture pipeline. Fired from the SelectionOverlay when the
 // user picks a Display/Window/Area in screenshot mode: spawns the native
-// sidecar (mode='snapshot'), then uploads the PNG to captureflow.xyz in
+// sidecar (mode='snapshot'), then uploads the PNG to captureflow.dev in
 // the background. Returns the upload result for the renderer to
 // fire-and-forget; the user-facing notice is a native macOS notification.
 export type CaptureScreenshotResult =
@@ -1033,7 +1033,7 @@ app.whenReady().then(async () => {
   // boot writes a fresh ID; subsequent boots load the cached one.
   await loadDeviceId();
 
-  // Restore the user's captureflow.xyz session from disk (if
+  // Restore the user's captureflow.dev session from disk (if
   // any). The lock icon on the recording-mode record button reads this
   // through RECORDING_AUTH_GET on first paint.
   await loadRecordingAuth();
@@ -1052,7 +1052,7 @@ app.whenReady().then(async () => {
   }, 15_000);
   // Usage probe — paints the storage-cap lock on the record button if
   // the device is already at the per-device cap when the app comes up.
-  // Cheap unauthenticated GET against captureflow.xyz.
+  // Cheap unauthenticated GET against captureflow.dev.
   void refreshRecordingUsage();
   // Workspace list — load cached state first so the toolbar chip has
   // something to render immediately, then refresh from the server in

@@ -17,8 +17,8 @@ export default defineConfig({
      */
     const matches =
       command === "serve"
-        ? ["https://captureflow.xyz/*", "http://localhost/*"]
-        : ["https://captureflow.xyz/*"];
+        ? ["https://captureflow.dev/*", "http://localhost/*"]
+        : ["https://captureflow.dev/*"];
     /*
      * Chrome derives the extension id from this key, so setting it makes an
      * unpacked build load under the Web Store id instead of a per-machine one —

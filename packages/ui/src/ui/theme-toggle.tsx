@@ -15,10 +15,10 @@ type Props = {
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 // Browsers silently drop a Domain set on a host without a public suffix
-// (e.g. localhost), so only scope to the apex on captureflow.xyz hosts.
+// (e.g. localhost), so only scope to the apex on captureflow.dev hosts.
 function cookieDomainFor(hostname: string): string | null {
-  if (hostname.endsWith(".captureflow.xyz") || hostname === "captureflow.xyz") {
-    return ".captureflow.xyz";
+  if (hostname.endsWith(".captureflow.dev") || hostname === "captureflow.dev") {
+    return ".captureflow.dev";
   }
   return null;
 }

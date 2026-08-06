@@ -9,7 +9,7 @@ export type AppWebBindings = {
   NEXT_PUBLIC_RECORDING_SITE_URL?: string;
   // Legacy standalone-screenshot host, retained for parity until cutover.
   NEXT_PUBLIC_SCREENSHOT_SITE_URL?: string;
-  // Marketing/landing root; screenshot URLs are captureflow.xyz/s/<id>.
+  // Marketing/landing root; screenshot URLs are captureflow.dev/s/<id>.
   NEXT_PUBLIC_MARKETING_SITE_URL?: string;
   // CDN origin for direct R2 reads (screenshots live under the `screenshots/` prefix).
   R2_PUBLIC_BASE_URL?: string;
@@ -24,7 +24,7 @@ export type AppWebBindings = {
   LEMON_TEST_MONTHLY_VARIANT_ID?: string;
   LEMON_TEST_ANNUAL_VARIANT_ID?: string;
   RESEND_API_KEY?: string;
-  // Must use a domain verified in Resend, e.g. "CaptureFlow <hello@captureflow.xyz>".
+  // Must use a domain verified in Resend, e.g. "CaptureFlow <hello@captureflow.dev>".
   RESEND_FROM_ADDRESS?: string;
   CAPTUREFLOW_EXTENSION_ID?: string;
 };

@@ -7,7 +7,9 @@ import { sendAccessRequestEmail } from "@/lib/email";
 import { viewUrlFor, screenshotViewUrlFor } from "@/lib/site";
 
 const ALLOWED_ORIGINS = new Set([
-  "https://captureflow.xyz",
+  "https://captureflow.dev",
+  "https://dev.captureflow.dev",
+  // Staging on the retired domain, until it is torn down.
   "https://dev.captureflow.xyz",
   "http://localhost:3000",
   "http://localhost:3001",
@@ -129,7 +131,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, isOwner: true }, { headers });
   }
 
-  const siteUrl = env.NEXT_PUBLIC_APP_WEB_SITE_URL ?? "https://captureflow.xyz";
+  const siteUrl = env.NEXT_PUBLIC_APP_WEB_SITE_URL ?? "https://captureflow.dev";
   const artifactUrl =
     body.kind === "recording"
       ? viewUrlFor(body.key)

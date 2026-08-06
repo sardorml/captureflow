@@ -54,7 +54,7 @@ function fakeTransport(
     },
     finalizeScreen: async (req) => {
       finalizedScreen = req;
-      return { url: `https://captureflow.xyz/s/${req.slug}` };
+      return { url: `https://captureflow.dev/s/${req.slug}` };
     },
     finalizeWebcam: async (req) => {
       finalizedWebcam = req;
@@ -66,7 +66,7 @@ function fakeTransport(
       abortedSlugs.push(req.slug);
     },
     state: async () => ({ state: "pending" }),
-    viewUrl: (slug) => `https://captureflow.xyz/r/${slug}`,
+    viewUrl: (slug) => `https://captureflow.dev/r/${slug}`,
   };
 
   const transport = { ...base, ...opts.overrides };
@@ -345,7 +345,7 @@ describe("startRecordingUpload — finalize fallback", () => {
     });
     upload.pushScreen(bytes(40));
     const res = await upload.finish();
-    expect(res.url).toBe("https://captureflow.xyz/r/abc12345");
+    expect(res.url).toBe("https://captureflow.dev/r/abc12345");
   });
 
   it("rethrows the finalize failure when the recording is not ready", async () => {

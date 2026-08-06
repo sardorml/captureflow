@@ -60,7 +60,7 @@ invite-emails disabled (invite links can still be shared manually).
 ## 5. Review public vars
 
 The non-secret `vars` already live in `apps/web/wrangler.jsonc`. If you use a
-domain other than `captureflow.xyz`, update them now (`NEXT_PUBLIC_*` site URLs,
+domain other than `captureflow.dev`, update them now (`NEXT_PUBLIC_*` site URLs,
 `R2_PUBLIC_BASE_URL`, `BETTER_AUTH_URL`, `APP_DEEP_LINK_SCHEME`). Full table in
 [Configuration & env](/self-hosting/configuration).
 
@@ -70,15 +70,15 @@ domain other than `captureflow.xyz`, update them now (`NEXT_PUBLIC_*` site URLs,
 
 ## 6. Bind your domain(s)
 
-- **`captureflow.xyz`** → the `captureflow-web` Worker. Add a custom domain in
+- **`captureflow.dev`** → the `captureflow-web` Worker. Add a custom domain in
   the dashboard (Workers & Pages → `captureflow-web` → Domains & Routes), or add
   `routes` to `wrangler.jsonc`:
 
   ```jsonc
-  "routes": [{ "pattern": "captureflow.xyz", "custom_domain": true }]
+  "routes": [{ "pattern": "captureflow.dev", "custom_domain": true }]
   ```
 
-- **`cdn.captureflow.xyz`** → the `captureflow-recordings` bucket's public
+- **`cdn.captureflow.dev`** → the `captureflow-recordings` bucket's public
   access (R2 → bucket → Settings → Public access → connect custom domain). This
   must match `R2_PUBLIC_BASE_URL`.
 
@@ -108,5 +108,5 @@ and publishes the Worker with its D1/R2 bindings, vars, and cron triggers.
 
 ## 9. Point the desktop app at your backend
 
-If you self-host on `captureflow.xyz`, nothing to do. For any other host, see
+If you self-host on `captureflow.dev`, nothing to do. For any other host, see
 [Point the desktop app at your backend](/self-hosting/desktop).

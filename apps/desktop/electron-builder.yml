@@ -73,7 +73,7 @@ mac:
     NSMicrophoneUsageDescription: CaptureFlow needs microphone access to capture audio commentary.
     NSAudioCaptureUsageDescription: CaptureFlow needs audio capture access to record system audio.
     NSDownloadsFolderUsageDescription: CaptureFlow needs access to save exports to your Downloads folder.
-    # Custom `captureflow://` URL scheme. captureflow.xyz/auth/callback
+    # Custom `captureflow://` URL scheme. captureflow.dev/auth/callback
     # bounces the desktop client back through this scheme after a
     # successful web sign-in, carrying the freshly-minted device
     # token. macOS hands the URL to us via `app.on('open-url')`.

@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS recordings (
   -- Joins to users.id; populated from a Bearer token on /api/init.
   user_id           TEXT,
   -- 'public' resolves at /[slug] for anyone; 'private' resolves only
-  -- when the viewer's app.captureflow.xyz session matches user_id.
+  -- when the viewer's app.captureflow.dev session matches user_id.
   visibility        TEXT NOT NULL DEFAULT 'public',
   -- Post-finalize composite (cam + cursor + wallpaper bg) is uploaded
   -- via a follow-up /api/replace. 'expected' tells the recording page to

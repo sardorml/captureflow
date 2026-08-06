@@ -103,7 +103,7 @@ export async function setRecordingAuth(input: {
 // Runs even with no token cached, purely to track connectivity. Network errors
 // never sign the user out — only an explicit 401 from the worker clears the auth.
 const AUTH_CHECK_BASE =
-  process.env.CAPTUREFLOW_RECORDING_API_BASE ?? "https://captureflow.xyz/api/r";
+  process.env.CAPTUREFLOW_RECORDING_API_BASE ?? "https://captureflow.dev/api/r";
 const AUTH_CHECK_TIMEOUT_MS = 8_000;
 
 export async function validateRecordingAuth(): Promise<RecordingAuthState> {

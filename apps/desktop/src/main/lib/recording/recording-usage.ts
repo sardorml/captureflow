@@ -6,7 +6,7 @@ import { clearRecordingAuth, getRecordingAuthToken } from "./recording-auth";
 import { setRecordingConnectivity } from "./recording-connectivity";
 
 const APP_WEB_API_BASE =
-  process.env.CAPTUREFLOW_APP_WEB_API_BASE ?? "https://captureflow.xyz";
+  process.env.CAPTUREFLOW_APP_WEB_API_BASE ?? "https://captureflow.dev";
 const USAGE_TIMEOUT_MS = 8_000;
 
 // MUST mirror the web backend's ACCOUNT_LIMITS.{totalStorageBytes,

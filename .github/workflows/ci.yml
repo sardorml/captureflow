@@ -92,7 +92,7 @@ jobs:
   # of the worker deploy (separate concurrency group), so neither blocks the
   # other. NOTE: the CLOUDFLARE_API_TOKEN must additionally carry
   # "Cloudflare Pages: Edit" for this job — the Workers/D1/R2 token alone is not
-  # enough. After the first successful deploy, bind docs.captureflow.xyz to the
+  # enough. After the first successful deploy, bind docs.captureflow.dev to the
   # captureflow-docs Pages project in the dashboard (Pages → Custom domains).
   deploy-docs:
     needs: [build, secret-scan]

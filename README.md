@@ -8,11 +8,11 @@
     <strong>Open-source, self-hostable screen recording with instant shareable links.</strong>
   </p>
   <p>
-    <a href="https://captureflow.xyz">Website</a>
+    <a href="https://captureflow.dev">Website</a>
     &nbsp;·&nbsp;
     <a href="https://github.com/sardorml/captureflow/releases">Download</a>
     &nbsp;·&nbsp;
-    <a href="https://docs.captureflow.xyz">Docs</a>
+    <a href="https://docs.captureflow.dev">Docs</a>
     &nbsp;·&nbsp;
     <a href="./DEPLOY.md">Self-hosting</a>
     &nbsp;·&nbsp;

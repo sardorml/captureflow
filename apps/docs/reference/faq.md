@@ -36,7 +36,7 @@ step remains. See [How it works](/guide/how-it-works).
 
 ## Can I use my own domain?
 
-Yes. The defaults assume `captureflow.xyz`, but you can point the Worker and CDN
+Yes. The defaults assume `captureflow.dev`, but you can point the Worker and CDN
 at any domain you control — edit the vars in `apps/web/wrangler.jsonc`. See
 [Deploy to Cloudflare](/self-hosting/cloudflare).
 

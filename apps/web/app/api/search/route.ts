@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { loadSession } from "@/lib/session-guard";
-import { viewUrlFor, screenshotViewUrlFor } from "@/lib/site";
+import {
+  R2_PUBLIC_BASE_URL,
+  viewUrlFor,
+  screenshotViewUrlFor,
+} from "@/lib/site";
 
 // Cookie-gated, so never serve a cached response.
 export const dynamic = "force-dynamic";
@@ -60,7 +64,7 @@ export async function GET(req: Request) {
       .all<{ id: string; title: string | null; created_at: number }>(),
   ]);
 
-  const CDN = env.R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
+  const CDN = env.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL;
 
   const recordingHits: SearchHit[] = (recordings.results ?? []).map((r) => ({
     kind: "recording",

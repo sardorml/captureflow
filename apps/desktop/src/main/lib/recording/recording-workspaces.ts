@@ -8,7 +8,7 @@ import { logInfo, logWarn } from "../logger";
 import { getRecordingAuthToken } from "./recording-auth";
 
 const APP_WEB_API_BASE =
-  process.env.CAPTUREFLOW_APP_WEB_API_BASE ?? "https://captureflow.xyz";
+  process.env.CAPTUREFLOW_APP_WEB_API_BASE ?? "https://captureflow.dev";
 const FETCH_TIMEOUT_MS = 8_000;
 const FILE_NAME = "workspaces.json";
 

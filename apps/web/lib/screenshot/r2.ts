@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { R2_PUBLIC_BASE_URL } from "@/lib/site";
 import { getCloudflareEnv } from "./cf-env";
 
 async function getBucket(): Promise<R2Bucket> {
@@ -82,9 +83,6 @@ export function publicScreenshotUrl(id: string, r2BaseUrl: string): string {
 // media-proxy override (.dev.vars), which process.env never sees.
 export async function publicScreenshotUrlFor(id: string): Promise<string> {
   const env = await getCloudflareEnv();
-  const base =
-    env?.R2_PUBLIC_BASE_URL ??
-    process.env.R2_PUBLIC_BASE_URL ??
-    "https://cdn.captureflow.xyz";
+  const base = env?.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL;
   return publicScreenshotUrl(id, base);
 }

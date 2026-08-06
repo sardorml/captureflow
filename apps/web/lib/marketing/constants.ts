@@ -1,4 +1,4 @@
-export const SITE_URL = "https://captureflow.xyz";
+export const SITE_URL = "https://captureflow.dev";
 export const SITE_NAME = "CaptureFlow";
 export const SITE_TITLE =
   "Open-Source Loom Alternative & Screen Recorder — CaptureFlow";
@@ -321,7 +321,7 @@ const STATIC_FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "Can I self-host CaptureFlow?",
     answer:
-      "Yes — that's the whole point. CaptureFlow is open source under the AGPL and runs entirely on Cloudflare: Workers for the API, R2 for storage, and D1 for the database. Deploy it to your own account and you own every recording, Screenshot, and share link end to end. The repo and deploy guide live on GitHub and docs.captureflow.xyz.",
+      "Yes — that's the whole point. CaptureFlow is open source under the AGPL and runs entirely on Cloudflare: Workers for the API, R2 for storage, and D1 for the database. Deploy it to your own account and you own every recording, Screenshot, and share link end to end. The repo and deploy guide live on GitHub and docs.captureflow.dev.",
   },
   {
     question: "What's free and what's the managed plan?",
@@ -461,7 +461,7 @@ const ALL_NAV_LINKS: { href: string; label: string }[] = [
 
 // No dedicated X/Telegram presence yet — these point at GitHub and docs.
 export const X_URL = "https://github.com/sardorml/captureflow";
-export const TELEGRAM_URL = "https://docs.captureflow.xyz";
+export const TELEGRAM_URL = "https://docs.captureflow.dev";
 export const DISCORD_URL = "https://discord.gg/qzeBCaEeNq";
 
 const WAITLIST_EXTRA_LINKS: { href: string; label: string }[] = [
@@ -522,7 +522,7 @@ export const WEBSITE_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: SITE_NAME,
-  alternateName: "captureflow.xyz",
+  alternateName: "captureflow.dev",
   url: SITE_URL,
 };
 

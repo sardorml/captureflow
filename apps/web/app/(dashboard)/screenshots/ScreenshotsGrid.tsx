@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Card, Chip, EmptyState } from "@heroui/react";
 import type { DashboardScreenshotRow } from "@/lib/screenshots-db";
 import type { Visibility } from "@/app/VisibilityDialog";
-import { screenshotViewUrlFor } from "@/lib/site";
+import { CDN_BASE_URL, screenshotViewUrlFor } from "@/lib/site";
 import {
   deleteScreenshotAction,
   renameScreenshotAction,
@@ -13,14 +13,11 @@ import {
 import { MediaCard } from "../../_components/MediaCard";
 import { SelectionBar, useSelection } from "../../_components/selection";
 
-const R2_BASE =
-  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
-
 // R2 is served with long cache headers, so cache-bust by tagging the URL with
 // the freshest mutation timestamp; otherwise overwrites serve stale bytes.
 function publicScreenshotImageUrl(screenshot: DashboardScreenshotRow): string {
   const v = screenshot.editedAt ?? screenshot.updatedAt ?? screenshot.createdAt;
-  return `${R2_BASE}/${screenshot.storageKey}?v=${v}`;
+  return `${CDN_BASE_URL}/${screenshot.storageKey}?v=${v}`;
 }
 
 type ScreenshotsGridProps = {

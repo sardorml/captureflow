@@ -43,7 +43,7 @@ async function requireSession(): Promise<{
 }
 
 function getBaseUrl(): string {
-  return process.env.APP_WEB_PUBLIC_URL ?? "https://captureflow.xyz";
+  return process.env.APP_WEB_PUBLIC_URL ?? "https://captureflow.dev";
 }
 
 export async function inviteMemberAction(

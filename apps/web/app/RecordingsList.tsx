@@ -5,7 +5,7 @@ import { Card, Chip, EmptyState } from "@heroui/react";
 import { Film } from "lucide-react";
 import type { DashboardRecordingRow } from "@/lib/recordings-db";
 import type { Visibility } from "@/app/VisibilityDialog";
-import { viewUrlFor } from "@/lib/site";
+import { CDN_BASE_URL, viewUrlFor } from "@/lib/site";
 import {
   deleteRecordingAction,
   renameRecordingAction,
@@ -13,9 +13,6 @@ import {
 } from "./actions";
 import { MediaCard } from "./_components/MediaCard";
 import { SelectionBar, useSelection } from "./_components/selection";
-
-const CDN_BASE_URL =
-  process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL ?? "https://cdn.captureflow.xyz";
 
 type RecordingsListProps = {
   recordings: DashboardRecordingRow[];

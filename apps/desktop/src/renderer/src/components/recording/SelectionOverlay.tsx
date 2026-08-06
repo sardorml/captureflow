@@ -445,7 +445,7 @@ function NoInternetModal({
           </h2>
         </div>
         <p className="text-sm leading-relaxed text-white/70">
-          CaptureFlow couldn&apos;t reach captureflow.xyz, so a recording link
+          CaptureFlow couldn&apos;t reach captureflow.dev, so a recording link
           can&apos;t be created right now.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-white/70">
@@ -507,7 +507,7 @@ function LoginPromptModal({
           them, set visibility, and delete the ones you no longer need.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-white/70">
-          We&apos;ll open <span className="text-white">captureflow.xyz</span> in
+          We&apos;ll open <span className="text-white">captureflow.dev</span> in
           your browser. After you sign in or create an account, the desktop app
           will reconnect automatically.
         </p>

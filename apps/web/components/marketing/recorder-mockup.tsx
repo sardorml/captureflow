@@ -6,7 +6,7 @@ import { Tag } from "./ui";
 import { TOKENS } from "./tokens";
 import { Play, Pause, Check } from "lucide-react";
 
-const SHARE_PATH = "captureflow.xyz/r/8kx2pnq4";
+const SHARE_PATH = "captureflow.dev/r/8kx2pnq4";
 
 export function RecorderMockup() {
   const token = TOKENS;

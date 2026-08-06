@@ -3,7 +3,7 @@ import { hostname } from "os";
 
 // Override at dev time, e.g. CAPTUREFLOW_APP_WEB_BASE=http://localhost:3032.
 const APP_WEB_BASE =
-  process.env.CAPTUREFLOW_APP_WEB_BASE ?? "https://captureflow.xyz";
+  process.env.CAPTUREFLOW_APP_WEB_BASE ?? "https://captureflow.dev";
 
 /** Open the browser at the device-token sign-in page. */
 export async function signInToRecordingAccount(): Promise<void> {
@@ -23,7 +23,7 @@ export async function openUpgrade(): Promise<void> {
   await shell.openExternal(`${APP_WEB_BASE}/plan`);
 }
 
-/** Open the captureflow.xyz dashboard (Recordings is the signed-in home). */
+/** Open the captureflow.dev dashboard (Recordings is the signed-in home). */
 export async function openAccountDashboard(): Promise<void> {
   await shell.openExternal(`${APP_WEB_BASE}/recordings`);
 }

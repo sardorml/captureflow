@@ -49,15 +49,15 @@ type Category = {
 };
 
 const SHARE_URLS: Record<ShareKey, string> = {
-  editor: "captureflow.xyz/s/8kx2pnq4",
-  viewer: "captureflow.xyz/s/8kx2pnq4",
-  dashboard: "captureflow.xyz",
+  editor: "captureflow.dev/s/8kx2pnq4",
+  viewer: "captureflow.dev/s/8kx2pnq4",
+  dashboard: "captureflow.dev",
 };
 
 const SCREENSHOT_URLS: Record<ScreenshotKey, string> = {
-  markup: "captureflow.xyz/screenshots/8kx2pnq4/edit",
+  markup: "captureflow.dev/screenshots/8kx2pnq4/edit",
   capture: "capture overlay",
-  share: "captureflow.xyz",
+  share: "captureflow.dev",
 };
 
 const CATEGORIES: Category[] = [

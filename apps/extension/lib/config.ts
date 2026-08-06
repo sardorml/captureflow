@@ -3,4 +3,4 @@ export const WEB_BASE =
   import.meta.env.WXT_WEB_BASE ??
   (import.meta.env.COMMAND === "serve"
     ? "http://localhost:3032"
-    : "https://captureflow.xyz");
+    : "https://captureflow.dev");

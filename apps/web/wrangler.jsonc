@@ -14,13 +14,18 @@
   "observability": {
     "enabled": true,
   },
-  // Apex captureflow.xyz routes to this worker as a Cloudflare Workers Custom
+  // Apex captureflow.dev routes to this worker as a Cloudflare Workers Custom
   // Domain. Bind it once in the dashboard (Workers & Pages → captureflow-web →
-  // Settings → Domains & Routes → Add → Custom domain → captureflow.xyz), which
+  // Settings → Domains & Routes → Add → Custom domain → captureflow.dev), which
   // overrides the parked DNS record. This entry keeps it declarative so future
   // deploys preserve the binding; custom_domain:true lets Cloudflare manage the
   // apex DNS record for the worker.
-  "routes": [{ "pattern": "captureflow.xyz", "custom_domain": true }],
+  // captureflow.xyz stays bound so worker.ts can 308 it to the apex above;
+  // unbinding it would break every link already shared from the old domain.
+  "routes": [
+    { "pattern": "captureflow.dev", "custom_domain": true },
+    { "pattern": "captureflow.xyz", "custom_domain": true },
+  ],
   // Cron Triggers → worker.ts scheduled(): hourly multipart GC + daily
   // retention sweep against D1 + R2.
   "triggers": {
@@ -42,12 +47,14 @@
     },
   ],
   "vars": {
-    "NEXT_PUBLIC_APP_WEB_SITE_URL": "https://captureflow.xyz",
-    "NEXT_PUBLIC_RECORDING_SITE_URL": "https://captureflow.xyz",
-    "NEXT_PUBLIC_SCREENSHOT_SITE_URL": "https://captureflow.xyz",
-    "NEXT_PUBLIC_MARKETING_SITE_URL": "https://captureflow.xyz",
-    "R2_PUBLIC_BASE_URL": "https://cdn.captureflow.xyz",
-    "BETTER_AUTH_URL": "https://captureflow.xyz",
+    "NEXT_PUBLIC_APP_WEB_SITE_URL": "https://captureflow.dev",
+    "NEXT_PUBLIC_RECORDING_SITE_URL": "https://captureflow.dev",
+    "NEXT_PUBLIC_SCREENSHOT_SITE_URL": "https://captureflow.dev",
+    "NEXT_PUBLIC_MARKETING_SITE_URL": "https://captureflow.dev",
+    "R2_PUBLIC_BASE_URL": "https://cdn.captureflow.dev",
+    "BETTER_AUTH_URL": "https://captureflow.dev",
+    // Read by worker.ts: every hostname here 308s to the canonical origin.
+    "LEGACY_HOSTS": "captureflow.xyz",
     // Desktop registers the captureflow:// scheme; keep it until the desktop
     // deep-link parser is rebranded in lockstep.
     "APP_DEEP_LINK_SCHEME": "captureflow",
