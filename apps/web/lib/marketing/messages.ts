@@ -67,7 +67,6 @@ export const MESSAGES = {
     installOr: "or",
     installSignup: "Sign up free",
     installNote: "no credit card required",
-    moreDownloads: "More download options",
     secondaryCta: "See pricing",
     badge: "🎉 Open source — free to run",
     noCreditCard: "No credit card required",
@@ -281,7 +280,7 @@ export const MESSAGES = {
     eyebrow: "Plans",
     heading: "Pricing",
     subheading:
-      "Self-host for free — it is open source. Or let us host it for you with the managed plan.",
+      "Self-host for free — it is open source. Or let us host it for you.",
     guarantee: "Open source under the AGPL — run it yourself.",
     managedGuarantee: "The same open-source app — we run it for you.",
     free: {
