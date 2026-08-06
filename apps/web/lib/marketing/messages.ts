@@ -158,6 +158,11 @@ export const MESSAGES = {
     },
   },
   collaboration: {
+    carousel: {
+      previous: "Previous demo",
+      next: "Next demo",
+      slide: "{n} of {total}",
+    },
     categories: {
       share: {
         title: "Shareable recordings",

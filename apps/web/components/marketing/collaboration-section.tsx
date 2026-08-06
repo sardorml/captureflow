@@ -165,65 +165,117 @@ function CategorySection({ cat, flip }: { cat: Category; flip: boolean }) {
   );
 }
 
+const AUTOPLAY_MS = 6000;
+
 function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
   const m = useMessages();
   const token = TOKENS;
-  const featureCopy = m.collaboration.categories[cat.kind].features as Record<
+  const reduceMotion = useReducedMotion();
+  const catCopy = m.collaboration.categories[cat.kind];
+  const featureCopy = catCopy.features as Record<
     string,
     { title: string; linkText: string; body: string }
   >;
-  const [featureKey, setFeatureKey] = useState(cat.features[0].key);
+  const nav = m.collaboration.carousel;
+  const count = cat.features.length;
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const featureKey = cat.features[index].key;
+  const copy = featureCopy[featureKey];
+  const go = (next: number) => setIndex(((next % count) + count) % count);
+  const setFeatureKey = (key: string) =>
+    go(cat.features.findIndex((f) => f.key === key));
+
+  /*
+   * It advances on its own so all three demos get seen without a click, but
+   * never over a pointer or a focused control, and never against a
+   * reduced-motion preference.
+   */
+  useEffect(() => {
+    if (reduceMotion || paused) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % count), AUTOPLAY_MS);
+    return () => clearInterval(id);
+  }, [reduceMotion, paused, count]);
 
   return (
     <Row gutter={[64, 40]} align="middle">
       <Col xs={{ span: 24, order: 2 }} lg={{ span: 10, order: flip ? 1 : 2 }}>
-        {/* Every row carries its description rather than revealing it on
-            select: three short paragraphs read as the feature list itself, and
-            nothing shifts vertically when the mockup switches. The active row
-            is marked by a rail + wash, so selection stays legible without the
-            others dimming into placeholders. */}
-        <div className="flex flex-col gap-1">
-          {cat.features.map((f) => {
-            const on = f.key === featureKey;
-            const copy = featureCopy[f.key];
-            return (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setFeatureKey(f.key)}
-                aria-pressed={on}
-                className={[
-                  "w-full cursor-pointer rounded-e-lg border-s-2 py-2.5 ps-4 pe-3 text-left transition-colors motion-reduce:transition-none",
-                  on
-                    ? "border-accent bg-tint"
-                    : "border-line hover:border-line-strong hover:bg-tint",
-                ].join(" ")}
+        {/* One demo at a time, with its whole description — three summaries
+            side by side made every one of them shorter than it needed to be.
+            The min-height is the tallest slide, so the arrows and the mockup
+            don't shift as the copy changes. */}
+        <div
+          role="group"
+          aria-roledescription="carousel"
+          aria-label={catCopy.title}
+          tabIndex={0}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocus={() => setPaused(true)}
+          onBlur={() => setPaused(false)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowLeft") go(index - 1);
+            if (e.key === "ArrowRight") go(index + 1);
+          }}
+          className="flex flex-col gap-6 rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+        >
+          <div className="min-h-[148px]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={featureKey}
+                {...FADE}
+                aria-roledescription="slide"
+                aria-label={nav.slide
+                  .replace("{n}", String(index + 1))
+                  .replace("{total}", String(count))}
               >
-                <Text
-                  strong
-                  style={{
-                    color: on ? token.colorText : token.colorTextSecondary,
-                  }}
-                >
+                <Text strong style={{ fontSize: 22, lineHeight: 1.3 }}>
                   {copy.title}
                 </Text>
                 <Paragraph
                   type="secondary"
                   style={{
-                    maxWidth: 420,
-                    margin: "4px 0 0",
-                    fontSize: 14,
-                    lineHeight: 1.5,
+                    maxWidth: 440,
+                    margin: "10px 0 0",
+                    fontSize: 16,
+                    lineHeight: 1.6,
                   }}
                 >
-                  <span style={{ color: token.colorTextSecondary }}>
+                  <span style={{ color: token.colorText }}>
                     {copy.linkText}
                   </span>{" "}
                   {copy.body}
                 </Paragraph>
-              </button>
-            );
-          })}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <CarouselArrow label={nav.previous} onClick={() => go(index - 1)}>
+              <ChevronLeft className="h-4 w-4" />
+            </CarouselArrow>
+            <CarouselArrow label={nav.next} onClick={() => go(index + 1)}>
+              <ChevronRight className="h-4 w-4" />
+            </CarouselArrow>
+            <div className="flex items-center gap-2 ps-1">
+              {cat.features.map((f, i) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  aria-label={featureCopy[f.key].title}
+                  aria-current={i === index}
+                  onClick={() => setIndex(i)}
+                  className={[
+                    "h-1.5 cursor-pointer rounded-full transition-all motion-reduce:transition-none",
+                    i === index
+                      ? "w-6 bg-accent"
+                      : "w-1.5 bg-line-strong hover:bg-fg-muted",
+                  ].join(" ")}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </Col>
 
@@ -254,6 +306,27 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
         </Card>
       </Col>
     </Row>
+  );
+}
+
+function CarouselArrow({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      className="text-fg-muted hover:text-fg hover:border-line-strong border-line flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border transition-colors motion-reduce:transition-none"
+    >
+      {children}
+    </button>
   );
 }
 
