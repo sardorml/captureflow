@@ -7,58 +7,99 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   AppWindow,
   Camera,
-  ChevronDown,
-  Link2,
+  Droplets,
+  House,
   Mic,
   Monitor,
-  Scan,
-  Volume2,
+  MoreHorizontal,
+  Sparkles,
+  Video,
   X,
 } from "lucide-react";
 import { MarketingSection, SectionHeading } from "./_shared";
 import { useMessages } from "./i18n-provider";
 
-// Keep this mode set in sync with the app's RecordingModeToggle (Share + Screenshot only).
+// Keep this mode set in sync with the extension popup's Tabs (video + screenshot).
 const MODES = [
-  { key: "share", icon: Link2 },
+  { key: "share", icon: Video },
   { key: "screenshot", icon: Camera },
 ] as const;
 
-const SOURCES = [Monitor, AppWindow, Scan];
+// The panel is authored at the extension popup's real width and scaled as one
+// block, so the mockup keeps the proportions a user actually sees.
+const PANEL_WIDTH = 308;
+const MAX_SCALE = 1.45;
 
-function Divider() {
+const ROW = "flex items-center gap-2.5 rounded-xl px-2.5 py-2";
+
+function IconGlyph({ icon: Glyph }: { icon: typeof Camera }) {
+  return <Glyph className="h-4 w-4 shrink-0" strokeWidth={1.8} />;
+}
+
+function StatePill({ on, label }: { on: boolean; label: string }) {
   return (
-    <div className="flex items-center self-stretch px-1.5" aria-hidden>
-      <div className="my-2 w-px self-stretch bg-white/15" />
-    </div>
+    <span
+      className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${
+        on ? "border-[#22c55e] text-[#22c55e]" : "border-white/20 text-white/45"
+      }`}
+    >
+      {label}
+    </span>
   );
 }
 
-function GripDots() {
+function DeviceRow({
+  icon,
+  label,
+  on,
+  onLabel,
+  meter,
+}: {
+  icon: typeof Camera;
+  label: string;
+  on: boolean;
+  onLabel: string;
+  meter?: boolean;
+}) {
   return (
     <div
-      className="grid grid-cols-2 gap-x-[5px] gap-y-[3px] self-center"
-      aria-hidden
+      className={`${ROW} relative overflow-hidden bg-white/[0.06] text-white ${
+        on ? "outline outline-white/15" : ""
+      }`}
     >
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-[3px] w-[3px] rounded-full bg-white/40" />
-      ))}
+      <IconGlyph icon={icon} />
+      <span className="flex-1 truncate text-[13px] font-medium">{label}</span>
+      <StatePill on={on} label={onLabel} />
+      {meter && (
+        <span
+          className="absolute inset-x-0 bottom-0 h-[3px] bg-[#22c55e]/70"
+          style={{ width: "42%" }}
+          aria-hidden
+        />
+      )}
     </div>
   );
 }
 
-function DeviceCell({ icon: Glyph }: { icon: typeof Camera }) {
+function ToolButton({
+  icon: Glyph,
+  label,
+}: {
+  icon: typeof Camera;
+  label: string;
+}) {
   return (
-    <div className="relative flex h-8 items-center gap-0.5 rounded-lg px-1.5">
-      <Glyph className="h-[18px] w-[18px] text-white" strokeWidth={2} />
-      <ChevronDown className="h-3 w-3 shrink-0 text-white/55" strokeWidth={2} />
-    </div>
+    <span className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[11px] font-medium text-white/55">
+      <Glyph className="h-4 w-4" strokeWidth={1.8} />
+      {label}
+    </span>
   );
 }
 
 export function ModesIntro() {
   const m = useMessages();
   const token = TOKENS;
+  const copy = m.modes.panel;
 
   // `target` is where the cursor is heading; `active` is the committed mode. They
   // diverge briefly so the click reads as the cause of the swap.
@@ -66,32 +107,40 @@ export function ModesIntro() {
   const [active, setActive] = useState(0);
   const [clicking, setClicking] = useState(false);
 
-  // Read from `offsetLeft`/`offsetWidth` (transform-independent) so the wrapper's
-  // fit scale doesn't corrupt the cursor's target coordinates.
+  // Read from `offsetLeft`/`offsetTop` (transform-independent) so the wrapper's
+  // fit scale doesn't corrupt the cursor's target coordinates. Nothing between a
+  // tab and the panel is positioned, so the panel is their offsetParent.
   const containerRef = useRef<HTMLDivElement>(null);
-  const barRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const modeBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [centers, setCenters] = useState<number[]>([]);
-  const [barSize, setBarSize] = useState({ w: 0, h: 0 });
+  const [centers, setCenters] = useState<Array<{ x: number; y: number }>>([]);
+  const [panelSize, setPanelSize] = useState({ w: 0, h: 0 });
   const [fit, setFit] = useState(1);
   useEffect(() => {
     const measure = () => {
-      const bar = barRef.current;
+      const panel = panelRef.current;
       const container = containerRef.current;
-      if (!bar || !container) return;
+      if (!panel || !container) return;
       setCenters(
         modeBtnRefs.current.map((b) =>
-          b ? b.offsetLeft + b.offsetWidth / 2 : 0,
+          b
+            ? {
+                x: b.offsetLeft + b.offsetWidth / 2,
+                y: b.offsetTop + b.offsetHeight / 2,
+              }
+            : { x: 0, y: 0 },
         ),
       );
-      const w = bar.offsetWidth;
-      const h = bar.offsetHeight;
-      setBarSize({ w, h });
-      setFit(w > 0 ? Math.min(1, (container.clientWidth * 0.9) / w) : 1);
+      const w = panel.offsetWidth;
+      const h = panel.offsetHeight;
+      setPanelSize({ w, h });
+      setFit(
+        w > 0 ? Math.min(MAX_SCALE, (container.clientWidth * 0.92) / w) : 1,
+      );
     };
     measure();
     const ro = new ResizeObserver(measure);
-    if (barRef.current) ro.observe(barRef.current);
+    if (panelRef.current) ro.observe(panelRef.current);
     if (containerRef.current) ro.observe(containerRef.current);
     window.addEventListener("resize", measure);
     return () => {
@@ -132,9 +181,9 @@ export function ModesIntro() {
     };
   }, []);
 
-  const showDevices = MODES[active].key !== "screenshot";
-  const cursorX = centers[target] ?? 0;
-  const captionX = centers[active] ?? 0;
+  const isShare = MODES[active].key === "share";
+  const cursor = centers[target] ?? { x: 0, y: 0 };
+  const captionX = centers[active]?.x ?? 0;
   const measured = centers.length === MODES.length;
 
   return (
@@ -167,16 +216,16 @@ export function ModesIntro() {
       >
         <div ref={containerRef} className="flex justify-center">
           <div
-            className="relative"
+            className="relative transition-[width,height] duration-300 motion-reduce:transition-none"
             style={{
-              width: barSize.w ? barSize.w * fit : undefined,
-              height: barSize.h ? barSize.h * fit : undefined,
+              width: panelSize.w ? panelSize.w * fit : undefined,
+              height: panelSize.h ? panelSize.h * fit : undefined,
             }}
           >
-            {/* Content-sized so the bar lays out at natural width, then scales
-                down as one block. `dir=ltr` keeps cluster order under RTL locales. */}
+            {/* Content-sized so the panel lays out at its natural width, then
+                scales as one block. `dir=ltr` keeps cluster order under RTL. */}
             <div
-              className="absolute left-0 top-0 origin-top-left"
+              className="absolute top-0 left-0 origin-top-left"
               dir="ltr"
               style={{ transform: `scale(${fit})` }}
             >
@@ -201,91 +250,123 @@ export function ModesIntro() {
               </div>
 
               <div
-                ref={barRef}
-                className="relative flex h-[50px] items-center gap-1.5 rounded-2xl bg-[#404040] p-2 shadow-[0_8px_24px_rgba(0,0,0,0.35)] ring-1 ring-white/10"
+                ref={panelRef}
+                className="relative flex flex-col gap-2.5 rounded-2xl bg-[#0f0f0f] p-3 shadow-[0_24px_64px_rgba(0,0,0,0.5)] ring-1 ring-white/10"
+                style={{ width: PANEL_WIDTH }}
               >
-                <div className="ml-0.5 flex items-center self-center rounded-md">
-                  <div className="flex items-center justify-center p-1">
-                    <X
-                      className="h-[18px] w-[18px] text-white"
-                      strokeWidth={2}
-                    />
+                <header className="flex items-center justify-between gap-2 text-white">
+                  <span className="flex h-7 w-7 items-center justify-center text-white/55">
+                    <IconGlyph icon={House} />
+                  </span>
+
+                  <div className="flex items-center gap-1 rounded-[10px] bg-white/[0.06] p-1">
+                    {MODES.map((mode, i) => {
+                      const Glyph = mode.icon;
+                      const isActive = i === active;
+                      return (
+                        <button
+                          key={mode.key}
+                          ref={(el) => {
+                            modeBtnRefs.current[i] = el;
+                          }}
+                          type="button"
+                          aria-label={m.modes.tabs[mode.key].label}
+                          aria-pressed={isActive}
+                          className={`flex h-7 w-9 items-center justify-center rounded-lg transition-colors motion-reduce:transition-none ${
+                            isActive
+                              ? "bg-white text-[#171717]"
+                              : "text-white/55"
+                          }`}
+                        >
+                          <Glyph className="h-4 w-4" strokeWidth={1.8} />
+                        </button>
+                      );
+                    })}
                   </div>
-                </div>
 
-                <div className="flex items-center gap-1 rounded-[10px] bg-black/20 p-1">
-                  {MODES.map((mode, i) => {
-                    const Glyph = mode.icon;
-                    const isActive = i === active;
-                    return (
-                      <button
-                        key={mode.key}
-                        ref={(el) => {
-                          modeBtnRefs.current[i] = el;
-                        }}
-                        type="button"
-                        aria-label={m.modes.tabs[mode.key].label}
-                        aria-pressed={isActive}
-                        className={`flex h-8 w-9 items-center justify-center rounded-lg transition-colors ${
-                          isActive
-                            ? "bg-white text-[#171717] shadow-[0_1px_2px_rgba(0,0,0,0.3)]"
-                            : "text-white/55"
-                        }`}
-                      >
-                        <Glyph className="h-[18px] w-[18px]" strokeWidth={2} />
-                      </button>
-                    );
-                  })}
-                </div>
+                  <span className="flex h-7 w-7 items-center justify-center text-white/55">
+                    <IconGlyph icon={X} />
+                  </span>
+                </header>
 
-                <Divider />
-
-                <div className="flex items-center gap-1 rounded-[10px] bg-black/20 p-1">
-                  {SOURCES.map((Glyph, i) => (
-                    <div
-                      key={i}
-                      className={`flex h-8 w-9 items-center justify-center rounded-lg ${
-                        i === 0 ? "bg-white/10 text-white" : "text-white/45"
-                      }`}
-                    >
-                      <Glyph className="h-[18px] w-[18px]" strokeWidth={2} />
-                    </div>
-                  ))}
-                </div>
-
-                <Divider />
-
-                <div className="relative flex items-center">
+                {/* Both bodies share one grid cell, so the panel is always as
+                    tall as the taller of the two and switching modes doesn't
+                    resize it mid-animation. */}
+                <div className="grid">
                   <div
-                    className={`flex items-center gap-1 ${
-                      showDevices ? "" : "invisible"
+                    className={`col-start-1 row-start-1 flex flex-col gap-2 ${
+                      isShare ? "" : "invisible"
                     }`}
+                    aria-hidden={!isShare}
                   >
-                    <DeviceCell icon={Camera} />
-                    <DeviceCell icon={Mic} />
-                    <DeviceCell icon={Volume2} />
-                  </div>
-                  {!showDevices && (
-                    <span className="absolute inset-0 flex items-center justify-center select-none">
-                      <span className="truncate px-1.5 text-[13px] font-normal text-white/45">
-                        {m.modes.tabs.screenshot.label}
+                    {/* The source is the panel's headline choice, so the row
+                        carries the accent the device rows don't. */}
+                    <div
+                      className={`${ROW} bg-[#2563eb]/20 text-[#93b4fd]`}
+                      aria-label={copy.sourceAria}
+                    >
+                      <IconGlyph icon={Monitor} />
+                      <span className="flex-1 truncate text-[13px] font-semibold">
+                        {copy.source}
                       </span>
+                      <span className="text-[11px] opacity-70">
+                        {copy.sourceHint}
+                      </span>
+                    </div>
+
+                    <DeviceRow
+                      icon={Camera}
+                      label={copy.camera}
+                      on={false}
+                      onLabel={copy.off}
+                    />
+                    <DeviceRow
+                      icon={Mic}
+                      label={copy.microphone}
+                      on
+                      onLabel={copy.on}
+                      meter
+                    />
+
+                    <span className="flex h-10 items-center justify-center rounded-xl bg-[#e8563a] text-sm font-semibold text-white">
+                      {copy.startRecording}
                     </span>
-                  )}
+                    <span className="text-center text-[11px] text-white/45">
+                      {copy.limit}
+                    </span>
+                  </div>
+
+                  <div
+                    className={`col-start-1 row-start-1 flex flex-col gap-2 ${
+                      isShare ? "invisible" : ""
+                    }`}
+                    aria-hidden={isShare}
+                  >
+                    <div className={`${ROW} bg-white/[0.06] text-white`}>
+                      <IconGlyph icon={AppWindow} />
+                      <span className="flex-1 truncate text-[13px] font-medium">
+                        {copy.currentTab}
+                      </span>
+                    </div>
+
+                    <span className="flex h-10 items-center justify-center rounded-xl bg-[#2563eb] text-sm font-semibold text-white">
+                      {copy.captureScreenshot}
+                    </span>
+                  </div>
                 </div>
 
-                <Divider />
-
-                <div className="flex items-center pr-2.5">
-                  <GripDots />
-                </div>
+                <footer className="grid grid-cols-3 items-start gap-1">
+                  <ToolButton icon={Sparkles} label={copy.effects} />
+                  <ToolButton icon={Droplets} label={copy.blur} />
+                  <ToolButton icon={MoreHorizontal} label={copy.more} />
+                </footer>
               </div>
 
               {measured && (
                 <motion.div
                   aria-hidden
-                  className="pointer-events-none absolute top-1/2 z-20 -mt-[20px] -ml-[40px]"
-                  animate={{ left: cursorX }}
+                  className="pointer-events-none absolute z-20 -mt-[33px] -ml-[47px]"
+                  animate={{ left: cursor.x, top: cursor.y }}
                   transition={{
                     type: "spring",
                     stiffness: 90,

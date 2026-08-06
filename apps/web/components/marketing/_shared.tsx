@@ -90,7 +90,7 @@ export function SectionHeading({
         {title}
         {titleMuted ? (
           <>
-            <br />
+            {" "}
             <span className="text-fg-muted">{titleMuted}</span>
           </>
         ) : null}

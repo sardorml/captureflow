@@ -89,14 +89,29 @@ export const MESSAGES = {
   },
   modes: {
     eyebrow: "Capture modes",
-    headingLine1: "Recordings and screenshots",
-    headingLine2: "— one toolbar.",
+    headingLine1: "Record or screenshot",
+    headingLine2: "— one panel.",
     subtitleLine1: "Share a screen recording when it needs to go out now,",
-    subtitleLine2:
-      "Screenshot when a picture says it. One toolbar, two outputs.",
+    subtitleLine2: "Screenshot when a picture says it. One panel, two outputs.",
     tabs: {
       share: { label: "Share", caption: "Instant share link" },
       screenshot: { label: "Screenshot", caption: "Annotated screenshots" },
+    },
+    panel: {
+      sourceAria: "Capture source",
+      source: "Full screen",
+      sourceHint: "Pick at start",
+      camera: "Camera",
+      microphone: "Microphone",
+      on: "On",
+      off: "Off",
+      startRecording: "Start Recording",
+      limit: "30 min recording limit",
+      currentTab: "Current tab",
+      captureScreenshot: "Capture Screenshot",
+      effects: "Effects",
+      blur: "Blur",
+      more: "More",
     },
   },
   features: {
