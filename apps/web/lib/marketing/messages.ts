@@ -297,60 +297,6 @@ export const MESSAGES = {
       note: "Billed {amount}/year. Cancel anytime.",
       cta: "Get started",
     },
-    compare: {
-      eyebrow: "Side by side",
-      heading: "Compare plans",
-      subtitle: "What you get on each plan.",
-      featureColumn: "Feature",
-      freeColumn: "Self-Hosted",
-      proColumn: "Managed hosting",
-      proBadge: "Recommended",
-      includedAria: "included",
-      notIncludedAria: "not included",
-      // Boolean cells render a check/dash from COMPARE_SECTIONS, so '' here is fine.
-      sections: [
-        {
-          title: "Desktop app",
-          rows: [
-            {
-              label: "Installation",
-              free: "Build it yourself",
-              pro: "Download & run",
-            },
-            {
-              label: "Code signing",
-              free: "Self-sign (Apple ID)",
-              pro: "Signed & notarized",
-            },
-          ],
-        },
-        {
-          title: "Cloud & hosting",
-          rows: [
-            { label: "Hosting", free: "Your Cloudflare", pro: "Fully managed" },
-            { label: "Setup", free: "You deploy it", pro: "Zero setup" },
-            { label: "Cloud storage", free: "Your R2 bucket", pro: "Included" },
-            { label: "Backups & monitoring", free: "", pro: "" },
-          ],
-        },
-        {
-          title: "Recording & sharing",
-          rows: [
-            { label: "Screen recording & instant links", free: "", pro: "" },
-            { label: "Annotated Screenshots", free: "", pro: "" },
-            { label: "Workspaces & teammate invites", free: "", pro: "" },
-            { label: "Commercial usage", free: "", pro: "" },
-          ],
-        },
-        {
-          title: "Support",
-          rows: [
-            { label: "Community support", free: "", pro: "" },
-            { label: "Priority support", free: "", pro: "" },
-          ],
-        },
-      ],
-    },
   },
   faq: {
     heading: "Frequently Asked Questions",

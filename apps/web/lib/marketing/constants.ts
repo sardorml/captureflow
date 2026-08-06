@@ -129,62 +129,6 @@ export const MANAGED_TIERS: ReadonlyArray<ManagedTier> = [
   },
 ];
 
-// A boolean cell renders as ✓ / —; a string renders verbatim.
-export type CompareCell = boolean | string;
-export type CompareRow = {
-  label: string;
-  free: CompareCell;
-  monthly: CompareCell;
-};
-export type CompareSection = { title: string; rows: ReadonlyArray<CompareRow> };
-
-export const COMPARE_SECTIONS: ReadonlyArray<CompareSection> = [
-  {
-    title: "Desktop app",
-    rows: [
-      {
-        label: "Installation",
-        free: "Build it yourself",
-        monthly: "Download & run",
-      },
-      {
-        label: "Code signing",
-        free: "Self-sign (Apple ID)",
-        monthly: "Signed & notarized",
-      },
-    ],
-  },
-  {
-    title: "Cloud & hosting",
-    rows: [
-      { label: "Hosting", free: "Your Cloudflare", monthly: "Fully managed" },
-      { label: "Setup", free: "You deploy it", monthly: "Zero setup" },
-      { label: "Cloud storage", free: "Your R2 bucket", monthly: "200 GB" },
-      { label: "Backups & monitoring", free: false, monthly: true },
-    ],
-  },
-  {
-    title: "Recording & sharing",
-    rows: [
-      {
-        label: "Screen recording & instant links",
-        free: true,
-        monthly: true,
-      },
-      { label: "Annotated Screenshots", free: true, monthly: true },
-      { label: "Workspaces & teammate invites", free: true, monthly: true },
-      { label: "Commercial usage", free: true, monthly: true },
-    ],
-  },
-  {
-    title: "Support",
-    rows: [
-      { label: "Community support", free: true, monthly: true },
-      { label: "Priority support", free: false, monthly: true },
-    ],
-  },
-];
-
 export type LaunchStage =
   | "waitlist"
   | "public-beta"

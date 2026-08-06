@@ -29,7 +29,7 @@ export function Footer() {
   const links: FooterLink[] = [
     { label: "Docs", href: DOCS_URL },
     { label: "Download", href: lh("/download") },
-    { label: "Pricing", href: lh("/plan") },
+    { label: "Pricing", href: lh("/#pricing") },
     { label: "Self-hosting", href: `${DOCS_URL}/self-hosting` },
     { label: "FAQ", href: lh("/#faq") },
     { label: "Releases", href: RELEASES_URL },
