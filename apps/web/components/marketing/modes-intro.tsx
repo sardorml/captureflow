@@ -52,7 +52,9 @@ const CALLOUTS = [
 // to that budget, so shortening the box means shortening a title too.
 const CALLOUT_WIDTH = 304;
 const LEADER_GAP = 112;
-const CALLOUT_GAP = 20;
+// A floor on the vertical gutter, not just collision clearance: two boxes left
+// at their controls' own spacing read as one block with a seam.
+const CALLOUT_GAP = 60;
 const LEADER_BEND = 20;
 const OVERHANG = LEADER_GAP + CALLOUT_WIDTH;
 
