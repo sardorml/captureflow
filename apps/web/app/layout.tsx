@@ -1,16 +1,16 @@
+import { readThemeFromCookieHeader, THEME_INIT_HTML } from "@captureflow/ui";
 import type { Metadata, Viewport } from "next";
-import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
 import { headers } from "next/headers";
-import { readThemeFromCookieHeader, THEME_INIT_HTML } from "@captureflow/ui";
+import type { ReactNode } from "react";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
 });
-import { SITE_URL } from "@/lib/site";
 import { AnalyticsProvider } from "./analytics-provider";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 import "./material-symbols-subset.css";
 
@@ -27,7 +27,12 @@ export const metadata: Metadata = {
   // Per AGPL-3.0 §7(b) this generator attribution is a required legal notice — downstream operators must keep it.
   generator: "CaptureFlow",
   icons: {
-    icon: "/favicon.ico",
+    // SVG first so the tab mark matches the navbar and follows the browser
+    // theme; the .ico stays as the fallback for browsers that ignore SVG.
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "48x48" },
+    ],
     apple: "/apple-touch-icon.png",
   },
   openGraph: {

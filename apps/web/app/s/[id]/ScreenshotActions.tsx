@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { Button, ButtonGroup, Dropdown, buttonVariants } from "@heroui/react";
 import {
   Check,
   Link2,
@@ -10,11 +9,13 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { Button, ButtonGroup, Dropdown, buttonVariants } from "@heroui/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
 import {
   ShareVisibilityModal,
   type Visibility,
 } from "@/app/_components/ShareVisibilityModal";
+import { useConfirm } from "@/app/_components/confirm-dialog";
 
 type Props = {
   screenshotId: string;
@@ -44,6 +45,7 @@ export function ScreenshotActions({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [deleting, startDelete] = useTransition();
+  const { confirm, dialog } = useConfirm();
 
   useEffect(() => {
     if (!copied) return;
@@ -84,11 +86,15 @@ export function ScreenshotActions({
     });
   };
 
-  const onDelete = () => {
+  const onDelete = async () => {
     if (!isOwner) return;
-    const ok = confirm(
-      "Delete this screenshot permanently? The image and link will stop working immediately.",
-    );
+    const ok = await confirm({
+      title: "Delete this screenshot?",
+      description:
+        "The image and its link stop working immediately. This cannot be undone.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
     if (!ok) return;
     setError(null);
     startDelete(async () => {
@@ -110,6 +116,7 @@ export function ScreenshotActions({
 
   return (
     <>
+      {dialog}
       <div className="flex items-center gap-2">
         {isOwner && (
           <a

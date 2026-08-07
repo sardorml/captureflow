@@ -1,19 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useTransition, type FormEvent, type ReactNode } from "react";
-import {
-  Check,
-  ChevronDown,
-  ExternalLink,
-  Eye,
-  Link2,
-  MessageSquare,
-  MoreHorizontal,
-  Pencil,
-  Smile,
-  Trash2,
-} from "lucide-react";
 import {
   Avatar,
   Button,
@@ -28,13 +14,28 @@ import {
   Typography,
   buttonVariants,
 } from "@heroui/react";
-import { cn } from "@/lib/utils";
+import {
+  Check,
+  ChevronDown,
+  ExternalLink,
+  Eye,
+  Link2,
+  MessageSquare,
+  MoreHorizontal,
+  Pencil,
+  Smile,
+  Trash2,
+} from "lucide-react";
+import Link from "next/link";
+import { useState, useTransition, type FormEvent, type ReactNode } from "react";
+import { useConfirm } from "./confirm-dialog";
+import { VisibilityDialog, type Visibility } from "@/app/VisibilityDialog";
 import {
   initials,
   formatBytes,
   formatRelativeShort as formatRelative,
 } from "@/lib/format";
-import { VisibilityDialog, type Visibility } from "@/app/VisibilityDialog";
+import { cn } from "@/lib/utils";
 
 type ActionResult = { error: string | null } | void;
 
@@ -62,7 +63,7 @@ export type MediaCardProps = {
   canManage: boolean;
   stats: MediaCardStats;
   sizeBytes: number;
-  deleteConfirm: string;
+  deleteConfirm: { title: string; description?: string };
   // Present only when the surface runs a selection; the checkbox and the
   // selected outline appear with it.
   selected?: boolean;
@@ -105,6 +106,7 @@ export function MediaCard({
   const [visibility, setVisibility] = useState<Visibility>(initialVisibility);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirm();
 
   const copyLink = () => {
     if (typeof window === "undefined") return;
@@ -130,8 +132,13 @@ export function MediaCard({
     });
   };
 
-  const remove = () => {
-    if (!confirm(deleteConfirm)) return;
+  const remove = async () => {
+    const ok = await confirm({
+      ...deleteConfirm,
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
     setError(null);
     startTransition(async () => {
       const res = await onDelete();
@@ -170,6 +177,7 @@ export function MediaCard({
           "border-accent-bg shadow-[0_0_0_1px_var(--color-accent-bg)]",
       )}
     >
+      {dialog}
       {/* The card's one link is stretched over it from the title below, so the
           thumbnail needs no anchor of its own — and the actions, which sit on
           top of that overlay, need raising above it. */}

@@ -1,17 +1,17 @@
 "use client";
 
-import Image from "next/image";
 import { Card, Chip, EmptyState } from "@heroui/react";
-import type { DashboardScreenshotRow } from "@/lib/screenshots-db";
-import type { Visibility } from "@/app/VisibilityDialog";
-import { CDN_BASE_URL, screenshotViewUrlFor } from "@/lib/site";
+import Image from "next/image";
+import { MediaCard } from "../../_components/MediaCard";
+import { SelectionBar, useSelection } from "../../_components/selection";
 import {
   deleteScreenshotAction,
   renameScreenshotAction,
   setScreenshotVisibilityAction,
 } from "../../actions";
-import { MediaCard } from "../../_components/MediaCard";
-import { SelectionBar, useSelection } from "../../_components/selection";
+import type { Visibility } from "@/app/VisibilityDialog";
+import type { DashboardScreenshotRow } from "@/lib/screenshots-db";
+import { CDN_BASE_URL, screenshotViewUrlFor } from "@/lib/site";
 
 // R2 is served with long cache headers, so cache-bust by tagging the URL with
 // the freshest mutation timestamp; otherwise overwrites serve stale bytes.
@@ -157,7 +157,11 @@ function ScreenshotCard({
       canManage={canAuthor || canAdminister}
       stats={{ views: screenshot.viewCount, comments: 0, reactions: 0 }}
       sizeBytes={screenshot.sizeBytes}
-      deleteConfirm="Delete this screenshot? The public link will stop working."
+      deleteConfirm={{
+        title: "Delete this screenshot?",
+        description:
+          "The image and its link stop working immediately. This cannot be undone.",
+      }}
       selected={selected}
       selectionActive={selectionActive}
       onSelectedChange={onSelectedChange}

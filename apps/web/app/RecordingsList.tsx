@@ -1,18 +1,18 @@
 "use client";
 
-import { formatDuration } from "@/lib/format";
 import { Card, Chip, EmptyState } from "@heroui/react";
 import { Film } from "lucide-react";
-import type { DashboardRecordingRow } from "@/lib/recordings-db";
-import type { Visibility } from "@/app/VisibilityDialog";
-import { CDN_BASE_URL, viewUrlFor } from "@/lib/site";
+import { MediaCard } from "./_components/MediaCard";
+import { SelectionBar, useSelection } from "./_components/selection";
 import {
   deleteRecordingAction,
   renameRecordingAction,
   setVisibilityAction,
 } from "./actions";
-import { MediaCard } from "./_components/MediaCard";
-import { SelectionBar, useSelection } from "./_components/selection";
+import type { Visibility } from "@/app/VisibilityDialog";
+import { formatDuration } from "@/lib/format";
+import type { DashboardRecordingRow } from "@/lib/recordings-db";
+import { CDN_BASE_URL, viewUrlFor } from "@/lib/site";
 
 type RecordingsListProps = {
   recordings: DashboardRecordingRow[];
@@ -185,7 +185,11 @@ function RecordingCard({
         reactions: recording.reactionCount,
       }}
       sizeBytes={recording.sizeBytes}
-      deleteConfirm="Delete this recording permanently? The video and link will stop working immediately."
+      deleteConfirm={{
+        title: "Delete this recording?",
+        description:
+          "The video and its link stop working immediately. This cannot be undone.",
+      }}
       selected={selected}
       selectionActive={selectionActive}
       onSelectedChange={onSelectedChange}
