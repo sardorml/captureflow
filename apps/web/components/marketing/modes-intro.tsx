@@ -28,22 +28,33 @@ const MODES = [
 ] as const;
 
 /*
- * Each callout is pinned to the y of the control it describes, measured off the
- * live panel rather than guessed, so the leader always lands on that row. `anchor`
- * names the measured point; DOM order here is the mobile reading order.
+ * Each callout's leader ends on the control it describes — inside the panel, not
+ * at its edge — so the target is a measured (x, y) on that element rather than
+ * just a row's height. `inset` is where along the element the dot sits, from the
+ * near edge: the icon of a full-width row, the middle of a small control.
+ * DOM order here is the mobile reading order.
  */
 const CALLOUTS = [
-  { key: "source", icon: Monitor, anchor: "source", side: "left" },
-  { key: "link", icon: Link2, anchor: "start", side: "left" },
-  { key: "screenshot", icon: Camera, anchor: "photoTab", side: "right" },
-  { key: "devices", icon: Mic, anchor: "devices", side: "right" },
+  { key: "source", icon: Monitor, anchor: "source", side: "left", inset: 18 },
+  { key: "link", icon: Link2, anchor: "start", side: "left", inset: 44 },
+  {
+    key: "screenshot",
+    icon: Camera,
+    anchor: "photoTab",
+    side: "right",
+    inset: null,
+  },
+  { key: "devices", icon: Mic, anchor: "mic", side: "right", inset: 28 },
 ] as const;
 
 // Callout box + the leader's span. The pair has to clear the panel on both
 // sides inside the section's measure, which is why the pinned layout only
 // switches on at xl.
 const CALLOUT_WIDTH = 256;
-const LEADER_GAP = "3.5rem";
+const LEADER_GAP = 56;
+
+// Panel coordinates, before the fit scale is applied.
+type Point = { x: number; y: number };
 
 /*
  * The panel is a portrait of the extension popup, so its palette is the
@@ -172,28 +183,6 @@ function Callout({
         pinned ? "" : "w-full"
       }`}
     >
-      {pinned && (
-        <>
-          {/* Runs from the box to the panel's edge at exactly the row's y —
-              the box is centred on that y, so its mid-height is the anchor. */}
-          <span
-            aria-hidden
-            className={`bg-line-strong absolute top-1/2 block h-px ${isLeft ? "left-full" : "right-full"}`}
-            style={{ width: LEADER_GAP }}
-          />
-          <span
-            aria-hidden
-            className={`bg-accent absolute top-1/2 block size-1.5 -translate-y-1/2 rounded-full ${
-              isLeft ? "left-full" : "right-full"
-            }`}
-            style={
-              isLeft
-                ? { marginLeft: `calc(${LEADER_GAP} - 3px)` }
-                : { marginRight: `calc(${LEADER_GAP} - 3px)` }
-            }
-          />
-        </>
-      )}
       <div
         className={`flex items-start gap-3 ${pinned && isLeft ? "flex-row-reverse" : ""}`}
       >
@@ -226,7 +215,7 @@ export function ModesIntro() {
   // Anchors are read off the live controls, so the leaders keep pointing at the
   // right rows if the panel's copy or spacing ever changes.
   const anchorRefs = useRef<Record<string, HTMLElement | null>>({});
-  const [anchors, setAnchors] = useState<Record<string, number>>({});
+  const [anchors, setAnchors] = useState<Record<string, Point>>({});
   const [panelSize, setPanelSize] = useState({ w: 0, h: 0 });
   const [fit, setFit] = useState(1);
   // Only wide viewports can hold panel + two callout columns; narrower ones
@@ -254,20 +243,22 @@ export function ModesIntro() {
           : 1,
       );
 
-      const centre = (el: HTMLElement | null) =>
-        el ? el.offsetTop + el.offsetHeight / 2 : 0;
-      const camera = anchorRefs.current.camera;
-      const mic = anchorRefs.current.mic;
-      setAnchors({
-        photoTab: centre(anchorRefs.current.photoTab),
-        source: centre(anchorRefs.current.source),
-        start: centre(anchorRefs.current.start),
-        // One leader for the camera/mic pair: the midpoint of the two rows.
-        devices:
-          camera && mic
-            ? (camera.offsetTop + mic.offsetTop + mic.offsetHeight) / 2
-            : 0,
-      });
+      const next: Record<string, Point> = {};
+      for (const callout of CALLOUTS) {
+        const el = anchorRefs.current[callout.anchor];
+        if (!el) continue;
+        const y = el.offsetTop + el.offsetHeight / 2;
+        // A null inset means the element is small enough to aim at its middle;
+        // otherwise come in from whichever edge the callout sits on.
+        const x =
+          callout.inset == null
+            ? el.offsetLeft + el.offsetWidth / 2
+            : callout.side === "left"
+              ? el.offsetLeft + callout.inset
+              : el.offsetLeft + el.offsetWidth - callout.inset;
+        next[callout.anchor] = { x, y };
+      }
+      setAnchors(next);
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -398,7 +389,6 @@ export function ModesIntro() {
                   </div>
 
                   <DeviceRow
-                    ref={setAnchorRef("camera")}
                     icon={Camera}
                     label={copy.camera}
                     on={false}
@@ -433,29 +423,57 @@ export function ModesIntro() {
             </div>
 
             {pinned &&
-              CALLOUTS.map((callout) => (
-                <div
-                  key={callout.key}
-                  className="absolute -translate-y-1/2"
-                  style={{
-                    width: CALLOUT_WIDTH,
-                    // Anchors are panel coordinates; the box lives in the
-                    // scaled wrapper, so they scale with it.
-                    top: (anchors[callout.anchor] ?? 0) * fit,
-                    ...(callout.side === "left"
-                      ? { right: `calc(100% + ${LEADER_GAP})` }
-                      : { left: `calc(100% + ${LEADER_GAP})` }),
-                  }}
-                >
-                  <Callout
-                    pinned
-                    side={callout.side}
-                    icon={callout.icon}
-                    title={m.modes.points[callout.key].title}
-                    body={m.modes.points[callout.key].body}
-                  />
-                </div>
-              ))}
+              CALLOUTS.map((callout) => {
+                const target = anchors[callout.anchor];
+                if (!target) return null;
+                // Anchors are panel coordinates; everything here lives in the
+                // scaled box, so they scale with it.
+                const x = target.x * fit;
+                const y = target.y * fit;
+                const isLeft = callout.side === "left";
+                const panelW = panelSize.w * fit;
+                return (
+                  <div key={callout.key}>
+                    {/* The leader crosses into the panel and stops on the
+                        control itself, so the dot marks the exact thing the
+                        box is talking about rather than the panel's edge. */}
+                    <span
+                      aria-hidden
+                      className="bg-line-strong absolute block h-px"
+                      style={{
+                        top: y,
+                        left: isLeft ? -LEADER_GAP : x,
+                        width: isLeft
+                          ? x + LEADER_GAP
+                          : panelW + LEADER_GAP - x,
+                      }}
+                    />
+                    <span
+                      aria-hidden
+                      className="bg-accent absolute block size-1.5 rounded-full"
+                      style={{ top: y - 3, left: x - 3 }}
+                    />
+                    <div
+                      className="absolute -translate-y-1/2"
+                      style={{
+                        width: CALLOUT_WIDTH,
+                        top: y,
+                        ...(isLeft
+                          ? { right: `calc(100% + ${LEADER_GAP}px)` }
+                          : { left: `calc(100% + ${LEADER_GAP}px)` }),
+                      }}
+                    >
+                      <Callout
+                        pinned
+                        side={callout.side}
+                        icon={callout.icon}
+                        title={m.modes.points[callout.key].title}
+                        body={m.modes.points[callout.key].body}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
           </div>
 
           {!pinned && (
