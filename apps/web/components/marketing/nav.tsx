@@ -8,6 +8,7 @@ import { Menu as MenuIcon, Star } from "lucide-react";
 import { DISCORD_URL } from "@/lib/marketing/constants";
 import { DOCS_URL } from "@/lib/site";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
+import { NavBetaChip } from "./corner-banner";
 
 const GITHUB_URL = "https://github.com/sardorml/captureflow";
 
@@ -121,16 +122,19 @@ export function Nav({ stars = null }: { stars?: string | null }) {
         ].join(" ")}
       >
         {/* Logo: 32×32 mark + 18px bold wordmark. */}
-        <NextLink
-          href={lh("/")}
-          aria-label="CaptureFlow"
-          className="inline-flex items-center gap-2 text-fg"
-        >
-          <BrandMark size={32} />
-          <span className="text-lg font-bold tracking-[-0.01em] text-fg">
-            CaptureFlow
-          </span>
-        </NextLink>
+        <div className="flex items-center gap-2.5">
+          <NextLink
+            href={lh("/")}
+            aria-label="CaptureFlow"
+            className="group inline-flex items-center gap-2 text-fg"
+          >
+            <BrandMark size={32} />
+            <span className="text-lg font-bold tracking-[-0.01em] text-fg">
+              CaptureFlow
+            </span>
+          </NextLink>
+          <NavBetaChip />
+        </div>
 
         {/* One right-hand cluster. Discord lives in the drawer and the footer
             rather than competing with the single CTA here; GitHub earns its

@@ -193,6 +193,25 @@ html:has([data-marketing]) body {
   animation: carousel-progress linear;
 }
 
+/* Brand mark: one counter-clockwise turn when the lockup it sits in is hovered,
+   driven from the `group` on the surrounding link. An animation rather than a
+   transition, because a transition to -360deg is a no-op the second time and
+   unwinds instead of finishing when the pointer leaves. Registered through
+   @theme so `animate-brand-mark-spin` is a real utility and `group-hover:` can
+   compile against it — a hand-written `:hover > .brand-mark` rule was silently
+   dropped from the build and the spin never ran. */
+@keyframes brand-mark-spin {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: -360deg;
+  }
+}
+@theme {
+  --animate-brand-mark-spin: brand-mark-spin 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 /* Beta ribbon: the card unfolds out of the corner the ribbon occupies, and the
    burst throws a handful of confetti chips along per-chip vectors the component
    sets inline. Both keyframes declare only `from`/`to` offsets from the natural

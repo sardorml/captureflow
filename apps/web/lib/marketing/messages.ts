@@ -20,6 +20,8 @@ export const MESSAGES = {
     label: "Beta",
     aria: "CaptureFlow is in public beta",
     title: "You're early 🎉",
+    strip:
+      "CaptureFlow is still in beta, so it changes often and you may hit the odd rough edge while it settles.",
     body: "CaptureFlow is in public beta. Something new lands most weeks, and the things people ask for are the things that get built first.",
     cta: "Tell me what to build next",
     close: "Close",

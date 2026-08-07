@@ -43,7 +43,7 @@ export async function Sidebar() {
 
   return (
     <div className="flex h-full flex-col">
-      <Link href="/recordings" className="flex items-center gap-2 p-5">
+      <Link href="/recordings" className="group flex items-center gap-2 p-5">
         <BrandMark size={28} className="text-fg" />
         <span className="text-xl font-semibold text-fg">CaptureFlow</span>
       </Link>
