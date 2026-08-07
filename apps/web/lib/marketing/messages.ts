@@ -388,6 +388,11 @@ export const MESSAGES = {
             description:
               "AI transcripts with one-click translation into other languages.",
           },
+          {
+            label: "Repo-wide code refactor",
+            description:
+              "A pass over the whole codebase to tighten the structure and cut duplication before the next wave of features.",
+          },
         ],
       },
       {
@@ -398,6 +403,11 @@ export const MESSAGES = {
             label: "Windows support",
             description:
               "Bring CaptureFlow's recording and instant share links to Windows.",
+          },
+          {
+            label: "Firefox extension",
+            description:
+              "The same in-page recorder and instant share links, packaged for Firefox.",
           },
         ],
       },
@@ -411,9 +421,9 @@ export const MESSAGES = {
               "Record and share straight from the browser — no desktop install.",
           },
           {
-            label: "Firefox extension",
+            label: "macOS app",
             description:
-              "Record and share straight from the browser — no desktop install.",
+              "A menu bar app with the same recorder and the same instant share link, for anything outside the browser.",
           },
         ],
       },
