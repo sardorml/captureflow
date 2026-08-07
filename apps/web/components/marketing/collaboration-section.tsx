@@ -230,10 +230,7 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
                     lineHeight: 1.6,
                   }}
                 >
-                  <span style={{ color: token.colorText }}>
-                    {copy.linkText}
-                  </span>{" "}
-                  {copy.body}
+                  {copy.linkText} {copy.body}
                 </Paragraph>
               </motion.div>
             </AnimatePresence>
