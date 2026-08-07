@@ -92,14 +92,12 @@ const EXT_PALETTE = {
   "--cf-ext-start": "#e8563a",
 } as CSSProperties;
 
-// The panel is authored at one width and scaled as a single block, so its
-// internals keep their proportions at any size. It is drawn a shade narrower
-// than the popup itself: at the popup's own width the panel crowded the two
-// callout columns. Pinned, it runs a little above that; stacked, it only ever
-// scales down to fit the viewport.
+// The panel is authored at the extension popup's own width and scaled as a
+// single block, so the mockup is the panel at life size on any viewport wide
+// enough to hold it and keeps its proportions on any that isn't. Keep this in
+// step with apps/extension/entrypoints/popup/popup.css.
 const PANEL_WIDTH = 280;
 const MAX_SCALE = 1;
-const PINNED_SCALE = 1.08;
 
 const ROW =
   "flex items-center gap-2.5 rounded-xl bg-[color:var(--cf-ext-surface)] px-2.5 py-2";
@@ -264,9 +262,10 @@ export function ModesIntro() {
       setPanelSize({ w, h });
       // Both guards matter: an unmeasurable container once scaled the panel to
       // 0 rather than leaving it at its natural size.
-      const ceiling = pinned ? PINNED_SCALE : MAX_SCALE;
       setFit(
-        w > 0 && available > 0 ? Math.min(ceiling, (available * 0.92) / w) : 1,
+        w > 0 && available > 0
+          ? Math.min(MAX_SCALE, (available * 0.92) / w)
+          : 1,
       );
 
       const next: Record<string, Point> = {};
@@ -291,7 +290,7 @@ export function ModesIntro() {
       ro.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [pinned]);
+  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1280px)");
