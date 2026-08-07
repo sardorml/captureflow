@@ -55,6 +55,8 @@ const LEADER_GAP = 112;
 // A floor on the vertical gutter, not just collision clearance: two boxes left
 // at their controls' own spacing read as one block with a seam.
 const CALLOUT_GAP = 60;
+// How far the outer boxes run past the panel's top and bottom edges.
+const COLUMN_OVERHANG = 20;
 const LEADER_BEND = 20;
 const OVERHANG = LEADER_GAP + CALLOUT_WIDTH;
 
@@ -300,34 +302,36 @@ export function ModesIntro() {
   }, []);
 
   /*
-   * Each column is packed top-down from its boxes' own heights, so two of them
-   * can never overlap however tall the copy runs, then centred on the panel.
-   * A box that ends up off its control is fine — the leader angles across.
+   * Each column spans the panel plus an overhang at both ends, with the space
+   * left over split evenly between its boxes, so the cluster reads as one block
+   * a little taller than the panel rather than as boxes floating inside it. A
+   * box that ends up off its control is fine — the leader angles across.
    */
   useEffect(() => {
     if (!pinned) return;
     const panelHeight = panelSize.h * fit;
     const next: Record<string, number> = {};
     for (const side of ["left", "right"] as const) {
-      const column: { key: string; top: number; height: number }[] = [];
-      let cursor = -Infinity;
-      for (const callout of CALLOUTS.filter((c) => c.side === side)) {
-        const height = calloutRefs.current[callout.key]?.offsetHeight ?? 0;
-        const target = anchors[callout.anchor];
-        const centre = target ? target.y * fit : panelHeight / 2;
-        const top = Math.max(centre - height / 2, cursor);
-        column.push({ key: callout.key, top, height });
-        cursor = top + height + CALLOUT_GAP;
+      const column = CALLOUTS.filter((c) => c.side === side).map((c) => ({
+        key: c.key,
+        height: calloutRefs.current[c.key]?.offsetHeight ?? 0,
+      }));
+      const gaps = column.length - 1;
+      if (gaps < 1) continue;
+      const stacked = column.reduce((total, box) => total + box.height, 0);
+      // The floor keeps two tall boxes apart when the copy leaves no slack.
+      const gap = Math.max(
+        CALLOUT_GAP,
+        (panelHeight + COLUMN_OVERHANG * 2 - stacked) / gaps,
+      );
+      let cursor = (panelHeight - (stacked + gap * gaps)) / 2;
+      for (const box of column) {
+        next[box.key] = cursor;
+        cursor += box.height + gap;
       }
-      const first = column[0];
-      const last = column[column.length - 1];
-      if (!first || !last) continue;
-      const span = last.top + last.height - first.top;
-      const shift = (panelHeight - span) / 2 - first.top;
-      for (const box of column) next[box.key] = box.top + shift;
     }
     setSlots(next);
-  }, [pinned, anchors, fit, panelSize.h]);
+  }, [pinned, fit, panelSize.h]);
 
   const slotTop = (callout: CalloutSpec) =>
     slots[callout.key] ?? (anchors[callout.anchor]?.y ?? 0) * fit;
