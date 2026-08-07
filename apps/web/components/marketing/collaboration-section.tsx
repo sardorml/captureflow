@@ -208,7 +208,7 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
           }}
           className="flex flex-col gap-6 rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
         >
-          <div className="min-h-[148px]">
+          <div className="min-h-[168px]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={featureKey}
@@ -218,15 +218,15 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
                   .replace("{n}", String(index + 1))
                   .replace("{total}", String(count))}
               >
-                <Text strong style={{ fontSize: 22, lineHeight: 1.3 }}>
+                <Text strong style={{ fontSize: 25, lineHeight: 1.3 }}>
                   {copy.title}
                 </Text>
                 <Paragraph
                   type="secondary"
                   style={{
-                    maxWidth: 440,
-                    margin: "10px 0 0",
-                    fontSize: 16,
+                    maxWidth: 496,
+                    margin: "12px 0 0",
+                    fontSize: 18,
                     lineHeight: 1.6,
                   }}
                 >
@@ -239,12 +239,12 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
             </AnimatePresence>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3.5">
             <CarouselArrow label={nav.previous} onClick={() => go(index - 1)}>
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="size-[18px]" />
             </CarouselArrow>
             <CarouselArrow label={nav.next} onClick={() => go(index + 1)}>
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="size-[18px]" />
             </CarouselArrow>
             <div className="flex items-center gap-2 ps-1">
               {cat.features.map((f, i) => (
@@ -255,8 +255,8 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
                   aria-current={i === index}
                   onClick={() => setIndex(i)}
                   className={[
-                    "bg-line-strong h-1.5 cursor-pointer overflow-hidden rounded-full",
-                    i === index ? "w-6" : "hover:bg-fg-muted w-1.5",
+                    "bg-line-strong h-[7px] cursor-pointer overflow-hidden rounded-full",
+                    i === index ? "w-[27px]" : "hover:bg-fg-muted w-[7px]",
                   ].join(" ")}
                 >
                   {i === index && (
@@ -324,7 +324,7 @@ function CarouselArrow({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="text-fg-muted hover:text-fg hover:border-line-strong border-line flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border transition-colors motion-reduce:transition-none"
+      className="text-fg-muted hover:text-fg hover:border-line-strong border-line flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors motion-reduce:transition-none"
     >
       {children}
     </button>

@@ -188,7 +188,10 @@ function Callout({
   const isLeft = side === "left";
   return (
     <div
-      className={`border-line-strong bg-tint relative rounded-2xl border p-4 ${
+      /* The lift on hover stays at 2px: the leaders are painted in their own
+         overlay and don't travel with the box, so anything further would pull
+         one off its line. */
+      className={`border-line-strong bg-tint-strong hover:border-fg-subtle/60 relative rounded-2xl border p-4 transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(0,0,0,0.5)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
         pinned ? "" : "w-full"
       }`}
     >
