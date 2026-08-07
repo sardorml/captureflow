@@ -3,7 +3,7 @@ export const SITE_NAME = "CaptureFlow";
 export const SITE_TITLE =
   "Open-source screen recorder with shareable links — CaptureFlow";
 export const SITE_DESCRIPTION =
-  "Record, stop, and share with your team, clients, or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
+  "Record your screen and share it with your team, clients, or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
 export const SUPPORT_EMAIL = "contact@sardor.codes";
 export const APP_VERSION = "0.9.2-beta";
 export const DOWNLOAD_URL =
@@ -311,6 +311,12 @@ export const ROADMAP_GROUPS = [
           "AI transcripts with one-click translation into other languages.",
         category: "Share",
       },
+      {
+        label: "Repo-wide code refactor",
+        description:
+          "A pass over the whole codebase to tighten the structure and cut duplication before the next wave of features.",
+        category: "Core",
+      },
     ],
     badgeClass: "text-neutral-400",
     markerIcon: "bookmark",
@@ -324,6 +330,12 @@ export const ROADMAP_GROUPS = [
         label: "Windows support",
         description:
           "Bring CaptureFlow's recording and instant share links to Windows.",
+        category: "Core",
+      },
+      {
+        label: "Firefox extension",
+        description:
+          "The same in-page recorder and instant share links, packaged for Firefox.",
         category: "Core",
       },
     ],
@@ -342,9 +354,9 @@ export const ROADMAP_GROUPS = [
         category: "Core",
       },
       {
-        label: "Firefox extension",
+        label: "macOS app",
         description:
-          "Record and share straight from the browser — no desktop install.",
+          "A menu bar app with the same recorder and the same instant share link, for anything outside the browser.",
         category: "Core",
       },
     ],

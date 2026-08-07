@@ -45,7 +45,7 @@ export function toggleRecorderOverlay(
   iframe.src = frameUrl;
   iframe.allow = "camera; microphone";
   iframe.style.cssText =
-    "position:fixed;top:14px;right:14px;width:548px;height:0;border:0;" +
+    "position:fixed;top:14px;right:14px;width:520px;height:0;border:0;" +
     "z-index:2147483647;background:transparent;color-scheme:dark;" +
     "transition:height .15s ease;";
 

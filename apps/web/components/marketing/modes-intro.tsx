@@ -1,28 +1,195 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Paragraph, Text } from "./typography";
 import {
-  Camera,
-  Droplet,
-  House,
-  Link2,
-  Mic,
-  Monitor,
-  MoreHorizontal,
-  Palette,
-  Video,
-  X,
-} from "lucide-react";
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
+import { Paragraph, Text } from "./typography";
+import { Camera, Link2, Mic, Monitor } from "lucide-react";
 import { MarketingSection, SectionHeading } from "./_shared";
 import { useMessages } from "./i18n-provider";
+
+/*
+ * Every glyph in the panel is the extension's own SVG, copied from
+ * apps/extension/entrypoints/popup/*, rather than the nearest lucide icon: two
+ * icons drawn to different shares of their box read as different sizes side by
+ * side, which is exactly what a portrait of the panel can't afford. Sizes are
+ * the ones that end up on screen — the header pair is 20px because HeroUI's
+ * Button sizes any icon inside it, the rest keep the size on the tag.
+ */
+const HOME_ICON = (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+    <path
+      d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const VIDEO_ICON = (
+  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+    <rect
+      x="3"
+      y="6.5"
+      width="12.5"
+      height="11"
+      rx="2.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path
+      d="m16 10.5 4.2-2.4v7.8L16 13.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const PHOTO_ICON = (
+  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+    <path
+      d="M8.5 6.5 10 4.5h4l1.5 2H19a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 19 19.5H5A1.5 1.5 0 0 1 3.5 18V8A1.5 1.5 0 0 1 5 6.5h3.5z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinejoin="round"
+    />
+    <circle
+      cx="12"
+      cy="12.7"
+      r="3.2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
+const CLOSE_ICON = (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+    <path
+      d="m6 6 12 12M18 6 6 18"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const SCREEN_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <rect
+      x="3"
+      y="5"
+      width="18"
+      height="12.5"
+      rx="2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path
+      d="M9 20.5h6"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const CAMERA_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <rect
+      x="3"
+      y="6.5"
+      width="12.5"
+      height="11"
+      rx="2.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path
+      d="m16 10.5 4.2-2.4v7.8L16 13.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const MIC_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <rect
+      x="9"
+      y="3.5"
+      width="6"
+      height="11"
+      rx="3"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path
+      d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const EFFECTS_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <path
+      d="M12 3.5a8.5 8.5 0 1 0 0 17c1.2 0 2-.9 2-2 0-.6-.2-1-.6-1.4-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.3c1.8 0 3.3-1.5 3.3-3.3C20.5 6.6 16.7 3.5 12 3.5z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+    />
+    <circle cx="8" cy="10" r="1.2" fill="currentColor" />
+    <circle cx="12" cy="7.5" r="1.2" fill="currentColor" />
+    <circle cx="16" cy="10" r="1.2" fill="currentColor" />
+  </svg>
+);
+
+const BLUR_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <path
+      d="M12 3.5s6 6.2 6 10.5a6 6 0 0 1-12 0C6 9.7 12 3.5 12 3.5z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const MORE_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <circle cx="5" cy="12" r="1.9" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.9" fill="currentColor" />
+    <circle cx="19" cy="12" r="1.9" fill="currentColor" />
+  </svg>
+);
 
 // Keep this mode set in sync with the extension popup's Tabs (video + screenshot).
 // The mockup holds the video tab: it is the section's subject, and a panel that
 // swapped under you while you read it was harder to follow than it was lively.
 const MODES = [
-  { key: "share", icon: Video },
-  { key: "screenshot", icon: Camera },
+  { key: "share", icon: VIDEO_ICON },
+  { key: "screenshot", icon: PHOTO_ICON },
 ] as const;
 
 /*
@@ -48,9 +215,15 @@ const CALLOUTS = [
 // Callout box + the leader's span. The pair has to clear the panel on both
 // sides inside the section's measure, which is why the pinned layout only
 // switches on at xl.
-const CALLOUT_WIDTH = 256;
-const LEADER_GAP = 56;
-const CALLOUT_GAP = 20;
+// Wide enough that every callout title holds one line; the titles are written
+// to that budget, so shortening the box means shortening a title too.
+const CALLOUT_WIDTH = 304;
+const LEADER_GAP = 112;
+// A floor on the vertical gutter, not just collision clearance: two boxes left
+// at their controls' own spacing read as one block with a seam.
+const CALLOUT_GAP = 60;
+// How far the outer boxes run past the panel's top and bottom edges.
+const COLUMN_OVERHANG = 20;
 const LEADER_BEND = 20;
 const OVERHANG = LEADER_GAP + CALLOUT_WIDTH;
 
@@ -86,9 +259,11 @@ const EXT_PALETTE = {
   "--cf-ext-start": "#e8563a",
 } as CSSProperties;
 
-// The panel is authored at the extension popup's real width and scaled as one
-// block, so the mockup keeps the proportions a user actually sees.
-const PANEL_WIDTH = 308;
+// The panel is authored at the extension popup's own width and scaled as a
+// single block, so the mockup is the panel at life size on any viewport wide
+// enough to hold it and keeps its proportions on any that isn't. Keep this in
+// step with apps/extension/entrypoints/popup/popup.css.
+const PANEL_WIDTH = 280;
 const MAX_SCALE = 1;
 
 const ROW =
@@ -126,7 +301,7 @@ function DeviceRow({
   meter,
   ref,
 }: {
-  icon: typeof Camera;
+  icon: ReactNode;
   label: string;
   on: boolean;
   onLabel: string;
@@ -140,8 +315,14 @@ function DeviceRow({
         on ? "outline outline-[color:var(--cf-ext-border)]" : ""
       }`}
     >
-      <IconGlyph icon={icon} />
-      <span className="flex-1 truncate text-sm font-medium">{label}</span>
+      <span className="flex shrink-0" aria-hidden>
+        {icon}
+      </span>
+      {/* The popup names the device through a Select, whose trigger is
+          min-h-9 — that, not the label, is what sets the row's height. */}
+      <span className="flex min-h-9 min-w-0 flex-1 items-center">
+        <span className="truncate text-sm font-medium">{label}</span>
+      </span>
       <StatePill on={on} label={onLabel} />
       {meter && (
         // Mic level: a Meter pinned along the row's bottom edge, accent-filled.
@@ -155,18 +336,25 @@ function DeviceRow({
   );
 }
 
+// Effects and Blur are disabled in the popup and sit at HeroUI's
+// --disabled-opacity; More is a live dropdown trigger and doesn't.
 function ToolButton({
-  icon: Glyph,
+  icon,
   label,
+  disabled,
 }: {
-  icon: typeof Camera;
+  icon: ReactNode;
   label: string;
+  disabled?: boolean;
 }) {
   return (
-    // Disabled ghost buttons — foreground at HeroUI's --disabled-opacity.
-    <span className="flex flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium text-[color:var(--cf-ext-foreground)] opacity-50">
-      <Glyph className="h-4 w-4" strokeWidth={1.8} />
-      {label}
+    <span
+      className={`flex flex-col items-center gap-1 rounded-3xl px-2 py-1.5 text-[11px] font-medium text-[color:var(--cf-ext-foreground)] ${
+        disabled ? "opacity-50" : ""
+      }`}
+    >
+      {icon}
+      <span className="leading-4">{label}</span>
     </span>
   );
 }
@@ -293,34 +481,36 @@ export function ModesIntro() {
   }, []);
 
   /*
-   * Each column is packed top-down from its boxes' own heights, so two of them
-   * can never overlap however tall the copy runs, then centred on the panel.
-   * A box that ends up off its control is fine — the leader angles across.
+   * Each column spans the panel plus an overhang at both ends, with the space
+   * left over split evenly between its boxes, so the cluster reads as one block
+   * a little taller than the panel rather than as boxes floating inside it. A
+   * box that ends up off its control is fine — the leader angles across.
    */
   useEffect(() => {
     if (!pinned) return;
     const panelHeight = panelSize.h * fit;
     const next: Record<string, number> = {};
     for (const side of ["left", "right"] as const) {
-      const column: { key: string; top: number; height: number }[] = [];
-      let cursor = -Infinity;
-      for (const callout of CALLOUTS.filter((c) => c.side === side)) {
-        const height = calloutRefs.current[callout.key]?.offsetHeight ?? 0;
-        const target = anchors[callout.anchor];
-        const centre = target ? target.y * fit : panelHeight / 2;
-        const top = Math.max(centre - height / 2, cursor);
-        column.push({ key: callout.key, top, height });
-        cursor = top + height + CALLOUT_GAP;
+      const column = CALLOUTS.filter((c) => c.side === side).map((c) => ({
+        key: c.key,
+        height: calloutRefs.current[c.key]?.offsetHeight ?? 0,
+      }));
+      const gaps = column.length - 1;
+      if (gaps < 1) continue;
+      const stacked = column.reduce((total, box) => total + box.height, 0);
+      // The floor keeps two tall boxes apart when the copy leaves no slack.
+      const gap = Math.max(
+        CALLOUT_GAP,
+        (panelHeight + COLUMN_OVERHANG * 2 - stacked) / gaps,
+      );
+      let cursor = (panelHeight - (stacked + gap * gaps)) / 2;
+      for (const box of column) {
+        next[box.key] = cursor;
+        cursor += box.height + gap;
       }
-      const first = column[0];
-      const last = column[column.length - 1];
-      if (!first || !last) continue;
-      const span = last.top + last.height - first.top;
-      const shift = (panelHeight - span) / 2 - first.top;
-      for (const box of column) next[box.key] = box.top + shift;
     }
     setSlots(next);
-  }, [pinned, anchors, fit, panelSize.h]);
+  }, [pinned, fit, panelSize.h]);
 
   const slotTop = (callout: CalloutSpec) =>
     slots[callout.key] ?? (anchors[callout.anchor]?.y ?? 0) * fit;
@@ -387,12 +577,12 @@ export function ModesIntro() {
 
               <div
                 ref={panelRef}
-                className="relative flex flex-col gap-2.5 rounded-2xl bg-[color:var(--cf-ext-background)] p-3 shadow-[0_24px_64px_rgba(0,0,0,0.5)]"
+                className="relative flex flex-col gap-2.5 rounded-2xl bg-[color:var(--cf-ext-background)] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
                 style={{ ...EXT_PALETTE, width: PANEL_WIDTH }}
               >
                 <header className="flex items-center justify-between gap-2 text-[color:var(--cf-ext-foreground)]">
-                  <span className="flex h-8 w-8 items-center justify-center">
-                    <IconGlyph icon={House} size={17} />
+                  <span className="flex h-10 w-10 items-center justify-center">
+                    {HOME_ICON}
                   </span>
 
                   {/* Tabs: the list container paints the track, and the
@@ -400,7 +590,6 @@ export function ModesIntro() {
                           glyph — HeroUI's indicator, not a white chip. */}
                   <div className="inline-flex rounded-[20px] bg-[color:var(--cf-ext-default)] p-1">
                     {MODES.map((mode, i) => {
-                      const Glyph = mode.icon;
                       const isActive = i === 0;
                       return (
                         <span
@@ -413,68 +602,78 @@ export function ModesIntro() {
                               : "text-[color:var(--cf-ext-muted)]"
                           }`}
                         >
-                          <Glyph size={17} strokeWidth={1.8} />
+                          {mode.icon}
                         </span>
                       );
                     })}
                   </div>
 
-                  <span className="flex h-8 w-8 items-center justify-center">
-                    <IconGlyph icon={X} />
+                  <span className="flex h-10 w-10 items-center justify-center">
+                    {CLOSE_ICON}
                   </span>
                 </header>
 
-                <div className="flex flex-col gap-2">
-                  {/* The source is the panel's headline choice, so the row
+                {/* HeroUI's Tabs.Panel pads the active panel, so the rows
+                    are inset from the panel's own p-3 by another 8px. */}
+                <div className="p-2">
+                  <div className="flex flex-col gap-2">
+                    {/* The source is the panel's headline choice, so the row
                           carries the accent the device rows don't. */}
-                  <div
-                    ref={setAnchorRef("source")}
-                    className={`${ROW} bg-[color:var(--cf-ext-accent-soft)] text-[color:var(--cf-ext-accent-soft-foreground)]`}
-                    aria-label={copy.sourceAria}
-                  >
-                    <IconGlyph icon={Monitor} />
-                    <span className="flex-1 truncate text-sm font-semibold">
-                      {copy.source}
+                    <div
+                      ref={setAnchorRef("source")}
+                      className={`${ROW} bg-[color:var(--cf-ext-accent-soft)] text-[color:var(--cf-ext-accent-soft-foreground)]`}
+                      aria-label={copy.sourceAria}
+                    >
+                      <span className="flex shrink-0" aria-hidden>
+                        {SCREEN_ICON}
+                      </span>
+                      <span className="flex-1 truncate text-sm font-semibold">
+                        {copy.source}
+                      </span>
+                      <span className="text-xs opacity-70">
+                        {copy.sourceHint}
+                      </span>
+                    </div>
+
+                    {/* The device rows sit closer to each other than to the
+                          source above them, as they do in the popup. */}
+                    <section className="flex flex-col gap-1.5">
+                      <DeviceRow
+                        icon={CAMERA_ICON}
+                        label={copy.camera}
+                        on={false}
+                        onLabel={copy.off}
+                      />
+                      <DeviceRow
+                        ref={setAnchorRef("mic")}
+                        icon={MIC_ICON}
+                        label={copy.microphone}
+                        on
+                        onLabel={copy.on}
+                        meter
+                      />
+                    </section>
+
+                    <span
+                      ref={setAnchorRef("start")}
+                      className="flex h-10 items-center justify-center rounded-xl bg-[color:var(--cf-ext-start)] text-sm font-semibold text-white"
+                    >
+                      {copy.startRecording}
                     </span>
-                    <span className="text-xs opacity-70">
-                      {copy.sourceHint}
+                    <span className="-mt-1.5 text-center text-xs leading-5 text-[color:var(--cf-ext-muted)]">
+                      {copy.limit}
                     </span>
                   </div>
-
-                  {/* The device rows sit closer to each other than to the
-                          source above them, as they do in the popup. */}
-                  <section className="flex flex-col gap-1.5">
-                    <DeviceRow
-                      icon={Camera}
-                      label={copy.camera}
-                      on={false}
-                      onLabel={copy.off}
-                    />
-                    <DeviceRow
-                      ref={setAnchorRef("mic")}
-                      icon={Mic}
-                      label={copy.microphone}
-                      on
-                      onLabel={copy.on}
-                      meter
-                    />
-                  </section>
-
-                  <span
-                    ref={setAnchorRef("start")}
-                    className="flex h-10 items-center justify-center rounded-xl bg-[color:var(--cf-ext-start)] text-sm font-semibold text-white"
-                  >
-                    {copy.startRecording}
-                  </span>
-                  <span className="-mt-1.5 text-center text-xs text-[color:var(--cf-ext-muted)]">
-                    {copy.limit}
-                  </span>
                 </div>
 
                 <footer className="grid grid-cols-3 items-start gap-1">
-                  <ToolButton icon={Palette} label={copy.effects} />
-                  <ToolButton icon={Droplet} label={copy.blur} />
-                  <ToolButton icon={MoreHorizontal} label={copy.more} />
+                  <ToolButton
+                    disabled
+                    icon={EFFECTS_ICON}
+                    label={copy.effects}
+                  />
+                  <ToolButton disabled icon={BLUR_ICON} label={copy.blur} />
+                  <ToolButton icon={MORE_ICON} label={copy.more} />
                 </footer>
               </div>
             </div>

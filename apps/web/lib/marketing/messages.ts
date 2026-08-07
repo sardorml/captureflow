@@ -16,6 +16,14 @@ export const MESSAGES = {
     download: "Download",
     languageAria: "Change language",
   },
+  banner: {
+    label: "Beta",
+    aria: "CaptureFlow is in public beta",
+    title: "You're early 🎉",
+    body: "CaptureFlow is in public beta. Something new lands most weeks, and the things people ask for are the things that get built first.",
+    cta: "Tell me what to build next",
+    close: "Close",
+  },
   languagePicker: {
     title: "Select your language",
     close: "Close",
@@ -59,7 +67,7 @@ export const MESSAGES = {
     titleLead: "Open-source screen recorder",
     titleSuffix: "with shareable links",
     subtitleLine1:
-      "Record, stop, and share with your team, clients, or customers.",
+      "Record your screen and share it with your team, clients, or customers.",
     subtitleLine2: "Self-hostable on your Cloudflare account.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Add to Chrome",
@@ -95,15 +103,15 @@ export const MESSAGES = {
         body: "Pick the source in the panel and record without leaving the page.",
       },
       devices: {
-        title: "Camera and mic in the same panel",
+        title: "Camera and mic in one tap",
         body: "Turn your webcam and microphone on right before you record.",
       },
       link: {
-        title: "The link is ready when you stop",
+        title: "Ready the moment you stop",
         body: "It uploads while you record, so the link is on your clipboard when you stop.",
       },
       screenshot: {
-        title: "Screenshots from the same panel",
+        title: "Screenshots from here too",
         body: "Switch to the photo tab to grab the page and share it as a link.",
       },
     },
@@ -175,66 +183,57 @@ export const MESSAGES = {
       share: {
         title: "Shareable recordings",
         subtitle:
-          "Record, trim, and recolor on the web, then send one link — no upload step and no re-record.",
+          "Change the background, trim what you don't need, and place the camera where you want it.",
         features: {
           editor: {
-            title: "Edit recording",
-            linkText: "Recolor and choose who can react",
-            body: "— polish your recording on the web, no re-record.",
+            title: "Edit it in the browser",
+            body: "Pick a background, trim what you don't need, move the camera bubble into a corner, and mute the mic or system sound. You never have to record it twice.",
           },
           viewer: {
-            title: "Share, react and comment",
-            linkText: "Drop reactions and threaded comments",
-            body: "— feedback lands right on the recording, no re-record.",
+            title: "Reactions and comments",
+            body: "Viewers leave reactions and threaded comments on the recording itself, so feedback arrives in context.",
           },
           dashboard: {
-            title: "Your recordings, your dashboard",
-            linkText: "Track views, search your library, revoke access",
-            body: "— every link organized in one place.",
+            title: "Everything in one dashboard",
+            body: "Every link you have shared sits in one place, with view counts, search, and a switch to revoke access.",
           },
         },
       },
       screenshot: {
         title: "Capture screenshots",
         subtitle:
-          "Grab a region, a window, or the whole display, mark it up, and the link is already on your clipboard.",
+          "Grab a region, a window, or the whole display, mark it up, and share it.",
         features: {
           capture: {
-            title: "Region, window, or full screen",
-            linkText: "One shortcut, three ways to grab",
-            body: "— drag a region, click a window, or take the whole display.",
+            title: "Region, window, or whole screen",
+            body: "One shortcut covers all three. Drag out a region, click a single window, or take the whole display.",
           },
           markup: {
-            title: "Annotate before you share",
-            linkText: "Add arrows, text, or blur",
-            body: "over any capture — every annotation stays on the Screenshot.",
+            title: "Mark it up first",
+            body: "Add arrows, text, and blur over anything you capture, and every mark stays on the screenshot you send.",
           },
           share: {
-            title: "One link, ready to share",
-            linkText: "The link hits your clipboard",
-            body: "— Screenshots and recordings together in one dashboard.",
+            title: "Saved with your recordings",
+            body: "A screenshot goes to the same library as your recordings, so there is one place to search and one set of links to manage.",
           },
         },
       },
       workspaces: {
         title: "Team workspaces",
         subtitle:
-          "Private by default. Open a link up to your teammates or to anyone the moment it is ready.",
+          "Share a recording with your whole workspace, or lock it down to just you.",
         features: {
           workspace: {
-            title: "Share with your team",
-            linkText: "Keep links inside your workspace",
-            body: "so only teammates can open them — private by default.",
+            title: "Only your teammates",
+            body: "The link stays inside your workspace, so nobody outside it can open the recording.",
           },
           public: {
-            title: "Public when you want",
-            linkText: "Flip a recording public",
-            body: "and anyone with the link can watch — great for changelogs and demos.",
+            title: "Anyone with the link",
+            body: "Flip a recording to public and anyone with the link can watch, which suits changelogs and demos.",
           },
           private: {
-            title: "Keep it to yourself",
-            linkText: "Lock a recording to just you",
-            body: "while you draft, then share it the moment it's ready.",
+            title: "Only you",
+            body: "Lock a recording to just you while you draft it, then open it up the moment it is ready.",
           },
         },
       },
@@ -397,6 +396,11 @@ export const MESSAGES = {
             description:
               "AI transcripts with one-click translation into other languages.",
           },
+          {
+            label: "Repo-wide code refactor",
+            description:
+              "A pass over the whole codebase to tighten the structure and cut duplication before the next wave of features.",
+          },
         ],
       },
       {
@@ -407,6 +411,11 @@ export const MESSAGES = {
             label: "Windows support",
             description:
               "Bring CaptureFlow's recording and instant share links to Windows.",
+          },
+          {
+            label: "Firefox extension",
+            description:
+              "The same in-page recorder and instant share links, packaged for Firefox.",
           },
         ],
       },
@@ -420,9 +429,9 @@ export const MESSAGES = {
               "Record and share straight from the browser — no desktop install.",
           },
           {
-            label: "Firefox extension",
+            label: "macOS app",
             description:
-              "Record and share straight from the browser — no desktop install.",
+              "A menu bar app with the same recorder and the same instant share link, for anything outside the browser.",
           },
         ],
       },

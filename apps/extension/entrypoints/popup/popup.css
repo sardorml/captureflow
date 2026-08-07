@@ -15,7 +15,7 @@ body {
   --overlay: #31313b;
 
   margin: 0;
-  width: 300px;
+  width: 280px;
   /* Hard stop: the popup window is sized from content, so anything that
      overflows widens the window and shifts the panel out of view rather than
      just spilling. */
@@ -31,12 +31,12 @@ body {
  * panel the way the backdrop does.
  */
 body.cf-overlay {
-  width: 548px;
+  width: 520px;
   background: transparent;
 }
 
 body.cf-overlay #root {
-  width: 308px;
+  width: 280px;
   margin-inline-start: auto;
   border-radius: 16px;
   background: var(--background);
