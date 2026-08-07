@@ -50,6 +50,7 @@ export function PageShell({
           <Link
             href={lh("/")}
             aria-label={m.pageShell.logoAlt}
+            className="group"
             style={{
               display: "inline-flex",
               alignItems: "center",
