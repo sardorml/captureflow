@@ -28,19 +28,22 @@ const MODES = [
 ] as const;
 
 /*
- * Callouts flank the panel and point at the part of it they describe, so each
- * column's order is the panel's own top-to-bottom order on that side: source
- * row then start button on the left, mode tabs then device rows on the right.
+ * Each callout is pinned to the y of the control it describes, measured off the
+ * live panel rather than guessed, so the leader always lands on that row. `anchor`
+ * names the measured point; DOM order here is the mobile reading order.
  */
-const LEFT_POINTS = [
-  { key: "source", icon: Monitor },
-  { key: "link", icon: Link2 },
+const CALLOUTS = [
+  { key: "source", icon: Monitor, anchor: "source", side: "left" },
+  { key: "link", icon: Link2, anchor: "start", side: "left" },
+  { key: "screenshot", icon: Camera, anchor: "photoTab", side: "right" },
+  { key: "devices", icon: Mic, anchor: "devices", side: "right" },
 ] as const;
 
-const RIGHT_POINTS = [
-  { key: "screenshot", icon: Camera },
-  { key: "devices", icon: Mic },
-] as const;
+// Callout box + the leader's span. The pair has to clear the panel on both
+// sides inside the section's measure, which is why the pinned layout only
+// switches on at xl.
+const CALLOUT_WIDTH = 256;
+const LEADER_GAP = "3.5rem";
 
 /*
  * The panel is a portrait of the extension popup, so its palette is the
@@ -101,15 +104,18 @@ function DeviceRow({
   on,
   onLabel,
   meter,
+  ref,
 }: {
   icon: typeof Camera;
   label: string;
   on: boolean;
   onLabel: string;
   meter?: boolean;
+  ref?: (el: HTMLDivElement | null) => void;
 }) {
   return (
     <div
+      ref={ref}
       className={`${ROW} relative overflow-hidden text-[color:var(--cf-ext-foreground)] ${
         on ? "outline outline-[color:var(--cf-ext-border)]" : ""
       }`}
@@ -150,35 +156,46 @@ function Callout({
   title,
   body,
   side,
+  pinned,
 }: {
   icon: typeof Camera;
   title: string;
   body: string;
   side: "left" | "right";
+  // Pinned beside the panel with a leader, rather than stacked underneath it.
+  pinned: boolean;
 }) {
   const isLeft = side === "left";
   return (
     <div
-      className={`border-line bg-canvas/70 relative w-full max-w-80 rounded-2xl border p-4 backdrop-blur-sm lg:max-w-64 ${
-        isLeft ? "lg:text-right" : ""
+      className={`border-line bg-canvas/70 relative rounded-2xl border p-4 backdrop-blur-sm ${
+        pinned ? "" : "w-full"
       }`}
     >
-      {/* The leader line spans the grid gap to the panel; it and the dot only
-          exist on the wide layout, where the columns actually flank it. */}
-      <span
-        aria-hidden
-        className={`bg-line absolute top-1/2 hidden h-px w-10 lg:block ${
-          isLeft ? "left-full" : "right-full"
-        }`}
-      />
-      <span
-        aria-hidden
-        className={`bg-accent absolute top-1/2 hidden size-1.5 -translate-y-1/2 rounded-full lg:block ${
-          isLeft ? "left-[calc(100%+2.5rem)]" : "right-[calc(100%+2.5rem)]"
-        }`}
-      />
+      {pinned && (
+        <>
+          {/* Runs from the box to the panel's edge at exactly the row's y —
+              the box is centred on that y, so its mid-height is the anchor. */}
+          <span
+            aria-hidden
+            className={`bg-line-strong absolute top-1/2 block h-px ${isLeft ? "left-full" : "right-full"}`}
+            style={{ width: LEADER_GAP }}
+          />
+          <span
+            aria-hidden
+            className={`bg-accent absolute top-1/2 block size-1.5 -translate-y-1/2 rounded-full ${
+              isLeft ? "left-full" : "right-full"
+            }`}
+            style={
+              isLeft
+                ? { marginLeft: `calc(${LEADER_GAP} - 3px)` }
+                : { marginRight: `calc(${LEADER_GAP} - 3px)` }
+            }
+          />
+        </>
+      )}
       <div
-        className={`flex items-start gap-3 ${isLeft ? "lg:flex-row-reverse" : ""}`}
+        className={`flex items-start gap-3 ${pinned && isLeft ? "flex-row-reverse" : ""}`}
       >
         <span className="border-line text-fg-muted mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border">
           <IconGlyph icon={icon} />
@@ -206,8 +223,20 @@ export function ModesIntro() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  // Anchors are read off the live controls, so the leaders keep pointing at the
+  // right rows if the panel's copy or spacing ever changes.
+  const anchorRefs = useRef<Record<string, HTMLElement | null>>({});
+  const [anchors, setAnchors] = useState<Record<string, number>>({});
   const [panelSize, setPanelSize] = useState({ w: 0, h: 0 });
   const [fit, setFit] = useState(1);
+  // Only wide viewports can hold panel + two callout columns; narrower ones
+  // stack the callouts under the panel, where a leader would point at nothing.
+  const [pinned, setPinned] = useState(false);
+
+  const setAnchorRef = (key: string) => (el: HTMLElement | null) => {
+    anchorRefs.current[key] = el;
+  };
+
   useEffect(() => {
     const measure = () => {
       const panel = panelRef.current;
@@ -224,6 +253,21 @@ export function ModesIntro() {
           ? Math.min(MAX_SCALE, (available * 0.92) / w)
           : 1,
       );
+
+      const centre = (el: HTMLElement | null) =>
+        el ? el.offsetTop + el.offsetHeight / 2 : 0;
+      const camera = anchorRefs.current.camera;
+      const mic = anchorRefs.current.mic;
+      setAnchors({
+        photoTab: centre(anchorRefs.current.photoTab),
+        source: centre(anchorRefs.current.source),
+        start: centre(anchorRefs.current.start),
+        // One leader for the camera/mic pair: the midpoint of the two rows.
+        devices:
+          camera && mic
+            ? (camera.offsetTop + mic.offsetTop + mic.offsetHeight) / 2
+            : 0,
+      });
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -234,6 +278,14 @@ export function ModesIntro() {
       ro.disconnect();
       window.removeEventListener("resize", measure);
     };
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1280px)");
+    const sync = () => setPinned(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
   }, []);
 
   return (
@@ -264,145 +316,162 @@ export function ModesIntro() {
           borderColor: token.colorBorderSecondary,
         }}
       >
-        {/* Three tracks so the panel sits dead centre with a callout column
-            either side; below lg it collapses to one column with the panel
-            first, and the leader lines turn themselves off. */}
-        {/* The middle track is a definite width on purpose: against an `auto`
-            track the panel's `w-full` is a percentage of content that is itself
-            being measured, so the container reported 0 and the panel scaled to
-            nothing. */}
-        <div className="grid items-center justify-items-center gap-10 lg:grid-cols-[minmax(0,1fr)_420px_minmax(0,1fr)]">
-          <div className="flex w-full flex-col items-center gap-10 lg:items-end">
-            {LEFT_POINTS.map((point) => (
-              <Callout
-                key={point.key}
-                side="left"
-                icon={point.icon}
-                title={m.modes.points[point.key].title}
-                body={m.modes.points[point.key].body}
-              />
-            ))}
-          </div>
-
-          <div className="order-first w-full max-w-[420px] lg:order-none">
-            <div ref={containerRef} className="flex justify-center">
-              <div
-                className="relative"
-                style={{
-                  width: panelSize.w ? panelSize.w * fit : undefined,
-                  height: panelSize.h ? panelSize.h * fit : undefined,
-                }}
-              >
-                {/* Content-sized so the panel lays out at its natural width,
+        {/* The callouts are pinned to the panel box rather than laid out in
+            columns beside it: a grid track would squeeze them to whatever
+            width was left over, and its rows can't line a box up with the
+            control it describes. Absolute keeps each box at its own width and
+            lets the pair overhang the card, which is overflow-visible. */}
+        <div ref={containerRef} className="flex flex-col items-center">
+          <div
+            className="relative"
+            style={{
+              width: panelSize.w ? panelSize.w * fit : undefined,
+              height: panelSize.h ? panelSize.h * fit : undefined,
+            }}
+          >
+            {/* Content-sized so the panel lays out at its natural width,
                     then scales as one block. `dir=ltr` keeps cluster order
                     under RTL locales. */}
-                <div
-                  className="absolute top-0 left-0 origin-top-left"
-                  dir="ltr"
-                  style={{ transform: `scale(${fit})` }}
-                >
-                  <div className="pointer-events-none absolute bottom-full left-1/2 mb-3 -translate-x-1/2 rounded-lg bg-[#171717] px-3 py-1.5 text-xs font-medium whitespace-nowrap text-white shadow-sm">
-                    {m.modes.tabs.share.caption}
-                  </div>
+            <div
+              className="absolute top-0 left-0 origin-top-left"
+              dir="ltr"
+              style={{ transform: `scale(${fit})` }}
+            >
+              <div className="pointer-events-none absolute bottom-full left-1/2 mb-3 -translate-x-1/2 rounded-lg bg-[#171717] px-3 py-1.5 text-xs font-medium whitespace-nowrap text-white shadow-sm">
+                {m.modes.tabs.share.caption}
+              </div>
 
-                  <div
-                    ref={panelRef}
-                    className="relative flex flex-col gap-2.5 rounded-2xl bg-[color:var(--cf-ext-background)] p-3 shadow-[0_24px_64px_rgba(0,0,0,0.5)]"
-                    style={{ ...EXT_PALETTE, width: PANEL_WIDTH }}
-                  >
-                    <header className="flex items-center justify-between gap-2 text-[color:var(--cf-ext-foreground)]">
-                      <span className="flex h-8 w-8 items-center justify-center">
-                        <IconGlyph icon={House} />
-                      </span>
+              <div
+                ref={panelRef}
+                className="relative flex flex-col gap-2.5 rounded-2xl bg-[color:var(--cf-ext-background)] p-3 shadow-[0_24px_64px_rgba(0,0,0,0.5)]"
+                style={{ ...EXT_PALETTE, width: PANEL_WIDTH }}
+              >
+                <header className="flex items-center justify-between gap-2 text-[color:var(--cf-ext-foreground)]">
+                  <span className="flex h-8 w-8 items-center justify-center">
+                    <IconGlyph icon={House} />
+                  </span>
 
-                      {/* Tabs: the list container paints the track, and the
+                  {/* Tabs: the list container paints the track, and the
                           selected tab gets the segment pill with an accent
                           glyph — HeroUI's indicator, not a white chip. */}
-                      <div className="inline-flex rounded-[20px] bg-[color:var(--cf-ext-default)] p-1">
-                        {MODES.map((mode, i) => {
-                          const Glyph = mode.icon;
-                          const isActive = i === 0;
-                          return (
-                            <span
-                              key={mode.key}
-                              aria-label={m.modes.tabs[mode.key].label}
-                              className={`flex h-8 items-center justify-center rounded-3xl px-4 ${
-                                isActive
-                                  ? "bg-[color:var(--cf-ext-segment)] text-[color:var(--cf-ext-accent)]"
-                                  : "text-[color:var(--cf-ext-muted)]"
-                              }`}
-                            >
-                              <Glyph className="h-4 w-4" strokeWidth={1.8} />
-                            </span>
-                          );
-                        })}
-                      </div>
-
-                      <span className="flex h-8 w-8 items-center justify-center">
-                        <IconGlyph icon={X} />
-                      </span>
-                    </header>
-
-                    <div className="flex flex-col gap-2">
-                      {/* The source is the panel's headline choice, so the row
-                          carries the accent the device rows don't. */}
-                      <div
-                        className={`${ROW} bg-[color:var(--cf-ext-accent-soft)] text-[color:var(--cf-ext-accent-soft-foreground)]`}
-                        aria-label={copy.sourceAria}
-                      >
-                        <IconGlyph icon={Monitor} />
-                        <span className="flex-1 truncate text-sm font-semibold">
-                          {copy.source}
+                  <div className="inline-flex rounded-[20px] bg-[color:var(--cf-ext-default)] p-1">
+                    {MODES.map((mode, i) => {
+                      const Glyph = mode.icon;
+                      const isActive = i === 0;
+                      return (
+                        <span
+                          key={mode.key}
+                          ref={isActive ? undefined : setAnchorRef("photoTab")}
+                          aria-label={m.modes.tabs[mode.key].label}
+                          className={`flex h-8 items-center justify-center rounded-3xl px-4 ${
+                            isActive
+                              ? "bg-[color:var(--cf-ext-segment)] text-[color:var(--cf-ext-accent)]"
+                              : "text-[color:var(--cf-ext-muted)]"
+                          }`}
+                        >
+                          <Glyph className="h-4 w-4" strokeWidth={1.8} />
                         </span>
-                        <span className="text-xs opacity-70">
-                          {copy.sourceHint}
-                        </span>
-                      </div>
-
-                      <DeviceRow
-                        icon={Camera}
-                        label={copy.camera}
-                        on={false}
-                        onLabel={copy.off}
-                      />
-                      <DeviceRow
-                        icon={Mic}
-                        label={copy.microphone}
-                        on
-                        onLabel={copy.on}
-                        meter
-                      />
-
-                      <span className="flex h-10 items-center justify-center rounded-xl bg-[color:var(--cf-ext-start)] text-sm font-semibold text-white">
-                        {copy.startRecording}
-                      </span>
-                      <span className="-mt-1.5 text-center text-xs text-[color:var(--cf-ext-muted)]">
-                        {copy.limit}
-                      </span>
-                    </div>
-
-                    <footer className="grid grid-cols-3 items-start gap-1">
-                      <ToolButton icon={Sparkles} label={copy.effects} />
-                      <ToolButton icon={Droplets} label={copy.blur} />
-                      <ToolButton icon={MoreHorizontal} label={copy.more} />
-                    </footer>
+                      );
+                    })}
                   </div>
+
+                  <span className="flex h-8 w-8 items-center justify-center">
+                    <IconGlyph icon={X} />
+                  </span>
+                </header>
+
+                <div className="flex flex-col gap-2">
+                  {/* The source is the panel's headline choice, so the row
+                          carries the accent the device rows don't. */}
+                  <div
+                    ref={setAnchorRef("source")}
+                    className={`${ROW} bg-[color:var(--cf-ext-accent-soft)] text-[color:var(--cf-ext-accent-soft-foreground)]`}
+                    aria-label={copy.sourceAria}
+                  >
+                    <IconGlyph icon={Monitor} />
+                    <span className="flex-1 truncate text-sm font-semibold">
+                      {copy.source}
+                    </span>
+                    <span className="text-xs opacity-70">
+                      {copy.sourceHint}
+                    </span>
+                  </div>
+
+                  <DeviceRow
+                    ref={setAnchorRef("camera")}
+                    icon={Camera}
+                    label={copy.camera}
+                    on={false}
+                    onLabel={copy.off}
+                  />
+                  <DeviceRow
+                    ref={setAnchorRef("mic")}
+                    icon={Mic}
+                    label={copy.microphone}
+                    on
+                    onLabel={copy.on}
+                    meter
+                  />
+
+                  <span
+                    ref={setAnchorRef("start")}
+                    className="flex h-10 items-center justify-center rounded-xl bg-[color:var(--cf-ext-start)] text-sm font-semibold text-white"
+                  >
+                    {copy.startRecording}
+                  </span>
+                  <span className="-mt-1.5 text-center text-xs text-[color:var(--cf-ext-muted)]">
+                    {copy.limit}
+                  </span>
                 </div>
+
+                <footer className="grid grid-cols-3 items-start gap-1">
+                  <ToolButton icon={Sparkles} label={copy.effects} />
+                  <ToolButton icon={Droplets} label={copy.blur} />
+                  <ToolButton icon={MoreHorizontal} label={copy.more} />
+                </footer>
               </div>
             </div>
+
+            {pinned &&
+              CALLOUTS.map((callout) => (
+                <div
+                  key={callout.key}
+                  className="absolute -translate-y-1/2"
+                  style={{
+                    width: CALLOUT_WIDTH,
+                    // Anchors are panel coordinates; the box lives in the
+                    // scaled wrapper, so they scale with it.
+                    top: (anchors[callout.anchor] ?? 0) * fit,
+                    ...(callout.side === "left"
+                      ? { right: `calc(100% + ${LEADER_GAP})` }
+                      : { left: `calc(100% + ${LEADER_GAP})` }),
+                  }}
+                >
+                  <Callout
+                    pinned
+                    side={callout.side}
+                    icon={callout.icon}
+                    title={m.modes.points[callout.key].title}
+                    body={m.modes.points[callout.key].body}
+                  />
+                </div>
+              ))}
           </div>
 
-          <div className="flex w-full flex-col items-center gap-10 lg:items-start">
-            {RIGHT_POINTS.map((point) => (
-              <Callout
-                key={point.key}
-                side="right"
-                icon={point.icon}
-                title={m.modes.points[point.key].title}
-                body={m.modes.points[point.key].body}
-              />
-            ))}
-          </div>
+          {!pinned && (
+            <div className="mt-10 grid w-full max-w-[560px] gap-4 sm:grid-cols-2">
+              {CALLOUTS.map((callout) => (
+                <Callout
+                  key={callout.key}
+                  pinned={false}
+                  side={callout.side}
+                  icon={callout.icon}
+                  title={m.modes.points[callout.key].title}
+                  body={m.modes.points[callout.key].body}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </Card>
     </MarketingSection>
