@@ -55,6 +55,10 @@
     "BETTER_AUTH_URL": "https://captureflow.dev",
     // Read by worker.ts: every hostname here 308s to the canonical origin.
     "LEGACY_HOSTS": "captureflow.xyz",
+    // Floor for the nav's star badge, used only when the GitHub call fails
+    // (its rate limit is per-IP and Workers share egress IPs). Without it the
+    // badge disappears instead of holding its last known figure.
+    "NEXT_PUBLIC_GITHUB_STARS": "3",
     // Desktop registers the captureflow:// scheme; keep it until the desktop
     // deep-link parser is rebranded in lockstep.
     "APP_DEEP_LINK_SCHEME": "captureflow",
