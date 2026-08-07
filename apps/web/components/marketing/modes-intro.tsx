@@ -318,7 +318,11 @@ function DeviceRow({
       <span className="flex shrink-0" aria-hidden>
         {icon}
       </span>
-      <span className="flex-1 truncate text-sm font-medium">{label}</span>
+      {/* The popup names the device through a Select, whose trigger is
+          min-h-9 — that, not the label, is what sets the row's height. */}
+      <span className="flex min-h-9 min-w-0 flex-1 items-center">
+        <span className="truncate text-sm font-medium">{label}</span>
+      </span>
       <StatePill on={on} label={onLabel} />
       {meter && (
         // Mic level: a Meter pinned along the row's bottom edge, accent-filled.
@@ -332,10 +336,23 @@ function DeviceRow({
   );
 }
 
-function ToolButton({ icon, label }: { icon: ReactNode; label: string }) {
+// Effects and Blur are disabled in the popup and sit at HeroUI's
+// --disabled-opacity; More is a live dropdown trigger and doesn't.
+function ToolButton({
+  icon,
+  label,
+  disabled,
+}: {
+  icon: ReactNode;
+  label: string;
+  disabled?: boolean;
+}) {
   return (
-    // Disabled ghost buttons — foreground at HeroUI's --disabled-opacity.
-    <span className="flex flex-col items-center gap-1 rounded-3xl px-2 py-1.5 text-[11px] font-medium text-[color:var(--cf-ext-foreground)] opacity-50">
+    <span
+      className={`flex flex-col items-center gap-1 rounded-3xl px-2 py-1.5 text-[11px] font-medium text-[color:var(--cf-ext-foreground)] ${
+        disabled ? "opacity-50" : ""
+      }`}
+    >
       {icon}
       <span className="leading-4">{label}</span>
     </span>
@@ -596,58 +613,66 @@ export function ModesIntro() {
                   </span>
                 </header>
 
-                <div className="flex flex-col gap-2">
-                  {/* The source is the panel's headline choice, so the row
+                {/* HeroUI's Tabs.Panel pads the active panel, so the rows
+                    are inset from the panel's own p-3 by another 8px. */}
+                <div className="p-2">
+                  <div className="flex flex-col gap-2">
+                    {/* The source is the panel's headline choice, so the row
                           carries the accent the device rows don't. */}
-                  <div
-                    ref={setAnchorRef("source")}
-                    className={`${ROW} bg-[color:var(--cf-ext-accent-soft)] text-[color:var(--cf-ext-accent-soft-foreground)]`}
-                    aria-label={copy.sourceAria}
-                  >
-                    <span className="flex shrink-0" aria-hidden>
-                      {SCREEN_ICON}
+                    <div
+                      ref={setAnchorRef("source")}
+                      className={`${ROW} bg-[color:var(--cf-ext-accent-soft)] text-[color:var(--cf-ext-accent-soft-foreground)]`}
+                      aria-label={copy.sourceAria}
+                    >
+                      <span className="flex shrink-0" aria-hidden>
+                        {SCREEN_ICON}
+                      </span>
+                      <span className="flex-1 truncate text-sm font-semibold">
+                        {copy.source}
+                      </span>
+                      <span className="text-xs opacity-70">
+                        {copy.sourceHint}
+                      </span>
+                    </div>
+
+                    {/* The device rows sit closer to each other than to the
+                          source above them, as they do in the popup. */}
+                    <section className="flex flex-col gap-1.5">
+                      <DeviceRow
+                        icon={CAMERA_ICON}
+                        label={copy.camera}
+                        on={false}
+                        onLabel={copy.off}
+                      />
+                      <DeviceRow
+                        ref={setAnchorRef("mic")}
+                        icon={MIC_ICON}
+                        label={copy.microphone}
+                        on
+                        onLabel={copy.on}
+                        meter
+                      />
+                    </section>
+
+                    <span
+                      ref={setAnchorRef("start")}
+                      className="flex h-10 items-center justify-center rounded-xl bg-[color:var(--cf-ext-start)] text-sm font-semibold text-white"
+                    >
+                      {copy.startRecording}
                     </span>
-                    <span className="flex-1 truncate text-sm font-semibold">
-                      {copy.source}
-                    </span>
-                    <span className="text-xs opacity-70">
-                      {copy.sourceHint}
+                    <span className="-mt-1.5 text-center text-xs leading-5 text-[color:var(--cf-ext-muted)]">
+                      {copy.limit}
                     </span>
                   </div>
-
-                  {/* The device rows sit closer to each other than to the
-                          source above them, as they do in the popup. */}
-                  <section className="flex flex-col gap-1.5">
-                    <DeviceRow
-                      icon={CAMERA_ICON}
-                      label={copy.camera}
-                      on={false}
-                      onLabel={copy.off}
-                    />
-                    <DeviceRow
-                      ref={setAnchorRef("mic")}
-                      icon={MIC_ICON}
-                      label={copy.microphone}
-                      on
-                      onLabel={copy.on}
-                      meter
-                    />
-                  </section>
-
-                  <span
-                    ref={setAnchorRef("start")}
-                    className="flex h-10 items-center justify-center rounded-xl bg-[color:var(--cf-ext-start)] text-sm font-semibold text-white"
-                  >
-                    {copy.startRecording}
-                  </span>
-                  <span className="-mt-1.5 text-center text-xs text-[color:var(--cf-ext-muted)]">
-                    {copy.limit}
-                  </span>
                 </div>
 
                 <footer className="grid grid-cols-3 items-start gap-1">
-                  <ToolButton icon={EFFECTS_ICON} label={copy.effects} />
-                  <ToolButton icon={BLUR_ICON} label={copy.blur} />
+                  <ToolButton
+                    disabled
+                    icon={EFFECTS_ICON}
+                    label={copy.effects}
+                  />
+                  <ToolButton disabled icon={BLUR_ICON} label={copy.blur} />
                   <ToolButton icon={MORE_ICON} label={copy.more} />
                 </footer>
               </div>
