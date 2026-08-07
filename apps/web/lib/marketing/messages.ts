@@ -175,11 +175,11 @@ export const MESSAGES = {
       share: {
         title: "Shareable recordings",
         subtitle:
-          "Trim your recording, change the background, and choose who can react.",
+          "Change the background, trim what you don't need, and place the camera where you want it.",
         features: {
           editor: {
             title: "Edit recording",
-            body: "Change the background, trim the dead air, and choose who can react. It all happens in the browser, so you never record it twice.",
+            body: "Pick a background, trim what you don't need, move the camera bubble into a corner, and mute the mic or system sound. All of it in the browser, so you never record it twice.",
           },
           viewer: {
             title: "Share, react and comment",
@@ -194,7 +194,7 @@ export const MESSAGES = {
       screenshot: {
         title: "Capture screenshots",
         subtitle:
-          "Capture a region, a window, or your whole display, annotate it, and share the link.",
+          "Grab a region, a window, or the whole display, mark it up, and share it.",
         features: {
           capture: {
             title: "Region, window, or full screen",
@@ -213,7 +213,7 @@ export const MESSAGES = {
       workspaces: {
         title: "Team workspaces",
         subtitle:
-          "Every link stays private until you open it up to your team or to anyone with the URL.",
+          "Share a recording with your whole workspace, or lock it down to just you.",
         features: {
           workspace: {
             title: "Share with your team",

@@ -596,16 +596,16 @@ function FeedbackBody() {
   const m = useMessages();
   const em = m.collaboration.editorMockup;
   const [bgIndex, setBgIndex] = useState(0);
-  const [commentsOn, setCommentsOn] = useState(true);
-  const [reactionsOn, setReactionsOn] = useState(true);
+  const [micOn, setMicOn] = useState(true);
+  const [systemOn, setSystemOn] = useState(true);
 
-  const permissions: Array<{
+  const audioTracks: Array<{
     label: string;
     on: boolean;
     set: React.Dispatch<React.SetStateAction<boolean>>;
   }> = [
-    { label: em.micLabel, on: commentsOn, set: setCommentsOn },
-    { label: em.systemLabel, on: reactionsOn, set: setReactionsOn },
+    { label: em.micLabel, on: micOn, set: setMicOn },
+    { label: em.systemLabel, on: systemOn, set: setSystemOn },
   ];
 
   return (
@@ -683,7 +683,7 @@ function FeedbackBody() {
           </div>
         </div>
         <div className="space-y-2">
-          {permissions.map((t) => (
+          {audioTracks.map((t) => (
             <div key={t.label} className="flex items-center justify-between">
               <div className="h-2 w-12 rounded-full bg-black/10 dark:bg-white/15" />
               <button
