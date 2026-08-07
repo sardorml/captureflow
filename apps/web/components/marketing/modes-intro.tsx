@@ -49,7 +49,7 @@ const CALLOUTS = [
 // sides inside the section's measure, which is why the pinned layout only
 // switches on at xl.
 const CALLOUT_WIDTH = 256;
-const LEADER_GAP = 56;
+const LEADER_GAP = 88;
 const CALLOUT_GAP = 20;
 const LEADER_BEND = 20;
 const OVERHANG = LEADER_GAP + CALLOUT_WIDTH;

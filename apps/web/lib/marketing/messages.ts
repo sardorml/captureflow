@@ -205,8 +205,8 @@ export const MESSAGES = {
             body: "Add arrows, text, and blur over anything you capture, and every mark stays on the screenshot you send.",
           },
           share: {
-            title: "The link is already copied",
-            body: "The link lands on your clipboard as soon as the screenshot is saved, in the same dashboard as your recordings.",
+            title: "Saved with your recordings",
+            body: "A screenshot goes to the same library as your recordings, so there is one place to search and one set of links to manage.",
           },
         },
       },
