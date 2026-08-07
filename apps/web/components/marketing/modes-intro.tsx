@@ -351,17 +351,10 @@ export function ModesIntro() {
 
   return (
     /* Full-bleed band. MarketingSection is capped to the shared 1024px rail, so
-       the background has to sit on a wrapper outside it; the gradient's fades
-       stand in for edges, which would read as seams against the sections above
-       and below. It darkens rather than lifts — the panel is the darkest thing
-       on the page, and a lighter band left it looking like a hole. */
-    <div
-      className="w-full"
-      style={{
-        background:
-          "linear-gradient(180deg, transparent, rgb(0 0 0 / 0.5) 12%, rgb(0 0 0 / 0.5) 88%, transparent)",
-      }}
-    >
+       the background has to sit on a wrapper outside it. It darkens rather than
+       lifts — the panel is the darkest thing on the page, and a lighter band
+       left it looking like a hole. */
+    <div className="w-full" style={{ background: "rgb(0 0 0 / 0.5)" }}>
       <MarketingSection id="modes" style={{ scrollMarginTop: 24 }}>
         <SectionHeading
           eyebrow={m.modes.eyebrow}
