@@ -20,12 +20,7 @@
   // overrides the parked DNS record. This entry keeps it declarative so future
   // deploys preserve the binding; custom_domain:true lets Cloudflare manage the
   // apex DNS record for the worker.
-  // captureflow.xyz stays bound so worker.ts can 308 it to the apex above;
-  // unbinding it would break every link already shared from the old domain.
-  "routes": [
-    { "pattern": "captureflow.dev", "custom_domain": true },
-    { "pattern": "captureflow.xyz", "custom_domain": true },
-  ],
+  "routes": [{ "pattern": "captureflow.dev", "custom_domain": true }],
   // Cron Triggers → worker.ts scheduled(): hourly multipart GC + daily
   // retention sweep against D1 + R2.
   "triggers": {
@@ -53,8 +48,6 @@
     "NEXT_PUBLIC_MARKETING_SITE_URL": "https://captureflow.dev",
     "R2_PUBLIC_BASE_URL": "https://cdn.captureflow.dev",
     "BETTER_AUTH_URL": "https://captureflow.dev",
-    // Read by worker.ts: every hostname here 308s to the canonical origin.
-    "LEGACY_HOSTS": "captureflow.xyz",
     // Floor for the nav's star badge, used only when the GitHub call fails
     // (its rate limit is per-IP and Workers share egress IPs). Without it the
     // badge disappears instead of holding its last known figure.

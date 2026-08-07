@@ -30,7 +30,7 @@ BETTER_AUTH_SECRET=replace-with-`openssl rand -hex 32`
 
 # Public base URL Better Auth issues/validates sessions against.
 # Local dev: http://localhost:3000 (or :3032 for the Workers preview).
-# Prod: https://captureflow.xyz (declared in wrangler.jsonc "vars").
+# Prod: https://captureflow.dev (declared in wrangler.jsonc "vars").
 BETTER_AUTH_URL=http://localhost:3000
 
 
@@ -74,15 +74,15 @@ NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL=
 RESEND_API_KEY=
 
 # "From" address Resend sends invites as. Must be a verified domain in your
-# Resend account. Defaults to "CaptureFlow <hello@captureflow.xyz>" if unset.
-RESEND_FROM_ADDRESS=CaptureFlow <hello@captureflow.xyz>
+# Resend account. Defaults to "CaptureFlow <hello@captureflow.dev>" if unset.
+RESEND_FROM_ADDRESS=CaptureFlow <hello@captureflow.dev>
 
 
 # -----------------------------------------------------------------------------
 # OPTIONAL — public site / CDN URLs.
 # Prod values are already declared in wrangler.jsonc "vars"; override here only
 # to point local dev at a non-default host. All default to the unified worker
-# origin (captureflow.xyz) or the R2 CDN (cdn.captureflow.xyz) in code.
+# origin (captureflow.dev) or the R2 CDN (cdn.captureflow.dev) in code.
 # All NEXT_PUBLIC_* are PUBLIC (inlined into the client bundle).
 # -----------------------------------------------------------------------------
 
@@ -105,5 +105,5 @@ NEXT_PUBLIC_R2_PUBLIC_BASE_URL=http://localhost:3000/api/r/media
 APP_DEEP_LINK_SCHEME=captureflow
 
 # Server-only public URL used when composing invite links. Defaults to
-# https://captureflow.xyz in code; override for local dev if needed.
+# https://captureflow.dev in code; override for local dev if needed.
 APP_WEB_PUBLIC_URL=http://localhost:3000

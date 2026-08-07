@@ -175,7 +175,6 @@ The non-secret, public vars already live in `apps/web/wrangler.jsonc` under
 | `NEXT_PUBLIC_MARKETING_SITE_URL`         | `https://captureflow.dev`     |
 | `R2_PUBLIC_BASE_URL`                     | `https://cdn.captureflow.dev` |
 | `BETTER_AUTH_URL`                        | `https://captureflow.dev`     |
-| `LEGACY_HOSTS`                           | `` (empty = no redirect)      |
 | `APP_DEEP_LINK_SCHEME`                   | `captureflow`                 |
 | `NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL` | `` (empty = billing off)      |
 
@@ -333,7 +332,6 @@ Scope legend:
 | `NEXT_PUBLIC_MARKETING_SITE_URL`         | Required (has default)        | worker-var (public) | Marketing root; recording + screenshot view pages build URLs off it.                         | `wrangler.jsonc` "vars"                                                    |
 | `R2_PUBLIC_BASE_URL`                     | Required (has default)        | worker-var          | CDN origin for direct R2 reads (posters/videos/screenshots).                                 | `wrangler.jsonc` "vars" (default `https://cdn.captureflow.dev`)            |
 | `NEXT_PUBLIC_R2_PUBLIC_BASE_URL`         | Optional (has default)        | worker-var (public) | Client-side CDN origin for poster/video/screenshot thumbnails; mirrors `R2_PUBLIC_BASE_URL`. | `wrangler.jsonc` "vars" or `.dev.vars`                                     |
-| `LEGACY_HOSTS`                           | Optional                      | worker-var          | Comma-separated hostnames this worker should 308 to the canonical origin, path intact.       | `wrangler.jsonc` "vars" (prod: `captureflow.xyz`)                          |
 | `APP_DEEP_LINK_SCHEME`                   | Required (has default)        | worker-var          | Desktop deep-link scheme (`captureflow://`).                                                 | `wrangler.jsonc` "vars"                                                    |
 | `APP_WEB_PUBLIC_URL`                     | Optional (has default)        | worker-var          | Public URL used when composing workspace-invite links.                                       | `wrangler.jsonc` "vars" or `.dev.vars` (default `https://captureflow.dev`) |
 | `NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL` | Optional                      | worker-var (public) | Public checkout link for "Upgrade to Pro"; empty disables billing UI.                        | `wrangler.jsonc` "vars"                                                    |
