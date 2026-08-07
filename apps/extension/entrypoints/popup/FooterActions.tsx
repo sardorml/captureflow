@@ -37,7 +37,14 @@ const MORE_ICON = (
   </svg>
 );
 
-const TOOL_CLASS = "h-auto w-full px-2 py-1.5 text-[11px]";
+/*
+ * The bangs are load-bearing. `.button svg` sizes any icon inside a Button to
+ * 20px with a vertical margin below the sm breakpoint, and it outranks a plain
+ * utility — but the third tool is a Dropdown.Trigger, which carries none of it.
+ * Two icons came out 20px and one 16px, and the odd label sat a row higher.
+ */
+const TOOL_CLASS =
+  "h-auto w-full px-2 py-1.5 text-[11px] [&_svg]:m-0! [&_svg]:size-4!";
 
 /*
  * Two of the three tools are a <Button> and the third is a Dropdown.Trigger,
