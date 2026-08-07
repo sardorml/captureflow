@@ -181,8 +181,12 @@ export function Nav({ stars = null }: { stars?: string | null }) {
 
       <Drawer isOpen={menuOpen} onOpenChange={setMenuOpen}>
         <Drawer.Backdrop>
-          <Drawer.Content placement="right" className="w-70">
-            <Drawer.Dialog>
+          {/* The width belongs on the dialog, not on Content: Content is the
+              inset-0 flex wrapper that positions the panel, so sizing it there
+              pinned a 280px box to the left edge and the panel slid in against
+              it — right-to-left, on the wrong side of the viewport. */}
+          <Drawer.Content placement="right">
+            <Drawer.Dialog className="w-70">
               <Drawer.Body className="flex flex-col items-stretch gap-2 p-4">
                 <nav
                   aria-label="Main"
