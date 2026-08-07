@@ -2,17 +2,15 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Paragraph, Text } from "./typography";
-import { Card } from "./ui";
-import { TOKENS } from "./tokens";
 import {
   Camera,
-  Droplets,
+  Droplet,
   House,
   Link2,
   Mic,
   Monitor,
   MoreHorizontal,
-  Sparkles,
+  Palette,
   Video,
   X,
 } from "lucide-react";
@@ -30,21 +28,21 @@ const MODES = [
 /*
  * Each callout's leader ends on the control it describes — inside the panel, not
  * at its edge — so the target is a measured (x, y) on that element rather than
- * just a row's height. `inset` is where along the element the dot sits, from the
- * near edge: the icon of a full-width row, the middle of a small control.
- * DOM order here is the mobile reading order.
+ * just a row's height. `inset` is how far in from the element's near edge the
+ * dot lands: enough to read as on the control, short of the glyph or label it
+ * would otherwise cover. DOM order here is the mobile reading order.
  */
 const CALLOUTS = [
-  { key: "source", icon: Monitor, anchor: "source", side: "left", inset: 18 },
+  { key: "source", icon: Monitor, anchor: "source", side: "left", inset: 30 },
   { key: "link", icon: Link2, anchor: "start", side: "left", inset: 44 },
   {
     key: "screenshot",
     icon: Camera,
     anchor: "photoTab",
     side: "right",
-    inset: null,
+    inset: 5,
   },
-  { key: "devices", icon: Mic, anchor: "mic", side: "right", inset: 28 },
+  { key: "devices", icon: Mic, anchor: "mic", side: "right", inset: 6 },
 ] as const;
 
 // Callout box + the leader's span. The pair has to clear the panel on both
@@ -52,6 +50,11 @@ const CALLOUTS = [
 // switches on at xl.
 const CALLOUT_WIDTH = 256;
 const LEADER_GAP = 56;
+const CALLOUT_GAP = 20;
+const LEADER_BEND = 20;
+const OVERHANG = LEADER_GAP + CALLOUT_WIDTH;
+
+type CalloutSpec = (typeof CALLOUTS)[number];
 
 // Panel coordinates, before the fit scale is applied.
 type Point = { x: number; y: number };
@@ -65,8 +68,8 @@ type Point = { x: number; y: number };
  * they are scoped here so the mockup reads the same under either page theme.
  */
 const EXT_PALETTE = {
-  "--cf-ext-background": "#131317",
-  "--cf-ext-surface": "#222228",
+  "--cf-ext-background": "#1e1e24",
+  "--cf-ext-surface": "#2c2c35",
   "--cf-ext-foreground": "oklch(0.9911 0 0)",
   "--cf-ext-muted": "oklch(70.5% 0.015 286.067)",
   "--cf-ext-border": "oklch(28% 0.006 286.033)",
@@ -86,13 +89,19 @@ const EXT_PALETTE = {
 // The panel is authored at the extension popup's real width and scaled as one
 // block, so the mockup keeps the proportions a user actually sees.
 const PANEL_WIDTH = 308;
-const MAX_SCALE = 1.35;
+const MAX_SCALE = 1;
 
 const ROW =
   "flex items-center gap-2.5 rounded-xl bg-[color:var(--cf-ext-surface)] px-2.5 py-2";
 
-function IconGlyph({ icon: Glyph }: { icon: typeof Camera }) {
-  return <Glyph className="h-4 w-4 shrink-0" strokeWidth={1.8} />;
+function IconGlyph({
+  icon: Glyph,
+  size = 16,
+}: {
+  icon: typeof Camera;
+  size?: number;
+}) {
+  return <Glyph size={size} className="shrink-0" strokeWidth={1.8} />;
 }
 
 function StatePill({ on, label }: { on: boolean; label: string }) {
@@ -179,7 +188,7 @@ function Callout({
   const isLeft = side === "left";
   return (
     <div
-      className={`border-line bg-canvas/70 relative rounded-2xl border p-4 backdrop-blur-sm ${
+      className={`border-line-strong bg-tint relative rounded-2xl border p-4 ${
         pinned ? "" : "w-full"
       }`}
     >
@@ -207,7 +216,6 @@ function Callout({
 
 export function ModesIntro() {
   const m = useMessages();
-  const token = TOKENS;
   const copy = m.modes.panel;
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -215,7 +223,9 @@ export function ModesIntro() {
   // Anchors are read off the live controls, so the leaders keep pointing at the
   // right rows if the panel's copy or spacing ever changes.
   const anchorRefs = useRef<Record<string, HTMLElement | null>>({});
+  const calloutRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [anchors, setAnchors] = useState<Record<string, Point>>({});
+  const [slots, setSlots] = useState<Record<string, number>>({});
   const [panelSize, setPanelSize] = useState({ w: 0, h: 0 });
   const [fit, setFit] = useState(1);
   // Only wide viewports can hold panel + two callout columns; narrower ones
@@ -224,6 +234,10 @@ export function ModesIntro() {
 
   const setAnchorRef = (key: string) => (el: HTMLElement | null) => {
     anchorRefs.current[key] = el;
+  };
+
+  const setCalloutRef = (key: string) => (el: HTMLDivElement | null) => {
+    calloutRefs.current[key] = el;
   };
 
   useEffect(() => {
@@ -248,14 +262,10 @@ export function ModesIntro() {
         const el = anchorRefs.current[callout.anchor];
         if (!el) continue;
         const y = el.offsetTop + el.offsetHeight / 2;
-        // A null inset means the element is small enough to aim at its middle;
-        // otherwise come in from whichever edge the callout sits on.
         const x =
-          callout.inset == null
-            ? el.offsetLeft + el.offsetWidth / 2
-            : callout.side === "left"
-              ? el.offsetLeft + callout.inset
-              : el.offsetLeft + el.offsetWidth - callout.inset;
+          callout.side === "left"
+            ? el.offsetLeft + callout.inset
+            : el.offsetLeft + el.offsetWidth - callout.inset;
         next[callout.anchor] = { x, y };
       }
       setAnchors(next);
@@ -279,6 +289,63 @@ export function ModesIntro() {
     return () => mq.removeEventListener("change", sync);
   }, []);
 
+  /*
+   * Each column is packed top-down from its boxes' own heights, so two of them
+   * can never overlap however tall the copy runs, then centred on the panel.
+   * A box that ends up off its control is fine — the leader angles across.
+   */
+  useEffect(() => {
+    if (!pinned) return;
+    const panelHeight = panelSize.h * fit;
+    const next: Record<string, number> = {};
+    for (const side of ["left", "right"] as const) {
+      const column: { key: string; top: number; height: number }[] = [];
+      let cursor = -Infinity;
+      for (const callout of CALLOUTS.filter((c) => c.side === side)) {
+        const height = calloutRefs.current[callout.key]?.offsetHeight ?? 0;
+        const target = anchors[callout.anchor];
+        const centre = target ? target.y * fit : panelHeight / 2;
+        const top = Math.max(centre - height / 2, cursor);
+        column.push({ key: callout.key, top, height });
+        cursor = top + height + CALLOUT_GAP;
+      }
+      const first = column[0];
+      const last = column[column.length - 1];
+      if (!first || !last) continue;
+      const span = last.top + last.height - first.top;
+      const shift = (panelHeight - span) / 2 - first.top;
+      for (const box of column) next[box.key] = box.top + shift;
+    }
+    setSlots(next);
+  }, [pinned, anchors, fit, panelSize.h]);
+
+  const slotTop = (callout: CalloutSpec) =>
+    slots[callout.key] ?? (anchors[callout.anchor]?.y ?? 0) * fit;
+
+  // Panel coordinates → the SVG's own box, which overhangs the panel by a full
+  // callout on each side.
+  const leaderFor = (callout: CalloutSpec) => {
+    const target = anchors[callout.anchor];
+    const top = slots[callout.key];
+    const height = calloutRefs.current[callout.key]?.offsetHeight;
+    if (!target || top == null || !height) return null;
+
+    const isLeft = callout.side === "left";
+    const panelWidth = panelSize.w * fit;
+    const endX = OVERHANG + target.x * fit;
+    const endY = target.y * fit;
+    const startX = OVERHANG + (isLeft ? -LEADER_GAP : panelWidth + LEADER_GAP);
+    const startY = top + height / 2;
+    // The run straightens out just short of the panel so it arrives level with
+    // the control rather than crossing other rows on the diagonal.
+    const bendX = OVERHANG + (isLeft ? -LEADER_BEND : panelWidth + LEADER_BEND);
+    return {
+      points: `${startX},${startY} ${bendX},${endY} ${endX},${endY}`,
+      endX,
+      endY,
+    };
+  };
+
   return (
     <MarketingSection id="modes" style={{ scrollMarginTop: 24 }}>
       <SectionHeading
@@ -295,24 +362,15 @@ export function ModesIntro() {
         }
       />
 
-      <Card
-        styles={{
-          body: {
-            paddingBlock: "clamp(40px, 6vw, 72px)",
-            paddingInline: "clamp(24px, 4vw, 56px)",
-          },
-        }}
-        style={{
-          background: token.colorFillTertiary,
-          borderColor: token.colorBorderSecondary,
-        }}
+      {/* The callouts are pinned to the panel box rather than laid out in
+          columns beside it: a grid track would squeeze them to whatever width
+          was left over, and its rows can't line a box up with the control it
+          describes. Absolute keeps each box at its own width. */}
+      <div
+        className="flex flex-col items-center"
+        style={{ paddingBlock: "clamp(32px, 5vw, 64px)" }}
       >
-        {/* The callouts are pinned to the panel box rather than laid out in
-            columns beside it: a grid track would squeeze them to whatever
-            width was left over, and its rows can't line a box up with the
-            control it describes. Absolute keeps each box at its own width and
-            lets the pair overhang the card, which is overflow-visible. */}
-        <div ref={containerRef} className="flex flex-col items-center">
+        <div ref={containerRef} className="flex w-full flex-col items-center">
           <div
             className="relative"
             style={{
@@ -339,7 +397,7 @@ export function ModesIntro() {
               >
                 <header className="flex items-center justify-between gap-2 text-[color:var(--cf-ext-foreground)]">
                   <span className="flex h-8 w-8 items-center justify-center">
-                    <IconGlyph icon={House} />
+                    <IconGlyph icon={House} size={17} />
                   </span>
 
                   {/* Tabs: the list container paints the track, and the
@@ -360,7 +418,7 @@ export function ModesIntro() {
                               : "text-[color:var(--cf-ext-muted)]"
                           }`}
                         >
-                          <Glyph className="h-4 w-4" strokeWidth={1.8} />
+                          <Glyph size={17} strokeWidth={1.8} />
                         </span>
                       );
                     })}
@@ -388,20 +446,24 @@ export function ModesIntro() {
                     </span>
                   </div>
 
-                  <DeviceRow
-                    icon={Camera}
-                    label={copy.camera}
-                    on={false}
-                    onLabel={copy.off}
-                  />
-                  <DeviceRow
-                    ref={setAnchorRef("mic")}
-                    icon={Mic}
-                    label={copy.microphone}
-                    on
-                    onLabel={copy.on}
-                    meter
-                  />
+                  {/* The device rows sit closer to each other than to the
+                          source above them, as they do in the popup. */}
+                  <section className="flex flex-col gap-1.5">
+                    <DeviceRow
+                      icon={Camera}
+                      label={copy.camera}
+                      on={false}
+                      onLabel={copy.off}
+                    />
+                    <DeviceRow
+                      ref={setAnchorRef("mic")}
+                      icon={Mic}
+                      label={copy.microphone}
+                      on
+                      onLabel={copy.on}
+                      meter
+                    />
+                  </section>
 
                   <span
                     ref={setAnchorRef("start")}
@@ -415,65 +477,78 @@ export function ModesIntro() {
                 </div>
 
                 <footer className="grid grid-cols-3 items-start gap-1">
-                  <ToolButton icon={Sparkles} label={copy.effects} />
-                  <ToolButton icon={Droplets} label={copy.blur} />
+                  <ToolButton icon={Palette} label={copy.effects} />
+                  <ToolButton icon={Droplet} label={copy.blur} />
                   <ToolButton icon={MoreHorizontal} label={copy.more} />
                 </footer>
               </div>
             </div>
 
-            {pinned &&
-              CALLOUTS.map((callout) => {
-                const target = anchors[callout.anchor];
-                if (!target) return null;
-                // Anchors are panel coordinates; everything here lives in the
-                // scaled box, so they scale with it.
-                const x = target.x * fit;
-                const y = target.y * fit;
-                const isLeft = callout.side === "left";
-                const panelW = panelSize.w * fit;
-                return (
-                  <div key={callout.key}>
-                    {/* The leader crosses into the panel and stops on the
-                        control itself, so the dot marks the exact thing the
-                        box is talking about rather than the panel's edge. */}
-                    <span
-                      aria-hidden
-                      className="bg-line-strong absolute block h-px"
-                      style={{
-                        top: y,
-                        left: isLeft ? -LEADER_GAP : x,
-                        width: isLeft
-                          ? x + LEADER_GAP
-                          : panelW + LEADER_GAP - x,
-                      }}
+            {pinned && (
+              <>
+                {/* One overlay for every leader: a box can no longer sit level
+                    with its control once the column is packed, so each leader
+                    is an angled run that straightens out as it reaches the
+                    panel and lands on the control itself. */}
+                <svg
+                  aria-hidden
+                  className="pointer-events-none absolute top-0 overflow-visible"
+                  style={{
+                    left: -OVERHANG,
+                    width: panelSize.w * fit + OVERHANG * 2,
+                    height: panelSize.h * fit,
+                  }}
+                >
+                  {CALLOUTS.map((callout) => {
+                    const leader = leaderFor(callout);
+                    if (!leader) return null;
+                    return (
+                      <g key={callout.key}>
+                        {/* An alpha wash would vanish over the panel's own
+                            surface, so the run is a solid grey held back by
+                            opacity instead. */}
+                        <polyline
+                          points={leader.points}
+                          fill="none"
+                          stroke="var(--cf-fg-subtle)"
+                          strokeOpacity={0.55}
+                          strokeWidth={1}
+                        />
+                        <circle
+                          cx={leader.endX}
+                          cy={leader.endY}
+                          r={3}
+                          fill="var(--cf-accent-bg)"
+                        />
+                      </g>
+                    );
+                  })}
+                </svg>
+
+                {CALLOUTS.map((callout) => (
+                  <div
+                    key={callout.key}
+                    ref={setCalloutRef(callout.key)}
+                    className="absolute"
+                    style={{
+                      width: CALLOUT_WIDTH,
+                      top: slotTop(callout),
+                      ...(callout.side === "left"
+                        ? { right: `calc(100% + ${LEADER_GAP}px)` }
+                        : { left: `calc(100% + ${LEADER_GAP}px)` }),
+                    }}
+                  >
+                    <Callout
+                      pinned
+                      side={callout.side}
+                      icon={callout.icon}
+                      title={m.modes.points[callout.key].title}
+                      body={m.modes.points[callout.key].body}
                     />
-                    <span
-                      aria-hidden
-                      className="bg-accent absolute block size-1.5 rounded-full"
-                      style={{ top: y - 3, left: x - 3 }}
-                    />
-                    <div
-                      className="absolute -translate-y-1/2"
-                      style={{
-                        width: CALLOUT_WIDTH,
-                        top: y,
-                        ...(isLeft
-                          ? { right: `calc(100% + ${LEADER_GAP}px)` }
-                          : { left: `calc(100% + ${LEADER_GAP}px)` }),
-                      }}
-                    >
-                      <Callout
-                        pinned
-                        side={callout.side}
-                        icon={callout.icon}
-                        title={m.modes.points[callout.key].title}
-                        body={m.modes.points[callout.key].body}
-                      />
-                    </div>
                   </div>
-                );
-              })}
+                ))}
+              </>
+            )}
           </div>
 
           {!pinned && (
@@ -491,7 +566,7 @@ export function ModesIntro() {
             </div>
           )}
         </div>
-      </Card>
+      </div>
     </MarketingSection>
   );
 }
