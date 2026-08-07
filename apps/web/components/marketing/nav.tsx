@@ -180,7 +180,11 @@ export function Nav({ stars = null }: { stars?: string | null }) {
       </div>
 
       <Drawer isOpen={menuOpen} onOpenChange={setMenuOpen}>
-        <Drawer.Backdrop>
+        {/* HeroUI's overlays sit at z-50 and this bar sits above them at 100,
+            so the logo and the trigger painted straight over the open panel.
+            Raising the backdrop lifts the panel with it — it is the stacking
+            context the panel is painted in. */}
+        <Drawer.Backdrop style={{ zIndex: 120 }}>
           {/* The width belongs on the dialog, not on Content: Content is the
               inset-0 flex wrapper that positions the panel, so sizing it there
               pinned a 280px box to the left edge and the panel slid in against
