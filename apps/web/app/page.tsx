@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { loadSession } from "@/lib/session-guard";
 import { getStarCount, formatStars } from "@/lib/github";
 import { Nav } from "@/components/marketing/nav";
+import { CornerBanner } from "@/components/marketing/corner-banner";
 import { HeroSection } from "@/components/marketing/hero-section";
 import { ModesIntro } from "@/components/marketing/modes-intro";
 import { CollaborationSection } from "@/components/marketing/collaboration-section";
@@ -61,6 +62,7 @@ export default async function RootPage() {
         <JsonLd
           data={[WEBSITE_SCHEMA, ORGANIZATION_SCHEMA, APP_SCHEMA, FAQ_SCHEMA]}
         />
+        <CornerBanner />
         <Nav stars={stars} />
         <main>
           <HeroSection />

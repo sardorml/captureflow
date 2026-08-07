@@ -16,6 +16,10 @@ export const MESSAGES = {
     download: "Download",
     languageAria: "Change language",
   },
+  banner: {
+    label: "Beta",
+    aria: "CaptureFlow is in public beta",
+  },
   languagePicker: {
     title: "Select your language",
     close: "Close",
