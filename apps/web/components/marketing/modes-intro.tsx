@@ -48,7 +48,7 @@ const CALLOUTS = [
 // Callout box + the leader's span. The pair has to clear the panel on both
 // sides inside the section's measure, which is why the pinned layout only
 // switches on at xl.
-const CALLOUT_WIDTH = 256;
+const CALLOUT_WIDTH = 304;
 const LEADER_GAP = 88;
 const CALLOUT_GAP = 20;
 const LEADER_BEND = 20;
