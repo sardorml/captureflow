@@ -191,7 +191,7 @@ function Callout({
       /* The lift on hover stays at 2px: the leaders are painted in their own
          overlay and don't travel with the box, so anything further would pull
          one off its line. */
-      className={`border-line-strong bg-tint-strong hover:border-fg-subtle/60 relative rounded-2xl border p-4 transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(0,0,0,0.5)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
+      className={`border-line-strong bg-tint-strong hover:border-fg-subtle/60 relative rounded-2xl border p-4 transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(0,0,0,0.12)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
         pinned ? "" : "w-full"
       }`}
     >
@@ -350,11 +350,15 @@ export function ModesIntro() {
   };
 
   return (
-    /* Full-bleed band. MarketingSection is capped to the shared 1024px rail, so
-       the background has to sit on a wrapper outside it. It darkens rather than
-       lifts — the panel is the darkest thing on the page, so a lighter band
-       left it reading as a hole rather than a panel. */
-    <div className="w-full" style={{ background: "#0e0e0e" }}>
+    /* Full-bleed band, and the one light stretch of an otherwise dark-only
+       page: `data-theme` re-declares the whole token ramp for this subtree, so
+       the heading, copy and callouts flip with it. The panel mockup keeps its
+       own `--cf-ext-*` palette and stays dark, which is the point — it's a
+       portrait of the extension, not part of the page.
+
+       MarketingSection is capped to the shared 1024px rail, so the background
+       has to sit on a wrapper outside it. */
+    <div data-theme="light" className="bg-canvas text-fg w-full">
       <MarketingSection id="modes" style={{ scrollMarginTop: 24 }}>
         <SectionHeading
           eyebrow={m.modes.eyebrow}
@@ -392,7 +396,7 @@ export function ModesIntro() {
 
                 <div
                   ref={panelRef}
-                  className="relative flex flex-col gap-2.5 rounded-2xl bg-[color:var(--cf-ext-background)] p-3 shadow-[0_24px_64px_rgba(0,0,0,0.5)]"
+                  className="relative flex flex-col gap-2.5 rounded-2xl bg-[color:var(--cf-ext-background)] p-3 shadow-[0_24px_64px_rgba(0,0,0,0.18)]"
                   style={{ ...EXT_PALETTE, width: PANEL_WIDTH }}
                 >
                   <header className="flex items-center justify-between gap-2 text-[color:var(--cf-ext-foreground)]">
