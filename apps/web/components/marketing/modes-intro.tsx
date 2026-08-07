@@ -352,9 +352,9 @@ export function ModesIntro() {
   return (
     /* Full-bleed band. MarketingSection is capped to the shared 1024px rail, so
        the background has to sit on a wrapper outside it. It darkens rather than
-       lifts — the panel is the darkest thing on the page, and a lighter band
-       left it looking like a hole. */
-    <div className="w-full" style={{ background: "rgb(0 0 0 / 0.5)" }}>
+       lifts — the panel is the darkest thing on the page, so a lighter band
+       left it reading as a hole rather than a panel. */
+    <div className="w-full" style={{ background: "#0e0e0e" }}>
       <MarketingSection id="modes" style={{ scrollMarginTop: 24 }}>
         <SectionHeading
           eyebrow={m.modes.eyebrow}
