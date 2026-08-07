@@ -31,13 +31,28 @@ const BLUR_ICON = (
 
 const MORE_ICON = (
   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <circle cx="5.5" cy="12" r="1.6" fill="currentColor" />
-    <circle cx="12" cy="12" r="1.6" fill="currentColor" />
-    <circle cx="18.5" cy="12" r="1.6" fill="currentColor" />
+    <circle cx="5" cy="12" r="1.9" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.9" fill="currentColor" />
+    <circle cx="19" cy="12" r="1.9" fill="currentColor" />
   </svg>
 );
 
-const TOOL_CLASS = "h-auto w-full flex-col gap-1 px-2 py-1.5 text-[11px]";
+const TOOL_CLASS = "h-auto w-full px-2 py-1.5 text-[11px]";
+
+/*
+ * Two of the three tools are a <Button> and the third is a Dropdown.Trigger,
+ * which composes its own button styles — the stack, the gap and the label's
+ * line box have to come from markup both share, or the label under one sits a
+ * few pixels off the other two.
+ */
+function ToolFace({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <span className="flex w-full flex-col items-center gap-1">
+      {icon}
+      <span className="leading-4">{label}</span>
+    </span>
+  );
+}
 
 function ComingSoon({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
@@ -47,8 +62,7 @@ function ComingSoon({ icon, label }: { icon: React.ReactNode; label: string }) {
       <Tooltip.Trigger>
         <span className="inline-flex w-full">
           <Button variant="ghost" isDisabled className={TOOL_CLASS}>
-            {icon}
-            {label}
+            <ToolFace icon={icon} label={label} />
           </Button>
         </span>
       </Tooltip.Trigger>
@@ -80,8 +94,7 @@ export function FooterActions() {
             className: TOOL_CLASS,
           })}
         >
-          {MORE_ICON}
-          More
+          <ToolFace icon={MORE_ICON} label="More" />
         </Dropdown.Trigger>
         <Dropdown.Popover placement="top end">
           <Menu>
