@@ -10,9 +10,9 @@
  * the steps between them survive.
  */
 body {
-  --background: #131317;
-  --surface: #222228;
-  --overlay: #26262d;
+  --background: #1e1e24;
+  --surface: #2c2c35;
+  --overlay: #31313b;
 
   margin: 0;
   width: 300px;

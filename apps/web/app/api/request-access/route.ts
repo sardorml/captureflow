@@ -9,8 +9,6 @@ import { viewUrlFor, screenshotViewUrlFor } from "@/lib/site";
 const ALLOWED_ORIGINS = new Set([
   "https://captureflow.dev",
   "https://dev.captureflow.dev",
-  // Staging on the retired domain, until it is torn down.
-  "https://dev.captureflow.xyz",
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3002",

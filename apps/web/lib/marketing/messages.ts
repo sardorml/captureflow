@@ -83,10 +83,8 @@ export const MESSAGES = {
   },
   modes: {
     eyebrow: "Capture modes",
-    headingLine1: "Record or screenshot",
-    headingLine2: "— one panel.",
-    subtitleLine1: "Share a screen recording when it needs to go out now,",
-    subtitleLine2: "Screenshot when a picture says it. One panel, two outputs.",
+    heading: "The recorder",
+    subtitle: "Pick a source, add camera and mic, and hit record.",
     tabs: {
       share: { label: "Share", caption: "Instant share link" },
       screenshot: { label: "Screenshot", caption: "Annotated screenshots" },
@@ -94,15 +92,19 @@ export const MESSAGES = {
     points: {
       source: {
         title: "Tab, window, or full screen",
-        body: "Pick the source in the panel and record without ever leaving the page you're on.",
+        body: "Pick the source in the panel and record without leaving the page.",
       },
       devices: {
         title: "Camera and mic in the same panel",
-        body: "Flip your webcam and microphone on right before you record — there's no separate setup screen.",
+        body: "Turn your webcam and microphone on right before you record.",
       },
       link: {
         title: "The link is ready when you stop",
-        body: "Your screen uploads while you record, so the share link hits your clipboard the moment you hit stop.",
+        body: "It uploads while you record, so the link is on your clipboard when you stop.",
+      },
+      screenshot: {
+        title: "Screenshots from the same panel",
+        body: "Switch to the photo tab to grab the page and share it as a link.",
       },
     },
     panel: {

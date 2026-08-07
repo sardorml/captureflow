@@ -18,9 +18,7 @@ async function sendEmail(args: SendArgs): Promise<boolean> {
   const env = await getAppWebEnv();
   const apiKey = env?.RESEND_API_KEY;
   const from =
-    // Still the old domain: the sender only moves once captureflow.dev is
-    // verified with the mail provider, or invites silently stop arriving.
-    env?.RESEND_FROM_ADDRESS ?? "CaptureFlow <hello@captureflow.xyz>";
+    env?.RESEND_FROM_ADDRESS ?? "CaptureFlow <hello@captureflow.dev>";
   if (!apiKey) {
     console.warn("email: RESEND_API_KEY not configured; skipping send", {
       to: args.to,

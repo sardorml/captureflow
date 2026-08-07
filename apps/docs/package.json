@@ -8,7 +8,7 @@
     "dev": "vitepress dev --port 3033 --strictPort",
     "build": "vitepress build",
     "preview": "vitepress preview --port 4173",
-    "cf:deploy": "vitepress build && wrangler pages deploy .vitepress/dist --project-name captureflow-docs"
+    "cf:deploy": "vitepress build && wrangler deploy"
   },
   "devDependencies": {
     "vitepress": "^1.6.3",

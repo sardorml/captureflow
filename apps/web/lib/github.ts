@@ -14,20 +14,61 @@ export async function getStarCount(): Promise<number | null> {
   return null;
 }
 
+/*
+ * `next: { revalidate }` is a no-op here — the Cloudflare adapter has no
+ * incremental cache configured — so every render used to call GitHub. Its
+ * unauthenticated limit is 60/hour per IP and a Worker shares egress IPs with
+ * the whole colo, so the call 403s most of the time and the count vanished from
+ * the nav. The Cache API holds the answer instead: one call per colo per hour.
+ */
+const STAR_CACHE_KEY = "https://captureflow.dev/__cache/github-stars";
+const STAR_CACHE_SECONDS = 3600;
+
+type EdgeCache = {
+  match(key: string): Promise<Response | undefined>;
+  put(key: string, response: Response): Promise<void>;
+};
+
+// Absent under `next dev` (Node), present in the Worker.
+function edgeCache(): EdgeCache | null {
+  const store = (globalThis as { caches?: { default?: EdgeCache } }).caches;
+  return store?.default ?? null;
+}
+
 async function fetchLiveStars(): Promise<number | null> {
+  const cache = edgeCache();
+  try {
+    const hit = await cache?.match(STAR_CACHE_KEY);
+    if (hit) {
+      const cached = Number(await hit.text());
+      if (Number.isFinite(cached)) return cached;
+    }
+  } catch {
+    /* cache miss behaves like no cache */
+  }
+
   try {
     const res = await fetch(`https://api.github.com/repos/${REPO_PATH}`, {
       headers: {
         Accept: "application/vnd.github+json",
         "User-Agent": "captureflow-web",
       },
-      next: { revalidate: 3600 },
+      next: { revalidate: STAR_CACHE_SECONDS },
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { stargazers_count?: number };
-    return typeof data.stargazers_count === "number"
-      ? data.stargazers_count
-      : null;
+    const count = data.stargazers_count;
+    if (typeof count !== "number") return null;
+
+    await cache
+      ?.put(
+        STAR_CACHE_KEY,
+        new Response(String(count), {
+          headers: { "cache-control": `max-age=${STAR_CACHE_SECONDS}` },
+        }),
+      )
+      .catch(() => {});
+    return count;
   } catch {
     return null;
   }
