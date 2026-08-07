@@ -83,11 +83,12 @@ export const MESSAGES = {
   },
   modes: {
     eyebrow: "Capture modes",
-    headingLine1: "Record, stop, share",
-    headingLine2: "— from one panel.",
+    headingLine1: "The recorder",
+    headingLine2: "— in your browser.",
     subtitleLine1:
-      "The panel opens on the page you're already on — pick a source, record,",
-    subtitleLine2: "and the link is waiting when you stop. Screenshots, same panel.",
+      "It opens right on the page you're already on — pick a source,",
+    subtitleLine2:
+      "add camera and mic, record, or switch over for a screenshot.",
     tabs: {
       share: { label: "Share", caption: "Instant share link" },
       screenshot: { label: "Screenshot", caption: "Annotated screenshots" },
