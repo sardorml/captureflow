@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import {
   bumpLastViewed,
@@ -34,7 +35,9 @@ import { AuthPrompt } from "./AuthPrompt";
 import { RecordingActions } from "./RecordingActions";
 import { RecordingViewer } from "./RecordingViewer";
 import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
+import { SidebarDrawer } from "@/app/_components/SidebarDrawer";
 import { ViewerUserMenu } from "@/app/_components/ViewerUserMenu";
+import { Sidebar } from "@/app/(dashboard)/Sidebar";
 import { MARKETING_SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -278,6 +281,19 @@ export default async function RecordingPage({ params }: { params: Params }) {
       <ViewerNav
         homeUrl={APP_WEB_SITE_URL}
         productName={PRODUCT_NAME}
+        /* The workspace panel is the signed-in user's own; an anonymous viewer
+           has nothing to put in it, and Sidebar's requireSession would bounce
+           them to /auth/clear mid-render. Suspense keeps its workspace queries
+           off the critical path — the drawer is shut on arrival either way. */
+        leading={
+          visitor ? (
+            <SidebarDrawer>
+              <Suspense fallback={null}>
+                <Sidebar />
+              </Suspense>
+            </SidebarDrawer>
+          ) : null
+        }
         viewer={visitor ? { name: visitor.name, email: visitor.email } : null}
         /* Signed in, the theme lives in the account menu exactly as it does on
            the dashboard; anonymous viewers have no menu, so they keep the

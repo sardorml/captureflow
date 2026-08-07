@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { Button, ButtonGroup, Dropdown, buttonVariants } from "@heroui/react";
 import {
   Check,
   Link2,
@@ -10,9 +9,11 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { Button, ButtonGroup, Dropdown, buttonVariants } from "@heroui/react";
-import type { RecordingVisibility } from "@/lib/recording/types";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
 import { ShareVisibilityModal } from "@/app/_components/ShareVisibilityModal";
+import { useConfirm } from "@/app/_components/confirm-dialog";
+import type { RecordingVisibility } from "@/lib/recording/types";
 
 type Props = {
   slug: string;
@@ -44,6 +45,7 @@ export function RecordingActions({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [deleting, startDelete] = useTransition();
+  const { confirm, dialog } = useConfirm();
 
   useEffect(() => {
     if (!copied) return;
@@ -86,11 +88,15 @@ export function RecordingActions({
     });
   };
 
-  const onDelete = () => {
+  const onDelete = async () => {
     if (!isOwner) return;
-    const ok = confirm(
-      "Delete this recording permanently? The video and link will stop working immediately.",
-    );
+    const ok = await confirm({
+      title: "Delete this recording?",
+      description:
+        "The video and its link stop working immediately. This cannot be undone.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
     if (!ok) return;
     setError(null);
     startDelete(async () => {
@@ -110,6 +116,7 @@ export function RecordingActions({
 
   return (
     <>
+      {dialog}
       <div className="flex items-center gap-2">
         {isOwner && (
           <a

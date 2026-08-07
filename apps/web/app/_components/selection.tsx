@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useState, useTransition } from "react";
-import { Trash2 } from "lucide-react";
 import { Button, Spinner, Typography } from "@heroui/react";
+import { Trash2 } from "lucide-react";
+import { useCallback, useMemo, useState, useTransition } from "react";
+import { useConfirm } from "./confirm-dialog";
 
 export type Selection = {
   keys: string[];
@@ -59,20 +60,21 @@ type SelectionBarProps = {
 export function SelectionBar({ noun, selection, onDelete }: SelectionBarProps) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirm();
   const { count, keys, clear } = selection;
 
   if (count === 0) return null;
 
   const plural = count === 1 ? noun : `${noun}s`;
 
-  const remove = () => {
-    if (
-      !confirm(
-        `Delete ${count} ${plural} permanently? Their links stop working immediately.`,
-      )
-    ) {
-      return;
-    }
+  const remove = async () => {
+    const ok = await confirm({
+      title: `Delete ${count} ${plural}?`,
+      description: "Their links stop working immediately.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
     setError(null);
     startTransition(async () => {
       const results = await Promise.all(keys.map((key) => onDelete(key)));
@@ -88,6 +90,7 @@ export function SelectionBar({ noun, selection, onDelete }: SelectionBarProps) {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-4">
+      {dialog}
       <div className="pointer-events-auto flex max-w-full items-center gap-3 rounded-full border border-line-strong bg-panel px-3 py-2 shadow-lg">
         <Typography type="body-sm" className="ps-2 whitespace-nowrap">
           {count} {plural} selected

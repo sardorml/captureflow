@@ -24,6 +24,9 @@ import { RequestAccess } from "./RequestAccess";
 import { SessionLoadingShell } from "./SessionLoadingShell";
 import { ScreenshotView } from "./ScreenshotView";
 import { getWorkspaceForUpload } from "@/lib/screenshot/quota";
+import { SidebarDrawer } from "@/app/_components/SidebarDrawer";
+import { Sidebar } from "@/app/(dashboard)/Sidebar";
+import { Suspense } from "react";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -127,6 +130,19 @@ export default async function ScreenshotPage({ params }: Props) {
       createdAt={screenshot.createdAt}
       viewCount={displayViews}
       ownerName={screenshot.ownerName}
+      /* The workspace panel is the signed-in user's own; an anonymous viewer
+         has nothing to put in it, and Sidebar's requireSession would bounce
+         them to /auth/clear mid-render. Suspense keeps its workspace queries
+         off the critical path — the drawer is shut on arrival either way. */
+      leading={
+        visitor ? (
+          <SidebarDrawer>
+            <Suspense fallback={null}>
+              <Sidebar />
+            </Suspense>
+          </SidebarDrawer>
+        ) : null
+      }
       viewer={visitor ? { name: visitor.name, email: visitor.email } : null}
       viewerUserId={visitor?.userId ?? null}
       viewerImageUrl={visitor?.image ?? null}

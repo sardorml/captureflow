@@ -1,18 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import {
-  initials,
-  formatTimestamp,
-  formatRelativeShort as formatRelative,
-} from "@/lib/format";
-import { AtSign, MessageSquare, Smile, Sparkles, Trash2 } from "lucide-react";
-import dynamic from "next/dynamic";
-import type {
-  AddCommentResponse,
-  RecordingComment,
-  RecordingReaction,
-} from "@/lib/recording/types";
 import {
   Avatar,
   Button,
@@ -20,6 +7,19 @@ import {
   Popover,
   buttonVariants,
 } from "@heroui/react";
+import { AtSign, MessageSquare, Smile, Sparkles, Trash2 } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useEffect, useRef, useState, useTransition } from "react";
+import {
+  initials,
+  formatTimestamp,
+  formatRelativeShort as formatRelative,
+} from "@/lib/format";
+import type {
+  AddCommentResponse,
+  RecordingComment,
+  RecordingReaction,
+} from "@/lib/recording/types";
 
 const AVATAR_TONES = [
   "#2563eb",
@@ -39,7 +39,13 @@ function toneFromSeed(seed: string | null | undefined): string | undefined {
   return AVATAR_TONES[h % AVATAR_TONES.length];
 }
 
-const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
+/*
+ * Shared by the dynamic component and the idle prefetch below, so both resolve
+ * the same module and the prefetch actually warms what the popover renders.
+ */
+const loadEmojiPicker = () => import("emoji-picker-react");
+
+const EmojiPicker = dynamic(loadEmojiPicker, {
   ssr: false,
 });
 
@@ -181,6 +187,27 @@ export function ActivitySidebar({
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const [mentionOpen, setMentionOpen] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
+
+  /*
+   * The picker only renders inside the popover, so without this its chunk does
+   * not start downloading until the first click — which is the whole of that
+   * first-open stutter. Warming it on idle keeps the click off the network
+   * without competing with the page's own load.
+   */
+  useEffect(() => {
+    if (!viewerSignedIn) return;
+    const idle =
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(() => void loadEmojiPicker())
+        : window.setTimeout(() => void loadEmojiPicker(), 1500);
+    return () => {
+      if (typeof window.cancelIdleCallback === "function") {
+        window.cancelIdleCallback(idle);
+      } else {
+        window.clearTimeout(idle);
+      }
+    };
+  }, [viewerSignedIn]);
 
   useEffect(() => {
     if (!viewerSignedIn) return;

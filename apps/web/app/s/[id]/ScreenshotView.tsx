@@ -9,6 +9,7 @@ import { ScreenshotActions } from "./ScreenshotActions";
 import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
 import { ViewerUserMenu } from "@/app/_components/ViewerUserMenu";
 import { ZoomableScreenshotImage } from "./ZoomableScreenshotImage";
+import type { ReactNode } from "react";
 
 type Props = {
   id: string;
@@ -19,6 +20,8 @@ type Props = {
   createdAt: number;
   viewCount: number;
   ownerName: string | null;
+  /** Sits to the left of the nav brand, e.g. the workspace drawer trigger. */
+  leading?: ReactNode;
   viewer?: ViewerNavViewer | null;
   viewerUserId?: string | null;
   viewerImageUrl?: string | null;
@@ -42,6 +45,7 @@ export function ScreenshotView({
   createdAt,
   viewCount,
   ownerName,
+  leading,
   viewer,
   viewerUserId,
   viewerImageUrl,
@@ -62,6 +66,7 @@ export function ScreenshotView({
       <ViewerNav
         homeUrl={APP_SITE_URL}
         productName={PRODUCT_NAME}
+        leading={leading}
         viewCount={viewCount}
         viewer={viewer ?? null}
         /* Signed in, the theme lives in the account menu exactly as it does on
