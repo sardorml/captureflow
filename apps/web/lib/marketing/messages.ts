@@ -19,6 +19,10 @@ export const MESSAGES = {
   banner: {
     label: "Beta",
     aria: "CaptureFlow is in public beta",
+    title: "You're early 🎉",
+    body: "CaptureFlow is in public beta. Something new lands most weeks, and the things people ask for are the things that get built first.",
+    cta: "Tell me what to build next",
+    close: "Close",
   },
   languagePicker: {
     title: "Select your language",

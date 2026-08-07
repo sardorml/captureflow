@@ -193,13 +193,46 @@ html:has([data-marketing]) body {
   animation: carousel-progress linear;
 }
 
+/* Beta ribbon: the card unfolds out of the corner the ribbon occupies, and the
+   burst throws a handful of confetti chips along per-chip vectors the component
+   sets inline. Both keyframes declare only `from`/`to` offsets from the natural
+   state, so with the animation absent the card is simply there and the chips
+   are invisible. */
+@keyframes beta-card-in {
+  from {
+    opacity: 0;
+    transform: translate(-10px, -10px) scale(0.92);
+  }
+}
+.animate-beta-card {
+  transform-origin: top left;
+  animation: beta-card-in 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes beta-confetti {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--cf-burst-x), var(--cf-burst-y))
+      rotate(var(--cf-burst-turn));
+  }
+}
+.animate-beta-confetti {
+  opacity: 0;
+  animation: beta-confetti 0.9s cubic-bezier(0.16, 0.8, 0.3, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-rec-breathe,
   .animate-reveal,
   .animate-recording-icon-pop,
   .animate-page-fade,
   .animate-page-enter,
-  .animate-carousel-progress {
+  .animate-carousel-progress,
+  .animate-beta-card,
+  .animate-beta-confetti {
     animation: none !important;
   }
 }
