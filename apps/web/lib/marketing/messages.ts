@@ -95,15 +95,15 @@ export const MESSAGES = {
         body: "Pick the source in the panel and record without leaving the page.",
       },
       devices: {
-        title: "Camera and mic in the same panel",
+        title: "Camera and mic in one tap",
         body: "Turn your webcam and microphone on right before you record.",
       },
       link: {
-        title: "The link is ready when you stop",
+        title: "Ready the moment you stop",
         body: "It uploads while you record, so the link is on your clipboard when you stop.",
       },
       screenshot: {
-        title: "Screenshots from the same panel",
+        title: "Screenshots from here too",
         body: "Switch to the photo tab to grab the page and share it as a link.",
       },
     },

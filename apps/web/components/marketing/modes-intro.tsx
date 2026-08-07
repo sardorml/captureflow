@@ -48,7 +48,9 @@ const CALLOUTS = [
 // Callout box + the leader's span. The pair has to clear the panel on both
 // sides inside the section's measure, which is why the pinned layout only
 // switches on at xl.
-const CALLOUT_WIDTH = 280;
+// Wide enough that every callout title holds one line; the titles are written
+// to that budget, so shortening the box means shortening a title too.
+const CALLOUT_WIDTH = 304;
 const LEADER_GAP = 112;
 const CALLOUT_GAP = 20;
 const LEADER_BEND = 20;
@@ -86,13 +88,14 @@ const EXT_PALETTE = {
   "--cf-ext-start": "#e8563a",
 } as CSSProperties;
 
-// The panel is authored at the extension popup's real width and scaled as one
-// block, so the mockup keeps the proportions a user actually sees. Pinned, it
-// runs above life size to carry the cluster; stacked, it only ever scales down
-// to fit the viewport.
-const PANEL_WIDTH = 308;
+// The panel is authored at one width and scaled as a single block, so its
+// internals keep their proportions at any size. It is drawn a shade narrower
+// than the popup itself: at the popup's own width the panel crowded the two
+// callout columns. Pinned, it runs a little above that; stacked, it only ever
+// scales down to fit the viewport.
+const PANEL_WIDTH = 280;
 const MAX_SCALE = 1;
-const PINNED_SCALE = 1.18;
+const PINNED_SCALE = 1.08;
 
 const ROW =
   "flex items-center gap-2.5 rounded-xl bg-[color:var(--cf-ext-surface)] px-2.5 py-2";
@@ -389,7 +392,7 @@ export function ModesIntro() {
 
               <div
                 ref={panelRef}
-                className="relative flex flex-col gap-2.5 rounded-2xl bg-[color:var(--cf-ext-background)] p-3 shadow-[0_24px_64px_rgba(0,0,0,0.5)]"
+                className="relative flex flex-col gap-2.5 rounded-2xl bg-[color:var(--cf-ext-background)] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
                 style={{ ...EXT_PALETTE, width: PANEL_WIDTH }}
               >
                 <header className="flex items-center justify-between gap-2 text-[color:var(--cf-ext-foreground)]">
