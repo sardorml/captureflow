@@ -20,7 +20,14 @@
   // overrides the parked DNS record. This entry keeps it declarative so future
   // deploys preserve the binding; custom_domain:true lets Cloudflare manage the
   // apex DNS record for the worker.
-  "routes": [{ "pattern": "captureflow.dev", "custom_domain": true }],
+  // docs.captureflow.dev is a custom domain on this same worker, not a
+  // deployment of its own: `pnpm docs:embed` builds apps/docs into public/docs,
+  // so the VitePress output ships in this worker's assets and worker.ts serves
+  // it from the root of that hostname.
+  "routes": [
+    { "pattern": "captureflow.dev", "custom_domain": true },
+    { "pattern": "docs.captureflow.dev", "custom_domain": true },
+  ],
   // Cron Triggers → worker.ts scheduled(): hourly multipart GC + daily
   // retention sweep against D1 + R2.
   "triggers": {
@@ -48,6 +55,8 @@
     "NEXT_PUBLIC_MARKETING_SITE_URL": "https://captureflow.dev",
     "R2_PUBLIC_BASE_URL": "https://cdn.captureflow.dev",
     "BETTER_AUTH_URL": "https://captureflow.dev",
+    // Read by worker.ts: the hostname the embedded docs answer on.
+    "DOCS_HOST": "docs.captureflow.dev",
     // Floor for the nav's star badge, used only when the GitHub call fails
     // (its rate limit is per-IP and Workers share egress IPs). Without it the
     // badge disappears instead of holding its last known figure.
