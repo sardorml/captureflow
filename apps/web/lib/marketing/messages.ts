@@ -178,15 +178,15 @@ export const MESSAGES = {
           "Change the background, trim what you don't need, and place the camera where you want it.",
         features: {
           editor: {
-            title: "Edit recording",
-            body: "Pick a background, trim what you don't need, move the camera bubble into a corner, and mute the mic or system sound. All of it in the browser, so you never record it twice.",
+            title: "Edit it in the browser",
+            body: "Pick a background, trim what you don't need, move the camera bubble into a corner, and mute the mic or system sound. You never have to record it twice.",
           },
           viewer: {
-            title: "Share, react and comment",
+            title: "Reactions and comments",
             body: "Viewers leave reactions and threaded comments on the recording itself, so feedback arrives in context.",
           },
           dashboard: {
-            title: "Your recordings, your dashboard",
+            title: "Everything in one dashboard",
             body: "Every link you have shared sits in one place, with view counts, search, and a switch to revoke access.",
           },
         },
@@ -197,15 +197,15 @@ export const MESSAGES = {
           "Grab a region, a window, or the whole display, mark it up, and share it.",
         features: {
           capture: {
-            title: "Region, window, or full screen",
+            title: "Region, window, or whole screen",
             body: "One shortcut covers all three. Drag out a region, click a single window, or take the whole display.",
           },
           markup: {
-            title: "Annotate before you share",
+            title: "Mark it up first",
             body: "Add arrows, text, and blur over anything you capture, and every mark stays on the screenshot you send.",
           },
           share: {
-            title: "One link, ready to share",
+            title: "The link is already copied",
             body: "The link lands on your clipboard as soon as the screenshot is saved, in the same dashboard as your recordings.",
           },
         },
@@ -216,15 +216,15 @@ export const MESSAGES = {
           "Share a recording with your whole workspace, or lock it down to just you.",
         features: {
           workspace: {
-            title: "Share with your team",
-            body: "Links stay inside your workspace, so only your teammates can open them.",
+            title: "Only your teammates",
+            body: "The link stays inside your workspace, so nobody outside it can open the recording.",
           },
           public: {
-            title: "Public when you want",
+            title: "Anyone with the link",
             body: "Flip a recording to public and anyone with the link can watch, which suits changelogs and demos.",
           },
           private: {
-            title: "Keep it to yourself",
+            title: "Only you",
             body: "Lock a recording to just you while you draft it, then open it up the moment it is ready.",
           },
         },
