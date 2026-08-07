@@ -353,16 +353,8 @@ export function ModesIntro() {
     <MarketingSection id="modes" style={{ scrollMarginTop: 24 }}>
       <SectionHeading
         eyebrow={m.modes.eyebrow}
-        title={m.modes.headingLine1}
-        titleMuted={m.modes.headingLine2}
-        subtitle={
-          <>
-            {m.modes.subtitleLine1}{" "}
-            {/* Forced break desktop-only; on phones it would orphan words. */}
-            <br className="hidden sm:inline" />
-            {m.modes.subtitleLine2}
-          </>
-        }
+        title={m.modes.heading}
+        subtitle={m.modes.subtitle}
       />
 
       {/* The callouts are pinned to the panel box rather than laid out in

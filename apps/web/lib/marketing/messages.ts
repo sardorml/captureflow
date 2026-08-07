@@ -83,11 +83,8 @@ export const MESSAGES = {
   },
   modes: {
     eyebrow: "Capture modes",
-    headingLine1: "The recorder",
-    headingLine2: "— one panel.",
-    subtitleLine1:
-      "Pick a source, add camera and mic, and hit record — screenshots",
-    subtitleLine2: "come from the same panel, without leaving what you're on.",
+    heading: "The recorder",
+    subtitle: "Pick a source, add camera and mic, and hit record.",
     tabs: {
       share: { label: "Share", caption: "Instant share link" },
       screenshot: { label: "Screenshot", caption: "Annotated screenshots" },
