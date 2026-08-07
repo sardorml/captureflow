@@ -10,6 +10,11 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
+    // The asset server answers before the worker, which would hand out the
+    // docs' storage prefix as a second, half-working address for every page.
+    // These two patterns reach worker.ts first so it can redirect them to
+    // DOCS_HOST; the ASSETS binding still reads them directly.
+    "run_worker_first": ["/docs", "/docs/*"],
   },
   "observability": {
     "enabled": true,

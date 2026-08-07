@@ -30,21 +30,26 @@ async function serveDocs(request: Request, env: Env): Promise<Response | null> {
   if (!host) return null;
 
   const url = new URL(request.url);
-  if (url.hostname.toLowerCase() === host) {
-    const target = new URL(url);
-    target.pathname = `/docs${url.pathname}`;
-    return stripDocsPrefix(
-      await env.ASSETS.fetch(new Request(target, request)),
-    );
-  }
 
+  /*
+   * Assets are reachable on every hostname bound to this worker, so the storage
+   * prefix is a second, half-working address for every page — the markup asks
+   * for /assets/*, which only resolves under the rewrite below. Send it to the
+   * docs host's own root instead, whichever hostname it arrives on.
+   * `run_worker_first` in wrangler.jsonc is what lets this run at all: without
+   * it the asset server would answer these paths before the worker sees them.
+   */
   if (url.pathname === "/docs" || url.pathname.startsWith("/docs/")) {
     const target = new URL(strip(url.pathname), `https://${host}`);
     target.search = url.search;
     return Response.redirect(target.toString(), 308);
   }
 
-  return null;
+  if (url.hostname.toLowerCase() !== host) return null;
+
+  const target = new URL(url);
+  target.pathname = `/docs${url.pathname}`;
+  return stripDocsPrefix(await env.ASSETS.fetch(new Request(target, request)));
 }
 
 const strip = (pathname: string) => pathname.slice("/docs".length) || "/";
