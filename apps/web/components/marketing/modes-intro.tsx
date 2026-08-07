@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Paragraph, Text } from "./typography";
-import { Col, Row } from "./layout";
 import { Card } from "./ui";
 import { TOKENS } from "./tokens";
 import {
@@ -28,10 +27,19 @@ const MODES = [
   { key: "screenshot", icon: Camera },
 ] as const;
 
-const POINTS = [
+/*
+ * Callouts flank the panel and point at the part of it they describe, so each
+ * column's order is the panel's own top-to-bottom order on that side: source
+ * row then start button on the left, mode tabs then device rows on the right.
+ */
+const LEFT_POINTS = [
   { key: "source", icon: Monitor },
-  { key: "devices", icon: Mic },
   { key: "link", icon: Link2 },
+] as const;
+
+const RIGHT_POINTS = [
+  { key: "screenshot", icon: Camera },
+  { key: "devices", icon: Mic },
 ] as const;
 
 /*
@@ -137,6 +145,60 @@ function ToolButton({
   );
 }
 
+function Callout({
+  icon,
+  title,
+  body,
+  side,
+}: {
+  icon: typeof Camera;
+  title: string;
+  body: string;
+  side: "left" | "right";
+}) {
+  const isLeft = side === "left";
+  return (
+    <div
+      className={`border-line bg-canvas/70 relative w-full max-w-80 rounded-2xl border p-4 backdrop-blur-sm lg:max-w-64 ${
+        isLeft ? "lg:text-right" : ""
+      }`}
+    >
+      {/* The leader line spans the grid gap to the panel; it and the dot only
+          exist on the wide layout, where the columns actually flank it. */}
+      <span
+        aria-hidden
+        className={`bg-line absolute top-1/2 hidden h-px w-10 lg:block ${
+          isLeft ? "left-full" : "right-full"
+        }`}
+      />
+      <span
+        aria-hidden
+        className={`bg-accent absolute top-1/2 hidden size-1.5 -translate-y-1/2 rounded-full lg:block ${
+          isLeft ? "left-[calc(100%+2.5rem)]" : "right-[calc(100%+2.5rem)]"
+        }`}
+      />
+      <div
+        className={`flex items-start gap-3 ${isLeft ? "lg:flex-row-reverse" : ""}`}
+      >
+        <span className="border-line text-fg-muted mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border">
+          <IconGlyph icon={icon} />
+        </span>
+        <div>
+          <Text strong style={{ fontSize: 16 }}>
+            {title}
+          </Text>
+          <Paragraph
+            type="secondary"
+            style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.5 }}
+          >
+            {body}
+          </Paragraph>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ModesIntro() {
   const m = useMessages();
   const token = TOKENS;
@@ -197,39 +259,23 @@ export function ModesIntro() {
           borderColor: token.colorBorderSecondary,
         }}
       >
-        <Row gutter={[64, 40]} align="middle">
-          <Col xs={{ span: 24, order: 2 }} lg={{ span: 11, order: 1 }}>
-            <div className="flex flex-col gap-6">
-              {POINTS.map((point) => {
-                const pointCopy = m.modes.points[point.key];
-                return (
-                  <div key={point.key} className="flex items-start gap-3.5">
-                    <span className="border-line text-fg-muted mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border">
-                      <IconGlyph icon={point.icon} />
-                    </span>
-                    <div>
-                      <Text strong style={{ fontSize: 17 }}>
-                        {pointCopy.title}
-                      </Text>
-                      <Paragraph
-                        type="secondary"
-                        style={{
-                          maxWidth: 420,
-                          margin: "4px 0 0",
-                          fontSize: 15,
-                          lineHeight: 1.55,
-                        }}
-                      >
-                        {pointCopy.body}
-                      </Paragraph>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Col>
+        {/* Three tracks so the panel sits dead centre with a callout column
+            either side; below lg it collapses to one column with the panel
+            first, and the leader lines turn themselves off. */}
+        <div className="grid items-center justify-items-center gap-10 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+          <div className="flex w-full flex-col items-center gap-10 lg:items-end">
+            {LEFT_POINTS.map((point) => (
+              <Callout
+                key={point.key}
+                side="left"
+                icon={point.icon}
+                title={m.modes.points[point.key].title}
+                body={m.modes.points[point.key].body}
+              />
+            ))}
+          </div>
 
-          <Col xs={{ span: 24, order: 1 }} lg={{ span: 13, order: 2 }}>
+          <div className="order-first w-full max-w-[420px] lg:order-none">
             <div ref={containerRef} className="flex justify-center">
               <div
                 className="relative"
@@ -335,8 +381,20 @@ export function ModesIntro() {
                 </div>
               </div>
             </div>
-          </Col>
-        </Row>
+          </div>
+
+          <div className="flex w-full flex-col items-center gap-10 lg:items-start">
+            {RIGHT_POINTS.map((point) => (
+              <Callout
+                key={point.key}
+                side="right"
+                icon={point.icon}
+                title={m.modes.points[point.key].title}
+                body={m.modes.points[point.key].body}
+              />
+            ))}
+          </div>
+        </div>
       </Card>
     </MarketingSection>
   );

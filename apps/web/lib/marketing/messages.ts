@@ -104,6 +104,10 @@ export const MESSAGES = {
         title: "The link is ready when you stop",
         body: "Your screen uploads while you record, so the share link hits your clipboard the moment you hit stop.",
       },
+      screenshot: {
+        title: "Screenshots from the same panel",
+        body: "Switch to the photo tab to grab the page and share it as a link.",
+      },
     },
     panel: {
       sourceAria: "Capture source",
