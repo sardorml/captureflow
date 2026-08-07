@@ -12,7 +12,7 @@
     &nbsp;·&nbsp;
     <a href="https://captureflow.dev/download">Download</a>
     &nbsp;·&nbsp;
-    <a href="https://captureflow-docs.pages.dev">Docs</a>
+    <a href="https://docs.captureflow.dev">Docs</a>
     &nbsp;·&nbsp;
     <a href="./DEPLOY.md">Self-hosting</a>
     &nbsp;·&nbsp;
