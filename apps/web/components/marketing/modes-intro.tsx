@@ -353,8 +353,17 @@ export function ModesIntro() {
     /* Full-bleed band. MarketingSection is capped to the shared 1024px rail, so
        the background has to sit on a wrapper outside it. Lighter than the page
        but still dark: it has to stay clear of the panel's own #1e1e24, or the
-       mockup reads as a hole in the band rather than a panel on it. */
-    <div className="w-full" style={{ background: "#262626" }}>
+       mockup reads as a hole in the band rather than a panel on it.
+
+       The first and last 120px ramp from the page's own #141414 into the band,
+       so the section arrives and leaves instead of starting on a hard line. */
+    <div
+      className="w-full"
+      style={{
+        background:
+          "linear-gradient(180deg, #141414 0, #262626 120px, #262626 calc(100% - 120px), #141414 100%)",
+      }}
+    >
       <MarketingSection id="modes" style={{ scrollMarginTop: 24 }}>
         <SectionHeading
           eyebrow={m.modes.eyebrow}
