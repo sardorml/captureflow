@@ -3,7 +3,7 @@ export const SITE_NAME = "CaptureFlow";
 export const SITE_TITLE =
   "Open-source screen recorder with shareable links — CaptureFlow";
 export const SITE_DESCRIPTION =
-  "Record, stop, and share with your team, clients, or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
+  "Record your screen and share it with your team, clients, or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
 export const SUPPORT_EMAIL = "contact@sardor.codes";
 export const APP_VERSION = "0.9.2-beta";
 export const DOWNLOAD_URL =

@@ -59,7 +59,7 @@ export const MESSAGES = {
     titleLead: "Open-source screen recorder",
     titleSuffix: "with shareable links",
     subtitleLine1:
-      "Record, stop, and share with your team, clients, or customers.",
+      "Record your screen and share it with your team, clients, or customers.",
     subtitleLine2: "Self-hostable on your Cloudflare account.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Add to Chrome",
@@ -175,66 +175,57 @@ export const MESSAGES = {
       share: {
         title: "Shareable recordings",
         subtitle:
-          "Record, trim, and recolor on the web, then send one link — no upload step and no re-record.",
+          "Trim your recording, change the background, and choose who can react.",
         features: {
           editor: {
             title: "Edit recording",
-            linkText: "Recolor and choose who can react",
-            body: "— polish your recording on the web, no re-record.",
+            body: "Change the background, trim the dead air, and choose who can react. It all happens in the browser, so you never record it twice.",
           },
           viewer: {
             title: "Share, react and comment",
-            linkText: "Drop reactions and threaded comments",
-            body: "— feedback lands right on the recording, no re-record.",
+            body: "Viewers leave reactions and threaded comments on the recording itself, so feedback arrives in context.",
           },
           dashboard: {
             title: "Your recordings, your dashboard",
-            linkText: "Track views, search your library, revoke access",
-            body: "— every link organized in one place.",
+            body: "Every link you have shared sits in one place, with view counts, search, and a switch to revoke access.",
           },
         },
       },
       screenshot: {
         title: "Capture screenshots",
         subtitle:
-          "Grab a region, a window, or the whole display, mark it up, and the link is already on your clipboard.",
+          "Capture a region, a window, or your whole display, annotate it, and share the link.",
         features: {
           capture: {
             title: "Region, window, or full screen",
-            linkText: "One shortcut, three ways to grab",
-            body: "— drag a region, click a window, or take the whole display.",
+            body: "One shortcut covers all three. Drag out a region, click a single window, or take the whole display.",
           },
           markup: {
             title: "Annotate before you share",
-            linkText: "Add arrows, text, or blur",
-            body: "over any capture — every annotation stays on the Screenshot.",
+            body: "Add arrows, text, and blur over anything you capture, and every mark stays on the screenshot you send.",
           },
           share: {
             title: "One link, ready to share",
-            linkText: "The link hits your clipboard",
-            body: "— Screenshots and recordings together in one dashboard.",
+            body: "The link lands on your clipboard as soon as the screenshot is saved, in the same dashboard as your recordings.",
           },
         },
       },
       workspaces: {
         title: "Team workspaces",
         subtitle:
-          "Private by default. Open a link up to your teammates or to anyone the moment it is ready.",
+          "Every link stays private until you open it up to your team or to anyone with the URL.",
         features: {
           workspace: {
             title: "Share with your team",
-            linkText: "Keep links inside your workspace",
-            body: "so only teammates can open them — private by default.",
+            body: "Links stay inside your workspace, so only your teammates can open them.",
           },
           public: {
             title: "Public when you want",
-            linkText: "Flip a recording public",
-            body: "and anyone with the link can watch — great for changelogs and demos.",
+            body: "Flip a recording to public and anyone with the link can watch, which suits changelogs and demos.",
           },
           private: {
             title: "Keep it to yourself",
-            linkText: "Lock a recording to just you",
-            body: "while you draft, then share it the moment it's ready.",
+            body: "Lock a recording to just you while you draft it, then open it up the moment it is ready.",
           },
         },
       },

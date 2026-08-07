@@ -34,12 +34,7 @@ type ShareKey = "editor" | "viewer" | "dashboard";
 type ScreenshotKey = "markup" | "capture" | "share";
 type VisibilityKey = "public" | "workspace" | "private";
 
-type Feature = {
-  key: string;
-  title: string;
-  linkText: string;
-  body: string;
-};
+type Feature = { key: string };
 
 type Category = {
   id: string; // anchor target — nav #share / #screenshot land here
@@ -65,76 +60,19 @@ const CATEGORIES: Category[] = [
     id: "share",
     kind: "share",
     title: "Shareable recordings",
-    features: [
-      {
-        key: "editor",
-        title: "Edit recording",
-        linkText: "Recolor and choose who can react",
-        body: "— polish your recording on the web, no re-record.",
-      },
-      {
-        key: "viewer",
-        title: "Share, react and comment",
-        linkText: "Drop reactions and threaded comments",
-        body: "— feedback lands right on the recording, no re-record.",
-      },
-      {
-        key: "dashboard",
-        title: "Your recordings, your dashboard",
-        linkText: "Track views, search your library, revoke access",
-        body: "— every link organized in one place.",
-      },
-    ],
+    features: [{ key: "editor" }, { key: "viewer" }, { key: "dashboard" }],
   },
   {
     id: "screenshot",
     kind: "screenshot",
     title: "Capture screenshots",
-    features: [
-      {
-        key: "capture",
-        title: "Region, window, or full screen",
-        linkText: "One shortcut, three ways to grab",
-        body: "— drag a region, click a window, or take the whole display.",
-      },
-      {
-        key: "markup",
-        title: "Annotate before you share",
-        linkText: "Add arrows, text, or blur",
-        body: "over any capture — every annotation stays on the Screenshot.",
-      },
-      {
-        key: "share",
-        title: "One link, ready to share",
-        linkText: "The link hits your clipboard",
-        body: "— Screenshots and recordings together in one dashboard.",
-      },
-    ],
+    features: [{ key: "capture" }, { key: "markup" }, { key: "share" }],
   },
   {
     id: "workspaces",
     kind: "workspaces",
     title: "Team workspaces",
-    features: [
-      {
-        key: "workspace",
-        title: "Share with your team",
-        linkText: "Keep links inside your workspace",
-        body: "so only teammates can open them — private by default.",
-      },
-      {
-        key: "public",
-        title: "Public when you want",
-        linkText: "Flip a recording public",
-        body: "and anyone with the link can watch — great for changelogs and demos.",
-      },
-      {
-        key: "private",
-        title: "Keep it to yourself",
-        linkText: "Lock a recording to just you",
-        body: "while you draft, then share it the moment it’s ready.",
-      },
-    ],
+    features: [{ key: "workspace" }, { key: "public" }, { key: "private" }],
   },
 ];
 
@@ -173,7 +111,7 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
   const catCopy = m.collaboration.categories[cat.kind];
   const featureCopy = catCopy.features as Record<
     string,
-    { title: string; linkText: string; body: string }
+    { title: string; body: string }
   >;
   const nav = m.collaboration.carousel;
   const count = cat.features.length;
@@ -230,7 +168,7 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
                     lineHeight: 1.6,
                   }}
                 >
-                  {copy.linkText} {copy.body}
+                  {copy.body}
                 </Paragraph>
               </motion.div>
             </AnimatePresence>
