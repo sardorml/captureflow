@@ -4,8 +4,6 @@ dist/
 out/
 .next/
 .open-next/
-# Built by `pnpm --filter @captureflow/web docs:embed` from apps/docs.
-apps/web/public/docs/
 .wrangler/
 .vite/
 *.tsbuildinfo

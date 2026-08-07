@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "vitepress dev --port 3033 --strictPort",
     "build": "vitepress build",
-    "preview": "vitepress preview --port 4173"
+    "preview": "vitepress preview --port 4173",
+    "cf:deploy": "vitepress build && wrangler deploy"
   },
   "devDependencies": {
     "vitepress": "^1.6.3",

@@ -47,7 +47,7 @@ apps/
   web/         Next.js 16 dashboard + recording/screenshot pages + API → Cloudflare Workers (OpenNext)
   extension/   Browser recorder (WXT, MV3) — popup/overlay panel, offscreen capture, in-page controls
   desktop/     Electron screen recorder (macOS)
-  docs/        VitePress documentation site, built into the web worker's assets
+  docs/        VitePress documentation site → its own Cloudflare Worker (assets-only)
 packages/
   engine/      Capture engine shared by desktop + extension: macOS sidecars, record protocol, mux pipeline (MIT)
   shared/      Types & constants shared across the apps

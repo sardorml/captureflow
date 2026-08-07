@@ -82,8 +82,33 @@ jobs:
       # changes manually.
       - name: Apply D1 migrations (production)
         run: pnpm --filter @captureflow/web db:apply:remote
-      # cf:deploy builds apps/docs into apps/web/public/docs first, so the
-      # VitePress site ships in this worker's assets — one publish covers both.
-      # Bindings (D1/R2), vars, and cron triggers come from wrangler.jsonc.
+      # OpenNext build → publish. Bindings (D1/R2), vars, and cron triggers come
+      # from apps/web/wrangler.jsonc.
       - name: Build & deploy worker
         run: pnpm --filter @captureflow/web cf:deploy
+
+  # The docs are an assets-only Worker of their own (apps/docs/wrangler.jsonc),
+  # so this deploys on the same gate as the app but in its own concurrency
+  # group — neither blocks or breaks the other. The Workers token covers it; no
+  # Pages permission is needed.
+  deploy-docs:
+    needs: [build, secret-scan]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: cloudflare-deploy-docs
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # vitepress build → wrangler deploy (assets-only worker).
+      - name: Build & deploy docs
+        run: pnpm --filter @captureflow/docs cf:deploy

@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "captureflow-docs",
+  "compatibility_date": "2025-06-01",
+  // Assets-only: there is no "main", so every request is answered by
+  // Cloudflare's asset server straight from the VitePress build. Deploying the
+  // docs never touches the app worker, and vice versa.
+  "assets": {
+    "directory": ".vitepress/dist",
+    // VitePress emits its own 404.html; without this an unknown path gets a
+    // bare 404 with no navigation back into the site.
+    "not_found_handling": "404-page",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  // custom_domain:true lets Cloudflare create and manage the DNS record for the
+  // hostname, so the docs subdomain needs no record added by hand.
+  "routes": [{ "pattern": "docs.captureflow.dev", "custom_domain": true }],
+}

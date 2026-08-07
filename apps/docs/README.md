@@ -27,7 +27,14 @@ the `sidebar` in `.vitepress/config.ts`.
 
 ## Deploy
 
-This site has no deployment of its own. `pnpm --filter @captureflow/web
-cf:deploy` builds it into `apps/web/public/docs` first, so it ships inside the
-worker's assets and `apps/web/worker.ts` serves it from the root of the
-hostname in that worker's `DOCS_HOST` var.
+```bash
+pnpm --filter @captureflow/docs cf:deploy
+```
+
+Builds the site and publishes it as an assets-only Cloudflare Worker
+(`captureflow-docs`, see `wrangler.jsonc`) — there is no `main`, so Cloudflare's
+asset server answers every request straight from `.vitepress/dist`. The hostname
+is a Workers custom domain, so Cloudflare creates and manages its DNS record.
+
+Independent of the app worker in both directions: a docs change never rebuilds
+or republishes the app, and a failing app build never blocks a docs update.
