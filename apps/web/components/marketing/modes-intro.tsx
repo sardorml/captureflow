@@ -48,8 +48,8 @@ const CALLOUTS = [
 // Callout box + the leader's span. The pair has to clear the panel on both
 // sides inside the section's measure, which is why the pinned layout only
 // switches on at xl.
-const CALLOUT_WIDTH = 304;
-const LEADER_GAP = 88;
+const CALLOUT_WIDTH = 280;
+const LEADER_GAP = 112;
 const CALLOUT_GAP = 20;
 const LEADER_BEND = 20;
 const OVERHANG = LEADER_GAP + CALLOUT_WIDTH;
@@ -87,9 +87,12 @@ const EXT_PALETTE = {
 } as CSSProperties;
 
 // The panel is authored at the extension popup's real width and scaled as one
-// block, so the mockup keeps the proportions a user actually sees.
+// block, so the mockup keeps the proportions a user actually sees. Pinned, it
+// runs above life size to carry the cluster; stacked, it only ever scales down
+// to fit the viewport.
 const PANEL_WIDTH = 308;
 const MAX_SCALE = 1;
+const PINNED_SCALE = 1.18;
 
 const ROW =
   "flex items-center gap-2.5 rounded-xl bg-[color:var(--cf-ext-surface)] px-2.5 py-2";
@@ -254,10 +257,9 @@ export function ModesIntro() {
       setPanelSize({ w, h });
       // Both guards matter: an unmeasurable container once scaled the panel to
       // 0 rather than leaving it at its natural size.
+      const ceiling = pinned ? PINNED_SCALE : MAX_SCALE;
       setFit(
-        w > 0 && available > 0
-          ? Math.min(MAX_SCALE, (available * 0.92) / w)
-          : 1,
+        w > 0 && available > 0 ? Math.min(ceiling, (available * 0.92) / w) : 1,
       );
 
       const next: Record<string, Point> = {};
@@ -282,7 +284,7 @@ export function ModesIntro() {
       ro.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, []);
+  }, [pinned]);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1280px)");
