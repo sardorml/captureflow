@@ -215,9 +215,14 @@ export function ModesIntro() {
       if (!panel || !container) return;
       const w = panel.offsetWidth;
       const h = panel.offsetHeight;
+      const available = container.clientWidth;
       setPanelSize({ w, h });
+      // Both guards matter: an unmeasurable container once scaled the panel to
+      // 0 rather than leaving it at its natural size.
       setFit(
-        w > 0 ? Math.min(MAX_SCALE, (container.clientWidth * 0.92) / w) : 1,
+        w > 0 && available > 0
+          ? Math.min(MAX_SCALE, (available * 0.92) / w)
+          : 1,
       );
     };
     measure();
@@ -262,7 +267,11 @@ export function ModesIntro() {
         {/* Three tracks so the panel sits dead centre with a callout column
             either side; below lg it collapses to one column with the panel
             first, and the leader lines turn themselves off. */}
-        <div className="grid items-center justify-items-center gap-10 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        {/* The middle track is a definite width on purpose: against an `auto`
+            track the panel's `w-full` is a percentage of content that is itself
+            being measured, so the container reported 0 and the panel scaled to
+            nothing. */}
+        <div className="grid items-center justify-items-center gap-10 lg:grid-cols-[minmax(0,1fr)_420px_minmax(0,1fr)]">
           <div className="flex w-full flex-col items-center gap-10 lg:items-end">
             {LEFT_POINTS.map((point) => (
               <Callout
