@@ -163,6 +163,15 @@ def bleed_card(master, size):
     return card.resize((size, size), Image.LANCZOS)
 
 
+def on_white(img):
+    """Flatten onto white. Needed wherever a disc is saved opaque: iOS composites
+    an apple-touch-icon's transparency onto black, and dropping the alpha would
+    otherwise expose the master's black corner pixels."""
+    card = Image.new("RGBA", img.size, (255, 255, 255, 255))
+    card.alpha_composite(img)
+    return card
+
+
 def save_ico(master, path, sizes=((16, 16), (32, 32), (48, 48))):
     src = square(master, 256)
     src.save(path, format="ICO", sizes=list(sizes))
@@ -177,7 +186,10 @@ def generate(master, icon_src):
     disc(master, 512).save(WEB / "logo-round.png")
     bleed_card(master, 512).convert("RGB").save(WEB / "icon-512-maskable.png")
     bleed_card(master, 192).convert("RGB").save(WEB / "icon-192-maskable.png")
-    bleed_card(master, 180).convert("RGB").save(WEB / "apple-touch-icon.png")
+    # The round logo, not a bleed_card: this file is what Google shows in search
+    # results, and the card's frame plus shadow left the glyph unreadable at the
+    # 16-20px it renders at.
+    on_white(disc(master, 180)).convert("RGB").save(WEB / "apple-touch-icon.png")
     save_ico(master, WEB / "favicon.ico")
     log("web/ logos, maskable, apple-touch, favicon")
 
