@@ -34,3 +34,21 @@ arg to override the defaults.
 
 After running, bump the README cache-buster (`logo.png?v=N`) and rebuild the
 desktop app (`pnpm build:mac`) if the app icon changed.
+
+## `gen-og-image.py` — rebuild the marketing OG card
+
+Redraws `apps/web/public/og-image.png` (3200x1680, the 1.91:1 ratio Open Graph
+and Twitter both want, at 2x) from scratch: app icon over a soft brand-blue
+glow, white wordmark, slate tagline.
+
+```bash
+python3 scripts/gen-og-image.py
+```
+
+**Requirements:** `pip install pillow`. Fonts: macOS SF Pro (falls back to Arial).
+
+Reach for this when the wording, type, or layout changes. For a logo-only
+refresh use `gen-brand-icons.py` — its `swap_og()` pastes the new icon over the
+old one in place, which needs the tile this script draws to already be there.
+Both are kept in sync by hand; if you move the icon here, re-run the brand
+script afterwards to confirm it still finds it.
