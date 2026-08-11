@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     images: [
-      { url: "/og-image.png", width: 1200, height: 630, alt: SITE_TITLE },
+      { url: "/og-image.png", width: 3200, height: 1680, alt: SITE_TITLE },
     ],
   },
   twitter: {
