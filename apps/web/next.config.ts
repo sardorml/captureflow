@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: { bodySizeLimit: "8mb" },
+    /*
+     * Turbopack's dev filesystem cache (`.next/dev/cache`, default on, grew to
+     * 5.2 GB here) is reloaded on boot, so restarting the dev server does not
+     * recompile. A chunk that went stale — a Tailwind class missing because the
+     * scanner ran before the file was written — then survived every restart and
+     * only came back when the source file changed again. Off, so starting the
+     * server means what it says.
+     */
+    turbopackFileSystemCacheForDev: false,
   },
   skipTrailingSlashRedirect: true,
   async rewrites() {
