@@ -73,7 +73,7 @@ export function RoadmapSection() {
         {ROADMAP_GROUPS.map((group, groupIndex) => {
           const groupTitle = m.roadmap.groups[groupIndex].title;
           return (
-            <Col key={group.title} xs={24} md={12} lg={6}>
+            <Col key={group.title} xs={24} md={8}>
               <Flex align="center" gap={8} style={{ marginBottom: 16 }}>
                 <Text
                   strong
