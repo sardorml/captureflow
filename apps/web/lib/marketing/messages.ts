@@ -426,14 +426,20 @@ export const MESSAGES = {
         subtitle: "Features I'm actively working on.",
         items: [
           {
-            label: "Chrome extension",
-            description:
-              "Record and share straight from the browser — no desktop install.",
-          },
-          {
             label: "macOS app",
             description:
               "A menu bar app with the same recorder and the same instant share link, for anything outside the browser.",
+          },
+        ],
+      },
+      {
+        title: "Shipped",
+        subtitle: "Out and in your hands.",
+        items: [
+          {
+            label: "Chrome extension",
+            description:
+              "Record and share straight from the browser — no desktop install.",
           },
         ],
       },
