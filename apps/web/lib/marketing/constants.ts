@@ -13,7 +13,8 @@ export const DOWNLOAD_URL =
  * Extension store listings. null until each is published — the hero renders a
  * disabled "Soon" button for a null entry, so shipping is a one-line change.
  */
-export const CHROME_WEBSTORE_URL: string | null = null;
+export const CHROME_WEBSTORE_URL: string | null =
+  "https://chromewebstore.google.com/detail/lgpgeoelaokbigdljofhkgbfnfcnmcol";
 export const FIREFOX_ADDON_URL: string | null = null;
 export const DOWNLOAD_DMG_SIZE_MB = 48;
 export const MIN_MACOS_VERSION = "macOS 14 (Sonoma)";
@@ -348,12 +349,6 @@ export const ROADMAP_GROUPS = [
     subtitle: "Features I'm actively working on.",
     items: [
       {
-        label: "Chrome extension",
-        description:
-          "Record and share straight from the browser — no desktop install.",
-        category: "Core",
-      },
-      {
         label: "macOS app",
         description:
           "A menu bar app with the same recorder and the same instant share link, for anything outside the browser.",
@@ -362,6 +357,21 @@ export const ROADMAP_GROUPS = [
     ],
     badgeClass: "text-neutral-500",
     markerIcon: "check_circle",
+    markerClass: "text-neutral-500",
+  },
+  {
+    title: "Shipped",
+    subtitle: "Out and in your hands.",
+    items: [
+      {
+        label: "Chrome extension",
+        description:
+          "Record and share straight from the browser — no desktop install.",
+        category: "Core",
+      },
+    ],
+    badgeClass: "text-neutral-500",
+    markerIcon: "check_circle_filled",
     markerClass: "text-neutral-500",
   },
 ] as const;
