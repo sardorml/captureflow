@@ -432,17 +432,6 @@ export const MESSAGES = {
           },
         ],
       },
-      {
-        title: "Shipped",
-        subtitle: "Out and in your hands.",
-        items: [
-          {
-            label: "Chrome extension",
-            description:
-              "Record and share straight from the browser — no desktop install.",
-          },
-        ],
-      },
     ],
   },
   cta: {

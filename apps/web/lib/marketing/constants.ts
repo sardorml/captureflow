@@ -359,21 +359,6 @@ export const ROADMAP_GROUPS = [
     markerIcon: "check_circle",
     markerClass: "text-neutral-500",
   },
-  {
-    title: "Shipped",
-    subtitle: "Out and in your hands.",
-    items: [
-      {
-        label: "Chrome extension",
-        description:
-          "Record and share straight from the browser — no desktop install.",
-        category: "Core",
-      },
-    ],
-    badgeClass: "text-neutral-500",
-    markerIcon: "check_circle_filled",
-    markerClass: "text-neutral-500",
-  },
 ] as const;
 
 export const FEATURE_HIGHLIGHTS = [
