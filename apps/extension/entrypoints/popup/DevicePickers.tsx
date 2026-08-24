@@ -18,6 +18,9 @@ import {
 import { MicMeter } from "./MicMeter";
 import { PANEL_ROW } from "./panel";
 
+// Clear of the overlay's .16s open plus the frame it reveals on.
+const PREVIEW_RESTORE_DELAY_MS = 220;
+
 const CAMERA_ICON = (
   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
     <rect
@@ -182,17 +185,25 @@ export function DevicePickers() {
    * The preview is torn down with the panel, so a camera left switched on gets
    * it back on the next open. Not while recording: that stream already holds
    * the camera, and a second getUserMedia on it reports back as blocked.
+   *
+   * Held back until the panel has finished opening. Mounting the bubble puts an
+   * out-of-process frame and a getUserMedia on the page's main thread, and the
+   * open reads as a stutter if that lands mid-animation. Nothing waits on the
+   * preview, so it can have the thread once the panel is up.
    */
   useEffect(() => {
-    void (async () => {
-      const [saved, status] = await Promise.all([
-        getCapturePrefs(),
-        getRecordingStatus(),
-      ]);
-      if (!saved.camera || LIVE_KINDS.has(status.kind)) return;
-      if (await getCameraBlocked()) return;
-      void sendMessage("setCameraBubble", { on: true, mic: saved.mic });
-    })();
+    const timer = setTimeout(() => {
+      void (async () => {
+        const [saved, status] = await Promise.all([
+          getCapturePrefs(),
+          getRecordingStatus(),
+        ]);
+        if (!saved.camera || LIVE_KINDS.has(status.kind)) return;
+        if (await getCameraBlocked()) return;
+        void sendMessage("setCameraBubble", { on: true, mic: saved.mic });
+      })();
+    }, PREVIEW_RESTORE_DELAY_MS);
+    return () => clearTimeout(timer);
   }, []);
 
   /*
