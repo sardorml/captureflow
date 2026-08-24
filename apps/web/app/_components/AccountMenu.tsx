@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import {
   HardDrive,
-  Inbox,
   LogOut,
   MessageSquare,
   Receipt,
@@ -66,12 +65,6 @@ export function accountNavItems({
       icon: <Settings size={16} />,
       label: "Settings",
       href: `${base}/settings`,
-    },
-    {
-      key: "feedback",
-      icon: <Inbox size={16} />,
-      label: "Feedback",
-      href: `${base}/suggest-feature`,
     },
     {
       key: "support",
