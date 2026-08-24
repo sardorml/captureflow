@@ -24,7 +24,7 @@
     <a href="https://github.com/sardorml/captureflow/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/sardorml/captureflow?color=2563EB" /></a>
   </p>
   <br />
-  <img src="apps/web/public/og-image.png?v=5" alt="CaptureFlow — screen recording with instant shareable links" width="100%" />
+  <img src=".github/assets/readme-hero.png" alt="The CaptureFlow recorder panel open over a page, with source, camera, and mic pickers above a Start Recording button" width="100%" />
 </div>
 
 <br />
