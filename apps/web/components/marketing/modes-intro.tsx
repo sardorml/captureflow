@@ -241,8 +241,8 @@ type Point = { x: number; y: number };
  * they are scoped here so the mockup reads the same under either page theme.
  */
 const EXT_PALETTE = {
-  "--cf-ext-background": "#1e1e24",
-  "--cf-ext-surface": "#2c2c35",
+  "--cf-ext-background": "#303030",
+  "--cf-ext-surface": "#404040",
   "--cf-ext-foreground": "oklch(0.9911 0 0)",
   "--cf-ext-muted": "oklch(70.5% 0.015 286.067)",
   "--cf-ext-border": "oklch(28% 0.006 286.033)",
