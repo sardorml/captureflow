@@ -74,6 +74,7 @@ export const MESSAGES = {
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Add to Chrome",
     installMac: "Download for free",
+    installSoon: "Soon",
     installOr: "or",
     installSignup: "Sign up free",
     installNote: "no credit card required",
