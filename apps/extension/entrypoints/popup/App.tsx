@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type Key } from "react";
 import { Button, Tabs, Tooltip } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
 import {
@@ -13,6 +13,7 @@ import { LIVE_KINDS } from "@/lib/capture/status";
 import { WEB_BASE } from "@/lib/config";
 import {
   getCameraBlocked,
+  getCapturePrefs,
   getRecordingResult,
   getRecordingStatus,
   watchRecordingResult,
@@ -126,6 +127,7 @@ export function App() {
   const [status, setStatus] = useState<RecordingStatus>({ kind: "idle" });
   const [result, setResult] = useState<RecordingResult | null>(null);
   const [reason, setReason] = useState<SignedOutReason | null>(null);
+  const mode = useRef<Key>("video");
 
   useEffect(() => {
     void getAuthSession().then(setAuth);
@@ -201,9 +203,36 @@ export function App() {
   const onStart = () => sendMessage("startRecording", undefined);
   const onStop = () => sendMessage("stopRecording", undefined);
 
+  /*
+   * The preview belongs to recording, and it sits in the page rather than in
+   * this panel — left up, it would be in shot of the screenshot about to be
+   * taken. Only the bubble is torn down: the camera pref is what remembers the
+   * switch was on, so coming back turns it straight on again.
+   */
+  const onModeChange = (key: Key) => {
+    // Also swallows the callback some versions fire for the default key, which
+    // would remount the bubble the panel's own restore is already staging.
+    if (key === mode.current) return;
+    mode.current = key;
+    void (async () => {
+      const prefs = await getCapturePrefs();
+      if (!prefs.camera) return;
+      const status = await getRecordingStatus();
+      if (LIVE_KINDS.has(status.kind)) return;
+      // A blocked camera has no bubble either way, and toggling it here would
+      // clear the flag the blocked notice reads.
+      if (await getCameraBlocked()) return;
+      void sendMessage("setCameraBubble", {
+        on: key === "video",
+        mic: prefs.mic,
+      });
+    })();
+  };
+
   return (
     <Tabs
       defaultSelectedKey="video"
+      onSelectionChange={onModeChange}
       aria-label="Capture mode"
       className="flex w-full min-w-0 flex-col gap-2.5 p-3"
     >
