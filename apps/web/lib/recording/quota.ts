@@ -2,7 +2,6 @@
 
 import {
   ACCOUNT_LIMITS,
-  activeArtifactCountForUser as activeArtifactCountForUserD1,
   ensurePersonalWorkspace,
   type EffectiveLimits,
   getEffectiveLimitsForUser as getEffectiveLimitsForUserD1,
@@ -11,10 +10,7 @@ import {
   isWorkspaceMember,
   totalStorageForUser as totalStorageForUserD1,
 } from "@captureflow/quota";
-import {
-  memoryActiveArtifactCountForUser,
-  memoryTotalStorageForUser,
-} from "./db-memory";
+import { memoryTotalStorageForUser } from "./db-memory";
 import { getCloudflareEnv } from "./cf-env";
 import { isDevDevice } from "./dev-allowlist";
 
@@ -28,7 +24,6 @@ export async function getEffectiveLimitsForUser(
   if (!env?.DB) {
     return {
       storageBytes: ACCOUNT_LIMITS.totalStorageBytes,
-      activeArtifacts: ACCOUNT_LIMITS.activeArtifactsPerAccount,
       proSubscriptionActive: false,
     };
   }
@@ -39,14 +34,6 @@ export async function totalStorageForUser(userId: string): Promise<number> {
   const env = await getCloudflareEnv();
   if (!env?.DB) return memoryTotalStorageForUser(userId);
   return totalStorageForUserD1(env.DB, userId);
-}
-
-export async function activeArtifactCountForUser(
-  userId: string,
-): Promise<number> {
-  const env = await getCloudflareEnv();
-  if (!env?.DB) return memoryActiveArtifactCountForUser(userId);
-  return activeArtifactCountForUserD1(env.DB, userId);
 }
 
 /*

@@ -19,20 +19,13 @@ export function QuotaForm({
       className="flex flex-col gap-4"
     >
       <input type="hidden" name="userId" value={userId} />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <TextRow
-          name="storageBytesOverride"
-          label="Storage override (bytes)"
-          inputMode="numeric"
-          defaultValue={String(quota.storageBytesOverride ?? "")}
-        />
-        <TextRow
-          name="activeRecordingsOverride"
-          label="Active recordings override"
-          inputMode="numeric"
-          defaultValue={String(quota.activeRecordingsOverride ?? "")}
-        />
-      </div>
+      <TextRow
+        name="storageBytesOverride"
+        label="Storage override (bytes)"
+        hint="The only quota there is — blank means the account's tier default."
+        inputMode="numeric"
+        defaultValue={String(quota.storageBytesOverride ?? "")}
+      />
       <TextRow
         name="note"
         label="Note"

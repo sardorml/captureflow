@@ -2,7 +2,6 @@ import { ADMIN_ROLES, type AdminRole } from "./roles";
 
 export type QuotaInput = {
   storageBytesOverride: number | null;
-  activeRecordingsOverride: number | null;
   note: string | null;
 };
 
@@ -10,7 +9,6 @@ const MAX_NOTE = 500;
 // 1 PiB. An override is a support lever, not a way to disable accounting, and
 // a fat-fingered value here silently turns the quota system off.
 const MAX_STORAGE_BYTES = 1024 ** 5;
-const MAX_ACTIVE_RECORDINGS = 1_000_000;
 
 function hydrateCount(raw: unknown, max: number): number | null {
   if (raw == null) return null;
@@ -36,10 +34,6 @@ export function hydrateQuotaInput(form: {
     storageBytesOverride: hydrateCount(
       form.get("storageBytesOverride"),
       MAX_STORAGE_BYTES,
-    ),
-    activeRecordingsOverride: hydrateCount(
-      form.get("activeRecordingsOverride"),
-      MAX_ACTIVE_RECORDINGS,
     ),
     note: note ? note.slice(0, MAX_NOTE) : null,
   };

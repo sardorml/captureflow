@@ -1,12 +1,11 @@
 /*
- * Storage is the only ceiling on a recording: no clock, and no per-recording
- * byte cap. A single recording may fill whatever the account has left, so what
- * a tier buys is space rather than minutes — and the client stops on the same
- * number rather than discovering it at upload.
+ * Storage is the only ceiling, full stop: no clock, no per-recording byte cap,
+ * and no cap on how many artifacts an account keeps. A single recording may
+ * fill whatever is left, so what a tier buys is space — one number, which the
+ * client stops on rather than discovering at upload.
  */
 export const ACCOUNT_LIMITS = {
   totalStorageBytes: 200 * 1024 * 1024,
-  activeArtifactsPerAccount: 100,
   retentionDaysFromLastView: 30,
 
   perScreenshotSizeBytes: 8 * 1024 * 1024,
@@ -19,5 +18,4 @@ export type AccountLimits = typeof ACCOUNT_LIMITS;
 
 export const PRO_SUBSCRIPTION_LIMITS = {
   totalStorageBytes: 200 * 1024 * 1024 * 1024,
-  activeArtifactsPerAccount: Number.MAX_SAFE_INTEGER,
 } as const;

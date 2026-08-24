@@ -6,7 +6,6 @@ import {
 } from "@/lib/recording/limits";
 import { insertRecording } from "@/lib/recording/db";
 import {
-  activeArtifactCountForUser,
   getEffectiveLimitsForUser,
   getWorkspaceForUpload,
   resolveUserWorkspaceId,
@@ -120,15 +119,11 @@ export async function POST(req: NextRequest) {
   const isDev = await isDevDevice(deviceId);
   let remainingBytes: number | null = null;
   if (!isDev) {
-    const [activeCount, storageUsed, limits] = await Promise.all([
-      activeArtifactCountForUser(quotaUserId),
+    const [storageUsed, limits] = await Promise.all([
       totalStorageForUser(quotaUserId),
       getEffectiveLimitsForUser(quotaUserId),
     ]);
 
-    if (activeCount >= limits.activeArtifacts) {
-      return jsonError("Too many active artifacts", 429, "active_limit");
-    }
     if (storageUsed >= limits.storageBytes) {
       return jsonError("Storage cap reached", 429, "storage_limit");
     }

@@ -52,17 +52,11 @@ export default async function UserPage({
         {canWrite ? (
           <QuotaForm userId={user.id} quota={quota} />
         ) : (
-          <dl className="grid gap-4 text-sm sm:grid-cols-3">
+          <dl className="grid gap-4 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-fg-muted text-xs">Storage override</dt>
               <dd className="tabular-nums">
                 {quota.storageBytesOverride ?? "—"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-fg-muted text-xs">Active recordings</dt>
-              <dd className="tabular-nums">
-                {quota.activeRecordingsOverride ?? "—"}
               </dd>
             </div>
             <div>

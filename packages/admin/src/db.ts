@@ -33,7 +33,6 @@ export type AdminUserRow = {
 
 export type AdminQuotaRow = {
   storageBytesOverride: number | null;
-  activeRecordingsOverride: number | null;
   note: string | null;
   updatedAt: number | null;
 };
@@ -393,26 +392,23 @@ export async function getUserQuota(
 ): Promise<AdminQuotaRow> {
   const empty: AdminQuotaRow = {
     storageBytesOverride: null,
-    activeRecordingsOverride: null,
     note: null,
     updatedAt: null,
   };
   const row = await db
     .prepare(
-      `SELECT storage_bytes_override, active_recordings_override, note, updated_at
+      `SELECT storage_bytes_override, note, updated_at
        FROM user_quotas WHERE user_id = ?1 LIMIT 1`,
     )
     .bind(userId)
     .first<{
       storage_bytes_override: number | null;
-      active_recordings_override: number | null;
       note: string | null;
       updated_at: number;
     }>();
   return row
     ? {
         storageBytesOverride: row.storage_bytes_override,
-        activeRecordingsOverride: row.active_recordings_override,
         note: row.note,
         updatedAt: row.updated_at,
       }
@@ -427,21 +423,14 @@ export async function setUserQuota(
   await db
     .prepare(
       `INSERT INTO user_quotas
-       (user_id, storage_bytes_override, active_recordings_override, note, updated_at)
-     VALUES (?1, ?2, ?3, ?4, ?5)
+       (user_id, storage_bytes_override, note, updated_at)
+     VALUES (?1, ?2, ?3, ?4)
      ON CONFLICT(user_id) DO UPDATE SET
        storage_bytes_override = excluded.storage_bytes_override,
-       active_recordings_override = excluded.active_recordings_override,
        note = excluded.note,
        updated_at = excluded.updated_at`,
     )
-    .bind(
-      userId,
-      quota.storageBytesOverride,
-      quota.activeRecordingsOverride,
-      quota.note,
-      Date.now(),
-    )
+    .bind(userId, quota.storageBytesOverride, quota.note, Date.now())
     .run();
 }
 
