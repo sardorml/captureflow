@@ -113,8 +113,8 @@ export function HeroSection() {
                 }
               >
                 {m.hero.installSignup}
-              </NextLink>{" "}
-              — {m.hero.installNote}
+              </NextLink>
+              {`, ${m.hero.installNote}`}
             </span>
           </Flex>
         ) : null}

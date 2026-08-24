@@ -1,3 +1,5 @@
+import { MESSAGES } from "./messages";
+
 export const SITE_URL = "https://captureflow.dev";
 export const SITE_NAME = "CaptureFlow";
 export const SITE_TITLE =
@@ -184,7 +186,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     showPricingSection: true,
     showCtaBuyButton: true,
     showChangelogNav: false,
-    heroBadgeLabel: "🎉 Open source — free to run",
+    heroBadgeLabel: "Open source, free to run",
     heroCtaLabel: "Try CaptureFlow for free",
     ctaHeadline: "Ready to record?",
     ctaSubtitle:
@@ -194,8 +196,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     originalPrice: null,
     discountBadge: null,
     pricingHeading: "Pricing",
-    pricingSubheading:
-      "Self-host for free — it is open source. Or let us host it for you.",
+    pricingSubheading: "Self-host for free, or let us host it for you.",
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -216,7 +217,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     discountBadge: null,
     pricingHeading: "Early access pricing",
     pricingSubheading:
-      "Self-host for free. The managed plan hosts CaptureFlow for you — no Cloudflare setup.",
+      "Self-host for free. The managed plan hosts CaptureFlow for you, no Cloudflare setup.",
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -236,8 +237,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     originalPrice: null,
     discountBadge: null,
     pricingHeading: "Pricing",
-    pricingSubheading:
-      "Self-host for free — it is open source. Or let us host it for you.",
+    pricingSubheading: "Self-host for free, or let us host it for you.",
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -247,52 +247,21 @@ export const CURRENT_STAGE: StageConfig = STAGE_CONFIG[LAUNCH_STAGE];
 
 export const PRO_PRICE: number = CURRENT_STAGE.price;
 
-const STATIC_FAQ_ITEMS: { question: string; answer: string }[] = [
-  {
-    question: "How does CaptureFlow compare to other screen recorders?",
-    answer:
-      "CaptureFlow is three tools in one. Record captures your screen straight to a shareable link — the upload happens while you record, so there is no waiting around. Share is a Loom-style flow: hit stop and the link is already in your clipboard, with workspaces for team sharing and a viewer that has reactions, comments, and view counts. Screenshot is a screenshot tool with markup and instant share links built in.\n\nMost competitors do one of these well. QuickTime and OBS capture the screen and leave everything else to a separate tool. Loom nails fast sharing but is closed-source and runs only on their cloud. CaptureFlow covers all three — and it is open source, so you can run the whole thing on your own Cloudflare account.",
-  },
-  {
-    question: "How do the instant share links work?",
-    answer:
-      "CaptureFlow uploads your recording as you record it, not after. By the time you stop, the file is already in the cloud and the share link is on your clipboard — ready to paste anywhere. Recipients open the link to a viewer with reactions, comments, and a live view count, no app install required.",
-  },
-  {
-    question: "Is my data private?",
-    answer:
-      "Yes — and with CaptureFlow you control where it lives. When you self-host, recordings and Screenshots upload to your own Cloudflare account (R2 storage, D1 database) — nothing touches our servers at all.\n\nWhen you create a share link, that artifact is stored so the recipient can open it from a URL. You control visibility per artifact (public, workspace-only, or private), and you can revoke or delete a link from your dashboard at any time.",
-  },
-  {
-    question: "Can I self-host CaptureFlow?",
-    answer:
-      "Yes — that's the whole point. CaptureFlow is open source under the AGPL and runs entirely on Cloudflare: Workers for the API, R2 for storage, and D1 for the database. Deploy it to your own account and you own every recording, Screenshot, and share link end to end. The repo and deploy guide live on GitHub and docs.captureflow.dev.",
-  },
-  {
-    question: "What's free and what's the managed plan?",
-    answer:
-      "Everything is free when you self-host. CaptureFlow is open source under the AGPL — deploy it to your own Cloudflare account and use recording, instant share links, Screenshots, and workspaces with no limits and no watermark.\n\nThe managed plan is for teams who would rather not run their own infrastructure: we host CaptureFlow for you, handle storage and updates, and you skip the Cloudflare setup entirely.",
-  },
-  {
-    question: "CaptureFlow is in beta — is it stable?",
-    answer:
-      "Beta means CaptureFlow is young and improving fast, not that it's fragile — recording, sharing, and Screenshots are stable and in daily use. Updates ship frequently, and a few rough edges remain (Intel Macs aren't supported yet, for example). It's open source, so you can read the code, file issues, or send a pull request — feedback directly shapes the roadmap.",
-  },
-  {
-    question: "Does CaptureFlow add a watermark?",
-    answer:
-      "No. CaptureFlow never watermarks your recordings, Screenshots, or exports — self-hosted or managed. It's open source, so there are no artificial limits baked in: record at up to 4K, for as long as you want.",
-  },
-];
-
+/*
+ * The FAQ text has one home: the message catalogue the section renders from.
+ * A second copy lived here and drifted — it still carried a comparison answer
+ * naming other products that the catalogue had already replaced, and
+ * FAQ_SCHEMA was publishing that stale version into the homepage's structured
+ * data where nothing on screen would ever have shown it.
+ */
 export const FAQ_ITEMS: { question: string; answer: string }[] = [
-  ...STATIC_FAQ_ITEMS,
+  ...MESSAGES.faq.items,
 ];
 
 export const ROADMAP_GROUPS = [
   {
     title: "Backlog",
-    subtitle: "On the radar — not scheduled yet.",
+    subtitle: "On the radar, not scheduled yet.",
     items: [
       {
         label: "AI summaries & chapters",
@@ -378,7 +347,7 @@ export const FEATURE_HIGHLIGHTS = [
       "Every link opens to reactions, threaded comments, and a live view count, so your team reacts without leaving the page.",
   },
   {
-    label: "Annotated Screenshots",
+    label: "Annotated screenshots",
     description:
       "Capture a region, window, or full screen, mark it up with arrows, text, and blur, and share it as a hosted link.",
   },
@@ -443,7 +412,7 @@ export const APP_SCHEMA = {
       priceCurrency: "USD",
       name: "Self-Hosted",
       description:
-        "Open-source recording, instant share links, Screenshots, and workspaces — run it on your own Cloudflare account, no watermark",
+        "Open-source recording, instant share links, screenshots, and workspaces. Run it on your own Cloudflare account, no watermark",
     },
     {
       "@type": "Offer",
@@ -451,7 +420,7 @@ export const APP_SCHEMA = {
       priceCurrency: "USD",
       name: "Managed",
       description:
-        "Fully managed hosting — instant share links, Screenshots, team workspaces, and 200 GB cloud storage we run for you, no Cloudflare setup",
+        "Fully managed hosting: instant share links, screenshots, team workspaces, and 200 GB cloud storage we run for you, no Cloudflare setup",
     },
   ],
 };
