@@ -4,6 +4,7 @@ import { readThemeFromCookieHeader } from "@captureflow/ui";
 import { loadSession } from "@/lib/session-guard";
 import { AuthForm } from "@/app/AuthForm";
 import { AuthShell } from "@/app/AuthShell";
+import { inviteContextFromNext } from "@/lib/invite-context";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +22,11 @@ export default async function LoginPage({
 
   const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
   const initialMode = sp.mode === "signup" ? "signup" : "signin";
+  const invite = await inviteContextFromNext(safeNext);
 
   return (
     <AuthShell theme={theme}>
-      <AuthForm next={safeNext} initialMode={initialMode} />
+      <AuthForm next={safeNext} initialMode={initialMode} invite={invite} />
     </AuthShell>
   );
 }
