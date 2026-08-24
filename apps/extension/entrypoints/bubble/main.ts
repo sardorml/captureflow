@@ -44,15 +44,25 @@ async function runGrant(): Promise<void> {
 async function runPreview(): Promise<void> {
   const video = document.getElementById("cam");
   if (!(video instanceof HTMLVideoElement)) return;
+  /*
+   * The spinner covers the gap between the bubble appearing and the camera
+   * handing over a first frame, which runs to a second or more on most
+   * machines. It clears on `playing` rather than on the getUserMedia resolve,
+   * since the stream exists well before anything is painted from it, and on
+   * failure too so a blocked camera doesn't spin forever.
+   */
+  const settle = () => document.body.setAttribute("data-state", "ready");
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: true,
       audio,
     });
     for (const track of stream.getAudioTracks()) track.stop();
+    video.addEventListener("playing", settle, { once: true });
     video.srcObject = stream;
     void sendMessage("cameraStatus", { blocked: false });
   } catch {
+    settle();
     void sendMessage("cameraStatus", { blocked: true });
   }
 }
