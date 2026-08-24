@@ -150,11 +150,17 @@ const MIC_ICON = (
   </svg>
 );
 
+// Points up because the panel's menu opens upward out of the footer.
 const MORE_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <circle cx="5" cy="12" r="1.9" fill="currentColor" />
-    <circle cx="12" cy="12" r="1.9" fill="currentColor" />
-    <circle cx="19" cy="12" r="1.9" fill="currentColor" />
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+    <path
+      d="m7 14 5-5 5 5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -310,11 +316,13 @@ function DeviceRow({
   );
 }
 
+// Measured off the panel's own trigger: 40px tall, 24px radius, 1px border in
+// --cf-ext-border, 14px/500 label, 8px gap, 16px inline padding.
 function ToolButton({ icon, label }: { icon: ReactNode; label: string }) {
   return (
-    <span className="flex flex-col items-center gap-1 rounded-3xl px-2 py-1.5 text-[11px] font-medium text-[color:var(--cf-ext-foreground)]">
+    <span className="flex h-10 w-full items-center justify-center gap-2 rounded-3xl border border-[color:var(--cf-ext-border)] px-4 text-sm font-medium text-[color:var(--cf-ext-foreground)]">
+      {label}
       {icon}
-      <span className="leading-4">{label}</span>
     </span>
   );
 }
@@ -623,7 +631,7 @@ export function ModesIntro() {
                   </div>
                 </div>
 
-                <footer className="flex justify-end">
+                <footer>
                   <ToolButton icon={MORE_ICON} label={copy.more} />
                 </footer>
               </div>
