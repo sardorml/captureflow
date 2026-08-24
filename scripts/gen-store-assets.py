@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Chrome Web Store assets: flat blue card, white headline top-left, and one
-product scene on the right.
+"""Chrome Web Store assets: blue card, centred headline, and a layered cluster.
 
-The scene is a browser window with the panel sitting where the overlay actually
-puts it, top-right over a dimmed page, and the whole thing is a single element
-that takes one rotation and one shadow. Composing the panel as a separate
-floating card left the two leaning opposite ways and needed a heavy drop shadow
-under each to separate them, which read as smudges on flat blue.
+The panel overlaps the browser window rather than sitting inside it, and both
+lie flat. An earlier pass rotated them opposite ways, which is what made them
+read as two unrelated objects; at 0deg they group without needing the heavy
+drop shadows that turned into smudges on flat colour.
+
+The arrangement moves between tiles (panel right, panel left, panel low, window
+alone) so the set does not read as one template five times. The page under the
+panel is a neutral unbranded mock, not our own site.
 
 Rendered in headless Chrome at 2x so the type and the Apple Color Emoji stay
 crisp, then downsampled to the canvas the store wants.
@@ -22,24 +24,20 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from cdp import Browser  # noqa: E402
 
 HERE = pathlib.Path(__file__).parent
-OUT = HERE / "store4"
+OUT = HERE / "store5"
 SHOTS = HERE / "shots"
-THEMES = {
-    "blue": ("#2563eb", "#fff", "#cfdeff"),
-    "light": ("linear-gradient(150deg,#f7f9fc 0%,#e6ecf7 100%)", "#0b1220", "#4b5768"),
-    "navy": ("linear-gradient(150deg,#101c3d 0%,#0a1226 100%)", "#fff", "#9db3dd"),
-    "indigo": ("linear-gradient(150deg,#3b4fe0 0%,#1b1f5c 100%)", "#fff", "#c9d2ff"),
-}
-THEME = "light"
 REPO = pathlib.Path("/Users/ethos/code/personal/captureflow")
 ICON = REPO / "apps/extension/store/store-icon-128.png"
 
-PAGE = SHOTS / "page-landing.png"
-PAGE_W, PAGE_H = 1360, 900
-# The card is 280 CSS px against a 1360 page, drawn at exactly that share of the
-# window. Keeping it readable is the window's job, not a scale-up here.
-PANEL_W = 280
-PANEL_GAIN = 1.0
+BLUE = "#2563eb"
+PAGE = SHOTS / "page-mock.png"
+PAGE_AR = 1360 / 900
+PV, PS, PP, PD = (
+    SHOTS / "popup-video.png",
+    SHOTS / "popup-shot.png",
+    SHOTS / "popup-paused.png",
+    SHOTS / "popup-done.png",
+)
 
 
 def uri(p: pathlib.Path) -> str:
@@ -50,158 +48,131 @@ CSS = """
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { overflow:hidden; }
 body {
-  background:__BG__;
+  background:__BG__; position:relative;
   font-family:-apple-system,'SF Pro Display',system-ui,'Inter',sans-serif;
-  position:relative;
 }
 h1 {
-  position:absolute; color:__FG__; font-weight:800;
-  letter-spacing:-0.025em; line-height:1.08; z-index:6;
+  position:absolute; left:0; width:100%; text-align:center; color:#fff;
+  font-weight:800; letter-spacing:-0.025em; line-height:1.12; z-index:8;
 }
 .sub {
-  position:absolute; color:__SUB__; font-weight:600;
-  line-height:1.42; z-index:6;
+  position:absolute; left:0; width:100%; text-align:center; color:#cfdeff;
+  font-weight:600; line-height:1.4; z-index:8;
 }
-/* One element, one rotation, one shadow. Tight and low-opacity: a wide dark
-   blur on flat blue reads as dirt rather than as depth. */
-.scene {
-  position:absolute; z-index:4; border-radius:12px; overflow:hidden;
-  background:#111318;
-  box-shadow:0 22px 50px rgba(15,23,42,.17), 0 4px 12px rgba(15,23,42,.10);
+/* Flat, so the window and the panel group instead of leaning apart, and one
+   modest shadow each: a wide dark blur on flat colour reads as dirt. */
+.win {
+  position:absolute; border-radius:11px; overflow:hidden; background:#1b1e24;
+  box-shadow:0 20px 44px rgba(3,12,45,.34), 0 3px 10px rgba(3,12,45,.24);
 }
 .chrome {
-  height:30px; background:#26282e; display:flex; align-items:center;
-  padding:0 12px; gap:6px;
+  height:26px; background:#2b2e35; display:flex; align-items:center;
+  padding:0 10px; gap:5px;
 }
-.dot { width:9px; height:9px; border-radius:50%; }
-.bar {
-  flex:1; height:16px; margin:0 10px; border-radius:8px; background:#35383f;
+.dot { width:8px; height:8px; border-radius:50%; }
+.bar { flex:1; height:13px; margin:0 8px; border-radius:7px; background:#3a3e46; }
+.win img { display:block; width:100%; }
+img.card {
+  position:absolute; border-radius:13px;
+  box-shadow:0 22px 46px rgba(3,12,45,.42), 0 4px 12px rgba(3,12,45,.28);
 }
-.viewport { position:relative; }
-.viewport>img.page { display:block; width:100%; }
-/* The overlay's own scrim, lightened so the page underneath still reads at
-   tile size. */
-.scrim { position:absolute; inset:0; background:rgba(10,11,14,.30);
-         backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
-img.panel {
-  position:absolute; border-radius:14px;
-  box-shadow:0 10px 26px rgba(0,0,0,.45);
-}
-img.mark { position:absolute; z-index:6; border-radius:22%; }
+img.mark { position:absolute; border-radius:22%;
+  box-shadow:0 14px 30px rgba(3,12,45,.34); }
 .emoji {
-  position:absolute; z-index:7; line-height:1;
-  font-family:'Apple Color Emoji';
-  filter:drop-shadow(0 8px 14px rgba(15,23,42,.18));
+  position:absolute; line-height:1; font-family:'Apple Color Emoji';
+  filter:drop-shadow(0 12px 18px rgba(3,12,45,.38));
 }
 """
 
 
-def css() -> str:
-    bg, fg, sub = THEMES[THEME]
-    return (CSS.replace("__BG__", bg).replace("__FG__", fg)
-            .replace("__SUB__", sub))
-
-
-def scene(panel: pathlib.Path, x: int, y: int, w: int, rot: float) -> str:
-    """A browser window at `w` px wide, with the panel where the overlay puts it."""
-    k = w / PAGE_W
+def window(x: int, y: int, w: int, z: int = 3) -> str:
     return (
-        f"<div class='scene' style='left:{x}px;top:{y}px;width:{w}px;"
-        f"transform:rotate({rot}deg)'>"
+        f"<div class='win' style='left:{x}px;top:{y}px;width:{w}px;z-index:{z}'>"
         "<div class='chrome'>"
         "<span class='dot' style='background:#ff5f57'></span>"
         "<span class='dot' style='background:#febc2e'></span>"
         "<span class='dot' style='background:#28c840'></span>"
         "<span class='bar'></span></div>"
-        "<div class='viewport'>"
-        f"<img class='page' src='{uri(PAGE)}'>"
-        "<div class='scrim'></div>"
-        f"<img class='panel' src='{uri(panel)}' style='top:{14 * k:.1f}px;"
-        f"right:{14 * k:.1f}px;width:{PANEL_W * k * PANEL_GAIN:.1f}px'>"
-        "</div></div>"
+        f"<img src='{uri(PAGE)}'></div>"
+    )
+
+
+def card(src: pathlib.Path, x: int, y: int, w: int, z: int = 5) -> str:
+    return (
+        f"<img class='card' style='left:{x}px;top:{y}px;width:{w}px;"
+        f"z-index:{z}' src='{uri(src)}'>"
+    )
+
+
+def mark(x: int, y: int, w: int, z: int = 6) -> str:
+    return (
+        f"<img class='mark' style='left:{x}px;top:{y}px;width:{w}px;"
+        f"z-index:{z}' src='{uri(ICON)}'>"
     )
 
 
 def build(s: dict, w: int, h: int) -> str:
+    css = CSS.replace("__BG__", BLUE)
     p = [
         "<!doctype html><meta charset='utf-8'>",
-        f"<style>{css()}\nhtml,body{{width:{w}px;height:{h}px}}</style>",
+        f"<style>{css}\nhtml,body{{width:{w}px;height:{h}px}}</style>",
     ]
     p.append(
-        f"<h1 style='left:{s['title_at'][0]}px;top:{s['title_at'][1]}px;"
-        f"font-size:{s.get('title_size', 52)}px;"
-        f"max-width:{s.get('title_w', 620)}px'>{s['title']}</h1>"
+        f"<h1 style='top:{s['title_at']}px;font-size:{s.get('title_size', 44)}px'>"
+        f"{s['title']}</h1>"
     )
     if s.get("sub"):
         p.append(
-            f"<div class='sub' style='left:{s['sub_at'][0]}px;top:{s['sub_at'][1]}px;"
-            f"max-width:{s.get('sub_w', 400)}px;"
-            f"font-size:{s.get('sub_size', 19)}px'>{s['sub']}</div>"
+            f"<div class='sub' style='top:{s['sub_at']}px;"
+            f"font-size:{s.get('sub_size', 20)}px'>{s['sub']}</div>"
         )
-    if s.get("scene"):
-        p.append(scene(*s["scene"]))
-    for im in s.get("images", []):
-        p.append(
-            f"<img class='{im.get('cls', 'mark')}' style='left:{im['x']}px;"
-            f"top:{im['y']}px;width:{im['w']}px' src='{im['src']}'>"
-        )
+    p.extend(s.get("layers", []))
     for e in s.get("emoji", []):
+        glyph, ex, ey, size, rot = e[:5]
+        z = e[5] if len(e) > 5 else 7
         p.append(
-            f"<div class='emoji' style='left:{e[1]}px;top:{e[2]}px;"
-            f"font-size:{e[3]}px;transform:rotate({e[4]}deg)'>{e[0]}</div>"
+            f"<div class='emoji' style='left:{ex}px;top:{ey}px;font-size:{size}px;"
+            f"z-index:{z};transform:rotate({rot}deg)'>{glyph}</div>"
         )
     return "".join(p)
 
 
-PV, PS, PP, PD = (
-    SHOTS / "popup-video.png",
-    SHOTS / "popup-shot.png",
-    SHOTS / "popup-paused.png",
-    SHOTS / "popup-done.png",
-)
-
-
 def screenshots() -> list:
     return [
-        {
-            "title": "Record Your Screen<br>in One Click",
-            "sub": "A tab, a window, or your whole screen, with camera and mic, "
-            "without leaving the page.",
-            "title_at": (72, 60),
-            "sub_at": (74, 182),
-            "scene": (PV, 70, 268, 1150, -2),
+        {   # window left, panel front-right
+            "title": "Record Your Screen in One Click",
+            "sub": "A tab, a window, or your whole screen, with camera and mic.",
+            "title_at": 60, "sub_at": 130,
+            "layers": [window(214, 226, 640), card(PV, 626, 322, 296)],
+            "emoji": [("🎬", 852, 232, 78, -14, 4), ("📹", 126, 516, 70, -8)],
         },
-        {
-            "title": "Your Link Is Ready<br>When You Stop",
-            "sub": "It uploads while you record, so the share URL is on your "
-            "clipboard when you hit stop.",
-            "title_at": (72, 60),
-            "sub_at": (74, 182),
-            "scene": (PD, 70, 268, 1150, -2),
+        {   # mirrored: panel front-left, window right
+            "title": "Your Link Is Ready When You Stop",
+            "sub": "It uploads while you record, so the URL is already copied.",
+            "title_at": 60, "sub_at": 130,
+            "layers": [window(396, 222, 636), card(PD, 210, 286, 296)],
+            "emoji": [("🔗", 924, 596, 70, -12), ("✨", 138, 676, 56, 10)],
         },
-        {
-            "title": "Pause and Resume<br>Mid-Recording",
-            "sub": "Controls stay on the page, and the result is still one "
-            "continuous video.",
-            "title_at": (72, 60),
-            "sub_at": (74, 182),
-            "scene": (PP, 70, 268, 1150, -2),
+        {   # window wide, panel dropped low-right
+            "title": "Pause and Resume Mid-Recording",
+            "sub": "Controls stay on the page and the result is one continuous video.",
+            "title_at": 60, "sub_at": 130,
+            "layers": [window(238, 220, 690), card(PP, 742, 352, 274)],
+            "emoji": [("⏸️", 116, 618, 72, -10), ("🎞️", 948, 232, 58, 12, 4)],
         },
-        {
-            "title": "Screenshots Share<br>the Same Way",
-            "sub": "Grab the current tab in one click and send a hosted link "
-            "instead of an attachment.",
-            "title_at": (72, 60),
-            "sub_at": (74, 182),
-            "scene": (PS, 70, 268, 1150, -2),
+        {   # short panel, tucked top-left of the window
+            "title": "Screenshots Share the Same Way",
+            "sub": "Grab the current tab and send a hosted link, not an attachment.",
+            "title_at": 60, "sub_at": 130,
+            "layers": [window(346, 244, 636), card(PS, 198, 306, 300)],
+            "emoji": [("📸", 916, 592, 74, -12), ("✂️", 240, 616, 58, 14)],
         },
-        {
-            "title": "Open Source.<br>Host It Yourself",
-            "sub": "AGPL-3.0, and every feature ships in that build. Run the "
-            "whole stack on your own Cloudflare account.",
-            "title_at": (72, 60),
-            "sub_at": (74, 182),
-                        "scene": (PV, 70, 268, 1150, -2),
+        {   # window alone, brand mark in front
+            "title": "Open Source. Host It Yourself",
+            "sub": "AGPL-3.0, and every feature ships in that build.",
+            "title_at": 60, "sub_at": 130,
+            "layers": [window(310, 232, 668), mark(212, 476, 128)],
+            "emoji": [("🔒", 936, 300, 68, -10), ("☁️", 898, 610, 60, 8)],
         },
     ]
 
@@ -209,35 +180,31 @@ def screenshots() -> list:
 def small_tile() -> dict:
     return {
         "title": "CaptureFlow",
-        "title_size": 40,
-        "title_at": (132, 98),
-        "title_w": 300,
+        "title_size": 38,
+        "title_at": 128,
         "sub": "Record your screen. Send a link.",
         "sub_size": 15,
-        "sub_at": (132, 152),
-        "sub_w": 290,
-        "images": [{"src": uri(ICON), "x": 44, "y": 98, "w": 72}],
-        "emoji": [("🎬", 366, 202, 32, -12)],
+        "sub_at": 180,
+        "layers": [mark(184, 44, 72)],
+        "emoji": [("🎬", 356, 206, 34, -12)],
     }
 
 
 def marquee() -> dict:
     return {
-        "title": "Record Your Screen.<br>Send a Link.",
+        "title": "Record Your Screen. Send a Link.",
         "title_size": 42,
-        "title_at": (60, 150),
-        "title_w": 400,
-        "sub": "Open-source screen recorder and screenshot tool for Chrome. "
-        "No exporting, no attachments.",
-        "sub_size": 17,
-        "sub_at": (62, 292),
-        "sub_w": 366,
-        "scene": (PV, 470, 60, 900, -3),
+        "title_at": 52,
+        "sub": "Open-source screen recorder and screenshot tool for Chrome.",
+        "sub_size": 18,
+        "sub_at": 118,
+        "layers": [window(336, 176, 528), card(PV, 642, 214, 232)],
+        "emoji": [("🎬", 836, 182, 54, -14, 4), ("⚡️", 262, 300, 48, 10)],
     }
 
 
 def render(b: Browser, spec: dict, w: int, h: int, out: pathlib.Path) -> None:
-    f = HERE / ".v4.html"
+    f = HERE / ".v5.html"
     f.write_text(build(spec, w, h))
     b.cmd("Emulation.setDeviceMetricsOverride",
           {"width": w, "height": h, "deviceScaleFactor": 2, "mobile": False})
@@ -252,7 +219,7 @@ def render(b: Browser, spec: dict, w: int, h: int, out: pathlib.Path) -> None:
 
 def main() -> None:
     OUT.mkdir(exist_ok=True)
-    b = Browser(port=9703, width=1280, height=800, scale=2)
+    b = Browser(port=9705, width=1280, height=800, scale=2)
     try:
         for i, s in enumerate(screenshots(), 1):
             render(b, s, 1280, 800, OUT / f"screenshot-{i}.png")
