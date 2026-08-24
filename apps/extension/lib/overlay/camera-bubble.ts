@@ -8,26 +8,45 @@ export const GRANT_FRAME_ID = "captureflow-media-grant";
  */
 export function mountCameraBubble(frameUrl: string, frameId: string): void {
   const existing = document.getElementById(frameId);
-  if (existing instanceof HTMLIFrameElement) {
-    existing.src = frameUrl;
+  if (existing) {
+    const frame = existing.querySelector("iframe");
+    if (frame) frame.src = frameUrl;
     return;
   }
+  const root = document.createElement("div");
+  root.id = frameId;
+  root.style.cssText =
+    "position:fixed;bottom:24px;left:24px;width:220px;height:220px;" +
+    "z-index:2147483647;pointer-events:none;";
+
+  /*
+   * Nothing inside the frame may be partly transparent: it is out-of-process,
+   * so those pixels composite against a white base rather than against the
+   * page, and a rounded edge or a shadow drawn in there fringes white. The
+   * frame paints opaque video and nothing else.
+   */
   const iframe = document.createElement("iframe");
-  iframe.id = frameId;
   iframe.src = frameUrl;
   iframe.allow = "camera; microphone";
-  /*
-   * The circle and its shadow belong out here, not inside the frame. An
-   * extension frame is out-of-process, and a partly-transparent pixel in one
-   * composites against a white base rather than the page — so a rounded edge
-   * or a shadow drawn in there fringes white. Everything with soft alpha is
-   * page-side; the frame itself only ever paints opaque video.
-   */
   iframe.style.cssText =
-    "position:fixed;bottom:24px;left:24px;width:220px;height:220px;border:0;" +
-    "border-radius:50%;z-index:2147483647;background:transparent;" +
-    "pointer-events:none;box-shadow:0 8px 28px rgba(0,0,0,.35);";
-  document.documentElement.appendChild(iframe);
+    "position:absolute;inset:0;width:100%;height:100%;border:0;" +
+    "border-radius:50%;background:transparent;";
+
+  /*
+   * That leaves the page-side clip, which for an out-of-process frame is a
+   * composited layer clip Chrome does not antialias — the circle came out
+   * stair-stepped. This ring is ordinary page content, so its edges are
+   * antialiased; it straddles the frame's boundary and covers it, and the
+   * drop shadow rides on it so the shadow follows a smooth circle too.
+   */
+  const ring = document.createElement("div");
+  ring.style.cssText =
+    "position:absolute;left:-3px;top:-3px;width:226px;height:226px;" +
+    "box-sizing:border-box;border:4px solid #16181d;border-radius:50%;" +
+    "box-shadow:0 8px 28px rgba(0,0,0,.35);";
+
+  root.append(iframe, ring);
+  document.documentElement.appendChild(root);
 }
 
 /*
