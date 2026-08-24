@@ -124,7 +124,7 @@ GLYPH_PATH = (
 )
 
 
-def glyph(x: int, y: int, size: int, fill: str = "#0b1220", z: int = 6) -> str:
+def glyph(x: int, y: int, size: int, fill: str = "#ffffff", z: int = 6) -> str:
     return (
         f"<svg viewBox='0 0 100 100' width='{size}' height='{size}' fill='{fill}' "
         f"style='position:absolute;left:{x}px;top:{y}px;z-index:{z}'>"
@@ -206,7 +206,7 @@ def small_tile() -> dict:
         "sub": "Record your screen. Send a link.",
         "sub_size": 15,
         "sub_at": 180,
-        "layers": [glyph(178, 40, 84)],
+        "layers": [glyph(178, 40, 84, "#ffffff")],
         "emoji": [("🎬", 356, 206, 34, -12)],
     }
 
