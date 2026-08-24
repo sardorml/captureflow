@@ -42,30 +42,39 @@ async function runGrant(): Promise<void> {
 }
 
 // The bubble is 220 CSS px, so a frame narrower than this on a 2x display is
-// being scaled up. Cameras ramp to their real resolution over the first frames.
+// being scaled up.
 const SHARP_WIDTH = 440;
-const SHARP_WAIT_MS = 800;
+// Checked on delivered frames, so a camera that has stopped producing them
+// waits for the cap rather than revealing a stale one. Raise it if the first
+// look at the bubble is still soft; it costs spinner time and nothing else.
+const SETTLE_MS = 900;
+const MAX_WAIT_MS = 2500;
 
 /*
- * Holds the spinner until frames are worth showing. `playing` fires on the
- * first frame of all, which on most cameras is well below the resolution they
- * settle at — revealing there showed a pixelated bubble that sharpened a beat
- * later. The deadline is what covers a camera that never reaches SHARP_WIDTH.
+ * Holds the spinner until the picture is worth showing. `playing` fires on the
+ * very first frame, and the camera spends the next moment converging: gain,
+ * exposure, and denoising all settle after the resolution does, which is why
+ * waiting on videoWidth alone did nothing. Nothing reports that convergence,
+ * so this waits it out.
  */
-function revealWhenSharp(video: HTMLVideoElement, reveal: () => void): void {
+function revealWhenSettled(video: HTMLVideoElement, reveal: () => void): void {
   // A timer, not a deadline checked inside the callback: a callback that never
   // fires would leave the bubble spinning forever.
-  const deadline = setTimeout(reveal, SHARP_WAIT_MS);
+  const cap = setTimeout(reveal, MAX_WAIT_MS);
   const done = () => {
-    clearTimeout(deadline);
+    clearTimeout(cap);
     reveal();
   };
   if (typeof video.requestVideoFrameCallback !== "function") {
-    done();
+    setTimeout(done, SETTLE_MS);
     return;
   }
+  const start = performance.now();
   const check = () => {
-    if (video.videoWidth >= SHARP_WIDTH) {
+    if (
+      performance.now() - start >= SETTLE_MS &&
+      video.videoWidth >= SHARP_WIDTH
+    ) {
       done();
       return;
     }
@@ -85,7 +94,7 @@ async function runPreview(): Promise<void> {
       audio,
     });
     for (const track of stream.getAudioTracks()) track.stop();
-    video.addEventListener("playing", () => revealWhenSharp(video, settle), {
+    video.addEventListener("playing", () => revealWhenSettled(video, settle), {
       once: true,
     });
     video.srcObject = stream;
