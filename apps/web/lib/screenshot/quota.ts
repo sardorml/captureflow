@@ -5,6 +5,7 @@ import {
   ensurePersonalWorkspace,
   type EffectiveLimits,
   getEffectiveLimitsForUser as getEffectiveLimitsForUserD1,
+  getCurrentWorkspaceId,
   getPersonalWorkspaceForUser,
   getWorkspaceById,
   isWorkspaceMember,
@@ -52,6 +53,28 @@ export async function resolveUserWorkspaceId(
     profile?.name ?? null,
   );
   return workspace.id;
+}
+
+/*
+ * Where an upload lands when the client names no workspace. That is every
+ * upload from the extension, which sends none, and any desktop upload made
+ * before a workspace was picked there — so before this, switching workspace on
+ * the site changed nothing about where a recording went.
+ *
+ * Membership is re-checked rather than trusted: the stored id is whatever was
+ * last chosen, and the user may have been removed from it since.
+ */
+export async function resolveUploadWorkspaceId(
+  userId: string,
+): Promise<string | null> {
+  const env = await getCloudflareEnv();
+  if (env?.DB) {
+    const current = await getCurrentWorkspaceId(env.DB, userId);
+    if (current && (await isWorkspaceMember(env.DB, current, userId))) {
+      return current;
+    }
+  }
+  return resolveUserWorkspaceId(userId);
 }
 
 // Upload-time quota applies to the OWNER (Pro is per-user; team uploads draw down the owner's cap).

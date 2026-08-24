@@ -7,13 +7,17 @@ import { cn } from "@/lib/utils";
 
 type NavLink = { href: string; icon: React.ReactNode; label: string };
 
+/* Members is not an admin tool: seeing who else is in a workspace you were
+   invited to is ordinary, and the page has always drawn itself for both roles —
+   owners get remove buttons and the pending-invite list, members get "Leave
+   workspace" on their own row. Only this link was hiding it from them. */
 const MAIN_LINKS: NavLink[] = [
   { href: "/recordings", icon: <Link2 size={16} />, label: "Recordings" },
   { href: "/screenshots", icon: <Camera size={16} />, label: "Screenshots" },
+  { href: "/members", icon: <Users size={16} />, label: "Members" },
 ];
 
 const ADMIN_LINKS: NavLink[] = [
-  { href: "/members", icon: <Users size={16} />, label: "Members" },
   { href: "/settings", icon: <Settings size={16} />, label: "Settings" },
   { href: "/billing", icon: <Receipt size={16} />, label: "Billing" },
 ];

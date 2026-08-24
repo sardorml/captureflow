@@ -8,6 +8,7 @@ import { insertRecording } from "@/lib/recording/db";
 import {
   getEffectiveLimitsForUser,
   getWorkspaceForUpload,
+  resolveUploadWorkspaceId,
   resolveUserWorkspaceId,
   validateWorkspaceMembership,
   totalStorageForUser,
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
     workspaceId = await validateWorkspaceMembership(userId, body.workspaceId);
   }
   if (!workspaceId) {
-    workspaceId = await resolveUserWorkspaceId(userId);
+    workspaceId = await resolveUploadWorkspaceId(userId);
   }
   let workspace = workspaceId ? await getWorkspaceForUpload(workspaceId) : null;
   if (
