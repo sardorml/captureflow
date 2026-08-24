@@ -27,6 +27,9 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm --filter @captureflow/web test
       - run: pnpm --filter @captureflow/extension test
+      # The admin worker deploys off this same gate, so its package has to be
+      # covered here — auth, hashing, and input validation all live there.
+      - run: pnpm --filter @captureflow/admin test
       - run: pnpm build
 
   # Server-side secret scan — the safety net for the local pre-push hook (which
@@ -86,6 +89,34 @@ jobs:
       # from apps/web/wrangler.jsonc.
       - name: Build & deploy worker
         run: pnpm --filter @captureflow/web cf:deploy
+
+  # The operator panel (apps/admin) is its own Worker on admin.captureflow.dev.
+  # It needs `deploy` first, not just `build`: it binds the same D1 as the web
+  # worker but ships no migrations of its own, so it must not go live until that
+  # job has applied them — otherwise its first request hits missing tables.
+  #
+  # ADMIN_SESSION_SECRET and ADMIN_SETUP_TOKEN are Worker runtime secrets set
+  # with `wrangler secret put`, so they are deliberately absent here.
+  deploy-admin:
+    needs: [build, secret-scan, deploy]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: cloudflare-deploy-admin
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build & deploy admin worker
+        run: pnpm --filter @captureflow/admin-app cf:deploy
 
   # The docs are an assets-only Worker of their own (apps/docs/wrangler.jsonc),
   # so this deploys on the same gate as the app but in its own concurrency
