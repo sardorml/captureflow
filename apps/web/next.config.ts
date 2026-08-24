@@ -38,6 +38,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-initOpenNextCloudflareForDev();
+// Dev only, for the reason spelled out in apps/admin/next.config.ts.
+if (process.env.NODE_ENV !== "production") {
+  initOpenNextCloudflareForDev();
+}
 
 export default nextConfig;
