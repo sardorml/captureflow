@@ -54,8 +54,8 @@ export default async function InvitePage({ params }: Props) {
         <p className="mt-3 text-fg-muted">
           You&rsquo;ve been invited to join{" "}
           <strong className="text-fg-strong">{workspaceName}</strong> on
-          CaptureFlow. Workspaces let teammates recording screen recordings and
-          screenshots privately.
+          CaptureFlow. Workspaces let teammates share recordings and screenshots
+          privately.
         </p>
         <form action={acceptInviteAction} className="mt-6">
           <input type="hidden" name="token" value={token} />

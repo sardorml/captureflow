@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@heroui/react";
 import { signIn, signUp } from "@/lib/auth-client";
+import type { InviteContext } from "@/lib/invite-context";
 
 type Mode = "signin" | "signup";
 // Email-first: the address is collected on its own, then the password (and a
@@ -69,13 +70,17 @@ function GitHubIcon() {
 export function AuthForm({
   next,
   initialMode = "signin",
+  invite = null,
 }: {
   next: string;
   initialMode?: Mode;
+  invite?: InviteContext | null;
 }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [step, setStep] = useState<Step>("email");
-  const [email, setEmail] = useState("");
+  // Prefilled, not locked: accepting needs this exact address, but someone who
+  // types a different one gets told so by the invite page itself.
+  const [email, setEmail] = useState(invite?.email ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [busyProvider, setBusyProvider] = useState<SocialProvider | null>(null);
@@ -156,16 +161,30 @@ export function AuthForm({
         align="center"
         className="mt-0 mb-1 text-[22px]"
       >
-        {isSignup ? "Create your account" : "Welcome back!"}
+        {invite
+          ? `Join ${invite.workspaceName}`
+          : isSignup
+            ? "Create your account"
+            : "Welcome back!"}
       </Typography.Heading>
       <Typography.Paragraph
         color="muted"
         align="center"
         className="mb-6 text-[13px]"
       >
-        {isSignup
-          ? "Start sharing recordings with a link"
-          : "Sign in to your CaptureFlow account"}
+        {/* One line for both modes: the invited person has no way of knowing
+            whether they already have an account, so offering the pair is more
+            use than guessing which they need. */}
+        {invite ? (
+          <>
+            {invite.inviterLabel} invited you. Sign in or create an account with{" "}
+            <span className="text-fg">{invite.email}</span> to accept.
+          </>
+        ) : isSignup ? (
+          "Start sharing recordings with a link"
+        ) : (
+          "Sign in to your CaptureFlow account"
+        )}
       </Typography.Paragraph>
 
       {step === "email" ? (
