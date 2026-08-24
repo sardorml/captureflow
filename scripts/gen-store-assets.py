@@ -138,13 +138,17 @@ def build(s: dict, w: int, h: int) -> str:
         "<!doctype html><meta charset='utf-8'>",
         f"<style>{css}\nhtml,body{{width:{w}px;height:{h}px}}</style>",
     ]
+    col = (
+        f"left:{s['col'][0]}px;width:{s['col'][1]}px;text-align:left;"
+        if s.get("col") else ""
+    )
     p.append(
-        f"<h1 style='top:{s['title_at']}px;font-size:{s.get('title_size', 44)}px'>"
-        f"{s['title']}</h1>"
+        f"<h1 style='{col}top:{s['title_at']}px;"
+        f"font-size:{s.get('title_size', 44)}px'>{s['title']}</h1>"
     )
     if s.get("sub"):
         p.append(
-            f"<div class='sub' style='top:{s['sub_at']}px;"
+            f"<div class='sub' style='{col}top:{s['sub_at']}px;"
             f"font-size:{s.get('sub_size', 20)}px'>{s['sub']}</div>"
         )
     p.extend(s.get("layers", []))
@@ -213,14 +217,15 @@ def small_tile() -> dict:
 
 def marquee() -> dict:
     return {
-        "title": "Record Your Screen. Send a Link.",
-        "title_size": 42,
-        "title_at": 52,
+        "title": "Record Your Screen.<br>Send a Link.",
+        "title_size": 44,
+        "title_at": 168,
+        "col": (80, 440),
         "sub": "Open-source screen recorder and screenshot tool for Chrome.",
         "sub_size": 18,
-        "sub_at": 118,
-        "layers": [window(336, 176, 528), card(PV, 642, 214, 232)],
-        "emoji": [("🎬", 836, 182, 54, -14, 4), ("⚡️", 262, 300, 48, 10)],
+        "sub_at": 300,
+        "layers": [window(566, 104, 690), card(PV, 1086, 146, 228)],
+        "emoji": [("🎬", 1296, 92, 48, -14, 4), ("⚡️", 528, 396, 46, 10, 4)],
     }
 
 
