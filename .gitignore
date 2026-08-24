@@ -35,3 +35,8 @@ skills-lock.json
 # Python bytecode (scripts/)
 __pycache__/
 *.pyc
+
+# scripts/ intermediates — the captures the store and README generators compose
+# from, and where the store generator writes before the tiles are copied over.
+scripts/shots/
+scripts/store5/
