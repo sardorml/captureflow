@@ -15,9 +15,17 @@ const nextConfig: NextConfig = {
  * same miniflare state too — the schema and its migrations live over there. Its
  * own default state would be an empty database with no tables at all, and every
  * page would 500. Override with CF_DEV_STATE to point somewhere else.
+ *
+ * Guarded because the helper has no phase check of its own: `next build` loads
+ * this file too and boots a miniflare instance against that shared state, where
+ * it raced the parallel web build for the same SQLite and lost with
+ * SQLITE_BUSY. A build has no use for one — every route here is dynamic, and
+ * the only binding reader (lib/env.ts) asks in async mode, which starts its own.
  */
-initOpenNextCloudflareForDev({
-  persist: { path: process.env.CF_DEV_STATE ?? "../web/.wrangler/state/v3" },
-});
+if (process.env.NODE_ENV !== "production") {
+  initOpenNextCloudflareForDev({
+    persist: { path: process.env.CF_DEV_STATE ?? "../web/.wrangler/state/v3" },
+  });
+}
 
 export default nextConfig;
