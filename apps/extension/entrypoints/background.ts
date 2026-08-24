@@ -7,12 +7,14 @@ import {
 import {
   getActiveUpload,
   getCapturePrefs,
+  getRecordingStatus,
   saveRecordingResult,
   setActiveUpload,
   setCameraBlocked,
   setCapturePrefs,
   setRecordingStatus,
 } from "@/lib/storage";
+import { LIVE_KINDS } from "@/lib/capture/status";
 import { createRecordingTransport } from "@/lib/api/client";
 import {
   isTrustedAuthSender,
@@ -272,27 +274,29 @@ async function onActionClicked(): Promise<void> {
 }
 
 /*
- * An active-upload marker with no offscreen document means the browser (or the
- * offscreen doc) died mid-recording: release the server-side multipart so it
- * doesn't sit against the user's quota. /api/r/abort authorizes by device id.
+ * Live state with no offscreen document means the browser (or the offscreen
+ * doc) died mid-recording. The status outlives that crash now that it is kept
+ * in local:, so without this the control bar would stay pinned to every page.
+ * An upload marker also has a server-side multipart to release so it doesn't
+ * sit against the user's quota; /api/r/abort authorizes by device id.
  */
-async function sweepStaleUpload(): Promise<void> {
-  const stale = await getActiveUpload();
-  if (!stale) return;
+async function sweepStaleRecording(): Promise<void> {
+  const [stale, status] = await Promise.all([
+    getActiveUpload(),
+    getRecordingStatus(),
+  ]);
+  if (!stale && !LIVE_KINDS.has(status.kind)) return;
   if (await chrome.offscreen.hasDocument()) return;
-  await setActiveUpload(null);
-  const transport = createRecordingTransport(stale.deviceId, null);
-  await transport.abort({ slug: stale.slug }).catch(() => {});
+  if (stale) {
+    await setActiveUpload(null);
+    const transport = createRecordingTransport(stale.deviceId, null);
+    await transport.abort({ slug: stale.slug }).catch(() => {});
+  }
   await setRecordingStatus({ kind: "idle" });
 }
 
 export default defineBackground(() => {
-  void sweepStaleUpload();
-  // The control bar (an untrusted content-script context) renders from
-  // session-storage recording state; nothing sensitive lives in session:.
-  void chrome.storage.session.setAccessLevel({
-    accessLevel: "TRUSTED_AND_UNTRUSTED_CONTEXTS",
-  });
+  void sweepStaleRecording();
 
   chrome.action.onClicked.addListener(() => void onActionClicked());
 
