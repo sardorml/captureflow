@@ -41,24 +41,53 @@ async function runGrant(): Promise<void> {
   }
 }
 
+// The bubble is 220 CSS px, so a frame narrower than this on a 2x display is
+// being scaled up. Cameras ramp to their real resolution over the first frames.
+const SHARP_WIDTH = 440;
+const SHARP_WAIT_MS = 800;
+
+/*
+ * Holds the spinner until frames are worth showing. `playing` fires on the
+ * first frame of all, which on most cameras is well below the resolution they
+ * settle at — revealing there showed a pixelated bubble that sharpened a beat
+ * later. The deadline is what covers a camera that never reaches SHARP_WIDTH.
+ */
+function revealWhenSharp(video: HTMLVideoElement, reveal: () => void): void {
+  // A timer, not a deadline checked inside the callback: a callback that never
+  // fires would leave the bubble spinning forever.
+  const deadline = setTimeout(reveal, SHARP_WAIT_MS);
+  const done = () => {
+    clearTimeout(deadline);
+    reveal();
+  };
+  if (typeof video.requestVideoFrameCallback !== "function") {
+    done();
+    return;
+  }
+  const check = () => {
+    if (video.videoWidth >= SHARP_WIDTH) {
+      done();
+      return;
+    }
+    video.requestVideoFrameCallback(check);
+  };
+  video.requestVideoFrameCallback(check);
+}
+
 async function runPreview(): Promise<void> {
   const video = document.getElementById("cam");
   if (!(video instanceof HTMLVideoElement)) return;
-  /*
-   * The spinner covers the gap between the bubble appearing and the camera
-   * handing over a first frame, which runs to a second or more on most
-   * machines. It clears on `playing` rather than on the getUserMedia resolve,
-   * since the stream exists well before anything is painted from it, and on
-   * failure too so a blocked camera doesn't spin forever.
-   */
+  // Also settles on failure, so a blocked camera doesn't spin forever.
   const settle = () => document.body.setAttribute("data-state", "ready");
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      video: { width: { ideal: 1280 }, height: { ideal: 720 } },
       audio,
     });
     for (const track of stream.getAudioTracks()) track.stop();
-    video.addEventListener("playing", settle, { once: true });
+    video.addEventListener("playing", () => revealWhenSharp(video, settle), {
+      once: true,
+    });
     video.srcObject = stream;
     void sendMessage("cameraStatus", { blocked: false });
   } catch {
