@@ -10,11 +10,13 @@
         background: transparent;
         overflow: hidden;
       }
+      /* Fills the frame edge to edge and stays fully opaque: the circle is cut
+         page-side. Rounding it here too left a rim of half-transparent pixels
+         between the two edges, and those fringe white. */
       #cam {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: 50%;
         background: #16181d;
         transform: scaleX(-1);
       }

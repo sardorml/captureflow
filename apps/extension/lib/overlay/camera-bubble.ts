@@ -16,10 +16,17 @@ export function mountCameraBubble(frameUrl: string, frameId: string): void {
   iframe.id = frameId;
   iframe.src = frameUrl;
   iframe.allow = "camera; microphone";
+  /*
+   * The circle and its shadow belong out here, not inside the frame. An
+   * extension frame is out-of-process, and a partly-transparent pixel in one
+   * composites against a white base rather than the page — so a rounded edge
+   * or a shadow drawn in there fringes white. Everything with soft alpha is
+   * page-side; the frame itself only ever paints opaque video.
+   */
   iframe.style.cssText =
     "position:fixed;bottom:24px;left:24px;width:220px;height:220px;border:0;" +
     "border-radius:50%;z-index:2147483647;background:transparent;" +
-    "box-shadow:0 8px 28px rgba(0,0,0,.35);";
+    "pointer-events:none;box-shadow:0 8px 28px rgba(0,0,0,.35);";
   document.documentElement.appendChild(iframe);
 }
 
