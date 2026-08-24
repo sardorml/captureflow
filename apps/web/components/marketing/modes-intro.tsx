@@ -150,32 +150,6 @@ const MIC_ICON = (
   </svg>
 );
 
-const EFFECTS_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <path
-      d="M12 3.5a8.5 8.5 0 1 0 0 17c1.2 0 2-.9 2-2 0-.6-.2-1-.6-1.4-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.3c1.8 0 3.3-1.5 3.3-3.3C20.5 6.6 16.7 3.5 12 3.5z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-    />
-    <circle cx="8" cy="10" r="1.2" fill="currentColor" />
-    <circle cx="12" cy="7.5" r="1.2" fill="currentColor" />
-    <circle cx="16" cy="10" r="1.2" fill="currentColor" />
-  </svg>
-);
-
-const BLUR_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <path
-      d="M12 3.5s6 6.2 6 10.5a6 6 0 0 1-12 0C6 9.7 12 3.5 12 3.5z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
 const MORE_ICON = (
   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
     <circle cx="5" cy="12" r="1.9" fill="currentColor" />
@@ -336,23 +310,9 @@ function DeviceRow({
   );
 }
 
-// Effects and Blur are disabled in the popup and sit at HeroUI's
-// --disabled-opacity; More is a live dropdown trigger and doesn't.
-function ToolButton({
-  icon,
-  label,
-  disabled,
-}: {
-  icon: ReactNode;
-  label: string;
-  disabled?: boolean;
-}) {
+function ToolButton({ icon, label }: { icon: ReactNode; label: string }) {
   return (
-    <span
-      className={`flex flex-col items-center gap-1 rounded-3xl px-2 py-1.5 text-[11px] font-medium text-[color:var(--cf-ext-foreground)] ${
-        disabled ? "opacity-50" : ""
-      }`}
-    >
+    <span className="flex flex-col items-center gap-1 rounded-3xl px-2 py-1.5 text-[11px] font-medium text-[color:var(--cf-ext-foreground)]">
       {icon}
       <span className="leading-4">{label}</span>
     </span>
@@ -663,13 +623,7 @@ export function ModesIntro() {
                   </div>
                 </div>
 
-                <footer className="grid grid-cols-3 items-start gap-1">
-                  <ToolButton
-                    disabled
-                    icon={EFFECTS_ICON}
-                    label={copy.effects}
-                  />
-                  <ToolButton disabled icon={BLUR_ICON} label={copy.blur} />
+                <footer className="flex justify-end">
                   <ToolButton icon={MORE_ICON} label={copy.more} />
                 </footer>
               </div>

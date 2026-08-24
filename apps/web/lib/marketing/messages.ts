@@ -126,8 +126,6 @@ export const MESSAGES = {
       on: "On",
       off: "Off",
       startRecording: "Start Recording",
-      effects: "Effects",
-      blur: "Blur",
       more: "More",
     },
   },
