@@ -25,6 +25,7 @@ import { RecorderPanel } from "./RecorderPanel";
 import { ScreenshotPanel } from "./ScreenshotPanel";
 import { FooterActions } from "./FooterActions";
 import { SignInGate } from "./SignInGate";
+import { DevThemePicker } from "./DevThemePicker";
 
 // "loading" until storage resolves, to avoid flashing the sign-in gate.
 type AuthState = AuthSession | null | "loading";
@@ -257,6 +258,9 @@ export function App() {
       </Tabs.Panel>
 
       <FooterActions />
+      {/* Temporary: a dev-only panel-colour picker. MODE gates it out of the
+          production bundle entirely — see lib/dev/panel-theme.ts. */}
+      {import.meta.env.MODE !== "production" && <DevThemePicker />}
     </Tabs>
   );
 }

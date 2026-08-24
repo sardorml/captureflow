@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { closeSurface, isOverlaySurface } from "@/lib/surface";
 import { sendMessage } from "@/lib/messaging";
+import { applyPanelTheme, getPanelTheme } from "@/lib/dev/panel-theme";
 import { App } from "./App";
 import "./popup.css";
 
@@ -31,9 +32,20 @@ if (isOverlaySurface) {
 
 const container = document.getElementById("root");
 if (container) {
-  createRoot(container).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-  );
+  // Temporary: awaited so a stored dev colour is on the body before the first
+  // paint — applying it after would flash the shipped colour on every open.
+  const ready =
+    import.meta.env.MODE === "production"
+      ? Promise.resolve()
+      : getPanelTheme().then((stored) => {
+          if (stored) applyPanelTheme(stored);
+        });
+
+  void ready.then(() => {
+    createRoot(container).render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>,
+    );
+  });
 }
