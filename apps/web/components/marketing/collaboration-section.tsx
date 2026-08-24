@@ -14,10 +14,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Droplets,
+  Eye,
   Globe,
+  Heart,
   Image as ImageIcon,
   Link2,
   Lock,
+  MessageSquare,
   Plus,
   RefreshCw,
   Scan,
@@ -25,9 +28,11 @@ import {
   Square,
   Type as TypeIcon,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 import { MarketingSection, SectionHeading } from "./_shared";
 import { DemoStage } from "./demo-stage";
+import { MockupScene, type SceneChip } from "./mockup-scene";
 import { useMessages } from "./i18n-provider";
 
 type ShareKey = "editor" | "viewer" | "dashboard";
@@ -47,6 +52,19 @@ const SHARE_URLS: Record<ShareKey, string> = {
   editor: "captureflow.dev/s/8kx2pnq4",
   viewer: "captureflow.dev/s/8kx2pnq4",
   dashboard: "captureflow.dev",
+};
+
+// The glyph beside each scene chip; the labels live in the message catalogue.
+const CHIP_ICONS: Record<string, [LucideIcon, LucideIcon]> = {
+  editor: [Scissors, ImageIcon],
+  viewer: [MessageSquare, Heart],
+  dashboard: [Link2, Eye],
+  capture: [Scan, Square],
+  markup: [TypeIcon, Droplets],
+  share: [Link2, ImageIcon],
+  workspace: [Users, Lock],
+  public: [Globe, Link2],
+  private: [Lock, Eye],
 };
 
 const SCREENSHOT_URLS: Record<ScreenshotKey, string> = {
@@ -120,6 +138,12 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
 
   const featureKey = cat.features[index].key;
   const copy = featureCopy[featureKey];
+  const chips: SceneChip[] = (
+    m.collaboration.chips as Record<string, readonly [string, string]>
+  )[featureKey].map((label, i) => ({
+    label,
+    Icon: CHIP_ICONS[featureKey][i],
+  }));
   const go = (next: number) => setIndex(((next % count) + count) % count);
   const setFeatureKey = (key: string) =>
     go(cat.features.findIndex((f) => f.key === key));
@@ -220,24 +244,26 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
           styles={{ body: { padding: 0 } }}
           style={{
             overflow: "hidden",
-            borderRadius: token.borderRadiusLG,
+            borderRadius: 24,
             maxWidth: MOCKUP_MAX_WIDTH,
             marginInline: "auto",
           }}
         >
           <ScaledMockup>
-            {cat.kind === "share" && (
-              <ShareFrame activeKey={featureKey as ShareKey} />
-            )}
-            {cat.kind === "screenshot" && (
-              <ScreenshotFrame activeKey={featureKey as ScreenshotKey} />
-            )}
-            {cat.kind === "workspaces" && (
-              <WorkspaceCard
-                visibility={featureKey as VisibilityKey}
-                onVisibilityChange={setFeatureKey}
-              />
-            )}
+            <MockupScene kind={cat.kind} chips={chips}>
+              {cat.kind === "share" && (
+                <ShareFrame activeKey={featureKey as ShareKey} />
+              )}
+              {cat.kind === "screenshot" && (
+                <ScreenshotFrame activeKey={featureKey as ScreenshotKey} />
+              )}
+              {cat.kind === "workspaces" && (
+                <WorkspaceCard
+                  visibility={featureKey as VisibilityKey}
+                  onVisibilityChange={setFeatureKey}
+                />
+              )}
+            </MockupScene>
           </ScaledMockup>
         </Card>
       </Col>
@@ -388,7 +414,7 @@ function BrowserChrome({
   return (
     <div
       dir="ltr"
-      className="flex aspect-[11/8] w-full flex-col overflow-hidden bg-white dark:bg-[#1f1f1f]"
+      className="flex h-full w-full flex-col overflow-hidden bg-white dark:bg-[#1f1f1f]"
     >
       <div className="flex shrink-0 items-center gap-2.5 border-b border-black/[0.06] dark:border-white/[0.08] bg-[#fafafa] dark:bg-[#171717] px-3 py-1">
         <div className="flex items-center gap-1">
@@ -948,7 +974,7 @@ function WorkspaceCard({
   return (
     <div
       dir="ltr"
-      className="flex aspect-[11/8] w-full flex-col overflow-hidden bg-white dark:bg-[#1f1f1f]"
+      className="flex h-full w-full flex-col overflow-hidden bg-white dark:bg-[#1f1f1f]"
     >
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/[0.04] dark:border-white/[0.06] px-6 py-3">
         <div className="flex items-center gap-3">

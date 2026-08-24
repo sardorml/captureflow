@@ -178,6 +178,19 @@ export const MESSAGES = {
       next: "Next demo",
       slide: "{n} of {total}",
     },
+    // Two per feature key, in the order the chips are drawn; they name the
+    // action the slide is showing, not the feature it belongs to.
+    chips: {
+      editor: ["Trim", "Backgrounds"],
+      viewer: ["Comment", "React"],
+      dashboard: ["Copy link", "Views"],
+      capture: ["Region", "Window"],
+      markup: ["Text", "Blur"],
+      share: ["One link", "One library"],
+      workspace: ["Your team", "Nobody else"],
+      public: ["Anyone", "Link only"],
+      private: ["Only you", "Locked"],
+    },
     categories: {
       share: {
         title: "Shareable recordings",
