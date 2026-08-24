@@ -27,6 +27,12 @@ _spec = importlib.util.spec_from_file_location(
 store = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(store)
 
+# The store tiles put a neutral unbranded page under the panel, because a
+# listing is about the recorder and not about us. A README is about us, so this
+# one records the real dashboard. Light theme for the same reason the tiles use
+# a light page: the panel is dark and needs something to sit against.
+store.PAGE = store.SHOTS / "page-dashboard.png"
+
 W, H = 1440, 720
 EXPORT = (2160, 1080)
 

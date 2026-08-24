@@ -95,7 +95,7 @@ script afterwards to confirm it still finds it.
 ## `gen-readme-hero.py` — rebuild the README banner
 
 Draws `.github/assets/readme-hero.png` (2160x1080), the blue tile at the top of
-the root README: the recorder panel overlapping a neutral browser window, with
+the root README: the recorder panel overlapping the CaptureFlow dashboard, with
 the two emoji props.
 
 ```bash
@@ -104,23 +104,50 @@ cd scripts && python3 gen-readme-hero.py
 
 It is `gen-store-assets.py`'s first screenshot, re-laid-out — the module is
 imported rather than copied, so the blue, the CSS, and the window/panel markup
-have one definition. Two things differ: the canvas is 2:1 rather than 1.6:1,
-because a README hero sits in a ~1000px column, and there is no headline on it,
-because the name and the tagline are already text directly above.
+have one definition. Three things differ: the canvas is 2:1 rather than 1.6:1,
+because a README hero sits in a ~1000px column; there is no headline on it,
+because the name and the tagline are already text directly above; and the page
+under the panel is our own dashboard rather than the store tiles' neutral mock,
+because a README is about us where a listing is about the recorder.
 
 **Requirements:** `pip install pillow websocket-client`, headless Chrome, and
 the captures under `scripts/shots/` (see below).
+
+## `cap-readme-dashboard.py` — photograph the dashboard for that banner
+
+Writes `shots/page-dashboard.png`, the signed-in `/recordings` page at 1360x900
+in light theme. Light because the panel that lands on top of it is dark and
+needs something to sit against, which is the same reason the store tiles put a
+light page under theirs.
+
+It signs up its own account, seeds six recordings and their poster JPEGs, takes
+the shot, and deletes all of it again — so the banner does not depend on what
+happens to be in your dev database, and nothing is left in it afterwards. The
+cards read thumbnails from the CDN origin, so the dev server has to be started
+with that pointed at the seeded files:
+
+```bash
+cd apps/web && NEXT_PUBLIC_R2_PUBLIC_BASE_URL=http://localhost:3032/demo-posters \
+  npx next dev -p 3032
+# then, in another shell:
+cd scripts && python3 cap-readme-dashboard.py && python3 gen-readme-hero.py
+```
+
+It refuses to write a shot of the login page or one with missing thumbnails
+rather than producing a quietly wrong banner.
 
 ## The `shots/` captures
 
 Both `gen-store-assets.py` and `gen-readme-hero.py` compose from PNGs in
 `scripts/shots/`, which is gitignored — they are intermediates, not assets.
-`page-mock.png` comes from `gen-store-page-mock.py`; the `popup-*.png` panel
-states are captured off the built extension by hand over CDP (`cdp.py` is the
-driver). Regenerate the page mock with:
+`page-mock.png` comes from `gen-store-page-mock.py` and `page-dashboard.png`
+from `cap-readme-dashboard.py`; the `popup-*.png` panel states are captured off
+the built extension by hand over CDP (`cdp.py` is the driver). Regenerate the
+page mock with:
 
 ```bash
 cd scripts && python3 gen-store-page-mock.py
 ```
 
-Neither generator runs from a clean checkout until those captures are back.
+Neither generator runs from a clean checkout until those captures are back, and
+the panel states are the one piece with no script behind them yet.
