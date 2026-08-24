@@ -36,10 +36,10 @@ ICON = REPO / "apps/extension/store/store-icon-128.png"
 
 PAGE = SHOTS / "page-landing.png"
 PAGE_W, PAGE_H = 1360, 900
-# The panel is 305 CSS px on a 1360 page. Held a little above that share so the
-# device names stay readable once the window is scaled into a tile.
-PANEL_W = 305
-PANEL_GAIN = 1.35
+# The card is 280 CSS px against a 1360 page, drawn at exactly that share of the
+# window. Keeping it readable is the window's job, not a scale-up here.
+PANEL_W = 280
+PANEL_GAIN = 1.0
 
 
 def uri(p: pathlib.Path) -> str:
@@ -167,47 +167,41 @@ def screenshots() -> list:
             "title": "Record Your Screen<br>in One Click",
             "sub": "A tab, a window, or your whole screen, with camera and mic, "
             "without leaving the page.",
-            "title_at": (72, 206),
-            "sub_at": (74, 348),
-            "scene": (PV, 560, 150, 660, -3),
-            "emoji": [("🎬", 76, 468, 56, -10)],
+            "title_at": (72, 60),
+            "sub_at": (74, 182),
+            "scene": (PV, 70, 268, 1150, -2),
         },
         {
             "title": "Your Link Is Ready<br>When You Stop",
             "sub": "It uploads while you record, so the share URL is on your "
             "clipboard when you hit stop.",
-            "title_at": (72, 194),
-            "sub_at": (74, 352),
-            "scene": (PD, 560, 150, 660, -3),
-            "emoji": [("🔗", 76, 468, 56, -10)],
+            "title_at": (72, 60),
+            "sub_at": (74, 182),
+            "scene": (PD, 70, 268, 1150, -2),
         },
         {
             "title": "Pause and Resume<br>Mid-Recording",
             "sub": "Controls stay on the page, and the result is still one "
             "continuous video.",
-            "title_at": (72, 194),
-            "sub_at": (74, 352),
-            "scene": (PP, 560, 150, 660, -3),
-            "emoji": [("⏸", 76, 468, 56, -10)],
+            "title_at": (72, 60),
+            "sub_at": (74, 182),
+            "scene": (PP, 70, 268, 1150, -2),
         },
         {
             "title": "Screenshots Share<br>the Same Way",
             "sub": "Grab the current tab in one click and send a hosted link "
             "instead of an attachment.",
-            "title_at": (72, 206),
-            "sub_at": (74, 348),
-            "scene": (PS, 560, 150, 660, -3),
-            "emoji": [("📸", 76, 468, 56, -10)],
+            "title_at": (72, 60),
+            "sub_at": (74, 182),
+            "scene": (PS, 70, 268, 1150, -2),
         },
         {
             "title": "Open Source.<br>Host It Yourself",
             "sub": "AGPL-3.0, and every feature ships in that build. Run the "
             "whole stack on your own Cloudflare account.",
-            "title_at": (72, 206),
-            "sub_at": (74, 348),
-            "sub_w": 410,
-            "scene": (PV, 560, 150, 660, -3),
-            "images": [{"src": uri(ICON), "x": 76, "y": 462, "w": 72}],
+            "title_at": (72, 60),
+            "sub_at": (74, 182),
+                        "scene": (PV, 70, 268, 1150, -2),
         },
     ]
 
@@ -230,16 +224,15 @@ def small_tile() -> dict:
 def marquee() -> dict:
     return {
         "title": "Record Your Screen.<br>Send a Link.",
-        "title_size": 56,
-        "title_at": (84, 156),
-        "title_w": 600,
+        "title_size": 42,
+        "title_at": (60, 150),
+        "title_w": 400,
         "sub": "Open-source screen recorder and screenshot tool for Chrome. "
         "No exporting, no attachments.",
-        "sub_size": 21,
-        "sub_at": (86, 348),
-        "sub_w": 470,
-        "scene": (PV, 748, 34, 620, -3),
-        "emoji": [("⚡️", 620, 402, 46, 10)],
+        "sub_size": 17,
+        "sub_at": (62, 292),
+        "sub_w": 366,
+        "scene": (PV, 470, 60, 900, -3),
     }
 
 
