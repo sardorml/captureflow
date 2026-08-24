@@ -8,7 +8,7 @@ drop shadows that turned into smudges on flat colour.
 
 The arrangement moves between tiles (panel right, panel left, panel low, window
 alone) so the set does not read as one template five times. The page under the
-panel is a neutral unbranded mock, not our own site.
+panel is our own dashboard — see cap-readme-dashboard.py, which shoots it.
 
 Rendered in headless Chrome at 2x so the type and the Apple Color Emoji stay
 crisp, then downsampled to the canvas the store wants.
@@ -30,7 +30,7 @@ REPO = pathlib.Path("/Users/ethos/code/personal/captureflow")
 ICON = REPO / "apps/extension/store/store-icon-128.png"
 
 BLUE = "#2563eb"
-PAGE = SHOTS / "page-mock.png"
+PAGE = SHOTS / "page-dashboard.png"
 PAGE_AR = 1360 / 900
 PV, PS, PP, PD = (
     SHOTS / "popup-video.png",

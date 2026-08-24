@@ -103,12 +103,11 @@ cd scripts && python3 gen-readme-hero.py
 ```
 
 It is `gen-store-assets.py`'s first screenshot, re-laid-out — the module is
-imported rather than copied, so the blue, the CSS, and the window/panel markup
-have one definition. Three things differ: the canvas is 2:1 rather than 1.6:1,
-because a README hero sits in a ~1000px column; there is no headline on it,
-because the name and the tagline are already text directly above; and the page
-under the panel is our own dashboard rather than the store tiles' neutral mock,
-because a README is about us where a listing is about the recorder.
+imported rather than copied, so the blue, the CSS, the page under the panel, and
+the window/panel markup all have one definition. Two things differ: the canvas
+is 2:1 rather than 1.6:1, because a README hero sits in a ~1000px column, and
+there is no headline on it, because the name and the tagline are already text
+directly above.
 
 **Requirements:** `pip install pillow websocket-client`, headless Chrome, and
 the captures under `scripts/shots/` (see below).
@@ -116,9 +115,9 @@ the captures under `scripts/shots/` (see below).
 ## `cap-readme-dashboard.py` — photograph the dashboard for that banner
 
 Writes `shots/page-dashboard.png`, the signed-in `/recordings` page at 1360x900
-in light theme. Light because the panel that lands on top of it is dark and
-needs something to sit against, which is the same reason the store tiles put a
-light page under theirs.
+in light theme — the page under the panel in both the README banner and every
+Chrome Web Store tile. Light because the panel that lands on top of it is dark
+and needs something to sit against.
 
 It signs up its own account, seeds six recordings and their poster JPEGs, takes
 the shot, and deletes all of it again — so the banner does not depend on what
