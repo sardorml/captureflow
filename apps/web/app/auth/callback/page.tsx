@@ -37,19 +37,18 @@ export default async function CallbackPage({
 
   const label = typeof sp.label === "string" ? sp.label : null;
 
-  // Browser-extension flow: a client island hands the token to the extension
-  // via chrome.runtime.sendMessage. The target id is validated and, in
-  // production, must match the pinned CAPTUREFLOW_EXTENSION_ID — when that's
-  // unset, production fails closed (no token handed out) so an attacker-chosen
-  // ?ext= can't direct a token to a look-alike extension. Dev accepts any
-  // well-formed id (the unpacked id varies per machine).
+  /*
+   * Browser-extension flow: a client island hands the token to the extension
+   * via chrome.runtime.sendMessage. In production the target must match the
+   * pinned CAPTUREFLOW_EXTENSION_ID, and an unset pin hands out nothing, so an
+   * attacker-chosen ?ext= can't reach a look-alike extension.
+   */
   if (sp.ext !== undefined) {
     const env = await getAppWebEnv();
-    const allowUnpinned = process.env.NODE_ENV !== "production";
     const extTarget = resolveExtensionTarget(
       sp.ext,
       env?.CAPTUREFLOW_EXTENSION_ID ?? null,
-      allowUnpinned,
+      process.env.NODE_ENV === "production",
     );
     if (!extTarget) {
       return (
