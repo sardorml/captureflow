@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "../../../packages/ui/src/styles/tokens.css";
+
+/* Tailwind v4 only auto-scans this app's own tree; the shared tokens package
+   lives outside it. */
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
+
+html,
+body {
+  background: var(--color-canvas);
+  color: var(--color-fg);
+}

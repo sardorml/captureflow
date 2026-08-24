@@ -1,0 +1,46 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "captureflow-admin",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  /*
+   * Its own host, so the admin cookie is scoped to admin.captureflow.dev and
+   * never rides along with a request to the app. custom_domain makes Cloudflare
+   * own the DNS record and certificate; if that record is ever removed, rerun
+   * the deploy (CI exposes workflow_dispatch for exactly this).
+   */
+  "routes": [{ "pattern": "admin.captureflow.dev", "custom_domain": true }],
+  // Same database and bucket as the web worker: the admin reads across every
+  // tenant, so it must be the same data, not a copy.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "captureflow",
+      "database_id": "87523f52-ad6f-474f-85e8-87f267a98763",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "captureflow-recordings",
+    },
+  ],
+  /*
+   * ADMIN_SESSION_SECRET signs the admin cookie; ADMIN_SETUP_TOKEN gates the
+   * one-time first-run claim. Both are secrets, never vars — set them with
+   * `wrangler secret put <NAME>` so they stay out of the repo. Locally they come
+   * from apps/admin/.dev.vars, which is gitignored. RESEND_API_KEY is optional:
+   * without it the invite link is shown to the operator instead of emailed.
+   */
+  "vars": {
+    "ADMIN_SESSION_TTL_HOURS": "12",
+  },
+}

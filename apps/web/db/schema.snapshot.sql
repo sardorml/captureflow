@@ -41,6 +41,41 @@ CREATE TABLE users (
   createdAt INTEGER NOT NULL,
   updatedAt INTEGER NOT NULL
 );
+CREATE TABLE admin_users (
+  id            TEXT PRIMARY KEY,
+  email         TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  role          TEXT NOT NULL,
+  status        TEXT NOT NULL DEFAULT 'active',
+  created_at    INTEGER NOT NULL,
+  last_login_at INTEGER
+);
+CREATE TABLE admin_invites (
+  token_hash  TEXT PRIMARY KEY,
+  email       TEXT NOT NULL,
+  role        TEXT NOT NULL,
+  invited_by  TEXT NOT NULL,
+  created_at  INTEGER NOT NULL,
+  expires_at  INTEGER NOT NULL,
+  accepted_at INTEGER
+);
+CREATE INDEX idx_admin_invites_email ON admin_invites (email);
+CREATE TABLE admin_setup_tokens (
+  token_hash TEXT PRIMARY KEY,
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL
+);
+CREATE TABLE admin_audit (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  actor       TEXT NOT NULL,
+  action      TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_id   TEXT NOT NULL,
+  detail      TEXT,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX idx_admin_audit_created ON admin_audit (created_at DESC);
+CREATE INDEX idx_admin_audit_target ON admin_audit (target_type, target_id);
 CREATE TABLE sessions (
   id TEXT PRIMARY KEY,
   expiresAt INTEGER NOT NULL,
