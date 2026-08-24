@@ -36,13 +36,16 @@ export function mountCameraBubble(frameUrl: string, frameId: string): void {
    * That leaves the page-side clip, which for an out-of-process frame is a
    * composited layer clip Chrome does not antialias — the circle came out
    * stair-stepped. This ring is ordinary page content, so its edges are
-   * antialiased; it straddles the frame's boundary and covers it, and the
-   * drop shadow rides on it so the shadow follows a smooth circle too.
+   * antialiased. Its band runs r=105..113 either side of the frame's r=110
+   * boundary, which is the only thing hiding those steps, and the z-index is
+   * what keeps it there: the frame is composited, and without an explicit
+   * layer above it the ring can end up painting behind the very edge it is
+   * covering. The drop shadow rides on the ring so it follows a smooth circle.
    */
   const ring = document.createElement("div");
   ring.style.cssText =
-    "position:absolute;left:-3px;top:-3px;width:226px;height:226px;" +
-    "box-sizing:border-box;border:4px solid #16181d;border-radius:50%;" +
+    "position:absolute;left:-3px;top:-3px;width:226px;height:226px;z-index:1;" +
+    "box-sizing:border-box;border:8px solid #16181d;border-radius:50%;" +
     "box-shadow:0 8px 28px rgba(0,0,0,.35);";
 
   root.append(iframe, ring);
