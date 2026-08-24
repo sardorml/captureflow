@@ -19,17 +19,28 @@ export function RecordButton({
 }) {
   const start = () => {
     const extId = installedExtensionId();
-    if (extId) {
-      void openRecorder(extId);
+    if (!extId) {
+      /*
+       * Opened straight out of the press rather than after an await: a
+       * window.open that lands outside the gesture is what a popup blocker
+       * eats.
+       */
+      if (CHROME_WEBSTORE_URL) {
+        window.open(CHROME_WEBSTORE_URL, "_blank", "noopener,noreferrer");
+      }
       return;
     }
     /*
-     * Opened straight out of the press rather than after an await: a
-     * window.open that lands outside the gesture is what a popup blocker eats.
+     * A stamped extension that never answers is a stale or broken worker, and
+     * dropping that on the floor left the button doing nothing at all. Same-tab
+     * navigation rather than window.open: this lands after an await, outside
+     * the gesture, where a popup would be blocked and we would be back to a
+     * dead button.
      */
-    if (CHROME_WEBSTORE_URL) {
-      window.open(CHROME_WEBSTORE_URL, "_blank", "noopener,noreferrer");
-    }
+    void openRecorder(extId).then((ok) => {
+      if (!ok && CHROME_WEBSTORE_URL)
+        window.location.href = CHROME_WEBSTORE_URL;
+    });
   };
 
   return (
