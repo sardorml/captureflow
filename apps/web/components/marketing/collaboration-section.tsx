@@ -5,7 +5,6 @@ import { Paragraph, Text } from "./typography";
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Col, Row } from "./layout";
-import { Card } from "./ui";
 import { TOKENS } from "./tokens";
 import {
   ArrowUp,
@@ -240,15 +239,9 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
       </Col>
 
       <Col xs={{ span: 24, order: 1 }} lg={{ span: 14, order: flip ? 2 : 1 }}>
-        <Card
-          styles={{ body: { padding: 0 } }}
-          style={{
-            overflow: "hidden",
-            borderRadius: 24,
-            maxWidth: MOCKUP_MAX_WIDTH,
-            marginInline: "auto",
-          }}
-        >
+        {/* No Card: the scene paints its own panel, and a card around it just
+            drew a second frame with a gap of nothing between the two. */}
+        <div style={{ maxWidth: MOCKUP_MAX_WIDTH, marginInline: "auto" }}>
           <ScaledMockup>
             <MockupScene kind={cat.kind} chips={chips}>
               {cat.kind === "share" && (
@@ -265,7 +258,7 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
               )}
             </MockupScene>
           </ScaledMockup>
-        </Card>
+        </div>
       </Col>
     </Row>
   );
