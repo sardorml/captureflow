@@ -1,24 +1,21 @@
-import { Dropdown, Menu, buttonVariants } from "@heroui/react";
+import { Dropdown, buttonVariants } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
 import { WEB_BASE } from "@/lib/config";
 import { closeSurface } from "@/lib/surface";
 
-const MORE_ICON = (
+// Points up because the menu opens up: the footer is the bottom of the panel.
+const CHEVRON_ICON = (
   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <circle cx="5" cy="12" r="1.9" fill="currentColor" />
-    <circle cx="12" cy="12" r="1.9" fill="currentColor" />
-    <circle cx="19" cy="12" r="1.9" fill="currentColor" />
+    <path
+      d="m7 14 5-5 5 5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
-
-/*
- * The bangs are load-bearing. buttonVariants puts `.button` on the trigger, and
- * `.button svg` sizes any icon inside one to 20px with a vertical margin below
- * the sm breakpoint — it outranks a plain utility, and the icon comes out a
- * size larger with the label pushed off its line.
- */
-const TOOL_CLASS =
-  "h-auto px-2 py-1.5 text-[11px] [&_svg]:m-0! [&_svg]:size-4!";
 
 export function FooterActions() {
   const openDashboard = () => {
@@ -31,26 +28,27 @@ export function FooterActions() {
   };
 
   return (
-    <footer className="flex justify-end">
+    <footer>
       <Dropdown>
-        {/* Dropdown.Trigger wraps React Aria's unstyled Button, so the ghost
-            look is applied by hand. */}
+        {/* Dropdown.Trigger wraps React Aria's unstyled Button, so the outline
+            look is applied by hand — and `.dropdown__trigger` is inline-block,
+            which outranks the flex `.button` lays out its label and icon with. */}
         <Dropdown.Trigger
           className={buttonVariants({
-            variant: "ghost",
-            className: TOOL_CLASS,
+            variant: "outline",
+            className: "flex w-full",
           })}
         >
-          <span className="flex flex-col items-center gap-1">
-            {MORE_ICON}
-            <span className="leading-4">More</span>
-          </span>
+          More
+          {CHEVRON_ICON}
         </Dropdown.Trigger>
-        <Dropdown.Popover placement="top end">
-          <Menu>
-            <Menu.Item onAction={openDashboard}>Open dashboard</Menu.Item>
-            <Menu.Item onAction={onSignOut}>Sign out</Menu.Item>
-          </Menu>
+        <Dropdown.Popover placement="top">
+          <Dropdown.Menu>
+            <Dropdown.Item onAction={openDashboard}>
+              Open dashboard
+            </Dropdown.Item>
+            <Dropdown.Item onAction={onSignOut}>Sign out</Dropdown.Item>
+          </Dropdown.Menu>
         </Dropdown.Popover>
       </Dropdown>
     </footer>
