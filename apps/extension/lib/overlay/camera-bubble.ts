@@ -8,19 +8,34 @@ export const GRANT_FRAME_ID = "captureflow-media-grant";
  */
 export function mountCameraBubble(frameUrl: string, frameId: string): void {
   const existing = document.getElementById(frameId);
-  if (existing instanceof HTMLIFrameElement) {
-    existing.src = frameUrl;
+  if (existing) {
+    const frame = existing.querySelector("iframe");
+    if (frame) frame.src = frameUrl;
     return;
   }
+  /*
+   * The circle is cut here because the frame's own content has to stay opaque
+   * to its corners: it is out-of-process, so a partly-transparent pixel in
+   * there composites against a white base rather than against the page and the
+   * frame's square shows through as white. The backdrop is also what the user
+   * sees for the beat before the frame has loaded.
+   */
+  const root = document.createElement("div");
+  root.id = frameId;
+  root.style.cssText =
+    "position:fixed;bottom:24px;left:24px;width:220px;height:220px;" +
+    "z-index:2147483647;pointer-events:none;overflow:hidden;" +
+    "border-radius:50%;background:#16181d;";
+
   const iframe = document.createElement("iframe");
-  iframe.id = frameId;
   iframe.src = frameUrl;
   iframe.allow = "camera; microphone";
   iframe.style.cssText =
-    "position:fixed;bottom:24px;left:24px;width:220px;height:220px;border:0;" +
-    "border-radius:50%;z-index:2147483647;background:transparent;" +
-    "box-shadow:0 8px 28px rgba(0,0,0,.35);";
-  document.documentElement.appendChild(iframe);
+    "position:absolute;inset:0;width:100%;height:100%;border:0;" +
+    "border-radius:50%;background:transparent;";
+
+  root.append(iframe);
+  document.documentElement.appendChild(root);
 }
 
 /*

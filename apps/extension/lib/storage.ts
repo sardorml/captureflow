@@ -42,8 +42,15 @@ export type ActiveUpload = {
   deviceId: string;
 };
 
+/*
+ * local: (not session:) because the control bar reads this from a content
+ * script. session: is gated behind an access level the worker grants at
+ * startup, which races page load — and a watcher registered before the grant
+ * lands never starts firing, so the bar simply never appeared. The worker
+ * sweeps a live status left behind by a crash; see sweepStaleRecording.
+ */
 const recordingStatusItem = storage.defineItem<RecordingStatus>(
-  "session:recordingStatus",
+  "local:recordingStatus",
   { fallback: { kind: "idle" } },
 );
 

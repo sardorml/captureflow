@@ -150,37 +150,17 @@ const MIC_ICON = (
   </svg>
 );
 
-const EFFECTS_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+// Points up because the panel's menu opens upward out of the footer.
+const MORE_ICON = (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
     <path
-      d="M12 3.5a8.5 8.5 0 1 0 0 17c1.2 0 2-.9 2-2 0-.6-.2-1-.6-1.4-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.3c1.8 0 3.3-1.5 3.3-3.3C20.5 6.6 16.7 3.5 12 3.5z"
+      d="m7 14 5-5 5 5"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.6"
-    />
-    <circle cx="8" cy="10" r="1.2" fill="currentColor" />
-    <circle cx="12" cy="7.5" r="1.2" fill="currentColor" />
-    <circle cx="16" cy="10" r="1.2" fill="currentColor" />
-  </svg>
-);
-
-const BLUR_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <path
-      d="M12 3.5s6 6.2 6 10.5a6 6 0 0 1-12 0C6 9.7 12 3.5 12 3.5z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
+      strokeWidth="1.8"
+      strokeLinecap="round"
       strokeLinejoin="round"
     />
-  </svg>
-);
-
-const MORE_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <circle cx="5" cy="12" r="1.9" fill="currentColor" />
-    <circle cx="12" cy="12" r="1.9" fill="currentColor" />
-    <circle cx="19" cy="12" r="1.9" fill="currentColor" />
   </svg>
 );
 
@@ -241,8 +221,8 @@ type Point = { x: number; y: number };
  * they are scoped here so the mockup reads the same under either page theme.
  */
 const EXT_PALETTE = {
-  "--cf-ext-background": "#1e1e24",
-  "--cf-ext-surface": "#2c2c35",
+  "--cf-ext-background": "#303030",
+  "--cf-ext-surface": "#404040",
   "--cf-ext-foreground": "oklch(0.9911 0 0)",
   "--cf-ext-muted": "oklch(70.5% 0.015 286.067)",
   "--cf-ext-border": "oklch(28% 0.006 286.033)",
@@ -336,25 +316,13 @@ function DeviceRow({
   );
 }
 
-// Effects and Blur are disabled in the popup and sit at HeroUI's
-// --disabled-opacity; More is a live dropdown trigger and doesn't.
-function ToolButton({
-  icon,
-  label,
-  disabled,
-}: {
-  icon: ReactNode;
-  label: string;
-  disabled?: boolean;
-}) {
+// Measured off the panel's own trigger: 40px tall, 24px radius, 1px border in
+// --cf-ext-border, 14px/500 label, 8px gap, 16px inline padding.
+function ToolButton({ icon, label }: { icon: ReactNode; label: string }) {
   return (
-    <span
-      className={`flex flex-col items-center gap-1 rounded-3xl px-2 py-1.5 text-[11px] font-medium text-[color:var(--cf-ext-foreground)] ${
-        disabled ? "opacity-50" : ""
-      }`}
-    >
+    <span className="flex h-10 w-full items-center justify-center gap-2 rounded-3xl border border-[color:var(--cf-ext-border)] px-4 text-sm font-medium text-[color:var(--cf-ext-foreground)]">
+      {label}
       {icon}
-      <span className="leading-4">{label}</span>
     </span>
   );
 }
@@ -663,13 +631,7 @@ export function ModesIntro() {
                   </div>
                 </div>
 
-                <footer className="grid grid-cols-3 items-start gap-1">
-                  <ToolButton
-                    disabled
-                    icon={EFFECTS_ICON}
-                    label={copy.effects}
-                  />
-                  <ToolButton disabled icon={BLUR_ICON} label={copy.blur} />
+                <footer>
                   <ToolButton icon={MORE_ICON} label={copy.more} />
                 </footer>
               </div>

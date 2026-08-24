@@ -1,6 +1,6 @@
 {
   "name": "@captureflow/extension",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "CaptureFlow browser screen recorder (WXT, MV3).",

@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Video } from "lucide-react";
 import { UserPlus } from "lucide-react";
-import { Button, buttonVariants } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { listMembers, totalStorageForUser } from "@captureflow/quota";
 import type { AvatarGroupItem } from "@captureflow/ui";
 import { BrandMark } from "@/components/brand-mark";
+import { RecordButton } from "./RecordButton";
 import { initials as initialsOf } from "@/lib/format";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
@@ -85,13 +85,7 @@ export async function Sidebar() {
       </div>
 
       <div className="px-3 pt-3 pb-5">
-        <a
-          href="captureflow://record"
-          className={buttonVariants({ variant: "primary", fullWidth: true })}
-        >
-          <Video size={16} />
-          Record a video
-        </a>
+        <RecordButton label="Record a video" fullWidth />
       </div>
     </div>
   );

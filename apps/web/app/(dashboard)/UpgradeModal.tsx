@@ -8,7 +8,7 @@ import { MANAGED_TIERS } from "@/lib/marketing/constants";
 import { getPosthogDistinctId, track } from "@/lib/marketing/track";
 
 const BENEFITS = [
-  "No cap on the number of recordings & Screenshots",
+  "No cap on the number of recordings & screenshots",
   "Automatic backups & monitoring",
   "Priority support",
 ] as const;
@@ -151,7 +151,7 @@ export function UpgradeModal({
                   </h3>
                   <p className="mt-1 max-w-72 text-sm leading-snug text-white/70">
                     {selected.storageGb} GB of cloud storage for your recordings
-                    and Screenshots.
+                    and screenshots.
                   </p>
 
                   <p className="mt-4 text-4xl font-bold tracking-[-0.02em] text-white">

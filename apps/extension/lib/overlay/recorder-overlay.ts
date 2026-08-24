@@ -40,6 +40,13 @@ export function toggleRecorderOverlay(
     chrome.runtime.sendMessage({ recorderOverlayClosed: true });
   });
 
+  /*
+   * Opens on opacity and transform, which the compositor animates on its own
+   * thread. Animating `height` instead ran the open through layout on the
+   * page's main thread, so it stuttered whenever anything else wanted that
+   * thread — switching the camera on mounts an out-of-process frame and calls
+   * getUserMedia there, right in the middle of the 150ms.
+   */
   const iframe = document.createElement("iframe");
   iframe.id = frameId;
   iframe.src = frameUrl;
@@ -47,7 +54,8 @@ export function toggleRecorderOverlay(
   iframe.style.cssText =
     "position:fixed;top:14px;right:14px;width:520px;height:0;border:0;" +
     "z-index:2147483647;background:transparent;color-scheme:dark;" +
-    "transition:height .15s ease;";
+    "opacity:0;transform:translateY(-6px);transform-origin:100% 0;" +
+    "transition:opacity .16s ease-out,transform .16s ease-out;";
 
   // If no height report ever lands, show the panel at a sane size instead of
   // leaving a 0px (invisible) frame. Literals: serialized body, no outer scope.
@@ -55,6 +63,9 @@ export function toggleRecorderOverlay(
     const frame = document.getElementById(frameId);
     if (frame instanceof HTMLIFrameElement && frame.style.height === "0px") {
       frame.style.height = "440px";
+      frame.dataset.shown = "1";
+      frame.style.opacity = "1";
+      frame.style.transform = "none";
     }
   }, 600);
 
@@ -73,6 +84,15 @@ export function setRecorderOverlayHeight(
   if (!(frame instanceof HTMLIFrameElement)) return;
   const max = Math.round(window.innerHeight * 0.92);
   frame.style.height = `${Math.min(Math.max(Math.round(height), 0), max)}px`;
+
+  // The first report is what the panel opens on: it is the first height worth
+  // showing. Later ones resize a panel that is already up.
+  if (frame.dataset.shown === "1") return;
+  frame.dataset.shown = "1";
+  requestAnimationFrame(() => {
+    frame.style.opacity = "1";
+    frame.style.transform = "none";
+  });
 }
 
 export function removeRecorderOverlay(

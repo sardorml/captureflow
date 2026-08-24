@@ -27,7 +27,10 @@ export function FaqSection() {
               return (
                 <Accordion.Item key={index} id={String(index)}>
                   <Accordion.Heading>
-                    <Accordion.Trigger>
+                    {/* 16/28 is the answer's own size and leading; HeroUI's
+                        trigger ships 14/20, which read as a caption over a
+                        paragraph a size larger. Weight stays the trigger's. */}
+                    <Accordion.Trigger className="text-base leading-7">
                       {m.faq.items[index].question}
                       <Accordion.Indicator />
                     </Accordion.Trigger>

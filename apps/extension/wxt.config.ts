@@ -52,7 +52,7 @@ export default defineConfig({
       // description is the store summary, capped at 132.
       name: isDev
         ? "CaptureFlow (dev)"
-        : "CaptureFlow — Screen Recorder & Screenshot Tool",
+        : "CaptureFlow Screen Recorder & Screen Capture",
       description:
         "Open-source screen recorder and screenshot tool. Record your screen or tab, get an instant shareable link, and send it in seconds.",
       // Without this the toolbar tooltip inherits the keyword-laden store name.

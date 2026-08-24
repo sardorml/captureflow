@@ -7,12 +7,14 @@ import {
 import {
   getActiveUpload,
   getCapturePrefs,
+  getRecordingStatus,
   saveRecordingResult,
   setActiveUpload,
   setCameraBlocked,
   setCapturePrefs,
   setRecordingStatus,
 } from "@/lib/storage";
+import { LIVE_KINDS } from "@/lib/capture/status";
 import { createRecordingTransport } from "@/lib/api/client";
 import {
   isTrustedAuthSender,
@@ -272,27 +274,29 @@ async function onActionClicked(): Promise<void> {
 }
 
 /*
- * An active-upload marker with no offscreen document means the browser (or the
- * offscreen doc) died mid-recording: release the server-side multipart so it
- * doesn't sit against the user's quota. /api/r/abort authorizes by device id.
+ * Live state with no offscreen document means the browser (or the offscreen
+ * doc) died mid-recording. The status outlives that crash now that it is kept
+ * in local:, so without this the control bar would stay pinned to every page.
+ * An upload marker also has a server-side multipart to release so it doesn't
+ * sit against the user's quota; /api/r/abort authorizes by device id.
  */
-async function sweepStaleUpload(): Promise<void> {
-  const stale = await getActiveUpload();
-  if (!stale) return;
+async function sweepStaleRecording(): Promise<void> {
+  const [stale, status] = await Promise.all([
+    getActiveUpload(),
+    getRecordingStatus(),
+  ]);
+  if (!stale && !LIVE_KINDS.has(status.kind)) return;
   if (await chrome.offscreen.hasDocument()) return;
-  await setActiveUpload(null);
-  const transport = createRecordingTransport(stale.deviceId, null);
-  await transport.abort({ slug: stale.slug }).catch(() => {});
+  if (stale) {
+    await setActiveUpload(null);
+    const transport = createRecordingTransport(stale.deviceId, null);
+    await transport.abort({ slug: stale.slug }).catch(() => {});
+  }
   await setRecordingStatus({ kind: "idle" });
 }
 
 export default defineBackground(() => {
-  void sweepStaleUpload();
-  // The control bar (an untrusted content-script context) renders from
-  // session-storage recording state; nothing sensitive lives in session:.
-  void chrome.storage.session.setAccessLevel({
-    accessLevel: "TRUSTED_AND_UNTRUSTED_CONTEXTS",
-  });
+  void sweepStaleRecording();
 
   chrome.action.onClicked.addListener(() => void onActionClicked());
 
@@ -319,14 +323,15 @@ export default defineBackground(() => {
   /*
    * The web app posts auth (from the callback page) and logout (from any of its
    * pages) here. externally_connectable can't gate by path/port, so re-check the
-   * sender per kind: auth needs the exact callback page, logout just the origin.
+   * sender per kind: auth needs the exact callback page; logout and record just
+   * the origin.
    */
   chrome.runtime.onMessageExternal.addListener((message, sender, respond) => {
     const parsed = parseExternalMessage(message);
     const trusted =
       parsed?.kind === "auth"
         ? isTrustedAuthSender(sender.url)
-        : parsed?.kind === "logout"
+        : parsed?.kind === "logout" || parsed?.kind === "record"
           ? isTrustedWebOrigin(sender.url)
           : false;
     if (!parsed || !trusted) {
@@ -335,6 +340,16 @@ export default defineBackground(() => {
     }
     void (async () => {
       try {
+        if (parsed.kind === "record") {
+          /*
+           * The dashboard's own "New recording" button. Answer first: the panel
+           * takes over the tab that is waiting on this, and the page needs the
+           * yes in order not to fall through to the store listing.
+           */
+          respond({ ok: true });
+          await toggleOverlayOnActiveTab();
+          return;
+        }
         if (parsed.kind === "logout") {
           await setAuthSession(null);
         } else {
