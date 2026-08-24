@@ -1,5 +1,3 @@
-import { CHROME_WEBSTORE_URL } from "./marketing/constants";
-
 const EXTENSION_ID_KEY = "captureflow:extension-id";
 
 // Mirror EXTERNAL_LOGOUT_KIND / EXTERNAL_RECORD_KIND in apps/extension's
@@ -8,12 +6,20 @@ const SIGN_OUT_KIND = "captureflow-logout";
 const RECORD_KIND = "captureflow-record";
 
 /*
- * The published extension's id is the last segment of its store URL, so the
- * listing stays the one place it is written down. Needed because a browser can
- * have the extension installed without ever having signed in through the web,
- * which is the only way readExtensionId() learns an id.
+ * Stamped on <html> by the extension's content script on this origin. Its
+ * presence is the one reliable answer to "is the extension installed here":
+ * an unpacked build's id comes from its path, so no id the web app could
+ * hard-code would reach it. Mirrors PRESENCE_ATTRIBUTE in apps/extension's
+ * entrypoints/web-session.content.ts.
  */
-const PUBLISHED_EXTENSION_ID = CHROME_WEBSTORE_URL?.split("/").pop() ?? null;
+const PRESENCE_ATTRIBUTE = "data-captureflow-extension";
+
+// Null when the extension isn't installed here — the caller sends the user to
+// the store instead. Synchronous, so a click can act on it without an await.
+export function installedExtensionId(): string | null {
+  if (typeof document === "undefined") return null;
+  return document.documentElement.getAttribute(PRESENCE_ATTRIBUTE) || null;
+}
 
 // chrome.runtime is injected only on pages the extension lists in
 // externally_connectable; @types/chrome isn't a web dep, so type what we use.
@@ -74,19 +80,9 @@ function askToRecord(runtime: RuntimeBridge, extId: string): Promise<boolean> {
   });
 }
 
-/*
- * Ask the installed extension to open its recorder panel. False means no
- * extension answered — the caller sends the user to the store instead.
- */
-export async function openRecorder(): Promise<boolean> {
+// Ask the installed extension to open its recorder panel over the current tab.
+export function openRecorder(extId: string): Promise<boolean> {
   const runtime = getRuntime();
-  if (!runtime?.sendMessage) return false;
-  const remembered = readExtensionId();
-  const ids = [remembered, PUBLISHED_EXTENSION_ID].filter(
-    (id, i, all): id is string => id !== null && all.indexOf(id) === i,
-  );
-  for (const id of ids) {
-    if (await askToRecord(runtime, id)) return true;
-  }
-  return false;
+  if (!runtime?.sendMessage) return Promise.resolve(false);
+  return askToRecord(runtime, extId);
 }

@@ -2,7 +2,7 @@
 
 import { Video } from "lucide-react";
 import { Button } from "@heroui/react";
-import { openRecorder } from "@/lib/extension-bridge";
+import { installedExtensionId, openRecorder } from "@/lib/extension-bridge";
 import { CHROME_WEBSTORE_URL } from "@/lib/marketing/constants";
 
 /*
@@ -17,19 +17,23 @@ export function RecordButton({
   label: string;
   fullWidth?: boolean;
 }) {
-  const start = async () => {
-    if (await openRecorder()) return;
+  const start = () => {
+    const extId = installedExtensionId();
+    if (extId) {
+      void openRecorder(extId);
+      return;
+    }
+    /*
+     * Opened straight out of the press rather than after an await: a
+     * window.open that lands outside the gesture is what a popup blocker eats.
+     */
     if (CHROME_WEBSTORE_URL) {
       window.open(CHROME_WEBSTORE_URL, "_blank", "noopener,noreferrer");
     }
   };
 
   return (
-    <Button
-      variant="primary"
-      fullWidth={fullWidth}
-      onPress={() => void start()}
-    >
+    <Button variant="primary" fullWidth={fullWidth} onPress={start}>
       <Video size={16} />
       {label}
     </Button>
