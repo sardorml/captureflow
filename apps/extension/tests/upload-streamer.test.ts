@@ -187,6 +187,50 @@ describe("startRecordingUpload — screen stream", () => {
   });
 });
 
+/*
+ * Storage is the only ceiling on a recording, so the budget /init reports is
+ * what the recorder stops on. Surfacing it verbatim — including its absence —
+ * is this layer's whole job in that decision.
+ */
+describe("startRecordingUpload — storage budget", () => {
+  it("carries the remaining budget through from init", async () => {
+    const transport = fakeTransport({
+      overrides: {
+        init: async () => ({
+          slug: "abc12345",
+          uploadId: "upload-1",
+          storageKey: "videos/abc12345.mp4",
+          remainingBytes: 4_096,
+        }),
+      },
+    });
+    const upload = await startRecordingUpload(INIT, { transport });
+
+    expect(upload.remainingBytes).toBe(4_096);
+  });
+
+  it("reports no budget when init omits one, so nothing stops the recording", async () => {
+    const upload = await startRecordingUpload(INIT, {
+      transport: fakeTransport(),
+    });
+
+    expect(upload.remainingBytes).toBeNull();
+  });
+
+  it("counts both streams against the one budget", async () => {
+    const transport = fakeTransport({ webcam: true });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 1_000,
+    });
+
+    upload.pushScreen(bytes(60));
+    upload.pushWebcam(bytes(40));
+
+    expect(upload.screenBytes + upload.webcamBytes).toBe(100);
+  });
+});
+
 describe("startRecordingUpload — webcam stream", () => {
   it("ignores webcam pushes when init reserved no webcam", async () => {
     const transport = fakeTransport({ webcam: false });

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ACCOUNT_LIMITS } from "@captureflow/quota";
 import { getRecording, updateRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
 import { completeMultipartUpload, headObject } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
+import { exceedsStorage } from "@/lib/recording/quota";
 import { viewUrlForRequest } from "@/lib/site";
 import type { FinalizeRequest, FinalizeResponse } from "@/lib/recording/types";
 
@@ -44,8 +44,8 @@ export async function POST(req: NextRequest) {
   const sizeBytes = body.sizeBytes;
   if (
     typeof sizeBytes !== "number" ||
-    sizeBytes <= 0 ||
-    sizeBytes > ACCOUNT_LIMITS.perRecordingSizeBytes
+    !Number.isFinite(sizeBytes) ||
+    sizeBytes <= 0
   ) {
     return jsonError("Invalid size", 400, "invalid_size");
   }
@@ -63,6 +63,17 @@ export async function POST(req: NextRequest) {
   }
   if (row.state !== "pending" || !row.uploadId) {
     return jsonError("Recording not finalizable", 409, "wrong_state");
+  }
+
+  /*
+   * Storage is the only cap, so it is re-checked here rather than trusted from
+   * the client that reported sizeBytes. Refusing before the multipart is
+   * completed leaves the parts uncommitted for the GC to sweep, so an
+   * over-cap upload never lands as a billable object.
+   */
+  const overCap = await exceedsStorage(deviceId, row, sizeBytes);
+  if (overCap) {
+    return jsonError("Storage cap reached", 413, "storage_limit");
   }
 
   try {
@@ -90,8 +101,7 @@ export async function POST(req: NextRequest) {
   const durationMs =
     typeof body.durationMs === "number" &&
     Number.isFinite(body.durationMs) &&
-    body.durationMs > 0 &&
-    body.durationMs <= ACCOUNT_LIMITS.perRecordingDurationMs
+    body.durationMs > 0
       ? Math.round(body.durationMs)
       : null;
 

@@ -181,8 +181,6 @@ export type RecordingUsageState =
       kind: "known";
       usedBytes: number;
       limitBytes: number;
-      activeCount: number;
-      activeLimit: number;
       capReached: boolean;
       isDev: boolean;
       // False (or absent on legacy cached state) means the account is on the free tier.

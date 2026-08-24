@@ -2,7 +2,7 @@ export { ACCOUNT_LIMITS, PRO_SUBSCRIPTION_LIMITS } from "./limits";
 export type { AccountLimits } from "./limits";
 export { getEffectiveLimitsForUser } from "./user-quotas";
 export type { EffectiveLimits } from "./user-quotas";
-export { totalStorageForUser, activeArtifactCountForUser } from "./totals";
+export { totalStorageForUser } from "./totals";
 export {
   getActiveProSubscription,
   getUnclaimedProSubscriptionByEmail,

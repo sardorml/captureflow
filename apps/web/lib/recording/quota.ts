@@ -2,7 +2,6 @@
 
 import {
   ACCOUNT_LIMITS,
-  activeArtifactCountForUser as activeArtifactCountForUserD1,
   ensurePersonalWorkspace,
   type EffectiveLimits,
   getEffectiveLimitsForUser as getEffectiveLimitsForUserD1,
@@ -11,11 +10,9 @@ import {
   isWorkspaceMember,
   totalStorageForUser as totalStorageForUserD1,
 } from "@captureflow/quota";
-import {
-  memoryActiveArtifactCountForUser,
-  memoryTotalStorageForUser,
-} from "./db-memory";
+import { memoryTotalStorageForUser } from "./db-memory";
 import { getCloudflareEnv } from "./cf-env";
+import { isDevDevice } from "./dev-allowlist";
 
 export { ACCOUNT_LIMITS };
 export type { EffectiveLimits };
@@ -27,8 +24,6 @@ export async function getEffectiveLimitsForUser(
   if (!env?.DB) {
     return {
       storageBytes: ACCOUNT_LIMITS.totalStorageBytes,
-      activeArtifacts: ACCOUNT_LIMITS.activeArtifactsPerAccount,
-      perRecordingDurationMs: ACCOUNT_LIMITS.perRecordingDurationMs,
       proSubscriptionActive: false,
     };
   }
@@ -41,12 +36,27 @@ export async function totalStorageForUser(userId: string): Promise<number> {
   return totalStorageForUserD1(env.DB, userId);
 }
 
-export async function activeArtifactCountForUser(
-  userId: string,
-): Promise<number> {
-  const env = await getCloudflareEnv();
-  if (!env?.DB) return memoryActiveArtifactCountForUser(userId);
-  return activeArtifactCountForUserD1(env.DB, userId);
+/*
+ * Whether committing `addedBytes` for this artifact would overrun the account
+ * it is charged to. One place for the rule, because both finalize routes need
+ * it and storage is now the only ceiling either of them enforces. Anonymous
+ * rows have no account to charge, and a dev device is unmetered.
+ */
+export async function exceedsStorage(
+  deviceId: string,
+  row: { userId: string | null; workspaceId: string | null },
+  addedBytes: number,
+): Promise<boolean> {
+  if (!row.userId) return false;
+  if (await isDevDevice(deviceId)) return false;
+  const quotaUserId = row.workspaceId
+    ? ((await getWorkspaceOwnerUserId(row.workspaceId)) ?? row.userId)
+    : row.userId;
+  const [used, limits] = await Promise.all([
+    totalStorageForUser(quotaUserId),
+    getEffectiveLimitsForUser(quotaUserId),
+  ]);
+  return used + addedBytes > limits.storageBytes;
 }
 
 export async function resolveUserWorkspaceId(

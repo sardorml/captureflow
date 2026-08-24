@@ -19,13 +19,11 @@ describe("hydrateQuotaInput", () => {
       hydrateQuotaInput(
         form({
           storageBytesOverride: "1024",
-          activeRecordingsOverride: "10",
           note: "  raised for launch  ",
         }),
       ),
     ).toEqual({
       storageBytesOverride: 1024,
-      activeRecordingsOverride: 10,
       note: "raised for launch",
     });
   });
@@ -33,7 +31,6 @@ describe("hydrateQuotaInput", () => {
   it("treats blank and missing fields as no override", () => {
     expect(hydrateQuotaInput(form({}))).toEqual({
       storageBytesOverride: null,
-      activeRecordingsOverride: null,
       note: null,
     });
   });

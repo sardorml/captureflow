@@ -3,7 +3,6 @@ import { ExternalLink, Sparkles } from "lucide-react";
 import { Button, Card, Chip, ProgressBar, Typography } from "@heroui/react";
 import {
   ACCOUNT_LIMITS,
-  activeArtifactCountForUser,
   getActiveProSubscription,
   getEffectiveLimitsForUser,
   totalStorageForUser,
@@ -47,18 +46,15 @@ export default async function BillingPage() {
   const user = session.user;
   const env = await getAppWebEnv();
 
-  const [subscription, usedBytes, artifacts, limits] = env?.DB
+  const [subscription, usedBytes, limits] = env?.DB
     ? await Promise.all([
         getActiveProSubscription(env.DB, user.id),
         totalStorageForUser(env.DB, user.id),
-        activeArtifactCountForUser(env.DB, user.id),
         getEffectiveLimitsForUser(env.DB, user.id),
       ])
-    : [null, 0, 0, null];
+    : [null, 0, null];
 
   const storageLimit = limits?.storageBytes ?? ACCOUNT_LIMITS.totalStorageBytes;
-  const artifactLimit =
-    limits?.activeArtifacts ?? ACCOUNT_LIMITS.activeArtifactsPerAccount;
   const isPro = subscription !== null;
 
   return (
@@ -91,7 +87,7 @@ export default async function BillingPage() {
               <Typography type="body-sm" color="muted" className="mt-1 block">
                 {subscription
                   ? subscriptionLine(subscription)
-                  : `${formatBytes(ACCOUNT_LIMITS.totalStorageBytes)} of storage and up to ${ACCOUNT_LIMITS.activeArtifactsPerAccount} recordings and screenshots.`}
+                  : `${formatBytes(ACCOUNT_LIMITS.totalStorageBytes)} of storage — the only limit, however long you record.`}
               </Typography>
             </div>
 
@@ -129,14 +125,6 @@ export default async function BillingPage() {
             limit={storageLimit}
             format={formatBytes}
           />
-          <div className="mt-5">
-            <Meter
-              label="Recordings and screenshots"
-              value={artifacts}
-              limit={artifactLimit}
-              format={(n) => String(n)}
-            />
-          </div>
         </Section>
       </div>
     </div>
@@ -164,8 +152,6 @@ function Section({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-// Pro lifts the artifact cap to MAX_SAFE_INTEGER, which has no meaningful bar
-// to draw — say so rather than rendering an empty sliver.
 function Meter({
   label,
   value,

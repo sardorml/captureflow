@@ -6,7 +6,6 @@ import {
 } from "@/lib/recording/limits";
 import { insertRecording } from "@/lib/recording/db";
 import {
-  activeArtifactCountForUser,
   getEffectiveLimitsForUser,
   getWorkspaceForUpload,
   resolveUserWorkspaceId,
@@ -111,27 +110,24 @@ export async function POST(req: NextRequest) {
   }
   const quotaUserId = workspace?.owner_user_id ?? userId;
 
+  /*
+   * Storage is the whole budget: what is left here is how much this recording
+   * may grow, and the client stops itself on the same number. Returning it
+   * costs nothing — the figures are already read to run the caps below — and it
+   * saves the client a second round trip on the path to first frame.
+   */
   const isDev = await isDevDevice(deviceId);
+  let remainingBytes: number | null = null;
   if (!isDev) {
-    const [activeCount, storageUsed, limits] = await Promise.all([
-      activeArtifactCountForUser(quotaUserId),
+    const [storageUsed, limits] = await Promise.all([
       totalStorageForUser(quotaUserId),
       getEffectiveLimitsForUser(quotaUserId),
     ]);
 
-    if (activeCount >= limits.activeArtifacts) {
-      return jsonError("Too many active artifacts", 429, "active_limit");
-    }
     if (storageUsed >= limits.storageBytes) {
       return jsonError("Storage cap reached", 429, "storage_limit");
     }
-    if (durationMs !== null && durationMs > limits.perRecordingDurationMs) {
-      return jsonError(
-        "Recording exceeds recording duration cap",
-        413,
-        "duration_exceeded",
-      );
-    }
+    remainingBytes = limits.storageBytes - storageUsed;
   }
 
   const slug = generateSlug();
@@ -207,6 +203,7 @@ export async function POST(req: NextRequest) {
     slug,
     uploadId,
     storageKey,
+    ...(remainingBytes === null ? {} : { remainingBytes }),
     ...(webcamUploadId && webcamStorageKey
       ? { webcamUploadId, webcamStorageKey }
       : {}),

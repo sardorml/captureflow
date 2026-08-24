@@ -123,14 +123,7 @@ CREATE TABLE device_tokens (
 );
 CREATE TABLE user_quotas (
   user_id                TEXT PRIMARY KEY,
-  
-  
-  
   storage_bytes_override INTEGER,
-  active_recordings_override INTEGER,
-  
-  
-  
   note                   TEXT,
   updated_at             INTEGER NOT NULL
 ) STRICT;

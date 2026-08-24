@@ -2,7 +2,6 @@
 
 import {
   ACCOUNT_LIMITS,
-  activeArtifactCountForUser as activeArtifactCountForUserD1,
   ensurePersonalWorkspace,
   type EffectiveLimits,
   getEffectiveLimitsForUser as getEffectiveLimitsForUserD1,
@@ -23,8 +22,6 @@ export async function getEffectiveLimitsForUser(
   if (!env?.DB) {
     return {
       storageBytes: ACCOUNT_LIMITS.totalStorageBytes,
-      activeArtifacts: ACCOUNT_LIMITS.activeArtifactsPerAccount,
-      perRecordingDurationMs: ACCOUNT_LIMITS.perRecordingDurationMs,
       proSubscriptionActive: false,
     };
   }
@@ -35,14 +32,6 @@ export async function totalStorageForUser(userId: string): Promise<number> {
   const env = await getCloudflareEnv();
   if (!env?.DB) return 0;
   return totalStorageForUserD1(env.DB, userId);
-}
-
-export async function activeArtifactCountForUser(
-  userId: string,
-): Promise<number> {
-  const env = await getCloudflareEnv();
-  if (!env?.DB) return 0;
-  return activeArtifactCountForUserD1(env.DB, userId);
 }
 
 export async function resolveUserWorkspaceId(

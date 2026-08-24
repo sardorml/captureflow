@@ -12,7 +12,6 @@ import { resolveDeviceTokenToUser } from "@/lib/screenshot/device-tokens";
 import { isDevDevice } from "@/lib/screenshot/dev-allowlist";
 import { optionsResponse, withCors, jsonError } from "@/lib/screenshot/cors";
 import {
-  activeArtifactCountForUser,
   getEffectiveLimitsForUser,
   getWorkspaceForUpload,
   resolveUserWorkspaceId,
@@ -35,13 +34,13 @@ const TITLE_HEADER = "x-captureflow-screenshot-title";
 const WORKSPACE_HEADER = "x-captureflow-workspace";
 
 /*
- * Screenshot upload endpoint. Bearer required (screenshots are account-owned); quota is
- * gated up front against the combined recordings ∪ screenshots total.
+ * Screenshot upload endpoint. Bearer required (screenshots are account-owned);
+ * storage is gated up front against the combined recordings ∪ screenshots total.
  *
  * 200 → { id, viewUrl, editUrl }
  * 401 → bearer missing/invalid
  * 413 → screenshot exceeds per-screenshot cap
- * 429 → storage_limit / active_limit
+ * 429 → storage_limit
  */
 
 function extractBearerToken(req: NextRequest): string | null {
@@ -148,14 +147,10 @@ export async function POST(req: NextRequest) {
 
   const isDev = await isDevDevice(deviceId);
   if (!isDev) {
-    const [activeCount, storageUsed, limits] = await Promise.all([
-      activeArtifactCountForUser(quotaUserId),
+    const [storageUsed, limits] = await Promise.all([
       totalStorageForUser(quotaUserId),
       getEffectiveLimitsForUser(quotaUserId),
     ]);
-    if (activeCount >= limits.activeArtifacts) {
-      return jsonError("Too many active artifacts", 429, "active_limit");
-    }
     if (storageUsed >= limits.storageBytes) {
       return jsonError("Storage cap reached", 429, "storage_limit");
     }

@@ -3,7 +3,6 @@ import { isDevDevice } from "@/lib/recording/dev-allowlist";
 import { resolveDeviceTokenToUser } from "@/lib/recording/device-tokens";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import {
-  activeArtifactCountForUser,
   getEffectiveLimitsForUser,
   totalStorageForUser,
 } from "@/lib/recording/quota";
@@ -19,8 +18,6 @@ function extractBearerToken(req: NextRequest): string | null {
 export type UsageResponse = {
   usedBytes: number;
   limitBytes: number;
-  activeCount: number;
-  activeLimit: number;
   capReached: boolean;
   isDev: boolean;
 };
@@ -44,23 +41,18 @@ export async function GET(req: NextRequest) {
     return jsonError("Sign-in expired or revoked", 401, "invalid_token");
   }
 
-  const [usedBytes, activeCount, isDev, limits] = await Promise.all([
+  const [usedBytes, isDev, limits] = await Promise.all([
     totalStorageForUser(userId),
-    activeArtifactCountForUser(userId),
     isDevDevice(deviceId),
     getEffectiveLimitsForUser(userId),
   ]);
 
   const limitBytes = limits.storageBytes;
-  const activeLimit = limits.activeArtifacts;
-  const capReached =
-    !isDev && (usedBytes >= limitBytes || activeCount >= activeLimit);
+  const capReached = !isDev && usedBytes >= limitBytes;
 
   const body: UsageResponse = {
     usedBytes,
     limitBytes,
-    activeCount,
-    activeLimit,
     capReached,
     isDev,
   };

@@ -9,10 +9,9 @@ const APP_WEB_API_BASE =
   process.env.CAPTUREFLOW_APP_WEB_API_BASE ?? "https://captureflow.dev";
 const USAGE_TIMEOUT_MS = 8_000;
 
-// MUST mirror the web backend's ACCOUNT_LIMITS.{totalStorageBytes,
-// activeArtifactsPerAccount}, which isn't a desktop dependency.
-const ACCOUNT_STORAGE_LIMIT_BYTES = 500 * 1024 * 1024;
-const ACCOUNT_ACTIVE_LIMIT = 50;
+// MUST mirror the web backend's ACCOUNT_LIMITS.totalStorageBytes, which isn't a
+// desktop dependency. Storage is the only cap the backend has.
+const ACCOUNT_STORAGE_LIMIT_BYTES = 200 * 1024 * 1024;
 
 let current: RecordingUsageState = { kind: "unknown" };
 let inflight: Promise<RecordingUsageState> | null = null;
@@ -46,8 +45,6 @@ export function markRecordingUsageCapReached(): void {
     kind: "known",
     usedBytes: ACCOUNT_STORAGE_LIMIT_BYTES,
     limitBytes: ACCOUNT_STORAGE_LIMIT_BYTES,
-    activeCount: 0,
-    activeLimit: ACCOUNT_ACTIVE_LIMIT,
     capReached: true,
     isDev: false,
     proSubscriptionActive: false,
@@ -58,8 +55,6 @@ export function markRecordingUsageCapReached(): void {
 type UsageResponse = {
   usedBytes: number;
   limitBytes: number;
-  activeCount: number;
-  activeLimit: number;
   capReached: boolean;
   isDev: boolean;
   // Optional for backward compat — older app-web deploys omit it (treated as false).
@@ -116,8 +111,6 @@ export async function refreshRecordingUsage(): Promise<RecordingUsageState> {
         kind: "known",
         usedBytes: body.usedBytes,
         limitBytes: body.limitBytes,
-        activeCount: body.activeCount ?? 0,
-        activeLimit: body.activeLimit ?? 0,
         capReached: body.capReached,
         isDev: body.isDev ?? false,
         proSubscriptionActive: body.proSubscriptionActive ?? false,
@@ -126,14 +119,13 @@ export async function refreshRecordingUsage(): Promise<RecordingUsageState> {
       const changed =
         current.kind !== "known" ||
         current.usedBytes !== next.usedBytes ||
-        current.activeCount !== next.activeCount ||
         current.capReached !== next.capReached ||
         current.proSubscriptionActive !== next.proSubscriptionActive;
       if (changed) {
         logInfo(
           "recording-usage",
           `refreshed: ${next.usedBytes}B / ${next.limitBytes}B, ` +
-            `${next.activeCount}/${next.activeLimit} recordings, cap=${next.capReached}`,
+            `cap=${next.capReached}`,
         );
         setRecordingUsage(next);
       } else {

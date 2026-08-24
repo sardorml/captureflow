@@ -660,9 +660,6 @@ export function ModesIntro() {
                     >
                       {copy.startRecording}
                     </span>
-                    <span className="-mt-1.5 text-center text-xs leading-5 text-[color:var(--cf-ext-muted)]">
-                      {copy.limit}
-                    </span>
                   </div>
                 </div>
 

@@ -5,7 +5,6 @@ import {
   type RecordingStatus,
 } from "@/lib/storage";
 import { formatClock } from "@/lib/format";
-import { MAX_DURATION_MS } from "@/lib/capture/limits";
 
 const HOST_ID = "captureflow-control-bar";
 
@@ -146,7 +145,8 @@ function createBar(): Bar {
         (current.kind === "paused" ? current.pausedAt : Date.now()) -
         current.startedAt -
         current.pausedMs;
-      timer.textContent = formatClock(MAX_DURATION_MS - elapsed);
+      // Counts up: there is no deadline to count down to any more.
+      timer.textContent = formatClock(elapsed);
     }
   };
   const tick = setInterval(renderTimer, 500);

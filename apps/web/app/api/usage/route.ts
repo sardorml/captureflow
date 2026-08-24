@@ -2,7 +2,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import {
-  activeArtifactCountForUser,
   getEffectiveLimitsForUser,
   getWorkspaceById,
   isWorkspaceMember,
@@ -40,8 +39,6 @@ export function OPTIONS() {
 export type UsageResponse = {
   usedBytes: number;
   limitBytes: number;
-  activeCount: number;
-  activeLimit: number;
   capReached: boolean;
   isDev: boolean;
   proSubscriptionActive: boolean;
@@ -90,22 +87,18 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const [usedBytes, activeCount, limits] = await Promise.all([
+  const [usedBytes, limits] = await Promise.all([
     totalStorageForUser(env.DB, quotaUserId),
-    activeArtifactCountForUser(env.DB, quotaUserId),
     getEffectiveLimitsForUser(env.DB, quotaUserId),
   ]);
 
   // Purely numeric (no dev-allowlist on app-web yet): a dev device may keep
   // uploading via the recording/screenshot paths even when this reports capReached.
-  const capReached =
-    usedBytes >= limits.storageBytes || activeCount >= limits.activeArtifacts;
+  const capReached = usedBytes >= limits.storageBytes;
 
   const body: UsageResponse = {
     usedBytes,
     limitBytes: limits.storageBytes,
-    activeCount,
-    activeLimit: limits.activeArtifacts,
     capReached,
     isDev: false,
     proSubscriptionActive: limits.proSubscriptionActive,
