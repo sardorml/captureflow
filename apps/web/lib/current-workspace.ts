@@ -1,8 +1,8 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { cookies } from "next/headers";
 import {
   ensurePersonalWorkspace,
+  getCurrentWorkspaceId,
   getWorkspaceById,
   listWorkspacesForUser,
   type WorkspaceMembership,
@@ -10,8 +10,6 @@ import {
   type WorkspaceRow,
 } from "@captureflow/quota";
 import { getAppWebEnv } from "./cf-env";
-
-export const CURRENT_WORKSPACE_COOKIE = "captureflow-workspace";
 
 export type CurrentWorkspace = {
   workspace: WorkspaceRow;
@@ -29,8 +27,7 @@ export async function resolveCurrentWorkspace(
   }
   const memberships = await listWorkspacesForUser(env.DB, userId);
 
-  const cookieStore = await cookies();
-  const requested = cookieStore.get(CURRENT_WORKSPACE_COOKIE)?.value ?? null;
+  const requested = await getCurrentWorkspaceId(env.DB, userId);
 
   const inMembership = memberships.find((m) => m.workspace_id === requested);
   if (requested && inMembership) {

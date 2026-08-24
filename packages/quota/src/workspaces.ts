@@ -569,3 +569,36 @@ export async function revokeInvite(
     .bind(args.inviteId, args.workspaceId)
     .run();
 }
+
+/*
+ * The workspace a user is currently working in, as picked by the workspace
+ * switcher. Stored on the account rather than in a cookie so that uploads
+ * authenticated with a device token — the extension and the desktop app, which
+ * send no cookies — land where the switcher points instead of always in the
+ * personal workspace.
+ *
+ * Callers must still check membership: this is whatever was last chosen, and
+ * the user may have been removed from it since.
+ */
+export async function getCurrentWorkspaceId(
+  db: D1Database,
+  userId: string,
+): Promise<string | null> {
+  const row = await db
+    .prepare(`SELECT current_workspace_id FROM users WHERE id = ?1 LIMIT 1`)
+    .bind(userId)
+    .first<{ current_workspace_id: string | null }>();
+  return row?.current_workspace_id ?? null;
+}
+
+// Null clears it, which reads as the personal workspace.
+export async function setCurrentWorkspaceId(
+  db: D1Database,
+  userId: string,
+  workspaceId: string | null,
+): Promise<void> {
+  await db
+    .prepare(`UPDATE users SET current_workspace_id = ?2 WHERE id = ?1`)
+    .bind(userId, workspaceId)
+    .run();
+}

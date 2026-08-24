@@ -1,0 +1,11 @@
+-- Which workspace a user is currently working in. It lived in a cookie, which
+-- meant only the browser knew: the extension and the desktop app authenticate
+-- with a device token and send no cookies, so every upload from them fell
+-- through to the personal workspace no matter what had been picked on the site.
+--
+-- Nullable and unconstrained on purpose. A NULL reads as "personal", which is
+-- what every existing row should mean, and the value is validated against live
+-- membership on read — a workspace someone has since been removed from falls
+-- back rather than erroring, so a foreign key would only turn that into a write
+-- failure somewhere less convenient.
+ALTER TABLE users ADD COLUMN current_workspace_id TEXT;

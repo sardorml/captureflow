@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
@@ -9,13 +9,11 @@ import {
   findInviteByToken,
   removeWorkspaceMember,
   revokeInvite,
+  setCurrentWorkspaceId,
 } from "@captureflow/quota";
 import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
-import {
-  CURRENT_WORKSPACE_COOKIE,
-  resolveCurrentWorkspace,
-} from "@/lib/current-workspace";
+import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { sendWorkspaceInviteEmail } from "@/lib/email";
 
 // Actions can be replayed directly, so each re-verifies session and ownership rather than trusting the UI gate.
@@ -161,9 +159,11 @@ export async function leaveWorkspaceAction(): Promise<void> {
     current.workspace.id,
     session.userId,
   );
+  // Back to personal; resolveCurrentWorkspace would fall through anyway now
+  // that the membership is gone, but leaving a stale id on the account would
+  // point uploads at a workspace this user can no longer see.
   if (result.ok) {
-    const cookieStore = await cookies();
-    cookieStore.delete(CURRENT_WORKSPACE_COOKIE);
+    await setCurrentWorkspaceId(env.DB, session.userId, null);
   }
   revalidatePath("/members");
   redirect("/recordings");

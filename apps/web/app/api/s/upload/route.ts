@@ -14,6 +14,7 @@ import { optionsResponse, withCors, jsonError } from "@/lib/screenshot/cors";
 import {
   getEffectiveLimitsForUser,
   getWorkspaceForUpload,
+  resolveUploadWorkspaceId,
   resolveUserWorkspaceId,
   totalStorageForUser,
   validateWorkspaceMembership,
@@ -130,7 +131,7 @@ export async function POST(req: NextRequest) {
     workspaceId = await validateWorkspaceMembership(userId, requestedWorkspace);
   }
   if (!workspaceId) {
-    workspaceId = await resolveUserWorkspaceId(userId);
+    workspaceId = await resolveUploadWorkspaceId(userId);
   }
   // Full workspace row — owner_user_id + policy flags, used for both quota
   // attribution and member-upload enforcement below.

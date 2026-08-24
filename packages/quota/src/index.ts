@@ -17,6 +17,8 @@ export {
   getWorkspaceById,
   ensurePersonalWorkspace,
   listWorkspacesForUser,
+  getCurrentWorkspaceId,
+  setCurrentWorkspaceId,
   isWorkspaceMember,
   listMembers,
   createInvite,

@@ -1,12 +1,14 @@
 "use server";
 
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { listWorkspacesForUser } from "@captureflow/quota";
+import {
+  listWorkspacesForUser,
+  setCurrentWorkspaceId,
+} from "@captureflow/quota";
 import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
-import { CURRENT_WORKSPACE_COOKIE } from "@/lib/current-workspace";
 
 export async function switchWorkspaceAction(formData: FormData): Promise<void> {
   const auth = await getAuth();
@@ -25,15 +27,10 @@ export async function switchWorkspaceAction(formData: FormData): Promise<void> {
   const allowed = memberships.some((m) => m.workspace_id === workspaceId);
   if (!allowed) return;
 
-  const store = await cookies();
-  store.set(CURRENT_WORKSPACE_COOKIE, workspaceId, {
-    path: "/",
-    sameSite: "lax",
-    secure: true,
-    // No HttpOnly: it's a preference, not a credential, and client code reads it.
-    // 30-day max-age matches the better-auth session lifetime.
-    maxAge: 60 * 60 * 24 * 30,
-  });
+  // On the account, not in a cookie: uploads from the extension and the desktop
+  // app carry a device token and no cookies, so a browser-only preference left
+  // them writing to the personal workspace whatever the switcher said.
+  await setCurrentWorkspaceId(env.DB, session.user.id, workspaceId);
 
   revalidatePath("/recordings");
   revalidatePath("/screenshots");
