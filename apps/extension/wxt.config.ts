@@ -8,35 +8,58 @@ export default defineConfig({
   // Tailwind v4 + @heroui/styles back the popup. Content scripts stay on
   // hand-written scoped CSS so nothing heavy is injected into host pages.
   vite: () => ({ plugins: [tailwindcss()] }),
-  manifest: ({ browser, command }) => {
+  manifest: ({ browser, mode }) => {
     const isFirefox = browser === "firefox";
+    // `wxt dev` and `wxt build --mode development` both count as dev; only a
+    // real production build gets the store identity.
+    const isDev = mode !== "production";
     /*
      * Origins allowed to post the device token back via runtime.sendMessage.
      * localhost is dev-only: shipping http://localhost/* in a published build
      * would let any localhost page reach the external-message surface.
      */
-    const matches =
-      command === "serve"
-        ? ["https://captureflow.dev/*", "http://localhost/*"]
-        : ["https://captureflow.dev/*"];
+    const matches = isDev
+      ? ["https://captureflow.dev/*", "http://localhost/*"]
+      : ["https://captureflow.dev/*"];
     /*
-     * Chrome derives the extension id from this key, so setting it makes an
-     * unpacked build load under the Web Store id instead of a per-machine one —
-     * which is what /auth/callback pins against. It comes from a gitignored
-     * .env.local, and `pnpm zip` sets WXT_NO_KEY so an uploaded package never
-     * carries it (clearing WXT_EXT_KEY itself wouldn't work — WXT reloads it
-     * from .env.local over anything the shell sets).
+     * Chrome derives the extension id from this key, so a dev build carrying it
+     * loads under the Web Store id and *replaces* an installed CaptureFlow.
+     * Omitting it in dev gives the unpacked build its own path-derived id, so
+     * both sit side by side — and /auth/callback already accepts any well-formed
+     * id outside production, so nothing needs pinning here.
+     *
+     * The key comes from a gitignored .env.local, and `pnpm zip` sets WXT_NO_KEY
+     * so an uploaded package never carries it (clearing WXT_EXT_KEY itself
+     * wouldn't work — WXT reloads it from .env.local over anything the shell
+     * sets).
      */
-    const key = process.env.WXT_NO_KEY ? undefined : process.env.WXT_EXT_KEY;
+    const key =
+      isDev || process.env.WXT_NO_KEY ? undefined : process.env.WXT_EXT_KEY;
+    // Amber plate instead of the blue one, so the dev build is obvious in the
+    // toolbar when both are installed.
+    const icons = isDev
+      ? {
+          16: "icon-dev/16.png",
+          32: "icon-dev/32.png",
+          48: "icon-dev/48.png",
+          128: "icon-dev/128.png",
+        }
+      : undefined;
     return {
       ...(key ? { key } : {}),
+      ...(icons ? { icons } : {}),
       // Chrome Web Store ranks the name field heaviest and caps it at 75 chars;
       // description is the store summary, capped at 132.
-      name: "CaptureFlow — Screen Recorder & Screenshot Tool",
+      name: isDev
+        ? "CaptureFlow (dev)"
+        : "CaptureFlow — Screen Recorder & Screenshot Tool",
       description:
         "Open-source screen recorder and screenshot tool. Record your screen or tab, get an instant shareable link, and send it in seconds.",
       // Without this the toolbar tooltip inherits the keyword-laden store name.
-      action: { default_title: "CaptureFlow" },
+      action: {
+        default_title: "CaptureFlow",
+        ...(icons ? { default_icon: icons } : {}),
+      },
       /*
        * `offscreen` (where getDisplayMedia runs) is Chromium-only, so gate it
        * for Firefox. `scripting` + `activeTab` inject the camera/mic permission
@@ -77,10 +100,19 @@ export default defineConfig({
     };
   },
   hooks: {
-    // The recorder opens as an in-page overlay from action.onClicked;
-    // an anchored default_popup would swallow the click.
-    "build:manifestGenerated": (_wxt, manifest) => {
-      if (manifest.action) delete manifest.action.default_popup;
+    /*
+     * The recorder opens as an in-page overlay from action.onClicked; an
+     * anchored default_popup would swallow the click.
+     *
+     * The dev tooltip has to be set here too: WXT fills default_title from the
+     * popup entrypoint's <title>, overwriting whatever the manifest block said.
+     */
+    "build:manifestGenerated": (wxt, manifest) => {
+      if (!manifest.action) return;
+      delete manifest.action.default_popup;
+      if (wxt.config.mode !== "production") {
+        manifest.action.default_title = "CaptureFlow (dev)";
+      }
     },
   },
 });
