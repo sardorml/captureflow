@@ -134,6 +134,25 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
   const count = cat.features.length;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+
+  /*
+   * The dot's fill is the autoplay clock, so holding it paused is what keeps a
+   * section off screen from cycling through its slides unwatched — whichever
+   * one it landed on is the one waiting when you arrive. The inset margin means
+   * "meaningfully on screen", not "one pixel past the fold".
+   */
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { rootMargin: "-15% 0px -15% 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const featureKey = cat.features[index].key;
   const copy = featureCopy[featureKey];
@@ -148,119 +167,122 @@ function CategoryPanel({ cat, flip }: { cat: Category; flip: boolean }) {
     go(cat.features.findIndex((f) => f.key === key));
 
   return (
-    <Row gutter={[64, 40]} align="middle">
-      <Col xs={{ span: 24, order: 2 }} lg={{ span: 10, order: flip ? 1 : 2 }}>
-        {/* One demo at a time, with its whole description — three summaries
+    <div ref={panelRef}>
+      <Row gutter={[64, 40]} align="middle">
+        <Col xs={{ span: 24, order: 2 }} lg={{ span: 10, order: flip ? 1 : 2 }}>
+          {/* One demo at a time, with its whole description — three summaries
             side by side made every one of them shorter than it needed to be.
             The min-height is the tallest slide, so the arrows and the mockup
             don't shift as the copy changes. */}
-        <div
-          role="group"
-          aria-roledescription="carousel"
-          aria-label={catCopy.title}
-          tabIndex={0}
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onFocus={() => setPaused(true)}
-          onBlur={() => setPaused(false)}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowLeft") go(index - 1);
-            if (e.key === "ArrowRight") go(index + 1);
-          }}
-          className="flex flex-col gap-6 rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
-        >
-          <div className="min-h-[168px]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={featureKey}
-                {...FADE}
-                aria-roledescription="slide"
-                aria-label={nav.slide
-                  .replace("{n}", String(index + 1))
-                  .replace("{total}", String(count))}
-              >
-                <Text strong style={{ fontSize: 25, lineHeight: 1.3 }}>
-                  {copy.title}
-                </Text>
-                <Paragraph
-                  type="secondary"
-                  style={{
-                    maxWidth: 496,
-                    margin: "12px 0 0",
-                    fontSize: 18,
-                    lineHeight: 1.6,
-                  }}
+          <div
+            role="group"
+            aria-roledescription="carousel"
+            aria-label={catCopy.title}
+            tabIndex={0}
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+            onFocus={() => setPaused(true)}
+            onBlur={() => setPaused(false)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft") go(index - 1);
+              if (e.key === "ArrowRight") go(index + 1);
+            }}
+            className="flex flex-col gap-6 rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+          >
+            <div className="min-h-[168px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={featureKey}
+                  {...FADE}
+                  aria-roledescription="slide"
+                  aria-label={nav.slide
+                    .replace("{n}", String(index + 1))
+                    .replace("{total}", String(count))}
                 >
-                  {copy.body}
-                </Paragraph>
-              </motion.div>
-            </AnimatePresence>
-          </div>
+                  <Text strong style={{ fontSize: 25, lineHeight: 1.3 }}>
+                    {copy.title}
+                  </Text>
+                  <Paragraph
+                    type="secondary"
+                    style={{
+                      maxWidth: 496,
+                      margin: "12px 0 0",
+                      fontSize: 18,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {copy.body}
+                  </Paragraph>
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-          <div className="flex items-center gap-3.5">
-            <CarouselArrow label={nav.previous} onClick={() => go(index - 1)}>
-              <ChevronLeft className="size-[18px]" />
-            </CarouselArrow>
-            <CarouselArrow label={nav.next} onClick={() => go(index + 1)}>
-              <ChevronRight className="size-[18px]" />
-            </CarouselArrow>
-            <div className="flex items-center gap-2 ps-1">
-              {cat.features.map((f, i) => (
-                <button
-                  key={f.key}
-                  type="button"
-                  aria-label={featureCopy[f.key].title}
-                  aria-current={i === index}
-                  onClick={() => setIndex(i)}
-                  className={[
-                    "bg-line-strong h-[7px] cursor-pointer overflow-hidden rounded-full",
-                    i === index ? "w-[27px]" : "hover:bg-fg-muted w-[7px]",
-                  ].join(" ")}
-                >
-                  {i === index && (
-                    /* The dot IS the timer: it fills over the dwell time and
+            <div className="flex items-center gap-3.5">
+              <CarouselArrow label={nav.previous} onClick={() => go(index - 1)}>
+                <ChevronLeft className="size-[18px]" />
+              </CarouselArrow>
+              <CarouselArrow label={nav.next} onClick={() => go(index + 1)}>
+                <ChevronRight className="size-[18px]" />
+              </CarouselArrow>
+              <div className="flex items-center gap-2 ps-1">
+                {cat.features.map((f, i) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    aria-label={featureCopy[f.key].title}
+                    aria-current={i === index}
+                    onClick={() => setIndex(i)}
+                    className={[
+                      "bg-line-strong h-[7px] cursor-pointer overflow-hidden rounded-full",
+                      i === index ? "w-[27px]" : "hover:bg-fg-muted w-[7px]",
+                    ].join(" ")}
+                  >
+                    {i === index && (
+                      /* The dot IS the timer: it fills over the dwell time and
                        its animationend is what advances the carousel, so the
                        bar can never disagree with when the slide turns. */
-                    <span
-                      key={index}
-                      onAnimationEnd={() => go(index + 1)}
-                      style={{
-                        animationDuration: `${AUTOPLAY_MS}ms`,
-                        animationPlayState: paused ? "paused" : "running",
-                      }}
-                      className="animate-carousel-progress bg-accent block h-full w-full rounded-full"
-                    />
-                  )}
-                </button>
-              ))}
+                      <span
+                        key={index}
+                        onAnimationEnd={() => go(index + 1)}
+                        style={{
+                          animationDuration: `${AUTOPLAY_MS}ms`,
+                          animationPlayState:
+                            paused || !inView ? "paused" : "running",
+                        }}
+                        className="animate-carousel-progress bg-accent block h-full w-full rounded-full"
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </Col>
+        </Col>
 
-      <Col xs={{ span: 24, order: 1 }} lg={{ span: 14, order: flip ? 2 : 1 }}>
-        {/* No Card: the scene paints its own panel, and a card around it just
+        <Col xs={{ span: 24, order: 1 }} lg={{ span: 14, order: flip ? 2 : 1 }}>
+          {/* No Card: the scene paints its own panel, and a card around it just
             drew a second frame with a gap of nothing between the two. */}
-        <div style={{ maxWidth: MOCKUP_MAX_WIDTH, marginInline: "auto" }}>
-          <ScaledMockup>
-            <MockupScene kind={cat.kind} chips={chips}>
-              {cat.kind === "share" && (
-                <ShareFrame activeKey={featureKey as ShareKey} />
-              )}
-              {cat.kind === "screenshot" && (
-                <ScreenshotFrame activeKey={featureKey as ScreenshotKey} />
-              )}
-              {cat.kind === "workspaces" && (
-                <WorkspaceCard
-                  visibility={featureKey as VisibilityKey}
-                  onVisibilityChange={setFeatureKey}
-                />
-              )}
-            </MockupScene>
-          </ScaledMockup>
-        </div>
-      </Col>
-    </Row>
+          <div style={{ maxWidth: MOCKUP_MAX_WIDTH, marginInline: "auto" }}>
+            <ScaledMockup>
+              <MockupScene kind={cat.kind} chips={chips}>
+                {cat.kind === "share" && (
+                  <ShareFrame activeKey={featureKey as ShareKey} />
+                )}
+                {cat.kind === "screenshot" && (
+                  <ScreenshotFrame activeKey={featureKey as ScreenshotKey} />
+                )}
+                {cat.kind === "workspaces" && (
+                  <WorkspaceCard
+                    visibility={featureKey as VisibilityKey}
+                    onVisibilityChange={setFeatureKey}
+                  />
+                )}
+              </MockupScene>
+            </ScaledMockup>
+          </div>
+        </Col>
+      </Row>
+    </div>
   );
 }
 
