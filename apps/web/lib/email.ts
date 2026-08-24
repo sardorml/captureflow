@@ -12,6 +12,7 @@ type SendArgs = {
   subject: string;
   html: string;
   text: string;
+  replyTo?: string;
 };
 
 async function sendEmail(args: SendArgs): Promise<boolean> {
@@ -39,6 +40,7 @@ async function sendEmail(args: SendArgs): Promise<boolean> {
         subject: args.subject,
         html: args.html,
         text: args.text,
+        ...(args.replyTo ? { reply_to: args.replyTo } : {}),
       }),
     });
     if (!res.ok) {
@@ -80,7 +82,7 @@ export async function sendWorkspaceInviteEmail(args: {
     `Accept the invitation:`,
     args.acceptUrl,
     "",
-    `Workspaces let teammates recording screen recordings and screenshots privately. The link expires in 7 days.`,
+    `Workspaces let teammates share recordings and screenshots privately. The link expires in 7 days.`,
     "",
     `If you weren't expecting this invite, you can ignore this email.`,
   ].join("\n");
@@ -100,7 +102,7 @@ export async function sendWorkspaceInviteEmail(args: {
           <p style="margin:0 0 20px 0; color:#a3a3a3; line-height:1.55;">
             <strong style="color:#e5e5e5;">${inviterSafe}</strong>
             (<a href="mailto:${inviterEmailSafe}" style="color:#a3a3a3;">${inviterEmailSafe}</a>)
-            invited you to join their workspace on CaptureFlow. Workspaces let teammates recording screen recordings and screenshots privately.
+            invited you to join their workspace on CaptureFlow. Workspaces let teammates share recordings and screenshots privately.
           </p>
           <p style="margin:0 0 24px 0;">
             <a href="${acceptSafe}" style="display:inline-block; padding:12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600;">Accept invitation</a>
@@ -114,7 +116,15 @@ export async function sendWorkspaceInviteEmail(args: {
   </body>
 </html>`;
 
-  return sendEmail({ to: args.to, subject, html, text });
+  // The invite names a person, so a reply should reach them rather than the
+  // unattended sending address.
+  return sendEmail({
+    to: args.to,
+    subject,
+    html,
+    text,
+    replyTo: args.inviterEmail,
+  });
 }
 
 export async function sendAccessRequestEmail(args: {
@@ -187,5 +197,12 @@ export async function sendAccessRequestEmail(args: {
   </body>
 </html>`;
 
-  return sendEmail({ to: args.to, subject, html, text });
+  // Same as the invite: the owner's reply belongs with the person asking.
+  return sendEmail({
+    to: args.to,
+    subject,
+    html,
+    text,
+    replyTo: args.requesterEmail,
+  });
 }
