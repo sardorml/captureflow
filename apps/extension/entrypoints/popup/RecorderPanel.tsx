@@ -8,7 +8,6 @@ import {
   type RecordingResult,
   type RecordingStatus,
 } from "@/lib/storage";
-import { MAX_DURATION_MS } from "@/lib/capture/limits";
 import { isOverlaySurface } from "@/lib/surface";
 import { DevicePickers } from "./DevicePickers";
 import { PANEL_ROW } from "./panel";
@@ -287,15 +286,6 @@ export function RecorderPanel({
           {BUSY_LABEL[status.kind] ?? "Start Recording"}
         </Button>
       )}
-      <Typography
-        type="body-xs"
-        color="muted"
-        align="center"
-        className="-mt-1.5"
-      >
-        {Math.round(MAX_DURATION_MS / 60_000)} min recording limit
-      </Typography>
-
       <StatusLine status={status} result={result} />
     </div>
   );

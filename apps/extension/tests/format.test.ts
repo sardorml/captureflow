@@ -12,6 +12,15 @@ describe("formatClock", () => {
   it("clamps negatives to zero", () => {
     expect(formatClock(-5_000)).toBe("0:00");
   });
+
+  // Nothing caps a recording's length, so the clock has to stay readable past
+  // an hour rather than running the minutes up unbounded.
+  it("grows an hours field once past an hour", () => {
+    expect(formatClock(3_600_000)).toBe("1:00:00");
+    expect(formatClock(3_600_000 + 65_000)).toBe("1:01:05");
+    expect(formatClock(2 * 3_600_000 + 7_000)).toBe("2:00:07");
+    expect(formatClock(59 * 60_000 + 59_000)).toBe("59:59");
+  });
 });
 
 describe("formatBytes", () => {

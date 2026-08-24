@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ACCOUNT_LIMITS } from "@captureflow/quota";
 import { getRecording, updateRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
 import { completeMultipartUpload, headObject } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
+import { exceedsStorage } from "@/lib/recording/quota";
 import type { FinalizeRequest } from "@/lib/recording/types";
 
 const DEVICE_HEADER = "x-captureflow-device";
@@ -43,8 +43,8 @@ export async function POST(req: NextRequest) {
   const sizeBytes = body.sizeBytes;
   if (
     typeof sizeBytes !== "number" ||
-    sizeBytes <= 0 ||
-    sizeBytes > ACCOUNT_LIMITS.perRecordingSizeBytes
+    !Number.isFinite(sizeBytes) ||
+    sizeBytes <= 0
   ) {
     return jsonError("Invalid size", 400, "invalid_size");
   }
@@ -63,6 +63,11 @@ export async function POST(req: NextRequest) {
     !row.webcamStorageKey
   ) {
     return jsonError("Webcam not finalizable", 409, "wrong_state");
+  }
+
+  // The companion stream draws on the same storage as the screen track.
+  if (await exceedsStorage(deviceId, row, sizeBytes)) {
+    return jsonError("Storage cap reached", 413, "storage_limit");
   }
 
   await completeMultipartUpload(

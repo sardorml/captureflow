@@ -184,6 +184,9 @@ export type RecordingUpload = {
   readonly hasWebcam: boolean;
   readonly screenBytes: number;
   readonly webcamBytes: number;
+  // Bytes this recording may still add before it fills the account's storage,
+  // or null when the deployment reported no cap.
+  readonly remainingBytes: number | null;
   pushScreen(bytes: Uint8Array): void;
   pushWebcam(bytes: Uint8Array): void;
   uploadPoster(bytes: Uint8Array): Promise<void>;
@@ -222,6 +225,7 @@ export async function startRecordingUpload(
   return {
     slug,
     hasWebcam: webcam !== null,
+    remainingBytes: res.remainingBytes ?? null,
     get screenBytes() {
       return screen.totalBytes;
     },

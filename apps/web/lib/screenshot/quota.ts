@@ -24,7 +24,6 @@ export async function getEffectiveLimitsForUser(
     return {
       storageBytes: ACCOUNT_LIMITS.totalStorageBytes,
       activeArtifacts: ACCOUNT_LIMITS.activeArtifactsPerAccount,
-      perRecordingDurationMs: ACCOUNT_LIMITS.perRecordingDurationMs,
       proSubscriptionActive: false,
     };
   }

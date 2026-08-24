@@ -21,10 +21,16 @@ export type InitRequest = {
   workspaceId?: string;
 };
 
+/*
+ * `remainingBytes` is how far this recording may grow before it fills the
+ * account's storage — the client stops itself there. Absent means unmetered,
+ * which is a dev device, where no cap was read.
+ */
 export type InitResponse = {
   slug: string;
   uploadId: string;
   storageKey: string;
+  remainingBytes?: number;
   webcamUploadId?: string;
   webcamStorageKey?: string;
 };

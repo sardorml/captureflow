@@ -28,7 +28,7 @@ Two assumptions are **wrong against the actual code** and are treated as hard co
 
 Everything else checks out: the multipart sequence, `CHUNK_BYTES = 5 MiB` and
 `MAX_PART_BYTES = 100 MiB`, idempotent `finalize` (returns the URL when `state === "ready"`),
-the no-auth `state` probe, `MAX_POSTER_BYTES = 2 MiB`, and `perRecordingDurationMs ≈ 3602s`
+the no-auth `state` probe, and `MAX_POSTER_BYTES = 2 MiB`
 (`packages/quota/src/limits.ts`).
 
 ---
@@ -445,10 +445,11 @@ lifecycle, message routing.
   Chrome/Brave (macOS). `chrome.desktopCapture` from the service worker was ruled out (Decision 1).
 - **Published extension ID** is required for Backend Change 2 (`chromiumapp.org` allow-list) and is
   a Phase-1 blocker; pin a `key` in the manifest / reserve the Web Store listing to fix the ID early.
-- **Duration cap is mandatory client-side enforcement.** The server only checks
-  `perRecordingDurationMs` when `durationMs` is sent at `init`, which a streaming recorder doesn't know,
-  and `finalize` does not re-check duration. → enforce a hard client stop (default **30 min** for
-  v1) and/or send a conservative `durationMs` estimate at `init`.
+- **Storage is the only cap — RESOLVED.** The clock is gone: no `MAX_DURATION_MS`, and no
+  per-recording byte ceiling. `/init` returns `remainingBytes` (the account's storage minus what it
+  has used) and the recorder stops when the streamed bytes reach it, so a tier buys space rather
+  than minutes. `finalize` re-checks the same number instead of trusting the client's `sizeBytes`,
+  refusing before the multipart completes so an over-cap upload never lands as a billable object.
 - **Single offscreen document** — creating a second silently kills the first; guard every
   `createDocument` with `hasDocument()`; one long-lived doc carries both `DISPLAY_MEDIA` +
   `USER_MEDIA` reasons.

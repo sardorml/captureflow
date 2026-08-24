@@ -17,7 +17,6 @@ import type {
   RecordingResultPayload,
   RecordingStatus,
 } from "../storage";
-import { MAX_DURATION_MS } from "./limits";
 
 type Callbacks = {
   onStatus: (status: RecordingStatus) => void;
@@ -213,6 +212,17 @@ async function runSession(
   // `session` is created after the recorders; the ref keeps a track that ends
   // in that window from hitting the uninitialized binding.
   let sessionRef: SessionCommands | null = null;
+
+  /*
+   * Storage is the only ceiling, so the recording runs until the account has no
+   * room left rather than against a clock. Checked as bytes are produced, which
+   * is what keeps the stop honest: the upload streams while recording, so by the
+   * time the budget is gone those bytes are already committed.
+   */
+  const storageSpent = (): boolean =>
+    upload.remainingBytes !== null &&
+    upload.screenBytes + upload.webcamBytes >= upload.remainingBytes;
+
   let screenRecorder: StreamRecorder;
   try {
     screenRecorder = await startStreamRecorder({
@@ -220,7 +230,10 @@ async function runSession(
       micStream,
       // fMP4 fragments are strictly appended, so position is ignorable; copy
       // because the muxer reuses its output buffer.
-      output: (bytes) => upload.pushScreen(bytes.slice()),
+      output: (bytes) => {
+        upload.pushScreen(bytes.slice());
+        if (storageSpent()) sessionRef?.stop();
+      },
       // Covers the browser's native "Stop sharing" control and fatal encode
       // errors — both end the whole recording.
       onEnded: () => sessionRef?.stop(),
@@ -241,7 +254,10 @@ async function runSession(
         webcamStream,
         // Mic rides the same getUserMedia stream as the camera (Decision 4).
         micStream: webcamStream,
-        onChunk: (buf) => upload.pushWebcam(new Uint8Array(buf)),
+        onChunk: (buf) => {
+          upload.pushWebcam(new Uint8Array(buf));
+          if (storageSpent()) sessionRef?.stop();
+        },
       });
     } catch {
       webcamRecorder = null;
@@ -253,8 +269,6 @@ async function runSession(
   let pausedAt: number | null = null;
   const activeElapsed = (): number =>
     (pausedAt ?? Date.now()) - startedAt - pausedMs;
-
-  let capTimer = setTimeout(() => session.stop(), MAX_DURATION_MS);
 
   const stopRecorders = async (): Promise<void> => {
     await Promise.all([
@@ -302,13 +316,11 @@ async function runSession(
     stop() {
       if (ended) return;
       ended = true;
-      clearTimeout(capTimer);
       void finalize();
     },
     pause() {
       if (ended || pausedAt !== null) return;
       pausedAt = Date.now();
-      clearTimeout(capTimer);
       void screenRecorder.pause();
       webcamRecorder?.pause();
       cb.onStatus({ kind: "paused", startedAt, pausedMs, pausedAt });
@@ -319,23 +331,17 @@ async function runSession(
       pausedAt = null;
       screenRecorder.resume();
       webcamRecorder?.resume();
-      capTimer = setTimeout(
-        () => session.stop(),
-        Math.max(1_000, MAX_DURATION_MS - activeElapsed()),
-      );
       cb.onStatus({ kind: "recording", startedAt, pausedMs });
     },
     restart() {
       if (ended) return;
       ended = true;
-      clearTimeout(capTimer);
       cb.onStatus({ kind: "preparing" });
       void discardSession().then(() => endSession("restart"));
     },
     discard() {
       if (ended) return;
       ended = true;
-      clearTimeout(capTimer);
       void discardSession().then(() => {
         stopAllTracks();
         cb.onStatus({ kind: "cancelled" });

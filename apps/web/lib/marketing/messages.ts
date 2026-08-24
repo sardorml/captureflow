@@ -126,7 +126,6 @@ export const MESSAGES = {
       on: "On",
       off: "Off",
       startRecording: "Start Recording",
-      limit: "30 min recording limit",
       effects: "Effects",
       blur: "Blur",
       more: "More",

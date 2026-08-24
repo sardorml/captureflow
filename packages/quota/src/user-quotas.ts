@@ -13,7 +13,6 @@ import { getActiveProSubscription } from "./pro-subscription";
 export type EffectiveLimits = {
   storageBytes: number;
   activeArtifacts: number;
-  perRecordingDurationMs: number;
   proSubscriptionActive: boolean;
 };
 
@@ -46,14 +45,10 @@ export async function getEffectiveLimitsForUser(
   const baseArtifacts = subscription
     ? PRO_SUBSCRIPTION_LIMITS.activeArtifactsPerAccount
     : ACCOUNT_LIMITS.activeArtifactsPerAccount;
-  const baseRecordingDurationMs = subscription
-    ? PRO_SUBSCRIPTION_LIMITS.perRecordingDurationMs
-    : ACCOUNT_LIMITS.perRecordingDurationMs;
 
   return {
     storageBytes: override?.storage_bytes_override ?? baseStorage,
     activeArtifacts: override?.active_recordings_override ?? baseArtifacts,
-    perRecordingDurationMs: baseRecordingDurationMs,
     proSubscriptionActive: subscription !== null,
   };
 }
