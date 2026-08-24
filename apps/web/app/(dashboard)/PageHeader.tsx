@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-import { Video } from "lucide-react";
-import { buttonVariants } from "@heroui/react";
+import { RecordButton } from "./RecordButton";
 
 type Props = {
   title: string;
@@ -33,15 +32,7 @@ export function PageHeader({
       {(actions || showRecord) && (
         <div className="flex items-center gap-2">
           {actions}
-          {showRecord && (
-            <a
-              href="captureflow://record"
-              className={buttonVariants({ variant: "primary" })}
-            >
-              <Video size={16} />
-              New recording
-            </a>
-          )}
+          {showRecord && <RecordButton label="New recording" />}
         </div>
       )}
     </div>

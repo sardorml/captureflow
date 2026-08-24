@@ -5,12 +5,14 @@ import type { AuthSession } from "./session";
 // with apps/web (ExtensionHandoff for auth, UserMenu for logout).
 export const EXTERNAL_AUTH_KIND = "captureflow-auth";
 export const EXTERNAL_LOGOUT_KIND = "captureflow-logout";
+export const EXTERNAL_RECORD_KIND = "captureflow-record";
 
 const AUTH_CALLBACK_PATH = "/auth/callback";
 
 export type ExternalMessage =
   | { kind: "auth"; session: AuthSession }
-  | { kind: "logout" };
+  | { kind: "logout" }
+  | { kind: "record" };
 
 /*
  * Defense-in-depth over externally_connectable: only the web app's own callback
@@ -31,8 +33,11 @@ export function isTrustedAuthSender(senderUrl: string | undefined): boolean {
   );
 }
 
-// Logout carries no token, so accept it from any page on the web origin — a
-// hostile same-origin page could only force a re-login, not leak anything.
+/*
+ * Logout and record carry no token, so accept them from any page on the web
+ * origin — a hostile same-origin page could only force a re-login or pop the
+ * recorder panel open, neither of which leaks anything.
+ */
 export function isTrustedWebOrigin(senderUrl: string | undefined): boolean {
   if (!senderUrl) return false;
   try {
@@ -48,6 +53,7 @@ export function parseExternalMessage(message: unknown): ExternalMessage | null {
   if (typeof message !== "object" || message === null) return null;
   const m = message as Record<string, unknown>;
   if (m.kind === EXTERNAL_LOGOUT_KIND) return { kind: "logout" };
+  if (m.kind === EXTERNAL_RECORD_KIND) return { kind: "record" };
   if (m.kind === EXTERNAL_AUTH_KIND) {
     const token = typeof m.token === "string" ? m.token : "";
     const tokenId = typeof m.id === "string" ? m.id : "";

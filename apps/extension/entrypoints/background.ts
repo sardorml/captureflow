@@ -323,14 +323,15 @@ export default defineBackground(() => {
   /*
    * The web app posts auth (from the callback page) and logout (from any of its
    * pages) here. externally_connectable can't gate by path/port, so re-check the
-   * sender per kind: auth needs the exact callback page, logout just the origin.
+   * sender per kind: auth needs the exact callback page; logout and record just
+   * the origin.
    */
   chrome.runtime.onMessageExternal.addListener((message, sender, respond) => {
     const parsed = parseExternalMessage(message);
     const trusted =
       parsed?.kind === "auth"
         ? isTrustedAuthSender(sender.url)
-        : parsed?.kind === "logout"
+        : parsed?.kind === "logout" || parsed?.kind === "record"
           ? isTrustedWebOrigin(sender.url)
           : false;
     if (!parsed || !trusted) {
@@ -339,6 +340,16 @@ export default defineBackground(() => {
     }
     void (async () => {
       try {
+        if (parsed.kind === "record") {
+          /*
+           * The dashboard's own "New recording" button. Answer first: the panel
+           * takes over the tab that is waiting on this, and the page needs the
+           * yes in order not to fall through to the store listing.
+           */
+          respond({ ok: true });
+          await toggleOverlayOnActiveTab();
+          return;
+        }
         if (parsed.kind === "logout") {
           await setAuthSession(null);
         } else {
