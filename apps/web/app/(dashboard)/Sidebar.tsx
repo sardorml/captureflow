@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  countWorkspaceItems,
+  countWorkspaceRecordings,
   listMembers,
   totalStorageForUser,
 } from "@captureflow/quota";
@@ -28,12 +28,12 @@ export async function Sidebar() {
     getEffectiveStorageLimit(session.user.id),
   ]);
 
-  const [members, itemCounts] = env?.DB
+  const [members, recordingCount] = env?.DB
     ? await Promise.all([
         listMembers(env.DB, current.workspace.id),
-        countWorkspaceItems(env.DB, current.workspace.id),
+        countWorkspaceRecordings(env.DB, current.workspace.id),
       ])
-    : [[], { recordings: 0, screenshots: 0 }];
+    : [[], 0];
   const isOwner = current.role === "owner";
   const memberItems: AvatarGroupItem[] = members.map((m) => {
     const display = m.name?.trim() || m.email;
@@ -57,8 +57,7 @@ export async function Sidebar() {
           currentWorkspaceId={current.workspace.id}
           memberships={current.memberships}
           memberCount={members.length}
-          recordingCount={itemCounts.recordings}
-          screenshotCount={itemCounts.screenshots}
+          recordingCount={recordingCount}
           canInvite={isOwner}
         />
         <div className="mt-2.5 px-1">
