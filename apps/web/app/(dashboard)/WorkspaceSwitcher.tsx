@@ -2,7 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 import { ChevronsUpDown } from "lucide-react";
-import { Avatar, Dropdown, buttonVariants } from "@heroui/react";
+import { Avatar, Chip, Dropdown, buttonVariants } from "@heroui/react";
 import type { WorkspaceMembership } from "@captureflow/quota";
 import { initials } from "@/lib/format";
 import { workspaceLogoUrl } from "@/lib/site";
@@ -88,9 +88,19 @@ export function WorkspaceSwitcher({
             {memberships.map((m) => (
               <Dropdown.Item key={m.workspace_id} id={m.workspace_id}>
                 <WorkspaceMark membership={m} size={22} />
-                <span className="flex flex-col">
-                  <span className="font-medium text-fg">
-                    {m.workspace_name}
+                <span className="flex min-w-0 flex-col">
+                  <span className="flex items-center gap-1.5">
+                    <span className="truncate font-medium text-fg">
+                      {m.workspace_name}
+                    </span>
+                    {/* The selected row is also where anything recorded from
+                        the extension or the desktop app lands, which the
+                        checkmark alone doesn't say. */}
+                    {m.workspace_id === currentWorkspaceId && (
+                      <Chip size="sm" color="accent" className="shrink-0">
+                        Default
+                      </Chip>
+                    )}
                   </span>
                   <span className="text-xs text-fg-muted">
                     {m.role === "owner" ? "You own this" : "You joined"}
@@ -99,6 +109,10 @@ export function WorkspaceSwitcher({
               </Dropdown.Item>
             ))}
           </Dropdown.Menu>
+          {/* Says once what the badge means, rather than per row. */}
+          <p className="border-t border-line px-3 py-2 text-xs text-fg-subtle">
+            New recordings and screenshots save to your default workspace.
+          </p>
         </Dropdown.Popover>
       </Dropdown>
 
