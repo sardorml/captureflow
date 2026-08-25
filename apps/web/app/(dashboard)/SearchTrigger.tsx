@@ -78,16 +78,22 @@ export function SearchTrigger() {
 
   return (
     <>
+      {/* Narrow viewports get the icon alone: the full label is the widest
+          thing in the bar and wraps to three lines long before it runs out of
+          room. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-9 w-full max-w-xl cursor-pointer items-center gap-2 rounded-md border border-line-strong bg-panel px-3 text-sm text-fg-subtle transition-colors hover:bg-tint"
+        aria-label="Search your recordings and screenshots"
+        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md border border-line-strong bg-panel text-sm text-fg-subtle transition-colors hover:bg-tint sm:w-full sm:max-w-xl sm:justify-start sm:gap-2 sm:px-3"
       >
-        <Search size={16} />
-        <span className="flex-1 text-left">
+        <Search size={16} className="shrink-0" />
+        <span className="hidden flex-1 truncate text-left sm:block">
           Search your recordings and screenshots
         </span>
-        <Kbd>⌘K</Kbd>
+        <span className="hidden md:block">
+          <Kbd>⌘K</Kbd>
+        </span>
       </button>
 
       <Modal isOpen={open} onOpenChange={setOpen}>
