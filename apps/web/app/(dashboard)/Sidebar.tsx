@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { UserPlus } from "lucide-react";
-import { Button } from "@heroui/react";
-import { listMembers, totalStorageForUser } from "@captureflow/quota";
+import {
+  countWorkspaceRecordings,
+  listMembers,
+  totalStorageForUser,
+} from "@captureflow/quota";
 import type { AvatarGroupItem } from "@captureflow/ui";
 import { BrandMark } from "@/components/brand-mark";
 import { RecordButton } from "./RecordButton";
@@ -11,7 +13,6 @@ import { requireSession } from "@/lib/session-guard";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { getEffectiveStorageLimit } from "@/lib/user-quota";
 import { StorageUsage } from "../StorageUsage";
-import { InviteModal } from "./InviteModal";
 import { SidebarNav } from "./SidebarNav";
 import { WorkspaceMembersStack } from "./WorkspaceMembersStack";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
@@ -27,9 +28,12 @@ export async function Sidebar() {
     getEffectiveStorageLimit(session.user.id),
   ]);
 
-  const members = env?.DB
-    ? await listMembers(env.DB, current.workspace.id)
-    : [];
+  const [members, recordingCount] = env?.DB
+    ? await Promise.all([
+        listMembers(env.DB, current.workspace.id),
+        countWorkspaceRecordings(env.DB, current.workspace.id),
+      ])
+    : [[], 0];
   const isOwner = current.role === "owner";
   const memberItems: AvatarGroupItem[] = members.map((m) => {
     const display = m.name?.trim() || m.email;
@@ -52,18 +56,9 @@ export async function Sidebar() {
         <WorkspaceSwitcher
           currentWorkspaceId={current.workspace.id}
           memberships={current.memberships}
-          inviteSlot={
-            isOwner ? (
-              <InviteModal
-                trigger={
-                  <Button variant="ghost" fullWidth className="justify-start">
-                    <UserPlus size={16} />
-                    Invite teammates
-                  </Button>
-                }
-              />
-            ) : undefined
-          }
+          memberCount={members.length}
+          recordingCount={recordingCount}
+          canInvite={isOwner}
         />
         <div className="mt-2.5 px-1">
           <WorkspaceMembersStack items={memberItems} canInvite={isOwner} />

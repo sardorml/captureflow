@@ -602,3 +602,14 @@ export async function setCurrentWorkspaceId(
     .bind(userId, workspaceId)
     .run();
 }
+
+export async function countWorkspaceRecordings(
+  db: D1Database,
+  workspaceId: string,
+): Promise<number> {
+  const row = await db
+    .prepare(`SELECT COUNT(*) AS n FROM recordings WHERE workspace_id = ?1`)
+    .bind(workspaceId)
+    .first<{ n: number }>();
+  return row?.n ?? 0;
+}

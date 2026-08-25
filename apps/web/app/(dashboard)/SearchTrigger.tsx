@@ -83,8 +83,8 @@ export function SearchTrigger() {
         onClick={() => setOpen(true)}
         className="flex h-9 w-full max-w-xl cursor-pointer items-center gap-2 rounded-md border border-line-strong bg-panel px-3 text-sm text-fg-subtle transition-colors hover:bg-tint"
       >
-        <Search size={16} />
-        <span className="flex-1 text-left">
+        <Search size={16} className="shrink-0" />
+        <span className="flex-1 truncate text-left">
           Search your recordings and screenshots
         </span>
         <Kbd>⌘K</Kbd>

@@ -32,7 +32,13 @@ export function PageHeader({
       {(actions || showRecord) && (
         <div className="flex items-center gap-2">
           {actions}
-          {showRecord && <RecordButton label="New recording" />}
+          {/* Recording needs the desktop app or the extension, so the button
+              has nothing to offer a phone. */}
+          {showRecord && (
+            <div className="hidden md:block">
+              <RecordButton label="New recording" />
+            </div>
+          )}
         </div>
       )}
     </div>

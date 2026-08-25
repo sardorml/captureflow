@@ -115,9 +115,13 @@ function PopoverTool({
           <span className="text-center text-[10px] leading-tight">{label}</span>
         </button>
       </Popover.Trigger>
+      {/* Popover.Content is only the positioned container; Popover.Dialog is
+          the slot that carries the padding. */}
       <Popover.Content placement="left top" className="w-60">
-        <Popover.Heading>{title}</Popover.Heading>
-        <div className="mt-2">{content}</div>
+        <Popover.Dialog>
+          <Popover.Heading>{title}</Popover.Heading>
+          <div className="mt-2">{content}</div>
+        </Popover.Dialog>
       </Popover.Content>
     </Popover>
   );
