@@ -57,6 +57,17 @@ html:has([data-marketing]) body {
   display: inline-flex;
 }
 
+/* HeroUI caps every dropdown at 48svw. On a phone that is narrower than the
+   menus themselves — the account menu asks for w-64 and gets 187px, so
+   "Connected devices" wraps and the email truncates mid-word. Below md, where
+   HeroUI also drops its own min-width, let a menu use the viewport instead.
+   Desktop keeps the 48svw cap. */
+@media (width < 48rem) {
+  .dropdown__popover {
+    max-width: calc(100vw - 2rem);
+  }
+}
+
 /* Showcase panel behind the toolbar mockup — a defined surface in both themes
    (soft slate in light, raised neutral in dark). Default (no attr) is dark. */
 :root,

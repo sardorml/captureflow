@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { SidebarDrawer } from "@/app/_components/SidebarDrawer";
 
 export function DashboardShell({
   sidebar,
@@ -20,8 +21,13 @@ export function DashboardShell({
         {sidebar}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 shrink-0 items-center border-b border-line bg-canvas-2 px-6">
-          {header}
+        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-line bg-canvas-2 px-4 md:px-6">
+          {/* Below md the aside is hidden, so the drawer is the only way to
+              reach the workspace switcher and the nav. */}
+          <div className="md:hidden">
+            <SidebarDrawer>{sidebar}</SidebarDrawer>
+          </div>
+          <div className="min-w-0 flex-1">{header}</div>
         </header>
         <main className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-[1152px] p-8">{children}</div>

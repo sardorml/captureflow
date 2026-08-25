@@ -29,10 +29,13 @@ export async function TopBar() {
 
   return (
     <div className="flex w-full items-center justify-between gap-4">
-      <div className="flex min-w-0 flex-1 justify-center">
+      {/* Below md the drawer toggle takes this slot instead — see DashboardShell. */}
+      <div className="hidden min-w-0 flex-1 justify-center md:flex">
         <SearchTrigger />
       </div>
-      <div className="flex items-center gap-2">
+      {/* ml-auto because below md the search slot is display:none, which leaves
+          justify-between a single child to push around. */}
+      <div className="ml-auto flex items-center gap-2">
         {!isPro && (
           <UpgradeModal
             email={session.user.email}
