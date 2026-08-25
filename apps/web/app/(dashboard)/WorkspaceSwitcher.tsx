@@ -82,6 +82,7 @@ export function WorkspaceSwitcher({
   canInvite,
 }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [isOpen, setOpen] = useState(false);
   const [isInviting, setInviting] = useState(false);
   const current =
@@ -114,7 +115,7 @@ export function WorkspaceSwitcher({
           without you having to open anything. The info button sits outside the
           Dropdown because React Aria's press context would otherwise route its
           press to the trigger. */}
-      <div className="rounded-xl border border-line bg-canvas-2">
+      <div ref={cardRef} className="rounded-xl border border-line bg-canvas-2">
         <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
           <Dropdown.Trigger
             aria-label="Switch workspace"
@@ -125,10 +126,16 @@ export function WorkspaceSwitcher({
             </span>
             <ChevronsUpDown size={14} className="shrink-0 text-fg-muted" />
           </Dropdown.Trigger>
-          {/* outline-none because HeroUI resets the popover's focus ring with
+          {/* Anchored to the card rather than to the trigger row, so it opens
+              clear of the Default line instead of on top of it. outline-none
+              because HeroUI resets the popover's focus ring with
               `:focus-visible:not(:focus)`, which never matches — so the browser
               draws its own ring around the whole panel on open. */}
-          <Dropdown.Popover className="min-w-64 outline-none">
+          <Dropdown.Popover
+            triggerRef={cardRef}
+            placement="bottom start"
+            className="min-w-64 outline-none"
+          >
             <div className="flex flex-col items-center gap-2 px-4 pt-4 pb-3 text-center">
               <WorkspaceMark membership={current} size={48} />
               <span className="truncate font-semibold text-fg">
