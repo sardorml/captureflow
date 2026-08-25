@@ -90,7 +90,6 @@ export function WorkspaceSwitcher({
   if (!current) return null;
 
   const choose = (workspaceId: string) => {
-    if (workspaceId === currentWorkspaceId) return;
     const input = formRef.current?.querySelector<HTMLInputElement>(
       "input[name=workspaceId]",
     );
@@ -102,7 +101,12 @@ export function WorkspaceSwitcher({
   const plural = (n: number, noun: string) =>
     `${n} ${noun}${n === 1 ? "" : "s"}`;
 
-  const canSwitch = memberships.length > 1;
+  // The card above already is the current workspace; the list is what you can
+  // move to.
+  const others = memberships.filter(
+    (m) => m.workspace_id !== current.workspace_id,
+  );
+  const canSwitch = others.length > 0;
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -140,12 +144,8 @@ export function WorkspaceSwitcher({
             {canSwitch && (
               <>
                 <hr className="border-line" />
-                <Dropdown.Menu
-                  selectionMode="single"
-                  selectedKeys={[currentWorkspaceId]}
-                  onAction={(key) => choose(String(key))}
-                >
-                  {memberships.map((m) => (
+                <Dropdown.Menu onAction={(key) => choose(String(key))}>
+                  {others.map((m) => (
                     <Dropdown.Item key={m.workspace_id} id={m.workspace_id}>
                       <WorkspaceMark membership={m} size={22} />
                       <span className="flex min-w-0 flex-col">
