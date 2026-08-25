@@ -18,10 +18,21 @@ type Result = { sent: string[]; failed: { email: string; error: string }[] };
 type InviteModalProps = {
   // Rendered as a child, never cloned — see the wrapper below.
   trigger?: ReactElement;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
-export function InviteModal({ trigger }: InviteModalProps = {}) {
-  const [open, setOpen] = useState(false);
+export function InviteModal({
+  trigger,
+  isOpen,
+  onOpenChange,
+}: InviteModalProps = {}) {
+  const [ownOpen, setOwnOpen] = useState(false);
+  // Controlled when a caller passes isOpen — the workspace switcher opens this
+  // from inside a popover it has to close first, so the trigger can't live here.
+  const controlled = isOpen !== undefined;
+  const open = isOpen ?? ownOpen;
+  const setOpen = onOpenChange ?? setOwnOpen;
   const [emails, setEmails] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -83,13 +94,6 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
     });
   };
 
-  const triggerNode = trigger ?? (
-    <Button variant="secondary">
-      <UserPlus size={16} />
-      Invite teammates
-    </Button>
-  );
-
   return (
     <>
       {/*
@@ -100,9 +104,16 @@ export function InviteModal({ trigger }: InviteModalProps = {}) {
        * invalid". Capture phase, because React Aria's usePress calls
        * stopPropagation() on click, so a bubbling handler here never fires.
        */}
-      <span className="contents" onClickCapture={() => setOpen(true)}>
-        {triggerNode}
-      </span>
+      {!controlled && (
+        <span className="contents" onClickCapture={() => setOpen(true)}>
+          {trigger ?? (
+            <Button variant="secondary">
+              <UserPlus size={16} />
+              Invite teammates
+            </Button>
+          )}
+        </span>
+      )}
       <Modal
         isOpen={open}
         onOpenChange={(next) => {

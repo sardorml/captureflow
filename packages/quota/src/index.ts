@@ -17,6 +17,7 @@ export {
   getWorkspaceById,
   ensurePersonalWorkspace,
   listWorkspacesForUser,
+  countWorkspaceItems,
   getCurrentWorkspaceId,
   setCurrentWorkspaceId,
   isWorkspaceMember,

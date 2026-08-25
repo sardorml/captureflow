@@ -602,3 +602,25 @@ export async function setCurrentWorkspaceId(
     .bind(userId, workspaceId)
     .run();
 }
+
+/*
+ * What the workspace holds, for the switcher's summary line. One round trip
+ * rather than two: the counts are always read together and neither is worth a
+ * query of its own on a sidebar that renders on every dashboard page.
+ */
+export async function countWorkspaceItems(
+  db: D1Database,
+  workspaceId: string,
+): Promise<{ recordings: number; screenshots: number }> {
+  const row = await db
+    .prepare(
+      `SELECT (SELECT COUNT(*) FROM recordings  WHERE workspace_id = ?1) AS recordings,
+              (SELECT COUNT(*) FROM screenshots WHERE workspace_id = ?1) AS screenshots`,
+    )
+    .bind(workspaceId)
+    .first<{ recordings: number; screenshots: number }>();
+  return {
+    recordings: row?.recordings ?? 0,
+    screenshots: row?.screenshots ?? 0,
+  };
+}
