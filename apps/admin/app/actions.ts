@@ -2,15 +2,17 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
   ADMIN_COOKIE,
   type AdminRole,
   MIN_PASSWORD_LENGTH,
+  checkThrottle,
   claimInvite,
   clearSetupTokens,
+  clearThrottle,
   consumeSetupToken,
   countAdmins,
   createAdmin,
@@ -32,11 +34,14 @@ import {
   hydrateRole,
   hydrateUserId,
   issueSession,
+  loginScopeKeys,
+  recordFailure,
   setAdminStatus,
   setUserQuota,
+  throttleMessage,
   touchAdminLogin,
   updateAdminRole,
-  verifyPassword,
+  verifyPasswordOrDecoy,
   verifySetupToken,
   writeAudit,
 } from "@captureflow/admin";
@@ -75,11 +80,22 @@ async function startSession(adminId: string): Promise<void> {
     {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      /*
+       * Secure unless this is explicitly a dev server. Keyed off "production"
+       * it would silently drop the flag on any build that left NODE_ENV unset,
+       * and a session cookie is the wrong place to fail open.
+       */
+      secure: process.env.NODE_ENV !== "development",
       path: "/",
       maxAge: ttl,
     },
   );
+}
+
+// Cloudflare sets this; it cannot be spoofed by the client the way
+// X-Forwarded-For can, so it is the only address worth throttling on.
+async function callerIp(): Promise<string | null> {
+  return (await headers()).get("cf-connecting-ip");
 }
 
 /*
@@ -96,6 +112,11 @@ export async function setupAction(
   if (!env.ADMIN_SESSION_SECRET) return { error: NO_SECRET };
   if ((await countAdmins(env.DB)) > 0) redirect("/login");
 
+  const keys = loginScopeKeys(await callerIp(), "setup");
+  const verdict = await checkThrottle(env.DB, keys);
+  if (!verdict.allowed)
+    return { error: throttleMessage(verdict.retryAfterSeconds) };
+
   // Either the ADMIN_SETUP_TOKEN secret, or a token this deployment minted
   // itself. The minted one is single-use and dies with the claim.
   const expected = env.ADMIN_SETUP_TOKEN?.trim();
@@ -105,6 +126,7 @@ export async function setupAction(
     (await verifySetupToken(token, expected)) ||
     (await consumeSetupToken(env.DB, await hashToken(token)));
   if (!accepted) {
+    await recordFailure(env.DB, keys);
     console.warn(
       `admin setup: token mismatch (received ${token.length} chars, ` +
         `ADMIN_SETUP_TOKEN is ${expected?.length ?? 0})`,
@@ -157,6 +179,20 @@ export async function mintSetupTokenAction(): Promise<MintState> {
   if (!env?.DB) return { error: NO_DB, token: null, logged: false };
   if ((await countAdmins(env.DB)) > 0) redirect("/login");
 
+  // Unauthenticated by necessity — there is nobody to authenticate against yet
+  // — so it is throttled to stop an unclaimed deployment being used to mint
+  // rows and fill the log.
+  const mintKeys = loginScopeKeys(await callerIp(), "setup-mint");
+  const mintVerdict = await checkThrottle(env.DB, mintKeys);
+  if (!mintVerdict.allowed) {
+    return {
+      error: throttleMessage(mintVerdict.retryAfterSeconds),
+      token: null,
+      logged: false,
+    };
+  }
+  await recordFailure(env.DB, mintKeys);
+
   const token = createToken();
   await createSetupToken(
     env.DB,
@@ -180,18 +216,30 @@ export async function signInAction(
   if (!env.ADMIN_SESSION_SECRET) return { error: NO_SECRET };
 
   const email = hydrateEmail(formData.get("email"));
-  const found = email ? await getAdminCredentials(env.DB, email) : null;
-  const ok =
-    found !== null &&
-    found.account.status === "active" &&
-    (await verifyPassword(
-      String(formData.get("password") ?? ""),
-      found.passwordHash,
-    ));
-  // One message for every failure: distinguishing them tells an attacker which
-  // addresses are admins.
-  if (!ok || !found) return { error: "Wrong email or password." };
+  const keys = loginScopeKeys(await callerIp(), email);
+  const verdict = await checkThrottle(env.DB, keys);
+  if (!verdict.allowed)
+    return { error: throttleMessage(verdict.retryAfterSeconds) };
 
+  const found = email ? await getAdminCredentials(env.DB, email) : null;
+  /*
+   * Every branch pays for one PBKDF2 derivation, including an address that is
+   * not an admin and one whose account is disabled. Short-circuiting on either
+   * returned in milliseconds while a real address took the full 100k
+   * iterations, which let the response time enumerate admins that the single
+   * shared error message is there to hide.
+   */
+  const passwordOk = await verifyPasswordOrDecoy(
+    String(formData.get("password") ?? ""),
+    found?.passwordHash,
+  );
+  const ok = found !== null && found.account.status === "active" && passwordOk;
+  if (!ok || !found) {
+    await recordFailure(env.DB, keys);
+    return { error: "Wrong email or password." };
+  }
+
+  await clearThrottle(env.DB, keys);
   await touchAdminLogin(env.DB, found.account.id);
   await startSession(found.account.id);
   redirect("/");
@@ -204,6 +252,11 @@ export async function acceptInviteAction(
   const env = await getAdminEnv();
   if (!env?.DB) return { error: NO_DB };
 
+  const keys = loginScopeKeys(await callerIp(), "invite");
+  const verdict = await checkThrottle(env.DB, keys);
+  if (!verdict.allowed)
+    return { error: throttleMessage(verdict.retryAfterSeconds) };
+
   const token = hydrateInviteToken(formData.get("token"));
   if (!token) return { error: "This invite link is not valid." };
 
@@ -212,7 +265,10 @@ export async function acceptInviteAction(
 
   const tokenHash = await hashToken(token);
   const invite = await getPendingInvite(env.DB, tokenHash);
-  if (!invite) return { error: STALE_INVITE };
+  if (!invite) {
+    await recordFailure(env.DB, keys);
+    return { error: STALE_INVITE };
+  }
   if (await getAdminCredentials(env.DB, invite.email)) {
     return { error: "An admin already exists for that address." };
   }

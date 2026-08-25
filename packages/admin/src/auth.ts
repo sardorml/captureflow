@@ -108,6 +108,25 @@ export async function verifyPassword(
 }
 
 /*
+ * A syntactically valid hash of a value nobody holds. Verifying against it costs
+ * the same PBKDF2 work as a real row, so an address that is not an admin takes
+ * as long to reject as one that is — otherwise the clock answers the question
+ * the single "wrong email or password" message refuses to.
+ */
+const DECOY_HASH = `pbkdf2$sha256$${PBKDF2_ITERATIONS}$${b64url(
+  new Uint8Array(SALT_BYTES),
+)}$${b64url(new Uint8Array(KEY_BITS / 8))}`;
+
+export async function verifyPasswordOrDecoy(
+  password: string,
+  stored: string | undefined,
+): Promise<boolean> {
+  if (stored) return verifyPassword(password, stored);
+  await verifyPassword(password, DECOY_HASH);
+  return false;
+}
+
+/*
  * Guards the one-time first-run claim. Without it the first request to reach a
  * fresh deployment could take ownership of the panel, so the operator proves
  * they control the environment before any admin exists.
