@@ -42,5 +42,7 @@
    */
   "vars": {
     "ADMIN_SESSION_TTL_HOURS": "12",
+    // Invite links are built from this, never from the request's Host header.
+    "ADMIN_BASE_URL": "https://admin.captureflow.dev",
   },
 }

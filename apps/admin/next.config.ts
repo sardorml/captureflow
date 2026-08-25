@@ -1,12 +1,54 @@
 import type { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
+/*
+ * The panel answers on the public internet, renders no third-party anything and
+ * loads no external images, so it can afford the strict policy the app cannot.
+ * 'unsafe-inline' on scripts is Next's hydration payload; the value of the
+ * directive here is that no external origin can serve script at all.
+ */
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "form-action 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   transpilePackages: ["@captureflow/admin"],
+  // Names the framework and its version to anyone curious which CVEs to try.
+  poweredByHeader: false,
   experimental: {
     // Same reason as apps/web: the dev filesystem cache is reloaded on boot, so
     // a stale chunk survives every restart.
     turbopackFileSystemCacheForDev: false,
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: CSP },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains",
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), payment=()",
+          },
+        ],
+      },
+    ];
   },
 };
 

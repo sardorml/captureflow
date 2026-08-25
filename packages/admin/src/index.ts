@@ -5,9 +5,18 @@ export {
   hashPassword,
   issueSession,
   verifyPassword,
+  verifyPasswordOrDecoy,
   verifySession,
   verifySetupToken,
 } from "./auth";
+export {
+  checkThrottle,
+  clearThrottle,
+  loginScopeKeys,
+  recordFailure,
+  throttleMessage,
+} from "./rate-limit";
+export type { ThrottleVerdict } from "./rate-limit";
 export {
   claimInvite,
   clearSetupTokens,

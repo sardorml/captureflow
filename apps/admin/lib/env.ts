@@ -9,6 +9,7 @@ export type AdminBindings = {
   ADMIN_SESSION_SECRET?: string;
   ADMIN_SETUP_TOKEN?: string;
   ADMIN_SESSION_TTL_HOURS?: string;
+  ADMIN_BASE_URL?: string;
   RESEND_API_KEY?: string;
   RESEND_FROM_ADDRESS?: string;
 };

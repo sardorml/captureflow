@@ -4,12 +4,21 @@ import { getAdminEnv } from "./env";
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
-// Built from the request host so the link works on whichever host the operator
-// is actually on — the deployed one, or localhost while developing.
+/*
+ * ADMIN_BASE_URL wins, and the request host is only a development fallback. The
+ * Host header is attacker-supplied in the general case, and a credential-setting
+ * link built from it is the classic reset-poisoning shape — Cloudflare's routing
+ * makes that unreachable here, but a mailed password link is the wrong place to
+ * depend on that.
+ */
 export async function inviteUrl(token: string): Promise<string> {
+  const env = await getAdminEnv();
+  const base = env?.ADMIN_BASE_URL?.trim().replace(/\/+$/, "");
+  if (base) return `${base}/invite/${token}`;
+
   const h = await headers();
   const host = h.get("host") ?? "admin.captureflow.dev";
-  const proto = h.get("x-forwarded-proto") ?? "https";
+  const proto = host.startsWith("localhost") ? "http" : "https";
   return `${proto}://${host}/invite/${token}`;
 }
 

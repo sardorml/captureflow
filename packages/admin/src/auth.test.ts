@@ -5,6 +5,7 @@ import {
   hashPassword,
   issueSession,
   verifyPassword,
+  verifyPasswordOrDecoy,
   verifySession,
   verifySetupToken,
 } from "./auth";
@@ -118,5 +119,40 @@ describe("invite tokens", () => {
     expect(await hashToken(token)).toBe(await hashToken(token));
     expect(await hashToken(token)).not.toBe(token);
     expect(await hashToken(token)).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
+
+/*
+ * The point of the decoy is cost, not correctness, so these assert the shape
+ * (never authenticates, still verifies a real hash) and that a miss is not
+ * merely cheap. A wall-clock ratio is the only observable an attacker has, so
+ * that is what is measured — loosely, since CI machines are noisy.
+ */
+describe("verifyPasswordOrDecoy", () => {
+  it("still authenticates against a real hash", async () => {
+    const stored = await hashPassword("correct horse battery staple");
+    expect(
+      await verifyPasswordOrDecoy("correct horse battery staple", stored),
+    ).toBe(true);
+    expect(await verifyPasswordOrDecoy("wrong", stored)).toBe(false);
+  });
+
+  it("never authenticates when there is no stored hash", async () => {
+    expect(await verifyPasswordOrDecoy("anything", undefined)).toBe(false);
+  });
+
+  it("costs a missing account roughly what a real one costs", async () => {
+    const stored = await hashPassword("correct horse battery staple");
+    const time = async (fn: () => Promise<unknown>) => {
+      const start = performance.now();
+      await fn();
+      return performance.now() - start;
+    };
+    // Warm the subtle-crypto path so the first call is not the slow one.
+    await verifyPasswordOrDecoy("x", stored);
+
+    const hit = await time(() => verifyPasswordOrDecoy("wrong", stored));
+    const miss = await time(() => verifyPasswordOrDecoy("wrong", undefined));
+    expect(miss).toBeGreaterThan(hit * 0.25);
   });
 });

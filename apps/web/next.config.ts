@@ -24,6 +24,32 @@ const nextConfig: NextConfig = {
     turbopackFileSystemCacheForDev: false,
   },
   skipTrailingSlashRedirect: true,
+  poweredByHeader: false,
+  /*
+   * Transport and sniffing protections only. No CSP here on purpose: this app
+   * pulls media from the CDN, proxies PostHog through /ingest, and takes camera,
+   * microphone and display-capture for the recorder — a policy tight enough to
+   * be worth having is tight enough to break one of those, and it needs to be
+   * derived from a real inventory rather than guessed at. The admin panel, which
+   * has no third-party anything, does carry one.
+   */
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains",
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // No embed feature exists; same-origin keeps the app's own framing working.
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     return [
       {
