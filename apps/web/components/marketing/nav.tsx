@@ -162,7 +162,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
               <Dropdown.Trigger
                 className={`${TEXT_LINK} inline-flex cursor-pointer items-center gap-1 outline-none`}
               >
-                Menu
+                Product
                 <ChevronDown size={15} />
               </Dropdown.Trigger>
               <Dropdown.Popover placement="bottom start" className="w-52">
