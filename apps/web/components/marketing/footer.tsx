@@ -27,14 +27,17 @@ export function Footer() {
   // One flat row rather than titled columns — the landing is short enough that
   // a sitemap footer outweighs it.
   const links: FooterLink[] = [
-    { label: "Docs", href: DOCS_URL },
+    { label: "Features", href: lh("/features") },
+    { label: "Pricing", href: lh("/pricing") },
+    { label: "FAQ", href: lh("/faq") },
+    { label: "Roadmap", href: lh("/roadmap") },
     { label: "Download", href: lh("/download") },
-    { label: "Pricing", href: lh("/#pricing") },
+    { label: "Docs", href: DOCS_URL },
     { label: "Self-hosting", href: `${DOCS_URL}/self-hosting` },
-    { label: "FAQ", href: lh("/#faq") },
     { label: "Releases", href: RELEASES_URL },
     { label: "GitHub", href: SOURCE_REPO_URL },
     { label: "Discord", href: DISCORD_URL },
+    { label: "Privacy", href: lh("/privacy") },
   ];
 
   return (

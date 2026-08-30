@@ -4,17 +4,24 @@ import { Accordion } from "@heroui/react";
 import { Col, Row } from "./layout";
 import { Paragraph, Title, Link as TypoLink } from "./typography";
 import { FAQ_ITEMS, LAUNCH_STAGE } from "@/lib/marketing/constants";
-import { MarketingSection, SECTION_TITLE_STYLE } from "./_shared";
+import {
+  MarketingSection,
+  SECTION_TITLE_STYLE,
+  type SectionProps,
+} from "./_shared";
 import { useMessages } from "./i18n-provider";
 
-export function FaqSection() {
+export function FaqSection({ headingLevel = 2 }: SectionProps = {}) {
   const m = useMessages();
 
   return (
     <MarketingSection id="faq">
       <Row gutter={[32, 32]}>
         <Col xs={24} md={8}>
-          <Title level={2} style={{ ...SECTION_TITLE_STYLE, marginTop: 0 }}>
+          <Title
+            level={headingLevel}
+            style={{ ...SECTION_TITLE_STYLE, marginTop: 0 }}
+          >
             {m.faq.heading}
           </Title>
         </Col>

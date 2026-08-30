@@ -3,8 +3,14 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { BrandMark } from "../brand-mark";
 import NextLink from "next/link";
-import { Button, Drawer, Header, buttonVariants } from "@heroui/react";
-import { Menu as MenuIcon, Star } from "lucide-react";
+import {
+  Button,
+  Drawer,
+  Dropdown,
+  Header,
+  buttonVariants,
+} from "@heroui/react";
+import { ChevronDown, Menu as MenuIcon, Star } from "lucide-react";
 import { DISCORD_URL } from "@/lib/marketing/constants";
 import { DOCS_URL } from "@/lib/site";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
@@ -98,11 +104,20 @@ export function Nav({ stars = null }: { stars?: string | null }) {
 
   const starLabel = stars ? `Star on GitHub (${stars})` : "Star on GitHub";
 
-  const sectionLinks = (block?: boolean) => (
-    <NavLink href={DOCS_URL} external block={block}>
-      Documentation
-    </NavLink>
-  );
+  /*
+   * One list, two presentations: a dropdown in the bar, stacked block links in
+   * the drawer. These are not the only path to these pages — the footer links
+   * every one of them on every page, which is what keeps them crawlable, since
+   * a closed dropdown renders no anchors into the HTML.
+   */
+  const menuLinks: { label: string; href: string; external?: boolean }[] = [
+    { label: "Features", href: lh("/features") },
+    { label: "Pricing", href: lh("/pricing") },
+    { label: "FAQ", href: lh("/faq") },
+    { label: "Roadmap", href: lh("/roadmap") },
+    { label: "Documentation", href: DOCS_URL, external: true },
+    { label: "Self-hosting", href: `${DOCS_URL}/self-hosting`, external: true },
+  ];
 
   return (
     <Header
@@ -143,7 +158,28 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             viewport — no mobile→desktop flip after hydration. */}
         <div className="hidden items-center gap-5 md:flex">
           <nav aria-label="Main" className="flex items-center gap-5">
-            {sectionLinks()}
+            <Dropdown>
+              <Dropdown.Trigger
+                className={`${TEXT_LINK} inline-flex cursor-pointer items-center gap-1 outline-none`}
+              >
+                Product
+                <ChevronDown size={15} />
+              </Dropdown.Trigger>
+              <Dropdown.Popover placement="bottom start" className="w-52">
+                <Dropdown.Menu>
+                  {menuLinks.map((link) => (
+                    <Dropdown.Item
+                      key={link.label}
+                      href={link.href}
+                      target={link.external ? "_blank" : undefined}
+                      rel={link.external ? "noopener noreferrer" : undefined}
+                    >
+                      {link.label}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown.Popover>
+            </Dropdown>
           </nav>
           <a
             href={GITHUB_URL}
@@ -200,7 +236,17 @@ export function Nav({ stars = null }: { stars?: string | null }) {
                   aria-label="Main"
                   className="flex flex-col items-stretch gap-2"
                 >
-                  {sectionLinks(true)}
+                  {menuLinks.map((link) => (
+                    <NavLink
+                      key={link.label}
+                      href={link.href}
+                      external={link.external}
+                      block
+                      onNavigate={closeMenu}
+                    >
+                      {link.label}
+                    </NavLink>
+                  ))}
                 </nav>
                 <NavLink
                   href={GITHUB_URL}
