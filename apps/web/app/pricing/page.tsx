@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <MarketingPage>
-      <PricingSection />
+      <PricingSection headingLevel={1} />
     </MarketingPage>
   );
 }

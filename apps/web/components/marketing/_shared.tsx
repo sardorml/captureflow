@@ -12,6 +12,13 @@ import { Typography } from "@heroui/react";
 // floating pill (max-w-5xl) all resolve to the same 1024px.
 export const MARKETING_MAX_WIDTH = 1024;
 
+/*
+ * A section is an h2 inside the landing, but the same section heads a route of
+ * its own under /features, /pricing and friends, where it has to be the h1.
+ */
+export type HeadingLevel = 1 | 2;
+export type SectionProps = { headingLevel?: HeadingLevel };
+
 // Canonical section title/subtitle sizes. Title is fluid (clamp) so it reads big
 // and bold while staying responsive; the negative tracking keeps the large end
 // from looking loose.
@@ -68,12 +75,14 @@ export function SectionHeading({
   titleMuted,
   subtitle,
   align = "center",
+  level = 2,
 }: {
   eyebrow?: ReactNode;
   title: ReactNode;
   titleMuted?: ReactNode;
   subtitle?: ReactNode;
   align?: "center" | "left";
+  level?: HeadingLevel;
 }) {
   /* HeroUI's Typography always emits its own text-align, so the wrapper's
      value has to be handed to each child rather than inherited. */
@@ -84,7 +93,7 @@ export function SectionHeading({
       {eyebrow ? <Eyebrow align={heroUiAlign}>{eyebrow}</Eyebrow> : null}
       <Typography.Heading
         align={heroUiAlign}
-        level={2}
+        level={level}
         style={{ ...SECTION_TITLE_STYLE, marginBottom: subtitle ? 16 : 0 }}
       >
         {title}

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function RoadmapPage() {
   return (
     <MarketingPage>
-      <RoadmapSection />
+      <RoadmapSection headingLevel={1} />
     </MarketingPage>
   );
 }

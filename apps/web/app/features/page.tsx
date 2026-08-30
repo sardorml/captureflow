@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default function FeaturesPage() {
   return (
     <MarketingPage>
-      <ModesIntro />
+      <ModesIntro headingLevel={1} />
       <CollaborationSection />
     </MarketingPage>
   );

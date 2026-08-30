@@ -12,6 +12,7 @@ import {
   MarketingSection,
   SECTION_SUBTITLE_STYLE,
   SECTION_TITLE_STYLE,
+  type SectionProps,
 } from "./_shared";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
@@ -34,7 +35,7 @@ type SelectedTicket = {
   category: string;
 };
 
-export function RoadmapSection() {
+export function RoadmapSection({ headingLevel = 2 }: SectionProps = {}) {
   const [selected, setSelected] = useState<SelectedTicket | null>(null);
   const m = useMessages();
   const lh = useLocalizedHref();
@@ -52,7 +53,10 @@ export function RoadmapSection() {
         style={{ marginBottom: 48 }}
       >
         <div style={{ textAlign: "left" }}>
-          <Title level={2} style={{ ...SECTION_TITLE_STYLE, marginBottom: 12 }}>
+          <Title
+            level={headingLevel}
+            style={{ ...SECTION_TITLE_STYLE, marginBottom: 12 }}
+          >
             {m.roadmap.heading}
           </Title>
           <Paragraph

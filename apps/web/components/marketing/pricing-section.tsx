@@ -2,16 +2,17 @@
 
 import { CURRENT_STAGE } from "@/lib/marketing/constants";
 import { useMessages } from "./i18n-provider";
-import { MarketingSection, SectionHeading } from "./_shared";
+import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
 import { FreeCard } from "./free-card";
 import { ManagedCard } from "./managed-card";
 
-type PricingSectionProps = {
+type PricingSectionProps = SectionProps & {
   hideHeading?: boolean;
 };
 
 export function PricingSection({
   hideHeading = false,
+  headingLevel = 2,
 }: PricingSectionProps = {}) {
   const m = useMessages();
   if (!CURRENT_STAGE.showPricingSection) return null;
@@ -22,6 +23,7 @@ export function PricingSection({
           eyebrow={m.pricing.eyebrow}
           title={CURRENT_STAGE.pricingHeading ?? m.pricing.heading}
           subtitle={CURRENT_STAGE.pricingSubheading ?? m.pricing.subheading}
+          level={headingLevel}
         />
       )}
       {/* Subgrid so the two cards share row tracks: both gradient panels get the

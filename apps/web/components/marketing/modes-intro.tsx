@@ -9,7 +9,7 @@ import {
 } from "react";
 import { Paragraph, Text } from "./typography";
 import { Camera, Link2, Mic, Monitor } from "lucide-react";
-import { MarketingSection, SectionHeading } from "./_shared";
+import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
 import { useMessages } from "./i18n-provider";
 
 /*
@@ -373,7 +373,7 @@ function Callout({
   );
 }
 
-export function ModesIntro() {
+export function ModesIntro({ headingLevel = 2 }: SectionProps = {}) {
   const m = useMessages();
   const copy = m.modes.panel;
 
@@ -513,6 +513,7 @@ export function ModesIntro() {
         eyebrow={m.modes.eyebrow}
         title={m.modes.heading}
         subtitle={m.modes.subtitle}
+        level={headingLevel}
       />
 
       {/* The callouts are pinned to the panel box rather than laid out in

@@ -17,7 +17,7 @@ export default function FaqPage() {
   return (
     <MarketingPage>
       <JsonLd data={FAQ_SCHEMA} />
-      <FaqSection />
+      <FaqSection headingLevel={1} />
     </MarketingPage>
   );
 }
