@@ -1,12 +1,15 @@
 import { defineConfig } from "vitepress";
 
 const GITHUB = "https://github.com/sardorml/captureflow";
+const SITE = "https://captureflow.dev";
+const DOCS_SITE = "https://docs.captureflow.dev";
 
 export default defineConfig({
   title: "CaptureFlow",
   description:
     "Open-source, self-hostable screen recording with instant shareable links.",
   cleanUrls: true,
+  sitemap: { hostname: DOCS_SITE },
   lastUpdated: true,
   appearance: "dark",
   // The docs app's own README is developer-facing, not a site page.
@@ -46,6 +49,7 @@ export default defineConfig({
         link: "/reference/faq",
         activeMatch: "/reference/",
       },
+      { text: "captureflow.dev", link: SITE },
       {
         text: "v0.1",
         items: [
