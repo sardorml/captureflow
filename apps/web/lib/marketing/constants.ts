@@ -425,6 +425,8 @@ export const APP_SCHEMA = {
   ],
 };
 
+// sameAs is how Google ties the properties we publish under to one brand
+// entity — it is the signal that decides which site owns the name.
 export const ORGANIZATION_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -432,7 +434,10 @@ export const ORGANIZATION_SCHEMA = {
   url: SITE_URL,
   email: SUPPORT_EMAIL,
   logo: `${SITE_URL}/logo.png`,
-  sameAs: ["https://github.com/sardorml/captureflow"],
+  sameAs: [
+    "https://github.com/sardorml/captureflow",
+    CHROME_WEBSTORE_URL,
+  ].filter((url): url is string => url !== null),
 };
 
 // Google's "site name" reads specifically from WebSite.name; Organization
