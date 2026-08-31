@@ -2,8 +2,13 @@ import { MESSAGES } from "./messages";
 
 export const SITE_URL = "https://captureflow.dev";
 export const SITE_NAME = "CaptureFlow";
+/*
+ * Brand first. "captureflow" is a contested term — three unrelated products
+ * hold it — and for that query the docs homepage was outranking this one on
+ * the strength of naming the brand up front while this title trailed it.
+ */
 export const SITE_TITLE =
-  "Open-source screen recorder with shareable links — CaptureFlow";
+  "CaptureFlow — Open-source screen recorder with shareable links";
 export const SITE_DESCRIPTION =
   "Record your screen and share it with your team, clients, or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
 export const SUPPORT_EMAIL = "contact@sardor.codes";

@@ -5,7 +5,7 @@ const SITE = "https://captureflow.dev";
 const DOCS_SITE = "https://docs.captureflow.dev";
 
 export default defineConfig({
-  title: "CaptureFlow",
+  title: "CaptureFlow Docs",
   description:
     "Open-source, self-hostable screen recording with instant shareable links.",
   cleanUrls: true,
