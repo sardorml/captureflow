@@ -14,7 +14,7 @@ export async function totalStorageForUser(
   const r = await db
     .prepare(
       `SELECT
-         COALESCE((SELECT SUM(s.size_bytes) FROM recordings s
+         COALESCE((SELECT SUM(s.size_bytes + s.webcam_size_bytes) FROM recordings s
                     JOIN workspace w ON w.id = s.workspace_id
                     WHERE w.owner_user_id = ?1 AND s.state = 'ready'), 0) +
          COALESCE((SELECT SUM(s.size_bytes) FROM screenshots s
