@@ -37,6 +37,8 @@ export type RecordingRow = {
   webcamUploadId: string | null;
   webcamSizeBytes: number;
   webcamState: WebcamState;
+  configJson: string | null;
+  summaryChaptersJson: string | null;
 };
 
 export type InitRequest = {

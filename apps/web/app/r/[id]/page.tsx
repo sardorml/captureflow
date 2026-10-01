@@ -11,13 +11,9 @@ import {
 } from "@/lib/recording/db";
 import { verifySession } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
-import { getObjectJson, publicUrlFor } from "@/lib/recording/r2";
-import {
-  DEFAULT_RECORDING_CONFIG,
-  hydrateRecordingConfig,
-  recordingConfigKeyFor,
-} from "@/lib/recording-config";
-import { loadSummaryChapters } from "@/lib/recording/summary-chapters";
+import { publicUrlFor } from "@/lib/recording/r2";
+import { parseRecordingConfigJson } from "@/lib/recording-config";
+import { parseSummaryChaptersJson } from "@/lib/recording/summary-chapters";
 import { isValidSlug } from "@/lib/recording/slug";
 import { APP_WEB_SITE_URL, PRODUCT_NAME, viewUrlFor } from "@/lib/site";
 import { ViewerNav } from "../../_components/screenshot";
@@ -230,8 +226,6 @@ export default async function RecordingPage({ params }: { params: Params }) {
     comments,
     ownerName,
     webcamUrlRaw,
-    configRaw,
-    summaryChapters,
   ] = await Promise.all([
     publicUrlFor(row.storageKey),
     row.posterKey ? publicUrlFor(row.posterKey) : Promise.resolve(undefined),
@@ -241,14 +235,9 @@ export default async function RecordingPage({ params }: { params: Params }) {
     row.webcamStorageKey && row.webcamState === "ready"
       ? publicUrlFor(row.webcamStorageKey)
       : Promise.resolve(undefined),
-    getObjectJson<unknown>(recordingConfigKeyFor(row.storageKey)).catch(
-      () => null,
-    ),
-    loadSummaryChapters(row.storageKey),
   ]);
-  const recordingConfig = configRaw
-    ? hydrateRecordingConfig(configRaw)
-    : DEFAULT_RECORDING_CONFIG;
+  const recordingConfig = parseRecordingConfigJson(row.configJson);
+  const summaryChapters = parseSummaryChaptersJson(row.summaryChaptersJson);
   const videoUrl = withVersion(videoUrlRaw, row.sizeBytes);
   const posterUrl = posterUrlRaw
     ? withVersion(posterUrlRaw, row.sizeBytes)

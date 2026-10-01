@@ -139,6 +139,15 @@ export function recordingGradientCss(
   return `linear-gradient(135deg, ${parts.join(", ")})`;
 }
 
+export function parseRecordingConfigJson(json: string | null): RecordingConfig {
+  if (!json) return DEFAULT_RECORDING_CONFIG;
+  try {
+    return hydrateRecordingConfig(JSON.parse(json));
+  } catch {
+    return DEFAULT_RECORDING_CONFIG;
+  }
+}
+
 export function hydrateRecordingConfig(raw: unknown): RecordingConfig {
   if (!raw || typeof raw !== "object") return DEFAULT_RECORDING_CONFIG;
   const obj = raw as Record<string, unknown>;

@@ -198,6 +198,8 @@ export async function POST(req: NextRequest) {
     webcamUploadId,
     webcamSizeBytes: 0,
     webcamState,
+    configJson: null,
+    summaryChaptersJson: null,
   });
 
   const res: InitResponse = {

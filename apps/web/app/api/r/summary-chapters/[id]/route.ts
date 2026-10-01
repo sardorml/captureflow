@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { getRecording } from "@/lib/recording/db";
+import { getRecording, updateRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
 import { verifySessionOrNull } from "@/lib/recording/verify-session";
 import {
   hydrateSummaryChapters,
-  loadSummaryChapters,
-  saveSummaryChapters,
+  parseSummaryChaptersJson,
   type RecordingSummaryChapters,
 } from "@/lib/recording/summary-chapters";
 
@@ -23,8 +22,7 @@ export async function GET(_req: Request, { params }: Params) {
   if (!row || row.state !== "ready") {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
-  const payload = await loadSummaryChapters(row.storageKey);
-  return NextResponse.json(payload);
+  return NextResponse.json(parseSummaryChaptersJson(row.summaryChaptersJson));
 }
 
 export async function PUT(req: Request, { params }: Params) {
@@ -48,6 +46,8 @@ export async function PUT(req: Request, { params }: Params) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
   const normalized: RecordingSummaryChapters = hydrateSummaryChapters(body);
-  await saveSummaryChapters(row.storageKey, normalized);
+  await updateRecording(row.slug, {
+    summaryChaptersJson: JSON.stringify(normalized),
+  });
   return NextResponse.json(normalized);
 }

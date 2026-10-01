@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { deleteRecording, getRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
 import { abortMultipartUpload, deleteObject } from "@/lib/recording/r2";
+import { objectKeysFor } from "@/lib/recording/object-keys";
 import { verifySessionOrNull } from "@/lib/recording/verify-session";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 
@@ -46,12 +47,16 @@ export async function DELETE(
     }
   }
   await deleteObject(row.storageKey);
-  if (row.posterKey) await deleteObject(row.posterKey);
-  if (row.webcamStorageKey) {
-    try {
-      await deleteObject(row.webcamStorageKey);
-    } catch (err) {
-      console.warn(`[delete] webcam r2 delete failed for ${id}:`, err);
+  // Poster/webcam/sidecars are best-effort: the video is already gone, so a
+  // failure here must not leave the caller with an undeletable recording.
+  const stranded = await Promise.allSettled(
+    objectKeysFor(row)
+      .filter((key) => key !== row.storageKey)
+      .map((key) => deleteObject(key)),
+  );
+  for (const result of stranded) {
+    if (result.status === "rejected") {
+      console.warn(`[delete] r2 delete failed for ${id}:`, result.reason);
     }
   }
   await deleteRecording(id);

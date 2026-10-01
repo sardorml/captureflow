@@ -5,10 +5,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAuth } from "@/lib/auth";
 import {
-  deleteReactionsForRecording,
   deleteRecordingForAdmin,
+  updateRecordingConfigForUser,
   getRecordingForAdmin,
-  getRecordingForUser,
   updateRecordingTitleForUser,
   updateRecordingVisibilityForAdmin,
   type RecordingVisibility,
@@ -28,12 +27,16 @@ import {
   objectExists,
   putObject,
 } from "@/lib/r2";
-import { sourceKeyFor, stateKeyFor } from "@/lib/screenshot-keys";
+import {
+  screenshotObjectKeysFor,
+  sourceKeyFor,
+  stateKeyFor,
+} from "@/lib/screenshot-keys";
 import {
   hydrateRecordingConfig,
-  recordingConfigKeyFor,
   type RecordingConfig,
 } from "@/lib/recording-config";
+import { objectKeysFor } from "@/lib/recording/object-keys";
 import { revokeDeviceToken } from "@/lib/device-tokens";
 
 // Middleware only guards page requests; a forged/replayed direct action
@@ -112,9 +115,6 @@ export async function deleteRecordingAction(slug: string): Promise<{
   // at worst a row pointing at a missing object (delete again to clean up).
   try {
     await deleteObject(row.storageKey);
-    if (row.posterKey) {
-      await deleteObject(row.posterKey);
-    }
   } catch (err) {
     return {
       error: `Could not delete the video file: ${
@@ -122,7 +122,13 @@ export async function deleteRecordingAction(slug: string): Promise<{
       }`,
     };
   }
-  await deleteReactionsForRecording(cleanSlug);
+  // Poster/webcam/sidecars are best-effort: the video is already gone, so
+  // failing here would only block a delete the user can no longer retry.
+  await Promise.allSettled(
+    objectKeysFor(row)
+      .filter((key) => key !== row.storageKey)
+      .map((key) => deleteObject(key)),
+  );
   await deleteRecordingForAdmin(userId, cleanSlug);
   revalidatePath("/");
   return { error: null };
@@ -137,27 +143,13 @@ export async function saveRecordingConfigAction(
   const userId = await requireUserId();
   const cleanSlug = typeof slug === "string" ? slug.trim() : "";
   if (!cleanSlug) return { error: "Missing slug" };
-  const recording = await getRecordingForUser(userId, cleanSlug);
-  if (!recording) return { error: "Recording not found" };
   const config: RecordingConfig = hydrateRecordingConfig(raw);
-  const json = JSON.stringify(config);
-  const bytes = new TextEncoder().encode(json);
-  try {
-    await putObject(
-      recordingConfigKeyFor(recording.storageKey),
-      bytes.buffer.slice(
-        bytes.byteOffset,
-        bytes.byteOffset + bytes.byteLength,
-      ) as ArrayBuffer,
-      "application/json",
-    );
-  } catch (err) {
-    return {
-      error: `Could not save recording config: ${
-        err instanceof Error ? err.message : String(err)
-      }`,
-    };
-  }
+  const ok = await updateRecordingConfigForUser(
+    userId,
+    cleanSlug,
+    JSON.stringify(config),
+  );
+  if (!ok) return { error: "Recording not found" };
   revalidatePath(`/recordings/${cleanSlug}/edit`);
   revalidatePath("/");
   return { error: null };
@@ -187,11 +179,11 @@ export async function deleteScreenshotAction(screenshotId: string): Promise<{
   if (!ok) return { error: "Screenshot not found" };
   // Best-effort R2 cleanup; row is already soft-deleted and the retention
   // cron sweeps any stranded bytes.
-  await Promise.allSettled([
-    deleteObject(screenshot.storageKey),
-    deleteObject(sourceKeyFor(screenshot.storageKey)),
-    deleteObject(stateKeyFor(screenshot.storageKey)),
-  ]);
+  await Promise.allSettled(
+    screenshotObjectKeysFor(screenshot.storageKey).map((key) =>
+      deleteObject(key),
+    ),
+  );
   revalidatePath("/screenshots");
   return { error: null };
 }

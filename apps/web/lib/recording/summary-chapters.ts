@@ -1,5 +1,3 @@
-import { getObjectJson, putObjectJson } from "./r2";
-
 export type RecordingChapter = {
   id: string;
   // Offset into the video, in milliseconds.
@@ -16,10 +14,6 @@ export const EMPTY_SUMMARY_CHAPTERS: RecordingSummaryChapters = {
   summary: "",
   chapters: [],
 };
-
-export function summaryChaptersKeyFor(videoStorageKey: string): string {
-  return `${videoStorageKey}.summary-chapters.json`;
-}
 
 // Caps bound the sidecar size so a malicious owner can't grow it unboundedly.
 const MAX_SUMMARY_LENGTH = 4_000;
@@ -47,21 +41,13 @@ export function hydrateSummaryChapters(raw: unknown): RecordingSummaryChapters {
   return { summary, chapters };
 }
 
-export async function loadSummaryChapters(
-  videoStorageKey: string,
-): Promise<RecordingSummaryChapters> {
-  const raw = await getObjectJson<unknown>(
-    summaryChaptersKeyFor(videoStorageKey),
-  ).catch(() => null);
-  return raw ? hydrateSummaryChapters(raw) : EMPTY_SUMMARY_CHAPTERS;
-}
-
-export async function saveSummaryChapters(
-  videoStorageKey: string,
-  payload: RecordingSummaryChapters,
-): Promise<void> {
-  await putObjectJson(
-    summaryChaptersKeyFor(videoStorageKey),
-    hydrateSummaryChapters(payload),
-  );
+export function parseSummaryChaptersJson(
+  json: string | null,
+): RecordingSummaryChapters {
+  if (!json) return EMPTY_SUMMARY_CHAPTERS;
+  try {
+    return hydrateSummaryChapters(JSON.parse(json));
+  } catch {
+    return EMPTY_SUMMARY_CHAPTERS;
+  }
 }

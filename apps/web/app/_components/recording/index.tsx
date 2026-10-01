@@ -11,7 +11,6 @@ export {
   hydrateRecordingConfig,
   isRecordingGradientKey,
   isRecordingHexColor,
-  recordingConfigKeyFor,
   recordingGradientCss,
 } from "@/lib/recording-config";
 export type {
