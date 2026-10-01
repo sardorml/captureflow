@@ -89,10 +89,12 @@ export async function putObject(
   });
 }
 
-export async function headObject(storageKey: string): Promise<boolean> {
+// Null when the object is absent. R2's size is authoritative; the byte count
+// the client reports at finalize is not.
+export async function objectSize(storageKey: string): Promise<number | null> {
   const bucket = await getBucket();
   const head = await bucket.head(storageKey);
-  return head !== null;
+  return head?.size ?? null;
 }
 
 export async function putObjectJson<T>(

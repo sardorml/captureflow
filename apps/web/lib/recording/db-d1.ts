@@ -38,6 +38,8 @@ type D1Row = {
   webcam_upload_id: string | null;
   webcam_size_bytes: number;
   webcam_state: string;
+  config_json: string | null;
+  summary_chapters_json: string | null;
 };
 
 type D1ReactionRow = {
@@ -87,6 +89,8 @@ function rowFromD1(r: D1Row): RecordingRow {
     webcamUploadId: r.webcam_upload_id ?? null,
     webcamSizeBytes: r.webcam_size_bytes ?? 0,
     webcamState: (r.webcam_state as WebcamState) ?? "none",
+    configJson: r.config_json ?? null,
+    summaryChaptersJson: r.summary_chapters_json ?? null,
   };
 }
 
@@ -120,7 +124,8 @@ const COLUMNS_SELECT =
   "slug, device_id, storage_key, poster_key, upload_id, " +
   "size_bytes, duration_ms, width, height, source, preset, " +
   "created_at, last_viewed_at, view_count, title, state, user_id, workspace_id, visibility, " +
-  "webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state";
+  "webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state, " +
+  "config_json, summary_chapters_json";
 
 export function createD1Db(d1: D1Database): RecordingDb {
   /*
@@ -134,16 +139,19 @@ export function createD1Db(d1: D1Database): RecordingDb {
        size_bytes, duration_ms, width, height,
        source, preset, created_at, last_viewed_at, view_count, title, state,
        user_id, workspace_id, visibility,
-       webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state
+       webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state,
+       config_json, summary_chapters_json
      )
      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18,
-             ?19, ?20, ?21, ?22, ?23)`,
+             ?19, ?20, ?21, ?22, ?23, ?24, ?25)`,
   );
 
   const stmtGet = d1.prepare(
     `SELECT ${COLUMNS_SELECT} FROM recordings WHERE slug = ?1 LIMIT 1`,
   );
 
+  // recording_activity rows go with the recording via ON DELETE CASCADE
+  // (migration 0008); no delete path touches that table directly.
   const stmtDelete = d1.prepare(`DELETE FROM recordings WHERE slug = ?1`);
 
   const stmtListForDevice = d1.prepare(
@@ -254,6 +262,8 @@ export function createD1Db(d1: D1Database): RecordingDb {
           row.webcamUploadId,
           row.webcamSizeBytes,
           row.webcamState,
+          row.configJson,
+          row.summaryChaptersJson,
         )
         .run();
     },
@@ -290,6 +300,8 @@ export function createD1Db(d1: D1Database): RecordingDb {
         webcamUploadId: "webcam_upload_id",
         webcamSizeBytes: "webcam_size_bytes",
         webcamState: "webcam_state",
+        configJson: "config_json",
+        summaryChaptersJson: "summary_chapters_json",
       };
       let placeholder = 1;
       for (const key of Object.keys(patch) as (keyof RecordingRow)[]) {

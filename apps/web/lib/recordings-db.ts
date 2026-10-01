@@ -31,6 +31,8 @@ export type DashboardRecordingRow = {
   webcamSizeBytes: number;
   webcamState: WebcamState;
   workspaceId: string | null;
+  configJson: string | null;
+  summaryChaptersJson: string | null;
 };
 
 type D1Row = {
@@ -56,12 +58,15 @@ type D1Row = {
   webcam_size_bytes: number;
   webcam_state: string;
   workspace_id: string | null;
+  config_json: string | null;
+  summary_chapters_json: string | null;
 };
 
 const COLUMNS_SELECT =
   "slug, user_id, storage_key, poster_key, size_bytes, duration_ms, width, height, " +
   "source, preset, created_at, last_viewed_at, view_count, title, state, " +
   "visibility, webcam_storage_key, webcam_size_bytes, webcam_state, workspace_id, " +
+  "config_json, summary_chapters_json, " +
   "(SELECT COUNT(*) FROM recording_activity WHERE recording_activity.slug = recordings.slug AND recording_activity.kind = 'comment') AS comment_count, " +
   "(SELECT COUNT(*) FROM recording_activity WHERE recording_activity.slug = recordings.slug AND recording_activity.kind = 'reaction') AS reaction_count";
 
@@ -89,6 +94,8 @@ function rowFromD1(r: D1Row): DashboardRecordingRow {
     webcamSizeBytes: r.webcam_size_bytes ?? 0,
     webcamState: (r.webcam_state as WebcamState) ?? "none",
     workspaceId: r.workspace_id ?? null,
+    configJson: r.config_json ?? null,
+    summaryChaptersJson: r.summary_chapters_json ?? null,
   };
 }
 
@@ -165,6 +172,22 @@ export async function updateRecordingTitleForUser(
          WHERE slug = ?1 AND user_id = ?2`,
     )
     .bind(slug, userId, title)
+    .run();
+  return (res.meta?.changes ?? 0) > 0;
+}
+
+export async function updateRecordingConfigForUser(
+  userId: string,
+  slug: string,
+  configJson: string,
+): Promise<boolean> {
+  const db = await getDb();
+  const res = await db
+    .prepare(
+      `UPDATE recordings SET config_json = ?3
+         WHERE slug = ?1 AND user_id = ?2`,
+    )
+    .bind(slug, userId, configJson)
     .run();
   return (res.meta?.changes ?? 0) > 0;
 }
@@ -264,10 +287,4 @@ export async function deleteRecordingForAdmin(
 }
 
 // Despite the name, removes all recording_activity (reactions + comments).
-export async function deleteReactionsForRecording(slug: string): Promise<void> {
-  const db = await getDb();
-  await db
-    .prepare(`DELETE FROM recording_activity WHERE slug = ?1`)
-    .bind(slug)
-    .run();
-}
+// recording_activity rows cascade with the recording (migration 0008).

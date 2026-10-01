@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRecording, updateRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
-import { completeMultipartUpload, headObject } from "@/lib/recording/r2";
+import {
+  completeMultipartUpload,
+  deleteObject,
+  objectSize,
+} from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import { exceedsStorage } from "@/lib/recording/quota";
 import type { FinalizeRequest } from "@/lib/recording/types";
@@ -76,8 +80,8 @@ export async function POST(req: NextRequest) {
     body.parts,
   );
 
-  const exists = await headObject(row.webcamStorageKey);
-  if (!exists) {
+  const actualWebcamBytes = await objectSize(row.webcamStorageKey);
+  if (actualWebcamBytes === null) {
     await updateRecording(row.slug, {
       webcamState: "failed",
       webcamUploadId: null,
@@ -85,10 +89,23 @@ export async function POST(req: NextRequest) {
     return jsonError("Object missing after complete", 502, "object_missing");
   }
 
+  // Same post-complete re-check as /api/r/finalize, against R2's actual size.
+  if (
+    actualWebcamBytes > sizeBytes &&
+    (await exceedsStorage(deviceId, row, actualWebcamBytes))
+  ) {
+    await deleteObject(row.webcamStorageKey);
+    await updateRecording(row.slug, {
+      webcamState: "failed",
+      webcamUploadId: null,
+    });
+    return jsonError("Storage cap reached", 413, "storage_limit");
+  }
+
   await updateRecording(row.slug, {
     webcamState: "ready",
     webcamUploadId: null,
-    webcamSizeBytes: sizeBytes,
+    webcamSizeBytes: actualWebcamBytes,
   });
 
   return withCors(NextResponse.json({ ok: true }));

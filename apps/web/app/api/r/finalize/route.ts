@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRecording, updateRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
-import { completeMultipartUpload, headObject } from "@/lib/recording/r2";
+import {
+  completeMultipartUpload,
+  deleteObject,
+  objectSize,
+} from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import { exceedsStorage } from "@/lib/recording/quota";
 import { viewUrlForRequest } from "@/lib/site";
@@ -90,10 +94,24 @@ export async function POST(req: NextRequest) {
     return jsonError(`R2 complete: ${reason}`, 502, "r2_complete_failed");
   }
 
-  const exists = await headObject(row.storageKey);
-  if (!exists) {
+  const actualBytes = await objectSize(row.storageKey);
+  if (actualBytes === null) {
     await updateRecording(row.slug, { state: "failed", uploadId: null });
     return jsonError("Object missing after complete", 502, "object_missing");
+  }
+
+  /*
+   * Re-check with what R2 actually stored: the pre-complete check ran on the
+   * client's claimed size, and only a larger truth can flip the verdict. The
+   * object is already committed, so an over-cap upload is removed, not kept.
+   */
+  if (
+    actualBytes > sizeBytes &&
+    (await exceedsStorage(deviceId, row, actualBytes))
+  ) {
+    await deleteObject(row.storageKey);
+    await updateRecording(row.slug, { state: "failed", uploadId: null });
+    return jsonError("Storage cap reached", 413, "storage_limit");
   }
 
   // Bad duration is dropped rather than rejected: the bytes are already in R2,
@@ -109,7 +127,7 @@ export async function POST(req: NextRequest) {
     await updateRecording(row.slug, {
       state: "ready",
       uploadId: null,
-      sizeBytes,
+      sizeBytes: actualBytes,
       lastViewedAt: Date.now(),
       ...(durationMs === null ? {} : { durationMs }),
     });
