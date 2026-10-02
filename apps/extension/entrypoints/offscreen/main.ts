@@ -15,6 +15,7 @@ import {
  */
 onMessage("beginCapture", ({ data }) =>
   recordAndUpload(data, {
+    onCountdown: () => sendMessage("runCountdown", undefined),
     onStatus: (status) => void sendMessage("recordingStatus", status),
     onResult: (result) => void sendMessage("recordingResult", result),
     onActiveUpload: (upload) => void sendMessage("activeUploadChanged", upload),

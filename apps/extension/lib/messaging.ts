@@ -9,6 +9,8 @@ import type {
 
 export type StartResult = { ok: true } | { ok: false; error: string };
 
+export type CountdownResult = "go" | "cancel";
+
 export type CaptureContext = {
   deviceId: string;
   token: string;
@@ -48,6 +50,9 @@ type ProtocolMap = {
   restartRecording(): void;
   deleteRecording(): void;
   beginCapture(ctx: CaptureContext): void;
+  // Offscreen docs can't inject page UI, so the SW renders the pre-roll
+  // countdown and reports how it ended.
+  runCountdown(): CountdownResult;
   stopCapture(): void;
   pauseCapture(): void;
   resumeCapture(): void;

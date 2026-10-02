@@ -2,6 +2,7 @@ import {
   onMessage,
   sendMessage,
   type CaptureContext,
+  type CountdownResult,
   type StartResult,
 } from "@/lib/messaging";
 import {
@@ -32,6 +33,11 @@ import {
   mountGrantFrame,
   unmountCameraBubble,
 } from "@/lib/overlay/camera-bubble";
+import {
+  COUNTDOWN_OVERLAY_ID,
+  mountCountdownOverlay,
+  unmountCountdownOverlay,
+} from "@/lib/overlay/countdown-overlay";
 import {
   RECORDER_BACKDROP_ID,
   RECORDER_FRAME_ID,
@@ -106,6 +112,45 @@ async function releaseCameraBubble(): Promise<void> {
 
 // Tab hosting the invisible camera+mic grant frame (one combined prompt).
 let grantTabId: number | undefined;
+
+const COUNTDOWN_SECONDS = 3;
+// Pending pre-roll resolver; the overlay's skip/cancel raw message settles it
+// early, the worker's own clock settles it otherwise.
+let countdownSettle: ((result: CountdownResult) => void) | undefined;
+
+async function runPageCountdown(): Promise<CountdownResult> {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  // Restricted pages can't host the overlay — start without a countdown.
+  if (tab?.id === undefined || !isInjectable(tab.url)) return "go";
+  const tabId = tab.id;
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: mountCountdownOverlay,
+      args: [COUNTDOWN_SECONDS, COUNTDOWN_OVERLAY_ID],
+    });
+  } catch {
+    return "go";
+  }
+  // The worker owns the clock; the overlay only displays it. First settle
+  // wins — a late page message after the timeout resolves into a no-op.
+  const result = await new Promise<CountdownResult>((resolve) => {
+    countdownSettle = resolve;
+    setTimeout(() => resolve("go"), COUNTDOWN_SECONDS * 1000);
+  });
+  countdownSettle = undefined;
+  // Self-removed page-side in the normal flow; sweep the race remainder.
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: unmountCountdownOverlay,
+      args: [COUNTDOWN_OVERLAY_ID],
+    });
+  } catch {
+    /* tab closed or no longer injectable */
+  }
+  return result;
+}
 
 async function requestMediaGrant(): Promise<void> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -312,6 +357,11 @@ export default defineBackground(() => {
       overlayTabId = undefined;
       void releaseCameraBubble();
     }
+    const verdict = (message as { captureflowCountdown?: unknown })
+      .captureflowCountdown;
+    if (verdict === "skip" || verdict === "cancel") {
+      countdownSettle?.(verdict === "skip" ? "go" : "cancel");
+    }
   });
 
   chrome.windows.onRemoved.addListener((windowId) => {
@@ -494,6 +544,7 @@ export default defineBackground(() => {
     }
   });
 
+  onMessage("runCountdown", () => runPageCountdown());
   onMessage("stopRecording", () => sendMessage("stopCapture", undefined));
   onMessage("pauseRecording", () => sendMessage("pauseCapture", undefined));
   onMessage("resumeRecording", () => sendMessage("resumeCapture", undefined));
