@@ -132,6 +132,45 @@ def glyph(x: int, y: int, size: int, fill: str = "#ffffff", z: int = 6) -> str:
     )
 
 
+# The pre-roll overlay from apps/extension/lib/overlay/countdown-overlay.ts,
+# scaled up so it reads at tile size; keep the two in step.
+def countdown(cx: int, cy: int, hint_y: int, z: int = 6) -> str:
+    btn = (
+        "width:56px;height:56px;border-radius:50%;flex:none;"
+        "border:2px solid rgba(255,255,255,.9);background:rgba(10,11,14,.35);"
+        "backdrop-filter:blur(4px);display:flex;align-items:center;"
+        "justify-content:center;color:#fff;"
+    )
+    x_svg = (
+        "<svg width='20' height='20' viewBox='0 0 24 24' fill='none' "
+        "stroke='currentColor' stroke-width='2.5' stroke-linecap='round'>"
+        "<path d='M5 5l14 14M19 5L5 19'/></svg>"
+    )
+    skip_svg = (
+        "<svg width='20' height='20' viewBox='0 0 24 24' fill='none' "
+        "stroke='currentColor' stroke-width='2.5' stroke-linecap='round' "
+        "stroke-linejoin='round'><path d='M6 5l10 7-10 7V5z'/>"
+        "<path d='M19 5v14'/></svg>"
+    )
+    return (
+        f"<div style='position:absolute;left:{cx}px;top:{cy}px;z-index:{z};"
+        "transform:translate(-50%,-50%);display:flex;align-items:center;"
+        "gap:34px'>"
+        f"<div style='{btn}'>{x_svg}</div>"
+        "<div style='width:150px;height:150px;border-radius:50%;"
+        "background:#2563eb;box-shadow:0 0 0 9px rgba(37,99,235,.35),"
+        "0 10px 34px rgba(0,0,0,.45);display:flex;align-items:center;"
+        "justify-content:center'>"
+        "<div style='color:#fff;font-size:84px;font-weight:600;"
+        "line-height:1'>3</div></div>"
+        f"<div style='{btn}'>{skip_svg}</div></div>"
+        f"<div style='position:absolute;left:{cx}px;top:{hint_y}px;z-index:{z};"
+        "transform:translateX(-50%);color:#fff;background:rgba(10,11,14,.65);"
+        "border-radius:8px;padding:6px 12px;font-size:13px'>"
+        "Press Esc to cancel</div>"
+    )
+
+
 def build(s: dict, w: int, h: int) -> str:
     css = CSS.replace("__BG__", BLUE)
     p = [
@@ -198,6 +237,13 @@ def screenshots() -> list:
             "title_at": 60, "sub_at": 130,
             "layers": [window(310, 232, 668), mark(212, 476, 128)],
             "emoji": [("🔒", 936, 300, 68, -10), ("☁️", 898, 610, 60, 8)],
+        },
+        {   # window alone, the pre-roll countdown over the page
+            "title": "A 3-2-1 Countdown Before Capture",
+            "sub": "Three seconds to get set, with skip and cancel one click away.",
+            "title_at": 60, "sub_at": 130,
+            "layers": [window(310, 236, 668), countdown(644, 462, 596)],
+            "emoji": [("\u23f1\ufe0f", 932, 288, 68, -10), ("\U0001f6a6", 148, 592, 64, 8)],
         },
     ]
 
