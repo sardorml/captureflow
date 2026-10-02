@@ -19,6 +19,9 @@ import type {
 } from "../storage";
 
 type Callbacks = {
+  // Pre-roll countdown, shown by the SW on the page. Runs after all grants
+  // and pickers settle, so a cancel tears down before any upload exists.
+  onCountdown: () => Promise<"go" | "cancel">;
   onStatus: (status: RecordingStatus) => void;
   onResult: (result: RecordingResultPayload) => void;
   // Relayed to the SW: chrome.storage is unavailable in offscreen documents.
@@ -152,6 +155,15 @@ export async function recordAndUpload(
     if (webcamStream) stopTracks(webcamStream);
     if (micStream) stopTracks(micStream);
   };
+
+  // A failed countdown round-trip must not strand live tracks — record anyway.
+  const countdown = await cb.onCountdown().catch(() => "go" as const);
+  if (countdown === "cancel") {
+    stopAllTracks();
+    sessionActive = false;
+    cb.onStatus({ kind: "cancelled" });
+    return;
+  }
 
   // Restart discards the session's upload but keeps the acquired streams, so
   // no picker or permission prompt re-appears.
