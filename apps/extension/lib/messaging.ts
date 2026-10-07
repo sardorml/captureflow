@@ -11,6 +11,8 @@ export type StartResult = { ok: true } | { ok: false; error: string };
 
 export type CountdownResult = "go" | "cancel";
 
+export const COUNTDOWN_SECONDS = 3;
+
 export type CaptureContext = {
   deviceId: string;
   token: string;
@@ -51,8 +53,10 @@ type ProtocolMap = {
   deleteRecording(): void;
   beginCapture(ctx: CaptureContext): void;
   // Offscreen docs can't inject page UI, so the SW renders the pre-roll
-  // countdown and reports how it ended.
+  // countdown and reports how it ended. countdownStarted marks the overlay's
+  // actual mount, so the offscreen beeps line up with the visual ticks.
   runCountdown(): CountdownResult;
+  countdownStarted(): void;
   stopCapture(): void;
   pauseCapture(): void;
   resumeCapture(): void;

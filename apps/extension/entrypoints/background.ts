@@ -1,4 +1,5 @@
 import {
+  COUNTDOWN_SECONDS,
   onMessage,
   sendMessage,
   type CaptureContext,
@@ -113,7 +114,6 @@ async function releaseCameraBubble(): Promise<void> {
 // Tab hosting the invisible camera+mic grant frame (one combined prompt).
 let grantTabId: number | undefined;
 
-const COUNTDOWN_SECONDS = 3;
 // Pending pre-roll resolver; the overlay's skip/cancel raw message settles it
 // early, the worker's own clock settles it otherwise.
 let countdownSettle: ((result: CountdownResult) => void) | undefined;
@@ -132,6 +132,7 @@ async function runPageCountdown(): Promise<CountdownResult> {
   } catch {
     return "go";
   }
+  void sendMessage("countdownStarted", undefined).catch(() => {});
   // The worker owns the clock; the overlay only displays it. First settle
   // wins — a late page message after the timeout resolves into a no-op.
   const result = await new Promise<CountdownResult>((resolve) => {
