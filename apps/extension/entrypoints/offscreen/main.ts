@@ -1,4 +1,4 @@
-import { onMessage, sendMessage } from "@/lib/messaging";
+import { COUNTDOWN_SECONDS, onMessage, sendMessage } from "@/lib/messaging";
 import {
   deleteActiveRecording,
   pauseActiveRecording,
@@ -13,9 +13,40 @@ import {
  * reason — the spec's user-activation requirement isn't enforced for offscreen
  * docs.
  */
+/*
+ * One beep per visual tick, played here rather than in the page: no autoplay
+ * gate, and cancelling on resolve guarantees nothing bleeds into the first
+ * recorded frame. Scheduled off countdownStarted (the overlay's actual mount)
+ * so the beeps line up with the numerals, not with the message round-trip.
+ */
+const beep = new Audio(chrome.runtime.getURL("/countdown-beep.mp3"));
+let beepTimers: number[] = [];
+
+function cancelBeeps(): void {
+  for (const timer of beepTimers) clearTimeout(timer);
+  beepTimers = [];
+  beep.pause();
+}
+
+onMessage("countdownStarted", () => {
+  cancelBeeps();
+  beepTimers = Array.from({ length: COUNTDOWN_SECONDS }, (_, i) =>
+    window.setTimeout(() => {
+      beep.currentTime = 0;
+      void beep.play().catch(() => {});
+    }, i * 1000),
+  );
+});
+
 onMessage("beginCapture", ({ data }) =>
   recordAndUpload(data, {
-    onCountdown: () => sendMessage("runCountdown", undefined),
+    onCountdown: async () => {
+      try {
+        return await sendMessage("runCountdown", undefined);
+      } finally {
+        cancelBeeps();
+      }
+    },
     onStatus: (status) => void sendMessage("recordingStatus", status),
     onResult: (result) => void sendMessage("recordingResult", result),
     onActiveUpload: (upload) => void sendMessage("activeUploadChanged", upload),
