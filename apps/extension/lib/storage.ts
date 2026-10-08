@@ -22,7 +22,7 @@ export type RecordingStatus =
   | { kind: "preparing" }
   | { kind: "recording"; startedAt: number; pausedMs: number }
   | { kind: "paused"; startedAt: number; pausedMs: number; pausedAt: number }
-  | { kind: "uploading" }
+  | { kind: "uploading"; uploadedBytes?: number; totalBytes?: number }
   | { kind: "done" }
   | { kind: "cancelled" }
   | { kind: "error"; detail?: string };

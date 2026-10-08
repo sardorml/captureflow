@@ -290,7 +290,14 @@ async function runSession(
   };
 
   const finalize = async (): Promise<void> => {
-    cb.onStatus({ kind: "uploading" });
+    const progress = (): void =>
+      cb.onStatus({
+        kind: "uploading",
+        uploadedBytes: upload.uploadedBytes,
+        totalBytes: upload.screenBytes + upload.webcamBytes,
+      });
+    progress();
+    const progressTimer = setInterval(progress, 500);
     try {
       await Promise.all([
         screenRecorder.stop(),
@@ -312,6 +319,8 @@ async function runSession(
       upload.abort();
       cb.onActiveUpload(null);
       cb.onResult(failure(err));
+    } finally {
+      clearInterval(progressTimer);
     }
     endSession("done");
   };

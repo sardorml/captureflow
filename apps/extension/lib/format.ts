@@ -9,6 +9,19 @@ export function formatClock(ms: number): string {
   return `${hours > 0 ? `${hours}:` : ""}${mm}:${String(seconds).padStart(2, "0")}`;
 }
 
+/*
+ * Percent of the recording's bytes confirmed uploaded, or null when the total
+ * is unknown. Held at 99 while the finalize request runs, so the UI never
+ * shows a done state that then sits there.
+ */
+export function uploadPercent(
+  uploadedBytes: number | undefined,
+  totalBytes: number | undefined,
+): number | null {
+  if (!totalBytes) return null;
+  return Math.min(99, Math.floor(((uploadedBytes ?? 0) / totalBytes) * 100));
+}
+
 const BYTE_UNITS = ["KB", "MB", "GB", "TB"] as const;
 
 export function formatBytes(bytes: number): string {

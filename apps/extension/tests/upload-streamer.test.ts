@@ -192,6 +192,108 @@ describe("startRecordingUpload — screen stream", () => {
  * what the recorder stops on. Surfacing it verbatim — including its absence —
  * is this layer's whole job in that decision.
  */
+/*
+ * Throughput hangs on this: sequential parts cap the flush at chunk ÷
+ * round-trip, which is what made "Saving…" run for minutes on long captures.
+ */
+describe("startRecordingUpload — concurrent parts", () => {
+  function deferredScreenParts() {
+    const resolvers = new Map<number, () => void>();
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const uploadScreenPart = async (
+      _slug: string,
+      partNumber: number,
+      bytes: Uint8Array,
+    ) => {
+      inFlight++;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise<void>((resolve) => resolvers.set(partNumber, resolve));
+      inFlight--;
+      return { partNumber, etag: `s-${partNumber}`, size: bytes.byteLength };
+    };
+    return {
+      uploadScreenPart,
+      resolve: (partNumber: number) => resolvers.get(partNumber)?.(),
+      get maxInFlight() {
+        return maxInFlight;
+      },
+    };
+  }
+
+  it("keeps several parts in flight at once", async () => {
+    const parts = deferredScreenParts();
+    const transport = fakeTransport({
+      overrides: { uploadScreenPart: parts.uploadScreenPart },
+    });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
+
+    upload.pushScreen(bytes(450));
+    await tick();
+    expect(parts.maxInFlight).toBe(4);
+
+    const finishing = upload.finish();
+    await tick();
+    for (const n of [1, 2, 3, 4]) parts.resolve(n);
+    await tick();
+    parts.resolve(5); // trailing 50B part launches once a slot frees
+    await finishing;
+
+    expect(transport.finalizedScreen?.sizeBytes).toBe(450);
+  });
+
+  it("finalizes with ascending part numbers when parts finish out of order", async () => {
+    const parts = deferredScreenParts();
+    const transport = fakeTransport({
+      overrides: { uploadScreenPart: parts.uploadScreenPart },
+    });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
+
+    upload.pushScreen(bytes(300));
+    const finishing = upload.finish();
+    await tick();
+    for (const n of [3, 1, 2]) {
+      parts.resolve(n);
+      await tick();
+    }
+    await finishing;
+
+    expect(transport.finalizedScreen?.parts.map((p) => p.partNumber)).toEqual([
+      1, 2, 3,
+    ]);
+  });
+
+  it("counts uploadedBytes as parts complete, not as they are queued", async () => {
+    const parts = deferredScreenParts();
+    const transport = fakeTransport({
+      overrides: { uploadScreenPart: parts.uploadScreenPart },
+    });
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
+
+    upload.pushScreen(bytes(200));
+    await tick();
+    expect(upload.uploadedBytes).toBe(0);
+
+    parts.resolve(1);
+    await tick();
+    expect(upload.uploadedBytes).toBe(100);
+
+    const finishing = upload.finish();
+    parts.resolve(2);
+    await finishing;
+    expect(upload.uploadedBytes).toBe(200);
+  });
+});
+
 describe("startRecordingUpload — storage budget", () => {
   it("carries the remaining budget through from init", async () => {
     const transport = fakeTransport({

@@ -4,7 +4,7 @@ import {
   watchRecordingStatus,
   type RecordingStatus,
 } from "@/lib/storage";
-import { formatClock } from "@/lib/format";
+import { formatClock, uploadPercent } from "@/lib/format";
 
 const HOST_ID = "captureflow-control-bar";
 
@@ -66,6 +66,12 @@ type Bar = {
   update(status: RecordingStatus): void;
   destroy(): void;
 };
+
+function savingLabel(status: RecordingStatus): string {
+  if (status.kind !== "uploading") return "Saving…";
+  const pct = uploadPercent(status.uploadedBytes, status.totalBytes);
+  return pct === null ? "Saving…" : `Saving ${pct}%`;
+}
 
 function iconButton(icon: string, title: string, onClick: () => void) {
   const button = document.createElement("button");
@@ -163,7 +169,7 @@ function createBar(): Bar {
       }
       timer.classList.toggle("saving", saving);
       if (saving) {
-        timer.textContent = "Saving…";
+        timer.textContent = savingLabel(status);
       } else {
         renderTimer();
       }
