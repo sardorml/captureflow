@@ -12,9 +12,13 @@ type PendingRecordingProps = {
 };
 
 const POLL_INTERVAL_MS = 1500;
-// ~2 min cap. A pending row stuck past this means the desktop client
-// died mid-upload; the cron sweep GCs it within the hour.
-const MAX_ATTEMPTS = 80;
+/*
+ * ~10 min cap: the extension lands viewers here right at stop, so a long tail
+ * upload on a slow uplink is still in flight well past two minutes. A pending
+ * row stuck past this means the client died mid-upload; the cron sweep GCs it
+ * within the hour.
+ */
+const MAX_ATTEMPTS = 400;
 
 export function PendingRecording({
   slug,
@@ -91,9 +95,8 @@ export function PendingRecording({
                   This recording didn&apos;t finish uploading.
                 </p>
                 <p className="max-w-sm text-sm text-neutral-400">
-                  The link was created but the video never arrived. Try the link
-                  again in a minute, or record a fresh recording from the
-                  CaptureFlow desktop app.
+                  The link was created but the video never arrived. Try the
+                  link again in a minute, or record a fresh one.
                 </p>
               </>
             ) : (
