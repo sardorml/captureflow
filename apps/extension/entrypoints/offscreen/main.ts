@@ -20,6 +20,7 @@ import {
  * so the beeps line up with the numerals, not with the message round-trip.
  */
 const beep = new Audio(chrome.runtime.getURL("/countdown-beep.mp3"));
+const stopBeep = new Audio(chrome.runtime.getURL("/stop-beep.mp3"));
 let beepTimers: number[] = [];
 
 function cancelBeeps(): void {
@@ -48,6 +49,10 @@ onMessage("beginCapture", ({ data }) =>
       }
     },
     onStatus: (status) => void sendMessage("recordingStatus", status),
+    onFinalizing: (url) => {
+      void stopBeep.play().catch(() => {});
+      void sendMessage("finalizeStarted", url).catch(() => {});
+    },
     onResult: (result) => void sendMessage("recordingResult", result),
     onActiveUpload: (upload) => void sendMessage("activeUploadChanged", upload),
   }),

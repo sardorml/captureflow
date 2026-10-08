@@ -57,6 +57,9 @@ type ProtocolMap = {
   // actual mount, so the offscreen beeps line up with the visual ticks.
   runCountdown(): CountdownResult;
   countdownStarted(): void;
+  // Announces finalize with the share URL the moment stop lands, so the SW
+  // can open the pending share page instead of waiting out the tail upload.
+  finalizeStarted(url: string): void;
   stopCapture(): void;
   pauseCapture(): void;
   resumeCapture(): void;
