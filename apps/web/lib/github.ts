@@ -79,3 +79,99 @@ export function formatStars(n: number): string {
   const k = n / 1000;
   return `${k.toFixed(k < 10 ? 1 : 0).replace(/\.0$/, "")}k`;
 }
+
+export type RepoItem = {
+  kind: "issue" | "pr";
+  number: number;
+  title: string;
+  url: string;
+  state: "open" | "closed" | "merged";
+  date: string;
+};
+
+export type RepoActivity = { shipped: RepoItem[]; open: RepoItem[] };
+
+const ACTIVITY_CACHE_KEY = "https://captureflow.dev/__cache/github-activity";
+const ACTIVITY_CACHE_SECONDS = 900;
+const ACTIVITY_LIMIT = 5;
+
+function hydrateRepoItem(raw: unknown): RepoItem | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  if (
+    typeof r.number !== "number" ||
+    typeof r.title !== "string" ||
+    typeof r.html_url !== "string" ||
+    !r.html_url.startsWith(`${SOURCE_REPO_URL}/`) ||
+    typeof r.updated_at !== "string"
+  ) {
+    return null;
+  }
+  const pr = r.pull_request as { merged_at?: unknown } | undefined;
+  const isPr = !!pr && typeof pr === "object";
+  const mergedAt =
+    isPr && typeof pr.merged_at === "string" ? pr.merged_at : null;
+  const state = mergedAt ? "merged" : r.state === "open" ? "open" : "closed";
+  return {
+    kind: isPr ? "pr" : "issue",
+    number: r.number,
+    title: r.title,
+    url: r.html_url,
+    state,
+    date: mergedAt ?? r.updated_at,
+  };
+}
+
+// GitHub's issues endpoint returns pull requests too, so one call covers both.
+export function hydrateRepoActivity(raw: unknown): RepoActivity {
+  const items = (Array.isArray(raw) ? raw : [])
+    .map(hydrateRepoItem)
+    .filter((i): i is RepoItem => i !== null);
+  return {
+    shipped: items.filter((i) => i.state === "merged").slice(0, ACTIVITY_LIMIT),
+    open: items
+      .filter((i) => i.kind === "issue" && i.state === "open")
+      .slice(0, ACTIVITY_LIMIT),
+  };
+}
+
+export async function getRepoActivity(): Promise<RepoActivity | null> {
+  const cache = edgeCache();
+  try {
+    const hit = await cache?.match(ACTIVITY_CACHE_KEY);
+    if (hit) {
+      const cached = (await hit.json()) as RepoActivity;
+      if (Array.isArray(cached.shipped) && Array.isArray(cached.open)) {
+        return cached;
+      }
+    }
+  } catch {
+    /* cache miss behaves like no cache */
+  }
+
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${REPO_PATH}/issues?state=all&sort=updated&per_page=50`,
+      {
+        headers: {
+          Accept: "application/vnd.github+json",
+          "User-Agent": "captureflow-web",
+        },
+      },
+    );
+    if (!res.ok) return null;
+    const activity = hydrateRepoActivity(await res.json());
+
+    await cache
+      ?.put(
+        ACTIVITY_CACHE_KEY,
+        new Response(JSON.stringify(activity), {
+          headers: { "cache-control": `max-age=${ACTIVITY_CACHE_SECONDS}` },
+        }),
+      )
+      .catch(() => {});
+    return activity;
+  } catch {
+    return null;
+  }
+}

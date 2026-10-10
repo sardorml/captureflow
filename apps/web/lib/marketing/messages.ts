@@ -291,6 +291,15 @@ export const MESSAGES = {
       cta: "Get started",
     },
   },
+  activity: {
+    heading: "Built in the open",
+    subtitle: "Recent pull requests and open issues from GitHub.",
+    shippedHeading: "Recently merged",
+    openHeading: "Open issues",
+    emptyOpen: "No open issues right now.",
+    newIssue: "Report a bug or request a feature",
+    viewAll: "See everything on GitHub",
+  },
   faq: {
     heading: "Frequently Asked Questions",
     waitlistLink: "Join the waitlist",
