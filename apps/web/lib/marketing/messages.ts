@@ -66,7 +66,8 @@ export const MESSAGES = {
     genericError: "Something went wrong. Please try again.",
   },
   hero: {
-    titleLead: "Open-source screen recorder",
+    titleHighlight: "Open-source",
+    titleLead: "screen recorder",
     titleSuffix: "with shareable links",
     subtitleLine1:
       "Record your screen and share it with your team, clients, or customers.",
