@@ -1,7 +1,7 @@
 /*
  * The cross-application output contract. Every app that records through the
  * engine produces the same artifacts: screen video as fragmented MP4 (H.264
- * aspect-fit ≤1920×1080, 60 fps target, 8 Mbps target, AAC-LC audio when the
+ * aspect-fit ≤1920×1080, 60 fps target, 5 Mbps target, AAC-LC audio when the
  * platform provides it), webcam as WebM, poster as JPEG. One muxer + these
  * constants = identical output on every platform.
  */
@@ -10,7 +10,9 @@ export const ENGINE_OUTPUT = {
     maxWidth: 1920,
     maxHeight: 1080,
     fps: 60,
-    bitrate: 8_000_000,
+    // 5 Mbps holds up for screen content at 1080p and keeps the produced rate
+    // under typical uplinks, so the post-stop flush stays short.
+    bitrate: 5_000_000,
     // VideoEncoder codec strings, preferred first: Main 4.1, then Baseline 4.1.
     h264EncodeCandidates: ["avc1.4D4029", "avc1.42E029"],
   },

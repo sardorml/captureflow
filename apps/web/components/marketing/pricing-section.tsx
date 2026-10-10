@@ -20,7 +20,6 @@ export function PricingSection({
     <MarketingSection id="pricing">
       {!hideHeading && (
         <SectionHeading
-          eyebrow={m.pricing.eyebrow}
           title={CURRENT_STAGE.pricingHeading ?? m.pricing.heading}
           subtitle={CURRENT_STAGE.pricingSubheading ?? m.pricing.subheading}
           level={headingLevel}

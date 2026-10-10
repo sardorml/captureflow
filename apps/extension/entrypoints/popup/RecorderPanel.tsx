@@ -8,6 +8,7 @@ import {
   type RecordingResult,
   type RecordingStatus,
 } from "@/lib/storage";
+import { uploadPercent } from "@/lib/format";
 import { isOverlaySurface } from "@/lib/surface";
 import { DevicePickers } from "./DevicePickers";
 import { PANEL_ROW } from "./panel";
@@ -224,8 +225,14 @@ function StatusLine({
           the bar on the page.
         </Typography>
       );
-    case "uploading":
-      return <Typography type="body-xs">Uploading your recording…</Typography>;
+    case "uploading": {
+      const pct = uploadPercent(status.uploadedBytes, status.totalBytes);
+      return (
+        <Typography type="body-xs">
+          Uploading your recording…{pct === null ? "" : ` ${pct}%`}
+        </Typography>
+      );
+    }
     case "cancelled":
       return (
         <Typography type="body-xs" color="muted">

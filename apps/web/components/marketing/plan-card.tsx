@@ -34,7 +34,7 @@ export function PlanCard(props: PlanCardProps) {
   return (
     /* Outer card holds everything; the tinted panel is inset within it by the
        p-2, and the list + footnote sit below on the card's own surface. */
-    <div className="grid rounded-2xl border border-line bg-panel-2 p-2 md:row-span-3 md:grid-rows-subgrid">
+    <div className="grid rounded-2xl bg-panel p-2 md:row-span-3 md:grid-rows-subgrid">
       <div
         className={`relative flex flex-col overflow-hidden rounded-xl p-5 ${props.panelClassName}`}
       >
@@ -75,7 +75,7 @@ export function PlanCard(props: PlanCardProps) {
             "mt-auto flex h-10 w-full shrink-0 items-center justify-center rounded-xl text-sm font-medium transition-colors motion-reduce:transition-none",
             props.featured
               ? "bg-white text-neutral-900 hover:bg-white/90"
-              : "bg-black/30 text-white hover:bg-black/45",
+              : "bg-white/10 text-white hover:bg-white/15",
           ].join(" ")}
         >
           {props.cta.label}

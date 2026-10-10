@@ -1,120 +1,137 @@
 "use client";
 
-import { motion } from "motion/react";
-import { Text, Link as TypoLink } from "./typography";
+import NextLink from "next/link";
 import { TOKENS } from "./tokens";
+import { BrandMark } from "../brand-mark";
 import { DISCORD_URL } from "@/lib/marketing/constants";
 import { DOCS_URL, RELEASES_URL, SOURCE_REPO_URL } from "@/lib/site";
 import { useLocalizedHref } from "./i18n-provider";
 
-type FooterLink = { label: string; href: string };
+type FooterLink = { label: string; href: string; external?: boolean };
+type FooterColumn = { title: string; links: FooterLink[] };
 
-/*
- * Decorative wordmark: a dashed outline rather than a filled glyph, which only
- * SVG can do — `-webkit-text-stroke` has no dash control. Drawn in a viewBox so
- * it scales with the footer; VIEW_W is sized so "CaptureFlow" at FONT_SIZE
- * spans it, and the baseline sits low enough that descenders clip off the edge.
- */
-const VIEW_W = 1000;
-const VIEW_H = 220;
-const FONT_SIZE = 176;
-const BASELINE = 190;
+const LINK_CLASS =
+  "text-[15px] text-fg-muted transition-colors hover:text-fg motion-reduce:transition-none";
+
+function FooterAnchor({ link }: { link: FooterLink }) {
+  if (link.external) {
+    return (
+      <a
+        href={link.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={LINK_CLASS}
+      >
+        {link.label}
+      </a>
+    );
+  }
+  return (
+    <NextLink href={link.href} className={LINK_CLASS}>
+      {link.label}
+    </NextLink>
+  );
+}
 
 export function Footer() {
   const lh = useLocalizedHref();
   const token = TOKENS;
 
-  // One flat row rather than titled columns — the landing is short enough that
-  // a sitemap footer outweighs it.
-  const links: FooterLink[] = [
-    { label: "Features", href: lh("/features") },
-    { label: "Pricing", href: lh("/pricing") },
-    { label: "FAQ", href: lh("/faq") },
-    { label: "Roadmap", href: lh("/roadmap") },
-    { label: "Download", href: lh("/download") },
-    { label: "Docs", href: DOCS_URL },
-    { label: "Self-hosting", href: `${DOCS_URL}/self-hosting` },
-    { label: "Releases", href: RELEASES_URL },
-    { label: "GitHub", href: SOURCE_REPO_URL },
-    { label: "Discord", href: DISCORD_URL },
-    { label: "Privacy", href: lh("/privacy") },
+  const columns: FooterColumn[] = [
+    {
+      title: "Product",
+      links: [
+        { label: "Features", href: lh("/features") },
+        { label: "Pricing", href: lh("/pricing") },
+        { label: "Download", href: lh("/download") },
+        { label: "Roadmap", href: lh("/roadmap") },
+        { label: "Suggest a feature", href: lh("/suggest-feature") },
+      ],
+    },
+    {
+      title: "Resources",
+      links: [
+        { label: "Docs", href: DOCS_URL, external: true },
+        {
+          label: "Self-hosting",
+          href: `${DOCS_URL}/self-hosting`,
+          external: true,
+        },
+        { label: "Releases", href: RELEASES_URL, external: true },
+        { label: "FAQ", href: lh("/faq") },
+        { label: "Security", href: lh("/security") },
+      ],
+    },
+    {
+      title: "Community",
+      links: [
+        { label: "GitHub", href: SOURCE_REPO_URL, external: true },
+        { label: "Discord", href: DISCORD_URL, external: true },
+      ],
+    },
+    {
+      title: "Legal",
+      links: [
+        { label: "Privacy Policy", href: lh("/privacy") },
+        { label: "Terms of Service", href: lh("/terms") },
+        { label: "Refund Policy", href: lh("/refund") },
+        {
+          label: "License (AGPL-3.0)",
+          href: `${SOURCE_REPO_URL}/blob/main/LICENSE`,
+          external: true,
+        },
+      ],
+    },
   ];
 
   return (
     <footer
       style={{
-        position: "relative",
-        overflow: "hidden",
         marginTop: "auto",
         background: token.colorBgContainer,
-        /* Bottom space is for the decorative wordmark below, not content. */
-        paddingBlock: "72px 140px",
+        paddingBlock: "88px 56px",
       }}
     >
-      {/* dir="ltr" keeps this decorative wordmark upright under RTL.
-          Deliberately NOT viewport.once: `once` latches at the hidden initial
-          state on scroll-away/remount; re-evaluating on every entry keeps it reliable. */}
-      <motion.div
-        dir="ltr"
-        aria-hidden
-        initial={{ y: 90, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ amount: 0.4 }}
-        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 hidden overflow-hidden sm:block"
-      >
-        <svg
-          viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-          preserveAspectRatio="xMidYMax meet"
-          className="w-full translate-y-[22%] select-none text-[rgba(0,0,0,0.1)] dark:text-[rgba(255,255,255,0.08)]"
-        >
-          <text
-            x={VIEW_W / 2}
-            y={BASELINE}
-            textAnchor="middle"
-            fontSize={FONT_SIZE}
-            fontWeight={700}
-            letterSpacing="-0.03em"
-            fill="none"
-            stroke="currentColor"
-            /* Values are in viewBox units, so they scale ~1.5x at a desktop
-               width — a stroke of 2 lands near 3 CSS px on screen. Butt caps:
-               round ones swell each segment and read as a dotted line. */
-            strokeWidth={2}
-            strokeDasharray="12 8"
-            strokeLinecap="butt"
-          >
-            CaptureFlow
-          </text>
-        </svg>
-      </motion.div>
+      <div className="mx-auto w-full max-w-[1156px] px-6">
+        <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(4,1fr)]">
+          <div className="flex flex-col gap-4">
+            <NextLink
+              href={lh("/")}
+              aria-label="CaptureFlow"
+              className="inline-flex items-center gap-2 text-fg"
+            >
+              <BrandMark size={28} />
+              <span className="text-lg font-bold tracking-[-0.01em]">
+                CaptureFlow
+              </span>
+            </NextLink>
+            <p className="max-w-64 text-[15px] leading-relaxed text-fg-muted">
+              Open-source screen recording with instant share links.
+            </p>
+          </div>
 
-      <div
-        style={{
-          position: "relative",
-          zIndex: 1,
-          paddingInline: "clamp(20px, 4vw, 56px)",
-        }}
-      >
-        <nav
-          aria-label="Footer"
-          className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3"
-        >
-          {links.map((link) => (
-            <TypoLink key={link.label} href={link.href} type="secondary">
-              {link.label}
-            </TypoLink>
+          {columns.map((column) => (
+            <nav
+              key={column.title}
+              aria-label={column.title}
+              className="flex flex-col gap-3"
+            >
+              <span className="text-sm font-semibold text-fg">
+                {column.title}
+              </span>
+              {column.links.map((link) => (
+                <FooterAnchor key={link.label} link={link} />
+              ))}
+            </nav>
           ))}
-        </nav>
+        </div>
 
-        <Text
-          type="secondary"
-          align="center"
-          suppressHydrationWarning
-          style={{ display: "block", marginTop: 20, fontSize: 14 }}
-        >
-          © {new Date().getFullYear()} CaptureFlow. All rights reserved.
-        </Text>
+        <div className="mt-14 flex flex-col gap-2 border-t border-line pt-6 text-sm text-fg-subtle sm:flex-row sm:items-center sm:justify-between">
+          <span suppressHydrationWarning>
+            © {new Date().getFullYear()} CaptureFlow. All rights reserved.
+          </span>
+          <span>Open source under AGPL-3.0</span>
+        </div>
       </div>
     </footer>
   );

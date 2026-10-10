@@ -556,15 +556,21 @@ export default defineBackground(() => {
 
   onMessage("activeUploadChanged", ({ data }) => setActiveUpload(data));
 
+  // Land the user on the share page the moment stop lands; it renders a
+  // pending state and swaps in the player when the tail upload finalizes.
+  onMessage("finalizeStarted", async ({ data }) => {
+    await chrome.tabs.create({ url: data });
+  });
+
   onMessage("recordingResult", async ({ data }) => {
     await saveRecordingResult(data);
     await setRecordingStatus(
       data.ok ? { kind: "done" } : { kind: "error", detail: data.error },
     );
-    if (data.ok) {
-      // Land the user on the fresh recording page.
-      await chrome.tabs.create({ url: data.url });
-    } else if (data.code === "invalid_token" || data.code === "missing_token") {
+    if (
+      !data.ok &&
+      (data.code === "invalid_token" || data.code === "missing_token")
+    ) {
       await setAuthSession(null);
     }
   });

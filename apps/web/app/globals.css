@@ -45,7 +45,41 @@ html[data-theme="light"] body {
    the rule above — equal specificity, so source order decides. */
 html:has([data-marketing]),
 html:has([data-marketing]) body {
-  background-color: #141414;
+  background-color: #15120f;
+}
+
+/*
+ * Marketing palette: warm near-black, warm off-white text, our blue as the one
+ * accent. Scoped to the marketing subtree so the dashboard keeps its neutral
+ * greys. The selector pairs both attributes so it outranks the plain
+ * [data-theme="dark"] ramp in tokens.css and HeroUI's theme; the unprefixed
+ * names re-theme HeroUI's own variables here on purpose, which is how its
+ * Typography `muted`/foreground pick up the warm tones.
+ */
+[data-marketing][data-theme="dark"] {
+  --cf-canvas: #15120f;
+  --cf-canvas-2: #15120f;
+  --cf-panel: #1f1b17;
+  --cf-panel-2: #27221d;
+
+  --cf-fg: #eeede7;
+  --cf-fg-strong: #f7f6f1;
+  --cf-fg-muted: #a8a399;
+  --cf-fg-subtle: #77726a;
+
+  --cf-line: rgb(238 237 231 / 0.06);
+  --cf-line-strong: rgb(238 237 231 / 0.11);
+  --cf-tint: rgb(238 237 231 / 0.05);
+  --cf-tint-strong: rgb(238 237 231 / 0.1);
+
+  --cf-inverse: #eeede7;
+  --cf-on-inverse: #15120f;
+
+  --background: #15120f;
+  --foreground: #eeede7;
+  --muted: #a8a399;
+  --surface: #1f1b17;
+  --separator: rgb(238 237 231 / 0.08);
 }
 
 /* HeroUI's .dropdown__trigger is `display: inline-block`, which lands after
@@ -186,24 +220,6 @@ html:has([data-marketing]) body {
   animation: page-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Carousel autoplay: the active dot fills over the slide's dwell time and the
-   carousel advances on this animation's `animationend`. One clock for both, so
-   pausing the fill (hover/focus) pauses the advance with it, and reduced motion
-   drops the animation — leaving a filled dot and no autoplay at all. The
-   duration is set inline by the component. */
-@keyframes carousel-progress {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-.animate-carousel-progress {
-  transform-origin: left center;
-  animation: carousel-progress linear;
-}
-
 /* Brand mark: one counter-clockwise turn when the lockup it sits in is hovered,
    driven from the `group` on the surrounding link. An animation rather than a
    transition, because a transition to -360deg is a no-op the second time and
@@ -254,13 +270,67 @@ html:has([data-marketing]) body {
   animation: beta-confetti 0.9s cubic-bezier(0.16, 0.8, 0.3, 1) forwards;
 }
 
+/* Playback mockup: the progress bar and the reactions and comments beside the
+   recording share one 6s loop. Each item lifts off the bottom of its column
+   and fades, offset by an inline delay so it appears as the playhead reaches
+   its marker. With motion reduced the
+   bar holds at --rest and the feed holds at its --rest offsets as a still
+   stack. */
+@keyframes playback-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes playback-head {
+  from {
+    left: 0%;
+  }
+  to {
+    left: 100%;
+  }
+}
+@keyframes rise-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.92);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-240px) scale(1);
+  }
+}
+.animate-playback-fill {
+  transform: scaleX(var(--rest, 0.6));
+  animation: playback-fill 6s linear infinite;
+}
+.animate-playback-head {
+  left: calc(var(--rest, 0.6) * 100%);
+  animation: playback-head 6s linear infinite;
+}
+.animate-rise-fade {
+  transform: translateY(var(--rest, 0));
+  animation: rise-fade 6s cubic-bezier(0.22, 0.61, 0.36, 1) infinite backwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .animate-playback-fill,
+  .animate-playback-head,
+  .animate-rise-fade,
   .animate-rec-breathe,
   .animate-reveal,
   .animate-recording-icon-pop,
   .animate-page-fade,
   .animate-page-enter,
-  .animate-carousel-progress,
   .animate-beta-card,
   .animate-beta-confetti {
     animation: none !important;

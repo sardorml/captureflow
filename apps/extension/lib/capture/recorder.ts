@@ -5,7 +5,11 @@ import {
   type StreamRecorder,
   type WebcamRecorder,
 } from "@captureflow/engine/web";
-import { createRecordingTransport, RecordingApiHttpError } from "../api/client";
+import {
+  createRecordingTransport,
+  RecordingApiHttpError,
+  recordingViewUrl,
+} from "../api/client";
 import { friendlyUploadError } from "../api/errors";
 import {
   startRecordingUpload,
@@ -23,6 +27,9 @@ type Callbacks = {
   // and pickers settle, so a cancel tears down before any upload exists.
   onCountdown: () => Promise<"go" | "cancel">;
   onStatus: (status: RecordingStatus) => void;
+  // Fires as finalize begins, with the share URL — the page renders its own
+  // pending state while the tail uploads.
+  onFinalizing: (url: string) => void;
   onResult: (result: RecordingResultPayload) => void;
   // Relayed to the SW: chrome.storage is unavailable in offscreen documents.
   onActiveUpload: (upload: ActiveUpload | null) => void;
@@ -290,7 +297,15 @@ async function runSession(
   };
 
   const finalize = async (): Promise<void> => {
-    cb.onStatus({ kind: "uploading" });
+    cb.onFinalizing(recordingViewUrl(upload.slug));
+    const progress = (): void =>
+      cb.onStatus({
+        kind: "uploading",
+        uploadedBytes: upload.uploadedBytes,
+        totalBytes: upload.screenBytes + upload.webcamBytes,
+      });
+    progress();
+    const progressTimer = setInterval(progress, 500);
     try {
       await Promise.all([
         screenRecorder.stop(),
@@ -312,6 +327,8 @@ async function runSession(
       upload.abort();
       cb.onActiveUpload(null);
       cb.onResult(failure(err));
+    } finally {
+      clearInterval(progressTimer);
     }
     endSession("done");
   };

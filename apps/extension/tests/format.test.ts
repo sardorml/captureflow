@@ -1,5 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { formatBytes, formatClock } from "../lib/format";
+import { formatBytes, formatClock, uploadPercent } from "../lib/format";
+
+describe("uploadPercent", () => {
+  it("floors the ratio to a whole percent", () => {
+    expect(uploadPercent(0, 100)).toBe(0);
+    expect(uploadPercent(62_500, 100_000)).toBe(62);
+    expect(uploadPercent(999, 1_000)).toBe(99);
+  });
+
+  // Finalize still runs after the last part, so 100% would sit there looking
+  // stuck.
+  it("caps at 99 even when every byte is uploaded", () => {
+    expect(uploadPercent(1_000, 1_000)).toBe(99);
+    expect(uploadPercent(2_000, 1_000)).toBe(99);
+  });
+
+  it("returns null without a known total", () => {
+    expect(uploadPercent(500, undefined)).toBeNull();
+    expect(uploadPercent(500, 0)).toBeNull();
+    expect(uploadPercent(undefined, 1_000)).toBe(0);
+  });
+});
 
 describe("formatClock", () => {
   it("renders mm:ss with zero-padded seconds", () => {

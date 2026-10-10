@@ -13,6 +13,9 @@ const ROUTES = [
   "/roadmap",
   "/download",
   "/privacy",
+  "/terms",
+  "/refund",
+  "/security",
   "/suggest-feature",
 ] as const;
 

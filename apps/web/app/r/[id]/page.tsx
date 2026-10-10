@@ -170,20 +170,20 @@ export default async function RecordingPage({ params }: { params: Params }) {
   // and the loading shell polls /api/r/state to reload on flip.
   if (row.state === "pending") {
     return (
-      <>
+      <div className="flex min-h-screen flex-col bg-canvas text-fg lg:h-screen lg:overflow-hidden">
         <ViewerNav
           homeUrl={APP_WEB_SITE_URL}
           productName={PRODUCT_NAME}
           label="recording"
-          viewCount={row.viewCount}
           themeToggle={<ThemeToggle initialTheme={theme} className="h-9 w-9" />}
         />
         <PendingRecording
           slug={id}
           titleLine={row.title ?? `${PRODUCT_NAME}`}
           createdAt={row.createdAt}
+          viewCount={row.viewCount}
         />
-      </>
+      </div>
     );
   }
   if (row.state !== "ready") notFound();

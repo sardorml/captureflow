@@ -4,6 +4,7 @@ import { loadSession } from "@/lib/session-guard";
 import { getStarCount, formatStars } from "@/lib/github";
 import { Nav } from "@/components/marketing/nav";
 import { HeroSection } from "@/components/marketing/hero-section";
+import { UseCasesSection } from "@/components/marketing/use-cases-section";
 import { ModesIntro } from "@/components/marketing/modes-intro";
 import { CollaborationSection } from "@/components/marketing/collaboration-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
@@ -66,6 +67,7 @@ export default async function RootPage() {
           <HeroSection />
           <ModesIntro />
           <CollaborationSection />
+          <UseCasesSection />
           <PricingSection />
           <FaqSection />
           <RoadmapSection />

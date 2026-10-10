@@ -1,16 +1,13 @@
 "use client";
 
-import { Fragment } from "react";
-import { PageShell } from "@/components/marketing/page-shell";
-import { Paragraph, Text, Title } from "@/components/marketing/typography";
-import { Flex } from "@/components/marketing/layout";
-import { SUPPORT_EMAIL } from "@/lib/marketing/constants";
+import {
+  LegalPage,
+  type LegalSection,
+} from "@/components/marketing/legal-page";
 
 const LAST_UPDATED = "5 August 2026";
 
-type Section = { heading: string; body: string[]; bullets?: string[] };
-
-const SECTIONS: Section[] = [
+const SECTIONS: LegalSection[] = [
   {
     heading: "Who this covers",
     body: [
@@ -66,47 +63,11 @@ const SECTIONS: Section[] = [
 
 export function PrivacyClient() {
   return (
-    <PageShell
-      maxWidth={760}
+    <LegalPage
       title="Privacy Policy"
-      subtitle={`Last updated ${LAST_UPDATED}`}
-    >
-      <Flex vertical gap={36} style={{ paddingBottom: 72 }}>
-        {SECTIONS.map((section) => (
-          <Fragment key={section.heading}>
-            <Flex vertical gap={12}>
-              <Title level={2}>{section.heading}</Title>
-              {section.body.map((paragraph) => (
-                <Paragraph key={paragraph}>{paragraph}</Paragraph>
-              ))}
-              {section.bullets ? (
-                <ul
-                  style={{
-                    margin: 0,
-                    paddingLeft: 22,
-                    display: "grid",
-                    gap: 10,
-                  }}
-                >
-                  {section.bullets.map((bullet) => (
-                    <li key={bullet}>
-                      <Text type="secondary">{bullet}</Text>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </Flex>
-          </Fragment>
-        ))}
-
-        <Flex vertical gap={12}>
-          <Title level={2}>Contact</Title>
-          <Paragraph>
-            Questions about this policy, or a request to access or delete your
-            data, can go to {SUPPORT_EMAIL}.
-          </Paragraph>
-        </Flex>
-      </Flex>
-    </PageShell>
+      lastUpdated={LAST_UPDATED}
+      sections={SECTIONS}
+      contact="Questions about this policy, or a request to access or delete your data, can go to"
+    />
   );
 }

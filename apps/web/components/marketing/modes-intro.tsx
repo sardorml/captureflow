@@ -7,718 +7,361 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { Paragraph, Text } from "./typography";
-import { Camera, Link2, Mic, Monitor } from "lucide-react";
+import { Pause } from "lucide-react";
 import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
 import { useMessages } from "./i18n-provider";
+import { RecorderPanel } from "./recorder-panel";
 
 /*
- * Every glyph in the panel is the extension's own SVG, copied from
- * apps/extension/entrypoints/popup/*, rather than the nearest lucide icon: two
- * icons drawn to different shares of their box read as different sizes side by
- * side, which is exactly what a portrait of the panel can't afford. Sizes are
- * the ones that end up on screen — the header pair is 20px because HeroUI's
- * Button sizes any icon inside it, the rest keep the size on the tag.
+ * Glyphs and colours copied from the extension's control bar
+ * (apps/extension/entrypoints/control-bar.content/index.ts) so the mockup is
+ * the bar people actually see while recording.
  */
-const HOME_ICON = (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
-    <path
-      d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+const BAR = { background: "#16181d", button: "#2a2e36", fg: "#e8eaed" };
 
-const VIDEO_ICON = (
-  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
-    <rect
-      x="3"
-      y="6.5"
-      width="12.5"
-      height="11"
-      rx="2.5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-    />
-    <path
-      d="m16 10.5 4.2-2.4v7.8L16 13.5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const PHOTO_ICON = (
-  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
-    <path
-      d="M8.5 6.5 10 4.5h4l1.5 2H19a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 19 19.5H5A1.5 1.5 0 0 1 3.5 18V8A1.5 1.5 0 0 1 5 6.5h3.5z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinejoin="round"
-    />
-    <circle
-      cx="12"
-      cy="12.7"
-      r="3.2"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-    />
-  </svg>
-);
-
-const CLOSE_ICON = (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
-    <path
-      d="m6 6 12 12M18 6 6 18"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const SCREEN_ICON = (
+const STOP_ICON = (
   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <rect
-      x="3"
-      y="5"
-      width="18"
-      height="12.5"
-      rx="2"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-    />
-    <path
-      d="M9 20.5h6"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-    />
+    <rect x="6" y="6" width="12" height="12" rx="3" fill="#f0554f" />
   </svg>
 );
-
-const CAMERA_ICON = (
+const PAUSE_ICON = (
   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <rect
-      x="3"
-      y="6.5"
-      width="12.5"
-      height="11"
-      rx="2.5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-    />
-    <path
-      d="m16 10.5 4.2-2.4v7.8L16 13.5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinejoin="round"
-    />
+    <rect x="7" y="5" width="3.5" height="14" rx="1.5" fill="currentColor" />
+    <rect x="13.5" y="5" width="3.5" height="14" rx="1.5" fill="currentColor" />
   </svg>
 );
-
-const MIC_ICON = (
+const RESTART_ICON = (
   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <rect
-      x="9"
-      y="3.5"
-      width="6"
-      height="11"
-      rx="3"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-    />
     <path
-      d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
+      d="M12 5V2.5L7.5 6 12 9.5V7a5.5 5.5 0 1 1-5.5 5.5H4.5A7.5 7.5 0 1 0 12 5z"
+      fill="currentColor"
+    />
+  </svg>
+);
+const DELETE_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <path
+      d="M9 3h6l1 2h4v2H4V5h4l1-2zm-2.5 6h11l-.8 11.1a2 2 0 0 1-2 1.9H9.3a2 2 0 0 1-2-1.9L6.5 9zm4 2.5v7h1.5v-7h-1.5zm3 0v7H15v-7h-1.5z"
+      fill="currentColor"
     />
   </svg>
 );
 
-// Points up because the panel's menu opens upward out of the footer.
-const MORE_ICON = (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
-    <path
-      d="m7 14 5-5 5 5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+type Riser =
+  | { kind: "emoji"; emoji: string; x: number }
+  | { kind: "comment"; index: number; x: number };
 
-// Keep this mode set in sync with the extension popup's Tabs (video + screenshot).
-// The mockup holds the video tab: it is the section's subject, and a panel that
-// swapped under you while you read it was harder to follow than it was lively.
-const MODES = [
-  { key: "share", icon: VIDEO_ICON },
-  { key: "screenshot", icon: PHOTO_ICON },
-] as const;
+const RISE_PERIOD = 6;
+
+// Seconds from an item's start until it has faded in (10% of rise-fade).
+const RISE_ENTER = RISE_PERIOD * 0.1;
 
 /*
- * Each callout's leader ends on the control it describes — inside the panel, not
- * at its edge — so the target is a measured (x, y) on that element rather than
- * just a row's height. `inset` is how far in from the element's near edge the
- * dot lands: enough to read as on the control, short of the glyph or label it
- * would otherwise cover. DOM order here is the mobile reading order.
+ * Six items share one 6s loop, one second apart, so the feed never empties.
+ * Comments rise in the left lane and reactions in two lanes to their right,
+ * and no two neighbours in the loop share a lane, so nothing overlaps.
  */
-const CALLOUTS = [
-  { key: "source", icon: Monitor, anchor: "source", side: "left", inset: 30 },
-  { key: "link", icon: Link2, anchor: "start", side: "left", inset: 44 },
-  {
-    key: "screenshot",
-    icon: Camera,
-    anchor: "photoTab",
-    side: "right",
-    inset: 5,
-  },
-  { key: "devices", icon: Mic, anchor: "mic", side: "right", inset: 6 },
-] as const;
+const RISERS: Riser[] = [
+  { kind: "emoji", emoji: "🔥", x: 180 },
+  { kind: "comment", index: 0, x: 0 },
+  { kind: "emoji", emoji: "👏", x: 226 },
+  { kind: "emoji", emoji: "❤️", x: 176 },
+  { kind: "comment", index: 1, x: 12 },
+  { kind: "emoji", emoji: "😂", x: 222 },
+];
 
-// Callout box + the leader's span. The pair has to clear the panel on both
-// sides inside the section's measure, which is why the pinned layout only
-// switches on at xl.
-// Wide enough that every callout title holds one line; the titles are written
-// to that budget, so shortening the box means shortening a title too.
-const CALLOUT_WIDTH = 304;
-const LEADER_GAP = 112;
-// A floor on the vertical gutter, not just collision clearance: two boxes left
-// at their controls' own spacing read as one block with a seam.
-const CALLOUT_GAP = 60;
-// How far the outer boxes run past the panel's top and bottom edges.
-const COLUMN_OVERHANG = 20;
-const LEADER_BEND = 20;
-const OVERHANG = LEADER_GAP + CALLOUT_WIDTH;
+const riseDelay = (i: number) => (i * RISE_PERIOD) / RISERS.length;
 
-type CalloutSpec = (typeof CALLOUTS)[number];
-
-// Panel coordinates, before the fit scale is applied.
-type Point = { x: number; y: number };
-
-/*
- * The panel is a portrait of the extension popup, so its palette is the
- * extension's own rather than anything from this page's theme — HeroUI's dark
- * tokens, plus the three surfaces popup.css lifts (a panel floating over
- * someone else's page can't sit at HeroUI's near-black). Values are copied from
- * @heroui/styles' dark theme and apps/extension/entrypoints/popup/popup.css;
- * they are scoped here so the mockup reads the same under either page theme.
- */
-const EXT_PALETTE = {
-  "--cf-ext-background": "#303030",
-  "--cf-ext-surface": "#404040",
-  "--cf-ext-foreground": "oklch(0.9911 0 0)",
-  "--cf-ext-muted": "oklch(70.5% 0.015 286.067)",
-  "--cf-ext-border": "oklch(28% 0.006 286.033)",
-  "--cf-ext-separator": "oklch(25% 0.006 286.033)",
-  "--cf-ext-accent": "oklch(0.6204 0.195 253.83)",
-  "--cf-ext-accent-soft":
-    "color-mix(in oklab, oklch(0.6204 0.195 253.83) 12%, transparent)",
-  "--cf-ext-accent-soft-foreground":
-    "color-mix(in oklab, oklch(0.6204 0.195 253.83) 80%, oklch(0.9911 0 0) 30%)",
-  "--cf-ext-success": "oklch(0.7329 0.1935 150.81)",
-  "--cf-ext-default": "oklch(27.4% 0.006 286.033)",
-  "--cf-ext-segment": "oklch(0.3964 0.01 285.93)",
-  // The one committing action carries its own warm fill, not the accent.
-  "--cf-ext-start": "#e8563a",
-} as CSSProperties;
-
-// The panel is authored at the extension popup's own width and scaled as a
-// single block, so the mockup is the panel at life size on any viewport wide
-// enough to hold it and keeps its proportions on any that isn't. Keep this in
-// step with apps/extension/entrypoints/popup/popup.css.
-const PANEL_WIDTH = 280;
-const MAX_SCALE = 1;
-
-const ROW =
-  "flex items-center gap-2.5 rounded-xl bg-[color:var(--cf-ext-surface)] px-2.5 py-2";
-
-function IconGlyph({
-  icon: Glyph,
-  size = 16,
+// Lays a pixel-authored mockup out at `width`×`height` and scales it to fit.
+function Scaled({
+  width,
+  height,
+  children,
 }: {
-  icon: typeof Camera;
-  size?: number;
+  width: number;
+  height: number;
+  children: ReactNode;
 }) {
-  return <Glyph size={size} className="shrink-0" strokeWidth={1.8} />;
-}
+  const ref = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
 
-function StatePill({ on, label }: { on: boolean; label: string }) {
-  return (
-    <span
-      className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${
-        on
-          ? "border-[color:var(--cf-ext-success)] text-[color:var(--cf-ext-success)]"
-          : "border-[color:var(--cf-ext-separator)] text-[color:var(--cf-ext-muted)]"
-      }`}
-    >
-      {label}
-    </span>
-  );
-}
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => setScale(Math.min(1, el.clientWidth / width));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [width]);
 
-function DeviceRow({
-  icon,
-  label,
-  on,
-  onLabel,
-  meter,
-  ref,
-}: {
-  icon: ReactNode;
-  label: string;
-  on: boolean;
-  onLabel: string;
-  meter?: boolean;
-  ref?: (el: HTMLDivElement | null) => void;
-}) {
   return (
     <div
       ref={ref}
-      className={`${ROW} relative overflow-hidden text-[color:var(--cf-ext-foreground)] ${
-        on ? "outline outline-[color:var(--cf-ext-border)]" : ""
-      }`}
-    >
-      <span className="flex shrink-0" aria-hidden>
-        {icon}
-      </span>
-      {/* The popup names the device through a Select, whose trigger is
-          min-h-9 — that, not the label, is what sets the row's height. */}
-      <span className="flex min-h-9 min-w-0 flex-1 items-center">
-        <span className="truncate text-sm font-medium">{label}</span>
-      </span>
-      <StatePill on={on} label={onLabel} />
-      {meter && (
-        // Mic level: a Meter pinned along the row's bottom edge, accent-filled.
-        <span
-          className="absolute inset-x-0 bottom-0 h-1 rounded-xs bg-[color:var(--cf-ext-accent)]"
-          style={{ width: "42%" }}
-          aria-hidden
-        />
-      )}
-    </div>
-  );
-}
-
-// Measured off the panel's own trigger: 40px tall, 24px radius, 1px border in
-// --cf-ext-border, 14px/500 label, 8px gap, 16px inline padding.
-function ToolButton({ icon, label }: { icon: ReactNode; label: string }) {
-  return (
-    <span className="flex h-10 w-full items-center justify-center gap-2 rounded-3xl border border-[color:var(--cf-ext-border)] px-4 text-sm font-medium text-[color:var(--cf-ext-foreground)]">
-      {label}
-      {icon}
-    </span>
-  );
-}
-
-function Callout({
-  icon,
-  title,
-  body,
-  side,
-  pinned,
-}: {
-  icon: typeof Camera;
-  title: string;
-  body: string;
-  side: "left" | "right";
-  // Pinned beside the panel with a leader, rather than stacked underneath it.
-  pinned: boolean;
-}) {
-  const isLeft = side === "left";
-  return (
-    <div
-      /* The lift on hover stays at 2px: the leaders are painted in their own
-         overlay and don't travel with the box, so anything further would pull
-         one off its line. */
-      className={`border-line-strong bg-tint-strong hover:border-fg-subtle/60 relative rounded-2xl border p-4 transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(0,0,0,0.5)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
-        pinned ? "" : "w-full"
-      }`}
+      aria-hidden
+      className="relative w-full"
+      style={{ maxWidth: width, height: height * scale }}
     >
       <div
-        className={`flex items-start gap-3 ${pinned && isLeft ? "flex-row-reverse" : ""}`}
+        className="absolute top-0 left-0 origin-top-left"
+        style={{ width, height, transform: `scale(${scale})` }}
       >
-        <span className="border-line text-fg-muted mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border">
-          <IconGlyph icon={icon} />
-        </span>
-        <div>
-          <Text strong style={{ fontSize: 16 }}>
-            {title}
-          </Text>
-          <Paragraph
-            type="secondary"
-            style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.5 }}
-          >
-            {body}
-          </Paragraph>
-        </div>
+        {children}
       </div>
     </div>
   );
 }
 
-export function ModesIntro({ headingLevel = 2 }: SectionProps = {}) {
-  const m = useMessages();
-  const copy = m.modes.panel;
+function Presenter({ size, ring }: { size: number; ring: number }) {
+  return (
+    <span
+      className="block overflow-hidden rounded-full"
+      style={{
+        width: size,
+        height: size,
+        boxShadow: `0 0 0 ${ring}px #fff, 0 18px 40px rgb(0 0 0 / 0.45)`,
+      }}
+    >
+      <img
+        src="/avatar-presenter.webp"
+        alt=""
+        className="size-full object-cover"
+      />
+    </span>
+  );
+}
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  // Anchors are read off the live controls, so the leaders keep pointing at the
-  // right rows if the panel's copy or spacing ever changes.
-  const anchorRefs = useRef<Record<string, HTMLElement | null>>({});
-  const calloutRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const [anchors, setAnchors] = useState<Record<string, Point>>({});
-  const [slots, setSlots] = useState<Record<string, number>>({});
-  const [panelSize, setPanelSize] = useState({ w: 0, h: 0 });
-  const [fit, setFit] = useState(1);
-  // Only wide viewports can hold panel + two callout columns; narrower ones
-  // stack the callouts under the panel, where a leader would point at nothing.
-  const [pinned, setPinned] = useState(false);
+const PLAYER = { width: 740, height: 400 };
+const TITLE_HEIGHT = 60;
+const VIDEO = { width: 480, height: 270 };
+const FEED = { left: VIDEO.width + 20, bottom: VIDEO.height + 20 };
 
-  const setAnchorRef = (key: string) => (el: HTMLElement | null) => {
-    anchorRefs.current[key] = el;
-  };
+function PlaybackMockup() {
+  const copy = useMessages().modes.scene;
+  const clockRef = useRef<HTMLDivElement>(null);
 
-  const setCalloutRef = (key: string) => (el: HTMLDivElement | null) => {
-    calloutRefs.current[key] = el;
-  };
-
+  // CSS animations start whenever their element gets them (hydration, a hot
+  // reload), so pin every one in the mockup to the same start to keep the
+  // playhead and the feed in step.
   useEffect(() => {
-    const measure = () => {
-      const panel = panelRef.current;
-      const container = containerRef.current;
-      if (!panel || !container) return;
-      const w = panel.offsetWidth;
-      const h = panel.offsetHeight;
-      const available = container.clientWidth;
-      setPanelSize({ w, h });
-      // Both guards matter: an unmeasurable container once scaled the panel to
-      // 0 rather than leaving it at its natural size.
-      setFit(
-        w > 0 && available > 0
-          ? Math.min(MAX_SCALE, (available * 0.92) / w)
-          : 1,
-      );
-
-      const next: Record<string, Point> = {};
-      for (const callout of CALLOUTS) {
-        const el = anchorRefs.current[callout.anchor];
-        if (!el) continue;
-        const y = el.offsetTop + el.offsetHeight / 2;
-        const x =
-          callout.side === "left"
-            ? el.offsetLeft + callout.inset
-            : el.offsetLeft + el.offsetWidth - callout.inset;
-        next[callout.anchor] = { x, y };
-      }
-      setAnchors(next);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (panelRef.current) ro.observe(panelRef.current);
-    if (containerRef.current) ro.observe(containerRef.current);
-    window.addEventListener("resize", measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", measure);
-    };
+    const animations = clockRef.current?.getAnimations({ subtree: true });
+    animations?.forEach((animation) => (animation.startTime = 0));
   }, []);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1280px)");
-    const sync = () => setPinned(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
-
-  /*
-   * Each column spans the panel plus an overhang at both ends, with the space
-   * left over split evenly between its boxes, so the cluster reads as one block
-   * a little taller than the panel rather than as boxes floating inside it. A
-   * box that ends up off its control is fine — the leader angles across.
-   */
-  useEffect(() => {
-    if (!pinned) return;
-    const panelHeight = panelSize.h * fit;
-    const next: Record<string, number> = {};
-    for (const side of ["left", "right"] as const) {
-      const column = CALLOUTS.filter((c) => c.side === side).map((c) => ({
-        key: c.key,
-        height: calloutRefs.current[c.key]?.offsetHeight ?? 0,
-      }));
-      const gaps = column.length - 1;
-      if (gaps < 1) continue;
-      const stacked = column.reduce((total, box) => total + box.height, 0);
-      // The floor keeps two tall boxes apart when the copy leaves no slack.
-      const gap = Math.max(
-        CALLOUT_GAP,
-        (panelHeight + COLUMN_OVERHANG * 2 - stacked) / gaps,
-      );
-      let cursor = (panelHeight - (stacked + gap * gaps)) / 2;
-      for (const box of column) {
-        next[box.key] = cursor;
-        cursor += box.height + gap;
-      }
-    }
-    setSlots(next);
-  }, [pinned, fit, panelSize.h]);
-
-  const slotTop = (callout: CalloutSpec) =>
-    slots[callout.key] ?? (anchors[callout.anchor]?.y ?? 0) * fit;
-
-  // Panel coordinates → the SVG's own box, which overhangs the panel by a full
-  // callout on each side.
-  const leaderFor = (callout: CalloutSpec) => {
-    const target = anchors[callout.anchor];
-    const top = slots[callout.key];
-    const height = calloutRefs.current[callout.key]?.offsetHeight;
-    if (!target || top == null || !height) return null;
-
-    const isLeft = callout.side === "left";
-    const panelWidth = panelSize.w * fit;
-    const endX = OVERHANG + target.x * fit;
-    const endY = target.y * fit;
-    const startX = OVERHANG + (isLeft ? -LEADER_GAP : panelWidth + LEADER_GAP);
-    const startY = top + height / 2;
-    // The run straightens out just short of the panel so it arrives level with
-    // the control rather than crossing other rows on the diagonal.
-    const bendX = OVERHANG + (isLeft ? -LEADER_BEND : panelWidth + LEADER_BEND);
-    return {
-      points: `${startX},${startY} ${bendX},${endY} ${endX},${endY}`,
-      endX,
-      endY,
-    };
-  };
 
   return (
-    <MarketingSection id="modes" style={{ scrollMarginTop: 24 }}>
-      <SectionHeading
-        eyebrow={m.modes.eyebrow}
-        title={m.modes.heading}
-        subtitle={m.modes.subtitle}
-        level={headingLevel}
-      />
-
-      {/* The callouts are pinned to the panel box rather than laid out in
-          columns beside it: a grid track would squeeze them to whatever width
-          was left over, and its rows can't line a box up with the control it
-          describes. Absolute keeps each box at its own width. */}
-      <div
-        className="flex flex-col items-center"
-        style={{ paddingBlock: "clamp(32px, 5vw, 64px)" }}
-      >
-        <div ref={containerRef} className="flex w-full flex-col items-center">
-          <div
-            className="relative"
-            style={{
-              width: panelSize.w ? panelSize.w * fit : undefined,
-              height: panelSize.h ? panelSize.h * fit : undefined,
-            }}
-          >
-            {/* Content-sized so the panel lays out at its natural width,
-                    then scales as one block. `dir=ltr` keeps cluster order
-                    under RTL locales. */}
-            <div
-              className="absolute top-0 left-0 origin-top-left"
-              dir="ltr"
-              style={{ transform: `scale(${fit})` }}
-            >
-              <div className="pointer-events-none absolute bottom-full left-1/2 mb-3 -translate-x-1/2 rounded-lg bg-[#171717] px-3 py-1.5 text-xs font-medium whitespace-nowrap text-white shadow-sm">
-                {m.modes.tabs.share.caption}
+    <Scaled width={PLAYER.width} height={PLAYER.height}>
+      <div ref={clockRef} className="contents">
+        <div className="absolute top-0 left-0" style={{ width: VIDEO.width }}>
+          <p className="truncate text-[18px] font-semibold text-white">
+            {copy.title}
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 text-[13px] text-white/55">
+            <span className="flex size-4 items-center justify-center rounded-full bg-[#3b82f6] text-[9px] font-semibold text-white">
+              {copy.author[0]}
+            </span>
+            {copy.author} · {copy.age}
+          </p>
+        </div>
+        <div
+          className="absolute left-0 overflow-hidden rounded-2xl border border-white/10 shadow-[0_24px_60px_rgb(0_0_0/0.45)]"
+          style={{
+            top: TITLE_HEIGHT,
+            width: VIDEO.width,
+            height: VIDEO.height,
+          }}
+        >
+          <div className="relative size-full overflow-hidden bg-[linear-gradient(135deg,#2563eb,#7c3aed)]">
+            <div className="absolute inset-x-8 top-5 bottom-0 flex flex-col overflow-hidden rounded-t-xl bg-[#f6f7fb] shadow-[0_20px_50px_rgb(0_0_0/0.35)]">
+              <div className="flex h-6 items-center gap-1.5 bg-[#e9ebf2] px-3">
+                <span className="size-2 rounded-full bg-[#ff5f57]" />
+                <span className="size-2 rounded-full bg-[#febc2e]" />
+                <span className="size-2 rounded-full bg-[#28c840]" />
               </div>
-
-              <div
-                ref={panelRef}
-                className="relative flex flex-col gap-2.5 rounded-2xl bg-[color:var(--cf-ext-background)] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
-                style={{ ...EXT_PALETTE, width: PANEL_WIDTH }}
-              >
-                <header className="flex items-center justify-between gap-2 text-[color:var(--cf-ext-foreground)]">
-                  <span className="flex h-10 w-10 items-center justify-center">
-                    {HOME_ICON}
-                  </span>
-
-                  {/* Tabs: the list container paints the track, and the
-                          selected tab gets the segment pill with an accent
-                          glyph — HeroUI's indicator, not a white chip. */}
-                  <div className="inline-flex rounded-[20px] bg-[color:var(--cf-ext-default)] p-1">
-                    {MODES.map((mode, i) => {
-                      const isActive = i === 0;
-                      return (
-                        <span
-                          key={mode.key}
-                          ref={isActive ? undefined : setAnchorRef("photoTab")}
-                          aria-label={m.modes.tabs[mode.key].label}
-                          className={`flex h-8 items-center justify-center rounded-3xl px-4 ${
-                            isActive
-                              ? "bg-[color:var(--cf-ext-segment)] text-[color:var(--cf-ext-accent)]"
-                              : "text-[color:var(--cf-ext-muted)]"
-                          }`}
-                        >
-                          {mode.icon}
-                        </span>
-                      );
-                    })}
-                  </div>
-
-                  <span className="flex h-10 w-10 items-center justify-center">
-                    {CLOSE_ICON}
-                  </span>
-                </header>
-
-                {/* HeroUI's Tabs.Panel pads the active panel, so the rows
-                    are inset from the panel's own p-3 by another 8px. */}
-                <div className="p-2">
-                  <div className="flex flex-col gap-2">
-                    {/* The source is the panel's headline choice, so the row
-                          carries the accent the device rows don't. */}
-                    <div
-                      ref={setAnchorRef("source")}
-                      className={`${ROW} bg-[color:var(--cf-ext-accent-soft)] text-[color:var(--cf-ext-accent-soft-foreground)]`}
-                      aria-label={copy.sourceAria}
-                    >
-                      <span className="flex shrink-0" aria-hidden>
-                        {SCREEN_ICON}
-                      </span>
-                      <span className="flex-1 truncate text-sm font-semibold">
-                        {copy.source}
-                      </span>
-                      <span className="text-xs opacity-70">
-                        {copy.sourceHint}
-                      </span>
-                    </div>
-
-                    {/* The device rows sit closer to each other than to the
-                          source above them, as they do in the popup. */}
-                    <section className="flex flex-col gap-1.5">
-                      <DeviceRow
-                        icon={CAMERA_ICON}
-                        label={copy.camera}
-                        on={false}
-                        onLabel={copy.off}
-                      />
-                      <DeviceRow
-                        ref={setAnchorRef("mic")}
-                        icon={MIC_ICON}
-                        label={copy.microphone}
-                        on
-                        onLabel={copy.on}
-                        meter
-                      />
-                    </section>
-
-                    <span
-                      ref={setAnchorRef("start")}
-                      className="flex h-10 items-center justify-center rounded-xl bg-[color:var(--cf-ext-start)] text-sm font-semibold text-white"
-                    >
-                      {copy.startRecording}
-                    </span>
+              <div className="flex flex-1 gap-4 p-4">
+                <div className="flex w-16 flex-col gap-2">
+                  <span className="h-2 w-[70%] rounded-full bg-black/10" />
+                  <span className="h-2 w-1/2 rounded-full bg-black/[0.07]" />
+                  <span className="h-2 w-[60%] rounded-full bg-black/[0.07]" />
+                </div>
+                <div className="flex flex-1 flex-col gap-3">
+                  <span className="h-2.5 w-1/3 rounded-full bg-black/10" />
+                  <div className="grid flex-1 grid-cols-3 gap-3">
+                    <span className="rounded-lg bg-[#6b9bff]/25" />
+                    <span className="rounded-lg bg-[#6b9bff]/40" />
+                    <span className="rounded-lg bg-[#6b9bff]/55" />
                   </div>
                 </div>
-
-                <footer>
-                  <ToolButton icon={MORE_ICON} label={copy.more} />
-                </footer>
               </div>
             </div>
+            <div className="absolute top-1/2 left-3 origin-left -translate-y-1/2 scale-[0.6]">
+              <ControlBar />
+            </div>
+            <div className="absolute right-4 bottom-4">
+              <Presenter size={76} ring={3} />
+            </div>
+          </div>
+        </div>
 
-            {pinned && (
-              <>
-                {/* One overlay for every leader: a box can no longer sit level
-                    with its control once the column is packed, so each leader
-                    is an angled run that straightens out as it reaches the
-                    panel and lands on the control itself. */}
-                <svg
-                  aria-hidden
-                  className="pointer-events-none absolute top-0 overflow-visible"
-                  style={{
-                    left: -OVERHANG,
-                    width: panelSize.w * fit + OVERHANG * 2,
-                    height: panelSize.h * fit,
-                  }}
-                >
-                  {CALLOUTS.map((callout) => {
-                    const leader = leaderFor(callout);
-                    if (!leader) return null;
-                    return (
-                      <g key={callout.key}>
-                        {/* An alpha wash would vanish over the panel's own
-                            surface, so the run is a solid grey held back by
-                            opacity instead. */}
-                        <polyline
-                          points={leader.points}
-                          fill="none"
-                          stroke="var(--cf-fg-subtle)"
-                          strokeOpacity={0.55}
-                          strokeWidth={1}
-                        />
-                        <circle
-                          cx={leader.endX}
-                          cy={leader.endY}
-                          r={3}
-                          fill="var(--cf-accent-bg)"
-                        />
-                      </g>
-                    );
-                  })}
-                </svg>
+        <div
+          className="absolute left-0 flex h-10 items-center gap-3"
+          style={{ top: TITLE_HEIGHT + VIDEO.height + 24, width: VIDEO.width }}
+        >
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white">
+            <Pause className="size-3.5 fill-[#111] text-[#111]" />
+          </span>
+          <div className="relative h-1.5 flex-1 rounded-full bg-white/15">
+            <div
+              className="animate-playback-fill absolute inset-0 origin-left rounded-full bg-[#3b82f6]"
+              style={{ animationDuration: `${RISE_PERIOD}s` }}
+            />
+            {RISERS.map((riser, i) => (
+              <span
+                key={i}
+                className={`absolute bottom-full mb-2 flex size-4 -translate-x-1/2 items-center justify-center rounded-full ${
+                  riser.kind === "emoji"
+                    ? "text-[12px]"
+                    : "bg-[#3b82f6] text-[8px] font-bold text-white"
+                }`}
+                style={{
+                  left: `${((riseDelay(i) + RISE_ENTER / 2) / RISE_PERIOD) * 100}%`,
+                }}
+              >
+                {riser.kind === "emoji"
+                  ? riser.emoji
+                  : copy.comments[riser.index].author[0]}
+              </span>
+            ))}
+            <span
+              className="animate-playback-head absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow"
+              style={{ animationDuration: `${RISE_PERIOD}s` }}
+            />
+          </div>
+          <span className="font-mono text-[11px] text-white/60 tabular-nums">
+            {copy.duration}
+          </span>
+        </div>
 
-                {CALLOUTS.map((callout) => (
-                  <div
-                    key={callout.key}
-                    ref={setCalloutRef(callout.key)}
-                    className="absolute"
-                    style={{
-                      width: CALLOUT_WIDTH,
-                      top: slotTop(callout),
-                      ...(callout.side === "left"
-                        ? { right: `calc(100% + ${LEADER_GAP}px)` }
-                        : { left: `calc(100% + ${LEADER_GAP}px)` }),
-                    }}
-                  >
-                    <Callout
-                      pinned
-                      side={callout.side}
-                      icon={callout.icon}
-                      title={m.modes.points[callout.key].title}
-                      body={m.modes.points[callout.key].body}
-                    />
-                  </div>
-                ))}
-              </>
+        {RISERS.map((riser, i) => (
+          <div
+            key={i}
+            className="animate-rise-fade absolute"
+            style={
+              {
+                left: FEED.left + riser.x,
+                top: FEED.bottom,
+                animationDuration: `${RISE_PERIOD}s`,
+                animationDelay: `${riseDelay(i)}s`,
+                "--rest": `${-i * 40}px`,
+              } as CSSProperties
+            }
+          >
+            {riser.kind === "emoji" ? (
+              <span className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-[#27221d] text-[20px] shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
+                {riser.emoji}
+              </span>
+            ) : (
+              <span className="flex items-center gap-2 rounded-full border border-white/10 bg-[#27221d] py-1.5 pr-3 pl-1.5 text-[12px] whitespace-nowrap text-white/70 shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#3b82f6] text-[11px] font-semibold text-white">
+                  {copy.comments[riser.index].author[0]}
+                </span>
+                <span className="font-semibold text-white">
+                  {copy.comments[riser.index].author}
+                </span>
+                {copy.comments[riser.index].text}
+              </span>
             )}
           </div>
+        ))}
+      </div>
+    </Scaled>
+  );
+}
 
-          {!pinned && (
-            <div className="mt-10 grid w-full max-w-[560px] gap-4 sm:grid-cols-2">
-              {CALLOUTS.map((callout) => (
-                <Callout
-                  key={callout.key}
-                  pinned={false}
-                  side={callout.side}
-                  icon={callout.icon}
-                  title={m.modes.points[callout.key].title}
-                  body={m.modes.points[callout.key].body}
-                />
-              ))}
-            </div>
-          )}
+function BarButton({
+  children,
+  filled,
+}: {
+  children: ReactNode;
+  filled?: boolean;
+}) {
+  return (
+    <span
+      className="flex size-[38px] items-center justify-center rounded-full"
+      style={{ backgroundColor: filled ? BAR.button : undefined }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function ControlBar() {
+  const copy = useMessages().modes.scene;
+  return (
+    <div
+      className="flex flex-col items-center gap-1 rounded-2xl px-2 py-2.5 shadow-[0_8px_28px_rgba(0,0,0,0.45)]"
+      style={{ backgroundColor: BAR.background, color: BAR.fg }}
+    >
+      <BarButton filled>{STOP_ICON}</BarButton>
+      <span className="pt-0.5 pb-1 text-xs tabular-nums">{copy.timer}</span>
+      <BarButton>{PAUSE_ICON}</BarButton>
+      <BarButton>{RESTART_ICON}</BarButton>
+      <BarButton>{DELETE_ICON}</BarButton>
+    </div>
+  );
+}
+
+// Measured: the panel renders 280×342 and the bar 54×210.
+const RECORDER = { width: 400, height: 390 };
+
+// The popup panel with what starts when you hit record: the camera bubble and
+// the control bar.
+function RecorderMockup() {
+  return (
+    <Scaled width={RECORDER.width} height={RECORDER.height}>
+      {/* Depth from light, not rotation: a lit top edge and stacked shadows
+          lift each layer off the card while the layout stays square. */}
+      <div className="absolute top-0 left-0 rounded-2xl shadow-[0_30px_60px_rgb(0_0_0/0.5),0_8px_20px_rgb(0_0_0/0.35)]">
+        <RecorderPanel />
+        <span className="pointer-events-none absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_rgb(255_255_255/0.1)]" />
+      </div>
+      <div
+        className="absolute top-0 rounded-2xl shadow-[0_24px_48px_rgb(0_0_0/0.5),0_6px_14px_rgb(0_0_0/0.35)]"
+        style={{ left: 296 }}
+      >
+        <ControlBar />
+      </div>
+      <div
+        className="absolute rounded-full shadow-[0_28px_56px_rgb(0_0_0/0.55)]"
+        style={{ left: 248, top: 232 }}
+      >
+        <Presenter size={150} ring={4} />
+      </div>
+    </Scaled>
+  );
+}
+
+export function ModesIntro({ headingLevel = 2 }: SectionProps = {}) {
+  const m = useMessages();
+
+  return (
+    <MarketingSection
+      id="modes"
+      style={{ scrollMarginTop: 24, maxWidth: 1328 }}
+    >
+      <div className="md:rounded-[48px] md:bg-[#1b1713] md:px-10 md:py-16 lg:px-16 lg:py-20">
+        <SectionHeading
+          title={m.modes.heading}
+          subtitle={m.modes.subtitle}
+          level={headingLevel}
+        />
+
+        <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.6fr]">
+          <div className="flex justify-center">
+            <RecorderMockup />
+          </div>
+          <div className="flex justify-center">
+            <PlaybackMockup />
+          </div>
         </div>
       </div>
     </MarketingSection>

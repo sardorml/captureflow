@@ -9,6 +9,13 @@ import type {
 // parts must be the same length, so we drain in fixed CHUNK_BYTES slices.
 export const CHUNK_BYTES = 5 * 1024 * 1024;
 
+/*
+ * Concurrent part uploads per stream. Sequential parts cap throughput at
+ * chunk-size ÷ round-trip, which falls below the recorder's production rate
+ * and turns the post-stop flush into minutes on long captures.
+ */
+const MAX_INFLIGHT_PARTS = 4;
+
 type PartRef = { partNumber: number; etag: string };
 type PartUploader = (
   partNumber: number,
@@ -17,6 +24,7 @@ type PartUploader = (
 
 type PartStream = {
   readonly totalBytes: number;
+  readonly uploadedBytes: number;
   push(bytes: Uint8Array): void;
   drain(): Promise<PartRef[]>;
   abort(): void;
@@ -41,9 +49,10 @@ function defaultOnlineSignal(): OnlineSignal {
 }
 
 /*
- * One multipart stream, one request in flight. Fail-fast: a failed part rejects
- * drain(). Queued parts wait out an offline window instead of failing — only a
- * request that dies mid-flight is fatal (desktop parity).
+ * One multipart stream, up to MAX_INFLIGHT_PARTS requests in flight. Fail-fast:
+ * a failed part rejects drain(). Queued parts wait out an offline window
+ * instead of failing — only a request that dies mid-flight is fatal (desktop
+ * parity).
  */
 function createPartStream(
   uploadPart: PartUploader,
@@ -55,9 +64,10 @@ function createPartStream(
   let buf: Uint8Array[] = [];
   let bufBytes = 0;
   let totalBytes = 0;
-  let inFlight: Promise<void> | null = null;
+  let uploadedBytes = 0;
+  const inFlight = new Set<Promise<void>>();
   let aborted = false;
-  // Guards part-number claiming: once draining, a late push can't race the pump.
+  // Once draining, pushes are ignored so a late chunk can't race the pump.
   let draining = false;
   let failure: unknown = null;
   let unsubOnline: (() => void) | null = null;
@@ -104,32 +114,47 @@ function createPartStream(
     return out;
   }
 
-  function pump(): void {
-    if (aborted || draining || failure) return;
-    if (inFlight) return;
-    if (bufBytes < chunkBytes) return;
-    if (!online.isOnline()) {
-      pumpWhenOnline();
-      return;
-    }
-    const bytes = takePart(chunkBytes);
+  function launch(bytes: Uint8Array): void {
     const n = partNumber++;
-    inFlight = (async () => {
+    const task: Promise<void> = (async () => {
       try {
         const res = await uploadPart(n, bytes);
         etags.push({ partNumber: res.partNumber, etag: res.etag });
+        uploadedBytes += bytes.byteLength;
       } catch (err) {
-        failure = err;
-      } finally {
-        inFlight = null;
-        if (!failure && !draining && bufBytes >= chunkBytes) pump();
+        failure ??= err;
       }
-    })();
+    })().finally(() => {
+      inFlight.delete(task);
+      pump();
+    });
+    inFlight.add(task);
+  }
+
+  function pump(): void {
+    if (aborted || failure) return;
+    if (!online.isOnline()) {
+      if (bufBytes >= chunkBytes || (draining && bufBytes > 0)) {
+        pumpWhenOnline();
+      }
+      return;
+    }
+    while (inFlight.size < MAX_INFLIGHT_PARTS && bufBytes >= chunkBytes) {
+      launch(takePart(chunkBytes));
+    }
+    // The sub-chunk tail is the final part, which only exists once draining
+    // guarantees no more pushes.
+    if (draining && bufBytes > 0 && bufBytes < chunkBytes) {
+      if (inFlight.size < MAX_INFLIGHT_PARTS) launch(takePart(bufBytes));
+    }
   }
 
   return {
     get totalBytes() {
       return totalBytes;
+    },
+    get uploadedBytes() {
+      return uploadedBytes;
     },
     push(bytes: Uint8Array): void {
       if (aborted || draining || failure) return;
@@ -141,27 +166,20 @@ function createPartStream(
     },
     async drain(): Promise<PartRef[]> {
       draining = true;
-      if (inFlight) {
-        try {
-          await inFlight;
-        } catch {
-          /* recorded in `failure` by pump */
+      pump();
+      for (;;) {
+        if (inFlight.size > 0) {
+          // Settled tasks re-pump before resolving, so the pool stays full.
+          await Promise.race(inFlight);
+          continue;
         }
+        if (failure || aborted || bufBytes === 0) break;
+        await waitOnline();
+        pump();
       }
       if (failure) throw failure;
-      // R2 rejects a non-trailing part that isn't CHUNK_BYTES, so split a tail
-      // larger than one chunk into full parts plus one smaller trailing part.
-      while (bufBytes > chunkBytes) {
-        await waitOnline();
-        const res = await uploadPart(partNumber++, takePart(chunkBytes));
-        etags.push({ partNumber: res.partNumber, etag: res.etag });
-      }
-      if (bufBytes > 0) {
-        await waitOnline();
-        const res = await uploadPart(partNumber++, takePart(bufBytes));
-        etags.push({ partNumber: res.partNumber, etag: res.etag });
-      }
-      return etags;
+      // Parts finish out of order; R2's complete wants them ascending.
+      return [...etags].sort((a, b) => a.partNumber - b.partNumber);
     },
     abort(): void {
       aborted = true;
@@ -184,6 +202,7 @@ export type RecordingUpload = {
   readonly hasWebcam: boolean;
   readonly screenBytes: number;
   readonly webcamBytes: number;
+  readonly uploadedBytes: number;
   // Bytes this recording may still add before it fills the account's storage,
   // or null when the deployment reported no cap.
   readonly remainingBytes: number | null;
@@ -231,6 +250,9 @@ export async function startRecordingUpload(
     },
     get webcamBytes() {
       return webcam?.totalBytes ?? 0;
+    },
+    get uploadedBytes() {
+      return screen.uploadedBytes + (webcam?.uploadedBytes ?? 0);
     },
     pushScreen: (bytes) => screen.push(bytes),
     pushWebcam: (bytes) => webcam?.push(bytes),
