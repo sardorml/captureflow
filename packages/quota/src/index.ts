@@ -5,6 +5,8 @@ export type { EffectiveLimits } from "./user-quotas";
 export { totalStorageForUser } from "./totals";
 export {
   getActiveProSubscription,
+  listActiveProUserIds,
+  pickActiveProUserIds,
   getUnclaimedProSubscriptionByEmail,
   attachSubscriptionToUser,
 } from "./pro-subscription";
