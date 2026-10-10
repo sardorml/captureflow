@@ -249,7 +249,7 @@ export const MESSAGES = {
         "Monthly prices. Our largest plan, so this is the most you'd pay.",
       captureflowRow: "CaptureFlow {storage} plan",
       captureflowDetail: "Whole team, one flat price",
-      saveLabel: "You save",
+      saveLabel: "Your team saves",
       saveValue: "{savings} a year",
     },
     managed: {
