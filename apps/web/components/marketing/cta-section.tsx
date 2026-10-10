@@ -10,7 +10,6 @@ import {
   MarketingSection,
   SECTION_TITLE_STYLE,
   SECTION_SUBTITLE_STYLE,
-  Eyebrow,
 } from "./_shared";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { WaitlistForm } from "./waitlist-form";
@@ -32,7 +31,6 @@ export function CtaSection() {
       >
         <Flex vertical align="center" gap={token.marginLG}>
           <div>
-            <Eyebrow>{m.cta.eyebrow}</Eyebrow>
             <Title
               align="center"
               level={2}

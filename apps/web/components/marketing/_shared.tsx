@@ -65,19 +65,17 @@ export function MarketingSection({
 }
 
 /*
- * Eyebrow → two-tone headline → subtitle. `titleMuted` renders as a second
+ * Two-tone headline → subtitle. `titleMuted` renders as a second
  * headline line in the muted foreground, so the pair reads as one sentence
  * that fades out rather than two headings.
  */
 export function SectionHeading({
-  eyebrow,
   title,
   titleMuted,
   subtitle,
   align = "center",
   level = 2,
 }: {
-  eyebrow?: ReactNode;
   title: ReactNode;
   titleMuted?: ReactNode;
   subtitle?: ReactNode;
@@ -90,7 +88,6 @@ export function SectionHeading({
 
   return (
     <div style={{ textAlign: align, marginBottom: 48 }}>
-      {eyebrow ? <Eyebrow align={heroUiAlign}>{eyebrow}</Eyebrow> : null}
       <Typography.Heading
         align={heroUiAlign}
         level={level}
@@ -118,24 +115,5 @@ export function SectionHeading({
         </Typography.Paragraph>
       ) : null}
     </div>
-  );
-}
-
-export function Eyebrow({
-  children,
-  align = "center",
-}: {
-  children: ReactNode;
-  align?: "start" | "center";
-}) {
-  return (
-    <Typography
-      align={align}
-      weight="medium"
-      className="mb-4 block text-base text-accent"
-      style={{ letterSpacing: "-0.01em" }}
-    >
-      {children}
-    </Typography>
   );
 }

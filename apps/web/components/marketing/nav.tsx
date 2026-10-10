@@ -105,19 +105,23 @@ export function Nav({ stars = null }: { stars?: string | null }) {
   const starLabel = stars ? `Star on GitHub (${stars})` : "Star on GitHub";
 
   /*
-   * One list, two presentations: a dropdown in the bar, stacked block links in
-   * the drawer. These are not the only path to these pages — the footer links
+   * In the bar the main links sit inline and the rest go under Resources; the
+   * drawer stacks them all as block links. These are not the only path to these pages — the footer links
    * every one of them on every page, which is what keeps them crawlable, since
    * a closed dropdown renders no anchors into the HTML.
    */
-  const menuLinks: { label: string; href: string; external?: boolean }[] = [
+  type MenuLink = { label: string; href: string; external?: boolean };
+  const barLinks: MenuLink[] = [
     { label: "Features", href: lh("/features") },
     { label: "Pricing", href: lh("/pricing") },
+    { label: "Docs", href: DOCS_URL, external: true },
+  ];
+  const moreLinks: MenuLink[] = [
     { label: "FAQ", href: lh("/faq") },
     { label: "Roadmap", href: lh("/roadmap") },
-    { label: "Documentation", href: DOCS_URL, external: true },
     { label: "Self-hosting", href: `${DOCS_URL}/self-hosting`, external: true },
   ];
+  const menuLinks = [...barLinks, ...moreLinks];
 
   return (
     <Header
@@ -132,8 +136,8 @@ export function Nav({ stars = null }: { stars?: string | null }) {
         className={[
           "mx-auto flex w-full items-center justify-between px-4 py-2 transition-[max-width,background-color,border-color,border-radius,box-shadow] duration-300 ease-out motion-reduce:transition-none",
           detached
-            ? "max-w-3xl rounded-full border border-line bg-canvas-2/80 shadow-lg backdrop-blur-xl"
-            : "max-w-5xl border border-transparent",
+            ? "max-w-4xl rounded-full border border-line bg-canvas-2/80 shadow-lg backdrop-blur-xl"
+            : "max-w-6xl border border-transparent",
         ].join(" ")}
       >
         {/* Logo: 32×32 mark + 18px bold wordmark. */}
@@ -158,16 +162,25 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             viewport — no mobile→desktop flip after hydration. */}
         <div className="hidden items-center gap-5 md:flex">
           <nav aria-label="Main" className="flex items-center gap-5">
+            {barLinks.map((link) => (
+              <NavLink
+                key={link.label}
+                href={link.href}
+                external={link.external}
+              >
+                {link.label}
+              </NavLink>
+            ))}
             <Dropdown>
               <Dropdown.Trigger
                 className={`${TEXT_LINK} inline-flex cursor-pointer items-center gap-1 outline-none`}
               >
-                Product
+                Resources
                 <ChevronDown size={15} />
               </Dropdown.Trigger>
-              <Dropdown.Popover placement="bottom start" className="w-52">
+              <Dropdown.Popover placement="bottom start" className="w-44">
                 <Dropdown.Menu>
-                  {menuLinks.map((link) => (
+                  {moreLinks.map((link) => (
                     <Dropdown.Item
                       key={link.label}
                       href={link.href}

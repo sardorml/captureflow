@@ -92,31 +92,48 @@ export const MESSAGES = {
       dotAria: "Show demo {n} of {total}",
     },
   },
+  useCases: {
+    heading: "Video messages for every team",
+    cards: {
+      engineering: {
+        title: "Engineering",
+        body: "Walk through a PR or a bug repro so reviewers see the code run.",
+      },
+      design: {
+        title: "Design",
+        body: "Talk through a mockup and collect feedback without booking a review.",
+      },
+      support: {
+        title: "Customer support",
+        body: "Answer the ticket with a short walkthrough instead of ten steps of text.",
+      },
+      updates: {
+        title: "Team updates",
+        body: "Record the weekly update once and let everyone watch it when they can.",
+      },
+    },
+    engineeringFile: "checkout.ts",
+    engineeringPr: "PR #482",
+    designCardTitle: "Plan your trip",
+    designColors: "Colors",
+    designComment: "Bigger CTA?",
+    supportQuestion: "How do I invite my team to the workspace?",
+    supportReply: "Here's a quick walkthrough:",
+    supportLink: "captureflow.dev/r/8kx2pnq4",
+    supportResolved: "Resolved in one reply",
+    updatesTitle: "Week 41 update",
+    updatesRange: "Oct 6–10",
+    updatesSignups: "Signups",
+    updatesShipped: "Shipped",
+    updatesFeatures: "features",
+  },
   modes: {
-    eyebrow: "Capture modes",
-    heading: "The recorder",
-    subtitle: "Pick a source, add camera and mic, and hit record.",
+    heading: "The simplest screen recorder you'll ever use",
+    subtitle:
+      "Record in two clicks. Share with a link. Get feedback on the video.",
     tabs: {
       share: { label: "Share", caption: "Instant share link" },
       screenshot: { label: "Screenshot", caption: "Annotated screenshots" },
-    },
-    points: {
-      source: {
-        title: "Tab, window, or full screen",
-        body: "Pick the source in the panel and record without leaving the page.",
-      },
-      devices: {
-        title: "Camera and mic in one tap",
-        body: "Turn your webcam and microphone on right before you record.",
-      },
-      link: {
-        title: "Ready the moment you stop",
-        body: "It uploads while you record, so the link is on your clipboard when you stop.",
-      },
-      screenshot: {
-        title: "Screenshots from here too",
-        body: "Switch to the photo tab to grab the page and share it as a link.",
-      },
     },
     panel: {
       sourceAria: "Capture source",
@@ -125,9 +142,20 @@ export const MESSAGES = {
       camera: "Camera",
       microphone: "Microphone",
       on: "On",
-      off: "Off",
       startRecording: "Start Recording",
       more: "More",
+    },
+    scene: {
+      title: "Walkthrough: the new checkout flow",
+      author: "Sam",
+      age: "2 min ago",
+      timer: "0:42",
+      duration: "1:12",
+      url: "captureflow.dev/r/8kx2pnq4",
+      comments: [
+        { author: "Maya", text: "Love the new flow" },
+        { author: "Alex", text: "Ship it 🚀" },
+      ],
     },
   },
   features: {
@@ -174,124 +202,37 @@ export const MESSAGES = {
     },
   },
   collaboration: {
-    carousel: {
-      previous: "Previous demo",
-      next: "Next demo",
-      slide: "{n} of {total}",
-    },
-    // Two per feature key, in the order the chips are drawn; they name the
-    // action the slide is showing, not the feature it belongs to.
-    chips: {
-      editor: ["Trim", "Backgrounds"],
-      viewer: ["Comment", "React"],
-      dashboard: ["Copy link", "Views"],
-      capture: ["Region", "Window"],
-      markup: ["Text", "Blur"],
-      share: ["One link", "One library"],
-      workspace: ["Your team", "Nobody else"],
-      public: ["Anyone", "Link only"],
-      private: ["Only you", "Locked"],
-    },
     categories: {
       share: {
         title: "Shareable recordings",
         subtitle:
           "Change the background, trim what you don't need, and place the camera where you want it.",
-        features: {
-          editor: {
-            title: "Edit it in the browser",
-            body: "Pick a background, trim what you don't need, move the camera bubble into a corner, and mute the mic or system sound. You never have to record it twice.",
-          },
-          viewer: {
-            title: "Reactions and comments",
-            body: "Viewers leave reactions and threaded comments on the recording itself, so feedback arrives in context.",
-          },
-          dashboard: {
-            title: "Everything in one dashboard",
-            body: "Every link you have shared sits in one place, with view counts, search, and a switch to revoke access.",
-          },
+        feature: {
+          title: "Answer with a video, not a meeting",
+          body: "Someone asks how the new checkout flow works. Instead of booking a call, record your screen and talk them through it. The link is on your clipboard the moment you hit stop, and they watch when it suits them, leaving reactions and comments right on the video.",
         },
       },
       screenshot: {
         title: "Capture screenshots",
         subtitle:
           "Grab a region, a window, or the whole display, mark it up, and share it.",
-        features: {
-          capture: {
-            title: "Region, window, or whole screen",
-            body: "One shortcut covers all three. Drag out a region, click a single window, or take the whole display.",
-          },
-          markup: {
-            title: "Mark it up first",
-            body: "Add arrows, text, and blur over anything you capture, and every mark stays on the screenshot you send.",
-          },
-          share: {
-            title: "Saved with your recordings",
-            body: "A screenshot goes to the same library as your recordings, so there is one place to search and one set of links to manage.",
-          },
+        feature: {
+          title: "Point at exactly what you mean",
+          body: "Grab a region, a window, or your whole screen, then draw an arrow, box the part that matters, and add a note. Send the link and your teammate sees exactly what you saw, with every mark still in place.",
         },
       },
       workspaces: {
         title: "Team workspaces",
         subtitle:
           "Share a recording with your whole workspace, or lock it down to just you.",
-        features: {
-          workspace: {
-            title: "Only your teammates",
-            body: "The link stays inside your workspace, so nobody outside it can open the recording.",
-          },
-          public: {
-            title: "Anyone with the link",
-            body: "Flip a recording to public and anyone with the link can watch, which suits changelogs and demos.",
-          },
-          private: {
-            title: "Only you",
-            body: "Lock a recording to just you while you draft it, then open it up the moment it is ready.",
-          },
+        feature: {
+          title: "Bring your team in, keep control",
+          body: "Invite your teammates to a shared workspace so every recording is one link away. Then decide who gets to watch each one: anyone with the link, just your team, or only you while it's still a draft.",
         },
       },
-    },
-    editorMockup: {
-      micLabel: "Mic",
-      systemLabel: "System",
-      backgroundAria: "Background {n}",
-      cameraPositionAria: "Camera position {n}",
-      audioToggleAria: "{label} audio",
-    },
-    captureMockup: {
-      dimensions: "1280 × 720",
-      toolbar: {
-        studio: "Record",
-        share: "Share",
-        screenshot: "Screenshot",
-      },
-    },
-    workspaceMockup: {
-      visibility: {
-        public: {
-          label: "Public",
-          description: "Anyone with the link can open this share",
-        },
-        workspace: {
-          label: "Workspace",
-          description: "Only teammates can open this share",
-        },
-        private: {
-          label: "Private",
-          description: "Only you can open this share",
-        },
-      },
-      teamName: "CaptureFlow team",
-      teamMeta: "Workspace · {count} members",
-      inviteButton: "Invite",
-      membersLabel: "Members",
-      roleAdmin: "Admin",
-      roleMember: "Member",
-      linkVisibilityLabel: "Link visibility",
     },
   },
   pricing: {
-    eyebrow: "Plans",
     heading: "Pricing",
     subheading: "Self-host for free, or let us host it for you.",
     guarantee: "Open source under the AGPL. Run it yourself.",
@@ -445,7 +386,6 @@ export const MESSAGES = {
     ],
   },
   cta: {
-    eyebrow: "Get started",
     headline: "Ready to record?",
     subtitle:
       "Free download. No credit card. Self-host on your own Cloudflare account, or let us run it for you with the managed plan.",

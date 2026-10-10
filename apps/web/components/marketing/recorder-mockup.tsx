@@ -41,7 +41,7 @@ export function RecorderMockup() {
             >
               <span
                 aria-hidden
-                className="pointer-events-none absolute inset-0 bg-black/40"
+                className="pointer-events-none absolute inset-0 bg-black/10 transition-colors group-hover:bg-black/20"
               />
 
               <span className="relative flex h-24 w-24 items-center justify-center rounded-full bg-blue-600 shadow-2xl shadow-blue-950/40 ring-[10px] ring-blue-600/30 transition-transform duration-200 ease-out group-hover:scale-[1.06] sm:h-28 sm:w-28">
