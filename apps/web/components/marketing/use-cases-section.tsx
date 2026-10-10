@@ -8,11 +8,11 @@ import { useMessages } from "./i18n-provider";
 type CardKey = "engineering" | "design" | "support" | "updates";
 
 const CARDS = [
-  { key: "engineering", panel: "#241d3a" },
-  { key: "design", panel: "#33280f" },
-  { key: "support", panel: "#10264a" },
-  { key: "updates", panel: "#0d2e2a" },
-] as const satisfies readonly { key: CardKey; panel: string }[];
+  { key: "engineering" },
+  { key: "design" },
+  { key: "support" },
+  { key: "updates" },
+] as const satisfies readonly { key: CardKey }[];
 
 const AVATAR_SRC = "/avatar-presenter.webp";
 
@@ -164,33 +164,33 @@ function DesignScene({
 }) {
   return (
     <>
-      <div className={`${SCREEN} bg-[#e9e9ec]`}>
+      <div className={`${SCREEN} bg-[#141418]`}>
         <div className="absolute top-0 left-1/2 -ml-[145px] h-full w-[290px]">
-          <div className="absolute inset-y-0 left-0 flex w-[50px] flex-col gap-2 border-r border-[#e1e1e5] bg-white px-2 py-3">
-            <div className="h-1.5 rounded-[3px] bg-[#d4d4d8]" />
-            <div className="h-1.5 w-[70%] rounded-[3px] bg-[#e4e4e7]" />
+          <div className="absolute inset-y-0 left-0 flex w-[50px] flex-col gap-2 border-r border-white/[0.06] bg-[#1c1c21] px-2 py-3">
+            <div className="h-1.5 rounded-[3px] bg-white/20" />
+            <div className="h-1.5 w-[70%] rounded-[3px] bg-white/10" />
             <div className="h-1.5 rounded-[3px] bg-[#fbbf24]" />
-            <div className="h-1.5 w-[80%] rounded-[3px] bg-[#e4e4e7]" />
+            <div className="h-1.5 w-[80%] rounded-[3px] bg-white/10" />
           </div>
-          <div className="absolute top-[18px] left-16 flex h-[180px] w-[116px] flex-col overflow-hidden rounded-xl bg-white shadow-[0_2px_6px_rgb(0_0_0/0.08)]">
+          <div className="absolute top-[18px] left-16 flex h-[180px] w-[116px] flex-col overflow-hidden rounded-xl bg-[#232329] shadow-[0_2px_6px_rgb(0_0_0/0.3)]">
             <div className="h-[76px] bg-[linear-gradient(135deg,#fde68a,#f59e0b)]" />
             <div className="flex flex-col gap-1.5 p-2.5">
-              <div className="text-[11px] leading-[1.1] font-bold text-[#18181b]">
+              <div className="text-[11px] leading-[1.1] font-bold text-[#f4f4f5]">
                 {cardTitle}
               </div>
-              <div className="h-[5px] rounded-[3px] bg-[#e4e4e7]" />
-              <div className="h-[5px] w-[70%] rounded-[3px] bg-[#e4e4e7]" />
-              <div className="mt-1.5 h-[22px] rounded-full bg-[#18181b]" />
+              <div className="h-[5px] rounded-[3px] bg-white/15" />
+              <div className="h-[5px] w-[70%] rounded-[3px] bg-white/15" />
+              <div className="mt-1.5 h-[22px] rounded-full bg-[#f4f4f5]" />
             </div>
           </div>
           <div className="absolute top-3.5 left-[60px] h-[188px] w-[124px] rounded-[14px] shadow-[0_0_0_2px_#0d99ff]" />
-          <div className="absolute top-[18px] right-2.5 left-[194px] flex h-[76px] flex-col gap-1.5 rounded-xl bg-white p-2.5 shadow-[0_2px_6px_rgb(0_0_0/0.08)]">
-            <div className="text-[10px] leading-none font-bold text-[#18181b]">
+          <div className="absolute top-[18px] right-2.5 left-[194px] flex h-[76px] flex-col gap-1.5 rounded-xl bg-[#232329] p-2.5 shadow-[0_2px_6px_rgb(0_0_0/0.3)]">
+            <div className="text-[10px] leading-none font-bold text-[#f4f4f5]">
               {colors}
             </div>
             <div className="flex gap-[5px]">
               <span className="size-4 rounded-[5px] bg-[#f59e0b]" />
-              <span className="size-4 rounded-[5px] bg-[#18181b]" />
+              <span className="size-4 rounded-[5px] bg-[#f4f4f5]" />
               <span className="size-4 rounded-[5px] bg-[#fde68a]" />
             </div>
           </div>
@@ -221,10 +221,10 @@ function SupportScene({
 }) {
   return (
     <>
-      <div className="absolute top-[22px] right-[18px] left-14 rounded-[16px_16px_4px_16px] bg-white px-3 py-2.5 text-[13px] leading-[1.4] font-medium text-[#18181b] shadow-[0_12px_30px_rgb(0_0_0/0.35)]">
+      <div className="absolute top-4 right-[18px] left-14 rounded-[16px_16px_4px_16px] bg-white px-3 py-2.5 text-[13px] leading-[1.4] font-medium text-[#18181b] shadow-[0_12px_30px_rgb(0_0_0/0.35)]">
         {question}
       </div>
-      <div className="absolute top-[92px] right-[30px] left-[18px] flex flex-col gap-2.5 rounded-[16px_16px_16px_4px] bg-[#0b1730] px-3 pt-2.5 pb-3 shadow-[0_0_0_1px_rgb(255_255_255/0.08),0_12px_30px_rgb(0_0_0/0.35)]">
+      <div className="absolute top-[82px] right-[30px] left-[18px] flex flex-col gap-2.5 rounded-[16px_16px_16px_4px] bg-[#0b1730] px-3 pt-2.5 pb-3 shadow-[0_0_0_1px_rgb(255_255_255/0.08),0_12px_30px_rgb(0_0_0/0.35)]">
         <div className="text-[13px] leading-[1.4] font-medium text-[#e4e4e7]">
           {reply}
           <br />
@@ -245,7 +245,7 @@ function SupportScene({
           </div>
         </div>
       </div>
-      <div className="absolute bottom-[18px] left-[22px] flex items-center gap-2 rounded-full bg-white/10 py-[7px] pr-3 pl-2 text-[12px] leading-none font-medium text-[#dbe6ff]">
+      <div className="absolute bottom-3 left-[22px] flex items-center gap-2 rounded-full bg-white/10 py-[7px] pr-3 pl-2 text-[12px] leading-none font-medium text-[#dbe6ff]">
         <span className="flex size-[18px] items-center justify-center rounded-full bg-[#22c55e]">
           <svg width="10" height="10" viewBox="0 0 22 22" aria-hidden>
             <path
@@ -348,13 +348,7 @@ function UpdatesScene({
   );
 }
 
-function ScaledScene({
-  panel,
-  children,
-}: {
-  panel: string;
-  children: ReactNode;
-}) {
+function ScaledScene({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -371,11 +365,8 @@ function ScaledScene({
   return (
     <div
       ref={ref}
-      className="relative mx-2.5 mt-2.5 overflow-hidden rounded-[20px]"
-      style={{
-        aspectRatio: `${SCENE_WIDTH} / ${SCENE_HEIGHT}`,
-        backgroundColor: panel,
-      }}
+      className="relative overflow-hidden"
+      style={{ aspectRatio: `${SCENE_WIDTH} / ${SCENE_HEIGHT}` }}
     >
       <div
         className="absolute top-0 left-0 origin-top-left"
@@ -392,19 +383,17 @@ function ScaledScene({
 }
 
 function UseCaseCard({
-  panel,
   title,
   body,
   children,
 }: {
-  panel: string;
   title: string;
   body: string;
   children: ReactNode;
 }) {
   return (
-    <article className="flex min-w-0 flex-col overflow-hidden rounded-[28px] bg-[#1f1b17] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_24px_60px_rgb(0_0_0/0.4)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
-      <ScaledScene panel={panel}>{children}</ScaledScene>
+    <article className="flex min-w-0 flex-col overflow-hidden rounded-[28px] bg-panel-2 transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_24px_60px_rgb(0_0_0/0.4)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+      <ScaledScene>{children}</ScaledScene>
       <div className="flex flex-col gap-2.5 px-7 pt-7 pb-8">
         <Typography.Heading
           level={3}
@@ -474,7 +463,6 @@ export function UseCasesSection({ headingLevel = 2 }: SectionProps = {}) {
         {CARDS.map((card) => (
           <UseCaseCard
             key={card.key}
-            panel={card.panel}
             title={copy.cards[card.key].title}
             body={copy.cards[card.key].body}
           >

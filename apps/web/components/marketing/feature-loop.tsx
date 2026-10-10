@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export type FeatureLoopName = "recordings" | "screenshots" | "teams";
+export type FeatureLoopName = "editor" | "feedback" | "teams";
 
 /*
  * The exports are 1280×928 with the coloured card inset 40px on the page

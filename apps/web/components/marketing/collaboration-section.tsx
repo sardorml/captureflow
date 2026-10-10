@@ -6,12 +6,12 @@ import { MarketingSection, SectionHeading } from "./_shared";
 import { FeatureLoop, type FeatureLoopName } from "./feature-loop";
 import { useMessages } from "./i18n-provider";
 
-type CategoryKind = "share" | "screenshot" | "workspaces";
+type CategoryKind = "share" | "feedback" | "workspaces";
 
-// `id` is the anchor the nav's #share / #screenshot / #workspaces links land on.
+// `id` is the anchor each row can be linked to: #share / #feedback / #workspaces.
 const CATEGORIES = [
-  { id: "share", kind: "share", loop: "recordings" },
-  { id: "screenshot", kind: "screenshot", loop: "screenshots" },
+  { id: "share", kind: "share", loop: "editor" },
+  { id: "feedback", kind: "feedback", loop: "feedback" },
   { id: "workspaces", kind: "workspaces", loop: "teams" },
 ] as const satisfies readonly {
   id: string;
@@ -22,20 +22,28 @@ const CATEGORIES = [
 const LOOP_MAX_WIDTH = 600;
 
 export function CollaborationSection() {
+  const m = useMessages();
+
   return (
-    <>
-      {CATEGORIES.map((cat, i) => (
-        <CategorySection key={cat.id} cat={cat} flip={i % 2 === 1} />
-      ))}
-    </>
+    <MarketingSection id="capabilities" style={{ scrollMarginTop: 96 }}>
+      <SectionHeading
+        title={m.collaboration.heading}
+        subtitle={m.collaboration.subtitle}
+      />
+      <div className="flex flex-col gap-24">
+        {CATEGORIES.map((cat, i) => (
+          <CategoryRow key={cat.id} cat={cat} flip={i % 2 === 1} />
+        ))}
+      </div>
+    </MarketingSection>
   );
 }
 
 /*
- * One standalone section per capability, each with its own #anchor and header.
+ * One row per capability under the shared heading, each keeping its #anchor.
  * The loop side alternates so the three don't read as one column.
  */
-function CategorySection({
+function CategoryRow({
   cat,
   flip,
 }: {
@@ -43,12 +51,10 @@ function CategorySection({
   flip: boolean;
 }) {
   const m = useMessages();
-  const copy = m.collaboration.categories[cat.kind];
-  const { feature } = copy;
+  const { feature } = m.collaboration.categories[cat.kind];
 
   return (
-    <MarketingSection id={cat.id} style={{ scrollMarginTop: 96 }}>
-      <SectionHeading title={copy.title} subtitle={copy.subtitle} />
+    <div id={cat.id} style={{ scrollMarginTop: 96 }}>
       <Row gutter={[64, 40]} align="middle">
         <Col xs={{ span: 24, order: 2 }} lg={{ span: 10, order: flip ? 1 : 2 }}>
           <Text strong style={{ fontSize: 25, lineHeight: 1.3 }}>
@@ -72,6 +78,6 @@ function CategorySection({
           </div>
         </Col>
       </Row>
-    </MarketingSection>
+    </div>
   );
 }

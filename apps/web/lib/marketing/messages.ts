@@ -76,8 +76,6 @@ export const MESSAGES = {
     installMac: "Download for free",
     installSoon: "Soon",
     installOr: "or",
-    installSignup: "Sign up free",
-    installNote: "no credit card required",
     secondaryCta: "See pricing",
     badge: "Open source, free to run",
     noCreditCard: "No credit card required",
@@ -202,32 +200,26 @@ export const MESSAGES = {
     },
   },
   collaboration: {
+    heading: "More than just a screen recorder",
+    subtitle:
+      "Some things are quicker to show than to type. Record it, send the link, and your team watches when they're free.",
     categories: {
       share: {
-        title: "Shareable recordings",
-        subtitle:
-          "Change the background, trim what you don't need, and place the camera where you want it.",
         feature: {
-          title: "Answer with a video, not a meeting",
-          body: "Someone asks how the new checkout flow works. Instead of booking a call, record your screen and talk them through it. The link is on your clipboard the moment you hit stop, and they watch when it suits them, leaving reactions and comments right on the video.",
+          title: "Polish it before you send it",
+          body: "Open any recording in the editor and tidy it up before anyone sees it. Put a background behind your screen, move your camera bubble to another corner or change its size so it never covers the part that matters, and mute the mic or system audio if something slipped in. Your share link stays the same, so everyone watching gets the new version straight away.",
         },
       },
-      screenshot: {
-        title: "Capture screenshots",
-        subtitle:
-          "Grab a region, a window, or the whole display, mark it up, and share it.",
+      feedback: {
         feature: {
-          title: "Point at exactly what you mean",
-          body: "Grab a region, a window, or your whole screen, then draw an arrow, box the part that matters, and add a note. Send the link and your teammate sees exactly what you saw, with every mark still in place.",
+          title: "Get feedback right on the video",
+          body: "Viewers react with emojis and leave comments right on the timeline, at the exact moment they mean. Every reply stays with the video, so the conversation moves forward without another meeting.",
         },
       },
       workspaces: {
-        title: "Team workspaces",
-        subtitle:
-          "Share a recording with your whole workspace, or lock it down to just you.",
         feature: {
-          title: "Bring your team in, keep control",
-          body: "Invite your teammates to a shared workspace so every recording is one link away. Then decide who gets to watch each one: anyone with the link, just your team, or only you while it's still a draft.",
+          title: "Your whole team, one shared space",
+          body: "Invite your teammates and everyone's recordings live in one place. Share a video with anyone, keep it inside the team, or keep it to yourself until it's ready.",
         },
       },
     },

@@ -318,13 +318,22 @@ const RECORDER = { width: 400, height: 390 };
 function RecorderMockup() {
   return (
     <Scaled width={RECORDER.width} height={RECORDER.height}>
-      <div className="absolute top-0 left-0">
+      {/* Depth from light, not rotation: a lit top edge and stacked shadows
+          lift each layer off the card while the layout stays square. */}
+      <div className="absolute top-0 left-0 rounded-2xl shadow-[0_30px_60px_rgb(0_0_0/0.5),0_8px_20px_rgb(0_0_0/0.35)]">
         <RecorderPanel />
+        <span className="pointer-events-none absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_rgb(255_255_255/0.1)]" />
       </div>
-      <div className="absolute top-0" style={{ left: 296 }}>
+      <div
+        className="absolute top-0 rounded-2xl shadow-[0_24px_48px_rgb(0_0_0/0.5),0_6px_14px_rgb(0_0_0/0.35)]"
+        style={{ left: 296 }}
+      >
         <ControlBar />
       </div>
-      <div className="absolute" style={{ left: 248, top: 232 }}>
+      <div
+        className="absolute rounded-full shadow-[0_28px_56px_rgb(0_0_0/0.55)]"
+        style={{ left: 248, top: 232 }}
+      >
         <Presenter size={150} ring={4} />
       </div>
     </Scaled>
@@ -337,20 +346,22 @@ export function ModesIntro({ headingLevel = 2 }: SectionProps = {}) {
   return (
     <MarketingSection
       id="modes"
-      style={{ scrollMarginTop: 24, maxWidth: 1156 }}
+      style={{ scrollMarginTop: 24, maxWidth: 1328 }}
     >
-      <SectionHeading
-        title={m.modes.heading}
-        subtitle={m.modes.subtitle}
-        level={headingLevel}
-      />
+      <div className="md:rounded-[48px] md:bg-[#1b1713] md:px-10 md:py-16 lg:px-16 lg:py-20">
+        <SectionHeading
+          title={m.modes.heading}
+          subtitle={m.modes.subtitle}
+          level={headingLevel}
+        />
 
-      <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.6fr]">
-        <div className="flex justify-center">
-          <RecorderMockup />
-        </div>
-        <div className="flex justify-center">
-          <PlaybackMockup />
+        <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.6fr]">
+          <div className="flex justify-center">
+            <RecorderMockup />
+          </div>
+          <div className="flex justify-center">
+            <PlaybackMockup />
+          </div>
         </div>
       </div>
     </MarketingSection>

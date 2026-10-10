@@ -54,7 +54,7 @@ export function MarketingSection({
         width: "100%",
         maxWidth: narrow ? 880 : MARKETING_MAX_WIDTH,
         marginInline: "auto",
-        paddingBlock: "clamp(48px, 8vw, 96px)",
+        paddingBlock: "clamp(64px, 10vw, 128px)",
         paddingInline: 24,
         ...style,
       }}

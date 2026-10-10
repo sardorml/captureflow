@@ -36,7 +36,7 @@ export function HeroSection() {
           marginInline: "auto",
           paddingInline: 24,
           paddingTop: 100,
-          paddingBottom: 56,
+          paddingBottom: 40,
           textAlign: "center",
         }}
       >
@@ -73,14 +73,12 @@ export function HeroSection() {
         </Paragraph>
 
         {CURRENT_STAGE.showHeroBuyCta ? (
-          /* 24, the same as the sign-up line takes below, so the buttons sit
-             centred in their own space instead of hugging the subtitle. */
           <Flex
             wrap
             gap={20}
             justify="center"
             align="center"
-            style={{ marginTop: 24 }}
+            style={{ marginTop: 36 }}
           >
             <InstallButton
               href={DOWNLOAD_URL}
@@ -99,31 +97,10 @@ export function HeroSection() {
             />
           </Flex>
         ) : (
-          <div style={{ marginTop: 24 }}>
+          <div style={{ marginTop: 36 }}>
             <WaitlistForm />
           </div>
         )}
-
-        {CURRENT_STAGE.showHeroBuyCta ? (
-          /* Tighter than the 24 above the buttons: this line is their caption,
-             so it belongs to them rather than sitting between equals. */
-          <Flex vertical align="center" gap={14} style={{ marginTop: 16 }}>
-            <span className="text-sm text-fg-muted">
-              <NextLink
-                href={`${lh("/login")}?mode=signup`}
-                /* Muted and unadorned at rest: at full foreground with a
-                   standing underline it out-shouted the install buttons. */
-                className="underline-offset-4 transition-colors hover:text-fg hover:underline motion-reduce:transition-none"
-                onClick={() =>
-                  track("marketing_cta_clicked", { location: "hero_signup" })
-                }
-              >
-                {m.hero.installSignup}
-              </NextLink>
-              {`, ${m.hero.installNote}`}
-            </span>
-          </Flex>
-        ) : null}
       </Flex>
 
       <RecorderMockup />
