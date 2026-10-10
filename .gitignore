@@ -40,3 +40,6 @@ __pycache__/
 # from, and where the store generator writes before the tiles are copied over.
 scripts/shots/
 scripts/store5/
+
+# /ship PR description cache
+.cache/
