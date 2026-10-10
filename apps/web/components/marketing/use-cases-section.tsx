@@ -169,11 +169,11 @@ function DesignScene({
           <div className="absolute inset-y-0 left-0 flex w-[50px] flex-col gap-2 border-r border-white/[0.06] bg-[#1c1c21] px-2 py-3">
             <div className="h-1.5 rounded-[3px] bg-white/20" />
             <div className="h-1.5 w-[70%] rounded-[3px] bg-white/10" />
-            <div className="h-1.5 rounded-[3px] bg-[#fbbf24]" />
+            <div className="h-1.5 rounded-[3px] bg-[#2dd4bf]" />
             <div className="h-1.5 w-[80%] rounded-[3px] bg-white/10" />
           </div>
           <div className="absolute top-[18px] left-16 flex h-[180px] w-[116px] flex-col overflow-hidden rounded-xl bg-[#232329] shadow-[0_2px_6px_rgb(0_0_0/0.3)]">
-            <div className="h-[76px] bg-[linear-gradient(135deg,#fde68a,#f59e0b)]" />
+            <div className="h-[76px] bg-[linear-gradient(135deg,#99f6e4,#0d9488)]" />
             <div className="flex flex-col gap-1.5 p-2.5">
               <div className="text-[11px] leading-[1.1] font-bold text-[#f4f4f5]">
                 {cardTitle}
@@ -189,20 +189,20 @@ function DesignScene({
               {colors}
             </div>
             <div className="flex gap-[5px]">
-              <span className="size-4 rounded-[5px] bg-[#f59e0b]" />
+              <span className="size-4 rounded-[5px] bg-[#0d9488]" />
               <span className="size-4 rounded-[5px] bg-[#f4f4f5]" />
-              <span className="size-4 rounded-[5px] bg-[#fde68a]" />
+              <span className="size-4 rounded-[5px] bg-[#99f6e4]" />
             </div>
           </div>
           <div className="absolute top-[122px] left-[156px] flex items-center gap-1.5 rounded-[10px_10px_10px_2px] bg-white px-2 py-1.5 text-[10px] leading-none font-semibold whitespace-nowrap text-[#18181b] shadow-[0_6px_14px_rgb(0_0_0/0.15)]">
-            <span className="size-4 rounded-full bg-[#f59e0b] text-center text-[8px] leading-4 font-bold text-white">
+            <span className="size-4 rounded-full bg-[#14b8a6] text-center text-[8px] leading-4 font-bold text-white">
               MR
             </span>
             {comment}
           </div>
         </div>
       </div>
-      <Presenter backdrop="#4a3a14" className="right-4 bottom-[60px]" />
+      <Presenter backdrop="#123a36" className="right-4 bottom-[60px]" />
       <ControlPill time="0:39" />
     </>
   );

@@ -207,7 +207,7 @@ export const MESSAGES = {
       share: {
         feature: {
           title: "Polish it before you send it",
-          body: "Open any recording in the editor and tidy it up before anyone sees it. Put a background behind your screen, move your camera bubble to another corner or change its size so it never covers the part that matters, and mute the mic or system audio if something slipped in. Your share link stays the same, so everyone watching gets the new version straight away.",
+          body: "Add a background, move or resize your camera, and mute audio you don't want. Your link stays the same, so everyone sees the new version straight away.",
         },
       },
       feedback: {
@@ -218,8 +218,8 @@ export const MESSAGES = {
       },
       workspaces: {
         feature: {
-          title: "Your whole team, one shared space",
-          body: "Invite your teammates and everyone's recordings live in one place. Share a video with anyone, keep it inside the team, or keep it to yourself until it's ready.",
+          title: "Workspaces for your whole team",
+          body: "Invite your teammates to a workspace and everyone's recordings live in one place. Share a video with anyone, keep it inside the workspace, or keep it to yourself until it's ready.",
         },
       },
     },
