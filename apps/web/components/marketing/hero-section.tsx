@@ -4,14 +4,10 @@ import type { ReactNode } from "react";
 import { Flex } from "./layout";
 import { Paragraph, Title } from "./typography";
 import { buttonVariants } from "@heroui/react";
-import {
-  CHROME_WEBSTORE_URL,
-  CURRENT_STAGE,
-  DOWNLOAD_URL,
-} from "@/lib/marketing/constants";
+import { CHROME_WEBSTORE_URL, CURRENT_STAGE } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
-import { AppleLogo, ChromeLogo } from "./platform-logos";
+import { AppleLogo, ChromeLogoColor } from "./platform-logos";
 import { RecorderMockup } from "./recorder-mockup";
 import { MARKETING_MAX_WIDTH } from "./_shared";
 import NextLink from "next/link";
@@ -73,28 +69,17 @@ export function HeroSection() {
         </Paragraph>
 
         {CURRENT_STAGE.showHeroBuyCta ? (
-          <Flex
-            wrap
-            gap={20}
-            justify="center"
-            align="center"
-            style={{ marginTop: 36 }}
-          >
-            <InstallButton
-              href={DOWNLOAD_URL}
-              label={m.hero.installMac}
-              icon={<AppleLogo className="size-[17px]" />}
-              location="hero_macos"
-              badge={m.hero.installSoon}
-              primary
-            />
-            <span className="text-fg-muted text-sm">{m.hero.installOr}</span>
+          <Flex vertical gap={16} align="center" style={{ marginTop: 36 }}>
             <InstallButton
               href={CHROME_WEBSTORE_URL ?? lh("/download")}
               label={m.hero.installChrome}
-              icon={<ChromeLogo className="size-[18px]" />}
+              icon={<ChromeLogoColor className="size-5" />}
               location="hero_chrome"
             />
+            <span className="inline-flex items-center gap-1.5 text-sm text-fg-muted">
+              <AppleLogo className="size-3.5" />
+              {m.hero.macSoon}
+            </span>
           </Flex>
         ) : (
           <div style={{ marginTop: 36 }}>

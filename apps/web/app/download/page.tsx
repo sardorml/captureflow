@@ -1,25 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Download, ArrowUpRight, Terminal, Package } from "lucide-react";
+import { ArrowUpRight, Terminal, Package } from "lucide-react";
 import { Card, buttonVariants } from "@heroui/react";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
 import { Text, Title, Paragraph } from "@/components/marketing/typography";
 import { PageShell } from "@/components/marketing/page-shell";
 import {
-  ChromeLogo,
-  FirefoxLogo,
-  WindowsLogo,
+  AppleLogo,
+  ChromeLogoColor,
 } from "@/components/marketing/platform-logos";
 import { MESSAGES } from "@/lib/marketing/messages";
-import { CHROME_WEBSTORE_URL, DOWNLOAD_URL } from "@/lib/marketing/constants";
+import { CHROME_WEBSTORE_URL } from "@/lib/marketing/constants";
 import { RELEASES_URL, DOCS_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Download",
-  description: "Download the CaptureFlow screen recorder for macOS.",
+  description:
+    "Install the CaptureFlow Chrome extension to record your screen and share it with a link.",
 };
 
 const OTHER = [
@@ -78,42 +78,12 @@ export default async function DownloadPage() {
           </div>
 
           <div className="flex flex-col items-center gap-3">
-            {/* Equal columns rather than shrink-to-fit: the two labels differ
-                in length, so intrinsic widths made the pair look lopsided. */}
-            <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:grid-cols-2">
-              <a
-                href={DOWNLOAD_URL}
-                target="_blank"
-                rel="noreferrer"
-                className={buttonVariants({
-                  variant: "primary",
-                  size: "lg",
-                  className: "w-full gap-2",
-                })}
-              >
-                <Download size={18} />
-                {m.button}
-              </a>
-              <ChromeInstall />
-            </div>
+            <ChromeInstall />
 
-            <Text type="secondary" style={{ fontSize: 14 }}>
-              {m.requirements}
-            </Text>
-
-            {/* Not buttons: nothing here is clickable yet, and three filled
-                pills read as three CTAs competing with the real one. */}
-            <p className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-fg-subtle">
-              <span>Coming soon</span>
-              <SoonPlatform
-                label="Windows"
-                icon={<WindowsLogo className="size-3.5" />}
-              />
-              <SoonPlatform
-                label="Firefox"
-                icon={<FirefoxLogo className="size-4" />}
-              />
-            </p>
+            <span className="mt-1 inline-flex items-center gap-1.5 text-sm text-fg-muted">
+              <AppleLogo className="size-3.5" />
+              {MESSAGES.hero.macSoon}
+            </span>
           </div>
         </div>
 
@@ -160,14 +130,10 @@ export default async function DownloadPage() {
   );
 }
 
-/*
- * White pill against the dark page, matching the plan cards' CTA — it has to
- * hold its own next to the blue primary rather than recede into the surface.
- * Set through .button's own colour vars so hover and pressed follow from the
- * same place instead of needing their own variants.
- */
+// White pill set through .button's own colour vars, so hover and pressed
+// follow from the same place.
 const CHROME_BUTTON_CLASS = [
-  "w-full gap-2",
+  "h-14 gap-2.5 rounded-full px-9 text-[17px]",
   "[--button-bg:var(--cf-inverse)]",
   "[--button-fg:var(--cf-on-inverse)]",
   "[--button-bg-hover:#e5e5e5]",
@@ -175,7 +141,7 @@ const CHROME_BUTTON_CLASS = [
 ].join(" ");
 
 /*
- * A live secondary CTA. Falls back to "#" until CHROME_WEBSTORE_URL is set —
+ * The page's one live CTA. Falls back to "#" until CHROME_WEBSTORE_URL is set —
  * setting that one constant turns it into the real store link (and opens it in
  * a new tab, which the placeholder must not do).
  */
@@ -192,23 +158,8 @@ function ChromeInstall() {
         className: CHROME_BUTTON_CLASS,
       })}
     >
-      <ChromeLogo className="size-[18px]" />
-      Add to Chrome
+      <ChromeLogoColor className="size-6" />
+      {MESSAGES.hero.installChrome}
     </a>
-  );
-}
-
-function SoonPlatform({
-  label,
-  icon,
-}: {
-  label: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <span className="flex items-center gap-1.5">
-      {icon}
-      {label}
-    </span>
   );
 }
