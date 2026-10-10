@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { loadSession } from "@/lib/session-guard";
-import { getStarCount, formatStars } from "@/lib/github";
+import { getRepoActivity, getStarCount, formatStars } from "@/lib/github";
 import { Nav } from "@/components/marketing/nav";
 import { HeroSection } from "@/components/marketing/hero-section";
 import { UseCasesSection } from "@/components/marketing/use-cases-section";
 import { ModesIntro } from "@/components/marketing/modes-intro";
 import { CollaborationSection } from "@/components/marketing/collaboration-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
+import { CompareSection } from "@/components/marketing/compare-section";
 import { FaqSection } from "@/components/marketing/faq-section";
-import { RoadmapSection } from "@/components/marketing/roadmap-section";
+import { RepoActivitySection } from "@/components/marketing/repo-activity-section";
 import { CtaSection } from "@/components/marketing/cta-section";
 import { Footer } from "@/components/marketing/footer";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
@@ -53,7 +54,10 @@ export default async function RootPage() {
   const session = await loadSession();
   if (session) redirect("/recordings");
 
-  const starCount = await getStarCount();
+  const [starCount, activity] = await Promise.all([
+    getStarCount(),
+    getRepoActivity(),
+  ]);
   const stars = starCount != null ? formatStars(starCount) : null;
 
   return (
@@ -69,8 +73,9 @@ export default async function RootPage() {
           <CollaborationSection />
           <UseCasesSection />
           <PricingSection />
+          <CompareSection />
           <FaqSection />
-          <RoadmapSection />
+          <RepoActivitySection activity={activity} />
           <CtaSection />
         </main>
         <Footer />

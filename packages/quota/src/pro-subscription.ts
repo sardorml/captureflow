@@ -46,6 +46,35 @@ function isProActive(row: ProSubscriptionRow, nowSeconds: number): boolean {
   return row.current_period_end > nowSeconds;
 }
 
+// Rows must be ordered newest first: each user's latest row decides, same as getActiveProSubscription.
+export function pickActiveProUserIds(
+  rows: ReadonlyArray<ProSubscriptionRow>,
+  nowSeconds: number,
+): string[] {
+  const seen = new Set<string>();
+  const active: string[] = [];
+  for (const row of rows) {
+    if (row.user_id === null || seen.has(row.user_id)) continue;
+    seen.add(row.user_id);
+    if (isProActive(row, nowSeconds)) active.push(row.user_id);
+  }
+  return active;
+}
+
+export async function listActiveProUserIds(db: D1Database): Promise<string[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT ls_subscription_id, user_id, ls_variant_id, ls_customer_id,
+              ls_customer_email, status, cycle, current_period_end,
+              cancelled_at, created_at, updated_at
+         FROM pro_subscription
+         WHERE user_id IS NOT NULL
+         ORDER BY updated_at DESC`,
+    )
+    .all<ProSubscriptionRow>();
+  return pickActiveProUserIds(results ?? [], Math.floor(Date.now() / 1000));
+}
+
 // PK is the LS subscription id, so one account can have historical cancelled rows alongside an active resubscribe; the latest by updated_at is the current one.
 export async function getActiveProSubscription(
   db: D1Database,

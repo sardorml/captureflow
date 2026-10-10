@@ -7,7 +7,7 @@ import {
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "The terms for using CaptureFlow: your account, your content, the managed plan, and the open-source license.",
+    "The terms for using CaptureFlow: your account, your content, plans and storage, and the open-source license.",
   alternates: { canonical: "/terms" },
 };
 
@@ -32,6 +32,7 @@ const SECTIONS: LegalSection[] = [
     body: [
       "You own the recordings and screenshots you create. We store them and show them to the people you share them with, according to the visibility you set, and we do nothing else with them.",
       "You can delete any capture or your whole account at any time. Deleting removes the file and its metadata from the hosted service.",
+      "On free accounts, a capture that nobody has viewed for 30 days is deleted automatically. Captures on a paid plan are kept until you delete them, and follow the free-account rule again if the plan ends.",
     ],
   },
   {
@@ -47,9 +48,10 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
-    heading: "The managed plan",
+    heading: "Plans and storage",
     body: [
-      "The managed plan is a subscription billed monthly or yearly through Lemon Squeezy, our payment provider and merchant of record. It renews automatically until you cancel, and you can cancel at any time from your billing page. Refunds follow our Refund Policy.",
+      "The hosted service is free up to a set amount of storage. Paid plans add more storage for your whole workspace, with no charge per person. When you reach your storage limit, new uploads stop until you free up space or move to a larger plan; nothing you already have is deleted because of the limit.",
+      "Paid plans are subscriptions billed monthly or yearly through Lemon Squeezy, our payment provider and merchant of record. They renew automatically until you cancel, and you can cancel at any time from your billing page. Refunds follow our Refund Policy.",
       "We will give notice before changing the price of a plan you are on.",
     ],
   },

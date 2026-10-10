@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { ACCOUNT_LIMITS } from "@captureflow/quota";
+import { ACCOUNT_LIMITS, listActiveProUserIds } from "@captureflow/quota";
 import { createD1Db } from "./db-d1";
 import { objectKeysFor } from "./object-keys";
 import { screenshotObjectKeysFor } from "../screenshot-keys";
@@ -22,6 +22,9 @@ const FAILED_RETENTION_MS = 24 * 60 * 60 * 1000;
 const RETENTION_MS =
   ACCOUNT_LIMITS.retentionDaysFromLastView * 24 * 60 * 60 * 1000;
 const BATCH_SIZE = 100;
+const OWNER_OF = (table: "recordings" | "screenshots") =>
+  `COALESCE((SELECT owner_user_id FROM workspace WHERE id = ${table}.workspace_id), ${table}.user_id, '')`;
+
 /*
  * Each sweep drains its backlog in BATCH_SIZE pages instead of taking one
  * page per invocation — a single sample silently falls behind forever once
@@ -95,17 +98,24 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
   const retentionCutoff = now - RETENTION_MS;
   const failedCutoff = now - FAILED_RETENTION_MS;
 
+  // Paid storage is kept until the owner deletes it; the idle sweep only
+  // reclaims free accounts. Ownership follows quota attribution (workspace
+  // owner, else uploader), and the '' fallback keeps ownerless rows expiring,
+  // since NULL NOT IN (...) is never true.
+  const paidOwners = JSON.stringify(await listActiveProUserIds(env.DB));
+
   const db = createD1Db(env.DB);
   for (let batch = 0; batch < MAX_BATCHES; batch++) {
     const expiring = await env.DB.prepare(
       `SELECT slug, storage_key AS storageKey, poster_key AS posterKey,
               webcam_storage_key AS webcamStorageKey, state
          FROM recordings
-        WHERE (state = 'ready' AND last_viewed_at < ?)
+        WHERE (state = 'ready' AND last_viewed_at < ?
+               AND ${OWNER_OF("recordings")} NOT IN (SELECT value FROM json_each(?)))
            OR (state = 'failed' AND created_at < ?)
         LIMIT ?`,
     )
-      .bind(retentionCutoff, failedCutoff, BATCH_SIZE)
+      .bind(retentionCutoff, paidOwners, failedCutoff, BATCH_SIZE)
       .all<{
         slug: string;
         storageKey: string;
@@ -126,7 +136,7 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
     if (rows.length < BATCH_SIZE) break;
   }
 
-  await sweepScreenshots(env, retentionCutoff, failedCutoff);
+  await sweepScreenshots(env, retentionCutoff, failedCutoff, paidOwners);
 }
 
 /*
@@ -140,16 +150,18 @@ async function sweepScreenshots(
   env: CronEnv,
   retentionCutoff: number,
   deletedCutoff: number,
+  paidOwners: string,
 ): Promise<void> {
   for (let batch = 0; batch < MAX_BATCHES; batch++) {
     const expiring = await env.DB.prepare(
       `SELECT id, storage_key AS storageKey, state
          FROM screenshots
-        WHERE (state = 'ready' AND COALESCE(last_viewed_at, created_at) < ?)
+        WHERE (state = 'ready' AND COALESCE(last_viewed_at, created_at) < ?
+               AND ${OWNER_OF("screenshots")} NOT IN (SELECT value FROM json_each(?)))
            OR (state = 'deleted' AND updated_at < ?)
         LIMIT ?`,
     )
-      .bind(retentionCutoff, deletedCutoff, BATCH_SIZE)
+      .bind(retentionCutoff, paidOwners, deletedCutoff, BATCH_SIZE)
       .all<{ id: string; storageKey: string; state: string }>();
 
     const rows = expiring.results ?? [];

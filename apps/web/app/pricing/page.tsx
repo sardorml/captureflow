@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MarketingPage } from "@/components/marketing/marketing-page";
 import { PricingSection } from "@/components/marketing/pricing-section";
+import { CompareSection } from "@/components/marketing/compare-section";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default function PricingPage() {
   return (
     <MarketingPage>
       <PricingSection headingLevel={1} />
+      <CompareSection />
     </MarketingPage>
   );
 }

@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { ACCOUNT_LIMITS, PRO_SUBSCRIPTION_LIMITS } from "./limits";
+import { ACCOUNT_LIMITS, storageBytesForVariant } from "./limits";
 import { getActiveProSubscription } from "./pro-subscription";
 
 /*
@@ -37,7 +37,7 @@ export async function getEffectiveLimitsForUser(
   ]);
 
   const baseStorage = subscription
-    ? PRO_SUBSCRIPTION_LIMITS.totalStorageBytes
+    ? storageBytesForVariant(subscription.ls_variant_id)
     : ACCOUNT_LIMITS.totalStorageBytes;
 
   return {

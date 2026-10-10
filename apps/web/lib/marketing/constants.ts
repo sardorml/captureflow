@@ -1,3 +1,4 @@
+import { STORAGE_PLANS, type StoragePlan } from "@captureflow/quota";
 import { MESSAGES } from "./messages";
 
 export const SITE_URL = "https://captureflow.dev";
@@ -102,40 +103,41 @@ export const PRO_CARD_HIGHLIGHTS: ReadonlyArray<string> = [
   "Instant share links, Screenshots, workspaces & cloud storage we run for you",
 ];
 
-export const MONTHLY_PRICE = 9;
-
-// Managed storage tiers shown as mini pricing cards, each with its own Lemon
-// Squeezy checkout. The dashboard upgrade modal (UpgradeModal) renders these
-// same tiers.
-type ManagedTier = {
-  storageGb: number;
+// Storage plans as sold: the quota package owns which variant buys how much
+// space; this adds the price and checkout link. The dashboard UpgradeModal and
+// the landing pricing both render these.
+type ManagedTier = StoragePlan & {
   price: string;
   checkoutUrl: string;
   tag?: "recommended" | "mostValue";
 };
 
-export const MANAGED_TIERS: ReadonlyArray<ManagedTier> = [
-  {
-    storageGb: 50,
-    price: "3.99",
+const CHECKOUTS: Record<
+  StoragePlan["variantId"],
+  Pick<ManagedTier, "price" | "checkoutUrl" | "tag">
+> = {
+  "1849420": {
+    price: "6.99",
     checkoutUrl:
       "https://sardorml.lemonsqueezy.com/checkout/buy/93848ab4-4fb5-4df4-ac5b-5bbc198364bb",
   },
-  {
-    storageGb: 100,
-    price: "5.99",
+  "1849425": {
+    price: "19.99",
     checkoutUrl:
       "https://sardorml.lemonsqueezy.com/checkout/buy/601f31c9-76c7-46f2-8d9c-48b762e88d93",
     tag: "recommended",
   },
-  {
-    storageGb: 200,
-    price: "9.99",
+  "1828191": {
+    price: "29.99",
     checkoutUrl:
       "https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916",
     tag: "mostValue",
   },
-];
+};
+
+export const MANAGED_TIERS: ReadonlyArray<ManagedTier> = STORAGE_PLANS.map(
+  (plan) => ({ ...plan, ...CHECKOUTS[plan.variantId] }),
+);
 
 export type LaunchStage =
   | "waitlist"
@@ -200,8 +202,9 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     price: 9,
     originalPrice: null,
     discountBadge: null,
-    pricingHeading: "Pricing",
-    pricingSubheading: "Self-host for free, or let us host it for you.",
+    pricingHeading: "Start free, pay for more storage",
+    pricingSubheading:
+      "Self-host for free, or let us host it and only pay when you need more space.",
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -241,8 +244,9 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     price: 9,
     originalPrice: null,
     discountBadge: null,
-    pricingHeading: "Pricing",
-    pricingSubheading: "Self-host for free, or let us host it for you.",
+    pricingHeading: "Start free, pay for more storage",
+    pricingSubheading:
+      "Self-host for free, or let us host it and only pay when you need more space.",
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -419,14 +423,13 @@ export const APP_SCHEMA = {
       description:
         "Open-source recording, instant share links, screenshots, and workspaces. Run it on your own Cloudflare account, no watermark",
     },
-    {
+    ...MANAGED_TIERS.map((tier) => ({
       "@type": "Offer",
-      price: String(MONTHLY_PRICE),
+      price: tier.price,
       priceCurrency: "USD",
-      name: "Managed",
-      description:
-        "Fully managed hosting: instant share links, screenshots, team workspaces, and 200 GB cloud storage we run for you, no Cloudflare setup",
-    },
+      name: `Managed ${tier.label}`,
+      description: `Fully managed hosting with ${tier.label} of cloud storage for your whole team: instant share links, screenshots, and workspaces, no Cloudflare setup`,
+    })),
   ],
 };
 

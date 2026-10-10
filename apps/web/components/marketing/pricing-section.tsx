@@ -1,10 +1,13 @@
 "use client";
 
-import { CURRENT_STAGE } from "@/lib/marketing/constants";
+import { Building2 } from "lucide-react";
+import { CURRENT_STAGE, SUPPORT_EMAIL, X_URL } from "@/lib/marketing/constants";
+import { track } from "@/lib/marketing/track";
 import { useMessages } from "./i18n-provider";
 import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
-import { FreeCard } from "./free-card";
 import { ManagedCard } from "./managed-card";
+import { GitHubIcon } from "./platform-logos";
+import { PricingStrip } from "./pricing-strip";
 
 type PricingSectionProps = SectionProps & {
   hideHeading?: boolean;
@@ -25,11 +28,36 @@ export function PricingSection({
           level={headingLevel}
         />
       )}
-      {/* Subgrid so the two cards share row tracks: both gradient panels get the
-          taller one's height, and both feature lists start at the same y. */}
-      <div className="mx-auto grid max-w-215 gap-6 md:grid-cols-2 md:grid-rows-[auto_1fr_auto]">
-        <FreeCard />
+      <div className="mx-auto max-w-215">
         <ManagedCard />
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <PricingStrip
+            icon={<Building2 size={28} />}
+            name={m.pricing.enterprise.name}
+            price={m.pricing.enterprise.price}
+            body={m.pricing.enterprise.body}
+            cta={{
+              label: m.pricing.enterprise.cta,
+              href: `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(m.pricing.enterprise.subject)}`,
+              onClick: () =>
+                track("marketing_cta_clicked", {
+                  location: "pricing_enterprise",
+                }),
+            }}
+          />
+          <PricingStrip
+            icon={<GitHubIcon size={30} />}
+            name={m.pricing.selfHost.name}
+            price={m.pricing.selfHost.price}
+            body={m.pricing.selfHost.body}
+            cta={{
+              label: m.pricing.selfHost.cta,
+              href: X_URL,
+              isExternal: true,
+              onClick: () => track("source_opened", { from: "pricing_free" }),
+            }}
+          />
+        </div>
       </div>
     </MarketingSection>
   );

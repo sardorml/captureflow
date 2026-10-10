@@ -72,9 +72,10 @@ export const MESSAGES = {
       "Record your screen and share it with your team, clients, or customers.",
     subtitleLine2: "Self-hostable on your Cloudflare account.",
     ctaLabel: "Try CaptureFlow for free",
-    installChrome: "Add to Chrome",
+    installChrome: "Install Chrome extension",
     installMac: "Download for free",
     installSoon: "Soon",
+    macSoon: "macOS app coming soon",
     installOr: "or",
     secondaryCta: "See pricing",
     badge: "Open source, free to run",
@@ -113,7 +114,6 @@ export const MESSAGES = {
     engineeringFile: "checkout.ts",
     engineeringPr: "PR #482",
     designCardTitle: "Plan your trip",
-    designColors: "Colors",
     designComment: "Bigger CTA?",
     supportQuestion: "How do I invite my team to the workspace?",
     supportReply: "Here's a quick walkthrough:",
@@ -225,40 +225,61 @@ export const MESSAGES = {
     },
   },
   pricing: {
-    heading: "Pricing",
-    subheading: "Self-host for free, or let us host it for you.",
-    guarantee: "Open source under the AGPL. Run it yourself.",
-    managedGuarantee: "The same open-source app. We run it for you.",
-    free: {
-      name: "Self-Hosted",
-      badge: "Open source",
-      badgeFree: "Free",
-      price: "$0",
-      period: "forever",
-      tagline: "Run it on your own Cloudflare account.",
-      note: "No account, no limits, no watermark.",
-      features: [
-        "Unlimited recording & share links",
-        "Annotated screenshots",
-        "Open source (AGPL), no watermark",
-        "macOS menu bar app",
-      ],
+    heading: "Start free, pay for more storage",
+    subheading:
+      "Self-host for free, or let us host it and only pay when you need more space.",
+    selfHost: {
+      name: "Self-hosted",
+      price: "Free forever",
+      body: "Run it on your own Cloudflare account. Open source under the AGPL.",
       cta: "Build from source",
     },
-    highlights: {
-      allFeatures: "Fully managed, no Cloudflare setup",
-      shareableLinks:
-        "Shareable recordings, screenshots & {storage} GB storage",
-      teamSeats: "Whole team included, no per-seat fees",
+    compare: {
+      heading: "Pay for storage,",
+      headingMuted: "not for seats",
+      subheading:
+        "Per-seat tools cost more every time someone joins your team. Here's what a team of 10 pays each month.",
+      title: "Switching from {loom}?",
+      loom: "Loom",
+      body: "Loom charges **{perSeat} for every person**, every month. CaptureFlow charges for storage, so **your whole team shares one plan**.",
+      link: "See the full comparison",
+      loomRow: "Loom {plan}",
+      loomDetail: "{seats} people × {perSeat} each",
+      caption:
+        "Monthly prices. Our largest plan, so this is the most you'd pay.",
+      captureflowRow: "CaptureFlow {storage} plan",
+      captureflowDetail: "Whole team, one flat price",
+      saveLabel: "Your team saves",
+      saveValue: "{savings} a year",
     },
-    monthly: {
-      badgePro: "Managed",
-      badgeCycle: "Monthly",
-      title: "Managed hosting",
-      subtitle: "Fully hosted, billed monthly.",
+    managed: {
+      badge: "Managed hosting",
+      title: "We run it, you pick the storage",
       period: "/month",
-      note: "Cancel anytime.",
-      cta: "Get started",
+      freeLabel: "Free",
+      freeNote: "No card needed.",
+      paidNote: "Billed monthly. Cancel anytime.",
+      tiersLabel: "Storage",
+      ctaFree: "Get started free",
+      ctaUpgrade: "Upgrade to {storage}",
+      includesHeading: "Every plan includes",
+      includes: [
+        "Fully managed, no Cloudflare setup",
+        "Instant share links",
+        "Annotated screenshots",
+        "Comments & emoji reactions",
+        "Team workspaces",
+        "Whole team, no per-seat fees",
+      ],
+      footnote: "The same open-source app, run by us.",
+    },
+    enterprise: {
+      name: "Enterprise",
+      price: "Custom pricing",
+      body: "More than 1 TB, or help running it on your own Cloudflare account.",
+      note: "For teams that need more than 1 TB.",
+      cta: "Contact us",
+      subject: "CaptureFlow Enterprise",
     },
     annual: {
       badgePro: "Managed",
@@ -270,44 +291,43 @@ export const MESSAGES = {
       cta: "Get started",
     },
   },
+  activity: {
+    heading: "Built in the open",
+    subtitle: "Recent pull requests and open issues from GitHub.",
+    shippedHeading: "Recently merged",
+    openHeading: "Open issues",
+    emptyOpen: "No open issues right now.",
+    newIssue: "Report a bug or request a feature",
+    viewAll: "See everything on GitHub",
+  },
   faq: {
     heading: "Frequently Asked Questions",
     waitlistLink: "Join the waitlist",
     items: [
       {
-        question: "How does CaptureFlow compare to other screen recorders?",
-        answer:
-          "CaptureFlow records your screen straight to a shareable link. The upload runs while you record, so the moment you hit stop the link is already on your clipboard. No exporting, uploading, or waiting. You also get annotated screenshots that share the same way, plus team workspaces and a viewer with reactions, comments, and view counts.\n\nMost screen recorders stop at the recording and leave hosting, sharing, and screenshots to other apps. CaptureFlow handles the whole flow in one place, and it is fully open source: use our managed hosting, or run it yourself on your own Cloudflare account and keep your data.",
-      },
-      {
-        question: "How do the instant share links work?",
-        answer:
-          "CaptureFlow uploads your recording as you record it, not after. By the time you stop, the file is already in the cloud and the share link is on your clipboard, ready to paste anywhere. Recipients open the link to a viewer with reactions, comments, and a live view count, no app install required.",
-      },
-      {
-        question: "Is my data private?",
-        answer:
-          "Yes, and with CaptureFlow you control where it lives. When you self-host, recordings and screenshots upload to your own Cloudflare account (R2 storage, D1 database). Nothing touches our servers at all.\n\nWhen you create a share link, that artifact is stored so the recipient can open it from a URL. You control visibility per artifact (public, workspace-only, or private), and you can revoke or delete a link from your dashboard at any time.",
-      },
-      {
         question: "Can I self-host CaptureFlow?",
         answer:
-          "Yes, that's the whole point. CaptureFlow is open source under the AGPL and runs entirely on Cloudflare: Workers for the API, R2 for storage, and D1 for the database. Deploy it to your own account and you own every recording, screenshot, and share link end to end. The repo and deploy guide live on GitHub and docs.captureflow.dev.",
+          "Yes. CaptureFlow is open source under the AGPL, and the whole backend runs on Cloudflare: Workers for the app and API, R2 for recordings, and D1 for everything else. Create a D1 database and an R2 bucket, apply the migrations, set one secret, and deploy. There's also a Deploy to Cloudflare button. The guide is at docs.captureflow.dev.",
       },
       {
-        question: "What's free and what's the managed plan?",
+        question: "Why does CaptureFlow run on Cloudflare?",
         answer:
-          "Everything is free when you self-host. CaptureFlow is open source under the AGPL: deploy it to your own Cloudflare account and use recording, instant share links, screenshots, and workspaces with no limits and no watermark.\n\nThe managed plan is for teams who would rather not run their own infrastructure: we host CaptureFlow for you, handle storage and updates, and you skip the Cloudflare setup entirely.",
+          "Because video gets expensive in the wrong places. Most clouds charge every time someone watches a file, and Cloudflare R2 doesn't, so a recording watched a hundred times costs no more than one watched once. That's what lets us charge for storage instead of per person.\n\nIt also makes self-hosting cheap. Cloudflare's free tiers cover the app, the database, and the first 10 GB of storage, so a small team can run CaptureFlow for nothing. R2 does ask for a card on file.",
       },
       {
-        question: "Is CaptureFlow stable while it's in beta?",
+        question: "Why charge for storage instead of per seat?",
         answer:
-          "Beta means CaptureFlow is young and improving fast, not that it's fragile. Recording, sharing, and screenshots are stable and in daily use. Updates ship frequently, and a few rough edges remain (Intel Macs aren't supported yet, for example). It's open source, so you can read the code, file issues, or send a pull request. Feedback shapes the roadmap.",
+          "Because storage is what actually costs us money, not the number of people watching. With per-seat pricing, every teammate you add raises the bill, so teams end up rationing who gets an account.\n\nWith CaptureFlow, your whole team shares one plan. Invite as many people as you like, and you only pay more when you need more space.",
       },
       {
-        question: "Does CaptureFlow add a watermark?",
+        question: "How long are my recordings kept?",
         answer:
-          "No. CaptureFlow never watermarks your recordings, screenshots, or exports, self-hosted or managed. It's open source, so there are no artificial limits baked in: record at up to 4K, for as long as you want.",
+          "On paid plans, until you delete them. On the free plan, a recording is removed after 30 days without a view, so idle accounts don't hold on to space. If you self-host, you set the rules.",
+      },
+      {
+        question: "What is managed hosting?",
+        answer:
+          "It's CaptureFlow run by us, for teams that don't want to set up Cloudflare themselves. You get the same open-source app, and we take care of the hosting, storage, and updates. Sign up, install the Chrome extension, and start recording.\n\nYou can start free with 200 MB, where recordings are removed after 30 days without a view. When you need more room, paid plans give you 100 GB, 500 GB, or 1 TB, keep your recordings until you delete them, and cover your whole team with no per-seat fees.",
       },
     ],
   },
