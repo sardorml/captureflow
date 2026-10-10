@@ -5,12 +5,9 @@ import { Check, Minus } from "lucide-react";
 import { Label, Slider } from "@heroui/react";
 import {
   CAPTUREFLOW_MONTHLY,
-  CAPTUREFLOW_STORAGE_LABEL,
   LOOM_PLANS,
   LOOM_PRICES_CHECKED,
   LOOM_PRICING_URL,
-  getLoomMonthly,
-  getYearlySavings,
   type LoomPlan,
 } from "@/lib/marketing/loom-comparison";
 import { cn } from "@/lib/utils";
@@ -20,6 +17,7 @@ import {
   SECTION_TITLE_STYLE,
 } from "./_shared";
 import { Paragraph, Title } from "./typography";
+import { PriceBreakdown } from "./price-breakdown";
 
 type Cell = boolean | string;
 
@@ -74,9 +72,12 @@ const ROWS: ReadonlyArray<{ label: string; loom: Cell; captureflow: Cell }> = [
     label: "How long videos are kept",
     loom: "Until you delete them",
     captureflow:
-      "Managed: until 30 days without a view. Self-hosted: you decide",
+      "Paid: until you delete them. Free: 30 days after the last view. Self-hosted: you decide",
   },
 ];
+
+const INTRO =
+  "**Loom** and **CaptureFlow** are both video messaging tools. You record your screen and camera, share a link, and your team watches when it suits them, instead of sitting through another meeting or reading a long thread. They differ in how they charge. Loom bills for each person on your team, while CaptureFlow bills for the storage you use, and it's free if you run it yourself.";
 
 const LOOM_FITS = [
   "You want AI summaries, transcripts and captions today.",
@@ -90,28 +91,48 @@ const CAPTUREFLOW_FITS = [
   "You'd rather read the code that handles your videos.",
 ];
 
-const usd = (n: number) =>
-  n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: n % 1 === 0 ? 0 : 2,
-  });
-
 export function LoomComparison() {
   return (
     <MarketingSection id="compare">
-      <div className="mx-auto max-w-3xl text-center">
-        <Title level={1} align="center" style={SECTION_TITLE_STYLE}>
-          CaptureFlow vs Loom
+      <div className="mx-auto max-w-4xl text-center">
+        <Title
+          level={1}
+          className="sm:whitespace-nowrap"
+          align="center"
+          style={{
+            ...SECTION_TITLE_STYLE,
+            fontSize: "clamp(2.5rem, 1.25rem + 4.5vw, 4.5rem)",
+            lineHeight: 1.1,
+          }}
+        >
+          <span className="inline-block -rotate-1 rounded-2xl bg-accent-bg px-4 pb-1 text-white">
+            CaptureFlow
+          </span>{" "}
+          <span className="text-fg-muted">vs</span>{" "}
+          <span className="inline-block rotate-1 rounded-2xl bg-fg px-4 pb-1 text-canvas">
+            Loom
+          </span>
         </Title>
         <Paragraph
           align="center"
           type="secondary"
-          style={{ ...SECTION_SUBTITLE_STYLE, marginTop: 16 }}
+          style={{
+            ...SECTION_SUBTITLE_STYLE,
+            fontSize: 20,
+            marginTop: 28,
+            maxWidth: 720,
+            marginInline: "auto",
+          }}
         >
-          Both give you a share link the moment you stop recording. Loom charges
-          for every person on the team. CaptureFlow charges for storage, and is
-          free if you host it yourself.
+          {INTRO.split("**").map((part, i) =>
+            i % 2 ? (
+              <strong key={i} className="font-semibold text-fg">
+                {part}
+              </strong>
+            ) : (
+              part
+            ),
+          )}
         </Paragraph>
       </div>
 
@@ -153,9 +174,6 @@ export function LoomComparison() {
 function SavingsCalculator() {
   const [seats, setSeats] = useState(10);
   const [plan, setPlan] = useState<LoomPlan>("business");
-  const loom = getLoomMonthly(plan, seats);
-  const savings = getYearlySavings(plan, seats);
-  const { label: planLabel, perSeat } = LOOM_PLANS.find((p) => p.id === plan)!;
 
   return (
     <div className="mx-auto mt-12 max-w-3xl rounded-2xl bg-panel p-2">
@@ -207,78 +225,14 @@ function SavingsCalculator() {
           </Slider.Track>
         </Slider>
 
-        <div className="mt-8 grid gap-5">
-          <CostBar
-            name={`Loom ${planLabel}`}
-            detail={`${seats} × $${perSeat} per person`}
-            monthly={loom}
-            share={1}
-          />
-          <CostBar
-            name="CaptureFlow"
-            detail={`Whole team, ${CAPTUREFLOW_STORAGE_LABEL}`}
-            monthly={CAPTUREFLOW_MONTHLY}
-            share={CAPTUREFLOW_MONTHLY / loom}
-            isAccent
-          />
-        </div>
-
-        <div className="mt-8 flex flex-col gap-1 rounded-xl bg-accent-bg p-5 text-white sm:flex-row sm:items-baseline sm:justify-between">
-          <span className="text-[15px] text-white/80">
-            You save with CaptureFlow
-          </span>
-          <span className="text-3xl font-semibold tabular-nums">
-            <span key={savings} className="animate-storage-pop inline-block">
-              {usd(Math.round(savings))}
-            </span>
-            <span className="text-base font-normal text-white/75"> a year</span>
-          </span>
+        <div className="mt-6">
+          <PriceBreakdown plan={plan} seats={seats} className="px-0 pb-0" />
         </div>
         <p className="mt-4 text-sm text-fg-muted">
           CaptureFlow&apos;s price stays the same however many people join.
           Self-hosted, it&apos;s $0 and you pay Cloudflare directly, often
           nothing on their free tiers.
         </p>
-      </div>
-    </div>
-  );
-}
-
-function CostBar({
-  name,
-  detail,
-  monthly,
-  share,
-  isAccent,
-}: {
-  name: string;
-  detail: string;
-  monthly: number;
-  share: number;
-  isAccent?: boolean;
-}) {
-  return (
-    <div>
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="text-[15px] font-semibold text-fg">
-          {name}
-          <span className="ml-2 text-sm font-normal text-fg-muted">
-            {detail}
-          </span>
-        </span>
-        <span className="text-xl font-semibold text-fg tabular-nums">
-          {usd(monthly)}
-          <span className="text-sm font-normal text-fg-muted">/mo</span>
-        </span>
-      </div>
-      <div className="mt-2 h-3 overflow-hidden rounded-full bg-tint">
-        <div
-          className={cn(
-            "h-full rounded-full transition-[width] duration-300",
-            isAccent ? "bg-accent-bg" : "bg-fg-muted",
-          )}
-          style={{ width: `${Math.max(2, Math.min(1, share) * 100)}%` }}
-        />
       </div>
     </div>
   );

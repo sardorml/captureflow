@@ -8,6 +8,7 @@ import { UseCasesSection } from "@/components/marketing/use-cases-section";
 import { ModesIntro } from "@/components/marketing/modes-intro";
 import { CollaborationSection } from "@/components/marketing/collaboration-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
+import { CompareSection } from "@/components/marketing/compare-section";
 import { FaqSection } from "@/components/marketing/faq-section";
 import { CtaSection } from "@/components/marketing/cta-section";
 import { Footer } from "@/components/marketing/footer";
@@ -68,6 +69,7 @@ export default async function RootPage() {
           <CollaborationSection />
           <UseCasesSection />
           <PricingSection />
+          <CompareSection />
           <FaqSection />
           <CtaSection />
         </main>

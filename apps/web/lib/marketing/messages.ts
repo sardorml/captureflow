@@ -225,7 +225,7 @@ export const MESSAGES = {
     },
   },
   pricing: {
-    heading: "Start free, pay for storage",
+    heading: "Start free, pay for more storage",
     subheading:
       "Self-host for free, or let us host it and only pay when you need more space.",
     selfHost: {
@@ -235,11 +235,15 @@ export const MESSAGES = {
       cta: "Build from source",
     },
     compare: {
+      heading: "Pay for storage,",
+      headingMuted: "not for seats",
+      subheading:
+        "Per-seat tools cost more every time someone joins your team. Here's what a team of 10 pays each month.",
       title: "Switching from {loom}?",
       loom: "Loom",
       body: "Loom charges **{perSeat} for every person**, every month. CaptureFlow charges for storage, so **your whole team shares one plan**.",
       link: "See the full comparison",
-      loomRow: "Loom Business",
+      loomRow: "Loom {plan}",
       loomDetail: "{seats} people × {perSeat} each",
       caption:
         "Monthly prices. Our largest plan, so this is the most you'd pay.",
@@ -296,19 +300,24 @@ export const MESSAGES = {
           "Yes. CaptureFlow is open source under the AGPL, and the whole backend runs on Cloudflare: Workers for the app and API, R2 for recordings, and D1 for everything else. Create a D1 database and an R2 bucket, apply the migrations, set one secret, and deploy. There's also a Deploy to Cloudflare button. The guide is at docs.captureflow.dev.",
       },
       {
-        question: "What does it cost to run on Cloudflare?",
+        question: "Why does CaptureFlow run on Cloudflare?",
         answer:
-          "For light use, nothing. Cloudflare's free tiers cover Workers, D1, and the first 10 GB of R2 storage, though R2 asks for a card on file even on the free tier. Storage is usually the first limit you'll hit as recordings pile up.\n\nR2 doesn't charge for egress, so a video that gets watched a hundred times costs no more to serve than one that's watched once.",
+          "Because video gets expensive in the wrong places. Most clouds charge every time someone watches a file, and Cloudflare R2 doesn't, so a recording watched a hundred times costs no more than one watched once. That's what lets us charge for storage instead of per person.\n\nIt also makes self-hosting cheap. Cloudflare's free tiers cover the app, the database, and the first 10 GB of storage, so a small team can run CaptureFlow for nothing. R2 does ask for a card on file.",
       },
       {
-        question: "Where do my recordings live?",
+        question: "Why charge for storage instead of per seat?",
         answer:
-          "When you self-host, in your own Cloudflare account. Videos go to your R2 bucket and everything else to your D1 database, so nothing touches our servers. On managed hosting we run that same setup for you. Either way, you choose who can open each recording: anyone with the link, just your workspace, or only you.",
+          "Because storage is what actually costs us money, not the number of people watching. With per-seat pricing, every teammate you add raises the bill, so teams end up rationing who gets an account.\n\nWith CaptureFlow, your whole team shares one plan. Invite as many people as you like, and you only pay more when you need more space.",
       },
       {
-        question: "What if I don't want to run it myself?",
+        question: "How long are my recordings kept?",
         answer:
-          "Use managed hosting. It's the same open-source app, running on Cloudflare, and we handle the setup, storage, and updates. It's free to start with 200 MB, and you pay only when you need more space: 50, 100, or 200 GB a month. Your whole team is included, with no per-seat fees.",
+          "On paid plans, until you delete them. On the free plan, a recording is removed after 30 days without a view, so idle accounts don't hold on to space. If you self-host, you set the rules.",
+      },
+      {
+        question: "What is managed hosting?",
+        answer:
+          "It's CaptureFlow run by us, for teams that don't want to set up Cloudflare themselves. You get the same open-source app, and we take care of the hosting, storage, and updates. Sign up, install the Chrome extension, and start recording.\n\nYou can start free with 200 MB, where recordings are removed after 30 days without a view. When you need more room, paid plans give you 100 GB, 500 GB, or 1 TB, keep your recordings until you delete them, and cover your whole team with no per-seat fees.",
       },
     ],
   },

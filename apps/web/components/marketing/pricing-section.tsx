@@ -5,7 +5,6 @@ import { CURRENT_STAGE, SUPPORT_EMAIL, X_URL } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
 import { useMessages } from "./i18n-provider";
 import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
-import { CompareBanner } from "./compare-banner";
 import { ManagedCard } from "./managed-card";
 import { GitHubIcon } from "./platform-logos";
 import { PricingStrip } from "./pricing-strip";
@@ -59,7 +58,6 @@ export function PricingSection({
             }}
           />
         </div>
-        <CompareBanner />
       </div>
     </MarketingSection>
   );

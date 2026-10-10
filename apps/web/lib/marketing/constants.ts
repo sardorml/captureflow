@@ -212,7 +212,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     price: 9,
     originalPrice: null,
     discountBadge: null,
-    pricingHeading: "Start free, pay for storage",
+    pricingHeading: "Start free, pay for more storage",
     pricingSubheading:
       "Self-host for free, or let us host it and only pay when you need more space.",
     pricingButtonLabel: "Get started",
@@ -254,7 +254,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     price: 9,
     originalPrice: null,
     discountBadge: null,
-    pricingHeading: "Start free, pay for storage",
+    pricingHeading: "Start free, pay for more storage",
     pricingSubheading:
       "Self-host for free, or let us host it and only pay when you need more space.",
     pricingButtonLabel: "Get started",
