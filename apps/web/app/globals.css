@@ -322,7 +322,26 @@ html:has([data-marketing]) body {
   animation: rise-fade 6s cubic-bezier(0.22, 0.61, 0.36, 1) infinite backwards;
 }
 
+/* Pricing: the storage amount pops when the tier switch changes it. */
+@keyframes storage-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0) scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-storage-pop {
+  animation: storage-pop 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .animate-storage-pop,
   .animate-playback-fill,
   .animate-playback-head,
   .animate-rise-fade,

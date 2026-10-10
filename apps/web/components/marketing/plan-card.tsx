@@ -38,7 +38,7 @@ export function PlanCard(props: PlanCardProps) {
       <div
         className={`relative flex flex-col overflow-hidden rounded-xl p-5 ${props.panelClassName}`}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex h-7 items-center gap-2">
           <span className="flex size-6 items-center justify-center rounded-lg bg-white/15 text-white">
             {props.icon}
           </span>

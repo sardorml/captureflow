@@ -155,46 +155,32 @@ function EngineeringScene({ file, pr }: { file: string; pr: string }) {
 
 function DesignScene({
   cardTitle,
-  colors,
   comment,
 }: {
   cardTitle: string;
-  colors: string;
   comment: string;
 }) {
   return (
     <>
       <div className={`${SCREEN} bg-[#141418]`}>
         <div className="absolute top-0 left-1/2 -ml-[145px] h-full w-[290px]">
-          <div className="absolute inset-y-0 left-0 flex w-[50px] flex-col gap-2 border-r border-white/[0.06] bg-[#1c1c21] px-2 py-3">
-            <div className="h-1.5 rounded-[3px] bg-white/20" />
-            <div className="h-1.5 w-[70%] rounded-[3px] bg-white/10" />
-            <div className="h-1.5 rounded-[3px] bg-[#2dd4bf]" />
-            <div className="h-1.5 w-[80%] rounded-[3px] bg-white/10" />
-          </div>
-          <div className="absolute top-[18px] left-16 flex h-[180px] w-[116px] flex-col overflow-hidden rounded-xl bg-[#232329] shadow-[0_2px_6px_rgb(0_0_0/0.3)]">
-            <div className="h-[76px] bg-[linear-gradient(135deg,#99f6e4,#0d9488)]" />
-            <div className="flex flex-col gap-1.5 p-2.5">
+          <div className="absolute top-[18px] left-8 flex h-[180px] w-[116px] flex-col overflow-hidden rounded-xl bg-[#232329] shadow-[0_2px_6px_rgb(0_0_0/0.3)]">
+            <div className="m-2 mb-0 h-[68px] rounded-lg bg-white/[0.06]" />
+            <div className="flex flex-1 flex-col gap-1.5 p-2.5">
               <div className="text-[11px] leading-[1.1] font-bold text-[#f4f4f5]">
                 {cardTitle}
               </div>
-              <div className="h-[5px] rounded-[3px] bg-white/15" />
-              <div className="h-[5px] w-[70%] rounded-[3px] bg-white/15" />
-              <div className="mt-1.5 h-[22px] rounded-full bg-[#f4f4f5]" />
+              <div className="h-[5px] rounded-[3px] bg-white/10" />
+              <div className="h-[5px] w-[70%] rounded-[3px] bg-white/10" />
+              <div className="mt-1 flex gap-1">
+                <span className="h-3.5 w-9 rounded-full bg-white/[0.08]" />
+                <span className="h-3.5 w-7 rounded-full bg-white/[0.08]" />
+              </div>
+              <div className="mt-auto h-[22px] rounded-full bg-[#f4f4f5]" />
             </div>
           </div>
-          <div className="absolute top-3.5 left-[60px] h-[188px] w-[124px] rounded-[14px] shadow-[0_0_0_2px_#0d99ff]" />
-          <div className="absolute top-[18px] right-2.5 left-[194px] flex h-[76px] flex-col gap-1.5 rounded-xl bg-[#232329] p-2.5 shadow-[0_2px_6px_rgb(0_0_0/0.3)]">
-            <div className="text-[10px] leading-none font-bold text-[#f4f4f5]">
-              {colors}
-            </div>
-            <div className="flex gap-[5px]">
-              <span className="size-4 rounded-[5px] bg-[#0d9488]" />
-              <span className="size-4 rounded-[5px] bg-[#f4f4f5]" />
-              <span className="size-4 rounded-[5px] bg-[#99f6e4]" />
-            </div>
-          </div>
-          <div className="absolute top-[122px] left-[156px] flex items-center gap-1.5 rounded-[10px_10px_10px_2px] bg-white px-2 py-1.5 text-[10px] leading-none font-semibold whitespace-nowrap text-[#18181b] shadow-[0_6px_14px_rgb(0_0_0/0.15)]">
+          <div className="absolute top-3.5 left-7 h-[188px] w-[124px] rounded-[14px] shadow-[0_0_0_2px_#0d99ff]" />
+          <div className="absolute top-[40px] left-[164px] flex items-center gap-1.5 rounded-[10px_10px_10px_2px] bg-white px-2 py-1.5 text-[10px] leading-none font-semibold whitespace-nowrap text-[#18181b] shadow-[0_6px_14px_rgb(0_0_0/0.15)]">
             <span className="size-4 rounded-full bg-[#14b8a6] text-center text-[8px] leading-4 font-bold text-white">
               MR
             </span>
@@ -429,7 +415,6 @@ export function UseCasesSection({ headingLevel = 2 }: SectionProps = {}) {
     design: (
       <DesignScene
         cardTitle={copy.designCardTitle}
-        colors={copy.designColors}
         comment={copy.designComment}
       />
     ),

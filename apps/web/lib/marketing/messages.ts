@@ -72,9 +72,10 @@ export const MESSAGES = {
       "Record your screen and share it with your team, clients, or customers.",
     subtitleLine2: "Self-hostable on your Cloudflare account.",
     ctaLabel: "Try CaptureFlow for free",
-    installChrome: "Add to Chrome",
+    installChrome: "Install Chrome extension",
     installMac: "Download for free",
     installSoon: "Soon",
+    macSoon: "macOS app coming soon",
     installOr: "or",
     secondaryCta: "See pricing",
     badge: "Open source, free to run",
@@ -113,7 +114,6 @@ export const MESSAGES = {
     engineeringFile: "checkout.ts",
     engineeringPr: "PR #482",
     designCardTitle: "Plan your trip",
-    designColors: "Colors",
     designComment: "Bigger CTA?",
     supportQuestion: "How do I invite my team to the workspace?",
     supportReply: "Here's a quick walkthrough:",
@@ -225,8 +225,9 @@ export const MESSAGES = {
     },
   },
   pricing: {
-    heading: "Pricing",
-    subheading: "Self-host for free, or let us host it for you.",
+    heading: "Start free, pay for storage",
+    subheading:
+      "Self-host for free, or let us host it and only pay when you need more space.",
     guarantee: "Open source under the AGPL. Run it yourself.",
     managedGuarantee: "The same open-source app. We run it for you.",
     free: {
@@ -247,18 +248,19 @@ export const MESSAGES = {
     },
     highlights: {
       allFeatures: "Fully managed, no Cloudflare setup",
-      shareableLinks:
-        "Shareable recordings, screenshots & {storage} GB storage",
+      shareableLinks: "Shareable recordings, screenshots & {storage} storage",
       teamSeats: "Whole team included, no per-seat fees",
     },
     monthly: {
       badgePro: "Managed",
       badgeCycle: "Monthly",
       title: "Managed hosting",
-      subtitle: "Fully hosted, billed monthly.",
+      subtitle: "Start free, upgrade for more space.",
       period: "/month",
       note: "Cancel anytime.",
       cta: "Get started",
+      freeLabel: "Free",
+      freeNote: "No card needed.",
     },
     annual: {
       badgePro: "Managed",
@@ -275,39 +277,24 @@ export const MESSAGES = {
     waitlistLink: "Join the waitlist",
     items: [
       {
-        question: "How does CaptureFlow compare to other screen recorders?",
-        answer:
-          "CaptureFlow records your screen straight to a shareable link. The upload runs while you record, so the moment you hit stop the link is already on your clipboard. No exporting, uploading, or waiting. You also get annotated screenshots that share the same way, plus team workspaces and a viewer with reactions, comments, and view counts.\n\nMost screen recorders stop at the recording and leave hosting, sharing, and screenshots to other apps. CaptureFlow handles the whole flow in one place, and it is fully open source: use our managed hosting, or run it yourself on your own Cloudflare account and keep your data.",
-      },
-      {
-        question: "How do the instant share links work?",
-        answer:
-          "CaptureFlow uploads your recording as you record it, not after. By the time you stop, the file is already in the cloud and the share link is on your clipboard, ready to paste anywhere. Recipients open the link to a viewer with reactions, comments, and a live view count, no app install required.",
-      },
-      {
-        question: "Is my data private?",
-        answer:
-          "Yes, and with CaptureFlow you control where it lives. When you self-host, recordings and screenshots upload to your own Cloudflare account (R2 storage, D1 database). Nothing touches our servers at all.\n\nWhen you create a share link, that artifact is stored so the recipient can open it from a URL. You control visibility per artifact (public, workspace-only, or private), and you can revoke or delete a link from your dashboard at any time.",
-      },
-      {
         question: "Can I self-host CaptureFlow?",
         answer:
-          "Yes, that's the whole point. CaptureFlow is open source under the AGPL and runs entirely on Cloudflare: Workers for the API, R2 for storage, and D1 for the database. Deploy it to your own account and you own every recording, screenshot, and share link end to end. The repo and deploy guide live on GitHub and docs.captureflow.dev.",
+          "Yes. CaptureFlow is open source under the AGPL, and the whole backend runs on Cloudflare: Workers for the app and API, R2 for recordings, and D1 for everything else. Create a D1 database and an R2 bucket, apply the migrations, set one secret, and deploy. There's also a Deploy to Cloudflare button. The guide is at docs.captureflow.dev.",
       },
       {
-        question: "What's free and what's the managed plan?",
+        question: "What does it cost to run on Cloudflare?",
         answer:
-          "Everything is free when you self-host. CaptureFlow is open source under the AGPL: deploy it to your own Cloudflare account and use recording, instant share links, screenshots, and workspaces with no limits and no watermark.\n\nThe managed plan is for teams who would rather not run their own infrastructure: we host CaptureFlow for you, handle storage and updates, and you skip the Cloudflare setup entirely.",
+          "For light use, nothing. Cloudflare's free tiers cover Workers, D1, and the first 10 GB of R2 storage, though R2 asks for a card on file even on the free tier. Storage is usually the first limit you'll hit as recordings pile up.\n\nR2 doesn't charge for egress, so a video that gets watched a hundred times costs no more to serve than one that's watched once.",
       },
       {
-        question: "Is CaptureFlow stable while it's in beta?",
+        question: "Where do my recordings live?",
         answer:
-          "Beta means CaptureFlow is young and improving fast, not that it's fragile. Recording, sharing, and screenshots are stable and in daily use. Updates ship frequently, and a few rough edges remain (Intel Macs aren't supported yet, for example). It's open source, so you can read the code, file issues, or send a pull request. Feedback shapes the roadmap.",
+          "When you self-host, in your own Cloudflare account. Videos go to your R2 bucket and everything else to your D1 database, so nothing touches our servers. On managed hosting we run that same setup for you. Either way, you choose who can open each recording: anyone with the link, just your workspace, or only you.",
       },
       {
-        question: "Does CaptureFlow add a watermark?",
+        question: "What if I don't want to run it myself?",
         answer:
-          "No. CaptureFlow never watermarks your recordings, screenshots, or exports, self-hosted or managed. It's open source, so there are no artificial limits baked in: record at up to 4K, for as long as you want.",
+          "Use managed hosting. It's the same open-source app, running on Cloudflare, and we handle the setup, storage, and updates. It's free to start with 200 MB, and you pay only when you need more space: 50, 100, or 200 GB a month. Your whole team is included, with no per-seat fees.",
       },
     ],
   },

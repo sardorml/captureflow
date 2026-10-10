@@ -9,7 +9,6 @@ import { ModesIntro } from "@/components/marketing/modes-intro";
 import { CollaborationSection } from "@/components/marketing/collaboration-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { FaqSection } from "@/components/marketing/faq-section";
-import { RoadmapSection } from "@/components/marketing/roadmap-section";
 import { CtaSection } from "@/components/marketing/cta-section";
 import { Footer } from "@/components/marketing/footer";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
@@ -70,7 +69,6 @@ export default async function RootPage() {
           <UseCasesSection />
           <PricingSection />
           <FaqSection />
-          <RoadmapSection />
           <CtaSection />
         </main>
         <Footer />
