@@ -247,18 +247,19 @@ export const MESSAGES = {
     },
     highlights: {
       allFeatures: "Fully managed, no Cloudflare setup",
-      shareableLinks:
-        "Shareable recordings, screenshots & {storage} GB storage",
+      shareableLinks: "Shareable recordings, screenshots & {storage} storage",
       teamSeats: "Whole team included, no per-seat fees",
     },
     monthly: {
       badgePro: "Managed",
       badgeCycle: "Monthly",
       title: "Managed hosting",
-      subtitle: "Fully hosted, billed monthly.",
+      subtitle: "Start free, upgrade for more space.",
       period: "/month",
       note: "Cancel anytime.",
       cta: "Get started",
+      freeLabel: "Free",
+      freeNote: "No card needed.",
     },
     annual: {
       badgePro: "Managed",
