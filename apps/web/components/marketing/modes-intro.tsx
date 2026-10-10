@@ -7,7 +7,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { Play } from "lucide-react";
+import { Pause } from "lucide-react";
 import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
 import { useMessages } from "./i18n-provider";
 import { RecorderPanel } from "./recorder-panel";
@@ -193,7 +193,10 @@ function PlaybackMockup() {
                 </div>
               </div>
             </div>
-            <div className="absolute bottom-4 left-4">
+            <div className="absolute top-1/2 left-3 origin-left -translate-y-1/2 scale-[0.6]">
+              <ControlBar />
+            </div>
+            <div className="absolute right-4 bottom-4">
               <Presenter size={76} ring={3} />
             </div>
           </div>
@@ -204,7 +207,7 @@ function PlaybackMockup() {
           style={{ top: TITLE_HEIGHT + VIDEO.height + 24, width: VIDEO.width }}
         >
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white">
-            <Play className="size-3.5 translate-x-px fill-[#111] text-[#111]" />
+            <Pause className="size-3.5 fill-[#111] text-[#111]" />
           </span>
           <div className="relative h-1.5 flex-1 rounded-full bg-white/15">
             <div
@@ -214,10 +217,10 @@ function PlaybackMockup() {
             {RISERS.map((riser, i) => (
               <span
                 key={i}
-                className={`absolute bottom-full mb-2 flex size-5 -translate-x-1/2 items-center justify-center rounded-full ${
+                className={`absolute bottom-full mb-2 flex size-4 -translate-x-1/2 items-center justify-center rounded-full ${
                   riser.kind === "emoji"
-                    ? "bg-[#27221d] text-[10px]"
-                    : "bg-[#3b82f6] text-[9px] font-bold text-white"
+                    ? "text-[12px]"
+                    : "bg-[#3b82f6] text-[8px] font-bold text-white"
                 }`}
                 style={{
                   left: `${((riseDelay(i) + RISE_ENTER / 2) / RISE_PERIOD) * 100}%`,
@@ -291,27 +294,35 @@ function BarButton({
   );
 }
 
+function ControlBar() {
+  const copy = useMessages().modes.scene;
+  return (
+    <div
+      className="flex flex-col items-center gap-1 rounded-2xl px-2 py-2.5 shadow-[0_8px_28px_rgba(0,0,0,0.45)]"
+      style={{ backgroundColor: BAR.background, color: BAR.fg }}
+    >
+      <BarButton filled>{STOP_ICON}</BarButton>
+      <span className="pt-0.5 pb-1 text-xs tabular-nums">{copy.timer}</span>
+      <BarButton>{PAUSE_ICON}</BarButton>
+      <BarButton>{RESTART_ICON}</BarButton>
+      <BarButton>{DELETE_ICON}</BarButton>
+    </div>
+  );
+}
+
 // Measured: the panel renders 280×342 and the bar 54×210.
 const RECORDER = { width: 400, height: 390 };
 
 // The popup panel with what starts when you hit record: the camera bubble and
 // the control bar.
 function RecorderMockup() {
-  const copy = useMessages().modes.scene;
   return (
     <Scaled width={RECORDER.width} height={RECORDER.height}>
       <div className="absolute top-0 left-0">
         <RecorderPanel />
       </div>
-      <div
-        className="absolute top-0 flex flex-col items-center gap-1 rounded-2xl px-2 py-2.5 shadow-[0_8px_28px_rgba(0,0,0,0.45)]"
-        style={{ left: 296, backgroundColor: BAR.background, color: BAR.fg }}
-      >
-        <BarButton filled>{STOP_ICON}</BarButton>
-        <span className="pt-0.5 pb-1 text-xs tabular-nums">{copy.timer}</span>
-        <BarButton>{PAUSE_ICON}</BarButton>
-        <BarButton>{RESTART_ICON}</BarButton>
-        <BarButton>{DELETE_ICON}</BarButton>
+      <div className="absolute top-0" style={{ left: 296 }}>
+        <ControlBar />
       </div>
       <div className="absolute" style={{ left: 248, top: 232 }}>
         <Presenter size={150} ring={4} />

@@ -18,7 +18,7 @@ export function FreeCard() {
 
   return (
     <PlanCard
-      panelClassName="bg-[radial-gradient(120%_100%_at_15%_0%,#1f4d55_0%,#16262e_55%,#111a20_100%)]"
+      panelClassName="bg-panel-2"
       icon={<Server size={15} />}
       eyebrow={f.badge}
       name={f.name}

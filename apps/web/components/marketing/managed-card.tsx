@@ -41,9 +41,9 @@ export function ManagedCard() {
   ];
 
   return (
-    /* Mirrors PlanCard's shell: outer card, inset gradient panel, list below. */
-    <div className="grid rounded-2xl bg-panel-2 p-2 md:row-span-3 md:grid-rows-subgrid">
-      <div className="relative flex flex-col overflow-hidden rounded-xl bg-[radial-gradient(120%_100%_at_15%_0%,#2f5bd8_0%,#1b2f73_55%,#131c38_100%)] p-5">
+    /* Mirrors PlanCard's shell: outer card, inset panel, list below. */
+    <div className="grid rounded-2xl bg-panel p-2 md:row-span-3 md:grid-rows-subgrid">
+      <div className="relative flex flex-col overflow-hidden rounded-xl bg-accent-bg p-5">
         {/* The size switch rides the badge row, which was otherwise empty, so
             it costs the panel no extra height. */}
         <div className="flex items-center justify-between gap-3">
