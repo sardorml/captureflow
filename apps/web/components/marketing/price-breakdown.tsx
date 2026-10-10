@@ -52,10 +52,8 @@ export function PriceBreakdown({
         monthly={CAPTUREFLOW_MONTHLY}
         isOurs
       />
-      <div className="mt-3 flex items-center justify-between gap-3 rounded-lg bg-success/15 px-4 py-3 text-success">
-        <span className="text-[15px] font-medium whitespace-nowrap">
-          {copy.saveLabel}
-        </span>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg bg-success/15 px-4 py-3 text-success">
+        <span className="text-[15px] font-medium">{copy.saveLabel}</span>
         <span
           key={savings}
           className="animate-storage-pop inline-block text-xl font-bold tracking-[-0.01em] whitespace-nowrap tabular-nums sm:text-2xl"
