@@ -11,8 +11,9 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { ACCOUNT_LIMITS } from "@captureflow/quota";
-import { LANDING_STORAGE_TIERS } from "@/lib/marketing/constants";
+import { MANAGED_TIERS } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
+import type { Messages } from "@/lib/marketing/messages";
 import { cn } from "@/lib/utils";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
@@ -40,7 +41,7 @@ export function ManagedCard() {
   const freeMb = ACCOUNT_LIMITS.totalStorageBytes / (1024 * 1024);
   const options = [
     { storageGb: 0, label: `${freeMb} MB`, price: "0" },
-    ...LANDING_STORAGE_TIERS,
+    ...MANAGED_TIERS,
   ];
   const [storageGb, setStorageGb] = useState(0);
   const selected = options.find((o) => o.storageGb === storageGb)!;
@@ -141,25 +142,35 @@ export function ManagedCard() {
         </Link>
       </div>
 
-      <div className="flex flex-col p-4 sm:p-6">
-        <p className="text-sm font-medium text-fg">{copy.includesHeading}</p>
-        <ul className="mt-4 flex list-none flex-col gap-3.5">
-          {copy.includes.map((label, i) => {
-            const Icon = INCLUDE_ICONS[i] ?? Cloud;
-            return (
-              <li key={label} className="flex items-center gap-3">
-                <span className="shrink-0 text-fg-subtle">
-                  <Icon size={16} />
-                </span>
-                <span className="text-sm text-fg-muted">{label}</span>
-              </li>
-            );
-          })}
-        </ul>
-        <p className="mt-auto border-t border-line pt-4 text-sm text-fg-muted max-md:mt-6">
-          {copy.footnote}
-        </p>
-      </div>
+      <ManagedIncludes copy={copy} />
+    </div>
+  );
+}
+
+export function ManagedIncludes({
+  copy,
+}: {
+  copy: Messages["pricing"]["managed"];
+}) {
+  return (
+    <div className="flex flex-col p-4 sm:p-6">
+      <p className="text-sm font-medium text-fg">{copy.includesHeading}</p>
+      <ul className="mt-4 flex list-none flex-col gap-3.5">
+        {copy.includes.map((label, i) => {
+          const Icon = INCLUDE_ICONS[i] ?? Cloud;
+          return (
+            <li key={label} className="flex items-center gap-3">
+              <span className="shrink-0 text-fg-subtle">
+                <Icon size={16} />
+              </span>
+              <span className="text-sm text-fg-muted">{label}</span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-auto border-t border-line pt-4 text-sm text-fg-muted max-md:mt-6">
+        {copy.footnote}
+      </p>
     </div>
   );
 }

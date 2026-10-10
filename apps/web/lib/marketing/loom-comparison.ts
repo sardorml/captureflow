@@ -1,4 +1,4 @@
-import { LANDING_STORAGE_TIERS } from "./constants";
+import { MANAGED_TIERS } from "./constants";
 
 export const LOOM_PRICES_CHECKED = "10 October 2026";
 export const LOOM_PRICING_URL = "https://www.loom.com/pricing";
@@ -14,7 +14,7 @@ export const LOOM_PLANS: ReadonlyArray<{
   { id: "businessAi", label: "Business + AI", perSeat: 24 },
 ];
 
-const LARGEST_TIER = LANDING_STORAGE_TIERS[LANDING_STORAGE_TIERS.length - 1]!;
+const LARGEST_TIER = MANAGED_TIERS[MANAGED_TIERS.length - 1]!;
 
 export const CAPTUREFLOW_MONTHLY = Number(LARGEST_TIER.price);
 export const CAPTUREFLOW_STORAGE_LABEL = LARGEST_TIER.label;

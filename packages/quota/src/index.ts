@@ -1,5 +1,9 @@
-export { ACCOUNT_LIMITS, PRO_SUBSCRIPTION_LIMITS } from "./limits";
-export type { AccountLimits } from "./limits";
+export {
+  ACCOUNT_LIMITS,
+  STORAGE_PLANS,
+  storageBytesForVariant,
+} from "./limits";
+export type { AccountLimits, StoragePlan } from "./limits";
 export { getEffectiveLimitsForUser } from "./user-quotas";
 export type { EffectiveLimits } from "./user-quotas";
 export { totalStorageForUser } from "./totals";
