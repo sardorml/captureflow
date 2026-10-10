@@ -19,8 +19,14 @@ export function CompareSection() {
   return (
     <MarketingSection id="compare">
       <SectionHeading
-        title={copy.heading}
-        titleMuted={copy.headingMuted}
+        title={
+          <>
+            {copy.heading}{" "}
+            <span className="inline-block -rotate-1 rounded-2xl bg-fg px-3 pb-1 text-canvas">
+              {copy.headingMuted}
+            </span>
+          </>
+        }
         subtitle={copy.subheading}
       />
       <NextLink

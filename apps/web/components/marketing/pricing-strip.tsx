@@ -44,7 +44,7 @@ export function PricingStrip({
         target={cta.isExternal ? "_blank" : undefined}
         rel={cta.isExternal ? "noopener noreferrer" : undefined}
         onClick={cta.onClick}
-        className="group ms-[58px] inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-fg underline-offset-4 hover:underline"
+        className="group ms-[58px] mt-auto inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-fg underline-offset-4 hover:underline"
       >
         {cta.label}
         <ArrowRight

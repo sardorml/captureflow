@@ -276,7 +276,8 @@ export const MESSAGES = {
     enterprise: {
       name: "Enterprise",
       price: "Custom pricing",
-      body: "More than 1 TB, invoicing, or help with your own deployment.",
+      body: "More than 1 TB, or help running it on your own Cloudflare account.",
+      note: "For teams that need more than 1 TB.",
       cta: "Contact us",
       subject: "CaptureFlow Enterprise",
     },

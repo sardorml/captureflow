@@ -2,16 +2,17 @@
 
 import { useState, type ReactElement } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, Cloud, Sparkles } from "lucide-react";
+import { Cloud } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Modal } from "@heroui/react";
-import { MANAGED_TIERS } from "@/lib/marketing/constants";
+import { ManagedIncludes } from "@/components/marketing/managed-card";
+import { MANAGED_TIERS, SUPPORT_EMAIL } from "@/lib/marketing/constants";
+import { MESSAGES } from "@/lib/marketing/messages";
 import { getPosthogDistinctId, track } from "@/lib/marketing/track";
 
-const BENEFITS = [
-  "No cap on the number of recordings & screenshots",
-  "Automatic backups & monitoring",
-  "Priority support",
-] as const;
+const copy = MESSAGES.pricing.managed;
+const enterprise = MESSAGES.pricing.enterprise;
+const ENTERPRISE_HREF = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(enterprise.subject)}`;
 
 type Props = {
   email: string;
@@ -48,12 +49,25 @@ export function UpgradeModal({
 
   // Opens on the recommended tier; the price and the checkout link both follow
   // the switch, so what's shown is always what the button buys.
-  const [storageGb, setStorageGb] = useState(
+  const [choice, setChoice] = useState<number | "enterprise">(
     (MANAGED_TIERS.find((t) => t.tag === "recommended") ?? MANAGED_TIERS[0])
       .storageGb,
   );
   const selected =
-    MANAGED_TIERS.find((t) => t.storageGb === storageGb) ?? MANAGED_TIERS[0];
+    MANAGED_TIERS.find((t) => t.storageGb === choice) ?? MANAGED_TIERS[0];
+  const isEnterprise = choice === "enterprise";
+  const rows = [
+    ...MANAGED_TIERS.map((t) => ({
+      key: t.storageGb,
+      label: t.label,
+      price: `$${t.price}/mo`,
+    })),
+    {
+      key: "enterprise" as const,
+      label: enterprise.name,
+      price: enterprise.price,
+    },
+  ];
 
   // PostHog distinct_id isn't available server-side at render, so append it
   // at click time.
@@ -84,107 +98,117 @@ export function UpgradeModal({
       </span>
       <Modal isOpen={open} onOpenChange={setOpen}>
         <Modal.Backdrop>
-          <Modal.Container size="md">
-            <Modal.Dialog>
+          <Modal.Container>
+            {/* The dialog is the landing's managed card: blue plan panel on
+                the left, what's included on the right. */}
+            <Modal.Dialog className="max-w-3xl rounded-2xl bg-panel p-2">
               {/* This dialog has no footer action, so the X is the only
                   in-dialog way out. Positions itself top-right. */}
               <Modal.CloseTrigger />
-              <Modal.Header>
-                <Modal.Heading className="inline-flex items-center gap-2">
-                  <Sparkles size={16} />
-                  Upgrade to CaptureFlow Pro
-                </Modal.Heading>
-              </Modal.Header>
-              <Modal.Body>
-                {/* Same shape as the managed card on /plan: a tinted panel
-                    carrying the switch, price, and CTA, with the benefits
-                    listed below it on the dialog surface. The panel is dark in
-                    both themes, and says so — light mode inverts the neutral
-                    ramp, which turned the dark text on its white button white
-                    on white. */}
+              <Modal.Body className="grid gap-2 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+                {/* Dark in both themes, and says so: light mode inverts the
+                    neutral ramp, which turned the dark text on its white
+                    button white on white. */}
                 <div
                   data-theme="dark"
-                  className="flex flex-col overflow-hidden rounded-xl bg-[radial-gradient(120%_100%_at_15%_0%,#2f5bd8_0%,#1b2f73_55%,#131c38_100%)] p-5"
+                  className="flex flex-col overflow-hidden rounded-xl bg-accent-bg p-6"
                 >
-                  {/* The switch rides the badge row, which is otherwise empty,
-                      so it costs the panel no extra height. */}
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-2">
-                      <span className="flex size-6 items-center justify-center rounded-lg bg-white/15 text-white">
-                        <Cloud size={14} />
-                      </span>
-                      <span className="text-sm font-medium text-white/80">
-                        Managed
-                      </span>
+                  <span className="flex items-center gap-2">
+                    <span className="flex size-6 items-center justify-center rounded-lg bg-white/15 text-white">
+                      <Cloud size={14} />
                     </span>
-
-                    <div
-                      role="radiogroup"
-                      aria-label="Cloud storage"
-                      className="flex shrink-0 items-center gap-0.5 rounded-full bg-white/10 p-0.5"
-                    >
-                      {MANAGED_TIERS.map((tier) => {
-                        const on = tier.storageGb === storageGb;
-                        return (
-                          <button
-                            key={tier.storageGb}
-                            type="button"
-                            role="radio"
-                            aria-checked={on}
-                            onClick={() => setStorageGb(tier.storageGb)}
-                            className={[
-                              "cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
-                              on
-                                ? "bg-white text-neutral-900"
-                                : "text-white/70 hover:text-white",
-                            ].join(" ")}
-                          >
-                            {tier.storageGb} GB
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <h3 className="mt-3 text-xl font-semibold tracking-[-0.01em] text-white">
-                    Managed hosting
-                  </h3>
-                  <p className="mt-1 max-w-72 text-sm leading-snug text-white/70">
-                    {selected.storageGb} GB of cloud storage for your recordings
-                    and screenshots.
-                  </p>
+                    <span className="text-sm font-medium text-white/80">
+                      {copy.badge}
+                    </span>
+                  </span>
+                  <Modal.Heading className="mt-3 text-xl font-semibold tracking-[-0.01em] text-white">
+                    {copy.title}
+                  </Modal.Heading>
 
                   <p className="mt-4 text-4xl font-bold tracking-[-0.02em] text-white">
-                    ${selected.price}
-                    <span className="ms-1 align-baseline text-base font-normal text-white/70">
-                      /month
+                    <span
+                      key={isEnterprise ? "enterprise" : selected.price}
+                      className="animate-storage-pop inline-block"
+                    >
+                      {isEnterprise ? "Custom" : `$${selected.price}`}
                     </span>
+                    {isEnterprise ? null : (
+                      <span className="ms-1 align-baseline text-base font-normal text-white/70">
+                        {copy.period}
+                      </span>
+                    )}
                   </p>
-                  <p className="mt-1.5 mb-5 text-sm text-white/60">
-                    Billed monthly. Cancel anytime.
+                  <p className="mt-1.5 text-sm text-white/60">
+                    {isEnterprise ? enterprise.note : copy.paidNote}
                   </p>
 
-                  <a
-                    href={checkoutUrlFor(selected.checkoutUrl, email, userId)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={handleCheckoutClick}
-                    className="flex h-10 w-full shrink-0 items-center justify-center rounded-xl bg-white text-sm font-medium text-neutral-900 transition-colors hover:bg-white/90 motion-reduce:transition-none"
+                  <div
+                    role="radiogroup"
+                    aria-label={copy.tiersLabel}
+                    className="mt-5 mb-5 grid gap-1"
                   >
-                    Continue to checkout
+                    {rows.map((row) => {
+                      const isOn = row.key === choice;
+                      return (
+                        <button
+                          key={row.key}
+                          type="button"
+                          role="radio"
+                          aria-checked={isOn}
+                          onClick={() => setChoice(row.key)}
+                          className={cn(
+                            "flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors motion-reduce:transition-none",
+                            isOn
+                              ? "bg-white/20 text-white"
+                              : "text-white/75 hover:bg-white/10 hover:text-white",
+                          )}
+                        >
+                          <span className="flex items-center gap-2.5">
+                            <span
+                              className={cn(
+                                "flex size-4 items-center justify-center rounded-full border",
+                                isOn
+                                  ? "border-white bg-white"
+                                  : "border-white/50",
+                              )}
+                            >
+                              {isOn ? (
+                                <span className="size-1.5 rounded-full bg-accent-bg" />
+                              ) : null}
+                            </span>
+                            <span className="font-medium">{row.label}</span>
+                          </span>
+                          <span className="tabular-nums">{row.price}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <a
+                    href={
+                      isEnterprise
+                        ? ENTERPRISE_HREF
+                        : checkoutUrlFor(selected.checkoutUrl, email, userId)
+                    }
+                    target={isEnterprise ? undefined : "_blank"}
+                    rel={isEnterprise ? undefined : "noopener noreferrer"}
+                    onClick={
+                      isEnterprise
+                        ? () =>
+                            track("marketing_cta_clicked", {
+                              location: "upgrade_enterprise",
+                            })
+                        : handleCheckoutClick
+                    }
+                    className="flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-white text-sm font-medium text-neutral-900 transition-colors hover:bg-white/90 motion-reduce:transition-none"
+                  >
+                    {isEnterprise
+                      ? enterprise.cta
+                      : copy.ctaUpgrade.replace("{storage}", selected.label)}
                   </a>
                 </div>
 
-                <ul className="flex list-none flex-col gap-2.5 px-1 pt-5 pb-1">
-                  {BENEFITS.map((b) => (
-                    <li key={b} className="flex items-center gap-3">
-                      <span className="shrink-0 text-fg-subtle">
-                        <Check size={16} />
-                      </span>
-                      <span className="text-sm text-fg-muted">{b}</span>
-                    </li>
-                  ))}
-                </ul>
+                <ManagedIncludes copy={copy} />
               </Modal.Body>
             </Modal.Dialog>
           </Modal.Container>
