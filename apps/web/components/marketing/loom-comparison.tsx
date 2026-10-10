@@ -1,0 +1,352 @@
+"use client";
+
+import { useState } from "react";
+import { Check, Minus } from "lucide-react";
+import { Label, Slider } from "@heroui/react";
+import {
+  CAPTUREFLOW_MONTHLY,
+  CAPTUREFLOW_STORAGE_LABEL,
+  LOOM_PLANS,
+  LOOM_PRICES_CHECKED,
+  LOOM_PRICING_URL,
+  getLoomMonthly,
+  getYearlySavings,
+  type LoomPlan,
+} from "@/lib/marketing/loom-comparison";
+import { cn } from "@/lib/utils";
+import {
+  MarketingSection,
+  SECTION_SUBTITLE_STYLE,
+  SECTION_TITLE_STYLE,
+} from "./_shared";
+import { Paragraph, Title } from "./typography";
+
+type Cell = boolean | string;
+
+const ROWS: ReadonlyArray<{ label: string; loom: Cell; captureflow: Cell }> = [
+  {
+    label: "Pricing",
+    loom: "Per person, $18–24 a month each",
+    captureflow: `Flat, by storage. $0 to $${CAPTUREFLOW_MONTHLY} a month for the whole team`,
+  },
+  {
+    label: "Free plan",
+    loom: "25 videos per person, 5 minutes each",
+    captureflow: "200 MB of storage, no video count or length limit",
+  },
+  {
+    label: "Self-host on your own cloud",
+    loom: false,
+    captureflow: "Yes, on your Cloudflare account",
+  },
+  { label: "Open source", loom: false, captureflow: "Yes, AGPL" },
+  { label: "Instant share link", loom: true, captureflow: true },
+  { label: "Camera bubble", loom: true, captureflow: true },
+  { label: "Comments and emoji reactions", loom: true, captureflow: true },
+  { label: "View counts", loom: true, captureflow: true },
+  {
+    label: "Editing",
+    loom: "Trim, stitch, transcript editing",
+    captureflow: "Backgrounds, camera layout, mute",
+  },
+  {
+    label: "Annotated screenshots",
+    loom: false,
+    captureflow: "Arrows, text and blur, shared as a link",
+  },
+  {
+    label: "Transcripts and captions",
+    loom: true,
+    captureflow: "Not yet",
+  },
+  {
+    label: "AI titles, summaries, chapters",
+    loom: "On Business + AI",
+    captureflow: "Not yet, chapters are manual",
+  },
+  {
+    label: "Apps",
+    loom: "Chrome, Mac, Windows, iOS, Android",
+    captureflow: "Chrome now, macOS coming soon",
+  },
+  { label: "Enterprise SSO", loom: true, captureflow: false },
+  {
+    label: "How long videos are kept",
+    loom: "Until you delete them",
+    captureflow:
+      "Managed: until 30 days without a view. Self-hosted: you decide",
+  },
+];
+
+const LOOM_FITS = [
+  "You want AI summaries, transcripts and captions today.",
+  "You need Windows or mobile apps.",
+  "Your company requires SSO and an uptime SLA.",
+];
+
+const CAPTUREFLOW_FITS = [
+  "You're paying per seat for a team that mostly records quick walkthroughs and bug reports.",
+  "You want recordings in storage you own, or need to self-host.",
+  "You'd rather read the code that handles your videos.",
+];
+
+const usd = (n: number) =>
+  n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: n % 1 === 0 ? 0 : 2,
+  });
+
+export function LoomComparison() {
+  return (
+    <MarketingSection id="compare">
+      <div className="mx-auto max-w-3xl text-center">
+        <Title level={1} align="center" style={SECTION_TITLE_STYLE}>
+          CaptureFlow vs Loom
+        </Title>
+        <Paragraph
+          align="center"
+          type="secondary"
+          style={{ ...SECTION_SUBTITLE_STYLE, marginTop: 16 }}
+        >
+          Both give you a share link the moment you stop recording. Loom charges
+          for every person on the team. CaptureFlow charges for storage, and is
+          free if you host it yourself.
+        </Paragraph>
+      </div>
+
+      <SavingsCalculator />
+
+      <div className="mt-20">
+        <Title level={2} style={{ ...SECTION_TITLE_STYLE, fontSize: 32 }}>
+          Feature by feature
+        </Title>
+        <ComparisonTable />
+        <p className="mt-4 text-sm text-fg-muted">
+          Loom prices are monthly billing from{" "}
+          <a
+            href={LOOM_PRICING_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2"
+          >
+            loom.com/pricing
+          </a>
+          , checked {LOOM_PRICES_CHECKED}. Annual billing is about 17% less.
+          Loom is a trademark of its owner; CaptureFlow isn&apos;t affiliated
+          with it.
+        </p>
+      </div>
+
+      <div className="mt-20 grid gap-4 md:grid-cols-2">
+        <FitCard title="Loom is the better fit if" items={LOOM_FITS} />
+        <FitCard
+          title="CaptureFlow is the better fit if"
+          items={CAPTUREFLOW_FITS}
+          isHighlighted
+        />
+      </div>
+    </MarketingSection>
+  );
+}
+
+function SavingsCalculator() {
+  const [seats, setSeats] = useState(10);
+  const [plan, setPlan] = useState<LoomPlan>("business");
+  const loom = getLoomMonthly(plan, seats);
+  const savings = getYearlySavings(plan, seats);
+  const { label: planLabel, perSeat } = LOOM_PLANS.find((p) => p.id === plan)!;
+
+  return (
+    <div className="mx-auto mt-12 max-w-3xl rounded-2xl bg-panel p-2">
+      <div className="rounded-xl bg-canvas p-6 sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="text-sm font-medium text-fg">Compare with Loom</span>
+          <div
+            role="radiogroup"
+            aria-label="Loom plan"
+            className="flex items-center gap-0.5 rounded-full bg-tint p-0.5"
+          >
+            {LOOM_PLANS.map((p) => {
+              const isOn = p.id === plan;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={isOn}
+                  onClick={() => setPlan(p.id)}
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+                    isOn ? "bg-fg text-canvas" : "text-fg-muted hover:text-fg",
+                  )}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <Slider
+          className="mt-6"
+          minValue={1}
+          maxValue={50}
+          value={seats}
+          onChange={(v) => setSeats(Array.isArray(v) ? v[0]! : v)}
+        >
+          <div className="flex items-center justify-between">
+            <Label>Team size</Label>
+            <Slider.Output>
+              {seats} {seats === 1 ? "person" : "people"}
+            </Slider.Output>
+          </div>
+          <Slider.Track>
+            <Slider.Fill />
+            <Slider.Thumb />
+          </Slider.Track>
+        </Slider>
+
+        <div className="mt-8 grid gap-5">
+          <CostBar
+            name={`Loom ${planLabel}`}
+            detail={`${seats} × $${perSeat} per person`}
+            monthly={loom}
+            share={1}
+          />
+          <CostBar
+            name="CaptureFlow"
+            detail={`Whole team, ${CAPTUREFLOW_STORAGE_LABEL}`}
+            monthly={CAPTUREFLOW_MONTHLY}
+            share={CAPTUREFLOW_MONTHLY / loom}
+            isAccent
+          />
+        </div>
+
+        <div className="mt-8 flex flex-col gap-1 rounded-xl bg-accent-bg p-5 text-white sm:flex-row sm:items-baseline sm:justify-between">
+          <span className="text-[15px] text-white/80">
+            You save with CaptureFlow
+          </span>
+          <span className="text-3xl font-semibold tabular-nums">
+            <span key={savings} className="animate-storage-pop inline-block">
+              {usd(Math.round(savings))}
+            </span>
+            <span className="text-base font-normal text-white/75"> a year</span>
+          </span>
+        </div>
+        <p className="mt-4 text-sm text-fg-muted">
+          CaptureFlow&apos;s price stays the same however many people join.
+          Self-hosted, it&apos;s $0 and you pay Cloudflare directly, often
+          nothing on their free tiers.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CostBar({
+  name,
+  detail,
+  monthly,
+  share,
+  isAccent,
+}: {
+  name: string;
+  detail: string;
+  monthly: number;
+  share: number;
+  isAccent?: boolean;
+}) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-[15px] font-semibold text-fg">
+          {name}
+          <span className="ml-2 text-sm font-normal text-fg-muted">
+            {detail}
+          </span>
+        </span>
+        <span className="text-xl font-semibold text-fg tabular-nums">
+          {usd(monthly)}
+          <span className="text-sm font-normal text-fg-muted">/mo</span>
+        </span>
+      </div>
+      <div className="mt-2 h-3 overflow-hidden rounded-full bg-tint">
+        <div
+          className={cn(
+            "h-full rounded-full transition-[width] duration-300",
+            isAccent ? "bg-accent-bg" : "bg-fg-muted",
+          )}
+          style={{ width: `${Math.max(2, Math.min(1, share) * 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ComparisonTable() {
+  return (
+    <div className="mt-6 overflow-hidden rounded-2xl bg-panel">
+      <div className="grid grid-cols-[1.1fr_1fr_1fr] gap-3 px-4 py-3 text-xs font-semibold tracking-wide text-fg-muted uppercase sm:px-6">
+        <span />
+        <span>Loom</span>
+        <span className="text-fg">CaptureFlow</span>
+      </div>
+      {ROWS.map((row) => (
+        <div
+          key={row.label}
+          className="grid grid-cols-[1.1fr_1fr_1fr] gap-3 border-t border-line px-4 py-3.5 text-sm sm:px-6"
+        >
+          <span className="font-medium text-fg">{row.label}</span>
+          <CellValue value={row.loom} />
+          <CellValue value={row.captureflow} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CellValue({ value }: { value: Cell }) {
+  if (value === true)
+    return <Check size={18} className="text-success" aria-label="Yes" />;
+  if (value === false)
+    return <Minus size={18} className="text-fg-subtle" aria-label="No" />;
+  return <span className="text-fg-muted">{value}</span>;
+}
+
+function FitCard({
+  title,
+  items,
+  isHighlighted,
+}: {
+  title: string;
+  items: string[];
+  isHighlighted?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-2xl p-6",
+        isHighlighted ? "bg-accent-bg text-white" : "bg-panel",
+      )}
+    >
+      <h3 className="text-lg font-semibold">{title}</h3>
+      <ul className="mt-4 grid gap-3">
+        {items.map((item) => (
+          <li key={item} className="flex gap-2.5 text-[15px] leading-6">
+            <Check
+              size={18}
+              className={cn(
+                "mt-0.5 shrink-0",
+                isHighlighted ? "text-white" : "text-fg-muted",
+              )}
+            />
+            <span className={isHighlighted ? "text-white/90" : "text-fg-muted"}>
+              {item}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

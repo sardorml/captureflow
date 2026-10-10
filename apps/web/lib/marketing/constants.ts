@@ -137,6 +137,18 @@ export const MANAGED_TIERS: ReadonlyArray<ManagedTier> = [
   },
 ];
 
+// Landing-only storage tiers. The dashboard's UpgradeModal still sells
+// MANAGED_TIERS until these get their own Lemon Squeezy checkouts.
+export const LANDING_STORAGE_TIERS: ReadonlyArray<{
+  storageGb: number;
+  label: string;
+  price: string;
+}> = [
+  { storageGb: 100, label: "100 GB", price: "6.99" },
+  { storageGb: 500, label: "500 GB", price: "19.99" },
+  { storageGb: 1024, label: "1 TB", price: "29.99" },
+];
+
 export type LaunchStage =
   | "waitlist"
   | "public-beta"
