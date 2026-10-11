@@ -17,11 +17,11 @@ import {
   Typography,
   buttonVariants,
 } from "@heroui/react";
-import { FEATURE_CATEGORIES, SUPPORT_EMAIL } from "@/lib/marketing/constants";
-
-// FormSubmit sends a one-time confirmation email to SUPPORT_EMAIL on the first
-// submission; once confirmed, later submissions deliver silently.
-const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${SUPPORT_EMAIL}`;
+import {
+  FEATURE_CATEGORIES,
+  FORMSUBMIT_URL,
+  SUPPORT_EMAIL,
+} from "@/lib/marketing/constants";
 
 export function SuggestFeatureClient() {
   const [submitted, setSubmitted] = useState(false);

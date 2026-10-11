@@ -13,6 +13,9 @@ export const SITE_TITLE =
 export const SITE_DESCRIPTION =
   "Record your screen and share it with your team, clients, or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
 export const SUPPORT_EMAIL = "contact@sardor.codes";
+// FormSubmit sends a one-time confirmation email to SUPPORT_EMAIL on the first
+// submission; once confirmed, later submissions deliver silently.
+export const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${SUPPORT_EMAIL}`;
 export const APP_VERSION = "0.9.2-beta";
 export const DOWNLOAD_URL =
   "https://github.com/sardorml/captureflow/releases/latest";
