@@ -11,7 +11,8 @@ const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  // captureflow.dev serves the logo in the email previews.
+  "img-src 'self' data: blob: https://captureflow.dev",
   "font-src 'self' data:",
   "connect-src 'self'",
   "form-action 'self'",
