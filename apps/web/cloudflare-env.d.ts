@@ -17,6 +17,8 @@ interface CloudflareEnv {
   BETTER_AUTH_URL: string;
   APP_DEEP_LINK_SCHEME: string;
   NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL: string;
+  SELF_HOSTED?: string;
+  ALLOWED_EMAIL_DOMAINS?: string;
 
   // Secrets (set via `wrangler secret put`, or `.dev.vars` in local dev).
   BETTER_AUTH_SECRET: string;

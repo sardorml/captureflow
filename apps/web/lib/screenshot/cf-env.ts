@@ -10,6 +10,7 @@ export type ScreenshotCloudflareBindings = {
   NEXT_PUBLIC_MARKETING_SITE_URL?: string;
   R2_PUBLIC_BASE_URL?: string;
   DEV_DEVICE_IDS?: string;
+  SELF_HOSTED?: string;
 };
 
 export async function getCloudflareEnv(): Promise<ScreenshotCloudflareBindings | null> {

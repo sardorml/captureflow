@@ -31,16 +31,19 @@ export type AccountMenuNavItem = {
  * The one account nav list. Both surfaces build from it so they can't drift:
  * the viewer renders on a possibly different origin, so it passes an absolute
  * base, and it has no subscription to hand over — the plan chip is dropped
- * there rather than guessed at.
+ * there rather than guessed at. A self-hosted instance has no billing, and its
+ * support is the company's own, not ours.
  */
 export function accountNavItems({
   base = "",
   pro,
+  selfHosted = false,
 }: {
   base?: string;
   pro?: AccountMenuProInfo | null;
+  selfHosted?: boolean;
 }): AccountMenuNavItem[] {
-  return [
+  const items: AccountMenuNavItem[] = [
     {
       key: "billing",
       icon: <Receipt size={16} />,
@@ -72,6 +75,9 @@ export function accountNavItems({
       href: `mailto:${SUPPORT_EMAIL}`,
     },
   ];
+  return selfHosted
+    ? items.filter((i) => i.key !== "billing" && i.key !== "support")
+    : items;
 }
 
 type Props = {

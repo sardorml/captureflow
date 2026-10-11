@@ -57,6 +57,14 @@ function computeNudge(
         action: "upgrade",
       };
     }
+    // A self-hosted backend reports no cap as Number.MAX_SAFE_INTEGER.
+    if (usage.limitBytes >= Number.MAX_SAFE_INTEGER) {
+      return {
+        text: `${formatStorage(usage.usedBytes)} cloud used`,
+        tone: "info",
+        action: "dashboard",
+      };
+    }
     if (usage.limitBytes > 0) {
       const ratio = usage.usedBytes / usage.limitBytes;
       const tone: NudgeTone = ratio >= WARN_THRESHOLD ? "warn" : "info";

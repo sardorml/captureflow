@@ -27,6 +27,7 @@ export type AppWebBindings = {
   // Must use a domain verified in Resend, e.g. "CaptureFlow <hello@captureflow.dev>".
   RESEND_FROM_ADDRESS?: string;
   CAPTUREFLOW_EXTENSION_ID?: string;
+  SELF_HOSTED?: string;
 };
 
 export async function getAppWebEnv(): Promise<AppWebBindings | null> {

@@ -1,6 +1,8 @@
 export {
   ACCOUNT_LIMITS,
   STORAGE_PLANS,
+  UNLIMITED_STORAGE_BYTES,
+  isSelfHosted,
   storageBytesForVariant,
 } from "./limits";
 export type { AccountLimits, StoragePlan } from "./limits";

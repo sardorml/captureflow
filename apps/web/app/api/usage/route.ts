@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   getEffectiveLimitsForUser,
+  isSelfHosted,
   getWorkspaceById,
   isWorkspaceMember,
   totalStorageForUser,
@@ -89,7 +90,9 @@ export async function GET(req: NextRequest) {
 
   const [usedBytes, limits] = await Promise.all([
     totalStorageForUser(env.DB, quotaUserId),
-    getEffectiveLimitsForUser(env.DB, quotaUserId),
+    getEffectiveLimitsForUser(env.DB, quotaUserId, {
+      selfHosted: isSelfHosted(env),
+    }),
   ]);
 
   // Purely numeric (no dev-allowlist on app-web yet): a dev device may keep

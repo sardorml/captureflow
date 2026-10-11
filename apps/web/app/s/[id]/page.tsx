@@ -27,6 +27,8 @@ import { getWorkspaceForUpload } from "@/lib/screenshot/quota";
 import { SidebarDrawer } from "@/app/_components/SidebarDrawer";
 import { Sidebar } from "@/app/(dashboard)/Sidebar";
 import { Suspense } from "react";
+import { isSelfHosted } from "@captureflow/quota";
+import { getAppWebEnv } from "@/lib/cf-env";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -120,8 +122,10 @@ export default async function ScreenshotPage({ params }: Props) {
   const workspaceRow = screenshot.workspaceId
     ? await getWorkspaceForUpload(screenshot.workspaceId)
     : null;
+  const selfHosted = isSelfHosted(await getAppWebEnv());
   return (
     <ScreenshotView
+      selfHosted={selfHosted}
       id={screenshot.id}
       title={screenshot.title}
       imageUrl={imageUrl}

@@ -408,10 +408,11 @@ export async function getAdminUser(
 export async function getUserStorage(
   db: D1Database,
   userId: string,
+  options: { selfHosted?: boolean } = {},
 ): Promise<{ usedBytes: number; limitBytes: number }> {
   const [usedBytes, limits] = await Promise.all([
     totalStorageForUser(db, userId),
-    getEffectiveLimitsForUser(db, userId),
+    getEffectiveLimitsForUser(db, userId, options),
   ]);
   return { usedBytes, limitBytes: limits.storageBytes };
 }

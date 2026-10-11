@@ -35,6 +35,8 @@ import { SidebarDrawer } from "@/app/_components/SidebarDrawer";
 import { ViewerUserMenu } from "@/app/_components/ViewerUserMenu";
 import { Sidebar } from "@/app/(dashboard)/Sidebar";
 import { MARKETING_SITE_URL } from "@/lib/site";
+import { isSelfHosted } from "@captureflow/quota";
+import { getAppWebEnv } from "@/lib/cf-env";
 
 export const dynamic = "force-dynamic";
 
@@ -199,6 +201,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
     return <SessionLoadingShell appWebUrl={APP_WEB_SITE_URL} />;
   }
   const visitor = visitorResult === "unknown" ? null : visitorResult;
+  const selfHosted = isSelfHosted(await getAppWebEnv());
 
   // Unauthorized branches render <RequestAccess> (a path forward) rather than
   // a flat 404, while generateMetadata returns "Not found" for crawlers.
@@ -308,6 +311,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
               imageUrl={visitor.image}
               appWebUrl={APP_WEB_SITE_URL}
               themePreference={themePreference}
+              selfHosted={selfHosted}
             />
           ) : (
             <AuthPrompt marketingUrl={MARKETING_SITE_URL} loginUrl={loginUrl} />

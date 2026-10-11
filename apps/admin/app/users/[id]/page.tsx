@@ -18,6 +18,7 @@ import {
   getUserActivity,
   getUserQuota,
   getUserStorage,
+  isSelfHosted,
   listAuditForTarget,
   listUserSubscriptions,
   listUserWorkspaces,
@@ -73,7 +74,7 @@ export default async function UserPage({
     await Promise.all([
       getAdminUser(env.DB, id),
       getUserQuota(env.DB, id),
-      getUserStorage(env.DB, id),
+      getUserStorage(env.DB, id, { selfHosted: isSelfHosted(env) }),
       getUserActivity(env.DB, id),
       listUserSubscriptions(env.DB, id),
       listUserWorkspaces(env.DB, id),

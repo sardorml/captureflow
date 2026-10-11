@@ -12,6 +12,7 @@ export type AdminBindings = {
   ADMIN_BASE_URL?: string;
   RESEND_API_KEY?: string;
   RESEND_FROM_ADDRESS?: string;
+  SELF_HOSTED?: string;
 };
 
 // Bindings are request-scoped, so this resolves per call and is never cached at

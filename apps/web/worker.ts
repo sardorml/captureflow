@@ -11,6 +11,7 @@ import {
 type Env = {
   DB: D1Database;
   BUCKET: R2Bucket;
+  SELF_HOSTED?: string;
 };
 
 const handler: ExportedHandler<Env> = {

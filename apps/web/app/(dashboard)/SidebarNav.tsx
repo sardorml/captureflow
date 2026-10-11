@@ -22,7 +22,13 @@ const ADMIN_LINKS: NavLink[] = [
   { href: "/billing", icon: <Receipt size={16} />, label: "Billing" },
 ];
 
-export function SidebarNav({ isOwner }: { isOwner: boolean }) {
+export function SidebarNav({
+  isOwner,
+  selfHosted,
+}: {
+  isOwner: boolean;
+  selfHosted: boolean;
+}) {
   const pathname = usePathname();
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
@@ -41,7 +47,9 @@ export function SidebarNav({ isOwner }: { isOwner: boolean }) {
             Admin tools
           </p>
           <ul className="flex flex-col gap-0.5">
-            {ADMIN_LINKS.map((link) => (
+            {ADMIN_LINKS.filter(
+              (link) => !selfHosted || link.href !== "/billing",
+            ).map((link) => (
               <NavItem
                 key={link.href}
                 link={link}
