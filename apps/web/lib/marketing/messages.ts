@@ -227,7 +227,7 @@ export const MESSAGES = {
   selfHosting: {
     heading: "Run it on your own",
     subheading:
-      "Host CaptureFlow as your team's internal screen recorder. Every recording, comment, and workspace stays private on infrastructure you own.",
+      "Host CaptureFlow as your company's internal screen recorder. Every recording, comment, and workspace stays private on infrastructure you own.",
     account: "Your Cloudflare account",
     deployed: "Uploaded captureflow-web",
     pieces: {
