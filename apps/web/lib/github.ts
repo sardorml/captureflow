@@ -92,7 +92,8 @@ export type RepoItem = {
 export type RepoActivity = { shipped: RepoItem[]; open: RepoItem[] };
 
 const ACTIVITY_CACHE_KEY = "https://captureflow.dev/__cache/github-activity";
-const ACTIVITY_CACHE_SECONDS = 900;
+const ACTIVITY_REFRESH_SECONDS = 900;
+const ACTIVITY_KEEP_SECONDS = 7 * 24 * 3600;
 const ACTIVITY_LIMIT = 5;
 
 function hydrateRepoItem(raw: unknown): RepoItem | null {
@@ -141,18 +142,40 @@ export function hydrateRepoActivity(raw: unknown): RepoActivity {
   };
 }
 
-export async function getRepoActivity(): Promise<RepoActivity | null> {
-  const cache = edgeCache();
+type CachedActivity = { activity: RepoActivity; fetchedAt: number };
+
+async function readCachedActivity(
+  cache: EdgeCache | null,
+): Promise<CachedActivity | null> {
   try {
     const hit = await cache?.match(ACTIVITY_CACHE_KEY);
-    if (hit) {
-      const cached = (await hit.json()) as RepoActivity;
-      if (Array.isArray(cached.shipped) && Array.isArray(cached.open)) {
-        return cached;
-      }
+    if (!hit) return null;
+    const cached = (await hit.json()) as Partial<CachedActivity>;
+    if (
+      typeof cached.fetchedAt === "number" &&
+      Array.isArray(cached.activity?.shipped) &&
+      Array.isArray(cached.activity?.open)
+    ) {
+      return cached as CachedActivity;
     }
   } catch {
     /* cache miss behaves like no cache */
+  }
+  return null;
+}
+
+/*
+ * The entry outlives its refresh interval so a rate-limited GitHub call (the
+ * Worker's egress IP is shared, see the stars cache above) serves the last good
+ * copy instead of hiding the section.
+ */
+export async function getRepoActivity(
+  nowMs = Date.now(),
+): Promise<RepoActivity | null> {
+  const cache = edgeCache();
+  const cached = await readCachedActivity(cache);
+  if (cached && nowMs - cached.fetchedAt < ACTIVITY_REFRESH_SECONDS * 1000) {
+    return cached.activity;
   }
 
   try {
@@ -165,19 +188,20 @@ export async function getRepoActivity(): Promise<RepoActivity | null> {
         },
       },
     );
-    if (!res.ok) return null;
+    if (!res.ok) return cached?.activity ?? null;
     const activity = hydrateRepoActivity(await res.json());
 
+    const entry: CachedActivity = { activity, fetchedAt: nowMs };
     await cache
       ?.put(
         ACTIVITY_CACHE_KEY,
-        new Response(JSON.stringify(activity), {
-          headers: { "cache-control": `max-age=${ACTIVITY_CACHE_SECONDS}` },
+        new Response(JSON.stringify(entry), {
+          headers: { "cache-control": `max-age=${ACTIVITY_KEEP_SECONDS}` },
         }),
       )
       .catch(() => {});
     return activity;
   } catch {
-    return null;
+    return cached?.activity ?? null;
   }
 }

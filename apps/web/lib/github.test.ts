@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { hydrateRepoActivity } from "./github";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { getRepoActivity, hydrateRepoActivity } from "./github";
 import { SOURCE_REPO_URL } from "./site";
 
 const issue = (n: number, extra: Record<string, unknown> = {}) => ({
@@ -67,5 +67,83 @@ describe("hydrateRepoActivity", () => {
       shipped: [],
       open: [],
     });
+  });
+});
+
+describe("getRepoActivity", () => {
+  const NOW = Date.parse("2026-10-11T12:00:00Z");
+  const merged = issue(7, {
+    state: "closed",
+    pull_request: { merged_at: "2026-10-10T00:00:00Z" },
+  });
+  const cachedActivity = {
+    shipped: [
+      {
+        kind: "pr",
+        number: 3,
+        title: "Old",
+        url: `${SOURCE_REPO_URL}/pull/3`,
+        state: "merged",
+        date: "2026-10-01T00:00:00Z",
+      },
+    ],
+    open: [],
+  };
+
+  function stubCache(entry: unknown) {
+    const store = new Map<string, Response>();
+    if (entry) {
+      store.set(
+        "https://captureflow.dev/__cache/github-activity",
+        new Response(JSON.stringify(entry)),
+      );
+    }
+    vi.stubGlobal("caches", {
+      default: {
+        match: async (key: string) => store.get(key)?.clone(),
+        put: async (key: string, res: Response) => void store.set(key, res),
+      },
+    });
+    return store;
+  }
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("serves a fresh cache entry without calling GitHub", async () => {
+    stubCache({ activity: cachedActivity, fetchedAt: NOW - 60_000 });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect(await getRepoActivity(NOW)).toEqual(cachedActivity);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("falls back to a stale entry when GitHub rate-limits", async () => {
+    stubCache({ activity: cachedActivity, fetchedAt: NOW - 3600_000 });
+    vi.stubGlobal("fetch", async () => new Response("{}", { status: 403 }));
+
+    expect(await getRepoActivity(NOW)).toEqual(cachedActivity);
+  });
+
+  it("refreshes a stale entry when GitHub answers", async () => {
+    const store = stubCache({
+      activity: cachedActivity,
+      fetchedAt: NOW - 3600_000,
+    });
+    vi.stubGlobal("fetch", async () => Response.json([merged]));
+
+    const activity = await getRepoActivity(NOW);
+    expect(activity?.shipped.map((i) => i.number)).toEqual([7]);
+    const saved = await store
+      .get("https://captureflow.dev/__cache/github-activity")
+      ?.json();
+    expect(saved).toEqual({ activity, fetchedAt: NOW });
+  });
+
+  it("returns null with no cache and a failed call", async () => {
+    stubCache(null);
+    vi.stubGlobal("fetch", async () => new Response("{}", { status: 403 }));
+
+    expect(await getRepoActivity(NOW)).toBeNull();
   });
 });
