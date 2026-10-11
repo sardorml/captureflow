@@ -1,18 +1,21 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BrandMark } from "../brand-mark";
 import NextLink from "next/link";
+import { Button, Drawer, Header, buttonVariants } from "@heroui/react";
 import {
-  Button,
-  Drawer,
-  Dropdown,
-  Header,
-  buttonVariants,
-} from "@heroui/react";
-import { ChevronDown, Menu as MenuIcon, Star } from "lucide-react";
+  ArrowUpRight,
+  ChevronDown,
+  CircleHelp,
+  Menu as MenuIcon,
+  Lightbulb,
+  Server,
+  Star,
+} from "lucide-react";
 import { DISCORD_URL } from "@/lib/marketing/constants";
 import { DOCS_URL } from "@/lib/site";
+import { cn } from "@/lib/utils";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { NavBetaChip } from "./corner-banner";
 import { GitHubIcon } from "./platform-logos";
@@ -84,6 +87,122 @@ function NavLink({
   );
 }
 
+type MenuLink = { label: string; href: string; external?: boolean };
+
+type TileLink = MenuLink & { icon: ReactNode; description: string };
+
+/*
+ * Only opacity and translate animate, so the slide stays on the compositor;
+ * scaling would re-rasterize the text every frame. Opening eases out (quint)
+ * so it lands softly; closing uses the standard curve so it leaves smoothly
+ * instead of snapping. Visibility flips instantly on open and only after the
+ * fade on close, keeping closed links out of the tab order. Written out in
+ * full because Tailwind only generates classes it can read verbatim.
+ */
+const PANEL_OPEN =
+  "visible translate-y-0 opacity-100 [transition:opacity_260ms_cubic-bezier(0.22,1,0.36,1),translate_260ms_cubic-bezier(0.22,1,0.36,1),visibility_0s]";
+const PANEL_CLOSED =
+  "invisible -translate-y-1.5 opacity-0 [transition:opacity_200ms_cubic-bezier(0.4,0,0.2,1),translate_200ms_cubic-bezier(0.4,0,0.2,1),visibility_0s_linear_200ms]";
+
+/*
+ * Opens on hover and on keyboard focus, which a React Aria menu can't do: it
+ * only opens on press. The panel stays mounted and is hidden with `invisible`,
+ * so closed links are out of the tab order but still in the HTML for crawlers.
+ */
+function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const refocusing = useRef(false);
+
+  const show = () => setOpen(true);
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={show}
+      onMouseLeave={() => setOpen(false)}
+      onFocus={() => {
+        if (refocusing.current) refocusing.current = false;
+        else show();
+      }}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== "Escape" || !open) return;
+        setOpen(false);
+        refocusing.current = true;
+        triggerRef.current?.focus();
+      }}
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="true"
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          TEXT_LINK,
+          "inline-flex cursor-pointer items-center gap-1 outline-none",
+          open && "text-fg",
+        )}
+      >
+        {label}
+        <ChevronDown
+          size={15}
+          className={cn(
+            "transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+      {/* While open, the top padding bridges the pointer from the trigger to
+          the panel. While closed, none of this box takes the pointer, so only
+          the trigger itself can open the menu. */}
+      <div
+        className={cn(
+          "absolute top-full left-1/2 -translate-x-1/2 pt-7",
+          !open && "pointer-events-none",
+        )}
+      >
+        <ul
+          className={cn(
+            "bg-canvas-2/80 flex w-[22rem] flex-col gap-1 rounded-2xl p-2 shadow-[0_12px_32px_rgb(0_0_0/0.3)] backdrop-blur-xl will-change-[opacity,translate] motion-reduce:[transition:none]",
+            open ? PANEL_OPEN : PANEL_CLOSED,
+          )}
+        >
+          {links.map((link) => (
+            <li key={link.label}>
+              <a
+                href={link.href}
+                target={link.external ? "_blank" : undefined}
+                rel={link.external ? "noopener noreferrer" : undefined}
+                onClick={() => setOpen(false)}
+                className="group/tile hover:bg-tint focus-visible:bg-tint flex items-start gap-3 rounded-xl p-3 outline-none transition-colors duration-150 motion-reduce:transition-none"
+              >
+                <span className="bg-tint-strong text-fg group-hover/tile:bg-accent-bg grid size-10 shrink-0 place-items-center rounded-xl transition-colors duration-150 group-hover/tile:text-white motion-reduce:transition-none">
+                  {link.icon}
+                </span>
+                <span className="flex min-w-0 flex-col gap-0.5">
+                  <span className="text-fg flex items-center gap-1 text-[15px] font-medium">
+                    {link.label}
+                    {link.external && (
+                      <ArrowUpRight size={14} className="text-fg-subtle" />
+                    )}
+                  </span>
+                  <span className="text-fg-muted text-[13px] leading-snug">
+                    {link.description}
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 export function Nav({ stars = null }: { stars?: string | null }) {
   const m = useMessages();
   const lh = useLocalizedHref();
@@ -107,20 +226,33 @@ export function Nav({ stars = null }: { stars?: string | null }) {
 
   /*
    * In the bar the main links sit inline and the rest go under Resources; the
-   * drawer stacks them all as block links. These are not the only path to these pages — the footer links
-   * every one of them on every page, which is what keeps them crawlable, since
-   * a closed dropdown renders no anchors into the HTML.
+   * drawer stacks them all as block links.
    */
-  type MenuLink = { label: string; href: string; external?: boolean };
   const barLinks: MenuLink[] = [
     { label: "Features", href: lh("/features") },
     { label: "Pricing", href: lh("/pricing") },
     { label: "Docs", href: DOCS_URL, external: true },
   ];
-  const moreLinks: MenuLink[] = [
-    { label: "FAQ", href: lh("/faq") },
-    { label: "Roadmap", href: lh("/roadmap") },
-    { label: "Self-hosting", href: `${DOCS_URL}/self-hosting`, external: true },
+  const moreLinks: TileLink[] = [
+    {
+      label: "FAQ",
+      href: lh("/faq"),
+      icon: <CircleHelp size={18} />,
+      description: "Common questions, answered",
+    },
+    {
+      label: "Suggest a feature",
+      href: lh("/suggest-feature"),
+      icon: <Lightbulb size={18} />,
+      description: "Tell us what to build next",
+    },
+    {
+      label: "Self-hosting",
+      href: `${DOCS_URL}/self-hosting`,
+      external: true,
+      icon: <Server size={18} />,
+      description: "Run it on your own Cloudflare",
+    },
   ];
   const menuLinks = [...barLinks, ...moreLinks];
 
@@ -135,12 +267,23 @@ export function Nav({ stars = null }: { stars?: string | null }) {
           detaches so the floating pill reads as its own object. */}
       <div
         className={[
-          "mx-auto flex w-full items-center justify-between px-4 py-2 transition-[max-width,background-color,border-color,border-radius,box-shadow] duration-300 ease-out motion-reduce:transition-none",
+          "relative isolate mx-auto flex w-full items-center justify-between px-4 py-2 transition-[max-width,border-color,border-radius] duration-300 ease-out motion-reduce:transition-none",
           detached
-            ? "max-w-4xl rounded-full border border-line bg-canvas-2/80 shadow-lg backdrop-blur-xl"
+            ? "max-w-4xl rounded-full border border-line"
             : "max-w-6xl border border-transparent",
         ].join(" ")}
       >
+        {/* The glass is its own layer rather than this element's background: an
+            element with a backdrop blur can only blur what is inside it, so
+            the Resources panel, which hangs below the bar, would lose its own
+            blur. */}
+        <span
+          aria-hidden
+          className={cn(
+            "bg-canvas-2/80 pointer-events-none absolute inset-0 -z-10 rounded-full shadow-lg backdrop-blur-xl transition-opacity duration-300 ease-out motion-reduce:transition-none",
+            detached ? "opacity-100" : "opacity-0",
+          )}
+        />
         {/* Logo: 32×32 mark + 18px bold wordmark. */}
         <div className="flex items-center gap-2.5">
           <NextLink
@@ -172,28 +315,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
                 {link.label}
               </NavLink>
             ))}
-            <Dropdown>
-              <Dropdown.Trigger
-                className={`${TEXT_LINK} inline-flex cursor-pointer items-center gap-1 outline-none`}
-              >
-                Resources
-                <ChevronDown size={15} />
-              </Dropdown.Trigger>
-              <Dropdown.Popover placement="bottom start" className="w-44">
-                <Dropdown.Menu>
-                  {moreLinks.map((link) => (
-                    <Dropdown.Item
-                      key={link.label}
-                      href={link.href}
-                      target={link.external ? "_blank" : undefined}
-                      rel={link.external ? "noopener noreferrer" : undefined}
-                    >
-                      {link.label}
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown.Popover>
-            </Dropdown>
+            <HoverMenu label="Resources" links={moreLinks} />
           </nav>
           <a
             href={GITHUB_URL}
