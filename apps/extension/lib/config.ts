@@ -1,3 +1,5 @@
+import { PRODUCTION_WEB_BASE } from "./web-origin";
+
 /*
  * Origin of the web app. Keyed off MODE, not COMMAND: `wxt build --mode
  * development` reports COMMAND === "build", so keying off the command pointed
@@ -8,5 +10,5 @@
 export const WEB_BASE =
   import.meta.env.WXT_WEB_BASE ??
   (import.meta.env.MODE === "production"
-    ? "https://captureflow.dev"
+    ? PRODUCTION_WEB_BASE
     : "http://localhost:3032");

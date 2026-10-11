@@ -22,6 +22,7 @@ export const DOWNLOAD_URL =
  * disabled "Soon" button for a null entry, so shipping is a one-line change.
  */
 export const CHROME_WEBSTORE_URL: string | null =
+  process.env.NEXT_PUBLIC_CHROME_WEBSTORE_URL ||
   "https://chromewebstore.google.com/detail/lgpgeoelaokbigdljofhkgbfnfcnmcol";
 export const FIREFOX_ADDON_URL: string | null = null;
 export const DOWNLOAD_DMG_SIZE_MB = 48;

@@ -1,18 +1,16 @@
 import { sendMessage } from "@/lib/messaging";
 import type { WebSession } from "@/lib/auth/sync";
+import { webOriginMatches } from "@/lib/web-origin";
 
 /*
- * Dev-only localhost, mirroring the manifest's other origin lists: a published
- * build that ran here on any localhost page would let a hostile local app
- * answer for the dashboard and force a re-login. Keyed off MODE, not COMMAND —
- * `wxt build --mode development` reports COMMAND === "build", so a COMMAND
- * check left every dev build with production's origins and this script never
- * ran against the dev server at all.
+ * Keyed off MODE, not COMMAND — `wxt build --mode development` reports
+ * COMMAND === "build", so a COMMAND check left every dev build with
+ * production's origins and this script never ran against the dev server.
  */
-const MATCHES =
-  import.meta.env.MODE !== "production"
-    ? ["https://captureflow.dev/*", "http://localhost/*"]
-    : ["https://captureflow.dev/*"];
+const MATCHES = webOriginMatches(
+  import.meta.env.WXT_WEB_BASE,
+  import.meta.env.MODE !== "production",
+);
 
 /*
  * The dashboard reads this off <html> to decide whether its record buttons can
