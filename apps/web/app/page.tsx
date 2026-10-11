@@ -9,6 +9,7 @@ import { ModesIntro } from "@/components/marketing/modes-intro";
 import { CollaborationSection } from "@/components/marketing/collaboration-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { CompareSection } from "@/components/marketing/compare-section";
+import { SelfHostSection } from "@/components/marketing/self-host-section";
 import { FaqSection } from "@/components/marketing/faq-section";
 import { RepoActivitySection } from "@/components/marketing/repo-activity-section";
 import { CtaSection } from "@/components/marketing/cta-section";
@@ -74,6 +75,7 @@ export default async function RootPage() {
           <UseCasesSection />
           <PricingSection />
           <CompareSection />
+          <SelfHostSection />
           <FaqSection />
           <RepoActivitySection activity={activity} />
           <CtaSection />

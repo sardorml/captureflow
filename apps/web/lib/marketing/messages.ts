@@ -69,8 +69,8 @@ export const MESSAGES = {
     titleLead: "screen recorder",
     titleSuffix: "with shareable links",
     subtitleLine1:
-      "Record your screen and share it with your team, clients, or customers.",
-    subtitleLine2: "Self-hostable on your Cloudflare account.",
+      "Easily record and share video messages with your team and customers,",
+    subtitleLine2: "and get their feedback right on the video.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Install Chrome extension",
     installMac: "Download for free",
@@ -223,6 +223,29 @@ export const MESSAGES = {
         },
       },
     },
+  },
+  selfHosting: {
+    heading: "Run it on your own",
+    subheading:
+      "CaptureFlow is open source under the AGPL. Deploy it to your Cloudflare account and every recording stays in infrastructure you own.",
+    account: "Your Cloudflare account",
+    deployed: "Uploaded captureflow-web",
+    pieces: {
+      workers: {
+        title: "Worker",
+        body: "Serves the app and every share link.",
+      },
+      r2: {
+        title: "R2 bucket",
+        body: "Holds your videos and screenshots.",
+      },
+      d1: {
+        title: "D1 database",
+        body: "Keeps workspaces, comments, and views.",
+      },
+    },
+    guide: "Read the self-hosting guide",
+    source: "View the source",
   },
   pricing: {
     heading: "Start free, pay for more storage",

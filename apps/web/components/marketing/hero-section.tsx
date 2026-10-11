@@ -7,7 +7,7 @@ import { buttonVariants } from "@heroui/react";
 import { CHROME_WEBSTORE_URL, CURRENT_STAGE } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
-import { AppleLogo, ChromeLogoColor, CloudflareLogo } from "./platform-logos";
+import { AppleLogo, ChromeLogoColor } from "./platform-logos";
 import { RecorderMockup } from "./recorder-mockup";
 import { MARKETING_MAX_WIDTH } from "./_shared";
 import NextLink from "next/link";
@@ -20,8 +20,6 @@ const SOON_AMBER = "#f5a524";
 
 export function HeroSection() {
   const m = useMessages();
-  const [cloudflareBefore, cloudflareAfter] =
-    m.hero.subtitleLine2.split("Cloudflare");
   const lh = useLocalizedHref();
 
   return (
@@ -62,20 +60,15 @@ export function HeroSection() {
           align="center"
           type="secondary"
           style={{
-            fontSize: 20,
-            lineHeight: 1.55,
-            maxWidth: 620,
+            fontSize: 22,
+            lineHeight: 1.5,
+            maxWidth: 760,
           }}
         >
           {m.hero.subtitleLine1}{" "}
           {/* Forced break desktop-only; on phones it would orphan words. */}
           <br className="hidden sm:inline" />
-          {cloudflareBefore}
-          <span className="inline-flex items-baseline gap-1 whitespace-nowrap font-medium text-fg">
-            <CloudflareLogo className="size-[1.15em] self-center" />
-            Cloudflare
-          </span>
-          {cloudflareAfter}
+          {m.hero.subtitleLine2}
         </Paragraph>
 
         {CURRENT_STAGE.showHeroBuyCta ? (
