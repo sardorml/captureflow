@@ -1,129 +1,144 @@
-<div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/brand-mark-light.svg" />
-    <img src="apps/web/public/brand-mark-dark.svg" width="112" alt="CaptureFlow" />
-  </picture>
-  <h1>CaptureFlow</h1>
-  <p>
-    <strong>Open-source, self-hostable screen recording with instant shareable links.</strong>
-  </p>
-  <p>
-    <a href="https://captureflow.dev">Website</a>
-    &nbsp;·&nbsp;
-    <a href="https://captureflow.dev/download">Download</a>
-    &nbsp;·&nbsp;
-    <a href="https://docs.captureflow.dev">Docs</a>
-    &nbsp;·&nbsp;
-    <a href="./DEPLOY.md">Self-hosting</a>
-    &nbsp;·&nbsp;
-    <a href="./LICENSE">License</a>
-  </p>
-  <p>
-    <a href="./LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-2563EB.svg" /></a>
-    <img alt="Surfaces: browser extension and macOS" src="https://img.shields.io/badge/surfaces-extension%20%2B%20macOS-111111.svg" />
-    <a href="https://github.com/sardorml/captureflow/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/sardorml/captureflow?color=2563EB" /></a>
-  </p>
-  <br />
-  <img src=".github/assets/readme-hero.png" alt="CaptureFlow: open-source screen recorder with shareable links, self-hostable on your Cloudflare account, above the recordings dashboard" width="100%" />
+<div align="center"><a name="readme-top"></a>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/brand-mark-light.svg" />
+  <img src="apps/web/public/brand-mark-dark.svg" height="112" alt="CaptureFlow" />
+</picture>
+
+<h1>CaptureFlow</h1>
+
+Open-source screen recorder with instant share links, self-hostable on your own Cloudflare account.
+
+[![CI status][ci-image]][ci-url] [![License: AGPL-3.0][license-image]][license-url] [![Chrome Web Store][chrome-image]][chrome-url] [![Stars][stars-image]][stars-url] [![Discord][discord-image]][discord-url]
+
+[Website][website-url] · [Docs][docs-url] · [Blog][blog-url] · [Report Bug][issues-url] · [Request Feature][feature-url]
+
+[ci-image]: https://github.com/sardorml/captureflow/actions/workflows/ci.yml/badge.svg
+[ci-url]: https://github.com/sardorml/captureflow/actions/workflows/ci.yml
+[license-image]: https://img.shields.io/badge/license-AGPL--3.0-2563EB.svg?style=flat-square
+[license-url]: ./LICENSE
+[chrome-image]: https://img.shields.io/chrome-web-store/v/lgpgeoelaokbigdljofhkgbfnfcnmcol?label=chrome%20web%20store&color=2563EB&style=flat-square
+[chrome-url]: https://chromewebstore.google.com/detail/lgpgeoelaokbigdljofhkgbfnfcnmcol
+[stars-image]: https://img.shields.io/github/stars/sardorml/captureflow?color=2563EB&style=flat-square
+[stars-url]: https://github.com/sardorml/captureflow/stargazers
+[discord-image]: https://img.shields.io/badge/chat-discord-5865F2.svg?style=flat-square
+[discord-url]: https://discord.gg/qzeBCaEeNq
+[website-url]: https://captureflow.dev
+[docs-url]: https://docs.captureflow.dev
+[blog-url]: https://captureflow.dev/blog
+[issues-url]: https://github.com/sardorml/captureflow/issues/new
+[feature-url]: https://captureflow.dev/suggest-feature
+
 </div>
 
-<br />
+[![CaptureFlow: open-source screen recorder with shareable links, above the recordings dashboard](.github/assets/readme-hero.png)](https://captureflow.dev)
 
-CaptureFlow records your screen and hands you a share link the moment you stop.
-It records from two places — an MV3 browser extension and a native macOS app —
-onto one Cloudflare-hosted backend that serves the dashboard, the recording and
-screenshot viewers, and the API. It's fully open source (AGPL-3.0) and
-self-hostable on your own Cloudflare account — **every feature ships in the
-open-source build**.
+## ✨ Features
 
-The upload runs while you record, so stopping is the last step: no export
-queue, no render wait. Screenshots come from the same panel and share the same
-links, dashboard, and retention rules as recordings.
+- 🔗 The share link is ready the moment you stop: the upload runs while you record.
+- 🎥 Record a tab, a window or your whole screen, with camera bubble and mic.
+- 💬 Viewers react with emoji and comment right on the video, and you see who watched.
+- 🖼 Annotated screenshots with arrows, text and blur, shared by the same kind of link.
+- 👥 Workspaces for your team, with public, workspace-only or private visibility.
+- 💸 Priced by storage for the whole team, never per seat.
+- ☁️ Self-host on your own Cloudflare account, with sign-in limited to your company.
+- 🔓 Every feature ships in the open-source build.
 
-## Monorepo layout
+## 🖥 Where it runs
 
-```
-apps/
-  web/         Next.js 16 dashboard + recording/screenshot pages + API → Cloudflare Workers (OpenNext)
-  extension/   Browser recorder (WXT, MV3) — popup/overlay panel, offscreen capture, in-page controls
-  desktop/     Electron screen recorder (macOS)
-  docs/        VitePress documentation site → its own Cloudflare Worker (assets-only)
-packages/
-  engine/      Capture engine shared by desktop + extension: macOS sidecars, record protocol, mux pipeline (MIT)
-  shared/      Types & constants shared across the apps
-  ui/          Theme tokens + the React components with no HeroUI equivalent
-  quota/       Storage quota, limits & workspace logic
-```
+| Surface                   | Status                                          |
+| ------------------------- | ----------------------------------------------- |
+| Chrome extension          | Available on the [Chrome Web Store][chrome-url] |
+| macOS app                 | Build from source; signed release coming soon   |
+| Web dashboard and viewers | Any modern browser                              |
 
-Apps depend on packages, never the reverse, and never on each other.
+## 📦 Get started
 
-## Requirements
+- **Hosted:** [create a free account](https://captureflow.dev/login?mode=signup) and install the [Chrome extension][chrome-url]. Paid plans add 100 GB, 500 GB or 1 TB for the whole team; see [pricing](https://captureflow.dev/pricing).
+- **Self-hosted:** run the whole thing on your own Cloudflare account (Workers, D1 and R2). Follow the [step-by-step guide](https://captureflow.dev/blog/self-hosted-screen-recorder), or [let us set it up for you](https://captureflow.dev/self-host-setup).
 
-- Node.js >= 24.13
-- pnpm 10 (`corepack enable && corepack prepare pnpm@10.30.0 --activate`)
-- A Cloudflare account for the web app (Workers + D1 + R2)
-- Swift (Xcode command-line tools) only if you change the macOS capture
-  sidecars — the built binaries are committed, so nothing else needs it
-
-## Develop
-
-```bash
-pnpm install
-pnpm dev                                  # run everything
-pnpm web                                  # just the dashboard
-pnpm extension                            # just the browser extension
-pnpm --filter @captureflow/desktop dev    # just the desktop recorder
-```
-
-Repo-wide checks:
-
-```bash
-pnpm typecheck
-pnpm --filter @captureflow/web test
-pnpm format
-```
-
-After editing the Swift sidecars, rebuild them — the app loads the committed
-binaries, not the sources:
-
-```bash
-packages/engine/scripts/build-native.sh              # arm64
-packages/engine/scripts/build-native.sh --universal  # arm64 + x86_64
-```
-
-### Load the extension
-
-It isn't on the Chrome Web Store yet. `pnpm extension` launches a browser with
-it loaded; for a persistent install, build it and load the folder unpacked:
-
-```bash
-pnpm extension:build   # → apps/extension/.output/chrome-mv3
-```
-
-Then in `chrome://extensions` turn on Developer mode → **Load unpacked** →
-pick `apps/extension/.output/chrome-mv3`.
-
-## Deploy the web app to Cloudflare
+## ☁️ Self-hosting
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/sardorml/captureflow)
 
 Or manually:
 
 ```bash
-# one-time: create the bindings
-wrangler d1 create captureflow
-wrangler r2 bucket create captureflow-recordings
-# paste the returned ids into apps/web/wrangler.jsonc, then:
+pnpm --filter @captureflow/web exec wrangler d1 create captureflow
+pnpm --filter @captureflow/web exec wrangler r2 bucket create captureflow-recordings
+# paste the database id into apps/web/wrangler.jsonc, then:
 pnpm --filter @captureflow/web db:apply:remote
 pnpm --filter @captureflow/web cf:deploy
 ```
 
-[`DEPLOY.md`](./DEPLOY.md) is the full runbook — secrets, auth providers, the
-custom domain, and pointing the recorders at your own instance.
+[`DEPLOY.md`](./DEPLOY.md) is the full runbook: secrets, sign-in providers, custom domains, and pointing the extension and desktop app at your own instance. To run it as a private company tool, set `SELF_HOSTED` and `ALLOWED_EMAIL_DOMAINS` as described in the [configuration docs](https://docs.captureflow.dev/self-hosting/configuration).
 
-## License
+## ⌨️ Development
 
-[AGPL-3.0-only](./LICENSE), with one exception: the reusable capture engine in
-[`packages/engine`](./packages/engine) is [MIT-licensed](./packages/engine/LICENSE).
-Combined builds (the desktop app, the browser extension) are AGPL-3.0-only as a
-whole.
+Requires Node.js 24.13 or newer and pnpm 10 (`corepack enable`).
+
+```bash
+git clone git@github.com:sardorml/captureflow.git
+cd captureflow
+pnpm install
+pnpm web                                  # dashboard and landing on http://localhost:3032
+pnpm extension                            # browser extension, in a fresh Chrome profile
+pnpm --filter @captureflow/desktop dev    # macOS recorder
+```
+
+Checks:
+
+```bash
+pnpm typecheck
+pnpm --filter @captureflow/web test
+pnpm --filter @captureflow/extension test
+pnpm format
+```
+
+<details>
+<summary>Monorepo layout</summary>
+
+```
+apps/
+  web/         Next.js 16 landing, blog, dashboard, viewers and API → Cloudflare Workers (OpenNext)
+  admin/       Instance-admin Worker on its own host, bound to the same D1 and R2
+  extension/   Browser recorder (WXT, MV3): panel, offscreen capture, in-page controls
+  desktop/     Electron screen recorder (macOS)
+  docs/        VitePress documentation site
+packages/
+  engine/      Capture engine shared by desktop and extension: macOS sidecars, record protocol, mux (MIT)
+  admin/       Admin auth and data logic behind apps/admin
+  quota/       Storage quota, limits and workspace logic
+  shared/      Types and constants shared across the apps
+  ui/          Theme tokens and the React components with no HeroUI equivalent
+```
+
+Apps depend on packages, never the reverse, and never on each other.
+
+The macOS capture sidecars are committed as built binaries. After editing the Swift sources, rebuild them with `packages/engine/scripts/build-native.sh` (add `--universal` for arm64 + x86_64).
+
+</details>
+
+## 🔗 Links
+
+- [Website](https://captureflow.dev)
+- [Documentation](https://docs.captureflow.dev)
+- [Self-hosting docs](https://docs.captureflow.dev/self-hosting/overview)
+- [Blog](https://captureflow.dev/blog)
+- [Pricing](https://captureflow.dev/pricing)
+- [FAQ](https://captureflow.dev/faq)
+- [Security](https://captureflow.dev/security)
+- [Releases](https://github.com/sardorml/captureflow/releases)
+- [Discord][discord-url]
+
+## 🤝 Contributing [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/sardorml/captureflow/pulls)
+
+Bug reports, ideas and pull requests are all welcome. Open an [issue][issues-url], [suggest a feature][feature-url], or send a pull request. Read [`CONVENTIONS.md`](./CONVENTIONS.md) first: it's the standard every change follows.
+
+Found a security issue? Please report it privately as described on the [security page](https://captureflow.dev/security), not in a public issue.
+
+## 📄 License
+
+[AGPL-3.0-only](./LICENSE), with one exception: the reusable capture engine in [`packages/engine`](./packages/engine) is [MIT-licensed](./packages/engine/LICENSE). Combined builds (the desktop app and the browser extension) are AGPL-3.0-only as a whole.
+
+<div align="right"><a href="#readme-top">Back to top ↑</a></div>
