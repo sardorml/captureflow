@@ -9,7 +9,7 @@ import {
   ChevronDown,
   CircleHelp,
   Menu as MenuIcon,
-  Lightbulb,
+  MessagesSquare,
   Server,
   Star,
 } from "lucide-react";
@@ -241,17 +241,18 @@ export function Nav({ stars = null }: { stars?: string | null }) {
       description: "Common questions, answered",
     },
     {
-      label: "Suggest a feature",
-      href: lh("/suggest-feature"),
-      icon: <Lightbulb size={18} />,
-      description: "Tell us what to build next",
-    },
-    {
       label: "Self-hosting",
       href: `${DOCS_URL}/self-hosting`,
       external: true,
       icon: <Server size={18} />,
       description: "Run it on your own Cloudflare",
+    },
+    {
+      label: "Community",
+      href: DISCORD_URL,
+      external: true,
+      icon: <MessagesSquare size={18} />,
+      description: "Get help and chat on Discord",
     },
   ];
   const menuLinks = [...barLinks, ...moreLinks];
@@ -299,7 +300,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
           <NavBetaChip />
         </div>
 
-        {/* One right-hand cluster. Discord lives in the drawer and the footer
+        {/* One right-hand cluster. Discord lives under Resources and in the footer
             rather than competing with the single CTA here; GitHub earns its
             place in the bar as the source link. Desktop/mobile split is
             CSS-gated (not JS breakpoints) so the server render matches the
@@ -392,14 +393,6 @@ export function Nav({ stars = null }: { stars?: string | null }) {
                 >
                   {starLabel}
                 </NavLink>
-                <NavLink
-                  href={DISCORD_URL}
-                  external
-                  block
-                  icon={<DiscordIcon size={16} />}
-                >
-                  Discord
-                </NavLink>
                 <NextLink
                   href={lh("/login")}
                   onClick={closeMenu}
@@ -426,19 +419,5 @@ export function Nav({ stars = null }: { stars?: string | null }) {
         </Drawer.Backdrop>
       </Drawer>
     </Header>
-  );
-}
-
-function DiscordIcon({ size = 16 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden
-    >
-      <path d="M20.317 4.369A19.79 19.79 0 0 0 15.432 3a13.9 13.9 0 0 0-.617 1.269 18.27 18.27 0 0 0-5.63 0A13 13 0 0 0 8.56 3a19.74 19.74 0 0 0-4.886 1.372C.716 8.78-.09 13.08.16 17.32a19.9 19.9 0 0 0 6.06 3.06c.49-.67.926-1.382 1.3-2.13a12.9 12.9 0 0 1-2.05-.98c.173-.126.342-.257.505-.392a14.2 14.2 0 0 0 12.05 0c.165.14.334.27.505.392-.653.386-1.34.714-2.053.98.375.748.81 1.46 1.3 2.13a19.9 19.9 0 0 0 6.063-3.06c.293-4.914-.99-9.176-3.523-12.951M8.02 14.79c-1.183 0-2.157-1.085-2.157-2.42s.955-2.42 2.157-2.42 2.176 1.096 2.156 2.42c0 1.335-.955 2.42-2.156 2.42m7.96 0c-1.183 0-2.157-1.085-2.157-2.42s.955-2.42 2.157-2.42 2.176 1.096 2.156 2.42c0 1.335-.954 2.42-2.156 2.42" />
-    </svg>
   );
 }
