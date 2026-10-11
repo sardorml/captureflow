@@ -68,7 +68,12 @@ export async function POST(req: NextRequest) {
       : contentType === "image/webp"
         ? "webp"
         : "jpg";
-  const posterKey = `posters/${slug}.${ext}`;
+  // Named after the video's storage id, never the slug: the CDN serves posters
+  // too, so a slug-derived key would expose private ones to anyone with the link.
+  const storageId = row.storageKey
+    .replace(/^videos\//, "")
+    .replace(/\.[^.]+$/, "");
+  const posterKey = `posters/${storageId}.${ext}`;
 
   await putObject(posterKey, buffer, contentType, "no-cache");
   await updateRecording(slug, { posterKey });

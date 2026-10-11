@@ -1,9 +1,13 @@
 import { getWorkspaceById, listMembers } from "@captureflow/quota";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
-import { listRecordingsForWorkspace } from "@/lib/recordings-db";
+import {
+  listRecordingsForWorkspace,
+  type DashboardRecordingRow,
+} from "@/lib/recordings-db";
+import { viewerMediaUrl } from "@/lib/recording/media-url";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
-import { RecordingsList } from "../../RecordingsList";
+import { RecordingsList, type RecordingCardRow } from "../../RecordingsList";
 import { PageHeader } from "../PageHeader";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +39,7 @@ export default async function RecordingsPage() {
     if (m.image) ownerImages[m.user_id] = m.image;
   }
 
+  const cards = await Promise.all(recordings.map(toCardRow));
   const subtitle = `${recordings.length} recording${recordings.length === 1 ? "" : "s"}`;
 
   return (
@@ -46,7 +51,7 @@ export default async function RecordingsPage() {
       />
       <div className="mt-6">
         <RecordingsList
-          recordings={recordings}
+          recordings={cards}
           viewerUserId={session.user.id}
           viewerIsWorkspaceOwner={viewingOwnWorkspace}
           allowPublicLinks={allowPublicLinks}
@@ -57,4 +62,18 @@ export default async function RecordingsPage() {
       </div>
     </>
   );
+}
+
+async function toCardRow({
+  storageKey,
+  posterKey,
+  webcamStorageKey: _webcam,
+  ...row
+}: DashboardRecordingRow): Promise<RecordingCardRow> {
+  const posterUrl = posterKey ? await viewerMediaUrl(row, posterKey) : null;
+  const videoThumbUrl =
+    row.state === "ready" && !posterUrl
+      ? `${await viewerMediaUrl(row, storageKey)}?v=${row.sizeBytes}`
+      : null;
+  return { ...row, posterUrl, videoThumbUrl };
 }

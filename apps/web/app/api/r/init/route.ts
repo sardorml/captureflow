@@ -14,6 +14,7 @@ import {
   totalStorageForUser,
 } from "@/lib/recording/quota";
 import { resolveDeviceTokenToUser } from "@/lib/recording/device-tokens";
+import { newStorageId } from "@/lib/recording/media-url";
 import { generateSlug } from "@/lib/recording/slug";
 import { createMultipartUpload } from "@/lib/recording/r2";
 import { isDevDevice } from "@/lib/recording/dev-allowlist";
@@ -132,12 +133,13 @@ export async function POST(req: NextRequest) {
   }
 
   const slug = generateSlug();
+  const storageId = newStorageId();
   const storageKey =
     contentType === "image/jpeg"
-      ? `posters/${slug}.jpg`
+      ? `posters/${storageId}.jpg`
       : contentType === "video/webm"
-        ? `videos/${slug}.webm`
-        : `videos/${slug}.mp4`;
+        ? `videos/${storageId}.webm`
+        : `videos/${storageId}.mp4`;
 
   // Must be `no-cache`, not `no-store`: the latter forced a full re-download
   // every refresh, leaving some browsers stuck buffering before first decode.
@@ -153,7 +155,7 @@ export async function POST(req: NextRequest) {
   let webcamUploadId: string | null = null;
   let webcamState: "none" | "pending" = "none";
   if (body.hasWebcam === true && contentType !== "image/jpeg") {
-    webcamStorageKey = `videos/${slug}-webcam.webm`;
+    webcamStorageKey = `videos/${storageId}-webcam.webm`;
     const wcUpload = await createMultipartUpload(
       webcamStorageKey,
       "video/webm",
