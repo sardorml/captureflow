@@ -352,6 +352,7 @@ export const MESSAGES = {
       paidNote: "Billed monthly. Cancel anytime.",
       tiersLabel: "Storage",
       ctaFree: "Get started free",
+      ctaPaid: "Get started",
       ctaUpgrade: "Upgrade to {storage}",
       includesHeading: "Every plan includes",
       includes: [
