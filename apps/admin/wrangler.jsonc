@@ -37,12 +37,17 @@
   "queues": {
     "producers": [{ "binding": "MAIL_QUEUE", "queue": "captureflow-mail" }],
   },
+  // Cloudflare Email Service for admin invites, with Resend as the fallback.
+  "send_email": [
+    { "name": "EMAIL", "allowed_sender_addresses": ["hello@captureflow.dev"] },
+  ],
   /*
    * ADMIN_SESSION_SECRET signs the admin cookie; ADMIN_SETUP_TOKEN gates the
    * one-time first-run claim. Both are secrets, never vars — set them with
    * `wrangler secret put <NAME>` so they stay out of the repo. Locally they come
-   * from apps/admin/.dev.vars, which is gitignored. RESEND_API_KEY is optional:
-   * without it the invite link is shown to the operator instead of emailed.
+   * from apps/admin/.dev.vars, which is gitignored. RESEND_API_KEY is the
+   * fallback sender; if neither channel delivers, the invite link is shown to
+   * the operator instead.
    */
   "vars": {
     "ADMIN_SESSION_TTL_HOURS": "12",

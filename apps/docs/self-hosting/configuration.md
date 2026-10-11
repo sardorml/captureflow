@@ -80,9 +80,12 @@ them if you use a different domain.
 | `APP_DEEP_LINK_SCHEME`            | `captureflow` (the `captureflow://` deep link) |
 | `APP_WEB_PUBLIC_URL`              | `https://captureflow.dev` (invite links)       |
 
-## Email — Resend (optional)
+## Email (optional)
 
-Skip to disable invite emails (invite links can still be shared manually).
+Invite and access-request emails go through Cloudflare Email Service (the
+`EMAIL` send_email binding in `wrangler.jsonc`; set `allowed_sender_addresses`
+to your own sending address), then Resend if that fails. Configure either, both,
+or neither; with neither, invite links can still be shared manually.
 
 | Var                   | Scope      | Purpose                                                                 |
 | --------------------- | ---------- | ----------------------------------------------------------------------- |

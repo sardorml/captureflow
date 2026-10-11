@@ -110,7 +110,7 @@ apps/
 packages/
   engine/      Capture engine shared by desktop and extension: macOS sidecars, record protocol, mux (MIT)
   admin/       Admin auth and data logic behind apps/admin
-  mail/        Campaigns, email rendering, unsubscribe tokens and Resend delivery
+  mail/        Campaigns, email rendering, unsubscribe tokens, Resend delivery, transactional sends
   quota/       Storage quota, limits and workspace logic
   shared/      Types and constants shared across the apps
   ui/          Theme tokens and the React components with no HeroUI equivalent

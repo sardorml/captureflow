@@ -1,58 +1,29 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { type TransactionalEmail, sendTransactional } from "@captureflow/mail";
 import { getAppWebEnv } from "./cf-env";
 
 // All sends are best-effort: failures log and return false so the caller can
 // still report a recoverable error.
 
-const RESEND_ENDPOINT = "https://api.resend.com/emails";
-
-type SendArgs = {
-  to: string;
-  subject: string;
-  html: string;
-  text: string;
-  replyTo?: string;
-};
-
-async function sendEmail(args: SendArgs): Promise<boolean> {
+// Dev skips the binding so local sends go through Resend and reach a real inbox.
+async function sendEmail(args: TransactionalEmail): Promise<boolean> {
   const env = await getAppWebEnv();
-  const apiKey = env?.RESEND_API_KEY;
-  const from =
-    env?.RESEND_FROM_ADDRESS ?? "CaptureFlow <hello@captureflow.dev>";
-  if (!apiKey) {
-    console.warn("email: RESEND_API_KEY not configured; skipping send", {
+  const sent = await sendTransactional(
+    {
+      from: env?.RESEND_FROM_ADDRESS ?? "CaptureFlow <hello@captureflow.dev>",
+      binding: process.env.NODE_ENV === "development" ? undefined : env?.EMAIL,
+      resendApiKey: env?.RESEND_API_KEY,
+    },
+    args,
+  );
+  if (!sent) {
+    console.warn("email: not delivered", {
       to: args.to,
       subject: args.subject,
     });
-    return false;
   }
-  try {
-    const res = await fetch(RESEND_ENDPOINT, {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${apiKey}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        from,
-        to: [args.to],
-        subject: args.subject,
-        html: args.html,
-        text: args.text,
-        ...(args.replyTo ? { reply_to: args.replyTo } : {}),
-      }),
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      console.error("email: resend send failed", res.status, body);
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.error("email: resend send threw", err);
-    return false;
-  }
+  return sent !== null;
 }
 
 function escapeHtml(s: string): string {

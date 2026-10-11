@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.6.10",
+    "@captureflow/mail": "workspace:*",
     "@captureflow/quota": "workspace:*",
     "@captureflow/shared": "workspace:*",
     "@captureflow/ui": "workspace:*",
