@@ -1,10 +1,12 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import type { MailerMessage } from "@captureflow/mail";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export type AdminBindings = {
   DB?: D1Database;
   BUCKET?: R2Bucket;
+  MAIL_QUEUE?: Queue<MailerMessage>;
   // Secrets: `wrangler secret put ADMIN_SESSION_SECRET` / ADMIN_SETUP_TOKEN.
   ADMIN_SESSION_SECRET?: string;
   ADMIN_SETUP_TOKEN?: string;

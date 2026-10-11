@@ -102,12 +102,14 @@ pnpm format
 apps/
   web/         Next.js 16 landing, blog, dashboard, viewers and API → Cloudflare Workers (OpenNext)
   admin/       Instance-admin Worker on its own host, bound to the same D1 and R2
+  mailer/      Product-email Worker: sends admin-written campaigns via Resend, handles unsubscribe
   extension/   Browser recorder (WXT, MV3): panel, offscreen capture, in-page controls
   desktop/     Electron screen recorder (macOS)
   docs/        VitePress documentation site
 packages/
   engine/      Capture engine shared by desktop and extension: macOS sidecars, record protocol, mux (MIT)
   admin/       Admin auth and data logic behind apps/admin
+  mail/        Campaigns, email rendering, unsubscribe tokens and Resend delivery
   quota/       Storage quota, limits and workspace logic
   shared/      Types and constants shared across the apps
   ui/          Theme tokens and the React components with no HeroUI equivalent

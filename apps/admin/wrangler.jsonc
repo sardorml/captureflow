@@ -33,6 +33,10 @@
       "bucket_name": "captureflow-recordings",
     },
   ],
+  // Emails are composed here and sent by apps/mailer, which consumes this queue.
+  "queues": {
+    "producers": [{ "binding": "MAIL_QUEUE", "queue": "captureflow-mail" }],
+  },
   /*
    * ADMIN_SESSION_SECRET signs the admin cookie; ADMIN_SETUP_TOKEN gates the
    * one-time first-run claim. Both are secrets, never vars — set them with

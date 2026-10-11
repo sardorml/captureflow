@@ -6,12 +6,19 @@ export type AdminPermission =
   | "users.read"
   | "users.write"
   | "audit.read"
-  | "admins.manage";
+  | "admins.manage"
+  | "mail.send";
 
 export const ADMIN_ROLES = ["owner", "admin", "viewer"] as const;
 
 const ROLE_PERMISSIONS: Record<AdminRole, readonly AdminPermission[]> = {
-  owner: ["users.read", "users.write", "audit.read", "admins.manage"],
+  owner: [
+    "users.read",
+    "users.write",
+    "audit.read",
+    "admins.manage",
+    "mail.send",
+  ],
   admin: ["users.read", "users.write", "audit.read"],
   viewer: ["users.read", "audit.read"],
 };
