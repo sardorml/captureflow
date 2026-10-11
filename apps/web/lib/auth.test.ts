@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@opennextjs/cloudflare", () => ({ getCloudflareContext: vi.fn() }));
 
-const { claimableEmail, parseEmailDomains, signupAllowed } =
+const { claimableEmail, oauthErrorMessage, parseEmailDomains, signupAllowed } =
   await import("./auth");
 
 // A Pro subscription bought without an account is attached to whoever signs up
@@ -76,5 +76,25 @@ describe("signupAllowed", () => {
         domains,
       ),
     ).toBe(false);
+  });
+});
+
+describe("oauthErrorMessage", () => {
+  it("re-words a refused sign-up from the server's allowlist", () => {
+    expect(
+      oauthErrorMessage("Sign_up_with_a_Google_or_GitHub_account_on_@evil", [
+        "acme.com",
+      ]),
+    ).toBe("Sign up with a Google or GitHub account on @acme.com.");
+  });
+
+  it("never echoes other error text", () => {
+    expect(oauthErrorMessage("Call_this_number", ["acme.com"])).toBe(
+      "Sign-in didn't finish. Please try again.",
+    );
+  });
+
+  it("is null without an error", () => {
+    expect(oauthErrorMessage(undefined, [])).toBe(null);
   });
 });

@@ -90,7 +90,7 @@ function buildAuth(env: AppWebEnv | null, baseURL?: string) {
             const domains = parseEmailDomains(env?.ALLOWED_EMAIL_DOMAINS);
             if (!signupAllowed(user, domains)) {
               throw new APIError("FORBIDDEN", {
-                message: `Sign up with a Google or GitHub account on ${domains.map((d) => `@${d}`).join(" or ")}.`,
+                message: signupBlockedMessage(domains),
               });
             }
           },
@@ -142,6 +142,26 @@ export function claimableEmail(user: {
   return user.emailVerified === true && typeof user.email === "string"
     ? user.email
     : null;
+}
+
+export function signupBlockedMessage(domains: string[]): string {
+  return `Sign up with a Google or GitHub account on ${domains.map((d) => `@${d}`).join(" or ")}.`;
+}
+
+/*
+ * OAuth failures come back as ?error= on /login. The text is never echoed, so
+ * a crafted link can't put its own words in the form: a refused sign-up is
+ * recognized and re-worded from the server's own allowlist.
+ */
+export function oauthErrorMessage(
+  error: string | undefined,
+  domains: string[],
+): string | null {
+  if (!error) return null;
+  if (domains.length > 0 && error.startsWith("Sign_up_with_a_Google")) {
+    return signupBlockedMessage(domains);
+  }
+  return "Sign-in didn't finish. Please try again.";
 }
 
 export function parseEmailDomains(raw: string | undefined): string[] {

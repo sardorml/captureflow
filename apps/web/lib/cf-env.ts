@@ -28,6 +28,7 @@ export type AppWebBindings = {
   RESEND_FROM_ADDRESS?: string;
   CAPTUREFLOW_EXTENSION_ID?: string;
   SELF_HOSTED?: string;
+  ALLOWED_EMAIL_DOMAINS?: string;
 };
 
 export async function getAppWebEnv(): Promise<AppWebBindings | null> {
