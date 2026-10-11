@@ -44,7 +44,6 @@ export function Footer() {
         { label: "Features", href: lh("/features") },
         { label: "Pricing", href: lh("/pricing") },
         { label: "Download", href: lh("/download") },
-        { label: "Roadmap", href: lh("/roadmap") },
         { label: "Suggest a feature", href: lh("/suggest-feature") },
       ],
     },

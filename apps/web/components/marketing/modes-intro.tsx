@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { Pause } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
 import { useMessages } from "./i18n-provider";
 import { RecorderPanel } from "./recorder-panel";
@@ -70,7 +71,22 @@ const RISERS: Riser[] = [
   { kind: "emoji", emoji: "😂", x: 222 },
 ];
 
+// One look for every timestamp. Solid rather than translucent, so a badge
+// hanging off an emoji bubble matches one sitting inside a comment.
+const TIMESTAMP_CHIP =
+  "rounded-md bg-[#2a303e] px-1.5 py-0.5 font-mono text-[11px] leading-none text-[#7aa7ff] tabular-nums";
+
 const riseDelay = (i: number) => (i * RISE_PERIOD) / RISERS.length;
+
+// Where each item's marker sits along the progress bar, 0–1.
+const markerAt = (i: number) => (riseDelay(i) + RISE_ENTER / 2) / RISE_PERIOD;
+
+// The video time under a marker, so the feed and the bar tell the same story.
+function timestampAt(fraction: number, duration: string): string {
+  const [m = 0, s = 0] = duration.split(":").map(Number);
+  const at = Math.round(fraction * (m * 60 + s));
+  return `${Math.floor(at / 60)}:${String(at % 60).padStart(2, "0")}`;
+}
 
 // Lays a pixel-authored mockup out at `width`×`height` and scales it to fit.
 function Scaled({
@@ -223,7 +239,7 @@ function PlaybackMockup() {
                     : "bg-[#3b82f6] text-[8px] font-bold text-white"
                 }`}
                 style={{
-                  left: `${((riseDelay(i) + RISE_ENTER / 2) / RISE_PERIOD) * 100}%`,
+                  left: `${markerAt(i) * 100}%`,
                 }}
               >
                 {riser.kind === "emoji"
@@ -256,8 +272,16 @@ function PlaybackMockup() {
             }
           >
             {riser.kind === "emoji" ? (
-              <span className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-[#27221d] text-[20px] shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
+              <span className="relative flex size-10 items-center justify-center rounded-full border border-white/10 bg-[#27221d] text-[20px] shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
                 {riser.emoji}
+                <span
+                  className={cn(
+                    "absolute -bottom-2.5 left-1/2 -translate-x-1/2",
+                    TIMESTAMP_CHIP,
+                  )}
+                >
+                  {timestampAt(markerAt(i), copy.duration)}
+                </span>
               </span>
             ) : (
               <span className="flex items-center gap-2 rounded-full border border-white/10 bg-[#27221d] py-1.5 pr-3 pl-1.5 text-[12px] whitespace-nowrap text-white/70 shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
@@ -266,6 +290,9 @@ function PlaybackMockup() {
                 </span>
                 <span className="font-semibold text-white">
                   {copy.comments[riser.index].author}
+                </span>
+                <span className={TIMESTAMP_CHIP}>
+                  {timestampAt(markerAt(i), copy.duration)}
                 </span>
                 {copy.comments[riser.index].text}
               </span>

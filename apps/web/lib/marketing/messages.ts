@@ -10,7 +10,6 @@ export const MESSAGES = {
     discover: "Discover",
     pricing: "Pricing",
     faq: "FAQ",
-    roadmap: "Roadmap",
     changelog: "Changelog",
     login: "Log in",
     download: "Download",
@@ -296,8 +295,8 @@ export const MESSAGES = {
     heading: "Built in the open",
     subtitle: "Recent pull requests and open issues from GitHub.",
     shippedHeading: "Recently merged",
-    openHeading: "Open issues",
-    emptyOpen: "No open issues right now.",
+    openHeading: "Open issues and pull requests",
+    emptyOpen: "Nothing open right now.",
     newIssue: "Report a bug or request a feature",
     viewAll: "See everything on GitHub",
   },
@@ -329,72 +328,6 @@ export const MESSAGES = {
         question: "What is managed hosting?",
         answer:
           "It's CaptureFlow run by us, for teams that don't want to set up Cloudflare themselves. You get the same open-source app, and we take care of the hosting, storage, and updates. Sign up, install the Chrome extension, and start recording.\n\nYou can start free with 200 MB, where recordings are removed after 30 days without a view. When you need more room, paid plans give you 100 GB, 500 GB, or 1 TB, keep your recordings until you delete them, and cover your whole team with no per-seat fees.",
-      },
-    ],
-  },
-  roadmap: {
-    heading: "What's next",
-    subtitle: "Updated as features ship.",
-    suggestFeature: "Suggest a feature",
-    closeAria: "Close",
-    categories: {
-      ai: "Core",
-      studio: "Record",
-      share: "Share",
-    },
-    groups: [
-      {
-        title: "Backlog",
-        subtitle: "On the radar, not scheduled yet.",
-        items: [
-          {
-            label: "AI summaries & chapters",
-            description:
-              "Auto-generate a title, summary, and chapters from every recording.",
-          },
-          {
-            label: "Filler-word & silence removal",
-            description:
-              "Automatically cut 'ums', 'uhs', and dead air from your recording.",
-          },
-          {
-            label: "Transcripts & translations",
-            description:
-              "AI transcripts with one-click translation into other languages.",
-          },
-          {
-            label: "Repo-wide code refactor",
-            description:
-              "A pass over the whole codebase to tighten the structure and cut duplication before the next wave of features.",
-          },
-        ],
-      },
-      {
-        title: "To Do",
-        subtitle: "The next few months, by priority.",
-        items: [
-          {
-            label: "Windows support",
-            description:
-              "Bring CaptureFlow's recording and instant share links to Windows.",
-          },
-          {
-            label: "Firefox extension",
-            description:
-              "The same in-page recorder and instant share links, packaged for Firefox.",
-          },
-        ],
-      },
-      {
-        title: "In Progress",
-        subtitle: "Features I'm working on.",
-        items: [
-          {
-            label: "macOS app",
-            description:
-              "A menu bar app with the same recorder and the same instant share link, for anything outside the browser.",
-          },
-        ],
       },
     ],
   },
@@ -430,7 +363,6 @@ export const MESSAGES = {
         changelog: "Changelog",
         blog: "Blog",
         faq: "FAQ",
-        roadmap: "Roadmap",
       },
       legal: {
         title: "Legal",

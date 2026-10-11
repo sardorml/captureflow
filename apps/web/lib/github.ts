@@ -85,7 +85,7 @@ export type RepoItem = {
   number: number;
   title: string;
   url: string;
-  state: "open" | "closed" | "merged";
+  state: "open" | "draft" | "closed" | "merged";
   date: string;
 };
 
@@ -111,7 +111,13 @@ function hydrateRepoItem(raw: unknown): RepoItem | null {
   const isPr = !!pr && typeof pr === "object";
   const mergedAt =
     isPr && typeof pr.merged_at === "string" ? pr.merged_at : null;
-  const state = mergedAt ? "merged" : r.state === "open" ? "open" : "closed";
+  const state = mergedAt
+    ? "merged"
+    : r.state !== "open"
+      ? "closed"
+      : isPr && r.draft === true
+        ? "draft"
+        : "open";
   return {
     kind: isPr ? "pr" : "issue",
     number: r.number,
@@ -130,7 +136,7 @@ export function hydrateRepoActivity(raw: unknown): RepoActivity {
   return {
     shipped: items.filter((i) => i.state === "merged").slice(0, ACTIVITY_LIMIT),
     open: items
-      .filter((i) => i.kind === "issue" && i.state === "open")
+      .filter((i) => i.state === "open" || i.state === "draft")
       .slice(0, ACTIVITY_LIMIT),
   };
 }

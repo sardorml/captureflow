@@ -1,11 +1,36 @@
-import { ArrowRight, CircleDot, GitMerge } from "lucide-react";
+import {
+  ArrowRight,
+  CircleDot,
+  GitMerge,
+  GitPullRequest,
+  GitPullRequestDraft,
+  GitPullRequestClosed,
+  type LucideIcon,
+} from "lucide-react";
 import type { RepoActivity, RepoItem } from "@/lib/github";
 import { formatRelativeShort } from "@/lib/format";
 import { MESSAGES } from "@/lib/marketing/messages";
 import { SOURCE_REPO_URL } from "@/lib/site";
+import { cn } from "@/lib/utils";
 import { MarketingSection, SectionHeading } from "./_shared";
 
 const copy = MESSAGES.activity;
+
+// GitHub's own state colours (Primer), dark by default and its light-mode
+// shades under data-theme=light, so each item reads the way it does there.
+const STATE_COLOR: Record<RepoItem["state"], string> = {
+  merged: "text-[#ab7df8] [[data-theme=light]_&]:text-[#8250df]",
+  open: "text-[#3fb950] [[data-theme=light]_&]:text-[#1a7f37]",
+  draft: "text-[#9198a1] [[data-theme=light]_&]:text-[#59636e]",
+  closed: "text-[#f85149] [[data-theme=light]_&]:text-[#d1242f]",
+};
+
+function stateIcon(item: RepoItem): LucideIcon {
+  if (item.kind === "issue") return CircleDot;
+  if (item.state === "merged") return GitMerge;
+  if (item.state === "draft") return GitPullRequestDraft;
+  return item.state === "closed" ? GitPullRequestClosed : GitPullRequest;
+}
 
 // Rendered on the server so relative dates can't drift between server and client.
 export function RepoActivitySection({
@@ -57,7 +82,7 @@ function ActivityList({
       ) : (
         <ul className="mt-3 flex list-none flex-col">
           {items.map((item) => {
-            const Icon = item.kind === "pr" ? GitMerge : CircleDot;
+            const Icon = stateIcon(item);
             return (
               <li key={item.number}>
                 <a
@@ -68,11 +93,8 @@ function ActivityList({
                 >
                   <Icon
                     size={16}
-                    className={
-                      item.state === "merged"
-                        ? "mt-0.5 shrink-0 text-success"
-                        : "mt-0.5 shrink-0 text-fg-subtle"
-                    }
+                    aria-label={item.state}
+                    className={cn("mt-0.5 shrink-0", STATE_COLOR[item.state])}
                   />
                   <span className="min-w-0 flex-1">
                     <span className="line-clamp-1 text-sm text-fg">
