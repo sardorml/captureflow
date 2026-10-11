@@ -7,7 +7,7 @@ import { POSTS } from "@/lib/blog/posts";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Blog",
+  title: "Screen recording guides and updates",
   description:
     "Guides and updates from CaptureFlow: self-hosting a private screen recorder, recording better async videos, and what's new.",
   alternates: {

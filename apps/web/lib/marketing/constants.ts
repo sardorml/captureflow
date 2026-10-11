@@ -11,7 +11,7 @@ export const SITE_NAME = "CaptureFlow";
 export const SITE_TITLE =
   "CaptureFlow — Open-source screen recorder with shareable links";
 export const SITE_DESCRIPTION =
-  "Record your screen and share it with your team, clients, or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
+  "Record your screen and share a link with your team or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
 export const SUPPORT_EMAIL = "contact@sardor.codes";
 // FormSubmit sends a one-time confirmation email to SUPPORT_EMAIL on the first
 // submission; once confirmed, later submissions deliver silently.
