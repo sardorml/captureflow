@@ -82,6 +82,7 @@ git clone git@github.com:sardorml/captureflow.git
 cd captureflow
 pnpm install
 pnpm web                                  # dashboard and landing on http://localhost:3032
+pnpm admin                                # instance admin on http://localhost:3034
 pnpm extension                            # browser extension, in a fresh Chrome profile
 pnpm --filter @captureflow/desktop dev    # macOS recorder
 ```
