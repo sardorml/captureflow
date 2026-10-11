@@ -53,7 +53,7 @@ export function Footer() {
         { label: "Docs", href: DOCS_URL, external: true },
         {
           label: "Self-hosting",
-          href: `${DOCS_URL}/self-hosting`,
+          href: `${DOCS_URL}/self-hosting/overview`,
           external: true,
         },
         { label: "Releases", href: RELEASES_URL, external: true },
