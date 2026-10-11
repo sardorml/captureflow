@@ -4,8 +4,12 @@ vi.mock("./cf-env", () => ({
   getAppWebEnv: async () => ({ RESEND_API_KEY: "re_test" }),
 }));
 
-const { sendAccessRequestEmail, sendWorkspaceInviteEmail } =
-  await import("./email");
+const {
+  CHROME_EXTENSION_URL,
+  sendAccessRequestEmail,
+  sendWelcomeEmail,
+  sendWorkspaceInviteEmail,
+} = await import("./email");
 
 function sentBody() {
   const call = vi.mocked(globalThis.fetch).mock.calls[0];
@@ -61,5 +65,34 @@ describe("sendAccessRequestEmail", () => {
       manageUrl: "https://captureflow.dev/members",
     });
     expect(sentBody().reply_to).toBe("asker@example.com");
+  });
+});
+
+describe("sendWelcomeEmail", () => {
+  it("greets by first name and links the extension, app and dashboard", async () => {
+    await sendWelcomeEmail({
+      to: "new@example.com",
+      name: "Alex <b>Kim</b>",
+      appUrl: "https://captureflow.dev/",
+    });
+    const { subject, html, text, reply_to } = sentBody();
+    expect(subject).toBe("Welcome to CaptureFlow");
+    expect(reply_to).toBeUndefined();
+    expect(text).toMatch(/^Hi Alex,/);
+    expect(html).not.toContain("<b>");
+    for (const part of [html, text]) {
+      expect(part).toContain(CHROME_EXTENSION_URL);
+      expect(part).toContain("https://captureflow.dev/download");
+      expect(part).toContain("https://captureflow.dev/recordings");
+    }
+  });
+
+  it("falls back to a plain greeting without a name", async () => {
+    await sendWelcomeEmail({
+      to: "new@example.com",
+      name: "  ",
+      appUrl: "https://captureflow.dev",
+    });
+    expect(sentBody().text).toMatch(/^Hi there,/);
   });
 });

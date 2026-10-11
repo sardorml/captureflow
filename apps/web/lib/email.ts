@@ -177,3 +177,90 @@ export async function sendAccessRequestEmail(args: {
     replyTo: args.requesterEmail,
   });
 }
+
+export const CHROME_EXTENSION_URL =
+  "https://chromewebstore.google.com/detail/lgpgeoelaokbigdljofhkgbfnfcnmcol";
+
+const WELCOME_POINTS = [
+  [
+    "Record and share in one step",
+    "Your screen uploads while you record, so the link is ready the moment you stop.",
+  ],
+  [
+    "Get feedback on the video",
+    "Viewers react and comment at the exact moment they mean, right on the timeline.",
+  ],
+  [
+    "Share screenshots as links",
+    "Capture your screen and send it as a link instead of an attachment.",
+  ],
+  [
+    "Work as a team",
+    "Invite teammates to a workspace so everyone's recordings live in one place.",
+  ],
+] as const;
+
+export async function sendWelcomeEmail(args: {
+  to: string;
+  name: string | null;
+  appUrl: string;
+}): Promise<boolean> {
+  const first = args.name?.trim().split(/\s+/)[0] ?? "";
+  const greeting = first ? `Hi ${first},` : "Hi there,";
+  const base = args.appUrl.replace(/\/+$/, "");
+  const recordingsUrl = `${base}/recordings`;
+  const downloadUrl = `${base}/download`;
+
+  const text = [
+    greeting,
+    "",
+    "Welcome to CaptureFlow. Here's what you can do:",
+    "",
+    ...WELCOME_POINTS.map(([title, body]) => `- ${title}: ${body}`),
+    "",
+    `Add CaptureFlow to Chrome: ${CHROME_EXTENSION_URL}`,
+    `Get the Mac app: ${downloadUrl}`,
+    `Open your recordings: ${recordingsUrl}`,
+  ].join("\n");
+
+  const points = WELCOME_POINTS.map(
+    ([title, body]) =>
+      `<tr><td style="padding:0 0 14px;"><strong style="color:#1f1b17;">${escapeHtml(title)}</strong><br /><span style="color:#5c5650;">${escapeHtml(body)}</span></td></tr>`,
+  ).join("");
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0; padding:32px 16px; background:#f5f3ef; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color:#1f1b17;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:12px;">
+      <tr>
+        <td style="padding:28px 32px 0;">
+          <a href="${escapeHtml(base)}" style="display:inline-block; text-decoration:none; color:#1f1b17;">
+            <img src="https://captureflow.dev/logo.png" width="32" height="32" alt="" style="display:inline-block; vertical-align:middle; border:0; border-radius:8px;" />
+            <span style="display:inline-block; vertical-align:middle; margin-left:10px; font-size:17px; font-weight:600;">CaptureFlow</span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:24px 32px 32px; font-size:16px; line-height:1.6;">
+          <p style="margin:0 0 8px;">${escapeHtml(greeting)}</p>
+          <p style="margin:0 0 24px;">Welcome to CaptureFlow. Here's what you can do:</p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:15px; line-height:1.5;">${points}</table>
+          <p style="margin:12px 0 16px;">
+            <a href="${CHROME_EXTENSION_URL}" style="display:inline-block; padding:12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600;">Add to Chrome</a>
+          </p>
+          <p style="margin:0; font-size:14px; color:#5c5650;">
+            On a Mac? <a href="${escapeHtml(downloadUrl)}" style="color:#2563eb;">Get the desktop app</a>. Or <a href="${escapeHtml(recordingsUrl)}" style="color:#2563eb;">open your recordings</a>.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  return sendEmail({
+    to: args.to,
+    subject: "Welcome to CaptureFlow",
+    html,
+    text,
+  });
+}
