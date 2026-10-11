@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
+import { isAppRoute } from "@/lib/app-routes";
 
 export const config = {
   matcher: [
@@ -15,6 +16,11 @@ export function middleware(req: NextRequest) {
   }
 
   const cookie = getSessionCookie(req);
+  // Only app pages send a signed-out visitor to /login; any other path falls
+  // through to a real 404 instead of an indexable login page.
+  if (!cookie && !isAppRoute(req.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
   if (!cookie) {
     const url = req.nextUrl.clone();
     const next = url.pathname + (url.search || "");
