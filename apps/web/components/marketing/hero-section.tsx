@@ -1,13 +1,14 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { Flex } from "./layout";
 import { Paragraph, Title } from "./typography";
 import { buttonVariants } from "@heroui/react";
 import { CHROME_WEBSTORE_URL, CURRENT_STAGE } from "@/lib/marketing/constants";
+import { MARKETING_SITE_URL } from "@/lib/site";
 import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
-import { AppleLogo, ChromeLogoColor, CloudflareLogo } from "./platform-logos";
+import { AppleLogo, ChromeLogoColor } from "./platform-logos";
 import { RecorderMockup } from "./recorder-mockup";
 import { MARKETING_MAX_WIDTH } from "./_shared";
 import NextLink from "next/link";
@@ -20,8 +21,6 @@ const SOON_AMBER = "#f5a524";
 
 export function HeroSection() {
   const m = useMessages();
-  const [cloudflareBefore, cloudflareAfter] =
-    m.hero.subtitleLine2.split("Cloudflare");
   const lh = useLocalizedHref();
 
   return (
@@ -40,43 +39,42 @@ export function HeroSection() {
       >
         {/* Two-tone headline: the payoff line drops to the muted foreground so
             the pair reads as one sentence trailing off. */}
-        <Title
-          align="center"
-          level={1}
-          style={{
-            fontSize: "clamp(2.5rem, 1.5rem + 3.2vw, 4rem)",
-            fontWeight: 700,
-            lineHeight: 1.05,
-            letterSpacing: "-0.03em",
-            marginBottom: 20,
-          }}
-        >
-          <span className="inline-block -rotate-1 rounded-2xl bg-fg px-3 pb-1 text-canvas">
-            {m.hero.titleHighlight}
-          </span>{" "}
-          {m.hero.titleLead}
-          <br />
-          <span className="text-fg-muted">{m.hero.titleSuffix}</span>
-        </Title>
-        <Paragraph
-          align="center"
-          type="secondary"
-          style={{
-            fontSize: 20,
-            lineHeight: 1.55,
-            maxWidth: 620,
-          }}
-        >
-          {m.hero.subtitleLine1}{" "}
-          {/* Forced break desktop-only; on phones it would orphan words. */}
-          <br className="hidden sm:inline" />
-          {cloudflareBefore}
-          <span className="inline-flex items-baseline gap-1 whitespace-nowrap font-medium text-fg">
-            <CloudflareLogo className="size-[1.15em] self-center" />
-            Cloudflare
-          </span>
-          {cloudflareAfter}
-        </Paragraph>
+        <div onClick={selectAndCopyWithLink}>
+          <Title
+            align="center"
+            level={1}
+            style={{
+              fontSize: "clamp(2.5rem, 1.5rem + 3.2vw, 4rem)",
+              fontWeight: 700,
+              lineHeight: 1.05,
+              letterSpacing: "-0.03em",
+              marginBottom: 20,
+            }}
+          >
+            <span className="inline-block -rotate-1 rounded-2xl bg-fg px-3 pb-1 text-canvas">
+              {m.hero.titleHighlight}
+            </span>{" "}
+            {m.hero.titleLead}
+            <br />
+            <span className="text-fg-muted">{m.hero.titleSuffix}</span>
+          </Title>
+        </div>
+        <div onClick={selectAndCopyWithLink}>
+          <Paragraph
+            align="center"
+            type="secondary"
+            style={{
+              fontSize: 22,
+              lineHeight: 1.5,
+              maxWidth: 760,
+            }}
+          >
+            {m.hero.subtitleLine1}{" "}
+            {/* Forced break desktop-only; on phones it would orphan words. */}
+            <br className="hidden sm:inline" />
+            {m.hero.subtitleLine2}
+          </Paragraph>
+        </div>
 
         {CURRENT_STAGE.showHeroBuyCta ? (
           <Flex vertical gap={16} align="center" style={{ marginTop: 36 }}>
@@ -101,6 +99,17 @@ export function HeroSection() {
       <RecorderMockup />
     </section>
   );
+}
+
+function selectAndCopyWithLink(event: MouseEvent<HTMLElement>) {
+  const range = document.createRange();
+  range.selectNodeContents(event.currentTarget);
+  const selection = window.getSelection();
+  if (!selection) return;
+  selection.removeAllRanges();
+  selection.addRange(range);
+  const text = `${selection.toString().trim()}\n\n${MARKETING_SITE_URL}`;
+  void navigator.clipboard.writeText(text).catch(() => {});
 }
 
 /*
