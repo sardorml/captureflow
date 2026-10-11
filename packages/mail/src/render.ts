@@ -2,6 +2,9 @@ import { marked } from "marked";
 
 export type RenderedEmail = { html: string; text: string };
 
+// PNG on purpose: Gmail and Outlook don't render SVG.
+const LOGO_URL = "https://captureflow.dev/logo.png";
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -54,7 +57,15 @@ export function renderCampaign(args: {
   <body style="margin:0; padding:32px 16px; background:#f5f3ef; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color:#1f1b17;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:12px;">
       <tr>
-        <td style="padding:32px; font-size:16px; line-height:1.6;">
+        <td style="padding:28px 32px 0;">
+          <a href="https://captureflow.dev" style="display:inline-block; text-decoration:none; color:#1f1b17;">
+            <img src="${LOGO_URL}" width="32" height="32" alt="" style="display:inline-block; vertical-align:middle; border:0; border-radius:8px;" />
+            <span style="display:inline-block; vertical-align:middle; margin-left:10px; font-size:17px; font-weight:600; letter-spacing:-0.01em;">CaptureFlow</span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:20px 32px 32px; font-size:16px; line-height:1.6;">
           ${content}
         </td>
       </tr>

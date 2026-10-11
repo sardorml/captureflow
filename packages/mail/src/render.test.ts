@@ -16,6 +16,12 @@ describe("renderCampaign", () => {
     expect(html).toContain("&lt;script&gt;");
   });
 
+  it("heads the email with the logo as a hosted PNG", () => {
+    expect(renderCampaign(args).html).toContain(
+      'src="https://captureflow.dev/logo.png"',
+    );
+  });
+
   it("puts the unsubscribe link in both parts", () => {
     const { html, text } = renderCampaign(args);
     expect(html).toContain("unsubscribe?e=a%40b.c&amp;t=x");
