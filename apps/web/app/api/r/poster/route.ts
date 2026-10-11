@@ -3,6 +3,7 @@ import { getRecording, updateRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
 import { putObject, publicUrlFor } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
+import { callerOwns } from "@/lib/recording/caller";
 
 const DEVICE_HEADER = "x-captureflow-device";
 const MAX_POSTER_BYTES = 2 * 1024 * 1024;
@@ -13,7 +14,8 @@ export function OPTIONS() {
 }
 
 // A poster may be uploaded while the video is still `pending` (the desktop
-// client races them in parallel) and overwritten after `ready`.
+// client races them in parallel) and overwritten after `ready`, which then
+// needs the owner: the device id alone only covers the upload in flight.
 export async function POST(req: NextRequest) {
   const deviceId = req.headers.get(DEVICE_HEADER);
   if (!deviceId)
@@ -45,6 +47,9 @@ export async function POST(req: NextRequest) {
   if (!row) return jsonError("Recording not found", 404, "not_found");
   if (row.deviceId !== deviceId)
     return jsonError("Forbidden", 403, "forbidden");
+  if (row.state === "ready" && !(await callerOwns(req, row))) {
+    return jsonError("Forbidden", 403, "forbidden");
+  }
   if (row.state === "failed") {
     return jsonError("Recording is failed", 409, "wrong_state");
   }

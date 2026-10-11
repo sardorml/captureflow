@@ -31,6 +31,11 @@ export async function POST(req: NextRequest) {
   if (!row) return withCors(NextResponse.json({ ok: true }));
   if (row.deviceId !== deviceId)
     return jsonError("Forbidden", 403, "forbidden");
+  // The device id alone authorizes only the upload it started; once the
+  // recording is ready, removing it needs the owner (DELETE /api/r/[id]).
+  if (row.state !== "pending") {
+    return jsonError("Recording is not pending", 409, "wrong_state");
+  }
 
   if (row.uploadId) {
     await abortMultipartUpload(row.storageKey, row.uploadId);
