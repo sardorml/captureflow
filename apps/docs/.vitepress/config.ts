@@ -90,6 +90,7 @@ export default defineConfig({
           { text: "Deploy to Cloudflare", link: "/self-hosting/cloudflare" },
           { text: "Configuration & env", link: "/self-hosting/configuration" },
           { text: "Point the desktop app", link: "/self-hosting/desktop" },
+          { text: "Point the extension", link: "/self-hosting/extension" },
         ],
       },
       {

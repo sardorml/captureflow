@@ -68,6 +68,11 @@ domain other than `captureflow.dev`, update them now (`NEXT_PUBLIC_*` site URLs,
 > `NEXT_PUBLIC_*` vars are inlined into the client bundle at build time — they
 > are public by design. **Never** put a secret behind a `NEXT_PUBLIC_` name.
 
+For an internal tool, also add `"SELF_HOSTED": "true"` and
+`"ALLOWED_EMAIL_DOMAINS": "yourcompany.com"`, and set the Google or GitHub
+secrets so people can sign in. See
+[Private company instance](/self-hosting/configuration#private-company-instance).
+
 ## 6. Bind your domain(s)
 
 - **`captureflow.dev`** → the `captureflow-web` Worker. Add a custom domain in
@@ -110,3 +115,9 @@ and publishes the Worker with its D1/R2 bindings, vars, and cron triggers.
 
 If you self-host on `captureflow.dev`, nothing to do. For any other host, see
 [Point the desktop app at your backend](/self-hosting/desktop).
+
+## 10. Point the Chrome extension at your backend
+
+The extension in the Chrome Web Store talks to `captureflow.dev` only. Build
+your own copy for your domain: see
+[Point the extension at your backend](/self-hosting/extension).

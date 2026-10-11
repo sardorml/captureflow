@@ -40,6 +40,18 @@ pnpm install
 All deploy commands target the web app via `pnpm --filter @captureflow/web`, and
 use the workspace-local copy of Wrangler — no global install needed.
 
+## Running it as a company tool
+
+Set `SELF_HOSTED` and `ALLOWED_EMAIL_DOMAINS` and the deployment becomes your
+company's private recorder:
+
+- Only people with a verified address on your domains can sign up.
+- Storage has no default cap and nothing is deleted for being idle.
+- There are no billing or upgrade screens, and the root URL goes to the login page.
+- Recordings, comments, and workspaces live in your own D1 database and R2 bucket.
+
+See [Private company instance](/self-hosting/configuration#private-company-instance).
+
 ## Cost expectations
 
 The free tiers go a long way, but note these are **per Cloudflare account**, not
@@ -57,3 +69,4 @@ before anything else. See [Storage & limits](/reference/limits).
 1. [Deploy to Cloudflare](/self-hosting/cloudflare) — the ordered runbook.
 2. [Configuration & env](/self-hosting/configuration) — every variable explained.
 3. [Point the desktop app at your backend](/self-hosting/desktop).
+4. [Point the Chrome extension at your backend](/self-hosting/extension).
