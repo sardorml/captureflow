@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { ExternalLink, Sparkles } from "lucide-react";
 import { Button, Card, Chip, ProgressBar, Typography } from "@heroui/react";
 import {
@@ -7,6 +8,7 @@ import {
   getActiveGrantedPlan,
   getActiveProSubscription,
   getEffectiveLimitsForUser,
+  isSelfHosted,
   totalStorageForUser,
   type GrantedPlan,
   type ProSubscriptionRow,
@@ -48,6 +50,7 @@ export default async function BillingPage() {
   const session = await requireSession();
   const user = session.user;
   const env = await getAppWebEnv();
+  if (isSelfHosted(env)) redirect("/recordings");
 
   const [subscription, grant, usedBytes, limits] = env?.DB
     ? await Promise.all([

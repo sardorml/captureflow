@@ -15,6 +15,7 @@ type Props = {
   appWebUrl: string;
   signOutReturnUrl?: string;
   themePreference?: ThemePreference;
+  selfHosted?: boolean;
 };
 
 export function ViewerUserMenu({
@@ -24,6 +25,7 @@ export function ViewerUserMenu({
   appWebUrl,
   signOutReturnUrl,
   themePreference,
+  selfHosted,
 }: Props) {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
@@ -40,7 +42,7 @@ export function ViewerUserMenu({
     router.refresh();
   };
 
-  const navItems = accountNavItems({ base: appWebUrl });
+  const navItems = accountNavItems({ base: appWebUrl, selfHosted });
 
   return (
     <AccountMenu

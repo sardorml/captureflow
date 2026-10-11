@@ -34,6 +34,7 @@ type Props = {
   theme: Theme;
   themePreference: ThemePreference;
   loginUrl: string;
+  selfHosted: boolean;
 };
 
 export function ScreenshotView({
@@ -58,6 +59,7 @@ export function ScreenshotView({
   theme,
   themePreference,
   loginUrl,
+  selfHosted,
 }: Props) {
   const headline = title?.trim() || `${PRODUCT_NAME} screenshot`;
   return (
@@ -101,6 +103,7 @@ export function ScreenshotView({
               imageUrl={viewerImageUrl ?? null}
               appWebUrl={APP_SITE_URL}
               themePreference={themePreference}
+              selfHosted={selfHosted}
             />
           ) : (
             <AuthPrompt marketingUrl={MARKETING_SITE_URL} loginUrl={loginUrl} />

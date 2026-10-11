@@ -96,5 +96,5 @@ export type { Hydrated, QuotaInput, StorageUnit } from "./input";
 export { ADMIN_ROLES, ROLE_SUMMARY, can } from "./roles";
 export type { AdminPermission, AdminRole, AdminStatus } from "./roles";
 
-export { STORAGE_PLANS } from "@captureflow/quota";
+export { STORAGE_PLANS, isSelfHosted } from "@captureflow/quota";
 export type { GrantedPlan } from "@captureflow/quota";

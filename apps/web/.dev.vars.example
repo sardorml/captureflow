@@ -35,6 +35,19 @@ BETTER_AUTH_URL=http://localhost:3000
 
 
 # -----------------------------------------------------------------------------
+# OPTIONAL — private company instance
+# -----------------------------------------------------------------------------
+
+# "true" removes the default storage cap and the idle-recording sweep, hides
+# billing, and sends the marketing pages to /login.
+SELF_HOSTED=
+
+# Comma-separated email domains allowed to sign up (Google/GitHub only, since
+# those verify the address). Empty = open sign-up.
+ALLOWED_EMAIL_DOMAINS=
+
+
+# -----------------------------------------------------------------------------
 # OPTIONAL — managed-tier billing (Lemon Squeezy)
 # Leave ALL of these empty to run fully self-hosted with billing disabled.
 # When unset, the lemon webhook returns "not configured" and the upgrade CTA

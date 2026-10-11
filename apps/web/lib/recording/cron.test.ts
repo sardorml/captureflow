@@ -121,6 +121,36 @@ describe("runDailyRetentionSweep", () => {
     expect(remaining()).toEqual(["comped-own", "trial-running-own"]);
   });
 
+  it("keeps idle uploads on a self-hosted instance but still clears failed ones", async () => {
+    addRecording("idle", "u1", null);
+    sqlite
+      .prepare(
+        `INSERT INTO recordings (slug, storage_key, state, last_viewed_at, created_at, user_id)
+         VALUES ('broken', 'videos/broken.mp4', 'failed', NULL, ?, 'u1')`,
+      )
+      .run(STALE);
+    sqlite
+      .prepare(
+        `INSERT INTO screenshots (id, storage_key, state, last_viewed_at, created_at, updated_at, user_id)
+         VALUES ('shot', 'screenshots/shot.png', 'ready', ?, ?, ?, 'u1')`,
+      )
+      .run(STALE, STALE, STALE);
+
+    await runDailyRetentionSweep({
+      DB: d1(sqlite),
+      BUCKET: bucket(),
+      SELF_HOSTED: "true",
+    });
+
+    expect(remaining()).toEqual(["idle"]);
+    expect(
+      sqlite
+        .prepare(`SELECT id FROM screenshots`)
+        .all()
+        .map((r) => r.id),
+    ).toEqual(["shot"]);
+  });
+
   it("expires everything idle when nobody pays", async () => {
     addRecording("a", "u1", null);
     addRecording("b", null, null);

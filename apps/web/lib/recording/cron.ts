@@ -1,6 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { ACCOUNT_LIMITS, listPaidUserIds } from "@captureflow/quota";
+import {
+  ACCOUNT_LIMITS,
+  isSelfHosted,
+  listPaidUserIds,
+} from "@captureflow/quota";
 import { createD1Db } from "./db-d1";
 import { objectKeysFor } from "./object-keys";
 import { screenshotObjectKeysFor } from "../screenshot-keys";
@@ -15,6 +19,7 @@ import { screenshotObjectKeysFor } from "../screenshot-keys";
 type CronEnv = {
   DB: D1Database;
   BUCKET: R2Bucket;
+  SELF_HOSTED?: string;
 };
 
 const STALE_PENDING_WINDOW_MS = ACCOUNT_LIMITS.multipartTtlSeconds * 1000;
@@ -95,7 +100,8 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
 
 export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
   const now = Date.now();
-  const retentionCutoff = now - RETENTION_MS;
+  // A cutoff of 0 matches no idle row, so self-hosting keeps only the cleanup arms.
+  const retentionCutoff = isSelfHosted(env) ? 0 : now - RETENTION_MS;
   const failedCutoff = now - FAILED_RETENTION_MS;
 
   // Paid storage is kept until the owner deletes it; the idle sweep only

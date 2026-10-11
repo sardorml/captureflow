@@ -242,7 +242,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
     },
     {
       label: "Self-hosting",
-      href: `${DOCS_URL}/self-hosting`,
+      href: `${DOCS_URL}/self-hosting/overview`,
       external: true,
       icon: <Server size={18} />,
       description: "Run it on your own Cloudflare",

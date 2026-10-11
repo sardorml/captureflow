@@ -1,6 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { ACCOUNT_LIMITS, storageBytesForVariant } from "./limits";
+import {
+  ACCOUNT_LIMITS,
+  storageBytesForVariant,
+  UNLIMITED_STORAGE_BYTES,
+} from "./limits";
 import {
   getActiveProSubscription,
   listActiveProUserIds,
@@ -39,14 +43,17 @@ export function resolveEffectiveLimits(input: {
   subscriptionVariantId: string | null;
   grant: GrantedPlan | null;
   nowMs: number;
+  selfHosted?: boolean;
 }): EffectiveLimits {
   const grant = isGrantActive(input.grant, input.nowMs) ? input.grant : null;
   const planBytes = [input.subscriptionVariantId, grant?.variantId]
     .filter((v): v is string => v != null)
     .map(storageBytesForVariant);
-  const baseStorage = planBytes.length
-    ? Math.max(...planBytes)
-    : ACCOUNT_LIMITS.totalStorageBytes;
+  const baseStorage = input.selfHosted
+    ? UNLIMITED_STORAGE_BYTES
+    : planBytes.length
+      ? Math.max(...planBytes)
+      : ACCOUNT_LIMITS.totalStorageBytes;
   return {
     storageBytes: input.storageBytesOverride ?? baseStorage,
     proSubscriptionActive: planBytes.length > 0,
@@ -117,6 +124,7 @@ export async function listPaidUserIds(db: D1Database): Promise<string[]> {
 export async function getEffectiveLimitsForUser(
   db: D1Database,
   userId: string,
+  options: { selfHosted?: boolean } = {},
 ): Promise<EffectiveLimits> {
   const [row, subscription] = await Promise.all([
     getQuotaRow(db, userId),
@@ -127,5 +135,6 @@ export async function getEffectiveLimitsForUser(
     subscriptionVariantId: subscription?.ls_variant_id ?? null,
     grant: grantFromRow(row),
     nowMs: Date.now(),
+    selfHosted: options.selfHosted,
   });
 }

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import {
   countWorkspaceRecordings,
+  isSelfHosted,
   listMembers,
   totalStorageForUser,
+  UNLIMITED_STORAGE_BYTES,
 } from "@captureflow/quota";
 import type { AvatarGroupItem } from "@captureflow/ui";
 import { BrandMark } from "@/components/brand-mark";
@@ -35,6 +37,7 @@ export async function Sidebar() {
       ])
     : [[], 0];
   const isOwner = current.role === "owner";
+  const selfHosted = isSelfHosted(env);
   const memberItems: AvatarGroupItem[] = members.map((m) => {
     const display = m.name?.trim() || m.email;
     return {
@@ -66,14 +69,15 @@ export async function Sidebar() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <SidebarNav isOwner={isOwner} />
+        <SidebarNav isOwner={isOwner} selfHosted={selfHosted} />
       </div>
 
       {/* Same 12px inset as the record button below, so the two line up. */}
       <div className="px-3 pt-3">
         <StorageUsage
           usedBytes={usedBytes}
-          limitBytes={limitBytes}
+          limitBytes={limitBytes >= UNLIMITED_STORAGE_BYTES ? null : limitBytes}
+          canUpgrade={!selfHosted}
           email={session.user.email}
           userId={session.user.id}
         />

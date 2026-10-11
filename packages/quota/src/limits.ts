@@ -16,6 +16,17 @@ export const ACCOUNT_LIMITS = {
 
 export type AccountLimits = typeof ACCOUNT_LIMITS;
 
+// Finite on purpose: JSON turns Infinity into null, which clients reject.
+export const UNLIMITED_STORAGE_BYTES = Number.MAX_SAFE_INTEGER;
+
+/*
+ * A self-hosted instance is a company's own tool on its own Cloudflare bill, so
+ * it has no default storage cap, no idle-recording sweep, and no billing UI.
+ */
+export function isSelfHosted(env: { SELF_HOSTED?: string } | null): boolean {
+  return env?.SELF_HOSTED === "true";
+}
+
 const GB = 1024 * 1024 * 1024;
 
 // Each Lemon Squeezy variant buys one storage size. The variant id is what the

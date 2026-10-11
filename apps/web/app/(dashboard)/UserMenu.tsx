@@ -17,6 +17,7 @@ type Props = {
   email: string;
   imageUrl: string | null;
   pro: AccountMenuProInfo | null;
+  selfHosted: boolean;
   themePreference: ThemePreference;
 };
 
@@ -25,6 +26,7 @@ export function UserMenu({
   email,
   imageUrl,
   pro,
+  selfHosted,
   themePreference,
 }: Props) {
   const router = useRouter();
@@ -38,7 +40,7 @@ export function UserMenu({
     router.replace("/login");
   };
 
-  const navItems = accountNavItems({ pro });
+  const navItems = accountNavItems({ pro, selfHosted });
 
   return (
     <AccountMenu

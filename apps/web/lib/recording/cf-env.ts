@@ -10,6 +10,7 @@ export type CloudflareBindings = {
   R2_PUBLIC_BASE_URL?: string;
   // Comma-separated device IDs that bypass per-device caps. Plaintext is fine: the device id is already long-random and is itself the /api/init auth token.
   DEV_DEVICE_IDS?: string;
+  SELF_HOSTED?: string;
 };
 
 export async function getCloudflareEnv(): Promise<CloudflareBindings | null> {

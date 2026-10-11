@@ -9,7 +9,8 @@ import { UpgradeModal } from "./(dashboard)/UpgradeModal";
 
 type StorageUsageProps = {
   usedBytes: number;
-  limitBytes: number;
+  limitBytes: number | null;
+  canUpgrade: boolean;
   email: string;
   userId: string;
 };
@@ -19,21 +20,34 @@ const NEAR_FULL = 0.8;
 export function StorageUsage({
   usedBytes,
   limitBytes,
+  canUpgrade,
   email,
   userId,
 }: StorageUsageProps) {
-  const upgrade = (label: string) => (
-    <UpgradeModal
-      email={email}
-      userId={userId}
-      trigger={
-        <Button variant="primary" size="sm" fullWidth className="mt-3">
-          <Sparkles size={14} />
-          {label}
-        </Button>
-      }
-    />
-  );
+  const upgrade = (label: string) =>
+    canUpgrade && (
+      <UpgradeModal
+        email={email}
+        userId={userId}
+        trigger={
+          <Button variant="primary" size="sm" fullWidth className="mt-3">
+            <Sparkles size={14} />
+            {label}
+          </Button>
+        }
+      />
+    );
+
+  if (limitBytes === null) {
+    return (
+      <Panel>
+        <Header />
+        <Typography type="body-xs" color="muted" className="mt-2 block">
+          <span className="tabular-nums">{formatBytes(usedBytes)}</span> used
+        </Typography>
+      </Panel>
+    );
+  }
 
   if (limitBytes <= 0) {
     return (

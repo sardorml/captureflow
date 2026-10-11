@@ -4,6 +4,7 @@ import { Button } from "@heroui/react";
 import {
   getActiveGrantedPlan,
   getActiveProSubscription,
+  isSelfHosted,
 } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
@@ -30,6 +31,7 @@ export async function TopBar() {
   const themePreference = readThemePreferenceFromCookieHeader(cookieHeader);
 
   const isPro = subscription?.status === "active" || grant !== null;
+  const selfHosted = isSelfHosted(env);
 
   return (
     <div className="flex w-full items-center justify-between gap-4">
@@ -40,7 +42,7 @@ export async function TopBar() {
       {/* ml-auto because below md the search slot is display:none, which leaves
           justify-between a single child to push around. */}
       <div className="ml-auto flex items-center gap-2">
-        {!isPro && (
+        {!isPro && !selfHosted && (
           <UpgradeModal
             email={session.user.email}
             userId={session.user.id}
@@ -60,6 +62,7 @@ export async function TopBar() {
           name={session.user.name ?? null}
           email={session.user.email}
           imageUrl={userImage}
+          selfHosted={selfHosted}
           pro={
             subscription
               ? { status: subscription.status }

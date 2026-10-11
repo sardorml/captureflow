@@ -71,17 +71,19 @@ export function AuthForm({
   next,
   initialMode = "signin",
   invite = null,
+  initialError = null,
 }: {
   next: string;
   initialMode?: Mode;
   invite?: InviteContext | null;
+  initialError?: string | null;
 }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [step, setStep] = useState<Step>("email");
   // Prefilled, not locked: accepting needs this exact address, but someone who
   // types a different one gets told so by the invite page itself.
   const [email, setEmail] = useState(invite?.email ?? "");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
   const [busy, setBusy] = useState(false);
   const [busyProvider, setBusyProvider] = useState<SocialProvider | null>(null);
 
@@ -92,7 +94,11 @@ export function AuthForm({
     setBusy(true);
     setBusyProvider(provider);
     try {
-      const res = await signIn.social({ provider, callbackURL: next });
+      const res = await signIn.social({
+        provider,
+        callbackURL: next,
+        errorCallbackURL: `/login?next=${encodeURIComponent(next)}`,
+      });
       if (res.error) {
         setError(
           res.error.message ?? "Something went wrong. Please try again.",

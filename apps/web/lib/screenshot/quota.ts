@@ -8,6 +8,7 @@ import {
   getCurrentWorkspaceId,
   getPersonalWorkspaceForUser,
   getWorkspaceById,
+  isSelfHosted,
   isWorkspaceMember,
   totalStorageForUser as totalStorageForUserD1,
 } from "@captureflow/quota";
@@ -26,7 +27,9 @@ export async function getEffectiveLimitsForUser(
       proSubscriptionActive: false,
     };
   }
-  return getEffectiveLimitsForUserD1(env.DB, userId);
+  return getEffectiveLimitsForUserD1(env.DB, userId, {
+    selfHosted: isSelfHosted(env),
+  });
 }
 
 export async function totalStorageForUser(userId: string): Promise<number> {
