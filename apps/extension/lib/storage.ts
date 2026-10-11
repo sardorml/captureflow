@@ -33,8 +33,6 @@ export type RecordingResultPayload =
   | { ok: true; url: string; bytes: number; durationMs: number }
   | { ok: false; error: string; code?: string };
 
-export type RecordingResult = RecordingResultPayload & { at: number };
-
 // Marker for the recording being uploaded right now; a marker that outlives
 // its offscreen document is a crashed upload the SW aborts server-side.
 export type ActiveUpload = {
@@ -52,11 +50,6 @@ export type ActiveUpload = {
 const recordingStatusItem = storage.defineItem<RecordingStatus>(
   "local:recordingStatus",
   { fallback: { kind: "idle" } },
-);
-
-const recordingResultItem = storage.defineItem<RecordingResult | null>(
-  "local:recordingResult",
-  { fallback: null },
 );
 
 const capturePrefsItem = storage.defineItem<CapturePrefs>(
@@ -81,15 +74,6 @@ export const setRecordingStatus = (status: RecordingStatus): Promise<void> =>
 export const watchRecordingStatus = (
   cb: (status: RecordingStatus) => void,
 ): (() => void) => recordingStatusItem.watch(cb);
-
-export const getRecordingResult = (): Promise<RecordingResult | null> =>
-  recordingResultItem.getValue();
-export const saveRecordingResult = (
-  result: RecordingResultPayload,
-): Promise<void> => recordingResultItem.setValue({ ...result, at: Date.now() });
-export const watchRecordingResult = (
-  cb: (result: RecordingResult | null) => void,
-): (() => void) => recordingResultItem.watch(cb);
 
 export const getCapturePrefs = (): Promise<CapturePrefs> =>
   capturePrefsItem.getValue();

@@ -5,7 +5,6 @@ import {
   setCapturePrefs,
   watchCapturePrefs,
   type CaptureSource,
-  type RecordingResult,
   type RecordingStatus,
 } from "@/lib/storage";
 import { uploadPercent } from "@/lib/format";
@@ -15,7 +14,6 @@ import { PANEL_ROW } from "./panel";
 
 type RecorderPanelProps = {
   status: RecordingStatus;
-  result: RecordingResult | null;
   onStart: () => void;
   onStop: () => void;
 };
@@ -205,13 +203,7 @@ export function ResultLink({ url, label }: { url: string; label: string }) {
   );
 }
 
-function StatusLine({
-  status,
-  result,
-}: {
-  status: RecordingStatus;
-  result: RecordingResult | null;
-}) {
+function StatusLine({ status }: { status: RecordingStatus }) {
   switch (status.kind) {
     case "preparing":
       return (
@@ -246,21 +238,11 @@ function StatusLine({
         </Typography>
       );
     default:
-      if (result?.ok) {
-        return (
-          <ResultLink url={result.url} label="Your recording link is ready" />
-        );
-      }
       return null;
   }
 }
 
-export function RecorderPanel({
-  status,
-  result,
-  onStart,
-  onStop,
-}: RecorderPanelProps) {
+export function RecorderPanel({ status, onStart, onStop }: RecorderPanelProps) {
   const isLive = status.kind === "recording" || status.kind === "paused";
   const isBusy = status.kind === "preparing" || status.kind === "uploading";
 
@@ -293,7 +275,7 @@ export function RecorderPanel({
           {BUSY_LABEL[status.kind] ?? "Start Recording"}
         </Button>
       )}
-      <StatusLine status={status} result={result} />
+      <StatusLine status={status} />
     </div>
   );
 }

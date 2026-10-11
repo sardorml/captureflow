@@ -14,11 +14,8 @@ import { WEB_BASE } from "@/lib/config";
 import {
   getCameraBlocked,
   getCapturePrefs,
-  getRecordingResult,
   getRecordingStatus,
-  watchRecordingResult,
   watchRecordingStatus,
-  type RecordingResult,
   type RecordingStatus,
 } from "@/lib/storage";
 import { closeSurface, isOverlaySurface } from "@/lib/surface";
@@ -125,7 +122,6 @@ const CLOSE_ICON = (
 export function App() {
   const [auth, setAuth] = useState<AuthState>("loading");
   const [status, setStatus] = useState<RecordingStatus>({ kind: "idle" });
-  const [result, setResult] = useState<RecordingResult | null>(null);
   const [reason, setReason] = useState<SignedOutReason | null>(null);
   const mode = useRef<Key>("video");
 
@@ -133,7 +129,6 @@ export function App() {
     void getAuthSession().then(setAuth);
     void getSignedOutReason().then(setReason);
     void getRecordingStatus().then(setStatus);
-    void getRecordingResult().then(setResult);
     // A drop can land while the panel is open — from the service worker acting
     // on a dashboard tab, or from the probe below — so the reason is re-read
     // rather than captured once.
@@ -142,11 +137,9 @@ export function App() {
       if (!next) void getSignedOutReason().then(setReason);
     });
     const unwatchStatus = watchRecordingStatus(setStatus);
-    const unwatchResult = watchRecordingResult(setResult);
     return () => {
       unwatchAuth();
       unwatchStatus();
-      unwatchResult();
     };
   }, []);
 
@@ -274,12 +267,7 @@ export function App() {
       </header>
 
       <Tabs.Panel id="video" className="min-w-0">
-        <RecorderPanel
-          status={status}
-          result={result}
-          onStart={onStart}
-          onStop={onStop}
-        />
+        <RecorderPanel status={status} onStart={onStart} onStop={onStop} />
       </Tabs.Panel>
       <Tabs.Panel id="screenshot" className="min-w-0">
         <ScreenshotPanel />
