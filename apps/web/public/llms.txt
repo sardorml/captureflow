@@ -9,6 +9,7 @@
 - [Download](https://captureflow.dev/download): Install the Chrome extension
 - [FAQ](https://captureflow.dev/faq): Sharing, storage, privacy and self-hosting questions
 - [CaptureFlow vs Loom](https://captureflow.dev/alternatives/loom): Feature and price comparison
+- [Enterprise](https://captureflow.dev/enterprise): Managed hosting with more than 1 TB of storage, priced per company with no per-seat fees
 - [Self-hosting setup service](https://captureflow.dev/self-host-setup): We set up CaptureFlow on a company's own Cloudflare account
 
 ## Guides

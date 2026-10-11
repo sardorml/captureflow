@@ -6,6 +6,7 @@ import {
   Building2,
   ChevronsUpDown,
   LayoutDashboard,
+  Inbox,
   LogOut,
   Mail,
   Monitor,
@@ -34,6 +35,7 @@ const ICONS = {
   users: Users,
   workspaces: Building2,
   emails: Mail,
+  inbox: Inbox,
   audit: ScrollText,
   admins: ShieldCheck,
 } as const;

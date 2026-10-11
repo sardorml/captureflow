@@ -14,11 +14,7 @@ import {
   TextField,
   buttonVariants,
 } from "@heroui/react";
-import {
-  FEATURE_CATEGORIES,
-  FORMSUBMIT_URL,
-  SUPPORT_EMAIL,
-} from "@/lib/marketing/constants";
+import { FEATURE_CATEGORIES, SUPPORT_EMAIL } from "@/lib/marketing/constants";
 import { cn } from "@/lib/utils";
 import {
   MarketingSection,
@@ -28,38 +24,27 @@ import {
   LANDING_FORM_FIELDS,
   PillChoice,
 } from "@/components/marketing/form-parts";
+import { submitSuggestionAction } from "./actions";
 
 export function SuggestFeatureClient() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     setLoading(true);
-    setError(false);
+    setError(null);
     try {
-      const res = await fetch(FORMSUBMIT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: String(data.get("name") ?? ""),
-          email: String(data.get("email") ?? ""),
-          category: String(data.get("category") ?? ""),
-          title: String(data.get("title") ?? ""),
-          description: String(data.get("description") ?? ""),
-          _subject: "New feature suggestion (CaptureFlow)",
-          _template: "table",
-        }),
-      });
-      if (!res.ok) {
-        setError(true);
-        return;
-      }
-      setSubmitted(true);
+      const result = await submitSuggestionAction(
+        { error: null, sent: false },
+        data,
+      );
+      if (result.sent) setSubmitted(true);
+      else setError(result.error);
     } catch {
-      setError(true);
+      setError("Your idea couldn\u2019t be sent. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -132,6 +117,15 @@ export function SuggestFeatureClient() {
               <Input placeholder="A short title for your idea" />
             </TextField>
 
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden
+              className="hidden"
+            />
+
             <TextField name="description" isRequired fullWidth>
               <Label>Description</Label>
               <TextArea
@@ -155,8 +149,7 @@ export function SuggestFeatureClient() {
               <Alert status="danger">
                 <Alert.Content>
                   <Alert.Description>
-                    Your idea couldn&rsquo;t be sent. Please try again, or email
-                    me directly at{" "}
+                    {error} You can also email me directly at{" "}
                     <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
                   </Alert.Description>
                 </Alert.Content>
