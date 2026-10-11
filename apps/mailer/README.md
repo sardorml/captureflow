@@ -46,9 +46,11 @@ never leaves D1: Resend only receives each email as it is sent.
 
 ```sh
 cp .dev.vars.example .dev.vars
-pnpm --filter @captureflow/mailer exec wrangler dev --persist-to ../web/.wrangler/state
+pnpm --filter @captureflow/mailer dev   # http://localhost:8787
 ```
 
-`--persist-to` points it at the web app's local database. The admin panel's
-local queue doesn't reach this process, so local sends are covered by the
-tests (`pnpm --filter @captureflow/mailer test`), not by clicking.
+It uses the web app's local database. Admin's local queue can't reach this
+process, so add `MAILER_DEV_URL=http://localhost:8787` to
+`apps/admin/.dev.vars`: admin then posts messages to the mailer's dev-only
+`/dev/queue` route (on only with `MAILER_DEV_INBOX=1`), and test and real sends
+go out through Resend for real.

@@ -19,6 +19,7 @@ export type MailerEnv = {
   MAIL_UNSUBSCRIBE_SECRET?: string;
   MAILER_BASE_URL: string;
   MAIL_FROM: string;
+  MAILER_DEV_INBOX?: string;
 };
 
 async function compose(

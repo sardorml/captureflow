@@ -58,7 +58,9 @@ pnpm --filter @captureflow/admin-app dev   # http://localhost:3034
 ```
 
 Secrets come from `apps/admin/.dev.vars` (gitignored). Paths match the deployed
-host one-for-one — there is no path prefix in either environment.
+host one-for-one — there is no path prefix in either environment. Add
+`ADMIN_BASE_URL=http://localhost:3034` there too, or invite links point at the
+production host set in `wrangler.jsonc`.
 
 Dev reads `apps/web/.wrangler/state/v3` rather than its own miniflare state, so
 you administer the same local database the web app is writing — the schema and

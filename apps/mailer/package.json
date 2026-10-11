@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --persist-to ../web/.wrangler/state",
     "build": "wrangler deploy --dry-run --outdir dist",
     "cf:deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
