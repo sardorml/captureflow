@@ -110,7 +110,7 @@ export function TextRow({
   autoComplete?: string;
   autoFocus?: boolean;
   placeholder?: string;
-  inputMode?: "numeric";
+  inputMode?: "numeric" | "decimal";
 }) {
   return (
     <TextField

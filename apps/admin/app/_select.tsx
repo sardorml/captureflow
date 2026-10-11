@@ -32,3 +32,34 @@ export function RoleSelect({
     </Select>
   );
 }
+
+export function OptionSelect({
+  name,
+  label,
+  defaultValue,
+  options,
+  className,
+}: {
+  name: string;
+  label: string;
+  defaultValue: string;
+  options: readonly { id: string; label: string }[];
+  className?: string;
+}) {
+  return (
+    <Select name={name} defaultSelectedKey={defaultValue} aria-label={label}>
+      <Select.Trigger className={className ?? "min-w-[140px]"}>
+        <Select.Value />
+      </Select.Trigger>
+      <Select.Popover>
+        <ListBox>
+          {options.map((o) => (
+            <ListBox.Item key={o.id} id={o.id} textValue={o.label}>
+              {o.label}
+            </ListBox.Item>
+          ))}
+        </ListBox>
+      </Select.Popover>
+    </Select>
+  );
+}

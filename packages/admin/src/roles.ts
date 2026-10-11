@@ -18,8 +18,8 @@ const ROLE_PERMISSIONS: Record<AdminRole, readonly AdminPermission[]> = {
 
 export const ROLE_SUMMARY: Record<AdminRole, string> = {
   owner: "Everything, including managing admins.",
-  admin: "View users and change their quotas.",
-  viewer: "Read-only access to users and the audit log.",
+  admin: "View users and workspaces, and change storage and plans.",
+  viewer: "Read-only access to users, workspaces and the audit log.",
 };
 
 export function can(role: AdminRole, permission: AdminPermission): boolean {
