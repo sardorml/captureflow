@@ -50,6 +50,10 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // The roadmap page is gone; old links and search results land on the homepage.
+  async redirects() {
+    return [{ source: "/roadmap", destination: "/", permanent: true }];
+  },
   async rewrites() {
     return [
       {

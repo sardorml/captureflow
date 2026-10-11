@@ -11,7 +11,6 @@ const ROUTES = [
   "/pricing",
   "/alternatives/loom",
   "/faq",
-  "/roadmap",
   "/download",
   "/privacy",
   "/terms",

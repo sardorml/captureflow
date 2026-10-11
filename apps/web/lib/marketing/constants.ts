@@ -267,78 +267,6 @@ export const FAQ_ITEMS: { question: string; answer: string }[] = [
   ...MESSAGES.faq.items,
 ];
 
-export const ROADMAP_GROUPS = [
-  {
-    title: "Backlog",
-    subtitle: "On the radar, not scheduled yet.",
-    items: [
-      {
-        label: "AI summaries & chapters",
-        description:
-          "Auto-generate a title, summary, and chapters from every recording.",
-        category: "Share",
-      },
-      {
-        label: "Filler-word & silence removal",
-        description:
-          "Automatically cut 'ums', 'uhs', and dead air from your recording.",
-        category: "Record",
-      },
-      {
-        label: "Transcripts & translations",
-        description:
-          "AI transcripts with one-click translation into other languages.",
-        category: "Share",
-      },
-      {
-        label: "Repo-wide code refactor",
-        description:
-          "A pass over the whole codebase to tighten the structure and cut duplication before the next wave of features.",
-        category: "Core",
-      },
-    ],
-    badgeClass: "text-neutral-400",
-    markerIcon: "bookmark",
-    markerClass: "text-neutral-400",
-  },
-  {
-    title: "To Do",
-    subtitle: "The next few months, by priority.",
-    items: [
-      {
-        label: "Windows support",
-        description:
-          "Bring CaptureFlow's recording and instant share links to Windows.",
-        category: "Core",
-      },
-      {
-        label: "Firefox extension",
-        description:
-          "The same in-page recorder and instant share links, packaged for Firefox.",
-        category: "Core",
-      },
-    ],
-    badgeClass: "text-neutral-500",
-    markerIcon: "bolt",
-    markerClass: "text-neutral-500",
-  },
-  {
-    title: "In Progress",
-    subtitle: "Features I'm actively working on.",
-    items: [
-      {
-        label: "macOS app",
-        description:
-          "A menu bar app with the same recorder and the same instant share link, for anything outside the browser.",
-        category: "Core",
-      },
-    ],
-    badgeClass: "text-neutral-500",
-    markerIcon: "check_circle",
-    markerClass: "text-neutral-500",
-  },
-] as const;
-
 export const FEATURE_HIGHLIGHTS = [
   {
     label: "Three capture modes",
@@ -385,7 +313,6 @@ const ALL_NAV_LINKS: { href: string; label: string }[] = [
   { href: "#modes", label: "Features" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
-  { href: "#roadmap", label: "Roadmap" },
 ];
 
 // No dedicated X/Telegram presence yet — these point at GitHub and docs.
