@@ -426,7 +426,7 @@ export const MESSAGES = {
   cta: {
     headline: "Ready to record?",
     subtitle:
-      "Free download. No credit card. Self-host on your own Cloudflare account, or let us run it for you with the managed plan.",
+      "Free download. No credit card. Say it in a quick video message instead of another meeting.",
     button: "Try CaptureFlow for free",
   },
   sectionHeader: {
