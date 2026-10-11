@@ -6,10 +6,21 @@ known cleanup backlog (and the "do NOT apply" design-pattern list).
 
 ## Repo map
 
-pnpm + nx monorepo. `apps/web` (Next.js 16 + OpenNext/Cloudflare), `apps/desktop`
-(Electron), `packages/{ui,quota,shared}`. Apps depend on packages, never the reverse;
-apps never depend on each other. The `recording` and `screenshot` domains are deliberately
-forked under `lib/recording/` and `lib/screenshot/` — keep them separate.
+pnpm + nx monorepo.
+
+- `apps/web` — Next.js 16 + OpenNext on Cloudflare Workers (D1 + R2): landing, blog,
+  dashboard, viewers, API.
+- `apps/admin` — instance-admin Worker on its own host, same D1/R2 (see its README).
+- `apps/extension` — WXT/MV3 Chrome extension recorder.
+- `apps/desktop` — Electron macOS recorder.
+- `apps/docs` — VitePress docs site.
+- `packages/engine` — capture pipeline shared by desktop + extension (MIT; Swift sidecar).
+- `packages/admin` — admin auth/data logic behind `apps/admin`.
+- `packages/{quota,ui,shared}`.
+
+Apps depend on packages, never the reverse; apps never depend on each other. The
+`recording` and `screenshot` domains are deliberately forked under `lib/recording/` and
+`lib/screenshot/` — keep them separate.
 
 ## Non-negotiables
 
@@ -29,8 +40,22 @@ forked under `lib/recording/` and `lib/screenshot/` — keep them separate.
 ## Commands
 
 - Typecheck (all): `pnpm typecheck`
-- Test (web): `pnpm --filter @captureflow/web test`
-- Build (web): `pnpm --filter @captureflow/web build`
+- Test: `pnpm --filter @captureflow/web test` · `@captureflow/extension test` ·
+  `@captureflow/engine test` · `@captureflow/admin test`
+- Build (web): `pnpm --filter @captureflow/web build` — never while `next dev` serves
+  `apps/web`; it corrupts `.next`.
+- Extension store zip: `pnpm --filter @captureflow/extension zip`
 - Format: `pnpm format`
+
+## Gotchas
+
+- After editing `packages/engine/**/*.swift`, run `packages/engine/scripts/build-native.sh`
+  and commit the rebuilt binaries.
+- Signed-out visitors are sent to `/login` only for paths listed in
+  `apps/web/lib/app-routes.ts`; any other unknown path is a 404. Add new dashboard
+  routes there.
+- Blog posts are Markdown in `apps/web/content/blog/`: register each in
+  `apps/web/lib/blog/posts.ts`, run `python3 scripts/gen-blog-images.py` for its preview
+  image, and add it to `apps/web/public/llms.txt`.
 
 Work on a branch, not `main`. Commit/push only when asked.
