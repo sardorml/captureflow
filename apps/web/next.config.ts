@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
      */
     turbopackFileSystemCacheForDev: false,
   },
+  turbopack: {
+    rules: { "*.md": { loaders: ["raw-loader"], as: "*.js" } },
+  },
   skipTrailingSlashRedirect: true,
   poweredByHeader: false,
   /*

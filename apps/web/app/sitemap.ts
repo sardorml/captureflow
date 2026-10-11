@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { POSTS } from "@/lib/blog/posts";
 import { SITE_URL } from "@/lib/marketing/constants";
 
 /*
@@ -18,12 +19,16 @@ const ROUTES = [
   "/security",
   "/suggest-feature",
   "/self-host-setup",
+  "/blog",
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
-  return ROUTES.map((route) => ({
-    url: `${SITE_URL}${route}`,
-    lastModified,
-  }));
+  return [
+    ...ROUTES.map((route) => ({ url: `${SITE_URL}${route}`, lastModified })),
+    ...POSTS.map((post) => ({
+      url: `${SITE_URL}/blog/${post.slug}`,
+      lastModified: new Date(`${post.date}T00:00:00Z`),
+    })),
+  ];
 }
