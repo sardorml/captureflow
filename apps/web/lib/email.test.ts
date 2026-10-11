@@ -69,7 +69,7 @@ describe("sendAccessRequestEmail", () => {
 });
 
 describe("sendWelcomeEmail", () => {
-  it("greets by first name and links the extension, app and dashboard", async () => {
+  it("greets by first name and links the extension and dashboard", async () => {
     await sendWelcomeEmail({
       to: "new@example.com",
       name: "Alex <b>Kim</b>",
@@ -82,7 +82,6 @@ describe("sendWelcomeEmail", () => {
     expect(html).not.toContain("<b>");
     for (const part of [html, text]) {
       expect(part).toContain(CHROME_EXTENSION_URL);
-      expect(part).toContain("https://captureflow.dev/download");
       expect(part).toContain("https://captureflow.dev/recordings");
     }
   });

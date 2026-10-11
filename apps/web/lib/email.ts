@@ -209,7 +209,6 @@ export async function sendWelcomeEmail(args: {
   const greeting = first ? `Hi ${first},` : "Hi there,";
   const base = args.appUrl.replace(/\/+$/, "");
   const recordingsUrl = `${base}/recordings`;
-  const downloadUrl = `${base}/download`;
 
   const text = [
     greeting,
@@ -219,7 +218,6 @@ export async function sendWelcomeEmail(args: {
     ...WELCOME_POINTS.map(([title, body]) => `- ${title}: ${body}`),
     "",
     `Add CaptureFlow to Chrome: ${CHROME_EXTENSION_URL}`,
-    `Get the Mac app: ${downloadUrl}`,
     `Open your recordings: ${recordingsUrl}`,
   ].join("\n");
 
@@ -249,7 +247,7 @@ export async function sendWelcomeEmail(args: {
             <a href="${CHROME_EXTENSION_URL}" style="display:inline-block; padding:12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600;">Add to Chrome</a>
           </p>
           <p style="margin:0; font-size:14px; color:#5c5650;">
-            On a Mac? <a href="${escapeHtml(downloadUrl)}" style="color:#2563eb;">Get the desktop app</a>. Or <a href="${escapeHtml(recordingsUrl)}" style="color:#2563eb;">open your recordings</a>.
+            Or <a href="${escapeHtml(recordingsUrl)}" style="color:#2563eb;">open your recordings</a>.
           </p>
         </td>
       </tr>
