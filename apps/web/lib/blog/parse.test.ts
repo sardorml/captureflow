@@ -47,3 +47,38 @@ describe("parsePost", () => {
     expect(() => parsePost("bad", "# no frontmatter")).toThrow(/bad/);
   });
 });
+
+describe("extractFaq", () => {
+  it("pairs each question heading with its answer as plain text", () => {
+    const post = parsePost(
+      "faq",
+      `---
+title: T
+description: D
+date: 2026-10-11
+---
+
+## Frequently asked questions
+
+### Is it free?
+
+Yes, it's **open source**. See [the guide](/blog/x).
+
+### Not a question
+
+Skipped.
+
+### Can I move?
+
+Download and upload.
+`,
+    );
+    expect(post.faq).toEqual([
+      {
+        question: "Is it free?",
+        answer: "Yes, it's open source. See the guide.",
+      },
+      { question: "Can I move?", answer: "Download and upload." },
+    ]);
+  });
+});

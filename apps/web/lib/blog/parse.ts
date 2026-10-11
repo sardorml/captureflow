@@ -5,6 +5,7 @@ export type BlogPost = {
   date: string;
   readMinutes: number;
   toc: { id: string; title: string }[];
+  faq: { question: string; answer: string }[];
   markdown: string;
 };
 
@@ -38,6 +39,25 @@ function withoutCodeBlocks(markdown: string): string {
   return markdown.replace(/```[\s\S]*?```/g, "");
 }
 
+function plainText(markdown: string): string {
+  return markdown
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[*_`]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function extractFaq(
+  markdown: string,
+): { question: string; answer: string }[] {
+  return [
+    ...markdown.matchAll(/^### (.+\?)\s*\n([\s\S]*?)(?=^#{2,3} |(?![\s\S]))/gm),
+  ].map(([, question, answer]) => ({
+    question: question.trim(),
+    answer: plainText(answer),
+  }));
+}
+
 export function parsePost(slug: string, source: string): BlogPost {
   const { fields, markdown } = splitFrontmatter(source);
   const { title, description, date } = fields;
@@ -57,6 +77,7 @@ export function parsePost(slug: string, source: string): BlogPost {
     date,
     readMinutes: Math.max(1, Math.round(words / WORDS_PER_MINUTE)),
     toc,
+    faq: extractFaq(prose),
     markdown,
   };
 }

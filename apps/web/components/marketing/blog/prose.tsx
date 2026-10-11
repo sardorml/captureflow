@@ -1,6 +1,7 @@
 import { isValidElement, type ReactNode } from "react";
 import NextLink from "next/link";
 import Markdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { slugify } from "@/lib/blog/parse";
 
 function textOf(node: ReactNode): string {
@@ -25,7 +26,29 @@ const COMPONENTS: Components = {
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 className="mt-12 mb-4 text-xl font-semibold text-fg">{children}</h3>
+    <h3
+      id={slugify(textOf(children))}
+      className="mt-12 mb-4 scroll-mt-28 text-xl font-semibold text-fg"
+    >
+      {children}
+    </h3>
+  ),
+  table: ({ children }) => (
+    <div className="my-8 overflow-x-auto rounded-2xl bg-panel">
+      <table className="w-full min-w-120 border-collapse text-left text-[15px] leading-snug">
+        {children}
+      </table>
+    </div>
+  ),
+  th: ({ children }) => (
+    <th className="border-b border-fg/10 px-5 py-4 font-semibold whitespace-nowrap text-fg">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="border-b border-fg/5 px-5 py-4 text-fg/80 first:whitespace-nowrap [tr:last-child_&]:border-0">
+      {children}
+    </td>
   ),
   p: ({ children }) => (
     <p className="my-6 text-[18px] leading-[1.8] text-fg/85">{children}</p>
@@ -71,5 +94,9 @@ const COMPONENTS: Components = {
 };
 
 export function PostBody({ markdown }: { markdown: string }) {
-  return <Markdown components={COMPONENTS}>{markdown}</Markdown>;
+  return (
+    <Markdown components={COMPONENTS} remarkPlugins={[remarkGfm]}>
+      {markdown}
+    </Markdown>
+  );
 }

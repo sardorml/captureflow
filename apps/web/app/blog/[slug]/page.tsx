@@ -70,6 +70,19 @@ export default async function BlogPostPage({ params }: Params) {
               logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
             },
           },
+          ...(post.faq.length > 0
+            ? [
+                {
+                  "@context": "https://schema.org",
+                  "@type": "FAQPage",
+                  mainEntity: post.faq.map((item) => ({
+                    "@type": "Question",
+                    name: item.question,
+                    acceptedAnswer: { "@type": "Answer", text: item.answer },
+                  })),
+                },
+              ]
+            : []),
           {
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
