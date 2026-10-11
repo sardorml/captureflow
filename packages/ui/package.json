@@ -11,7 +11,8 @@
     "./cn": "./src/lib/cn.ts",
     "./grid-loader": "./src/ui/grid-loader.tsx",
     "./avatar-group": "./src/ui/avatar-group.tsx",
-    "./visibility-picker": "./src/ui/visibility-picker.tsx"
+    "./visibility-picker": "./src/ui/visibility-picker.tsx",
+    "./theme": "./src/lib/theme.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
