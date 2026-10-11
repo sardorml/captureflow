@@ -10,11 +10,11 @@ in the other.
 
 ## Roles
 
-| Role     | Can                                                |
-| -------- | -------------------------------------------------- |
-| `owner`  | Everything, including inviting and removing admins |
-| `admin`  | View users and change their quota overrides        |
-| `viewer` | Read-only access to users and the audit log        |
+| Role     | Can                                                                                      |
+| -------- | ---------------------------------------------------------------------------------------- |
+| `owner`  | Everything, including inviting and removing admins                                       |
+| `admin`  | View users and workspaces; grant plans, set storage overrides, sign users out everywhere |
+| `viewer` | Read-only access to users, workspaces and the audit log                                  |
 
 Only owners manage admins, and nobody can change or remove their own account —
 that is what keeps a deployment from ending up with no owner.

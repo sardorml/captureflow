@@ -1,7 +1,10 @@
 import { Sparkles } from "lucide-react";
 import { headers } from "next/headers";
 import { Button } from "@heroui/react";
-import { getActiveProSubscription } from "@captureflow/quota";
+import {
+  getActiveGrantedPlan,
+  getActiveProSubscription,
+} from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { readThemePreferenceFromCookieHeader } from "@captureflow/ui";
@@ -13,19 +16,20 @@ import { UserMenu } from "./UserMenu";
 export async function TopBar() {
   const session = await requireSession();
   const env = await getAppWebEnv();
-  const [subscription, userRow] = env?.DB
+  const [subscription, grant, userRow] = env?.DB
     ? await Promise.all([
         getActiveProSubscription(env.DB, session.user.id),
+        getActiveGrantedPlan(env.DB, session.user.id),
         env.DB.prepare(`SELECT image FROM users WHERE id = ?1 LIMIT 1`)
           .bind(session.user.id)
           .first<{ image: string | null }>(),
       ])
-    : [null, null];
+    : [null, null, null];
   const userImage = userRow?.image ?? null;
   const cookieHeader = (await headers()).get("cookie");
   const themePreference = readThemePreferenceFromCookieHeader(cookieHeader);
 
-  const isPro = subscription?.status === "active";
+  const isPro = subscription?.status === "active" || grant !== null;
 
   return (
     <div className="flex w-full items-center justify-between gap-4">
@@ -58,11 +62,10 @@ export async function TopBar() {
           imageUrl={userImage}
           pro={
             subscription
-              ? {
-                  cycle: subscription.cycle,
-                  status: subscription.status,
-                }
-              : null
+              ? { status: subscription.status }
+              : grant
+                ? { status: "granted" }
+                : null
           }
         />
       </div>

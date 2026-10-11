@@ -126,7 +126,7 @@ CREATE TABLE user_quotas (
   storage_bytes_override INTEGER,
   note                   TEXT,
   updated_at             INTEGER NOT NULL
-) STRICT;
+, granted_plan_variant_id TEXT, granted_plan_expires_at INTEGER) STRICT;
 CREATE TABLE screenshots (
   id              TEXT PRIMARY KEY,
   

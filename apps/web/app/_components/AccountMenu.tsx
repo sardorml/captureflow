@@ -15,7 +15,6 @@ import { SUPPORT_EMAIL } from "@/lib/marketing/constants";
 import { ThemeSegments } from "./ThemeSegments";
 
 export type AccountMenuProInfo = {
-  cycle: "monthly" | "annual";
   status: string;
 };
 

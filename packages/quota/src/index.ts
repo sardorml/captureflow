@@ -4,11 +4,19 @@ export {
   storageBytesForVariant,
 } from "./limits";
 export type { AccountLimits, StoragePlan } from "./limits";
-export { getEffectiveLimitsForUser } from "./user-quotas";
-export type { EffectiveLimits } from "./user-quotas";
+export {
+  getActiveGrantedPlan,
+  getEffectiveLimitsForUser,
+  isGrantActive,
+  listActiveGrantedUserIds,
+  listPaidUserIds,
+  resolveEffectiveLimits,
+} from "./user-quotas";
+export type { EffectiveLimits, GrantedPlan } from "./user-quotas";
 export { totalStorageForUser } from "./totals";
 export {
   getActiveProSubscription,
+  isProActive,
   listActiveProUserIds,
   pickActiveProUserIds,
   getUnclaimedProSubscriptionByEmail,

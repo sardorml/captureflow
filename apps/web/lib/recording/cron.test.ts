@@ -55,6 +55,15 @@ function subscribe(userId: string, status: string) {
     .run(`sub-${userId}`, userId, status);
 }
 
+function grant(userId: string, expiresAt: number | null) {
+  sqlite
+    .prepare(
+      `INSERT INTO user_quotas (user_id, granted_plan_variant_id, granted_plan_expires_at, updated_at)
+       VALUES (?, '1849425', ?, 1)`,
+    )
+    .run(userId, expiresAt);
+}
+
 const remaining = () =>
   sqlite
     .prepare(`SELECT slug FROM recordings ORDER BY slug`)
@@ -75,6 +84,9 @@ beforeEach(() => {
       ls_variant_id TEXT, ls_customer_id TEXT, ls_customer_email TEXT, status TEXT,
       cycle TEXT, current_period_end INTEGER, cancelled_at INTEGER,
       created_at INTEGER, updated_at INTEGER);
+    CREATE TABLE user_quotas (user_id TEXT PRIMARY KEY, storage_bytes_override INTEGER,
+      note TEXT, updated_at INTEGER, granted_plan_variant_id TEXT,
+      granted_plan_expires_at INTEGER);
   `);
   deleted = [];
 });
@@ -94,6 +106,19 @@ describe("runDailyRetentionSweep", () => {
 
     expect(remaining()).toEqual(["member-in-paid-workspace", "paid-own"]);
     expect(deleted).toContain("videos/free-own.mp4");
+  });
+
+  it("keeps idle recordings of accounts with a granted plan until it ends", async () => {
+    grant("comped", null);
+    grant("trial-ended", Date.now() - DAY_MS);
+    grant("trial-running", Date.now() + DAY_MS);
+    addRecording("comped-own", "comped", null);
+    addRecording("trial-ended-own", "trial-ended", null);
+    addRecording("trial-running-own", "trial-running", null);
+
+    await runDailyRetentionSweep({ DB: d1(sqlite), BUCKET: bucket() });
+
+    expect(remaining()).toEqual(["comped-own", "trial-running-own"]);
   });
 
   it("expires everything idle when nobody pays", async () => {
