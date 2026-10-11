@@ -1,10 +1,10 @@
 ---
-title: How to self-host CaptureFlow on Cloudflare, step by step
-description: Run a private, self-hosted screen recorder for your company on your own Cloudflare account: the web app, R2 storage, Google sign-in, the Chrome extension and the macOS app.
+title: How to set up a self-hosted screen recorder
+description: Step by step: run CaptureFlow, an open-source screen recorder, on your own Cloudflare account with sign-in limited to your company.
 date: 2026-10-11
 ---
 
-This guide sets up CaptureFlow on your own Cloudflare account, so your team records and shares videos on a tool your company owns. Recordings, comments and accounts stay in your Cloudflare account.
+This guide sets up CaptureFlow, an open-source screen recorder, on your own Cloudflare account, so your team records and shares videos on a self-hosted tool your company owns. Recordings, comments and accounts stay in your Cloudflare account.
 
 The examples use a made-up company, Acme, with the domain `acme.com`. Replace it with yours. The first setup takes about an hour or two.
 

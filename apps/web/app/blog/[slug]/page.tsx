@@ -7,7 +7,7 @@ import { JsonLd } from "@/components/marketing/json-ld";
 import { PostBody } from "@/components/marketing/blog/prose";
 import { TableOfContents } from "@/components/marketing/blog/toc";
 import { formatPostDate } from "@/lib/blog/format";
-import { getPost } from "@/lib/blog/posts";
+import { BLOG_AUTHOR, getPost, postImagePath } from "@/lib/blog/posts";
 import { SITE_URL } from "@/lib/marketing/constants";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +20,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const url = `/blog/${post.slug}`;
   return {
     title: post.title,
+    authors: [BLOG_AUTHOR],
     description: post.description,
     alternates: { canonical: url },
     openGraph: {
@@ -28,14 +29,15 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       title: post.title,
       description: post.description,
       publishedTime: post.date,
+      authors: [BLOG_AUTHOR.url],
       siteName: "CaptureFlow",
-      images: ["/og-image.png"],
+      images: [{ url: postImagePath(post.slug), width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.description,
-      images: ["/og-image.png"],
+      images: [postImagePath(post.slug)],
     },
   };
 }
@@ -58,11 +60,11 @@ export default async function BlogPostPage({ params }: Params) {
             dateModified: post.date,
             mainEntityOfPage: url,
             url,
-            image: `${SITE_URL}/og-image.png`,
+            image: `${SITE_URL}${postImagePath(post.slug)}`,
             author: {
-              "@type": "Organization",
-              name: "CaptureFlow",
-              url: SITE_URL,
+              "@type": "Person",
+              name: BLOG_AUTHOR.name,
+              url: BLOG_AUTHOR.url,
             },
             publisher: {
               "@type": "Organization",
@@ -120,7 +122,15 @@ export default async function BlogPostPage({ params }: Params) {
             {post.description}
           </p>
           <p className="mt-6 text-sm text-fg-muted">
-            <time dateTime={post.date}>{formatPostDate(post.date)}</time> ·{" "}
+            By{" "}
+            <a
+              href={BLOG_AUTHOR.url}
+              rel="author"
+              className="text-fg hover:underline"
+            >
+              {BLOG_AUTHOR.name}
+            </a>{" "}
+            · <time dateTime={post.date}>{formatPostDate(post.date)}</time> ·{" "}
             {post.readMinutes} min read
           </p>
         </header>

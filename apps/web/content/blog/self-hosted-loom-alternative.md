@@ -1,6 +1,6 @@
 ---
-title: A self-hosted Loom alternative for companies that keeps video in-house
-description: Run CaptureFlow on your company's own Cloudflare account. Your recordings stay on your infrastructure, nobody pays per seat, and we can set it all up for you.
+title: Self-hosted Loom alternative for companies
+description: Run CaptureFlow on your own Cloudflare account. Videos stay on your infrastructure, nobody pays per seat, and we can set it up for you.
 date: 2026-10-11
 ---
 
@@ -70,7 +70,7 @@ Everything runs on your account, and nothing depends on us afterward. If you eve
 
 ## Prefer to do it yourself?
 
-The full setup is open and documented. Follow the [step-by-step self-hosting guide](/blog/self-host-captureflow), which takes about an hour or two if you’re comfortable in a terminal.
+The full setup is open and documented. Follow the [step-by-step self-hosting guide](/blog/self-hosted-screen-recorder), which takes about an hour or two if you’re comfortable in a terminal.
 
 ## What Loom has that CaptureFlow doesn’t
 
@@ -81,7 +81,7 @@ To be fair about the trade-offs:
 - **Apps:** Loom also has Windows, iOS and Android apps.
 - **SAML single sign-on** isn’t supported. Sign-in is through Google or GitHub, limited to your domain.
 
-For most internal recording, such as walkthroughs, bug reports, demos, onboarding and async updates, none of these get in the way.
+For most internal recording, such as walkthroughs, bug reports, demos, onboarding and async updates, none of these get in the way. The [full comparison](/alternatives/loom) lists every feature side by side.
 
 ## Frequently asked questions
 

@@ -1,6 +1,6 @@
 ---
-title: Loom pricing explained, and a cheaper flat-price alternative
-description: Loom charges $18 to $24 per person every month. CaptureFlow charges one flat price for the whole team, based on storage. Here's what each costs for 10, 25, 50 and 100 people.
+title: Loom pricing explained: what teams really pay
+description: Loom costs $18 to $24 per person each month. See what that adds up to for 10 to 100 people, and what a flat storage price costs instead.
 date: 2026-10-11
 ---
 
@@ -80,7 +80,7 @@ If your team depends on AI summaries or records from phones, Loom may be worth t
 
 There’s no automatic import from Loom yet, so most teams move only the videos they still use.
 
-For a full feature table and a cost calculator for your own team size, see [CaptureFlow vs Loom](/alternatives/loom).
+For a full feature table and a cost calculator for your own team size, see the [Loom alternative comparison](/alternatives/loom).
 
 ## Frequently asked questions
 
