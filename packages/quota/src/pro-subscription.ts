@@ -30,7 +30,10 @@ const ACTIVE_STATUSES = new Set<ProSubscriptionStatus>([
   "past_due",
 ]);
 
-function isProActive(row: ProSubscriptionRow, nowSeconds: number): boolean {
+export function isProActive(
+  row: Pick<ProSubscriptionRow, "status" | "current_period_end">,
+  nowSeconds: number,
+): boolean {
   if (!ACTIVE_STATUSES.has(row.status)) {
     if (
       row.status === "cancelled" &&

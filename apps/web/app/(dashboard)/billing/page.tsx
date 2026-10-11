@@ -3,9 +3,12 @@ import { ExternalLink, Sparkles } from "lucide-react";
 import { Button, Card, Chip, ProgressBar, Typography } from "@heroui/react";
 import {
   ACCOUNT_LIMITS,
+  STORAGE_PLANS,
+  getActiveGrantedPlan,
   getActiveProSubscription,
   getEffectiveLimitsForUser,
   totalStorageForUser,
+  type GrantedPlan,
   type ProSubscriptionRow,
 } from "@captureflow/quota";
 import { formatBytes } from "@/lib/format";
@@ -46,16 +49,17 @@ export default async function BillingPage() {
   const user = session.user;
   const env = await getAppWebEnv();
 
-  const [subscription, usedBytes, limits] = env?.DB
+  const [subscription, grant, usedBytes, limits] = env?.DB
     ? await Promise.all([
         getActiveProSubscription(env.DB, user.id),
+        getActiveGrantedPlan(env.DB, user.id),
         totalStorageForUser(env.DB, user.id),
         getEffectiveLimitsForUser(env.DB, user.id),
       ])
-    : [null, 0, null];
+    : [null, null, 0, null];
 
   const storageLimit = limits?.storageBytes ?? ACCOUNT_LIMITS.totalStorageBytes;
-  const isPro = subscription !== null;
+  const isPro = subscription !== null || grant !== null;
 
   return (
     <div className="mx-auto max-w-[880px]">
@@ -73,6 +77,11 @@ export default async function BillingPage() {
                 <Typography weight="semibold">
                   {isPro ? "Pro" : "Free"}
                 </Typography>
+                {!subscription && grant && (
+                  <Chip size="sm" color="accent">
+                    Granted
+                  </Chip>
+                )}
                 {subscription && (
                   <Chip
                     size="sm"
@@ -87,11 +96,13 @@ export default async function BillingPage() {
               <Typography type="body-sm" color="muted" className="mt-1 block">
                 {subscription
                   ? subscriptionLine(subscription)
-                  : `${formatBytes(ACCOUNT_LIMITS.totalStorageBytes)} of storage — the only limit, however long you record.`}
+                  : grant
+                    ? grantLine(grant)
+                    : `${formatBytes(ACCOUNT_LIMITS.totalStorageBytes)} of storage — the only limit, however long you record.`}
               </Typography>
             </div>
 
-            {isPro ? (
+            {subscription ? (
               <a
                 href={LEMON_PORTAL_URL}
                 target="_blank"
@@ -103,7 +114,7 @@ export default async function BillingPage() {
                   <ExternalLink size={14} />
                 </Button>
               </a>
-            ) : (
+            ) : grant ? null : (
               <UpgradeModal
                 email={user.email}
                 userId={user.id}
@@ -139,6 +150,15 @@ function subscriptionLine(subscription: ProSubscriptionRow): string {
   return subscription.cancelled_at
     ? `${cycle} — access until ${date}`
     : `${cycle} — renews ${date}`;
+}
+
+function grantLine(grant: GrantedPlan): string {
+  const label =
+    STORAGE_PLANS.find((p) => p.variantId === grant.variantId)?.label ??
+    STORAGE_PLANS[0].label;
+  return grant.expiresAt
+    ? `${label} of storage, granted by CaptureFlow until ${formatDate(grant.expiresAt / 1000)}`
+    : `${label} of storage, granted by CaptureFlow`;
 }
 
 function Section({ label, children }: { label: string; children: ReactNode }) {

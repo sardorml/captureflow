@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { ACCOUNT_LIMITS, listActiveProUserIds } from "@captureflow/quota";
+import { ACCOUNT_LIMITS, listPaidUserIds } from "@captureflow/quota";
 import { createD1Db } from "./db-d1";
 import { objectKeysFor } from "./object-keys";
 import { screenshotObjectKeysFor } from "../screenshot-keys";
@@ -102,7 +102,7 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
   // reclaims free accounts. Ownership follows quota attribution (workspace
   // owner, else uploader), and the '' fallback keeps ownerless rows expiring,
   // since NULL NOT IN (...) is never true.
-  const paidOwners = JSON.stringify(await listActiveProUserIds(env.DB));
+  const paidOwners = JSON.stringify(await listPaidUserIds(env.DB));
 
   const db = createD1Db(env.DB);
   for (let batch = 0; batch < MAX_BATCHES; batch++) {
