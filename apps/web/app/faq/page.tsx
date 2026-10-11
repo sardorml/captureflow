@@ -7,9 +7,9 @@ import { FAQ_SCHEMA } from "@/lib/marketing/constants";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "FAQ",
+  title: "FAQ: sharing, storage and self-hosting",
   description:
-    "Common questions about CaptureFlow — how instant share links work, what self-hosting on Cloudflare involves, storage limits, and how recordings stay private.",
+    "Common questions about CaptureFlow: how share links work, what self-hosting on Cloudflare involves, storage limits, and how recordings stay private.",
   alternates: { canonical: "/faq" },
 };
 

@@ -6,9 +6,9 @@ import { CompareSection } from "@/components/marketing/compare-section";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Pricing",
+  title: "Pricing: flat team plans, no per-seat fees",
   description:
-    "Self-host CaptureFlow free on your own Cloudflare account, or let us run it for you. Storage is the only ceiling — no per-seat pricing and no recording length limit.",
+    "Start free, then pay a flat monthly price for storage, not per person. Or self-host CaptureFlow free on Cloudflare. No recording length limit.",
   alternates: { canonical: "/pricing" },
 };
 

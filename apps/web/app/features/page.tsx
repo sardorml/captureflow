@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Screen recorder features",
   description:
-    "Record a tab, a window, or your whole screen with camera and mic, take annotated screenshots, and share every capture as an instant link your team can comment on.",
+    "Record a tab, window or your whole screen with camera and mic, take annotated screenshots, and share each capture as a link your team can comment on.",
   alternates: { canonical: "/features" },
 };
 

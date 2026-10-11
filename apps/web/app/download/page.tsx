@@ -17,9 +17,10 @@ import { RELEASES_URL, DOCS_URL } from "@/lib/site";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Download",
+  title: "Download the screen recorder for Chrome",
   description:
     "Install the CaptureFlow Chrome extension to record your screen and share it with a link.",
+  alternates: { canonical: "/download" },
 };
 
 const OTHER = [
