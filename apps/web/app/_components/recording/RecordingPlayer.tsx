@@ -31,6 +31,7 @@ import {
   type RecordingCameraSize,
   type RecordingConfig,
 } from "@/lib/recording-config";
+import { planWebcamSync } from "@/lib/recording/webcam-sync";
 
 /*
  * Imperative handle so wrapping components (e.g. the public viewer's
@@ -113,6 +114,9 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
      * glitches mic audio).
      */
     const scrubbingRef = useRef(false);
+    // The screen is paused only to let the cam catch up (see webcam sync).
+    const holdingRef = useRef(false);
+    const [syncingCamera, setSyncingCamera] = useState(false);
 
     // The reaction handler needs the freshest currentTime at the click
     // instant; React state lags it (throttled ~10Hz via the rAF loop).
@@ -278,15 +282,10 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
     }, [config.systemMuted]);
 
     /*
-     * Webcam sync — main is master, cam follows. Each cam.currentTime
-     * write triggers a full audio-decoder flush in Chromium, audible as a
-     * glitch, so we minimize writes:
-     *   1. Skip redundant writes on play/seeked when cam is already
-     *      within HARD_RESYNC_S of main.
-     *   2. Close small drifts with playbackRate nudges (±NUDGE_RATE)
-     *      instead of seeking — audio stays continuous.
-     *   3. Hard seek only when drift exceeds HARD_RESYNC_S.
-     * Cam stalls never touch main, preserving its audio.
+     * Webcam sync: every frame, sample both videos and apply
+     * planWebcamSync (the rules live in lib/recording/webcam-sync.ts). A hold
+     * pauses the screen while the cam buffers; holdingRef stops that pause
+     * reading as the viewer's in onPause and togglePlay.
      */
     useEffect(() => {
       if (!webcamUrl) return;
@@ -294,93 +293,70 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       const cam = webcamRef.current;
       if (!main || !cam) return;
 
-      // Hard-resync only when drift is unmistakable (≥250ms); below that
-      // a playbackRate nudge avoids seeking.
-      const HARD_RESYNC_S = 0.25;
-      // Below this drift, leave cam alone — within imperceptible AV sync.
-      const NUDGE_DEAD_ZONE_S = 0.04;
-      const NUDGE_RATE = 0.04; // ±4% rate adjustment to drift back into sync
-
       let rafId = 0;
+      let holdSince: number | null = null;
+      let gaveUpAt: number | null = null;
+      const stalled = (v: HTMLVideoElement): boolean =>
+        v.seeking || v.readyState < HTMLMediaElement.HAVE_FUTURE_DATA;
 
-      const playCam = (): void => {
-        if (!cam.paused) return;
-        cam.play().catch(() => {
-          /* drift loop will retry */
+      const step = (): void => {
+        window.cancelAnimationFrame(rafId);
+        const holding = holdingRef.current;
+        const plan = planWebcamSync({
+          now: performance.now(),
+          playing: (holding || !main.paused) && !main.ended,
+          scrubbing: scrubbingRef.current,
+          main: {
+            paused: main.paused,
+            time: main.currentTime,
+            rate: main.playbackRate,
+            stalled: stalled(main),
+          },
+          cam: {
+            paused: cam.paused,
+            time: cam.currentTime,
+            rate: cam.playbackRate,
+            stalled: stalled(cam),
+            // MediaRecorder webm often reports an Infinity duration.
+            done:
+              cam.ended ||
+              cam.error !== null ||
+              (Number.isFinite(cam.duration) &&
+                main.currentTime >= cam.duration - 0.05),
+          },
+          holdSince,
+          gaveUpAt,
         });
-      };
-
-      const seekCamIfFar = (): void => {
-        if (Math.abs(cam.currentTime - main.currentTime) > HARD_RESYNC_S) {
-          cam.currentTime = main.currentTime;
+        holdSince = plan.holdSince;
+        gaveUpAt = plan.gaveUpAt;
+        if (plan.seekCamTo !== null) cam.currentTime = plan.seekCamTo;
+        if (plan.camRate !== null) cam.playbackRate = plan.camRate;
+        if (plan.cam === "play") cam.play().catch(() => {});
+        else if (plan.cam === "pause") cam.pause();
+        if (plan.hold !== holding) {
+          holdingRef.current = plan.hold;
+          setSyncingCamera(plan.hold);
+          if (plan.hold) main.pause();
+          else void main.play().catch(() => {});
         }
+        rafId = window.requestAnimationFrame(step);
       };
+      rafId = window.requestAnimationFrame(step);
 
-      const onMainPlay = (): void => {
-        // seekCamIfFar skips the write when already in lockstep — that
-        // redundant write is the top cause of audio glitches on unpause.
-        seekCamIfFar();
-        playCam();
-      };
+      // rAF stops in background tabs, so pauses still reach the cam.
       const onMainPause = (): void => {
-        if (!cam.paused) cam.pause();
+        if (!holdingRef.current) cam.pause();
       };
-      const onMainSeeking = (): void => {
-        if (scrubbingRef.current) return;
-        seekCamIfFar();
-      };
-      const onMainSeeked = (): void => {
-        if (scrubbingRef.current) return;
-        seekCamIfFar();
-        if (!main.paused) playCam();
-      };
-      const onMainRate = (): void => {
-        cam.playbackRate = main.playbackRate;
-      };
-      const onMainEnded = (): void => {
-        if (!cam.paused) cam.pause();
-      };
-
-      const tick = (): void => {
-        if (!main.paused && !cam.paused && !scrubbingRef.current) {
-          const drift = cam.currentTime - main.currentTime;
-          const absDrift = Math.abs(drift);
-          if (absDrift > HARD_RESYNC_S) {
-            cam.currentTime = main.currentTime;
-            cam.playbackRate = main.playbackRate;
-          } else if (absDrift > NUDGE_DEAD_ZONE_S) {
-            // Nudge: speed cam up when behind (drift < 0), slow it when
-            // ahead (drift > 0). Audio glides without a seek glitch.
-            const target =
-              main.playbackRate + (drift < 0 ? NUDGE_RATE : -NUDGE_RATE);
-            if (Math.abs(cam.playbackRate - target) > 0.001) {
-              cam.playbackRate = target;
-            }
-          } else if (Math.abs(cam.playbackRate - main.playbackRate) > 0.001) {
-            cam.playbackRate = main.playbackRate;
-          }
-        } else if (!main.paused && cam.paused && !scrubbingRef.current) {
-          playCam();
-        }
-        rafId = window.requestAnimationFrame(tick);
-      };
-      rafId = window.requestAnimationFrame(tick);
-
-      main.addEventListener("play", onMainPlay);
       main.addEventListener("pause", onMainPause);
-      main.addEventListener("ended", onMainEnded);
-      main.addEventListener("seeking", onMainSeeking);
-      main.addEventListener("seeked", onMainSeeked);
-      main.addEventListener("ratechange", onMainRate);
+      main.addEventListener("play", step);
+      main.addEventListener("seeked", step);
 
       return () => {
         window.cancelAnimationFrame(rafId);
-        main.removeEventListener("play", onMainPlay);
         main.removeEventListener("pause", onMainPause);
-        main.removeEventListener("ended", onMainEnded);
-        main.removeEventListener("seeking", onMainSeeking);
-        main.removeEventListener("seeked", onMainSeeked);
-        main.removeEventListener("ratechange", onMainRate);
+        main.removeEventListener("play", step);
+        main.removeEventListener("seeked", step);
+        holdingRef.current = false;
       };
     }, [webcamUrl]);
 
@@ -469,6 +445,13 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
        * overlay, so keyboard, click, and controls-bar toggles stay
        * consistent.
        */
+      if (holdingRef.current) {
+        // Paused for a cam hold: the viewer is pausing, not resuming.
+        holdingRef.current = false;
+        setSyncingCamera(false);
+        setIsPlaying(false);
+        return;
+      }
       if (v.paused) {
         void v.play();
       } else {
@@ -746,6 +729,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                 setEnded(false);
               }}
               onPause={(e) => {
+                if (holdingRef.current) return;
                 /*
                  * Browsers fire `pause` then `ended` on natural completion.
                  * Detect end-by-time here too so React batches ended=true
@@ -838,6 +822,12 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
           {!firstFrameReady || actualAspect == null ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-neutral-900">
               <span className="block h-10 w-10 animate-spin rounded-full border-2 border-neutral-700 border-t-neutral-200" />
+            </div>
+          ) : null}
+
+          {syncingCamera ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <span className="block h-10 w-10 animate-spin rounded-full border-2 border-white/30 border-t-white" />
             </div>
           ) : null}
 

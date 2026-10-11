@@ -12,10 +12,16 @@ import {
 import type { Visibility } from "@/app/VisibilityDialog";
 import { formatDuration } from "@/lib/format";
 import type { DashboardRecordingRow } from "@/lib/recordings-db";
-import { CDN_BASE_URL, viewUrlFor } from "@/lib/site";
+import { viewUrlFor } from "@/lib/site";
+
+// Storage keys stay on the server; cards get ready-made URLs.
+export type RecordingCardRow = Omit<
+  DashboardRecordingRow,
+  "storageKey" | "posterKey" | "webcamStorageKey"
+> & { posterUrl: string | null; videoThumbUrl: string | null };
 
 type RecordingsListProps = {
-  recordings: DashboardRecordingRow[];
+  recordings: RecordingCardRow[];
   viewerUserId?: string;
   viewerIsWorkspaceOwner?: boolean;
   allowPublicLinks?: boolean;
@@ -85,7 +91,7 @@ export function RecordingsList({
 }
 
 type RecordingCardProps = {
-  recording: DashboardRecordingRow;
+  recording: RecordingCardRow;
   canAuthor: boolean;
   canAdminister: boolean;
   allowPublicLinks: boolean;
@@ -109,13 +115,7 @@ function RecordingCard({
   selectionActive,
   onSelectedChange,
 }: RecordingCardProps) {
-  const posterUrl = recording.posterKey
-    ? `${CDN_BASE_URL}/${recording.posterKey}`
-    : null;
-  const videoThumbUrl =
-    recording.state === "ready" && !posterUrl
-      ? `${CDN_BASE_URL}/${recording.storageKey}?v=${recording.sizeBytes}`
-      : null;
+  const { posterUrl, videoThumbUrl } = recording;
 
   const media = (
     <>

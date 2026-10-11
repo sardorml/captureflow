@@ -97,7 +97,7 @@ function buildAuth(env: AppWebEnv | null, baseURL?: string) {
               console.error("auth: ensurePersonalWorkspace failed", err);
             }
             try {
-              const email = typeof user.email === "string" ? user.email : null;
+              const email = claimableEmail(user);
               if (email) {
                 const unclaimed = await getUnclaimedProSubscriptionByEmail(
                   db,
@@ -120,6 +120,17 @@ function buildAuth(env: AppWebEnv | null, baseURL?: string) {
     },
   };
   return betterAuth(options);
+}
+
+// Only a provider-verified address may claim an unclaimed subscription:
+// password sign-up never verifies, so anyone could register a buyer's email.
+export function claimableEmail(user: {
+  email?: unknown;
+  emailVerified?: unknown;
+}): string | null {
+  return user.emailVerified === true && typeof user.email === "string"
+    ? user.email
+    : null;
 }
 
 export type AuthInstance = ReturnType<typeof buildAuth>;

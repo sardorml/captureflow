@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { getRecording, updateRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
 import { verifySessionOrNull } from "@/lib/recording/verify-session";
+import { canViewResource } from "@/lib/visibility";
 import {
   hydrateSummaryChapters,
   parseSummaryChaptersJson,
@@ -19,7 +20,8 @@ export async function GET(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "invalid_slug" }, { status: 400 });
   }
   const row = await getRecording(id);
-  if (!row || row.state !== "ready") {
+  const visitor = await verifySessionOrNull((await headers()).get("cookie"));
+  if (!row || row.state !== "ready" || !canViewResource(visitor, row)) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
   return NextResponse.json(parseSummaryChaptersJson(row.summaryChaptersJson));

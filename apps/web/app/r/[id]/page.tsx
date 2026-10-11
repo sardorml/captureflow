@@ -11,7 +11,7 @@ import {
 } from "@/lib/recording/db";
 import { verifySession } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
-import { publicUrlFor } from "@/lib/recording/r2";
+import { viewerMediaUrl } from "@/lib/recording/media-url";
 import { parseRecordingConfigJson } from "@/lib/recording-config";
 import { parseSummaryChaptersJson } from "@/lib/recording/summary-chapters";
 import { isValidSlug } from "@/lib/recording/slug";
@@ -75,8 +75,10 @@ export async function generateMetadata({
   const title = row.title ?? PRODUCT_NAME;
   const description = `A screen recording shared from ${PRODUCT_NAME}.`;
   const [videoUrlRaw, posterUrlRaw] = await Promise.all([
-    publicUrlFor(row.storageKey),
-    row.posterKey ? publicUrlFor(row.posterKey) : Promise.resolve(undefined),
+    viewerMediaUrl(row, row.storageKey),
+    row.posterKey
+      ? viewerMediaUrl(row, row.posterKey)
+      : Promise.resolve(undefined),
   ]);
   // Content-version query so a post-finalize mutation of the same R2 key
   // (e.g. poster regeneration) yields a distinct URL and bypasses caching.
@@ -227,13 +229,15 @@ export default async function RecordingPage({ params }: { params: Params }) {
     ownerName,
     webcamUrlRaw,
   ] = await Promise.all([
-    publicUrlFor(row.storageKey),
-    row.posterKey ? publicUrlFor(row.posterKey) : Promise.resolve(undefined),
+    viewerMediaUrl(row, row.storageKey),
+    row.posterKey
+      ? viewerMediaUrl(row, row.posterKey)
+      : Promise.resolve(undefined),
     listReactions(id),
     listComments(id),
     row.userId ? getOwnerName(row.userId) : Promise.resolve(null),
     row.webcamStorageKey && row.webcamState === "ready"
-      ? publicUrlFor(row.webcamStorageKey)
+      ? viewerMediaUrl(row, row.webcamStorageKey)
       : Promise.resolve(undefined),
   ]);
   const recordingConfig = parseRecordingConfigJson(row.configJson);

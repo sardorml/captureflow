@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers as requestHeaders } from "next/headers";
 import { getRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
 import { getCloudflareEnv } from "@/lib/recording/cf-env";
+import { verifySessionOrNull } from "@/lib/recording/verify-session";
+import { canViewResource } from "@/lib/visibility";
 import type { RecordingApiError } from "@/lib/recording/types";
 
 // `<a download>` is silently ignored on cross-origin links unless the origin
@@ -13,7 +16,10 @@ export async function GET(req: NextRequest) {
   }
 
   const row = await getRecording(slug);
-  if (!row || row.state !== "ready" || row.visibility === "private") {
+  const visitor = await verifySessionOrNull(
+    (await requestHeaders()).get("cookie"),
+  );
+  if (!row || row.state !== "ready" || !canViewResource(visitor, row)) {
     return notFoundJson("Recording not found", "not_found");
   }
 

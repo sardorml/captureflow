@@ -9,6 +9,7 @@ import {
 import { isValidSlug } from "@/lib/recording/slug";
 import { verifySessionOrNull } from "@/lib/recording/verify-session";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
+import { canViewResource } from "@/lib/visibility";
 import type {
   AddCommentRequest,
   AddCommentResponse,
@@ -22,11 +23,15 @@ export function OPTIONS() {
 const MAX_COMMENT_LENGTH = 1000;
 const MAX_COMMENTS_PER_RECORDING = 1000;
 
-// Reads are open; visibility is enforced upstream at /[slug].
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("slug");
   if (!isValidSlug(slug)) {
     return jsonError("Invalid slug", 400, "invalid_slug");
+  }
+  const recording = await getRecording(slug);
+  const visitor = await verifySessionOrNull((await headers()).get("cookie"));
+  if (!recording || !canViewResource(visitor, recording)) {
+    return jsonError("Recording not found", 404, "not_found");
   }
   const comments = await listComments(slug);
   const body: ListCommentsResponse = { comments };
@@ -50,6 +55,9 @@ export async function POST(req: NextRequest) {
   const visitor = await verifySessionOrNull(cookieHeader);
   if (!visitor) {
     return jsonError("Sign in to comment", 401, "auth_required");
+  }
+  if (!canViewResource(visitor, recording)) {
+    return jsonError("Recording not found", 404, "not_found");
   }
 
   let body: Partial<AddCommentRequest>;

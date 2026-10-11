@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers as requestHeaders } from "next/headers";
 import { getScreenshot } from "@/lib/screenshot/db";
 import { getScreenshotBody } from "@/lib/screenshot/r2";
 import { isValidScreenshotId } from "@/lib/screenshot/id";
+import { verifySessionOrNull } from "@/lib/screenshot/verify-session";
+import { canViewResource } from "@/lib/visibility";
 import type { ScreenshotApiError } from "@/lib/screenshot/types";
 
 /*
@@ -17,7 +20,10 @@ export async function GET(req: NextRequest) {
   }
 
   const row = await getScreenshot(id);
-  if (!row || row.state !== "ready") {
+  const visitor = await verifySessionOrNull(
+    (await requestHeaders()).get("cookie"),
+  );
+  if (!row || row.state !== "ready" || !canViewResource(visitor, row)) {
     return notFoundJson("Screenshot not found", "not_found");
   }
 
