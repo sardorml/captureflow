@@ -17,6 +17,7 @@ const ROUTES = [
   "/refund",
   "/security",
   "/suggest-feature",
+  "/self-host-setup",
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {

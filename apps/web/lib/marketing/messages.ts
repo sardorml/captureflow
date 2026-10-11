@@ -232,20 +232,86 @@ export const MESSAGES = {
     deployed: "Uploaded captureflow-web",
     pieces: {
       workers: {
-        title: "Worker",
+        kind: "Worker",
+        title: "App",
         body: "Serves the app and every share link.",
       },
       r2: {
-        title: "R2 bucket",
+        kind: "R2",
+        title: "Recordings",
         body: "Holds your videos and screenshots.",
       },
       d1: {
-        title: "D1 database",
-        body: "Keeps workspaces, comments, and views.",
+        kind: "D1",
+        title: "Database",
+        body: "Keeps workspaces and comments.",
       },
     },
     guide: "Read the self-hosting guide",
     source: "View the source",
+    setup: {
+      title: "Let us set it up for you",
+      body: "We set up the app, the Chrome extension, the macOS app, and all the infrastructure for your company, ready for your team to use.",
+      cta: "Get setup help",
+    },
+  },
+  setupService: {
+    title: "We'll set it up",
+    titleHighlight: "for you",
+    subtitle:
+      "Tell us about your company. We set up the app, the Chrome extension, the macOS app, and all the infrastructure behind it, ready for your team to use.",
+    includedHeading: "Everything we set up",
+    included: {
+      infra: {
+        title: "The app, on your infrastructure",
+        body: "Deployed to your own Cloudflare account and served from your domain. You own all of it.",
+      },
+      storage: {
+        title: "Storage and database",
+        body: "Recordings in your own R2 bucket; workspaces and comments in your own database.",
+      },
+      signin: {
+        title: "Company-only sign-in",
+        body: "Google Workspace or GitHub sign-in, limited to your company's email domain.",
+      },
+      apps: {
+        title: "Chrome extension and Mac app",
+        body: "Both built for your instance, with the extension published privately for your team.",
+      },
+      ready: {
+        title: "Ready to record",
+        body: "Workspaces created and your team invited, so people can start sharing right away.",
+      },
+      handover: {
+        title: "Handover",
+        body: "We walk whoever maintains it through running and updating it.",
+      },
+    },
+    nextHeading: "Contact us",
+    nextSubheading: "Tell us what you need and we'll get back to you.",
+    form: {
+      company: "Company",
+      companyPlaceholder: "Acme Inc.",
+      name: "Your name",
+      namePlaceholder: "Jane Doe",
+      email: "Work email",
+      emailPlaceholder: "jane@acme.com",
+      topic: "What can we help with?",
+      topics: ["Self-hosting setup", "More than 1 TB", "Something else"],
+      teamSize: "Team size",
+      teamSizes: ["1–10", "11–50", "51–200", "200+"],
+      cloudflare: "Do you have a Cloudflare account?",
+      cloudflareOptions: ["Yes", "No", "Not sure"],
+      notes: "Anything else we should know?",
+      notesPlaceholder:
+        "How much storage you need, your domain, your timeline…",
+      submit: "Send message",
+      error:
+        "Your request couldn't be sent. Please try again, or email us at {email}.",
+      sentTitle: "Message sent",
+      sentBody: "Thanks. We'll get back to you at {email}.",
+      back: "Back to home",
+    },
   },
   pricing: {
     heading: "Start free, pay for more storage",
