@@ -10,7 +10,6 @@ import {
   getActiveUpload,
   getCapturePrefs,
   getRecordingStatus,
-  saveRecordingResult,
   setActiveUpload,
   setCameraBlocked,
   setCapturePrefs,
@@ -563,7 +562,6 @@ export default defineBackground(() => {
   });
 
   onMessage("recordingResult", async ({ data }) => {
-    await saveRecordingResult(data);
     await setRecordingStatus(
       data.ok ? { kind: "done" } : { kind: "error", detail: data.error },
     );
@@ -577,6 +575,5 @@ export default defineBackground(() => {
 });
 
 async function reportFailure(message: string): Promise<void> {
-  await saveRecordingResult({ ok: false, error: message });
   await setRecordingStatus({ kind: "error", detail: message });
 }
