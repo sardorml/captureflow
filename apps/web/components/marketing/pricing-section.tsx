@@ -1,9 +1,9 @@
 "use client";
 
 import { Building2 } from "lucide-react";
-import { CURRENT_STAGE, SUPPORT_EMAIL, X_URL } from "@/lib/marketing/constants";
+import { CURRENT_STAGE, X_URL } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
-import { useMessages } from "./i18n-provider";
+import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
 import { ManagedCard } from "./managed-card";
 import { GitHubIcon } from "./platform-logos";
@@ -18,6 +18,7 @@ export function PricingSection({
   headingLevel = 2,
 }: PricingSectionProps = {}) {
   const m = useMessages();
+  const lh = useLocalizedHref();
   if (!CURRENT_STAGE.showPricingSection) return null;
   return (
     <MarketingSection id="pricing">
@@ -38,7 +39,7 @@ export function PricingSection({
             body={m.pricing.enterprise.body}
             cta={{
               label: m.pricing.enterprise.cta,
-              href: `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(m.pricing.enterprise.subject)}`,
+              href: lh("/self-host-setup"),
               onClick: () =>
                 track("marketing_cta_clicked", {
                   location: "pricing_enterprise",
