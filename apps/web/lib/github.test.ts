@@ -26,9 +26,29 @@ describe("hydrateRepoActivity", () => {
 
     expect(activity.open.map((i) => [i.number, i.kind])).toEqual([
       [1, "issue"],
+      [5, "pr"],
     ]);
     expect(activity.shipped.map((i) => [i.number, i.kind])).toEqual([
       [2, "pr"],
+    ]);
+  });
+
+  it("lists open and draft pull requests with open issues", () => {
+    const activity = hydrateRepoActivity([
+      issue(1),
+      issue(2, { pull_request: { merged_at: null } }),
+      issue(3, { draft: true, pull_request: { merged_at: null } }),
+      issue(4, {
+        draft: true,
+        state: "closed",
+        pull_request: { merged_at: null },
+      }),
+    ]);
+
+    expect(activity.open.map((i) => [i.number, i.kind, i.state])).toEqual([
+      [1, "issue", "open"],
+      [2, "pr", "open"],
+      [3, "pr", "draft"],
     ]);
   });
 
