@@ -21,61 +21,64 @@ const AVATAR_SRC = "/avatar-presenter.webp";
  * the card's width, so a narrow card shrinks the picture instead of squeezing it
  * into a portrait.
  */
-const SCENE_WIDTH = 360;
-const SCENE_HEIGHT = 270;
+const SCENE_WIDTH = 547;
+const SCENE_HEIGHT = 360;
 
-const SYNTAX = {
-  keyword: "text-[#c792ea]",
-  call: "text-[#82aaff]",
-} as const;
+const CHART_BARS = [34, 48, 40, 58, 70, 96] as const;
 
-const CHART_BARS = [34, 48, 40, 58, 52, 70, 96] as const;
+// The window every scene but support sits in, bleeding off the bottom.
+const WINDOW =
+  "absolute inset-x-9 top-10 -bottom-6 overflow-hidden rounded-[22px] text-[#18181b]";
 
-// The device window every scene but support sits in, bleeding off the bottom.
-const SCREEN =
-  "absolute inset-x-[22px] top-[26px] bottom-0 overflow-hidden rounded-t-[14px] shadow-[0_20px_40px_rgb(0_0_0/0.5)]";
-
-function Presenter({
-  backdrop,
-  className,
-}: {
-  backdrop: string;
-  className: string;
-}) {
+function Presenter({ shadow }: { shadow: string }) {
   return (
     <div
-      className={`absolute size-[84px] overflow-hidden rounded-full shadow-[0_0_0_4px_#fff,0_18px_40px_rgb(0_0_0/0.5)] ${className}`}
-      style={{ backgroundColor: backdrop }}
+      className="absolute right-7 bottom-7 size-[108px] overflow-hidden rounded-full"
+      style={{ boxShadow: `0 0 0 5px #fff, 0 16px 34px ${shadow}` }}
     >
       <img src={AVATAR_SRC} alt="" className="block size-full object-cover" />
     </div>
   );
 }
 
-// The recorder's control bar: stop, running time, pause, discard.
-function ControlPill({ time }: { time: string }) {
+function WindowBar({
+  name,
+  badge,
+  barClass,
+  badgeClass,
+  nameClass = "text-[#3f3f46]",
+}: {
+  name: string;
+  badge: string;
+  barClass: string;
+  badgeClass: string;
+  nameClass?: string;
+}) {
   return (
-    <div className="absolute bottom-[18px] left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full bg-white py-2 pr-3.5 pl-2.5 font-mono text-[13px] leading-none font-semibold text-[#111] shadow-[0_12px_30px_rgb(0_0_0/0.45)]">
-      <span className="flex size-[22px] items-center justify-center rounded-full bg-[#ef4444]">
-        <span className="size-2 rounded-[2px] bg-white" />
+    <div
+      className={`flex h-[42px] items-center gap-2 px-[18px] font-mono text-[13px] leading-none font-medium whitespace-nowrap ${barClass}`}
+    >
+      <span className="size-2.5 rounded-full bg-[#ff5f57]" />
+      <span className="size-2.5 rounded-full bg-[#febc2e]" />
+      <span className="size-2.5 rounded-full bg-[#28c840]" />
+      <span className={`ml-2.5 ${nameClass}`}>{name}</span>
+      <span
+        className={`rounded-full px-[9px] py-[5px] font-sans text-[12px] font-semibold ${badgeClass}`}
+      >
+        {badge}
       </span>
-      {time}
-      <span className="h-3.5 w-px bg-[#e4e4e7]" />
-      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
-        <rect x="3" y="2" width="3" height="10" rx="1" fill="#3f3f46" />
-        <rect x="8" y="2" width="3" height="10" rx="1" fill="#3f3f46" />
-      </svg>
-      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
-        <path
-          d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"
-          fill="none"
-          stroke="#3f3f46"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
     </div>
+  );
+}
+
+function Initials({ children, size }: { children: string; size: number }) {
+  return (
+    <span
+      className="flex flex-none items-center justify-center rounded-full bg-[#f59e0b] font-bold text-white"
+      style={{ width: size, height: size, fontSize: size * 0.38 }}
+    >
+      {children}
+    </span>
   );
 }
 
@@ -90,14 +93,14 @@ function CodeLine({
 }) {
   const row =
     tone === "removed"
-      ? "bg-[rgb(239_68_68/0.14)] text-[#f87171]"
+      ? "bg-[rgb(239_68_68/0.16)] text-[#fca5a5]"
       : tone === "added"
-        ? "bg-[rgb(34_197_94/0.14)] text-[#4ade80]"
+        ? "bg-[rgb(96_165_250/0.18)] text-[#93c5fd]"
         : "";
   return (
     <div className={row}>
       <span
-        className={`mr-3 inline-block w-[34px] text-right ${tone ? "" : "text-[#55555e]"}`}
+        className={`mr-4 inline-block w-11 text-right ${tone ? "" : "text-[#6b7aa6]"}`}
       >
         {n}
       </span>
@@ -106,26 +109,29 @@ function CodeLine({
   );
 }
 
+const KEYWORD = "text-[#c4a7ff]";
+
 function EngineeringScene({ file, pr }: { file: string; pr: string }) {
   return (
-    <>
-      <div className={`${SCREEN} bg-[#0d0d12] ring-1 ring-white/[0.08]`}>
-        <div className="flex h-8 items-center gap-2 border-b border-white/[0.06] px-3 font-mono text-[11px] leading-none font-medium text-[#8b8b95]">
-          <span className="size-2 rounded-full bg-[#3a3a44]" />
-          <span className="size-2 rounded-full bg-[#3a3a44]" />
-          <span className="size-2 rounded-full bg-[#3a3a44]" />
-          <span className="ml-2 text-[#c9c9d1]">{file}</span>
-          <span className="text-[#a78bfa]">{pr}</span>
-        </div>
-        <div className="py-2.5 font-mono text-[11.5px] leading-[1.75] font-medium whitespace-pre text-[#c9c9d1]">
+    <div className="absolute inset-0">
+      <div
+        className={`${WINDOW} bg-[#1b2233] shadow-[0_24px_50px_rgb(0_0_0/0.4)]`}
+      >
+        <WindowBar
+          name={file}
+          badge={pr}
+          barClass="bg-[#161c2a]"
+          badgeClass="bg-[rgb(96_165_250/0.18)] text-[#93c5fd]"
+          nameClass="text-[#c7d2ee]"
+        />
+        <div className="py-4 font-mono text-[14px] leading-[1.8] font-medium whitespace-pre text-[#dbe3f7]">
           <CodeLine n={41}>
-            <span className={SYNTAX.keyword}>export async function</span>{" "}
-            <span className={SYNTAX.call}>applyPromo</span>(cart) {"{"}
+            <span className={KEYWORD}>export async function</span>{" "}
+            <span className="text-[#8fb4ff]">applyPromo</span>(cart) {"{"}
           </CodeLine>
           <CodeLine n={42}>
             {"  "}
-            <span className={SYNTAX.keyword}>const</span> code =
-            cart.promo?.trim()
+            <span className={KEYWORD}>const</span> code = cart.promo?.trim()
           </CodeLine>
           <CodeLine n={43} tone="removed">
             - if (code) return cart
@@ -135,62 +141,73 @@ function EngineeringScene({ file, pr }: { file: string; pr: string }) {
           </CodeLine>
           <CodeLine n={44}>
             {"  "}
-            <span className={SYNTAX.keyword}>const</span> rule ={" "}
-            <span className={SYNTAX.keyword}>await</span>{" "}
-            <span className={SYNTAX.call}>lookup</span>(code)
+            <span className={KEYWORD}>const</span> rule ={" "}
+            <span className={KEYWORD}>await</span> lookup(code)
           </CodeLine>
-          <CodeLine n={45}>
-            {"  "}
-            <span className={SYNTAX.keyword}>return</span> {"{"} ...cart, total:
-            rule.<span className={SYNTAX.call}>apply</span>(cart.total) {"}"}
-          </CodeLine>
-          <CodeLine n={46}>{"}"}</CodeLine>
         </div>
       </div>
-      <Presenter backdrop="#3a3150" className="right-4 bottom-[60px]" />
-      <ControlPill time="1:26" />
-    </>
+      <div className="absolute bottom-[30px] left-14 flex items-center gap-2.5 rounded-full bg-white py-2.5 pr-4 pl-2.5 font-mono text-[15px] leading-none font-semibold text-[#18223f] shadow-[0_14px_30px_rgb(0_0_0/0.4)]">
+        <span className="flex size-7 items-center justify-center rounded-full bg-[#ef4444]">
+          <span className="size-2.5 rounded-[2px] bg-white" />
+        </span>
+        1:26
+      </div>
+      <Presenter shadow="rgb(0 0 0 / 0.35)" />
+    </div>
   );
 }
 
 function DesignScene({
+  app,
+  badge,
   cardTitle,
+  colors,
   comment,
 }: {
+  app: string;
+  badge: string;
   cardTitle: string;
+  colors: string;
   comment: string;
 }) {
   return (
-    <>
-      <div className={`${SCREEN} bg-[#141418]`}>
-        <div className="absolute top-0 left-1/2 -ml-[145px] h-full w-[290px]">
-          <div className="absolute top-[18px] left-8 flex h-[180px] w-[116px] flex-col overflow-hidden rounded-xl bg-[#232329] shadow-[0_2px_6px_rgb(0_0_0/0.3)]">
-            <div className="m-2 mb-0 h-[68px] rounded-lg bg-white/[0.06]" />
-            <div className="flex flex-1 flex-col gap-1.5 p-2.5">
-              <div className="text-[11px] leading-[1.1] font-bold text-[#f4f4f5]">
-                {cardTitle}
-              </div>
-              <div className="h-[5px] rounded-[3px] bg-white/10" />
-              <div className="h-[5px] w-[70%] rounded-[3px] bg-white/10" />
-              <div className="mt-1 flex gap-1">
-                <span className="h-3.5 w-9 rounded-full bg-white/[0.08]" />
-                <span className="h-3.5 w-7 rounded-full bg-white/[0.08]" />
-              </div>
-              <div className="mt-auto h-[22px] rounded-full bg-[#f4f4f5]" />
+    <div className="absolute inset-0">
+      <div
+        className={`${WINDOW} bg-[#f6f7fb] shadow-[0_24px_50px_rgb(0_0_0/0.2)]`}
+      >
+        <WindowBar
+          name={app}
+          badge={badge}
+          barClass="bg-[#e9ebf2]"
+          badgeClass="bg-[#f3e8ff] text-[#7c3aed]"
+        />
+        <div className="absolute top-[62px] left-1/2 -ml-[150px] flex h-[250px] w-[170px] flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_4px_14px_rgb(15_23_42/0.08)]">
+          <div className="h-[100px] bg-[#c7d7ff]" />
+          <div className="flex flex-col gap-2 p-3.5">
+            <div className="text-[15px] leading-[1.1] font-bold">
+              {cardTitle}
             </div>
+            <div className="h-[7px] rounded bg-[#e4e4e7]" />
+            <div className="h-[7px] w-[70%] rounded bg-[#e4e4e7]" />
+            <div className="mt-2 h-[30px] rounded-full bg-[#2563eb]" />
           </div>
-          <div className="absolute top-3.5 left-7 h-[188px] w-[124px] rounded-[14px] shadow-[0_0_0_2px_#0d99ff]" />
-          <div className="absolute top-[40px] left-[164px] flex items-center gap-1.5 rounded-[10px_10px_10px_2px] bg-white px-2 py-1.5 text-[10px] leading-none font-semibold whitespace-nowrap text-[#18181b] shadow-[0_6px_14px_rgb(0_0_0/0.15)]">
-            <span className="size-4 rounded-full bg-[#14b8a6] text-center text-[8px] leading-4 font-bold text-white">
-              MR
-            </span>
-            {comment}
+        </div>
+        <div className="absolute top-14 left-1/2 -ml-[156px] h-[262px] w-[182px] rounded-[22px] shadow-[0_0_0_2.5px_#7c3aed]" />
+        <div className="absolute top-[84px] left-1/2 ml-11 flex w-[150px] flex-col gap-2.5 rounded-2xl bg-white p-3.5 shadow-[0_4px_14px_rgb(15_23_42/0.08)]">
+          <div className="text-[13px] leading-none font-bold">{colors}</div>
+          <div className="flex gap-[7px]">
+            <span className="size-6 rounded-[7px] bg-[#2563eb]" />
+            <span className="size-6 rounded-[7px] bg-[#18181b]" />
+            <span className="size-6 rounded-[7px] bg-[#c7d7ff]" />
           </div>
         </div>
       </div>
-      <Presenter backdrop="#123a36" className="right-4 bottom-[60px]" />
-      <ControlPill time="0:39" />
-    </>
+      <div className="absolute top-[228px] left-1/2 -ml-1.5 flex items-center gap-[9px] rounded-[16px_16px_16px_4px] bg-white py-2.5 pr-3.5 pl-2.5 text-[15px] leading-none font-semibold whitespace-nowrap text-[#18181b] shadow-[0_14px_30px_rgb(0_0_0/0.25)]">
+        <Initials size={26}>MR</Initials>
+        {comment}
+      </div>
+      <Presenter shadow="rgb(0 0 0 / 0.3)" />
+    </div>
   );
 }
 
@@ -198,55 +215,33 @@ function SupportScene({
   question,
   reply,
   link,
-  resolved,
 }: {
   question: string;
   reply: string;
   link: string;
-  resolved: string;
 }) {
   return (
-    <>
-      <div className="absolute top-4 right-[18px] left-14 rounded-[16px_16px_4px_16px] bg-white px-3 py-2.5 text-[13px] leading-[1.4] font-medium text-[#18181b] shadow-[0_12px_30px_rgb(0_0_0/0.35)]">
-        {question}
+    <div className="absolute inset-0">
+      <div className="absolute top-10 left-9 flex max-w-[calc(100%-72px)] items-end gap-3">
+        <Initials size={40}>DK</Initials>
+        <div className="rounded-[22px_22px_22px_6px] bg-white px-[22px] py-[18px] text-[19px] leading-[1.35] font-medium text-[#2f5bd8] shadow-[0_20px_44px_rgb(0_0_0/0.16)]">
+          {question}
+        </div>
       </div>
-      <div className="absolute top-[82px] right-[30px] left-[18px] flex flex-col gap-2.5 rounded-[16px_16px_16px_4px] bg-[#0b1730] px-3 pt-2.5 pb-3 shadow-[0_0_0_1px_rgb(255_255_255/0.08),0_12px_30px_rgb(0_0_0/0.35)]">
-        <div className="text-[13px] leading-[1.4] font-medium text-[#e4e4e7]">
+      <div className="absolute top-[150px] right-9 -bottom-6 left-[88px] flex flex-col gap-4 rounded-3xl bg-[#1b2233] px-6 py-[22px] shadow-[0_24px_50px_rgb(0_0_0/0.25)]">
+        <div className="text-[18px] leading-[1.4] font-medium text-white">
           {reply}
           <br />
-          <span className="font-mono text-[12px] text-[#60a5fa]">{link}</span>
+          <span className="font-mono text-[16px] text-[#8fb0ff]">{link}</span>
         </div>
-        <div className="relative h-[62px] overflow-hidden rounded-[10px] bg-[#e9e9ec]">
-          <div className="absolute inset-y-0 left-0 w-11 border-r border-[#e1e1e5] bg-white" />
-          <div className="absolute top-3 left-14 h-2 w-[90px] rounded bg-[#18181b]" />
-          <div className="absolute top-7 right-3 left-14 h-6 rounded-md bg-white" />
-          <div className="absolute top-[58px] left-14 h-6 w-[72px] rounded-md bg-[#1463ff]" />
-          <div className="absolute top-1/2 left-1/2 -mt-[18px] -ml-[18px] flex size-9 items-center justify-center rounded-full bg-[rgb(17_17_17/0.85)]">
-            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
-              <path d="M4 2.5 L11.5 7 L4 11.5 Z" fill="#fff" />
-            </svg>
-          </div>
-          <div className="absolute right-2 bottom-2 size-[34px] overflow-hidden rounded-full shadow-[0_0_0_2px_#fff]">
-            <img src={AVATAR_SRC} alt="" className="size-full object-cover" />
+        <div className="relative flex-1 overflow-hidden rounded-[14px] bg-[linear-gradient(135deg,#2563eb,#7c3aed)]">
+          <div className="absolute inset-x-[18px] bottom-4 h-2 rounded bg-white/35">
+            <div className="h-full w-[38%] rounded bg-white" />
           </div>
         </div>
       </div>
-      <div className="absolute bottom-3 left-[22px] flex items-center gap-2 rounded-full bg-white/10 py-[7px] pr-3 pl-2 text-[12px] leading-none font-medium text-[#dbe6ff]">
-        <span className="flex size-[18px] items-center justify-center rounded-full bg-[#22c55e]">
-          <svg width="10" height="10" viewBox="0 0 22 22" aria-hidden>
-            <path
-              d="M5 11.5 L9.2 15.5 L17 7"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="3.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-        {resolved}
-      </div>
-    </>
+      <Presenter shadow="rgb(0 0 0 / 0.3)" />
+    </div>
   );
 }
 
@@ -262,19 +257,27 @@ function Stat({
   noteClass: string;
 }) {
   return (
-    <div className="flex flex-col gap-1.5 rounded-[10px] bg-[#f4f4f5] p-2.5">
-      <div className="text-[10px] leading-none font-medium text-[#71717a]">
+    <div className="flex flex-col gap-2 rounded-[14px] bg-[#f6f7fb] p-3.5">
+      <div className="text-[13px] leading-none font-medium text-[#71717a]">
         {label}
       </div>
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-[18px] leading-none font-bold tracking-[-0.02em]">
+      <div className="flex items-baseline gap-2">
+        <span className="text-[24px] leading-none font-bold tracking-[-0.02em]">
           {value}
         </span>
-        <span className={`text-[10px] leading-none font-semibold ${noteClass}`}>
+        <span className={`text-[13px] leading-none font-semibold ${noteClass}`}>
           {note}
         </span>
       </div>
     </div>
+  );
+}
+
+function Reaction({ children }: { children: string }) {
+  return (
+    <span className="flex size-[46px] items-center justify-center rounded-full bg-white text-[24px] leading-none shadow-[0_10px_24px_rgb(0_0_0/0.2)]">
+      {children}
+    </span>
   );
 }
 
@@ -292,24 +295,24 @@ function UpdatesScene({
   features: string;
 }) {
   return (
-    <>
+    <div className="absolute inset-0">
       <div
-        className={`${SCREEN} flex flex-col gap-3 bg-white p-4 text-[#18181b]`}
+        className={`${WINDOW} flex flex-col gap-[18px] rounded-3xl bg-white px-[26px] py-6 shadow-[0_24px_50px_rgb(0_0_0/0.16)]`}
       >
-        <div className="flex min-w-0 items-center justify-between gap-2.5">
-          <div className="min-w-0 truncate text-[13px] leading-none font-bold">
+        <div className="flex items-center justify-between">
+          <div className="text-[20px] leading-none font-bold tracking-[-0.02em]">
             {title}
           </div>
-          <div className="flex-none text-[11px] leading-none font-medium text-[#71717a]">
+          <span className="rounded-full bg-[#fff1e3] px-2.5 py-1.5 text-[13px] leading-none font-semibold text-[#c2410c]">
             {range}
-          </div>
+          </span>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3 pr-[110px]">
           <Stat
             label={signups}
             value="2,418"
             note="+18%"
-            noteClass="text-[#0d9488]"
+            noteClass="text-[#2563eb]"
           />
           <Stat
             label={shipped}
@@ -318,19 +321,22 @@ function UpdatesScene({
             noteClass="text-[#71717a]"
           />
         </div>
-        <div className="flex h-[76px] items-end gap-[7px] pt-1">
+        <div className="flex flex-1 items-end gap-2.5 pr-[130px]">
           {CHART_BARS.map((h, i) => (
             <div
               key={i}
-              className={`flex-1 rounded-t ${i === CHART_BARS.length - 1 ? "bg-[#14b8a6]" : "bg-[#d4d4d8]"}`}
+              className={`flex-1 rounded-t-md ${i === CHART_BARS.length - 1 ? "bg-[#2563eb]" : "bg-[#e4e7ef]"}`}
               style={{ height: `${h}%` }}
             />
           ))}
         </div>
       </div>
-      <Presenter backdrop="#1b4a44" className="bottom-[60px] left-10" />
-      <ControlPill time="2:04" />
-    </>
+      <div className="absolute top-[22px] right-[150px] flex gap-2">
+        <Reaction>🔥</Reaction>
+        <Reaction>👏</Reaction>
+      </div>
+      <Presenter shadow="rgb(0 0 0 / 0.3)" />
+    </div>
   );
 }
 
@@ -414,7 +420,10 @@ export function UseCasesSection({ headingLevel = 2 }: SectionProps = {}) {
     ),
     design: (
       <DesignScene
+        app={copy.designApp}
+        badge={copy.designBadge}
         cardTitle={copy.designCardTitle}
+        colors={copy.designColors}
         comment={copy.designComment}
       />
     ),
@@ -423,7 +432,6 @@ export function UseCasesSection({ headingLevel = 2 }: SectionProps = {}) {
         question={copy.supportQuestion}
         reply={copy.supportReply}
         link={copy.supportLink}
-        resolved={copy.supportResolved}
       />
     ),
     updates: (
