@@ -1,16 +1,6 @@
 import NextLink from "next/link";
 import { notFound } from "next/navigation";
-import {
-  Clock,
-  Eye,
-  Film,
-  FolderKanban,
-  HardDrive,
-  Image as ImageIcon,
-  KeyRound,
-  Monitor,
-} from "lucide-react";
-import { Chip, Table } from "@heroui/react";
+import { Table } from "@heroui/react";
 import {
   STORAGE_PLANS,
   can,
@@ -28,18 +18,22 @@ import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
 import {
   DataTable,
-  Initials,
-  Panel,
+  Empty,
+  FormCard,
+  Monogram,
+  Notice,
+  PageHeader,
   PlanChip,
   Stat,
+  StatGrid,
   StorageMeter,
+  Tone,
   formatBytes,
   formatDate,
   formatDuration,
   formatRelative,
-  weekLabels,
 } from "../../_ui";
-import { UploadsChart } from "../../_charts";
+import { PanelTabs } from "../../_filters";
 import { GrantForm } from "./GrantForm";
 import { QuotaForm } from "./QuotaForm";
 import { SignOutEverywhere } from "./SignOutEverywhere";
@@ -87,390 +81,341 @@ export default async function UserPage({
     (w) => w.kind === "team" && w.owner.id === user.id,
   ).length;
 
-  return (
-    <div className="flex flex-col gap-6">
-      <NextLink
-        href="/users"
-        className="text-fg-muted w-fit text-sm hover:underline"
+  const recentTable =
+    activity.recent.length === 0 ? (
+      <Empty title="No recordings yet" />
+    ) : (
+      <DataTable
+        label="Recent recordings"
+        columns={[
+          "Recording",
+          "State",
+          "Visibility",
+          "Length",
+          "Size",
+          "Views",
+          "Created",
+        ]}
       >
-        ← Users
-      </NextLink>
+        {activity.recent.map((r) => (
+          <Table.Row key={r.slug}>
+            <Table.Cell>
+              <div className="text-fg-strong max-w-xs truncate font-medium">
+                {r.title || "Untitled"}
+              </div>
+              <div className="text-fg-subtle text-xs">
+                <span className="font-mono">{r.slug}</span>
+                {r.workspaceName ? ` · ${r.workspaceName}` : ""}
+              </div>
+            </Table.Cell>
+            <Table.Cell>
+              <Tone
+                color={
+                  STATE_COLOR[r.state as keyof typeof STATE_COLOR] ?? "default"
+                }
+              >
+                {r.state}
+              </Tone>
+            </Table.Cell>
+            <Table.Cell className="text-fg-muted capitalize">
+              {r.visibility}
+            </Table.Cell>
+            <Table.Cell className="tabular-nums whitespace-nowrap">
+              {r.durationMs ? formatDuration(r.durationMs) : "—"}
+            </Table.Cell>
+            <Table.Cell className="tabular-nums whitespace-nowrap">
+              {formatBytes(r.sizeBytes)}
+            </Table.Cell>
+            <Table.Cell className="tabular-nums">{r.viewCount}</Table.Cell>
+            <Table.Cell className="text-fg-muted whitespace-nowrap">
+              {formatRelative(r.createdAt)}
+            </Table.Cell>
+          </Table.Row>
+        ))}
+      </DataTable>
+    );
 
-      <header className="border-line bg-panel flex flex-wrap items-center gap-5 rounded-xl border p-5">
-        <Initials name={user.name || user.email} size="lg" />
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-fg-strong truncate text-xl font-semibold">
-              {user.name || user.email}
-            </h1>
+  const workspaceTable = (
+    <DataTable
+      label="Workspaces"
+      columns={[
+        "Workspace",
+        "Role",
+        "Owner",
+        "Members",
+        "Recordings",
+        "Stored",
+      ]}
+    >
+      {workspaces.map((w) => (
+        <Table.Row key={w.id}>
+          <Table.Cell>
+            <div className="flex items-center gap-3">
+              <Monogram name={w.name} />
+              <div className="min-w-0">
+                <NextLink
+                  href={`/workspaces/${w.id}`}
+                  className="text-fg-strong truncate font-medium hover:underline"
+                >
+                  {w.name}
+                </NextLink>
+                <div className="text-fg-subtle text-xs capitalize">
+                  {w.kind}
+                </div>
+              </div>
+            </div>
+          </Table.Cell>
+          <Table.Cell>
+            <Tone color={w.role === "owner" ? "accent" : "default"}>
+              {w.role ?? "—"}
+            </Tone>
+          </Table.Cell>
+          <Table.Cell className="text-fg-muted">
+            {w.owner.id === user.id ? (
+              "This user"
+            ) : (
+              <NextLink
+                href={`/users/${w.owner.id}`}
+                className="hover:underline"
+              >
+                {w.owner.email}
+              </NextLink>
+            )}
+          </Table.Cell>
+          <Table.Cell className="tabular-nums whitespace-nowrap">
+            {w.memberCount}
+            {w.pendingInvites ? (
+              <span className="text-fg-subtle">
+                {" "}
+                +{w.pendingInvites} invited
+              </span>
+            ) : null}
+          </Table.Cell>
+          <Table.Cell className="tabular-nums">{w.recordingCount}</Table.Cell>
+          <Table.Cell className="tabular-nums whitespace-nowrap">
+            {formatBytes(w.storageBytes)}
+          </Table.Cell>
+        </Table.Row>
+      ))}
+    </DataTable>
+  );
+
+  const subscriptionTable =
+    subscriptions.length === 0 ? (
+      <Empty title="Never subscribed" />
+    ) : (
+      <DataTable
+        label="Subscriptions"
+        columns={[
+          "Plan",
+          "Status",
+          "Billing",
+          "Period ends",
+          "Started",
+          "Customer email",
+        ]}
+      >
+        {subscriptions.map((s) => (
+          <Table.Row key={s.id}>
+            <Table.Cell className="text-fg-strong font-medium">
+              {s.planLabel}
+            </Table.Cell>
+            <Table.Cell>
+              <Tone
+                color={
+                  s.status === "past_due"
+                    ? "warning"
+                    : s.isActive
+                      ? "accent"
+                      : "default"
+                }
+              >
+                {s.status.replace("_", " ")}
+                {s.isActive ? "" : " · inactive"}
+              </Tone>
+            </Table.Cell>
+            <Table.Cell className="capitalize">{s.cycle}</Table.Cell>
+            <Table.Cell className="tabular-nums whitespace-nowrap">
+              {s.currentPeriodEnd
+                ? formatDate(s.currentPeriodEnd * 1000).slice(0, 10)
+                : "—"}
+            </Table.Cell>
+            <Table.Cell className="tabular-nums whitespace-nowrap">
+              {formatDate(s.createdAt * 1000).slice(0, 10)}
+            </Table.Cell>
+            <Table.Cell className="text-fg-muted">{s.customerEmail}</Table.Cell>
+          </Table.Row>
+        ))}
+      </DataTable>
+    );
+
+  const planPanel = (
+    <div className="grid gap-5 lg:grid-cols-2">
+      <FormCard
+        title="Plan"
+        description="A granted plan works like a paid one (same storage, no retention sweep) without a subscription. With both, the larger applies."
+      >
+        {quota.grant && (
+          <Notice>Granted {grantSummary(quota.grant, now)}</Notice>
+        )}
+        {canWrite ? (
+          <GrantForm
+            userId={user.id}
+            grant={quota.grant}
+            plans={STORAGE_PLANS}
+          />
+        ) : (
+          <p className="text-fg-muted text-sm">
+            Read-only: your role cannot change plans.
+          </p>
+        )}
+      </FormCard>
+      <FormCard
+        title="Storage"
+        description={
+          <>
+            Counts ready recordings, webcam streams and screenshots in every
+            workspace this user owns.
+            {quota.updatedAt
+              ? ` Last changed ${formatDate(quota.updatedAt)}.`
+              : ""}
+          </>
+        }
+      >
+        <StorageMeter used={storage.usedBytes} limit={storage.limitBytes} />
+        {canWrite ? (
+          <QuotaForm userId={user.id} quota={quota} />
+        ) : (
+          <dl className="grid gap-3 text-sm">
+            <div>
+              <dt className="text-fg-muted text-xs">Storage override</dt>
+              <dd className="tabular-nums">
+                {quota.storageBytesOverride === null
+                  ? "—"
+                  : formatBytes(quota.storageBytesOverride)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-fg-muted text-xs">Note</dt>
+              <dd>{quota.note ?? "—"}</dd>
+            </div>
+          </dl>
+        )}
+      </FormCard>
+      <FormCard
+        title="Access"
+        description={`${user.activeSessions} browser ${user.activeSessions === 1 ? "session" : "sessions"} and ${user.activeDevices} connected ${user.activeDevices === 1 ? "device" : "devices"} (desktop app and extension). Signing out ends all of them; the user can sign straight back in.`}
+      >
+        {canWrite ? (
+          <SignOutEverywhere
+            userId={user.id}
+            sessions={user.activeSessions}
+            devices={user.activeDevices}
+          />
+        ) : (
+          <p className="text-fg-muted text-sm">
+            Read-only: your role cannot sign users out.
+          </p>
+        )}
+      </FormCard>
+    </div>
+  );
+
+  const historyTable =
+    audit.length === 0 ? (
+      <Empty title="No admin changes yet" />
+    ) : (
+      <DataTable
+        label="Admin history"
+        columns={["Action", "Detail", "By", "When"]}
+      >
+        {audit.map((a) => (
+          <Table.Row key={a.id}>
+            <Table.Cell>
+              <Tone color="default">{a.action}</Tone>
+            </Table.Cell>
+            <Table.Cell className="text-fg-muted max-w-sm truncate">
+              {a.detail ?? "—"}
+            </Table.Cell>
+            <Table.Cell className="text-fg-muted">{a.actor}</Table.Cell>
+            <Table.Cell className="text-fg-muted whitespace-nowrap">
+              {formatRelative(a.createdAt)}
+            </Table.Cell>
+          </Table.Row>
+        ))}
+      </DataTable>
+    );
+
+  return (
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        title={user.name || user.email}
+        back={{ href: "/users", label: "Users" }}
+        description={
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {user.name && <span>{user.email}</span>}
+            <span>Joined {formatRelative(user.createdAt)}</span>
+            <span>Active {formatRelative(user.lastActiveAt)}</span>
+          </span>
+        }
+        actions={
+          <>
             <PlanChip plan={user.plan} />
-            <Chip
-              size="sm"
-              color={user.emailVerified ? "success" : "warning"}
-              variant="secondary"
-            >
-              {user.emailVerified ? "Email verified" : "Email unverified"}
-            </Chip>
+            <Tone color={user.emailVerified ? "success" : "warning"}>
+              {user.emailVerified ? "Verified" : "Unverified"}
+            </Tone>
             {user.providers.map((p) => (
-              <Chip key={p} size="sm" variant="secondary">
+              <Tone key={p} color="default">
                 {p === "credential" ? "password" : p}
-              </Chip>
+              </Tone>
             ))}
-          </div>
-          <div className="text-fg-muted text-sm">{user.email}</div>
-          <div className="text-fg-subtle flex flex-wrap gap-x-4 gap-y-1 text-xs">
-            <span>Joined {formatDate(user.createdAt)}</span>
-            <span>Last active {formatRelative(user.lastActiveAt)}</span>
-            <span className="font-mono">{user.id}</span>
-          </div>
-        </div>
-        <div className="w-full sm:w-72">
-          <StorageMeter used={storage.usedBytes} limit={storage.limitBytes} />
-        </div>
-      </header>
+          </>
+        }
+      >
+        <Monogram name={user.name || user.email} size="lg" />
+      </PageHeader>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 2xl:grid-cols-8">
+      <StatGrid columns={4}>
         <Stat
           label="Recordings"
           value={user.recordingCount.toLocaleString()}
-          hint={`${activity.recordings30d} in the last 30 days`}
-          icon={<Film size={14} />}
+          hint={`${activity.recordings30d} in 30 days · ${formatDuration(activity.totalDurationMs)} total`}
         />
         <Stat
           label="Screenshots"
           value={user.screenshotCount.toLocaleString()}
-          hint={`${activity.screenshots30d} in the last 30 days`}
-          icon={<ImageIcon size={14} />}
+          hint={`${activity.screenshots30d} in 30 days`}
         />
         <Stat
           label="Views received"
           value={activity.totalViews.toLocaleString()}
-          hint="Across recordings and screenshots"
-          icon={<Eye size={14} />}
-        />
-        <Stat
-          label="Recorded"
-          value={formatDuration(activity.totalDurationMs)}
-          hint="Total length of ready recordings"
-          icon={<Clock size={14} />}
+          hint="Recordings and screenshots"
         />
         <Stat
           label="Stored"
           value={formatBytes(storage.usedBytes)}
-          hint={`of ${formatBytes(storage.limitBytes)}`}
-          icon={<HardDrive size={14} />}
+          hint={`of ${formatBytes(storage.limitBytes)} · ${ownedTeams} team ${ownedTeams === 1 ? "workspace" : "workspaces"} owned`}
         />
-        <Stat
-          label="Workspaces"
-          value={String(user.workspaceCount)}
-          hint={`Owns ${ownedTeams} team ${ownedTeams === 1 ? "workspace" : "workspaces"}`}
-          icon={<FolderKanban size={14} />}
-        />
-        <Stat
-          label="Browser sessions"
-          value={String(user.activeSessions)}
-          hint="Signed in right now"
-          icon={<KeyRound size={14} />}
-        />
-        <Stat
-          label="Connected devices"
-          value={String(user.activeDevices)}
-          hint="Desktop app and extension"
-          icon={<Monitor size={14} />}
-        />
-      </div>
+      </StatGrid>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="flex min-w-0 flex-col gap-6">
-          <Panel
-            title="Activity"
-            description={`${[...activity.weekly.recordings, ...activity.weekly.screenshots].reduce((a, b) => a + b, 0)} uploads in the last 12 weeks, any state.`}
-          >
-            <UploadsChart
-              data={weekLabels(12, now).map((week, i) => ({
-                week,
-                recordings: activity.weekly.recordings[i] ?? 0,
-                screenshots: activity.weekly.screenshots[i] ?? 0,
-              }))}
-            />
-          </Panel>
-
-          <Panel
-            title="Recent recordings"
-            description="The latest twelve, in any state."
-          >
-            {activity.recent.length === 0 ? (
-              <p className="text-fg-muted text-sm">No recordings yet.</p>
-            ) : (
-              <DataTable
-                label="Recent recordings"
-                columns={[
-                  "Recording",
-                  "State",
-                  "Visibility",
-                  "Length",
-                  "Size",
-                  "Views",
-                  "Created",
-                ]}
-              >
-                {activity.recent.map((r) => (
-                  <Table.Row key={r.slug}>
-                    <Table.Cell>
-                      <div className="max-w-xs truncate font-medium">
-                        {r.title || "Untitled"}
-                      </div>
-                      <div className="text-fg-subtle text-xs">
-                        <span className="font-mono">{r.slug}</span>
-                        {r.workspaceName ? ` · ${r.workspaceName}` : ""}
-                      </div>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Chip
-                        size="sm"
-                        color={
-                          STATE_COLOR[r.state as keyof typeof STATE_COLOR] ??
-                          "default"
-                        }
-                      >
-                        {r.state}
-                      </Chip>
-                    </Table.Cell>
-                    <Table.Cell className="text-fg-muted">
-                      {r.visibility}
-                    </Table.Cell>
-                    <Table.Cell className="tabular-nums whitespace-nowrap">
-                      {r.durationMs ? formatDuration(r.durationMs) : "—"}
-                    </Table.Cell>
-                    <Table.Cell className="tabular-nums whitespace-nowrap">
-                      {formatBytes(r.sizeBytes)}
-                    </Table.Cell>
-                    <Table.Cell className="tabular-nums whitespace-nowrap">
-                      {r.viewCount}
-                    </Table.Cell>
-                    <Table.Cell className="tabular-nums whitespace-nowrap">
-                      {formatRelative(r.createdAt)}
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </DataTable>
-            )}
-          </Panel>
-
-          <Panel
-            title="Workspaces"
-            description="Storage in a workspace is charged to its owner."
-          >
-            <DataTable
-              label="Workspaces"
-              columns={[
-                "Workspace",
-                "Role",
-                "Owner",
-                "Members",
-                "Recordings",
-                "Screenshots",
-                "Stored",
-              ]}
-            >
-              {workspaces.map((w) => (
-                <Table.Row key={w.id}>
-                  <Table.Cell>
-                    <NextLink
-                      href={`/workspaces/${w.id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {w.name}
-                    </NextLink>
-                    <div className="text-fg-subtle text-xs">{w.kind}</div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Chip
-                      size="sm"
-                      color={w.role === "owner" ? "accent" : "default"}
-                    >
-                      {w.role ?? "—"}
-                    </Chip>
-                  </Table.Cell>
-                  <Table.Cell className="text-fg-muted">
-                    {w.owner.id === user.id ? (
-                      "This user"
-                    ) : (
-                      <NextLink
-                        href={`/users/${w.owner.id}`}
-                        className="hover:underline"
-                      >
-                        {w.owner.email}
-                      </NextLink>
-                    )}
-                  </Table.Cell>
-                  <Table.Cell className="tabular-nums whitespace-nowrap">
-                    {w.memberCount}
-                    {w.pendingInvites ? ` (+${w.pendingInvites} invited)` : ""}
-                  </Table.Cell>
-                  <Table.Cell className="tabular-nums whitespace-nowrap">
-                    {w.recordingCount}
-                  </Table.Cell>
-                  <Table.Cell className="tabular-nums whitespace-nowrap">
-                    {w.screenshotCount}
-                  </Table.Cell>
-                  <Table.Cell className="tabular-nums whitespace-nowrap">
-                    {formatBytes(w.storageBytes)}
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </DataTable>
-          </Panel>
-
-          <Panel
-            title="Subscriptions"
-            description="Lemon Squeezy, newest first."
-          >
-            {subscriptions.length === 0 ? (
-              <p className="text-fg-muted text-sm">Never subscribed.</p>
-            ) : (
-              <DataTable
-                label="Subscriptions"
-                columns={[
-                  "Plan",
-                  "Status",
-                  "Billing",
-                  "Period ends",
-                  "Started",
-                  "Customer email",
-                ]}
-              >
-                {subscriptions.map((s) => (
-                  <Table.Row key={s.id}>
-                    <Table.Cell className="font-medium">
-                      {s.planLabel}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Chip
-                        size="sm"
-                        color={
-                          s.status === "past_due"
-                            ? "warning"
-                            : s.isActive
-                              ? "accent"
-                              : "default"
-                        }
-                      >
-                        {s.status.replace("_", " ")}
-                        {s.isActive ? "" : " · inactive"}
-                      </Chip>
-                    </Table.Cell>
-                    <Table.Cell>{s.cycle}</Table.Cell>
-                    <Table.Cell className="tabular-nums whitespace-nowrap">
-                      {s.currentPeriodEnd
-                        ? formatDate(s.currentPeriodEnd * 1000).slice(0, 10)
-                        : "—"}
-                    </Table.Cell>
-                    <Table.Cell className="tabular-nums whitespace-nowrap">
-                      {formatDate(s.createdAt * 1000).slice(0, 10)}
-                    </Table.Cell>
-                    <Table.Cell className="text-fg-muted">
-                      {s.customerEmail}
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </DataTable>
-            )}
-          </Panel>
-        </div>
-
-        <aside className="flex flex-col gap-6 xl:sticky xl:top-8 xl:self-start">
-          <Panel
-            title="Plan"
-            description="A granted plan works like a paid one (same storage, no retention sweep) without a subscription. With both, the larger applies."
-          >
-            {quota.grant && (
-              <p className="bg-tint rounded-lg px-3 py-2 text-sm">
-                Granted {grantSummary(quota.grant, now)}
-              </p>
-            )}
-            {canWrite ? (
-              <GrantForm
-                userId={user.id}
-                grant={quota.grant}
-                plans={STORAGE_PLANS}
-              />
-            ) : (
-              <p className="text-fg-muted text-sm">
-                Read-only: your role cannot change plans.
-              </p>
-            )}
-          </Panel>
-
-          <Panel
-            title="Storage"
-            description={
-              <>
-                Counts ready recordings, webcam streams and screenshots in every
-                workspace this user owns.
-                {quota.updatedAt
-                  ? ` Last changed ${formatDate(quota.updatedAt)}.`
-                  : ""}
-              </>
-            }
-          >
-            <StorageMeter used={storage.usedBytes} limit={storage.limitBytes} />
-            {canWrite ? (
-              <QuotaForm userId={user.id} quota={quota} />
-            ) : (
-              <dl className="grid gap-3 text-sm">
-                <div>
-                  <dt className="text-fg-muted text-xs">Storage override</dt>
-                  <dd className="tabular-nums">
-                    {quota.storageBytesOverride === null
-                      ? "—"
-                      : formatBytes(quota.storageBytesOverride)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-fg-muted text-xs">Note</dt>
-                  <dd>{quota.note ?? "—"}</dd>
-                </div>
-              </dl>
-            )}
-          </Panel>
-
-          {canWrite && (
-            <Panel
-              title="Access"
-              description="Ends every browser session and revokes the desktop app and extension tokens. The user can sign straight back in."
-            >
-              <SignOutEverywhere
-                userId={user.id}
-                sessions={user.activeSessions}
-                devices={user.activeDevices}
-              />
-            </Panel>
-          )}
-
-          <Panel title="Admin history">
-            {audit.length === 0 ? (
-              <p className="text-fg-muted text-sm">No admin changes yet.</p>
-            ) : (
-              <ol className="flex flex-col gap-3">
-                {audit.map((a) => (
-                  <li key={a.id} className="border-line border-l-2 pl-3">
-                    <div className="text-sm font-medium">{a.action}</div>
-                    {a.detail && (
-                      <div className="text-fg-muted text-xs break-all">
-                        {a.detail}
-                      </div>
-                    )}
-                    <div className="text-fg-subtle text-xs">
-                      {a.actor} · {formatRelative(a.createdAt)}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </Panel>
-        </aside>
-      </div>
+      <PanelTabs
+        label="User details"
+        items={[
+          { id: "recordings", label: "Recordings", content: recentTable },
+          {
+            id: "workspaces",
+            label: `Workspaces · ${workspaces.length}`,
+            content: workspaceTable,
+          },
+          { id: "plan", label: "Plan & access", content: planPanel },
+          {
+            id: "subscriptions",
+            label: "Subscriptions",
+            content: subscriptionTable,
+          },
+          { id: "history", label: "History", content: historyTable },
+        ]}
+      />
     </div>
   );
 }

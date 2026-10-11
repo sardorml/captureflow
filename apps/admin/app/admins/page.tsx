@@ -1,9 +1,10 @@
 import { listAdmins, listPendingInvites } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
-import { DataTable, PageHeading, SectionHeading } from "../_ui";
+import { DataTable, Empty, PageHeader } from "../_ui";
+import { PanelTabs } from "../_filters";
 import { AdminRow } from "./AdminRow";
-import { InviteForm } from "./InviteForm";
+import { InviteDialog } from "./InviteForm";
 import { InviteRow } from "./InviteRow";
 
 export default async function AdminsPage() {
@@ -15,47 +16,61 @@ export default async function AdminsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeading title="Admins">
-        Accounts that can sign in here. Separate from product users — an admin
-        row grants nothing inside the app.
-      </PageHeading>
+      <PageHeader
+        title="Admins"
+        description="People who can sign in here. Separate from product accounts."
+        actions={<InviteDialog />}
+      />
 
-      <section className="border-line bg-panel flex flex-col gap-4 rounded-xl border p-5">
-        <SectionHeading title="Invite an admin" />
-        <InviteForm />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <SectionHeading title="Active admins" />
-        <DataTable
-          label="Active admins"
-          columns={["Admin", "Role", "Last sign-in", ""]}
-        >
-          {admins.map((a) => (
-            <AdminRow key={a.id} admin={a} isSelf={a.id === operator.id} />
-          ))}
-        </DataTable>
-        <p className="text-fg-subtle text-xs">
-          You cannot change or remove your own account — that rule is what keeps
-          the deployment from ending up with no owner.
-        </p>
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <SectionHeading title="Pending invites" />
-        {invites.length === 0 ? (
-          <p className="text-fg-muted text-sm">No invites waiting.</p>
-        ) : (
-          <DataTable
-            label="Pending invites"
-            columns={["Email", "Role", "Invited by", "Expires", ""]}
-          >
-            {invites.map((i) => (
-              <InviteRow key={i.tokenHash} invite={i} />
-            ))}
-          </DataTable>
-        )}
-      </section>
+      <PanelTabs
+        label="Admins"
+        items={[
+          {
+            id: "active",
+            label: `Admins · ${admins.length}`,
+            content: (
+              <div className="flex flex-col gap-3">
+                <DataTable
+                  label="Admins"
+                  columns={["Admin", "Role", "Status", "Last sign-in", ""]}
+                >
+                  {admins.map((a) => (
+                    <AdminRow
+                      key={a.id}
+                      admin={a}
+                      isSelf={a.id === operator.id}
+                    />
+                  ))}
+                </DataTable>
+                <p className="text-fg-subtle text-xs">
+                  You can&apos;t change or remove your own account, so the
+                  deployment always keeps an owner.
+                </p>
+              </div>
+            ),
+          },
+          {
+            id: "invites",
+            label: `Pending invites · ${invites.length}`,
+            content:
+              invites.length === 0 ? (
+                <Empty title="No pending invites">
+                  Invites you send show up here until they&apos;re accepted or
+                  expire.
+                </Empty>
+              ) : (
+                <DataTable
+                  label="Pending invites"
+                  columns={["Email", "Role", "Invited by", "Expires", ""]}
+                >
+                  {invites.map((i) => (
+                    <InviteRow key={i.tokenHash} invite={i} />
+                  ))}
+                </DataTable>
+              ),
+          },
+        ]}
+      />
     </div>
   );
 }

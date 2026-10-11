@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
 import NextLink from "next/link";
+import { ArrowLeft } from "lucide-react";
 import {
   Alert,
+  Avatar,
   Card,
   Chip,
+  EmptyState,
   ProgressBar,
   Table,
-  Typography,
 } from "@heroui/react";
 import type { AdminPlanSummary } from "@captureflow/admin";
 import { cn } from "@captureflow/ui/cn";
@@ -32,151 +34,153 @@ export function formatDuration(ms: number): string {
   return `${hours}h ${minutes % 60}m`;
 }
 
-export function Stat({
-  label,
-  value,
-  hint,
-  icon,
+export function formatRelative(ms: number | null, now = Date.now()): string {
+  if (!ms) return "Never";
+  const minutes = Math.round((now - ms) / 60000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 60) return `${days}d ago`;
+  return formatDate(ms).slice(0, 10);
+}
+
+export function PageHeader({
+  title,
+  description,
+  actions,
+  back,
   children,
 }: {
-  label: string;
-  value: string;
-  hint?: ReactNode;
-  icon?: ReactNode;
+  title: ReactNode;
+  description?: ReactNode;
+  actions?: ReactNode;
+  back?: { href: string; label: string };
   children?: ReactNode;
 }) {
   return (
-    <Card className="border-line border">
-      <Card.Content className="flex flex-col gap-1 p-4">
-        <div className="text-fg-muted flex items-center justify-between gap-2 text-xs">
-          <span>{label}</span>
-          {icon && <span className="text-fg-subtle">{icon}</span>}
+    <header className="flex flex-col gap-3">
+      {back && (
+        <NextLink
+          href={back.href}
+          className="text-fg-muted hover:text-fg flex w-fit items-center gap-1.5 text-sm transition-colors motion-reduce:transition-none"
+        >
+          <ArrowLeft size={14} aria-hidden />
+          {back.label}
+        </NextLink>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          {children}
+          <div className="min-w-0">
+            <h1 className="text-fg-strong truncate text-[28px] leading-tight font-semibold tracking-tight">
+              {title}
+            </h1>
+            {description && (
+              <div className="text-fg-muted mt-1 text-sm">{description}</div>
+            )}
+          </div>
         </div>
-        <div className="text-fg-strong text-2xl font-semibold tracking-tight tabular-nums">
-          {value}
-        </div>
-        {hint && <div className="text-fg-subtle text-xs">{hint}</div>}
-        {children}
-      </Card.Content>
-    </Card>
+        {actions && <div className="flex items-center gap-2">{actions}</div>}
+      </div>
+    </header>
   );
 }
 
-export function Panel({
+export function Section({
   title,
   description,
   actions,
   children,
-  className,
 }: {
-  title?: string;
+  title: string;
   description?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
-  className?: string;
 }) {
   return (
-    <section
-      className={cn(
-        "border-line bg-panel flex min-w-0 flex-col gap-4 rounded-xl border p-5",
-        className,
-      )}
-    >
-      {(title || actions) && (
-        <div className="flex items-start justify-between gap-4">
-          {title && (
-            <SectionHeading title={title}>{description}</SectionHeading>
+    <section className="flex min-w-0 flex-col gap-3">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h2 className="text-fg-strong text-base font-semibold">{title}</h2>
+          {description && (
+            <p className="text-fg-muted mt-0.5 text-sm">{description}</p>
           )}
-          {actions}
         </div>
-      )}
+        {actions}
+      </div>
       {children}
     </section>
   );
 }
 
-const WEEK_MS = 7 * 24 * 3600 * 1000;
-
-// Start date of each bucket from weeklyBuckets, in UTC so server and browser
-// agree; the last one is the current week.
-export function weekLabels(weeks: number, now = Date.now()): string[] {
-  return Array.from({ length: weeks }, (_, i) =>
-    i === weeks - 1
-      ? "Now"
-      : new Date(now - (weeks - i) * WEEK_MS).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          timeZone: "UTC",
-        }),
-  );
-}
-
-export function Initials({
-  name,
-  size = "sm",
-}: {
-  name: string;
-  size?: "sm" | "lg";
-}) {
-  const letters =
-    name
-      .split(/[\s@._-]+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((w) => w[0]!.toUpperCase())
-      .join("") || "?";
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "bg-tint-strong text-fg grid shrink-0 place-items-center rounded-full font-semibold",
-        size === "lg" ? "size-14 text-lg" : "size-8 text-xs",
-      )}
-    >
-      {letters}
-    </span>
-  );
-}
-
-export function SectionHeading({
+export function FormCard({
   title,
+  description,
   children,
 }: {
   title: string;
-  children?: ReactNode;
+  description?: ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <div>
-      <Typography.Heading level={2} className="mt-0 mb-0 text-sm font-semibold">
-        {title}
-      </Typography.Heading>
-      {children && (
-        <Typography.Paragraph className="text-fg-muted mt-1 mb-0 text-sm">
-          {children}
-        </Typography.Paragraph>
-      )}
+    <Card className="border-line bg-canvas border">
+      <Card.Header className="flex flex-col gap-1">
+        <Card.Title className="text-fg-strong text-[15px] font-semibold">
+          {title}
+        </Card.Title>
+        {description && (
+          <Card.Description className="text-fg-muted text-sm">
+            {description}
+          </Card.Description>
+        )}
+      </Card.Header>
+      <Card.Content className="flex flex-col gap-4">{children}</Card.Content>
+    </Card>
+  );
+}
+
+export function Stat({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint?: ReactNode;
+}) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1 px-5 py-4">
+      <span className="text-fg-muted text-sm">{label}</span>
+      <span className="text-fg-strong text-2xl font-semibold tracking-tight tabular-nums">
+        {value}
+      </span>
+      {hint && <span className="text-fg-subtle text-xs">{hint}</span>}
     </div>
   );
 }
 
-export function PageHeading({
-  title,
+export function StatGrid({
   children,
+  columns = 4,
 }: {
-  title: string;
-  children?: ReactNode;
+  children: ReactNode;
+  columns?: 3 | 4 | 6;
 }) {
   return (
-    <div>
-      <Typography.Heading level={1} className="mt-0 mb-0 text-xl font-semibold">
-        {title}
-      </Typography.Heading>
-      {children && (
-        <Typography.Paragraph className="text-fg-muted mt-1 mb-0 text-sm">
-          {children}
-        </Typography.Paragraph>
-      )}
-    </div>
+    <Card className="border-line bg-canvas border p-0">
+      <div
+        className={cn(
+          "divide-line grid grid-cols-2 divide-x [&>*:nth-child(n+3)]:border-t sm:[&>*:nth-child(n+3)]:border-t-0",
+          columns === 3 && "sm:grid-cols-3",
+          columns === 4 && "sm:grid-cols-4",
+          columns === 6 && "sm:grid-cols-3 xl:grid-cols-6",
+        )}
+      >
+        {children}
+      </div>
+    </Card>
   );
 }
 
@@ -190,22 +194,40 @@ export function DataTable({
   children: ReactNode;
 }) {
   return (
-    <Table>
+    <Table variant="secondary">
       <Table.ScrollContainer>
         <Table.Content aria-label={label} className="w-full">
-          <Table.Header>
+          <Table.Header className="[&_th]:border-line [&_th]:bg-canvas-2 [&_th]:text-fg-muted [&_th]:border-y [&_th]:after:hidden [&_th:first-child]:border-l [&_th:last-child]:border-r">
             {columns.map((c, i) => (
-              // A blank trailing column header carries the row actions; the
-              // first column is the row header for assistive tech.
               <Table.Column key={c || `actions-${i}`} isRowHeader={i === 0}>
                 {c}
               </Table.Column>
             ))}
           </Table.Header>
-          <Table.Body>{children}</Table.Body>
+          <Table.Body className="[&_td]:border-line [&_td]:py-3.5">
+            {children}
+          </Table.Body>
         </Table.Content>
       </Table.ScrollContainer>
     </Table>
+  );
+}
+
+export function Empty({
+  title,
+  children,
+  action,
+}: {
+  title: string;
+  children?: ReactNode;
+  action?: ReactNode;
+}) {
+  return (
+    <EmptyState className="border-line flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-14 text-center">
+      <p className="text-fg-strong text-sm font-medium">{title}</p>
+      {children && <p className="text-fg-muted max-w-sm text-sm">{children}</p>}
+      {action && <div className="mt-2">{action}</div>}
+    </EmptyState>
   );
 }
 
@@ -225,16 +247,72 @@ export function Notice({
   );
 }
 
-export function formatRelative(ms: number | null, now = Date.now()): string {
-  if (!ms) return "Never";
-  const minutes = Math.round((now - ms) / 60000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  if (days < 60) return `${days}d ago`;
-  return formatDate(ms).slice(0, 10);
+function initials(name: string): string {
+  return (
+    name
+      .split(/[\s@._-]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0]!.toUpperCase())
+      .join("") || "?"
+  );
+}
+
+export function Monogram({
+  name,
+  size = "sm",
+}: {
+  name: string;
+  size?: "sm" | "lg";
+}) {
+  return (
+    <Avatar
+      size={size === "lg" ? "lg" : "sm"}
+      className={cn(
+        "border-line bg-canvas-2 shrink-0 rounded-lg border",
+        size === "lg" ? "size-14" : "size-9",
+      )}
+    >
+      <Avatar.Fallback
+        className={cn(
+          "text-fg font-semibold",
+          size === "lg" ? "text-lg" : "text-xs",
+        )}
+      >
+        {initials(name)}
+      </Avatar.Fallback>
+    </Avatar>
+  );
+}
+
+export function PersonCell({
+  id,
+  name,
+  email,
+  badge,
+}: {
+  id: string;
+  name: string;
+  email: string;
+  badge?: ReactNode;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <Monogram name={name || email} />
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <NextLink
+            href={`/users/${id}`}
+            className="text-fg-strong truncate font-medium hover:underline"
+          >
+            {name || email}
+          </NextLink>
+          {badge}
+        </div>
+        {name && <div className="text-fg-subtle truncate text-xs">{email}</div>}
+      </div>
+    </div>
+  );
 }
 
 const PLAN_COLOR = {
@@ -258,6 +336,7 @@ export function PlanChip({ plan }: { plan: AdminPlanSummary }) {
   return (
     <Chip
       size="sm"
+      variant="soft"
       color={status === "past_due" ? "warning" : PLAN_COLOR[plan.source]}
     >
       {name}
@@ -266,66 +345,17 @@ export function PlanChip({ plan }: { plan: AdminPlanSummary }) {
   );
 }
 
-export function Pager({
-  page,
-  total,
-  pageSize,
-  hrefFor,
+export function Tone({
+  color,
+  children,
 }: {
-  page: number;
-  total: number;
-  pageSize: number;
-  hrefFor: (page: number) => string;
-}) {
-  const pages = Math.max(1, Math.ceil(total / pageSize));
-  const link = (target: number, label: string) =>
-    target < 1 || target > pages ? (
-      <span className="text-fg-subtle">{label}</span>
-    ) : (
-      <NextLink href={hrefFor(target)} className="hover:text-fg">
-        {label}
-      </NextLink>
-    );
-  return (
-    <div className="text-fg-muted flex items-center justify-between text-sm">
-      <span className="tabular-nums">
-        {total.toLocaleString()} total · page {Math.min(page, pages)} of {pages}
-      </span>
-      <div className="flex gap-4">
-        {link(page - 1, "Previous")}
-        {link(page + 1, "Next")}
-      </div>
-    </div>
-  );
-}
-
-export function PersonCell({
-  id,
-  name,
-  email,
-  badge,
-}: {
-  id: string;
-  name: string;
-  email: string;
-  badge?: ReactNode;
+  color: "default" | "accent" | "success" | "warning" | "danger";
+  children: ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <Initials name={name || email} />
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <NextLink
-            href={`/users/${id}`}
-            className="truncate font-medium hover:underline"
-          >
-            {name || email}
-          </NextLink>
-          {badge}
-        </div>
-        <div className="text-fg-subtle truncate text-xs">{email}</div>
-      </div>
-    </div>
+    <Chip size="sm" variant="soft" color={color} className="capitalize">
+      {children}
+    </Chip>
   );
 }
 
@@ -367,6 +397,46 @@ export function StorageMeter({ used, limit }: { used: number; limit: number }) {
           <ProgressBar.Fill className="rounded-full" />
         </ProgressBar.Track>
       </ProgressBar>
+    </div>
+  );
+}
+
+export function AuthCard({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 py-12">
+      <div className="flex items-center gap-2.5">
+        <Avatar size="sm" color="accent" className="size-8 rounded-lg">
+          <Avatar.Fallback className="text-sm font-semibold">C</Avatar.Fallback>
+        </Avatar>
+        <span className="text-fg-strong text-[15px] font-semibold">
+          CaptureFlow admin
+        </span>
+      </div>
+      <Card className="border-line bg-canvas border">
+        <Card.Header className="flex flex-col gap-1">
+          <Card.Title className="text-fg-strong text-xl font-semibold">
+            {title}
+          </Card.Title>
+          {description && (
+            <Card.Description className="text-fg-muted text-sm">
+              {description}
+            </Card.Description>
+          )}
+        </Card.Header>
+        {children && (
+          <Card.Content className="flex flex-col gap-4">
+            {children}
+          </Card.Content>
+        )}
+      </Card>
     </div>
   );
 }

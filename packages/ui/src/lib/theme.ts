@@ -43,6 +43,23 @@ export function readThemeFromCookieHeader(
   return isTheme(value) ? value : DEFAULT_THEME;
 }
 
+// Browsers drop a Domain set on a host without a public suffix (localhost), so
+// only share the preference across captureflow.dev hosts.
+export function writeThemePreferenceCookie(value: ThemePreference): void {
+  const host = window.location.hostname;
+  const parts = [
+    `${THEME_COOKIE}=${value}`,
+    "Path=/",
+    `Max-Age=${60 * 60 * 24 * 365}`,
+    "SameSite=Lax",
+  ];
+  if (host === "captureflow.dev" || host.endsWith(".captureflow.dev")) {
+    parts.push("Domain=.captureflow.dev");
+  }
+  if (window.location.protocol === "https:") parts.push("Secure");
+  document.cookie = parts.join("; ");
+}
+
 /*
  * Runs blocking ahead of any paint, so a "system" preference never shows the
  * server's guess first. The listener stays for the session and re-reads the

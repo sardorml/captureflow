@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { countAdmins } from "@captureflow/admin";
 import { currentOperator } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
+import { AuthCard } from "../_ui";
 import { LoginForm } from "./LoginForm";
 
 export default async function LoginPage() {
@@ -10,14 +11,11 @@ export default async function LoginPage() {
   if (env?.DB && (await countAdmins(env.DB)) === 0) redirect("/setup");
 
   return (
-    <div className="mx-auto flex min-h-[70dvh] max-w-sm flex-col justify-center gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Instance admin</h1>
-        <p className="text-fg-muted mt-1 text-sm">
-          For whoever operates this deployment. Not a product account.
-        </p>
-      </div>
+    <AuthCard
+      title="Sign in"
+      description="For whoever operates this deployment. Not a product account."
+    >
       <LoginForm />
-    </div>
+    </AuthCard>
   );
 }

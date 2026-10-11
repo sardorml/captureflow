@@ -1,21 +1,23 @@
 "use client";
 
 import { type ReactNode, useActionState, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   Button,
+  Card,
   Chip,
   Description,
-  Input,
   Label,
-  TextArea,
-  TextField,
+  ListBox,
+  SearchField,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@heroui/react";
 import {
   type Audience,
   type AudienceMember,
   renderCampaign,
 } from "@captureflow/mail";
-import { cn } from "@captureflow/ui/cn";
 import type { FormState } from "../actions";
 import { ActionButton, ActionForm, EMPTY, TextRow, keepTyped } from "../_form";
 import { Notice } from "../_ui";
@@ -25,6 +27,17 @@ import {
   sendTestAction,
   type TestState,
 } from "./actions";
+
+// Lexical builds its DOM in the browser, so a server render could never match.
+const EmailEditor = dynamic(
+  () => import("./_editor").then((m) => m.EmailEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="border-line bg-field min-h-[344px] rounded-xl border" />
+    ),
+  },
+);
 
 const PREVIEW_UNSUBSCRIBE = "https://mail.captureflow.dev/unsubscribe";
 
@@ -52,12 +65,6 @@ function RecipientPicker({
       : members;
   }, [members, query]);
 
-  const toggle = (email: string, on: boolean) => {
-    const next = new Set(selected);
-    if (on) next.add(email);
-    else next.delete(email);
-    onSelected(next);
-  };
   const selectVisible = (on: boolean) => {
     const next = new Set(selected);
     for (const m of visible) {
@@ -71,7 +78,7 @@ function RecipientPicker({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-sm font-medium">Recipients</span>
+        <Label>Recipients</Label>
         <span className="text-fg-muted text-xs tabular-nums">
           {audience === "all"
             ? `${reachable.length} people`
@@ -84,46 +91,40 @@ function RecipientPicker({
           <input key={email} type="hidden" name="recipient" value={email} />
         ))}
 
-      <div
-        role="radiogroup"
+      <ToggleButtonGroup
         aria-label="Recipients"
-        className="bg-canvas grid grid-cols-2 gap-1 rounded-xl p-1"
+        selectionMode="single"
+        disallowEmptySelection
+        selectedKeys={[audience]}
+        onSelectionChange={(keys) => {
+          const [key] = [...keys];
+          if (key) onAudience(key as Audience);
+        }}
+        className="w-full"
       >
-        {(
-          [
-            ["all", "Everyone", "Every account that hasn't unsubscribed"],
-            ["selected", "Choose people", "Only the accounts you tick"],
-          ] as const
-        ).map(([value, label, hint]) => (
-          <button
-            key={value}
-            type="button"
-            role="radio"
-            aria-checked={audience === value}
-            onClick={() => onAudience(value)}
-            className={cn(
-              "flex cursor-pointer flex-col items-start rounded-lg px-3 py-2 text-left transition-colors motion-reduce:transition-none",
-              audience === value
-                ? "bg-tint-strong text-fg-strong"
-                : "text-fg-muted hover:text-fg",
-            )}
-          >
-            <span className="text-sm font-medium">{label}</span>
-            <span className="text-fg-subtle text-xs">{hint}</span>
-          </button>
-        ))}
-      </div>
+        <ToggleButton id="all" className="flex-1">
+          Everyone
+        </ToggleButton>
+        <ToggleButton id="selected" className="flex-1">
+          Choose people
+        </ToggleButton>
+      </ToggleButtonGroup>
 
       {audience === "selected" && (
-        <div className="border-line flex flex-col overflow-hidden rounded-xl border">
+        <Card className="border-line bg-canvas gap-0 border p-0">
           <div className="border-line flex items-center gap-2 border-b p-2">
-            <Input
+            <SearchField
               aria-label="Search people"
-              placeholder="Search name or email"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={setQuery}
               className="min-w-0 flex-1"
-            />
+            >
+              <SearchField.Group>
+                <SearchField.SearchIcon />
+                <SearchField.Input placeholder="Search name or email" />
+                <SearchField.ClearButton />
+              </SearchField.Group>
+            </SearchField>
             <Button
               size="sm"
               variant="ghost"
@@ -139,48 +140,54 @@ function RecipientPicker({
               Clear
             </Button>
           </div>
-          <ul className="max-h-80 overflow-y-auto">
-            {visible.length === 0 && (
-              <li className="text-fg-muted p-4 text-center text-sm">
-                Nobody matches “{query}”.
-              </li>
-            )}
-            {visible.map((m) => (
-              <li
-                key={m.email}
-                className="border-line border-b last:border-b-0"
-              >
-                <label
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5",
-                    m.unsubscribed
-                      ? "cursor-not-allowed opacity-60"
-                      : "hover:bg-tint cursor-pointer",
-                  )}
+          {visible.length === 0 ? (
+            <p className="text-fg-muted p-4 text-center text-sm">
+              Nobody matches “{query}”.
+            </p>
+          ) : (
+            <ListBox
+              aria-label="People"
+              selectionMode="multiple"
+              selectedKeys={selected}
+              disabledKeys={members
+                .filter((m) => m.unsubscribed)
+                .map((m) => m.email)}
+              onSelectionChange={(keys) => {
+                if (keys === "all") {
+                  onSelected(new Set(reachable.map((m) => m.email)));
+                  return;
+                }
+                const next = new Set(selected);
+                for (const m of visible) next.delete(m.email);
+                for (const k of keys) next.add(String(k));
+                onSelected(next);
+              }}
+              className="max-h-80 overflow-y-auto p-1"
+            >
+              {visible.map((m) => (
+                <ListBox.Item
+                  key={m.email}
+                  id={m.email}
+                  textValue={m.name ?? m.email}
                 >
-                  <input
-                    type="checkbox"
-                    checked={!m.unsubscribed && selected.has(m.email)}
-                    disabled={m.unsubscribed}
-                    onChange={(e) => toggle(m.email, e.target.checked)}
-                    className="accent-accent-bg size-4 shrink-0 cursor-[inherit]"
-                  />
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="text-fg truncate text-sm">
-                      {m.name ?? m.email}
-                    </span>
+                    <Label className="truncate">{m.name ?? m.email}</Label>
                     {m.name && (
-                      <span className="text-fg-subtle truncate text-xs">
-                        {m.email}
-                      </span>
+                      <Description className="truncate">{m.email}</Description>
                     )}
                   </span>
-                  {m.unsubscribed && <Chip size="sm">Unsubscribed</Chip>}
-                </label>
-              </li>
-            ))}
-          </ul>
-        </div>
+                  {m.unsubscribed ? (
+                    <Chip size="sm" variant="soft">
+                      Unsubscribed
+                    </Chip>
+                  ) : (
+                    <ListBox.ItemIndicator />
+                  )}
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          )}
+        </Card>
       )}
     </div>
   );
@@ -234,47 +241,47 @@ export function Composer({
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <form
-        action={formAction}
-        ref={keepTyped}
-        className="border-line bg-panel flex min-w-0 flex-col gap-5 rounded-xl border p-5"
-      >
-        {id && <input type="hidden" name="id" value={id} />}
-        <TextRow
-          name="subject"
-          label="Subject"
-          value={subject}
-          onChange={setSubject}
-          placeholder="What's new in CaptureFlow"
-        />
-        <TextField name="body" fullWidth value={body} onChange={setBody}>
-          <Label>Message</Label>
-          <TextArea rows={12} className="font-mono text-sm" />
-          <Description>
-            Markdown: **bold**, [link](https://captureflow.dev), # heading, -
-            list. The unsubscribe footer is added for you.
-          </Description>
-        </TextField>
-        <RecipientPicker
-          members={members}
-          audience={audience}
-          onAudience={setAudience}
-          selected={selected}
-          onSelected={setSelected}
-        />
-        {state.error && <Notice tone="error">{state.error}</Notice>}
-        <div className="flex items-center gap-3">
-          <Button type="submit" variant="primary" isDisabled={pending}>
-            {pending ? "Saving…" : submit}
-          </Button>
-          {id && dirty && (
-            <span className="text-warning text-xs">Unsaved changes</span>
-          )}
-        </div>
-      </form>
+      <Card className="border-line bg-canvas min-w-0 border">
+        <form
+          action={formAction}
+          ref={keepTyped}
+          className="flex flex-col gap-5"
+        >
+          {id && <input type="hidden" name="id" value={id} />}
+          <TextRow
+            name="subject"
+            label="Subject"
+            value={subject}
+            onChange={setSubject}
+            placeholder="What's new in CaptureFlow"
+          />
+          <div className="flex flex-col gap-2">
+            <Label>Message</Label>
+            <input type="hidden" name="body" value={body} />
+            <EmailEditor initialMarkdown={initial.body} onChange={setBody} />
+            <Description>The unsubscribe footer is added for you.</Description>
+          </div>
+          <RecipientPicker
+            members={members}
+            audience={audience}
+            onAudience={setAudience}
+            selected={selected}
+            onSelected={setSelected}
+          />
+          {state.error && <Notice tone="error">{state.error}</Notice>}
+          <div className="flex items-center gap-3">
+            <Button type="submit" variant="primary" isDisabled={pending}>
+              {pending ? "Saving…" : submit}
+            </Button>
+            {id && dirty && (
+              <span className="text-warning text-xs">Unsaved changes</span>
+            )}
+          </div>
+        </form>
+      </Card>
 
       <div className="flex min-w-0 flex-col gap-5 lg:sticky lg:top-6">
-        <section className="border-line bg-panel flex flex-col gap-3 rounded-xl border p-5">
+        <Card className="border-line bg-canvas flex flex-col gap-3 border">
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-sm font-semibold">Preview</span>
             <span className="text-fg-subtle truncate text-xs">
@@ -287,7 +294,7 @@ export function Composer({
             sandbox=""
             className="h-[420px] w-full rounded-lg border-0 bg-white"
           />
-        </section>
+        </Card>
         {id && dirty && aside && (
           <Notice>
             Save the draft first: test and send use the saved version.
