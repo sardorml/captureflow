@@ -41,6 +41,11 @@
       "bucket_name": "captureflow-recordings",
     },
   ],
+  // Cloudflare Email Service for invites and access requests; lib/email.ts
+  // falls back to Resend when it fails or is missing.
+  "send_email": [
+    { "name": "EMAIL", "allowed_sender_addresses": ["hello@captureflow.dev"] },
+  ],
   "vars": {
     "NEXT_PUBLIC_APP_WEB_SITE_URL": "https://captureflow.dev",
     "NEXT_PUBLIC_RECORDING_SITE_URL": "https://captureflow.dev",

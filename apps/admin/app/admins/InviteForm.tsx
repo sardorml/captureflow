@@ -42,8 +42,8 @@ export function InviteForm() {
       {state.sent && <Notice>Invite emailed. It expires in 7 days.</Notice>}
       {state.link && (
         <Notice>
-          Email is not configured on this deployment, so send this link
-          yourself. It expires in 7 days and works once.
+          The invite email couldn&apos;t be sent, so send this link yourself. It
+          expires in 7 days and works once.
           <br />
           <code className="text-fg mt-2 inline-block text-xs break-all select-all">
             {state.link}

@@ -23,8 +23,9 @@ export type AppWebBindings = {
   LEMON_ANNUAL_VARIANT_ID?: string;
   LEMON_TEST_MONTHLY_VARIANT_ID?: string;
   LEMON_TEST_ANNUAL_VARIANT_ID?: string;
+  EMAIL?: SendEmail;
   RESEND_API_KEY?: string;
-  // Must use a domain verified in Resend, e.g. "CaptureFlow <hello@captureflow.dev>".
+  // Must use a domain verified in both Email Service and Resend, e.g. "CaptureFlow <hello@captureflow.dev>".
   RESEND_FROM_ADDRESS?: string;
   CAPTUREFLOW_EXTENSION_ID?: string;
   SELF_HOSTED?: string;

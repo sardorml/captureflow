@@ -149,9 +149,13 @@ To show the "Upgrade to Pro" CTA, also set the public checkout link
 `NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL` in `wrangler.jsonc` "vars" (it ships
 empty, which hides the CTA).
 
-### Optional — email (Resend)
+### Optional — email (Cloudflare Email Service, Resend fallback)
 
-Skip to disable invite emails (invite links can still be shared manually).
+Invites and access requests go out through the `EMAIL` send_email binding
+first. Onboard the sending domain under **Email → Email Service** in the
+Cloudflare dashboard; the binding only sends as `hello@captureflow.dev`. If
+Email Service fails or isn't set up, the same email goes through Resend when
+`RESEND_API_KEY` is set. With neither, invite links can still be shared manually.
 
 ```bash
 pnpm --filter @captureflow/web exec wrangler secret put RESEND_API_KEY

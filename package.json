@@ -11,8 +11,10 @@
   },
   "scripts": {
     "build": "nx run-many -t build",
-    "dev": "nx run-many -t dev --parallel=5",
-    "web": "pnpm --filter @captureflow/web dev",
+    "dev": "sh scripts/free-port.sh 3000 3032 3033 3034 5173 8787 && nx run-many -t dev --parallel=6",
+    "web": "sh scripts/free-port.sh 3032 && pnpm --filter @captureflow/web dev",
+    "admin": "sh scripts/free-port.sh 3034 && pnpm --filter @captureflow/admin-app dev",
+    "ports:free": "sh scripts/free-port.sh 3000 3032 3033 3034 5173 8787",
     "extension": "pnpm --filter @captureflow/extension dev",
     "extension:build": "pnpm --filter @captureflow/extension build",
     "lint": "nx run-many -t lint",

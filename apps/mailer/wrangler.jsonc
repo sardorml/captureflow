@@ -1,0 +1,46 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "captureflow-mailer",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+  },
+  // Serves only the unsubscribe page; sending happens off the queue.
+  "routes": [{ "pattern": "mail.captureflow.dev", "custom_domain": true }],
+  // Same database as the web worker. Migrations live in apps/web/migrations.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "captureflow",
+      "database_id": "87523f52-ad6f-474f-85e8-87f267a98763",
+    },
+  ],
+  /*
+   * One message per page of recipients, one at a time: each page sends a
+   * Resend batch and queues the next, so a campaign never outlives a single
+   * invocation's limits and never exceeds Resend's request rate.
+   */
+  "queues": {
+    "producers": [{ "binding": "MAIL_QUEUE", "queue": "captureflow-mail" }],
+    "consumers": [
+      {
+        "queue": "captureflow-mail",
+        "max_batch_size": 1,
+        "max_concurrency": 1,
+        "max_retries": 5,
+        "retry_delay": 60,
+      },
+    ],
+  },
+  /*
+   * RESEND_API_KEY and MAIL_UNSUBSCRIBE_SECRET are secrets: set them with
+   * `wrangler secret put <NAME>`. Locally they come from apps/mailer/.dev.vars,
+   * which is gitignored.
+   */
+  "vars": {
+    "MAILER_BASE_URL": "https://mail.captureflow.dev",
+    "MAIL_FROM": "CaptureFlow <updates@captureflow.dev>",
+  },
+}

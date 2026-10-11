@@ -9,8 +9,10 @@ import {
   attachSubscriptionToUser,
   ensurePersonalWorkspace,
   getUnclaimedProSubscriptionByEmail,
+  isSelfHosted,
 } from "@captureflow/quota";
 import { authSchema } from "./auth-schema";
+import { sendWelcomeEmail } from "./email";
 
 // D1 is request-scoped (binding only exists inside a fetch handler), so the
 // auth instance is built per request; build-time imports use a stub adapter.
@@ -29,9 +31,14 @@ type AppWebEnv = {
   GITHUB_CLIENT_SECRET?: string;
   // Comma-separated; when set, only verified addresses on these domains can sign up.
   ALLOWED_EMAIL_DOMAINS?: string;
+  SELF_HOSTED?: string;
 };
 
-function buildAuth(env: AppWebEnv | null, baseURL?: string) {
+function buildAuth(
+  env: AppWebEnv | null,
+  baseURL?: string,
+  waitUntil?: (promise: Promise<unknown>) => void,
+) {
   const db = env
     ? drizzle(env.DB, { schema: authSchema })
     : (drizzle({} as D1Database, { schema: authSchema }) as ReturnType<
@@ -125,6 +132,19 @@ function buildAuth(env: AppWebEnv | null, baseURL?: string) {
             } catch (err) {
               console.error("auth: pro-subscription claim failed", err);
             }
+            // Self-hosted instances are someone else's product; skip ours.
+            if (baseURL && !isSelfHosted(env)) {
+              const welcome = sendWelcomeEmail({
+                to: user.email,
+                name: typeof user.name === "string" ? user.name : null,
+                appUrl: baseURL,
+              }).catch((err) => {
+                console.error("auth: welcome email failed", err);
+                return false;
+              });
+              if (waitUntil) waitUntil(welcome);
+              else await welcome;
+            }
           },
         },
       },
@@ -194,7 +214,7 @@ export async function getAuth(): Promise<AuthInstance> {
   const ctx = await getCloudflareContext({ async: true });
   const env = (ctx?.env ?? null) as AppWebEnv | null;
   const baseURL = env?.BETTER_AUTH_URL;
-  return buildAuth(env, baseURL);
+  return buildAuth(env, baseURL, (p) => ctx.ctx.waitUntil(p));
 }
 
 export const auth = buildAuth(null);

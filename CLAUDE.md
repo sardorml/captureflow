@@ -11,11 +11,13 @@ pnpm + nx monorepo.
 - `apps/web` — Next.js 16 + OpenNext on Cloudflare Workers (D1 + R2): landing, blog,
   dashboard, viewers, API.
 - `apps/admin` — instance-admin Worker on its own host, same D1/R2 (see its README).
+- `apps/mailer` — product-email Worker: sends admin-written campaigns off a queue via Resend, serves unsubscribe.
 - `apps/extension` — WXT/MV3 Chrome extension recorder.
 - `apps/desktop` — Electron macOS recorder.
 - `apps/docs` — VitePress docs site.
 - `packages/engine` — capture pipeline shared by desktop + extension (MIT; Swift sidecar).
 - `packages/admin` — admin auth/data logic behind `apps/admin`.
+- `packages/mail` — campaign SQL, rendering, unsubscribe tokens and Resend delivery for admin + mailer, plus the Cloudflare-then-Resend transactional sender web and admin share.
 - `packages/{quota,ui,shared}`.
 
 Apps depend on packages, never the reverse; apps never depend on each other. The

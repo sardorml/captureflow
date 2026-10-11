@@ -24,7 +24,7 @@ that is what keeps a deployment from ending up with no owner.
 ```sh
 wrangler secret put ADMIN_SESSION_SECRET   # signs the admin session cookie
 wrangler secret put ADMIN_SETUP_TOKEN      # gates the one-time first-run claim
-wrangler secret put RESEND_API_KEY         # optional; mails invites
+wrangler secret put RESEND_API_KEY         # optional; fallback invite sender
 ```
 
 The setup token proves you control the deployment, so a stranger who finds the
@@ -48,8 +48,8 @@ dead end.
 1. Deploy, then open `https://admin.captureflow.dev`.
 2. Paste the setup token, pick an email and password → you are the owner.
 3. Invite the rest from **Admins**. Each invite is a single-use link that expires
-   in 7 days; only its hash is stored. Without `RESEND_API_KEY` the link is shown
-   to you instead of emailed.
+   in 7 days; only its hash is stored. Invites go out through Cloudflare Email
+   Service, then Resend; if neither delivers, the link is shown to you instead.
 
 ## Local development
 
@@ -58,7 +58,9 @@ pnpm --filter @captureflow/admin-app dev   # http://localhost:3034
 ```
 
 Secrets come from `apps/admin/.dev.vars` (gitignored). Paths match the deployed
-host one-for-one — there is no path prefix in either environment.
+host one-for-one — there is no path prefix in either environment. Add
+`ADMIN_BASE_URL=http://localhost:3034` there too, or invite links point at the
+production host set in `wrangler.jsonc`.
 
 Dev reads `apps/web/.wrangler/state/v3` rather than its own miniflare state, so
 you administer the same local database the web app is writing — the schema and

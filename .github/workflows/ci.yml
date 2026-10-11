@@ -30,6 +30,9 @@ jobs:
       # The admin worker deploys off this same gate, so its package has to be
       # covered here — auth, hashing, and input validation all live there.
       - run: pnpm --filter @captureflow/admin test
+      # Campaign SQL, unsubscribe tokens and the mailer's send loop.
+      - run: pnpm --filter @captureflow/mail test
+      - run: pnpm --filter @captureflow/mailer test
       - run: pnpm build
 
   # Server-side secret scan — the safety net for the local pre-push hook (which
@@ -117,6 +120,32 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build & deploy admin worker
         run: pnpm --filter @captureflow/admin-app cf:deploy
+
+  # The mailer (apps/mailer) consumes the captureflow-mail queue that the admin
+  # writes to and serves mail.captureflow.dev/unsubscribe. Like the admin it
+  # reads tables that apps/web migrates, so it waits for `deploy` too.
+  # RESEND_API_KEY and MAIL_UNSUBSCRIBE_SECRET are runtime secrets set with
+  # `wrangler secret put`, not here.
+  deploy-mailer:
+    needs: [build, secret-scan, deploy]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: cloudflare-deploy-mailer
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Deploy mailer worker
+        run: pnpm --filter @captureflow/mailer cf:deploy
 
   # The docs are an assets-only Worker of their own (apps/docs/wrangler.jsonc),
   # so this deploys on the same gate as the app but in its own concurrency

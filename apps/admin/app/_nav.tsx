@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Building2,
   LayoutDashboard,
+  Mail,
   ScrollText,
   ShieldCheck,
   Users,
@@ -15,6 +16,7 @@ const ICONS = {
   overview: LayoutDashboard,
   users: Users,
   workspaces: Building2,
+  emails: Mail,
   audit: ScrollText,
   admins: ShieldCheck,
 } as const;

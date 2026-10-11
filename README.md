@@ -82,6 +82,7 @@ git clone git@github.com:sardorml/captureflow.git
 cd captureflow
 pnpm install
 pnpm web                                  # dashboard and landing on http://localhost:3032
+pnpm admin                                # instance admin on http://localhost:3034
 pnpm extension                            # browser extension, in a fresh Chrome profile
 pnpm --filter @captureflow/desktop dev    # macOS recorder
 ```
@@ -102,12 +103,14 @@ pnpm format
 apps/
   web/         Next.js 16 landing, blog, dashboard, viewers and API → Cloudflare Workers (OpenNext)
   admin/       Instance-admin Worker on its own host, bound to the same D1 and R2
+  mailer/      Product-email Worker: sends admin-written campaigns via Resend, handles unsubscribe
   extension/   Browser recorder (WXT, MV3): panel, offscreen capture, in-page controls
   desktop/     Electron screen recorder (macOS)
   docs/        VitePress documentation site
 packages/
   engine/      Capture engine shared by desktop and extension: macOS sidecars, record protocol, mux (MIT)
   admin/       Admin auth and data logic behind apps/admin
+  mail/        Campaigns, email rendering, unsubscribe tokens, Resend delivery, transactional sends
   quota/       Storage quota, limits and workspace logic
   shared/      Types and constants shared across the apps
   ui/          Theme tokens and the React components with no HeroUI equivalent
