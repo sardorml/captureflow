@@ -168,7 +168,7 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
       >
         <ul
           className={cn(
-            "bg-canvas-2/80 flex w-[22rem] flex-col gap-1 rounded-2xl p-2 shadow-[0_12px_32px_rgb(0_0_0/0.3)] backdrop-blur-xl will-change-[opacity,translate] motion-reduce:[transition:none]",
+            "bg-panel-2/90 flex w-[22rem] flex-col gap-1 rounded-2xl p-2 shadow-[0_12px_32px_rgb(0_0_0/0.3)] backdrop-blur-xl will-change-[opacity,translate] motion-reduce:[transition:none]",
             open ? PANEL_OPEN : PANEL_CLOSED,
           )}
         >
