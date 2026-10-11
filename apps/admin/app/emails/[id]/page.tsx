@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import NextLink from "next/link";
 import {
   countRecipients,
   getCampaign,
@@ -10,7 +9,14 @@ import {
 } from "@captureflow/mail";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
-import { Notice, PageHeading, Panel, Stat, formatDate } from "../../_ui";
+import {
+  FormCard,
+  Notice,
+  PageHeader,
+  Stat,
+  StatGrid,
+  formatDate,
+} from "../../_ui";
 import {
   Composer,
   DeleteDraftButton,
@@ -38,20 +44,12 @@ export default async function CampaignPage({
   ]);
 
   const header = (
-    <>
-      <NextLink
-        href="/emails"
-        className="text-fg-muted w-fit text-sm hover:underline"
-      >
-        ← Emails
-      </NextLink>
-      <div className="flex items-start justify-between gap-4">
-        <PageHeading title={campaign.subject}>
-          Drafted by {campaign.createdBy} on {formatDate(campaign.createdAt)}
-        </PageHeading>
-        <StatusChip status={campaign.status} />
-      </div>
-    </>
+    <PageHeader
+      title={campaign.subject}
+      description={`Drafted by ${campaign.createdBy} on ${formatDate(campaign.createdAt)}`}
+      back={{ href: "/emails", label: "Emails" }}
+      actions={<StatusChip status={campaign.status} />}
+    />
   );
 
   if (campaign.status !== "draft") {
@@ -61,9 +59,9 @@ export default async function CampaignPage({
       unsubscribeUrl: "https://mail.captureflow.dev/unsubscribe",
     });
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-8">
         {header}
-        <div className="grid gap-4 sm:grid-cols-4">
+        <StatGrid columns={4}>
           <Stat label="Sent" value={String(campaign.sentCount)} />
           <Stat label="Failed" value={String(campaign.failedCount)} />
           <Stat
@@ -83,21 +81,21 @@ export default async function CampaignPage({
                 : undefined
             }
           />
-        </div>
-        <Panel title="Preview">
+        </StatGrid>
+        <FormCard title="Preview">
           <iframe
             title="Email preview"
             srcDoc={preview.html}
             sandbox=""
-            className="h-[520px] w-full rounded-lg border-0 bg-white"
+            className="h-[560px] w-full rounded-lg border-0 bg-white"
           />
-        </Panel>
+        </FormCard>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       {header}
       <Composer
         action={updateCampaignAction}
@@ -117,13 +115,13 @@ export default async function CampaignPage({
                 Sending is off: this deployment has no MAIL_QUEUE binding.
               </Notice>
             )}
-            <Panel
+            <FormCard
               title="Test"
               description="Sends the saved draft to your own address, marked [Test]."
             >
               <SendTestForm id={campaign.id} />
-            </Panel>
-            <Panel
+            </FormCard>
+            <FormCard
               title="Send"
               description={
                 campaign.audience === "all"
@@ -132,7 +130,7 @@ export default async function CampaignPage({
               }
             >
               <SendCampaignForm id={campaign.id} recipients={recipients} />
-            </Panel>
+            </FormCard>
             <div>
               <DeleteDraftButton id={campaign.id} />
             </div>

@@ -1,43 +1,53 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button } from "@heroui/react";
+import { Plus } from "lucide-react";
+import {
+  Button,
+  Description,
+  Label,
+  Modal,
+  Radio,
+  RadioGroup,
+} from "@heroui/react";
 import { ADMIN_ROLES, ROLE_SUMMARY } from "@captureflow/admin";
 import { inviteAction } from "../actions";
 import type { InviteState } from "../actions";
 import { TextRow, keepTyped } from "../_form";
-import { RoleSelect } from "../_select";
 import { Notice } from "../_ui";
 
 const EMPTY: InviteState = { error: null, link: null, sent: false };
 
-export function InviteForm() {
+function InviteForm() {
   const [state, formAction, pending] = useActionState(inviteAction, EMPTY);
 
   return (
-    <form action={formAction} ref={keepTyped} className="flex flex-col gap-4">
-      <div className="grid items-end gap-4 sm:grid-cols-[1fr_auto]">
-        <TextRow
-          name="email"
-          label="Email"
-          type="email"
-          placeholder="person@example.com"
-        />
-        <RoleSelect
-          name="role"
-          label="Role"
-          defaultRole="viewer"
-          roles={ADMIN_ROLES}
-        />
-      </div>
-      <ul className="text-fg-subtle flex flex-col gap-1 text-xs">
+    <form action={formAction} ref={keepTyped} className="flex flex-col gap-5">
+      <TextRow
+        name="email"
+        label="Email"
+        type="email"
+        placeholder="person@example.com"
+        autoFocus
+      />
+      <RadioGroup
+        name="role"
+        defaultValue="viewer"
+        className="flex flex-col gap-2"
+      >
+        <Label>Role</Label>
         {ADMIN_ROLES.map((role) => (
-          <li key={role}>
-            <span className="text-fg-muted font-medium">{role}</span> —{" "}
-            {ROLE_SUMMARY[role]}
-          </li>
+          <Radio key={role} value={role} className="mt-0">
+            <Radio.Content>
+              <Radio.Control>
+                <Radio.Indicator />
+              </Radio.Control>
+              <Label className="capitalize">{role}</Label>
+            </Radio.Content>
+            <Description>{ROLE_SUMMARY[role]}</Description>
+          </Radio>
         ))}
-      </ul>
+      </RadioGroup>
       {state.error && <Notice tone="error">{state.error}</Notice>}
       {state.sent && <Notice>Invite emailed. It expires in 7 days.</Notice>}
       {state.link && (
@@ -54,10 +64,34 @@ export function InviteForm() {
         type="submit"
         variant="primary"
         isDisabled={pending}
-        className="w-fit"
+        className="self-end"
       >
         {pending ? "Sending…" : "Send invite"}
       </Button>
     </form>
+  );
+}
+
+export function InviteDialog() {
+  return (
+    <Modal>
+      <Button variant="primary">
+        <Plus size={16} aria-hidden />
+        Invite admin
+      </Button>
+      <Modal.Backdrop>
+        <Modal.Container size="md">
+          <Modal.Dialog>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>Invite an admin</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              <InviteForm />
+            </Modal.Body>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
   );
 }

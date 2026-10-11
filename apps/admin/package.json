@@ -17,12 +17,20 @@
     "@captureflow/ui": "workspace:*",
     "@heroui/react": "^3.2.3",
     "@heroui/styles": "^3.2.3",
+    "@lexical/code": "^0.52.0",
+    "@lexical/link": "^0.52.0",
+    "@lexical/list": "^0.52.0",
+    "@lexical/markdown": "^0.52.0",
+    "@lexical/react": "^0.52.0",
+    "@lexical/rich-text": "^0.52.0",
+    "@lexical/selection": "^0.52.0",
+    "@lexical/utils": "^0.52.0",
     "@opennextjs/cloudflare": "^1.19.0",
+    "lexical": "^0.52.0",
     "lucide-react": "^1.14.0",
     "next": "^16.2.0",
     "react": "catalog:",
-    "react-dom": "catalog:",
-    "recharts": "^3.10.1"
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251001.0",

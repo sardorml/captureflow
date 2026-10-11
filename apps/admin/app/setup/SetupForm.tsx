@@ -6,7 +6,7 @@ import { MIN_PASSWORD_LENGTH } from "@captureflow/admin";
 import { mintSetupTokenAction, setupAction } from "../actions";
 import type { FormState, MintState } from "../actions";
 import { TextRow, keepTyped } from "../_form";
-import { Notice, SectionHeading } from "../_ui";
+import { FormCard, Notice } from "../_ui";
 
 const NO_ERROR: FormState = { error: null };
 const NO_MINT: MintState = { error: null, token: null, logged: false };
@@ -54,12 +54,14 @@ export function SetupForm({ configured }: { configured: boolean }) {
         </Button>
       </form>
 
-      <div className="border-line bg-panel flex flex-col gap-3 rounded-xl border p-4">
-        <SectionHeading title="No token to hand?">
-          {configured
+      <FormCard
+        title="No token to hand?"
+        description={
+          configured
             ? "This deployment already expects ADMIN_SETUP_TOKEN. Generating one here adds a second token that also works, without touching that secret."
-            : "ADMIN_SETUP_TOKEN is not set on this deployment, so generate a claim token instead."}
-        </SectionHeading>
+            : "ADMIN_SETUP_TOKEN is not set on this deployment, so generate a claim token instead."
+        }
+      >
         <form action={mintAction}>
           <Button
             type="submit"
@@ -94,7 +96,7 @@ export function SetupForm({ configured }: { configured: boolean }) {
               anyone who could see it could claim this deployment.
             </Notice>
           ))}
-      </div>
+      </FormCard>
     </>
   );
 }
