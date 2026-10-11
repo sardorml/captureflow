@@ -1,6 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { betterAuth, type BetterAuthOptions } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { drizzle } from "drizzle-orm/d1";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -26,6 +27,8 @@ type AppWebEnv = {
   GOOGLE_CLIENT_SECRET?: string;
   GITHUB_CLIENT_ID?: string;
   GITHUB_CLIENT_SECRET?: string;
+  // Comma-separated; when set, only verified addresses on these domains can sign up.
+  ALLOWED_EMAIL_DOMAINS?: string;
 };
 
 function buildAuth(env: AppWebEnv | null, baseURL?: string) {
@@ -83,6 +86,14 @@ function buildAuth(env: AppWebEnv | null, baseURL?: string) {
     databaseHooks: {
       user: {
         create: {
+          before: async (user) => {
+            const domains = parseEmailDomains(env?.ALLOWED_EMAIL_DOMAINS);
+            if (!signupAllowed(user, domains)) {
+              throw new APIError("FORBIDDEN", {
+                message: `Sign up with a Google or GitHub account on ${domains.map((d) => `@${d}`).join(" or ")}.`,
+              });
+            }
+          },
           // Best-effort: never block sign-up on failure (user row is committed).
           after: async (user) => {
             if (!env?.DB) return;
@@ -131,6 +142,30 @@ export function claimableEmail(user: {
   return user.emailVerified === true && typeof user.email === "string"
     ? user.email
     : null;
+}
+
+export function parseEmailDomains(raw: string | undefined): string[] {
+  return (raw ?? "")
+    .split(",")
+    .map((d) => d.trim().toLowerCase().replace(/^@/, ""))
+    .filter(Boolean);
+}
+
+/*
+ * An empty list leaves sign-up open. Otherwise the address must be verified by
+ * the sign-in provider, since a password sign-up could claim any address on an
+ * allowed domain without owning it.
+ */
+export function signupAllowed(
+  user: { email?: unknown; emailVerified?: unknown },
+  domains: string[],
+): boolean {
+  if (domains.length === 0) return true;
+  if (user.emailVerified !== true || typeof user.email !== "string") {
+    return false;
+  }
+  const domain = user.email.split("@").pop()?.toLowerCase();
+  return !!domain && domains.includes(domain);
 }
 
 export type AuthInstance = ReturnType<typeof buildAuth>;
