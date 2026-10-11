@@ -1,0 +1,24 @@
+# CaptureFlow
+
+> CaptureFlow is an open-source screen recorder for teams. Record your screen and camera from the Chrome extension, get a share link the moment you stop, and let viewers watch, react and comment right on the video. Pricing is a flat monthly price for storage instead of per person, and companies can self-host it for free on their own Cloudflare account.
+
+## Product
+
+- [Features](https://captureflow.dev/features): Recording modes, annotated screenshots, share links, comments and workspaces
+- [Pricing](https://captureflow.dev/pricing): Free 200 MB plan, then flat team plans for 100 GB, 500 GB or 1 TB
+- [Download](https://captureflow.dev/download): Install the Chrome extension
+- [FAQ](https://captureflow.dev/faq): Sharing, storage, privacy and self-hosting questions
+- [CaptureFlow vs Loom](https://captureflow.dev/alternatives/loom): Feature and price comparison
+- [Self-hosting setup service](https://captureflow.dev/self-host-setup): We set up CaptureFlow on a company's own Cloudflare account
+
+## Guides
+
+- [How to set up a self-hosted screen recorder](https://captureflow.dev/blog/self-hosted-screen-recorder): Step-by-step deployment to Cloudflare Workers, D1 and R2
+- [Self-hosted Loom alternative for companies](https://captureflow.dev/blog/self-hosted-loom-alternative): Keeping recordings on your own infrastructure
+- [Loom pricing explained](https://captureflow.dev/blog/loom-pricing): Per-person costs compared with a flat storage price
+
+## Docs
+
+- [Documentation](https://docs.captureflow.dev): Using CaptureFlow
+- [Self-hosting docs](https://docs.captureflow.dev/self-hosting/overview): Deploying and configuring your own instance
+- [Source code](https://github.com/sardorml/captureflow): AGPL-3.0 licensed
