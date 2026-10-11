@@ -1,5 +1,6 @@
 import { ENGINE_OUTPUT } from "../contract";
 import { createFmp4Muxer } from "./fmp4-mux";
+import { createSharedClock } from "./shared-clock";
 
 // Chromium-only Insertable Streams API — not yet in TS's DOM lib.
 declare class MediaStreamTrackProcessor<T> {
@@ -137,10 +138,16 @@ export async function startStreamRecorder(
           }
         : null,
     output: opts.output,
-    // Capture-clock timestamps don't start at zero; with a second track both
-    // must shift by the same amount to keep A/V alignment.
+    // Both tracks arrive on the shared clock below, so one common shift
+    // brings the earliest to zero and keeps them aligned.
     firstTimestampBehavior: withAudio ? "cross-track-offset" : "offset",
   });
+
+  const trackClock = createSharedClock(() =>
+    Math.round(performance.now() * 1_000),
+  );
+  const videoClock = trackClock();
+  const audioClock = trackClock();
 
   let encoderError: Error | null = null;
   let encodedFrames = 0;
@@ -159,7 +166,10 @@ export async function startStreamRecorder(
     output: (chunk, meta) => {
       const data = new Uint8Array(chunk.byteLength);
       chunk.copyTo(data);
-      const tsUs = Math.max(chunk.timestamp - pauseOffsetUs, lastVideoTsUs + 1);
+      const tsUs = Math.max(
+        videoClock.toShared(chunk.timestamp) - pauseOffsetUs,
+        lastVideoTsUs + 1,
+      );
       lastVideoTsUs = tsUs;
       try {
         muxer.addVideoChunkRaw(
@@ -201,7 +211,7 @@ export async function startStreamRecorder(
             const data = new Uint8Array(chunk.byteLength);
             chunk.copyTo(data);
             const tsUs = Math.max(
-              chunk.timestamp - pauseOffsetUs,
+              audioClock.toShared(chunk.timestamp) - pauseOffsetUs,
               lastAudioTsUs + 1,
             );
             lastAudioTsUs = tsUs;
@@ -250,6 +260,7 @@ export async function startStreamRecorder(
         lastKeyUs = frame.timestamp;
         forceKeyframe = false;
       }
+      videoClock.noteSample(frame.timestamp);
       encoder.encode(frame, { keyFrame });
       frame.close();
     }
@@ -271,6 +282,7 @@ export async function startStreamRecorder(
             if (stopping || audioFailed) break;
             continue;
           }
+          audioClock.noteSample(data.timestamp);
           audioEncoder!.encode(data);
           data.close();
         }
