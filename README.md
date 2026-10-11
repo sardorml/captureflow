@@ -137,10 +137,6 @@ Bug reports, ideas and pull requests are all welcome. Open an [issue][issues-url
 
 Found a security issue? Please report it privately as described on the [security page](https://captureflow.dev/security), not in a public issue.
 
-<a href="https://github.com/sardorml/captureflow/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=sardorml/captureflow" alt="Contributors" />
-</a>
-
 ## 📄 License
 
 [AGPL-3.0-only](./LICENSE), with one exception: the reusable capture engine in [`packages/engine`](./packages/engine) is [MIT-licensed](./packages/engine/LICENSE). Combined builds (the desktop app and the browser extension) are AGPL-3.0-only as a whole.
