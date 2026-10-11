@@ -141,6 +141,8 @@ function Presenter({ size, ring }: { size: number; ring: number }) {
       <img
         src="/avatar-presenter.webp"
         alt=""
+        width={256}
+        height={256}
         className="size-full object-cover"
       />
     </span>

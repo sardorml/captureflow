@@ -36,7 +36,14 @@ function Presenter({ shadow }: { shadow: string }) {
       className="absolute right-7 bottom-7 size-[108px] overflow-hidden rounded-full"
       style={{ boxShadow: `0 0 0 5px #fff, 0 16px 34px ${shadow}` }}
     >
-      <img src={AVATAR_SRC} alt="" className="block size-full object-cover" />
+      <img
+        src={AVATAR_SRC}
+        alt=""
+        width={256}
+        height={256}
+        loading="lazy"
+        className="block size-full object-cover"
+      />
     </div>
   );
 }
