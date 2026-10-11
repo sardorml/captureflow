@@ -39,7 +39,9 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-konva": "^19.2.4",
+    "react-markdown": "^10.1.0",
     "react-medium-image-zoom": "^5.4.5",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.5.0",
     "upng-js": "^2.1.0"
   },
@@ -49,6 +51,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "raw-loader": "^4.0.2",
     "tailwindcss": "^4",
     "typescript": "catalog:",
     "vitest": "^4.1.9",

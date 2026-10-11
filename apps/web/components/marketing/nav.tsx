@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   ChevronDown,
   CircleHelp,
+  Newspaper,
   Menu as MenuIcon,
   MessagesSquare,
   Server,
@@ -239,6 +240,12 @@ export function Nav({ stars = null }: { stars?: string | null }) {
       href: lh("/faq"),
       icon: <CircleHelp size={18} />,
       description: "Common questions, answered",
+    },
+    {
+      label: "Blog",
+      href: lh("/blog"),
+      icon: <Newspaper size={18} />,
+      description: "Guides and updates",
     },
     {
       label: "Self-hosting",

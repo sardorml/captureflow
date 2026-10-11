@@ -136,9 +136,7 @@ export function ManagedCard() {
           }
           className="mt-auto flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-white text-sm font-medium text-neutral-900 transition-colors hover:bg-white/90 motion-reduce:transition-none"
         >
-          {isFree
-            ? copy.ctaFree
-            : copy.ctaUpgrade.replace("{storage}", selected.label)}
+          {isFree ? copy.ctaFree : copy.ctaPaid}
         </Link>
       </div>
 

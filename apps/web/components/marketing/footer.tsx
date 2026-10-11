@@ -56,6 +56,7 @@ export function Footer() {
           href: `${DOCS_URL}/self-hosting/overview`,
           external: true,
         },
+        { label: "Blog", href: lh("/blog") },
         { label: "Releases", href: RELEASES_URL, external: true },
         { label: "FAQ", href: lh("/faq") },
         { label: "Security", href: lh("/security") },
