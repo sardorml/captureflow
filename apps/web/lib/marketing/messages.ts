@@ -250,7 +250,7 @@ export const MESSAGES = {
   pricing: {
     heading: "Start free, pay for more storage",
     subheading:
-      "Self-host for free, or let us host it and only pay when you need more space.",
+      "Start with free storage and upgrade only when you need more space.",
     selfHost: {
       name: "Self-hosted",
       price: "Free forever",
