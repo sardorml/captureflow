@@ -1,13 +1,12 @@
 name: Discord notifications
 
-# Posts PR status changes and stars to the Discord #github channel via the
-# plain webhook URL (secrets.DISCORD_WEBHOOK_URL) — the native /github
-# integration silently drops draft toggles and star events. Star (`watch`)
-# triggers only fire from the default branch.
+# Posts opened and merged PRs, and stars, to the Discord #github channel via
+# the plain webhook URL (secrets.DISCORD_WEBHOOK_URL). Star (`watch`) triggers
+# only fire from the default branch.
 
 on:
   pull_request:
-    types: [opened, reopened, closed, ready_for_review, converted_to_draft]
+    types: [opened, closed]
   watch:
     types: [started]
 
@@ -42,15 +41,9 @@ jobs:
           else
             case "$ACTION" in
               opened) TEXT="🔀 $SENDER opened PR #$PR_NUMBER: $PR_TITLE" ;;
-              reopened) TEXT="♻️ $SENDER reopened PR #$PR_NUMBER: $PR_TITLE" ;;
-              ready_for_review) TEXT="📣 PR #$PR_NUMBER is ready for review: $PR_TITLE" ;;
-              converted_to_draft) TEXT="📝 PR #$PR_NUMBER converted to draft: $PR_TITLE" ;;
               closed)
-                if [ "$PR_MERGED" = "true" ]; then
-                  TEXT="🎉 $SENDER merged PR #$PR_NUMBER: $PR_TITLE"
-                else
-                  TEXT="❌ $SENDER closed PR #$PR_NUMBER without merging: $PR_TITLE"
-                fi
+                if [ "$PR_MERGED" != "true" ]; then exit 0; fi
+                TEXT="🎉 $SENDER merged PR #$PR_NUMBER: $PR_TITLE"
                 ;;
               *) echo "Unhandled action: $ACTION"; exit 0 ;;
             esac
