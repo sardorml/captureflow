@@ -65,12 +65,9 @@ export const MESSAGES = {
     genericError: "Something went wrong. Please try again.",
   },
   hero: {
-    titleHighlight: "Open-source",
-    titleLead: "screen recorder",
-    titleSuffix: "with shareable links",
-    subtitleLine1:
-      "Easily record and share video messages with your team and customers,",
-    subtitleLine2: "and get their feedback right on the video.",
+    title: "Screen recorder with shareable links",
+    subtitleLine1: "Open-source video messaging for your team and customers.",
+    subtitleLine2: "Record, share a link, and get feedback right on the video.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Install Chrome extension",
     installMac: "Download for free",
