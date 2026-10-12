@@ -98,3 +98,6 @@ export type { AdminPermission, AdminRole, AdminStatus } from "./roles";
 
 export { STORAGE_PLANS, isSelfHosted } from "@captureflow/quota";
 export type { GrantedPlan } from "@captureflow/quota";
+
+export { listContactRequests } from "./contact-requests";
+export type { ContactKind, ContactRequestRow } from "./contact-requests";

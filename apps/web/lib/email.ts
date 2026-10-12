@@ -262,3 +262,116 @@ export async function sendWelcomeEmail(args: {
     text,
   });
 }
+
+export async function sendSuggestionEmail(args: {
+  to: string;
+  suggestion: {
+    name: string;
+    email: string;
+    category: string;
+    title: string;
+    description: string;
+  };
+  adminUrl: string;
+}): Promise<boolean> {
+  const s = args.suggestion;
+  const text = [
+    `${s.name} (${s.email}) suggested a feature on CaptureFlow.`,
+    "",
+    `Category: ${s.category}`,
+    `Title: ${s.title}`,
+    "",
+    s.description,
+    "",
+    `All suggestions: ${args.adminUrl}`,
+    "Reply to this email to answer them directly.",
+  ].join("\n");
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0; padding:32px 16px; background:#f5f3ef; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color:#1f1b17;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:12px;">
+      <tr>
+        <td style="padding:28px 32px 32px; font-size:15px; line-height:1.6;">
+          <p style="margin:0 0 4px; font-size:13px; color:#8a847c;">Feature suggestion · ${escapeHtml(s.category)}</p>
+          <h1 style="margin:0 0 16px; font-size:20px;">${escapeHtml(s.title)}</h1>
+          <p style="margin:0 0 20px; white-space:pre-wrap;">${escapeHtml(s.description)}</p>
+          <p style="margin:0; font-size:14px; color:#5c5650;">
+            From ${escapeHtml(s.name)} (<a href="mailto:${escapeHtml(s.email)}" style="color:#2563eb;">${escapeHtml(s.email)}</a>). Reply to this email to answer them.
+            <br /><a href="${escapeHtml(args.adminUrl)}" style="color:#2563eb;">See all suggestions</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  return sendEmail({
+    to: args.to,
+    subject: `Feature suggestion: ${s.title}`,
+    html,
+    text,
+    replyTo: s.email,
+  });
+}
+
+export async function sendCompanyRequestEmail(args: {
+  to: string;
+  label: string;
+  subject: string;
+  name: string;
+  email: string;
+  company: string;
+  details: [string, string][];
+  notes: string;
+  adminUrl: string;
+}): Promise<boolean> {
+  const r = args;
+  const rows = args.details.filter(([, value]) => value !== "");
+  const text = [
+    `${r.name} (${r.email}) sent a message from the ${r.label.toLowerCase()} form on CaptureFlow.`,
+    "",
+    `Company: ${r.company}`,
+    "",
+    ...rows.map(([k, v]) => `${k}: ${v}`),
+    ...(r.notes ? ["", r.notes] : []),
+    "",
+    `All requests: ${args.adminUrl}`,
+    "Reply to this email to answer them directly.",
+  ].join("\n");
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0; padding:32px 16px; background:#f5f3ef; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color:#1f1b17;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:12px;">
+      <tr>
+        <td style="padding:28px 32px 32px; font-size:15px; line-height:1.6;">
+          <p style="margin:0 0 4px; font-size:13px; color:#8a847c;">${escapeHtml(r.label)}</p>
+          <h1 style="margin:0 0 16px; font-size:20px;">${escapeHtml(r.company)}</h1>
+          <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 20px; font-size:14px;">
+            ${rows
+              .map(
+                ([k, v]) =>
+                  `<tr><td style="padding:2px 16px 2px 0; color:#8a847c;">${escapeHtml(k)}</td><td style="padding:2px 0;">${escapeHtml(v)}</td></tr>`,
+              )
+              .join("")}
+          </table>
+          ${r.notes ? `<p style="margin:0 0 20px; white-space:pre-wrap;">${escapeHtml(r.notes)}</p>` : ""}
+          <p style="margin:0; font-size:14px; color:#5c5650;">
+            From ${escapeHtml(r.name)} (<a href="mailto:${escapeHtml(r.email)}" style="color:#2563eb;">${escapeHtml(r.email)}</a>). Reply to this email to answer them.
+            <br /><a href="${escapeHtml(args.adminUrl)}" style="color:#2563eb;">See all requests</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  return sendEmail({
+    to: args.to,
+    subject: r.subject,
+    html,
+    text,
+    replyTo: r.email,
+  });
+}

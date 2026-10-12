@@ -19,6 +19,7 @@ const ROUTES = [
   "/security",
   "/suggest-feature",
   "/self-host-setup",
+  "/enterprise",
   "/blog",
 ] as const;
 

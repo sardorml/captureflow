@@ -65,12 +65,9 @@ export const MESSAGES = {
     genericError: "Something went wrong. Please try again.",
   },
   hero: {
-    titleHighlight: "Open-source",
-    titleLead: "screen recorder",
-    titleSuffix: "with shareable links",
-    subtitleLine1:
-      "Easily record and share video messages with your team and customers,",
-    subtitleLine2: "and get their feedback right on the video.",
+    title: "Screen recorder with shareable links",
+    subtitleLine1: "Open-source video messaging for your team and customers.",
+    subtitleLine2: "Record, share a link, and get feedback right on the video.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Install Chrome extension",
     installMac: "Download for free",
@@ -315,6 +312,96 @@ export const MESSAGES = {
       back: "Back to home",
     },
   },
+  enterprise: {
+    title: "CaptureFlow for",
+    titleHighlight: "your company",
+    subtitle:
+      "The managed plan for companies that need more than 1 TB of storage, with custom pricing.",
+    includedHeading: "What Enterprise adds",
+    included: {
+      storage: {
+        title: "More than 1 TB",
+        body: "Storage past the largest plan, sized to how much your team records.",
+      },
+      seats: {
+        title: "No per-seat fees",
+        body: "One price for the whole company, however many people use it.",
+      },
+      roadmap: {
+        title: "Your requests first",
+        body: "Features your team asks for move to the top of our list.",
+      },
+      managed: {
+        title: "Fully managed",
+        body: "We host it and ship updates, so there's nothing for you to run.",
+      },
+      billing: {
+        title: "Annual billing",
+        body: "Pay once a year, at a price agreed for your company.",
+      },
+      support: {
+        title: "A direct line to us",
+        body: "Questions go straight to the people who build CaptureFlow.",
+      },
+    },
+    everythingHeading: "Everything your team gets",
+    comingSoon: "Coming soon",
+    everything: {
+      extension: {
+        title: "Chrome extension",
+        body: "Record any tab or screen, with a link ready when you stop.",
+      },
+      mac: {
+        title: "Mac app",
+        body: "A native recorder for macOS, with the same instant share links.",
+      },
+      workspaces: {
+        title: "Team workspaces",
+        body: "Everyone's recordings in one place, shared or kept private.",
+      },
+      feedback: {
+        title: "Comments and reactions",
+        body: "Viewers reply right on the timeline, at the exact moment they mean.",
+      },
+      edit: {
+        title: "Edit after sharing",
+        body: "Change the background, camera or audio, and the link stays the same.",
+      },
+      screenshots: {
+        title: "Annotated screenshots",
+        body: "Mark up a screenshot with arrows, text and blur, and share it as a link.",
+      },
+    },
+    formHeading: "Contact us",
+    formSubheading: "Tell us about your team and we'll reply by email.",
+    form: {
+      company: "Company",
+      companyPlaceholder: "Acme Inc.",
+      name: "Your name",
+      namePlaceholder: "Jane Doe",
+      email: "Work email",
+      emailPlaceholder: "jane@acme.com",
+      need: "What do you need?",
+      needs: [
+        "More than 1 TB of storage",
+        "Pricing for a large team",
+        "Something else",
+      ],
+      teamSize: "Team size",
+      teamSizes: ["1–10", "11–50", "51–200", "200+"],
+      storage: "How much storage?",
+      storageOptions: ["1–5 TB", "5–20 TB", "20 TB+", "Not sure"],
+      notes: "Anything else we should know?",
+      notesPlaceholder:
+        "How much your team records, your timeline, billing needs…",
+      submit: "Send message",
+      error:
+        "Your message couldn't be sent. Please try again, or email us at {email}.",
+      sentTitle: "Message sent",
+      sentBody: "Thanks. We'll get back to you at {email}.",
+      back: "Back to home",
+    },
+  },
   pricing: {
     heading: "Start free, pay for more storage",
     subheading:
@@ -368,7 +455,7 @@ export const MESSAGES = {
     enterprise: {
       name: "Enterprise",
       price: "Custom pricing",
-      body: "More than 1 TB, or help running it on your own Cloudflare account.",
+      body: "More than 1 TB of storage, fully managed, one price for your whole company.",
       note: "For teams that need more than 1 TB.",
       cta: "Contact us",
       subject: "CaptureFlow Enterprise",
@@ -426,7 +513,7 @@ export const MESSAGES = {
   cta: {
     headline: "Ready to record?",
     subtitle:
-      "Free download. No credit card. Self-host on your own Cloudflare account, or let us run it for you with the managed plan.",
+      "Free download. No credit card. Say it in a quick video message instead of another meeting.",
     button: "Try CaptureFlow for free",
   },
   sectionHeader: {
@@ -506,7 +593,6 @@ export const MESSAGES = {
     send: "Send message",
     errorBody:
       "Your message couldn't be sent. Please try again, or email me directly at {email}.",
-    deliveredVia: "Delivered via FormSubmit.",
   },
   suggestFeature: {
     title: "Suggest a feature",
@@ -529,7 +615,6 @@ export const MESSAGES = {
     submit: "Submit idea",
     errorBody:
       "Your idea couldn't be sent. Please try again, or email me directly at {email}.",
-    deliveredVia: "Delivered via FormSubmit.",
   },
   betaTester: {
     title: "Try out the beta",

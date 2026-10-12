@@ -13,9 +13,7 @@ export const SITE_TITLE =
 export const SITE_DESCRIPTION =
   "Record your screen and share a link with your team or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
 export const SUPPORT_EMAIL = "contact@sardor.codes";
-// FormSubmit sends a one-time confirmation email to SUPPORT_EMAIL on the first
-// submission; once confirmed, later submissions deliver silently.
-export const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${SUPPORT_EMAIL}`;
+export const ADMIN_INBOX_URL = "https://admin.captureflow.dev/inbox";
 export const APP_VERSION = "0.9.2-beta";
 export const DOWNLOAD_URL =
   "https://github.com/sardorml/captureflow/releases/latest";
@@ -201,7 +199,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     heroCtaLabel: "Try CaptureFlow for free",
     ctaHeadline: "Ready to record?",
     ctaSubtitle:
-      "Free download. No credit card. Self-host on your own Cloudflare account, or let us run it for you with the managed plan.",
+      "Free download. No credit card. Say it in a quick video message instead of another meeting.",
     ctaButtonLabel: "Try CaptureFlow for free",
     price: 9,
     originalPrice: null,
@@ -222,7 +220,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     heroCtaLabel: "Get early access",
     ctaHeadline: "Ready to record?",
     ctaSubtitle:
-      "Early access is live. Self-host for free, or let us run the managed plan for you.",
+      "Early access is live. Say it in a quick video message instead of another meeting.",
     ctaButtonLabel: "Get early access",
     price: 9,
     originalPrice: null,
@@ -242,8 +240,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     heroBadgeLabel: "✨ Now available",
     heroCtaLabel: "Get started",
     ctaHeadline: "Ready to record?",
-    ctaSubtitle:
-      "Self-host for free on your own Cloudflare account, or let us run it for you with the managed plan.",
+    ctaSubtitle: "Say it in a quick video message instead of another meeting.",
     ctaButtonLabel: "Get started",
     price: 9,
     originalPrice: null,

@@ -39,7 +39,7 @@ export function PricingSection({
             body={m.pricing.enterprise.body}
             cta={{
               label: m.pricing.enterprise.cta,
-              href: lh("/self-host-setup"),
+              href: lh("/enterprise"),
               onClick: () =>
                 track("marketing_cta_clicked", {
                   location: "pricing_enterprise",

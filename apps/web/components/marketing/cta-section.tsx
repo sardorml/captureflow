@@ -1,71 +1,45 @@
 "use client";
 
-import { Flex } from "./layout";
-import { Paragraph, Title } from "./typography";
-import { Button, Card } from "./ui";
-import { TOKENS } from "./tokens";
+import NextLink from "next/link";
+import { buttonVariants } from "@heroui/react";
 import { CURRENT_STAGE } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
-import {
-  MarketingSection,
-  SECTION_TITLE_STYLE,
-  SECTION_SUBTITLE_STYLE,
-} from "./_shared";
+import { MarketingSection } from "./_shared";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { WaitlistForm } from "./waitlist-form";
 
 export function CtaSection() {
   const m = useMessages();
   const lh = useLocalizedHref();
-  const token = TOKENS;
 
   return (
     <MarketingSection id="waitlist">
-      <Card
-        style={{
-          background: token.colorFillTertiary,
-          borderRadius: token.borderRadiusLG,
-          textAlign: "center",
-        }}
-        styles={{ body: { padding: "clamp(40px, 6vw, 56px) 32px" } }}
-      >
-        <Flex vertical align="center" gap={token.marginLG}>
-          <div>
-            <Title
-              align="center"
-              level={2}
-              style={{ ...SECTION_TITLE_STYLE, marginBottom: 12 }}
-            >
-              {CURRENT_STAGE.ctaHeadline || m.cta.headline}
-            </Title>
-            <Paragraph
-              align="center"
-              type="secondary"
-              style={{
-                ...SECTION_SUBTITLE_STYLE,
-                maxWidth: 480,
-                marginInline: "auto",
-              }}
-            >
-              {CURRENT_STAGE.ctaSubtitle || m.cta.subtitle}
-            </Paragraph>
-          </div>
-          {CURRENT_STAGE.showCtaBuyButton ? (
-            <Button
-              type="primary"
-              size="large"
-              href={lh("/download")}
-              onClick={() =>
-                track("marketing_cta_clicked", { location: "cta" })
-              }
-            >
-              {CURRENT_STAGE.ctaButtonLabel || m.cta.button}
-            </Button>
-          ) : (
-            <WaitlistForm />
-          )}
-        </Flex>
-      </Card>
+      <div className="mx-auto flex max-w-215 flex-col items-center gap-6 rounded-3xl bg-panel p-6 text-center sm:p-8 md:flex-row md:justify-between md:text-left">
+        <div className="min-w-0">
+          <h2 className="text-3xl font-bold tracking-[-0.02em] text-fg sm:text-4xl">
+            {CURRENT_STAGE.ctaHeadline || m.cta.headline}
+          </h2>
+          <p className="mt-2 max-w-110 text-base leading-relaxed text-balance text-fg-muted">
+            {CURRENT_STAGE.ctaSubtitle || m.cta.subtitle}
+          </p>
+        </div>
+        {CURRENT_STAGE.showCtaBuyButton ? (
+          <NextLink
+            href={lh("/download")}
+            onClick={() => track("marketing_cta_clicked", { location: "cta" })}
+            className={buttonVariants({
+              variant: "primary",
+              size: "lg",
+              className:
+                "h-14 w-full shrink-0 rounded-full px-8 text-lg font-semibold md:w-auto",
+            })}
+          >
+            {CURRENT_STAGE.ctaButtonLabel || m.cta.button}
+          </NextLink>
+        ) : (
+          <WaitlistForm />
+        )}
+      </div>
     </MarketingSection>
   );
 }

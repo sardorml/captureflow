@@ -10,7 +10,6 @@ import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
 import { AppleLogo, ChromeLogoColor } from "./platform-logos";
 import { RecorderMockup } from "./recorder-mockup";
-import { MARKETING_MAX_WIDTH } from "./_shared";
 import NextLink from "next/link";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
@@ -29,7 +28,7 @@ export function HeroSection() {
         vertical
         align="center"
         style={{
-          maxWidth: MARKETING_MAX_WIDTH,
+          maxWidth: 1280,
           marginInline: "auto",
           paddingInline: 24,
           paddingTop: 100,
@@ -37,12 +36,11 @@ export function HeroSection() {
           textAlign: "center",
         }}
       >
-        {/* Two-tone headline: the payoff line drops to the muted foreground so
-            the pair reads as one sentence trailing off. */}
         <div onClick={selectAndCopyWithLink}>
           <Title
             align="center"
             level={1}
+            className="text-balance text-fg-strong lg:whitespace-nowrap"
             style={{
               fontSize: "clamp(2.5rem, 1.5rem + 3.2vw, 4rem)",
               fontWeight: 700,
@@ -51,12 +49,7 @@ export function HeroSection() {
               marginBottom: 20,
             }}
           >
-            <span className="inline-block -rotate-1 rounded-2xl bg-fg px-3 pb-1 text-canvas">
-              {m.hero.titleHighlight}
-            </span>{" "}
-            {m.hero.titleLead}
-            <br />
-            <span className="text-fg-muted">{m.hero.titleSuffix}</span>
+            {m.hero.title}
           </Title>
         </div>
         <div onClick={selectAndCopyWithLink}>

@@ -30,6 +30,12 @@ const TABS: (NavItem & { permission: AdminPermission })[] = [
     permission: "users.read",
   },
   {
+    href: "/inbox",
+    label: "Inbox",
+    icon: "inbox",
+    permission: "users.read",
+  },
+  {
     href: "/emails",
     label: "Emails",
     icon: "emails",

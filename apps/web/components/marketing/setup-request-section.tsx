@@ -20,8 +20,9 @@ import {
   TextField,
   buttonVariants,
 } from "@heroui/react";
-import { FORMSUBMIT_URL, SUPPORT_EMAIL } from "@/lib/marketing/constants";
+import { SUPPORT_EMAIL } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
+import { submitSetupRequestAction } from "@/app/self-host-setup/actions";
 import { cn } from "@/lib/utils";
 import { MarketingSection, SectionHeading } from "./_shared";
 import { LANDING_FORM_FIELDS, PillChoice } from "./form-parts";
@@ -114,32 +115,19 @@ function RequestForm() {
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    const field = (key: string) => String(data.get(key) ?? "").trim();
     setLoading(true);
     setError(false);
     try {
-      const res = await fetch(FORMSUBMIT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          company: field("company"),
-          name: field("name"),
-          email: field("email"),
-          topic: field("topic"),
-          team_size: field("team_size"),
-          cloudflare_account: field("cloudflare"),
-          notes: field("notes"),
-          _honey: field("_honey"),
-          _subject: `${field("topic") || "Contact"}: ${field("company")}`,
-          _template: "table",
-        }),
-      });
-      if (!res.ok) {
+      const result = await submitSetupRequestAction(
+        { error: null, sent: false },
+        data,
+      );
+      if (!result.sent) {
         setError(true);
         return;
       }
       track("self_host_setup_requested");
-      setSentTo(field("email"));
+      setSentTo(String(data.get("email") ?? "").trim());
     } catch {
       setError(true);
     } finally {
@@ -213,7 +201,6 @@ function RequestForm() {
         <TextArea placeholder={copy.notesPlaceholder} rows={3} />
       </TextField>
 
-      {/* FormSubmit drops any submission that fills this in. */}
       <input
         type="text"
         name="_honey"
