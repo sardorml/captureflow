@@ -36,6 +36,8 @@ type Props = {
   onSignInRequested?: () => void;
   handleRef?: Ref<RecordingPlayerHandle | null>;
   onCommentClick?: () => void;
+  landscapeMaxHeightCss?: string;
+  embedded?: boolean;
 };
 
 // Reactions within this fraction of the timeline collapse into one cluster.
@@ -56,6 +58,10 @@ export function RecordingPlayer({
   onSignInRequested,
   handleRef,
   onCommentClick,
+  // 19rem reserves nav + title header + padding + reaction bar; 34rem caps tall viewports.
+  landscapeMaxHeightCss = "min(34rem, calc(100vh - 19rem))",
+  // Framed elsewhere: reactions move into a compact control bar that stays open.
+  embedded = false,
 }: Props) {
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
 
@@ -152,8 +158,7 @@ export function RecordingPlayer({
       serverWidth={serverWidth}
       serverHeight={serverHeight}
       config={config}
-      // 19rem reserves nav + title header + padding + reaction bar; 34rem caps tall viewports.
-      landscapeMaxHeightCss="min(34rem, calc(100vh - 19rem))"
+      landscapeMaxHeightCss={landscapeMaxHeightCss}
       progressOverlay={({ durationSeconds, controlsVisible }) => (
         <ReactionOverlay
           reactions={reactions}
@@ -162,25 +167,38 @@ export function RecordingPlayer({
           controlsVisible={controlsVisible}
         />
       )}
-      belowPlayer={
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <ReactionBar
+      controlsAlwaysVisible={embedded}
+      compactControls={embedded}
+      controlsExtra={
+        embedded ? (
+          <InlineReactions
             onReact={sendReaction}
             pulseEmoji={pulseEmoji}
-            counts={reactionCounts}
+            onCommentClick={onCommentClick}
           />
-          {onCommentClick ? (
-            <button
-              type="button"
-              onClick={onCommentClick}
-              className="flex h-[60px] items-center gap-2.5 rounded-2xl bg-canvas-2 px-5 text-base font-medium text-fg shadow-md ring-1 ring-line-strong transition-transform duration-100 ease-out hover:-translate-y-0.5"
-              aria-label="Leave a comment"
-            >
-              <MessageSquare className="h-6 w-6" aria-hidden="true" />
-              <span className="hidden sm:inline">Comment</span>
-            </button>
-          ) : null}
-        </div>
+        ) : undefined
+      }
+      belowPlayer={
+        embedded ? undefined : (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <ReactionBar
+              onReact={sendReaction}
+              pulseEmoji={pulseEmoji}
+              counts={reactionCounts}
+            />
+            {onCommentClick ? (
+              <button
+                type="button"
+                onClick={onCommentClick}
+                className="flex h-[60px] items-center gap-2.5 rounded-2xl bg-canvas-2 px-5 text-base font-medium text-fg shadow-md ring-1 ring-line-strong transition-transform duration-100 ease-out hover:-translate-y-0.5"
+                aria-label="Leave a comment"
+              >
+                <MessageSquare className="h-6 w-6" aria-hidden="true" />
+                <span className="hidden sm:inline">Comment</span>
+              </button>
+            ) : null}
+          </div>
+        )
       }
     />
   );
@@ -409,6 +427,46 @@ function ReactionBar({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function InlineReactions({
+  onReact,
+  pulseEmoji,
+  onCommentClick,
+}: {
+  onReact: (emoji: string) => void;
+  pulseEmoji: string | null;
+  onCommentClick?: () => void;
+}) {
+  return (
+    <div className="mx-auto flex items-center">
+      {DEFAULT_REACTIONS.map((r) => (
+        <button
+          key={r.emoji}
+          type="button"
+          onClick={() => onReact(r.emoji)}
+          aria-label={r.label}
+          title={r.label}
+          className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[17px] leading-none transition-transform duration-100 ease-out hover:-translate-y-0.5 motion-reduce:transition-none ${
+            pulseEmoji === r.emoji ? "animate-recording-icon-pop" : ""
+          }`}
+        >
+          <span aria-hidden="true">{r.emoji}</span>
+        </button>
+      ))}
+      {onCommentClick ? (
+        <button
+          type="button"
+          onClick={onCommentClick}
+          aria-label="Leave a comment"
+          title="Leave a comment"
+          className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-white/90 transition-colors hover:bg-tint-strong hover:text-white"
+        >
+          <MessageSquare className="h-4 w-4" aria-hidden="true" />
+        </button>
+      ) : null}
     </div>
   );
 }
