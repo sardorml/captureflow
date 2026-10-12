@@ -37,18 +37,37 @@ const nextConfig: NextConfig = {
    * has no third-party anything, does carry one.
    */
   async headers() {
+    const transport = [
+      {
+        key: "Strict-Transport-Security",
+        value: "max-age=31536000; includeSubDomains",
+      },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+    ];
     return [
       {
-        source: "/:path*",
+        source: "/((?!embed/).*)",
         headers: [
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=31536000; includeSubDomains",
-          },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          // No embed feature exists; same-origin keeps the app's own framing working.
+          ...transport,
+          // Same-origin keeps the app's own framing working; only /embed is framable.
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+      {
+        /*
+         * The extension frames the player on GitHub from one of its own pages,
+         * and frame-ancestors checks every ancestor, so both the extension and
+         * GitHub have to be allowed.
+         */
+        source: "/embed/:path*",
+        headers: [
+          ...transport,
+          {
+            key: "Content-Security-Policy",
+            value:
+              "frame-ancestors 'self' chrome-extension: https://github.com",
+          },
         ],
       },
     ];

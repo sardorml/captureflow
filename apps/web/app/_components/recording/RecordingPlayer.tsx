@@ -73,11 +73,15 @@ type Props = {
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   // Content below the player, inside the outer flex column. Hidden in fullscreen (only the player container goes fullscreen). The public viewer uses it for the reaction bar.
   belowPlayer?: ReactNode;
+  controlsExtra?: ReactNode;
+  controlsAlwaysVisible?: boolean;
+  compactControls?: boolean;
   // Viewport-aware max-height for LANDSCAPE sources, e.g. 'min(34rem, calc(100vh - 19rem))'. The public viewer passes this so the reaction bar below the player stays in view without scrolling; the editor omits it so the preview fills the available panel height. Without it, landscape players fill the column width uncapped.
   landscapeMaxHeightCss?: string;
 };
 
 const SKIP_SECONDS = 5;
+const PREVIEW_LOOP_SECONDS = 4;
 const SPEED_CYCLE = [1, 1.25, 1.5, 2];
 
 /*
@@ -98,6 +102,9 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       config,
       progressOverlay,
       belowPlayer,
+      controlsExtra,
+      controlsAlwaysVisible = false,
+      compactControls = false,
       landscapeMaxHeightCss,
     },
     handleRef,
@@ -151,6 +158,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
     );
 
     const [isPlaying, setIsPlaying] = useState(false);
+    const [hasPlayed, setHasPlayed] = useState(false);
     const [overlayIcon, setOverlayIcon] = useState<"play" | "pause" | null>(
       null,
     );
@@ -409,7 +417,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       if (hideTimerRef.current !== null) {
         window.clearTimeout(hideTimerRef.current);
       }
-      if (scrubbing) return;
+      if (scrubbing || controlsAlwaysVisible) return;
       hideTimerRef.current = window.setTimeout(() => {
         setControlsVisible(false);
       }, 2000);
@@ -687,7 +695,9 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                 }
           }
           onMouseMove={showControls}
-          onMouseLeave={() => !scrubbing && setControlsVisible(false)}
+          onMouseLeave={() =>
+            !scrubbing && !controlsAlwaysVisible && setControlsVisible(false)
+          }
           onKeyDown={handleKey}
           tabIndex={0}
         >
@@ -726,6 +736,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                  */
                 setFirstFrameReady(true);
                 setIsPlaying(true);
+                setHasPlayed(true);
                 setEnded(false);
               }}
               onPause={(e) => {
@@ -788,6 +799,22 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                 setVolume(e.currentTarget.volume);
               }}
             />
+            {compactControls && !hasPlayed ? (
+              <video
+                src={videoUrl}
+                className="pointer-events-none absolute inset-0 block h-full w-full object-contain"
+                muted
+                autoPlay
+                loop
+                playsInline
+                aria-hidden="true"
+                onTimeUpdate={(e) => {
+                  if (e.currentTarget.currentTime >= PREVIEW_LOOP_SECONDS) {
+                    e.currentTarget.currentTime = 0;
+                  }
+                }}
+              />
+            ) : null}
           </div>
 
           {/* Webcam companion PiP. Position/size/initial-mute come from the
@@ -835,34 +862,55 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
           (watch-again handles that). Serves as both the initial and the
           resume affordance. Hidden until the first frame is decoded and the
           aspect is locked, so it doesn't paint over an empty or
-          about-to-resize box. */}
-          {firstFrameReady && actualAspect != null && !isPlaying && !ended ? (
+          about-to-resize box. Compact players show it, as the blue
+          landing-demo button, only before the first play. */}
+          {firstFrameReady &&
+          actualAspect != null &&
+          !isPlaying &&
+          !ended &&
+          !(compactControls && hasPlayed) ? (
             <button
               type="button"
               onClick={togglePlay}
               className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/30 focus:outline-none"
               aria-label="Play"
             >
-              <span className="flex h-32 w-32 items-center justify-center rounded-full bg-[#171717]/85 shadow-lg transition-transform hover:scale-105">
-                <Play className="h-16 w-16 text-white" fill="currentColor" />
-              </span>
+              {compactControls ? (
+                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 shadow-2xl shadow-blue-950/40 ring-8 ring-blue-600/30 transition-transform duration-200 ease-out hover:scale-[1.06] motion-reduce:transition-none">
+                  <Play className="size-9 translate-x-0.5 fill-white text-white" />
+                </span>
+              ) : (
+                <span className="flex h-32 w-32 items-center justify-center rounded-full bg-[#171717]/85 shadow-lg transition-transform hover:scale-105">
+                  <Play className="h-16 w-16 text-white" fill="currentColor" />
+                </span>
+              )}
             </button>
           ) : null}
 
-          {/* Toggle pop overlay — flashes on play only. We skip the pause
-          flash because the play button above already paints then; stacking
-          both reads as flicker. `key` forces remount so back-to-back
-          toggles within the animation window restart from frame 0. */}
-          {overlayIcon && isPlaying && !ended ? (
+          {/* Toggle pop overlay — flashes on play, and on pause only when no
+          play button above paints then; stacking both reads as flicker.
+          `key` forces remount so back-to-back toggles within the animation
+          window restart from frame 0. */}
+          {overlayIcon &&
+          !ended &&
+          (isPlaying || (compactControls && hasPlayed)) ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <div
                 key={overlayIcon}
-                className="animate-recording-icon-pop flex h-32 w-32 items-center justify-center rounded-full bg-[#171717]/90"
+                className={`animate-recording-icon-pop flex items-center justify-center rounded-full ${
+                  compactControls ? "h-16 w-16" : "h-32 w-32"
+                } bg-[#171717]/90`}
               >
                 {overlayIcon === "pause" ? (
-                  <Pause className="h-16 w-16 text-white" fill="currentColor" />
+                  <Pause
+                    className={`${compactControls ? "size-7" : "h-16 w-16"} text-white`}
+                    fill="currentColor"
+                  />
                 ) : (
-                  <Play className="h-16 w-16 text-white" fill="currentColor" />
+                  <Play
+                    className={`${compactControls ? "size-7" : "h-16 w-16"} text-white`}
+                    fill="currentColor"
+                  />
                 )}
               </div>
             </div>
@@ -924,8 +972,12 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
           {/* Bottom control bar. Gradient backdrop so the bar reads on both
           light and dark content. */}
           <div
-            className={`pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-black/70 via-black/40 to-transparent px-4 pb-3 pt-10 transition-opacity duration-200 ${
-              controlsVisible ? "opacity-100" : "opacity-0"
+            className={`pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-black/70 via-black/40 to-transparent pb-3 pt-10 transition-opacity duration-200 ${compactControls ? "px-2" : "px-4"} ${
+              compactControls && !hasPlayed
+                ? "invisible opacity-0"
+                : controlsVisible
+                  ? "opacity-100"
+                  : "opacity-0"
             }`}
           >
             {/* Scrubber */}
@@ -943,7 +995,9 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
               onScrubEnd={() => setScrubbing(false)}
             />
 
-            <div className="pointer-events-auto flex items-center gap-2 text-white">
+            <div
+              className={`pointer-events-auto flex items-center text-white ${compactControls ? "gap-0.5" : "gap-2"}`}
+            >
               <ControlButton
                 onClick={togglePlay}
                 label={isPlaying ? "Pause" : "Play"}
@@ -954,97 +1008,110 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                   <Play className="h-5 w-5" fill="currentColor" />
                 )}
               </ControlButton>
-              <ControlButton
-                onClick={() => seekBy(-SKIP_SECONDS)}
-                label="Back 5s"
-              >
-                <SkipBadge dir="back" />
-              </ControlButton>
-              <ControlButton
-                onClick={() => seekBy(SKIP_SECONDS)}
-                label="Forward 5s"
-              >
-                <SkipBadge dir="forward" />
-              </ControlButton>
+              {compactControls ? null : (
+                <>
+                  <ControlButton
+                    onClick={() => seekBy(-SKIP_SECONDS)}
+                    label="Back 5s"
+                  >
+                    <SkipBadge dir="back" />
+                  </ControlButton>
+                  <ControlButton
+                    onClick={() => seekBy(SKIP_SECONDS)}
+                    label="Forward 5s"
+                  >
+                    <SkipBadge dir="forward" />
+                  </ControlButton>
+                </>
+              )}
 
               <VolumeControl
                 muted={isMuted}
                 volume={volume}
                 onToggleMute={toggleMute}
                 onVolume={setVolumeAndApply}
+                overlay={compactControls}
               />
 
-              <span className="ml-1 select-none whitespace-nowrap text-[12px] tabular-nums text-white/85">
-                {formatTime(currentTime)} /{" "}
-                {formatTime(
-                  duration > 0
-                    ? duration
-                    : serverDurationMs
-                      ? serverDurationMs / 1000
-                      : 0,
-                )}
-              </span>
+              {compactControls ? null : (
+                <span className="ml-1 select-none whitespace-nowrap text-[12px] tabular-nums text-white/85">
+                  {formatTime(currentTime)} /{" "}
+                  {formatTime(
+                    duration > 0
+                      ? duration
+                      : serverDurationMs
+                        ? serverDurationMs / 1000
+                        : 0,
+                  )}
+                </span>
+              )}
+
+              {controlsExtra}
 
               <div className="ml-auto flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={cycleSpeed}
-                  className="flex h-9 cursor-pointer items-center justify-center rounded-full px-3 text-[12px] font-medium tabular-nums text-white/90 transition-colors hover:bg-tint-strong hover:text-white"
-                  aria-label={`Playback speed ${speed}x`}
-                  title="Playback speed"
-                >
-                  {speed}×
-                </button>
-                <div className="relative hidden @md:block">
-                  <ControlButton
-                    onClick={() => setSettingsOpen((v) => !v)}
-                    label="Settings"
-                  >
-                    <Settings className="h-5 w-5" />
-                  </ControlButton>
-                  {settingsOpen ? (
-                    <div
-                      className="absolute right-0 bottom-full mb-2 min-w-[160px] rounded-lg bg-neutral-900/95 p-1 text-[12px] text-white shadow-xl backdrop-blur-sm"
-                      onMouseLeave={() => setSettingsOpen(false)}
+                {compactControls ? null : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={cycleSpeed}
+                      className="flex h-9 cursor-pointer items-center justify-center rounded-full px-3 text-[12px] font-medium tabular-nums text-white/90 transition-colors hover:bg-tint-strong hover:text-white"
+                      aria-label={`Playback speed ${speed}x`}
+                      title="Playback speed"
                     >
-                      <div className="px-2 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wide text-white/50">
-                        Playback speed
-                      </div>
-                      {SPEED_CYCLE.map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => {
-                            setSpeedExact(s);
-                            setSettingsOpen(false);
-                          }}
-                          className={`flex w-full cursor-pointer items-center justify-between rounded px-2 py-1.5 text-left transition-colors hover:bg-tint-strong ${
-                            speed === s ? "text-white" : "text-white/80"
-                          }`}
+                      {speed}×
+                    </button>
+                    <div className="relative hidden @md:block">
+                      <ControlButton
+                        onClick={() => setSettingsOpen((v) => !v)}
+                        label="Settings"
+                      >
+                        <Settings className="h-5 w-5" />
+                      </ControlButton>
+                      {settingsOpen ? (
+                        <div
+                          className="absolute right-0 bottom-full mb-2 min-w-[160px] rounded-lg bg-neutral-900/95 p-1 text-[12px] text-white shadow-xl backdrop-blur-sm"
+                          onMouseLeave={() => setSettingsOpen(false)}
                         >
-                          <span>{s === 1 ? "Normal" : `${s}×`}</span>
-                          {speed === s ? (
-                            <Check className="h-3.5 w-3.5" />
-                          ) : null}
-                        </button>
-                      ))}
+                          <div className="px-2 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wide text-white/50">
+                            Playback speed
+                          </div>
+                          {SPEED_CYCLE.map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => {
+                                setSpeedExact(s);
+                                setSettingsOpen(false);
+                              }}
+                              className={`flex w-full cursor-pointer items-center justify-between rounded px-2 py-1.5 text-left transition-colors hover:bg-tint-strong ${
+                                speed === s ? "text-white" : "text-white/80"
+                              }`}
+                            >
+                              <span>{s === 1 ? "Normal" : `${s}×`}</span>
+                              {speed === s ? (
+                                <Check className="h-3.5 w-3.5" />
+                              ) : null}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
-                  ) : null}
-                </div>
-                {/* PiP isn't reliable on iOS Safari for inline videos, and
-                  the gear gives the same controls — hide both when the
-                  *player* is narrow (container query, not viewport) so a
-                  small recording on a wide page still drops these. */}
-                <span className="hidden @md:inline-flex">
-                  <ControlButton
-                    onClick={() => void togglePip()}
-                    label={
-                      pip ? "Exit picture-in-picture" : "Picture-in-picture"
-                    }
-                  >
-                    <PictureInPicture2 className="h-5 w-5" />
-                  </ControlButton>
-                </span>
+                    {/* PiP isn't reliable on iOS Safari for inline videos, and
+                      the gear gives the same controls — hide both when the
+                      *player* is narrow (container query, not viewport) so a
+                      small recording on a wide page still drops these. */}
+                    <span className="hidden @md:inline-flex">
+                      <ControlButton
+                        onClick={() => void togglePip()}
+                        label={
+                          pip ? "Exit picture-in-picture" : "Picture-in-picture"
+                        }
+                      >
+                        <PictureInPicture2 className="h-5 w-5" />
+                      </ControlButton>
+                    </span>
+                  </>
+                )}
                 <ControlButton
                   onClick={toggleFullscreen}
                   label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
@@ -1200,15 +1267,43 @@ function VolumeControl({
   volume,
   onToggleMute,
   onVolume,
+  overlay = false,
 }: {
   muted: boolean;
   volume: number;
   onToggleMute: () => void;
   onVolume: (v: number) => void;
+  overlay?: boolean;
 }) {
   const effective = muted ? 0 : volume;
+  const slider = (
+    <input
+      type="range"
+      min={0}
+      max={1}
+      step={0.01}
+      value={effective}
+      onChange={(e) => onVolume(Number(e.target.value))}
+      // Gradient paints the filled track up to the current value. The
+      // default uniform <input range> track read as "empty" against our
+      // solid thumb, looking like volume was off even at full.
+      style={{
+        backgroundImage: `linear-gradient(to right, rgb(255 255 255) 0%, rgb(255 255 255) ${
+          effective * 100
+        }%, rgb(255 255 255 / 0.3) ${
+          effective * 100
+        }%, rgb(255 255 255 / 0.3) 100%)`,
+      }}
+      className={`h-1 cursor-pointer appearance-none rounded-full transition-all duration-150 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white ${
+        overlay
+          ? "w-20"
+          : "ml-1 w-0 opacity-0 group-hover/vol:w-20 group-hover/vol:opacity-100"
+      }`}
+      aria-label="Volume"
+    />
+  );
   return (
-    <div className="group/vol flex items-center">
+    <div className="group/vol relative flex items-center">
       <ControlButton onClick={onToggleMute} label={muted ? "Unmute" : "Mute"}>
         {effective === 0 ? (
           <VolumeX className="h-5 w-5" />
@@ -1218,26 +1313,14 @@ function VolumeControl({
           <Volume2 className="h-5 w-5" />
         )}
       </ControlButton>
-      <input
-        type="range"
-        min={0}
-        max={1}
-        step={0.01}
-        value={effective}
-        onChange={(e) => onVolume(Number(e.target.value))}
-        // Gradient paints the filled track up to the current value. The
-        // default uniform <input range> track read as "empty" against our
-        // solid thumb, looking like volume was off even at full.
-        style={{
-          backgroundImage: `linear-gradient(to right, rgb(255 255 255) 0%, rgb(255 255 255) ${
-            effective * 100
-          }%, rgb(255 255 255 / 0.3) ${
-            effective * 100
-          }%, rgb(255 255 255 / 0.3) 100%)`,
-        }}
-        className="ml-1 h-1 w-0 cursor-pointer appearance-none rounded-full opacity-0 transition-all duration-150 group-hover/vol:w-20 group-hover/vol:opacity-100 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
-        aria-label="Volume"
-      />
+      {overlay ? (
+        // Floats over the controls beside it instead of pushing them aside.
+        <div className="pointer-events-none absolute left-full top-1/2 z-10 flex h-9 -translate-y-1/2 items-center rounded-full bg-black/50 px-3 opacity-0 backdrop-blur-md transition-opacity duration-150 group-hover/vol:pointer-events-auto group-hover/vol:opacity-100 motion-reduce:transition-none">
+          {slider}
+        </div>
+      ) : (
+        slider
+      )}
     </div>
   );
 }
