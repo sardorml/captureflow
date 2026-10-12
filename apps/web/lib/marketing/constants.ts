@@ -12,7 +12,7 @@ export const SITE_TITLE =
   "CaptureFlow — Open-source screen recorder with shareable links";
 export const SITE_DESCRIPTION =
   "Record your screen and share a link with your team or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
-export const SUPPORT_EMAIL = "contact@sardor.codes";
+export const SUPPORT_EMAIL = "support@captureflow.dev";
 export const ADMIN_INBOX_URL = "https://admin.captureflow.dev/inbox";
 export const APP_VERSION = "0.9.2-beta";
 export const DOWNLOAD_URL =
