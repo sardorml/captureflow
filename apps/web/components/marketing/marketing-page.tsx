@@ -18,7 +18,7 @@ export async function MarketingPage({ children }: { children: ReactNode }) {
     <I18nProvider>
       <MarketingShell>
         <Nav stars={stars} />
-        <main>
+        <main className="animate-page-rise">
           {children}
           <CtaSection />
         </main>

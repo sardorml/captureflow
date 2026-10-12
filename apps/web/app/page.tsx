@@ -72,7 +72,7 @@ export default async function RootPage() {
           data={[WEBSITE_SCHEMA, ORGANIZATION_SCHEMA, APP_SCHEMA, FAQ_SCHEMA]}
         />
         <Nav stars={stars} />
-        <main>
+        <main className="animate-page-rise">
           <HeroSection />
           <ModesIntro />
           <CollaborationSection />

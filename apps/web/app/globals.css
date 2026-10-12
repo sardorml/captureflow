@@ -213,6 +213,19 @@ html:has([data-marketing]) body {
     transform: scale(0.97);
   }
 }
+/* Marketing pages: the content under the nav rises out of a soft blur, so a
+   navigation reads as the next page arriving rather than a flash. Applied to
+   <main> only, which keeps the nav and footer still. */
+@keyframes page-rise {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+    filter: blur(8px);
+  }
+}
+.animate-page-rise {
+  animation: page-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
 .animate-page-enter {
   /* Origin pinned near the top: a center-origin zoom visibly shifts the
      viewport-top edge on pages taller than the scroll pane. */
@@ -349,6 +362,7 @@ html:has([data-marketing]) body {
   .animate-reveal,
   .animate-recording-icon-pop,
   .animate-page-fade,
+  .animate-page-rise,
   .animate-page-enter,
   .animate-beta-card,
   .animate-beta-confetti {
