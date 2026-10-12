@@ -33,13 +33,13 @@ const GITHUB_URL = "https://github.com/sardorml/captureflow";
 
 // Bare muted text in the bar; full-width ghost buttons once stacked in the drawer.
 const TEXT_LINK =
-  "text-[15px] text-fg-muted transition-colors hover:text-fg motion-reduce:transition-none";
+  "text-base whitespace-nowrap text-fg-muted transition-colors hover:text-fg motion-reduce:transition-none";
 
 // The one solid control in the bar. `inverse` is the token that sits opposite
 // the canvas, so it reads white-on-dark and black-on-light without a branch.
 const PILL_CTA = buttonVariants({
   variant: "primary",
-  className: "h-10 rounded-full px-6 text-[15px]",
+  className: "h-10 rounded-full px-6 text-base",
 });
 
 type NavLinkProps = {
@@ -271,13 +271,13 @@ export function Nav({ stars = null }: { stars?: string | null }) {
         detached ? "h-20 pt-4" : "h-16",
       ].join(" ")}
     >
-      {/* Sits on the page's 1024px rail at rest, then contracts to 768px as it
+      {/* Sits on the page's 1024px rail at rest, then contracts to 1024px as it
           detaches so the floating pill reads as its own object. */}
       <div
         className={[
           "relative isolate mx-auto flex w-full items-center justify-between px-4 py-2 transition-[max-width,border-color,border-radius] duration-300 ease-out motion-reduce:transition-none",
           detached
-            ? "max-w-4xl rounded-full border border-line"
+            ? "max-w-5xl rounded-full border border-line"
             : "max-w-6xl border border-transparent",
         ].join(" ")}
       >
@@ -337,7 +337,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             {/* tabular-nums so the bar doesn't shift width as the count grows
                 into another digit between revalidations. */}
             {stars && (
-              <span className="text-[13px] font-medium tabular-nums">
+              <span className="text-base font-medium tabular-nums">
                 {stars}
               </span>
             )}
