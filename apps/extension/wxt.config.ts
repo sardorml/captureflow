@@ -81,7 +81,8 @@ export default defineConfig({
       // Firefox MV3 lacks web→extension messaging, so omit it there.
       ...(isFirefox ? {} : { externally_connectable: { matches } }),
       // The injected camera bubble, the permission-grant fallback, and the
-      // in-page recorder overlay load these extension pages inside a web origin.
+      // in-page recorder overlay load these extension pages inside a web origin;
+      // GitHub loads the player that replaces pasted share links.
       ...(isFirefox
         ? {}
         : {
@@ -89,6 +90,10 @@ export default defineConfig({
               {
                 resources: ["bubble.html", "permissions.html", "popup.html"],
                 matches: ["<all_urls>"],
+              },
+              {
+                resources: ["github-player.html"],
+                matches: ["https://github.com/*"],
               },
             ],
           }),
