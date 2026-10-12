@@ -11,7 +11,11 @@ import {
 } from "@/lib/recording/db";
 import { verifySession } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
-import { viewerMediaUrl } from "@/lib/recording/media-url";
+import {
+  posterMimeOf,
+  viewerMediaUrl,
+  withVersion,
+} from "@/lib/recording/media-url";
 import { parseRecordingConfigJson } from "@/lib/recording-config";
 import { parseSummaryChaptersJson } from "@/lib/recording/summary-chapters";
 import { isValidSlug } from "@/lib/recording/slug";
@@ -143,20 +147,6 @@ export async function generateMetadata({
       ],
     },
   };
-}
-
-function withVersion(url: string, version: number): string {
-  if (!Number.isFinite(version) || version <= 0) return url;
-  const sep = url.includes("?") ? "&" : "?";
-  return `${url}${sep}v=${version}`;
-}
-
-function posterMimeOf(posterKey: string | null): string {
-  if (!posterKey) return "image/jpeg";
-  const lower = posterKey.toLowerCase();
-  if (lower.endsWith(".png")) return "image/png";
-  if (lower.endsWith(".webp")) return "image/webp";
-  return "image/jpeg";
 }
 
 export default async function RecordingPage({ params }: { params: Params }) {
