@@ -81,6 +81,7 @@ type Props = {
 };
 
 const SKIP_SECONDS = 5;
+const PREVIEW_LOOP_SECONDS = 4;
 const SPEED_CYCLE = [1, 1.25, 1.5, 2];
 
 /*
@@ -157,6 +158,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
     );
 
     const [isPlaying, setIsPlaying] = useState(false);
+    const [hasPlayed, setHasPlayed] = useState(false);
     const [overlayIcon, setOverlayIcon] = useState<"play" | "pause" | null>(
       null,
     );
@@ -734,6 +736,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                  */
                 setFirstFrameReady(true);
                 setIsPlaying(true);
+                setHasPlayed(true);
                 setEnded(false);
               }}
               onPause={(e) => {
@@ -796,6 +799,22 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                 setVolume(e.currentTarget.volume);
               }}
             />
+            {compactControls && !hasPlayed ? (
+              <video
+                src={videoUrl}
+                className="pointer-events-none absolute inset-0 block h-full w-full object-contain"
+                muted
+                autoPlay
+                loop
+                playsInline
+                aria-hidden="true"
+                onTimeUpdate={(e) => {
+                  if (e.currentTarget.currentTime >= PREVIEW_LOOP_SECONDS) {
+                    e.currentTarget.currentTime = 0;
+                  }
+                }}
+              />
+            ) : null}
           </div>
 
           {/* Webcam companion PiP. Position/size/initial-mute come from the
@@ -843,8 +862,13 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
           (watch-again handles that). Serves as both the initial and the
           resume affordance. Hidden until the first frame is decoded and the
           aspect is locked, so it doesn't paint over an empty or
-          about-to-resize box. */}
-          {firstFrameReady && actualAspect != null && !isPlaying && !ended ? (
+          about-to-resize box. Compact players show it, as the blue
+          landing-demo button, only before the first play. */}
+          {firstFrameReady &&
+          actualAspect != null &&
+          !isPlaying &&
+          !ended &&
+          !(compactControls && hasPlayed) ? (
             <button
               type="button"
               onClick={togglePlay}
@@ -852,8 +876,8 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
               aria-label="Play"
             >
               {compactControls ? (
-                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 shadow-2xl shadow-blue-950/40 ring-[6px] ring-blue-600/30 transition-transform duration-200 ease-out hover:scale-[1.06] motion-reduce:transition-none">
-                  <Play className="size-7 translate-x-0.5 fill-white text-white" />
+                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 shadow-2xl shadow-blue-950/40 ring-8 ring-blue-600/30 transition-transform duration-200 ease-out hover:scale-[1.06] motion-reduce:transition-none">
+                  <Play className="size-9 translate-x-0.5 fill-white text-white" />
                 </span>
               ) : (
                 <span className="flex h-32 w-32 items-center justify-center rounded-full bg-[#171717]/85 shadow-lg transition-transform hover:scale-105">
@@ -863,19 +887,19 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             </button>
           ) : null}
 
-          {/* Toggle pop overlay — flashes on play only. We skip the pause
-          flash because the play button above already paints then; stacking
-          both reads as flicker. `key` forces remount so back-to-back
-          toggles within the animation window restart from frame 0. */}
-          {overlayIcon && isPlaying && !ended ? (
+          {/* Toggle pop overlay — flashes on play, and on pause only when no
+          play button above paints then; stacking both reads as flicker.
+          `key` forces remount so back-to-back toggles within the animation
+          window restart from frame 0. */}
+          {overlayIcon &&
+          !ended &&
+          (isPlaying || (compactControls && hasPlayed)) ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <div
                 key={overlayIcon}
                 className={`animate-recording-icon-pop flex items-center justify-center rounded-full ${
-                  compactControls
-                    ? "h-16 w-16 bg-blue-600"
-                    : "h-32 w-32 bg-[#171717]/90"
-                }`}
+                  compactControls ? "h-16 w-16" : "h-32 w-32"
+                } bg-[#171717]/90`}
               >
                 {overlayIcon === "pause" ? (
                   <Pause
@@ -949,7 +973,11 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
           light and dark content. */}
           <div
             className={`pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-black/70 via-black/40 to-transparent pb-3 pt-10 transition-opacity duration-200 ${compactControls ? "px-2" : "px-4"} ${
-              controlsVisible ? "opacity-100" : "opacity-0"
+              compactControls && !hasPlayed
+                ? "invisible opacity-0"
+                : controlsVisible
+                  ? "opacity-100"
+                  : "opacity-0"
             }`}
           >
             {/* Scrubber */}
@@ -1002,6 +1030,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                 volume={volume}
                 onToggleMute={toggleMute}
                 onVolume={setVolumeAndApply}
+                overlay={compactControls}
               />
 
               {compactControls ? null : (
@@ -1238,15 +1267,43 @@ function VolumeControl({
   volume,
   onToggleMute,
   onVolume,
+  overlay = false,
 }: {
   muted: boolean;
   volume: number;
   onToggleMute: () => void;
   onVolume: (v: number) => void;
+  overlay?: boolean;
 }) {
   const effective = muted ? 0 : volume;
+  const slider = (
+    <input
+      type="range"
+      min={0}
+      max={1}
+      step={0.01}
+      value={effective}
+      onChange={(e) => onVolume(Number(e.target.value))}
+      // Gradient paints the filled track up to the current value. The
+      // default uniform <input range> track read as "empty" against our
+      // solid thumb, looking like volume was off even at full.
+      style={{
+        backgroundImage: `linear-gradient(to right, rgb(255 255 255) 0%, rgb(255 255 255) ${
+          effective * 100
+        }%, rgb(255 255 255 / 0.3) ${
+          effective * 100
+        }%, rgb(255 255 255 / 0.3) 100%)`,
+      }}
+      className={`h-1 cursor-pointer appearance-none rounded-full transition-all duration-150 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white ${
+        overlay
+          ? "w-20"
+          : "ml-1 w-0 opacity-0 group-hover/vol:w-20 group-hover/vol:opacity-100"
+      }`}
+      aria-label="Volume"
+    />
+  );
   return (
-    <div className="group/vol flex items-center">
+    <div className="group/vol relative flex items-center">
       <ControlButton onClick={onToggleMute} label={muted ? "Unmute" : "Mute"}>
         {effective === 0 ? (
           <VolumeX className="h-5 w-5" />
@@ -1256,26 +1313,14 @@ function VolumeControl({
           <Volume2 className="h-5 w-5" />
         )}
       </ControlButton>
-      <input
-        type="range"
-        min={0}
-        max={1}
-        step={0.01}
-        value={effective}
-        onChange={(e) => onVolume(Number(e.target.value))}
-        // Gradient paints the filled track up to the current value. The
-        // default uniform <input range> track read as "empty" against our
-        // solid thumb, looking like volume was off even at full.
-        style={{
-          backgroundImage: `linear-gradient(to right, rgb(255 255 255) 0%, rgb(255 255 255) ${
-            effective * 100
-          }%, rgb(255 255 255 / 0.3) ${
-            effective * 100
-          }%, rgb(255 255 255 / 0.3) 100%)`,
-        }}
-        className="ml-1 h-1 w-0 cursor-pointer appearance-none rounded-full opacity-0 transition-all duration-150 group-hover/vol:w-20 group-hover/vol:opacity-100 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
-        aria-label="Volume"
-      />
+      {overlay ? (
+        // Floats over the controls beside it instead of pushing them aside.
+        <div className="pointer-events-none absolute left-full top-1/2 z-10 flex h-9 -translate-y-1/2 items-center rounded-full bg-black/50 px-3 opacity-0 backdrop-blur-md transition-opacity duration-150 group-hover/vol:pointer-events-auto group-hover/vol:opacity-100 motion-reduce:transition-none">
+          {slider}
+        </div>
+      ) : (
+        slider
+      )}
     </div>
   );
 }

@@ -449,7 +449,7 @@ function InlineReactions({
           onClick={() => onReact(r.emoji)}
           aria-label={r.label}
           title={r.label}
-          className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[17px] leading-none transition-transform duration-100 ease-out hover:-translate-y-0.5 motion-reduce:transition-none ${
+          className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-[22px] leading-none transition-transform duration-100 ease-out hover:-translate-y-0.5 motion-reduce:transition-none ${
             pulseEmoji === r.emoji ? "animate-recording-icon-pop" : ""
           }`}
         >
@@ -462,9 +462,9 @@ function InlineReactions({
           onClick={onCommentClick}
           aria-label="Leave a comment"
           title="Leave a comment"
-          className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-white/90 transition-colors hover:bg-tint-strong hover:text-white"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-white/90 transition-colors hover:bg-tint-strong hover:text-white"
         >
-          <MessageSquare className="h-4 w-4" aria-hidden="true" />
+          <MessageSquare className="h-5 w-5" aria-hidden="true" />
         </button>
       ) : null}
     </div>
