@@ -8,13 +8,11 @@ import { useMessages } from "./i18n-provider";
 type CardKey = "engineering" | "design" | "support" | "updates";
 
 const CARDS = [
-  { key: "engineering" },
   { key: "design" },
+  { key: "engineering" },
   { key: "support" },
   { key: "updates" },
 ] as const satisfies readonly { key: CardKey }[];
-
-const AVATAR_SRC = "/avatar-presenter.webp";
 
 /*
  * Scenes are laid out in pixels against this landscape box and scaled as one to
@@ -30,17 +28,17 @@ const CHART_BARS = [34, 48, 40, 58, 70, 96] as const;
 const WINDOW =
   "absolute inset-x-9 top-10 -bottom-6 overflow-hidden rounded-[22px] text-[#18181b]";
 
-function Presenter({ shadow }: { shadow: string }) {
+function Presenter({ card, shadow }: { card: CardKey; shadow: string }) {
   return (
     <div
-      className="absolute right-7 bottom-7 size-[108px] overflow-hidden rounded-full"
+      className="absolute right-6 bottom-6 size-[140px] overflow-hidden rounded-full"
       style={{ boxShadow: `0 0 0 5px #fff, 0 16px 34px ${shadow}` }}
     >
       <img
-        src={AVATAR_SRC}
+        src={`/presenter-${card}.webp`}
         alt=""
-        width={256}
-        height={256}
+        width={320}
+        height={320}
         loading="lazy"
         className="block size-full object-cover"
       />
@@ -159,7 +157,7 @@ function EngineeringScene({ file, pr }: { file: string; pr: string }) {
         </span>
         1:26
       </div>
-      <Presenter shadow="rgb(0 0 0 / 0.35)" />
+      <Presenter card="engineering" shadow="rgb(0 0 0 / 0.35)" />
     </div>
   );
 }
@@ -209,11 +207,11 @@ function DesignScene({
           </div>
         </div>
       </div>
-      <div className="absolute top-[228px] left-1/2 -ml-1.5 flex items-center gap-[9px] rounded-[16px_16px_16px_4px] bg-white py-2.5 pr-3.5 pl-2.5 text-[15px] leading-none font-semibold whitespace-nowrap text-[#18181b] shadow-[0_14px_30px_rgb(0_0_0/0.25)]">
+      <div className="absolute top-[228px] left-1/2 -ml-[48px] flex items-center gap-[9px] rounded-[16px_16px_16px_4px] bg-white py-2.5 pr-3.5 pl-2.5 text-[15px] leading-none font-semibold whitespace-nowrap text-[#18181b] shadow-[0_14px_30px_rgb(0_0_0/0.25)]">
         <Initials size={26}>MR</Initials>
         {comment}
       </div>
-      <Presenter shadow="rgb(0 0 0 / 0.3)" />
+      <Presenter card="design" shadow="rgb(0 0 0 / 0.3)" />
     </div>
   );
 }
@@ -247,7 +245,7 @@ function SupportScene({
           </div>
         </div>
       </div>
-      <Presenter shadow="rgb(0 0 0 / 0.3)" />
+      <Presenter card="support" shadow="rgb(0 0 0 / 0.3)" />
     </div>
   );
 }
@@ -342,7 +340,7 @@ function UpdatesScene({
         <Reaction>🔥</Reaction>
         <Reaction>👏</Reaction>
       </div>
-      <Presenter shadow="rgb(0 0 0 / 0.3)" />
+      <Presenter card="updates" shadow="rgb(0 0 0 / 0.3)" />
     </div>
   );
 }
