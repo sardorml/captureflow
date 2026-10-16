@@ -28,14 +28,14 @@ const CHART_BARS = [34, 48, 40, 58, 70, 96] as const;
 const WINDOW =
   "absolute inset-x-9 top-10 -bottom-6 overflow-hidden rounded-[22px] text-[#18181b]";
 
-function Presenter({ card, shadow }: { card: CardKey; shadow: string }) {
+function Presenter({ photo, shadow }: { photo: string; shadow: string }) {
   return (
     <div
       className="absolute right-6 bottom-6 size-[140px] overflow-hidden rounded-full"
       style={{ boxShadow: `0 0 0 5px #fff, 0 16px 34px ${shadow}` }}
     >
       <img
-        src={`/presenter-${card}.webp`}
+        src={photo}
         alt=""
         width={320}
         height={320}
@@ -157,7 +157,10 @@ function EngineeringScene({ file, pr }: { file: string; pr: string }) {
         </span>
         1:26
       </div>
-      <Presenter card="engineering" shadow="rgb(0 0 0 / 0.35)" />
+      <Presenter
+        photo="/presenter-engineering.webp"
+        shadow="rgb(0 0 0 / 0.35)"
+      />
     </div>
   );
 }
@@ -211,7 +214,7 @@ function DesignScene({
         <Initials size={26}>MR</Initials>
         {comment}
       </div>
-      <Presenter card="design" shadow="rgb(0 0 0 / 0.3)" />
+      <Presenter photo="/presenter-support.webp" shadow="rgb(0 0 0 / 0.3)" />
     </div>
   );
 }
@@ -240,12 +243,19 @@ function SupportScene({
           <span className="font-mono text-[16px] text-[#8fb0ff]">{link}</span>
         </div>
         <div className="relative flex-1 overflow-hidden rounded-[14px] bg-[linear-gradient(135deg,#2563eb,#7c3aed)]">
-          <div className="absolute inset-x-[18px] bottom-4 h-2 rounded bg-white/35">
+          <img
+            src="/presenter-design.webp"
+            alt=""
+            width={320}
+            height={320}
+            loading="lazy"
+            className="absolute -bottom-[34px] left-[18px] size-[120px] rounded-full object-cover shadow-[0_0_0_4px_#fff,0_12px_28px_rgb(0_0_0/0.3)]"
+          />
+          <div className="absolute right-[18px] bottom-4 left-[156px] h-2 rounded bg-white/35">
             <div className="h-full w-[38%] rounded bg-white" />
           </div>
         </div>
       </div>
-      <Presenter card="support" shadow="rgb(0 0 0 / 0.3)" />
     </div>
   );
 }
@@ -340,7 +350,7 @@ function UpdatesScene({
         <Reaction>🔥</Reaction>
         <Reaction>👏</Reaction>
       </div>
-      <Presenter card="updates" shadow="rgb(0 0 0 / 0.3)" />
+      <Presenter photo="/presenter-updates.webp" shadow="rgb(0 0 0 / 0.3)" />
     </div>
   );
 }

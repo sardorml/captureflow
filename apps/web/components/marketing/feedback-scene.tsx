@@ -5,8 +5,8 @@ import { Pause } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppScreen } from "./editor-scene";
 import { useMessages } from "./i18n-provider";
-import { SceneFrame, useLoopAnimation, type SceneState } from "./scene-frame";
 import { WebcamLoop } from "./webcam-loop";
+import { SceneFrame, useLoopAnimation, type SceneState } from "./scene-frame";
 
 const LOOP_MS = 12000;
 

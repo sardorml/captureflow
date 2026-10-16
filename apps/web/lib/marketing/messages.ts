@@ -227,6 +227,7 @@ export const MESSAGES = {
       share: {
         feature: {
           title: "Polish it before you send it",
+          cta: "Record now",
           body: "Add a background, move or resize your camera, and mute audio you don't want. Your link stays the same, so everyone sees the new version straight away.",
         },
         scene: {
@@ -253,9 +254,32 @@ export const MESSAGES = {
           saved: "Saved · same link",
         },
       },
+      embed: {
+        feature: {
+          title: "Share or embed it anywhere you work",
+          cta: "Start sharing",
+          body: "Paste the link into Slack, GitHub, Notion or an email and it shows up with a preview. Embed the player in your docs or site, and with the extension it plays right inside GitHub issues and pull requests.",
+        },
+        scene: {
+          question: "Can you show me how to invite my team to the workspace?",
+          reply: "Of course! Here's a short walkthrough of the steps:",
+          url: "captureflow.dev/r/8kx2pnq4",
+          app: "Settings",
+          nav: ["General", "Members", "Billing"],
+          members: "Members",
+          invite: "Invite",
+          people: [
+            { initials: "AR", name: "Alex Rivera", role: "Owner" },
+            { initials: "CK", name: "Chris Kim", role: "Member" },
+            { initials: "JB", name: "Jordan Bell", role: "Member" },
+          ],
+          duration: "0:48",
+        },
+      },
       feedback: {
         feature: {
           title: "Get feedback right on the video",
+          cta: "Start collecting feedback",
           body: "Viewers react with emojis and leave comments right on the timeline, at the exact moment they mean. Every reply stays with the video, so the conversation moves forward without another meeting.",
         },
         scene: {
@@ -293,6 +317,7 @@ export const MESSAGES = {
       workspaces: {
         feature: {
           title: "Workspaces for your whole team",
+          cta: "Create a workspace",
           body: "Invite your teammates to a workspace and everyone's recordings live in one place. Share a video with anyone, keep it inside the workspace, or keep it to yourself until it's ready.",
         },
         scene: {
@@ -300,10 +325,10 @@ export const MESSAGES = {
           members: ["3 members", "4 members"],
           memberInitials: ["AR", "CK", "JB"],
           invitePlaceholder: "Invite by email",
-          inviteEmail: "maya@northwind.io",
+          inviteEmail: "leo@northwind.io",
           invite: "Invite",
           invited: "Sent",
-          joined: "Maya joined 🎉",
+          joined: "Leo joined 🎉",
           recordings: "Recordings",
           videos: [
             {

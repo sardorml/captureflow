@@ -151,7 +151,7 @@ function Presenter({
         <WebcamLoop name="cardigan" />
       ) : (
         <img
-          src="/presenter-updates.webp"
+          src="/presenter-recorder.webp"
           alt=""
           width={320}
           height={320}
