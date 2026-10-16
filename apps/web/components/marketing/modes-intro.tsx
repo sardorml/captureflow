@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
 import { useMessages } from "./i18n-provider";
 import { RecorderPanel } from "./recorder-panel";
+import { WebcamLoop } from "./webcam-loop";
 
 /*
  * Glyphs and colours copied from the extension's control bar
@@ -128,7 +129,15 @@ function Scaled({
   );
 }
 
-function Presenter({ size, ring }: { size: number; ring: number }) {
+function Presenter({
+  size,
+  ring,
+  live = false,
+}: {
+  size: number;
+  ring: number;
+  live?: boolean;
+}) {
   return (
     <span
       className="block overflow-hidden rounded-full"
@@ -138,14 +147,55 @@ function Presenter({ size, ring }: { size: number; ring: number }) {
         boxShadow: `0 0 0 ${ring}px #fff, 0 18px 40px rgb(0 0 0 / 0.45)`,
       }}
     >
-      <img
-        src="/avatar-presenter.webp"
-        alt=""
-        width={256}
-        height={256}
-        className="size-full object-cover"
-      />
+      {live ? (
+        <WebcamLoop name="cardigan" />
+      ) : (
+        <img
+          src="/presenter-updates.webp"
+          alt=""
+          width={320}
+          height={320}
+          className="size-full object-cover"
+        />
+      )}
     </span>
+  );
+}
+
+function CheckoutField({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[8px] font-medium text-black/45">{label}</span>
+      <span className="rounded-md border border-black/10 bg-white px-2 py-1 text-[9px]">
+        {children}
+      </span>
+    </div>
+  );
+}
+
+const CAPTION_MS = 3000;
+
+function Caption({ lines }: { lines: readonly string[] }) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(
+      () => setIndex((i) => (i + 1) % lines.length),
+      CAPTION_MS,
+    );
+    return () => clearInterval(id);
+  }, [lines.length]);
+
+  return (
+    <p className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded bg-black/75 px-2 py-0.5 whitespace-nowrap text-[12px] leading-snug text-white">
+      {lines[index]}
+    </p>
   );
 }
 
@@ -156,6 +206,7 @@ const FEED = { left: VIDEO.width + 20, bottom: VIDEO.height + 20 };
 
 function PlaybackMockup() {
   const copy = useMessages().modes.scene;
+  const checkout = copy.checkout;
   const clockRef = useRef<HTMLDivElement>(null);
 
   // CSS animations start whenever their element gets them (hydration, a hot
@@ -188,26 +239,51 @@ function PlaybackMockup() {
             height: VIDEO.height,
           }}
         >
-          <div className="relative size-full overflow-hidden bg-[linear-gradient(135deg,#2563eb,#7c3aed)]">
+          <div className="relative size-full overflow-hidden bg-[linear-gradient(135deg,#fdba74,#f9a8d4)]">
             <div className="absolute inset-x-8 top-5 bottom-0 flex flex-col overflow-hidden rounded-t-xl bg-[#f6f7fb] shadow-[0_20px_50px_rgb(0_0_0/0.35)]">
               <div className="flex h-6 items-center gap-1.5 bg-[#e9ebf2] px-3">
                 <span className="size-2 rounded-full bg-[#ff5f57]" />
                 <span className="size-2 rounded-full bg-[#febc2e]" />
                 <span className="size-2 rounded-full bg-[#28c840]" />
+                <span className="mx-auto rounded-md bg-white px-3 py-0.5 text-[9px] text-black/45">
+                  {checkout.address}
+                </span>
               </div>
-              <div className="flex flex-1 gap-4 p-4">
-                <div className="flex w-16 flex-col gap-2">
-                  <span className="h-2 w-[70%] rounded-full bg-black/10" />
-                  <span className="h-2 w-1/2 rounded-full bg-black/[0.07]" />
-                  <span className="h-2 w-[60%] rounded-full bg-black/[0.07]" />
+              <div className="flex flex-1 gap-4 py-4 pr-4 pl-7 text-[#18181b]">
+                <div className="flex flex-1 flex-col gap-2">
+                  <p className="text-[14px] leading-none font-bold">
+                    {checkout.heading}
+                  </p>
+                  <CheckoutField label={checkout.emailLabel}>
+                    {checkout.email}
+                  </CheckoutField>
+                  <CheckoutField label={checkout.cardLabel}>
+                    <span className="flex justify-between">
+                      {checkout.card}
+                      <span className="text-black/40">{checkout.expiry}</span>
+                    </span>
+                  </CheckoutField>
+                  <span className="mt-1 rounded-md bg-[#2563eb] py-1.5 text-center text-[10px] font-semibold text-white">
+                    {checkout.pay}
+                  </span>
                 </div>
-                <div className="flex flex-1 flex-col gap-3">
-                  <span className="h-2.5 w-1/3 rounded-full bg-black/10" />
-                  <div className="grid flex-1 grid-cols-3 gap-3">
-                    <span className="rounded-lg bg-[#6b9bff]/25" />
-                    <span className="rounded-lg bg-[#6b9bff]/40" />
-                    <span className="rounded-lg bg-[#6b9bff]/55" />
-                  </div>
+                <div className="flex w-[140px] flex-col gap-1.5 self-start rounded-lg bg-white p-3 text-[9px] shadow-[0_2px_8px_rgb(15_23_42/0.08)]">
+                  <p className="text-[10px] font-semibold">
+                    {checkout.summary}
+                  </p>
+                  {checkout.items.map((item) => (
+                    <p
+                      key={item.name}
+                      className="flex justify-between text-black/55"
+                    >
+                      {item.name}
+                      <span>{item.price}</span>
+                    </p>
+                  ))}
+                  <p className="flex justify-between border-t border-black/10 pt-1.5 font-semibold">
+                    {checkout.totalLabel}
+                    <span>{checkout.total}</span>
+                  </p>
                 </div>
               </div>
             </div>
@@ -215,8 +291,9 @@ function PlaybackMockup() {
               <ControlBar />
             </div>
             <div className="absolute right-4 bottom-4">
-              <Presenter size={76} ring={3} />
+              <Presenter size={76} ring={3} live />
             </div>
+            <Caption lines={copy.captions} />
           </div>
         </div>
 

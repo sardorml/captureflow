@@ -3,23 +3,26 @@
 import { Paragraph, Text } from "./typography";
 import { Col, Row } from "./layout";
 import { MarketingSection, SectionHeading } from "./_shared";
-import { FeatureLoop, type FeatureLoopName } from "./feature-loop";
+import type { ComponentType } from "react";
+import { EditorScene } from "./editor-scene";
+import { FeedbackScene } from "./feedback-scene";
+import { TeamsScene } from "./teams-scene";
 import { useMessages } from "./i18n-provider";
 
 type CategoryKind = "share" | "feedback" | "workspaces";
 
 // `id` is the anchor each row can be linked to: #share / #feedback / #workspaces.
 const CATEGORIES = [
-  { id: "share", kind: "share", loop: "editor" },
-  { id: "feedback", kind: "feedback", loop: "feedback" },
-  { id: "workspaces", kind: "workspaces", loop: "teams" },
+  { id: "share", kind: "share", Scene: EditorScene },
+  { id: "feedback", kind: "feedback", Scene: FeedbackScene },
+  { id: "workspaces", kind: "workspaces", Scene: TeamsScene },
 ] as const satisfies readonly {
   id: string;
   kind: CategoryKind;
-  loop: FeatureLoopName;
+  Scene: ComponentType;
 }[];
 
-const LOOP_MAX_WIDTH = 600;
+const SCENE_MAX_WIDTH = 600;
 
 export function CollaborationSection() {
   const m = useMessages();
@@ -41,7 +44,7 @@ export function CollaborationSection() {
 
 /*
  * One row per capability under the shared heading, each keeping its #anchor.
- * The loop side alternates so the three don't read as one column.
+ * The scene side alternates so the three don't read as one column.
  */
 function CategoryRow({
   cat,
@@ -73,8 +76,8 @@ function CategoryRow({
           </Paragraph>
         </Col>
         <Col xs={{ span: 24, order: 1 }} lg={{ span: 14, order: flip ? 2 : 1 }}>
-          <div style={{ maxWidth: LOOP_MAX_WIDTH, marginInline: "auto" }}>
-            <FeatureLoop name={cat.loop} />
+          <div style={{ maxWidth: SCENE_MAX_WIDTH, marginInline: "auto" }}>
+            <cat.Scene />
           </div>
         </Col>
       </Row>
