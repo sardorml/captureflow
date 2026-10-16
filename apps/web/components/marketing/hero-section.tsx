@@ -74,7 +74,7 @@ export function HeroSection() {
             <InstallButton
               href={CHROME_WEBSTORE_URL ?? lh("/download")}
               label={m.hero.installChrome}
-              icon={<ChromeLogoColor className="size-6" />}
+              icon={<ChromeLogoColor className="size-10" />}
               location="hero_chrome"
             />
             <span className="inline-flex items-center gap-1.5 text-sm text-fg-muted">
@@ -131,13 +131,13 @@ function InstallButton({
      from the same place instead of needing their own variants. */
   /* Explicit height: HeroUI's lg is 44px and drops to 40 at md, which reads
      undersized under a headline this large. */
-  const base = "h-14 gap-2.5 rounded-full px-9 text-[17px] font-medium";
+  const base = "h-14 gap-3 rounded-full pr-7 pl-2 text-[19px] font-medium";
   const className = buttonVariants({
     variant: primary ? "primary" : "tertiary",
     size: "lg",
     className: primary
       ? base
-      : `${base} [--button-bg:var(--cf-inverse)] [--button-fg:var(--cf-on-inverse)] [--button-bg-hover:#e5e5e5] [--button-bg-pressed:#d4d4d4]`,
+      : `${base} [--button-bg:#ffffff] [--button-fg:var(--cf-on-inverse)] [--button-bg-hover:#f2f2f2] [--button-bg-pressed:#e5e5e5]`,
   });
   const onClick = () => track("marketing_cta_clicked", { location });
 

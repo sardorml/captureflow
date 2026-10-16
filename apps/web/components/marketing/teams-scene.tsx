@@ -8,11 +8,11 @@ import { SceneFrame, type SceneState } from "./scene-frame";
 
 const LOOP_MS = 12000;
 
-// Type the invite, send it, Maya joins, then the first recording walks
+// Type the invite, send it, Leo joins, then the first recording walks
 // Public → Workspace → Private.
 const STEPS = [0, 1200, 2700, 3900, 6000, 8000];
 
-const NEW_MEMBER_PHOTO = "/webcam/cardigan.jpg";
+const NEW_MEMBER_PHOTO = "/presenter-engineering.webp";
 const INITIALS_COLORS: Record<string, string> = {
   AR: "#8b5cf6",
   CK: "#0d9488",

@@ -1,4 +1,4 @@
-export type WebcamName = "cardigan" | "headband";
+export type WebcamName = "cardigan" | "headband" | "striped";
 
 export function WebcamLoop({
   name,
