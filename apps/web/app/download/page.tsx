@@ -134,11 +134,11 @@ export default async function DownloadPage() {
 // White pill set through .button's own colour vars, so hover and pressed
 // follow from the same place.
 const CHROME_BUTTON_CLASS = [
-  "h-14 gap-2.5 rounded-full px-9 text-[17px]",
-  "[--button-bg:var(--cf-inverse)]",
+  "h-14 gap-3 rounded-full pr-7 pl-2 text-[19px]",
+  "[--button-bg:#ffffff]",
   "[--button-fg:var(--cf-on-inverse)]",
-  "[--button-bg-hover:#e5e5e5]",
-  "[--button-bg-pressed:#d4d4d4]",
+  "[--button-bg-hover:#f2f2f2]",
+  "[--button-bg-pressed:#e5e5e5]",
 ].join(" ");
 
 /*
@@ -159,7 +159,7 @@ function ChromeInstall() {
         className: CHROME_BUTTON_CLASS,
       })}
     >
-      <ChromeLogoColor className="size-6" />
+      <ChromeLogoColor className="size-10" />
       {MESSAGES.hero.installChrome}
     </a>
   );
