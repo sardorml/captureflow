@@ -40,7 +40,7 @@ never leaves D1: Resend only receives each email as it is sent.
    applied migrations. `mail.captureflow.dev` is a custom domain, so Cloudflare
    creates the DNS record.
 
-`MAIL_FROM` and `MAILER_BASE_URL` are plain vars in `wrangler.jsonc`.
+`MAIL_FROM`, `MAIL_REPLY_TO` and `MAILER_BASE_URL` are plain vars in `wrangler.jsonc`.
 
 ## Local development
 
