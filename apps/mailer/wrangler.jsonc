@@ -42,5 +42,7 @@
   "vars": {
     "MAILER_BASE_URL": "https://mail.captureflow.dev",
     "MAIL_FROM": "CaptureFlow <updates@captureflow.dev>",
+    // Nothing receives mail at the sending address, so replies go to support.
+    "MAIL_REPLY_TO": "support@captureflow.dev",
   },
 }

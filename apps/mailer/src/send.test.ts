@@ -34,6 +34,7 @@ async function setup(users: number) {
     MAIL_UNSUBSCRIBE_SECRET: "secret",
     MAILER_BASE_URL: "https://mail.example.com",
     MAIL_FROM: "CaptureFlow <updates@example.com>",
+    MAIL_REPLY_TO: "support@example.com",
   };
   return { db, id, env, queued };
 }
@@ -57,6 +58,7 @@ describe("handleMessage", () => {
     );
     expect(sent).toHaveLength(100);
     expect(sent[0].to).toEqual(["u000@x.com"]);
+    expect(sent[0].reply_to).toBe("support@example.com");
     expect(sent[0].text).toContain(
       "https://mail.example.com/unsubscribe?e=u000%40x.com",
     );

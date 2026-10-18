@@ -19,6 +19,7 @@ export type MailerEnv = {
   MAIL_UNSUBSCRIBE_SECRET?: string;
   MAILER_BASE_URL: string;
   MAIL_FROM: string;
+  MAIL_REPLY_TO?: string;
   MAILER_DEV_INBOX?: string;
 };
 
@@ -65,6 +66,7 @@ export async function handleMessage(
     const ok = await sendOne({
       apiKey,
       from: env.MAIL_FROM,
+      replyTo: env.MAIL_REPLY_TO,
       email: await compose(configured, campaign, message.to, "[Test] "),
       fetcher: options.fetcher,
     });
@@ -86,6 +88,7 @@ export async function handleMessage(
     const results = await sendBatch({
       apiKey,
       from: env.MAIL_FROM,
+      replyTo: env.MAIL_REPLY_TO,
       emails,
       idempotencyKey: `${campaign.id}:${message.after}`,
       fetcher: options.fetcher,

@@ -15,10 +15,11 @@ const SINGLE_SEND_SPACING_MS = 600;
 // Retrying the whole batch later is the right response to these.
 export class TransientSendError extends Error {}
 
-function payload(from: string, email: OutgoingEmail) {
+function payload(from: string, email: OutgoingEmail, replyTo?: string) {
   return {
     from,
     to: [email.to],
+    ...(replyTo ? { reply_to: replyTo } : {}),
     subject: email.subject,
     html: email.html,
     text: email.text,
@@ -42,6 +43,7 @@ function isTransient(status: number): boolean {
 export async function sendBatch(args: {
   apiKey: string;
   from: string;
+  replyTo?: string;
   emails: OutgoingEmail[];
   idempotencyKey: string;
   fetcher?: typeof fetch;
@@ -58,7 +60,9 @@ export async function sendBatch(args: {
   const res = await fetcher(RESEND_BATCH, {
     method: "POST",
     headers: { ...headers, "idempotency-key": args.idempotencyKey },
-    body: JSON.stringify(args.emails.map((e) => payload(args.from, e))),
+    body: JSON.stringify(
+      args.emails.map((e) => payload(args.from, e, args.replyTo)),
+    ),
   }).catch(() => null);
   if (!res || isTransient(res.status)) {
     throw new TransientSendError(
@@ -73,7 +77,7 @@ export async function sendBatch(args: {
     const single = await fetcher(RESEND_EMAILS, {
       method: "POST",
       headers,
-      body: JSON.stringify(payload(args.from, email)),
+      body: JSON.stringify(payload(args.from, email, args.replyTo)),
     }).catch(() => null);
     if (!single || isTransient(single.status)) {
       throw new TransientSendError(
@@ -88,6 +92,7 @@ export async function sendBatch(args: {
 export async function sendOne(args: {
   apiKey: string;
   from: string;
+  replyTo?: string;
   email: OutgoingEmail;
   fetcher?: typeof fetch;
 }): Promise<boolean> {
@@ -97,7 +102,7 @@ export async function sendOne(args: {
       authorization: `Bearer ${args.apiKey}`,
       "content-type": "application/json",
     },
-    body: JSON.stringify(payload(args.from, args.email)),
+    body: JSON.stringify(payload(args.from, args.email, args.replyTo)),
   }).catch(() => null);
   return res?.ok ?? false;
 }
