@@ -1,6 +1,11 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { type TransactionalEmail, sendTransactional } from "@captureflow/mail";
+import {
+  type TransactionalEmail,
+  escapeHtml,
+  renderNotice,
+  sendTransactional,
+} from "@captureflow/mail";
 import { getAppWebEnv } from "./cf-env";
 
 // All sends are best-effort: failures log and return false so the caller can
@@ -23,15 +28,6 @@ async function sendEmail(args: TransactionalEmail): Promise<boolean> {
     });
   }
   return sent !== null;
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 export async function sendWorkspaceInviteEmail(args: {
@@ -59,32 +55,15 @@ export async function sendWorkspaceInviteEmail(args: {
 
   const inviterSafe = escapeHtml(inviter);
   const inviterEmailSafe = escapeHtml(args.inviterEmail);
-  const workspaceSafe = escapeHtml(args.workspaceName);
-  const acceptSafe = escapeHtml(args.acceptUrl);
 
-  const html = `<!doctype html>
-<html>
-  <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background:#0a0a0a; color:#e5e5e5; padding:32px;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:480px; margin:0 auto; background:#171717; border-radius:12px; padding:32px;">
-      <tr>
-        <td>
-          <h1 style="margin:0 0 12px 0; font-size:22px; color:#fafafa;">You're invited to ${workspaceSafe}</h1>
-          <p style="margin:0 0 20px 0; color:#a3a3a3; line-height:1.55;">
-            <strong style="color:#e5e5e5;">${inviterSafe}</strong>
-            (<a href="mailto:${inviterEmailSafe}" style="color:#a3a3a3;">${inviterEmailSafe}</a>)
-            invited you to join their workspace on CaptureFlow. Workspaces let teammates share recordings and screenshots privately.
-          </p>
-          <p style="margin:0 0 24px 0;">
-            <a href="${acceptSafe}" style="display:inline-block; padding:12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600;">Accept invitation</a>
-          </p>
-          <p style="margin:0; color:#737373; font-size:13px; line-height:1.5;">
-            This link expires in 7 days. If you weren't expecting this invitation, you can ignore this email.
-          </p>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
+  const html = renderNotice({
+    label: "Workspace invite",
+    heading: `Join ${args.workspaceName}`,
+    bodyHtml: `<p style="margin:0 0 20px;">${inviterSafe} (<a href="mailto:${inviterEmailSafe}" style="color:#2563eb;">${inviterEmailSafe}</a>) invited you to their workspace on CaptureFlow, where teammates share recordings and screenshots privately.</p>`,
+    button: { label: "Accept invitation", url: args.acceptUrl },
+    footnoteHtml:
+      "The link expires in 7 days. If you weren't expecting this invitation, you can ignore this email.",
+  });
 
   // The invite names a person, so a reply should reach them rather than the
   // unattended sending address.
@@ -135,37 +114,20 @@ export async function sendAccessRequestEmail(args: {
   const requesterEmailSafe = escapeHtml(args.requesterEmail);
   const titleSafe = escapeHtml(args.artifactTitle);
   const artifactUrlSafe = escapeHtml(args.artifactUrl);
-  const manageSafe = escapeHtml(args.manageUrl);
   const messageBlock = args.message?.trim()
-    ? `<p style="margin:0 0 20px 0; padding:12px 14px; background:#0a0a0a; border-left:2px solid #2563eb; color:#d4d4d4; line-height:1.55; font-style:italic;">${escapeHtml(
+    ? `<p style="margin:0 0 20px; padding:12px 14px; background:#f5f3ef; border-left:2px solid #2563eb; border-radius:4px; white-space:pre-wrap;">${escapeHtml(
         args.message.trim(),
       )}</p>`
     : "";
 
-  const html = `<!doctype html>
-<html>
-  <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background:#0a0a0a; color:#e5e5e5; padding:32px;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:480px; margin:0 auto; background:#171717; border-radius:12px; padding:32px;">
-      <tr>
-        <td>
-          <h1 style="margin:0 0 12px 0; font-size:22px; color:#fafafa;">${requesterSafe} wants access</h1>
-          <p style="margin:0 0 16px 0; color:#a3a3a3; line-height:1.55;">
-            <strong style="color:#e5e5e5;">${requesterSafe}</strong>
-            (<a href="mailto:${requesterEmailSafe}" style="color:#a3a3a3;">${requesterEmailSafe}</a>)
-            requested access to your ${noun} <a href="${artifactUrlSafe}" style="color:#e5e5e5;">${titleSafe}</a>.
-          </p>
-          ${messageBlock}
-          <p style="margin:0 0 24px 0;">
-            <a href="${manageSafe}" style="display:inline-block; padding:12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600;">Invite them to your workspace</a>
-          </p>
-          <p style="margin:0; color:#737373; font-size:13px; line-height:1.5;">
-            Adding them to your workspace will let them view this and any other workspace-visible recordings or screenshots you share there.
-          </p>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
+  const html = renderNotice({
+    label: "Access request",
+    heading: `${requester} wants access`,
+    bodyHtml: `<p style="margin:0 0 20px;">${requesterSafe} (<a href="mailto:${requesterEmailSafe}" style="color:#2563eb;">${requesterEmailSafe}</a>) requested access to your ${noun} <a href="${artifactUrlSafe}" style="color:#2563eb;">${titleSafe}</a>.</p>${messageBlock}`,
+    button: { label: "Invite them to your workspace", url: args.manageUrl },
+    footnoteHtml:
+      "Adding them to your workspace lets them view this and anything else you share there.",
+  });
 
   // Same as the invite: the owner's reply belongs with the person asking.
   return sendEmail({
@@ -286,24 +248,12 @@ export async function sendSuggestionEmail(args: {
     "Reply to this email to answer them directly.",
   ].join("\n");
 
-  const html = `<!doctype html>
-<html>
-  <body style="margin:0; padding:32px 16px; background:#f5f3ef; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color:#1f1b17;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:12px;">
-      <tr>
-        <td style="padding:28px 32px 32px; font-size:15px; line-height:1.6;">
-          <p style="margin:0 0 4px; font-size:13px; color:#8a847c;">Feature suggestion · ${escapeHtml(s.category)}</p>
-          <h1 style="margin:0 0 16px; font-size:20px;">${escapeHtml(s.title)}</h1>
-          <p style="margin:0 0 20px; white-space:pre-wrap;">${escapeHtml(s.description)}</p>
-          <p style="margin:0; font-size:14px; color:#5c5650;">
-            From ${escapeHtml(s.name)} (<a href="mailto:${escapeHtml(s.email)}" style="color:#2563eb;">${escapeHtml(s.email)}</a>). Reply to this email to answer them.
-            <br /><a href="${escapeHtml(args.adminUrl)}" style="color:#2563eb;">See all suggestions</a>
-          </p>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
+  const html = renderNotice({
+    label: `Feature suggestion · ${s.category}`,
+    heading: s.title,
+    bodyHtml: `<p style="margin:0 0 20px; white-space:pre-wrap;">${escapeHtml(s.description)}</p>`,
+    footnoteHtml: `From ${escapeHtml(s.name)} (<a href="mailto:${escapeHtml(s.email)}" style="color:#2563eb;">${escapeHtml(s.email)}</a>). Reply to this email to answer them.<br /><a href="${escapeHtml(args.adminUrl)}" style="color:#2563eb;">See all suggestions</a>`,
+  });
 
   return sendEmail({
     to: args.to,
@@ -339,32 +289,21 @@ export async function sendCompanyRequestEmail(args: {
     "Reply to this email to answer them directly.",
   ].join("\n");
 
-  const html = `<!doctype html>
-<html>
-  <body style="margin:0; padding:32px 16px; background:#f5f3ef; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color:#1f1b17;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:12px;">
-      <tr>
-        <td style="padding:28px 32px 32px; font-size:15px; line-height:1.6;">
-          <p style="margin:0 0 4px; font-size:13px; color:#8a847c;">${escapeHtml(r.label)}</p>
-          <h1 style="margin:0 0 16px; font-size:20px;">${escapeHtml(r.company)}</h1>
-          <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 20px; font-size:14px;">
-            ${rows
-              .map(
-                ([k, v]) =>
-                  `<tr><td style="padding:2px 16px 2px 0; color:#8a847c;">${escapeHtml(k)}</td><td style="padding:2px 0;">${escapeHtml(v)}</td></tr>`,
-              )
-              .join("")}
-          </table>
-          ${r.notes ? `<p style="margin:0 0 20px; white-space:pre-wrap;">${escapeHtml(r.notes)}</p>` : ""}
-          <p style="margin:0; font-size:14px; color:#5c5650;">
-            From ${escapeHtml(r.name)} (<a href="mailto:${escapeHtml(r.email)}" style="color:#2563eb;">${escapeHtml(r.email)}</a>). Reply to this email to answer them.
-            <br /><a href="${escapeHtml(args.adminUrl)}" style="color:#2563eb;">See all requests</a>
-          </p>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
+  const table = `<table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 20px; font-size:14px;">${rows
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:2px 16px 2px 0; color:#8a847c;">${escapeHtml(k)}</td><td style="padding:2px 0;">${escapeHtml(v)}</td></tr>`,
+    )
+    .join("")}</table>`;
+  const notes = r.notes
+    ? `<p style="margin:0 0 20px; white-space:pre-wrap;">${escapeHtml(r.notes)}</p>`
+    : "";
+  const html = renderNotice({
+    label: r.label,
+    heading: r.company,
+    bodyHtml: table + notes,
+    footnoteHtml: `From ${escapeHtml(r.name)} (<a href="mailto:${escapeHtml(r.email)}" style="color:#2563eb;">${escapeHtml(r.email)}</a>). Reply to this email to answer them.<br /><a href="${escapeHtml(args.adminUrl)}" style="color:#2563eb;">See all requests</a>`,
+  });
 
   return sendEmail({
     to: args.to,

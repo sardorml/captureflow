@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import type { AdminRole } from "@captureflow/admin";
-import { sendTransactional } from "@captureflow/mail";
+import { renderNotice, sendTransactional } from "@captureflow/mail";
 import { getAdminEnv } from "./env";
 
 /*
@@ -39,7 +39,13 @@ export async function sendInviteEmail(
       to,
       subject: "You have been invited to the CaptureFlow admin",
       text: `You have been invited to the CaptureFlow instance admin as ${role}.\n\nSet your password: ${url}\n\nThe link expires in 7 days.`,
-      html: `<p>You have been invited to the CaptureFlow instance admin as <strong>${role}</strong>.</p><p><a href="${url}">Set your password</a></p><p>The link expires in 7 days.</p>`,
+      html: renderNotice({
+        label: "Admin invite",
+        heading: "Join the CaptureFlow admin",
+        bodyHtml: `<p style="margin:0 0 20px;">You have been invited to the CaptureFlow instance admin as <strong>${role}</strong>.</p>`,
+        button: { label: "Set your password", url },
+        footnoteHtml: "The link expires in 7 days.",
+      }),
     },
   );
   if (!sent) console.error("admin invite email not delivered");

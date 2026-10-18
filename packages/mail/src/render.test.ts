@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderCampaign } from "./render";
+import { renderCampaign, renderNotice } from "./render";
 
 const args = {
   subject: "What's new",
@@ -32,5 +32,26 @@ describe("renderCampaign", () => {
     expect(renderCampaign(args).text).toMatch(
       /^Hello\n\nRead the changelog \(https:\/\/example.com\/c\)\./,
     );
+  });
+});
+
+describe("renderNotice", () => {
+  it("escapes the fields it is given as text", () => {
+    const html = renderNotice({
+      label: "<b>Label</b>",
+      heading: "Tom & Jerry",
+      bodyHtml: "<p>body</p>",
+      button: { label: "Go", url: "https://x.dev/?a=1&b=2" },
+    });
+    expect(html).toContain("&lt;b&gt;Label&lt;/b&gt;");
+    expect(html).toContain("Tom &amp; Jerry");
+    expect(html).toContain("<p>body</p>");
+    expect(html).toContain('href="https://x.dev/?a=1&amp;b=2"');
+  });
+
+  it("leaves out the parts that were not given", () => {
+    const html = renderNotice({ heading: "Hi", bodyHtml: "" });
+    expect(html).not.toContain("#8a847c");
+    expect(html).not.toContain("#2563eb");
   });
 });
