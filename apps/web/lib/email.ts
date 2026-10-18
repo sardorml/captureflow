@@ -6,13 +6,12 @@ import { getAppWebEnv } from "./cf-env";
 // All sends are best-effort: failures log and return false so the caller can
 // still report a recoverable error.
 
-// Dev skips the binding so local sends go through Resend and reach a real inbox.
 async function sendEmail(args: TransactionalEmail): Promise<boolean> {
   const env = await getAppWebEnv();
   const sent = await sendTransactional(
     {
       from: env?.RESEND_FROM_ADDRESS ?? "CaptureFlow <hello@captureflow.dev>",
-      binding: process.env.NODE_ENV === "development" ? undefined : env?.EMAIL,
+      binding: env?.EMAIL,
       resendApiKey: env?.RESEND_API_KEY,
     },
     args,

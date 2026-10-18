@@ -22,8 +22,7 @@ export async function inviteUrl(token: string): Promise<string> {
 }
 
 // Best-effort: a false return means the caller must show the operator the link
-// to pass on by hand, not that the invite failed. Dev skips the binding so local
-// invites go through Resend and reach a real inbox.
+// to pass on by hand, not that the invite failed.
 export async function sendInviteEmail(
   to: string,
   url: string,
@@ -33,7 +32,7 @@ export async function sendInviteEmail(
   const sent = await sendTransactional(
     {
       from: env?.RESEND_FROM_ADDRESS ?? "CaptureFlow <hello@captureflow.dev>",
-      binding: process.env.NODE_ENV === "development" ? undefined : env?.EMAIL,
+      binding: env?.EMAIL,
       resendApiKey: env?.RESEND_API_KEY,
     },
     {

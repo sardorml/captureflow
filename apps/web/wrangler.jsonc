@@ -41,10 +41,14 @@
       "bucket_name": "captureflow-recordings",
     },
   ],
-  // Cloudflare Email Service for invites and access requests; lib/email.ts
-  // falls back to Resend when it fails or is missing.
+  // Cloudflare Email Service for every automated email; lib/email.ts falls
+  // back to Resend when it fails. `remote` makes `next dev` send for real too.
   "send_email": [
-    { "name": "EMAIL", "allowed_sender_addresses": ["hello@captureflow.dev"] },
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["hello@captureflow.dev"],
+      "remote": true,
+    },
   ],
   "vars": {
     "NEXT_PUBLIC_APP_WEB_SITE_URL": "https://captureflow.dev",
