@@ -44,9 +44,9 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/og-image.png",
-        width: 3200,
-        height: 1680,
-        alt: "CaptureFlow — open-source screen recording with instant shareable links",
+        width: 1200,
+        height: 630,
+        alt: "CaptureFlow: record your screen, share a link, get feedback",
       },
     ],
   },
