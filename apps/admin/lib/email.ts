@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import type { AdminRole } from "@captureflow/admin";
-import { sendTransactional } from "@captureflow/mail";
+import { renderNotice, sendTransactional } from "@captureflow/mail";
 import { getAdminEnv } from "./env";
 
 /*
@@ -22,8 +22,7 @@ export async function inviteUrl(token: string): Promise<string> {
 }
 
 // Best-effort: a false return means the caller must show the operator the link
-// to pass on by hand, not that the invite failed. Dev skips the binding so local
-// invites go through Resend and reach a real inbox.
+// to pass on by hand, not that the invite failed.
 export async function sendInviteEmail(
   to: string,
   url: string,
@@ -33,14 +32,20 @@ export async function sendInviteEmail(
   const sent = await sendTransactional(
     {
       from: env?.RESEND_FROM_ADDRESS ?? "CaptureFlow <hello@captureflow.dev>",
-      binding: process.env.NODE_ENV === "development" ? undefined : env?.EMAIL,
+      binding: env?.EMAIL,
       resendApiKey: env?.RESEND_API_KEY,
     },
     {
       to,
       subject: "You have been invited to the CaptureFlow admin",
       text: `You have been invited to the CaptureFlow instance admin as ${role}.\n\nSet your password: ${url}\n\nThe link expires in 7 days.`,
-      html: `<p>You have been invited to the CaptureFlow instance admin as <strong>${role}</strong>.</p><p><a href="${url}">Set your password</a></p><p>The link expires in 7 days.</p>`,
+      html: renderNotice({
+        label: "Admin invite",
+        heading: "Join the CaptureFlow admin",
+        bodyHtml: `<p style="margin:0 0 20px;">You have been invited to the CaptureFlow instance admin as <strong>${role}</strong>.</p>`,
+        button: { label: "Set your password", url },
+        footnoteHtml: "The link expires in 7 days.",
+      }),
     },
   );
   if (!sent) console.error("admin invite email not delivered");

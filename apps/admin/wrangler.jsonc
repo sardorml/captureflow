@@ -38,8 +38,13 @@
     "producers": [{ "binding": "MAIL_QUEUE", "queue": "captureflow-mail" }],
   },
   // Cloudflare Email Service for admin invites, with Resend as the fallback.
+  // `remote` makes `next dev` send for real too.
   "send_email": [
-    { "name": "EMAIL", "allowed_sender_addresses": ["hello@captureflow.dev"] },
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["hello@captureflow.dev"],
+      "remote": true,
+    },
   ],
   /*
    * ADMIN_SESSION_SECRET signs the admin cookie; ADMIN_SETUP_TOKEN gates the

@@ -79,3 +79,47 @@ export function renderCampaign(args: {
   const text = `${markdownToText(args.body)}\n\n--\nYou're receiving this because you have a CaptureFlow account.\nUnsubscribe: ${args.unsubscribeUrl}\n`;
   return { html, text };
 }
+
+export type NoticeButton = { label: string; url: string };
+
+/*
+ * The one layout every automated email uses: a white card on the warm page,
+ * an optional small label above the heading, then the body, an optional blue
+ * button and a muted footnote. `bodyHtml` and `footnoteHtml` are trusted
+ * markup the caller has already escaped; every other field is escaped here.
+ */
+export function renderNotice(args: {
+  label?: string;
+  heading: string;
+  bodyHtml: string;
+  button?: NoticeButton;
+  footnoteHtml?: string;
+}): string {
+  const label = args.label
+    ? `<p style="margin:0 0 4px; font-size:13px; color:#8a847c;">${escapeHtml(args.label)}</p>`
+    : "";
+  const button = args.button
+    ? `<p style="margin:0 0 20px;"><a href="${escapeHtml(args.button.url)}" style="display:inline-block; padding:12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600;">${escapeHtml(args.button.label)}</a></p>`
+    : "";
+  const footnote = args.footnoteHtml
+    ? `<p style="margin:0; font-size:14px; color:#5c5650;">${args.footnoteHtml}</p>`
+    : "";
+  return `<!doctype html>
+<html>
+  <body style="margin:0; padding:32px 16px; background:#f5f3ef; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color:#1f1b17;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:12px;">
+      <tr>
+        <td style="padding:28px 32px 32px; font-size:15px; line-height:1.6;">
+          ${label}
+          <h1 style="margin:0 0 16px; font-size:20px;">${escapeHtml(args.heading)}</h1>
+          ${args.bodyHtml}
+          ${button}
+          ${footnote}
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+export { escapeHtml };
