@@ -22,7 +22,7 @@ import {
 import { LinkTabs } from "../_filters";
 import { RowMenu } from "../_row-menu";
 import { StatusChip } from "./_status";
-import { deleteCampaignAction } from "./actions";
+import { deleteCampaignAction, duplicateCampaignAction } from "./actions";
 
 const FILTERS = [
   { id: "all", label: "All" },
@@ -162,21 +162,29 @@ export default async function EmailsPage({
                   {formatRelative(c.finishedAt ?? c.startedAt ?? c.createdAt)}
                 </Table.Cell>
                 <Table.Cell>
-                  {c.status === "draft" && (
-                    <RowMenu
-                      label={`Actions for ${c.subject}`}
-                      actions={[
-                        {
-                          id: "delete",
-                          label: "Delete draft",
-                          danger: true,
-                          confirm: `Delete the draft "${c.subject}"?`,
-                          action: deleteCampaignAction,
-                          fields: { id: c.id },
-                        },
-                      ]}
-                    />
-                  )}
+                  <RowMenu
+                    label={`Actions for ${c.subject}`}
+                    actions={[
+                      {
+                        id: "duplicate",
+                        label: "Duplicate",
+                        action: duplicateCampaignAction,
+                        fields: { id: c.id },
+                      },
+                      ...(c.status === "draft"
+                        ? [
+                            {
+                              id: "delete",
+                              label: "Delete draft",
+                              danger: true,
+                              confirm: `Delete the draft "${c.subject}"?`,
+                              action: deleteCampaignAction,
+                              fields: { id: c.id },
+                            },
+                          ]
+                        : []),
+                    ]}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))}
