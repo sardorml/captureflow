@@ -23,6 +23,7 @@ import { ActionButton, ActionForm, EMPTY, TextRow, keepTyped } from "../_form";
 import { Notice } from "../_ui";
 import {
   deleteCampaignAction,
+  duplicateCampaignAction,
   sendCampaignAction,
   sendTestAction,
   type TestState,
@@ -352,6 +353,18 @@ export function SendCampaignForm({
         autoComplete="off"
       />
     </ActionForm>
+  );
+}
+
+export function DuplicateButton({ id }: { id: string }) {
+  return (
+    <ActionButton
+      action={duplicateCampaignAction}
+      label="Duplicate"
+      busyLabel="Duplicating…"
+    >
+      <input type="hidden" name="id" value={id} />
+    </ActionButton>
   );
 }
 

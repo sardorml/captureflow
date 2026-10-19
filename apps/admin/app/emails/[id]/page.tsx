@@ -20,6 +20,7 @@ import {
 import {
   Composer,
   DeleteDraftButton,
+  DuplicateButton,
   SendCampaignForm,
   SendTestForm,
 } from "../_forms";
@@ -48,7 +49,12 @@ export default async function CampaignPage({
       title={campaign.subject}
       description={`Drafted by ${campaign.createdBy} on ${formatDate(campaign.createdAt)}`}
       back={{ href: "/emails", label: "Emails" }}
-      actions={<StatusChip status={campaign.status} />}
+      actions={
+        <div className="flex items-center gap-3">
+          <DuplicateButton id={campaign.id} />
+          <StatusChip status={campaign.status} />
+        </div>
+      }
     />
   );
 

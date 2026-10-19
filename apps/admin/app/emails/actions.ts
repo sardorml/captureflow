@@ -13,6 +13,7 @@ import {
   hydrateCampaignId,
   hydrateCampaignInput,
   revertStart,
+  selectedEmails,
   startCampaign,
   updateDraft,
 } from "@captureflow/mail";
@@ -70,6 +71,39 @@ export async function updateCampaignAction(
   revalidatePath(`/emails/${id}`);
   revalidatePath("/emails");
   return { error: null };
+}
+
+// Copies any email, sent or not, into a new draft with the same recipients.
+export async function duplicateCampaignAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const operator = await requirePermission("mail.send");
+  const env = await getAdminEnv();
+  if (!env?.DB) return { error: NO_DB };
+  const source = hydrateCampaignId(formData.get("id"));
+  const campaign = source ? await getCampaign(env.DB, source) : null;
+  if (!campaign) return { error: "Unknown email." };
+  const id = await createCampaign(
+    env.DB,
+    {
+      subject: campaign.subject,
+      body: campaign.body,
+      audience: campaign.audience,
+      emails: await selectedEmails(env.DB, campaign.id),
+      createdBy: operator.email,
+    },
+    Date.now(),
+  );
+  await writeAudit(env.DB, {
+    actor: operator.email,
+    action: "mail.draft",
+    targetType: "campaign",
+    targetId: id,
+    detail: `Copy of ${campaign.id}`,
+  });
+  revalidatePath("/emails");
+  redirect(`/emails/${id}`);
 }
 
 export async function deleteCampaignAction(
