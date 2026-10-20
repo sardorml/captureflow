@@ -134,7 +134,7 @@ export function ManagedCard() {
                   storage_gb: selected.storageGb,
                 })
           }
-          className="mt-auto flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-white text-sm font-medium text-[#161615] transition-colors hover:bg-white/90 motion-reduce:transition-none"
+          className="mt-auto flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-white text-sm font-medium text-[#111110] transition-colors hover:bg-white/90 motion-reduce:transition-none"
         >
           {isFree ? copy.ctaFree : copy.ctaPaid}
         </Link>

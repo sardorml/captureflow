@@ -79,8 +79,8 @@ html[data-theme="light"] {
 html[data-theme="dark"],
 html:not([data-theme]) {
   /* A soft warm charcoal under solid warm surfaces and the same blue accent. */
-  --cf-canvas: #161615;
-  --cf-canvas-2: #161615;
+  --cf-canvas: #111110;
+  --cf-canvas-2: #111110;
   --cf-fg: #fcfcfc;
   --cf-fg-strong: #ffffff;
   --foreground: #fcfcfc;
@@ -96,7 +96,7 @@ html:not([data-theme]) {
   --cf-accent-bg-hover: #1d91f8;
   --cf-accent-ring: rgb(4 133 247 / 0.35);
 
-  --background: #161615;
+  --background: #111110;
   --accent: #0485f7;
   --accent-foreground: #fcfcfc;
   --success: #00ca67;
@@ -123,7 +123,7 @@ html:not([data-theme]):has([data-marketing]) {
   --cf-accent-bg: #302e2c;
   --cf-accent-bg-hover: #3a3836;
   --accent: #fcfcfc;
-  --accent-foreground: #161615;
+  --accent-foreground: #111110;
 }
 
 /* Marketing in light groups content on a grey panel over the page and keeps
