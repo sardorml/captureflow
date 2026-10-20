@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { BrandMark } from "../brand-mark";
+import Image from "next/image";
+import { motion, useReducedMotion } from "motion/react";
 import NextLink from "next/link";
 import { Button, Drawer, Header, buttonVariants } from "@heroui/react";
 import {
@@ -20,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { NavBetaChip } from "./corner-banner";
 import { GitHubIcon } from "./platform-logos";
+import { ThemeToggle } from "@captureflow/ui";
 
 const GITHUB_URL = "https://github.com/sardorml/captureflow";
 
@@ -33,7 +35,7 @@ const GITHUB_URL = "https://github.com/sardorml/captureflow";
 
 // Bare muted text in the bar; full-width ghost buttons once stacked in the drawer.
 const TEXT_LINK =
-  "text-base whitespace-nowrap text-fg-muted transition-colors hover:text-fg motion-reduce:transition-none";
+  "text-base whitespace-nowrap text-fg transition-colors hover:text-fg/70 motion-reduce:transition-none";
 
 // The one solid control in the bar. `inverse` is the token that sits opposite
 // the canvas, so it reads white-on-dark and black-on-light without a branch.
@@ -144,7 +146,7 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
         onClick={() => setOpen((v) => !v)}
         className={cn(
           TEXT_LINK,
-          "inline-flex cursor-pointer items-center gap-1 outline-none",
+          "-mx-3 -my-4 inline-flex cursor-pointer items-center gap-1 px-3 py-4 outline-none",
           open && "text-fg",
         )}
       >
@@ -168,7 +170,7 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
       >
         <ul
           className={cn(
-            "bg-panel-2/90 flex w-[22rem] flex-col gap-1 rounded-2xl p-2 shadow-[0_12px_32px_rgb(0_0_0/0.3)] backdrop-blur-xl will-change-[opacity,translate] motion-reduce:[transition:none]",
+            "bg-(--island) shadow-overlay flex w-[22rem] flex-col gap-1 rounded-2xl p-2 will-change-[opacity,translate] motion-reduce:[transition:none]",
             open ? PANEL_OPEN : PANEL_CLOSED,
           )}
         >
@@ -216,11 +218,52 @@ export function Nav({ stars = null }: { stars?: string | null }) {
    * mount to survive a restored scroll position.
    */
   const [detached, setDetached] = useState(false);
+  const reduceMotion = useReducedMotion();
+  const islandSpring = reduceMotion
+    ? { duration: 0 }
+    : ({ type: "spring", visualDuration: 0.5, bounce: 0.28 } as const);
   useEffect(() => {
-    const onScroll = () => setDetached(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    /* Pulling the page down past the top (the elastic overscroll) floats the
+       island too, as does a forced push either way at the top. Safari reports
+       the overscroll as a negative scrollY; Chrome does not, so any wheel or
+       touch drag while at the top counts, and the island settles back shortly
+       after the gesture ends. */
+    let pulled = false;
+    let settle: ReturnType<typeof setTimeout> | undefined;
+    let touchY = 0;
+    const sync = () =>
+      setDetached(pulled || window.scrollY > 8 || window.scrollY < 0);
+    const pull = () => {
+      pulled = true;
+      sync();
+      clearTimeout(settle);
+      settle = setTimeout(() => {
+        pulled = false;
+        sync();
+      }, 500);
+    };
+    const onWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0 && window.scrollY <= 0) pull();
+    };
+    const onTouchStart = (e: TouchEvent) => {
+      touchY = e.touches[0]?.clientY ?? 0;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const y = e.touches[0]?.clientY ?? 0;
+      if (y !== touchY && window.scrollY <= 0) pull();
+    };
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      clearTimeout(settle);
+      window.removeEventListener("scroll", sync);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+    };
   }, []);
 
   const starLabel = stars ? `Star on GitHub (${stars})` : "Star on GitHub";
@@ -267,19 +310,22 @@ export function Nav({ stars = null }: { stars?: string | null }) {
   return (
     <Header
       className={[
-        "sticky top-0 z-[100] flex w-full max-w-full items-center transition-[height,padding] duration-300 ease-out motion-reduce:transition-none",
-        detached ? "h-20 pt-4" : "h-16",
+        "sticky top-0 z-[100] flex h-[66px] w-full max-w-full items-start pt-0",
       ].join(" ")}
     >
-      {/* Sits on the page's 1024px rail at rest, then contracts to 1024px as it
-          detaches so the floating pill reads as its own object. */}
-      <div
-        className={[
-          "relative isolate mx-auto flex w-full items-center justify-between px-4 py-2 transition-[max-width,border-color,border-radius] duration-300 ease-out motion-reduce:transition-none",
-          detached
-            ? "max-w-5xl rounded-full border border-line"
-            : "max-w-6xl border border-transparent",
-        ].join(" ")}
+      {/* At rest an island hanging from the top edge, square on top and rounded
+          below. Scrolled, it drops free and rounds its top to match, on a
+          spring so the morph settles the way a notch island does. Only
+          transform and radius move, so the page below never reflows. */}
+      <motion.div
+        initial={false}
+        animate={{
+          y: detached ? 14 : 0,
+          borderTopLeftRadius: detached ? 24 : 0,
+          borderTopRightRadius: detached ? 24 : 0,
+        }}
+        transition={islandSpring}
+        className="relative isolate mx-auto flex w-full max-w-[1200px] items-center justify-between rounded-b-[24px] px-6 py-3 [--island:#ffffff] dark:[--island:#201f1d]"
       >
         {/* The glass is its own layer rather than this element's background: an
             element with a backdrop blur can only blur what is inside it, so
@@ -287,19 +333,60 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             blur. */}
         <span
           aria-hidden
-          className={cn(
-            "bg-canvas-2/80 pointer-events-none absolute inset-0 -z-10 rounded-full shadow-lg backdrop-blur-xl transition-opacity duration-300 ease-out motion-reduce:transition-none",
-            detached ? "opacity-100" : "opacity-0",
-          )}
+          className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] bg-(--island) backdrop-blur-xl"
         />
-        {/* Logo: 32×32 mark + 18px bold wordmark. */}
+        <motion.span
+          aria-hidden
+          initial={false}
+          animate={{ opacity: detached ? 1 : 0 }}
+          transition={islandSpring}
+          className="pointer-events-none absolute inset-0 -z-20 rounded-[inherit] shadow-[0_4px_14px_rgb(0_0_0/0.03)] dark:shadow-[0_4px_14px_rgb(0_0_0/0.12)] ring-1 ring-black/[0.07] dark:ring-white/[0.07]"
+        />
+        {/* Concave shoulders where the attached island meets the top edge, so
+            it flows out of the bezel; they fade as the bar floats free. */}
+        {(["left", "right"] as const).map((side) => (
+          <motion.svg
+            key={side}
+            aria-hidden
+            viewBox="0 0 11 14"
+            initial={false}
+            animate={{
+              opacity: detached ? 0 : 1,
+              scale: detached ? 0 : 1,
+            }}
+            transition={islandSpring}
+            style={{ originX: side === "left" ? 1 : 0, originY: 0 }}
+            className={cn(
+              "pointer-events-none absolute top-0 -z-10 h-[14px] w-[11px]",
+              side === "left" ? "-left-[11px]" : "-right-[11px]",
+            )}
+          >
+            <path
+              d={
+                side === "left"
+                  ? "M0 0H11V14C11 7 6 1 0 0Z"
+                  : "M11 0H0V14C0 7 5 1 11 0Z"
+              }
+              style={{ fill: "var(--island)" }}
+            />
+          </motion.svg>
+        ))}
+        {/* Logo: 32×32 app icon + 18px bold wordmark. */}
         <div className="flex items-center gap-2.5">
           <NextLink
             href={lh("/")}
             aria-label="CaptureFlow"
             className="group inline-flex items-center gap-2 text-fg"
           >
-            <BrandMark size={32} />
+            <Image
+              src="/logo.png"
+              alt=""
+              width={32}
+              height={32}
+              unoptimized
+              priority
+              draggable={false}
+            />
             <span className="text-lg font-bold tracking-[-0.01em] text-fg">
               CaptureFlow
             </span>
@@ -345,12 +432,20 @@ export function Nav({ stars = null }: { stars?: string | null }) {
           <NextLink href={lh("/login")} className={TEXT_LINK}>
             {m.nav.login}
           </NextLink>
+          <ThemeToggle
+            initialTheme="dark"
+            className="h-9 w-9 rounded-full text-fg"
+          />
           <NextLink href={lh("/download")} className={PILL_CTA}>
             {m.nav.download}
           </NextLink>
         </div>
 
-        <div className="flex items-center md:hidden">
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle
+            initialTheme="dark"
+            className="h-9 w-9 rounded-full text-fg"
+          />
           <Button
             variant="ghost"
             size="sm"
@@ -361,7 +456,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             <MenuIcon size={20} />
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       <Drawer isOpen={menuOpen} onOpenChange={setMenuOpen}>
         {/* HeroUI's overlays sit at z-50 and this bar sits above them at 100,

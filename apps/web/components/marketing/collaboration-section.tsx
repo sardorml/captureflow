@@ -78,15 +78,23 @@ function CategoryRow({
     <div id={cat.id} style={{ scrollMarginTop: 96 }}>
       <Row gutter={[64, 40]} align="middle">
         <Col xs={{ span: 24, order: 2 }} lg={{ span: 10, order: flip ? 1 : 2 }}>
-          <Text strong style={{ fontSize: 25, lineHeight: 1.3 }}>
+          <Text
+            style={{
+              display: "block",
+              fontSize: 32,
+              fontWeight: 700,
+              lineHeight: 1.2,
+              letterSpacing: "-0.02em",
+            }}
+          >
             {feature.title}
           </Text>
           <Paragraph
-            type="secondary"
             style={{
               maxWidth: 496,
-              margin: "12px 0 0",
+              margin: "16px 0 0",
               fontSize: 18,
+              fontWeight: 350,
               lineHeight: 1.6,
             }}
           >
@@ -118,7 +126,7 @@ function FeatureLink({
   location: string;
 }) {
   const className =
-    "group mt-7 inline-flex items-center gap-2 text-[18px] font-semibold text-[#6ea8ff] transition-colors hover:text-[#9cc3ff]";
+    "group mt-7 inline-flex items-center gap-2 text-[18px] font-semibold text-[#2563eb] transition-colors hover:text-[#1d4ed8] dark:text-[#6ea8ff] dark:hover:text-[#9cc3ff]";
   const onClick = () => track("marketing_cta_clicked", { location });
   const content = (
     <>

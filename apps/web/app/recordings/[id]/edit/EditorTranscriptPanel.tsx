@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
 export function EditorTranscriptPanel() {
   const [open, setOpen] = useState(true);
   return (
-    <aside className="hidden w-[320px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-line bg-canvas-2 p-4 lg:flex">
-      <section className="rounded-lg border border-line bg-canvas p-3">
+    <aside className="hidden w-[320px] shrink-0 flex-col gap-4 overflow-y-auto bg-canvas-2 p-4 lg:flex">
+      <section className="rounded-3xl bg-panel p-4">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}

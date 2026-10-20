@@ -12,10 +12,8 @@ export const TOKENS = {
   colorTextQuaternary: "var(--cf-fg-subtle)",
   colorWhite: "#ffffff",
 
-  /* Marketing is dark-only and its surfaces are independent of the dashboard
-     chrome tokens, which are keyed to sidebar-vs-content contrast. */
-  colorBgContainer: "#15120f",
-  colorBgLayout: "#110e0c",
+  colorBgContainer: "var(--cf-canvas)",
+  colorBgLayout: "var(--cf-canvas-2)",
   colorFillTertiary: "var(--cf-tint)",
 
   colorBorder: "var(--cf-line-strong)",

@@ -93,7 +93,7 @@ export function PageShell({
                 {title}
               </Title>
               {subtitle ? (
-                <Paragraph type="secondary" style={{ fontSize: 18, margin: 0 }}>
+                <Paragraph style={{ fontSize: 18, margin: 0 }}>
                   {subtitle}
                 </Paragraph>
               ) : null}

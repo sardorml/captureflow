@@ -88,13 +88,13 @@ export function EditorTopBar({
   );
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line bg-canvas-2 px-3">
+    <header className="flex h-14 shrink-0 items-center justify-between gap-3 bg-canvas-2 px-3">
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <button
           type="button"
           onClick={onBack}
           aria-label="Back to recording"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-tint hover:text-fg"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-tint hover:text-fg"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -122,7 +122,7 @@ export function EditorTopBar({
               maxLength={200}
               placeholder="Untitled recording"
               disabled={pending}
-              className="w-[28rem] max-w-[50vw] rounded-md border border-line bg-canvas px-2 py-1 text-sm text-fg focus:border-line-strong focus:outline-none disabled:opacity-50"
+              className="w-[28rem] max-w-[50vw] rounded-lg bg-field px-2 py-1 text-sm text-fg focus:ring-2 focus:ring-accent-ring focus:outline-none disabled:opacity-50"
             />
           </form>
         ) : (
@@ -133,7 +133,7 @@ export function EditorTopBar({
               setDraft(title);
               setEditing(true);
             }}
-            className="group flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 text-left hover:bg-tint"
+            className="group flex min-w-0 items-center gap-1.5 rounded-full px-3 py-1 text-left hover:bg-tint"
             title="Rename"
           >
             <span className="truncate text-sm font-medium text-fg">
@@ -174,7 +174,7 @@ export function EditorTopBar({
           disabled={!canUndo}
           aria-label="Undo"
           title="Undo"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
         >
           <Undo2 className="h-4 w-4" />
         </button>
@@ -184,7 +184,7 @@ export function EditorTopBar({
           disabled={!canRedo}
           aria-label="Redo"
           title="Redo"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
         >
           <Redo2 className="h-4 w-4" />
         </button>

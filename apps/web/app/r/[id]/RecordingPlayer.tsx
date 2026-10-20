@@ -190,7 +190,7 @@ export function RecordingPlayer({
               <button
                 type="button"
                 onClick={onCommentClick}
-                className="flex h-[60px] items-center gap-2.5 rounded-2xl bg-canvas-2 px-5 text-base font-medium text-fg shadow-md ring-1 ring-line-strong transition-transform duration-100 ease-out hover:-translate-y-0.5"
+                className="flex h-[60px] items-center gap-2.5 rounded-full bg-panel px-6 text-base font-medium text-fg shadow-md backdrop-blur-xl transition-transform duration-100 ease-out hover:-translate-y-0.5"
                 aria-label="Leave a comment"
               >
                 <MessageSquare className="h-6 w-6" aria-hidden="true" />
@@ -400,7 +400,7 @@ function ReactionBar({
   counts: Record<string, number>;
 }) {
   return (
-    <div className="flex items-center gap-1 rounded-2xl bg-canvas-2 px-2 py-1.5 shadow-md ring-1 ring-line-strong">
+    <div className="flex items-center gap-1 rounded-full bg-panel px-2 py-1.5 shadow-md backdrop-blur-xl">
       {DEFAULT_REACTIONS.map((r) => {
         const isPulsing = pulseEmoji === r.emoji;
         const count = counts[r.emoji] ?? 0;
@@ -410,7 +410,7 @@ function ReactionBar({
               type="button"
               onClick={() => onReact(r.emoji)}
               aria-label={r.label}
-              className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-xl text-[28px] leading-none transition-transform duration-100 ease-out hover:-translate-y-2 active:translate-y-0 ${
+              className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-[28px] leading-none transition-transform duration-100 ease-out hover:-translate-y-2 active:translate-y-0 ${
                 isPulsing ? "animate-recording-icon-pop" : ""
               }`}
             >

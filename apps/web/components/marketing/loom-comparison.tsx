@@ -115,7 +115,6 @@ export function LoomComparison() {
         </Title>
         <Paragraph
           align="center"
-          type="secondary"
           style={{
             ...SECTION_SUBTITLE_STYLE,
             fontSize: 20,

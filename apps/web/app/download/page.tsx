@@ -131,14 +131,14 @@ export default async function DownloadPage() {
   );
 }
 
-// White pill set through .button's own colour vars, so hover and pressed
+// Accent pill set through .button's own colour vars, so hover and pressed
 // follow from the same place.
 const CHROME_BUTTON_CLASS = [
   "h-14 gap-3 rounded-full pr-7 pl-2 text-[19px]",
-  "[--button-bg:#ffffff]",
-  "[--button-fg:var(--cf-on-inverse)]",
-  "[--button-bg-hover:#f2f2f2]",
-  "[--button-bg-pressed:#e5e5e5]",
+  "[--button-bg:var(--accent)]",
+  "[--button-fg:var(--accent-foreground)]",
+  "[--button-bg-hover:var(--accent-hover)]",
+  "[--button-bg-pressed:var(--accent-hover)]",
 ].join(" ");
 
 /*

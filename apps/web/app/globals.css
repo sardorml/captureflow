@@ -35,51 +35,151 @@ body {
     sans-serif;
 }
 
-html[data-theme="light"],
-html[data-theme="light"] body {
-  background-color: #ffffff;
-}
-
-/* Marketing is dark-only regardless of the app cookie (see MarketingShell), so
-   the document keeps the dark paint even when <html> says light. Must follow
-   the rule above — equal specificity, so source order decides. */
-html:has([data-marketing]),
-html:has([data-marketing]) body {
-  background-color: #15120f;
-}
-
 /*
- * Marketing palette: warm near-black, warm off-white text, our blue as the one
- * accent. Scoped to the marketing subtree so the dashboard keeps its neutral
- * greys. The selector pairs both attributes so it outranks the plain
- * [data-theme="dark"] ramp in tokens.css and HeroUI's theme; the unprefixed
- * names re-theme HeroUI's own variables here on purpose, which is how its
- * Typography `muted`/foreground pick up the warm tones.
+ * One soft canvas, solid surfaces, a blue accent and pill-shaped controls.
+ * Declared on <html> so menus, popovers and modals,
+ * which portal out of the page, pick it up too. The unprefixed names are
+ * HeroUI's own theming hooks, set on purpose. The marketing pages share the
+ * palette; the frosting, hidden scrollbars and card radius below skip them.
  */
-[data-marketing][data-theme="dark"] {
-  --cf-canvas: #15120f;
-  --cf-canvas-2: #15120f;
-  --cf-panel: #1f1b17;
-  --cf-panel-2: #27221d;
+html[data-theme="light"] {
+  /* A neutral light grey canvas under solid white surfaces and a blue accent. */
+  --cf-canvas: #f5f5f5;
+  --cf-canvas-2: #f5f5f5;
+  --cf-fg: #18181b;
+  --cf-fg-strong: #09090b;
+  --foreground: #18181b;
+  --cf-panel: #ffffff;
+  --cf-panel-2: #ebebec;
+  --cf-field: #ffffff;
+  --cf-tint: rgb(0 0 0 / 0.04);
+  --cf-tint-strong: #ebebec;
+  --cf-line: #e4e4e7;
 
-  --cf-fg: #eeede7;
-  --cf-fg-strong: #f7f6f1;
-  --cf-fg-muted: #a8a399;
-  --cf-fg-subtle: #77726a;
+  --cf-accent-strong: #0485f7;
+  --cf-accent-bg: #0485f7;
+  --cf-accent-bg-hover: #1d91f8;
+  --cf-accent-ring: rgb(4 133 247 / 0.3);
 
-  --cf-line: rgb(238 237 231 / 0.06);
-  --cf-line-strong: rgb(238 237 231 / 0.11);
-  --cf-tint: rgb(238 237 231 / 0.05);
-  --cf-tint-strong: rgb(238 237 231 / 0.1);
+  --background: #f5f5f5;
+  --accent: #0485f7;
+  --accent-foreground: #fdfdfd;
+  --success: #00ca67;
+  --warning: #f4a61e;
+  --danger: #ff3836;
+  --default: #ebebec;
+  --surface: #ffffff;
+  --surface-secondary: #f1f1f2;
+  --surface-tertiary: #e4e4e7;
+  --overlay: #ffffff;
+  --separator: #e4e4e7;
+  --cf-glass-blur: 20px;
+}
 
-  --cf-inverse: #eeede7;
-  --cf-on-inverse: #15120f;
+html[data-theme="dark"],
+html:not([data-theme]) {
+  /* A soft warm charcoal under solid warm surfaces and the same blue accent. */
+  --cf-canvas: #161615;
+  --cf-canvas-2: #161615;
+  --cf-fg: #fcfcfc;
+  --cf-fg-strong: #ffffff;
+  --foreground: #fcfcfc;
+  --cf-panel: #201f1d;
+  --cf-panel-2: #2a2927;
+  --cf-field: #2a2927;
+  --cf-tint: rgb(255 255 255 / 0.05);
+  --cf-tint-strong: #302e2c;
+  --cf-line: #292826;
 
-  --background: #15120f;
-  --foreground: #eeede7;
-  --muted: #a8a399;
-  --surface: #1f1b17;
-  --separator: rgb(238 237 231 / 0.08);
+  --cf-accent-strong: #0485f7;
+  --cf-accent-bg: #0485f7;
+  --cf-accent-bg-hover: #1d91f8;
+  --cf-accent-ring: rgb(4 133 247 / 0.35);
+
+  --background: #161615;
+  --accent: #0485f7;
+  --accent-foreground: #fcfcfc;
+  --success: #00ca67;
+  --warning: #f4a61e;
+  --danger: #ff3836;
+  --default: #302e2c;
+  --surface: #201f1d;
+  --surface-secondary: #2a2927;
+  --surface-tertiary: #363432;
+  --overlay: #201f1d;
+  --separator: #292826;
+  --cf-glass-blur: 36px;
+}
+
+html,
+html body {
+  background-color: var(--cf-canvas);
+}
+
+/* Marketing in dark keeps its graphite buttons rather than the blue accent. */
+html[data-theme="dark"]:has([data-marketing]),
+html:not([data-theme]):has([data-marketing]) {
+  --cf-accent-strong: #fcfcfc;
+  --cf-accent-bg: #302e2c;
+  --cf-accent-bg-hover: #3a3836;
+  --accent: #fcfcfc;
+  --accent-foreground: #161615;
+}
+
+/* Marketing in light groups content on a grey panel over the page and keeps
+   its graphite buttons. */
+html[data-theme="light"]:has([data-marketing]) {
+  --cf-panel: #ebebec;
+  --cf-panel-2: #ebebec;
+  --surface: #ebebec;
+  --cf-accent-strong: #18181b;
+  --cf-accent-bg: #18181b;
+  --cf-accent-bg-hover: #3f3f46;
+  --accent: #18181b;
+  --accent-foreground: #ffffff;
+}
+
+/* Text is never faded: secondary and tertiary text read in the body colour.
+   Re-declared on every theme scope so a nested data-theme can't restore the
+   greys; it follows tokens.css, so equal specificity lets it win. HeroUI's
+   --muted stays grey outside marketing, since field placeholders paint from it. */
+:root,
+[data-theme] {
+  --cf-fg-muted: var(--cf-fg);
+  --cf-fg-subtle: var(--cf-fg);
+}
+[data-marketing] {
+  --muted: var(--cf-fg);
+}
+
+html:not(:has([data-marketing])) :is(.card, .bg-panel) {
+  backdrop-filter: blur(var(--cf-glass-blur));
+}
+
+html:not(:has([data-marketing]))
+  :is(
+    .popover,
+    .dropdown__popover,
+    .select__popover,
+    .modal__dialog,
+    .drawer__dialog,
+    .alert-dialog__dialog,
+    .tooltip
+  ) {
+  backdrop-filter: blur(var(--cf-glass-blur)) saturate(1.6);
+}
+
+html:not(:has([data-marketing])),
+html:not(:has([data-marketing])) * {
+  scrollbar-width: none;
+}
+html:not(:has([data-marketing]))::-webkit-scrollbar,
+html:not(:has([data-marketing])) *::-webkit-scrollbar {
+  display: none;
+}
+
+html:not(:has([data-marketing])) .card {
+  border-radius: 20px;
 }
 
 /* HeroUI's .dropdown__trigger is `display: inline-block`, which lands after

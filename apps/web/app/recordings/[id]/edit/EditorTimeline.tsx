@@ -113,7 +113,7 @@ export function EditorTimeline({ playerRef, durationMs }: Props) {
   const splitLabel = `Split at ${formatTime(fraction * duration)}`;
 
   return (
-    <div className="shrink-0 border-t border-line bg-canvas-2">
+    <div className="shrink-0 bg-canvas-2">
       <div className="flex items-center justify-between gap-2 px-3 py-2">
         <div className="flex items-center gap-1">
           <ToolButton
@@ -178,7 +178,7 @@ export function EditorTimeline({ playerRef, durationMs }: Props) {
             aria-valuemax={Math.round(duration)}
             aria-valuenow={Math.round(fraction * duration)}
             aria-valuetext={formatTime(fraction * duration)}
-            className="relative h-16 cursor-pointer touch-none overflow-hidden rounded-md border border-line bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
+            className="relative h-16 cursor-pointer touch-none overflow-hidden rounded-2xl bg-panel focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
           >
             <div
               aria-hidden
@@ -196,7 +196,7 @@ export function EditorTimeline({ playerRef, durationMs }: Props) {
             {/* Full-clip selection region (trim handles are placeholders). */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-y-1 left-0 right-0 rounded-md border-2 border-accent/70"
+              className="pointer-events-none absolute inset-y-1 left-0 right-0 rounded-xl border-2 border-accent/70"
             >
               <span className="absolute -left-px top-1/2 h-6 w-1.5 -translate-y-1/2 rounded-full bg-accent" />
               <span className="absolute -right-px top-1/2 h-6 w-1.5 -translate-y-1/2 rounded-full bg-accent" />
@@ -232,7 +232,7 @@ function ToolButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
     >
       {icon}
       <span className="hidden md:inline">{label}</span>

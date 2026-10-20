@@ -55,7 +55,6 @@ export function HeroSection() {
         <div onClick={selectAndCopyWithLink}>
           <Paragraph
             align="center"
-            type="secondary"
             style={{
               fontSize: 22,
               lineHeight: 1.5,
@@ -125,10 +124,10 @@ function InstallButton({
   badge?: string;
   primary?: boolean;
 }) {
-  /* The alternative install is a white pill, not a grey one: HeroUI's greys
-     recede into the dark page next to the blue primary. Setting .button's own
-     colour vars rather than bg and text utilities, so hover and pressed follow
-     from the same place instead of needing their own variants. */
+  /* The alternative install takes the accent pair, white on dark and graphite
+     on light, since HeroUI's greys recede into the page. Setting .button's own colour vars
+     rather than bg and text utilities, so hover and pressed follow from the
+     same place instead of needing their own variants. */
   /* Explicit height: HeroUI's lg is 44px and drops to 40 at md, which reads
      undersized under a headline this large. */
   const base = "h-14 gap-3 rounded-full pr-7 pl-2 text-[19px] font-medium";
@@ -137,7 +136,7 @@ function InstallButton({
     size: "lg",
     className: primary
       ? base
-      : `${base} [--button-bg:#ffffff] [--button-fg:var(--cf-on-inverse)] [--button-bg-hover:#f2f2f2] [--button-bg-pressed:#e5e5e5]`,
+      : `${base} [--button-bg:var(--accent)] [--button-fg:var(--accent-foreground)] [--button-bg-hover:var(--accent-hover)] [--button-bg-pressed:var(--accent-hover)]`,
   });
   const onClick = () => track("marketing_cta_clicked", { location });
 

@@ -399,7 +399,7 @@ function UseCaseCard({
   children: ReactNode;
 }) {
   return (
-    <article className="flex min-w-0 flex-col overflow-hidden rounded-[28px] bg-panel-2 transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_24px_60px_rgb(0_0_0/0.4)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+    <article className="flex min-w-0 flex-col overflow-hidden rounded-[28px] bg-panel-2 transition-transform duration-300 ease-out hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
       <ScaledScene>{children}</ScaledScene>
       <div className="flex flex-col gap-2.5 px-7 pt-7 pb-8">
         <Typography.Heading
@@ -415,7 +415,6 @@ function UseCaseCard({
           {title}
         </Typography.Heading>
         <Typography.Paragraph
-          color="muted"
           style={{ fontSize: 17, lineHeight: 1.5, margin: 0 }}
         >
           {body}

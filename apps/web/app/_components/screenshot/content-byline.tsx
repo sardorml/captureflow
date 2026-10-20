@@ -14,7 +14,7 @@ export function ContentByline({
   const relative = formatRelative(createdAt);
   const absolute = formatAbsolute(createdAt);
   return (
-    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-sm text-fg-muted">
+    <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-sm text-fg-muted">
       {ownerName ? (
         <>
           <span className="text-fg">{ownerName}</span>
@@ -27,7 +27,7 @@ export function ContentByline({
         </Tooltip.Trigger>
         <Tooltip.Content>{absolute}</Tooltip.Content>
       </Tooltip>
-    </p>
+    </div>
   );
 }
 

@@ -70,10 +70,10 @@ function NavItem({ link, active }: { link: NavLink; active: boolean }) {
         href={link.href}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "flex h-8 items-center gap-2 rounded-md pl-4 pr-2 text-sm transition-colors",
+          "flex h-10 items-center gap-3 rounded-full px-4 text-sm transition-colors",
           active
-            ? "bg-accent-soft text-fg font-medium"
-            : "text-fg-muted hover:bg-tint hover:text-fg",
+            ? "bg-accent-soft font-semibold text-accent"
+            : "text-fg hover:bg-tint",
         )}
       >
         {link.icon}

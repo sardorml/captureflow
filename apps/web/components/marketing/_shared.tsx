@@ -104,7 +104,6 @@ export function SectionHeading({
       {subtitle ? (
         <Typography.Paragraph
           align={heroUiAlign}
-          color="muted"
           style={{
             ...SECTION_SUBTITLE_STYLE,
             maxWidth: 620,

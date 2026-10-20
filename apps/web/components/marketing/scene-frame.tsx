@@ -9,6 +9,8 @@ import {
 } from "react";
 
 const SCENE = { width: 600, height: 424 };
+// Square frame; the scene sits vertically centred on the card's background.
+const FRAME = { width: 600, height: 600 };
 const RADIUS = 28;
 
 export type SceneState = { step: number; playing: boolean };
@@ -47,7 +49,7 @@ export function SceneFrame({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const resize = () => setScale(el.clientWidth / SCENE.width);
+    const resize = () => setScale(el.clientWidth / FRAME.width);
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(el);
@@ -82,15 +84,20 @@ export function SceneFrame({
       aria-hidden
       className="relative w-full overflow-hidden"
       style={{
-        aspectRatio: `${SCENE.width} / ${SCENE.height}`,
+        aspectRatio: `${FRAME.width} / ${FRAME.height}`,
         borderRadius: RADIUS * scale,
       }}
     >
       <div
         className="absolute top-0 left-0 origin-top-left"
-        style={{ ...SCENE, background, transform: `scale(${scale})` }}
+        style={{ ...FRAME, background, transform: `scale(${scale})` }}
       >
-        {children({ step, playing })}
+        <div
+          className="absolute left-0"
+          style={{ ...SCENE, top: (FRAME.height - SCENE.height) / 2 }}
+        >
+          {children({ step, playing })}
+        </div>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { Check, Download, Link2 } from "lucide-react";
 import { Avatar, Button, Tooltip, buttonVariants } from "@heroui/react";
-import { BrandMark } from "@/components/brand-mark";
+import { AppIcon } from "@/components/brand-mark";
 
 export type ViewerNavViewer = {
   name: string | null;
@@ -57,7 +57,7 @@ export function ViewerNav({
   };
 
   return (
-    <header className="flex h-16 w-full items-center justify-between border-b border-line bg-canvas-2 px-4 sm:px-6">
+    <header className="flex h-16 w-full items-center justify-between bg-canvas-2 px-4 sm:px-6">
       {/* The header is justify-between over exactly two children, so anything
           left of the brand has to group with it rather than become a third. */}
       <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export function ViewerNav({
           rel="noopener noreferrer"
           className="group flex items-center gap-2"
         >
-          <BrandMark size={28} className="text-fg" />
+          <AppIcon size={28} />
           <span className="flex items-baseline gap-1.5 text-xl font-semibold tracking-tight">
             <span className="text-fg-strong">{productName}</span>
             {label ? (
