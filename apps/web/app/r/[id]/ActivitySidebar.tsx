@@ -308,20 +308,20 @@ export function ActivitySidebar({
   };
 
   return (
-    <aside className="flex w-full flex-col bg-canvas-2 lg:h-full lg:border-l lg:border-line">
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-canvas-2/90 px-5 py-4 backdrop-blur-md lg:static lg:bg-canvas-2 lg:backdrop-blur-none">
+    <aside className="flex w-full flex-col bg-canvas-2 lg:mr-4 lg:w-auto lg:mb-4 lg:h-[calc(100%-1rem)] lg:overflow-hidden lg:rounded-3xl lg:bg-panel lg:border lg:border-black/[0.07] lg:dark:border-white/[0.07]">
+      <header className="sticky top-0 z-10 flex items-center justify-between bg-canvas-2/90 px-5 py-4 backdrop-blur-md lg:static lg:bg-transparent lg:px-6 lg:pt-5 lg:backdrop-blur-none">
         <h2 className="text-sm font-semibold tracking-tight text-fg">
           Activity
         </h2>
-        <span className="text-xs text-fg-muted">
-          {entries.length} {entries.length === 1 ? "entry" : "entries"}
+        <span className="rounded-full bg-tint-strong px-2.5 py-0.5 text-xs font-medium text-fg tabular-nums">
+          {entries.length}
         </span>
       </header>
 
       <div
         ref={listRef}
         onScroll={onListScroll}
-        className="flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto"
+        className="flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto lg:px-6"
       >
         {entries.length === 0 ? (
           <EmptyState
@@ -330,7 +330,7 @@ export function ActivitySidebar({
             commentInputRef={commentInputRef}
           />
         ) : (
-          <ol className="space-y-4">
+          <ol className="space-y-5">
             {entries.map((entry) => (
               <li key={entry.id}>
                 {entry.kind === "reaction" ? (
@@ -353,7 +353,7 @@ export function ActivitySidebar({
         )}
       </div>
 
-      <div className="sticky bottom-0 z-10 border-t border-line bg-canvas-2 p-4 backdrop-blur-md supports-[backdrop-filter]:bg-canvas-2/85">
+      <div className="sticky bottom-0 z-10 bg-canvas-2 p-4 backdrop-blur-md supports-[backdrop-filter]:bg-canvas-2/85 lg:bg-transparent lg:p-3 lg:backdrop-blur-none">
         {!viewerSignedIn ? (
           <Button variant="primary" size="lg" fullWidth onPress={onSignIn}>
             <Sparkles size={16} />
@@ -362,7 +362,7 @@ export function ActivitySidebar({
         ) : (
           <form
             onSubmit={submitComment}
-            className="focus-within:ring-focus relative rounded-2xl bg-field p-3 focus-within:ring-2"
+            className="focus-within:ring-focus relative rounded-2xl bg-panel-2 p-3 focus-within:ring-2"
           >
             <div className="flex items-start gap-2.5">
               <Avatar
@@ -384,7 +384,7 @@ export function ActivitySidebar({
                 onKeyDown={onKeyDown}
                 placeholder="Leave a comment…"
                 rows={1}
-                className="block min-h-[1.5rem] w-full resize-none bg-transparent text-sm text-fg placeholder:text-fg-subtle focus:outline-none"
+                className="block min-h-[1.5rem] w-full resize-none bg-transparent text-sm text-fg placeholder:text-muted focus:outline-none"
               />
             </div>
             <div className="mt-2.5 flex items-center justify-between">
@@ -567,30 +567,32 @@ function ReactionRow({
 }) {
   const name = reaction.userName?.trim() || "Anonymous";
   return (
-    <div className="flex items-start gap-2.5">
-      <Avatar
-        className="h-7 w-7"
-        style={{ backgroundColor: toneFromSeed(reaction.userId ?? name) }}
-      >
-        {reaction.userImage && <Avatar.Image src={reaction.userImage} alt="" />}
-        <Avatar.Fallback className="text-[11px]">
-          {initials(name)}
-        </Avatar.Fallback>
-      </Avatar>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm text-fg">
-          <span className="font-medium text-fg">{name}</span>{" "}
-          <span className="text-fg-muted">reacted</span>{" "}
-          <span className="align-middle text-base">{reaction.emoji}</span>{" "}
-          <span className="text-fg-muted">at</span>{" "}
-          <TimestampChip
-            ms={reaction.timestampMs}
-            onClick={() => onSeek(reaction.timestampMs)}
-          />
+    <div className="flex items-center gap-3">
+      <span className="relative shrink-0">
+        <Avatar
+          className="h-8 w-8"
+          style={{ backgroundColor: toneFromSeed(reaction.userId ?? name) }}
+        >
+          {reaction.userImage && (
+            <Avatar.Image src={reaction.userImage} alt="" />
+          )}
+          <Avatar.Fallback className="text-[11px]">
+            {initials(name)}
+          </Avatar.Fallback>
+        </Avatar>
+        <span className="absolute -right-1.5 -bottom-1 flex h-5 w-5 items-center justify-center rounded-full bg-panel text-[12px] leading-none ring-2 ring-panel">
+          {reaction.emoji}
+        </span>
+      </span>
+      <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+        <p className="min-w-0 truncate text-sm text-fg">
+          <span className="font-semibold">{name}</span> reacted{" "}
+          <span className="text-xs">{formatRelative(reaction.createdAt)}</span>
         </p>
-        <p className="mt-1 text-[11px] text-fg-muted">
-          {formatRelative(reaction.createdAt)}
-        </p>
+        <TimestampChip
+          ms={reaction.timestampMs}
+          onClick={() => onSeek(reaction.timestampMs)}
+        />
       </div>
     </div>
   );
@@ -610,9 +612,9 @@ function CommentRow({
   deleting: boolean;
 }) {
   return (
-    <div className="group flex items-start gap-2.5">
+    <div className="group flex items-start gap-3">
       <Avatar
-        className="h-7 w-7"
+        className="h-8 w-8 shrink-0"
         style={{
           backgroundColor: toneFromSeed(comment.userId ?? comment.userName),
         }}
@@ -623,23 +625,25 @@ function CommentRow({
         </Avatar.Fallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <span className="text-sm font-medium text-fg">
+        <div className="flex items-baseline gap-2">
+          <span className="truncate text-sm font-semibold text-fg">
             {comment.userName}
           </span>
+          <span className="shrink-0 text-xs text-fg">
+            {formatRelative(comment.createdAt)}
+          </span>
+        </div>
+        <div className="mt-1.5 rounded-2xl rounded-tl-md bg-tint-strong px-3.5 py-2.5">
           {comment.timestampMs != null && (
             <TimestampChip
               ms={comment.timestampMs}
               onClick={() => onSeek(comment.timestampMs!)}
             />
           )}
-          <span className="text-[11px] text-fg-muted">
-            {formatRelative(comment.createdAt)}
-          </span>
+          <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-fg first:mt-0">
+            {comment.body}
+          </p>
         </div>
-        <p className="mt-0.5 whitespace-pre-wrap break-words text-sm text-fg">
-          {comment.body}
-        </p>
       </div>
       {canDelete && (
         <button
@@ -663,7 +667,7 @@ function TimestampChip({ ms, onClick }: { ms: number; onClick: () => void }) {
       type="button"
       onClick={onClick}
       title="Jump to this moment"
-      className="rounded bg-tint px-1.5 py-0.5 font-mono text-[11px] text-fg ring-1 ring-line-strong transition-colors hover:bg-blue-500/15 hover:text-blue-700 hover:ring-blue-500/30 dark:hover:text-blue-100"
+      className="inline-flex shrink-0 items-center rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent tabular-nums transition-colors hover:bg-accent-soft-hover"
     >
       {formatTimestamp(ms)}
     </button>

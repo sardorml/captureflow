@@ -30,3 +30,24 @@ export function BrandMark({
     </svg>
   );
 }
+
+// The full app icon: the glyph on its blue rounded square, as in the dock.
+export function AppIcon({
+  size = 32,
+  className,
+}: {
+  size?: number;
+  className?: string;
+}) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logo.png"
+      alt=""
+      width={size}
+      height={size}
+      draggable={false}
+      className={className}
+    />
+  );
+}

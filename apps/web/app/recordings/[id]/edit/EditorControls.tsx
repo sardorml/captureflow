@@ -143,10 +143,10 @@ export function CameraPicker({
             onClick={() => onCorner(opt.value)}
             aria-pressed={corner === opt.value}
             className={cn(
-              "rounded-md border px-3 py-2 text-xs transition-colors",
+              "rounded-xl border px-3 py-2 text-xs transition-colors",
               corner === opt.value
                 ? "border-accent bg-accent-soft text-accent"
-                : "border-line bg-canvas-2 text-fg-muted hover:border-line-strong",
+                : "border-transparent bg-tint text-fg-muted hover:bg-tint-strong",
             )}
           >
             {opt.label}
@@ -164,10 +164,10 @@ export function CameraPicker({
             onClick={() => onSize(opt.value)}
             aria-pressed={size === opt.value}
             className={cn(
-              "rounded-md border px-3 py-2 text-xs transition-colors",
+              "rounded-xl border px-3 py-2 text-xs transition-colors",
               size === opt.value
                 ? "border-accent bg-accent-soft text-accent"
-                : "border-line bg-canvas-2 text-fg-muted hover:border-line-strong",
+                : "border-transparent bg-tint text-fg-muted hover:bg-tint-strong",
             )}
           >
             {opt.label}
@@ -238,7 +238,7 @@ function AudioToggle({
       role="switch"
       aria-checked={!muted}
       onClick={() => onChange(!muted)}
-      className="flex w-full items-center justify-between rounded-md border border-line bg-canvas-2 px-3 py-1.5 text-sm text-fg hover:border-line-strong"
+      className="flex w-full items-center justify-between rounded-full bg-field px-4 py-1.5 text-sm text-fg hover:bg-tint-strong"
     >
       <span>{label}</span>
       <span

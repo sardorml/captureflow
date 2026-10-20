@@ -221,10 +221,10 @@ function PlaybackMockup() {
     <Scaled width={PLAYER.width} height={PLAYER.height}>
       <div ref={clockRef} className="contents">
         <div className="absolute top-0 left-0" style={{ width: VIDEO.width }}>
-          <p className="truncate text-[18px] font-semibold text-white">
+          <p className="truncate text-[18px] font-semibold text-fg">
             {copy.title}
           </p>
-          <p className="mt-1 flex items-center gap-1.5 text-[13px] text-white/55">
+          <p className="mt-1 flex items-center gap-1.5 text-[13px] text-fg-muted">
             <span className="flex size-4 items-center justify-center rounded-full bg-[#3b82f6] text-[9px] font-semibold text-white">
               {copy.author[0]}
             </span>
@@ -232,7 +232,7 @@ function PlaybackMockup() {
           </p>
         </div>
         <div
-          className="absolute left-0 overflow-hidden rounded-2xl border border-white/10 shadow-[0_24px_60px_rgb(0_0_0/0.45)]"
+          className="absolute left-0 overflow-hidden rounded-2xl border border-white/10 shadow-[0_24px_60px_rgb(0_0_0/0.135)] dark:shadow-[0_24px_60px_rgb(0_0_0/0.45)]"
           style={{
             top: TITLE_HEIGHT,
             width: VIDEO.width,
@@ -240,7 +240,7 @@ function PlaybackMockup() {
           }}
         >
           <div className="relative size-full overflow-hidden bg-[linear-gradient(135deg,#fdba74,#f9a8d4)]">
-            <div className="absolute inset-x-8 top-5 bottom-0 flex flex-col overflow-hidden rounded-t-xl bg-[#f6f7fb] shadow-[0_20px_50px_rgb(0_0_0/0.35)]">
+            <div className="absolute inset-x-8 top-5 bottom-0 flex flex-col overflow-hidden rounded-t-xl bg-[#f6f7fb] shadow-[0_20px_50px_rgb(0_0_0/0.105)] dark:shadow-[0_20px_50px_rgb(0_0_0/0.35)]">
               <div className="flex h-6 items-center gap-1.5 bg-[#e9ebf2] px-3">
                 <span className="size-2 rounded-full bg-[#ff5f57]" />
                 <span className="size-2 rounded-full bg-[#febc2e]" />
@@ -249,7 +249,7 @@ function PlaybackMockup() {
                   {checkout.address}
                 </span>
               </div>
-              <div className="flex flex-1 gap-4 py-4 pr-4 pl-7 text-[#18181b]">
+              <div className="flex flex-1 gap-4 py-4 pr-4 pl-7 text-[#201f1d]">
                 <div className="flex flex-1 flex-col gap-2">
                   <p className="text-[14px] leading-none font-bold">
                     {checkout.heading}
@@ -331,7 +331,7 @@ function PlaybackMockup() {
               style={{ animationDuration: `${RISE_PERIOD}s` }}
             />
           </div>
-          <span className="font-mono text-[11px] text-white/60 tabular-nums">
+          <span className="font-mono text-[11px] text-fg-muted tabular-nums">
             {copy.duration}
           </span>
         </div>
@@ -351,7 +351,7 @@ function PlaybackMockup() {
             }
           >
             {riser.kind === "emoji" ? (
-              <span className="relative flex size-10 items-center justify-center rounded-full border border-white/10 bg-[#27221d] text-[20px] shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
+              <span className="relative flex size-10 items-center justify-center rounded-full border border-white/10 bg-[#2a2927] text-[20px] shadow-[0_10px_24px_rgb(0_0_0/0.105)] dark:shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
                 {riser.emoji}
                 <span
                   className={cn(
@@ -363,7 +363,7 @@ function PlaybackMockup() {
                 </span>
               </span>
             ) : (
-              <span className="flex items-center gap-2 rounded-full border border-white/10 bg-[#27221d] py-1.5 pr-3 pl-1.5 text-[12px] whitespace-nowrap text-white/70 shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
+              <span className="flex items-center gap-2 rounded-full border border-white/10 bg-[#2a2927] py-1.5 pr-3 pl-1.5 text-[12px] whitespace-nowrap text-white/70 shadow-[0_10px_24px_rgb(0_0_0/0.105)] dark:shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#3b82f6] text-[11px] font-semibold text-white">
                   {copy.comments[riser.index].author[0]}
                 </span>
@@ -426,18 +426,18 @@ function RecorderMockup() {
     <Scaled width={RECORDER.width} height={RECORDER.height}>
       {/* Depth from light, not rotation: a lit top edge and stacked shadows
           lift each layer off the card while the layout stays square. */}
-      <div className="absolute top-0 left-0 rounded-2xl shadow-[0_30px_60px_rgb(0_0_0/0.5),0_8px_20px_rgb(0_0_0/0.35)]">
+      <div className="absolute top-0 left-0 rounded-2xl shadow-[0_30px_60px_rgb(0_0_0/0.15),0_8px_20px_rgb(0_0_0/0.105)] dark:shadow-[0_30px_60px_rgb(0_0_0/0.5),0_8px_20px_rgb(0_0_0/0.35)]">
         <RecorderPanel />
         <span className="pointer-events-none absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_rgb(255_255_255/0.1)]" />
       </div>
       <div
-        className="absolute top-0 rounded-2xl shadow-[0_24px_48px_rgb(0_0_0/0.5),0_6px_14px_rgb(0_0_0/0.35)]"
+        className="absolute top-0 rounded-2xl shadow-[0_24px_48px_rgb(0_0_0/0.15),0_6px_14px_rgb(0_0_0/0.105)] dark:shadow-[0_24px_48px_rgb(0_0_0/0.5),0_6px_14px_rgb(0_0_0/0.35)]"
         style={{ left: 296 }}
       >
         <ControlBar />
       </div>
       <div
-        className="absolute rounded-full shadow-[0_28px_56px_rgb(0_0_0/0.55)]"
+        className="absolute rounded-full shadow-[0_28px_56px_rgb(0_0_0/0.165)] dark:shadow-[0_28px_56px_rgb(0_0_0/0.55)]"
         style={{ left: 248, top: 232 }}
       >
         <Presenter size={150} ring={4} />
@@ -454,7 +454,12 @@ export function ModesIntro({ headingLevel = 2 }: SectionProps = {}) {
       id="modes"
       style={{ scrollMarginTop: 24, maxWidth: 1328 }}
     >
-      <div className="md:rounded-[48px] md:bg-[#1b1713] md:px-10 md:py-16 lg:px-16 lg:py-20">
+      {/* The dark surface in both themes; the dark token ramp inside it
+          turns the heading, subtitle and mockup captions white. */}
+      <div
+        data-theme="dark"
+        className="rounded-[32px] bg-[#201f1d] px-5 py-12 text-fg md:rounded-[48px] md:px-10 md:py-16 lg:px-16 lg:py-20"
+      >
         <SectionHeading
           title={m.modes.heading}
           subtitle={m.modes.subtitle}

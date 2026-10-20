@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ThemeToggle, type Theme } from "@captureflow/ui";
-import { BrandMark } from "@/components/brand-mark";
+import { AppIcon } from "@/components/brand-mark";
 
 // Single centered column: wordmark at the top, the form vertically centered
 // under it. The form owns its own width cap.
@@ -19,7 +19,7 @@ export function AuthShell({
       </div>
 
       <Link href="/" className="group flex items-center gap-2.5">
-        <BrandMark size={26} />
+        <AppIcon size={26} />
         <span className="text-fg text-base font-semibold">CaptureFlow</span>
       </Link>
 

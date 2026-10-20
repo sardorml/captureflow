@@ -676,7 +676,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
            * width/height below.
            */
           className={
-            "@container group relative overflow-hidden rounded-md bg-neutral-900 focus:outline-none max-sm:h-auto! max-sm:w-full! " +
+            "@container group relative overflow-hidden rounded-2xl bg-neutral-900 focus:outline-none max-sm:h-auto! max-sm:w-full! " +
             (isFullscreen
               ? "flex h-full w-full items-center justify-center rounded-none bg-black"
               : "block")

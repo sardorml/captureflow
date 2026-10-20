@@ -39,7 +39,7 @@ const CAMERA = {
 
 export function EditorScene() {
   return (
-    <SceneFrame steps={STEPS} loopMs={LOOP_MS} background="#2662e8">
+    <SceneFrame steps={STEPS} loopMs={LOOP_MS} background="#d3dffa">
       {(state) => <EditorContent {...state} />}
     </SceneFrame>
   );
@@ -65,7 +65,7 @@ function EditorContent({ step, playing }: SceneState) {
   return (
     <>
       <div
-        className="absolute top-7 left-7 overflow-hidden rounded-2xl shadow-[0_18px_40px_rgb(10_30_90/0.35)] transition-[background] duration-700"
+        className="absolute top-7 left-7 overflow-hidden rounded-2xl shadow-[0_18px_40px_rgb(10_30_90/0.18)] transition-[background] duration-700"
         style={{
           ...PREVIEW,
           background: hasBackground ? SWATCHES[PICKED_SWATCH] : SWATCHES[0],
@@ -168,7 +168,7 @@ function EditorContent({ step, playing }: SceneState) {
         </Tool>
       </div>
 
-      <div className="absolute inset-x-7 top-[300px] flex h-14 items-center overflow-hidden rounded-2xl bg-white/12 px-4">
+      <div className="absolute inset-x-7 top-[300px] flex h-14 items-center overflow-hidden rounded-2xl bg-white/70 px-4">
         <div className="relative flex h-full flex-1 items-center">
           {BARS.map((height, i) => {
             const filler = i >= FILLER_BARS.from && i < FILLER_BARS.to;
@@ -177,7 +177,7 @@ function EditorContent({ step, playing }: SceneState) {
                 key={i}
                 className={cn(
                   "shrink-0 rounded-full transition-all duration-500",
-                  filler && fillersMarked ? "bg-[#facc15]" : "bg-white/55",
+                  filler && fillersMarked ? "bg-[#2662e8]" : "bg-[#2662e8]/35",
                   filler && fillersCut
                     ? "mx-0 w-0 opacity-0"
                     : "mx-[1.5px] w-[4px]",
@@ -188,20 +188,22 @@ function EditorContent({ step, playing }: SceneState) {
           })}
           <span
             ref={playheadRef}
-            className="absolute inset-y-1 w-0.5 rounded-full bg-white"
+            className="absolute inset-y-1 w-0.5 rounded-full bg-[#2662e8]"
             style={{ left: playing ? "0%" : "70%" }}
           />
         </div>
       </div>
 
-      <p className="absolute inset-x-7 top-[374px] flex items-center text-[19px] font-semibold whitespace-nowrap text-white">
+      <p className="absolute inset-x-7 top-[374px] flex items-center text-[19px] font-semibold whitespace-nowrap text-[#2662e8]">
         <span className="mr-[0.3em]">{copy.transcript.before}</span>
         {copy.transcript.fillers.map((word) => (
           <span
             key={word}
             className={cn(
               "inline-block overflow-hidden rounded transition-all duration-500",
-              fillersMarked ? "bg-[#facc15]/30 text-white/70 line-through" : "",
+              fillersMarked
+                ? "bg-[#2662e8]/20 text-[#2662e8]/60 line-through"
+                : "",
               fillersCut
                 ? "mr-0 max-w-0 px-0 opacity-0"
                 : "mr-[0.3em] max-w-[80px] px-0.5",

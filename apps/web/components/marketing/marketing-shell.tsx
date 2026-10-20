@@ -4,11 +4,8 @@ import type { CSSProperties, ReactNode } from "react";
 import { TOKENS } from "./tokens";
 
 /*
- * Dark-only root for every marketing page. The app theme still comes from the
- * cookie on <html>, but marketing opts out of it: `data-theme` re-declares the
- * token ramp for this subtree, so a visitor who picked light in the dashboard
- * still gets the dark landing. `data-marketing` lets globals.css paint the
- * document to match, which the overscroll gutter exposes.
+ * Root for every marketing page. It follows the theme cookie on <html> like the
+ * app does; `data-marketing` lets globals.css scope the marketing-only tweaks.
  *
  * Also the baseline text color: nothing sets one on <body>, so anything that
  * inherits rather than picking a token — a HeroUI Accordion trigger, say —
@@ -23,7 +20,6 @@ export function MarketingShell({
 }) {
   return (
     <div
-      data-theme="dark"
       data-marketing=""
       style={{
         minHeight: "100vh",

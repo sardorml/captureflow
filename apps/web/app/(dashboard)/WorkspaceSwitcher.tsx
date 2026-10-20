@@ -115,7 +115,10 @@ export function WorkspaceSwitcher({
           without you having to open anything. The info button sits outside the
           Dropdown because React Aria's press context would otherwise route its
           press to the trigger. */}
-      <div ref={cardRef} className="rounded-xl border border-line bg-canvas-2">
+      <div
+        ref={cardRef}
+        className="rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]"
+      >
         <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
           <Dropdown.Trigger
             aria-label="Switch workspace"

@@ -17,11 +17,11 @@ export function DashboardShell({
   // scroll container and un-sticks sticky children mid-scroll.
   return (
     <div className="bg-canvas flex h-screen">
-      <aside className="hidden h-screen w-60 shrink-0 overflow-hidden border-r border-line bg-canvas-2 md:block">
+      <aside className="hidden h-screen w-64 shrink-0 overflow-hidden border-r border-line bg-canvas-2 md:block">
         {sidebar}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-line bg-canvas-2 px-4 md:px-6">
+        <header className="flex h-16 shrink-0 items-center gap-3 bg-canvas-2 px-4 md:px-6">
           {/* Below md the aside is hidden, so the drawer is the only way to
               reach the workspace switcher and the nav. */}
           <div className="md:hidden">

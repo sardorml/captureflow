@@ -96,9 +96,7 @@ export function StorageUsage({
 }
 
 function Panel({ children }: { children: ReactNode }) {
-  return (
-    <div className="rounded-xl border border-line bg-panel p-3">{children}</div>
-  );
+  return <div className="rounded-2xl bg-panel p-3">{children}</div>;
 }
 
 function Header({ trailing }: { trailing?: ReactNode }) {

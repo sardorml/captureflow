@@ -38,7 +38,7 @@ export function EditorToolRail({
     <Toolbar
       orientation="vertical"
       aria-label="Recording tools"
-      className="flex w-[88px] shrink-0 flex-col items-center gap-2 border-l border-line bg-canvas-2 p-2 pt-4"
+      className="flex w-[88px] shrink-0 flex-col items-center gap-2 bg-canvas-2 p-2 pt-4"
     >
       <LockedTool icon={<Shapes className="h-5 w-5" />} label="Add overlay" />
       <PopoverTool
@@ -107,9 +107,9 @@ function PopoverTool({
       <Popover.Trigger className="w-full">
         <button
           type="button"
-          className="flex w-full cursor-pointer flex-col items-center gap-1 rounded-md p-1 text-fg-muted transition-colors hover:text-fg"
+          className="flex w-full cursor-pointer flex-col items-center gap-1 rounded-2xl p-1 text-fg-muted transition-colors hover:text-fg"
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-md border border-line bg-canvas transition-colors hover:border-line-strong">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-tint transition-colors hover:bg-tint-strong">
             {icon}
           </span>
           <span className="text-center text-[10px] leading-tight">{label}</span>
@@ -132,7 +132,7 @@ function LockedTool({ icon, label }: { icon: ReactNode; label: string }) {
     <Tooltip>
       <Tooltip.Trigger className="w-full" tabIndex={0}>
         <span className="flex w-full cursor-not-allowed flex-col items-center gap-1 p-1 text-fg-subtle opacity-70">
-          <span className="relative flex h-10 w-10 items-center justify-center rounded-md border border-line bg-canvas">
+          <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-tint">
             {icon}
             <Lock className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full bg-canvas-2 p-px" />
           </span>

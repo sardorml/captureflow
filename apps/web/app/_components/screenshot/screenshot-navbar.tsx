@@ -1,7 +1,7 @@
 import type { ReactElement, ReactNode } from "react";
 import { PostedBy } from "./posted-by";
 import { timeAgo } from "./time";
-import { BrandMark } from "@/components/brand-mark";
+import { AppIcon } from "@/components/brand-mark";
 
 export type ScreenshotNavbarProps = {
   brandLabel?: string;
@@ -34,7 +34,7 @@ export function ScreenshotNavbar({
         className="group flex h-10 w-10 shrink-0 items-center justify-center text-fg transition-opacity hover:opacity-80"
         aria-label={brandLabel}
       >
-        <BrandMark size={28} />
+        <AppIcon size={28} />
       </a>
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-base font-semibold tracking-tight text-fg-strong">
