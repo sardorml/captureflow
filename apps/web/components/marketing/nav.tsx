@@ -146,7 +146,7 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
         onClick={() => setOpen((v) => !v)}
         className={cn(
           TEXT_LINK,
-          "inline-flex cursor-pointer items-center gap-1 outline-none",
+          "-mx-3 -my-4 inline-flex cursor-pointer items-center gap-1 px-3 py-4 outline-none",
           open && "text-fg",
         )}
       >
