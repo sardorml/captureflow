@@ -31,6 +31,20 @@ const TAB_ICON = (
   </svg>
 );
 
+/*
+ * captureVisibleTab needs activeTab, which Chrome grants only when the user
+ * opens the extension on that tab (toolbar icon or shortcut). Opened from the
+ * dashboard's record button, the panel has no grant and Chrome's own message
+ * names permissions the user can't act on.
+ */
+const NO_TAB_GRANT = /'<all_urls>' or 'activeTab' permission/;
+
+function screenshotError(err: unknown): string {
+  return err instanceof Error && NO_TAB_GRANT.test(err.message)
+    ? "To capture this tab, open CaptureFlow from its icon in the toolbar, then press Capture Screenshot."
+    : friendlyUploadError(err);
+}
+
 export function ScreenshotPanel() {
   const [state, setState] = useState<ShotState>({ kind: "idle" });
 
@@ -70,7 +84,7 @@ export function ScreenshotPanel() {
       await chrome.tabs.create({ url: res.viewUrl });
     } catch (err) {
       if (isAuthFailure(err)) await setAuthSession(null);
-      setState({ kind: "error", detail: friendlyUploadError(err) });
+      setState({ kind: "error", detail: screenshotError(err) });
     }
   };
 
