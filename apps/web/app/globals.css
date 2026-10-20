@@ -70,6 +70,7 @@ html[data-theme="light"] {
   --default: #ebebec;
   --surface: #ffffff;
   --surface-secondary: #f1f1f2;
+  --surface-tertiary: #e4e4e7;
   --overlay: #ffffff;
   --separator: #e4e4e7;
   --cf-glass-blur: 20px;
@@ -104,6 +105,7 @@ html:not([data-theme]) {
   --default: #302e2c;
   --surface: #201f1d;
   --surface-secondary: #2a2927;
+  --surface-tertiary: #363432;
   --overlay: #201f1d;
   --separator: #292826;
   --cf-glass-blur: 36px;
