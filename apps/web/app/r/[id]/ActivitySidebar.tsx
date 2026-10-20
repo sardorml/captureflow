@@ -584,15 +584,15 @@ function ReactionRow({
           {reaction.emoji}
         </span>
       </span>
-      <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-        <p className="min-w-0 truncate text-sm text-fg">
-          <span className="font-semibold">{name}</span> reacted{" "}
-          <span className="text-xs">{formatRelative(reaction.createdAt)}</span>
-        </p>
+      <div className="flex min-w-0 flex-1 items-center gap-2 text-sm text-fg">
+        <span className="truncate font-semibold">{name}</span>
         <TimestampChip
           ms={reaction.timestampMs}
           onClick={() => onSeek(reaction.timestampMs)}
         />
+        <span className="shrink-0 text-xs">
+          {formatRelative(reaction.createdAt)}
+        </span>
       </div>
     </div>
   );
@@ -625,38 +625,36 @@ function CommentRow({
         </Avatar.Fallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2">
+        <div className="flex h-8 items-center gap-2">
           <span className="truncate text-sm font-semibold text-fg">
             {comment.userName}
           </span>
-          <span className="shrink-0 text-xs text-fg">
-            {formatRelative(comment.createdAt)}
-          </span>
-        </div>
-        <div className="mt-1.5 rounded-2xl rounded-tl-md bg-tint-strong px-3.5 py-2.5">
           {comment.timestampMs != null && (
             <TimestampChip
               ms={comment.timestampMs}
               onClick={() => onSeek(comment.timestampMs!)}
             />
           )}
-          <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-fg first:mt-0">
-            {comment.body}
-          </p>
+          <span className="shrink-0 text-xs text-fg">
+            {formatRelative(comment.createdAt)}
+          </span>
+          {canDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={deleting}
+              aria-label="Delete comment"
+              title="Delete comment"
+              className="ml-auto rounded-md p-1.5 text-fg-subtle opacity-0 transition-opacity transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:opacity-100 disabled:cursor-progress group-hover:opacity-100 dark:hover:text-red-300"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
+        <p className="mt-1 rounded-2xl rounded-tl-md bg-tint-strong px-3.5 py-2.5 whitespace-pre-wrap break-words text-sm leading-relaxed text-fg">
+          {comment.body}
+        </p>
       </div>
-      {canDelete && (
-        <button
-          type="button"
-          onClick={onDelete}
-          disabled={deleting}
-          aria-label="Delete comment"
-          title="Delete comment"
-          className="rounded-md p-1.5 text-fg-subtle opacity-0 transition-opacity transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:opacity-100 disabled:cursor-progress group-hover:opacity-100 dark:hover:text-red-300"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      )}
     </div>
   );
 }
