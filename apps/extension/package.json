@@ -17,8 +17,8 @@
   },
   "dependencies": {
     "@captureflow/engine": "workspace:*",
-    "@heroui/react": "^3.2.3",
-    "@heroui/styles": "^3.2.3",
+    "@heroui/react": "^3.2.6",
+    "@heroui/styles": "^3.2.6",
     "@webext-core/messaging": "^3.0.2",
     "react": "catalog:",
     "react-dom": "catalog:"
