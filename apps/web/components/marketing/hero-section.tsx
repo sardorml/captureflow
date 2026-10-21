@@ -4,7 +4,12 @@ import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import { Flex } from "./layout";
 import { Paragraph, Title } from "./typography";
 import { buttonVariants } from "@heroui/react";
-import { CHROME_WEBSTORE_URL, CURRENT_STAGE } from "@/lib/marketing/constants";
+import {
+  CHROME_WEBSTORE_URL,
+  CURRENT_STAGE,
+  PRODUCT_HUNT_BADGE,
+  PRODUCT_HUNT_URL,
+} from "@/lib/marketing/constants";
 import { MARKETING_SITE_URL } from "@/lib/site";
 import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
@@ -48,6 +53,24 @@ export function HeroSection() {
           textAlign: "center",
         }}
       >
+        <a
+          href={PRODUCT_HUNT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ marginBottom: 24 }}
+          onClick={() =>
+            track("marketing_cta_clicked", {
+              location: "hero_product_hunt",
+            })
+          }
+        >
+          <img
+            src={PRODUCT_HUNT_BADGE}
+            alt="CaptureFlow - Open-source screen recorder with instant share links | Product Hunt"
+            width={200}
+            height={43}
+          />
+        </a>
         <div onClick={selectAndCopyWithLink}>
           <Title
             align="center"

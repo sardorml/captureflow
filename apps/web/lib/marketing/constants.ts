@@ -319,6 +319,10 @@ const ALL_NAV_LINKS: { href: string; label: string }[] = [
 export const X_URL = "https://github.com/sardorml/captureflow";
 export const TELEGRAM_URL = "https://docs.captureflow.dev";
 export const DISCORD_URL = "https://discord.gg/qzeBCaEeNq";
+export const PRODUCT_HUNT_URL =
+  "https://www.producthunt.com/products/captureflow?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-captureflow";
+export const PRODUCT_HUNT_BADGE =
+  "https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1281561&theme=neutral&t=1792418443430";
 
 const WAITLIST_EXTRA_LINKS: { href: string; label: string }[] = [
   { href: "/changelog", label: "Changelog" },
