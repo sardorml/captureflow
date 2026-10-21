@@ -80,7 +80,7 @@ export function HeroSection() {
             <InstallButton
               href={CHROME_WEBSTORE_URL ?? lh("/download")}
               label={m.hero.installChrome}
-              icon={<ChromeLogoColor className="size-10" />}
+              icon={<ChromeLogoColor className="size-9" />}
               location="hero_chrome"
             />
             <span className="inline-flex items-center gap-1.5 text-sm text-fg-muted">
@@ -173,7 +173,8 @@ function InstallButton({
      same place instead of needing their own variants. */
   /* Explicit height: HeroUI's lg is 44px and drops to 40 at md, which reads
      undersized under a headline this large. */
-  const base = "h-14 gap-3 rounded-full pr-7 pl-2 text-[19px] font-medium";
+  const base =
+    "h-13 gap-[11px] rounded-full pr-[26px] pl-2 text-[18px] font-medium";
   const className = buttonVariants({
     variant: primary ? "primary" : "tertiary",
     size: "lg",
