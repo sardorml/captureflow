@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { neighbourLists, weld } from "@/lib/marketing/cloud-mesh";
 import type {
   BufferGeometry,
   Mesh,
@@ -10,6 +11,9 @@ import type {
 
 const BLOB_RESOLUTION = 72;
 const WISP_COUNT = 16;
+// The canvas sits under a CSS blur, so it draws at half the CSS resolution
+// with no antialiasing; the blur hides the difference.
+const RENDER_SCALE = 0.5;
 const BLOB_FALLOFF = 140;
 // Each variant is [x, y, z, radius] lobes around the centre of a unit cube.
 // Tiny, small, medium, large and x-large: each size has its own shape, from
@@ -141,30 +145,23 @@ function relax(geometry: BufferGeometry) {
   const position = geometry.getAttribute("position");
   const points = position.array as Float32Array;
   const count = position.count;
-  const neighbours: Set<number>[] = Array.from(
-    { length: count },
-    () => new Set(),
+  const { start, list, length } = neighbourLists(
+    index.array as Uint32Array,
+    count,
   );
-  for (let i = 0; i < index.count; i += 3) {
-    const a = index.getX(i);
-    const b = index.getX(i + 1);
-    const c = index.getX(i + 2);
-    neighbours[a].add(b).add(c);
-    neighbours[b].add(a).add(c);
-    neighbours[c].add(a).add(b);
-  }
   const next = new Float32Array(points.length);
   for (let pass = 0; pass < RELAX_PASSES; pass++) {
     for (let v = 0; v < count; v++) {
       let x = 0;
       let y = 0;
       let z = 0;
-      for (const n of neighbours[v]) {
+      for (let i = start[v]; i < start[v] + length[v]; i++) {
+        const n = list[i];
         x += points[n * 3];
         y += points[n * 3 + 1];
         z += points[n * 3 + 2];
       }
-      const size = neighbours[v].size || 1;
+      const size = length[v] || 1;
       next[v * 3] = points[v * 3] * 0.5 + (x / size) * 0.5;
       next[v * 3 + 1] = points[v * 3 + 1] * 0.5 + (y / size) * 0.5;
       next[v * 3 + 2] = points[v * 3 + 2] * 0.5 + (z / size) * 0.5;
@@ -182,15 +179,16 @@ function relax(geometry: BufferGeometry) {
       let x = normals[v * 3];
       let y = normals[v * 3 + 1];
       let z = normals[v * 3 + 2];
-      for (const n of neighbours[v]) {
+      for (let i = start[v]; i < start[v] + length[v]; i++) {
+        const n = list[i];
         x += normals[n * 3];
         y += normals[n * 3 + 1];
         z += normals[n * 3 + 2];
       }
-      const length = Math.hypot(x, y, z) || 1;
-      next[v * 3] = x / length;
-      next[v * 3 + 1] = y / length;
-      next[v * 3 + 2] = z / length;
+      const size = Math.hypot(x, y, z) || 1;
+      next[v * 3] = x / size;
+      next[v * 3 + 1] = y / size;
+      next[v * 3 + 2] = z / size;
     }
     normals.set(next);
   }
@@ -227,19 +225,66 @@ export function CloudSky() {
     void Promise.all([
       import("three"),
       import("three/examples/jsm/objects/MarchingCubes.js"),
-      import("three/examples/jsm/utils/BufferGeometryUtils.js"),
-    ]).then(([THREE, { MarchingCubes }, { mergeVertices }]) => {
+    ]).then(async ([THREE, { MarchingCubes }]) => {
       if (disposed) return;
+      // Metaball strength for a lobe whose surface sits at `radius`.
+      const placeholder = new THREE.MeshBasicMaterial();
+      const blobs = new MarchingCubes(
+        BLOB_RESOLUTION,
+        placeholder,
+        false,
+        false,
+        120000,
+      );
+      const strengthFor = (radius: number) =>
+        radius * radius * (blobs.isolation + BLOB_FALLOFF);
+      // One shape per task, yielding in between, so the build never holds
+      // the main thread for long while the page is still loading.
+      const shapes: BufferGeometry[] = [];
+      for (const lobes of VARIANTS) {
+        await new Promise((resolve) => setTimeout(resolve));
+        if (disposed) break;
+        blobs.reset();
+        for (const [x, y, z, radius] of lobes) {
+          blobs.addBall(
+            0.5 + x,
+            0.5 + y,
+            0.5 + z,
+            strengthFor(radius),
+            BLOB_FALLOFF,
+          );
+        }
+        blobs.update();
+        flattenBase(blobs.positionArray, blobs.normalArray, blobs.count);
+        const { position, normal, index } = weld(
+          blobs.positionArray,
+          blobs.normalArray,
+          blobs.count,
+        );
+        const welded = new THREE.BufferGeometry();
+        welded.setAttribute("position", new THREE.BufferAttribute(position, 3));
+        welded.setAttribute("normal", new THREE.BufferAttribute(normal, 3));
+        welded.setIndex(new THREE.BufferAttribute(index, 1));
+        relax(welded);
+        shapes.push(welded);
+      }
+      blobs.geometry.dispose();
+      placeholder.dispose();
+      if (disposed) {
+        for (const shape of shapes) shape.dispose();
+        return;
+      }
+
       const reduceMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
       const renderer = new THREE.WebGLRenderer({
         alpha: true,
-        antialias: true,
+        antialias: false,
         powerPreference: "low-power",
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(RENDER_SCALE);
       renderer.setClearColor(0x000000, 0);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.domElement.style.width = "100%";
@@ -305,51 +350,6 @@ export function CloudSky() {
             gl_FragColor.a *= smoothstep(0.1, 0.95 + vSmoke * 0.35, facing + (wisp - 0.5) * (0.9 + vSmoke * 0.5)) * mix(0.55 - vSmoke * 0.2, 1.0, wisp);`,
           );
       };
-
-      // Metaball strength for a lobe whose surface sits at `radius`.
-      const blobs = new MarchingCubes(
-        BLOB_RESOLUTION,
-        material,
-        false,
-        false,
-        120000,
-      );
-      const strengthFor = (radius: number) =>
-        radius * radius * (blobs.isolation + BLOB_FALLOFF);
-      const shapes: BufferGeometry[] = VARIANTS.map((lobes) => {
-        blobs.reset();
-        for (const [x, y, z, radius] of lobes) {
-          blobs.addBall(
-            0.5 + x,
-            0.5 + y,
-            0.5 + z,
-            strengthFor(radius),
-            BLOB_FALLOFF,
-          );
-        }
-        blobs.update();
-        flattenBase(blobs.positionArray, blobs.normalArray, blobs.count);
-        const shape = new THREE.BufferGeometry();
-        shape.setAttribute(
-          "position",
-          new THREE.BufferAttribute(
-            blobs.positionArray.slice(0, blobs.count * 3),
-            3,
-          ),
-        );
-        shape.setAttribute(
-          "normal",
-          new THREE.BufferAttribute(
-            blobs.normalArray.slice(0, blobs.count * 3),
-            3,
-          ),
-        );
-        const welded = mergeVertices(shape, 1e-4);
-        shape.dispose();
-        relax(welded);
-        return welded;
-      });
-      blobs.geometry.dispose();
 
       const viewHalfWidth =
         Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) *
@@ -553,6 +553,18 @@ export function CloudSky() {
         wisp.age = random() * wisp.life;
         placeWisp(wisp);
         wisps.push(wisp);
+      }
+
+      // Compile the shaders off the main thread where the browser can, rather
+      // than stalling the first frame on them.
+      await renderer.compileAsync(scene, camera);
+      if (disposed) {
+        for (const shape of shapes) shape.dispose();
+        material.dispose();
+        for (const wisp of wisps) wisp.fade.dispose();
+        renderer.dispose();
+        renderer.domElement.remove();
+        return;
       }
 
       let halfWidth = 18;
