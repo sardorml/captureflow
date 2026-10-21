@@ -410,7 +410,7 @@ export function CloudSky() {
       // Scattered like a real sky: a dense bank of small and medium clouds
       // along the demo card, a few big ones above it, kept off the copy, and
       // a sprinkle of small ones up under the nav and beside the demo card,
-      // and a few medium and large ones framing the copy.
+      // and a few medium and large ones framing the copy from below.
       const floor = (demoTop ?? -2) - 1.1;
       const top = halfHeight - 2.6;
       const bands: {
@@ -437,7 +437,7 @@ export function CloudSky() {
           count: 5,
           low: halfHeight - 2.4,
           high: halfHeight - 0.9,
-          variants: [0, 0, 1, 1, 2],
+          variants: [0, 0, 1, 1],
         },
         {
           count: 5,
@@ -467,7 +467,9 @@ export function CloudSky() {
             x = Math.sign(x || 1) * viewHalfWidth * (0.35 + random() * 0.6);
           }
           let y = low + random() * (high - low) - 0.8;
-          if (variant >= 3 && copyBottom !== null) {
+          // Only tiny and small clouds share the strip with the headline and
+          // subtitle; medium and up sit below it.
+          if (variant >= 2 && copyBottom !== null) {
             y = Math.min(y, copyBottom - SIZES[variant] * 0.5 - random() * 0.6);
           }
           // Alternate directions, so clouds pass and overlap each other.
@@ -653,7 +655,7 @@ export function CloudSky() {
   return (
     <div
       ref={hostRef}
-      className="absolute inset-0 opacity-90 blur-[2px] [mask-image:radial-gradient(560px_230px_at_50%_240px,rgb(0_0_0/0.35)_60%,black_100%)]"
+      className="absolute inset-0 opacity-90 blur-[3px] [mask-image:radial-gradient(560px_230px_at_50%_240px,rgb(0_0_0/0.35)_60%,black_100%)]"
     />
   );
 }

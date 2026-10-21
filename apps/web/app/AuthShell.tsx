@@ -3,8 +3,8 @@ import Link from "next/link";
 import { ThemeToggle, type Theme } from "@captureflow/ui";
 import { AppIcon } from "@/components/brand-mark";
 
-// Single centered column: wordmark at the top, the form vertically centered
-// under it. The form owns its own width cap.
+// A single card on the canvas: the app icon heads the card, the form fills
+// it, legal line at the foot. The form owns its own width.
 export function AuthShell({
   theme,
   children,
@@ -18,13 +18,17 @@ export function AuthShell({
         <ThemeToggle initialTheme={theme} />
       </div>
 
-      <Link href="/" className="group flex items-center gap-2.5">
-        <AppIcon size={26} />
-        <span className="text-fg text-base font-semibold">CaptureFlow</span>
-      </Link>
-
       <div className="flex w-full flex-1 items-center justify-center py-12">
-        {children}
+        <div className="bg-panel border-line w-full max-w-[424px] rounded-3xl border p-6 shadow-[0_8px_24px_-12px_rgb(30_41_59/0.1)] sm:p-8 dark:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.3)]">
+          <Link
+            href="/"
+            aria-label="CaptureFlow home"
+            className="mx-auto mb-5 flex w-fit"
+          >
+            <AppIcon size={44} />
+          </Link>
+          {children}
+        </div>
       </div>
 
       <footer className="text-fg-muted text-[13px]">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { Flex } from "./layout";
 import { Paragraph, Title } from "./typography";
 import { buttonVariants } from "@heroui/react";
@@ -10,8 +10,7 @@ import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
 import { AppleLogo, ChromeLogoColor } from "./platform-logos";
 import { RecorderMockup } from "./recorder-mockup";
-import { CloudSky } from "./cloud-sky";
-import { NightSky } from "./night-sky";
+import { GRAIN, SkyBackdrop } from "./sky-backdrop";
 import NextLink from "next/link";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
@@ -20,11 +19,10 @@ import { useLocalizedHref, useMessages } from "./i18n-provider";
 // on amber in light mode.
 const SOON_AMBER = "#f5a524";
 
-// A fine sand grain over the sky and its clouds: tiled fractal noise, static so
-// it costs nothing per frame.
-const GRAIN = `url("data:image/svg+xml,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  3 0 0 0 -1.35"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>',
-)}")`;
+// Clicking the copy selects it for copying, so the highlight is part of the
+// design: a cloud-white wash that keeps the ink, not the browser's blue.
+const COPY_SELECTION =
+  "selection:bg-white/70 selection:text-fg-strong dark:selection:bg-white/20 dark:selection:text-fg-strong";
 
 export function HeroSection() {
   const m = useMessages();
@@ -35,10 +33,11 @@ export function HeroSection() {
       id="hero"
       className="relative isolate -mt-[66px] overflow-hidden pt-[66px]"
     >
-      <Sky />
+      <SkyBackdrop />
       <Flex
         vertical
         align="center"
+        className="relative"
         style={{
           maxWidth: 1280,
           marginInline: "auto",
@@ -48,14 +47,14 @@ export function HeroSection() {
           textAlign: "center",
         }}
       >
-        <div onClick={selectAndCopyWithLink}>
+        <div onClick={selectAndCopyWithLink} className={COPY_SELECTION}>
           <Title
             align="center"
             level={1}
             className="text-balance text-fg-strong lg:whitespace-nowrap"
             style={{
               fontSize: "clamp(2.5rem, 1.5rem + 3.2vw, 4rem)",
-              fontWeight: 600,
+              fontWeight: 500,
               lineHeight: 1.05,
               letterSpacing: "-0.03em",
               marginBottom: 20,
@@ -64,7 +63,7 @@ export function HeroSection() {
             {m.hero.title}
           </Title>
         </div>
-        <div onClick={selectAndCopyWithLink}>
+        <div onClick={selectAndCopyWithLink} className={COPY_SELECTION}>
           <Paragraph
             align="center"
             style={{
@@ -99,52 +98,19 @@ export function HeroSection() {
             <WaitlistForm />
           </div>
         )}
+        {/* The same sand over the copy, as light specks so it shows on the
+            dark ink too. Spans the section's full width (clipped by its
+            overflow) and fades out before the mockup, which is a screen, not
+            sky, so there is no edge where it stops. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-[66px] -right-[100vw] bottom-0 -left-[100vw] opacity-[0.22] invert [mask-image:linear-gradient(to_bottom,black_75%,transparent)] dark:opacity-[0.1] dark:invert-0"
+          style={{ backgroundImage: GRAIN, backgroundSize: "180px 180px" }}
+        />
       </Flex>
 
       <RecorderMockup />
     </section>
-  );
-}
-
-// One three.js scene at a time: clouds in light mode, stars in dark. Each
-// unmounts, and frees its GPU resources, when the theme flips.
-function SkyScene() {
-  const [dark, setDark] = useState<boolean | null>(null);
-  useEffect(() => {
-    const root = document.documentElement;
-    const update = () => setDark(root.dataset.theme !== "light");
-    update();
-    const observer = new MutationObserver(update);
-    observer.observe(root, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-    return () => observer.disconnect();
-  }, []);
-  if (dark === null) return null;
-  return dark ? <NightSky /> : <CloudSky />;
-}
-
-/*
- * A sky gradient behind a three.js scene, fading into the page at the bottom
- * so the next section doesn't start on a hard edge.
- */
-function Sky() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(38%_34%_at_74%_0%,rgb(255_178_98/0.72),transparent_70%),linear-gradient(180deg,#a3c9ef_0%,#c2dbf4_45%,#e2eefa_100%)] dark:bg-canvas dark:bg-none"
-    >
-      <div className="absolute inset-0 bg-canvas/50 dark:hidden" />
-      <SkyScene />
-      <div
-        className="absolute inset-0 opacity-[0.06] dark:opacity-[0.04] dark:invert"
-        style={{ backgroundImage: GRAIN, backgroundSize: "180px 180px" }}
-      />
-      {/* Dark mode eases out over a taller band, so the stars thin away
-          rather than stopping at a line. */}
-      <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-canvas dark:h-[34rem] dark:bg-[linear-gradient(to_bottom,transparent,color-mix(in_srgb,var(--cf-canvas)_25%,transparent)_30%,color-mix(in_srgb,var(--cf-canvas)_70%,transparent)_60%,var(--cf-canvas)_92%)]" />
-    </div>
   );
 }
 
@@ -179,10 +145,11 @@ function InstallButton({
   badge?: string;
   primary?: boolean;
 }) {
-  /* The alternative install takes the accent pair, white on dark and graphite
-     on light, since HeroUI's greys recede into the page. Setting .button's own colour vars
-     rather than bg and text utilities, so hover and pressed follow from the
-     same place instead of needing their own variants. */
+  /* The alternative install is a white pill with navy text: a solid white
+     reads as a cloud-bright object on the blue sky where the graphite accent
+     looked stamped on. Setting .button's own colour vars rather than bg and
+     text utilities, so hover and pressed follow from the same place instead
+     of needing their own variants. */
   /* Explicit height: HeroUI's lg is 44px and drops to 40 at md, which reads
      undersized under a headline this large. */
   const base =
@@ -192,7 +159,7 @@ function InstallButton({
     size: "lg",
     className: primary
       ? base
-      : `${base} [--button-bg:var(--accent)] [--button-fg:var(--accent-foreground)] [--button-bg-hover:var(--accent-hover)] [--button-bg-pressed:var(--accent-hover)]`,
+      : `${base} shadow-[0_10px_30px_-10px_rgb(6_26_51/0.45)] [--button-bg:#ffffff] [--button-fg:#061a33] [--button-bg-hover:#eef4fb] [--button-bg-pressed:#e1ebf7]`,
   });
   const onClick = () => track("marketing_cta_clicked", { location });
 

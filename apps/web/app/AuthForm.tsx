@@ -189,7 +189,7 @@ export function AuthForm({
         ) : isSignup ? (
           "Start sharing recordings with a link"
         ) : (
-          "Sign in to your CaptureFlow account"
+          "Sign in to pick up where you left off"
         )}
       </Typography.Paragraph>
 

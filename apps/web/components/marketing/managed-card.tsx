@@ -49,7 +49,7 @@ export function ManagedCard() {
 
   return (
     <div className="grid gap-2 rounded-2xl bg-panel p-2 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-      <div className="flex flex-col rounded-xl bg-[#2563eb] p-6">
+      <div className="flex flex-col rounded-xl bg-accent p-6">
         <div className="flex items-center gap-2">
           <span className="flex size-6 items-center justify-center rounded-lg bg-white/15 text-white">
             <Cloud size={14} />
@@ -106,7 +106,7 @@ export function ManagedCard() {
                     )}
                   >
                     {isOn ? (
-                      <span className="size-1.5 rounded-full bg-[#2563eb]" />
+                      <span className="size-1.5 rounded-full bg-accent" />
                     ) : null}
                   </span>
                   <span className="font-medium">{o.label}</span>
@@ -134,7 +134,7 @@ export function ManagedCard() {
                   storage_gb: selected.storageGb,
                 })
           }
-          className="mt-auto flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-white text-sm font-medium text-[#111110] transition-colors hover:bg-white/90 motion-reduce:transition-none"
+          className="mt-auto flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-white text-sm font-medium text-accent transition-colors hover:bg-white/90 motion-reduce:transition-none"
         >
           {isFree ? copy.ctaFree : copy.ctaPaid}
         </Link>
