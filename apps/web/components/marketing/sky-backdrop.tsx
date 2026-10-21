@@ -12,7 +12,7 @@ const GRAIN = `url("data:image/svg+xml,${encodeURIComponent(
 
 // One three.js scene at a time: clouds in light mode, stars in dark. Each
 // unmounts, and frees its GPU resources, when the theme flips.
-function SkyScene() {
+export function SkyScene() {
   const [dark, setDark] = useState<boolean | null>(null);
   useEffect(() => {
     const root = document.documentElement;
