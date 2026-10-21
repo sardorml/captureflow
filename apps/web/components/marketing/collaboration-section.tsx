@@ -79,6 +79,7 @@ function CategoryRow({
       <Row gutter={[64, 40]} align="middle">
         <Col xs={{ span: 24, order: 2 }} lg={{ span: 10, order: flip ? 1 : 2 }}>
           <Text
+            className="text-balance"
             style={{
               display: "block",
               fontSize: 32,
@@ -90,6 +91,7 @@ function CategoryRow({
             {feature.title}
           </Text>
           <Paragraph
+            className="text-pretty"
             style={{
               maxWidth: 496,
               margin: "16px 0 0",
