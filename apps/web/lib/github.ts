@@ -23,6 +23,8 @@ export async function getStarCount(): Promise<number | null> {
  */
 const STAR_CACHE_KEY = "https://captureflow.dev/__cache/github-stars";
 const STAR_CACHE_SECONDS = 3600;
+// The landing page awaits these; a slow GitHub must not hold it hostage.
+const GITHUB_TIMEOUT_MS = 2500;
 
 type EdgeCache = {
   match(key: string): Promise<Response | undefined>;
@@ -54,6 +56,7 @@ async function fetchLiveStars(): Promise<number | null> {
         "User-Agent": "captureflow-web",
       },
       next: { revalidate: STAR_CACHE_SECONDS },
+      signal: AbortSignal.timeout(GITHUB_TIMEOUT_MS),
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { stargazers_count?: number };
@@ -186,6 +189,7 @@ export async function getRepoActivity(
           Accept: "application/vnd.github+json",
           "User-Agent": "captureflow-web",
         },
+        signal: AbortSignal.timeout(GITHUB_TIMEOUT_MS),
       },
     );
     if (!res.ok) return cached?.activity ?? null;
