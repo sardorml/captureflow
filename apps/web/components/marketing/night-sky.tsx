@@ -69,6 +69,9 @@ export function NightSky() {
       renderer.domElement.style.width = "100%";
       renderer.domElement.style.height = "100%";
       renderer.domElement.style.display = "block";
+      // Hidden until its first frame is drawn, so a fresh canvas never flashes.
+      renderer.domElement.style.opacity = "0";
+      renderer.domElement.style.transition = "opacity 0.6s ease";
       host.appendChild(renderer.domElement);
 
       const scene = new THREE.Scene();
@@ -113,9 +116,22 @@ export function NightSky() {
         renderer.setSize(clientWidth, clientHeight, false);
         renderer.render(scene, camera);
       };
+      /* A torn-down or lost WebGL context paints the canvas white, which on a
+         reload shows for a frame before the next page; hide it first. */
+      const hide = () => {
+        renderer.domElement.style.transition = "none";
+        renderer.domElement.style.opacity = "0";
+      };
+      window.addEventListener("pagehide", hide);
+      window.addEventListener("beforeunload", hide);
+      renderer.domElement.addEventListener("webglcontextlost", hide);
+
       const resizeObserver = new ResizeObserver(resize);
       resizeObserver.observe(host);
       resize();
+      requestAnimationFrame(() => {
+        renderer.domElement.style.opacity = "1";
+      });
 
       let frame = 0;
       let visible = true;
@@ -134,6 +150,9 @@ export function NightSky() {
 
       cleanup = () => {
         cancelAnimationFrame(frame);
+        window.removeEventListener("pagehide", hide);
+        window.removeEventListener("beforeunload", hide);
+        renderer.domElement.removeEventListener("webglcontextlost", hide);
         resizeObserver.disconnect();
         intersection.disconnect();
         geometry.dispose();
