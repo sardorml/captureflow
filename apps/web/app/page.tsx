@@ -72,7 +72,9 @@ export default async function RootPage() {
           data={[WEBSITE_SCHEMA, ORGANIZATION_SCHEMA, APP_SCHEMA, FAQ_SCHEMA]}
         />
         <Nav stars={stars} />
-        <main className="animate-page-rise">
+        {/* No page-rise here: the hero's sky runs up behind the nav, and
+            blurring it in on load reads as a burst rather than an arrival. */}
+        <main>
           <HeroSection />
           <ModesIntro />
           <CollaborationSection />

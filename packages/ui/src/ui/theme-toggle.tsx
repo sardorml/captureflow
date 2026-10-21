@@ -47,12 +47,16 @@ export function ThemeToggle({ initialTheme, className, onAfterToggle }: Props) {
 
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
+    const root = document.documentElement;
+    // Colour transitions would otherwise run inside the wipe and flash.
+    root.setAttribute("data-theme-switching", "");
     const apply = () => {
       setTheme(next);
-      document.documentElement.setAttribute("data-theme", next);
+      root.setAttribute("data-theme", next);
       writeThemeCookie(next);
       onAfterToggle?.(next);
     };
+    const settle = () => root.removeAttribute("data-theme-switching");
     const reduceMotion =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -60,12 +64,19 @@ export function ThemeToggle({ initialTheme, className, onAfterToggle }: Props) {
     // the app's global CSS, keyed off ::view-transition-*(root)). Falls back to
     // an instant swap where the API is unavailable or reduced motion is on.
     const doc = document as Document & {
-      startViewTransition?: (cb: () => void) => unknown;
+      startViewTransition?: (cb: () => void | Promise<void>) => unknown;
     };
     if (!reduceMotion && typeof doc.startViewTransition === "function") {
-      doc.startViewTransition(apply);
+      // A beat after the swap before the new state is captured, so anything
+      // that re-renders off the theme change lands in the wipe, not after it.
+      const transition = doc.startViewTransition(() => {
+        apply();
+        return new Promise<void>((resolve) => setTimeout(resolve, 80));
+      }) as { finished?: Promise<unknown> };
+      void (transition.finished ?? Promise.resolve()).finally(settle);
     } else {
       apply();
+      requestAnimationFrame(() => requestAnimationFrame(settle));
     }
   };
 
