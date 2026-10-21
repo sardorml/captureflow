@@ -1,7 +1,9 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { cache } from "react";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { APIError } from "better-auth/api";
+import { nextCookies } from "better-auth/next-js";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { drizzle } from "drizzle-orm/d1";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -15,7 +17,7 @@ import { authSchema } from "./auth-schema";
 import { sendWelcomeEmail } from "./email";
 
 // D1 is request-scoped (binding only exists inside a fetch handler), so the
-// auth instance is built per request; build-time imports use a stub adapter.
+// auth instance is built per request.
 
 type AppWebEnv = {
   DB: D1Database;
@@ -88,6 +90,8 @@ function buildAuth(
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,
     },
+    // Lets server actions set the auth cookies they produce (sign-out).
+    plugins: [nextCookies()],
     // Cookie is host-only so prod and preview (shared D1) stay isolated.
     // Do NOT re-enable crossSubDomainCookies with a .captureflow.dev domain.
     databaseHooks: {
@@ -210,11 +214,11 @@ export function signupAllowed(
 
 export type AuthInstance = ReturnType<typeof buildAuth>;
 
-export async function getAuth(): Promise<AuthInstance> {
+// One instance per request: the dashboard's layout, chrome and page each ask
+// for it, and outside a render React's cache is a plain call.
+export const getAuth = cache(async (): Promise<AuthInstance> => {
   const ctx = await getCloudflareContext({ async: true });
   const env = (ctx?.env ?? null) as AppWebEnv | null;
   const baseURL = env?.BETTER_AUTH_URL;
   return buildAuth(env, baseURL, (p) => ctx.ctx.waitUntil(p));
-}
-
-export const auth = buildAuth(null);
+});

@@ -1,10 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { ThemePreference } from "@captureflow/ui";
-import { signOut } from "@/lib/auth-client";
 import { notifyExtensionSignOut } from "@/lib/extension-bridge";
+import { signOutAction } from "./sign-out-action";
 import {
   AccountMenu,
   accountNavItems,
@@ -29,15 +28,13 @@ export function UserMenu({
   selfHosted,
   themePreference,
 }: Props) {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
 
   const onSignOut = async () => {
     if (pending) return;
     setPending(true);
-    await signOut();
     notifyExtensionSignOut();
-    router.replace("/login");
+    await signOutAction();
   };
 
   const navItems = accountNavItems({ pro, selfHosted });
