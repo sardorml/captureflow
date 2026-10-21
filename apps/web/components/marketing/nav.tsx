@@ -36,7 +36,7 @@ import { cn } from "@/lib/utils";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { NavBetaChip } from "./corner-banner";
 import { GitHubIcon } from "./platform-logos";
-import { ThemeToggle } from "@captureflow/ui";
+import { DEFAULT_THEME, ThemeToggle } from "@captureflow/ui";
 
 const GITHUB_URL = "https://github.com/sardorml/captureflow";
 
@@ -547,7 +547,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             {m.nav.login}
           </NextLink>
           <ThemeToggle
-            initialTheme="dark"
+            initialTheme={DEFAULT_THEME}
             className="h-9 w-9 rounded-full text-fg"
           />
           <NextLink href={lh("/download")} className={PILL_CTA}>
@@ -557,7 +557,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
 
         <div className="flex items-center gap-1 md:hidden">
           <ThemeToggle
-            initialTheme="dark"
+            initialTheme={DEFAULT_THEME}
             className="h-9 w-9 rounded-full text-fg"
           />
           <Button
