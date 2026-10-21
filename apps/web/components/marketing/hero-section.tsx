@@ -19,6 +19,11 @@ import { useLocalizedHref, useMessages } from "./i18n-provider";
 // on amber in light mode.
 const SOON_AMBER = "#f5a524";
 
+// Clicking the copy selects it for copying, so the highlight is part of the
+// design: a cloud-white wash that keeps the navy ink, not the browser's blue.
+const COPY_SELECTION =
+  "selection:bg-white/70 selection:text-[#061a33] dark:selection:bg-white/20 dark:selection:text-fg-strong";
+
 // Navy ink rather than black on the blue sky: the same hue taken down to
 // near-black reads as part of the sky instead of stamped on it.
 export function HeroSection() {
@@ -43,11 +48,11 @@ export function HeroSection() {
           textAlign: "center",
         }}
       >
-        <div onClick={selectAndCopyWithLink}>
+        <div onClick={selectAndCopyWithLink} className={COPY_SELECTION}>
           <Title
             align="center"
             level={1}
-            className="text-balance text-[#030f1f] lg:whitespace-nowrap dark:text-fg-strong"
+            className="text-balance text-[#020914] lg:whitespace-nowrap dark:text-fg-strong"
             style={{
               fontSize: "clamp(2.5rem, 1.5rem + 3.2vw, 4rem)",
               fontWeight: 600,
@@ -59,10 +64,10 @@ export function HeroSection() {
             {m.hero.title}
           </Title>
         </div>
-        <div onClick={selectAndCopyWithLink}>
+        <div onClick={selectAndCopyWithLink} className={COPY_SELECTION}>
           <Paragraph
             align="center"
-            className="text-[#0a2140] dark:text-inherit"
+            className="text-[#061a33] dark:text-inherit"
             style={{
               fontSize: 22,
               fontWeight: 300,
@@ -133,10 +138,11 @@ function InstallButton({
   badge?: string;
   primary?: boolean;
 }) {
-  /* The alternative install takes the accent pair, white on dark and graphite
-     on light, since HeroUI's greys recede into the page. Setting .button's own colour vars
-     rather than bg and text utilities, so hover and pressed follow from the
-     same place instead of needing their own variants. */
+  /* The alternative install is a white pill with navy text: a solid white
+     reads as a cloud-bright object on the blue sky where the graphite accent
+     looked stamped on. Setting .button's own colour vars rather than bg and
+     text utilities, so hover and pressed follow from the same place instead
+     of needing their own variants. */
   /* Explicit height: HeroUI's lg is 44px and drops to 40 at md, which reads
      undersized under a headline this large. */
   const base =
@@ -146,7 +152,7 @@ function InstallButton({
     size: "lg",
     className: primary
       ? base
-      : `${base} [--button-bg:var(--accent)] [--button-fg:var(--accent-foreground)] [--button-bg-hover:var(--accent-hover)] [--button-bg-pressed:var(--accent-hover)]`,
+      : `${base} shadow-[0_10px_30px_-10px_rgb(6_26_51/0.45)] [--button-bg:#ffffff] [--button-fg:#061a33] [--button-bg-hover:#eef4fb] [--button-bg-pressed:#e1ebf7]`,
   });
   const onClick = () => track("marketing_cta_clicked", { location });
 
