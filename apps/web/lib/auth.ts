@@ -3,6 +3,7 @@
 import { cache } from "react";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { APIError } from "better-auth/api";
+import { nextCookies } from "better-auth/next-js";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { drizzle } from "drizzle-orm/d1";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -89,6 +90,8 @@ function buildAuth(
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,
     },
+    // Lets server actions set the auth cookies they produce (sign-out).
+    plugins: [nextCookies()],
     // Cookie is host-only so prod and preview (shared D1) stay isolated.
     // Do NOT re-enable crossSubDomainCookies with a .captureflow.dev domain.
     databaseHooks: {
