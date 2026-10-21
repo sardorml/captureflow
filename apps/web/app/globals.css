@@ -116,16 +116,6 @@ html body {
   background-color: var(--cf-canvas);
 }
 
-/* Marketing in dark keeps its graphite buttons rather than the blue accent. */
-html[data-theme="dark"]:has([data-marketing]),
-html:not([data-theme]):has([data-marketing]) {
-  --cf-accent-strong: #fcfcfc;
-  --cf-accent-bg: #302e2c;
-  --cf-accent-bg-hover: #3a3836;
-  --accent: #fcfcfc;
-  --accent-foreground: #111110;
-}
-
 /* Text is never faded: secondary and tertiary text read in the body colour.
    Re-declared on every theme scope so a nested data-theme can't restore the
    greys; it follows tokens.css, so equal specificity lets it win. HeroUI's
