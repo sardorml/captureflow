@@ -18,7 +18,7 @@ const BLOB_FALLOFF = 140;
 // Each variant is [x, y, z, radius] lobes around the centre of a unit cube.
 // Tiny, small, medium, large and x-large: each size has its own shape, from
 // VARIANTS in the same order.
-const SIZES = [0.72, 1.15, 1.6, 2.15, 3.6];
+const SIZES = [0.83, 1.32, 1.84, 2.47, 4.14];
 const VARIANTS: [number, number, number, number][][] = [
   [
     [-0.16, -0.02, 0, 0.09],
@@ -421,33 +421,33 @@ export function CloudSky() {
         sides?: [number, number];
       }[] = [
         {
-          count: 11,
+          count: 9,
           low: floor - 0.4,
           high: floor + 1.4,
           variants: [0, 0, 1, 1, 2, 3],
         },
         {
-          count: 5,
+          count: 4,
           low: floor + 1.4,
           high: top - 1.8,
           variants: [1, 2, 3, 4, 4],
         },
-        { count: 7, low: top - 1.8, high: top, variants: [0, 0, 1] },
+        { count: 6, low: top - 1.8, high: top, variants: [0, 0, 1] },
         {
-          count: 6,
+          count: 5,
           low: halfHeight - 2.4,
           high: halfHeight - 0.9,
           variants: [0, 0, 1, 1, 2],
         },
         {
-          count: 6,
+          count: 5,
           low: Math.max(floor - 4, 1 - halfHeight),
           high: floor - 0.6,
           variants: [0, 1, 1, 2],
           sides: [0.8, 1.1],
         },
         {
-          count: 4,
+          count: 3,
           low: floor + 1.2,
           high: halfHeight - 1.6,
           variants: [2, 2, 3, 3],
@@ -653,7 +653,7 @@ export function CloudSky() {
   return (
     <div
       ref={hostRef}
-      className="absolute inset-0 opacity-90 blur-[3px] [mask-image:radial-gradient(560px_230px_at_50%_240px,rgb(0_0_0/0.35)_60%,black_100%)]"
+      className="absolute inset-0 opacity-90 blur-[2px] [mask-image:radial-gradient(560px_230px_at_50%_240px,rgb(0_0_0/0.35)_60%,black_100%)]"
     />
   );
 }
