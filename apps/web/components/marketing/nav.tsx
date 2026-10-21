@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import Image from "next/image";
 import { Rubik } from "next/font/google";
 import {
@@ -140,7 +146,11 @@ function NavLink({
 
 type MenuLink = { label: string; href: string; external?: boolean };
 
-type TileLink = MenuLink & { icon: ReactNode; description: string };
+type TileLink = MenuLink & {
+  icon: ReactNode;
+  description: string;
+  colour: string;
+};
 
 /*
  * Only opacity and translate animate, so the slide stays on the compositor;
@@ -218,7 +228,7 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
       >
         <ul
           className={cn(
-            "bg-(--island) shadow-overlay flex w-[22rem] flex-col gap-1 rounded-2xl p-2 will-change-[opacity,translate] motion-reduce:[transition:none]",
+            "bg-(--island) shadow-overlay flex w-[22rem] flex-col rounded-2xl p-2 will-change-[opacity,translate] motion-reduce:[transition:none]",
             open ? PANEL_OPEN : PANEL_CLOSED,
           )}
         >
@@ -231,7 +241,11 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
                 onClick={() => setOpen(false)}
                 className="group/tile hover:bg-tint focus-visible:bg-tint flex items-start gap-3 rounded-xl p-3 outline-none transition-colors duration-150 motion-reduce:transition-none"
               >
-                <span className="bg-tint-strong text-fg group-hover/tile:bg-accent-bg grid size-10 shrink-0 place-items-center rounded-xl transition-colors duration-150 group-hover/tile:text-white motion-reduce:transition-none">
+                {/* Each icon takes its own colour on hover, over a tint of it. */}
+                <span
+                  style={{ "--tile": link.colour } as CSSProperties}
+                  className="bg-tint-strong text-fg grid size-10 shrink-0 place-items-center rounded-xl transition-colors duration-150 group-hover/tile:bg-[color-mix(in_srgb,var(--tile)_16%,transparent)] group-hover/tile:text-(--tile) motion-reduce:transition-none"
+                >
                   {link.icon}
                 </span>
                 <span className="flex min-w-0 flex-col gap-0.5">
@@ -394,12 +408,14 @@ export function Nav({ stars = null }: { stars?: string | null }) {
       href: lh("/faq"),
       icon: <CircleHelp size={18} />,
       description: "Common questions, answered",
+      colour: "#8b5cf6",
     },
     {
       label: "Blog",
       href: lh("/blog"),
       icon: <Newspaper size={18} />,
       description: "Guides and updates",
+      colour: "#f97316",
     },
     {
       label: "Self-hosting",
@@ -407,6 +423,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
       external: true,
       icon: <Server size={18} />,
       description: "Run it on your own Cloudflare",
+      colour: "#10b981",
     },
     {
       label: "Community",
@@ -414,6 +431,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
       external: true,
       icon: <MessagesSquare size={18} />,
       description: "Get help and chat on Discord",
+      colour: "#5865f2",
     },
   ];
   const menuLinks = [...barLinks, ...moreLinks];
