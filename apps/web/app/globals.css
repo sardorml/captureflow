@@ -476,6 +476,14 @@ html:not(:has([data-marketing])) .card {
   }
 }
 
+/* While the theme flips, colours change in one step; the wipe is the only
+   motion. */
+html[data-theme-switching] *,
+html[data-theme-switching] *::before,
+html[data-theme-switching] *::after {
+  transition: none !important;
+}
+
 /* Theme switch: a left-to-right wipe. The toggle drives the swap through
    document.startViewTransition, so the browser cross-fades by default — we
    override that with the new snapshot clipped in from the left edge while the
