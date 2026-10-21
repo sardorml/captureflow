@@ -141,7 +141,9 @@ function Sky() {
         className="absolute inset-0 opacity-[0.06] dark:opacity-[0.04] dark:invert"
         style={{ backgroundImage: GRAIN, backgroundSize: "180px 180px" }}
       />
-      <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-canvas" />
+      {/* Dark mode eases out over a taller band, so the stars thin away
+          rather than stopping at a line. */}
+      <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-canvas dark:h-[34rem] dark:bg-[linear-gradient(to_bottom,transparent,color-mix(in_srgb,var(--cf-canvas)_25%,transparent)_30%,color-mix(in_srgb,var(--cf-canvas)_70%,transparent)_60%,var(--cf-canvas)_92%)]" />
     </div>
   );
 }
