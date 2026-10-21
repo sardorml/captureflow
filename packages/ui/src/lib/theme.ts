@@ -5,7 +5,7 @@ export type Theme = "light" | "dark";
 export type ThemePreference = Theme | "system";
 
 export const THEME_COOKIE = "captureflow_theme";
-export const DEFAULT_THEME: Theme = "dark";
+export const DEFAULT_THEME: Theme = "light";
 
 export function isTheme(value: unknown): value is Theme {
   return value === "light" || value === "dark";
