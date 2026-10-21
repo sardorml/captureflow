@@ -75,7 +75,7 @@ const RISERS: Riser[] = [
 // One look for every timestamp. Solid rather than translucent, so a badge
 // hanging off an emoji bubble matches one sitting inside a comment.
 const TIMESTAMP_CHIP =
-  "rounded-md bg-[#2a303e] px-1.5 py-0.5 font-mono text-[11px] leading-none text-[#7aa7ff] tabular-nums";
+  "rounded-md bg-[#e6efff] px-1.5 py-0.5 font-mono text-[11px] leading-none text-[#2563eb] tabular-nums dark:bg-[#2a303e] dark:text-[#7aa7ff]";
 
 const riseDelay = (i: number) => (i * RISE_PERIOD) / RISERS.length;
 
@@ -232,7 +232,7 @@ function PlaybackMockup() {
           </p>
         </div>
         <div
-          className="absolute left-0 overflow-hidden rounded-2xl border border-white/10 shadow-[0_24px_60px_rgb(0_0_0/0.135)] dark:shadow-[0_24px_60px_rgb(0_0_0/0.45)]"
+          className="absolute left-0 overflow-hidden rounded-2xl border border-black/5 shadow-[0_24px_60px_rgb(0_0_0/0.135)] dark:border-white/10 dark:shadow-[0_24px_60px_rgb(0_0_0/0.45)]"
           style={{
             top: TITLE_HEIGHT,
             width: VIDEO.width,
@@ -301,10 +301,10 @@ function PlaybackMockup() {
           className="absolute left-0 flex h-10 items-center gap-3"
           style={{ top: TITLE_HEIGHT + VIDEO.height + 24, width: VIDEO.width }}
         >
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white">
-            <Pause className="size-3.5 fill-[#111] text-[#111]" />
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#18181b] dark:bg-white">
+            <Pause className="size-3.5 fill-white text-white dark:fill-[#111] dark:text-[#111]" />
           </span>
-          <div className="relative h-1.5 flex-1 rounded-full bg-white/15">
+          <div className="relative h-1.5 flex-1 rounded-full bg-black/10 dark:bg-white/15">
             <div
               className="animate-playback-fill absolute inset-0 origin-left rounded-full bg-[#3b82f6]"
               style={{ animationDuration: `${RISE_PERIOD}s` }}
@@ -351,7 +351,7 @@ function PlaybackMockup() {
             }
           >
             {riser.kind === "emoji" ? (
-              <span className="relative flex size-10 items-center justify-center rounded-full border border-white/10 bg-[#2a2927] text-[20px] shadow-[0_10px_24px_rgb(0_0_0/0.105)] dark:shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
+              <span className="relative flex size-10 items-center justify-center rounded-full border border-black/5 bg-white text-[20px] dark:border-white/10 dark:bg-[#2a2927] shadow-[0_10px_24px_rgb(0_0_0/0.105)] dark:shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
                 {riser.emoji}
                 <span
                   className={cn(
@@ -363,11 +363,11 @@ function PlaybackMockup() {
                 </span>
               </span>
             ) : (
-              <span className="flex items-center gap-2 rounded-full border border-white/10 bg-[#2a2927] py-1.5 pr-3 pl-1.5 text-[12px] whitespace-nowrap text-white/70 shadow-[0_10px_24px_rgb(0_0_0/0.105)] dark:shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
+              <span className="flex items-center gap-2 rounded-full border border-black/5 bg-white py-1.5 pr-3 pl-1.5 text-[12px] whitespace-nowrap text-fg-muted dark:border-white/10 dark:bg-[#2a2927] shadow-[0_10px_24px_rgb(0_0_0/0.105)] dark:shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#3b82f6] text-[11px] font-semibold text-white">
                   {copy.comments[riser.index].author[0]}
                 </span>
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-fg">
                   {copy.comments[riser.index].author}
                 </span>
                 <span className={TIMESTAMP_CHIP}>
@@ -454,12 +454,7 @@ export function ModesIntro({ headingLevel = 2 }: SectionProps = {}) {
       id="modes"
       style={{ scrollMarginTop: 24, maxWidth: 1328 }}
     >
-      {/* The dark surface in both themes; the dark token ramp inside it
-          turns the heading, subtitle and mockup captions white. */}
-      <div
-        data-theme="dark"
-        className="rounded-[32px] bg-[#201f1d] px-5 py-12 text-fg md:rounded-[48px] md:px-10 md:py-16 lg:px-16 lg:py-20"
-      >
+      <div className="px-5 py-12 text-fg md:px-10 md:py-16 lg:px-16 lg:py-20">
         <SectionHeading
           title={m.modes.heading}
           subtitle={m.modes.subtitle}

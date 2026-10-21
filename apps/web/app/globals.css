@@ -126,16 +126,22 @@ html:not([data-theme]):has([data-marketing]) {
   --accent-foreground: #111110;
 }
 
-/* Marketing in light groups content on a grey panel over the page and keeps
-   its graphite buttons. */
+/* Marketing in light sets near-black ink on a cool off-white page, groups content
+   on cool grey panels and keeps its graphite buttons. */
 html[data-theme="light"]:has([data-marketing]) {
-  --cf-panel: #ebebec;
-  --cf-panel-2: #ebebec;
-  --surface: #ebebec;
-  --cf-accent-strong: #18181b;
-  --cf-accent-bg: #18181b;
-  --cf-accent-bg-hover: #3f3f46;
-  --accent: #18181b;
+  --cf-canvas: #f8fafc;
+  --cf-canvas-2: #f8fafc;
+  --background: #f8fafc;
+  --cf-fg: #111111;
+  --cf-fg-strong: #111111;
+  --foreground: #111111;
+  --cf-panel: #edf1f6;
+  --cf-panel-2: #edf1f6;
+  --surface: #edf1f6;
+  --cf-accent-strong: #111111;
+  --cf-accent-bg: #111111;
+  --cf-accent-bg-hover: #202020;
+  --accent: #111111;
   --accent-foreground: #ffffff;
 }
 
