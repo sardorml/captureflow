@@ -174,7 +174,7 @@ function InstallButton({
   /* Explicit height: HeroUI's lg is 44px and drops to 40 at md, which reads
      undersized under a headline this large. */
   const base =
-    "h-13 gap-[11px] rounded-full pr-[26px] pl-2 text-[18px] font-medium";
+    "h-13 gap-[11px] rounded-full pr-[26px] pl-3 text-[18px] font-medium";
   const className = buttonVariants({
     variant: primary ? "primary" : "tertiary",
     size: "lg",
