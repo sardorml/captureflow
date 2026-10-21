@@ -28,10 +28,14 @@ body {
  * Overlay surface: the frame is wider than the card so menus can open beside
  * it, so the card is what's painted and positioned here — the document itself
  * is a transparent gutter onto the blurred page, and a click on it closes the
- * panel the way the backdrop does.
+ * panel the way the backdrop does. The padding is the card's 14px offset from
+ * the viewport corner plus room for its shadow; the frame is clipped at its
+ * edges, so a shadow with no room ends in a hard square.
  */
 body.cf-overlay {
-  width: 520px;
+  box-sizing: border-box;
+  width: 584px;
+  padding: 14px 78px 88px 0;
   background: transparent;
 }
 

@@ -6,10 +6,10 @@ export const RECORDER_BACKDROP_ID = "captureflow-recorder-backdrop";
  * a blurred/dimmed backdrop with the extension panel floating top-right. Clicking the backdrop closes it page-side (no SW round-trip).
  * Args only — the serialized body can't close over module scope.
  *
- * The iframe is wider than the panel: the card hugs its right edge and the
- * gutter is transparent, so the panel's own menus can open beside it instead
- * of being clipped at its edge. The card paints its rounding and shadow
- * itself, and clicks on the gutter close the panel from inside.
+ * The iframe is wider than the panel and the card sits inset from its edges
+ * (the panel's own padding), so its shadow has room and the gutter is
+ * transparent for menus to open beside it. The card paints its rounding and
+ * shadow itself, and clicks on the gutter close the panel from inside.
  *
  * color-scheme on the frame is load-bearing: if the panel's used scheme (dark)
  * differs from the embedder's, the transparent gutter is repainted as an
@@ -52,7 +52,7 @@ export function toggleRecorderOverlay(
   iframe.src = frameUrl;
   iframe.allow = "camera; microphone";
   iframe.style.cssText =
-    "position:fixed;top:14px;right:14px;width:520px;height:0;border:0;" +
+    "position:fixed;top:0;right:0;width:584px;height:0;border:0;" +
     "z-index:2147483647;background:transparent;color-scheme:dark;" +
     "opacity:0;transform:translateY(-6px);transform-origin:100% 0;" +
     "transition:opacity .16s ease-out,transform .16s ease-out;";
@@ -62,7 +62,7 @@ export function toggleRecorderOverlay(
   setTimeout(() => {
     const frame = document.getElementById(frameId);
     if (frame instanceof HTMLIFrameElement && frame.style.height === "0px") {
-      frame.style.height = "440px";
+      frame.style.height = "520px";
       frame.dataset.shown = "1";
       frame.style.opacity = "1";
       frame.style.transform = "none";
