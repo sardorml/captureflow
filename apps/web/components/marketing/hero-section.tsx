@@ -10,7 +10,7 @@ import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
 import { AppleLogo, ChromeLogoColor } from "./platform-logos";
 import { RecorderMockup } from "./recorder-mockup";
-import { SkyBackdrop } from "./sky-backdrop";
+import { GRAIN, SkyBackdrop } from "./sky-backdrop";
 import NextLink from "next/link";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
@@ -20,12 +20,10 @@ import { useLocalizedHref, useMessages } from "./i18n-provider";
 const SOON_AMBER = "#f5a524";
 
 // Clicking the copy selects it for copying, so the highlight is part of the
-// design: a cloud-white wash that keeps the navy ink, not the browser's blue.
+// design: a cloud-white wash that keeps the ink, not the browser's blue.
 const COPY_SELECTION =
-  "selection:bg-white/70 selection:text-[#061a33] dark:selection:bg-white/20 dark:selection:text-fg-strong";
+  "selection:bg-white/70 selection:text-fg-strong dark:selection:bg-white/20 dark:selection:text-fg-strong";
 
-// Navy ink rather than black on the blue sky: the same hue taken down to
-// near-black reads as part of the sky instead of stamped on it.
 export function HeroSection() {
   const m = useMessages();
   const lh = useLocalizedHref();
@@ -39,6 +37,7 @@ export function HeroSection() {
       <Flex
         vertical
         align="center"
+        className="relative"
         style={{
           maxWidth: 1280,
           marginInline: "auto",
@@ -52,10 +51,10 @@ export function HeroSection() {
           <Title
             align="center"
             level={1}
-            className="text-balance text-[#020914] lg:whitespace-nowrap dark:text-fg-strong"
+            className="text-balance text-fg-strong lg:whitespace-nowrap"
             style={{
               fontSize: "clamp(2.5rem, 1.5rem + 3.2vw, 4rem)",
-              fontWeight: 600,
+              fontWeight: 500,
               lineHeight: 1.05,
               letterSpacing: "-0.03em",
               marginBottom: 20,
@@ -67,7 +66,6 @@ export function HeroSection() {
         <div onClick={selectAndCopyWithLink} className={COPY_SELECTION}>
           <Paragraph
             align="center"
-            className="text-[#061a33] dark:text-inherit"
             style={{
               fontSize: 22,
               fontWeight: 300,
@@ -100,6 +98,15 @@ export function HeroSection() {
             <WaitlistForm />
           </div>
         )}
+        {/* The same sand over the copy, as light specks so it shows on the
+            dark ink too. Spans the section's full width (clipped by its
+            overflow) and fades out before the mockup, which is a screen, not
+            sky, so there is no edge where it stops. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-[66px] -right-[100vw] bottom-0 -left-[100vw] opacity-[0.22] invert [mask-image:linear-gradient(to_bottom,black_75%,transparent)] dark:opacity-[0.1] dark:invert-0"
+          style={{ backgroundImage: GRAIN, backgroundSize: "180px 180px" }}
+        />
       </Flex>
 
       <RecorderMockup />

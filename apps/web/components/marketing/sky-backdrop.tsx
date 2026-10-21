@@ -5,10 +5,20 @@ import { CloudSky } from "./cloud-sky";
 import { NightSky } from "./night-sky";
 
 // A fine sand grain over the sky and its clouds: tiled fractal noise, static so
-// it costs nothing per frame.
-const GRAIN = `url("data:image/svg+xml,${encodeURIComponent(
+// it costs nothing per frame. Blended as overlay in light so it textures the
+// sky without greying it down the way a plain dark wash does.
+export const GRAIN = `url("data:image/svg+xml,${encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  3 0 0 0 -1.35"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>',
 )}")`;
+
+export function SkyGrain() {
+  return (
+    <div
+      className="absolute inset-0 opacity-[0.18] mix-blend-overlay dark:opacity-[0.04] dark:mix-blend-normal dark:invert"
+      style={{ backgroundImage: GRAIN, backgroundSize: "180px 180px" }}
+    />
+  );
+}
 
 // One three.js scene at a time: clouds in light mode, stars in dark. Each
 // unmounts, and frees its GPU resources, when the theme flips.
@@ -37,13 +47,10 @@ export function SkyBackdrop() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,#6db5ef_0%,#9fcdf4_45%,#d9ebfa_80%,var(--cf-canvas)_100%)] dark:bg-canvas dark:bg-none"
+      className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,#98d5ff_0%,#c3e7ff_45%,#ecf6ff_80%,var(--cf-canvas)_100%)] dark:bg-canvas dark:bg-none"
     >
       <SkyScene />
-      <div
-        className="absolute inset-0 opacity-[0.06] dark:opacity-[0.04] dark:invert"
-        style={{ backgroundImage: GRAIN, backgroundSize: "180px 180px" }}
-      />
+      <SkyGrain />
       {/* The band blurs what is under it as it fades, so clouds dissolve into
           the page instead of being cut by it. Dark mode eases out over a
           taller band, so the stars thin away rather than stopping at a line. */}
