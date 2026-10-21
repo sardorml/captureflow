@@ -30,24 +30,24 @@ export function SkyScene() {
 }
 
 /*
- * A sky gradient behind a three.js scene, fading into the page at the bottom
- * so the next section doesn't start on a hard edge.
+ * A clear blue sky behind a three.js scene, fading into the page at the
+ * bottom so the next section doesn't start on a hard edge.
  */
 export function SkyBackdrop() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(38%_34%_at_74%_0%,rgb(255_178_98/0.72),transparent_70%),linear-gradient(180deg,#a3c9ef_0%,#c2dbf4_45%,#e2eefa_100%)] dark:bg-canvas dark:bg-none"
+      className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,#6db5ef_0%,#9fcdf4_45%,#d9ebfa_80%,var(--cf-canvas)_100%)] dark:bg-canvas dark:bg-none"
     >
-      <div className="absolute inset-0 bg-canvas/50 dark:hidden" />
       <SkyScene />
       <div
         className="absolute inset-0 opacity-[0.06] dark:opacity-[0.04] dark:invert"
         style={{ backgroundImage: GRAIN, backgroundSize: "180px 180px" }}
       />
-      {/* Dark mode eases out over a taller band, so the stars thin away
-          rather than stopping at a line. */}
-      <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-canvas dark:h-[34rem] dark:bg-[linear-gradient(to_bottom,transparent,color-mix(in_srgb,var(--cf-canvas)_25%,transparent)_30%,color-mix(in_srgb,var(--cf-canvas)_70%,transparent)_60%,var(--cf-canvas)_92%)]" />
+      {/* The band blurs what is under it as it fades, so clouds dissolve into
+          the page instead of being cut by it. Dark mode eases out over a
+          taller band, so the stars thin away rather than stopping at a line. */}
+      <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-canvas backdrop-blur-md [mask-image:linear-gradient(to_bottom,transparent,black_60%)] dark:h-[34rem] dark:bg-[linear-gradient(to_bottom,transparent,color-mix(in_srgb,var(--cf-canvas)_25%,transparent)_30%,color-mix(in_srgb,var(--cf-canvas)_70%,transparent)_60%,var(--cf-canvas)_92%)]" />
     </div>
   );
 }

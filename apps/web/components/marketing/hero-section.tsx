@@ -19,6 +19,8 @@ import { useLocalizedHref, useMessages } from "./i18n-provider";
 // on amber in light mode.
 const SOON_AMBER = "#f5a524";
 
+// Navy ink rather than black on the blue sky: the same hue taken down to
+// near-black reads as part of the sky instead of stamped on it.
 export function HeroSection() {
   const m = useMessages();
   const lh = useLocalizedHref();
@@ -45,7 +47,7 @@ export function HeroSection() {
           <Title
             align="center"
             level={1}
-            className="text-balance text-fg-strong lg:whitespace-nowrap"
+            className="text-balance text-[#030f1f] lg:whitespace-nowrap dark:text-fg-strong"
             style={{
               fontSize: "clamp(2.5rem, 1.5rem + 3.2vw, 4rem)",
               fontWeight: 600,
@@ -60,6 +62,7 @@ export function HeroSection() {
         <div onClick={selectAndCopyWithLink}>
           <Paragraph
             align="center"
+            className="text-[#0a2140] dark:text-inherit"
             style={{
               fontSize: 22,
               fontWeight: 300,

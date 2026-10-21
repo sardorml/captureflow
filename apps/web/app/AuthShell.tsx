@@ -25,7 +25,7 @@ export function AuthShell({
         <div className="absolute inset-x-0 top-[38%] h-screen dark:top-0 dark:h-full">
           <SkyScene />
         </div>
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-canvas" />
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent to-canvas backdrop-blur-md [mask-image:linear-gradient(to_bottom,transparent,black_60%)]" />
       </div>
       <div className="absolute top-6 right-6">
         <ThemeToggle initialTheme={theme} />
