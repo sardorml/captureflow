@@ -44,6 +44,7 @@
     "react-medium-image-zoom": "^5.4.5",
     "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.5.0",
+    "three": "^0.186.1",
     "upng-js": "^2.1.0"
   },
   "devDependencies": {
@@ -52,6 +53,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@types/three": "^0.186.0",
     "raw-loader": "^4.0.2",
     "tailwindcss": "^4",
     "typescript": "catalog:",

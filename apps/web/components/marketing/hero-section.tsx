@@ -1,6 +1,6 @@
 "use client";
 
-import type { MouseEvent, ReactNode } from "react";
+import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import { Flex } from "./layout";
 import { Paragraph, Title } from "./typography";
 import { buttonVariants } from "@heroui/react";
@@ -10,6 +10,8 @@ import { track } from "@/lib/marketing/track";
 import { WaitlistForm } from "./waitlist-form";
 import { AppleLogo, ChromeLogoColor } from "./platform-logos";
 import { RecorderMockup } from "./recorder-mockup";
+import { CloudSky } from "./cloud-sky";
+import { NightSky } from "./night-sky";
 import NextLink from "next/link";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
@@ -23,7 +25,11 @@ export function HeroSection() {
   const lh = useLocalizedHref();
 
   return (
-    <section id="hero" style={{ position: "relative", overflow: "hidden" }}>
+    <section
+      id="hero"
+      className="relative isolate -mt-[66px] overflow-hidden pt-[66px]"
+    >
+      <Sky />
       <Flex
         vertical
         align="center"
@@ -43,7 +49,7 @@ export function HeroSection() {
             className="text-balance text-fg-strong lg:whitespace-nowrap"
             style={{
               fontSize: "clamp(2.5rem, 1.5rem + 3.2vw, 4rem)",
-              fontWeight: 700,
+              fontWeight: 600,
               lineHeight: 1.05,
               letterSpacing: "-0.03em",
               marginBottom: 20,
@@ -57,6 +63,7 @@ export function HeroSection() {
             align="center"
             style={{
               fontSize: 22,
+              fontWeight: 300,
               lineHeight: 1.5,
               maxWidth: 760,
             }}
@@ -90,6 +97,42 @@ export function HeroSection() {
 
       <RecorderMockup />
     </section>
+  );
+}
+
+// One three.js scene at a time: clouds in light mode, stars in dark. Each
+// unmounts, and frees its GPU resources, when the theme flips.
+function SkyScene() {
+  const [dark, setDark] = useState<boolean | null>(null);
+  useEffect(() => {
+    const root = document.documentElement;
+    const update = () => setDark(root.dataset.theme !== "light");
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => observer.disconnect();
+  }, []);
+  if (dark === null) return null;
+  return dark ? <NightSky /> : <CloudSky />;
+}
+
+/*
+ * A sky gradient behind a three.js scene, fading into the page at the bottom
+ * so the next section doesn't start on a hard edge.
+ */
+function Sky() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,#b3c8e4_0%,#cbd9ec_45%,#e6edf6_100%)] dark:bg-canvas dark:bg-none"
+    >
+      <div className="absolute inset-0 bg-canvas/50 dark:hidden" />
+      <SkyScene />
+      <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-canvas" />
+    </div>
   );
 }
 
