@@ -2,31 +2,63 @@
 
 import { useEffect, useRef } from "react";
 
-const STAR_COUNT = 140;
+const STAR_COUNT = 170;
+// Star colours by temperature, from hot blue-white to cool orange, with how
+// common each one is.
+const STAR_COLOURS: [number, [number, number, number]][] = [
+  [0.3, [0.78, 0.86, 1]],
+  [0.4, [1, 1, 1]],
+  [0.2, [1, 0.95, 0.82]],
+  [0.1, [1, 0.82, 0.64]],
+];
 
 const STAR_VERTEX = /* glsl */ `
   uniform float uTime;
   uniform float uPixelRatio;
   attribute float aSize;
+  attribute float aBright;
   attribute float aPhase;
-  varying float vAlpha;
+  attribute vec3 aColor;
+  varying float vSize;
+  varying float vBright;
+  varying float vTwinkle;
+  varying vec3 vColor;
 
   void main() {
     gl_Position = vec4(position.xy, 0.0, 1.0);
     float speed = 0.6 + aPhase * 1.6;
-    vAlpha = 0.4 + 0.2 * sin(uTime * speed + aPhase * 6.2831);
+    vTwinkle = 0.82 + 0.12 * sin(uTime * speed + aPhase * 6.2831)
+      + 0.06 * sin(uTime * speed * 3.7 + aPhase * 17.0);
+    vSize = aSize;
+    vBright = aBright;
+    vColor = aColor;
     gl_PointSize = aSize * uPixelRatio;
   }
 `;
 
+// A sharp core, a soft halo that grows with brightness, and faint
+// diffraction spikes on the brightest few.
 const STAR_FRAGMENT = /* glsl */ `
-  varying float vAlpha;
+  varying float vSize;
+  varying float vBright;
+  varying float vTwinkle;
+  varying vec3 vColor;
 
   void main() {
-    float d = length(gl_PointCoord - 0.5);
-    float alpha = (1.0 - smoothstep(0.3, 0.5, d)) * vAlpha;
-    if (alpha < 0.01) discard;
-    gl_FragColor = vec4(vec3(alpha), alpha);
+    vec2 p = gl_PointCoord - 0.5;
+    vec2 px = p * vSize;
+    float r = length(px);
+    float core = exp(-r * r / (0.9 + 1.8 * vBright));
+    float halo = exp(-r / (1.2 + 5.0 * vBright)) * (0.08 + 0.55 * vBright);
+    float spike = max(vBright - 0.6, 0.0) * 2.5;
+    float spikes = spike * 0.45 * (
+      exp(-abs(px.x) * 1.4) * exp(-abs(px.y) / (2.0 + 6.0 * vBright)) +
+      exp(-abs(px.y) * 1.4) * exp(-abs(px.x) / (2.0 + 6.0 * vBright)));
+    float edge = 1.0 - smoothstep(0.4, 0.5, length(p));
+    float alpha = (core + halo + spikes) * edge * vTwinkle * (0.5 + 0.5 * vBright);
+    if (alpha < 0.004) discard;
+    vec3 colour = mix(vec3(1.0), vColor, 0.35 + 0.65 * smoothstep(0.0, 2.0, r));
+    gl_FragColor = vec4(colour * alpha, alpha);
   }
 `;
 
@@ -38,10 +70,11 @@ function seeded(seed: number) {
 }
 
 /*
- * Sparse cartoon stars drawn with three.js: small round white dots that
- * twinkle at their own pace above the night clouds. Only mounted in dark mode.
- * Rendering pauses while the hero is off screen or the tab is hidden, and
- * draws a single still frame under reduced motion.
+ * A night sky drawn with three.js: mostly faint pinpoints with a few bright
+ * stars, tinted blue-white to orange, each glowing by its brightness and
+ * twinkling at its own pace. Only mounted in dark mode. Rendering pauses
+ * while the hero is off screen or the tab is hidden, and draws a single still
+ * frame under reduced motion.
  */
 export function NightSky() {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -80,11 +113,21 @@ export function NightSky() {
 
       const positions = new Float32Array(STAR_COUNT * 3);
       const sizes = new Float32Array(STAR_COUNT);
+      const brights = new Float32Array(STAR_COUNT);
       const phases = new Float32Array(STAR_COUNT);
+      const colours = new Float32Array(STAR_COUNT * 3);
       for (let i = 0; i < STAR_COUNT; i++) {
         positions.set([random() * 2 - 1, random() * 1.8 - 0.8, 0], i * 3);
-        sizes[i] = 2.5 + Math.pow(random(), 4) * 3;
+        // Like a real sky: mostly faint pinpoints and only a few bright stars.
+        const bright = Math.pow(random(), 2.4);
+        brights[i] = bright;
+        sizes[i] = 6 + bright * 30;
         phases[i] = random();
+        let pick = random();
+        const colour =
+          STAR_COLOURS.find(([share]) => (pick -= share) < 0)?.[1] ??
+          STAR_COLOURS[1][1];
+        colours.set(colour, i * 3);
       }
 
       const geometry = new THREE.BufferGeometry();
@@ -94,6 +137,8 @@ export function NightSky() {
       );
       geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
       geometry.setAttribute("aPhase", new THREE.BufferAttribute(phases, 1));
+      geometry.setAttribute("aBright", new THREE.BufferAttribute(brights, 1));
+      geometry.setAttribute("aColor", new THREE.BufferAttribute(colours, 3));
       const material = new THREE.ShaderMaterial({
         vertexShader: STAR_VERTEX,
         fragmentShader: STAR_FRAGMENT,
@@ -171,7 +216,7 @@ export function NightSky() {
   return (
     <div
       ref={hostRef}
-      className="absolute inset-0 [mask-image:radial-gradient(900px_320px_at_50%_300px,transparent_50%,black_100%)]"
+      className="absolute inset-0 blur-[1px] [mask-image:radial-gradient(900px_320px_at_50%_300px,transparent_50%,black_100%)]"
     />
   );
 }
