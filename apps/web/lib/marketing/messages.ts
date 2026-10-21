@@ -226,7 +226,7 @@ export const MESSAGES = {
     categories: {
       share: {
         feature: {
-          title: "Polish it before you send it",
+          title: "Clean it up before you share",
           cta: "Record now",
           body: "Add a background, move or resize your camera, and mute audio you don't want. Your link stays the same, so everyone sees the new version straight away.",
         },
