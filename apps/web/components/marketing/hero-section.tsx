@@ -20,6 +20,12 @@ import { useLocalizedHref, useMessages } from "./i18n-provider";
 // on amber in light mode.
 const SOON_AMBER = "#f5a524";
 
+// A fine sand grain over the sky and its clouds: tiled fractal noise, static so
+// it costs nothing per frame.
+const GRAIN = `url("data:image/svg+xml,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  3 0 0 0 -1.35"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>',
+)}")`;
+
 export function HeroSection() {
   const m = useMessages();
   const lh = useLocalizedHref();
@@ -131,6 +137,10 @@ function Sky() {
     >
       <div className="absolute inset-0 bg-canvas/50 dark:hidden" />
       <SkyScene />
+      <div
+        className="absolute inset-0 opacity-[0.06] dark:opacity-[0.04] dark:invert"
+        style={{ backgroundImage: GRAIN, backgroundSize: "180px 180px" }}
+      />
       <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-canvas" />
     </div>
   );
