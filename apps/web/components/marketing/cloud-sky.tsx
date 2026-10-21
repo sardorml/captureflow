@@ -1,21 +1,27 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { BufferGeometry, Object3D } from "three";
+import type {
+  BufferGeometry,
+  Mesh,
+  MeshLambertMaterial,
+  Object3D,
+} from "three";
 
-const CLOUD_COUNT = 10;
-const TOP_CLOUD_COUNT = 8;
 const BLOB_RESOLUTION = 72;
+const WISP_COUNT = 16;
 const BLOB_FALLOFF = 140;
 // Each variant is [x, y, z, radius] lobes around the centre of a unit cube.
 // Tiny, small, medium, large and x-large: each size has its own shape, from
 // VARIANTS in the same order.
-const SIZES = [0.6, 0.95, 1.35, 1.8, 3];
+const SIZES = [0.72, 1.15, 1.6, 2.15, 3.6];
 const VARIANTS: [number, number, number, number][][] = [
   [
-    [-0.12, 0, 0, 0.13],
-    [0.06, 0.06, 0, 0.16],
-    [0.2, -0.01, 0, 0.11],
+    [-0.16, -0.02, 0, 0.09],
+    [-0.06, 0.05, 0, 0.12],
+    [0.07, 0.08, 0, 0.13],
+    [0.18, 0.02, 0, 0.1],
+    [0.02, -0.03, 0.06, 0.1],
   ],
   [
     [0, 0.06, 0, 0.17],
@@ -105,7 +111,6 @@ function flattenBase(
 
 const RELAX_PASSES = 6;
 const NORMAL_PASSES = 24;
-const STRETCH = 1.2;
 const NOISE_GLSL = `
 float hash3(vec3 p) {
   p = fract(p * 0.3183099 + 0.1);
@@ -202,11 +207,11 @@ function seeded(seed: number) {
 /*
  * Soft 3D clouds drawn with three.js: each cloud is one smooth body, its round
  * lobes melted together as metaballs, built once per variant: bright white,
- * with soft grey-blue shading underneath and smoky edges that billow in a
- * slight breeze. Smaller clouds drift faster, both ways, in gusts. Small ones
- * float along the top, larger ones beside the copy and along the demo card,
- * and a mask fades them out behind the headline so they never compete with
- * the copy. The scene renders at 30fps to keep the GPU work down. Only mounted
+ * warm on the side facing the sun glow, with smoky edges that billow in a
+ * slight breeze and wisps that tear off or drift in. Each drifts at its own
+ * slow speed, both ways, in gusts. The layout is scattered fresh on each
+ * load, with big clouds kept below the subtitle, and a mask fades them out
+ * behind the headline so they never compete with the copy. The scene renders at 30fps to keep the GPU work down. Only mounted
  * in light mode. Rendering pauses while the hero is off screen or the tab is
  * hidden, and draws a single still frame under reduced motion.
  */
@@ -249,10 +254,12 @@ export function CloudSky() {
       const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
       camera.position.set(0, 0, 22);
 
-      scene.add(new THREE.HemisphereLight(0xffffff, 0xdfe5ef, 2.6));
+      scene.add(new THREE.HemisphereLight(0xffffff, 0xd4dcea, 2.5));
+      // A warm key from the sun glow up and to the right gives the clouds a
+      // peachy lit side and a soft cool shadow on the side away from it.
       const lights: [number, number, [number, number, number]][] = [
-        [0xffffff, 0.9, [-4, 8, 8]],
-        [0xffffff, 0.5, [6, 2, 6]],
+        [0xffc890, 1.1, [7, 9, 5]],
+        [0xffffff, 0.4, [-5, 3, 8]],
       ];
       for (const [colour, intensity, [x, y, z]] of lights) {
         const light = new THREE.DirectionalLight(colour, intensity);
@@ -266,34 +273,36 @@ export function CloudSky() {
       });
       const time = { value: 0 };
       // Wind: the surface billows with drifting noise and the top sways, and
-      // the edges thin out into vapour where the surface turns away.
+      // the edges thin out into vapour where the surface turns away, more so
+      // the smaller the cloud.
       material.onBeforeCompile = (shader) => {
         shader.uniforms.uTime = time;
         shader.vertexShader = shader.vertexShader
           .replace(
             "#include <common>",
-            `#include <common>\nuniform float uTime;\nvarying vec3 vCloud;\n${NOISE_GLSL}`,
+            `#include <common>\nuniform float uTime;\nvarying vec3 vCloud;\nvarying float vSmoke;\n${NOISE_GLSL}`,
           )
           .replace(
             "#include <begin_vertex>",
             `#include <begin_vertex>
             float seed = modelMatrix[3].x * 0.37 + modelMatrix[3].y * 1.7;
-            vec3 drift = vec3(uTime * 0.14, uTime * 0.03, seed);
-            transformed += normal * ((noise3(position * 3.0 + drift) - 0.5) * 0.16 + (noise3(position * 7.0 + drift * 1.6) - 0.5) * 0.07);
-            transformed.x += sin(uTime * 0.4 + seed) * 0.03 * (position.y + 0.3);
+            vec3 drift = vec3(uTime * 0.035, uTime * 0.008, seed);
+            vSmoke = clamp(1.4 - length(modelMatrix[1].xyz) * 0.6, 0.0, 1.0);
+            transformed += normal * ((noise3(position * 3.0 + drift) - 0.5) * 0.16 + (noise3(position * 7.0 + drift * 1.6) - 0.5) * 0.07) * (1.0 + vSmoke * 0.8);
+            transformed.x += sin(uTime * 0.18 + seed) * 0.02 * (position.y + 0.3);
             vCloud = position + drift * 0.6;`,
           );
         shader.fragmentShader = shader.fragmentShader
           .replace(
             "#include <common>",
-            `#include <common>\nvarying vec3 vCloud;\n${NOISE_GLSL}`,
+            `#include <common>\nvarying vec3 vCloud;\nvarying float vSmoke;\n${NOISE_GLSL}`,
           )
           .replace(
             "#include <opaque_fragment>",
             `#include <opaque_fragment>
             float facing = abs(dot(normal, normalize(vViewPosition)));
             float wisp = noise3(vCloud * 4.0) * 0.5 + noise3(vCloud * 9.0) * 0.3 + noise3(vCloud * 19.0) * 0.2;
-            gl_FragColor.a *= smoothstep(0.1, 0.95, facing + (wisp - 0.5) * 0.9) * mix(0.55, 1.0, wisp);`,
+            gl_FragColor.a *= smoothstep(0.1, 0.95 + vSmoke * 0.35, facing + (wisp - 0.5) * (0.9 + vSmoke * 0.5)) * mix(0.55 - vSmoke * 0.2, 1.0, wisp);`,
           );
       };
 
@@ -356,7 +365,19 @@ export function CloudSky() {
         demo && host.clientHeight
           ? (0.5 - demo.offsetTop / host.clientHeight) * 2 * halfHeight
           : null;
-      const random = seeded(19);
+      // World height of the subtitle's bottom edge: big clouds stay below it.
+      const subtitle = section?.querySelector("h1")?.parentElement
+        ?.nextElementSibling as HTMLElement | null | undefined;
+      const copyBottom =
+        subtitle && host.clientHeight
+          ? (0.5 -
+              (subtitle.getBoundingClientRect().bottom -
+                host.getBoundingClientRect().top) /
+                host.clientHeight) *
+            2 *
+            halfHeight
+          : null;
+      const random = seeded(Math.floor(Math.random() * 1e6));
       const clouds: {
         group: Object3D;
         speed: number;
@@ -373,31 +394,165 @@ export function CloudSky() {
           camera.position.z - group.position.z,
         );
         const size = SIZES[variant] * (0.85 + depth * 0.3);
-        group.scale.set(flip * size * STRETCH, size, size);
+        // Each one stretched a little differently, so no two read alike.
+        const stretch = 1 + random() * 0.5;
+        group.scale.set(
+          flip * size * stretch,
+          size * (0.85 + random() * 0.25),
+          size,
+        );
         scene.add(group);
         clouds.push({
           group,
-          speed: (dir * 0.33) / Math.sqrt(SIZES[variant]),
+          speed: dir * (0.1 + random() * 0.04),
         });
       };
-      for (let i = 0; i < CLOUD_COUNT; i++) {
-        // Spread across the visible width, either side of the copy.
-        const lane = (i + 0.25 + random() * 0.5) / CLOUD_COUNT;
-        const x = (lane * 2 - 1) * viewHalfWidth;
-        if (i % 3 !== 2 && Math.abs(x) < viewHalfWidth * 0.3) continue;
-        const nearDemo = i % 3 === 2 && demoTop !== null;
-        const y = nearDemo
-          ? demoTop + (random() - 0.3) * 0.8
-          : 1 + random() * 2.4;
-        // Alternate directions, so clouds pass and overlap each other.
-        addCloud(i % SIZES.length, x, y, i % 2 ? -1 : 1);
+      // Scattered like a real sky: a dense bank of small and medium clouds
+      // along the demo card, a few big ones above it, kept off the copy, and
+      // a sprinkle of small ones up under the nav and beside the demo card,
+      // and a few medium and large ones framing the copy.
+      const floor = (demoTop ?? -2) - 1.1;
+      const top = halfHeight - 2.6;
+      const bands: {
+        count: number;
+        low: number;
+        high: number;
+        variants: number[];
+        sides?: [number, number];
+      }[] = [
+        {
+          count: 11,
+          low: floor - 0.4,
+          high: floor + 1.4,
+          variants: [0, 0, 1, 1, 2, 3],
+        },
+        {
+          count: 5,
+          low: floor + 1.4,
+          high: top - 1.8,
+          variants: [1, 2, 3, 4, 4],
+        },
+        { count: 7, low: top - 1.8, high: top, variants: [0, 0, 1] },
+        {
+          count: 6,
+          low: halfHeight - 2.4,
+          high: halfHeight - 0.9,
+          variants: [0, 0, 1, 1, 2],
+        },
+        {
+          count: 6,
+          low: Math.max(floor - 4, 1 - halfHeight),
+          high: floor - 0.6,
+          variants: [0, 1, 1, 2],
+          sides: [0.8, 1.1],
+        },
+        {
+          count: 4,
+          low: floor + 1.2,
+          high: halfHeight - 1.6,
+          variants: [2, 2, 3, 3],
+          sides: [0.42, 0.95],
+        },
+      ];
+      let index = 0;
+      for (const { count, low, high, variants, sides } of bands) {
+        for (let i = 0; i < count; i++) {
+          const variant = variants[Math.floor(random() * variants.length)];
+          let x = sides
+            ? (i % 2 ? -1 : 1) *
+              viewHalfWidth *
+              (sides[0] + random() * (sides[1] - sides[0]))
+            : (random() * 2 - 1) * viewHalfWidth * 1.1;
+          if (variant >= 3 && Math.abs(x) < viewHalfWidth * 0.35) {
+            x = Math.sign(x || 1) * viewHalfWidth * (0.35 + random() * 0.6);
+          }
+          let y = low + random() * (high - low) - 0.8;
+          if (variant >= 3 && copyBottom !== null) {
+            y = Math.min(y, copyBottom - SIZES[variant] * 0.5 - random() * 0.6);
+          }
+          // Alternate directions, so clouds pass and overlap each other.
+          addCloud(variant, x, y, index++ % 2 ? -1 : 1);
+        }
       }
-      // A thin scatter of tiny and small clouds along the top of the sky.
-      for (let i = 0; i < TOP_CLOUD_COUNT; i++) {
-        const lane = (i + 0.2 + random() * 0.6) / TOP_CLOUD_COUNT;
-        const x = (lane * 2 - 1) * viewHalfWidth;
-        const y = halfHeight - 1.3 - random() * 1.4;
-        addCloud(i % 2, x, y, i % 2 ? 1 : -1);
+
+      /* Wisps: small puffs of vapour that tear off a cloud's edge and drift
+         away thinning out, or drift in from nearby and melt into one. Each
+         rides along with its host cloud and fades on its own material. */
+      const hosts = clouds.filter((cloud) => Math.abs(cloud.group.scale.y) > 1);
+      const wisps: {
+        mesh: Mesh;
+        fade: MeshLambertMaterial;
+        host: Object3D;
+        from: [number, number];
+        to: [number, number];
+        size: number;
+        joining: boolean;
+        age: number;
+        life: number;
+      }[] = [];
+      const launch = (wisp: (typeof wisps)[number], age = 0) => {
+        const host = hosts[Math.floor(random() * hosts.length)];
+        if (!host) return;
+        const reach = Math.abs(host.group.scale.x) * 0.6;
+        const side = random() < 0.5 ? -1 : 1;
+        const edge: [number, number] = [
+          side * reach * (0.6 + random() * 0.3),
+          Math.abs(host.group.scale.y) * (random() * 0.35 - 0.05),
+        ];
+        const away: [number, number] = [
+          edge[0] + side * (1.2 + random() * 1.6),
+          edge[1] + (random() - 0.3) * 0.8,
+        ];
+        wisp.joining = random() < 0.4;
+        wisp.from = wisp.joining ? away : edge;
+        wisp.to = wisp.joining ? edge : away;
+        wisp.host = host.group;
+        wisp.size = 0.25 + random() * 0.35;
+        wisp.life = 22 + random() * 16;
+        wisp.age = age;
+        wisp.mesh.rotation.x = host.group.rotation.x;
+        wisp.mesh.scale.x = (random() < 0.5 ? -1 : 1) * wisp.size;
+      };
+      const placeWisp = (wisp: (typeof wisps)[number]) => {
+        const k = wisp.age / wisp.life;
+        const eased = k * k * (3 - 2 * k);
+        const { position } = wisp.host;
+        wisp.mesh.position.set(
+          position.x + wisp.from[0] + (wisp.to[0] - wisp.from[0]) * eased,
+          position.y + wisp.from[1] + (wisp.to[1] - wisp.from[1]) * eased,
+          position.z + 0.3,
+        );
+        // Leaving wisps swell as they thin; joining ones shrink as they merge.
+        const swell = wisp.joining ? 1.2 - 0.5 * k : 0.7 + 0.6 * k;
+        const size = wisp.size * swell;
+        wisp.mesh.scale.set(
+          Math.sign(wisp.mesh.scale.x) * size * 1.4,
+          size,
+          size,
+        );
+        wisp.fade.opacity = Math.min(1, k / 0.2, (1 - k) / 0.35) * 0.85;
+      };
+      for (let i = 0; i < WISP_COUNT && hosts.length; i++) {
+        const fade = material.clone();
+        fade.onBeforeCompile = material.onBeforeCompile;
+        fade.depthWrite = false;
+        const mesh = new THREE.Mesh(shapes[0], fade);
+        scene.add(mesh);
+        const wisp = {
+          mesh,
+          fade,
+          host: mesh,
+          from: [0, 0] as [number, number],
+          to: [0, 0] as [number, number],
+          size: 1,
+          joining: false,
+          age: 0,
+          life: 1,
+        };
+        launch(wisp);
+        wisp.age = random() * wisp.life;
+        placeWisp(wisp);
+        wisps.push(wisp);
       }
 
       let halfWidth = 18;
@@ -449,6 +604,11 @@ export function CloudSky() {
           if (group.position.x > halfWidth) group.position.x = -halfWidth;
           if (group.position.x < -halfWidth) group.position.x = halfWidth;
         }
+        for (const wisp of wisps) {
+          wisp.age += dt;
+          if (wisp.age >= wisp.life) launch(wisp);
+          placeWisp(wisp);
+        }
         renderer.render(scene, camera);
       };
       const intersection = new IntersectionObserver(([entry]) => {
@@ -466,6 +626,7 @@ export function CloudSky() {
         intersection.disconnect();
         for (const shape of shapes) shape.dispose();
         material.dispose();
+        for (const wisp of wisps) wisp.fade.dispose();
         renderer.dispose();
         renderer.domElement.remove();
       };
@@ -480,7 +641,7 @@ export function CloudSky() {
   return (
     <div
       ref={hostRef}
-      className="absolute inset-0 opacity-90 [mask-image:radial-gradient(560px_230px_at_50%_240px,rgb(0_0_0/0.35)_60%,black_100%)]"
+      className="absolute inset-0 opacity-90 blur-[3px] [mask-image:radial-gradient(560px_230px_at_50%_240px,rgb(0_0_0/0.35)_60%,black_100%)]"
     />
   );
 }
