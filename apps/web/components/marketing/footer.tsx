@@ -2,7 +2,7 @@
 
 import NextLink from "next/link";
 import { TOKENS } from "./tokens";
-import { BrandMark } from "../brand-mark";
+import { AppIcon } from "../brand-mark";
 import { DISCORD_URL } from "@/lib/marketing/constants";
 import { DOCS_URL, RELEASES_URL, SOURCE_REPO_URL } from "@/lib/site";
 import { useLocalizedHref } from "./i18n-provider";
@@ -100,7 +100,7 @@ export function Footer() {
               aria-label="CaptureFlow"
               className="inline-flex items-center gap-2 text-fg"
             >
-              <BrandMark size={28} />
+              <AppIcon size={28} />
               <span className="text-lg font-bold tracking-[-0.01em]">
                 CaptureFlow
               </span>

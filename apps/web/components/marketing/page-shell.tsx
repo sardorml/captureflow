@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { Flex } from "./layout";
 import { Button } from "./ui";
 import { TOKENS } from "./tokens";
-import { BrandMark } from "../brand-mark";
+import { AppIcon } from "../brand-mark";
 import { Footer } from "./footer";
 import { MarketingShell } from "./marketing-shell";
 import { useMessages, useLocalizedHref } from "./i18n-provider";
@@ -58,7 +58,7 @@ export function PageShell({
               color: token.colorText,
             }}
           >
-            <BrandMark size={30} />
+            <AppIcon size={30} />
             <span
               style={{
                 fontSize: 20,
