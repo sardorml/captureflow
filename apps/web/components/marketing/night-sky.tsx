@@ -216,7 +216,10 @@ export function NightSky() {
   return (
     <div
       ref={hostRef}
-      className="absolute inset-0 blur-[1px] [mask-image:radial-gradient(900px_320px_at_50%_300px,transparent_50%,black_100%)]"
+      // Two masks intersected: the hole behind the headline, and a fade along
+      // the bottom so the stars thin out before the next section. Masking the
+      // stars is what keeps the page beneath a single flat colour.
+      className="absolute inset-0 blur-[1px] [mask-composite:intersect] [mask-image:radial-gradient(900px_320px_at_50%_300px,transparent_50%,black_100%),linear-gradient(to_bottom,black_45%,transparent_100%)]"
     />
   );
 }

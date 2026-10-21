@@ -13,8 +13,10 @@ export const GRAIN = `url("data:image/svg+xml,${encodeURIComponent(
 
 export function SkyGrain() {
   return (
+    // In dark the grain thins out towards the bottom, like the stars, so the
+    // section ends on the bare canvas rather than a textured edge.
     <div
-      className="absolute inset-0 opacity-[0.18] mix-blend-overlay dark:opacity-[0.04] dark:mix-blend-normal dark:invert"
+      className="absolute inset-0 opacity-[0.18] mix-blend-overlay dark:opacity-[0.04] dark:mix-blend-normal dark:invert dark:[mask-image:linear-gradient(to_bottom,black_45%,transparent_100%)]"
       style={{ backgroundImage: GRAIN, backgroundSize: "180px 180px" }}
     />
   );
@@ -52,9 +54,10 @@ export function SkyBackdrop() {
       <SkyScene />
       <SkyGrain />
       {/* The band blurs what is under it as it fades, so clouds dissolve into
-          the page instead of being cut by it. Dark mode eases out over a
-          taller band, so the stars thin away rather than stopping at a line. */}
-      <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-canvas backdrop-blur-md [mask-image:linear-gradient(to_bottom,transparent,black_60%)] dark:h-[34rem] dark:bg-[linear-gradient(to_bottom,transparent,color-mix(in_srgb,var(--cf-canvas)_25%,transparent)_30%,color-mix(in_srgb,var(--cf-canvas)_70%,transparent)_60%,var(--cf-canvas)_92%)]" />
+          the page instead of being cut by it. Light only: in dark the page is
+          already the canvas, and a translucent canvas gradient over it rounds
+          into visible bands, so the stars fade through their own mask instead. */}
+      <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-canvas backdrop-blur-md [mask-image:linear-gradient(to_bottom,transparent,black_60%)] dark:hidden" />
     </div>
   );
 }
