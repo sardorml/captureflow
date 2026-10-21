@@ -127,7 +127,7 @@ function Sky() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,#b3c8e4_0%,#cbd9ec_45%,#e6edf6_100%)] dark:bg-canvas dark:bg-none"
+      className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(50%_45%_at_82%_0%,rgb(255_196_130/0.6),transparent_70%),linear-gradient(180deg,#a3c9ef_0%,#c2dbf4_45%,#e2eefa_100%)] dark:bg-canvas dark:bg-none"
     >
       <div className="absolute inset-0 bg-canvas/50 dark:hidden" />
       <SkyScene />
