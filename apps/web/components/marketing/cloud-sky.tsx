@@ -5,6 +5,8 @@ import type { Group } from "three";
 
 const CLOUD_COUNT = 16;
 const TOON_STEPS = [214, 255];
+const RENDER_SCALE = 0.35;
+const FRAME_MS = 1000 / 30;
 
 function seeded(seed: number) {
   return () => {
@@ -16,11 +18,13 @@ function seeded(seed: number) {
 /*
  * Cartoon clouds drawn with three.js: each cloud is a row of squashed puffs
  * with one or two big bumps on top, flat white with a two-step toon shade,
- * drifting across at a speed set by depth. They sit along
- * the top and the sides, the layer is blurred, and a mask fades them out
- * behind the headline so they never compete with the copy. Only
- * mounted in light mode. Rendering pauses while the hero is off screen or the
- * tab is hidden, and draws a single still frame under reduced motion.
+ * drifting across at a speed set by depth. They sit along the top and the
+ * sides, and a mask fades them out behind the headline so they never compete
+ * with the copy. The scene renders at a fraction of the screen's resolution
+ * and 30fps: the browser's upscale softens it like a blur would, for a
+ * fraction of the GPU work. Only mounted in light mode. Rendering pauses while
+ * the hero is off screen or the tab is hidden, and draws a single still frame
+ * under reduced motion.
  */
 export function CloudSky() {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -42,7 +46,7 @@ export function CloudSky() {
         antialias: true,
         powerPreference: "low-power",
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+      renderer.setPixelRatio(RENDER_SCALE);
       renderer.setClearColor(0x000000, 0);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.domElement.style.width = "100%";
@@ -73,7 +77,7 @@ export function CloudSky() {
         color: 0xffffff,
         gradientMap: ramp,
       });
-      const puff = new THREE.SphereGeometry(1, 36, 24);
+      const puff = new THREE.SphereGeometry(1, 16, 12);
 
       const addPuff = (
         group: Group,
@@ -161,6 +165,7 @@ export function CloudSky() {
       const tick = () => {
         frame = requestAnimationFrame(tick);
         const now = performance.now();
+        if (now - last < FRAME_MS - 1) return;
         const dt = Math.min((now - last) / 1000, 0.1);
         last = now;
         if (!visible || document.hidden) return;
@@ -200,7 +205,7 @@ export function CloudSky() {
   return (
     <div
       ref={hostRef}
-      className="absolute inset-0 blur-[5px] [mask-image:radial-gradient(900px_320px_at_50%_300px,transparent_50%,black_100%)]"
+      className="absolute inset-0 [mask-image:radial-gradient(900px_320px_at_50%_300px,transparent_50%,black_100%)]"
     />
   );
 }
