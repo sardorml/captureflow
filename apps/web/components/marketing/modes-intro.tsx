@@ -439,7 +439,7 @@ function RecorderMockup() {
         className="absolute rounded-full shadow-[0_28px_56px_rgb(0_0_0/0.165)] dark:shadow-[0_28px_56px_rgb(0_0_0/0.55)]"
         style={{ left: 248, top: 250 }}
       >
-        <Presenter size={150} ring={0} />
+        <Presenter size={150} ring={4} />
       </div>
     </Scaled>
   );
