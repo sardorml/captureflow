@@ -7,12 +7,26 @@ import { useMessages } from "./i18n-provider";
 
 type CardKey = "engineering" | "design" | "support" | "updates";
 
+// Each card takes its own tint, top a shade deeper than the bottom: pastels in
+// light, the same hues sunk into the charcoal in dark.
 const CARDS = [
-  { key: "design" },
-  { key: "engineering" },
-  { key: "support" },
-  { key: "updates" },
-] as const satisfies readonly { key: CardKey }[];
+  {
+    key: "design",
+    tint: "bg-[linear-gradient(180deg,#f9eec8,#fdf7e6)] dark:bg-[linear-gradient(180deg,#2e2812,#1f1c12)]",
+  },
+  {
+    key: "engineering",
+    tint: "bg-[linear-gradient(180deg,#efe4f5,#f8f2fa)] dark:bg-[linear-gradient(180deg,#2a2234,#1d1923)]",
+  },
+  {
+    key: "support",
+    tint: "bg-[linear-gradient(180deg,#e3ecf8,#f0f5fc)] dark:bg-[linear-gradient(180deg,#1b2538,#171b25)]",
+  },
+  {
+    key: "updates",
+    tint: "bg-[linear-gradient(180deg,#e8f4dc,#f4faee)] dark:bg-[linear-gradient(180deg,#1e2b18,#171f15)]",
+  },
+] as const satisfies readonly { key: CardKey; tint: string }[];
 
 /*
  * Scenes are laid out in pixels against this landscape box and scaled as one to
@@ -392,14 +406,18 @@ function ScaledScene({ children }: { children: ReactNode }) {
 function UseCaseCard({
   title,
   body,
+  tint,
   children,
 }: {
   title: string;
   body: string;
+  tint: string;
   children: ReactNode;
 }) {
   return (
-    <article className="flex min-w-0 flex-col overflow-hidden rounded-[28px] border border-line bg-panel-2 transition-transform duration-300 ease-out hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+    <article
+      className={`flex min-w-0 flex-col overflow-hidden rounded-[28px] border border-line bg-panel-2 transition-transform duration-300 ease-out hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${tint}`}
+    >
       <ScaledScene>{children}</ScaledScene>
       <div className="flex flex-col gap-2.5 px-7 pt-7 pb-8">
         <Typography.Heading
@@ -472,6 +490,7 @@ export function UseCasesSection({ headingLevel = 2 }: SectionProps = {}) {
             key={card.key}
             title={copy.cards[card.key].title}
             body={copy.cards[card.key].body}
+            tint={card.tint}
           >
             {scenes[card.key]}
           </UseCaseCard>
