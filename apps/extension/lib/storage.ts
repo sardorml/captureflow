@@ -83,6 +83,18 @@ export const watchCapturePrefs = (
   cb: (prefs: CapturePrefs) => void,
 ): (() => void) => capturePrefsItem.watch(cb);
 
+// Where the user last dragged the camera bubble, in viewport pixels; null
+// means its default corner.
+export type BubblePosition = { left: number; top: number };
+const bubblePositionItem = storage.defineItem<BubblePosition | null>(
+  "local:bubblePosition",
+  { fallback: null },
+);
+export const getBubblePosition = (): Promise<BubblePosition | null> =>
+  bubblePositionItem.getValue();
+export const setBubblePosition = (position: BubblePosition): Promise<void> =>
+  bubblePositionItem.setValue(position);
+
 export const getCameraBlocked = (): Promise<boolean> =>
   cameraBlockedItem.getValue();
 export const setCameraBlocked = (blocked: boolean): Promise<void> =>

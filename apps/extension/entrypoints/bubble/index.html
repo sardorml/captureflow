@@ -46,6 +46,41 @@
       body[data-state="ready"] #spinner {
         display: none;
       }
+      /* Where the camera will be while it's off: the signed-in user's avatar,
+         or their initials on the dashboard's fallback grey. */
+      #avatar {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: #302e2c;
+        color: #fcfcfc;
+        font:
+          500 80px/1 ui-sans-serif,
+          system-ui,
+          -apple-system,
+          sans-serif;
+        letter-spacing: -0.02em;
+      }
+      #avatar img {
+        display: none;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      #avatar[data-has-image="true"] img {
+        display: block;
+      }
+      #avatar[data-has-image="true"] span {
+        display: none;
+      }
+      body[data-mode="placeholder"] #avatar {
+        display: flex;
+      }
+      body[data-mode="placeholder"] #cam {
+        display: none;
+      }
       @keyframes spin {
         to {
           transform: rotate(360deg);
@@ -62,6 +97,10 @@
     <div id="bubble">
       <video id="cam" autoplay muted playsinline></video>
       <div id="spinner"></div>
+      <div id="avatar" aria-hidden="true">
+        <img id="avatar-image" alt="" />
+        <span id="avatar-initials"></span>
+      </div>
     </div>
     <script type="module" src="./main.ts"></script>
   </body>

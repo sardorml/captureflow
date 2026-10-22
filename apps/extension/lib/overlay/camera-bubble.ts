@@ -3,14 +3,20 @@ export const GRANT_FRAME_ID = "captureflow-media-grant";
 
 /*
  * Injected via chrome.scripting (serialized): mounts/re-points a circular
- * extension-origin iframe previewing the camera. Args only — the serialized body
- * can't close over module scope.
+ * extension-origin iframe previewing the camera, or standing in for it while
+ * the camera is off. The bubble drags, and reports where it was dropped as a
+ * raw runtime message so the worker can put it back there next time. Args
+ * only — the serialized body can't close over module scope.
  */
-export function mountCameraBubble(frameUrl: string, frameId: string): void {
+export function mountCameraBubble(
+  frameUrl: string,
+  frameId: string,
+  position: { left: number; top: number } | null,
+): void {
   const existing = document.getElementById(frameId);
   if (existing) {
     const frame = existing.querySelector("iframe");
-    if (frame) frame.src = frameUrl;
+    if (frame && frame.src !== frameUrl) frame.src = frameUrl;
     return;
   }
   /*
@@ -23,16 +29,46 @@ export function mountCameraBubble(frameUrl: string, frameId: string): void {
   const root = document.createElement("div");
   root.id = frameId;
   root.style.cssText =
-    "position:fixed;bottom:24px;left:24px;width:220px;height:220px;" +
-    "z-index:2147483647;pointer-events:none;overflow:hidden;" +
-    "border-radius:50%;background:#16181d;";
+    "position:fixed;width:220px;height:220px;z-index:2147483647;" +
+    "overflow:hidden;border-radius:50%;background:#16181d;" +
+    "cursor:grab;touch-action:none;user-select:none;" +
+    (position
+      ? `left:${position.left}px;top:${position.top}px;`
+      : "bottom:24px;left:24px;");
 
+  // The frame has nothing to click, so pointer events stay on the root,
+  // which is what makes the whole circle a drag handle.
   const iframe = document.createElement("iframe");
   iframe.src = frameUrl;
   iframe.allow = "camera; microphone";
   iframe.style.cssText =
     "position:absolute;inset:0;width:100%;height:100%;border:0;" +
-    "border-radius:50%;background:transparent;";
+    "border-radius:50%;background:transparent;pointer-events:none;";
+
+  root.addEventListener("pointerdown", (event) => {
+    const rect = root.getBoundingClientRect();
+    const dx = event.clientX - rect.left;
+    const dy = event.clientY - rect.top;
+    let left = rect.left;
+    let top = rect.top;
+    root.setPointerCapture(event.pointerId);
+    root.style.cursor = "grabbing";
+    const move = (ev: PointerEvent) => {
+      left = Math.min(Math.max(0, ev.clientX - dx), innerWidth - rect.width);
+      top = Math.min(Math.max(0, ev.clientY - dy), innerHeight - rect.height);
+      root.style.left = `${left}px`;
+      root.style.top = `${top}px`;
+      root.style.bottom = "auto";
+    };
+    const up = () => {
+      root.removeEventListener("pointermove", move);
+      root.removeEventListener("pointerup", up);
+      root.style.cursor = "grab";
+      chrome.runtime.sendMessage({ bubbleMoved: { left, top } });
+    };
+    root.addEventListener("pointermove", move);
+    root.addEventListener("pointerup", up);
+  });
 
   root.append(iframe);
   document.documentElement.appendChild(root);

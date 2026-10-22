@@ -43,6 +43,9 @@ type ProtocolMap = {
   ensureMediaGrant(): void;
   mediaGrantResult(input: { granted: boolean; denied: boolean }): void;
   closeRecorderOverlay(): void;
+  // SW→page: while the panel is open the control bar shows where it will
+  // sit, disabled, so the recording's chrome is in view before it starts.
+  panelPreview(on: boolean): void;
   setOverlayVisible(input: { visible: boolean }): void;
   setOverlayHeight(input: { height: number }): void;
   startRecording(): StartResult;
