@@ -3,6 +3,7 @@ import { getDeviceId } from "./device-id";
 import {
   clearAuthSession,
   getAuthSession,
+  setUserProfile,
   type SignedOutReason,
 } from "./session";
 
@@ -52,8 +53,10 @@ export async function reconcileAuthSession(
   const session = await getAuthSession();
   if (!session) return "in-sync";
   const deviceId = await getDeviceId();
-  const verdict = decideAuthSync(await checkAuth(deviceId, session.token), web);
+  const result = await checkAuth(deviceId, session.token);
+  const verdict = decideAuthSync(result, web);
   if (isDesynced(verdict)) await clearAuthSession(verdict);
+  else await rememberProfile(result);
   return verdict;
 }
 
@@ -65,4 +68,11 @@ export async function probeAuthSession(): Promise<void> {
   const deviceId = await getDeviceId();
   const result = await checkAuth(deviceId, session.token);
   if (result.kind === "invalid") await clearAuthSession("revoked");
+  else await rememberProfile(result);
+}
+
+async function rememberProfile(result: AuthCheckResult): Promise<void> {
+  if (result.kind === "ok" && result.profile) {
+    await setUserProfile(result.profile);
+  }
 }

@@ -57,6 +57,25 @@ export async function getOwnerName(userId: string): Promise<string | null> {
   return r?.name ?? null;
 }
 
+export type UserProfile = {
+  name: string | null;
+  email: string;
+  image: string | null;
+};
+
+export async function getUserProfile(
+  userId: string,
+): Promise<UserProfile | null> {
+  const env = await getCloudflareEnv();
+  if (!env?.DB) return null;
+  const r = await env.DB.prepare(
+    `SELECT name, email, image FROM users WHERE id = ?1 LIMIT 1`,
+  )
+    .bind(userId)
+    .first<{ name: string | null; email: string; image: string | null }>();
+  return r ? { name: r.name, email: r.email, image: r.image } : null;
+}
+
 export async function totalStorageForDevice(deviceId: string): Promise<number> {
   return (await resolveDb()).totalStorageForDevice(deviceId);
 }

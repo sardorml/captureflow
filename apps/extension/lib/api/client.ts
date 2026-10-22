@@ -1,4 +1,5 @@
 import { WEB_BASE } from "../config";
+import type { UserProfile } from "../auth/session";
 import type {
   AbortRequest,
   FinalizeRequest,
@@ -114,9 +115,26 @@ const partPath = (route: string, slug: string, partNumber: number): string =>
   `/${route}?slug=${encodeURIComponent(slug)}&part=${partNumber}`;
 
 export type AuthCheckResult =
-  | { kind: "ok"; userId: string }
+  | { kind: "ok"; userId: string; profile?: UserProfile }
   | { kind: "invalid" }
   | { kind: "unreachable" };
+
+const optionalString = (value: unknown): string | null =>
+  typeof value === "string" && value.length > 0 ? value : null;
+
+// The token's owner as the server last described them; a server that predates
+// the profile fields answers with the id alone.
+function hydrateProfile(
+  body: Record<string, unknown>,
+): UserProfile | undefined {
+  const email = optionalString(body.email);
+  if (!email) return undefined;
+  return {
+    name: optionalString(body.name),
+    email,
+    image: optionalString(body.image),
+  };
+}
 
 /*
  * 401 → sign-in revoked (clear the local session); network/5xx → inconclusive,
@@ -133,11 +151,13 @@ export async function checkAuth(
       headers: recordingHeaders(deviceId, token),
     });
     if (res.ok) {
-      const body = (await res.json().catch(() => null)) as {
-        userId?: unknown;
-      } | null;
-      return typeof body?.userId === "string" && body.userId.length > 0
-        ? { kind: "ok", userId: body.userId }
+      const body = (await res.json().catch(() => null)) as Record<
+        string,
+        unknown
+      > | null;
+      const userId = optionalString(body?.userId);
+      return body && userId
+        ? { kind: "ok", userId, profile: hydrateProfile(body) }
         : { kind: "unreachable" };
     }
     return res.status === 401 ? { kind: "invalid" } : { kind: "unreachable" };
