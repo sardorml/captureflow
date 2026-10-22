@@ -98,6 +98,20 @@ export const getBubblePosition = (): Promise<BubblePosition | null> =>
 export const setBubblePosition = (position: BubblePosition): Promise<void> =>
   bubblePositionItem.setValue(position);
 
+// The panel's theme. "system" defers to the OS and is resolved at paint; the
+// names match the dashboard's so the two pickers read alike.
+export type ThemePreference = "light" | "dark" | "system";
+const themeItem = storage.defineItem<ThemePreference>("local:themePreference", {
+  fallback: "system",
+});
+export const getThemePreference = (): Promise<ThemePreference> =>
+  themeItem.getValue();
+export const setThemePreference = (theme: ThemePreference): Promise<void> =>
+  themeItem.setValue(theme);
+export const watchThemePreference = (
+  cb: (theme: ThemePreference) => void,
+): (() => void) => themeItem.watch(cb);
+
 export const getCameraBlocked = (): Promise<boolean> =>
   cameraBlockedItem.getValue();
 export const setCameraBlocked = (blocked: boolean): Promise<void> =>

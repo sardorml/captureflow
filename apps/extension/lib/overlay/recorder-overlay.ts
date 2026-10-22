@@ -20,6 +20,7 @@ export function toggleRecorderOverlay(
   frameUrl: string,
   frameId: string,
   backdropId: string,
+  theme: "light" | "dark" | "system",
 ): boolean {
   const existing = document.getElementById(frameId);
   if (existing) {
@@ -28,10 +29,18 @@ export function toggleRecorderOverlay(
     return false;
   }
 
+  // "system" resolves here, on the page, where the OS setting is readable;
+  // the worker has no matchMedia. Dim and veil are repeated verbatim in
+  // setRecorderBackdropTheme, since this body can't share a module constant.
+  const dark =
+    theme === "dark" ||
+    (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
   const backdrop = document.createElement("div");
   backdrop.id = backdropId;
   backdrop.style.cssText =
-    "position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.67);";
+    "position:fixed;inset:0;z-index:2147483646;background:" +
+    (dark ? "rgba(0,0,0,.67)" : "rgba(246,245,241,.72)") +
+    ";";
   backdrop.addEventListener("click", () => {
     backdrop.remove();
     document.getElementById(frameId)?.remove();
@@ -101,6 +110,17 @@ export function removeRecorderOverlay(
 ): void {
   document.getElementById(frameId)?.remove();
   document.getElementById(backdropId)?.remove();
+}
+
+// The panel repaints the backdrop when its theme changes while it is open.
+export function setRecorderBackdropTheme(
+  theme: "light" | "dark",
+  backdropId: string,
+): void {
+  const backdrop = document.getElementById(backdropId);
+  if (!backdrop) return;
+  backdrop.style.background =
+    theme === "dark" ? "rgba(0,0,0,.67)" : "rgba(246,245,241,.72)";
 }
 
 // Screenshot capture hides the overlay for a frame so the dim and panel

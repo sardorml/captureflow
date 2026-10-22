@@ -11,6 +11,7 @@ import {
   getBubblePosition,
   getCapturePrefs,
   getRecordingStatus,
+  getThemePreference,
   setActiveUpload,
   setBubblePosition,
   setCameraBlocked,
@@ -45,6 +46,7 @@ import {
   RECORDER_FRAME_ID,
   removeRecorderOverlay,
   setRecorderOverlayHeight,
+  setRecorderBackdropTheme,
   setRecorderOverlayVisible,
   toggleRecorderOverlay,
 } from "@/lib/overlay/recorder-overlay";
@@ -310,6 +312,7 @@ async function toggleOverlayOnActiveTab(): Promise<void> {
       chrome.runtime.getURL("popup.html?overlay=1"),
       RECORDER_FRAME_ID,
       RECORDER_BACKDROP_ID,
+      await getThemePreference(),
     ],
   });
   // A second click closes the panel, and the camera preview goes with it.
@@ -504,6 +507,20 @@ export default defineBackground(() => {
   onMessage("closeRecorderOverlay", ({ sender }) =>
     closeRecorderOverlay(sender?.tab?.id),
   );
+
+  onMessage("setOverlayTheme", async ({ data, sender }) => {
+    const target = sender?.tab?.id ?? overlayTabId;
+    if (target === undefined) return;
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: target },
+        func: setRecorderBackdropTheme,
+        args: [data, RECORDER_BACKDROP_ID],
+      });
+    } catch {
+      /* tab closed or no longer injectable */
+    }
+  });
 
   onMessage("setOverlayVisible", async ({ data, sender }) => {
     const target = sender?.tab?.id ?? overlayTabId;

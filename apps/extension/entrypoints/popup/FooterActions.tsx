@@ -5,8 +5,12 @@ import { sendMessage } from "@/lib/messaging";
 import { WEB_BASE } from "@/lib/config";
 import {
   getCapturePrefs,
+  getThemePreference,
   setCapturePrefs,
+  setThemePreference,
   watchCapturePrefs,
+  watchThemePreference,
+  type ThemePreference,
 } from "@/lib/storage";
 import { closeSurface } from "@/lib/surface";
 import { MENU_CHECK, MENU_ITEM, MENU_LIST, MENU_POPOVER } from "./panel";
@@ -76,6 +80,72 @@ const MORE_ICON = (
     <circle cx="5" cy="12" r="1.8" fill="currentColor" />
     <circle cx="12" cy="12" r="1.8" fill="currentColor" />
     <circle cx="19" cy="12" r="1.8" fill="currentColor" />
+  </svg>
+);
+
+const PALETTE_ICON = (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+    <path
+      d="M12 3a9 9 0 1 0 0 18c1.3 0 2-.9 2-2 0-.6-.3-1-.6-1.4-.3-.4-.4-.8-.4-1.1 0-1 .9-1.5 2-1.5h1.5A4.5 4.5 0 0 0 21 10.5C21 6.4 17 3 12 3z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <circle cx="7.5" cy="11.5" r="1.3" fill="currentColor" />
+    <circle cx="10.5" cy="7.5" r="1.3" fill="currentColor" />
+    <circle cx="15" cy="7.5" r="1.3" fill="currentColor" />
+  </svg>
+);
+
+const SUN_ICON = (
+  <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+    <circle
+      cx="12"
+      cy="12"
+      r="4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    />
+    <path
+      d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const MOON_ICON = (
+  <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+    <path
+      d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const MONITOR_ICON = (
+  <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+    <rect
+      x="3"
+      y="4"
+      width="18"
+      height="12"
+      rx="2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    />
+    <path
+      d="M8 20h8M12 16v4"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -152,6 +222,57 @@ function VisibilityAction() {
   );
 }
 
+const THEMES: { value: ThemePreference; label: string; icon: ReactNode }[] = [
+  { value: "light", label: "Light", icon: SUN_ICON },
+  { value: "dark", label: "Dark", icon: MOON_ICON },
+  { value: "system", label: "System", icon: MONITOR_ICON },
+];
+
+// The dashboard's theme row: a label with the segmented control inline.
+function ThemeRow() {
+  const [preference, setPreference] = useState<ThemePreference>("system");
+
+  useEffect(() => {
+    void getThemePreference().then(setPreference);
+    return watchThemePreference(setPreference);
+  }, []);
+
+  return (
+    <div className="flex items-center justify-between gap-3 px-5 py-3">
+      <span className="flex items-center gap-2 text-sm">
+        {PALETTE_ICON}
+        Theme
+      </span>
+      <div
+        role="radiogroup"
+        aria-label="Theme"
+        className="flex items-center gap-0.5 rounded-full bg-overlay p-0.5"
+      >
+        {THEMES.map(({ value, label, icon }) => {
+          const on = value === preference;
+          return (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              aria-label={label}
+              onClick={() => void setThemePreference(value)}
+              className={`flex size-7 cursor-pointer items-center justify-center rounded-full outline-none transition-colors motion-reduce:transition-none ${
+                on
+                  ? "bg-background text-foreground"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              {icon}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function FooterActions() {
   const openDashboard = () => {
     void chrome.tabs.create({ url: `${WEB_BASE}/recordings` });
@@ -170,12 +291,22 @@ export function FooterActions() {
           {MORE_ICON}
           More
         </Dropdown.Trigger>
-        <Dropdown.Popover placement="top">
-          <Dropdown.Menu>
-            <Dropdown.Item onAction={openDashboard}>
+        <Dropdown.Popover placement="top" className={MENU_POPOVER}>
+          {/* Outside the Menu: an item would close the popover on each press,
+              and the theme is something to flick between. */}
+          <ThemeRow />
+          <Dropdown.Menu className={`${MENU_LIST} border-t border-separator`}>
+            <Dropdown.Item onAction={openDashboard} className={MENU_ITEM}>
               Open dashboard
             </Dropdown.Item>
-            <Dropdown.Item onAction={onSignOut}>Sign out</Dropdown.Item>
+            {/* The text carries its own colour: the item's is overridden by
+                HeroUI's label styling, so it never reached the words. */}
+            <Dropdown.Item
+              onAction={onSignOut}
+              className={`${MENU_ITEM} hover:bg-danger data-[focus-visible=true]:bg-danger [&:hover_span]:text-white [&[data-focus-visible=true]_span]:text-white`}
+            >
+              <span className="text-danger">Sign out</span>
+            </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown.Popover>
       </Dropdown>

@@ -1,22 +1,52 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
-/* The panel is dark-only, so index.html pins data-theme="dark" and every
-   surface/text colour comes from HeroUI's dark theme. */
 /*
- * HeroUI's dark background is #060607 — right for a full-page app, but at this
- * size floating over someone else's page it reads as a hole punched in the
- * page rather than a panel. Lift it, and carry the rows and menus with it so
- * the steps between them survive.
+ * The dashboard's palette, keyed on the data-theme that theme.ts paints onto
+ * <html>. The unprefixed names are HeroUI's own theming hooks, set on
+ * purpose; the cf- ones are the panel's own: the source row's ring, the
+ * chosen menu row, and the crossed device icon.
  */
-body {
-  --background: #1f1f21;
-  --surface: #303134;
-  --overlay: #2b2b2e;
-  --separator: #37373a;
-  --border: #37373a;
-  --accent: #3267d4;
+html[data-theme="dark"] body {
+  --background: #201f1d;
+  --foreground: #fcfcfc;
+  --surface: #2a2927;
+  --overlay: #2a2927;
+  --separator: #363432;
+  --border: #363432;
+  --default: #302e2c;
+  --accent: #0485f7;
+  --cf-ring: #8ec4fb;
+  --cf-selected: color-mix(in srgb, #0485f7 22%, #201f1d);
+  --cf-off: #e8796e;
+  --cf-shadow: rgb(0 0 0 / 0.45);
+}
 
+html[data-theme="light"] body {
+  --background: #fffefc;
+  --foreground: #1a1919;
+  --surface: #f2f1ed;
+  --overlay: #edebe6;
+  --separator: #e6e3dd;
+  --border: #e6e3dd;
+  --default: #edebe6;
+  --accent: #0485f7;
+  --cf-ring: #8ec4fb;
+  --cf-selected: color-mix(in srgb, #0485f7 12%, #fffefc);
+  --cf-off: #d9534a;
+  --cf-shadow: rgb(20 15 10 / 0.16);
+}
+
+/*
+ * Pinned dark whatever the theme: the overlay frame declares color-scheme
+ * dark, and a document whose scheme differs from its frame's has its
+ * transparent canvas repainted opaque white, over the page.
+ */
+html {
+  color-scheme: dark;
+}
+
+body {
   margin: 0;
   width: 280px;
   /* Hard stop: the popup window is sized from content, so anything that
@@ -49,7 +79,9 @@ body.cf-overlay {
 body.cf-overlay #root {
   width: 280px;
   margin-inline-start: auto;
-  border: 1px solid #2b2b2e;
+  border: 1px solid var(--separator);
   border-radius: 20px;
+  /* Within the frame's 25px inset, so the blur has room instead of a clip. */
+  box-shadow: 0 4px 18px var(--cf-shadow);
   background: var(--background);
 }

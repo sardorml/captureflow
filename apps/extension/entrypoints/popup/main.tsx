@@ -3,7 +3,10 @@ import { createRoot } from "react-dom/client";
 import { closeSurface, isOverlaySurface } from "@/lib/surface";
 import { sendMessage } from "@/lib/messaging";
 import { App } from "./App";
+import { keepThemePainted } from "./theme";
 import "./popup.css";
+
+keepThemePainted();
 
 // The SW sizes the overlay iframe to the panel's content height.
 if (isOverlaySurface) {

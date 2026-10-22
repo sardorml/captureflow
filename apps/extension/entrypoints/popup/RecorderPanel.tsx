@@ -127,7 +127,7 @@ function SourcePicker() {
           accent instead of sitting in the same grey as the device rows. */}
       <Dropdown.Trigger
         aria-label="Capture source"
-        className={`${PANEL_ROW} w-full cursor-pointer border-2 border-[#98b7f1] bg-[#3267d4] text-start text-white outline-none`}
+        className={`${PANEL_ROW} w-full cursor-pointer border-2 border-(--cf-ring) bg-accent text-start text-white outline-none`}
       >
         <span className="flex" aria-hidden>
           {selected.icon}

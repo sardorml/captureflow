@@ -243,7 +243,7 @@ export function App() {
             the two icon buttons push the document past the body width — the
             popup ends up scrolled with the left edge cut off. The bang is
             load-bearing: that selector outranks a plain utility. */}
-          <Tabs.ListContainer className="w-max rounded-[14px] border border-[#28282b] bg-overlay p-1">
+          <Tabs.ListContainer className="w-max rounded-[14px] border border-separator bg-overlay p-1">
             <Tabs.List className="w-max min-w-0! gap-0 p-0">
               <Tabs.Tab
                 id="video"

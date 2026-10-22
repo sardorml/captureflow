@@ -155,7 +155,7 @@ function DeviceRow({
         className={`${PANEL_ROW_GREY} relative w-full cursor-pointer overflow-hidden text-start outline-none`}
       >
         <span
-          className={`flex shrink-0 ${on ? "text-foreground" : "text-[#e8796e]"}`}
+          className={`flex shrink-0 ${on ? "text-foreground" : "text-(--cf-off)"}`}
           aria-hidden
         >
           {deviceIcon(shape, !on)}
@@ -178,7 +178,7 @@ function DeviceRow({
           className={MENU_LIST}
         >
           <Dropdown.Item id={OFF_KEY} className={MENU_ITEM}>
-            <span className="flex text-[#e8796e]" aria-hidden>
+            <span className="flex text-(--cf-off)" aria-hidden>
               {deviceIcon(shape, true)}
             </span>
             {offLabel}

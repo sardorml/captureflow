@@ -49,6 +49,8 @@ type ProtocolMap = {
   // SW→page: while the panel is open the control bar shows where it will
   // sit, disabled, so the recording's chrome is in view before it starts.
   panelPreview(on: boolean): void;
+  // panel→SW: the page-side backdrop follows the panel's painted theme.
+  setOverlayTheme(theme: "light" | "dark"): void;
   setOverlayVisible(input: { visible: boolean }): void;
   setOverlayHeight(input: { height: number }): void;
   startRecording(): StartResult;
