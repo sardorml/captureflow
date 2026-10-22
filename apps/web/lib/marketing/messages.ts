@@ -135,11 +135,10 @@ export const MESSAGES = {
     panel: {
       sourceAria: "Capture source",
       source: "Full screen",
-      sourceHint: "Pick at start",
       camera: "Camera",
       microphone: "Microphone",
-      on: "On",
       startRecording: "Start Recording",
+      public: "Public",
       more: "More",
     },
     scene: {

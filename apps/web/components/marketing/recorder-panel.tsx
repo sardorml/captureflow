@@ -5,14 +5,12 @@ import { useMessages } from "./i18n-provider";
 
 /*
  * Every glyph in the panel is the extension's own SVG, copied from
- * apps/extension/entrypoints/popup/*, rather than the nearest lucide icon: two
- * icons drawn to different shares of their box read as different sizes side by
- * side, which is exactly what a portrait of the panel can't afford. Sizes are
- * the ones that end up on screen — the header pair is 20px because HeroUI's
- * Button sizes any icon inside it, the rest keep the size on the tag.
+ * apps/extension/entrypoints/popup/*, at the size it has there: two icons
+ * drawn to different shares of their box read as different sizes side by
+ * side, which is exactly what a portrait of the panel can't afford.
  */
 const HOME_ICON = (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
     <path
       d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5z"
       fill="none"
@@ -24,7 +22,7 @@ const HOME_ICON = (
 );
 
 const VIDEO_ICON = (
-  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
     <rect
       x="3"
       y="6.5"
@@ -46,7 +44,7 @@ const VIDEO_ICON = (
 );
 
 const PHOTO_ICON = (
-  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
     <path
       d="M8.5 6.5 10 4.5h4l1.5 2H19a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 19 19.5H5A1.5 1.5 0 0 1 3.5 18V8A1.5 1.5 0 0 1 5 6.5h3.5z"
       fill="none"
@@ -77,7 +75,7 @@ const CLOSE_ICON = (
 );
 
 const SCREEN_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
     <rect
       x="3"
       y="5"
@@ -98,7 +96,7 @@ const SCREEN_ICON = (
 );
 
 const CAMERA_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
     <rect
       x="3"
       y="6.5"
@@ -120,7 +118,7 @@ const CAMERA_ICON = (
 );
 
 const MIC_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
     <rect
       x="9"
       y="3.5"
@@ -141,17 +139,30 @@ const MIC_ICON = (
   </svg>
 );
 
-// Points up because the panel's menu opens upward out of the footer.
-const MORE_ICON = (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
-    <path
-      d="m7 14 5-5 5 5"
+const GLOBE_ICON = (
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
+    <circle
+      cx="12"
+      cy="12"
+      r="8.5"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
     />
+    <path
+      d="M3.5 12h17M12 3.5c2.6 2.6 2.6 14.4 0 17M12 3.5c-2.6 2.6-2.6 14.4 0 17"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
+const MORE_ICON = (
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
+    <circle cx="5" cy="12" r="1.8" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.8" fill="currentColor" />
+    <circle cx="19" cy="12" r="1.8" fill="currentColor" />
   </svg>
 );
 
@@ -164,30 +175,21 @@ const MODES = [
 ] as const;
 
 /*
- * The panel is a portrait of the extension popup, so its palette is the
- * extension's own rather than anything from this page's theme — HeroUI's dark
- * tokens, plus the three surfaces popup.css lifts (a panel floating over
- * someone else's page can't sit at HeroUI's near-black). Values are copied from
- * @heroui/styles' dark theme and apps/extension/entrypoints/popup/popup.css;
- * they are scoped here so the mockup reads the same under either page theme.
+ * The panel is a portrait of the extension popup in its dark theme, so its
+ * palette is scoped here rather than taken from this page's theme: the values
+ * are popup.css's dark block, which is this site's own dark palette, and the
+ * mockup reads the same under either page theme.
  */
 const EXT_PALETTE = {
-  "--cf-ext-background": "#303030",
-  "--cf-ext-surface": "#404040",
-  "--cf-ext-foreground": "oklch(0.9911 0 0)",
-  "--cf-ext-muted": "oklch(70.5% 0.015 286.067)",
-  "--cf-ext-border": "oklch(28% 0.006 286.033)",
-  "--cf-ext-separator": "oklch(25% 0.006 286.033)",
-  "--cf-ext-accent": "oklch(0.6204 0.195 253.83)",
-  "--cf-ext-accent-soft":
-    "color-mix(in oklab, oklch(0.6204 0.195 253.83) 12%, transparent)",
-  "--cf-ext-accent-soft-foreground":
-    "color-mix(in oklab, oklch(0.6204 0.195 253.83) 80%, oklch(0.9911 0 0) 30%)",
-  "--cf-ext-success": "oklch(0.7329 0.1935 150.81)",
-  "--cf-ext-default": "oklch(27.4% 0.006 286.033)",
-  "--cf-ext-segment": "oklch(0.3964 0.01 285.93)",
-  // The one committing action carries its own warm fill, not the accent.
-  "--cf-ext-start": "#e8563a",
+  "--cf-ext-background": "#201f1d",
+  "--cf-ext-surface": "#2a2927",
+  "--cf-ext-foreground": "#fcfcfc",
+  "--cf-ext-muted": "#a3a19d",
+  "--cf-ext-separator": "#363432",
+  "--cf-ext-accent": "#0485f7",
+  "--cf-ext-ring": "#8ec4fb",
+  // The one committing action carries its own brick-red fill, not the accent.
+  "--cf-ext-start": "#bc381c",
 } as CSSProperties;
 
 // The panel is authored at the extension popup's own width and scaled as a
@@ -196,54 +198,29 @@ const EXT_PALETTE = {
 // step with apps/extension/entrypoints/popup/popup.css.
 const PANEL_WIDTH = 280;
 
+// The popup's PANEL_ROW: 50px tall, 14px radius, 16px inline padding, a
+// 15px semibold label beside a 24px icon.
 const ROW =
-  "flex items-center gap-2.5 rounded-xl bg-[color:var(--cf-ext-surface)] px-2.5 py-2";
-
-function StatePill({ on, label }: { on: boolean; label: string }) {
-  return (
-    <span
-      className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${
-        on
-          ? "border-[color:var(--cf-ext-success)] text-[color:var(--cf-ext-success)]"
-          : "border-[color:var(--cf-ext-separator)] text-[color:var(--cf-ext-muted)]"
-      }`}
-    >
-      {label}
-    </span>
-  );
-}
+  "flex h-[50px] items-center gap-2 rounded-[14px] px-4 text-[15px] font-semibold";
+const ROW_GREY = `${ROW} border border-[color:var(--cf-ext-separator)] bg-[color:var(--cf-ext-surface)]`;
 
 function DeviceRow({
   icon,
   label,
-  on,
-  onLabel,
   meter,
-  ref,
 }: {
   icon: ReactNode;
   label: string;
-  on: boolean;
-  onLabel: string;
   meter?: boolean;
-  ref?: (el: HTMLDivElement | null) => void;
 }) {
   return (
     <div
-      ref={ref}
-      className={`${ROW} relative overflow-hidden text-[color:var(--cf-ext-foreground)] ${
-        on ? "outline outline-[color:var(--cf-ext-border)]" : ""
-      }`}
+      className={`${ROW_GREY} relative overflow-hidden text-[color:var(--cf-ext-foreground)]`}
     >
       <span className="flex shrink-0" aria-hidden>
         {icon}
       </span>
-      {/* The popup names the device through a Select, whose trigger is
-          min-h-9 — that, not the label, is what sets the row's height. */}
-      <span className="flex min-h-9 min-w-0 flex-1 items-center">
-        <span className="truncate text-sm font-medium">{label}</span>
-      </span>
-      <StatePill on={on} label={onLabel} />
+      <span className="min-w-0 flex-1 truncate">{label}</span>
       {meter && (
         // Mic level: a Meter pinned along the row's bottom edge, accent-filled.
         <span
@@ -256,13 +233,12 @@ function DeviceRow({
   );
 }
 
-// Measured off the panel's own trigger: 40px tall, 24px radius, 1px border in
-// --cf-ext-border, 14px/500 label, 8px gap, 16px inline padding.
-function ToolButton({ icon, label }: { icon: ReactNode; label: string }) {
+// The popup's footer action: a 22px icon over a 12px label.
+function FooterAction({ icon, label }: { icon: ReactNode; label: string }) {
   return (
-    <span className="flex h-10 w-full items-center justify-center gap-2 rounded-3xl border border-[color:var(--cf-ext-border)] px-4 text-sm font-medium text-[color:var(--cf-ext-foreground)]">
-      {label}
+    <span className="flex flex-col items-center gap-1 px-3 py-1 text-xs text-[color:var(--cf-ext-muted)]">
       {icon}
+      {label}
     </span>
   );
 }
@@ -273,27 +249,26 @@ export function RecorderPanel() {
   const copy = m.modes.panel;
   return (
     <div
-      className="relative flex flex-col gap-2.5 rounded-2xl bg-[color:var(--cf-ext-background)] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
+      className="relative flex flex-col gap-5 rounded-[20px] border border-[color:var(--cf-ext-separator)] bg-[color:var(--cf-ext-background)] px-[19px] pt-4 pb-5 text-[color:var(--cf-ext-foreground)] shadow-[0_4px_18px_rgb(0_0_0/0.45)]"
       style={{ ...EXT_PALETTE, width: PANEL_WIDTH }}
     >
-      <header className="flex items-center justify-between gap-2 text-[color:var(--cf-ext-foreground)]">
-        <span className="flex h-10 w-10 items-center justify-center">
+      <header className="flex items-center justify-between gap-2">
+        <span className="flex size-10 items-center justify-center">
           {HOME_ICON}
         </span>
 
-        {/* Tabs: the list container paints the track, and the
-                          selected tab gets the segment pill with an accent
-                          glyph — HeroUI's indicator, not a white chip. */}
-        <div className="inline-flex rounded-[20px] bg-[color:var(--cf-ext-default)] p-1">
+        {/* The mode switch: a bordered track on the row colour, the selected
+            tab on a pill of the card colour with an accent glyph. */}
+        <div className="inline-flex rounded-[14px] border border-[color:var(--cf-ext-separator)] bg-[color:var(--cf-ext-surface)] p-1">
           {MODES.map((mode, i) => {
             const isActive = i === 0;
             return (
               <span
                 key={mode.key}
                 aria-label={m.modes.tabs[mode.key].label}
-                className={`flex h-8 items-center justify-center rounded-3xl px-4 ${
+                className={`flex h-10 items-center justify-center rounded-[10px] px-[21px] ${
                   isActive
-                    ? "bg-[color:var(--cf-ext-segment)] text-[color:var(--cf-ext-accent)]"
+                    ? "bg-[color:var(--cf-ext-background)] text-[color:var(--cf-ext-accent)]"
                     : "text-[color:var(--cf-ext-muted)]"
                 }`}
               >
@@ -303,56 +278,35 @@ export function RecorderPanel() {
           })}
         </div>
 
-        <span className="flex h-10 w-10 items-center justify-center">
+        <span className="flex size-10 items-center justify-center">
           {CLOSE_ICON}
         </span>
       </header>
 
-      {/* HeroUI's Tabs.Panel pads the active panel, so the rows
-                    are inset from the panel's own p-3 by another 8px. */}
-      <div className="p-2">
-        <div className="flex flex-col gap-2">
-          {/* The source is the panel's headline choice, so the row
-                          carries the accent the device rows don't. */}
-          <div
-            className={`${ROW} bg-[color:var(--cf-ext-accent-soft)] text-[color:var(--cf-ext-accent-soft-foreground)]`}
-            aria-label={copy.sourceAria}
-          >
-            <span className="flex shrink-0" aria-hidden>
-              {SCREEN_ICON}
-            </span>
-            <span className="flex-1 truncate text-sm font-semibold">
-              {copy.source}
-            </span>
-            <span className="text-xs opacity-70">{copy.sourceHint}</span>
-          </div>
-
-          {/* The device rows sit closer to each other than to the
-                          source above them, as they do in the popup. */}
-          <section className="flex flex-col gap-1.5">
-            <DeviceRow
-              icon={CAMERA_ICON}
-              label={copy.camera}
-              on
-              onLabel={copy.on}
-            />
-            <DeviceRow
-              icon={MIC_ICON}
-              label={copy.microphone}
-              on
-              onLabel={copy.on}
-              meter
-            />
-          </section>
-
-          <span className="flex h-10 items-center justify-center rounded-xl bg-[color:var(--cf-ext-start)] text-sm font-semibold text-white">
-            {copy.startRecording}
+      <div className="flex flex-col gap-4">
+        {/* The source is the panel's headline choice, so the row carries the
+            accent the device rows don't. */}
+        <div
+          className={`${ROW} border-2 border-[color:var(--cf-ext-ring)] bg-[color:var(--cf-ext-accent)] text-white`}
+          aria-label={copy.sourceAria}
+        >
+          <span className="flex shrink-0" aria-hidden>
+            {SCREEN_ICON}
           </span>
+          <span className="flex-1 truncate">{copy.source}</span>
         </div>
+
+        <DeviceRow icon={CAMERA_ICON} label={copy.camera} />
+        <DeviceRow icon={MIC_ICON} label={copy.microphone} meter />
+
+        <span className="flex h-[50px] items-center justify-center rounded-[14px] border border-[color:var(--cf-ext-separator)] bg-[color:var(--cf-ext-start)] text-[15px] font-semibold text-white">
+          {copy.startRecording}
+        </span>
       </div>
 
-      <footer>
-        <ToolButton icon={MORE_ICON} label={copy.more} />
+      <footer className="-mt-2 flex justify-center gap-6">
+        <FooterAction icon={GLOBE_ICON} label={copy.public} />
+        <FooterAction icon={MORE_ICON} label={copy.more} />
       </footer>
     </div>
   );

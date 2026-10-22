@@ -17,35 +17,26 @@ import { WebcamLoop } from "./webcam-loop";
 /*
  * Glyphs and colours copied from the extension's control bar
  * (apps/extension/entrypoints/control-bar.content/index.ts) so the mockup is
- * the bar people actually see while recording.
+ * the bar people actually see while recording: folded to stop, clock and
+ * pause, the way it sits once a recording is under way.
  */
-const BAR = { background: "#16181d", button: "#2a2e36", fg: "#e8eaed" };
+const BAR = {
+  background: "#292a2e",
+  border: "#3b3d42",
+  stop: "#ec5e3b",
+  fg: "#f2f3f5",
+  icon: "#c9cbd1",
+};
 
 const STOP_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <rect x="6" y="6" width="12" height="12" rx="3" fill="#f0554f" />
+  <svg viewBox="0 0 17 17" width="17" height="17" aria-hidden>
+    <rect width="17" height="17" rx="4" fill="currentColor" />
   </svg>
 );
 const PAUSE_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <rect x="7" y="5" width="3.5" height="14" rx="1.5" fill="currentColor" />
-    <rect x="13.5" y="5" width="3.5" height="14" rx="1.5" fill="currentColor" />
-  </svg>
-);
-const RESTART_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <path
-      d="M12 5V2.5L7.5 6 12 9.5V7a5.5 5.5 0 1 1-5.5 5.5H4.5A7.5 7.5 0 1 0 12 5z"
-      fill="currentColor"
-    />
-  </svg>
-);
-const DELETE_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-    <path
-      d="M9 3h6l1 2h4v2H4V5h4l1-2zm-2.5 6h11l-.8 11.1a2 2 0 0 1-2 1.9H9.3a2 2 0 0 1-2-1.9L6.5 9zm4 2.5v7h1.5v-7h-1.5zm3 0v7H15v-7h-1.5z"
-      fill="currentColor"
-    />
+  <svg viewBox="0 0 15 17" width="15" height="17" aria-hidden>
+    <rect width="6" height="17" rx="1.5" fill="currentColor" />
+    <rect x="9" width="6" height="17" rx="1.5" fill="currentColor" />
   </svg>
 );
 
@@ -383,17 +374,20 @@ function PlaybackMockup() {
   );
 }
 
+// The bar's 36px control, square-cornered at 12px like the extension's.
 function BarButton({
   children,
-  filled,
+  color,
+  background,
 }: {
   children: ReactNode;
-  filled?: boolean;
+  color: string;
+  background?: string;
 }) {
   return (
     <span
-      className="flex size-[38px] items-center justify-center rounded-full"
-      style={{ backgroundColor: filled ? BAR.button : undefined }}
+      className="flex size-9 items-center justify-center rounded-xl"
+      style={{ color, backgroundColor: background }}
     >
       {children}
     </span>
@@ -404,20 +398,25 @@ function ControlBar() {
   const copy = useMessages().modes.scene;
   return (
     <div
-      className="flex flex-col items-center gap-1 rounded-2xl px-2 py-2.5 shadow-[0_8px_28px_rgba(0,0,0,0.45)]"
-      style={{ backgroundColor: BAR.background, color: BAR.fg }}
+      className="flex flex-col items-center rounded-[20px] border px-2.5 py-2 shadow-[0_8px_28px_rgba(0,0,0,0.45)]"
+      style={{ backgroundColor: BAR.background, borderColor: BAR.border }}
     >
-      <BarButton filled>{STOP_ICON}</BarButton>
-      <span className="pt-0.5 pb-1 text-xs tabular-nums">{copy.timer}</span>
-      <BarButton>{PAUSE_ICON}</BarButton>
-      <BarButton>{RESTART_ICON}</BarButton>
-      <BarButton>{DELETE_ICON}</BarButton>
+      <BarButton color="#fff" background={BAR.stop}>
+        {STOP_ICON}
+      </BarButton>
+      <span
+        className="flex h-9 items-center text-xs font-bold tabular-nums"
+        style={{ color: BAR.fg }}
+      >
+        {copy.timer}
+      </span>
+      <BarButton color={BAR.icon}>{PAUSE_ICON}</BarButton>
     </div>
   );
 }
 
-// Measured: the panel renders 280×342 and the bar 54×210.
-const RECORDER = { width: 400, height: 390 };
+// Measured: the panel renders 280×418 and the folded bar 58×126.
+const RECORDER = { width: 400, height: 418 };
 
 // The popup panel with what starts when you hit record: the camera bubble and
 // the control bar.
@@ -426,21 +425,21 @@ function RecorderMockup() {
     <Scaled width={RECORDER.width} height={RECORDER.height}>
       {/* Depth from light, not rotation: a lit top edge and stacked shadows
           lift each layer off the card while the layout stays square. */}
-      <div className="absolute top-0 left-0 rounded-2xl shadow-[0_30px_60px_rgb(0_0_0/0.15),0_8px_20px_rgb(0_0_0/0.105)] dark:shadow-[0_30px_60px_rgb(0_0_0/0.5),0_8px_20px_rgb(0_0_0/0.35)]">
+      <div className="absolute top-0 left-0 rounded-[20px] shadow-[0_30px_60px_rgb(0_0_0/0.15),0_8px_20px_rgb(0_0_0/0.105)] dark:shadow-[0_30px_60px_rgb(0_0_0/0.5),0_8px_20px_rgb(0_0_0/0.35)]">
         <RecorderPanel />
-        <span className="pointer-events-none absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_rgb(255_255_255/0.1)]" />
+        <span className="pointer-events-none absolute inset-0 rounded-[20px] shadow-[inset_0_1px_0_rgb(255_255_255/0.1)]" />
       </div>
       <div
-        className="absolute top-0 rounded-2xl shadow-[0_24px_48px_rgb(0_0_0/0.15),0_6px_14px_rgb(0_0_0/0.105)] dark:shadow-[0_24px_48px_rgb(0_0_0/0.5),0_6px_14px_rgb(0_0_0/0.35)]"
+        className="absolute top-0 rounded-[20px] shadow-[0_24px_48px_rgb(0_0_0/0.15),0_6px_14px_rgb(0_0_0/0.105)] dark:shadow-[0_24px_48px_rgb(0_0_0/0.5),0_6px_14px_rgb(0_0_0/0.35)]"
         style={{ left: 296 }}
       >
         <ControlBar />
       </div>
       <div
         className="absolute rounded-full shadow-[0_28px_56px_rgb(0_0_0/0.165)] dark:shadow-[0_28px_56px_rgb(0_0_0/0.55)]"
-        style={{ left: 248, top: 232 }}
+        style={{ left: 248, top: 250 }}
       >
-        <Presenter size={150} ring={4} />
+        <Presenter size={150} ring={0} />
       </div>
     </Scaled>
   );
