@@ -14,7 +14,7 @@ export function CtaSection() {
 
   return (
     <MarketingSection id="waitlist">
-      <div className="mx-auto flex max-w-215 flex-col items-center gap-6 rounded-3xl bg-panel p-6 text-center sm:p-8 md:flex-row md:justify-between md:text-left">
+      <div className="mx-auto flex max-w-215 flex-col items-center gap-6 rounded-3xl border border-line bg-panel p-6 text-center sm:p-8 md:flex-row md:justify-between md:text-left">
         <div className="min-w-0">
           <h2 className="text-3xl font-bold tracking-[-0.02em] text-fg sm:text-4xl">
             {CURRENT_STAGE.ctaHeadline || m.cta.headline}

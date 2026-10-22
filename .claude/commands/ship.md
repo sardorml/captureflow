@@ -22,6 +22,8 @@ Take what's in the working tree to a draft PR on `sardorml/captureflow`. Invokin
 
 If on `main`, branch off it as `feat/`, `fix/`, `chore/`, `docs/` or `refactor/` + a short kebab-case name. Otherwise keep the current branch. Read `git status` and the full diff once; later steps reuse it.
 
+The name describes the whole branch, not its first change. When the diff carries several concerns, name it after what they have in common (`feat/marketing-polish`, `fix/dark-mode-marketing`), and if the current branch was named for a single fix that has since grown, rename it with `git branch -m` before pushing. If the old name was already pushed and has no PR, push the new name and delete the old remote branch; if it has a PR, keep the name and let the PR title carry the scope.
+
 ## 2. Checks for what the diff touches
 
 Always: `pnpm format`, then `pnpm typecheck`. Then by path:
@@ -46,6 +48,7 @@ Walk the diff through `CONVENTIONS.md` §12 and call out anything that fails it,
 - Scope is the app or package: `web`, `extension`, `desktop`, `engine`, `quota`, `ui`, `shared`, `admin`, `docs`, `marketing`. Comma-join several; drop it only for repo-wide changes.
 - Subjects say what changed for a user in plain words, the way history reads: `fix(web): let the pending recording page wait out long uploads`, `feat(extension): open the share page at stop, with a stop cue`. Avoid bare "add/update X".
 - Split by concern, and a behavior-preserving refactor is always its own commit. Every commit has to typecheck alone.
+- Stage each commit's files by name and check `git diff --cached --stat` before committing it. No `git stash` to isolate a commit: a failed stash leaves the index in a state where the next `git add` sweeps the wrong files into the wrong commit. Verify the whole branch with one typecheck at the end and reason about the single-commit case from the staged set.
 
 **Extension release:** when the diff is just the `version` in `apps/extension/package.json`, commit `chore(extension): bump to <version>`, build the store zip with `pnpm --filter @captureflow/extension zip` (it sets `WXT_NO_KEY=1`; a zip with a `key` is rejected by the store), and use the release body in Step 6.
 

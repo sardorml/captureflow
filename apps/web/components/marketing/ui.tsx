@@ -40,7 +40,7 @@ export function Card({
         /* HeroUI's default card surface is #18181b, a single step off the
            marketing page's #171717, and both are #fff in light mode — so cards
            vanish. `panel-2` is the one raised token that separates in both. */
-        "bg-panel-2",
+        "border border-line bg-panel-2",
         hoverable ? "transition-colors hover:bg-tint-strong" : "",
         className,
       ]

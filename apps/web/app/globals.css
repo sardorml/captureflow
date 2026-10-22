@@ -38,45 +38,47 @@ body {
 /*
  * One soft canvas, solid surfaces, a blue accent and pill-shaped controls.
  * Declared on <html> so menus, popovers and modals,
- * which portal out of the page, pick it up too. The unprefixed names are
+ * which portal out of the page, pick it up too. The dark block also matches
+ * an element that scopes itself dark inside a light page, or tokens.css's
+ * defaults would paint it instead. The unprefixed names are
  * HeroUI's own theming hooks, set on purpose. The marketing pages share the
  * palette; the frosting, hidden scrollbars and card radius below skip them.
  */
 html[data-theme="light"] {
-  /* A neutral light grey canvas under solid white surfaces and a blue accent. */
-  --cf-canvas: #f5f5f5;
-  --cf-canvas-2: #f5f5f5;
-  --cf-fg: #18181b;
-  --cf-fg-strong: #09090b;
-  --foreground: #18181b;
-  --cf-panel: #ffffff;
-  --cf-panel-2: #ebebec;
-  --cf-field: #ffffff;
-  --cf-tint: rgb(0 0 0 / 0.04);
-  --cf-tint-strong: #ebebec;
-  --cf-line: #e4e4e7;
+  /* A faintly warm off-white canvas under off-white surfaces and a blue accent. */
+  --cf-canvas: #f6f5f1;
+  --cf-canvas-2: #f6f5f1;
+  --cf-fg: #1a1919;
+  --cf-fg-strong: #0c0c0b;
+  --foreground: #1a1919;
+  --cf-panel: #fffefc;
+  --cf-panel-2: #edebe6;
+  --cf-field: #fffefc;
+  --cf-tint: rgb(40 30 15 / 0.045);
+  --cf-tint-strong: #edebe6;
+  --cf-line: #e6e3dd;
 
   --cf-accent-strong: #0485f7;
   --cf-accent-bg: #0485f7;
   --cf-accent-bg-hover: #1d91f8;
   --cf-accent-ring: rgb(4 133 247 / 0.3);
 
-  --background: #f5f5f5;
+  --background: #f6f5f1;
   --accent: #0485f7;
   --accent-foreground: #fdfdfd;
   --success: #00ca67;
   --warning: #f4a61e;
   --danger: #ff3836;
-  --default: #ebebec;
-  --surface: #ffffff;
-  --surface-secondary: #f1f1f2;
-  --surface-tertiary: #e4e4e7;
-  --overlay: #ffffff;
-  --separator: #e4e4e7;
+  --default: #edebe6;
+  --surface: #fffefc;
+  --surface-secondary: #f2f1ed;
+  --surface-tertiary: #e6e3dd;
+  --overlay: #fffefc;
+  --separator: #e6e3dd;
   --cf-glass-blur: 20px;
 }
 
-html[data-theme="dark"],
+[data-theme="dark"],
 html:not([data-theme]) {
   /* A soft warm charcoal under solid warm surfaces and the same blue accent. */
   --cf-canvas: #111110;

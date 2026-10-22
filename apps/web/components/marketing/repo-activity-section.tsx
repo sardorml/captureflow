@@ -75,7 +75,7 @@ function ActivityList({
   link: { label: string; href: string };
 }) {
   return (
-    <div className="flex flex-col rounded-2xl bg-panel p-5">
+    <div className="flex flex-col rounded-2xl border border-line bg-panel p-5">
       <p className="text-sm font-medium text-fg">{heading}</p>
       {items.length === 0 ? (
         <p className="mt-4 text-sm text-fg-muted">{empty}</p>
