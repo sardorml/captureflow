@@ -38,7 +38,7 @@ export function SelfHostSection() {
         subtitle={copy.subheading}
       />
 
-      <div className="mx-auto grid max-w-215 gap-3 rounded-3xl bg-panel p-3 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <div className="mx-auto grid max-w-215 gap-3 rounded-3xl border border-line bg-panel p-3 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Terminal done={copy.deployed} />
 
         <div className="rounded-2xl border border-dashed border-line-strong p-4 sm:p-5">
@@ -73,7 +73,7 @@ export function SelfHostSection() {
         </div>
       </div>
 
-      <div className="mx-auto mt-3 flex max-w-215 flex-col gap-5 rounded-3xl bg-panel p-5 sm:flex-row sm:items-center sm:p-6">
+      <div className="mx-auto mt-3 flex max-w-215 flex-col gap-5 rounded-3xl border border-line bg-panel p-5 sm:flex-row sm:items-center sm:p-6">
         <span
           aria-hidden
           className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl bg-panel-2 text-2xl"

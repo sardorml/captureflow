@@ -48,7 +48,7 @@ export function ManagedCard() {
   const isFree = selected.storageGb === 0;
 
   return (
-    <div className="grid gap-2 rounded-2xl bg-panel p-2 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+    <div className="grid gap-2 rounded-2xl border border-line bg-panel p-2 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
       <div className="flex flex-col rounded-xl bg-accent p-6">
         <div className="flex items-center gap-2">
           <span className="flex size-6 items-center justify-center rounded-lg bg-white/15 text-white">

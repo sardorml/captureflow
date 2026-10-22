@@ -145,7 +145,7 @@ export function EnterpriseSection() {
       </p>
       <ul className="mx-auto grid max-w-215 gap-3 sm:grid-cols-2 md:grid-cols-3">
         {INCLUDED.map(({ key, icon, tone }) => (
-          <li key={key} className="rounded-2xl bg-panel p-5">
+          <li key={key} className="rounded-2xl border border-line bg-panel p-5">
             <span
               className={cn(
                 "inline-flex size-10 items-center justify-center rounded-xl",
@@ -169,7 +169,7 @@ export function EnterpriseSection() {
       </p>
       <ul className="mx-auto grid max-w-215 gap-3 sm:grid-cols-2 md:grid-cols-3">
         {EVERYTHING.map(({ key, icon, tone, soon }) => (
-          <li key={key} className="rounded-2xl bg-panel p-5">
+          <li key={key} className="rounded-2xl border border-line bg-panel p-5">
             <div className="flex items-center justify-between gap-2">
               <span
                 className={cn(
@@ -197,7 +197,7 @@ export function EnterpriseSection() {
 
       <div
         id="contact"
-        className="mx-auto mt-16 max-w-160 rounded-3xl bg-panel p-6 sm:p-8"
+        className="mx-auto mt-16 max-w-160 rounded-3xl border border-line bg-panel p-6 sm:p-8"
       >
         <p className="text-2xl font-semibold tracking-[-0.02em] text-fg">
           {copy.formHeading}

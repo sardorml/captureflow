@@ -31,7 +31,7 @@ export function CompareSection() {
       />
       <NextLink
         href={lh("/alternatives/loom")}
-        className="group mx-auto grid max-w-215 grid-cols-[minmax(0,1fr)] gap-6 rounded-2xl bg-panel p-5 transition-colors hover:bg-panel-2 sm:p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:items-center"
+        className="group mx-auto grid max-w-215 grid-cols-[minmax(0,1fr)] gap-6 rounded-2xl border border-line bg-panel p-5 transition-colors hover:bg-panel-2 sm:p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:items-center"
       >
         <div>
           <p className="text-2xl font-semibold tracking-[-0.02em] text-fg">
