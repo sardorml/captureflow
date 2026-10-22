@@ -590,6 +590,7 @@ export default defineBackground(() => {
         cameraId: prefs.cameraId,
         micId: prefs.micId,
         source: prefs.source,
+        visibility: prefs.visibility,
         tabStreamId,
       }).catch((error) => void reportFailure(errorMessage(error)));
       return { ok: true };

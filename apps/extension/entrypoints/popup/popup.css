@@ -10,9 +10,12 @@
  * the steps between them survive.
  */
 body {
-  --background: #303030;
-  --surface: #404040;
-  --overlay: #454545;
+  --background: #1f1f21;
+  --surface: #303134;
+  --overlay: #2b2b2e;
+  --separator: #37373a;
+  --border: #37373a;
+  --accent: #3267d4;
 
   margin: 0;
   width: 280px;
@@ -27,22 +30,26 @@ body {
 /*
  * Overlay surface: the frame is wider than the card so menus can open beside
  * it, so the card is what's painted and positioned here — the document itself
- * is a transparent gutter onto the blurred page, and a click on it closes the
- * panel the way the backdrop does. The padding is the card's 14px offset from
- * the viewport corner plus room for its shadow; the frame is clipped at its
- * edges, so a shadow with no room ends in a hard square.
+ * is a transparent gutter onto the dimmed page, and a click on it closes the
+ * panel the way the backdrop does. The padding is the card's 25px offset from
+ * the viewport corner; the gutter holds a 300px menu with room to spare.
  */
 body.cf-overlay {
   box-sizing: border-box;
-  width: 584px;
-  padding: 14px 78px 88px 0;
+  width: 620px;
+  padding: 25px 25px 25px 0;
   background: transparent;
+}
+
+/* The status toast anchors to the card. */
+#root {
+  position: relative;
 }
 
 body.cf-overlay #root {
   width: 280px;
   margin-inline-start: auto;
-  border-radius: 16px;
+  border: 1px solid #2b2b2e;
+  border-radius: 20px;
   background: var(--background);
-  box-shadow: 0 24px 64px rgb(0 0 0 / 0.5);
 }

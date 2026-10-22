@@ -7,7 +7,7 @@ import { friendlyUploadError, isAuthFailure } from "@/lib/api/errors";
 import { sendMessage } from "@/lib/messaging";
 import { isOverlaySurface } from "@/lib/surface";
 import { ResultLink } from "./RecorderPanel";
-import { PANEL_ROW } from "./panel";
+import { PANEL_ROW_GREY } from "./panel";
 
 type ShotState =
   | { kind: "idle" }
@@ -16,7 +16,7 @@ type ShotState =
   | { kind: "error"; detail: string };
 
 const TAB_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
     <rect
       x="3"
       y="4.5"
@@ -91,14 +91,12 @@ export function ScreenshotPanel() {
   const isBusy = state.kind === "busy";
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className={PANEL_ROW}>
+    <div className="flex flex-col gap-4">
+      <div className={PANEL_ROW_GREY}>
         <span className="flex text-foreground" aria-hidden>
           {TAB_ICON}
         </span>
-        <Typography type="body-sm" weight="medium" className="flex-1">
-          Current tab
-        </Typography>
+        <span className="flex-1 truncate">Current tab</span>
       </div>
 
       <Button
@@ -106,7 +104,7 @@ export function ScreenshotPanel() {
         fullWidth
         isDisabled={isBusy}
         onPress={() => void capture()}
-        className="h-10 rounded-xl text-sm font-semibold"
+        className="h-[50px] rounded-[14px] border border-separator text-[15px] font-semibold"
       >
         {isBusy && <Spinner size="sm" color="current" />}
         {isBusy ? "Capturing…" : "Capture Screenshot"}

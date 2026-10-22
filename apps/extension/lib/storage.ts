@@ -1,3 +1,5 @@
+import type { RecordingVisibility } from "./api/types";
+
 /*
  * Which surface the picker opens on. Chrome treats displaySurface as a hint —
  * it preselects the pane, the viewer can still pick anything — so this is a
@@ -11,6 +13,7 @@ export type CapturePrefs = {
   cameraId?: string;
   micId?: string;
   source?: CaptureSource;
+  visibility?: RecordingVisibility;
 };
 
 /*

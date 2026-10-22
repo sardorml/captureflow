@@ -23,6 +23,7 @@ import { RecorderPanel } from "./RecorderPanel";
 import { ScreenshotPanel } from "./ScreenshotPanel";
 import { FooterActions } from "./FooterActions";
 import { SignInGate } from "./SignInGate";
+import { StatusToast } from "./StatusToast";
 
 // "loading" until storage resolves, to avoid flashing the sign-in gate.
 type AuthState = AuthSession | null | "loading";
@@ -52,10 +53,10 @@ async function hasMediaGrant(): Promise<boolean> {
 /* The pill comes from Tabs.Indicator inside each tab; only the icon colour is
    ours. isolate: the indicator sits at z-index -1, so without a stacking
    context of its own it sinks behind the popup's background. */
-const TAB_CLASS = "isolate px-4 data-[selected=true]:text-accent";
+const TAB_CLASS = "isolate h-10 px-[21px] data-[selected=true]:text-accent";
 
 const HOME_ICON = (
-  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
     <path
       d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5z"
       fill="none"
@@ -67,7 +68,7 @@ const HOME_ICON = (
 );
 
 const VIDEO_ICON = (
-  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
     <rect
       x="3"
       y="6.5"
@@ -89,7 +90,7 @@ const VIDEO_ICON = (
 );
 
 const PHOTO_ICON = (
-  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
     <path
       d="M8.5 6.5 10 4.5h4l1.5 2H19a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 19 19.5H5A1.5 1.5 0 0 1 3.5 18V8A1.5 1.5 0 0 1 5 6.5h3.5z"
       fill="none"
@@ -109,7 +110,7 @@ const PHOTO_ICON = (
 );
 
 const CLOSE_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
     <path
       d="m6 6 12 12M18 6 6 18"
       stroke="currentColor"
@@ -223,17 +224,18 @@ export function App() {
   };
 
   return (
-    <Tabs
-      defaultSelectedKey="video"
-      onSelectionChange={onModeChange}
-      aria-label="Capture mode"
-      className="flex w-full min-w-0 flex-col gap-2.5 p-3"
-    >
-      <header className="flex items-center justify-between gap-2">
-        <IconAction label="Open dashboard" onPress={openHome}>
-          {HOME_ICON}
-        </IconAction>
-        {/* ListContainer paints the track; the indicator is React Aria's
+    <>
+      <Tabs
+        defaultSelectedKey="video"
+        onSelectionChange={onModeChange}
+        aria-label="Capture mode"
+        className="flex w-full min-w-0 flex-col gap-5 px-[19px] pt-4 pb-5"
+      >
+        <header className="flex items-center justify-between gap-2">
+          <IconAction label="Open dashboard" onPress={openHome}>
+            {HOME_ICON}
+          </IconAction>
+          {/* ListContainer paints the track; the indicator is React Aria's
             SelectionIndicator, which only exists if the tab renders one —
             without both, the tabs are bare icons with no selected state.
             HeroUI's .tabs__list[data-orientation] is min-width:100%, which in
@@ -241,40 +243,45 @@ export function App() {
             the two icon buttons push the document past the body width — the
             popup ends up scrolled with the left edge cut off. The bang is
             load-bearing: that selector outranks a plain utility. */}
-        <Tabs.ListContainer className="w-max">
-          <Tabs.List className="w-max min-w-0!">
-            <Tabs.Tab
-              id="video"
-              aria-label="Record video"
-              className={TAB_CLASS}
-            >
-              <Tabs.Indicator />
-              {VIDEO_ICON}
-            </Tabs.Tab>
-            <Tabs.Tab
-              id="screenshot"
-              aria-label="Capture screenshot"
-              className={TAB_CLASS}
-            >
-              <Tabs.Indicator />
-              {PHOTO_ICON}
-            </Tabs.Tab>
-          </Tabs.List>
-        </Tabs.ListContainer>
-        <IconAction label="Close" onPress={() => closeSurface()}>
-          {CLOSE_ICON}
-        </IconAction>
-      </header>
+          <Tabs.ListContainer className="w-max rounded-[14px] border border-[#28282b] bg-overlay p-1">
+            <Tabs.List className="w-max min-w-0! gap-0 p-0">
+              <Tabs.Tab
+                id="video"
+                aria-label="Record video"
+                className={TAB_CLASS}
+              >
+                <Tabs.Indicator className="rounded-[10px] bg-background" />
+                {VIDEO_ICON}
+              </Tabs.Tab>
+              <Tabs.Tab
+                id="screenshot"
+                aria-label="Capture screenshot"
+                className={TAB_CLASS}
+              >
+                <Tabs.Indicator className="rounded-[10px] bg-background" />
+                {PHOTO_ICON}
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs.ListContainer>
+          <IconAction label="Close" onPress={() => closeSurface()}>
+            {CLOSE_ICON}
+          </IconAction>
+        </header>
 
-      <Tabs.Panel id="video" className="min-w-0">
-        <RecorderPanel status={status} onStart={onStart} onStop={onStop} />
-      </Tabs.Panel>
-      <Tabs.Panel id="screenshot" className="min-w-0">
-        <ScreenshotPanel />
-      </Tabs.Panel>
+        {/* HeroUI pads the panel and pushes it off the list; the stack's own
+          gap and the card's padding already do both. */}
+        <Tabs.Panel id="video" className="mt-0 min-w-0 p-0">
+          <RecorderPanel status={status} onStart={onStart} onStop={onStop} />
+        </Tabs.Panel>
+        <Tabs.Panel id="screenshot" className="mt-0 min-w-0 p-0">
+          <ScreenshotPanel />
+        </Tabs.Panel>
 
-      <FooterActions />
-    </Tabs>
+        <FooterActions />
+      </Tabs>
+      {/* Over the card's bottom edge, so a status never shifts the stack. */}
+      <StatusToast status={status} />
+    </>
   );
 }
 

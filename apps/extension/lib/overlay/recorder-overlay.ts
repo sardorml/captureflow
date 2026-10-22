@@ -3,7 +3,8 @@ export const RECORDER_BACKDROP_ID = "captureflow-recorder-backdrop";
 
 /*
  * Injected via chrome.scripting (serialized): toggles the in-page recorder —
- * a blurred/dimmed backdrop with the extension panel floating top-right. Clicking the backdrop closes it page-side (no SW round-trip).
+ * a dimmed backdrop with the extension panel floating top-right. Clicking the
+ * backdrop closes it page-side (no SW round-trip).
  * Args only — the serialized body can't close over module scope.
  *
  * The iframe is wider than the panel and the card sits inset from its edges
@@ -30,8 +31,7 @@ export function toggleRecorderOverlay(
   const backdrop = document.createElement("div");
   backdrop.id = backdropId;
   backdrop.style.cssText =
-    "position:fixed;inset:0;z-index:2147483646;background:rgba(10,11,14,.45);" +
-    "backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);";
+    "position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.67);";
   backdrop.addEventListener("click", () => {
     backdrop.remove();
     document.getElementById(frameId)?.remove();
@@ -52,7 +52,7 @@ export function toggleRecorderOverlay(
   iframe.src = frameUrl;
   iframe.allow = "camera; microphone";
   iframe.style.cssText =
-    "position:fixed;top:0;right:0;width:584px;height:0;border:0;" +
+    "position:fixed;top:0;right:0;width:620px;height:0;border:0;" +
     "z-index:2147483647;background:transparent;color-scheme:dark;" +
     "opacity:0;transform:translateY(-6px);transform-origin:100% 0;" +
     "transition:opacity .16s ease-out,transform .16s ease-out;";
@@ -103,7 +103,7 @@ export function removeRecorderOverlay(
   document.getElementById(backdropId)?.remove();
 }
 
-// Screenshot capture hides the overlay for a frame so the blur and panel
+// Screenshot capture hides the overlay for a frame so the dim and panel
 // never end up baked into the captured image.
 export function setRecorderOverlayVisible(
   visible: boolean,

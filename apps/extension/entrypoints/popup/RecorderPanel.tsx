@@ -7,10 +7,16 @@ import {
   type CaptureSource,
   type RecordingStatus,
 } from "@/lib/storage";
-import { uploadPercent } from "@/lib/format";
 import { isOverlaySurface } from "@/lib/surface";
 import { DevicePickers } from "./DevicePickers";
-import { PANEL_ROW } from "./panel";
+import {
+  MENU_CHECK,
+  MENU_ITEM,
+  MENU_LIST,
+  MENU_OFFSET,
+  MENU_POPOVER,
+  PANEL_ROW,
+} from "./panel";
 
 type RecorderPanelProps = {
   status: RecordingStatus;
@@ -19,7 +25,7 @@ type RecorderPanelProps = {
 };
 
 const WINDOW_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
     <rect
       x="3.5"
       y="4.5"
@@ -35,7 +41,7 @@ const WINDOW_ICON = (
 );
 
 const TAB_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
     <rect
       x="3"
       y="7"
@@ -50,7 +56,7 @@ const TAB_ICON = (
 );
 
 const SCREEN_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
     <rect
       x="3"
       y="5"
@@ -70,38 +76,35 @@ const SCREEN_ICON = (
   </svg>
 );
 
+// Same box as the rows, so the stack reads as one column of controls.
+const ACTION_CLASS =
+  "h-[50px] rounded-[14px] border border-separator text-[15px] font-semibold";
 /* The one committing action in the panel, so it carries weight the blue
-   accent doesn't: warm fill, squared-off radius, heavier label. */
-const START_CLASS =
-  "h-10 rounded-xl text-sm font-semibold [--button-bg:#e8563a] [--button-bg-hover:#d94b30] [--button-bg-pressed:#c44227]";
+   accent doesn't: a brick-red fill. */
+const START_CLASS = `${ACTION_CLASS} [--button-bg:#bc381c] [--button-bg-hover:#ab3119] [--button-bg-pressed:#962a15]`;
 
 type SourceOption = {
   id: CaptureSource;
   label: string;
   icon: React.ReactNode;
-  // The tab source records straight away; the other two have to go through
-  // Chrome's own picker, which only ever opens on the pane we ask for.
-  hint: string;
 };
 
 const DEFAULT_SOURCE: SourceOption = {
   id: "screen",
   label: "Full screen",
   icon: SCREEN_ICON,
-  hint: "Pick at start",
 };
 
 const SOURCES: SourceOption[] = [
   DEFAULT_SOURCE,
-  { id: "window", label: "Window", icon: WINDOW_ICON, hint: "Pick at start" },
-  { id: "tab", label: "This tab", icon: TAB_ICON, hint: "Records now" },
+  { id: "window", label: "Window", icon: WINDOW_ICON },
+  { id: "tab", label: "This tab", icon: TAB_ICON },
 ];
 
 /*
  * "This tab" records immediately from a chrome.tabCapture stream id. Full
  * screen and Window can't: getDisplayMedia always shows Chrome's own picker,
- * and displaySurface only chooses which pane it opens on. The row says which
- * of the two you get rather than implying they behave alike.
+ * and displaySurface only chooses which pane it opens on.
  */
 function SourcePicker() {
   const [source, setSource] = useState<CaptureSource>("screen");
@@ -124,39 +127,34 @@ function SourcePicker() {
           accent instead of sitting in the same grey as the device rows. */}
       <Dropdown.Trigger
         aria-label="Capture source"
-        className={`${PANEL_ROW} w-full cursor-pointer bg-accent-soft text-start text-accent-soft-foreground outline-none`}
+        className={`${PANEL_ROW} w-full cursor-pointer border-2 border-[#98b7f1] bg-[#3267d4] text-start text-white outline-none`}
       >
         <span className="flex" aria-hidden>
           {selected.icon}
         </span>
-        <span className="flex-1 truncate text-sm font-semibold">
-          {selected.label}
-        </span>
-        <span className="text-xs opacity-70">{selected.hint}</span>
+        <span className="flex-1 truncate">{selected.label}</span>
       </Dropdown.Trigger>
       {/* Beside the card, in the overlay frame's gutter. The standalone window
           has no gutter to open into, so there it drops under the row. */}
       <Dropdown.Popover
         placement={isOverlaySurface ? "left top" : "bottom start"}
+        offset={isOverlaySurface ? MENU_OFFSET : undefined}
         shouldFlip={!isOverlaySurface}
-        className="min-w-52"
+        className={MENU_POPOVER}
       >
         <Dropdown.Menu
           selectionMode="single"
           selectedKeys={[source]}
           onAction={(key) => choose(String(key) as CaptureSource)}
+          className={MENU_LIST}
         >
           {SOURCES.map((s) => (
-            <Dropdown.Item
-              key={s.id}
-              id={s.id}
-              className="ps-2! pe-7! data-[selected=true]:text-accent"
-            >
+            <Dropdown.Item key={s.id} id={s.id} className={MENU_ITEM}>
               {s.icon}
               {s.label}
               {/* Trailing check, like the row it stands for: HeroUI parks the
                   indicator at the start, where the source icon already is. */}
-              <Dropdown.ItemIndicator className="start-auto end-2" />
+              <Dropdown.ItemIndicator className={MENU_CHECK} />
             </Dropdown.Item>
           ))}
         </Dropdown.Menu>
@@ -203,51 +201,12 @@ export function ResultLink({ url, label }: { url: string; label: string }) {
   );
 }
 
-function StatusLine({ status }: { status: RecordingStatus }) {
-  switch (status.kind) {
-    case "preparing":
-      return (
-        <Typography type="body-xs">Choose a source in the picker…</Typography>
-      );
-    case "recording":
-    case "paused":
-      return (
-        <Typography type="body-xs">
-          {status.kind === "paused" ? "Paused" : "Recording"} — control it from
-          the bar on the page.
-        </Typography>
-      );
-    case "uploading": {
-      const pct = uploadPercent(status.uploadedBytes, status.totalBytes);
-      return (
-        <Typography type="body-xs">
-          Uploading your recording…{pct === null ? "" : ` ${pct}%`}
-        </Typography>
-      );
-    }
-    case "cancelled":
-      return (
-        <Typography type="body-xs" color="muted">
-          Recording cancelled.
-        </Typography>
-      );
-    case "error":
-      return (
-        <Typography type="body-xs" className="text-danger">
-          {status.detail ?? "Something went wrong."}
-        </Typography>
-      );
-    default:
-      return null;
-  }
-}
-
 export function RecorderPanel({ status, onStart, onStop }: RecorderPanelProps) {
   const isLive = status.kind === "recording" || status.kind === "paused";
   const isBusy = status.kind === "preparing" || status.kind === "uploading";
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
       <SourcePicker />
 
       <DevicePickers />
@@ -258,7 +217,7 @@ export function RecorderPanel({ status, onStart, onStop }: RecorderPanelProps) {
           size="lg"
           fullWidth
           onPress={onStop}
-          className="h-10 rounded-xl text-sm font-semibold"
+          className={ACTION_CLASS}
         >
           Stop Recording
         </Button>
@@ -275,7 +234,6 @@ export function RecorderPanel({ status, onStart, onStop }: RecorderPanelProps) {
           {BUSY_LABEL[status.kind] ?? "Start Recording"}
         </Button>
       )}
-      <StatusLine status={status} />
     </div>
   );
 }

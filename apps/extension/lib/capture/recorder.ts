@@ -212,6 +212,7 @@ async function runSession(
       {
         contentType: "video/mp4",
         source: "instant",
+        visibility: ctx.visibility,
         hasWebcam: webcamStream !== null,
       },
       { transport },
