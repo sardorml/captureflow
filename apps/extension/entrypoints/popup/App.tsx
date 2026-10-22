@@ -23,7 +23,6 @@ import { RecorderPanel } from "./RecorderPanel";
 import { ScreenshotPanel } from "./ScreenshotPanel";
 import { FooterActions } from "./FooterActions";
 import { SignInGate } from "./SignInGate";
-import { StatusToast } from "./StatusToast";
 
 // "loading" until storage resolves, to avoid flashing the sign-in gate.
 type AuthState = AuthSession | null | "loading";
@@ -216,18 +215,17 @@ export function App() {
   };
 
   return (
-    <>
-      <Tabs
-        defaultSelectedKey="video"
-        onSelectionChange={onModeChange}
-        aria-label="Capture mode"
-        className="flex w-full min-w-0 flex-col gap-5 px-[19px] pt-4 pb-5"
-      >
-        <header className="flex items-center justify-between gap-2">
-          <IconAction label="Open dashboard" onPress={openHome}>
-            {HOME_ICON}
-          </IconAction>
-          {/* ListContainer paints the track; the indicator is React Aria's
+    <Tabs
+      defaultSelectedKey="video"
+      onSelectionChange={onModeChange}
+      aria-label="Capture mode"
+      className="flex w-full min-w-0 flex-col gap-5 px-[19px] pt-4 pb-5"
+    >
+      <header className="flex items-center justify-between gap-2">
+        <IconAction label="Open dashboard" onPress={openHome}>
+          {HOME_ICON}
+        </IconAction>
+        {/* ListContainer paints the track; the indicator is React Aria's
             SelectionIndicator, which only exists if the tab renders one —
             without both, the tabs are bare icons with no selected state.
             HeroUI's .tabs__list[data-orientation] is min-width:100%, which in
@@ -235,45 +233,42 @@ export function App() {
             the two icon buttons push the document past the body width — the
             popup ends up scrolled with the left edge cut off. The bang is
             load-bearing: that selector outranks a plain utility. */}
-          <Tabs.ListContainer className="w-max rounded-[14px] border border-separator bg-overlay p-1">
-            <Tabs.List className="w-max min-w-0! gap-0 p-0">
-              <Tabs.Tab
-                id="video"
-                aria-label="Record video"
-                className={TAB_CLASS}
-              >
-                <Tabs.Indicator className="rounded-[10px] bg-background" />
-                {VIDEO_ICON}
-              </Tabs.Tab>
-              <Tabs.Tab
-                id="screenshot"
-                aria-label="Capture screenshot"
-                className={TAB_CLASS}
-              >
-                <Tabs.Indicator className="rounded-[10px] bg-background" />
-                {PHOTO_ICON}
-              </Tabs.Tab>
-            </Tabs.List>
-          </Tabs.ListContainer>
-          <IconAction label="Close" onPress={() => closeSurface()}>
-            {CLOSE_ICON}
-          </IconAction>
-        </header>
+        <Tabs.ListContainer className="w-max rounded-[14px] border border-separator bg-overlay p-1">
+          <Tabs.List className="w-max min-w-0! gap-0 p-0">
+            <Tabs.Tab
+              id="video"
+              aria-label="Record video"
+              className={TAB_CLASS}
+            >
+              <Tabs.Indicator className="rounded-[10px] bg-background" />
+              {VIDEO_ICON}
+            </Tabs.Tab>
+            <Tabs.Tab
+              id="screenshot"
+              aria-label="Capture screenshot"
+              className={TAB_CLASS}
+            >
+              <Tabs.Indicator className="rounded-[10px] bg-background" />
+              {PHOTO_ICON}
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
+        <IconAction label="Close" onPress={() => closeSurface()}>
+          {CLOSE_ICON}
+        </IconAction>
+      </header>
 
-        {/* HeroUI pads the panel and pushes it off the list; the stack's own
+      {/* HeroUI pads the panel and pushes it off the list; the stack's own
           gap and the card's padding already do both. */}
-        <Tabs.Panel id="video" className="mt-0 min-w-0 p-0">
-          <RecorderPanel status={status} onStart={onStart} onStop={onStop} />
-        </Tabs.Panel>
-        <Tabs.Panel id="screenshot" className="mt-0 min-w-0 p-0">
-          <ScreenshotPanel />
-        </Tabs.Panel>
+      <Tabs.Panel id="video" className="mt-0 min-w-0 p-0">
+        <RecorderPanel status={status} onStart={onStart} onStop={onStop} />
+      </Tabs.Panel>
+      <Tabs.Panel id="screenshot" className="mt-0 min-w-0 p-0">
+        <ScreenshotPanel />
+      </Tabs.Panel>
 
-        <FooterActions />
-      </Tabs>
-      {/* Over the card's bottom edge, so a status never shifts the stack. */}
-      <StatusToast status={status} />
-    </>
+      <FooterActions />
+    </Tabs>
   );
 }
 

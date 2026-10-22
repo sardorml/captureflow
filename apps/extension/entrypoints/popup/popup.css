@@ -71,11 +71,6 @@ body.cf-overlay {
   background: transparent;
 }
 
-/* The status toast anchors to the card. */
-#root {
-  position: relative;
-}
-
 body.cf-overlay #root {
   width: 280px;
   margin-inline-start: auto;
