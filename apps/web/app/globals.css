@@ -38,7 +38,9 @@ body {
 /*
  * One soft canvas, solid surfaces, a blue accent and pill-shaped controls.
  * Declared on <html> so menus, popovers and modals,
- * which portal out of the page, pick it up too. The unprefixed names are
+ * which portal out of the page, pick it up too. The dark block also matches
+ * an element that scopes itself dark inside a light page, or tokens.css's
+ * defaults would paint it instead. The unprefixed names are
  * HeroUI's own theming hooks, set on purpose. The marketing pages share the
  * palette; the frosting, hidden scrollbars and card radius below skip them.
  */
@@ -76,7 +78,7 @@ html[data-theme="light"] {
   --cf-glass-blur: 20px;
 }
 
-html[data-theme="dark"],
+[data-theme="dark"],
 html:not([data-theme]) {
   /* A soft warm charcoal under solid warm surfaces and the same blue accent. */
   --cf-canvas: #111110;
