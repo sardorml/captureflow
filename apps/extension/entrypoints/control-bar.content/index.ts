@@ -5,14 +5,19 @@ import {
   type RecordingStatus,
 } from "@/lib/storage";
 import { formatClock, uploadPercent } from "@/lib/format";
-import { RECORDER_FRAME_ID } from "@/lib/overlay/recorder-overlay";
+import {
+  CONTROL_BAR_HOST_ID,
+  RECORDER_FRAME_ID,
+} from "@/lib/overlay/recorder-overlay";
 
-const HOST_ID = "captureflow-control-bar";
+const HOST_ID = CONTROL_BAR_HOST_ID;
 
 // Long enough to take the controls in at the start; short enough after the
 // pointer leaves that the bar doesn't linger open.
 const START_FOLD_MS = 2500;
 const LEAVE_FOLD_MS = 300;
+// Outlasts the exit transition.
+const LEAVE_MS = 240;
 
 // Each icon is drawn at the pixel size it measures in the reference, so the
 // glyph is the box: a 17px stop square, 15×17 pause bars, a 20px restart
@@ -50,6 +55,18 @@ const BAR_CSS = `
     user-select: none;
   }
   .bar.dragging { cursor: grabbing; }
+  /* Slides in from its edge; the same path out. */
+  .bar.entering, .bar.leaving {
+    opacity: 0;
+    transform: translate(-12px, -50%);
+    transition: opacity 0.18s ease-out, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .bar.settled {
+    transition: opacity 0.18s ease-out, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar.entering, .bar.leaving, .bar.settled { transition: none; }
+  }
   button {
     display: flex;
     align-items: center;
@@ -163,7 +180,7 @@ function createBar(): Bar {
   shadow.appendChild(style);
 
   const bar = document.createElement("div");
-  bar.className = "bar";
+  bar.className = "bar entering";
   shadow.appendChild(bar);
 
   const stop = iconButton(STOP_ICON, "Stop and save", () =>
@@ -193,6 +210,10 @@ function createBar(): Bar {
   bar.append(stop, timer, pause, extra);
   makeDraggable(host, bar);
   document.documentElement.appendChild(host);
+  // Two frames in: the first paints the start state, the second transitions.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => bar.classList.replace("entering", "settled")),
+  );
 
   // Full at the start so the controls are seen once, folded after that,
   // and open again for as long as the pointer is over the bar.
@@ -265,7 +286,12 @@ function createBar(): Bar {
     destroy() {
       clearInterval(tick);
       clearTimeout(collapseTimer);
-      host.remove();
+      // The id goes at once, so a bar created meanwhile is the one found.
+      host.id = "";
+      // A dragged bar has lost its centring transform; it fades in place.
+      if (bar.style.transform === "none") bar.style.opacity = "0";
+      else bar.classList.add("leaving");
+      setTimeout(() => host.remove(), LEAVE_MS);
     },
   };
 }

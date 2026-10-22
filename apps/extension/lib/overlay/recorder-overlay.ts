@@ -123,16 +123,17 @@ export function setRecorderBackdropTheme(
     theme === "dark" ? "rgba(0,0,0,.67)" : "rgba(246,245,241,.72)";
 }
 
-// Screenshot capture hides the overlay for a frame so the dim and panel
-// never end up baked into the captured image.
+export const CONTROL_BAR_HOST_ID = "captureflow-control-bar";
+
+// Hides every piece of the extension's page chrome, dim, panel, bubble and
+// control bar, so none of it is baked into a screenshot.
 export function setRecorderOverlayVisible(
   visible: boolean,
-  frameId: string,
-  backdropId: string,
+  ids: string[],
 ): void {
   const value = visible ? "visible" : "hidden";
-  const frame = document.getElementById(frameId);
-  const backdrop = document.getElementById(backdropId);
-  if (frame) frame.style.visibility = value;
-  if (backdrop) backdrop.style.visibility = value;
+  for (const id of ids) {
+    const element = document.getElementById(id);
+    if (element) element.style.visibility = value;
+  }
 }

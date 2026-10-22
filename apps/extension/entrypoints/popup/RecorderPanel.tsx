@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Dropdown, Link, Spinner, Typography } from "@heroui/react";
+import { Button, Dropdown, Spinner } from "@heroui/react";
 import {
   getCapturePrefs,
   setCapturePrefs,
@@ -167,39 +167,6 @@ const BUSY_LABEL: Partial<Record<RecordingStatus["kind"], string>> = {
   preparing: "Starting…",
   uploading: "Uploading…",
 };
-
-export function ResultLink({ url, label }: { url: string; label: string }) {
-  const [copied, setCopied] = useState(false);
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* clipboard blocked — the link is still tappable */
-    }
-  };
-  return (
-    <div className="flex flex-col gap-2">
-      <Typography type="body-xs" className="text-success">
-        {label} ✓
-      </Typography>
-      <div className="flex items-center gap-2 rounded-[10px] bg-surface px-2.5 py-2">
-        <Link
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-          className="min-w-0 flex-1 truncate text-xs"
-        >
-          {url}
-        </Link>
-        <Button variant="outline" size="sm" onPress={() => void copy()}>
-          {copied ? "Copied" : "Copy"}
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 export function RecorderPanel({ status, onStart, onStop }: RecorderPanelProps) {
   const isLive = status.kind === "recording" || status.kind === "paused";

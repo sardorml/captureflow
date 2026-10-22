@@ -9,6 +9,7 @@ import {
 import {
   getActiveUpload,
   getBubblePosition,
+  getCameraBlocked,
   getCapturePrefs,
   getRecordingStatus,
   getThemePreference,
@@ -46,10 +47,29 @@ import {
   RECORDER_FRAME_ID,
   removeRecorderOverlay,
   setRecorderOverlayHeight,
+  CONTROL_BAR_HOST_ID,
   setRecorderBackdropTheme,
   setRecorderOverlayVisible,
   toggleRecorderOverlay,
 } from "@/lib/overlay/recorder-overlay";
+import {
+  AREA_SELECT_ID,
+  isPageArea,
+  selectPageArea,
+} from "@/lib/overlay/area-select";
+
+// Everything the extension puts on a page, hidden together for a capture.
+const PAGE_CHROME_IDS = [
+  RECORDER_FRAME_ID,
+  RECORDER_BACKDROP_ID,
+  BUBBLE_FRAME_ID,
+  CONTROL_BAR_HOST_ID,
+];
+
+async function activeTabId(): Promise<number | undefined> {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab?.id;
+}
 
 const OFFSCREEN_URL = "offscreen.html";
 
@@ -416,6 +436,12 @@ export default defineBackground(() => {
     ) {
       void setBubblePosition(moved as { left: number; top: number });
     }
+    if ("captureflowArea" in (message as object)) {
+      const area = (message as { captureflowArea: unknown }).captureflowArea;
+      void sendMessage("areaSelected", isPageArea(area) ? area : null).catch(
+        () => {},
+      );
+    }
     const verdict = (message as { captureflowCountdown?: unknown })
       .captureflowCountdown;
     if (verdict === "skip" || verdict === "cancel") {
@@ -529,10 +555,43 @@ export default defineBackground(() => {
       await chrome.scripting.executeScript({
         target: { tabId: target },
         func: setRecorderOverlayVisible,
-        args: [data.visible, RECORDER_FRAME_ID, RECORDER_BACKDROP_ID],
+        args: [data.visible, PAGE_CHROME_IDS],
       });
     } catch {
       /* tab closed or no longer injectable */
+    }
+  });
+
+  onMessage("panelMode", async ({ data, sender }) => {
+    const tabId = sender?.tab?.id ?? overlayTabId;
+    if (tabId === undefined) return;
+    if (data === "screenshot") {
+      await setPanelPreview(tabId, false);
+      await releaseCameraBubble();
+      return;
+    }
+    await setPanelPreview(tabId, true);
+    const prefs = await getCapturePrefs();
+    // A blocked camera gets the placeholder: setCameraBubble(false) would
+    // clear the flag the blocked notice reads.
+    if (await getCameraBlocked()) {
+      await mountBubble(tabId, new URLSearchParams());
+      return;
+    }
+    await setCameraBubble(prefs.camera, prefs.mic);
+  });
+
+  onMessage("selectArea", async ({ sender }) => {
+    const target = sender?.tab?.id ?? overlayTabId ?? (await activeTabId());
+    if (target === undefined) return;
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: target },
+        func: selectPageArea,
+        args: [AREA_SELECT_ID],
+      });
+    } catch {
+      /* restricted page */
     }
   });
 

@@ -198,10 +198,10 @@ export function App() {
   const onStop = () => sendMessage("stopRecording", undefined);
 
   /*
-   * The preview belongs to recording, and it sits in the page rather than in
-   * this panel — left up, it would be in shot of the screenshot about to be
-   * taken. Only the bubble is torn down: the camera pref is what remembers the
-   * switch was on, so coming back turns it straight on again.
+   * The bar preview and the bubble belong to recording, and they sit in the
+   * page rather than in this panel — left up, they would be in shot of the
+   * screenshot about to be taken. The worker tears them down and puts them
+   * back; the camera pref is what remembers the switch was on.
    */
   const onModeChange = (key: Key) => {
     // Also swallows the callback some versions fire for the default key, which
@@ -209,17 +209,9 @@ export function App() {
     if (key === mode.current) return;
     mode.current = key;
     void (async () => {
-      const prefs = await getCapturePrefs();
-      if (!prefs.camera) return;
       const status = await getRecordingStatus();
       if (LIVE_KINDS.has(status.kind)) return;
-      // A blocked camera has no bubble either way, and toggling it here would
-      // clear the flag the blocked notice reads.
-      if (await getCameraBlocked()) return;
-      void sendMessage("setCameraBubble", {
-        on: key === "video",
-        mic: prefs.mic,
-      });
+      void sendMessage("panelMode", key === "video" ? "video" : "screenshot");
     })();
   };
 

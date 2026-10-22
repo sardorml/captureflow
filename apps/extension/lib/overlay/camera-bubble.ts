@@ -32,9 +32,15 @@ export function mountCameraBubble(
     "position:fixed;width:220px;height:220px;z-index:2147483647;" +
     "overflow:hidden;border-radius:50%;background:#16181d;" +
     "cursor:grab;touch-action:none;user-select:none;" +
+    // Grows in from the centre; unmount plays it back.
+    "opacity:0;transform:scale(.6);transition:opacity .18s ease-out," +
+    "transform .22s cubic-bezier(.2,.8,.2,1);" +
     (position
       ? `left:${position.left}px;top:${position.top}px;`
       : "bottom:24px;left:24px;");
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    root.style.transition = "none";
+  }
 
   // The frame has nothing to click, so pointer events stay on the root,
   // which is what makes the whole circle a drag handle.
@@ -72,6 +78,13 @@ export function mountCameraBubble(
 
   root.append(iframe);
   document.documentElement.appendChild(root);
+  // Two frames in: the first paints the start state, the second transitions.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      root.style.opacity = "1";
+      root.style.transform = "scale(1)";
+    }),
+  );
 }
 
 /*
@@ -92,6 +105,14 @@ export function mountGrantFrame(frameUrl: string, frameId: string): void {
   document.documentElement.appendChild(iframe);
 }
 
+// Shrinks away, then goes; the id is dropped at once so a remount in the
+// meantime starts a fresh bubble instead of adopting the leaving one.
 export function unmountCameraBubble(frameId: string): void {
-  document.getElementById(frameId)?.remove();
+  const root = document.getElementById(frameId);
+  if (!root) return;
+  root.id = "";
+  root.style.pointerEvents = "none";
+  root.style.opacity = "0";
+  root.style.transform = "scale(.6)";
+  setTimeout(() => root.remove(), 240);
 }

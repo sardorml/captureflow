@@ -7,6 +7,9 @@ import type { RecordingVisibility } from "./api/types";
  */
 export type CaptureSource = "screen" | "window" | "tab";
 
+// A drawn rectangle, or the whole visible tab.
+export type ScreenshotType = "area" | "tab";
+
 export type CapturePrefs = {
   camera: boolean;
   mic: boolean;
@@ -14,6 +17,7 @@ export type CapturePrefs = {
   micId?: string;
   source?: CaptureSource;
   visibility?: RecordingVisibility;
+  shot?: ScreenshotType;
 };
 
 /*

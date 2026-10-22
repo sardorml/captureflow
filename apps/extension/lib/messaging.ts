@@ -1,6 +1,7 @@
 import { defineExtensionMessaging } from "@webext-core/messaging";
 import type { RecordingVisibility } from "./api/types";
 import type { WebSession } from "./auth/sync";
+import type { PageArea } from "./overlay/area-select";
 import type {
   ActiveUpload,
   CaptureSource,
@@ -52,6 +53,13 @@ type ProtocolMap = {
   // panel→SW: the page-side backdrop follows the panel's painted theme.
   setOverlayTheme(theme: "light" | "dark"): void;
   setOverlayVisible(input: { visible: boolean }): void;
+  // panel→SW: the recording chrome on the page, bar and bubble, belongs to
+  // the video tab; the screenshot tab clears it out of shot.
+  panelMode(mode: "video" | "screenshot"): void;
+  // panel→SW: put the area picker on the page; SW→panel: what was drawn,
+  // null when the pick was abandoned.
+  selectArea(): void;
+  areaSelected(area: PageArea | null): void;
   setOverlayHeight(input: { height: number }): void;
   startRecording(): StartResult;
   stopRecording(): void;
