@@ -271,6 +271,15 @@ CREATE TABLE recording_activity (
   timestamp_ms  INTEGER,
   created_at    INTEGER NOT NULL
 ) STRICT;
+CREATE TABLE recording_transcripts (
+  slug        TEXT PRIMARY KEY REFERENCES recordings(slug) ON DELETE CASCADE,
+  source      TEXT NOT NULL,
+  language    TEXT,
+  auto_json   TEXT NOT NULL,
+  edited_json TEXT,
+  created_at  INTEGER NOT NULL,
+  updated_at  INTEGER NOT NULL
+) STRICT;
 DELETE FROM sqlite_sequence;
 CREATE INDEX idx_recordings_device
   ON recordings (device_id, created_at DESC);

@@ -18,6 +18,20 @@ vi.mock("@/lib/recording/db", () => ({
   addComment: async (c: object) => ({ id: "c2", ...c }),
   addReaction: async (r: object) => ({ id: "r2", ...r }),
   updateRecording: vi.fn(),
+  getTranscript: async () => ({
+    slug: SLUG,
+    source: "chrome-speech-local",
+    language: "en-US",
+    autoJson: JSON.stringify({
+      version: 1,
+      language: "en-US",
+      source: "chrome-speech-local",
+      segments: [{ id: "s1", startMs: 0, endMs: 1000, text: "hi" }],
+    }),
+    editedJson: null,
+    createdAt: 1,
+    updatedAt: 1,
+  }),
 }));
 vi.mock("@/lib/recording/verify-session", () => ({
   verifySessionOrNull: (...a: unknown[]) => recordingSession(...a),
@@ -40,10 +54,13 @@ vi.mock("@/lib/screenshot/verify-session", () => ({
 const comments = await import("./r/comments/route");
 const reactions = await import("./r/reactions/route");
 const summary = await import("./r/summary-chapters/[id]/route");
+const transcript = await import("./r/transcript/[id]/route");
+const captions = await import("./r/transcript/[id]/captions/route");
 const recordingDownload = await import("./r/download/route");
 const screenshotDownload = await import("./s/download/route");
 
 const SLUG = "abcdefgh23";
+const BY_ID = { params: Promise.resolve({ id: SLUG }) };
 const OWNER = { userId: "owner", workspaceIds: ["ws"], name: "O", email: "o" };
 const MEMBER = {
   userId: "member",
@@ -75,13 +92,9 @@ function req(path: string, body?: object): NextRequest {
 const reads = [
   ["comments", () => comments.GET(req(`/api/r/comments?slug=${SLUG}`))],
   ["reactions", () => reactions.GET(req(`/api/r/reactions?slug=${SLUG}`))],
-  [
-    "summary",
-    () =>
-      summary.GET(new Request("http://localhost"), {
-        params: Promise.resolve({ id: SLUG }),
-      }),
-  ],
+  ["summary", () => summary.GET(new Request("http://localhost"), BY_ID)],
+  ["transcript", () => transcript.GET(new Request("http://localhost"), BY_ID)],
+  ["captions", () => captions.GET(new Request("http://localhost"), BY_ID)],
   [
     "download",
     () => recordingDownload.GET(req(`/api/r/download?slug=${SLUG}`)),

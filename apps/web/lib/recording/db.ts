@@ -4,8 +4,9 @@ import type {
   RecordingComment,
   RecordingReaction,
   RecordingRow,
+  TranscriptRow,
 } from "./types";
-import type { RecordingDb } from "./db-types";
+import type { RecordingDb, UpsertTranscriptInput } from "./db-types";
 import { memoryDb } from "./db-memory";
 import { createD1Db } from "./db-d1";
 import { getCloudflareEnv } from "./cf-env";
@@ -137,4 +138,16 @@ export async function getComment(id: number) {
 
 export async function deleteComment(id: number): Promise<boolean> {
   return (await resolveDb()).deleteComment(id);
+}
+
+export async function upsertTranscript(
+  input: UpsertTranscriptInput,
+): Promise<void> {
+  return (await resolveDb()).upsertTranscript(input);
+}
+
+export async function getTranscript(
+  slug: string,
+): Promise<TranscriptRow | null> {
+  return (await resolveDb()).getTranscript(slug);
 }

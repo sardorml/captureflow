@@ -2,7 +2,16 @@ import type {
   RecordingComment,
   RecordingReaction,
   RecordingRow,
+  TranscriptRow,
+  TranscriptSource,
 } from "./types";
+
+export type UpsertTranscriptInput = {
+  slug: string;
+  source: TranscriptSource;
+  language: string | null;
+  autoJson: string;
+};
 
 export type RecordingDb = {
   insertRecording(row: RecordingRow): Promise<void>;
@@ -37,4 +46,7 @@ export type RecordingDb = {
   countComments(slug: string): Promise<number>;
   getComment(id: number): Promise<RecordingComment | null>;
   deleteComment(id: number): Promise<boolean>;
+  // Replaces the auto transcript and clears any owner edits.
+  upsertTranscript(input: UpsertTranscriptInput): Promise<void>;
+  getTranscript(slug: string): Promise<TranscriptRow | null>;
 };

@@ -2,11 +2,13 @@ import type {
   RecordingComment,
   RecordingReaction,
   RecordingRow,
+  TranscriptRow,
 } from "./types";
 import type { RecordingDb } from "./db-types";
 
 // In-memory backend for local Next.js dev only; production uses D1.
 const store = new Map<string, RecordingRow>();
+const transcripts = new Map<string, TranscriptRow>();
 const reactions: RecordingReaction[] = [];
 const comments: RecordingComment[] = [];
 let nextReactionId = 1;
@@ -30,6 +32,7 @@ export const memoryDb: RecordingDb = {
   },
 
   async deleteRecording(slug) {
+    transcripts.delete(slug);
     return store.delete(slug);
   },
 
@@ -137,6 +140,23 @@ export const memoryDb: RecordingDb = {
     if (idx < 0) return false;
     comments.splice(idx, 1);
     return true;
+  },
+
+  async upsertTranscript({ slug, source, language, autoJson }) {
+    const now = Date.now();
+    transcripts.set(slug, {
+      slug,
+      source,
+      language,
+      autoJson,
+      editedJson: null,
+      createdAt: transcripts.get(slug)?.createdAt ?? now,
+      updatedAt: now,
+    });
+  },
+
+  async getTranscript(slug) {
+    return transcripts.get(slug) ?? null;
   },
 };
 

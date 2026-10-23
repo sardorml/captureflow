@@ -5,6 +5,8 @@ import type {
   RecordingReaction,
   RecordingRow,
   RecordingVisibility,
+  TranscriptRow,
+  TranscriptSource,
   WebcamState,
 } from "./types";
 import type {
@@ -104,6 +106,28 @@ function reactionFromD1(r: D1ReactionRow): RecordingReaction {
     userId: r.user_id ?? null,
     userName: r.user_name ?? null,
     userImage: r.user_image ?? null,
+  };
+}
+
+type D1TranscriptRow = {
+  slug: string;
+  source: string;
+  language: string | null;
+  auto_json: string;
+  edited_json: string | null;
+  created_at: number;
+  updated_at: number;
+};
+
+function transcriptFromD1(r: D1TranscriptRow): TranscriptRow {
+  return {
+    slug: r.slug,
+    source: r.source as TranscriptSource,
+    language: r.language ?? null,
+    autoJson: r.auto_json,
+    editedJson: r.edited_json ?? null,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
   };
 }
 
@@ -233,6 +257,25 @@ export function createD1Db(d1: D1Database): RecordingDb {
 
   const stmtDeleteComment = d1.prepare(
     `DELETE FROM recording_activity WHERE id = ?1 AND kind = 'comment'`,
+  );
+
+  const stmtUpsertTranscript = d1.prepare(
+    `INSERT INTO recording_transcripts
+       (slug, source, language, auto_json, edited_json, created_at, updated_at)
+     VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?5)
+     ON CONFLICT(slug) DO UPDATE SET
+       source = excluded.source,
+       language = excluded.language,
+       auto_json = excluded.auto_json,
+       edited_json = NULL,
+       updated_at = excluded.updated_at`,
+  );
+
+  const stmtGetTranscript = d1.prepare(
+    `SELECT slug, source, language, auto_json, edited_json, created_at, updated_at
+       FROM recording_transcripts
+       WHERE slug = ?1
+       LIMIT 1`,
   );
 
   return {
@@ -401,6 +444,17 @@ export function createD1Db(d1: D1Database): RecordingDb {
     async deleteComment(id) {
       const r = await stmtDeleteComment.bind(id).run();
       return (r.meta?.changes ?? 0) > 0;
+    },
+
+    async upsertTranscript({ slug, source, language, autoJson }) {
+      await stmtUpsertTranscript
+        .bind(slug, source, language, autoJson, Date.now())
+        .run();
+    },
+
+    async getTranscript(slug) {
+      const r = await stmtGetTranscript.bind(slug).first<D1TranscriptRow>();
+      return r ? transcriptFromD1(r) : null;
     },
   };
 }

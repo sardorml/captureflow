@@ -163,3 +163,54 @@ export type RecordingApiError = {
   error: string;
   code?: string;
 };
+
+/*
+ * Transcript produced on the recorder and posted after /finalize. Times are
+ * recording time in milliseconds (pauses removed), the same clock as
+ * `durationMs`. `words` is optional: Chrome's recognizer only times phrases.
+ */
+export type TranscriptWord = {
+  text: string;
+  startMs: number;
+  endMs: number;
+};
+
+export type TranscriptSegment = {
+  id: string;
+  startMs: number;
+  endMs: number;
+  text: string;
+  words?: TranscriptWord[];
+};
+
+export type TranscriptSource =
+  | "chrome-speech-local"
+  | "chrome-speech-cloud"
+  | "apple-speech";
+
+export type RecordingTranscript = {
+  version: 1;
+  language: string | null;
+  source: TranscriptSource;
+  segments: TranscriptSegment[];
+};
+
+export type TranscriptRequest = {
+  slug: string;
+  transcript: RecordingTranscript;
+};
+
+export type TranscriptResponse = {
+  transcript: RecordingTranscript | null;
+  hasEdits: boolean;
+};
+
+export type TranscriptRow = {
+  slug: string;
+  source: TranscriptSource;
+  language: string | null;
+  autoJson: string;
+  editedJson: string | null;
+  createdAt: number;
+  updatedAt: number;
+};
