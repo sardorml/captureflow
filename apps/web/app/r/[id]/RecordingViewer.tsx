@@ -152,16 +152,6 @@ export function RecordingViewer({
             onSeek={seekTo}
             getCurrentMs={getCurrentMs}
           />
-          <TranscriptPanel
-            slug={slug}
-            initialTranscript={initialTranscript}
-            initialStatus={initialTranscriptStatus}
-            cuts={config.cuts}
-            isOwner={isOwner}
-            editUrl={editUrl}
-            onSeek={seekTo}
-            getCurrentMs={getCurrentMs}
-          />
           <footer className="mt-8 flex justify-center border-t border-line pt-6">
             <PoweredBy />
           </footer>
@@ -172,6 +162,18 @@ export function RecordingViewer({
         initialReactions={initialReactions}
         initialComments={initialComments}
         liveReactions={liveReactions}
+        transcript={
+          <TranscriptPanel
+            slug={slug}
+            initialTranscript={initialTranscript}
+            initialStatus={initialTranscriptStatus}
+            cuts={config.cuts}
+            isOwner={isOwner}
+            editUrl={editUrl}
+            onSeek={seekTo}
+            getCurrentMs={getCurrentMs}
+          />
+        }
         viewerSignedIn={signedIn}
         viewerName={viewerName}
         viewerUserId={viewer?.userId ?? null}

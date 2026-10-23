@@ -29,6 +29,7 @@ type Props = {
 const POLL_INTERVAL_MS = 3_000;
 const POLL_FOR_MS = 30 * 60_000;
 
+// The sidebar's Transcript tab: fills the column, list scrolls on its own.
 export function TranscriptPanel({
   slug,
   initialTranscript,
@@ -106,76 +107,73 @@ export function TranscriptPanel({
     }
   };
 
-  const heading = (
-    <h2 className="flex items-center gap-2 text-base font-semibold text-fg">
-      <Captions className="h-4 w-4 text-blue-400" />
-      Transcript
-    </h2>
-  );
-
   if (!transcript) {
-    if (status === "pending") {
-      return (
-        <section className="mt-8">
-          {heading}
-          <p className="mt-2 flex items-center gap-2 text-sm text-fg-muted">
-            <Spinner size="sm" />
-            Transcribing…
-          </p>
-        </section>
-      );
-    }
-    if (!isOwner) return null;
     return (
-      <section className="mt-8">
-        {heading}
-        <p className="mt-2 text-sm text-fg-muted">
-          {status === "failed"
-            ? "Transcription didn't finish for this recording."
-            : "No transcript for this recording. Record with the microphone on and one is written for you."}
+      <div className="flex h-full flex-col items-center justify-center py-16 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-tint text-fg-muted ring-1 ring-line-strong">
+          {status === "pending" ? (
+            <Spinner size="sm" />
+          ) : (
+            <Captions className="h-5 w-5" />
+          )}
+        </div>
+        <p className="mt-4 text-base font-semibold text-fg">
+          {status === "pending"
+            ? "Transcribing…"
+            : status === "failed"
+              ? "Transcription didn't finish"
+              : "No transcript"}
         </p>
-      </section>
+        <p className="mt-1.5 max-w-[18rem] text-xs leading-relaxed text-fg-muted">
+          {status === "pending"
+            ? "The transcript shows up here as soon as it's ready."
+            : status === "failed"
+              ? "Something went wrong while transcribing this recording."
+              : isOwner
+                ? "Record with the microphone on and one is written for you."
+                : "This recording was made without a microphone."}
+        </p>
+      </div>
     );
   }
 
   return (
-    <section className="mt-8">
-      <div className="flex items-center justify-between gap-3">
-        {heading}
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => void copyAll()}
-            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-fg-muted transition-colors hover:bg-tint hover:text-fg"
+    <div className="flex h-full flex-col">
+      <div className="flex items-center gap-2">
+        <TextField
+          aria-label="Search transcript"
+          value={query}
+          onChange={setQuery}
+          className="min-w-0 flex-1"
+          fullWidth
+        >
+          <Input placeholder="Search transcript" />
+        </TextField>
+        <button
+          type="button"
+          onClick={() => void copyAll()}
+          title="Copy transcript"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-fg-muted transition-colors hover:bg-tint hover:text-fg"
+        >
+          {copied ? (
+            <Check className="h-3.5 w-3.5" />
+          ) : (
+            <Copy className="h-3.5 w-3.5" />
+          )}
+          {copied ? "Copied" : "Copy"}
+        </button>
+        {isOwner ? (
+          <a
+            href={editUrl}
+            title="Edit transcript"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-fg-muted transition-colors hover:bg-tint hover:text-fg"
           >
-            {copied ? (
-              <Check className="h-3.5 w-3.5" />
-            ) : (
-              <Copy className="h-3.5 w-3.5" />
-            )}
-            {copied ? "Copied" : "Copy"}
-          </button>
-          {isOwner ? (
-            <a
-              href={editUrl}
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-fg-muted transition-colors hover:bg-tint hover:text-fg"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-              Edit
-            </a>
-          ) : null}
-        </div>
+            <Pencil className="h-3.5 w-3.5" />
+            Edit
+          </a>
+        ) : null}
       </div>
-      <TextField
-        aria-label="Search transcript"
-        value={query}
-        onChange={setQuery}
-        className="mt-3"
-        fullWidth
-      >
-        <Input placeholder="Search transcript" />
-      </TextField>
-      <ol className="mt-2 max-h-96 space-y-0.5 overflow-y-auto">
+      <ol className="mt-3 max-h-[60vh] flex-1 space-y-0.5 overflow-y-auto lg:max-h-none lg:min-h-0">
         {shown.map((s) => {
           const active = s.id === activeId;
           return (
@@ -207,6 +205,6 @@ export function TranscriptPanel({
           <li className="px-2 py-1.5 text-sm text-fg-subtle">No matches.</li>
         ) : null}
       </ol>
-    </section>
+    </div>
   );
 }
