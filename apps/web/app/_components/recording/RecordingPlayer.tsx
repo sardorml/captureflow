@@ -55,8 +55,10 @@ type Props = {
   serverHeight: number | null;
   // Persisted presentation config (bg, cam PiP corner + size, per-track mute defaults). On the edit page this is the LIVE config the sidebar mutates — changes apply immediately so the user previews exactly what the public viewer renders after Save.
   config: RecordingConfig;
-  // Render slot above the time slider; the public viewer uses it to plot reaction clusters.
+  // Render slot over the time slider; the public viewer uses it to plot reaction dots.
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
+  // Render slot over the whole player that stays visible when the controls hide.
+  floatingOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   // Content below the player, inside the outer flex column. Hidden in fullscreen (only the player container goes fullscreen). The public viewer uses it for the reaction bar.
   belowPlayer?: ReactNode;
   controlsExtra?: ReactNode;
@@ -88,6 +90,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       serverHeight,
       config,
       progressOverlay,
+      floatingOverlay,
       belowPlayer,
       controlsExtra,
       controlsAlwaysVisible = false,
@@ -211,6 +214,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             cues={cues}
             previewLoopUrl={compactControls ? videoUrl : undefined}
             progressOverlay={progressOverlay}
+            floatingOverlay={floatingOverlay}
             controlsExtra={controlsExtra}
           >
             <Video

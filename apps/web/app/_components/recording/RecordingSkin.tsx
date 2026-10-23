@@ -93,7 +93,13 @@ export type RecordingSkinProps = {
   cues: ChapterCue[];
   previewLoopUrl?: string;
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
+  // Covers the whole player and stays put when the controls hide.
+  floatingOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   controlsExtra?: ReactNode;
+};
+
+type Timeline = Omit<ProgressOverlayInfo, "controlsVisible"> & {
+  edited: boolean;
 };
 
 const SKIP_SECONDS = 5;
@@ -121,9 +127,12 @@ export function RecordingSkin({
   cues,
   previewLoopUrl,
   progressOverlay,
+  floatingOverlay,
   controlsExtra,
 }: RecordingSkinProps) {
   const isFullscreen = usePlayer(selectFullscreen)?.isFullscreen ?? false;
+  const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
+  const timeline = useTimeline(serverDurationMs, cuts, showCuts);
   const hasFrame = background !== "transparent";
 
   return (
@@ -179,12 +188,17 @@ export function RecordingSkin({
         </div>
       ) : null}
 
+      {floatingOverlay ? (
+        <div className="pointer-events-none absolute inset-0 z-20">
+          {floatingOverlay({ ...timeline, controlsVisible })}
+        </div>
+      ) : null}
+
       <RecordingControls
         compact={compact}
         alwaysVisible={alwaysVisible}
-        serverDurationMs={serverDurationMs}
+        timeline={timeline}
         cuts={cuts}
-        showCuts={showCuts}
         cues={cues}
         progressOverlay={progressOverlay}
         controlsExtra={controlsExtra}
@@ -383,49 +397,59 @@ function EditedTime({
   );
 }
 
-type RecordingControlsProps = {
-  compact: boolean;
-  alwaysVisible: boolean;
-  serverDurationMs: number | null;
-  cuts: RecordingCut[];
-  showCuts: boolean;
-  cues: ChapterCue[];
-  progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
-  controlsExtra?: ReactNode;
-};
-
-/*
- * Layout copied from the vendored DefaultVideoControls so the look matches
- * the stock skin; only the slots, the seek steps and the compact variant
- * differ. With cuts the editor keeps the real timeline and marks them; every
- * other player runs its slider and clock on the edited timeline.
- */
-function RecordingControls({
-  compact,
-  alwaysVisible,
-  serverDurationMs,
-  cuts,
-  showCuts,
-  cues,
-  progressOverlay,
-  controlsExtra,
-}: RecordingControlsProps) {
-  const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
+// With cuts the editor keeps the real timeline and marks them; every other
+// player runs its slider and clock on the edited timeline.
+function useTimeline(
+  serverDurationMs: number | null,
+  cuts: RecordingCut[],
+  showCuts: boolean,
+): Timeline {
   const time = usePlayer(selectTime);
   const duration = time?.duration ?? 0;
   const sourceSeconds =
     duration > 0 ? duration : serverDurationMs ? serverDurationMs / 1000 : 0;
   const edited = !showCuts && cuts.length > 0;
-  // The editor's selection replaces the chapters on the track, so any cue
-  // present is the selection.
-  const selecting = cues.some((cue) => cue.id === SELECTION_CUE_ID);
-  const durationSeconds = edited
-    ? effectiveDurationMs(sourceSeconds * 1000, cuts) / 1000
-    : sourceSeconds;
   const toTimelineMs = useMemo(
     () => (edited ? (ms: number) => toEditedMs(ms, cuts) : identityMs),
     [edited, cuts],
   );
+  return {
+    edited,
+    durationSeconds: edited
+      ? effectiveDurationMs(sourceSeconds * 1000, cuts) / 1000
+      : sourceSeconds,
+    currentSeconds: toTimelineMs((time?.currentTime ?? 0) * 1000) / 1000,
+    toTimelineMs,
+  };
+}
+
+type RecordingControlsProps = {
+  compact: boolean;
+  alwaysVisible: boolean;
+  timeline: Timeline;
+  cuts: RecordingCut[];
+  cues: ChapterCue[];
+  progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
+  controlsExtra?: ReactNode;
+};
+
+// Layout copied from the vendored DefaultVideoControls so the look matches
+// the stock skin; only the slots, the seek steps and the compact variant
+// differ.
+function RecordingControls({
+  compact,
+  alwaysVisible,
+  timeline,
+  cuts,
+  cues,
+  progressOverlay,
+  controlsExtra,
+}: RecordingControlsProps) {
+  const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
+  const { edited, durationSeconds, currentSeconds, toTimelineMs } = timeline;
+  // The editor's selection replaces the chapters on the track, so any cue
+  // present is the selection.
+  const selecting = cues.some((cue) => cue.id === SELECTION_CUE_ID);
 
   return (
     <Controls.Root visibility={alwaysVisible ? "always" : "auto"}>
@@ -494,8 +518,7 @@ function RecordingControls({
                   <div className="pointer-events-none absolute inset-0 z-10">
                     {progressOverlay({
                       durationSeconds,
-                      currentSeconds:
-                        toTimelineMs((time?.currentTime ?? 0) * 1000) / 1000,
+                      currentSeconds,
                       controlsVisible,
                       toTimelineMs,
                     })}

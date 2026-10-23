@@ -222,23 +222,27 @@ html:not(:has([data-marketing])) .card {
 /* Reaction emoji rises from below the scrubber with a small overshoot.
    translateX(-50%) is preserved at every keyframe so the marker stays
    horizontally centered on its timestamp. */
-/* A reaction leaving its dot on the time slider: pops up, drifts, fades. */
+/* A reaction leaving its dot on the time slider: pops, floats up the
+   video, fades. */
 @keyframes reaction-rise {
   0% {
-    transform: translate(-50%, calc(-50% - 8px)) scale(0.4);
+    transform: translate(-50%, -50%) scale(0.4);
     opacity: 0;
   }
-  25% {
-    transform: translate(-50%, calc(-50% - 22px)) scale(1.2);
+  15% {
+    transform: translate(-50%, calc(-50% - 28px)) scale(1.2);
     opacity: 1;
   }
+  70% {
+    opacity: 0.9;
+  }
   100% {
-    transform: translate(-50%, calc(-50% - 44px)) scale(1);
+    transform: translate(-50%, calc(-50% - 170px)) scale(1);
     opacity: 0;
   }
 }
 .animate-reaction-rise {
-  animation: reaction-rise 1000ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation: reaction-rise 1600ms cubic-bezier(0.2, 0.6, 0.3, 1) both;
 }
 
 /* The demo player's REC dot — the only looping animation on the page. */

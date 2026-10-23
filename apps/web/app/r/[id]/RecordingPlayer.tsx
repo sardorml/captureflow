@@ -12,6 +12,7 @@ import {
 import { MessageSquare } from "lucide-react";
 import {
   RecordingPlayer as BaseRecordingPlayer,
+  type ProgressOverlayInfo,
   type RecordingPlayerHandle,
 } from "../../_components/recording";
 import type { RecordingConfig } from "@/lib/recording-config";
@@ -170,13 +171,20 @@ export function RecordingPlayer({
       captionsLang={captionsLang}
       chapters={chapters}
       landscapeMaxHeightCss={landscapeMaxHeightCss}
-      progressOverlay={({ durationSeconds, currentSeconds, toTimelineMs }) => (
-        <ReactionOverlay
+      progressOverlay={(info) => (
+        <ReactionLayer
+          kind="dots"
           reactions={reactions}
           freshIds={freshIds}
-          durationSeconds={durationSeconds}
-          currentSeconds={currentSeconds}
-          toTimelineMs={toTimelineMs}
+          info={info}
+        />
+      )}
+      floatingOverlay={(info) => (
+        <ReactionLayer
+          kind="bursts"
+          reactions={reactions}
+          freshIds={freshIds}
+          info={info}
         />
       )}
       controlsAlwaysVisible={embedded}
@@ -216,22 +224,58 @@ export function RecordingPlayer({
   );
 }
 
-// Rendered in the player's slot over the time slider, so cluster fractions
-// map onto the slider's own width.
-function ReactionOverlay({
+// Both overlays cluster the same reactions on the slider's timeline; the
+// dots live in the slider slot and the bursts over the whole player.
+function ReactionLayer({
+  kind,
   reactions,
   freshIds,
-  durationSeconds,
-  currentSeconds,
-  toTimelineMs,
+  info,
 }: {
+  kind: "dots" | "bursts";
   reactions: RecordingReaction[];
   freshIds: Set<number>;
-  durationSeconds: number;
-  currentSeconds: number;
-  toTimelineMs: (sourceMs: number) => number;
+  info: ProgressOverlayInfo;
 }) {
-  const clusters = useMemo(
+  const { durationSeconds, currentSeconds, toTimelineMs } = info;
+  const clusters = useReactionClusters(
+    reactions,
+    freshIds,
+    durationSeconds,
+    toTimelineMs,
+  );
+  const Layer = kind === "dots" ? ReactionDots : ReactionBursts;
+  return (
+    <Layer
+      clusters={clusters}
+      currentSeconds={currentSeconds}
+      durationSeconds={durationSeconds}
+    />
+  );
+}
+
+type ReactionCluster = {
+  fraction: number;
+  // Every reaction in the cluster, in time order.
+  emojis: string[];
+  isFresh: boolean;
+};
+
+type ReactionBurst = {
+  id: number;
+  x: number;
+  y: number;
+  emoji: string;
+  delayMs: number;
+};
+
+function useReactionClusters(
+  reactions: RecordingReaction[],
+  freshIds: Set<number>,
+  durationSeconds: number,
+  toTimelineMs: (sourceMs: number) => number,
+): ReactionCluster[] {
+  return useMemo(
     () =>
       clusterReactions(
         reactions.map((r) => ({
@@ -243,28 +287,7 @@ function ReactionOverlay({
       ),
     [reactions, durationSeconds, freshIds, toTimelineMs],
   );
-  return (
-    <ReactionMarkers
-      clusters={clusters}
-      currentSeconds={currentSeconds}
-      durationSeconds={durationSeconds}
-    />
-  );
 }
-
-type ReactionCluster = {
-  fraction: number;
-  emoji: string;
-  count: number;
-  isFresh: boolean;
-};
-
-type ReactionBurst = {
-  id: number;
-  fraction: number;
-  emoji: string;
-  count: number;
-};
 
 function clusterReactions(
   reactions: RecordingReaction[],
@@ -279,27 +302,16 @@ function clusterReactions(
 
   const flush = (): void => {
     if (bucket.length === 0) return;
-    const counts = new Map<string, number>();
     let sumMs = 0;
     let fresh = false;
     for (const r of bucket) {
-      counts.set(r.emoji, (counts.get(r.emoji) ?? 0) + 1);
       sumMs += r.timestampMs;
       if (freshIds.has(r.id)) fresh = true;
     }
     const meanMs = sumMs / bucket.length;
-    let bestEmoji = bucket[0]!.emoji;
-    let bestN = 0;
-    for (const [e, n] of counts.entries()) {
-      if (n > bestN) {
-        bestN = n;
-        bestEmoji = e;
-      }
-    }
     out.push({
       fraction: Math.max(0, Math.min(1, meanMs / totalMs)),
-      emoji: bestEmoji,
-      count: bucket.length,
+      emojis: bucket.map((r) => r.emoji),
       isFresh: fresh,
     });
     bucket = [];
@@ -342,17 +354,15 @@ async function postReaction(
 // Dots closer than this merge, so neighbours never overlap.
 const CLUSTER_VISUAL_WIDTH_PX = 12;
 // Must match the rise animation duration in globals.css.
-const BURST_MS = 1000;
+const BURST_MS = 1600;
+// Gap between the emojis of one cluster, played back to back.
+const BURST_STAGGER_MS = 220;
 // A bigger jump between two time samples is a seek, which passes dots
 // silently.
 const MAX_PLAYBACK_STEP_SECONDS = 1.5;
 
-/*
- * Each cluster is a dot on the time slider until playback reaches it, when
- * its emoji rises off the dot and the dot goes. Seeking back brings the dots
- * back; a reaction the viewer just sent bursts right away.
- */
-function ReactionMarkers({
+// One dot per cluster on the time slider, gone once playback has passed it.
+function ReactionDots({
   clusters,
   currentSeconds,
   durationSeconds,
@@ -363,49 +373,6 @@ function ReactionMarkers({
 }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [trackWidth, setTrackWidth] = useState(0);
-  const [bursts, setBursts] = useState<ReactionBurst[]>([]);
-  const burstIdRef = useRef(0);
-  const prevSecondsRef = useRef(currentSeconds);
-  const burstedFreshRef = useRef(new Set<string>());
-
-  const spawn = useCallback((hits: ReactionCluster[]) => {
-    if (hits.length === 0) return;
-    const added = hits.map((c) => ({
-      id: ++burstIdRef.current,
-      fraction: c.fraction,
-      emoji: c.emoji,
-      count: c.count,
-    }));
-    setBursts((prev) => [...prev, ...added]);
-    const ids = new Set(added.map((b) => b.id));
-    window.setTimeout(() => {
-      setBursts((prev) => prev.filter((b) => !ids.has(b.id)));
-    }, BURST_MS);
-  }, []);
-
-  useEffect(() => {
-    const prev = prevSecondsRef.current;
-    prevSecondsRef.current = currentSeconds;
-    const step = currentSeconds - prev;
-    if (step <= 0 || step > MAX_PLAYBACK_STEP_SECONDS) return;
-    spawn(
-      clusters.filter((c) => {
-        const at = c.fraction * durationSeconds;
-        return at > prev && at <= currentSeconds && !c.isFresh;
-      }),
-    );
-  }, [currentSeconds, clusters, durationSeconds, spawn]);
-
-  useEffect(() => {
-    const fresh = clusters.filter((c) => {
-      if (!c.isFresh) return false;
-      const key = `${c.emoji}@${c.fraction.toFixed(4)}#${c.count}`;
-      if (burstedFreshRef.current.has(key)) return false;
-      burstedFreshRef.current.add(key);
-      return true;
-    });
-    spawn(fresh);
-  }, [clusters, spawn]);
 
   useEffect(() => {
     const el = trackRef.current;
@@ -429,7 +396,7 @@ function ReactionMarkers({
     const ranked = [...clusters]
       .map((c, idx) => ({ c, idx }))
       .sort((a, b) => {
-        const dn = b.c.count - a.c.count;
+        const dn = b.c.emojis.length - a.c.emojis.length;
         if (dn !== 0) return dn;
         return a.c.fraction - b.c.fraction;
       });
@@ -452,6 +419,7 @@ function ReactionMarkers({
         return (
           <span
             key={idx}
+            data-reaction-dot
             className={cn(
               "absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_0_2px_rgba(0,0,0,0.35)] transition-[opacity,scale] duration-300",
               passed && "scale-50 opacity-0",
@@ -460,30 +428,119 @@ function ReactionMarkers({
           />
         );
       })}
+    </div>
+  );
+}
+
+/*
+ * Emojis floating up the video. When playback reaches a cluster's dot its
+ * emojis take off from the dot one after another, whether or not the
+ * controls are showing; a reaction the viewer just sent takes off at once.
+ * Seeking past a dot stays quiet.
+ */
+function ReactionBursts({
+  clusters,
+  currentSeconds,
+  durationSeconds,
+}: {
+  clusters: ReactionCluster[];
+  currentSeconds: number;
+  durationSeconds: number;
+}) {
+  const layerRef = useRef<HTMLDivElement | null>(null);
+  const [bursts, setBursts] = useState<ReactionBurst[]>([]);
+  const burstIdRef = useRef(0);
+  const prevSecondsRef = useRef(currentSeconds);
+  const burstedFreshRef = useRef(new Set<string>());
+
+  const spawn = useCallback((hits: ReactionCluster[]) => {
+    const layer = layerRef.current;
+    if (hits.length === 0 || !layer) return;
+    const origin = takeoffOrigin(layer);
+    const added: ReactionBurst[] = [];
+    for (const c of hits) {
+      c.emojis.forEach((emoji, i) => {
+        added.push({
+          id: ++burstIdRef.current,
+          x: origin.left + c.fraction * origin.width,
+          y: origin.y,
+          emoji,
+          delayMs: i * BURST_STAGGER_MS,
+        });
+      });
+    }
+    setBursts((prev) => [...prev, ...added]);
+    const ids = new Set(added.map((b) => b.id));
+    const longest = Math.max(...added.map((b) => b.delayMs));
+    window.setTimeout(() => {
+      setBursts((prev) => prev.filter((b) => !ids.has(b.id)));
+    }, BURST_MS + longest);
+  }, []);
+
+  useEffect(() => {
+    const prev = prevSecondsRef.current;
+    prevSecondsRef.current = currentSeconds;
+    const step = currentSeconds - prev;
+    if (step <= 0 || step > MAX_PLAYBACK_STEP_SECONDS) return;
+    spawn(
+      clusters.filter((c) => {
+        const at = c.fraction * durationSeconds;
+        return at > prev && at <= currentSeconds && !c.isFresh;
+      }),
+    );
+  }, [currentSeconds, clusters, durationSeconds, spawn]);
+
+  useEffect(() => {
+    spawn(
+      clusters.filter((c) => {
+        if (!c.isFresh) return false;
+        const key = `${c.fraction.toFixed(4)}#${c.emojis.length}`;
+        if (burstedFreshRef.current.has(key)) return false;
+        burstedFreshRef.current.add(key);
+        return true;
+      }),
+    );
+  }, [clusters, spawn]);
+
+  return (
+    <div ref={layerRef} className="pointer-events-none absolute inset-0">
       {bursts.map((b) => (
-        <div
+        <span
           key={b.id}
-          className="animate-reaction-rise absolute top-1/2 flex items-end gap-0.5"
-          style={{ left: `${b.fraction * 100}%` }}
+          data-reaction-burst
+          className="animate-reaction-rise absolute text-[26px] leading-none"
+          style={{
+            left: b.x,
+            top: b.y,
+            animationDelay: `${b.delayMs}ms`,
+            filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))",
+          }}
         >
-          <span
-            className="text-[22px] leading-none"
-            style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }}
-          >
-            {b.emoji}
-          </span>
-          {b.count > 1 ? (
-            <span
-              className="text-[11px] font-semibold tabular-nums leading-none text-white"
-              style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.8))" }}
-            >
-              {b.count}
-            </span>
-          ) : null}
-        </div>
+          {b.emoji}
+        </span>
       ))}
     </div>
   );
+}
+
+// Where emojis take off from: the time slider's span inside the player, so
+// they rise from their dot, or the bottom edge when there is no slider.
+function takeoffOrigin(layer: HTMLElement): {
+  left: number;
+  width: number;
+  y: number;
+} {
+  const own = layer.getBoundingClientRect();
+  const slider = layer.parentElement?.querySelector<HTMLElement>(
+    '[role="slider"][aria-label="Seek"]',
+  )?.parentElement;
+  if (!slider) return { left: 0, width: own.width, y: own.height - 24 };
+  const r = slider.getBoundingClientRect();
+  return {
+    left: r.left - own.left,
+    width: r.width,
+    y: r.top - own.top + r.height / 2,
+  };
 }
 
 function ReactionBar({
