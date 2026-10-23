@@ -554,16 +554,12 @@ function RecordingControls({
   );
 
   return (
-    <Controls.Root
-      visibility={
-        alwaysVisible || (controlsVisible && !storeControlsVisible)
-          ? "always"
-          : "auto"
-      }
-    >
+    <Controls.Root visibility={alwaysVisible ? "always" : "auto"}>
+      {/* Only the toolbar strip darkens; the picture above stays as it is. */}
       <Controls.Backdrop
         className={cn(
-          "pointer-events-none absolute inset-0 z-10 rounded-[inherit] bg-(image:--media-controls-gradient)",
+          "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-36 rounded-b-[inherit]",
+          "bg-[linear-gradient(to_top,rgba(0,0,0,0.6),rgba(0,0,0,0.25)_50%,transparent)]",
           "transition-opacity duration-media-controls ease-out not-data-visible:opacity-0",
         )}
       />
