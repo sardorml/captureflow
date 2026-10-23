@@ -61,8 +61,8 @@ type Props = {
   // A span the editor is about to cut, drawn as its own red segment of the
   // time slider (a chapters track, so Video.js splits the slider itself).
   selection?: RecordingCut | null;
-  // Marks the cut spans on the time slider. Only the editor shows them; a
-  // viewer just gets a video that skips.
+  // Keeps the real timeline and marks the cut spans on it (the editor).
+  // Otherwise the slider and clock run on the edited timeline.
   showCuts?: boolean;
   // Viewport-aware max-height for LANDSCAPE sources, e.g. 'min(34rem, calc(100vh - 19rem))'. The public viewer passes this so the reaction bar below the player stays in view without scrolling; the editor omits it so the preview fills the available panel height.
   landscapeMaxHeightCss?: string;
@@ -185,7 +185,8 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             compact={compactControls}
             alwaysVisible={controlsAlwaysVisible}
             serverDurationMs={serverDurationMs}
-            cuts={showCuts ? cuts : []}
+            cuts={cuts}
+            showCuts={showCuts}
             previewLoopUrl={compactControls ? videoUrl : undefined}
             progressOverlay={progressOverlay}
             controlsExtra={controlsExtra}

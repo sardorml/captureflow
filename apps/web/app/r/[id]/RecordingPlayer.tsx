@@ -165,11 +165,12 @@ export function RecordingPlayer({
       captionsUrl={captionsUrl}
       captionsLang={captionsLang}
       landscapeMaxHeightCss={landscapeMaxHeightCss}
-      progressOverlay={({ durationSeconds }) => (
+      progressOverlay={({ durationSeconds, toTimelineMs }) => (
         <ReactionOverlay
           reactions={reactions}
           freshIds={freshIds}
           durationSeconds={durationSeconds}
+          toTimelineMs={toTimelineMs}
         />
       )}
       controlsAlwaysVisible={embedded}
@@ -215,14 +216,24 @@ function ReactionOverlay({
   reactions,
   freshIds,
   durationSeconds,
+  toTimelineMs,
 }: {
   reactions: RecordingReaction[];
   freshIds: Set<number>;
   durationSeconds: number;
+  toTimelineMs: (sourceMs: number) => number;
 }) {
   const clusters = useMemo(
-    () => clusterReactions(reactions, durationSeconds, freshIds),
-    [reactions, durationSeconds, freshIds],
+    () =>
+      clusterReactions(
+        reactions.map((r) => ({
+          ...r,
+          timestampMs: toTimelineMs(r.timestampMs),
+        })),
+        durationSeconds,
+        freshIds,
+      ),
+    [reactions, durationSeconds, freshIds, toTimelineMs],
   );
   return <ReactionMarkers clusters={clusters} />;
 }

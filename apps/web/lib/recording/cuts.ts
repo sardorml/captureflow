@@ -71,6 +71,42 @@ export function nextCutFrom(
   return cuts.find((cut) => cut.endMs > ms) ?? null;
 }
 
+/*
+ * The edited timeline is the recording with the cuts removed. `toEditedMs`
+ * maps a recording time onto it (a time inside a cut lands where the cut
+ * closes up) and `toSourceMs` is its inverse, landing on the cut's end.
+ */
+export function toEditedMs(
+  sourceMs: number,
+  cuts: readonly RecordingCut[],
+): number {
+  let removed = 0;
+  for (const cut of cuts) {
+    if (cut.startMs >= sourceMs) break;
+    removed += Math.min(sourceMs, cut.endMs) - cut.startMs;
+  }
+  return sourceMs - removed;
+}
+
+export function toSourceMs(
+  editedMs: number,
+  cuts: readonly RecordingCut[],
+): number {
+  let source = editedMs;
+  for (const cut of cuts) {
+    if (cut.startMs > source) break;
+    source += cut.endMs - cut.startMs;
+  }
+  return source;
+}
+
+export function effectiveDurationMs(
+  durationMs: number,
+  cuts: readonly RecordingCut[],
+): number {
+  return toEditedMs(durationMs, cuts);
+}
+
 export function addCut(
   cuts: readonly RecordingCut[],
   cut: RecordingCut,

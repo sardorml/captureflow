@@ -2,12 +2,15 @@ import { describe, expect, it } from "vitest";
 import {
   addCut,
   cutsEqual,
+  effectiveDurationMs,
   findCutAt,
   isInsideCut,
   nextCutFrom,
   normalizeCuts,
   removeCut,
   snapOutOfCuts,
+  toEditedMs,
+  toSourceMs,
 } from "./cuts";
 
 const CUTS = [
@@ -83,6 +86,35 @@ describe("lookups", () => {
     expect(nextCutFrom(1500, CUTS)).toEqual(CUTS[0]);
     expect(nextCutFrom(2000, CUTS)).toEqual(CUTS[1]);
     expect(nextCutFrom(8000, CUTS)).toBeNull();
+  });
+});
+
+describe("edited timeline", () => {
+  it("removes the cuts before a time and collapses a time inside one", () => {
+    expect(toEditedMs(500, CUTS)).toBe(500);
+    expect(toEditedMs(1000, CUTS)).toBe(1000);
+    expect(toEditedMs(1500, CUTS)).toBe(1000);
+    expect(toEditedMs(2000, CUTS)).toBe(1000);
+    expect(toEditedMs(3000, CUTS)).toBe(2000);
+    expect(toEditedMs(9000, CUTS)).toBe(5000);
+    expect(toEditedMs(9000, [])).toBe(9000);
+  });
+
+  it("maps edited times back, landing on a cut's end at its boundary", () => {
+    expect(toSourceMs(500, CUTS)).toBe(500);
+    expect(toSourceMs(1000, CUTS)).toBe(2000);
+    expect(toSourceMs(2000, CUTS)).toBe(3000);
+    expect(toSourceMs(4000, CUTS)).toBe(8000);
+    expect(toSourceMs(5000, CUTS)).toBe(9000);
+    for (const ms of [0, 999, 1000, 2500, 4000, 6000]) {
+      expect(toEditedMs(toSourceMs(ms, CUTS), CUTS)).toBe(ms);
+    }
+  });
+
+  it("gives the duration with the cuts removed, ignoring overhang", () => {
+    expect(effectiveDurationMs(10_000, CUTS)).toBe(6000);
+    expect(effectiveDurationMs(6000, CUTS)).toBe(4000);
+    expect(effectiveDurationMs(10_000, [])).toBe(10_000);
   });
 });
 

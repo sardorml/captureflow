@@ -14,11 +14,12 @@ import {
 import { SeekIcon } from "@videojs/react/icons";
 import { usePlayer } from "@videojs/react/video";
 import { Play, RotateCcw } from "lucide-react";
-import type {
-  CSSProperties,
-  ReactNode,
-  RefObject,
-  SyntheticEvent,
+import {
+  useMemo,
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+  type SyntheticEvent,
 } from "react";
 import { AirPlayButton } from "@/components/videojs/ui/airplay-button";
 import { BufferingIndicator } from "@/components/videojs/ui/buffering-indicator";
@@ -42,7 +43,13 @@ import type {
   RecordingCameraCorner,
   RecordingCameraSize,
 } from "@/lib/recording-config";
-import type { RecordingCut } from "@/lib/recording/cuts";
+import { formatTimestamp } from "@/lib/format";
+import {
+  effectiveDurationMs,
+  toEditedMs,
+  type RecordingCut,
+} from "@/lib/recording/cuts";
+import { EditedTimeSlider } from "./EditedTimeSlider";
 import {
   recordingBackgroundStyle,
   webcamCornerClass,
@@ -51,9 +58,12 @@ import {
 
 // Info handed to the progressOverlay slot so the public viewer can align
 // reaction cluster bubbles to the time slider without forking the player.
+// `toTimelineMs` maps a recording time onto whatever timeline the slider
+// shows (the edited one in the viewer).
 export type ProgressOverlayInfo = {
   durationSeconds: number;
   controlsVisible: boolean;
+  toTimelineMs: (sourceMs: number) => number;
 };
 
 export type RecordingWebcam = {
@@ -73,12 +83,14 @@ export type RecordingSkinProps = {
   alwaysVisible: boolean;
   serverDurationMs: number | null;
   cuts: RecordingCut[];
+  showCuts: boolean;
   previewLoopUrl?: string;
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   controlsExtra?: ReactNode;
 };
 
 const SKIP_SECONDS = 5;
+const identityMs = (ms: number): number => ms;
 const PREVIEW_LOOP_SECONDS = 4;
 
 /*
@@ -98,6 +110,7 @@ export function RecordingSkin({
   alwaysVisible,
   serverDurationMs,
   cuts,
+  showCuts,
   previewLoopUrl,
   progressOverlay,
   controlsExtra,
@@ -163,6 +176,7 @@ export function RecordingSkin({
         alwaysVisible={alwaysVisible}
         serverDurationMs={serverDurationMs}
         cuts={cuts}
+        showCuts={showCuts}
         progressOverlay={progressOverlay}
         controlsExtra={controlsExtra}
       />
@@ -330,30 +344,73 @@ function CutGaps({
   );
 }
 
+const TIME_CLASS =
+  "tabular-nums transition-opacity duration-media-slow ease-out data-unavailable:opacity-50 @max-[16rem]/media-time:hidden";
+
+// Current / total time on the edited timeline, in place of Time.Value which
+// only knows media time.
+function EditedTime({
+  type,
+  cuts,
+  durationSeconds,
+}: {
+  type: "current" | "duration";
+  cuts: RecordingCut[];
+  durationSeconds: number;
+}) {
+  const currentTime = usePlayer(selectTime)?.currentTime ?? 0;
+  const seconds =
+    type === "current"
+      ? toEditedMs(currentTime * 1000, cuts) / 1000
+      : durationSeconds;
+  return (
+    <time
+      className={TIME_CLASS}
+      data-unavailable={durationSeconds > 0 ? undefined : ""}
+      aria-label={type === "current" ? "Current time" : "Duration"}
+    >
+      {formatTimestamp(seconds * 1000)}
+    </time>
+  );
+}
+
 type RecordingControlsProps = {
   compact: boolean;
   alwaysVisible: boolean;
   serverDurationMs: number | null;
   cuts: RecordingCut[];
+  showCuts: boolean;
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   controlsExtra?: ReactNode;
 };
 
-// Layout copied from the vendored DefaultVideoControls so the look matches
-// the stock skin; only the slots, the seek steps and the compact variant
-// differ.
+/*
+ * Layout copied from the vendored DefaultVideoControls so the look matches
+ * the stock skin; only the slots, the seek steps and the compact variant
+ * differ. With cuts the editor keeps the real timeline and marks them; every
+ * other player runs its slider and clock on the edited timeline.
+ */
 function RecordingControls({
   compact,
   alwaysVisible,
   serverDurationMs,
   cuts,
+  showCuts,
   progressOverlay,
   controlsExtra,
 }: RecordingControlsProps) {
   const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
   const duration = usePlayer(selectTime)?.duration ?? 0;
-  const durationSeconds =
+  const sourceSeconds =
     duration > 0 ? duration : serverDurationMs ? serverDurationMs / 1000 : 0;
+  const edited = !showCuts && cuts.length > 0;
+  const durationSeconds = edited
+    ? effectiveDurationMs(sourceSeconds * 1000, cuts) / 1000
+    : sourceSeconds;
+  const toTimelineMs = useMemo(
+    () => (edited ? (ms: number) => toEditedMs(ms, cuts) : identityMs),
+    [edited, cuts],
+  );
 
   return (
     <Controls.Root visibility={alwaysVisible ? "always" : "auto"}>
@@ -408,26 +465,47 @@ function RecordingControls({
             <VolumePopover className="ms-px" />
 
             <Controls.Group className="@container/media-time flex flex-1 items-center rtl:flex-row-reverse gap-2.5 px-2 media-lg:px-3">
-              {compact ? null : (
-                <Time.Value
-                  className={cn(
-                    "tabular-nums transition-opacity duration-media-slow ease-out data-unavailable:opacity-50",
-                    "@max-[16rem]/media-time:hidden",
-                  )}
+              {compact ? null : edited ? (
+                <EditedTime
                   type="current"
+                  cuts={cuts}
+                  durationSeconds={durationSeconds}
                 />
+              ) : (
+                <Time.Value className={TIME_CLASS} type="current" />
               )}
               <div className="relative flex min-w-0 flex-1 items-center">
                 {progressOverlay ? (
                   <div className="pointer-events-none absolute inset-x-0 bottom-full">
-                    {progressOverlay({ durationSeconds, controlsVisible })}
+                    {progressOverlay({
+                      durationSeconds,
+                      controlsVisible,
+                      toTimelineMs,
+                    })}
                   </div>
                 ) : null}
-                {/* The only chapters track is the editor's selection span. */}
-                <TimeSlider isChapterSelected={(chapter) => !!chapter.cue} />
-                <CutGaps cuts={cuts} durationSeconds={durationSeconds} />
+                {edited ? (
+                  <EditedTimeSlider
+                    cuts={cuts}
+                    durationSeconds={durationSeconds}
+                  />
+                ) : (
+                  <>
+                    {/* The only chapters track is the editor's selection span. */}
+                    <TimeSlider
+                      isChapterSelected={(chapter) => !!chapter.cue}
+                    />
+                    <CutGaps cuts={cuts} durationSeconds={durationSeconds} />
+                  </>
+                )}
               </div>
-              {compact ? null : (
+              {compact ? null : edited ? (
+                <EditedTime
+                  type="duration"
+                  cuts={cuts}
+                  durationSeconds={durationSeconds}
+                />
+              ) : (
                 <Time.Value
                   className={cn(
                     "cursor-pointer rounded-sm tabular-nums focus-ring-media",
