@@ -132,6 +132,14 @@ export async function countComments(slug: string): Promise<number> {
   return (await resolveDb()).countComments(slug);
 }
 
+export async function getReaction(id: number) {
+  return (await resolveDb()).getReaction(id);
+}
+
+export async function deleteReaction(id: number): Promise<boolean> {
+  return (await resolveDb()).deleteReaction(id);
+}
+
 export async function getComment(id: number) {
   return (await resolveDb()).getComment(id);
 }

@@ -9,6 +9,8 @@ const session = vi.fn();
 const putObject = vi.fn();
 const createTranscriptJob = vi.fn();
 const dispatchTranscription = vi.fn();
+const getReaction = vi.fn();
+const deleteReaction = vi.fn();
 
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ cookie: "session=1" }),
@@ -18,6 +20,8 @@ vi.mock("@/lib/recording/db", () => ({
   updateRecording: (...a: unknown[]) => updateRecording(...a),
   deleteRecording: (...a: unknown[]) => deleteRecording(...a),
   createTranscriptJob: (...a: unknown[]) => createTranscriptJob(...a),
+  getReaction: (...a: unknown[]) => getReaction(...a),
+  deleteReaction: (...a: unknown[]) => deleteReaction(...a),
 }));
 vi.mock("@/lib/recording/transcription-dispatch", () => ({
   dispatchTranscription: (...a: unknown[]) => dispatchTranscription(...a),
@@ -42,6 +46,7 @@ const abort = await import("./r/abort/route");
 const poster = await import("./r/poster/route");
 const audioPart = await import("./r/audio-part/route");
 const transcribe = await import("./r/transcribe/route");
+const reaction = await import("./r/reactions/[id]/route");
 
 const SLUG = "abcdefgh23";
 const DEVICE = "device-1234";
@@ -298,5 +303,73 @@ describe("transcribe", () => {
     getRecording.mockResolvedValue(row("failed"));
     expect((await call(asDevice)).status).toBe(409);
     expect(createTranscriptJob).not.toHaveBeenCalled();
+  });
+});
+
+describe("reaction delete", () => {
+  const call = () =>
+    reaction.DELETE(req("/api/r/reactions/7", { method: "DELETE" }), {
+      params: Promise.resolve({ id: "7" }),
+    });
+
+  beforeEach(() => {
+    getRecording.mockResolvedValue(row());
+    getReaction.mockResolvedValue({
+      id: 7,
+      slug: SLUG,
+      emoji: "🔥",
+      timestampMs: 1000,
+      createdAt: 1,
+      userId: "fan",
+      userName: "Fan",
+      userImage: null,
+    });
+    deleteReaction.mockResolvedValue(true);
+  });
+
+  it("needs a session", async () => {
+    expect((await call()).status).toBe(401);
+    expect(deleteReaction).not.toHaveBeenCalled();
+  });
+
+  it("lets the author remove it", async () => {
+    session.mockResolvedValue({ userId: "fan" });
+    expect((await call()).status).toBe(200);
+    expect(deleteReaction).toHaveBeenCalledWith(7);
+  });
+
+  it("lets the recording's owner remove it", async () => {
+    session.mockResolvedValue({ userId: "owner" });
+    expect((await call()).status).toBe(200);
+    expect(deleteReaction).toHaveBeenCalledWith(7);
+  });
+
+  it("refuses anyone else", async () => {
+    session.mockResolvedValue({ userId: "other" });
+    expect((await call()).status).toBe(403);
+    expect(deleteReaction).not.toHaveBeenCalled();
+  });
+
+  it("never matches an anonymous reaction to a session by null id", async () => {
+    getReaction.mockResolvedValue({
+      id: 7,
+      slug: SLUG,
+      emoji: "🔥",
+      timestampMs: 1000,
+      createdAt: 1,
+      userId: null,
+      userName: null,
+      userImage: null,
+    });
+    session.mockResolvedValue({ userId: "other" });
+    expect((await call()).status).toBe(403);
+    session.mockResolvedValue({ userId: "owner" });
+    expect((await call()).status).toBe(200);
+  });
+
+  it("404s a missing reaction", async () => {
+    getReaction.mockResolvedValue(null);
+    session.mockResolvedValue({ userId: "owner" });
+    expect((await call()).status).toBe(404);
   });
 });

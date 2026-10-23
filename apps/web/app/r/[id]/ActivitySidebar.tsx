@@ -81,6 +81,9 @@ type Props = {
   viewerImageUrl: string | null;
   isOwner: boolean;
   liveReactions: RecordingReaction[];
+  // Called once the server has dropped a reaction, so the player's dots
+  // follow.
+  onReactionDeleted: (id: number) => void;
   // The Transcript tab's content.
   transcript: ReactNode;
   onSignIn: () => void;
@@ -104,6 +107,7 @@ export function ActivitySidebar({
   viewerImageUrl,
   isOwner,
   liveReactions,
+  onReactionDeleted,
   transcript,
   onSignIn,
   onSeek,
@@ -116,6 +120,38 @@ export function ActivitySidebar({
   const [error, setError] = useState<string | null>(null);
   const [posting, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingReactionId, setDeletingReactionId] = useState<number | null>(
+    null,
+  );
+  const [removedReactionIds, setRemovedReactionIds] = useState<Set<number>>(
+    () => new Set(),
+  );
+
+  const handleDeleteReaction = async (id: number) => {
+    if (deletingReactionId != null) return;
+    setDeletingReactionId(id);
+    setError(null);
+    setRemovedReactionIds((prev) => new Set(prev).add(id));
+    try {
+      const res = await fetch(`/api/r/reactions/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+      onReactionDeleted(id);
+    } catch (err) {
+      setRemovedReactionIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      setError(
+        err instanceof Error ? err.message : "Could not delete reaction",
+      );
+    } finally {
+      setDeletingReactionId(null);
+    }
+  };
 
   const handleDeleteComment = async (id: number) => {
     if (deletingId != null) return;
@@ -146,7 +182,9 @@ export function ActivitySidebar({
     return () => window.clearInterval(id);
   }, [viewerSignedIn, getCurrentMs]);
 
-  const reactions = mergeReactions(initialReactions, liveReactions);
+  const reactions = mergeReactions(initialReactions, liveReactions).filter(
+    (r) => !removedReactionIds.has(r.id),
+  );
 
   const entries: ActivityEntry[] = [
     ...reactions.map<ActivityEntry>((r) => ({
@@ -371,7 +409,16 @@ export function ActivitySidebar({
                 {entries.map((entry) => (
                   <li key={entry.id}>
                     {entry.kind === "reaction" ? (
-                      <ReactionRow reaction={entry.reaction} onSeek={onSeek} />
+                      <ReactionRow
+                        reaction={entry.reaction}
+                        onSeek={onSeek}
+                        canDelete={
+                          !!viewerUserId &&
+                          (entry.reaction.userId === viewerUserId || isOwner)
+                        }
+                        onDelete={() => handleDeleteReaction(entry.reaction.id)}
+                        deleting={deletingReactionId === entry.reaction.id}
+                      />
                     ) : (
                       <CommentRow
                         comment={entry.comment}
@@ -612,13 +659,19 @@ function EmptyState({
 function ReactionRow({
   reaction,
   onSeek,
+  canDelete,
+  onDelete,
+  deleting,
 }: {
   reaction: RecordingReaction;
   onSeek: (ms: number) => void;
+  canDelete: boolean;
+  onDelete: () => void;
+  deleting: boolean;
 }) {
   const name = reaction.userName?.trim() || "Anonymous";
   return (
-    <div className="flex items-center gap-3">
+    <div className="group flex items-center gap-3">
       <span className="relative shrink-0">
         <Avatar
           className="h-8 w-8"
@@ -644,6 +697,18 @@ function ReactionRow({
         <span className="shrink-0 text-xs">
           {formatRelative(reaction.createdAt)}
         </span>
+        {canDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={deleting}
+            aria-label="Delete reaction"
+            title="Delete reaction"
+            className="ml-auto rounded-md p-1.5 text-fg-subtle opacity-0 transition-opacity transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:opacity-100 disabled:cursor-progress group-hover:opacity-100 dark:hover:text-red-300"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
     </div>
   );

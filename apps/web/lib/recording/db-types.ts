@@ -39,6 +39,8 @@ export type RecordingDb = {
   }): Promise<RecordingReaction>;
   listReactions(slug: string): Promise<RecordingReaction[]>;
   countReactions(slug: string): Promise<number>;
+  getReaction(id: number): Promise<RecordingReaction | null>;
+  deleteReaction(id: number): Promise<boolean>;
   addComment(input: {
     slug: string;
     userId: string;

@@ -74,6 +74,9 @@ export function RecordingViewer({
   editUrl,
 }: Props) {
   const [liveReactions, setLiveReactions] = useState<RecordingReaction[]>([]);
+  const [removedReactionIds, setRemovedReactionIds] = useState<Set<number>>(
+    () => new Set(),
+  );
   const [chapters, setChapters] = useState<RecordingChapter[]>(initialChapters);
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
   const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -88,6 +91,10 @@ export function RecordingViewer({
 
   const onReactionAdded = useCallback((reaction: RecordingReaction) => {
     setLiveReactions((prev) => [...prev, reaction]);
+  }, []);
+
+  const onReactionDeleted = useCallback((id: number) => {
+    setRemovedReactionIds((prev) => new Set(prev).add(id));
   }, []);
 
   const goToSignIn = useCallback(() => {
@@ -142,6 +149,7 @@ export function RecordingViewer({
             chapters={chapters}
             viewerSignedIn={signedIn}
             onReactionAdded={onReactionAdded}
+            removedReactionIds={removedReactionIds}
             onSignInRequested={goToSignIn}
             handleRef={playerRef}
             onCommentClick={signedIn ? focusComment : goToSignIn}
@@ -165,6 +173,7 @@ export function RecordingViewer({
         initialReactions={initialReactions}
         initialComments={initialComments}
         liveReactions={liveReactions}
+        onReactionDeleted={onReactionDeleted}
         transcript={
           <TranscriptPanel
             slug={slug}

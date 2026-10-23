@@ -36,6 +36,8 @@ type Props = {
   config: RecordingConfig;
   viewerSignedIn?: boolean;
   onReactionAdded?: (reaction: RecordingReaction) => void;
+  // Reactions deleted elsewhere on the page (the activity sidebar).
+  removedReactionIds?: Set<number>;
   onSignInRequested?: () => void;
   handleRef?: Ref<RecordingPlayerHandle | null>;
   onCommentClick?: () => void;
@@ -61,6 +63,7 @@ export function RecordingPlayer({
   config,
   viewerSignedIn = false,
   onReactionAdded,
+  removedReactionIds,
   onSignInRequested,
   handleRef,
   onCommentClick,
@@ -89,8 +92,15 @@ export function RecordingPlayer({
     [handleRef],
   );
 
-  const [reactions, setReactions] =
+  const [ownReactions, setReactions] =
     useState<RecordingReaction[]>(initialReactions);
+  const reactions = useMemo(
+    () =>
+      removedReactionIds && removedReactionIds.size > 0
+        ? ownReactions.filter((r) => !removedReactionIds.has(r.id))
+        : ownReactions,
+    [ownReactions, removedReactionIds],
+  );
   const [pulseEmoji, setPulseEmoji] = useState<string | null>(null);
   const [freshIds, setFreshIds] = useState<Set<number>>(new Set());
 

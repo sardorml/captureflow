@@ -134,6 +134,17 @@ export const memoryDb: RecordingDb = {
     return n;
   },
 
+  async getReaction(id) {
+    return reactions.find((r) => r.id === id) ?? null;
+  },
+
+  async deleteReaction(id) {
+    const idx = reactions.findIndex((r) => r.id === id);
+    if (idx < 0) return false;
+    reactions.splice(idx, 1);
+    return true;
+  },
+
   async getComment(id) {
     return comments.find((c) => c.id === id) ?? null;
   },

@@ -279,6 +279,19 @@ export function createD1Db(d1: D1Database): RecordingDb {
     `SELECT COUNT(*) AS n FROM recording_activity WHERE slug = ?1 AND kind = 'comment'`,
   );
 
+  const stmtGetReaction = d1.prepare(
+    `SELECT a.id, a.slug, a.emoji, a.timestamp_ms, a.created_at,
+            a.user_id, a.user_name, u.image AS user_image
+       FROM recording_activity AS a
+       LEFT JOIN users AS u ON u.id = a.user_id
+       WHERE a.id = ?1 AND a.kind = 'reaction'
+       LIMIT 1`,
+  );
+
+  const stmtDeleteReaction = d1.prepare(
+    `DELETE FROM recording_activity WHERE id = ?1 AND kind = 'reaction'`,
+  );
+
   const stmtGetComment = d1.prepare(
     `SELECT id, slug, user_id, user_name, body, created_at, timestamp_ms
        FROM recording_activity
@@ -503,6 +516,16 @@ export function createD1Db(d1: D1Database): RecordingDb {
     async countComments(slug) {
       const r = await stmtCountComments.bind(slug).first<{ n: number }>();
       return r?.n ?? 0;
+    },
+
+    async getReaction(id) {
+      const r = await stmtGetReaction.bind(id).first<D1ReactionRow>();
+      return r ? reactionFromD1(r) : null;
+    },
+
+    async deleteReaction(id) {
+      const r = await stmtDeleteReaction.bind(id).run();
+      return (r.meta?.changes ?? 0) > 0;
     },
 
     async getComment(id) {
