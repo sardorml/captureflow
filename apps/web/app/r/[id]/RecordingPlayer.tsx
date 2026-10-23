@@ -16,6 +16,7 @@ import {
 } from "../../_components/recording";
 import type { RecordingConfig } from "@/lib/recording-config";
 import { DEFAULT_REACTIONS } from "@/lib/recording/reactions";
+import type { RecordingChapter } from "@/lib/recording/summary-chapters";
 import type {
   AddReactionResponse,
   RecordingReaction,
@@ -40,6 +41,7 @@ type Props = {
   embedded?: boolean;
   captionsUrl?: string;
   captionsLang?: string;
+  chapters?: RecordingChapter[];
 };
 
 // Reactions within this fraction of the timeline collapse into one cluster.
@@ -66,6 +68,7 @@ export function RecordingPlayer({
   embedded = false,
   captionsUrl,
   captionsLang,
+  chapters,
 }: Props) {
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
 
@@ -164,6 +167,7 @@ export function RecordingPlayer({
       config={config}
       captionsUrl={captionsUrl}
       captionsLang={captionsLang}
+      chapters={chapters}
       landscapeMaxHeightCss={landscapeMaxHeightCss}
       progressOverlay={({ durationSeconds, toTimelineMs }) => (
         <ReactionOverlay

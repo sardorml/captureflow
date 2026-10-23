@@ -2,13 +2,20 @@
 
 import { Slider as SliderPrimitive, selectTime } from "@videojs/react";
 import { usePlayer } from "@videojs/react/video";
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import {
   SliderFill,
   SliderThumb,
   SliderTrack,
 } from "@/components/videojs/ui/slider";
 import { formatTimestamp } from "@/lib/format";
+import type { ChapterCue } from "@/lib/recording/chapter-cues";
 import {
   toEditedMs,
   toSourceMs,
@@ -23,7 +30,15 @@ const LANDED_TOLERANCE_SECONDS = 0.25;
 
 type Props = {
   cuts: RecordingCut[];
+  cues: ChapterCue[];
   durationSeconds: number;
+};
+
+type Segment = {
+  key: string;
+  startPercent: number;
+  endPercent: number;
+  title: string | null;
 };
 
 /*
@@ -31,7 +46,7 @@ type Props = {
  * own TimeSlider is bound to media time, so this one runs the generic Slider
  * on edited seconds and maps every seek back to the source.
  */
-export function EditedTimeSlider({ cuts, durationSeconds }: Props) {
+export function EditedTimeSlider({ cuts, cues, durationSeconds }: Props) {
   const time = usePlayer(selectTime);
   const current = time ? toEditedMs(time.currentTime * 1000, cuts) / 1000 : 0;
   // Holds the fill at the drop point until the media lands there, so it
@@ -41,6 +56,11 @@ export function EditedTimeSlider({ cuts, durationSeconds }: Props) {
   const lastSeekAtRef = useRef(0);
   const pendingRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
+
+  const segments = useMemo(
+    () => editedSegments(cues, cuts, durationSeconds),
+    [cues, cuts, durationSeconds],
+  );
 
   useEffect(() => {
     if (target == null) return;
@@ -92,6 +112,15 @@ export function EditedTimeSlider({ cuts, durationSeconds }: Props) {
     );
   };
 
+  const formatPointer = (seconds: number): string => {
+    const stamp = formatTimestamp(seconds * 1000);
+    const percent = durationSeconds > 0 ? (seconds / durationSeconds) * 100 : 0;
+    const title = segments.find(
+      (s) => percent >= s.startPercent && percent < s.endPercent,
+    )?.title;
+    return title ? `${title}\n${stamp}` : stamp;
+  };
+
   return (
     <SliderPrimitive.Root
       label="Seek"
@@ -116,18 +145,42 @@ export function EditedTimeSlider({ cuts, durationSeconds }: Props) {
         "data-[orientation=horizontal]:min-w-18",
       )}
     >
-      <SliderPrimitive.Track
-        render={<SliderTrack />}
-        className={cn(
-          "transition-[height] duration-media-slow ease-out",
-          "group-data-interactive/slider:h-1.75",
-        )}
-      >
-        <SliderPrimitive.Fill
-          render={<SliderFill />}
-          className="group-data-interactive/slider:before:min-w-1.75"
-        />
-      </SliderPrimitive.Track>
+      {/* Same markup as the Video.js chapters, one segment per chapter, with
+          the segment under the pointer thickened on hover. */}
+      <div className="relative flex size-full min-h-0 min-w-0 flex-1 items-center rounded-[inherit]">
+        {segments.map((segment) => (
+          <div
+            key={segment.key}
+            className={cn(
+              "group/chapter absolute inset-0 flex min-h-0 min-w-0 items-center justify-center",
+              "[--media-chapter-inset-start:0.5] [--media-chapter-inset-end:0.5]",
+              "first-of-type:[--media-chapter-inset-start:0] last-of-type:[--media-chapter-inset-end:0]",
+              "clip-media-chapter-x",
+            )}
+            style={
+              {
+                "--media-slider-chapter-start": `${segment.startPercent}%`,
+                "--media-slider-chapter-end": `${segment.endPercent}%`,
+              } as CSSProperties
+            }
+            data-orientation="horizontal"
+          >
+            <SliderTrack
+              data-orientation="horizontal"
+              className={cn(
+                "transition-[height,width] duration-media-slow ease-out",
+                "before:clip-media-chapter-track-x",
+                "group-hover/chapter:h-1.75",
+              )}
+            >
+              <SliderFill
+                data-orientation="horizontal"
+                className="group-hover/chapter:before:min-w-1.75"
+              />
+            </SliderTrack>
+          </div>
+        ))}
+      </div>
       <SliderPrimitive.Thumb
         render={<SliderThumb />}
         className={cn(
@@ -148,10 +201,10 @@ export function EditedTimeSlider({ cuts, durationSeconds }: Props) {
       >
         <SliderPrimitive.Value
           type="pointer"
-          format={(seconds) => formatTimestamp(seconds * 1000)}
+          format={formatPointer}
           className={cn(
-            "absolute left-1/2 -translate-x-1/2 translate-y-media-hidden-preview-offset scale-media-hidden-preview opacity-0",
-            "origin-bottom blur-media-hidden tabular-nums",
+            "absolute left-1/2 w-max -translate-x-1/2 translate-y-media-hidden-preview-offset scale-media-hidden-preview opacity-0",
+            "origin-bottom blur-media-hidden text-center whitespace-pre-line tabular-nums",
             "transition-[filter,opacity,scale] duration-media-base ease-out",
             "group-data-pointing/preview:scale-100 group-data-pointing/preview:opacity-100 group-data-pointing/preview:filter-none",
             "group-has-focus-visible/slider:scale-100 group-has-focus-visible/slider:opacity-100 group-has-focus-visible/slider:filter-none",
@@ -161,4 +214,32 @@ export function EditedTimeSlider({ cuts, durationSeconds }: Props) {
       </SliderPrimitive.Preview>
     </SliderPrimitive.Root>
   );
+}
+
+// Chapters mapped onto the edited timeline, with uncovered stretches filled
+// in as untitled segments so the bar is continuous.
+function editedSegments(
+  cues: readonly ChapterCue[],
+  cuts: readonly RecordingCut[],
+  durationSeconds: number,
+): Segment[] {
+  const totalMs = durationSeconds * 1000;
+  if (totalMs <= 0) return [];
+  const percent = (sourceMs: number): number =>
+    Math.min(100, (toEditedMs(sourceMs, cuts) / totalMs) * 100);
+  const out: Segment[] = [];
+  let cursor = 0;
+  const push = (end: number, key: string, title: string | null): void => {
+    if (end - cursor > 0) {
+      out.push({ key, startPercent: cursor, endPercent: end, title });
+      cursor = end;
+    }
+  };
+  for (const cue of cues) {
+    const start = percent(cue.startMs);
+    push(start, `gap-${cue.id}`, null);
+    push(percent(cue.endMs), cue.id, cue.title);
+  }
+  push(100, "gap-end", null);
+  return out;
 }

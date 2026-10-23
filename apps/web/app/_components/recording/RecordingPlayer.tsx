@@ -4,6 +4,7 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -13,7 +14,13 @@ import type { VideoPlayerStore } from "@videojs/core/dom";
 import { selectFullscreen } from "@videojs/react";
 import { Video, VideoPlayer, usePlayer } from "@videojs/react/video";
 import type { RecordingConfig } from "@/lib/recording-config";
+import {
+  chapterCues,
+  cuesToTrackUrl,
+  selectionCue,
+} from "@/lib/recording/chapter-cues";
 import { snapOutOfCuts, type RecordingCut } from "@/lib/recording/cuts";
+import type { RecordingChapter } from "@/lib/recording/summary-chapters";
 import { aspectFromPlaceholder, sizeStyleForAspect } from "./layout";
 import { RecordingSkin, type ProgressOverlayInfo } from "./RecordingSkin";
 import { useCutSkipper } from "./use-cut-skipper";
@@ -58,8 +65,10 @@ type Props = {
   // WebVTT captions, shown from the start; the CC button or `c` hides them.
   captionsUrl?: string;
   captionsLang?: string;
+  // Sections of the time slider, with their titles in the hover preview.
+  chapters?: RecordingChapter[];
   // A span the editor is about to cut, drawn as its own red segment of the
-  // time slider (a chapters track, so Video.js splits the slider itself).
+  // time slider in place of the chapters.
   selection?: RecordingCut | null;
   // Keeps the real timeline and marks the cut spans on it (the editor).
   // Otherwise the slider and clock run on the edited timeline.
@@ -85,6 +94,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       compactControls = false,
       captionsUrl,
       captionsLang,
+      chapters,
       selection,
       showCuts = false,
       landscapeMaxHeightCss,
@@ -104,6 +114,17 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
     const cuts = config.cuts;
     const cutsRef = useRef(cuts);
     cutsRef.current = cuts;
+    const cues = useMemo(
+      () =>
+        selection
+          ? [selectionCue(selection)]
+          : chapterCues(chapters ?? [], serverDurationMs),
+      [selection, chapters, serverDurationMs],
+    );
+    const cuesUrl = useMemo(
+      () => (cues.length > 0 ? cuesToTrackUrl(cues) : null),
+      [cues],
+    );
 
     useImperativeHandle(
       handleRef,
@@ -187,6 +208,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             serverDurationMs={serverDurationMs}
             cuts={cuts}
             showCuts={showCuts}
+            cues={cues}
             previewLoopUrl={compactControls ? videoUrl : undefined}
             progressOverlay={progressOverlay}
             controlsExtra={controlsExtra}
@@ -218,13 +240,8 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                   default
                 />
               ) : null}
-              {selection ? (
-                <track
-                  key={`${selection.startMs}-${selection.endMs}`}
-                  kind="chapters"
-                  src={selectionChaptersUrl(selection)}
-                  default
-                />
+              {cuesUrl ? (
+                <track key={cuesUrl} kind="chapters" src={cuesUrl} default />
               ) : null}
             </Video>
           </RecordingSkin>
@@ -238,21 +255,6 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
 // Seeks through the store when attached so Video.js state stays in step,
 // falling back to the element before the player has mounted. A target inside
 // a cut lands on the cut's end instead.
-// One chapter cue over the span; Video.js leaves the rest of the slider as
-// uncovered segments on either side.
-function selectionChaptersUrl(selection: RecordingCut): string {
-  const stamp = (ms: number): string => {
-    const total = Math.max(0, Math.round(ms));
-    const h = Math.floor(total / 3_600_000);
-    const m = Math.floor(total / 60_000) % 60;
-    const s = Math.floor(total / 1_000) % 60;
-    const pad = (n: number, w: number): string => String(n).padStart(w, "0");
-    return `${pad(h, 2)}:${pad(m, 2)}:${pad(s, 2)}.${pad(total % 1_000, 3)}`;
-  };
-  const vtt = `WEBVTT\n\n${stamp(selection.startMs)} --> ${stamp(selection.endMs)}\nSelection\n`;
-  return `data:text/vtt;charset=utf-8,${encodeURIComponent(vtt)}`;
-}
-
 function seekMedia(
   storeRef: RefObject<VideoPlayerStore | null>,
   videoRef: RefObject<HTMLVideoElement | null>,

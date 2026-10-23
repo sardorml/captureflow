@@ -45,6 +45,10 @@ import type {
 } from "@/lib/recording-config";
 import { formatTimestamp } from "@/lib/format";
 import {
+  SELECTION_CUE_ID,
+  type ChapterCue,
+} from "@/lib/recording/chapter-cues";
+import {
   effectiveDurationMs,
   toEditedMs,
   type RecordingCut,
@@ -84,6 +88,7 @@ export type RecordingSkinProps = {
   serverDurationMs: number | null;
   cuts: RecordingCut[];
   showCuts: boolean;
+  cues: ChapterCue[];
   previewLoopUrl?: string;
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   controlsExtra?: ReactNode;
@@ -111,6 +116,7 @@ export function RecordingSkin({
   serverDurationMs,
   cuts,
   showCuts,
+  cues,
   previewLoopUrl,
   progressOverlay,
   controlsExtra,
@@ -177,6 +183,7 @@ export function RecordingSkin({
         serverDurationMs={serverDurationMs}
         cuts={cuts}
         showCuts={showCuts}
+        cues={cues}
         progressOverlay={progressOverlay}
         controlsExtra={controlsExtra}
       />
@@ -380,6 +387,7 @@ type RecordingControlsProps = {
   serverDurationMs: number | null;
   cuts: RecordingCut[];
   showCuts: boolean;
+  cues: ChapterCue[];
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   controlsExtra?: ReactNode;
 };
@@ -396,6 +404,7 @@ function RecordingControls({
   serverDurationMs,
   cuts,
   showCuts,
+  cues,
   progressOverlay,
   controlsExtra,
 }: RecordingControlsProps) {
@@ -404,6 +413,9 @@ function RecordingControls({
   const sourceSeconds =
     duration > 0 ? duration : serverDurationMs ? serverDurationMs / 1000 : 0;
   const edited = !showCuts && cuts.length > 0;
+  // The editor's selection replaces the chapters on the track, so any cue
+  // present is the selection.
+  const selecting = cues.some((cue) => cue.id === SELECTION_CUE_ID);
   const durationSeconds = edited
     ? effectiveDurationMs(sourceSeconds * 1000, cuts) / 1000
     : sourceSeconds;
@@ -487,13 +499,15 @@ function RecordingControls({
                 {edited ? (
                   <EditedTimeSlider
                     cuts={cuts}
+                    cues={cues}
                     durationSeconds={durationSeconds}
                   />
                 ) : (
                   <>
-                    {/* The only chapters track is the editor's selection span. */}
                     <TimeSlider
-                      isChapterSelected={(chapter) => !!chapter.cue}
+                      isChapterSelected={(chapter) =>
+                        selecting && !!chapter.cue
+                      }
                     />
                     <CutGaps cuts={cuts} durationSeconds={durationSeconds} />
                   </>

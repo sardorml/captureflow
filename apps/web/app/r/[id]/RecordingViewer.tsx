@@ -74,6 +74,7 @@ export function RecordingViewer({
   editUrl,
 }: Props) {
   const [liveReactions, setLiveReactions] = useState<RecordingReaction[]>([]);
+  const [chapters, setChapters] = useState<RecordingChapter[]>(initialChapters);
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
   const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -138,6 +139,7 @@ export function RecordingViewer({
                 : undefined
             }
             captionsLang={initialTranscript?.language ?? undefined}
+            chapters={chapters}
             viewerSignedIn={signedIn}
             onReactionAdded={onReactionAdded}
             onSignInRequested={goToSignIn}
@@ -151,6 +153,7 @@ export function RecordingViewer({
             initialChapters={initialChapters}
             onSeek={seekTo}
             getCurrentMs={getCurrentMs}
+            onChaptersChange={setChapters}
           />
           <footer className="mt-8 flex justify-center border-t border-line pt-6">
             <PoweredBy />

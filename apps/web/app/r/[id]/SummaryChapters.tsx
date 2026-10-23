@@ -12,6 +12,7 @@ type Props = {
   initialChapters: Chapter[];
   onSeek: (ms: number) => void;
   getCurrentMs?: () => number;
+  onChaptersChange?: (chapters: Chapter[]) => void;
 };
 
 type Chapter = { id: string; ms: number; title: string };
@@ -39,6 +40,7 @@ export function SummaryChapters({
   initialChapters,
   onSeek,
   getCurrentMs,
+  onChaptersChange,
 }: Props) {
   const [summary, setSummary] = useState<string>(initialSummary);
   const [summaryEditing, setSummaryEditing] = useState(false);
@@ -104,9 +106,10 @@ export function SummaryChapters({
     (next: Chapter[]) => {
       const sorted = [...next].sort((a, b) => a.ms - b.ms);
       setChapters(sorted);
+      onChaptersChange?.(sorted);
       void persistAll(summary, sorted);
     },
-    [persistAll, summary],
+    [persistAll, summary, onChaptersChange],
   );
 
   const onAddChapter = () => {
