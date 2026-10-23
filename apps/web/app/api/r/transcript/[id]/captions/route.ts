@@ -4,6 +4,7 @@ import { getRecording, getTranscript } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
 import { verifySessionOrNull } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
+import { parseRecordingConfigJson } from "@/lib/recording-config";
 import { resolveTranscript, transcriptToVtt } from "@/lib/recording/transcript";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +26,8 @@ export async function GET(_req: Request, { params }: Params) {
   if (!transcript) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
-  return new NextResponse(transcriptToVtt(transcript), {
+  const { cuts } = parseRecordingConfigJson(row.configJson);
+  return new NextResponse(transcriptToVtt(transcript, cuts), {
     headers: {
       "content-type": "text/vtt; charset=utf-8",
       "cache-control": "private, no-store",

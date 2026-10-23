@@ -8,11 +8,13 @@ import type {
   RecordingReaction,
 } from "@/lib/recording/types";
 import type { RecordingChapter } from "@/lib/recording/summary-chapters";
+import type { RecordingTranscript } from "@/lib/recording/types";
 import { ContentByline } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
 import { RecordingPlayer } from "./RecordingPlayer";
 import { ActivitySidebar } from "./ActivitySidebar";
 import { SummaryChapters } from "./SummaryChapters";
+import { TranscriptPanel } from "./TranscriptPanel";
 
 type Props = {
   slug: string;
@@ -39,6 +41,8 @@ type Props = {
   isOwner: boolean;
   initialSummary: string;
   initialChapters: RecordingChapter[];
+  initialTranscript: RecordingTranscript | null;
+  editUrl: string;
 };
 
 export function RecordingViewer({
@@ -61,6 +65,8 @@ export function RecordingViewer({
   isOwner,
   initialSummary,
   initialChapters,
+  initialTranscript,
+  editUrl,
 }: Props) {
   const [liveReactions, setLiveReactions] = useState<RecordingReaction[]>([]);
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
@@ -121,6 +127,12 @@ export function RecordingViewer({
             serverWidth={serverWidth}
             serverHeight={serverHeight}
             config={config}
+            captionsUrl={
+              initialTranscript
+                ? `/api/r/transcript/${slug}/captions`
+                : undefined
+            }
+            captionsLang={initialTranscript?.language ?? undefined}
             viewerSignedIn={signedIn}
             onReactionAdded={onReactionAdded}
             onSignInRequested={goToSignIn}
@@ -132,6 +144,16 @@ export function RecordingViewer({
             isOwner={isOwner}
             initialSummary={initialSummary}
             initialChapters={initialChapters}
+            onSeek={seekTo}
+            getCurrentMs={getCurrentMs}
+          />
+          <TranscriptPanel
+            slug={slug}
+            initialTranscript={initialTranscript}
+            cuts={config.cuts}
+            createdAt={createdAt}
+            isOwner={isOwner}
+            editUrl={editUrl}
             onSeek={seekTo}
             getCurrentMs={getCurrentMs}
           />

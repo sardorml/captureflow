@@ -181,7 +181,28 @@ function escapeCue(text: string): string {
     .replace(/>/g, "&gt;");
 }
 
-// Segments lying wholly inside a cut are left out; the player never reaches them.
+// A segment lying wholly inside a cut: the player never reaches it.
+export function isSegmentCut(
+  segment: TranscriptSegment,
+  cuts: readonly RecordingCut[],
+): boolean {
+  return cuts.some(
+    (cut) => segment.startMs >= cut.startMs && segment.endMs <= cut.endMs,
+  );
+}
+
+export function activeSegmentId(
+  segments: readonly TranscriptSegment[],
+  currentMs: number,
+): string | null {
+  let active: string | null = null;
+  for (const segment of segments) {
+    if (segment.startMs > currentMs) break;
+    active = segment.id;
+  }
+  return active;
+}
+
 export function transcriptToVtt(
   transcript: RecordingTranscript,
   cuts: readonly RecordingCut[] = [],
@@ -189,10 +210,7 @@ export function transcriptToVtt(
   const lines = ["WEBVTT", ""];
   let index = 0;
   for (const segment of transcript.segments) {
-    const isCut = cuts.some(
-      (cut) => segment.startMs >= cut.startMs && segment.endMs <= cut.endMs,
-    );
-    if (isCut) continue;
+    if (isSegmentCut(segment, cuts)) continue;
     index++;
     lines.push(
       String(index),

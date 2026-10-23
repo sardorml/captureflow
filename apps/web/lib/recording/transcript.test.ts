@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  activeSegmentId,
   hydrateTranscript,
   hydrateTranscriptEdits,
+  isSegmentCut,
   parseTranscriptJson,
   resolveTranscript,
   transcriptToVtt,
@@ -200,6 +202,25 @@ describe("resolveTranscript", () => {
       transcript: null,
       hasEdits: false,
     });
+  });
+});
+
+describe("segment lookups", () => {
+  it("marks only segments wholly inside a cut", () => {
+    const cuts = [{ startMs: 1900, endMs: 4100 }];
+    expect(isSegmentCut(AUTO.segments[1]!, cuts)).toBe(true);
+    expect(isSegmentCut(AUTO.segments[0]!, cuts)).toBe(false);
+    expect(
+      isSegmentCut(AUTO.segments[1]!, [{ startMs: 2500, endMs: 9000 }]),
+    ).toBe(false);
+  });
+
+  it("picks the last segment that has started", () => {
+    expect(activeSegmentId(AUTO.segments, 0)).toBe("s1");
+    expect(activeSegmentId(AUTO.segments, 1900)).toBe("s1");
+    expect(activeSegmentId(AUTO.segments, 2000)).toBe("s2");
+    expect(activeSegmentId(AUTO.segments, 9_999_999)).toBe("s3");
+    expect(activeSegmentId([], 5)).toBeNull();
   });
 });
 

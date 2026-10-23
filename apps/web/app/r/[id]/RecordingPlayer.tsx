@@ -38,6 +38,8 @@ type Props = {
   onCommentClick?: () => void;
   landscapeMaxHeightCss?: string;
   embedded?: boolean;
+  captionsUrl?: string;
+  captionsLang?: string;
 };
 
 // Reactions within this fraction of the timeline collapse into one cluster.
@@ -62,6 +64,8 @@ export function RecordingPlayer({
   landscapeMaxHeightCss = "min(34rem, calc(100vh - 19rem))",
   // Framed elsewhere: reactions move into a compact control bar that stays open.
   embedded = false,
+  captionsUrl,
+  captionsLang,
 }: Props) {
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
 
@@ -158,6 +162,8 @@ export function RecordingPlayer({
       serverWidth={serverWidth}
       serverHeight={serverHeight}
       config={config}
+      captionsUrl={captionsUrl}
+      captionsLang={captionsLang}
       landscapeMaxHeightCss={landscapeMaxHeightCss}
       progressOverlay={({ durationSeconds }) => (
         <ReactionOverlay
