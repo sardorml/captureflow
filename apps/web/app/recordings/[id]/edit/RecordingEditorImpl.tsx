@@ -168,6 +168,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
         durationMs={durationMs}
         cuts={config.cuts}
         selection={selectionSpan}
+        onSelectSpan={setSelectionSpan}
         onDeleteSelection={deleteSelection}
       />
     </main>
