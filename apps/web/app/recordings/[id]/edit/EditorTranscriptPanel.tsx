@@ -45,6 +45,9 @@ type Props = {
   // segment, or cleared with Escape) the lines here let go too.
   selection: RecordingCut | null;
   onSelectionChange: (span: RecordingCut | null) => void;
+  // Fires once the server holds a new transcript text, so the player can
+  // fetch fresh captions.
+  onTranscriptSaved?: () => void;
 };
 
 type Selection = { anchorId: string; headId: string };
@@ -66,6 +69,7 @@ export function EditorTranscriptPanel({
   getCurrentMs,
   selection: sharedSelection,
   onSelectionChange,
+  onTranscriptSaved,
 }: Props) {
   const [open, setOpen] = useState(true);
   const [transcript, setTranscript] = useState(initialTranscript);
@@ -191,6 +195,7 @@ export function EditorTranscriptPanel({
       }
       setTranscript(res.transcript);
       setHasEdits(true);
+      onTranscriptSaved?.();
     });
   };
 
@@ -204,6 +209,7 @@ export function EditorTranscriptPanel({
       }
       setTranscript(res.transcript);
       setHasEdits(false);
+      onTranscriptSaved?.();
     });
   };
 

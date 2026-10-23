@@ -233,6 +233,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             >
               {captionsUrl ? (
                 <track
+                  key={captionsUrl}
                   kind="captions"
                   src={captionsUrl}
                   srcLang={captionsLang ?? "en"}

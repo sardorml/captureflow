@@ -7,7 +7,7 @@ import {
   type RecordingPlayerHandle,
 } from "@/app/_components/recording";
 import { renameRecordingAction } from "@/app/actions";
-import { addCut, type RecordingCut } from "@/lib/recording/cuts";
+import { addCut, cutsEqual, type RecordingCut } from "@/lib/recording/cuts";
 import type { RecordingEditorProps } from "./RecordingEditor";
 import { useEditorConfig } from "./use-editor-config";
 import { EditorTopBar } from "./EditorTopBar";
@@ -39,6 +39,14 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
 
   const [title, setTitle] = useState<string>(initialTitle ?? "");
   const [selectionSpan, setSelectionSpan] = useState<RecordingCut | null>(null);
+  // Bumped whenever the server's captions may differ (a transcript edit or
+  // a saved config, since cut lines are dropped from the captions), so the
+  // track refetches.
+  const [captionsVersion, setCaptionsVersion] = useState(0);
+  const refreshCaptions = useCallback(
+    () => setCaptionsVersion((v) => v + 1),
+    [],
+  );
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
 
   const {
@@ -52,6 +60,18 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     error,
     flushNow,
   } = useEditorConfig(slug, initialConfig);
+
+  const captionedCutsRef = useRef(config.cuts);
+  useEffect(() => {
+    if (
+      status !== "saved" ||
+      cutsEqual(config.cuts, captionedCutsRef.current)
+    ) {
+      return;
+    }
+    captionedCutsRef.current = config.cuts;
+    refreshCaptions();
+  }, [status, config.cuts, refreshCaptions]);
 
   // Warn before leaving while a save is unfinished or failed — the only safety
   // net in an autosave-only model with no manual Save button.
@@ -152,7 +172,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
               config={config}
               captionsUrl={
                 initialTranscript
-                  ? `/api/r/transcript/${slug}/captions`
+                  ? `/api/r/transcript/${slug}/captions?v=${captionsVersion}`
                   : undefined
               }
               captionsLang={initialTranscript?.language ?? undefined}
@@ -176,6 +196,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
           getCurrentMs={getCurrentMs}
           selection={selectionSpan}
           onSelectionChange={setSelectionSpan}
+          onTranscriptSaved={refreshCaptions}
         />
         <EditorToolRail
           config={config}
