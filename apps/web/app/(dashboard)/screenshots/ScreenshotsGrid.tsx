@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, Chip, EmptyState } from "@heroui/react";
-import Image from "next/image";
 import { MediaCard } from "../../_components/MediaCard";
 import { SelectionBar, useSelection } from "../../_components/selection";
 import {
@@ -10,6 +9,7 @@ import {
   setScreenshotVisibilityAction,
 } from "../../actions";
 import type { Visibility } from "@/app/VisibilityDialog";
+import { FadeInImage } from "@/components/ui/fade-in-image";
 import type { DashboardScreenshotRow } from "@/lib/screenshots-db";
 import { CDN_BASE_URL, screenshotViewUrlFor } from "@/lib/site";
 
@@ -121,13 +121,12 @@ function ScreenshotCard({
 
   const media = (
     <>
-      <Image
+      <FadeInImage
         src={publicScreenshotImageUrl(screenshot)}
         alt={displayTitle}
         width={screenshot.width}
         height={screenshot.height}
-        unoptimized
-        style={{ height: "100%", width: "100%", objectFit: "cover" }}
+        className="h-full w-full object-cover"
       />
       <Chip
         size="sm"

@@ -2,6 +2,7 @@
 
 import { Card, Chip, EmptyState } from "@heroui/react";
 import { Film } from "lucide-react";
+import { FadeInImage } from "@/components/ui/fade-in-image";
 import { MediaCard } from "./_components/MediaCard";
 import { SelectionBar, useSelection } from "./_components/selection";
 import {
@@ -120,12 +121,9 @@ function RecordingCard({
   const media = (
     <>
       {posterUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <FadeInImage
           alt=""
-          style={{ height: "100%", width: "100%", objectFit: "cover" }}
-          decoding="async"
-          loading="lazy"
+          className="h-full w-full object-cover"
           src={posterUrl}
         />
       ) : videoThumbUrl ? (
