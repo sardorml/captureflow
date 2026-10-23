@@ -17,3 +17,7 @@ pnpm-lock.yaml
 **/coverage
 cloudflare-env.d.ts
 **/*.min.*
+
+# Vendored Video.js skin source (shadcn-generated; keep diffable against upstream)
+apps/web/components/videojs
+apps/web/lib/resolve-class-name.ts
