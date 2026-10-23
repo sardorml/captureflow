@@ -9,6 +9,7 @@ import type {
   PartResponse,
   RecordingApiError,
   StateResponse,
+  TranscriptRequest,
   UploadTransport,
 } from "./types";
 
@@ -199,6 +200,9 @@ export function createRecordingTransport(
         bytes,
         "image/jpeg",
       );
+    },
+    transcript: async (req: TranscriptRequest) => {
+      await postJson<{ ok: true }>("/transcript", deviceId, token, req);
     },
     abort: async (req: AbortRequest) => {
       await postJson<{ ok: true }>("/abort", deviceId, token, req);

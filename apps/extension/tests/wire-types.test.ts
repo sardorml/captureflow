@@ -18,6 +18,11 @@ const SHARED_TYPES = [
   "FinalizeResponse",
   "AbortRequest",
   "RecordingApiError",
+  "TranscriptWord",
+  "TranscriptSegment",
+  "TranscriptSource",
+  "RecordingTranscript",
+  "TranscriptRequest",
 ] as const;
 
 const read = (relative: string): string =>

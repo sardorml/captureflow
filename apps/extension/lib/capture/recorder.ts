@@ -21,6 +21,8 @@ import type {
   RecordingResultPayload,
   RecordingStatus,
 } from "../storage";
+import { startTranscriber, type Transcriber } from "./transcriber";
+import { buildTranscript, createSegmentClock } from "./transcript-timeline";
 
 type Callbacks = {
   // Pre-roll countdown, shown by the SW on the page. Runs after all grants
@@ -205,9 +207,9 @@ async function runSession(
 ): Promise<SessionEnd> {
   const { screenStream, webcamStream, micStream } = streams;
 
+  const transport = createRecordingTransport(ctx.deviceId, ctx.token);
   let upload: RecordingUpload;
   try {
-    const transport = createRecordingTransport(ctx.deviceId, ctx.token);
     upload = await startRecordingUpload(
       {
         contentType: "video/mp4",
@@ -290,10 +292,35 @@ async function runSession(
   const activeElapsed = (): number =>
     (pausedAt ?? Date.now()) - startedAt - pausedMs;
 
+  // Transcription is best-effort and free: it rides the mic track (the
+  // webcam stream carries it when there is a camera) and never gates the
+  // recording. Utterances are stamped in epoch time; the clock maps them
+  // onto the recording with pauses removed.
+  const clock = createSegmentClock({ startedAt });
+  const micTrack =
+    micStream?.getAudioTracks()[0] ?? webcamStream?.getAudioTracks()[0] ?? null;
+  let transcriber: Transcriber | null = null;
+  const transcriberReady =
+    ctx.mic && micTrack
+      ? startTranscriber({ track: micTrack, lang: navigator.language })
+          .then((t) => {
+            transcriber = t;
+          })
+          .catch(() => undefined)
+      : Promise.resolve();
+
+  const stopTranscriber = async (): Promise<
+    Awaited<ReturnType<Transcriber["stop"]>>
+  > => {
+    await transcriberReady;
+    return transcriber ? transcriber.stop() : [];
+  };
+
   const stopRecorders = async (): Promise<void> => {
     await Promise.all([
       screenRecorder.stop().catch(() => null),
       webcamRecorder?.stop().catch(() => null) ?? Promise.resolve(null),
+      stopTranscriber().catch(() => []),
     ]);
   };
 
@@ -308,14 +335,33 @@ async function runSession(
     progress();
     const progressTimer = setInterval(progress, 500);
     try {
-      await Promise.all([
+      const [, , utterances] = await Promise.all([
         screenRecorder.stop(),
         webcamRecorder?.stop() ?? Promise.resolve(null),
+        stopTranscriber().catch(() => []),
       ]);
       // Release the capture (sharing indicator) before the tail upload.
       stopAllTracks();
       const durationMs = activeElapsed();
       const { url } = await upload.finish(durationMs);
+      // Same stance as the webcam companion: a lost transcript is not a
+      // failed recording. Posted before the result so the share page the
+      // result opens can already show it.
+      if (transcriber) {
+        try {
+          const transcript = buildTranscript(utterances, {
+            clock,
+            durationMs,
+            source: transcriber.source,
+            language: transcriber.language,
+          });
+          if (transcript) {
+            await transport.transcript({ slug: upload.slug, transcript });
+          }
+        } catch {
+          // best-effort
+        }
+      }
       cb.onActiveUpload(null);
       cb.onResult({
         ok: true,
@@ -351,14 +397,17 @@ async function runSession(
     pause() {
       if (ended || pausedAt !== null) return;
       pausedAt = Date.now();
+      clock.pause(pausedAt);
       void screenRecorder.pause();
       webcamRecorder?.pause();
       cb.onStatus({ kind: "paused", startedAt, pausedMs, pausedAt });
     },
     resume() {
       if (ended || pausedAt === null) return;
-      pausedMs += Date.now() - pausedAt;
+      const now = Date.now();
+      pausedMs += now - pausedAt;
       pausedAt = null;
+      clock.resume(now);
       screenRecorder.resume();
       webcamRecorder?.resume();
       cb.onStatus({ kind: "recording", startedAt, pausedMs });
