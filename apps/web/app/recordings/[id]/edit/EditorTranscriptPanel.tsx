@@ -3,6 +3,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   useTransition,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -14,6 +15,7 @@ import {
   RotateCcw,
   Scissors,
   Undo2,
+  X,
 } from "lucide-react";
 import { Button, Spinner } from "@heroui/react";
 import {
@@ -39,6 +41,9 @@ type Props = {
   onCutsChange: (cuts: RecordingCut[]) => void;
   onSeek: (ms: number) => void;
   getCurrentMs: () => number;
+  // The editor's shared selection; when it moves elsewhere (a timeline
+  // segment, or cleared with Escape) the lines here let go too.
+  selection: RecordingCut | null;
   onSelectionChange: (span: RecordingCut | null) => void;
 };
 
@@ -59,6 +64,7 @@ export function EditorTranscriptPanel({
   onCutsChange,
   onSeek,
   getCurrentMs,
+  selection: sharedSelection,
   onSelectionChange,
 }: Props) {
   const [open, setOpen] = useState(true);
@@ -95,9 +101,34 @@ export function EditorTranscriptPanel({
     };
   }, [segments, selectedRange]);
 
+  // A clear forced by the shared selection moving elsewhere must not be
+  // reported back, or it would wipe the pick that caused it.
+  const yieldingRef = useRef(false);
   useEffect(() => {
+    if (yieldingRef.current) {
+      yieldingRef.current = false;
+      return;
+    }
     onSelectionChange(selectionSpan);
   }, [selectionSpan, onSelectionChange]);
+
+  // Reacts to the shared selection alone: the parent's state lags one
+  // render behind the effect above, so reading the own span through a ref
+  // keeps a fresh pick from clearing itself.
+  const ownSpanRef = useRef(selectionSpan);
+  ownSpanRef.current = selectionSpan;
+  useEffect(() => {
+    const own = ownSpanRef.current;
+    if (!own) return;
+    if (
+      !sharedSelection ||
+      sharedSelection.startMs !== own.startMs ||
+      sharedSelection.endMs !== own.endMs
+    ) {
+      yieldingRef.current = true;
+      setSelection(null);
+    }
+  }, [sharedSelection]);
 
   // Once a selection has been cut (from here or the timeline) it has done its job.
   useEffect(() => {
@@ -114,6 +145,13 @@ export function EditorTranscriptPanel({
   ): void => {
     if (e.shiftKey && selection) {
       setSelection({ anchorId: selection.anchorId, headId: segment.id });
+    } else if (
+      selection?.anchorId === segment.id &&
+      selection.headId === segment.id
+    ) {
+      // A second click on the only selected line lets it go.
+      setSelection(null);
+      return;
     } else {
       setSelection({ anchorId: segment.id, headId: segment.id });
     }
@@ -250,19 +288,29 @@ export function EditorTranscriptPanel({
           <div id="transcript-body" className="mt-3 flex min-h-0 flex-col">
             <div className="flex min-h-8 items-center justify-between gap-2">
               {selectedCount > 0 ? (
-                <Button
-                  variant="danger-soft"
-                  size="sm"
-                  onPress={deleteSelection}
-                >
-                  <Scissors className="h-3.5 w-3.5" />
-                  Delete{" "}
-                  {selectedCount === 1 ? "line" : `${selectedCount} lines`}
-                </Button>
+                <span className="flex items-center gap-1">
+                  <Button
+                    variant="danger-soft"
+                    size="sm"
+                    onPress={deleteSelection}
+                  >
+                    <Scissors className="h-3.5 w-3.5" />
+                    Delete{" "}
+                    {selectedCount === 1 ? "line" : `${selectedCount} lines`}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onPress={() => setSelection(null)}
+                    aria-label="Clear selection"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </span>
               ) : (
                 <p className="text-[11px] leading-snug text-fg-subtle">
-                  Click a line to select, shift-click to extend, double-click to
-                  fix the text.
+                  Click a line to select, shift-click to extend, click again or
+                  press Escape to clear, double-click to fix the text.
                 </p>
               )}
               {hasEdits ? (

@@ -84,6 +84,26 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     return Math.max(0, Math.floor(seconds * 1000));
   }, []);
 
+  // Escape anywhere outside a text field drops the selection, whichever
+  // panel made it.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key !== "Escape") return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      setSelectionSpan(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const onCutsChange = useCallback(
     (cuts: RecordingCut[]) => update({ cuts }),
     [update],
@@ -153,6 +173,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
           onCutsChange={onCutsChange}
           onSeek={seekToMs}
           getCurrentMs={getCurrentMs}
+          selection={selectionSpan}
           onSelectionChange={setSelectionSpan}
         />
         <EditorToolRail

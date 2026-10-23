@@ -114,7 +114,10 @@ export function EditorTimeline({
     const ms = f * duration * 1000;
     const hit = segments.find((s) => ms >= s.startMs && ms < s.endMs);
     if (!hit || isInsideCut(ms, cuts)) return;
-    onSelectSpan(hit);
+    // A second click on the picked segment lets it go.
+    const same =
+      selection?.startMs === hit.startMs && selection.endMs === hit.endMs;
+    onSelectSpan(same ? null : hit);
   };
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
