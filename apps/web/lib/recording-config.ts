@@ -1,3 +1,5 @@
+import { normalizeCuts, type RecordingCut } from "@/lib/recording/cuts";
+
 const MP4 = ".mp4";
 
 export function recordingConfigKeyFor(storageKey: string): string {
@@ -22,6 +24,7 @@ export type RecordingConfig = {
   cameraSize: RecordingCameraSize;
   micMuted: boolean;
   systemMuted: boolean;
+  cuts: RecordingCut[];
 };
 
 export const DEFAULT_RECORDING_CONFIG: RecordingConfig = {
@@ -30,6 +33,7 @@ export const DEFAULT_RECORDING_CONFIG: RecordingConfig = {
   cameraSize: "medium",
   micMuted: false,
   systemMuted: false,
+  cuts: [],
 };
 
 export const RECORDING_GRADIENT_KEYS = [
@@ -181,5 +185,6 @@ export function hydrateRecordingConfig(raw: unknown): RecordingConfig {
     cameraSize: size,
     micMuted: obj.micMuted === true,
     systemMuted: obj.systemMuted === true,
+    cuts: normalizeCuts(obj.cuts),
   };
 }

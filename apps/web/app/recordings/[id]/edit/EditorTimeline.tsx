@@ -13,15 +13,17 @@ import {
 import { AudioLines, Scissors, Trash2, ZoomIn, ZoomOut } from "lucide-react";
 import { Tooltip } from "@heroui/react";
 import type { RecordingPlayerHandle } from "@/app/_components/recording";
+import type { RecordingCut } from "@/lib/recording/cuts";
 
 type Props = {
   playerRef: RefObject<RecordingPlayerHandle | null>;
   durationMs: number | null;
+  cuts: RecordingCut[];
 };
 
 const WAVEFORM_BARS = 160;
 
-export function EditorTimeline({ playerRef, durationMs }: Props) {
+export function EditorTimeline({ playerRef, durationMs, cuts }: Props) {
   const [showWaveform, setShowWaveform] = useState(true);
   const [fraction, setFraction] = useState(0);
   const [duration, setDuration] = useState((durationMs ?? 0) / 1000);
@@ -192,6 +194,21 @@ export function EditorTimeline({ playerRef, durationMs }: Props) {
                 />
               ))}
             </div>
+
+            {/* Cut spans the player skips, from the transcript panel. */}
+            {duration > 0
+              ? cuts.map((cut) => (
+                  <div
+                    key={cut.startMs}
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 border-x border-danger/60 bg-[repeating-linear-gradient(135deg,var(--danger)_0_2px,transparent_2px_6px)] opacity-40"
+                    style={{
+                      left: `${(cut.startMs / (duration * 1000)) * 100}%`,
+                      width: `${((cut.endMs - cut.startMs) / (duration * 1000)) * 100}%`,
+                    }}
+                  />
+                ))
+              : null}
 
             {/* Full-clip selection region (trim handles are placeholders). */}
             <div

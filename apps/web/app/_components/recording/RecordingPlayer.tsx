@@ -13,8 +13,10 @@ import type { VideoPlayerStore } from "@videojs/core/dom";
 import { selectFullscreen } from "@videojs/react";
 import { Video, VideoPlayer, usePlayer } from "@videojs/react/video";
 import type { RecordingConfig } from "@/lib/recording-config";
+import { snapOutOfCuts, type RecordingCut } from "@/lib/recording/cuts";
 import { aspectFromPlaceholder, sizeStyleForAspect } from "./layout";
 import { RecordingSkin, type ProgressOverlayInfo } from "./RecordingSkin";
+import { useCutSkipper } from "./use-cut-skipper";
 import { useWebcamSync } from "./use-webcam-sync";
 
 export type { ProgressOverlayInfo } from "./RecordingSkin";
@@ -86,6 +88,9 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
      * object-contain shows no bars.
      */
     const [actualAspect, setActualAspect] = useState<number | null>(null);
+    const cuts = config.cuts;
+    const cutsRef = useRef(cuts);
+    cutsRef.current = cuts;
 
     useImperativeHandle(
       handleRef,
@@ -102,15 +107,18 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
           return 0;
         },
         seekTo: (seconds: number) => {
-          seekMedia(storeRef, videoRef, seconds);
+          seekMedia(storeRef, videoRef, seconds, cutsRef.current);
           const store = storeRef.current;
           if (store) void store.play().catch(() => {});
           else void videoRef.current?.play().catch(() => {});
         },
-        seek: (seconds: number) => seekMedia(storeRef, videoRef, seconds),
+        seek: (seconds: number) =>
+          seekMedia(storeRef, videoRef, seconds, cutsRef.current),
       }),
       [],
     );
+
+    useCutSkipper({ storeRef, videoRef, cuts });
 
     /*
      * If the browser already has the video buffered (304 from edge cache,
@@ -164,6 +172,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             compact={compactControls}
             alwaysVisible={controlsAlwaysVisible}
             serverDurationMs={serverDurationMs}
+            cuts={cuts}
             previewLoopUrl={compactControls ? videoUrl : undefined}
             progressOverlay={progressOverlay}
             controlsExtra={controlsExtra}
@@ -195,15 +204,18 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
 );
 
 // Seeks through the store when attached so Video.js state stays in step,
-// falling back to the element before the player has mounted.
+// falling back to the element before the player has mounted. A target inside
+// a cut lands on the cut's end instead.
 function seekMedia(
   storeRef: RefObject<VideoPlayerStore | null>,
   videoRef: RefObject<HTMLVideoElement | null>,
   seconds: number,
+  cuts: RecordingCut[],
 ): void {
   const v = videoRef.current;
   if (!v) return;
-  const clamped = Math.max(0, Math.min(seconds, v.duration || seconds));
+  const snapped = snapOutOfCuts(seconds * 1000, cuts) / 1000;
+  const clamped = Math.max(0, Math.min(snapped, v.duration || snapped));
   const store = storeRef.current;
   if (store) void store.seek(clamped).catch(() => {});
   else v.currentTime = clamped;

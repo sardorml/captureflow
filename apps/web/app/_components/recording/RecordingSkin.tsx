@@ -42,6 +42,7 @@ import type {
   RecordingCameraCorner,
   RecordingCameraSize,
 } from "@/lib/recording-config";
+import type { RecordingCut } from "@/lib/recording/cuts";
 import {
   recordingBackgroundStyle,
   webcamCornerClass,
@@ -71,6 +72,7 @@ export type RecordingSkinProps = {
   compact: boolean;
   alwaysVisible: boolean;
   serverDurationMs: number | null;
+  cuts: RecordingCut[];
   previewLoopUrl?: string;
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   controlsExtra?: ReactNode;
@@ -95,6 +97,7 @@ export function RecordingSkin({
   compact,
   alwaysVisible,
   serverDurationMs,
+  cuts,
   previewLoopUrl,
   progressOverlay,
   controlsExtra,
@@ -159,6 +162,7 @@ export function RecordingSkin({
         compact={compact}
         alwaysVisible={alwaysVisible}
         serverDurationMs={serverDurationMs}
+        cuts={cuts}
         progressOverlay={progressOverlay}
         controlsExtra={controlsExtra}
       />
@@ -297,10 +301,40 @@ function SeekStepButton({ seconds }: { seconds: number }) {
   );
 }
 
+// Hatched marks over the slider where the player will skip.
+function CutGaps({
+  cuts,
+  durationSeconds,
+}: {
+  cuts: RecordingCut[];
+  durationSeconds: number;
+}) {
+  if (cuts.length === 0 || durationSeconds <= 0) return null;
+  const totalMs = durationSeconds * 1000;
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 top-1/2 h-1 -translate-y-1/2"
+    >
+      {cuts.map((cut) => (
+        <span
+          key={cut.startMs}
+          className="absolute inset-y-0 rounded-media-pill bg-[repeating-linear-gradient(135deg,rgba(0,0,0,0.75)_0_2px,rgba(255,255,255,0.55)_2px_4px)]"
+          style={{
+            left: `${(cut.startMs / totalMs) * 100}%`,
+            width: `${((cut.endMs - cut.startMs) / totalMs) * 100}%`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 type RecordingControlsProps = {
   compact: boolean;
   alwaysVisible: boolean;
   serverDurationMs: number | null;
+  cuts: RecordingCut[];
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   controlsExtra?: ReactNode;
 };
@@ -312,6 +346,7 @@ function RecordingControls({
   compact,
   alwaysVisible,
   serverDurationMs,
+  cuts,
   progressOverlay,
   controlsExtra,
 }: RecordingControlsProps) {
@@ -389,6 +424,7 @@ function RecordingControls({
                   </div>
                 ) : null}
                 <TimeSlider />
+                <CutGaps cuts={cuts} durationSeconds={durationSeconds} />
               </div>
               {compact ? null : (
                 <Time.Value

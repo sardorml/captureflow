@@ -1,3 +1,4 @@
+import type { RecordingCut } from "./cuts";
 import type {
   RecordingTranscript,
   TranscriptResponse,
@@ -19,8 +20,6 @@ const SOURCES: readonly TranscriptSource[] = [
   "chrome-speech-cloud",
   "apple-speech",
 ];
-
-export type CutSpan = { startMs: number; endMs: number };
 
 export type TranscriptEdits = {
   segments: { id: string; text: string }[];
@@ -185,7 +184,7 @@ function escapeCue(text: string): string {
 // Segments lying wholly inside a cut are left out; the player never reaches them.
 export function transcriptToVtt(
   transcript: RecordingTranscript,
-  cuts: readonly CutSpan[] = [],
+  cuts: readonly RecordingCut[] = [],
 ): string {
   const lines = ["WEBVTT", ""];
   let index = 0;

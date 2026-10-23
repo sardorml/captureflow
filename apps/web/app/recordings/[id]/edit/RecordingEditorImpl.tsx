@@ -123,7 +123,11 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
         />
       </div>
 
-      <EditorTimeline playerRef={playerRef} durationMs={durationMs} />
+      <EditorTimeline
+        playerRef={playerRef}
+        durationMs={durationMs}
+        cuts={config.cuts}
+      />
     </main>
   );
 }
