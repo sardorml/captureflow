@@ -1,9 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { ListVideo, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@heroui/react";
 import { formatTimestamp } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 type Props = {
   slug: string;
@@ -162,176 +170,278 @@ export function SummaryChapters({
   const hasChapters = chapters.length > 0;
 
   if (!isOwner && !hasSummary && !hasChapters) return null;
+  const showSummary = isOwner || hasSummary;
+  const showChapters = isOwner || hasChapters;
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="mt-8 space-y-4">
       {saveError && isOwner && (
-        <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-300">
+        <p className="rounded-xl bg-red-500/10 px-4 py-2.5 text-sm text-red-600 ring-1 ring-red-500/20 dark:text-red-300">
           {saveError}
         </p>
       )}
-      <section>
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-neutral-100">
-            <Sparkles className="h-4 w-4 text-blue-400" />
-            Summary
-          </h2>
-          {isOwner && !summaryEditing && (
-            <button
-              type="button"
-              onClick={startSummaryEdit}
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-tint hover:text-neutral-200"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-              {hasSummary ? "Edit" : "Add"}
-            </button>
-          )}
-        </div>
-        {summaryEditing ? (
-          <div className="focus-within:ring-focus mt-3 space-y-2 rounded-lg bg-field p-3 focus-within:ring-2">
-            <textarea
-              ref={summaryTextareaRef}
-              value={summaryDraft}
-              onChange={(e) => setSummaryDraft(e.target.value)}
-              rows={4}
-              placeholder="Add a summary…"
-              className="block w-full resize-none bg-transparent text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none"
-            />
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onPress={() => setSummaryEditing(false)}
-              >
-                Cancel
-              </Button>
-              <Button variant="primary" size="sm" onPress={commitSummaryEdit}>
-                Save
-              </Button>
-            </div>
-          </div>
-        ) : hasSummary ? (
-          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-neutral-300">
-            {summary}
-          </p>
-        ) : (
-          <p className="mt-2 text-sm text-neutral-500">
-            {isOwner ? "Add a summary…" : "No summary yet."}
-          </p>
+      <div
+        className={cn(
+          "grid gap-4",
+          showSummary &&
+            showChapters &&
+            "xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]",
         )}
-      </section>
+      >
+        {showSummary && (
+          <Card
+            icon={<Sparkles className="size-4" />}
+            title="Summary"
+            subtitle="What this recording covers"
+            actions={
+              isOwner && !summaryEditing ? (
+                <Button variant="ghost" size="sm" onPress={startSummaryEdit}>
+                  <Pencil className="size-3.5" />
+                  {hasSummary ? "Edit" : "Add"}
+                </Button>
+              ) : null
+            }
+          >
+            {summaryEditing ? (
+              <EditBox
+                onCancel={() => setSummaryEditing(false)}
+                onSave={commitSummaryEdit}
+              >
+                <textarea
+                  ref={summaryTextareaRef}
+                  value={summaryDraft}
+                  onChange={(e) => setSummaryDraft(e.target.value)}
+                  rows={5}
+                  placeholder="What happens in this recording?"
+                  className="block w-full resize-none bg-transparent text-[15px] leading-7 text-fg placeholder:text-fg-subtle focus:outline-none"
+                />
+              </EditBox>
+            ) : hasSummary ? (
+              <p className="whitespace-pre-wrap text-[15px] leading-7 text-fg">
+                {summary}
+              </p>
+            ) : (
+              <EmptyState
+                text={
+                  isOwner ? "Tell viewers what to expect." : "No summary yet."
+                }
+                action={isOwner ? "Add a summary" : undefined}
+                onAction={startSummaryEdit}
+              />
+            )}
+          </Card>
+        )}
 
-      <section>
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-neutral-100">
-            <ListVideo className="h-4 w-4 text-blue-400" />
-            Chapters
-          </h2>
-          {isOwner && !chaptersEditing && (
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={onAddChapter}
-                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-tint hover:text-neutral-200"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Add at playhead
-              </button>
-              {hasChapters && (
-                <button
-                  type="button"
-                  onClick={startChaptersEdit}
-                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-neutral-400 transition-colors hover:bg-tint hover:text-neutral-200"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                  Edit
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-        {chaptersEditing ? (
-          <div className="focus-within:ring-focus mt-3 space-y-2 rounded-lg bg-field p-3 focus-within:ring-2">
-            <textarea
-              value={chaptersDraft}
-              onChange={(e) => setChaptersDraft(e.target.value)}
-              rows={Math.max(3, chaptersDraft.split("\n").length)}
-              placeholder={"0:00 Intro\n0:30 Demo\n1:20 Wrap-up"}
-              className="block w-full resize-none bg-transparent font-mono text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none"
-            />
-            <p className="text-[11px] text-neutral-500">
-              One chapter per line. Format: <code>M:SS Title</code> or
-              <code> H:MM:SS Title</code>.
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onPress={() => setChaptersEditing(false)}
-              >
-                Cancel
-              </Button>
-              <Button variant="primary" size="sm" onPress={commitChaptersEdit}>
-                Save
-              </Button>
-            </div>
-          </div>
-        ) : hasChapters ? (
-          <ol className="mt-2 space-y-0.5">
-            {chapters.map((c) => {
-              const active = c.id === activeChapterId;
-              return (
-                <li key={c.id}>
-                  <div
-                    className={
-                      "group flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors " +
-                      (active
-                        ? "bg-blue-500/15 text-blue-700 dark:text-blue-100"
-                        : "text-neutral-300 hover:bg-tint")
-                    }
-                  >
-                    <button
-                      type="button"
-                      onClick={() => onSeek(c.ms)}
-                      className="flex min-w-0 flex-1 items-center gap-3 text-left"
+        {showChapters && (
+          <Card
+            icon={<ListVideo className="size-4" />}
+            title="Chapters"
+            subtitle={
+              hasChapters
+                ? `${chapters.length} ${chapters.length === 1 ? "chapter" : "chapters"} · click to jump`
+                : "Jump points along the recording"
+            }
+            actions={
+              isOwner && !chaptersEditing ? (
+                <>
+                  <Button variant="ghost" size="sm" onPress={onAddChapter}>
+                    <Plus className="size-3.5" />
+                    Add at playhead
+                  </Button>
+                  {hasChapters && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onPress={startChaptersEdit}
                     >
-                      <span
-                        className={
-                          "shrink-0 font-mono text-xs " +
-                          (active
-                            ? "text-blue-700 dark:text-blue-200"
-                            : "text-neutral-500")
-                        }
+                      <Pencil className="size-3.5" />
+                      Edit
+                    </Button>
+                  )}
+                </>
+              ) : null
+            }
+          >
+            {chaptersEditing ? (
+              <EditBox
+                hint={
+                  <>
+                    One chapter per line, as <code>M:SS Title</code> or{" "}
+                    <code>H:MM:SS Title</code>.
+                  </>
+                }
+                onCancel={() => setChaptersEditing(false)}
+                onSave={commitChaptersEdit}
+              >
+                <textarea
+                  value={chaptersDraft}
+                  onChange={(e) => setChaptersDraft(e.target.value)}
+                  rows={Math.max(4, chaptersDraft.split("\n").length)}
+                  placeholder={"0:00 Intro\n0:30 Demo\n1:20 Wrap-up"}
+                  className="block w-full resize-none bg-transparent font-mono text-sm leading-6 text-fg placeholder:text-fg-subtle focus:outline-none"
+                />
+              </EditBox>
+            ) : hasChapters ? (
+              <ol className="relative -mx-2 before:absolute before:top-3 before:bottom-3 before:left-[23px] before:w-px before:bg-line-strong">
+                {chapters.map((c, i) => {
+                  const active = c.id === activeChapterId;
+                  return (
+                    <li key={c.id} className="relative">
+                      <div
+                        className={cn(
+                          "group flex items-center gap-1 rounded-xl pr-1 transition-colors",
+                          active ? "bg-accent-bg/10" : "hover:bg-tint",
+                        )}
                       >
-                        {formatTimestamp(c.ms)}
-                      </span>
-                      <span className="min-w-0 truncate text-sm">
-                        {c.title}
-                      </span>
-                    </button>
-                    {isOwner && (
-                      <button
-                        type="button"
-                        onClick={() => removeChapter(c.id)}
-                        aria-label="Remove chapter"
-                        className="rounded p-1 text-neutral-500 opacity-0 transition-opacity hover:bg-tint hover:text-red-300 group-hover:opacity-100"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        ) : (
-          <p className="mt-2 text-sm text-neutral-500">
-            {isOwner
-              ? "No chapters yet — add one at the playhead."
-              : "No chapters yet."}
-          </p>
+                        <button
+                          type="button"
+                          onClick={() => onSeek(c.ms)}
+                          className="flex min-w-0 flex-1 items-center gap-3 rounded-xl py-2 pl-2 pr-1 text-left"
+                        >
+                          <span
+                            className={cn(
+                              "flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold tabular-nums transition-[box-shadow,background-color,color]",
+                              active
+                                ? "bg-accent-bg text-white ring-4 ring-accent-bg/20"
+                                : "bg-tint-strong text-fg-muted ring-4 ring-panel group-hover:bg-tint-strong",
+                            )}
+                          >
+                            {i + 1}
+                          </span>
+                          <span
+                            className={cn(
+                              "min-w-0 flex-1 truncate text-sm font-medium",
+                              active ? "text-fg-strong" : "text-fg",
+                            )}
+                          >
+                            {c.title}
+                          </span>
+                          <span
+                            className={cn(
+                              "shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[11px] tabular-nums",
+                              active
+                                ? "bg-accent-bg/15 text-accent-strong"
+                                : "bg-tint text-fg-subtle",
+                            )}
+                          >
+                            {formatTimestamp(c.ms)}
+                          </span>
+                        </button>
+                        {isOwner && (
+                          <button
+                            type="button"
+                            onClick={() => removeChapter(c.id)}
+                            aria-label="Remove chapter"
+                            className="rounded-lg p-1.5 text-fg-subtle opacity-0 transition-opacity hover:bg-tint-strong hover:text-red-400 focus-visible:opacity-100 group-hover:opacity-100"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            ) : (
+              <EmptyState
+                text={
+                  isOwner
+                    ? "Pause where a new topic starts, then add a chapter at the playhead."
+                    : "No chapters yet."
+                }
+                action={isOwner ? "Add at playhead" : undefined}
+                onAction={onAddChapter}
+              />
+            )}
+          </Card>
         )}
-      </section>
+      </div>
+    </div>
+  );
+}
+
+function Card({
+  icon,
+  title,
+  subtitle,
+  actions,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  subtitle: string;
+  actions: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl bg-panel p-5 ring-1 ring-line">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent-bg/10 text-accent-strong ring-1 ring-accent-bg/15">
+            {icon}
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-[15px] font-semibold leading-5 text-fg-strong">
+              {title}
+            </h2>
+            <p className="mt-0.5 truncate text-xs text-fg-subtle">{subtitle}</p>
+          </div>
+        </div>
+        {actions ? (
+          <div className="flex shrink-0 items-center gap-1">{actions}</div>
+        ) : null}
+      </div>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function EditBox({
+  hint,
+  onCancel,
+  onSave,
+  children,
+}: {
+  hint?: ReactNode;
+  onCancel: () => void;
+  onSave: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-3 rounded-xl bg-field p-3 ring-1 ring-line transition-shadow focus-within:ring-2 focus-within:ring-accent-ring">
+      {children}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs text-fg-subtle">{hint}</p>
+        <div className="flex shrink-0 gap-2">
+          <Button variant="secondary" size="sm" onPress={onCancel}>
+            Cancel
+          </Button>
+          <Button variant="primary" size="sm" onPress={onSave}>
+            Save
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({
+  text,
+  action,
+  onAction,
+}: {
+  text: string;
+  action?: string;
+  onAction: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line-strong px-4 py-6 text-center">
+      <p className="text-sm text-fg-subtle">{text}</p>
+      {action ? (
+        <Button variant="secondary" size="sm" onPress={onAction}>
+          {action}
+        </Button>
+      ) : null}
     </div>
   );
 }
