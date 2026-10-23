@@ -60,12 +60,14 @@ import {
   webcamSizeClass,
 } from "./layout";
 
-// Info handed to the progressOverlay slot so the public viewer can align
-// reaction cluster bubbles to the time slider without forking the player.
-// `toTimelineMs` maps a recording time onto whatever timeline the slider
-// shows (the edited one in the viewer).
+// Info handed to the progressOverlay slot, which covers the time slider so
+// the public viewer can place reaction markers on it without forking the
+// player. `toTimelineMs` maps a recording time onto whatever timeline the
+// slider shows (the edited one in the viewer); `currentSeconds` is already
+// on that timeline.
 export type ProgressOverlayInfo = {
   durationSeconds: number;
+  currentSeconds: number;
   controlsVisible: boolean;
   toTimelineMs: (sourceMs: number) => number;
 };
@@ -409,7 +411,8 @@ function RecordingControls({
   controlsExtra,
 }: RecordingControlsProps) {
   const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
-  const duration = usePlayer(selectTime)?.duration ?? 0;
+  const time = usePlayer(selectTime);
+  const duration = time?.duration ?? 0;
   const sourceSeconds =
     duration > 0 ? duration : serverDurationMs ? serverDurationMs / 1000 : 0;
   const edited = !showCuts && cuts.length > 0;
@@ -488,11 +491,11 @@ function RecordingControls({
               )}
               <div className="relative flex min-w-0 flex-1 items-center">
                 {progressOverlay ? (
-                  // Lifted past the bar's top padding so the markers sit
-                  // above the bar rather than on it.
-                  <div className="pointer-events-none absolute inset-x-0 bottom-full mb-3">
+                  <div className="pointer-events-none absolute inset-0 z-10">
                     {progressOverlay({
                       durationSeconds,
+                      currentSeconds:
+                        toTimelineMs((time?.currentTime ?? 0) * 1000) / 1000,
                       controlsVisible,
                       toTimelineMs,
                     })}

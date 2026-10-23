@@ -16,6 +16,7 @@ import {
 } from "../../_components/recording";
 import type { RecordingConfig } from "@/lib/recording-config";
 import { DEFAULT_REACTIONS } from "@/lib/recording/reactions";
+import { cn } from "@/lib/utils";
 import type { RecordingChapter } from "@/lib/recording/summary-chapters";
 import type {
   AddReactionResponse,
@@ -169,11 +170,12 @@ export function RecordingPlayer({
       captionsLang={captionsLang}
       chapters={chapters}
       landscapeMaxHeightCss={landscapeMaxHeightCss}
-      progressOverlay={({ durationSeconds, toTimelineMs }) => (
+      progressOverlay={({ durationSeconds, currentSeconds, toTimelineMs }) => (
         <ReactionOverlay
           reactions={reactions}
           freshIds={freshIds}
           durationSeconds={durationSeconds}
+          currentSeconds={currentSeconds}
           toTimelineMs={toTimelineMs}
         />
       )}
@@ -214,17 +216,19 @@ export function RecordingPlayer({
   );
 }
 
-// Rendered in the player's slot directly above the time slider, so cluster
-// fractions map onto the slider's own width.
+// Rendered in the player's slot over the time slider, so cluster fractions
+// map onto the slider's own width.
 function ReactionOverlay({
   reactions,
   freshIds,
   durationSeconds,
+  currentSeconds,
   toTimelineMs,
 }: {
   reactions: RecordingReaction[];
   freshIds: Set<number>;
   durationSeconds: number;
+  currentSeconds: number;
   toTimelineMs: (sourceMs: number) => number;
 }) {
   const clusters = useMemo(
@@ -239,7 +243,13 @@ function ReactionOverlay({
       ),
     [reactions, durationSeconds, freshIds, toTimelineMs],
   );
-  return <ReactionMarkers clusters={clusters} />;
+  return (
+    <ReactionMarkers
+      clusters={clusters}
+      currentSeconds={currentSeconds}
+      durationSeconds={durationSeconds}
+    />
+  );
 }
 
 type ReactionCluster = {
@@ -247,6 +257,13 @@ type ReactionCluster = {
   emoji: string;
   count: number;
   isFresh: boolean;
+};
+
+type ReactionBurst = {
+  id: number;
+  fraction: number;
+  emoji: string;
+  count: number;
 };
 
 function clusterReactions(
@@ -322,12 +339,73 @@ async function postReaction(
   return json.reaction;
 }
 
-// Approximate rendered width of a cluster bubble (emoji + count badge + gap).
-const CLUSTER_VISUAL_WIDTH_PX = 32;
+// Dots closer than this merge, so neighbours never overlap.
+const CLUSTER_VISUAL_WIDTH_PX = 12;
+// Must match the rise animation duration in globals.css.
+const BURST_MS = 1000;
+// A bigger jump between two time samples is a seek, which passes dots
+// silently.
+const MAX_PLAYBACK_STEP_SECONDS = 1.5;
 
-function ReactionMarkers({ clusters }: { clusters: ReactionCluster[] }) {
+/*
+ * Each cluster is a dot on the time slider until playback reaches it, when
+ * its emoji rises off the dot and the dot goes. Seeking back brings the dots
+ * back; a reaction the viewer just sent bursts right away.
+ */
+function ReactionMarkers({
+  clusters,
+  currentSeconds,
+  durationSeconds,
+}: {
+  clusters: ReactionCluster[];
+  currentSeconds: number;
+  durationSeconds: number;
+}) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [trackWidth, setTrackWidth] = useState(0);
+  const [bursts, setBursts] = useState<ReactionBurst[]>([]);
+  const burstIdRef = useRef(0);
+  const prevSecondsRef = useRef(currentSeconds);
+  const burstedFreshRef = useRef(new Set<string>());
+
+  const spawn = useCallback((hits: ReactionCluster[]) => {
+    if (hits.length === 0) return;
+    const added = hits.map((c) => ({
+      id: ++burstIdRef.current,
+      fraction: c.fraction,
+      emoji: c.emoji,
+      count: c.count,
+    }));
+    setBursts((prev) => [...prev, ...added]);
+    const ids = new Set(added.map((b) => b.id));
+    window.setTimeout(() => {
+      setBursts((prev) => prev.filter((b) => !ids.has(b.id)));
+    }, BURST_MS);
+  }, []);
+
+  useEffect(() => {
+    const prev = prevSecondsRef.current;
+    prevSecondsRef.current = currentSeconds;
+    const step = currentSeconds - prev;
+    if (step <= 0 || step > MAX_PLAYBACK_STEP_SECONDS) return;
+    spawn(
+      clusters.filter((c) => {
+        const at = c.fraction * durationSeconds;
+        return at > prev && at <= currentSeconds && !c.isFresh;
+      }),
+    );
+  }, [currentSeconds, clusters, durationSeconds, spawn]);
+
+  useEffect(() => {
+    const fresh = clusters.filter((c) => {
+      if (!c.isFresh) return false;
+      const key = `${c.emoji}@${c.fraction.toFixed(4)}#${c.count}`;
+      if (burstedFreshRef.current.has(key)) return false;
+      burstedFreshRef.current.add(key);
+      return true;
+    });
+    spawn(fresh);
+  }, [clusters, spawn]);
 
   useEffect(() => {
     const el = trackRef.current;
@@ -368,32 +446,38 @@ function ReactionMarkers({ clusters }: { clusters: ReactionCluster[] }) {
 
   if (clusters.length === 0) return null;
   return (
-    <div className="pointer-events-none relative h-9 w-full" ref={trackRef}>
-      {visible.map((c, idx) => (
+    <div className="pointer-events-none absolute inset-0" ref={trackRef}>
+      {visible.map((c, idx) => {
+        const passed = c.fraction * durationSeconds <= currentSeconds;
+        return (
+          <span
+            key={idx}
+            className={cn(
+              "absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_0_2px_rgba(0,0,0,0.35)] transition-[opacity,scale] duration-300",
+              passed && "scale-50 opacity-0",
+            )}
+            style={{ left: `${c.fraction * 100}%` }}
+          />
+        );
+      })}
+      {bursts.map((b) => (
         <div
-          key={idx}
-          className={`absolute flex items-end gap-0.5 ${
-            c.isFresh ? "animate-reaction-rise" : ""
-          }`}
-          style={{
-            left: `${c.fraction * 100}%`,
-            bottom: 0,
-            transform: `translateX(${-c.fraction * 100}%)`,
-            transformOrigin: "bottom center",
-          }}
+          key={b.id}
+          className="animate-reaction-rise absolute top-1/2 flex items-end gap-0.5"
+          style={{ left: `${b.fraction * 100}%` }}
         >
           <span
-            className="text-[20px] leading-none"
+            className="text-[22px] leading-none"
             style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }}
           >
-            {c.emoji}
+            {b.emoji}
           </span>
-          {c.count > 1 ? (
+          {b.count > 1 ? (
             <span
               className="text-[11px] font-semibold tabular-nums leading-none text-white"
               style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.8))" }}
             >
-              {c.count}
+              {b.count}
             </span>
           ) : null}
         </div>
