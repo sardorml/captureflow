@@ -133,7 +133,7 @@ export function RecordingViewer({
             </span>
           </div>
         </header>
-        <div className="mx-auto flex w-full max-w-5xl flex-col px-6 py-6 lg:px-12">
+        <div className="mx-auto flex w-full max-w-5xl flex-col py-6">
           <RecordingPlayer
             videoUrl={videoUrl}
             posterUrl={posterUrl}
@@ -159,18 +159,20 @@ export function RecordingViewer({
             handleRef={playerRef}
             onCommentClick={signedIn ? focusComment : goToSignIn}
           />
-          <SummaryChapters
-            slug={slug}
-            isOwner={isOwner}
-            initialSummary={initialSummary}
-            initialChapters={initialChapters}
-            onSeek={seekTo}
-            getCurrentMs={getCurrentMs}
-            onChaptersChange={setChapters}
-          />
-          <footer className="mt-8 flex justify-center border-t border-line pt-6">
-            <PoweredBy />
-          </footer>
+          <div className="px-6 lg:px-12">
+            <SummaryChapters
+              slug={slug}
+              isOwner={isOwner}
+              initialSummary={initialSummary}
+              initialChapters={initialChapters}
+              onSeek={seekTo}
+              getCurrentMs={getCurrentMs}
+              onChaptersChange={setChapters}
+            />
+            <footer className="mt-8 flex justify-center border-t border-line pt-6">
+              <PoweredBy />
+            </footer>
+          </div>
         </div>
       </main>
       <ActivitySidebar
