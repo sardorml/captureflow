@@ -148,6 +148,7 @@ export function RecordingViewer({
             captionsLang={initialTranscript?.language ?? undefined}
             chapters={chapters}
             viewerSignedIn={signedIn}
+            viewerUserId={viewer?.userId ?? null}
             onReactionAdded={onReactionAdded}
             removedReactionIds={removedReactionIds}
             onSignInRequested={goToSignIn}

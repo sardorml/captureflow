@@ -35,6 +35,8 @@ type Props = {
   serverHeight: number | null;
   config: RecordingConfig;
   viewerSignedIn?: boolean;
+  // The viewer's own reactions get a dot but never a burst.
+  viewerUserId?: string | null;
   onReactionAdded?: (reaction: RecordingReaction) => void;
   // Reactions deleted elsewhere on the page (the activity sidebar).
   removedReactionIds?: Set<number>;
@@ -62,6 +64,7 @@ export function RecordingPlayer({
   serverHeight,
   config,
   viewerSignedIn = false,
+  viewerUserId = null,
   onReactionAdded,
   removedReactionIds,
   onSignInRequested,
@@ -186,6 +189,7 @@ export function RecordingPlayer({
           kind="dots"
           reactions={reactions}
           freshIds={freshIds}
+          viewerUserId={viewerUserId}
           info={info}
         />
       )}
@@ -194,6 +198,7 @@ export function RecordingPlayer({
           kind="bursts"
           reactions={reactions}
           freshIds={freshIds}
+          viewerUserId={viewerUserId}
           info={info}
         />
       )}
@@ -240,17 +245,20 @@ function ReactionLayer({
   kind,
   reactions,
   freshIds,
+  viewerUserId,
   info,
 }: {
   kind: "dots" | "bursts";
   reactions: RecordingReaction[];
   freshIds: Set<number>;
+  viewerUserId: string | null;
   info: ProgressOverlayInfo;
 }) {
   const { durationSeconds, currentSeconds, toTimelineMs } = info;
   const clusters = useReactionClusters(
     reactions,
     freshIds,
+    viewerUserId,
     durationSeconds,
     toTimelineMs,
   );
@@ -268,6 +276,8 @@ type ReactionCluster = {
   fraction: number;
   // Every reaction in the cluster, in time order.
   emojis: string[];
+  // The ones other people sent: the only ones that burst.
+  others: string[];
   isFresh: boolean;
 };
 
@@ -282,6 +292,7 @@ type ReactionBurst = {
 function useReactionClusters(
   reactions: RecordingReaction[],
   freshIds: Set<number>,
+  viewerUserId: string | null,
   durationSeconds: number,
   toTimelineMs: (sourceMs: number) => number,
 ): ReactionCluster[] {
@@ -294,15 +305,26 @@ function useReactionClusters(
         })),
         durationSeconds,
         freshIds,
+        viewerUserId,
       ),
-    [reactions, durationSeconds, freshIds, toTimelineMs],
+    [reactions, durationSeconds, freshIds, viewerUserId, toTimelineMs],
   );
+}
+
+// A reaction still being posted has a negative id and no user yet; it is
+// the viewer's own.
+function isOwnReaction(
+  r: RecordingReaction,
+  viewerUserId: string | null,
+): boolean {
+  return r.id < 0 || (viewerUserId != null && r.userId === viewerUserId);
 }
 
 function clusterReactions(
   reactions: RecordingReaction[],
   durationSeconds: number,
   freshIds: Set<number>,
+  viewerUserId: string | null,
 ): ReactionCluster[] {
   if (reactions.length === 0 || durationSeconds <= 0) return [];
   const totalMs = durationSeconds * 1000;
@@ -322,6 +344,9 @@ function clusterReactions(
     out.push({
       fraction: Math.max(0, Math.min(1, meanMs / totalMs)),
       emojis: bucket.map((r) => r.emoji),
+      others: bucket
+        .filter((r) => !isOwnReaction(r, viewerUserId))
+        .map((r) => r.emoji),
       isFresh: fresh,
     });
     bucket = [];
@@ -449,10 +474,10 @@ function dominantEmoji(emojis: readonly string[]): string {
 }
 
 /*
- * Emojis floating up the video. When playback reaches a cluster's dot its
- * emojis take off from the dot one after another, whether or not the
- * controls are showing; a reaction the viewer just sent takes off at once.
- * Seeking past a dot stays quiet.
+ * Emojis floating up the video. When playback reaches a cluster's dot the
+ * reactions other people sent take off from it one after another, whether
+ * or not the controls are showing. The viewer's own stay as dots, and
+ * seeking past a dot stays quiet.
  */
 function ReactionBursts({
   clusters,
@@ -467,7 +492,6 @@ function ReactionBursts({
   const [bursts, setBursts] = useState<ReactionBurst[]>([]);
   const burstIdRef = useRef(0);
   const prevSecondsRef = useRef(currentSeconds);
-  const burstedFreshRef = useRef(new Set<string>());
 
   const spawn = useCallback((hits: ReactionCluster[]) => {
     const layer = layerRef.current;
@@ -475,7 +499,7 @@ function ReactionBursts({
     const origin = takeoffOrigin(layer);
     const added: ReactionBurst[] = [];
     for (const c of hits) {
-      c.emojis.forEach((emoji, i) => {
+      c.others.forEach((emoji, i) => {
         added.push({
           id: ++burstIdRef.current,
           x: origin.left + c.fraction * origin.width,
@@ -486,6 +510,7 @@ function ReactionBursts({
       });
     }
     setBursts((prev) => [...prev, ...added]);
+    if (added.length === 0) return;
     const ids = new Set(added.map((b) => b.id));
     const longest = Math.max(...added.map((b) => b.delayMs));
     window.setTimeout(() => {
@@ -507,18 +532,6 @@ function ReactionBursts({
       }),
     );
   }, [currentSeconds, clusters, durationSeconds, spawn]);
-
-  useEffect(() => {
-    spawn(
-      clusters.filter((c) => {
-        if (!c.isFresh) return false;
-        const key = `${c.fraction.toFixed(4)}#${c.emojis.length}`;
-        if (burstedFreshRef.current.has(key)) return false;
-        burstedFreshRef.current.add(key);
-        return true;
-      }),
-    );
-  }, [clusters, spawn]);
 
   return (
     <div ref={layerRef} className="pointer-events-none absolute inset-0">
