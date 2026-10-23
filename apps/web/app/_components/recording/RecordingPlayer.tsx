@@ -212,6 +212,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             cuts={cuts}
             showCuts={showCuts}
             cues={cues}
+            videoUrl={videoUrl}
             previewLoopUrl={compactControls ? videoUrl : undefined}
             progressOverlay={progressOverlay}
             floatingOverlay={floatingOverlay}

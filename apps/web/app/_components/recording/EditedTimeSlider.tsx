@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from "react";
 import {
   SliderFill,
@@ -32,6 +33,7 @@ type Props = {
   cuts: RecordingCut[];
   cues: ChapterCue[];
   durationSeconds: number;
+  preview?: ReactNode;
 };
 
 type Segment = {
@@ -46,7 +48,12 @@ type Segment = {
  * own TimeSlider is bound to media time, so this one runs the generic Slider
  * on edited seconds and maps every seek back to the source.
  */
-export function EditedTimeSlider({ cuts, cues, durationSeconds }: Props) {
+export function EditedTimeSlider({
+  cuts,
+  cues,
+  durationSeconds,
+  preview,
+}: Props) {
   const time = usePlayer(selectTime);
   const current = time ? toEditedMs(time.currentTime * 1000, cuts) / 1000 : 0;
   // Holds the fill at the drop point until the media lands there, so it
@@ -190,15 +197,19 @@ export function EditedTimeSlider({ cuts, cues, durationSeconds }: Props) {
         )}
       />
       <SliderPrimitive.Preview
-        overflow="visible"
+        overflow="clamp"
         className={cn(
           "group/preview relative h-1",
           "before:pointer-events-none before:absolute before:z-1 before:-translate-1/2 before:scale-50 before:opacity-0",
           "before:transition-[opacity,scale] before:duration-media-slow before:ease-out",
           "data-pointing:not-data-dragging:before:scale-100 data-pointing:not-data-dragging:before:opacity-100",
           "before:top-1/2 before:left-1/2 before:size-1 before:rounded-media-control before:bg-current",
+          "min-w-(--media-slider-preview-max-width) [--media-slider-preview-max-width:min(--spacing(32),100cqi)]",
+          "@min-[30rem]/media-root:[--media-slider-preview-max-width:min(--spacing(40),100cqi)]",
+          "media-2xl:[--media-slider-preview-max-width:min(--spacing(48),100cqi)]",
         )}
       >
+        {preview}
         <SliderPrimitive.Value
           type="pointer"
           format={formatPointer}

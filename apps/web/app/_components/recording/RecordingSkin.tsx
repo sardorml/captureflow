@@ -17,6 +17,7 @@ import { SeekIcon } from "@videojs/react/icons";
 import { usePlayer } from "@videojs/react/video";
 import { Play, RotateCcw } from "lucide-react";
 import {
+  useCallback,
   useMemo,
   type CSSProperties,
   type ReactNode,
@@ -53,9 +54,12 @@ import {
 import {
   effectiveDurationMs,
   toEditedMs,
+  toSourceMs,
   type RecordingCut,
 } from "@/lib/recording/cuts";
 import { EditedTimeSlider } from "./EditedTimeSlider";
+import { FramePreview } from "./FramePreview";
+import { useFrameStrip } from "./use-frame-strip";
 import {
   recordingBackgroundStyle,
   webcamCornerClass,
@@ -93,6 +97,7 @@ export type RecordingSkinProps = {
   cuts: RecordingCut[];
   showCuts: boolean;
   cues: ChapterCue[];
+  videoUrl: string;
   previewLoopUrl?: string;
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   // Covers the whole player and stays put when the controls hide.
@@ -132,6 +137,7 @@ export function RecordingSkin({
   cuts,
   showCuts,
   cues,
+  videoUrl,
   previewLoopUrl,
   progressOverlay,
   floatingOverlay,
@@ -208,6 +214,7 @@ export function RecordingSkin({
         timeline={timeline}
         cuts={cuts}
         cues={cues}
+        videoUrl={videoUrl}
         progressOverlay={progressOverlay}
         controlsExtra={controlsExtra}
       />
@@ -437,6 +444,7 @@ type RecordingControlsProps = {
   timeline: Timeline;
   cuts: RecordingCut[];
   cues: ChapterCue[];
+  videoUrl: string;
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   controlsExtra?: ReactNode;
 };
@@ -467,6 +475,7 @@ function RecordingControls({
   timeline,
   cuts,
   cues,
+  videoUrl,
   progressOverlay,
   controlsExtra,
 }: RecordingControlsProps) {
@@ -475,6 +484,17 @@ function RecordingControls({
   // The editor's selection replaces the chapters on the track, so any cue
   // present is the selection.
   const selecting = cues.some((cue) => cue.id === SELECTION_CUE_ID);
+  const frames = useFrameStrip(videoUrl);
+  const sourceSecondsAt = useCallback(
+    (fraction: number) => {
+      const seconds = fraction * durationSeconds;
+      return edited ? toSourceMs(seconds * 1000, cuts) / 1000 : seconds;
+    },
+    [edited, durationSeconds, cuts],
+  );
+  const preview = (
+    <FramePreview strip={frames} sourceSecondsAt={sourceSecondsAt} />
+  );
 
   return (
     <Controls.Root visibility={alwaysVisible ? "always" : "auto"}>
@@ -510,12 +530,15 @@ function RecordingControls({
                 cuts={cuts}
                 cues={cues}
                 durationSeconds={durationSeconds}
+                preview={preview}
               />
             ) : (
               <>
                 <TimeSlider
                   className="rounded-none"
+                  previewOverflow="clamp"
                   isChapterSelected={(chapter) => selecting && !!chapter.cue}
+                  preview={preview}
                 />
                 <CutGaps cuts={cuts} durationSeconds={durationSeconds} />
               </>

@@ -7,6 +7,7 @@ import '../styles/video/theme.css';
 import type { SliderPreviewOverflow, TimeSliderChapterState } from '@videojs/core';
 import { Slider as SliderPrimitive, TimeSlider as TimeSliderPrimitive } from '@videojs/react';
 import { SpinnerIcon as SpinnerIconPrimitive } from '@videojs/react/icons';
+import type { ReactNode } from 'react';
 
 import { SliderBuffer, SliderFill, SliderThumb, SliderTrack } from '@/components/videojs/ui/slider';
 import { cn, resolveClassName } from '@/lib/resolve-class-name';
@@ -17,6 +18,8 @@ export interface TimeSliderProps extends Omit<TimeSliderPrimitive.RootProps, 'ch
   renderThumbnail?: SliderPrimitive.Thumbnail.ImageProps['render'];
   /** Paints a chapter segment in the danger colour, e.g. a span about to be cut. */
   isChapterSelected?: (state: TimeSliderChapterState) => boolean;
+  /** Extra preview content above the pointer, e.g. a frame of the media. */
+  preview?: ReactNode;
 }
 
 export function TimeSlider({
@@ -24,6 +27,7 @@ export function TimeSlider({
   previewOverflow = 'visible',
   renderThumbnail,
   isChapterSelected,
+  preview,
   ...props
 }: TimeSliderProps = {}) {
   return (
@@ -145,6 +149,7 @@ export function TimeSlider({
             )}
           />
         </SliderPrimitive.Thumbnail.Root>
+        {preview}
         <div
           className={cn(
             'absolute max-w-(--media-slider-preview-max-width) -translate-x-1/2 translate-y-media-hidden-preview-offset scale-media-hidden-preview opacity-0',
