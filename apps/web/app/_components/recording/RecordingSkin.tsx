@@ -382,7 +382,7 @@ function StartOverlay({ compact }: { compact: boolean }) {
           <Play className="size-9 translate-x-0.5 fill-white text-white" />
         </span>
       ) : (
-        <span className="flex h-32 w-32 items-center justify-center rounded-full bg-[#171717]/85 shadow-lg transition-transform hover:scale-105">
+        <span className="flex h-32 w-32 items-center justify-center rounded-full bg-blue-600 shadow-2xl shadow-blue-950/40 transition-transform hover:scale-105">
           <Play className="h-16 w-16 text-white" fill="currentColor" />
         </span>
       )}
