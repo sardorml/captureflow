@@ -153,7 +153,6 @@ export function RecordingViewer({
             chapters={chapters}
             comments={comments}
             viewerSignedIn={signedIn}
-            viewerUserId={viewer?.userId ?? null}
             onReactionAdded={onReactionAdded}
             removedReactionIds={removedReactionIds}
             onSignInRequested={goToSignIn}
