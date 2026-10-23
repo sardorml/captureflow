@@ -55,7 +55,7 @@ type Props = {
   controlsExtra?: ReactNode;
   controlsAlwaysVisible?: boolean;
   compactControls?: boolean;
-  // WebVTT captions, off until the viewer turns them on (CC button or `c`).
+  // WebVTT captions, shown from the start; the CC button or `c` hides them.
   captionsUrl?: string;
   captionsLang?: string;
   // Viewport-aware max-height for LANDSCAPE sources, e.g. 'min(34rem, calc(100vh - 19rem))'. The public viewer passes this so the reaction bar below the player stays in view without scrolling; the editor omits it so the preview fills the available panel height.
@@ -206,6 +206,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                   src={captionsUrl}
                   srcLang={captionsLang ?? "en"}
                   label="Captions"
+                  default
                 />
               ) : null}
             </Video>
