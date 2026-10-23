@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   useCallback,
   useEffect,
   useMemo,
@@ -386,8 +387,9 @@ async function postReaction(
   return json.reaction;
 }
 
-// Marks closer than this merge, so neighbours never overlap.
-const CLUSTER_VISUAL_WIDTH_PX = 6;
+// Marks closer than this merge, so their emoji stacks never overlap.
+const CLUSTER_VISUAL_WIDTH_PX = 14;
+const MAX_STACKED_EMOJIS = 3;
 // Must match the rise animation duration in globals.css.
 const BURST_MS = 1600;
 // Gap between the emojis of one cluster, played back to back.
@@ -447,30 +449,42 @@ function ReactionDots({
   if (clusters.length === 0) return null;
   return (
     <div className="pointer-events-none absolute inset-0" ref={trackRef}>
-      {visible.map((c, idx) => (
-        <span
-          key={idx}
-          data-reaction-dot
-          className="absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-[1px] transition-[height] duration-media-slow ease-out group-hover/bar:h-1.75"
-          style={{
-            left: `${c.fraction * 100}%`,
-            backgroundColor: reactionColor(dominantEmoji(c.emojis)),
-          }}
-        />
-      ))}
+      {visible.map((c, idx) => {
+        const stack = rankedEmojis(c.emojis);
+        const left = `${c.fraction * 100}%`;
+        return (
+          <Fragment key={idx}>
+            <span
+              data-reaction-dot
+              className="absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-[1px] transition-[height] duration-media-slow ease-out group-hover/bar:h-1.75"
+              style={{ left, backgroundColor: reactionColor(stack[0] ?? "") }}
+            />
+            <span
+              data-reaction-stack
+              className="absolute bottom-[calc(50%+5px)] flex -translate-x-1/2 flex-col items-center text-[12px] leading-none drop-shadow-[0_1px_1px_rgb(0_0_0/0.5)]"
+              style={{ left }}
+            >
+              {stack
+                .slice(0, MAX_STACKED_EMOJIS)
+                .reverse()
+                .map((emoji, i) => (
+                  <span key={i} className={cn(i > 0 && "-mt-1.5")}>
+                    {emoji}
+                  </span>
+                ))}
+            </span>
+          </Fragment>
+        );
+      })}
     </div>
   );
 }
 
-function dominantEmoji(emojis: readonly string[]): string {
+// Distinct emojis, most frequent first.
+function rankedEmojis(emojis: readonly string[]): string[] {
   const counts = new Map<string, number>();
-  let best = emojis[0] ?? "";
-  for (const e of emojis) {
-    const n = (counts.get(e) ?? 0) + 1;
-    counts.set(e, n);
-    if (n > (counts.get(best) ?? 0)) best = e;
-  }
-  return best;
+  for (const e of emojis) counts.set(e, (counts.get(e) ?? 0) + 1);
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([e]) => e);
 }
 
 /*
