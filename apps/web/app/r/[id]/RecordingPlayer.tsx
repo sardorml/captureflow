@@ -16,7 +16,7 @@ import {
   type RecordingPlayerHandle,
 } from "../../_components/recording";
 import type { RecordingConfig } from "@/lib/recording-config";
-import { DEFAULT_REACTIONS } from "@/lib/recording/reactions";
+import { DEFAULT_REACTIONS, reactionColor } from "@/lib/recording/reactions";
 import { cn } from "@/lib/utils";
 import type { RecordingChapter } from "@/lib/recording/summary-chapters";
 import type {
@@ -364,8 +364,6 @@ const MAX_PLAYBACK_STEP_SECONDS = 1.5;
 // One dot per cluster on the time slider, gone once playback has passed it.
 function ReactionDots({
   clusters,
-  currentSeconds,
-  durationSeconds,
 }: {
   clusters: ReactionCluster[];
   currentSeconds: number;
@@ -414,22 +412,30 @@ function ReactionDots({
   if (clusters.length === 0) return null;
   return (
     <div className="pointer-events-none absolute inset-0" ref={trackRef}>
-      {visible.map((c, idx) => {
-        const passed = c.fraction * durationSeconds <= currentSeconds;
-        return (
-          <span
-            key={idx}
-            data-reaction-dot
-            className={cn(
-              "absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_0_2px_rgba(0,0,0,0.35)] transition-[opacity,scale] duration-300",
-              passed && "scale-50 opacity-0",
-            )}
-            style={{ left: `${c.fraction * 100}%` }}
-          />
-        );
-      })}
+      {visible.map((c, idx) => (
+        <span
+          key={idx}
+          data-reaction-dot
+          className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_0_0_2px_rgba(0,0,0,0.4)]"
+          style={{
+            left: `${c.fraction * 100}%`,
+            backgroundColor: reactionColor(dominantEmoji(c.emojis)),
+          }}
+        />
+      ))}
     </div>
   );
+}
+
+function dominantEmoji(emojis: readonly string[]): string {
+  const counts = new Map<string, number>();
+  let best = emojis[0] ?? "";
+  for (const e of emojis) {
+    const n = (counts.get(e) ?? 0) + 1;
+    counts.set(e, n);
+    if (n > (counts.get(best) ?? 0)) best = e;
+  }
+  return best;
 }
 
 /*
@@ -485,7 +491,9 @@ function ReactionBursts({
     spawn(
       clusters.filter((c) => {
         const at = c.fraction * durationSeconds;
-        return at > prev && at <= currentSeconds && !c.isFresh;
+        // A dot at the very start fires when playback leaves 0.
+        const reached = at > prev || (at === 0 && prev === 0);
+        return reached && at <= currentSeconds && !c.isFresh;
       }),
     );
   }, [currentSeconds, clusters, durationSeconds, spawn]);
