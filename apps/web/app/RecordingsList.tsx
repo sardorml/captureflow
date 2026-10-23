@@ -116,16 +116,27 @@ function RecordingCard({
   selectionActive,
   onSelectedChange,
 }: RecordingCardProps) {
-  const { posterUrl, videoThumbUrl } = recording;
+  const { posterUrl, posterBlur, videoThumbUrl } = recording;
 
   const media = (
     <>
       {posterUrl ? (
-        <FadeInImage
-          alt=""
-          className="h-full w-full object-cover"
-          src={posterUrl}
-        />
+        <>
+          {posterBlur ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full scale-110 object-cover blur-md"
+              src={posterBlur}
+            />
+          ) : null}
+          <FadeInImage
+            alt=""
+            className="relative h-full w-full object-cover"
+            src={posterUrl}
+          />
+        </>
       ) : videoThumbUrl ? (
         <video
           style={{

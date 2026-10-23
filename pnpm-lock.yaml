@@ -378,6 +378,9 @@ importers:
       emoji-picker-react:
         specifier: ^4.19.1
         version: 4.19.1(react@19.2.7)
+      jpeg-js:
+        specifier: ^0.4.4
+        version: 0.4.4
       konva:
         specifier: ^10.3.0
         version: 10.3.0
@@ -6333,6 +6336,9 @@ packages:
 
   jose@6.2.3:
     resolution: {integrity: sha512-YYVDInQKFJfR/xa3ojUTl8c2KoTwiL1R5Wg9YCydwH0x0B9grbzlg5HC7mMjCtUJjbQ/YnGEZIhI5tCgfTb4Hw==}
+
+  jpeg-js@0.4.4:
+    resolution: {integrity: sha512-WZzeDOEtTOBK4Mdsar0IqEU5sMr3vSV2RqkAIzUEV2BHnUfKGyswWFPFwK5EeDo93K3FohSHbLAjj0s1Wzd+dg==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -14793,6 +14799,8 @@ snapshots:
   jiti@2.7.0: {}
 
   jose@6.2.3: {}
+
+  jpeg-js@0.4.4: {}
 
   js-tokens@4.0.0: {}
 

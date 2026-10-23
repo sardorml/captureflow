@@ -7,12 +7,14 @@ import {
 } from "@captureflow/quota";
 import { createD1Db } from "./db-d1";
 import { audioPartPrefixFor, objectKeysFor } from "./object-keys";
+import { posterBlurDataUrl } from "./poster-blur";
 import { deleteObjectsWithPrefix } from "./r2-prefix";
 import { screenshotObjectKeysFor } from "../screenshot-keys";
 
 /*
  * Cron handlers, invoked by the wrapper worker's `scheduled()` entry:
- * runHourlyMultipartGc on `0 * * * *`, runDailyRetentionSweep on `0 4 * * *`.
+ * runHourlyMultipartGc and backfillPosterBlurs on `0 * * * *`,
+ * runDailyRetentionSweep on `0 4 * * *`.
  * The bucket's only lifecycle rule aborts incomplete multipart uploads after
  * 7 days — there is no object-expiry rule, so nothing catches a silent cron.
  */
@@ -96,6 +98,38 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
         .run();
     }
     if (rows.length < BATCH_SIZE) break;
+  }
+}
+
+/*
+ * Posters uploaded before poster_blur existed get their thumbnail here, one
+ * page an hour. Only JPEGs can be decoded; a poster that still fails is
+ * picked up again next run.
+ */
+export async function backfillPosterBlurs(env: CronEnv): Promise<void> {
+  const pending = await env.DB.prepare(
+    `SELECT slug, poster_key AS posterKey
+       FROM recordings
+      WHERE poster_key LIKE '%.jpg' AND poster_blur IS NULL
+      LIMIT ?`,
+  )
+    .bind(BATCH_SIZE)
+    .all<{ slug: string; posterKey: string }>();
+
+  for (const row of pending.results ?? []) {
+    try {
+      const obj = await env.BUCKET.get(row.posterKey);
+      if (!obj) continue;
+      const blur = posterBlurDataUrl(await obj.arrayBuffer(), "image/jpeg");
+      if (!blur) continue;
+      await env.DB.prepare(
+        `UPDATE recordings SET poster_blur = ? WHERE slug = ? AND poster_key = ?`,
+      )
+        .bind(blur, row.slug, row.posterKey)
+        .run();
+    } catch (err) {
+      console.warn(`[cron] poster blur failed for ${row.slug}:`, err);
+    }
   }
 }
 

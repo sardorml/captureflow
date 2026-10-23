@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRecording, updateRecording } from "@/lib/recording/db";
+import { posterBlurDataUrl } from "@/lib/recording/poster-blur";
 import { isValidSlug } from "@/lib/recording/slug";
 import { putObject, publicUrlFor } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
@@ -76,7 +77,10 @@ export async function POST(req: NextRequest) {
   const posterKey = `posters/${storageId}.${ext}`;
 
   await putObject(posterKey, buffer, contentType, "no-cache");
-  await updateRecording(slug, { posterKey });
+  await updateRecording(slug, {
+    posterKey,
+    posterBlur: posterBlurDataUrl(buffer, contentType),
+  });
 
   return withCors(
     NextResponse.json({

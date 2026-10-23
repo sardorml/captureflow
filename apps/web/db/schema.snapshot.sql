@@ -15,7 +15,7 @@ CREATE TABLE recordings (
   last_viewed_at    INTEGER NOT NULL,
   state             TEXT NOT NULL, view_count INTEGER NOT NULL DEFAULT 0, title TEXT, user_id TEXT, visibility TEXT NOT NULL DEFAULT 'public', bake_status TEXT NOT NULL DEFAULT 'none'
   CHECK (bake_status IN ('none', 'expected', 'done')), webcam_storage_key TEXT, webcam_upload_id   TEXT, webcam_size_bytes  INTEGER NOT NULL DEFAULT 0, webcam_state       TEXT NOT NULL DEFAULT 'none'
-  CHECK (webcam_state IN ('none', 'pending', 'ready', 'failed')), workspace_id TEXT REFERENCES workspace(id), config_json TEXT, summary_chapters_json TEXT,
+  CHECK (webcam_state IN ('none', 'pending', 'ready', 'failed')), workspace_id TEXT REFERENCES workspace(id), config_json TEXT, summary_chapters_json TEXT, poster_blur TEXT,
   CHECK (state IN ('pending', 'ready', 'failed')),
   CHECK (source IN ('instant', 'edited')),
   CHECK (preset IN ('recording'))

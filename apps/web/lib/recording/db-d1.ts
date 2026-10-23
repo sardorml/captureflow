@@ -21,6 +21,7 @@ type D1Row = {
   device_id: string;
   storage_key: string;
   poster_key: string | null;
+  poster_blur: string | null;
   upload_id: string | null;
   size_bytes: number;
   duration_ms: number | null;
@@ -72,6 +73,7 @@ function rowFromD1(r: D1Row): RecordingRow {
     deviceId: r.device_id,
     storageKey: r.storage_key,
     posterKey: r.poster_key,
+    posterBlur: r.poster_blur ?? null,
     uploadId: r.upload_id,
     sizeBytes: r.size_bytes,
     durationMs: r.duration_ms,
@@ -176,7 +178,7 @@ function commentFromD1(r: D1CommentRow): RecordingComment {
 }
 
 const COLUMNS_SELECT =
-  "slug, device_id, storage_key, poster_key, upload_id, " +
+  "slug, device_id, storage_key, poster_key, poster_blur, upload_id, " +
   "size_bytes, duration_ms, width, height, source, preset, " +
   "created_at, last_viewed_at, view_count, title, state, user_id, workspace_id, visibility, " +
   "webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state, " +
@@ -190,7 +192,7 @@ export function createD1Db(d1: D1Database): RecordingDb {
    */
   const stmtInsert = d1.prepare(
     `INSERT INTO recordings (
-       slug, device_id, storage_key, poster_key, upload_id,
+       slug, device_id, storage_key, poster_key, poster_blur, upload_id,
        size_bytes, duration_ms, width, height,
        source, preset, created_at, last_viewed_at, view_count, title, state,
        user_id, workspace_id, visibility,
@@ -198,7 +200,7 @@ export function createD1Db(d1: D1Database): RecordingDb {
        config_json, summary_chapters_json
      )
      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18,
-             ?19, ?20, ?21, ?22, ?23, ?24, ?25)`,
+             ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26)`,
   );
 
   const stmtGet = d1.prepare(
@@ -368,6 +370,7 @@ export function createD1Db(d1: D1Database): RecordingDb {
           row.deviceId,
           row.storageKey,
           row.posterKey,
+          row.posterBlur,
           row.uploadId,
           row.sizeBytes,
           row.durationMs,
@@ -406,6 +409,7 @@ export function createD1Db(d1: D1Database): RecordingDb {
         deviceId: "device_id",
         storageKey: "storage_key",
         posterKey: "poster_key",
+        posterBlur: "poster_blur",
         uploadId: "upload_id",
         sizeBytes: "size_bytes",
         durationMs: "duration_ms",

@@ -13,6 +13,7 @@ export type DashboardRecordingRow = {
   userId: string;
   storageKey: string;
   posterKey: string | null;
+  posterBlur: string | null;
   sizeBytes: number;
   durationMs: number | null;
   width: number | null;
@@ -40,6 +41,7 @@ type D1Row = {
   user_id: string;
   storage_key: string;
   poster_key: string | null;
+  poster_blur: string | null;
   size_bytes: number;
   duration_ms: number | null;
   width: number | null;
@@ -63,7 +65,7 @@ type D1Row = {
 };
 
 const COLUMNS_SELECT =
-  "slug, user_id, storage_key, poster_key, size_bytes, duration_ms, width, height, " +
+  "slug, user_id, storage_key, poster_key, poster_blur, size_bytes, duration_ms, width, height, " +
   "source, preset, created_at, last_viewed_at, view_count, title, state, " +
   "visibility, webcam_storage_key, webcam_size_bytes, webcam_state, workspace_id, " +
   "config_json, summary_chapters_json, " +
@@ -76,6 +78,7 @@ function rowFromD1(r: D1Row): DashboardRecordingRow {
     userId: r.user_id,
     storageKey: r.storage_key,
     posterKey: r.poster_key,
+    posterBlur: r.poster_blur ?? null,
     sizeBytes: r.size_bytes,
     durationMs: r.duration_ms,
     width: r.width,

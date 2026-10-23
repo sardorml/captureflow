@@ -15,6 +15,8 @@ export type RecordingRow = {
   deviceId: string;
   storageKey: string;
   posterKey: string | null;
+  // A tiny JPEG of the poster as a data URL (lib/recording/poster-blur.ts).
+  posterBlur: string | null;
   uploadId: string | null;
   sizeBytes: number;
   durationMs: number | null;
