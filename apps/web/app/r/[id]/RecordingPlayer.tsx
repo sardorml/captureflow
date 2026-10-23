@@ -159,12 +159,11 @@ export function RecordingPlayer({
       serverHeight={serverHeight}
       config={config}
       landscapeMaxHeightCss={landscapeMaxHeightCss}
-      progressOverlay={({ durationSeconds, controlsVisible }) => (
+      progressOverlay={({ durationSeconds }) => (
         <ReactionOverlay
           reactions={reactions}
           freshIds={freshIds}
           durationSeconds={durationSeconds}
-          controlsVisible={controlsVisible}
         />
       )}
       controlsAlwaysVisible={embedded}
@@ -204,30 +203,22 @@ export function RecordingPlayer({
   );
 }
 
+// Rendered in the player's slot directly above the time slider, so cluster
+// fractions map onto the slider's own width.
 function ReactionOverlay({
   reactions,
   freshIds,
   durationSeconds,
-  controlsVisible,
 }: {
   reactions: RecordingReaction[];
   freshIds: Set<number>;
   durationSeconds: number;
-  controlsVisible: boolean;
 }) {
   const clusters = useMemo(
     () => clusterReactions(reactions, durationSeconds, freshIds),
     [reactions, durationSeconds, freshIds],
   );
-  return (
-    <div
-      className={`pointer-events-none absolute inset-x-0 px-4 transition-[bottom] duration-200 ${
-        controlsVisible ? "bottom-[76px]" : "bottom-[11px]"
-      }`}
-    >
-      <ReactionMarkers clusters={clusters} />
-    </div>
-  );
+  return <ReactionMarkers clusters={clusters} />;
 }
 
 type ReactionCluster = {
