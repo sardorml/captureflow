@@ -45,10 +45,7 @@ import {
   hydrateRecordingConfig,
   type RecordingConfig,
 } from "@/lib/recording-config";
-import {
-  audioPartPrefixFor,
-  objectKeysFor,
-} from "@/lib/recording/object-keys";
+import { audioPartPrefixFor, objectKeysFor } from "@/lib/recording/object-keys";
 import { deleteObjectPrefix } from "@/lib/recording/r2";
 import { revokeDeviceToken } from "@/lib/device-tokens";
 
@@ -86,6 +83,7 @@ export async function renameRecordingAction(
     return { error: "Recording not found", slug };
   }
   revalidatePath("/");
+  revalidatePath(`/r/${slug}`);
   return { error: null, slug };
 }
 

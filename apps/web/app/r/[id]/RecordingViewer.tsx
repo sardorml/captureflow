@@ -16,6 +16,7 @@ import { ContentByline } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
 import { RecordingPlayer } from "./RecordingPlayer";
 import { ActivitySidebar } from "./ActivitySidebar";
+import { EditableTitle } from "./EditableTitle";
 import { SummaryChapters } from "./SummaryChapters";
 import { TranscriptPanel } from "./TranscriptPanel";
 
@@ -119,9 +120,11 @@ export function RecordingViewer({
         <header className="sticky top-0 z-20 bg-canvas-2">
           <div className="relative px-6 py-5 lg:px-12">
             <div className="mx-auto w-full max-w-5xl pr-32 sm:pr-36">
-              <h1 className="truncate text-[22px] font-[600] tracking-tight text-neutral-100 sm:text-2xl">
-                {headlineText}
-              </h1>
+              <EditableTitle
+                slug={slug}
+                title={headlineText}
+                canEdit={isOwner}
+              />
               <ContentByline ownerName={ownerName} createdAt={createdAt} />
             </div>
             <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-tint px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line lg:right-12">
