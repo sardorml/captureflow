@@ -48,6 +48,7 @@ type Props = {
   captionsUrl?: string;
   captionsLang?: string;
   chapters?: RecordingChapter[];
+  className?: string;
   // Timestamped ones get a mark on the bar with their text on hover.
   comments?: RecordingComment[];
 };
@@ -78,6 +79,7 @@ export function RecordingPlayer({
   captionsUrl,
   captionsLang,
   chapters,
+  className,
   comments = [],
 }: Props) {
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
@@ -186,6 +188,7 @@ export function RecordingPlayer({
       captionsLang={captionsLang}
       chapters={chapters}
       landscapeMaxHeightCss={landscapeMaxHeightCss}
+      className={className}
       progressOverlay={(info) => (
         <>
           <ReactionLayer
@@ -221,7 +224,7 @@ export function RecordingPlayer({
       }
       belowPlayer={
         embedded ? undefined : (
-          <div className="mt-8 flex items-center justify-center gap-2">
+          <div className="mt-8 flex items-center justify-center gap-2 max-lg:order-3 max-lg:mt-5 max-lg:px-4">
             <ReactionBar
               onReact={sendReaction}
               pulseEmoji={pulseEmoji}
@@ -231,7 +234,7 @@ export function RecordingPlayer({
               <button
                 type="button"
                 onClick={onCommentClick}
-                className="flex h-[60px] items-center gap-2.5 rounded-full bg-panel px-6 text-base font-medium text-fg shadow-md backdrop-blur-xl transition-transform duration-100 ease-out hover:-translate-y-0.5"
+                className="flex h-[60px] items-center gap-2.5 rounded-full bg-panel px-6 text-base font-medium text-fg shadow-md max-sm:h-[52px] max-sm:px-4 backdrop-blur-xl transition-transform duration-100 ease-out hover:-translate-y-0.5"
                 aria-label="Leave a comment"
               >
                 <MessageSquare className="h-6 w-6" aria-hidden="true" />
@@ -767,7 +770,7 @@ function ReactionBar({
               type="button"
               onClick={() => onReact(r.emoji)}
               aria-label={r.label}
-              className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-[28px] leading-none transition-transform duration-100 ease-out hover:-translate-y-2 active:translate-y-0 ${
+              className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-[28px] leading-none max-sm:h-10 max-sm:w-10 max-sm:text-[22px] transition-transform duration-100 ease-out hover:-translate-y-2 active:translate-y-0 ${
                 isPulsing ? "animate-recording-icon-pop" : ""
               }`}
             >

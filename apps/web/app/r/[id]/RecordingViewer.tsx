@@ -15,6 +15,8 @@ import type {
 import { ContentByline } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
 import { RecordingPlayer } from "./RecordingPlayer";
+import { Avatar } from "@heroui/react";
+import { initials } from "@/lib/format";
 import { ActivitySidebar } from "./ActivitySidebar";
 import { EditableTitle } from "./EditableTitle";
 import { SummaryChapters } from "./SummaryChapters";
@@ -118,7 +120,7 @@ export function RecordingViewer({
   return (
     <div className="grid w-full grid-cols-1 bg-canvas lg:h-[calc(100vh-64px)] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
       <main className="flex flex-col lg:min-h-0 lg:overflow-y-auto">
-        <header className="sticky top-0 z-20 bg-canvas-2">
+        <header className="sticky top-0 z-20 bg-canvas-2 max-lg:static max-lg:order-2">
           <div className="relative px-6 py-5 lg:px-12">
             <div className="mx-auto w-full max-w-5xl pr-32 sm:pr-36">
               <EditableTitle
@@ -126,14 +128,26 @@ export function RecordingViewer({
                 title={headlineText}
                 canEdit={isOwner}
               />
-              <ContentByline ownerName={ownerName} createdAt={createdAt} />
+              <ContentByline
+                ownerName={ownerName}
+                createdAt={createdAt}
+                leading={
+                  ownerName ? (
+                    <Avatar className="size-9 lg:hidden">
+                      <Avatar.Fallback className="text-sm">
+                        {initials(ownerName)}
+                      </Avatar.Fallback>
+                    </Avatar>
+                  ) : null
+                }
+              />
             </div>
             <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-tint px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line lg:right-12">
               {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
             </span>
           </div>
         </header>
-        <div className="mx-auto flex w-full max-w-5xl flex-col py-6">
+        <div className="mx-auto flex w-full max-w-5xl flex-col py-6 max-lg:contents">
           <RecordingPlayer
             videoUrl={videoUrl}
             posterUrl={posterUrl}
@@ -158,8 +172,9 @@ export function RecordingViewer({
             onSignInRequested={goToSignIn}
             handleRef={playerRef}
             onCommentClick={signedIn ? focusComment : goToSignIn}
+            className="max-lg:order-1 max-lg:rounded-none"
           />
-          <div className="px-6 lg:px-12">
+          <div className="px-6 max-lg:order-4 max-lg:pb-6 lg:px-12">
             <SummaryChapters
               slug={slug}
               isOwner={isOwner}

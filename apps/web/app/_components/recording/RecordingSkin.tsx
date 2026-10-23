@@ -89,6 +89,7 @@ export type RecordingWebcam = {
 
 export type RecordingSkinProps = {
   children: ReactNode;
+  className?: string;
   sizeStyle: CSSProperties;
   background: string;
   webcam: RecordingWebcam | null;
@@ -134,6 +135,7 @@ const PREVIEW_LOOP_SECONDS = 4;
  */
 export function RecordingSkin({
   children,
+  className,
   sizeStyle,
   background,
   webcam,
@@ -167,6 +169,7 @@ export function RecordingSkin({
       className={cn(
         "@container block max-sm:h-auto! max-sm:w-full!",
         isFullscreen && "rounded-none",
+        className,
       )}
       style={{
         ...(isFullscreen

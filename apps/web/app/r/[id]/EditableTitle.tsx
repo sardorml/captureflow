@@ -12,7 +12,7 @@ type Props = {
 };
 
 const HEADLINE_CLASS =
-  "text-[22px] font-[600] tracking-tight text-neutral-100 sm:text-2xl";
+  "text-3xl font-[600] tracking-tight text-neutral-100 lg:text-2xl";
 
 export function EditableTitle({ slug, title: initialTitle, canEdit }: Props) {
   const [title, setTitle] = useState(initialTitle);

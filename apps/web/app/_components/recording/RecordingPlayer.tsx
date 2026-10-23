@@ -77,6 +77,7 @@ type Props = {
   showCuts?: boolean;
   // Viewport-aware max-height for LANDSCAPE sources, e.g. 'min(34rem, calc(100vh - 19rem))'. The public viewer passes this so the reaction bar below the player stays in view without scrolling; the editor omits it so the preview fills the available panel height.
   landscapeMaxHeightCss?: string;
+  className?: string;
 };
 
 export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
@@ -101,6 +102,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       selection,
       showCuts = false,
       landscapeMaxHeightCss,
+      className,
     },
     handleRef,
   ) {
@@ -189,10 +191,11 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
     );
 
     return (
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center max-lg:contents">
         <VideoPlayer>
           <StoreBridge storeRef={storeRef} />
           <RecordingSkin
+            className={className}
             sizeStyle={sizeStyle}
             background={config.background}
             webcam={
