@@ -35,7 +35,7 @@ type Props = {
   serverHeight: number | null;
   config: RecordingConfig;
   viewerSignedIn?: boolean;
-  // The viewer's own reactions get a dot but never a burst.
+  // The viewer's own reactions get a mark on the bar but never a burst.
   viewerUserId?: string | null;
   onReactionAdded?: (reaction: RecordingReaction) => void;
   // Reactions deleted elsewhere on the page (the activity sidebar).
@@ -386,17 +386,17 @@ async function postReaction(
   return json.reaction;
 }
 
-// Dots closer than this merge, so neighbours never overlap.
-const CLUSTER_VISUAL_WIDTH_PX = 12;
+// Marks closer than this merge, so neighbours never overlap.
+const CLUSTER_VISUAL_WIDTH_PX = 6;
 // Must match the rise animation duration in globals.css.
 const BURST_MS = 1600;
 // Gap between the emojis of one cluster, played back to back.
 const BURST_STAGGER_MS = 220;
-// A bigger jump between two time samples is a seek, which passes dots
+// A bigger jump between two time samples is a seek, which passes marks
 // silently.
 const MAX_PLAYBACK_STEP_SECONDS = 1.5;
 
-// One dot per cluster on the time slider, gone once playback has passed it.
+// One mark per cluster, cut into the time slider in the emoji's colour.
 function ReactionDots({
   clusters,
 }: {
@@ -451,7 +451,7 @@ function ReactionDots({
         <span
           key={idx}
           data-reaction-dot
-          className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_0_0_2px_rgba(0,0,0,0.4)]"
+          className="absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-[1px] transition-[height] duration-media-slow ease-out group-hover/bar:h-1.75"
           style={{
             left: `${c.fraction * 100}%`,
             backgroundColor: reactionColor(dominantEmoji(c.emojis)),
@@ -474,10 +474,10 @@ function dominantEmoji(emojis: readonly string[]): string {
 }
 
 /*
- * Emojis floating up the video. When playback reaches a cluster's dot the
+ * Emojis floating up the video. When playback reaches a cluster's mark the
  * reactions other people sent take off from it one after another, whether
- * or not the controls are showing. The viewer's own stay as dots, and
- * seeking past a dot stays quiet.
+ * or not the controls are showing. The viewer's own stay as marks, and
+ * seeking past a mark stays quiet.
  */
 function ReactionBursts({
   clusters,
@@ -526,7 +526,7 @@ function ReactionBursts({
     spawn(
       clusters.filter((c) => {
         const at = c.fraction * durationSeconds;
-        // A dot at the very start fires when playback leaves 0.
+        // A mark at the very start fires when playback leaves 0.
         const reached = at > prev || (at === 0 && prev === 0);
         return reached && at <= currentSeconds && !c.isFresh;
       }),

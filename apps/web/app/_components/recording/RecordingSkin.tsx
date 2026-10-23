@@ -494,7 +494,7 @@ function RecordingControls({
         )}
       >
         <Tooltip.Provider>
-          <div className="relative flex items-center [--media-slider-height:--spacing(5)]">
+          <div className="group/bar relative flex items-center [--media-slider-height:--spacing(5)]">
             {progressOverlay ? (
               <div className="pointer-events-none absolute inset-0 z-10">
                 {progressOverlay({
