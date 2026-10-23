@@ -488,7 +488,9 @@ function RecordingControls({
               )}
               <div className="relative flex min-w-0 flex-1 items-center">
                 {progressOverlay ? (
-                  <div className="pointer-events-none absolute inset-x-0 bottom-full">
+                  // Lifted past the bar's top padding so the markers sit
+                  // above the bar rather than on it.
+                  <div className="pointer-events-none absolute inset-x-0 bottom-full mb-3">
                     {progressOverlay({
                       durationSeconds,
                       controlsVisible,
