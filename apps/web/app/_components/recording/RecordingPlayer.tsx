@@ -185,10 +185,9 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       micMuted: config.micMuted,
     });
 
-    const sizeStyle = sizeStyleForAspect(
-      actualAspect ?? aspectFromPlaceholder(serverWidth, serverHeight),
-      landscapeMaxHeightCss,
-    );
+    const aspect =
+      actualAspect ?? aspectFromPlaceholder(serverWidth, serverHeight);
+    const sizeStyle = sizeStyleForAspect(aspect, landscapeMaxHeightCss);
 
     return (
       <div className="flex flex-col items-center max-lg:contents">
@@ -197,6 +196,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
           <RecordingSkin
             className={className}
             sizeStyle={sizeStyle}
+            aspect={aspect}
             background={config.background}
             webcam={
               webcamUrl

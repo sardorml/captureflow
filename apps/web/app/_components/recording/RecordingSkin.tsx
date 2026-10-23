@@ -91,6 +91,7 @@ export type RecordingSkinProps = {
   children: ReactNode;
   className?: string;
   sizeStyle: CSSProperties;
+  aspect: number;
   background: string;
   webcam: RecordingWebcam | null;
   webcamRef: RefObject<HTMLVideoElement | null>;
@@ -137,6 +138,7 @@ export function RecordingSkin({
   children,
   className,
   sizeStyle,
+  aspect,
   background,
   webcam,
   webcamRef,
@@ -186,17 +188,32 @@ export function RecordingSkin({
       data-preset="video"
     >
       {/* With a background the video shrinks 4% per side so the bg paints
-          as a visible frame; `transparent` fills edge-to-edge. */}
+          as a visible frame; `transparent` fills edge-to-edge. In fullscreen
+          the stage keeps the video's aspect, centred, so the frame stays
+          even on any screen. */}
       <div
-        className={
-          hasFrame
-            ? "absolute inset-[4%] overflow-hidden rounded-lg shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]"
-            : "absolute inset-0"
+        className="absolute inset-0 m-auto"
+        style={
+          isFullscreen && hasFrame
+            ? {
+                aspectRatio: aspect,
+                width: `min(100%, calc(100vh * ${aspect}))`,
+                maxHeight: "100%",
+              }
+            : undefined
         }
       >
-        {children}
-        <Poster />
-        {previewLoopUrl ? <PreviewLoop url={previewLoopUrl} /> : null}
+        <div
+          className={
+            hasFrame
+              ? "absolute inset-[4%] overflow-hidden rounded-lg shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]"
+              : "absolute inset-0"
+          }
+        >
+          {children}
+          <Poster />
+          {previewLoopUrl ? <PreviewLoop url={previewLoopUrl} /> : null}
+        </div>
       </div>
 
       {/* No z-index: the controls layers stack above it like a real PiP. */}
