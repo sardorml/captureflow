@@ -84,6 +84,8 @@ type Props = {
   // Called once the server has dropped a reaction, so the player's dots
   // follow.
   onReactionDeleted: (id: number) => void;
+  // Every change to the comment list, so the player's marks follow.
+  onCommentsChange?: (comments: RecordingComment[]) => void;
   // The Transcript tab's content.
   transcript: ReactNode;
   onSignIn: () => void;
@@ -108,6 +110,7 @@ export function ActivitySidebar({
   isOwner,
   liveReactions,
   onReactionDeleted,
+  onCommentsChange,
   transcript,
   onSignIn,
   onSeek,
@@ -116,6 +119,9 @@ export function ActivitySidebar({
 }: Props) {
   const [tab, setTab] = useState<SidebarTab>("activity");
   const [comments, setComments] = useState<RecordingComment[]>(initialComments);
+  useEffect(() => {
+    onCommentsChange?.(comments);
+  }, [comments, onCommentsChange]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [posting, startTransition] = useTransition();

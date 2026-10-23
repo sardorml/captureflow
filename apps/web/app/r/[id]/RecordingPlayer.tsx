@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import type { RecordingChapter } from "@/lib/recording/summary-chapters";
 import type {
   AddReactionResponse,
+  RecordingComment,
   RecordingReaction,
 } from "@/lib/recording/types";
 
@@ -49,6 +50,8 @@ type Props = {
   captionsUrl?: string;
   captionsLang?: string;
   chapters?: RecordingChapter[];
+  // Timestamped ones get a mark on the bar with their text on hover.
+  comments?: RecordingComment[];
 };
 
 // Reactions within this fraction of the timeline collapse into one cluster.
@@ -78,6 +81,7 @@ export function RecordingPlayer({
   captionsUrl,
   captionsLang,
   chapters,
+  comments = [],
 }: Props) {
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
 
@@ -186,13 +190,16 @@ export function RecordingPlayer({
       chapters={chapters}
       landscapeMaxHeightCss={landscapeMaxHeightCss}
       progressOverlay={(info) => (
-        <ReactionLayer
-          kind="dots"
-          reactions={reactions}
-          freshIds={freshIds}
-          viewerUserId={viewerUserId}
-          info={info}
-        />
+        <>
+          <ReactionLayer
+            kind="dots"
+            reactions={reactions}
+            freshIds={freshIds}
+            viewerUserId={viewerUserId}
+            info={info}
+          />
+          <CommentMarks comments={comments} info={info} />
+        </>
       )}
       floatingOverlay={(info) => (
         <ReactionLayer
@@ -469,6 +476,64 @@ function ReactionDots({
                   {emoji}
                 </span>
               ))}
+            </span>
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+// A mark per timestamped comment, with a speech bubble above it that shows
+// the comment on hover.
+function CommentMarks({
+  comments,
+  info,
+}: {
+  comments: RecordingComment[];
+  info: ProgressOverlayInfo;
+}) {
+  const { durationSeconds, toTimelineMs } = info;
+  if (durationSeconds <= 0) return null;
+  const totalMs = durationSeconds * 1000;
+  return (
+    <div className="absolute inset-0">
+      {comments.map((c) => {
+        if (c.timestampMs == null) return null;
+        const fraction = Math.max(
+          0,
+          Math.min(1, toTimelineMs(c.timestampMs) / totalMs),
+        );
+        const left = `${fraction * 100}%`;
+        return (
+          <Fragment key={c.id}>
+            <span
+              data-comment-mark
+              className="absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-[1px] bg-white transition-[height] duration-media-slow ease-out group-hover/bar:h-1.75"
+              style={{ left }}
+            />
+            <span
+              className="group/comment pointer-events-auto absolute bottom-[calc(50%+5px)] -translate-x-1/2"
+              style={{ left }}
+            >
+              <MessageSquare
+                className="size-4 fill-white text-white drop-shadow-[0_1px_1px_rgb(0_0_0/0.5)]"
+                aria-hidden="true"
+              />
+              <span
+                role="tooltip"
+                className={cn(
+                  "pointer-events-none absolute bottom-full mb-1.5 hidden w-max max-w-64 rounded-lg bg-panel px-2.5 py-1.5 text-left text-xs text-fg shadow-lg ring-1 ring-line-strong group-hover/comment:block",
+                  fraction < 0.15
+                    ? "left-0"
+                    : fraction > 0.85
+                      ? "right-0"
+                      : "left-1/2 -translate-x-1/2",
+                )}
+              >
+                <span className="block font-semibold">{c.userName}</span>
+                <span className="block whitespace-pre-line">{c.body}</span>
+              </span>
             </span>
           </Fragment>
         );

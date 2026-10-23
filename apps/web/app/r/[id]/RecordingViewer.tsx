@@ -79,6 +79,7 @@ export function RecordingViewer({
     () => new Set(),
   );
   const [chapters, setChapters] = useState<RecordingChapter[]>(initialChapters);
+  const [comments, setComments] = useState<RecordingComment[]>(initialComments);
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
   const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -150,6 +151,7 @@ export function RecordingViewer({
             }
             captionsLang={initialTranscript?.language ?? undefined}
             chapters={chapters}
+            comments={comments}
             viewerSignedIn={signedIn}
             viewerUserId={viewer?.userId ?? null}
             onReactionAdded={onReactionAdded}
@@ -178,6 +180,7 @@ export function RecordingViewer({
         initialComments={initialComments}
         liveReactions={liveReactions}
         onReactionDeleted={onReactionDeleted}
+        onCommentsChange={setComments}
         transcript={
           <TranscriptPanel
             slug={slug}
