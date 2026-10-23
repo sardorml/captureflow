@@ -18,6 +18,7 @@ import {
   setCameraBlocked,
   setCapturePrefs,
   setRecordingStatus,
+  type RecordingStatus,
 } from "@/lib/storage";
 import { LIVE_KINDS } from "@/lib/capture/status";
 import { createRecordingTransport } from "@/lib/api/client";
@@ -163,6 +164,30 @@ async function releaseCameraBubble(): Promise<void> {
   if (bubbleTabId === undefined) return;
   await removeBubble(bubbleTabId);
   bubbleTabId = undefined;
+}
+
+// Tab the recording was started from; the live bubble lands there.
+let recordTabId: number | undefined;
+
+/*
+ * The panel's preview leaves with the panel, so the recording gets a bubble of
+ * its own once capture is live. Only mounted here: the control bar's content
+ * script takes it down with the bar at the end, which also covers a worker
+ * that slept through the recording and lost this state.
+ */
+async function showRecordingBubble(status: RecordingStatus): Promise<void> {
+  if (status.kind !== "recording" || bubbleTabId !== undefined) return;
+  const prefs = await getCapturePrefs();
+  if (!prefs.camera || (await getCameraBlocked())) return;
+  const tabId = recordTabId ?? (await activeTabId());
+  if (tabId === undefined) return;
+  const tab = await chrome.tabs.get(tabId).catch(() => undefined);
+  if (!isInjectable(tab?.url)) return;
+  try {
+    await mountBubble(tabId, new URLSearchParams({ camera: "1" }));
+  } catch {
+    /* tab closed or no longer injectable */
+  }
 }
 
 // Tab hosting the invisible camera+mic grant frame (one combined prompt).
@@ -374,6 +399,16 @@ async function onActionClicked(): Promise<void> {
   const session = await getAuthSession();
   if (!session) {
     await openSignInTab();
+    return;
+  }
+  // Mid-recording the panel stays shut: the bar on the page is where the
+  // recording is stopped, and the click points at it.
+  const status = await getRecordingStatus();
+  if (status.kind === "recording" || status.kind === "paused") {
+    const tabId = await activeTabId();
+    if (tabId !== undefined) {
+      await sendMessage("nudgeControlBar", undefined, tabId).catch(() => {});
+    }
     return;
   }
   await toggleOverlayOnActiveTab();
@@ -651,9 +686,10 @@ export default defineBackground(() => {
           ? undefined
           : await tabStreamIdFor(activeTab.id);
       await setRecordingStatus({ kind: "preparing" });
+      recordTabId = overlayTabId ?? (await activeTabId());
       // The panel gets out of the way before the native picker appears, taking
-      // the preview with it — one camera can't be opened twice, and the
-      // recorder is about to open this one.
+      // the preview with it; the recording's own bubble comes back once
+      // capture is live.
       await closeRecorderOverlay();
       await ensureOffscreenDocument();
       // Fire-and-forget: the offscreen doc reports back via
@@ -684,7 +720,10 @@ export default defineBackground(() => {
   onMessage("restartRecording", () => sendMessage("restartCapture", undefined));
   onMessage("deleteRecording", () => sendMessage("deleteCapture", undefined));
 
-  onMessage("recordingStatus", ({ data }) => setRecordingStatus(data));
+  onMessage("recordingStatus", async ({ data }) => {
+    await setRecordingStatus(data);
+    await showRecordingBubble(data);
+  });
 
   onMessage("activeUploadChanged", ({ data }) => setActiveUpload(data));
 

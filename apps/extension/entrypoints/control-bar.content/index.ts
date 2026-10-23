@@ -4,11 +4,15 @@ import {
   watchRecordingStatus,
   type RecordingStatus,
 } from "@/lib/storage";
-import { formatClock, uploadPercent } from "@/lib/format";
+import { formatClock } from "@/lib/format";
 import {
   CONTROL_BAR_HOST_ID,
   RECORDER_FRAME_ID,
 } from "@/lib/overlay/recorder-overlay";
+import {
+  BUBBLE_FRAME_ID,
+  unmountCameraBubble,
+} from "@/lib/overlay/camera-bubble";
 
 const HOST_ID = CONTROL_BAR_HOST_ID;
 
@@ -67,6 +71,15 @@ const BAR_CSS = `
   @media (prefers-reduced-motion: reduce) {
     .bar.entering, .bar.leaving, .bar.settled { transition: none; }
   }
+  /* A ring pulses out twice when the toolbar is clicked mid-recording. */
+  .bar.nudge { animation: nudge 0.8s ease-out 2; }
+  @keyframes nudge {
+    from { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), 0 0 0 0 rgba(236, 94, 59, 0.8); }
+    to { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), 0 0 0 16px rgba(236, 94, 59, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar.nudge { animation: none; }
+  }
   button {
     display: flex;
     align-items: center;
@@ -119,21 +132,15 @@ const BAR_CSS = `
     color: #f2f3f5;
   }
   .timer.preview { color: #96989d; }
-  .timer.saving { font-size: 10px; font-weight: 600; color: #9aa0aa; }
 `;
 
 type Bar = {
   update(status: RecordingStatus): void;
   // Shown while the panel is open: every control disabled, clock at zero.
   preview(): void;
+  nudge(): void;
   destroy(): void;
 };
-
-function savingLabel(status: RecordingStatus): string {
-  if (status.kind !== "uploading") return "Saving…";
-  const pct = uploadPercent(status.uploadedBytes, status.totalBytes);
-  return pct === null ? "Saving…" : `Saving ${pct}%`;
-}
 
 function iconButton(icon: string, title: string, onClick: () => void) {
   const button = document.createElement("button");
@@ -254,18 +261,13 @@ function createBar(): Bar {
       for (const button of [stop, pause, restart, del]) {
         button.disabled = true;
       }
-      timer.classList.remove("saving");
       timer.classList.add("preview");
       timer.textContent = formatClock(0);
     },
     update(status: RecordingStatus) {
       current = status;
-      const saving = status.kind === "uploading";
-      // Red only while there is something to stop.
-      const wasLive = bar.classList.contains("live");
-      bar.classList.toggle("live", !saving);
-      if (saving) expand();
-      else if (!wasLive) {
+      if (!bar.classList.contains("live")) {
+        bar.classList.add("live");
         expand();
         collapseAfter(START_FOLD_MS);
       }
@@ -273,15 +275,23 @@ function createBar(): Bar {
       pause.innerHTML = paused ? RESUME_ICON : PAUSE_ICON;
       pause.title = paused ? "Resume" : "Pause";
       for (const button of [stop, pause, restart, del]) {
-        button.disabled = saving;
+        button.disabled = false;
       }
-      timer.classList.toggle("saving", saving);
       timer.classList.remove("preview");
-      if (saving) {
-        timer.textContent = savingLabel(status);
-      } else {
-        renderTimer();
-      }
+      renderTimer();
+    },
+    nudge() {
+      expand();
+      collapseAfter(START_FOLD_MS);
+      bar.classList.remove("nudge");
+      // Forces a reflow so a second click restarts the animation.
+      void bar.offsetWidth;
+      bar.classList.add("nudge");
+      bar.addEventListener(
+        "animationend",
+        () => bar.classList.remove("nudge"),
+        { once: true },
+      );
     },
     destroy() {
       clearInterval(tick);
@@ -302,10 +312,8 @@ export default defineContentScript({
     let bar: Bar | null = null;
     let previewing = false;
     const apply = (status: RecordingStatus): void => {
-      const live =
-        status.kind === "recording" ||
-        status.kind === "paused" ||
-        status.kind === "uploading";
+      // The bar leaves with the recording: the upload has its own page.
+      const live = status.kind === "recording" || status.kind === "paused";
       if (live) {
         bar ??= createBar();
         bar.update(status);
@@ -318,6 +326,9 @@ export default defineContentScript({
       }
       bar?.destroy();
       bar = null;
+      // The recording's bubble goes with the bar; the panel's preview bubble
+      // is the panel's to remove.
+      unmountCameraBubble(BUBBLE_FRAME_ID);
     };
     void getRecordingStatus().then(apply);
     watchRecordingStatus(apply);
@@ -330,6 +341,7 @@ export default defineContentScript({
       previewing = false;
       void getRecordingStatus().then(apply);
     });
+    onMessage("nudgeControlBar", () => bar?.nudge());
     onMessage("panelPreview", ({ data }) => {
       previewing = data;
       frameWatch.disconnect();
