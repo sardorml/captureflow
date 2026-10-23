@@ -174,25 +174,17 @@ export function SummaryChapters({
   const showChapters = isOwner || hasChapters;
 
   return (
-    <div className="mt-8 space-y-4">
+    <div className="mt-10 space-y-3">
       {saveError && isOwner && (
         <p className="rounded-xl bg-red-500/10 px-4 py-2.5 text-sm text-red-600 ring-1 ring-red-500/20 dark:text-red-300">
           {saveError}
         </p>
       )}
-      <div
-        className={cn(
-          "grid gap-4",
-          showSummary &&
-            showChapters &&
-            "xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]",
-        )}
-      >
+      <div className="divide-y divide-line">
         {showSummary && (
           <Card
             icon={<Sparkles className="size-4" />}
             title="Summary"
-            subtitle="What this recording covers"
             actions={
               isOwner && !summaryEditing ? (
                 <Button variant="ghost" size="sm" onPress={startSummaryEdit}>
@@ -217,14 +209,12 @@ export function SummaryChapters({
                 />
               </EditBox>
             ) : hasSummary ? (
-              <p className="whitespace-pre-wrap text-[15px] leading-7 text-fg">
+              <p className="max-w-3xl whitespace-pre-wrap text-[15px] leading-7 text-fg">
                 {summary}
               </p>
             ) : (
               <EmptyState
-                text={
-                  isOwner ? "Tell viewers what to expect." : "No summary yet."
-                }
+                text={"No summary yet."}
                 action={isOwner ? "Add a summary" : undefined}
                 onAction={startSummaryEdit}
               />
@@ -236,10 +226,10 @@ export function SummaryChapters({
           <Card
             icon={<ListVideo className="size-4" />}
             title="Chapters"
-            subtitle={
+            meta={
               hasChapters
-                ? `${chapters.length} ${chapters.length === 1 ? "chapter" : "chapters"} · click to jump`
-                : "Jump points along the recording"
+                ? `${chapters.length} ${chapters.length === 1 ? "chapter" : "chapters"}`
+                : undefined
             }
             actions={
               isOwner && !chaptersEditing ? (
@@ -282,11 +272,11 @@ export function SummaryChapters({
                 />
               </EditBox>
             ) : hasChapters ? (
-              <ol className="relative -mx-2 before:absolute before:top-3 before:bottom-3 before:left-[23px] before:w-px before:bg-line-strong">
-                {chapters.map((c, i) => {
+              <ol className="-mx-2 space-y-0.5">
+                {chapters.map((c) => {
                   const active = c.id === activeChapterId;
                   return (
-                    <li key={c.id} className="relative">
+                    <li key={c.id}>
                       <div
                         className={cn(
                           "group flex items-center gap-1 rounded-xl pr-1 transition-colors",
@@ -300,13 +290,13 @@ export function SummaryChapters({
                         >
                           <span
                             className={cn(
-                              "flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold tabular-nums transition-[box-shadow,background-color,color]",
+                              "w-12 shrink-0 rounded-md px-1.5 py-0.5 text-center font-mono text-[11px] tabular-nums transition-colors",
                               active
-                                ? "bg-accent-bg text-white ring-4 ring-accent-bg/20"
-                                : "bg-tint-strong text-fg-muted ring-4 ring-panel group-hover:bg-tint-strong",
+                                ? "bg-accent-bg text-white"
+                                : "bg-tint text-fg-muted group-hover:bg-tint-strong",
                             )}
                           >
-                            {i + 1}
+                            {formatTimestamp(c.ms)}
                           </span>
                           <span
                             className={cn(
@@ -316,16 +306,11 @@ export function SummaryChapters({
                           >
                             {c.title}
                           </span>
-                          <span
-                            className={cn(
-                              "shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[11px] tabular-nums",
-                              active
-                                ? "bg-accent-bg/15 text-accent-strong"
-                                : "bg-tint text-fg-subtle",
-                            )}
-                          >
-                            {formatTimestamp(c.ms)}
-                          </span>
+                          {active ? (
+                            <span className="shrink-0 text-[11px] font-medium text-accent-strong">
+                              Playing
+                            </span>
+                          ) : null}
                         </button>
                         {isOwner && (
                           <button
@@ -344,12 +329,8 @@ export function SummaryChapters({
               </ol>
             ) : (
               <EmptyState
-                text={
-                  isOwner
-                    ? "Pause where a new topic starts, then add a chapter at the playhead."
-                    : "No chapters yet."
-                }
-                action={isOwner ? "Add at playhead" : undefined}
+                text={"No chapters yet."}
+                action={isOwner ? "Add one at the playhead" : undefined}
                 onAction={onAddChapter}
               />
             )}
@@ -363,35 +344,35 @@ export function SummaryChapters({
 function Card({
   icon,
   title,
-  subtitle,
+  meta,
   actions,
   children,
 }: {
   icon: ReactNode;
   title: string;
-  subtitle: string;
+  meta?: string;
   actions: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl bg-panel p-5 ring-1 ring-line">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent-bg/10 text-accent-strong ring-1 ring-accent-bg/15">
+    <section className="py-6 first:pt-0 last:pb-0">
+      <div className="flex min-h-8 items-center justify-between gap-3">
+        <h2 className="flex min-w-0 items-center gap-2.5 text-base font-semibold text-fg-strong">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent-bg/10 text-accent-strong">
             {icon}
           </span>
-          <div className="min-w-0">
-            <h2 className="text-[15px] font-semibold leading-5 text-fg-strong">
-              {title}
-            </h2>
-            <p className="mt-0.5 truncate text-xs text-fg-subtle">{subtitle}</p>
-          </div>
-        </div>
+          <span className="truncate">{title}</span>
+          {meta ? (
+            <span className="rounded-full bg-tint px-2 py-0.5 text-xs font-medium text-fg-muted">
+              {meta}
+            </span>
+          ) : null}
+        </h2>
         {actions ? (
           <div className="flex shrink-0 items-center gap-1">{actions}</div>
         ) : null}
       </div>
-      <div className="mt-4">{children}</div>
+      <div className="mt-3">{children}</div>
     </section>
   );
 }
@@ -435,13 +416,17 @@ function EmptyState({
   onAction: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line-strong px-4 py-6 text-center">
-      <p className="text-sm text-fg-subtle">{text}</p>
+    <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-subtle">
+      <span>{text}</span>
       {action ? (
-        <Button variant="secondary" size="sm" onPress={onAction}>
+        <button
+          type="button"
+          onClick={onAction}
+          className="font-medium text-accent-strong transition-colors hover:text-fg"
+        >
           {action}
-        </Button>
+        </button>
       ) : null}
-    </div>
+    </p>
   );
 }
