@@ -44,7 +44,7 @@ export function InstallButton({
     size: "lg",
     className: primary
       ? base
-      : `${base} shadow-[0_10px_30px_-10px_rgb(6_26_51/0.45)] [--button-bg:#ffffff] [--button-fg:#061a33] [--button-bg-hover:#eef4fb] [--button-bg-pressed:#e1ebf7]`,
+      : `${base} shadow-[0_6px_18px_-8px_rgb(6_26_51/0.25)] [--button-bg:#ffffff] [--button-fg:#061a33] [--button-bg-hover:#eef4fb] [--button-bg-pressed:#e1ebf7]`,
   });
   const onClick = () => track("marketing_cta_clicked", { location });
 
