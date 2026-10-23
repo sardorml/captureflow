@@ -495,13 +495,13 @@ function CommentMarks({
               style={{ left }}
             >
               <MessageSquare
-                className="size-4 fill-white text-white drop-shadow-[0_1px_1px_rgb(0_0_0/0.5)]"
+                className="size-4 text-media-controls-foreground drop-shadow-[0_1px_1px_rgb(0_0_0/0.5)]"
                 aria-hidden="true"
               />
               <span
                 role="tooltip"
                 className={cn(
-                  "pointer-events-none absolute bottom-full mb-1.5 hidden w-max max-w-64 rounded-lg bg-panel px-2.5 py-1.5 text-left text-xs text-fg shadow-lg ring-1 ring-line-strong group-hover/comment:block",
+                  "pointer-events-none absolute bottom-full mb-1.5 hidden w-max max-w-64 rounded-lg bg-media-popover px-2.5 py-1.5 text-left text-xs text-media-popover-foreground shadow-lg ring-1 ring-white/10 group-hover/comment:block",
                   fraction < 0.15
                     ? "left-0"
                     : fraction > 0.85
