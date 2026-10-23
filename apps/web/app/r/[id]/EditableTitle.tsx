@@ -27,7 +27,7 @@ export function EditableTitle({ slug, title: initialTitle, canEdit }: Props) {
   }, [editing]);
 
   if (!canEdit) {
-    return <h1 className={cn("truncate", HEADLINE_CLASS)}>{title}</h1>;
+    return <h1 className={cn("lg:truncate", HEADLINE_CLASS)}>{title}</h1>;
   }
 
   const commit = (): void => {
@@ -91,7 +91,7 @@ export function EditableTitle({ slug, title: initialTitle, canEdit }: Props) {
         />
         <h1
           className={cn(
-            "truncate transition-colors group-hover/title:text-accent-strong",
+            "transition-colors group-hover/title:text-accent-strong lg:truncate",
             HEADLINE_CLASS,
           )}
         >

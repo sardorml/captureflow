@@ -122,7 +122,7 @@ export function RecordingViewer({
       <main className="flex flex-col lg:min-h-0 lg:overflow-y-auto">
         <header className="sticky top-0 z-20 bg-canvas-2 max-lg:static max-lg:order-2">
           <div className="relative px-6 py-5 lg:px-12">
-            <div className="mx-auto w-full max-w-5xl pr-32 sm:pr-36">
+            <div className="mx-auto w-full max-w-5xl lg:pr-36">
               <EditableTitle
                 slug={slug}
                 title={headlineText}
@@ -142,7 +142,7 @@ export function RecordingViewer({
                 }
               />
             </div>
-            <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-tint px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line lg:right-12">
+            <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-tint px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line max-lg:static max-lg:mt-3 max-lg:inline-block max-lg:translate-y-0 lg:right-12">
               {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
             </span>
           </div>
