@@ -64,7 +64,6 @@ CaptureFlow also shares annotated screenshots as links, with arrows, text and bl
 
 It’s worth being clear about the gaps:
 
-- **Transcripts and captions** aren’t in CaptureFlow yet.
 - **AI titles, summaries and chapters** come with Loom Business + AI. CaptureFlow chapters are manual.
 - **Apps:** Loom has apps for Mac, Windows, iOS and Android. CaptureFlow has a Chrome extension today, and a macOS app is on the way.
 - **Enterprise single sign-on** with SAML isn’t supported.

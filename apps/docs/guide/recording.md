@@ -24,6 +24,10 @@ Choose your camera in the device selector and drag the bubble anywhere on screen
 Pick a **microphone** to narrate. System audio is captured as part of the screen
 recording where macOS allows it. Leave the mic off for a silent capture.
 
+In the Chrome extension, recording with the mic on also writes a transcript,
+recognized on your device when Chrome has your language pack. See
+[Transcripts and cuts](/guide/transcripts).
+
 ## Smooth cursor
 
 CaptureFlow tracks your real cursor and renders a clean, smoothed pointer in the

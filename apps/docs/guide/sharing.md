@@ -34,13 +34,17 @@ The viewer includes:
 - **View count** — how many times it's been watched.
 - **Summary chapters** — auto-generated chapter markers to jump around longer
   recordings.
+- **Transcript and captions** — a searchable transcript under the video and a
+  CC button in the player, when the recording was made with the mic on (see
+  [Transcripts and cuts](/guide/transcripts)).
 - **Download** — grab the original file (subject to visibility).
 
 ## Edit a recording
 
 From the dashboard or share page, open the **editor** to rename the recording,
 adjust its visibility, or manage it. Titles can be auto-suggested, so a fresh
-recording isn't just "Untitled."
+recording isn't just "Untitled." The editor's transcript panel also lets you
+cut parts of the video out of playback and fix the transcript text.
 
 ## Manage everything from the dashboard
 
@@ -53,4 +57,4 @@ The web dashboard is your home base:
 - **Settings & profile** — workspace name/logo, access policy, your profile.
 - **Storage usage** — how much of your quota you've used.
 
-Next: [Screenshots](/guide/screenshots).
+Next: [Transcripts and cuts](/guide/transcripts).

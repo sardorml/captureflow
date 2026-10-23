@@ -21,5 +21,6 @@
 ## Docs
 
 - [Documentation](https://docs.captureflow.dev): Using CaptureFlow
+- [Transcripts and cuts](https://docs.captureflow.dev/guide/transcripts): Free transcripts recognized on-device, captions, and cutting a recording from its text
 - [Self-hosting docs](https://docs.captureflow.dev/self-hosting/overview): Deploying and configuring your own instance
 - [Source code](https://github.com/sardorml/captureflow): AGPL-3.0 licensed
