@@ -172,9 +172,8 @@ export function RecordingSkin({
         className,
       )}
       style={{
-        ...(isFullscreen
-          ? {}
-          : { ...sizeStyle, ...recordingBackgroundStyle(background) }),
+        ...(isFullscreen ? {} : sizeStyle),
+        ...recordingBackgroundStyle(background),
         ...CAPTION_LIFT,
       }}
       onPointerEnter={() => {
