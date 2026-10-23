@@ -547,14 +547,19 @@ function ReactionBursts({
   const layerRef = useRef<HTMLDivElement | null>(null);
   const [bursts, setBursts] = useState<ReactionBurst[]>([]);
   const burstIdRef = useRef(0);
-  const prevSecondsRef = useRef(currentSeconds);
+
+  const timeOf = useCallback(
+    (c: ReactionCluster) => c.fraction * durationSeconds,
+    [durationSeconds],
+  );
 
   const spawn = useCallback((hits: ReactionCluster[]) => {
     const layer = layerRef.current;
-    if (hits.length === 0 || !layer) return;
+    if (!layer) return;
     const origin = takeoffOrigin(layer);
     const added: ReactionBurst[] = [];
     for (const c of hits) {
+      if (c.isFresh) continue;
       c.emojis.forEach((emoji, i) => {
         added.push({
           id: ++burstIdRef.current,
@@ -565,8 +570,8 @@ function ReactionBursts({
         });
       });
     }
-    setBursts((prev) => [...prev, ...added]);
     if (added.length === 0) return;
+    setBursts((prev) => [...prev, ...added]);
     const ids = new Set(added.map((b) => b.id));
     const longest = Math.max(...added.map((b) => b.delayMs));
     window.setTimeout(() => {
@@ -574,22 +579,7 @@ function ReactionBursts({
     }, BURST_MS + longest);
   }, []);
 
-  useEffect(() => {
-    const prev = prevSecondsRef.current;
-    prevSecondsRef.current = currentSeconds;
-    const step = currentSeconds - prev;
-    if (controlsVisible || step <= 0 || step > MAX_PLAYBACK_STEP_SECONDS) {
-      return;
-    }
-    spawn(
-      clusters.filter((c) => {
-        const at = c.fraction * durationSeconds;
-        // A mark at the very start fires when playback leaves 0.
-        const reached = at > prev || (at === 0 && prev === 0);
-        return reached && at <= currentSeconds && !c.isFresh;
-      }),
-    );
-  }, [currentSeconds, clusters, durationSeconds, controlsVisible, spawn]);
+  usePassedMarks(clusters, timeOf, currentSeconds, !controlsVisible, spawn);
 
   return (
     <div ref={layerRef} className="pointer-events-none absolute inset-0">
@@ -610,6 +600,31 @@ function ReactionBursts({
       ))}
     </div>
   );
+}
+
+// Calls onPass with the items playback just crossed while it advances with
+// `enabled` set. A seek passes marks silently.
+function usePassedMarks<T>(
+  items: T[],
+  timeOf: (item: T) => number,
+  currentSeconds: number,
+  enabled: boolean,
+  onPass: (hits: T[]) => void,
+): void {
+  const prevSecondsRef = useRef(currentSeconds);
+  useEffect(() => {
+    const prev = prevSecondsRef.current;
+    prevSecondsRef.current = currentSeconds;
+    const step = currentSeconds - prev;
+    if (!enabled || step <= 0 || step > MAX_PLAYBACK_STEP_SECONDS) return;
+    const hits = items.filter((item) => {
+      const at = timeOf(item);
+      // A mark at the very start fires when playback leaves 0.
+      const reached = at > prev || (at === 0 && prev === 0);
+      return reached && at <= currentSeconds;
+    });
+    if (hits.length > 0) onPass(hits);
+  }, [currentSeconds, items, timeOf, enabled, onPass]);
 }
 
 // Where emojis take off from: the time slider's span inside the player, so
