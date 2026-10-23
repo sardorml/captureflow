@@ -44,6 +44,20 @@ pnpm --filter @captureflow/web exec wrangler r2 bucket create captureflow-record
 
 Prefixes used inside the bucket: `videos/`, `posters/`, `screenshots/`.
 
+## 3b. Create the transcription queue
+
+Transcripts are made by Whisper on Workers AI, one call per uploaded audio
+chunk, fed through a queue the Worker consumes itself. The queue name **must**
+be `captureflow-transcription`; the `AI` binding needs no setup.
+
+```bash
+pnpm --filter @captureflow/web exec wrangler queues create captureflow-transcription
+```
+
+Workers AI includes 10,000 neurons a day for free, about three and a half hours
+of audio; beyond that it bills per minute on the Workers Paid plan. Queues need
+the Workers Paid plan as well.
+
 ## 4. Set secrets
 
 Secrets are **never** stored in `wrangler.jsonc`. The only required one is the
@@ -96,8 +110,9 @@ pnpm --filter @captureflow/web cf:deploy
 ```
 
 This chains `opennextjs-cloudflare build` → `opennextjs-cloudflare deploy`:
-builds Next.js, packages it through `worker.ts` (which adds the cron handlers),
-and publishes the Worker with its D1/R2 bindings, vars, and cron triggers.
+builds Next.js, packages it through `worker.ts` (which adds the cron handlers
+and the transcription queue consumer), and publishes the Worker with its
+D1/R2/AI/queue bindings, vars, and cron triggers.
 
 > [!TIP]
 > Validate locally first with `pnpm --filter @captureflow/web cf:preview`, which

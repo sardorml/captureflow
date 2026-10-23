@@ -1,11 +1,12 @@
 # Transcripts and cuts
 
 Record with the microphone on in the Chrome extension and CaptureFlow writes a
-transcript while you talk. It's free on every plan and needs no transcription
-service: Chrome recognizes speech **on your device** when it has the language
-pack for your language, and uses Chrome's speech service otherwise. The
-transcript is posted together with the recording, so it's on the share page a
-few seconds after you stop.
+transcript for you. It's free on every plan: the recorder uploads your mic as
+small audio files next to the video, and the instance transcribes them with
+Whisper running on Workers AI inside its own Cloudflare account. Nothing goes
+to a third-party transcription service. Transcription takes roughly a third of
+the recording's length, so a two-minute recording has its transcript about
+forty seconds after you stop.
 
 ## On the share page
 
@@ -16,8 +17,8 @@ The transcript sits under the video:
 - **Copy** the whole transcript with timestamps.
 - Turn on **captions** with the CC button in the player, or press `c`.
 
-A link opened right after recording may say "Preparing transcript…" for a few
-seconds while the recorder finishes posting it.
+A link opened right after recording shows "Transcribing…" until the transcript
+is in, then fills itself in without a reload.
 
 ## Cut the video from the transcript
 
@@ -38,16 +39,12 @@ transcript and the captions. **Reset** returns to the automatic transcript.
 
 ## Good to know
 
-- Lines are timed by phrase, so a cut can start or end a fraction of a second
-  off. Select a neighbouring line too if you need a clean edge.
+- Lines are split at sentence ends and every word is timed, so cuts land
+  within a few hundred milliseconds of the speech.
 - A recording made with the mic off has no transcript.
-- Transcripts need Google Chrome. Brave blocks Chrome's speech recognition
-  and can't download the on-device pack, so recordings made in Brave have no
-  transcript.
-- Opening the extension once starts the on-device pack download (about a
-  minute); until it lands, Chrome's speech service transcribes instead.
-- On-device recognition covers a handful of languages today; others go through
-  Chrome's speech service. Either way, the transcript language follows your
-  browser language.
+- Whisper picks up the language you speak; your browser language is passed
+  along as a hint.
+- Transcripts work in every Chromium browser the extension runs in, since the
+  recognition happens on the server.
 
 Next: [Screenshots](/guide/screenshots).
