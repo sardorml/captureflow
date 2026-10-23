@@ -18,7 +18,10 @@ import { usePlayer } from "@videojs/react/video";
 import { Play, RotateCcw } from "lucide-react";
 import {
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
   type CSSProperties,
   type ReactNode,
   type RefObject,
@@ -110,6 +113,8 @@ type Timeline = Omit<ProgressOverlayInfo, "controlsVisible"> & {
 };
 
 const SKIP_SECONDS = 5;
+// How long the controls stay up after the pointer leaves the player.
+const CONTROLS_LEAVE_DELAY_MS = 1000;
 const identityMs = (ms: number): number => ms;
 // Captions ride above the full-width bar while the controls show; the stock
 // value only clears the stock pill. The accent paints the slider fill.
@@ -145,7 +150,13 @@ export function RecordingSkin({
   controlsExtra,
 }: RecordingSkinProps) {
   const isFullscreen = usePlayer(selectFullscreen)?.isFullscreen ?? false;
-  const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
+  const storeControlsVisible =
+    usePlayer(selectControls)?.controlsVisible ?? true;
+  const pointerInsideRef = useRef(true);
+  const controlsVisible = useLingeringControls(
+    storeControlsVisible,
+    pointerInsideRef,
+  );
   const timeline = useTimeline(serverDurationMs, cuts, showCuts);
   const hasFrame = background !== "transparent";
 
@@ -160,6 +171,12 @@ export function RecordingSkin({
           ? {}
           : { ...sizeStyle, ...recordingBackgroundStyle(background) }),
         ...SKIN_VARS,
+      }}
+      onPointerEnter={() => {
+        pointerInsideRef.current = true;
+      }}
+      onPointerLeave={() => {
+        pointerInsideRef.current = false;
       }}
       data-theme="default"
       data-preset="video"
@@ -216,6 +233,7 @@ export function RecordingSkin({
         cuts={cuts}
         cues={cues}
         videoUrl={videoUrl}
+        controlsVisible={controlsVisible}
         progressOverlay={progressOverlay}
         controlsExtra={controlsExtra}
       />
@@ -226,6 +244,38 @@ export function RecordingSkin({
       <VideoStatusIndicators />
     </Container>
   );
+}
+
+/*
+ * The store drops the controls the instant the pointer leaves the player;
+ * this keeps them up for a moment first. Going idle inside the player still
+ * hides them right away. The decision waits a tick so the leave handlers
+ * have run.
+ */
+function useLingeringControls(
+  visible: boolean,
+  pointerInside: RefObject<boolean>,
+): boolean {
+  const [shown, setShown] = useState(visible);
+  useEffect(() => {
+    if (visible) {
+      setShown(true);
+      return;
+    }
+    let hide: number | undefined;
+    const decide = window.setTimeout(() => {
+      if (pointerInside.current) {
+        setShown(false);
+        return;
+      }
+      hide = window.setTimeout(() => setShown(false), CONTROLS_LEAVE_DELAY_MS);
+    }, 0);
+    return () => {
+      window.clearTimeout(decide);
+      if (hide != null) window.clearTimeout(hide);
+    };
+  }, [visible, pointerInside]);
+  return shown;
 }
 
 // A hairline along the bottom edge that stands in for the slider while the
@@ -476,6 +526,7 @@ type RecordingControlsProps = {
   cuts: RecordingCut[];
   cues: ChapterCue[];
   videoUrl: string;
+  controlsVisible: boolean;
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   controlsExtra?: ReactNode;
 };
@@ -507,10 +558,12 @@ function RecordingControls({
   cuts,
   cues,
   videoUrl,
+  controlsVisible,
   progressOverlay,
   controlsExtra,
 }: RecordingControlsProps) {
-  const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
+  const storeControlsVisible =
+    usePlayer(selectControls)?.controlsVisible ?? true;
   const { edited, durationSeconds, currentSeconds, toTimelineMs } = timeline;
   // The editor's selection replaces the chapters on the track, so any cue
   // present is the selection.
@@ -528,7 +581,13 @@ function RecordingControls({
   );
 
   return (
-    <Controls.Root visibility={alwaysVisible ? "always" : "auto"}>
+    <Controls.Root
+      visibility={
+        alwaysVisible || (controlsVisible && !storeControlsVisible)
+          ? "always"
+          : "auto"
+      }
+    >
       <Controls.Backdrop
         className={cn(
           "pointer-events-none absolute inset-0 z-10 rounded-[inherit] bg-(image:--media-controls-gradient)",
