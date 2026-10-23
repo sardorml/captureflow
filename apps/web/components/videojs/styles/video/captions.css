@@ -15,6 +15,18 @@
       transition-delay: var(--media-caption-track-delay);
     }
 
+    /* `::cue` takes no padding, so the backdrop box carries it instead. */
+    video::cue {
+      background: transparent;
+      line-height: 1.35;
+    }
+
+    video::-webkit-media-text-track-display-backdrop {
+      padding: 0.3em 0.65em;
+      border-radius: 0.4em;
+      background-color: rgb(0 0 0 / 0.72) !important;
+    }
+
     :scope[data-controls-visible] {
       --media-caption-track-y: var(--media-caption-controls-y);
     }
