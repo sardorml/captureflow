@@ -66,8 +66,11 @@ export function TimeSlider({
                 render={<SliderTrack />}
                 className={cn(
                   'transition-[height,width] duration-media-slow ease-out',
+                  'data-[orientation=horizontal]:h-1.5',
+                  'rounded-none before:rounded-none',
                   'data-[orientation=horizontal]:before:clip-media-chapter-track-x data-[orientation=vertical]:before:clip-media-chapter-track-y',
-                  'group-data-highlighted/chapter:data-[orientation=horizontal]:h-1.75',
+                  'group-data-highlighted/chapter:data-[orientation=horizontal]:h-2.5',
+                  'group-hover/slider:data-[orientation=horizontal]:h-2.5',
                   'group-data-highlighted/chapter:data-[orientation=vertical]:w-1.75',
                   selected && 'before:bg-danger/60'
                 )}
@@ -75,7 +78,9 @@ export function TimeSlider({
                 <TimeSliderPrimitive.Buffer
                   render={<SliderBuffer />}
                   className={cn(
-                    'group-data-highlighted/chapter:data-[orientation=horizontal]:before:min-w-1.75',
+                    'before:rounded-none',
+                    'group-data-highlighted/chapter:data-[orientation=horizontal]:before:min-w-2.5',
+                    'group-hover/slider:data-[orientation=horizontal]:before:min-w-2.5',
                     'group-data-highlighted/chapter:data-[orientation=vertical]:before:min-h-1.75',
                     selected && 'before:bg-danger/60'
                   )}
@@ -83,7 +88,9 @@ export function TimeSlider({
                 <TimeSliderPrimitive.Fill
                   render={<SliderFill />}
                   className={cn(
-                    'group-data-highlighted/chapter:data-[orientation=horizontal]:before:min-w-1.75',
+                    'before:rounded-none',
+                    'group-data-highlighted/chapter:data-[orientation=horizontal]:before:min-w-2.5',
+                    'group-hover/slider:data-[orientation=horizontal]:before:min-w-2.5',
                     'group-data-highlighted/chapter:data-[orientation=vertical]:before:min-h-1.75',
                     selected && 'before:bg-danger'
                   )}

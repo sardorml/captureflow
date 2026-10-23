@@ -444,12 +444,12 @@ function ReactionDots({
           <Fragment key={idx}>
             <span
               data-reaction-dot
-              className="absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-[1px] transition-[height] duration-media-slow ease-out group-hover/bar:h-1.75"
+              className="absolute top-1/2 h-1.5 w-1 -translate-x-1/2 -translate-y-1/2 rounded-[1px] transition-[height] duration-media-slow ease-out group-hover/bar:h-2.5"
               style={{ left, backgroundColor: reactionColor(stack[0] ?? "") }}
             />
             <span
               data-reaction-stack
-              className="absolute bottom-[calc(50%+5px)] flex -translate-x-1/2 items-end text-[16px] leading-none drop-shadow-[0_1px_1px_rgb(0_0_0/0.5)]"
+              className="absolute bottom-[calc(50%+6px)] flex -translate-x-1/2 items-end text-[16px] leading-none drop-shadow-[0_1px_1px_rgb(0_0_0/0.5)]"
               style={{ left }}
             >
               {stack.slice(0, MAX_STACKED_EMOJIS).map((emoji, i) => (
@@ -490,11 +490,11 @@ function CommentMarks({
           <Fragment key={c.id}>
             <span
               data-comment-mark
-              className="absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-[1px] bg-white transition-[height] duration-media-slow ease-out group-hover/bar:h-1.75"
+              className="absolute top-1/2 h-1.5 w-1 -translate-x-1/2 -translate-y-1/2 rounded-[1px] bg-white transition-[height] duration-media-slow ease-out group-hover/bar:h-2.5"
               style={{ left }}
             />
             <span
-              className="group/comment pointer-events-auto absolute bottom-[calc(50%+5px)] -translate-x-1/2"
+              className="group/comment pointer-events-auto absolute bottom-[calc(50%+6px)] -translate-x-1/2"
               style={{ left }}
             >
               <MessageSquare

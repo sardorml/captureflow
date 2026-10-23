@@ -147,7 +147,7 @@ export function EditedTimeSlider({
         "group/slider relative flex flex-1 cursor-pointer items-center justify-center outline-hidden",
         "data-disabled:pointer-events-none",
         "transition-[--media-slider-fill] duration-media-slider ease-out data-dragging:duration-0",
-        "rounded-media-pill",
+        "rounded-none",
         "data-[orientation=horizontal]:h-(--media-slider-height,--spacing(8))",
         "data-[orientation=horizontal]:min-w-18",
       )}
@@ -177,12 +177,14 @@ export function EditedTimeSlider({
               className={cn(
                 "transition-[height,width] duration-media-slow ease-out",
                 "before:clip-media-chapter-track-x",
-                "group-hover/chapter:h-1.75",
+                "data-[orientation=horizontal]:h-1.5",
+                "group-hover/slider:data-[orientation=horizontal]:h-2.5",
+                "rounded-none before:rounded-none",
               )}
             >
               <SliderFill
                 data-orientation="horizontal"
-                className="group-hover/chapter:before:min-w-1.75"
+                className="before:rounded-none group-hover/slider:before:min-w-2.5"
               />
             </SliderTrack>
           </div>

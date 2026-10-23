@@ -295,7 +295,7 @@ function BottomProgress({
   return (
     <div
       className={cn(
-        "pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[3px] transition-opacity duration-media-controls ease-out",
+        "pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1.5 transition-opacity duration-media-controls ease-out",
         hidden && "opacity-0",
       )}
       data-bottom-progress
@@ -449,7 +449,7 @@ function CutGaps({
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-1/2 h-1 -translate-y-1/2"
+      className="pointer-events-none absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2"
     >
       {cuts.map((cut) => (
         <span
