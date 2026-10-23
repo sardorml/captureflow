@@ -1,4 +1,11 @@
 export {
+  isAudioChunkRecordingSupported,
+  startAudioChunkRecorder,
+  type AudioChunk,
+  type AudioChunkRecorder,
+  type AudioChunkRecorderOptions,
+} from "./audio-chunk-recorder";
+export {
   createFmp4Muxer,
   type Fmp4Muxer,
   type Fmp4MuxerOptions,

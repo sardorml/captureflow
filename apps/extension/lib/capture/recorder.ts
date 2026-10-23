@@ -1,7 +1,10 @@
 import { ENGINE_OUTPUT } from "@captureflow/engine";
 import {
+  isAudioChunkRecordingSupported,
+  startAudioChunkRecorder,
   startStreamRecorder,
   startWebcamRecorder,
+  type AudioChunkRecorder,
   type StreamRecorder,
   type WebcamRecorder,
 } from "@captureflow/engine/web";
@@ -16,13 +19,12 @@ import {
   type RecordingUpload,
 } from "../api/upload-streamer";
 import type { CaptureContext } from "../messaging";
+import type { TranscribeRequest, UploadTransport } from "../api/types";
 import type {
   ActiveUpload,
   RecordingResultPayload,
   RecordingStatus,
 } from "../storage";
-import { startTranscriber, type Transcriber } from "./transcriber";
-import { buildTranscript, createSegmentClock } from "./transcript-timeline";
 
 type Callbacks = {
   // Pre-roll countdown, shown by the SW on the page. Runs after all grants
@@ -292,39 +294,21 @@ async function runSession(
   const activeElapsed = (): number =>
     (pausedAt ?? Date.now()) - startedAt - pausedMs;
 
-  // Transcription is best-effort and free: it rides the mic track (the
-  // webcam stream carries it when there is a camera) and never gates the
-  // recording. Utterances are stamped in epoch time; the clock maps them
-  // onto the recording with pauses removed.
-  const clock = createSegmentClock({ startedAt });
+  // The transcript is made server-side from the mic alone (the webcam stream
+  // carries the track when there is a camera), uploaded as small audio
+  // chunks beside the video. Best-effort: it never gates the recording.
   const micTrack =
     micStream?.getAudioTracks()[0] ?? webcamStream?.getAudioTracks()[0] ?? null;
-  let transcriber: Transcriber | null = null;
-  const transcriberReady =
+  const audio =
     ctx.mic && micTrack
-      ? startTranscriber({
-          track: micTrack,
-          lang: navigator.language,
-          log: (message) => console.warn(`[captureflow] ${message}`),
-        })
-          .then((t) => {
-            transcriber = t;
-          })
-          .catch(() => undefined)
-      : Promise.resolve();
-
-  const stopTranscriber = async (): Promise<
-    Awaited<ReturnType<Transcriber["stop"]>>
-  > => {
-    await transcriberReady;
-    return transcriber ? transcriber.stop() : [];
-  };
+      ? startAudioUpload(micTrack, upload.slug, transport, activeElapsed)
+      : null;
 
   const stopRecorders = async (): Promise<void> => {
     await Promise.all([
       screenRecorder.stop().catch(() => null),
       webcamRecorder?.stop().catch(() => null) ?? Promise.resolve(null),
-      stopTranscriber().catch(() => []),
+      audio?.recorder.stop().catch(() => null) ?? Promise.resolve(null),
     ]);
   };
 
@@ -339,33 +323,19 @@ async function runSession(
     progress();
     const progressTimer = setInterval(progress, 500);
     try {
-      const [, , utterances] = await Promise.all([
+      await Promise.all([
         screenRecorder.stop(),
         webcamRecorder?.stop() ?? Promise.resolve(null),
-        stopTranscriber().catch(() => []),
+        audio?.recorder.stop().catch(() => null) ?? Promise.resolve(null),
       ]);
       // Release the capture (sharing indicator) before the tail upload.
       stopAllTracks();
       const durationMs = activeElapsed();
-      const { url } = await upload.finish(durationMs);
       // Same stance as the webcam companion: a lost transcript is not a
-      // failed recording. Posted before the result so the share page the
-      // result opens can already show it.
-      if (transcriber) {
-        try {
-          const transcript = buildTranscript(utterances, {
-            clock,
-            durationMs,
-            source: transcriber.source,
-            language: transcriber.language,
-          });
-          if (transcript) {
-            await transport.transcript({ slug: upload.slug, transcript });
-          }
-        } catch {
-          // best-effort
-        }
-      }
+      // failed recording. Requested before finalize, while the device id
+      // still authorizes it, so the share page can show it transcribing.
+      if (audio) await audio.requestTranscript().catch(() => undefined);
+      const { url } = await upload.finish(durationMs);
       cb.onActiveUpload(null);
       cb.onResult({
         ok: true,
@@ -388,6 +358,7 @@ async function runSession(
   // where pushes are no-ops.
   const discardSession = async (): Promise<void> => {
     upload.abort();
+    audio?.recorder.abort();
     await stopRecorders();
     cb.onActiveUpload(null);
   };
@@ -401,19 +372,18 @@ async function runSession(
     pause() {
       if (ended || pausedAt !== null) return;
       pausedAt = Date.now();
-      clock.pause(pausedAt);
       void screenRecorder.pause();
       webcamRecorder?.pause();
+      audio?.recorder.pause();
       cb.onStatus({ kind: "paused", startedAt, pausedMs, pausedAt });
     },
     resume() {
       if (ended || pausedAt === null) return;
-      const now = Date.now();
-      pausedMs += now - pausedAt;
+      pausedMs += Date.now() - pausedAt;
       pausedAt = null;
-      clock.resume(now);
       screenRecorder.resume();
       webcamRecorder?.resume();
+      audio?.recorder.resume();
       cb.onStatus({ kind: "recording", startedAt, pausedMs });
     },
     restart() {
@@ -443,6 +413,75 @@ async function runSession(
     .catch(() => undefined);
 
   return sessionEnd;
+}
+
+const AUDIO_PART_ATTEMPTS = 3;
+
+type AudioUpload = {
+  recorder: AudioChunkRecorder;
+  // Waits for every chunk, then asks for the transcript; a chunk that never
+  // made it means no request, so a partial transcript is never produced.
+  requestTranscript(): Promise<void>;
+};
+
+/*
+ * Each chunk goes up as it closes, numbered in order, so by the time the
+ * recording stops only the last one is still in flight. The layout posted
+ * with /transcribe places each chunk on the recording clock.
+ */
+function startAudioUpload(
+  track: MediaStreamTrack,
+  slug: string,
+  transport: UploadTransport,
+  elapsedMs: () => number,
+): AudioUpload | null {
+  if (!isAudioChunkRecordingSupported()) return null;
+  const parts: TranscribeRequest["parts"] = [];
+  const uploads: Promise<void>[] = [];
+  let lost = false;
+  let recorder: AudioChunkRecorder;
+  try {
+    recorder = startAudioChunkRecorder({
+      track,
+      elapsedMs,
+      onChunk: ({ bytes, startMs, endMs }) => {
+        const partNumber = parts.length + 1;
+        parts.push({ partNumber, startMs, endMs });
+        uploads.push(
+          retry(AUDIO_PART_ATTEMPTS, () =>
+            transport.uploadAudioPart(slug, partNumber, new Uint8Array(bytes)),
+          ).catch(() => {
+            lost = true;
+          }),
+        );
+      },
+    });
+  } catch {
+    return null;
+  }
+  return {
+    recorder,
+    async requestTranscript() {
+      await Promise.all(uploads);
+      if (lost || parts.length === 0) return;
+      await transport.transcribe({
+        slug,
+        language: navigator.language,
+        parts,
+      });
+    },
+  };
+}
+
+async function retry<T>(attempts: number, run: () => Promise<T>): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await run();
+    } catch (err) {
+      if (attempt >= attempts) throw err;
+      await new Promise((resolve) => setTimeout(resolve, 1_000 * attempt));
+    }
+  }
 }
 
 function failure(err: unknown): RecordingResultPayload {

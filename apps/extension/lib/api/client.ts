@@ -9,7 +9,7 @@ import type {
   PartResponse,
   RecordingApiError,
   StateResponse,
-  TranscriptRequest,
+  TranscribeRequest,
   UploadTransport,
 } from "./types";
 
@@ -93,7 +93,8 @@ function toBody(bytes: Uint8Array): ArrayBuffer {
 /*
  * No content-length: it's a forbidden fetch header (the browser sets it),
  * unlike the desktop's Node client. `contentType` is gated by the route:
- * octet-stream for media parts, image/jpeg for the poster.
+ * octet-stream for media parts, image/jpeg for the poster, audio/webm for
+ * the transcription chunks.
  */
 async function postBytes<T>(
   path: string,
@@ -201,8 +202,16 @@ export function createRecordingTransport(
         "image/jpeg",
       );
     },
-    transcript: async (req: TranscriptRequest) => {
-      await postJson<{ ok: true }>("/transcript", deviceId, token, req);
+    uploadAudioPart: async (slug, partNumber, bytes) => {
+      await postBytes<{ partNumber: number }>(
+        partPath("audio-part", slug, partNumber),
+        deviceId,
+        bytes,
+        "audio/webm",
+      );
+    },
+    transcribe: async (req: TranscribeRequest) => {
+      await postJson<{ ok: true }>("/transcribe", deviceId, token, req);
     },
     abort: async (req: AbortRequest) => {
       await postJson<{ ok: true }>("/abort", deviceId, token, req);

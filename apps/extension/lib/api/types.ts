@@ -61,39 +61,15 @@ export type RecordingApiError = {
 };
 
 /*
- * Transcript produced on the recorder and posted after /finalize. Times are
- * recording time in milliseconds (pauses removed), the same clock as
- * `durationMs`. `words` is optional: Chrome's recognizer only times phrases.
+ * The recorder uploads the mic as short standalone audio chunks
+ * (POST /api/r/audio-part) and then asks the server to transcribe them with
+ * the chunk layout. Times are recording time in milliseconds (pauses
+ * removed), the same clock as `durationMs`.
  */
-export type TranscriptWord = {
-  text: string;
-  startMs: number;
-  endMs: number;
-};
-
-export type TranscriptSegment = {
-  id: string;
-  startMs: number;
-  endMs: number;
-  text: string;
-  words?: TranscriptWord[];
-};
-
-export type TranscriptSource =
-  | "chrome-speech-local"
-  | "chrome-speech-cloud"
-  | "apple-speech";
-
-export type RecordingTranscript = {
-  version: 1;
-  language: string | null;
-  source: TranscriptSource;
-  segments: TranscriptSegment[];
-};
-
-export type TranscriptRequest = {
+export type TranscribeRequest = {
   slug: string;
-  transcript: RecordingTranscript;
+  language?: string;
+  parts: { partNumber: number; startMs: number; endMs: number }[];
 };
 
 // The no-auth probe: /api/r/state answers "ready" once a finalize has been
@@ -119,7 +95,12 @@ export type UploadTransport = {
   finalizeScreen(req: FinalizeRequest): Promise<FinalizeResponse>;
   finalizeWebcam(req: FinalizeRequest): Promise<void>;
   uploadPoster(slug: string, bytes: Uint8Array): Promise<void>;
-  transcript(req: TranscriptRequest): Promise<void>;
+  uploadAudioPart(
+    slug: string,
+    partNumber: number,
+    bytes: Uint8Array,
+  ): Promise<void>;
+  transcribe(req: TranscribeRequest): Promise<void>;
   abort(req: AbortRequest): Promise<void>;
   state(slug: string): Promise<StateResponse>;
   viewUrl(slug: string): string;
