@@ -115,8 +115,6 @@ type Timeline = Omit<ProgressOverlayInfo, "controlsVisible"> & {
 };
 
 const SKIP_SECONDS = 5;
-// How long the controls stay up after the pointer leaves the player.
-const CONTROLS_LEAVE_DELAY_MS = 1000;
 const identityMs = (ms: number): number => ms;
 // Captions ride above the full-width bar while the controls show; the stock
 // value only clears the stock pill.
@@ -156,13 +154,7 @@ export function RecordingSkin({
   controlsExtra,
 }: RecordingSkinProps) {
   const isFullscreen = usePlayer(selectFullscreen)?.isFullscreen ?? false;
-  const storeControlsVisible =
-    usePlayer(selectControls)?.controlsVisible ?? true;
-  const pointerInsideRef = useRef(true);
-  const controlsVisible = useLingeringControls(
-    storeControlsVisible,
-    pointerInsideRef,
-  );
+  const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
   const timeline = useTimeline(serverDurationMs, cuts, showCuts);
   const hasFrame = background !== "transparent";
 
@@ -177,12 +169,6 @@ export function RecordingSkin({
         ...(isFullscreen ? {} : sizeStyle),
         ...recordingBackgroundStyle(background),
         ...CAPTION_LIFT,
-      }}
-      onPointerEnter={() => {
-        pointerInsideRef.current = true;
-      }}
-      onPointerLeave={() => {
-        pointerInsideRef.current = false;
       }}
       data-theme="default"
       data-preset="video"
@@ -265,38 +251,6 @@ export function RecordingSkin({
       <VideoStatusIndicators />
     </Container>
   );
-}
-
-/*
- * The store drops the controls the instant the pointer leaves the player;
- * this keeps them up for a moment first. Going idle inside the player still
- * hides them right away. The decision waits a tick so the leave handlers
- * have run.
- */
-function useLingeringControls(
-  visible: boolean,
-  pointerInside: RefObject<boolean>,
-): boolean {
-  const [shown, setShown] = useState(visible);
-  useEffect(() => {
-    if (visible) {
-      setShown(true);
-      return;
-    }
-    let hide: number | undefined;
-    const decide = window.setTimeout(() => {
-      if (pointerInside.current) {
-        setShown(false);
-        return;
-      }
-      hide = window.setTimeout(() => setShown(false), CONTROLS_LEAVE_DELAY_MS);
-    }, 0);
-    return () => {
-      window.clearTimeout(decide);
-      if (hide != null) window.clearTimeout(hide);
-    };
-  }, [visible, pointerInside]);
-  return shown;
 }
 
 // A hairline along the bottom edge that stands in for the slider while the
@@ -583,8 +537,6 @@ function RecordingControls({
   progressOverlay,
   controlsExtra,
 }: RecordingControlsProps) {
-  const storeControlsVisible =
-    usePlayer(selectControls)?.controlsVisible ?? true;
   const { edited, durationSeconds, currentSeconds, toTimelineMs } = timeline;
   // The editor's selection replaces the chapters on the track, so any cue
   // present is the selection.
