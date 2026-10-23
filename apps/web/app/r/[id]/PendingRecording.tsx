@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ContentByline } from "../../_components/screenshot";
+import { MessageSquare } from "lucide-react";
 import { Spinner } from "@heroui/react";
+import { ContentByline } from "../../_components/screenshot";
+import { PoweredBy } from "../../_components/powered-by";
 
 type PendingRecordingProps = {
   slug: string;
@@ -77,11 +79,11 @@ export function PendingRecording({
   const showRetry = exhausted || failed;
 
   // Mirrors RecordingViewer's skeleton — grid, sticky header, player column,
-  // sidebar shell — so nothing moves when the ready page swaps in.
+  // activity card — so nothing moves when the ready page swaps in.
   return (
     <div className="grid w-full grid-cols-1 bg-canvas lg:h-[calc(100vh-64px)] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
       <main className="flex flex-col lg:min-h-0 lg:overflow-y-auto">
-        <header className="sticky top-0 z-20 border-b border-line bg-canvas-2">
+        <header className="sticky top-0 z-20 bg-canvas-2">
           <div className="relative px-6 py-5 lg:px-12">
             <div className="mx-auto w-full max-w-5xl pr-32 sm:pr-36">
               <h1 className="truncate text-[22px] font-[600] tracking-tight text-neutral-100 sm:text-2xl">
@@ -97,7 +99,7 @@ export function PendingRecording({
         <div className="mx-auto flex w-full max-w-5xl flex-col px-6 py-6 lg:px-12">
           <div
             // Match RecordingPlayer's container so swapping in the video doesn't reflow.
-            className="relative w-full overflow-hidden rounded-xl bg-neutral-900 ring-1 ring-line"
+            className="relative w-full overflow-hidden rounded-2xl bg-neutral-900"
             style={{ aspectRatio: "16 / 9" }}
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center">
@@ -125,9 +127,33 @@ export function PendingRecording({
               )}
             </div>
           </div>
+          <footer className="mt-8 flex justify-center border-t border-line pt-6">
+            <PoweredBy />
+          </footer>
         </div>
       </main>
-      <aside className="hidden w-full flex-col bg-canvas-2 lg:flex lg:h-full lg:border-l lg:border-line" />
+      <aside className="hidden w-full flex-col lg:mr-4 lg:mb-4 lg:flex lg:h-[calc(100%-1rem)] lg:overflow-hidden lg:rounded-3xl lg:border lg:border-black/[0.07] lg:bg-panel lg:dark:border-white/[0.07]">
+        <header className="flex items-center justify-between px-6 pt-5 pb-4">
+          <h2 className="text-sm font-semibold tracking-tight text-fg">
+            Activity
+          </h2>
+          <span className="rounded-full bg-tint-strong px-2.5 py-0.5 text-xs font-medium text-fg tabular-nums">
+            0
+          </span>
+        </header>
+        <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-tint text-fg-muted ring-1 ring-line-strong">
+            <MessageSquare className="h-5 w-5" />
+          </div>
+          <p className="mt-4 text-base font-semibold text-fg">
+            No activity yet
+          </p>
+          <p className="mt-1.5 max-w-[18rem] text-xs leading-relaxed text-fg-muted">
+            Reactions and comments from viewers will show up here once the
+            recording is ready.
+          </p>
+        </div>
+      </aside>
     </div>
   );
 }
