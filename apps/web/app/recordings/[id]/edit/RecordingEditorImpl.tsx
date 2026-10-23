@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   RecordingPlayer,
   type RecordingPlayerHandle,
 } from "@/app/_components/recording";
 import { renameRecordingAction } from "@/app/actions";
+import { addCut, type RecordingCut } from "@/lib/recording/cuts";
 import type { RecordingEditorProps } from "./RecordingEditor";
 import { useEditorConfig } from "./use-editor-config";
 import { EditorTopBar } from "./EditorTopBar";
@@ -31,9 +32,12 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     viewCount,
     createdAt,
     initialConfig,
+    initialTranscript,
+    transcriptHasEdits,
   } = props;
 
   const [title, setTitle] = useState<string>(initialTitle ?? "");
+  const [selectionSpan, setSelectionSpan] = useState<RecordingCut | null>(null);
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
 
   const {
@@ -69,6 +73,24 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     setTitle(next);
     return null;
   };
+
+  const seekToMs = useCallback((ms: number) => {
+    playerRef.current?.seek(ms / 1000);
+  }, []);
+
+  const getCurrentMs = useCallback(() => {
+    const seconds = playerRef.current?.getCurrentTime() ?? 0;
+    return Math.max(0, Math.floor(seconds * 1000));
+  }, []);
+
+  const onCutsChange = useCallback(
+    (cuts: RecordingCut[]) => update({ cuts }),
+    [update],
+  );
+
+  const deleteSelection = selectionSpan
+    ? () => update({ cuts: addCut(config.cuts, selectionSpan) })
+    : undefined;
 
   const onFinish = (): void => {
     void (async () => {
@@ -107,6 +129,12 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
               serverWidth={width}
               serverHeight={height}
               config={config}
+              captionsUrl={
+                initialTranscript
+                  ? `/api/r/transcript/${slug}/captions`
+                  : undefined
+              }
+              captionsLang={initialTranscript?.language ?? undefined}
               // 16rem ≈ top bar (h-14) + timeline + this section's p-6; keep in
               // sync if those chrome heights change.
               landscapeMaxHeightCss="calc(100vh - 16rem)"
@@ -114,7 +142,16 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
           </div>
         </section>
 
-        <EditorTranscriptPanel />
+        <EditorTranscriptPanel
+          slug={slug}
+          initialTranscript={initialTranscript}
+          initialHasEdits={transcriptHasEdits}
+          cuts={config.cuts}
+          onCutsChange={onCutsChange}
+          onSeek={seekToMs}
+          getCurrentMs={getCurrentMs}
+          onSelectionChange={setSelectionSpan}
+        />
         <EditorToolRail
           config={config}
           onConfig={update}
@@ -127,6 +164,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
         playerRef={playerRef}
         durationMs={durationMs}
         cuts={config.cuts}
+        onDeleteSelection={deleteSelection}
       />
     </main>
   );

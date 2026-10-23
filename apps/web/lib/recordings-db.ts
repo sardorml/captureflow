@@ -192,6 +192,24 @@ export async function updateRecordingConfigForUser(
   return (res.meta?.changes ?? 0) > 0;
 }
 
+// Null clears the owner's edits so the auto transcript shows again.
+export async function updateTranscriptEditsForUser(
+  userId: string,
+  slug: string,
+  editedJson: string | null,
+): Promise<boolean> {
+  const db = await getDb();
+  const res = await db
+    .prepare(
+      `UPDATE recording_transcripts SET edited_json = ?3, updated_at = ?4
+         WHERE slug = ?1
+           AND EXISTS (SELECT 1 FROM recordings WHERE slug = ?1 AND user_id = ?2)`,
+    )
+    .bind(slug, userId, editedJson, Date.now())
+    .run();
+  return (res.meta?.changes ?? 0) > 0;
+}
+
 export async function updateRecordingVisibilityForUser(
   userId: string,
   slug: string,

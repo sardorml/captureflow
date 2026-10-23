@@ -8,10 +8,19 @@ import {
   deleteRecordingForAdmin,
   updateRecordingConfigForUser,
   getRecordingForAdmin,
+  getRecordingForUser,
   updateRecordingTitleForUser,
   updateRecordingVisibilityForAdmin,
+  updateTranscriptEditsForUser,
   type RecordingVisibility,
 } from "@/lib/recordings-db";
+import { getTranscript } from "@/lib/recording/db";
+import { isValidSlug } from "@/lib/recording/slug";
+import {
+  hydrateTranscriptEdits,
+  parseTranscriptJson,
+} from "@/lib/recording/transcript";
+import type { RecordingTranscript } from "@/lib/recording/types";
 import {
   getScreenshotForAdmin,
   getScreenshotForUser,
@@ -153,6 +162,61 @@ export async function saveRecordingConfigAction(
   revalidatePath(`/recordings/${cleanSlug}/edit`);
   revalidatePath("/");
   return { error: null };
+}
+
+export type TranscriptActionResult = {
+  error: string | null;
+  transcript: RecordingTranscript | null;
+};
+
+async function getAutoTranscriptForOwner(
+  userId: string,
+  slug: string,
+): Promise<RecordingTranscript | null> {
+  const recording = await getRecordingForUser(userId, slug);
+  if (!recording) return null;
+  const stored = await getTranscript(slug);
+  return stored ? parseTranscriptJson(stored.autoJson) : null;
+}
+
+// `raw` is the full edited segment list ({ id, text }[]); timings always come
+// from the auto transcript, so the client can only change or drop text.
+export async function saveTranscriptEditsAction(
+  slug: string,
+  raw: unknown,
+): Promise<TranscriptActionResult> {
+  const userId = await requireUserId();
+  if (!isValidSlug(slug)) return { error: "Missing slug", transcript: null };
+  const auto = await getAutoTranscriptForOwner(userId, slug);
+  if (!auto) return { error: "Transcript not found", transcript: null };
+  const edited = hydrateTranscriptEdits(raw, auto);
+  if (!edited) {
+    return {
+      error: "The transcript can't be left empty. Reset it instead.",
+      transcript: null,
+    };
+  }
+  const ok = await updateTranscriptEditsForUser(
+    userId,
+    slug,
+    JSON.stringify(edited),
+  );
+  if (!ok) return { error: "Transcript not found", transcript: null };
+  revalidatePath(`/recordings/${slug}/edit`);
+  return { error: null, transcript: edited };
+}
+
+export async function resetTranscriptEditsAction(
+  slug: string,
+): Promise<TranscriptActionResult> {
+  const userId = await requireUserId();
+  if (!isValidSlug(slug)) return { error: "Missing slug", transcript: null };
+  const auto = await getAutoTranscriptForOwner(userId, slug);
+  if (!auto) return { error: "Transcript not found", transcript: null };
+  const ok = await updateTranscriptEditsForUser(userId, slug, null);
+  if (!ok) return { error: "Transcript not found", transcript: null };
+  revalidatePath(`/recordings/${slug}/edit`);
+  return { error: null, transcript: auto };
 }
 
 export async function revokeDeviceTokenAction(tokenId: string): Promise<{

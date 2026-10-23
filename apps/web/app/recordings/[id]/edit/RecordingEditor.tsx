@@ -7,6 +7,7 @@ import { type Theme } from "@captureflow/ui";
 import { useRouter } from "next/navigation";
 import type { RecordingConfig } from "@/lib/recording-config";
 import type { RecordingState, RecordingVisibility } from "@/lib/recordings-db";
+import type { RecordingTranscript } from "@/lib/recording/types";
 
 export type RecordingEditorProps = {
   slug: string;
@@ -22,6 +23,8 @@ export type RecordingEditorProps = {
   createdAt: number;
   initialVisibility: RecordingVisibility;
   initialConfig: RecordingConfig;
+  initialTranscript: RecordingTranscript | null;
+  transcriptHasEdits: boolean;
   initialState: RecordingState;
   workspaceName: string | null;
   allowPublicLinks: boolean;

@@ -19,11 +19,18 @@ type Props = {
   playerRef: RefObject<RecordingPlayerHandle | null>;
   durationMs: number | null;
   cuts: RecordingCut[];
+  // Present while the transcript panel has lines selected.
+  onDeleteSelection?: () => void;
 };
 
 const WAVEFORM_BARS = 160;
 
-export function EditorTimeline({ playerRef, durationMs, cuts }: Props) {
+export function EditorTimeline({
+  playerRef,
+  durationMs,
+  cuts,
+  onDeleteSelection,
+}: Props) {
   const [showWaveform, setShowWaveform] = useState(true);
   const [fraction, setFraction] = useState(0);
   const [duration, setDuration] = useState((durationMs ?? 0) / 1000);
@@ -132,7 +139,9 @@ export function EditorTimeline({ playerRef, durationMs, cuts }: Props) {
           <ToolButton
             icon={<Trash2 className="h-4 w-4" />}
             label="Delete selection"
-            disabled
+            onClick={onDeleteSelection}
+            disabled={!onDeleteSelection}
+            hint="Select lines in the transcript first"
           />
         </div>
         <Tooltip>
@@ -238,11 +247,13 @@ function ToolButton({
   label,
   onClick,
   disabled,
+  hint = "Coming soon",
 }: {
   icon: ReactNode;
   label: string;
   onClick?: () => void;
   disabled?: boolean;
+  hint?: string;
 }) {
   const button = (
     <button
@@ -261,7 +272,7 @@ function ToolButton({
       <Tooltip.Trigger className="inline-flex" tabIndex={0}>
         {button}
       </Tooltip.Trigger>
-      <Tooltip.Content>Coming soon</Tooltip.Content>
+      <Tooltip.Content>{hint}</Tooltip.Content>
     </Tooltip>
   );
 }

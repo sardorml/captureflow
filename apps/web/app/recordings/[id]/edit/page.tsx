@@ -6,6 +6,8 @@ import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { getRecordingForUser } from "@/lib/recordings-db";
 import { parseRecordingConfigJson } from "@/lib/recording-config";
+import { getTranscript } from "@/lib/recording/db";
+import { resolveTranscript } from "@/lib/recording/transcript";
 import { CDN_BASE_URL, viewUrlFor } from "@/lib/site";
 import { RecordingEditor } from "./RecordingEditor";
 
@@ -22,6 +24,7 @@ export default async function RecordingEditPage({
   if (!recording) notFound();
 
   const initialConfig = parseRecordingConfigJson(recording.configJson);
+  const { transcript, hasEdits } = resolveTranscript(await getTranscript(id));
 
   const env = await getAppWebEnv();
   const workspaceRow =
@@ -53,6 +56,8 @@ export default async function RecordingEditPage({
       createdAt={recording.createdAt}
       initialVisibility={recording.visibility}
       initialConfig={initialConfig}
+      initialTranscript={transcript}
+      transcriptHasEdits={hasEdits}
       initialState={recording.state}
       workspaceName={workspaceRow?.name ?? null}
       allowPublicLinks={workspaceRow?.allow_public_links ?? true}
