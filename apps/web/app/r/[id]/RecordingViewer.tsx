@@ -172,7 +172,7 @@ export function RecordingViewer({
             onSignInRequested={goToSignIn}
             handleRef={playerRef}
             onCommentClick={signedIn ? focusComment : goToSignIn}
-            className="max-lg:order-1 max-lg:rounded-none"
+            className="max-lg:order-1 max-lg:w-full! max-lg:rounded-none"
           />
           <div className="px-6 max-lg:order-4 max-lg:pb-6 lg:px-12">
             <SummaryChapters

@@ -72,8 +72,9 @@ export function RecordingPlayer({
   onSignInRequested,
   handleRef,
   onCommentClick,
-  // 19rem reserves nav + title header + padding + reaction bar; 34rem caps tall viewports.
-  landscapeMaxHeightCss,
+  // 19rem reserves nav + title header + padding + reaction bar, so the bar
+  // stays in view on desktops; tall sources give up width for it.
+  landscapeMaxHeightCss = "calc(100vh - 19rem)",
   // Framed elsewhere: reactions move into a compact control bar that stays open.
   embedded = false,
   captionsUrl,
