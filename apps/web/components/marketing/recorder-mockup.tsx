@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { TOKENS } from "./tokens";
 import { Play } from "lucide-react";
 
-const VIDEO_ID = "z0ALBUKAqcw";
+const VIDEO_ID = "srmlA5aT394";
 
 // A short muted loop cut from the demo stands in until someone hits play; the
 // YouTube iframe only loads then. Reduced motion gets the loop's first frame.

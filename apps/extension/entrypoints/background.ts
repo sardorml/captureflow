@@ -8,12 +8,17 @@ import {
 } from "@/lib/messaging";
 import {
   getActiveUpload,
+  getBubblePosition,
+  getCameraBlocked,
   getCapturePrefs,
   getRecordingStatus,
+  getThemePreference,
   setActiveUpload,
+  setBubblePosition,
   setCameraBlocked,
   setCapturePrefs,
   setRecordingStatus,
+  type RecordingStatus,
 } from "@/lib/storage";
 import { LIVE_KINDS } from "@/lib/capture/status";
 import { createRecordingTransport } from "@/lib/api/client";
@@ -43,9 +48,29 @@ import {
   RECORDER_FRAME_ID,
   removeRecorderOverlay,
   setRecorderOverlayHeight,
+  CONTROL_BAR_HOST_ID,
+  setRecorderBackdropTheme,
   setRecorderOverlayVisible,
   toggleRecorderOverlay,
 } from "@/lib/overlay/recorder-overlay";
+import {
+  AREA_SELECT_ID,
+  isPageArea,
+  selectPageArea,
+} from "@/lib/overlay/area-select";
+
+// Everything the extension puts on a page, hidden together for a capture.
+const PAGE_CHROME_IDS = [
+  RECORDER_FRAME_ID,
+  RECORDER_BACKDROP_ID,
+  BUBBLE_FRAME_ID,
+  CONTROL_BAR_HOST_ID,
+];
+
+async function activeTabId(): Promise<number | undefined> {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab?.id;
+}
 
 const OFFSCREEN_URL = "offscreen.html";
 
@@ -68,37 +93,68 @@ async function removeBubble(tabId: number): Promise<void> {
   }
 }
 
-// Restricted pages (chrome://, web store, new tab) can't host the in-page bubble,
-// so fall back to a grant tab; either way it seeds the grant the recorder reuses.
+// Mounts the bubble in the tab, or re-points the one already there, where it
+// was last dragged to.
+async function mountBubble(
+  tabId: number,
+  params: URLSearchParams,
+): Promise<void> {
+  if (bubbleTabId !== undefined && bubbleTabId !== tabId) {
+    await removeBubble(bubbleTabId);
+  }
+  const frameUrl = chrome.runtime.getURL(`bubble.html?${params}`);
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    func: mountCameraBubble,
+    args: [frameUrl, BUBBLE_FRAME_ID, await getBubblePosition()],
+  });
+  bubbleTabId = tabId;
+}
+
+/*
+ * The bubble stays up while the panel is open: live when the camera is on, a
+ * placeholder where it will be when it's off. Restricted pages (chrome://,
+ * web store, new tab) can't host it, so a camera turned on there falls back
+ * to a grant tab; either way it seeds the grant the recorder reuses.
+ */
 async function setCameraBubble(on: boolean, mic: boolean): Promise<void> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.id === undefined) return;
 
-  if (!on) {
-    await setCameraBlocked(false);
-    await removeBubble(tab.id);
-    if (bubbleTabId !== undefined && bubbleTabId !== tab.id) {
-      await removeBubble(bubbleTabId);
-    }
-    bubbleTabId = undefined;
-    return;
-  }
-
+  if (!on) await setCameraBlocked(false);
   const params = new URLSearchParams();
-  if (mic) params.set("audio", "1");
+  if (on) params.set("camera", "1");
+  if (on && mic) params.set("audio", "1");
   if (isInjectable(tab.url)) {
-    const frameUrl = chrome.runtime.getURL(`bubble.html?${params}`);
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: mountCameraBubble,
-      args: [frameUrl, BUBBLE_FRAME_ID],
-    });
-    bubbleTabId = tab.id;
-  } else {
+    await mountBubble(tab.id, params);
+  } else if (on) {
     params.set("video", "1");
     await chrome.tabs.create({
       url: chrome.runtime.getURL(`permissions.html?${params}`),
     });
+  }
+}
+
+const CONTROL_BAR_SCRIPT = "content-scripts/control-bar.js";
+
+// The control bar previews on the page while the panel is open. A tab loaded
+// before the extension was installed or updated has no content script to hear
+// this, so it gets the script and is told again; a restricted page gets no bar.
+async function setPanelPreview(tabId: number, on: boolean): Promise<void> {
+  try {
+    await sendMessage("panelPreview", on, tabId);
+    return;
+  } catch {
+    if (!on) return;
+  }
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: [CONTROL_BAR_SCRIPT],
+    });
+    await sendMessage("panelPreview", on, tabId);
+  } catch {
+    /* restricted page */
   }
 }
 
@@ -108,6 +164,30 @@ async function releaseCameraBubble(): Promise<void> {
   if (bubbleTabId === undefined) return;
   await removeBubble(bubbleTabId);
   bubbleTabId = undefined;
+}
+
+// Tab the recording was started from; the live bubble lands there.
+let recordTabId: number | undefined;
+
+/*
+ * The panel's preview leaves with the panel, so the recording gets a bubble of
+ * its own once capture is live. Only mounted here: the control bar's content
+ * script takes it down with the bar at the end, which also covers a worker
+ * that slept through the recording and lost this state.
+ */
+async function showRecordingBubble(status: RecordingStatus): Promise<void> {
+  if (status.kind !== "recording" || bubbleTabId !== undefined) return;
+  const prefs = await getCapturePrefs();
+  if (!prefs.camera || (await getCameraBlocked())) return;
+  const tabId = recordTabId ?? (await activeTabId());
+  if (tabId === undefined) return;
+  const tab = await chrome.tabs.get(tabId).catch(() => undefined);
+  if (!isInjectable(tab?.url)) return;
+  try {
+    await mountBubble(tabId, new URLSearchParams({ camera: "1" }));
+  } catch {
+    /* tab closed or no longer injectable */
+  }
 }
 
 // Tab hosting the invisible camera+mic grant frame (one combined prompt).
@@ -277,15 +357,20 @@ async function toggleOverlayOnActiveTab(): Promise<void> {
       chrome.runtime.getURL("popup.html?overlay=1"),
       RECORDER_FRAME_ID,
       RECORDER_BACKDROP_ID,
+      await getThemePreference(),
     ],
   });
   // A second click closes the panel, and the camera preview goes with it.
   if (injection?.result === false) {
     await releaseCameraBubble();
+    await setPanelPreview(tab.id, false);
     overlayTabId = undefined;
     return;
   }
   overlayTabId = tab.id;
+  await setPanelPreview(tab.id, true);
+  // The placeholder bubble; the panel swaps in the live camera if it's on.
+  await mountBubble(tab.id, new URLSearchParams());
 }
 
 /*
@@ -297,6 +382,7 @@ async function closeRecorderOverlay(tabId?: number): Promise<void> {
   await releaseCameraBubble();
   const target = tabId ?? overlayTabId;
   if (target === undefined) return;
+  await setPanelPreview(target, false);
   try {
     await chrome.scripting.executeScript({
       target: { tabId: target },
@@ -313,6 +399,16 @@ async function onActionClicked(): Promise<void> {
   const session = await getAuthSession();
   if (!session) {
     await openSignInTab();
+    return;
+  }
+  // Mid-recording the panel stays shut: the bar on the page is where the
+  // recording is stopped, and the click points at it.
+  const status = await getRecordingStatus();
+  if (status.kind === "recording" || status.kind === "paused") {
+    const tabId = await activeTabId();
+    if (tabId !== undefined) {
+      await sendMessage("nudgeControlBar", undefined, tabId).catch(() => {});
+    }
     return;
   }
   await toggleOverlayOnActiveTab();
@@ -348,14 +444,38 @@ export default defineBackground(() => {
   /*
    * The overlay's backdrop closes the panel page-side, so this raw message is
    * the only notice the worker gets. Foreign shapes are ignored by the typed
-   * messaging layer, and it ignores this one.
+   * messaging layer, and it ignores this one. The tab comes from the sender:
+   * the worker may have been put to sleep since the panel opened, taking the
+   * tab it remembered with it.
    */
-  chrome.runtime.onMessage.addListener((message) => {
+  chrome.runtime.onMessage.addListener((message, sender) => {
     if (
       (message as { recorderOverlayClosed?: unknown }).recorderOverlayClosed
     ) {
+      const tabId = sender.tab?.id ?? overlayTabId;
       overlayTabId = undefined;
-      void releaseCameraBubble();
+      if (tabId !== undefined) {
+        void setPanelPreview(tabId, false);
+        void removeBubble(tabId);
+        if (bubbleTabId === tabId) bubbleTabId = undefined;
+      } else {
+        void releaseCameraBubble();
+      }
+    }
+    const moved = (message as { bubbleMoved?: unknown }).bubbleMoved;
+    if (
+      typeof moved === "object" &&
+      moved !== null &&
+      typeof (moved as { left?: unknown }).left === "number" &&
+      typeof (moved as { top?: unknown }).top === "number"
+    ) {
+      void setBubblePosition(moved as { left: number; top: number });
+    }
+    if ("captureflowArea" in (message as object)) {
+      const area = (message as { captureflowArea: unknown }).captureflowArea;
+      void sendMessage("areaSelected", isPageArea(area) ? area : null).catch(
+        () => {},
+      );
     }
     const verdict = (message as { captureflowCountdown?: unknown })
       .captureflowCountdown;
@@ -449,6 +569,20 @@ export default defineBackground(() => {
     closeRecorderOverlay(sender?.tab?.id),
   );
 
+  onMessage("setOverlayTheme", async ({ data, sender }) => {
+    const target = sender?.tab?.id ?? overlayTabId;
+    if (target === undefined) return;
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: target },
+        func: setRecorderBackdropTheme,
+        args: [data, RECORDER_BACKDROP_ID],
+      });
+    } catch {
+      /* tab closed or no longer injectable */
+    }
+  });
+
   onMessage("setOverlayVisible", async ({ data, sender }) => {
     const target = sender?.tab?.id ?? overlayTabId;
     if (target === undefined) return;
@@ -456,10 +590,43 @@ export default defineBackground(() => {
       await chrome.scripting.executeScript({
         target: { tabId: target },
         func: setRecorderOverlayVisible,
-        args: [data.visible, RECORDER_FRAME_ID, RECORDER_BACKDROP_ID],
+        args: [data.visible, PAGE_CHROME_IDS],
       });
     } catch {
       /* tab closed or no longer injectable */
+    }
+  });
+
+  onMessage("panelMode", async ({ data, sender }) => {
+    const tabId = sender?.tab?.id ?? overlayTabId;
+    if (tabId === undefined) return;
+    if (data === "screenshot") {
+      await setPanelPreview(tabId, false);
+      await releaseCameraBubble();
+      return;
+    }
+    await setPanelPreview(tabId, true);
+    const prefs = await getCapturePrefs();
+    // A blocked camera gets the placeholder: setCameraBubble(false) would
+    // clear the flag the blocked notice reads.
+    if (await getCameraBlocked()) {
+      await mountBubble(tabId, new URLSearchParams());
+      return;
+    }
+    await setCameraBubble(prefs.camera, prefs.mic);
+  });
+
+  onMessage("selectArea", async ({ sender }) => {
+    const target = sender?.tab?.id ?? overlayTabId ?? (await activeTabId());
+    if (target === undefined) return;
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: target },
+        func: selectPageArea,
+        args: [AREA_SELECT_ID],
+      });
+    } catch {
+      /* restricted page */
     }
   });
 
@@ -519,9 +686,10 @@ export default defineBackground(() => {
           ? undefined
           : await tabStreamIdFor(activeTab.id);
       await setRecordingStatus({ kind: "preparing" });
+      recordTabId = overlayTabId ?? (await activeTabId());
       // The panel gets out of the way before the native picker appears, taking
-      // the preview with it — one camera can't be opened twice, and the
-      // recorder is about to open this one.
+      // the preview with it; the recording's own bubble comes back once
+      // capture is live.
       await closeRecorderOverlay();
       await ensureOffscreenDocument();
       // Fire-and-forget: the offscreen doc reports back via
@@ -534,6 +702,7 @@ export default defineBackground(() => {
         cameraId: prefs.cameraId,
         micId: prefs.micId,
         source: prefs.source,
+        visibility: prefs.visibility,
         tabStreamId,
       }).catch((error) => void reportFailure(errorMessage(error)));
       return { ok: true };
@@ -551,7 +720,10 @@ export default defineBackground(() => {
   onMessage("restartRecording", () => sendMessage("restartCapture", undefined));
   onMessage("deleteRecording", () => sendMessage("deleteCapture", undefined));
 
-  onMessage("recordingStatus", ({ data }) => setRecordingStatus(data));
+  onMessage("recordingStatus", async ({ data }) => {
+    await setRecordingStatus(data);
+    await showRecordingBubble(data);
+  });
 
   onMessage("activeUploadChanged", ({ data }) => setActiveUpload(data));
 

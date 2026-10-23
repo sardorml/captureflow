@@ -1,16 +1,25 @@
 import { sendMessage } from "@/lib/messaging";
+import {
+  getUserProfile,
+  watchUserProfile,
+  type UserProfile,
+} from "@/lib/auth/session";
+import { initials } from "@/lib/format";
+import { avatarUrlAt } from "@/lib/avatar";
 
 /*
- * Two modes, both seeding the extension-origin grant the offscreen recorder
- * reuses:
- *   preview (default) — live circular camera; the mic track is released since
- *     only the camera is previewed.
+ * Three modes; the first two seed the extension-origin grant the offscreen
+ * recorder reuses:
+ *   camera=1 — live circular camera; the mic track is released since only the
+ *     camera is previewed.
  *   grant=1 — invisible frame that asks for camera+mic in ONE native prompt
  *     and releases everything; the SW tears the frame down on the result
  *     message.
+ *   neither — a placeholder standing where the camera will be while it's off.
  */
 const params = new URLSearchParams(location.search);
 const audio = params.get("audio") === "1";
+const camera = params.get("camera") === "1";
 const grantOnly = params.get("grant") === "1";
 
 async function isCameraDenied(): Promise<boolean> {
@@ -41,9 +50,9 @@ async function runGrant(): Promise<void> {
   }
 }
 
-// The bubble is 220 CSS px, so a frame narrower than this on a 2x display is
-// being scaled up.
-const SHARP_WIDTH = 440;
+const BUBBLE_SIZE = 220;
+// A frame narrower than the bubble on a 2x display is being scaled up.
+const SHARP_WIDTH = BUBBLE_SIZE * 2;
 // Checked on delivered frames, so a camera that has stopped producing them
 // waits for the cap rather than revealing a stale one. Raise it if the first
 // look at the bubble is still soft; it costs spinner time and nothing else.
@@ -105,4 +114,30 @@ async function runPreview(): Promise<void> {
   }
 }
 
-void (grantOnly ? runGrant() : runPreview());
+// The same identity the dashboard's account menu shows: the avatar when there
+// is one, otherwise initials from the name, or the address.
+function renderAvatar(profile: UserProfile | null): void {
+  const avatar = document.getElementById("avatar");
+  const image = document.getElementById("avatar-image");
+  const text = document.getElementById("avatar-initials");
+  if (!avatar || !(image instanceof HTMLImageElement) || !text) return;
+  const displayName = profile?.name?.trim() || profile?.email || "";
+  text.textContent = initials(displayName);
+  if (profile?.image) {
+    // The fixed size, not the element's: it has no width while still hidden.
+    image.src = avatarUrlAt(profile.image, BUBBLE_SIZE * devicePixelRatio);
+    avatar.dataset.hasImage = "true";
+  } else {
+    image.removeAttribute("src");
+    avatar.dataset.hasImage = "false";
+  }
+}
+
+async function showPlaceholder(): Promise<void> {
+  renderAvatar(await getUserProfile());
+  watchUserProfile(renderAvatar);
+  document.body.setAttribute("data-mode", "placeholder");
+  document.body.setAttribute("data-state", "ready");
+}
+
+void (grantOnly ? runGrant() : camera ? runPreview() : showPlaceholder());

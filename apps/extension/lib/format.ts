@@ -22,6 +22,20 @@ export function uploadPercent(
   return Math.min(99, Math.floor(((uploadedBytes ?? 0) / totalBytes) * 100));
 }
 
+// Up to two uppercase initials from a name, "?" when empty; the dashboard's
+// avatar fallback, so the two read as the same person.
+export function initials(source: string): string {
+  const trimmed = source.trim();
+  if (!trimmed) return "?";
+  return trimmed
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
 const BYTE_UNITS = ["KB", "MB", "GB", "TB"] as const;
 
 export function formatBytes(bytes: number): string {

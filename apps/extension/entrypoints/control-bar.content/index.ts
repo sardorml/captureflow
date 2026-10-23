@@ -1,77 +1,146 @@
-import { sendMessage } from "@/lib/messaging";
+import { onMessage, sendMessage } from "@/lib/messaging";
 import {
   getRecordingStatus,
   watchRecordingStatus,
   type RecordingStatus,
 } from "@/lib/storage";
-import { formatClock, uploadPercent } from "@/lib/format";
+import { formatClock } from "@/lib/format";
+import {
+  CONTROL_BAR_HOST_ID,
+  RECORDER_FRAME_ID,
+} from "@/lib/overlay/recorder-overlay";
+import {
+  BUBBLE_FRAME_ID,
+  unmountCameraBubble,
+} from "@/lib/overlay/camera-bubble";
 
-const HOST_ID = "captureflow-control-bar";
+const HOST_ID = CONTROL_BAR_HOST_ID;
 
-const STOP_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="3" fill="#f0554f"/></svg>`;
-const PAUSE_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1.5" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" rx="1.5" fill="currentColor"/></svg>`;
-const RESUME_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5.7v12.6c0 .8.9 1.3 1.6.9l10-6.3c.6-.4.6-1.4 0-1.8l-10-6.3c-.7-.4-1.6.1-1.6.9z" fill="currentColor"/></svg>`;
-const RESTART_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5V2.5L7.5 6 12 9.5V7a5.5 5.5 0 1 1-5.5 5.5H4.5A7.5 7.5 0 1 0 12 5z" fill="currentColor"/></svg>`;
-const DELETE_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zm-2.5 6h11l-.8 11.1a2 2 0 0 1-2 1.9H9.3a2 2 0 0 1-2-1.9L6.5 9zm4 2.5v7h1.5v-7h-1.5zm3 0v7H15v-7h-1.5z" fill="currentColor"/></svg>`;
+// Long enough to take the controls in at the start; short enough after the
+// pointer leaves that the bar doesn't linger open.
+const START_FOLD_MS = 2500;
+const LEAVE_FOLD_MS = 300;
+// Outlasts the exit transition.
+const LEAVE_MS = 240;
 
+// Each icon is drawn at the pixel size it measures in the reference, so the
+// glyph is the box: a 17px stop square, 15×17 pause bars, a 20px restart
+// ring, a 15px cross.
+const STOP_ICON = `<svg viewBox="0 0 17 17" width="17" height="17" aria-hidden="true"><rect width="17" height="17" rx="4" fill="currentColor"/></svg>`;
+const PAUSE_ICON = `<svg viewBox="0 0 15 17" width="15" height="17" aria-hidden="true"><rect width="6" height="17" rx="1.5" fill="currentColor"/><rect x="9" width="6" height="17" rx="1.5" fill="currentColor"/></svg>`;
+const RESUME_ICON = `<svg viewBox="0 0 15 17" width="15" height="17" aria-hidden="true"><path d="M1.5 1.6v13.8c0 .9 1 1.4 1.7.9l11-6.9c.7-.4.7-1.4 0-1.8l-11-6.9c-.7-.5-1.7 0-1.7.9z" fill="currentColor"/></svg>`;
+const RESTART_ICON = `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M2.5 10a7.5 7.5 0 1 0 2.3-5.4M2 2.6v4.6h4.6" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const DELETE_ICON = `<svg viewBox="0 0 15 15" width="15" height="15" aria-hidden="true"><path d="M1.5 1.5l12 12M13.5 1.5l-12 12" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>`;
+
+/*
+ * Measured off the reference bar at 2x: 58px wide with a 1px border and 20px
+ * corners; 36px controls, the stop in its own lighter well; the clock a 36px
+ * band between stop and pause, then an 8px gap between the icon buttons. Its
+ * preview greys are the colours below; live, the controls read brighter.
+ */
 const BAR_CSS = `
   .bar {
     position: fixed;
     left: 16px;
-    top: 50%;
+    top: 42%;
     transform: translateY(-50%);
     z-index: 2147483647;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 10px 8px;
-    border-radius: 16px;
-    background: #16181d;
+    padding: 8px 10px;
+    border: 1px solid #3b3d42;
+    border-radius: 20px;
+    background: #292a2e;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
     font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-    color: #e8eaed;
+    color: #f2f3f5;
     cursor: grab;
     user-select: none;
   }
   .bar.dragging { cursor: grabbing; }
+  /* Slides in from its edge; the same path out. */
+  .bar.entering, .bar.leaving {
+    opacity: 0;
+    transform: translate(-12px, -50%);
+    transition: opacity 0.18s ease-out, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .bar.settled {
+    transition: opacity 0.18s ease-out, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar.entering, .bar.leaving, .bar.settled { transition: none; }
+  }
+  /* A ring pulses out twice when the toolbar is clicked mid-recording. */
+  .bar.nudge { animation: nudge 0.8s ease-out 2; }
+  @keyframes nudge {
+    from { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), 0 0 0 0 rgba(236, 94, 59, 0.8); }
+    to { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), 0 0 0 16px rgba(236, 94, 59, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar.nudge { animation: none; }
+  }
   button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border: 0;
-    border-radius: 50%;
+    border-radius: 12px;
     background: transparent;
-    color: #e8eaed;
+    color: #c9cbd1;
     cursor: pointer;
     padding: 0;
   }
-  button:hover { background: #2a2e36; }
-  button:disabled { opacity: 0.4; cursor: default; }
+  button + button { margin-top: 8px; }
+  button:hover { background: #36373c; color: #f2f3f5; }
+  button:disabled { color: #585a60; cursor: default; }
   button:disabled:hover { background: transparent; }
-  .stop { background: #2a2e36; }
-  .stop:hover { background: #363b45; }
-  .timer {
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-    color: #e8eaed;
-    padding: 2px 0 4px;
+  .stop { background: #404146; color: #d0d2d8; }
+  .stop:hover { background: #4a4b51; color: #f2f3f5; }
+  .stop:disabled { color: #6a6b72; }
+  .stop:disabled:hover { background: #404146; }
+  .bar.live .stop { background: #ec5e3b; color: #fff; }
+  .bar.live .stop:hover { background: #d9512f; }
+  /* Restart and delete sit in a row that folds shut a moment after the
+     recording starts and unfolds under the pointer. */
+  .extra {
+    display: grid;
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transition: grid-template-rows 0.22s ease, opacity 0.18s ease;
   }
-  .timer.saving { font-size: 10px; color: #9aa0aa; }
+  .extra > div {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .extra button { margin-top: 8px; }
+  .bar.collapsed .extra { grid-template-rows: 0fr; opacity: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .extra { transition: none; }
+  }
+  .timer {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #f2f3f5;
+  }
+  .timer.preview { color: #96989d; }
 `;
 
 type Bar = {
   update(status: RecordingStatus): void;
+  // Shown while the panel is open: every control disabled, clock at zero.
+  preview(): void;
+  nudge(): void;
   destroy(): void;
 };
-
-function savingLabel(status: RecordingStatus): string {
-  if (status.kind !== "uploading") return "Saving…";
-  const pct = uploadPercent(status.uploadedBytes, status.totalBytes);
-  return pct === null ? "Saving…" : `Saving ${pct}%`;
-}
 
 function iconButton(icon: string, title: string, onClick: () => void) {
   const button = document.createElement("button");
@@ -118,7 +187,7 @@ function createBar(): Bar {
   shadow.appendChild(style);
 
   const bar = document.createElement("div");
-  bar.className = "bar";
+  bar.className = "bar entering";
   shadow.appendChild(bar);
 
   const stop = iconButton(STOP_ICON, "Stop and save", () =>
@@ -140,9 +209,34 @@ function createBar(): Bar {
     sendMessage("deleteRecording", undefined),
   );
 
-  bar.append(stop, timer, pause, restart, del);
+  const extra = document.createElement("div");
+  extra.className = "extra";
+  const extraInner = document.createElement("div");
+  extraInner.append(restart, del);
+  extra.appendChild(extraInner);
+  bar.append(stop, timer, pause, extra);
   makeDraggable(host, bar);
   document.documentElement.appendChild(host);
+  // Two frames in: the first paints the start state, the second transitions.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => bar.classList.replace("entering", "settled")),
+  );
+
+  // Full at the start so the controls are seen once, folded after that,
+  // and open again for as long as the pointer is over the bar.
+  let collapseTimer: ReturnType<typeof setTimeout> | undefined;
+  const expand = (): void => {
+    clearTimeout(collapseTimer);
+    bar.classList.remove("collapsed");
+  };
+  const collapseAfter = (ms: number): void => {
+    clearTimeout(collapseTimer);
+    collapseTimer = setTimeout(() => bar.classList.add("collapsed"), ms);
+  };
+  bar.addEventListener("pointerenter", expand);
+  bar.addEventListener("pointerleave", () => {
+    if (bar.classList.contains("live")) collapseAfter(LEAVE_FOLD_MS);
+  });
 
   let current: RecordingStatus = { kind: "idle" };
   const renderTimer = (): void => {
@@ -158,25 +252,56 @@ function createBar(): Bar {
   const tick = setInterval(renderTimer, 500);
 
   return {
+    preview() {
+      current = { kind: "idle" };
+      bar.classList.remove("live");
+      expand();
+      pause.innerHTML = PAUSE_ICON;
+      pause.title = "Pause";
+      for (const button of [stop, pause, restart, del]) {
+        button.disabled = true;
+      }
+      timer.classList.add("preview");
+      timer.textContent = formatClock(0);
+    },
     update(status: RecordingStatus) {
       current = status;
-      const saving = status.kind === "uploading";
+      if (!bar.classList.contains("live")) {
+        bar.classList.add("live");
+        expand();
+        collapseAfter(START_FOLD_MS);
+      }
       paused = status.kind === "paused";
       pause.innerHTML = paused ? RESUME_ICON : PAUSE_ICON;
       pause.title = paused ? "Resume" : "Pause";
       for (const button of [stop, pause, restart, del]) {
-        button.disabled = saving;
+        button.disabled = false;
       }
-      timer.classList.toggle("saving", saving);
-      if (saving) {
-        timer.textContent = savingLabel(status);
-      } else {
-        renderTimer();
-      }
+      timer.classList.remove("preview");
+      renderTimer();
+    },
+    nudge() {
+      expand();
+      collapseAfter(START_FOLD_MS);
+      bar.classList.remove("nudge");
+      // Forces a reflow so a second click restarts the animation.
+      void bar.offsetWidth;
+      bar.classList.add("nudge");
+      bar.addEventListener(
+        "animationend",
+        () => bar.classList.remove("nudge"),
+        { once: true },
+      );
     },
     destroy() {
       clearInterval(tick);
-      host.remove();
+      clearTimeout(collapseTimer);
+      // The id goes at once, so a bar created meanwhile is the one found.
+      host.id = "";
+      // A dragged bar has lost its centring transform; it fades in place.
+      if (bar.style.transform === "none") bar.style.opacity = "0";
+      else bar.classList.add("leaving");
+      setTimeout(() => host.remove(), LEAVE_MS);
     },
   };
 }
@@ -185,20 +310,45 @@ export default defineContentScript({
   matches: ["http://*/*", "https://*/*"],
   main() {
     let bar: Bar | null = null;
+    let previewing = false;
     const apply = (status: RecordingStatus): void => {
-      const visible =
-        status.kind === "recording" ||
-        status.kind === "paused" ||
-        status.kind === "uploading";
-      if (!visible) {
-        bar?.destroy();
-        bar = null;
+      // The bar leaves with the recording: the upload has its own page.
+      const live = status.kind === "recording" || status.kind === "paused";
+      if (live) {
+        bar ??= createBar();
+        bar.update(status);
         return;
       }
-      bar ??= createBar();
-      bar.update(status);
+      if (previewing) {
+        bar ??= createBar();
+        bar.preview();
+        return;
+      }
+      bar?.destroy();
+      bar = null;
+      // The recording's bubble goes with the bar; the panel's preview bubble
+      // is the panel's to remove.
+      unmountCameraBubble(BUBBLE_FRAME_ID);
     };
     void getRecordingStatus().then(apply);
     watchRecordingStatus(apply);
+
+    // The panel's frame leaving the page ends the preview too, so a worker
+    // asleep at the close can't strand the bar.
+    const frameWatch = new MutationObserver(() => {
+      if (document.getElementById(RECORDER_FRAME_ID)) return;
+      frameWatch.disconnect();
+      previewing = false;
+      void getRecordingStatus().then(apply);
+    });
+    onMessage("nudgeControlBar", () => bar?.nudge());
+    onMessage("panelPreview", ({ data }) => {
+      previewing = data;
+      frameWatch.disconnect();
+      if (data) {
+        frameWatch.observe(document.documentElement, { childList: true });
+      }
+      void getRecordingStatus().then(apply);
+    });
   },
 });

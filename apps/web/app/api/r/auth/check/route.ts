@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveDeviceTokenToUser } from "@/lib/recording/device-tokens";
+import { getUserProfile } from "@/lib/recording/db";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 
-// Bearer probe: 200 → token live; 401 → caller should clearRecordingAuth();
-// 400 → not a bearer header (treat as anonymous).
+// Bearer probe: 200 → token live, with the owner's profile for the extension
+// to show; 401 → caller should clearRecordingAuth(); 400 → not a bearer header
+// (treat as anonymous).
 
 function extractBearer(req: NextRequest): string | null {
   const h = req.headers.get("authorization") ?? "";
@@ -24,5 +26,6 @@ export async function GET(req: NextRequest) {
   if (!userId) {
     return jsonError("Sign-in expired or revoked", 401, "invalid_token");
   }
-  return withCors(NextResponse.json({ ok: true, userId }));
+  const profile = await getUserProfile(userId);
+  return withCors(NextResponse.json({ ok: true, userId, ...profile }));
 }

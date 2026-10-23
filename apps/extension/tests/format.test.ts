@@ -1,5 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { formatBytes, formatClock, uploadPercent } from "../lib/format";
+import {
+  formatBytes,
+  formatClock,
+  initials,
+  uploadPercent,
+} from "../lib/format";
+
+describe("initials", () => {
+  it("takes the first letter of up to two words, uppercased", () => {
+    expect(initials("ada lovelace")).toBe("AL");
+    expect(initials("Grace Brewster Murray Hopper")).toBe("GB");
+    expect(initials("  Linus  ")).toBe("L");
+  });
+
+  it("falls back to a question mark for an empty name", () => {
+    expect(initials("")).toBe("?");
+    expect(initials("   ")).toBe("?");
+  });
+});
 
 describe("uploadPercent", () => {
   it("floors the ratio to a whole percent", () => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, ListBox, Select, Typography } from "@heroui/react";
+import { Alert, Button, Dropdown } from "@heroui/react";
 import { sendMessage } from "@/lib/messaging";
+import { isOverlaySurface } from "@/lib/surface";
 import {
   getCameraBlocked,
   getCapturePrefs,
@@ -16,13 +17,20 @@ import {
   type MediaDeviceOption,
 } from "@/hooks/use-media-devices";
 import { MicMeter } from "./MicMeter";
-import { PANEL_ROW } from "./panel";
+import {
+  MENU_CHECK,
+  MENU_ITEM,
+  MENU_LIST,
+  MENU_OFFSET,
+  MENU_POPOVER,
+  PANEL_ROW_GREY,
+} from "./panel";
 
 // Clear of the overlay's .16s open plus the frame it reveals on.
 const PREVIEW_RESTORE_DELAY_MS = 220;
 
-const CAMERA_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+const CAMERA_SHAPE = (
+  <>
     <rect
       x="3"
       y="6.5"
@@ -40,11 +48,11 @@ const CAMERA_ICON = (
       strokeWidth="1.8"
       strokeLinejoin="round"
     />
-  </svg>
+  </>
 );
 
-const MIC_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+const MIC_SHAPE = (
+  <>
     <rect
       x="9"
       y="3.5"
@@ -62,8 +70,26 @@ const MIC_ICON = (
       strokeWidth="1.8"
       strokeLinecap="round"
     />
-  </svg>
+  </>
 );
+
+const SLASH = (
+  <path
+    d="m4 4 16 16"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+  />
+);
+
+function deviceIcon(shape: React.ReactNode, off: boolean) {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
+      {shape}
+      {off && SLASH}
+    </svg>
+  );
+}
 
 async function isMicGranted(): Promise<boolean> {
   try {
@@ -76,89 +102,115 @@ async function isMicGranted(): Promise<boolean> {
   }
 }
 
+type DeviceChoice = { on: boolean; deviceId?: string };
+
 type DeviceRowProps = {
-  icon: React.ReactNode;
+  shape: React.ReactNode;
   label: string;
+  // What the row says while the device is off.
+  offLabel: string;
   devices: MediaDeviceOption[];
   selectedId: string | undefined;
   on: boolean;
-  onToggle: (on: boolean) => void;
-  onSelect: (deviceId: string) => void;
+  onChange: (next: DeviceChoice) => void;
   // Rendered along the row's bottom edge rather than under it, so the level
   // reads as part of the mic row instead of a stray bar.
   meter?: React.ReactNode;
 };
 
+const OFF_KEY = "off";
+const ON_KEY = "on";
+
+/*
+ * The row is one menu: off at the top, then each device, so switching and
+ * picking are the same gesture. The icon reads the state back, crossed and
+ * red while the device is off.
+ */
 function DeviceRow({
-  icon,
+  shape,
   label,
+  offLabel,
   devices,
   selectedId,
   on,
-  onToggle,
-  onSelect,
+  onChange,
   meter,
 }: DeviceRowProps) {
-  // Device labels stay empty until the origin holds a grant; fall back to the
-  // static row label rather than rendering a picker of blank entries.
+  // Device labels stay empty until the origin holds a grant; offer a plain
+  // "on" then, rather than a menu of blank entries.
   const named = devices.filter((d) => d.label && d.deviceId);
+  const current = named.find((d) => d.deviceId === selectedId) ?? named[0];
+  const selectedKey = on ? (current?.deviceId ?? ON_KEY) : OFF_KEY;
+
+  const choose = (key: string) => {
+    if (key === OFF_KEY) onChange({ on: false });
+    else if (key === ON_KEY) onChange({ on: true });
+    else onChange({ on: true, deviceId: key });
+  };
 
   return (
-    <div
-      className={`${PANEL_ROW} relative overflow-hidden data-[on=true]:outline data-[on=true]:outline-border`}
-      data-on={on}
-    >
-      <span className="flex text-foreground" aria-hidden>
-        {icon}
-      </span>
-      {named.length > 0 ? (
-        <Select
-          aria-label={label}
-          selectedKey={selectedId ?? named[0]?.deviceId}
-          onSelectionChange={(key) => onSelect(String(key))}
-          className="min-w-0 flex-1"
-        >
-          <Select.Trigger className="w-full justify-between border-0 bg-transparent px-0">
-            <Select.Value className="truncate text-sm font-medium" />
-          </Select.Trigger>
-          <Select.Popover>
-            <ListBox>
-              {named.map((device) => (
-                <ListBox.Item
-                  key={device.deviceId}
-                  id={device.deviceId}
-                  textValue={device.label}
-                >
-                  {device.label}
-                </ListBox.Item>
-              ))}
-            </ListBox>
-          </Select.Popover>
-        </Select>
-      ) : (
-        <Typography type="body-sm" weight="medium" className="flex-1 truncate">
-          {label}
-        </Typography>
-      )}
-      {/* A labelled On/Off pill rather than a switch: at this row height the
-          track read as decoration, and the state now says itself. */}
-      <button
-        type="button"
-        role="switch"
-        aria-checked={on}
+    <Dropdown>
+      <Dropdown.Trigger
         aria-label={label}
-        onClick={() => onToggle(!on)}
-        className={[
-          "shrink-0 cursor-pointer rounded-md border px-1.5 py-0.5 text-[11px] font-semibold transition-colors motion-reduce:transition-none",
-          on
-            ? "border-success text-success"
-            : "border-separator text-muted hover:text-foreground",
-        ].join(" ")}
+        className={`${PANEL_ROW_GREY} relative w-full cursor-pointer overflow-hidden text-start outline-none`}
       >
-        {on ? "On" : "Off"}
-      </button>
-      {meter}
-    </div>
+        <span
+          className={`flex shrink-0 ${on ? "text-foreground" : "text-(--cf-off)"}`}
+          aria-hidden
+        >
+          {deviceIcon(shape, !on)}
+        </span>
+        <span className="min-w-0 flex-1 truncate">
+          {on ? (current?.label ?? label) : offLabel}
+        </span>
+        {meter}
+      </Dropdown.Trigger>
+      <Dropdown.Popover
+        placement={isOverlaySurface ? "left top" : "bottom start"}
+        offset={isOverlaySurface ? MENU_OFFSET : undefined}
+        shouldFlip={!isOverlaySurface}
+        className={MENU_POPOVER}
+      >
+        <Dropdown.Menu
+          selectionMode="single"
+          selectedKeys={[selectedKey]}
+          onAction={(key) => choose(String(key))}
+          className={MENU_LIST}
+        >
+          <Dropdown.Item id={OFF_KEY} className={MENU_ITEM}>
+            <span className="flex text-(--cf-off)" aria-hidden>
+              {deviceIcon(shape, true)}
+            </span>
+            {offLabel}
+            <Dropdown.ItemIndicator className={MENU_CHECK} />
+          </Dropdown.Item>
+          {named.length > 0 ? (
+            named.map((device) => (
+              <Dropdown.Item
+                key={device.deviceId}
+                id={device.deviceId}
+                textValue={device.label}
+                className={MENU_ITEM}
+              >
+                <span className="flex" aria-hidden>
+                  {deviceIcon(shape, false)}
+                </span>
+                <span className="min-w-0 flex-1 truncate">{device.label}</span>
+                <Dropdown.ItemIndicator className={MENU_CHECK} />
+              </Dropdown.Item>
+            ))
+          ) : (
+            <Dropdown.Item id={ON_KEY} className={MENU_ITEM}>
+              <span className="flex" aria-hidden>
+                {deviceIcon(shape, false)}
+              </span>
+              {label}
+              <Dropdown.ItemIndicator className={MENU_CHECK} />
+            </Dropdown.Item>
+          )}
+        </Dropdown.Menu>
+      </Dropdown.Popover>
+    </Dropdown>
   );
 }
 
@@ -229,15 +281,20 @@ export function DevicePickers() {
   };
 
   return (
-    <section className="flex flex-col gap-1.5">
+    <section className="flex flex-col gap-4">
       <DeviceRow
-        icon={CAMERA_ICON}
-        label={blocked ? "Camera blocked" : "Camera"}
+        shape={CAMERA_SHAPE}
+        label="Camera"
+        offLabel={blocked ? "Camera blocked" : "No camera"}
         devices={devices.cameras}
         selectedId={prefs.cameraId}
         on={prefs.camera && !blocked}
-        onToggle={(on) => void update({ camera: on })}
-        onSelect={(cameraId) => void update({ cameraId })}
+        onChange={({ on, deviceId }) =>
+          void update({
+            camera: on,
+            ...(deviceId ? { cameraId: deviceId } : {}),
+          })
+        }
       />
       {blocked && (
         <Alert status="warning">
@@ -259,13 +316,15 @@ export function DevicePickers() {
         </Alert>
       )}
       <DeviceRow
-        icon={MIC_ICON}
+        shape={MIC_SHAPE}
         label="Microphone"
+        offLabel="No microphone"
         devices={devices.mics}
         selectedId={prefs.micId}
         on={prefs.mic}
-        onToggle={(on) => void update({ mic: on })}
-        onSelect={(micId) => void update({ micId })}
+        onChange={({ on, deviceId }) =>
+          void update({ mic: on, ...(deviceId ? { micId: deviceId } : {}) })
+        }
         meter={<MicMeter enabled={prefs.mic} />}
       />
     </section>

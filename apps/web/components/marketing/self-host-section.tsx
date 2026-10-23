@@ -97,7 +97,7 @@ export function SelfHostSection() {
             variant: "tertiary",
             size: "lg",
             className:
-              "group h-12 shrink-0 gap-2 rounded-full px-6 font-medium [--button-bg:var(--cf-inverse)] [--button-bg-hover:#e5e5e5] [--button-bg-pressed:#d4d4d4] [--button-fg:var(--cf-on-inverse)]",
+              "group h-12 shrink-0 gap-2 rounded-full px-6 font-medium [--button-bg:var(--cf-inverse)] [--button-bg-hover:color-mix(in_srgb,var(--cf-inverse)_88%,var(--cf-canvas))] [--button-bg-pressed:color-mix(in_srgb,var(--cf-inverse)_80%,var(--cf-canvas))] [--button-fg:var(--cf-on-inverse)]",
           })}
         >
           {copy.setup.cta}

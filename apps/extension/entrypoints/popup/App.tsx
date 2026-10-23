@@ -52,10 +52,10 @@ async function hasMediaGrant(): Promise<boolean> {
 /* The pill comes from Tabs.Indicator inside each tab; only the icon colour is
    ours. isolate: the indicator sits at z-index -1, so without a stacking
    context of its own it sinks behind the popup's background. */
-const TAB_CLASS = "isolate px-4 data-[selected=true]:text-accent";
+const TAB_CLASS = "isolate h-10 px-[21px] data-[selected=true]:text-accent";
 
 const HOME_ICON = (
-  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
     <path
       d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5z"
       fill="none"
@@ -67,7 +67,7 @@ const HOME_ICON = (
 );
 
 const VIDEO_ICON = (
-  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
     <rect
       x="3"
       y="6.5"
@@ -89,7 +89,7 @@ const VIDEO_ICON = (
 );
 
 const PHOTO_ICON = (
-  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
     <path
       d="M8.5 6.5 10 4.5h4l1.5 2H19a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 19 19.5H5A1.5 1.5 0 0 1 3.5 18V8A1.5 1.5 0 0 1 5 6.5h3.5z"
       fill="none"
@@ -109,7 +109,7 @@ const PHOTO_ICON = (
 );
 
 const CLOSE_ICON = (
-  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
     <path
       d="m6 6 12 12M18 6 6 18"
       stroke="currentColor"
@@ -197,10 +197,10 @@ export function App() {
   const onStop = () => sendMessage("stopRecording", undefined);
 
   /*
-   * The preview belongs to recording, and it sits in the page rather than in
-   * this panel — left up, it would be in shot of the screenshot about to be
-   * taken. Only the bubble is torn down: the camera pref is what remembers the
-   * switch was on, so coming back turns it straight on again.
+   * The bar preview and the bubble belong to recording, and they sit in the
+   * page rather than in this panel — left up, they would be in shot of the
+   * screenshot about to be taken. The worker tears them down and puts them
+   * back; the camera pref is what remembers the switch was on.
    */
   const onModeChange = (key: Key) => {
     // Also swallows the callback some versions fire for the default key, which
@@ -208,17 +208,9 @@ export function App() {
     if (key === mode.current) return;
     mode.current = key;
     void (async () => {
-      const prefs = await getCapturePrefs();
-      if (!prefs.camera) return;
       const status = await getRecordingStatus();
       if (LIVE_KINDS.has(status.kind)) return;
-      // A blocked camera has no bubble either way, and toggling it here would
-      // clear the flag the blocked notice reads.
-      if (await getCameraBlocked()) return;
-      void sendMessage("setCameraBubble", {
-        on: key === "video",
-        mic: prefs.mic,
-      });
+      void sendMessage("panelMode", key === "video" ? "video" : "screenshot");
     })();
   };
 
@@ -227,7 +219,7 @@ export function App() {
       defaultSelectedKey="video"
       onSelectionChange={onModeChange}
       aria-label="Capture mode"
-      className="flex w-full min-w-0 flex-col gap-2.5 p-3"
+      className="flex w-full min-w-0 flex-col gap-5 px-[19px] pt-4 pb-5"
     >
       <header className="flex items-center justify-between gap-2">
         <IconAction label="Open dashboard" onPress={openHome}>
@@ -241,14 +233,14 @@ export function App() {
             the two icon buttons push the document past the body width — the
             popup ends up scrolled with the left edge cut off. The bang is
             load-bearing: that selector outranks a plain utility. */}
-        <Tabs.ListContainer className="w-max">
-          <Tabs.List className="w-max min-w-0!">
+        <Tabs.ListContainer className="w-max rounded-[14px] border border-separator bg-overlay p-1">
+          <Tabs.List className="w-max min-w-0! gap-0 p-0">
             <Tabs.Tab
               id="video"
               aria-label="Record video"
               className={TAB_CLASS}
             >
-              <Tabs.Indicator />
+              <Tabs.Indicator className="rounded-[10px] bg-background" />
               {VIDEO_ICON}
             </Tabs.Tab>
             <Tabs.Tab
@@ -256,7 +248,7 @@ export function App() {
               aria-label="Capture screenshot"
               className={TAB_CLASS}
             >
-              <Tabs.Indicator />
+              <Tabs.Indicator className="rounded-[10px] bg-background" />
               {PHOTO_ICON}
             </Tabs.Tab>
           </Tabs.List>
@@ -266,10 +258,12 @@ export function App() {
         </IconAction>
       </header>
 
-      <Tabs.Panel id="video" className="min-w-0">
+      {/* HeroUI pads the panel and pushes it off the list; the stack's own
+          gap and the card's padding already do both. */}
+      <Tabs.Panel id="video" className="mt-0 min-w-0 p-0">
         <RecorderPanel status={status} onStart={onStart} onStop={onStop} />
       </Tabs.Panel>
-      <Tabs.Panel id="screenshot" className="min-w-0">
+      <Tabs.Panel id="screenshot" className="mt-0 min-w-0 p-0">
         <ScreenshotPanel />
       </Tabs.Panel>
 

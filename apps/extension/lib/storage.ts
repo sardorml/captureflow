@@ -1,3 +1,5 @@
+import type { RecordingVisibility } from "./api/types";
+
 /*
  * Which surface the picker opens on. Chrome treats displaySurface as a hint —
  * it preselects the pane, the viewer can still pick anything — so this is a
@@ -5,12 +7,17 @@
  */
 export type CaptureSource = "screen" | "window" | "tab";
 
+// A drawn rectangle, or the whole visible tab.
+export type ScreenshotType = "area" | "tab";
+
 export type CapturePrefs = {
   camera: boolean;
   mic: boolean;
   cameraId?: string;
   micId?: string;
   source?: CaptureSource;
+  visibility?: RecordingVisibility;
+  shot?: ScreenshotType;
 };
 
 /*
@@ -82,6 +89,32 @@ export const setCapturePrefs = (prefs: CapturePrefs): Promise<void> =>
 export const watchCapturePrefs = (
   cb: (prefs: CapturePrefs) => void,
 ): (() => void) => capturePrefsItem.watch(cb);
+
+// Where the user last dragged the camera bubble, in viewport pixels; null
+// means its default corner.
+export type BubblePosition = { left: number; top: number };
+const bubblePositionItem = storage.defineItem<BubblePosition | null>(
+  "local:bubblePosition",
+  { fallback: null },
+);
+export const getBubblePosition = (): Promise<BubblePosition | null> =>
+  bubblePositionItem.getValue();
+export const setBubblePosition = (position: BubblePosition): Promise<void> =>
+  bubblePositionItem.setValue(position);
+
+// The panel's theme. "system" defers to the OS and is resolved at paint; the
+// names match the dashboard's so the two pickers read alike.
+export type ThemePreference = "light" | "dark" | "system";
+const themeItem = storage.defineItem<ThemePreference>("local:themePreference", {
+  fallback: "system",
+});
+export const getThemePreference = (): Promise<ThemePreference> =>
+  themeItem.getValue();
+export const setThemePreference = (theme: ThemePreference): Promise<void> =>
+  themeItem.setValue(theme);
+export const watchThemePreference = (
+  cb: (theme: ThemePreference) => void,
+): (() => void) => themeItem.watch(cb);
 
 export const getCameraBlocked = (): Promise<boolean> =>
   cameraBlockedItem.getValue();

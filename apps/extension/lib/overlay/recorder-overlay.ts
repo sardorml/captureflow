@@ -3,13 +3,14 @@ export const RECORDER_BACKDROP_ID = "captureflow-recorder-backdrop";
 
 /*
  * Injected via chrome.scripting (serialized): toggles the in-page recorder —
- * a blurred/dimmed backdrop with the extension panel floating top-right. Clicking the backdrop closes it page-side (no SW round-trip).
+ * a dimmed backdrop with the extension panel floating top-right. Clicking the
+ * backdrop closes it page-side (no SW round-trip).
  * Args only — the serialized body can't close over module scope.
  *
- * The iframe is wider than the panel: the card hugs its right edge and the
- * gutter is transparent, so the panel's own menus can open beside it instead
- * of being clipped at its edge. The card paints its rounding and shadow
- * itself, and clicks on the gutter close the panel from inside.
+ * The iframe is wider than the panel and the card sits inset from its edges
+ * (the panel's own padding), so its shadow has room and the gutter is
+ * transparent for menus to open beside it. The card paints its rounding and
+ * shadow itself, and clicks on the gutter close the panel from inside.
  *
  * color-scheme on the frame is load-bearing: if the panel's used scheme (dark)
  * differs from the embedder's, the transparent gutter is repainted as an
@@ -19,6 +20,7 @@ export function toggleRecorderOverlay(
   frameUrl: string,
   frameId: string,
   backdropId: string,
+  theme: "light" | "dark" | "system",
 ): boolean {
   const existing = document.getElementById(frameId);
   if (existing) {
@@ -27,11 +29,18 @@ export function toggleRecorderOverlay(
     return false;
   }
 
+  // "system" resolves here, on the page, where the OS setting is readable;
+  // the worker has no matchMedia. Dim and veil are repeated verbatim in
+  // setRecorderBackdropTheme, since this body can't share a module constant.
+  const dark =
+    theme === "dark" ||
+    (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
   const backdrop = document.createElement("div");
   backdrop.id = backdropId;
   backdrop.style.cssText =
-    "position:fixed;inset:0;z-index:2147483646;background:rgba(10,11,14,.45);" +
-    "backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);";
+    "position:fixed;inset:0;z-index:2147483646;background:" +
+    (dark ? "rgba(0,0,0,.67)" : "rgba(246,245,241,.72)") +
+    ";";
   backdrop.addEventListener("click", () => {
     backdrop.remove();
     document.getElementById(frameId)?.remove();
@@ -52,7 +61,7 @@ export function toggleRecorderOverlay(
   iframe.src = frameUrl;
   iframe.allow = "camera; microphone";
   iframe.style.cssText =
-    "position:fixed;top:14px;right:14px;width:520px;height:0;border:0;" +
+    "position:fixed;top:0;right:0;width:620px;height:0;border:0;" +
     "z-index:2147483647;background:transparent;color-scheme:dark;" +
     "opacity:0;transform:translateY(-6px);transform-origin:100% 0;" +
     "transition:opacity .16s ease-out,transform .16s ease-out;";
@@ -62,7 +71,7 @@ export function toggleRecorderOverlay(
   setTimeout(() => {
     const frame = document.getElementById(frameId);
     if (frame instanceof HTMLIFrameElement && frame.style.height === "0px") {
-      frame.style.height = "440px";
+      frame.style.height = "520px";
       frame.dataset.shown = "1";
       frame.style.opacity = "1";
       frame.style.transform = "none";
@@ -103,16 +112,28 @@ export function removeRecorderOverlay(
   document.getElementById(backdropId)?.remove();
 }
 
-// Screenshot capture hides the overlay for a frame so the blur and panel
-// never end up baked into the captured image.
-export function setRecorderOverlayVisible(
-  visible: boolean,
-  frameId: string,
+// The panel repaints the backdrop when its theme changes while it is open.
+export function setRecorderBackdropTheme(
+  theme: "light" | "dark",
   backdropId: string,
 ): void {
-  const value = visible ? "visible" : "hidden";
-  const frame = document.getElementById(frameId);
   const backdrop = document.getElementById(backdropId);
-  if (frame) frame.style.visibility = value;
-  if (backdrop) backdrop.style.visibility = value;
+  if (!backdrop) return;
+  backdrop.style.background =
+    theme === "dark" ? "rgba(0,0,0,.67)" : "rgba(246,245,241,.72)";
+}
+
+export const CONTROL_BAR_HOST_ID = "captureflow-control-bar";
+
+// Hides every piece of the extension's page chrome, dim, panel, bubble and
+// control bar, so none of it is baked into a screenshot.
+export function setRecorderOverlayVisible(
+  visible: boolean,
+  ids: string[],
+): void {
+  const value = visible ? "visible" : "hidden";
+  for (const id of ids) {
+    const element = document.getElementById(id);
+    if (element) element.style.visibility = value;
+  }
 }

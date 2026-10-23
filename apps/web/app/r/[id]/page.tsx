@@ -168,7 +168,6 @@ export default async function RecordingPage({ params }: { params: Params }) {
         <ViewerNav
           homeUrl={APP_WEB_SITE_URL}
           productName={PRODUCT_NAME}
-          label="recording"
           themeToggle={<ThemeToggle initialTheme={theme} className="h-9 w-9" />}
         />
         <PendingRecording

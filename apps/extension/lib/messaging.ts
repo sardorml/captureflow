@@ -1,5 +1,7 @@
 import { defineExtensionMessaging } from "@webext-core/messaging";
+import type { RecordingVisibility } from "./api/types";
 import type { WebSession } from "./auth/sync";
+import type { PageArea } from "./overlay/area-select";
 import type {
   ActiveUpload,
   CaptureSource,
@@ -20,8 +22,10 @@ export type CaptureContext = {
   mic: boolean;
   cameraId?: string;
   micId?: string;
-  // Offscreen docs can't read storage, so the chosen surface rides the message.
+  // Offscreen docs can't read storage, so the chosen surface and the
+  // recording's visibility ride the message.
   source?: CaptureSource;
+  visibility?: RecordingVisibility;
   /*
    * Set only for the tab source: a chrome.tabCapture stream id the offscreen
    * doc turns into a stream directly, skipping the getDisplayMedia picker.
@@ -43,7 +47,22 @@ type ProtocolMap = {
   ensureMediaGrant(): void;
   mediaGrantResult(input: { granted: boolean; denied: boolean }): void;
   closeRecorderOverlay(): void;
+  // SW→page: while the panel is open the control bar shows where it will
+  // sit, disabled, so the recording's chrome is in view before it starts.
+  panelPreview(on: boolean): void;
+  // SW→page: a toolbar click mid-recording points at the bar instead of
+  // opening the panel.
+  nudgeControlBar(): void;
+  // panel→SW: the page-side backdrop follows the panel's painted theme.
+  setOverlayTheme(theme: "light" | "dark"): void;
   setOverlayVisible(input: { visible: boolean }): void;
+  // panel→SW: the recording chrome on the page, bar and bubble, belongs to
+  // the video tab; the screenshot tab clears it out of shot.
+  panelMode(mode: "video" | "screenshot"): void;
+  // panel→SW: put the area picker on the page; SW→panel: what was drawn,
+  // null when the pick was abandoned.
+  selectArea(): void;
+  areaSelected(area: PageArea | null): void;
   setOverlayHeight(input: { height: number }): void;
   startRecording(): StartResult;
   stopRecording(): void;
