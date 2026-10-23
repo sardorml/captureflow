@@ -92,7 +92,7 @@ type Props = {
 type SidebarTab = "activity" | "transcript";
 
 const TAB_CLASS =
-  "isolate h-8 gap-1.5 px-3.5 text-sm font-medium text-fg-muted data-[selected=true]:text-fg";
+  "isolate h-8 flex-1 justify-center gap-1.5 px-3.5 text-sm font-medium text-fg-muted data-[selected=true]:text-fg";
 
 export function ActivitySidebar({
   slug,
@@ -337,8 +337,8 @@ export function ActivitySidebar({
         className="flex min-h-0 flex-1 flex-col"
       >
         <header className="sticky top-0 z-10 flex items-center bg-canvas-2/90 px-5 py-4 backdrop-blur-md lg:static lg:bg-transparent lg:px-6 lg:pt-5 lg:backdrop-blur-none">
-          <Tabs.ListContainer className="w-max rounded-xl bg-tint p-1">
-            <Tabs.List className="w-max min-w-0! gap-0 p-0">
+          <Tabs.ListContainer className="w-full rounded-xl bg-tint p-1">
+            <Tabs.List className="flex w-full gap-0 p-0">
               <Tabs.Tab id="activity" className={TAB_CLASS}>
                 <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
                 Activity
