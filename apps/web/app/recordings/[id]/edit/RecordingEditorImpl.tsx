@@ -157,6 +157,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
               }
               captionsLang={initialTranscript?.language ?? undefined}
               selection={selectionSpan}
+              showCuts
               // 16rem ≈ top bar (h-14) + timeline + this section's p-6; keep in
               // sync if those chrome heights change.
               landscapeMaxHeightCss="calc(100vh - 16rem)"
