@@ -133,8 +133,9 @@ export function TranscriptPanel({
       <section className="mt-8">
         {heading}
         <p className="mt-2 text-sm text-fg-muted">
-          No transcript for this recording. The Chrome extension writes one
-          while you record with the microphone on.
+          No transcript for this recording. The extension writes one while you
+          record with the microphone on in Google Chrome. Brave blocks Chrome's
+          speech recognition, so recordings made there have none.
         </p>
       </section>
     );

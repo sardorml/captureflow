@@ -228,8 +228,8 @@ export function EditorTranscriptPanel({
               No transcript available
             </p>
             <p className="text-xs text-fg-muted">
-              The Chrome extension writes one while you record with the
-              microphone on.
+              The extension writes one while you record with the microphone on
+              in Google Chrome. Brave blocks Chrome's speech recognition.
             </p>
           </div>
         ) : null}

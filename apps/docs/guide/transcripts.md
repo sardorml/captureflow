@@ -41,6 +41,11 @@ transcript and the captions. **Reset** returns to the automatic transcript.
 - Lines are timed by phrase, so a cut can start or end a fraction of a second
   off. Select a neighbouring line too if you need a clean edge.
 - A recording made with the mic off has no transcript.
+- Transcripts need Google Chrome. Brave blocks Chrome's speech recognition
+  and can't download the on-device pack, so recordings made in Brave have no
+  transcript.
+- Opening the extension once starts the on-device pack download (about a
+  minute); until it lands, Chrome's speech service transcribes instead.
 - On-device recognition covers a handful of languages today; others go through
   Chrome's speech service. Either way, the transcript language follows your
   browser language.
