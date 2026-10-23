@@ -198,12 +198,15 @@ export function RecordingPlayer({
         </>
       )}
       floatingOverlay={(info) => (
-        <ReactionLayer
-          kind="bursts"
-          reactions={reactions}
-          freshIds={freshIds}
-          info={info}
-        />
+        <>
+          <ReactionLayer
+            kind="bursts"
+            reactions={reactions}
+            freshIds={freshIds}
+            info={info}
+          />
+          <CommentBursts comments={comments} info={info} />
+        </>
       )}
       controlsAlwaysVisible={embedded}
       compactControls={embedded}
@@ -625,6 +628,103 @@ function usePassedMarks<T>(
     });
     if (hits.length > 0) onPass(hits);
   }, [currentSeconds, items, timeOf, enabled, onPass]);
+}
+
+type CommentBurst = {
+  id: number;
+  x: number;
+  y: number;
+  comment: RecordingComment;
+  delayMs: number;
+};
+
+const COMMENT_BURST_MS = 3200;
+// Half the widest comment card, so it never leaves the player.
+const COMMENT_BURST_HALF_WIDTH_PX = 140;
+
+// Comments drifting up the video as playback passes their time, like the
+// reactions, while the controls are hidden.
+function CommentBursts({
+  comments,
+  info,
+}: {
+  comments: RecordingComment[];
+  info: ProgressOverlayInfo;
+}) {
+  const { currentSeconds, durationSeconds, controlsVisible, toTimelineMs } =
+    info;
+  const layerRef = useRef<HTMLDivElement | null>(null);
+  const [bursts, setBursts] = useState<CommentBurst[]>([]);
+  const burstIdRef = useRef(0);
+  const timed = useMemo(
+    () => comments.filter((c) => c.timestampMs != null),
+    [comments],
+  );
+  const timeOf = useCallback(
+    (c: RecordingComment) => toTimelineMs(c.timestampMs ?? 0) / 1000,
+    [toTimelineMs],
+  );
+
+  const spawn = useCallback(
+    (hits: RecordingComment[]) => {
+      const layer = layerRef.current;
+      if (!layer || durationSeconds <= 0) return;
+      const origin = takeoffOrigin(layer);
+      const width = layer.clientWidth;
+      const added = hits.map((comment, i) => {
+        const x =
+          origin.left + (timeOf(comment) / durationSeconds) * origin.width;
+        return {
+          id: ++burstIdRef.current,
+          x: Math.min(
+            Math.max(x, COMMENT_BURST_HALF_WIDTH_PX),
+            width - COMMENT_BURST_HALF_WIDTH_PX,
+          ),
+          y: origin.y,
+          comment,
+          delayMs: i * BURST_STAGGER_MS,
+        };
+      });
+      setBursts((prev) => [...prev, ...added]);
+      const ids = new Set(added.map((b) => b.id));
+      const longest = Math.max(...added.map((b) => b.delayMs));
+      window.setTimeout(() => {
+        setBursts((prev) => prev.filter((b) => !ids.has(b.id)));
+      }, COMMENT_BURST_MS + longest);
+    },
+    [durationSeconds, timeOf],
+  );
+
+  usePassedMarks(timed, timeOf, currentSeconds, !controlsVisible, spawn);
+
+  return (
+    <div ref={layerRef} className="pointer-events-none absolute inset-0">
+      {bursts.map((b) => (
+        <span
+          key={b.id}
+          data-comment-burst
+          className="animate-reaction-rise absolute flex w-max max-w-64 items-start gap-1.5 rounded-lg bg-media-popover px-2.5 py-1.5 text-left text-xs text-media-popover-foreground shadow-lg ring-1 ring-white/10"
+          style={{
+            left: b.x,
+            top: b.y,
+            animationDelay: `${b.delayMs}ms`,
+            animationDuration: `${COMMENT_BURST_MS}ms`,
+          }}
+        >
+          <MessageSquare
+            className="mt-0.5 size-3.5 shrink-0"
+            aria-hidden="true"
+          />
+          <span className="min-w-0">
+            <span className="block font-semibold">{b.comment.userName}</span>
+            <span className="line-clamp-3 whitespace-pre-line">
+              {b.comment.body}
+            </span>
+          </span>
+        </span>
+      ))}
+    </div>
+  );
 }
 
 // Where emojis take off from: the time slider's span inside the player, so
