@@ -24,7 +24,7 @@ export function VideoStatusIndicators({ className, ...props }: VideoStatusIndica
         <StatusIndicator />
         <SeekIndicator />
         <PlaybackStatusIndicator
-          className="p-6 [--media-duration-slow:0s] [--media-duration:0s] [--media-duration-fast:0.2s] [--media-icon-size:--spacing(6.5)]"
+          className="p-8 [--media-duration-slow:0s] [--media-duration:0s] [--media-duration-fast:0.2s] [--media-icon-size:calc(--spacing(16)/1.5)]"
           closeDelay={350}
         />
       </div>
