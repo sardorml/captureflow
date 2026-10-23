@@ -8,7 +8,7 @@ export const SITE_NAME = "CaptureFlow";
  * hold it — and for that query the docs homepage was outranking this one on
  * the strength of naming the brand up front while this title trailed it.
  */
-export const SITE_TITLE = "CaptureFlow — Screen Recorder with Shareable Links";
+export const SITE_TITLE = "CaptureFlow - Screen Recorder with Shareable Links";
 export const SITE_DESCRIPTION =
   "Record your screen and share a link with your team or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
 export const SUPPORT_EMAIL = "support@captureflow.dev";
