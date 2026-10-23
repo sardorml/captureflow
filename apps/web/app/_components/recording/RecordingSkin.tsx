@@ -112,9 +112,10 @@ type Timeline = Omit<ProgressOverlayInfo, "controlsVisible"> & {
 const SKIP_SECONDS = 5;
 const identityMs = (ms: number): number => ms;
 // Captions ride above the full-width bar while the controls show; the stock
-// value only clears the stock pill.
-const CAPTION_LIFT = {
+// value only clears the stock pill. The accent paints the slider fill.
+const SKIN_VARS = {
   "--media-caption-controls-y": "calc(var(--media-spacing) * -22)",
+  "--media-accent-color": "#2563eb",
 } as CSSProperties;
 const PREVIEW_LOOP_SECONDS = 4;
 
@@ -158,7 +159,7 @@ export function RecordingSkin({
         ...(isFullscreen
           ? {}
           : { ...sizeStyle, ...recordingBackgroundStyle(background) }),
-        ...CAPTION_LIFT,
+        ...SKIN_VARS,
       }}
       data-theme="default"
       data-preset="video"
@@ -219,10 +220,40 @@ export function RecordingSkin({
         controlsExtra={controlsExtra}
       />
 
+      <BottomProgress timeline={timeline} hidden={controlsVisible} />
       <RecordingHotkeys />
       <VideoGestures />
       <VideoStatusIndicators />
     </Container>
+  );
+}
+
+// A hairline along the bottom edge that stands in for the slider while the
+// controls are hidden.
+function BottomProgress({
+  timeline,
+  hidden,
+}: {
+  timeline: Timeline;
+  hidden: boolean;
+}) {
+  const { currentSeconds, durationSeconds } = timeline;
+  const fraction =
+    durationSeconds > 0 ? Math.min(1, currentSeconds / durationSeconds) : 0;
+  return (
+    <div
+      className={cn(
+        "pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[3px] transition-opacity duration-media-controls ease-out",
+        hidden && "opacity-0",
+      )}
+      data-bottom-progress
+      aria-hidden="true"
+    >
+      <div
+        className="h-full bg-(--media-accent-color)"
+        style={{ width: `${fraction * 100}%` }}
+      />
+    </div>
   );
 }
 
