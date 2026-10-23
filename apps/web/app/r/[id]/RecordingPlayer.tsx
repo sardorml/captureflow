@@ -72,7 +72,7 @@ export function RecordingPlayer({
   handleRef,
   onCommentClick,
   // 19rem reserves nav + title header + padding + reaction bar; 34rem caps tall viewports.
-  landscapeMaxHeightCss = "min(34rem, calc(100vh - 19rem))",
+  landscapeMaxHeightCss,
   // Framed elsewhere: reactions move into a compact control bar that stays open.
   embedded = false,
   captionsUrl,
@@ -387,8 +387,8 @@ async function postReaction(
   return json.reaction;
 }
 
-// Marks closer than this merge, so their emoji stacks never overlap.
-const CLUSTER_VISUAL_WIDTH_PX = 14;
+// Marks closer than this merge, so their emoji rows never overlap.
+const CLUSTER_VISUAL_WIDTH_PX = 36;
 const MAX_STACKED_EMOJIS = 3;
 // Must match the rise animation duration in globals.css.
 const BURST_MS = 1600;
@@ -461,17 +461,14 @@ function ReactionDots({
             />
             <span
               data-reaction-stack
-              className="absolute bottom-[calc(50%+5px)] flex -translate-x-1/2 flex-col items-center text-[12px] leading-none drop-shadow-[0_1px_1px_rgb(0_0_0/0.5)]"
+              className="absolute bottom-[calc(50%+5px)] flex -translate-x-1/2 items-end text-[16px] leading-none drop-shadow-[0_1px_1px_rgb(0_0_0/0.5)]"
               style={{ left }}
             >
-              {stack
-                .slice(0, MAX_STACKED_EMOJIS)
-                .reverse()
-                .map((emoji, i) => (
-                  <span key={i} className={cn(i > 0 && "-mt-1.5")}>
-                    {emoji}
-                  </span>
-                ))}
+              {stack.slice(0, MAX_STACKED_EMOJIS).map((emoji, i) => (
+                <span key={i} className={cn(i > 0 && "-ml-1.5")}>
+                  {emoji}
+                </span>
+              ))}
             </span>
           </Fragment>
         );
