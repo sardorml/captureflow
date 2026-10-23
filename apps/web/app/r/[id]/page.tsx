@@ -238,7 +238,8 @@ export default async function RecordingPage({ params }: { params: Params }) {
   ]);
   const recordingConfig = parseRecordingConfigJson(row.configJson);
   const summaryChapters = parseSummaryChaptersJson(row.summaryChaptersJson);
-  const { transcript } = resolveTranscript(transcriptRow);
+  const { transcript, status: transcriptStatus } =
+    resolveTranscript(transcriptRow);
   const videoUrl = withVersion(videoUrlRaw, row.sizeBytes);
   const posterUrl = posterUrlRaw
     ? withVersion(posterUrlRaw, row.sizeBytes)
@@ -355,6 +356,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
         initialSummary={summaryChapters.summary}
         initialChapters={summaryChapters.chapters}
         initialTranscript={transcript}
+        initialTranscriptStatus={transcriptStatus}
         editUrl={editUrl}
       />
     </div>

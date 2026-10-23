@@ -6,7 +6,7 @@ import type {
   RecordingRow,
   TranscriptRow,
 } from "./types";
-import type { RecordingDb, UpsertTranscriptInput } from "./db-types";
+import type { CreateTranscriptJobInput, RecordingDb } from "./db-types";
 import { memoryDb } from "./db-memory";
 import { createD1Db } from "./db-d1";
 import { getCloudflareEnv } from "./cf-env";
@@ -140,10 +140,10 @@ export async function deleteComment(id: number): Promise<boolean> {
   return (await resolveDb()).deleteComment(id);
 }
 
-export async function upsertTranscript(
-  input: UpsertTranscriptInput,
+export async function createTranscriptJob(
+  input: CreateTranscriptJobInput,
 ): Promise<void> {
-  return (await resolveDb()).upsertTranscript(input);
+  return (await resolveDb()).createTranscriptJob(input);
 }
 
 export async function getTranscript(

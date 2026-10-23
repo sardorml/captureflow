@@ -9,47 +9,44 @@ import { activeSegmentId, isSegmentCut } from "@/lib/recording/transcript";
 import type {
   RecordingTranscript,
   TranscriptResponse,
+  TranscriptStatus,
 } from "@/lib/recording/types";
 import { cn } from "@/lib/utils";
 
 type Props = {
   slug: string;
   initialTranscript: RecordingTranscript | null;
+  initialStatus: TranscriptStatus;
   cuts: RecordingCut[];
-  createdAt: number;
   isOwner: boolean;
   editUrl: string;
   onSeek: (ms: number) => void;
   getCurrentMs: () => number;
 };
 
-// The recorder posts the transcript right after the upload finishes, so a
-// just-shared link polls briefly instead of showing nothing.
-const FRESH_WINDOW_MS = 3 * 60_000;
+// Whisper takes about a third of the recording's length; a just-shared link
+// polls until the job settles instead of showing nothing.
 const POLL_INTERVAL_MS = 3_000;
-const POLL_FOR_MS = 90_000;
+const POLL_FOR_MS = 30 * 60_000;
 
 export function TranscriptPanel({
   slug,
   initialTranscript,
+  initialStatus,
   cuts,
-  createdAt,
   isOwner,
   editUrl,
   onSeek,
   getCurrentMs,
 }: Props) {
   const [transcript, setTranscript] = useState(initialTranscript);
-  const [waiting, setWaiting] = useState(
-    () =>
-      initialTranscript === null && Date.now() - createdAt < FRESH_WINDOW_MS,
-  );
+  const [status, setStatus] = useState(initialStatus);
   const [query, setQuery] = useState("");
   const [currentMs, setCurrentMs] = useState(0);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!waiting) return;
+    if (status !== "pending") return;
     const deadline = Date.now() + POLL_FOR_MS;
     let cancelled = false;
     const tick = async (): Promise<void> => {
@@ -59,16 +56,16 @@ export function TranscriptPanel({
         });
         if (res.ok) {
           const data = (await res.json()) as TranscriptResponse;
-          if (!cancelled && data.transcript) {
+          if (!cancelled && data.status !== "pending") {
             setTranscript(data.transcript);
-            setWaiting(false);
+            setStatus(data.status);
             return;
           }
         }
       } catch {
         // retry on the next tick
       }
-      if (!cancelled && Date.now() > deadline) setWaiting(false);
+      if (!cancelled && Date.now() > deadline) setStatus("failed");
     };
     void tick();
     const id = window.setInterval(tick, POLL_INTERVAL_MS);
@@ -76,7 +73,7 @@ export function TranscriptPanel({
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [waiting, slug]);
+  }, [status, slug]);
 
   useEffect(() => {
     const id = window.setInterval(() => setCurrentMs(getCurrentMs()), 500);
@@ -117,13 +114,13 @@ export function TranscriptPanel({
   );
 
   if (!transcript) {
-    if (waiting) {
+    if (status === "pending") {
       return (
         <section className="mt-8">
           {heading}
           <p className="mt-2 flex items-center gap-2 text-sm text-fg-muted">
             <Spinner size="sm" />
-            Preparing transcript…
+            Transcribing…
           </p>
         </section>
       );
@@ -133,9 +130,9 @@ export function TranscriptPanel({
       <section className="mt-8">
         {heading}
         <p className="mt-2 text-sm text-fg-muted">
-          No transcript for this recording. The extension writes one while you
-          record with the microphone on in Google Chrome. Brave blocks Chrome's
-          speech recognition, so recordings made there have none.
+          {status === "failed"
+            ? "Transcription didn't finish for this recording."
+            : "No transcript for this recording. Record with the microphone on and one is written for you."}
         </p>
       </section>
     );

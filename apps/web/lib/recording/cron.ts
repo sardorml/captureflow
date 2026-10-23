@@ -6,7 +6,8 @@ import {
   listPaidUserIds,
 } from "@captureflow/quota";
 import { createD1Db } from "./db-d1";
-import { objectKeysFor } from "./object-keys";
+import { audioPartPrefixFor, objectKeysFor } from "./object-keys";
+import { deleteObjectsWithPrefix } from "./r2-prefix";
 import { screenshotObjectKeysFor } from "../screenshot-keys";
 
 /*
@@ -134,6 +135,10 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
     for (const row of rows) {
       try {
         await env.BUCKET.delete(objectKeysFor(row));
+        await deleteObjectsWithPrefix(
+          env.BUCKET,
+          audioPartPrefixFor(row.storageKey),
+        );
       } catch (err) {
         console.warn(`[cron] r2 delete failed for ${row.slug}:`, err);
       }

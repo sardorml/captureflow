@@ -26,12 +26,14 @@ import { activeSegmentId, isSegmentCut } from "@/lib/recording/transcript";
 import type {
   RecordingTranscript,
   TranscriptSegment,
+  TranscriptStatus,
 } from "@/lib/recording/types";
 import { cn } from "@/lib/utils";
 
 type Props = {
   slug: string;
   initialTranscript: RecordingTranscript | null;
+  transcriptStatus: TranscriptStatus;
   initialHasEdits: boolean;
   cuts: RecordingCut[];
   onCutsChange: (cuts: RecordingCut[]) => void;
@@ -51,6 +53,7 @@ type Selection = { anchorId: string; headId: string };
 export function EditorTranscriptPanel({
   slug,
   initialTranscript,
+  transcriptStatus,
   initialHasEdits,
   cuts,
   onCutsChange,
@@ -223,13 +226,22 @@ export function EditorTranscriptPanel({
             id="transcript-body"
             className="mt-3 flex flex-col items-center gap-1 py-4 text-center"
           >
-            <Captions className="h-6 w-6 text-fg-subtle" />
+            {transcriptStatus === "pending" ? (
+              <Spinner size="sm" />
+            ) : (
+              <Captions className="h-6 w-6 text-fg-subtle" />
+            )}
             <p className="text-sm font-medium text-fg">
-              No transcript available
+              {transcriptStatus === "pending"
+                ? "Transcribing…"
+                : "No transcript available"}
             </p>
             <p className="text-xs text-fg-muted">
-              The extension writes one while you record with the microphone on
-              in Google Chrome. Brave blocks Chrome's speech recognition.
+              {transcriptStatus === "pending"
+                ? "Reload this page in a minute to edit it."
+                : transcriptStatus === "failed"
+                  ? "Transcription didn't finish for this recording."
+                  : "Record with the microphone on and one is written for you."}
             </p>
           </div>
         ) : null}

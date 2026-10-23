@@ -4,22 +4,17 @@ import type {
   TranscriptResponse,
   TranscriptRow,
   TranscriptSegment,
-  TranscriptSource,
   TranscriptWord,
 } from "./types";
 
-// Caps bound the stored blob so a rogue recorder can't grow it unboundedly.
+// Caps bound the stored blob; the assembled transcript and the owner's edits
+// both pass through here before they are served.
 const MAX_SEGMENTS = 2_000;
 const MAX_WORDS = 20_000;
 const MAX_SEGMENT_CHARS = 1_000;
 const MAX_WORD_CHARS = 100;
 const SEGMENT_ID = /^[A-Za-z0-9_-]{1,32}$/;
 const LANGUAGE_TAG = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$/;
-const SOURCES: readonly TranscriptSource[] = [
-  "chrome-speech-local",
-  "chrome-speech-cloud",
-  "apple-speech",
-];
 
 export type TranscriptEdits = {
   segments: { id: string; text: string }[];
@@ -27,12 +22,6 @@ export type TranscriptEdits = {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
-}
-
-function isTranscriptSource(value: unknown): value is TranscriptSource {
-  return (
-    typeof value === "string" && (SOURCES as readonly string[]).includes(value)
-  );
 }
 
 function hydrateRange(
@@ -81,9 +70,7 @@ function hydrateSegment(raw: unknown): TranscriptSegment | null {
 
 export function hydrateTranscript(raw: unknown): RecordingTranscript | null {
   if (!isRecord(raw) || raw.version !== 1) return null;
-  if (!isTranscriptSource(raw.source) || !Array.isArray(raw.segments)) {
-    return null;
-  }
+  if (!Array.isArray(raw.segments)) return null;
   const seen = new Set<string>();
   const segments: TranscriptSegment[] = [];
   let wordCount = 0;
@@ -100,12 +87,7 @@ export function hydrateTranscript(raw: unknown): RecordingTranscript | null {
   }
   if (segments.length === 0) return null;
   segments.sort((a, b) => a.startMs - b.startMs || a.endMs - b.endMs);
-  return {
-    version: 1,
-    language: hydrateLanguage(raw.language),
-    source: raw.source,
-    segments,
-  };
+  return { version: 1, language: hydrateLanguage(raw.language), segments };
 }
 
 export function parseTranscriptJson(
@@ -154,13 +136,20 @@ export function hydrateTranscriptEdits(
   return { ...auto, segments };
 }
 
+// A ready row whose transcript turned out empty (silence) reads as "none".
 export function resolveTranscript(
   row: TranscriptRow | null,
 ): TranscriptResponse {
-  if (!row) return { transcript: null, hasEdits: false };
+  if (!row) return { status: "none", transcript: null, hasEdits: false };
+  if (row.status !== "ready") {
+    return { status: row.status, transcript: null, hasEdits: false };
+  }
   const edited = parseTranscriptJson(row.editedJson);
-  if (edited) return { transcript: edited, hasEdits: true };
-  return { transcript: parseTranscriptJson(row.autoJson), hasEdits: false };
+  if (edited) return { status: "ready", transcript: edited, hasEdits: true };
+  const auto = parseTranscriptJson(row.autoJson);
+  return auto
+    ? { status: "ready", transcript: auto, hasEdits: false }
+    : { status: "none", transcript: null, hasEdits: false };
 }
 
 function pad(n: number, width: number): string {

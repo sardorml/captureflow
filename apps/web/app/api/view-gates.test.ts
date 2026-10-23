@@ -20,15 +20,16 @@ vi.mock("@/lib/recording/db", () => ({
   updateRecording: vi.fn(),
   getTranscript: async () => ({
     slug: SLUG,
-    source: "chrome-speech-local",
+    status: "ready",
     language: "en-US",
+    partCount: 1,
     autoJson: JSON.stringify({
       version: 1,
       language: "en-US",
-      source: "chrome-speech-local",
       segments: [{ id: "s1", startMs: 0, endMs: 1000, text: "hi" }],
     }),
     editedJson: null,
+    error: null,
     createdAt: 1,
     updatedAt: 1,
   }),

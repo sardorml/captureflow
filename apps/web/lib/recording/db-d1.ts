@@ -5,8 +5,8 @@ import type {
   RecordingReaction,
   RecordingRow,
   RecordingVisibility,
+  TranscriptPartRow,
   TranscriptRow,
-  TranscriptSource,
   WebcamState,
 } from "./types";
 import type {
@@ -111,25 +111,56 @@ function reactionFromD1(r: D1ReactionRow): RecordingReaction {
 
 type D1TranscriptRow = {
   slug: string;
-  source: string;
+  status: string;
   language: string | null;
-  auto_json: string;
+  part_count: number;
+  auto_json: string | null;
   edited_json: string | null;
+  error: string | null;
   created_at: number;
+  updated_at: number;
+};
+
+type D1TranscriptPartRow = {
+  slug: string;
+  part_number: number;
+  storage_key: string;
+  start_ms: number;
+  end_ms: number;
+  segments_json: string | null;
   updated_at: number;
 };
 
 function transcriptFromD1(r: D1TranscriptRow): TranscriptRow {
   return {
     slug: r.slug,
-    source: r.source as TranscriptSource,
+    status: r.status as TranscriptRow["status"],
     language: r.language ?? null,
-    autoJson: r.auto_json,
+    partCount: r.part_count,
+    autoJson: r.auto_json ?? null,
     editedJson: r.edited_json ?? null,
+    error: r.error ?? null,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
 }
+
+function transcriptPartFromD1(r: D1TranscriptPartRow): TranscriptPartRow {
+  return {
+    slug: r.slug,
+    partNumber: r.part_number,
+    storageKey: r.storage_key,
+    startMs: r.start_ms,
+    endMs: r.end_ms,
+    segmentsJson: r.segments_json ?? null,
+    updatedAt: r.updated_at,
+  };
+}
+
+const TRANSCRIPT_COLUMNS =
+  "slug, status, language, part_count, auto_json, edited_json, error, created_at, updated_at";
+const TRANSCRIPT_PART_COLUMNS =
+  "slug, part_number, storage_key, start_ms, end_ms, segments_json, updated_at";
 
 function commentFromD1(r: D1CommentRow): RecordingComment {
   return {
@@ -259,23 +290,61 @@ export function createD1Db(d1: D1Database): RecordingDb {
     `DELETE FROM recording_activity WHERE id = ?1 AND kind = 'comment'`,
   );
 
-  const stmtUpsertTranscript = d1.prepare(
+  const stmtStartTranscript = d1.prepare(
     `INSERT INTO recording_transcripts
-       (slug, source, language, auto_json, edited_json, created_at, updated_at)
-     VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?5)
+       (slug, status, language, part_count, auto_json, edited_json, error, created_at, updated_at)
+     VALUES (?1, 'pending', ?2, ?3, NULL, NULL, NULL, ?4, ?4)
      ON CONFLICT(slug) DO UPDATE SET
-       source = excluded.source,
+       status = 'pending',
        language = excluded.language,
-       auto_json = excluded.auto_json,
+       part_count = excluded.part_count,
+       auto_json = NULL,
        edited_json = NULL,
+       error = NULL,
        updated_at = excluded.updated_at`,
   );
 
+  const stmtDeleteTranscriptParts = d1.prepare(
+    `DELETE FROM recording_transcript_parts WHERE slug = ?1`,
+  );
+
+  const stmtInsertTranscriptPart = d1.prepare(
+    `INSERT INTO recording_transcript_parts
+       (slug, part_number, storage_key, start_ms, end_ms, segments_json, updated_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, NULL, ?6)`,
+  );
+
   const stmtGetTranscript = d1.prepare(
-    `SELECT slug, source, language, auto_json, edited_json, created_at, updated_at
-       FROM recording_transcripts
-       WHERE slug = ?1
+    `SELECT ${TRANSCRIPT_COLUMNS} FROM recording_transcripts WHERE slug = ?1 LIMIT 1`,
+  );
+
+  const stmtGetTranscriptPart = d1.prepare(
+    `SELECT ${TRANSCRIPT_PART_COLUMNS} FROM recording_transcript_parts
+       WHERE slug = ?1 AND part_number = ?2
        LIMIT 1`,
+  );
+
+  const stmtListTranscriptParts = d1.prepare(
+    `SELECT ${TRANSCRIPT_PART_COLUMNS} FROM recording_transcript_parts
+       WHERE slug = ?1
+       ORDER BY part_number ASC`,
+  );
+
+  const stmtSetTranscriptPartLines = d1.prepare(
+    `UPDATE recording_transcript_parts SET segments_json = ?3, updated_at = ?4
+       WHERE slug = ?1 AND part_number = ?2`,
+  );
+
+  const stmtFinishTranscript = d1.prepare(
+    `UPDATE recording_transcripts
+       SET status = 'ready', auto_json = ?2, error = NULL, updated_at = ?3
+       WHERE slug = ?1 AND status = 'pending'`,
+  );
+
+  const stmtFailTranscript = d1.prepare(
+    `UPDATE recording_transcripts
+       SET status = 'failed', error = ?2, updated_at = ?3
+       WHERE slug = ?1 AND status = 'pending'`,
   );
 
   return {
@@ -446,15 +515,55 @@ export function createD1Db(d1: D1Database): RecordingDb {
       return (r.meta?.changes ?? 0) > 0;
     },
 
-    async upsertTranscript({ slug, source, language, autoJson }) {
-      await stmtUpsertTranscript
-        .bind(slug, source, language, autoJson, Date.now())
-        .run();
+    async createTranscriptJob({ slug, language, parts }) {
+      const now = Date.now();
+      await d1.batch([
+        stmtStartTranscript.bind(slug, language, parts.length, now),
+        stmtDeleteTranscriptParts.bind(slug),
+        ...parts.map((p) =>
+          stmtInsertTranscriptPart.bind(
+            slug,
+            p.partNumber,
+            p.storageKey,
+            p.startMs,
+            p.endMs,
+            now,
+          ),
+        ),
+      ]);
     },
 
     async getTranscript(slug) {
       const r = await stmtGetTranscript.bind(slug).first<D1TranscriptRow>();
       return r ? transcriptFromD1(r) : null;
+    },
+
+    async getTranscriptPart(slug, partNumber) {
+      const r = await stmtGetTranscriptPart
+        .bind(slug, partNumber)
+        .first<D1TranscriptPartRow>();
+      return r ? transcriptPartFromD1(r) : null;
+    },
+
+    async listTranscriptParts(slug) {
+      const res = await stmtListTranscriptParts
+        .bind(slug)
+        .all<D1TranscriptPartRow>();
+      return res.results.map(transcriptPartFromD1);
+    },
+
+    async setTranscriptPartLines(slug, partNumber, segmentsJson) {
+      await stmtSetTranscriptPartLines
+        .bind(slug, partNumber, segmentsJson, Date.now())
+        .run();
+    },
+
+    async finishTranscript(slug, autoJson) {
+      await stmtFinishTranscript.bind(slug, autoJson, Date.now()).run();
+    },
+
+    async failTranscript(slug, error) {
+      await stmtFailTranscript.bind(slug, error, Date.now()).run();
     },
   };
 }

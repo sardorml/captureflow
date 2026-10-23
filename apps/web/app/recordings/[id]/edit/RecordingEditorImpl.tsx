@@ -33,6 +33,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     createdAt,
     initialConfig,
     initialTranscript,
+    transcriptStatus,
     transcriptHasEdits,
   } = props;
 
@@ -145,6 +146,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
         <EditorTranscriptPanel
           slug={slug}
           initialTranscript={initialTranscript}
+          transcriptStatus={transcriptStatus}
           initialHasEdits={transcriptHasEdits}
           cuts={config.cuts}
           onCutsChange={onCutsChange}

@@ -2,6 +2,7 @@ import type {
   RecordingComment,
   RecordingReaction,
   RecordingRow,
+  TranscriptPartRow,
   TranscriptRow,
 } from "./types";
 import type { RecordingDb } from "./db-types";
@@ -9,6 +10,7 @@ import type { RecordingDb } from "./db-types";
 // In-memory backend for local Next.js dev only; production uses D1.
 const store = new Map<string, RecordingRow>();
 const transcripts = new Map<string, TranscriptRow>();
+const transcriptParts = new Map<string, TranscriptPartRow[]>();
 const reactions: RecordingReaction[] = [];
 const comments: RecordingComment[] = [];
 let nextReactionId = 1;
@@ -33,6 +35,7 @@ export const memoryDb: RecordingDb = {
 
   async deleteRecording(slug) {
     transcripts.delete(slug);
+    transcriptParts.delete(slug);
     return store.delete(slug);
   },
 
@@ -142,21 +145,75 @@ export const memoryDb: RecordingDb = {
     return true;
   },
 
-  async upsertTranscript({ slug, source, language, autoJson }) {
+  async createTranscriptJob({ slug, language, parts }) {
     const now = Date.now();
     transcripts.set(slug, {
       slug,
-      source,
+      status: "pending",
       language,
-      autoJson,
+      partCount: parts.length,
+      autoJson: null,
       editedJson: null,
+      error: null,
       createdAt: transcripts.get(slug)?.createdAt ?? now,
       updatedAt: now,
     });
+    transcriptParts.set(
+      slug,
+      parts.map((p) => ({ slug, ...p, segmentsJson: null, updatedAt: now })),
+    );
   },
 
   async getTranscript(slug) {
     return transcripts.get(slug) ?? null;
+  },
+
+  async getTranscriptPart(slug, partNumber) {
+    return (
+      transcriptParts.get(slug)?.find((p) => p.partNumber === partNumber) ??
+      null
+    );
+  },
+
+  async listTranscriptParts(slug) {
+    return [...(transcriptParts.get(slug) ?? [])].sort(
+      (a, b) => a.partNumber - b.partNumber,
+    );
+  },
+
+  async setTranscriptPartLines(slug, partNumber, segmentsJson) {
+    const part = transcriptParts
+      .get(slug)
+      ?.find((p) => p.partNumber === partNumber);
+    if (part) {
+      part.segmentsJson = segmentsJson;
+      part.updatedAt = Date.now();
+    }
+  },
+
+  async finishTranscript(slug, autoJson) {
+    const row = transcripts.get(slug);
+    if (row?.status === "pending") {
+      transcripts.set(slug, {
+        ...row,
+        status: "ready",
+        autoJson,
+        error: null,
+        updatedAt: Date.now(),
+      });
+    }
+  },
+
+  async failTranscript(slug, error) {
+    const row = transcripts.get(slug);
+    if (row?.status === "pending") {
+      transcripts.set(slug, {
+        ...row,
+        status: "failed",
+        error,
+        updatedAt: Date.now(),
+      });
+    }
   },
 };
 

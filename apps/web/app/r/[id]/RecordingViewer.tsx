@@ -8,7 +8,10 @@ import type {
   RecordingReaction,
 } from "@/lib/recording/types";
 import type { RecordingChapter } from "@/lib/recording/summary-chapters";
-import type { RecordingTranscript } from "@/lib/recording/types";
+import type {
+  RecordingTranscript,
+  TranscriptStatus,
+} from "@/lib/recording/types";
 import { ContentByline } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
 import { RecordingPlayer } from "./RecordingPlayer";
@@ -42,6 +45,7 @@ type Props = {
   initialSummary: string;
   initialChapters: RecordingChapter[];
   initialTranscript: RecordingTranscript | null;
+  initialTranscriptStatus: TranscriptStatus;
   editUrl: string;
 };
 
@@ -66,6 +70,7 @@ export function RecordingViewer({
   initialSummary,
   initialChapters,
   initialTranscript,
+  initialTranscriptStatus,
   editUrl,
 }: Props) {
   const [liveReactions, setLiveReactions] = useState<RecordingReaction[]>([]);
@@ -150,8 +155,8 @@ export function RecordingViewer({
           <TranscriptPanel
             slug={slug}
             initialTranscript={initialTranscript}
+            initialStatus={initialTranscriptStatus}
             cuts={config.cuts}
-            createdAt={createdAt}
             isOwner={isOwner}
             editUrl={editUrl}
             onSeek={seekTo}

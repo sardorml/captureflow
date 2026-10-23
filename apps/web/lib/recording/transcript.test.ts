@@ -13,7 +13,6 @@ import type { RecordingTranscript, TranscriptRow } from "./types";
 const AUTO: RecordingTranscript = {
   version: 1,
   language: "en-US",
-  source: "chrome-speech-local",
   segments: [
     { id: "s1", startMs: 0, endMs: 1500, text: "Hello there" },
     {
@@ -38,7 +37,6 @@ describe("hydrateTranscript", () => {
   it.each([
     ["not an object", "nope"],
     ["wrong version", { ...AUTO, version: 2 }],
-    ["unknown source", { ...AUTO, source: "whisper" }],
     ["missing segments", { ...AUTO, segments: undefined }],
     ["no usable segments", { ...AUTO, segments: [{ id: "x", text: "" }] }],
   ])("rejects %s", (_name, raw) => {
@@ -171,12 +169,18 @@ describe("hydrateTranscriptEdits", () => {
 });
 
 describe("resolveTranscript", () => {
-  const row = (editedJson: string | null): TranscriptRow => ({
+  const row = (
+    editedJson: string | null,
+    status: TranscriptRow["status"] = "ready",
+    autoJson: string | null = JSON.stringify(AUTO),
+  ): TranscriptRow => ({
     slug: "abcdefgh23",
-    source: "chrome-speech-local",
+    status,
     language: "en-US",
-    autoJson: JSON.stringify(AUTO),
+    partCount: 1,
+    autoJson,
     editedJson,
+    error: null,
     createdAt: 1,
     updatedAt: 1,
   });
@@ -184,6 +188,7 @@ describe("resolveTranscript", () => {
   it("prefers the edited transcript when present", () => {
     const edited = { ...AUTO, segments: [AUTO.segments[0]!] };
     expect(resolveTranscript(row(JSON.stringify(edited)))).toEqual({
+      status: "ready",
       transcript: edited,
       hasEdits: true,
     });
@@ -191,14 +196,38 @@ describe("resolveTranscript", () => {
 
   it("falls back to auto and reports no transcript for a missing row", () => {
     expect(resolveTranscript(row(null))).toEqual({
+      status: "ready",
       transcript: AUTO,
       hasEdits: false,
     });
     expect(resolveTranscript(row("broken"))).toEqual({
+      status: "ready",
       transcript: AUTO,
       hasEdits: false,
     });
     expect(resolveTranscript(null)).toEqual({
+      status: "none",
+      transcript: null,
+      hasEdits: false,
+    });
+  });
+
+  it("reports the job state while it runs or after it fails", () => {
+    expect(resolveTranscript(row(null, "pending", null))).toEqual({
+      status: "pending",
+      transcript: null,
+      hasEdits: false,
+    });
+    expect(resolveTranscript(row(null, "failed", null))).toEqual({
+      status: "failed",
+      transcript: null,
+      hasEdits: false,
+    });
+  });
+
+  it("treats a ready job that heard nothing as no transcript", () => {
+    expect(resolveTranscript(row(null, "ready", null))).toEqual({
+      status: "none",
       transcript: null,
       hasEdits: false,
     });

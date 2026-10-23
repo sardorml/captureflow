@@ -2,8 +2,9 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "captureflow-web",
   // Custom worker wrapper: re-exports OpenNext's fetch handler + adds the
-  // scheduled() cron handlers (multipart GC + retention sweep). It imports
-  // ./.open-next/worker.js, produced by `opennextjs-cloudflare build`.
+  // scheduled() cron handlers (multipart GC + retention sweep) and the
+  // queue() transcription consumer. It imports ./.open-next/worker.js,
+  // produced by `opennextjs-cloudflare build`.
   "main": "worker.ts",
   "compatibility_date": "2025-06-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -49,6 +50,28 @@
   "send_email": [
     { "name": "EMAIL", "allowed_sender_addresses": ["hello@captureflow.dev"] },
   ],
+  // Transcripts: Whisper on Workers AI, one call per uploaded audio chunk.
+  "ai": { "binding": "AI" },
+  // /api/r/transcribe enqueues a message per chunk; worker.ts queue() runs
+  // them. Create once with `wrangler queues create captureflow-transcription`.
+  // max_retries must match TRANSCRIPTION_MAX_RETRIES in worker.ts.
+  "queues": {
+    "producers": [
+      {
+        "binding": "TRANSCRIPTION_QUEUE",
+        "queue": "captureflow-transcription",
+      },
+    ],
+    "consumers": [
+      {
+        "queue": "captureflow-transcription",
+        "max_batch_size": 1,
+        "max_concurrency": 5,
+        "max_retries": 3,
+        "retry_delay": 30,
+      },
+    ],
+  },
   "vars": {
     "NEXT_PUBLIC_APP_WEB_SITE_URL": "https://captureflow.dev",
     "NEXT_PUBLIC_RECORDING_SITE_URL": "https://captureflow.dev",

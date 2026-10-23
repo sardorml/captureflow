@@ -24,7 +24,11 @@ export default async function RecordingEditPage({
   if (!recording) notFound();
 
   const initialConfig = parseRecordingConfigJson(recording.configJson);
-  const { transcript, hasEdits } = resolveTranscript(await getTranscript(id));
+  const {
+    transcript,
+    hasEdits,
+    status: transcriptStatus,
+  } = resolveTranscript(await getTranscript(id));
 
   const env = await getAppWebEnv();
   const workspaceRow =
@@ -57,6 +61,7 @@ export default async function RecordingEditPage({
       initialVisibility={recording.visibility}
       initialConfig={initialConfig}
       initialTranscript={transcript}
+      transcriptStatus={transcriptStatus}
       transcriptHasEdits={hasEdits}
       initialState={recording.state}
       workspaceName={workspaceRow?.name ?? null}

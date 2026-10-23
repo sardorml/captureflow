@@ -165,10 +165,17 @@ export type RecordingApiError = {
 };
 
 /*
- * Transcript produced on the recorder and posted after /finalize. Times are
- * recording time in milliseconds (pauses removed), the same clock as
- * `durationMs`. `words` is optional: Chrome's recognizer only times phrases.
+ * The recorder uploads the mic as short standalone audio chunks
+ * (POST /api/r/audio-part) and, once the video is finalized, asks for the
+ * transcript with the chunk layout. Times are recording time in milliseconds
+ * (pauses removed), the same clock as `durationMs`.
  */
+export type TranscribeRequest = {
+  slug: string;
+  language?: string;
+  parts: { partNumber: number; startMs: number; endMs: number }[];
+};
+
 export type TranscriptWord = {
   text: string;
   startMs: number;
@@ -183,34 +190,43 @@ export type TranscriptSegment = {
   words?: TranscriptWord[];
 };
 
-export type TranscriptSource =
-  | "chrome-speech-local"
-  | "chrome-speech-cloud"
-  | "apple-speech";
-
 export type RecordingTranscript = {
   version: 1;
   language: string | null;
-  source: TranscriptSource;
   segments: TranscriptSegment[];
 };
 
-export type TranscriptRequest = {
-  slug: string;
-  transcript: RecordingTranscript;
-};
+export type TranscriptStatus = "none" | "pending" | "ready" | "failed";
 
 export type TranscriptResponse = {
+  status: TranscriptStatus;
   transcript: RecordingTranscript | null;
   hasEdits: boolean;
 };
 
 export type TranscriptRow = {
   slug: string;
-  source: TranscriptSource;
+  status: "pending" | "ready" | "failed";
   language: string | null;
-  autoJson: string;
+  partCount: number;
+  autoJson: string | null;
   editedJson: string | null;
+  error: string | null;
   createdAt: number;
   updatedAt: number;
+};
+
+export type TranscriptPartRow = {
+  slug: string;
+  partNumber: number;
+  storageKey: string;
+  startMs: number;
+  endMs: number;
+  segmentsJson: string | null;
+  updatedAt: number;
+};
+
+export type TranscriptionJobMessage = {
+  slug: string;
+  partNumber: number;
 };

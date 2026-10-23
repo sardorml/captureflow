@@ -2,15 +2,19 @@ import type {
   RecordingComment,
   RecordingReaction,
   RecordingRow,
+  TranscriptPartRow,
   TranscriptRow,
-  TranscriptSource,
 } from "./types";
 
-export type UpsertTranscriptInput = {
+export type CreateTranscriptJobInput = {
   slug: string;
-  source: TranscriptSource;
   language: string | null;
-  autoJson: string;
+  parts: {
+    partNumber: number;
+    storageKey: string;
+    startMs: number;
+    endMs: number;
+  }[];
 };
 
 export type RecordingDb = {
@@ -46,7 +50,21 @@ export type RecordingDb = {
   countComments(slug: string): Promise<number>;
   getComment(id: number): Promise<RecordingComment | null>;
   deleteComment(id: number): Promise<boolean>;
-  // Replaces the auto transcript and clears any owner edits.
-  upsertTranscript(input: UpsertTranscriptInput): Promise<void>;
+  // Starts (or restarts) the transcript: status pending, previous result,
+  // edits and parts discarded.
+  createTranscriptJob(input: CreateTranscriptJobInput): Promise<void>;
   getTranscript(slug: string): Promise<TranscriptRow | null>;
+  getTranscriptPart(
+    slug: string,
+    partNumber: number,
+  ): Promise<TranscriptPartRow | null>;
+  listTranscriptParts(slug: string): Promise<TranscriptPartRow[]>;
+  setTranscriptPartLines(
+    slug: string,
+    partNumber: number,
+    segmentsJson: string,
+  ): Promise<void>;
+  // Both only move a pending job; a finished or failed one stays as it is.
+  finishTranscript(slug: string, autoJson: string): Promise<void>;
+  failTranscript(slug: string, error: string): Promise<void>;
 };

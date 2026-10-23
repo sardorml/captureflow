@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { objectKeysFor, summaryChaptersKeyFor } from "./object-keys";
+import {
+  audioPartKeyFor,
+  audioPartPrefixFor,
+  objectKeysFor,
+  summaryChaptersKeyFor,
+} from "./object-keys";
 import { screenshotObjectKeysFor } from "../screenshot-keys";
 
 const full = {
@@ -51,6 +56,20 @@ describe("summaryChaptersKeyFor", () => {
     expect(summaryChaptersKeyFor("videos/x.mp4")).toBe(
       "videos/x.mp4.summary-chapters.json",
     );
+  });
+});
+
+describe("audio part keys", () => {
+  it("numbers chunks under one prefix next to the video", () => {
+    expect(audioPartPrefixFor("videos/x.mp4")).toBe("videos/x-audio-");
+    expect(audioPartKeyFor("videos/x.mp4", 3)).toBe("videos/x-audio-3.webm");
+  });
+
+  it("keeps the prefix clear of the video and its sidecars", () => {
+    const prefix = audioPartPrefixFor(full.storageKey);
+    for (const key of objectKeysFor(full)) {
+      expect(key.startsWith(prefix)).toBe(false);
+    }
   });
 });
 

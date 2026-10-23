@@ -45,7 +45,11 @@ import {
   hydrateRecordingConfig,
   type RecordingConfig,
 } from "@/lib/recording-config";
-import { objectKeysFor } from "@/lib/recording/object-keys";
+import {
+  audioPartPrefixFor,
+  objectKeysFor,
+} from "@/lib/recording/object-keys";
+import { deleteObjectPrefix } from "@/lib/recording/r2";
 import { revokeDeviceToken } from "@/lib/device-tokens";
 
 // Middleware only guards page requests; a forged/replayed direct action
@@ -131,13 +135,14 @@ export async function deleteRecordingAction(slug: string): Promise<{
       }`,
     };
   }
-  // Poster/webcam/sidecars are best-effort: the video is already gone, so
-  // failing here would only block a delete the user can no longer retry.
-  await Promise.allSettled(
-    objectKeysFor(row)
+  // Poster/webcam/sidecars/audio are best-effort: the video is already gone,
+  // so failing here would only block a delete the user can no longer retry.
+  await Promise.allSettled([
+    ...objectKeysFor(row)
       .filter((key) => key !== row.storageKey)
       .map((key) => deleteObject(key)),
-  );
+    deleteObjectPrefix(audioPartPrefixFor(row.storageKey)),
+  ]);
   await deleteRecordingForAdmin(userId, cleanSlug);
   revalidatePath("/");
   return { error: null };
