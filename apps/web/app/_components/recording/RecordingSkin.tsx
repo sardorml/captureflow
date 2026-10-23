@@ -117,11 +117,13 @@ const SKIP_SECONDS = 5;
 const CONTROLS_LEAVE_DELAY_MS = 1000;
 const identityMs = (ms: number): number => ms;
 // Captions ride above the full-width bar while the controls show; the stock
-// value only clears the stock pill. The accent paints the slider fill.
-const SKIN_VARS = {
+// value only clears the stock pill.
+const CAPTION_LIFT = {
   "--media-caption-controls-y": "calc(var(--media-spacing) * -22)",
-  "--media-accent-color": "#2563eb",
 } as CSSProperties;
+// Only the slider fill and the bottom line take the brand blue; the skin's
+// accent would also tint the buttons.
+const FILL_COLOR = "#2563eb";
 const PREVIEW_LOOP_SECONDS = 4;
 
 /*
@@ -170,7 +172,7 @@ export function RecordingSkin({
         ...(isFullscreen
           ? {}
           : { ...sizeStyle, ...recordingBackgroundStyle(background) }),
-        ...SKIN_VARS,
+        ...CAPTION_LIFT,
       }}
       onPointerEnter={() => {
         pointerInsideRef.current = true;
@@ -300,8 +302,8 @@ function BottomProgress({
       aria-hidden="true"
     >
       <div
-        className="h-full bg-(--media-accent-color)"
-        style={{ width: `${fraction * 100}%` }}
+        className="h-full"
+        style={{ width: `${fraction * 100}%`, backgroundColor: FILL_COLOR }}
       />
     </div>
   );
@@ -604,7 +606,10 @@ function RecordingControls({
         )}
       >
         <Tooltip.Provider>
-          <div className="group/bar relative flex items-center [--media-slider-height:--spacing(5)]">
+          <div
+            className="group/bar relative flex items-center [--media-slider-height:--spacing(5)]"
+            style={{ "--media-primary": FILL_COLOR } as CSSProperties}
+          >
             {progressOverlay ? (
               <div className="pointer-events-none absolute inset-0 z-10">
                 {progressOverlay({
