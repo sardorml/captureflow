@@ -1,4 +1,5 @@
 import type { TranscriptSource } from "../api/types";
+import { ensureSpeechPack, speechPackStatus } from "./speech-pack";
 import type { Utterance } from "./transcript-timeline";
 
 /*
@@ -32,12 +33,7 @@ type Recognition = {
   stop(): void;
 };
 
-type RecognitionOptions = { langs: string[]; processLocally: boolean };
-type RecognitionCtor = {
-  new (): Recognition;
-  available?: (options: RecognitionOptions) => Promise<string>;
-  install?: (options: RecognitionOptions) => Promise<boolean>;
-};
+type RecognitionCtor = { new (): Recognition };
 
 export type Transcriber = {
   source: TranscriptSource;
@@ -70,30 +66,6 @@ function recognitionCtor(): RecognitionCtor | null {
   return scope.SpeechRecognition ?? scope.webkitSpeechRecognition ?? null;
 }
 
-// "downloadable" kicks off the language pack install for next time and
-// falls back to the cloud recognizer now.
-async function canProcessLocally(
-  Ctor: RecognitionCtor,
-  lang: string,
-): Promise<boolean> {
-  if (!Ctor.available) return false;
-  try {
-    const status = await Ctor.available({
-      langs: [lang],
-      processLocally: true,
-    });
-    if (status === "available") return true;
-    if (status === "downloadable") {
-      void Ctor.install?.({ langs: [lang], processLocally: true }).catch(
-        () => false,
-      );
-    }
-  } catch {
-    // Treat an unavailable probe as "no on-device pack".
-  }
-  return false;
-}
-
 export async function startTranscriber({
   track,
   lang,
@@ -101,7 +73,14 @@ export async function startTranscriber({
 }: StartArgs): Promise<Transcriber | null> {
   const Ctor = recognitionCtor();
   if (!Ctor) return null;
-  const local = await canProcessLocally(Ctor, lang);
+  const pack = await speechPackStatus(lang);
+  const local = pack === "available";
+  // A missing pack downloads for next time; this recording uses the cloud
+  // recognizer meanwhile.
+  if (pack === "downloadable") void ensureSpeechPack(lang);
+  log?.(
+    `speech recognition: ${local ? "on-device" : "cloud"} (${lang}, pack ${pack})`,
+  );
 
   const utterances: Utterance[] = [];
   let running = true;

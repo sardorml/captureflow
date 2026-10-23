@@ -9,6 +9,7 @@ import {
   type SignedOutReason,
 } from "@/lib/auth/session";
 import { probeAuthSession } from "@/lib/auth/sync";
+import { ensureSpeechPack } from "@/lib/capture/speech-pack";
 import { LIVE_KINDS } from "@/lib/capture/status";
 import { WEB_BASE } from "@/lib/config";
 import {
@@ -141,6 +142,13 @@ export function App() {
       unwatchAuth();
       unwatchStatus();
     };
+  }, []);
+
+  // The on-device speech pack downloads once, ahead of the first recording,
+  // so transcripts don't depend on the cloud recognizer (which some
+  // Chromium browsers block).
+  useEffect(() => {
+    void ensureSpeechPack(navigator.language);
   }, []);
 
   // Probe the token once per open; a revocation is the one desync no web page

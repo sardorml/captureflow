@@ -11,6 +11,7 @@ import {
   watchCapturePrefs,
   type CapturePrefs,
 } from "@/lib/storage";
+import { isBraveBrowser } from "@/lib/capture/speech-pack";
 import { LIVE_KINDS } from "@/lib/capture/status";
 import {
   useMediaDevices,
@@ -327,6 +328,11 @@ export function DevicePickers() {
         }
         meter={<MicMeter enabled={prefs.mic} />}
       />
+      {prefs.mic && isBraveBrowser() && (
+        <p className="text-xs text-muted">
+          No transcript in Brave: it blocks Chrome&rsquo;s speech recognition.
+        </p>
+      )}
     </section>
   );
 }

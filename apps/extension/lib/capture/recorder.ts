@@ -302,7 +302,11 @@ async function runSession(
   let transcriber: Transcriber | null = null;
   const transcriberReady =
     ctx.mic && micTrack
-      ? startTranscriber({ track: micTrack, lang: navigator.language })
+      ? startTranscriber({
+          track: micTrack,
+          lang: navigator.language,
+          log: (message) => console.warn(`[captureflow] ${message}`),
+        })
           .then((t) => {
             transcriber = t;
           })
