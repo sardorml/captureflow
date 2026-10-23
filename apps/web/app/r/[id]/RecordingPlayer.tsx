@@ -504,7 +504,7 @@ function CommentMarks({
               <span
                 role="tooltip"
                 className={cn(
-                  "pointer-events-none absolute bottom-full mb-1.5 hidden w-max max-w-64 rounded-lg bg-media-popover px-2.5 py-1.5 text-left text-xs text-media-popover-foreground shadow-lg ring-1 ring-white/10 group-hover/comment:block",
+                  "pointer-events-none absolute bottom-full mb-1.5 hidden w-max max-w-64 rounded-lg bg-[#171717] px-2.5 py-1.5 text-left text-xs text-white shadow-lg ring-1 ring-white/10 group-hover/comment:block",
                   fraction < 0.15
                     ? "left-0"
                     : fraction > 0.85
@@ -703,7 +703,7 @@ function CommentBursts({
         <span
           key={b.id}
           data-comment-burst
-          className="animate-reaction-rise absolute flex w-max max-w-64 items-start gap-1.5 rounded-lg bg-media-popover px-2.5 py-1.5 text-left text-xs text-media-popover-foreground shadow-lg ring-1 ring-white/10"
+          className="animate-reaction-rise absolute flex w-max max-w-64 items-start gap-1.5 rounded-lg bg-[#171717] px-2.5 py-1.5 text-left text-xs text-white shadow-lg ring-1 ring-white/10"
           style={{
             left: b.x,
             top: b.y,
