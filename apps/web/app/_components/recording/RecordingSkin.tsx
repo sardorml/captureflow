@@ -3,12 +3,14 @@
 import {
   Controls,
   Hotkey,
+  PlaybackRateButton as PlaybackRateButtonPrimitive,
   SeekButton as SeekButtonPrimitive,
   Time,
   Tooltip,
   selectControls,
   selectFullscreen,
   selectPlayback,
+  selectPlaybackRate,
   selectTime,
 } from "@videojs/react";
 import { SeekIcon } from "@videojs/react/icons";
@@ -104,6 +106,11 @@ type Timeline = Omit<ProgressOverlayInfo, "controlsVisible"> & {
 
 const SKIP_SECONDS = 5;
 const identityMs = (ms: number): number => ms;
+// Captions ride above the full-width bar while the controls show; the stock
+// value only clears the stock pill.
+const CAPTION_LIFT = {
+  "--media-caption-controls-y": "calc(var(--media-spacing) * -22)",
+} as CSSProperties;
 const PREVIEW_LOOP_SECONDS = 4;
 
 /*
@@ -141,11 +148,12 @@ export function RecordingSkin({
         "@container block max-sm:h-auto! max-sm:w-full!",
         isFullscreen && "rounded-none",
       )}
-      style={
-        isFullscreen
-          ? undefined
-          : { ...sizeStyle, ...recordingBackgroundStyle(background) }
-      }
+      style={{
+        ...(isFullscreen
+          ? {}
+          : { ...sizeStyle, ...recordingBackgroundStyle(background) }),
+        ...CAPTION_LIFT,
+      }}
       data-theme="default"
       data-preset="video"
     >
@@ -368,7 +376,7 @@ function CutGaps({
 }
 
 const TIME_CLASS =
-  "tabular-nums transition-opacity duration-media-slow ease-out data-unavailable:opacity-50 @max-[16rem]/media-time:hidden";
+  "tabular-nums transition-opacity duration-media-slow ease-out data-unavailable:opacity-50";
 
 // Current / total time on the edited timeline, in place of Time.Value which
 // only knows media time.
@@ -433,9 +441,26 @@ type RecordingControlsProps = {
   controlsExtra?: ReactNode;
 };
 
-// Layout copied from the vendored DefaultVideoControls so the look matches
-// the stock skin; only the slots, the seek steps and the compact variant
-// differ.
+function RateButton() {
+  const rate = usePlayer(selectPlaybackRate)?.playbackRate ?? 1;
+  return (
+    <ButtonTooltip side="top">
+      <PlaybackRateButtonPrimitive
+        render={<Button />}
+        className="text-[13px] font-semibold tabular-nums"
+      >
+        {Number.isInteger(rate) ? rate : rate.toFixed(2).replace(/0$/, "")}×
+      </PlaybackRateButtonPrimitive>
+    </ButtonTooltip>
+  );
+}
+
+/*
+ * A bar along the bottom edge over the controls gradient: the time slider
+ * runs edge to edge on top, then transport on the left, the clock in the
+ * middle and the toggles on the right. The compact variant (embeds) keeps
+ * play, volume, the slot for inline reactions and fullscreen.
+ */
 function RecordingControls({
   compact,
   alwaysVisible,
@@ -461,37 +486,43 @@ function RecordingControls({
       />
       <Controls.Content
         className={cn(
-          "video-controls",
-          "group/controls text-media-controls-foreground text-shadow-media",
-          "duration-media-controls-enter ease-out",
-          "contents p-1 transition-[filter,opacity,scale,translate]",
-          "media-lg:absolute media-lg:inset-x-2 media-lg:bottom-2 media-lg:z-30",
-          "media-lg:flex media-lg:items-center media-lg:rtl:flex-row-reverse media-lg:rounded-media-controls",
-          "media-lg:bg-media-popover media-lg:text-media-popover-foreground",
-          "media-lg:surface-media media-lg:after:surface-media-inset",
-          "media-2xl:inset-x-3 media-2xl:bottom-3",
-          "media-lg:not-data-visible:pointer-events-none media-lg:not-data-visible:opacity-0",
-          "media-lg:not-data-visible:scale-media-hidden media-lg:not-data-visible:translate-y-media-hidden-offset",
-          "media-lg:pointer-fine:not-data-visible:blur-media-hidden",
-          "media-lg:not-data-visible:duration-media-controls",
+          "video-controls group/controls absolute inset-x-0 bottom-0 z-30 flex flex-col",
+          "text-media-controls-foreground text-shadow-media",
+          "transition-[opacity,translate] duration-media-controls-enter ease-out",
+          "not-data-visible:pointer-events-none not-data-visible:translate-y-2 not-data-visible:opacity-0",
+          "not-data-visible:duration-media-controls",
         )}
       >
         <Tooltip.Provider>
-          <Controls.Group
-            className={cn(
-              "absolute inset-x-2 bottom-2 z-30 flex origin-bottom items-center rtl:flex-row-reverse rounded-media-controls p-0.5",
-              "media-max-lg:bg-media-popover media-max-lg:text-media-popover-foreground",
-              "media-max-lg:surface-media media-max-lg:after:surface-media-inset",
-              "media-lg:contents",
-              "media-max-lg:group-[:not([data-visible])]/controls:pointer-events-none",
-              "media-max-lg:group-[:not([data-visible])]/controls:opacity-0",
-              "media-max-lg:group-[:not([data-visible])]/controls:scale-media-hidden",
-              "media-max-lg:pointer-fine:group-[:not([data-visible])]/controls:blur-media-hidden",
-              "transition-[filter,opacity,scale,translate] duration-media-controls-enter ease-out",
-              "media-max-lg:group-[:not([data-visible])]/controls:duration-media-controls",
-              "media-max-lg:group-[:not([data-visible])]/controls:translate-y-media-hidden-offset",
+          <div className="relative flex items-center [--media-slider-height:--spacing(5)]">
+            {progressOverlay ? (
+              <div className="pointer-events-none absolute inset-0 z-10">
+                {progressOverlay({
+                  durationSeconds,
+                  currentSeconds,
+                  controlsVisible,
+                  toTimelineMs,
+                })}
+              </div>
+            ) : null}
+            {edited ? (
+              <EditedTimeSlider
+                cuts={cuts}
+                cues={cues}
+                durationSeconds={durationSeconds}
+              />
+            ) : (
+              <>
+                <TimeSlider
+                  className="rounded-none"
+                  isChapterSelected={(chapter) => selecting && !!chapter.cue}
+                />
+                <CutGaps cuts={cuts} durationSeconds={durationSeconds} />
+              </>
             )}
-          >
+          </div>
+
+          <Controls.Group className="relative flex items-center gap-0.5 px-1.5 pt-0.5 pb-1.5 rtl:flex-row-reverse media-lg:px-2 media-lg:pb-2">
             <ButtonTooltip side="top">
               <PlayButton />
             </ButtonTooltip>
@@ -501,104 +532,53 @@ function RecordingControls({
                 <SeekStepButton seconds={SKIP_SECONDS} />
               </>
             )}
-            <VolumePopover className="ms-px" />
+            <VolumePopover />
 
-            <Controls.Group className="@container/media-time flex flex-1 items-center rtl:flex-row-reverse gap-2.5 px-2 media-lg:px-3">
-              {compact ? null : edited ? (
-                <EditedTime
-                  type="current"
-                  cuts={cuts}
-                  durationSeconds={durationSeconds}
-                />
-              ) : (
-                <Time.Value className={TIME_CLASS} type="current" />
-              )}
-              <div className="relative flex min-w-0 flex-1 items-center">
-                {progressOverlay ? (
-                  <div className="pointer-events-none absolute inset-0 z-10">
-                    {progressOverlay({
-                      durationSeconds,
-                      currentSeconds,
-                      controlsVisible,
-                      toTimelineMs,
-                    })}
-                  </div>
-                ) : null}
-                {edited ? (
-                  <EditedTimeSlider
-                    cuts={cuts}
-                    cues={cues}
-                    durationSeconds={durationSeconds}
-                  />
-                ) : (
-                  <>
-                    <TimeSlider
-                      isChapterSelected={(chapter) =>
-                        selecting && !!chapter.cue
-                      }
+            {compact ? null : (
+              <div className="pointer-events-none absolute inset-x-0 flex justify-center media-max-lg:hidden">
+                <span className="flex items-center gap-1.5 text-sm font-medium tabular-nums">
+                  {edited ? (
+                    <EditedTime
+                      type="current"
+                      cuts={cuts}
+                      durationSeconds={durationSeconds}
                     />
-                    <CutGaps cuts={cuts} durationSeconds={durationSeconds} />
-                  </>
-                )}
-              </div>
-              {compact ? null : edited ? (
-                <EditedTime
-                  type="duration"
-                  cuts={cuts}
-                  durationSeconds={durationSeconds}
-                />
-              ) : (
-                <Time.Value
-                  className={cn(
-                    "cursor-pointer rounded-sm tabular-nums focus-ring-media",
-                    "aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
-                    "transition-[outline-color,outline-offset] duration-media-fast ease-out",
-                    "focus-visible:outline-media-ring focus-visible:outline-offset-2",
-                    "@max-[16rem]/media-time:hidden",
+                  ) : (
+                    <Time.Value className={TIME_CLASS} type="current" />
                   )}
-                  type="duration"
-                  toggle
-                />
-              )}
-            </Controls.Group>
+                  <span className="opacity-60">/</span>
+                  {edited ? (
+                    <EditedTime
+                      type="duration"
+                      cuts={cuts}
+                      durationSeconds={durationSeconds}
+                    />
+                  ) : (
+                    <Time.Value className={TIME_CLASS} type="duration" />
+                  )}
+                </span>
+              </div>
+            )}
+
+            <div className="flex-1" />
 
             {controlsExtra}
 
             {compact ? null : (
               <>
                 <ButtonTooltip side="top">
-                  <CaptionsButton className="media-max-lg:hidden" />
+                  <CaptionsButton />
                 </ButtonTooltip>
-                <VideoSettingsMenu className="media-lg:ms-px" />
-              </>
-            )}
-          </Controls.Group>
-
-          <Controls.Group
-            className={cn(
-              "absolute top-2 right-2 z-30 flex origin-top items-center rtl:flex-row-reverse gap-px rounded-media-controls p-0.5",
-              "media-max-lg:bg-media-popover media-max-lg:text-media-popover-foreground",
-              "media-max-lg:surface-media media-max-lg:after:surface-media-inset",
-              "media-lg:static media-lg:p-0",
-              "media-max-lg:group-[:not([data-visible])]/controls:pointer-events-none",
-              "media-max-lg:group-[:not([data-visible])]/controls:opacity-0",
-              "media-max-lg:group-[:not([data-visible])]/controls:scale-media-hidden",
-              "media-max-lg:pointer-fine:group-[:not([data-visible])]/controls:blur-media-hidden",
-              "transition-[filter,opacity,scale,translate] duration-media-controls-enter ease-out",
-              "media-max-lg:group-[:not([data-visible])]/controls:duration-media-controls",
-              "media-max-lg:group-[:not([data-visible])]/controls:-translate-y-media-hidden-offset",
-            )}
-          >
-            {compact ? null : (
-              <>
+                <RateButton />
+                <VideoSettingsMenu />
                 <ButtonTooltip side="top">
-                  <CastButton />
+                  <CastButton className="media-max-lg:hidden" />
                 </ButtonTooltip>
                 <ButtonTooltip side="top">
-                  <AirPlayButton />
+                  <AirPlayButton className="media-max-lg:hidden" />
                 </ButtonTooltip>
                 <ButtonTooltip side="top">
-                  <PiPButton />
+                  <PiPButton className="media-max-lg:hidden" />
                 </ButtonTooltip>
               </>
             )}
