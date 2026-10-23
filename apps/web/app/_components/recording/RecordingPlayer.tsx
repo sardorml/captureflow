@@ -58,6 +58,9 @@ type Props = {
   // WebVTT captions, shown from the start; the CC button or `c` hides them.
   captionsUrl?: string;
   captionsLang?: string;
+  // A span the editor is about to cut, drawn as its own red segment of the
+  // time slider (a chapters track, so Video.js splits the slider itself).
+  selection?: RecordingCut | null;
   // Viewport-aware max-height for LANDSCAPE sources, e.g. 'min(34rem, calc(100vh - 19rem))'. The public viewer passes this so the reaction bar below the player stays in view without scrolling; the editor omits it so the preview fills the available panel height.
   landscapeMaxHeightCss?: string;
 };
@@ -79,6 +82,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       compactControls = false,
       captionsUrl,
       captionsLang,
+      selection,
       landscapeMaxHeightCss,
     },
     handleRef,
@@ -209,6 +213,14 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                   default
                 />
               ) : null}
+              {selection ? (
+                <track
+                  key={`${selection.startMs}-${selection.endMs}`}
+                  kind="chapters"
+                  src={selectionChaptersUrl(selection)}
+                  default
+                />
+              ) : null}
             </Video>
           </RecordingSkin>
           {belowPlayer ? <BelowPlayer>{belowPlayer}</BelowPlayer> : null}
@@ -221,6 +233,21 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
 // Seeks through the store when attached so Video.js state stays in step,
 // falling back to the element before the player has mounted. A target inside
 // a cut lands on the cut's end instead.
+// One chapter cue over the span; Video.js leaves the rest of the slider as
+// uncovered segments on either side.
+function selectionChaptersUrl(selection: RecordingCut): string {
+  const stamp = (ms: number): string => {
+    const total = Math.max(0, Math.round(ms));
+    const h = Math.floor(total / 3_600_000);
+    const m = Math.floor(total / 60_000) % 60;
+    const s = Math.floor(total / 1_000) % 60;
+    const pad = (n: number, w: number): string => String(n).padStart(w, "0");
+    return `${pad(h, 2)}:${pad(m, 2)}:${pad(s, 2)}.${pad(total % 1_000, 3)}`;
+  };
+  const vtt = `WEBVTT\n\n${stamp(selection.startMs)} --> ${stamp(selection.endMs)}\nSelection\n`;
+  return `data:text/vtt;charset=utf-8,${encodeURIComponent(vtt)}`;
+}
+
 function seekMedia(
   storeRef: RefObject<VideoPlayerStore | null>,
   videoRef: RefObject<HTMLVideoElement | null>,

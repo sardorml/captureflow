@@ -19,7 +19,8 @@ type Props = {
   playerRef: RefObject<RecordingPlayerHandle | null>;
   durationMs: number | null;
   cuts: RecordingCut[];
-  // Present while the transcript panel has lines selected.
+  // The transcript panel's selected span, and the delete it would make.
+  selection?: RecordingCut | null;
   onDeleteSelection?: () => void;
 };
 
@@ -29,6 +30,7 @@ export function EditorTimeline({
   playerRef,
   durationMs,
   cuts,
+  selection,
   onDeleteSelection,
 }: Props) {
   const [showWaveform, setShowWaveform] = useState(true);
@@ -218,6 +220,18 @@ export function EditorTimeline({
                   />
                 ))
               : null}
+
+            {selection && duration > 0 ? (
+              <div
+                aria-hidden
+                data-timeline-selection
+                className="pointer-events-none absolute inset-y-0 rounded-md border-x-2 border-danger bg-danger/25"
+                style={{
+                  left: `${(selection.startMs / (duration * 1000)) * 100}%`,
+                  width: `${((selection.endMs - selection.startMs) / (duration * 1000)) * 100}%`,
+                }}
+              />
+            ) : null}
 
             {/* Full-clip selection region (trim handles are placeholders). */}
             <div

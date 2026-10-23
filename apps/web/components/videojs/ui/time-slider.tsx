@@ -4,7 +4,7 @@ import '../styles/base.css';
 import '../styles/audio/theme.css';
 import '../styles/video/captions.css';
 import '../styles/video/theme.css';
-import type { SliderPreviewOverflow } from '@videojs/core';
+import type { SliderPreviewOverflow, TimeSliderChapterState } from '@videojs/core';
 import { Slider as SliderPrimitive, TimeSlider as TimeSliderPrimitive } from '@videojs/react';
 import { SpinnerIcon as SpinnerIconPrimitive } from '@videojs/react/icons';
 
@@ -15,12 +15,15 @@ export interface TimeSliderProps extends Omit<TimeSliderPrimitive.RootProps, 'ch
   previewOverflow?: SliderPreviewOverflow | undefined;
   /** Draws the thumbnail preview image in place of the one the skin renders. */
   renderThumbnail?: SliderPrimitive.Thumbnail.ImageProps['render'];
+  /** Paints a chapter segment in the danger colour, e.g. a span about to be cut. */
+  isChapterSelected?: (state: TimeSliderChapterState) => boolean;
 }
 
 export function TimeSlider({
   className,
   previewOverflow = 'visible',
   renderThumbnail,
+  isChapterSelected,
   ...props
 }: TimeSliderProps = {}) {
   return (
@@ -42,42 +45,49 @@ export function TimeSlider({
     >
       <TimeSliderPrimitive.Chapters
         className={'relative flex size-full min-h-0 min-w-0 flex-1 items-center rounded-[inherit]'}
-        renderChapter={(props) => (
-          <div
-            className={cn(
-              'group/chapter absolute inset-0 flex min-h-0 min-w-0 items-center justify-center',
-              '[--media-chapter-inset-start:0.5] [--media-chapter-inset-end:0.5]',
-              'first-of-type:[--media-chapter-inset-start:0] last-of-type:[--media-chapter-inset-end:0]',
-              'data-[orientation=horizontal]:clip-media-chapter-x data-[orientation=vertical]:clip-media-chapter-y'
-            )}
-            {...props}
-          >
-            <TimeSliderPrimitive.Track
-              render={<SliderTrack />}
+        renderChapter={(props, state) => {
+          const selected = isChapterSelected?.(state) ?? false;
+          return (
+            <div
               className={cn(
-                'transition-[height,width] duration-media-slow ease-out',
-                'data-[orientation=horizontal]:before:clip-media-chapter-track-x data-[orientation=vertical]:before:clip-media-chapter-track-y',
-                'group-data-highlighted/chapter:data-[orientation=horizontal]:h-1.75',
-                'group-data-highlighted/chapter:data-[orientation=vertical]:w-1.75'
+                'group/chapter absolute inset-0 flex min-h-0 min-w-0 items-center justify-center',
+                '[--media-chapter-inset-start:0.5] [--media-chapter-inset-end:0.5]',
+                'first-of-type:[--media-chapter-inset-start:0] last-of-type:[--media-chapter-inset-end:0]',
+                'data-[orientation=horizontal]:clip-media-chapter-x data-[orientation=vertical]:clip-media-chapter-y'
               )}
+              data-selected-chapter={selected || undefined}
+              {...props}
             >
-              <TimeSliderPrimitive.Buffer
-                render={<SliderBuffer />}
+              <TimeSliderPrimitive.Track
+                render={<SliderTrack />}
                 className={cn(
-                  'group-data-highlighted/chapter:data-[orientation=horizontal]:before:min-w-1.75',
-                  'group-data-highlighted/chapter:data-[orientation=vertical]:before:min-h-1.75'
+                  'transition-[height,width] duration-media-slow ease-out',
+                  'data-[orientation=horizontal]:before:clip-media-chapter-track-x data-[orientation=vertical]:before:clip-media-chapter-track-y',
+                  'group-data-highlighted/chapter:data-[orientation=horizontal]:h-1.75',
+                  'group-data-highlighted/chapter:data-[orientation=vertical]:w-1.75',
+                  selected && 'before:bg-danger/60'
                 )}
-              />
-              <TimeSliderPrimitive.Fill
-                render={<SliderFill />}
-                className={cn(
-                  'group-data-highlighted/chapter:data-[orientation=horizontal]:before:min-w-1.75',
-                  'group-data-highlighted/chapter:data-[orientation=vertical]:before:min-h-1.75'
-                )}
-              />
-            </TimeSliderPrimitive.Track>
-          </div>
-        )}
+              >
+                <TimeSliderPrimitive.Buffer
+                  render={<SliderBuffer />}
+                  className={cn(
+                    'group-data-highlighted/chapter:data-[orientation=horizontal]:before:min-w-1.75',
+                    'group-data-highlighted/chapter:data-[orientation=vertical]:before:min-h-1.75',
+                    selected && 'before:bg-danger/60'
+                  )}
+                />
+                <TimeSliderPrimitive.Fill
+                  render={<SliderFill />}
+                  className={cn(
+                    'group-data-highlighted/chapter:data-[orientation=horizontal]:before:min-w-1.75',
+                    'group-data-highlighted/chapter:data-[orientation=vertical]:before:min-h-1.75',
+                    selected && 'before:bg-danger'
+                  )}
+                />
+              </TimeSliderPrimitive.Track>
+            </div>
+          );
+        }}
       ></TimeSliderPrimitive.Chapters>
       <TimeSliderPrimitive.Thumb
         render={<SliderThumb />}

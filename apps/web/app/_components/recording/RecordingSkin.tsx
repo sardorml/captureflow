@@ -423,7 +423,8 @@ function RecordingControls({
                     {progressOverlay({ durationSeconds, controlsVisible })}
                   </div>
                 ) : null}
-                <TimeSlider />
+                {/* The only chapters track is the editor's selection span. */}
+                <TimeSlider isChapterSelected={(chapter) => !!chapter.cue} />
                 <CutGaps cuts={cuts} durationSeconds={durationSeconds} />
               </div>
               {compact ? null : (
