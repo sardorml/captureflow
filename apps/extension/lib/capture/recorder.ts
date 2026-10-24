@@ -77,13 +77,25 @@ const deviceConstraint = (
  * A chrome.tabCapture stream id is redeemed through getUserMedia's legacy
  * chromeMediaSource constraints — there is no modern equivalent, and they are
  * not in the standard MediaTrackConstraints, hence the cast.
+ *
+ * Tab capture defaults to a fixed output resolution: with max constraints
+ * alone Chrome letterboxes the tab into exactly maxWidth×maxHeight, so a
+ * 16:10 window gets black bars baked into the MP4. Minimums above 1px (and
+ * of another aspect than the maximums) switch Chrome to "any within limit",
+ * which scales the tab to fit without padding. See Chromium's
+ * SelectResolutionPolicyFromCandidates in
+ * media_stream_constraints_util_video_content.cc.
  */
+const TAB_CAPTURE_MIN_DIMENSION = 2;
+
 async function captureTabStream(streamId: string): Promise<MediaStream> {
   return navigator.mediaDevices.getUserMedia({
     video: {
       mandatory: {
         chromeMediaSource: "tab",
         chromeMediaSourceId: streamId,
+        minWidth: TAB_CAPTURE_MIN_DIMENSION,
+        minHeight: TAB_CAPTURE_MIN_DIMENSION,
         maxWidth: ENGINE_OUTPUT.screen.maxWidth,
         maxHeight: ENGINE_OUTPUT.screen.maxHeight,
       },
