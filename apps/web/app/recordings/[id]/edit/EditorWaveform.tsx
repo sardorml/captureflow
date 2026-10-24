@@ -3,12 +3,11 @@
 import { useEffect, useRef } from "react";
 import { peakBetween } from "@/lib/recording/waveform";
 
-const BAR_WIDTH = 2;
-const BAR_GAP = 1;
-const MIN_BAR_HEIGHT = 2;
+const BASELINE_PX = 1;
 
-// The audio lane: mirrored bars, one per few pixels, in the current text
-// colour. Redrawn whenever the lane is resized or zoomed.
+// The audio lane: a filled silhouette, one column per pixel, rising from a
+// baseline along the bottom, in the current text colour. Redrawn whenever
+// the lane is resized or zoomed.
 export function EditorWaveform({ buckets }: { buckets: Float32Array | null }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
 
@@ -25,14 +24,18 @@ export function EditorWaveform({ buckets }: { buckets: Float32Array | null }) {
       if (!ctx) return;
       ctx.scale(dpr, dpr);
       ctx.fillStyle = getComputedStyle(canvas).color;
-      const step = BAR_WIDTH + BAR_GAP;
-      const bars = Math.floor(width / step);
-      const usable = height - 4;
-      for (let i = 0; i < bars; i++) {
-        const peak = peakBetween(buckets, i / bars, (i + 1) / bars);
-        const barHeight = Math.max(MIN_BAR_HEIGHT, peak * usable);
-        ctx.fillRect(i * step, (height - barHeight) / 2, BAR_WIDTH, barHeight);
+      const columns = Math.ceil(width);
+      const usable = height - BASELINE_PX;
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      for (let x = 0; x < columns; x++) {
+        const peak = peakBetween(buckets, x / columns, (x + 1) / columns);
+        ctx.lineTo(x, height - BASELINE_PX - peak * usable);
       }
+      ctx.lineTo(columns, height);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillRect(0, height - BASELINE_PX, width, BASELINE_PX);
     };
     draw();
     const observer = new ResizeObserver(draw);
@@ -44,7 +47,7 @@ export function EditorWaveform({ buckets }: { buckets: Float32Array | null }) {
     <canvas
       ref={ref}
       aria-hidden
-      className="pointer-events-none absolute inset-0 h-full w-full text-white/90"
+      className="pointer-events-none absolute inset-0 h-full w-full text-white/85"
     />
   );
 }
