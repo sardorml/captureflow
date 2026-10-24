@@ -17,7 +17,9 @@ import { PoweredBy } from "../../_components/powered-by";
 import { RecordingPlayer } from "./RecordingPlayer";
 import { Avatar } from "@heroui/react";
 import { initials } from "@/lib/format";
+import { useEditorConfig } from "@/app/recordings/[id]/edit/use-editor-config";
 import { ActivitySidebar } from "./ActivitySidebar";
+import { EditPanel } from "./EditPanel";
 import { EditableTitle } from "./EditableTitle";
 import { SummaryChapters } from "./SummaryChapters";
 import { TranscriptPanel } from "./TranscriptPanel";
@@ -60,7 +62,7 @@ export function RecordingViewer({
   serverDurationMs,
   serverWidth,
   serverHeight,
-  config,
+  config: initialConfig,
   initialReactions,
   initialComments,
   viewer,
@@ -82,6 +84,13 @@ export function RecordingViewer({
   );
   const [chapters, setChapters] = useState<RecordingChapter[]>(initialChapters);
   const [comments, setComments] = useState<RecordingComment[]>(initialComments);
+  // Only the owner's Edit tab ever changes it; for everyone else this is the
+  // server's config as given.
+  const {
+    config,
+    update: updateConfig,
+    status: configStatus,
+  } = useEditorConfig(slug, initialConfig);
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
   const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -208,6 +217,18 @@ export function RecordingViewer({
             onSeek={seekTo}
             getCurrentMs={getCurrentMs}
           />
+        }
+        editPanel={
+          isOwner ? (
+            <EditPanel
+              slug={slug}
+              editUrl={editUrl}
+              config={config}
+              onConfig={updateConfig}
+              status={configStatus}
+              hasWebcam={!!webcamUrl}
+            />
+          ) : null
         }
         viewerSignedIn={signedIn}
         viewerName={viewerName}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Mic, MicOff, Volume2, VolumeX, type LucideIcon } from "lucide-react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { formatBytes, formatDuration } from "@/lib/format";
 import {
@@ -44,36 +45,25 @@ export function BackgroundPicker({
   background: string;
   onChange: (bg: string) => void;
 }) {
+  const isSolid = (hex: string): boolean =>
+    background.toLowerCase() === hex.toLowerCase();
   return (
-    <div>
-      <div className="grid grid-cols-5 gap-1.5">
-        <button
-          type="button"
+    <div className="flex flex-col gap-3">
+      <SwatchGroup label="Gradients">
+        <Swatch
+          selected={background === "transparent"}
           onClick={() => onChange("transparent")}
-          aria-pressed={background === "transparent"}
-          className={cn(
-            "flex h-7 items-center justify-center rounded bg-tint text-[10px] font-medium text-fg ring-1 transition-colors",
-            background === "transparent"
-              ? "ring-accent"
-              : "ring-line hover:ring-line-strong",
-          )}
+          label="No background"
+          className="bg-tint text-[11px] font-medium text-fg-muted"
         >
           None
-        </button>
+        </Swatch>
         {RECORDING_GRADIENT_KEYS.map((k) => (
-          <button
+          <Swatch
             key={k}
-            type="button"
+            selected={background === k}
             onClick={() => onChange(k)}
-            aria-pressed={background === k}
-            aria-label={RECORDING_GRADIENT_PRESETS[k].label}
-            title={RECORDING_GRADIENT_PRESETS[k].label}
-            className={cn(
-              "h-7 rounded ring-1 transition-shadow",
-              background === k
-                ? "ring-2 ring-accent"
-                : "ring-line hover:ring-line-strong",
-            )}
+            label={RECORDING_GRADIENT_PRESETS[k].label}
             style={{
               background: recordingGradientCss(
                 RECORDING_GRADIENT_PRESETS[k].stops,
@@ -81,26 +71,25 @@ export function BackgroundPicker({
             }}
           />
         ))}
-      </div>
-      <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-line pt-2">
+      </SwatchGroup>
+      <SwatchGroup label="Solid">
         {SOLID_PALETTE.map((hex) => (
-          <button
+          <Swatch
             key={hex}
-            type="button"
+            selected={isSolid(hex)}
             onClick={() => onChange(hex)}
-            aria-pressed={background.toLowerCase() === hex.toLowerCase()}
-            aria-label={`Solid ${hex}`}
-            className={cn(
-              "h-5 w-5 rounded-full ring-1 transition-shadow",
-              background.toLowerCase() === hex.toLowerCase()
-                ? "ring-2 ring-accent"
-                : "ring-line-strong hover:ring-line-strong",
-            )}
+            label={`Solid ${hex}`}
             style={{ backgroundColor: hex }}
           />
         ))}
         <label
-          className="relative inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-full ring-1 ring-line-strong hover:ring-line-strong"
+          className={cn(
+            SWATCH_CLASS,
+            "cursor-pointer",
+            isRecordingHexColor(background) &&
+              !SOLID_PALETTE.some(isSolid) &&
+              SWATCH_SELECTED_CLASS,
+          )}
           style={{
             background:
               "conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444)",
@@ -114,8 +103,58 @@ export function BackgroundPicker({
             onChange={(e) => onChange(e.target.value)}
           />
         </label>
-      </div>
+      </SwatchGroup>
     </div>
+  );
+}
+
+const SWATCH_CLASS =
+  "relative flex aspect-square items-center justify-center rounded-lg ring-1 ring-line transition-shadow hover:ring-line-strong";
+const SWATCH_SELECTED_CLASS =
+  "ring-2 ring-accent ring-offset-2 ring-offset-panel hover:ring-accent";
+
+function SwatchGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      <div className="mb-1.5 text-[11px] text-fg-subtle">{label}</div>
+      <div className="grid grid-cols-5 gap-2">{children}</div>
+    </div>
+  );
+}
+
+function Swatch({
+  selected,
+  onClick,
+  label,
+  className,
+  style,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  label: string;
+  className?: string;
+  style?: CSSProperties;
+  children?: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      aria-label={label}
+      title={label}
+      className={cn(SWATCH_CLASS, selected && SWATCH_SELECTED_CLASS, className)}
+      style={style}
+    >
+      {children}
+    </button>
   );
 }
 

@@ -88,13 +88,15 @@ type Props = {
   onCommentsChange?: (comments: RecordingComment[]) => void;
   // The Transcript tab's content.
   transcript: ReactNode;
+  // The owner's Edit tab; absent for everyone else.
+  editPanel?: ReactNode;
   onSignIn: () => void;
   onSeek: (ms: number) => void;
   getCurrentMs: () => number;
   commentInputRef?: React.MutableRefObject<HTMLTextAreaElement | null>;
 };
 
-type SidebarTab = "activity" | "transcript";
+type SidebarTab = "edit" | "activity" | "transcript";
 
 const TAB_CLASS =
   "isolate h-8 flex-1 justify-center gap-1.5 px-3.5 text-sm font-medium text-fg-muted data-[selected=true]:text-fg";
@@ -112,6 +114,7 @@ export function ActivitySidebar({
   onReactionDeleted,
   onCommentsChange,
   transcript,
+  editPanel,
   onSignIn,
   onSeek,
   getCurrentMs,
@@ -394,6 +397,12 @@ export function ActivitySidebar({
                 <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
                 Transcript
               </Tabs.Tab>
+              {editPanel ? (
+                <Tabs.Tab id="edit" className={TAB_CLASS}>
+                  <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+                  Edit
+                </Tabs.Tab>
+              ) : null}
             </Tabs.List>
           </Tabs.ListContainer>
         </header>
@@ -450,6 +459,15 @@ export function ActivitySidebar({
         >
           {transcript}
         </Tabs.Panel>
+
+        {editPanel ? (
+          <Tabs.Panel
+            id="edit"
+            className="min-h-0 flex-1 px-5 py-4 lg:overflow-y-auto lg:px-6"
+          >
+            {editPanel}
+          </Tabs.Panel>
+        ) : null}
       </Tabs>
 
       <div
