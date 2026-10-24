@@ -5,10 +5,11 @@ import {
 } from "@/lib/overlay/recording-window";
 
 describe("recordingWindowSize", () => {
-  it("is a square with room around the bubble", () => {
+  it("fits the bubble with a line of text under it", () => {
     const { width, height } = recordingWindowSize();
-    expect(width).toBe(height);
     expect(width).toBeGreaterThan(RECORDING_BUBBLE_SIZE);
     expect(width).toBeLessThan(RECORDING_BUBBLE_SIZE * 1.25);
+    expect(height).toBeGreaterThan(width);
+    expect(height).toBeLessThan(width + 40);
   });
 });

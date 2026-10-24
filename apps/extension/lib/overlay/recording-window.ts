@@ -9,12 +9,13 @@ type DocumentPictureInPicture = {
 
 export const RECORDING_BUBBLE_SIZE = 220;
 const PADDING = 12;
+const NOTE_HEIGHT = 28;
 
-// The bubble with a little room around it; Chrome widens a window it finds
-// too small.
+// The bubble with a little room around it and a line of text under it;
+// Chrome widens a window it finds too small.
 export function recordingWindowSize(): { width: number; height: number } {
-  const side = PADDING * 2 + RECORDING_BUBBLE_SIZE;
-  return { width: side, height: side };
+  const width = PADDING * 2 + RECORDING_BUBBLE_SIZE;
+  return { width, height: width + NOTE_HEIGHT };
 }
 
 /*

@@ -143,13 +143,23 @@ const WINDOW_CSS = `
   html, body { margin: 0; height: 100%; }
   body {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 8px;
     padding: 12px;
     box-sizing: border-box;
     overflow: hidden;
     background: #16181d;
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  .note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 20px;
+    color: #96989d;
+    text-align: center;
+    white-space: nowrap;
   }
   .bubble {
     position: relative;
@@ -409,7 +419,10 @@ export default defineContentScript({
       bubble.src = chrome.runtime.getURL("bubble.html");
       bubble.allow = "camera; microphone";
       circle.appendChild(bubble);
-      doc.body.appendChild(circle);
+      const note = doc.createElement("p");
+      note.className = "note";
+      note.textContent = "You can move the camera after recording.";
+      doc.body.append(circle, note);
       recordingWindow = { window: win, bubble, live: false };
       win.addEventListener("pagehide", () => {
         if (recordingWindow?.window === win) recordingWindow = null;
