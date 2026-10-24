@@ -236,10 +236,12 @@ export function AudioControls({
   onMic: (muted: boolean) => void;
   onSystem: (muted: boolean) => void;
 }) {
+  // The microphone is its own track only next to a camera; otherwise it is
+  // mixed with the system sound and the one toggle covers both.
   return (
     <div>
       <AudioToggle
-        label="System sound"
+        label={hasMic ? "System sound" : "Sound"}
         muted={systemMuted}
         onChange={onSystem}
         MutedIcon={VolumeX}
@@ -257,7 +259,7 @@ export function AudioControls({
         </div>
       ) : (
         <p className="mt-1.5 text-[11px] text-fg-muted">
-          No microphone track on this recording.
+          Microphone and system sound share one track on this recording.
         </p>
       )}
     </div>
