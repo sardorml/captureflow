@@ -15,6 +15,8 @@ export type DashboardRecordingRow = {
   posterKey: string | null;
   posterBlur: string | null;
   sizeBytes: number;
+  // Screen plus webcam: what the recording takes of the storage quota.
+  totalBytes: number;
   durationMs: number | null;
   width: number | null;
   height: number | null;
@@ -80,6 +82,7 @@ function rowFromD1(r: D1Row): DashboardRecordingRow {
     posterKey: r.poster_key,
     posterBlur: r.poster_blur ?? null,
     sizeBytes: r.size_bytes,
+    totalBytes: r.size_bytes + (r.webcam_size_bytes ?? 0),
     durationMs: r.duration_ms,
     width: r.width,
     height: r.height,

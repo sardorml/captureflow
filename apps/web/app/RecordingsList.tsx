@@ -193,7 +193,7 @@ function RecordingCard({
         comments: recording.commentCount,
         reactions: recording.reactionCount,
       }}
-      sizeBytes={recording.sizeBytes}
+      sizeBytes={recording.totalBytes}
       deleteConfirm={{
         title: "Delete this recording?",
         description:

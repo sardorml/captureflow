@@ -55,7 +55,7 @@ export default async function RecordingEditPage({
       width={recording.width}
       height={recording.height}
       durationMs={recording.durationMs}
-      sizeBytes={recording.sizeBytes}
+      sizeBytes={recording.totalBytes}
       viewCount={recording.viewCount}
       createdAt={recording.createdAt}
       initialVisibility={recording.visibility}

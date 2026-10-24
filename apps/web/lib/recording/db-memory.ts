@@ -235,7 +235,7 @@ export function memoryTotalStorageForUser(userId: string): number {
   let total = 0;
   for (const row of store.values()) {
     if (row.userId === userId && row.state === "ready") {
-      total += row.sizeBytes;
+      total += row.sizeBytes + row.webcamSizeBytes;
     }
   }
   return total;
