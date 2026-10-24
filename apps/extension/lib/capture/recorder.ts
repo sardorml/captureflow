@@ -2,6 +2,7 @@ import { ENGINE_OUTPUT } from "@captureflow/engine";
 import {
   MIC_CONSTRAINTS,
   isAudioChunkRecordingSupported,
+  openMicChain,
   startAudioChunkRecorder,
   startStreamRecorder,
   startWebcamRecorder,
@@ -179,10 +180,17 @@ export async function recordAndUpload(
     }
   }
 
+  // The mic goes through the voice chain wherever it is recorded; the raw
+  // track only feeds the chain.
+  const micTrack =
+    webcamStream?.getAudioTracks()[0] ?? micStream?.getAudioTracks()[0] ?? null;
+  const voice = micTrack ? openMicChain(micTrack) : null;
+
   const stopAllTracks = (): void => {
     stopTracks(screenStream);
     if (webcamStream) stopTracks(webcamStream);
     if (micStream) stopTracks(micStream);
+    void voice?.close().catch(() => {});
   };
 
   // A failed countdown round-trip must not strand live tracks — record anyway.
@@ -201,7 +209,7 @@ export async function recordAndUpload(
       const end = await runSession(
         ctx,
         cb,
-        { screenStream, webcamStream, micStream },
+        { screenStream, webcamStream, micStream, voice: voice?.stream ?? null },
         stopAllTracks,
       );
       if (end !== "restart") break;
@@ -217,6 +225,8 @@ type SessionStreams = {
   screenStream: MediaStream;
   webcamStream: MediaStream | null;
   micStream: MediaStream | null;
+  // The mic after the voice chain; null without a mic.
+  voice: MediaStream | null;
 };
 
 async function runSession(
@@ -225,7 +235,7 @@ async function runSession(
   streams: SessionStreams,
   stopAllTracks: () => void,
 ): Promise<SessionEnd> {
-  const { screenStream, webcamStream, micStream } = streams;
+  const { screenStream, webcamStream, micStream, voice } = streams;
 
   const transport = createRecordingTransport(ctx.deviceId, ctx.token);
   let upload: RecordingUpload;
@@ -269,7 +279,7 @@ async function runSession(
   try {
     screenRecorder = await startStreamRecorder({
       stream: screenStream,
-      micStream,
+      micStream: micStream ? voice : null,
       // fMP4 fragments are strictly appended, so position is ignorable; copy
       // because the muxer reuses its output buffer.
       output: (bytes) => {
@@ -294,8 +304,9 @@ async function runSession(
     try {
       webcamRecorder = startWebcamRecorder({
         webcamStream,
-        // Mic rides the same getUserMedia stream as the camera (Decision 4).
-        micStream: webcamStream,
+        // The mic rides the camera's getUserMedia stream; the chain's output
+        // stands in for it here.
+        micStream: voice,
         onChunk: (buf) => {
           upload.pushWebcam(new Uint8Array(buf));
           if (storageSpent()) sessionRef?.stop();
@@ -315,8 +326,7 @@ async function runSession(
   // The transcript is made server-side from the mic alone (the webcam stream
   // carries the track when there is a camera), uploaded as small audio
   // chunks beside the video. Best-effort: it never gates the recording.
-  const micTrack =
-    micStream?.getAudioTracks()[0] ?? webcamStream?.getAudioTracks()[0] ?? null;
+  const micTrack = voice?.getAudioTracks()[0] ?? null;
   const audio =
     ctx.mic && micTrack
       ? startAudioUpload(micTrack, upload.slug, transport, activeElapsed)

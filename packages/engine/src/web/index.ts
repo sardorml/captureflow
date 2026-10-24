@@ -19,6 +19,7 @@ export {
   type RecordPipelineResult,
   type RecordPipelineState,
 } from "./record-pipeline";
+export { MIC_CHAIN, dbToGain, openMicChain, type MicChain } from "./mic-chain";
 export { decodePosterJpeg, type PosterSource } from "./poster";
 export {
   startStreamRecorder,
