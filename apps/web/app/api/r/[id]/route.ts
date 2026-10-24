@@ -6,10 +6,7 @@ import {
   deleteObject,
   deleteObjectPrefix,
 } from "@/lib/recording/r2";
-import {
-  audioPartPrefixFor,
-  objectKeysFor,
-} from "@/lib/recording/object-keys";
+import { audioPartPrefixFor, objectKeysFor } from "@/lib/recording/object-keys";
 import { callerOwns } from "@/lib/recording/caller";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 

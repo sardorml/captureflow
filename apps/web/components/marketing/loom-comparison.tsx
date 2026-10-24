@@ -55,7 +55,8 @@ const ROWS: ReadonlyArray<{ label: string; loom: Cell; captureflow: Cell }> = [
   {
     label: "Transcripts and captions",
     loom: true,
-    captureflow: "Yes, free, made with Whisper on the instance's own Cloudflare account",
+    captureflow:
+      "Yes, free, made with Whisper on the instance's own Cloudflare account",
   },
   {
     label: "AI titles, summaries, chapters",
