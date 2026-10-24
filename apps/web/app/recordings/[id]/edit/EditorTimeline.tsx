@@ -125,28 +125,32 @@ export function EditorTimeline({
     onSelectSpan(same ? null : hit);
   };
 
-  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
-    e.preventDefault();
-    const startX = e.clientX;
-    let moved = false;
-    seekFromClientX(e.clientX);
-    const el = e.currentTarget;
-    el.setPointerCapture(e.pointerId);
-    const move = (ev: PointerEvent): void => {
-      if (Math.abs(ev.clientX - startX) > PICK_SLOP_PX) moved = true;
-      seekFromClientX(ev.clientX);
+  // Scrubs on the clip and the ruler alike; a still click on the clip also
+  // picks the segment under it.
+  const scrubFrom =
+    (picks: boolean) =>
+    (e: ReactPointerEvent<HTMLDivElement>): void => {
+      e.preventDefault();
+      const startX = e.clientX;
+      let moved = false;
+      seekFromClientX(e.clientX);
+      const el = e.currentTarget;
+      el.setPointerCapture(e.pointerId);
+      const move = (ev: PointerEvent): void => {
+        if (Math.abs(ev.clientX - startX) > PICK_SLOP_PX) moved = true;
+        seekFromClientX(ev.clientX);
+      };
+      const up = (ev: PointerEvent): void => {
+        el.removeEventListener("pointermove", move);
+        el.removeEventListener("pointerup", up);
+        el.removeEventListener("pointercancel", up);
+        if (picks && !moved && ev.type === "pointerup")
+          pickSegment(seekFromClientX(ev.clientX));
+      };
+      el.addEventListener("pointermove", move);
+      el.addEventListener("pointerup", up);
+      el.addEventListener("pointercancel", up);
     };
-    const up = (ev: PointerEvent): void => {
-      el.removeEventListener("pointermove", move);
-      el.removeEventListener("pointerup", up);
-      el.removeEventListener("pointercancel", up);
-      if (!moved && ev.type === "pointerup")
-        pickSegment(seekFromClientX(ev.clientX));
-    };
-    el.addEventListener("pointermove", move);
-    el.addEventListener("pointerup", up);
-    el.addEventListener("pointercancel", up);
-  };
 
   const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>): void => {
     const p = playerRef.current;
@@ -268,7 +272,10 @@ export function EditorTimeline({
         className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden px-4 pb-3"
       >
         <div className="relative h-full" style={{ width: `${zoom * 100}%` }}>
-          <div className="relative h-6 border-b border-line text-[10px] text-fg-subtle tabular-nums">
+          <div
+            onPointerDown={scrubFrom(false)}
+            className="relative h-6 cursor-pointer touch-none border-b border-line text-[10px] text-fg-subtle tabular-nums select-none"
+          >
             {ticks.map((tick) => (
               <span
                 key={tick.t}
@@ -286,7 +293,7 @@ export function EditorTimeline({
 
           <div
             ref={trackRef}
-            onPointerDown={onPointerDown}
+            onPointerDown={scrubFrom(true)}
             onKeyDown={onKeyDown}
             role="slider"
             tabIndex={0}
@@ -297,12 +304,10 @@ export function EditorTimeline({
             aria-valuetext={formatTime(current)}
             className="relative mt-2.5 cursor-pointer touch-none rounded-lg select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
           >
-            <div className="overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
-              <div className="relative h-16">
-                <EditorFilmstrip strip={frames} />
-              </div>
+            <div className="relative h-20 overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
+              <EditorFilmstrip strip={frames} />
               {showWaveform ? (
-                <div className="relative h-9 border-t border-line bg-panel">
+                <div className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-black/60 via-black/35 to-transparent">
                   <EditorWaveform buckets={waveform} />
                 </div>
               ) : null}
