@@ -19,6 +19,8 @@ function input(over: {
     scrubbing: false,
     holdSince: null,
     gaveUpAt: null,
+    smoothedDrift: null,
+    nudging: false,
     ...over.rest,
     main: { paused: false, time: 10, rate: 1, stalled: false, ...over.main },
     cam: {
@@ -102,6 +104,47 @@ describe("planWebcamSync", () => {
     it("follows the screen's playback speed", () => {
       const plan = planWebcamSync(input({ main: { rate: 1.5 } }));
       expect(plan.camRate).toBe(1.5);
+    });
+
+    it("smooths a jittery sample instead of nudging on it", () => {
+      const plan = planWebcamSync(
+        input({ cam: { time: 9.9 }, rest: { smoothedDrift: 0 } }),
+      );
+      expect(plan.camRate).toBe(null);
+      expect(plan.nudging).toBe(false);
+      expect(plan.smoothedDrift).toBeCloseTo(-0.015);
+    });
+
+    it("keeps a nudge going until the drift is well inside the band", () => {
+      const plan = planWebcamSync(
+        input({
+          cam: { time: 9.95, rate: 1 + NUDGE_RATE },
+          rest: { smoothedDrift: -0.05, nudging: true },
+        }),
+      );
+      expect(plan.nudging).toBe(true);
+      expect(plan.camRate).toBe(null);
+    });
+
+    it("ends a nudge inside the inner band", () => {
+      const plan = planWebcamSync(
+        input({
+          cam: { time: 10, rate: 1 + NUDGE_RATE },
+          rest: { smoothedDrift: -0.015, nudging: true },
+        }),
+      );
+      expect(plan.nudging).toBe(false);
+      expect(plan.camRate).toBe(1);
+    });
+
+    it("forgets the drift while paused", () => {
+      const plan = planWebcamSync(
+        input({
+          rest: { playing: false, smoothedDrift: -0.05, nudging: true },
+        }),
+      );
+      expect(plan.smoothedDrift).toBe(null);
+      expect(plan.nudging).toBe(false);
     });
 
     it("seeks the cam when drift is too large to nudge, ending any nudge", () => {

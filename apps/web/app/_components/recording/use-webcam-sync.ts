@@ -45,6 +45,8 @@ export function useWebcamSync({
     let rafId = 0;
     let holdSince: number | null = null;
     let gaveUpAt: number | null = null;
+    let smoothedDrift: number | null = null;
+    let nudging = false;
     const stalled = (v: HTMLVideoElement): boolean =>
       v.seeking || v.readyState < HTMLMediaElement.HAVE_FUTURE_DATA;
 
@@ -75,9 +77,13 @@ export function useWebcamSync({
         },
         holdSince,
         gaveUpAt,
+        smoothedDrift,
+        nudging,
       });
       holdSince = plan.holdSince;
       gaveUpAt = plan.gaveUpAt;
+      smoothedDrift = plan.smoothedDrift;
+      nudging = plan.nudging;
       if (plan.seekCamTo !== null) cam.currentTime = plan.seekCamTo;
       if (plan.camRate !== null) cam.playbackRate = plan.camRate;
       if (plan.cam === "play") cam.play().catch(() => {});
