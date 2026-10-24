@@ -201,7 +201,7 @@ export function EditorTimeline({
   const current = fraction * duration;
 
   return (
-    <div className="flex h-60 shrink-0 flex-col border-t border-line bg-panel">
+    <div className="flex h-52 shrink-0 flex-col border-t border-line bg-panel">
       <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-b border-line px-3">
         <div className="flex items-center gap-1">
           <span className="mr-2 font-mono text-xs text-fg tabular-nums">
@@ -303,23 +303,25 @@ export function EditorTimeline({
             aria-valuetext={formatTime(current)}
             className="relative mt-2.5 cursor-pointer touch-none rounded-lg select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
           >
-            <div className="relative h-[4.5rem] overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
-              <EditorFilmstrip strip={frames} />
-            </div>
-            {showWaveform ? (
-              <div
-                aria-hidden
-                className="mt-1.5 flex h-10 items-center gap-px overflow-hidden rounded-lg bg-tint px-1 ring-1 ring-line"
-              >
-                {bars.map((h, i) => (
-                  <span
-                    key={i}
-                    className="flex-1 rounded-full bg-accent/50"
-                    style={{ height: `${h * 70}%` }}
-                  />
-                ))}
+            <div className="overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
+              <div className="relative h-16">
+                <EditorFilmstrip strip={frames} />
               </div>
-            ) : null}
+              {showWaveform ? (
+                <div
+                  aria-hidden
+                  className="flex h-9 items-center gap-px border-t border-line bg-panel px-1"
+                >
+                  {bars.map((h, i) => (
+                    <span
+                      key={i}
+                      className="flex-1 rounded-full bg-accent/50"
+                      style={{ height: `${h * 70}%` }}
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </div>
 
             {/* Cut spans the player skips, from the transcript panel. */}
             {duration > 0

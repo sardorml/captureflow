@@ -14,8 +14,8 @@ import { EditorInspector } from "./EditorInspector";
 import { EditorTimeline } from "./EditorTimeline";
 import { EditorTopBar } from "./EditorTopBar";
 
-// Top bar (h-14) + timeline (h-60) + the stage's padding (p-8 twice).
-const STAGE_MAX_HEIGHT_CSS = "calc(100vh - 22.5rem)";
+// Top bar (h-14) + timeline (h-52) + the stage's padding (p-8 twice).
+const STAGE_MAX_HEIGHT_CSS = "calc(100vh - 20.5rem)";
 
 // The recording editor. The preview uses the same RecordingPlayer as the
 // public viewer, so it matches what /r/[id] renders pixel for pixel.
