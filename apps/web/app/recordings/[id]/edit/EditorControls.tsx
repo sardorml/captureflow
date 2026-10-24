@@ -23,6 +23,12 @@ const SOLID_PALETTE = [
   "#ea580c",
   "#64748b",
   "#0f172a",
+  "#7c3aed",
+  "#0d9488",
+  "#be123c",
+  "#525252",
+  "#e5e7eb",
+  "#ffffff",
 ];
 
 const CAMERA_CORNERS: { value: RecordingCameraCorner; label: string }[] = [
@@ -54,7 +60,7 @@ export function BackgroundPicker({
           selected={background === "transparent"}
           onClick={() => onChange("transparent")}
           label="No background"
-          className="bg-tint text-[11px] font-medium text-fg-muted"
+          className="bg-tint text-[9px] font-medium text-fg-muted"
         >
           None
         </Swatch>
@@ -109,7 +115,7 @@ export function BackgroundPicker({
 }
 
 const SWATCH_CLASS =
-  "relative flex aspect-square items-center justify-center rounded-lg ring-1 ring-line transition-shadow hover:ring-line-strong";
+  "relative flex aspect-square items-center justify-center rounded-md ring-1 ring-line transition-shadow hover:ring-line-strong";
 const SWATCH_SELECTED_CLASS =
   "ring-2 ring-accent ring-offset-2 ring-offset-panel hover:ring-accent";
 
@@ -123,7 +129,7 @@ function SwatchGroup({
   return (
     <div>
       <div className="mb-1.5 text-[11px] text-fg-subtle">{label}</div>
-      <div className="grid grid-cols-5 gap-2">{children}</div>
+      <div className="grid grid-cols-8 gap-1.5">{children}</div>
     </div>
   );
 }
