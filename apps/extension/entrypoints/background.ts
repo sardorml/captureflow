@@ -166,19 +166,16 @@ async function releaseCameraBubble(): Promise<void> {
 }
 
 /*
- * The recording's bar and bubble live in a Picture-in-Picture window of the
- * recording tab, where the capture can't see them. The window only opens on
+ * The recording's camera bubble floats in a Picture-in-Picture window of the
+ * recording tab, where the capture can't see it. The window only opens on
  * the Start press's gesture, so this runs first and fast; a tab without the
- * content script gets it injected, and a tab that can't open the window keeps
- * the bar on the page.
+ * content script gets it injected, and a tab that can't open the window
+ * records without a bubble.
  */
-async function openRecordingWindow(
-  tabId: number | undefined,
-  camera: boolean,
-): Promise<void> {
+async function openRecordingWindow(tabId: number | undefined): Promise<void> {
   if (tabId === undefined) return;
   try {
-    await sendMessage("openRecordingWindow", { camera }, tabId);
+    await sendMessage("openRecordingWindow", undefined, tabId);
     return;
   } catch {
     /* no content script yet */
@@ -188,7 +185,7 @@ async function openRecordingWindow(
       target: { tabId },
       files: [CONTROL_BAR_SCRIPT],
     });
-    await sendMessage("openRecordingWindow", { camera }, tabId);
+    await sendMessage("openRecordingWindow", undefined, tabId);
   } catch {
     /* restricted page */
   }
@@ -693,10 +690,9 @@ export default defineBackground(() => {
         activeTab?.id === undefined
           ? undefined
           : await tabStreamIdFor(activeTab.id);
-      await openRecordingWindow(
-        overlayTabId ?? (await activeTabId()),
-        prefs.camera && !(await getCameraBlocked()),
-      );
+      if (prefs.camera && !(await getCameraBlocked())) {
+        await openRecordingWindow(overlayTabId ?? (await activeTabId()));
+      }
       await setRecordingStatus({ kind: "preparing" });
       // The panel gets out of the way before the native picker appears, taking
       // the preview with it; the recording's window shows the camera once
