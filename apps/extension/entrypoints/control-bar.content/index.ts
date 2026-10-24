@@ -405,7 +405,7 @@ export default defineContentScript({
     void getRecordingStatus().then(apply);
     watchRecordingStatus(apply);
 
-    onMessage("openRecordingWindow", async () => {
+    const openRecordingWindow = async (live: boolean): Promise<boolean> => {
       if (recordingWindow) return true;
       const win = await requestRecordingWindow();
       if (!win) return false;
@@ -416,18 +416,49 @@ export default defineContentScript({
       const circle = doc.createElement("div");
       circle.className = "bubble";
       const bubble = doc.createElement("iframe");
-      bubble.src = chrome.runtime.getURL("bubble.html");
+      bubble.src = chrome.runtime.getURL(
+        live ? "bubble.html?camera=1" : "bubble.html",
+      );
       bubble.allow = "camera; microphone";
       circle.appendChild(bubble);
       const note = doc.createElement("p");
       note.className = "note";
       note.textContent = "You can move the camera after recording.";
       doc.body.append(circle, note);
-      recordingWindow = { window: win, bubble, live: false };
+      recordingWindow = { window: win, bubble, live };
       win.addEventListener("pagehide", () => {
         if (recordingWindow?.window === win) recordingWindow = null;
       });
       return true;
+    };
+    onMessage("openRecordingWindow", () => openRecordingWindow(false));
+
+    // A floating window stays above a fullscreen page, so the bubble steps
+    // aside while the page is fullscreen and comes back on the way out.
+    // Reopening takes a gesture: the click that left fullscreen, or failing
+    // that (Esc) the next click or key press.
+    let bubbleWaitsOutFullscreen = false;
+    const reopenAfterFullscreen = async (): Promise<void> => {
+      if (!bubbleWaitsOutFullscreen || document.fullscreenElement) return;
+      if (await openRecordingWindow(true)) bubbleWaitsOutFullscreen = false;
+    };
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) {
+        void reopenAfterFullscreen();
+        return;
+      }
+      if (recordingWindow?.live) {
+        bubbleWaitsOutFullscreen = true;
+        closeRecordingWindow();
+      }
+    });
+    for (const type of ["pointerdown", "keydown"] as const) {
+      document.addEventListener(type, () => void reopenAfterFullscreen(), true);
+    }
+    watchRecordingStatus((status) => {
+      if (status.kind !== "recording" && status.kind !== "paused") {
+        bubbleWaitsOutFullscreen = false;
+      }
     });
 
     // The panel's frame leaving the page ends the preview too, so a worker
