@@ -13,6 +13,10 @@ import {
   BUBBLE_FRAME_ID,
   unmountCameraBubble,
 } from "@/lib/overlay/camera-bubble";
+import {
+  RECORDING_BUBBLE_SIZE,
+  requestRecordingWindow,
+} from "@/lib/overlay/recording-window";
 
 const HOST_ID = CONTROL_BAR_HOST_ID;
 
@@ -59,6 +63,9 @@ const BAR_CSS = `
     user-select: none;
   }
   .bar.dragging { cursor: grabbing; }
+  /* In the recording window the bar sits in the flow beside the bubble. */
+  .bar.docked { position: static; cursor: default; }
+  .bar.docked, .bar.docked.entering, .bar.docked.leaving { transform: none; }
   /* Slides in from its edge; the same path out. */
   .bar.entering, .bar.leaving {
     opacity: 0;
@@ -134,6 +141,44 @@ const BAR_CSS = `
   .timer.preview { color: #96989d; }
 `;
 
+// The recording window: the bar at the left, the bubble beside it.
+const WINDOW_CSS = `
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px;
+    box-sizing: border-box;
+    overflow: hidden;
+    background: #16181d;
+  }
+  .bubble {
+    position: relative;
+    flex: none;
+    width: ${RECORDING_BUBBLE_SIZE}px;
+    height: ${RECORDING_BUBBLE_SIZE}px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #16181d;
+  }
+  .bubble iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 50%;
+  }
+`;
+
+type RecordingWindow = {
+  window: Window;
+  bubble: HTMLIFrameElement | null;
+  live: boolean;
+};
+
 type Bar = {
   update(status: RecordingStatus): void;
   // Shown while the panel is open: every control disabled, clock at zero.
@@ -177,17 +222,18 @@ function makeDraggable(host: HTMLElement, bar: HTMLElement): void {
   });
 }
 
-function createBar(): Bar {
-  const host = document.createElement("div");
+// Floating on the page, or docked in the recording window's document.
+function createBar(doc: Document, docked: boolean): Bar {
+  const host = doc.createElement("div");
   host.id = HOST_ID;
   const shadow = host.attachShadow({ mode: "closed" });
 
-  const style = document.createElement("style");
+  const style = doc.createElement("style");
   style.textContent = BAR_CSS;
   shadow.appendChild(style);
 
-  const bar = document.createElement("div");
-  bar.className = "bar entering";
+  const bar = doc.createElement("div");
+  bar.className = docked ? "bar docked entering" : "bar entering";
   shadow.appendChild(bar);
 
   const stop = iconButton(STOP_ICON, "Stop and save", () =>
@@ -215,8 +261,12 @@ function createBar(): Bar {
   extraInner.append(restart, del);
   extra.appendChild(extraInner);
   bar.append(stop, timer, pause, extra);
-  makeDraggable(host, bar);
-  document.documentElement.appendChild(host);
+  if (docked) {
+    doc.body.prepend(host);
+  } else {
+    makeDraggable(host, bar);
+    doc.documentElement.appendChild(host);
+  }
   // Two frames in: the first paints the start state, the second transitions.
   requestAnimationFrame(() =>
     requestAnimationFrame(() => bar.classList.replace("entering", "settled")),
@@ -311,27 +361,87 @@ export default defineContentScript({
   main() {
     let bar: Bar | null = null;
     let previewing = false;
+    let recordingWindow: RecordingWindow | null = null;
+
+    const closeRecordingWindow = (): void => {
+      const open = recordingWindow;
+      if (!open) return;
+      recordingWindow = null;
+      bar = null;
+      open.window.close();
+    };
+
     const apply = (status: RecordingStatus): void => {
       // The bar leaves with the recording: the upload has its own page.
       const live = status.kind === "recording" || status.kind === "paused";
       if (live) {
-        bar ??= createBar();
+        bar ??= createBar(
+          recordingWindow?.window.document ?? document,
+          recordingWindow !== null,
+        );
         bar.update(status);
+        // The camera comes up once the recorder holds it; opening the same
+        // device first can cost the recorder its webcam track.
+        if (recordingWindow?.bubble && !recordingWindow.live) {
+          recordingWindow.live = true;
+          recordingWindow.bubble.src = chrome.runtime.getURL(
+            "bubble.html?camera=1",
+          );
+        }
         return;
       }
-      if (previewing) {
-        bar ??= createBar();
+      // The window opens on the Start press and waits out the picker and the
+      // countdown with the bar disabled.
+      if (previewing || (recordingWindow && status.kind === "preparing")) {
+        bar ??= createBar(
+          recordingWindow?.window.document ?? document,
+          recordingWindow !== null,
+        );
         bar.preview();
         return;
       }
       bar?.destroy();
       bar = null;
-      // The recording's bubble goes with the bar; the panel's preview bubble
+      closeRecordingWindow();
+      // A leftover page bubble goes with the bar; the panel's preview bubble
       // is the panel's to remove.
       unmountCameraBubble(BUBBLE_FRAME_ID);
     };
     void getRecordingStatus().then(apply);
     watchRecordingStatus(apply);
+
+    onMessage("openRecordingWindow", async ({ data }) => {
+      if (recordingWindow) return true;
+      const win = await requestRecordingWindow(data.camera);
+      if (!win) return false;
+      const doc = win.document;
+      const style = doc.createElement("style");
+      style.textContent = WINDOW_CSS;
+      doc.head.appendChild(style);
+      let bubble: HTMLIFrameElement | null = null;
+      if (data.camera) {
+        const circle = doc.createElement("div");
+        circle.className = "bubble";
+        bubble = doc.createElement("iframe");
+        bubble.src = chrome.runtime.getURL("bubble.html");
+        bubble.allow = "camera; microphone";
+        circle.appendChild(bubble);
+        doc.body.appendChild(circle);
+      }
+      recordingWindow = { window: win, bubble, live: false };
+      // The page's bar moves into the window.
+      bar?.destroy();
+      bar = null;
+      // Closed by the user mid-recording, the bar falls back to the page.
+      win.addEventListener("pagehide", () => {
+        if (recordingWindow?.window !== win) return;
+        recordingWindow = null;
+        bar = null;
+        void getRecordingStatus().then(apply);
+      });
+      void getRecordingStatus().then(apply);
+      return true;
+    });
 
     // The panel's frame leaving the page ends the preview too, so a worker
     // asleep at the close can't strand the bar.

@@ -53,6 +53,10 @@ type ProtocolMap = {
   // SW→page: a toolbar click mid-recording points at the bar instead of
   // opening the panel.
   nudgeControlBar(): void;
+  // SW→page, on the Start press: host the recording's bar and bubble in a
+  // Picture-in-Picture window, out of the tab's capture. False leaves the
+  // bar on the page.
+  openRecordingWindow(input: { camera: boolean }): boolean;
   // panel→SW: the page-side backdrop follows the panel's painted theme.
   setOverlayTheme(theme: "light" | "dark"): void;
   setOverlayVisible(input: { visible: boolean }): void;
