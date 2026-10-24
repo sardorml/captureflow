@@ -172,22 +172,41 @@ async function releaseCameraBubble(): Promise<void> {
  * content script gets it injected, and a tab that can't open the window
  * records without a bubble.
  */
+let recordingWindowTabId: number | undefined;
+
 async function openRecordingWindow(tabId: number | undefined): Promise<void> {
+  recordingWindowTabId = undefined;
   if (tabId === undefined) return;
+  let opened = false;
   try {
-    await sendMessage("openRecordingWindow", undefined, tabId);
-    return;
+    opened = await sendMessage("openRecordingWindow", undefined, tabId);
   } catch {
     /* no content script yet */
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        files: [CONTROL_BAR_SCRIPT],
+      });
+      opened = await sendMessage("openRecordingWindow", undefined, tabId);
+    } catch {
+      /* restricted page */
+    }
   }
+  if (opened) recordingWindowTabId = tabId;
+}
+
+// Out of a tab's capture, but on the screen: a whole-screen recording would
+// film the window, so it goes and the camera stays a separate track.
+async function closeRecordingWindowIfInShot(
+  surface: string | null,
+): Promise<void> {
+  const tabId = recordingWindowTabId;
+  if (surface !== "monitor" || tabId === undefined) return;
+  recordingWindowTabId = undefined;
   try {
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      files: [CONTROL_BAR_SCRIPT],
-    });
-    await sendMessage("openRecordingWindow", undefined, tabId);
+    await sendMessage("closeRecordingWindow", undefined, tabId);
   } catch {
-    /* restricted page */
+    /* tab gone */
   }
 }
 
@@ -726,6 +745,10 @@ export default defineBackground(() => {
   onMessage("resumeRecording", () => sendMessage("resumeCapture", undefined));
   onMessage("restartRecording", () => sendMessage("restartCapture", undefined));
   onMessage("deleteRecording", () => sendMessage("deleteCapture", undefined));
+
+  onMessage("capturedSurface", ({ data }) =>
+    closeRecordingWindowIfInShot(data),
+  );
 
   onMessage("recordingStatus", ({ data }) => setRecordingStatus(data));
 

@@ -432,6 +432,7 @@ export default defineContentScript({
       return true;
     };
     onMessage("openRecordingWindow", () => openRecordingWindow(false));
+    onMessage("closeRecordingWindow", () => closeRecordingWindow());
 
     // A floating window stays above a fullscreen page, so the bubble steps
     // aside while the page is fullscreen and comes back on the way out.

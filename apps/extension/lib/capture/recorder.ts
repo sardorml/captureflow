@@ -32,6 +32,9 @@ type Callbacks = {
   // Pre-roll countdown, shown by the SW on the page. Runs after all grants
   // and pickers settle, so a cancel tears down before any upload exists.
   onCountdown: () => Promise<"go" | "cancel">;
+  // What the capture ended up on: "monitor", "window" or "browser"; null when
+  // Chrome doesn't say.
+  onSurface: (surface: string | null) => void;
   onStatus: (status: RecordingStatus) => void;
   // Fires as finalize begins, with the share URL — the page renders its own
   // pending state while the tail uploads.
@@ -152,6 +155,9 @@ export async function recordAndUpload(
     }
     return;
   }
+  cb.onSurface(
+    screenStream.getVideoTracks()[0]?.getSettings().displaySurface ?? null,
+  );
 
   // Webcam (camera + optional mic) is best-effort: if it can't be acquired (no
   // permission yet, no device), fall back to a screen-only recording.
