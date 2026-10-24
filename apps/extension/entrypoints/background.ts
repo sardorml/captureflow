@@ -210,7 +210,11 @@ async function runPageCountdown(): Promise<CountdownResult> {
     await chrome.scripting.executeScript({
       target: { tabId },
       func: mountCountdownOverlay,
-      args: [COUNTDOWN_SECONDS, COUNTDOWN_OVERLAY_ID],
+      args: [
+        COUNTDOWN_SECONDS,
+        COUNTDOWN_OVERLAY_ID,
+        await getThemePreference(),
+      ],
     });
   } catch {
     return "go";
