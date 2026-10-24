@@ -351,16 +351,17 @@ function StartOverlay({ compact }: { compact: boolean }) {
         e.stopPropagation();
         void playback.play();
       }}
-      className="absolute inset-0 z-20 flex cursor-pointer items-center justify-center bg-black/30 focus:outline-none"
+      className="group absolute inset-0 z-20 flex cursor-pointer items-center justify-center bg-black/10 transition-colors hover:bg-black/20 focus:outline-none"
       aria-label="Play"
     >
+      {/* The same button as the landing page's demo. */}
       {compact ? (
-        <span className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 shadow-2xl shadow-blue-950/40 ring-8 ring-blue-600/30 transition-transform duration-200 ease-out hover:scale-[1.06] motion-reduce:transition-none">
+        <span className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-600 shadow-2xl shadow-blue-950/40 ring-8 ring-blue-600/30 transition-transform duration-200 ease-out group-hover:scale-[1.06] motion-reduce:transition-none">
           <Play className="size-9 translate-x-0.5 fill-white text-white" />
         </span>
       ) : (
-        <span className="flex h-32 w-32 items-center justify-center rounded-full bg-blue-600 shadow-2xl shadow-blue-950/40 transition-transform hover:scale-105">
-          <Play className="h-16 w-16 text-white" fill="currentColor" />
+        <span className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-600 shadow-2xl shadow-blue-950/40 ring-[10px] ring-blue-600/30 transition-transform duration-200 ease-out group-hover:scale-[1.06] motion-reduce:transition-none sm:h-28 sm:w-28">
+          <Play className="size-10 translate-x-0.5 fill-white text-white sm:size-11" />
         </span>
       )}
     </button>
