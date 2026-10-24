@@ -1,5 +1,6 @@
 import { ENGINE_OUTPUT } from "@captureflow/engine";
 import {
+  MIC_CONSTRAINTS,
   isAudioChunkRecordingSupported,
   startAudioChunkRecorder,
   startStreamRecorder,
@@ -72,6 +73,11 @@ const deviceConstraint = (
   deviceId: string | undefined,
 ): MediaTrackConstraints | boolean =>
   deviceId ? { deviceId: { ideal: deviceId } } : true;
+
+const micConstraint = (deviceId: string | undefined): MediaTrackConstraints =>
+  deviceId
+    ? { deviceId: { ideal: deviceId }, ...MIC_CONSTRAINTS }
+    : { ...MIC_CONSTRAINTS };
 
 /*
  * A chrome.tabCapture stream id is redeemed through getUserMedia's legacy
@@ -153,7 +159,7 @@ export async function recordAndUpload(
     try {
       webcamStream = await navigator.mediaDevices.getUserMedia({
         video: deviceConstraint(ctx.cameraId),
-        audio: ctx.mic ? deviceConstraint(ctx.micId) : false,
+        audio: ctx.mic ? micConstraint(ctx.micId) : false,
       });
     } catch {
       webcamStream = null;
@@ -166,7 +172,7 @@ export async function recordAndUpload(
     try {
       micStream = await navigator.mediaDevices.getUserMedia({
         video: false,
-        audio: deviceConstraint(ctx.micId),
+        audio: micConstraint(ctx.micId),
       });
     } catch {
       micStream = null;

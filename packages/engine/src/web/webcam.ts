@@ -56,18 +56,25 @@ async function acquireWebcamStream(deviceId: string): Promise<MediaStream> {
   }
 }
 
+/*
+ * Mic processing for a recording, not a call. Automatic gain rides the level
+ * up between words and drags the room's noise floor with it, which plays
+ * back as hiss and clips the loud syllables; nothing plays through the
+ * speakers that would need cancelling. Noise suppression stays on.
+ */
+export const MIC_CONSTRAINTS = {
+  echoCancellation: false,
+  autoGainControl: false,
+  noiseSuppression: true,
+} as const satisfies MediaTrackConstraints;
+
 export async function acquireMicCapture(
   audioDeviceId: string,
 ): Promise<MicCaptureResult | null> {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: false,
-      audio: {
-        deviceId: { exact: audioDeviceId },
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      },
+      audio: { deviceId: { exact: audioDeviceId }, ...MIC_CONSTRAINTS },
     });
     return { stream };
   } catch (err) {

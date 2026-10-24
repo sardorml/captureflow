@@ -27,6 +27,7 @@ export {
   type StreamRecorderResult,
 } from "./stream-recorder";
 export {
+  MIC_CONSTRAINTS,
   acquireMicCapture,
   acquireWebcamCapture,
   pickWebcamMimeType,
