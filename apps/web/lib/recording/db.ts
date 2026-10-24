@@ -4,8 +4,9 @@ import type {
   RecordingComment,
   RecordingReaction,
   RecordingRow,
+  TranscriptRow,
 } from "./types";
-import type { RecordingDb } from "./db-types";
+import type { CreateTranscriptJobInput, RecordingDb } from "./db-types";
 import { memoryDb } from "./db-memory";
 import { createD1Db } from "./db-d1";
 import { getCloudflareEnv } from "./cf-env";
@@ -131,10 +132,30 @@ export async function countComments(slug: string): Promise<number> {
   return (await resolveDb()).countComments(slug);
 }
 
+export async function getReaction(id: number) {
+  return (await resolveDb()).getReaction(id);
+}
+
+export async function deleteReaction(id: number): Promise<boolean> {
+  return (await resolveDb()).deleteReaction(id);
+}
+
 export async function getComment(id: number) {
   return (await resolveDb()).getComment(id);
 }
 
 export async function deleteComment(id: number): Promise<boolean> {
   return (await resolveDb()).deleteComment(id);
+}
+
+export async function createTranscriptJob(
+  input: CreateTranscriptJobInput,
+): Promise<void> {
+  return (await resolveDb()).createTranscriptJob(input);
+}
+
+export async function getTranscript(
+  slug: string,
+): Promise<TranscriptRow | null> {
+  return (await resolveDb()).getTranscript(slug);
 }

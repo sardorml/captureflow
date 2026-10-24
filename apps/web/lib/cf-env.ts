@@ -1,10 +1,13 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { TranscriptionJobMessage } from "./recording/types";
 
 export type AppWebBindings = {
   DB?: D1Database;
   BUCKET?: R2Bucket;
+  AI?: Ai;
+  TRANSCRIPTION_QUEUE?: Queue<TranscriptionJobMessage>;
   NEXT_PUBLIC_APP_WEB_SITE_URL?: string;
   NEXT_PUBLIC_RECORDING_SITE_URL?: string;
   // Legacy standalone-screenshot host, retained for parity until cutover.

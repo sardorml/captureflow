@@ -76,7 +76,6 @@ The full setup is open and documented. Follow the [step-by-step self-hosting gui
 
 To be fair about the trade-offs:
 
-- **Transcripts and captions** aren’t in CaptureFlow yet.
 - **AI titles, summaries and chapters** come with Loom Business + AI. CaptureFlow chapters are manual.
 - **Apps:** Loom also has Windows, iOS and Android apps.
 - **SAML single sign-on** isn’t supported. Sign-in is through Google or GitHub, limited to your domain.

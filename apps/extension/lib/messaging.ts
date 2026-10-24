@@ -53,6 +53,12 @@ type ProtocolMap = {
   // SW→page: a toolbar click mid-recording points at the bar instead of
   // opening the panel.
   nudgeControlBar(): void;
+  // SW→page, on the Start press: float the recording's camera bubble in a
+  // Picture-in-Picture window, out of the tab's capture. False means the
+  // recording goes without a bubble.
+  openRecordingWindow(): boolean;
+  // SW→page: the window would be in shot, so it goes before capture starts.
+  closeRecordingWindow(): void;
   // panel→SW: the page-side backdrop follows the panel's painted theme.
   setOverlayTheme(theme: "light" | "dark"): void;
   setOverlayVisible(input: { visible: boolean }): void;
@@ -84,6 +90,9 @@ type ProtocolMap = {
   resumeCapture(): void;
   restartCapture(): void;
   deleteCapture(): void;
+  // offscreen→SW: which surface the picker gave, as the stream's
+  // displaySurface setting.
+  capturedSurface(surface: string | null): void;
   recordingStatus(status: RecordingStatus): void;
   recordingResult(result: RecordingResultPayload): void;
   // Offscreen docs can't touch chrome.storage, so the crash marker is relayed

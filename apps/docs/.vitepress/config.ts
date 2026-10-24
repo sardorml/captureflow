@@ -79,6 +79,7 @@ export default defineConfig({
           { text: "Install the app", link: "/guide/install" },
           { text: "Record your screen", link: "/guide/recording" },
           { text: "Recording a recording", link: "/guide/sharing" },
+          { text: "Transcripts and cuts", link: "/guide/transcripts" },
           { text: "Screenshots (screenshots)", link: "/guide/screenshots" },
         ],
       },

@@ -1,10 +1,13 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { TranscriptionJobMessage } from "./types";
 
 export type CloudflareBindings = {
   DB?: D1Database;
   BUCKET?: R2Bucket;
+  AI?: Ai;
+  TRANSCRIPTION_QUEUE?: Queue<TranscriptionJobMessage>;
   NEXT_PUBLIC_RECORDING_SITE_URL?: string;
   NEXT_PUBLIC_MARKETING_SITE_URL?: string;
   R2_PUBLIC_BASE_URL?: string;

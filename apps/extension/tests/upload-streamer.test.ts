@@ -62,6 +62,8 @@ function fakeTransport(
     uploadPoster: async (_slug, bytes) => {
       posterBytes = bytes.byteLength;
     },
+    uploadAudioPart: async () => {},
+    transcribe: async () => {},
     abort: async (req) => {
       abortedSlugs.push(req.slug);
     },

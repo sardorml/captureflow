@@ -18,7 +18,6 @@ import {
   setCameraBlocked,
   setCapturePrefs,
   setRecordingStatus,
-  type RecordingStatus,
 } from "@/lib/storage";
 import { LIVE_KINDS } from "@/lib/capture/status";
 import { createRecordingTransport } from "@/lib/api/client";
@@ -166,27 +165,48 @@ async function releaseCameraBubble(): Promise<void> {
   bubbleTabId = undefined;
 }
 
-// Tab the recording was started from; the live bubble lands there.
-let recordTabId: number | undefined;
-
 /*
- * The panel's preview leaves with the panel, so the recording gets a bubble of
- * its own once capture is live. Only mounted here: the control bar's content
- * script takes it down with the bar at the end, which also covers a worker
- * that slept through the recording and lost this state.
+ * The recording's camera bubble floats in a Picture-in-Picture window of the
+ * recording tab, where the capture can't see it. The window only opens on
+ * the Start press's gesture, so this runs first and fast; a tab without the
+ * content script gets it injected, and a tab that can't open the window
+ * records without a bubble.
  */
-async function showRecordingBubble(status: RecordingStatus): Promise<void> {
-  if (status.kind !== "recording" || bubbleTabId !== undefined) return;
-  const prefs = await getCapturePrefs();
-  if (!prefs.camera || (await getCameraBlocked())) return;
-  const tabId = recordTabId ?? (await activeTabId());
+let recordingWindowTabId: number | undefined;
+
+async function openRecordingWindow(tabId: number | undefined): Promise<void> {
+  recordingWindowTabId = undefined;
   if (tabId === undefined) return;
-  const tab = await chrome.tabs.get(tabId).catch(() => undefined);
-  if (!isInjectable(tab?.url)) return;
+  let opened = false;
   try {
-    await mountBubble(tabId, new URLSearchParams({ camera: "1" }));
+    opened = await sendMessage("openRecordingWindow", undefined, tabId);
   } catch {
-    /* tab closed or no longer injectable */
+    /* no content script yet */
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        files: [CONTROL_BAR_SCRIPT],
+      });
+      opened = await sendMessage("openRecordingWindow", undefined, tabId);
+    } catch {
+      /* restricted page */
+    }
+  }
+  if (opened) recordingWindowTabId = tabId;
+}
+
+// Out of a tab's capture, but on the screen: a whole-screen recording would
+// film the window, so it goes and the camera stays a separate track.
+async function closeRecordingWindowIfInShot(
+  surface: string | null,
+): Promise<void> {
+  const tabId = recordingWindowTabId;
+  if (surface !== "monitor" || tabId === undefined) return;
+  recordingWindowTabId = undefined;
+  try {
+    await sendMessage("closeRecordingWindow", undefined, tabId);
+  } catch {
+    /* tab gone */
   }
 }
 
@@ -206,7 +226,11 @@ async function runPageCountdown(): Promise<CountdownResult> {
     await chrome.scripting.executeScript({
       target: { tabId },
       func: mountCountdownOverlay,
-      args: [COUNTDOWN_SECONDS, COUNTDOWN_OVERLAY_ID],
+      args: [
+        COUNTDOWN_SECONDS,
+        COUNTDOWN_OVERLAY_ID,
+        await getThemePreference(),
+      ],
     });
   } catch {
     return "go";
@@ -685,10 +709,12 @@ export default defineBackground(() => {
         activeTab?.id === undefined
           ? undefined
           : await tabStreamIdFor(activeTab.id);
+      if (prefs.camera && !(await getCameraBlocked())) {
+        await openRecordingWindow(overlayTabId ?? (await activeTabId()));
+      }
       await setRecordingStatus({ kind: "preparing" });
-      recordTabId = overlayTabId ?? (await activeTabId());
       // The panel gets out of the way before the native picker appears, taking
-      // the preview with it; the recording's own bubble comes back once
+      // the preview with it; the recording's window shows the camera once
       // capture is live.
       await closeRecorderOverlay();
       await ensureOffscreenDocument();
@@ -720,10 +746,11 @@ export default defineBackground(() => {
   onMessage("restartRecording", () => sendMessage("restartCapture", undefined));
   onMessage("deleteRecording", () => sendMessage("deleteCapture", undefined));
 
-  onMessage("recordingStatus", async ({ data }) => {
-    await setRecordingStatus(data);
-    await showRecordingBubble(data);
-  });
+  onMessage("capturedSurface", ({ data }) =>
+    closeRecordingWindowIfInShot(data),
+  );
+
+  onMessage("recordingStatus", ({ data }) => setRecordingStatus(data));
 
   onMessage("activeUploadChanged", ({ data }) => setActiveUpload(data));
 

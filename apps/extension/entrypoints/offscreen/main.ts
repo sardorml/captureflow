@@ -48,6 +48,8 @@ onMessage("beginCapture", ({ data }) =>
         cancelBeeps();
       }
     },
+    onSurface: (surface) =>
+      void sendMessage("capturedSurface", surface).catch(() => {}),
     onStatus: (status) => void sendMessage("recordingStatus", status),
     onFinalizing: (url) => {
       void stopBeep.play().catch(() => {});

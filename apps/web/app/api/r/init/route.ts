@@ -181,6 +181,7 @@ export async function POST(req: NextRequest) {
     deviceId,
     storageKey,
     posterKey: null,
+    posterBlur: null,
     uploadId,
     sizeBytes: 0,
     durationMs,

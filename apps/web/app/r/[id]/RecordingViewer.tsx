@@ -8,11 +8,21 @@ import type {
   RecordingReaction,
 } from "@/lib/recording/types";
 import type { RecordingChapter } from "@/lib/recording/summary-chapters";
+import type {
+  RecordingTranscript,
+  TranscriptStatus,
+} from "@/lib/recording/types";
 import { ContentByline } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
 import { RecordingPlayer } from "./RecordingPlayer";
+import { Avatar } from "@heroui/react";
+import { initials } from "@/lib/format";
+import { useEditorConfig } from "@/app/recordings/[id]/edit/use-editor-config";
 import { ActivitySidebar } from "./ActivitySidebar";
+import { EditPanel } from "./EditPanel";
+import { EditableTitle } from "./EditableTitle";
 import { SummaryChapters } from "./SummaryChapters";
+import { TranscriptPanel } from "./TranscriptPanel";
 
 type Props = {
   slug: string;
@@ -39,6 +49,9 @@ type Props = {
   isOwner: boolean;
   initialSummary: string;
   initialChapters: RecordingChapter[];
+  initialTranscript: RecordingTranscript | null;
+  initialTranscriptStatus: TranscriptStatus;
+  editUrl: string;
 };
 
 export function RecordingViewer({
@@ -49,7 +62,7 @@ export function RecordingViewer({
   serverDurationMs,
   serverWidth,
   serverHeight,
-  config,
+  config: initialConfig,
   initialReactions,
   initialComments,
   viewer,
@@ -61,8 +74,23 @@ export function RecordingViewer({
   isOwner,
   initialSummary,
   initialChapters,
+  initialTranscript,
+  initialTranscriptStatus,
+  editUrl,
 }: Props) {
   const [liveReactions, setLiveReactions] = useState<RecordingReaction[]>([]);
+  const [removedReactionIds, setRemovedReactionIds] = useState<Set<number>>(
+    () => new Set(),
+  );
+  const [chapters, setChapters] = useState<RecordingChapter[]>(initialChapters);
+  const [comments, setComments] = useState<RecordingComment[]>(initialComments);
+  // Only the owner's Edit tab ever changes it; for everyone else this is the
+  // server's config as given.
+  const {
+    config,
+    update: updateConfig,
+    status: configStatus,
+  } = useEditorConfig(slug, initialConfig);
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
   const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -76,6 +104,10 @@ export function RecordingViewer({
 
   const onReactionAdded = useCallback((reaction: RecordingReaction) => {
     setLiveReactions((prev) => [...prev, reaction]);
+  }, []);
+
+  const onReactionDeleted = useCallback((id: number) => {
+    setRemovedReactionIds((prev) => new Set(prev).add(id));
   }, []);
 
   const goToSignIn = useCallback(() => {
@@ -97,20 +129,34 @@ export function RecordingViewer({
   return (
     <div className="grid w-full grid-cols-1 bg-canvas lg:h-[calc(100vh-64px)] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
       <main className="flex flex-col lg:min-h-0 lg:overflow-y-auto">
-        <header className="sticky top-0 z-20 bg-canvas-2">
+        <header className="sticky top-0 z-20 bg-canvas-2 max-lg:static max-lg:order-2">
           <div className="relative px-6 py-5 lg:px-12">
-            <div className="mx-auto w-full max-w-5xl pr-32 sm:pr-36">
-              <h1 className="truncate text-[22px] font-[600] tracking-tight text-neutral-100 sm:text-2xl">
-                {headlineText}
-              </h1>
-              <ContentByline ownerName={ownerName} createdAt={createdAt} />
+            <div className="mx-auto w-full max-w-5xl lg:pr-36">
+              <EditableTitle
+                slug={slug}
+                title={headlineText}
+                canEdit={isOwner}
+              />
+              <ContentByline
+                ownerName={ownerName}
+                createdAt={createdAt}
+                leading={
+                  ownerName ? (
+                    <Avatar className="size-9 lg:hidden">
+                      <Avatar.Fallback className="text-sm">
+                        {initials(ownerName)}
+                      </Avatar.Fallback>
+                    </Avatar>
+                  ) : null
+                }
+              />
             </div>
-            <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-tint px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line lg:right-12">
+            <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-tint px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line max-lg:static max-lg:mt-3 max-lg:inline-block max-lg:translate-y-0 lg:right-12">
               {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
             </span>
           </div>
         </header>
-        <div className="mx-auto flex w-full max-w-5xl flex-col px-6 py-6 lg:px-12">
+        <div className="mx-auto flex w-full max-w-5xl flex-col py-6 max-lg:contents">
           <RecordingPlayer
             videoUrl={videoUrl}
             posterUrl={posterUrl}
@@ -121,23 +167,36 @@ export function RecordingViewer({
             serverWidth={serverWidth}
             serverHeight={serverHeight}
             config={config}
+            captionsUrl={
+              initialTranscript
+                ? `/api/r/transcript/${slug}/captions`
+                : undefined
+            }
+            captionsLang={initialTranscript?.language ?? undefined}
+            chapters={chapters}
+            comments={comments}
             viewerSignedIn={signedIn}
             onReactionAdded={onReactionAdded}
+            removedReactionIds={removedReactionIds}
             onSignInRequested={goToSignIn}
             handleRef={playerRef}
             onCommentClick={signedIn ? focusComment : goToSignIn}
+            className="max-lg:order-1 max-lg:w-full! max-lg:rounded-none"
           />
-          <SummaryChapters
-            slug={slug}
-            isOwner={isOwner}
-            initialSummary={initialSummary}
-            initialChapters={initialChapters}
-            onSeek={seekTo}
-            getCurrentMs={getCurrentMs}
-          />
-          <footer className="mt-8 flex justify-center border-t border-line pt-6">
-            <PoweredBy />
-          </footer>
+          <div className="px-6 max-lg:order-4 max-lg:pb-6 lg:px-12">
+            <SummaryChapters
+              slug={slug}
+              isOwner={isOwner}
+              initialSummary={initialSummary}
+              initialChapters={initialChapters}
+              onSeek={seekTo}
+              getCurrentMs={getCurrentMs}
+              onChaptersChange={setChapters}
+            />
+            <footer className="mt-8 flex justify-center border-t border-line pt-6">
+              <PoweredBy />
+            </footer>
+          </div>
         </div>
       </main>
       <ActivitySidebar
@@ -145,6 +204,32 @@ export function RecordingViewer({
         initialReactions={initialReactions}
         initialComments={initialComments}
         liveReactions={liveReactions}
+        onReactionDeleted={onReactionDeleted}
+        onCommentsChange={setComments}
+        transcript={
+          <TranscriptPanel
+            slug={slug}
+            initialTranscript={initialTranscript}
+            initialStatus={initialTranscriptStatus}
+            cuts={config.cuts}
+            isOwner={isOwner}
+            editUrl={editUrl}
+            onSeek={seekTo}
+            getCurrentMs={getCurrentMs}
+          />
+        }
+        editPanel={
+          isOwner ? (
+            <EditPanel
+              slug={slug}
+              editUrl={editUrl}
+              config={config}
+              onConfig={updateConfig}
+              status={configStatus}
+              hasWebcam={!!webcamUrl}
+            />
+          ) : null
+        }
         viewerSignedIn={signedIn}
         viewerName={viewerName}
         viewerUserId={viewer?.userId ?? null}

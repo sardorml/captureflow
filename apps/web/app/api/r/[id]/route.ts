@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteRecording, getRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
-import { abortMultipartUpload, deleteObject } from "@/lib/recording/r2";
-import { objectKeysFor } from "@/lib/recording/object-keys";
+import {
+  abortMultipartUpload,
+  deleteObject,
+  deleteObjectPrefix,
+} from "@/lib/recording/r2";
+import { audioPartPrefixFor, objectKeysFor } from "@/lib/recording/object-keys";
 import { callerOwns } from "@/lib/recording/caller";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 
@@ -37,13 +41,14 @@ export async function DELETE(
     }
   }
   await deleteObject(row.storageKey);
-  // Poster/webcam/sidecars are best-effort: the video is already gone, so a
-  // failure here must not leave the caller with an undeletable recording.
-  const stranded = await Promise.allSettled(
-    objectKeysFor(row)
+  // Poster/webcam/sidecars/audio are best-effort: the video is already gone, so
+  // a failure here must not leave the caller with an undeletable recording.
+  const stranded = await Promise.allSettled([
+    ...objectKeysFor(row)
       .filter((key) => key !== row.storageKey)
       .map((key) => deleteObject(key)),
-  );
+    deleteObjectPrefix(audioPartPrefixFor(row.storageKey)),
+  ]);
   for (const result of stranded) {
     if (result.status === "rejected") {
       console.warn(`[delete] r2 delete failed for ${id}:`, result.reason);

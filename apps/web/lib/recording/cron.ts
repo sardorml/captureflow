@@ -6,12 +6,15 @@ import {
   listPaidUserIds,
 } from "@captureflow/quota";
 import { createD1Db } from "./db-d1";
-import { objectKeysFor } from "./object-keys";
+import { audioPartPrefixFor, objectKeysFor } from "./object-keys";
+import { posterThumbnail } from "./poster-blur";
+import { deleteObjectsWithPrefix } from "./r2-prefix";
 import { screenshotObjectKeysFor } from "../screenshot-keys";
 
 /*
  * Cron handlers, invoked by the wrapper worker's `scheduled()` entry:
- * runHourlyMultipartGc on `0 * * * *`, runDailyRetentionSweep on `0 4 * * *`.
+ * runHourlyMultipartGc and backfillPosterBlurs on `0 * * * *`,
+ * runDailyRetentionSweep on `0 4 * * *`.
  * The bucket's only lifecycle rule aborts incomplete multipart uploads after
  * 7 days — there is no object-expiry rule, so nothing catches a silent cron.
  */
@@ -98,6 +101,43 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
   }
 }
 
+/*
+ * Posters uploaded before poster_blur existed get their thumbnail here, and
+ * rows without a frame size get it from the same decode, one page an hour.
+ * Only JPEGs can be decoded; a poster that still fails is picked up again
+ * next run.
+ */
+export async function backfillPosterBlurs(env: CronEnv): Promise<void> {
+  const pending = await env.DB.prepare(
+    `SELECT slug, poster_key AS posterKey
+       FROM recordings
+      WHERE poster_key LIKE '%.jpg' AND poster_blur IS NULL
+      LIMIT ?`,
+  )
+    .bind(BATCH_SIZE)
+    .all<{ slug: string; posterKey: string }>();
+
+  for (const row of pending.results ?? []) {
+    try {
+      const obj = await env.BUCKET.get(row.posterKey);
+      if (!obj) continue;
+      const thumb = posterThumbnail(await obj.arrayBuffer(), "image/jpeg");
+      if (!thumb) continue;
+      await env.DB.prepare(
+        `UPDATE recordings
+            SET poster_blur = ?,
+                width = COALESCE(width, ?),
+                height = COALESCE(height, ?)
+          WHERE slug = ? AND poster_key = ?`,
+      )
+        .bind(thumb.blur, thumb.width, thumb.height, row.slug, row.posterKey)
+        .run();
+    } catch (err) {
+      console.warn(`[cron] poster blur failed for ${row.slug}:`, err);
+    }
+  }
+}
+
 export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
   const now = Date.now();
   // A cutoff of 0 matches no idle row, so self-hosting keeps only the cleanup arms.
@@ -134,6 +174,10 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
     for (const row of rows) {
       try {
         await env.BUCKET.delete(objectKeysFor(row));
+        await deleteObjectsWithPrefix(
+          env.BUCKET,
+          audioPartPrefixFor(row.storageKey),
+        );
       } catch (err) {
         console.warn(`[cron] r2 delete failed for ${row.slug}:`, err);
       }

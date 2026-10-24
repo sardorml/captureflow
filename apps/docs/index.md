@@ -31,7 +31,8 @@ infrastructure, but it's just hosting, not a feature unlock.
   see [Install the app](/guide/install).)
 - **Instant share links** — streaming upload means the link is ready on stop.
 - **A share viewer** — plays in any browser, with reactions, comments, view
-  counts, and auto-generated summary chapters.
+  counts, auto-generated summary chapters, and a free transcript with captions
+  for recordings made with the mic on.
 - **Screenshots** — annotated images that share exactly like recordings.
 - **A dashboard** — manage your recordings and screenshots, set visibility, invite
   teammates into a workspace, and track storage usage.

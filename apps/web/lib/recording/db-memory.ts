@@ -2,11 +2,15 @@ import type {
   RecordingComment,
   RecordingReaction,
   RecordingRow,
+  TranscriptPartRow,
+  TranscriptRow,
 } from "./types";
 import type { RecordingDb } from "./db-types";
 
 // In-memory backend for local Next.js dev only; production uses D1.
 const store = new Map<string, RecordingRow>();
+const transcripts = new Map<string, TranscriptRow>();
+const transcriptParts = new Map<string, TranscriptPartRow[]>();
 const reactions: RecordingReaction[] = [];
 const comments: RecordingComment[] = [];
 let nextReactionId = 1;
@@ -30,6 +34,8 @@ export const memoryDb: RecordingDb = {
   },
 
   async deleteRecording(slug) {
+    transcripts.delete(slug);
+    transcriptParts.delete(slug);
     return store.delete(slug);
   },
 
@@ -128,6 +134,17 @@ export const memoryDb: RecordingDb = {
     return n;
   },
 
+  async getReaction(id) {
+    return reactions.find((r) => r.id === id) ?? null;
+  },
+
+  async deleteReaction(id) {
+    const idx = reactions.findIndex((r) => r.id === id);
+    if (idx < 0) return false;
+    reactions.splice(idx, 1);
+    return true;
+  },
+
   async getComment(id) {
     return comments.find((c) => c.id === id) ?? null;
   },
@@ -138,6 +155,77 @@ export const memoryDb: RecordingDb = {
     comments.splice(idx, 1);
     return true;
   },
+
+  async createTranscriptJob({ slug, language, parts }) {
+    const now = Date.now();
+    transcripts.set(slug, {
+      slug,
+      status: "pending",
+      language,
+      partCount: parts.length,
+      autoJson: null,
+      editedJson: null,
+      error: null,
+      createdAt: transcripts.get(slug)?.createdAt ?? now,
+      updatedAt: now,
+    });
+    transcriptParts.set(
+      slug,
+      parts.map((p) => ({ slug, ...p, segmentsJson: null, updatedAt: now })),
+    );
+  },
+
+  async getTranscript(slug) {
+    return transcripts.get(slug) ?? null;
+  },
+
+  async getTranscriptPart(slug, partNumber) {
+    return (
+      transcriptParts.get(slug)?.find((p) => p.partNumber === partNumber) ??
+      null
+    );
+  },
+
+  async listTranscriptParts(slug) {
+    return [...(transcriptParts.get(slug) ?? [])].sort(
+      (a, b) => a.partNumber - b.partNumber,
+    );
+  },
+
+  async setTranscriptPartLines(slug, partNumber, segmentsJson) {
+    const part = transcriptParts
+      .get(slug)
+      ?.find((p) => p.partNumber === partNumber);
+    if (part) {
+      part.segmentsJson = segmentsJson;
+      part.updatedAt = Date.now();
+    }
+  },
+
+  async finishTranscript(slug, autoJson) {
+    const row = transcripts.get(slug);
+    if (row?.status === "pending") {
+      transcripts.set(slug, {
+        ...row,
+        status: "ready",
+        autoJson,
+        error: null,
+        updatedAt: Date.now(),
+      });
+    }
+  },
+
+  async failTranscript(slug, error) {
+    const row = transcripts.get(slug);
+    if (row?.status === "pending") {
+      transcripts.set(slug, {
+        ...row,
+        status: "failed",
+        error,
+        updatedAt: Date.now(),
+      });
+    }
+  },
 };
 
 // Quota fallback when no D1 binding is reachable. The screenshots table is D1-only,
@@ -147,7 +235,7 @@ export function memoryTotalStorageForUser(userId: string): number {
   let total = 0;
   for (const row of store.values()) {
     if (row.userId === userId && row.state === "ready") {
-      total += row.sizeBytes;
+      total += row.sizeBytes + row.webcamSizeBytes;
     }
   }
   return total;

@@ -15,7 +15,7 @@ CREATE TABLE recordings (
   last_viewed_at    INTEGER NOT NULL,
   state             TEXT NOT NULL, view_count INTEGER NOT NULL DEFAULT 0, title TEXT, user_id TEXT, visibility TEXT NOT NULL DEFAULT 'public', bake_status TEXT NOT NULL DEFAULT 'none'
   CHECK (bake_status IN ('none', 'expected', 'done')), webcam_storage_key TEXT, webcam_upload_id   TEXT, webcam_size_bytes  INTEGER NOT NULL DEFAULT 0, webcam_state       TEXT NOT NULL DEFAULT 'none'
-  CHECK (webcam_state IN ('none', 'pending', 'ready', 'failed')), workspace_id TEXT REFERENCES workspace(id), config_json TEXT, summary_chapters_json TEXT,
+  CHECK (webcam_state IN ('none', 'pending', 'ready', 'failed')), workspace_id TEXT REFERENCES workspace(id), config_json TEXT, summary_chapters_json TEXT, poster_blur TEXT,
   CHECK (state IN ('pending', 'ready', 'failed')),
   CHECK (source IN ('instant', 'edited')),
   CHECK (preset IN ('recording'))
@@ -270,6 +270,27 @@ CREATE TABLE recording_activity (
   
   timestamp_ms  INTEGER,
   created_at    INTEGER NOT NULL
+) STRICT;
+CREATE TABLE recording_transcripts (
+  slug         TEXT PRIMARY KEY REFERENCES recordings(slug) ON DELETE CASCADE,
+  status       TEXT NOT NULL CHECK (status IN ('pending', 'ready', 'failed')),
+  language     TEXT,
+  part_count   INTEGER NOT NULL,
+  auto_json    TEXT,
+  edited_json  TEXT,
+  error        TEXT,
+  created_at   INTEGER NOT NULL,
+  updated_at   INTEGER NOT NULL
+) STRICT;
+CREATE TABLE recording_transcript_parts (
+  slug          TEXT NOT NULL REFERENCES recordings(slug) ON DELETE CASCADE,
+  part_number   INTEGER NOT NULL,
+  storage_key   TEXT NOT NULL,
+  start_ms      INTEGER NOT NULL,
+  end_ms        INTEGER NOT NULL,
+  segments_json TEXT,
+  updated_at    INTEGER NOT NULL,
+  PRIMARY KEY (slug, part_number)
 ) STRICT;
 DELETE FROM sqlite_sequence;
 CREATE INDEX idx_recordings_device

@@ -5,11 +5,18 @@ import {
   Button,
   Dropdown,
   Popover,
+  Tabs,
   buttonVariants,
 } from "@heroui/react";
 import { AtSign, MessageSquare, Smile, Sparkles, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState, useTransition } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 import {
   initials,
   formatTimestamp,
@@ -20,6 +27,7 @@ import type {
   RecordingComment,
   RecordingReaction,
 } from "@/lib/recording/types";
+import { cn } from "@/lib/utils";
 
 const AVATAR_TONES = [
   "#2563eb",
@@ -73,11 +81,25 @@ type Props = {
   viewerImageUrl: string | null;
   isOwner: boolean;
   liveReactions: RecordingReaction[];
+  // Called once the server has dropped a reaction, so the player's dots
+  // follow.
+  onReactionDeleted: (id: number) => void;
+  // Every change to the comment list, so the player's marks follow.
+  onCommentsChange?: (comments: RecordingComment[]) => void;
+  // The Transcript tab's content.
+  transcript: ReactNode;
+  // The owner's Edit tab; absent for everyone else.
+  editPanel?: ReactNode;
   onSignIn: () => void;
   onSeek: (ms: number) => void;
   getCurrentMs: () => number;
   commentInputRef?: React.MutableRefObject<HTMLTextAreaElement | null>;
 };
+
+type SidebarTab = "edit" | "activity" | "transcript";
+
+const TAB_CLASS =
+  "isolate h-8 flex-1 justify-center gap-1.5 px-3.5 text-sm font-medium text-fg-muted data-[selected=true]:text-fg";
 
 export function ActivitySidebar({
   slug,
@@ -89,16 +111,56 @@ export function ActivitySidebar({
   viewerImageUrl,
   isOwner,
   liveReactions,
+  onReactionDeleted,
+  onCommentsChange,
+  transcript,
+  editPanel,
   onSignIn,
   onSeek,
   getCurrentMs,
   commentInputRef,
 }: Props) {
+  const [tab, setTab] = useState<SidebarTab>("activity");
   const [comments, setComments] = useState<RecordingComment[]>(initialComments);
+  useEffect(() => {
+    onCommentsChange?.(comments);
+  }, [comments, onCommentsChange]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [posting, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingReactionId, setDeletingReactionId] = useState<number | null>(
+    null,
+  );
+  const [removedReactionIds, setRemovedReactionIds] = useState<Set<number>>(
+    () => new Set(),
+  );
+
+  const handleDeleteReaction = async (id: number) => {
+    if (deletingReactionId != null) return;
+    setDeletingReactionId(id);
+    setError(null);
+    setRemovedReactionIds((prev) => new Set(prev).add(id));
+    try {
+      const res = await fetch(`/api/r/reactions/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+      onReactionDeleted(id);
+    } catch (err) {
+      setRemovedReactionIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      setError(
+        err instanceof Error ? err.message : "Could not delete reaction",
+      );
+    } finally {
+      setDeletingReactionId(null);
+    }
+  };
 
   const handleDeleteComment = async (id: number) => {
     if (deletingId != null) return;
@@ -129,7 +191,9 @@ export function ActivitySidebar({
     return () => window.clearInterval(id);
   }, [viewerSignedIn, getCurrentMs]);
 
-  const reactions = mergeReactions(initialReactions, liveReactions);
+  const reactions = mergeReactions(initialReactions, liveReactions).filter(
+    (r) => !removedReactionIds.has(r.id),
+  );
 
   const entries: ActivityEntry[] = [
     ...reactions.map<ActivityEntry>((r) => ({
@@ -209,6 +273,7 @@ export function ActivitySidebar({
     };
   }, [viewerSignedIn]);
 
+  // The composer lives in the Activity tab, so the shortcut switches to it.
   useEffect(() => {
     if (!viewerSignedIn) return;
     const onKey = (e: KeyboardEvent) => {
@@ -223,11 +288,14 @@ export function ActivitySidebar({
       ) {
         return;
       }
-      const el = composerRef.current;
-      if (!el) return;
       e.preventDefault();
-      el.focus();
-      el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      setTab("activity");
+      requestAnimationFrame(() => {
+        const el = composerRef.current;
+        if (!el) return;
+        el.focus();
+        el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -309,51 +377,105 @@ export function ActivitySidebar({
 
   return (
     <aside className="flex w-full flex-col bg-canvas-2 lg:mr-4 lg:w-auto lg:mb-4 lg:h-[calc(100%-1rem)] lg:overflow-hidden lg:rounded-3xl lg:bg-panel lg:border lg:border-black/[0.07] lg:dark:border-white/[0.07]">
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-canvas-2/90 px-5 py-4 backdrop-blur-md lg:static lg:bg-transparent lg:px-6 lg:pt-5 lg:backdrop-blur-none">
-        <h2 className="text-sm font-semibold tracking-tight text-fg">
-          Activity
-        </h2>
-        <span className="rounded-full bg-tint-strong px-2.5 py-0.5 text-xs font-medium text-fg tabular-nums">
-          {entries.length}
-        </span>
-      </header>
+      <Tabs
+        selectedKey={tab}
+        onSelectionChange={(key) => setTab(key as SidebarTab)}
+        aria-label="Recording sidebar"
+        className="flex min-h-0 flex-1 flex-col"
+      >
+        <header className="sticky top-0 z-10 flex items-center bg-canvas-2/90 px-5 py-4 backdrop-blur-md lg:static lg:bg-transparent lg:px-6 lg:pt-5 lg:backdrop-blur-none">
+          <Tabs.ListContainer className="w-full rounded-xl bg-tint p-1">
+            <Tabs.List className="flex w-full gap-0 p-0">
+              <Tabs.Tab id="activity" className={TAB_CLASS}>
+                <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+                Activity
+                <span className="rounded-full bg-tint-strong px-2 py-0.5 text-xs font-medium text-fg tabular-nums">
+                  {entries.length}
+                </span>
+              </Tabs.Tab>
+              <Tabs.Tab id="transcript" className={TAB_CLASS}>
+                <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+                Transcript
+              </Tabs.Tab>
+              {editPanel ? (
+                <Tabs.Tab id="edit" className={TAB_CLASS}>
+                  <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+                  Edit
+                </Tabs.Tab>
+              ) : null}
+            </Tabs.List>
+          </Tabs.ListContainer>
+        </header>
+
+        <Tabs.Panel id="activity" className="flex min-h-0 flex-1 flex-col p-0">
+          <div
+            ref={listRef}
+            onScroll={onListScroll}
+            className="flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto lg:px-6"
+          >
+            {entries.length === 0 ? (
+              <EmptyState
+                viewerSignedIn={viewerSignedIn}
+                viewerName={viewerName}
+                commentInputRef={commentInputRef}
+              />
+            ) : (
+              <ol className="space-y-5">
+                {entries.map((entry) => (
+                  <li key={entry.id}>
+                    {entry.kind === "reaction" ? (
+                      <ReactionRow
+                        reaction={entry.reaction}
+                        onSeek={onSeek}
+                        canDelete={
+                          !!viewerUserId &&
+                          (entry.reaction.userId === viewerUserId || isOwner)
+                        }
+                        onDelete={() => handleDeleteReaction(entry.reaction.id)}
+                        deleting={deletingReactionId === entry.reaction.id}
+                      />
+                    ) : (
+                      <CommentRow
+                        comment={entry.comment}
+                        onSeek={onSeek}
+                        canDelete={
+                          !!viewerUserId &&
+                          (entry.comment.userId === viewerUserId || isOwner)
+                        }
+                        onDelete={() => handleDeleteComment(entry.comment.id)}
+                        deleting={deletingId === entry.comment.id}
+                      />
+                    )}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </Tabs.Panel>
+
+        <Tabs.Panel
+          id="transcript"
+          className="flex min-h-0 flex-1 flex-col px-5 py-4 lg:px-6"
+        >
+          {transcript}
+        </Tabs.Panel>
+
+        {editPanel ? (
+          <Tabs.Panel
+            id="edit"
+            className="min-h-0 flex-1 px-5 py-4 lg:overflow-y-auto lg:px-6"
+          >
+            {editPanel}
+          </Tabs.Panel>
+        ) : null}
+      </Tabs>
 
       <div
-        ref={listRef}
-        onScroll={onListScroll}
-        className="flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto lg:px-6"
-      >
-        {entries.length === 0 ? (
-          <EmptyState
-            viewerSignedIn={viewerSignedIn}
-            viewerName={viewerName}
-            commentInputRef={commentInputRef}
-          />
-        ) : (
-          <ol className="space-y-5">
-            {entries.map((entry) => (
-              <li key={entry.id}>
-                {entry.kind === "reaction" ? (
-                  <ReactionRow reaction={entry.reaction} onSeek={onSeek} />
-                ) : (
-                  <CommentRow
-                    comment={entry.comment}
-                    onSeek={onSeek}
-                    canDelete={
-                      !!viewerUserId &&
-                      (entry.comment.userId === viewerUserId || isOwner)
-                    }
-                    onDelete={() => handleDeleteComment(entry.comment.id)}
-                    deleting={deletingId === entry.comment.id}
-                  />
-                )}
-              </li>
-            ))}
-          </ol>
+        className={cn(
+          "sticky bottom-0 z-10 bg-canvas-2 p-4 backdrop-blur-md supports-[backdrop-filter]:bg-canvas-2/85 lg:bg-transparent lg:p-3 lg:backdrop-blur-none",
+          tab !== "activity" && "hidden",
         )}
-      </div>
-
-      <div className="sticky bottom-0 z-10 bg-canvas-2 p-4 backdrop-blur-md supports-[backdrop-filter]:bg-canvas-2/85 lg:bg-transparent lg:p-3 lg:backdrop-blur-none">
+      >
         {!viewerSignedIn ? (
           <Button variant="primary" size="lg" fullWidth onPress={onSignIn}>
             <Sparkles size={16} />
@@ -561,13 +683,19 @@ function EmptyState({
 function ReactionRow({
   reaction,
   onSeek,
+  canDelete,
+  onDelete,
+  deleting,
 }: {
   reaction: RecordingReaction;
   onSeek: (ms: number) => void;
+  canDelete: boolean;
+  onDelete: () => void;
+  deleting: boolean;
 }) {
   const name = reaction.userName?.trim() || "Anonymous";
   return (
-    <div className="flex items-center gap-3">
+    <div className="group flex items-center gap-3">
       <span className="relative shrink-0">
         <Avatar
           className="h-8 w-8"
@@ -593,6 +721,18 @@ function ReactionRow({
         <span className="shrink-0 text-xs">
           {formatRelative(reaction.createdAt)}
         </span>
+        {canDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={deleting}
+            aria-label="Delete reaction"
+            title="Delete reaction"
+            className="ml-auto rounded-md p-1.5 text-fg-subtle opacity-0 transition-opacity transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:opacity-100 disabled:cursor-progress group-hover:opacity-100 dark:hover:text-red-300"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
     </div>
   );
