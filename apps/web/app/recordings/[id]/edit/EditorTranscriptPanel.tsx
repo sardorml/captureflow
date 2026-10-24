@@ -9,14 +9,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import {
-  Captions,
-  ChevronDown,
-  RotateCcw,
-  Scissors,
-  Undo2,
-  X,
-} from "lucide-react";
+import { Captions, RotateCcw, Scissors, Undo2, X } from "lucide-react";
 import { Button, Spinner } from "@heroui/react";
 import {
   resetTranscriptEditsAction,
@@ -32,7 +25,7 @@ import type {
 } from "@/lib/recording/types";
 import { cn } from "@/lib/utils";
 
-type Props = {
+export type EditorTranscriptPanelProps = {
   slug: string;
   initialTranscript: RecordingTranscript | null;
   transcriptStatus: TranscriptStatus;
@@ -53,10 +46,9 @@ type Props = {
 type Selection = { anchorId: string; headId: string };
 
 /*
- * The wide right column. Click a line to select it and move the playhead,
- * shift-click to extend, Delete to cut the selection out of playback,
- * double-click to fix the text. Hidden on narrow viewports so the player
- * and tool rail keep room.
+ * The transcript tab of the inspector. Click a line to select it and move the
+ * playhead, shift-click to extend, Delete to cut the selection out of
+ * playback, double-click to fix the text.
  */
 export function EditorTranscriptPanel({
   slug,
@@ -70,8 +62,7 @@ export function EditorTranscriptPanel({
   selection: sharedSelection,
   onSelectionChange,
   onTranscriptSaved,
-}: Props) {
-  const [open, setOpen] = useState(true);
+}: EditorTranscriptPanelProps) {
   const [transcript, setTranscript] = useState(initialTranscript);
   const [hasEdits, setHasEdits] = useState(initialHasEdits);
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -238,178 +229,144 @@ export function EditorTranscriptPanel({
     ? selectedRange.to - selectedRange.from + 1
     : 0;
 
+  if (!transcript) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-1 px-6 py-10 text-center">
+        {transcriptStatus === "pending" ? (
+          <Spinner size="sm" />
+        ) : (
+          <Captions className="h-6 w-6 text-fg-subtle" />
+        )}
+        <p className="mt-2 text-sm font-medium text-fg">
+          {transcriptStatus === "pending"
+            ? "Transcribing…"
+            : "No transcript available"}
+        </p>
+        <p className="text-xs text-fg-muted">
+          {transcriptStatus === "pending"
+            ? "Reload this page in a minute to edit it."
+            : transcriptStatus === "failed"
+              ? "Transcription didn't finish for this recording."
+              : "Record with the microphone on and one is written for you."}
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <aside className="hidden w-[320px] shrink-0 flex-col gap-4 overflow-y-auto bg-canvas-2 p-4 lg:flex">
-      <section className="flex min-h-0 flex-col rounded-3xl bg-panel p-4">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-controls="transcript-body"
-          className="flex w-full items-center justify-between text-left"
-        >
-          <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-fg-muted">
-            <Captions className="h-4 w-4" />
-            Transcript
-            {hasEdits ? (
-              <span className="rounded-full bg-tint px-1.5 py-0.5 text-[10px] normal-case tracking-normal text-fg-subtle">
-                Edited
-              </span>
-            ) : null}
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-11 shrink-0 items-center justify-between gap-2 border-b border-line px-4 py-1.5">
+        {selectedCount > 0 ? (
+          <span className="flex items-center gap-1">
+            <Button variant="danger-soft" size="sm" onPress={deleteSelection}>
+              <Scissors className="h-3.5 w-3.5" />
+              Delete {selectedCount === 1 ? "line" : `${selectedCount} lines`}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onPress={() => setSelection(null)}
+              aria-label="Clear selection"
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
           </span>
-          <ChevronDown
-            className={cn(
-              "h-4 w-4 text-fg-subtle transition-transform",
-              !open && "-rotate-90",
-            )}
-          />
-        </button>
-
-        {open && !transcript ? (
-          <div
-            id="transcript-body"
-            className="mt-3 flex flex-col items-center gap-1 py-4 text-center"
+        ) : (
+          <p className="text-[11px] leading-snug text-fg-subtle">
+            Click a line to select, shift-click to extend, double-click to fix
+            the text.
+          </p>
+        )}
+        {hasEdits ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onPress={resetEdits}
+            isDisabled={pending}
+            className="shrink-0"
           >
-            {transcriptStatus === "pending" ? (
-              <Spinner size="sm" />
-            ) : (
-              <Captions className="h-6 w-6 text-fg-subtle" />
-            )}
-            <p className="text-sm font-medium text-fg">
-              {transcriptStatus === "pending"
-                ? "Transcribing…"
-                : "No transcript available"}
-            </p>
-            <p className="text-xs text-fg-muted">
-              {transcriptStatus === "pending"
-                ? "Reload this page in a minute to edit it."
-                : transcriptStatus === "failed"
-                  ? "Transcription didn't finish for this recording."
-                  : "Record with the microphone on and one is written for you."}
-            </p>
-          </div>
+            <RotateCcw className="h-3.5 w-3.5" />
+            Reset edits
+          </Button>
         ) : null}
-
-        {open && transcript ? (
-          <div id="transcript-body" className="mt-3 flex min-h-0 flex-col">
-            <div className="flex min-h-8 items-center justify-between gap-2">
-              {selectedCount > 0 ? (
-                <span className="flex items-center gap-1">
-                  <Button
-                    variant="danger-soft"
-                    size="sm"
-                    onPress={deleteSelection}
-                  >
-                    <Scissors className="h-3.5 w-3.5" />
-                    Delete{" "}
-                    {selectedCount === 1 ? "line" : `${selectedCount} lines`}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onPress={() => setSelection(null)}
-                    aria-label="Clear selection"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                </span>
-              ) : (
-                <p className="text-[11px] leading-snug text-fg-subtle">
-                  Click a line to select, shift-click to extend, click again or
-                  press Escape to clear, double-click to fix the text.
-                </p>
-              )}
-              {hasEdits ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onPress={resetEdits}
-                  isDisabled={pending}
+      </div>
+      {error ? (
+        <p className="mx-4 mt-2 rounded-md border border-danger/30 bg-danger/10 px-2 py-1.5 text-xs text-danger">
+          {error}
+        </p>
+      ) : null}
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+        <ol className="space-y-0.5">
+          {segments.map((segment, index) => {
+            const isCut = isSegmentCut(segment, cuts);
+            const isSelected =
+              !!selectedRange &&
+              index >= selectedRange.from &&
+              index <= selectedRange.to;
+            const isActive = segment.id === activeId;
+            if (editingId === segment.id) {
+              return (
+                <li key={segment.id} className="rounded-md bg-field p-2">
+                  <textarea
+                    autoFocus
+                    value={draft}
+                    rows={Math.max(2, Math.ceil(draft.length / 36))}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={onDraftKeyDown}
+                    onBlur={commitEdit}
+                    aria-label="Edit transcript line"
+                    className="block w-full resize-none bg-transparent text-sm leading-relaxed text-fg focus:outline-none"
+                  />
+                </li>
+              );
+            }
+            return (
+              <li key={segment.id} className="group relative">
+                <button
+                  type="button"
+                  onClick={(e) => onRowClick(segment, e)}
+                  onDoubleClick={() => {
+                    if (!isCut) startEditing(segment);
+                  }}
+                  aria-pressed={isSelected}
+                  className={cn(
+                    "flex w-full items-start gap-3 rounded-md px-2.5 py-2 text-left transition-colors",
+                    isSelected
+                      ? "bg-accent/20 text-fg"
+                      : isActive
+                        ? "bg-tint text-fg"
+                        : "text-fg-muted hover:bg-tint",
+                    isCut && "text-fg-subtle line-through decoration-danger/60",
+                  )}
                 >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  Reset
-                </Button>
-              ) : null}
-            </div>
-            {error ? (
-              <p className="mt-2 rounded-md border border-danger/30 bg-danger/10 px-2 py-1.5 text-xs text-danger">
-                {error}
-              </p>
-            ) : null}
-            <ol className="mt-2 space-y-0.5">
-              {segments.map((segment, index) => {
-                const isCut = isSegmentCut(segment, cuts);
-                const isSelected =
-                  !!selectedRange &&
-                  index >= selectedRange.from &&
-                  index <= selectedRange.to;
-                const isActive = segment.id === activeId;
-                if (editingId === segment.id) {
-                  return (
-                    <li key={segment.id} className="rounded-md bg-field p-2">
-                      <textarea
-                        autoFocus
-                        value={draft}
-                        rows={Math.max(2, Math.ceil(draft.length / 36))}
-                        onChange={(e) => setDraft(e.target.value)}
-                        onKeyDown={onDraftKeyDown}
-                        onBlur={commitEdit}
-                        aria-label="Edit transcript line"
-                        className="block w-full resize-none bg-transparent text-sm leading-relaxed text-fg focus:outline-none"
-                      />
-                    </li>
-                  );
-                }
-                return (
-                  <li key={segment.id} className="group relative">
-                    <button
-                      type="button"
-                      onClick={(e) => onRowClick(segment, e)}
-                      onDoubleClick={() => {
-                        if (!isCut) startEditing(segment);
-                      }}
-                      aria-pressed={isSelected}
-                      className={cn(
-                        "flex w-full items-start gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors",
-                        isSelected
-                          ? "bg-accent/20 text-fg"
-                          : isActive
-                            ? "bg-tint text-fg"
-                            : "text-fg-muted hover:bg-tint",
-                        isCut &&
-                          "text-fg-subtle line-through decoration-danger/60",
-                      )}
-                    >
-                      <span className="shrink-0 pt-0.5 font-mono text-[11px] text-fg-subtle">
-                        {formatTimestamp(segment.startMs)}
-                      </span>
-                      <span className="text-sm leading-relaxed">
-                        {segment.text}
-                      </span>
-                    </button>
-                    {isCut ? (
-                      <button
-                        type="button"
-                        onClick={() => restore(segment)}
-                        className="absolute right-1 top-1 hidden items-center gap-1 rounded-md bg-panel px-1.5 py-0.5 text-[11px] text-fg-muted shadow-sm hover:text-fg group-hover:flex"
-                      >
-                        <Undo2 className="h-3 w-3" />
-                        Restore
-                      </button>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ol>
-            {pending ? (
-              <p className="mt-2 flex items-center gap-2 text-xs text-fg-subtle">
-                <Spinner size="sm" />
-                Saving…
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-      </section>
-    </aside>
+                  <span className="shrink-0 pt-0.5 font-mono text-[11px] text-fg-subtle tabular-nums">
+                    {formatTimestamp(segment.startMs)}
+                  </span>
+                  <span className="text-sm leading-relaxed">
+                    {segment.text}
+                  </span>
+                </button>
+                {isCut ? (
+                  <button
+                    type="button"
+                    onClick={() => restore(segment)}
+                    className="absolute top-1 right-1 hidden items-center gap-1 rounded-md bg-panel px-1.5 py-0.5 text-[11px] text-fg-muted shadow-sm group-hover:flex hover:text-fg"
+                  >
+                    <Undo2 className="h-3 w-3" />
+                    Restore
+                  </button>
+                ) : null}
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+      {pending ? (
+        <p className="flex shrink-0 items-center gap-2 border-t border-line px-4 py-2 text-xs text-fg-subtle">
+          <Spinner size="sm" />
+          Saving…
+        </p>
+      ) : null}
+    </div>
   );
 }

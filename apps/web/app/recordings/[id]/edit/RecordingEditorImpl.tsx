@@ -10,10 +10,12 @@ import { renameRecordingAction } from "@/app/actions";
 import { addCut, cutsEqual, type RecordingCut } from "@/lib/recording/cuts";
 import type { RecordingEditorProps } from "./RecordingEditor";
 import { useEditorConfig } from "./use-editor-config";
-import { EditorTopBar } from "./EditorTopBar";
-import { EditorTranscriptPanel } from "./EditorTranscriptPanel";
-import { EditorToolRail } from "./EditorToolRail";
+import { EditorInspector } from "./EditorInspector";
 import { EditorTimeline } from "./EditorTimeline";
+import { EditorTopBar } from "./EditorTopBar";
+
+// Top bar (h-14) + timeline (h-60) + the stage's padding (p-8 twice).
+const STAGE_MAX_HEIGHT_CSS = "calc(100vh - 22.5rem)";
 
 // The recording editor. The preview uses the same RecordingPlayer as the
 // public viewer, so it matches what /r/[id] renders pixel for pixel.
@@ -158,10 +160,10 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
       />
 
       <div className="flex min-h-0 flex-1">
-        <section className="flex min-w-0 flex-1 items-center justify-center p-6">
+        <section className="flex min-w-0 flex-1 items-center justify-center bg-canvas bg-[radial-gradient(var(--cf-line-strong)_1px,transparent_1px)] bg-[size:20px_20px] p-8">
           {/* Width box: the player sizes off 100% of its parent, so it needs a
               concrete width to resolve against (else it collapses to nothing). */}
-          <div className="w-full max-w-5xl">
+          <div className="w-full max-w-6xl">
             <RecordingPlayer
               ref={playerRef}
               videoUrl={videoUrl}
@@ -170,6 +172,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
               serverWidth={width}
               serverHeight={height}
               config={config}
+              className="shadow-[0_24px_60px_-24px_rgba(0,0,0,0.45)] ring-1 ring-line-strong"
               captionsUrl={
                 initialTranscript
                   ? `/api/r/transcript/${slug}/captions?v=${captionsVersion}`
@@ -178,36 +181,35 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
               captionsLang={initialTranscript?.language ?? undefined}
               selection={selectionSpan}
               showCuts
-              // 16rem ≈ top bar (h-14) + timeline + this section's p-6; keep in
-              // sync if those chrome heights change.
-              landscapeMaxHeightCss="calc(100vh - 16rem)"
+              landscapeMaxHeightCss={STAGE_MAX_HEIGHT_CSS}
             />
           </div>
         </section>
 
-        <EditorTranscriptPanel
-          slug={slug}
-          initialTranscript={initialTranscript}
-          transcriptStatus={transcriptStatus}
-          initialHasEdits={transcriptHasEdits}
-          cuts={config.cuts}
-          onCutsChange={onCutsChange}
-          onSeek={seekToMs}
-          getCurrentMs={getCurrentMs}
-          selection={selectionSpan}
-          onSelectionChange={setSelectionSpan}
-          onTranscriptSaved={refreshCaptions}
-        />
-        <EditorToolRail
+        <EditorInspector
           config={config}
           onConfig={update}
           hasWebcam={!!webcamUrl}
           details={{ slug, sizeBytes, durationMs, viewCount, createdAt }}
+          transcript={{
+            slug,
+            initialTranscript,
+            transcriptStatus,
+            initialHasEdits: transcriptHasEdits,
+            cuts: config.cuts,
+            onCutsChange,
+            onSeek: seekToMs,
+            getCurrentMs,
+            selection: selectionSpan,
+            onSelectionChange: setSelectionSpan,
+            onTranscriptSaved: refreshCaptions,
+          }}
         />
       </div>
 
       <EditorTimeline
         playerRef={playerRef}
+        videoUrl={videoUrl}
         durationMs={durationMs}
         cuts={config.cuts}
         selection={selectionSpan}

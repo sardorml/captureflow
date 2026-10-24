@@ -13,11 +13,14 @@ import {
 import { AudioLines, Scissors, Trash2, ZoomIn, ZoomOut } from "lucide-react";
 import { Tooltip } from "@heroui/react";
 import type { RecordingPlayerHandle } from "@/app/_components/recording";
+import { useFrameStrip } from "@/app/_components/recording/use-frame-strip";
 import { isInsideCut, type RecordingCut } from "@/lib/recording/cuts";
 import { cn } from "@/lib/utils";
+import { EditorFilmstrip } from "./EditorFilmstrip";
 
 type Props = {
   playerRef: RefObject<RecordingPlayerHandle | null>;
+  videoUrl: string;
   durationMs: number | null;
   cuts: RecordingCut[];
   // The span about to be cut, shared with the transcript panel: lines picked
@@ -27,7 +30,7 @@ type Props = {
   onDeleteSelection?: () => void;
 };
 
-const WAVEFORM_BARS = 160;
+const WAVEFORM_BARS = 240;
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 8;
 const ZOOM_STEP = 1;
@@ -38,6 +41,7 @@ const PICK_SLOP_PX = 3;
 
 export function EditorTimeline({
   playerRef,
+  videoUrl,
   durationMs,
   cuts,
   selection,
@@ -52,12 +56,11 @@ export function EditorTimeline({
   const durationRef = useRef(duration);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const frames = useFrameStrip(videoUrl);
 
   // The player owns the <video> and exposes only an imperative handle, so
   // mirror its playhead each frame rather than lifting currentTime into React.
-  // Skipped while the track is collapsed — nothing visible to update.
   useEffect(() => {
-    if (!showWaveform) return;
     let raf = 0;
     const tick = (): void => {
       const p = playerRef.current;
@@ -76,7 +79,7 @@ export function EditorTimeline({
     };
     raf = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(raf);
-  }, [playerRef, showWaveform]);
+  }, [playerRef]);
 
   // Zoomed in, keep the playhead on screen as it moves.
   useEffect(() => {
@@ -195,21 +198,19 @@ export function EditorTimeline({
 
   const totalMs = duration * 1000;
   const pct = (ms: number): string => `${(ms / totalMs) * 100}%`;
-  const splitLabel = `Split at ${formatTime(fraction * duration)}`;
+  const current = fraction * duration;
 
   return (
-    <div className="shrink-0 bg-canvas-2">
-      <div className="flex items-center justify-between gap-2 px-3 py-2">
+    <div className="flex h-60 shrink-0 flex-col border-t border-line bg-panel">
+      <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-b border-line px-3">
         <div className="flex items-center gap-1">
-          <ToolButton
-            icon={<AudioLines className="h-4 w-4" />}
-            label={showWaveform ? "Hide waveform" : "Show waveform"}
-            onClick={() => setShowWaveform((v) => !v)}
-          />
-          <span className="mx-1 h-5 w-px bg-line" aria-hidden />
+          <span className="mr-2 font-mono text-xs text-fg tabular-nums">
+            {formatTime(current)}
+            <span className="text-fg-subtle"> / {formatTime(duration)}</span>
+          </span>
           <ToolButton
             icon={<Scissors className="h-4 w-4" />}
-            label={splitLabel}
+            label="Split"
             onClick={splitAtPlayhead}
             disabled={duration <= 0}
             hint="Play or scrub to a moment first"
@@ -223,6 +224,12 @@ export function EditorTimeline({
           />
         </div>
         <div className="flex items-center gap-2 text-xs text-fg-muted">
+          <ToolButton
+            icon={<AudioLines className="h-4 w-4" />}
+            label={showWaveform ? "Hide audio" : "Show audio"}
+            onClick={() => setShowWaveform((v) => !v)}
+          />
+          <span className="h-5 w-px bg-line" aria-hidden />
           <button
             type="button"
             onClick={() => setZoomClamped(MIN_ZOOM)}
@@ -262,117 +269,116 @@ export function EditorTimeline({
         </div>
       </div>
 
-      {showWaveform ? (
-        <div ref={scrollRef} className="overflow-x-auto px-3 pb-3">
-          <div style={{ width: `${zoom * 100}%` }}>
-            <div className="relative mb-1 h-4 text-[10px] tabular-nums text-fg-subtle">
-              {ticks.map((tick) => (
-                <span
-                  key={tick.t}
-                  className="absolute -translate-x-1/2"
-                  style={{ left: `${tick.leftPct}%` }}
-                >
-                  {tick.label}
-                </span>
-              ))}
+      <div
+        ref={scrollRef}
+        className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden px-4 pb-3"
+      >
+        <div className="relative h-full" style={{ width: `${zoom * 100}%` }}>
+          <div className="relative h-6 border-b border-line text-[10px] text-fg-subtle tabular-nums">
+            {ticks.map((tick) => (
+              <span
+                key={tick.t}
+                className={cn(
+                  "absolute bottom-0 flex flex-col items-center",
+                  tick.t > 0 && "-translate-x-1/2",
+                )}
+                style={{ left: `${tick.leftPct}%` }}
+              >
+                <span>{tick.label}</span>
+                <span className="h-1.5 w-px bg-line-strong" />
+              </span>
+            ))}
+          </div>
+
+          <div
+            ref={trackRef}
+            onPointerDown={onPointerDown}
+            onKeyDown={onKeyDown}
+            role="slider"
+            tabIndex={0}
+            aria-label="Seek"
+            aria-valuemin={0}
+            aria-valuemax={Math.round(duration)}
+            aria-valuenow={Math.round(current)}
+            aria-valuetext={formatTime(current)}
+            className="relative mt-2.5 cursor-pointer touch-none rounded-lg select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
+          >
+            <div className="relative h-[4.5rem] overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
+              <EditorFilmstrip strip={frames} />
             </div>
-            <div
-              ref={trackRef}
-              onPointerDown={onPointerDown}
-              onKeyDown={onKeyDown}
-              role="slider"
-              tabIndex={0}
-              aria-label="Seek"
-              aria-valuemin={0}
-              aria-valuemax={Math.round(duration)}
-              aria-valuenow={Math.round(fraction * duration)}
-              aria-valuetext={formatTime(fraction * duration)}
-              className="relative h-16 cursor-pointer touch-none overflow-hidden rounded-2xl bg-panel focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
-            >
+            {showWaveform ? (
               <div
                 aria-hidden
-                className="pointer-events-none absolute inset-0 flex items-center gap-px px-1"
+                className="mt-1.5 flex h-10 items-center gap-px overflow-hidden rounded-lg bg-tint px-1 ring-1 ring-line"
               >
                 {bars.map((h, i) => (
                   <span
                     key={i}
-                    className="flex-1 rounded-full bg-fg-subtle/40"
+                    className="flex-1 rounded-full bg-accent/50"
                     style={{ height: `${h * 70}%` }}
                   />
                 ))}
               </div>
+            ) : null}
 
-              {/* Cut spans the player skips, from the transcript panel. */}
-              {duration > 0
-                ? cuts.map((cut) => (
-                    <div
-                      key={cut.startMs}
-                      aria-hidden
-                      className="pointer-events-none absolute inset-y-0 border-x border-danger/60 bg-[repeating-linear-gradient(135deg,var(--danger)_0_2px,transparent_2px_6px)] opacity-40"
-                      style={{
-                        left: pct(cut.startMs),
-                        width: pct(cut.endMs - cut.startMs),
-                      }}
-                    />
-                  ))
-                : null}
+            {/* Cut spans the player skips, from the transcript panel. */}
+            {duration > 0
+              ? cuts.map((cut) => (
+                  <div
+                    key={cut.startMs}
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 border-x border-danger/60 bg-[repeating-linear-gradient(135deg,var(--danger)_0_2px,transparent_2px_6px)] opacity-40"
+                    style={{
+                      left: pct(cut.startMs),
+                      width: pct(cut.endMs - cut.startMs),
+                    }}
+                  />
+                ))
+              : null}
 
-              {selection && duration > 0 ? (
-                <div
-                  aria-hidden
-                  data-timeline-selection
-                  className="pointer-events-none absolute inset-y-0 rounded-md border-x-2 border-danger bg-danger/25"
-                  style={{
-                    left: pct(selection.startMs),
-                    width: pct(selection.endMs - selection.startMs),
-                  }}
-                />
-              ) : null}
-
-              {/* Split points; click one to remove it. */}
-              {duration > 0
-                ? splits.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      title={`Remove split at ${formatTime(s)}`}
-                      aria-label={`Remove split at ${formatTime(s)}`}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={() => removeSplit(s)}
-                      className="group/split absolute inset-y-0 w-3 -translate-x-1/2"
-                      style={{ left: pct(s * 1000) }}
-                    >
-                      <span className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-accent group-hover/split:bg-danger" />
-                      <span className="absolute left-1/2 top-0 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full bg-accent text-white group-hover/split:bg-danger">
-                        <Scissors className="h-2.5 w-2.5" />
-                      </span>
-                    </button>
-                  ))
-                : null}
-
-              {/* Full-clip selection region (trim handles are placeholders). */}
+            {selection && duration > 0 ? (
               <div
                 aria-hidden
-                className={cn(
-                  "pointer-events-none absolute inset-y-1 left-0 right-0 rounded-xl border-2 border-accent/70",
-                  splits.length > 0 && "hidden",
-                )}
-              >
-                <span className="absolute -left-px top-1/2 h-6 w-1.5 -translate-y-1/2 rounded-full bg-accent" />
-                <span className="absolute -right-px top-1/2 h-6 w-1.5 -translate-y-1/2 rounded-full bg-accent" />
-              </div>
+                data-timeline-selection
+                className="pointer-events-none absolute inset-y-0 rounded-md border-x-2 border-danger bg-danger/25"
+                style={{
+                  left: pct(selection.startMs),
+                  width: pct(selection.endMs - selection.startMs),
+                }}
+              />
+            ) : null}
 
-              {/* Live playhead, mirrored from the player. */}
-              <div
-                className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 bg-fg"
-                style={{ left: `${fraction * 100}%` }}
-              >
-                <span className="absolute -top-0.5 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-fg" />
-              </div>
-            </div>
+            {/* Split points; click one to remove it. */}
+            {duration > 0
+              ? splits.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    title={`Remove split at ${formatTime(s)}`}
+                    aria-label={`Remove split at ${formatTime(s)}`}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={() => removeSplit(s)}
+                    className="group/split absolute inset-y-0 w-3 -translate-x-1/2"
+                    style={{ left: pct(s * 1000) }}
+                  >
+                    <span className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-accent group-hover/split:bg-danger" />
+                    <span className="absolute top-0 left-1/2 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full bg-accent text-white group-hover/split:bg-danger">
+                      <Scissors className="h-2.5 w-2.5" />
+                    </span>
+                  </button>
+                ))
+              : null}
+          </div>
+
+          {/* Live playhead, mirrored from the player, from the ruler down. */}
+          <div
+            className="pointer-events-none absolute inset-y-0 w-px -translate-x-1/2 bg-fg"
+            style={{ left: `${fraction * 100}%` }}
+          >
+            <span className="absolute top-0 left-1/2 h-3 w-2.5 -translate-x-1/2 rounded-b-sm bg-fg" />
           </div>
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
@@ -395,7 +401,10 @@ function ToolButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+      className={cn(
+        "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs text-fg-muted transition-colors hover:bg-tint hover:text-fg",
+        "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted",
+      )}
     >
       {icon}
       <span className="hidden md:inline">{label}</span>
@@ -416,9 +425,9 @@ type Tick = { t: number; label: string; leftPct: number };
 
 function buildTicks(duration: number, zoom: number): Tick[] {
   if (!Number.isFinite(duration) || duration <= 0) return [];
-  const step = niceStep(duration / (6 * zoom));
+  const step = niceStep(duration / (8 * zoom));
   const ticks: Tick[] = [];
-  for (let t = step; t < duration; t += step) {
+  for (let t = 0; t < duration; t += step) {
     ticks.push({ t, label: formatTime(t), leftPct: (t / duration) * 100 });
   }
   return ticks;
