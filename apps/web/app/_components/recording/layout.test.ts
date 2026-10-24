@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   aspectFromPlaceholder,
+  fitStageSize,
   recordingBackgroundStyle,
   sizeStyleForAspect,
   webcamCornerClass,
@@ -47,6 +48,23 @@ describe("sizeStyleForAspect", () => {
   it("falls back to 16:9 for a non-finite aspect", () => {
     expect(sizeStyleForAspect(Number.NaN).aspectRatio).toBeCloseTo(16 / 9);
     expect(sizeStyleForAspect(0).aspectRatio).toBeCloseTo(16 / 9);
+  });
+});
+
+describe("fitStageSize", () => {
+  it("is limited by width in a tall box and by height in a wide box", () => {
+    expect(fitStageSize(800, 1000, 1.6)).toEqual({ width: 800, height: 500 });
+    expect(fitStageSize(1240, 736, 1.6)).toEqual({
+      width: 736 * 1.6,
+      height: 736,
+    });
+  });
+
+  it("fills a box of the same aspect", () => {
+    expect(fitStageSize(1600, 1000, 1.6)).toEqual({
+      width: 1600,
+      height: 1000,
+    });
   });
 });
 

@@ -62,6 +62,7 @@ import {
 } from "@/lib/recording/cuts";
 import { EditedTimeSlider } from "./EditedTimeSlider";
 import { FramePreview } from "./FramePreview";
+import { useFitStage } from "./use-fit-stage";
 import { useFrameStrip } from "./use-frame-strip";
 import {
   recordingBackgroundStyle,
@@ -160,6 +161,7 @@ export function RecordingSkin({
   const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
   const timeline = useTimeline(serverDurationMs, cuts, showCuts);
   const hasFrame = background !== "transparent";
+  const stage = useFitStage(hasFrame, aspect);
 
   return (
     <Container
@@ -177,20 +179,13 @@ export function RecordingSkin({
       data-preset="video"
     >
       {/* With a background the video shrinks 4% per side so the bg paints
-          as a visible frame; `transparent` fills edge-to-edge. In fullscreen
-          the stage keeps the video's aspect, centred, so the frame stays
-          even on any screen. */}
+          as a visible frame; `transparent` fills edge-to-edge. The stage
+          keeps the video's aspect, centred, so the frame stays even in a box
+          of another shape (fullscreen, the editor's stage). */}
       <div
+        ref={stage.ref}
         className="absolute inset-0 m-auto"
-        style={
-          isFullscreen && hasFrame
-            ? {
-                aspectRatio: aspect,
-                width: `min(100%, calc(100vh * ${aspect}))`,
-                maxHeight: "100%",
-              }
-            : undefined
-        }
+        style={stage.style}
       >
         <div
           className={

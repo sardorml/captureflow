@@ -55,6 +55,19 @@ export function sizeStyleForAspect(
   };
 }
 
+// The largest box of the video's aspect that fits the player's box, so the
+// background frame stays even when the player is wider or taller than the
+// video (fullscreen, the editor's stage).
+export function fitStageSize(
+  boxWidth: number,
+  boxHeight: number,
+  aspect: number,
+): { width: number; height: number } {
+  const a = Number.isFinite(aspect) && aspect > 0 ? aspect : 16 / 9;
+  const width = Math.min(boxWidth, boxHeight * a);
+  return { width, height: width / a };
+}
+
 // 24px inset matches the studio editor's WebcamBubble margin.
 export function webcamCornerClass(corner: RecordingCameraCorner): string {
   switch (corner) {
