@@ -3,8 +3,9 @@
 import { useEffect, useRef } from "react";
 import type { FrameStrip } from "@/app/_components/recording/use-frame-strip";
 
-// The video lane of the timeline: one frame per span of the recording, each
-// covering its slot, redrawn whenever the lane is resized or zoomed.
+// The video lane of the timeline: frames at their own aspect laid side by
+// side, each the one nearest its moment, redrawn whenever the lane is resized
+// or zoomed.
 export function EditorFilmstrip({ strip }: { strip: FrameStrip | null }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
 
@@ -20,25 +21,15 @@ export function EditorFilmstrip({ strip }: { strip: FrameStrip | null }) {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
       ctx.scale(dpr, dpr);
-      const slot = width / strip.tiles.length;
-      const scale = Math.max(height / strip.height, slot / strip.width);
-      const tileW = strip.width * scale;
-      const tileH = strip.height * scale;
-      strip.tiles.forEach((tile, i) => {
-        const x = i * slot;
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(x, 0, slot, height);
-        ctx.clip();
-        ctx.drawImage(
-          tile,
-          x + (slot - tileW) / 2,
-          (height - tileH) / 2,
-          tileW,
-          tileH,
+      const tileW = (strip.width * height) / strip.height;
+      for (let x = 0; x < width; x += tileW) {
+        const at = (x + tileW / 2) / width;
+        const index = Math.min(
+          strip.tiles.length - 1,
+          Math.floor(at * strip.tiles.length),
         );
-        ctx.restore();
-      });
+        ctx.drawImage(strip.tiles[index], x, 0, tileW, height);
+      }
     };
     draw();
     const observer = new ResizeObserver(draw);

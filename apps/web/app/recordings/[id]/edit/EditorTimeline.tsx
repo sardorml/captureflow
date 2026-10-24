@@ -304,7 +304,7 @@ export function EditorTimeline({
             aria-valuetext={formatTime(current)}
             className="relative mt-2.5 cursor-pointer touch-none rounded-lg select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
           >
-            <div className="relative h-20 overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
+            <div className="relative h-16 overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
               <EditorFilmstrip strip={frames} />
               {showWaveform ? (
                 <div className="absolute inset-x-0 bottom-0 h-[36%] bg-gradient-to-t from-blue-950/80 via-blue-950/45 to-transparent">
