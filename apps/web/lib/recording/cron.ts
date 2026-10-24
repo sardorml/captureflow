@@ -7,7 +7,7 @@ import {
 } from "@captureflow/quota";
 import { createD1Db } from "./db-d1";
 import { audioPartPrefixFor, objectKeysFor } from "./object-keys";
-import { posterBlurDataUrl } from "./poster-blur";
+import { posterThumbnail } from "./poster-blur";
 import { deleteObjectsWithPrefix } from "./r2-prefix";
 import { screenshotObjectKeysFor } from "../screenshot-keys";
 
@@ -102,9 +102,10 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
 }
 
 /*
- * Posters uploaded before poster_blur existed get their thumbnail here, one
- * page an hour. Only JPEGs can be decoded; a poster that still fails is
- * picked up again next run.
+ * Posters uploaded before poster_blur existed get their thumbnail here, and
+ * rows without a frame size get it from the same decode, one page an hour.
+ * Only JPEGs can be decoded; a poster that still fails is picked up again
+ * next run.
  */
 export async function backfillPosterBlurs(env: CronEnv): Promise<void> {
   const pending = await env.DB.prepare(
@@ -120,12 +121,16 @@ export async function backfillPosterBlurs(env: CronEnv): Promise<void> {
     try {
       const obj = await env.BUCKET.get(row.posterKey);
       if (!obj) continue;
-      const blur = posterBlurDataUrl(await obj.arrayBuffer(), "image/jpeg");
-      if (!blur) continue;
+      const thumb = posterThumbnail(await obj.arrayBuffer(), "image/jpeg");
+      if (!thumb) continue;
       await env.DB.prepare(
-        `UPDATE recordings SET poster_blur = ? WHERE slug = ? AND poster_key = ?`,
+        `UPDATE recordings
+            SET poster_blur = ?,
+                width = COALESCE(width, ?),
+                height = COALESCE(height, ?)
+          WHERE slug = ? AND poster_key = ?`,
       )
-        .bind(blur, row.slug, row.posterKey)
+        .bind(thumb.blur, thumb.width, thumb.height, row.slug, row.posterKey)
         .run();
     } catch (err) {
       console.warn(`[cron] poster blur failed for ${row.slug}:`, err);

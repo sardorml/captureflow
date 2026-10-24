@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRecording, updateRecording } from "@/lib/recording/db";
-import { posterBlurDataUrl } from "@/lib/recording/poster-blur";
+import { posterThumbnail } from "@/lib/recording/poster-blur";
 import { isValidSlug } from "@/lib/recording/slug";
 import { putObject, publicUrlFor } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
@@ -77,9 +77,14 @@ export async function POST(req: NextRequest) {
   const posterKey = `posters/${storageId}.${ext}`;
 
   await putObject(posterKey, buffer, contentType, "no-cache");
+  // Clients don't report the frame size, so the poster is where it comes from.
+  const thumb = posterThumbnail(buffer, contentType);
   await updateRecording(slug, {
     posterKey,
-    posterBlur: posterBlurDataUrl(buffer, contentType),
+    posterBlur: thumb?.blur ?? null,
+    ...(thumb && (row.width === null || row.height === null)
+      ? { width: thumb.width, height: thumb.height }
+      : {}),
   });
 
   return withCors(

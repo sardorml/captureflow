@@ -445,9 +445,9 @@ function CutGaps({
 const TIME_CLASS =
   "tabular-nums transition-opacity duration-media-slow ease-out data-unavailable:opacity-50";
 
-// Current / total time on the edited timeline, in place of Time.Value which
-// only knows media time.
-function EditedTime({
+// Current / total time, in place of Time.Value: it runs on the edited
+// timeline and knows the duration before the media does.
+function ClockTime({
   type,
   cuts,
   durationSeconds,
@@ -628,25 +628,17 @@ function RecordingControls({
             {compact ? null : (
               <div className="pointer-events-none absolute inset-x-0 flex justify-center media-max-lg:hidden">
                 <span className="flex items-center gap-1.5 text-sm font-medium tabular-nums">
-                  {edited ? (
-                    <EditedTime
-                      type="current"
-                      cuts={cuts}
-                      durationSeconds={durationSeconds}
-                    />
-                  ) : (
-                    <Time.Value className={TIME_CLASS} type="current" />
-                  )}
+                  <ClockTime
+                    type="current"
+                    cuts={edited ? cuts : []}
+                    durationSeconds={durationSeconds}
+                  />
                   <span className="opacity-60">/</span>
-                  {edited ? (
-                    <EditedTime
-                      type="duration"
-                      cuts={cuts}
-                      durationSeconds={durationSeconds}
-                    />
-                  ) : (
-                    <Time.Value className={TIME_CLASS} type="duration" />
-                  )}
+                  <ClockTime
+                    type="duration"
+                    cuts={edited ? cuts : []}
+                    durationSeconds={durationSeconds}
+                  />
                 </span>
               </div>
             )}

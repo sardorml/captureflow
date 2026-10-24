@@ -6,15 +6,22 @@ const MAX_MEGAPIXELS = 64;
 
 type Rgba = RawImageData<Uint8Array>;
 
+export type PosterThumbnail = {
+  blur: string;
+  width: number;
+  height: number;
+};
+
 /*
- * A thumbnail of the poster a few hundred bytes long, as a data URL, so the
- * dashboard can paint something recognisable under the real image before
- * it has loaded. Null for anything that is not a decodable JPEG.
+ * What the poster tells us about the recording: its frame size, and a
+ * thumbnail a few hundred bytes long as a data URL so the dashboard can paint
+ * something recognisable under the real image before it has loaded. Null for
+ * anything that is not a decodable JPEG.
  */
-export function posterBlurDataUrl(
+export function posterThumbnail(
   bytes: ArrayBuffer | Uint8Array,
   contentType: string,
-): string | null {
+): PosterThumbnail | null {
   if (contentType !== "image/jpeg") return null;
   let image: Rgba;
   try {
@@ -27,7 +34,11 @@ export function posterBlurDataUrl(
     return null;
   }
   const jpeg = encode(downsample(image, BLUR_WIDTH), BLUR_QUALITY);
-  return `data:image/jpeg;base64,${Buffer.from(jpeg.data).toString("base64")}`;
+  return {
+    blur: `data:image/jpeg;base64,${Buffer.from(jpeg.data).toString("base64")}`,
+    width: image.width,
+    height: image.height,
+  };
 }
 
 // Box filter: each output pixel is the mean of the source block it covers.
