@@ -17,6 +17,8 @@ import { useFrameStrip } from "@/app/_components/recording/use-frame-strip";
 import { isInsideCut, type RecordingCut } from "@/lib/recording/cuts";
 import { cn } from "@/lib/utils";
 import { EditorFilmstrip } from "./EditorFilmstrip";
+import { EditorWaveform } from "./EditorWaveform";
+import { useWaveform } from "./use-waveform";
 
 type Props = {
   playerRef: RefObject<RecordingPlayerHandle | null>;
@@ -30,7 +32,6 @@ type Props = {
   onDeleteSelection?: () => void;
 };
 
-const WAVEFORM_BARS = 240;
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 8;
 const ZOOM_STEP = 1;
@@ -57,6 +58,7 @@ export function EditorTimeline({
   const trackRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const frames = useFrameStrip(videoUrl);
+  const waveform = useWaveform(videoUrl, durationMs);
 
   // The player owns the <video> and exposes only an imperative handle, so
   // mirror its playhead each frame rather than lifting currentTime into React.
@@ -187,14 +189,6 @@ export function EditorTimeline({
     setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, next)));
 
   const ticks = useMemo(() => buildTicks(duration, zoom), [duration, zoom]);
-  const bars = useMemo(
-    () =>
-      Array.from({ length: WAVEFORM_BARS }, (_, i) => {
-        const v = Math.abs(Math.sin(i * 0.7) * 0.6 + Math.sin(i * 0.23) * 0.4);
-        return 0.18 + v * 0.82;
-      }),
-    [],
-  );
 
   const totalMs = duration * 1000;
   const pct = (ms: number): string => `${(ms / totalMs) * 100}%`;
@@ -308,17 +302,8 @@ export function EditorTimeline({
                 <EditorFilmstrip strip={frames} />
               </div>
               {showWaveform ? (
-                <div
-                  aria-hidden
-                  className="flex h-9 items-center gap-px border-t border-line bg-panel px-1"
-                >
-                  {bars.map((h, i) => (
-                    <span
-                      key={i}
-                      className="flex-1 rounded-full bg-accent/50"
-                      style={{ height: `${h * 70}%` }}
-                    />
-                  ))}
+                <div className="relative h-9 border-t border-line bg-panel">
+                  <EditorWaveform buckets={waveform} />
                 </div>
               ) : null}
             </div>
