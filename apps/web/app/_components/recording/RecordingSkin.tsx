@@ -206,7 +206,9 @@ export function RecordingSkin({
           ref={webcamRef}
           src={webcam.url}
           className={cn(
-            "pointer-events-none absolute aspect-square rounded-full object-cover",
+            // The skin's base styles stretch every video to the box; the
+            // bubble takes its height from the aspect instead.
+            "pointer-events-none absolute aspect-square h-auto rounded-full object-cover",
             webcamCornerClass(webcam.corner),
             webcamSizeClass(webcam.size),
           )}
