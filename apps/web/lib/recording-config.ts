@@ -22,6 +22,7 @@ export type RecordingConfig = {
   background: string;
   cameraCorner: RecordingCameraCorner;
   cameraSize: RecordingCameraSize;
+  cameraHidden: boolean;
   micMuted: boolean;
   systemMuted: boolean;
   cuts: RecordingCut[];
@@ -31,6 +32,7 @@ export const DEFAULT_RECORDING_CONFIG: RecordingConfig = {
   background: "transparent",
   cameraCorner: "bottom-right",
   cameraSize: "medium",
+  cameraHidden: false,
   micMuted: false,
   systemMuted: false,
   cuts: [],
@@ -237,6 +239,7 @@ export function hydrateRecordingConfig(raw: unknown): RecordingConfig {
     background: bg,
     cameraCorner: corner,
     cameraSize: size,
+    cameraHidden: obj.cameraHidden === true,
     micMuted: obj.micMuted === true,
     systemMuted: obj.systemMuted === true,
     cuts: normalizeCuts(obj.cuts),

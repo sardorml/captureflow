@@ -20,6 +20,7 @@ describe("hydrateRecordingConfig", () => {
         background: "violet",
         cameraCorner: "top-left",
         cameraSize: "large",
+        cameraHidden: true,
         micMuted: true,
         systemMuted: "yes",
         cuts: [
@@ -32,6 +33,7 @@ describe("hydrateRecordingConfig", () => {
       background: "violet",
       cameraCorner: "top-left",
       cameraSize: "large",
+      cameraHidden: true,
       micMuted: true,
       systemMuted: false,
       cuts: [
@@ -41,9 +43,11 @@ describe("hydrateRecordingConfig", () => {
     });
   });
 
-  it("reads a legacy config without cuts", () => {
-    expect(
-      parseRecordingConfigJson(JSON.stringify({ background: "#fff" })).cuts,
-    ).toEqual([]);
+  it("reads a legacy config without cuts or a camera flag", () => {
+    const legacy = parseRecordingConfigJson(
+      JSON.stringify({ background: "#fff" }),
+    );
+    expect(legacy.cuts).toEqual([]);
+    expect(legacy.cameraHidden).toBe(false);
   });
 });

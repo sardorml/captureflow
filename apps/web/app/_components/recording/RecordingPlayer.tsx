@@ -223,6 +223,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                     url: webcamUrl,
                     corner: config.cameraCorner,
                     size: config.cameraSize,
+                    hidden: config.cameraHidden,
                   }
                 : null
             }

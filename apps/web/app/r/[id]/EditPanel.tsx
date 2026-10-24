@@ -96,8 +96,10 @@ export function EditPanel({
               <CameraPicker
                 corner={config.cameraCorner}
                 size={config.cameraSize}
+                hidden={config.cameraHidden}
                 onCorner={(corner) => onConfig({ cameraCorner: corner })}
                 onSize={(size) => onConfig({ cameraSize: size })}
+                onHidden={(hidden) => onConfig({ cameraHidden: hidden })}
               />
             </Field>
           ) : null}

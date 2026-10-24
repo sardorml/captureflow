@@ -86,6 +86,7 @@ export type RecordingWebcam = {
   url: string;
   corner: RecordingCameraCorner;
   size: RecordingCameraSize;
+  hidden: boolean;
 };
 
 export type RecordingSkinProps = {
@@ -200,7 +201,8 @@ export function RecordingSkin({
         </div>
       </div>
 
-      {/* No z-index: the controls layers stack above it like a real PiP. */}
+      {/* No z-index: the controls layers stack above it like a real PiP. A
+          hidden camera stays mounted since its track carries the mic. */}
       {webcam ? (
         <video
           ref={webcamRef}
@@ -211,6 +213,7 @@ export function RecordingSkin({
             "pointer-events-none absolute aspect-square h-auto rounded-full object-cover",
             webcamCornerClass(webcam.corner),
             webcamSizeClass(webcam.size),
+            webcam.hidden && "invisible",
           )}
           playsInline
           preload="auto"

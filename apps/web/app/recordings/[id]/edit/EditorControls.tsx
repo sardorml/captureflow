@@ -1,6 +1,14 @@
 "use client";
 
-import { Mic, MicOff, Volume2, VolumeX, type LucideIcon } from "lucide-react";
+import {
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  Volume2,
+  VolumeX,
+  type LucideIcon,
+} from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { formatBytes, formatDuration } from "@/lib/format";
@@ -167,16 +175,30 @@ function Swatch({
 export function CameraPicker({
   corner,
   size,
+  hidden,
   onCorner,
   onSize,
+  onHidden,
 }: {
   corner: RecordingCameraCorner;
   size: RecordingCameraSize;
+  hidden: boolean;
   onCorner: (c: RecordingCameraCorner) => void;
   onSize: (s: RecordingCameraSize) => void;
+  onHidden: (hidden: boolean) => void;
 }) {
   return (
     <div>
+      <div className="mb-3">
+        <ToggleRow
+          label="Show camera"
+          on={!hidden}
+          onChange={(on) => onHidden(!on)}
+          OnIcon={Video}
+          OffIcon={VideoOff}
+          offText="Hidden"
+        />
+      </div>
       <div className="mb-1 text-[10px] uppercase tracking-wide text-fg-muted">
         Position
       </div>
@@ -240,21 +262,23 @@ export function AudioControls({
   // mixed with the system sound and the one toggle covers both.
   return (
     <div>
-      <AudioToggle
+      <ToggleRow
         label={hasMic ? "System sound" : "Sound"}
-        muted={systemMuted}
-        onChange={onSystem}
-        MutedIcon={VolumeX}
+        on={!systemMuted}
+        onChange={(on) => onSystem(!on)}
         OnIcon={Volume2}
+        OffIcon={VolumeX}
+        offText="Muted"
       />
       {hasMic ? (
         <div className="mt-1.5">
-          <AudioToggle
+          <ToggleRow
             label="Microphone"
-            muted={micMuted}
-            onChange={onMic}
-            MutedIcon={MicOff}
+            on={!micMuted}
+            onChange={(on) => onMic(!on)}
             OnIcon={Mic}
+            OffIcon={MicOff}
+            offText="Muted"
           />
         </div>
       ) : (
@@ -266,40 +290,42 @@ export function AudioControls({
   );
 }
 
-function AudioToggle({
+function ToggleRow({
   label,
-  muted,
+  on,
   onChange,
-  MutedIcon,
   OnIcon,
+  OffIcon,
+  offText,
 }: {
   label: string;
-  muted: boolean;
-  onChange: (muted: boolean) => void;
-  MutedIcon: LucideIcon;
+  on: boolean;
+  onChange: (on: boolean) => void;
   OnIcon: LucideIcon;
+  OffIcon: LucideIcon;
+  offText: string;
 }) {
   return (
     <button
       type="button"
       role="switch"
-      aria-checked={!muted}
-      onClick={() => onChange(!muted)}
+      aria-checked={on}
+      onClick={() => onChange(!on)}
       className="flex w-full items-center justify-between rounded-full bg-field px-4 py-1.5 text-sm text-fg hover:bg-tint-strong"
     >
       <span>{label}</span>
       <span
         className={cn(
           "inline-flex items-center gap-1 text-xs",
-          muted ? "text-fg-muted" : "text-accent",
+          on ? "text-accent" : "text-fg-muted",
         )}
       >
-        {muted ? (
-          <MutedIcon className="h-3.5 w-3.5" />
-        ) : (
+        {on ? (
           <OnIcon className="h-3.5 w-3.5" />
+        ) : (
+          <OffIcon className="h-3.5 w-3.5" />
         )}
-        {muted ? "Muted" : "On"}
+        {on ? "On" : offText}
       </span>
     </button>
   );

@@ -154,6 +154,7 @@ function shallowEqualConfig(a: RecordingConfig, b: RecordingConfig): boolean {
     a.background === b.background &&
     a.cameraCorner === b.cameraCorner &&
     a.cameraSize === b.cameraSize &&
+    a.cameraHidden === b.cameraHidden &&
     a.micMuted === b.micMuted &&
     a.systemMuted === b.systemMuted &&
     cutsEqual(a.cuts, b.cuts)
