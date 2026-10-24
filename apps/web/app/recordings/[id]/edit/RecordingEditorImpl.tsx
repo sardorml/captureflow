@@ -181,6 +181,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
               captionsLang={initialTranscript?.language ?? undefined}
               selection={selectionSpan}
               showCuts
+              framePreview={false}
               landscapeMaxHeightCss={STAGE_MAX_HEIGHT_CSS}
             />
           </div>

@@ -21,11 +21,11 @@ const SEEK_TIMEOUT_MS = 8000;
  * still displays, so no CORS headers are needed on the media host; the
  * bitmaps are only ever drawn, never read back.
  */
-export function useFrameStrip(videoUrl: string): FrameStrip | null {
+export function useFrameStrip(videoUrl: string | null): FrameStrip | null {
   const [strip, setStrip] = useState<FrameStrip | null>(null);
 
   useEffect(() => {
-    if (typeof createImageBitmap !== "function") return;
+    if (videoUrl === null || typeof createImageBitmap !== "function") return;
     let cancelled = false;
     const tiles: ImageBitmap[] = [];
     const video = document.createElement("video");

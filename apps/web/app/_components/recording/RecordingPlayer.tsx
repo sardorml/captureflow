@@ -64,6 +64,9 @@ type Props = {
   controlsExtra?: ReactNode;
   controlsAlwaysVisible?: boolean;
   compactControls?: boolean;
+  // The frame under the pointer above the time slider; the editor's timeline
+  // already shows the frames.
+  framePreview?: boolean;
   // WebVTT captions, shown from the start; the CC button or `c` hides them.
   captionsUrl?: string;
   captionsLang?: string;
@@ -96,6 +99,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       controlsExtra,
       controlsAlwaysVisible = false,
       compactControls = false,
+      framePreview = true,
       captionsUrl,
       captionsLang,
       chapters,
@@ -216,6 +220,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             showCuts={showCuts}
             cues={cues}
             videoUrl={videoUrl}
+            framePreview={framePreview}
             previewLoopUrl={compactControls ? videoUrl : undefined}
             progressOverlay={progressOverlay}
             floatingOverlay={floatingOverlay}

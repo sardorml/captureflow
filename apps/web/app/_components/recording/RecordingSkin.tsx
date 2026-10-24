@@ -103,6 +103,8 @@ export type RecordingSkinProps = {
   showCuts: boolean;
   cues: ChapterCue[];
   videoUrl: string;
+  // Shows the frame under the pointer above the time slider.
+  framePreview: boolean;
   previewLoopUrl?: string;
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   // Covers the whole player and stays put when the controls hide.
@@ -148,6 +150,7 @@ export function RecordingSkin({
   showCuts,
   cues,
   videoUrl,
+  framePreview,
   previewLoopUrl,
   progressOverlay,
   floatingOverlay,
@@ -240,6 +243,7 @@ export function RecordingSkin({
         cuts={cuts}
         cues={cues}
         videoUrl={videoUrl}
+        framePreview={framePreview}
         controlsVisible={controlsVisible}
         progressOverlay={progressOverlay}
         controlsExtra={controlsExtra}
@@ -501,6 +505,7 @@ type RecordingControlsProps = {
   cuts: RecordingCut[];
   cues: ChapterCue[];
   videoUrl: string;
+  framePreview: boolean;
   controlsVisible: boolean;
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   controlsExtra?: ReactNode;
@@ -533,6 +538,7 @@ function RecordingControls({
   cuts,
   cues,
   videoUrl,
+  framePreview,
   controlsVisible,
   progressOverlay,
   controlsExtra,
@@ -541,7 +547,7 @@ function RecordingControls({
   // The editor's selection replaces the chapters on the track, so any cue
   // present is the selection.
   const selecting = cues.some((cue) => cue.id === SELECTION_CUE_ID);
-  const frames = useFrameStrip(videoUrl);
+  const frames = useFrameStrip(framePreview ? videoUrl : null);
   const sourceSecondsAt = useCallback(
     (fraction: number) => {
       const seconds = fraction * durationSeconds;
@@ -549,9 +555,9 @@ function RecordingControls({
     },
     [edited, durationSeconds, cuts],
   );
-  const preview = (
+  const preview = framePreview ? (
     <FramePreview strip={frames} sourceSecondsAt={sourceSecondsAt} />
-  );
+  ) : undefined;
 
   return (
     <Controls.Root visibility={alwaysVisible ? "always" : "auto"}>
