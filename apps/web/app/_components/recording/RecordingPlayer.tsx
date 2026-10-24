@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -21,6 +22,7 @@ import {
 } from "@/lib/recording/chapter-cues";
 import { snapOutOfCuts, type RecordingCut } from "@/lib/recording/cuts";
 import type { RecordingChapter } from "@/lib/recording/summary-chapters";
+import { cn } from "@/lib/utils";
 import { aspectFromPlaceholder, sizeStyleForAspect } from "./layout";
 import { RecordingSkin, type ProgressOverlayInfo } from "./RecordingSkin";
 import { useCutSkipper } from "./use-cut-skipper";
@@ -80,8 +82,13 @@ type Props = {
   showCuts?: boolean;
   // Viewport-aware max-height for LANDSCAPE sources, e.g. 'min(34rem, calc(100vh - 19rem))'. The public viewer passes this so the reaction bar below the player stays in view without scrolling; the editor omits it so the preview fills the available panel height.
   landscapeMaxHeightCss?: string;
+  // Takes the whole of its parent instead of sizing from the aspect; the
+  // video letterboxes on the background (the editor's canvas).
+  fill?: boolean;
   className?: string;
 };
+
+const FILL_STYLE: CSSProperties = { width: "100%", height: "100%" };
 
 export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
   function RecordingPlayer(
@@ -106,6 +113,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       selection,
       showCuts = false,
       landscapeMaxHeightCss,
+      fill = false,
       className,
     },
     handleRef,
@@ -191,10 +199,17 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
 
     const aspect =
       actualAspect ?? aspectFromPlaceholder(serverWidth, serverHeight);
-    const sizeStyle = sizeStyleForAspect(aspect, landscapeMaxHeightCss);
+    const sizeStyle = fill
+      ? FILL_STYLE
+      : sizeStyleForAspect(aspect, landscapeMaxHeightCss);
 
     return (
-      <div className="flex flex-col items-center max-lg:contents">
+      <div
+        className={cn(
+          "flex flex-col items-center",
+          fill ? "h-full w-full" : "max-lg:contents",
+        )}
+      >
         <VideoPlayer>
           <StoreBridge storeRef={storeRef} />
           <RecordingSkin

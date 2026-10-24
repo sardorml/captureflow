@@ -14,9 +14,6 @@ import { EditorInspector } from "./EditorInspector";
 import { EditorTimeline } from "./EditorTimeline";
 import { EditorTopBar } from "./EditorTopBar";
 
-// Top bar (h-14) + timeline (h-52) + the stage's padding (p-8 twice).
-const STAGE_MAX_HEIGHT_CSS = "calc(100vh - 20.5rem)";
-
 // The recording editor. The preview uses the same RecordingPlayer as the
 // public viewer, so it matches what /r/[id] renders pixel for pixel.
 export function RecordingEditorImpl(props: RecordingEditorProps) {
@@ -160,31 +157,27 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
       />
 
       <div className="flex min-h-0 flex-1">
-        <section className="flex min-w-0 flex-1 items-center justify-center bg-canvas bg-[radial-gradient(var(--cf-line-strong)_1px,transparent_1px)] bg-[size:20px_20px] p-8">
-          {/* Width box: the player sizes off 100% of its parent, so it needs a
-              concrete width to resolve against (else it collapses to nothing). */}
-          <div className="w-full max-w-6xl">
-            <RecordingPlayer
-              ref={playerRef}
-              videoUrl={videoUrl}
-              webcamUrl={webcamUrl ?? undefined}
-              serverDurationMs={durationMs}
-              serverWidth={width}
-              serverHeight={height}
-              config={config}
-              className="ring-1 ring-line-strong"
-              captionsUrl={
-                initialTranscript
-                  ? `/api/r/transcript/${slug}/captions?v=${captionsVersion}`
-                  : undefined
-              }
-              captionsLang={initialTranscript?.language ?? undefined}
-              selection={selectionSpan}
-              showCuts
-              framePreview={false}
-              landscapeMaxHeightCss={STAGE_MAX_HEIGHT_CSS}
-            />
-          </div>
+        <section className="min-h-0 min-w-0 flex-1 bg-canvas">
+          <RecordingPlayer
+            ref={playerRef}
+            videoUrl={videoUrl}
+            webcamUrl={webcamUrl ?? undefined}
+            serverDurationMs={durationMs}
+            serverWidth={width}
+            serverHeight={height}
+            config={config}
+            className="rounded-none"
+            captionsUrl={
+              initialTranscript
+                ? `/api/r/transcript/${slug}/captions?v=${captionsVersion}`
+                : undefined
+            }
+            captionsLang={initialTranscript?.language ?? undefined}
+            selection={selectionSpan}
+            showCuts
+            framePreview={false}
+            fill
+          />
         </section>
 
         <EditorInspector
