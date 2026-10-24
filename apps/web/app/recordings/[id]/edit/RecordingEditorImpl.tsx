@@ -172,7 +172,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
               serverWidth={width}
               serverHeight={height}
               config={config}
-              className="shadow-[0_24px_60px_-24px_rgba(0,0,0,0.45)] ring-1 ring-line-strong"
+              className="ring-1 ring-line-strong"
               captionsUrl={
                 initialTranscript
                   ? `/api/r/transcript/${slug}/captions?v=${captionsVersion}`
