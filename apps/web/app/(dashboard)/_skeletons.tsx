@@ -23,10 +23,25 @@ export function CardGridSkeleton({ count = 8 }: { count?: number }) {
     <div className="mt-6 grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
       {Array.from({ length: count }).map((_, i) => (
         <Card key={i} className="p-4">
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Skeleton className="aspect-video w-full rounded-lg" />
           <Skeleton className="mt-3 h-4 w-3/5 rounded-md" />
         </Card>
       ))}
+    </div>
+  );
+}
+
+// Stands in for the sidebar while its workspace queries run.
+export function SidebarSkeleton() {
+  return (
+    <div className="flex h-full flex-col gap-6 p-4">
+      <Skeleton className="h-8 w-40 rounded-md" />
+      <Skeleton className="h-20 w-full rounded-xl" />
+      <div className="flex flex-col gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-9 w-full rounded-lg" />
+        ))}
+      </div>
     </div>
   );
 }
