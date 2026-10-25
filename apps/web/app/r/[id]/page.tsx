@@ -287,7 +287,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
       <ViewerNav
         homeUrl={APP_WEB_SITE_URL}
         productName={PRODUCT_NAME}
-        className="border-b border-line bg-panel"
+        className="border-b border-black/[0.06] bg-panel dark:border-white/[0.07]"
         /* The workspace panel is the signed-in user's own; an anonymous viewer
            has nothing to put in it, and Sidebar's requireSession would bounce
            them to /auth/clear mid-render. Suspense keeps its workspace queries
