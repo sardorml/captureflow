@@ -25,6 +25,7 @@ import type { RecordingChapter } from "@/lib/recording/summary-chapters";
 import { cn } from "@/lib/utils";
 import { aspectFromPlaceholder, sizeStyleForAspect } from "./layout";
 import { RecordingSkin, type ProgressOverlayInfo } from "./RecordingSkin";
+import { useCaptionPrefs } from "./use-caption-prefs";
 import { useCutSkipper } from "./use-cut-skipper";
 import { useWebcamSync } from "./use-webcam-sync";
 import { splitMute, type SplitMute } from "@/lib/recording/split-mute";
@@ -122,6 +123,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const webcamRef = useRef<HTMLVideoElement | null>(null);
     const storeRef = useRef<VideoPlayerStore | null>(null);
+    const [captionPrefs, updateCaptionPrefs] = useCaptionPrefs();
     /*
      * Aspect ratio of the actually-encoded video, from metadata. The
      * server-known dim is only a placeholder for the SSR paint; once
@@ -235,6 +237,8 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             sizeStyle={sizeStyle}
             aspect={aspect}
             background={config.background}
+            captionPrefs={captionPrefs}
+            onCaptionPrefs={updateCaptionPrefs}
             webcam={
               webcamUrl
                 ? {

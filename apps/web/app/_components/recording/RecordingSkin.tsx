@@ -43,7 +43,12 @@ import { TimeSlider } from "@/components/videojs/ui/time-slider";
 import { VolumePopover } from "@/components/videojs/ui/volume-popover";
 import { VideoGestures } from "@/components/videojs/video/behaviors/gestures";
 import { VideoStatusIndicators } from "@/components/videojs/video/display/status-indicators";
-import { VideoSettingsMenu } from "@/components/videojs/video/menus/settings-menu";
+import { AudioTrackMenu } from "@/components/videojs/ui/audio-track-menu";
+import { PlaybackRateSubmenu } from "@/components/videojs/ui/playback-rate-submenu";
+import { QualityMenu } from "@/components/videojs/ui/quality-menu";
+import { SettingsMenu } from "@/components/videojs/ui/settings-menu";
+import { CaptionsMenu } from "./CaptionsMenu";
+import "./player.css";
 import { cn } from "@/lib/utils";
 import { formatTimestamp } from "@/lib/format";
 import {
@@ -62,6 +67,7 @@ import { useFitStage } from "./use-fit-stage";
 import { useFrameStrip } from "./use-frame-strip";
 import { recordingBackgroundStyle } from "./layout";
 import { WebcamBubble, type RecordingWebcam } from "./WebcamBubble";
+import type { CaptionPrefs } from "@/lib/recording/caption-prefs";
 
 // Info handed to the progressOverlay slot, which covers the time slider so
 // the public viewer can place reaction markers on it without forking the
@@ -83,6 +89,8 @@ export type RecordingSkinProps = {
   sizeStyle: CSSProperties;
   aspect: number;
   background: string;
+  captionPrefs: CaptionPrefs;
+  onCaptionPrefs: (patch: Partial<CaptionPrefs>) => void;
   webcam: RecordingWebcam | null;
   webcamRef: RefObject<HTMLVideoElement | null>;
   syncingCamera: boolean;
@@ -113,6 +121,12 @@ const identityMs = (ms: number): number => ms;
 const CAPTION_LIFT = {
   "--media-caption-controls-y": "calc(var(--media-spacing) * -22)",
 } as CSSProperties;
+// Top captions hang a little under the edge and stay put when the controls
+// show; the size is read by globals.css off data-caption-size.
+const CAPTION_TOP = {
+  "--media-caption-track-y": "calc(var(--media-spacing) * 3)",
+  "--media-caption-controls-y": "calc(var(--media-spacing) * 3)",
+} as CSSProperties;
 // Only the slider fill and the bottom line take the brand blue; the skin's
 // accent would also tint the buttons.
 const FILL_COLOR = "#2563eb";
@@ -130,6 +144,8 @@ export function RecordingSkin({
   sizeStyle,
   aspect,
   background,
+  captionPrefs,
+  onCaptionPrefs,
   webcam,
   webcamRef,
   syncingCamera,
@@ -162,10 +178,12 @@ export function RecordingSkin({
       style={{
         ...(isFullscreen ? {} : sizeStyle),
         ...recordingBackgroundStyle(background),
-        ...CAPTION_LIFT,
+        ...(captionPrefs.position === "top" ? CAPTION_TOP : CAPTION_LIFT),
       }}
       data-theme="default"
       data-preset="video"
+      data-caption-size={captionPrefs.size}
+      data-caption-position={captionPrefs.position}
     >
       {/* With a background the video shrinks 4% per side so the bg paints
           as a visible frame; `transparent` fills edge-to-edge. The stage
@@ -218,6 +236,7 @@ export function RecordingSkin({
         controlsVisible={controlsVisible}
         progressOverlay={progressOverlay}
         controlsExtra={controlsExtra}
+        captionLook={{ prefs: captionPrefs, onChange: onCaptionPrefs }}
       />
 
       <BottomProgress timeline={timeline} hidden={controlsVisible} />
@@ -481,6 +500,10 @@ type RecordingControlsProps = {
   controlsVisible: boolean;
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   controlsExtra?: ReactNode;
+  captionLook: {
+    prefs: CaptionPrefs;
+    onChange: (patch: Partial<CaptionPrefs>) => void;
+  };
 };
 
 function RateButton() {
@@ -514,6 +537,7 @@ function RecordingControls({
   controlsVisible,
   progressOverlay,
   controlsExtra,
+  captionLook,
 }: RecordingControlsProps) {
   const { edited, durationSeconds, currentSeconds, toTimelineMs } = timeline;
   // The editor's selection replaces the chapters on the track, so any cue
@@ -625,7 +649,15 @@ function RecordingControls({
                   <CaptionsButton />
                 </ButtonTooltip>
                 <RateButton />
-                <VideoSettingsMenu />
+                <SettingsMenu>
+                  <QualityMenu />
+                  <AudioTrackMenu />
+                  <PlaybackRateSubmenu />
+                  <CaptionsMenu
+                    prefs={captionLook.prefs}
+                    onChange={captionLook.onChange}
+                  />
+                </SettingsMenu>
                 <ButtonTooltip side="top">
                   <CastButton className="media-max-lg:hidden" />
                 </ButtonTooltip>
