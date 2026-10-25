@@ -1,5 +1,6 @@
 import { ENGINE_OUTPUT } from "../contract";
 import { createFmp4Muxer } from "./fmp4-mux";
+import { createSettleDetector } from "./settle";
 import { createSharedClock } from "./shared-clock";
 
 // Chromium-only Insertable Streams API — not yet in TS's DOM lib.
@@ -12,6 +13,10 @@ declare class MediaStreamTrackProcessor<T> {
 // 1 Mbps ceiling a 2 s spacing left a quarter of the bits for the frames
 // that sharpen the text. Resume still forces a keyframe at the splice.
 const KEYFRAME_INTERVAL_US = 6_000_000;
+// A settle refresh is a keyframe too; this keeps a page the viewer is nudging
+// from costing one every few frames.
+const SETTLE_REFRESH_MIN_GAP_US = 1_000_000;
+const LUMA_SAMPLE = { width: 48, height: 27 };
 // Encoder back-pressure bound: drop frames rather than queue unboundedly.
 const MAX_ENCODE_QUEUE = 2;
 
@@ -78,6 +83,36 @@ async function pickSupportedH264(probe: {
     }
   }
   return candidates[candidates.length - 1]!;
+}
+
+// A thumbnail's worth of luma per frame for the settle detector; null where
+// the frame can't be drawn, which just leaves the fixed keyframe spacing.
+function createLumaSampler(): (frame: VideoFrame) => Float32Array | null {
+  const { width, height } = LUMA_SAMPLE;
+  let ctx: OffscreenCanvasRenderingContext2D | null = null;
+  try {
+    ctx = new OffscreenCanvas(width, height).getContext("2d", {
+      willReadFrequently: true,
+    });
+  } catch {
+    ctx = null;
+  }
+  const luma = new Float32Array(width * height);
+  return (frame) => {
+    if (!ctx) return null;
+    try {
+      ctx.drawImage(frame, 0, 0, width, height);
+      const px = ctx.getImageData(0, 0, width, height).data;
+      for (let i = 0; i < luma.length; i++) {
+        const o = i * 4;
+        luma[i] = px[o]! * 0.299 + px[o + 1]! * 0.587 + px[o + 2]! * 0.114;
+      }
+      return luma;
+    } catch {
+      ctx = null;
+      return null;
+    }
+  };
 }
 
 async function isAacSupported(config: AudioEncoderConfig): Promise<boolean> {
@@ -249,6 +284,8 @@ export async function startStreamRecorder(
 
   let stopping = false;
   let lastKeyUs = -Infinity;
+  const sampleLuma = createLumaSampler();
+  const settle = createSettleDetector();
 
   const readLoop = (async () => {
     for (;;) {
@@ -263,8 +300,13 @@ export async function startStreamRecorder(
         frame.close();
         continue;
       }
+      const luma = sampleLuma(frame);
+      const settled = luma ? settle.note(luma) : false;
+      const sinceKeyUs = frame.timestamp - lastKeyUs;
       const keyFrame =
-        forceKeyframe || frame.timestamp - lastKeyUs >= KEYFRAME_INTERVAL_US;
+        forceKeyframe ||
+        sinceKeyUs >= KEYFRAME_INTERVAL_US ||
+        (settled && sinceKeyUs >= SETTLE_REFRESH_MIN_GAP_US);
       if (keyFrame) {
         lastKeyUs = frame.timestamp;
         forceKeyframe = false;
