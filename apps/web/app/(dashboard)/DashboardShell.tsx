@@ -21,7 +21,7 @@ export function DashboardShell({
         {sidebar}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 shrink-0 items-center gap-3 bg-canvas-2 px-4 md:px-6">
+        <header className="flex h-16 shrink-0 items-center gap-3 bg-canvas-2 px-4">
           {/* Below md the aside is hidden, so the drawer is the only way to
               reach the workspace switcher and the nav. */}
           <div className="md:hidden">
@@ -30,7 +30,7 @@ export function DashboardShell({
           <div className="min-w-0 flex-1">{header}</div>
         </header>
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1152px] p-8">{children}</div>
+          <div className="mx-auto max-w-[1152px] px-4 py-8">{children}</div>
         </main>
       </div>
     </div>

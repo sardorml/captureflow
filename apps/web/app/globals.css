@@ -253,7 +253,7 @@ html:not(:has([data-marketing])) *::-webkit-scrollbar {
 }
 
 html:not(:has([data-marketing])) .card {
-  border-radius: 20px;
+  border-radius: 12px;
 }
 
 /* HeroUI's .dropdown__trigger is `display: inline-block`, which lands after

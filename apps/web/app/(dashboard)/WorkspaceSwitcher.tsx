@@ -145,14 +145,14 @@ export function WorkspaceSwitcher({
       <div className="relative pt-1.5">
         <div
           data-testid="workspace-sheet"
-          className="absolute inset-x-1.5 top-0 h-6 rounded-t-2xl"
+          className="absolute inset-x-1.5 top-0 h-6 rounded-t-xl"
           style={sheetStyle}
           aria-hidden="true"
         />
         <div
           ref={cardRef}
           data-testid="workspace-card"
-          className="relative rounded-2xl border border-black/[0.06] bg-panel dark:border-white/[0.08]"
+          className="relative rounded-xl border border-black/[0.1] bg-panel dark:border-white/[0.12]"
         >
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
