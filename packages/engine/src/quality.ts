@@ -28,7 +28,7 @@ export const RECORDING_QUALITIES: Record<RecordingQualityId, RecordingQuality> =
       screen: {
         maxWidth: 960,
         maxHeight: 540,
-        fps: 20,
+        fps: 30,
         bitrate: 800_000,
         audioBitrate: 48_000,
       },
