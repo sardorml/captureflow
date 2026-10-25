@@ -139,7 +139,7 @@ export function WorkspaceSwitcher({
         <div>
           <div
             data-testid="workspace-strip"
-            className="mx-2 mt-2 h-1.5 rounded-full"
+            className="mx-2 mt-2 h-2.5 rounded-t-lg rounded-b-sm"
             style={colourStyle}
             aria-hidden="true"
           />
