@@ -8,8 +8,10 @@ declare class MediaStreamTrackProcessor<T> {
   readonly readable: ReadableStream<T>;
 }
 
-// Matches the native sidecar's 2s GOP so seeks and pause splices behave the same.
-const KEYFRAME_INTERVAL_US = 2_000_000;
+// On a still page the keyframes are most of the file: at 1080p under a
+// 1 Mbps ceiling a 2 s spacing left a quarter of the bits for the frames
+// that sharpen the text. Resume still forces a keyframe at the splice.
+const KEYFRAME_INTERVAL_US = 6_000_000;
 // Encoder back-pressure bound: drop frames rather than queue unboundedly.
 const MAX_ENCODE_QUEUE = 2;
 

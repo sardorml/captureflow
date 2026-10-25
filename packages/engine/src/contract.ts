@@ -13,8 +13,9 @@ export const ENGINE_OUTPUT = {
     // 5 Mbps holds up for screen content at 1080p and keeps the produced rate
     // under typical uplinks, so the post-stop flush stays short.
     bitrate: 5_000_000,
-    // VideoEncoder codec strings, preferred first: Main 4.1, then Baseline 4.1.
-    h264EncodeCandidates: ["avc1.4D4029", "avc1.42E029"],
+    // VideoEncoder codec strings, preferred first: High 4.1, Main 4.1, then
+    // Baseline 4.1.
+    h264EncodeCandidates: ["avc1.640029", "avc1.4D4029", "avc1.42E029"],
   },
   poster: {
     mimeType: "image/jpeg",
