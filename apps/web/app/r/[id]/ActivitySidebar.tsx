@@ -258,25 +258,12 @@ export function ActivitySidebar({
   const [emojiOpen, setEmojiOpen] = useState(false);
 
   /*
-   * The picker only renders inside the popover, so without this its chunk does
-   * not start downloading until the first click — which is the whole of that
-   * first-open stutter. Warming it on idle keeps the click off the network
-   * without competing with the page's own load.
+   * The picker only renders inside the popover, so its chunk would not start
+   * downloading until the first click. Warming it when the composer gets
+   * focus or the pointer reaches the button keeps the click off the network
+   * without spending the page's load on a picker most viewers never open.
    */
-  useEffect(() => {
-    if (!viewerSignedIn) return;
-    const idle =
-      typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(() => void loadEmojiPicker())
-        : window.setTimeout(() => void loadEmojiPicker(), 1500);
-    return () => {
-      if (typeof window.cancelIdleCallback === "function") {
-        window.cancelIdleCallback(idle);
-      } else {
-        window.clearTimeout(idle);
-      }
-    };
-  }, [viewerSignedIn]);
+  const warmEmojiPicker = () => void loadEmojiPicker();
 
   // The composer lives in the Activity tab, so the shortcut switches to it.
   useEffect(() => {
@@ -511,6 +498,7 @@ export function ActivitySidebar({
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={onKeyDown}
+                onFocus={warmEmojiPicker}
                 placeholder="Leave a comment…"
                 rows={1}
                 className="block min-h-[1.5rem] w-full resize-none bg-transparent text-sm text-fg placeholder:text-muted focus:outline-none"
@@ -570,6 +558,8 @@ export function ActivitySidebar({
                       size="sm"
                       isIconOnly
                       aria-label="Insert emoji"
+                      onHoverStart={warmEmojiPicker}
+                      onFocus={warmEmojiPicker}
                     >
                       <Smile className="h-4 w-4" />
                     </Button>
