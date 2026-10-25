@@ -13,7 +13,7 @@ import { screenshotObjectKeysFor } from "../screenshot-keys";
 
 /*
  * Cron handlers, invoked by the wrapper worker's `scheduled()` entry:
- * runHourlyMultipartGc and backfillPosterBlurs on `0 * * * *`,
+ * runHourlyMultipartGc and backfillPosterDerivatives on `0 * * * *`,
  * runDailyRetentionSweep on `0 4 * * *`.
  * The bucket's only lifecycle rule aborts incomplete multipart uploads after
  * 7 days — there is no object-expiry rule, so nothing catches a silent cron.
@@ -107,7 +107,7 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
  * Only JPEGs can be decoded; a poster that still fails is picked up again
  * next run.
  */
-export async function backfillPosterBlurs(env: CronEnv): Promise<void> {
+export async function backfillPosterDerivatives(env: CronEnv): Promise<void> {
   const pending = await env.DB.prepare(
     `SELECT slug, poster_key AS posterKey
        FROM recordings

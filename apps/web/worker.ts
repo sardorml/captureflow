@@ -4,7 +4,7 @@
 // @ts-ignore — resolved after the OpenNext Cloudflare build runs.
 import openNextWorker from "./.open-next/worker.js";
 import {
-  backfillPosterBlurs,
+  backfillPosterDerivatives,
   runDailyRetentionSweep,
   runHourlyMultipartGc,
 } from "./lib/recording/cron";
@@ -38,7 +38,7 @@ const handler: ExportedHandler<Env> = {
     switch (event.cron) {
       case "0 * * * *":
         ctx.waitUntil(runHourlyMultipartGc(env));
-        ctx.waitUntil(backfillPosterBlurs(env));
+        ctx.waitUntil(backfillPosterDerivatives(env));
         break;
       case "0 4 * * *":
         ctx.waitUntil(runDailyRetentionSweep(env));
