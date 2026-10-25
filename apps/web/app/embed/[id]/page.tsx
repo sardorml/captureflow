@@ -63,6 +63,7 @@ export default async function EmbedPage({
       posterUrl={
         posterUrlRaw ? withVersion(posterUrlRaw, row.sizeBytes) : undefined
       }
+      posterBlur={row.posterBlur}
       webcamUrl={
         webcamUrlRaw && row.webcamSizeBytes > 0
           ? withVersion(webcamUrlRaw, row.webcamSizeBytes)

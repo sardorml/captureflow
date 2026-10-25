@@ -50,6 +50,7 @@ export type RecordingPlayerHandle = {
 type Props = {
   videoUrl: string;
   posterUrl?: string;
+  posterBlur?: string | null;
   // Companion webcam video, rendered as a configurable PiP overlay and synced to the main player. Carries mic audio; the main video carries system audio (independently muteable). Absent when the recording had no camera (webcam_state='none') or the upload hasn't finalized.
   webcamUrl?: string;
   // Authoritative duration from the recording record, used before <video> knows its own duration.
@@ -99,6 +100,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
     {
       videoUrl,
       posterUrl,
+      posterBlur,
       webcamUrl,
       serverDurationMs,
       serverWidth,
@@ -262,6 +264,8 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             showCuts={showCuts}
             cues={cues}
             videoUrl={videoUrl}
+            posterUrl={posterUrl}
+            posterBlur={posterBlur}
             framePreview={framePreview}
             previewLoopUrl={previewLoop ? videoUrl : undefined}
             previewCaptions={

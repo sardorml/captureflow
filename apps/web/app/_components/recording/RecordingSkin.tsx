@@ -38,7 +38,7 @@ import { ErrorDialog } from "@/components/videojs/ui/error-dialog";
 import { FullscreenButton } from "@/components/videojs/ui/fullscreen-button";
 import { PiPButton } from "@/components/videojs/ui/pip-button";
 import { PlayButton } from "@/components/videojs/ui/play-button";
-import { Poster } from "@/components/videojs/ui/poster";
+import { FadeInImage } from "@/components/ui/fade-in-image";
 import { TimeSlider } from "@/components/videojs/ui/time-slider";
 import { VolumePopover } from "@/components/videojs/ui/volume-popover";
 import { VideoGestures } from "@/components/videojs/video/behaviors/gestures";
@@ -106,6 +106,8 @@ export type RecordingSkinProps = {
   showCuts: boolean;
   cues: ChapterCue[];
   videoUrl: string;
+  posterUrl?: string;
+  posterBlur?: string | null;
   // Shows the frame under the pointer above the time slider.
   framePreview: boolean;
   previewLoopUrl?: string;
@@ -164,6 +166,8 @@ export function RecordingSkin({
   showCuts,
   cues,
   videoUrl,
+  posterUrl,
+  posterBlur,
   framePreview,
   previewLoopUrl,
   previewCaptions,
@@ -232,7 +236,33 @@ export function RecordingSkin({
           }
         >
           {children}
-          <Poster />
+          {/* The video's own poster paints as it downloads, strip by strip.
+              Its blur covers that, and the sharp frame fades in whole; once
+              playback starts the element's poster holds the gap to the first
+              frame. */}
+          {posterUrl && !started ? (
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              {posterBlur ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={posterBlur}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 h-full w-full scale-105 object-contain blur-md"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-neutral-950" />
+              )}
+              <FadeInImage
+                src={posterUrl}
+                alt=""
+                aria-hidden="true"
+                loading="eager"
+                fetchPriority="high"
+                className="absolute inset-0 h-full w-full object-contain"
+              />
+            </div>
+          ) : null}
           {previewing && loopReady ? (
             <LoopVideo
               url={previewLoopUrl}

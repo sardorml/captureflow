@@ -29,6 +29,7 @@ import type {
 type Props = {
   videoUrl: string;
   posterUrl?: string;
+  posterBlur?: string | null;
   webcamUrl?: string;
   slug: string;
   initialReactions: RecordingReaction[];
@@ -59,6 +60,7 @@ const REACTION_CLUSTER_FRACTION = 0.03;
 export function RecordingPlayer({
   videoUrl,
   posterUrl,
+  posterBlur,
   webcamUrl,
   slug,
   initialReactions,
@@ -180,6 +182,7 @@ export function RecordingPlayer({
       ref={setHandle}
       videoUrl={videoUrl}
       posterUrl={posterUrl}
+      posterBlur={posterBlur}
       webcamUrl={webcamUrl}
       serverDurationMs={serverDurationMs}
       serverWidth={serverWidth}

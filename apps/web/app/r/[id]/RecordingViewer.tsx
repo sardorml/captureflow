@@ -35,6 +35,7 @@ type Props = {
   slug: string;
   videoUrl: string;
   posterUrl?: string;
+  posterBlur?: string | null;
   webcamUrl?: string;
   serverDurationMs: number | null;
   serverWidth: number | null;
@@ -65,6 +66,7 @@ export function RecordingViewer({
   slug,
   videoUrl,
   posterUrl,
+  posterBlur,
   webcamUrl,
   serverDurationMs,
   serverWidth,
@@ -187,6 +189,7 @@ export function RecordingViewer({
           <RecordingPlayer
             videoUrl={videoUrl}
             posterUrl={posterUrl}
+            posterBlur={posterBlur}
             webcamUrl={webcamUrl}
             slug={slug}
             initialReactions={initialReactions}

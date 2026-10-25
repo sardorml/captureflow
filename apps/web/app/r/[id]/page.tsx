@@ -330,6 +330,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
         slug={id}
         videoUrl={videoUrl}
         posterUrl={posterUrl}
+        posterBlur={row.posterBlur}
         webcamUrl={webcamUrl}
         serverDurationMs={row.durationMs}
         serverWidth={row.width}
