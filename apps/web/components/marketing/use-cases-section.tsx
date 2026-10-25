@@ -40,7 +40,7 @@ const CHART_BARS = [34, 48, 40, 58, 70, 96] as const;
 
 // The window every scene but support sits in, bleeding off the bottom.
 const WINDOW =
-  "absolute inset-x-9 top-10 -bottom-6 overflow-hidden rounded-[22px] text-[#18181b]";
+  "absolute inset-x-9 top-10 -bottom-6 overflow-hidden rounded-[22px] text-[#181818]";
 
 function Presenter({ photo, shadow }: { photo: string; shadow: string }) {
   return (
@@ -65,7 +65,7 @@ function WindowBar({
   badge,
   barClass,
   badgeClass,
-  nameClass = "text-[#3f3f46]",
+  nameClass = "text-[#444444]",
 }: {
   name: string;
   badge: string;
@@ -119,7 +119,7 @@ function CodeLine({
   return (
     <div className={row}>
       <span
-        className={`mr-4 inline-block w-11 text-right ${tone ? "" : "text-[#6b7aa6]"}`}
+        className={`mr-4 inline-block w-11 text-right ${tone ? "" : "text-[#727272]"}`}
       >
         {n}
       </span>
@@ -165,7 +165,7 @@ function EngineeringScene({ file, pr }: { file: string; pr: string }) {
           </CodeLine>
         </div>
       </div>
-      <div className="absolute bottom-[30px] left-14 flex items-center gap-2.5 rounded-full bg-white py-2.5 pr-4 pl-2.5 font-mono text-[15px] leading-none font-semibold text-[#18223f] shadow-[0_14px_30px_rgb(0_0_0/0.4)]">
+      <div className="absolute bottom-[30px] left-14 flex items-center gap-2.5 rounded-full bg-white py-2.5 pr-4 pl-2.5 font-mono text-[15px] leading-none font-semibold text-[#181818] shadow-[0_14px_30px_rgb(0_0_0/0.4)]">
         <span className="flex size-7 items-center justify-center rounded-full bg-[#ef4444]">
           <span className="size-2.5 rounded-[2px] bg-white" />
         </span>
@@ -195,36 +195,36 @@ function DesignScene({
   return (
     <div className="absolute inset-0">
       <div
-        className={`${WINDOW} bg-[#f6f7fb] shadow-[0_24px_50px_rgb(0_0_0/0.2)]`}
+        className={`${WINDOW} bg-[#f5f5f5] shadow-[0_24px_50px_rgb(0_0_0/0.2)]`}
       >
         <WindowBar
           name={app}
           badge={badge}
-          barClass="bg-[#e9ebf2]"
+          barClass="bg-[#eaeaea]"
           badgeClass="bg-[#f3e8ff] text-[#7c3aed]"
         />
         <div className="absolute top-[62px] left-1/2 -ml-[150px] flex h-[250px] w-[170px] flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_4px_14px_rgb(15_23_42/0.08)]">
-          <div className="h-[100px] bg-[#c7d7ff]" />
+          <div className="h-[100px] bg-[#b9dcff]" />
           <div className="flex flex-col gap-2 p-3.5">
             <div className="text-[15px] leading-[1.1] font-bold">
               {cardTitle}
             </div>
-            <div className="h-[7px] rounded bg-[#e4e4e7]" />
-            <div className="h-[7px] w-[70%] rounded bg-[#e4e4e7]" />
-            <div className="mt-2 h-[30px] rounded-full bg-[#2563eb]" />
+            <div className="h-[7px] rounded bg-[#e4e4e4]" />
+            <div className="h-[7px] w-[70%] rounded bg-[#e4e4e4]" />
+            <div className="mt-2 h-[30px] rounded-full bg-[#1184f7]" />
           </div>
         </div>
         <div className="absolute top-14 left-1/2 -ml-[156px] h-[262px] w-[182px] rounded-[22px] shadow-[0_0_0_2.5px_#7c3aed]" />
         <div className="absolute top-[84px] left-1/2 ml-11 flex w-[150px] flex-col gap-2.5 rounded-2xl bg-white p-3.5 shadow-[0_4px_14px_rgb(15_23_42/0.08)]">
           <div className="text-[13px] leading-none font-bold">{colors}</div>
           <div className="flex gap-[7px]">
-            <span className="size-6 rounded-[7px] bg-[#2563eb]" />
-            <span className="size-6 rounded-[7px] bg-[#18181b]" />
-            <span className="size-6 rounded-[7px] bg-[#c7d7ff]" />
+            <span className="size-6 rounded-[7px] bg-[#1184f7]" />
+            <span className="size-6 rounded-[7px] bg-[#181818]" />
+            <span className="size-6 rounded-[7px] bg-[#b9dcff]" />
           </div>
         </div>
       </div>
-      <div className="absolute top-[228px] left-1/2 -ml-[48px] flex items-center gap-[9px] rounded-[16px_16px_16px_4px] bg-white py-2.5 pr-3.5 pl-2.5 text-[15px] leading-none font-semibold whitespace-nowrap text-[#18181b] shadow-[0_14px_30px_rgb(0_0_0/0.25)]">
+      <div className="absolute top-[228px] left-1/2 -ml-[48px] flex items-center gap-[9px] rounded-[16px_16px_16px_4px] bg-white py-2.5 pr-3.5 pl-2.5 text-[15px] leading-none font-semibold whitespace-nowrap text-[#181818] shadow-[0_14px_30px_rgb(0_0_0/0.25)]">
         <Initials size={26}>MR</Initials>
         {comment}
       </div>
@@ -246,7 +246,7 @@ function SupportScene({
     <div className="absolute inset-0">
       <div className="absolute top-10 left-9 flex max-w-[calc(100%-72px)] items-end gap-3">
         <Initials size={40}>DK</Initials>
-        <div className="rounded-[22px_22px_22px_6px] bg-white px-[22px] py-[18px] text-[19px] leading-[1.35] font-medium text-[#2f5bd8] shadow-[0_20px_44px_rgb(0_0_0/0.16)]">
+        <div className="rounded-[22px_22px_22px_6px] bg-white px-[22px] py-[18px] text-[19px] leading-[1.35] font-medium text-[#0071e2] shadow-[0_20px_44px_rgb(0_0_0/0.16)]">
           {question}
         </div>
       </div>
@@ -256,7 +256,7 @@ function SupportScene({
           <br />
           <span className="font-mono text-[16px] text-[#8fb0ff]">{link}</span>
         </div>
-        <div className="relative flex-1 overflow-hidden rounded-[14px] bg-[linear-gradient(135deg,#2563eb,#7c3aed)]">
+        <div className="relative flex-1 overflow-hidden rounded-[14px] bg-[linear-gradient(135deg,#1184f7,#7c3aed)]">
           <img
             src="/presenter-design.webp"
             alt=""
@@ -286,8 +286,8 @@ function Stat({
   noteClass: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-[14px] bg-[#f6f7fb] p-3.5">
-      <div className="text-[13px] leading-none font-medium text-[#71717a]">
+    <div className="flex flex-col gap-2 rounded-[14px] bg-[#f5f5f5] p-3.5">
+      <div className="text-[13px] leading-none font-medium text-[#727272]">
         {label}
       </div>
       <div className="flex items-baseline gap-2">
@@ -341,20 +341,20 @@ function UpdatesScene({
             label={signups}
             value="2,418"
             note="+18%"
-            noteClass="text-[#2563eb]"
+            noteClass="text-[#1184f7]"
           />
           <Stat
             label={shipped}
             value="7"
             note={features}
-            noteClass="text-[#71717a]"
+            noteClass="text-[#727272]"
           />
         </div>
         <div className="flex flex-1 items-end gap-2.5 pr-[130px]">
           {CHART_BARS.map((h, i) => (
             <div
               key={i}
-              className={`flex-1 rounded-t-md ${i === CHART_BARS.length - 1 ? "bg-[#2563eb]" : "bg-[#e4e7ef]"}`}
+              className={`flex-1 rounded-t-md ${i === CHART_BARS.length - 1 ? "bg-[#1184f7]" : "bg-[#e5e5e5]"}`}
               style={{ height: `${h}%` }}
             />
           ))}

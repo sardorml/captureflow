@@ -489,7 +489,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             <span
               className={cn(
                 wordmark.className,
-                "text-[19px] leading-none tracking-[-0.02em] text-[#12161f] dark:text-fg",
+                "text-[19px] leading-none tracking-[-0.02em] text-fg",
               )}
             >
               CaptureFlow

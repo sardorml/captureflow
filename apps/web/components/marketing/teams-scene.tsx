@@ -16,7 +16,7 @@ const NEW_MEMBER_PHOTO = "/presenter-engineering.webp";
 const INITIALS_COLORS: Record<string, string> = {
   AR: "#8b5cf6",
   CK: "#0d9488",
-  JB: "#2563eb",
+  JB: "#1184f7",
 };
 const VISIBILITY_ICONS = [Globe, Users, Lock];
 const THUMBS = [BoardThumb, CodeThumb, ChartThumb];
@@ -44,7 +44,7 @@ function TeamsContent({ step }: SceneState) {
   const VisibilityIcon = VISIBILITY_ICONS[visibility];
 
   return (
-    <div className="absolute inset-x-7 top-1/2 flex -translate-y-1/2 items-stretch justify-between gap-4 text-[#0f172a]">
+    <div className="absolute inset-x-7 top-1/2 flex -translate-y-1/2 items-stretch justify-between gap-4 text-[#181818]">
       <div className="flex w-[316px] flex-col rounded-2xl bg-white p-5 shadow-[0_24px_50px_rgb(6_78_59/0.16)]">
         <p className="text-[18px] leading-tight font-bold">{copy.team}</p>
         <p className="mt-0.5 text-[10px] text-black/50 tabular-nums">
@@ -80,7 +80,7 @@ function TeamsContent({ step }: SceneState) {
           </span>
           <span
             className={cn(
-              "ml-3 rounded-full bg-[#2563eb] px-2.5 py-1 text-[9px] font-semibold whitespace-nowrap text-white transition-all duration-300",
+              "ml-3 rounded-full bg-[#1184f7] px-2.5 py-1 text-[9px] font-semibold whitespace-nowrap text-white transition-all duration-300",
               celebrating
                 ? "translate-x-0 opacity-100"
                 : "-translate-x-1 opacity-0",
@@ -101,7 +101,7 @@ function TeamsContent({ step }: SceneState) {
           <span
             className={cn(
               "flex h-8 w-[62px] items-center justify-center gap-1 rounded-lg text-[10px] font-semibold transition-colors duration-300",
-              sent ? "bg-[#dcfce7] text-[#15803d]" : "bg-[#0f172a] text-white",
+              sent ? "bg-[#dcfce7] text-[#15803d]" : "bg-[#181818] text-white",
             )}
           >
             {sent ? <Check className="size-3" strokeWidth={3} /> : null}
@@ -112,13 +112,13 @@ function TeamsContent({ step }: SceneState) {
         <div className="mt-4 border-t border-black/5 pt-4">
           <p className="text-[11px] font-medium">
             {copy.whoCanWatch}{" "}
-            <span className="text-[#2563eb]">
+            <span className="text-[#1184f7]">
               {copy.visibility[visibility].detail}
             </span>
           </p>
-          <div className="relative mt-2 grid grid-cols-3 rounded-lg bg-[#f1f5f9] p-1 text-[10px] font-semibold">
+          <div className="relative mt-2 grid grid-cols-3 rounded-lg bg-[#eaeaea] p-1 text-[10px] font-semibold">
             <span
-              className="absolute inset-y-1 left-1 rounded-md bg-[#2563eb] shadow transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              className="absolute inset-y-1 left-1 rounded-md bg-[#1184f7] shadow transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
               style={{
                 width: "calc((100% - 8px) / 3)",
                 transform: `translateX(${visibility * 100}%)`,
@@ -148,7 +148,7 @@ function TeamsContent({ step }: SceneState) {
               key={video.title}
               className={cn(
                 "flex items-center gap-2 rounded-lg p-1",
-                i === 0 && "bg-[#eff6ff] shadow-[0_0_0_1.5px_#2563eb]",
+                i === 0 && "bg-[#e1f0ff] shadow-[0_0_0_1.5px_#1184f7]",
               )}
             >
               <span className="relative h-[42px] w-[64px] shrink-0 overflow-hidden rounded-md border border-black/5">
@@ -178,7 +178,7 @@ function TeamsContent({ step }: SceneState) {
                 </span>
               </span>
               {i === 0 ? (
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-white text-[#2563eb] shadow-[0_1px_3px_rgb(0_0_0/0.12)]">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-white text-[#1184f7] shadow-[0_1px_3px_rgb(0_0_0/0.12)]">
                   <VisibilityIcon className="size-2.5" />
                 </span>
               ) : null}
@@ -192,13 +192,13 @@ function TeamsContent({ step }: SceneState) {
 
 function BoardThumb() {
   return (
-    <span className="flex size-full flex-col bg-[#f6f7fb]">
-      <span className="h-1.5 shrink-0 bg-[#e5e7ef]" />
+    <span className="flex size-full flex-col bg-[#f5f5f5]">
+      <span className="h-1.5 shrink-0 bg-[#e6e6e6]" />
       <span className="flex flex-1 gap-[3px] p-1">
-        {["#f59e0b", "#2563eb", "#22c55e"].map((color) => (
+        {["#f59e0b", "#1184f7", "#22c55e"].map((color) => (
           <span
             key={color}
-            className="flex flex-1 flex-col gap-[2px] rounded-[2px] bg-[#eceef4] p-[2px]"
+            className="flex flex-1 flex-col gap-[2px] rounded-[2px] bg-[#ededed] p-[2px]"
           >
             <span className="flex h-2 flex-col justify-end rounded-[1px] bg-white p-[1px]">
               <span
@@ -251,7 +251,7 @@ function ChartThumb() {
             key={i}
             className={cn(
               "flex-1 rounded-t-[1px]",
-              i === 5 ? "bg-[#2563eb]" : "bg-[#e2e5ec]",
+              i === 5 ? "bg-[#1184f7]" : "bg-[#e3e3e3]",
             )}
             style={{ height: `${h}%` }}
           />

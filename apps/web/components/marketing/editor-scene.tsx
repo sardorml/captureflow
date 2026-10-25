@@ -13,7 +13,7 @@ const LOOP_MS = 12000;
 const STEPS = [0, 1800, 4200, 6600, 8000, 9400];
 
 const SWATCHES = [
-  "#e4e7ef",
+  "#e5e5e5",
   "linear-gradient(135deg,#fde68a,#fb923c 55%,#f43f5e)",
   "linear-gradient(135deg,#a5f3fc,#3b82f6)",
   "linear-gradient(135deg,#bbf7d0,#14b8a6)",
@@ -117,7 +117,7 @@ function EditorContent({ step, playing }: SceneState) {
                 className={cn(
                   "size-[18px] rounded-md transition-shadow duration-300",
                   hasBackground && i === PICKED_SWATCH
-                    ? "shadow-[0_0_0_2px_#fff,0_0_0_4px_#2662e8]"
+                    ? "shadow-[0_0_0_2px_#fff,0_0_0_4px_#1184f7]"
                     : "shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]",
                 )}
                 style={{ background: swatch }}
@@ -133,8 +133,8 @@ function EditorContent({ step, playing }: SceneState) {
                 className={cn(
                   "flex flex-1 items-center justify-center gap-1 rounded-md py-1 text-[9px] font-medium transition-colors duration-300",
                   (cameraMoved ? 1 : 0) === i
-                    ? "bg-[#2662e8] text-white"
-                    : "bg-[#eef1f7] text-[#52525b]",
+                    ? "bg-[#1184f7] text-white"
+                    : "bg-[#efefef] text-[#575757]",
                 )}
               >
                 <span
@@ -149,12 +149,12 @@ function EditorContent({ step, playing }: SceneState) {
           </div>
         </Tool>
         <Tool label={copy.fillers} on={fillersCut}>
-          <div className="flex items-center justify-between text-[9px] font-medium text-[#52525b]">
+          <div className="flex items-center justify-between text-[9px] font-medium text-[#575757]">
             {copy.remove}
             <span
               className={cn(
                 "relative h-3.5 w-6 rounded-full transition-colors duration-300",
-                fillersMarked ? "bg-[#2662e8]" : "bg-[#d4d4d8]",
+                fillersMarked ? "bg-[#1184f7]" : "bg-[#d4d4d4]",
               )}
             >
               <span
@@ -177,7 +177,7 @@ function EditorContent({ step, playing }: SceneState) {
                 key={i}
                 className={cn(
                   "shrink-0 rounded-full transition-all duration-500",
-                  filler && fillersMarked ? "bg-[#2662e8]" : "bg-[#2662e8]/35",
+                  filler && fillersMarked ? "bg-[#1184f7]" : "bg-[#1184f7]/35",
                   filler && fillersCut
                     ? "mx-0 w-0 opacity-0"
                     : "mx-[1.5px] w-[4px]",
@@ -188,13 +188,13 @@ function EditorContent({ step, playing }: SceneState) {
           })}
           <span
             ref={playheadRef}
-            className="absolute inset-y-1 w-0.5 rounded-full bg-[#2662e8]"
+            className="absolute inset-y-1 w-0.5 rounded-full bg-[#1184f7]"
             style={{ left: playing ? "0%" : "70%" }}
           />
         </div>
       </div>
 
-      <p className="absolute inset-x-7 top-[374px] flex items-center text-[19px] font-semibold whitespace-nowrap text-[#2662e8]">
+      <p className="absolute inset-x-7 top-[374px] flex items-center text-[19px] font-semibold whitespace-nowrap text-[#1184f7]">
         <span className="mr-[0.3em]">{copy.transcript.before}</span>
         {copy.transcript.fillers.map((word) => (
           <span
@@ -202,7 +202,7 @@ function EditorContent({ step, playing }: SceneState) {
             className={cn(
               "inline-block overflow-hidden rounded transition-all duration-500",
               fillersMarked
-                ? "bg-[#2662e8]/20 text-[#2662e8]/60 line-through"
+                ? "bg-[#1184f7]/20 text-[#1184f7]/60 line-through"
                 : "",
               fillersCut
                 ? "mr-0 max-w-0 px-0 opacity-0"
@@ -234,7 +234,7 @@ function Tool({
         on && "scale-[1.03]",
       )}
     >
-      <span className="text-[10px] font-semibold text-[#18181b]">{label}</span>
+      <span className="text-[10px] font-semibold text-[#181818]">{label}</span>
       {children}
     </div>
   );
@@ -248,20 +248,20 @@ export function AppScreen({
   >["collaboration"]["categories"]["share"]["scene"];
 }) {
   return (
-    <div className="flex size-full flex-col text-[#18181b]">
-      <div className="flex h-5 shrink-0 items-center gap-1 border-b border-black/5 bg-[#f4f5f9] px-2">
+    <div className="flex size-full flex-col text-[#181818]">
+      <div className="flex h-5 shrink-0 items-center gap-1 border-b border-black/5 bg-[#f4f4f4] px-2">
         <span className="size-1.5 rounded-full bg-[#ff5f57]" />
         <span className="size-1.5 rounded-full bg-[#febc2e]" />
         <span className="size-1.5 rounded-full bg-[#28c840]" />
       </div>
       <div className="flex min-h-0 flex-1">
-        <div className="flex w-[78px] shrink-0 flex-col gap-1 border-r border-black/5 bg-[#fafbfc] p-2">
+        <div className="flex w-[78px] shrink-0 flex-col gap-1 border-r border-black/5 bg-[#fafafa] p-2">
           {copy.nav.map((item, i) => (
             <span
               key={item}
               className={cn(
                 "rounded px-1.5 py-1 text-[8px] font-medium",
-                i === 1 ? "bg-[#e8eefc] text-[#2662e8]" : "text-black/50",
+                i === 1 ? "bg-[#e1f0ff] text-[#1184f7]" : "text-black/50",
               )}
             >
               {item}
@@ -274,7 +274,7 @@ export function AppScreen({
             {copy.columns.map((column, c) => (
               <div
                 key={column.name}
-                className="flex flex-col gap-1 rounded-md bg-[#f4f5f9] p-1.5"
+                className="flex flex-col gap-1 rounded-md bg-[#f4f4f4] p-1.5"
               >
                 <span className="text-[7px] font-semibold text-black/45">
                   {column.name}
@@ -288,7 +288,7 @@ export function AppScreen({
                     <span
                       className="h-1 w-6 rounded-full"
                       style={{
-                        background: ["#f59e0b", "#2662e8", "#22c55e"][c],
+                        background: ["#f59e0b", "#1184f7", "#22c55e"][c],
                       }}
                     />
                   </span>

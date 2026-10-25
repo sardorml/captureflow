@@ -66,7 +66,7 @@ const RISERS: Riser[] = [
 // One look for every timestamp. Solid rather than translucent, so a badge
 // hanging off an emoji bubble matches one sitting inside a comment.
 const TIMESTAMP_CHIP =
-  "rounded-md bg-[#e6efff] px-1.5 py-0.5 font-mono text-[11px] leading-none text-[#2563eb] tabular-nums dark:bg-[#2a303e] dark:text-[#7aa7ff]";
+  "rounded-md bg-[#e1f0ff] px-1.5 py-0.5 font-mono text-[11px] leading-none text-[#1184f7] tabular-nums dark:bg-[#2a303e] dark:text-[#7aa7ff]";
 
 const riseDelay = (i: number) => (i * RISE_PERIOD) / RISERS.length;
 
@@ -231,8 +231,8 @@ function PlaybackMockup() {
           }}
         >
           <div className="relative size-full overflow-hidden bg-[linear-gradient(135deg,#fdba74,#f9a8d4)]">
-            <div className="absolute inset-x-8 top-5 bottom-0 flex flex-col overflow-hidden rounded-t-xl bg-[#f6f7fb] shadow-[0_20px_50px_rgb(0_0_0/0.105)] dark:shadow-[0_20px_50px_rgb(0_0_0/0.35)]">
-              <div className="flex h-6 items-center gap-1.5 bg-[#e9ebf2] px-3">
+            <div className="absolute inset-x-8 top-5 bottom-0 flex flex-col overflow-hidden rounded-t-xl bg-[#f5f5f5] shadow-[0_20px_50px_rgb(0_0_0/0.105)] dark:shadow-[0_20px_50px_rgb(0_0_0/0.35)]">
+              <div className="flex h-6 items-center gap-1.5 bg-[#eaeaea] px-3">
                 <span className="size-2 rounded-full bg-[#ff5f57]" />
                 <span className="size-2 rounded-full bg-[#febc2e]" />
                 <span className="size-2 rounded-full bg-[#28c840]" />
@@ -254,7 +254,7 @@ function PlaybackMockup() {
                       <span className="text-black/40">{checkout.expiry}</span>
                     </span>
                   </CheckoutField>
-                  <span className="mt-1 rounded-md bg-[#2563eb] py-1.5 text-center text-[10px] font-semibold text-white">
+                  <span className="mt-1 rounded-md bg-[#1184f7] py-1.5 text-center text-[10px] font-semibold text-white">
                     {checkout.pay}
                   </span>
                 </div>
@@ -292,7 +292,7 @@ function PlaybackMockup() {
           className="absolute left-0 flex h-10 items-center gap-3"
           style={{ top: TITLE_HEIGHT + VIDEO.height + 24, width: VIDEO.width }}
         >
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#18181b] dark:bg-white">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#181818] dark:bg-white">
             <Pause className="size-3.5 fill-white text-white dark:fill-[#111] dark:text-[#111]" />
           </span>
           <div className="relative h-1.5 flex-1 rounded-full bg-black/10 dark:bg-white/15">

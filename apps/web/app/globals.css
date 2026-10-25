@@ -148,6 +148,10 @@ html[data-theme="light"] {
   --warning-foreground: oklch(21.03% 0.0059 72.42);
   --danger: oklch(65.32% 0.2328 25.83);
   --danger-foreground: oklch(99.11% 0 0);
+  --cf-line-strong: oklch(87.1% 0 0);
+  --cf-inverse: oklch(21.03% 0 0);
+  --cf-on-inverse: oklch(99.11% 0 0);
+  --cf-danger-strong: oklch(58% 0.2328 25.83);
   --cf-glass-blur: 20px;
 }
 
@@ -255,13 +259,13 @@ html:not(:has([data-marketing])) .card {
 }
 
 /* Showcase panel behind the toolbar mockup — a defined surface in both themes
-   (soft slate in light, raised neutral in dark). Default (no attr) is dark. */
+   (surface-tertiary grey in light, raised neutral in dark). Default (no attr) is dark. */
 :root,
 [data-theme="dark"] {
   --cf-showcase-bg: #1f1f1f;
 }
 [data-theme="light"] {
-  --cf-showcase-bg: #f1f5f9;
+  --cf-showcase-bg: oklch(93.73% 0 0);
 }
 
 /* Play/pause flash overlay on the RecordingPlayer. Shared between the
