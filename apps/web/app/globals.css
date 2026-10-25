@@ -161,8 +161,8 @@ html:not([data-theme]) {
    * HeroUI Theme Builder, dark, same accent and base 0 as the light block:
    * pure greys at the builder's dark lightness table.
    */
-  --cf-canvas: oklch(12% 0 0);
-  --cf-canvas-2: oklch(12% 0 0);
+  --cf-canvas: oklch(16% 0 0);
+  --cf-canvas-2: oklch(16% 0 0);
   --cf-fg: oklch(99.11% 0 0);
   --cf-fg-strong: oklch(100% 0 0);
   --foreground: oklch(99.11% 0 0);
@@ -174,7 +174,7 @@ html:not([data-theme]) {
   --cf-line: oklch(25% 0 0);
   --cf-line-strong: oklch(32% 0 0);
   --cf-inverse: oklch(99.11% 0 0);
-  --cf-on-inverse: oklch(12% 0 0);
+  --cf-on-inverse: oklch(16% 0 0);
 
   --cf-accent-strong: oklch(62.04% 0.195 254.55);
   --cf-accent-bg: oklch(62.04% 0.195 254.55);
@@ -182,7 +182,7 @@ html:not([data-theme]) {
   --cf-accent-ring: oklch(62.04% 0.195 254.55 / 30%);
   --cf-danger-strong: oklch(54% 0.1967 24.72);
 
-  --background: oklch(12% 0 0);
+  --background: oklch(16% 0 0);
   --accent: oklch(62.04% 0.195 254.55);
   --accent-foreground: oklch(99.11% 0 0);
   --focus: oklch(62.04% 0.195 254.55);
