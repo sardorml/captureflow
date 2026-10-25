@@ -172,7 +172,7 @@ export function RecordingSkin({
     <Container
       className={cn(
         "@container block max-sm:h-auto! max-sm:w-full!",
-        isFullscreen && "rounded-none",
+        (isFullscreen || compact) && "rounded-none",
         className,
       )}
       style={{
