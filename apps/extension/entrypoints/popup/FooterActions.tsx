@@ -213,9 +213,7 @@ function WorkspaceAction() {
         className={ACTION_CLASS}
       >
         {USERS_ICON}
-        <span className="max-w-24 truncate">
-          {current?.name ?? "Workspace"}
-        </span>
+        Workspace
       </Dropdown.Trigger>
       <Dropdown.Popover placement="top" className={MENU_POPOVER}>
         <p className="px-5 pt-3 pb-1 text-[11px] font-medium tracking-wide text-muted uppercase">
