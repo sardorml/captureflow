@@ -238,6 +238,47 @@ describe("poster", () => {
       expect.objectContaining({ posterThumbKey: thumbKey }),
     );
   });
+
+  it("stores a client-drawn card under the poster's digest key", async () => {
+    getRecording.mockResolvedValue({
+      ...row("pending"),
+      posterKey: "posters/k.jpg",
+      posterThumbKey: "posters/k.00000000deadbeef.thumb.jpg",
+    });
+    deleteObject.mockResolvedValue(undefined);
+    const res = await poster.POST(
+      req(`/api/r/poster?slug=${SLUG}&kind=card`, {
+        method: "POST",
+        headers: { ...asDevice, "content-type": "image/jpeg" },
+        body: new Uint8Array([1, 2, 3]),
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(putObject).toHaveBeenCalledTimes(1);
+    const [key, , type, cache] = putObject.mock.calls[0];
+    expect(key).toMatch(/^posters\/k\.[0-9a-f]{16}\.thumb\.jpg$/);
+    expect(type).toBe("image/jpeg");
+    expect(cache).toMatch(/immutable/);
+    expect(deleteObject).toHaveBeenCalledWith(
+      "posters/k.00000000deadbeef.thumb.jpg",
+    );
+    expect(updateRecording).toHaveBeenCalledWith(SLUG, {
+      posterThumbKey: key,
+    });
+  });
+
+  it("only takes a JPEG card", async () => {
+    getRecording.mockResolvedValue(row("pending"));
+    const res = await poster.POST(
+      req(`/api/r/poster?slug=${SLUG}&kind=card`, {
+        method: "POST",
+        headers: { ...asDevice, "content-type": "image/png" },
+        body: new Uint8Array([1, 2, 3]),
+      }),
+    );
+    expect(res.status).toBe(400);
+    expect(putObject).not.toHaveBeenCalled();
+  });
 });
 
 describe("audio-part", () => {
