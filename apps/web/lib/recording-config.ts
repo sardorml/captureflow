@@ -30,7 +30,7 @@ export type RecordingConfig = {
 
 export const DEFAULT_RECORDING_CONFIG: RecordingConfig = {
   background: "transparent",
-  cameraCorner: "bottom-right",
+  cameraCorner: "top-right",
   cameraSize: "medium",
   cameraHidden: false,
   micMuted: false,
