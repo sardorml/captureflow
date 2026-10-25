@@ -49,13 +49,12 @@ function needsMask(effect: CameraEffect): boolean {
   return effect.background !== "none";
 }
 
-async function playing(video: HTMLVideoElement): Promise<void> {
-  if (video.readyState >= 2 && video.videoWidth > 0) return;
-  await new Promise<void>((resolve) => {
-    video.addEventListener("loadeddata", () => resolve(), { once: true });
-  });
-}
-
+/*
+ * Frames are pulled off the camera track rather than painted on animation
+ * frames: the recorder runs in the offscreen document, where
+ * requestAnimationFrame and requestVideoFrameCallback never fire, so a
+ * paint-driven loop drew one frame and froze.
+ */
 export async function createCameraEffectStream(
   source: MediaStream,
   initial: CameraEffect,
@@ -63,15 +62,18 @@ export async function createCameraEffectStream(
 ): Promise<CameraEffectStream> {
   let effect = initial;
 
-  const video = document.createElement("video");
-  video.muted = true;
-  video.playsInline = true;
-  video.srcObject = new MediaStream(source.getVideoTracks());
-  await video.play();
-  await playing(video);
+  const sourceTrack = source.getVideoTracks()[0];
+  if (!sourceTrack) throw new Error("camera effects: no video track");
+  // The bundled worker lib types the init without `track`.
+  const processor = new MediaStreamTrackProcessor({
+    track: sourceTrack,
+  } as MediaStreamTrackProcessorInit);
+  const frames = (processor.readable as ReadableStream<VideoFrame>).getReader();
+  const first = await frames.read();
+  if (first.done) throw new Error("camera effects: camera ended");
 
-  const width = video.videoWidth;
-  const height = video.videoHeight;
+  const width = first.value.displayWidth;
+  const height = first.value.displayHeight;
   const out = document.createElement("canvas");
   out.width = width;
   out.height = height;
@@ -117,14 +119,14 @@ export async function createCameraEffectStream(
     maskCtx.putImageData(maskPixels, 0, 0);
   };
 
-  const paintBackground = (): void => {
+  const paintBackground = (frame: VideoFrame): void => {
     const bg = CAMERA_BACKGROUNDS[effect.background];
     switch (bg.kind) {
       case "blur": {
         ctx.filter = `blur(${BLUR_PX}px)`;
         // Drawn a little larger so the blur's transparent fringe stays out.
         const pad = BLUR_PX * 2;
-        ctx.drawImage(video, -pad, -pad, width + pad * 2, height + pad * 2);
+        ctx.drawImage(frame, -pad, -pad, width + pad * 2, height + pad * 2);
         ctx.filter = "none";
         return;
       }
@@ -145,27 +147,30 @@ export async function createCameraEffectStream(
     }
   };
 
-  const draw = (now: number): void => {
+  const draw = (frame: VideoFrame): void => {
     const filter = CAMERA_FILTERS[effect.filter].css || "none";
     if (!needsMask(effect) || !segmenterReady) {
       ctx.filter = filter;
-      ctx.drawImage(video, 0, 0, width, height);
+      ctx.drawImage(frame, 0, 0, width, height);
       ctx.filter = "none";
       return;
     }
-    smallCtx.drawImage(video, 0, 0, MASK_WIDTH, maskHeight);
+    smallCtx.drawImage(frame, 0, 0, MASK_WIDTH, maskHeight);
     // Timestamps must strictly increase or the segmenter rejects the frame.
-    const timestamp = Math.max(Math.floor(now), lastTimestamp + 1);
+    const timestamp = Math.max(
+      Math.floor(performance.now()),
+      lastTimestamp + 1,
+    );
     lastTimestamp = timestamp;
     try {
       segmenterReady.segmentForVideo(small, timestamp, onMask);
     } catch {
       // A failed frame reuses the previous mask.
     }
-    paintBackground();
+    paintBackground(frame);
     personCtx.globalCompositeOperation = "source-over";
     personCtx.filter = filter;
-    personCtx.drawImage(video, 0, 0, width, height);
+    personCtx.drawImage(frame, 0, 0, width, height);
     personCtx.filter = "none";
     personCtx.globalCompositeOperation = "destination-in";
     personCtx.drawImage(mask, 0, 0, width, height);
@@ -173,17 +178,20 @@ export async function createCameraEffectStream(
   };
 
   let stopped = false;
-  let frameHandle = 0;
-  const useFrameCallback =
-    typeof video.requestVideoFrameCallback === "function";
-  const loop = (): void => {
-    if (stopped) return;
-    draw(performance.now());
-    frameHandle = useFrameCallback
-      ? video.requestVideoFrameCallback(loop)
-      : requestAnimationFrame(loop);
+  const pump = async (start: VideoFrame): Promise<void> => {
+    let frame: VideoFrame | undefined = start;
+    while (frame && !stopped) {
+      try {
+        draw(frame);
+      } finally {
+        frame.close();
+      }
+      const next = await frames.read();
+      frame = next.done ? undefined : next.value;
+    }
+    frame?.close();
   };
-  loop();
+  void pump(first.value);
 
   const track = out.captureStream(FPS).getVideoTracks()[0];
   if (!track) throw new Error("camera effects: canvas gave no track");
@@ -201,11 +209,8 @@ export async function createCameraEffectStream(
     },
     stop: () => {
       stopped = true;
-      if (useFrameCallback) video.cancelVideoFrameCallback(frameHandle);
-      else cancelAnimationFrame(frameHandle);
+      void frames.cancel();
       track.stop();
-      video.pause();
-      video.srcObject = null;
     },
   };
 }
