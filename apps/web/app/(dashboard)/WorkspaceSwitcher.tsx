@@ -138,7 +138,7 @@ export function WorkspaceSwitcher({
       >
         <div
           data-testid="workspace-strip"
-          className="absolute inset-y-2.5 left-1.5 w-1.5 rounded-full"
+          className="absolute inset-y-4 left-2 w-1.5 rounded-full"
           style={colourStyle}
           aria-hidden="true"
         />
@@ -146,7 +146,7 @@ export function WorkspaceSwitcher({
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
               aria-label="Switch workspace"
-              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl pr-3 pl-4 pt-2.5 pb-1 outline-none"
+              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl pr-3 pl-5 pt-2.5 pb-1 outline-none"
             >
               <span className="truncate font-medium text-fg">
                 {current.workspace_name}
@@ -240,7 +240,7 @@ export function WorkspaceSwitcher({
             </Dropdown.Popover>
           </Dropdown>
 
-          <div className="flex items-center gap-2 pr-3 pb-2.5 pl-4 text-xs text-fg-muted">
+          <div className="flex items-center gap-2 pr-3 pb-2.5 pl-5 text-xs text-fg-muted">
             <DefaultBadge canSwitch={canSwitch} />
             <span className="h-3 w-px shrink-0 bg-line" />
             <span className="truncate">{plural(memberCount, "member")}</span>
