@@ -8,6 +8,7 @@ const APP_ROUTE_SEGMENTS = new Set([
   "recordings",
   "screenshots",
   "settings",
+  "storage",
   "workspaces",
 ]);
 

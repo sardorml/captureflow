@@ -8,6 +8,7 @@ describe("isAppRoute", () => {
     expect(isAppRoute("/settings/account")).toBe(true);
     expect(isAppRoute("/api/search")).toBe(true);
     expect(isAppRoute("/workspaces")).toBe(true);
+    expect(isAppRoute("/storage")).toBe(true);
   });
 
   it("leaves unknown and public paths alone", () => {
