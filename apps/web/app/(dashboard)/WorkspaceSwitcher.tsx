@@ -139,14 +139,14 @@ export function WorkspaceSwitcher({
         <div>
           <div
             data-testid="workspace-strip"
-            className="mx-3 mt-3 h-1.5 rounded-full"
+            className="mx-2 mt-2 h-1.5 rounded-full"
             style={colourStyle}
             aria-hidden="true"
           />
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
               aria-label="Switch workspace"
-              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl px-3 pt-2 pb-1 outline-none"
+              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl px-3 pt-1.5 pb-1 outline-none"
             >
               <span className="truncate font-medium text-fg">
                 {current.workspace_name}
