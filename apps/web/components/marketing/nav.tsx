@@ -478,7 +478,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             className="group inline-flex items-center gap-2 text-fg"
           >
             <Image
-              src="/logo.png"
+              src="/logo-96.png"
               alt=""
               width={32}
               height={32}
