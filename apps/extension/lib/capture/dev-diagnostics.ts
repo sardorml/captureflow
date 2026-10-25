@@ -6,6 +6,7 @@
  */
 const FRAME_GAP_MS = 250;
 const LONG_TASK_MS = 100;
+const HEARTBEAT_MS = 50;
 
 type Stop = () => void;
 
@@ -41,6 +42,22 @@ export function startCaptureDiagnostics(
     });
     stops.push(watchFrameGaps(name, track, at));
   }
+
+  // Longtask entries don't reach offscreen documents, so a timer stands in:
+  // a late tick means the main thread was busy since the previous one.
+  let lastTick = performance.now();
+  const heartbeat = setInterval(() => {
+    const now = performance.now();
+    const late = now - lastTick - HEARTBEAT_MS;
+    if (late >= LONG_TASK_MS) {
+      const since = new Date(Date.now() - (now - lastTick)).toISOString();
+      console.warn(
+        `[capture] main thread busy ${Math.round(late)}ms since ${since}, free at ${at()}`,
+      );
+    }
+    lastTick = now;
+  }, HEARTBEAT_MS);
+  stops.push(() => clearInterval(heartbeat));
 
   try {
     const observer = new PerformanceObserver((list) => {
@@ -90,8 +107,9 @@ function watchFrameGaps(
       }
       const now = performance.now();
       if (now - last > FRAME_GAP_MS) {
+        const since = new Date(Date.now() - (now - last)).toISOString();
         console.warn(
-          `[capture] ${name}: no frame for ${Math.round(now - last)}ms, resumed at ${at()} (frame ${frames})`,
+          `[capture] ${name}: no frame for ${Math.round(now - last)}ms since ${since}, resumed at ${at()} (frame ${frames})`,
         );
       }
       last = now;

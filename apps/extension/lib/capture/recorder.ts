@@ -288,6 +288,8 @@ async function runSession(
 ): Promise<SessionEnd> {
   const { screenStream, webcamStream, micStream, voice } = streams;
   const quality = RECORDING_QUALITIES[hydrateRecordingQuality(ctx.quality)];
+  const mark = (step: string): void =>
+    devLog?.info(`[capture] ${step} at ${new Date().toISOString()}`);
 
   const transport = createRecordingTransport(ctx.deviceId, ctx.token);
   let upload: RecordingUpload;
@@ -306,6 +308,7 @@ async function runSession(
     return "done";
   }
   cb.onActiveUpload({ slug: upload.slug, deviceId: ctx.deviceId });
+  mark("upload started");
 
   let endSession!: (end: SessionEnd) => void;
   const sessionEnd = new Promise<SessionEnd>((resolve) => {
@@ -351,6 +354,8 @@ async function runSession(
     return "done";
   }
 
+  mark("screen recorder started");
+
   // A webcam recorder failure is contained to its own stream so the
   // load-bearing screen capture keeps going (webcam best-effort).
   let webcamRecorder: WebcamRecorder | null = null;
@@ -374,6 +379,8 @@ async function runSession(
     }
   }
 
+  mark("webcam recorder started");
+
   const startedAt = Date.now();
   let pausedMs = 0;
   let pausedAt: number | null = null;
@@ -388,6 +395,7 @@ async function runSession(
     ctx.mic && micTrack
       ? startAudioUpload(micTrack, upload.slug, transport, activeElapsed)
       : null;
+  mark("audio upload started");
 
   const stopRecorders = async (): Promise<void> => {
     await Promise.all([
@@ -491,13 +499,14 @@ async function runSession(
   commands = session;
 
   cb.onStatus({ kind: "recording", startedAt, pausedMs: 0 });
-  devLog?.info(
-    `[capture] recording status sent at ${new Date().toISOString()}`,
-  );
+  mark("recording status sent");
 
   // Poster frame from the screen — best-effort, never gates the recording.
   void capturePoster(screenStream)
-    .then((bytes) => (bytes ? upload.uploadPoster(bytes) : undefined))
+    .then((bytes) => {
+      mark("poster captured");
+      return bytes ? upload.uploadPoster(bytes) : undefined;
+    })
     .catch(() => undefined);
 
   return sessionEnd;
