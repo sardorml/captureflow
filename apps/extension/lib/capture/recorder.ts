@@ -21,6 +21,8 @@ import {
   type RecordingUpload,
 } from "../api/upload-streamer";
 import type { CaptureContext } from "../messaging";
+import { createCameraEffectStream } from "./camera-effect-stream";
+import { isPlainCameraEffect } from "./camera-effects";
 import type { TranscribeRequest, UploadTransport } from "../api/types";
 import type {
   ActiveUpload,
@@ -172,6 +174,24 @@ export async function recordAndUpload(
       webcamStream = null;
     }
   }
+  // Background and filter effects are baked into the camera track here, so
+  // the file carries what the bubble showed. A pipeline that fails to start
+  // falls back to the raw camera rather than losing it.
+  let effectStop: (() => void) | null = null;
+  const rawWebcam = webcamStream;
+  if (webcamStream && ctx.effect && !isPlainCameraEffect(ctx.effect)) {
+    try {
+      const processed = await createCameraEffectStream(
+        webcamStream,
+        ctx.effect,
+        chrome.runtime.getURL("mediapipe"),
+      );
+      effectStop = processed.stop;
+      webcamStream = processed.stream;
+    } catch {
+      effectStop = null;
+    }
+  }
   // Without a camera the mic can't ride the webcam track, so it is muxed into
   // the screen fMP4 as AAC instead.
   let micStream: MediaStream | null = null;
@@ -194,6 +214,8 @@ export async function recordAndUpload(
 
   const stopAllTracks = (): void => {
     stopTracks(screenStream);
+    effectStop?.();
+    if (rawWebcam) stopTracks(rawWebcam);
     if (webcamStream) stopTracks(webcamStream);
     if (micStream) stopTracks(micStream);
     void voice?.close().catch(() => {});

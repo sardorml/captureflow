@@ -78,6 +78,12 @@ export default defineConfig({
        * externally_connectable dev/prod split.
        */
       host_permissions: matches,
+      // The camera effects run a WebAssembly segmenter inside extension pages,
+      // which the MV3 default policy would refuse to instantiate.
+      content_security_policy: {
+        extension_pages:
+          "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'",
+      },
       // Firefox MV3 lacks web→extension messaging, so omit it there.
       ...(isFirefox ? {} : { externally_connectable: { matches } }),
       // The injected camera bubble, the permission-grant fallback, and the

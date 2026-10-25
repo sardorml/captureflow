@@ -268,6 +268,9 @@ importers:
       '@heroui/styles':
         specifier: ^3.2.6
         version: 3.2.6(tailwind-merge@3.6.0)(tailwindcss@4.3.1)
+      '@mediapipe/tasks-vision':
+        specifier: 1.1.1
+        version: 1.1.1
       '@webext-core/messaging':
         specifier: ^3.0.2
         version: 3.0.2
@@ -2516,6 +2519,9 @@ packages:
   '@malept/flatpak-bundler@0.4.0':
     resolution: {integrity: sha512-9QOtNffcOF/c1seMCDnjckb3R9WHcG34tky+FHpNKKCW0wc/scYLwMtO+ptyGUfMW0/b/n4qRiALlaFHc9Oj7Q==}
     engines: {node: '>= 10.0.0'}
+
+  '@mediapipe/tasks-vision@1.1.1':
+    resolution: {integrity: sha512-jwntgT5tzDrKOkqg6xNDNpRcTUnGvmylZE5DFnzPXossiWOIDdZX+C81LI75hlXhsG58YZW+lGzcmjH1qrQE/Q==}
 
   '@napi-rs/wasm-runtime@0.2.4':
     resolution: {integrity: sha512-9zESzOO5aDByvhIAsOy9TbpZ0Ur2AJbUI7UT73kcUTS2mxAMHOBaa1st/jAymNoCtvrit99kkzT1FZuXVcgfIQ==}
@@ -10886,6 +10892,8 @@ snapshots:
       tmp-promise: 3.0.3
     transitivePeerDependencies:
       - supports-color
+
+  '@mediapipe/tasks-vision@1.1.1': {}
 
   '@napi-rs/wasm-runtime@0.2.4':
     dependencies:

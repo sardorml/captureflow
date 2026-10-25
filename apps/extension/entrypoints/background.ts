@@ -736,6 +736,7 @@ export default defineBackground(() => {
         micId: prefs.micId,
         source: prefs.source,
         visibility: prefs.visibility,
+        effect: prefs.effect,
         tabStreamId,
       }).catch((error) => void reportFailure(errorMessage(error)));
       return { ok: true };

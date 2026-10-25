@@ -19,6 +19,7 @@
     "@captureflow/engine": "workspace:*",
     "@heroui/react": "^3.2.6",
     "@heroui/styles": "^3.2.6",
+    "@mediapipe/tasks-vision": "1.1.1",
     "@webext-core/messaging": "^3.0.2",
     "react": "catalog:",
     "react-dom": "catalog:"

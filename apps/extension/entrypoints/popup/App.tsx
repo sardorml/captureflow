@@ -21,6 +21,7 @@ import {
 import { closeSurface, isOverlaySurface } from "@/lib/surface";
 import { RecorderPanel } from "./RecorderPanel";
 import { ScreenshotPanel } from "./ScreenshotPanel";
+import { EffectsPanel } from "./EffectsPanel";
 import { FooterActions } from "./FooterActions";
 import { SignInGate } from "./SignInGate";
 
@@ -123,6 +124,7 @@ export function App() {
   const [auth, setAuth] = useState<AuthState>("loading");
   const [status, setStatus] = useState<RecordingStatus>({ kind: "idle" });
   const [reason, setReason] = useState<SignedOutReason | null>(null);
+  const [effectsOpen, setEffectsOpen] = useState(false);
   const mode = useRef<Key>("video");
 
   useEffect(() => {
@@ -214,6 +216,10 @@ export function App() {
     })();
   };
 
+  if (effectsOpen) {
+    return <EffectsPanel onBack={() => setEffectsOpen(false)} />;
+  }
+
   return (
     <Tabs
       defaultSelectedKey="video"
@@ -267,7 +273,7 @@ export function App() {
         <ScreenshotPanel />
       </Tabs.Panel>
 
-      <FooterActions />
+      <FooterActions onEffects={() => setEffectsOpen(true)} />
     </Tabs>
   );
 }
