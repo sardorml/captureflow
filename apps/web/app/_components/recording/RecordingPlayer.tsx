@@ -30,6 +30,7 @@ import { useWebcamSync } from "./use-webcam-sync";
 
 export type { ProgressOverlayInfo } from "./RecordingSkin";
 
+import { splitMute, type SplitMute } from "@/lib/recording/split-mute";
 /*
  * Imperative handle so wrapping components (e.g. the public viewer's
  * reactions layer) can read player state at click-time, bypassing
@@ -203,6 +204,23 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       ? FILL_STYLE
       : sizeStyleForAspect(aspect, landscapeMaxHeightCss);
 
+    // "System sound off" silences the screen track underneath the player's
+    // own mute, so the mute button and the mic stay the viewer's.
+    const splitRef = useRef<SplitMute | null>(null);
+    useEffect(() => {
+      const main = videoRef.current;
+      if (!main) return;
+      const split = splitMute(main);
+      splitRef.current = split;
+      return () => {
+        splitRef.current = null;
+        split.release();
+      };
+    }, []);
+    useEffect(() => {
+      splitRef.current?.setSystemMuted(config.systemMuted);
+    }, [config.systemMuted]);
+
     return (
       <div
         className={cn(
@@ -252,7 +270,6 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
               className="block h-full w-full object-contain"
               playsInline
               preload="auto"
-              muted={config.systemMuted}
               onLoadedMetadata={(e) => {
                 const v = e.currentTarget;
                 if (v.videoWidth > 0 && v.videoHeight > 0) {
