@@ -17,10 +17,15 @@ export type RecordingCameraCorner =
 
 export type RecordingCameraSize = "small" | "medium" | "large";
 
+// Where the bubble's centre sits, as fractions of the player box. Set by
+// dragging; null keeps the bubble in its corner.
+export type RecordingCameraPoint = { x: number; y: number };
+
 // `background` is a gradient preset key, a '#hex' fill, or 'transparent'.
 export type RecordingConfig = {
   background: string;
   cameraCorner: RecordingCameraCorner;
+  cameraPoint: RecordingCameraPoint | null;
   cameraSize: RecordingCameraSize;
   cameraHidden: boolean;
   micMuted: boolean;
@@ -31,6 +36,7 @@ export type RecordingConfig = {
 export const DEFAULT_RECORDING_CONFIG: RecordingConfig = {
   background: "transparent",
   cameraCorner: "top-right",
+  cameraPoint: null,
   cameraSize: "medium",
   cameraHidden: false,
   micMuted: false,
@@ -238,10 +244,26 @@ export function hydrateRecordingConfig(raw: unknown): RecordingConfig {
   return {
     background: bg,
     cameraCorner: corner,
+    cameraPoint: hydrateCameraPoint(obj.cameraPoint),
     cameraSize: size,
     cameraHidden: obj.cameraHidden === true,
     micMuted: obj.micMuted === true,
     systemMuted: obj.systemMuted === true,
     cuts: normalizeCuts(obj.cuts),
   };
+}
+
+function hydrateCameraPoint(raw: unknown): RecordingCameraPoint | null {
+  if (!raw || typeof raw !== "object") return null;
+  const { x, y } = raw as Record<string, unknown>;
+  if (
+    typeof x !== "number" ||
+    typeof y !== "number" ||
+    !Number.isFinite(x) ||
+    !Number.isFinite(y)
+  ) {
+    return null;
+  }
+  const unit = (v: number): number => Math.min(1, Math.max(0, v));
+  return { x: unit(x), y: unit(y) };
 }

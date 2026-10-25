@@ -19,6 +19,7 @@ type Props = {
   config: RecordingConfig;
   onConfig: (patch: Partial<RecordingConfig>) => void;
   hasWebcam: boolean;
+  aspect: number;
   details: RecordingDetails;
   transcript: EditorTranscriptPanelProps;
 };
@@ -33,6 +34,7 @@ export function EditorInspector({
   config,
   onConfig,
   hasWebcam,
+  aspect,
   details,
   transcript,
 }: Props) {
@@ -76,9 +78,14 @@ export function EditorInspector({
               <Section title="Camera">
                 <CameraPicker
                   corner={config.cameraCorner}
+                  point={config.cameraPoint}
                   size={config.cameraSize}
                   hidden={config.cameraHidden}
-                  onCorner={(corner) => onConfig({ cameraCorner: corner })}
+                  aspect={aspect}
+                  onCorner={(corner) =>
+                    onConfig({ cameraCorner: corner, cameraPoint: null })
+                  }
+                  onPoint={(point) => onConfig({ cameraPoint: point })}
                   onSize={(size) => onConfig({ cameraSize: size })}
                   onHidden={(hidden) => onConfig({ cameraHidden: hidden })}
                 />

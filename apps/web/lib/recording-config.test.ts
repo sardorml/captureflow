@@ -19,6 +19,7 @@ describe("hydrateRecordingConfig", () => {
       hydrateRecordingConfig({
         background: "violet",
         cameraCorner: "top-left",
+        cameraPoint: { x: 0.25, y: 1.4 },
         cameraSize: "large",
         cameraHidden: true,
         micMuted: true,
@@ -32,6 +33,7 @@ describe("hydrateRecordingConfig", () => {
     ).toEqual({
       background: "violet",
       cameraCorner: "top-left",
+      cameraPoint: { x: 0.25, y: 1 },
       cameraSize: "large",
       cameraHidden: true,
       micMuted: true,
@@ -49,5 +51,14 @@ describe("hydrateRecordingConfig", () => {
     );
     expect(legacy.cuts).toEqual([]);
     expect(legacy.cameraHidden).toBe(false);
+    expect(legacy.cameraPoint).toBe(null);
+  });
+
+  it("drops a camera point that isn't two finite numbers", () => {
+    for (const bad of [{ x: "0.5", y: 0.5 }, { x: NaN, y: 0 }, [0.5, 0.5], 1]) {
+      expect(hydrateRecordingConfig({ cameraPoint: bad }).cameraPoint).toBe(
+        null,
+      );
+    }
   });
 });

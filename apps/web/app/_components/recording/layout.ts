@@ -5,6 +5,7 @@ import {
   RECORDING_GRADIENT_PRESETS,
   recordingGradientCss,
   type RecordingCameraCorner,
+  type RecordingCameraPoint,
   type RecordingCameraSize,
 } from "@/lib/recording-config";
 
@@ -84,15 +85,64 @@ export function webcamCornerClass(corner: RecordingCameraCorner): string {
 
 // A square bubble reads larger than a rectangular PiP at the same width, so
 // these target ~14-18% of the canvas, matching the studio bubble.
-export function webcamSizeClass(size: RecordingCameraSize): string {
+export function webcamSizeFraction(size: RecordingCameraSize): number {
   switch (size) {
     case "small":
-      return "w-[12%] min-w-[80px] max-w-[140px]";
+      return 0.12;
     case "medium":
-      return "w-[16%] min-w-[110px] max-w-[200px]";
+      return 0.16;
     case "large":
-      return "w-[22%] min-w-[150px] max-w-[280px]";
+      return 0.22;
   }
+}
+
+// Container units: the player box is the bubble's container.
+export function webcamSizeCss(size: RecordingCameraSize): string {
+  const pct = webcamSizeFraction(size) * 100;
+  switch (size) {
+    case "small":
+      return `clamp(80px, ${pct}cqw, 140px)`;
+    case "medium":
+      return `clamp(110px, ${pct}cqw, 200px)`;
+    case "large":
+      return `clamp(150px, ${pct}cqw, 280px)`;
+  }
+}
+
+// Where a corner-placed bubble's centre falls, for a picture of the box:
+// `half` is the bubble's half size as a fraction of the box on each axis.
+export function webcamCornerPoint(
+  corner: RecordingCameraCorner,
+  half: { x: number; y: number },
+): RecordingCameraPoint {
+  const inset = 0.04;
+  return {
+    x: corner.endsWith("left") ? inset + half.x : 1 - inset - half.x,
+    y: corner.startsWith("top") ? inset + half.y : 1 - inset - half.y,
+  };
+}
+
+// Places the bubble's centre at the point, kept wholly inside the box
+// whatever the box's size turns out to be.
+export function webcamPointStyle(
+  point: RecordingCameraPoint,
+  size: RecordingCameraSize,
+): CSSProperties {
+  const w = webcamSizeCss(size);
+  const along = (fraction: number): string =>
+    `clamp(0px, calc(${fraction * 100}% - ${w} / 2), calc(100% - ${w}))`;
+  return { left: along(point.x), top: along(point.y) };
+}
+
+// Keeps a dragged centre where the whole bubble fits: `half` is the bubble's
+// half size as a fraction of the box on each axis.
+export function clampWebcamPoint(
+  point: RecordingCameraPoint,
+  half: { x: number; y: number },
+): RecordingCameraPoint {
+  const within = (v: number, h: number): number =>
+    h >= 0.5 ? 0.5 : Math.min(1 - h, Math.max(h, v));
+  return { x: within(point.x, half.x), y: within(point.y, half.y) };
 }
 
 // `transparent` falls through to the skin's own background; object-contain

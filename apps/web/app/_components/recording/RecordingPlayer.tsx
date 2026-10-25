@@ -27,10 +27,10 @@ import { aspectFromPlaceholder, sizeStyleForAspect } from "./layout";
 import { RecordingSkin, type ProgressOverlayInfo } from "./RecordingSkin";
 import { useCutSkipper } from "./use-cut-skipper";
 import { useWebcamSync } from "./use-webcam-sync";
+import { splitMute, type SplitMute } from "@/lib/recording/split-mute";
 
 export type { ProgressOverlayInfo } from "./RecordingSkin";
 
-import { splitMute, type SplitMute } from "@/lib/recording/split-mute";
 /*
  * Imperative handle so wrapping components (e.g. the public viewer's
  * reactions layer) can read player state at click-time, bypassing
@@ -198,12 +198,6 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       micMuted: config.micMuted,
     });
 
-    const aspect =
-      actualAspect ?? aspectFromPlaceholder(serverWidth, serverHeight);
-    const sizeStyle = fill
-      ? FILL_STYLE
-      : sizeStyleForAspect(aspect, landscapeMaxHeightCss);
-
     // "System sound off" silences the screen track underneath the player's
     // own mute, so the mute button and the mic stay the viewer's.
     const splitRef = useRef<SplitMute | null>(null);
@@ -220,6 +214,12 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
     useEffect(() => {
       splitRef.current?.setSystemMuted(config.systemMuted);
     }, [config.systemMuted]);
+
+    const aspect =
+      actualAspect ?? aspectFromPlaceholder(serverWidth, serverHeight);
+    const sizeStyle = fill
+      ? FILL_STYLE
+      : sizeStyleForAspect(aspect, landscapeMaxHeightCss);
 
     return (
       <div
@@ -240,6 +240,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
                 ? {
                     url: webcamUrl,
                     corner: config.cameraCorner,
+                    point: config.cameraPoint,
                     size: config.cameraSize,
                     hidden: config.cameraHidden,
                   }

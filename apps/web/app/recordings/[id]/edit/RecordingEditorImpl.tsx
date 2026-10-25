@@ -9,6 +9,7 @@ import {
 import { renameRecordingAction } from "@/app/actions";
 import { addCut, cutsEqual, type RecordingCut } from "@/lib/recording/cuts";
 import type { RecordingEditorProps } from "./RecordingEditor";
+import { aspectFromPlaceholder } from "@/app/_components/recording/layout";
 import { useEditorConfig } from "./use-editor-config";
 import { EditorInspector } from "./EditorInspector";
 import { EditorTimeline } from "./EditorTimeline";
@@ -184,6 +185,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
           config={config}
           onConfig={update}
           hasWebcam={!!webcamUrl}
+          aspect={aspectFromPlaceholder(width, height)}
           details={{ slug, sizeBytes, durationMs, viewCount, createdAt }}
           transcript={{
             slug,

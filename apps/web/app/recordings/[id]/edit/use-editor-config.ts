@@ -153,6 +153,8 @@ function shallowEqualConfig(a: RecordingConfig, b: RecordingConfig): boolean {
   return (
     a.background === b.background &&
     a.cameraCorner === b.cameraCorner &&
+    a.cameraPoint?.x === b.cameraPoint?.x &&
+    a.cameraPoint?.y === b.cameraPoint?.y &&
     a.cameraSize === b.cameraSize &&
     a.cameraHidden === b.cameraHidden &&
     a.micMuted === b.micMuted &&

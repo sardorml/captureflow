@@ -45,10 +45,6 @@ import { VideoGestures } from "@/components/videojs/video/behaviors/gestures";
 import { VideoStatusIndicators } from "@/components/videojs/video/display/status-indicators";
 import { VideoSettingsMenu } from "@/components/videojs/video/menus/settings-menu";
 import { cn } from "@/lib/utils";
-import type {
-  RecordingCameraCorner,
-  RecordingCameraSize,
-} from "@/lib/recording-config";
 import { formatTimestamp } from "@/lib/format";
 import {
   SELECTION_CUE_ID,
@@ -64,11 +60,8 @@ import { EditedTimeSlider } from "./EditedTimeSlider";
 import { FramePreview } from "./FramePreview";
 import { useFitStage } from "./use-fit-stage";
 import { useFrameStrip } from "./use-frame-strip";
-import {
-  recordingBackgroundStyle,
-  webcamCornerClass,
-  webcamSizeClass,
-} from "./layout";
+import { recordingBackgroundStyle } from "./layout";
+import { WebcamBubble, type RecordingWebcam } from "./WebcamBubble";
 
 // Info handed to the progressOverlay slot, which covers the time slider so
 // the public viewer can place reaction markers on it without forking the
@@ -82,12 +75,7 @@ export type ProgressOverlayInfo = {
   toTimelineMs: (sourceMs: number) => number;
 };
 
-export type RecordingWebcam = {
-  url: string;
-  corner: RecordingCameraCorner;
-  size: RecordingCameraSize;
-  hidden: boolean;
-};
+export type { RecordingWebcam };
 
 export type RecordingSkinProps = {
   children: ReactNode;
@@ -201,24 +189,7 @@ export function RecordingSkin({
         </div>
       </div>
 
-      {/* No z-index: the controls layers stack above it like a real PiP. A
-          hidden camera stays mounted since its track carries the mic. */}
-      {webcam ? (
-        <video
-          ref={webcamRef}
-          src={webcam.url}
-          className={cn(
-            // The skin's base styles stretch every video to the box; the
-            // bubble takes its height from the aspect instead.
-            "pointer-events-none absolute aspect-square h-auto rounded-full object-cover",
-            webcamCornerClass(webcam.corner),
-            webcamSizeClass(webcam.size),
-            webcam.hidden && "invisible",
-          )}
-          playsInline
-          preload="auto"
-        />
-      ) : null}
+      {webcam ? <WebcamBubble webcam={webcam} videoRef={webcamRef} /> : null}
 
       <BufferingIndicator />
       <ErrorDialog />

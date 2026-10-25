@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import type { RecordingPlayerHandle } from "../../_components/recording";
+import { aspectFromPlaceholder } from "../../_components/recording/layout";
 import type { RecordingConfig } from "@/lib/recording-config";
 import type {
   RecordingComment,
@@ -239,6 +240,7 @@ export function RecordingViewer({
               onConfig={updateConfig}
               status={configStatus}
               hasWebcam={!!webcamUrl}
+              aspect={aspectFromPlaceholder(serverWidth, serverHeight)}
             />
           ) : null
         }

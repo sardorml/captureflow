@@ -4,8 +4,12 @@ import {
   fitStageSize,
   recordingBackgroundStyle,
   sizeStyleForAspect,
+  clampWebcamPoint,
   webcamCornerClass,
-  webcamSizeClass,
+  webcamCornerPoint,
+  webcamPointStyle,
+  webcamSizeCss,
+  webcamSizeFraction,
 } from "./layout";
 
 describe("aspectFromPlaceholder", () => {
@@ -68,12 +72,47 @@ describe("fitStageSize", () => {
   });
 });
 
-describe("webcam classes", () => {
+describe("webcam placement", () => {
   it("maps every corner and size", () => {
     expect(webcamCornerClass("top-left")).toBe("top-6 left-6");
     expect(webcamCornerClass("bottom-right")).toBe("bottom-6 right-6");
-    expect(webcamSizeClass("small")).toContain("w-[12%]");
-    expect(webcamSizeClass("large")).toContain("w-[22%]");
+    expect(webcamSizeCss("small")).toBe("clamp(80px, 12cqw, 140px)");
+    expect(webcamSizeCss("large")).toBe("clamp(150px, 22cqw, 280px)");
+  });
+
+  it("centres a free point and keeps the bubble inside the box", () => {
+    const w = webcamSizeCss("medium");
+    expect(webcamPointStyle({ x: 0.25, y: 1 }, "medium")).toEqual({
+      left: `clamp(0px, calc(25% - ${w} / 2), calc(100% - ${w}))`,
+      top: `clamp(0px, calc(100% - ${w} / 2), calc(100% - ${w}))`,
+    });
+  });
+
+  it("clamps a dragged centre by the bubble's half size", () => {
+    const half = { x: 0.1, y: 0.2 };
+    expect(clampWebcamPoint({ x: 0.02, y: 0.5 }, half)).toEqual({
+      x: 0.1,
+      y: 0.5,
+    });
+    expect(clampWebcamPoint({ x: 0.5, y: 0.95 }, half)).toEqual({
+      x: 0.5,
+      y: 0.8,
+    });
+    expect(clampWebcamPoint({ x: 0.1, y: 0.1 }, { x: 0.6, y: 0.6 })).toEqual({
+      x: 0.5,
+      y: 0.5,
+    });
+  });
+
+  it("pictures a corner as a centre point inset from that corner", () => {
+    const half = { x: 0.08, y: 0.14 };
+    const topLeft = webcamCornerPoint("top-left", half);
+    expect(topLeft.x).toBeCloseTo(0.12);
+    expect(topLeft.y).toBeCloseTo(0.18);
+    const bottomRight = webcamCornerPoint("bottom-right", half);
+    expect(bottomRight.x).toBeCloseTo(0.88);
+    expect(bottomRight.y).toBeCloseTo(0.82);
+    expect(webcamSizeFraction("medium")).toBe(0.16);
   });
 });
 

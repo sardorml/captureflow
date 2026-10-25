@@ -9,15 +9,26 @@ import {
   VolumeX,
   type LucideIcon,
 } from "lucide-react";
-import type { CSSProperties, ReactNode } from "react";
+import {
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from "react";
 import { cn } from "@/lib/utils";
 import { formatBytes, formatDuration } from "@/lib/format";
+import {
+  clampWebcamPoint,
+  webcamCornerPoint,
+  webcamSizeFraction,
+} from "@/app/_components/recording/layout";
 import {
   RECORDING_GRADIENT_KEYS,
   RECORDING_GRADIENT_PRESETS,
   isRecordingHexColor,
   recordingGradientCss,
   type RecordingCameraCorner,
+  type RecordingCameraPoint,
   type RecordingCameraSize,
 } from "@/lib/recording-config";
 
@@ -174,19 +185,27 @@ function Swatch({
 
 export function CameraPicker({
   corner,
+  point,
   size,
   hidden,
+  aspect,
   onCorner,
+  onPoint,
   onSize,
   onHidden,
 }: {
   corner: RecordingCameraCorner;
+  // A dragged place of its own; while set, no corner is current.
+  point: RecordingCameraPoint | null;
   size: RecordingCameraSize;
   hidden: boolean;
+  aspect: number;
   onCorner: (c: RecordingCameraCorner) => void;
+  onPoint: (p: RecordingCameraPoint) => void;
   onSize: (s: RecordingCameraSize) => void;
   onHidden: (hidden: boolean) => void;
 }) {
+  const free = point !== null;
   return (
     <div>
       <div className="mb-3">
@@ -208,10 +227,10 @@ export function CameraPicker({
             key={opt.value}
             type="button"
             onClick={() => onCorner(opt.value)}
-            aria-pressed={corner === opt.value}
+            aria-pressed={!free && corner === opt.value}
             className={cn(
               "rounded-xl border px-3 py-2 text-xs transition-colors",
-              corner === opt.value
+              !free && corner === opt.value
                 ? "border-accent bg-accent-soft text-accent"
                 : "border-transparent bg-tint text-fg-muted hover:bg-tint-strong",
             )}
@@ -220,6 +239,22 @@ export function CameraPicker({
           </button>
         ))}
       </div>
+      <div className="mt-2 mb-1 text-[10px] uppercase tracking-wide text-fg-muted">
+        Anywhere
+      </div>
+      <CameraPad
+        corner={corner}
+        point={point}
+        size={size}
+        aspect={aspect}
+        disabled={hidden}
+        onPoint={onPoint}
+      />
+      <p className="mt-1.5 text-[11px] leading-snug text-fg-muted">
+        {hidden
+          ? "Show the camera to place it."
+          : "Drag the dot to put the camera anywhere on the video."}
+      </p>
       <div className="mt-3 mb-1 text-[10px] uppercase tracking-wide text-fg-muted">
         Size
       </div>
@@ -286,6 +321,86 @@ export function AudioControls({
           Microphone and system sound share one track on this recording.
         </p>
       )}
+    </div>
+  );
+}
+
+/*
+ * A picture of the video box with the bubble as a dot: pressing anywhere
+ * moves the dot there, dragging follows the pointer, and the place is
+ * reported on release as fractions of the box. The dot is the bubble's size
+ * relative to the box, so what fits here fits there.
+ */
+function CameraPad({
+  corner,
+  point,
+  size,
+  aspect,
+  disabled,
+  onPoint,
+}: {
+  corner: RecordingCameraCorner;
+  point: RecordingCameraPoint | null;
+  size: RecordingCameraSize;
+  aspect: number;
+  disabled: boolean;
+  onPoint: (p: RecordingCameraPoint) => void;
+}) {
+  const [dragPoint, setDragPoint] = useState<RecordingCameraPoint | null>(null);
+  const fraction = webcamSizeFraction(size);
+  const half = { x: fraction / 2, y: (fraction / 2) * aspect };
+  const shown = dragPoint ?? point ?? webcamCornerPoint(corner, half);
+
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    if (disabled || e.button !== 0) return;
+    e.preventDefault();
+    const pad = e.currentTarget;
+    const box = pad.getBoundingClientRect();
+    if (box.width === 0 || box.height === 0) return;
+    const at = (ev: { clientX: number; clientY: number }) =>
+      clampWebcamPoint(
+        {
+          x: (ev.clientX - box.left) / box.width,
+          y: (ev.clientY - box.top) / box.height,
+        },
+        half,
+      );
+    setDragPoint(at(e));
+    const move = (ev: PointerEvent): void => setDragPoint(at(ev));
+    const end = (ev: PointerEvent): void => {
+      pad.removeEventListener("pointermove", move);
+      pad.removeEventListener("pointerup", end);
+      pad.removeEventListener("pointercancel", end);
+      setDragPoint(null);
+      if (ev.type === "pointerup") onPoint(at(ev));
+    };
+    pad.setPointerCapture(e.pointerId);
+    pad.addEventListener("pointermove", move);
+    pad.addEventListener("pointerup", end);
+    pad.addEventListener("pointercancel", end);
+  };
+
+  return (
+    <div
+      data-camera-pad
+      onPointerDown={onPointerDown}
+      className={cn(
+        "relative w-full touch-none overflow-hidden rounded-xl border border-line bg-tint",
+        disabled ? "opacity-50" : "cursor-crosshair",
+      )}
+      style={{ aspectRatio: String(aspect) }}
+    >
+      <div
+        className={cn(
+          "absolute aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-accent shadow-sm",
+          !disabled && "cursor-grab active:cursor-grabbing",
+        )}
+        style={{
+          width: `${fraction * 100}%`,
+          left: `${shown.x * 100}%`,
+          top: `${shown.y * 100}%`,
+        }}
+      />
     </div>
   );
 }

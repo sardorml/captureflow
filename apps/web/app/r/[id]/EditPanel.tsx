@@ -27,6 +27,7 @@ type Props = {
   onConfig: (patch: Partial<RecordingConfig>) => void;
   status: SaveStatus;
   hasWebcam: boolean;
+  aspect: number;
 };
 
 const STATUS_LABEL: Record<SaveStatus, string> = {
@@ -45,6 +46,7 @@ export function EditPanel({
   onConfig,
   status,
   hasWebcam,
+  aspect,
 }: Props) {
   const [copied, setCopied] = useState(false);
   const embedCode = `<iframe src="${RECORDING_SITE_URL}/embed/${slug}" width="100%" style="aspect-ratio: 16 / 9; border: 0;" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
@@ -95,9 +97,14 @@ export function EditPanel({
             <Field label="Camera">
               <CameraPicker
                 corner={config.cameraCorner}
+                point={config.cameraPoint}
                 size={config.cameraSize}
                 hidden={config.cameraHidden}
-                onCorner={(corner) => onConfig({ cameraCorner: corner })}
+                aspect={aspect}
+                onCorner={(corner) =>
+                  onConfig({ cameraCorner: corner, cameraPoint: null })
+                }
+                onPoint={(point) => onConfig({ cameraPoint: point })}
                 onSize={(size) => onConfig({ cameraSize: size })}
                 onHidden={(hidden) => onConfig({ cameraHidden: hidden })}
               />
