@@ -122,7 +122,6 @@ export function WorkspaceSwitcher({
   // sidebar stays quiet and the colour still says which workspace it is.
   const sheetStyle = workspaceCardStyle(
     resolveWorkspaceCard(current.workspace_card_bg, current.workspace_id),
-    current.workspace_updated_at,
   );
 
   return (

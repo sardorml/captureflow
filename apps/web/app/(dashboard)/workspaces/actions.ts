@@ -18,7 +18,6 @@ import { getAppWebEnv } from "@/lib/cf-env";
 import { deleteObject, putObject } from "@/lib/r2";
 import {
   isWorkspaceCardPresetKey,
-  parseWorkspaceCard,
   serializeWorkspaceCard,
 } from "@/lib/workspace-card";
 import { readImageUpload } from "@/lib/workspace-images";
@@ -141,13 +140,6 @@ export async function removeWorkspaceLogoForAction(
   return saved("Logo removed");
 }
 
-function dropCardImage(workspace: WorkspaceRow, keep?: string): void {
-  const current = parseWorkspaceCard(workspace.card_bg);
-  if (current?.kind === "image" && current.key !== keep) {
-    void deleteObject(current.key).catch(() => {});
-  }
-}
-
 export async function setWorkspaceCardPresetAction(
   formData: FormData,
 ): Promise<FormState> {
@@ -157,36 +149,11 @@ export async function setWorkspaceCardPresetAction(
   if (!(typeof raw === "string" && isWorkspaceCardPresetKey(raw))) {
     return failed("Unknown background");
   }
-  dropCardImage(owned.workspace);
   await updateWorkspaceCard(
     owned.db,
     owned.workspace.id,
-    serializeWorkspaceCard({ kind: "preset", key: raw }),
+    serializeWorkspaceCard(raw),
   );
-  revalidatePath("/", "layout");
-  return saved("Background updated");
-}
-
-export async function uploadWorkspaceCardAction(
-  _prev: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const owned = await requireOwned(formData.get("workspaceId"));
-  if (!owned.ok) return failed(owned.error);
-  const image = await readImageUpload(formData.get("image"), "Image");
-  if (!image.ok) return failed(image.error);
-
-  const key = `workspace-cards/${owned.workspace.id}.${image.ext}`;
-  const error = await store(key, image);
-  if (error) return failed(error);
-  dropCardImage(owned.workspace, key);
-
-  const ok = await updateWorkspaceCard(
-    owned.db,
-    owned.workspace.id,
-    serializeWorkspaceCard({ kind: "image", key }),
-  );
-  if (!ok) return failed("Couldn’t save — try again");
   revalidatePath("/", "layout");
   return saved("Background updated");
 }

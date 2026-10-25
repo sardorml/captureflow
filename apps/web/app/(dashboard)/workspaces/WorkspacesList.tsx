@@ -17,7 +17,6 @@ export type WorkspaceCardData = {
   role: WorkspaceRole;
   logoUrl: string | null;
   cardBg: string | null;
-  updatedAt: number;
   memberCount: number;
   recordingCount: number;
   isDefault: boolean;
@@ -143,7 +142,7 @@ function WorkspaceCard({
     <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]">
       <div
         className="h-16"
-        style={workspaceCardStyle(background, workspace.updatedAt)}
+        style={workspaceCardStyle(background)}
         aria-hidden="true"
       />
       <div className="flex flex-1 flex-col gap-4 p-5">

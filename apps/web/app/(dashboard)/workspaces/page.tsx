@@ -47,7 +47,6 @@ export default async function WorkspacesPage() {
         role: m.role,
         logoUrl: workspaceLogoUrl(m.workspace_logo_key, m.workspace_updated_at),
         cardBg: m.workspace_card_bg,
-        updatedAt: m.workspace_updated_at,
         memberCount,
         recordingCount,
         isDefault: m.workspace_id === current.workspace.id,

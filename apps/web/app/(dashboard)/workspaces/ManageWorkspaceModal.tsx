@@ -27,7 +27,6 @@ import {
   removeWorkspaceLogoForAction,
   renameWorkspaceAction,
   setWorkspaceCardPresetAction,
-  uploadWorkspaceCardAction,
   uploadWorkspaceLogoForAction,
 } from "./actions";
 
@@ -229,7 +228,6 @@ function LogoSection({ workspace }: { workspace: WorkspaceCardData }) {
 }
 
 function CardSection({ workspace }: { workspace: WorkspaceCardData }) {
-  const fileRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<FormState>(IDLE);
   const [pending, start] = useTransition();
   const current = resolveWorkspaceCard(workspace.cardBg, workspace.id);
@@ -240,29 +238,22 @@ function CardSection({ workspace }: { workspace: WorkspaceCardData }) {
       form.set("preset", preset);
       setState(await setWorkspaceCardPresetAction(form));
     });
-  const upload = (file: File) =>
-    start(async () => {
-      const form = new FormData();
-      form.set("workspaceId", workspace.id);
-      form.set("image", file);
-      setState(await uploadWorkspaceCardAction(IDLE, form));
-    });
   const swatch =
     "size-9 rounded-lg ring-offset-2 ring-offset-panel transition-shadow hover:ring-2 hover:ring-line-strong";
   return (
     <section className="flex flex-col gap-2">
       <SectionTitle
         title="Card background"
-        hint="A colour or a picture across the top of this workspace's card."
+        hint="A colour across the top of this workspace's card."
       />
       <div
         className="h-16 rounded-xl"
-        style={workspaceCardStyle(current, workspace.updatedAt)}
+        style={workspaceCardStyle(current)}
         aria-hidden="true"
       />
-      <div className="flex flex-wrap gap-2">
+      <div className="grid w-fit grid-cols-10 gap-2">
         {WORKSPACE_CARD_PRESET_KEYS.map((key) => {
-          const selected = current.kind === "preset" && current.key === key;
+          const selected = current === key;
           return (
             <button
               key={key}
@@ -276,32 +267,6 @@ function CardSection({ workspace }: { workspace: WorkspaceCardData }) {
             />
           );
         })}
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          ref={fileRef}
-          type="file"
-          accept={WORKSPACE_IMAGE_ACCEPT}
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            e.target.value = "";
-            if (file) upload(file);
-          }}
-        />
-        <Button
-          variant="secondary"
-          size="sm"
-          isDisabled={pending}
-          onPress={() => fileRef.current?.click()}
-        >
-          {pending ? (
-            <Spinner size="sm" color="current" />
-          ) : (
-            <Upload size={14} />
-          )}
-          {current.kind === "image" ? "Replace image" : "Upload image"}
-        </Button>
       </div>
       <Outcome state={state} />
     </section>

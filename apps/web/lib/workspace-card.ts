@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { CDN_BASE_URL } from "@/lib/site";
 
 // Lively two-hue blends, a step softer than the recording gradients: bright
 // enough to feel chosen, soft enough under white text with a light scrim.
@@ -7,15 +6,23 @@ export const WORKSPACE_CARD_PRESETS = {
   ocean: { label: "Ocean", from: "#2f80ed", to: "#56ccf2" },
   sky: { label: "Sky", from: "#5aa9f8", to: "#8b8cff" },
   periwinkle: { label: "Periwinkle", from: "#7f9cff", to: "#b48cff" },
+  indigo: { label: "Indigo", from: "#5b5fd6", to: "#8f7bff" },
   lilac: { label: "Lilac", from: "#b07cf7", to: "#f07ab8" },
+  orchid: { label: "Orchid", from: "#c86dd7", to: "#8e6cf0" },
   berry: { label: "Berry", from: "#e4568f", to: "#9b5de5" },
+  rose: { label: "Rose", from: "#f0719a", to: "#f7a1b6" },
   coral: { label: "Coral", from: "#ff8a65", to: "#ff6f91" },
   peach: { label: "Peach", from: "#ffb27a", to: "#ff8a80" },
   honey: { label: "Honey", from: "#f6c453", to: "#f08a5d" },
+  sand: { label: "Sand", from: "#e0b773", to: "#c98a4b" },
   lime: { label: "Lime", from: "#a3d977", to: "#4fb286" },
-  mint: { label: "Mint", from: "#5ddcb2", to: "#3ab0c8" },
   forest: { label: "Forest", from: "#3f9d6e", to: "#9bd770" },
+  mint: { label: "Mint", from: "#5ddcb2", to: "#3ab0c8" },
+  teal: { label: "Teal", from: "#2bb3a3", to: "#4fd1c5" },
+  lagoon: { label: "Lagoon", from: "#26a0da", to: "#5ed3c7" },
+  slate: { label: "Slate", from: "#64748b", to: "#94a3b8" },
   graphite: { label: "Graphite", from: "#4b5563", to: "#9ca3af" },
+  plum: { label: "Plum", from: "#6d4c7d", to: "#a884b3" },
 } as const satisfies Record<
   string,
   { label: string; from: string; to: string }
@@ -58,63 +65,29 @@ export function defaultWorkspaceCardPreset(
   return WORKSPACE_CARD_PRESET_KEYS[hash % WORKSPACE_CARD_PRESET_KEYS.length];
 }
 
-export type WorkspaceCardBackground =
-  | { kind: "preset"; key: WorkspaceCardPresetKey }
-  | { kind: "image"; key: string };
-
-const IMAGE_KEY = /^workspace-cards\/[A-Za-z0-9._-]+$/;
-
-// One text column holds either form: "preset:<name>" or "image:<r2 key>".
+// The column holds "preset:<name>"; anything else means "not chosen yet".
 export function parseWorkspaceCard(
   raw: string | null | undefined,
-): WorkspaceCardBackground | null {
-  if (!raw) return null;
-  if (raw.startsWith("preset:")) {
-    const key = raw.slice("preset:".length);
-    return isWorkspaceCardPresetKey(key) ? { kind: "preset", key } : null;
-  }
-  if (raw.startsWith("image:")) {
-    const key = raw.slice("image:".length);
-    return IMAGE_KEY.test(key) ? { kind: "image", key } : null;
-  }
-  return null;
+): WorkspaceCardPresetKey | null {
+  if (!raw?.startsWith("preset:")) return null;
+  const key = raw.slice("preset:".length);
+  return isWorkspaceCardPresetKey(key) ? key : null;
 }
 
 export function resolveWorkspaceCard(
   raw: string | null | undefined,
   workspaceId: string,
-): WorkspaceCardBackground {
-  return (
-    parseWorkspaceCard(raw) ?? {
-      kind: "preset",
-      key: defaultWorkspaceCardPreset(workspaceId),
-    }
-  );
+): WorkspaceCardPresetKey {
+  return parseWorkspaceCard(raw) ?? defaultWorkspaceCardPreset(workspaceId);
 }
 
-export function serializeWorkspaceCard(
-  bg: WorkspaceCardBackground | null,
-): string | null {
-  if (!bg) return null;
-  return `${bg.kind}:${bg.key}`;
+export function serializeWorkspaceCard(key: WorkspaceCardPresetKey): string {
+  return `preset:${key}`;
 }
 
-// Versioned by the workspace's updated_at like the logo: the image key is
-// stable across replacements.
-export function workspaceCardStyle(
-  bg: WorkspaceCardBackground | null,
-  updatedAt: number,
-): CSSProperties {
-  if (!bg) return {};
-  if (bg.kind === "preset") {
-    return {
-      backgroundImage: `${GRAIN}, ${workspaceCardGradient(bg.key)}`,
-      backgroundBlendMode: "overlay, normal",
-    };
-  }
+export function workspaceCardStyle(key: WorkspaceCardPresetKey): CSSProperties {
   return {
-    backgroundImage: `url(${CDN_BASE_URL}/${bg.key}?v=${updatedAt})`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
+    backgroundImage: `${GRAIN}, ${workspaceCardGradient(key)}`,
+    backgroundBlendMode: "overlay, normal",
   };
 }
