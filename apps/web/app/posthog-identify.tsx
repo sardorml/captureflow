@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { loadPosthog, whenIdle } from "@/lib/posthog-client";
+import { loadPosthog } from "@/lib/posthog-client";
+import { whenIdle } from "@/lib/when-idle";
 
 // Keyed on email because the desktop client also keys on email, stitching the
 // funnel across both surfaces.

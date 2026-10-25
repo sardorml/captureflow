@@ -11,7 +11,6 @@ import { POSTHOG_KEY } from "@/lib/public-analytics";
  */
 const POSTHOG_PROXY_HOST = "/ingest";
 const POSTHOG_UI_HOST = "https://us.posthog.com";
-const IDLE_FALLBACK_MS = 1500;
 
 let loading: Promise<PostHog | null> | null = null;
 let loaded: PostHog | null = null;
@@ -42,15 +41,4 @@ export function loadPosthog(): Promise<PostHog | null> {
 
 export function posthogIfLoaded(): PostHog | null {
   return loaded;
-}
-
-// Runs once the browser is idle, so analytics never competes with the page's
-// own work; returns a cancel for effects that unmount first.
-export function whenIdle(fn: () => void): () => void {
-  if (typeof requestIdleCallback === "function") {
-    const id = requestIdleCallback(fn, { timeout: IDLE_FALLBACK_MS });
-    return () => cancelIdleCallback(id);
-  }
-  const id = setTimeout(fn, IDLE_FALLBACK_MS);
-  return () => clearTimeout(id);
 }

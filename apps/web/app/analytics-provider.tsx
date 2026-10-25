@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { loadPosthog, whenIdle } from "@/lib/posthog-client";
+import { loadPosthog } from "@/lib/posthog-client";
+import { whenIdle } from "@/lib/when-idle";
 
 export function AnalyticsProvider(): null {
   const pathname = usePathname();
