@@ -131,7 +131,7 @@ function PlayerShell({
       <div
         aria-busy="true"
         className={cn(
-          "relative block overflow-clip rounded-[var(--media-border-radius,28px)] bg-black max-sm:h-auto! max-sm:w-full!",
+          "relative block overflow-clip rounded-[var(--media-border-radius,16px)] bg-black max-sm:h-auto! max-sm:w-full!",
           compact && "rounded-none",
           className,
         )}
