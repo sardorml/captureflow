@@ -78,6 +78,17 @@ export type RecordingReaction = {
   userImage: string | null;
 };
 
+// One viewer of a recording, as `recording_views` has them; the name, email
+// and image are joined from `users` at read time and null for anonymous rows.
+export type RecordingViewerEntry = {
+  userId: string | null;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  lastViewedAt: number;
+  views: number;
+};
+
 export type AddReactionRequest = {
   emoji: string;
   timestampMs: number;

@@ -4,6 +4,7 @@ import type {
   RecordingComment,
   RecordingReaction,
   RecordingRow,
+  RecordingViewerEntry,
   TranscriptRow,
 } from "./types";
 import type { CreateTranscriptJobInput, RecordingDb } from "./db-types";
@@ -90,8 +91,18 @@ export async function activeRecordingCountForDevice(
 // User-scoped aggregations live in lib/recording/quota.ts: they span recordings ∪ screenshots,
 // which the recording-only RecordingDb backend can't compute.
 
-export async function bumpLastViewed(slug: string): Promise<void> {
-  return (await resolveDb()).bumpLastViewed(slug);
+export async function recordView(
+  slug: string,
+  viewerKey: string,
+  userId: string | null,
+): Promise<void> {
+  return (await resolveDb()).recordView(slug, viewerKey, userId);
+}
+
+export async function listViewers(
+  slug: string,
+): Promise<RecordingViewerEntry[]> {
+  return (await resolveDb()).listViewers(slug);
 }
 
 export async function addReaction(input: {

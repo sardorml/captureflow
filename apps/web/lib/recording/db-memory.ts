@@ -13,6 +13,12 @@ const transcripts = new Map<string, TranscriptRow>();
 const transcriptParts = new Map<string, TranscriptPartRow[]>();
 const reactions: RecordingReaction[] = [];
 const comments: RecordingComment[] = [];
+type MemoryView = {
+  userId: string | null;
+  lastViewedAt: number;
+  views: number;
+};
+const views = new Map<string, Map<string, MemoryView>>();
 let nextReactionId = 1;
 let nextCommentId = 1;
 
@@ -36,6 +42,7 @@ export const memoryDb: RecordingDb = {
   async deleteRecording(slug) {
     transcripts.delete(slug);
     transcriptParts.delete(slug);
+    views.delete(slug);
     return store.delete(slug);
   },
 
@@ -69,15 +76,29 @@ export const memoryDb: RecordingDb = {
     return n;
   },
 
-  async bumpLastViewed(slug) {
+  async recordView(slug, viewerKey, userId) {
     const row = store.get(slug);
-    if (row) {
-      store.set(slug, {
-        ...row,
-        lastViewedAt: Date.now(),
-        viewCount: row.viewCount + 1,
-      });
-    }
+    if (!row) return;
+    const now = Date.now();
+    store.set(slug, {
+      ...row,
+      lastViewedAt: now,
+      viewCount: row.viewCount + 1,
+    });
+    const viewers = views.get(slug) ?? new Map<string, MemoryView>();
+    const seen = viewers.get(viewerKey);
+    viewers.set(viewerKey, {
+      userId: userId ?? seen?.userId ?? null,
+      lastViewedAt: now,
+      views: (seen?.views ?? 0) + 1,
+    });
+    views.set(slug, viewers);
+  },
+
+  async listViewers(slug) {
+    return Array.from(views.get(slug)?.values() ?? [])
+      .sort((a, b) => b.lastViewedAt - a.lastViewedAt)
+      .map((v) => ({ ...v, name: null, email: null, image: null }));
   },
 
   async addReaction({ slug, emoji, timestampMs, userId, userName }) {

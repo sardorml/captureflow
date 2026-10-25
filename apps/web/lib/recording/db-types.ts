@@ -2,6 +2,7 @@ import type {
   RecordingComment,
   RecordingReaction,
   RecordingRow,
+  RecordingViewerEntry,
   TranscriptPartRow,
   TranscriptRow,
 } from "./types";
@@ -29,7 +30,12 @@ export type RecordingDb = {
   listRecordingsForUser(userId: string): Promise<RecordingRow[]>;
   totalStorageForDevice(deviceId: string): Promise<number>;
   activeRecordingCountForDevice(deviceId: string): Promise<number>;
-  bumpLastViewed(slug: string): Promise<void>;
+  recordView(
+    slug: string,
+    viewerKey: string,
+    userId: string | null,
+  ): Promise<void>;
+  listViewers(slug: string): Promise<RecordingViewerEntry[]>;
   addReaction(input: {
     slug: string;
     emoji: string;

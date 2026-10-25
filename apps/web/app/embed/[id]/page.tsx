@@ -2,11 +2,12 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
-  bumpLastViewed,
   getRecording,
   getTranscript,
   listReactions,
+  recordView,
 } from "@/lib/recording/db";
+import { viewerKeyFor } from "@/lib/recording/viewer-key";
 import { resolveTranscript } from "@/lib/recording/transcript";
 import { verifySession } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
@@ -34,11 +35,14 @@ export default async function EmbedPage({
   const row = await getRecording(id);
   if (!row || row.state !== "ready") notFound();
 
-  const visitorResult = await verifySession((await headers()).get("cookie"));
+  const requestHeaders = await headers();
+  const visitorResult = await verifySession(requestHeaders.get("cookie"));
   const visitor = visitorResult === "unknown" ? null : visitorResult;
   if (!canViewResource(visitor, row)) notFound();
 
-  void bumpLastViewed(id);
+  void viewerKeyFor(visitor?.userId ?? null, requestHeaders)
+    .then((key) => recordView(id, key, visitor?.userId ?? null))
+    .catch(() => undefined);
 
   const [videoUrlRaw, posterUrlRaw, reactions, webcamUrlRaw, transcriptRow] =
     await Promise.all([

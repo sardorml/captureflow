@@ -3,13 +3,15 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import {
-  bumpLastViewed,
   getOwnerName,
   getRecording,
   getTranscript,
   listComments,
   listReactions,
+  listViewers,
+  recordView,
 } from "@/lib/recording/db";
+import { viewerKeyFor } from "@/lib/recording/viewer-key";
 import { resolveTranscript } from "@/lib/recording/transcript";
 import { verifySession } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
@@ -158,7 +160,8 @@ export default async function RecordingPage({ params }: { params: Params }) {
   const row = await getRecording(id);
   if (!row) notFound();
 
-  const cookieHeader = (await headers()).get("cookie");
+  const requestHeaders = await headers();
+  const cookieHeader = requestHeaders.get("cookie");
   const theme = readThemeFromCookieHeader(cookieHeader);
   const themePreference = readThemePreferenceFromCookieHeader(cookieHeader);
   // /api/r/init reserves the id at record-start so desktop hands the user a
@@ -213,8 +216,11 @@ export default async function RecordingPage({ params }: { params: Params }) {
     }
   }
 
-  void bumpLastViewed(id);
+  void viewerKeyFor(visitor?.userId ?? null, requestHeaders)
+    .then((key) => recordView(id, key, visitor?.userId ?? null))
+    .catch(() => undefined);
 
+  const isOwner = !!(visitor && row.userId && visitor.userId === row.userId);
   const [
     videoUrlRaw,
     posterUrlRaw,
@@ -223,6 +229,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
     ownerName,
     webcamUrlRaw,
     transcriptRow,
+    viewers,
   ] = await Promise.all([
     viewerMediaUrl(row, row.storageKey),
     row.posterKey
@@ -235,6 +242,8 @@ export default async function RecordingPage({ params }: { params: Params }) {
       ? viewerMediaUrl(row, row.webcamStorageKey)
       : Promise.resolve(undefined),
     getTranscript(id),
+    // Only the owner sees who watched.
+    isOwner ? listViewers(id) : Promise.resolve(null),
   ]);
   const recordingConfig = parseRecordingConfigJson(row.configJson);
   const summaryChapters = parseSummaryChaptersJson(row.summaryChaptersJson);
@@ -249,7 +258,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
       ? withVersion(webcamUrlRaw, row.webcamSizeBytes)
       : undefined;
 
-  // bumpLastViewed increments atomically but runs after we read the row, so
+  // recordView increments atomically but runs after we read the row, so
   // add 1 to reflect the current load.
   const displayViews = row.viewCount + 1;
   const headlineText = row.title ?? PRODUCT_NAME;
@@ -258,7 +267,6 @@ export default async function RecordingPage({ params }: { params: Params }) {
     viewUrlFor(id),
   )}`;
 
-  const isOwner = !!(visitor && row.userId && visitor.userId === row.userId);
   const workspaceRow = row.workspaceId
     ? await getWorkspaceForUpload(row.workspaceId)
     : null;
@@ -355,6 +363,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
         ownerName={ownerName}
         createdAt={row.createdAt}
         viewCount={displayViews}
+        viewers={viewers}
         isOwner={isOwner}
         initialSummary={summaryChapters.summary}
         initialChapters={summaryChapters.chapters}

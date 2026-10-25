@@ -57,6 +57,15 @@ type D1ReactionRow = {
   user_image?: string | null;
 };
 
+type D1ViewerRow = {
+  user_id: string | null;
+  user_name: string | null;
+  user_email: string | null;
+  user_image: string | null;
+  last_viewed_at: number;
+  views: number;
+};
+
 type D1CommentRow = {
   id: number;
   slug: string;
@@ -241,6 +250,28 @@ export function createD1Db(d1: D1Database): RecordingDb {
     `UPDATE recordings
        SET last_viewed_at = ?2, view_count = view_count + 1
        WHERE slug = ?1`,
+  );
+
+  // A viewer who signs in between visits keeps one row: the user id lands on
+  // the next view under their new key, and the anonymous row stays as it was.
+  const stmtUpsertView = d1.prepare(
+    `INSERT INTO recording_views
+       (slug, viewer_key, user_id, first_viewed_at, last_viewed_at, views)
+     VALUES (?1, ?2, ?3, ?4, ?4, 1)
+     ON CONFLICT (slug, viewer_key) DO UPDATE
+       SET last_viewed_at = excluded.last_viewed_at,
+           views = views + 1,
+           user_id = COALESCE(excluded.user_id, user_id)`,
+  );
+
+  const stmtListViewers = d1.prepare(
+    `SELECT v.user_id, v.last_viewed_at, v.views,
+            u.name AS user_name, u.email AS user_email, u.image AS user_image
+       FROM recording_views AS v
+       LEFT JOIN users AS u ON u.id = v.user_id
+       WHERE v.slug = ?1
+       ORDER BY v.last_viewed_at DESC
+       LIMIT 100`,
   );
 
   // Reactions and comments recording the unified `recording_activity` table
@@ -484,8 +515,24 @@ export function createD1Db(d1: D1Database): RecordingDb {
       return r?.n ?? 0;
     },
 
-    async bumpLastViewed(slug) {
-      await stmtBumpLastViewed.bind(slug, Date.now()).run();
+    async recordView(slug, viewerKey, userId) {
+      const now = Date.now();
+      await d1.batch([
+        stmtBumpLastViewed.bind(slug, now),
+        stmtUpsertView.bind(slug, viewerKey, userId, now),
+      ]);
+    },
+
+    async listViewers(slug) {
+      const { results } = await stmtListViewers.bind(slug).all<D1ViewerRow>();
+      return results.map((r) => ({
+        userId: r.user_id,
+        name: r.user_name,
+        email: r.user_email,
+        image: r.user_image,
+        lastViewedAt: r.last_viewed_at,
+        views: r.views,
+      }));
     },
 
     async addReaction({ slug, emoji, timestampMs, userId, userName }) {

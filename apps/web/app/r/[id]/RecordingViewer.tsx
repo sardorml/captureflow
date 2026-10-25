@@ -7,6 +7,7 @@ import type { RecordingConfig } from "@/lib/recording-config";
 import type {
   RecordingComment,
   RecordingReaction,
+  RecordingViewerEntry,
 } from "@/lib/recording/types";
 import type { RecordingChapter } from "@/lib/recording/summary-chapters";
 import type {
@@ -24,6 +25,7 @@ import { withSplitLoaded } from "@/components/dev/split-loaded";
 import { ActivitySidebar } from "./ActivitySidebar";
 import { EditableTitle } from "./EditableTitle";
 import { SummaryChapters } from "./SummaryChapters";
+import { ViewCount } from "./ViewCount";
 import { TranscriptPanel } from "./TranscriptPanel";
 
 // Owner-only, so viewers never download the editor's controls.
@@ -58,6 +60,7 @@ type Props = {
   ownerName: string | null;
   createdAt: number;
   viewCount: number;
+  viewers: RecordingViewerEntry[] | null;
   isOwner: boolean;
   initialSummary: string;
   initialChapters: RecordingChapter[];
@@ -84,6 +87,7 @@ export function RecordingViewer({
   ownerName,
   createdAt,
   viewCount,
+  viewers,
   isOwner,
   initialSummary,
   initialChapters,
@@ -177,9 +181,12 @@ export function RecordingViewer({
                 }
               />
             </div>
-            <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-tint px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line max-lg:static max-lg:mt-3 max-lg:inline-block max-lg:translate-y-0 lg:right-12">
-              {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
-            </span>
+            <ViewCount
+              count={viewCount}
+              viewers={viewers}
+              viewerUserId={viewer?.userId ?? null}
+              className="absolute right-6 top-1/2 -translate-y-1/2 max-lg:static max-lg:mt-3 max-lg:inline-block max-lg:translate-y-0 lg:right-12"
+            />
           </div>
         </header>
         <div className="mx-auto flex w-full max-w-5xl flex-col py-6 max-lg:contents">
