@@ -1,3 +1,4 @@
+import type { UserWorkspace } from "./workspaces";
 /*
  * The bearer token never leaves the extension except as an Authorization header
  * to the recording API.
@@ -16,6 +17,8 @@ export type UserProfile = {
   name: string | null;
   email: string;
   image: string | null;
+  // Absent in profiles saved before the list rode the probe.
+  workspaces?: UserWorkspace[];
 };
 
 const authItem = storage.defineItem<AuthSession | null>("local:authSession", {

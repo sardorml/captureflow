@@ -20,6 +20,8 @@ export type CapturePrefs = {
   visibility?: RecordingVisibility;
   shot?: ScreenshotType;
   effect?: CameraEffect;
+  // Where the next recording saves; unset means the dashboard's default.
+  workspaceId?: string;
 };
 
 /*

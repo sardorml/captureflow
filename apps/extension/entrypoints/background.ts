@@ -737,6 +737,7 @@ export default defineBackground(() => {
         source: prefs.source,
         visibility: prefs.visibility,
         effect: prefs.effect,
+        workspaceId: prefs.workspaceId,
         tabStreamId,
       }).catch((error) => void reportFailure(errorMessage(error)));
       return { ok: true };

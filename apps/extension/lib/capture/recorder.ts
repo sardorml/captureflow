@@ -273,6 +273,7 @@ async function runSession(
         contentType: "video/mp4",
         source: "instant",
         visibility: ctx.visibility,
+        workspaceId: ctx.workspaceId,
         hasWebcam: webcamStream !== null,
       },
       { transport },
