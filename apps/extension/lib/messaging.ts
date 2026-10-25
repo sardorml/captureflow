@@ -61,6 +61,9 @@ type ProtocolMap = {
   // Picture-in-Picture window, out of the tab's capture. False means the
   // recording goes without a bubble.
   openRecordingWindow(): boolean;
+  // Points the window's bubble at the camera. Sent during the countdown, once
+  // the recorder holds the camera, so the page load lands before encoding.
+  liveRecordingWindow(): void;
   // SW→page: the window would be in shot, so it goes before capture starts.
   closeRecordingWindow(): void;
   // panel→SW: the page-side backdrop follows the panel's painted theme.
