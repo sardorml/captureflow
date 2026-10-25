@@ -138,7 +138,7 @@ export function WorkspaceSwitcher({
       >
         <div
           data-testid="workspace-strip"
-          className="absolute inset-y-0 left-0 w-1"
+          className="absolute inset-y-2.5 left-1.5 w-1.5 rounded-full"
           style={colourStyle}
           aria-hidden="true"
         />
