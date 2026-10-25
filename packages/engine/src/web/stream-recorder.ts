@@ -1,4 +1,5 @@
 import { ENGINE_OUTPUT } from "../contract";
+import { aacBitrateCandidates } from "./aac-bitrate";
 import { createFmp4Muxer } from "./fmp4-mux";
 import { createSettleDetector } from "./settle";
 import { createSharedClock } from "./shared-clock";
@@ -123,6 +124,16 @@ async function isAacSupported(config: AudioEncoderConfig): Promise<boolean> {
   }
 }
 
+async function supportedAacConfig(
+  requested: AudioEncoderConfig,
+): Promise<AudioEncoderConfig | null> {
+  for (const bitrate of aacBitrateCandidates(requested.bitrate ?? 0)) {
+    const config = { ...requested, bitrate };
+    if (await isAacSupported(config)) return config;
+  }
+  return null;
+}
+
 /*
  * The MediaStream frame source of the output contract: getDisplayMedia →
  * MediaStreamTrackProcessor → VideoEncoder → the shared fMP4 muxer (+ an
@@ -153,7 +164,7 @@ export async function startStreamRecorder(
 
   const micTrack = opts.micStream?.getAudioTracks()[0] ?? null;
   const micSettings = micTrack?.getSettings();
-  const audioConfig: AudioEncoderConfig | null = micTrack
+  const requestedAudio: AudioEncoderConfig | null = micTrack
     ? {
         codec: AAC_CODEC,
         sampleRate: micSettings?.sampleRate ?? 48_000,
@@ -161,10 +172,17 @@ export async function startStreamRecorder(
         bitrate: opts.quality?.audioBitrate ?? AUDIO_BITRATE,
       }
     : null;
-  const withAudio = audioConfig !== null && (await isAacSupported(audioConfig));
-  if (audioConfig && !withAudio) {
+  const audioConfig = requestedAudio
+    ? await supportedAacConfig(requestedAudio)
+    : null;
+  const withAudio = audioConfig !== null;
+  if (requestedAudio && !audioConfig) {
     log.warn(
-      "stream-recorder: AAC encoding unavailable, recording without mic",
+      `stream-recorder: AAC encoding unavailable (${requestedAudio.sampleRate} Hz, ${requestedAudio.numberOfChannels} ch), recording without mic`,
+    );
+  } else if (audioConfig && audioConfig.bitrate !== requestedAudio?.bitrate) {
+    log.info(
+      `stream-recorder: AAC at ${audioConfig.bitrate} bps, the encoder refused ${requestedAudio?.bitrate}`,
     );
   }
 
