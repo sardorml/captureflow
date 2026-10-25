@@ -294,7 +294,7 @@ export function MediaCard({
                 </span>
               </Typography>
             </div>
-            <div className="relative z-10 w-fit">
+            <div className="relative z-10 -mt-1 w-fit">
               {canManage ? (
                 <VisibilityDialog
                   value={visibility}
