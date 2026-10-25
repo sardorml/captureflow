@@ -82,7 +82,7 @@ export function EditableTitle({ slug, title: initialTitle, canEdit }: Props) {
       <button
         type="button"
         onClick={() => setDraft(title)}
-        className="group/title flex max-w-full items-center gap-3 text-left"
+        className="group/title -mx-3 flex w-[calc(100%+1.5rem)] items-center gap-3 rounded-xl px-3 py-1.5 text-left transition-colors hover:bg-tint"
         aria-label="Rename recording"
       >
         <Pencil
@@ -91,7 +91,7 @@ export function EditableTitle({ slug, title: initialTitle, canEdit }: Props) {
         />
         <h1
           className={cn(
-            "transition-colors group-hover/title:text-accent-strong lg:truncate",
+            "min-w-0 transition-colors group-hover/title:text-accent-strong lg:truncate",
             HEADLINE_CLASS,
           )}
         >
