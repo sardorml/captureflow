@@ -167,7 +167,7 @@ html:not([data-theme]) {
   --cf-fg-strong: oklch(100% 0 0);
   --foreground: oklch(99.11% 0 0);
   --cf-panel: oklch(21.03% 0 0);
-  --cf-panel-2: oklch(27.21% 0 0);
+  --cf-panel-2: oklch(30% 0 0);
   --cf-field: oklch(21.03% 0 0);
   --cf-tint: oklch(99.11% 0 0 / 5%);
   --cf-tint-strong: oklch(27.21% 0 0);
