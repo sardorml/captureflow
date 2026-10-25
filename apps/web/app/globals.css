@@ -283,20 +283,6 @@ html:not(:has([data-marketing])) .card {
    animation is absent, and nothing (opacity/transform) is retained after it
    ends. The root wrapper fades only: a transform there would become the
    containing block for the marketing tree's fixed floating CTA. */
-@keyframes page-fade {
-  from {
-    opacity: 0;
-  }
-}
-.animate-page-fade {
-  animation: page-fade 0.25s ease-out;
-}
-@keyframes page-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-}
 /* Marketing pages: the content under the nav rises out of a soft blur, so a
    navigation reads as the next page arriving rather than a flash. Applied to
    <main> only, which keeps the nav and footer still. */
@@ -309,12 +295,6 @@ html:not(:has([data-marketing])) .card {
 }
 .animate-page-rise {
   animation: page-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.animate-page-enter {
-  /* Origin pinned near the top: a center-origin zoom visibly shifts the
-     viewport-top edge on pages taller than the scroll pane. */
-  transform-origin: 50% 120px;
-  animation: page-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Brand mark: one counter-clockwise turn when the lockup it sits in is hovered,
@@ -445,9 +425,7 @@ html:not(:has([data-marketing])) .card {
   .animate-rec-breathe,
   .animate-reveal,
   .animate-recording-icon-pop,
-  .animate-page-fade,
   .animate-page-rise,
-  .animate-page-enter,
   .animate-beta-card,
   .animate-beta-confetti {
     animation: none !important;
