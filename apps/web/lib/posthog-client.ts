@@ -31,6 +31,9 @@ export function loadPosthog(): Promise<PostHog | null> {
       capture_pageleave: true,
       autocapture: true,
       disable_session_recording: true,
+      // Each is a script of its own after the config loads.
+      disable_surveys: true,
+      capture_dead_clicks: false,
       persistence: "localStorage+cookie",
     });
     loaded = posthog;
