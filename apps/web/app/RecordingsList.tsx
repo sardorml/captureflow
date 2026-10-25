@@ -16,10 +16,13 @@ import { parseRecordingConfigJson } from "@/lib/recording-config";
 import type { DashboardRecordingRow } from "@/lib/recordings-db";
 import { viewUrlFor } from "@/lib/site";
 
+// The first row of the widest grid: its posters load eagerly, the rest lazily.
+const EAGER_CARDS = 4;
+
 // Storage keys stay on the server; cards get ready-made URLs.
 export type RecordingCardRow = Omit<
   DashboardRecordingRow,
-  "storageKey" | "posterKey" | "webcamStorageKey"
+  "storageKey" | "posterKey" | "posterThumbKey" | "webcamStorageKey"
 > & {
   posterUrl: string | null;
   videoThumbUrl: string | null;
@@ -63,7 +66,7 @@ export function RecordingsList({
   return (
     <>
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {recordings.map((s) => {
+        {recordings.map((s, index) => {
           const isAuthor = !viewerUserId || s.userId === viewerUserId;
           const isAdmin = !isAuthor && Boolean(viewerIsWorkspaceOwner);
           const canManage = isAuthor || isAdmin;
@@ -71,6 +74,7 @@ export function RecordingsList({
             <RecordingCard
               key={s.slug}
               recording={s}
+              priority={index < EAGER_CARDS}
               canAuthor={isAuthor}
               canAdminister={isAdmin}
               allowPublicLinks={allowPublicLinks}
@@ -115,6 +119,7 @@ function CardWebcam({ url }: { url: string }) {
 
 type RecordingCardProps = {
   recording: RecordingCardRow;
+  priority: boolean;
   canAuthor: boolean;
   canAdminister: boolean;
   allowPublicLinks: boolean;
@@ -128,6 +133,7 @@ type RecordingCardProps = {
 
 function RecordingCard({
   recording,
+  priority,
   canAuthor,
   canAdminister,
   allowPublicLinks,
@@ -160,6 +166,9 @@ function RecordingCard({
             alt=""
             className="relative h-full w-full object-cover"
             src={posterUrl}
+            width={recording.width ?? 1280}
+            height={recording.height ?? 720}
+            {...(priority ? { loading: "eager", fetchPriority: "high" } : {})}
           />
         </>
       ) : videoThumbUrl ? (

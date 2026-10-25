@@ -1,5 +1,7 @@
+import { preconnect } from "react-dom";
 import { getWorkspaceById, listMembers } from "@captureflow/quota";
 import { requireSession } from "@/lib/session-guard";
+import { R2_PUBLIC_BASE_URL } from "@/lib/site";
 import { getAppWebEnv } from "@/lib/cf-env";
 import {
   listRecordingsForWorkspace,
@@ -40,6 +42,10 @@ export default async function RecordingsPage() {
   }
 
   const cards = await Promise.all(recordings.map(toCardRow));
+  // Public posters come from the CDN host: open that connection with the HTML.
+  if (recordings.some((r) => r.visibility === "public")) {
+    preconnect(env?.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL);
+  }
   const subtitle = `${recordings.length} recording${recordings.length === 1 ? "" : "s"}`;
 
   return (
@@ -67,10 +73,15 @@ export default async function RecordingsPage() {
 async function toCardRow({
   storageKey,
   posterKey,
+  posterThumbKey,
   webcamStorageKey,
   ...row
 }: DashboardRecordingRow): Promise<RecordingCardRow> {
-  const posterUrl = posterKey ? await viewerMediaUrl(row, posterKey) : null;
+  // The card-sized thumbnail where the cron or the upload has made one.
+  const posterSource = posterThumbKey ?? posterKey;
+  const posterUrl = posterSource
+    ? await viewerMediaUrl(row, posterSource)
+    : null;
   const videoThumbUrl =
     row.state === "ready" && !posterUrl
       ? `${await viewerMediaUrl(row, storageKey)}?v=${row.sizeBytes}`
