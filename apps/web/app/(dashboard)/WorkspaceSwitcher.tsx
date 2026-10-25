@@ -118,9 +118,9 @@ export function WorkspaceSwitcher({
     (m) => m.workspace_id !== current.workspace_id,
   );
   const canSwitch = others.length > 0;
-  // The workspace background is a small tile before the name, the way an app
-  // icon names a workspace, so the card itself stays quiet.
-  const tileStyle = workspaceCardStyle(
+  // The workspace background is a strip down the card's left edge, like a
+  // colour label: it names the workspace without taking width from the name.
+  const colourStyle = workspaceCardStyle(
     resolveWorkspaceCard(current.workspace_card_bg, current.workspace_id),
     current.workspace_updated_at,
   );
@@ -134,24 +134,22 @@ export function WorkspaceSwitcher({
       <div
         ref={cardRef}
         data-testid="workspace-card"
-        className="rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]"
+        className="relative overflow-hidden rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]"
       >
+        <div
+          data-testid="workspace-strip"
+          className="absolute inset-y-0 left-0 w-1"
+          style={colourStyle}
+          aria-hidden="true"
+        />
         <div>
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
               aria-label="Switch workspace"
-              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl px-3 pt-2.5 pb-1 outline-none"
+              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl pr-3 pl-4 pt-2.5 pb-1 outline-none"
             >
-              <span className="flex min-w-0 items-center gap-2">
-                <span
-                  data-testid="workspace-tile"
-                  className="size-5 shrink-0 rounded-md shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]"
-                  style={tileStyle}
-                  aria-hidden="true"
-                />
-                <span className="truncate font-medium text-fg">
-                  {current.workspace_name}
-                </span>
+              <span className="truncate font-medium text-fg">
+                {current.workspace_name}
               </span>
               <ChevronsUpDown size={14} className="shrink-0 text-fg-muted" />
             </Dropdown.Trigger>
@@ -165,8 +163,15 @@ export function WorkspaceSwitcher({
               placement="bottom start"
               className="min-w-64 outline-none"
             >
-              <div className="flex flex-col items-center gap-2 px-4 pt-4 pb-3 text-center">
-                <WorkspaceMark membership={current} size={48} />
+              <div
+                className="h-14 rounded-t-[inherit]"
+                style={colourStyle}
+                aria-hidden="true"
+              />
+              <div className="-mt-6 flex flex-col items-center gap-2 px-4 pb-3 text-center">
+                <span className="rounded-full bg-panel p-1 dark:bg-panel-2">
+                  <WorkspaceMark membership={current} size={48} />
+                </span>
                 <span className="truncate font-semibold text-fg">
                   {current.workspace_name}
                 </span>
@@ -235,7 +240,7 @@ export function WorkspaceSwitcher({
             </Dropdown.Popover>
           </Dropdown>
 
-          <div className="flex items-center gap-2 px-3 pb-2.5 text-xs text-fg-muted">
+          <div className="flex items-center gap-2 pr-3 pb-2.5 pl-4 text-xs text-fg-muted">
             <DefaultBadge canSwitch={canSwitch} />
             <span className="h-3 w-px shrink-0 bg-line" />
             <span className="truncate">{plural(memberCount, "member")}</span>
