@@ -182,7 +182,9 @@ export function MediaCard({
           thumbnail needs no anchor of its own — and the actions, which sit on
           top of that overlay, need raising above it. */}
       <div className="relative">
-        <div className="aspect-video overflow-hidden">{media}</div>
+        <div className="relative aspect-video overflow-hidden bg-tint">
+          {media}
+        </div>
 
         {onSelectedChange && (
           /* Hidden until the card is hovered, so a grid at rest stays as quiet
@@ -292,7 +294,7 @@ export function MediaCard({
                 </span>
               </Typography>
             </div>
-            <div className="relative z-10 w-fit">
+            <div className="relative z-10 -mt-1 w-fit">
               {canManage ? (
                 <VisibilityDialog
                   value={visibility}

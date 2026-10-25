@@ -1,3 +1,5 @@
+import { normalizeCuts, type RecordingCut } from "@/lib/recording/cuts";
+
 const MP4 = ".mp4";
 
 export function recordingConfigKeyFor(storageKey: string): string {
@@ -15,21 +17,31 @@ export type RecordingCameraCorner =
 
 export type RecordingCameraSize = "small" | "medium" | "large";
 
+// Where the bubble's centre sits, as fractions of the player box. Set by
+// dragging; null keeps the bubble in its corner.
+export type RecordingCameraPoint = { x: number; y: number };
+
 // `background` is a gradient preset key, a '#hex' fill, or 'transparent'.
 export type RecordingConfig = {
   background: string;
   cameraCorner: RecordingCameraCorner;
+  cameraPoint: RecordingCameraPoint | null;
   cameraSize: RecordingCameraSize;
+  cameraHidden: boolean;
   micMuted: boolean;
   systemMuted: boolean;
+  cuts: RecordingCut[];
 };
 
 export const DEFAULT_RECORDING_CONFIG: RecordingConfig = {
   background: "transparent",
-  cameraCorner: "bottom-right",
+  cameraCorner: "top-right",
+  cameraPoint: null,
   cameraSize: "medium",
+  cameraHidden: false,
   micMuted: false,
   systemMuted: false,
+  cuts: [],
 };
 
 export const RECORDING_GRADIENT_KEYS = [
@@ -42,6 +54,12 @@ export const RECORDING_GRADIENT_KEYS = [
   "arctic",
   "ocean",
   "deep",
+  "ember",
+  "mint",
+  "dusk",
+  "peach",
+  "midnight",
+  "slate",
 ] as const;
 export type RecordingGradientKey = (typeof RECORDING_GRADIENT_KEYS)[number];
 
@@ -122,6 +140,54 @@ export const RECORDING_GRADIENT_PRESETS: Record<
       { offset: 1, color: "#f472b6" },
     ],
   },
+  ember: {
+    label: "Ember",
+    stops: [
+      { offset: 0, color: "#7f1d1d" },
+      { offset: 0.5, color: "#ea580c" },
+      { offset: 1, color: "#fde68a" },
+    ],
+  },
+  mint: {
+    label: "Mint",
+    stops: [
+      { offset: 0, color: "#134e4a" },
+      { offset: 0.5, color: "#2dd4bf" },
+      { offset: 1, color: "#d9f99d" },
+    ],
+  },
+  dusk: {
+    label: "Dusk",
+    stops: [
+      { offset: 0, color: "#1e1b4b" },
+      { offset: 0.55, color: "#475569" },
+      { offset: 1, color: "#fda4af" },
+    ],
+  },
+  peach: {
+    label: "Peach",
+    stops: [
+      { offset: 0, color: "#f9a8d4" },
+      { offset: 0.5, color: "#fdba74" },
+      { offset: 1, color: "#fef3c7" },
+    ],
+  },
+  midnight: {
+    label: "Midnight",
+    stops: [
+      { offset: 0, color: "#020617" },
+      { offset: 0.6, color: "#1e293b" },
+      { offset: 1, color: "#3730a3" },
+    ],
+  },
+  slate: {
+    label: "Slate",
+    stops: [
+      { offset: 0, color: "#1f2937" },
+      { offset: 0.5, color: "#64748b" },
+      { offset: 1, color: "#e2e8f0" },
+    ],
+  },
 };
 
 export function isRecordingGradientKey(v: string): v is RecordingGradientKey {
@@ -178,8 +244,26 @@ export function hydrateRecordingConfig(raw: unknown): RecordingConfig {
   return {
     background: bg,
     cameraCorner: corner,
+    cameraPoint: hydrateCameraPoint(obj.cameraPoint),
     cameraSize: size,
+    cameraHidden: obj.cameraHidden === true,
     micMuted: obj.micMuted === true,
     systemMuted: obj.systemMuted === true,
+    cuts: normalizeCuts(obj.cuts),
   };
+}
+
+function hydrateCameraPoint(raw: unknown): RecordingCameraPoint | null {
+  if (!raw || typeof raw !== "object") return null;
+  const { x, y } = raw as Record<string, unknown>;
+  if (
+    typeof x !== "number" ||
+    typeof y !== "number" ||
+    !Number.isFinite(x) ||
+    !Number.isFinite(y)
+  ) {
+    return null;
+  }
+  const unit = (v: number): number => Math.min(1, Math.max(0, v));
+  return { x: unit(x), y: unit(y) };
 }

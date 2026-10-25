@@ -16,6 +16,8 @@ export {
 } from "./user-quotas";
 export type { EffectiveLimits, GrantedPlan } from "./user-quotas";
 export { totalStorageForUser } from "./totals";
+export { listStorageItemsForUser } from "./storage-items";
+export type { StorageItem, StorageItemKind } from "./storage-items";
 export {
   getActiveProSubscription,
   isProActive,
@@ -32,7 +34,9 @@ export {
   getPersonalWorkspaceForUser,
   getWorkspaceById,
   ensurePersonalWorkspace,
+  createTeamWorkspace,
   listWorkspacesForUser,
+  countWorkspaceMembers,
   countWorkspaceRecordings,
   getCurrentWorkspaceId,
   setCurrentWorkspaceId,
@@ -46,6 +50,7 @@ export {
   removeWorkspaceMember,
   updateWorkspaceName,
   updateWorkspaceLogo,
+  updateWorkspaceCard,
   updateWorkspacePolicy,
 } from "./workspaces";
 export type {

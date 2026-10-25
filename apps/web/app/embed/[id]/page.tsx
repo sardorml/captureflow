@@ -4,8 +4,10 @@ import type { Metadata } from "next";
 import {
   bumpLastViewed,
   getRecording,
+  getTranscript,
   listReactions,
 } from "@/lib/recording/db";
+import { resolveTranscript } from "@/lib/recording/transcript";
 import { verifySession } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
 import { viewerMediaUrl, withVersion } from "@/lib/recording/media-url";
@@ -38,7 +40,7 @@ export default async function EmbedPage({
 
   void bumpLastViewed(id);
 
-  const [videoUrlRaw, posterUrlRaw, reactions, webcamUrlRaw] =
+  const [videoUrlRaw, posterUrlRaw, reactions, webcamUrlRaw, transcriptRow] =
     await Promise.all([
       viewerMediaUrl(row, row.storageKey),
       row.posterKey
@@ -48,10 +50,14 @@ export default async function EmbedPage({
       row.webcamStorageKey && row.webcamState === "ready"
         ? viewerMediaUrl(row, row.webcamStorageKey)
         : Promise.resolve(undefined),
+      getTranscript(id),
     ]);
+  const { transcript } = resolveTranscript(transcriptRow);
 
   return (
     <EmbedPlayer
+      captionsUrl={transcript ? `/api/r/transcript/${id}/captions` : undefined}
+      captionsLang={transcript?.language ?? undefined}
       slug={id}
       videoUrl={withVersion(videoUrlRaw, row.sizeBytes)}
       posterUrl={
@@ -69,7 +75,7 @@ export default async function EmbedPage({
       initialReactions={reactions}
       signedIn={!!visitor}
       shareUrl={viewUrlFor(id)}
-      loginUrl={`${APP_WEB_SITE_URL}/login?next=${encodeURIComponent(viewUrlFor(id))}`}
+      loginUrl={`${APP_WEB_SITE_URL}/login?next=${encodeURIComponent(`/r/${id}`)}`}
     />
   );
 }

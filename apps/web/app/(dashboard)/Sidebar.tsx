@@ -14,7 +14,6 @@ import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { getEffectiveStorageLimit } from "@/lib/user-quota";
-import { StorageUsage } from "../StorageUsage";
 import { SidebarNav } from "./SidebarNav";
 import { WorkspaceMembersStack } from "./WorkspaceMembersStack";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
@@ -69,17 +68,14 @@ export async function Sidebar() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <SidebarNav isOwner={isOwner} selfHosted={selfHosted} />
-      </div>
-
-      {/* Same 12px inset as the record button below, so the two line up. */}
-      <div className="px-3 pt-3">
-        <StorageUsage
-          usedBytes={usedBytes}
-          limitBytes={limitBytes >= UNLIMITED_STORAGE_BYTES ? null : limitBytes}
-          canUpgrade={!selfHosted}
-          email={session.user.email}
-          userId={session.user.id}
+        <SidebarNav
+          isOwner={isOwner}
+          selfHosted={selfHosted}
+          storage={{
+            usedBytes,
+            limitBytes:
+              limitBytes >= UNLIMITED_STORAGE_BYTES ? null : limitBytes,
+          }}
         />
       </div>
 

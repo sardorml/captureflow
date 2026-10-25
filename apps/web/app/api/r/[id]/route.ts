@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteRecording, getRecording } from "@/lib/recording/db";
+import { getRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
-import { abortMultipartUpload, deleteObject } from "@/lib/recording/r2";
-import { objectKeysFor } from "@/lib/recording/object-keys";
+import { removeRecording } from "@/lib/recording/remove";
 import { callerOwns } from "@/lib/recording/caller";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 
@@ -26,30 +25,7 @@ export async function DELETE(
     return jsonError("Forbidden", 403, "forbidden");
   }
 
-  if (row.uploadId) {
-    await abortMultipartUpload(row.storageKey, row.uploadId);
-  }
-  if (row.webcamUploadId && row.webcamStorageKey) {
-    try {
-      await abortMultipartUpload(row.webcamStorageKey, row.webcamUploadId);
-    } catch (err) {
-      console.warn(`[delete] webcam abort failed for ${id}:`, err);
-    }
-  }
-  await deleteObject(row.storageKey);
-  // Poster/webcam/sidecars are best-effort: the video is already gone, so a
-  // failure here must not leave the caller with an undeletable recording.
-  const stranded = await Promise.allSettled(
-    objectKeysFor(row)
-      .filter((key) => key !== row.storageKey)
-      .map((key) => deleteObject(key)),
-  );
-  for (const result of stranded) {
-    if (result.status === "rejected") {
-      console.warn(`[delete] r2 delete failed for ${id}:`, result.reason);
-    }
-  }
-  await deleteRecording(id);
+  await removeRecording(row);
 
   return withCors(NextResponse.json({ ok: true }));
 }

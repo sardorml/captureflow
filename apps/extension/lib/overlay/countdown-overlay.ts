@@ -11,19 +11,26 @@ export const COUNTDOWN_OVERLAY_ID = "captureflow-countdown-overlay";
  * last beat self-removes 150ms early so the overlay is off-screen before the
  * recorder's first frame.
  */
-export function mountCountdownOverlay(seconds: number, rootId: string): void {
+export function mountCountdownOverlay(
+  seconds: number,
+  rootId: string,
+  theme: "light" | "dark" | "system",
+): void {
   document.getElementById(rootId)?.remove();
 
+  // The recorder panel's dim, repeated verbatim from toggleRecorderOverlay
+  // since the serialized body can't share a module constant; "system"
+  // resolves here, where the OS setting is readable.
+  const dark =
+    theme === "dark" ||
+    (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
   const root = document.createElement("div");
   root.id = rootId;
-  // Same backdrop as the recorder overlay's; inlined because the serialized
-  // injection can't reach module scope.
   root.style.cssText =
     "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;" +
-    "justify-content:center;gap:40px;pointer-events:none;" +
-    "background:rgba(10,11,14,.45);" +
-    "backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);" +
-    "font-family:system-ui,-apple-system,sans-serif;";
+    "justify-content:center;gap:40px;pointer-events:none;background:" +
+    (dark ? "rgba(0,0,0,.67)" : "rgba(246,245,241,.72)") +
+    ";font-family:system-ui,-apple-system,sans-serif;";
 
   const finish = (verdict: "cancel" | "skip" | null): void => {
     window.clearInterval(tick);

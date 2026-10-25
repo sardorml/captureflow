@@ -45,7 +45,7 @@ const ROWS: ReadonlyArray<{ label: string; loom: Cell; captureflow: Cell }> = [
   {
     label: "Editing",
     loom: "Trim, stitch, transcript editing",
-    captureflow: "Backgrounds, camera layout, mute",
+    captureflow: "Backgrounds, camera layout, mute, cut from the transcript",
   },
   {
     label: "Annotated screenshots",
@@ -55,7 +55,8 @@ const ROWS: ReadonlyArray<{ label: string; loom: Cell; captureflow: Cell }> = [
   {
     label: "Transcripts and captions",
     loom: true,
-    captureflow: "Not yet",
+    captureflow:
+      "Yes, free, made with Whisper on the instance's own Cloudflare account",
   },
   {
     label: "AI titles, summaries, chapters",
@@ -80,7 +81,7 @@ const INTRO =
   "**Loom** and **CaptureFlow** are both video messaging tools. You record your screen and camera, share a link, and your team watches when it suits them, instead of sitting through another meeting or reading a long thread. They differ in how they charge. Loom bills for each person on your team, while CaptureFlow bills for the storage you use, and it's free if you run it yourself.";
 
 const LOOM_FITS = [
-  "You want AI summaries, transcripts and captions today.",
+  "You want AI titles and summaries today.",
   "You need Windows or mobile apps.",
   "Your company requires SSO and an uptime SLA.",
 ];

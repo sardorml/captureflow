@@ -13,6 +13,10 @@ import {
   BUBBLE_FRAME_ID,
   unmountCameraBubble,
 } from "@/lib/overlay/camera-bubble";
+import {
+  RECORDING_BUBBLE_SIZE,
+  requestRecordingWindow,
+} from "@/lib/overlay/recording-window";
 
 const HOST_ID = CONTROL_BAR_HOST_ID;
 
@@ -43,7 +47,6 @@ const BAR_CSS = `
     position: fixed;
     left: 16px;
     top: 42%;
-    transform: translateY(-50%);
     z-index: 2147483647;
     display: flex;
     flex-direction: column;
@@ -62,7 +65,7 @@ const BAR_CSS = `
   /* Slides in from its edge; the same path out. */
   .bar.entering, .bar.leaving {
     opacity: 0;
-    transform: translate(-12px, -50%);
+    transform: translateX(-12px);
     transition: opacity 0.18s ease-out, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .bar.settled {
@@ -133,6 +136,54 @@ const BAR_CSS = `
   }
   .timer.preview { color: #96989d; }
 `;
+
+// The recording window: just the camera bubble.
+const WINDOW_CSS = `
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    box-sizing: border-box;
+    overflow: hidden;
+    background: #16181d;
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  .note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 20px;
+    color: #96989d;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .bubble {
+    position: relative;
+    flex: none;
+    width: ${RECORDING_BUBBLE_SIZE}px;
+    height: ${RECORDING_BUBBLE_SIZE}px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #16181d;
+  }
+  .bubble iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 50%;
+  }
+`;
+
+type RecordingWindow = {
+  window: Window;
+  bubble: HTMLIFrameElement;
+  live: boolean;
+};
 
 type Bar = {
   update(status: RecordingStatus): void;
@@ -217,6 +268,11 @@ function createBar(): Bar {
   bar.append(stop, timer, pause, extra);
   makeDraggable(host, bar);
   document.documentElement.appendChild(host);
+  // Anchored by its top edge, so unfolding only grows downward and the stop
+  // button never moves; the folded bar still rests centred at 42% of the
+  // viewport.
+  const folded = bar.offsetHeight - extra.offsetHeight;
+  bar.style.top = `calc(42% - ${folded / 2}px)`;
   // Two frames in: the first paints the start state, the second transitions.
   requestAnimationFrame(() =>
     requestAnimationFrame(() => bar.classList.replace("entering", "settled")),
@@ -311,12 +367,29 @@ export default defineContentScript({
   main() {
     let bar: Bar | null = null;
     let previewing = false;
+    let recordingWindow: RecordingWindow | null = null;
+
+    const closeRecordingWindow = (): void => {
+      const open = recordingWindow;
+      if (!open) return;
+      recordingWindow = null;
+      open.window.close();
+    };
+
     const apply = (status: RecordingStatus): void => {
       // The bar leaves with the recording: the upload has its own page.
       const live = status.kind === "recording" || status.kind === "paused";
       if (live) {
         bar ??= createBar();
         bar.update(status);
+        // The camera comes up once the recorder holds it; opening the same
+        // device first can cost the recorder its webcam track.
+        if (recordingWindow && !recordingWindow.live) {
+          recordingWindow.live = true;
+          recordingWindow.bubble.src = chrome.runtime.getURL(
+            "bubble.html?camera=1",
+          );
+        }
         return;
       }
       if (previewing) {
@@ -326,12 +399,72 @@ export default defineContentScript({
       }
       bar?.destroy();
       bar = null;
-      // The recording's bubble goes with the bar; the panel's preview bubble
+      // The window opens on the Start press and waits out the picker and the
+      // countdown; anything but a recording in the making closes it.
+      if (status.kind !== "preparing") closeRecordingWindow();
+      // A leftover page bubble goes with the bar; the panel's preview bubble
       // is the panel's to remove.
       unmountCameraBubble(BUBBLE_FRAME_ID);
     };
     void getRecordingStatus().then(apply);
     watchRecordingStatus(apply);
+
+    const openRecordingWindow = async (live: boolean): Promise<boolean> => {
+      if (recordingWindow) return true;
+      const win = await requestRecordingWindow();
+      if (!win) return false;
+      const doc = win.document;
+      const style = doc.createElement("style");
+      style.textContent = WINDOW_CSS;
+      doc.head.appendChild(style);
+      const circle = doc.createElement("div");
+      circle.className = "bubble";
+      const bubble = doc.createElement("iframe");
+      bubble.src = chrome.runtime.getURL(
+        live ? "bubble.html?camera=1" : "bubble.html",
+      );
+      bubble.allow = "camera; microphone";
+      circle.appendChild(bubble);
+      const note = doc.createElement("p");
+      note.className = "note";
+      note.textContent = "You can move the camera after recording.";
+      doc.body.append(circle, note);
+      recordingWindow = { window: win, bubble, live };
+      win.addEventListener("pagehide", () => {
+        if (recordingWindow?.window === win) recordingWindow = null;
+      });
+      return true;
+    };
+    onMessage("openRecordingWindow", () => openRecordingWindow(false));
+    onMessage("closeRecordingWindow", () => closeRecordingWindow());
+
+    // A floating window stays above a fullscreen page, so the bubble steps
+    // aside while the page is fullscreen and comes back on the way out.
+    // Reopening takes a gesture: the click that left fullscreen, or failing
+    // that (Esc) the next click or key press.
+    let bubbleWaitsOutFullscreen = false;
+    const reopenAfterFullscreen = async (): Promise<void> => {
+      if (!bubbleWaitsOutFullscreen || document.fullscreenElement) return;
+      if (await openRecordingWindow(true)) bubbleWaitsOutFullscreen = false;
+    };
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) {
+        void reopenAfterFullscreen();
+        return;
+      }
+      if (recordingWindow?.live) {
+        bubbleWaitsOutFullscreen = true;
+        closeRecordingWindow();
+      }
+    });
+    for (const type of ["pointerdown", "keydown"] as const) {
+      document.addEventListener(type, () => void reopenAfterFullscreen(), true);
+    }
+    watchRecordingStatus((status) => {
+      if (status.kind !== "recording" && status.kind !== "paused") {
+        bubbleWaitsOutFullscreen = false;
+      }
+    });
 
     // The panel's frame leaving the page ends the preview too, so a worker
     // asleep at the close can't strand the bar.

@@ -102,6 +102,19 @@ For public reads over a CDN host (recording posters/videos and screenshot PNGs),
 reads that origin from the `R2_PUBLIC_BASE_URL` var (default
 `https://cdn.captureflow.dev`).
 
+### Transcription queue
+
+Transcripts run as Whisper calls on Workers AI (the `AI` binding, no setup),
+one per uploaded audio chunk, dispatched through a queue the same Worker
+consumes. Create it once (name **must** be `captureflow-transcription`):
+
+```bash
+pnpm --filter @captureflow/web exec wrangler queues create captureflow-transcription
+```
+
+Queues and Workers AI past the free 10,000 neurons a day need the Workers Paid
+plan.
+
 ---
 
 ## 4. Set secrets
@@ -349,6 +362,8 @@ Scope legend:
 | `DB`                                     | **Required** (binding)        | binding             | D1 database binding.                                                                         | `wrangler d1 create captureflow` + paste id into `wrangler.jsonc`          |
 | `BUCKET`                                 | **Required** (binding)        | binding             | R2 recordings bucket binding.                                                                | `wrangler r2 bucket create captureflow-recordings`                         |
 | `ASSETS`                                 | **Required** (binding)        | binding             | Static-assets fetcher; auto-wired by OpenNext build.                                         | `wrangler.jsonc` `assets` (no manual step)                                 |
+| `AI`                                     | **Required** (binding)        | binding             | Workers AI, runs Whisper for transcripts.                                                    | `wrangler.jsonc` `ai` (no manual step)                                     |
+| `TRANSCRIPTION_QUEUE`                    | **Required** (binding)        | binding             | Queue carrying one message per audio chunk to transcribe.                                    | `wrangler queues create captureflow-transcription`                         |
 | `CAPTUREFLOW_APP_WEB_API_BASE`           | Optional (has default)        | build (desktop)     | Desktop → app-web API base (usage, workspaces).                                              | desktop `.env` (default `https://captureflow.dev`)                         |
 | `CAPTUREFLOW_APP_WEB_BASE`               | Optional (has default)        | build (desktop)     | Desktop → app-web base (account, edit links).                                                | desktop `.env` (default `https://captureflow.dev`)                         |
 | `CAPTUREFLOW_RECORDING_API_BASE`         | Optional (has default)        | build (desktop)     | Desktop → recording API base.                                                                | desktop `.env` (default `https://captureflow.dev/api/r`)                   |

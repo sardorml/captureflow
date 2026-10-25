@@ -1,20 +1,23 @@
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { Tooltip } from "@heroui/react";
 import { formatRelativeLong as formatRelative } from "@/lib/format";
 
 export type ContentBylineProps = {
   ownerName: string | null;
   createdAt: number;
+  leading?: ReactNode;
 };
 
 export function ContentByline({
   ownerName,
   createdAt,
+  leading,
 }: ContentBylineProps): ReactElement {
   const relative = formatRelative(createdAt);
   const absolute = formatAbsolute(createdAt);
   return (
     <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-sm text-fg-muted">
+      {leading}
       {ownerName ? (
         <>
           <span className="text-fg">{ownerName}</span>

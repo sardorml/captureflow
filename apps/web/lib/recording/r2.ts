@@ -2,6 +2,7 @@
 
 import { R2_PUBLIC_BASE_URL } from "@/lib/site";
 import { getCloudflareEnv } from "./cf-env";
+import { deleteObjectsWithPrefix } from "./r2-prefix";
 
 async function getBucket(): Promise<R2Bucket> {
   const env = await getCloudflareEnv();
@@ -73,6 +74,10 @@ export async function abortMultipartUpload(
 export async function deleteObject(storageKey: string): Promise<void> {
   const bucket = await getBucket();
   await bucket.delete(storageKey);
+}
+
+export async function deleteObjectPrefix(prefix: string): Promise<void> {
+  await deleteObjectsWithPrefix(await getBucket(), prefix);
 }
 
 export async function putObject(

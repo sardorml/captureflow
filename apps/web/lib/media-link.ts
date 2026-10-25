@@ -2,32 +2,51 @@
  * Expiring links for non-public media. The storage key is sealed (AES-GCM)
  * into the link, never sent in the clear: the public CDN serves the same
  * bucket, so a key a viewer once saw would outlive any expiry.
+ *
+ * Links for the same key minted within the same hour come out identical, so
+ * a page that re-renders (after an autosave, say) hands the player the URL it
+ * already has and nothing reloads. The IV is a MAC of the payload: an equal
+ * IV means an equal plaintext, which AES-GCM tolerates.
  */
 
 export const MEDIA_LINK_TTL_MS = 6 * 60 * 60 * 1000;
+export const MEDIA_LINK_MINT_WINDOW_MS = 60 * 60 * 1000;
 
 const IV_BYTES = 12;
 const encoder = new TextEncoder();
 
+async function baseKey(secret: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey("raw", encoder.encode(secret), "HKDF", false, [
+    "deriveKey",
+  ]);
+}
+
+function hkdf(info: string): HkdfParams {
+  return {
+    name: "HKDF",
+    hash: "SHA-256",
+    salt: new Uint8Array(),
+    info: encoder.encode(info),
+  };
+}
+
 async function sealingKey(secret: string): Promise<CryptoKey> {
-  const base = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    "HKDF",
-    false,
-    ["deriveKey"],
-  );
   return crypto.subtle.deriveKey(
-    {
-      name: "HKDF",
-      hash: "SHA-256",
-      salt: new Uint8Array(),
-      info: encoder.encode("captureflow media link v1"),
-    },
-    base,
+    hkdf("captureflow media link v1"),
+    await baseKey(secret),
     { name: "AES-GCM", length: 256 },
     false,
     ["encrypt", "decrypt"],
+  );
+}
+
+async function ivKey(secret: string): Promise<CryptoKey> {
+  return crypto.subtle.deriveKey(
+    hkdf("captureflow media link iv v1"),
+    await baseKey(secret),
+    { name: "HMAC", hash: "SHA-256", length: 256 },
+    false,
+    ["sign"],
   );
 }
 
@@ -52,10 +71,14 @@ export async function sealMediaLink(
   storageKey: string,
   now = Date.now(),
 ): Promise<string> {
-  const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
+  const minted =
+    Math.floor(now / MEDIA_LINK_MINT_WINDOW_MS) * MEDIA_LINK_MINT_WINDOW_MS;
   const payload = encoder.encode(
-    JSON.stringify({ k: storageKey, e: now + MEDIA_LINK_TTL_MS }),
+    JSON.stringify({ k: storageKey, e: minted + MEDIA_LINK_TTL_MS }),
   );
+  const iv = new Uint8Array(
+    await crypto.subtle.sign("HMAC", await ivKey(secret), payload),
+  ).slice(0, IV_BYTES);
   const sealed = new Uint8Array(
     await crypto.subtle.encrypt(
       { name: "AES-GCM", iv },

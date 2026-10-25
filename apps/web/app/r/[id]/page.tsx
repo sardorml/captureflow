@@ -6,9 +6,11 @@ import {
   bumpLastViewed,
   getOwnerName,
   getRecording,
+  getTranscript,
   listComments,
   listReactions,
 } from "@/lib/recording/db";
+import { resolveTranscript } from "@/lib/recording/transcript";
 import { verifySession } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
 import {
@@ -220,6 +222,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
     comments,
     ownerName,
     webcamUrlRaw,
+    transcriptRow,
   ] = await Promise.all([
     viewerMediaUrl(row, row.storageKey),
     row.posterKey
@@ -231,9 +234,12 @@ export default async function RecordingPage({ params }: { params: Params }) {
     row.webcamStorageKey && row.webcamState === "ready"
       ? viewerMediaUrl(row, row.webcamStorageKey)
       : Promise.resolve(undefined),
+    getTranscript(id),
   ]);
   const recordingConfig = parseRecordingConfigJson(row.configJson);
   const summaryChapters = parseSummaryChaptersJson(row.summaryChaptersJson);
+  const { transcript, status: transcriptStatus } =
+    resolveTranscript(transcriptRow);
   const videoUrl = withVersion(videoUrlRaw, row.sizeBytes);
   const posterUrl = posterUrlRaw
     ? withVersion(posterUrlRaw, row.sizeBytes)
@@ -259,6 +265,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
   const workspaceName = workspaceRow?.name ?? null;
   const allowPublicLinks = workspaceRow?.allow_public_links ?? true;
   const recordingUrl = viewUrlFor(id);
+  const editUrl = `${APP_WEB_SITE_URL}/recordings/${id}/edit`;
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-fg lg:h-screen lg:overflow-hidden">
@@ -310,7 +317,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
           <RecordingActions
             slug={id}
             recordingUrl={recordingUrl}
-            editUrl={`${APP_WEB_SITE_URL}/recordings/${id}/edit`}
+            editUrl={editUrl}
             initialVisibility={row.visibility}
             isOwner={isOwner}
             workspaceName={workspaceName}
@@ -348,6 +355,9 @@ export default async function RecordingPage({ params }: { params: Params }) {
         isOwner={isOwner}
         initialSummary={summaryChapters.summary}
         initialChapters={summaryChapters.chapters}
+        initialTranscript={transcript}
+        initialTranscriptStatus={transcriptStatus}
+        editUrl={editUrl}
       />
     </div>
   );

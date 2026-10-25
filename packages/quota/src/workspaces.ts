@@ -22,6 +22,7 @@ export type WorkspaceRow = {
   // When allow_public_links is false the upload endpoints coerce public → workspace; when allow_member_uploads is false, member uploads fall back to their personal workspace.
   allow_public_links: boolean;
   allow_member_uploads: boolean;
+  card_bg: string | null;
 };
 
 export type WorkspaceMembership = {
@@ -31,6 +32,7 @@ export type WorkspaceMembership = {
   workspace_name: string;
   workspace_logo_key: string | null;
   workspace_updated_at: number;
+  workspace_card_bg: string | null;
   owner_user_id: string;
   role: WorkspaceRole;
   joined_at: number;
@@ -90,7 +92,7 @@ async function sha256Hex(input: string): Promise<string> {
 
 const WORKSPACE_COLUMNS =
   "id, slug, kind, name, owner_user_id, created_at, updated_at, " +
-  "logo_key, allow_public_links, allow_member_uploads";
+  "logo_key, allow_public_links, allow_member_uploads, card_bg";
 
 type WorkspaceD1Row = {
   id: string;
@@ -103,6 +105,7 @@ type WorkspaceD1Row = {
   logo_key: string | null;
   allow_public_links: number;
   allow_member_uploads: number;
+  card_bg: string | null;
 };
 
 function hydrateWorkspaceRow(r: WorkspaceD1Row): WorkspaceRow {
@@ -117,6 +120,7 @@ function hydrateWorkspaceRow(r: WorkspaceD1Row): WorkspaceRow {
     logo_key: r.logo_key ?? null,
     allow_public_links: r.allow_public_links !== 0,
     allow_member_uploads: r.allow_member_uploads !== 0,
+    card_bg: r.card_bg ?? null,
   };
 }
 
@@ -209,6 +213,53 @@ export async function ensurePersonalWorkspace(
   return row;
 }
 
+// A second, third… workspace for a user who already has a personal one; the
+// creator is its owner. Nothing caps how many a user may own.
+export async function createTeamWorkspace(
+  db: D1Database,
+  input: { ownerUserId: string; name: string },
+): Promise<WorkspaceRow> {
+  const id = generateId();
+  const slug = generateSlug();
+  const now = nowMs();
+  await db
+    .prepare(
+      `INSERT INTO workspace
+         (id, slug, kind, name, owner_user_id, created_at, updated_at)
+         VALUES (?1, ?2, 'team', ?3, ?4, ?5, ?5)`,
+    )
+    .bind(id, slug, input.name, input.ownerUserId, now)
+    .run();
+  await db
+    .prepare(
+      `INSERT INTO workspace_member
+         (workspace_id, user_id, role, joined_at)
+         VALUES (?1, ?2, 'owner', ?3)`,
+    )
+    .bind(id, input.ownerUserId, now)
+    .run();
+  const row = await getWorkspaceById(db, id);
+  if (!row) {
+    throw new Error(
+      `createTeamWorkspace: insert succeeded but lookup returned null for ${id}`,
+    );
+  }
+  return row;
+}
+
+export async function countWorkspaceMembers(
+  db: D1Database,
+  workspaceId: string,
+): Promise<number> {
+  const row = await db
+    .prepare(
+      `SELECT COUNT(*) AS n FROM workspace_member WHERE workspace_id = ?1`,
+    )
+    .bind(workspaceId)
+    .first<{ n: number }>();
+  return row?.n ?? 0;
+}
+
 // These helpers do NOT gate on ownership; the API route layer is the only
 // security check that role = 'owner'.
 export async function updateWorkspaceName(
@@ -241,6 +292,22 @@ export async function updateWorkspaceLogo(
          WHERE id = ?1`,
     )
     .bind(workspaceId, logoKey, nowMs())
+    .run();
+  return (res.meta?.changes ?? 0) > 0;
+}
+
+export async function updateWorkspaceCard(
+  db: D1Database,
+  workspaceId: string,
+  cardBg: string | null,
+): Promise<boolean> {
+  const res = await db
+    .prepare(
+      `UPDATE workspace
+         SET card_bg = ?2, updated_at = ?3
+         WHERE id = ?1`,
+    )
+    .bind(workspaceId, cardBg, nowMs())
     .run();
   return (res.meta?.changes ?? 0) > 0;
 }
@@ -288,6 +355,7 @@ export async function listWorkspacesForUser(
               w.name         AS workspace_name,
               w.logo_key     AS workspace_logo_key,
               w.updated_at   AS workspace_updated_at,
+              w.card_bg      AS workspace_card_bg,
               w.owner_user_id,
               m.role,
               m.joined_at

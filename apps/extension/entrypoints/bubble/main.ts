@@ -6,6 +6,15 @@ import {
 } from "@/lib/auth/session";
 import { initials } from "@/lib/format";
 import { avatarUrlAt } from "@/lib/avatar";
+import { getCapturePrefs, watchCapturePrefs } from "@/lib/storage";
+import {
+  createCameraEffectStream,
+  type CameraEffectStream,
+} from "@/lib/capture/camera-effect-stream";
+import {
+  hydrateCameraEffect,
+  isPlainCameraEffect,
+} from "@/lib/capture/camera-effects";
 
 /*
  * Three modes; the first two seed the extension-origin grant the offscreen
@@ -92,14 +101,52 @@ function revealWhenSettled(video: HTMLVideoElement, reveal: () => void): void {
   video.requestVideoFrameCallback(check);
 }
 
+/*
+ * The preview shows the same effect the recorder will bake in. The pipeline
+ * is started lazily, the first time an effect is picked, and from then on it
+ * stays up so switching back to None doesn't blink the picture.
+ */
+function followEffects(video: HTMLVideoElement, raw: MediaStream): void {
+  let pipeline: CameraEffectStream | null = null;
+  let starting = false;
+  const apply = async (prefsEffect: unknown): Promise<void> => {
+    const effect = hydrateCameraEffect(prefsEffect);
+    if (pipeline) {
+      pipeline.setEffect(effect);
+      return;
+    }
+    if (isPlainCameraEffect(effect) || starting) return;
+    starting = true;
+    try {
+      pipeline = await createCameraEffectStream(
+        raw,
+        effect,
+        chrome.runtime.getURL("mediapipe"),
+      );
+      video.srcObject = pipeline.stream;
+    } catch {
+      pipeline = null;
+    } finally {
+      starting = false;
+    }
+  };
+  void getCapturePrefs().then((p) => apply(p.effect));
+  watchCapturePrefs((p) => void apply(p.effect));
+}
+
 async function runPreview(): Promise<void> {
   const video = document.getElementById("cam");
   if (!(video instanceof HTMLVideoElement)) return;
   // Also settles on failure, so a blocked camera doesn't spin forever.
   const settle = () => document.body.setAttribute("data-state", "ready");
   try {
+    const { cameraId } = await getCapturePrefs();
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+      video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        ...(cameraId ? { deviceId: { ideal: cameraId } } : {}),
+      },
       audio,
     });
     for (const track of stream.getAudioTracks()) track.stop();
@@ -107,6 +154,7 @@ async function runPreview(): Promise<void> {
       once: true,
     });
     video.srcObject = stream;
+    followEffects(video, stream);
     void sendMessage("cameraStatus", { blocked: false });
   } catch {
     settle();

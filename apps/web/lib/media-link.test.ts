@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { MEDIA_LINK_TTL_MS, openMediaLink, sealMediaLink } from "./media-link";
+import {
+  MEDIA_LINK_MINT_WINDOW_MS,
+  MEDIA_LINK_TTL_MS,
+  openMediaLink,
+  sealMediaLink,
+} from "./media-link";
 
 const SECRET = "test-secret-at-least-32-characters-long";
 const KEY = "videos/3f9c2a7be1d04c6a9b8e5f1d2c3b4a59.mp4";
@@ -25,14 +30,21 @@ describe("media links", () => {
     expect(token).toMatch(/^[A-Za-z0-9_-]+$/);
   });
 
-  it("differs every time, even for the same key", async () => {
+  it("is the same link for the same key within the hour", async () => {
     const a = await sealMediaLink(SECRET, KEY, NOW);
-    const b = await sealMediaLink(SECRET, KEY, NOW);
-    expect(a).not.toBe(b);
+    const b = await sealMediaLink(SECRET, KEY, NOW + 45 * 60_000);
+    expect(b).toBe(a);
+    const later = await sealMediaLink(
+      SECRET,
+      KEY,
+      NOW + MEDIA_LINK_MINT_WINDOW_MS,
+    );
+    expect(later).not.toBe(a);
+    expect(await sealMediaLink(SECRET, "videos/other.mp4", NOW)).not.toBe(a);
   });
 
-  it("stops working once it expires", async () => {
-    const token = await sealMediaLink(SECRET, KEY, NOW);
+  it("stops working once it expires, counted from the hour it was minted", async () => {
+    const token = await sealMediaLink(SECRET, KEY, NOW + 30 * 60_000);
     expect(
       await openMediaLink(SECRET, token, NOW + MEDIA_LINK_TTL_MS - 1),
     ).toBe(KEY);

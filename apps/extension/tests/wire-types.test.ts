@@ -18,6 +18,7 @@ const SHARED_TYPES = [
   "FinalizeResponse",
   "AbortRequest",
   "RecordingApiError",
+  "TranscribeRequest",
 ] as const;
 
 const read = (relative: string): string =>

@@ -1,7 +1,12 @@
 import { ENGINE_OUTPUT } from "@captureflow/engine";
 import {
+  MIC_CONSTRAINTS,
+  isAudioChunkRecordingSupported,
+  openMicChain,
+  startAudioChunkRecorder,
   startStreamRecorder,
   startWebcamRecorder,
+  type AudioChunkRecorder,
   type StreamRecorder,
   type WebcamRecorder,
 } from "@captureflow/engine/web";
@@ -16,6 +21,9 @@ import {
   type RecordingUpload,
 } from "../api/upload-streamer";
 import type { CaptureContext } from "../messaging";
+import { createCameraEffectStream } from "./camera-effect-stream";
+import { isPlainCameraEffect } from "./camera-effects";
+import type { TranscribeRequest, UploadTransport } from "../api/types";
 import type {
   ActiveUpload,
   RecordingResultPayload,
@@ -26,6 +34,9 @@ type Callbacks = {
   // Pre-roll countdown, shown by the SW on the page. Runs after all grants
   // and pickers settle, so a cancel tears down before any upload exists.
   onCountdown: () => Promise<"go" | "cancel">;
+  // What the capture ended up on: "monitor", "window" or "browser"; null when
+  // Chrome doesn't say.
+  onSurface: (surface: string | null) => void;
   onStatus: (status: RecordingStatus) => void;
   // Fires as finalize begins, with the share URL — the page renders its own
   // pending state while the tail uploads.
@@ -69,17 +80,34 @@ const deviceConstraint = (
 ): MediaTrackConstraints | boolean =>
   deviceId ? { deviceId: { ideal: deviceId } } : true;
 
+const micConstraint = (deviceId: string | undefined): MediaTrackConstraints =>
+  deviceId
+    ? { deviceId: { ideal: deviceId }, ...MIC_CONSTRAINTS }
+    : { ...MIC_CONSTRAINTS };
+
 /*
  * A chrome.tabCapture stream id is redeemed through getUserMedia's legacy
  * chromeMediaSource constraints — there is no modern equivalent, and they are
  * not in the standard MediaTrackConstraints, hence the cast.
+ *
+ * Tab capture defaults to a fixed output resolution: with max constraints
+ * alone Chrome letterboxes the tab into exactly maxWidth×maxHeight, so a
+ * 16:10 window gets black bars baked into the MP4. Minimums above 1px (and
+ * of another aspect than the maximums) switch Chrome to "any within limit",
+ * which scales the tab to fit without padding. See Chromium's
+ * SelectResolutionPolicyFromCandidates in
+ * media_stream_constraints_util_video_content.cc.
  */
+const TAB_CAPTURE_MIN_DIMENSION = 2;
+
 async function captureTabStream(streamId: string): Promise<MediaStream> {
   return navigator.mediaDevices.getUserMedia({
     video: {
       mandatory: {
         chromeMediaSource: "tab",
         chromeMediaSourceId: streamId,
+        minWidth: TAB_CAPTURE_MIN_DIMENSION,
+        minHeight: TAB_CAPTURE_MIN_DIMENSION,
         maxWidth: ENGINE_OUTPUT.screen.maxWidth,
         maxHeight: ENGINE_OUTPUT.screen.maxHeight,
       },
@@ -129,6 +157,9 @@ export async function recordAndUpload(
     }
     return;
   }
+  cb.onSurface(
+    screenStream.getVideoTracks()[0]?.getSettings().displaySurface ?? null,
+  );
 
   // Webcam (camera + optional mic) is best-effort: if it can't be acquired (no
   // permission yet, no device), fall back to a screen-only recording.
@@ -137,10 +168,28 @@ export async function recordAndUpload(
     try {
       webcamStream = await navigator.mediaDevices.getUserMedia({
         video: deviceConstraint(ctx.cameraId),
-        audio: ctx.mic ? deviceConstraint(ctx.micId) : false,
+        audio: ctx.mic ? micConstraint(ctx.micId) : false,
       });
     } catch {
       webcamStream = null;
+    }
+  }
+  // Background and filter effects are baked into the camera track here, so
+  // the file carries what the bubble showed. A pipeline that fails to start
+  // falls back to the raw camera rather than losing it.
+  let effectStop: (() => void) | null = null;
+  const rawWebcam = webcamStream;
+  if (webcamStream && ctx.effect && !isPlainCameraEffect(ctx.effect)) {
+    try {
+      const processed = await createCameraEffectStream(
+        webcamStream,
+        ctx.effect,
+        chrome.runtime.getURL("mediapipe"),
+      );
+      effectStop = processed.stop;
+      webcamStream = processed.stream;
+    } catch {
+      effectStop = null;
     }
   }
   // Without a camera the mic can't ride the webcam track, so it is muxed into
@@ -150,17 +199,26 @@ export async function recordAndUpload(
     try {
       micStream = await navigator.mediaDevices.getUserMedia({
         video: false,
-        audio: deviceConstraint(ctx.micId),
+        audio: micConstraint(ctx.micId),
       });
     } catch {
       micStream = null;
     }
   }
 
+  // The mic goes through the voice chain wherever it is recorded; the raw
+  // track only feeds the chain.
+  const micTrack =
+    webcamStream?.getAudioTracks()[0] ?? micStream?.getAudioTracks()[0] ?? null;
+  const voice = micTrack ? openMicChain(micTrack) : null;
+
   const stopAllTracks = (): void => {
     stopTracks(screenStream);
+    effectStop?.();
+    if (rawWebcam) stopTracks(rawWebcam);
     if (webcamStream) stopTracks(webcamStream);
     if (micStream) stopTracks(micStream);
+    void voice?.close().catch(() => {});
   };
 
   // A failed countdown round-trip must not strand live tracks — record anyway.
@@ -179,7 +237,7 @@ export async function recordAndUpload(
       const end = await runSession(
         ctx,
         cb,
-        { screenStream, webcamStream, micStream },
+        { screenStream, webcamStream, micStream, voice: voice?.stream ?? null },
         stopAllTracks,
       );
       if (end !== "restart") break;
@@ -195,6 +253,8 @@ type SessionStreams = {
   screenStream: MediaStream;
   webcamStream: MediaStream | null;
   micStream: MediaStream | null;
+  // The mic after the voice chain; null without a mic.
+  voice: MediaStream | null;
 };
 
 async function runSession(
@@ -203,11 +263,11 @@ async function runSession(
   streams: SessionStreams,
   stopAllTracks: () => void,
 ): Promise<SessionEnd> {
-  const { screenStream, webcamStream, micStream } = streams;
+  const { screenStream, webcamStream, micStream, voice } = streams;
 
+  const transport = createRecordingTransport(ctx.deviceId, ctx.token);
   let upload: RecordingUpload;
   try {
-    const transport = createRecordingTransport(ctx.deviceId, ctx.token);
     upload = await startRecordingUpload(
       {
         contentType: "video/mp4",
@@ -247,7 +307,7 @@ async function runSession(
   try {
     screenRecorder = await startStreamRecorder({
       stream: screenStream,
-      micStream,
+      micStream: micStream ? voice : null,
       // fMP4 fragments are strictly appended, so position is ignorable; copy
       // because the muxer reuses its output buffer.
       output: (bytes) => {
@@ -272,8 +332,9 @@ async function runSession(
     try {
       webcamRecorder = startWebcamRecorder({
         webcamStream,
-        // Mic rides the same getUserMedia stream as the camera (Decision 4).
-        micStream: webcamStream,
+        // The mic rides the camera's getUserMedia stream; the chain's output
+        // stands in for it here.
+        micStream: voice,
         onChunk: (buf) => {
           upload.pushWebcam(new Uint8Array(buf));
           if (storageSpent()) sessionRef?.stop();
@@ -290,10 +351,20 @@ async function runSession(
   const activeElapsed = (): number =>
     (pausedAt ?? Date.now()) - startedAt - pausedMs;
 
+  // The transcript is made server-side from the mic alone (the webcam stream
+  // carries the track when there is a camera), uploaded as small audio
+  // chunks beside the video. Best-effort: it never gates the recording.
+  const micTrack = voice?.getAudioTracks()[0] ?? null;
+  const audio =
+    ctx.mic && micTrack
+      ? startAudioUpload(micTrack, upload.slug, transport, activeElapsed)
+      : null;
+
   const stopRecorders = async (): Promise<void> => {
     await Promise.all([
       screenRecorder.stop().catch(() => null),
       webcamRecorder?.stop().catch(() => null) ?? Promise.resolve(null),
+      audio?.recorder.stop().catch(() => null) ?? Promise.resolve(null),
     ]);
   };
 
@@ -311,10 +382,15 @@ async function runSession(
       await Promise.all([
         screenRecorder.stop(),
         webcamRecorder?.stop() ?? Promise.resolve(null),
+        audio?.recorder.stop().catch(() => null) ?? Promise.resolve(null),
       ]);
       // Release the capture (sharing indicator) before the tail upload.
       stopAllTracks();
       const durationMs = activeElapsed();
+      // Same stance as the webcam companion: a lost transcript is not a
+      // failed recording. Requested before finalize, while the device id
+      // still authorizes it, so the share page can show it transcribing.
+      if (audio) await audio.requestTranscript().catch(() => undefined);
       const { url } = await upload.finish(durationMs);
       cb.onActiveUpload(null);
       cb.onResult({
@@ -338,6 +414,7 @@ async function runSession(
   // where pushes are no-ops.
   const discardSession = async (): Promise<void> => {
     upload.abort();
+    audio?.recorder.abort();
     await stopRecorders();
     cb.onActiveUpload(null);
   };
@@ -353,6 +430,7 @@ async function runSession(
       pausedAt = Date.now();
       void screenRecorder.pause();
       webcamRecorder?.pause();
+      audio?.recorder.pause();
       cb.onStatus({ kind: "paused", startedAt, pausedMs, pausedAt });
     },
     resume() {
@@ -361,6 +439,7 @@ async function runSession(
       pausedAt = null;
       screenRecorder.resume();
       webcamRecorder?.resume();
+      audio?.recorder.resume();
       cb.onStatus({ kind: "recording", startedAt, pausedMs });
     },
     restart() {
@@ -390,6 +469,75 @@ async function runSession(
     .catch(() => undefined);
 
   return sessionEnd;
+}
+
+const AUDIO_PART_ATTEMPTS = 3;
+
+type AudioUpload = {
+  recorder: AudioChunkRecorder;
+  // Waits for every chunk, then asks for the transcript; a chunk that never
+  // made it means no request, so a partial transcript is never produced.
+  requestTranscript(): Promise<void>;
+};
+
+/*
+ * Each chunk goes up as it closes, numbered in order, so by the time the
+ * recording stops only the last one is still in flight. The layout posted
+ * with /transcribe places each chunk on the recording clock.
+ */
+function startAudioUpload(
+  track: MediaStreamTrack,
+  slug: string,
+  transport: UploadTransport,
+  elapsedMs: () => number,
+): AudioUpload | null {
+  if (!isAudioChunkRecordingSupported()) return null;
+  const parts: TranscribeRequest["parts"] = [];
+  const uploads: Promise<void>[] = [];
+  let lost = false;
+  let recorder: AudioChunkRecorder;
+  try {
+    recorder = startAudioChunkRecorder({
+      track,
+      elapsedMs,
+      onChunk: ({ bytes, startMs, endMs }) => {
+        const partNumber = parts.length + 1;
+        parts.push({ partNumber, startMs, endMs });
+        uploads.push(
+          retry(AUDIO_PART_ATTEMPTS, () =>
+            transport.uploadAudioPart(slug, partNumber, new Uint8Array(bytes)),
+          ).catch(() => {
+            lost = true;
+          }),
+        );
+      },
+    });
+  } catch {
+    return null;
+  }
+  return {
+    recorder,
+    async requestTranscript() {
+      await Promise.all(uploads);
+      if (lost || parts.length === 0) return;
+      await transport.transcribe({
+        slug,
+        language: navigator.language,
+        parts,
+      });
+    },
+  };
+}
+
+async function retry<T>(attempts: number, run: () => Promise<T>): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await run();
+    } catch (err) {
+      if (attempt >= attempts) throw err;
+      await new Promise((resolve) => setTimeout(resolve, 1_000 * attempt));
+    }
+  }
 }
 
 function failure(err: unknown): RecordingResultPayload {

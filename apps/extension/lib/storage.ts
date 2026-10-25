@@ -1,4 +1,5 @@
 import type { RecordingVisibility } from "./api/types";
+import type { CameraEffect } from "./capture/camera-effects";
 
 /*
  * Which surface the picker opens on. Chrome treats displaySurface as a hint —
@@ -18,6 +19,7 @@ export type CapturePrefs = {
   source?: CaptureSource;
   visibility?: RecordingVisibility;
   shot?: ScreenshotType;
+  effect?: CameraEffect;
 };
 
 /*

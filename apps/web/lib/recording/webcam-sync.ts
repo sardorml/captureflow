@@ -14,7 +14,16 @@
  */
 
 export const HARD_RESYNC_S = 0.25;
-export const NUDGE_DEAD_ZONE_S = 0.04;
+/*
+ * The cam's clock advances in audio-packet steps, so the raw drift jitters by
+ * tens of milliseconds frame to frame. A nudge starts on the smoothed drift
+ * past the outer band and ends only inside the inner one; every rate change
+ * re-stretches the mic audio, and flipping at a single threshold was heard as
+ * a scratch several times a second.
+ */
+export const DRIFT_SMOOTHING = 0.15;
+export const NUDGE_START_S = 0.06;
+export const NUDGE_STOP_S = 0.02;
 export const NUDGE_RATE = 0.04;
 export const MAX_HOLD_MS = 6000;
 export const HOLD_COOLDOWN_MS = 10_000;
@@ -34,6 +43,8 @@ export type SyncInput = {
   cam: MediaSample & { done: boolean };
   holdSince: number | null;
   gaveUpAt: number | null;
+  smoothedDrift: number | null;
+  nudging: boolean;
 };
 
 export type SyncPlan = {
@@ -43,6 +54,8 @@ export type SyncPlan = {
   hold: boolean;
   holdSince: number | null;
   gaveUpAt: number | null;
+  smoothedDrift: number | null;
+  nudging: boolean;
 };
 
 export function planWebcamSync(input: SyncInput): SyncPlan {
@@ -54,24 +67,37 @@ export function planWebcamSync(input: SyncInput): SyncPlan {
     hold: false,
     holdSince: null,
     gaveUpAt: input.gaveUpAt,
+    smoothedDrift: input.smoothedDrift,
+    nudging: input.nudging,
   };
   const pauseCam = () => {
     if (!cam.paused) plan.cam = "pause";
   };
+  // A pause, scrub or stall leaves stale drift behind; measure afresh after.
+  const forget = () => {
+    plan.smoothedDrift = null;
+    plan.nudging = false;
+  };
 
   if (!playing || cam.done) {
     if (!cam.done) pauseCam();
+    forget();
     return plan;
   }
-  if (scrubbing) return plan;
+  if (scrubbing) {
+    forget();
+    return plan;
+  }
 
   if (main.stalled) {
     pauseCam();
+    forget();
     return plan;
   }
 
   const drift = cam.time - main.time;
   if (cam.stalled) {
+    forget();
     const coolingDown =
       input.gaveUpAt !== null && now - input.gaveUpAt < HOLD_COOLDOWN_MS;
     const holdSince = input.holdSince ?? now;
@@ -91,10 +117,18 @@ export function planWebcamSync(input: SyncInput): SyncPlan {
   if (Math.abs(drift) > HARD_RESYNC_S) {
     plan.seekCamTo = main.time;
     plan.camRate = main.rate;
-  } else if (Math.abs(drift) > NUDGE_DEAD_ZONE_S) {
-    plan.camRate = main.rate + (drift < 0 ? NUDGE_RATE : -NUDGE_RATE);
+    forget();
   } else {
-    plan.camRate = main.rate;
+    const smoothed =
+      input.smoothedDrift === null
+        ? drift
+        : input.smoothedDrift + (drift - input.smoothedDrift) * DRIFT_SMOOTHING;
+    plan.smoothedDrift = smoothed;
+    if (Math.abs(smoothed) > NUDGE_START_S) plan.nudging = true;
+    else if (Math.abs(smoothed) < NUDGE_STOP_S) plan.nudging = false;
+    plan.camRate = plan.nudging
+      ? main.rate + (smoothed < 0 ? NUDGE_RATE : -NUDGE_RATE)
+      : main.rate;
   }
   if (plan.camRate !== null && Math.abs(plan.camRate - cam.rate) <= 0.001) {
     plan.camRate = null;

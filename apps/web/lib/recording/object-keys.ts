@@ -4,6 +4,19 @@ export function summaryChaptersKeyFor(videoStorageKey: string): string {
   return `${videoStorageKey}.summary-chapters.json`;
 }
 
+// Mic audio chunks for transcription sit next to the video; their count is
+// only known from the transcript parts table, so deletes sweep the prefix.
+export function audioPartPrefixFor(videoStorageKey: string): string {
+  return `${videoStorageKey.replace(/\.[^.]+$/, "")}-audio-`;
+}
+
+export function audioPartKeyFor(
+  videoStorageKey: string,
+  partNumber: number,
+): string {
+  return `${audioPartPrefixFor(videoStorageKey)}${partNumber}.webm`;
+}
+
 type RecordingObjects = {
   storageKey: string;
   posterKey: string | null;

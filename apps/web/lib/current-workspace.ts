@@ -58,6 +58,7 @@ export const resolveCurrentWorkspace = cache(
                 workspace_name: personal.name,
                 workspace_logo_key: personal.logo_key,
                 workspace_updated_at: personal.updated_at,
+                workspace_card_bg: personal.card_bg,
                 owner_user_id: personal.owner_user_id,
                 role: "owner",
                 joined_at: personal.created_at,

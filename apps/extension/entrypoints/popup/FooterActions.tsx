@@ -273,7 +273,20 @@ function ThemeRow() {
   );
 }
 
-export function FooterActions() {
+const WAND_ICON = (
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
+    <path
+      d="m4 20 10.5-10.5M13 7l1-3 1 3 3 1-3 1-1 3-1-3-3-1 3-1zM18 14l.6-1.6L20.2 12l-1.6-.6L18 9.8l-.6 1.6-1.6.6 1.6.6L18 14zM6 8l.5-1.3L7.8 6 6.5 5.5 6 4.2l-.5 1.3L4.2 6l1.3.5L6 8z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export function FooterActions({ onEffects }: { onEffects: () => void }) {
   const openDashboard = () => {
     void chrome.tabs.create({ url: `${WEB_BASE}/recordings` });
     closeSurface();
@@ -285,6 +298,10 @@ export function FooterActions() {
 
   return (
     <footer className="-mt-2 flex justify-center gap-6">
+      <button type="button" onClick={onEffects} className={ACTION_CLASS}>
+        {WAND_ICON}
+        Effects
+      </button>
       <VisibilityAction />
       <Dropdown>
         <Dropdown.Trigger aria-label="More" className={ACTION_CLASS}>

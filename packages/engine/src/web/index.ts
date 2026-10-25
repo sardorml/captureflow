@@ -1,4 +1,11 @@
 export {
+  isAudioChunkRecordingSupported,
+  startAudioChunkRecorder,
+  type AudioChunk,
+  type AudioChunkRecorder,
+  type AudioChunkRecorderOptions,
+} from "./audio-chunk-recorder";
+export {
   createFmp4Muxer,
   type Fmp4Muxer,
   type Fmp4MuxerOptions,
@@ -12,6 +19,7 @@ export {
   type RecordPipelineResult,
   type RecordPipelineState,
 } from "./record-pipeline";
+export { MIC_CHAIN, openMicChain, type MicChain } from "./mic-chain";
 export { decodePosterJpeg, type PosterSource } from "./poster";
 export {
   startStreamRecorder,
@@ -20,6 +28,7 @@ export {
   type StreamRecorderResult,
 } from "./stream-recorder";
 export {
+  MIC_CONSTRAINTS,
   acquireMicCapture,
   acquireWebcamCapture,
   pickWebcamMimeType,

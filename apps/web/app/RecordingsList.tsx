@@ -2,6 +2,7 @@
 
 import { Card, Chip, EmptyState } from "@heroui/react";
 import { Film } from "lucide-react";
+import { FadeInImage } from "@/components/ui/fade-in-image";
 import { MediaCard } from "./_components/MediaCard";
 import { SelectionBar, useSelection } from "./_components/selection";
 import {
@@ -115,19 +116,27 @@ function RecordingCard({
   selectionActive,
   onSelectedChange,
 }: RecordingCardProps) {
-  const { posterUrl, videoThumbUrl } = recording;
+  const { posterUrl, posterBlur, videoThumbUrl } = recording;
 
   const media = (
     <>
       {posterUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          alt=""
-          style={{ height: "100%", width: "100%", objectFit: "cover" }}
-          decoding="async"
-          loading="lazy"
-          src={posterUrl}
-        />
+        <>
+          {posterBlur ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full scale-110 object-cover blur-md"
+              src={posterBlur}
+            />
+          ) : null}
+          <FadeInImage
+            alt=""
+            className="relative h-full w-full object-cover"
+            src={posterUrl}
+          />
+        </>
       ) : videoThumbUrl ? (
         <video
           style={{
@@ -184,7 +193,7 @@ function RecordingCard({
         comments: recording.commentCount,
         reactions: recording.reactionCount,
       }}
-      sizeBytes={recording.sizeBytes}
+      sizeBytes={recording.totalBytes}
       deleteConfirm={{
         title: "Delete this recording?",
         description:

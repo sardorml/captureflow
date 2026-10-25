@@ -13,6 +13,8 @@ import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { deleteObject, putObject } from "@/lib/r2";
+import { readImageUpload } from "@/lib/workspace-images";
+import { hydrateWorkspaceName } from "@/lib/workspace-name";
 
 // Every action re-verifies owner access server-side: a replayed action lands
 // here directly and can't trust the UI hiding the page from members.
@@ -44,27 +46,14 @@ export async function updateWorkspaceNameAction(
   const env = await getAppWebEnv();
   if (!env?.DB) return { error: "Database unavailable", ok: null };
 
-  const raw = formData.get("name");
-  const next = typeof raw === "string" ? raw.trim() : "";
-  if (!next) return { error: "Workspace name can’t be empty", ok: null };
-  if (next.length > 80) {
-    return { error: "Workspace name is too long (max 80 chars)", ok: null };
-  }
+  const name = hydrateWorkspaceName(formData.get("name"));
+  if (!name.ok) return { error: name.error, ok: null };
 
-  const ok = await updateWorkspaceName(env.DB, workspaceId, next);
+  const ok = await updateWorkspaceName(env.DB, workspaceId, name.name);
   if (!ok) return { error: "Couldn’t save — try again", ok: null };
   revalidatePath("/", "layout");
   return { error: null, ok: "Saved" };
 }
-
-const LOGO_MAX_BYTES = 2 * 1024 * 1024;
-const LOGO_MIME = new Map<string, string>([
-  ["image/png", "png"],
-  ["image/jpeg", "jpg"],
-  ["image/webp", "webp"],
-  ["image/gif", "gif"],
-  ["image/svg+xml", "svg"],
-]);
 
 export async function uploadWorkspaceLogoAction(
   _prev: FormState,
@@ -74,28 +63,14 @@ export async function uploadWorkspaceLogoAction(
   const env = await getAppWebEnv();
   if (!env?.DB) return { error: "Database unavailable", ok: null };
 
-  const file = formData.get("logo");
-  if (!(file instanceof Blob) || file.size === 0) {
-    return { error: "Pick an image file", ok: null };
-  }
-  if (file.size > LOGO_MAX_BYTES) {
-    return { error: "Logo must be 2 MB or smaller", ok: null };
-  }
-  const mime = file.type;
-  const ext = LOGO_MIME.get(mime);
-  if (!ext) {
-    return {
-      error: "Logo must be PNG, JPEG, WebP, GIF, or SVG",
-      ok: null,
-    };
-  }
+  const image = await readImageUpload(formData.get("logo"), "Logo");
+  if (!image.ok) return { error: image.error, ok: null };
 
   // Key on workspaceId so a same-extension re-upload overwrites in place; the
   // page appends updated_at to bust the CDN cache.
-  const key = `workspace-logos/${workspaceId}.${ext}`;
-  const buffer = (await file.arrayBuffer()) as ArrayBuffer;
+  const key = `workspace-logos/${workspaceId}.${image.ext}`;
   try {
-    await putObject(key, buffer, mime, "public, max-age=86400");
+    await putObject(key, image.buffer, image.mime, "public, max-age=86400");
   } catch (err) {
     return {
       error: `Upload failed: ${
