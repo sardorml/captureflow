@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   parseWorkspaceCard,
+  resolveWorkspaceCard,
   serializeWorkspaceCard,
   workspaceCardStyle,
 } from "./workspace-card";
@@ -32,6 +33,22 @@ describe("workspace card background", () => {
     ]) {
       expect(parseWorkspaceCard(bad)).toBe(null);
     }
+  });
+
+  it("gives every workspace a stable colour until one is picked", () => {
+    const a = resolveWorkspaceCard(null, "ws_a");
+    expect(a).toEqual(resolveWorkspaceCard("", "ws_a"));
+    expect(a.kind).toBe("preset");
+    expect(resolveWorkspaceCard("preset:mint", "ws_a")).toEqual({
+      kind: "preset",
+      key: "mint",
+    });
+    const picked = new Set(
+      ["ws_a", "ws_b", "ws_c", "ws_d", "ws_e", "ws_f"].map(
+        (id) => resolveWorkspaceCard(null, id).key,
+      ),
+    );
+    expect(picked.size).toBeGreaterThan(1);
   });
 
   it("paints a gradient for presets and a versioned image otherwise", () => {

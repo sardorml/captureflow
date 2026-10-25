@@ -5,8 +5,7 @@ import { Check, Settings2, UserPlus } from "lucide-react";
 import { Avatar, Button, Chip, Tabs } from "@heroui/react";
 import type { WorkspaceKind, WorkspaceRole } from "@captureflow/quota";
 import { initials } from "@/lib/format";
-import { cn } from "@/lib/utils";
-import { parseWorkspaceCard, workspaceCardStyle } from "@/lib/workspace-card";
+import { resolveWorkspaceCard, workspaceCardStyle } from "@/lib/workspace-card";
 import { InviteModal } from "../InviteModal";
 import { switchWorkspaceAction } from "../switch-workspace-action";
 import { ManageWorkspaceModal } from "./ManageWorkspaceModal";
@@ -138,25 +137,18 @@ function WorkspaceCard({
   onManage: () => void;
   onInvite: () => void;
 }) {
-  const background = parseWorkspaceCard(workspace.cardBg);
+  const background = resolveWorkspaceCard(workspace.cardBg, workspace.id);
   const isOwner = workspace.role === "owner";
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]">
-      {background && (
-        <div
-          className="h-16"
-          style={workspaceCardStyle(background, workspace.updatedAt)}
-          aria-hidden="true"
-        />
-      )}
+      <div
+        className="h-16"
+        style={workspaceCardStyle(background, workspace.updatedAt)}
+        aria-hidden="true"
+      />
       <div className="flex flex-1 flex-col gap-4 p-5">
         <div className="flex items-start gap-3">
-          <Avatar
-            className={cn(
-              "size-12 shrink-0 rounded-full",
-              background && "-mt-11 ring-4 ring-panel dark:ring-panel-2",
-            )}
-          >
+          <Avatar className="-mt-11 size-12 shrink-0 rounded-full ring-4 ring-panel dark:ring-panel-2">
             {workspace.logoUrl && (
               <Avatar.Image src={workspace.logoUrl} alt="" />
             )}

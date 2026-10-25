@@ -15,7 +15,7 @@ import type { WorkspaceMembership } from "@captureflow/quota";
 import { initials } from "@/lib/format";
 import { workspaceLogoUrl } from "@/lib/site";
 import { cn } from "@/lib/utils";
-import { parseWorkspaceCard, workspaceCardStyle } from "@/lib/workspace-card";
+import { resolveWorkspaceCard, workspaceCardStyle } from "@/lib/workspace-card";
 import { InviteModal } from "./InviteModal";
 import { switchWorkspaceAction } from "./switch-workspace-action";
 
@@ -118,10 +118,13 @@ export function WorkspaceSwitcher({
     (m) => m.workspace_id !== current.workspace_id,
   );
   const canSwitch = others.length > 0;
-  // The picked card background shows through a translucent panel: a tint of
-  // the colour rather than a poster, so the sidebar stays quiet.
-  const cardBg = parseWorkspaceCard(current.workspace_card_bg);
-  const cardStyle = workspaceCardStyle(cardBg, current.workspace_updated_at);
+  // The whole card carries the workspace background; the white panel sits on
+  // it and leaves a slim edge showing, so the sidebar stays quiet and the
+  // colour still says which workspace it is.
+  const cardStyle = workspaceCardStyle(
+    resolveWorkspaceCard(current.workspace_card_bg, current.workspace_id),
+    current.workspace_updated_at,
+  );
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -132,13 +135,10 @@ export function WorkspaceSwitcher({
       <div
         ref={cardRef}
         data-testid="workspace-card"
-        data-picture={cardBg ? "true" : undefined}
-        className={cn(
-          "overflow-hidden rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]",
-        )}
+        className="overflow-hidden rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05),inset_0_0_0_1px_rgb(0_0_0/0.1)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06),inset_0_0_0_1px_rgb(255_255_255/0.1)]"
         style={cardStyle}
       >
-        <div className={cn(cardBg && "bg-panel/85 dark:bg-panel-2/85")}>
+        <div className="relative mt-1.5 rounded-t-2xl bg-panel dark:bg-panel-2">
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
               aria-label="Switch workspace"

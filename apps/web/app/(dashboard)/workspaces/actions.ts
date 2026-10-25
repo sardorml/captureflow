@@ -148,25 +148,20 @@ function dropCardImage(workspace: WorkspaceRow, keep?: string): void {
   }
 }
 
-// `preset` is a palette key, or "none" for a plain card.
 export async function setWorkspaceCardPresetAction(
   formData: FormData,
 ): Promise<FormState> {
   const owned = await requireOwned(formData.get("workspaceId"));
   if (!owned.ok) return failed(owned.error);
   const raw = formData.get("preset");
-  if (
-    raw !== "none" &&
-    !(typeof raw === "string" && isWorkspaceCardPresetKey(raw))
-  ) {
+  if (!(typeof raw === "string" && isWorkspaceCardPresetKey(raw))) {
     return failed("Unknown background");
   }
   dropCardImage(owned.workspace);
-  const next = raw === "none" ? null : { kind: "preset" as const, key: raw };
   await updateWorkspaceCard(
     owned.db,
     owned.workspace.id,
-    serializeWorkspaceCard(next),
+    serializeWorkspaceCard({ kind: "preset", key: raw }),
   );
   revalidatePath("/", "layout");
   return saved("Background updated");

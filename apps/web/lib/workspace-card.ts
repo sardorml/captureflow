@@ -44,9 +44,19 @@ const GRAIN = `url("data:image/svg+xml,${encodeURIComponent(
   "<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>" +
     "<filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/>" +
     "<feColorMatrix type='saturate' values='0'/>" +
-    "<feComponentTransfer><feFuncR type='linear' slope='0.6' intercept='0.2'/><feFuncG type='linear' slope='0.6' intercept='0.2'/><feFuncB type='linear' slope='0.6' intercept='0.2'/><feFuncA type='table' tableValues='1 1'/></feComponentTransfer></filter>" +
+    "<feComponentTransfer><feFuncR type='linear' slope='0.16' intercept='0.42'/><feFuncG type='linear' slope='0.16' intercept='0.42'/><feFuncB type='linear' slope='0.16' intercept='0.42'/><feFuncA type='table' tableValues='1 1'/></feComponentTransfer></filter>" +
     "<rect width='100%' height='100%' filter='url(#g)'/></svg>",
 )}")`;
+
+// Every workspace has a colour from day one; the id picks a stable one until
+// the owner chooses.
+export function defaultWorkspaceCardPreset(
+  workspaceId: string,
+): WorkspaceCardPresetKey {
+  let hash = 0;
+  for (const ch of workspaceId) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  return WORKSPACE_CARD_PRESET_KEYS[hash % WORKSPACE_CARD_PRESET_KEYS.length];
+}
 
 export type WorkspaceCardBackground =
   | { kind: "preset"; key: WorkspaceCardPresetKey }
@@ -68,6 +78,18 @@ export function parseWorkspaceCard(
     return IMAGE_KEY.test(key) ? { kind: "image", key } : null;
   }
   return null;
+}
+
+export function resolveWorkspaceCard(
+  raw: string | null | undefined,
+  workspaceId: string,
+): WorkspaceCardBackground {
+  return (
+    parseWorkspaceCard(raw) ?? {
+      kind: "preset",
+      key: defaultWorkspaceCardPreset(workspaceId),
+    }
+  );
 }
 
 export function serializeWorkspaceCard(

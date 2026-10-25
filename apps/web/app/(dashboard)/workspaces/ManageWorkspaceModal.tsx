@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import {
   WORKSPACE_CARD_PRESETS,
   WORKSPACE_CARD_PRESET_KEYS,
-  parseWorkspaceCard,
+  resolveWorkspaceCard,
   workspaceCardGradient,
   workspaceCardStyle,
 } from "@/lib/workspace-card";
@@ -232,7 +232,7 @@ function CardSection({ workspace }: { workspace: WorkspaceCardData }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<FormState>(IDLE);
   const [pending, start] = useTransition();
-  const current = parseWorkspaceCard(workspace.cardBg);
+  const current = resolveWorkspaceCard(workspace.cardBg, workspace.id);
   const pick = (preset: string) =>
     start(async () => {
       const form = new FormData();
@@ -256,27 +256,13 @@ function CardSection({ workspace }: { workspace: WorkspaceCardData }) {
         hint="A colour or a picture across the top of this workspace's card."
       />
       <div
-        className="h-16 rounded-xl bg-tint"
+        className="h-16 rounded-xl"
         style={workspaceCardStyle(current, workspace.updatedAt)}
         aria-hidden="true"
       />
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          aria-label="No background"
-          aria-pressed={current === null}
-          disabled={pending}
-          onClick={() => pick("none")}
-          className={cn(
-            swatch,
-            "flex items-center justify-center bg-tint text-[10px] font-medium text-fg-muted",
-            current === null && "ring-2 ring-accent",
-          )}
-        >
-          None
-        </button>
         {WORKSPACE_CARD_PRESET_KEYS.map((key) => {
-          const selected = current?.kind === "preset" && current.key === key;
+          const selected = current.kind === "preset" && current.key === key;
           return (
             <button
               key={key}
@@ -314,7 +300,7 @@ function CardSection({ workspace }: { workspace: WorkspaceCardData }) {
           ) : (
             <Upload size={14} />
           )}
-          {current?.kind === "image" ? "Replace image" : "Upload image"}
+          {current.kind === "image" ? "Replace image" : "Upload image"}
         </Button>
       </div>
       <Outcome state={state} />
