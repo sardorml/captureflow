@@ -15,6 +15,7 @@ import type { WorkspaceMembership } from "@captureflow/quota";
 import { initials } from "@/lib/format";
 import { workspaceLogoUrl } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { parseWorkspaceCard, workspaceCardStyle } from "@/lib/workspace-card";
 import { InviteModal } from "./InviteModal";
 import { switchWorkspaceAction } from "./switch-workspace-action";
 
@@ -117,6 +118,10 @@ export function WorkspaceSwitcher({
     (m) => m.workspace_id !== current.workspace_id,
   );
   const canSwitch = others.length > 0;
+  // The picked card background shows through a translucent panel: a tint of
+  // the colour rather than a poster, so the sidebar stays quiet.
+  const cardBg = parseWorkspaceCard(current.workspace_card_bg);
+  const cardStyle = workspaceCardStyle(cardBg, current.workspace_updated_at);
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -126,102 +131,109 @@ export function WorkspaceSwitcher({
           press to the trigger. */}
       <div
         ref={cardRef}
-        className="rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]"
+        data-testid="workspace-card"
+        data-picture={cardBg ? "true" : undefined}
+        className={cn(
+          "overflow-hidden rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]",
+        )}
+        style={cardStyle}
       >
-        <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
-          <Dropdown.Trigger
-            aria-label="Switch workspace"
-            className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl px-3 pt-2.5 pb-1 outline-none"
-          >
-            <span className="truncate font-medium text-fg">
-              {current.workspace_name}
-            </span>
-            <ChevronsUpDown size={14} className="shrink-0 text-fg-muted" />
-          </Dropdown.Trigger>
-          {/* Anchored to the card rather than to the trigger row, so it opens
+        <div className={cn(cardBg && "bg-panel/85 dark:bg-panel-2/85")}>
+          <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
+            <Dropdown.Trigger
+              aria-label="Switch workspace"
+              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl px-3 pt-2.5 pb-1 outline-none"
+            >
+              <span className="truncate font-medium text-fg">
+                {current.workspace_name}
+              </span>
+              <ChevronsUpDown size={14} className="shrink-0 text-fg-muted" />
+            </Dropdown.Trigger>
+            {/* Anchored to the card rather than to the trigger row, so it opens
               clear of the Default line instead of on top of it. outline-none
               because HeroUI resets the popover's focus ring with
               `:focus-visible:not(:focus)`, which never matches — so the browser
               draws its own ring around the whole panel on open. */}
-          <Dropdown.Popover
-            triggerRef={cardRef}
-            placement="bottom start"
-            className="min-w-64 outline-none"
-          >
-            <div className="flex flex-col items-center gap-2 px-4 pt-4 pb-3 text-center">
-              <WorkspaceMark membership={current} size={48} />
-              <span className="truncate font-semibold text-fg">
-                {current.workspace_name}
-              </span>
-              <DefaultBadge canSwitch={canSwitch} />
-              <span className="text-xs text-fg-muted">
-                {plural(memberCount, "member")} &middot;{" "}
-                {plural(recordingCount, "recording")}
-              </span>
-              {/* Inside the current workspace's block, since that is the
+            <Dropdown.Popover
+              triggerRef={cardRef}
+              placement="bottom start"
+              className="min-w-64 outline-none"
+            >
+              <div className="flex flex-col items-center gap-2 px-4 pt-4 pb-3 text-center">
+                <WorkspaceMark membership={current} size={48} />
+                <span className="truncate font-semibold text-fg">
+                  {current.workspace_name}
+                </span>
+                <DefaultBadge canSwitch={canSwitch} />
+                <span className="text-xs text-fg-muted">
+                  {plural(memberCount, "member")} &middot;{" "}
+                  {plural(recordingCount, "recording")}
+                </span>
+                {/* Inside the current workspace's block, since that is the
                   workspace the invite is to. */}
-              {canInvite && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  fullWidth
-                  className="mt-1"
-                  onPress={() => {
-                    setOpen(false);
-                    setInviting(true);
-                  }}
-                >
-                  <UserPlus size={16} />
-                  Invite to this workspace
-                </Button>
-              )}
-            </div>
-
-            {canSwitch && (
-              <>
-                <hr className="border-line" />
-                <p className="px-4 pt-2.5 pb-0.5 text-[11px] font-medium tracking-wide text-fg-subtle uppercase">
-                  Switch to
-                </p>
-                <Dropdown.Menu onAction={(key) => choose(String(key))}>
-                  {others.map((m) => (
-                    <Dropdown.Item key={m.workspace_id} id={m.workspace_id}>
-                      <WorkspaceMark membership={m} size={22} />
-                      <span className="flex min-w-0 flex-col">
-                        <span className="truncate font-medium text-fg">
-                          {m.workspace_name}
-                        </span>
-                        <span className="text-xs text-fg-muted">
-                          {m.role === "owner" ? "You own this" : "You joined"}
-                        </span>
-                      </span>
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </>
-            )}
-
-            <hr className="border-line" />
-            <div className="p-2">
-              <Link
-                href="/workspaces"
-                onClick={() => setOpen(false)}
-                className={cn(
-                  buttonVariants({ variant: "ghost" }),
-                  "w-full justify-start",
+                {canInvite && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    fullWidth
+                    className="mt-1"
+                    onPress={() => {
+                      setOpen(false);
+                      setInviting(true);
+                    }}
+                  >
+                    <UserPlus size={16} />
+                    Invite to this workspace
+                  </Button>
                 )}
-              >
-                <LayoutGrid size={16} />
-                All workspaces
-              </Link>
-            </div>
-          </Dropdown.Popover>
-        </Dropdown>
+              </div>
 
-        <div className="flex items-center gap-2 px-3 pb-2.5 text-xs text-fg-muted">
-          <DefaultBadge canSwitch={canSwitch} />
-          <span className="h-3 w-px shrink-0 bg-line" />
-          <span className="truncate">{plural(memberCount, "member")}</span>
+              {canSwitch && (
+                <>
+                  <hr className="border-line" />
+                  <p className="px-4 pt-2.5 pb-0.5 text-[11px] font-medium tracking-wide text-fg-subtle uppercase">
+                    Switch to
+                  </p>
+                  <Dropdown.Menu onAction={(key) => choose(String(key))}>
+                    {others.map((m) => (
+                      <Dropdown.Item key={m.workspace_id} id={m.workspace_id}>
+                        <WorkspaceMark membership={m} size={22} />
+                        <span className="flex min-w-0 flex-col">
+                          <span className="truncate font-medium text-fg">
+                            {m.workspace_name}
+                          </span>
+                          <span className="text-xs text-fg-muted">
+                            {m.role === "owner" ? "You own this" : "You joined"}
+                          </span>
+                        </span>
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </>
+              )}
+
+              <hr className="border-line" />
+              <div className="p-2">
+                <Link
+                  href="/workspaces"
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    buttonVariants({ variant: "ghost" }),
+                    "w-full justify-start",
+                  )}
+                >
+                  <LayoutGrid size={16} />
+                  All workspaces
+                </Link>
+              </div>
+            </Dropdown.Popover>
+          </Dropdown>
+
+          <div className="flex items-center gap-2 px-3 pb-2.5 text-xs text-fg-muted">
+            <DefaultBadge canSwitch={canSwitch} />
+            <span className="h-3 w-px shrink-0 bg-line" />
+            <span className="truncate">{plural(memberCount, "member")}</span>
+          </div>
         </div>
       </div>
 

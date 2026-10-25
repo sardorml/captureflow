@@ -48,6 +48,7 @@ export {
   removeWorkspaceMember,
   updateWorkspaceName,
   updateWorkspaceLogo,
+  updateWorkspaceCard,
   updateWorkspacePolicy,
 } from "./workspaces";
 export type {

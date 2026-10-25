@@ -20,12 +20,17 @@ type InviteModalProps = {
   trigger?: ReactElement;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  // Invites to this workspace instead of the current one.
+  workspaceId?: string;
+  workspaceName?: string;
 };
 
 export function InviteModal({
   trigger,
   isOpen,
   onOpenChange,
+  workspaceId,
+  workspaceName,
 }: InviteModalProps = {}) {
   const [ownOpen, setOwnOpen] = useState(false);
   // Controlled when a caller passes isOpen — the workspace switcher opens this
@@ -85,6 +90,7 @@ export function InviteModal({
       for (const email of all) {
         const fd = new FormData();
         fd.set("email", email);
+        if (workspaceId) fd.set("workspaceId", workspaceId);
         const res = await inviteMemberAction({ error: null, ok: null }, fd);
         if (res.ok) sent.push(email);
         else failed.push({ email, error: res.error ?? "Failed" });
@@ -128,7 +134,9 @@ export function InviteModal({
             <Modal.Dialog>
               <Modal.Header>
                 <Modal.Heading>
-                  Invite teammates to your workspace
+                  {workspaceName
+                    ? `Invite teammates to ${workspaceName}`
+                    : "Invite teammates to your workspace"}
                 </Modal.Heading>
               </Modal.Header>
               <Modal.Body>

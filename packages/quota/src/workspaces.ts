@@ -22,6 +22,7 @@ export type WorkspaceRow = {
   // When allow_public_links is false the upload endpoints coerce public → workspace; when allow_member_uploads is false, member uploads fall back to their personal workspace.
   allow_public_links: boolean;
   allow_member_uploads: boolean;
+  card_bg: string | null;
 };
 
 export type WorkspaceMembership = {
@@ -31,6 +32,7 @@ export type WorkspaceMembership = {
   workspace_name: string;
   workspace_logo_key: string | null;
   workspace_updated_at: number;
+  workspace_card_bg: string | null;
   owner_user_id: string;
   role: WorkspaceRole;
   joined_at: number;
@@ -90,7 +92,7 @@ async function sha256Hex(input: string): Promise<string> {
 
 const WORKSPACE_COLUMNS =
   "id, slug, kind, name, owner_user_id, created_at, updated_at, " +
-  "logo_key, allow_public_links, allow_member_uploads";
+  "logo_key, allow_public_links, allow_member_uploads, card_bg";
 
 type WorkspaceD1Row = {
   id: string;
@@ -103,6 +105,7 @@ type WorkspaceD1Row = {
   logo_key: string | null;
   allow_public_links: number;
   allow_member_uploads: number;
+  card_bg: string | null;
 };
 
 function hydrateWorkspaceRow(r: WorkspaceD1Row): WorkspaceRow {
@@ -117,6 +120,7 @@ function hydrateWorkspaceRow(r: WorkspaceD1Row): WorkspaceRow {
     logo_key: r.logo_key ?? null,
     allow_public_links: r.allow_public_links !== 0,
     allow_member_uploads: r.allow_member_uploads !== 0,
+    card_bg: r.card_bg ?? null,
   };
 }
 
@@ -292,6 +296,22 @@ export async function updateWorkspaceLogo(
   return (res.meta?.changes ?? 0) > 0;
 }
 
+export async function updateWorkspaceCard(
+  db: D1Database,
+  workspaceId: string,
+  cardBg: string | null,
+): Promise<boolean> {
+  const res = await db
+    .prepare(
+      `UPDATE workspace
+         SET card_bg = ?2, updated_at = ?3
+         WHERE id = ?1`,
+    )
+    .bind(workspaceId, cardBg, nowMs())
+    .run();
+  return (res.meta?.changes ?? 0) > 0;
+}
+
 export type WorkspacePolicyPatch = {
   allowPublicLinks?: boolean;
   allowMemberUploads?: boolean;
@@ -335,6 +355,7 @@ export async function listWorkspacesForUser(
               w.name         AS workspace_name,
               w.logo_key     AS workspace_logo_key,
               w.updated_at   AS workspace_updated_at,
+              w.card_bg      AS workspace_card_bg,
               w.owner_user_id,
               m.role,
               m.joined_at

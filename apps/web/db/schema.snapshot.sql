@@ -217,7 +217,7 @@ CREATE TABLE workspace (
   owner_user_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at      INTEGER NOT NULL,
   updated_at      INTEGER NOT NULL
-, logo_key             TEXT, allow_public_links   INTEGER NOT NULL DEFAULT 1, allow_member_uploads INTEGER NOT NULL DEFAULT 1) STRICT;
+, logo_key             TEXT, allow_public_links   INTEGER NOT NULL DEFAULT 1, allow_member_uploads INTEGER NOT NULL DEFAULT 1, card_bg TEXT) STRICT;
 CREATE TABLE workspace_member (
   workspace_id    TEXT NOT NULL REFERENCES workspace(id) ON DELETE CASCADE,
   user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,

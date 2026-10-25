@@ -7,6 +7,7 @@ import {
   acceptInvite,
   createInvite,
   findInviteByToken,
+  getWorkspaceById,
   removeWorkspaceMember,
   revokeInvite,
   setCurrentWorkspaceId,
@@ -63,15 +64,22 @@ export async function inviteMemberAction(
     return { error: "You’re already in your own workspace", ok: null };
   }
 
-  // Re-check ownership so a forged submission can't bypass the owner-only UI gate.
-  const current = await resolveCurrentWorkspace(session.userId, session.name);
-  if (current.role !== "owner") {
+  // Re-check ownership so a forged submission can't bypass the owner-only UI
+  // gate. A workspaceId names any workspace the caller owns (the Workspaces
+  // page); without one the invite is to the current workspace.
+  const targetId = formData.get("workspaceId");
+  const workspace =
+    typeof targetId === "string" && targetId
+      ? await getWorkspaceById(env.DB, targetId)
+      : await resolveCurrentWorkspace(session.userId, session.name).then(
+          (current) => (current.role === "owner" ? current.workspace : null),
+        );
+  if (!workspace || workspace.owner_user_id !== session.userId) {
     return {
       error: "Only the workspace owner can invite teammates",
       ok: null,
     };
   }
-  const workspace = current.workspace;
 
   const result = await createInvite(env.DB, {
     workspaceId: workspace.id,
