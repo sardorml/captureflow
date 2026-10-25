@@ -15,8 +15,12 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   slug: string;
-  initialTranscript: RecordingTranscript | null;
-  initialStatus: TranscriptStatus;
+  transcript: RecordingTranscript | null;
+  status: TranscriptStatus;
+  onSettled: (
+    transcript: RecordingTranscript | null,
+    status: TranscriptStatus,
+  ) => void;
   cuts: RecordingCut[];
   isOwner: boolean;
   editUrl: string;
@@ -32,16 +36,15 @@ const POLL_FOR_MS = 30 * 60_000;
 // The sidebar's Transcript tab: fills the column, list scrolls on its own.
 export function TranscriptPanel({
   slug,
-  initialTranscript,
-  initialStatus,
+  transcript,
+  status,
+  onSettled,
   cuts,
   isOwner,
   editUrl,
   onSeek,
   getCurrentMs,
 }: Props) {
-  const [transcript, setTranscript] = useState(initialTranscript);
-  const [status, setStatus] = useState(initialStatus);
   const [query, setQuery] = useState("");
   const [currentMs, setCurrentMs] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -58,15 +61,14 @@ export function TranscriptPanel({
         if (res.ok) {
           const data = (await res.json()) as TranscriptResponse;
           if (!cancelled && data.status !== "pending") {
-            setTranscript(data.transcript);
-            setStatus(data.status);
+            onSettled(data.transcript, data.status);
             return;
           }
         }
       } catch {
         // retry on the next tick
       }
-      if (!cancelled && Date.now() > deadline) setStatus("failed");
+      if (!cancelled && Date.now() > deadline) onSettled(null, "failed");
     };
     void tick();
     const id = window.setInterval(tick, POLL_INTERVAL_MS);
@@ -74,7 +76,7 @@ export function TranscriptPanel({
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [status, slug]);
+  }, [status, slug, onSettled]);
 
   useEffect(() => {
     const id = window.setInterval(() => setCurrentMs(getCurrentMs()), 500);

@@ -84,6 +84,19 @@ export function RecordingViewer({
   );
   const [chapters, setChapters] = useState<RecordingChapter[]>(initialChapters);
   const [comments, setComments] = useState<RecordingComment[]>(initialComments);
+  // Held here rather than in the Transcript tab so the player's captions
+  // track appears when a just-shared recording's transcript lands.
+  const [transcript, setTranscript] = useState(initialTranscript);
+  const [transcriptStatus, setTranscriptStatus] = useState(
+    initialTranscriptStatus,
+  );
+  const onTranscriptSettled = useCallback(
+    (next: RecordingTranscript | null, status: TranscriptStatus) => {
+      setTranscript(next);
+      setTranscriptStatus(status);
+    },
+    [],
+  );
   // Only the owner's Edit tab ever changes it; for everyone else this is the
   // server's config as given.
   const {
@@ -168,11 +181,9 @@ export function RecordingViewer({
             serverHeight={serverHeight}
             config={config}
             captionsUrl={
-              initialTranscript
-                ? `/api/r/transcript/${slug}/captions`
-                : undefined
+              transcript ? `/api/r/transcript/${slug}/captions` : undefined
             }
-            captionsLang={initialTranscript?.language ?? undefined}
+            captionsLang={transcript?.language ?? undefined}
             chapters={chapters}
             comments={comments}
             viewerSignedIn={signedIn}
@@ -209,8 +220,9 @@ export function RecordingViewer({
         transcript={
           <TranscriptPanel
             slug={slug}
-            initialTranscript={initialTranscript}
-            initialStatus={initialTranscriptStatus}
+            transcript={transcript}
+            status={transcriptStatus}
+            onSettled={onTranscriptSettled}
             cuts={config.cuts}
             isOwner={isOwner}
             editUrl={editUrl}
