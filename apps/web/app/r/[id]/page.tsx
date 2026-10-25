@@ -282,11 +282,12 @@ export default async function RecordingPage({ params }: { params: Params }) {
   const editUrl = `${APP_WEB_SITE_URL}/recordings/${id}/edit`;
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas text-fg lg:h-screen lg:overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-panel text-fg lg:h-screen lg:overflow-hidden">
       <AuthSync initialUserId={visitor?.userId ?? null} />
       <ViewerNav
         homeUrl={APP_WEB_SITE_URL}
         productName={PRODUCT_NAME}
+        className="border-b border-line bg-panel"
         /* The workspace panel is the signed-in user's own; an anonymous viewer
            has nothing to put in it, and Sidebar's requireSession would bounce
            them to /auth/clear mid-render. Suspense keeps its workspace queries

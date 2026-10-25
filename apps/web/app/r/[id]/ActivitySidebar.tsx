@@ -371,7 +371,7 @@ export function ActivitySidebar({
   };
 
   return (
-    <aside className="flex w-full flex-col bg-canvas-2 lg:mr-4 lg:w-auto lg:mb-4 lg:h-[calc(100%-1rem)] lg:overflow-hidden lg:rounded-3xl lg:bg-panel lg:border lg:border-black/[0.07] lg:dark:border-white/[0.07]">
+    <aside className="flex w-full flex-col border-line bg-panel max-lg:border-t lg:h-full lg:w-auto lg:overflow-hidden lg:border-l">
       <Tabs
         selectedKey={tab}
         onSelectionChange={(key) => setTab(key as SidebarTab)}
