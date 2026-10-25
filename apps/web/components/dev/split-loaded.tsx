@@ -11,14 +11,23 @@ import {
  * Marks the content of a code-split section as arrived. Render it inside the
  * section, next to an element carrying data-split={name} that the overlay
  * can outline. The inline script runs as the streamed HTML is parsed; the
- * effect covers content that first renders on the client.
+ * effect covers content that first renders on the client. The script goes
+ * in as raw HTML because React warns about a <script> element it renders,
+ * and one inserted on the client would not run anyway.
  */
 export function SplitLoaded({ name }: { name: string }) {
   useEffect(() => {
     drainSplitStamps();
     reportSplitLoad(name);
   }, [name]);
-  return <script dangerouslySetInnerHTML={{ __html: splitStamp(name) }} />;
+  return (
+    <div
+      hidden
+      dangerouslySetInnerHTML={{
+        __html: `<script>${splitStamp(name)}</script>`,
+      }}
+    />
+  );
 }
 
 // For dynamic() imports: wraps the loaded component so mounting it reports.
