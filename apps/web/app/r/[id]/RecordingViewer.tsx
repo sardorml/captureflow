@@ -19,11 +19,17 @@ import { RecordingPlayer } from "./RecordingPlayer";
 import { Avatar } from "@heroui/react";
 import { initials } from "@/lib/format";
 import { useEditorConfig } from "@/app/recordings/[id]/edit/use-editor-config";
+import dynamic from "next/dynamic";
 import { ActivitySidebar } from "./ActivitySidebar";
-import { EditPanel } from "./EditPanel";
 import { EditableTitle } from "./EditableTitle";
 import { SummaryChapters } from "./SummaryChapters";
 import { TranscriptPanel } from "./TranscriptPanel";
+
+// Owner-only, so viewers never download the editor's controls.
+const EditPanel = dynamic(
+  () => import("./EditPanel").then((m) => m.EditPanel),
+  { ssr: false },
+);
 
 type Props = {
   slug: string;
