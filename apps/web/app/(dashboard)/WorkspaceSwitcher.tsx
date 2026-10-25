@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { ChevronsUpDown, Info, LayoutGrid, UserPlus } from "lucide-react";
 import {
   Avatar,
@@ -16,8 +17,13 @@ import { initials } from "@/lib/format";
 import { workspaceLogoUrl } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { resolveWorkspaceCard, workspaceCardStyle } from "@/lib/workspace-card";
-import { InviteModal } from "./InviteModal";
 import { switchWorkspaceAction } from "./switch-workspace-action";
+
+// Loaded on the first invite, not with every dashboard page.
+const InviteModal = dynamic(
+  () => import("./InviteModal").then((m) => m.InviteModal),
+  { ssr: false },
+);
 
 // The logo the workspace settings promise is "shown next to your workspace
 // name". Without one it falls back to initials, the same treatment member
@@ -95,6 +101,8 @@ export function WorkspaceSwitcher({
   const cardRef = useRef<HTMLDivElement>(null);
   const [isOpen, setOpen] = useState(false);
   const [isInviting, setInviting] = useState(false);
+  // Stays mounted after the first invite so closing can animate out.
+  const [inviteMounted, setInviteMounted] = useState(false);
   const current =
     memberships.find((m) => m.workspace_id === currentWorkspaceId) ??
     memberships[0];
@@ -189,6 +197,7 @@ export function WorkspaceSwitcher({
                     className="mt-1"
                     onPress={() => {
                       setOpen(false);
+                      setInviteMounted(true);
                       setInviting(true);
                     }}
                   >
@@ -249,7 +258,9 @@ export function WorkspaceSwitcher({
 
       {/* Outside the Dropdown on purpose: closing the popover unmounts its
           subtree, which would take the modal down with it. */}
-      <InviteModal isOpen={isInviting} onOpenChange={setInviting} />
+      {inviteMounted ? (
+        <InviteModal isOpen={isInviting} onOpenChange={setInviting} />
+      ) : null}
 
       <form ref={formRef} action={switchWorkspaceAction} className="hidden">
         <input type="hidden" name="workspaceId" value="" />

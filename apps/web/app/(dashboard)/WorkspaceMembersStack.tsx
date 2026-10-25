@@ -1,9 +1,16 @@
 "use client";
 
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Avatar, Tooltip } from "@heroui/react";
 import { UserPlus } from "lucide-react";
 import type { AvatarGroupItem } from "@captureflow/ui";
-import { InviteModal } from "./InviteModal";
+
+// Loaded on the first invite, not with every dashboard page.
+const InviteModal = dynamic(
+  () => import("./InviteModal").then((m) => m.InviteModal),
+  { ssr: false },
+);
 
 const MAX_VISIBLE = 4;
 
@@ -13,6 +20,9 @@ type Props = {
 };
 
 export function WorkspaceMembersStack({ items, canInvite }: Props) {
+  const [inviting, setInviting] = useState(false);
+  // Stays mounted after the first invite so closing can animate out.
+  const [inviteMounted, setInviteMounted] = useState(false);
   if (items.length === 0 && !canInvite) return null;
   const visible = items.slice(0, MAX_VISIBLE);
   const overflow = items.length - visible.length;
@@ -38,17 +48,22 @@ export function WorkspaceMembersStack({ items, canInvite }: Props) {
         )}
       </div>
       {canInvite && (
-        <InviteModal
-          trigger={
-            <button
-              type="button"
-              aria-label="Invite teammates"
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-dashed border-line-strong bg-transparent text-fg-subtle transition-colors hover:text-fg"
-            >
-              <UserPlus size={14} />
-            </button>
-          }
-        />
+        <>
+          <button
+            type="button"
+            aria-label="Invite teammates"
+            onClick={() => {
+              setInviteMounted(true);
+              setInviting(true);
+            }}
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-dashed border-line-strong bg-transparent text-fg-subtle transition-colors hover:text-fg"
+          >
+            <UserPlus size={14} />
+          </button>
+          {inviteMounted ? (
+            <InviteModal isOpen={inviting} onOpenChange={setInviting} />
+          ) : null}
+        </>
       )}
     </div>
   );
