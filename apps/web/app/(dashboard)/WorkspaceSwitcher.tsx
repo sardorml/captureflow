@@ -172,7 +172,7 @@ export function WorkspaceSwitcher({
             <Dropdown.Popover
               triggerRef={cardRef}
               placement="bottom start"
-              className="min-w-64 bg-panel outline-none dark:bg-panel-2"
+              className="min-w-64 outline-none"
             >
               <div
                 className="h-14 rounded-t-[inherit]"

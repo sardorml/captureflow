@@ -172,7 +172,7 @@ export function MediaCard({
        the copy end up on different rails. Card.Content owns the inset now. */
     <Card
       className={cn(
-        "group gap-0 overflow-hidden bg-panel p-0 transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)] dark:bg-panel-2",
+        "group gap-0 overflow-hidden p-0 transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)]",
         selected &&
           "border-accent-bg shadow-[0_0_0_1px_var(--color-accent-bg)]",
       )}
