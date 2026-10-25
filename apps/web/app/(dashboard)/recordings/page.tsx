@@ -4,17 +4,29 @@ import { requireSession } from "@/lib/session-guard";
 import { R2_PUBLIC_BASE_URL } from "@/lib/site";
 import { getAppWebEnv } from "@/lib/cf-env";
 import {
+  countRecordingsForWorkspace,
   listRecordingsForWorkspace,
   type DashboardRecordingRow,
 } from "@/lib/recordings-db";
 import { viewerMediaUrl } from "@/lib/recording/media-url";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
+import {
+  PAGE_SIZE,
+  hydratePageNumber,
+  pageCount,
+  pageOffset,
+} from "@/lib/pagination";
 import { RecordingsList, type RecordingCardRow } from "../../RecordingsList";
+import { Pager } from "../../_components/Pager";
 import { PageHeader } from "../PageHeader";
 
 export const dynamic = "force-dynamic";
 
-export default async function RecordingsPage() {
+export default async function RecordingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string | string[] }>;
+}) {
   // Re-check: the layout's session narrowing doesn't cross the segment boundary.
   const session = await requireSession();
 
@@ -25,8 +37,16 @@ export default async function RecordingsPage() {
   const viewingOwnWorkspace = current.role === "owner";
 
   const env = await getAppWebEnv();
+  const total = await countRecordingsForWorkspace(
+    current.workspace.id,
+    session.user.id,
+  );
+  const page = hydratePageNumber((await searchParams).page, total);
   const [recordings, members, workspaceRow] = await Promise.all([
-    listRecordingsForWorkspace(current.workspace.id, session.user.id),
+    listRecordingsForWorkspace(current.workspace.id, session.user.id, {
+      limit: PAGE_SIZE,
+      offset: pageOffset(page),
+    }),
     env?.DB ? listMembers(env.DB, current.workspace.id) : Promise.resolve([]),
     env?.DB
       ? getWorkspaceById(env.DB, current.workspace.id)
@@ -46,7 +66,7 @@ export default async function RecordingsPage() {
   if (recordings.some((r) => r.visibility === "public")) {
     preconnect(env?.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL);
   }
-  const subtitle = `${recordings.length} recording${recordings.length === 1 ? "" : "s"}`;
+  const subtitle = `${total} recording${total === 1 ? "" : "s"}`;
 
   return (
     <>
@@ -65,6 +85,7 @@ export default async function RecordingsPage() {
           ownerNames={Object.fromEntries(ownerNames)}
           ownerImages={ownerImages}
         />
+        <Pager page={page} pageCount={pageCount(total)} />
       </div>
     </>
   );

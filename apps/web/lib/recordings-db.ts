@@ -133,21 +133,41 @@ export async function listRecordingsForUser(
   return res.results.map(rowFromD1);
 }
 
+// What the viewer may see of a workspace: everything but other members'
+// private recordings. The list and the count must agree on this.
+const VISIBLE_IN_WORKSPACE =
+  "workspace_id = ?1 AND (visibility != 'private' OR user_id = ?2)";
+
 export async function listRecordingsForWorkspace(
   workspaceId: string,
   viewerUserId: string,
+  page: { limit: number; offset: number },
 ): Promise<DashboardRecordingRow[]> {
   const db = await getDb();
   const res = await db
     .prepare(
       `SELECT ${COLUMNS_SELECT} FROM recordings
-         WHERE workspace_id = ?1
-           AND (visibility != 'private' OR user_id = ?2)
-         ORDER BY created_at DESC`,
+         WHERE ${VISIBLE_IN_WORKSPACE}
+         ORDER BY created_at DESC
+         LIMIT ?3 OFFSET ?4`,
     )
-    .bind(workspaceId, viewerUserId)
+    .bind(workspaceId, viewerUserId, page.limit, page.offset)
     .all<D1Row>();
   return res.results.map(rowFromD1);
+}
+
+export async function countRecordingsForWorkspace(
+  workspaceId: string,
+  viewerUserId: string,
+): Promise<number> {
+  const db = await getDb();
+  const row = await db
+    .prepare(
+      `SELECT COUNT(*) AS n FROM recordings WHERE ${VISIBLE_IN_WORKSPACE}`,
+    )
+    .bind(workspaceId, viewerUserId)
+    .first<{ n: number }>();
+  return row?.n ?? 0;
 }
 
 export async function getRecordingForUser(
