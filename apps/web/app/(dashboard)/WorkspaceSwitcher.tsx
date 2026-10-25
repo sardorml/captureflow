@@ -118,9 +118,9 @@ export function WorkspaceSwitcher({
     (m) => m.workspace_id !== current.workspace_id,
   );
   const canSwitch = others.length > 0;
-  // The workspace background is a bar above the name, like a colour label:
-  // it names the workspace without taking width from the name.
-  const colourStyle = workspaceCardStyle(
+  // The workspace background is a flat sheet behind the white card, so the
+  // sidebar stays quiet and the colour still says which workspace it is.
+  const sheetStyle = workspaceCardStyle(
     resolveWorkspaceCard(current.workspace_card_bg, current.workspace_id),
     current.workspace_updated_at,
   );
@@ -131,22 +131,22 @@ export function WorkspaceSwitcher({
           without you having to open anything. The info button sits outside the
           Dropdown because React Aria's press context would otherwise route its
           press to the trigger. */}
-      <div
-        ref={cardRef}
-        data-testid="workspace-card"
-        className="relative overflow-hidden rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]"
-      >
-        <div>
-          <div
-            data-testid="workspace-strip"
-            className="mx-3 mt-2 h-2.5 rounded-lg"
-            style={colourStyle}
-            aria-hidden="true"
-          />
+      <div className="relative pt-2">
+        <div
+          data-testid="workspace-sheet"
+          className="absolute inset-x-1 top-0 h-6 rounded-t-2xl"
+          style={sheetStyle}
+          aria-hidden="true"
+        />
+        <div
+          ref={cardRef}
+          data-testid="workspace-card"
+          className="relative rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]"
+        >
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
               aria-label="Switch workspace"
-              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl px-3 pt-1.5 pb-1 outline-none"
+              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl px-3 pt-2.5 pb-1 outline-none"
             >
               <span className="truncate font-medium text-fg">
                 {current.workspace_name}
