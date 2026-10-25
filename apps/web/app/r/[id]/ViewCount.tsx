@@ -14,10 +14,10 @@ type Props = {
   className?: string;
 };
 
-// The title row's hover box, so the two read as one row: same height,
-// corner radius and tint.
+// The title row's hover box, so the two read as one row: same height and
+// corner radius, on the panel surface (white in light mode).
 const PILL_CLASS =
-  "inline-flex h-12 shrink-0 items-center rounded-xl bg-tint px-4 text-sm font-medium text-fg lg:h-11";
+  "inline-flex h-12 shrink-0 items-center rounded-xl bg-panel px-4 text-sm font-medium text-fg lg:h-11";
 
 const viewsLabel = (n: number): string =>
   `${n.toLocaleString()} ${n === 1 ? "view" : "views"}`;
