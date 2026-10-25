@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { getWorkspaceById } from "@captureflow/quota";
-import { readThemeFromCookieHeader } from "@captureflow/ui";
+import { readThemeFromCookieHeader } from "@captureflow/ui/theme";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { getRecordingForUser } from "@/lib/recordings-db";

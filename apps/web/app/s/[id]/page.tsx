@@ -19,7 +19,7 @@ import {
 import {
   readThemeFromCookieHeader,
   readThemePreferenceFromCookieHeader,
-} from "@captureflow/ui";
+} from "@captureflow/ui/theme";
 import { RequestAccess } from "./RequestAccess";
 import { SessionLoadingShell } from "./SessionLoadingShell";
 import { ScreenshotView } from "./ScreenshotView";

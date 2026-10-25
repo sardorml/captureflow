@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { readThemeFromCookieHeader } from "@captureflow/ui";
+import { readThemeFromCookieHeader } from "@captureflow/ui/theme";
 import { loadSession } from "@/lib/session-guard";
 import { oauthErrorMessage, parseEmailDomains } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";

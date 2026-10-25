@@ -23,11 +23,11 @@ import { parseSummaryChaptersJson } from "@/lib/recording/summary-chapters";
 import { isValidSlug } from "@/lib/recording/slug";
 import { APP_WEB_SITE_URL, PRODUCT_NAME, viewUrlFor } from "@/lib/site";
 import { ViewerNav } from "../../_components/screenshot";
+import { ThemeToggle } from "@captureflow/ui";
 import {
-  ThemeToggle,
   readThemeFromCookieHeader,
   readThemePreferenceFromCookieHeader,
-} from "@captureflow/ui";
+} from "@captureflow/ui/theme";
 import { getWorkspaceForUpload } from "@/lib/recording/quota";
 import { AuthSync } from "./AuthSync";
 import { PendingRecording } from "./PendingRecording";

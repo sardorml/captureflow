@@ -1,4 +1,7 @@
-import { readThemeFromCookieHeader, THEME_INIT_HTML } from "@captureflow/ui";
+import {
+  readThemeFromCookieHeader,
+  THEME_INIT_HTML,
+} from "@captureflow/ui/theme";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { headers } from "next/headers";
