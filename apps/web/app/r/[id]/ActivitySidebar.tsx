@@ -27,6 +27,10 @@ import type {
   RecordingComment,
   RecordingReaction,
 } from "@/lib/recording/types";
+import {
+  groupReactionBursts,
+  type ReactionBurst,
+} from "@/lib/recording/reaction-bursts";
 import { cn } from "@/lib/utils";
 
 const AVATAR_TONES = [
@@ -62,7 +66,7 @@ type ActivityEntry =
       kind: "reaction";
       id: string;
       createdAt: number;
-      reaction: RecordingReaction;
+      burst: ReactionBurst;
     }
   | {
       kind: "comment";
@@ -136,30 +140,31 @@ export function ActivitySidebar({
     () => new Set(),
   );
 
-  const handleDeleteReaction = async (id: number) => {
-    if (deletingReactionId != null) return;
-    setDeletingReactionId(id);
+  const handleDeleteReactions = async (ids: number[]) => {
+    if (deletingReactionId != null || ids.length === 0) return;
+    const key = ids[0] ?? null;
+    setDeletingReactionId(key);
     setError(null);
-    setRemovedReactionIds((prev) => new Set(prev).add(id));
-    try {
-      const res = await fetch(`/api/r/reactions/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `HTTP ${res.status}`);
+    setRemovedReactionIds((prev) => new Set([...prev, ...ids]));
+    const failed: number[] = [];
+    for (const id of ids) {
+      try {
+        const res = await fetch(`/api/r/reactions/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error(`Delete failed (${res.status})`);
+        onReactionDeleted(id);
+      } catch {
+        failed.push(id);
       }
-      onReactionDeleted(id);
-    } catch (err) {
+    }
+    if (failed.length > 0) {
       setRemovedReactionIds((prev) => {
         const next = new Set(prev);
-        next.delete(id);
+        for (const id of failed) next.delete(id);
         return next;
       });
-      setError(
-        err instanceof Error ? err.message : "Could not delete reaction",
-      );
-    } finally {
-      setDeletingReactionId(null);
+      setError("Could not delete reaction");
     }
+    setDeletingReactionId(null);
   };
 
   const handleDeleteComment = async (id: number) => {
@@ -196,11 +201,11 @@ export function ActivitySidebar({
   );
 
   const entries: ActivityEntry[] = [
-    ...reactions.map<ActivityEntry>((r) => ({
+    ...groupReactionBursts(reactions).map<ActivityEntry>((b) => ({
       kind: "reaction" as const,
-      id: `r-${r.id}`,
-      createdAt: r.createdAt,
-      reaction: r,
+      id: `r-${b.id}`,
+      createdAt: b.createdAt,
+      burst: b,
     })),
     ...comments.map<ActivityEntry>((c) => ({
       kind: "comment" as const,
@@ -425,14 +430,16 @@ export function ActivitySidebar({
                   <li key={entry.id}>
                     {entry.kind === "reaction" ? (
                       <ReactionRow
-                        reaction={entry.reaction}
+                        burst={entry.burst}
                         onSeek={onSeek}
                         canDelete={
                           !!viewerUserId &&
-                          (entry.reaction.userId === viewerUserId || isOwner)
+                          (entry.burst.userId === viewerUserId || isOwner)
                         }
-                        onDelete={() => handleDeleteReaction(entry.reaction.id)}
-                        deleting={deletingReactionId === entry.reaction.id}
+                        onDelete={() =>
+                          handleDeleteReactions(entry.burst.reactionIds)
+                        }
+                        deleting={deletingReactionId === entry.burst.id}
                       />
                     ) : (
                       <CommentRow
@@ -680,54 +687,70 @@ function EmptyState({
   );
 }
 
+// A burst of taps reads as one row: the avatar wears the first emoji, and
+// each emoji in the run follows the name with its count.
 function ReactionRow({
-  reaction,
+  burst,
   onSeek,
   canDelete,
   onDelete,
   deleting,
 }: {
-  reaction: RecordingReaction;
+  burst: ReactionBurst;
   onSeek: (ms: number) => void;
   canDelete: boolean;
   onDelete: () => void;
   deleting: boolean;
 }) {
-  const name = reaction.userName?.trim() || "Anonymous";
+  const name = burst.userName?.trim() || "Anonymous";
+  const total = burst.reactionIds.length;
   return (
     <div className="group flex items-center gap-3">
       <span className="relative shrink-0">
         <Avatar
           className="h-8 w-8"
-          style={{ backgroundColor: toneFromSeed(reaction.userId ?? name) }}
+          style={{ backgroundColor: toneFromSeed(burst.userId ?? name) }}
         >
-          {reaction.userImage && (
-            <Avatar.Image src={reaction.userImage} alt="" />
-          )}
+          {burst.userImage && <Avatar.Image src={burst.userImage} alt="" />}
           <Avatar.Fallback className="text-[11px]">
             {initials(name)}
           </Avatar.Fallback>
         </Avatar>
         <span className="absolute -right-1.5 -bottom-1 flex h-5 w-5 items-center justify-center rounded-full bg-panel text-[12px] leading-none ring-2 ring-panel">
-          {reaction.emoji}
+          {burst.emojis[0]?.emoji}
         </span>
       </span>
-      <div className="flex min-w-0 flex-1 items-center gap-2 text-sm text-fg">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-fg">
         <span className="truncate font-semibold">{name}</span>
+        {total > 1 && (
+          <span
+            className="flex shrink-0 items-center gap-1.5 text-xs text-fg-muted"
+            aria-label={`${total} reactions`}
+          >
+            {burst.emojis.map(({ emoji, count }) => (
+              <span key={emoji} className="inline-flex items-center gap-0.5">
+                <span className="text-sm leading-none">{emoji}</span>
+                {count > 1 && <span>×{count}</span>}
+              </span>
+            ))}
+          </span>
+        )}
         <TimestampChip
-          ms={reaction.timestampMs}
-          onClick={() => onSeek(reaction.timestampMs)}
+          ms={burst.timestampMs}
+          onClick={() => onSeek(burst.timestampMs)}
         />
         <span className="shrink-0 text-xs">
-          {formatRelative(reaction.createdAt)}
+          {formatRelative(burst.createdAt)}
         </span>
         {canDelete && (
           <button
             type="button"
             onClick={onDelete}
             disabled={deleting}
-            aria-label="Delete reaction"
-            title="Delete reaction"
+            aria-label={
+              total > 1 ? `Delete ${total} reactions` : "Delete reaction"
+            }
+            title={total > 1 ? `Delete ${total} reactions` : "Delete reaction"}
             className="ml-auto rounded-md p-1.5 text-fg-subtle opacity-0 transition-opacity transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:opacity-100 disabled:cursor-progress group-hover:opacity-100 dark:hover:text-red-300"
           >
             <Trash2 className="h-3.5 w-3.5" />
