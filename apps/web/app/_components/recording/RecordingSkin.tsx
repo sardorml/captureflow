@@ -253,12 +253,12 @@ export function RecordingSkin({
               ) : (
                 <div className="absolute inset-0 bg-neutral-950" />
               )}
+              {/* Lazy on purpose: eager would be hoisted into <head> ahead of
+                  the stylesheet and hold first paint behind the whole poster. */}
               <FadeInImage
                 src={posterUrl}
                 alt=""
                 aria-hidden="true"
-                loading="eager"
-                fetchPriority="high"
                 className="absolute inset-0 h-full w-full object-contain"
               />
             </div>
