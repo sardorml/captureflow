@@ -32,13 +32,13 @@ const BACK_ICON = (
 );
 
 const TAB_CLASS =
-  "isolate h-9 flex-1 text-sm font-medium text-muted data-[selected=true]:text-foreground";
+  "isolate h-9 flex-1 justify-center text-sm font-medium text-muted data-[selected=true]:text-foreground";
 
 // A disc per background, the camera bubble's shape, with the chosen one
 // ringed in the accent; None and Blur carry their names since they have no
 // colour to show.
 const SWATCH =
-  "flex size-12 cursor-pointer items-center justify-center rounded-full text-[11px] font-semibold outline-none ring-offset-2 ring-offset-background transition-shadow hover:ring-2 hover:ring-separator aria-pressed:ring-2 aria-pressed:ring-accent motion-reduce:transition-none";
+  "flex size-10 cursor-pointer items-center justify-center rounded-full text-[11px] font-semibold outline-none ring-offset-2 ring-offset-background transition-shadow hover:ring-2 hover:ring-separator aria-pressed:ring-2 aria-pressed:ring-accent motion-reduce:transition-none";
 
 function swatchStyle(id: CameraBackgroundId): React.CSSProperties {
   const bg = CAMERA_BACKGROUNDS[id];
@@ -81,7 +81,7 @@ export function EffectsPanel({ onBack }: { onBack: () => void }) {
 
       <Tabs defaultSelectedKey="backgrounds" aria-label="Camera effects">
         <Tabs.ListContainer className="rounded-[14px] border border-separator bg-overlay p-1">
-          <Tabs.List className="min-w-0! gap-0 p-0">
+          <Tabs.List className="flex w-full min-w-0! gap-0 p-0">
             <Tabs.Tab id="backgrounds" className={TAB_CLASS}>
               <Tabs.Indicator className="rounded-[10px] bg-background" />
               Backgrounds
@@ -97,7 +97,7 @@ export function EffectsPanel({ onBack }: { onBack: () => void }) {
           <div
             role="radiogroup"
             aria-label="Camera background"
-            className="grid grid-cols-5 justify-items-center gap-3"
+            className="grid grid-cols-5 justify-items-center gap-x-2.5 gap-y-3"
           >
             {CAMERA_BACKGROUND_IDS.map((id) => {
               const bg = CAMERA_BACKGROUNDS[id];
