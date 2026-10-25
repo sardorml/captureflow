@@ -282,7 +282,9 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
               // the container bg instead of cropping content.
               className="block h-full w-full object-contain"
               playsInline
-              preload="auto"
+              // With the preview loop fetching the opening seconds of the same
+              // file, buffering here too would download them twice.
+              preload={previewLoop ? "metadata" : "auto"}
               onLoadedMetadata={(e) => {
                 const v = e.currentTarget;
                 if (v.videoWidth > 0 && v.videoHeight > 0) {

@@ -63,6 +63,7 @@ import {
 } from "@/lib/recording/cuts";
 import { EditedTimeSlider } from "./EditedTimeSlider";
 import { FramePreview } from "./FramePreview";
+import { useAfterLoad } from "./use-after-load";
 import { useFitStage } from "./use-fit-stage";
 import { useFrameStrip } from "./use-frame-strip";
 import { recordingBackgroundStyle } from "./layout";
@@ -174,6 +175,8 @@ export function RecordingSkin({
   const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
   const started = usePlayer(selectPlayback)?.started ?? false;
   const previewing = !!previewLoopUrl && !started;
+  // The loops wait for the page: the poster is the first paint, not them.
+  const loopReady = useAfterLoad();
   const previewMain = useRef<HTMLVideoElement | null>(null);
   const previewCam = useRef<HTMLVideoElement | null>(null);
   // The main loop is the clock: it rewinds at the mark and the camera loop,
@@ -230,7 +233,7 @@ export function RecordingSkin({
         >
           {children}
           <Poster />
-          {previewing ? (
+          {previewing && loopReady ? (
             <LoopVideo
               url={previewLoopUrl}
               videoRef={previewMain}
@@ -256,9 +259,10 @@ export function RecordingSkin({
           videoRef={webcamRef}
           fluid={compact}
           concealed={previewing}
+          preload={previewLoopUrl ? "metadata" : "auto"}
         />
       ) : null}
-      {webcam && previewing && !webcam.hidden ? (
+      {webcam && previewing && loopReady && !webcam.hidden ? (
         <LoopVideo
           url={webcam.url}
           videoRef={previewCam}
