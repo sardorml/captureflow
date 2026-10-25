@@ -182,6 +182,7 @@ export async function POST(req: NextRequest) {
     storageKey,
     posterKey: null,
     posterBlur: null,
+    posterThumbKey: null,
     uploadId,
     sizeBytes: 0,
     durationMs,

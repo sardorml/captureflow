@@ -154,6 +154,7 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
   for (let batch = 0; batch < MAX_BATCHES; batch++) {
     const expiring = await env.DB.prepare(
       `SELECT slug, storage_key AS storageKey, poster_key AS posterKey,
+              poster_thumb_key AS posterThumbKey,
               webcam_storage_key AS webcamStorageKey, state
          FROM recordings
         WHERE (state = 'ready' AND last_viewed_at < ?
@@ -166,6 +167,7 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
         slug: string;
         storageKey: string;
         posterKey: string | null;
+        posterThumbKey: string | null;
         webcamStorageKey: string | null;
         state: string;
       }>();

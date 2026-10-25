@@ -17,9 +17,16 @@ export function audioPartKeyFor(
   return `${audioPartPrefixFor(videoStorageKey)}${partNumber}.webm`;
 }
 
+// The digest of the poster bytes is part of the key, so a replaced poster
+// gets a new URL and the old one can be cached forever.
+export function posterThumbKeyFor(posterKey: string, digest: string): string {
+  return `${posterKey.replace(/\.[^.]+$/, "")}.${digest}.thumb.jpg`;
+}
+
 type RecordingObjects = {
   storageKey: string;
   posterKey: string | null;
+  posterThumbKey: string | null;
   webcamStorageKey: string | null;
 };
 
@@ -38,6 +45,7 @@ export function objectKeysFor(row: RecordingObjects): string[] {
   const keys = [
     row.storageKey,
     row.posterKey,
+    row.posterThumbKey,
     row.webcamStorageKey,
     recordingConfigKeyFor(row.storageKey),
     summaryChaptersKeyFor(row.storageKey),

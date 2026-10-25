@@ -14,6 +14,7 @@ export type DashboardRecordingRow = {
   storageKey: string;
   posterKey: string | null;
   posterBlur: string | null;
+  posterThumbKey: string | null;
   sizeBytes: number;
   // Screen plus webcam: what the recording takes of the storage quota.
   totalBytes: number;
@@ -44,6 +45,7 @@ type D1Row = {
   storage_key: string;
   poster_key: string | null;
   poster_blur: string | null;
+  poster_thumb_key: string | null;
   size_bytes: number;
   duration_ms: number | null;
   width: number | null;
@@ -67,7 +69,7 @@ type D1Row = {
 };
 
 const COLUMNS_SELECT =
-  "slug, user_id, storage_key, poster_key, poster_blur, size_bytes, duration_ms, width, height, " +
+  "slug, user_id, storage_key, poster_key, poster_blur, poster_thumb_key, size_bytes, duration_ms, width, height, " +
   "source, preset, created_at, last_viewed_at, view_count, title, state, " +
   "visibility, webcam_storage_key, webcam_size_bytes, webcam_state, workspace_id, " +
   "config_json, summary_chapters_json, " +
@@ -81,6 +83,7 @@ function rowFromD1(r: D1Row): DashboardRecordingRow {
     storageKey: r.storage_key,
     posterKey: r.poster_key,
     posterBlur: r.poster_blur ?? null,
+    posterThumbKey: r.poster_thumb_key ?? null,
     sizeBytes: r.size_bytes,
     totalBytes: r.size_bytes + (r.webcam_size_bytes ?? 0),
     durationMs: r.duration_ms,

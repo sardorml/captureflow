@@ -74,7 +74,7 @@ beforeEach(() => {
   sqlite = new DatabaseSync(":memory:");
   sqlite.exec(`
     CREATE TABLE recordings (slug TEXT PRIMARY KEY, storage_key TEXT, poster_key TEXT,
-      webcam_storage_key TEXT, state TEXT, last_viewed_at INTEGER, created_at INTEGER,
+      poster_thumb_key TEXT, webcam_storage_key TEXT, state TEXT, last_viewed_at INTEGER, created_at INTEGER,
       user_id TEXT, workspace_id TEXT);
     CREATE TABLE screenshots (id TEXT PRIMARY KEY, storage_key TEXT, state TEXT,
       last_viewed_at INTEGER, created_at INTEGER, updated_at INTEGER,
