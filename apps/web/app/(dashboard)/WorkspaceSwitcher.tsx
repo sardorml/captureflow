@@ -158,11 +158,31 @@ export function WorkspaceSwitcher({
                 {plural(memberCount, "member")} &middot;{" "}
                 {plural(recordingCount, "recording")}
               </span>
+              {/* Inside the current workspace's block, since that is the
+                  workspace the invite is to. */}
+              {canInvite && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  fullWidth
+                  className="mt-1"
+                  onPress={() => {
+                    setOpen(false);
+                    setInviting(true);
+                  }}
+                >
+                  <UserPlus size={16} />
+                  Invite to this workspace
+                </Button>
+              )}
             </div>
 
             {canSwitch && (
               <>
                 <hr className="border-line" />
+                <p className="px-4 pt-2.5 pb-0.5 text-[11px] font-medium tracking-wide text-fg-subtle uppercase">
+                  Switch to
+                </p>
                 <Dropdown.Menu onAction={(key) => choose(String(key))}>
                   {others.map((m) => (
                     <Dropdown.Item key={m.workspace_id} id={m.workspace_id}>
@@ -182,21 +202,7 @@ export function WorkspaceSwitcher({
             )}
 
             <hr className="border-line" />
-            <div className="flex flex-col p-2">
-              {canInvite && (
-                <Button
-                  variant="ghost"
-                  fullWidth
-                  className="justify-start"
-                  onPress={() => {
-                    setOpen(false);
-                    setInviting(true);
-                  }}
-                >
-                  <UserPlus size={16} />
-                  Invite teammates
-                </Button>
-              )}
+            <div className="p-2">
               <Link
                 href="/workspaces"
                 onClick={() => setOpen(false)}
