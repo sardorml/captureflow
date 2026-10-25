@@ -38,7 +38,7 @@ import { ErrorDialog } from "@/components/videojs/ui/error-dialog";
 import { FullscreenButton } from "@/components/videojs/ui/fullscreen-button";
 import { PiPButton } from "@/components/videojs/ui/pip-button";
 import { PlayButton } from "@/components/videojs/ui/play-button";
-import { FadeInImage } from "@/components/ui/fade-in-image";
+import { PosterLayer } from "./PosterLayer";
 import { TimeSlider } from "@/components/videojs/ui/time-slider";
 import { VolumePopover } from "@/components/videojs/ui/volume-popover";
 import { VideoGestures } from "@/components/videojs/video/behaviors/gestures";
@@ -241,27 +241,7 @@ export function RecordingSkin({
               playback starts the element's poster holds the gap to the first
               frame. */}
           {posterUrl && !started ? (
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              {posterBlur ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={posterBlur}
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute inset-0 h-full w-full scale-105 object-contain blur-md"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-neutral-950" />
-              )}
-              {/* Lazy on purpose: eager would be hoisted into <head> ahead of
-                  the stylesheet and hold first paint behind the whole poster. */}
-              <FadeInImage
-                src={posterUrl}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 h-full w-full object-contain"
-              />
-            </div>
+            <PosterLayer posterUrl={posterUrl} posterBlur={posterBlur} />
           ) : null}
           {previewing && loopReady ? (
             <LoopVideo
