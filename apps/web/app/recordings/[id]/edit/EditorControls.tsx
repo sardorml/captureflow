@@ -63,6 +63,12 @@ const CAMERA_SIZES: { value: RecordingCameraSize; label: string }[] = [
   { value: "large", label: "Large" },
 ];
 
+// One row of each palette fits the inspector; the rest unfolds on request,
+// or straight away when the saved background lives in a hidden row.
+const SWATCHES_PER_ROW = 8;
+const FIRST_GRADIENTS = RECORDING_GRADIENT_KEYS.slice(0, SWATCHES_PER_ROW - 1);
+const FIRST_SOLIDS = SOLID_PALETTE.slice(0, SWATCHES_PER_ROW);
+
 export function BackgroundPicker({
   background,
   onChange,
@@ -72,6 +78,13 @@ export function BackgroundPicker({
 }) {
   const isSolid = (hex: string): boolean =>
     background.toLowerCase() === hex.toLowerCase();
+  const inFirstRows =
+    background === "transparent" ||
+    (FIRST_GRADIENTS as readonly string[]).includes(background) ||
+    FIRST_SOLIDS.some(isSolid);
+  const [expanded, setExpanded] = useState(!inFirstRows);
+  const gradients = expanded ? RECORDING_GRADIENT_KEYS : FIRST_GRADIENTS;
+  const solids = expanded ? SOLID_PALETTE : FIRST_SOLIDS;
   return (
     <div className="flex flex-col gap-3">
       <SwatchGroup label="Gradients">
@@ -83,7 +96,7 @@ export function BackgroundPicker({
         >
           None
         </Swatch>
-        {RECORDING_GRADIENT_KEYS.map((k) => (
+        {gradients.map((k) => (
           <Swatch
             key={k}
             selected={background === k}
@@ -98,7 +111,7 @@ export function BackgroundPicker({
         ))}
       </SwatchGroup>
       <SwatchGroup label="Solid">
-        {SOLID_PALETTE.map((hex) => (
+        {solids.map((hex) => (
           <Swatch
             key={hex}
             selected={isSolid(hex)}
@@ -107,28 +120,38 @@ export function BackgroundPicker({
             style={{ backgroundColor: hex }}
           />
         ))}
-        <label
-          className={cn(
-            SWATCH_CLASS,
-            "cursor-pointer",
-            isRecordingHexColor(background) &&
-              !SOLID_PALETTE.some(isSolid) &&
-              SWATCH_SELECTED_CLASS,
-          )}
-          style={{
-            background:
-              "conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444)",
-          }}
-          aria-label="Pick a custom color"
-        >
-          <input
-            type="color"
-            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-            value={isRecordingHexColor(background) ? background : "#000000"}
-            onChange={(e) => onChange(e.target.value)}
-          />
-        </label>
+        {expanded && (
+          <label
+            className={cn(
+              SWATCH_CLASS,
+              "cursor-pointer",
+              isRecordingHexColor(background) &&
+                !SOLID_PALETTE.some(isSolid) &&
+                SWATCH_SELECTED_CLASS,
+            )}
+            style={{
+              background:
+                "conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444)",
+            }}
+            aria-label="Pick a custom color"
+          >
+            <input
+              type="color"
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              value={isRecordingHexColor(background) ? background : "#000000"}
+              onChange={(e) => onChange(e.target.value)}
+            />
+          </label>
+        )}
       </SwatchGroup>
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        className="self-start text-xs font-medium text-fg-muted hover:text-fg"
+      >
+        {expanded ? "Show less" : "See more"}
+      </button>
     </div>
   );
 }
