@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRecording, updateRecording } from "@/lib/recording/db";
-import { posterThumbnail } from "@/lib/recording/poster-blur";
+import { posterThumbKeyFor } from "@/lib/recording/object-keys";
+import {
+  THUMB_CACHE_CONTROL,
+  posterDigest,
+  posterThumbnail,
+} from "@/lib/recording/poster-blur";
 import { isValidSlug } from "@/lib/recording/slug";
-import { putObject, publicUrlFor } from "@/lib/recording/r2";
+import { deleteObject, putObject, publicUrlFor } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import { callerOwns } from "@/lib/recording/caller";
 
@@ -76,12 +81,29 @@ export async function POST(req: NextRequest) {
     .replace(/\.[^.]+$/, "");
   const posterKey = `posters/${storageId}.${ext}`;
 
-  await putObject(posterKey, buffer, contentType, "no-cache");
   // Clients don't report the frame size, so the poster is where it comes from.
   const thumb = posterThumbnail(buffer, contentType);
+  const posterThumbKey = thumb
+    ? posterThumbKeyFor(posterKey, await posterDigest(buffer))
+    : null;
+  await Promise.all([
+    putObject(posterKey, buffer, contentType, "no-cache"),
+    thumb && posterThumbKey
+      ? putObject(
+          posterThumbKey,
+          thumb.thumb.buffer as ArrayBuffer,
+          "image/jpeg",
+          THUMB_CACHE_CONTROL,
+        )
+      : null,
+  ]);
+  if (row.posterThumbKey && row.posterThumbKey !== posterThumbKey) {
+    await deleteObject(row.posterThumbKey).catch(() => undefined);
+  }
   await updateRecording(slug, {
     posterKey,
     posterBlur: thumb?.blur ?? null,
+    posterThumbKey,
     ...(thumb && (row.width === null || row.height === null)
       ? { width: thumb.width, height: thumb.height }
       : {}),

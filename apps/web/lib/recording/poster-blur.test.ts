@@ -1,6 +1,11 @@
 import { decode, encode } from "jpeg-js";
 import { describe, expect, it } from "vitest";
-import { BLUR_WIDTH, posterThumbnail } from "./poster-blur";
+import {
+  BLUR_WIDTH,
+  THUMB_WIDTH,
+  posterDigest,
+  posterThumbnail,
+} from "./poster-blur";
 
 // Black on the left fading to white on the right.
 function gradientJpeg(width: number, height: number): Uint8Array {
@@ -42,6 +47,23 @@ describe("posterThumbnail", () => {
     expect(thumb!.blur.length).toBeLessThan(2000);
   });
 
+  it("shrinks the card thumbnail to the thumb width and keeps it light", () => {
+    const thumb = posterThumbnail(gradientJpeg(1920, 1080), "image/jpeg");
+    const card = decode(thumb!.thumb, { useTArray: true });
+    expect(card.width).toBe(THUMB_WIDTH);
+    expect(card.height).toBe(360);
+    expect(thumb!.thumb.byteLength).toBeLessThan(60_000);
+  });
+
+  it("keeps a source already narrower than the thumb width at its size", () => {
+    const card = decode(
+      posterThumbnail(gradientJpeg(320, 180), "image/jpeg")!.thumb,
+      { useTArray: true },
+    );
+    expect(card.width).toBe(320);
+    expect(card.height).toBe(180);
+  });
+
   it("keeps a source already narrower than the blur width", () => {
     const small = decodeDataUrl(
       posterThumbnail(gradientJpeg(10, 6), "image/jpeg")!.blur,
@@ -55,5 +77,14 @@ describe("posterThumbnail", () => {
     expect(
       posterThumbnail(new Uint8Array([1, 2, 3, 4]), "image/jpeg"),
     ).toBeNull();
+  });
+});
+
+describe("posterDigest", () => {
+  it("is 16 hex characters, stable for equal bytes, different otherwise", async () => {
+    const a = await posterDigest(new Uint8Array([1, 2, 3]));
+    expect(a).toMatch(/^[0-9a-f]{16}$/);
+    expect(await posterDigest(new Uint8Array([1, 2, 3]).buffer)).toBe(a);
+    expect(await posterDigest(new Uint8Array([1, 2, 4]))).not.toBe(a);
   });
 });

@@ -6,8 +6,16 @@ import {
   listPaidUserIds,
 } from "@captureflow/quota";
 import { createD1Db } from "./db-d1";
-import { audioPartPrefixFor, objectKeysFor } from "./object-keys";
-import { posterThumbnail } from "./poster-blur";
+import {
+  audioPartPrefixFor,
+  objectKeysFor,
+  posterThumbKeyFor,
+} from "./object-keys";
+import {
+  THUMB_CACHE_CONTROL,
+  posterDigest,
+  posterThumbnail,
+} from "./poster-blur";
 import { deleteObjectsWithPrefix } from "./r2-prefix";
 import { screenshotObjectKeysFor } from "../screenshot-keys";
 
@@ -102,16 +110,17 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
 }
 
 /*
- * Posters uploaded before poster_blur existed get their thumbnail here, and
- * rows without a frame size get it from the same decode, one page an hour.
- * Only JPEGs can be decoded; a poster that still fails is picked up again
- * next run.
+ * Posters uploaded before poster_blur or poster_thumb_key existed get both
+ * here, and rows without a frame size get it from the same decode, one page
+ * an hour. Only JPEGs can be decoded; a poster that still fails is picked up
+ * again next run.
  */
 export async function backfillPosterDerivatives(env: CronEnv): Promise<void> {
   const pending = await env.DB.prepare(
     `SELECT slug, poster_key AS posterKey
        FROM recordings
-      WHERE poster_key LIKE '%.jpg' AND poster_blur IS NULL
+      WHERE poster_key LIKE '%.jpg'
+        AND (poster_blur IS NULL OR poster_thumb_key IS NULL)
       LIMIT ?`,
   )
     .bind(BATCH_SIZE)
@@ -121,19 +130,38 @@ export async function backfillPosterDerivatives(env: CronEnv): Promise<void> {
     try {
       const obj = await env.BUCKET.get(row.posterKey);
       if (!obj) continue;
-      const thumb = posterThumbnail(await obj.arrayBuffer(), "image/jpeg");
+      const bytes = await obj.arrayBuffer();
+      const thumb = posterThumbnail(bytes, "image/jpeg");
       if (!thumb) continue;
+      const thumbKey = posterThumbKeyFor(
+        row.posterKey,
+        await posterDigest(bytes),
+      );
+      await env.BUCKET.put(thumbKey, thumb.thumb, {
+        httpMetadata: {
+          contentType: "image/jpeg",
+          cacheControl: THUMB_CACHE_CONTROL,
+        },
+      });
       await env.DB.prepare(
         `UPDATE recordings
             SET poster_blur = ?,
+                poster_thumb_key = ?,
                 width = COALESCE(width, ?),
                 height = COALESCE(height, ?)
           WHERE slug = ? AND poster_key = ?`,
       )
-        .bind(thumb.blur, thumb.width, thumb.height, row.slug, row.posterKey)
+        .bind(
+          thumb.blur,
+          thumbKey,
+          thumb.width,
+          thumb.height,
+          row.slug,
+          row.posterKey,
+        )
         .run();
     } catch (err) {
-      console.warn(`[cron] poster blur failed for ${row.slug}:`, err);
+      console.warn(`[cron] poster derivatives failed for ${row.slug}:`, err);
     }
   }
 }

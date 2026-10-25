@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { encode } from "jpeg-js";
 import { NextRequest } from "next/server";
 
 const getRecording = vi.fn();
@@ -7,6 +8,7 @@ const deleteRecording = vi.fn();
 const resolveToken = vi.fn();
 const session = vi.fn();
 const putObject = vi.fn();
+const deleteObject = vi.fn();
 const createTranscriptJob = vi.fn();
 const dispatchTranscription = vi.fn();
 const getReaction = vi.fn();
@@ -34,7 +36,7 @@ vi.mock("@/lib/recording/verify-session", () => ({
 }));
 vi.mock("@/lib/recording/r2", () => ({
   abortMultipartUpload: vi.fn(),
-  deleteObject: vi.fn(),
+  deleteObject: (...a: unknown[]) => deleteObject(...a),
   deleteObjectPrefix: vi.fn(),
   putObject: (...a: unknown[]) => putObject(...a),
   publicUrlFor: async (k: string) => `https://cdn/${k}`,
@@ -199,6 +201,42 @@ describe("poster", () => {
   it("lets the owner's app replace it", async () => {
     getRecording.mockResolvedValue(row("ready"));
     expect((await call(asOwnerApp)).status).toBe(200);
+  });
+
+  it("stores a card thumbnail beside a JPEG poster and drops the old one", async () => {
+    getRecording.mockResolvedValue({
+      ...row("pending"),
+      posterThumbKey: "posters/k.00000000deadbeef.thumb.jpg",
+    });
+    deleteObject.mockResolvedValue(undefined);
+    const jpeg = encode(
+      { width: 8, height: 8, data: new Uint8Array(8 * 8 * 4).fill(200) },
+      80,
+    ).data;
+    const res = await poster.POST(
+      req(`/api/r/poster?slug=${SLUG}`, {
+        method: "POST",
+        headers: { ...asDevice, "content-type": "image/jpeg" },
+        body: new Uint8Array(jpeg),
+      }),
+    );
+    expect(res.status).toBe(200);
+    const keys = putObject.mock.calls.map((c) => c[0]);
+    expect(keys).toContain("posters/k.jpg");
+    const thumbKey = keys.find((k) =>
+      /^posters\/k\.[0-9a-f]{16}\.thumb\.jpg$/.test(k),
+    );
+    expect(thumbKey).toBeDefined();
+    expect(putObject.mock.calls.find((c) => c[0] === thumbKey)?.[3]).toMatch(
+      /immutable/,
+    );
+    expect(deleteObject).toHaveBeenCalledWith(
+      "posters/k.00000000deadbeef.thumb.jpg",
+    );
+    expect(updateRecording).toHaveBeenCalledWith(
+      SLUG,
+      expect.objectContaining({ posterThumbKey: thumbKey }),
+    );
   });
 });
 
