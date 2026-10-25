@@ -342,7 +342,7 @@ function PlaybackMockup() {
             }
           >
             {riser.kind === "emoji" ? (
-              <span className="relative flex size-10 items-center justify-center rounded-full border border-black/5 bg-white text-[20px] dark:border-white/10 dark:bg-[#2a2927] shadow-[0_10px_24px_rgb(0_0_0/0.105)] dark:shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
+              <span className="relative flex size-10 items-center justify-center rounded-full border border-black/5 bg-white text-[20px] dark:border-white/10 dark:bg-[#272727] shadow-[0_10px_24px_rgb(0_0_0/0.105)] dark:shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
                 {riser.emoji}
                 <span
                   className={cn(
@@ -354,7 +354,7 @@ function PlaybackMockup() {
                 </span>
               </span>
             ) : (
-              <span className="flex items-center gap-2 rounded-full border border-black/5 bg-white py-1.5 pr-3 pl-1.5 text-[12px] whitespace-nowrap text-fg-muted dark:border-white/10 dark:bg-[#2a2927] shadow-[0_10px_24px_rgb(0_0_0/0.105)] dark:shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
+              <span className="flex items-center gap-2 rounded-full border border-black/5 bg-white py-1.5 pr-3 pl-1.5 text-[12px] whitespace-nowrap text-fg-muted dark:border-white/10 dark:bg-[#272727] shadow-[0_10px_24px_rgb(0_0_0/0.105)] dark:shadow-[0_10px_24px_rgb(0_0_0/0.35)]">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#3b82f6] text-[11px] font-semibold text-white">
                   {copy.comments[riser.index].author[0]}
                 </span>

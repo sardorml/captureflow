@@ -451,7 +451,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
         ref={islandRef}
         style={{ y: islandDrop }}
         className={cn(
-          "relative isolate mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-3 [--island-ring:rgb(0_0_0/0.07)] [--island:#ffffff] dark:[--island-ring:rgb(255_255_255/0.07)] dark:[--island:#201f1d]",
+          "relative isolate mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-3 [--island-ring:rgb(0_0_0/0.07)] [--island:#ffffff] dark:[--island-ring:rgb(255_255_255/0.07)] dark:[--island:#181818]",
           !measured && "rounded-b-[24px] bg-(--island)",
         )}
       >
