@@ -160,33 +160,37 @@ export function RecordingViewer({
     <div className="grid w-full grid-cols-1 bg-canvas lg:h-[calc(100vh-64px)] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
       <main className="flex flex-col lg:min-h-0 lg:overflow-y-auto">
         <header className="sticky top-0 z-20 bg-canvas-2 max-lg:static max-lg:order-2">
-          <div className="relative px-6 py-5 lg:px-12">
-            <div className="mx-auto w-full max-w-5xl lg:pr-36">
-              <EditableTitle
-                slug={slug}
-                title={headlineText}
-                canEdit={isOwner}
-              />
-              <ContentByline
-                ownerName={ownerName}
-                createdAt={createdAt}
-                leading={
-                  ownerName ? (
-                    <Avatar className="size-9 lg:hidden">
-                      <Avatar.Fallback className="text-sm">
-                        {initials(ownerName)}
-                      </Avatar.Fallback>
-                    </Avatar>
-                  ) : null
-                }
+          {/* Padded like the nav (px-4 sm:px-6) plus the drawer button's icon
+              inset, so the title's left edge sits under the drawer icon. */}
+          <div className="px-6 py-5 sm:px-8">
+            <div className="flex w-full gap-5 max-lg:flex-col max-lg:gap-3 lg:items-start">
+              <div className="min-w-0 flex-1">
+                <EditableTitle
+                  slug={slug}
+                  title={headlineText}
+                  canEdit={isOwner}
+                />
+                <ContentByline
+                  ownerName={ownerName}
+                  createdAt={createdAt}
+                  leading={
+                    ownerName ? (
+                      <Avatar className="size-9 lg:hidden">
+                        <Avatar.Fallback className="text-sm">
+                          {initials(ownerName)}
+                        </Avatar.Fallback>
+                      </Avatar>
+                    ) : null
+                  }
+                />
+              </div>
+              <ViewCount
+                count={viewCount}
+                viewers={viewers}
+                viewerUserId={viewer?.userId ?? null}
+                className="max-lg:self-start"
               />
             </div>
-            <ViewCount
-              count={viewCount}
-              viewers={viewers}
-              viewerUserId={viewer?.userId ?? null}
-              className="absolute right-6 top-1/2 -translate-y-1/2 max-lg:static max-lg:mt-3 max-lg:inline-block max-lg:translate-y-0 lg:right-12"
-            />
           </div>
         </header>
         <div className="mx-auto flex w-full max-w-5xl flex-col py-6 max-lg:contents">

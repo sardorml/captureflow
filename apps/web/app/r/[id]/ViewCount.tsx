@@ -14,8 +14,10 @@ type Props = {
   className?: string;
 };
 
+// The title row's hover box, so the two read as one row: same height,
+// corner radius and tint.
 const PILL_CLASS =
-  "rounded-full bg-tint px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line";
+  "inline-flex h-12 shrink-0 items-center rounded-xl bg-tint px-4 text-sm font-medium text-fg lg:h-11";
 
 const viewsLabel = (n: number): string =>
   `${n.toLocaleString()} ${n === 1 ? "view" : "views"}`;
@@ -31,11 +33,7 @@ export function ViewCount({ count, viewers, viewerUserId, className }: Props) {
       <Popover.Trigger className={cn("inline-flex", className)}>
         <Button
           variant="ghost"
-          size="sm"
-          className={cn(
-            PILL_CLASS,
-            "h-auto min-w-0 hover:bg-tint-strong hover:text-fg",
-          )}
+          className={cn(PILL_CLASS, "min-w-0 hover:bg-tint-strong")}
           aria-label={`${viewsLabel(count)}, show who watched`}
         >
           {viewsLabel(count)}
