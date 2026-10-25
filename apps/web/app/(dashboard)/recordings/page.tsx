@@ -107,9 +107,5 @@ async function toCardRow({
     row.state === "ready" && !posterUrl
       ? `${await viewerMediaUrl(row, storageKey)}?v=${row.sizeBytes}`
       : null;
-  const webcamUrl =
-    webcamStorageKey && row.webcamState === "ready"
-      ? await viewerMediaUrl(row, webcamStorageKey)
-      : null;
-  return { ...row, posterUrl, videoThumbUrl, webcamUrl };
+  return { ...row, posterUrl, videoThumbUrl };
 }

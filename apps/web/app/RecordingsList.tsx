@@ -12,7 +12,6 @@ import {
 } from "./actions";
 import type { Visibility } from "@/app/VisibilityDialog";
 import { formatDuration } from "@/lib/format";
-import { parseRecordingConfigJson } from "@/lib/recording-config";
 import type { DashboardRecordingRow } from "@/lib/recordings-db";
 import { viewUrlFor } from "@/lib/site";
 
@@ -26,7 +25,6 @@ export type RecordingCardRow = Omit<
 > & {
   posterUrl: string | null;
   videoThumbUrl: string | null;
-  webcamUrl: string | null;
 };
 
 type RecordingsListProps = {
@@ -100,23 +98,6 @@ export function RecordingsList({
   );
 }
 
-// The camera's first frame, always bottom-left: the card's own buttons own
-// the top-right and the duration chip the bottom-right.
-function CardWebcam({ url }: { url: string }) {
-  return (
-    <div className="@container pointer-events-none absolute inset-0">
-      <video
-        src={url}
-        className="absolute bottom-[4%] left-[2.5%] aspect-square w-[20cqw] rounded-full object-cover shadow-md"
-        muted
-        playsInline
-        preload="metadata"
-        aria-hidden="true"
-      />
-    </div>
-  );
-}
-
 type RecordingCardProps = {
   recording: RecordingCardRow;
   priority: boolean;
@@ -145,9 +126,6 @@ function RecordingCard({
   onSelectedChange,
 }: RecordingCardProps) {
   const { posterUrl, posterBlur, videoThumbUrl } = recording;
-  const cameraHidden = parseRecordingConfigJson(
-    recording.configJson,
-  ).cameraHidden;
 
   const media = (
     <>
@@ -189,9 +167,6 @@ function RecordingCard({
           <Film size={24} />
         </div>
       )}
-      {recording.webcamUrl && !cameraHidden ? (
-        <CardWebcam url={recording.webcamUrl} />
-      ) : null}
       {recording.durationMs != null && (
         <Chip
           size="sm"
