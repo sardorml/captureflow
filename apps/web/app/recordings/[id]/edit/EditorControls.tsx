@@ -458,7 +458,7 @@ function OptionRow<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-full bg-field py-1 pr-1 pl-4 text-sm text-fg">
+    <div className="flex items-center justify-between gap-3 rounded-full bg-tint py-1 pr-1 pl-4 text-sm text-fg">
       <span>{label}</span>
       <div role="radiogroup" aria-label={label} className="flex gap-0.5">
         {options.map((opt) => {
@@ -507,7 +507,7 @@ function ToggleRow({
       role="switch"
       aria-checked={on}
       onClick={() => onChange(!on)}
-      className="flex w-full items-center justify-between rounded-full bg-field px-4 py-1.5 text-sm text-fg hover:bg-tint-strong"
+      className="flex w-full items-center justify-between rounded-full bg-tint px-4 py-1.5 text-sm text-fg hover:bg-tint-strong"
     >
       <span>{label}</span>
       <span
