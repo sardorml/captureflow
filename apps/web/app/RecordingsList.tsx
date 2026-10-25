@@ -158,7 +158,7 @@ function RecordingCard({
             <img
               alt=""
               aria-hidden="true"
-              className="absolute inset-0 h-full w-full scale-110 object-cover blur-md"
+              className="absolute inset-0 h-full w-full scale-110 object-cover blur-sm"
               src={posterBlur}
             />
           ) : null}
