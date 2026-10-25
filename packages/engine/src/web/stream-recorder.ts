@@ -74,7 +74,6 @@ async function pickSupportedH264(probe: {
         framerate: probe.framerate,
         bitrate: probe.bitrate,
         hardwareAcceleration: "prefer-hardware",
-        latencyMode: "realtime",
         avc: { format: "avc" },
       });
       if (res.supported) return codec;
@@ -237,8 +236,12 @@ export async function startStreamRecorder(
       encoderError = err;
     },
   });
-  // Realtime: in the default "quality" mode the hardware encoder drives its
-  // own rate and the bitrate here is ignored.
+  /*
+   * Default latency mode: the bitrate is a soft average the encoder follows
+   * within tens of percent. "realtime" turns it into a hard cap, and on macOS
+   * the hardware encoder repays an oversized keyframe by stalling, which
+   * froze every capture device for seconds at the start of a recording.
+   */
   encoder.configure({
     codec,
     width,
@@ -246,7 +249,6 @@ export async function startStreamRecorder(
     framerate,
     bitrate,
     hardwareAcceleration: "prefer-hardware",
-    latencyMode: "realtime",
     avc: { format: "avc" },
   });
 
