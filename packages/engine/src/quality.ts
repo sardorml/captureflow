@@ -20,16 +20,16 @@ export type RecordingQuality = {
 };
 
 // Lowest to highest. "max" is the output contract as it has always been, so
-// an account that never picks keeps recording exactly as before. The screen
-// keeps its pixels at every level: downscaled text reads blurry on any
-// display, while a tighter bitrate only costs sharpness during motion.
+// an account that never picks keeps recording exactly as before. Data saver
+// alone gives up pixels, which halves a still page's cost; from low up the
+// screen stays sharp and the ceiling is what moves.
 export const RECORDING_QUALITIES: Record<RecordingQualityId, RecordingQuality> =
   {
     saver: {
       label: "Data saver",
       screen: {
-        maxWidth: 1920,
-        maxHeight: 1080,
+        maxWidth: 1280,
+        maxHeight: 720,
         fps: 30,
         bitrate: 1_000_000,
         audioBitrate: 48_000,
