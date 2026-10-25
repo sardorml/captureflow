@@ -112,6 +112,7 @@ html[data-theme="light"] {
    */
   --cf-canvas: oklch(100% 0 0);
   --cf-canvas-2: oklch(100% 0 0);
+  --cf-stage: oklch(97.02% 0 0);
   --cf-fg: oklch(21.03% 0 0);
   --cf-fg-strong: oklch(14% 0 0);
   --foreground: oklch(21.03% 0 0);
@@ -163,6 +164,7 @@ html:not([data-theme]) {
    */
   --cf-canvas: oklch(16% 0 0);
   --cf-canvas-2: oklch(16% 0 0);
+  --cf-stage: oklch(16% 0 0);
   --cf-fg: oklch(99.11% 0 0);
   --cf-fg-strong: oklch(100% 0 0);
   --foreground: oklch(99.11% 0 0);
