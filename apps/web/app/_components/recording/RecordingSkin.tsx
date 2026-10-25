@@ -66,7 +66,11 @@ import { FramePreview } from "./FramePreview";
 import { useFitStage } from "./use-fit-stage";
 import { useFrameStrip } from "./use-frame-strip";
 import { recordingBackgroundStyle } from "./layout";
-import { WebcamBubble, type RecordingWebcam } from "./WebcamBubble";
+import {
+  WebcamBubble,
+  webcamBubbleLayout,
+  type RecordingWebcam,
+} from "./WebcamBubble";
 import type { CaptionPrefs } from "@/lib/recording/caption-prefs";
 
 // Info handed to the progressOverlay slot, which covers the time slider so
@@ -131,6 +135,8 @@ const CAPTION_TOP = {
 // accent would also tint the buttons.
 const FILL_COLOR = "#2563eb";
 const PREVIEW_LOOP_SECONDS = 4;
+// How far the camera may lag the main picture before it is snapped back.
+const PREVIEW_SYNC_SLOP_SECONDS = 0.25;
 
 /*
  * The stock Video.js video skin (vendored under components/videojs) with the
@@ -164,6 +170,24 @@ export function RecordingSkin({
 }: RecordingSkinProps) {
   const isFullscreen = usePlayer(selectFullscreen)?.isFullscreen ?? false;
   const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
+  const started = usePlayer(selectPlayback)?.started ?? false;
+  const previewing = !!previewLoopUrl && !started;
+  const previewMain = useRef<HTMLVideoElement | null>(null);
+  const previewCam = useRef<HTMLVideoElement | null>(null);
+  // The main loop is the clock: it rewinds at the mark and the camera loop,
+  // which loaded on its own schedule, is kept on its time.
+  const syncPreview = useCallback(() => {
+    const main = previewMain.current;
+    if (!main) return;
+    if (main.currentTime >= PREVIEW_LOOP_SECONDS) main.currentTime = 0;
+    const cam = previewCam.current;
+    if (
+      cam &&
+      Math.abs(cam.currentTime - main.currentTime) > PREVIEW_SYNC_SLOP_SECONDS
+    ) {
+      cam.currentTime = main.currentTime;
+    }
+  }, []);
   const timeline = useTimeline(serverDurationMs, cuts, showCuts);
   const hasFrame = background !== "transparent";
   const stage = useFitStage(hasFrame, aspect);
@@ -204,12 +228,31 @@ export function RecordingSkin({
         >
           {children}
           <Poster />
-          {previewLoopUrl ? <PreviewLoop url={previewLoopUrl} /> : null}
+          {previewing ? (
+            <LoopVideo
+              url={previewLoopUrl}
+              videoRef={previewMain}
+              onTimeUpdate={syncPreview}
+              className="pointer-events-none absolute inset-0 block h-full w-full object-contain"
+            />
+          ) : null}
         </div>
       </div>
 
       {webcam ? (
-        <WebcamBubble webcam={webcam} videoRef={webcamRef} fluid={compact} />
+        <WebcamBubble
+          webcam={webcam}
+          videoRef={webcamRef}
+          fluid={compact}
+          concealed={previewing}
+        />
+      ) : null}
+      {webcam && previewing && !webcam.hidden ? (
+        <LoopVideo
+          url={webcam.url}
+          videoRef={previewCam}
+          {...webcamBubbleLayout(webcam, compact)}
+        />
       ) : null}
 
       <BufferingIndicator />
@@ -281,23 +324,31 @@ function BottomProgress({
 
 // Compact players (embeds) loop the first seconds muted until the first
 // play, in place of a static poster.
-function PreviewLoop({ url }: { url: string }) {
-  const started = usePlayer(selectPlayback)?.started ?? false;
-  if (started) return null;
+function LoopVideo({
+  url,
+  videoRef,
+  onTimeUpdate,
+  className,
+  style,
+}: {
+  url: string;
+  videoRef: RefObject<HTMLVideoElement | null>;
+  onTimeUpdate?: () => void;
+  className: string;
+  style?: CSSProperties;
+}) {
   return (
     <video
+      ref={videoRef}
       src={url}
-      className="pointer-events-none absolute inset-0 block h-full w-full object-contain"
+      className={className}
+      style={style}
       muted
       autoPlay
       loop
       playsInline
       aria-hidden="true"
-      onTimeUpdate={(e) => {
-        if (e.currentTarget.currentTime >= PREVIEW_LOOP_SECONDS) {
-          e.currentTarget.currentTime = 0;
-        }
-      }}
+      onTimeUpdate={onTimeUpdate}
     />
   );
 }
