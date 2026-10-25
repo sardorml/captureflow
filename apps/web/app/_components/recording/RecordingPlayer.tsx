@@ -68,6 +68,8 @@ type Props = {
   controlsExtra?: ReactNode;
   controlsAlwaysVisible?: boolean;
   compactControls?: boolean;
+  // A muted loop of the opening seconds in place of the poster until play.
+  previewLoop?: boolean;
   // The frame under the pointer above the time slider; the editor's timeline
   // already shows the frames.
   framePreview?: boolean;
@@ -108,6 +110,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       controlsExtra,
       controlsAlwaysVisible = false,
       compactControls = false,
+      previewLoop = false,
       framePreview = true,
       captionsUrl,
       captionsLang,
@@ -260,7 +263,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             cues={cues}
             videoUrl={videoUrl}
             framePreview={framePreview}
-            previewLoopUrl={compactControls ? videoUrl : undefined}
+            previewLoopUrl={previewLoop ? videoUrl : undefined}
             progressOverlay={progressOverlay}
             floatingOverlay={floatingOverlay}
             controlsExtra={controlsExtra}

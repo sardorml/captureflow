@@ -213,6 +213,7 @@ export function RecordingPlayer({
         </>
       )}
       compactControls={embedded}
+      previewLoop
       controlsExtra={
         embedded ? (
           <InlineReactions
