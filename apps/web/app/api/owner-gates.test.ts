@@ -159,18 +159,17 @@ describe("abort", () => {
       }),
     );
 
-  it("cancels an upload still in flight with just the device id", async () => {
+  it("removes an upload still in flight with just the device id", async () => {
     getRecording.mockResolvedValue(row("pending"));
     expect((await call()).status).toBe(200);
-    expect(updateRecording).toHaveBeenCalledWith(SLUG, {
-      state: "failed",
-      uploadId: null,
-    });
+    expect(deleteRecording).toHaveBeenCalledWith(SLUG);
+    expect(updateRecording).not.toHaveBeenCalled();
   });
 
   it("leaves a finished recording alone", async () => {
     getRecording.mockResolvedValue(row("ready"));
     expect((await call()).status).toBe(409);
+    expect(deleteRecording).not.toHaveBeenCalled();
     expect(updateRecording).not.toHaveBeenCalled();
   });
 });

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRecording, updateRecording } from "@/lib/recording/db";
+import { getRecording } from "@/lib/recording/db";
 import { isValidSlug } from "@/lib/recording/slug";
-import { abortMultipartUpload } from "@/lib/recording/r2";
+import { removeRecording } from "@/lib/recording/remove";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import type { AbortRequest } from "@/lib/recording/types";
 
@@ -37,10 +37,9 @@ export async function POST(req: NextRequest) {
     return jsonError("Recording is not pending", 409, "wrong_state");
   }
 
-  if (row.uploadId) {
-    await abortMultipartUpload(row.storageKey, row.uploadId);
-  }
-  await updateRecording(row.slug, { state: "failed", uploadId: null });
+  // A cancelled or discarded upload leaves nothing worth keeping, so the row
+  // goes with its objects instead of lingering as "failed" on the dashboard.
+  await removeRecording(row);
 
   return withCors(NextResponse.json({ ok: true }));
 }
