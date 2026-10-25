@@ -1,21 +1,34 @@
 "use client";
 
 import {
+  createContext,
   Fragment,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
+  type ComponentPropsWithoutRef,
+  type CSSProperties,
   type MutableRefObject,
+  type ReactNode,
   type Ref,
 } from "react";
-import { MessageSquare } from "lucide-react";
-import {
+import dynamic from "next/dynamic";
+import { MessageSquare, Play } from "lucide-react";
+import type {
   RecordingPlayer as BaseRecordingPlayer,
-  type ProgressOverlayInfo,
-  type RecordingPlayerHandle,
+  ProgressOverlayInfo,
+  RecordingPlayerHandle,
 } from "../../_components/recording";
+import {
+  aspectFromPlaceholder,
+  recordingBackgroundStyle,
+  sizeStyleForAspect,
+} from "../../_components/recording/layout";
+import { PosterLayer } from "../../_components/recording/PosterLayer";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
 import type { RecordingConfig } from "@/lib/recording-config";
 import { DEFAULT_REACTIONS, reactionColor } from "@/lib/recording/reactions";
 import { cn } from "@/lib/utils";
@@ -56,6 +69,98 @@ type Props = {
 
 // Reactions within this fraction of the timeline collapse into one cluster.
 const REACTION_CLUSTER_FRACTION = 0.03;
+
+type BaseProps = ComponentPropsWithoutRef<typeof BaseRecordingPlayer>;
+
+type ShellProps = {
+  posterUrl?: string;
+  posterBlur?: string | null;
+  background: RecordingConfig["background"];
+  sizeStyle: CSSProperties;
+  compact: boolean;
+  className?: string;
+  below?: ReactNode;
+};
+
+/*
+ * The player (Video.js, its skin and controls) is the share page's largest
+ * chunk and nothing needs it to paint: the poster frame and the reaction bar
+ * render from the HTML, and the player takes their place once its chunk
+ * arrives. dynamic()'s loading component gets no props, so the shell reads
+ * them from context.
+ */
+const ShellContext = createContext<ShellProps | null>(null);
+
+function LoadingShell() {
+  const props = useContext(ShellContext);
+  return props ? <PlayerShell {...props} /> : null;
+}
+
+const LazyBasePlayer = dynamic(
+  () =>
+    import("../../_components/recording").then((m) =>
+      withSplitLoaded("player", withHandleRef(m.RecordingPlayer)),
+    ),
+  { ssr: false, loading: LoadingShell },
+);
+
+// next/dynamic does not forward refs, so the handle travels as a prop.
+function withHandleRef(Base: typeof BaseRecordingPlayer) {
+  return function BaseWithHandleRef({
+    handleRef,
+    ...props
+  }: BaseProps & { handleRef: Ref<RecordingPlayerHandle | null> }) {
+    return <Base ref={handleRef} {...props} />;
+  };
+}
+
+// Mirrors RecordingSkin's frame: same box, background, inset and poster, so
+// the swap to the real player moves nothing.
+function PlayerShell({
+  posterUrl,
+  posterBlur,
+  background,
+  sizeStyle,
+  compact,
+  className,
+  below,
+}: ShellProps) {
+  const hasFrame = background !== "transparent";
+  return (
+    <div className="flex flex-col items-center max-lg:contents">
+      <div
+        aria-busy="true"
+        className={cn(
+          "relative block overflow-clip rounded-[var(--media-border-radius,28px)] bg-black max-sm:h-auto! max-sm:w-full!",
+          compact && "rounded-none",
+          className,
+        )}
+        style={{ ...sizeStyle, ...recordingBackgroundStyle(background) }}
+      >
+        <div
+          className={
+            hasFrame
+              ? "absolute inset-[4%] overflow-hidden rounded-lg shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]"
+              : "absolute inset-0"
+          }
+        >
+          {posterUrl ? (
+            <PosterLayer posterUrl={posterUrl} posterBlur={posterBlur} />
+          ) : null}
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 flex items-center justify-center"
+          >
+            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-600 shadow-2xl shadow-blue-950/40 ring-[10px] ring-blue-600/30 sm:h-28 sm:w-28">
+              <Play className="size-10 translate-x-0.5 fill-white text-white sm:size-11" />
+            </span>
+          </span>
+        </div>
+      </div>
+      {below}
+    </div>
+  );
+}
 
 export function RecordingPlayer({
   videoUrl,
@@ -177,78 +282,94 @@ export function RecordingPlayer({
       });
   };
 
+  const below = embedded ? undefined : (
+    <div className="mt-8 flex items-center justify-center gap-2 max-lg:order-3 max-lg:mt-5 max-lg:px-4">
+      <ReactionBar
+        onReact={sendReaction}
+        pulseEmoji={pulseEmoji}
+        counts={reactionCounts}
+      />
+      {onCommentClick ? (
+        <button
+          type="button"
+          onClick={onCommentClick}
+          className="flex h-[60px] items-center gap-2.5 rounded-full bg-panel px-6 text-base font-medium text-fg shadow-md max-sm:h-[52px] max-sm:px-4 backdrop-blur-xl transition-transform duration-100 ease-out hover:-translate-y-0.5"
+          aria-label="Leave a comment"
+        >
+          <MessageSquare className="h-6 w-6" aria-hidden="true" />
+          <span className="hidden sm:inline">Comment</span>
+        </button>
+      ) : null}
+    </div>
+  );
+  const shell: ShellProps = {
+    posterUrl,
+    posterBlur,
+    background: config.background,
+    sizeStyle: sizeStyleForAspect(
+      aspectFromPlaceholder(serverWidth, serverHeight),
+      landscapeMaxHeightCss,
+    ),
+    compact: embedded,
+    className,
+    below,
+  };
+
   return (
-    <BaseRecordingPlayer
-      ref={setHandle}
-      videoUrl={videoUrl}
-      posterUrl={posterUrl}
-      posterBlur={posterBlur}
-      webcamUrl={webcamUrl}
-      serverDurationMs={serverDurationMs}
-      serverWidth={serverWidth}
-      serverHeight={serverHeight}
-      config={config}
-      captionsUrl={captionsUrl}
-      captionsLang={captionsLang}
-      chapters={chapters}
-      landscapeMaxHeightCss={landscapeMaxHeightCss}
-      className={className}
-      progressOverlay={(info) => (
-        <>
-          <ReactionLayer
-            kind="dots"
-            reactions={reactions}
-            freshIds={freshIds}
-            info={info}
-          />
-          <CommentMarks comments={comments} info={info} />
-        </>
-      )}
-      floatingOverlay={(info) => (
-        <>
-          <ReactionLayer
-            kind="bursts"
-            reactions={reactions}
-            freshIds={freshIds}
-            info={info}
-          />
-          <CommentBursts comments={comments} info={info} />
-        </>
-      )}
-      compactControls={embedded}
-      previewLoop
-      controlsExtra={
-        embedded ? (
-          <InlineReactions
-            onReact={sendReaction}
-            pulseEmoji={pulseEmoji}
-            onCommentClick={onCommentClick}
-          />
-        ) : undefined
-      }
-      belowPlayer={
-        embedded ? undefined : (
-          <div className="mt-8 flex items-center justify-center gap-2 max-lg:order-3 max-lg:mt-5 max-lg:px-4">
-            <ReactionBar
-              onReact={sendReaction}
-              pulseEmoji={pulseEmoji}
-              counts={reactionCounts}
-            />
-            {onCommentClick ? (
-              <button
-                type="button"
-                onClick={onCommentClick}
-                className="flex h-[60px] items-center gap-2.5 rounded-full bg-panel px-6 text-base font-medium text-fg shadow-md max-sm:h-[52px] max-sm:px-4 backdrop-blur-xl transition-transform duration-100 ease-out hover:-translate-y-0.5"
-                aria-label="Leave a comment"
-              >
-                <MessageSquare className="h-6 w-6" aria-hidden="true" />
-                <span className="hidden sm:inline">Comment</span>
-              </button>
-            ) : null}
-          </div>
-        )
-      }
-    />
+    <ShellContext.Provider value={shell}>
+      <div data-split="player" className="contents">
+        <LazyBasePlayer
+          handleRef={setHandle}
+          videoUrl={videoUrl}
+          posterUrl={posterUrl}
+          posterBlur={posterBlur}
+          webcamUrl={webcamUrl}
+          serverDurationMs={serverDurationMs}
+          serverWidth={serverWidth}
+          serverHeight={serverHeight}
+          config={config}
+          captionsUrl={captionsUrl}
+          captionsLang={captionsLang}
+          chapters={chapters}
+          landscapeMaxHeightCss={landscapeMaxHeightCss}
+          className={className}
+          progressOverlay={(info) => (
+            <>
+              <ReactionLayer
+                kind="dots"
+                reactions={reactions}
+                freshIds={freshIds}
+                info={info}
+              />
+              <CommentMarks comments={comments} info={info} />
+            </>
+          )}
+          floatingOverlay={(info) => (
+            <>
+              <ReactionLayer
+                kind="bursts"
+                reactions={reactions}
+                freshIds={freshIds}
+                info={info}
+              />
+              <CommentBursts comments={comments} info={info} />
+            </>
+          )}
+          compactControls={embedded}
+          previewLoop
+          controlsExtra={
+            embedded ? (
+              <InlineReactions
+                onReact={sendReaction}
+                pulseEmoji={pulseEmoji}
+                onCommentClick={onCommentClick}
+              />
+            ) : undefined
+          }
+          belowPlayer={below}
+        />
+      </div>
+    </ShellContext.Provider>
   );
 }
 
