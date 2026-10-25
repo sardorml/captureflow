@@ -48,15 +48,15 @@ export function EditorInspector({
         <Tabs.ListContainer className="m-3 shrink-0 rounded-xl bg-tint p-1">
           <Tabs.List className="flex w-full gap-0 p-0">
             <Tabs.Tab id="transcript" className={TAB_CLASS}>
-              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
               Transcript
             </Tabs.Tab>
             <Tabs.Tab id="design" className={TAB_CLASS}>
-              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
               Design
             </Tabs.Tab>
             <Tabs.Tab id="details" className={TAB_CLASS}>
-              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
               Details
             </Tabs.Tab>
           </Tabs.List>

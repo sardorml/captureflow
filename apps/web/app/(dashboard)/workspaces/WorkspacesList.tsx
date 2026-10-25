@@ -56,17 +56,17 @@ export function WorkspacesList({
         <Tabs.ListContainer className="w-fit rounded-xl bg-tint p-1">
           <Tabs.List className="flex gap-0 p-0">
             <Tabs.Tab id="all" className={TAB_CLASS}>
-              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
               All
               <Count n={workspaces.length} />
             </Tabs.Tab>
             <Tabs.Tab id="owned" className={TAB_CLASS}>
-              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
               My workspaces
               <Count n={owned.length} />
             </Tabs.Tab>
             <Tabs.Tab id="joined" className={TAB_CLASS}>
-              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
               Joined
               <Count n={joined.length} />
             </Tabs.Tab>
@@ -121,7 +121,7 @@ export function WorkspacesList({
 
 function Count({ n }: { n: number }) {
   return (
-    <span className="rounded-full bg-tint-strong px-2 py-0.5 text-xs font-medium text-fg tabular-nums">
+    <span className="rounded-full bg-black/8 px-2 py-0.5 text-xs font-medium text-fg tabular-nums dark:bg-white/10">
       {n}
     </span>
   );
@@ -151,7 +151,9 @@ function WorkspaceCard({
             {workspace.logoUrl && (
               <Avatar.Image src={workspace.logoUrl} alt="" />
             )}
-            <Avatar.Fallback>{initials(workspace.name)}</Avatar.Fallback>
+            <Avatar.Fallback className="bg-accent-bg font-semibold text-white">
+              {initials(workspace.name)}
+            </Avatar.Fallback>
           </Avatar>
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold text-fg">{workspace.name}</p>

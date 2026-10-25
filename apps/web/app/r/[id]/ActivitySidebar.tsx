@@ -392,19 +392,19 @@ export function ActivitySidebar({
           <Tabs.ListContainer className="w-full rounded-xl bg-tint p-1">
             <Tabs.List className="flex w-full gap-0 p-0">
               <Tabs.Tab id="activity" className={TAB_CLASS}>
-                <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+                <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
                 Activity
                 <span className="rounded-full bg-tint-strong px-2 py-0.5 text-xs font-medium text-fg tabular-nums">
                   {entries.length}
                 </span>
               </Tabs.Tab>
               <Tabs.Tab id="transcript" className={TAB_CLASS}>
-                <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+                <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
                 Transcript
               </Tabs.Tab>
               {editPanel ? (
                 <Tabs.Tab id="edit" className={TAB_CLASS}>
-                  <Tabs.Indicator className="rounded-lg bg-panel shadow-sm" />
+                  <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
                   Edit
                 </Tabs.Tab>
               ) : null}
