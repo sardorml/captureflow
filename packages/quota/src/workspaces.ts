@@ -209,6 +209,53 @@ export async function ensurePersonalWorkspace(
   return row;
 }
 
+// A second, third… workspace for a user who already has a personal one; the
+// creator is its owner. Nothing caps how many a user may own.
+export async function createTeamWorkspace(
+  db: D1Database,
+  input: { ownerUserId: string; name: string },
+): Promise<WorkspaceRow> {
+  const id = generateId();
+  const slug = generateSlug();
+  const now = nowMs();
+  await db
+    .prepare(
+      `INSERT INTO workspace
+         (id, slug, kind, name, owner_user_id, created_at, updated_at)
+         VALUES (?1, ?2, 'team', ?3, ?4, ?5, ?5)`,
+    )
+    .bind(id, slug, input.name, input.ownerUserId, now)
+    .run();
+  await db
+    .prepare(
+      `INSERT INTO workspace_member
+         (workspace_id, user_id, role, joined_at)
+         VALUES (?1, ?2, 'owner', ?3)`,
+    )
+    .bind(id, input.ownerUserId, now)
+    .run();
+  const row = await getWorkspaceById(db, id);
+  if (!row) {
+    throw new Error(
+      `createTeamWorkspace: insert succeeded but lookup returned null for ${id}`,
+    );
+  }
+  return row;
+}
+
+export async function countWorkspaceMembers(
+  db: D1Database,
+  workspaceId: string,
+): Promise<number> {
+  const row = await db
+    .prepare(
+      `SELECT COUNT(*) AS n FROM workspace_member WHERE workspace_id = ?1`,
+    )
+    .bind(workspaceId)
+    .first<{ n: number }>();
+  return row?.n ?? 0;
+}
+
 // These helpers do NOT gate on ownership; the API route layer is the only
 // security check that role = 'owner'.
 export async function updateWorkspaceName(

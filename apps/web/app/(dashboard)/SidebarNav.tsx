@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Camera, Link2, Receipt, Settings, Users } from "lucide-react";
+import {
+  Camera,
+  LayoutGrid,
+  Link2,
+  Receipt,
+  Settings,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type NavLink = { href: string; icon: React.ReactNode; label: string };
@@ -15,6 +22,7 @@ const MAIN_LINKS: NavLink[] = [
   { href: "/recordings", icon: <Link2 size={16} />, label: "Recordings" },
   { href: "/screenshots", icon: <Camera size={16} />, label: "Screenshots" },
   { href: "/members", icon: <Users size={16} />, label: "Members" },
+  { href: "/workspaces", icon: <LayoutGrid size={16} />, label: "Workspaces" },
 ];
 
 const ADMIN_LINKS: NavLink[] = [

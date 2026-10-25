@@ -8,6 +8,7 @@ const APP_ROUTE_SEGMENTS = new Set([
   "recordings",
   "screenshots",
   "settings",
+  "workspaces",
 ]);
 
 export function isAppRoute(pathname: string): boolean {

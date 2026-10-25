@@ -1,11 +1,20 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ChevronsUpDown, Info, UserPlus } from "lucide-react";
-import { Avatar, Button, Chip, Dropdown, Popover } from "@heroui/react";
+import Link from "next/link";
+import { ChevronsUpDown, Info, LayoutGrid, UserPlus } from "lucide-react";
+import {
+  Avatar,
+  Button,
+  Chip,
+  Dropdown,
+  Popover,
+  buttonVariants,
+} from "@heroui/react";
 import type { WorkspaceMembership } from "@captureflow/quota";
 import { initials } from "@/lib/format";
 import { workspaceLogoUrl } from "@/lib/site";
+import { cn } from "@/lib/utils";
 import { InviteModal } from "./InviteModal";
 import { switchWorkspaceAction } from "./switch-workspace-action";
 
@@ -172,25 +181,34 @@ export function WorkspaceSwitcher({
               </>
             )}
 
-            {canInvite && (
-              <>
-                <hr className="border-line" />
-                <div className="p-2">
-                  <Button
-                    variant="ghost"
-                    fullWidth
-                    className="justify-start"
-                    onPress={() => {
-                      setOpen(false);
-                      setInviting(true);
-                    }}
-                  >
-                    <UserPlus size={16} />
-                    Invite teammates
-                  </Button>
-                </div>
-              </>
-            )}
+            <hr className="border-line" />
+            <div className="flex flex-col p-2">
+              {canInvite && (
+                <Button
+                  variant="ghost"
+                  fullWidth
+                  className="justify-start"
+                  onPress={() => {
+                    setOpen(false);
+                    setInviting(true);
+                  }}
+                >
+                  <UserPlus size={16} />
+                  Invite teammates
+                </Button>
+              )}
+              <Link
+                href="/workspaces"
+                onClick={() => setOpen(false)}
+                className={cn(
+                  buttonVariants({ variant: "ghost" }),
+                  "w-full justify-start",
+                )}
+              >
+                <LayoutGrid size={16} />
+                All workspaces
+              </Link>
+            </div>
           </Dropdown.Popover>
         </Dropdown>
 
