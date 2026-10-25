@@ -502,7 +502,7 @@ async function runSession(
   mark("recording status sent");
 
   // Poster frame from the screen — best-effort, never gates the recording.
-  void capturePoster(screenStream)
+  void capturePoster(screenStream, webcamStream)
     .then((bytes) => {
       mark("poster captured");
       return bytes ? upload.uploadPoster(bytes) : undefined;
@@ -591,32 +591,90 @@ function failure(err: unknown): RecordingResultPayload {
   };
 }
 
-async function capturePoster(stream: MediaStream): Promise<Uint8Array | null> {
-  if (!stream.getVideoTracks()[0]) return null;
-  const video = document.createElement("video");
-  video.srcObject = stream;
-  video.muted = true;
+/*
+ * The camera's place in the poster, as a share of the frame: the same spot
+ * the dashboard card gives it, clear of the card's buttons (top-right) and
+ * duration chip (bottom-right). One image then serves card and share page.
+ */
+const POSTER_CAMERA = { diameter: 0.2, left: 0.025, bottom: 0.04 };
+
+async function capturePoster(
+  screen: MediaStream,
+  webcam: MediaStream | null,
+): Promise<Uint8Array | null> {
+  if (!screen.getVideoTracks()[0]) return null;
+  const video = await playFrame(screen);
+  const camera = webcam?.getVideoTracks()[0]
+    ? await playFrame(webcam).catch(() => null)
+    : null;
   try {
-    await video.play();
-    if (video.videoWidth === 0) {
-      await new Promise<void>((resolve) => {
-        video.onloadeddata = () => resolve();
-      });
-    }
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const context = canvas.getContext("2d");
     if (!context || canvas.width === 0) return null;
     context.drawImage(video, 0, 0);
+    if (camera && camera.videoWidth > 0) drawCameraBubble(context, camera);
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob((result) => resolve(result), "image/jpeg", 0.8),
     );
     return blob ? new Uint8Array(await blob.arrayBuffer()) : null;
   } finally {
-    video.pause();
-    video.srcObject = null;
+    release(video);
+    if (camera) release(camera);
   }
+}
+
+async function playFrame(stream: MediaStream): Promise<HTMLVideoElement> {
+  const video = document.createElement("video");
+  video.srcObject = stream;
+  video.muted = true;
+  await video.play();
+  if (video.videoWidth === 0) {
+    await new Promise<void>((resolve) => {
+      video.onloadeddata = () => resolve();
+    });
+  }
+  return video;
+}
+
+function release(video: HTMLVideoElement): void {
+  video.pause();
+  video.srcObject = null;
+}
+
+// A centre-cropped circle of the camera frame, like the card's bubble.
+function drawCameraBubble(
+  context: CanvasRenderingContext2D,
+  camera: HTMLVideoElement,
+): void {
+  const { width, height } = context.canvas;
+  const size = width * POSTER_CAMERA.diameter;
+  const x = width * POSTER_CAMERA.left;
+  const y = height - height * POSTER_CAMERA.bottom - size;
+  const crop = Math.min(camera.videoWidth, camera.videoHeight);
+  context.save();
+  context.beginPath();
+  context.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+  context.closePath();
+  context.clip();
+  context.drawImage(
+    camera,
+    (camera.videoWidth - crop) / 2,
+    (camera.videoHeight - crop) / 2,
+    crop,
+    crop,
+    x,
+    y,
+    size,
+    size,
+  );
+  context.restore();
+  context.beginPath();
+  context.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+  context.lineWidth = Math.max(2, size * 0.02);
+  context.strokeStyle = "rgba(255, 255, 255, 0.9)";
+  context.stroke();
 }
 
 function stopTracks(stream: MediaStream): void {
