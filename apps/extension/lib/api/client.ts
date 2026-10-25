@@ -12,7 +12,6 @@ import type {
   TranscribeRequest,
   UploadTransport,
 } from "./types";
-import { hydrateUserWorkspaces } from "../auth/workspaces";
 
 export const RECORDING_API_BASE = `${WEB_BASE}/api/r`;
 
@@ -136,7 +135,6 @@ function hydrateProfile(
     name: optionalString(body.name),
     email,
     image: optionalString(body.image),
-    workspaces: hydrateUserWorkspaces(body.workspaces),
   };
 }
 

@@ -28,7 +28,6 @@ export type CaptureContext = {
   source?: CaptureSource;
   visibility?: RecordingVisibility;
   effect?: CameraEffect;
-  workspaceId?: string;
   /*
    * Set only for the tab source: a chrome.tabCapture stream id the offscreen
    * doc turns into a stream directly, skipping the getDisplayMedia picker.

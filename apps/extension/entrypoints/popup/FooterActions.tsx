@@ -12,11 +12,6 @@ import {
   watchThemePreference,
   type ThemePreference,
 } from "@/lib/storage";
-import { getUserProfile, watchUserProfile } from "@/lib/auth/session";
-import {
-  resolveUploadWorkspace,
-  type UserWorkspace,
-} from "@/lib/auth/workspaces";
 import { closeSurface } from "@/lib/surface";
 import { MENU_CHECK, MENU_ITEM, MENU_LIST, MENU_POPOVER } from "./panel";
 
@@ -175,81 +170,12 @@ const ACTION_CLASS =
   "flex cursor-pointer flex-col items-center gap-1 rounded-xl px-3 py-1 text-xs text-muted outline-none transition-colors hover:text-foreground motion-reduce:transition-none";
 
 /*
- * Where the next recording saves, chosen before it starts and sent with the
- * upload like the other capture prefs. The list rides the auth probe, so it
- * is as fresh as the last panel open; a pick that is no longer listed falls
- * back to the dashboard's default.
+ * Where the next recording lands, chosen before it starts. Saved with the
+ * other capture prefs so the service worker sends it with the upload; the
+ * server applies it to the new recording, and the owner can still change it
+ * on the share page.
  */
-function WorkspaceAction() {
-  const [workspaces, setWorkspaces] = useState<UserWorkspace[]>([]);
-  const [pickedId, setPickedId] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
-    void getUserProfile().then((p) => setWorkspaces(p?.workspaces ?? []));
-    void getCapturePrefs().then((p) => setPickedId(p.workspaceId));
-    const unwatchProfile = watchUserProfile((p) =>
-      setWorkspaces(p?.workspaces ?? []),
-    );
-    const unwatchPrefs = watchCapturePrefs((p) => setPickedId(p.workspaceId));
-    return () => {
-      unwatchProfile();
-      unwatchPrefs();
-    };
-  }, []);
-
-  const choose = (next: string) => {
-    setPickedId(next);
-    void getCapturePrefs().then((p) =>
-      setCapturePrefs({ ...p, workspaceId: next }),
-    );
-  };
-
-  const current = resolveUploadWorkspace(workspaces, pickedId);
-
-  return (
-    <Dropdown>
-      <Dropdown.Trigger
-        aria-label="Choose where the recording saves"
-        className={ACTION_CLASS}
-      >
-        {USERS_ICON}
-        Workspace
-      </Dropdown.Trigger>
-      <Dropdown.Popover placement="top" className={MENU_POPOVER}>
-        <p className="px-5 pt-3 pb-1 text-[11px] font-medium tracking-wide text-muted uppercase">
-          Save to
-        </p>
-        <Dropdown.Menu
-          aria-label="Save to workspace"
-          selectionMode="single"
-          selectedKeys={current ? [current.id] : []}
-          onAction={(key) => choose(String(key))}
-          className={MENU_LIST}
-        >
-          {workspaces.map((w) => (
-            <Dropdown.Item key={w.id} id={w.id} className={MENU_ITEM}>
-              <span className="flex min-w-0 flex-col">
-                <span className="truncate">{w.name}</span>
-                <span className="text-xs opacity-70">
-                  {w.kind === "personal"
-                    ? "Personal"
-                    : w.role === "owner"
-                      ? "Team · you own this"
-                      : "Team · you joined"}
-                  {w.isDefault ? " · Default" : ""}
-                </span>
-              </span>
-              <Dropdown.ItemIndicator className={MENU_CHECK} />
-            </Dropdown.Item>
-          ))}
-        </Dropdown.Menu>
-      </Dropdown.Popover>
-    </Dropdown>
-  );
-}
-
-// The same three choices the share page offers, inline like the theme row.
-function VisibilityRow() {
+function VisibilityAction() {
   const [visibility, setVisibility] = useState<RecordingVisibility>("public");
 
   useEffect(() => {
@@ -264,39 +190,35 @@ function VisibilityRow() {
     );
   };
 
+  const current = VISIBILITY[visibility];
+
   return (
-    <div className="flex items-center justify-between gap-3 px-5 py-3">
-      <span className="flex items-center gap-2 text-sm">
-        {VISIBILITY[visibility].icon}
-        {VISIBILITY[visibility].label}
-      </span>
-      <div
-        role="radiogroup"
-        aria-label="Video access"
-        className="flex items-center gap-0.5 rounded-full bg-overlay p-0.5"
+    <Dropdown>
+      <Dropdown.Trigger
+        aria-label="Change video access"
+        className={ACTION_CLASS}
       >
-        {VISIBILITY_ORDER.map((id) => {
-          const on = id === visibility;
-          return (
-            <button
-              key={id}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              aria-label={VISIBILITY[id].label}
-              onClick={() => choose(id)}
-              className={`flex size-7 cursor-pointer items-center justify-center rounded-full outline-none transition-colors motion-reduce:transition-none [&_svg]:size-4 ${
-                on
-                  ? "bg-background text-foreground"
-                  : "text-muted hover:text-foreground"
-              }`}
-            >
+        {current.icon}
+        {current.label}
+      </Dropdown.Trigger>
+      <Dropdown.Popover placement="top" className={MENU_POPOVER}>
+        <Dropdown.Menu
+          aria-label="Change video access"
+          selectionMode="single"
+          selectedKeys={[visibility]}
+          onAction={(key) => choose(String(key) as RecordingVisibility)}
+          className={MENU_LIST}
+        >
+          {VISIBILITY_ORDER.map((id) => (
+            <Dropdown.Item key={id} id={id} className={MENU_ITEM}>
               {VISIBILITY[id].icon}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+              {VISIBILITY[id].label}
+              <Dropdown.ItemIndicator className={MENU_CHECK} />
+            </Dropdown.Item>
+          ))}
+        </Dropdown.Menu>
+      </Dropdown.Popover>
+    </Dropdown>
   );
 }
 
@@ -380,7 +302,7 @@ export function FooterActions({ onEffects }: { onEffects: () => void }) {
         {WAND_ICON}
         Effects
       </button>
-      <WorkspaceAction />
+      <VisibilityAction />
       <Dropdown>
         <Dropdown.Trigger aria-label="More" className={ACTION_CLASS}>
           {MORE_ICON}
@@ -389,7 +311,6 @@ export function FooterActions({ onEffects }: { onEffects: () => void }) {
         <Dropdown.Popover placement="top" className={MENU_POPOVER}>
           {/* Outside the Menu: an item would close the popover on each press,
               and the theme is something to flick between. */}
-          <VisibilityRow />
           <ThemeRow />
           <Dropdown.Menu className={`${MENU_LIST} border-t border-separator`}>
             <Dropdown.Item onAction={openDashboard} className={MENU_ITEM}>
