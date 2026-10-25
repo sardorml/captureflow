@@ -67,7 +67,7 @@ export default async function RecordingsPage() {
 async function toCardRow({
   storageKey,
   posterKey,
-  webcamStorageKey: _webcam,
+  webcamStorageKey,
   ...row
 }: DashboardRecordingRow): Promise<RecordingCardRow> {
   const posterUrl = posterKey ? await viewerMediaUrl(row, posterKey) : null;
@@ -75,5 +75,9 @@ async function toCardRow({
     row.state === "ready" && !posterUrl
       ? `${await viewerMediaUrl(row, storageKey)}?v=${row.sizeBytes}`
       : null;
-  return { ...row, posterUrl, videoThumbUrl };
+  const webcamUrl =
+    webcamStorageKey && row.webcamState === "ready"
+      ? await viewerMediaUrl(row, webcamStorageKey)
+      : null;
+  return { ...row, posterUrl, videoThumbUrl, webcamUrl };
 }
