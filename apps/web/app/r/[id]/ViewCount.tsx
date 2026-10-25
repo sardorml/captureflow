@@ -46,12 +46,10 @@ export function ViewCount({ count, viewers, className }: Props) {
                 <Users className="size-6" aria-hidden="true" />
               </span>
               <p className="mt-4 text-base font-semibold text-fg">
-                {count > 1 ? "No viewer details yet" : "No views yet"}
+                No views yet
               </p>
               <p className="mt-1 text-sm text-fg-muted">
-                {count > 1
-                  ? "Earlier views were only counted. From now on the people who watch show up here."
-                  : "Share the link and the people who watch show up here."}
+                Share the link and the people who watch show up here.
               </p>
             </div>
           ) : (
