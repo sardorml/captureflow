@@ -95,6 +95,7 @@ export type UploadTransport = {
   finalizeScreen(req: FinalizeRequest): Promise<FinalizeResponse>;
   finalizeWebcam(req: FinalizeRequest): Promise<void>;
   uploadPoster(slug: string, bytes: Uint8Array): Promise<void>;
+  uploadPosterCard(slug: string, bytes: Uint8Array): Promise<void>;
   uploadAudioPart(
     slug: string,
     partNumber: number,
