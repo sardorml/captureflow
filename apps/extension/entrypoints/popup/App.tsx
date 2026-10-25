@@ -22,6 +22,7 @@ import { closeSurface, isOverlaySurface } from "@/lib/surface";
 import { RecorderPanel } from "./RecorderPanel";
 import { ScreenshotPanel } from "./ScreenshotPanel";
 import { EffectsPanel } from "./EffectsPanel";
+import { QualityPanel } from "./QualityPanel";
 import { FooterActions } from "./FooterActions";
 import { SignInGate } from "./SignInGate";
 
@@ -125,6 +126,7 @@ export function App() {
   const [status, setStatus] = useState<RecordingStatus>({ kind: "idle" });
   const [reason, setReason] = useState<SignedOutReason | null>(null);
   const [effectsOpen, setEffectsOpen] = useState(false);
+  const [qualityOpen, setQualityOpen] = useState(false);
   const mode = useRef<Key>("video");
 
   useEffect(() => {
@@ -219,6 +221,9 @@ export function App() {
   if (effectsOpen) {
     return <EffectsPanel onBack={() => setEffectsOpen(false)} />;
   }
+  if (qualityOpen) {
+    return <QualityPanel onBack={() => setQualityOpen(false)} />;
+  }
 
   return (
     <Tabs
@@ -273,7 +278,10 @@ export function App() {
         <ScreenshotPanel />
       </Tabs.Panel>
 
-      <FooterActions onEffects={() => setEffectsOpen(true)} />
+      <FooterActions
+        onEffects={() => setEffectsOpen(true)}
+        onQuality={() => setQualityOpen(true)}
+      />
     </Tabs>
   );
 }

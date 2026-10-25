@@ -8,6 +8,7 @@ import type {
   RecordingResultPayload,
   RecordingStatus,
 } from "./storage";
+import type { RecordingQualityId } from "@captureflow/engine";
 import type { CameraEffect } from "./capture/camera-effects";
 
 export type StartResult = { ok: true } | { ok: false; error: string };
@@ -28,6 +29,7 @@ export type CaptureContext = {
   source?: CaptureSource;
   visibility?: RecordingVisibility;
   effect?: CameraEffect;
+  quality?: RecordingQualityId;
   /*
    * Set only for the tab source: a chrome.tabCapture stream id the offscreen
    * doc turns into a stream directly, skipping the getDisplayMedia picker.

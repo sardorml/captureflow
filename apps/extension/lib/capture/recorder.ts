@@ -1,4 +1,8 @@
-import { ENGINE_OUTPUT } from "@captureflow/engine";
+import {
+  RECORDING_QUALITIES,
+  hydrateRecordingQuality,
+  type RecordingQuality,
+} from "@captureflow/engine";
 import {
   MIC_CONSTRAINTS,
   isAudioChunkRecordingSupported,
@@ -75,10 +79,15 @@ export function deleteActiveRecording(): void {
   commands?.discard();
 }
 
-const deviceConstraint = (
+const cameraConstraint = (
   deviceId: string | undefined,
-): MediaTrackConstraints | boolean =>
-  deviceId ? { deviceId: { ideal: deviceId } } : true;
+  quality: RecordingQuality,
+): MediaTrackConstraints => ({
+  ...(deviceId ? { deviceId: { ideal: deviceId } } : {}),
+  width: { ideal: quality.webcam.width },
+  height: { ideal: quality.webcam.height },
+  frameRate: { ideal: 30 },
+});
 
 const micConstraint = (deviceId: string | undefined): MediaTrackConstraints =>
   deviceId
@@ -100,7 +109,10 @@ const micConstraint = (deviceId: string | undefined): MediaTrackConstraints =>
  */
 const TAB_CAPTURE_MIN_DIMENSION = 2;
 
-async function captureTabStream(streamId: string): Promise<MediaStream> {
+async function captureTabStream(
+  streamId: string,
+  quality: RecordingQuality,
+): Promise<MediaStream> {
   return navigator.mediaDevices.getUserMedia({
     video: {
       mandatory: {
@@ -108,8 +120,9 @@ async function captureTabStream(streamId: string): Promise<MediaStream> {
         chromeMediaSourceId: streamId,
         minWidth: TAB_CAPTURE_MIN_DIMENSION,
         minHeight: TAB_CAPTURE_MIN_DIMENSION,
-        maxWidth: ENGINE_OUTPUT.screen.maxWidth,
-        maxHeight: ENGINE_OUTPUT.screen.maxHeight,
+        maxWidth: quality.screen.maxWidth,
+        maxHeight: quality.screen.maxHeight,
+        maxFrameRate: quality.screen.fps,
       },
     },
   } as unknown as MediaStreamConstraints);
@@ -130,17 +143,19 @@ export async function recordAndUpload(
   sessionActive = true;
 
   cb.onStatus({ kind: "preparing" });
+  const quality = RECORDING_QUALITIES[hydrateRecordingQuality(ctx.quality)];
 
   let screenStream: MediaStream;
   try {
     screenStream = ctx.tabStreamId
-      ? await captureTabStream(ctx.tabStreamId)
-      : // Max constraints make the browser scale to the contract dims
+      ? await captureTabStream(ctx.tabStreamId, quality)
+      : // Max constraints make the browser scale to the chosen dims
         // (aspect-fit); the native cursor is captured in-frame by default.
         await navigator.mediaDevices.getDisplayMedia({
           video: {
-            width: { max: ENGINE_OUTPUT.screen.maxWidth },
-            height: { max: ENGINE_OUTPUT.screen.maxHeight },
+            width: { max: quality.screen.maxWidth },
+            height: { max: quality.screen.maxHeight },
+            frameRate: { max: quality.screen.fps },
             ...(ctx.source
               ? { displaySurface: DISPLAY_SURFACE[ctx.source] }
               : {}),
@@ -167,7 +182,7 @@ export async function recordAndUpload(
   if (ctx.camera) {
     try {
       webcamStream = await navigator.mediaDevices.getUserMedia({
-        video: deviceConstraint(ctx.cameraId),
+        video: cameraConstraint(ctx.cameraId, quality),
         audio: ctx.mic ? micConstraint(ctx.micId) : false,
       });
     } catch {
@@ -264,6 +279,7 @@ async function runSession(
   stopAllTracks: () => void,
 ): Promise<SessionEnd> {
   const { screenStream, webcamStream, micStream, voice } = streams;
+  const quality = RECORDING_QUALITIES[hydrateRecordingQuality(ctx.quality)];
 
   const transport = createRecordingTransport(ctx.deviceId, ctx.token);
   let upload: RecordingUpload;
@@ -308,6 +324,7 @@ async function runSession(
     screenRecorder = await startStreamRecorder({
       stream: screenStream,
       micStream: micStream ? voice : null,
+      quality: quality.screen,
       // fMP4 fragments are strictly appended, so position is ignorable; copy
       // because the muxer reuses its output buffer.
       output: (bytes) => {
@@ -335,6 +352,8 @@ async function runSession(
         // The mic rides the camera's getUserMedia stream; the chain's output
         // stands in for it here.
         micStream: voice,
+        videoBitrate: quality.webcam.bitrate,
+        audioBitrate: quality.webcam.audioBitrate,
         onChunk: (buf) => {
           upload.pushWebcam(new Uint8Array(buf));
           if (storageSpent()) sessionRef?.stop();

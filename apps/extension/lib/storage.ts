@@ -1,4 +1,5 @@
 import type { RecordingVisibility } from "./api/types";
+import type { RecordingQualityId } from "@captureflow/engine";
 import type { CameraEffect } from "./capture/camera-effects";
 
 /*
@@ -20,6 +21,7 @@ export type CapturePrefs = {
   visibility?: RecordingVisibility;
   shot?: ScreenshotType;
   effect?: CameraEffect;
+  quality?: RecordingQualityId;
 };
 
 /*

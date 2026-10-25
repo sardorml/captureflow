@@ -1,5 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Dropdown } from "@heroui/react";
+import {
+  DEFAULT_RECORDING_QUALITY,
+  RECORDING_QUALITIES,
+  hydrateRecordingQuality,
+  type RecordingQualityId,
+} from "@captureflow/engine";
 import type { RecordingVisibility } from "@/lib/api/types";
 import { sendMessage } from "@/lib/messaging";
 import { WEB_BASE } from "@/lib/config";
@@ -286,7 +292,24 @@ const WAND_ICON = (
   </svg>
 );
 
-export function FooterActions({ onEffects }: { onEffects: () => void }) {
+export function FooterActions({
+  onEffects,
+  onQuality,
+}: {
+  onEffects: () => void;
+  onQuality: () => void;
+}) {
+  const [quality, setQuality] = useState<RecordingQualityId>(
+    DEFAULT_RECORDING_QUALITY,
+  );
+  useEffect(() => {
+    void getCapturePrefs().then((p) =>
+      setQuality(hydrateRecordingQuality(p.quality)),
+    );
+    return watchCapturePrefs((p) =>
+      setQuality(hydrateRecordingQuality(p.quality)),
+    );
+  }, []);
   const openDashboard = () => {
     void chrome.tabs.create({ url: `${WEB_BASE}/recordings` });
     closeSurface();
@@ -313,6 +336,15 @@ export function FooterActions({ onEffects }: { onEffects: () => void }) {
               and the theme is something to flick between. */}
           <ThemeRow />
           <Dropdown.Menu className={`${MENU_LIST} border-t border-separator`}>
+            <Dropdown.Item
+              onAction={onQuality}
+              className={`${MENU_ITEM} justify-between pe-5`}
+            >
+              Quality
+              <span className="text-sm text-muted">
+                {RECORDING_QUALITIES[quality].label}
+              </span>
+            </Dropdown.Item>
             <Dropdown.Item onAction={openDashboard} className={MENU_ITEM}>
               Open dashboard
             </Dropdown.Item>
