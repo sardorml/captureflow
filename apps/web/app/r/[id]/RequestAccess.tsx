@@ -173,7 +173,7 @@ export function RequestAccess({
               maxLength={500}
               rows={3}
               placeholder="Hi — I'd like to watch this recording from yesterday's review."
-              className="mt-2 resize-none"
+              className="mt-2 w-full resize-none"
             />
             <Button
               variant="primary"
