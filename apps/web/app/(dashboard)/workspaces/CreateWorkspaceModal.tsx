@@ -49,8 +49,9 @@ export function CreateWorkspaceModal() {
               </Modal.Header>
               <Modal.Body>
                 <Typography.Paragraph color="muted">
-                  You own it and can invite teammates. It becomes your default,
-                  so your next recordings and screenshots save there.
+                  You own it and can invite teammates. Your default stays as it
+                  is; use &ldquo;Make default&rdquo; on the new card when you
+                  want captures to save there.
                 </Typography.Paragraph>
                 <form
                   className="mt-2 flex flex-col gap-2"

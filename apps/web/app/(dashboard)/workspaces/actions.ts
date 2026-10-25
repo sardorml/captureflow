@@ -3,16 +3,15 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createTeamWorkspace, setCurrentWorkspaceId } from "@captureflow/quota";
+import { createTeamWorkspace } from "@captureflow/quota";
 import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { hydrateWorkspaceName } from "@/lib/workspace-name";
 
 type FormState = { error: string | null; ok: string | null };
 
-// Any signed-in user may start a workspace and becomes its owner. It becomes
-// the default straight away: the next capture goes there, and the page the
-// user lands on shows it.
+// Any signed-in user may start a workspace and becomes its owner. The default
+// stays where it was; the new card offers "Make default".
 export async function createWorkspaceAction(
   _prev: FormState,
   formData: FormData,
@@ -31,7 +30,6 @@ export async function createWorkspaceAction(
       ownerUserId: session.user.id,
       name: name.name,
     });
-    await setCurrentWorkspaceId(env.DB, session.user.id, workspace.id);
     revalidatePath("/", "layout");
     return { error: null, ok: workspace.id };
   } catch {
