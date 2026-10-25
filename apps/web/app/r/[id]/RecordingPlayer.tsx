@@ -212,7 +212,6 @@ export function RecordingPlayer({
           <CommentBursts comments={comments} info={info} />
         </>
       )}
-      controlsAlwaysVisible={embedded}
       compactControls={embedded}
       controlsExtra={
         embedded ? (

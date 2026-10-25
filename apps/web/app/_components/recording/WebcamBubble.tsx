@@ -20,11 +20,12 @@ export type RecordingWebcam = {
 type Props = {
   webcam: RecordingWebcam;
   videoRef: RefObject<HTMLVideoElement | null>;
+  fluid?: boolean;
 };
 
 // No z-index: the controls layers stack above it like a real PiP. A hidden
 // camera stays mounted since its track carries the mic.
-export function WebcamBubble({ webcam, videoRef }: Props) {
+export function WebcamBubble({ webcam, videoRef, fluid = false }: Props) {
   return (
     <video
       ref={videoRef}
@@ -37,8 +38,10 @@ export function WebcamBubble({ webcam, videoRef }: Props) {
         webcam.hidden && "invisible",
       )}
       style={{
-        width: webcamSizeCss(webcam.size),
-        ...(webcam.point ? webcamPointStyle(webcam.point, webcam.size) : {}),
+        width: webcamSizeCss(webcam.size, fluid),
+        ...(webcam.point
+          ? webcamPointStyle(webcam.point, webcam.size, fluid)
+          : {}),
       }}
       playsInline
       preload="auto"

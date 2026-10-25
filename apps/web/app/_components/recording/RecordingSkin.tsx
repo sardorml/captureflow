@@ -182,6 +182,7 @@ export function RecordingSkin({
       }}
       data-theme="default"
       data-preset="video"
+      data-compact={compact || undefined}
       data-caption-size={captionPrefs.size}
       data-caption-position={captionPrefs.position}
     >
@@ -207,7 +208,9 @@ export function RecordingSkin({
         </div>
       </div>
 
-      {webcam ? <WebcamBubble webcam={webcam} videoRef={webcamRef} /> : null}
+      {webcam ? (
+        <WebcamBubble webcam={webcam} videoRef={webcamRef} fluid={compact} />
+      ) : null}
 
       <BufferingIndicator />
       <ErrorDialog />

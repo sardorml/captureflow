@@ -96,9 +96,17 @@ export function webcamSizeFraction(size: RecordingCameraSize): number {
   }
 }
 
-// Container units: the player box is the bubble's container.
-export function webcamSizeCss(size: RecordingCameraSize): string {
+/*
+ * Container units: the player box is the bubble's container. The pixel floor
+ * keeps a face readable on a phone-width share page; a fluid bubble stays in
+ * proportion in a small embed, where the floor would cover a quarter of it.
+ */
+export function webcamSizeCss(
+  size: RecordingCameraSize,
+  fluid = false,
+): string {
   const pct = webcamSizeFraction(size) * 100;
+  if (fluid) return `${pct}cqw`;
   switch (size) {
     case "small":
       return `clamp(80px, ${pct}cqw, 140px)`;
@@ -153,8 +161,9 @@ export function webcamCornerNear(
 export function webcamPointStyle(
   point: RecordingCameraPoint,
   size: RecordingCameraSize,
+  fluid = false,
 ): CSSProperties {
-  const w = webcamSizeCss(size);
+  const w = webcamSizeCss(size, fluid);
   const along = (fraction: number): string =>
     `clamp(0px, calc(${fraction * 100}% - ${w} / 2), calc(100% - ${w}))`;
   return { left: along(point.x), top: along(point.y) };

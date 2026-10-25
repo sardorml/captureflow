@@ -81,6 +81,13 @@ describe("webcam placement", () => {
     expect(webcamSizeCss("large")).toBe("clamp(150px, 22cqw, 280px)");
   });
 
+  it("drops the pixel floor for a fluid bubble", () => {
+    expect(webcamSizeCss("medium", true)).toBe("16cqw");
+    expect(webcamPointStyle({ x: 0.5, y: 0.5 }, "medium", true).left).toBe(
+      "clamp(0px, calc(50% - 16cqw / 2), calc(100% - 16cqw))",
+    );
+  });
+
   it("centres a free point and keeps the bubble inside the box", () => {
     const w = webcamSizeCss("medium");
     expect(webcamPointStyle({ x: 0.25, y: 1 }, "medium")).toEqual({

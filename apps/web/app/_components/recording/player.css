@@ -26,6 +26,13 @@
   scale: 1 -1;
 }
 
+/* The compact bar sits in a 440px frame on GitHub, where the stock 36px
+   controls crowd the reactions beside them. */
+.media-skin[data-compact] {
+  --media-control-size: calc(var(--media-spacing) * 7.5);
+  --media-icon-size: calc(var(--media-spacing) * 4);
+}
+
 /* The settings menu: Captions lists the track, size and position, which the
    stock 14rem cap would cut in half and scroll. */
 .media-skin :has(> [role="menu"]:not([data-submenu])) {
