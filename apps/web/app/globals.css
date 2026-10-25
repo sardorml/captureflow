@@ -110,8 +110,8 @@ html[data-theme="light"] {
    * vibrant palette off. Base 0 leaves every neutral a pure grey at the
    * builder's default lightness; the status hues shift with the accent.
    */
-  --cf-canvas: oklch(97.02% 0 0);
-  --cf-canvas-2: oklch(97.02% 0 0);
+  --cf-canvas: oklch(100% 0 0);
+  --cf-canvas-2: oklch(100% 0 0);
   --cf-fg: oklch(21.03% 0 0);
   --cf-fg-strong: oklch(14% 0 0);
   --foreground: oklch(21.03% 0 0);
@@ -127,7 +127,7 @@ html[data-theme="light"] {
   --cf-accent-bg-hover: oklch(66% 0.195 254.55);
   --cf-accent-ring: oklch(62.04% 0.195 254.55 / 30%);
 
-  --background: oklch(97.02% 0 0);
+  --background: oklch(100% 0 0);
   --accent: oklch(62.04% 0.195 254.55);
   --accent-foreground: oklch(99.11% 0 0);
   --focus: oklch(62.04% 0.195 254.55);
