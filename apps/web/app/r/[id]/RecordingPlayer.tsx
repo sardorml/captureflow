@@ -302,9 +302,17 @@ export function RecordingPlayer({
       ) : null}
     </div>
   );
+  /*
+   * The poster has the camera drawn into it for the cards, and the player
+   * shows the camera live in its own bubble, so with a camera the poster
+   * would put two of them on screen. The player then opens on its frame
+   * and the preview loop instead.
+   */
+  const poster = webcamUrl ? undefined : posterUrl;
+  const blur = webcamUrl ? undefined : posterBlur;
   const shell: ShellProps = {
-    posterUrl,
-    posterBlur,
+    posterUrl: poster,
+    posterBlur: blur,
     background: config.background,
     sizeStyle: sizeStyleForAspect(
       aspectFromPlaceholder(serverWidth, serverHeight),
@@ -321,8 +329,8 @@ export function RecordingPlayer({
         <LazyBasePlayer
           handleRef={setHandle}
           videoUrl={videoUrl}
-          posterUrl={posterUrl}
-          posterBlur={posterBlur}
+          posterUrl={poster}
+          posterBlur={blur}
           webcamUrl={webcamUrl}
           serverDurationMs={serverDurationMs}
           serverWidth={serverWidth}
