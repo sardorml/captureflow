@@ -108,6 +108,7 @@ export type RecordingSkinProps = {
   // Shows the frame under the pointer above the time slider.
   framePreview: boolean;
   previewLoopUrl?: string;
+  previewCaptions?: { url: string; lang: string };
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   // Covers the whole player and stays put when the controls hide.
   floatingOverlay?: (info: ProgressOverlayInfo) => ReactNode;
@@ -164,6 +165,7 @@ export function RecordingSkin({
   videoUrl,
   framePreview,
   previewLoopUrl,
+  previewCaptions,
   progressOverlay,
   floatingOverlay,
   controlsExtra,
@@ -234,7 +236,16 @@ export function RecordingSkin({
               videoRef={previewMain}
               onTimeUpdate={syncPreview}
               className="pointer-events-none absolute inset-0 block h-full w-full object-contain"
-            />
+            >
+              {previewCaptions ? (
+                <track
+                  kind="captions"
+                  src={previewCaptions.url}
+                  srcLang={previewCaptions.lang}
+                  default
+                />
+              ) : null}
+            </LoopVideo>
           ) : null}
         </div>
       </div>
@@ -330,12 +341,14 @@ function LoopVideo({
   onTimeUpdate,
   className,
   style,
+  children,
 }: {
   url: string;
   videoRef: RefObject<HTMLVideoElement | null>;
   onTimeUpdate?: () => void;
   className: string;
   style?: CSSProperties;
+  children?: ReactNode;
 }) {
   return (
     <video
@@ -349,7 +362,9 @@ function LoopVideo({
       playsInline
       aria-hidden="true"
       onTimeUpdate={onTimeUpdate}
-    />
+    >
+      {children}
+    </video>
   );
 }
 

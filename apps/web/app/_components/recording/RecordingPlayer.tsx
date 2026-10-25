@@ -264,6 +264,11 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             videoUrl={videoUrl}
             framePreview={framePreview}
             previewLoopUrl={previewLoop ? videoUrl : undefined}
+            previewCaptions={
+              previewLoop && captionsUrl
+                ? { url: captionsUrl, lang: captionsLang ?? "en" }
+                : undefined
+            }
             progressOverlay={progressOverlay}
             floatingOverlay={floatingOverlay}
             controlsExtra={controlsExtra}
