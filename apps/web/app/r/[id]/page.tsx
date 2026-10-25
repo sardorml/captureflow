@@ -10,6 +10,7 @@ import {
   listReactions,
   listViewers,
   recordView,
+  touchLastViewed,
 } from "@/lib/recording/db";
 import { viewerKeyFor } from "@/lib/recording/viewer-key";
 import { resolveTranscript } from "@/lib/recording/transcript";
@@ -216,11 +217,16 @@ export default async function RecordingPage({ params }: { params: Params }) {
     }
   }
 
-  void viewerKeyFor(visitor?.userId ?? null, requestHeaders)
-    .then((key) => recordView(id, key, visitor?.userId ?? null))
-    .catch(() => undefined);
-
   const isOwner = !!(visitor && row.userId && visitor.userId === row.userId);
+  // The owner's own visits are not views.
+  void (
+    isOwner
+      ? touchLastViewed(id)
+      : viewerKeyFor(visitor?.userId ?? null, requestHeaders).then((key) =>
+          recordView(id, key, visitor?.userId ?? null),
+        )
+  ).catch(() => undefined);
+
   const [
     videoUrlRaw,
     posterUrlRaw,
@@ -243,7 +249,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
       : Promise.resolve(undefined),
     getTranscript(id),
     // Only the owner sees who watched.
-    isOwner ? listViewers(id) : Promise.resolve(null),
+    isOwner ? listViewers(id, row.userId) : Promise.resolve(null),
   ]);
   const recordingConfig = parseRecordingConfigJson(row.configJson);
   const summaryChapters = parseSummaryChaptersJson(row.summaryChaptersJson);
@@ -260,7 +266,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
 
   // recordView increments atomically but runs after we read the row, so
   // add 1 to reflect the current load.
-  const displayViews = row.viewCount + 1;
+  const displayViews = isOwner ? row.viewCount : row.viewCount + 1;
   const headlineText = row.title ?? PRODUCT_NAME;
 
   const loginUrl = `${APP_WEB_SITE_URL}/login?next=${encodeURIComponent(

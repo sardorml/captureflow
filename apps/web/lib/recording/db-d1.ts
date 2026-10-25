@@ -264,12 +264,16 @@ export function createD1Db(d1: D1Database): RecordingDb {
            user_id = COALESCE(excluded.user_id, user_id)`,
   );
 
+  const stmtTouchLastViewed = d1.prepare(
+    `UPDATE recordings SET last_viewed_at = ?2 WHERE slug = ?1`,
+  );
+
   const stmtListViewers = d1.prepare(
     `SELECT v.user_id, v.last_viewed_at, v.views,
             u.name AS user_name, u.email AS user_email, u.image AS user_image
        FROM recording_views AS v
        LEFT JOIN users AS u ON u.id = v.user_id
-       WHERE v.slug = ?1
+       WHERE v.slug = ?1 AND (v.user_id IS NULL OR v.user_id <> ?2)
        ORDER BY v.last_viewed_at DESC
        LIMIT 100`,
   );
@@ -523,8 +527,14 @@ export function createD1Db(d1: D1Database): RecordingDb {
       ]);
     },
 
-    async listViewers(slug) {
-      const { results } = await stmtListViewers.bind(slug).all<D1ViewerRow>();
+    async touchLastViewed(slug) {
+      await stmtTouchLastViewed.bind(slug, Date.now()).run();
+    },
+
+    async listViewers(slug, excludeUserId) {
+      const { results } = await stmtListViewers
+        .bind(slug, excludeUserId ?? "")
+        .all<D1ViewerRow>();
       return results.map((r) => ({
         userId: r.user_id,
         name: r.user_name,

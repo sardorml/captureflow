@@ -95,8 +95,14 @@ export const memoryDb: RecordingDb = {
     views.set(slug, viewers);
   },
 
-  async listViewers(slug) {
+  async touchLastViewed(slug) {
+    const row = store.get(slug);
+    if (row) store.set(slug, { ...row, lastViewedAt: Date.now() });
+  },
+
+  async listViewers(slug, excludeUserId) {
     return Array.from(views.get(slug)?.values() ?? [])
+      .filter((v) => v.userId === null || v.userId !== excludeUserId)
       .sort((a, b) => b.lastViewedAt - a.lastViewedAt)
       .map((v) => ({ ...v, name: null, email: null, image: null }));
   },

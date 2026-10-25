@@ -187,7 +187,6 @@ export function RecordingViewer({
               <ViewCount
                 count={viewCount}
                 viewers={viewers}
-                viewerUserId={viewer?.userId ?? null}
                 className="max-lg:self-start"
               />
             </div>

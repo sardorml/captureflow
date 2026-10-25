@@ -35,7 +35,12 @@ export type RecordingDb = {
     viewerKey: string,
     userId: string | null,
   ): Promise<void>;
-  listViewers(slug: string): Promise<RecordingViewerEntry[]>;
+  // The owner's own visit: keeps the recording from idling out, counts nothing.
+  touchLastViewed(slug: string): Promise<void>;
+  listViewers(
+    slug: string,
+    excludeUserId: string | null,
+  ): Promise<RecordingViewerEntry[]>;
   addReaction(input: {
     slug: string;
     emoji: string;

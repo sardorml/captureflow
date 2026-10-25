@@ -10,7 +10,6 @@ type Props = {
   count: number;
   // Null for anyone but the owner, who alone gets the list.
   viewers: RecordingViewerEntry[] | null;
-  viewerUserId: string | null;
   className?: string;
 };
 
@@ -22,7 +21,7 @@ const PILL_CLASS =
 const viewsLabel = (n: number): string =>
   `${n.toLocaleString()} ${n === 1 ? "view" : "views"}`;
 
-export function ViewCount({ count, viewers, viewerUserId, className }: Props) {
+export function ViewCount({ count, viewers, className }: Props) {
   if (!viewers) {
     return (
       <span className={cn(PILL_CLASS, className)}>{viewsLabel(count)}</span>
@@ -65,9 +64,6 @@ export function ViewCount({ count, viewers, viewerUserId, className }: Props) {
                   <ViewerRow
                     key={entry.userId ?? `anon-${index}`}
                     entry={entry}
-                    isYou={
-                      entry.userId !== null && entry.userId === viewerUserId
-                    }
                   />
                 ))}
               </ul>
@@ -79,13 +75,7 @@ export function ViewCount({ count, viewers, viewerUserId, className }: Props) {
   );
 }
 
-function ViewerRow({
-  entry,
-  isYou,
-}: {
-  entry: RecordingViewerEntry;
-  isYou: boolean;
-}) {
+function ViewerRow({ entry }: { entry: RecordingViewerEntry }) {
   const name =
     entry.name?.trim() ||
     entry.email ||
@@ -111,10 +101,7 @@ function ViewerRow({
         </span>
       )}
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-fg">
-          {name}
-          {isYou ? <span className="text-fg-muted"> (you)</span> : null}
-        </p>
+        <p className="truncate text-sm font-medium text-fg">{name}</p>
         <p className="truncate text-xs text-fg-muted">{detail}</p>
       </div>
     </li>

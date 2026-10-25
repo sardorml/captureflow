@@ -99,10 +99,15 @@ export async function recordView(
   return (await resolveDb()).recordView(slug, viewerKey, userId);
 }
 
+export async function touchLastViewed(slug: string): Promise<void> {
+  return (await resolveDb()).touchLastViewed(slug);
+}
+
 export async function listViewers(
   slug: string,
+  excludeUserId: string | null,
 ): Promise<RecordingViewerEntry[]> {
-  return (await resolveDb()).listViewers(slug);
+  return (await resolveDb()).listViewers(slug, excludeUserId);
 }
 
 export async function addReaction(input: {

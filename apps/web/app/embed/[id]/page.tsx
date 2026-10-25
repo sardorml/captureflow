@@ -6,6 +6,7 @@ import {
   getTranscript,
   listReactions,
   recordView,
+  touchLastViewed,
 } from "@/lib/recording/db";
 import { viewerKeyFor } from "@/lib/recording/viewer-key";
 import { resolveTranscript } from "@/lib/recording/transcript";
@@ -40,9 +41,14 @@ export default async function EmbedPage({
   const visitor = visitorResult === "unknown" ? null : visitorResult;
   if (!canViewResource(visitor, row)) notFound();
 
-  void viewerKeyFor(visitor?.userId ?? null, requestHeaders)
-    .then((key) => recordView(id, key, visitor?.userId ?? null))
-    .catch(() => undefined);
+  const isOwner = !!(visitor && row.userId && visitor.userId === row.userId);
+  void (
+    isOwner
+      ? touchLastViewed(id)
+      : viewerKeyFor(visitor?.userId ?? null, requestHeaders).then((key) =>
+          recordView(id, key, visitor?.userId ?? null),
+        )
+  ).catch(() => undefined);
 
   const [videoUrlRaw, posterUrlRaw, reactions, webcamUrlRaw, transcriptRow] =
     await Promise.all([
