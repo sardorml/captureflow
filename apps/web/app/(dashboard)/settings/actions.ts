@@ -13,6 +13,7 @@ import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { deleteObject, putObject } from "@/lib/r2";
+import { hydrateWorkspaceName } from "@/lib/workspace-name";
 
 // Every action re-verifies owner access server-side: a replayed action lands
 // here directly and can't trust the UI hiding the page from members.
@@ -44,14 +45,10 @@ export async function updateWorkspaceNameAction(
   const env = await getAppWebEnv();
   if (!env?.DB) return { error: "Database unavailable", ok: null };
 
-  const raw = formData.get("name");
-  const next = typeof raw === "string" ? raw.trim() : "";
-  if (!next) return { error: "Workspace name can’t be empty", ok: null };
-  if (next.length > 80) {
-    return { error: "Workspace name is too long (max 80 chars)", ok: null };
-  }
+  const name = hydrateWorkspaceName(formData.get("name"));
+  if (!name.ok) return { error: name.error, ok: null };
 
-  const ok = await updateWorkspaceName(env.DB, workspaceId, next);
+  const ok = await updateWorkspaceName(env.DB, workspaceId, name.name);
   if (!ok) return { error: "Couldn’t save — try again", ok: null };
   revalidatePath("/", "layout");
   return { error: null, ok: "Saved" };
