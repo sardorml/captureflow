@@ -166,9 +166,9 @@ html:not([data-theme]) {
   --cf-fg: oklch(99.11% 0 0);
   --cf-fg-strong: oklch(100% 0 0);
   --foreground: oklch(99.11% 0 0);
-  --cf-panel: oklch(24% 0 0);
+  --cf-panel: oklch(22.5% 0 0);
   --cf-panel-2: oklch(27.21% 0 0);
-  --cf-field: oklch(24% 0 0);
+  --cf-field: oklch(22.5% 0 0);
   --cf-tint: oklch(99.11% 0 0 / 5%);
   --cf-tint-strong: oklch(27.21% 0 0);
   --cf-line: oklch(25% 0 0);
@@ -189,10 +189,10 @@ html:not([data-theme]) {
   --muted: oklch(70.5% 0 0);
   --default: oklch(27.4% 0 0);
   --default-foreground: oklch(99.11% 0 0);
-  --surface: oklch(24% 0 0);
+  --surface: oklch(22.5% 0 0);
   --surface-secondary: oklch(25.7% 0 0);
   --surface-tertiary: oklch(27.21% 0 0);
-  --overlay: oklch(24% 0 0);
+  --overlay: oklch(22.5% 0 0);
   --scrollbar: oklch(70.5% 0 0);
   --segment: oklch(39.64% 0 0);
   --border: oklch(28% 0 0);
