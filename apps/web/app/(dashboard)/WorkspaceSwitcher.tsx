@@ -142,10 +142,10 @@ export function WorkspaceSwitcher({
           without you having to open anything. The info button sits outside the
           Dropdown because React Aria's press context would otherwise route its
           press to the trigger. */}
-      <div className="relative pt-2">
+      <div className="relative pt-1.5">
         <div
           data-testid="workspace-sheet"
-          className="absolute inset-x-1 top-0 h-6 rounded-t-2xl"
+          className="absolute inset-x-1.5 top-0 h-6 rounded-t-2xl"
           style={sheetStyle}
           aria-hidden="true"
         />
