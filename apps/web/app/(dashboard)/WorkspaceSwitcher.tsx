@@ -118,8 +118,8 @@ export function WorkspaceSwitcher({
     (m) => m.workspace_id !== current.workspace_id,
   );
   const canSwitch = others.length > 0;
-  // The workspace background is a short bar under the name, like a colour
-  // label: it names the workspace without taking width from the name.
+  // The workspace background is a bar above the name, like a colour label:
+  // it names the workspace without taking width from the name.
   const colourStyle = workspaceCardStyle(
     resolveWorkspaceCard(current.workspace_card_bg, current.workspace_id),
     current.workspace_updated_at,
@@ -137,10 +137,16 @@ export function WorkspaceSwitcher({
         className="relative overflow-hidden rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]"
       >
         <div>
+          <div
+            data-testid="workspace-strip"
+            className="mx-3 mt-3 h-1.5 rounded-full"
+            style={colourStyle}
+            aria-hidden="true"
+          />
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
               aria-label="Switch workspace"
-              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl px-3 pt-2.5 pb-1 outline-none"
+              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl px-3 pt-2 pb-1 outline-none"
             >
               <span className="truncate font-medium text-fg">
                 {current.workspace_name}
@@ -234,12 +240,6 @@ export function WorkspaceSwitcher({
             </Dropdown.Popover>
           </Dropdown>
 
-          <div
-            data-testid="workspace-strip"
-            className="mx-3 mb-2 h-1.5 rounded-full"
-            style={colourStyle}
-            aria-hidden="true"
-          />
           <div className="flex items-center gap-2 px-3 pb-2.5 text-xs text-fg-muted">
             <DefaultBadge canSwitch={canSwitch} />
             <span className="h-3 w-px shrink-0 bg-line" />
