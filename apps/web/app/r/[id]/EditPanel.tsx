@@ -86,7 +86,7 @@ export function EditPanel({
           title="Trim and cut"
           description="Split the timeline, cut sections out and fix the transcript."
         />
-        <div className="mt-4 flex flex-col gap-4 rounded-2xl bg-panel-2 p-4">
+        <div className="mt-5 flex flex-col gap-5 px-2">
           <Field label="Background">
             <BackgroundPicker
               background={config.background}

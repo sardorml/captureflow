@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { formatBytes, formatDuration } from "@/lib/format";
 import {
   clampWebcamPoint,
+  webcamCornerNear,
   webcamCornerPoint,
   webcamSizeFraction,
 } from "@/app/_components/recording/layout";
@@ -228,77 +229,41 @@ export function CameraPicker({
   onSize: (s: RecordingCameraSize) => void;
   onHidden: (hidden: boolean) => void;
 }) {
-  const free = point !== null;
   return (
-    <div>
-      <div className="mb-3">
-        <ToggleRow
-          label="Show camera"
-          on={!hidden}
-          onChange={(on) => onHidden(!on)}
-          OnIcon={Video}
-          OffIcon={VideoOff}
-          offText="Hidden"
+    <div className="flex flex-col gap-3">
+      <ToggleRow
+        label="Show camera"
+        on={!hidden}
+        onChange={(on) => onHidden(!on)}
+        OnIcon={Video}
+        OffIcon={VideoOff}
+        offText="Hidden"
+      />
+      <div>
+        <div className="mb-2 flex items-baseline justify-between gap-3">
+          <span className="text-sm text-fg">Position</span>
+          <span className="text-[11px] text-fg-muted">
+            {hidden
+              ? "Show the camera to place it."
+              : "Drag the dot or tap a corner"}
+          </span>
+        </div>
+        <CameraPad
+          corner={corner}
+          point={point}
+          size={size}
+          aspect={aspect}
+          disabled={hidden}
+          onCorner={onCorner}
+          onPoint={onPoint}
         />
       </div>
-      <div className="mb-1 text-[10px] uppercase tracking-wide text-fg-muted">
-        Position
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        {CAMERA_CORNERS.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onCorner(opt.value)}
-            aria-pressed={!free && corner === opt.value}
-            className={cn(
-              "rounded-xl border px-3 py-2 text-xs transition-colors",
-              !free && corner === opt.value
-                ? "border-accent bg-accent-soft text-accent"
-                : "border-transparent bg-tint text-fg-muted hover:bg-tint-strong",
-            )}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-      <div className="mt-2 mb-1 text-[10px] uppercase tracking-wide text-fg-muted">
-        Anywhere
-      </div>
-      <CameraPad
-        corner={corner}
-        point={point}
-        size={size}
-        aspect={aspect}
-        disabled={hidden}
-        onPoint={onPoint}
+      <OptionRow
+        label="Size"
+        value={size}
+        options={CAMERA_SIZES}
+        onChange={onSize}
       />
-      <p className="mt-1.5 text-[11px] leading-snug text-fg-muted">
-        {hidden
-          ? "Show the camera to place it."
-          : "Drag the dot to put the camera anywhere on the video."}
-      </p>
-      <div className="mt-3 mb-1 text-[10px] uppercase tracking-wide text-fg-muted">
-        Size
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {CAMERA_SIZES.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onSize(opt.value)}
-            aria-pressed={size === opt.value}
-            className={cn(
-              "rounded-xl border px-3 py-2 text-xs transition-colors",
-              size === opt.value
-                ? "border-accent bg-accent-soft text-accent"
-                : "border-transparent bg-tint text-fg-muted hover:bg-tint-strong",
-            )}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
@@ -348,11 +313,16 @@ export function AudioControls({
   );
 }
 
+// Below this many pixels of travel a press on a corner ring is a tap on it.
+const TAP_SLOP_PX = 3;
+
 /*
- * A picture of the video box with the bubble as a dot: pressing anywhere
- * moves the dot there, dragging follows the pointer, and the place is
- * reported on release as fractions of the box. The dot is the bubble's size
- * relative to the box, so what fits here fits there.
+ * A picture of the video box: the dot is the bubble at its size relative to
+ * the box, the dashed rings are where each corner would put it. Tapping a
+ * ring picks that corner; pressing or dragging anywhere else moves the dot,
+ * reported on release as fractions of the box, or as the corner it was let
+ * go on. Pointer capture makes the click land on the pad, so the rings only
+ * take keyboard clicks themselves.
  */
 function CameraPad({
   corner,
@@ -360,6 +330,7 @@ function CameraPad({
   size,
   aspect,
   disabled,
+  onCorner,
   onPoint,
 }: {
   corner: RecordingCameraCorner;
@@ -367,11 +338,13 @@ function CameraPad({
   size: RecordingCameraSize;
   aspect: number;
   disabled: boolean;
+  onCorner: (c: RecordingCameraCorner) => void;
   onPoint: (p: RecordingCameraPoint) => void;
 }) {
   const [dragPoint, setDragPoint] = useState<RecordingCameraPoint | null>(null);
   const fraction = webcamSizeFraction(size);
   const half = { x: fraction / 2, y: (fraction / 2) * aspect };
+  const free = point !== null;
   const shown = dragPoint ?? point ?? webcamCornerPoint(corner, half);
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
@@ -380,6 +353,13 @@ function CameraPad({
     const pad = e.currentTarget;
     const box = pad.getBoundingClientRect();
     if (box.width === 0 || box.height === 0) return;
+    const ring = (e.target as Element).closest<HTMLElement>("[data-corner]");
+    const pressedCorner = CAMERA_CORNERS.find(
+      (c) => c.value === ring?.dataset.corner,
+    )?.value;
+    const start = { x: e.clientX, y: e.clientY };
+    const moved = (ev: { clientX: number; clientY: number }): boolean =>
+      Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > TAP_SLOP_PX;
     const at = (ev: { clientX: number; clientY: number }) =>
       clampWebcamPoint(
         {
@@ -388,14 +368,24 @@ function CameraPad({
         },
         half,
       );
-    setDragPoint(at(e));
-    const move = (ev: PointerEvent): void => setDragPoint(at(ev));
+    if (!pressedCorner) setDragPoint(at(e));
+    const move = (ev: PointerEvent): void => {
+      if (!pressedCorner || moved(ev)) setDragPoint(at(ev));
+    };
     const end = (ev: PointerEvent): void => {
       pad.removeEventListener("pointermove", move);
       pad.removeEventListener("pointerup", end);
       pad.removeEventListener("pointercancel", end);
       setDragPoint(null);
-      if (ev.type === "pointerup") onPoint(at(ev));
+      if (ev.type !== "pointerup") return;
+      if (pressedCorner && !moved(ev)) {
+        onCorner(pressedCorner);
+        return;
+      }
+      const released = at(ev);
+      const snapped = webcamCornerNear(released, half);
+      if (snapped) onCorner(snapped);
+      else onPoint(released);
     };
     pad.setPointerCapture(e.pointerId);
     pad.addEventListener("pointermove", move);
@@ -408,22 +398,90 @@ function CameraPad({
       data-camera-pad
       onPointerDown={onPointerDown}
       className={cn(
-        "relative w-full touch-none overflow-hidden rounded-xl border border-line bg-tint",
+        "relative mx-auto touch-none overflow-hidden rounded-lg border border-line bg-tint",
         disabled ? "opacity-50" : "cursor-crosshair",
       )}
-      style={{ aspectRatio: String(aspect) }}
+      style={{
+        aspectRatio: String(aspect),
+        width: `min(100%, calc(9rem * ${aspect}))`,
+      }}
     >
+      {CAMERA_CORNERS.map((opt) => {
+        const active = !free && corner === opt.value;
+        const at = webcamCornerPoint(opt.value, half);
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            data-corner={opt.value}
+            aria-label={opt.label}
+            aria-pressed={active}
+            disabled={disabled}
+            onClick={(e) => {
+              if (e.detail === 0) onCorner(opt.value);
+            }}
+            className={cn(
+              "absolute aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed transition-colors",
+              active
+                ? "border-transparent"
+                : "border-line-strong hover:border-accent hover:bg-accent-soft",
+            )}
+            style={{
+              width: `${fraction * 100}%`,
+              left: `${at.x * 100}%`,
+              top: `${at.y * 100}%`,
+            }}
+          />
+        );
+      })}
       <div
-        className={cn(
-          "absolute aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-accent shadow-sm",
-          !disabled && "cursor-grab active:cursor-grabbing",
-        )}
+        className="pointer-events-none absolute aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-accent shadow-sm"
         style={{
           width: `${fraction * 100}%`,
           left: `${shown.x * 100}%`,
           top: `${shown.y * 100}%`,
         }}
       />
+    </div>
+  );
+}
+
+function OptionRow<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-full bg-field py-1 pr-1 pl-4 text-sm text-fg">
+      <span>{label}</span>
+      <div role="radiogroup" aria-label={label} className="flex gap-0.5">
+        {options.map((opt) => {
+          const on = opt.value === value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              onClick={() => onChange(opt.value)}
+              className={cn(
+                "rounded-full px-2.5 py-1 text-xs transition-colors",
+                on
+                  ? "bg-accent-soft text-accent"
+                  : "text-fg-muted hover:text-fg",
+              )}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

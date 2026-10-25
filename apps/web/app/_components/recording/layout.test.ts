@@ -6,6 +6,7 @@ import {
   sizeStyleForAspect,
   clampWebcamPoint,
   webcamCornerClass,
+  webcamCornerNear,
   webcamCornerPoint,
   webcamPointStyle,
   webcamSizeCss,
@@ -113,6 +114,14 @@ describe("webcam placement", () => {
     expect(bottomRight.x).toBeCloseTo(0.88);
     expect(bottomRight.y).toBeCloseTo(0.82);
     expect(webcamSizeFraction("medium")).toBe(0.16);
+  });
+
+  it("snaps a centre let go next to a corner onto that corner", () => {
+    const half = { x: 0.08, y: 0.14 };
+    expect(webcamCornerNear({ x: 0.14, y: 0.2 }, half)).toBe("top-left");
+    expect(webcamCornerNear({ x: 0.86, y: 0.8 }, half)).toBe("bottom-right");
+    expect(webcamCornerNear({ x: 0.5, y: 0.5 }, half)).toBe(null);
+    expect(webcamCornerNear({ x: 0.2, y: 0.2 }, half)).toBe(null);
   });
 });
 

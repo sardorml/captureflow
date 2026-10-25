@@ -122,6 +122,32 @@ export function webcamCornerPoint(
   };
 }
 
+const CORNERS: RecordingCameraCorner[] = [
+  "top-left",
+  "top-right",
+  "bottom-left",
+  "bottom-right",
+];
+
+// A centre let go this close to where a corner would put it counts as that
+// corner, so a drag into a corner lands exactly where the corner buttons do.
+export function webcamCornerNear(
+  point: RecordingCameraPoint,
+  half: { x: number; y: number },
+  tolerance = 0.03,
+): RecordingCameraCorner | null {
+  for (const corner of CORNERS) {
+    const at = webcamCornerPoint(corner, half);
+    if (
+      Math.abs(at.x - point.x) <= tolerance &&
+      Math.abs(at.y - point.y) <= tolerance
+    ) {
+      return corner;
+    }
+  }
+  return null;
+}
+
 // Places the bubble's centre at the point, kept wholly inside the box
 // whatever the box's size turns out to be.
 export function webcamPointStyle(
