@@ -35,8 +35,8 @@ export const RECORDING_QUALITIES: Record<RecordingQualityId, RecordingQuality> =
         audioBitrate: 48_000,
       },
       webcam: {
-        width: 640,
-        height: 480,
+        width: 480,
+        height: 360,
         bitrate: 300_000,
         audioBitrate: 48_000,
       },
