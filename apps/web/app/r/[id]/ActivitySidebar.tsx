@@ -10,6 +10,7 @@ import {
 } from "@heroui/react";
 import { AtSign, MessageSquare, Smile, Sparkles, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
 import {
   useEffect,
   useRef,
@@ -57,9 +58,11 @@ function toneFromSeed(seed: string | null | undefined): string | undefined {
  */
 const loadEmojiPicker = () => import("emoji-picker-react");
 
-const EmojiPicker = dynamic(loadEmojiPicker, {
-  ssr: false,
-});
+const EmojiPicker = dynamic(
+  () =>
+    loadEmojiPicker().then((m) => withSplitLoaded("emoji-picker", m.default)),
+  { ssr: false },
+);
 
 type ActivityEntry =
   | {
@@ -614,15 +617,17 @@ function EmojiPickerThemed({ onPick }: { onPick: (emoji: string) => void }) {
   }, []);
 
   return (
-    <EmojiPicker
-      theme={emojiTheme as never}
-      emojiStyle={"native" as never}
-      lazyLoadEmojis
-      searchPlaceholder="Search emoji"
-      width={320}
-      height={380}
-      onEmojiClick={(data: { emoji: string }) => onPick(data.emoji)}
-    />
+    <div data-split="emoji-picker" className="contents">
+      <EmojiPicker
+        theme={emojiTheme as never}
+        emojiStyle={"native" as never}
+        lazyLoadEmojis
+        searchPlaceholder="Search emoji"
+        width={320}
+        height={380}
+        onEmojiClick={(data: { emoji: string }) => onPick(data.emoji)}
+      />
+    </div>
   );
 }
 

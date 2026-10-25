@@ -80,7 +80,10 @@ export function UpgradeModalBody({
         <Modal.Container>
           {/* The dialog is the landing's managed card: blue plan panel on
               the left, what's included on the right. */}
-          <Modal.Dialog className="max-w-3xl rounded-2xl bg-panel p-2">
+          <Modal.Dialog
+            data-split="upgrade-modal"
+            className="max-w-3xl rounded-2xl bg-panel p-2"
+          >
             {/* This dialog has no footer action, so the X is the only
                 in-dialog way out. Positions itself top-right. */}
             <Modal.CloseTrigger />

@@ -131,7 +131,7 @@ export function InviteModal({
       >
         <Modal.Backdrop>
           <Modal.Container>
-            <Modal.Dialog>
+            <Modal.Dialog data-split="invite-modal">
               <Modal.Header>
                 <Modal.Heading>
                   {workspaceName

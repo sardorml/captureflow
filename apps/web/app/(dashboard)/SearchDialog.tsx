@@ -73,7 +73,7 @@ export function SearchDialog({ isOpen, onOpenChange }: Props) {
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
         <Modal.Container size="lg">
-          <Modal.Dialog>
+          <Modal.Dialog data-split="search-dialog">
             <Modal.Header>
               <Modal.Heading>Search</Modal.Heading>
             </Modal.Header>

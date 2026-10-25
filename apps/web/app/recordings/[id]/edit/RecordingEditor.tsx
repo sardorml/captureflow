@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
 import { useEffect, useState } from "react";
 import { Spinner } from "@heroui/react";
 import { type Theme } from "@captureflow/ui";
@@ -38,7 +39,10 @@ export type RecordingEditorProps = {
 const RECORDING_API = "/r";
 
 const RecordingEditorImpl = dynamic(
-  () => import("./RecordingEditorImpl").then((m) => m.RecordingEditorImpl),
+  () =>
+    import("./RecordingEditorImpl").then((m) =>
+      withSplitLoaded("recording-editor", m.RecordingEditorImpl),
+    ),
   {
     ssr: false,
     loading: () => <PreparingRecording />,
@@ -81,7 +85,11 @@ export function RecordingEditor(props: RecordingEditorProps) {
 
   if (state === "pending") return <PreparingRecording />;
   if (state === "failed") return <RecordingFailed />;
-  return <RecordingEditorImpl {...props} />;
+  return (
+    <div data-split="recording-editor" className="contents">
+      <RecordingEditorImpl {...props} />
+    </div>
+  );
 }
 
 function PreparingRecording() {

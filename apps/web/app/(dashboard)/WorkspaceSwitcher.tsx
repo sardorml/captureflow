@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
 import { ChevronsUpDown, Info, LayoutGrid, UserPlus } from "lucide-react";
 import {
   Avatar,
@@ -21,7 +22,10 @@ import { switchWorkspaceAction } from "./switch-workspace-action";
 
 // Loaded on the first invite, not with every dashboard page.
 const InviteModal = dynamic(
-  () => import("./InviteModal").then((m) => m.InviteModal),
+  () =>
+    import("./InviteModal").then((m) =>
+      withSplitLoaded("invite-modal", m.InviteModal),
+    ),
   { ssr: false },
 );
 

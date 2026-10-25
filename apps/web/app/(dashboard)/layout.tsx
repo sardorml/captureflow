@@ -20,18 +20,24 @@ export default async function DashboardLayout({
   return (
     <DashboardShell
       sidebar={
-        <Suspense fallback={<SidebarSkeleton />}>
-          <Sidebar />
-        </Suspense>
+        <div data-split="sidebar" className="contents">
+          <Suspense fallback={<SidebarSkeleton />}>
+            <Sidebar />
+          </Suspense>
+        </div>
       }
       header={
-        <Suspense fallback={null}>
-          <TopBar />
-        </Suspense>
+        <div data-split="top-bar" className="contents">
+          <Suspense fallback={null}>
+            <TopBar />
+          </Suspense>
+        </div>
       }
     >
       <PostHogIdentify email={session.user.email} />
-      {children}
+      <div data-split="page" className="contents">
+        {children}
+      </div>
     </DashboardShell>
   );
 }

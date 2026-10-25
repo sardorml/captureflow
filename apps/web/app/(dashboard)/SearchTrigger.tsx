@@ -4,9 +4,13 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Search } from "lucide-react";
 import { Kbd } from "@heroui/react";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
 
 const SearchDialog = dynamic(
-  () => import("./SearchDialog").then((m) => m.SearchDialog),
+  () =>
+    import("./SearchDialog").then((m) =>
+      withSplitLoaded("search-dialog", m.SearchDialog),
+    ),
   { ssr: false },
 );
 

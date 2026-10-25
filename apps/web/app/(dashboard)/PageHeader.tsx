@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { SplitLoaded } from "@/components/dev/split-loaded";
 import { RecordButton } from "./RecordButton";
 
 type Props = {
@@ -18,6 +19,9 @@ export function PageHeader({
 }: Props) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
+      {/* Every dashboard page opens with this header, so it marks the page
+          content as streamed in. */}
+      <SplitLoaded name="page" />
       <div className="min-w-0">
         {eyebrow && (
           <p className="text-xs font-medium tracking-tight text-fg-subtle">

@@ -10,6 +10,7 @@ import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { readThemePreferenceFromCookieHeader } from "@captureflow/ui/theme";
 import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
+import { SplitLoaded } from "@/components/dev/split-loaded";
 import { SearchTrigger } from "./SearchTrigger";
 import { UpgradeModal } from "./UpgradeModal";
 import { UserMenu } from "./UserMenu";
@@ -35,6 +36,7 @@ export async function TopBar() {
 
   return (
     <div className="flex w-full items-center justify-between gap-4">
+      <SplitLoaded name="top-bar" />
       {/* Below md the drawer toggle takes this slot instead — see DashboardShell. */}
       <div className="hidden min-w-0 flex-1 justify-center md:flex">
         <SearchTrigger />

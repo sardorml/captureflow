@@ -20,6 +20,7 @@ import { Avatar } from "@heroui/react";
 import { initials } from "@/lib/format";
 import { useEditorConfig } from "@/app/recordings/[id]/edit/use-editor-config";
 import dynamic from "next/dynamic";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
 import { ActivitySidebar } from "./ActivitySidebar";
 import { EditableTitle } from "./EditableTitle";
 import { SummaryChapters } from "./SummaryChapters";
@@ -27,7 +28,10 @@ import { TranscriptPanel } from "./TranscriptPanel";
 
 // Owner-only, so viewers never download the editor's controls.
 const EditPanel = dynamic(
-  () => import("./EditPanel").then((m) => m.EditPanel),
+  () =>
+    import("./EditPanel").then((m) =>
+      withSplitLoaded("edit-panel", m.EditPanel),
+    ),
   { ssr: false },
 );
 

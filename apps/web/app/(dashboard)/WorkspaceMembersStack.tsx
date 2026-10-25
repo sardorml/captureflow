@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
 import { Avatar, Tooltip } from "@heroui/react";
 import { UserPlus } from "lucide-react";
 import type { AvatarGroupItem } from "@captureflow/ui";
 
 // Loaded on the first invite, not with every dashboard page.
 const InviteModal = dynamic(
-  () => import("./InviteModal").then((m) => m.InviteModal),
+  () =>
+    import("./InviteModal").then((m) =>
+      withSplitLoaded("invite-modal", m.InviteModal),
+    ),
   { ssr: false },
 );
 

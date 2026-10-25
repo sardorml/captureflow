@@ -13,6 +13,7 @@ const inter = Inter({
   display: "swap",
 });
 import { AnalyticsProvider } from "./analytics-provider";
+import { DevTools } from "@/components/dev/dev-tools";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 import "./material-symbols-subset.css";
@@ -85,6 +86,7 @@ export default async function RootLayout({
             anything paints. */}
         <div hidden dangerouslySetInnerHTML={{ __html: THEME_INIT_HTML }} />
         <AnalyticsProvider />
+        <DevTools />
         {children}
       </body>
     </html>

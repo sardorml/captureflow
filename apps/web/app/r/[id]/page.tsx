@@ -280,9 +280,11 @@ export default async function RecordingPage({ params }: { params: Params }) {
         leading={
           visitor ? (
             <SidebarDrawer>
-              <Suspense fallback={null}>
-                <Sidebar />
-              </Suspense>
+              <div data-split="sidebar" className="contents">
+                <Suspense fallback={null}>
+                  <Sidebar />
+                </Suspense>
+              </div>
             </SidebarDrawer>
           ) : null
         }

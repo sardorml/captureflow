@@ -3,10 +3,14 @@
 import { useState, type ReactElement } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
 
 // The dialog's copy and the managed card only download on the first open.
 const UpgradeModalBody = dynamic(
-  () => import("./UpgradeModalBody").then((m) => m.UpgradeModalBody),
+  () =>
+    import("./UpgradeModalBody").then((m) =>
+      withSplitLoaded("upgrade-modal", m.UpgradeModalBody),
+    ),
   { ssr: false },
 );
 
