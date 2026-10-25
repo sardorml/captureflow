@@ -148,6 +148,13 @@ export function RecordingViewer({
 
   return (
     <div className="grid w-full grid-cols-1 bg-canvas lg:h-[calc(100vh-64px)] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      {/* The poster is the page's largest paint, and a video element only
+          asks for it at low priority after the scripts. React hoists the
+          link into <head>; a preload() call never reaches the production
+          stream. */}
+      {posterUrl ? (
+        <link rel="preload" as="image" href={posterUrl} fetchPriority="high" />
+      ) : null}
       <main className="flex flex-col lg:min-h-0 lg:overflow-y-auto">
         <header className="sticky top-0 z-20 bg-canvas-2 max-lg:static max-lg:order-2">
           <div className="relative px-6 py-5 lg:px-12">
