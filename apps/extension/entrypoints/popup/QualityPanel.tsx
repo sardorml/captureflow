@@ -45,7 +45,11 @@ const MB = 1024 * 1024;
 
 function detail(quality: RecordingQuality, camera: boolean): string {
   const { screen, webcam } = quality;
-  const parts = [`${screen.maxHeight}p`, `${screen.fps} fps`];
+  const parts = [
+    `${screen.maxHeight}p`,
+    `${screen.fps} fps`,
+    `${screen.bitrate / 1_000_000} Mbps`,
+  ];
   if (camera) parts.push(`camera ${webcam.height}p`);
   return parts.join(" · ");
 }

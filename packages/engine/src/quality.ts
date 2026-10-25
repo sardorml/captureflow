@@ -20,16 +20,18 @@ export type RecordingQuality = {
 };
 
 // Lowest to highest. "max" is the output contract as it has always been, so
-// an account that never picks keeps recording exactly as before.
+// an account that never picks keeps recording exactly as before. The screen
+// keeps its pixels at every level: downscaled text reads blurry on any
+// display, while a tighter bitrate only costs sharpness during motion.
 export const RECORDING_QUALITIES: Record<RecordingQualityId, RecordingQuality> =
   {
     saver: {
       label: "Data saver",
       screen: {
-        maxWidth: 960,
-        maxHeight: 540,
+        maxWidth: 1920,
+        maxHeight: 1080,
         fps: 30,
-        bitrate: 800_000,
+        bitrate: 1_000_000,
         audioBitrate: 48_000,
       },
       webcam: {
@@ -42,8 +44,8 @@ export const RECORDING_QUALITIES: Record<RecordingQualityId, RecordingQuality> =
     low: {
       label: "Low",
       screen: {
-        maxWidth: 1280,
-        maxHeight: 720,
+        maxWidth: 1920,
+        maxHeight: 1080,
         fps: 30,
         bitrate: 1_500_000,
         audioBitrate: 64_000,
@@ -120,18 +122,22 @@ export function hydrateRecordingQuality(raw: unknown): RecordingQualityId {
 }
 
 /*
- * What a minute costs, from one measured point: a 1080p30 tab recording of
- * ordinary scrolling runs about 1.5 Mbps under a generous ceiling, and a 720p
+ * What a minute costs, from measured points: a 1080p30 recording of ordinary
+ * dashboard use runs about 1 Mbps under a generous ceiling, and a 720p
  * talking head about 0.9 Mbps. Both scale with pixel count (sub-linearly, as
- * encoders do) and the screen with the square root of the frame rate; a
- * tight ceiling caps the result. Audio is taken at its full rate.
+ * encoders do) and the screen with the square root of the frame rate. The
+ * ceiling binds only while the picture moves, so it shaves the typical rate
+ * rather than capping it. Audio is taken at its full rate.
  */
-const SCREEN_REFERENCE_BPS = 1_500_000;
+const SCREEN_REFERENCE_BPS = 1_000_000;
 const SCREEN_REFERENCE_PIXELS = 1920 * 1080;
 const SCREEN_REFERENCE_FPS = 30;
 const WEBCAM_REFERENCE_BPS = 900_000;
 const WEBCAM_REFERENCE_PIXELS = 1280 * 720;
 const PIXEL_EXPONENT = 0.75;
+
+const underCeiling = (typical: number, ceiling: number): number =>
+  typical * (1 - Math.exp(-ceiling / typical));
 
 export function estimateBytesPerMinute(
   quality: RecordingQuality,
@@ -143,13 +149,13 @@ export function estimateBytesPerMinute(
     ((screen.maxWidth * screen.maxHeight) / SCREEN_REFERENCE_PIXELS) **
       PIXEL_EXPONENT *
     Math.sqrt(screen.fps / SCREEN_REFERENCE_FPS);
-  let bps = Math.min(screen.bitrate, screenRate) + screen.audioBitrate;
+  let bps = underCeiling(screenRate, screen.bitrate) + screen.audioBitrate;
   if (withCamera) {
     const webcamRate =
       WEBCAM_REFERENCE_BPS *
       ((webcam.width * webcam.height) / WEBCAM_REFERENCE_PIXELS) **
         PIXEL_EXPONENT;
-    bps += Math.min(webcam.bitrate, webcamRate);
+    bps += underCeiling(webcamRate, webcam.bitrate);
   }
   return (bps / 8) * 60;
 }
