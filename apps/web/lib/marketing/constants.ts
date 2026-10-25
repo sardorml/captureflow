@@ -1,4 +1,5 @@
 import { STORAGE_PLANS, type StoragePlan } from "@captureflow/quota";
+import { CHROME_WEBSTORE_URL, SUPPORT_EMAIL } from "@/lib/site";
 import { MESSAGES } from "./messages";
 
 export const SITE_URL = "https://captureflow.dev";
@@ -11,20 +12,17 @@ export const SITE_NAME = "CaptureFlow";
 export const SITE_TITLE = "CaptureFlow - Screen Recorder with Shareable Links";
 export const SITE_DESCRIPTION =
   "Record your screen and share a link with your team or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
-export const SUPPORT_EMAIL = "support@captureflow.dev";
+// Shared with app chrome (account menu, record button) via @/lib/site so
+// those pages don't carry this module and the marketing copy it pulls in.
+export {
+  SUPPORT_EMAIL,
+  CHROME_WEBSTORE_URL,
+  FIREFOX_ADDON_URL,
+} from "@/lib/site";
 export const ADMIN_INBOX_URL = "https://admin.captureflow.dev/inbox";
 export const APP_VERSION = "0.9.2-beta";
 export const DOWNLOAD_URL =
   "https://github.com/sardorml/captureflow/releases/latest";
-
-/*
- * Extension store listings. null until each is published — the hero renders a
- * disabled "Soon" button for a null entry, so shipping is a one-line change.
- */
-export const CHROME_WEBSTORE_URL: string | null =
-  process.env.NEXT_PUBLIC_CHROME_WEBSTORE_URL ||
-  "https://chromewebstore.google.com/detail/lgpgeoelaokbigdljofhkgbfnfcnmcol";
-export const FIREFOX_ADDON_URL: string | null = null;
 export const DOWNLOAD_DMG_SIZE_MB = 48;
 export const MIN_MACOS_VERSION = "macOS 14 (Sonoma)";
 

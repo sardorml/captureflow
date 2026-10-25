@@ -11,7 +11,7 @@ import {
 import { Avatar, Chip, Dropdown, Separator, Typography } from "@heroui/react";
 import type { ThemePreference } from "@captureflow/ui";
 import { initials } from "@/lib/format";
-import { SUPPORT_EMAIL } from "@/lib/marketing/constants";
+import { SUPPORT_EMAIL } from "@/lib/site";
 import { ThemeSegments } from "./ThemeSegments";
 
 export type AccountMenuProInfo = {
