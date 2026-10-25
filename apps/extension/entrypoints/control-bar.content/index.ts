@@ -47,7 +47,6 @@ const BAR_CSS = `
     position: fixed;
     left: 16px;
     top: 42%;
-    transform: translateY(-50%);
     z-index: 2147483647;
     display: flex;
     flex-direction: column;
@@ -66,7 +65,7 @@ const BAR_CSS = `
   /* Slides in from its edge; the same path out. */
   .bar.entering, .bar.leaving {
     opacity: 0;
-    transform: translate(-12px, -50%);
+    transform: translateX(-12px);
     transition: opacity 0.18s ease-out, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .bar.settled {
@@ -269,6 +268,11 @@ function createBar(): Bar {
   bar.append(stop, timer, pause, extra);
   makeDraggable(host, bar);
   document.documentElement.appendChild(host);
+  // Anchored by its top edge, so unfolding only grows downward and the stop
+  // button never moves; the folded bar still rests centred at 42% of the
+  // viewport.
+  const folded = bar.offsetHeight - extra.offsetHeight;
+  bar.style.top = `calc(42% - ${folded / 2}px)`;
   // Two frames in: the first paints the start state, the second transitions.
   requestAnimationFrame(() =>
     requestAnimationFrame(() => bar.classList.replace("entering", "settled")),
