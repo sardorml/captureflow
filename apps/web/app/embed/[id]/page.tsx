@@ -75,7 +75,7 @@ export default async function EmbedPage({
       initialReactions={reactions}
       signedIn={!!visitor}
       shareUrl={viewUrlFor(id)}
-      loginUrl={`${APP_WEB_SITE_URL}/login?next=${encodeURIComponent(viewUrlFor(id))}`}
+      loginUrl={`${APP_WEB_SITE_URL}/login?next=${encodeURIComponent(`/r/${id}`)}`}
     />
   );
 }
