@@ -27,6 +27,10 @@ import {
 import type { CaptureContext } from "../messaging";
 import { createCameraEffectStream } from "./camera-effect-stream";
 import { isPlainCameraEffect } from "./camera-effects";
+import { startCaptureDiagnostics } from "./dev-diagnostics";
+
+const DEV = import.meta.env.MODE !== "production";
+const devLog = DEV ? console : undefined;
 import type { TranscribeRequest, UploadTransport } from "../api/types";
 import type {
   ActiveUpload,
@@ -227,7 +231,11 @@ export async function recordAndUpload(
     webcamStream?.getAudioTracks()[0] ?? micStream?.getAudioTracks()[0] ?? null;
   const voice = micTrack ? openMicChain(micTrack) : null;
 
+  const stopDiagnostics = DEV
+    ? startCaptureDiagnostics(screenStream, webcamStream)
+    : null;
   const stopAllTracks = (): void => {
+    stopDiagnostics?.();
     stopTracks(screenStream);
     effectStop?.();
     if (rawWebcam) stopTracks(rawWebcam);
@@ -325,6 +333,7 @@ async function runSession(
       stream: screenStream,
       micStream: micStream ? voice : null,
       quality: quality.screen,
+      log: devLog,
       // fMP4 fragments are strictly appended, so position is ignorable; copy
       // because the muxer reuses its output buffer.
       output: (bytes) => {
@@ -354,6 +363,7 @@ async function runSession(
         micStream: voice,
         videoBitrate: quality.webcam.bitrate,
         audioBitrate: quality.webcam.audioBitrate,
+        log: devLog,
         onChunk: (buf) => {
           upload.pushWebcam(new Uint8Array(buf));
           if (storageSpent()) sessionRef?.stop();
@@ -481,6 +491,9 @@ async function runSession(
   commands = session;
 
   cb.onStatus({ kind: "recording", startedAt, pausedMs: 0 });
+  devLog?.info(
+    `[capture] recording status sent at ${new Date().toISOString()}`,
+  );
 
   // Poster frame from the screen — best-effort, never gates the recording.
   void capturePoster(screenStream)

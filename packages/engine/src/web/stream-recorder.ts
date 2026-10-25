@@ -226,6 +226,11 @@ export async function startStreamRecorder(
       }
       encodedFrames++;
       if (firstTsUs === null) firstTsUs = tsUs;
+      if (lastEndUs > 0 && tsUs - lastEndUs > 250_000) {
+        log.warn(
+          `stream-recorder: output gap ${Math.round((tsUs - lastEndUs) / 1000)}ms before ${(tsUs / 1e6).toFixed(2)}s (${droppedFrames} dropped by queue so far)`,
+        );
+      }
       lastEndUs = tsUs + (chunk.duration ?? 0);
     },
     error: (err) => {
