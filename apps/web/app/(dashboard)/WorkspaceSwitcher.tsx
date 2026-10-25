@@ -152,7 +152,7 @@ export function WorkspaceSwitcher({
         <div
           ref={cardRef}
           data-testid="workspace-card"
-          className="relative rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]"
+          className="relative rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]"
         >
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
@@ -180,7 +180,7 @@ export function WorkspaceSwitcher({
                 aria-hidden="true"
               />
               <div className="-mt-6 flex flex-col items-center gap-2 px-4 pb-3 text-center">
-                <span className="rounded-full bg-panel p-1 dark:bg-panel-2">
+                <span className="rounded-full bg-panel p-1">
                   <WorkspaceMark membership={current} size={48} />
                 </span>
                 <span className="truncate font-semibold text-fg">
