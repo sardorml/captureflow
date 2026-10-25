@@ -118,10 +118,9 @@ export function WorkspaceSwitcher({
     (m) => m.workspace_id !== current.workspace_id,
   );
   const canSwitch = others.length > 0;
-  // The whole card carries the workspace background; the white panel sits on
-  // it and leaves a slim edge showing, so the sidebar stays quiet and the
-  // colour still says which workspace it is.
-  const cardStyle = workspaceCardStyle(
+  // The workspace background is a small tile before the name, the way an app
+  // icon names a workspace, so the card itself stays quiet.
+  const tileStyle = workspaceCardStyle(
     resolveWorkspaceCard(current.workspace_card_bg, current.workspace_id),
     current.workspace_updated_at,
   );
@@ -135,17 +134,24 @@ export function WorkspaceSwitcher({
       <div
         ref={cardRef}
         data-testid="workspace-card"
-        className="overflow-hidden rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05),inset_0_0_0_1px_rgb(0_0_0/0.1)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06),inset_0_0_0_1px_rgb(255_255_255/0.1)]"
-        style={cardStyle}
+        className="rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]"
       >
-        <div className="relative mt-1.5 rounded-t-2xl bg-panel dark:bg-panel-2">
+        <div>
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
               aria-label="Switch workspace"
               className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl px-3 pt-2.5 pb-1 outline-none"
             >
-              <span className="truncate font-medium text-fg">
-                {current.workspace_name}
+              <span className="flex min-w-0 items-center gap-2">
+                <span
+                  data-testid="workspace-tile"
+                  className="size-5 shrink-0 rounded-md shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]"
+                  style={tileStyle}
+                  aria-hidden="true"
+                />
+                <span className="truncate font-medium text-fg">
+                  {current.workspace_name}
+                </span>
               </span>
               <ChevronsUpDown size={14} className="shrink-0 text-fg-muted" />
             </Dropdown.Trigger>
