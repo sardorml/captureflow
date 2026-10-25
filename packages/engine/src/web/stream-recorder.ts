@@ -30,6 +30,8 @@ export type StreamRecorderOptions = {
   output(bytes: Uint8Array, position: number): void;
   /** Fires when capture ends without stop() — track ended or fatal encode error. */
   onEnded?(): void;
+  /** Encoder ceilings; the output contract's values when absent. */
+  quality?: { fps: number; bitrate: number; audioBitrate: number };
   log?: StreamRecorderLog;
 };
 
@@ -106,8 +108,9 @@ export async function startStreamRecorder(
   const settings = track.getSettings();
   const width = settings.width ?? ENGINE_OUTPUT.screen.maxWidth;
   const height = settings.height ?? ENGINE_OUTPUT.screen.maxHeight;
-  const framerate = settings.frameRate ?? ENGINE_OUTPUT.screen.fps;
-  const bitrate = ENGINE_OUTPUT.screen.bitrate;
+  const fpsCap = opts.quality?.fps ?? ENGINE_OUTPUT.screen.fps;
+  const framerate = Math.min(settings.frameRate ?? fpsCap, fpsCap);
+  const bitrate = opts.quality?.bitrate ?? ENGINE_OUTPUT.screen.bitrate;
 
   const codec = await pickSupportedH264({ width, height, framerate, bitrate });
 
@@ -118,7 +121,7 @@ export async function startStreamRecorder(
         codec: AAC_CODEC,
         sampleRate: micSettings?.sampleRate ?? 48_000,
         numberOfChannels: micSettings?.channelCount ?? 1,
-        bitrate: AUDIO_BITRATE,
+        bitrate: opts.quality?.audioBitrate ?? AUDIO_BITRATE,
       }
     : null;
   const withAudio = audioConfig !== null && (await isAacSupported(audioConfig));

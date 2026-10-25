@@ -103,6 +103,8 @@ export type WebcamRecorderOptions = {
   micStream: MediaStream | null;
   /** Receives each WebM chunk as it lands (the upload feed). */
   onChunk(bytes: ArrayBuffer): void;
+  videoBitrate?: number;
+  audioBitrate?: number;
   log?: WebcamRecorderLog;
 };
 
@@ -133,8 +135,8 @@ export function startWebcamRecorder(
   }
   const recorder = new MediaRecorder(combined, {
     mimeType,
-    videoBitsPerSecond: WEBCAM_VIDEO_BITRATE,
-    audioBitsPerSecond: WEBCAM_AUDIO_BITRATE,
+    videoBitsPerSecond: opts.videoBitrate ?? WEBCAM_VIDEO_BITRATE,
+    audioBitsPerSecond: opts.audioBitrate ?? WEBCAM_AUDIO_BITRATE,
   });
 
   let totalBytes = 0;
