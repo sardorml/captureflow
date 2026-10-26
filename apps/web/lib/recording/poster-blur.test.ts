@@ -51,8 +51,8 @@ describe("posterThumbnail", () => {
     const thumb = posterThumbnail(gradientJpeg(1920, 1080), "image/jpeg");
     const card = decode(thumb!.thumb, { useTArray: true });
     expect(card.width).toBe(THUMB_WIDTH);
-    expect(card.height).toBe(360);
-    expect(thumb!.thumb.byteLength).toBeLessThan(60_000);
+    expect(card.height).toBe(504);
+    expect(thumb!.thumb.byteLength).toBeLessThan(150_000);
   });
 
   it("keeps a source already narrower than the thumb width at its size", () => {

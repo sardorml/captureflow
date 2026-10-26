@@ -224,7 +224,7 @@ describe("poster", () => {
     const keys = putObject.mock.calls.map((c) => c[0]);
     expect(keys).toContain("posters/k.jpg");
     const thumbKey = keys.find((k) =>
-      /^posters\/k\.[0-9a-f]{16}\.thumb\.jpg$/.test(k),
+      /^posters\/k\.[0-9a-f]{16}\.thumb2\.jpg$/.test(k),
     );
     expect(thumbKey).toBeDefined();
     expect(putObject.mock.calls.find((c) => c[0] === thumbKey)?.[3]).toMatch(
@@ -256,7 +256,7 @@ describe("poster", () => {
     expect(res.status).toBe(200);
     expect(putObject).toHaveBeenCalledTimes(1);
     const [key, , type, cache] = putObject.mock.calls[0];
-    expect(key).toMatch(/^posters\/k\.[0-9a-f]{16}\.thumb\.jpg$/);
+    expect(key).toMatch(/^posters\/k\.[0-9a-f]{16}\.thumb2\.jpg$/);
     expect(type).toBe("image/jpeg");
     expect(cache).toMatch(/immutable/);
     expect(deleteObject).toHaveBeenCalledWith(

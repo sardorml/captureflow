@@ -91,8 +91,8 @@ beforeEach(() => {
   sqlite.exec(`
     CREATE TABLE recordings (slug TEXT PRIMARY KEY, storage_key TEXT, poster_key TEXT,
       poster_blur TEXT, poster_thumb_key TEXT, width INTEGER, height INTEGER,
-      webcam_storage_key TEXT, state TEXT, last_viewed_at INTEGER, created_at INTEGER,
-      user_id TEXT, workspace_id TEXT);
+      webcam_storage_key TEXT, webcam_state TEXT DEFAULT 'none', state TEXT,
+      last_viewed_at INTEGER, created_at INTEGER, user_id TEXT, workspace_id TEXT);
     CREATE TABLE screenshots (id TEXT PRIMARY KEY, storage_key TEXT, state TEXT,
       last_viewed_at INTEGER, created_at INTEGER, updated_at INTEGER,
       user_id TEXT, workspace_id TEXT);
@@ -131,12 +131,40 @@ describe("backfillPosterDerivatives", () => {
       .get() as Record<string, unknown>;
     expect(row.poster_blur).toMatch(/^data:image\/jpeg;base64,/);
     expect(row.poster_thumb_key).toMatch(
-      /^posters\/p1\.[0-9a-f]{16}\.thumb\.jpg$/,
+      /^posters\/p1\.[0-9a-f]{16}\.thumb2\.jpg$/,
     );
     expect(row).toMatchObject({ width: 64, height: 36 });
     const thumb = objects.get(row.poster_thumb_key as string);
     expect(thumb?.cacheControl).toMatch(/immutable/);
     expect(thumb?.body.byteLength).toBeGreaterThan(0);
+  });
+
+  it("remakes an older thumbnail for a camera-less recording and keeps a camera card", async () => {
+    const data = new Uint8Array(64 * 36 * 4).fill(90);
+    const poster = new Uint8Array(
+      encode({ width: 64, height: 36, data }, 90).data,
+    );
+    objects.set("posters/p3.jpg", { body: poster });
+    objects.set("posters/p4.jpg", { body: poster });
+    sqlite
+      .prepare(
+        `INSERT INTO recordings (slug, storage_key, poster_key, poster_blur, poster_thumb_key, webcam_state, state, last_viewed_at, created_at)
+         VALUES ('p3', 'videos/p3.mp4', 'posters/p3.jpg', 'data:blur', 'posters/p3.old.thumb.jpg', 'none', 'ready', 1, 1),
+                ('p4', 'videos/p4.mp4', 'posters/p4.jpg', 'data:blur', 'posters/p4.old.thumb.jpg', 'ready', 'ready', 1, 1)`,
+      )
+      .run();
+
+    await backfillPosterDerivatives({ DB: d1(sqlite), BUCKET: bucket() });
+
+    const keyOf = (slug: string) =>
+      (
+        sqlite
+          .prepare(`SELECT poster_thumb_key FROM recordings WHERE slug = ?`)
+          .get(slug) as { poster_thumb_key: string }
+      ).poster_thumb_key;
+    expect(keyOf("p3")).toMatch(/^posters\/p3\.[0-9a-f]{16}\.thumb2\.jpg$/);
+    expect(keyOf("p4")).toBe("posters/p4.old.thumb.jpg");
+    expect(deleted).toEqual(["posters/p3.old.thumb.jpg"]);
   });
 
   it("leaves rows without a decodable JPEG for the next run", async () => {

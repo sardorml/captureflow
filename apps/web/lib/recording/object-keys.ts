@@ -19,8 +19,12 @@ export function audioPartKeyFor(
 
 // The digest of the poster bytes is part of the key, so a replaced poster
 // gets a new URL and the old one can be cached forever.
+// Bumped when thumbnails change size or quality, so the backfill can tell an
+// old thumbnail from a current one by its key alone.
+export const THUMB_SUFFIX = ".thumb2.jpg";
+
 export function posterThumbKeyFor(posterKey: string, digest: string): string {
-  return `${posterKey.replace(/\.[^.]+$/, "")}.${digest}.thumb.jpg`;
+  return `${posterKey.replace(/\.[^.]+$/, "")}.${digest}${THUMB_SUFFIX}`;
 }
 
 type RecordingObjects = {

@@ -4,8 +4,10 @@ export const BLUR_WIDTH = 24;
 const BLUR_QUALITY = 60;
 // Four columns at the dashboard's widest grid is ~260 px per card, so 640
 // covers a 2× display; a 1080p screen capture lands around 30 KB.
-export const THUMB_WIDTH = 640;
-const THUMB_QUALITY = 70;
+// About twice a four-column card's width, so a retina screen gets a sharp
+// card at roughly 85 KB; 1024 px at quality 80 measured half as much again.
+export const THUMB_WIDTH = 896;
+const THUMB_QUALITY = 72;
 // The key carries the poster's digest, so the object never changes under it.
 export const THUMB_CACHE_CONTROL = "public, max-age=31536000, immutable";
 const MAX_MEGAPIXELS = 64;

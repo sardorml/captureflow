@@ -9,6 +9,7 @@ import { createD1Db } from "./db-d1";
 import {
   audioPartPrefixFor,
   objectKeysFor,
+  THUMB_SUFFIX,
   posterThumbKeyFor,
 } from "./object-keys";
 import {
@@ -112,19 +113,23 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
 /*
  * Posters uploaded before poster_blur or poster_thumb_key existed get both
  * here, and rows without a frame size get it from the same decode, one page
- * an hour. Only JPEGs can be decoded; a poster that still fails is picked up
- * again next run.
+ * an hour. A thumbnail from an earlier generation is remade too, but only
+ * where the recording has no camera: a camera card was drawn by the client
+ * and the server cannot draw the bubble back in. Only JPEGs can be decoded;
+ * a poster that still fails is picked up again next run.
  */
 export async function backfillPosterDerivatives(env: CronEnv): Promise<void> {
   const pending = await env.DB.prepare(
-    `SELECT slug, poster_key AS posterKey
+    `SELECT slug, poster_key AS posterKey, poster_thumb_key AS oldThumbKey
        FROM recordings
       WHERE poster_key LIKE '%.jpg'
-        AND (poster_blur IS NULL OR poster_thumb_key IS NULL)
+        AND (poster_blur IS NULL
+          OR poster_thumb_key IS NULL
+          OR (webcam_state != 'ready' AND poster_thumb_key NOT LIKE ?))
       LIMIT ?`,
   )
-    .bind(BATCH_SIZE)
-    .all<{ slug: string; posterKey: string }>();
+    .bind(`%${THUMB_SUFFIX}`, BATCH_SIZE)
+    .all<{ slug: string; posterKey: string; oldThumbKey: string | null }>();
 
   for (const row of pending.results ?? []) {
     try {
@@ -160,6 +165,9 @@ export async function backfillPosterDerivatives(env: CronEnv): Promise<void> {
           row.posterKey,
         )
         .run();
+      if (row.oldThumbKey && row.oldThumbKey !== thumbKey) {
+        await env.BUCKET.delete(row.oldThumbKey).catch(() => undefined);
+      }
     } catch (err) {
       console.warn(`[cron] poster derivatives failed for ${row.slug}:`, err);
     }
