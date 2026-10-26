@@ -4,6 +4,7 @@ import {
   dayLabel,
   dayOf,
   daySeries,
+  formatRecordedTime,
   labelStep,
 } from "./dashboard-metrics";
 
@@ -53,5 +54,14 @@ describe("labelStep", () => {
     expect(labelStep(7)).toBe(1);
     expect(labelStep(30)).toBe(5);
     expect(labelStep(90)).toBe(15);
+  });
+});
+
+describe("formatRecordedTime", () => {
+  it("says minutes under an hour and hours past it", () => {
+    expect(formatRecordedTime(0)).toBe("0 min");
+    expect(formatRecordedTime(45 * 60_000)).toBe("45 min");
+    expect(formatRecordedTime(120 * 60_000)).toBe("2 h");
+    expect(formatRecordedTime(135 * 60_000 + 20_000)).toBe("2 h 15 min");
   });
 });

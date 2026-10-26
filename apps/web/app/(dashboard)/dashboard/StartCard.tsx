@@ -29,9 +29,9 @@ export function StartCard({
   return (
     <section className="rounded-3xl bg-panel p-6 ring-1 ring-line-strong md:p-7">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
-        <h1 className="text-2xl font-semibold tracking-tight text-accent">
+        <h2 className="text-2xl font-semibold tracking-tight text-accent">
           Start recording with {PRODUCT_NAME}
-        </h1>
+        </h2>
         <Tabs
           selectedKey={surface}
           onSelectionChange={(key) => setSurface(key as Surface)}
