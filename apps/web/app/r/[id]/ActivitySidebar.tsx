@@ -223,15 +223,20 @@ export function ActivitySidebar({
   // scrolled up to read history.
   const listRef = useRef<HTMLDivElement | null>(null);
   const stickToBottomRef = useRef(true);
+  // Fades the top edge once older entries sit above the fold.
+  const [moreAbove, setMoreAbove] = useState(false);
   const onListScroll = () => {
     const el = listRef.current;
     if (!el) return;
     stickToBottomRef.current =
       el.scrollHeight - el.scrollTop - el.clientHeight < 64;
+    setMoreAbove(el.scrollTop > 8);
   };
   useEffect(() => {
     const el = listRef.current;
-    if (el && stickToBottomRef.current) el.scrollTop = el.scrollHeight;
+    if (!el) return;
+    if (stickToBottomRef.current) el.scrollTop = el.scrollHeight;
+    setMoreAbove(el.scrollTop > 8);
   }, [entries.length]);
 
   // No useMemo: a manual memo over `reactions` (rebuilt every render via
@@ -406,7 +411,11 @@ export function ActivitySidebar({
           <div
             ref={listRef}
             onScroll={onListScroll}
-            className="flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto lg:px-6"
+            className={cn(
+              "flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto lg:px-6",
+              moreAbove &&
+                "[mask-image:linear-gradient(to_bottom,transparent,black_3rem)]",
+            )}
           >
             {entries.length === 0 ? (
               <EmptyState
