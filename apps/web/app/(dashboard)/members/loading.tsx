@@ -12,7 +12,7 @@ export default function Loading() {
       <section className="rounded-2xl bg-panel ring-1 ring-line-strong">
         <div className="px-6 pt-6 pb-5">
           <h2 className="text-2xl font-semibold tracking-tight text-fg-strong">
-            Members <InlineSkeleton className="h-4 w-8" />
+            People <InlineSkeleton className="h-4 w-8" />
           </h2>
           <p className="mt-1 text-base text-fg-muted">
             <InlineSkeleton className="h-3.5 w-96 max-w-full" />

@@ -120,7 +120,7 @@ export function MembersTable({
     <section className="rounded-2xl bg-panel ring-1 ring-line-strong">
       <div className="px-6 pt-6 pb-5">
         <h2 className="text-2xl font-semibold tracking-tight text-fg-strong">
-          Members{" "}
+          People{" "}
           <span className="text-lg font-normal text-fg-muted">
             ({members.length})
           </span>
