@@ -224,6 +224,9 @@ html body {
 }
 [data-marketing] {
   --muted: var(--cf-fg);
+  /* Landing cards are panel on a canvas of the same white, so their edge is
+     the strong line, the weight the dashboard cards carry. */
+  --cf-line: var(--cf-line-strong);
 }
 
 html:not(:has([data-marketing])) :is(.card, .bg-panel) {
