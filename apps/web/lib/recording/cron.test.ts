@@ -1,7 +1,8 @@
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ACCOUNT_LIMITS } from "@captureflow/quota";
-import { runDailyRetentionSweep } from "./cron";
+import { encode } from "jpeg-js";
+import { backfillPosterDerivatives, runDailyRetentionSweep } from "./cron";
 
 // Minimal D1 over node:sqlite. Statements compile lazily, as the facade
 // prepares queries against columns this fixture schema doesn't have.
@@ -24,11 +25,26 @@ const STALE =
 
 let sqlite: DatabaseSync;
 let deleted: string[];
+let objects: Map<string, { body: Uint8Array; cacheControl?: string }>;
 
 function bucket(): R2Bucket {
   return {
     delete: async (keys: string | string[]) => {
       deleted.push(...(Array.isArray(keys) ? keys : [keys]));
+    },
+    get: async (key: string) => {
+      const obj = objects.get(key);
+      return obj ? { arrayBuffer: async () => obj.body.buffer } : null;
+    },
+    put: async (
+      key: string,
+      body: Uint8Array,
+      opts?: { httpMetadata?: { cacheControl?: string } },
+    ) => {
+      objects.set(key, {
+        body,
+        cacheControl: opts?.httpMetadata?.cacheControl,
+      });
     },
   } as unknown as R2Bucket;
 }
@@ -74,8 +90,9 @@ beforeEach(() => {
   sqlite = new DatabaseSync(":memory:");
   sqlite.exec(`
     CREATE TABLE recordings (slug TEXT PRIMARY KEY, storage_key TEXT, poster_key TEXT,
-      webcam_storage_key TEXT, state TEXT, last_viewed_at INTEGER, created_at INTEGER,
-      user_id TEXT, workspace_id TEXT);
+      poster_blur TEXT, poster_thumb_key TEXT, width INTEGER, height INTEGER,
+      webcam_storage_key TEXT, webcam_state TEXT DEFAULT 'none', state TEXT,
+      last_viewed_at INTEGER, created_at INTEGER, user_id TEXT, workspace_id TEXT);
     CREATE TABLE screenshots (id TEXT PRIMARY KEY, storage_key TEXT, state TEXT,
       last_viewed_at INTEGER, created_at INTEGER, updated_at INTEGER,
       user_id TEXT, workspace_id TEXT);
@@ -89,6 +106,84 @@ beforeEach(() => {
       granted_plan_expires_at INTEGER);
   `);
   deleted = [];
+  objects = new Map();
+});
+
+describe("backfillPosterDerivatives", () => {
+  it("fills the blur, the card thumbnail and the frame size from a JPEG poster", async () => {
+    const data = new Uint8Array(64 * 36 * 4).fill(120);
+    objects.set("posters/p1.jpg", {
+      body: new Uint8Array(encode({ width: 64, height: 36, data }, 90).data),
+    });
+    sqlite
+      .prepare(
+        `INSERT INTO recordings (slug, storage_key, poster_key, state, last_viewed_at, created_at)
+         VALUES ('p1', 'videos/p1.mp4', 'posters/p1.jpg', 'ready', 1, 1)`,
+      )
+      .run();
+
+    await backfillPosterDerivatives({ DB: d1(sqlite), BUCKET: bucket() });
+
+    const row = sqlite
+      .prepare(
+        `SELECT poster_blur, poster_thumb_key, width, height FROM recordings WHERE slug = 'p1'`,
+      )
+      .get() as Record<string, unknown>;
+    expect(row.poster_blur).toMatch(/^data:image\/jpeg;base64,/);
+    expect(row.poster_thumb_key).toMatch(
+      /^posters\/p1\.[0-9a-f]{16}\.thumb2\.jpg$/,
+    );
+    expect(row).toMatchObject({ width: 64, height: 36 });
+    const thumb = objects.get(row.poster_thumb_key as string);
+    expect(thumb?.cacheControl).toMatch(/immutable/);
+    expect(thumb?.body.byteLength).toBeGreaterThan(0);
+  });
+
+  it("remakes an older thumbnail for a camera-less recording and keeps a camera card", async () => {
+    const data = new Uint8Array(64 * 36 * 4).fill(90);
+    const poster = new Uint8Array(
+      encode({ width: 64, height: 36, data }, 90).data,
+    );
+    objects.set("posters/p3.jpg", { body: poster });
+    objects.set("posters/p4.jpg", { body: poster });
+    sqlite
+      .prepare(
+        `INSERT INTO recordings (slug, storage_key, poster_key, poster_blur, poster_thumb_key, webcam_state, state, last_viewed_at, created_at)
+         VALUES ('p3', 'videos/p3.mp4', 'posters/p3.jpg', 'data:blur', 'posters/p3.old.thumb.jpg', 'none', 'ready', 1, 1),
+                ('p4', 'videos/p4.mp4', 'posters/p4.jpg', 'data:blur', 'posters/p4.old.thumb.jpg', 'ready', 'ready', 1, 1)`,
+      )
+      .run();
+
+    await backfillPosterDerivatives({ DB: d1(sqlite), BUCKET: bucket() });
+
+    const keyOf = (slug: string) =>
+      (
+        sqlite
+          .prepare(`SELECT poster_thumb_key FROM recordings WHERE slug = ?`)
+          .get(slug) as { poster_thumb_key: string }
+      ).poster_thumb_key;
+    expect(keyOf("p3")).toMatch(/^posters\/p3\.[0-9a-f]{16}\.thumb2\.jpg$/);
+    expect(keyOf("p4")).toBe("posters/p4.old.thumb.jpg");
+    expect(deleted).toEqual(["posters/p3.old.thumb.jpg"]);
+  });
+
+  it("leaves rows without a decodable JPEG for the next run", async () => {
+    objects.set("posters/p2.jpg", { body: new Uint8Array([1, 2, 3]) });
+    sqlite
+      .prepare(
+        `INSERT INTO recordings (slug, storage_key, poster_key, state, last_viewed_at, created_at)
+         VALUES ('p2', 'videos/p2.mp4', 'posters/p2.jpg', 'ready', 1, 1)`,
+      )
+      .run();
+
+    await backfillPosterDerivatives({ DB: d1(sqlite), BUCKET: bucket() });
+
+    const row = sqlite
+      .prepare(`SELECT poster_thumb_key FROM recordings WHERE slug = 'p2'`)
+      .get() as Record<string, unknown>;
+    expect(row.poster_thumb_key).toBeNull();
+    expect(objects.size).toBe(1);
+  });
 });
 
 describe("runDailyRetentionSweep", () => {

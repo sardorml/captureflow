@@ -1,8 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Captions, Check, Copy, Pencil } from "lucide-react";
-import { Input, Spinner, TextField } from "@heroui/react";
+import { Captions, Check, Copy, Pencil, Search } from "lucide-react";
+import {
+  Button,
+  Input,
+  Spinner,
+  TextField,
+  buttonVariants,
+} from "@heroui/react";
 import { formatTimestamp } from "@/lib/format";
 import type { RecordingCut } from "@/lib/recording/cuts";
 import { activeSegmentId, isSegmentCut } from "@/lib/recording/transcript";
@@ -46,6 +52,7 @@ export function TranscriptPanel({
   getCurrentMs,
 }: Props) {
   const [query, setQuery] = useState("");
+  const [searching, setSearching] = useState(false);
   const [currentMs, setCurrentMs] = useState(0);
   const [copied, setCopied] = useState(false);
 
@@ -139,43 +146,56 @@ export function TranscriptPanel({
     );
   }
 
+  const toggleSearch = (): void => {
+    setSearching((open) => {
+      if (open) setQuery("");
+      return !open;
+    });
+  };
+
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2">
-        <TextField
-          aria-label="Search transcript"
-          value={query}
-          onChange={setQuery}
-          className="min-w-0 flex-1"
-          fullWidth
-        >
-          <Input placeholder="Search transcript" />
-        </TextField>
-        <button
-          type="button"
-          onClick={() => void copyAll()}
-          title="Copy transcript"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-fg-muted transition-colors hover:bg-tint hover:text-fg"
-        >
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="secondary" onPress={() => void copyAll()}>
           {copied ? (
             <Check className="h-3.5 w-3.5" />
           ) : (
             <Copy className="h-3.5 w-3.5" />
           )}
           {copied ? "Copied" : "Copy"}
-        </button>
+        </Button>
         {isOwner ? (
           <a
             href={editUrl}
-            title="Edit transcript"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-fg-muted transition-colors hover:bg-tint hover:text-fg"
+            className={buttonVariants({ size: "sm", variant: "secondary" })}
           >
             <Pencil className="h-3.5 w-3.5" />
             Edit
           </a>
         ) : null}
+        <Button
+          size="sm"
+          variant={searching ? "primary" : "secondary"}
+          onPress={toggleSearch}
+          aria-pressed={searching}
+        >
+          <Search className="h-3.5 w-3.5" />
+          Search
+        </Button>
       </div>
-      <ol className="mt-3 max-h-[60vh] flex-1 space-y-0.5 overflow-y-auto lg:max-h-none lg:min-h-0">
+      {searching ? (
+        <TextField
+          aria-label="Search transcript"
+          value={query}
+          onChange={setQuery}
+          className="mt-3"
+          fullWidth
+          autoFocus
+        >
+          <Input placeholder="Search transcript" />
+        </TextField>
+      ) : null}
+      <ol className="mt-4 max-h-[60vh] flex-1 space-y-1 overflow-y-auto lg:max-h-none lg:min-h-0">
         {shown.map((s) => {
           const active = s.id === activeId;
           return (
@@ -184,27 +204,24 @@ export function TranscriptPanel({
                 type="button"
                 onClick={() => onSeek(s.startMs)}
                 className={cn(
-                  "flex w-full items-start gap-3 rounded-md px-2 py-1.5 text-left transition-colors",
+                  "flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
                   active
-                    ? "bg-accent/15 text-fg"
-                    : "text-fg-muted hover:bg-tint",
+                    ? "border-accent/40 bg-accent/10"
+                    : "border-transparent hover:bg-tint",
                 )}
               >
-                <span
-                  className={cn(
-                    "shrink-0 pt-0.5 font-mono text-xs",
-                    active ? "text-fg" : "text-fg-subtle",
-                  )}
-                >
+                <span className="w-9 shrink-0 pt-0.5 text-xs text-accent tabular-nums">
                   {formatTimestamp(s.startMs)}
                 </span>
-                <span className="text-sm leading-relaxed">{s.text}</span>
+                <span className="text-sm leading-relaxed text-fg">
+                  {s.text}
+                </span>
               </button>
             </li>
           );
         })}
         {shown.length === 0 ? (
-          <li className="px-2 py-1.5 text-sm text-fg-subtle">No matches.</li>
+          <li className="px-3 py-2.5 text-sm text-fg-subtle">No matches.</li>
         ) : null}
       </ol>
     </div>

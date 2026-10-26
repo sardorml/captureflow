@@ -19,7 +19,7 @@ import {
 import {
   readThemeFromCookieHeader,
   readThemePreferenceFromCookieHeader,
-} from "@captureflow/ui";
+} from "@captureflow/ui/theme";
 import { RequestAccess } from "./RequestAccess";
 import { SessionLoadingShell } from "./SessionLoadingShell";
 import { ScreenshotView } from "./ScreenshotView";
@@ -141,9 +141,11 @@ export default async function ScreenshotPage({ params }: Props) {
       leading={
         visitor ? (
           <SidebarDrawer>
-            <Suspense fallback={null}>
-              <Sidebar />
-            </Suspense>
+            <div data-split="sidebar" className="contents">
+              <Suspense fallback={null}>
+                <Sidebar />
+              </Suspense>
+            </div>
           </SidebarDrawer>
         ) : null
       }

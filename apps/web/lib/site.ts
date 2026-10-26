@@ -9,6 +9,15 @@ export const APP_WEB_SITE_URL =
 
 export const PRODUCT_NAME = "CaptureFlow";
 
+export const SUPPORT_EMAIL = "support@captureflow.dev";
+
+// Extension store listings. null until published; the hero renders a
+// disabled "Soon" button for a null entry, so shipping is a one-line change.
+export const CHROME_WEBSTORE_URL: string | null =
+  process.env.NEXT_PUBLIC_CHROME_WEBSTORE_URL ||
+  "https://chromewebstore.google.com/detail/lgpgeoelaokbigdljofhkgbfnfcnmcol";
+export const FIREFOX_ADDON_URL: string | null = null;
+
 // Surfaced as the AGPL-3.0 §7(b) attribution link in the public viewers —
 // downstream operators must preserve it.
 export const SOURCE_REPO_URL = "https://github.com/sardorml/captureflow";
@@ -27,6 +36,10 @@ export const DOWNLOAD_URL =
 
 export function viewUrlFor(id: string): string {
   return `${SITE_URL}/r/${id}`;
+}
+
+export function embedUrlFor(id: string): string {
+  return `${SITE_URL}/embed/${id}`;
 }
 
 export function viewUrlForRequest(req: Request, id: string): string {

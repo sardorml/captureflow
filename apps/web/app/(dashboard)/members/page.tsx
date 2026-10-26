@@ -40,7 +40,6 @@ export default async function MembersPage() {
   return (
     <>
       <PageHeader
-        eyebrow={workspace.name}
         title="Members"
         subtitle={
           isOwner

@@ -10,6 +10,8 @@ export type Selection = {
   count: number;
   has: (key: string) => boolean;
   set: (key: string, next: boolean) => void;
+  // Every key the surface can show, in one go: the toolbar's select-all.
+  setAll: (keys: readonly string[], next: boolean) => void;
   clear: () => void;
 };
 
@@ -35,6 +37,17 @@ export function useSelection(available: string[]): Selection {
     });
   }, []);
 
+  const setAll = useCallback((all: readonly string[], next: boolean) => {
+    setPicked((prev) => {
+      const copy = new Set(prev);
+      for (const key of all) {
+        if (next) copy.add(key);
+        else copy.delete(key);
+      }
+      return copy;
+    });
+  }, []);
+
   const clear = useCallback(() => setPicked(new Set()), []);
 
   return {
@@ -42,6 +55,7 @@ export function useSelection(available: string[]): Selection {
     count: keys.length,
     has: (key) => picked.has(key),
     set,
+    setAll,
     clear,
   };
 }

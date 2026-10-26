@@ -6,10 +6,10 @@ import {
   RecordingPlayer,
   type RecordingPlayerHandle,
 } from "@/app/_components/recording";
-import { renameRecordingAction } from "@/app/actions";
 import { addCut, cutsEqual, type RecordingCut } from "@/lib/recording/cuts";
 import type { RecordingEditorProps } from "./RecordingEditor";
 import { aspectFromPlaceholder } from "@/app/_components/recording/layout";
+import { useSpaceTogglesPlayback } from "@/app/_components/recording/use-space-toggle";
 import { useEditorConfig } from "./use-editor-config";
 import { EditorInspector } from "./EditorInspector";
 import { EditorTimeline } from "./EditorTimeline";
@@ -23,6 +23,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     slug,
     initialTitle,
     videoUrl,
+    posterUrl,
     webcamUrl,
     viewUrl,
     width,
@@ -37,7 +38,6 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     transcriptHasEdits,
   } = props;
 
-  const [title, setTitle] = useState<string>(initialTitle ?? "");
   const [selectionSpan, setSelectionSpan] = useState<RecordingCut | null>(null);
   // Bumped whenever the server's captions may differ (a transcript edit or
   // a saved config, since cut lines are dropped from the captions), so the
@@ -48,6 +48,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     [],
   );
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
+  useSpaceTogglesPlayback(playerRef);
 
   const {
     config,
@@ -84,16 +85,6 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [status]);
-
-  const onRename = async (next: string): Promise<string | null> => {
-    const fd = new FormData();
-    fd.set("slug", slug);
-    fd.set("title", next);
-    const res = await renameRecordingAction({ error: null, slug: null }, fd);
-    if (res.error) return res.error;
-    setTitle(next);
-    return null;
-  };
 
   const seekToMs = useCallback((ms: number) => {
     playerRef.current?.seek(ms / 1000);
@@ -145,8 +136,8 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-canvas text-fg">
       <EditorTopBar
-        title={title}
-        onRename={onRename}
+        slug={slug}
+        title={initialTitle ?? ""}
         onBack={() => router.push(viewUrl)}
         onFinish={onFinish}
         status={status}
@@ -162,6 +153,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
           <RecordingPlayer
             ref={playerRef}
             videoUrl={videoUrl}
+            posterUrl={posterUrl}
             webcamUrl={webcamUrl ?? undefined}
             serverDurationMs={durationMs}
             serverWidth={width}
@@ -206,7 +198,9 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
       <EditorTimeline
         playerRef={playerRef}
         videoUrl={videoUrl}
+        webcamUrl={webcamUrl}
         durationMs={durationMs}
+        sizeBytes={sizeBytes}
         cuts={config.cuts}
         selection={selectionSpan}
         onSelectSpan={setSelectionSpan}

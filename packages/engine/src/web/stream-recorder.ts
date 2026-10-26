@@ -1,5 +1,9 @@
 import { ENGINE_OUTPUT } from "../contract";
 import { aacBitrateCandidates } from "./aac-bitrate";
+import {
+  encoderAccelerationFor,
+  type EncoderAcceleration,
+} from "./encoder-preference";
 import { createFmp4Muxer } from "./fmp4-mux";
 import { createSettleDetector } from "./settle";
 import { createSharedClock } from "./shared-clock";
@@ -64,6 +68,7 @@ async function pickSupportedH264(probe: {
   height: number;
   framerate: number;
   bitrate: number;
+  acceleration: EncoderAcceleration;
 }): Promise<string> {
   const candidates = ENGINE_OUTPUT.screen.h264EncodeCandidates;
   for (const codec of candidates) {
@@ -74,7 +79,7 @@ async function pickSupportedH264(probe: {
         height: probe.height,
         framerate: probe.framerate,
         bitrate: probe.bitrate,
-        hardwareAcceleration: "prefer-hardware",
+        hardwareAcceleration: probe.acceleration,
         avc: { format: "avc" },
       });
       if (res.supported) return codec;
@@ -159,8 +164,15 @@ export async function startStreamRecorder(
   const fpsCap = opts.quality?.fps ?? ENGINE_OUTPUT.screen.fps;
   const framerate = Math.min(settings.frameRate ?? fpsCap, fpsCap);
   const bitrate = opts.quality?.bitrate ?? ENGINE_OUTPUT.screen.bitrate;
+  const acceleration = encoderAccelerationFor(bitrate);
 
-  const codec = await pickSupportedH264({ width, height, framerate, bitrate });
+  const codec = await pickSupportedH264({
+    width,
+    height,
+    framerate,
+    bitrate,
+    acceleration,
+  });
 
   const micTrack = opts.micStream?.getAudioTracks()[0] ?? null;
   const micSettings = micTrack?.getSettings();
@@ -266,7 +278,7 @@ export async function startStreamRecorder(
     height,
     framerate,
     bitrate,
-    hardwareAcceleration: "prefer-hardware",
+    hardwareAcceleration: acceleration,
     avc: { format: "avc" },
   });
 
@@ -300,7 +312,7 @@ export async function startStreamRecorder(
   if (audioEncoder && audioConfig) audioEncoder.configure(audioConfig);
 
   log.info(
-    `stream-recorder: started (${width}x${height}@${Math.round(framerate)}fps, ${codec}${audioEncoder ? " + aac mic" : ""})`,
+    `stream-recorder: started (${width}x${height}@${Math.round(framerate)}fps, ${codec}, ${acceleration}${audioEncoder ? " + aac mic" : ""})`,
   );
 
   const reader = new MediaStreamTrackProcessor<VideoFrame>({

@@ -1,5 +1,65 @@
+/*
+ * The same composition as @heroui/styles' own index.css, minus the ~40
+ * component sheets nothing here renders (tables, calendars, colour pickers,
+ * toasts…). Component order is the bundle's: later sheets override earlier.
+ */
+@layer theme, base, components, utilities;
 @import "tailwindcss";
-@import "@heroui/styles";
+@import "tw-animate-css";
+@import "@heroui/styles/base/base.css" layer(base);
+@import "@heroui/styles/base/scrollbar.css" layer(base);
+@import "@heroui/styles/components/close-button.css" layer(components);
+@import "@heroui/styles/components/description.css" layer(components);
+@import "@heroui/styles/components/error-message.css" layer(components);
+@import "@heroui/styles/components/field-error.css" layer(components);
+@import "@heroui/styles/components/label.css" layer(components);
+@import "@heroui/styles/components/accordion.css" layer(components);
+@import "@heroui/styles/components/disclosure-group.css" layer(components);
+@import "@heroui/styles/components/disclosure.css" layer(components);
+@import "@heroui/styles/components/link.css" layer(components);
+@import "@heroui/styles/components/pagination.css" layer(components);
+@import "@heroui/styles/components/tabs.css" layer(components);
+@import "@heroui/styles/components/button.css" layer(components);
+@import "@heroui/styles/components/button-group.css" layer(components);
+@import "@heroui/styles/components/dropdown.css" layer(components);
+@import "@heroui/styles/components/list-box-item.css" layer(components);
+@import "@heroui/styles/components/list-box-section.css" layer(components);
+@import "@heroui/styles/components/list-box.css" layer(components);
+@import "@heroui/styles/components/menu-item.css" layer(components);
+@import "@heroui/styles/components/menu-section.css" layer(components);
+@import "@heroui/styles/components/menu.css" layer(components);
+@import "@heroui/styles/components/slider.css" layer(components);
+@import "@heroui/styles/components/chip.css" layer(components);
+@import "@heroui/styles/components/alert.css" layer(components);
+@import "@heroui/styles/components/empty-state.css" layer(components);
+@import "@heroui/styles/components/skeleton.css" layer(components);
+@import "@heroui/styles/components/progress-bar.css" layer(components);
+@import "@heroui/styles/components/spinner.css" layer(components);
+@import "@heroui/styles/components/checkbox.css" layer(components);
+@import "@heroui/styles/components/input.css" layer(components);
+@import "@heroui/styles/components/input-group.css" layer(components);
+@import "@heroui/styles/components/radio-group.css" layer(components);
+@import "@heroui/styles/components/radio.css" layer(components);
+@import "@heroui/styles/components/textfield.css" layer(components);
+@import "@heroui/styles/components/search-field.css" layer(components);
+@import "@heroui/styles/components/textarea.css" layer(components);
+@import "@heroui/styles/components/card.css" layer(components);
+@import "@heroui/styles/components/header.css" layer(components);
+@import "@heroui/styles/components/separator.css" layer(components);
+@import "@heroui/styles/components/avatar.css" layer(components);
+@import "@heroui/styles/components/avatar-group.css" layer(components);
+@import "@heroui/styles/components/alert-dialog.css" layer(components);
+@import "@heroui/styles/components/drawer.css" layer(components);
+@import "@heroui/styles/components/modal.css" layer(components);
+@import "@heroui/styles/components/popover.css" layer(components);
+@import "@heroui/styles/components/tooltip.css" layer(components);
+@import "@heroui/styles/components/select.css" layer(components);
+@import "@heroui/styles/components/kbd.css" layer(components);
+@import "@heroui/styles/components/typography.css" layer(components);
+@import "@heroui/styles/components/scroll-shadow.css" layer(components);
+@import "@heroui/styles/themes/default";
+@import "@heroui/styles/utilities";
+@import "@heroui/styles/variants";
 @import "../../../packages/ui/src/styles/tokens.css";
 
 /* Tailwind v4 only auto-scans the app's own source tree. The shared
@@ -45,71 +105,106 @@ body {
  * palette; the frosting, hidden scrollbars and card radius below skip them.
  */
 html[data-theme="light"] {
-  /* A faintly warm off-white canvas under off-white surfaces and a blue accent. */
-  --cf-canvas: #f6f5f1;
-  --cf-canvas-2: #f6f5f1;
-  --cf-fg: #1a1919;
-  --cf-fg-strong: #0c0c0b;
-  --foreground: #1a1919;
-  --cf-panel: #fffefc;
-  --cf-panel-2: #edebe6;
-  --cf-field: #fffefc;
-  --cf-tint: rgb(40 30 15 / 0.045);
-  --cf-tint-strong: #edebe6;
-  --cf-line: #e6e3dd;
+  /*
+   * HeroUI Theme Builder, light: accent oklch(0.6204 0.195 254.55), base 0,
+   * vibrant palette off. Base 0 leaves every neutral a pure grey at the
+   * builder's default lightness; the status hues shift with the accent.
+   */
+  --cf-canvas: oklch(100% 0 0);
+  --cf-canvas-2: oklch(100% 0 0);
+  --cf-stage: oklch(97.02% 0 0);
+  --cf-fg: oklch(21.03% 0 0);
+  --cf-fg-strong: oklch(14% 0 0);
+  --foreground: oklch(21.03% 0 0);
+  --cf-panel: oklch(100% 0 0);
+  --cf-panel-2: oklch(93.73% 0 0);
+  --cf-field: oklch(100% 0 0);
+  --cf-tint: oklch(21.03% 0 0 / 4.5%);
+  --cf-tint-strong: oklch(93.73% 0 0);
+  --cf-line: oklch(92% 0 0);
 
-  --cf-accent-strong: #0485f7;
-  --cf-accent-bg: #0485f7;
-  --cf-accent-bg-hover: #1d91f8;
-  --cf-accent-ring: rgb(4 133 247 / 0.3);
+  --cf-accent-strong: oklch(62.04% 0.195 254.55);
+  --cf-accent-bg: oklch(62.04% 0.195 254.55);
+  --cf-accent-bg-hover: oklch(66% 0.195 254.55);
+  --cf-accent-ring: oklch(62.04% 0.195 254.55 / 30%);
 
-  --background: #f6f5f1;
-  --accent: #0485f7;
-  --accent-foreground: #fdfdfd;
-  --success: #00ca67;
-  --warning: #f4a61e;
-  --danger: #ff3836;
-  --default: #edebe6;
-  --surface: #fffefc;
-  --surface-secondary: #f2f1ed;
-  --surface-tertiary: #e6e3dd;
-  --overlay: #fffefc;
-  --separator: #e6e3dd;
+  --background: oklch(100% 0 0);
+  --accent: oklch(62.04% 0.195 254.55);
+  --accent-foreground: oklch(99.11% 0 0);
+  --focus: oklch(62.04% 0.195 254.55);
+  --muted: oklch(55.17% 0 0);
+  --default: oklch(94% 0 0);
+  --default-foreground: oklch(21.03% 0.0059 254.55);
+  --surface: oklch(100% 0 0);
+  --surface-secondary: oklch(95.24% 0 0);
+  --surface-tertiary: oklch(93.73% 0 0);
+  --overlay: oklch(100% 0 0);
+  --scrollbar: oklch(87.1% 0 0);
+  --segment: oklch(100% 0 0);
+  --border: oklch(90% 0 0);
+  --separator: oklch(92% 0 0);
+  --success: oklch(73.29% 0.1935 150.9);
+  --success-foreground: oklch(21.03% 0.0059 150.9);
+  --warning: oklch(78.19% 0.1585 72.42);
+  --warning-foreground: oklch(21.03% 0.0059 72.42);
+  --danger: oklch(65.32% 0.2328 25.83);
+  --danger-foreground: oklch(99.11% 0 0);
+  --cf-line-strong: oklch(87.1% 0 0);
+  --cf-inverse: oklch(21.03% 0 0);
+  --cf-on-inverse: oklch(99.11% 0 0);
+  --cf-danger-strong: oklch(58% 0.2328 25.83);
   --cf-glass-blur: 20px;
 }
 
 [data-theme="dark"],
 html:not([data-theme]) {
-  /* A soft warm charcoal under solid warm surfaces and the same blue accent. */
-  --cf-canvas: #111110;
-  --cf-canvas-2: #111110;
-  --cf-fg: #fcfcfc;
-  --cf-fg-strong: #ffffff;
-  --foreground: #fcfcfc;
-  --cf-panel: #201f1d;
-  --cf-panel-2: #2a2927;
-  --cf-field: #2a2927;
-  --cf-tint: rgb(255 255 255 / 0.05);
-  --cf-tint-strong: #302e2c;
-  --cf-line: #292826;
+  /*
+   * HeroUI Theme Builder, dark, same accent and base 0 as the light block:
+   * pure greys at the builder's dark lightness table.
+   */
+  --cf-canvas: oklch(16% 0 0);
+  --cf-canvas-2: oklch(16% 0 0);
+  --cf-stage: oklch(16% 0 0);
+  --cf-fg: oklch(99.11% 0 0);
+  --cf-fg-strong: oklch(100% 0 0);
+  --foreground: oklch(99.11% 0 0);
+  --cf-panel: oklch(22.5% 0 0);
+  --cf-panel-2: oklch(27.21% 0 0);
+  --cf-field: oklch(22.5% 0 0);
+  --cf-tint: oklch(99.11% 0 0 / 5%);
+  --cf-tint-strong: oklch(27.21% 0 0);
+  --cf-line: oklch(25% 0 0);
+  --cf-line-strong: oklch(32% 0 0);
+  --cf-inverse: oklch(99.11% 0 0);
+  --cf-on-inverse: oklch(16% 0 0);
 
-  --cf-accent-strong: #0485f7;
-  --cf-accent-bg: #0485f7;
-  --cf-accent-bg-hover: #1d91f8;
-  --cf-accent-ring: rgb(4 133 247 / 0.35);
+  --cf-accent-strong: oklch(62.04% 0.195 254.55);
+  --cf-accent-bg: oklch(62.04% 0.195 254.55);
+  --cf-accent-bg-hover: oklch(66% 0.195 254.55);
+  --cf-accent-ring: oklch(62.04% 0.195 254.55 / 30%);
+  --cf-danger-strong: oklch(54% 0.1967 24.72);
 
-  --background: #111110;
-  --accent: #0485f7;
-  --accent-foreground: #fcfcfc;
-  --success: #00ca67;
-  --warning: #f4a61e;
-  --danger: #ff3836;
-  --default: #302e2c;
-  --surface: #201f1d;
-  --surface-secondary: #2a2927;
-  --surface-tertiary: #363432;
-  --overlay: #201f1d;
-  --separator: #292826;
+  --background: oklch(16% 0 0);
+  --accent: oklch(62.04% 0.195 254.55);
+  --accent-foreground: oklch(99.11% 0 0);
+  --focus: oklch(62.04% 0.195 254.55);
+  --muted: oklch(70.5% 0 0);
+  --default: oklch(27.4% 0 0);
+  --default-foreground: oklch(99.11% 0 0);
+  --surface: oklch(22.5% 0 0);
+  --surface-secondary: oklch(25.7% 0 0);
+  --surface-tertiary: oklch(27.21% 0 0);
+  --overlay: oklch(22.5% 0 0);
+  --scrollbar: oklch(70.5% 0 0);
+  --segment: oklch(39.64% 0 0);
+  --border: oklch(28% 0 0);
+  --separator: oklch(25% 0 0);
+  --success: oklch(73.29% 0.1935 150.9);
+  --success-foreground: oklch(21.03% 0.0059 150.9);
+  --warning: oklch(82.03% 0.1388 76.43);
+  --warning-foreground: oklch(21.03% 0.0059 76.43);
+  --danger: oklch(59.4% 0.1967 24.72);
+  --danger-foreground: oklch(99.11% 0 0);
   --cf-glass-blur: 36px;
 }
 
@@ -129,6 +224,9 @@ html body {
 }
 [data-marketing] {
   --muted: var(--cf-fg);
+  /* Landing cards are panel on a canvas of the same white, so their edge is
+     the strong line, the weight the dashboard cards carry. */
+  --cf-line: var(--cf-line-strong);
 }
 
 html:not(:has([data-marketing])) :is(.card, .bg-panel) {
@@ -158,7 +256,25 @@ html:not(:has([data-marketing])) *::-webkit-scrollbar {
 }
 
 html:not(:has([data-marketing])) .card {
-  border-radius: 20px;
+  border-radius: 12px;
+}
+
+/* HeroUI's buttons are pills; every page squares them to match the cards,
+   the landing's own `rounded-full` buttons included. A button group keeps
+   only its outer corners, so it still reads as one control. */
+.button {
+  border-radius: 12px;
+}
+.button-group--horizontal .button {
+  border-radius: 0;
+}
+.button-group--horizontal .button:first-child {
+  border-start-start-radius: 12px;
+  border-end-start-radius: 12px;
+}
+.button-group--horizontal .button:last-child {
+  border-start-end-radius: 12px;
+  border-end-end-radius: 12px;
 }
 
 /* HeroUI's .dropdown__trigger is `display: inline-block`, which lands after
@@ -182,13 +298,13 @@ html:not(:has([data-marketing])) .card {
 }
 
 /* Showcase panel behind the toolbar mockup — a defined surface in both themes
-   (soft slate in light, raised neutral in dark). Default (no attr) is dark. */
+   (surface-tertiary grey in light, raised neutral in dark). Default (no attr) is dark. */
 :root,
 [data-theme="dark"] {
-  --cf-showcase-bg: #1f1f1f;
+  --cf-showcase-bg: oklch(25.7% 0 0);
 }
 [data-theme="light"] {
-  --cf-showcase-bg: #f1f5f9;
+  --cf-showcase-bg: oklch(93.73% 0 0);
 }
 
 /* Play/pause flash overlay on the RecordingPlayer. Shared between the
@@ -283,20 +399,6 @@ html:not(:has([data-marketing])) .card {
    animation is absent, and nothing (opacity/transform) is retained after it
    ends. The root wrapper fades only: a transform there would become the
    containing block for the marketing tree's fixed floating CTA. */
-@keyframes page-fade {
-  from {
-    opacity: 0;
-  }
-}
-.animate-page-fade {
-  animation: page-fade 0.25s ease-out;
-}
-@keyframes page-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-}
 /* Marketing pages: the content under the nav rises out of a soft blur, so a
    navigation reads as the next page arriving rather than a flash. Applied to
    <main> only, which keeps the nav and footer still. */
@@ -309,12 +411,6 @@ html:not(:has([data-marketing])) .card {
 }
 .animate-page-rise {
   animation: page-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.animate-page-enter {
-  /* Origin pinned near the top: a center-origin zoom visibly shifts the
-     viewport-top edge on pages taller than the scroll pane. */
-  transform-origin: 50% 120px;
-  animation: page-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Brand mark: one counter-clockwise turn when the lockup it sits in is hovered,
@@ -445,9 +541,7 @@ html:not(:has([data-marketing])) .card {
   .animate-rec-breathe,
   .animate-reveal,
   .animate-recording-icon-pop,
-  .animate-page-fade,
   .animate-page-rise,
-  .animate-page-enter,
   .animate-beta-card,
   .animate-beta-confetti {
     animation: none !important;

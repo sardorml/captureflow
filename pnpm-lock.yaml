@@ -372,9 +372,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      cn:
-        specifier: ^0.5.0
-        version: 0.5.0
       drizzle-orm:
         specifier: ^0.36.0
         version: 0.36.4(@cloudflare/workers-types@4.20260615.1)(@types/react@19.2.17)(kysely@0.28.17)(react@19.2.7)
@@ -451,6 +448,9 @@ importers:
       tailwindcss:
         specifier: ^4
         version: 4.3.1
+      tw-animate-css:
+        specifier: 1.4.0
+        version: 1.4.0
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -5143,11 +5143,6 @@ packages:
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
       react-dom: ^18 || ^19 || ^19.0.0-rc
-
-  cn@0.5.0:
-    resolution: {integrity: sha512-JGEixZEpfFXm1P5uXwvEobOFLlHwIWi5v4tjd1ZwfiYmcEilkuD2l+054rvJcYCR1B+uVThHeUbgmNz1FwuxuA==}
-    engines: {node: '>=22'}
-    hasBin: true
 
   color-convert@2.0.1:
     resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
@@ -13580,8 +13575,6 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - '@types/react-dom'
-
-  cn@0.5.0: {}
 
   color-convert@2.0.1:
     dependencies:

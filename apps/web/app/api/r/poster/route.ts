@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRecording, updateRecording } from "@/lib/recording/db";
-import { posterThumbnail } from "@/lib/recording/poster-blur";
+import { posterThumbKeyFor } from "@/lib/recording/object-keys";
+import {
+  THUMB_CACHE_CONTROL,
+  posterDigest,
+  posterThumbnail,
+} from "@/lib/recording/poster-blur";
 import { isValidSlug } from "@/lib/recording/slug";
-import { putObject, publicUrlFor } from "@/lib/recording/r2";
+import { deleteObject, putObject, publicUrlFor } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import { callerOwns } from "@/lib/recording/caller";
 
@@ -14,9 +19,17 @@ export function OPTIONS() {
   return optionsResponse();
 }
 
-// A poster may be uploaded while the video is still `pending` (the desktop
-// client races them in parallel) and overwritten after `ready`, which then
-// needs the owner: the device id alone only covers the upload in flight.
+/*
+ * A poster may be uploaded while the video is still `pending` (the desktop
+ * client races them in parallel) and overwritten after `ready`, which then
+ * needs the owner: the device id alone only covers the upload in flight.
+ *
+ * `kind=card` takes the card thumbnail instead: a JPEG the client drew with
+ * the camera bubble in it, which this side cannot do since it never sees a
+ * camera frame. The poster itself stays the bare screen for the player. A
+ * client sends the card after the poster, whose upload makes a screen-only
+ * card that the client's then replaces.
+ */
 export async function POST(req: NextRequest) {
   const deviceId = req.headers.get(DEVICE_HEADER);
   if (!deviceId)
@@ -26,10 +39,17 @@ export async function POST(req: NextRequest) {
   if (!isValidSlug(slug)) {
     return jsonError("Invalid slug", 400, "invalid_slug");
   }
+  const kind = req.nextUrl.searchParams.get("kind");
+  if (kind !== null && kind !== "card") {
+    return jsonError("Unknown poster kind", 400, "invalid_kind");
+  }
 
   const contentType = (req.headers.get("content-type") ?? "")
     .split(";")[0]
     .trim();
+  if (kind === "card" && contentType !== "image/jpeg") {
+    return jsonError("Card must be a JPEG", 400, "invalid_content_type");
+  }
   if (!ALLOWED_TYPES.has(contentType)) {
     return jsonError(
       "Unsupported poster content type",
@@ -76,12 +96,42 @@ export async function POST(req: NextRequest) {
     .replace(/\.[^.]+$/, "");
   const posterKey = `posters/${storageId}.${ext}`;
 
-  await putObject(posterKey, buffer, contentType, "no-cache");
+  if (kind === "card") {
+    const posterThumbKey = posterThumbKeyFor(
+      row.posterKey ?? posterKey,
+      await posterDigest(buffer),
+    );
+    await putObject(posterThumbKey, buffer, "image/jpeg", THUMB_CACHE_CONTROL);
+    if (row.posterThumbKey && row.posterThumbKey !== posterThumbKey) {
+      await deleteObject(row.posterThumbKey).catch(() => undefined);
+    }
+    await updateRecording(slug, { posterThumbKey });
+    return withCors(NextResponse.json({ posterThumbKey }));
+  }
+
   // Clients don't report the frame size, so the poster is where it comes from.
   const thumb = posterThumbnail(buffer, contentType);
+  const posterThumbKey = thumb
+    ? posterThumbKeyFor(posterKey, await posterDigest(buffer))
+    : null;
+  await Promise.all([
+    putObject(posterKey, buffer, contentType, "no-cache"),
+    thumb && posterThumbKey
+      ? putObject(
+          posterThumbKey,
+          thumb.thumb.buffer as ArrayBuffer,
+          "image/jpeg",
+          THUMB_CACHE_CONTROL,
+        )
+      : null,
+  ]);
+  if (row.posterThumbKey && row.posterThumbKey !== posterThumbKey) {
+    await deleteObject(row.posterThumbKey).catch(() => undefined);
+  }
   await updateRecording(slug, {
     posterKey,
     posterBlur: thumb?.blur ?? null,
+    posterThumbKey,
     ...(thumb && (row.width === null || row.height === null)
       ? { width: thumb.width, height: thumb.height }
       : {}),

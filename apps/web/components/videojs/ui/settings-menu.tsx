@@ -8,7 +8,7 @@ import { settingsText } from '@videojs/core/i18n/text/menu';
 import { Menu } from '@videojs/react';
 import { Text as TextPrimitive } from '@videojs/react';
 import { GearIcon as GearIconPrimitive } from '@videojs/react/icons';
-import type { ClassValue } from 'cn';
+import type { ClassValue } from 'clsx';
 
 import { Button } from '@/components/videojs/ui/button';
 import { ButtonTooltip } from '@/components/videojs/ui/button-tooltip';

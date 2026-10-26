@@ -451,7 +451,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
         ref={islandRef}
         style={{ y: islandDrop }}
         className={cn(
-          "relative isolate mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-3 [--island-ring:rgb(0_0_0/0.07)] [--island:#ffffff] dark:[--island-ring:rgb(255_255_255/0.07)] dark:[--island:#201f1d]",
+          "relative isolate mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-3 [--island-ring:rgb(0_0_0/0.07)] [--island:#ffffff] dark:[--island-ring:rgb(255_255_255/0.07)] dark:[--island:#181818]",
           !measured && "rounded-b-[24px] bg-(--island)",
         )}
       >
@@ -478,7 +478,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             className="group inline-flex items-center gap-2 text-fg"
           >
             <Image
-              src="/logo.png"
+              src="/logo-96.png"
               alt=""
               width={32}
               height={32}
@@ -489,7 +489,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             <span
               className={cn(
                 wordmark.className,
-                "text-[19px] leading-none tracking-[-0.02em] text-[#12161f] dark:text-fg",
+                "text-[19px] leading-none tracking-[-0.02em] text-fg",
               )}
             >
               CaptureFlow

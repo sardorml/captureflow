@@ -37,6 +37,12 @@ import {
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+// Over the thumbnail the secondary button's pale fill and soft accent icon
+// disappear against a light capture, so the controls there take the same
+// dark glass as the selection checkbox.
+const OVERLAY_BUTTON =
+  "[--button-bg:rgb(0_0_0/0.55)] [--button-bg-hover:rgb(0_0_0/0.7)] [--button-bg-pressed:rgb(0_0_0/0.7)] [--button-fg:white] backdrop-blur-sm";
+
 type ActionResult = { error: string | null } | void;
 
 export type MediaCardStats = {
@@ -47,7 +53,8 @@ export type MediaCardStats = {
 
 export type MediaCardProps = {
   noun: string;
-  media: ReactNode;
+  // A function receives whether the card is hovered, for a live preview.
+  media: ReactNode | ((hovered: boolean) => ReactNode);
   viewUrl: string;
   editUrl: string;
   displayTitle: string;
@@ -100,6 +107,7 @@ export function MediaCard({
   onDelete,
   onChangeVisibility,
 }: MediaCardProps) {
+  const [hovered, setHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(initialTitle);
@@ -171,8 +179,10 @@ export function MediaCard({
        leaves the text (Card.Content's own p-4) at double that — the image and
        the copy end up on different rails. Card.Content owns the inset now. */
     <Card
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
       className={cn(
-        "group gap-0 overflow-hidden p-0 transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)]",
+        "group gap-0 overflow-hidden border border-black/[0.15] p-0 shadow-none transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)] dark:border-white/[0.16]",
         selected &&
           "border-accent-bg shadow-[0_0_0_1px_var(--color-accent-bg)]",
       )}
@@ -183,7 +193,7 @@ export function MediaCard({
           top of that overlay, need raising above it. */}
       <div className="relative">
         <div className="relative aspect-video overflow-hidden bg-tint">
-          {media}
+          {typeof media === "function" ? media(hovered) : media}
         </div>
 
         {onSelectedChange && (
@@ -214,13 +224,17 @@ export function MediaCard({
           </Checkbox>
         )}
 
-        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+        {/* Hidden until the card is hovered, so the thumbnail reads clean in
+            the grid; keyboard focus, an open menu and touch screens, which
+            have no hover, keep the controls shown. */}
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 has-[[aria-expanded=true]]:opacity-100 pointer-coarse:opacity-100">
           <Tooltip>
             <Tooltip.Trigger className="inline-flex">
               <Button
                 size="sm"
                 isIconOnly
                 variant={copied ? "primary" : "secondary"}
+                className={copied ? undefined : OVERLAY_BUTTON}
                 aria-label={copied ? "Link copied" : "Copy link"}
                 onPress={copyLink}
               >
@@ -235,11 +249,14 @@ export function MediaCard({
             <Dropdown>
               <Dropdown.Trigger
                 aria-label="More actions"
-                className={buttonVariants({
-                  variant: "secondary",
-                  size: "sm",
-                  isIconOnly: true,
-                })}
+                className={cn(
+                  buttonVariants({
+                    variant: "secondary",
+                    size: "sm",
+                    isIconOnly: true,
+                  }),
+                  OVERLAY_BUTTON,
+                )}
               >
                 <MoreHorizontal size={16} />
               </Dropdown.Trigger>
@@ -349,7 +366,7 @@ export function MediaCard({
           <Link
             href={viewUrl}
             title={displayTitle}
-            className="line-clamp-2 text-[15px] font-semibold text-fg after:absolute after:inset-0 after:content-['']"
+            className="line-clamp-2 min-h-[2lh] text-[15px] font-semibold text-fg after:absolute after:inset-0 after:content-['']"
           >
             {displayTitle}
           </Link>

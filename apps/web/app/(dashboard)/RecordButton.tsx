@@ -3,7 +3,7 @@
 import { Video } from "lucide-react";
 import { Button } from "@heroui/react";
 import { installedExtensionId, openRecorder } from "@/lib/extension-bridge";
-import { CHROME_WEBSTORE_URL } from "@/lib/marketing/constants";
+import { CHROME_WEBSTORE_URL } from "@/lib/site";
 
 /*
  * Recording happens in the extension, so this hands off to it — and when

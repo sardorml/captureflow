@@ -2,6 +2,7 @@ import type {
   RecordingComment,
   RecordingReaction,
   RecordingRow,
+  RecordingViewerEntry,
   TranscriptPartRow,
   TranscriptRow,
 } from "./types";
@@ -29,7 +30,17 @@ export type RecordingDb = {
   listRecordingsForUser(userId: string): Promise<RecordingRow[]>;
   totalStorageForDevice(deviceId: string): Promise<number>;
   activeRecordingCountForDevice(deviceId: string): Promise<number>;
-  bumpLastViewed(slug: string): Promise<void>;
+  recordView(
+    slug: string,
+    viewerKey: string,
+    userId: string | null,
+  ): Promise<void>;
+  // The owner's own visit: keeps the recording from idling out, counts nothing.
+  touchLastViewed(slug: string): Promise<void>;
+  listViewers(
+    slug: string,
+    excludeUserId: string | null,
+  ): Promise<RecordingViewerEntry[]>;
   addReaction(input: {
     slug: string;
     emoji: string;

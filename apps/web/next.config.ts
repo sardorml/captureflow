@@ -14,6 +14,14 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: "8mb" },
     /*
+     * The stylesheet rides inside the HTML instead of being a separate
+     * render-blocking request. As a request it shares a slow link with the
+     * fonts, images and script chunks discovered from the same HTML and first
+     * paint waits for all of them; inline, it arrives before any of them is
+     * even known. Costs about 50 KB gzipped per full page load.
+     */
+    inlineCss: true,
+    /*
      * Turbopack's dev filesystem cache (`.next/dev/cache`, default on, grew to
      * 5.2 GB here) is reloaded on boot, so restarting the dev server does not
      * recompile. A chunk that went stale — a Tailwind class missing because the

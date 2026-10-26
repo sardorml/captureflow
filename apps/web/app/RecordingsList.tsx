@@ -3,6 +3,9 @@
 import { Card, Chip, EmptyState } from "@heroui/react";
 import { Film } from "lucide-react";
 import { FadeInImage } from "@/components/ui/fade-in-image";
+import { ListToolbar } from "./_components/ListToolbar";
+import { HoverPreview } from "./_components/HoverPreview";
+import { parseRecordingConfigJson } from "@/lib/recording-config";
 import { MediaCard } from "./_components/MediaCard";
 import { SelectionBar, useSelection } from "./_components/selection";
 import {
@@ -12,22 +15,24 @@ import {
 } from "./actions";
 import type { Visibility } from "@/app/VisibilityDialog";
 import { formatDuration } from "@/lib/format";
-import { parseRecordingConfigJson } from "@/lib/recording-config";
+import { isFiltered, type ListFilters } from "@/lib/list-filters";
 import type { DashboardRecordingRow } from "@/lib/recordings-db";
 import { viewUrlFor } from "@/lib/site";
 
 // Storage keys stay on the server; cards get ready-made URLs.
 export type RecordingCardRow = Omit<
   DashboardRecordingRow,
-  "storageKey" | "posterKey" | "webcamStorageKey"
+  "storageKey" | "posterKey" | "posterThumbKey" | "webcamStorageKey"
 > & {
   posterUrl: string | null;
-  videoThumbUrl: string | null;
+  videoUrl: string | null;
   webcamUrl: string | null;
+  videoThumbUrl: string | null;
 };
 
 type RecordingsListProps = {
   recordings: RecordingCardRow[];
+  filters: ListFilters;
   viewerUserId?: string;
   viewerIsWorkspaceOwner?: boolean;
   allowPublicLinks?: boolean;
@@ -38,6 +43,7 @@ type RecordingsListProps = {
 
 export function RecordingsList({
   recordings,
+  filters,
   viewerUserId,
   viewerIsWorkspaceOwner,
   allowPublicLinks = true,
@@ -48,20 +54,41 @@ export function RecordingsList({
   const manageable = recordings.filter(
     (r) => !viewerUserId || r.userId === viewerUserId || viewerIsWorkspaceOwner,
   );
-  const selection = useSelection(manageable.map((r) => r.slug));
+  const manageableKeys = manageable.map((r) => r.slug);
+  const selection = useSelection(manageableKeys);
+  const toolbar = (
+    <ListToolbar
+      noun="recording"
+      filters={filters}
+      selectAll={
+        manageableKeys.length > 0
+          ? {
+              selected: selection.count,
+              total: manageableKeys.length,
+              onChange: (next) => selection.setAll(manageableKeys, next),
+            }
+          : undefined
+      }
+    />
+  );
 
   if (recordings.length === 0) {
     return (
-      <Card className="mt-6 p-6">
-        <EmptyState className="text-center text-sm text-fg-muted">
-          You haven&rsquo;t created any recording links yet. Record in the
-          CaptureFlow desktop app and your recordings will show up here.
-        </EmptyState>
-      </Card>
+      <>
+        {toolbar}
+        <Card className="mt-6 p-6">
+          <EmptyState className="text-center text-sm text-fg-muted">
+            {isFiltered(filters)
+              ? "No recordings match these filters."
+              : "You haven\u2019t created any recording links yet. Record in the CaptureFlow desktop app and your recordings will show up here."}
+          </EmptyState>
+        </Card>
+      </>
     );
   }
   return (
     <>
+      {toolbar}
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {recordings.map((s) => {
           const isAuthor = !viewerUserId || s.userId === viewerUserId;
@@ -96,23 +123,6 @@ export function RecordingsList({
   );
 }
 
-// The camera's first frame, always bottom-left: the card's own buttons own
-// the top-right and the duration chip the bottom-right.
-function CardWebcam({ url }: { url: string }) {
-  return (
-    <div className="@container pointer-events-none absolute inset-0">
-      <video
-        src={url}
-        className="absolute bottom-[4%] left-[2.5%] aspect-square w-[20cqw] rounded-full object-cover shadow-md"
-        muted
-        playsInline
-        preload="metadata"
-        aria-hidden="true"
-      />
-    </div>
-  );
-}
-
 type RecordingCardProps = {
   recording: RecordingCardRow;
   canAuthor: boolean;
@@ -138,12 +148,13 @@ function RecordingCard({
   selectionActive,
   onSelectedChange,
 }: RecordingCardProps) {
-  const { posterUrl, posterBlur, videoThumbUrl } = recording;
-  const cameraHidden = parseRecordingConfigJson(
-    recording.configJson,
-  ).cameraHidden;
+  const { posterUrl, posterBlur, videoUrl, webcamUrl, videoThumbUrl } =
+    recording;
+  const config = parseRecordingConfigJson(recording.configJson);
+  // The card still carries the camera unless the owner hid it in the editor.
+  const previewWebcamUrl = config.cameraHidden ? null : webcamUrl;
 
-  const media = (
+  const media = (hovered: boolean) => (
     <>
       {posterUrl ? (
         <>
@@ -152,15 +163,27 @@ function RecordingCard({
             <img
               alt=""
               aria-hidden="true"
-              className="absolute inset-0 h-full w-full scale-110 object-cover blur-md"
+              className="absolute inset-0 h-full w-full scale-110 object-cover blur-sm"
               src={posterBlur}
             />
           ) : null}
+          {/* Lazy on purpose, first row included: an eager image is hoisted
+              into <head> as a preload ahead of the stylesheet and delays
+              first paint; a lazy one in view starts right after layout. */}
           <FadeInImage
             alt=""
             className="relative h-full w-full object-cover"
             src={posterUrl}
+            width={recording.width ?? 1280}
+            height={recording.height ?? 720}
           />
+          {videoUrl ? (
+            <HoverPreview
+              src={videoUrl}
+              webcamUrl={previewWebcamUrl}
+              active={hovered}
+            />
+          ) : null}
         </>
       ) : videoThumbUrl ? (
         <video
@@ -180,9 +203,6 @@ function RecordingCard({
           <Film size={24} />
         </div>
       )}
-      {recording.webcamUrl && !cameraHidden ? (
-        <CardWebcam url={recording.webcamUrl} />
-      ) : null}
       {recording.durationMs != null && (
         <Chip
           size="sm"

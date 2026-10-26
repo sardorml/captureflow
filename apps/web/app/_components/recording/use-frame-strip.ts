@@ -12,6 +12,7 @@ export type FrameStrip = {
 
 const TILE_WIDTH = 256;
 // Lets the main video get going before a second element pulls at the file.
+// A caller that already knows the player is ready passes 0 instead.
 const START_DELAY_MS = 2000;
 const SEEK_TIMEOUT_MS = 8000;
 
@@ -21,7 +22,10 @@ const SEEK_TIMEOUT_MS = 8000;
  * still displays, so no CORS headers are needed on the media host; the
  * bitmaps are only ever drawn, never read back.
  */
-export function useFrameStrip(videoUrl: string | null): FrameStrip | null {
+export function useFrameStrip(
+  videoUrl: string | null,
+  startDelayMs = START_DELAY_MS,
+): FrameStrip | null {
   const [strip, setStrip] = useState<FrameStrip | null>(null);
 
   useEffect(() => {
@@ -60,7 +64,7 @@ export function useFrameStrip(videoUrl: string | null): FrameStrip | null {
 
     const timer = window.setTimeout(() => {
       grab().catch(() => {});
-    }, START_DELAY_MS);
+    }, startDelayMs);
 
     return () => {
       cancelled = true;
@@ -70,7 +74,7 @@ export function useFrameStrip(videoUrl: string | null): FrameStrip | null {
       setStrip(null);
       for (const tile of tiles) tile.close();
     };
-  }, [videoUrl]);
+  }, [videoUrl, startDelayMs]);
 
   return strip;
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
+import { createContext, useContext, useEffect, useState } from "react";
 import { Spinner } from "@heroui/react";
 import { type Theme } from "@captureflow/ui";
 import { useRouter } from "next/navigation";
@@ -11,11 +12,13 @@ import type {
   RecordingTranscript,
   TranscriptStatus,
 } from "@/lib/recording/types";
+import { EditorSkeleton } from "./EditorSkeleton";
 
 export type RecordingEditorProps = {
   slug: string;
   initialTitle: string | null;
   videoUrl: string;
+  posterUrl?: string;
   webcamUrl: string | null;
   viewUrl: string;
   width: number | null;
@@ -37,11 +40,25 @@ export type RecordingEditorProps = {
 
 const RECORDING_API = "/r";
 
+type SkeletonProps = Pick<RecordingEditorProps, "posterUrl">;
+
+// dynamic()'s loading component gets no props, so the skeleton reads the
+// poster from context.
+const SkeletonContext = createContext<SkeletonProps | null>(null);
+
+function LoadingSkeleton() {
+  const props = useContext(SkeletonContext);
+  return <EditorSkeleton {...props} />;
+}
+
 const RecordingEditorImpl = dynamic(
-  () => import("./RecordingEditorImpl").then((m) => m.RecordingEditorImpl),
+  () =>
+    import("./RecordingEditorImpl").then((m) =>
+      withSplitLoaded("recording-editor", m.RecordingEditorImpl),
+    ),
   {
     ssr: false,
-    loading: () => <PreparingRecording />,
+    loading: LoadingSkeleton,
   },
 );
 
@@ -81,7 +98,13 @@ export function RecordingEditor(props: RecordingEditorProps) {
 
   if (state === "pending") return <PreparingRecording />;
   if (state === "failed") return <RecordingFailed />;
-  return <RecordingEditorImpl {...props} />;
+  return (
+    <SkeletonContext.Provider value={{ posterUrl: props.posterUrl }}>
+      <div data-split="recording-editor" className="contents">
+        <RecordingEditorImpl {...props} />
+      </div>
+    </SkeletonContext.Provider>
+  );
 }
 
 function PreparingRecording() {

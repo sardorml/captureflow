@@ -128,7 +128,7 @@ function FeatureLink({
   location: string;
 }) {
   const className =
-    "group mt-7 inline-flex items-center gap-2 text-[18px] font-semibold text-[#2563eb] transition-colors hover:text-[#1d4ed8] dark:text-[#6ea8ff] dark:hover:text-[#9cc3ff]";
+    "group mt-7 inline-flex items-center gap-2 text-[18px] font-semibold text-[#1184f7] transition-colors hover:text-[#0071e2] dark:text-[#6ea8ff] dark:hover:text-[#9cc3ff]";
   const onClick = () => track("marketing_cta_clicked", { location });
   const content = (
     <>

@@ -3,12 +3,8 @@ export const WAVEFORM_BUCKETS = 2000;
 // one click doesn't flatten a quiet voice.
 const NORMALISE_PERCENTILE = 0.98;
 
-/*
- * Peak amplitude per bucket across all channels, scaled so that normal speech
- * fills the lane: the level at the 98th percentile becomes 1 and anything
- * above it clips.
- */
-export function waveformBuckets(
+// Peak amplitude per bucket across all channels, unscaled.
+export function peakBuckets(
   channels: readonly Float32Array[],
   bucketCount: number,
 ): Float32Array {
@@ -30,6 +26,28 @@ export function waveformBuckets(
     }
     out[b] = peak;
   }
+  return out;
+}
+
+// The loudest of several tracks in each bucket: the system audio and the mic
+// play together, so the lane shows whichever is louder at each moment.
+export function mergePeaks(tracks: readonly Float32Array[]): Float32Array {
+  const length = Math.max(0, ...tracks.map((t) => t.length));
+  const out = new Float32Array(length);
+  for (const track of tracks) {
+    for (let i = 0; i < track.length; i++) {
+      if (track[i] > out[i]) out[i] = track[i];
+    }
+  }
+  return out;
+}
+
+/*
+ * Scales peaks so that normal speech fills the lane: the level at the 98th
+ * percentile becomes 1 and anything above it clips.
+ */
+export function normalisePeaks(peaks: Float32Array): Float32Array {
+  const out = Float32Array.from(peaks);
   const sorted = Array.from(out).sort((a, b) => a - b);
   const ceiling =
     sorted[
@@ -41,6 +59,13 @@ export function waveformBuckets(
   if (!ceiling || ceiling <= 0) return out;
   for (let i = 0; i < out.length; i++) out[i] = Math.min(1, out[i] / ceiling);
   return out;
+}
+
+export function waveformBuckets(
+  channels: readonly Float32Array[],
+  bucketCount: number,
+): Float32Array {
+  return normalisePeaks(peakBuckets(channels, bucketCount));
 }
 
 // The loudest bucket within a span, for drawing fewer bars than buckets.

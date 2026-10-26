@@ -62,7 +62,7 @@ export function EditPanel({
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div data-split="edit-panel" className="flex flex-col gap-6">
       <section>
         <SectionHeading
           title="Make edits"

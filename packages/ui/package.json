@@ -4,6 +4,7 @@
   "private": true,
   "description": "Theming (tokens, ThemeToggle, cookie helpers), the cn() helper, and the bespoke components with no HeroUI equivalent — AvatarGroup, GridLoader, VisibilityPicker. Consumed by CaptureFlow's web surfaces; everything else comes straight from @heroui/react.",
   "type": "module",
+  "sideEffects": false,
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {

@@ -86,7 +86,7 @@
     --media-slider-preview-label-offset: calc(var(--media-spacing) * 10.5);
 
     /* Player frame and scale. */
-    --media-video-border-radius: var(--media-border-radius, 28px);
+    --media-video-border-radius: var(--media-border-radius, 16px);
     --media-scale: 1;
     --media-scrollbar-thumb-color: color-mix(in oklab, currentColor 30%, transparent);
     --media-spacing: calc(var(--media-scale-unit, 16px) * var(--media-scale) / 4);

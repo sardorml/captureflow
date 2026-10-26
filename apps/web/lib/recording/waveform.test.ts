@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { peakBetween, waveformBuckets } from "./waveform";
+import {
+  mergePeaks,
+  normalisePeaks,
+  peakBuckets,
+  peakBetween,
+  waveformBuckets,
+} from "./waveform";
 
 function tone(samples: number, amplitude: number): Float32Array {
   const out = new Float32Array(samples);
@@ -29,6 +35,24 @@ describe("waveformBuckets", () => {
     const mono = waveformBuckets([right], 10);
     expect(Array.from(waveformBuckets([left, right], 10))).toEqual(
       Array.from(mono),
+    );
+  });
+});
+
+describe("mergePeaks", () => {
+  it("takes the louder track in each bucket", () => {
+    const merged = mergePeaks([
+      new Float32Array([0.25, 0.75, 0]),
+      new Float32Array([0.5, 0.125]),
+    ]);
+    expect(Array.from(merged)).toEqual([0.5, 0.75, 0]);
+  });
+
+  it("lets a quiet track add nothing to a voice once normalised", () => {
+    const voice = peakBuckets([tone(1_000, 0.5)], 10);
+    const hiss = peakBuckets([tone(1_000, 0.01)], 10);
+    expect(Array.from(normalisePeaks(mergePeaks([voice, hiss])))).toEqual(
+      Array.from(normalisePeaks(voice)),
     );
   });
 });

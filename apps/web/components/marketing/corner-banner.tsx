@@ -36,7 +36,7 @@ const CONFETTI = [
   { x: 50, y: 96, turn: -240, delay: 110, size: 6 },
 ] as const;
 
-const CHIP_COLORS = ["#f5a524", "#fcd34d", "#2563eb", "#fafafa"] as const;
+const CHIP_COLORS = ["#f5a524", "#fcd34d", "#1184f7", "#fafafa"] as const;
 
 // Open/close, the burst counter, and the dismiss listeners — one hook so each
 // placement only has to draw its own trigger.

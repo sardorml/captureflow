@@ -3,13 +3,17 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import {
-  bumpLastViewed,
   getOwnerName,
   getRecording,
   getTranscript,
   listComments,
   listReactions,
+  listViewers,
+  recordView,
+  touchLastViewed,
 } from "@/lib/recording/db";
+import { hydrateStartSeconds } from "@/lib/recording/share-time";
+import { viewerKeyFor } from "@/lib/recording/viewer-key";
 import { resolveTranscript } from "@/lib/recording/transcript";
 import { verifySession } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
@@ -21,13 +25,18 @@ import {
 import { parseRecordingConfigJson } from "@/lib/recording-config";
 import { parseSummaryChaptersJson } from "@/lib/recording/summary-chapters";
 import { isValidSlug } from "@/lib/recording/slug";
-import { APP_WEB_SITE_URL, PRODUCT_NAME, viewUrlFor } from "@/lib/site";
-import { ViewerNav } from "../../_components/screenshot";
 import {
-  ThemeToggle,
+  APP_WEB_SITE_URL,
+  PRODUCT_NAME,
+  embedUrlFor,
+  viewUrlFor,
+} from "@/lib/site";
+import { ViewerNav } from "../../_components/screenshot";
+import { ThemeToggle } from "@captureflow/ui";
+import {
   readThemeFromCookieHeader,
   readThemePreferenceFromCookieHeader,
-} from "@captureflow/ui";
+} from "@captureflow/ui/theme";
 import { getWorkspaceForUpload } from "@/lib/recording/quota";
 import { AuthSync } from "./AuthSync";
 import { PendingRecording } from "./PendingRecording";
@@ -151,14 +160,22 @@ export async function generateMetadata({
   };
 }
 
-export default async function RecordingPage({ params }: { params: Params }) {
+export default async function RecordingPage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: Promise<{ t?: string | string[] }>;
+}) {
   const { id } = await params;
+  const startAtSeconds = hydrateStartSeconds((await searchParams).t);
   if (!isValidSlug(id)) notFound();
 
   const row = await getRecording(id);
   if (!row) notFound();
 
-  const cookieHeader = (await headers()).get("cookie");
+  const requestHeaders = await headers();
+  const cookieHeader = requestHeaders.get("cookie");
   const theme = readThemeFromCookieHeader(cookieHeader);
   const themePreference = readThemePreferenceFromCookieHeader(cookieHeader);
   // /api/r/init reserves the id at record-start so desktop hands the user a
@@ -170,7 +187,9 @@ export default async function RecordingPage({ params }: { params: Params }) {
         <ViewerNav
           homeUrl={APP_WEB_SITE_URL}
           productName={PRODUCT_NAME}
-          themeToggle={<ThemeToggle initialTheme={theme} className="h-9 w-9" />}
+          themeToggle={
+            <ThemeToggle initialTheme={theme} className="h-9 w-9 rounded-xl" />
+          }
         />
         <PendingRecording
           slug={id}
@@ -213,7 +232,15 @@ export default async function RecordingPage({ params }: { params: Params }) {
     }
   }
 
-  void bumpLastViewed(id);
+  const isOwner = !!(visitor && row.userId && visitor.userId === row.userId);
+  // The owner's own visits are not views.
+  void (
+    isOwner
+      ? touchLastViewed(id)
+      : viewerKeyFor(visitor?.userId ?? null, requestHeaders).then((key) =>
+          recordView(id, key, visitor?.userId ?? null),
+        )
+  ).catch(() => undefined);
 
   const [
     videoUrlRaw,
@@ -223,6 +250,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
     ownerName,
     webcamUrlRaw,
     transcriptRow,
+    viewers,
   ] = await Promise.all([
     viewerMediaUrl(row, row.storageKey),
     row.posterKey
@@ -235,6 +263,8 @@ export default async function RecordingPage({ params }: { params: Params }) {
       ? viewerMediaUrl(row, row.webcamStorageKey)
       : Promise.resolve(undefined),
     getTranscript(id),
+    // Only the owner sees who watched.
+    isOwner ? listViewers(id, row.userId) : Promise.resolve(null),
   ]);
   const recordingConfig = parseRecordingConfigJson(row.configJson);
   const summaryChapters = parseSummaryChaptersJson(row.summaryChaptersJson);
@@ -249,16 +279,15 @@ export default async function RecordingPage({ params }: { params: Params }) {
       ? withVersion(webcamUrlRaw, row.webcamSizeBytes)
       : undefined;
 
-  // bumpLastViewed increments atomically but runs after we read the row, so
+  // recordView increments atomically but runs after we read the row, so
   // add 1 to reflect the current load.
-  const displayViews = row.viewCount + 1;
+  const displayViews = isOwner ? row.viewCount : row.viewCount + 1;
   const headlineText = row.title ?? PRODUCT_NAME;
 
   const loginUrl = `${APP_WEB_SITE_URL}/login?next=${encodeURIComponent(
     viewUrlFor(id),
   )}`;
 
-  const isOwner = !!(visitor && row.userId && visitor.userId === row.userId);
   const workspaceRow = row.workspaceId
     ? await getWorkspaceForUpload(row.workspaceId)
     : null;
@@ -268,11 +297,12 @@ export default async function RecordingPage({ params }: { params: Params }) {
   const editUrl = `${APP_WEB_SITE_URL}/recordings/${id}/edit`;
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas text-fg lg:h-screen lg:overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-panel text-fg lg:h-screen lg:overflow-hidden">
       <AuthSync initialUserId={visitor?.userId ?? null} />
       <ViewerNav
         homeUrl={APP_WEB_SITE_URL}
         productName={PRODUCT_NAME}
+        className="border-b border-black/[0.06] bg-panel dark:border-white/[0.07]"
         /* The workspace panel is the signed-in user's own; an anonymous viewer
            has nothing to put in it, and Sidebar's requireSession would bounce
            them to /auth/clear mid-render. Suspense keeps its workspace queries
@@ -280,9 +310,11 @@ export default async function RecordingPage({ params }: { params: Params }) {
         leading={
           visitor ? (
             <SidebarDrawer>
-              <Suspense fallback={null}>
-                <Sidebar />
-              </Suspense>
+              <div data-split="sidebar" className="contents">
+                <Suspense fallback={null}>
+                  <Sidebar />
+                </Suspense>
+              </div>
             </SidebarDrawer>
           ) : null
         }
@@ -292,7 +324,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
            standalone toggle. */
         themeToggle={
           visitor ? null : (
-            <ThemeToggle initialTheme={theme} className="h-9 w-9" />
+            <ThemeToggle initialTheme={theme} className="h-9 w-9 rounded-xl" />
           )
         }
         notifications={
@@ -317,6 +349,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
           <RecordingActions
             slug={id}
             recordingUrl={recordingUrl}
+            embedUrl={embedUrlFor(id)}
             editUrl={editUrl}
             initialVisibility={row.visibility}
             isOwner={isOwner}
@@ -328,8 +361,10 @@ export default async function RecordingPage({ params }: { params: Params }) {
       />
       <RecordingViewer
         slug={id}
+        startAtSeconds={startAtSeconds}
         videoUrl={videoUrl}
         posterUrl={posterUrl}
+        posterBlur={row.posterBlur}
         webcamUrl={webcamUrl}
         serverDurationMs={row.durationMs}
         serverWidth={row.width}
@@ -352,6 +387,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
         ownerName={ownerName}
         createdAt={row.createdAt}
         viewCount={displayViews}
+        viewers={viewers}
         isOwner={isOwner}
         initialSummary={summaryChapters.summary}
         initialChapters={summaryChapters.chapters}

@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { Check, Download, Link2 } from "lucide-react";
 import { Avatar, Button, Tooltip, buttonVariants } from "@heroui/react";
 import { AppIcon } from "@/components/brand-mark";
+import { cn } from "@/lib/utils";
 
 export type ViewerNavViewer = {
   name: string | null;
@@ -24,6 +25,7 @@ export type ViewerNavProps = {
   notifications?: ReactNode;
   themeToggle?: ReactNode;
   actions?: ReactNode;
+  className?: string;
 };
 
 export function ViewerNav({
@@ -39,6 +41,7 @@ export function ViewerNav({
   userMenu,
   notifications,
   themeToggle,
+  className,
 }: ViewerNavProps): ReactElement {
   const [copied, setCopied] = useState(false);
 
@@ -57,7 +60,12 @@ export function ViewerNav({
   };
 
   return (
-    <header className="flex h-16 w-full items-center justify-between bg-canvas-2 px-4 sm:px-6">
+    <header
+      className={cn(
+        "flex h-16 w-full items-center justify-between bg-canvas-2 px-4 sm:px-6",
+        className,
+      )}
+    >
       {/* The header is justify-between over exactly two children, so anything
           left of the brand has to group with it rather than become a third. */}
       <div className="flex items-center gap-2">

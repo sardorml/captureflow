@@ -38,7 +38,7 @@ import { ErrorDialog } from "@/components/videojs/ui/error-dialog";
 import { FullscreenButton } from "@/components/videojs/ui/fullscreen-button";
 import { PiPButton } from "@/components/videojs/ui/pip-button";
 import { PlayButton } from "@/components/videojs/ui/play-button";
-import { Poster } from "@/components/videojs/ui/poster";
+import { PosterLayer } from "./PosterLayer";
 import { TimeSlider } from "@/components/videojs/ui/time-slider";
 import { VolumePopover } from "@/components/videojs/ui/volume-popover";
 import { VideoGestures } from "@/components/videojs/video/behaviors/gestures";
@@ -63,6 +63,7 @@ import {
 } from "@/lib/recording/cuts";
 import { EditedTimeSlider } from "./EditedTimeSlider";
 import { FramePreview } from "./FramePreview";
+import { useAfterLoad } from "./use-after-load";
 import { useFitStage } from "./use-fit-stage";
 import { useFrameStrip } from "./use-frame-strip";
 import { recordingBackgroundStyle } from "./layout";
@@ -105,6 +106,8 @@ export type RecordingSkinProps = {
   showCuts: boolean;
   cues: ChapterCue[];
   videoUrl: string;
+  posterUrl?: string;
+  posterBlur?: string | null;
   // Shows the frame under the pointer above the time slider.
   framePreview: boolean;
   previewLoopUrl?: string;
@@ -163,6 +166,8 @@ export function RecordingSkin({
   showCuts,
   cues,
   videoUrl,
+  posterUrl,
+  posterBlur,
   framePreview,
   previewLoopUrl,
   previewCaptions,
@@ -174,6 +179,8 @@ export function RecordingSkin({
   const controlsVisible = usePlayer(selectControls)?.controlsVisible ?? true;
   const started = usePlayer(selectPlayback)?.started ?? false;
   const previewing = !!previewLoopUrl && !started;
+  // The loops wait for the page: the poster is the first paint, not them.
+  const loopReady = useAfterLoad();
   const previewMain = useRef<HTMLVideoElement | null>(null);
   const previewCam = useRef<HTMLVideoElement | null>(null);
   // The main loop is the clock: it rewinds at the mark and the camera loop,
@@ -229,8 +236,14 @@ export function RecordingSkin({
           }
         >
           {children}
-          <Poster />
-          {previewing ? (
+          {/* The video's own poster paints as it downloads, strip by strip.
+              Its blur covers that, and the sharp frame fades in whole; once
+              playback starts the element's poster holds the gap to the first
+              frame. */}
+          {posterUrl && !started ? (
+            <PosterLayer posterUrl={posterUrl} posterBlur={posterBlur} />
+          ) : null}
+          {previewing && loopReady ? (
             <LoopVideo
               url={previewLoopUrl}
               videoRef={previewMain}
@@ -256,9 +269,10 @@ export function RecordingSkin({
           videoRef={webcamRef}
           fluid={compact}
           concealed={previewing}
+          preload={previewLoopUrl ? "metadata" : "auto"}
         />
       ) : null}
-      {webcam && previewing && !webcam.hidden ? (
+      {webcam && previewing && loopReady && !webcam.hidden ? (
         <LoopVideo
           url={webcam.url}
           videoRef={previewCam}

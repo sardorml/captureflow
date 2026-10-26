@@ -6,14 +6,23 @@ import {
   listPaidUserIds,
 } from "@captureflow/quota";
 import { createD1Db } from "./db-d1";
-import { audioPartPrefixFor, objectKeysFor } from "./object-keys";
-import { posterThumbnail } from "./poster-blur";
+import {
+  audioPartPrefixFor,
+  objectKeysFor,
+  THUMB_SUFFIX,
+  posterThumbKeyFor,
+} from "./object-keys";
+import {
+  THUMB_CACHE_CONTROL,
+  posterDigest,
+  posterThumbnail,
+} from "./poster-blur";
 import { deleteObjectsWithPrefix } from "./r2-prefix";
 import { screenshotObjectKeysFor } from "../screenshot-keys";
 
 /*
  * Cron handlers, invoked by the wrapper worker's `scheduled()` entry:
- * runHourlyMultipartGc and backfillPosterBlurs on `0 * * * *`,
+ * runHourlyMultipartGc and backfillPosterDerivatives on `0 * * * *`,
  * runDailyRetentionSweep on `0 4 * * *`.
  * The bucket's only lifecycle rule aborts incomplete multipart uploads after
  * 7 days — there is no object-expiry rule, so nothing catches a silent cron.
@@ -102,38 +111,65 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
 }
 
 /*
- * Posters uploaded before poster_blur existed get their thumbnail here, and
- * rows without a frame size get it from the same decode, one page an hour.
- * Only JPEGs can be decoded; a poster that still fails is picked up again
- * next run.
+ * Posters uploaded before poster_blur or poster_thumb_key existed get both
+ * here, and rows without a frame size get it from the same decode, one page
+ * an hour. A thumbnail from an earlier generation is remade too, but only
+ * where the recording has no camera: a camera card was drawn by the client
+ * and the server cannot draw the bubble back in. Only JPEGs can be decoded;
+ * a poster that still fails is picked up again next run.
  */
-export async function backfillPosterBlurs(env: CronEnv): Promise<void> {
+export async function backfillPosterDerivatives(env: CronEnv): Promise<void> {
   const pending = await env.DB.prepare(
-    `SELECT slug, poster_key AS posterKey
+    `SELECT slug, poster_key AS posterKey, poster_thumb_key AS oldThumbKey
        FROM recordings
-      WHERE poster_key LIKE '%.jpg' AND poster_blur IS NULL
+      WHERE poster_key LIKE '%.jpg'
+        AND (poster_blur IS NULL
+          OR poster_thumb_key IS NULL
+          OR (webcam_state != 'ready' AND poster_thumb_key NOT LIKE ?))
       LIMIT ?`,
   )
-    .bind(BATCH_SIZE)
-    .all<{ slug: string; posterKey: string }>();
+    .bind(`%${THUMB_SUFFIX}`, BATCH_SIZE)
+    .all<{ slug: string; posterKey: string; oldThumbKey: string | null }>();
 
   for (const row of pending.results ?? []) {
     try {
       const obj = await env.BUCKET.get(row.posterKey);
       if (!obj) continue;
-      const thumb = posterThumbnail(await obj.arrayBuffer(), "image/jpeg");
+      const bytes = await obj.arrayBuffer();
+      const thumb = posterThumbnail(bytes, "image/jpeg");
       if (!thumb) continue;
+      const thumbKey = posterThumbKeyFor(
+        row.posterKey,
+        await posterDigest(bytes),
+      );
+      await env.BUCKET.put(thumbKey, thumb.thumb, {
+        httpMetadata: {
+          contentType: "image/jpeg",
+          cacheControl: THUMB_CACHE_CONTROL,
+        },
+      });
       await env.DB.prepare(
         `UPDATE recordings
             SET poster_blur = ?,
+                poster_thumb_key = ?,
                 width = COALESCE(width, ?),
                 height = COALESCE(height, ?)
           WHERE slug = ? AND poster_key = ?`,
       )
-        .bind(thumb.blur, thumb.width, thumb.height, row.slug, row.posterKey)
+        .bind(
+          thumb.blur,
+          thumbKey,
+          thumb.width,
+          thumb.height,
+          row.slug,
+          row.posterKey,
+        )
         .run();
+      if (row.oldThumbKey && row.oldThumbKey !== thumbKey) {
+        await env.BUCKET.delete(row.oldThumbKey).catch(() => undefined);
+      }
     } catch (err) {
-      console.warn(`[cron] poster blur failed for ${row.slug}:`, err);
+      console.warn(`[cron] poster derivatives failed for ${row.slug}:`, err);
     }
   }
 }
@@ -154,6 +190,7 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
   for (let batch = 0; batch < MAX_BATCHES; batch++) {
     const expiring = await env.DB.prepare(
       `SELECT slug, storage_key AS storageKey, poster_key AS posterKey,
+              poster_thumb_key AS posterThumbKey,
               webcam_storage_key AS webcamStorageKey, state
          FROM recordings
         WHERE (state = 'ready' AND last_viewed_at < ?
@@ -166,6 +203,7 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
         slug: string;
         storageKey: string;
         posterKey: string | null;
+        posterThumbKey: string | null;
         webcamStorageKey: string | null;
         state: string;
       }>();

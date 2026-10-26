@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import { requireSession } from "@/lib/session-guard";
 import { DashboardShell } from "./DashboardShell";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
+import { SidebarSkeleton } from "./_skeletons";
 import { PostHogIdentify } from "../posthog-identify";
 
 export const dynamic = "force-dynamic";
@@ -14,10 +16,26 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSession();
+  // The shell streams ahead of the sidebar's and the account cluster's queries.
   return (
-    <DashboardShell sidebar={<Sidebar />} header={<TopBar />}>
+    <DashboardShell
+      sidebar={
+        <div data-split="sidebar" className="contents">
+          <Suspense fallback={<SidebarSkeleton />}>
+            <Sidebar />
+          </Suspense>
+        </div>
+      }
+      header={
+        <div data-split="top-bar" className="contents">
+          <TopBar session={session} />
+        </div>
+      }
+    >
       <PostHogIdentify email={session.user.email} />
-      {children}
+      <div data-split="page" className="contents">
+        {children}
+      </div>
     </DashboardShell>
   );
 }
