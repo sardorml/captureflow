@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { preconnect } from "react-dom";
-import { ArrowRight, PenLine } from "lucide-react";
-import { ProgressBar, buttonVariants } from "@heroui/react";
+import { ArrowRight, PenLine, TrendingUp } from "lucide-react";
+import { buttonVariants } from "@heroui/react";
 import {
   totalStorageForUser,
   UNLIMITED_STORAGE_BYTES,
@@ -15,12 +15,13 @@ import {
   countSince,
   dayOf,
   formatRecordedTime,
+  lastDays,
 } from "@/lib/dashboard-metrics";
 import {
   loadDashboardActivity,
   loadDashboardTotals,
 } from "@/lib/dashboard-metrics-db";
-import { formatBytes } from "@/lib/format";
+import { formatBytes, formatDuration } from "@/lib/format";
 import { viewerMediaUrl } from "@/lib/recording/media-url";
 import {
   listRecordingsForWorkspace,
@@ -46,11 +47,33 @@ export const dynamic = "force-dynamic";
 const RECENT_COUNT = 6;
 const WEEK_DAYS = 7;
 
-const METER_COLOR: Record<StorageTone, "success" | "warning" | "danger"> = {
+type Tone = "accent" | "success" | "warning" | "danger";
+
+const METER_TONE: Record<StorageTone, Tone> = {
   ok: "success",
   near: "warning",
   full: "danger",
 };
+
+const TONE_FILL: Record<Tone, string> = {
+  accent: "fill-accent",
+  success: "fill-success",
+  warning: "fill-warning",
+  danger: "fill-danger",
+};
+
+const TONE_STROKE: Record<Tone, string> = {
+  accent: "stroke-accent",
+  success: "stroke-success",
+  warning: "stroke-warning",
+  danger: "stroke-danger",
+};
+
+const SPARK_HEIGHT = 24;
+const RING_SIZE = 36;
+const RING_STROKE = 3.5;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 
 export default async function DashboardPage() {
   const session = await requireSession();
@@ -80,8 +103,12 @@ export default async function DashboardPage() {
 
   const limitBytes = limit >= UNLIMITED_STORAGE_BYTES ? null : limit;
   const fill = storageFill(usedBytes, limitBytes);
+  const recordingsByDay = lastDays(activity.recordings, WEEK_DAYS, now);
+  const viewersByDay = lastDays(activity.viewers, WEEK_DAYS, now);
   const thisWeek = countSince(activity.recordings, WEEK_DAYS, now);
   const viewersThisWeek = countSince(activity.viewers, WEEK_DAYS, now);
+  const averageMs =
+    totals.recordings > 0 ? totals.recordedMs / totals.recordings : 0;
   const firstName = session.user.name?.trim().split(/\s+/)[0];
 
   return (
@@ -113,50 +140,50 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-2 divide-line overflow-hidden rounded-2xl bg-panel ring-1 ring-line-strong sm:grid-cols-4 sm:divide-x [&>*:nth-child(n+3)]:border-t [&>*:nth-child(n+3)]:border-line sm:[&>*:nth-child(n+3)]:border-t-0">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat
           label="Recordings"
           value={totals.recordings.toLocaleString()}
           hint={thisWeek > 0 ? `+${thisWeek} this week` : "None this week"}
+          up={thisWeek > 0}
           href="/recordings"
+          aside={<Sparkline values={recordingsByDay} tone="accent" />}
         />
         <Stat
           label="Views"
           value={totals.views.toLocaleString()}
           hint={
             viewersThisWeek > 0
-              ? `${plural(viewersThisWeek, "new viewer")} this week`
+              ? `+${plural(viewersThisWeek, "viewer")} this week`
               : "No new viewers this week"
           }
+          up={viewersThisWeek > 0}
           href="/recordings?sort=views"
+          aside={<Sparkline values={viewersByDay} tone="success" />}
         />
         <Stat
           label="Recorded"
           value={formatRecordedTime(totals.recordedMs)}
-          hint={plural(totals.screenshots, "screenshot")}
-          href="/screenshots"
+          hint={
+            totals.recordings > 0
+              ? `${formatDuration(averageMs)} per recording on average`
+              : "Nothing recorded yet"
+          }
+          href="/recordings"
         />
         <Stat
           label="Storage"
           value={formatBytes(usedBytes)}
           hint={
-            limitBytes === null ? "No limit" : `of ${formatBytes(limitBytes)}`
+            limitBytes === null
+              ? "No limit"
+              : `${Math.round((fill?.ratio ?? 0) * 100)}% of ${formatBytes(limitBytes)}`
           }
           href="/storage"
-        >
-          {fill && (
-            <ProgressBar
-              value={Math.round(fill.ratio * 100)}
-              color={METER_COLOR[fill.tone]}
-              aria-label="Storage used"
-              className="mt-2"
-            >
-              <ProgressBar.Track className="h-1 rounded-full bg-tint-strong">
-                <ProgressBar.Fill className="rounded-full" />
-              </ProgressBar.Track>
-            </ProgressBar>
-          )}
-        </Stat>
+          aside={
+            fill && <Ring ratio={fill.ratio} tone={METER_TONE[fill.tone]} />
+          }
+        />
       </div>
 
       <section className="flex flex-col gap-4">
@@ -213,26 +240,97 @@ function Stat({
   label,
   value,
   hint,
+  up = false,
   href,
-  children,
+  aside,
 }: {
   label: string;
   value: string;
   hint: string;
+  up?: boolean;
   href: string;
-  children?: ReactNode;
+  aside?: ReactNode;
 }) {
   return (
     <Link
       href={href}
-      className="flex min-w-0 flex-col px-5 py-4 transition-colors hover:bg-tint"
+      className="flex min-w-0 flex-col gap-3 rounded-2xl bg-panel p-4 ring-1 ring-line-strong transition-colors hover:bg-panel-2"
     >
-      <span className="text-sm text-fg-muted">{label}</span>
-      <span className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-fg-strong">
-        {value}
+      <span className="text-sm font-medium text-fg-muted">{label}</span>
+      <span className="flex items-end justify-between gap-3">
+        <span className="text-2xl font-semibold tracking-tight tabular-nums text-fg-strong">
+          {value}
+        </span>
+        {aside}
       </span>
-      <span className="mt-0.5 text-xs text-fg-subtle">{hint}</span>
-      {children}
+      <span
+        className={`flex items-center gap-1 text-xs ${up ? "text-success" : "text-fg-subtle"}`}
+      >
+        {up && <TrendingUp size={13} aria-hidden />}
+        {hint}
+      </span>
     </Link>
+  );
+}
+
+// The last week, one bar a day; a quiet day keeps a stub so the week reads.
+function Sparkline({ values, tone }: { values: number[]; tone: Tone }) {
+  const max = Math.max(1, ...values);
+  const width = values.length * 9 - 3;
+  return (
+    <svg
+      width={width}
+      height={SPARK_HEIGHT}
+      viewBox={`0 0 ${width} ${SPARK_HEIGHT}`}
+      className="shrink-0"
+      aria-hidden
+    >
+      {values.map((n, i) => {
+        const h = n > 0 ? Math.max(3, (n / max) * SPARK_HEIGHT) : 3;
+        return (
+          <rect
+            key={i}
+            x={i * 9}
+            y={SPARK_HEIGHT - h}
+            width={6}
+            height={h}
+            rx={1.5}
+            className={n > 0 ? TONE_FILL[tone] : "fill-tint-strong"}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+function Ring({ ratio, tone }: { ratio: number; tone: Tone }) {
+  const arc = Math.min(1, ratio > 0 ? Math.max(ratio, 0.03) : 0);
+  return (
+    <svg
+      width={RING_SIZE}
+      height={RING_SIZE}
+      viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
+      className="shrink-0 -rotate-90"
+      aria-hidden
+    >
+      <circle
+        cx={RING_SIZE / 2}
+        cy={RING_SIZE / 2}
+        r={RING_RADIUS}
+        fill="none"
+        strokeWidth={RING_STROKE}
+        className="stroke-tint-strong"
+      />
+      <circle
+        cx={RING_SIZE / 2}
+        cy={RING_SIZE / 2}
+        r={RING_RADIUS}
+        fill="none"
+        strokeWidth={RING_STROKE}
+        strokeLinecap="round"
+        strokeDasharray={`${arc * RING_LENGTH} ${RING_LENGTH}`}
+        className={TONE_STROKE[tone]}
+      />
+    </svg>
   );
 }
