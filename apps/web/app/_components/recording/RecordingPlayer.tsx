@@ -45,6 +45,8 @@ export type RecordingPlayerHandle = {
   // Seek without changing play state — the edit-page timeline scrubs the
   // playhead without yanking the video into playback on every drag frame.
   seek(seconds: number): void;
+  // Play if paused, pause if playing; the page's space bar outside the player.
+  togglePlay(): void;
 };
 
 type Props = {
@@ -173,6 +175,19 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
         },
         seek: (seconds: number) =>
           seekMedia(storeRef, videoRef, seconds, cutsRef.current),
+        togglePlay: () => {
+          const v = videoRef.current;
+          if (!v) return;
+          const store = storeRef.current;
+          if (v.paused) {
+            if (store) void store.play().catch(() => {});
+            else void v.play().catch(() => {});
+          } else if (store) {
+            void store.pause();
+          } else {
+            v.pause();
+          }
+        },
       }),
       [],
     );
@@ -230,6 +245,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
 
     return (
       <div
+        data-recording-player
         className={cn(
           "flex flex-col items-center",
           fill ? "h-full w-full" : "max-lg:contents",

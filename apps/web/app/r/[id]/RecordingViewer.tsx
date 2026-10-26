@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import type { RecordingPlayerHandle } from "../../_components/recording";
+import { useSpaceTogglesPlayback } from "../../_components/recording/use-space-toggle";
 import { aspectFromPlaceholder } from "../../_components/recording/layout";
 import type { RecordingConfig } from "@/lib/recording-config";
 import type {
@@ -122,6 +123,7 @@ export function RecordingViewer({
     status: configStatus,
   } = useEditorConfig(slug, initialConfig);
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
+  useSpaceTogglesPlayback(playerRef);
   const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const focusComment = useCallback(() => {

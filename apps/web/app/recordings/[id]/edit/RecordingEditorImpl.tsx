@@ -9,6 +9,7 @@ import {
 import { addCut, cutsEqual, type RecordingCut } from "@/lib/recording/cuts";
 import type { RecordingEditorProps } from "./RecordingEditor";
 import { aspectFromPlaceholder } from "@/app/_components/recording/layout";
+import { useSpaceTogglesPlayback } from "@/app/_components/recording/use-space-toggle";
 import { useEditorConfig } from "./use-editor-config";
 import { EditorInspector } from "./EditorInspector";
 import { EditorTimeline } from "./EditorTimeline";
@@ -47,6 +48,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     [],
   );
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
+  useSpaceTogglesPlayback(playerRef);
 
   const {
     config,
