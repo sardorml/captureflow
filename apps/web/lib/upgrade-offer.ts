@@ -10,7 +10,22 @@ import { getAppWebEnv } from "./cf-env";
 
 export type UpgradeOffer = { usedBytes: number; limitBytes: number | null };
 
-// Null when there is nothing to sell: self-hosted, subscribed, or granted.
+// Below this the banner would nag someone who has barely started.
+export const UPGRADE_BANNER_FROM_BYTES = 100 * 1024 * 1024;
+
+export function upgradeOfferFor(
+  usedBytes: number,
+  limitBytes: number,
+): UpgradeOffer | null {
+  if (usedBytes < UPGRADE_BANNER_FROM_BYTES) return null;
+  return {
+    usedBytes,
+    limitBytes: limitBytes >= UNLIMITED_STORAGE_BYTES ? null : limitBytes,
+  };
+}
+
+// Null when there is nothing to sell: self-hosted, subscribed, granted, or
+// still well inside the free plan.
 export async function getUpgradeOffer(
   userId: string,
 ): Promise<UpgradeOffer | null> {
@@ -23,11 +38,5 @@ export async function getUpgradeOffer(
     getEffectiveLimitsForUser(env.DB, userId),
   ]);
   if (subscription?.status === "active" || grant !== null) return null;
-  return {
-    usedBytes,
-    limitBytes:
-      limits.storageBytes >= UNLIMITED_STORAGE_BYTES
-        ? null
-        : limits.storageBytes,
-  };
+  return upgradeOfferFor(usedBytes, limits.storageBytes);
 }
