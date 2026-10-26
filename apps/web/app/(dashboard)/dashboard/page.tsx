@@ -245,7 +245,7 @@ function Stat({
   return (
     <Link
       href={href}
-      className="flex min-w-0 flex-col gap-3 rounded-2xl bg-panel-2 p-4 transition-colors hover:bg-tint-strong"
+      className="flex min-w-0 flex-col gap-3 rounded-2xl bg-tint p-4 transition-colors hover:bg-tint-strong"
     >
       <span className="text-sm font-medium text-fg-muted">{label}</span>
       <span className="flex items-end justify-between gap-3">
