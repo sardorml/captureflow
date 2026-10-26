@@ -1,32 +1,37 @@
+import { Skeleton } from "@heroui/react";
 import {
   AccountFormSkeleton,
-  PolicyGridSkeleton,
-  SectionSkeleton,
+  InlineSkeleton,
   WorkspaceFormsSkeleton,
 } from "../_skeletons";
-import { PageHeader } from "../PageHeader";
+import { SettingsCard, WorkspacePageHeader } from "../WorkspacePageHeader";
 
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-[880px]">
-      <PageHeader
+    <div className="flex flex-col gap-8">
+      <WorkspacePageHeader
+        workspaceName={<InlineSkeleton className="h-3.5 w-40" />}
         title="Settings"
-        subtitle="Manage your account and preferences."
-        showRecord={false}
       />
-      <div className="mt-6 flex flex-col gap-8">
-        <SectionSkeleton label="Account">
-          <AccountFormSkeleton />
-        </SectionSkeleton>
-        <SectionSkeleton label="Workspace">
-          <WorkspaceFormsSkeleton />
-        </SectionSkeleton>
-        <SectionSkeleton label="Access & viewing">
-          <PolicyGridSkeleton />
-        </SectionSkeleton>
-        <SectionSkeleton label="Recording access">
-          <PolicyGridSkeleton />
-        </SectionSkeleton>
+      <div className="flex flex-col gap-6">
+        <div className="flex gap-6 border-b border-line">
+          <Skeleton className="mb-3 h-5 w-16 rounded" />
+          <Skeleton className="mb-3 h-5 w-14 rounded" />
+        </div>
+        <div className="flex flex-col gap-6">
+          <SettingsCard
+            title="Workspace"
+            description="The name and logo that appear in the switcher, on the members page and on share previews."
+          >
+            <WorkspaceFormsSkeleton />
+          </SettingsCard>
+          <SettingsCard
+            title="Account"
+            description="How you appear to teammates and to the people who watch your recordings."
+          >
+            <AccountFormSkeleton />
+          </SettingsCard>
+        </div>
       </div>
     </div>
   );

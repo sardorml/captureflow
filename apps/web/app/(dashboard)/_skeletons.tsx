@@ -186,36 +186,6 @@ export function MeterSkeleton({ gap = "mt-2" }: { gap?: "mt-2" | "mt-5" }) {
 }
 
 // MembersList: a titled card over avatar rows.
-export function MembersListSkeleton({ count = 3 }: { count?: number }) {
-  return (
-    <Card>
-      <Card.Header>
-        <Typography weight="semibold">
-          Members <InlineSkeleton className="h-3.5 w-6" />
-        </Typography>
-      </Card.Header>
-      <ul className="divide-y divide-line border-t border-line">
-        {Array.from({ length: count }).map((_, i) => (
-          <li key={i} className="flex items-center gap-3 px-4 py-3">
-            <Skeleton className="size-9 shrink-0 rounded-full" />
-            <div className="min-w-0 flex-1">
-              <div className="flex h-5 items-center">
-                <Skeleton className="h-3.5 w-32 rounded" />
-              </div>
-              <div className="flex h-4 items-center">
-                <Skeleton className="h-3 w-48 rounded" />
-              </div>
-            </div>
-            <Skeleton className="h-5 w-12 rounded-full" />
-          </li>
-        ))}
-      </ul>
-    </Card>
-  );
-}
-
-// WorkspacesList: the filter tabs over the card grid, each card with its
-// banner, overlapping avatar, name, counts and action row.
 export function WorkspacesListSkeleton({ count = 3 }: { count?: number }) {
   return (
     <div className="mt-6 flex flex-col gap-5">
@@ -327,7 +297,6 @@ export function WorkspaceFormsSkeleton() {
           </div>
         </div>
       </div>
-      <Separator className="my-6" />
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="flex min-w-60 flex-1 flex-col gap-1">
           <Typography weight="semibold">Workspace logo</Typography>
@@ -347,33 +316,6 @@ export function WorkspaceFormsSkeleton() {
 }
 
 // Settings → the two policy choices under a one-line explanation.
-export function PolicyGridSkeleton() {
-  return (
-    <>
-      <div className="mb-4 flex h-5 items-center">
-        <Skeleton className="h-3.5 w-96 max-w-full rounded" />
-      </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {[0, 1].map((i) => (
-          <Card key={i} className="p-4">
-            <div className="flex items-start gap-3">
-              <Skeleton className="mt-0.5 size-5 rounded" />
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <div className="flex h-7 items-center">
-                  <Skeleton className="h-4 w-32 rounded" />
-                </div>
-                <div className="flex h-5 items-center">
-                  <Skeleton className="h-3 w-4/5 rounded" />
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </>
-  );
-}
-
 export function DashboardLoading({
   variant,
   showRecord = true,
