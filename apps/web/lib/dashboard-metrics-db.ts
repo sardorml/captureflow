@@ -13,17 +13,6 @@ export type DashboardTotals = {
   screenshots: number;
 };
 
-export type ActivityItem = {
-  id: number;
-  slug: string;
-  title: string | null;
-  kind: "reaction" | "comment";
-  emoji: string | null;
-  body: string | null;
-  userName: string | null;
-  createdAt: number;
-};
-
 // The lists' scope: the workspace's items, minus other people's private ones.
 const VISIBLE_RECORDINGS =
   "r.workspace_id = ?1 AND (r.visibility != 'private' OR r.user_id = ?2)";
@@ -91,25 +80,4 @@ export async function loadDashboardTotals(
     recordedMs: recordings?.recordedMs ?? 0,
     screenshots: screenshots?.n ?? 0,
   };
-}
-
-export async function listRecentActivity(
-  workspaceId: string,
-  viewerUserId: string,
-  limit: number,
-): Promise<ActivityItem[]> {
-  const env = await getAppWebEnv();
-  if (!env?.DB) return [];
-  const res = await env.DB.prepare(
-    `SELECT a.id, a.slug, r.title, a.kind, a.emoji, a.body,
-            a.user_name AS userName, a.created_at AS createdAt
-       FROM recording_activity a
-       JOIN recordings r ON r.slug = a.slug
-       WHERE ${VISIBLE_RECORDINGS}
-       ORDER BY a.created_at DESC
-       LIMIT ?3`,
-  )
-    .bind(workspaceId, viewerUserId, limit)
-    .all<ActivityItem>();
-  return res.results;
 }

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { preconnect } from "react-dom";
-import { ArrowRight, MessageSquare, PenLine } from "lucide-react";
+import { ArrowRight, PenLine } from "lucide-react";
 import { ProgressBar, buttonVariants } from "@heroui/react";
 import {
   totalStorageForUser,
@@ -12,19 +12,15 @@ import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import {
   DAY_MS,
-  MAX_METRIC_RANGE,
+  countSince,
   dayOf,
-  daySeries,
   formatRecordedTime,
 } from "@/lib/dashboard-metrics";
 import {
-  listRecentActivity,
   loadDashboardActivity,
   loadDashboardTotals,
-  type ActivityItem,
 } from "@/lib/dashboard-metrics-db";
-import { formatBytes, formatRelativeShort } from "@/lib/format";
-import { DEFAULT_LIST_FILTERS } from "@/lib/list-filters";
+import { formatBytes } from "@/lib/format";
 import { viewerMediaUrl } from "@/lib/recording/media-url";
 import {
   listRecordingsForWorkspace,
@@ -35,25 +31,20 @@ import {
   CHROME_WEBSTORE_URL,
   DOWNLOAD_URL,
   R2_PUBLIC_BASE_URL,
-  viewUrlFor,
 } from "@/lib/site";
 import { storageFill, type StorageTone } from "@/lib/storage-fill";
 import { getEffectiveStorageLimit } from "@/lib/user-quota";
 import { RecordButton } from "../RecordButton";
 import {
   RecentRecordingCard,
-  RecordingPoster,
-  recordingTitle,
   type RecentRecording,
 } from "./RecentRecordingCard";
 import { StartCard } from "./StartCard";
-import { ViewersCard } from "./ViewersCard";
 
 export const dynamic = "force-dynamic";
 
 const RECENT_COUNT = 6;
-const TOP_COUNT = 5;
-const ACTIVITY_COUNT = 6;
+const WEEK_DAYS = 7;
 
 const METER_COLOR: Record<StorageTone, "success" | "warning" | "danger"> = {
   ok: "success",
@@ -71,37 +62,26 @@ export default async function DashboardPage() {
   );
   const workspaceId = current.workspace.id;
   const now = Date.now();
-  const since = (dayOf(now) - (MAX_METRIC_RANGE - 1)) * DAY_MS;
-  const [activity, totals, usedBytes, limit, recentRows, topRows, latest] =
-    await Promise.all([
-      loadDashboardActivity(workspaceId, userId, since),
-      loadDashboardTotals(workspaceId, userId),
-      env?.DB ? totalStorageForUser(env.DB, userId) : 0,
-      getEffectiveStorageLimit(userId),
-      listRecordingsForWorkspace(workspaceId, userId, {
-        limit: RECENT_COUNT,
-        offset: 0,
-      }),
-      listRecordingsForWorkspace(
-        workspaceId,
-        userId,
-        { limit: TOP_COUNT, offset: 0 },
-        { ...DEFAULT_LIST_FILTERS, sort: "views" },
-      ),
-      listRecentActivity(workspaceId, userId, ACTIVITY_COUNT),
-    ]);
-  const [recent, top] = await Promise.all([
-    Promise.all(recentRows.map(toRecent)),
-    Promise.all(topRows.filter((r) => r.viewCount > 0).map(toRecent)),
+  const since = (dayOf(now) - (WEEK_DAYS - 1)) * DAY_MS;
+  const [activity, totals, usedBytes, limit, recentRows] = await Promise.all([
+    loadDashboardActivity(workspaceId, userId, since),
+    loadDashboardTotals(workspaceId, userId),
+    env?.DB ? totalStorageForUser(env.DB, userId) : 0,
+    getEffectiveStorageLimit(userId),
+    listRecordingsForWorkspace(workspaceId, userId, {
+      limit: RECENT_COUNT,
+      offset: 0,
+    }),
   ]);
-  if ([...recentRows, ...topRows].some((r) => r.visibility === "public")) {
+  const recent = await Promise.all(recentRows.map(toRecent));
+  if (recentRows.some((r) => r.visibility === "public")) {
     preconnect(env?.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL);
   }
 
   const limitBytes = limit >= UNLIMITED_STORAGE_BYTES ? null : limit;
   const fill = storageFill(usedBytes, limitBytes);
-  const thisWeek = daySeries(activity.recordings, 7, now).total;
-  const viewersThisWeek = daySeries(activity.viewers, 7, now).total;
+  const thisWeek = countSince(activity.recordings, WEEK_DAYS, now);
+  const viewersThisWeek = countSince(activity.viewers, WEEK_DAYS, now);
   const firstName = session.user.name?.trim().split(/\s+/)[0];
 
   return (
@@ -114,8 +94,7 @@ export default async function DashboardPage() {
             {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
           </h1>
           <p className="mt-2 text-base text-fg-muted">
-            {current.workspace.name} · {plural(totals.recordings, "recording")}{" "}
-            · {plural(totals.views, "view")}
+            {current.workspace.name}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -139,6 +118,7 @@ export default async function DashboardPage() {
           label="Recordings"
           value={totals.recordings.toLocaleString()}
           hint={thisWeek > 0 ? `+${thisWeek} this week` : "None this week"}
+          href="/recordings"
         />
         <Stat
           label="Views"
@@ -148,11 +128,13 @@ export default async function DashboardPage() {
               ? `${plural(viewersThisWeek, "new viewer")} this week`
               : "No new viewers this week"
           }
+          href="/recordings?sort=views"
         />
         <Stat
           label="Recorded"
           value={formatRecordedTime(totals.recordedMs)}
           hint={plural(totals.screenshots, "screenshot")}
+          href="/screenshots"
         />
         <Stat
           label="Storage"
@@ -177,85 +159,32 @@ export default async function DashboardPage() {
         </Stat>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        <section className="flex flex-col gap-4 lg:col-span-2">
-          <SectionHeading
-            title="Recent recordings"
-            link={{ href: "/recordings", label: "All recordings" }}
+      <section className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-fg-strong">
+            Recent recordings
+          </h2>
+          <Link
+            href="/recordings"
+            className="flex items-center gap-1 text-sm text-fg-muted transition-colors hover:text-fg"
+          >
+            All recordings
+            <ArrowRight size={14} aria-hidden />
+          </Link>
+        </div>
+        {recent.length === 0 ? (
+          <StartCard
+            storeUrl={CHROME_WEBSTORE_URL}
+            downloadUrl={DOWNLOAD_URL}
           />
-          {recent.length === 0 ? (
-            <StartCard
-              storeUrl={CHROME_WEBSTORE_URL}
-              downloadUrl={DOWNLOAD_URL}
-            />
-          ) : (
-            <div className="-m-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {recent.map((r) => (
-                <RecentRecordingCard key={r.slug} recording={r} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        <aside className="flex flex-col gap-6">
-          <ViewersCard viewers={activity.viewers} now={now} />
-
-          <section className="rounded-2xl bg-panel p-5 ring-1 ring-line-strong">
-            <SectionHeading
-              title="Most viewed"
-              link={{ href: "/recordings?sort=views", label: "See all" }}
-              small
-            />
-            {top.length === 0 ? (
-              <p className="mt-3 text-sm text-fg-muted">
-                Share a link and the recordings people open will show up here.
-              </p>
-            ) : (
-              <ol className="mt-3 flex flex-col gap-3">
-                {top.map((r, i) => (
-                  <li key={r.slug}>
-                    <a
-                      href={viewUrlFor(r.slug)}
-                      className="group flex items-center gap-3"
-                    >
-                      <span className="w-4 text-xs tabular-nums text-fg-subtle">
-                        {i + 1}
-                      </span>
-                      <RecordingPoster
-                        recording={r}
-                        className="h-10 w-[72px] rounded-md"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-fg group-hover:text-fg-strong">
-                          {recordingTitle(r.title)}
-                        </span>
-                        <span className="block text-xs text-fg-muted">
-                          {plural(r.viewCount, "view")}
-                        </span>
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
-
-          <section className="rounded-2xl bg-panel p-5 ring-1 ring-line-strong">
-            <SectionHeading title="Latest activity" small />
-            {latest.length === 0 ? (
-              <p className="mt-3 text-sm text-fg-muted">
-                Comments and reactions on your recordings land here.
-              </p>
-            ) : (
-              <ul className="mt-3 flex flex-col gap-3">
-                {latest.map((item) => (
-                  <ActivityRow key={item.id} item={item} />
-                ))}
-              </ul>
-            )}
-          </section>
-        </aside>
-      </div>
+        ) : (
+          <div className="-m-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {recent.map((r) => (
+              <RecentRecordingCard key={r.slug} recording={r} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
@@ -290,95 +219,20 @@ function Stat({
   label: string;
   value: string;
   hint: string;
-  href?: string;
+  href: string;
   children?: ReactNode;
 }) {
-  const body = (
-    <>
+  return (
+    <Link
+      href={href}
+      className="flex min-w-0 flex-col px-5 py-4 transition-colors hover:bg-tint"
+    >
       <span className="text-sm text-fg-muted">{label}</span>
       <span className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-fg-strong">
         {value}
       </span>
       <span className="mt-0.5 text-xs text-fg-subtle">{hint}</span>
       {children}
-    </>
-  );
-  const className = "flex min-w-0 flex-col px-5 py-4";
-  return href ? (
-    <Link
-      href={href}
-      className={`${className} transition-colors hover:bg-tint`}
-    >
-      {body}
     </Link>
-  ) : (
-    <div className={className}>{body}</div>
-  );
-}
-
-function SectionHeading({
-  title,
-  link,
-  small = false,
-}: {
-  title: string;
-  link?: { href: string; label: string };
-  small?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <h2
-        className={
-          small
-            ? "text-sm font-medium text-fg-muted"
-            : "text-lg font-semibold text-fg-strong"
-        }
-      >
-        {title}
-      </h2>
-      {link && (
-        <Link
-          href={link.href}
-          className="flex items-center gap-1 text-sm text-fg-muted transition-colors hover:text-fg"
-        >
-          {link.label}
-          <ArrowRight size={14} aria-hidden />
-        </Link>
-      )}
-    </div>
-  );
-}
-
-function ActivityRow({ item }: { item: ActivityItem }) {
-  const who = item.userName?.trim() || "Someone";
-  return (
-    <li>
-      <a href={viewUrlFor(item.slug)} className="group flex gap-3">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-tint text-sm">
-          {item.kind === "reaction" ? (
-            item.emoji
-          ) : (
-            <MessageSquare size={14} className="text-fg-muted" aria-hidden />
-          )}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm text-fg">
-            <span className="font-medium text-fg-strong">{who}</span>{" "}
-            {item.kind === "reaction" ? "reacted to" : "commented on"}{" "}
-            <span className="font-medium text-fg-strong">
-              {recordingTitle(item.title)}
-            </span>
-          </span>
-          {item.kind === "comment" && item.body && (
-            <span className="mt-0.5 line-clamp-2 block text-sm text-fg-muted">
-              {item.body}
-            </span>
-          )}
-          <span className="mt-0.5 block text-xs text-fg-subtle">
-            {formatRelativeShort(item.createdAt)}
-          </span>
-        </span>
-      </a>
-    </li>
   );
 }

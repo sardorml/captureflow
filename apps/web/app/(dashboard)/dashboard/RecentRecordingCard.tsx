@@ -16,7 +16,7 @@ export type RecentRecording = {
   ready: boolean;
 };
 
-export function recordingTitle(title: string | null): string {
+function recordingTitle(title: string | null): string {
   return title?.trim() || "Untitled recording";
 }
 
@@ -46,20 +46,9 @@ export function RecentRecordingCard({
   );
 }
 
-export function RecordingPoster({
-  recording,
-  className = "aspect-video w-full rounded-xl",
-}: {
-  recording: Pick<
-    RecentRecording,
-    "posterUrl" | "posterBlur" | "width" | "height" | "durationMs" | "ready"
-  >;
-  className?: string;
-}) {
+function RecordingPoster({ recording }: { recording: RecentRecording }) {
   return (
-    <div
-      className={`relative shrink-0 overflow-hidden bg-tint ring-1 ring-line ${className}`}
-    >
+    <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-tint ring-1 ring-line">
       {recording.posterBlur && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
