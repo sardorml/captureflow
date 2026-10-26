@@ -224,7 +224,7 @@ export function ActivitySidebar({
   const listRef = useRef<HTMLDivElement | null>(null);
   const stickToBottomRef = useRef(true);
   const lastScrollTopRef = useRef(0);
-  // Shades the top edge once older entries sit above the fold.
+  // Fades the top edge once older entries sit above the fold.
   const [moreAbove, setMoreAbove] = useState(false);
   const onListScroll = () => {
     const el = listRef.current;
@@ -414,21 +414,15 @@ export function ActivitySidebar({
           </Tabs.ListContainer>
         </header>
 
-        <Tabs.Panel
-          id="activity"
-          className="relative flex min-h-0 flex-1 flex-col p-0"
-        >
-          <div
-            aria-hidden
-            className={cn(
-              "pointer-events-none absolute inset-x-0 top-0 z-10 h-12 bg-gradient-to-b from-black/[0.08] to-transparent transition-opacity dark:from-black/40",
-              moreAbove ? "opacity-100" : "opacity-0",
-            )}
-          />
+        <Tabs.Panel id="activity" className="flex min-h-0 flex-1 flex-col p-0">
           <div
             ref={listRef}
             onScroll={onListScroll}
-            className="flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto lg:px-6"
+            className={cn(
+              "flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto lg:px-6",
+              moreAbove &&
+                "[mask-image:linear-gradient(to_bottom,transparent,black_3rem)]",
+            )}
           >
             {entries.length === 0 ? (
               <EmptyState
