@@ -5,6 +5,7 @@ import {
   type EncoderAcceleration,
 } from "./encoder-preference";
 import { createFmp4Muxer } from "./fmp4-mux";
+import { createRateGate } from "./rate-gate";
 import { createSettleDetector } from "./settle";
 import { createSharedClock } from "./shared-clock";
 
@@ -161,8 +162,13 @@ export async function startStreamRecorder(
   const settings = track.getSettings();
   const width = settings.width ?? ENGINE_OUTPUT.screen.maxWidth;
   const height = settings.height ?? ENGINE_OUTPUT.screen.maxHeight;
-  const fpsCap = opts.quality?.fps ?? ENGINE_OUTPUT.screen.fps;
-  const framerate = Math.min(settings.frameRate ?? fpsCap, fpsCap);
+  /*
+   * The capture is constrained to the cap, and the encoder budgets each frame
+   * as bitrate over this rate, so a frame rate below what actually arrives
+   * multiplies the bitrate by the ratio. The track's reported rate was once
+   * used here; it is logged below instead.
+   */
+  const framerate = opts.quality?.fps ?? ENGINE_OUTPUT.screen.fps;
   const bitrate = opts.quality?.bitrate ?? ENGINE_OUTPUT.screen.bitrate;
   const acceleration = ENCODER_ACCELERATION;
 
@@ -222,6 +228,8 @@ export async function startStreamRecorder(
   let encoderError: Error | null = null;
   let encodedFrames = 0;
   let droppedFrames = 0;
+  let gatedFrames = 0;
+  const gate = createRateGate(bitrate);
   let firstTsUs: number | null = null;
   let lastEndUs = 0;
 
@@ -234,6 +242,7 @@ export async function startStreamRecorder(
 
   const encoder = new VideoEncoder({
     output: (chunk, meta) => {
+      gate.spent(chunk.byteLength);
       const data = new Uint8Array(chunk.byteLength);
       chunk.copyTo(data);
       const tsUs = Math.max(
@@ -279,6 +288,9 @@ export async function startStreamRecorder(
     framerate,
     bitrate,
     hardwareAcceleration: acceleration,
+    // Screen-content mode in the encoder: it halved the bytes a playing
+    // thumbnail cost at the same ceiling, so more frames survive the gate.
+    contentHint: "text",
     avc: { format: "avc" },
   });
 
@@ -312,7 +324,7 @@ export async function startStreamRecorder(
   if (audioEncoder && audioConfig) audioEncoder.configure(audioConfig);
 
   log.info(
-    `stream-recorder: started (${width}x${height}@${Math.round(framerate)}fps, ${codec}, ${acceleration}${audioEncoder ? " + aac mic" : ""})`,
+    `stream-recorder: started (${width}x${height}@${framerate}fps, track reports ${settings.frameRate ?? "no"} fps, ${codec}, ${acceleration}${audioEncoder ? " + aac mic" : ""})`,
   );
 
   const reader = new MediaStreamTrackProcessor<VideoFrame>({
@@ -334,6 +346,11 @@ export async function startStreamRecorder(
       }
       if (paused || encoder.encodeQueueSize > MAX_ENCODE_QUEUE) {
         if (!paused) droppedFrames++;
+        frame.close();
+        continue;
+      }
+      if (gate.over(frame.timestamp)) {
+        gatedFrames++;
         frame.close();
         continue;
       }
@@ -414,7 +431,7 @@ export async function startStreamRecorder(
     const durationMs =
       firstTsUs === null ? 0 : Math.round((lastEndUs - firstTsUs) / 1_000);
     log.info(
-      `stream-recorder: stopped (${encodedFrames} frames, ${droppedFrames} dropped, ${durationMs}ms)`,
+      `stream-recorder: stopped (${encodedFrames} frames, ${droppedFrames} dropped by queue, ${gatedFrames} held under the ceiling, ${durationMs}ms)`,
     );
     return {
       sizeBytes: muxer.totalBytes(),
