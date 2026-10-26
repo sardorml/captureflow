@@ -30,6 +30,7 @@ import {
 import { getAuthSession, setAuthSession } from "@/lib/auth/session";
 import { reconcileAuthSession } from "@/lib/auth/sync";
 import { getDeviceId } from "@/lib/auth/device-id";
+import { WEB_BASE } from "@/lib/config";
 import {
   BUBBLE_FRAME_ID,
   GRANT_FRAME_ID,
@@ -364,30 +365,49 @@ async function beginCaptureWhenReady(ctx: CaptureContext): Promise<void> {
 // Tab hosting the in-page recorder overlay.
 let overlayTabId: number | undefined;
 
-// Standalone panel window, the restricted-page fallback. It closes itself, so
-// the only notice of it is chrome.windows.onRemoved.
-let panelWindowId: number | undefined;
+const CANVAS_URL = `${WEB_BASE}/canvas`;
+const CANVAS_LOAD_TIMEOUT_MS = 10_000;
+
+// Resolves once the tab has finished loading, or after the timeout: a page
+// that stalls still gets the injection attempt and its own error.
+function tabLoaded(tabId: number): Promise<void> {
+  return new Promise((resolve) => {
+    const done = () => {
+      chrome.tabs.onUpdated.removeListener(onUpdated);
+      clearTimeout(timer);
+      resolve();
+    };
+    const onUpdated = (id: number, info: chrome.tabs.OnUpdatedInfo) => {
+      if (id === tabId && info.status === "complete") done();
+    };
+    chrome.tabs.onUpdated.addListener(onUpdated);
+    const timer = setTimeout(done, CANVAS_LOAD_TIMEOUT_MS);
+  });
+}
 
 /*
  * The recorder opens as an extension iframe floating over a blurred page,
  * injected on toolbar click (there is no anchored action popup).
- * Restricted pages can't host it, so they get a standalone popup window.
+ * Restricted pages can't host it, and there is nothing on them worth
+ * recording either, so the click opens the web app's blank canvas in a new
+ * tab and the panel on top of that.
  */
 async function toggleOverlayOnActiveTab(): Promise<void> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.id === undefined) return;
   if (!isInjectable(tab.url)) {
-    const win = await chrome.windows.create({
-      url: chrome.runtime.getURL("popup.html?window=1"),
-      type: "popup",
-      width: 332,
-      height: 640,
-    });
-    panelWindowId = win?.id;
+    const canvas = await chrome.tabs.create({ url: CANVAS_URL });
+    if (canvas.id === undefined) return;
+    await tabLoaded(canvas.id);
+    await openOverlayOn(canvas.id);
     return;
   }
+  await openOverlayOn(tab.id);
+}
+
+async function openOverlayOn(tabId: number): Promise<void> {
   const [injection] = await chrome.scripting.executeScript({
-    target: { tabId: tab.id },
+    target: { tabId },
     func: toggleRecorderOverlay,
     args: [
       chrome.runtime.getURL("popup.html?overlay=1"),
@@ -399,14 +419,14 @@ async function toggleOverlayOnActiveTab(): Promise<void> {
   // A second click closes the panel, and the camera preview goes with it.
   if (injection?.result === false) {
     await releaseCameraBubble();
-    await setPanelPreview(tab.id, false);
+    await setPanelPreview(tabId, false);
     overlayTabId = undefined;
     return;
   }
-  overlayTabId = tab.id;
-  await setPanelPreview(tab.id, true);
+  overlayTabId = tabId;
+  await setPanelPreview(tabId, true);
   // The placeholder bubble; the panel swaps in the live camera if it's on.
-  await mountBubble(tab.id, new URLSearchParams());
+  await mountBubble(tabId, new URLSearchParams());
 }
 
 /*
@@ -518,12 +538,6 @@ export default defineBackground(() => {
     if (verdict === "skip" || verdict === "cancel") {
       countdownSettle?.(verdict === "skip" ? "go" : "cancel");
     }
-  });
-
-  chrome.windows.onRemoved.addListener((windowId) => {
-    if (windowId !== panelWindowId) return;
-    panelWindowId = undefined;
-    void releaseCameraBubble();
   });
 
   /*
