@@ -415,7 +415,7 @@ export function ActivitySidebar({
                 commentInputRef={commentInputRef}
               />
             ) : (
-              <ol className="space-y-5">
+              <ol className="space-y-2">
                 {entries.map((entry) => (
                   <li key={entry.id}>
                     {entry.kind === "reaction" ? (
@@ -700,7 +700,7 @@ function ReactionRow({
   const name = burst.userName?.trim() || "Anonymous";
   const total = burst.reactionIds.length;
   return (
-    <div className="group flex items-center gap-3">
+    <div className="group -mx-2 flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-tint">
       <span className="relative shrink-0">
         <Avatar
           className="h-8 w-8"
@@ -770,7 +770,7 @@ function CommentRow({
   deleting: boolean;
 }) {
   return (
-    <div className="group flex items-start gap-3">
+    <div className="group -mx-2 flex items-start gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-tint">
       <Avatar
         className="h-8 w-8 shrink-0"
         style={{
