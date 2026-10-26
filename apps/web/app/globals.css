@@ -259,19 +259,20 @@ html:not(:has([data-marketing])) .card {
   border-radius: 12px;
 }
 
-/* HeroUI's buttons are pills; the app squares them to match the cards. A
-   button group keeps its outer corners only, so it still reads as one control. */
-html:not(:has([data-marketing])) .button {
+/* HeroUI's buttons are pills; every page squares them to match the cards,
+   the landing's own `rounded-full` buttons included. A button group keeps
+   only its outer corners, so it still reads as one control. */
+.button {
   border-radius: 12px;
 }
-html:not(:has([data-marketing])) .button-group--horizontal .button {
+.button-group--horizontal .button {
   border-radius: 0;
 }
-html:not(:has([data-marketing])) .button-group--horizontal .button:first-child {
+.button-group--horizontal .button:first-child {
   border-start-start-radius: 12px;
   border-end-start-radius: 12px;
 }
-html:not(:has([data-marketing])) .button-group--horizontal .button:last-child {
+.button-group--horizontal .button:last-child {
   border-start-end-radius: 12px;
   border-end-end-radius: 12px;
 }
