@@ -1,7 +1,7 @@
 import { ENGINE_OUTPUT } from "../contract";
 import { aacBitrateCandidates } from "./aac-bitrate";
 import {
-  encoderAccelerationFor,
+  ENCODER_ACCELERATION,
   type EncoderAcceleration,
 } from "./encoder-preference";
 import { createFmp4Muxer } from "./fmp4-mux";
@@ -164,7 +164,7 @@ export async function startStreamRecorder(
   const fpsCap = opts.quality?.fps ?? ENGINE_OUTPUT.screen.fps;
   const framerate = Math.min(settings.frameRate ?? fpsCap, fpsCap);
   const bitrate = opts.quality?.bitrate ?? ENGINE_OUTPUT.screen.bitrate;
-  const acceleration = encoderAccelerationFor(bitrate);
+  const acceleration = ENCODER_ACCELERATION;
 
   const codec = await pickSupportedH264({
     width,
