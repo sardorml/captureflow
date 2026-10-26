@@ -1,10 +1,25 @@
+import { Suspense } from "react";
+import { headers } from "next/headers";
+import { Skeleton } from "@heroui/react";
+import {
+  getActiveGrantedPlan,
+  getActiveProSubscription,
+  isSelfHosted,
+} from "@captureflow/quota";
+import { getAppWebEnv } from "@/lib/cf-env";
+import type { requireSession } from "@/lib/session-guard";
+import { readThemePreferenceFromCookieHeader } from "@captureflow/ui/theme";
 import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
 import { SplitLoaded } from "@/components/dev/split-loaded";
 import { SearchTrigger } from "./SearchTrigger";
+import { UserMenu } from "./UserMenu";
 
-// The account cluster lives at the foot of the sidebar; the bar is search
-// and notifications, and it paints with the shell.
-export function TopBar() {
+type Session = Awaited<ReturnType<typeof requireSession>>;
+
+// The search field paints with the shell; only the account menu waits for
+// its plan and avatar queries, behind a stand-in of the same size.
+export async function TopBar({ session }: { session: Session }) {
+  const selfHosted = isSelfHosted(await getAppWebEnv());
   return (
     <div className="flex w-full items-center justify-between gap-4">
       <SplitLoaded name="top-bar" />
@@ -16,7 +31,50 @@ export function TopBar() {
           justify-between a single child to push around. */}
       <div className="ml-auto flex items-center gap-2">
         <NotificationsMenu />
+        <Suspense fallback={<Skeleton className="h-9 w-9 rounded-full" />}>
+          <Account session={session} selfHosted={selfHosted} />
+        </Suspense>
       </div>
     </div>
+  );
+}
+
+async function Account({
+  session,
+  selfHosted,
+}: {
+  session: Session;
+  selfHosted: boolean;
+}) {
+  const env = await getAppWebEnv();
+  const [subscription, grant, userRow] = env?.DB
+    ? await Promise.all([
+        getActiveProSubscription(env.DB, session.user.id),
+        getActiveGrantedPlan(env.DB, session.user.id),
+        env.DB.prepare(`SELECT image FROM users WHERE id = ?1 LIMIT 1`)
+          .bind(session.user.id)
+          .first<{ image: string | null }>(),
+      ])
+    : [null, null, null];
+  const themePreference = readThemePreferenceFromCookieHeader(
+    (await headers()).get("cookie"),
+  );
+
+  return (
+    <UserMenu
+      themePreference={themePreference}
+      userId={session.user.id}
+      name={session.user.name ?? null}
+      email={session.user.email}
+      imageUrl={userRow?.image ?? null}
+      selfHosted={selfHosted}
+      pro={
+        subscription
+          ? { status: subscription.status }
+          : grant
+            ? { status: "granted" }
+            : null
+      }
+    />
   );
 }

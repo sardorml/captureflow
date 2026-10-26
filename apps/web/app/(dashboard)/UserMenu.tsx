@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import type { ThemePreference } from "@captureflow/ui";
 import { notifyExtensionSignOut } from "@/lib/extension-bridge";
 import { signOutAction } from "./sign-out-action";
@@ -39,9 +39,6 @@ type Props = {
   pro: AccountMenuProInfo | null;
   selfHosted: boolean;
   themePreference: ThemePreference;
-  trigger?: ReactNode;
-  triggerClassName?: string;
-  placement?: "bottom end" | "top start";
 };
 
 export function UserMenu({
@@ -51,9 +48,6 @@ export function UserMenu({
   pro,
   selfHosted,
   themePreference,
-  trigger,
-  triggerClassName,
-  placement,
 }: Props) {
   const [pending, setPending] = useState(false);
 
@@ -80,9 +74,6 @@ export function UserMenu({
       themePreference={themePreference}
       signingOut={pending}
       onSignOut={() => void onSignOut()}
-      trigger={trigger}
-      triggerClassName={triggerClassName}
-      placement={placement}
     />
   );
 }
