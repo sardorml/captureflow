@@ -37,6 +37,12 @@ import {
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+// Over the thumbnail the secondary button's pale fill and soft accent icon
+// disappear against a light capture, so the controls there take the same
+// dark glass as the selection checkbox.
+const OVERLAY_BUTTON =
+  "[--button-bg:rgb(0_0_0/0.55)] [--button-bg-hover:rgb(0_0_0/0.7)] [--button-bg-pressed:rgb(0_0_0/0.7)] [--button-fg:white] backdrop-blur-sm";
+
 type ActionResult = { error: string | null } | void;
 
 export type MediaCardStats = {
@@ -221,6 +227,7 @@ export function MediaCard({
                 size="sm"
                 isIconOnly
                 variant={copied ? "primary" : "secondary"}
+                className={copied ? undefined : OVERLAY_BUTTON}
                 aria-label={copied ? "Link copied" : "Copy link"}
                 onPress={copyLink}
               >
@@ -235,11 +242,14 @@ export function MediaCard({
             <Dropdown>
               <Dropdown.Trigger
                 aria-label="More actions"
-                className={buttonVariants({
-                  variant: "secondary",
-                  size: "sm",
-                  isIconOnly: true,
-                })}
+                className={cn(
+                  buttonVariants({
+                    variant: "secondary",
+                    size: "sm",
+                    isIconOnly: true,
+                  }),
+                  OVERLAY_BUTTON,
+                )}
               >
                 <MoreHorizontal size={16} />
               </Dropdown.Trigger>
