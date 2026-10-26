@@ -30,9 +30,7 @@ export function DashboardShell({
           <div className="min-w-0 flex-1">{header}</div>
         </header>
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1280px] px-4 py-8 md:px-6">
-            {children}
-          </div>
+          <div className="mx-auto max-w-[1152px] p-8">{children}</div>
         </main>
       </div>
     </div>
