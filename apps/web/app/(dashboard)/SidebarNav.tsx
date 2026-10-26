@@ -26,6 +26,7 @@ type NavLink = {
   icon: ReactNode;
   label: string;
   external?: boolean;
+  newTab?: boolean;
 };
 
 export type SidebarStorage = { usedBytes: number; limitBytes: number | null };
@@ -45,6 +46,7 @@ const CAPTURE_LINKS: NavLink[] = [
     icon: <PenLine size={ICON} />,
     label: "Canvas",
     external: true,
+    newTab: true,
   },
 ];
 
@@ -148,18 +150,17 @@ function NavItem({
     active ? "bg-accent-soft font-medium text-accent" : "text-fg hover:bg-tint",
   );
   if (link.external) {
-    const newTab = link.href.startsWith("http");
     return (
       <li>
         <a
           href={link.href}
-          target={newTab ? "_blank" : undefined}
-          rel={newTab ? "noopener noreferrer" : undefined}
+          target={link.newTab ? "_blank" : undefined}
+          rel={link.newTab ? "noopener noreferrer" : undefined}
           className={className}
         >
           {link.icon}
           {link.label}
-          {newTab && (
+          {link.newTab && (
             <ExternalLink size={16} className="ml-auto text-fg-subtle" />
           )}
         </a>
