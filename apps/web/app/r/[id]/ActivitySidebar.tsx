@@ -481,7 +481,7 @@ export function ActivitySidebar({
         ) : (
           <form
             onSubmit={submitComment}
-            className="focus-within:ring-focus relative rounded-2xl bg-panel-2 p-3 focus-within:ring-2"
+            className="focus-within:ring-focus relative rounded-2xl border border-black/[0.15] bg-panel-2 p-3 focus-within:ring-2 dark:border-white/[0.16]"
           >
             <div className="flex items-start gap-2.5">
               <Avatar
@@ -809,7 +809,7 @@ function CommentRow({
             </button>
           )}
         </div>
-        <p className="mt-1 rounded-2xl rounded-tl-md bg-tint-strong px-3.5 py-2.5 whitespace-pre-wrap break-words text-sm leading-relaxed text-fg">
+        <p className="mt-1 rounded-2xl rounded-tl-md border border-black/[0.15] bg-tint-strong px-3.5 py-2.5 dark:border-white/[0.16] whitespace-pre-wrap break-words text-sm leading-relaxed text-fg">
           {comment.body}
         </p>
       </div>
