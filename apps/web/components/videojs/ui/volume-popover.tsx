@@ -6,7 +6,7 @@ import '../styles/video/captions.css';
 import '../styles/video/theme.css';
 import type { VolumeSliderProps as CoreVolumeSliderProps } from '@videojs/core';
 import { VolumePopover as VolumePopoverPrimitive } from '@videojs/react';
-import type { ClassValue } from 'cn';
+import type { ClassValue } from 'clsx';
 
 import { ButtonTooltip } from '@/components/videojs/ui/button-tooltip';
 import { MuteButton } from '@/components/videojs/ui/mute-button';

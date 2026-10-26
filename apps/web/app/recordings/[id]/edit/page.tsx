@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { getWorkspaceById } from "@captureflow/quota";
-import { readThemeFromCookieHeader } from "@captureflow/ui";
+import { readThemeFromCookieHeader } from "@captureflow/ui/theme";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { getRecordingForUser } from "@/lib/recordings-db";
@@ -24,19 +24,23 @@ export default async function RecordingEditPage({
   if (!recording) notFound();
 
   const initialConfig = parseRecordingConfigJson(recording.configJson);
+  const env = await getAppWebEnv();
+  const [transcriptRow, workspaceRow] = await Promise.all([
+    getTranscript(id),
+    env?.DB && recording.workspaceId
+      ? getWorkspaceById(env.DB, recording.workspaceId)
+      : null,
+  ]);
   const {
     transcript,
     hasEdits,
     status: transcriptStatus,
-  } = resolveTranscript(await getTranscript(id));
-
-  const env = await getAppWebEnv();
-  const workspaceRow =
-    env?.DB && recording.workspaceId
-      ? await getWorkspaceById(env.DB, recording.workspaceId)
-      : null;
+  } = resolveTranscript(transcriptRow);
 
   const videoUrl = `${CDN_BASE_URL}/${recording.storageKey}?v=${recording.sizeBytes}`;
+  const posterUrl = recording.posterKey
+    ? `${CDN_BASE_URL}/${recording.posterKey}?v=${recording.sizeBytes}`
+    : undefined;
   const webcamUrl =
     recording.webcamStorageKey && recording.webcamState === "ready"
       ? `${CDN_BASE_URL}/${recording.webcamStorageKey}?v=${recording.webcamSizeBytes}`
@@ -50,6 +54,7 @@ export default async function RecordingEditPage({
       slug={recording.slug}
       initialTitle={recording.title}
       videoUrl={videoUrl}
+      posterUrl={posterUrl}
       webcamUrl={webcamUrl}
       viewUrl={viewUrl}
       width={recording.width}

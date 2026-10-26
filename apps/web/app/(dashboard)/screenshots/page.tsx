@@ -3,13 +3,22 @@ import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { listScreenshotsForWorkspace } from "@/lib/screenshots-db";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
+import { hydrateListFilters } from "@/lib/list-filters";
 import { ScreenshotsGrid } from "./ScreenshotsGrid";
 import { PageHeader } from "../PageHeader";
 
 export const dynamic = "force-dynamic";
 
-export default async function ScreenshotsPage() {
+export default async function ScreenshotsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    access?: string | string[];
+    sort?: string | string[];
+  }>;
+}) {
   const session = await requireSession();
+  const filters = hydrateListFilters(await searchParams);
 
   const current = await resolveCurrentWorkspace(
     session.user.id,
@@ -19,7 +28,7 @@ export default async function ScreenshotsPage() {
 
   const env = await getAppWebEnv();
   const [screenshots, members, workspaceRow] = await Promise.all([
-    listScreenshotsForWorkspace(current.workspace.id, session.user.id),
+    listScreenshotsForWorkspace(current.workspace.id, session.user.id, filters),
     env?.DB ? listMembers(env.DB, current.workspace.id) : Promise.resolve([]),
     env?.DB
       ? getWorkspaceById(env.DB, current.workspace.id)
@@ -38,14 +47,11 @@ export default async function ScreenshotsPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow={current.workspace.name}
-        title="Screenshots"
-        subtitle={subtitle}
-      />
+      <PageHeader title="Screenshots" subtitle={subtitle} />
       <div className="mt-6">
         <ScreenshotsGrid
           screenshots={screenshots}
+          filters={filters}
           viewerUserId={session.user.id}
           viewerIsWorkspaceOwner={viewingOwnWorkspace}
           allowPublicLinks={allowPublicLinks}

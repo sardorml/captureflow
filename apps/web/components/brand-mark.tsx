@@ -42,7 +42,7 @@ export function AppIcon({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/logo.png"
+      src="/logo-96.png"
       alt=""
       width={size}
       height={size}

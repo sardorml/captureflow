@@ -14,7 +14,7 @@ const LOOP_MS = 9000;
 const STEPS = [0, 300, 900, 1700, 2200, 3300, 3900];
 
 const PRESENTER = "/webcam/striped.jpg";
-const PEOPLE_COLORS = ["#8b5cf6", "#0d9488", "#2563eb"];
+const PEOPLE_COLORS = ["#8b5cf6", "#0d9488", "#1184f7"];
 
 type EmbedCopy = ReturnType<
   typeof useMessages
@@ -106,8 +106,8 @@ function Player({
 
   return (
     <div className="relative h-[178px] overflow-hidden rounded-xl bg-[linear-gradient(160deg,#4f6fb8,#3a2b5c_45%,#8c2f3a_75%,#2a1020)]">
-      <div className="absolute inset-x-6 top-4 bottom-0 overflow-hidden rounded-t-lg bg-[#f6f7fb] text-[#18181b]">
-        <div className="flex h-4 items-center gap-1 bg-[#e9ebf2] px-2">
+      <div className="absolute inset-x-6 top-4 bottom-0 overflow-hidden rounded-t-lg bg-[#f5f5f5] text-[#181818]">
+        <div className="flex h-4 items-center gap-1 bg-[#eaeaea] px-2">
           <span className="size-1.5 rounded-full bg-[#ff5f57]" />
           <span className="size-1.5 rounded-full bg-[#febc2e]" />
           <span className="size-1.5 rounded-full bg-[#28c840]" />

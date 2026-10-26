@@ -376,20 +376,23 @@ export default defineContentScript({
       open.window.close();
     };
 
+    // The camera comes up once the recorder holds it; opening the same device
+    // first can cost the recorder its webcam track.
+    const liveRecordingWindow = (): void => {
+      if (!recordingWindow || recordingWindow.live) return;
+      recordingWindow.live = true;
+      recordingWindow.bubble.src = chrome.runtime.getURL(
+        "bubble.html?camera=1",
+      );
+    };
+
     const apply = (status: RecordingStatus): void => {
       // The bar leaves with the recording: the upload has its own page.
       const live = status.kind === "recording" || status.kind === "paused";
       if (live) {
         bar ??= createBar();
         bar.update(status);
-        // The camera comes up once the recorder holds it; opening the same
-        // device first can cost the recorder its webcam track.
-        if (recordingWindow && !recordingWindow.live) {
-          recordingWindow.live = true;
-          recordingWindow.bubble.src = chrome.runtime.getURL(
-            "bubble.html?camera=1",
-          );
-        }
+        liveRecordingWindow();
         return;
       }
       if (previewing) {
@@ -436,6 +439,7 @@ export default defineContentScript({
       return true;
     };
     onMessage("openRecordingWindow", () => openRecordingWindow(false));
+    onMessage("liveRecordingWindow", () => liveRecordingWindow());
     onMessage("closeRecordingWindow", () => closeRecordingWindow());
 
     // A floating window stays above a fullscreen page, so the bubble steps

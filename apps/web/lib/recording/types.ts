@@ -17,6 +17,8 @@ export type RecordingRow = {
   posterKey: string | null;
   // A tiny JPEG of the poster as a data URL (lib/recording/poster-blur.ts).
   posterBlur: string | null;
+  // Card-sized JPEG under a content-addressed key (lib/recording/object-keys.ts).
+  posterThumbKey: string | null;
   uploadId: string | null;
   sizeBytes: number;
   durationMs: number | null;
@@ -74,6 +76,17 @@ export type RecordingReaction = {
   userName: string | null;
   // Joined from `users.image` at read time so an avatar swap shows up across existing reaction/comment rows without backfilling. Null for legacy anonymous rows + visitors with no avatar.
   userImage: string | null;
+};
+
+// One viewer of a recording, as `recording_views` has them; the name, email
+// and image are joined from `users` at read time and null for anonymous rows.
+export type RecordingViewerEntry = {
+  userId: string | null;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  lastViewedAt: number;
+  views: number;
 };
 
 export type AddReactionRequest = {

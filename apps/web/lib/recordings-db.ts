@@ -1,5 +1,11 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import {
+  DEFAULT_LIST_FILTERS,
+  accessParam,
+  orderBySql,
+  type ListFilters,
+} from "@/lib/list-filters";
 import { getAppWebEnv } from "./cf-env";
 
 export type RecordingVisibility = "public" | "workspace" | "private";
@@ -14,6 +20,7 @@ export type DashboardRecordingRow = {
   storageKey: string;
   posterKey: string | null;
   posterBlur: string | null;
+  posterThumbKey: string | null;
   sizeBytes: number;
   // Screen plus webcam: what the recording takes of the storage quota.
   totalBytes: number;
@@ -44,6 +51,7 @@ type D1Row = {
   storage_key: string;
   poster_key: string | null;
   poster_blur: string | null;
+  poster_thumb_key: string | null;
   size_bytes: number;
   duration_ms: number | null;
   width: number | null;
@@ -67,7 +75,7 @@ type D1Row = {
 };
 
 const COLUMNS_SELECT =
-  "slug, user_id, storage_key, poster_key, poster_blur, size_bytes, duration_ms, width, height, " +
+  "slug, user_id, storage_key, poster_key, poster_blur, poster_thumb_key, size_bytes, duration_ms, width, height, " +
   "source, preset, created_at, last_viewed_at, view_count, title, state, " +
   "visibility, webcam_storage_key, webcam_size_bytes, webcam_state, workspace_id, " +
   "config_json, summary_chapters_json, " +
@@ -81,6 +89,7 @@ function rowFromD1(r: D1Row): DashboardRecordingRow {
     storageKey: r.storage_key,
     posterKey: r.poster_key,
     posterBlur: r.poster_blur ?? null,
+    posterThumbKey: r.poster_thumb_key ?? null,
     sizeBytes: r.size_bytes,
     totalBytes: r.size_bytes + (r.webcam_size_bytes ?? 0),
     durationMs: r.duration_ms,
@@ -130,21 +139,50 @@ export async function listRecordingsForUser(
   return res.results.map(rowFromD1);
 }
 
+// What the viewer may see of a workspace: everything but other members'
+// private recordings, narrowed to one visibility when ?3 names it. The list
+// and the count must agree on this.
+const VISIBLE_IN_WORKSPACE =
+  "workspace_id = ?1 AND (visibility != 'private' OR user_id = ?2) AND (?3 = '' OR visibility = ?3)";
+
 export async function listRecordingsForWorkspace(
   workspaceId: string,
   viewerUserId: string,
+  page: { limit: number; offset: number },
+  filters: ListFilters = DEFAULT_LIST_FILTERS,
 ): Promise<DashboardRecordingRow[]> {
   const db = await getDb();
   const res = await db
     .prepare(
       `SELECT ${COLUMNS_SELECT} FROM recordings
-         WHERE workspace_id = ?1
-           AND (visibility != 'private' OR user_id = ?2)
-         ORDER BY created_at DESC`,
+         WHERE ${VISIBLE_IN_WORKSPACE}
+         ORDER BY ${orderBySql(filters.sort)}
+         LIMIT ?4 OFFSET ?5`,
     )
-    .bind(workspaceId, viewerUserId)
+    .bind(
+      workspaceId,
+      viewerUserId,
+      accessParam(filters.access),
+      page.limit,
+      page.offset,
+    )
     .all<D1Row>();
   return res.results.map(rowFromD1);
+}
+
+export async function countRecordingsForWorkspace(
+  workspaceId: string,
+  viewerUserId: string,
+  filters: ListFilters = DEFAULT_LIST_FILTERS,
+): Promise<number> {
+  const db = await getDb();
+  const row = await db
+    .prepare(
+      `SELECT COUNT(*) AS n FROM recordings WHERE ${VISIBLE_IN_WORKSPACE}`,
+    )
+    .bind(workspaceId, viewerUserId, accessParam(filters.access))
+    .first<{ n: number }>();
+  return row?.n ?? 0;
 }
 
 export async function getRecordingForUser(

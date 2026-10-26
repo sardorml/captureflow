@@ -236,6 +236,18 @@ async function runPageCountdown(): Promise<CountdownResult> {
     return "go";
   }
   void sendMessage("countdownStarted", undefined).catch(() => {});
+  /*
+   * Every extension page shares the offscreen recorder's thread, so the
+   * bubble's page load has to land now, while nothing is being encoded;
+   * at the recording mark it froze the first seconds of capture.
+   */
+  if (recordingWindowTabId !== undefined) {
+    void sendMessage(
+      "liveRecordingWindow",
+      undefined,
+      recordingWindowTabId,
+    ).catch(() => {});
+  }
   // The worker owns the clock; the overlay only displays it. First settle
   // wins — a late page message after the timeout resolves into a no-op.
   const result = await new Promise<CountdownResult>((resolve) => {
@@ -737,6 +749,7 @@ export default defineBackground(() => {
         source: prefs.source,
         visibility: prefs.visibility,
         effect: prefs.effect,
+        quality: prefs.quality,
         tabStreamId,
       }).catch((error) => void reportFailure(errorMessage(error)));
       return { ok: true };

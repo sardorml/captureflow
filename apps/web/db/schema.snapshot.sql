@@ -15,7 +15,7 @@ CREATE TABLE recordings (
   last_viewed_at    INTEGER NOT NULL,
   state             TEXT NOT NULL, view_count INTEGER NOT NULL DEFAULT 0, title TEXT, user_id TEXT, visibility TEXT NOT NULL DEFAULT 'public', bake_status TEXT NOT NULL DEFAULT 'none'
   CHECK (bake_status IN ('none', 'expected', 'done')), webcam_storage_key TEXT, webcam_upload_id   TEXT, webcam_size_bytes  INTEGER NOT NULL DEFAULT 0, webcam_state       TEXT NOT NULL DEFAULT 'none'
-  CHECK (webcam_state IN ('none', 'pending', 'ready', 'failed')), workspace_id TEXT REFERENCES workspace(id), config_json TEXT, summary_chapters_json TEXT, poster_blur TEXT,
+  CHECK (webcam_state IN ('none', 'pending', 'ready', 'failed')), workspace_id TEXT REFERENCES workspace(id), config_json TEXT, summary_chapters_json TEXT, poster_blur TEXT, poster_thumb_key TEXT,
   CHECK (state IN ('pending', 'ready', 'failed')),
   CHECK (source IN ('instant', 'edited')),
   CHECK (preset IN ('recording'))
@@ -349,3 +349,14 @@ CREATE INDEX idx_activity_slug_ts
   ON recording_activity (slug, timestamp_ms);
 CREATE INDEX idx_activity_slug_kind
   ON recording_activity (slug, kind);
+CREATE TABLE recording_views (
+  slug            TEXT NOT NULL REFERENCES recordings(slug) ON DELETE CASCADE,
+  viewer_key      TEXT NOT NULL,
+  user_id         TEXT,
+  first_viewed_at INTEGER NOT NULL,
+  last_viewed_at  INTEGER NOT NULL,
+  views           INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY (slug, viewer_key)
+) STRICT;
+CREATE INDEX idx_recording_views_slug_last
+  ON recording_views (slug, last_viewed_at DESC);

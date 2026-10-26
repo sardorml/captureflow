@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
 import { ChevronsUpDown, Info, LayoutGrid, UserPlus } from "lucide-react";
 import {
   Avatar,
@@ -16,8 +18,16 @@ import { initials } from "@/lib/format";
 import { workspaceLogoUrl } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { resolveWorkspaceCard, workspaceCardStyle } from "@/lib/workspace-card";
-import { InviteModal } from "./InviteModal";
 import { switchWorkspaceAction } from "./switch-workspace-action";
+
+// Loaded on the first invite, not with every dashboard page.
+const InviteModal = dynamic(
+  () =>
+    import("./InviteModal").then((m) =>
+      withSplitLoaded("invite-modal", m.InviteModal),
+    ),
+  { ssr: false },
+);
 
 // The logo the workspace settings promise is "shown next to your workspace
 // name". Without one it falls back to initials, the same treatment member
@@ -95,6 +105,8 @@ export function WorkspaceSwitcher({
   const cardRef = useRef<HTMLDivElement>(null);
   const [isOpen, setOpen] = useState(false);
   const [isInviting, setInviting] = useState(false);
+  // Stays mounted after the first invite so closing can animate out.
+  const [inviteMounted, setInviteMounted] = useState(false);
   const current =
     memberships.find((m) => m.workspace_id === currentWorkspaceId) ??
     memberships[0];
@@ -130,17 +142,17 @@ export function WorkspaceSwitcher({
           without you having to open anything. The info button sits outside the
           Dropdown because React Aria's press context would otherwise route its
           press to the trigger. */}
-      <div className="relative pt-2">
+      <div className="relative pt-1.5">
         <div
           data-testid="workspace-sheet"
-          className="absolute inset-x-1 top-0 h-6 rounded-t-2xl"
+          className="absolute inset-x-1.5 top-0 h-6 rounded-t-xl"
           style={sheetStyle}
           aria-hidden="true"
         />
         <div
           ref={cardRef}
           data-testid="workspace-card"
-          className="relative rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]"
+          className="relative rounded-xl border border-black/[0.15] bg-panel dark:border-white/[0.16]"
         >
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
@@ -168,7 +180,7 @@ export function WorkspaceSwitcher({
                 aria-hidden="true"
               />
               <div className="-mt-6 flex flex-col items-center gap-2 px-4 pb-3 text-center">
-                <span className="rounded-full bg-panel p-1 dark:bg-panel-2">
+                <span className="rounded-full bg-panel p-1">
                   <WorkspaceMark membership={current} size={48} />
                 </span>
                 <span className="truncate font-semibold text-fg">
@@ -189,6 +201,7 @@ export function WorkspaceSwitcher({
                     className="mt-1"
                     onPress={() => {
                       setOpen(false);
+                      setInviteMounted(true);
                       setInviting(true);
                     }}
                   >
@@ -249,7 +262,9 @@ export function WorkspaceSwitcher({
 
       {/* Outside the Dropdown on purpose: closing the popover unmounts its
           subtree, which would take the modal down with it. */}
-      <InviteModal isOpen={isInviting} onOpenChange={setInviting} />
+      {inviteMounted ? (
+        <InviteModal isOpen={isInviting} onOpenChange={setInviting} />
+      ) : null}
 
       <form ref={formRef} action={switchWorkspaceAction} className="hidden">
         <input type="hidden" name="workspaceId" value="" />

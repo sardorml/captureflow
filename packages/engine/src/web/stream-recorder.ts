@@ -1,5 +1,11 @@
 import { ENGINE_OUTPUT } from "../contract";
+import { aacBitrateCandidates } from "./aac-bitrate";
+import {
+  ENCODER_ACCELERATION,
+  type EncoderAcceleration,
+} from "./encoder-preference";
 import { createFmp4Muxer } from "./fmp4-mux";
+import { createSettleDetector } from "./settle";
 import { createSharedClock } from "./shared-clock";
 
 // Chromium-only Insertable Streams API — not yet in TS's DOM lib.
@@ -8,8 +14,14 @@ declare class MediaStreamTrackProcessor<T> {
   readonly readable: ReadableStream<T>;
 }
 
-// Matches the native sidecar's 2s GOP so seeks and pause splices behave the same.
-const KEYFRAME_INTERVAL_US = 2_000_000;
+// On a still page the keyframes are most of the file: at 1080p under a
+// 1 Mbps ceiling a 2 s spacing left a quarter of the bits for the frames
+// that sharpen the text. Resume still forces a keyframe at the splice.
+const KEYFRAME_INTERVAL_US = 6_000_000;
+// A settle refresh is a keyframe too; this keeps a page the viewer is nudging
+// from costing one every few frames.
+const SETTLE_REFRESH_MIN_GAP_US = 1_000_000;
+const LUMA_SAMPLE = { width: 48, height: 27 };
 // Encoder back-pressure bound: drop frames rather than queue unboundedly.
 const MAX_ENCODE_QUEUE = 2;
 
@@ -30,6 +42,8 @@ export type StreamRecorderOptions = {
   output(bytes: Uint8Array, position: number): void;
   /** Fires when capture ends without stop() — track ended or fatal encode error. */
   onEnded?(): void;
+  /** Encoder ceilings; the output contract's values when absent. */
+  quality?: { fps: number; bitrate: number; audioBitrate: number };
   log?: StreamRecorderLog;
 };
 
@@ -54,6 +68,7 @@ async function pickSupportedH264(probe: {
   height: number;
   framerate: number;
   bitrate: number;
+  acceleration: EncoderAcceleration;
 }): Promise<string> {
   const candidates = ENGINE_OUTPUT.screen.h264EncodeCandidates;
   for (const codec of candidates) {
@@ -64,7 +79,7 @@ async function pickSupportedH264(probe: {
         height: probe.height,
         framerate: probe.framerate,
         bitrate: probe.bitrate,
-        hardwareAcceleration: "prefer-hardware",
+        hardwareAcceleration: probe.acceleration,
         avc: { format: "avc" },
       });
       if (res.supported) return codec;
@@ -75,6 +90,36 @@ async function pickSupportedH264(probe: {
   return candidates[candidates.length - 1]!;
 }
 
+// A thumbnail's worth of luma per frame for the settle detector; null where
+// the frame can't be drawn, which just leaves the fixed keyframe spacing.
+function createLumaSampler(): (frame: VideoFrame) => Float32Array | null {
+  const { width, height } = LUMA_SAMPLE;
+  let ctx: OffscreenCanvasRenderingContext2D | null = null;
+  try {
+    ctx = new OffscreenCanvas(width, height).getContext("2d", {
+      willReadFrequently: true,
+    });
+  } catch {
+    ctx = null;
+  }
+  const luma = new Float32Array(width * height);
+  return (frame) => {
+    if (!ctx) return null;
+    try {
+      ctx.drawImage(frame, 0, 0, width, height);
+      const px = ctx.getImageData(0, 0, width, height).data;
+      for (let i = 0; i < luma.length; i++) {
+        const o = i * 4;
+        luma[i] = px[o]! * 0.299 + px[o + 1]! * 0.587 + px[o + 2]! * 0.114;
+      }
+      return luma;
+    } catch {
+      ctx = null;
+      return null;
+    }
+  };
+}
+
 async function isAacSupported(config: AudioEncoderConfig): Promise<boolean> {
   try {
     const res = await AudioEncoder.isConfigSupported(config);
@@ -82,6 +127,16 @@ async function isAacSupported(config: AudioEncoderConfig): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+async function supportedAacConfig(
+  requested: AudioEncoderConfig,
+): Promise<AudioEncoderConfig | null> {
+  for (const bitrate of aacBitrateCandidates(requested.bitrate ?? 0)) {
+    const config = { ...requested, bitrate };
+    if (await isAacSupported(config)) return config;
+  }
+  return null;
 }
 
 /*
@@ -106,25 +161,40 @@ export async function startStreamRecorder(
   const settings = track.getSettings();
   const width = settings.width ?? ENGINE_OUTPUT.screen.maxWidth;
   const height = settings.height ?? ENGINE_OUTPUT.screen.maxHeight;
-  const framerate = settings.frameRate ?? ENGINE_OUTPUT.screen.fps;
-  const bitrate = ENGINE_OUTPUT.screen.bitrate;
+  const fpsCap = opts.quality?.fps ?? ENGINE_OUTPUT.screen.fps;
+  const framerate = Math.min(settings.frameRate ?? fpsCap, fpsCap);
+  const bitrate = opts.quality?.bitrate ?? ENGINE_OUTPUT.screen.bitrate;
+  const acceleration = ENCODER_ACCELERATION;
 
-  const codec = await pickSupportedH264({ width, height, framerate, bitrate });
+  const codec = await pickSupportedH264({
+    width,
+    height,
+    framerate,
+    bitrate,
+    acceleration,
+  });
 
   const micTrack = opts.micStream?.getAudioTracks()[0] ?? null;
   const micSettings = micTrack?.getSettings();
-  const audioConfig: AudioEncoderConfig | null = micTrack
+  const requestedAudio: AudioEncoderConfig | null = micTrack
     ? {
         codec: AAC_CODEC,
         sampleRate: micSettings?.sampleRate ?? 48_000,
         numberOfChannels: micSettings?.channelCount ?? 1,
-        bitrate: AUDIO_BITRATE,
+        bitrate: opts.quality?.audioBitrate ?? AUDIO_BITRATE,
       }
     : null;
-  const withAudio = audioConfig !== null && (await isAacSupported(audioConfig));
-  if (audioConfig && !withAudio) {
+  const audioConfig = requestedAudio
+    ? await supportedAacConfig(requestedAudio)
+    : null;
+  const withAudio = audioConfig !== null;
+  if (requestedAudio && !audioConfig) {
     log.warn(
-      "stream-recorder: AAC encoding unavailable, recording without mic",
+      `stream-recorder: AAC encoding unavailable (${requestedAudio.sampleRate} Hz, ${requestedAudio.numberOfChannels} ch), recording without mic`,
+    );
+  } else if (audioConfig && audioConfig.bitrate !== requestedAudio?.bitrate) {
+    log.info(
+      `stream-recorder: AAC at ${audioConfig.bitrate} bps, the encoder refused ${requestedAudio?.bitrate}`,
     );
   }
 
@@ -185,19 +255,30 @@ export async function startStreamRecorder(
       }
       encodedFrames++;
       if (firstTsUs === null) firstTsUs = tsUs;
+      if (lastEndUs > 0 && tsUs - lastEndUs > 250_000) {
+        log.warn(
+          `stream-recorder: output gap ${Math.round((tsUs - lastEndUs) / 1000)}ms before ${(tsUs / 1e6).toFixed(2)}s (${droppedFrames} dropped by queue so far)`,
+        );
+      }
       lastEndUs = tsUs + (chunk.duration ?? 0);
     },
     error: (err) => {
       encoderError = err;
     },
   });
+  /*
+   * Default latency mode: the bitrate is a soft average the encoder follows
+   * within tens of percent. "realtime" turns it into a hard cap, and on macOS
+   * the hardware encoder repays an oversized keyframe by stalling, which
+   * froze every capture device for seconds at the start of a recording.
+   */
   encoder.configure({
     codec,
     width,
     height,
     framerate,
     bitrate,
-    hardwareAcceleration: "prefer-hardware",
+    hardwareAcceleration: acceleration,
     avc: { format: "avc" },
   });
 
@@ -231,7 +312,7 @@ export async function startStreamRecorder(
   if (audioEncoder && audioConfig) audioEncoder.configure(audioConfig);
 
   log.info(
-    `stream-recorder: started (${width}x${height}@${Math.round(framerate)}fps, ${codec}${audioEncoder ? " + aac mic" : ""})`,
+    `stream-recorder: started (${width}x${height}@${Math.round(framerate)}fps, ${codec}, ${acceleration}${audioEncoder ? " + aac mic" : ""})`,
   );
 
   const reader = new MediaStreamTrackProcessor<VideoFrame>({
@@ -240,6 +321,8 @@ export async function startStreamRecorder(
 
   let stopping = false;
   let lastKeyUs = -Infinity;
+  const sampleLuma = createLumaSampler();
+  const settle = createSettleDetector();
 
   const readLoop = (async () => {
     for (;;) {
@@ -254,8 +337,13 @@ export async function startStreamRecorder(
         frame.close();
         continue;
       }
+      const luma = sampleLuma(frame);
+      const settled = luma ? settle.note(luma) : false;
+      const sinceKeyUs = frame.timestamp - lastKeyUs;
       const keyFrame =
-        forceKeyframe || frame.timestamp - lastKeyUs >= KEYFRAME_INTERVAL_US;
+        forceKeyframe ||
+        sinceKeyUs >= KEYFRAME_INTERVAL_US ||
+        (settled && sinceKeyUs >= SETTLE_REFRESH_MIN_GAP_US);
       if (keyFrame) {
         lastKeyUs = frame.timestamp;
         forceKeyframe = false;

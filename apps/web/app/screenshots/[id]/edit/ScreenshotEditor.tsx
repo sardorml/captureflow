@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
 
 // Konva touches `window` at import time, so the impl must load client-only;
 // `ssr:false` only works inside a client component on the App Router.
@@ -21,7 +22,10 @@ export type ScreenshotEditorProps = {
 };
 
 const ScreenshotEditorImpl = dynamic(
-  () => import("./ScreenshotEditorImpl").then((m) => m.ScreenshotEditorImpl),
+  () =>
+    import("./ScreenshotEditorImpl").then((m) =>
+      withSplitLoaded("screenshot-editor", m.ScreenshotEditorImpl),
+    ),
   {
     ssr: false,
     loading: () => (
@@ -33,5 +37,9 @@ const ScreenshotEditorImpl = dynamic(
 );
 
 export function ScreenshotEditor(props: ScreenshotEditorProps) {
-  return <ScreenshotEditorImpl {...props} />;
+  return (
+    <div data-split="screenshot-editor" className="contents">
+      <ScreenshotEditorImpl {...props} />
+    </div>
+  );
 }

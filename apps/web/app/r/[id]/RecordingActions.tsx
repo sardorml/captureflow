@@ -14,10 +14,12 @@ import { useEffect, useState, useTransition } from "react";
 import { ShareVisibilityModal } from "@/app/_components/ShareVisibilityModal";
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import type { RecordingVisibility } from "@/lib/recording/types";
+import { currentPlayerMs } from "./player-clock";
 
 type Props = {
   slug: string;
   recordingUrl: string;
+  embedUrl: string;
   editUrl: string;
   initialVisibility: RecordingVisibility;
   isOwner: boolean;
@@ -30,6 +32,7 @@ type Props = {
 export function RecordingActions({
   slug,
   recordingUrl,
+  embedUrl,
   editUrl,
   initialVisibility,
   isOwner,
@@ -198,6 +201,8 @@ export function RecordingActions({
         pending={pending}
         error={error}
         shareUrl={recordingUrl}
+        embedUrl={embedUrl}
+        getCurrentMs={currentPlayerMs}
       />
     </>
   );

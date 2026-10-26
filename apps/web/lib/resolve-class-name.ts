@@ -1,5 +1,5 @@
-import type { ClassValue } from 'cn';
-import { createCn } from 'cn/config';
+import { clsx, type ClassValue } from 'clsx';
+import { extendTailwindMerge } from 'tailwind-merge';
 
 export type ClassName<State> = ClassValue | ((state: State) => ClassValue);
 
@@ -7,7 +7,7 @@ export function resolveClassName<State>(className: ClassName<State>, state: Stat
   return typeof className === 'function' ? className(state) : className;
 }
 
-/** The `media` keys from the Skin Tailwind theme, by `cn` theme group. Tests keep it equal to `styles/tailwind.css`. */
+/** The `media` keys from the Skin Tailwind theme, by tailwind-merge theme group. Tests keep it equal to `styles/tailwind.css`. */
 export const mediaTheme = {
   blur: ['media-hidden', 'media-hidden-popup'],
   color: [
@@ -65,5 +65,9 @@ export const mediaTheme = {
   'text-shadow': ['media', 'media-dialog'],
 };
 
+const twMerge = extendTailwindMerge({ extend: { theme: mediaTheme } });
+
 /** Merges Skin class names so `text-media` merges as a font size instead of replacing a `text-media-*` color. */
-export const cn = createCn({ extend: { theme: mediaTheme } });
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs));
+}

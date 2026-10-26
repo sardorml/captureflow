@@ -8,6 +8,7 @@ import type {
   RecordingResultPayload,
   RecordingStatus,
 } from "./storage";
+import type { RecordingQualityId } from "@captureflow/engine";
 import type { CameraEffect } from "./capture/camera-effects";
 
 export type StartResult = { ok: true } | { ok: false; error: string };
@@ -28,6 +29,7 @@ export type CaptureContext = {
   source?: CaptureSource;
   visibility?: RecordingVisibility;
   effect?: CameraEffect;
+  quality?: RecordingQualityId;
   /*
    * Set only for the tab source: a chrome.tabCapture stream id the offscreen
    * doc turns into a stream directly, skipping the getDisplayMedia picker.
@@ -59,6 +61,9 @@ type ProtocolMap = {
   // Picture-in-Picture window, out of the tab's capture. False means the
   // recording goes without a bubble.
   openRecordingWindow(): boolean;
+  // Points the window's bubble at the camera. Sent during the countdown, once
+  // the recorder holds the camera, so the page load lands before encoding.
+  liveRecordingWindow(): void;
   // SW→page: the window would be in shot, so it goes before capture starts.
   closeRecordingWindow(): void;
   // panel→SW: the page-side backdrop follows the panel's painted theme.

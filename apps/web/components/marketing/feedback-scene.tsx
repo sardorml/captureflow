@@ -18,7 +18,7 @@ const STEPS = [0, ...EVENT_AT.map((at) => at * LOOP_MS)];
 const AVATAR_COLORS: Record<string, string> = {
   AR: "#8b5cf6",
   CK: "#0d9488",
-  JB: "#2563eb",
+  JB: "#1184f7",
   MC: "#f59e0b",
   SL: "#ec4899",
 };
@@ -58,7 +58,7 @@ function FeedbackContent({ step, playing }: SceneState) {
 
   return (
     <div className="absolute inset-x-6 top-1/2 flex -translate-y-1/2 items-stretch gap-4">
-      <div className="flex w-[372px] shrink-0 flex-col rounded-2xl bg-white p-3 text-[#18181b] shadow-[0_20px_44px_rgb(76_29_149/0.18)]">
+      <div className="flex w-[372px] shrink-0 flex-col rounded-2xl bg-white p-3 text-[#181818] shadow-[0_20px_44px_rgb(76_29_149/0.18)]">
         <p className="text-[13px] leading-tight font-bold">{copy.title}</p>
         <p className="mt-1 flex items-center gap-1.5 text-[9px] text-black/50">
           <Initials color={AVATAR_COLORS.AR} size={14}>
@@ -132,7 +132,7 @@ function FeedbackContent({ step, playing }: SceneState) {
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-2 overflow-hidden rounded-2xl bg-white p-3 text-[#18181b] shadow-[0_20px_44px_rgb(76_29_149/0.18)]">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 overflow-hidden rounded-2xl bg-white p-3 text-[#181818] shadow-[0_20px_44px_rgb(76_29_149/0.18)]">
         <p className="mb-0.5 flex items-center justify-between text-[11px] font-bold">
           {copy.activity}
           <span className="rounded-full bg-[#ede5f8] px-1.5 py-0.5 text-[9px] text-[#7c3aed] tabular-nums">

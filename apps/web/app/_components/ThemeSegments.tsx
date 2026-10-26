@@ -6,7 +6,7 @@ import {
   isThemePreference,
   THEME_COOKIE,
   type ThemePreference,
-} from "@captureflow/ui";
+} from "@captureflow/ui/theme";
 
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 

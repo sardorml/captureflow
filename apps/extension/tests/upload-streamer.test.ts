@@ -19,6 +19,7 @@ type FakeTransport = UploadTransport & {
   finalizedScreen: FinalizeRequest | null;
   finalizedWebcam: FinalizeRequest | null;
   posterBytes: number | null;
+  posterCardBytes: number | null;
   abortedSlugs: string[];
 };
 
@@ -30,6 +31,7 @@ function fakeTransport(
   let finalizedScreen: FinalizeRequest | null = null;
   let finalizedWebcam: FinalizeRequest | null = null;
   let posterBytes: number | null = null;
+  let posterCardBytes: number | null = null;
   const abortedSlugs: string[] = [];
 
   const base: UploadTransport = {
@@ -62,6 +64,9 @@ function fakeTransport(
     uploadPoster: async (_slug, bytes) => {
       posterBytes = bytes.byteLength;
     },
+    uploadPosterCard: async (_slug, bytes) => {
+      posterCardBytes = bytes.byteLength;
+    },
     uploadAudioPart: async () => {},
     transcribe: async () => {},
     abort: async (req) => {
@@ -88,6 +93,9 @@ function fakeTransport(
     },
     get posterBytes() {
       return posterBytes;
+    },
+    get posterCardBytes() {
+      return posterCardBytes;
     },
     get abortedSlugs() {
       return abortedSlugs;
@@ -416,6 +424,16 @@ describe("startRecordingUpload — poster", () => {
     });
     await upload.uploadPoster(bytes(512));
     expect(transport.posterBytes).toBe(512);
+  });
+
+  it("delegates the card upload to the transport", async () => {
+    const transport = fakeTransport();
+    const upload = await startRecordingUpload(INIT, {
+      transport,
+      chunkBytes: 100,
+    });
+    await upload.uploadPosterCard(bytes(256));
+    expect(transport.posterCardBytes).toBe(256);
   });
 });
 

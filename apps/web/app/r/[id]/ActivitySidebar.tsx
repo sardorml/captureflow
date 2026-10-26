@@ -10,6 +10,7 @@ import {
 } from "@heroui/react";
 import { AtSign, MessageSquare, Smile, Sparkles, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
 import {
   useEffect,
   useRef,
@@ -57,9 +58,11 @@ function toneFromSeed(seed: string | null | undefined): string | undefined {
  */
 const loadEmojiPicker = () => import("emoji-picker-react");
 
-const EmojiPicker = dynamic(loadEmojiPicker, {
-  ssr: false,
-});
+const EmojiPicker = dynamic(
+  () =>
+    loadEmojiPicker().then((m) => withSplitLoaded("emoji-picker", m.default)),
+  { ssr: false },
+);
 
 type ActivityEntry =
   | {
@@ -220,16 +223,28 @@ export function ActivitySidebar({
   // scrolled up to read history.
   const listRef = useRef<HTMLDivElement | null>(null);
   const stickToBottomRef = useRef(true);
+  const lastScrollTopRef = useRef(0);
+  // Fades the top edge once older entries sit above the fold.
+  const [moreAbove, setMoreAbove] = useState(false);
   const onListScroll = () => {
     const el = listRef.current;
     if (!el) return;
     stickToBottomRef.current =
       el.scrollHeight - el.scrollTop - el.clientHeight < 64;
+    lastScrollTopRef.current = el.scrollTop;
+    setMoreAbove(el.scrollTop > 8);
   };
+  // Also on the tab, since the panel remounts each time it is shown and would
+  // otherwise come back scrolled to the oldest entry.
   useEffect(() => {
+    if (tab !== "activity") return;
     const el = listRef.current;
-    if (el && stickToBottomRef.current) el.scrollTop = el.scrollHeight;
-  }, [entries.length]);
+    if (!el) return;
+    el.scrollTop = stickToBottomRef.current
+      ? el.scrollHeight
+      : lastScrollTopRef.current;
+    setMoreAbove(el.scrollTop > 8);
+  }, [entries.length, tab]);
 
   // No useMemo: a manual memo over `reactions` (rebuilt every render via
   // mergeReactions) trips react-hooks/preserve-manual-memoization.
@@ -258,25 +273,12 @@ export function ActivitySidebar({
   const [emojiOpen, setEmojiOpen] = useState(false);
 
   /*
-   * The picker only renders inside the popover, so without this its chunk does
-   * not start downloading until the first click — which is the whole of that
-   * first-open stutter. Warming it on idle keeps the click off the network
-   * without competing with the page's own load.
+   * The picker only renders inside the popover, so its chunk would not start
+   * downloading until the first click. Warming it when the composer gets
+   * focus or the pointer reaches the button keeps the click off the network
+   * without spending the page's load on a picker most viewers never open.
    */
-  useEffect(() => {
-    if (!viewerSignedIn) return;
-    const idle =
-      typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(() => void loadEmojiPicker())
-        : window.setTimeout(() => void loadEmojiPicker(), 1500);
-    return () => {
-      if (typeof window.cancelIdleCallback === "function") {
-        window.cancelIdleCallback(idle);
-      } else {
-        window.clearTimeout(idle);
-      }
-    };
-  }, [viewerSignedIn]);
+  const warmEmojiPicker = () => void loadEmojiPicker();
 
   // The composer lives in the Activity tab, so the shortcut switches to it.
   useEffect(() => {
@@ -381,7 +383,7 @@ export function ActivitySidebar({
   };
 
   return (
-    <aside className="flex w-full flex-col bg-canvas-2 lg:mr-4 lg:w-auto lg:mb-4 lg:h-[calc(100%-1rem)] lg:overflow-hidden lg:rounded-3xl lg:bg-panel lg:border lg:border-black/[0.07] lg:dark:border-white/[0.07]">
+    <aside className="flex w-full flex-col border-black/[0.06] bg-panel max-lg:border-t lg:h-full lg:w-auto lg:overflow-hidden lg:border-l dark:border-white/[0.07]">
       <Tabs
         selectedKey={tab}
         onSelectionChange={(key) => setTab(key as SidebarTab)}
@@ -416,7 +418,11 @@ export function ActivitySidebar({
           <div
             ref={listRef}
             onScroll={onListScroll}
-            className="flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto lg:px-6"
+            className={cn(
+              "flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto lg:px-6",
+              moreAbove &&
+                "[mask-image:linear-gradient(to_bottom,transparent,black_3rem)]",
+            )}
           >
             {entries.length === 0 ? (
               <EmptyState
@@ -425,7 +431,7 @@ export function ActivitySidebar({
                 commentInputRef={commentInputRef}
               />
             ) : (
-              <ol className="space-y-5">
+              <ol className="space-y-2">
                 {entries.map((entry) => (
                   <li key={entry.id}>
                     {entry.kind === "reaction" ? (
@@ -491,7 +497,7 @@ export function ActivitySidebar({
         ) : (
           <form
             onSubmit={submitComment}
-            className="focus-within:ring-focus relative rounded-2xl bg-panel-2 p-3 focus-within:ring-2"
+            className="focus-within:ring-focus relative rounded-2xl border border-black/[0.15] bg-panel-2 p-3 focus-within:ring-2 dark:border-white/[0.16]"
           >
             <div className="flex items-start gap-2.5">
               <Avatar
@@ -511,6 +517,7 @@ export function ActivitySidebar({
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={onKeyDown}
+                onFocus={warmEmojiPicker}
                 placeholder="Leave a comment…"
                 rows={1}
                 className="block min-h-[1.5rem] w-full resize-none bg-transparent text-sm text-fg placeholder:text-muted focus:outline-none"
@@ -570,6 +577,8 @@ export function ActivitySidebar({
                       size="sm"
                       isIconOnly
                       aria-label="Insert emoji"
+                      onHoverStart={warmEmojiPicker}
+                      onFocus={warmEmojiPicker}
                     >
                       <Smile className="h-4 w-4" />
                     </Button>
@@ -624,15 +633,17 @@ function EmojiPickerThemed({ onPick }: { onPick: (emoji: string) => void }) {
   }, []);
 
   return (
-    <EmojiPicker
-      theme={emojiTheme as never}
-      emojiStyle={"native" as never}
-      lazyLoadEmojis
-      searchPlaceholder="Search emoji"
-      width={320}
-      height={380}
-      onEmojiClick={(data: { emoji: string }) => onPick(data.emoji)}
-    />
+    <div data-split="emoji-picker" className="contents">
+      <EmojiPicker
+        theme={emojiTheme as never}
+        emojiStyle={"native" as never}
+        lazyLoadEmojis
+        searchPlaceholder="Search emoji"
+        width={320}
+        height={380}
+        onEmojiClick={(data: { emoji: string }) => onPick(data.emoji)}
+      />
+    </div>
   );
 }
 
@@ -705,7 +716,7 @@ function ReactionRow({
   const name = burst.userName?.trim() || "Anonymous";
   const total = burst.reactionIds.length;
   return (
-    <div className="group flex items-center gap-3">
+    <div className="group -mx-2 flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-tint">
       <span className="relative shrink-0">
         <Avatar
           className="h-8 w-8"
@@ -775,7 +786,7 @@ function CommentRow({
   deleting: boolean;
 }) {
   return (
-    <div className="group flex items-start gap-3">
+    <div className="group -mx-2 flex items-start gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-tint">
       <Avatar
         className="h-8 w-8 shrink-0"
         style={{
@@ -814,7 +825,7 @@ function CommentRow({
             </button>
           )}
         </div>
-        <p className="mt-1 rounded-2xl rounded-tl-md bg-tint-strong px-3.5 py-2.5 whitespace-pre-wrap break-words text-sm leading-relaxed text-fg">
+        <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-fg">
           {comment.body}
         </p>
       </div>

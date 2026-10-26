@@ -1,87 +1,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Camera, Search, Video } from "lucide-react";
-import {
-  Chip,
-  EmptyState,
-  Kbd,
-  ListBox,
-  Modal,
-  SearchField,
-  Spinner,
-} from "@heroui/react";
-import type { SearchHit } from "@/app/api/search/route";
+import dynamic from "next/dynamic";
+import { Search } from "lucide-react";
+import { Kbd } from "@heroui/react";
+import { withSplitLoaded } from "@/components/dev/split-loaded";
+
+const SearchDialog = dynamic(
+  () =>
+    import("./SearchDialog").then((m) =>
+      withSplitLoaded("search-dialog", m.SearchDialog),
+    ),
+  { ssr: false },
+);
 
 export function SearchTrigger() {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchHit[]>([]);
-  const [loading, setLoading] = useState(false);
+  // Stays mounted after the first open so closing can animate out.
+  const [opened, setOpened] = useState(false);
+  const show = () => {
+    setOpened(true);
+    setOpen(true);
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setOpen(true);
+        show();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  useEffect(() => {
-    if (!open) return;
-    const trimmed = query.trim();
-    if (trimmed.length < 2) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setResults([]);
-      setLoading(false);
-      return;
-    }
-    const ctrl = new AbortController();
-    const t = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `/api/search?q=${encodeURIComponent(trimmed)}`,
-          {
-            signal: ctrl.signal,
-          },
-        );
-        const data = (await res.json()) as { hits: SearchHit[] };
-        setResults(data.hits ?? []);
-      } catch (err) {
-        if ((err as { name?: string })?.name !== "AbortError") {
-          setResults([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }, 180);
-    return () => {
-      clearTimeout(t);
-      ctrl.abort();
-    };
-  }, [query, open]);
-
-  useEffect(() => {
-    if (!open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setQuery("");
-      setResults([]);
-      setLoading(false);
-    }
-  }, [open]);
-
-  const trimmed = query.trim();
-
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="flex h-9 w-full max-w-xl cursor-pointer items-center gap-2 rounded-full bg-field px-4 text-sm text-fg shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] transition-colors hover:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)] dark:hover:bg-tint-strong"
+        onClick={show}
+        className="flex h-9 w-full max-w-xl cursor-pointer items-center gap-2 rounded-xl bg-field px-4 text-sm text-fg shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] transition-colors hover:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)] dark:hover:bg-tint-strong"
       >
         <Search size={16} className="shrink-0" />
         <span className="flex-1 truncate text-left">
@@ -90,67 +48,7 @@ export function SearchTrigger() {
         <Kbd>⌘K</Kbd>
       </button>
 
-      <Modal isOpen={open} onOpenChange={setOpen}>
-        <Modal.Backdrop>
-          <Modal.Container size="lg">
-            <Modal.Dialog>
-              <Modal.Header>
-                <Modal.Heading>Search</Modal.Heading>
-              </Modal.Header>
-              <Modal.Body>
-                <SearchField
-                  autoFocus
-                  value={query}
-                  onChange={setQuery}
-                  aria-label="Search your recordings and screenshots"
-                  fullWidth
-                >
-                  <SearchField.Group>
-                    <SearchField.SearchIcon />
-                    <SearchField.Input placeholder="Search your recordings and screenshots" />
-                    <SearchField.ClearButton />
-                  </SearchField.Group>
-                </SearchField>
-
-                <div className="mt-4 max-h-96 overflow-y-auto">
-                  {loading ? (
-                    <div className="p-6 text-center">
-                      <Spinner />
-                    </div>
-                  ) : results.length === 0 ? (
-                    <EmptyState className="py-6 text-center text-sm text-fg-muted">
-                      {trimmed.length < 2
-                        ? "Search your recordings and screenshots by title."
-                        : "No matches"}
-                    </EmptyState>
-                  ) : (
-                    <ListBox aria-label="Search results">
-                      {results.map((hit) => (
-                        <ListBox.Item
-                          key={hit.href}
-                          id={hit.href}
-                          href={hit.href}
-                          textValue={hit.title}
-                        >
-                          {hit.kind === "recording" ? (
-                            <Video size={16} />
-                          ) : (
-                            <Camera size={16} />
-                          )}
-                          <span className="min-w-0 flex-1 truncate">
-                            {hit.title}
-                          </span>
-                          <Chip size="sm">{hit.kind}</Chip>
-                        </ListBox.Item>
-                      ))}
-                    </ListBox>
-                  )}
-                </div>
-              </Modal.Body>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
+      {opened ? <SearchDialog isOpen={open} onOpenChange={setOpen} /> : null}
     </>
   );
 }

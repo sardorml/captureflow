@@ -181,6 +181,8 @@ def save_ico(master, path, sizes=((16, 16), (32, 32), (48, 48))):
 def generate(master, icon_src):
     # Web
     square(master, 512).save(WEB / "logo.png")
+    # The navbar mark: 28-44px on screen, so 96 covers 2x without the 100 KB.
+    square(master, 96).save(WEB / "logo-96.png")
     square(master, 512).save(WEB / "icon-512.png")
     square(master, 192).save(WEB / "icon-192.png")
     disc(master, 512).save(WEB / "logo-round.png")

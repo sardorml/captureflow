@@ -8,6 +8,7 @@ import {
 } from "@captureflow/quota";
 import type { AvatarGroupItem } from "@captureflow/ui";
 import { AppIcon } from "@/components/brand-mark";
+import { SplitLoaded } from "@/components/dev/split-loaded";
 import { RecordButton } from "./RecordButton";
 import { initials as initialsOf } from "@/lib/format";
 import { getAppWebEnv } from "@/lib/cf-env";
@@ -49,6 +50,7 @@ export async function Sidebar() {
 
   return (
     <div className="flex h-full flex-col">
+      <SplitLoaded name="sidebar" />
       <Link href="/recordings" className="group flex items-center gap-2 p-5">
         <AppIcon size={28} />
         <span className="text-xl font-semibold text-fg">CaptureFlow</span>

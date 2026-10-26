@@ -11,7 +11,7 @@ import {
   type RefObject,
 } from "react";
 import { AudioLines, Scissors, Trash2, ZoomIn, ZoomOut } from "lucide-react";
-import { Tooltip } from "@heroui/react";
+import { Spinner, Tooltip } from "@heroui/react";
 import type { RecordingPlayerHandle } from "@/app/_components/recording";
 import { useFrameStrip } from "@/app/_components/recording/use-frame-strip";
 import { isInsideCut, type RecordingCut } from "@/lib/recording/cuts";
@@ -23,7 +23,10 @@ import { useWaveform } from "./use-waveform";
 type Props = {
   playerRef: RefObject<RecordingPlayerHandle | null>;
   videoUrl: string;
+  // The camera file carries the mic, so the audio lane reads it too.
+  webcamUrl: string | null;
   durationMs: number | null;
+  sizeBytes: number;
   cuts: RecordingCut[];
   // The span about to be cut, shared with the transcript panel: lines picked
   // there or a segment picked here, whichever was chosen last.
@@ -43,7 +46,9 @@ const PICK_SLOP_PX = 3;
 export function EditorTimeline({
   playerRef,
   videoUrl,
+  webcamUrl,
   durationMs,
+  sizeBytes,
   cuts,
   selection,
   onSelectSpan,
@@ -52,13 +57,21 @@ export function EditorTimeline({
   const [showWaveform, setShowWaveform] = useState(true);
   const [fraction, setFraction] = useState(0);
   const [duration, setDuration] = useState((durationMs ?? 0) / 1000);
+  // Flips once the player has the file's metadata, which is when the lanes
+  // start pulling at the file: the second element's metadata then comes from
+  // cache and the player already has its head start.
+  const [playerReady, setPlayerReady] = useState(false);
   const [zoom, setZoom] = useState(MIN_ZOOM);
   const [splits, setSplits] = useState<number[]>([]);
   const durationRef = useRef(duration);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const frames = useFrameStrip(videoUrl);
-  const waveform = useWaveform(videoUrl, durationMs);
+  const frames = useFrameStrip(playerReady ? videoUrl : null, 0);
+  const audioSources = useMemo(
+    () => (playerReady ? [videoUrl, ...(webcamUrl ? [webcamUrl] : [])] : null),
+    [playerReady, videoUrl, webcamUrl],
+  );
+  const waveform = useWaveform(audioSources, durationMs, sizeBytes);
 
   // The player owns the <video> and exposes only an imperative handle, so
   // mirror its playhead each frame rather than lifting currentTime into React.
@@ -68,6 +81,7 @@ export function EditorTimeline({
       const p = playerRef.current;
       if (p) {
         const d = p.getDuration();
+        if (d > 0) setPlayerReady(true);
         if (d > 0 && Math.abs(durationRef.current - d) > 0.01) {
           durationRef.current = d;
           setDuration(d);
@@ -305,9 +319,15 @@ export function EditorTimeline({
             className="relative mt-2.5 cursor-pointer touch-none rounded-lg select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
           >
             <div className="relative h-16 overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
+              {frames === null ? (
+                <div className="absolute inset-0 flex animate-pulse items-center justify-center gap-2 text-xs text-fg-muted">
+                  <Spinner size="sm" />
+                  <span>Loading frames…</span>
+                </div>
+              ) : null}
               <EditorFilmstrip strip={frames} />
               {showWaveform ? (
-                <div className="absolute inset-x-0 bottom-0 h-[36%] bg-gradient-to-t from-zinc-900/75 via-zinc-900/40 to-transparent">
+                <div className="absolute inset-x-0 bottom-0 h-[36%] bg-gradient-to-t from-zinc-900/45 via-zinc-900/20 to-transparent">
                   <EditorWaveform buckets={waveform} />
                 </div>
               ) : null}

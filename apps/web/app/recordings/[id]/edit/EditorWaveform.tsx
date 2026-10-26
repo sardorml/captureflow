@@ -6,8 +6,9 @@ import { peakBetween } from "@/lib/recording/waveform";
 const BASELINE_PX = 1;
 
 // The audio lane: a filled silhouette, one column per pixel, rising from a
-// baseline along the bottom, in the current text colour. Redrawn whenever
-// the lane is resized or zoomed.
+// baseline along the bottom, in the current text colour: the accent, since a
+// grey one vanished against a light capture. Redrawn whenever the lane is
+// resized or zoomed.
 export function EditorWaveform({ buckets }: { buckets: Float32Array | null }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
 
@@ -47,7 +48,7 @@ export function EditorWaveform({ buckets }: { buckets: Float32Array | null }) {
     <canvas
       ref={ref}
       aria-hidden
-      className="pointer-events-none absolute inset-0 h-full w-full text-zinc-300/90"
+      className="pointer-events-none absolute inset-0 h-full w-full text-accent/85"
     />
   );
 }

@@ -45,11 +45,14 @@ export type RecordingPlayerHandle = {
   // Seek without changing play state — the edit-page timeline scrubs the
   // playhead without yanking the video into playback on every drag frame.
   seek(seconds: number): void;
+  // Play if paused, pause if playing; the page's space bar outside the player.
+  togglePlay(): void;
 };
 
 type Props = {
   videoUrl: string;
   posterUrl?: string;
+  posterBlur?: string | null;
   // Companion webcam video, rendered as a configurable PiP overlay and synced to the main player. Carries mic audio; the main video carries system audio (independently muteable). Absent when the recording had no camera (webcam_state='none') or the upload hasn't finalized.
   webcamUrl?: string;
   // Authoritative duration from the recording record, used before <video> knows its own duration.
@@ -99,6 +102,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
     {
       videoUrl,
       posterUrl,
+      posterBlur,
       webcamUrl,
       serverDurationMs,
       serverWidth,
@@ -171,6 +175,19 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
         },
         seek: (seconds: number) =>
           seekMedia(storeRef, videoRef, seconds, cutsRef.current),
+        togglePlay: () => {
+          const v = videoRef.current;
+          if (!v) return;
+          const store = storeRef.current;
+          if (v.paused) {
+            if (store) void store.play().catch(() => {});
+            else void v.play().catch(() => {});
+          } else if (store) {
+            void store.pause();
+          } else {
+            v.pause();
+          }
+        },
       }),
       [],
     );
@@ -228,6 +245,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
 
     return (
       <div
+        data-recording-player
         className={cn(
           "flex flex-col items-center",
           fill ? "h-full w-full" : "max-lg:contents",
@@ -262,8 +280,15 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
             showCuts={showCuts}
             cues={cues}
             videoUrl={videoUrl}
+            posterUrl={posterUrl}
+            posterBlur={posterBlur}
             framePreview={framePreview}
             previewLoopUrl={previewLoop ? videoUrl : undefined}
+            previewCaptions={
+              previewLoop && captionsUrl
+                ? { url: captionsUrl, lang: captionsLang ?? "en" }
+                : undefined
+            }
             progressOverlay={progressOverlay}
             floatingOverlay={floatingOverlay}
             controlsExtra={controlsExtra}
@@ -277,7 +302,9 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
               // the container bg instead of cropping content.
               className="block h-full w-full object-contain"
               playsInline
-              preload="auto"
+              // With the preview loop fetching the opening seconds of the same
+              // file, buffering here too would download them twice.
+              preload={previewLoop ? "metadata" : "auto"}
               onLoadedMetadata={(e) => {
                 const v = e.currentTarget;
                 if (v.videoWidth > 0 && v.videoHeight > 0) {

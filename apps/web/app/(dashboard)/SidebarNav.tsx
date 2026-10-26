@@ -105,7 +105,7 @@ function NavItem({
         href={link.href}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "flex h-10 items-center gap-3 rounded-full px-4 text-sm transition-colors",
+          "flex h-10 items-center gap-3 rounded-xl px-4 text-sm transition-colors",
           active
             ? "bg-accent-soft font-semibold text-accent"
             : "text-fg hover:bg-tint",

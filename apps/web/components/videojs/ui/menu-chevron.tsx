@@ -1,5 +1,5 @@
 import { ChevronIcon as ChevronIconPrimitive } from '@videojs/react/icons';
-import type { ClassValue } from 'cn';
+import type { ClassValue } from 'clsx';
 
 import { cn } from '@/lib/resolve-class-name';
 

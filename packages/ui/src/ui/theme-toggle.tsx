@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
-import { motion } from "motion/react";
 import { cn } from "../lib/cn";
 import { type Theme, THEME_COOKIE } from "../lib/theme";
 
@@ -82,28 +81,23 @@ export function ThemeToggle({ initialTheme, className, onAfterToggle }: Props) {
 
   const isDark = theme === "dark";
   return (
-    <motion.button
+    <button
       type="button"
       onClick={toggle}
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
       title={isDark ? "Switch to light theme" : "Switch to dark theme"}
-      whileTap={{ scale: 0.92 }}
-      whileHover={{ scale: 1.04 }}
-      transition={{ type: "spring", stiffness: 420, damping: 22 }}
       className={cn(
-        "relative inline-flex h-10 w-10 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-overlay hover:text-fg",
+        "relative inline-flex h-10 w-10 items-center justify-center rounded-md text-fg-muted transition duration-150 ease-out hover:scale-[1.04] hover:bg-overlay hover:text-fg active:scale-[0.92] motion-reduce:transition-none",
         className,
       )}
     >
-      <motion.span
+      {/* Keyed so the incoming icon remounts and plays its entrance. */}
+      <span
         key={isDark ? "moon" : "sun"}
-        initial={{ rotate: -45, opacity: 0 }}
-        animate={{ rotate: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 380, damping: 22 }}
-        className="absolute inset-0 inline-flex items-center justify-center"
+        className="animate-theme-icon-in absolute inset-0 inline-flex items-center justify-center motion-reduce:animate-none"
       >
         {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-      </motion.span>
-    </motion.button>
+      </span>
+    </button>
   );
 }

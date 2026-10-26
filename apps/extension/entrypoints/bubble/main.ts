@@ -1,3 +1,7 @@
+import {
+  RECORDING_QUALITIES,
+  hydrateRecordingQuality,
+} from "@captureflow/engine";
 import { sendMessage } from "@/lib/messaging";
 import {
   getUserProfile,
@@ -140,11 +144,16 @@ async function runPreview(): Promise<void> {
   // Also settles on failure, so a blocked camera doesn't spin forever.
   const settle = () => document.body.setAttribute("data-state", "ready");
   try {
-    const { cameraId } = await getCapturePrefs();
+    const { cameraId, quality } = await getCapturePrefs();
+    // The recorder holds the camera at the preset's size; asking for a larger
+    // one here makes the browser restart the device, and on macOS that
+    // stalls screen capture too for the first seconds of the recording.
+    const { width, height } =
+      RECORDING_QUALITIES[hydrateRecordingQuality(quality)].webcam;
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
+        width: { ideal: width },
+        height: { ideal: height },
         ...(cameraId ? { deviceId: { ideal: cameraId } } : {}),
       },
       audio,

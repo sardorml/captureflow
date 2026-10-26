@@ -22,6 +22,7 @@ type Props = {
   videoRef: RefObject<HTMLVideoElement | null>;
   fluid?: boolean;
   concealed?: boolean;
+  preload?: "auto" | "metadata";
 };
 
 // Where and how big the bubble is, for anything drawn in its place.
@@ -52,6 +53,7 @@ export function WebcamBubble({
   videoRef,
   fluid = false,
   concealed = false,
+  preload = "auto",
 }: Props) {
   const layout = webcamBubbleLayout(webcam, fluid);
   return (
@@ -64,7 +66,7 @@ export function WebcamBubble({
       )}
       style={layout.style}
       playsInline
-      preload="auto"
+      preload={preload}
     />
   );
 }

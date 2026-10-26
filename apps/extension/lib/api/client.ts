@@ -202,6 +202,14 @@ export function createRecordingTransport(
         "image/jpeg",
       );
     },
+    uploadPosterCard: async (slug: string, bytes: Uint8Array) => {
+      await postBytes<{ posterThumbKey: string }>(
+        `/poster?slug=${encodeURIComponent(slug)}&kind=card`,
+        deviceId,
+        bytes,
+        "image/jpeg",
+      );
+    },
     uploadAudioPart: async (slug, partNumber, bytes) => {
       await postBytes<{ partNumber: number }>(
         partPath("audio-part", slug, partNumber),
