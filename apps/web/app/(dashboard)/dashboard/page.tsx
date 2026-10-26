@@ -293,7 +293,7 @@ function Sparkline({ values, tone }: { values: number[]; tone: Tone }) {
             width={6}
             height={h}
             rx={1.5}
-            className={n > 0 ? TONE_FILL[tone] : "fill-tint-strong"}
+            className={n > 0 ? TONE_FILL[tone] : "fill-line-strong"}
           />
         );
       })}
@@ -317,7 +317,7 @@ function Ring({ ratio, tone }: { ratio: number; tone: Tone }) {
         r={RING_RADIUS}
         fill="none"
         strokeWidth={RING_STROKE}
-        className="stroke-tint-strong"
+        className="stroke-line-strong"
       />
       <circle
         cx={RING_SIZE / 2}
