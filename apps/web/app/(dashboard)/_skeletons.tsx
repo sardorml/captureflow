@@ -94,13 +94,29 @@ export function CardGridSkeleton({ count = 8 }: { count?: number }) {
 // Stands in for the sidebar while its workspace queries run.
 export function SidebarSkeleton() {
   return (
-    <div className="flex h-full flex-col gap-6 p-4">
-      <Skeleton className="h-8 w-40 rounded-md" />
-      <Skeleton className="h-20 w-full rounded-xl" />
-      <div className="flex flex-col gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center gap-2 p-5">
+        <Skeleton className="size-7 rounded-lg" />
+        <Skeleton className="h-6 w-28 rounded-md" />
+      </div>
+      <div className="px-3 pb-3">
+        <Skeleton className="h-[76px] w-full rounded-xl" />
+        <Skeleton className="mt-2.5 ml-1 h-8 w-20 rounded-full" />
+      </div>
+      <div className="flex flex-1 flex-col gap-0.5 px-3">
+        {Array.from({ length: 9 }).map((_, i) => (
           <Skeleton key={i} className="h-9 w-full rounded-lg" />
         ))}
+      </div>
+      <div className="flex flex-col gap-2 px-3 pt-3 pb-3">
+        <Skeleton className="h-[132px] w-full rounded-2xl" />
+        <div className="flex items-center gap-3 px-2 py-2">
+          <Skeleton className="size-10 shrink-0 rounded-full" />
+          <div className="flex flex-1 flex-col gap-1.5">
+            <Skeleton className="h-3.5 w-24 rounded" />
+            <Skeleton className="h-3 w-32 rounded" />
+          </div>
+        </div>
       </div>
     </div>
   );

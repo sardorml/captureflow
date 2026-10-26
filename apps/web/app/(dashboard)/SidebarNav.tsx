@@ -3,44 +3,80 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BookOpen,
   Camera,
   Database,
+  ExternalLink,
+  LayoutDashboard,
   LayoutGrid,
   Link2,
+  PenLine,
   Receipt,
   Settings,
   Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { formatBytes } from "@/lib/format";
+import { DOCS_URL } from "@/lib/site";
 import { storageFill, type StorageTone } from "@/lib/storage-fill";
 import { cn } from "@/lib/utils";
 
-type NavLink = { href: string; icon: ReactNode; label: string };
+type NavLink = {
+  href: string;
+  icon: ReactNode;
+  label: string;
+  external?: boolean;
+};
 
 export type SidebarStorage = { usedBytes: number; limitBytes: number | null };
 
-/* Members is not an admin tool: seeing who else is in a workspace you were
-   invited to is ordinary, and the page has always drawn itself for both roles —
-   owners get remove buttons and the pending-invite list, members get "Leave
-   workspace" on their own row. Only this link was hiding it from them. */
-const MAIN_LINKS: NavLink[] = [
-  { href: "/recordings", icon: <Link2 size={16} />, label: "Recordings" },
-  { href: "/screenshots", icon: <Camera size={16} />, label: "Screenshots" },
-  { href: "/members", icon: <Users size={16} />, label: "Members" },
-  { href: "/workspaces", icon: <LayoutGrid size={16} />, label: "Workspaces" },
+const ICON = 18;
+
+const CAPTURE_LINKS: NavLink[] = [
+  {
+    href: "/dashboard",
+    icon: <LayoutDashboard size={ICON} />,
+    label: "Dashboard",
+  },
+  { href: "/recordings", icon: <Link2 size={ICON} />, label: "Recordings" },
+  { href: "/screenshots", icon: <Camera size={ICON} />, label: "Screenshots" },
+  {
+    href: "/canvas",
+    icon: <PenLine size={ICON} />,
+    label: "Canvas",
+    external: true,
+  },
+];
+
+// Members is for everyone: the page already draws itself for both roles.
+const TEAM_LINKS: NavLink[] = [
+  { href: "/members", icon: <Users size={ICON} />, label: "Members" },
+  {
+    href: "/workspaces",
+    icon: <LayoutGrid size={ICON} />,
+    label: "Workspaces",
+  },
 ];
 
 const ADMIN_LINKS: NavLink[] = [
-  { href: "/settings", icon: <Settings size={16} />, label: "Settings" },
-  { href: "/billing", icon: <Receipt size={16} />, label: "Billing" },
+  { href: "/settings", icon: <Settings size={ICON} />, label: "Settings" },
+  { href: "/billing", icon: <Receipt size={ICON} />, label: "Billing" },
 ];
 
 const STORAGE_LINK: NavLink = {
   href: "/storage",
-  icon: <Database size={16} />,
+  icon: <Database size={ICON} />,
   label: "Storage",
 };
+
+const RESOURCE_LINKS: NavLink[] = [
+  {
+    href: DOCS_URL,
+    icon: <BookOpen size={ICON} />,
+    label: "Documentation",
+    external: true,
+  },
+];
 
 export function SidebarNav({
   isOwner,
@@ -52,42 +88,47 @@ export function SidebarNav({
   storage: SidebarStorage;
 }) {
   const pathname = usePathname();
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
+  const isActive = (link: NavLink) =>
+    !link.external &&
+    (pathname === link.href || pathname.startsWith(link.href + "/"));
+  const group = (links: NavLink[]) => (
+    <ul className="flex flex-col gap-0.5">
+      {links.map((link) => (
+        <NavItem key={link.href} link={link} active={isActive(link)} />
+      ))}
+    </ul>
+  );
 
   return (
-    <nav className="px-3">
-      <ul className="flex flex-col gap-0.5">
-        {MAIN_LINKS.map((link) => (
-          <NavItem key={link.href} link={link} active={isActive(link.href)} />
-        ))}
-      </ul>
+    <nav className="flex flex-col px-3">
+      {group(CAPTURE_LINKS)}
+      <Divider />
+      {group(TEAM_LINKS)}
       {isOwner && (
         <>
-          <hr className="my-2 border-line" />
-          <p className="px-4 py-1 text-[11px] font-medium text-fg-subtle">
-            Admin tools
-          </p>
+          <Divider />
           <ul className="flex flex-col gap-0.5">
             {ADMIN_LINKS.filter(
               (link) => !selfHosted || link.href !== "/billing",
             ).map((link) => (
-              <NavItem
-                key={link.href}
-                link={link}
-                active={isActive(link.href)}
-              />
+              <NavItem key={link.href} link={link} active={isActive(link)} />
             ))}
             <NavItem
               link={STORAGE_LINK}
-              active={isActive(STORAGE_LINK.href)}
+              active={isActive(STORAGE_LINK)}
               trailing={<StorageGauge {...storage} />}
             />
           </ul>
         </>
       )}
+      <Divider />
+      {group(RESOURCE_LINKS)}
     </nav>
   );
+}
+
+function Divider() {
+  return <hr className="mx-1 my-2 border-line-strong" />;
 }
 
 function NavItem({
@@ -99,17 +140,34 @@ function NavItem({
   active: boolean;
   trailing?: ReactNode;
 }) {
+  const className = cn(
+    "flex h-9 items-center gap-3 rounded-lg px-3 text-[15px] transition-colors",
+    active
+      ? "bg-accent-soft font-medium text-accent ring-1 ring-accent-ring"
+      : "text-fg hover:bg-tint",
+  );
+  if (link.external) {
+    return (
+      <li>
+        <a
+          href={link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={className}
+        >
+          {link.icon}
+          {link.label}
+          <ExternalLink size={16} className="ml-auto text-fg-subtle" />
+        </a>
+      </li>
+    );
+  }
   return (
     <li>
       <Link
         href={link.href}
         aria-current={active ? "page" : undefined}
-        className={cn(
-          "flex h-10 items-center gap-3 rounded-xl px-4 text-sm transition-colors",
-          active
-            ? "bg-accent-soft font-semibold text-accent"
-            : "text-fg hover:bg-tint",
-        )}
+        className={className}
       >
         {link.icon}
         {link.label}

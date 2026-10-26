@@ -28,7 +28,7 @@ export default async function DashboardLayout({
       }
       header={
         <div data-split="top-bar" className="contents">
-          <TopBar session={session} />
+          <TopBar />
         </div>
       }
     >

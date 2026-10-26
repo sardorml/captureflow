@@ -12,6 +12,7 @@ import { Avatar, Chip, Dropdown, Separator, Typography } from "@heroui/react";
 import type { ThemePreference } from "@captureflow/ui";
 import { initials } from "@/lib/format";
 import { SUPPORT_EMAIL } from "@/lib/site";
+import { cn } from "@/lib/utils";
 import { ThemeSegments } from "./ThemeSegments";
 
 export type AccountMenuProInfo = {
@@ -92,6 +93,10 @@ type Props = {
   themePreference?: ThemePreference;
   signingOut: boolean;
   onSignOut: () => void;
+  // The sidebar renders a name-and-address row in place of the bare avatar.
+  trigger?: ReactNode;
+  triggerClassName?: string;
+  placement?: "bottom end" | "top start";
 };
 
 export function AccountMenu({
@@ -102,6 +107,9 @@ export function AccountMenu({
   themePreference,
   signingOut,
   onSignOut,
+  trigger,
+  triggerClassName,
+  placement = "bottom end",
 }: Props) {
   const displayName = name?.trim() || email;
 
@@ -109,16 +117,21 @@ export function AccountMenu({
     <Dropdown>
       <Dropdown.Trigger
         aria-label="Account menu"
-        className="cursor-pointer rounded-full outline-none"
+        className={cn(
+          "cursor-pointer rounded-full outline-none",
+          triggerClassName,
+        )}
       >
-        {/* 36px, the height of the buttons either side of it. */}
-        <Avatar className="h-9 w-9">
-          {imageUrl && <Avatar.Image src={imageUrl} alt={displayName} />}
-          <Avatar.Fallback>{initials(displayName)}</Avatar.Fallback>
-        </Avatar>
+        {trigger ?? (
+          /* 36px, the height of the buttons either side of it. */
+          <Avatar className="h-9 w-9">
+            {imageUrl && <Avatar.Image src={imageUrl} alt={displayName} />}
+            <Avatar.Fallback>{initials(displayName)}</Avatar.Fallback>
+          </Avatar>
+        )}
       </Dropdown.Trigger>
 
-      <Dropdown.Popover placement="bottom end" className="w-64">
+      <Dropdown.Popover placement={placement} className="w-64">
         {/* Identity reads as one block: avatar beside the name and address,
             rather than the name alone over the address. */}
         <div className="flex items-center gap-2.5 px-3 py-2.5">
