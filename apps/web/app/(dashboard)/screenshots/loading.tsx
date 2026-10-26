@@ -1,5 +1,8 @@
-import { Skeleton } from "@heroui/react";
-import { ListToolbarSkeleton, MediaGridSkeleton } from "../_skeletons";
+import {
+  InlineSkeleton,
+  ListToolbarSkeleton,
+  MediaGridSkeleton,
+} from "../_skeletons";
 import { PageHeader } from "../PageHeader";
 
 export default function Loading() {
@@ -7,9 +10,7 @@ export default function Loading() {
     <>
       <PageHeader
         title="Screenshots"
-        subtitle={
-          <Skeleton className="inline-block h-3.5 w-24 rounded align-middle" />
-        }
+        subtitle={<InlineSkeleton className="h-3.5 w-24" />}
       />
       <div className="mt-6">
         <ListToolbarSkeleton />
