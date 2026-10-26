@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { Spinner } from "@heroui/react";
 import { type Theme } from "@captureflow/ui";
 import { useRouter } from "next/navigation";
@@ -41,6 +41,17 @@ export type RecordingEditorProps = {
 
 const RECORDING_API = "/r";
 
+type SkeletonProps = Pick<RecordingEditorProps, "posterUrl" | "posterBlur">;
+
+// dynamic()'s loading component gets no props, so the skeleton reads the
+// poster from context.
+const SkeletonContext = createContext<SkeletonProps | null>(null);
+
+function LoadingSkeleton() {
+  const props = useContext(SkeletonContext);
+  return <EditorSkeleton {...props} />;
+}
+
 const RecordingEditorImpl = dynamic(
   () =>
     import("./RecordingEditorImpl").then((m) =>
@@ -48,7 +59,7 @@ const RecordingEditorImpl = dynamic(
     ),
   {
     ssr: false,
-    loading: () => <PreparingRecording />,
+    loading: LoadingSkeleton,
   },
 );
 
@@ -89,9 +100,13 @@ export function RecordingEditor(props: RecordingEditorProps) {
   if (state === "pending") return <PreparingRecording />;
   if (state === "failed") return <RecordingFailed />;
   return (
-    <div data-split="recording-editor" className="contents">
-      <RecordingEditorImpl {...props} />
-    </div>
+    <SkeletonContext.Provider
+      value={{ posterUrl: props.posterUrl, posterBlur: props.posterBlur }}
+    >
+      <div data-split="recording-editor" className="contents">
+        <RecordingEditorImpl {...props} />
+      </div>
+    </SkeletonContext.Provider>
   );
 }
 

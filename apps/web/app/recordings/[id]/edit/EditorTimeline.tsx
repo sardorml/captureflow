@@ -11,7 +11,7 @@ import {
   type RefObject,
 } from "react";
 import { AudioLines, Scissors, Trash2, ZoomIn, ZoomOut } from "lucide-react";
-import { Tooltip } from "@heroui/react";
+import { Spinner, Tooltip } from "@heroui/react";
 import type { RecordingPlayerHandle } from "@/app/_components/recording";
 import { useFrameStrip } from "@/app/_components/recording/use-frame-strip";
 import { isInsideCut, type RecordingCut } from "@/lib/recording/cuts";
@@ -319,6 +319,12 @@ export function EditorTimeline({
             className="relative mt-2.5 cursor-pointer touch-none rounded-lg select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
           >
             <div className="relative h-16 overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
+              {frames === null ? (
+                <div className="absolute inset-0 flex animate-pulse items-center justify-center gap-2 text-xs text-fg-muted">
+                  <Spinner size="sm" />
+                  <span>Loading frames…</span>
+                </div>
+              ) : null}
               <EditorFilmstrip strip={frames} />
               {showWaveform ? (
                 <div className="absolute inset-x-0 bottom-0 h-[36%] bg-gradient-to-t from-zinc-900/45 via-zinc-900/20 to-transparent">
