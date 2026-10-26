@@ -321,7 +321,7 @@ export function EditorTimeline({
             <div className="relative h-16 overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
               <EditorFilmstrip strip={frames} />
               {showWaveform ? (
-                <div className="absolute inset-x-0 bottom-0 h-[36%] bg-gradient-to-t from-zinc-900/75 via-zinc-900/40 to-transparent">
+                <div className="absolute inset-x-0 bottom-0 h-[36%] bg-gradient-to-t from-zinc-900/45 via-zinc-900/20 to-transparent">
                   <EditorWaveform buckets={waveform} />
                 </div>
               ) : null}
