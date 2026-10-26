@@ -90,7 +90,9 @@ const cameraConstraint = (
   ...(deviceId ? { deviceId: { ideal: deviceId } } : {}),
   width: { ideal: quality.webcam.width },
   height: { ideal: quality.webcam.height },
-  frameRate: { ideal: 30 },
+  // A max as well: the camera session is shared with the bubble preview, and
+  // only a max makes Chrome decimate this track below the session's rate.
+  frameRate: { ideal: quality.webcam.fps, max: quality.webcam.fps },
 });
 
 const micConstraint = (deviceId: string | undefined): MediaTrackConstraints =>
