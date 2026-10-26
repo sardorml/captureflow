@@ -4,7 +4,6 @@ import { RecordButton } from "./RecordButton";
 
 type Props = {
   title: string;
-  eyebrow?: string;
   subtitle?: string;
   actions?: ReactNode;
   showRecord?: boolean;
@@ -12,7 +11,6 @@ type Props = {
 
 export function PageHeader({
   title,
-  eyebrow,
   subtitle,
   actions,
   showRecord = true,
@@ -23,15 +21,10 @@ export function PageHeader({
           content as streamed in. */}
       <SplitLoaded name="page" />
       <div className="min-w-0">
-        {eyebrow && (
-          <p className="text-xs font-medium tracking-tight text-fg-subtle">
-            {eyebrow}
-          </p>
-        )}
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-fg-strong">
+        <h1 className="text-3xl font-semibold tracking-tight text-fg-strong">
           {title}
         </h1>
-        {subtitle && <p className="mt-2 text-sm text-fg-muted">{subtitle}</p>}
+        {subtitle && <p className="mt-2 text-base text-fg-muted">{subtitle}</p>}
       </div>
       {(actions || showRecord) && (
         <div className="flex items-center gap-2">

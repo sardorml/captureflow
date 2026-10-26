@@ -38,11 +38,7 @@ export default async function ScreenshotsPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow={current.workspace.name}
-        title="Screenshots"
-        subtitle={subtitle}
-      />
+      <PageHeader title="Screenshots" subtitle={subtitle} />
       <div className="mt-6">
         <ScreenshotsGrid
           screenshots={screenshots}

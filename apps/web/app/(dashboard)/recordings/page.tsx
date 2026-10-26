@@ -70,11 +70,7 @@ export default async function RecordingsPage({
 
   return (
     <>
-      <PageHeader
-        eyebrow={current.workspace.name}
-        title="Recordings"
-        subtitle={subtitle}
-      />
+      <PageHeader title="Recordings" subtitle={subtitle} />
       <div className="mt-6">
         <RecordingsList
           recordings={cards}
