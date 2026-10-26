@@ -152,7 +152,7 @@ export function WorkspaceSwitcher({
         <div
           ref={cardRef}
           data-testid="workspace-card"
-          className="relative rounded-xl border border-black/[0.1] bg-panel dark:border-white/[0.12]"
+          className="relative rounded-xl border border-black/[0.15] bg-panel dark:border-white/[0.16]"
         >
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
