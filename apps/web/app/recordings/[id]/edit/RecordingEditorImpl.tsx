@@ -6,7 +6,6 @@ import {
   RecordingPlayer,
   type RecordingPlayerHandle,
 } from "@/app/_components/recording";
-import { renameRecordingAction } from "@/app/actions";
 import { addCut, cutsEqual, type RecordingCut } from "@/lib/recording/cuts";
 import type { RecordingEditorProps } from "./RecordingEditor";
 import { aspectFromPlaceholder } from "@/app/_components/recording/layout";
@@ -37,7 +36,6 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     transcriptHasEdits,
   } = props;
 
-  const [title, setTitle] = useState<string>(initialTitle ?? "");
   const [selectionSpan, setSelectionSpan] = useState<RecordingCut | null>(null);
   // Bumped whenever the server's captions may differ (a transcript edit or
   // a saved config, since cut lines are dropped from the captions), so the
@@ -84,16 +82,6 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [status]);
-
-  const onRename = async (next: string): Promise<string | null> => {
-    const fd = new FormData();
-    fd.set("slug", slug);
-    fd.set("title", next);
-    const res = await renameRecordingAction({ error: null, slug: null }, fd);
-    if (res.error) return res.error;
-    setTitle(next);
-    return null;
-  };
 
   const seekToMs = useCallback((ms: number) => {
     playerRef.current?.seek(ms / 1000);
@@ -145,8 +133,8 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-canvas text-fg">
       <EditorTopBar
-        title={title}
-        onRename={onRename}
+        slug={slug}
+        title={initialTitle ?? ""}
         onBack={() => router.push(viewUrl)}
         onFinish={onFinish}
         status={status}

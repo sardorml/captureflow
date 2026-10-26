@@ -9,12 +9,20 @@ type Props = {
   slug: string;
   title: string;
   canEdit: boolean;
+  // Overrides the headline's size; the share page keeps the default.
+  sizeClassName?: string;
 };
 
 const HEADLINE_CLASS =
   "text-3xl font-[600] tracking-tight text-neutral-100 lg:text-2xl";
 
-export function EditableTitle({ slug, title: initialTitle, canEdit }: Props) {
+export function EditableTitle({
+  slug,
+  title: initialTitle,
+  canEdit,
+  sizeClassName,
+}: Props) {
+  const headline = cn(HEADLINE_CLASS, sizeClassName);
   const [title, setTitle] = useState(initialTitle);
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +35,7 @@ export function EditableTitle({ slug, title: initialTitle, canEdit }: Props) {
   }, [editing]);
 
   if (!canEdit) {
-    return <h1 className={cn("lg:truncate", HEADLINE_CLASS)}>{title}</h1>;
+    return <h1 className={cn("lg:truncate", headline)}>{title}</h1>;
   }
 
   const commit = (): void => {
@@ -68,10 +76,7 @@ export function EditableTitle({ slug, title: initialTitle, canEdit }: Props) {
             if (e.key === "Enter") commit();
             if (e.key === "Escape") setDraft(null);
           }}
-          className={cn(
-            "w-full min-w-0 bg-transparent outline-none",
-            HEADLINE_CLASS,
-          )}
+          className={cn("w-full min-w-0 bg-transparent outline-none", headline)}
         />
       </div>
     );
@@ -92,7 +97,7 @@ export function EditableTitle({ slug, title: initialTitle, canEdit }: Props) {
         <h1
           className={cn(
             "min-w-0 transition-colors group-hover/title:text-accent-strong lg:truncate",
-            HEADLINE_CLASS,
+            headline,
           )}
         >
           {title}
