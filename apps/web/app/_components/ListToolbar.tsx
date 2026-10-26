@@ -54,7 +54,7 @@ export function ListToolbar({ noun, filters, selectAll }: Props) {
           onChange={selectAll.onChange}
         >
           <Checkbox.Content>
-            <Checkbox.Control className="size-[18px] border-black/[0.3] dark:border-white/[0.35]">
+            <Checkbox.Control className="size-[18px] border-black/[0.12] bg-[var(--default)] dark:border-white/[0.14]">
               <Checkbox.Indicator />
             </Checkbox.Control>
             <Label className="text-sm font-normal text-fg">
