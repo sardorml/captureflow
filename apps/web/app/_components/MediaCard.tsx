@@ -53,7 +53,8 @@ export type MediaCardStats = {
 
 export type MediaCardProps = {
   noun: string;
-  media: ReactNode;
+  // A function receives whether the card is hovered, for a live preview.
+  media: ReactNode | ((hovered: boolean) => ReactNode);
   viewUrl: string;
   editUrl: string;
   displayTitle: string;
@@ -106,6 +107,7 @@ export function MediaCard({
   onDelete,
   onChangeVisibility,
 }: MediaCardProps) {
+  const [hovered, setHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(initialTitle);
@@ -177,6 +179,8 @@ export function MediaCard({
        leaves the text (Card.Content's own p-4) at double that — the image and
        the copy end up on different rails. Card.Content owns the inset now. */
     <Card
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
       className={cn(
         "group gap-0 overflow-hidden border border-black/[0.15] p-0 shadow-none transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)] dark:border-white/[0.16]",
         selected &&
@@ -189,7 +193,7 @@ export function MediaCard({
           top of that overlay, need raising above it. */}
       <div className="relative">
         <div className="relative aspect-video overflow-hidden bg-tint">
-          {media}
+          {typeof media === "function" ? media(hovered) : media}
         </div>
 
         {onSelectedChange && (

@@ -4,6 +4,8 @@ import { Card, Chip, EmptyState } from "@heroui/react";
 import { Film } from "lucide-react";
 import { FadeInImage } from "@/components/ui/fade-in-image";
 import { ListToolbar } from "./_components/ListToolbar";
+import { HoverPreview } from "./_components/HoverPreview";
+import { parseRecordingConfigJson } from "@/lib/recording-config";
 import { MediaCard } from "./_components/MediaCard";
 import { SelectionBar, useSelection } from "./_components/selection";
 import {
@@ -23,6 +25,8 @@ export type RecordingCardRow = Omit<
   "storageKey" | "posterKey" | "posterThumbKey" | "webcamStorageKey"
 > & {
   posterUrl: string | null;
+  videoUrl: string | null;
+  webcamUrl: string | null;
   videoThumbUrl: string | null;
 };
 
@@ -144,9 +148,13 @@ function RecordingCard({
   selectionActive,
   onSelectedChange,
 }: RecordingCardProps) {
-  const { posterUrl, posterBlur, videoThumbUrl } = recording;
+  const { posterUrl, posterBlur, videoUrl, webcamUrl, videoThumbUrl } =
+    recording;
+  const config = parseRecordingConfigJson(recording.configJson);
+  // The card still carries the camera unless the owner hid it in the editor.
+  const previewWebcamUrl = config.cameraHidden ? null : webcamUrl;
 
-  const media = (
+  const media = (hovered: boolean) => (
     <>
       {posterUrl ? (
         <>
@@ -169,6 +177,13 @@ function RecordingCard({
             width={recording.width ?? 1280}
             height={recording.height ?? 720}
           />
+          {videoUrl ? (
+            <HoverPreview
+              src={videoUrl}
+              webcamUrl={previewWebcamUrl}
+              active={hovered}
+            />
+          ) : null}
         </>
       ) : videoThumbUrl ? (
         <video
