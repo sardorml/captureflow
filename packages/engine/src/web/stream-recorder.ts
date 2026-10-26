@@ -288,6 +288,9 @@ export async function startStreamRecorder(
     framerate,
     bitrate,
     hardwareAcceleration: acceleration,
+    // Screen-content mode in the encoder: it halved the bytes a playing
+    // thumbnail cost at the same ceiling, so more frames survive the gate.
+    contentHint: "text",
     avc: { format: "avc" },
   });
 
