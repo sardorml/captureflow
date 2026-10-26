@@ -349,7 +349,7 @@ export function MediaCard({
           <Link
             href={viewUrl}
             title={displayTitle}
-            className="line-clamp-2 text-[15px] font-semibold text-fg after:absolute after:inset-0 after:content-['']"
+            className="line-clamp-2 min-h-[2lh] text-[15px] font-semibold text-fg after:absolute after:inset-0 after:content-['']"
           >
             {displayTitle}
           </Link>
