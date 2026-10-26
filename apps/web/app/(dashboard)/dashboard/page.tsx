@@ -47,24 +47,22 @@ export const dynamic = "force-dynamic";
 const RECENT_COUNT = 6;
 const WEEK_DAYS = 7;
 
-type Tone = "accent" | "success" | "warning" | "danger";
+type Tone = "accent" | "warning" | "danger";
 
 const METER_TONE: Record<StorageTone, Tone> = {
-  ok: "success",
+  ok: "accent",
   near: "warning",
   full: "danger",
 };
 
 const TONE_FILL: Record<Tone, string> = {
   accent: "fill-accent",
-  success: "fill-success",
   warning: "fill-warning",
   danger: "fill-danger",
 };
 
 const TONE_STROKE: Record<Tone, string> = {
   accent: "stroke-accent",
-  success: "stroke-success",
   warning: "stroke-warning",
   danger: "stroke-danger",
 };
@@ -159,7 +157,7 @@ export default async function DashboardPage() {
           }
           up={viewersThisWeek > 0}
           href="/recordings?sort=views"
-          aside={<Sparkline values={viewersByDay} tone="success" />}
+          aside={<Sparkline values={viewersByDay} tone="accent" />}
         />
         <Stat
           label="Recorded"
@@ -254,7 +252,7 @@ function Stat({
   return (
     <Link
       href={href}
-      className="flex min-w-0 flex-col gap-3 rounded-2xl bg-panel p-4 ring-1 ring-line-strong transition-colors hover:bg-panel-2"
+      className="flex min-w-0 flex-col gap-3 rounded-2xl bg-panel p-4 transition-colors hover:bg-panel-2"
     >
       <span className="text-sm font-medium text-fg-muted">{label}</span>
       <span className="flex items-end justify-between gap-3">
@@ -264,7 +262,7 @@ function Stat({
         {aside}
       </span>
       <span
-        className={`flex items-center gap-1 text-xs ${up ? "text-success" : "text-fg-subtle"}`}
+        className={`flex items-center gap-1 text-xs ${up ? "text-accent" : "text-fg-subtle"}`}
       >
         {up && <TrendingUp size={13} aria-hidden />}
         {hint}
