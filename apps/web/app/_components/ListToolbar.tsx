@@ -104,7 +104,7 @@ function FilterMenu<T extends string>({
         aria-label={`${label}: ${labels[value]}`}
         className={cn(
           buttonVariants({ variant: "secondary", size: "sm" }),
-          "gap-1.5",
+          "gap-1.5 text-fg",
         )}
       >
         {labels[value]}
@@ -119,7 +119,7 @@ function FilterMenu<T extends string>({
             <Dropdown.Item key={option} id={option} textValue={labels[option]}>
               <span className="flex-1">{labels[option]}</span>
               {option === value ? (
-                <Check size={14} className="text-accent" />
+                <Check size={14} className="text-fg" />
               ) : null}
             </Dropdown.Item>
           ))}
