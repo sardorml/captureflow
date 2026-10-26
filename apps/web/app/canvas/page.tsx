@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { PRODUCT_NAME } from "@/lib/site";
 import { CanvasBoard } from "./CanvasBoard";
 
 export const metadata: Metadata = {
-  title: `Canvas — ${PRODUCT_NAME}`,
+  title: "Canvas",
   description: "A blank board to draw on while you record.",
   robots: { index: false, follow: false },
 };
