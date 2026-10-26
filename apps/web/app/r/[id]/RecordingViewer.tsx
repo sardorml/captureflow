@@ -181,7 +181,7 @@ export function RecordingViewer({
   const viewerName = viewer?.name?.trim() || viewer?.email || null;
 
   return (
-    <div className="grid w-full grid-cols-1 bg-panel lg:h-[calc(100vh-64px)] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
+    <div className="grid w-full grid-cols-1 bg-panel lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
       <main className="flex flex-col bg-stage lg:min-h-0 lg:overflow-y-auto">
         <header className="sticky top-0 z-20 bg-panel max-lg:static max-lg:order-2">
           {/* Padded like the nav (px-4 sm:px-6) plus the drawer button's icon

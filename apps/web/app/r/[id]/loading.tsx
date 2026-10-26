@@ -8,7 +8,7 @@ export default function Loading() {
   return (
     <div className="flex min-h-screen flex-col bg-panel text-fg lg:h-screen lg:overflow-hidden">
       <ViewerNavSkeleton className="border-b border-black/[0.06] bg-panel dark:border-white/[0.07]" />
-      <div className="grid w-full grid-cols-1 bg-panel lg:h-[calc(100vh-64px)] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="grid w-full grid-cols-1 bg-panel lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <main className="flex flex-col bg-stage lg:min-h-0 lg:overflow-hidden">
           <ViewerHeadlineSkeleton className="bg-panel px-6 py-5 sm:px-8" />
           <div className="mx-auto w-full max-w-5xl py-6">

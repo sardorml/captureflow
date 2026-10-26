@@ -81,7 +81,7 @@ export function PendingRecording({
   // Mirrors RecordingViewer's skeleton — grid, sticky header, player column,
   // activity card — so nothing moves when the ready page swaps in.
   return (
-    <div className="grid w-full grid-cols-1 bg-canvas lg:h-[calc(100vh-64px)] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
+    <div className="grid w-full grid-cols-1 bg-canvas lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
       <main className="flex flex-col lg:min-h-0 lg:overflow-y-auto">
         <header className="sticky top-0 z-20 bg-canvas-2">
           <div className="relative px-6 py-5 lg:px-12">
