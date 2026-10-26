@@ -14,13 +14,11 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: "8mb" },
     /*
-     * The stylesheet rides inside the HTML instead of being a separate
-     * render-blocking request. As a request it shares a slow link with the
-     * fonts, images and script chunks discovered from the same HTML and first
-     * paint waits for all of them; inline, it arrives before any of them is
-     * even known. Costs about 50 KB gzipped per full page load.
+     * Not `inlineCss`: it bakes the whole stylesheet into every route's
+     * server chunk, 153 copies at the last count, which took the Worker from
+     * 14 MB to 81 MB and past Cloudflare's 63.9 MB limit. The stylesheet
+     * stays a separate, immutable request.
      */
-    inlineCss: true,
     /*
      * Turbopack's dev filesystem cache (`.next/dev/cache`, default on, grew to
      * 5.2 GB here) is reloaded on boot, so restarting the dev server does not
