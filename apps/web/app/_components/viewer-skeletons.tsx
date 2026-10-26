@@ -22,7 +22,7 @@ export function ViewerNavSkeleton({ className }: { className?: string }) {
       <div className="flex items-center gap-2">
         <Skeleton className="h-9 w-28 rounded-xl" />
         <Skeleton className="h-9 w-9 rounded-xl" />
-        <Skeleton className="size-9 rounded-full" />
+        <Skeleton className="h-9 w-9 rounded-full sm:w-36" />
       </div>
     </header>
   );

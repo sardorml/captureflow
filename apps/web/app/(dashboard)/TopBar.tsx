@@ -31,7 +31,9 @@ export async function TopBar({ session }: { session: Session }) {
           justify-between a single child to push around. */}
       <div className="ml-auto flex items-center gap-2">
         <NotificationsMenu />
-        <Suspense fallback={<Skeleton className="h-9 w-9 rounded-full" />}>
+        <Suspense
+          fallback={<Skeleton className="h-9 w-9 rounded-full sm:w-36" />}
+        >
           <Account session={session} selfHosted={selfHosted} />
         </Suspense>
       </div>

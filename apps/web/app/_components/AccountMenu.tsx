@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import {
+  ChevronDown,
   HardDrive,
   LogOut,
   MessageSquare,
@@ -109,13 +110,18 @@ export function AccountMenu({
     <Dropdown>
       <Dropdown.Trigger
         aria-label="Account menu"
-        className="cursor-pointer rounded-full outline-none"
+        className="flex h-9 cursor-pointer items-center gap-2 rounded-full bg-panel py-1 pr-2 pl-1 shadow-sm ring-1 ring-line-strong outline-none transition-colors hover:bg-tint"
       >
-        {/* 36px, the height of the buttons either side of it. */}
-        <Avatar className="h-9 w-9">
+        <Avatar className="h-7 w-7">
           {imageUrl && <Avatar.Image src={imageUrl} alt={displayName} />}
-          <Avatar.Fallback>{initials(displayName)}</Avatar.Fallback>
+          <Avatar.Fallback className="text-xs">
+            {initials(displayName)}
+          </Avatar.Fallback>
         </Avatar>
+        <span className="hidden max-w-36 truncate text-sm font-medium text-fg sm:inline">
+          {displayName}
+        </span>
+        <ChevronDown size={14} className="text-fg-muted" aria-hidden />
       </Dropdown.Trigger>
 
       <Dropdown.Popover placement="bottom end" className="w-64">
