@@ -1,6 +1,8 @@
 "use client";
 
-import { Card, Separator, Skeleton } from "@heroui/react";
+import type { ReactNode } from "react";
+import { Card, Separator, Skeleton, Typography } from "@heroui/react";
+import { cn } from "@/lib/utils";
 
 export function PageHeaderSkeleton({
   showRecord = true,
@@ -129,6 +131,237 @@ export function FormSectionsSkeleton({ count = 3 }: { count?: number }) {
         </Card>
       ))}
     </div>
+  );
+}
+
+// A skeleton that sits in a line of text, for a count or a subtitle. Rendered
+// as a span so the parser does not close the paragraph around it.
+export function InlineSkeleton({ className }: { className?: string }) {
+  return (
+    <Skeleton
+      render={(p) => <span {...p} />}
+      className={cn("inline-block rounded align-middle", className)}
+    />
+  );
+}
+
+// A labelled card, as the settings-style pages lay them out.
+export function SectionSkeleton({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <section>
+      <Typography type="body-sm" weight="semibold" className="mb-2 block">
+        {label}
+      </Typography>
+      <Card className="p-5">{children}</Card>
+    </section>
+  );
+}
+
+// The label-over-track meter both pages draw for storage use.
+export function MeterSkeleton({ gap = "mt-2" }: { gap?: "mt-2" | "mt-5" }) {
+  return (
+    <div>
+      <div className="flex h-6 items-center justify-between gap-3">
+        <Skeleton className="h-3.5 w-16 rounded" />
+        <Skeleton className="h-3.5 w-28 rounded" />
+      </div>
+      <Skeleton className={cn("h-2.5 w-full rounded-full", gap)} />
+    </div>
+  );
+}
+
+// MembersList: a titled card over avatar rows.
+export function MembersListSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <Card>
+      <Card.Header>
+        <Typography weight="semibold">
+          Members <InlineSkeleton className="h-3.5 w-6" />
+        </Typography>
+      </Card.Header>
+      <ul className="divide-y divide-line border-t border-line">
+        {Array.from({ length: count }).map((_, i) => (
+          <li key={i} className="flex items-center gap-3 px-4 py-3">
+            <Skeleton className="size-9 shrink-0 rounded-full" />
+            <div className="min-w-0 flex-1">
+              <div className="flex h-5 items-center">
+                <Skeleton className="h-3.5 w-32 rounded" />
+              </div>
+              <div className="flex h-4 items-center">
+                <Skeleton className="h-3 w-48 rounded" />
+              </div>
+            </div>
+            <Skeleton className="h-5 w-12 rounded-full" />
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+// WorkspacesList: the filter tabs over the card grid, each card with its
+// banner, overlapping avatar, name, counts and action row.
+export function WorkspacesListSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="mt-6 flex flex-col gap-5">
+      <div className="flex w-fit gap-0 rounded-xl bg-tint p-1">
+        <Skeleton className="h-8 w-[74px] rounded-lg" />
+        <Skeleton className="h-8 w-40 rounded-lg bg-transparent" />
+        <Skeleton className="h-8 w-[102px] rounded-lg bg-transparent" />
+      </div>
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: count }).map((_, i) => (
+          <li key={i}>
+            <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] dark:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)]">
+              <Skeleton className="h-16 rounded-none" />
+              <div className="flex flex-1 flex-col gap-4 p-5">
+                <div className="flex items-start gap-3">
+                  <Skeleton className="-mt-11 size-12 shrink-0 rounded-full ring-4 ring-panel dark:ring-panel-2" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex h-6 items-center">
+                      <Skeleton className="h-4 w-36 rounded" />
+                    </div>
+                    <div className="mt-0.5 flex h-4 items-center">
+                      <Skeleton className="h-3 w-28 rounded" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex h-5 items-center">
+                  <Skeleton className="h-3.5 w-40 rounded" />
+                </div>
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-2">
+                  <Skeleton className="h-4 w-[158px] rounded" />
+                  <span className="flex items-center gap-1">
+                    <Skeleton className="h-8 w-20 rounded-xl" />
+                    <Skeleton className="h-8 w-[97px] rounded-xl" />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// A labelled text field with its description line, at TextField's rows.
+function FieldSkeleton({ hint = true }: { hint?: boolean }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div className="flex h-5 items-center">
+        <Skeleton className="h-3.5 w-24 rounded" />
+      </div>
+      <Skeleton className="h-9 w-full rounded-xl" />
+      {hint && (
+        <div className="flex h-5 items-center">
+          <Skeleton className="h-3 w-56 max-w-full rounded" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Settings → Account: the avatar picker, the two-column name and email
+// fields, the user id and the save button.
+export function AccountFormSkeleton() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <Typography type="body-sm" weight="medium" className="mb-2 block">
+          Avatar
+        </Typography>
+        <div className="flex items-center gap-4">
+          <Skeleton className="size-14 shrink-0 rounded-full" />
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-8 w-[119px] rounded-xl" />
+            <div className="flex h-5 items-center">
+              <Skeleton className="h-3 w-48 rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FieldSkeleton />
+          <FieldSkeleton />
+        </div>
+        <FieldSkeleton />
+        <Skeleton className="h-9 w-[123px] rounded-xl" />
+      </div>
+    </div>
+  );
+}
+
+// Settings → Workspace: the name form over the logo form, split by the
+// same separator.
+export function WorkspaceFormsSkeleton() {
+  return (
+    <>
+      <div className="flex flex-wrap items-start justify-between gap-6">
+        <div className="flex min-w-60 flex-1 flex-col gap-1">
+          <Typography weight="semibold">Workspace name</Typography>
+          <div className="flex h-5 items-center">
+            <Skeleton className="h-3 w-80 max-w-full rounded" />
+          </div>
+        </div>
+        <div className="flex w-full max-w-96 flex-col gap-2">
+          <Skeleton className="h-9 w-full rounded-xl" />
+          <div className="flex justify-end">
+            <Skeleton className="h-9 w-16 rounded-xl" />
+          </div>
+        </div>
+      </div>
+      <Separator className="my-6" />
+      <div className="flex flex-wrap items-start justify-between gap-6">
+        <div className="flex min-w-60 flex-1 flex-col gap-1">
+          <Typography weight="semibold">Workspace logo</Typography>
+          <div className="flex h-10 items-center">
+            <Skeleton className="h-8 w-full max-w-md rounded" />
+          </div>
+        </div>
+        <div className="flex w-full max-w-96 items-center gap-4">
+          <Skeleton className="size-14 shrink-0 rounded-full" />
+          <div className="flex flex-1 justify-end">
+            <Skeleton className="h-9 w-[131px] rounded-xl" />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Settings → the two policy choices under a one-line explanation.
+export function PolicyGridSkeleton() {
+  return (
+    <>
+      <div className="mb-4 flex h-5 items-center">
+        <Skeleton className="h-3.5 w-96 max-w-full rounded" />
+      </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {[0, 1].map((i) => (
+          <Card key={i} className="p-4">
+            <div className="flex items-start gap-3">
+              <Skeleton className="mt-0.5 size-5 rounded" />
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <div className="flex h-7 items-center">
+                  <Skeleton className="h-4 w-32 rounded" />
+                </div>
+                <div className="flex h-5 items-center">
+                  <Skeleton className="h-3 w-4/5 rounded" />
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </>
   );
 }
 

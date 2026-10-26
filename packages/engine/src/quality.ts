@@ -14,6 +14,7 @@ export type RecordingQuality = {
   webcam: {
     width: number;
     height: number;
+    fps: number;
     bitrate: number;
     audioBitrate: number;
   };
@@ -31,13 +32,14 @@ export const RECORDING_QUALITIES: Record<RecordingQualityId, RecordingQuality> =
         maxWidth: 1920,
         maxHeight: 1080,
         fps: 30,
-        bitrate: 1_000_000,
+        bitrate: 750_000,
         audioBitrate: 48_000,
       },
       webcam: {
         width: 480,
         height: 360,
-        bitrate: 300_000,
+        fps: 15,
+        bitrate: 200_000,
         audioBitrate: 48_000,
       },
     },
@@ -53,6 +55,7 @@ export const RECORDING_QUALITIES: Record<RecordingQualityId, RecordingQuality> =
       webcam: {
         width: 640,
         height: 480,
+        fps: 30,
         bitrate: 500_000,
         audioBitrate: 64_000,
       },
@@ -69,6 +72,7 @@ export const RECORDING_QUALITIES: Record<RecordingQualityId, RecordingQuality> =
       webcam: {
         width: 640,
         height: 480,
+        fps: 30,
         bitrate: 600_000,
         audioBitrate: 64_000,
       },
@@ -85,6 +89,7 @@ export const RECORDING_QUALITIES: Record<RecordingQualityId, RecordingQuality> =
       webcam: {
         width: 1280,
         height: 720,
+        fps: 30,
         bitrate: 1_500_000,
         audioBitrate: 96_000,
       },
@@ -101,6 +106,7 @@ export const RECORDING_QUALITIES: Record<RecordingQualityId, RecordingQuality> =
       webcam: {
         width: 1280,
         height: 720,
+        fps: 30,
         bitrate: 4_000_000,
         audioBitrate: 128_000,
       },
@@ -155,7 +161,8 @@ export function estimateBytesPerMinute(
     const webcamRate =
       WEBCAM_REFERENCE_BPS *
       ((webcam.width * webcam.height) / WEBCAM_REFERENCE_PIXELS) **
-        PIXEL_EXPONENT;
+        PIXEL_EXPONENT *
+      Math.sqrt(webcam.fps / SCREEN_REFERENCE_FPS);
     bps += underCeiling(webcamRate, webcam.bitrate);
   }
   return (bps / 8) * 60;

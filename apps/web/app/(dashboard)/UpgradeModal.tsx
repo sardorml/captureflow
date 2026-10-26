@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
@@ -39,6 +39,22 @@ export function UpgradeModal({
   );
   // Stays mounted after the first open so closing can animate out.
   const [opened, setOpened] = useState(open);
+  /*
+   * Mounted closed once the page is idle: the first open otherwise waits for
+   * the dialog's chunk and its first render, most of a second on a clean
+   * profile, while every later open is near-instant. A closed modal puts
+   * nothing in the DOM.
+   */
+  useEffect(() => {
+    const warm = () => setOpened(true);
+    const idle =
+      "requestIdleCallback" in window ? requestIdleCallback(warm) : null;
+    const timer = window.setTimeout(warm, 1500);
+    return () => {
+      if (idle !== null) cancelIdleCallback(idle);
+      window.clearTimeout(timer);
+    };
+  }, []);
   const show = () => {
     setOpened(true);
     setOpen(true);

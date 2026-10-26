@@ -1,17 +1,17 @@
 import { Skeleton } from "@heroui/react";
+import { WorkspacesListSkeleton } from "../_skeletons";
+import { PageHeader } from "../PageHeader";
 
 export default function Loading() {
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <Skeleton className="h-7 w-44 rounded-md" />
-        <Skeleton className="h-4 w-full max-w-lg rounded-md" />
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-40 rounded-2xl" />
-        ))}
-      </div>
-    </div>
+    <>
+      <PageHeader
+        title="Workspaces"
+        subtitle="Every workspace you own or joined. New recordings and screenshots save to the default one, from the extension and the desktop app too."
+        actions={<Skeleton className="h-9 w-[156px] rounded-xl" />}
+        showRecord={false}
+      />
+      <WorkspacesListSkeleton />
+    </>
   );
 }
