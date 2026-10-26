@@ -396,13 +396,17 @@ async function toggleOverlayOnActiveTab(): Promise<void> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.id === undefined) return;
   if (!isInjectable(tab.url)) {
-    const canvas = await chrome.tabs.create({ url: CANVAS_URL });
-    if (canvas.id === undefined) return;
-    await tabLoaded(canvas.id);
-    await openOverlayOn(canvas.id);
+    await openCanvasWithRecorder();
     return;
   }
   await openOverlayOn(tab.id);
+}
+
+async function openCanvasWithRecorder(): Promise<void> {
+  const canvas = await chrome.tabs.create({ url: CANVAS_URL });
+  if (canvas.id === undefined) return;
+  await tabLoaded(canvas.id);
+  await openOverlayOn(canvas.id);
 }
 
 async function openOverlayOn(tabId: number): Promise<void> {
@@ -618,6 +622,11 @@ export default defineBackground(() => {
   onMessage("closeRecorderOverlay", ({ sender }) =>
     closeRecorderOverlay(sender?.tab?.id),
   );
+
+  onMessage("openCanvas", async ({ sender }) => {
+    await closeRecorderOverlay(sender?.tab?.id);
+    await openCanvasWithRecorder();
+  });
 
   onMessage("setOverlayTheme", async ({ data, sender }) => {
     const target = sender?.tab?.id ?? overlayTabId;

@@ -173,7 +173,7 @@ const VISIBILITY_ORDER: RecordingVisibility[] = [
 // Dropdown.Trigger wraps React Aria's unstyled Button, so the icon-over-label
 // look is applied by hand.
 const ACTION_CLASS =
-  "flex cursor-pointer flex-col items-center gap-1 rounded-xl px-3 py-1 text-xs text-muted outline-none transition-colors hover:text-foreground motion-reduce:transition-none";
+  "flex cursor-pointer flex-col items-center gap-1 rounded-xl px-1 py-1 text-xs text-muted outline-none transition-colors hover:text-foreground motion-reduce:transition-none";
 
 /*
  * Where the next recording lands, chosen before it starts. Saved with the
@@ -292,6 +292,28 @@ const WAND_ICON = (
   </svg>
 );
 
+const BOARD_ICON = (
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
+    <rect
+      x="3"
+      y="4"
+      width="18"
+      height="13"
+      rx="2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+    <path
+      d="M7 12.5c1.5-3.5 3-3.5 4.5 0s3 3.5 4.5 0M9 20.5h6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
 export function FooterActions({
   onEffects,
   onQuality,
@@ -319,11 +341,18 @@ export function FooterActions({
     closeSurface();
   };
 
+  // The service worker closes this panel and reopens it on the new tab.
+  const openCanvas = () => void sendMessage("openCanvas", undefined);
+
   return (
-    <footer className="-mt-2 flex justify-center gap-6">
+    <footer className="-mt-2 grid grid-cols-4 justify-items-center">
       <button type="button" onClick={onEffects} className={ACTION_CLASS}>
         {WAND_ICON}
         Effects
+      </button>
+      <button type="button" onClick={openCanvas} className={ACTION_CLASS}>
+        {BOARD_ICON}
+        Canvas
       </button>
       <VisibilityAction />
       <Dropdown>

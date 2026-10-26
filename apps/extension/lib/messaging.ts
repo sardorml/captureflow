@@ -51,6 +51,8 @@ type ProtocolMap = {
   ensureMediaGrant(): void;
   mediaGrantResult(input: { granted: boolean; denied: boolean }): void;
   closeRecorderOverlay(): void;
+  // panel→SW: close this panel and reopen it on a fresh canvas tab.
+  openCanvas(): void;
   // SW→page: while the panel is open the control bar shows where it will
   // sit, disabled, so the recording's chrome is in view before it starts.
   panelPreview(on: boolean): void;
