@@ -16,7 +16,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSession();
-  // The shell streams ahead of the sidebar's and top bar's workspace queries.
+  // The shell streams ahead of the sidebar's and the account cluster's queries.
   return (
     <DashboardShell
       sidebar={
@@ -28,9 +28,7 @@ export default async function DashboardLayout({
       }
       header={
         <div data-split="top-bar" className="contents">
-          <Suspense fallback={null}>
-            <TopBar />
-          </Suspense>
+          <TopBar session={session} />
         </div>
       }
     >
