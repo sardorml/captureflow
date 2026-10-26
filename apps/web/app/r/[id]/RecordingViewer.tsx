@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { RecordingPlayerHandle } from "../../_components/recording";
 import { useSpaceTogglesPlayback } from "../../_components/recording/use-space-toggle";
 import { aspectFromPlaceholder } from "../../_components/recording/layout";
@@ -28,6 +28,7 @@ import { EditableTitle } from "@/app/_components/EditableTitle";
 import { SummaryChapters } from "./SummaryChapters";
 import { ViewCount } from "./ViewCount";
 import { TranscriptPanel } from "./TranscriptPanel";
+import { registerPlayerClock } from "./player-clock";
 
 // Owner-only, so viewers never download the editor's controls.
 const EditPanel = dynamic(
@@ -40,6 +41,8 @@ const EditPanel = dynamic(
 
 type Props = {
   slug: string;
+  // From a link shared at a moment; null opens at the start.
+  startAtSeconds: number | null;
   videoUrl: string;
   posterUrl?: string;
   posterBlur?: string | null;
@@ -72,6 +75,7 @@ type Props = {
 
 export function RecordingViewer({
   slug,
+  startAtSeconds,
   videoUrl,
   posterUrl,
   posterBlur,
@@ -154,6 +158,24 @@ export function RecordingViewer({
     const s = playerRef.current?.getCurrentTime() ?? 0;
     return Math.max(0, Math.floor(s * 1000));
   }, []);
+  useEffect(() => registerPlayerClock(getCurrentMs), [getCurrentMs]);
+
+  // The player knows its length once the metadata is in; until then a seek
+  // has nothing to land on, so poll briefly and give up after 20 s.
+  useEffect(() => {
+    if (startAtSeconds === null) return;
+    let tries = 0;
+    const id = window.setInterval(() => {
+      const player = playerRef.current;
+      if (player && player.getDuration() > 0) {
+        player.seek(Math.min(startAtSeconds, player.getDuration()));
+        window.clearInterval(id);
+      } else if (++tries >= 200) {
+        window.clearInterval(id);
+      }
+    }, 100);
+    return () => window.clearInterval(id);
+  }, [startAtSeconds]);
 
   const signedIn = viewer != null;
   const viewerName = viewer?.name?.trim() || viewer?.email || null;

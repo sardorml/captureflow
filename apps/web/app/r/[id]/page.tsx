@@ -12,6 +12,7 @@ import {
   recordView,
   touchLastViewed,
 } from "@/lib/recording/db";
+import { hydrateStartSeconds } from "@/lib/recording/share-time";
 import { viewerKeyFor } from "@/lib/recording/viewer-key";
 import { resolveTranscript } from "@/lib/recording/transcript";
 import { verifySession } from "@/lib/recording/verify-session";
@@ -24,7 +25,12 @@ import {
 import { parseRecordingConfigJson } from "@/lib/recording-config";
 import { parseSummaryChaptersJson } from "@/lib/recording/summary-chapters";
 import { isValidSlug } from "@/lib/recording/slug";
-import { APP_WEB_SITE_URL, PRODUCT_NAME, viewUrlFor } from "@/lib/site";
+import {
+  APP_WEB_SITE_URL,
+  PRODUCT_NAME,
+  embedUrlFor,
+  viewUrlFor,
+} from "@/lib/site";
 import { ViewerNav } from "../../_components/screenshot";
 import { ThemeToggle } from "@captureflow/ui";
 import {
@@ -154,8 +160,15 @@ export async function generateMetadata({
   };
 }
 
-export default async function RecordingPage({ params }: { params: Params }) {
+export default async function RecordingPage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: Promise<{ t?: string | string[] }>;
+}) {
   const { id } = await params;
+  const startAtSeconds = hydrateStartSeconds((await searchParams).t);
   if (!isValidSlug(id)) notFound();
 
   const row = await getRecording(id);
@@ -336,6 +349,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
           <RecordingActions
             slug={id}
             recordingUrl={recordingUrl}
+            embedUrl={embedUrlFor(id)}
             editUrl={editUrl}
             initialVisibility={row.visibility}
             isOwner={isOwner}
@@ -347,6 +361,7 @@ export default async function RecordingPage({ params }: { params: Params }) {
       />
       <RecordingViewer
         slug={id}
+        startAtSeconds={startAtSeconds}
         videoUrl={videoUrl}
         posterUrl={posterUrl}
         posterBlur={row.posterBlur}

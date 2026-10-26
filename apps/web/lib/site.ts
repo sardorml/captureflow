@@ -38,6 +38,10 @@ export function viewUrlFor(id: string): string {
   return `${SITE_URL}/r/${id}`;
 }
 
+export function embedUrlFor(id: string): string {
+  return `${SITE_URL}/embed/${id}`;
+}
+
 export function viewUrlForRequest(req: Request, id: string): string {
   try {
     const origin = new URL(req.url).origin;
