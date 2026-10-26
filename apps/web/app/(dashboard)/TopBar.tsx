@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { Sparkles } from "lucide-react";
 import { headers } from "next/headers";
 import { Button, Skeleton } from "@heroui/react";
 import {
@@ -18,7 +17,7 @@ import { UserMenu } from "./UserMenu";
 
 type Session = Awaited<ReturnType<typeof requireSession>>;
 
-// The search field paints with the shell; only the account cluster waits for
+// The search field paints with the shell; only the account menu waits for
 // its plan and avatar queries, behind a stand-in of the same size.
 export async function TopBar({ session }: { session: Session }) {
   const selfHosted = isSelfHosted(await getAppWebEnv());
@@ -67,9 +66,9 @@ async function Account({
           .first<{ image: string | null }>(),
       ])
     : [null, null, null];
-  const userImage = userRow?.image ?? null;
-  const cookieHeader = (await headers()).get("cookie");
-  const themePreference = readThemePreferenceFromCookieHeader(cookieHeader);
+  const themePreference = readThemePreferenceFromCookieHeader(
+    (await headers()).get("cookie"),
+  );
 
   const isPro = subscription?.status === "active" || grant !== null;
 
@@ -79,13 +78,7 @@ async function Account({
         <UpgradeModal
           email={session.user.email}
           userId={session.user.id}
-          openOnUpgradeParam
-          trigger={
-            <Button variant="primary">
-              <Sparkles size={16} />
-              Upgrade
-            </Button>
-          }
+          trigger={<Button variant="primary">Upgrade</Button>}
         />
       )}
       <NotificationsMenu />
@@ -94,7 +87,7 @@ async function Account({
         userId={session.user.id}
         name={session.user.name ?? null}
         email={session.user.email}
-        imageUrl={userImage}
+        imageUrl={userRow?.image ?? null}
         selfHosted={selfHosted}
         pro={
           subscription

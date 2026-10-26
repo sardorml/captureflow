@@ -22,9 +22,9 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; mode?: string; error?: string }>;
 }) {
   const sp = await searchParams;
-  const next = sp.next ?? "/recordings";
+  const next = sp.next ?? "/dashboard";
   // Only same-origin path redirects — strip a forged "?next=https://evil".
-  const safeNext = next.startsWith("/") ? next : "/recordings";
+  const safeNext = next.startsWith("/") ? next : "/dashboard";
   const session = await loadSession();
   if (session) redirect(safeNext);
 

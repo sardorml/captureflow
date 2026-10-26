@@ -1,6 +1,7 @@
 const APP_ROUTE_SEGMENTS = new Set([
   "api",
   "billing",
+  "dashboard",
   "devices",
   "members",
   "notifications",

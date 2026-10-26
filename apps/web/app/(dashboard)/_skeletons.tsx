@@ -94,13 +94,22 @@ export function CardGridSkeleton({ count = 8 }: { count?: number }) {
 // Stands in for the sidebar while its workspace queries run.
 export function SidebarSkeleton() {
   return (
-    <div className="flex h-full flex-col gap-6 p-4">
-      <Skeleton className="h-8 w-40 rounded-md" />
-      <Skeleton className="h-20 w-full rounded-xl" />
-      <div className="flex flex-col gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center gap-2 p-5">
+        <Skeleton className="size-7 rounded-lg" />
+        <Skeleton className="h-6 w-28 rounded-md" />
+      </div>
+      <div className="px-3 pb-3">
+        <Skeleton className="h-[76px] w-full rounded-xl" />
+        <Skeleton className="mt-2.5 ml-1 h-8 w-20 rounded-full" />
+      </div>
+      <div className="flex flex-1 flex-col gap-0.5 px-3">
+        {Array.from({ length: 9 }).map((_, i) => (
           <Skeleton key={i} className="h-9 w-full rounded-lg" />
         ))}
+      </div>
+      <div className="px-3 pt-3 pb-4">
+        <Skeleton className="h-[132px] w-full rounded-2xl" />
       </div>
     </div>
   );
@@ -177,36 +186,6 @@ export function MeterSkeleton({ gap = "mt-2" }: { gap?: "mt-2" | "mt-5" }) {
 }
 
 // MembersList: a titled card over avatar rows.
-export function MembersListSkeleton({ count = 3 }: { count?: number }) {
-  return (
-    <Card>
-      <Card.Header>
-        <Typography weight="semibold">
-          Members <InlineSkeleton className="h-3.5 w-6" />
-        </Typography>
-      </Card.Header>
-      <ul className="divide-y divide-line border-t border-line">
-        {Array.from({ length: count }).map((_, i) => (
-          <li key={i} className="flex items-center gap-3 px-4 py-3">
-            <Skeleton className="size-9 shrink-0 rounded-full" />
-            <div className="min-w-0 flex-1">
-              <div className="flex h-5 items-center">
-                <Skeleton className="h-3.5 w-32 rounded" />
-              </div>
-              <div className="flex h-4 items-center">
-                <Skeleton className="h-3 w-48 rounded" />
-              </div>
-            </div>
-            <Skeleton className="h-5 w-12 rounded-full" />
-          </li>
-        ))}
-      </ul>
-    </Card>
-  );
-}
-
-// WorkspacesList: the filter tabs over the card grid, each card with its
-// banner, overlapping avatar, name, counts and action row.
 export function WorkspacesListSkeleton({ count = 3 }: { count?: number }) {
   return (
     <div className="mt-6 flex flex-col gap-5">
@@ -318,7 +297,6 @@ export function WorkspaceFormsSkeleton() {
           </div>
         </div>
       </div>
-      <Separator className="my-6" />
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="flex min-w-60 flex-1 flex-col gap-1">
           <Typography weight="semibold">Workspace logo</Typography>
@@ -338,33 +316,6 @@ export function WorkspaceFormsSkeleton() {
 }
 
 // Settings → the two policy choices under a one-line explanation.
-export function PolicyGridSkeleton() {
-  return (
-    <>
-      <div className="mb-4 flex h-5 items-center">
-        <Skeleton className="h-3.5 w-96 max-w-full rounded" />
-      </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {[0, 1].map((i) => (
-          <Card key={i} className="p-4">
-            <div className="flex items-start gap-3">
-              <Skeleton className="mt-0.5 size-5 rounded" />
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <div className="flex h-7 items-center">
-                  <Skeleton className="h-4 w-32 rounded" />
-                </div>
-                <div className="flex h-5 items-center">
-                  <Skeleton className="h-3 w-4/5 rounded" />
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </>
-  );
-}
-
 export function DashboardLoading({
   variant,
   showRecord = true,
