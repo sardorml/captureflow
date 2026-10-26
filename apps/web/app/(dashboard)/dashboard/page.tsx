@@ -28,11 +28,7 @@ import {
   type DashboardRecordingRow,
 } from "@/lib/recordings-db";
 import { requireSession } from "@/lib/session-guard";
-import {
-  CHROME_WEBSTORE_URL,
-  DOWNLOAD_URL,
-  R2_PUBLIC_BASE_URL,
-} from "@/lib/site";
+import { CHROME_WEBSTORE_URL, R2_PUBLIC_BASE_URL } from "@/lib/site";
 import { storageFill, type StorageTone } from "@/lib/storage-fill";
 import { getEffectiveStorageLimit } from "@/lib/user-quota";
 import { RecordButton } from "../RecordButton";
@@ -198,10 +194,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
         {recent.length === 0 ? (
-          <StartCard
-            storeUrl={CHROME_WEBSTORE_URL}
-            downloadUrl={DOWNLOAD_URL}
-          />
+          <StartCard storeUrl={CHROME_WEBSTORE_URL} />
         ) : (
           <div className="-m-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {recent.map((r) => (

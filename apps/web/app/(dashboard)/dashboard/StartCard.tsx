@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Download, ExternalLink, PenLine } from "lucide-react";
-import { Chip, Tabs, buttonVariants } from "@heroui/react";
+import { ExternalLink, PenLine } from "lucide-react";
+import { Button, Chip, Tabs, buttonVariants } from "@heroui/react";
 import { PRODUCT_NAME } from "@/lib/site";
 import { RecordButton } from "../RecordButton";
 
@@ -17,13 +17,7 @@ const SURFACES: { id: Surface; label: string }[] = [
   { id: "canvas", label: "Canvas" },
 ];
 
-export function StartCard({
-  storeUrl,
-  downloadUrl,
-}: {
-  storeUrl: string | null;
-  downloadUrl: string;
-}) {
+export function StartCard({ storeUrl }: { storeUrl: string | null }) {
   const [surface, setSurface] = useState<Surface>("extension");
 
   return (
@@ -76,20 +70,17 @@ export function StartCard({
         {surface === "desktop" && (
           <>
             <p className="text-base text-fg-muted">
-              Record your screen and camera with the native app, with system
-              audio and no browser in the way.
+              A native Mac app that records your screen and camera with system
+              audio is on its way. Until then, the extension records any tab,
+              window or your whole screen.
             </p>
             <div className="flex flex-wrap items-center gap-3">
-              <a
-                href={downloadUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={buttonVariants({ variant: "primary" })}
-              >
-                <Download size={16} />
+              <Button variant="primary" isDisabled>
                 Download for Mac
-              </a>
-              <Chip size="sm">macOS 13 or later</Chip>
+              </Button>
+              <Chip size="sm" color="accent">
+                Coming soon
+              </Chip>
             </div>
           </>
         )}
