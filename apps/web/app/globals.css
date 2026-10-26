@@ -259,6 +259,11 @@ html:not(:has([data-marketing])) .card {
   border-radius: 12px;
 }
 
+/* HeroUI's buttons are pills; the app squares them to the cards' corners. */
+html:not(:has([data-marketing])) .button {
+  border-radius: 12px;
+}
+
 /* HeroUI's .dropdown__trigger is `display: inline-block`, which lands after
    buttonVariants' `inline-flex` at equal specificity and wins. Any trigger
    styled as a button then loses its flex centering: icon-only ones sit on the

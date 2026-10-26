@@ -39,7 +39,7 @@ export function SearchTrigger() {
       <button
         type="button"
         onClick={show}
-        className="flex h-9 w-full max-w-xl cursor-pointer items-center gap-2 rounded-full bg-field px-4 text-sm text-fg shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] transition-colors hover:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)] dark:hover:bg-tint-strong"
+        className="flex h-9 w-full max-w-xl cursor-pointer items-center gap-2 rounded-xl bg-field px-4 text-sm text-fg shadow-[0_1px_3px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.05)] transition-colors hover:bg-panel-2 dark:shadow-[0_1px_3px_rgb(0_0_0/0.3),0_0_0_1px_rgb(255_255_255/0.06)] dark:hover:bg-tint-strong"
       >
         <Search size={16} className="shrink-0" />
         <span className="flex-1 truncate text-left">
