@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BookOpen,
   Camera,
   Database,
   ExternalLink,
   LayoutDashboard,
   LayoutGrid,
   Link2,
+  MessageSquare,
   PenLine,
   Receipt,
   Settings,
@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { formatBytes } from "@/lib/format";
-import { DOCS_URL } from "@/lib/site";
+import { SUPPORT_EMAIL } from "@/lib/site";
 import { storageFill, type StorageTone } from "@/lib/storage-fill";
 import { cn } from "@/lib/utils";
 
@@ -69,14 +69,13 @@ const STORAGE_LINK: NavLink = {
   label: "Storage",
 };
 
-const RESOURCE_LINKS: NavLink[] = [
-  {
-    href: DOCS_URL,
-    icon: <BookOpen size={ICON} />,
-    label: "Documentation",
-    external: true,
-  },
-];
+// Mail, like the account menu's entry; a self-hosted instance has its own support.
+const SUPPORT_LINK: NavLink = {
+  href: `mailto:${SUPPORT_EMAIL}`,
+  icon: <MessageSquare size={ICON} />,
+  label: "Contact support",
+  external: true,
+};
 
 export function SidebarNav({
   isOwner,
@@ -121,14 +120,18 @@ export function SidebarNav({
           </ul>
         </>
       )}
-      <Divider />
-      {group(RESOURCE_LINKS)}
+      {!selfHosted && (
+        <>
+          <Divider />
+          {group([SUPPORT_LINK])}
+        </>
+      )}
     </nav>
   );
 }
 
 function Divider() {
-  return <hr className="mx-1 my-2 border-line-strong" />;
+  return <hr className="my-2 border-line-strong" />;
 }
 
 function NavItem({
@@ -142,22 +145,23 @@ function NavItem({
 }) {
   const className = cn(
     "flex h-9 items-center gap-3 rounded-lg px-3 text-[15px] transition-colors",
-    active
-      ? "bg-accent-soft font-medium text-accent ring-1 ring-accent-ring"
-      : "text-fg hover:bg-tint",
+    active ? "bg-accent-soft font-medium text-accent" : "text-fg hover:bg-tint",
   );
   if (link.external) {
+    const newTab = link.href.startsWith("http");
     return (
       <li>
         <a
           href={link.href}
-          target="_blank"
-          rel="noopener noreferrer"
+          target={newTab ? "_blank" : undefined}
+          rel={newTab ? "noopener noreferrer" : undefined}
           className={className}
         >
           {link.icon}
           {link.label}
-          <ExternalLink size={16} className="ml-auto text-fg-subtle" />
+          {newTab && (
+            <ExternalLink size={16} className="ml-auto text-fg-subtle" />
+          )}
         </a>
       </li>
     );
