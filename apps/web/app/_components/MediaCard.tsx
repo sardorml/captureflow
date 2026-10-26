@@ -220,7 +220,10 @@ export function MediaCard({
           </Checkbox>
         )}
 
-        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+        {/* Hidden until the card is hovered, so the thumbnail reads clean in
+            the grid; keyboard focus, an open menu and touch screens, which
+            have no hover, keep the controls shown. */}
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 has-[[aria-expanded=true]]:opacity-100 pointer-coarse:opacity-100">
           <Tooltip>
             <Tooltip.Trigger className="inline-flex">
               <Button
