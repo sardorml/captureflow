@@ -1,5 +1,11 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import {
+  DEFAULT_LIST_FILTERS,
+  accessParam,
+  orderBySql,
+  type ListFilters,
+} from "@/lib/list-filters";
 import { getAppWebEnv } from "./cf-env";
 
 export type ScreenshotState = "ready" | "deleted";
@@ -86,6 +92,7 @@ export async function listScreenshotsForUser(
 export async function listScreenshotsForWorkspace(
   workspaceId: string,
   viewerUserId: string,
+  filters: ListFilters = DEFAULT_LIST_FILTERS,
 ): Promise<DashboardScreenshotRow[]> {
   const env = await getAppWebEnv();
   if (!env?.DB) return [];
@@ -95,9 +102,10 @@ export async function listScreenshotsForWorkspace(
        WHERE workspace_id = ?1
          AND state = 'ready'
          AND (visibility != 'private' OR user_id = ?2)
-       ORDER BY created_at DESC`,
+         AND (?3 = '' OR visibility = ?3)
+       ORDER BY ${orderBySql(filters.sort)}`,
   )
-    .bind(workspaceId, viewerUserId)
+    .bind(workspaceId, viewerUserId, accessParam(filters.access))
     .all<D1Row>();
   return res.results.map(rowFromD1);
 }

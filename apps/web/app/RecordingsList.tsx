@@ -3,6 +3,7 @@
 import { Card, Chip, EmptyState } from "@heroui/react";
 import { Film } from "lucide-react";
 import { FadeInImage } from "@/components/ui/fade-in-image";
+import { ListToolbar } from "./_components/ListToolbar";
 import { MediaCard } from "./_components/MediaCard";
 import { SelectionBar, useSelection } from "./_components/selection";
 import {
@@ -12,6 +13,7 @@ import {
 } from "./actions";
 import type { Visibility } from "@/app/VisibilityDialog";
 import { formatDuration } from "@/lib/format";
+import { isFiltered, type ListFilters } from "@/lib/list-filters";
 import type { DashboardRecordingRow } from "@/lib/recordings-db";
 import { viewUrlFor } from "@/lib/site";
 
@@ -26,6 +28,7 @@ export type RecordingCardRow = Omit<
 
 type RecordingsListProps = {
   recordings: RecordingCardRow[];
+  filters: ListFilters;
   viewerUserId?: string;
   viewerIsWorkspaceOwner?: boolean;
   allowPublicLinks?: boolean;
@@ -36,6 +39,7 @@ type RecordingsListProps = {
 
 export function RecordingsList({
   recordings,
+  filters,
   viewerUserId,
   viewerIsWorkspaceOwner,
   allowPublicLinks = true,
@@ -46,20 +50,41 @@ export function RecordingsList({
   const manageable = recordings.filter(
     (r) => !viewerUserId || r.userId === viewerUserId || viewerIsWorkspaceOwner,
   );
-  const selection = useSelection(manageable.map((r) => r.slug));
+  const manageableKeys = manageable.map((r) => r.slug);
+  const selection = useSelection(manageableKeys);
+  const toolbar = (
+    <ListToolbar
+      noun="recording"
+      filters={filters}
+      selectAll={
+        manageableKeys.length > 0
+          ? {
+              selected: selection.count,
+              total: manageableKeys.length,
+              onChange: (next) => selection.setAll(manageableKeys, next),
+            }
+          : undefined
+      }
+    />
+  );
 
   if (recordings.length === 0) {
     return (
-      <Card className="mt-6 p-6">
-        <EmptyState className="text-center text-sm text-fg-muted">
-          You haven&rsquo;t created any recording links yet. Record in the
-          CaptureFlow desktop app and your recordings will show up here.
-        </EmptyState>
-      </Card>
+      <>
+        {toolbar}
+        <Card className="mt-6 p-6">
+          <EmptyState className="text-center text-sm text-fg-muted">
+            {isFiltered(filters)
+              ? "No recordings match these filters."
+              : "You haven\u2019t created any recording links yet. Record in the CaptureFlow desktop app and your recordings will show up here."}
+          </EmptyState>
+        </Card>
+      </>
     );
   }
   return (
     <>
+      {toolbar}
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {recordings.map((s) => {
           const isAuthor = !viewerUserId || s.userId === viewerUserId;

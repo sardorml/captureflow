@@ -1,5 +1,11 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import {
+  DEFAULT_LIST_FILTERS,
+  accessParam,
+  orderBySql,
+  type ListFilters,
+} from "@/lib/list-filters";
 import { getAppWebEnv } from "./cf-env";
 
 export type RecordingVisibility = "public" | "workspace" | "private";
@@ -134,24 +140,32 @@ export async function listRecordingsForUser(
 }
 
 // What the viewer may see of a workspace: everything but other members'
-// private recordings. The list and the count must agree on this.
+// private recordings, narrowed to one visibility when ?3 names it. The list
+// and the count must agree on this.
 const VISIBLE_IN_WORKSPACE =
-  "workspace_id = ?1 AND (visibility != 'private' OR user_id = ?2)";
+  "workspace_id = ?1 AND (visibility != 'private' OR user_id = ?2) AND (?3 = '' OR visibility = ?3)";
 
 export async function listRecordingsForWorkspace(
   workspaceId: string,
   viewerUserId: string,
   page: { limit: number; offset: number },
+  filters: ListFilters = DEFAULT_LIST_FILTERS,
 ): Promise<DashboardRecordingRow[]> {
   const db = await getDb();
   const res = await db
     .prepare(
       `SELECT ${COLUMNS_SELECT} FROM recordings
          WHERE ${VISIBLE_IN_WORKSPACE}
-         ORDER BY created_at DESC
-         LIMIT ?3 OFFSET ?4`,
+         ORDER BY ${orderBySql(filters.sort)}
+         LIMIT ?4 OFFSET ?5`,
     )
-    .bind(workspaceId, viewerUserId, page.limit, page.offset)
+    .bind(
+      workspaceId,
+      viewerUserId,
+      accessParam(filters.access),
+      page.limit,
+      page.offset,
+    )
     .all<D1Row>();
   return res.results.map(rowFromD1);
 }
@@ -159,13 +173,14 @@ export async function listRecordingsForWorkspace(
 export async function countRecordingsForWorkspace(
   workspaceId: string,
   viewerUserId: string,
+  filters: ListFilters = DEFAULT_LIST_FILTERS,
 ): Promise<number> {
   const db = await getDb();
   const row = await db
     .prepare(
       `SELECT COUNT(*) AS n FROM recordings WHERE ${VISIBLE_IN_WORKSPACE}`,
     )
-    .bind(workspaceId, viewerUserId)
+    .bind(workspaceId, viewerUserId, accessParam(filters.access))
     .first<{ n: number }>();
   return row?.n ?? 0;
 }

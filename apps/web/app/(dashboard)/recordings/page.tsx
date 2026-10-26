@@ -16,6 +16,7 @@ import {
   pageCount,
   pageOffset,
 } from "@/lib/pagination";
+import { hydrateListFilters } from "@/lib/list-filters";
 import { RecordingsList, type RecordingCardRow } from "../../RecordingsList";
 import { Pager } from "../../_components/Pager";
 import { PageHeader } from "../PageHeader";
@@ -25,7 +26,11 @@ export const dynamic = "force-dynamic";
 export default async function RecordingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string | string[] }>;
+  searchParams: Promise<{
+    page?: string | string[];
+    access?: string | string[];
+    sort?: string | string[];
+  }>;
 }) {
   // Re-check: the layout's session narrowing doesn't cross the segment boundary.
   const session = await requireSession();
@@ -37,16 +42,21 @@ export default async function RecordingsPage({
   const viewingOwnWorkspace = current.role === "owner";
 
   const env = await getAppWebEnv();
+  const params = await searchParams;
+  const filters = hydrateListFilters(params);
   const total = await countRecordingsForWorkspace(
     current.workspace.id,
     session.user.id,
+    filters,
   );
-  const page = hydratePageNumber((await searchParams).page, total);
+  const page = hydratePageNumber(params.page, total);
   const [recordings, members, workspaceRow] = await Promise.all([
-    listRecordingsForWorkspace(current.workspace.id, session.user.id, {
-      limit: PAGE_SIZE,
-      offset: pageOffset(page),
-    }),
+    listRecordingsForWorkspace(
+      current.workspace.id,
+      session.user.id,
+      { limit: PAGE_SIZE, offset: pageOffset(page) },
+      filters,
+    ),
     env?.DB ? listMembers(env.DB, current.workspace.id) : Promise.resolve([]),
     env?.DB
       ? getWorkspaceById(env.DB, current.workspace.id)
@@ -74,6 +84,7 @@ export default async function RecordingsPage({
       <div className="mt-6">
         <RecordingsList
           recordings={cards}
+          filters={filters}
           viewerUserId={session.user.id}
           viewerIsWorkspaceOwner={viewingOwnWorkspace}
           allowPublicLinks={allowPublicLinks}
