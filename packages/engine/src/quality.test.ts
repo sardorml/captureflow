@@ -11,15 +11,19 @@ import {
 const MB = 1024 * 1024;
 
 describe("recording quality", () => {
-  it("defaults to the output contract", () => {
-    const max = RECORDING_QUALITIES[DEFAULT_RECORDING_QUALITY];
+  it("matches the output contract at maximum", () => {
+    const max = RECORDING_QUALITIES.max;
     expect(max.screen.maxWidth).toBe(ENGINE_OUTPUT.screen.maxWidth);
     expect(max.screen.fps).toBe(ENGINE_OUTPUT.screen.fps);
     expect(max.screen.bitrate).toBe(ENGINE_OUTPUT.screen.bitrate);
   });
 
+  it("starts on low", () => {
+    expect(DEFAULT_RECORDING_QUALITY).toBe("low");
+  });
+
   it("hydrates unknown values to the default", () => {
-    expect(hydrateRecordingQuality("low")).toBe("low");
+    expect(hydrateRecordingQuality("high")).toBe("high");
     expect(hydrateRecordingQuality("4k")).toBe(DEFAULT_RECORDING_QUALITY);
     expect(hydrateRecordingQuality(undefined)).toBe(DEFAULT_RECORDING_QUALITY);
   });
