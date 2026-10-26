@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { headers } from "next/headers";
-import { Skeleton } from "@heroui/react";
+import { Button, Skeleton } from "@heroui/react";
 import {
   getActiveGrantedPlan,
   getActiveProSubscription,
@@ -12,6 +12,7 @@ import { readThemePreferenceFromCookieHeader } from "@captureflow/ui/theme";
 import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
 import { SplitLoaded } from "@/components/dev/split-loaded";
 import { SearchTrigger } from "./SearchTrigger";
+import { UpgradeModal } from "./UpgradeModal";
 import { UserMenu } from "./UserMenu";
 
 type Session = Awaited<ReturnType<typeof requireSession>>;
@@ -30,14 +31,21 @@ export async function TopBar({ session }: { session: Session }) {
       {/* ml-auto because below md the search slot is display:none, which leaves
           justify-between a single child to push around. */}
       <div className="ml-auto flex items-center gap-2">
-        <NotificationsMenu />
-        <Suspense
-          fallback={<Skeleton className="h-9 w-9 rounded-full sm:w-36" />}
-        >
+        <Suspense fallback={<AccountSkeleton withUpgrade={!selfHosted} />}>
           <Account session={session} selfHosted={selfHosted} />
         </Suspense>
       </div>
     </div>
+  );
+}
+
+function AccountSkeleton({ withUpgrade }: { withUpgrade: boolean }) {
+  return (
+    <>
+      {withUpgrade && <Skeleton className="h-10 w-[109px] rounded-xl md:h-9" />}
+      <Skeleton className="h-10 w-10 rounded-xl md:h-9 md:w-9" />
+      <Skeleton className="h-9 w-9 rounded-full" />
+    </>
   );
 }
 
@@ -62,21 +70,33 @@ async function Account({
     (await headers()).get("cookie"),
   );
 
+  const isPro = subscription?.status === "active" || grant !== null;
+
   return (
-    <UserMenu
-      themePreference={themePreference}
-      userId={session.user.id}
-      name={session.user.name ?? null}
-      email={session.user.email}
-      imageUrl={userRow?.image ?? null}
-      selfHosted={selfHosted}
-      pro={
-        subscription
-          ? { status: subscription.status }
-          : grant
-            ? { status: "granted" }
-            : null
-      }
-    />
+    <>
+      {!isPro && !selfHosted && (
+        <UpgradeModal
+          email={session.user.email}
+          userId={session.user.id}
+          trigger={<Button variant="primary">Upgrade</Button>}
+        />
+      )}
+      <NotificationsMenu />
+      <UserMenu
+        themePreference={themePreference}
+        userId={session.user.id}
+        name={session.user.name ?? null}
+        email={session.user.email}
+        imageUrl={userRow?.image ?? null}
+        selfHosted={selfHosted}
+        pro={
+          subscription
+            ? { status: subscription.status }
+            : grant
+              ? { status: "granted" }
+              : null
+        }
+      />
+    </>
   );
 }
