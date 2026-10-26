@@ -603,7 +603,7 @@ function failure(err: unknown): RecordingResultPayload {
  */
 const CARD_CAMERA = { diameter: 0.2, left: 0.025, bottom: 0.04 };
 // Matches the card thumbnail the server makes for camera-less recordings.
-const CARD_WIDTH = 640;
+const CARD_WIDTH = 896;
 
 type Poster = { frame: Uint8Array; card: Uint8Array | null };
 
@@ -634,9 +634,10 @@ async function capturePoster(
       );
       const cardContext = cardCanvas.getContext("2d");
       if (cardContext) {
+        cardContext.imageSmoothingQuality = "high";
         cardContext.drawImage(video, 0, 0, cardCanvas.width, cardCanvas.height);
         drawCameraBubble(cardContext, camera);
-        card = await toJpeg(cardCanvas, 0.7);
+        card = await toJpeg(cardCanvas, 0.78);
       }
     }
     return { frame, card };
