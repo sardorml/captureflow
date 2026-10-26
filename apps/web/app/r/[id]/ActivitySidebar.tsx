@@ -223,21 +223,28 @@ export function ActivitySidebar({
   // scrolled up to read history.
   const listRef = useRef<HTMLDivElement | null>(null);
   const stickToBottomRef = useRef(true);
-  // Fades the top edge once older entries sit above the fold.
+  const lastScrollTopRef = useRef(0);
+  // Shades the top edge once older entries sit above the fold.
   const [moreAbove, setMoreAbove] = useState(false);
   const onListScroll = () => {
     const el = listRef.current;
     if (!el) return;
     stickToBottomRef.current =
       el.scrollHeight - el.scrollTop - el.clientHeight < 64;
+    lastScrollTopRef.current = el.scrollTop;
     setMoreAbove(el.scrollTop > 8);
   };
+  // Also on the tab, since the panel remounts each time it is shown and would
+  // otherwise come back scrolled to the oldest entry.
   useEffect(() => {
+    if (tab !== "activity") return;
     const el = listRef.current;
     if (!el) return;
-    if (stickToBottomRef.current) el.scrollTop = el.scrollHeight;
+    el.scrollTop = stickToBottomRef.current
+      ? el.scrollHeight
+      : lastScrollTopRef.current;
     setMoreAbove(el.scrollTop > 8);
-  }, [entries.length]);
+  }, [entries.length, tab]);
 
   // No useMemo: a manual memo over `reactions` (rebuilt every render via
   // mergeReactions) trips react-hooks/preserve-manual-memoization.
@@ -407,15 +414,21 @@ export function ActivitySidebar({
           </Tabs.ListContainer>
         </header>
 
-        <Tabs.Panel id="activity" className="flex min-h-0 flex-1 flex-col p-0">
+        <Tabs.Panel
+          id="activity"
+          className="relative flex min-h-0 flex-1 flex-col p-0"
+        >
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-x-0 top-0 z-10 h-12 bg-gradient-to-b from-black/[0.08] to-transparent transition-opacity dark:from-black/40",
+              moreAbove ? "opacity-100" : "opacity-0",
+            )}
+          />
           <div
             ref={listRef}
             onScroll={onListScroll}
-            className={cn(
-              "flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto lg:px-6",
-              moreAbove &&
-                "[mask-image:linear-gradient(to_bottom,transparent,black_3rem)]",
-            )}
+            className="flex-1 px-5 py-4 lg:min-h-0 lg:overflow-y-auto lg:px-6"
           >
             {entries.length === 0 ? (
               <EmptyState
