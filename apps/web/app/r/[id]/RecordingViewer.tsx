@@ -23,7 +23,7 @@ import { useEditorConfig } from "@/app/recordings/[id]/edit/use-editor-config";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
 import { ActivitySidebar } from "./ActivitySidebar";
-import { EditableTitle } from "./EditableTitle";
+import { EditableTitle } from "@/app/_components/EditableTitle";
 import { SummaryChapters } from "./SummaryChapters";
 import { ViewCount } from "./ViewCount";
 import { TranscriptPanel } from "./TranscriptPanel";
