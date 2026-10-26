@@ -4,7 +4,7 @@ import { RecordButton } from "./RecordButton";
 
 type Props = {
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   actions?: ReactNode;
   showRecord?: boolean;
 };
