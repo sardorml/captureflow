@@ -38,6 +38,9 @@ export default async function RecordingEditPage({
   } = resolveTranscript(transcriptRow);
 
   const videoUrl = `${CDN_BASE_URL}/${recording.storageKey}?v=${recording.sizeBytes}`;
+  const posterUrl = recording.posterKey
+    ? `${CDN_BASE_URL}/${recording.posterKey}?v=${recording.sizeBytes}`
+    : undefined;
   const webcamUrl =
     recording.webcamStorageKey && recording.webcamState === "ready"
       ? `${CDN_BASE_URL}/${recording.webcamStorageKey}?v=${recording.webcamSizeBytes}`
@@ -51,6 +54,8 @@ export default async function RecordingEditPage({
       slug={recording.slug}
       initialTitle={recording.title}
       videoUrl={videoUrl}
+      posterUrl={posterUrl}
+      posterBlur={recording.posterBlur}
       webcamUrl={webcamUrl}
       viewUrl={viewUrl}
       width={recording.width}

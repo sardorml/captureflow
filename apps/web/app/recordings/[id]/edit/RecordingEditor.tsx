@@ -12,11 +12,14 @@ import type {
   RecordingTranscript,
   TranscriptStatus,
 } from "@/lib/recording/types";
+import { EditorSkeleton } from "./EditorSkeleton";
 
 export type RecordingEditorProps = {
   slug: string;
   initialTitle: string | null;
   videoUrl: string;
+  posterUrl?: string;
+  posterBlur?: string | null;
   webcamUrl: string | null;
   viewUrl: string;
   width: number | null;
