@@ -24,17 +24,18 @@ export default async function RecordingEditPage({
   if (!recording) notFound();
 
   const initialConfig = parseRecordingConfigJson(recording.configJson);
+  const env = await getAppWebEnv();
+  const [transcriptRow, workspaceRow] = await Promise.all([
+    getTranscript(id),
+    env?.DB && recording.workspaceId
+      ? getWorkspaceById(env.DB, recording.workspaceId)
+      : null,
+  ]);
   const {
     transcript,
     hasEdits,
     status: transcriptStatus,
-  } = resolveTranscript(await getTranscript(id));
-
-  const env = await getAppWebEnv();
-  const workspaceRow =
-    env?.DB && recording.workspaceId
-      ? await getWorkspaceById(env.DB, recording.workspaceId)
-      : null;
+  } = resolveTranscript(transcriptRow);
 
   const videoUrl = `${CDN_BASE_URL}/${recording.storageKey}?v=${recording.sizeBytes}`;
   const webcamUrl =

@@ -194,7 +194,9 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
       <EditorTimeline
         playerRef={playerRef}
         videoUrl={videoUrl}
+        webcamUrl={webcamUrl}
         durationMs={durationMs}
+        sizeBytes={sizeBytes}
         cuts={config.cuts}
         selection={selectionSpan}
         onSelectSpan={setSelectionSpan}
