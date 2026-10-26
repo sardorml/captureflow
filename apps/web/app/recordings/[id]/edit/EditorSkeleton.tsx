@@ -5,14 +5,10 @@ import { PosterLayer } from "@/app/_components/recording/PosterLayer";
 
 // Stands in for the editor while its chunk loads: the same bar, stage,
 // inspector and timeline, with the poster already on the stage, so the page
-// settles into place instead of swapping a spinner for the whole layout.
-export function EditorSkeleton({
-  posterUrl,
-  posterBlur,
-}: {
-  posterUrl?: string;
-  posterBlur?: string | null;
-}) {
+// settles into place instead of swapping a spinner for the whole layout. No
+// blur behind the poster: the stage is wider than the video, and the blur
+// would smear past the frame's edges.
+export function EditorSkeleton({ posterUrl }: { posterUrl?: string }) {
   return (
     <div
       role="status"
@@ -35,9 +31,7 @@ export function EditorSkeleton({
 
       <div className="flex min-h-0 flex-1">
         <section className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-neutral-950">
-          {posterUrl ? (
-            <PosterLayer posterUrl={posterUrl} posterBlur={posterBlur} />
-          ) : null}
+          {posterUrl ? <PosterLayer posterUrl={posterUrl} /> : null}
           <div className="absolute inset-x-0 bottom-0 flex h-14 items-center gap-3 bg-black/60 px-4">
             <Skeleton className="size-6 rounded-full bg-white/20" />
             <Skeleton className="size-6 rounded-full bg-white/20" />

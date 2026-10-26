@@ -19,7 +19,6 @@ export type RecordingEditorProps = {
   initialTitle: string | null;
   videoUrl: string;
   posterUrl?: string;
-  posterBlur?: string | null;
   webcamUrl: string | null;
   viewUrl: string;
   width: number | null;
@@ -41,7 +40,7 @@ export type RecordingEditorProps = {
 
 const RECORDING_API = "/r";
 
-type SkeletonProps = Pick<RecordingEditorProps, "posterUrl" | "posterBlur">;
+type SkeletonProps = Pick<RecordingEditorProps, "posterUrl">;
 
 // dynamic()'s loading component gets no props, so the skeleton reads the
 // poster from context.
@@ -100,9 +99,7 @@ export function RecordingEditor(props: RecordingEditorProps) {
   if (state === "pending") return <PreparingRecording />;
   if (state === "failed") return <RecordingFailed />;
   return (
-    <SkeletonContext.Provider
-      value={{ posterUrl: props.posterUrl, posterBlur: props.posterBlur }}
-    >
+    <SkeletonContext.Provider value={{ posterUrl: props.posterUrl }}>
       <div data-split="recording-editor" className="contents">
         <RecordingEditorImpl {...props} />
       </div>

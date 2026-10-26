@@ -23,7 +23,6 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     initialTitle,
     videoUrl,
     posterUrl,
-    posterBlur,
     webcamUrl,
     viewUrl,
     width,
@@ -153,7 +152,6 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
             ref={playerRef}
             videoUrl={videoUrl}
             posterUrl={posterUrl}
-            posterBlur={posterBlur}
             webcamUrl={webcamUrl ?? undefined}
             serverDurationMs={durationMs}
             serverWidth={width}

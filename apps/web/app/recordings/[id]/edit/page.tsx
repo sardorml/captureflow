@@ -55,7 +55,6 @@ export default async function RecordingEditPage({
       initialTitle={recording.title}
       videoUrl={videoUrl}
       posterUrl={posterUrl}
-      posterBlur={recording.posterBlur}
       webcamUrl={webcamUrl}
       viewUrl={viewUrl}
       width={recording.width}
