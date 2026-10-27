@@ -553,7 +553,7 @@ export const MESSAGES = {
     whyUs: {
       heading: "Why choose us",
       subtitle:
-        "A leading competitor's free and AI tiers beside ours, priced for the team size you set above.",
+        "A leading competitor's plans beside ours, priced for your team size.",
       rows: {
         perMember: "Per member, a month",
         team: "Your team of {seats}",
