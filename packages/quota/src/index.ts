@@ -42,6 +42,7 @@ export type {
   WorkspaceSubscriptionUpsert,
 } from "./workspace-subscription";
 export { getWorkspaceEntitlement } from "./entitlement";
+export { failingTables } from "./health";
 export {
   applyDueDowngrades,
   cancelMemberDowngrade,

@@ -91,16 +91,25 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Apply any new D1 migrations to the production database BEFORE the new
-      # worker goes live, so the schema is ready when traffic hits it. Runs
-      # non-interactively in CI. Remove this step if you'd rather gate schema
-      # changes manually.
+      # Build first, so the old worker serves the new schema for seconds (the
+      # upload), not for the length of a build. Migrations must stay additive;
+      # the build job's migration check enforces that. Never apply them by hand.
+      - name: Build worker
+        run: pnpm --filter @captureflow/web cf:build
       - name: Apply D1 migrations (production)
         run: pnpm --filter @captureflow/web db:apply:remote
-      # OpenNext build → publish. Bindings (D1/R2), vars, and cron triggers come
-      # from apps/web/wrangler.jsonc.
-      - name: Build & deploy worker
-        run: pnpm --filter @captureflow/web cf:deploy
+      # Bindings (D1/R2), vars, and cron triggers come from apps/web/wrangler.jsonc.
+      - name: Upload worker
+        id: upload
+        run: pnpm --filter @captureflow/web cf:upload
+      - name: Smoke test
+        run: node scripts/smoke.mjs https://captureflow.dev
+      # A rollback restores the previous code only; migrations stay applied,
+      # which is safe because they are additive.
+      - name: Roll back on failed smoke test
+        if: failure() && steps.upload.outcome == 'success'
+        working-directory: apps/web
+        run: npx wrangler rollback --yes --message "Smoke test failed for ${{ github.sha }}"
 
   # The operator panel (apps/admin) is its own Worker on admin.captureflow.dev.
   # It needs `deploy` first, not just `build`: it binds the same D1 as the web
