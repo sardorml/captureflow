@@ -18,6 +18,8 @@ import {
   setCameraBlocked,
   setCapturePrefs,
   setRecordingStatus,
+  getRememberedLimits,
+  setRememberedLimits,
 } from "@/lib/storage";
 import { LIVE_KINDS } from "@/lib/capture/status";
 import {
@@ -26,6 +28,7 @@ import {
 } from "@/lib/api/client";
 import {
   clampQuality,
+  resolveRecordingLimits,
   type RecordingLimits,
 } from "@/lib/capture/quality-limits";
 import { hydrateRecordingQuality } from "@captureflow/engine";
@@ -75,7 +78,7 @@ import {
 const LIMITS_TTL_MS = 60_000;
 let limitsCache: {
   token: string;
-  limits: RecordingLimits | null;
+  limits: RecordingLimits;
   readAt: number;
 } | null = null;
 
@@ -88,14 +91,24 @@ async function readRecordingLimits(): Promise<RecordingLimits | null> {
   const now = Date.now();
   if (
     limitsCache?.token === session.token &&
-    limitsCache.limits !== null &&
     now - limitsCache.readAt < LIMITS_TTL_MS
   ) {
     return limitsCache.limits;
   }
-  const limits = await fetchRecordingLimits(await getDeviceId(), session.token);
-  limitsCache = { token: session.token, limits, readAt: now };
-  return limits;
+  const fetched = await fetchRecordingLimits(
+    await getDeviceId(),
+    session.token,
+  );
+  if (fetched) {
+    limitsCache = { token: session.token, limits: fetched, readAt: now };
+    await setRememberedLimits({ token: session.token, limits: fetched });
+    return fetched;
+  }
+  const remembered = await getRememberedLimits();
+  return resolveRecordingLimits(
+    null,
+    remembered?.token === session.token ? remembered.limits : null,
+  );
 }
 
 // Everything the extension puts on a page, hidden together for a capture.
@@ -774,8 +787,8 @@ export default defineBackground(() => {
       if (!session) return { ok: false, error: "Sign in to record." };
       const deviceId = await getDeviceId();
       const prefs = await getCapturePrefs();
-      // A free workspace records at its cap whatever the panel last saved;
-      // an unreachable server leaves the choice to init's own check.
+      // A capped workspace records at its cap whatever the panel last saved;
+      // an unreachable server falls back to the last caps it reported.
       const limits = await readRecordingLimits();
       const quality = clampQuality(
         hydrateRecordingQuality(prefs.quality),
