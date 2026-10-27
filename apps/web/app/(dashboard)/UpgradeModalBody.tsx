@@ -1,8 +1,8 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import { Check, Sparkle } from "lucide-react";
-import { Avatar, Checkbox, Label, Modal } from "@heroui/react";
+import { Check, ChevronDown, Sparkle, Users } from "lucide-react";
+import { Avatar, Button, Checkbox, Label, Modal, Popover } from "@heroui/react";
 import {
   RECOMMENDED_SEAT_PLAN_ID,
   SEAT_PLANS,
@@ -123,88 +123,113 @@ export function UpgradeModalBody({
           >
             <Modal.CloseTrigger />
             <Modal.Body className="p-6">
-              <div className="grid gap-5 pe-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-start">
-                <div className="flex flex-col items-start gap-4">
-                  <Modal.Heading className="text-2xl font-bold tracking-[-0.02em] text-fg">
-                    Upgrade {seat.workspaceName}
-                  </Modal.Heading>
-                  <div
-                    role="radiogroup"
-                    aria-label="Billing cycle"
-                    className="grid grid-cols-2 gap-1 rounded-full bg-tint p-1"
+              <Modal.Heading className="pe-8 text-2xl font-bold tracking-[-0.02em] text-fg">
+                Upgrade {seat.workspaceName}
+              </Modal.Heading>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <div
+                  role="radiogroup"
+                  aria-label="Billing cycle"
+                  className="grid grid-cols-2 gap-1 rounded-full bg-tint p-1"
+                >
+                  {CYCLES.map((c) => {
+                    const isOn = c.key === cycle;
+                    return (
+                      <button
+                        key={c.key}
+                        type="button"
+                        role="radio"
+                        aria-checked={isOn}
+                        onClick={() => setCycle(c.key)}
+                        className={cn(
+                          "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
+                          isOn
+                            ? "bg-panel text-fg shadow-sm"
+                            : "text-fg-muted hover:text-fg",
+                        )}
+                      >
+                        {c.label}
+                        {c.key === "annual" ? (
+                          <span className="ms-1.5 text-xs text-accent">
+                            save {SEAT_ANNUAL_SAVING_PERCENT}%
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+                <Popover>
+                  <Popover.Trigger className="inline-flex">
+                    <Button
+                      variant="secondary"
+                      className="h-10 rounded-full px-4 text-sm font-medium"
+                    >
+                      <Users size={15} />
+                      {seats} paid {seats === 1 ? "seat" : "seats"}
+                      {viewers > 0 ? (
+                        <span className="text-fg-muted">
+                          · {viewers} free{" "}
+                          {viewers === 1 ? "viewer" : "viewers"}
+                        </span>
+                      ) : null}
+                      <ChevronDown size={15} className="text-fg-muted" />
+                    </Button>
+                  </Popover.Trigger>
+                  <Popover.Content
+                    placement="bottom start"
+                    className="w-96 p-0"
                   >
-                    {CYCLES.map((c) => {
-                      const isOn = c.key === cycle;
-                      return (
-                        <button
-                          key={c.key}
-                          type="button"
-                          role="radio"
-                          aria-checked={isOn}
-                          onClick={() => setCycle(c.key)}
-                          className={cn(
-                            "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
-                            isOn
-                              ? "bg-panel text-fg shadow-sm"
-                              : "text-fg-muted hover:text-fg",
-                          )}
-                        >
-                          {c.label}
-                          {c.key === "annual" ? (
-                            <span className="ms-1.5 text-xs text-accent">
-                              save {SEAT_ANNUAL_SAVING_PERCENT}%
-                            </span>
-                          ) : null}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-sm font-semibold text-fg">
-                      Who gets a paid seat
-                    </p>
-                    <span className="text-xs text-fg-muted tabular-nums">
-                      {seats} of {people.length} selected
-                    </span>
-                  </div>
-                  <p className="mt-0.5 text-xs leading-snug text-fg-muted">
-                    Ticked people record and are billed. Everyone else is a free
-                    viewer who can watch, comment and react, but can&apos;t
-                    record.
-                  </p>
-                  {canManage && assignable.length > 1 ? (
-                    <div className="mt-2 flex gap-3 text-xs font-medium">
-                      <button
-                        type="button"
-                        onClick={() => setAll("member")}
-                        className="cursor-pointer text-accent hover:underline"
-                      >
-                        Select all
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAll("viewer")}
-                        className="cursor-pointer text-fg-muted hover:text-fg hover:underline"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  ) : null}
-                  <ul className="mt-2 max-h-[200px] divide-y divide-line overflow-y-auto rounded-xl border border-line">
-                    {people.map((p) => (
-                      <PersonRow
-                        key={p.userId}
-                        person={p}
-                        isSelf={p.userId === userId}
-                        editable={canManage && p.role !== "owner"}
-                        onRole={(role) => setRole(p.userId, role)}
-                      />
-                    ))}
-                  </ul>
-                </div>
+                    <Popover.Dialog
+                      aria-label="Who gets a paid seat"
+                      className="p-3 outline-none"
+                    >
+                      <div className="flex items-baseline justify-between gap-3 px-1">
+                        <p className="text-sm font-semibold text-fg">
+                          Who gets a paid seat
+                        </p>
+                        <span className="text-xs text-fg-muted tabular-nums">
+                          {seats} of {people.length}
+                        </span>
+                      </div>
+                      <div className="px-1">
+                        <p className="mt-0.5 text-xs leading-snug text-fg-muted">
+                          Ticked people record and are billed. Everyone else is
+                          a free viewer who can watch, comment and react, but
+                          can&apos;t record.
+                        </p>
+                        {canManage && assignable.length > 1 ? (
+                          <div className="mt-2 flex gap-3 text-xs font-medium">
+                            <button
+                              type="button"
+                              onClick={() => setAll("member")}
+                              className="cursor-pointer text-accent hover:underline"
+                            >
+                              Select all
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setAll("viewer")}
+                              className="cursor-pointer text-fg-muted hover:text-fg hover:underline"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                      <ul className="mt-2 max-h-72 divide-y divide-line overflow-y-auto rounded-xl border border-line">
+                        {people.map((p) => (
+                          <PersonRow
+                            key={p.userId}
+                            person={p}
+                            isSelf={p.userId === userId}
+                            editable={canManage && p.role !== "owner"}
+                            onRole={(role) => setRole(p.userId, role)}
+                          />
+                        ))}
+                      </ul>
+                    </Popover.Dialog>
+                  </Popover.Content>
+                </Popover>
               </div>
 
               <div className="mt-5 grid gap-3 md:grid-cols-2">
@@ -366,7 +391,7 @@ function PersonRow({
             )}
           >
             {person.role === "owner"
-              ? `${ROLE_LABEL[person.role]} · paid seat`
+              ? ROLE_LABEL[person.role]
               : seated
                 ? "Paid seat"
                 : "Viewer"}
