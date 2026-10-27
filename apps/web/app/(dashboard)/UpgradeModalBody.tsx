@@ -27,7 +27,6 @@ import { cn } from "@/lib/utils";
 import { ROLE_LABEL } from "@/lib/workspace/labels";
 import { changeMemberRoleAction } from "./members/actions";
 
-const includes = MESSAGES.pricing.includes;
 const PLAN_COPY = MESSAGES.pricing.plans;
 
 const CYCLES: { key: SeatCycle; label: string }[] = [
@@ -80,6 +79,7 @@ export function UpgradeModalBody({
   const perSeat =
     cycle === "annual" ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
   const total = seatPriceUsd(seats, cycle, planId);
+  const planCopy = PLAN_COPY[planId];
   const checkoutBase = seat.checkoutUrls[planId][cycle];
   const href = checkoutBase
     ? seatCheckoutUrl({
@@ -130,12 +130,6 @@ export function UpgradeModalBody({
                 <Modal.Heading className="text-2xl font-bold tracking-[-0.02em] text-fg">
                   Upgrade {seat.workspaceName}
                 </Modal.Heading>
-                <p className="mt-1 text-sm text-fg-muted">
-                  {canManage
-                    ? "Choose who gets a seat. Members record; viewers watch and comment for free."
-                    : "Members record and take a seat; viewers watch and comment for free."}
-                </p>
-
                 <ul className="mt-5 divide-y divide-line overflow-hidden rounded-2xl border border-line">
                   {people.map((p) => (
                     <PersonRow
@@ -147,28 +141,13 @@ export function UpgradeModalBody({
                     />
                   ))}
                 </ul>
-
-                <p className="mt-6 text-sm font-semibold text-fg">
-                  {includes.heading}
-                </p>
-                <ul className="mt-3 grid list-none gap-x-6 gap-y-2 sm:grid-cols-2">
-                  {includes.items.map((label) => (
-                    <li
-                      key={label}
-                      className="flex items-center gap-2 text-sm text-fg"
-                    >
-                      <Check size={14} className="shrink-0 text-accent" />
-                      {label}
-                    </li>
-                  ))}
-                </ul>
               </div>
 
               <div className="p-2 md:pl-0">
                 <div
-                  className={cn("h-full rounded-[22px] p-0.5", GRADIENT_BORDER)}
+                  className={cn("h-full rounded-[28px] p-0.5", GRADIENT_BORDER)}
                 >
-                  <div className="flex h-full flex-col rounded-[20px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))] p-6 text-fg">
+                  <div className="flex h-full flex-col rounded-[26px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))] p-6 text-fg">
                     <div
                       role="radiogroup"
                       aria-label="Plan"
@@ -206,8 +185,8 @@ export function UpgradeModalBody({
                         );
                       })}
                     </div>
-                    <p className="mt-3 text-sm text-fg-muted">
-                      {PLAN_COPY[planId].description}
+                    <p className="mt-3 min-h-12 text-[15px] leading-relaxed text-fg-muted">
+                      {planCopy.description}
                     </p>
 
                     <div
@@ -242,59 +221,58 @@ export function UpgradeModalBody({
                       })}
                     </div>
 
-                    <dl className="mt-5 grid gap-2 text-sm">
-                      <div className="flex items-center justify-between gap-3">
-                        <dt className="text-fg-muted">
-                          {seats} {seats === 1 ? "seat" : "seats"} × ${perSeat}
-                        </dt>
-                        <dd className="font-medium tabular-nums">
-                          ${total}/mo
-                        </dd>
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <dt className="text-fg-muted">
-                          {viewers} {viewers === 1 ? "viewer" : "viewers"}
-                        </dt>
-                        <dd className="font-medium tabular-nums">Free</dd>
-                      </div>
-                    </dl>
-
-                    <p className="mt-5 border-t border-line pt-5 text-4xl font-bold tracking-[-0.02em]">
+                    <p className="mt-6 text-4xl font-bold tracking-[-0.03em]">
                       <span
                         key={`${planId}-${cycle}-${total}`}
                         className="animate-storage-pop inline-block"
                       >
                         ${total}
                       </span>
-                      <span className="ms-1 align-baseline text-base font-normal text-fg-muted">
-                        /month
+                      <span className="ms-2 align-baseline text-sm font-normal text-fg-muted">
+                        per month
                       </span>
                     </p>
-                    <p className="mt-1.5 text-sm text-fg-muted">
-                      {cycle === "annual"
-                        ? "Billed yearly."
-                        : "Billed monthly."}{" "}
-                      Adding a member adds a seat; removing one drops it at
-                      renewal.
+                    <p className="mt-1 text-sm text-fg-muted">
+                      {seats} {seats === 1 ? "seat" : "seats"} × ${perSeat}
+                      {viewers > 0
+                        ? `, ${viewers} ${viewers === 1 ? "viewer" : "viewers"} free`
+                        : ""}
+                      {cycle === "annual" ? ", billed yearly" : ""}
                     </p>
 
-                    <div className="mt-auto pt-6">
-                      {href ? (
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={handleCheckoutClick}
-                          className="flex h-11 w-full items-center justify-center rounded-full bg-accent text-sm font-semibold text-white transition-colors hover:bg-accent/90 motion-reduce:transition-none"
+                    {href ? (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={handleCheckoutClick}
+                        className="mt-6 inline-flex h-11 w-fit items-center justify-center rounded-full bg-accent px-6 text-sm font-semibold text-white transition-colors hover:bg-accent/90 motion-reduce:transition-none"
+                      >
+                        Upgrade to {plan.name}
+                      </a>
+                    ) : (
+                      <span className="mt-6 inline-flex h-11 w-fit items-center justify-center rounded-full bg-accent/10 px-6 text-sm font-medium text-fg-muted">
+                        Checkout not configured
+                      </span>
+                    )}
+
+                    <p className="mt-8 text-sm font-semibold">
+                      {planCopy.featuresHeading}
+                    </p>
+                    <ul className="mt-3 flex list-none flex-col gap-2.5">
+                      {planCopy.features.map((label) => (
+                        <li
+                          key={label}
+                          className="flex items-start gap-2.5 text-[15px]"
                         >
-                          Upgrade for ${total}/month
-                        </a>
-                      ) : (
-                        <span className="flex h-11 w-full items-center justify-center rounded-full bg-accent/10 text-sm font-medium text-fg-muted">
-                          Checkout not configured
-                        </span>
-                      )}
-                    </div>
+                          <Check
+                            size={16}
+                            className="mt-1 shrink-0 text-fg-muted"
+                          />
+                          <span>{label}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
