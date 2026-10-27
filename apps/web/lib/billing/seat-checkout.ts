@@ -1,8 +1,19 @@
+import type { WorkspaceRole } from "@captureflow/quota";
+
+export type SeatPerson = {
+  userId: string;
+  name: string;
+  email: string;
+  image: string | null;
+  role: WorkspaceRole;
+};
+
 // Client-safe: what the upgrade dialog needs to sell seats for one workspace.
 export type SeatOffer = {
   workspaceId: string;
   workspaceName: string;
   memberCount: number;
+  people: SeatPerson[];
   // Null until NEXT_PUBLIC_LEMON_SEAT_CHECKOUT_URL is set; the dialog then
   // shows the price without a working button.
   checkoutUrl: string | null;

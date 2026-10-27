@@ -9,6 +9,7 @@ import {
   type LoomPlan,
 } from "@/lib/marketing/loom-comparison";
 import { cn } from "@/lib/utils";
+import { OURS_BG } from "./compare-table";
 import { useMessages } from "./i18n-provider";
 
 export const usd = (n: number) =>
@@ -40,28 +41,32 @@ export function PriceBreakdown({
       .replace("{savings}", savings);
 
   return (
-    <div className={cn("rounded-xl bg-canvas px-4 pt-1 pb-4", className)}>
-      <CostRow
-        label={fill(copy.loomRow)}
-        detail={fill(copy.loomDetail)}
-        monthly={loom}
-      />
-      <CostRow
-        label={fill(copy.captureflowRow)}
-        detail={fill(copy.captureflowDetail)}
-        monthly={getCaptureflowMonthly(seats)}
-        isOurs
-      />
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg bg-success/15 px-4 py-3 text-success">
-        <span className="text-[15px] font-medium">{copy.saveLabel}</span>
-        <span
-          key={savings}
-          className="animate-storage-pop inline-block text-xl font-bold tracking-[-0.01em] whitespace-nowrap tabular-nums sm:text-2xl"
-        >
-          {fill(copy.saveValue)}
-        </span>
+    <div className={className}>
+      <div className="overflow-hidden rounded-2xl border border-line bg-panel">
+        <CostRow
+          label={fill(copy.loomRow)}
+          detail={fill(copy.loomDetail)}
+          monthly={loom}
+        />
+        <CostRow
+          label={fill(copy.captureflowRow)}
+          detail={fill(copy.captureflowDetail)}
+          monthly={getCaptureflowMonthly(seats)}
+          isOurs
+        />
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line px-6 py-4">
+          <span className="text-[15px] font-semibold text-fg">
+            {copy.saveLabel}
+          </span>
+          <span
+            key={savings}
+            className="animate-storage-pop inline-block text-2xl font-bold tracking-[-0.02em] whitespace-nowrap text-accent tabular-nums"
+          >
+            {fill(copy.saveValue)}
+          </span>
+        </div>
       </div>
-      <p className="mt-2 text-xs text-fg-subtle">{fill(copy.caption)}</p>
+      <p className="mt-3 text-sm text-fg-muted">{fill(copy.caption)}</p>
     </div>
   );
 }
@@ -80,31 +85,32 @@ function CostRow({
   return (
     <div
       className={cn(
-        "flex items-center justify-between gap-3 py-3",
-        !isOurs && "border-b border-line",
+        "flex items-center justify-between gap-4 px-6 py-4",
+        isOurs ? cn("border-t border-line", OURS_BG) : "",
       )}
     >
-      <div>
+      <div className="min-w-0">
         <p
           className={cn(
-            "text-[15px]",
-            isOurs ? "font-semibold text-fg" : "font-medium text-fg/80",
+            "text-[15px] font-semibold",
+            isOurs ? "text-fg" : "text-fg-muted",
           )}
         >
           {label}
         </p>
         <p className="mt-0.5 text-sm text-fg-muted">{detail}</p>
       </div>
-      <span className="flex items-baseline">
+      <span className="flex shrink-0 items-baseline">
         <span
+          key={monthly}
           className={cn(
-            "text-xl font-bold tracking-[-0.01em] tabular-nums sm:text-2xl",
-            isOurs ? "text-fg" : "text-fg/60 line-through decoration-2",
+            "animate-storage-pop inline-block text-2xl font-bold tracking-[-0.02em] tabular-nums",
+            isOurs ? "text-fg" : "text-fg-muted line-through decoration-2",
           )}
         >
           {usd(monthly)}
         </span>
-        <span className="ms-0.5 text-sm font-medium text-fg-muted">/mo</span>
+        <span className="ms-1 text-sm font-medium text-fg-muted">/mo</span>
       </span>
     </div>
   );

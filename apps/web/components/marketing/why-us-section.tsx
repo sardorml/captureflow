@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Check, Sparkle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { FREE_TIER } from "@captureflow/quota";
 import {
   CAPTUREFLOW_PER_SEAT,
@@ -15,8 +15,13 @@ import { track } from "@/lib/marketing/track";
 import { PRODUCT_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { SectionHeading, type SectionProps } from "./_shared";
+import {
+  CompareCell,
+  OURS_BG,
+  OursChip,
+  type CompareValue,
+} from "./compare-table";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
-import { GRADIENT_BORDER } from "./plan-cards";
 import { usd } from "./price-breakdown";
 
 const THEIR_PLAN = "businessAi";
@@ -25,10 +30,10 @@ const GRID =
 const WIDE =
   "relative left-1/2 w-[min(calc(100vw-48px),1240px)] -translate-x-1/2";
 
-type Cell = string | boolean;
-type Row = { label: string; cells: [Cell, Cell, Cell, Cell] };
-
-const OURS_BG = "bg-[color-mix(in_oklab,var(--accent)_6%,var(--cf-panel))]";
+type Row = {
+  label: string;
+  cells: [CompareValue, CompareValue, CompareValue, CompareValue];
+};
 
 // Their free and AI tiers beside ours, priced for the team size chosen in
 // the pricing controls, laid out like the plan table.
@@ -125,12 +130,7 @@ export function WhyUsSection({
                 )}
               >
                 {column.paid ? (
-                  <span className={cn("rounded-xl p-0.5", GRADIENT_BORDER)}>
-                    <span className="flex items-center gap-1 rounded-[10px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))] px-3 py-1.5 whitespace-nowrap">
-                      {column.name}
-                      <Sparkle size={12} className="shrink-0 fill-current" />
-                    </span>
-                  </span>
+                  <OursChip>{column.name}</OursChip>
                 ) : (
                   <span className={cn(!column.ours && "text-fg-muted")}>
                     {column.name}
@@ -144,7 +144,7 @@ export function WhyUsSection({
                   {row.label}
                 </div>
                 {row.cells.map((cell, i) => (
-                  <TableCell
+                  <CompareCell
                     key={i}
                     value={cell}
                     ours={columns[i].ours}
@@ -171,39 +171,6 @@ export function WhyUsSection({
           />
         </Link>
       </div>
-    </div>
-  );
-}
-
-function TableCell({
-  value,
-  ours = false,
-  pop = false,
-}: {
-  value: Cell;
-  ours?: boolean;
-  pop?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex items-center justify-center border-t border-l border-line px-3 py-3.5 text-center text-[15px] text-fg tabular-nums",
-        ours ? OURS_BG : value === false && "bg-tint/40",
-        ours && value === false && "opacity-60",
-      )}
-    >
-      {value === true ? (
-        <span className="flex size-5 items-center justify-center rounded-full bg-accent text-white">
-          <Check size={12} strokeWidth={3} />
-        </span>
-      ) : value === false ? null : (
-        <span
-          key={value}
-          className={cn(pop && "animate-storage-pop inline-block")}
-        >
-          {value}
-        </span>
-      )}
     </div>
   );
 }

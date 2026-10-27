@@ -4,6 +4,7 @@ import {
   getActiveWorkspaceSubscription,
   getWorkspaceEntitlement,
   isSelfHosted,
+  listMembers,
   setSubscriptionItemQuantity,
   setWorkspaceSubscriptionQuantity,
   totalStorageForWorkspace,
@@ -40,15 +41,22 @@ export async function getWorkspaceSeatContext(workspace: {
       totalStorageForWorkspace(env.DB, workspace.id),
     ]);
   const viewerCount = Math.max(0, everyone - memberCount);
-  const offer: SeatOffer | null =
-    selfHosted || subscription || entitlement.tier === "team"
-      ? null
-      : {
-          workspaceId: workspace.id,
-          workspaceName: workspace.name,
-          memberCount,
-          checkoutUrl: seatCheckoutBase(),
-        };
+  const sellable = !selfHosted && !subscription && entitlement.tier !== "team";
+  const offer: SeatOffer | null = sellable
+    ? {
+        workspaceId: workspace.id,
+        workspaceName: workspace.name,
+        memberCount,
+        people: (await listMembers(env.DB, workspace.id)).map((m) => ({
+          userId: m.user_id,
+          name: m.name,
+          email: m.email,
+          image: m.image,
+          role: m.role,
+        })),
+        checkoutUrl: seatCheckoutBase(),
+      }
+    : null;
   return {
     entitlement,
     subscription,

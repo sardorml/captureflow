@@ -113,8 +113,8 @@ export async function changeMemberRoleAction(
     userId,
     role: hydrateAssignableRole(formData.get("role")),
   });
-  revalidatePath("/members");
-  revalidatePath("/billing");
+  // The upgrade dialog in the top bar and sidebar shows the seats too.
+  revalidatePath("/", "layout");
 }
 
 export async function leaveWorkspaceAction(): Promise<void> {

@@ -1,27 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Minus } from "lucide-react";
-import { Label, Slider } from "@heroui/react";
+import { Check } from "lucide-react";
+import { SEAT_PLAN } from "@captureflow/quota";
 import {
   CAPTUREFLOW_PER_SEAT,
+  LOOM_BRAND,
   LOOM_PLANS,
   LOOM_PRICES_CHECKED,
   LOOM_PRICING_URL,
   type LoomPlan,
 } from "@/lib/marketing/loom-comparison";
+import { PRODUCT_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { MarketingSection, SectionHeading } from "./_shared";
 import {
-  MarketingSection,
-  SECTION_SUBTITLE_STYLE,
-  SECTION_TITLE_STYLE,
-} from "./_shared";
-import { Paragraph, Title } from "./typography";
+  CompareCell,
+  OURS_BG,
+  OursChip,
+  type CompareValue,
+} from "./compare-table";
+import { GRADIENT_BORDER } from "./plan-cards";
 import { PriceBreakdown } from "./price-breakdown";
+import { RadioChoice, SeatsField } from "./pricing-fields";
 
-type Cell = boolean | string;
+const DEFAULT_SEATS = 10;
+const GRID = "grid-cols-[minmax(150px,1.1fr)_repeat(2,minmax(160px,1fr))]";
 
-const ROWS: ReadonlyArray<{ label: string; loom: Cell; captureflow: Cell }> = [
+const ROWS: ReadonlyArray<{
+  label: string;
+  loom: CompareValue;
+  captureflow: CompareValue;
+}> = [
   {
     label: "Pricing",
     loom: "Per person, $18–24 a month each",
@@ -30,121 +40,93 @@ const ROWS: ReadonlyArray<{ label: string; loom: Cell; captureflow: Cell }> = [
   {
     label: "Free plan",
     loom: "25 videos per person, 5 minutes each",
-    captureflow: "25 recordings per person, 5 minutes each, free viewers",
+    captureflow: "25 recordings per person, 5 minutes each",
   },
-  {
-    label: "Self-host on your own cloud",
-    loom: false,
-    captureflow: "Yes, on your Cloudflare account",
-  },
+  { label: "Self-host on your own cloud", loom: false, captureflow: true },
   { label: "Open source", loom: false, captureflow: "Yes, AGPL" },
   { label: "Instant share link", loom: true, captureflow: true },
-  { label: "Camera bubble", loom: true, captureflow: true },
+  { label: "Camera bubble and effects", loom: true, captureflow: true },
   { label: "Comments and emoji reactions", loom: true, captureflow: true },
   { label: "View counts", loom: true, captureflow: true },
   {
     label: "Editing",
     loom: "Trim, stitch, transcript editing",
-    captureflow: "Backgrounds, camera layout, mute, cut from the transcript",
+    captureflow: "Backgrounds, camera layout, cut from the transcript",
   },
-  {
-    label: "Annotated screenshots",
-    loom: false,
-    captureflow: "Arrows, text and blur, shared as a link",
-  },
+  { label: "Annotated screenshots", loom: false, captureflow: true },
+  { label: "Infinite canvas", loom: false, captureflow: true },
   {
     label: "Transcripts and captions",
     loom: true,
-    captureflow:
-      "Yes, free, made with Whisper on the instance's own Cloudflare account",
+    captureflow: "Free on every plan",
   },
   {
-    label: "AI titles, summaries, chapters",
+    label: "AI titles, chapters and filler word removal",
     loom: "On Business + AI",
-    captureflow: "Not yet, chapters are manual",
+    captureflow: `On ${SEAT_PLAN.name}`,
   },
   {
     label: "Apps",
     loom: "Chrome, Mac, Windows, iOS, Android",
-    captureflow: "Chrome now, macOS coming soon",
+    captureflow: "Chrome and macOS",
   },
   { label: "Enterprise SSO", loom: true, captureflow: false },
   {
     label: "How long videos are kept",
     loom: "Until you delete them",
     captureflow:
-      "Paid: until you delete them. Free: 30 days after the last view. Self-hosted: you decide",
+      "Paid: until you delete them. Free: 30 days after the last view",
   },
 ];
 
 const INTRO =
-  "**Loom** and **CaptureFlow** are both video messaging tools. You record your screen and camera, share a link, and your team watches when it suits them, instead of sitting through another meeting or reading a long thread. They differ in how they charge. Loom bills for each person on your team, while CaptureFlow bills for the storage you use, and it's free if you run it yourself.";
+  "Both record your screen and camera and give your team a link to watch when it suits them. They differ in how they charge: Loom bills every person on the team, CaptureFlow bills only the people who record, viewers are free, and it costs nothing to self-host.";
 
 const LOOM_FITS = [
-  "You want AI titles and summaries today.",
   "You need Windows or mobile apps.",
   "Your company requires SSO and an uptime SLA.",
+  "You want a vendor with a large support team behind it.",
 ];
 
 const CAPTUREFLOW_FITS = [
-  "You're paying per seat for a team that mostly records quick walkthroughs and bug reports.",
+  "You're paying for every person when only a few of them record.",
   "You want recordings in storage you own, or need to self-host.",
   "You'd rather read the code that handles your videos.",
 ];
 
 export function LoomComparison() {
+  const [seats, setSeats] = useState(DEFAULT_SEATS);
+  const [plan, setPlan] = useState<LoomPlan>("businessAi");
+
   return (
     <MarketingSection id="compare">
-      <div className="mx-auto max-w-4xl text-center">
-        <Title
-          level={1}
-          className="sm:whitespace-nowrap"
-          align="center"
-          style={{
-            ...SECTION_TITLE_STYLE,
-            fontSize: "clamp(2.5rem, 1.25rem + 4.5vw, 4.5rem)",
-            lineHeight: 1.1,
-          }}
-        >
-          <span className="inline-block -rotate-1 rounded-2xl bg-accent-bg px-4 pb-1 text-white">
-            CaptureFlow
-          </span>{" "}
-          <span className="text-fg-muted">vs</span>{" "}
-          <span className="inline-block rotate-1 rounded-2xl bg-fg px-4 pb-1 text-canvas">
-            Loom
-          </span>
-        </Title>
-        <Paragraph
-          align="center"
-          style={{
-            ...SECTION_SUBTITLE_STYLE,
-            fontSize: 20,
-            marginTop: 28,
-            maxWidth: 720,
-            marginInline: "auto",
-          }}
-        >
-          {INTRO.split("**").map((part, i) =>
-            i % 2 ? (
-              <strong key={i} className="font-semibold text-fg">
-                {part}
-              </strong>
-            ) : (
-              part
-            ),
-          )}
-        </Paragraph>
+      <SectionHeading
+        level={1}
+        title={
+          <>
+            {PRODUCT_NAME} <span className="text-fg-muted">vs</span>{" "}
+            {LOOM_BRAND}
+          </>
+        }
+        subtitle={INTRO}
+      />
+
+      <div className="mb-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+        <SeatsField seats={seats} onChange={setSeats} />
+        <RadioChoice
+          label={`${LOOM_BRAND} plan`}
+          value={plan}
+          options={LOOM_PLANS.map((p) => ({ key: p.id, label: p.label }))}
+          onChange={setPlan}
+        />
       </div>
+      <PriceBreakdown plan={plan} seats={seats} className="mx-auto max-w-3xl" />
 
-      <SavingsCalculator />
-
-      <div className="mt-20">
-        <Title level={2} style={{ ...SECTION_TITLE_STYLE, fontSize: 32 }}>
-          Feature by feature
-        </Title>
+      <div className="mt-24">
+        <SectionHeading title="Feature by feature" />
         <ComparisonTable />
         <p className="mt-4 text-sm text-fg-muted">
-          Loom prices are monthly billing from{" "}
+          {LOOM_BRAND} prices are monthly billing from{" "}
           <a
             href={LOOM_PRICING_URL}
             target="_blank"
@@ -153,16 +135,18 @@ export function LoomComparison() {
           >
             loom.com/pricing
           </a>
-          , checked {LOOM_PRICES_CHECKED}. Annual billing is about 17% less.
-          Loom is a trademark of its owner; CaptureFlow isn&apos;t affiliated
-          with it.
+          , checked {LOOM_PRICES_CHECKED}. Annual billing is about 17% less.{" "}
+          {`${LOOM_BRAND} is a trademark of its owner; ${PRODUCT_NAME} isn’t affiliated with it.`}
         </p>
       </div>
 
-      <div className="mt-20 grid gap-4 md:grid-cols-2">
-        <FitCard title="Loom is the better fit if" items={LOOM_FITS} />
+      <div className="mt-24 grid gap-4 md:grid-cols-2">
         <FitCard
-          title="CaptureFlow is the better fit if"
+          title={`${LOOM_BRAND} is the better fit if`}
+          items={LOOM_FITS}
+        />
+        <FitCard
+          title={`${PRODUCT_NAME} is the better fit if`}
           items={CAPTUREFLOW_FITS}
           isHighlighted
         />
@@ -171,101 +155,36 @@ export function LoomComparison() {
   );
 }
 
-function SavingsCalculator() {
-  const [seats, setSeats] = useState(10);
-  const [plan, setPlan] = useState<LoomPlan>("business");
-
-  return (
-    <div className="mx-auto mt-12 max-w-3xl rounded-2xl bg-panel p-2">
-      <div className="rounded-xl bg-canvas p-6 sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-sm font-medium text-fg">Compare with Loom</span>
-          <div
-            role="radiogroup"
-            aria-label="Loom plan"
-            className="flex items-center gap-0.5 rounded-full bg-tint p-0.5"
-          >
-            {LOOM_PLANS.map((p) => {
-              const isOn = p.id === plan;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={isOn}
-                  onClick={() => setPlan(p.id)}
-                  className={cn(
-                    "rounded-full px-3 py-1 text-xs font-medium transition-colors",
-                    isOn ? "bg-fg text-canvas" : "text-fg-muted hover:text-fg",
-                  )}
-                >
-                  {p.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <Slider
-          className="mt-6"
-          minValue={1}
-          maxValue={50}
-          value={seats}
-          onChange={(v) => setSeats(Array.isArray(v) ? v[0]! : v)}
-        >
-          <div className="flex items-center justify-between">
-            <Label>Team size</Label>
-            <Slider.Output>
-              {seats} {seats === 1 ? "person" : "people"}
-            </Slider.Output>
-          </div>
-          <Slider.Track>
-            <Slider.Fill />
-            <Slider.Thumb />
-          </Slider.Track>
-        </Slider>
-
-        <div className="mt-6">
-          <PriceBreakdown plan={plan} seats={seats} className="px-0 pb-0" />
-        </div>
-        <p className="mt-4 text-sm text-fg-muted">
-          Only the people who record are members; everyone who watches and
-          comments is free. Self-hosted, it&apos;s $0 and you pay Cloudflare
-          directly, often nothing on their free tiers.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function ComparisonTable() {
   return (
-    <div className="mt-6 overflow-hidden rounded-2xl bg-panel">
-      <div className="grid grid-cols-[1.1fr_1fr_1fr] gap-3 px-4 py-3 text-xs font-semibold tracking-wide text-fg-muted uppercase sm:px-6">
-        <span />
-        <span>Loom</span>
-        <span className="text-fg">CaptureFlow</span>
-      </div>
-      {ROWS.map((row) => (
-        <div
-          key={row.label}
-          className="grid grid-cols-[1.1fr_1fr_1fr] gap-3 border-t border-line px-4 py-3.5 text-sm sm:px-6"
-        >
-          <span className="font-medium text-fg">{row.label}</span>
-          <CellValue value={row.loom} />
-          <CellValue value={row.captureflow} />
+    <section className="overflow-hidden rounded-2xl border border-line bg-panel">
+      <div className="overflow-x-auto">
+        <div className={cn("grid min-w-120", GRID)}>
+          <div className="px-6 py-3" />
+          <div className="flex items-center justify-center border-l border-line px-2 py-2 text-center text-[15px] font-semibold text-fg-muted">
+            {LOOM_BRAND}
+          </div>
+          <div
+            className={cn(
+              "flex items-center justify-center border-l border-line px-2 py-2 text-center text-[15px] font-semibold text-fg",
+              OURS_BG,
+            )}
+          >
+            <OursChip>{PRODUCT_NAME}</OursChip>
+          </div>
+          {ROWS.map((row) => (
+            <div key={row.label} className={cn("col-span-3 grid", GRID)}>
+              <div className="border-t border-line px-6 py-3.5 text-[15px] text-fg">
+                {row.label}
+              </div>
+              <CompareCell value={row.loom} className="text-fg-muted" />
+              <CompareCell value={row.captureflow} ours />
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+      </div>
+    </section>
   );
-}
-
-function CellValue({ value }: { value: Cell }) {
-  if (value === true)
-    return <Check size={18} className="text-success" aria-label="Yes" />;
-  if (value === false)
-    return <Minus size={18} className="text-fg-subtle" aria-label="No" />;
-  return <span className="text-fg-muted">{value}</span>;
 }
 
 function FitCard({
@@ -277,30 +196,28 @@ function FitCard({
   items: string[];
   isHighlighted?: boolean;
 }) {
-  return (
+  const card = (
     <div
       className={cn(
-        "rounded-2xl p-6",
-        isHighlighted ? "bg-accent-bg text-white" : "bg-panel",
+        "h-full p-6 text-fg sm:p-8",
+        isHighlighted
+          ? "rounded-[26px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
+          : "rounded-[28px] border border-line bg-panel",
       )}
     >
-      <h3 className="text-lg font-semibold">{title}</h3>
-      <ul className="mt-4 grid gap-3">
+      <h3 className="text-xl font-bold tracking-[-0.02em]">{title}</h3>
+      <ul className="mt-4 grid list-none gap-3">
         {items.map((item) => (
           <li key={item} className="flex gap-2.5 text-[15px] leading-6">
-            <Check
-              size={18}
-              className={cn(
-                "mt-0.5 shrink-0",
-                isHighlighted ? "text-white" : "text-fg-muted",
-              )}
-            />
-            <span className={isHighlighted ? "text-white/90" : "text-fg-muted"}>
-              {item}
-            </span>
+            <Check size={18} className="mt-0.5 shrink-0 text-fg-muted" />
+            <span>{item}</span>
           </li>
         ))}
       </ul>
     </div>
+  );
+  if (!isHighlighted) return card;
+  return (
+    <div className={cn("rounded-[28px] p-0.5", GRADIENT_BORDER)}>{card}</div>
   );
 }
