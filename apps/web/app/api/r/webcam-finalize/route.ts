@@ -7,7 +7,8 @@ import {
   objectSize,
 } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
-import { exceedsStorage } from "@/lib/recording/quota";
+import { uploadOverrun } from "@/lib/recording/quota";
+import { overrunError } from "@/lib/recording/upload-errors";
 import type { FinalizeRequest } from "@/lib/recording/types";
 
 const DEVICE_HEADER = "x-captureflow-device";
@@ -69,10 +70,9 @@ export async function POST(req: NextRequest) {
     return jsonError("Webcam not finalizable", 409, "wrong_state");
   }
 
-  // The companion stream draws on the same storage as the screen track.
-  if (await exceedsStorage(deviceId, row, sizeBytes)) {
-    return jsonError("Storage cap reached", 413, "storage_limit");
-  }
+  // The companion stream draws on the same budget as the screen track.
+  const overrun = await uploadOverrun(deviceId, row, sizeBytes);
+  if (overrun) return overrunError(overrun);
 
   await completeMultipartUpload(
     row.webcamStorageKey,
@@ -90,16 +90,17 @@ export async function POST(req: NextRequest) {
   }
 
   // Same post-complete re-check as /api/r/finalize, against R2's actual size.
-  if (
-    actualWebcamBytes > sizeBytes &&
-    (await exceedsStorage(deviceId, row, actualWebcamBytes))
-  ) {
+  const actualOverrun =
+    actualWebcamBytes > sizeBytes
+      ? await uploadOverrun(deviceId, row, actualWebcamBytes)
+      : null;
+  if (actualOverrun) {
     await deleteObject(row.webcamStorageKey);
     await updateRecording(row.slug, {
       webcamState: "failed",
       webcamUploadId: null,
     });
-    return jsonError("Storage cap reached", 413, "storage_limit");
+    return overrunError(actualOverrun);
   }
 
   await updateRecording(row.slug, {

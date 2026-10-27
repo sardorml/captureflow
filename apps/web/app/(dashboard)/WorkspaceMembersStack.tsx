@@ -37,7 +37,7 @@ export function WorkspaceMembersStack({ items, canInvite }: Props) {
         {visible.map((m) => (
           <Tooltip key={m.key}>
             <Tooltip.Trigger className="inline-flex" tabIndex={0}>
-              <Avatar className="h-8 w-8 ring-2 ring-canvas-2">
+              <Avatar className="h-8 w-8 ring-2 ring-panel">
                 {m.image && <Avatar.Image src={m.image} alt={m.label} />}
                 <Avatar.Fallback>{m.initials}</Avatar.Fallback>
               </Avatar>
@@ -46,7 +46,7 @@ export function WorkspaceMembersStack({ items, canInvite }: Props) {
           </Tooltip>
         ))}
         {overflow > 0 && (
-          <Avatar className="h-8 w-8 ring-2 ring-canvas-2">
+          <Avatar className="h-8 w-8 ring-2 ring-panel">
             <Avatar.Fallback>+{overflow}</Avatar.Fallback>
           </Avatar>
         )}

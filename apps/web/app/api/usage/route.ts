@@ -2,11 +2,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import {
-  getEffectiveLimitsForUser,
+  getCurrentWorkspaceId,
+  getPersonalWorkspaceForUser,
+  getWorkspaceEntitlement,
   isSelfHosted,
-  getWorkspaceById,
   isWorkspaceMember,
-  totalStorageForUser,
+  totalStorageForWorkspace,
 } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveDeviceToken } from "@/lib/device-tokens";
@@ -50,6 +51,12 @@ function jsonError(error: string, status: number, code?: string) {
   return withCors(NextResponse.json(body, { status }));
 }
 
+/*
+ * The storage view of one workspace: the requested one when the caller is a
+ * member, else the one they are switched to, else their own. A free workspace
+ * has no pool, so it reports no limit; `proSubscriptionActive` keeps its wire
+ * name for the desktop app and now means a paid workspace.
+ */
 export async function GET(req: NextRequest) {
   const deviceId = req.headers.get(DEVICE_HEADER);
   if (!deviceId || deviceId.length < 8 || deviceId.length > 64) {
@@ -67,44 +74,38 @@ export async function GET(req: NextRequest) {
   if (!resolved) {
     return jsonError("Sign-in expired or revoked", 401, "invalid_token");
   }
-  const bearerUserId = resolved.userId;
+  const userId = resolved.userId;
+  const db = env.DB;
 
-  /*
-   * Pro is per-user, so quota belongs to the workspace owner: a free teammate
-   * in a Pro owner's workspace sees the owner's limit. Non-members fall back
-   * to their own usage view.
-   */
-  const requestedWorkspace = new URL(req.url).searchParams.get("workspace_id");
-  let quotaUserId = bearerUserId;
-  if (requestedWorkspace) {
-    const isMember = await isWorkspaceMember(
-      env.DB,
-      requestedWorkspace,
-      bearerUserId,
-    );
-    if (isMember) {
-      const ws = await getWorkspaceById(env.DB, requestedWorkspace);
-      if (ws) quotaUserId = ws.owner_user_id;
+  const requested = new URL(req.url).searchParams.get("workspace_id");
+  let workspaceId: string | null = null;
+  if (requested && (await isWorkspaceMember(db, requested, userId))) {
+    workspaceId = requested;
+  }
+  if (!workspaceId) {
+    const current = await getCurrentWorkspaceId(db, userId);
+    if (current && (await isWorkspaceMember(db, current, userId))) {
+      workspaceId = current;
     }
   }
+  if (!workspaceId) {
+    workspaceId = (await getPersonalWorkspaceForUser(db, userId))?.id ?? null;
+  }
+  if (!workspaceId) return jsonError("No workspace", 404, "no_workspace");
 
-  const [usedBytes, limits] = await Promise.all([
-    totalStorageForUser(env.DB, quotaUserId),
-    getEffectiveLimitsForUser(env.DB, quotaUserId, {
+  const [usedBytes, entitlement] = await Promise.all([
+    totalStorageForWorkspace(db, workspaceId),
+    getWorkspaceEntitlement(db, workspaceId, {
       selfHosted: isSelfHosted(env),
     }),
   ]);
 
-  // Purely numeric (no dev-allowlist on app-web yet): a dev device may keep
-  // uploading via the recording/screenshot paths even when this reports capReached.
-  const capReached = usedBytes >= limits.storageBytes;
-
   const body: UsageResponse = {
     usedBytes,
-    limitBytes: limits.storageBytes,
-    capReached,
+    limitBytes: entitlement.storageBytes,
+    capReached: usedBytes >= entitlement.storageBytes,
     isDev: false,
-    proSubscriptionActive: limits.proSubscriptionActive,
+    proSubscriptionActive: entitlement.tier === "team",
   };
   return withCors(NextResponse.json(body));
 }

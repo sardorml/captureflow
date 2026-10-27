@@ -10,6 +10,9 @@ import type {
   WebcamState,
 } from "./types";
 import type {
+  RecordingCaptureSource,
+  RecordingClient,
+  RecordingQualityId,
   RecordingSource,
   RecordingPreset,
   RecordingState,
@@ -30,6 +33,9 @@ type D1Row = {
   height: number | null;
   source: string;
   preset: string;
+  client: string | null;
+  capture_source: string | null;
+  quality: string | null;
   created_at: number;
   last_viewed_at: number;
   view_count: number;
@@ -92,6 +98,9 @@ function rowFromD1(r: D1Row): RecordingRow {
     height: r.height,
     source: r.source as RecordingSource,
     preset: r.preset as RecordingPreset,
+    client: (r.client as RecordingClient | null) ?? null,
+    captureSource: (r.capture_source as RecordingCaptureSource | null) ?? null,
+    quality: (r.quality as RecordingQualityId | null) ?? null,
     createdAt: r.created_at,
     lastViewedAt: r.last_viewed_at,
     viewCount: r.view_count ?? 0,
@@ -190,7 +199,7 @@ function commentFromD1(r: D1CommentRow): RecordingComment {
 
 const COLUMNS_SELECT =
   "slug, device_id, storage_key, poster_key, poster_blur, poster_thumb_key, upload_id, " +
-  "size_bytes, duration_ms, width, height, source, preset, " +
+  "size_bytes, duration_ms, width, height, source, preset, client, capture_source, quality, " +
   "created_at, last_viewed_at, view_count, title, state, user_id, workspace_id, visibility, " +
   "webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state, " +
   "config_json, summary_chapters_json";
@@ -205,13 +214,14 @@ export function createD1Db(d1: D1Database): RecordingDb {
     `INSERT INTO recordings (
        slug, device_id, storage_key, poster_key, poster_blur, poster_thumb_key, upload_id,
        size_bytes, duration_ms, width, height,
-       source, preset, created_at, last_viewed_at, view_count, title, state,
+       source, preset, client, capture_source, quality,
+       created_at, last_viewed_at, view_count, title, state,
        user_id, workspace_id, visibility,
        webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state,
        config_json, summary_chapters_json
      )
      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18,
-             ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27)`,
+             ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30)`,
   );
 
   const stmtGet = d1.prepare(
@@ -416,6 +426,9 @@ export function createD1Db(d1: D1Database): RecordingDb {
           row.height,
           row.source,
           row.preset,
+          row.client,
+          row.captureSource,
+          row.quality,
           row.createdAt,
           row.lastViewedAt,
           row.viewCount,
@@ -456,6 +469,9 @@ export function createD1Db(d1: D1Database): RecordingDb {
         height: "height",
         source: "source",
         preset: "preset",
+        client: "client",
+        captureSource: "capture_source",
+        quality: "quality",
         createdAt: "created_at",
         lastViewedAt: "last_viewed_at",
         viewCount: "view_count",

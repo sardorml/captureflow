@@ -143,7 +143,6 @@ export async function deleteRecordingAction(slug: string): Promise<{
   ]);
   await deleteRecordingForAdmin(userId, cleanSlug);
   revalidatePath("/");
-  revalidatePath("/storage");
   return { error: null };
 }
 
@@ -253,7 +252,6 @@ export async function deleteScreenshotAction(screenshotId: string): Promise<{
     ),
   );
   revalidatePath("/screenshots");
-  revalidatePath("/storage");
   return { error: null };
 }
 

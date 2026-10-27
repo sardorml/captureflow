@@ -1,7 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { WorkspaceInviteRow, WorkspaceMember } from "@captureflow/quota";
+import { useMemo, useState, useTransition } from "react";
+import {
+  WORKSPACE_ROLES,
+  type AssignableRole,
+  type WorkspaceInviteRow,
+  type WorkspaceMember,
+  type WorkspaceRole,
+} from "@captureflow/quota";
 import { LogOut, Search, UserPlus, X } from "lucide-react";
 import {
   Avatar,
@@ -14,20 +20,21 @@ import {
   Table,
 } from "@heroui/react";
 import { initials } from "@/lib/format";
+import { ASSIGNABLE_ROLES, ROLE_LABEL } from "@/lib/workspace/labels";
 import { InviteModal } from "../InviteModal";
 import {
+  changeMemberRoleAction,
   leaveWorkspaceAction,
   removeMemberAction,
   revokeInviteAction,
 } from "./actions";
 
-type RoleFilter = "all" | "owner" | "member";
+type RoleFilter = "all" | WorkspaceRole;
 type StatusFilter = "all" | "active" | "invited";
 
 const ROLE_OPTIONS: { id: RoleFilter; label: string }[] = [
   { id: "all", label: "All roles" },
-  { id: "owner", label: "Admin" },
-  { id: "member", label: "Member" },
+  ...WORKSPACE_ROLES.map((role) => ({ id: role, label: ROLE_LABEL[role] })),
 ];
 
 const STATUS_OPTIONS: { id: StatusFilter; label: string }[] = [
@@ -41,11 +48,13 @@ type Row = {
   name: string;
   email: string;
   image: string | null;
-  role: "owner" | "member" | null;
+  role: WorkspaceRole | null;
   addedAt: number;
   status: "active" | "invited";
   action: "remove" | "leave" | "revoke" | null;
   actionId: string;
+  // The owner may move anyone but themselves between member and viewer.
+  roleEditable: boolean;
 };
 
 function formatAdded(ms: number): string {
@@ -90,17 +99,19 @@ export function MembersTable({
               ? ("leave" as const)
               : null,
         actionId: m.user_id,
+        roleEditable: viewerIsOwner && m.role !== "owner",
       })),
       ...invites.map((i) => ({
         key: `invite-${i.id}`,
         name: "",
         email: i.email,
         image: null,
-        role: null,
+        role: i.role as WorkspaceRole,
         addedAt: i.created_at,
         status: "invited" as const,
         action: viewerIsOwner ? ("revoke" as const) : null,
         actionId: i.id,
+        roleEditable: false,
       })),
     ],
     [members, invites, viewerIsOwner, viewerUserId],
@@ -117,7 +128,7 @@ export function MembersTable({
   );
 
   return (
-    <section className="rounded-2xl bg-panel ring-1 ring-line-strong">
+    <section className="rounded-2xl bg-panel ring-1 ring-line">
       <div className="px-6 pt-6 pb-5">
         <h2 className="text-2xl font-semibold tracking-tight text-fg-strong">
           People{" "}
@@ -126,8 +137,8 @@ export function MembersTable({
           </span>
         </h2>
         <p className="mt-1 text-base text-fg-muted">
-          Everyone who can see this workspace&apos;s recordings and screenshots.
-          {viewerIsOwner && " Admins can invite and remove people."}
+          Members record here; viewers watch and comment.
+          {viewerIsOwner && " Admins can invite, remove and change roles."}
         </p>
       </div>
       <div className="flex flex-col gap-4 border-t border-line px-6 py-6">
@@ -202,11 +213,13 @@ export function MembersTable({
                       </span>
                     </Table.Cell>
                     <Table.Cell className="text-fg-muted">
-                      {r.role === "owner"
-                        ? "Admin"
-                        : r.role === "member"
-                          ? "Member"
-                          : "—"}
+                      {r.roleEditable && r.role && r.role !== "owner" ? (
+                        <RoleSelect userId={r.actionId} role={r.role} />
+                      ) : r.role ? (
+                        ROLE_LABEL[r.role]
+                      ) : (
+                        "—"
+                      )}
                     </Table.Cell>
                     <Table.Cell
                       className="whitespace-nowrap text-fg-muted"
@@ -268,6 +281,45 @@ function FilterSelect<T extends string>({
           {options.map((o) => (
             <ListBox.Item key={o.id} id={o.id} textValue={o.label}>
               {o.label}
+            </ListBox.Item>
+          ))}
+        </ListBox>
+      </Select.Popover>
+    </Select>
+  );
+}
+
+// Submits on change: the owner picks a role and the row updates in place.
+function RoleSelect({
+  userId,
+  role,
+}: {
+  userId: string;
+  role: AssignableRole;
+}) {
+  const [pending, startTransition] = useTransition();
+  return (
+    <Select
+      selectedKey={role}
+      isDisabled={pending}
+      onSelectionChange={(next) => {
+        if (next === role) return;
+        const fd = new FormData();
+        fd.set("userId", userId);
+        fd.set("role", String(next));
+        startTransition(() => changeMemberRoleAction(fd));
+      }}
+      aria-label="Role"
+    >
+      <Select.Trigger className="h-8 min-w-28">
+        <Select.Value />
+      </Select.Trigger>
+      <Select.Popover>
+        <ListBox>
+          {ASSIGNABLE_ROLES.map((o) => (
+            <ListBox.Item key={o.id} id={o.id} textValue={o.label}>
+              {o.label}
+              <span className="block text-xs text-fg-muted">{o.hint}</span>
             </ListBox.Item>
           ))}
         </ListBox>

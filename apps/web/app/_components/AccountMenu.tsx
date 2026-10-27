@@ -9,14 +9,13 @@ import {
   Settings,
 } from "lucide-react";
 import { Avatar, Chip, Dropdown, Separator, Typography } from "@heroui/react";
+import { SEAT_PLAN } from "@captureflow/quota";
 import type { ThemePreference } from "@captureflow/ui";
 import { initials } from "@/lib/format";
 import { SUPPORT_EMAIL } from "@/lib/site";
 import { ThemeSegments } from "./ThemeSegments";
 
-export type AccountMenuProInfo = {
-  status: string;
-};
+export type AccountMenuPlan = "free" | "team";
 
 export type AccountMenuNavItem = {
   key: string;
@@ -36,11 +35,11 @@ export type AccountMenuNavItem = {
  */
 export function accountNavItems({
   base = "",
-  pro,
+  plan,
   selfHosted = false,
 }: {
   base?: string;
-  pro?: AccountMenuProInfo | null;
+  plan?: AccountMenuPlan;
   selfHosted?: boolean;
 }): AccountMenuNavItem[] {
   const items: AccountMenuNavItem[] = [
@@ -50,9 +49,9 @@ export function accountNavItems({
       label: "Billing",
       href: `${base}/billing`,
       trailing:
-        pro === undefined ? undefined : (
-          <Chip size="sm" color={pro ? "accent" : "default"}>
-            {pro ? "Pro" : "Free"}
+        plan === undefined ? undefined : (
+          <Chip size="sm" color={plan === "team" ? "accent" : "default"}>
+            {plan === "team" ? SEAT_PLAN.name : "Free"}
           </Chip>
         ),
     },
@@ -84,7 +83,7 @@ type Props = {
   name: string | null;
   email: string;
   imageUrl: string | null;
-  pro?: AccountMenuProInfo | null;
+  plan?: AccountMenuPlan;
   // Built by accountNavItems above; taken as a prop so a surface can pass its
   // own base URL and plan chip.
   navItems: AccountMenuNavItem[];

@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { NextRequest, NextResponse } from "next/server";
-import { listWorkspacesForUser } from "@captureflow/quota";
+import { can, listWorkspacesForUser } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveDeviceToken } from "@/lib/device-tokens";
 
@@ -65,14 +65,18 @@ export async function GET(req: NextRequest) {
     return jsonError("Sign-in expired or revoked", 401, "invalid_token");
   }
 
+  // The recorder only offers workspaces the person can record into; a
+  // viewer's workspaces stay on the website.
   const memberships = await listWorkspacesForUser(env.DB, resolved.userId);
   const body: WorkspacesResponse = {
-    workspaces: memberships.map((m) => ({
-      id: m.workspace_id,
-      name: m.workspace_name,
-      kind: m.workspace_kind === "team" ? "team" : "personal",
-      role: m.role === "owner" ? "owner" : "member",
-    })),
+    workspaces: memberships
+      .filter((m) => can(m.role, "record"))
+      .map((m) => ({
+        id: m.workspace_id,
+        name: m.workspace_name,
+        kind: m.workspace_kind === "team" ? "team" : "personal",
+        role: m.role === "owner" ? "owner" : "member",
+      })),
   };
   return withCors(NextResponse.json(body));
 }

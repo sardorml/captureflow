@@ -7,7 +7,7 @@ import { signOutAction } from "./sign-out-action";
 import {
   AccountMenu,
   accountNavItems,
-  type AccountMenuProInfo,
+  type AccountMenuPlan,
 } from "@/app/_components/AccountMenu";
 
 /*
@@ -36,7 +36,7 @@ type Props = {
   name: string | null;
   email: string;
   imageUrl: string | null;
-  pro: AccountMenuProInfo | null;
+  plan: AccountMenuPlan;
   selfHosted: boolean;
   themePreference: ThemePreference;
 };
@@ -45,7 +45,7 @@ export function UserMenu({
   name,
   email,
   imageUrl,
-  pro,
+  plan,
   selfHosted,
   themePreference,
 }: Props) {
@@ -62,14 +62,14 @@ export function UserMenu({
     }
   };
 
-  const navItems = accountNavItems({ pro, selfHosted });
+  const navItems = accountNavItems({ plan, selfHosted });
 
   return (
     <AccountMenu
       name={name}
       email={email}
       imageUrl={imageUrl}
-      pro={pro}
+      plan={plan}
       navItems={navItems}
       themePreference={themePreference}
       signingOut={pending}

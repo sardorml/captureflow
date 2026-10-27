@@ -82,10 +82,10 @@ function CategoryRow({
             className="text-balance"
             style={{
               display: "block",
-              fontSize: 32,
+              fontSize: "clamp(1.75rem, 1.4rem + 0.8vw, 2.125rem)",
               fontWeight: 700,
-              lineHeight: 1.2,
-              letterSpacing: "-0.02em",
+              lineHeight: 1.15,
+              letterSpacing: "-0.025em",
             }}
           >
             {feature.title}
@@ -93,9 +93,9 @@ function CategoryRow({
           <Paragraph
             className="text-pretty"
             style={{
-              maxWidth: 496,
+              maxWidth: 520,
               margin: "16px 0 0",
-              fontSize: 18,
+              fontSize: "clamp(1rem, 0.95rem + 0.3vw, 1.125rem)",
               fontWeight: 350,
               lineHeight: 1.6,
             }}
@@ -128,7 +128,7 @@ function FeatureLink({
   location: string;
 }) {
   const className =
-    "group mt-7 inline-flex items-center gap-2 text-[18px] font-semibold text-[#1184f7] transition-colors hover:text-[#0071e2] dark:text-[#6ea8ff] dark:hover:text-[#9cc3ff]";
+    "group mt-6 inline-flex items-center gap-2 text-[17px] font-semibold text-[#1184f7] transition-colors hover:text-[#0071e2] dark:text-[#6ea8ff] dark:hover:text-[#9cc3ff]";
   const onClick = () => track("marketing_cta_clicked", { location });
   const content = (
     <>

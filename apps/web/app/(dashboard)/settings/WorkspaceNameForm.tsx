@@ -2,8 +2,9 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { Check } from "lucide-react";
-import { Button, Input, Spinner, Typography } from "@heroui/react";
+import { Button, Input, Spinner } from "@heroui/react";
 import { updateWorkspaceNameAction } from "./actions";
+import { SettingsRow } from "./SettingsRow";
 
 type FormState = { error: string | null; ok: string | null };
 const INITIAL: FormState = { error: null, ok: null };
@@ -27,15 +28,11 @@ export function WorkspaceNameForm({ initialName }: { initialName: string }) {
 
   return (
     <form action={formAction}>
-      <div className="flex flex-wrap items-start justify-between gap-6">
-        <div className="flex min-w-60 flex-1 flex-col gap-1">
-          <Typography weight="semibold">Workspace name</Typography>
-          <Typography type="body-xs" color="muted">
-            The name that appears in the switcher, members page, and share
-            previews.
-          </Typography>
-        </div>
-        <div className="flex w-full max-w-96 flex-col gap-2">
+      <SettingsRow
+        title="Workspace name"
+        description="The name that appears for your workspace."
+      >
+        <div className="flex items-center gap-2">
           <Input
             id="workspace-name"
             name="name"
@@ -43,7 +40,14 @@ export function WorkspaceNameForm({ initialName }: { initialName: string }) {
             onChange={(e) => setName(e.target.value)}
             maxLength={80}
             required
+            className="flex-1"
           />
+          <Button variant="primary" type="submit" isDisabled={!dirty}>
+            {pending && <Spinner size="sm" color="current" />}
+            Save
+          </Button>
+        </div>
+        {(state.error || showSaved) && (
           <div className="flex items-center justify-end gap-3">
             {state.error && (
               <span className="text-xs text-danger">{state.error}</span>
@@ -53,13 +57,9 @@ export function WorkspaceNameForm({ initialName }: { initialName: string }) {
                 <Check size={14} /> Saved
               </span>
             )}
-            <Button variant="primary" type="submit" isDisabled={!dirty}>
-              {pending && <Spinner size="sm" color="current" />}
-              Save
-            </Button>
           </div>
-        </div>
-      </div>
+        )}
+      </SettingsRow>
     </form>
   );
 }

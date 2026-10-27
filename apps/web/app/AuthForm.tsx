@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { ArrowRight, ChevronLeft, Mail } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import {
   Alert,
   Button,
@@ -14,6 +14,8 @@ import {
   TextField,
   Typography,
 } from "@heroui/react";
+import Link from "next/link";
+import { AppIcon } from "@/components/brand-mark";
 import { signIn, signUp } from "@/lib/auth-client";
 import type { InviteContext } from "@/lib/invite-context";
 
@@ -26,7 +28,7 @@ type SocialProvider = "google" | "github";
 /* Every control is one height in px, so the input and the buttons line up and
    the column keeps its proportions whatever the browser's root font size is —
    HeroUI's own sizes are rem, and .button--lg additionally drops 4px at md. */
-const CONTROL = "h-[38px] rounded-full text-[13px]";
+const CONTROL = "h-11 rounded-lg text-sm font-medium";
 
 function GoogleIcon() {
   return (
@@ -161,44 +163,45 @@ export function AuthForm({
   ) : null;
 
   return (
-    <div className="w-full max-w-[360px]">
+    <div className="w-full max-w-[320px]">
+      <Link
+        href="/"
+        aria-label="CaptureFlow home"
+        className="mx-auto mb-6 flex w-fit"
+      >
+        <AppIcon size={48} />
+      </Link>
       <Typography.Heading
-        level={2}
+        level={1}
         align="center"
-        className="mt-0 mb-1 text-[22px]"
+        className={`mt-0 text-[24px] font-semibold ${invite ? "mb-2" : "mb-8"}`}
       >
         {invite
           ? `Join ${invite.workspaceName}`
           : isSignup
-            ? "Create your account"
-            : "Welcome back!"}
+            ? "Sign up for CaptureFlow"
+            : "Log in to CaptureFlow"}
       </Typography.Heading>
-      <Typography.Paragraph
-        color="muted"
-        align="center"
-        className="mb-6 text-[13px]"
-      >
-        {/* One line for both modes: the invited person has no way of knowing
-            whether they already have an account, so offering the pair is more
-            use than guessing which they need. */}
-        {invite ? (
-          <>
-            {invite.inviterLabel} invited you. Sign in or create an account with{" "}
-            <span className="text-fg">{invite.email}</span> to accept.
-          </>
-        ) : isSignup ? (
-          "Start sharing recordings with a link"
-        ) : (
-          "Sign in to pick up where you left off"
-        )}
-      </Typography.Paragraph>
+      {/* One line for both modes: the invited person has no way of knowing
+          whether they already have an account, so offering the pair is more
+          use than guessing which they need. */}
+      {invite ? (
+        <Typography.Paragraph
+          color="muted"
+          align="center"
+          className="mb-8 text-sm"
+        >
+          {invite.inviterLabel} invited you. Sign in or create an account with{" "}
+          <span className="text-fg">{invite.email}</span> to accept.
+        </Typography.Paragraph>
+      ) : null}
 
       {step === "email" ? (
         <>
           <Form
             onSubmit={onEmailSubmit}
             validationBehavior="native"
-            className="flex flex-col gap-2.5"
+            className="flex flex-col gap-3"
           >
             <TextField
               name="email"
@@ -209,12 +212,9 @@ export function AuthForm({
               onChange={setEmail}
             >
               <Label className="sr-only">Email address</Label>
-              <InputGroup className="h-[38px] min-h-0 text-[13px]">
-                <InputGroup.Prefix>
-                  <Mail size={14} />
-                </InputGroup.Prefix>
+              <InputGroup className="border-line-strong h-11 min-h-0 rounded-lg border bg-transparent text-sm shadow-none">
                 <InputGroup.Input
-                  className="text-[13px]"
+                  className="text-sm"
                   placeholder="Email address"
                   autoComplete="email"
                 />
@@ -230,21 +230,15 @@ export function AuthForm({
               className={CONTROL}
               isDisabled={busy}
             >
-              Continue
+              Continue with Email
             </Button>
           </Form>
 
-          {/* Rules flanking the label rather than a bare <hr>: the label has to
-              sit on the line, not above it. */}
-          <div className="my-5 flex items-center gap-3">
-            <span className="bg-line-strong h-px flex-1" />
-            <span className="text-fg-subtle text-xs font-medium">OR</span>
-            <span className="bg-line-strong h-px flex-1" />
-          </div>
+          <span aria-hidden className="bg-line-strong my-5 block h-px w-full" />
 
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-3">
             <Button
-              variant="tertiary"
+              variant="outline"
               size="lg"
               fullWidth
               className={CONTROL}
@@ -259,7 +253,7 @@ export function AuthForm({
               Continue with Google
             </Button>
             <Button
-              variant="tertiary"
+              variant="outline"
               size="lg"
               fullWidth
               className={CONTROL}
@@ -276,18 +270,17 @@ export function AuthForm({
             {errorAlert}
           </div>
 
-          <p className="text-fg-muted mt-6 text-center text-[13px]">
+          <p className="text-fg-muted mt-8 text-center text-sm">
             {isSignup ? "Already have an account? " : "Don't have an account? "}
             <button
               type="button"
-              className="text-fg inline-flex cursor-pointer items-center gap-1 font-medium hover:underline"
+              className="text-accent cursor-pointer hover:underline"
               onClick={() => {
                 setMode(isSignup ? "signin" : "signup");
                 setError(null);
               }}
             >
-              {isSignup ? "Sign in" : "Get started"}
-              <ArrowRight size={14} />
+              {isSignup ? "Log in" : "Sign up"}
             </button>
           </p>
         </>

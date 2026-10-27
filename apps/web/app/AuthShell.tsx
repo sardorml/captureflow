@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ThemeToggle, type Theme } from "@captureflow/ui";
-import { AppIcon } from "@/components/brand-mark";
 
-// A single card on the canvas: the app icon heads the card, the form fills
-// it, legal line at the foot. The form owns its own width.
+// One column on the bare canvas: the form in the middle, legal links at the
+// foot. The form owns its own width.
 export function AuthShell({
   theme,
   children,
@@ -19,26 +18,15 @@ export function AuthShell({
       </div>
 
       <div className="flex w-full flex-1 items-center justify-center py-12">
-        <div className="bg-panel border-line w-full max-w-[424px] rounded-3xl border p-6 shadow-[0_8px_24px_-12px_rgb(30_41_59/0.1)] sm:p-8 dark:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.3)]">
-          <Link
-            href="/"
-            aria-label="CaptureFlow home"
-            className="mx-auto mb-5 flex w-fit"
-          >
-            <AppIcon size={44} />
-          </Link>
-          {children}
-        </div>
+        {children}
       </div>
 
-      <footer className="text-fg-muted text-[13px]">
-        By continuing, you agree to CaptureFlow&rsquo;s{" "}
-        <Link href="/terms" className="text-fg font-medium hover:underline">
+      <footer className="text-fg-muted flex gap-6 text-[13px]">
+        <Link href="/terms" className="hover:text-fg">
           Terms
-        </Link>{" "}
-        and{" "}
-        <Link href="/privacy" className="text-fg font-medium hover:underline">
-          Privacy
+        </Link>
+        <Link href="/privacy" className="hover:text-fg">
+          Privacy Policy
         </Link>
       </footer>
     </main>

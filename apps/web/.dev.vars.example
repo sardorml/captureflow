@@ -60,21 +60,21 @@ ALLOWED_EMAIL_DOMAINS=
 # In prod set with: wrangler secret put LEMON_WEBHOOK_SECRET
 LEMON_WEBHOOK_SECRET=
 
-# Subscription variant IDs (strings, matching Lemon Squeezy's payload encoding).
-# Looked up at webhook time to derive the billing cycle ('monthly' | 'annual')
-# from the incoming variant_id. The *_TEST_* pair lets a single deployment
-# accept webhooks from BOTH Lemon Squeezy test and live modes during the test
-# purchase flow without swapping secrets.
-LEMON_MONTHLY_VARIANT_ID=
-LEMON_ANNUAL_VARIANT_ID=
-LEMON_TEST_MONTHLY_VARIANT_ID=
-LEMON_TEST_ANNUAL_VARIANT_ID=
+# Team plan variant IDs (strings, matching Lemon Squeezy's payload encoding).
+# A subscription on either belongs to a workspace; the annual one sets the
+# billing cycle. Set both before the first sale: a renewal event carries no
+# checkout custom data, so the variant is the only way to recognise it.
+LEMON_SEAT_MONTHLY_VARIANT_ID=
+LEMON_SEAT_ANNUAL_VARIANT_ID=
 
-# Public Lemon Squeezy checkout link, shown by the "Upgrade to Pro" CTA in the
-# dashboard / storage-quota UI. PUBLIC (inlined into the client bundle).
-# Leave empty to disable billing UI entirely. Declared in wrangler.jsonc "vars"
-# for prod; set here only if you want the upgrade CTA in local dev.
-NEXT_PUBLIC_LEMON_SQUEEZY_CHECKOUT_URL=
+# Lets the app change a seat subscription's quantity when a member joins or
+# leaves. Without it, seat sync only logs. Prod: wrangler secret put LEMON_API_KEY
+LEMON_API_KEY=
+
+# Public checkout link for the Team plan, with quantity enabled on the variant.
+# PUBLIC (inlined into the client bundle). Leave empty to show the plan without
+# a working button. Declared in wrangler.jsonc "vars" for prod.
+NEXT_PUBLIC_LEMON_SEAT_CHECKOUT_URL=
 
 
 # -----------------------------------------------------------------------------
@@ -118,5 +118,5 @@ NEXT_PUBLIC_R2_PUBLIC_BASE_URL=http://localhost:3000/api/r/media
 APP_DEEP_LINK_SCHEME=captureflow
 
 # Server-only public URL used when composing invite links. Defaults to
-# https://captureflow.dev in code; override for local dev if needed.
+# NEXT_PUBLIC_APP_WEB_SITE_URL; override when invites should point elsewhere.
 APP_WEB_PUBLIC_URL=http://localhost:3000

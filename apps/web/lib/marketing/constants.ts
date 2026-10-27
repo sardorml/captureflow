@@ -1,4 +1,4 @@
-import { STORAGE_PLANS, type StoragePlan } from "@captureflow/quota";
+import { FREE_TIER, SEAT_PLAN } from "@captureflow/quota";
 import { CHROME_WEBSTORE_URL, SUPPORT_EMAIL } from "@/lib/site";
 import { MESSAGES } from "./messages";
 
@@ -11,7 +11,7 @@ export const SITE_NAME = "CaptureFlow";
  */
 export const SITE_TITLE = "CaptureFlow - Screen Recorder with Shareable Links";
 export const SITE_DESCRIPTION =
-  "Record your screen and share a link with your team or customers. An open-source screen recorder with annotated screenshots, self-hostable on Cloudflare.";
+  "Record your screen and share a link with your team or customers. An open-source screen recorder with AI transcripts and annotated screenshots, self-hostable on Cloudflare.";
 // Shared with app chrome (account menu, record button) via @/lib/site so
 // those pages don't carry this module and the marketing copy it pulls in.
 export {
@@ -97,46 +97,9 @@ export const FEATURES = [
   },
 ] as const;
 
-export const PRO_CARD_HIGHLIGHTS: ReadonlyArray<string> = [
-  "Fully managed hosting — no Cloudflare setup required",
-  "Instant share links, Screenshots, workspaces & cloud storage we run for you",
-];
-
-// Storage plans as sold: the quota package owns which variant buys how much
-// space; this adds the price and checkout link. The dashboard UpgradeModal and
-// the landing pricing both render these.
-type ManagedTier = StoragePlan & {
-  price: string;
-  checkoutUrl: string;
-  tag?: "recommended" | "mostValue";
-};
-
-const CHECKOUTS: Record<
-  StoragePlan["variantId"],
-  Pick<ManagedTier, "price" | "checkoutUrl" | "tag">
-> = {
-  "1849420": {
-    price: "6.99",
-    checkoutUrl:
-      "https://sardorml.lemonsqueezy.com/checkout/buy/93848ab4-4fb5-4df4-ac5b-5bbc198364bb",
-  },
-  "1849425": {
-    price: "19.99",
-    checkoutUrl:
-      "https://sardorml.lemonsqueezy.com/checkout/buy/601f31c9-76c7-46f2-8d9c-48b762e88d93",
-    tag: "recommended",
-  },
-  "1828191": {
-    price: "29.99",
-    checkoutUrl:
-      "https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916",
-    tag: "mostValue",
-  },
-};
-
-export const MANAGED_TIERS: ReadonlyArray<ManagedTier> = STORAGE_PLANS.map(
-  (plan) => ({ ...plan, ...CHECKOUTS[plan.variantId] }),
-);
+// The public checkout for the Team plan. Empty until the seat product has
+// one; the pricing card then funnels through signup to the dashboard upgrade.
+export const TEAM_CHECKOUT_URL = "";
 
 export type LaunchStage =
   | "waitlist"
@@ -201,9 +164,8 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     price: 9,
     originalPrice: null,
     discountBadge: null,
-    pricingHeading: "Start free, pay for more storage",
-    pricingSubheading:
-      "Start with free storage and upgrade only when you need more space.",
+    pricingHeading: "Choose the plan that fits your team",
+    pricingSubheading: `Free covers your first recordings. ${SEAT_PLAN.name} is one price per member, and viewers are always free.`,
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -242,9 +204,8 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     price: 9,
     originalPrice: null,
     discountBadge: null,
-    pricingHeading: "Start free, pay for more storage",
-    pricingSubheading:
-      "Start with free storage and upgrade only when you need more space.",
+    pricingHeading: "Choose the plan that fits your team",
+    pricingSubheading: `Free covers your first recordings. ${SEAT_PLAN.name} is one price per member, and viewers are always free.`,
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -348,13 +309,20 @@ export const APP_SCHEMA = {
       description:
         "Open-source recording, instant share links, screenshots, and workspaces. Run it on your own Cloudflare account, no watermark",
     },
-    ...MANAGED_TIERS.map((tier) => ({
+    {
       "@type": "Offer",
-      price: tier.price,
+      price: "0",
       priceCurrency: "USD",
-      name: `Managed ${tier.label}`,
-      description: `Fully managed hosting with ${tier.label} of cloud storage for your whole team: instant share links, screenshots, and workspaces, no Cloudflare setup`,
-    })),
+      name: "Free",
+      description: `Fully managed hosting with ${FREE_TIER.recordingsPerPerson} recordings per person at data saver quality: instant share links, screenshots and a workspace to invite anyone into`,
+    },
+    {
+      "@type": "Offer",
+      price: String(SEAT_PLAN.priceMonthlyUsd),
+      priceCurrency: "USD",
+      name: SEAT_PLAN.name,
+      description: `Fully managed hosting at $${SEAT_PLAN.priceMonthlyUsd} per member a month: unlimited recordings, ${Math.round(SEAT_PLAN.storageBytesPerSeat / 1024 ** 3)} GB of pooled storage per member, free viewers`,
+    },
   ],
 };
 

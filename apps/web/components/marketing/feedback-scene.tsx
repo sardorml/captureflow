@@ -25,7 +25,12 @@ const AVATAR_COLORS: Record<string, string> = {
 
 export function FeedbackScene() {
   return (
-    <SceneFrame steps={STEPS} loopMs={LOOP_MS} background="#ead9fb">
+    <SceneFrame
+      steps={STEPS}
+      loopMs={LOOP_MS}
+      background="linear-gradient(160deg,#e2c8fb,#f4bfe0)"
+      zoom={{ scale: 1.03, bounds: [24, 576] }}
+    >
       {(state) => <FeedbackContent {...state} />}
     </SceneFrame>
   );
@@ -60,7 +65,7 @@ function FeedbackContent({ step, playing }: SceneState) {
     <div className="absolute inset-x-6 top-1/2 flex -translate-y-1/2 items-stretch gap-4">
       <div className="flex w-[372px] shrink-0 flex-col rounded-2xl bg-white p-3 text-[#181818] shadow-[0_20px_44px_rgb(76_29_149/0.18)]">
         <p className="text-[13px] leading-tight font-bold">{copy.title}</p>
-        <p className="mt-1 flex items-center gap-1.5 text-[9px] text-black/50">
+        <p className="mt-1 flex items-center gap-1.5 text-[11px] text-black/50">
           <Initials color={AVATAR_COLORS.AR} size={14}>
             {copy.author[0]}
           </Initials>
@@ -94,7 +99,7 @@ function FeedbackContent({ step, playing }: SceneState) {
                 style={{ left: `${event.position * 100}%` }}
               >
                 {"emoji" in event ? (
-                  <span className="text-[11px] leading-none">
+                  <span className="text-[13px] leading-none">
                     {event.emoji}
                   </span>
                 ) : (
@@ -126,16 +131,16 @@ function FeedbackContent({ step, playing }: SceneState) {
               style={{ left: playing ? "0%" : "100%" }}
             />
           </div>
-          <span className="font-mono text-[9px] text-black/45 tabular-nums">
+          <span className="font-mono text-[11px] text-black/45 tabular-nums">
             {copy.duration}
           </span>
         </div>
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-2 overflow-hidden rounded-2xl bg-white p-3 text-[#181818] shadow-[0_20px_44px_rgb(76_29_149/0.18)]">
-        <p className="mb-0.5 flex items-center justify-between text-[11px] font-bold">
+        <p className="mb-0.5 flex items-center justify-between text-[13px] font-bold">
           {copy.activity}
-          <span className="rounded-full bg-[#ede5f8] px-1.5 py-0.5 text-[9px] text-[#7c3aed] tabular-nums">
+          <span className="rounded-full bg-[#ede5f8] px-1.5 py-0.5 text-[11px] text-[#7c3aed] tabular-nums">
             {step}
           </span>
         </p>
@@ -153,19 +158,19 @@ function FeedbackContent({ step, playing }: SceneState) {
               {event.initials}
             </Initials>
             <div className="flex min-w-0 flex-col gap-0.5">
-              <p className="flex items-center gap-1 text-[9px] font-semibold">
+              <p className="flex items-center gap-1 text-[11px] font-semibold">
                 {event.name}
-                <span className="rounded bg-[#ede5f8] px-1 font-mono text-[8px] font-medium text-[#7c3aed]">
+                <span className="rounded bg-[#ede5f8] px-1 font-mono text-[10px] font-medium text-[#7c3aed]">
                   {event.at}
                 </span>
                 {"emoji" in event ? (
-                  <span className="text-[11px] leading-none">
+                  <span className="text-[13px] leading-none">
                     {event.emoji}
                   </span>
                 ) : null}
               </p>
               {"text" in event ? (
-                <p className="text-[9px] leading-snug text-black/65">
+                <p className="text-[11px] leading-snug text-black/65">
                   {event.text}
                 </p>
               ) : null}
@@ -232,7 +237,7 @@ function CommentPop({
   return (
     <span
       ref={ref}
-      className="absolute bottom-full mb-7 flex items-center gap-1.5 rounded-[10px_10px_10px_3px] bg-[#16181d] py-1.5 pr-2.5 pl-1.5 text-[9px] font-semibold whitespace-nowrap text-white opacity-0 shadow-lg"
+      className="absolute bottom-full mb-7 flex items-center gap-1.5 rounded-[10px_10px_10px_3px] bg-[#16181d] py-1.5 pr-2.5 pl-1.5 text-[11px] font-semibold whitespace-nowrap text-white opacity-0 shadow-lg"
       style={{ left: `${left}%` }}
     >
       <Initials color={color} size={14}>

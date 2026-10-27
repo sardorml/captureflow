@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  CAPTUREFLOW_MONTHLY,
+  CAPTUREFLOW_PER_SEAT,
+  getCaptureflowMonthly,
   getLoomMonthly,
   getYearlySavings,
 } from "./loom-comparison";
@@ -11,9 +12,13 @@ describe("loom comparison math", () => {
     expect(getLoomMonthly("businessAi", 10)).toBe(240);
   });
 
-  it("compares against the flat managed price over a year", () => {
+  it("prices CaptureFlow per member at the Team rate", () => {
+    expect(getCaptureflowMonthly(10)).toBe(10 * CAPTUREFLOW_PER_SEAT);
+  });
+
+  it("compares the two per-seat prices over a year", () => {
     expect(getYearlySavings("business", 10)).toBeCloseTo(
-      (180 - CAPTUREFLOW_MONTHLY) * 12,
+      (180 - 10 * CAPTUREFLOW_PER_SEAT) * 12,
     );
   });
 

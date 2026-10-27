@@ -11,14 +11,7 @@ import {
 import { resolveDeviceTokenToUser } from "@/lib/screenshot/device-tokens";
 import { isDevDevice } from "@/lib/screenshot/dev-allowlist";
 import { optionsResponse, withCors, jsonError } from "@/lib/screenshot/cors";
-import {
-  getEffectiveLimitsForUser,
-  getWorkspaceForUpload,
-  resolveUploadWorkspaceId,
-  resolveUserWorkspaceId,
-  totalStorageForUser,
-  validateWorkspaceMembership,
-} from "@/lib/screenshot/quota";
+import { resolveUploadTarget, storageBudgetFor } from "@/lib/screenshot/quota";
 import { screenshotEditUrlFor, screenshotViewUrlForRequest } from "@/lib/site";
 import {
   buildScreenshotHeadline,
@@ -125,34 +118,16 @@ export async function POST(req: NextRequest) {
    * uploader's. Falls through to the uploader's personal workspace on any
    * mismatch so a stale client never blocks.
    */
-  let workspaceId: string | null = null;
-  const requestedWorkspace = req.headers.get(WORKSPACE_HEADER);
-  if (requestedWorkspace) {
-    workspaceId = await validateWorkspaceMembership(userId, requestedWorkspace);
-  }
-  if (!workspaceId) {
-    workspaceId = await resolveUploadWorkspaceId(userId);
-  }
-  // Full workspace row — owner_user_id + policy flags, used for both quota
-  // attribution and member-upload enforcement below.
-  let workspace = workspaceId ? await getWorkspaceForUpload(workspaceId) : null;
-  if (
-    workspace &&
-    !workspace.allow_member_uploads &&
-    workspace.owner_user_id !== userId
-  ) {
-    workspaceId = await resolveUserWorkspaceId(userId);
-    workspace = workspaceId ? await getWorkspaceForUpload(workspaceId) : null;
-  }
-  const quotaUserId = workspace?.owner_user_id ?? userId;
-
+  const target = await resolveUploadTarget(
+    userId,
+    req.headers.get(WORKSPACE_HEADER),
+  );
+  const workspace = target?.workspace ?? null;
+  const workspaceId = workspace?.id ?? null;
   const isDev = await isDevDevice(deviceId);
   if (!isDev) {
-    const [storageUsed, limits] = await Promise.all([
-      totalStorageForUser(quotaUserId),
-      getEffectiveLimitsForUser(quotaUserId),
-    ]);
-    if (storageUsed >= limits.storageBytes) {
+    const { used, limit } = await storageBudgetFor({ workspaceId });
+    if (used >= limit) {
       return jsonError("Storage cap reached", 429, "storage_limit");
     }
   }

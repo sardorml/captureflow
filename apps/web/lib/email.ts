@@ -40,15 +40,20 @@ export async function sendWorkspaceInviteEmail(args: {
   inviterName: string | null;
   inviterEmail: string;
   workspaceName: string;
+  role: "member" | "viewer";
   acceptUrl: string;
 }): Promise<boolean> {
   const inviter = args.inviterName?.trim()
     ? args.inviterName.trim()
     : args.inviterEmail;
   const subject = `${inviter} invited you to ${args.workspaceName} on CaptureFlow`;
+  const asRole =
+    args.role === "viewer"
+      ? "as a viewer, to watch and comment"
+      : "as a member, to record and share";
 
   const text = [
-    `${inviter} (${args.inviterEmail}) invited you to join the "${args.workspaceName}" workspace on CaptureFlow.`,
+    `${inviter} (${args.inviterEmail}) invited you to join the "${args.workspaceName}" workspace on CaptureFlow ${asRole}.`,
     "",
     `Accept the invitation:`,
     args.acceptUrl,
@@ -73,7 +78,7 @@ export async function sendWorkspaceInviteEmail(args: {
           <p style="margin:0 0 20px 0; color:#a3a3a3; line-height:1.55;">
             <strong style="color:#e5e5e5;">${inviterSafe}</strong>
             (<a href="mailto:${inviterEmailSafe}" style="color:#a3a3a3;">${inviterEmailSafe}</a>)
-            invited you to join their workspace on CaptureFlow. Workspaces let teammates share recordings and screenshots privately.
+            invited you to join their workspace on CaptureFlow ${escapeHtml(asRole)}. Workspaces let teammates share recordings and screenshots privately.
           </p>
           <p style="margin:0 0 24px 0;">
             <a href="${acceptSafe}" style="display:inline-block; padding:12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600;">Accept invitation</a>

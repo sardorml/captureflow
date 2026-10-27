@@ -1,32 +1,163 @@
 "use client";
 
 import { useState } from "react";
-import { Cloud } from "lucide-react";
+import { Sparkle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Modal } from "@heroui/react";
-import { ManagedIncludes } from "@/components/marketing/managed-card";
-import { MANAGED_TIERS, SUPPORT_EMAIL } from "@/lib/marketing/constants";
+import {
+  GRADIENT_BORDER,
+  PlanIncludes,
+} from "@/components/marketing/plan-cards";
 import { MESSAGES } from "@/lib/marketing/messages";
 import { getPosthogDistinctId, track } from "@/lib/marketing/track";
+import {
+  SEAT_ANNUAL_SAVING_PERCENT,
+  SEAT_PLAN,
+  seatPriceUsd,
+} from "@captureflow/quota";
+import {
+  seatCheckoutUrl,
+  type SeatCycle,
+  type SeatOffer,
+} from "@/lib/billing/seat-checkout";
 
-const copy = MESSAGES.pricing.managed;
-const enterprise = MESSAGES.pricing.enterprise;
-const ENTERPRISE_HREF = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(enterprise.subject)}`;
+const includes = MESSAGES.pricing.includes;
 
 type Props = {
   email: string;
   userId: string;
+  seat: SeatOffer;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-// checkout[custom][user_id] is what the lemon-webhook attaches the
-// subscription by; the email prefill is UX only and the buyer can edit it.
-function checkoutUrlFor(base: string, email: string, userId: string): string {
-  const u = new URL(base);
-  if (email) u.searchParams.set("checkout[email]", email);
-  u.searchParams.set("checkout[custom][user_id]", userId);
-  return u.toString();
+/*
+ * Per-seat plan: one price per member, shown as the workspace's monthly total
+ * so the buyer sees the number that will appear on the invoice. The seat
+ * count is prefilled from the member count and adjusts as people join.
+ */
+function SeatPlanPanel({
+  seat,
+  email,
+  userId,
+  onCheckout,
+}: {
+  seat: SeatOffer;
+  email: string;
+  userId: string;
+  onCheckout: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+}) {
+  const [cycle, setCycle] = useState<SeatCycle>("monthly");
+  const seats = Math.max(1, seat.memberCount);
+  const perSeat =
+    cycle === "annual"
+      ? SEAT_PLAN.priceAnnualUsdPerMonth
+      : SEAT_PLAN.priceMonthlyUsd;
+  const total = seatPriceUsd(seats, cycle);
+  const href = seat.checkoutUrl
+    ? seatCheckoutUrl({
+        base: seat.checkoutUrl,
+        email,
+        userId,
+        workspaceId: seat.workspaceId,
+        seats,
+      })
+    : null;
+  const cycles: { key: SeatCycle; label: string }[] = [
+    { key: "monthly", label: "Monthly" },
+    { key: "annual", label: "Yearly" },
+  ];
+
+  return (
+    <div className={cn("rounded-2xl p-0.5", GRADIENT_BORDER)}>
+      <div className="flex h-full flex-col overflow-hidden rounded-[14px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))] p-6 text-fg">
+        <span className="inline-flex w-fit items-center rounded-lg bg-accent/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
+          Most popular
+        </span>
+        <Modal.Heading className="mt-3 flex items-start gap-1 text-2xl font-bold tracking-[-0.02em] text-fg">
+          {SEAT_PLAN.name}
+          <Sparkle size={14} className="shrink-0 fill-current text-fg" />
+        </Modal.Heading>
+        <p className="mt-1 text-sm text-fg-muted">
+          Upgrade {seat.workspaceName}
+        </p>
+
+        <p className="mt-4 text-4xl font-bold tracking-[-0.02em] text-fg">
+          <span
+            key={`${cycle}-${total}`}
+            className="animate-storage-pop inline-block"
+          >
+            ${total}
+          </span>
+          <span className="ms-1 align-baseline text-base font-normal text-fg-muted">
+            /month
+          </span>
+        </p>
+        <p className="mt-1.5 text-sm text-fg-muted">
+          ${perSeat} per member × {seats} {seats === 1 ? "member" : "members"}
+          {cycle === "annual" ? ", billed yearly" : ", billed monthly"}. Adding
+          a member adds a seat; removing one drops it at renewal.
+        </p>
+
+        <div
+          role="radiogroup"
+          aria-label="Billing cycle"
+          className="mt-5 mb-5 grid grid-cols-2 gap-1 rounded-lg bg-tint p-1"
+        >
+          {cycles.map((c) => {
+            const isOn = c.key === cycle;
+            return (
+              <button
+                key={c.key}
+                type="button"
+                role="radio"
+                aria-checked={isOn}
+                onClick={() => setCycle(c.key)}
+                className={cn(
+                  "cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-colors motion-reduce:transition-none",
+                  isOn
+                    ? "bg-panel text-fg shadow-sm"
+                    : "text-fg-muted hover:text-fg",
+                )}
+              >
+                {c.label}
+                {c.key === "annual" ? (
+                  <span className="ms-1.5 text-xs opacity-80">
+                    save {SEAT_ANNUAL_SAVING_PERCENT}%
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+
+        <ul className="mb-5 grid gap-1.5 text-sm text-fg">
+          <li>Unlimited recordings, any length, full quality</li>
+          <li>
+            {Math.round(SEAT_PLAN.storageBytesPerSeat / 1024 ** 3)} GB of
+            storage per member, pooled across the workspace
+          </li>
+          <li>AI chapters, suggested titles and filler word removal</li>
+        </ul>
+
+        {href ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onCheckout}
+            className="flex h-11 w-full shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-white transition-colors hover:bg-accent/90 motion-reduce:transition-none"
+          >
+            Upgrade for ${total}/month
+          </a>
+        ) : (
+          <span className="flex h-11 w-full items-center justify-center rounded-full bg-accent/10 text-sm font-medium text-fg-muted">
+            Checkout not configured
+          </span>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // The dialog itself, loaded on first open: it carries the marketing copy and
@@ -34,35 +165,14 @@ function checkoutUrlFor(base: string, email: string, userId: string): string {
 export function UpgradeModalBody({
   email,
   userId,
+  seat,
   isOpen,
   onOpenChange,
 }: Props) {
-  // Opens on the recommended tier; the price and the checkout link both follow
-  // the switch, so what's shown is always what the button buys.
-  const [choice, setChoice] = useState<number | "enterprise">(
-    (MANAGED_TIERS.find((t) => t.tag === "recommended") ?? MANAGED_TIERS[0])
-      .storageGb,
-  );
-  const selected =
-    MANAGED_TIERS.find((t) => t.storageGb === choice) ?? MANAGED_TIERS[0];
-  const isEnterprise = choice === "enterprise";
-  const rows = [
-    ...MANAGED_TIERS.map((t) => ({
-      key: t.storageGb,
-      label: t.label,
-      price: `$${t.price}/mo`,
-    })),
-    {
-      key: "enterprise" as const,
-      label: enterprise.name,
-      price: enterprise.price,
-    },
-  ];
-
   // PostHog distinct_id isn't available server-side at render, so append it
   // at click time.
   const handleCheckoutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    track("checkout_opened", { plan: "managed" });
+    track("checkout_opened", { plan: "seats" });
     const distinctId = getPosthogDistinctId();
     if (!distinctId) return;
     try {
@@ -88,109 +198,13 @@ export function UpgradeModalBody({
                 in-dialog way out. Positions itself top-right. */}
             <Modal.CloseTrigger />
             <Modal.Body className="grid gap-2 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-              {/* Dark in both themes, and says so: light mode inverts the
-                  neutral ramp, which turned the dark text on its white
-                  button white on white. */}
-              <div
-                data-theme="dark"
-                className="flex flex-col overflow-hidden rounded-xl bg-accent-bg p-6"
-              >
-                <span className="flex items-center gap-2">
-                  <span className="flex size-6 items-center justify-center rounded-lg bg-white/15 text-white">
-                    <Cloud size={14} />
-                  </span>
-                  <span className="text-sm font-medium text-white/80">
-                    {copy.badge}
-                  </span>
-                </span>
-                <Modal.Heading className="mt-3 text-xl font-semibold tracking-[-0.01em] text-white">
-                  {copy.title}
-                </Modal.Heading>
-
-                <p className="mt-4 text-4xl font-bold tracking-[-0.02em] text-white">
-                  <span
-                    key={isEnterprise ? "enterprise" : selected.price}
-                    className="animate-storage-pop inline-block"
-                  >
-                    {isEnterprise ? "Custom" : `$${selected.price}`}
-                  </span>
-                  {isEnterprise ? null : (
-                    <span className="ms-1 align-baseline text-base font-normal text-white/70">
-                      {copy.period}
-                    </span>
-                  )}
-                </p>
-                <p className="mt-1.5 text-sm text-white/60">
-                  {isEnterprise ? enterprise.note : copy.paidNote}
-                </p>
-
-                <div
-                  role="radiogroup"
-                  aria-label={copy.tiersLabel}
-                  className="mt-5 mb-5 grid gap-1"
-                >
-                  {rows.map((row) => {
-                    const isOn = row.key === choice;
-                    return (
-                      <button
-                        key={row.key}
-                        type="button"
-                        role="radio"
-                        aria-checked={isOn}
-                        onClick={() => setChoice(row.key)}
-                        className={cn(
-                          "flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors motion-reduce:transition-none",
-                          isOn
-                            ? "bg-white/20 text-white"
-                            : "text-white/75 hover:bg-white/10 hover:text-white",
-                        )}
-                      >
-                        <span className="flex items-center gap-2.5">
-                          <span
-                            className={cn(
-                              "flex size-4 items-center justify-center rounded-full border",
-                              isOn
-                                ? "border-white bg-white"
-                                : "border-white/50",
-                            )}
-                          >
-                            {isOn ? (
-                              <span className="size-1.5 rounded-full bg-accent-bg" />
-                            ) : null}
-                          </span>
-                          <span className="font-medium">{row.label}</span>
-                        </span>
-                        <span className="tabular-nums">{row.price}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <a
-                  href={
-                    isEnterprise
-                      ? ENTERPRISE_HREF
-                      : checkoutUrlFor(selected.checkoutUrl, email, userId)
-                  }
-                  target={isEnterprise ? undefined : "_blank"}
-                  rel={isEnterprise ? undefined : "noopener noreferrer"}
-                  onClick={
-                    isEnterprise
-                      ? () =>
-                          track("marketing_cta_clicked", {
-                            location: "upgrade_enterprise",
-                          })
-                      : handleCheckoutClick
-                  }
-                  className="flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-white text-sm font-medium text-neutral-900 transition-colors hover:bg-white/90 motion-reduce:transition-none"
-                >
-                  {isEnterprise
-                    ? enterprise.cta
-                    : copy.ctaUpgrade.replace("{storage}", selected.label)}
-                </a>
-              </div>
-
-              <ManagedIncludes copy={copy} />
+              <SeatPlanPanel
+                seat={seat}
+                email={email}
+                userId={userId}
+                onCheckout={handleCheckoutClick}
+              />
+              <PlanIncludes copy={includes} />
             </Modal.Body>
           </Modal.Dialog>
         </Modal.Container>

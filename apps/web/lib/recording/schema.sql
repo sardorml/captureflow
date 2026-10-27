@@ -96,20 +96,8 @@ CREATE TABLE IF NOT EXISTS recording_reactions (
 CREATE INDEX IF NOT EXISTS idx_reactions_slug
   ON recording_reactions (slug, timestamp_ms);
 
--- Per-user quota overrides. A row exists only when the admin has
--- bumped (or pinned) a user's storage cap — absent row means inherit the
--- ACCOUNT_LIMITS default from the @captureflow/quota package. Storage is
--- the only quota there is, so this is the only override.
-CREATE TABLE IF NOT EXISTS user_quotas (
-  user_id                TEXT PRIMARY KEY,
-  storage_bytes_override INTEGER,
-  note                   TEXT,
-  updated_at             INTEGER NOT NULL
-) STRICT;
-
--- Screenshots. Sibling to `recordings`; both tables aggregate
--- into the same account-scoped storage cap via @captureflow/quota's
--- totalStorageForUser.
+-- Screenshots. Sibling to `recordings`; both count against the workspace's
+-- storage via @captureflow/quota's totalStorageForWorkspace.
 -- Written by the screenshot upload handler.
 CREATE TABLE IF NOT EXISTS screenshots (
   id              TEXT PRIMARY KEY,

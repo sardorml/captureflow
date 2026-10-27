@@ -1,5 +1,5 @@
 import { preconnect } from "react-dom";
-import { getWorkspaceById, listMembers } from "@captureflow/quota";
+import { can, getWorkspaceById, listMembers } from "@captureflow/quota";
 import { requireSession } from "@/lib/session-guard";
 import { R2_PUBLIC_BASE_URL } from "@/lib/site";
 import { getAppWebEnv } from "@/lib/cf-env";
@@ -80,7 +80,11 @@ export default async function RecordingsPage({
 
   return (
     <>
-      <PageHeader title="Recordings" subtitle={subtitle} />
+      <PageHeader
+        title="Recordings"
+        subtitle={subtitle}
+        showRecord={can(current.role, "record")}
+      />
       <div className="mt-6">
         <RecordingsList
           recordings={cards}

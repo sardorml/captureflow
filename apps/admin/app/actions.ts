@@ -28,20 +28,15 @@ import {
   hashToken,
   hydrateAdminId,
   hydrateEmail,
-  hydrateGrantInput,
   hydrateInviteToken,
   hydratePassword,
-  hydrateQuotaInput,
   hydrateRole,
   hydrateUserId,
   issueSession,
   loginScopeKeys,
   recordFailure,
-  planLabel,
   revokeUserAccess,
   setAdminStatus,
-  setGrantedPlan,
-  setUserQuota,
   throttleMessage,
   touchAdminLogin,
   updateAdminRole,
@@ -296,64 +291,6 @@ export async function acceptInviteAction(
   });
   await startSession(id);
   redirect("/");
-}
-
-export async function saveQuotaAction(
-  _prev: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const operator = await requirePermission("users.write");
-  const env = await getAdminEnv();
-  if (!env?.DB) return { error: NO_DB };
-
-  const userId = hydrateUserId(formData.get("userId"));
-  if (!userId) return { error: "Unknown user." };
-
-  const quota = hydrateQuotaInput(formData);
-  if (!quota.ok) return { error: quota.error };
-  await setUserQuota(env.DB, userId, quota.value);
-  await writeAudit(env.DB, {
-    actor: operator.email,
-    action: "quota.set",
-    targetType: "user",
-    targetId: userId,
-    detail: JSON.stringify(quota.value),
-  });
-  revalidatePath(`/users/${userId}`);
-  revalidatePath("/users");
-  return { error: null };
-}
-
-export async function grantPlanAction(
-  _prev: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const operator = await requirePermission("users.write");
-  const env = await getAdminEnv();
-  if (!env?.DB) return { error: NO_DB };
-
-  const userId = hydrateUserId(formData.get("userId"));
-  if (!userId) return { error: "Unknown user." };
-
-  const grant = hydrateGrantInput(formData, Date.now());
-  if (!grant.ok) return { error: grant.error };
-  await setGrantedPlan(env.DB, userId, grant.value);
-  await writeAudit(env.DB, {
-    actor: operator.email,
-    action: grant.value ? "plan.grant" : "plan.revoke",
-    targetType: "user",
-    targetId: userId,
-    detail: grant.value
-      ? `${planLabel(grant.value.variantId)} until ${
-          grant.value.expiresAt
-            ? new Date(grant.value.expiresAt - 1).toISOString().slice(0, 10)
-            : "no end date"
-        }`
-      : null,
-  });
-  revalidatePath(`/users/${userId}`);
-  revalidatePath("/users");
-  return { error: null };
 }
 
 export async function revokeUserAccessAction(

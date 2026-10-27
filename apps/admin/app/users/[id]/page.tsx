@@ -2,18 +2,14 @@ import NextLink from "next/link";
 import { notFound } from "next/navigation";
 import { Table } from "@heroui/react";
 import {
-  STORAGE_PLANS,
   can,
   getAdminUser,
   getUserActivity,
-  getUserQuota,
-  getUserStorage,
-  isSelfHosted,
   listAuditForTarget,
   listUserSubscriptions,
   listUserWorkspaces,
-  planLabel,
 } from "@captureflow/admin";
+import { SEAT_PLAN } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
 import {
@@ -21,12 +17,10 @@ import {
   Empty,
   FormCard,
   Monogram,
-  Notice,
   PageHeader,
   PlanChip,
   Stat,
   StatGrid,
-  StorageMeter,
   Tone,
   formatBytes,
   formatDate,
@@ -34,8 +28,6 @@ import {
   formatRelative,
 } from "../../_ui";
 import { PanelTabs } from "../../_filters";
-import { GrantForm } from "./GrantForm";
-import { QuotaForm } from "./QuotaForm";
 import { SignOutEverywhere } from "./SignOutEverywhere";
 
 const STATE_COLOR = {
@@ -44,14 +36,35 @@ const STATE_COLOR = {
   failed: "danger",
 } as const;
 
-function grantSummary(
-  grant: { variantId: string; expiresAt: number | null },
-  now: number,
+const CLIENT_LABEL: Record<string, string> = {
+  extension: "Extension",
+  desktop: "Desktop",
+};
+const CAPTURE_LABEL: Record<string, string> = {
+  tab: "tab",
+  window: "window",
+  screen: "screen",
+};
+// Mirrors the preset labels in packages/engine/src/quality.ts.
+const QUALITY_LABEL: Record<string, string> = {
+  saver: "Data saver",
+  low: "Low",
+  balanced: "Balanced",
+  high: "High",
+  max: "Maximum",
+};
+
+// "Extension · tab", or whichever half the client reported; "—" for rows
+// from clients that predate the fields.
+function captureLabel(
+  client: string | null,
+  captureSource: string | null,
 ): string {
-  const label = planLabel(grant.variantId);
-  if (!grant.expiresAt) return `${label}, no end date`;
-  const day = new Date(grant.expiresAt - 1).toISOString().slice(0, 10);
-  return `${label}, last day ${day}${grant.expiresAt <= now ? " (ended)" : ""}`;
+  const parts = [
+    client ? (CLIENT_LABEL[client] ?? client) : null,
+    captureSource ? (CAPTURE_LABEL[captureSource] ?? captureSource) : null,
+  ].filter((p): p is string => p !== null);
+  return parts.length ? parts.join(" · ") : "—";
 }
 
 export default async function UserPage({
@@ -64,19 +77,15 @@ export default async function UserPage({
   const env = await getAdminEnv();
   if (!env?.DB) notFound();
 
-  const [user, quota, storage, activity, subscriptions, workspaces, audit] =
-    await Promise.all([
-      getAdminUser(env.DB, id),
-      getUserQuota(env.DB, id),
-      getUserStorage(env.DB, id, { selfHosted: isSelfHosted(env) }),
-      getUserActivity(env.DB, id),
-      listUserSubscriptions(env.DB, id),
-      listUserWorkspaces(env.DB, id),
-      listAuditForTarget(env.DB, "user", id),
-    ]);
+  const [user, activity, subscriptions, workspaces, audit] = await Promise.all([
+    getAdminUser(env.DB, id),
+    getUserActivity(env.DB, id),
+    listUserSubscriptions(env.DB, id),
+    listUserWorkspaces(env.DB, id),
+    listAuditForTarget(env.DB, "user", id),
+  ]);
   if (!user) notFound();
   const canWrite = can(operator.role, "users.write");
-  const now = Date.now();
   const ownedTeams = workspaces.filter(
     (w) => w.kind === "team" && w.owner.id === user.id,
   ).length;
@@ -91,6 +100,8 @@ export default async function UserPage({
           "Recording",
           "State",
           "Visibility",
+          "Source",
+          "Quality",
           "Length",
           "Size",
           "Views",
@@ -119,6 +130,12 @@ export default async function UserPage({
             </Table.Cell>
             <Table.Cell className="text-fg-muted capitalize">
               {r.visibility}
+            </Table.Cell>
+            <Table.Cell className="text-fg-muted whitespace-nowrap">
+              {captureLabel(r.client, r.captureSource)}
+            </Table.Cell>
+            <Table.Cell className="text-fg-muted whitespace-nowrap">
+              {r.quality ? (QUALITY_LABEL[r.quality] ?? r.quality) : "—"}
             </Table.Cell>
             <Table.Cell className="tabular-nums whitespace-nowrap">
               {r.durationMs ? formatDuration(r.durationMs) : "—"}
@@ -202,12 +219,13 @@ export default async function UserPage({
 
   const subscriptionTable =
     subscriptions.length === 0 ? (
-      <Empty title="Never subscribed" />
+      <Empty title="No workspace this user owns has subscribed" />
     ) : (
       <DataTable
         label="Subscriptions"
         columns={[
-          "Plan",
+          "Workspace",
+          "Seats",
           "Status",
           "Billing",
           "Period ends",
@@ -217,9 +235,15 @@ export default async function UserPage({
       >
         {subscriptions.map((s) => (
           <Table.Row key={s.id}>
-            <Table.Cell className="text-fg-strong font-medium">
-              {s.planLabel}
+            <Table.Cell>
+              <NextLink
+                href={`/workspaces/${s.workspaceId}`}
+                className="text-fg-strong font-medium hover:underline"
+              >
+                {s.workspaceName}
+              </NextLink>
             </Table.Cell>
+            <Table.Cell className="tabular-nums">{s.quantity}</Table.Cell>
             <Table.Cell>
               <Tone
                 color={
@@ -253,54 +277,9 @@ export default async function UserPage({
     <div className="grid gap-5 lg:grid-cols-2">
       <FormCard
         title="Plan"
-        description="A granted plan works like a paid one (same storage, no retention sweep) without a subscription. With both, the larger applies."
+        description={`A person is on ${SEAT_PLAN.name} while they hold a seat in a paid workspace. Plans belong to workspaces, so change them from the workspace or the billing provider.`}
       >
-        {quota.grant && (
-          <Notice>Granted {grantSummary(quota.grant, now)}</Notice>
-        )}
-        {canWrite ? (
-          <GrantForm
-            userId={user.id}
-            grant={quota.grant}
-            plans={STORAGE_PLANS}
-          />
-        ) : (
-          <p className="text-fg-muted text-sm">
-            Read-only: your role cannot change plans.
-          </p>
-        )}
-      </FormCard>
-      <FormCard
-        title="Storage"
-        description={
-          <>
-            Counts ready recordings, webcam streams and screenshots in every
-            workspace this user owns.
-            {quota.updatedAt
-              ? ` Last changed ${formatDate(quota.updatedAt)}.`
-              : ""}
-          </>
-        }
-      >
-        <StorageMeter used={storage.usedBytes} limit={storage.limitBytes} />
-        {canWrite ? (
-          <QuotaForm userId={user.id} quota={quota} />
-        ) : (
-          <dl className="grid gap-3 text-sm">
-            <div>
-              <dt className="text-fg-muted text-xs">Storage override</dt>
-              <dd className="tabular-nums">
-                {quota.storageBytesOverride === null
-                  ? "—"
-                  : formatBytes(quota.storageBytesOverride)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-fg-muted text-xs">Note</dt>
-              <dd>{quota.note ?? "—"}</dd>
-            </div>
-          </dl>
-        )}
+        <PlanChip plan={user.plan} />
       </FormCard>
       <FormCard
         title="Access"
@@ -393,8 +372,8 @@ export default async function UserPage({
         />
         <Stat
           label="Stored"
-          value={formatBytes(storage.usedBytes)}
-          hint={`of ${formatBytes(storage.limitBytes)} · ${ownedTeams} team ${ownedTeams === 1 ? "workspace" : "workspaces"} owned`}
+          value={formatBytes(user.storageBytes)}
+          hint={`In workspaces this user owns · ${ownedTeams} team ${ownedTeams === 1 ? "workspace" : "workspaces"} owned`}
         />
       </StatGrid>
 

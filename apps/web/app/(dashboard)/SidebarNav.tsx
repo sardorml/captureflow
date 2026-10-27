@@ -4,32 +4,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Camera,
-  Database,
   ExternalLink,
   LayoutDashboard,
-  LayoutGrid,
   Link2,
   MessageSquare,
   PenLine,
-  Receipt,
   Settings,
   Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { formatBytes } from "@/lib/format";
 import { SUPPORT_EMAIL } from "@/lib/site";
-import { storageFill, type StorageTone } from "@/lib/storage-fill";
 import { cn } from "@/lib/utils";
 
 type NavLink = {
   href: string;
-  icon: ReactNode;
+  icon?: ReactNode;
   label: string;
   external?: boolean;
   newTab?: boolean;
 };
-
-export type SidebarStorage = { usedBytes: number; limitBytes: number | null };
 
 const ICON = 18;
 
@@ -51,25 +44,27 @@ const CAPTURE_LINKS: NavLink[] = [
 ];
 
 // Members is for everyone: the page already draws itself for both roles.
-const TEAM_LINKS: NavLink[] = [
-  { href: "/members", icon: <Users size={ICON} />, label: "Members" },
-  {
-    href: "/workspaces",
-    icon: <LayoutGrid size={ICON} />,
-    label: "Workspaces",
-  },
-];
-
-const ADMIN_LINKS: NavLink[] = [
-  { href: "/settings", icon: <Settings size={ICON} />, label: "Settings" },
-  { href: "/billing", icon: <Receipt size={ICON} />, label: "Billing" },
-];
-
-const STORAGE_LINK: NavLink = {
-  href: "/storage",
-  icon: <Database size={ICON} />,
-  label: "Storage",
+const MEMBERS_LINK: NavLink = {
+  href: "/members",
+  icon: <Users size={ICON} />,
+  label: "Members",
 };
+
+const SETTINGS_LINK: NavLink = {
+  href: "/settings",
+  icon: <Settings size={ICON} />,
+  label: "Settings",
+};
+
+const PERSONAL_LINK: NavLink = {
+  href: "/settings/personal",
+  label: "Personal",
+};
+const WORKSPACE_LINK: NavLink = {
+  href: "/settings/workspace",
+  label: "Workspace",
+};
+const BILLING_LINK: NavLink = { href: "/billing", label: "Billing" };
 
 // Mail, like the account menu's entry; a self-hosted instance has its own support.
 const SUPPORT_LINK: NavLink = {
@@ -82,11 +77,9 @@ const SUPPORT_LINK: NavLink = {
 export function SidebarNav({
   isOwner,
   selfHosted,
-  storage,
 }: {
   isOwner: boolean;
   selfHosted: boolean;
-  storage: SidebarStorage;
 }) {
   const pathname = usePathname();
   const isActive = (link: NavLink) =>
@@ -100,28 +93,34 @@ export function SidebarNav({
     </ul>
   );
 
+  const settingsLinks = [
+    PERSONAL_LINK,
+    ...(isOwner ? [WORKSPACE_LINK] : []),
+    ...(isOwner && !selfHosted ? [BILLING_LINK] : []),
+  ];
+
   return (
     <nav className="flex flex-col px-3">
       {group(CAPTURE_LINKS)}
       <Divider />
-      {group(TEAM_LINKS)}
-      {isOwner && (
-        <>
-          <Divider />
-          <ul className="flex flex-col gap-0.5">
-            {ADMIN_LINKS.filter(
-              (link) => !selfHosted || link.href !== "/billing",
-            ).map((link) => (
-              <NavItem key={link.href} link={link} active={isActive(link)} />
+      <ul className="flex flex-col gap-0.5">
+        <NavItem link={MEMBERS_LINK} active={isActive(MEMBERS_LINK)} />
+        {/* The parent never lights up on its own: /settings redirects to a
+            child, and the child row carries the highlight. */}
+        <NavItem link={SETTINGS_LINK} active={false} />
+        <li>
+          <ul className="ml-[21px] flex flex-col gap-0.5 border-l border-line pl-2">
+            {settingsLinks.map((link) => (
+              <NavItem
+                key={link.href}
+                link={link}
+                active={isActive(link)}
+                nested
+              />
             ))}
-            <NavItem
-              link={STORAGE_LINK}
-              active={isActive(STORAGE_LINK)}
-              trailing={<StorageGauge {...storage} />}
-            />
           </ul>
-        </>
-      )}
+        </li>
+      </ul>
       {!selfHosted && (
         <>
           <Divider />
@@ -133,20 +132,21 @@ export function SidebarNav({
 }
 
 function Divider() {
-  return <hr className="my-2 border-line-strong" />;
+  return <hr className="my-2 border-line" />;
 }
 
 function NavItem({
   link,
   active,
-  trailing,
+  nested = false,
 }: {
   link: NavLink;
   active: boolean;
-  trailing?: ReactNode;
+  nested?: boolean;
 }) {
   const className = cn(
-    "flex h-9 items-center gap-3 rounded-lg px-3 text-[15px] transition-colors",
+    "flex items-center gap-3 rounded-lg px-3 transition-colors",
+    nested ? "h-8 text-sm" : "h-9 text-[15px]",
     active ? "bg-accent-soft font-medium text-accent" : "text-fg hover:bg-tint",
   );
   if (link.external) {
@@ -176,72 +176,7 @@ function NavItem({
       >
         {link.icon}
         {link.label}
-        {trailing && (
-          <span className="ml-auto flex items-center gap-2">{trailing}</span>
-        )}
       </Link>
     </li>
-  );
-}
-
-const RING_SIZE = 18;
-const RING_STROKE = 2.5;
-const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
-const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
-// Below this the arc rounds away to nothing and an empty ring reads as broken.
-const RING_MIN_ARC = 0.04;
-
-const RING_TONE_CLASS: Record<StorageTone, string> = {
-  ok: "stroke-success",
-  near: "stroke-warning",
-  full: "stroke-danger",
-};
-
-function StorageGauge({ usedBytes, limitBytes }: SidebarStorage) {
-  const fill = storageFill(usedBytes, limitBytes);
-  const used = formatBytes(usedBytes);
-  const arc = fill && fill.ratio > 0 ? Math.max(fill.ratio, RING_MIN_ARC) : 0;
-  return (
-    <>
-      <span
-        className="text-xs font-normal tabular-nums text-fg-muted"
-        aria-label={
-          limitBytes === null
-            ? `${used} used`
-            : `${used} used of ${formatBytes(limitBytes)}`
-        }
-      >
-        {used}
-      </span>
-      {fill && (
-        <svg
-          width={RING_SIZE}
-          height={RING_SIZE}
-          viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
-          className="-rotate-90"
-          aria-hidden
-          data-storage-tone={fill.tone}
-        >
-          <circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
-            r={RING_RADIUS}
-            fill="none"
-            strokeWidth={RING_STROKE}
-            className="stroke-tint-strong"
-          />
-          <circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
-            r={RING_RADIUS}
-            fill="none"
-            strokeWidth={RING_STROKE}
-            strokeLinecap="round"
-            strokeDasharray={`${arc * RING_LENGTH} ${RING_LENGTH}`}
-            className={RING_TONE_CLASS[fill.tone]}
-          />
-        </svg>
-      )}
-    </>
   );
 }

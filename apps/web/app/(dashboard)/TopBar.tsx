@@ -1,12 +1,10 @@
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { Button, Skeleton } from "@heroui/react";
-import {
-  getActiveGrantedPlan,
-  getActiveProSubscription,
-  isSelfHosted,
-} from "@captureflow/quota";
+import { isSelfHosted } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { resolveCurrentWorkspace } from "@/lib/current-workspace";
+import { getWorkspaceSeatContext } from "@/lib/billing/seats";
 import type { requireSession } from "@/lib/session-guard";
 import { readThemePreferenceFromCookieHeader } from "@captureflow/ui/theme";
 import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
@@ -57,27 +55,32 @@ async function Account({
   selfHosted: boolean;
 }) {
   const env = await getAppWebEnv();
-  const [subscription, grant, userRow] = env?.DB
+  const current = await resolveCurrentWorkspace(
+    session.user.id,
+    session.user.name ?? null,
+  );
+  const [userRow, seat] = env?.DB
     ? await Promise.all([
-        getActiveProSubscription(env.DB, session.user.id),
-        getActiveGrantedPlan(env.DB, session.user.id),
         env.DB.prepare(`SELECT image FROM users WHERE id = ?1 LIMIT 1`)
           .bind(session.user.id)
           .first<{ image: string | null }>(),
+        getWorkspaceSeatContext(current.workspace),
       ])
-    : [null, null, null];
+    : [null, null];
   const themePreference = readThemePreferenceFromCookieHeader(
     (await headers()).get("cookie"),
   );
 
-  const isPro = subscription?.status === "active" || grant !== null;
+  // The upgrade is the workspace's, so only its owner is offered one.
+  const offer = current.role === "owner" ? (seat?.offer ?? null) : null;
 
   return (
     <>
-      {!isPro && !selfHosted && (
+      {offer && !selfHosted && (
         <UpgradeModal
           email={session.user.email}
           userId={session.user.id}
+          seat={offer}
           trigger={<Button variant="primary">Upgrade</Button>}
         />
       )}
@@ -89,13 +92,7 @@ async function Account({
         email={session.user.email}
         imageUrl={userRow?.image ?? null}
         selfHosted={selfHosted}
-        pro={
-          subscription
-            ? { status: subscription.status }
-            : grant
-              ? { status: "granted" }
-              : null
-        }
+        plan={seat?.entitlement.tier ?? "free"}
       />
     </>
   );

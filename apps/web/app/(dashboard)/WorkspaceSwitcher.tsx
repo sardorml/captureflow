@@ -1,22 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
-import Link from "next/link";
+import { useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
-import { ChevronsUpDown, Info, LayoutGrid, UserPlus } from "lucide-react";
-import {
-  Avatar,
-  Button,
-  Chip,
-  Dropdown,
-  Popover,
-  buttonVariants,
-} from "@heroui/react";
+import { ChevronsUpDown, Info, UserPlus } from "lucide-react";
+import { Avatar, Button, Chip, Dropdown, Popover } from "@heroui/react";
 import type { WorkspaceMembership } from "@captureflow/quota";
 import { initials } from "@/lib/format";
 import { workspaceLogoUrl } from "@/lib/site";
-import { cn } from "@/lib/utils";
 import { resolveWorkspaceCard, workspaceCardStyle } from "@/lib/workspace-card";
 import { switchWorkspaceAction } from "./switch-workspace-action";
 
@@ -62,7 +53,7 @@ function WorkspaceMark({
 function DefaultBadge({ canSwitch }: { canSwitch: boolean }) {
   return (
     <span className="flex items-center gap-1.5">
-      <Chip size="sm" color="accent">
+      <Chip size="sm" variant="soft" color="default">
         Default
       </Chip>
       <Popover>
@@ -92,6 +83,8 @@ type Props = {
   memberCount: number;
   recordingCount: number;
   canInvite: boolean;
+  // The row under the divider: who is in the workspace, with the invite.
+  footer?: ReactNode;
 };
 
 export function WorkspaceSwitcher({
@@ -100,6 +93,7 @@ export function WorkspaceSwitcher({
   memberCount,
   recordingCount,
   canInvite,
+  footer,
 }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -130,8 +124,7 @@ export function WorkspaceSwitcher({
     (m) => m.workspace_id !== current.workspace_id,
   );
   const canSwitch = others.length > 0;
-  // The workspace background is a flat sheet behind the white card, so the
-  // sidebar stays quiet and the colour still says which workspace it is.
+  // The workspace colour heads the open menu only, so the sidebar stays quiet.
   const sheetStyle = workspaceCardStyle(
     resolveWorkspaceCard(current.workspace_card_bg, current.workspace_id),
   );
@@ -142,17 +135,11 @@ export function WorkspaceSwitcher({
           without you having to open anything. The info button sits outside the
           Dropdown because React Aria's press context would otherwise route its
           press to the trigger. */}
-      <div className="relative pt-1.5">
-        <div
-          data-testid="workspace-sheet"
-          className="absolute inset-x-1.5 top-0 h-6 rounded-t-xl"
-          style={sheetStyle}
-          aria-hidden="true"
-        />
+      <div className="relative">
         <div
           ref={cardRef}
           data-testid="workspace-card"
-          className="relative rounded-xl border border-black/[0.15] bg-panel dark:border-white/[0.16]"
+          className="relative rounded-xl border border-line bg-panel"
         >
           <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
             <Dropdown.Trigger
@@ -234,21 +221,6 @@ export function WorkspaceSwitcher({
                   </Dropdown.Menu>
                 </>
               )}
-
-              <hr className="border-line" />
-              <div className="p-2">
-                <Link
-                  href="/workspaces"
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    buttonVariants({ variant: "ghost" }),
-                    "w-full justify-start",
-                  )}
-                >
-                  <LayoutGrid size={16} />
-                  All workspaces
-                </Link>
-              </div>
             </Dropdown.Popover>
           </Dropdown>
 
@@ -257,6 +229,9 @@ export function WorkspaceSwitcher({
             <span className="h-3 w-px shrink-0 bg-line" />
             <span className="truncate">{plural(memberCount, "member")}</span>
           </div>
+          {footer && (
+            <div className="border-t border-line px-3 py-2">{footer}</div>
+          )}
         </div>
       </div>
 

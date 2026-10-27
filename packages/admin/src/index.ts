@@ -47,8 +47,6 @@ export {
   getAdminWorkspace,
   getSignupsByWeek,
   getUserActivity,
-  getUserQuota,
-  getUserStorage,
   inviteStatus,
   listAdminUsers,
   listAdminWorkspaces,
@@ -56,18 +54,15 @@ export {
   listUserWorkspaces,
   listWorkspaceInvites,
   listWorkspaceMembers,
-  planLabel,
   revokeUserAccess,
-  setGrantedPlan,
-  setUserQuota,
   summarizePlan,
   weeklyBuckets,
+  workspacePlan,
 } from "./directory";
 export type {
   AdminInviteStatus,
   AdminMemberRow,
   AdminPlanSummary,
-  AdminQuotaRow,
   AdminRecentRecording,
   AdminSubscriptionRow,
   AdminUserActivity,
@@ -75,6 +70,7 @@ export type {
   AdminUserDetail,
   AdminUserRow,
   AdminWorkspaceInviteRow,
+  AdminWorkspacePlan,
   AdminWorkspaceRow,
   Page,
   PlanFilter,
@@ -83,21 +79,18 @@ export type {
 export {
   MIN_PASSWORD_LENGTH,
   hydrateAdminId,
-  STORAGE_UNITS,
   hydrateEmail,
-  hydrateGrantInput,
   hydrateInviteToken,
   hydratePassword,
-  hydrateQuotaInput,
   hydrateRole,
   hydrateUserId,
 } from "./input";
-export type { Hydrated, QuotaInput, StorageUnit } from "./input";
+export type { Hydrated } from "./input";
 export { ADMIN_ROLES, ROLE_SUMMARY, can } from "./roles";
 export type { AdminPermission, AdminRole, AdminStatus } from "./roles";
 
-export { STORAGE_PLANS, isSelfHosted } from "@captureflow/quota";
-export type { GrantedPlan } from "@captureflow/quota";
+export { SEAT_PLAN, isSelfHosted } from "@captureflow/quota";
+export type { SubscriptionStatus } from "@captureflow/quota";
 
 export { listContactRequests } from "./contact-requests";
 export type { ContactKind, ContactRequestRow } from "./contact-requests";

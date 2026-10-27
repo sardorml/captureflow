@@ -1,106 +1,91 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { Flex } from "./layout";
 import { Paragraph, Title } from "./typography";
-import { CHROME_WEBSTORE_URL, CURRENT_STAGE } from "@/lib/marketing/constants";
+import {
+  CHROME_WEBSTORE_URL,
+  CURRENT_STAGE,
+  DOWNLOAD_URL,
+} from "@/lib/marketing/constants";
 import { MARKETING_SITE_URL } from "@/lib/site";
 import { WaitlistForm } from "./waitlist-form";
 import { AppleLogo, ChromeLogoColor } from "./platform-logos";
 import { InstallButton } from "./install-button";
 import { RecorderMockup } from "./recorder-mockup";
-import { GRAIN, SkyBackdrop } from "./sky-backdrop";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 // Clicking the copy selects it for copying, so the highlight is part of the
-// design: a cloud-white wash that keeps the ink, not the browser's blue.
+// design: a soft wash that keeps the ink, not the browser's blue.
 const COPY_SELECTION =
-  "selection:bg-white/70 selection:text-fg-strong dark:selection:bg-white/20 dark:selection:text-fg-strong";
+  "selection:bg-tint-strong selection:text-fg-strong dark:selection:bg-white/20 dark:selection:text-fg-strong";
 
 export function HeroSection() {
   const m = useMessages();
   const lh = useLocalizedHref();
 
   return (
-    <section
-      id="hero"
-      className="relative isolate -mt-[66px] overflow-hidden pt-[66px]"
-    >
-      <SkyBackdrop />
-      <Flex
-        vertical
-        align="center"
-        className="relative"
-        style={{
-          maxWidth: 1280,
-          marginInline: "auto",
-          paddingInline: 24,
-          paddingTop: 100,
-          paddingBottom: 40,
-          textAlign: "center",
-        }}
-      >
+    <section id="hero" className="relative overflow-hidden">
+      <div className="mx-auto flex max-w-[1280px] flex-col items-center px-6 pt-16 text-center sm:pt-20">
         <div onClick={selectAndCopyWithLink} className={COPY_SELECTION}>
           <Title
             align="center"
             level={1}
-            className="text-balance text-fg-strong lg:whitespace-nowrap"
+            className="mx-auto text-balance text-fg-strong"
             style={{
-              fontSize: "clamp(2.5rem, 1.5rem + 3.2vw, 4rem)",
-              fontWeight: 500,
-              lineHeight: 1.05,
-              letterSpacing: "-0.03em",
-              marginBottom: 20,
+              fontSize: "clamp(2.25rem, 0.75rem + 6vw, 6rem)",
+              fontWeight: 600,
+              lineHeight: 1,
+              letterSpacing: "-0.04em",
+              marginBottom: 24,
             }}
           >
-            {m.hero.title}
+            {/* The copy decides the line break; phones wrap on their own. */}
+            {m.hero.title.split("\n").map((line) => (
+              <span key={line} className="sm:block">
+                {line}{" "}
+              </span>
+            ))}
           </Title>
         </div>
         <div onClick={selectAndCopyWithLink} className={COPY_SELECTION}>
           <Paragraph
             align="center"
+            className="text-balance text-fg-muted"
             style={{
-              fontSize: 22,
-              fontWeight: 300,
-              lineHeight: 1.5,
-              maxWidth: 760,
+              fontSize: "clamp(1.125rem, 1rem + 0.5vw, 1.375rem)",
+              lineHeight: 1.45,
+              maxWidth: 960,
             }}
           >
-            {m.hero.subtitleLine1}{" "}
-            {/* Forced break desktop-only; on phones it would orphan words. */}
-            <br className="hidden sm:inline" />
-            {m.hero.subtitleLine2}
+            {m.hero.subtitle}
           </Paragraph>
         </div>
 
         {CURRENT_STAGE.showHeroBuyCta ? (
-          <Flex vertical gap={16} align="center" style={{ marginTop: 36 }}>
-            <InstallButton
-              href={CHROME_WEBSTORE_URL ?? lh("/download")}
-              label={m.hero.installChrome}
-              icon={<ChromeLogoColor className="size-9" />}
-              location="hero_chrome"
-            />
-            <span className="inline-flex items-center gap-1.5 text-sm text-fg-muted">
-              <AppleLogo className="size-3.5" />
-              {m.hero.macSoon}
-            </span>
-          </Flex>
+          <div className="mt-7 flex flex-col items-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <InstallButton
+                href={CHROME_WEBSTORE_URL ?? lh("/download")}
+                label={m.hero.installChrome}
+                icon={<ChromeLogoColor className="size-7" />}
+                location="hero_chrome"
+                primary
+              />
+              <InstallButton
+                href={DOWNLOAD_URL}
+                label={m.hero.installMac}
+                icon={<AppleLogo className="ml-1.5 size-4" />}
+                location="hero_macos"
+                badge={m.hero.installSoon}
+              />
+            </div>
+          </div>
         ) : (
           <div style={{ marginTop: 36 }}>
             <WaitlistForm />
           </div>
         )}
-        {/* The same sand over the copy, as light specks so it shows on the
-            dark ink too. Spans the section's full width (clipped by its
-            overflow) and fades out before the mockup, which is a screen, not
-            sky, so there is no edge where it stops. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-[66px] -right-[100vw] bottom-0 -left-[100vw] opacity-[0.22] invert [mask-image:linear-gradient(to_bottom,black_75%,transparent)] dark:opacity-[0.1] dark:invert-0"
-          style={{ backgroundImage: GRAIN, backgroundSize: "180px 180px" }}
-        />
-      </Flex>
+      </div>
 
       <RecorderMockup />
     </section>

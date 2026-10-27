@@ -21,25 +21,33 @@ const SWATCHES = [
 const PICKED_SWATCH = 1;
 
 const BARS = Array.from(
-  { length: 72 },
-  (_, i) => 8 + ((i * 37) % 13) * 2 + ((i * 11) % 5) * 3,
+  { length: 58 },
+  (_, i) => 10 + ((i * 37) % 13) * 2 + ((i * 11) % 5) * 3,
 );
-const FILLER_BARS = { from: 27, to: 37 };
+const FILLER_BARS = { from: 22, to: 30 };
 
-const PREVIEW = { width: 404, height: 252 };
+const PAD = 20;
+const SCENE_HEIGHT = 470;
+const PREVIEW = { width: 392, height: 282 };
+const TOOLS_WIDTH = 600 - PAD * 2 - PREVIEW.width - 12;
 const CAMERA = {
-  before: { size: 88, left: 14, top: PREVIEW.height - 88 - 14, radius: 44 },
+  before: { size: 100, left: 14, top: PREVIEW.height - 100 - 14, radius: 50 },
   after: {
-    size: 120,
-    left: PREVIEW.width - 120 - 30,
-    top: PREVIEW.height - 120 - 30,
-    radius: 26,
+    size: 136,
+    left: PREVIEW.width - 136 - 30,
+    top: PREVIEW.height - 136 - 30,
+    radius: 28,
   },
 };
 
 export function EditorScene() {
   return (
-    <SceneFrame steps={STEPS} loopMs={LOOP_MS} background="#d3dffa">
+    <SceneFrame
+      steps={STEPS}
+      loopMs={LOOP_MS}
+      background="linear-gradient(160deg,#c3d6ff,#a7c0ff)"
+      sceneHeight={SCENE_HEIGHT}
+    >
       {(state) => <EditorContent {...state} />}
     </SceneFrame>
   );
@@ -65,9 +73,11 @@ function EditorContent({ step, playing }: SceneState) {
   return (
     <>
       <div
-        className="absolute top-7 left-7 overflow-hidden rounded-2xl shadow-[0_18px_40px_rgb(10_30_90/0.18)] transition-[background] duration-700"
+        className="absolute overflow-hidden rounded-2xl shadow-[0_18px_40px_rgb(10_30_90/0.18)] transition-[background] duration-700"
         style={{
           ...PREVIEW,
+          top: PAD,
+          left: PAD,
           background: hasBackground ? SWATCHES[PICKED_SWATCH] : SWATCHES[0],
         }}
       >
@@ -97,25 +107,28 @@ function EditorContent({ step, playing }: SceneState) {
 
         <div
           className={cn(
-            "absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-[#16181d] py-1 pr-2.5 pl-1.5 text-[10px] font-medium text-white shadow-lg transition-all duration-500",
+            "absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-[#16181d] py-1 pr-3 pl-1.5 text-[12px] font-medium text-white shadow-lg transition-all duration-500",
             saved ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0",
           )}
         >
-          <span className="flex size-4 items-center justify-center rounded-full bg-[#22c55e]">
-            <Check className="size-2.5" strokeWidth={3} />
+          <span className="flex size-5 items-center justify-center rounded-full bg-[#22c55e]">
+            <Check className="size-3" strokeWidth={3} />
           </span>
           {copy.saved}
         </div>
       </div>
 
-      <div className="absolute top-7 right-7 flex w-[128px] flex-col gap-3">
+      <div
+        className="absolute flex flex-col gap-3"
+        style={{ top: PAD, right: PAD, width: TOOLS_WIDTH }}
+      >
         <Tool label={copy.background} on={hasBackground}>
           <div className="flex gap-1.5">
             {SWATCHES.map((swatch, i) => (
               <span
                 key={swatch}
                 className={cn(
-                  "size-[18px] rounded-md transition-shadow duration-300",
+                  "size-6 rounded-lg transition-shadow duration-300",
                   hasBackground && i === PICKED_SWATCH
                     ? "shadow-[0_0_0_2px_#fff,0_0_0_4px_#1184f7]"
                     : "shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]",
@@ -131,7 +144,7 @@ function EditorContent({ step, playing }: SceneState) {
               <span
                 key={shape}
                 className={cn(
-                  "flex flex-1 items-center justify-center gap-1 rounded-md py-1 text-[9px] font-medium transition-colors duration-300",
+                  "flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-medium transition-colors duration-300",
                   (cameraMoved ? 1 : 0) === i
                     ? "bg-[#1184f7] text-white"
                     : "bg-[#efefef] text-[#575757]",
@@ -139,7 +152,7 @@ function EditorContent({ step, playing }: SceneState) {
               >
                 <span
                   className={cn(
-                    "size-2 border-[1.5px] border-current",
+                    "size-2.5 border-[1.5px] border-current",
                     i === 0 ? "rounded-full" : "rounded-[2px]",
                   )}
                 />
@@ -149,18 +162,18 @@ function EditorContent({ step, playing }: SceneState) {
           </div>
         </Tool>
         <Tool label={copy.fillers} on={fillersCut}>
-          <div className="flex items-center justify-between text-[9px] font-medium text-[#575757]">
+          <div className="flex items-center justify-between text-[11px] font-medium text-[#575757]">
             {copy.remove}
             <span
               className={cn(
-                "relative h-3.5 w-6 rounded-full transition-colors duration-300",
+                "relative h-4 w-7 rounded-full transition-colors duration-300",
                 fillersMarked ? "bg-[#1184f7]" : "bg-[#d4d4d4]",
               )}
             >
               <span
                 className={cn(
-                  "absolute top-0.5 size-2.5 rounded-full bg-white shadow transition-[left] duration-300",
-                  fillersMarked ? "left-[12px]" : "left-0.5",
+                  "absolute top-0.5 size-3 rounded-full bg-white shadow transition-[left] duration-300",
+                  fillersMarked ? "left-[14px]" : "left-0.5",
                 )}
               />
             </span>
@@ -168,7 +181,10 @@ function EditorContent({ step, playing }: SceneState) {
         </Tool>
       </div>
 
-      <div className="absolute inset-x-7 top-[300px] flex h-14 items-center overflow-hidden rounded-2xl bg-white/70 px-4">
+      <div
+        className="absolute flex h-16 items-center overflow-hidden rounded-2xl bg-white/70 px-4"
+        style={{ top: PREVIEW.height + PAD + 16, left: PAD, right: PAD }}
+      >
         <div className="relative flex h-full flex-1 items-center">
           {BARS.map((height, i) => {
             const filler = i >= FILLER_BARS.from && i < FILLER_BARS.to;
@@ -180,7 +196,7 @@ function EditorContent({ step, playing }: SceneState) {
                   filler && fillersMarked ? "bg-[#1184f7]" : "bg-[#1184f7]/35",
                   filler && fillersCut
                     ? "mx-0 w-0 opacity-0"
-                    : "mx-[1.5px] w-[4px]",
+                    : "mx-[2px] w-[5px]",
                 )}
                 style={{ height }}
               />
@@ -194,7 +210,14 @@ function EditorContent({ step, playing }: SceneState) {
         </div>
       </div>
 
-      <p className="absolute inset-x-7 top-[374px] flex items-center text-[19px] font-semibold whitespace-nowrap text-[#1184f7]">
+      <p
+        className="absolute flex items-center text-[23px] font-semibold whitespace-nowrap text-[#1184f7]"
+        style={{
+          top: PREVIEW.height + PAD + 16 + 64 + 18,
+          left: PAD,
+          right: PAD,
+        }}
+      >
         <span className="mr-[0.3em]">{copy.transcript.before}</span>
         {copy.transcript.fillers.map((word) => (
           <span
@@ -206,7 +229,7 @@ function EditorContent({ step, playing }: SceneState) {
                 : "",
               fillersCut
                 ? "mr-0 max-w-0 px-0 opacity-0"
-                : "mr-[0.3em] max-w-[80px] px-0.5",
+                : "mr-[0.3em] max-w-[96px] px-0.5",
             )}
           >
             {word}
@@ -230,11 +253,11 @@ function Tool({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 rounded-xl bg-white p-2.5 shadow-[0_10px_24px_rgb(10_30_90/0.3)] transition-transform duration-300",
+        "flex flex-col gap-2.5 rounded-xl bg-white p-3 shadow-[0_10px_24px_rgb(10_30_90/0.3)] transition-transform duration-300",
         on && "scale-[1.03]",
       )}
     >
-      <span className="text-[10px] font-semibold text-[#181818]">{label}</span>
+      <span className="text-[13px] font-semibold text-[#181818]">{label}</span>
       {children}
     </div>
   );
@@ -249,18 +272,18 @@ export function AppScreen({
 }) {
   return (
     <div className="flex size-full flex-col text-[#181818]">
-      <div className="flex h-5 shrink-0 items-center gap-1 border-b border-black/5 bg-[#f4f4f4] px-2">
-        <span className="size-1.5 rounded-full bg-[#ff5f57]" />
-        <span className="size-1.5 rounded-full bg-[#febc2e]" />
-        <span className="size-1.5 rounded-full bg-[#28c840]" />
+      <div className="flex h-6 shrink-0 items-center gap-1.5 border-b border-black/5 bg-[#f4f4f4] px-2.5">
+        <span className="size-2 rounded-full bg-[#ff5f57]" />
+        <span className="size-2 rounded-full bg-[#febc2e]" />
+        <span className="size-2 rounded-full bg-[#28c840]" />
       </div>
       <div className="flex min-h-0 flex-1">
-        <div className="flex w-[78px] shrink-0 flex-col gap-1 border-r border-black/5 bg-[#fafafa] p-2">
+        <div className="flex w-[92px] shrink-0 flex-col gap-1 border-r border-black/5 bg-[#fafafa] p-2">
           {copy.nav.map((item, i) => (
             <span
               key={item}
               className={cn(
-                "rounded px-1.5 py-1 text-[8px] font-medium",
+                "rounded px-2 py-1 text-[10px] font-medium",
                 i === 1 ? "bg-[#e1f0ff] text-[#1184f7]" : "text-black/50",
               )}
             >
@@ -269,24 +292,24 @@ export function AppScreen({
           ))}
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2 p-2.5">
-          <span className="text-[11px] font-bold">{copy.app}</span>
+          <span className="text-[14px] font-bold">{copy.app}</span>
           <div className="grid flex-1 grid-cols-3 gap-1.5">
             {copy.columns.map((column, c) => (
               <div
                 key={column.name}
                 className="flex flex-col gap-1 rounded-md bg-[#f4f4f4] p-1.5"
               >
-                <span className="text-[7px] font-semibold text-black/45">
+                <span className="text-[9px] font-semibold text-black/45">
                   {column.name}
                 </span>
                 {column.tasks.map((task) => (
                   <span
                     key={task}
-                    className="flex flex-col gap-1 rounded bg-white p-1.5 text-[7.5px] leading-tight font-medium shadow-[0_1px_2px_rgb(0_0_0/0.06)]"
+                    className="flex flex-col gap-1 rounded bg-white p-1.5 text-[9.5px] leading-tight font-medium shadow-[0_1px_2px_rgb(0_0_0/0.06)]"
                   >
                     {task}
                     <span
-                      className="h-1 w-6 rounded-full"
+                      className="h-1 w-7 rounded-full"
                       style={{
                         background: ["#f59e0b", "#1184f7", "#22c55e"][c],
                       }}

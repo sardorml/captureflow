@@ -6,13 +6,15 @@ import { cn } from "@/lib/utils";
 import { useMessages } from "./i18n-provider";
 import { SceneFrame, type SceneState } from "./scene-frame";
 
-const LOOP_MS = 12000;
+const LOOP_MS = 14000;
 
-// Type the invite, send it, Leo joins, then the first recording walks
-// Public → Workspace → Private.
-const STEPS = [0, 1200, 2700, 3900, 6000, 8000];
+// Name and create the workspace, type two invites and send them, Chris then
+// Jordan join, then the first recording walks Public → Workspace → Private.
+const STEPS = [0, 900, 2200, 3000, 3900, 5700, 6600, 7300, 9400, 11400];
 
-const NEW_MEMBER_PHOTO = "/presenter-engineering.webp";
+const NAME_TYPING_MS = 900;
+const INVITE_TYPING_MS = 1500;
+
 const INITIALS_COLORS: Record<string, string> = {
   AR: "#8b5cf6",
   CK: "#0d9488",
@@ -28,7 +30,12 @@ const PRESENTERS = [
 
 export function TeamsScene() {
   return (
-    <SceneFrame steps={STEPS} loopMs={LOOP_MS} background="#d3efe4">
+    <SceneFrame
+      steps={STEPS}
+      loopMs={LOOP_MS}
+      background="linear-gradient(160deg,#b6ecd3,#97d9c2)"
+      zoom={{ scale: 1.04, bounds: [28, 572] }}
+    >
       {(state) => <TeamsContent {...state} />}
     </SceneFrame>
   );
@@ -36,108 +43,132 @@ export function TeamsScene() {
 
 function TeamsContent({ step }: SceneState) {
   const copy = useMessages().collaboration.categories.workspaces.scene;
-  const typing = step === 1 || step === 2;
-  const sent = step === 2;
-  const joined = step >= 3;
-  const celebrating = step === 3;
-  const visibility = step >= 5 ? 2 : step >= 4 ? 1 : 0;
+  const naming = step >= 1;
+  const created = step >= 2;
+  const inviting = step >= 3;
+  const typing = step === 4 || step === 5;
+  const sent = step === 5;
+  const memberCount = step >= 7 ? 3 : step >= 6 ? 2 : 1;
+  const celebrating = step === 7;
+  const visibility = step >= 9 ? 2 : step >= 8 ? 1 : 0;
   const VisibilityIcon = VISIBILITY_ICONS[visibility];
 
   return (
     <div className="absolute inset-x-7 top-1/2 flex -translate-y-1/2 items-stretch justify-between gap-4 text-[#181818]">
-      <div className="flex w-[316px] flex-col rounded-2xl bg-white p-5 shadow-[0_24px_50px_rgb(6_78_59/0.16)]">
-        <p className="text-[18px] leading-tight font-bold">{copy.team}</p>
-        <p className="mt-0.5 text-[10px] text-black/50 tabular-nums">
-          {copy.members[joined ? 1 : 0]}
-        </p>
-
-        <div className="mt-4 flex h-11 items-center">
-          {copy.memberInitials.map((initials, i) => (
-            <span
-              key={initials}
-              className={cn(
-                "flex size-11 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white shadow-[0_0_0_3px_#fff]",
-                i > 0 && "-ml-2.5",
-              )}
-              style={{ background: INITIALS_COLORS[initials] }}
-            >
-              {initials}
-            </span>
-          ))}
-          <span
-            className={cn(
-              "size-11 shrink-0 overflow-hidden rounded-full bg-[#e7e5e4] shadow-[0_0_0_3px_#fff] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-              joined
-                ? "-ml-2.5 scale-100 opacity-100"
-                : "-ml-11 scale-50 opacity-0",
-            )}
-          >
-            <img
-              src={NEW_MEMBER_PHOTO}
-              alt=""
-              className="size-full object-cover"
-            />
-          </span>
-          <span
-            className={cn(
-              "ml-3 rounded-full bg-[#1184f7] px-2.5 py-1 text-[9px] font-semibold whitespace-nowrap text-white transition-all duration-300",
-              celebrating
-                ? "translate-x-0 opacity-100"
-                : "-translate-x-1 opacity-0",
-            )}
-          >
-            {copy.joined}
-          </span>
-        </div>
-
-        <div className="mt-4 flex gap-1.5">
-          <span className="flex h-8 flex-1 items-center rounded-lg border border-black/10 px-2.5 text-[10px]">
-            {typing ? (
-              <Typed text={copy.inviteEmail} />
-            ) : (
-              <span className="text-black/35">{copy.invitePlaceholder}</span>
-            )}
-          </span>
-          <span
-            className={cn(
-              "flex h-8 w-[62px] items-center justify-center gap-1 rounded-lg text-[10px] font-semibold transition-colors duration-300",
-              sent ? "bg-[#dcfce7] text-[#15803d]" : "bg-[#181818] text-white",
-            )}
-          >
-            {sent ? <Check className="size-3" strokeWidth={3} /> : null}
-            {sent ? copy.invited : copy.invite}
-          </span>
-        </div>
-
-        <div className="mt-4 border-t border-black/5 pt-4">
-          <p className="text-[11px] font-medium">
-            {copy.whoCanWatch}{" "}
-            <span className="text-[#1184f7]">
-              {copy.visibility[visibility].detail}
-            </span>
+      {inviting ? (
+        <div className="flex min-h-[280px] w-[316px] flex-col rounded-2xl bg-white p-5 shadow-[0_24px_50px_rgb(6_78_59/0.16)]">
+          <p className="text-[18px] leading-tight font-bold">{copy.team}</p>
+          <p className="mt-0.5 text-[12px] text-black/50 tabular-nums">
+            {copy.members[memberCount - 1]}
           </p>
-          <div className="relative mt-2 grid grid-cols-3 rounded-lg bg-[#eaeaea] p-1 text-[10px] font-semibold">
-            <span
-              className="absolute inset-y-1 left-1 rounded-md bg-[#1184f7] shadow transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
-              style={{
-                width: "calc((100% - 8px) / 3)",
-                transform: `translateX(${visibility * 100}%)`,
-              }}
-            />
-            {copy.visibility.map((option, i) => (
+
+          <div className="mt-4 flex h-11 items-center">
+            {copy.memberInitials.map((initials, i) => (
               <span
-                key={option.label}
+                key={initials}
                 className={cn(
-                  "relative py-1.5 text-center transition-colors duration-300",
-                  i === visibility ? "text-white" : "text-black/45",
+                  "flex size-11 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white shadow-[0_0_0_3px_#fff] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                  i === 0
+                    ? ""
+                    : i < memberCount
+                      ? "-ml-2.5 scale-100 opacity-100"
+                      : "-ml-11 scale-50 opacity-0",
                 )}
+                style={{ background: INITIALS_COLORS[initials] }}
               >
-                {option.label}
+                {initials}
               </span>
             ))}
+            <span
+              className={cn(
+                "ml-3 rounded-full bg-[#1184f7] px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap text-white transition-all duration-300",
+                celebrating
+                  ? "translate-x-0 opacity-100"
+                  : "-translate-x-1 opacity-0",
+              )}
+            >
+              {copy.joined}
+            </span>
+          </div>
+
+          <div className="mt-4 flex gap-1.5">
+            <span className="flex h-8 min-w-0 flex-1 items-center overflow-hidden rounded-lg border border-black/10 px-2.5 text-[12px] whitespace-nowrap">
+              {typing ? (
+                <Typed text={copy.inviteEmail} duration={INVITE_TYPING_MS} />
+              ) : (
+                <span className="text-black/35">{copy.invitePlaceholder}</span>
+              )}
+            </span>
+            <span
+              className={cn(
+                "flex h-8 w-[62px] shrink-0 items-center justify-center gap-1 rounded-lg text-[12px] font-semibold transition-colors duration-300",
+                sent
+                  ? "bg-[#dcfce7] text-[#15803d]"
+                  : "bg-[#181818] text-white",
+              )}
+            >
+              {sent ? <Check className="size-3" strokeWidth={3} /> : null}
+              {sent ? copy.invited : copy.invite}
+            </span>
+          </div>
+
+          <div className="mt-4 border-t border-black/5 pt-4">
+            <p className="text-[13px] font-medium">
+              {copy.whoCanWatch}{" "}
+              <span className="text-[#1184f7]">
+                {copy.visibility[visibility].detail}
+              </span>
+            </p>
+            <div className="relative mt-2 grid grid-cols-3 rounded-lg bg-[#eaeaea] p-1 text-[12px] font-semibold">
+              <span
+                className="absolute inset-y-1 left-1 rounded-md bg-[#1184f7] shadow transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                style={{
+                  width: "calc((100% - 8px) / 3)",
+                  transform: `translateX(${visibility * 100}%)`,
+                }}
+              />
+              {copy.visibility.map((option, i) => (
+                <span
+                  key={option.label}
+                  className={cn(
+                    "relative py-1.5 text-center transition-colors duration-300",
+                    i === visibility ? "text-white" : "text-black/45",
+                  )}
+                >
+                  {option.label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex min-h-[280px] w-[316px] flex-col justify-center rounded-2xl bg-white p-5 shadow-[0_24px_50px_rgb(6_78_59/0.16)]">
+          <p className="text-[18px] leading-tight font-bold">
+            {copy.newWorkspace}
+          </p>
+          <p className="mt-5 text-[12px] font-medium text-black/60">
+            {copy.nameLabel}
+          </p>
+          <span className="mt-1.5 flex h-9 items-center rounded-lg border border-black/10 px-2.5 text-[13px]">
+            {naming ? (
+              <Typed text={copy.team} duration={NAME_TYPING_MS} />
+            ) : (
+              <span className="h-3.5 w-px animate-pulse bg-black/60" />
+            )}
+          </span>
+          <span
+            className={cn(
+              "mt-4 flex h-9 items-center justify-center gap-1.5 rounded-lg text-[13px] font-semibold transition-colors duration-300",
+              created
+                ? "bg-[#dcfce7] text-[#15803d]"
+                : "bg-[#1184f7] text-white",
+            )}
+          >
+            {created ? <Check className="size-3" strokeWidth={3} /> : null}
+            {created ? copy.created : copy.create}
+          </span>
+        </div>
+      )}
 
       <div className="flex min-w-0 flex-1 flex-col gap-2.5 rounded-2xl bg-white p-4 shadow-[0_24px_50px_rgb(6_78_59/0.16)]">
         <p className="text-[12px] font-bold">{copy.recordings}</p>
@@ -159,17 +190,17 @@ function TeamsContent({ step }: SceneState) {
                     background: `center / cover url(${PRESENTERS[i]})`,
                   }}
                 />
-                <span className="absolute bottom-1 left-1 rounded-[3px] bg-black/70 px-1 font-mono text-[6.5px] leading-[10px] text-white">
+                <span className="absolute bottom-1 left-1 rounded-[3px] bg-black/70 px-1 font-mono text-[8.5px] leading-[10px] text-white">
                   {video.duration}
                 </span>
               </span>
               <span className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="line-clamp-2 text-[9px] leading-tight font-semibold">
+                <span className="line-clamp-2 text-[11px] leading-tight font-semibold">
                   {video.title}
                 </span>
-                <span className="flex items-center gap-1 text-[8px] text-black/50">
+                <span className="flex items-center gap-1 text-[10px] text-black/50">
                   <span
-                    className="flex size-3 shrink-0 items-center justify-center rounded-full text-[5px] font-bold text-white"
+                    className="flex size-3 shrink-0 items-center justify-center rounded-full text-[7px] font-bold text-white"
                     style={{ background: INITIALS_COLORS[video.initials] }}
                   >
                     {video.initials}
@@ -261,16 +292,16 @@ function ChartThumb() {
   );
 }
 
-function Typed({ text }: { text: string }) {
+function Typed({ text, duration }: { text: string; duration: number }) {
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     ref.current?.animate([{ width: "0ch" }, { width: `${text.length}ch` }], {
-      duration: 900,
+      duration,
       easing: `steps(${text.length}, end)`,
       fill: "forwards",
     });
-  }, [text]);
+  }, [text, duration]);
 
   return (
     <span

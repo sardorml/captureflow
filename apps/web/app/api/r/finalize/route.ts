@@ -7,10 +7,13 @@ import {
   objectSize,
 } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
-import { exceedsStorage } from "@/lib/recording/quota";
+import { getWorkspaceEntitlement, uploadOverrun } from "@/lib/recording/quota";
+import { overrunError } from "@/lib/recording/upload-errors";
+import { isDevDevice } from "@/lib/recording/dev-allowlist";
 import { viewUrlForRequest } from "@/lib/site";
 import type { FinalizeRequest, FinalizeResponse } from "@/lib/recording/types";
 
+const DURATION_SLACK_MS = 10_000;
 const DEVICE_HEADER = "x-captureflow-device";
 
 export function OPTIONS() {
@@ -70,14 +73,29 @@ export async function POST(req: NextRequest) {
   }
 
   /*
-   * Storage is the only cap, so it is re-checked here rather than trusted from
-   * the client that reported sizeBytes. Refusing before the multipart is
-   * completed leaves the parts uncommitted for the GC to sweep, so an
-   * over-cap upload never lands as a billable object.
+   * The byte budget is re-checked here rather than trusted from the client
+   * that reported sizeBytes. Refusing before the multipart is completed leaves
+   * the parts uncommitted for the GC to sweep, so an over-cap upload never
+   * lands as a billable object.
    */
-  const overCap = await exceedsStorage(deviceId, row, sizeBytes);
-  if (overCap) {
-    return jsonError("Storage cap reached", 413, "storage_limit");
+  const overrun = await uploadOverrun(deviceId, row, sizeBytes);
+  if (overrun) return overrunError(overrun);
+
+  // The free tier's length cap was handed out at /init; the client stops on
+  // it, and a little slack covers the encoder's trailing frames.
+  if (row.workspaceId && typeof body.durationMs === "number") {
+    const entitlement = await getWorkspaceEntitlement(row.workspaceId);
+    if (
+      entitlement?.maxRecordingMs != null &&
+      body.durationMs > entitlement.maxRecordingMs + DURATION_SLACK_MS &&
+      !(await isDevDevice(deviceId))
+    ) {
+      return jsonError(
+        `Free plan limit: recordings up to ${Math.round(entitlement.maxRecordingMs / 60000)} minutes`,
+        413,
+        "duration_limit",
+      );
+    }
   }
 
   try {
@@ -105,13 +123,14 @@ export async function POST(req: NextRequest) {
    * client's claimed size, and only a larger truth can flip the verdict. The
    * object is already committed, so an over-cap upload is removed, not kept.
    */
-  if (
-    actualBytes > sizeBytes &&
-    (await exceedsStorage(deviceId, row, actualBytes))
-  ) {
+  const actualOverrun =
+    actualBytes > sizeBytes
+      ? await uploadOverrun(deviceId, row, actualBytes)
+      : null;
+  if (actualOverrun) {
     await deleteObject(row.storageKey);
     await updateRecording(row.slug, { state: "failed", uploadId: null });
-    return jsonError("Storage cap reached", 413, "storage_limit");
+    return overrunError(actualOverrun);
   }
 
   // Bad duration is dropped rather than rejected: the bytes are already in R2,

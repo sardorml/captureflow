@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MessageSquare } from "lucide-react";
-import { Spinner } from "@heroui/react";
+import { Skeleton, Spinner } from "@heroui/react";
 import { ContentByline } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
 
@@ -97,18 +97,17 @@ export function PendingRecording({
           </div>
         </header>
         <div className="mx-auto flex w-full max-w-5xl flex-col px-6 py-6 lg:px-12">
-          <div
-            // Match RecordingPlayer's container so swapping in the video doesn't reflow.
-            className="relative w-full overflow-hidden rounded-2xl bg-neutral-900"
-            style={{ aspectRatio: "16 / 9" }}
-          >
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center">
+          {/* Match RecordingPlayer's frame so swapping in the video doesn't
+              reflow; the shimmering skeleton stands in for the poster. */}
+          <div className="relative aspect-video w-full overflow-hidden rounded-2xl">
+            <Skeleton className="absolute inset-0 rounded-2xl" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
               {showRetry ? (
                 <>
-                  <p className="text-base font-medium text-neutral-200">
-                    This recording didn&apos;t finish uploading.
+                  <p className="text-base font-semibold text-fg">
+                    This recording didn&apos;t finish uploading
                   </p>
-                  <p className="max-w-sm text-sm text-neutral-400">
+                  <p className="max-w-sm text-sm text-fg-muted">
                     The link was created but the video never arrived. Try the
                     link again in a minute, or record a fresh one.
                   </p>
@@ -116,12 +115,12 @@ export function PendingRecording({
               ) : (
                 <>
                   <Spinner size="lg" />
-                  <p className="text-sm font-medium text-neutral-200">
+                  <p className="mt-1 text-base font-semibold text-fg">
                     Preparing your recording…
                   </p>
-                  <p className="max-w-xs text-xs text-neutral-500">
-                    The recording is still uploading. This page refreshes the
-                    moment it&apos;s ready.
+                  <p className="max-w-xs text-sm text-fg-muted">
+                    The upload is still finishing. This page refreshes on its
+                    own once it&apos;s ready.
                   </p>
                 </>
               )}

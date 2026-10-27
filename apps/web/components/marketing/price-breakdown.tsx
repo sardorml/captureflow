@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  CAPTUREFLOW_MONTHLY,
-  CAPTUREFLOW_STORAGE_LABEL,
+  CAPTUREFLOW_PER_SEAT,
   LOOM_PLANS,
+  getCaptureflowMonthly,
   getLoomMonthly,
   getYearlySavings,
   type LoomPlan,
@@ -36,7 +36,7 @@ export function PriceBreakdown({
       .replace("{plan}", planLabel)
       .replace("{seats}", String(seats))
       .replace("{perSeat}", usd(perSeat))
-      .replace("{storage}", CAPTUREFLOW_STORAGE_LABEL)
+      .replace("{ourPerSeat}", usd(CAPTUREFLOW_PER_SEAT))
       .replace("{savings}", savings);
 
   return (
@@ -49,7 +49,7 @@ export function PriceBreakdown({
       <CostRow
         label={fill(copy.captureflowRow)}
         detail={fill(copy.captureflowDetail)}
-        monthly={CAPTUREFLOW_MONTHLY}
+        monthly={getCaptureflowMonthly(seats)}
         isOurs
       />
       <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg bg-success/15 px-4 py-3 text-success">

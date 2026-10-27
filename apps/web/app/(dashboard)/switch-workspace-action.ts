@@ -36,5 +36,4 @@ export async function switchWorkspaceAction(formData: FormData): Promise<void> {
   revalidatePath("/screenshots");
   revalidatePath("/members");
   revalidatePath("/devices");
-  revalidatePath("/workspaces");
 }

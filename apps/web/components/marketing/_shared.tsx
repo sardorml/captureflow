@@ -23,16 +23,16 @@ export type SectionProps = { headingLevel?: HeadingLevel };
 // and bold while staying responsive; the negative tracking keeps the large end
 // from looking loose.
 export const SECTION_TITLE_STYLE: CSSProperties = {
-  fontSize: "clamp(2.125rem, 1.2rem + 3.2vw, 3.5rem)",
+  fontSize: "clamp(2.5rem, 1.25rem + 4.2vw, 4.5rem)",
   fontWeight: 700,
-  lineHeight: 1.08,
-  letterSpacing: "-0.02em",
+  lineHeight: 1.05,
+  letterSpacing: "-0.03em",
   margin: 0,
 };
 
 export const SECTION_SUBTITLE_STYLE: CSSProperties = {
-  fontSize: 18,
-  lineHeight: 1.55,
+  fontSize: "clamp(1.125rem, 1rem + 0.5vw, 1.375rem)",
+  lineHeight: 1.5,
   margin: 0,
 };
 
@@ -91,6 +91,7 @@ export function SectionHeading({
       <Typography.Heading
         align={heroUiAlign}
         level={level}
+        className="text-balance"
         style={{ ...SECTION_TITLE_STYLE, marginBottom: subtitle ? 16 : 0 }}
       >
         {title}
@@ -106,7 +107,7 @@ export function SectionHeading({
           align={heroUiAlign}
           style={{
             ...SECTION_SUBTITLE_STYLE,
-            maxWidth: 620,
+            maxWidth: 720,
             marginInline: align === "center" ? "auto" : 0,
           }}
         >

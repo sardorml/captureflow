@@ -1,46 +1,55 @@
 export {
   ACCOUNT_LIMITS,
-  STORAGE_PLANS,
   UNLIMITED_STORAGE_BYTES,
   isSelfHosted,
-  storageBytesForVariant,
 } from "./limits";
-export type { AccountLimits, StoragePlan } from "./limits";
+export type { AccountLimits } from "./limits";
 export {
-  getActiveGrantedPlan,
-  getEffectiveLimitsForUser,
-  isGrantActive,
-  listActiveGrantedUserIds,
-  listPaidUserIds,
-  resolveEffectiveLimits,
-} from "./user-quotas";
-export type { EffectiveLimits, GrantedPlan } from "./user-quotas";
-export { totalStorageForUser } from "./totals";
-export { listStorageItemsForUser } from "./storage-items";
-export type { StorageItem, StorageItemKind } from "./storage-items";
+  countUserRecordingsInWorkspace,
+  totalStorageForWorkspace,
+} from "./totals";
 export {
-  getActiveProSubscription,
-  isProActive,
-  listActiveProUserIds,
-  pickActiveProUserIds,
-  getUnclaimedProSubscriptionByEmail,
-  attachSubscriptionToUser,
-} from "./pro-subscription";
+  FREE_TIER,
+  SEAT_ANNUAL_SAVING_PERCENT,
+  SEAT_PLAN,
+  resolveWorkspaceEntitlement,
+  seatPriceUsd,
+} from "./seat-plans";
 export type {
-  ProSubscriptionRow,
-  ProSubscriptionStatus,
-} from "./pro-subscription";
+  FreeQuality,
+  SeatSubscriptionInput,
+  WorkspaceEntitlement,
+  WorkspaceTier,
+} from "./seat-plans";
+export {
+  getActiveWorkspaceSubscription,
+  isSubscriptionActive,
+  listPaidWorkspaceIds,
+  setWorkspaceSubscriptionQuantity,
+  upsertWorkspaceSubscription,
+} from "./workspace-subscription";
+export type {
+  SubscriptionStatus,
+  WorkspaceSubscriptionRow,
+  WorkspaceSubscriptionUpsert,
+} from "./workspace-subscription";
+export { getWorkspaceEntitlement } from "./entitlement";
+export { setSubscriptionItemQuantity } from "./lemon-api";
+export type { SeatQuantityResult } from "./lemon-api";
 export {
   getPersonalWorkspaceForUser,
   getWorkspaceById,
   ensurePersonalWorkspace,
-  createTeamWorkspace,
   listWorkspacesForUser,
   countWorkspaceMembers,
+  countWorkspaceSeats,
   countWorkspaceRecordings,
   getCurrentWorkspaceId,
   setCurrentWorkspaceId,
   isWorkspaceMember,
+  getWorkspaceRole,
+  updateWorkspaceMemberRole,
+  resolveUploadWorkspace,
   listMembers,
   createInvite,
   findInviteByToken,
@@ -53,9 +62,20 @@ export {
   updateWorkspaceCard,
   updateWorkspacePolicy,
 } from "./workspaces";
+export {
+  WORKSPACE_ROLES,
+  can,
+  isSeatRole,
+  isWorkspaceRole,
+  isAssignableRole,
+  hydrateWorkspaceRole,
+  hydrateAssignableRole,
+} from "./roles";
+export type { AssignableRole, WorkspaceAction, WorkspaceRole } from "./roles";
 export type {
+  ChangeRoleResult,
+  UploadTarget,
   WorkspaceKind,
-  WorkspaceRole,
   WorkspaceRow,
   WorkspaceMember,
   WorkspaceMembership,

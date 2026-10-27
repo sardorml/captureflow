@@ -1,36 +1,18 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { Rubik } from "next/font/google";
-import {
-  AnimatePresence,
-  animate,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import NextLink from "next/link";
 import { Button, Drawer, Header, buttonVariants } from "@heroui/react";
 import {
   ArrowUpRight,
   ChevronDown,
-  CircleHelp,
-  Newspaper,
   Menu as MenuIcon,
-  MessagesSquare,
-  Server,
   Star,
 } from "lucide-react";
 import { DISCORD_URL } from "@/lib/marketing/constants";
-import { ISLAND_DROP, islandPath } from "@/lib/marketing/island-path";
 import { DOCS_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
@@ -53,13 +35,13 @@ const wordmark = Rubik({ subsets: ["latin"], weight: "500", display: "swap" });
 
 // Bare muted text in the bar; full-width ghost buttons once stacked in the drawer.
 const TEXT_LINK =
-  "text-base whitespace-nowrap text-fg transition-colors hover:text-fg/70 motion-reduce:transition-none";
+  "text-[15px] font-semibold whitespace-nowrap text-fg transition-colors hover:text-fg/70 motion-reduce:transition-none";
 
 // The one solid control in the bar. `inverse` is the token that sits opposite
 // the canvas, so it reads white-on-dark and black-on-light without a branch.
 const PILL_CTA = buttonVariants({
   variant: "primary",
-  className: "h-10 rounded-full px-6 text-base",
+  className: "h-[42px] rounded-full px-5 text-[15px] font-semibold",
 });
 
 type NavLinkProps = {
@@ -146,11 +128,7 @@ function NavLink({
 
 type MenuLink = { label: string; href: string; external?: boolean };
 
-type TileLink = MenuLink & {
-  icon: ReactNode;
-  description: string;
-  colour: string;
-};
+type TileLink = MenuLink & { description: string };
 
 /*
  * Only opacity and translate animate, so the slide stays on the compositor;
@@ -219,16 +197,18 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
       </button>
       {/* While open, the top padding bridges the pointer from the trigger to
           the panel. While closed, none of this box takes the pointer, so only
-          the trigger itself can open the menu. */}
+          the trigger itself can open the menu. The padding runs from this
+          box's bottom (30px above the bar's edge) to 8px below the bar, so
+          the panel hangs clear of the bar instead of overlapping it. */}
       <div
         className={cn(
-          "absolute top-full left-1/2 -translate-x-1/2 pt-7",
+          "absolute top-full left-1/2 -translate-x-1/2 pt-[38px]",
           !open && "pointer-events-none",
         )}
       >
         <ul
           className={cn(
-            "bg-(--island) shadow-overlay flex w-[22rem] flex-col rounded-2xl p-2 will-change-[opacity,translate] motion-reduce:[transition:none]",
+            "bg-(--island) shadow-overlay border-line flex w-[22rem] flex-col rounded-2xl border p-2 will-change-[opacity,translate] motion-reduce:[transition:none]",
             open ? PANEL_OPEN : PANEL_CLOSED,
           )}
         >
@@ -239,15 +219,8 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
                 target={link.external ? "_blank" : undefined}
                 rel={link.external ? "noopener noreferrer" : undefined}
                 onClick={() => setOpen(false)}
-                className="group/tile hover:bg-tint focus-visible:bg-tint flex items-start gap-3 rounded-xl p-3 outline-none transition-colors duration-150 motion-reduce:transition-none"
+                className="hover:bg-tint focus-visible:bg-tint flex items-start rounded-xl px-3.5 py-3 outline-none transition-colors duration-150 motion-reduce:transition-none"
               >
-                {/* Each icon takes its own colour on hover, over a tint of it. */}
-                <span
-                  style={{ "--tile": link.colour } as CSSProperties}
-                  className="bg-tint-strong text-fg grid size-10 shrink-0 place-items-center rounded-xl transition-colors duration-150 group-hover/tile:bg-[color-mix(in_srgb,var(--tile)_16%,transparent)] group-hover/tile:text-(--tile) motion-reduce:transition-none"
-                >
-                  {link.icon}
-                </span>
                 <span className="flex min-w-0 flex-col gap-0.5">
                   <span className="text-fg flex items-center gap-1 text-[15px] font-medium">
                     {link.label}
@@ -276,119 +249,16 @@ export function Nav({ stars = null }: { stars?: string | null }) {
   const [hovered, setHovered] = useState<string | null>(null);
 
   /*
-   * Past the fold the bar detaches into a floating pill. Starts false so the
-   * server render matches a freshly-loaded (unscrolled) page, then syncs on
-   * mount to survive a restored scroll position.
+   * A soft shadow lifts the bar off the page once content has scrolled under
+   * it. Starts false so the server render matches an unscrolled page, then
+   * syncs on mount to survive a restored scroll position.
    */
-  const [detached, setDetached] = useState(false);
-  const reduceMotion = useReducedMotion();
-  const islandRef = useRef<HTMLDivElement>(null);
-  // Until the bar is measured (and on the server) there is no outline to
-  // draw, so it shows its resting shape as a plain background instead.
-  const [measured, setMeasured] = useState(false);
-  const progress = useMotionValue(0);
-  const width = useMotionValue(0);
-  const height = useMotionValue(0);
-  const islandOutline = useTransform([progress, width, height], ([p, w, h]) =>
-    islandPath(w as number, h as number, p as number),
-  );
-  const islandDrop = useTransform(
-    progress,
-    (p) => ISLAND_DROP * Math.max(0, (p - 0.25) / 0.75),
-  );
-  const islandFloat = useTransform(progress, (p) =>
-    Math.min(1, Math.max(0, p)),
-  );
-  const islandShadow = useTransform(
-    islandFloat,
-    (p) => `drop-shadow(0 4px 14px rgb(0 0 0 / ${0.06 * p}))`,
-  );
+  const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const controls = animate(
-      progress,
-      detached ? 1 : 0,
-      reduceMotion
-        ? { duration: 0 }
-        : { type: "spring", visualDuration: 0.55, bounce: 0.3 },
-    );
-    return () => controls.stop();
-  }, [detached, reduceMotion, progress]);
-  useEffect(() => {
-    const island = islandRef.current;
-    if (!island) return;
-    const observer = new ResizeObserver(() => {
-      width.set(island.offsetWidth);
-      height.set(island.offsetHeight);
-      setMeasured(true);
-    });
-    observer.observe(island);
-    return () => observer.disconnect();
-  }, [width, height]);
-  useEffect(() => {
-    /* Pulling the page down past the top (the elastic overscroll) floats the
-       island too, as does a forced push either way at the top. Only a gesture
-       that starts at the top counts, so scrolling up into the top (and
-       Safari's bounce past it) settles the island straight away. It snaps
-       back on release: at once when a touch lifts, and for a trackpad, which
-       reports no release of its own, once the wheel goes quiet and (in
-       Safari) the page has sprung back from a held overscroll. */
-    let pulled = false;
-    let settle: ReturnType<typeof setTimeout> | undefined;
-    let touchY = 0;
-    let touchFromTop = false;
-    let wheelFromTop = false;
-    let lastWheel = 0;
-    const sync = () => setDetached(pulled || window.scrollY > 8);
-    const release = () => {
-      clearTimeout(settle);
-      // Safari keeps a held overscroll as a negative scrollY; wait it out.
-      if (pulled && window.scrollY < 0) {
-        settle = setTimeout(release, 120);
-        return;
-      }
-      pulled = false;
-      sync();
-    };
-    const lift = () => {
-      clearTimeout(settle);
-      pulled = false;
-      sync();
-    };
-    const pull = () => {
-      pulled = true;
-      sync();
-      clearTimeout(settle);
-      settle = setTimeout(release, 120);
-    };
-    const onWheel = (e: WheelEvent) => {
-      if (e.timeStamp - lastWheel > 150) wheelFromTop = window.scrollY <= 0;
-      lastWheel = e.timeStamp;
-      if (wheelFromTop && e.deltaY !== 0 && window.scrollY <= 0) pull();
-    };
-    const onTouchStart = (e: TouchEvent) => {
-      touchY = e.touches[0]?.clientY ?? 0;
-      touchFromTop = window.scrollY <= 0;
-    };
-    const onTouchMove = (e: TouchEvent) => {
-      const y = e.touches[0]?.clientY ?? 0;
-      if (touchFromTop && y !== touchY && window.scrollY <= 0) pull();
-    };
+    const sync = () => setScrolled(window.scrollY > 8);
     sync();
     window.addEventListener("scroll", sync, { passive: true });
-    window.addEventListener("wheel", onWheel, { passive: true });
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: true });
-    window.addEventListener("touchend", lift, { passive: true });
-    window.addEventListener("touchcancel", lift, { passive: true });
-    return () => {
-      clearTimeout(settle);
-      window.removeEventListener("scroll", sync);
-      window.removeEventListener("wheel", onWheel);
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", lift);
-      window.removeEventListener("touchcancel", lift);
-    };
+    return () => window.removeEventListener("scroll", sync);
   }, []);
 
   const starLabel = stars ? `Star on GitHub (${stars})` : "Star on GitHub";
@@ -406,32 +276,24 @@ export function Nav({ stars = null }: { stars?: string | null }) {
     {
       label: "FAQ",
       href: lh("/faq"),
-      icon: <CircleHelp size={18} />,
       description: "Common questions, answered",
-      colour: "#8b5cf6",
     },
     {
       label: "Blog",
       href: lh("/blog"),
-      icon: <Newspaper size={18} />,
       description: "Guides and updates",
-      colour: "#f97316",
     },
     {
       label: "Self-hosting",
       href: `${DOCS_URL}/self-hosting/overview`,
       external: true,
-      icon: <Server size={18} />,
       description: "Run it on your own Cloudflare",
-      colour: "#10b981",
     },
     {
       label: "Community",
       href: DISCORD_URL,
       external: true,
-      icon: <MessagesSquare size={18} />,
       description: "Get help and chat on Discord",
-      colour: "#5865f2",
     },
   ];
   const menuLinks = [...barLinks, ...moreLinks];
@@ -439,138 +301,122 @@ export function Nav({ stars = null }: { stars?: string | null }) {
   return (
     <Header
       className={[
-        "sticky top-0 z-[100] flex h-[66px] w-full max-w-full items-start pt-0",
+        "sticky top-0 z-[100] flex h-20 w-full max-w-full items-start px-0 pt-0",
       ].join(" ")}
     >
-      {/* At rest an island hanging from the top edge, flowing out of it through
-          concave shoulders. Scrolled, one spring bends each shoulder into a
-          rounded corner and then drops the bar free, so the outline stays a
-          single unbroken shape the whole way. Only the transform and the
-          outline's path move, so the page below never reflows. */}
-      <motion.div
-        ref={islandRef}
-        style={{ y: islandDrop }}
+      <div
         className={cn(
-          "relative isolate mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-3 [--island-ring:rgb(0_0_0/0.07)] [--island:#ffffff] dark:[--island-ring:rgb(255_255_255/0.07)] dark:[--island:#181818]",
-          !measured && "rounded-b-[24px] bg-(--island)",
+          "flex h-20 w-full items-center bg-canvas px-6 transition-shadow duration-300 ease-out motion-reduce:transition-none [--island:#ffffff] dark:[--island:#181818]",
+          scrolled
+            ? "shadow-[0_4px_20px_rgb(0_0_0/0.10)] dark:shadow-[0_4px_20px_rgb(0_0_0/0.55)]"
+            : "shadow-none",
         )}
       >
-        <svg
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 size-full overflow-visible"
-        >
-          <motion.path
-            d={islandOutline}
-            strokeWidth={1}
-            style={{
-              fill: "var(--island)",
-              stroke: "var(--island-ring)",
-              strokeOpacity: islandFloat,
-              filter: islandShadow,
-            }}
-          />
-        </svg>
-        {/* Logo: 32×32 app icon + 19px rounded wordmark in deep ink. */}
-        <div className="flex items-center gap-2.5">
-          <NextLink
-            href={lh("/")}
-            aria-label="CaptureFlow"
-            className="group inline-flex items-center gap-2 text-fg"
-          >
-            <Image
-              src="/logo-96.png"
-              alt=""
-              width={32}
-              height={32}
-              unoptimized
-              priority
-              draggable={false}
-            />
-            <span
-              className={cn(
-                wordmark.className,
-                "text-[19px] leading-none tracking-[-0.02em] text-fg",
-              )}
+        {/* Contents share the hero's column, so the bar reads full width while
+            the logo and links line up with the copy below. */}
+        <div className="mx-auto flex w-full max-w-[1232px] items-center justify-between">
+          {/* Logo: 32×32 app icon + 19px rounded wordmark in deep ink. */}
+          <div className="flex items-center gap-2.5">
+            <NextLink
+              href={lh("/")}
+              aria-label="CaptureFlow"
+              className="group inline-flex items-center gap-2 text-fg"
             >
-              CaptureFlow
-            </span>
-          </NextLink>
-          <NavBetaChip />
-          {/* The links follow the logo so the bar fills across, with the
+              <Image
+                src="/logo-96.png"
+                alt=""
+                width={32}
+                height={32}
+                unoptimized
+                priority
+                draggable={false}
+              />
+              <span
+                className={cn(
+                  wordmark.className,
+                  "text-[19px] leading-none tracking-[-0.02em] text-fg",
+                )}
+              >
+                CaptureFlow
+              </span>
+            </NextLink>
+            <NavBetaChip />
+            {/* The links follow the logo so the bar fills across, with the
               actions on the right. Desktop/mobile split is CSS-gated (not JS
               breakpoints) so the server render matches the viewport — no
               mobile→desktop flip after hydration. */}
-          <nav
-            aria-label="Main"
-            className="ml-6 hidden items-center gap-0.5 md:flex"
-            onMouseLeave={() => setHovered(null)}
-          >
-            {barLinks.map((link) => (
-              <HoverSlot
-                key={link.label}
-                id={link.label}
-                hovered={hovered}
-                onHover={setHovered}
-              >
-                <NavLink href={link.href} external={link.external}>
-                  {link.label}
-                </NavLink>
+            <nav
+              aria-label="Main"
+              className="ml-3.5 hidden items-center md:flex"
+              onMouseLeave={() => setHovered(null)}
+            >
+              {barLinks.map((link) => (
+                <HoverSlot
+                  key={link.label}
+                  id={link.label}
+                  hovered={hovered}
+                  onHover={setHovered}
+                >
+                  <NavLink href={link.href} external={link.external}>
+                    {link.label}
+                  </NavLink>
+                </HoverSlot>
+              ))}
+              <HoverSlot id="Resources" hovered={hovered} onHover={setHovered}>
+                <HoverMenu label="Resources" links={moreLinks} />
               </HoverSlot>
-            ))}
-            <HoverSlot id="Resources" hovered={hovered} onHover={setHovered}>
-              <HoverMenu label="Resources" links={moreLinks} />
-            </HoverSlot>
-          </nav>
-        </div>
+            </nav>
+          </div>
 
-        {/* Discord lives under Resources and in the footer rather than
+          {/* Discord lives under Resources and in the footer rather than
             competing with the single CTA here; GitHub earns its place in the
             bar as the source link. */}
-        <div className="hidden items-center gap-5 md:flex">
-          <a
-            href={GITHUB_URL}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={starLabel}
-            title={starLabel}
-            className={`${TEXT_LINK} inline-flex items-center gap-1.5`}
-          >
-            <GitHubIcon />
-            {/* tabular-nums so the bar doesn't shift width as the count grows
+          <div className="hidden items-center gap-5 md:flex">
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={starLabel}
+              title={starLabel}
+              className={`${TEXT_LINK} inline-flex items-center gap-1.5`}
+            >
+              <GitHubIcon />
+              {/* tabular-nums so the bar doesn't shift width as the count grows
                 into another digit between revalidations. */}
-            <span className="text-base font-medium">
-              GitHub
-              {stars && <span className="tabular-nums"> ({stars})</span>}
-            </span>
-          </a>
-          <NextLink href={lh("/login")} className={TEXT_LINK}>
-            {m.nav.login}
-          </NextLink>
-          <ThemeToggle
-            initialTheme={DEFAULT_THEME}
-            className="h-9 w-9 rounded-full text-fg"
-          />
-          <NextLink href={lh("/download")} className={PILL_CTA}>
-            {m.nav.download}
-          </NextLink>
-        </div>
+              <span>
+                GitHub
+                {stars && <span className="tabular-nums"> ({stars})</span>}
+              </span>
+            </a>
+            <NextLink href={lh("/login")} className={TEXT_LINK}>
+              {m.nav.login}
+            </NextLink>
+            <ThemeToggle
+              initialTheme={DEFAULT_THEME}
+              className="h-9 w-9 rounded-full text-fg"
+            />
+            <NextLink href={lh("/download")} className={PILL_CTA}>
+              {m.nav.download}
+            </NextLink>
+          </div>
 
-        <div className="flex items-center gap-1 md:hidden">
-          <ThemeToggle
-            initialTheme={DEFAULT_THEME}
-            className="h-9 w-9 rounded-full text-fg"
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            isIconOnly
-            aria-label="Open menu"
-            onPress={() => setMenuOpen(true)}
-          >
-            <MenuIcon size={20} />
-          </Button>
+          <div className="flex items-center gap-1 md:hidden">
+            <ThemeToggle
+              initialTheme={DEFAULT_THEME}
+              className="h-9 w-9 rounded-full text-fg"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              isIconOnly
+              aria-label="Open menu"
+              onPress={() => setMenuOpen(true)}
+            >
+              <MenuIcon size={20} />
+            </Button>
+          </div>
         </div>
-      </motion.div>
+      </div>
 
       <Drawer isOpen={menuOpen} onOpenChange={setMenuOpen}>
         {/* HeroUI's overlays sit at z-50 and this bar sits above them at 100,

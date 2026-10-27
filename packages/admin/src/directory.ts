@@ -1,29 +1,23 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import {
-  STORAGE_PLANS,
-  getEffectiveLimitsForUser,
-  isGrantActive,
-  isProActive,
-  listActiveGrantedUserIds,
-  listPaidUserIds,
-  totalStorageForUser,
-  type GrantedPlan,
-  type ProSubscriptionStatus,
+  isSubscriptionActive,
+  listPaidWorkspaceIds,
+  type SubscriptionStatus,
+  hydrateWorkspaceRole,
+  type WorkspaceRole,
 } from "@captureflow/quota";
 
 /*
- * Cross-tenant reads for the admin panel. Storage follows quota attribution —
- * ready artifacts in workspaces the user owns, webcam streams included — so
- * the number an operator sees is the one the upload gates enforce.
+ * Cross-tenant reads for the admin panel. A user's storage is every ready
+ * artifact in the workspaces they own, webcam streams included; their plan is
+ * the workspace they record in.
  */
 
 export type AdminPlanSummary = {
-  source: "subscription" | "granted" | "free";
-  isPro: boolean;
-  label: string;
-  subscriptionStatus: ProSubscriptionStatus | null;
-  grantExpiresAt: number | null;
+  tier: "free" | "team";
+  // The latest subscription on a workspace this user owns, lapsed ones included.
+  subscriptionStatus: SubscriptionStatus | null;
 };
 
 export type AdminUserRow = {
@@ -47,24 +41,26 @@ export type AdminUserDetail = AdminUserRow & {
   activeDevices: number;
 };
 
-export type AdminQuotaRow = {
-  storageBytesOverride: number | null;
-  note: string | null;
-  grant: GrantedPlan | null;
-  updatedAt: number | null;
-};
-
 export type AdminSubscriptionRow = {
   id: string;
-  variantId: string;
-  planLabel: string;
-  status: ProSubscriptionStatus;
+  workspaceId: string;
+  workspaceName: string;
+  quantity: number;
+  status: SubscriptionStatus;
   isActive: boolean;
   cycle: string;
   customerEmail: string;
   currentPeriodEnd: number | null;
   cancelledAt: number | null;
   createdAt: number;
+};
+
+export type AdminWorkspacePlan = {
+  tier: "free" | "team";
+  seats: number;
+  status: SubscriptionStatus | null;
+  cycle: string | null;
+  currentPeriodEnd: number | null;
 };
 
 export type AdminWorkspaceRow = {
@@ -81,14 +77,15 @@ export type AdminWorkspaceRow = {
   recordingCount: number;
   screenshotCount: number;
   storageBytes: number;
-  role: "owner" | "member" | null;
+  role: WorkspaceRole | null;
+  plan: AdminWorkspacePlan;
 };
 
 export type AdminMemberRow = {
   userId: string;
   name: string;
   email: string;
-  role: "owner" | "member";
+  role: WorkspaceRole;
   joinedAt: number;
   lastActiveAt: number | null;
   recordingCount: number;
@@ -110,8 +107,8 @@ export type AdminWorkspaceInviteRow = {
 
 export type AdminTotals = {
   users: number;
-  proUsers: number;
-  grantedUsers: number;
+  teamUsers: number;
+  paidWorkspaces: number;
   workspaces: number;
   teamWorkspaces: number;
   recordings: number;
@@ -119,7 +116,7 @@ export type AdminTotals = {
   storageBytes: number;
 };
 
-export type PlanFilter = "all" | "pro" | "free" | "granted";
+export type PlanFilter = "all" | "team" | "free";
 
 export type UserSort = "newest" | "storage" | "active";
 
@@ -133,6 +130,10 @@ export type AdminRecentRecording = {
   viewCount: number;
   createdAt: number;
   workspaceName: string | null;
+  // Null on rows from clients that predate the fields.
+  client: string | null;
+  captureSource: string | null;
+  quality: string | null;
 };
 
 export type AdminUserActivity = {
@@ -148,59 +149,42 @@ export type Page<T> = { rows: T[]; total: number };
 
 export const ADMIN_PAGE_SIZE = 50;
 
-export function planLabel(variantId: string): string {
-  return (
-    STORAGE_PLANS.find((p) => p.variantId === variantId)?.label ??
-    STORAGE_PLANS[0].label
-  );
-}
-
 /*
- * One user's plan as the product sees it: an active subscription wins, then
- * an unexpired grant. A lapsed subscription still reports its status so an
- * operator can tell "never paid" from "card declined".
+ * One user's plan as the product sees it: Team while they hold a seat in a
+ * paid workspace. A lapsed subscription on a workspace they own still reports
+ * its status so an operator can tell "never paid" from "card declined".
  */
 export function summarizePlan(input: {
-  subscription: {
-    variantId: string;
-    status: ProSubscriptionStatus;
-    currentPeriodEnd: number | null;
-  } | null;
-  grant: GrantedPlan | null;
-  nowMs: number;
+  inPaidWorkspace: boolean;
+  subscriptionStatus: SubscriptionStatus | null;
 }): AdminPlanSummary {
-  const sub = input.subscription;
-  const subActive =
-    sub !== null &&
-    isProActive(
-      { status: sub.status, current_period_end: sub.currentPeriodEnd },
-      Math.floor(input.nowMs / 1000),
-    );
-  const status = sub?.status ?? null;
-  if (sub && subActive) {
-    return {
-      source: "subscription",
-      isPro: true,
-      label: planLabel(sub.variantId),
-      subscriptionStatus: status,
-      grantExpiresAt: null,
-    };
-  }
-  if (isGrantActive(input.grant, input.nowMs)) {
-    return {
-      source: "granted",
-      isPro: true,
-      label: planLabel(input.grant.variantId),
-      subscriptionStatus: status,
-      grantExpiresAt: input.grant.expiresAt,
-    };
-  }
   return {
-    source: "free",
-    isPro: false,
-    label: "Free",
-    subscriptionStatus: status,
-    grantExpiresAt: null,
+    tier: input.inPaidWorkspace ? "team" : "free",
+    subscriptionStatus: input.subscriptionStatus,
+  };
+}
+
+export function workspacePlan(
+  sub: {
+    quantity: number;
+    status: SubscriptionStatus;
+    cycle: string;
+    currentPeriodEnd: number | null;
+  } | null,
+  nowMs: number,
+): AdminWorkspacePlan {
+  const active =
+    sub !== null &&
+    isSubscriptionActive(
+      { status: sub.status, current_period_end: sub.currentPeriodEnd },
+      Math.floor(nowMs / 1000),
+    );
+  return {
+    tier: active ? "team" : "free",
+    seats: active ? Math.max(1, sub.quantity) : 0,
+    status: sub?.status ?? null,
+    cycle: sub?.cycle ?? null,
+    currentPeriodEnd: sub?.currentPeriodEnd ?? null,
   };
 }
 
@@ -242,12 +226,20 @@ const LAST_ACTIVE = (uid: string) => `
     COALESCE((SELECT MAX(last_used_at) FROM device_tokens WHERE user_id = ${uid}), 0)
   ), 0)`;
 
-const USER_SELECT = `
-  WITH latest_sub AS (
-    SELECT user_id, ls_variant_id, status, current_period_end,
-           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY updated_at DESC) AS rn
-      FROM pro_subscription WHERE user_id IS NOT NULL
-  )
+// Members who hold a seat in one of the paid workspaces (a JSON array bound
+// at `paidParam`), so the plan column applies the same rule the sweep does.
+const IN_PAID_WORKSPACE = (uid: string, paidParam: string) => `
+  (${uid} IN (SELECT m.user_id FROM workspace_member m
+               WHERE m.role IN ('owner', 'member')
+                 AND m.workspace_id IN (SELECT value FROM json_each(${paidParam}))))`;
+
+const LATEST_WORKSPACE_SUB = `
+  SELECT workspace_id, quantity, status, cycle, current_period_end, created_at,
+         ROW_NUMBER() OVER (PARTITION BY workspace_id ORDER BY updated_at DESC) AS rn
+    FROM workspace_subscription WHERE workspace_id IS NOT NULL`;
+
+const USER_SELECT = (paidParam: string) => `
+  WITH latest_sub AS (${LATEST_WORKSPACE_SUB})
   SELECT u.id, u.name, u.email, u.image, u.emailVerified AS email_verified,
          u.createdAt AS created_at,
          (SELECT COUNT(*) FROM workspace_member m WHERE m.user_id = u.id) AS workspace_count,
@@ -257,12 +249,13 @@ const USER_SELECT = `
            WHERE s.user_id = u.id AND s.state = 'ready') AS screenshot_count,
          ${OWNED_STORAGE("u.id")} AS storage_bytes,
          ${LAST_ACTIVE("u.id")} AS last_active_at,
-         ls.ls_variant_id AS sub_variant_id, ls.status AS sub_status,
-         ls.current_period_end AS sub_period_end,
-         q.granted_plan_variant_id, q.granted_plan_expires_at
-    FROM users u
-    LEFT JOIN latest_sub ls ON ls.user_id = u.id AND ls.rn = 1
-    LEFT JOIN user_quotas q ON q.user_id = u.id`;
+         (SELECT ls.status FROM latest_sub ls
+            JOIN workspace w ON w.id = ls.workspace_id
+           WHERE ls.rn = 1 AND w.owner_user_id = u.id
+           ORDER BY ls.status = 'active' DESC, ls.created_at DESC
+           LIMIT 1) AS sub_status,
+         ${IN_PAID_WORKSPACE("u.id", paidParam)} AS in_paid_workspace
+    FROM users u`;
 
 type UserD1Row = {
   id: string;
@@ -276,14 +269,11 @@ type UserD1Row = {
   screenshot_count: number;
   storage_bytes: number;
   last_active_at: number | null;
-  sub_variant_id: string | null;
   sub_status: string | null;
-  sub_period_end: number | null;
-  granted_plan_variant_id: string | null;
-  granted_plan_expires_at: number | null;
+  in_paid_workspace: number;
 };
 
-function userFromD1(r: UserD1Row, nowMs: number): AdminUserRow {
+function userFromD1(r: UserD1Row): AdminUserRow {
   return {
     id: r.id,
     name: r.name,
@@ -296,30 +286,12 @@ function userFromD1(r: UserD1Row, nowMs: number): AdminUserRow {
     screenshotCount: r.screenshot_count,
     storageBytes: r.storage_bytes,
     plan: summarizePlan({
-      subscription:
-        r.sub_variant_id && r.sub_status
-          ? {
-              variantId: r.sub_variant_id,
-              status: r.sub_status as ProSubscriptionStatus,
-              currentPeriodEnd: r.sub_period_end,
-            }
-          : null,
-      grant: r.granted_plan_variant_id
-        ? {
-            variantId: r.granted_plan_variant_id,
-            expiresAt: r.granted_plan_expires_at,
-          }
-        : null,
-      nowMs,
+      inPaidWorkspace: r.in_paid_workspace === 1,
+      subscriptionStatus: r.sub_status as SubscriptionStatus | null,
     }),
   };
 }
 
-/*
- * The plan filter matches against the quota package's paid and granted id
- * sets, so it applies the same rule the retention sweep does instead of a
- * second copy of it in SQL.
- */
 const USER_ORDER: Record<UserSort, string> = {
   newest: "u.createdAt DESC",
   storage: "storage_bytes DESC, u.createdAt DESC",
@@ -337,26 +309,22 @@ export async function listAdminUsers(
   },
 ): Promise<Page<AdminUserRow>> {
   const pageSize = opts.pageSize ?? ADMIN_PAGE_SIZE;
-  const planUserIds =
-    opts.plan === "all"
-      ? null
-      : opts.plan === "granted"
-        ? await listActiveGrantedUserIds(db)
-        : await listPaidUserIds(db);
+  const paid = JSON.stringify(await listPaidWorkspaceIds(db));
   const term = opts.search.trim();
   const where = `WHERE (?1 = '' OR u.email LIKE ?2 OR u.name LIKE ?2)
-    AND (?3 IS NULL OR (u.id IN (SELECT value FROM json_each(?3))) = ?4)`;
+    AND (?3 = 'all' OR ${IN_PAID_WORKSPACE("u.id", "?4")} = ?5)`;
   const args = [
     term,
     `%${term}%`,
-    planUserIds ? JSON.stringify(planUserIds) : null,
-    opts.plan === "free" ? 0 : 1,
+    opts.plan,
+    paid,
+    opts.plan === "team" ? 1 : 0,
   ];
   const [{ results }, count] = await Promise.all([
     db
       .prepare(
-        `${USER_SELECT} ${where}
-         ORDER BY ${USER_ORDER[opts.sort ?? "newest"]} LIMIT ?5 OFFSET ?6`,
+        `${USER_SELECT("?4")} ${where}
+         ORDER BY ${USER_ORDER[opts.sort ?? "newest"]} LIMIT ?6 OFFSET ?7`,
       )
       .bind(...args, pageSize, Math.max(0, opts.page - 1) * pageSize)
       .all<UserD1Row>(),
@@ -365,9 +333,8 @@ export async function listAdminUsers(
       .bind(...args)
       .first<{ n: number }>(),
   ]);
-  const now = Date.now();
   return {
-    rows: (results ?? []).map((r) => userFromD1(r, now)),
+    rows: (results ?? []).map(userFromD1),
     total: count?.n ?? 0,
   };
 }
@@ -377,10 +344,11 @@ export async function getAdminUser(
   id: string,
 ): Promise<AdminUserDetail | null> {
   const now = Date.now();
+  const paid = JSON.stringify(await listPaidWorkspaceIds(db));
   const [row, providers, counts] = await Promise.all([
     db
-      .prepare(`${USER_SELECT} WHERE u.id = ?1 LIMIT 1`)
-      .bind(id)
+      .prepare(`${USER_SELECT("?2")} WHERE u.id = ?1 LIMIT 1`)
+      .bind(id, paid)
       .first<UserD1Row>(),
     db
       .prepare(`SELECT DISTINCT providerId FROM accounts WHERE userId = ?1`)
@@ -397,24 +365,12 @@ export async function getAdminUser(
   ]);
   if (!row) return null;
   return {
-    ...userFromD1(row, now),
+    ...userFromD1(row),
     image: row.image,
     providers: (providers.results ?? []).map((p) => p.providerId),
     activeSessions: counts?.sessions ?? 0,
     activeDevices: counts?.devices ?? 0,
   };
-}
-
-export async function getUserStorage(
-  db: D1Database,
-  userId: string,
-  options: { selfHosted?: boolean } = {},
-): Promise<{ usedBytes: number; limitBytes: number }> {
-  const [usedBytes, limits] = await Promise.all([
-    totalStorageForUser(db, userId),
-    getEffectiveLimitsForUser(db, userId, options),
-  ]);
-  return { usedBytes, limitBytes: limits.storageBytes };
 }
 
 export async function getUserActivity(
@@ -459,7 +415,8 @@ export async function getUserActivity(
       .prepare(
         `SELECT r.slug, r.title, r.state, r.visibility,
                 r.size_bytes + r.webcam_size_bytes AS size_bytes, r.duration_ms,
-                r.view_count, r.created_at, w.name AS workspace_name
+                r.view_count, r.created_at, w.name AS workspace_name,
+                r.client, r.capture_source, r.quality
            FROM recordings r
            LEFT JOIN workspace w ON w.id = r.workspace_id
           WHERE r.user_id = ?1
@@ -476,6 +433,9 @@ export async function getUserActivity(
         view_count: number;
         created_at: number;
         workspace_name: string | null;
+        client: string | null;
+        capture_source: string | null;
+        quality: string | null;
       }>(),
   ]);
   return {
@@ -509,6 +469,9 @@ export async function getUserActivity(
       viewCount: r.view_count,
       createdAt: r.created_at,
       workspaceName: r.workspace_name,
+      client: r.client,
+      captureSource: r.capture_source,
+      quality: r.quality,
     })),
   };
 }
@@ -553,21 +516,27 @@ export async function getSignupsByWeek(
   );
 }
 
+// Subscriptions on the workspaces this user owns, newest first.
 export async function listUserSubscriptions(
   db: D1Database,
   userId: string,
 ): Promise<AdminSubscriptionRow[]> {
   const { results } = await db
     .prepare(
-      `SELECT ls_subscription_id, ls_variant_id, status, cycle, ls_customer_email,
-              current_period_end, cancelled_at, created_at
-         FROM pro_subscription WHERE user_id = ?1
-        ORDER BY updated_at DESC`,
+      `SELECT s.ls_subscription_id, s.workspace_id, w.name AS workspace_name,
+              s.quantity, s.status, s.cycle, s.ls_customer_email,
+              s.current_period_end, s.cancelled_at, s.created_at
+         FROM workspace_subscription s
+         JOIN workspace w ON w.id = s.workspace_id
+        WHERE w.owner_user_id = ?1
+        ORDER BY s.updated_at DESC`,
     )
     .bind(userId)
     .all<{
       ls_subscription_id: string;
-      ls_variant_id: string;
+      workspace_id: string;
+      workspace_name: string;
+      quantity: number;
       status: string;
       cycle: string;
       ls_customer_email: string;
@@ -577,13 +546,14 @@ export async function listUserSubscriptions(
     }>();
   const nowSeconds = Math.floor(Date.now() / 1000);
   return (results ?? []).map((r) => {
-    const status = r.status as ProSubscriptionStatus;
+    const status = r.status as SubscriptionStatus;
     return {
       id: r.ls_subscription_id,
-      variantId: r.ls_variant_id,
-      planLabel: planLabel(r.ls_variant_id),
+      workspaceId: r.workspace_id,
+      workspaceName: r.workspace_name,
+      quantity: r.quantity,
       status,
-      isActive: isProActive(
+      isActive: isSubscriptionActive(
         { status, current_period_end: r.current_period_end },
         nowSeconds,
       ),
@@ -596,89 +566,8 @@ export async function listUserSubscriptions(
   });
 }
 
-export async function getUserQuota(
-  db: D1Database,
-  userId: string,
-): Promise<AdminQuotaRow> {
-  const row = await db
-    .prepare(
-      `SELECT storage_bytes_override, note, granted_plan_variant_id,
-              granted_plan_expires_at, updated_at
-         FROM user_quotas WHERE user_id = ?1 LIMIT 1`,
-    )
-    .bind(userId)
-    .first<{
-      storage_bytes_override: number | null;
-      note: string | null;
-      granted_plan_variant_id: string | null;
-      granted_plan_expires_at: number | null;
-      updated_at: number;
-    }>();
-  if (!row) {
-    return {
-      storageBytesOverride: null,
-      note: null,
-      grant: null,
-      updatedAt: null,
-    };
-  }
-  return {
-    storageBytesOverride: row.storage_bytes_override,
-    note: row.note,
-    grant: row.granted_plan_variant_id
-      ? {
-          variantId: row.granted_plan_variant_id,
-          expiresAt: row.granted_plan_expires_at,
-        }
-      : null,
-    updatedAt: row.updated_at,
-  };
-}
-
-export async function setUserQuota(
-  db: D1Database,
-  userId: string,
-  quota: { storageBytesOverride: number | null; note: string | null },
-): Promise<void> {
-  await db
-    .prepare(
-      `INSERT INTO user_quotas
-       (user_id, storage_bytes_override, note, updated_at)
-     VALUES (?1, ?2, ?3, ?4)
-     ON CONFLICT(user_id) DO UPDATE SET
-       storage_bytes_override = excluded.storage_bytes_override,
-       note = excluded.note,
-       updated_at = excluded.updated_at`,
-    )
-    .bind(userId, quota.storageBytesOverride, quota.note, Date.now())
-    .run();
-}
-
-export async function setGrantedPlan(
-  db: D1Database,
-  userId: string,
-  grant: GrantedPlan | null,
-): Promise<void> {
-  await db
-    .prepare(
-      `INSERT INTO user_quotas
-       (user_id, granted_plan_variant_id, granted_plan_expires_at, updated_at)
-     VALUES (?1, ?2, ?3, ?4)
-     ON CONFLICT(user_id) DO UPDATE SET
-       granted_plan_variant_id = excluded.granted_plan_variant_id,
-       granted_plan_expires_at = excluded.granted_plan_expires_at,
-       updated_at = excluded.updated_at`,
-    )
-    .bind(
-      userId,
-      grant?.variantId ?? null,
-      grant?.expiresAt ?? null,
-      Date.now(),
-    )
-    .run();
-}
-
 const WORKSPACE_SELECT = (roleFor: string) => `
+  WITH latest_sub AS (${LATEST_WORKSPACE_SUB})
   SELECT w.id, w.name, w.slug, w.kind, w.created_at,
          w.allow_public_links, w.allow_member_uploads,
          o.id AS owner_id, o.name AS owner_name, o.email AS owner_email,
@@ -694,9 +583,12 @@ const WORKSPACE_SELECT = (roleFor: string) => `
                     WHERE r.workspace_id = w.id AND r.state = 'ready'), 0)
          + COALESCE((SELECT SUM(s.size_bytes) FROM screenshots s
                     WHERE s.workspace_id = w.id AND s.state = 'ready'), 0) AS storage_bytes,
-         ${roleFor} AS role
+         ${roleFor} AS role,
+         ls.quantity AS sub_quantity, ls.status AS sub_status,
+         ls.cycle AS sub_cycle, ls.current_period_end AS sub_period_end
     FROM workspace w
-    JOIN users o ON o.id = w.owner_user_id`;
+    JOIN users o ON o.id = w.owner_user_id
+    LEFT JOIN latest_sub ls ON ls.workspace_id = w.id AND ls.rn = 1`;
 
 type WorkspaceD1Row = {
   id: string;
@@ -715,6 +607,10 @@ type WorkspaceD1Row = {
   screenshot_count: number;
   storage_bytes: number;
   role: string | null;
+  sub_quantity: number | null;
+  sub_status: string | null;
+  sub_cycle: string | null;
+  sub_period_end: number | null;
 };
 
 function workspaceFromD1(r: WorkspaceD1Row): AdminWorkspaceRow {
@@ -732,7 +628,18 @@ function workspaceFromD1(r: WorkspaceD1Row): AdminWorkspaceRow {
     recordingCount: r.recording_count,
     screenshotCount: r.screenshot_count,
     storageBytes: r.storage_bytes,
-    role: r.role === "owner" || r.role === "member" ? r.role : null,
+    role: r.role == null ? null : hydrateWorkspaceRole(r.role),
+    plan: workspacePlan(
+      r.sub_status
+        ? {
+            quantity: r.sub_quantity ?? 1,
+            status: r.sub_status as SubscriptionStatus,
+            cycle: r.sub_cycle ?? "monthly",
+            currentPeriodEnd: r.sub_period_end,
+          }
+        : null,
+      Date.now(),
+    ),
   };
 }
 
@@ -838,7 +745,7 @@ export async function listWorkspaceMembers(
     userId: r.id,
     name: r.name,
     email: r.email,
-    role: r.role === "owner" ? "owner" : "member",
+    role: hydrateWorkspaceRole(r.role),
     joinedAt: r.joined_at,
     lastActiveAt: r.last_active_at,
     recordingCount: r.recording_count,
@@ -885,14 +792,14 @@ export async function listWorkspaceInvites(
 }
 
 export async function getAdminTotals(db: D1Database): Promise<AdminTotals> {
-  const [paid, granted] = await Promise.all([
-    listPaidUserIds(db),
-    listActiveGrantedUserIds(db),
-  ]);
+  const paid = await listPaidWorkspaceIds(db);
   const row = await db
     .prepare(
       `SELECT
        (SELECT COUNT(*) FROM users) AS users,
+       (SELECT COUNT(DISTINCT m.user_id) FROM workspace_member m
+         WHERE m.role IN ('owner', 'member')
+           AND m.workspace_id IN (SELECT value FROM json_each(?1))) AS team_users,
        (SELECT COUNT(*) FROM workspace) AS workspaces,
        (SELECT COUNT(*) FROM workspace WHERE kind = 'team') AS team_workspaces,
        (SELECT COUNT(*) FROM recordings WHERE state = 'ready') AS recordings,
@@ -902,8 +809,10 @@ export async function getAdminTotals(db: D1Database): Promise<AdminTotals> {
        + (SELECT COALESCE(SUM(size_bytes), 0) FROM screenshots WHERE state = 'ready')
          AS storage_bytes`,
     )
+    .bind(JSON.stringify(paid))
     .first<{
       users: number;
+      team_users: number;
       workspaces: number;
       team_workspaces: number;
       recordings: number;
@@ -912,8 +821,8 @@ export async function getAdminTotals(db: D1Database): Promise<AdminTotals> {
     }>();
   return {
     users: row?.users ?? 0,
-    proUsers: paid.length,
-    grantedUsers: granted.length,
+    teamUsers: row?.team_users ?? 0,
+    paidWorkspaces: paid.length,
     workspaces: row?.workspaces ?? 0,
     teamWorkspaces: row?.team_workspaces ?? 0,
     recordings: row?.recordings ?? 0,

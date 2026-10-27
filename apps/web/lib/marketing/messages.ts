@@ -4,6 +4,10 @@
  * order as their counterparts in lib/marketing/constants.ts so components can zip
  * them by index.
  */
+import { SEAT_PLAN } from "@captureflow/quota";
+
+const PLAN = SEAT_PLAN.name;
+
 export const MESSAGES = {
   nav: {
     features: "Features",
@@ -65,16 +69,15 @@ export const MESSAGES = {
     genericError: "Something went wrong. Please try again.",
   },
   hero: {
-    title: "Screen Recorder with Shareable Links",
-    subtitleLine1: "Open-source video messaging for your team and customers.",
-    subtitleLine2: "Record, share a link, and get feedback right on the video.",
+    title: "Skip the meeting,\nsend a recording instead.",
+    subtitle:
+      "Open-source, AI-powered screen recordings you can share with your team as a link.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Install Chrome extension",
-    installMac: "Download for free",
+    installMac: "Download for macOS",
     installSoon: "Soon",
     macSoon: "macOS app coming soon",
     installOr: "or",
-    secondaryCta: "See pricing",
     badge: "Open source, free to run",
     noCreditCard: "No credit card required",
     teaser: {
@@ -87,6 +90,20 @@ export const MESSAGES = {
       nextAria: "Next demo",
       dotAria: "Show demo {n} of {total}",
     },
+  },
+  highlights: {
+    heading: "Everything you need, built in",
+    items: [
+      "Screen and camera recording",
+      "AI transcripts in 99 languages",
+      "Edit the video from its transcript",
+      "Camera backgrounds and filters",
+      "Infinite canvas while you record",
+      "Annotated screenshots",
+      "Comments and emoji reactions",
+      "Open source and self-hostable",
+    ],
+    cta: "See all features",
   },
   useCases: {
     heading: "Video messages for every team",
@@ -125,7 +142,7 @@ export const MESSAGES = {
     updatesFeatures: "features",
   },
   modes: {
-    heading: "The simplest screen recorder you'll ever use",
+    heading: "Screen recording, made simple",
     subtitle:
       "Record in two clicks. Share with a link. Get feedback on the video.",
     tabs: {
@@ -142,37 +159,9 @@ export const MESSAGES = {
       more: "More",
     },
     scene: {
-      title: "Walkthrough: the new checkout flow",
-      author: "Sam",
-      age: "2 min ago",
       timer: "0:42",
-      duration: "1:12",
-      captions: [
-        "Here's the new checkout, step by step.",
-        "Payment now fits on one screen.",
-      ],
-      url: "captureflow.dev/r/8kx2pnq4",
-      checkout: {
-        address: "shop.example.com/checkout",
-        heading: "Checkout",
-        emailLabel: "Email",
-        email: "sam@example.com",
-        cardLabel: "Card",
-        card: "•••• 4242",
-        expiry: "12/28",
-        pay: "Pay $48.00",
-        summary: "Order summary",
-        items: [
-          { name: "Trail backpack", price: "$42.00" },
-          { name: "Shipping", price: "$6.00" },
-        ],
-        totalLabel: "Total",
-        total: "$48.00",
-      },
-      comments: [
-        { author: "Maya", text: "Love the new flow" },
-        { author: "Alex", text: "Ship it 🚀" },
-      ],
+      heading: "Launch checklist",
+      note: "Ship on Friday",
     },
   },
   features: {
@@ -219,7 +208,7 @@ export const MESSAGES = {
     },
   },
   collaboration: {
-    heading: "More than just a screen recorder",
+    heading: "Recording is just the start",
     subtitle:
       "Some things are quicker to show than to type. Record it, send the link, and your team watches when they're free.",
     categories: {
@@ -227,7 +216,7 @@ export const MESSAGES = {
         feature: {
           title: "Clean it up before you share",
           cta: "Record now",
-          body: "Add a background, move or resize your camera, and mute audio you don't want. Your link stays the same, so everyone sees the new version straight away.",
+          body: "Every recording gets an AI transcript, and you edit the video from it: cut a sentence, strip the filler words, add a background, move or resize your camera. Your link stays the same, so everyone sees the new version straight away.",
         },
         scene: {
           app: "Launch plan",
@@ -320,14 +309,18 @@ export const MESSAGES = {
           body: "Invite your teammates to a workspace and everyone's recordings live in one place. Share a video with anyone, keep it inside the workspace, or keep it to yourself until it's ready.",
         },
         scene: {
+          newWorkspace: "New workspace",
+          nameLabel: "Workspace name",
+          create: "Create workspace",
+          created: "Created",
           team: "CaptureFlow team",
-          members: ["3 members", "4 members"],
+          members: ["1 member", "2 members", "3 members"],
           memberInitials: ["AR", "CK", "JB"],
           invitePlaceholder: "Invite by email",
-          inviteEmail: "leo@northwind.io",
+          inviteEmail: "chris@acme.co, jordan@acme.co",
           invite: "Invite",
           invited: "Sent",
-          joined: "Leo joined 🎉",
+          joined: "Chris and Jordan joined 🎉",
           recordings: "Recordings",
           videos: [
             {
@@ -438,8 +431,7 @@ export const MESSAGES = {
       cloudflare: "Do you have a Cloudflare account?",
       cloudflareOptions: ["Yes", "No", "Not sure"],
       notes: "Anything else we should know?",
-      notesPlaceholder:
-        "How much storage you need, your domain, your timeline…",
+      notesPlaceholder: "Your team size, your domain, your timeline…",
       submit: "Send message",
       error:
         "Your request couldn't be sent. Please try again, or email us at {email}.",
@@ -452,16 +444,16 @@ export const MESSAGES = {
     title: "CaptureFlow for",
     titleHighlight: "your company",
     subtitle:
-      "The managed plan for companies that need more than 1 TB of storage, with custom pricing.",
+      "The managed plan for companies that want seats for everyone on terms agreed once, with a single invoice.",
     includedHeading: "What Enterprise adds",
     included: {
       storage: {
-        title: "More than 1 TB",
-        body: "Storage past the largest plan, sized to how much your team records.",
+        title: "Storage sized to you",
+        body: "A pool sized to how much your company records, not a per-seat allowance.",
       },
       seats: {
-        title: "No per-seat fees",
-        body: "One price for the whole company, however many people use it.",
+        title: "Seats for everyone",
+        body: "One agreement covers the whole company, however many people record.",
       },
       roadmap: {
         title: "Your requests first",
@@ -519,8 +511,8 @@ export const MESSAGES = {
       emailPlaceholder: "jane@acme.com",
       need: "What do you need?",
       needs: [
-        "More than 1 TB of storage",
-        "Pricing for a large team",
+        "Seats for a large team",
+        "Custom terms or a single invoice",
         "Something else",
       ],
       teamSize: "Team size",
@@ -539,62 +531,416 @@ export const MESSAGES = {
     },
   },
   pricing: {
-    heading: "Start free, pay for more storage",
-    subheading:
-      "Start with free storage and upgrade only when you need more space.",
-    selfHost: {
-      name: "Self-hosted",
-      price: "Free forever",
-      body: "Run it on your own Cloudflare account. Open source under the AGPL.",
-      cta: "Build from source",
+    heading: "Choose the plan that fits your team",
+    subheading: `Free covers your first recordings. ${PLAN} is one price per member, and viewers are always free.`,
+    controls: {
+      teamSize: "Team size",
+      members: "members",
+      billing: "Bill me",
+      monthly: "Monthly",
+      annually: "Annually",
+      save: "Save {percent}%",
+    },
+    whyUs: {
+      heading: "Why choose {product} over {brand}",
+      subtitle:
+        "Their free and AI tiers beside ours, priced for the team size you set above.",
+      rows: {
+        perMember: "Per member, a month",
+        team: "Your team of {seats}",
+        monthly: "{amount} a month",
+        members: "Members",
+        upTo: "Up to {n}",
+        unlimited: "Unlimited",
+        recordings: "Recordings per person",
+        length: "Recording length",
+        minutes: "{n} min per video",
+        transcripts: "Transcripts and captions",
+        transcript: "Edit the video from its transcript",
+        ai: "AI chapters and filler word removal",
+        openSource: "Open source, self-host any time",
+        viewers: "Viewers and commenters",
+        free: "Free",
+      },
+      cta: "See the full comparison",
     },
     compare: {
-      heading: "Pay for storage,",
-      headingMuted: "not for seats",
-      subheading:
-        "Per-seat tools cost more every time someone joins your team. Here's what a team of 10 pays each month.",
-      title: "Switching from {loom}?",
-      loom: "Loom",
-      body: "Loom charges **{perSeat} for every person**, every month. CaptureFlow charges for storage, so **your whole team shares one plan**.",
-      link: "See the full comparison",
       loomRow: "Loom {plan}",
       loomDetail: "{seats} people × {perSeat} each",
-      caption:
-        "Monthly prices. Our largest plan, so this is the most you'd pay.",
-      captureflowRow: "CaptureFlow {storage} plan",
-      captureflowDetail: "Whole team, one flat price",
+      caption: "Monthly prices. People who only watch and comment are free.",
+      captureflowRow: `CaptureFlow ${PLAN}`,
+      captureflowDetail: "{seats} members × {ourPerSeat} each",
       saveLabel: "Your team saves",
       saveValue: "{savings} a year",
     },
-    managed: {
-      badge: "Managed hosting",
-      title: "We run it, you pick the storage",
-      period: "/month",
-      freeLabel: "Free",
-      freeNote: "No card needed.",
-      paidNote: "Billed monthly. Cancel anytime.",
-      tiersLabel: "Storage",
-      ctaFree: "Get started free",
-      ctaPaid: "Get started",
-      ctaUpgrade: "Upgrade to {storage}",
-      includesHeading: "Every plan includes",
-      includes: [
-        "Fully managed, no Cloudflare setup",
-        "Instant share links",
-        "Annotated screenshots",
-        "Comments & emoji reactions",
-        "Team workspaces",
-        "Whole team, no per-seat fees",
-      ],
-      footnote: "The same open-source app, run by us.",
+    plans: {
+      free: {
+        name: "Free",
+        description: "Get started with screen recordings you share as a link.",
+        featuresHeading: "Key features",
+        features: [
+          "{recordings} recordings per person",
+          "{minutes} minute recordings",
+          "Data saver quality",
+          "AI transcripts and captions",
+          "Edit the video from its transcript",
+          "Your own workspace, invite anyone",
+          "Comments and emoji reactions",
+        ],
+        cta: "Sign up",
+      },
+      team: {
+        name: PLAN,
+        badge: "Most popular",
+        description:
+          "Unlimited recordings in full quality, with AI chapters, titles and clean-up for the whole team.",
+        period: "per member / month",
+        periodAnnual: "per year",
+        rateAnnual:
+          "${perSeat} per member a month for {seats} {members}, billed yearly",
+        member: "member",
+        members: "members",
+        featuresHeading: "Everything in Free, and",
+        features: [
+          "Unlimited recordings",
+          "Unlimited recording time",
+          "Full quality",
+          "AI summary chapters and titles",
+          "Filler word removal",
+          "Custom branding",
+        ],
+        cta: "Try for free",
+      },
+      enterprise: {
+        name: "Enterprise",
+        description:
+          "Manage recordings for your whole company, on terms agreed with you.",
+        price: "Let’s talk",
+        featuresHeading: `Everything in ${PLAN}, and`,
+        features: [
+          "Custom terms and a single annual invoice",
+          "Storage sized to your company",
+          "Your feature requests first",
+          "A direct line to the team",
+        ],
+        cta: "Contact us",
+      },
     },
-    enterprise: {
-      name: "Enterprise",
-      price: "Custom pricing",
-      body: "More than 1 TB of storage, fully managed, one price for your whole company.",
-      note: "For teams that need more than 1 TB.",
-      cta: "Contact us",
-      subject: "CaptureFlow Enterprise",
+    table: {
+      heading: "Every feature, plan by plan",
+      groups: [
+        {
+          title: "Recording",
+          rows: [
+            {
+              label: "Members",
+              free: "Unlimited",
+              team: "Unlimited",
+              enterprise: "Unlimited",
+            },
+            {
+              label: "Viewers and commenters",
+              free: "Free",
+              team: "Free",
+              enterprise: "Free",
+            },
+            {
+              label: "Recordings per person",
+              free: "Up to {recordings}",
+              team: "Unlimited",
+              enterprise: "Unlimited",
+            },
+            {
+              label: "Recording length",
+              free: "{minutes} min per video",
+              team: "Unlimited",
+              enterprise: "Unlimited",
+            },
+            {
+              label: "Video quality",
+              free: "Data saver",
+              team: "Up to 1080p",
+              enterprise: "Up to 1080p",
+            },
+            {
+              label: "Screenshots",
+              free: "Unlimited",
+              team: "Unlimited",
+              enterprise: "Unlimited",
+            },
+            {
+              label: "Recordings kept",
+              free: "30 days without a view",
+              team: "Until you delete them",
+              enterprise: "Until you delete them",
+            },
+            {
+              label: "Storage",
+              free: "—",
+              team: "{storage} GB per member, pooled",
+              enterprise: "Sized to your company",
+            },
+            {
+              label: "Full screen, window or tab capture",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Camera bubble and camera effects",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Microphone and system audio",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Smooth cursor",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Chrome extension and Mac app",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+          ],
+        },
+        {
+          title: "AI",
+          rows: [
+            { label: "Transcripts", free: true, team: true, enterprise: true },
+            {
+              label: "Closed captions",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Summary chapters",
+              free: false,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Auto-suggested titles",
+              free: false,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Edit the video from its transcript",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Filler word removal",
+              free: false,
+              team: true,
+              enterprise: true,
+            },
+          ],
+        },
+        {
+          title: "Editing",
+          rows: [
+            {
+              label: "Edit after sharing, same link",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            { label: "Backgrounds", free: true, team: true, enterprise: true },
+            {
+              label: "Move or resize the camera bubble",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Cut parts of the video",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Annotated screenshots with arrows, text and blur",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Infinite canvas",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+          ],
+        },
+        {
+          title: "Sharing and feedback",
+          rows: [
+            {
+              label: "Share link ready when you stop",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Public, workspace or private links",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Request access on restricted links",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Link previews in chat and email",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Embed the player anywhere",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Plays inside GitHub issues and pull requests",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Comments on the timeline",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Emoji reactions",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            { label: "View counts", free: true, team: true, enterprise: true },
+            {
+              label: "Download the original file",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+          ],
+        },
+        {
+          title: "Workspace and admin",
+          rows: [
+            {
+              label: "Team workspace",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Owner, member and viewer roles",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Default visibility and upload permissions",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Search across recordings and screenshots",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Custom branding",
+              free: false,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Single annual invoice",
+              free: false,
+              team: false,
+              enterprise: true,
+            },
+            {
+              label: "Custom terms",
+              free: false,
+              team: false,
+              enterprise: true,
+            },
+          ],
+        },
+        {
+          title: "Hosting and support",
+          rows: [
+            {
+              label: "Open source under the AGPL",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Self-host on your own Cloudflare account",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Managed hosting and updates",
+              free: true,
+              team: true,
+              enterprise: true,
+            },
+            {
+              label: "Support",
+              free: "Community",
+              team: "Email",
+              enterprise: "A direct line to the team",
+            },
+            {
+              label: "Your feature requests first",
+              free: false,
+              team: false,
+              enterprise: true,
+            },
+          ],
+        },
+      ],
+    },
+    includes: {
+      heading: "Every plan includes",
+      items: [
+        "Your own workspace, invite anyone",
+        "Free viewers and commenters",
+        "Camera effects",
+        "AI transcripts & captions",
+        "Edit the video from its transcript",
+        "Public, workspace or private share links",
+        "Comments & emoji reactions",
+        "Annotated screenshots",
+        "Infinite canvas",
+      ],
     },
     annual: {
       badgePro: "Managed",
@@ -627,12 +973,11 @@ export const MESSAGES = {
       {
         question: "Why does CaptureFlow run on Cloudflare?",
         answer:
-          "Because video gets expensive in the wrong places. Most clouds charge every time someone watches a file, and Cloudflare R2 doesn't, so a recording watched a hundred times costs no more than one watched once. That's what lets us charge for storage instead of per person.\n\nIt also makes self-hosting cheap. Cloudflare's free tiers cover the app, the database, and the first 10 GB of storage, so a small team can run CaptureFlow for nothing. R2 does ask for a card on file.",
+          "Because video gets expensive in the wrong places. Most clouds charge every time someone watches a file, and Cloudflare R2 doesn't, so a recording watched a hundred times costs no more than one watched once. That's what lets viewers stay free.\n\nIt also makes self-hosting cheap. Cloudflare's free tiers cover the app, the database, and the first 10 GB of storage, so a small team can run CaptureFlow for nothing. R2 does ask for a card on file.",
       },
       {
-        question: "Why charge for storage instead of per seat?",
-        answer:
-          "Because storage is what actually costs us money, not the number of people watching. With per-seat pricing, every teammate you add raises the bill, so teams end up rationing who gets an account.\n\nWith CaptureFlow, your whole team shares one plan. Invite as many people as you like, and you only pay more when you need more space.",
+        question: `How does ${PLAN} pricing work?`,
+        answer: `${PLAN} is one price per member a month, less when billed yearly. A member is someone who records. People you invite as viewers watch, comment and react for free, so the whole company can be in the workspace while you pay only for the people making recordings.\n\nWhen someone joins or leaves, the seat count follows on the next invoice.`,
       },
       {
         question: "How long are my recordings kept?",
@@ -641,8 +986,7 @@ export const MESSAGES = {
       },
       {
         question: "What is managed hosting?",
-        answer:
-          "It's CaptureFlow run by us, for teams that don't want to set up Cloudflare themselves. You get the same open-source app, and we take care of the hosting, storage, and updates. Sign up, install the Chrome extension, and start recording.\n\nYou can start free with 200 MB, where recordings are removed after 30 days without a view. When you need more room, paid plans give you 100 GB, 500 GB, or 1 TB, keep your recordings until you delete them, and cover your whole team with no per-seat fees.",
+        answer: `It's CaptureFlow run by us, for teams that don't want to set up Cloudflare themselves. You get the same open-source app, and we take care of the hosting, storage, and updates. Sign up, install the Chrome extension, and start recording.\n\nYou can start free with 25 recordings per person, up to 5 minutes each, which are removed after 30 days without a view. ${PLAN} lifts every limit for one price per member, keeps recordings until you delete them, and viewers are always free.`,
       },
     ],
   },

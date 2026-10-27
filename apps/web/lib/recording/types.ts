@@ -1,4 +1,7 @@
 import type {
+  RecordingCaptureSource,
+  RecordingClient,
+  RecordingQualityId,
   RecordingSource,
   RecordingPreset,
   RecordingState,
@@ -26,6 +29,11 @@ export type RecordingRow = {
   height: number | null;
   source: RecordingSource;
   preset: RecordingPreset;
+  // What recorded it, what it captured and at which preset; null when the
+  // client predates the fields.
+  client: RecordingClient | null;
+  captureSource: RecordingCaptureSource | null;
+  quality: RecordingQualityId | null;
   createdAt: number;
   lastViewedAt: number;
   viewCount: number;
@@ -59,6 +67,9 @@ export type InitRequest = {
   hasWebcam?: boolean;
   // Target workspace for the new recording. The bearer user must be a member; on mismatch we silently fall back to their personal workspace so a stale client never blocks an upload. Omitted means personal workspace.
   workspaceId?: string;
+  client?: RecordingClient;
+  captureSource?: RecordingCaptureSource;
+  quality?: RecordingQualityId;
 };
 
 /*
@@ -134,15 +145,20 @@ export type ListCommentsResponse = {
 };
 
 /*
- * `remainingBytes` is how far this recording may grow before it fills the
- * account's storage — the client stops itself there. Absent means unmetered,
- * which is a dev device, where no cap was read.
+ * `remainingBytes` is how far this recording may grow: on the free tier its
+ * own byte ceiling, on a paid one what is left of the pooled storage. The
+ * client stops itself there. Absent means unmetered, which is a dev device,
+ * where no cap was read.
  */
 export type InitResponse = {
   slug: string;
   uploadId: string;
   storageKey: string;
   remainingBytes?: number;
+  // Free-tier length cap for this recording; finalize refuses anything longer. Absent means uncapped.
+  maxDurationMs?: number;
+  // Highest preset this workspace may record at; init refuses a higher declared one. Absent means any.
+  maxQuality?: RecordingQualityId;
   // Present only when the request set `hasWebcam: true`. The desktop streams webcam parts to `/api/webcam-part?slug=…&part=N` against this uploadId.
   webcamUploadId?: string;
   webcamStorageKey?: string;

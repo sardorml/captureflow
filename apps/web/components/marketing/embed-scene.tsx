@@ -22,7 +22,12 @@ type EmbedCopy = ReturnType<
 
 export function EmbedScene() {
   return (
-    <SceneFrame steps={STEPS} loopMs={LOOP_MS} background="#e8dbf8">
+    <SceneFrame
+      steps={STEPS}
+      loopMs={LOOP_MS}
+      background="linear-gradient(160deg,#dcc6fb,#c6a9f6)"
+      zoom={{ scale: 1.06, bounds: [40, 560] }}
+    >
       {(state) => <EmbedContent {...state} />}
     </SceneFrame>
   );
@@ -64,7 +69,7 @@ function EmbedContent({ step }: SceneState) {
         )}
       >
         <p className="text-[12px] leading-snug text-white">{copy.reply}</p>
-        <p className="mt-1 font-mono text-[11px] text-[#c99bf5]">{copy.url}</p>
+        <p className="mt-1 font-mono text-[13px] text-[#c99bf5]">{copy.url}</p>
         <div
           className={cn(
             "grid transition-[grid-template-rows,margin] duration-450 ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -114,12 +119,12 @@ function Player({
         </div>
         <div className="flex">
           <div className="flex w-[74px] shrink-0 flex-col gap-0.5 border-r border-black/5 p-2">
-            <span className="mb-1 text-[8px] font-bold">{screen.app}</span>
+            <span className="mb-1 text-[10px] font-bold">{screen.app}</span>
             {screen.nav.map((item, i) => (
               <span
                 key={item}
                 className={cn(
-                  "rounded px-1.5 py-[3px] text-[7px] font-medium",
+                  "rounded px-1.5 py-[3px] text-[9px] font-medium",
                   i === 1 ? "bg-[#ede5f8] text-[#7c3aed]" : "text-black/50",
                 )}
               >
@@ -129,8 +134,8 @@ function Player({
           </div>
           <div className="flex flex-1 flex-col gap-1.5 p-2">
             <div className="flex items-center justify-between">
-              <span className="text-[9px] font-bold">{screen.members}</span>
-              <span className="rounded bg-[#7c3aed] px-2 py-[3px] text-[7px] font-semibold text-white">
+              <span className="text-[11px] font-bold">{screen.members}</span>
+              <span className="rounded bg-[#7c3aed] px-2 py-[3px] text-[9px] font-semibold text-white">
                 {screen.invite}
               </span>
             </div>
@@ -140,15 +145,15 @@ function Player({
                 className="flex items-center gap-1.5 rounded bg-white px-1.5 py-1 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
               >
                 <span
-                  className="flex size-3.5 shrink-0 items-center justify-center rounded-full text-[5px] font-bold text-white"
+                  className="flex size-3.5 shrink-0 items-center justify-center rounded-full text-[7px] font-bold text-white"
                   style={{ background: PEOPLE_COLORS[i] }}
                 >
                   {person.initials}
                 </span>
-                <span className="flex-1 truncate text-[7px] font-medium">
+                <span className="flex-1 truncate text-[9px] font-medium">
                   {person.name}
                 </span>
-                <span className="text-[6px] text-black/40">{person.role}</span>
+                <span className="text-[8px] text-black/40">{person.role}</span>
               </span>
             ))}
           </div>
@@ -193,7 +198,7 @@ function Player({
             className="absolute inset-y-0 left-0 rounded-full bg-white"
           />
         </span>
-        <span className="font-mono text-[8px] text-white">{duration}</span>
+        <span className="font-mono text-[10px] text-white">{duration}</span>
       </div>
     </div>
   );

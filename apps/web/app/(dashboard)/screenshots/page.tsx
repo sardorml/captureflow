@@ -1,4 +1,4 @@
-import { getWorkspaceById, listMembers } from "@captureflow/quota";
+import { can, getWorkspaceById, listMembers } from "@captureflow/quota";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { listScreenshotsForWorkspace } from "@/lib/screenshots-db";
@@ -47,7 +47,11 @@ export default async function ScreenshotsPage({
 
   return (
     <>
-      <PageHeader title="Screenshots" subtitle={subtitle} />
+      <PageHeader
+        title="Screenshots"
+        subtitle={subtitle}
+        showRecord={can(current.role, "record")}
+      />
       <div className="mt-6">
         <ScreenshotsGrid
           screenshots={screenshots}

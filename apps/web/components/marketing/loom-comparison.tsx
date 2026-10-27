@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Check, Minus } from "lucide-react";
 import { Label, Slider } from "@heroui/react";
 import {
-  CAPTUREFLOW_MONTHLY,
+  CAPTUREFLOW_PER_SEAT,
   LOOM_PLANS,
   LOOM_PRICES_CHECKED,
   LOOM_PRICING_URL,
@@ -25,12 +25,12 @@ const ROWS: ReadonlyArray<{ label: string; loom: Cell; captureflow: Cell }> = [
   {
     label: "Pricing",
     loom: "Per person, $18–24 a month each",
-    captureflow: `Flat, by storage. $0 to $${CAPTUREFLOW_MONTHLY} a month for the whole team`,
+    captureflow: `$${CAPTUREFLOW_PER_SEAT} a month per member, viewers free`,
   },
   {
     label: "Free plan",
     loom: "25 videos per person, 5 minutes each",
-    captureflow: "200 MB of storage, no video count or length limit",
+    captureflow: "25 recordings per person, 5 minutes each, free viewers",
   },
   {
     label: "Self-host on your own cloud",
@@ -229,9 +229,9 @@ function SavingsCalculator() {
           <PriceBreakdown plan={plan} seats={seats} className="px-0 pb-0" />
         </div>
         <p className="mt-4 text-sm text-fg-muted">
-          CaptureFlow&apos;s price stays the same however many people join.
-          Self-hosted, it&apos;s $0 and you pay Cloudflare directly, often
-          nothing on their free tiers.
+          Only the people who record are members; everyone who watches and
+          comments is free. Self-hosted, it&apos;s $0 and you pay Cloudflare
+          directly, often nothing on their free tiers.
         </p>
       </div>
     </div>

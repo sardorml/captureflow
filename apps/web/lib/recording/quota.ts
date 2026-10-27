@@ -2,133 +2,146 @@
 
 import {
   ACCOUNT_LIMITS,
-  ensurePersonalWorkspace,
-  type EffectiveLimits,
-  getEffectiveLimitsForUser as getEffectiveLimitsForUserD1,
-  getCurrentWorkspaceId,
-  getPersonalWorkspaceForUser,
+  countUserRecordingsInWorkspace as countUserRecordingsInWorkspaceD1,
   getWorkspaceById,
+  getWorkspaceEntitlement as getWorkspaceEntitlementD1,
   isSelfHosted,
-  isWorkspaceMember,
-  totalStorageForUser as totalStorageForUserD1,
+  resolveUploadWorkspace,
+  resolveWorkspaceEntitlement,
+  totalStorageForWorkspace as totalStorageForWorkspaceD1,
+  type UploadTarget,
+  type WorkspaceEntitlement,
 } from "@captureflow/quota";
-import { memoryTotalStorageForUser } from "./db-memory";
 import { getCloudflareEnv } from "./cf-env";
 import { isDevDevice } from "./dev-allowlist";
 
 export { ACCOUNT_LIMITS };
-export type { EffectiveLimits };
 
-export async function getEffectiveLimitsForUser(
-  userId: string,
-): Promise<EffectiveLimits> {
+// Null without a database (tests, memory mode).
+export async function getWorkspaceEntitlement(
+  workspaceId: string,
+): Promise<WorkspaceEntitlement | null> {
   const env = await getCloudflareEnv();
-  if (!env?.DB) {
-    return {
-      storageBytes: ACCOUNT_LIMITS.totalStorageBytes,
-      proSubscriptionActive: false,
-    };
-  }
-  return getEffectiveLimitsForUserD1(env.DB, userId, {
+  if (!env?.DB) return null;
+  return getWorkspaceEntitlementD1(env.DB, workspaceId, {
     selfHosted: isSelfHosted(env),
   });
 }
 
-export async function totalStorageForUser(userId: string): Promise<number> {
-  const env = await getCloudflareEnv();
-  if (!env?.DB) return memoryTotalStorageForUser(userId);
-  return totalStorageForUserD1(env.DB, userId);
-}
-
-/*
- * Whether committing `addedBytes` for this artifact would overrun the account
- * it is charged to. One place for the rule, because both finalize routes need
- * it and storage is now the only ceiling either of them enforces. Anonymous
- * rows have no account to charge, and a dev device is unmetered.
- */
-export async function exceedsStorage(
-  deviceId: string,
-  row: { userId: string | null; workspaceId: string | null },
-  addedBytes: number,
-): Promise<boolean> {
-  if (!row.userId) return false;
-  if (await isDevDevice(deviceId)) return false;
-  const quotaUserId = row.workspaceId
-    ? ((await getWorkspaceOwnerUserId(row.workspaceId)) ?? row.userId)
-    : row.userId;
-  const [used, limits] = await Promise.all([
-    totalStorageForUser(quotaUserId),
-    getEffectiveLimitsForUser(quotaUserId),
-  ]);
-  return used + addedBytes > limits.storageBytes;
-}
-
-export async function resolveUserWorkspaceId(
-  userId: string,
-): Promise<string | null> {
-  const env = await getCloudflareEnv();
-  if (!env?.DB) return null;
-  const existing = await getPersonalWorkspaceForUser(env.DB, userId);
-  if (existing) return existing.id;
-
-  const profile = await env.DB.prepare(
-    `SELECT name FROM users WHERE id = ?1 LIMIT 1`,
-  )
-    .bind(userId)
-    .first<{ name: string | null }>();
-  const workspace = await ensurePersonalWorkspace(
-    env.DB,
-    userId,
-    profile?.name ?? null,
-  );
-  return workspace.id;
-}
-
-/*
- * Where an upload lands when the client names no workspace. That is every
- * upload from the extension, which sends none, and any desktop upload made
- * before a workspace was picked there — so before this, switching workspace on
- * the site changed nothing about where a recording went.
- *
- * Membership is re-checked rather than trusted: the stored id is whatever was
- * last chosen, and the user may have been removed from it since.
- */
-export async function resolveUploadWorkspaceId(
-  userId: string,
-): Promise<string | null> {
-  const env = await getCloudflareEnv();
-  if (env?.DB) {
-    const current = await getCurrentWorkspaceId(env.DB, userId);
-    if (current && (await isWorkspaceMember(env.DB, current, userId))) {
-      return current;
-    }
-  }
-  return resolveUserWorkspaceId(userId);
-}
-
-// Pro is per-user: team uploads draw down the workspace owner's cap, not the uploader's.
-export async function getWorkspaceOwnerUserId(
+export async function totalStorageForWorkspace(
   workspaceId: string,
-): Promise<string | null> {
+): Promise<number> {
+  const env = await getCloudflareEnv();
+  if (!env?.DB) return 0;
+  return totalStorageForWorkspaceD1(env.DB, workspaceId);
+}
+
+export async function countUserRecordingsInWorkspace(
+  workspaceId: string,
+  userId: string,
+): Promise<number> {
+  const env = await getCloudflareEnv();
+  if (!env?.DB) return 0;
+  return countUserRecordingsInWorkspaceD1(env.DB, workspaceId, userId);
+}
+
+export type UploadBudgetKind = "recording" | "storage";
+
+/*
+ * What bounds an upload and how much of that bound is spent. A free workspace
+ * caps each recording's own bytes, screen and camera together; a paid one
+ * charges the workspace's pooled storage.
+ */
+export type UploadBudget = {
+  kind: UploadBudgetKind;
+  used: number;
+  limit: number;
+};
+
+export type UploadRow = {
+  userId: string;
+  workspaceId: string | null;
+  sizeBytes: number;
+  webcamSizeBytes: number;
+};
+
+export function budgetFromEntitlement(
+  entitlement: WorkspaceEntitlement,
+  row: Pick<UploadRow, "sizeBytes" | "webcamSizeBytes">,
+  workspaceUsedBytes: number,
+): UploadBudget {
+  if (entitlement.maxRecordingBytes != null) {
+    return {
+      kind: "recording",
+      used: row.sizeBytes + row.webcamSizeBytes,
+      limit: entitlement.maxRecordingBytes,
+    };
+  }
+  return {
+    kind: "storage",
+    used: workspaceUsedBytes,
+    limit: entitlement.storageBytes,
+  };
+}
+
+// A row with no workspace to charge is held to the free tier rather than left
+// unmetered.
+const FREE_ENTITLEMENT = resolveWorkspaceEntitlement({
+  subscription: null,
+  memberCount: 1,
+});
+
+export async function uploadBudgetFor(row: UploadRow): Promise<UploadBudget> {
+  const entitlement = row.workspaceId
+    ? await getWorkspaceEntitlement(row.workspaceId)
+    : null;
+  if (!entitlement || !row.workspaceId) {
+    return budgetFromEntitlement(FREE_ENTITLEMENT, row, 0);
+  }
+  const used =
+    entitlement.maxRecordingBytes != null
+      ? 0
+      : await totalStorageForWorkspace(row.workspaceId);
+  return budgetFromEntitlement(entitlement, row, used);
+}
+
+export type UploadOverrun = "size_limit" | "storage_limit";
+
+/*
+ * Whether committing `addedBytes` for this artifact would overrun its budget,
+ * and which budget: one place for the rule, because both finalize routes need
+ * it. Anonymous rows have no account to charge, and a dev device is unmetered.
+ */
+export async function uploadOverrun(
+  deviceId: string,
+  row: { userId: string | null } & Omit<UploadRow, "userId">,
+  addedBytes: number,
+): Promise<UploadOverrun | null> {
+  if (!row.userId) return null;
+  if (await isDevDevice(deviceId)) return null;
+  const budget = await uploadBudgetFor({ ...row, userId: row.userId });
+  if (budget.used + addedBytes <= budget.limit) return null;
+  return budget.kind === "recording" ? "size_limit" : "storage_limit";
+}
+
+// Null without a database (memory mode), where uploads have no workspace.
+export async function resolveUploadTarget(
+  userId: string,
+  requestedWorkspaceId: unknown,
+): Promise<UploadTarget | null> {
   const env = await getCloudflareEnv();
   if (!env?.DB) return null;
-  const row = await getWorkspaceById(env.DB, workspaceId);
-  return row?.owner_user_id ?? null;
+  return resolveUploadWorkspace(env.DB, {
+    userId,
+    requestedWorkspaceId:
+      typeof requestedWorkspaceId === "string" && requestedWorkspaceId
+        ? requestedWorkspaceId
+        : null,
+  });
 }
 
 export async function getWorkspaceForUpload(workspaceId: string) {
   const env = await getCloudflareEnv();
   if (!env?.DB) return null;
   return getWorkspaceById(env.DB, workspaceId);
-}
-
-// Returns null for both "not a member" and "no such workspace" so clients can't probe workspace ids.
-export async function validateWorkspaceMembership(
-  userId: string,
-  workspaceId: string,
-): Promise<string | null> {
-  const env = await getCloudflareEnv();
-  if (!env?.DB) return null;
-  const ok = await isWorkspaceMember(env.DB, workspaceId, userId);
-  return ok ? workspaceId : null;
 }
