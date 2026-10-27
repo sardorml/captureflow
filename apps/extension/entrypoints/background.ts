@@ -22,6 +22,7 @@ import {
   setRememberedLimits,
 } from "@/lib/storage";
 import { LIVE_KINDS } from "@/lib/capture/status";
+import { isCanvasUrl } from "@/lib/overlay/canvas-url";
 import {
   createRecordingTransport,
   fetchRecordingLimits,
@@ -418,24 +419,6 @@ async function beginCaptureWhenReady(ctx: CaptureContext): Promise<void> {
 let overlayTabId: number | undefined;
 
 const CANVAS_URL = `${WEB_BASE}/canvas`;
-const CANVAS_LOAD_TIMEOUT_MS = 10_000;
-
-// Resolves once the tab has finished loading, or after the timeout: a page
-// that stalls still gets the injection attempt and its own error.
-function tabLoaded(tabId: number): Promise<void> {
-  return new Promise((resolve) => {
-    const done = () => {
-      chrome.tabs.onUpdated.removeListener(onUpdated);
-      clearTimeout(timer);
-      resolve();
-    };
-    const onUpdated = (id: number, info: chrome.tabs.OnUpdatedInfo) => {
-      if (id === tabId && info.status === "complete") done();
-    };
-    chrome.tabs.onUpdated.addListener(onUpdated);
-    const timer = setTimeout(done, CANVAS_LOAD_TIMEOUT_MS);
-  });
-}
 
 /*
  * The recorder opens as an extension iframe floating over a blurred page,
@@ -454,14 +437,23 @@ async function toggleOverlayOnActiveTab(): Promise<void> {
   await openOverlayOn(tab.id);
 }
 
+// The canvas tab's load opens the panel; see the tabs.onUpdated listener.
 async function openCanvasWithRecorder(): Promise<void> {
-  const canvas = await chrome.tabs.create({ url: CANVAS_URL });
-  if (canvas.id === undefined) return;
-  await tabLoaded(canvas.id);
-  await openOverlayOn(canvas.id);
+  await chrome.tabs.create({ url: CANVAS_URL });
 }
 
-async function openOverlayOn(tabId: number): Promise<void> {
+// The canvas exists to be recorded, so every load of it, a reload included,
+// brings the panel up. Not mid-recording: the panel would cover the board.
+async function openRecorderOnCanvas(tabId: number): Promise<void> {
+  const status = await getRecordingStatus();
+  if (LIVE_KINDS.has(status.kind)) return;
+  await openOverlayOn(tabId, { openOnly: true });
+}
+
+async function openOverlayOn(
+  tabId: number,
+  { openOnly = false }: { openOnly?: boolean } = {},
+): Promise<void> {
   const [injection] = await chrome.scripting.executeScript({
     target: { tabId },
     func: toggleRecorderOverlay,
@@ -470,10 +462,12 @@ async function openOverlayOn(tabId: number): Promise<void> {
       RECORDER_FRAME_ID,
       RECORDER_BACKDROP_ID,
       await getThemePreference(),
+      openOnly,
     ],
   });
+  if (injection?.result === "already-open") return;
   // A second click closes the panel, and the camera preview goes with it.
-  if (injection?.result === false) {
+  if (injection?.result === "closed") {
     await releaseCameraBubble();
     await setPanelPreview(tabId, false);
     overlayTabId = undefined;
@@ -552,6 +546,12 @@ export default defineBackground(() => {
   void sweepStaleRecording();
 
   chrome.action.onClicked.addListener(() => void onActionClicked());
+
+  chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
+    if (info.status === "complete" && isCanvasUrl(tab.url, CANVAS_URL)) {
+      void openRecorderOnCanvas(tabId).catch(() => {});
+    }
+  });
 
   /*
    * The overlay's backdrop closes the panel page-side, so this raw message is
