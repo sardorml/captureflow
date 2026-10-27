@@ -161,8 +161,14 @@ export const MESSAGES = {
     },
     scene: {
       timer: "0:42",
-      heading: "Morning checklist",
-      note: "Clock in by 8",
+      heading: "How a refund works",
+      steps: ["Request", "Approve", "Pay out"],
+      captions: [
+        "Quick walkthrough of how a refund works.",
+        "First, the customer sends in a request.",
+        "Support approves it the same day.",
+        "Then the money goes out automatically.",
+      ],
     },
   },
   features: {

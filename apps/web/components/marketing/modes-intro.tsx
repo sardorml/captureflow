@@ -97,11 +97,13 @@ function Presenter({
   ring,
   live = false,
   soft = false,
+  image = "/presenter-recorder.webp",
 }: {
   size: number;
   ring: number;
   live?: boolean;
   soft?: boolean;
+  image?: string;
 }) {
   const drop = soft
     ? "0 6px 16px rgb(0 0 0 / 0.14)"
@@ -119,7 +121,7 @@ function Presenter({
         <WebcamLoop name="cardigan" />
       ) : (
         <img
-          src="/presenter-recorder.webp"
+          src={image}
           alt=""
           width={320}
           height={320}
@@ -131,18 +133,21 @@ function Presenter({
 }
 
 /*
- * The recording scene: our /canvas being recorded, with a title typed, a
- * line drawn under it, a box and an arrow drawn, and a note typed into the
- * box, over one ten-second loop. One clock drives every part, so the cursor,
- * the strokes, the typing and the active tool can never drift apart. Reduced
+ * The recording scene: a meeting being recorded over our /canvas, where the
+ * presenter walks the other person through a three-step process. She types
+ * the title, underlines it, then draws each step as a box, labels it and
+ * arrows on to the next, while a live caption carries what she is saying.
+ * One clock drives every part over a twelve-second loop, so the cursor, the
+ * strokes, the typing and the active tool can never drift apart. Reduced
  * motion holds the finished frame.
  */
-const LOOP_S = 10;
+const LOOP_S = 12;
 const REST_T = 0.93;
 const FRAME_MS = 1000 / 30;
 
 type Point = { x: number; y: number };
-type Tool = "pen" | "rect" | "arrow" | "text";
+type Tool = "select" | "pen" | "rect" | "arrow" | "text";
+type Box = { x: number; y: number; w: number; h: number };
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 const lerp = (a: Point, b: Point, p: number): Point => ({
@@ -154,15 +159,39 @@ const phase = (t: number, from: number, to: number) =>
   clamp01((t * LOOP_S - from) / (to - from));
 
 const SCENE = { width: 600, height: 338 };
-const HEADING = { x: 72, y: 104 };
+const HEADING = { x: 72, y: 78 };
 const UNDERLINE =
-  "M74 146 C 95 134, 110 158, 132 146 S 170 134, 192 146 S 230 158, 252 146";
-const UNDERLINE_END: Point = { x: 252, y: 146 };
-const BOX = { x: 340, y: 168, w: 150, h: 86 };
-const NOTE = { x: BOX.x + 18, y: BOX.y + 30 };
-const ARROW = { from: { x: 216, y: 211 }, to: { x: 326, y: 211 } };
-const IDLE: Point = { x: 64, y: 136 };
-const PARKED: Point = { x: 360, y: 226 };
+  "M74 120 C 95 108, 110 132, 132 120 S 170 108, 192 120 S 230 132, 252 120";
+const UNDERLINE_END: Point = { x: 252, y: 120 };
+const STEP_Y = 158;
+const STEP_W = 116;
+const STEP_H = 60;
+const STEP_GAP = 48;
+const STEPS: Box[] = [0, 1, 2].map((i) => ({
+  x: 72 + i * (STEP_W + STEP_GAP),
+  y: STEP_Y,
+  w: STEP_W,
+  h: STEP_H,
+}));
+const IDLE: Point = { x: 64, y: 110 };
+const PARKED: Point = { x: 300, y: 262 };
+
+// Each step's slice of the loop: the box drawn, its label typed, then the
+// arrow on to the next step.
+const STEP_START = 3.5;
+const STEP_SPAN = 2.2;
+const stepTimes = (i: number) => {
+  const at = STEP_START + i * STEP_SPAN;
+  return {
+    box: [at, at + 0.6],
+    label: [at + 0.7, at + 1.3],
+    arrow: [at + 1.5, at + 1.9],
+  } as const;
+};
+const arrowBetween = (i: number) => ({
+  from: { x: STEPS[i].x + STEP_W + 8, y: STEP_Y + STEP_H / 2 },
+  to: { x: STEPS[i + 1].x - 8, y: STEP_Y + STEP_H / 2 },
+});
 
 const TOOLS: { id: string; icon: ReactNode }[] = [
   { id: "select", icon: <MousePointer2 size={13} /> },
@@ -178,8 +207,8 @@ const TOOLS: { id: string; icon: ReactNode }[] = [
 ];
 
 // Clockwise from the top-left corner, matching where an SVG rect's path starts.
-function boxPoint(p: number): Point {
-  const { x, y, w, h } = BOX;
+function boxPoint(box: Box, p: number): Point {
+  const { x, y, w, h } = box;
   let d = p * 2 * (w + h);
   if (d <= w) return { x: x + d, y };
   d -= w;
@@ -276,57 +305,85 @@ function ToolButton({ on, children }: { on?: boolean; children: ReactNode }) {
 function CanvasScene({ t }: { t: number }) {
   const copy = useMessages().modes.scene;
   const underlineRef = useRef<SVGPathElement>(null);
-
-  const heading = phase(t, 0.6, 2.6);
-  const underline = phase(t, 3.4, 4.4);
-  const box = phase(t, 4.9, 5.9);
-  const arrow = phase(t, 6.4, 7.1);
-  const note = phase(t, 7.5, 8.9);
-  const fade = 1 - phase(t, 9.5, 10);
   const s = t * LOOP_S;
 
-  const tool: Tool =
-    s < 3
-      ? "text"
-      : s < 4.4
-        ? "pen"
-        : s < 5.9
-          ? "rect"
-          : s < 7.1
-            ? "arrow"
-            : "text";
+  const heading = phase(t, 0.5, 2);
+  const underline = phase(t, 2.5, 3.2);
+  const steps = STEPS.map((box, i) => {
+    const at = stepTimes(i);
+    return {
+      box,
+      drawn: phase(t, ...at.box),
+      label: phase(t, ...at.label),
+      arrow: i < STEPS.length - 1 ? phase(t, ...at.arrow) : 0,
+    };
+  });
+  const fade = 1 - phase(t, 11.4, 12);
 
-  const underlinePoint = (p: number): Point => {
-    const path = underlineRef.current;
-    if (!path) return UNDERLINE_END;
-    const at = path.getPointAtLength(p * path.getTotalLength());
-    return { x: at.x, y: at.y };
-  };
-  const boxStart = boxPoint(0);
-  const cursor: Point =
-    s < 3
-      ? IDLE
-      : s < 3.4
-        ? lerp(IDLE, underlinePoint(0), phase(t, 3, 3.4))
-        : s < 4.4
-          ? underlinePoint(underline)
-          : s < 4.9
-            ? lerp(UNDERLINE_END, boxStart, phase(t, 4.4, 4.9))
-            : s < 5.9
-              ? boxPoint(box)
-              : s < 6.4
-                ? lerp(boxStart, ARROW.from, phase(t, 5.9, 6.4))
-                : s < 7.1
-                  ? lerp(ARROW.from, ARROW.to, arrow)
-                  : s < 7.5
-                    ? lerp(ARROW.to, PARKED, phase(t, 7.1, 7.5))
-                    : PARKED;
+  const lastStep = stepTimes(STEPS.length - 1);
+  const stage = STEPS.findIndex((_, i) => s < stepTimes(i).box[0]);
+  const captionIndex = stage === -1 ? STEPS.length : stage;
+
+  let tool: Tool = "select";
+  let cursor: Point = PARKED;
+  if (s < 2.3) {
+    tool = "text";
+    cursor = IDLE;
+  } else if (s < 2.5) {
+    tool = "pen";
+    cursor = lerp(IDLE, underlinePoint(underlineRef, 0), phase(t, 2.3, 2.5));
+  } else if (s < 3.2) {
+    tool = "pen";
+    cursor = underlinePoint(underlineRef, underline);
+  } else if (s < lastStep.label[1]) {
+    const i = Math.min(
+      STEPS.length - 1,
+      Math.max(0, Math.floor((s - STEP_START) / STEP_SPAN)),
+    );
+    const at = stepTimes(i);
+    const box = STEPS[i];
+    const labelPoint = { x: box.x + 16, y: box.y + box.h / 2 + 4 };
+    const previous = i === 0 ? UNDERLINE_END : arrowBetween(i - 1).to;
+    if (s < at.box[0]) {
+      tool = "rect";
+      cursor = lerp(
+        previous,
+        boxPoint(box, 0),
+        phase(t, at.box[0] - 0.3, at.box[0]),
+      );
+    } else if (s < at.box[1]) {
+      tool = "rect";
+      cursor = boxPoint(box, steps[i].drawn);
+    } else if (s < at.label[0]) {
+      tool = "text";
+      cursor = lerp(
+        boxPoint(box, 0),
+        labelPoint,
+        phase(t, at.box[1], at.label[0]),
+      );
+    } else if (s < at.label[1]) {
+      tool = "text";
+      cursor = labelPoint;
+    } else if (i < STEPS.length - 1) {
+      const { from, to } = arrowBetween(i);
+      tool = "arrow";
+      cursor =
+        s < at.arrow[0]
+          ? lerp(labelPoint, from, phase(t, at.label[1], at.arrow[0]))
+          : lerp(from, to, steps[i].arrow);
+    }
+  } else if (s < lastStep.label[1] + 0.5) {
+    const box = STEPS[STEPS.length - 1];
+    cursor = lerp(
+      { x: box.x + 16, y: box.y + box.h / 2 + 4 },
+      PARKED,
+      phase(t, lastStep.label[1], lastStep.label[1] + 0.5),
+    );
+  }
 
   const caretOn = Math.floor(s * 2) % 2 === 0;
-  const headingCaret = s >= 0.6 && s < 3 && caretOn;
-  const noteCaret = s >= 7.5 && s < 9.3 && caretOn;
+  const headingCaret = s >= 0.5 && s < 2.3 && caretOn;
   const timer = `0:${String(42 + Math.floor(s)).padStart(2, "0")}`;
-  const arrowEnd = lerp(ARROW.from, ARROW.to, arrow);
 
   return (
     <div
@@ -385,35 +442,47 @@ function CanvasScene({ t }: { t: number }) {
             strokeDashoffset={1 - underline}
             opacity={underline > 0 ? 1 : 0}
           />
-          <rect
-            x={BOX.x}
-            y={BOX.y}
-            width={BOX.w}
-            height={BOX.h}
-            rx={8}
-            pathLength={1}
-            fill={box === 1 ? "rgb(37 99 235 / 0.06)" : "none"}
-            stroke="#2563eb"
-            strokeWidth={3}
-            strokeDasharray={1}
-            strokeDashoffset={1 - box}
-            opacity={box > 0 ? 1 : 0}
-          />
-          <line
-            x1={ARROW.from.x}
-            y1={ARROW.from.y}
-            x2={arrowEnd.x}
-            y2={arrowEnd.y}
-            stroke="currentColor"
-            strokeWidth={3}
-            strokeLinecap="round"
-            opacity={arrow > 0 ? 1 : 0}
-          />
-          <path
-            d={`M${ARROW.to.x} ${ARROW.to.y} l-13 -8 v16 z`}
-            fill="currentColor"
-            opacity={arrow === 1 ? 1 : 0}
-          />
+          {steps.map(({ box, drawn, arrow }, i) => {
+            const line = i < STEPS.length - 1 ? arrowBetween(i) : null;
+            const end = line ? lerp(line.from, line.to, arrow) : null;
+            return (
+              <g key={i}>
+                <rect
+                  x={box.x}
+                  y={box.y}
+                  width={box.w}
+                  height={box.h}
+                  rx={8}
+                  pathLength={1}
+                  fill={drawn === 1 ? "rgb(37 99 235 / 0.06)" : "none"}
+                  stroke="#2563eb"
+                  strokeWidth={3}
+                  strokeDasharray={1}
+                  strokeDashoffset={1 - drawn}
+                  opacity={drawn > 0 ? 1 : 0}
+                />
+                {line && end && (
+                  <>
+                    <line
+                      x1={line.from.x}
+                      y1={line.from.y}
+                      x2={end.x}
+                      y2={end.y}
+                      stroke="currentColor"
+                      strokeWidth={3}
+                      strokeLinecap="round"
+                      opacity={arrow > 0 ? 1 : 0}
+                    />
+                    <path
+                      d={`M${line.to.x} ${line.to.y} l-13 -8 v16 z`}
+                      fill="currentColor"
+                      opacity={arrow === 1 ? 1 : 0}
+                    />
+                  </>
+                )}
+              </g>
+            );
+          })}
         </svg>
         <p
           className="absolute text-[22px] leading-none font-semibold whitespace-nowrap text-fg"
@@ -425,15 +494,26 @@ function CanvasScene({ t }: { t: number }) {
             style={{ opacity: headingCaret ? 1 : 0 }}
           />
         </p>
+        {steps.map(({ box, label }, i) => (
+          <p
+            key={i}
+            className="absolute text-[15px] leading-none font-medium whitespace-nowrap text-[#2563eb]"
+            style={{ left: box.x + 16, top: box.y + box.h / 2 - 7 }}
+          >
+            {typed(copy.steps[i] ?? "", label)}
+          </p>
+        ))}
+      </div>
+
+      <div
+        className="absolute bottom-4 left-[130px] w-[290px]"
+        style={{ opacity: fade }}
+      >
         <p
-          className="absolute text-[15px] leading-none font-medium whitespace-nowrap text-[#2563eb]"
-          style={{ left: NOTE.x, top: NOTE.y }}
+          key={captionIndex}
+          className="animate-reveal rounded-lg bg-fg/80 px-3 py-1.5 text-center text-[12px] leading-snug font-medium text-canvas"
         >
-          {typed(copy.note, note)}
-          <span
-            className="ml-0.5 inline-block h-[15px] w-0.5 translate-y-[2px] bg-[#2563eb]"
-            style={{ opacity: noteCaret ? 1 : 0 }}
-          />
+          {copy.captions[captionIndex]}
         </p>
       </div>
 
@@ -456,11 +536,29 @@ function CanvasScene({ t }: { t: number }) {
       <div className="absolute top-1/2 left-3 origin-left -translate-y-1/2 scale-[0.6]">
         <ControlBar time={timer} />
       </div>
-      <div className="absolute right-4 bottom-4">
+      <div className="absolute right-4 bottom-4 flex items-end">
+        <div className="relative z-10 -mr-4">
+          <Presenter
+            size={56}
+            ring={3}
+            soft
+            image="/presenter-engineering.webp"
+          />
+        </div>
         <Presenter size={100} ring={3} live soft />
       </div>
     </div>
   );
+}
+
+function underlinePoint(
+  ref: React.RefObject<SVGPathElement | null>,
+  p: number,
+): Point {
+  const path = ref.current;
+  if (!path) return UNDERLINE_END;
+  const at = path.getPointAtLength(p * path.getTotalLength());
+  return { x: at.x, y: at.y };
 }
 
 // Drawn at up to 1.2× its 600px design so it holds the wider column.
