@@ -24,3 +24,14 @@ export function seatVariant(
 ): SeatVariant | null {
   return variantTable(env).find(([id]) => id && id === variantId)?.[1] ?? null;
 }
+
+export function variantIdFor(
+  env: SeatVariantEnv,
+  target: SeatVariant,
+): string | null {
+  return (
+    variantTable(env).find(
+      ([id, v]) => id && v.plan === target.plan && v.cycle === target.cycle,
+    )?.[0] ?? null
+  );
+}

@@ -33,6 +33,7 @@ export {
   getActiveWorkspaceSubscription,
   isSubscriptionActive,
   listPaidWorkspaceIds,
+  setWorkspaceSubscriptionPlan,
   setWorkspaceSubscriptionQuantity,
   upsertWorkspaceSubscription,
 } from "./workspace-subscription";
@@ -62,8 +63,11 @@ export {
   markNotificationsRead,
 } from "./notifications";
 export type { NotificationKind, NotificationRow } from "./notifications";
-export { setSubscriptionItemQuantity } from "./lemon-api";
-export type { SeatQuantityResult } from "./lemon-api";
+export {
+  setSubscriptionItemQuantity,
+  setSubscriptionVariant,
+} from "./lemon-api";
+export type { LemonUpdateResult, SeatQuantityResult } from "./lemon-api";
 export {
   getPersonalWorkspaceForUser,
   getWorkspaceById,

@@ -26,6 +26,7 @@ import {
 } from "@/lib/billing/next-charge";
 import { PageHeader } from "../PageHeader";
 import { UpgradeModal } from "../UpgradeModal";
+import { SwitchPlanButton } from "./SwitchPlanButton";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,12 @@ function formatDate(epochSeconds: number): string {
   });
 }
 
-export default async function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ switch?: string }>;
+}) {
+  const openSwitch = (await searchParams).switch === "pro";
   const session = await requireSession();
   const user = session.user;
   const env = await getAppWebEnv();
@@ -81,6 +87,7 @@ export default async function BillingPage() {
             isOwner={current.role === "owner"}
             context={seatContext}
             nextCharge={nextCharge}
+            openSwitch={openSwitch}
             email={user.email}
             userId={user.id}
           />
@@ -117,6 +124,7 @@ function WorkspacePlanSection({
   isOwner,
   context,
   nextCharge,
+  openSwitch,
   email,
   userId,
 }: {
@@ -124,6 +132,7 @@ function WorkspacePlanSection({
   isOwner: boolean;
   context: WorkspaceSeatContext;
   nextCharge: NextCharge | null;
+  openSwitch: boolean;
   email: string;
   userId: string;
 }) {
@@ -172,17 +181,29 @@ function WorkspacePlanSection({
         </div>
 
         {subscription ? (
-          <a
-            href={subscription.portal_url ?? LEMON_PORTAL_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0"
-          >
-            <Button variant="secondary">
-              Manage subscription
-              <ExternalLink size={14} />
-            </Button>
-          </a>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {isOwner &&
+              subscription.plan === "light" &&
+              subscription.cancelled_at === null && (
+                <SwitchPlanButton
+                  from="light"
+                  to="pro"
+                  seats={subscription.quantity}
+                  cycle={subscription.cycle}
+                  defaultOpen={openSwitch}
+                />
+              )}
+            <a
+              href={subscription.portal_url ?? LEMON_PORTAL_URL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Button variant="secondary">
+                Manage subscription
+                <ExternalLink size={14} />
+              </Button>
+            </a>
+          </div>
         ) : offer && isOwner ? (
           <UpgradeModal
             email={email}
