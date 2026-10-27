@@ -97,13 +97,11 @@ function Presenter({
   ring,
   live = false,
   soft = false,
-  image = "/presenter-recorder.webp",
 }: {
   size: number;
   ring: number;
   live?: boolean;
   soft?: boolean;
-  image?: string;
 }) {
   const drop = soft
     ? "0 6px 16px rgb(0 0 0 / 0.14)"
@@ -121,7 +119,7 @@ function Presenter({
         <WebcamLoop name="cardigan" />
       ) : (
         <img
-          src={image}
+          src="/presenter-recorder.webp"
           alt=""
           width={320}
           height={320}
@@ -133,8 +131,8 @@ function Presenter({
 }
 
 /*
- * The recording scene: a meeting being recorded over our /canvas, where the
- * presenter walks the other person through a three-step process. She types
+ * The recording scene: a walkthrough recorded over our /canvas, where the
+ * presenter explains a three-step process. She types
  * the title, underlines it, then draws each step as a box, labels it and
  * arrows on to the next, while a live caption carries what she is saying.
  * One clock drives every part over a twelve-second loop, so the cursor, the
@@ -536,15 +534,7 @@ function CanvasScene({ t }: { t: number }) {
       <div className="absolute top-1/2 left-3 origin-left -translate-y-1/2 scale-[0.6]">
         <ControlBar time={timer} />
       </div>
-      <div className="absolute right-4 bottom-4 flex items-end">
-        <div className="relative z-10 -mr-4">
-          <Presenter
-            size={56}
-            ring={3}
-            soft
-            image="/presenter-engineering.webp"
-          />
-        </div>
+      <div className="absolute right-4 bottom-4">
         <Presenter size={100} ring={3} live soft />
       </div>
     </div>
