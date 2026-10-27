@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { seatVariant } from "@/lib/billing/variants";
 import {
   hydrateSeatPlanId,
   upsertWorkspaceSubscription,
@@ -90,26 +91,6 @@ async function verifySignature(
     diff |= computed.charCodeAt(i) ^ signatureHex.charCodeAt(i);
   }
   return diff === 0;
-}
-
-type SeatVariant = { plan: SeatPlanId; cycle: "monthly" | "annual" };
-
-function seatVariant(
-  env: Partial<
-    Record<
-      `LEMON_${"LIGHT" | "PRO"}_${"MONTHLY" | "ANNUAL"}_VARIANT_ID`,
-      string
-    >
-  >,
-  variant: string,
-): SeatVariant | null {
-  const table: [string | undefined, SeatVariant][] = [
-    [env.LEMON_LIGHT_MONTHLY_VARIANT_ID, { plan: "light", cycle: "monthly" }],
-    [env.LEMON_LIGHT_ANNUAL_VARIANT_ID, { plan: "light", cycle: "annual" }],
-    [env.LEMON_PRO_MONTHLY_VARIANT_ID, { plan: "pro", cycle: "monthly" }],
-    [env.LEMON_PRO_ANNUAL_VARIANT_ID, { plan: "pro", cycle: "annual" }],
-  ];
-  return table.find(([id]) => id && id === variant)?.[1] ?? null;
 }
 
 export async function POST(req: NextRequest) {
