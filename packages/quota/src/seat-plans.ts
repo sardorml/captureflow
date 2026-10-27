@@ -11,6 +11,9 @@ export type SeatPlan = {
   name: string;
   priceMonthlyUsd: number;
   priceAnnualUsdPerMonth: number;
+  // The price shown struck through beside the real one.
+  listPriceMonthlyUsd: number;
+  listPriceAnnualUsdPerMonth: number;
   // The highest preset the plan records at; null is every preset.
   maxQuality: FreeQuality | null;
   // Chapters, titles and filler removal; transcripts are free everywhere.
@@ -30,14 +33,18 @@ export const SEAT_PLANS: readonly SeatPlan[] = [
     name: "Light",
     priceMonthlyUsd: 5,
     priceAnnualUsdPerMonth: 4,
+    listPriceMonthlyUsd: 10,
+    listPriceAnnualUsdPerMonth: 8,
     maxQuality: "saver",
     ai: false,
   },
   {
     id: "pro",
     name: "Pro",
-    priceMonthlyUsd: 12,
-    priceAnnualUsdPerMonth: 10,
+    priceMonthlyUsd: 10,
+    priceAnnualUsdPerMonth: 8,
+    listPriceMonthlyUsd: 16,
+    listPriceAnnualUsdPerMonth: 13,
     maxQuality: null,
     ai: true,
   },

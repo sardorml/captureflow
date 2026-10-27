@@ -60,6 +60,11 @@ export function PlanCards({
     const plan = getSeatPlan(id);
     const planCopy = copy[id];
     const perSeat = annual ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
+    const wasYearly = (
+      plan.listPriceAnnualUsdPerMonth *
+      Math.max(1, seats) *
+      12
+    ).toLocaleString("en-US");
     const yearly = (seatPriceUsd(seats, cycle, id) * 12).toLocaleString(
       "en-US",
     );
@@ -71,6 +76,7 @@ export function PlanCards({
         name={planCopy.name}
         description={planCopy.description}
         price={annual ? `$${yearly}` : `$${plan.priceMonthlyUsd}`}
+        wasPrice={annual ? `$${wasYearly}` : `$${plan.listPriceMonthlyUsd}`}
         priceKey={`${cycle}-${seats}`}
         period={annual ? planCopy.periodAnnual : planCopy.period}
         note={annual ? fill(planCopy.rateAnnual, planValues) : undefined}
@@ -172,6 +178,7 @@ function PlanCard({
   badge,
   description,
   price,
+  wasPrice,
   priceKey,
   period,
   note,
@@ -184,6 +191,7 @@ function PlanCard({
   badge?: string;
   description: string;
   price: string;
+  wasPrice?: string;
   priceKey?: string;
   period?: string;
   note?: string;
@@ -229,6 +237,14 @@ function PlanCard({
       </p>
 
       <p className="mt-6 text-4xl font-bold tracking-[-0.03em]">
+        {wasPrice && (
+          <s
+            key={`was-${priceKey}`}
+            className="me-2 align-baseline text-2xl font-semibold text-fg-muted/60 decoration-2"
+          >
+            {wasPrice}
+          </s>
+        )}
         <span key={priceKey} className="animate-storage-pop inline-block">
           {price}
         </span>

@@ -200,6 +200,9 @@ export function UpgradeModalBody({
                               )}
                             </span>
                             <span className="text-xs text-fg-muted">
+                              <s className="me-1 opacity-70">
+                                ${p.listPriceMonthlyUsd}
+                              </s>
                               ${p.priceMonthlyUsd} per member
                             </span>
                           </button>
