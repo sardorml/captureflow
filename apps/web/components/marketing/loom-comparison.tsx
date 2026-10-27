@@ -80,7 +80,7 @@ const ROWS: ReadonlyArray<{
 ];
 
 const INTRO =
-  "Both record your screen and camera and give your team a link to watch when it suits them. They differ in how they charge: Loom bills every person on the team, CaptureFlow bills only the people who record, viewers are free, and it costs nothing to self-host.";
+  "Two ways to skip the meeting. Here’s how they compare on price, features and where your videos live.";
 
 const LOOM_FITS = [
   "You need Windows or mobile apps.",
