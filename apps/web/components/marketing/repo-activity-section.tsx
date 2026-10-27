@@ -13,6 +13,7 @@ import { MESSAGES } from "@/lib/marketing/messages";
 import { SOURCE_REPO_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { MarketingSection, SectionHeading } from "./_shared";
+import { CARD_SURFACE } from "./tokens";
 
 const copy = MESSAGES.activity;
 
@@ -75,7 +76,7 @@ function ActivityList({
   link: { label: string; href: string };
 }) {
   return (
-    <div className="flex flex-col rounded-3xl bg-stage p-6">
+    <div className={cn(CARD_SURFACE, "flex flex-col rounded-3xl p-6")}>
       <p className="text-sm font-medium text-fg">{heading}</p>
       {items.length === 0 ? (
         <p className="mt-4 text-sm text-fg-muted">{empty}</p>

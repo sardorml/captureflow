@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Typography } from "@heroui/react";
+import { cn } from "@/lib/utils";
 import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
+import { CARD_SURFACE } from "./tokens";
 import { useMessages } from "./i18n-provider";
 
 type CardKey = "engineering" | "design" | "support" | "updates";
@@ -390,7 +392,10 @@ function UseCaseCard({
 }) {
   return (
     <article
-      className={`flex min-w-0 flex-col overflow-hidden rounded-[28px] bg-stage transition-transform duration-300 ease-out hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0`}
+      className={cn(
+        CARD_SURFACE,
+        "flex min-w-0 flex-col overflow-hidden rounded-[28px] transition-transform duration-300 ease-out hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+      )}
     >
       <ScaledScene>{children}</ScaledScene>
       <div className="flex flex-col gap-2.5 px-7 pt-7 pb-8">

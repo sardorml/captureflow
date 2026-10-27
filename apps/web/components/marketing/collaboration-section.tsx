@@ -1,6 +1,7 @@
 "use client";
 
 import { MarketingSection, SectionHeading, WIDE_RAIL } from "./_shared";
+import { CARD_SURFACE } from "./tokens";
 import type { ComponentType } from "react";
 import { EditorScene } from "./editor-scene";
 import { EmbedScene } from "./embed-scene";
@@ -67,7 +68,10 @@ function CategoryCard({ cat }: { cat: (typeof CATEGORIES)[number] }) {
   return (
     <article
       id={cat.id}
-      className="flex flex-col rounded-[40px] bg-stage p-6 sm:p-8 lg:p-10"
+      className={cn(
+        CARD_SURFACE,
+        "flex flex-col rounded-[40px] p-6 sm:p-8 lg:p-10",
+      )}
       style={{ scrollMarginTop: 96 }}
     >
       <cat.Scene />
