@@ -104,12 +104,12 @@ export function QualityPanel({ onBack }: { onBack: () => void }) {
 
   const effective = clampQuality(quality, maxQuality);
   // A free workspace upgrades from the dashboard's dialog; a paid one at its
-  // cap changes plan on the billing page.
+  // cap opens billing with the switch to Pro already asked.
   const openUpgrade = () =>
     void chrome.tabs.create({
       url:
         limits?.tier === "team"
-          ? `${WEB_BASE}/billing`
+          ? `${WEB_BASE}/billing?switch=pro`
           : `${WEB_BASE}/recordings?upgrade=1`,
     });
 
