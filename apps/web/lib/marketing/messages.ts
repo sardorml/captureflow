@@ -161,8 +161,8 @@ export const MESSAGES = {
     },
     scene: {
       timer: "0:42",
-      heading: "Launch checklist",
-      note: "Ship on Friday",
+      heading: "Morning checklist",
+      note: "Clock in by 8",
     },
   },
   features: {
