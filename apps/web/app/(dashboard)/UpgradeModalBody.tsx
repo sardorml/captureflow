@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Check, ChevronDown, Sparkle, Users } from "lucide-react";
 import { Avatar, Button, Checkbox, Label, Modal, Popover } from "@heroui/react";
 import {
@@ -55,12 +55,11 @@ export function UpgradeModalBody({
   onOpenChange,
 }: Props) {
   const [cycle, setCycle] = useState<SeatCycle>("monthly");
-  const [people, applyRole] = useOptimistic(
-    seat.people,
-    (state, next: { userId: string; role: AssignableRole }) =>
-      state.map((p) =>
-        p.userId === next.userId ? { ...p, role: next.role } : p,
-      ),
+  // The picks stay in the dialog until checkout, so browsing plans never
+  // changes anyone's role in the workspace.
+  const [picks, setPicks] = useState<Record<string, AssignableRole>>({});
+  const people = seat.people.map((p) =>
+    picks[p.userId] ? { ...p, role: picks[p.userId] } : p,
   );
   const [, startTransition] = useTransition();
 
@@ -90,18 +89,28 @@ export function UpgradeModalBody({
       .forEach((p) => setRole(p.userId, role));
 
   const setRole = (personId: string, role: AssignableRole) =>
+    setPicks((prev) => ({ ...prev, [personId]: role }));
+
+  const applyPicks = () => {
+    const changed = seat.people.filter(
+      (p) => picks[p.userId] && picks[p.userId] !== p.role,
+    );
+    if (changed.length === 0) return;
     startTransition(async () => {
-      applyRole({ userId: personId, role });
-      const fd = new FormData();
-      fd.set("userId", personId);
-      fd.set("role", role);
-      await changeMemberRoleAction(fd);
+      for (const p of changed) {
+        const fd = new FormData();
+        fd.set("userId", p.userId);
+        fd.set("role", picks[p.userId]);
+        await changeMemberRoleAction(fd);
+      }
     });
+  };
 
   // PostHog distinct_id isn't available server-side at render, so append it
   // at click time.
   const handleCheckoutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     track("checkout_opened", { plan: e.currentTarget.dataset.plan ?? "seats" });
+    applyPicks();
     const distinctId = getPosthogDistinctId();
     if (!distinctId) return;
     try {
@@ -195,7 +204,7 @@ export function UpgradeModalBody({
                         <p className="mt-0.5 text-xs leading-snug text-fg-muted">
                           Ticked people record and are billed. Everyone else is
                           a free viewer who can watch, comment and react, but
-                          can&apos;t record.
+                          can&apos;t record. Roles change when you upgrade.
                         </p>
                         {canManage && assignable.length > 1 ? (
                           <div className="mt-2 flex gap-3 text-xs font-medium">
