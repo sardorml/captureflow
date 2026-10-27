@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { hydrateAssignableRole } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
-import { APP_WEB_SITE_URL } from "@/lib/site";
+import { getAppBaseUrl } from "@/lib/app-base-url";
 import { loadSession } from "@/lib/session-guard";
 import { requireWorkspaceAccess } from "@/lib/workspace/access";
 import {
@@ -25,15 +25,6 @@ type FormState = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/*
- * APP_WEB_PUBLIC_URL is a Worker var (and .dev.vars locally), so it is only
- * visible on the request-scoped env, never on process.env.
- */
-async function getBaseUrl(): Promise<string> {
-  const env = await getAppWebEnv();
-  return env?.APP_WEB_PUBLIC_URL || APP_WEB_SITE_URL;
-}
 
 function text(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value.trim() : "";
@@ -65,7 +56,7 @@ export async function inviteMemberAction(
       name: access.userName,
       email: access.email,
     },
-    baseUrl: await getBaseUrl(),
+    baseUrl: await getAppBaseUrl(),
   });
   if (!result.ok) return { error: result.error, ok: null };
 
