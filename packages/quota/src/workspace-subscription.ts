@@ -146,6 +146,27 @@ export async function upsertWorkspaceSubscription(
 
 // Seat sync writes the count it just pushed to billing, so the entitlement
 // follows at once instead of waiting for the webhook to echo it back.
+// Applied right after Lemon Squeezy accepts a plan change; its webhook
+// confirms the same values shortly after.
+export async function setWorkspaceSubscriptionPlan(
+  db: D1Database,
+  args: { lsSubscriptionId: string; plan: SeatPlanId; variantId: string },
+): Promise<void> {
+  await db
+    .prepare(
+      `UPDATE workspace_subscription
+          SET plan = ?2, ls_variant_id = ?3, updated_at = ?4
+        WHERE ls_subscription_id = ?1`,
+    )
+    .bind(
+      args.lsSubscriptionId,
+      args.plan,
+      args.variantId,
+      Math.floor(Date.now() / 1000),
+    )
+    .run();
+}
+
 export async function setWorkspaceSubscriptionQuantity(
   db: D1Database,
   lsSubscriptionId: string,

@@ -181,7 +181,7 @@ export async function checkAuth(
 export async function fetchRecordingLimits(
   deviceId: string,
   token: string,
-  timeoutMs = 2500,
+  timeoutMs = 5000,
 ): Promise<RecordingLimits | null> {
   try {
     const res = await fetch(`${RECORDING_API_BASE}/usage`, {

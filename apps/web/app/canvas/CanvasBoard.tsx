@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { ExtensionPrompt } from "./ExtensionPrompt";
 
 // The board is canvas-only work, so its chunk loads on the client alone.
 const CanvasBoardImpl = dynamic(
@@ -16,5 +17,10 @@ const CanvasBoardImpl = dynamic(
 );
 
 export function CanvasBoard() {
-  return <CanvasBoardImpl />;
+  return (
+    <>
+      <CanvasBoardImpl />
+      <ExtensionPrompt />
+    </>
+  );
 }

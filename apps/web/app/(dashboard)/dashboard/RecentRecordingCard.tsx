@@ -1,6 +1,9 @@
-import { Eye, Film } from "lucide-react";
+import type { ReactNode } from "react";
+import { Eye, Film, MessageSquare, Smile } from "lucide-react";
+import { Avatar } from "@heroui/react";
+import { PostedAt } from "@/app/_components/PostedAt";
 import { FadeInImage } from "@/components/ui/fade-in-image";
-import { formatDuration, formatRelativeShort } from "@/lib/format";
+import { formatDuration, initials } from "@/lib/format";
 import { viewUrlFor } from "@/lib/site";
 
 export type RecentRecording = {
@@ -12,7 +15,10 @@ export type RecentRecording = {
   height: number | null;
   durationMs: number | null;
   viewCount: number;
+  commentCount: number;
+  reactionCount: number;
   createdAt: number;
+  author: { name: string; image: string | null } | null;
   ready: boolean;
 };
 
@@ -35,14 +41,65 @@ export function RecentRecordingCard({
         <p className="truncate text-sm font-medium text-fg-strong">
           {recordingTitle(recording.title)}
         </p>
-        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-fg-muted">
-          <Eye size={12} aria-hidden />
-          {recording.viewCount} {recording.viewCount === 1 ? "view" : "views"}
-          <span aria-hidden>·</span>
-          {formatRelativeShort(recording.createdAt)}
-        </p>
+        <div className="mt-1.5 flex min-w-0 items-center gap-1.5 text-xs text-fg-muted">
+          {recording.author && (
+            <>
+              <Avatar className="size-5 shrink-0">
+                {recording.author.image && (
+                  <Avatar.Image
+                    src={recording.author.image}
+                    alt={recording.author.name}
+                  />
+                )}
+                <Avatar.Fallback className="text-[9px]">
+                  {initials(recording.author.name)}
+                </Avatar.Fallback>
+              </Avatar>
+              <span className="truncate font-medium text-fg">
+                {recording.author.name}
+              </span>
+              <span aria-hidden>·</span>
+            </>
+          )}
+          <PostedAt at={recording.createdAt} className="shrink-0" />
+        </div>
+        <div className="mt-1 flex items-center gap-3 text-xs text-fg-muted">
+          <Count icon={<Eye size={12} />} n={recording.viewCount} noun="view" />
+          <Count
+            icon={<MessageSquare size={12} />}
+            n={recording.commentCount}
+            noun="comment"
+          />
+          <Count
+            icon={<Smile size={12} />}
+            n={recording.reactionCount}
+            noun="reaction"
+          />
+        </div>
       </div>
     </a>
+  );
+}
+
+function Count({
+  icon,
+  n,
+  noun,
+}: {
+  icon: ReactNode;
+  n: number;
+  noun: string;
+}) {
+  return (
+    <span
+      className="flex items-center gap-1 tabular-nums"
+      aria-label={`${n} ${noun}${n === 1 ? "" : "s"}`}
+    >
+      <span aria-hidden className="flex">
+        {icon}
+      </span>
+      {n}
+    </span>
   );
 }
 

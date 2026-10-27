@@ -8,7 +8,7 @@ import {
 } from "@captureflow/engine";
 import type { RecordingVisibility } from "@/lib/api/types";
 import { sendMessage } from "@/lib/messaging";
-import { clampQuality } from "@/lib/capture/quality-limits";
+import { UNREAD_LIMITS, clampQuality } from "@/lib/capture/quality-limits";
 import { WEB_BASE } from "@/lib/config";
 import {
   getCapturePrefs,
@@ -325,7 +325,9 @@ export function FooterActions({
   const [quality, setQuality] = useState<RecordingQualityId>(
     DEFAULT_RECORDING_QUALITY,
   );
-  const [maxQuality, setMaxQuality] = useState<RecordingQualityId | null>(null);
+  const [maxQuality, setMaxQuality] = useState<RecordingQualityId | null>(
+    UNREAD_LIMITS.maxQuality,
+  );
   useEffect(() => {
     void getCapturePrefs().then((p) =>
       setQuality(hydrateRecordingQuality(p.quality)),
@@ -338,7 +340,7 @@ export function FooterActions({
     let cancelled = false;
     sendMessage("recordingLimits", undefined)
       .then((limits) => {
-        if (!cancelled) setMaxQuality(limits?.maxQuality ?? null);
+        if (!cancelled) setMaxQuality(limits ? limits.maxQuality : null);
       })
       .catch(() => undefined);
     return () => {

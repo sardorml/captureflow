@@ -2,7 +2,8 @@ export const RECORDER_FRAME_ID = "captureflow-recorder-frame";
 export const RECORDER_BACKDROP_ID = "captureflow-recorder-backdrop";
 
 /*
- * Injected via chrome.scripting (serialized): toggles the in-page recorder —
+ * Injected via chrome.scripting (serialized): toggles the in-page recorder, or
+ * with openOnly just makes sure it's open —
  * a dimmed backdrop with the extension panel floating top-right. Clicking the
  * backdrop closes it page-side (no SW round-trip).
  * Args only — the serialized body can't close over module scope.
@@ -21,12 +22,14 @@ export function toggleRecorderOverlay(
   frameId: string,
   backdropId: string,
   theme: "light" | "dark" | "system",
-): boolean {
+  openOnly: boolean,
+): "opened" | "closed" | "already-open" {
   const existing = document.getElementById(frameId);
   if (existing) {
+    if (openOnly) return "already-open";
     existing.remove();
     document.getElementById(backdropId)?.remove();
-    return false;
+    return "closed";
   }
 
   // "system" resolves here, on the page, where the OS setting is readable;
@@ -80,7 +83,7 @@ export function toggleRecorderOverlay(
 
   document.documentElement.appendChild(backdrop);
   document.documentElement.appendChild(iframe);
-  return true;
+  return "opened";
 }
 
 // Height reports flow app → SW → this (chrome.scripting), not postMessage:

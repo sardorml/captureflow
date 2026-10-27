@@ -3,6 +3,8 @@ import {
   clampQuality,
   exceedsQuality,
   hydrateRecordingLimits,
+  resolveRecordingLimits,
+  UNREAD_LIMITS,
 } from "../lib/capture/quality-limits";
 
 describe("quality limits", () => {
@@ -41,5 +43,22 @@ describe("quality limits", () => {
         maxDurationMs: -1,
       }),
     ).toEqual({ tier: "free", maxQuality: null, maxDurationMs: null });
+  });
+
+  it("falls back to the last caps read, then to the free cap, never to none", () => {
+    const pro = {
+      tier: "team" as const,
+      maxQuality: null,
+      maxDurationMs: null,
+    };
+    const light = {
+      tier: "team" as const,
+      maxQuality: "saver" as const,
+      maxDurationMs: null,
+    };
+    expect(resolveRecordingLimits(pro, light)).toBe(pro);
+    expect(resolveRecordingLimits(null, pro)).toBe(pro);
+    expect(resolveRecordingLimits(null, null)).toBe(UNREAD_LIMITS);
+    expect(UNREAD_LIMITS.maxQuality).toBe("saver");
   });
 });

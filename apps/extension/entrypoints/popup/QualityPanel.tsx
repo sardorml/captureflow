@@ -15,7 +15,13 @@ import {
   watchCapturePrefs,
 } from "@/lib/storage";
 import { sendMessage } from "@/lib/messaging";
-import { clampQuality, exceedsQuality } from "@/lib/capture/quality-limits";
+import {
+  UNREAD_LIMITS,
+  clampQuality,
+  exceedsQuality,
+  type RecordingLimits,
+} from "@/lib/capture/quality-limits";
+import { WEB_BASE } from "@/lib/config";
 
 const BACK_ICON = (
   <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
@@ -64,15 +70,16 @@ function perMinute(quality: RecordingQuality, camera: boolean): string {
 /*
  * The ceilings the next recording is encoded under, lowest first. Saved with
  * the capture prefs so the service worker sends it with the capture request.
- * A free workspace locks the presets above its cap; the choice stays saved
- * for when the workspace upgrades.
+ * A capped workspace locks the presets above its cap, and pressing one opens
+ * the upgrade; the choice stays saved for when the workspace upgrades.
  */
 export function QualityPanel({ onBack }: { onBack: () => void }) {
   const [quality, setQuality] = useState<RecordingQualityId>(
     DEFAULT_RECORDING_QUALITY,
   );
   const [camera, setCamera] = useState(true);
-  const [maxQuality, setMaxQuality] = useState<RecordingQualityId | null>(null);
+  const [limits, setLimits] = useState<RecordingLimits | null>(UNREAD_LIMITS);
+  const maxQuality = limits?.maxQuality ?? null;
 
   useEffect(() => {
     const read = (p: { quality?: unknown; camera: boolean }) => {
@@ -87,7 +94,7 @@ export function QualityPanel({ onBack }: { onBack: () => void }) {
     let cancelled = false;
     sendMessage("recordingLimits", undefined)
       .then((limits) => {
-        if (!cancelled) setMaxQuality(limits?.maxQuality ?? null);
+        if (!cancelled) setLimits(limits);
       })
       .catch(() => undefined);
     return () => {
@@ -96,6 +103,15 @@ export function QualityPanel({ onBack }: { onBack: () => void }) {
   }, []);
 
   const effective = clampQuality(quality, maxQuality);
+  // A free workspace upgrades from the dashboard's dialog; a paid one at its
+  // cap opens billing with the switch to Pro already asked.
+  const openUpgrade = () =>
+    void chrome.tabs.create({
+      url:
+        limits?.tier === "team"
+          ? `${WEB_BASE}/billing?switch=pro`
+          : `${WEB_BASE}/recordings?upgrade=1`,
+    });
 
   const choose = (next: RecordingQualityId) => {
     setQuality(next);
@@ -129,9 +145,9 @@ export function QualityPanel({ onBack }: { onBack: () => void }) {
               role="radio"
               aria-checked={on}
               aria-disabled={locked}
-              disabled={locked}
-              onClick={() => choose(id)}
-              className="flex cursor-pointer flex-col gap-0.5 border-t border-separator px-4 py-3 text-left outline-none first:border-t-0 hover:bg-overlay focus-visible:bg-overlay disabled:cursor-default disabled:opacity-50 disabled:hover:bg-transparent"
+              title={locked ? "Upgrade to record at this quality" : undefined}
+              onClick={() => (locked ? openUpgrade() : choose(id))}
+              className="flex cursor-pointer flex-col gap-0.5 border-t border-separator px-4 py-3 text-left outline-none first:border-t-0 hover:bg-overlay focus-visible:bg-overlay aria-disabled:opacity-50"
             >
               <span className="flex w-full items-center gap-3">
                 <span className="flex-1 text-[15px] font-semibold text-foreground">
@@ -156,11 +172,22 @@ export function QualityPanel({ onBack }: { onBack: () => void }) {
           );
         })}
       </div>
-      <p className="text-xs text-muted">
-        {maxQuality
-          ? `Your workspace's plan records at ${RECORDING_QUALITIES[maxQuality].label}. Upgrade it for the rest.`
-          : `Estimates for a typical screen recording${camera ? " with the camera on" : ""}.`}
-      </p>
+      {maxQuality ? (
+        <div className="flex items-center gap-3 rounded-[14px] border border-separator bg-surface px-4 py-3">
+          <p className="flex-1 text-xs text-muted">
+            Your plan records at {RECORDING_QUALITIES[maxQuality].label}.
+            Upgrade to Pro for every quality up to 60 fps.
+          </p>
+          <Button size="sm" variant="primary" onPress={openUpgrade}>
+            Upgrade
+          </Button>
+        </div>
+      ) : (
+        <p className="text-xs text-muted">
+          Estimates for a typical screen recording
+          {camera ? " with the camera on" : ""}.
+        </p>
+      )}
     </div>
   );
 }

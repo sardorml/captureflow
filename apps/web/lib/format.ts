@@ -85,3 +85,35 @@ export function initials(source: string): string {
     .join("")
     .toUpperCase();
 }
+
+/*
+ * When something was posted, for a card: "Today at 2:14 PM", "Yesterday at
+ * 9:03 AM", "Oct 26 at 4:40 PM", or "Oct 26, 2025" from an earlier year.
+ * Locale and zone are the viewer's unless given.
+ */
+export function formatPostedAt(
+  ms: number,
+  now: number = Date.now(),
+  opts: { locale?: string; timeZone?: string } = {},
+): string {
+  const { locale, timeZone } = opts;
+  const day = (t: number) =>
+    new Date(t).toLocaleDateString("en-CA", { timeZone });
+  const time = new Date(ms).toLocaleTimeString(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone,
+  });
+  if (day(ms) === day(now)) return `Today at ${time}`;
+  if (day(ms) === day(now - 86_400_000)) return `Yesterday at ${time}`;
+  const sameYear =
+    new Date(ms).toLocaleDateString("en-CA", { year: "numeric", timeZone }) ===
+    new Date(now).toLocaleDateString("en-CA", { year: "numeric", timeZone });
+  const date = new Date(ms).toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    year: sameYear ? undefined : "numeric",
+    timeZone,
+  });
+  return sameYear ? `${date} at ${time}` : date;
+}

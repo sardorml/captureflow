@@ -11,6 +11,22 @@ export type RecordingLimits = {
   maxDurationMs: number | null;
 };
 
+// Held to when the workspace's caps can't be read: the free tier's quality,
+// which the server enforces at init anyway, so the panel never offers a
+// preset the recording would then be refused at.
+export const UNREAD_LIMITS: RecordingLimits = {
+  tier: "free",
+  maxQuality: "saver",
+  maxDurationMs: null,
+};
+
+export function resolveRecordingLimits(
+  fetched: RecordingLimits | null,
+  remembered: RecordingLimits | null,
+): RecordingLimits {
+  return fetched ?? remembered ?? UNREAD_LIMITS;
+}
+
 const rank = (id: RecordingQualityId): number =>
   RECORDING_QUALITY_IDS.indexOf(id);
 

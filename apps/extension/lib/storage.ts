@@ -1,6 +1,7 @@
 import type { RecordingVisibility } from "./api/types";
 import type { RecordingQualityId } from "@captureflow/engine";
 import type { CameraEffect } from "./capture/camera-effects";
+import type { RecordingLimits } from "./capture/quality-limits";
 
 /*
  * Which surface the picker opens on. Chrome treats displaySurface as a hint —
@@ -68,6 +69,14 @@ const capturePrefsItem = storage.defineItem<CapturePrefs>(
   { fallback: { camera: false, mic: false, source: "screen" } },
 );
 
+type RememberedLimits = { token: string; limits: RecordingLimits };
+
+// The last caps the server reported, for when the next read fails.
+const recordingLimitsItem = storage.defineItem<RememberedLimits | null>(
+  "local:recordingLimits",
+  { fallback: null },
+);
+
 const cameraBlockedItem = storage.defineItem<boolean>("local:cameraBlocked", {
   fallback: false,
 });
@@ -119,6 +128,11 @@ export const setThemePreference = (theme: ThemePreference): Promise<void> =>
 export const watchThemePreference = (
   cb: (theme: ThemePreference) => void,
 ): (() => void) => themeItem.watch(cb);
+
+export const getRememberedLimits = (): Promise<RememberedLimits | null> =>
+  recordingLimitsItem.getValue();
+export const setRememberedLimits = (value: RememberedLimits): Promise<void> =>
+  recordingLimitsItem.setValue(value);
 
 export const getCameraBlocked = (): Promise<boolean> =>
   cameraBlockedItem.getValue();
