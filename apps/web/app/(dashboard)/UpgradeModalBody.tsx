@@ -125,8 +125,8 @@ export function UpgradeModalBody({
             className="max-w-4xl rounded-3xl bg-panel p-0"
           >
             <Modal.CloseTrigger />
-            <Modal.Body className="grid gap-0 p-0 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-              <div className="flex min-w-0 flex-col p-6 sm:p-8">
+            <Modal.Body className="grid gap-0 p-0 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+              <div className="flex min-w-0 flex-col p-6 sm:p-8 md:order-2">
                 <Modal.Heading className="text-2xl font-bold tracking-[-0.02em] text-fg">
                   Upgrade {seat.workspaceName}
                 </Modal.Heading>
@@ -143,7 +143,7 @@ export function UpgradeModalBody({
                 </ul>
               </div>
 
-              <div className="p-2 md:pl-0">
+              <div className="p-2 md:order-1 md:pr-0">
                 <div
                   className={cn("h-full rounded-[28px] p-0.5", GRADIENT_BORDER)}
                 >
