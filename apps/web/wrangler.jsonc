@@ -90,7 +90,15 @@
     // fails closed, so leaving this unset rejects every id — including the real
     // one. Public value (a hash of the store item's key), hence a var not a secret.
     "CAPTUREFLOW_EXTENSION_ID": "lgpgeoelaokbigdljofhkgbfnfcnmcol",
-    "NEXT_PUBLIC_LEMON_LIGHT_CHECKOUT_URL": "https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916",
-    "NEXT_PUBLIC_LEMON_PRO_CHECKOUT_URL": "",
+    // One Lemon Squeezy buy link per plan and cycle, and the variant each one
+    // sells so the webhook can name the plan on renewals. Public values.
+    "NEXT_PUBLIC_LEMON_LIGHT_MONTHLY_CHECKOUT_URL": "https://sardorml.lemonsqueezy.com/checkout/buy/93848ab4-4fb5-4df4-ac5b-5bbc198364bb",
+    "NEXT_PUBLIC_LEMON_LIGHT_ANNUAL_CHECKOUT_URL": "https://sardorml.lemonsqueezy.com/checkout/buy/601f31c9-76c7-46f2-8d9c-48b762e88d93",
+    "NEXT_PUBLIC_LEMON_PRO_MONTHLY_CHECKOUT_URL": "https://sardorml.lemonsqueezy.com/checkout/buy/775fbd57-6dea-4dee-9b27-4cc8aa664916",
+    "NEXT_PUBLIC_LEMON_PRO_ANNUAL_CHECKOUT_URL": "",
+    "LEMON_LIGHT_MONTHLY_VARIANT_ID": "1849420",
+    "LEMON_LIGHT_ANNUAL_VARIANT_ID": "1849425",
+    "LEMON_PRO_MONTHLY_VARIANT_ID": "1828191",
+    "LEMON_PRO_ANNUAL_VARIANT_ID": "",
   },
 }

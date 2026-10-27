@@ -80,7 +80,7 @@ export function UpgradeModalBody({
   const perSeat =
     cycle === "annual" ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
   const total = seatPriceUsd(seats, cycle, planId);
-  const checkoutBase = seat.checkoutUrls[planId];
+  const checkoutBase = seat.checkoutUrls[planId][cycle];
   const href = checkoutBase
     ? seatCheckoutUrl({
         base: checkoutBase,

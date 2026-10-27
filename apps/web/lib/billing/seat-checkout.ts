@@ -16,10 +16,16 @@ export type SeatOffer = {
   people: SeatPerson[];
   // Null until the plan's NEXT_PUBLIC_LEMON_*_CHECKOUT_URL is set; the dialog
   // then shows the price without a working button.
-  checkoutUrls: Record<SeatPlanId, string | null>;
+  checkoutUrls: SeatCheckoutUrls;
 };
 
 export type SeatCycle = "monthly" | "annual";
+
+// Lemon Squeezy's buy links are per variant, so each plan and cycle has its own.
+export type SeatCheckoutUrls = Record<
+  SeatPlanId,
+  Record<SeatCycle, string | null>
+>;
 
 /*
  * The billing checkout link with the seat count and the workspace attached.
@@ -44,10 +50,16 @@ export function seatCheckoutUrl(input: {
   return u.toString();
 }
 
-// Spelled out per plan: Next inlines NEXT_PUBLIC_* only when the name is literal.
-export function seatCheckoutBases(): Record<SeatPlanId, string | null> {
+// Spelled out per link: Next inlines NEXT_PUBLIC_* only when the name is literal.
+export function seatCheckoutBases(): SeatCheckoutUrls {
   return {
-    light: process.env.NEXT_PUBLIC_LEMON_LIGHT_CHECKOUT_URL || null,
-    pro: process.env.NEXT_PUBLIC_LEMON_PRO_CHECKOUT_URL || null,
+    light: {
+      monthly: process.env.NEXT_PUBLIC_LEMON_LIGHT_MONTHLY_CHECKOUT_URL || null,
+      annual: process.env.NEXT_PUBLIC_LEMON_LIGHT_ANNUAL_CHECKOUT_URL || null,
+    },
+    pro: {
+      monthly: process.env.NEXT_PUBLIC_LEMON_PRO_MONTHLY_CHECKOUT_URL || null,
+      annual: process.env.NEXT_PUBLIC_LEMON_PRO_ANNUAL_CHECKOUT_URL || null,
+    },
   };
 }

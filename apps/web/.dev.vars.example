@@ -73,11 +73,14 @@ LEMON_PRO_ANNUAL_VARIANT_ID=
 # leaves. Without it, seat sync only logs. Prod: wrangler secret put LEMON_API_KEY
 LEMON_API_KEY=
 
-# Public checkout links for the seat plans, with quantity enabled on the
-# variants. PUBLIC (inlined into the client bundle). Leave empty to show a plan
-# without a working button. Declared in wrangler.jsonc "vars" for prod.
-NEXT_PUBLIC_LEMON_LIGHT_CHECKOUT_URL=
-NEXT_PUBLIC_LEMON_PRO_CHECKOUT_URL=
+# Public checkout links for the seat plans, one per plan and billing cycle,
+# with quantity enabled on the variants. PUBLIC (inlined into the client
+# bundle). Leave one empty to show that choice without a working button.
+# Declared in wrangler.jsonc "vars" for prod.
+NEXT_PUBLIC_LEMON_LIGHT_MONTHLY_CHECKOUT_URL=
+NEXT_PUBLIC_LEMON_LIGHT_ANNUAL_CHECKOUT_URL=
+NEXT_PUBLIC_LEMON_PRO_MONTHLY_CHECKOUT_URL=
+NEXT_PUBLIC_LEMON_PRO_ANNUAL_CHECKOUT_URL=
 
 
 # -----------------------------------------------------------------------------
