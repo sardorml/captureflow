@@ -91,24 +91,90 @@ export function CardGridSkeleton({ count = 8 }: { count?: number }) {
   return <MediaGridSkeleton count={count} />;
 }
 
-// Stands in for the sidebar while its workspace queries run.
+function NavRowSkeleton({ width }: { width: string }) {
+  return (
+    <div className="flex h-9 items-center gap-3 px-3">
+      <Skeleton className="size-[18px] shrink-0 rounded-md" />
+      <Skeleton className={cn("h-3.5 rounded", width)} />
+    </div>
+  );
+}
+
+function SubNavRowSkeleton({ width }: { width: string }) {
+  return (
+    <div className="flex h-8 items-center px-3">
+      <Skeleton className={cn("h-3 rounded", width)} />
+    </div>
+  );
+}
+
+// Stands in for the sidebar while its workspace queries run, box for box:
+// brand, workspace card, the grouped nav with Settings' sub-pages, and the
+// upgrade card at the foot.
 export function SidebarSkeleton() {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 p-5">
         <Skeleton className="size-7 rounded-lg" />
-        <Skeleton className="h-6 w-28 rounded-md" />
+        <Skeleton className="h-5 w-28 rounded-md" />
       </div>
       <div className="px-3 pb-3">
-        <Skeleton className="h-[125px] w-full rounded-xl" />
+        <div className="rounded-xl border border-line bg-panel">
+          <div className="flex h-[38px] items-center justify-between gap-2 px-3 pt-2.5 pb-1">
+            <Skeleton className="h-4 w-32 rounded" />
+            <Skeleton className="size-3.5 rounded" />
+          </div>
+          <div className="flex h-[30px] items-center gap-2 px-3 pb-2.5">
+            <Skeleton className="h-5 w-14 rounded-md" />
+            <Skeleton className="h-3 w-16 rounded" />
+          </div>
+          <div className="flex items-center gap-2 border-t border-line px-3 py-2">
+            <div className="flex -space-x-2">
+              <Skeleton className="size-8 rounded-full ring-2 ring-panel" />
+              <Skeleton className="size-8 rounded-full ring-2 ring-panel" />
+            </div>
+            <Skeleton className="size-8 rounded-full" />
+          </div>
+        </div>
       </div>
-      <div className="flex flex-1 flex-col gap-0.5 px-3">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <Skeleton key={i} className="h-9 w-full rounded-lg" />
-        ))}
+      <div className="min-h-0 flex-1">
+        <div className="flex flex-col px-3">
+          <div className="flex flex-col gap-0.5">
+            <NavRowSkeleton width="w-20" />
+            <NavRowSkeleton width="w-22" />
+            <NavRowSkeleton width="w-24" />
+            <NavRowSkeleton width="w-16" />
+          </div>
+          <hr className="my-2 border-line" />
+          <div className="flex flex-col gap-0.5">
+            <NavRowSkeleton width="w-18" />
+            <NavRowSkeleton width="w-16" />
+            <div className="ml-[21px] flex flex-col gap-0.5 border-l border-line pl-2">
+              <SubNavRowSkeleton width="w-16" />
+              <SubNavRowSkeleton width="w-20" />
+              <SubNavRowSkeleton width="w-12" />
+            </div>
+          </div>
+          <hr className="my-2 border-line" />
+          <NavRowSkeleton width="w-28" />
+        </div>
       </div>
       <div className="px-3 pt-3 pb-4">
-        <Skeleton className="h-[132px] w-full rounded-2xl" />
+        <div className="rounded-2xl bg-panel p-4 ring-1 ring-line">
+          <div className="flex h-5 items-center">
+            <Skeleton className="h-3.5 w-40 rounded" />
+          </div>
+          <div
+            className="mt-1 flex flex-col justify-around py-1.5"
+            style={{ height: 80 }}
+          >
+            <Skeleton className="h-2.5 w-full rounded" />
+            <Skeleton className="h-2.5 w-11/12 rounded" />
+            <Skeleton className="h-2.5 w-4/5 rounded" />
+            <Skeleton className="h-2.5 w-1/4 rounded" />
+          </div>
+          <Skeleton className="mt-3 h-9 w-full rounded-full" />
+        </div>
       </div>
     </div>
   );
