@@ -312,7 +312,8 @@ function RoleSelect({
       aria-label="Role"
     >
       <Select.Trigger className="h-8 min-w-28">
-        <Select.Value />
+        {/* The trigger shows the role alone; the hint is for the list. */}
+        <Select.Value>{({ selectedText }) => selectedText}</Select.Value>
       </Select.Trigger>
       <Select.Popover>
         <ListBox>
