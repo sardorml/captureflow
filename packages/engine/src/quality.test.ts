@@ -18,8 +18,8 @@ describe("recording quality", () => {
     expect(max.screen.bitrate).toBe(ENGINE_OUTPUT.screen.bitrate);
   });
 
-  it("starts on low", () => {
-    expect(DEFAULT_RECORDING_QUALITY).toBe("low");
+  it("starts on data saver", () => {
+    expect(DEFAULT_RECORDING_QUALITY).toBe("saver");
   });
 
   it("hydrates unknown values to the default", () => {

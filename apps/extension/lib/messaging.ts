@@ -10,6 +10,7 @@ import type {
 } from "./storage";
 import type { RecordingQualityId } from "@captureflow/engine";
 import type { CameraEffect } from "./capture/camera-effects";
+import type { RecordingLimits } from "./capture/quality-limits";
 
 export type StartResult = { ok: true } | { ok: false; error: string };
 
@@ -30,6 +31,8 @@ export type CaptureContext = {
   visibility?: RecordingVisibility;
   effect?: CameraEffect;
   quality?: RecordingQualityId;
+  // The workspace's length cap as last read; the init response's wins.
+  maxDurationMs?: number;
   /*
    * Set only for the tab source: a chrome.tabCapture stream id the offscreen
    * doc turns into a stream directly, skipping the getDisplayMedia picker.
@@ -45,6 +48,9 @@ type ProtocolMap = {
   openSignIn(): void;
   signOut(): void;
   hasAuthSession(): boolean;
+  // popup→SW: the caps of the workspace the next recording lands in; null
+  // when signed out or unreachable.
+  recordingLimits(): RecordingLimits | null;
   webSession(web: WebSession): void;
   setCameraBubble(input: { on: boolean; mic: boolean }): void;
   cameraStatus(input: { blocked: boolean }): void;

@@ -90,6 +90,7 @@ export async function startRecordingUpload(
       contentType: "video/mp4",
       source: "instant",
       preset: "recording",
+      client: "desktop",
       title: meta.title ?? undefined,
       hasWebcam: meta.hasWebcam === true,
       workspaceId: getActiveWorkspaceId() ?? undefined,

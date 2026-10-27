@@ -20,7 +20,15 @@ import {
   setRecordingStatus,
 } from "@/lib/storage";
 import { LIVE_KINDS } from "@/lib/capture/status";
-import { createRecordingTransport } from "@/lib/api/client";
+import {
+  createRecordingTransport,
+  fetchRecordingLimits,
+} from "@/lib/api/client";
+import {
+  clampQuality,
+  type RecordingLimits,
+} from "@/lib/capture/quality-limits";
+import { hydrateRecordingQuality } from "@captureflow/engine";
 import {
   isTrustedAuthSender,
   isTrustedWebOrigin,
@@ -58,6 +66,37 @@ import {
   isPageArea,
   selectPageArea,
 } from "@/lib/overlay/area-select";
+
+/*
+ * The workspace's caps, read before a recording and shown in the panel. Kept
+ * briefly per token so opening the panel and pressing Start cost one probe;
+ * the server re-checks at init and finalize regardless.
+ */
+const LIMITS_TTL_MS = 60_000;
+let limitsCache: {
+  token: string;
+  limits: RecordingLimits | null;
+  readAt: number;
+} | null = null;
+
+async function readRecordingLimits(): Promise<RecordingLimits | null> {
+  const session = await getAuthSession();
+  if (!session) {
+    limitsCache = null;
+    return null;
+  }
+  const now = Date.now();
+  if (
+    limitsCache?.token === session.token &&
+    limitsCache.limits !== null &&
+    now - limitsCache.readAt < LIMITS_TTL_MS
+  ) {
+    return limitsCache.limits;
+  }
+  const limits = await fetchRecordingLimits(await getDeviceId(), session.token);
+  limitsCache = { token: session.token, limits, readAt: now };
+  return limits;
+}
 
 // Everything the extension puts on a page, hidden together for a capture.
 const PAGE_CHROME_IDS = [
@@ -607,6 +646,7 @@ export default defineBackground(() => {
   // as. Its matches already bound the sender; re-check anyway, since acting on
   // it can sign the user out.
   onMessage("hasAuthSession", async () => (await getAuthSession()) !== null);
+  onMessage("recordingLimits", () => readRecordingLimits());
 
   onMessage("webSession", async ({ data, sender }) => {
     if (!isTrustedWebOrigin(sender?.url)) return;
@@ -734,6 +774,13 @@ export default defineBackground(() => {
       if (!session) return { ok: false, error: "Sign in to record." };
       const deviceId = await getDeviceId();
       const prefs = await getCapturePrefs();
+      // A free workspace records at its cap whatever the panel last saved;
+      // an unreachable server leaves the choice to init's own check.
+      const limits = await readRecordingLimits();
+      const quality = clampQuality(
+        hydrateRecordingQuality(prefs.quality),
+        limits?.maxQuality ?? null,
+      );
       // Resolved before the overlay closes, while the target tab is still the
       // active one.
       const [activeTab] =
@@ -772,7 +819,8 @@ export default defineBackground(() => {
         source: prefs.source,
         visibility: prefs.visibility,
         effect: prefs.effect,
-        quality: prefs.quality,
+        quality,
+        maxDurationMs: limits?.maxDurationMs ?? undefined,
         tabStreamId,
       }).catch((error) => void reportFailure(errorMessage(error)));
       return { ok: true };
