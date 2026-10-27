@@ -19,6 +19,11 @@ import { useLocalizedHref, useMessages } from "./i18n-provider";
 const COPY_SELECTION =
   "selection:bg-tint-strong selection:text-fg-strong dark:selection:bg-white/20 dark:selection:text-fg-strong";
 
+// The headline's selection reads as a marker pen: the badge's orange-yellow
+// (hue 72), turned a little further toward yellow.
+const TITLE_SELECTION =
+  "selection:bg-[oklch(0.84_0.16_84/0.5)] selection:text-fg-strong dark:selection:bg-[oklch(0.84_0.16_84/0.4)] dark:selection:text-fg-strong";
+
 export function HeroSection() {
   const m = useMessages();
   const lh = useLocalizedHref();
@@ -26,7 +31,7 @@ export function HeroSection() {
   return (
     <section id="hero" className="relative overflow-hidden">
       <div className="mx-auto flex max-w-[1280px] flex-col items-center px-6 pt-16 text-center sm:pt-20">
-        <div onClick={selectAndCopyWithLink} className={COPY_SELECTION}>
+        <div onClick={selectAndCopyWithLink} className={TITLE_SELECTION}>
           <Title
             align="center"
             level={1}
