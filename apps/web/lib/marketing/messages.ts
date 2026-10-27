@@ -544,9 +544,9 @@ export const MESSAGES = {
       save: "Save {percent}%",
     },
     whyUs: {
-      heading: "Why choose {product} over {brand}",
+      heading: "Why choose {product} over competitors",
       subtitle:
-        "Their free and AI tiers beside ours, priced for the team size you set above.",
+        "A leading competitor's free and AI tiers beside ours, priced for the team size you set above.",
       rows: {
         perMember: "Per member, a month",
         team: "Your team of {seats}",
