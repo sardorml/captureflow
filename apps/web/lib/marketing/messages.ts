@@ -586,7 +586,7 @@ export const MESSAGES = {
         features: [
           "Unlimited recordings",
           "Unlimited recording time",
-          "Upload existing videos (coming soon)",
+          "Recordings never expire",
         ],
         cta: "Try for free",
       },
