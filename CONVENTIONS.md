@@ -158,6 +158,11 @@ which form **wins for new code**. Each rule names a real exemplar to copy.
   raw `.prepare()`/`.bind()` SQL in a route/action. The facade owns the `COLUMNS` list and the
   `rowFromD1` mapping. (Deliberate, commented exceptions: the lemon-webhook and request-access
   routes, which span both domains.)
+- **Migrations must work with the code already deployed.** The deploy applies them before the new
+  worker goes live, so the old worker runs on the new schema for a moment. Only add (tables,
+  nullable columns, indexes) in the release that needs them; drop or rename in a later PR, once
+  `main` no longer reads the old name. Never run `migrations apply --remote` by hand.
+  _Enforced by `scripts/check-migrations.mjs` in CI._
 - **Enforce quota up front, attributed to the workspace OWNER** (`quotaUserId =
 workspace?.owner_user_id ?? userId`): check count/storage/limits together via `Promise.all`
   before writing bytes; return 429 `active_limit`/`storage_limit` (413 `duration_exceeded`).

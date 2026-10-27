@@ -14,6 +14,7 @@
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf:upload": "opennextjs-cloudflare deploy",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
     "db:seed:local": "wrangler d1 execute captureflow --local --file=./db/schema.snapshot.sql",
     "db:apply": "wrangler d1 migrations apply captureflow",
