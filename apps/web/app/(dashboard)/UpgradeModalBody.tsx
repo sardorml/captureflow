@@ -2,7 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import { Check, Sparkle } from "lucide-react";
-import { Avatar, Modal } from "@heroui/react";
+import { Avatar, Checkbox, Label, Modal } from "@heroui/react";
 import {
   RECOMMENDED_SEAT_PLAN_ID,
   SEAT_PLANS,
@@ -32,11 +32,6 @@ const PLAN_COPY = MESSAGES.pricing.plans;
 const CYCLES: { key: SeatCycle; label: string }[] = [
   { key: "monthly", label: "Monthly" },
   { key: "annual", label: "Yearly" },
-];
-
-const SEAT_CHOICES: { role: AssignableRole; label: string }[] = [
-  { role: "member", label: "Paid seat" },
-  { role: "viewer", label: "Viewer" },
 ];
 
 type Props = {
@@ -87,6 +82,12 @@ export function UpgradeModalBody({
         })
       : null;
   };
+
+  const assignable = people.filter((p) => p.role !== "owner");
+  const setAll = (role: AssignableRole) =>
+    assignable
+      .filter((p) => p.role !== role)
+      .forEach((p) => setRole(p.userId, role));
 
   const setRole = (personId: string, role: AssignableRole) =>
     startTransition(async () => {
@@ -161,20 +162,38 @@ export function UpgradeModalBody({
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold text-fg">
-                    Who gets a paid seat
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className="text-sm font-semibold text-fg">
+                      Who gets a paid seat
+                    </p>
+                    <span className="text-xs text-fg-muted tabular-nums">
+                      {seats} of {people.length} selected
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs leading-snug text-fg-muted">
+                    Ticked people record and are billed. Everyone else is a free
+                    viewer who can watch, comment and react, but can&apos;t
+                    record.
                   </p>
-                  <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-xs leading-snug">
-                    <dt className="font-semibold text-accent">Paid seat</dt>
-                    <dd className="text-fg-muted">
-                      Records and shares. You pay for each one.
-                    </dd>
-                    <dt className="font-semibold text-fg">Viewer</dt>
-                    <dd className="text-fg-muted">
-                      Free. Watches, comments and reacts, but can&apos;t record.
-                    </dd>
-                  </dl>
-                  <ul className="mt-2 max-h-[184px] divide-y divide-line overflow-y-auto rounded-xl border border-line">
+                  {canManage && assignable.length > 1 ? (
+                    <div className="mt-2 flex gap-3 text-xs font-medium">
+                      <button
+                        type="button"
+                        onClick={() => setAll("member")}
+                        className="cursor-pointer text-accent hover:underline"
+                      >
+                        Select all
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAll("viewer")}
+                        className="cursor-pointer text-fg-muted hover:text-fg hover:underline"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  ) : null}
+                  <ul className="mt-2 max-h-[200px] divide-y divide-line overflow-y-auto rounded-xl border border-line">
                     {people.map((p) => (
                       <PersonRow
                         key={p.userId}
@@ -319,50 +338,41 @@ function PersonRow({
   const display = person.name || person.email.split("@")[0];
   const seated = isSeatRole(person.role);
   return (
-    <li className="flex items-center gap-2.5 px-3 py-1.5" title={person.email}>
-      <Avatar className="h-6 w-6 shrink-0">
-        {person.image && <Avatar.Image src={person.image} alt={display} />}
-        <Avatar.Fallback className="text-[10px]">
-          {initials(person.name || person.email)}
-        </Avatar.Fallback>
-      </Avatar>
-      <span className="min-w-0 flex-1 truncate text-sm font-medium text-fg">
-        {display}
-        {isSelf && <span className="text-fg-muted"> (you)</span>}
-      </span>
-      {editable ? (
-        <div
-          role="radiogroup"
-          aria-label={`Role for ${display}`}
-          className="flex shrink-0 items-center gap-1"
-        >
-          {SEAT_CHOICES.map((c) => {
-            const isOn = c.role === person.role;
-            return (
-              <button
-                key={c.role}
-                type="button"
-                role="radio"
-                aria-checked={isOn}
-                onClick={() => !isOn && onRole(c.role)}
-                className={cn(
-                  "h-7 cursor-pointer rounded-full px-3 text-xs font-semibold transition-colors motion-reduce:transition-none",
-                  isOn
-                    ? "bg-accent text-white shadow-sm"
-                    : "border border-line bg-panel text-fg hover:border-accent hover:text-accent",
-                )}
-              >
-                {c.label}
-              </button>
-            );
-          })}
-        </div>
-      ) : (
-        <span className="shrink-0 text-xs font-medium text-fg-muted">
-          {ROLE_LABEL[person.role]}
-          {seated ? " · paid seat" : " · free"}
-        </span>
-      )}
+    <li title={person.email}>
+      <Checkbox
+        isSelected={seated}
+        isDisabled={!editable}
+        onChange={(on) => onRole(on ? "member" : "viewer")}
+        className="flex w-full cursor-pointer items-center px-3 py-2 hover:bg-tint data-[disabled=true]:cursor-default data-[disabled=true]:opacity-100 data-[disabled=true]:hover:bg-transparent"
+      >
+        <Checkbox.Content className="flex w-full items-center gap-2.5">
+          <Checkbox.Control>
+            <Checkbox.Indicator />
+          </Checkbox.Control>
+          <Avatar className="h-6 w-6 shrink-0">
+            {person.image && <Avatar.Image src={person.image} alt={display} />}
+            <Avatar.Fallback className="text-[10px]">
+              {initials(person.name || person.email)}
+            </Avatar.Fallback>
+          </Avatar>
+          <Label className="min-w-0 flex-1 cursor-[inherit] truncate text-sm font-medium text-fg">
+            {display}
+            {isSelf && <span className="text-fg-muted"> (you)</span>}
+          </Label>
+          <span
+            className={cn(
+              "shrink-0 text-xs font-medium",
+              seated ? "text-accent" : "text-fg-muted",
+            )}
+          >
+            {person.role === "owner"
+              ? `${ROLE_LABEL[person.role]} · paid seat`
+              : seated
+                ? "Paid seat"
+                : "Viewer"}
+          </span>
+        </Checkbox.Content>
+      </Checkbox>
     </li>
   );
 }
