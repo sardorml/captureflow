@@ -221,6 +221,7 @@ export const MESSAGES = {
     categories: {
       share: {
         feature: {
+          tag: "new",
           title: "Clean it up before you share",
           cta: "Record now",
           body: "Every recording gets an AI transcript, and you edit the video from it: cut a sentence, strip the filler words, add a background, move or resize your camera. Your link stays the same, so everyone sees the new version straight away.",
