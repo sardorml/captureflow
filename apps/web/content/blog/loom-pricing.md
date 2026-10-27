@@ -24,11 +24,11 @@ Most teams start paying because of the 5-minute limit. A bug report fits in 5 mi
 
 CaptureFlow charges per member, and a member is someone who records. Anyone you invite as a viewer watches, comments and reacts for free.
 
-| Plan  | Price                                        | What you get                                                   |
-| ----- | -------------------------------------------- | -------------------------------------------------------------- |
-| Free  | $0                                           | 25 recordings per person, up to 5 minutes each, in data saver  |
-| Light | $5 per member a month, or $4 billed yearly   | Unlimited recordings at full quality, AI chapters and clean-up |
-| Pro   | $12 per member a month, or $10 billed yearly | Light with 50 GB per member, custom branding, priority support |
+| Plan  | Price                                        | What you get                                                  |
+| ----- | -------------------------------------------- | ------------------------------------------------------------- |
+| Free  | $0                                           | 25 recordings per person, up to 5 minutes each, in data saver |
+| Light | $5 per member a month, or $4 billed yearly   | Unlimited recordings in data saver quality                    |
+| Pro   | $12 per member a month, or $10 billed yearly | Full quality, AI chapters and clean-up, custom branding       |
 
 On Light and Pro, recordings stay until you delete them. On the free plan, a recording is removed after 30 days without a view. See [pricing](/pricing) for details.
 
@@ -43,7 +43,7 @@ Assume everyone on the team records, which is the most you would pay. Monthly bi
 | 50 people  | $10,800 a year | $3,000 a year     |
 | 100 people | $21,600 a year | $6,000 a year     |
 
-A 50-person team saves $7,800 a year, and $11,400 a year against Loom Business + AI. Billed yearly, CaptureFlow comes down another 20%.
+A 50-person team saves $7,800 a year on Light, and $7,200 a year on Pro against Loom Business + AI. Billed yearly, CaptureFlow comes down another 20%.
 
 In practice most teams pay for fewer seats than that. On Loom, everyone who needs to watch and comment needs a paid seat. On CaptureFlow, the designer who records three walkthroughs a week is a member, and the twelve people who watch them are free.
 
@@ -75,7 +75,7 @@ If your team depends on meeting recaps or records from phones, Loom may be worth
 1. [Create a free CaptureFlow account](/signup) and install the Chrome extension.
 2. Invite your team to a workspace. Invite the people who only watch as viewers, which is free.
 3. Download the Loom videos you still need and upload them, or simply start fresh.
-4. Upgrade to Light when you need longer recordings or full quality.
+4. Upgrade to Light when you need longer recordings, or Pro for full quality and AI editing.
 
 There’s no automatic import from Loom yet, so most teams move only the videos they still use.
 

@@ -1,23 +1,27 @@
 import { UNLIMITED_STORAGE_BYTES } from "./limits";
 
 const MB = 1024 * 1024;
-const GB = 1024 * MB;
 
 export type SeatPlanId = "light" | "pro";
+
+export type FreeQuality = "saver";
 
 export type SeatPlan = {
   id: SeatPlanId;
   name: string;
   priceMonthlyUsd: number;
   priceAnnualUsdPerMonth: number;
-  storageBytesPerSeat: number;
+  // The highest preset the plan records at; null is every preset.
+  maxQuality: FreeQuality | null;
+  // Chapters, titles and filler removal; transcripts are free everywhere.
+  ai: boolean;
 };
 
 /*
  * Per-seat pricing. A workspace is the billing unit; every member is a seat.
- * Both paid plans lift every free cap and include the AI features; Pro adds
- * room, branding and priority support. Paid seats pool their storage. The
- * free tier has no storage pool: its space is bounded by a recording count, a
+ * Paid plans have no recording count, length or storage cap. Light keeps the
+ * free tier's data saver preset and its AI; Pro records at any quality and
+ * adds the AI editing. The free tier is bounded by a recording count, a
  * length and a per-recording byte ceiling sized for the data saver preset.
  */
 export const SEAT_PLANS: readonly SeatPlan[] = [
@@ -26,14 +30,16 @@ export const SEAT_PLANS: readonly SeatPlan[] = [
     name: "Light",
     priceMonthlyUsd: 5,
     priceAnnualUsdPerMonth: 4,
-    storageBytesPerSeat: 10 * GB,
+    maxQuality: "saver",
+    ai: false,
   },
   {
     id: "pro",
     name: "Pro",
     priceMonthlyUsd: 12,
     priceAnnualUsdPerMonth: 10,
-    storageBytesPerSeat: 50 * GB,
+    maxQuality: null,
+    ai: true,
   },
 ];
 
@@ -61,8 +67,6 @@ export const SEAT_ANNUAL_SAVING_PERCENT = Math.max(
   ...SEAT_PLANS.map(seatAnnualSavingPercent),
 );
 
-export type FreeQuality = "saver";
-
 /*
  * maxRecordingBytes covers five minutes at the data saver ceilings in
  * packages/engine/src/quality.ts (750 kbps screen + 48 kbps audio, 200 kbps
@@ -84,7 +88,8 @@ export type WorkspaceEntitlement = {
   plan: SeatPlanId | null;
   seats: number;
   storageBytes: number;
-  // Free-tier caps, null once paid.
+  ai: boolean;
+  // Caps, null where the plan has none.
   recordingsPerPerson: number | null;
   maxRecordingMs: number | null;
   maxRecordingBytes: number | null;
@@ -114,6 +119,7 @@ export function resolveWorkspaceEntitlement(input: {
       plan: null,
       seats: Math.max(1, input.memberCount),
       storageBytes: UNLIMITED_STORAGE_BYTES,
+      ai: true,
       ...UNCAPPED,
     };
   }
@@ -127,8 +133,10 @@ export function resolveWorkspaceEntitlement(input: {
       tier: "team",
       plan: plan.id,
       seats,
-      storageBytes: seats * plan.storageBytesPerSeat,
+      storageBytes: UNLIMITED_STORAGE_BYTES,
+      ai: plan.ai,
       ...UNCAPPED,
+      maxQuality: plan.maxQuality,
     };
   }
   return {
@@ -136,6 +144,7 @@ export function resolveWorkspaceEntitlement(input: {
     plan: null,
     seats: 0,
     storageBytes: UNLIMITED_STORAGE_BYTES,
+    ai: false,
     recordingsPerPerson: FREE_TIER.recordingsPerPerson,
     maxRecordingMs: FREE_TIER.maxRecordingMs,
     maxRecordingBytes: FREE_TIER.maxRecordingBytes,

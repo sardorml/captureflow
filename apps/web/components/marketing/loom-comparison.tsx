@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Check } from "lucide-react";
+import { getSeatPlan } from "@captureflow/quota";
 import {
   CAPTUREFLOW_PER_SEAT,
-  CAPTUREFLOW_PLAN,
   LOOM_BRAND,
   LOOM_PLANS,
   LOOM_PRICES_CHECKED,
@@ -63,7 +63,7 @@ const ROWS: ReadonlyArray<{
   {
     label: "AI titles, chapters and filler word removal",
     loom: "On Business + AI",
-    captureflow: `On every paid plan, from ${CAPTUREFLOW_PLAN.name}`,
+    captureflow: `On ${getSeatPlan("pro").name}`,
   },
   {
     label: "Apps",

@@ -11,7 +11,7 @@ const FRIENDLY_BY_CODE: Record<string, string> = {
   size_limit:
     "This recording is larger than the free plan allows — upgrade your workspace for more.",
   quality_limit:
-    "The free plan records at Data saver quality — upgrade your workspace for more.",
+    "Your workspace's plan records at Data saver quality — upgrade it for more.",
   invalid_token: "Your sign-in expired. Sign in again to keep recording.",
   missing_token: "Sign in to record.",
 };

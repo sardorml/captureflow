@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ExternalLink, Sparkles } from "lucide-react";
 import { Button, Card, Chip, ProgressBar, Typography } from "@heroui/react";
 import {
+  UNLIMITED_STORAGE_BYTES,
   getSeatPlan,
   isSelfHosted,
   type SubscriptionStatus,
@@ -153,7 +154,7 @@ function WorkspacePlanSection({
           />
         ) : null}
       </div>
-      {paid && (
+      {paid && entitlement.storageBytes < UNLIMITED_STORAGE_BYTES && (
         <div className="mt-5">
           <Meter
             label="Workspace storage"

@@ -19,7 +19,7 @@ export function SidebarUpgradeCard({
       </p>
       <p className="mt-1 text-xs leading-5 text-fg-muted">
         Free is {FREE_TIER.recordingsPerPerson} recordings per person at data
-        saver quality. Paid plans lift every limit, from $
+        saver quality. Paid plans remove the limits, from $
         {SEAT_PLANS[0].priceMonthlyUsd} a member.
       </p>
       <UpgradeModal

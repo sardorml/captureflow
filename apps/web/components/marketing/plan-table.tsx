@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, Sparkle } from "lucide-react";
-import { FREE_TIER, getSeatPlan } from "@captureflow/quota";
+import { FREE_TIER } from "@captureflow/quota";
 import { TEAM_CHECKOUT_URL } from "@/lib/marketing/constants";
 import { GRADIENT_BORDER } from "./plan-cards";
 import { track } from "@/lib/marketing/track";
@@ -63,10 +63,6 @@ export function PlanTable() {
   const values = {
     recordings: FREE_TIER.recordingsPerPerson,
     minutes: Math.round(FREE_TIER.maxRecordingMs / 60_000),
-    lightStorage: Math.round(
-      getSeatPlan("light").storageBytesPerSeat / 1024 ** 3,
-    ),
-    proStorage: Math.round(getSeatPlan("pro").storageBytesPerSeat / 1024 ** 3),
   };
 
   return (

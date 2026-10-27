@@ -55,10 +55,6 @@ export function PlanCards({
     minutes: Math.round(FREE_TIER.maxRecordingMs / 60_000),
     seats,
     members: seats === 1 ? copy.light.member : copy.light.members,
-    lightStorage: Math.round(
-      getSeatPlan("light").storageBytesPerSeat / 1024 ** 3,
-    ),
-    proStorage: Math.round(getSeatPlan("pro").storageBytesPerSeat / 1024 ** 3),
   };
   const paid = (id: SeatPlanId, highlighted: boolean) => {
     const plan = getSeatPlan(id);

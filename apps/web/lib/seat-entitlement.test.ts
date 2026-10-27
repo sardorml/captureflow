@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   FREE_TIER,
-  SEAT_PLANS,
   UNLIMITED_STORAGE_BYTES,
   getSeatPlan,
   hydrateSeatPlanId,
@@ -17,6 +16,7 @@ describe("resolveWorkspaceEntitlement", () => {
     });
     expect(e.tier).toBe("free");
     expect(e.plan).toBeNull();
+    expect(e.ai).toBe(false);
     expect(e.seats).toBe(0);
     expect(e.storageBytes).toBe(UNLIMITED_STORAGE_BYTES);
     expect(e.recordingsPerPerson).toBe(FREE_TIER.recordingsPerPerson);
@@ -25,21 +25,31 @@ describe("resolveWorkspaceEntitlement", () => {
     expect(e.maxQuality).toBe("saver");
   });
 
-  it("pools storage per paid seat at the plan's rate and lifts the caps", () => {
-    for (const plan of SEAT_PLANS) {
-      const e = resolveWorkspaceEntitlement({
-        subscription: { quantity: 4, plan: plan.id },
-        memberCount: 4,
-      });
-      expect(e.tier).toBe("team");
-      expect(e.plan).toBe(plan.id);
-      expect(e.seats).toBe(4);
-      expect(e.storageBytes).toBe(4 * plan.storageBytesPerSeat);
-      expect(e.recordingsPerPerson).toBeNull();
-      expect(e.maxRecordingMs).toBeNull();
-      expect(e.maxRecordingBytes).toBeNull();
-      expect(e.maxQuality).toBeNull();
-    }
+  it("lifts the count, length and storage caps on Light but keeps data saver", () => {
+    const e = resolveWorkspaceEntitlement({
+      subscription: { quantity: 4, plan: "light" },
+      memberCount: 4,
+    });
+    expect(e.tier).toBe("team");
+    expect(e.plan).toBe("light");
+    expect(e.ai).toBe(false);
+    expect(e.seats).toBe(4);
+    expect(e.storageBytes).toBe(UNLIMITED_STORAGE_BYTES);
+    expect(e.recordingsPerPerson).toBeNull();
+    expect(e.maxRecordingMs).toBeNull();
+    expect(e.maxRecordingBytes).toBeNull();
+    expect(e.maxQuality).toBe("saver");
+  });
+
+  it("lifts every cap on Pro and turns on the AI editing", () => {
+    const e = resolveWorkspaceEntitlement({
+      subscription: { quantity: 2, plan: "pro" },
+      memberCount: 2,
+    });
+    expect(e.plan).toBe("pro");
+    expect(e.ai).toBe(true);
+    expect(e.maxQuality).toBeNull();
+    expect(e.storageBytes).toBe(UNLIMITED_STORAGE_BYTES);
   });
 
   it("is unlimited when self-hosted", () => {
@@ -50,8 +60,10 @@ describe("resolveWorkspaceEntitlement", () => {
     });
     expect(e.tier).toBe("team");
     expect(e.plan).toBeNull();
+    expect(e.ai).toBe(true);
     expect(e.storageBytes).toBe(UNLIMITED_STORAGE_BYTES);
     expect(e.maxRecordingBytes).toBeNull();
+    expect(e.maxQuality).toBeNull();
   });
 
   it("never reports fewer than one seat", () => {

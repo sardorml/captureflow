@@ -323,7 +323,7 @@ export const APP_SCHEMA = {
       price: String(plan.priceMonthlyUsd),
       priceCurrency: "USD",
       name: plan.name,
-      description: `Fully managed hosting at $${plan.priceMonthlyUsd} per member a month: unlimited recordings with AI chapters and titles, ${Math.round(plan.storageBytesPerSeat / 1024 ** 3)} GB of pooled storage per member, free viewers`,
+      description: `Fully managed hosting at $${plan.priceMonthlyUsd} per member a month: unlimited recordings${plan.maxQuality ? " in data saver quality" : " in full quality with AI chapters and titles"}, free viewers`,
     })),
   ],
 };

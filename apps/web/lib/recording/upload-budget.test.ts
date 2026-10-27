@@ -34,7 +34,7 @@ describe("budgetFromEntitlement", () => {
     });
   });
 
-  it("charges a paid recording to the pooled storage", () => {
+  it("leaves a paid recording without a storage cap", () => {
     const budget = budgetFromEntitlement(
       team,
       { sizeBytes: 1, webcamSizeBytes: 1 },
@@ -43,9 +43,8 @@ describe("budgetFromEntitlement", () => {
     expect(budget).toEqual({
       kind: "storage",
       used: 7_000,
-      limit: team.storageBytes,
+      limit: UNLIMITED_STORAGE_BYTES,
     });
-    expect(team.storageBytes).toBeLessThan(UNLIMITED_STORAGE_BYTES);
   });
 });
 

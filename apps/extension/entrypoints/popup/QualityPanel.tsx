@@ -158,7 +158,7 @@ export function QualityPanel({ onBack }: { onBack: () => void }) {
       </div>
       <p className="text-xs text-muted">
         {maxQuality
-          ? `Your workspace is on the free plan, which records at ${RECORDING_QUALITIES[maxQuality].label}. Upgrade it for the rest.`
+          ? `Your workspace's plan records at ${RECORDING_QUALITIES[maxQuality].label}. Upgrade it for the rest.`
           : `Estimates for a typical screen recording${camera ? " with the camera on" : ""}.`}
       </p>
     </div>

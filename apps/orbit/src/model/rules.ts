@@ -6,7 +6,7 @@ const freeMinutes = Math.round(FREE_TIER.maxRecordingMs / 60_000);
 const freeMb = Math.round(FREE_TIER.maxRecordingBytes / MB);
 const plans = SEAT_PLANS.map(
   (p) =>
-    `${p.name} at $${p.priceMonthlyUsd} per member monthly or $${p.priceAnnualUsdPerMonth} yearly with ${Math.round(p.storageBytesPerSeat / (1024 * MB))} GB pooled per seat`,
+    `${p.name} at $${p.priceMonthlyUsd} per member monthly or $${p.priceAnnualUsdPerMonth} yearly${p.maxQuality ? " in data saver quality" : " at any quality with the AI editing"}`,
 ).join("; ");
 
 export const RULES: Rule[] = [
@@ -188,7 +188,7 @@ export const RULES: Rule[] = [
   {
     id: "every-member-is-a-seat",
     title: `Every recording member of a Team workspace is a seat`,
-    text: `${plans}. An upgraded workspace invites paid seats only; viewers are free and cannot record. Members record without a count, bounded on our side by the pooled storage per seat and a per-recording ceiling.`,
+    text: `${plans}. An upgraded workspace invites paid seats only; viewers are free and cannot record. Members record without a count or a storage cap.`,
     domains: ["billing", "workspaces"],
     attachedTo: [
       "invite-member",

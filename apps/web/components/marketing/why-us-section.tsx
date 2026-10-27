@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { FREE_TIER } from "@captureflow/quota";
 import {
-  CAPTUREFLOW_PER_SEAT,
+  ourPlanFor,
   LOOM_BRAND,
   LOOM_PLANS,
   LOOM_STARTER,
@@ -44,6 +44,7 @@ export function WhyUsSection({
   const copy = m.pricing.whyUs;
   const r = copy.rows;
   const theirPaid = LOOM_PLANS.find((p) => p.id === THEIR_PLAN)!;
+  const ours = ourPlanFor(THEIR_PLAN);
   const theirs = (plan: string) =>
     m.pricing.compare.loomRow.replace("{plan}", plan);
   const monthly = (amount: number) =>
@@ -58,7 +59,7 @@ export function WhyUsSection({
     { name: theirs(LOOM_STARTER.label) },
     { name: `${PRODUCT_NAME} ${m.pricing.plans.free.name}`, ours: true },
     { name: theirs(theirPaid.label) },
-    { name: m.pricing.compare.captureflowRow, ours: true, paid: true },
+    { name: `${PRODUCT_NAME} ${ours.name}`, ours: true, paid: true },
   ];
 
   const rows: Row[] = [
@@ -68,7 +69,7 @@ export function WhyUsSection({
         usd(0),
         usd(0),
         usd(theirPaid.perSeat),
-        usd(CAPTUREFLOW_PER_SEAT),
+        usd(ours.priceMonthlyUsd),
       ],
     },
     {
@@ -77,7 +78,7 @@ export function WhyUsSection({
         r.free,
         r.free,
         monthly(getLoomMonthly(THEIR_PLAN, seats)),
-        monthly(getCaptureflowMonthly(seats)),
+        monthly(getCaptureflowMonthly(THEIR_PLAN, seats)),
       ],
     },
     {

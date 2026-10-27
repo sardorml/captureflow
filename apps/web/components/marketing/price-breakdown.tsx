@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  CAPTUREFLOW_PER_SEAT,
   LOOM_PLANS,
   getCaptureflowMonthly,
   getLoomMonthly,
   getYearlySavings,
+  ourPlanFor,
   type LoomPlan,
 } from "@/lib/marketing/loom-comparison";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ export function PriceBreakdown({
 }) {
   const copy = useMessages().pricing.compare;
   const { label: planLabel, perSeat } = LOOM_PLANS.find((p) => p.id === plan)!;
+  const ours = ourPlanFor(plan);
   const loom = getLoomMonthly(plan, seats);
   const savings = usd(Math.round(getYearlySavings(plan, seats)));
   const fill = (s: string) =>
@@ -37,7 +38,8 @@ export function PriceBreakdown({
       .replace("{plan}", planLabel)
       .replace("{seats}", String(seats))
       .replace("{perSeat}", usd(perSeat))
-      .replace("{ourPerSeat}", usd(CAPTUREFLOW_PER_SEAT))
+      .replace("{ourPlan}", ours.name)
+      .replace("{ourPerSeat}", usd(ours.priceMonthlyUsd))
       .replace("{savings}", savings);
 
   return (
@@ -51,7 +53,7 @@ export function PriceBreakdown({
         <CostRow
           label={fill(copy.captureflowRow)}
           detail={fill(copy.captureflowDetail)}
-          monthly={getCaptureflowMonthly(seats)}
+          monthly={getCaptureflowMonthly(plan, seats)}
           isOurs
         />
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line px-6 py-4">
