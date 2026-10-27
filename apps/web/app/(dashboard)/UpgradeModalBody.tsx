@@ -121,7 +121,7 @@ export function UpgradeModalBody({
             className="max-w-3xl rounded-3xl bg-panel p-0"
           >
             <Modal.CloseTrigger />
-            <Modal.Body className="p-6 sm:p-8">
+            <Modal.Body className="p-6">
               <div className="flex flex-wrap items-center justify-between gap-4 pe-8">
                 <Modal.Heading className="text-2xl font-bold tracking-[-0.02em] text-fg">
                   Upgrade {seat.workspaceName}
@@ -159,7 +159,7 @@ export function UpgradeModalBody({
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
                 {SEAT_PLANS.map((p) => (
                   <PlanOption
                     key={p.id}
@@ -173,10 +173,10 @@ export function UpgradeModalBody({
                 ))}
               </div>
 
-              <p className="mt-8 text-sm font-semibold text-fg">
+              <p className="mt-5 text-sm font-semibold text-fg">
                 Who gets a seat
               </p>
-              <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line">
+              <ul className="mt-2 divide-y divide-line overflow-hidden rounded-2xl border border-line">
                 {people.map((p) => (
                   <PersonRow
                     key={p.userId}
@@ -220,7 +220,7 @@ function PlanOption({
   const card = (
     <div
       className={cn(
-        "flex h-full flex-col p-6 text-fg",
+        "flex h-full flex-col p-5 text-fg",
         highlighted
           ? "rounded-[22px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
           : "rounded-3xl border border-line bg-panel",
@@ -230,11 +230,11 @@ function PlanOption({
         {plan.name}
         {highlighted && <Sparkle size={13} className="shrink-0 fill-current" />}
       </h3>
-      <p className="mt-1.5 min-h-12 text-sm leading-relaxed text-fg-muted">
+      <p className="mt-1 min-h-10 text-sm leading-snug text-fg-muted">
         {copy.description}
       </p>
 
-      <p className="mt-4 text-4xl font-bold tracking-[-0.03em]">
+      <p className="mt-3 text-3xl font-bold tracking-[-0.03em]">
         <span
           key={`${cycle}-${total}`}
           className="animate-storage-pop inline-block"
@@ -261,7 +261,7 @@ function PlanOption({
           rel="noopener noreferrer"
           onClick={onCheckout}
           className={cn(
-            "mt-5 inline-flex h-11 w-fit items-center justify-center rounded-full px-6 text-sm font-semibold transition-colors motion-reduce:transition-none",
+            "mt-4 inline-flex h-10 w-fit items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors motion-reduce:transition-none",
             highlighted
               ? "bg-accent text-white hover:bg-accent/90"
               : "bg-accent/10 text-fg hover:bg-accent/20",
@@ -270,13 +270,13 @@ function PlanOption({
           Upgrade to {plan.name}
         </a>
       ) : (
-        <span className="mt-5 inline-flex h-11 w-fit items-center justify-center rounded-full bg-accent/10 px-6 text-sm font-medium text-fg-muted">
+        <span className="mt-4 inline-flex h-10 w-fit items-center justify-center rounded-full bg-accent/10 px-6 text-sm font-medium text-fg-muted">
           Checkout not configured
         </span>
       )}
 
-      <p className="mt-6 text-sm font-semibold">{copy.featuresHeading}</p>
-      <ul className="mt-3 flex list-none flex-col gap-2">
+      <p className="mt-5 text-sm font-semibold">{copy.featuresHeading}</p>
+      <ul className="mt-2 flex list-none flex-col gap-1.5">
         {copy.features.map((label) => (
           <li key={label} className="flex items-start gap-2.5 text-sm">
             <Check size={15} className="mt-0.5 shrink-0 text-fg-muted" />
@@ -305,7 +305,7 @@ function PersonRow({
   const display = person.name || person.email.split("@")[0];
   const seated = isSeatRole(person.role);
   return (
-    <li className="flex items-center gap-3 px-4 py-3">
+    <li className="flex items-center gap-3 px-4 py-2">
       <Avatar className="h-8 w-8 shrink-0">
         {person.image && <Avatar.Image src={person.image} alt={display} />}
         <Avatar.Fallback className="text-xs">
