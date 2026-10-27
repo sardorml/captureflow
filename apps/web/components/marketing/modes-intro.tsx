@@ -470,10 +470,7 @@ function RecordingMockup() {
 
   return (
     <Scaled width={STAGE.width} height={STAGE.height}>
-      <div
-        ref={ref}
-        className="absolute inset-0 rounded-[28px] bg-[linear-gradient(135deg,#cfe0ff,#e4d4ff)] ring-1 ring-black/5 dark:bg-[linear-gradient(135deg,#161c28,#1f1a2d)] dark:ring-white/10"
-      >
+      <div ref={ref} className="absolute inset-0">
         <div
           className="absolute overflow-hidden rounded-2xl border border-black/5 shadow-[0_28px_70px_rgb(0_0_0/0.18)] dark:border-white/10 dark:shadow-[0_28px_70px_rgb(0_0_0/0.5)]"
           style={{
