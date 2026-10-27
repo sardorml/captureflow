@@ -381,11 +381,25 @@ function ScaledScene({ children }: { children: ReactNode }) {
   );
 }
 
+// Each card's title sits on its own highlight, in the scene's accent.
+const TITLE_TONES: Record<CardKey, string> = {
+  design:
+    "bg-[#ede9fe] text-[#6d28d9] dark:bg-[#6d28d9]/35 dark:text-[#ddd6fe]",
+  engineering:
+    "bg-[#dbeafe] text-[#1d4ed8] dark:bg-[#1d4ed8]/35 dark:text-[#bfdbfe]",
+  support:
+    "bg-[#ccfbf1] text-[#0f766e] dark:bg-[#0f766e]/35 dark:text-[#99f6e4]",
+  updates:
+    "bg-[#fef3c7] text-[#b45309] dark:bg-[#b45309]/35 dark:text-[#fde68a]",
+};
+
 function UseCaseCard({
+  tone,
   title,
   body,
   children,
 }: {
+  tone: CardKey;
   title: string;
   body: string;
   children: ReactNode;
@@ -398,19 +412,15 @@ function UseCaseCard({
       )}
     >
       <ScaledScene>{children}</ScaledScene>
-      <div className="flex flex-col gap-2.5 px-7 pt-7 pb-8">
-        <Typography.Heading
-          level={3}
-          style={{
-            fontSize: 26,
-            fontWeight: 700,
-            lineHeight: 1.1,
-            letterSpacing: "-0.03em",
-            margin: 0,
-          }}
+      <div className="flex flex-col items-start gap-2.5 px-7 pt-7 pb-8">
+        <h3
+          className={cn(
+            TITLE_TONES[tone],
+            "-ml-2 inline-block rounded-md px-2 py-1 text-[24px] leading-tight font-bold tracking-[-0.03em]",
+          )}
         >
           {title}
-        </Typography.Heading>
+        </h3>
         <Typography.Paragraph
           style={{ fontSize: 17, lineHeight: 1.5, margin: 0 }}
         >
@@ -467,6 +477,7 @@ export function UseCasesSection({ headingLevel = 2 }: SectionProps = {}) {
         {CARDS.map((key) => (
           <UseCaseCard
             key={key}
+            tone={key}
             title={copy.cards[key].title}
             body={copy.cards[key].body}
           >
