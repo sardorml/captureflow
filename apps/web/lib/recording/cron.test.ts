@@ -92,7 +92,8 @@ beforeEach(() => {
       ls_subscription_item_id TEXT, workspace_id TEXT, ls_variant_id TEXT,
       ls_customer_id TEXT, ls_customer_email TEXT, status TEXT, cycle TEXT,
       quantity INTEGER, current_period_end INTEGER, cancelled_at INTEGER,
-      created_at INTEGER, updated_at INTEGER, plan TEXT NOT NULL DEFAULT 'light');
+      created_at INTEGER, updated_at INTEGER, plan TEXT NOT NULL DEFAULT 'light',
+      card_brand TEXT, card_last_four TEXT, portal_url TEXT, update_payment_url TEXT);
   `);
   deleted = [];
   objects = new Map();

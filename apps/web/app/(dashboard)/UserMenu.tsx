@@ -37,6 +37,7 @@ type Props = {
   email: string;
   imageUrl: string | null;
   plan: AccountMenuPlan;
+  billing: boolean;
   selfHosted: boolean;
   themePreference: ThemePreference;
 };
@@ -46,6 +47,7 @@ export function UserMenu({
   email,
   imageUrl,
   plan,
+  billing,
   selfHosted,
   themePreference,
 }: Props) {
@@ -62,7 +64,7 @@ export function UserMenu({
     }
   };
 
-  const navItems = accountNavItems({ plan, selfHosted });
+  const navItems = accountNavItems({ plan, billing, selfHosted });
 
   return (
     <AccountMenu

@@ -11,7 +11,7 @@ import { initials as initialsOf } from "@/lib/format";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
-import { getWorkspaceSeatContext } from "@/lib/billing/seats";
+import { getWorkspaceSeatContext, paidSeatsOf } from "@/lib/billing/seats";
 import { SidebarNav } from "./SidebarNav";
 import { SidebarUpgradeCard } from "./SidebarUpgradeCard";
 import { WorkspaceMembersStack } from "./WorkspaceMembersStack";
@@ -35,6 +35,7 @@ export async function Sidebar() {
     : [[], 0, null];
   const isOwner = current.role === "owner";
   const selfHosted = isSelfHosted(env);
+  const paidSeats = paidSeatsOf(seat);
   const memberItems: AvatarGroupItem[] = members.map((m) => {
     const display = m.name?.trim() || m.email;
     return {
@@ -60,8 +61,13 @@ export async function Sidebar() {
           memberCount={members.length}
           recordingCount={recordingCount}
           canInvite={isOwner}
+          paidSeats={paidSeats}
           footer={
-            <WorkspaceMembersStack items={memberItems} canInvite={isOwner} />
+            <WorkspaceMembersStack
+              items={memberItems}
+              canInvite={isOwner}
+              paidSeats={paidSeats}
+            />
           }
         />
       </div>

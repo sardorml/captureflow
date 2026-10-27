@@ -3,13 +3,17 @@
 import { useMemo, useState, useTransition } from "react";
 import {
   WORKSPACE_ROLES,
+  getSeatPlan,
+  seatPriceUsd,
   type AssignableRole,
+  type SeatRequest,
   type WorkspaceInviteRow,
   type WorkspaceMember,
   type WorkspaceRole,
 } from "@captureflow/quota";
 import { LogOut, Search, UserPlus, X } from "lucide-react";
 import {
+  AlertDialog,
   Avatar,
   Button,
   Chip,
@@ -19,11 +23,13 @@ import {
   Select,
   Table,
 } from "@heroui/react";
+import type { PaidSeats } from "@/lib/billing/seat-checkout";
 import { initials } from "@/lib/format";
 import { ASSIGNABLE_ROLES, ROLE_LABEL } from "@/lib/workspace/labels";
 import { InviteModal } from "../InviteModal";
 import {
   changeMemberRoleAction,
+  denySeatRequestAction,
   leaveWorkspaceAction,
   removeMemberAction,
   revokeInviteAction,
@@ -55,6 +61,7 @@ type Row = {
   actionId: string;
   // The owner may move anyone but themselves between member and viewer.
   roleEditable: boolean;
+  downgradeAt: number | null;
 };
 
 function formatAdded(ms: number): string {
@@ -71,12 +78,16 @@ export function MembersTable({
   viewerUserId,
   viewerIsOwner,
   workspaceName,
+  paidSeats,
+  seatRequests,
 }: {
   members: WorkspaceMember[];
   invites: WorkspaceInviteRow[];
   viewerUserId: string;
   viewerIsOwner: boolean;
   workspaceName: string;
+  paidSeats: PaidSeats | null;
+  seatRequests: SeatRequest[];
 }) {
   const [query, setQuery] = useState("");
   const [role, setRole] = useState<RoleFilter>("all");
@@ -100,6 +111,7 @@ export function MembersTable({
               : null,
         actionId: m.user_id,
         roleEditable: viewerIsOwner && m.role !== "owner",
+        downgradeAt: m.downgrade_at,
       })),
       ...invites.map((i) => ({
         key: `invite-${i.id}`,
@@ -112,6 +124,7 @@ export function MembersTable({
         action: viewerIsOwner ? ("revoke" as const) : null,
         actionId: i.id,
         roleEditable: false,
+        downgradeAt: null,
       })),
     ],
     [members, invites, viewerIsOwner, viewerUserId],
@@ -141,6 +154,9 @@ export function MembersTable({
           {viewerIsOwner && " Admins can invite, remove and change roles."}
         </p>
       </div>
+      {viewerIsOwner && seatRequests.length > 0 && (
+        <SeatRequests requests={seatRequests} paidSeats={paidSeats} />
+      )}
       <div className="flex flex-col gap-4 border-t border-line px-6 py-6">
         <div className="flex flex-wrap items-center gap-3">
           <InputGroup className="w-full sm:w-72">
@@ -172,6 +188,7 @@ export function MembersTable({
             <div className="ml-auto">
               <InviteModal
                 workspaceName={workspaceName}
+                paidSeats={paidSeats}
                 trigger={
                   <Button variant="primary">
                     <UserPlus size={16} />
@@ -214,7 +231,13 @@ export function MembersTable({
                     </Table.Cell>
                     <Table.Cell className="text-fg-muted">
                       {r.roleEditable && r.role && r.role !== "owner" ? (
-                        <RoleSelect userId={r.actionId} role={r.role} />
+                        <RoleSelect
+                          userId={r.actionId}
+                          name={r.name || r.email}
+                          role={r.role}
+                          downgradeAt={r.downgradeAt}
+                          paidSeats={paidSeats}
+                        />
                       ) : r.role ? (
                         ROLE_LABEL[r.role]
                       ) : (
@@ -238,7 +261,11 @@ export function MembersTable({
                       </Chip>
                     </Table.Cell>
                     <Table.Cell className="text-right">
-                      <RowAction row={r} />
+                      <RowAction
+                        row={r}
+                        workspaceName={workspaceName}
+                        paidSeats={paidSeats}
+                      />
                     </Table.Cell>
                   </Table.Row>
                 ))}
@@ -289,72 +316,321 @@ function FilterSelect<T extends string>({
   );
 }
 
-// Submits on change: the owner picks a role and the row updates in place.
+function submitRole(userId: string, role: AssignableRole) {
+  const fd = new FormData();
+  fd.set("userId", userId);
+  fd.set("role", role);
+  return changeMemberRoleAction(fd);
+}
+
+type SeatChange = "add" | "remove";
+
+/*
+ * Submits on change, except that a paid workspace confirms either way first:
+ * a new member adds a seat now, and a member moved to viewer keeps the paid
+ * seat until the period ends.
+ */
 function RoleSelect({
   userId,
+  name,
   role,
+  downgradeAt,
+  paidSeats,
 }: {
   userId: string;
+  name: string;
   role: AssignableRole;
+  downgradeAt: number | null;
+  paidSeats: PaidSeats | null;
 }) {
   const [pending, startTransition] = useTransition();
+  const [confirming, setConfirming] = useState<SeatChange | null>(null);
+  const submit = (next: AssignableRole) =>
+    startTransition(() => submitRole(userId, next));
   return (
-    <Select
-      selectedKey={role}
-      isDisabled={pending}
-      onSelectionChange={(next) => {
-        if (next === role) return;
-        const fd = new FormData();
-        fd.set("userId", userId);
-        fd.set("role", String(next));
-        startTransition(() => changeMemberRoleAction(fd));
-      }}
-      aria-label="Role"
-    >
-      <Select.Trigger className="h-8 min-w-28">
-        {/* The trigger shows the role alone; the hint is for the list. */}
-        <Select.Value>{({ selectedText }) => selectedText}</Select.Value>
-      </Select.Trigger>
-      <Select.Popover>
-        <ListBox>
-          {ASSIGNABLE_ROLES.map((o) => (
-            <ListBox.Item key={o.id} id={o.id} textValue={o.label}>
-              {o.label}
-              <span className="block text-xs text-fg-muted">{o.hint}</span>
-            </ListBox.Item>
-          ))}
-        </ListBox>
-      </Select.Popover>
-    </Select>
+    <div className="flex flex-col items-start gap-1">
+      <Select
+        selectedKey={role}
+        isDisabled={pending}
+        onSelectionChange={(next) => {
+          if (next === role) return;
+          if (paidSeats && next === "member") return setConfirming("add");
+          if (paidSeats?.periodEnd && next === "viewer") {
+            return setConfirming("remove");
+          }
+          submit(next as AssignableRole);
+        }}
+        aria-label="Role"
+      >
+        <Select.Trigger className="h-8 min-w-28">
+          {/* The trigger shows the role alone; the hint is for the list. */}
+          <Select.Value>{({ selectedText }) => selectedText}</Select.Value>
+        </Select.Trigger>
+        <Select.Popover>
+          <ListBox>
+            {ASSIGNABLE_ROLES.map((o) => (
+              <ListBox.Item key={o.id} id={o.id} textValue={o.label}>
+                {o.label}
+                <span className="block text-xs text-fg-muted">{o.hint}</span>
+              </ListBox.Item>
+            ))}
+          </ListBox>
+        </Select.Popover>
+      </Select>
+      {downgradeAt !== null && (
+        <span className="text-xs text-fg-muted" suppressHydrationWarning>
+          Viewer from {formatAdded(downgradeAt)} ·{" "}
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => submit("member")}
+            className="cursor-pointer text-accent hover:underline"
+          >
+            Keep as member
+          </button>
+        </span>
+      )}
+      {paidSeats && confirming ? (
+        <SeatConfirm
+          change={confirming}
+          name={name}
+          paidSeats={paidSeats}
+          isOpen
+          onOpenChange={(open) => !open && setConfirming(null)}
+          onConfirm={() => submit(confirming === "add" ? "member" : "viewer")}
+        />
+      ) : null}
+    </div>
   );
 }
 
-function RowAction({ row }: { row: Row }) {
+function SeatRequests({
+  requests,
+  paidSeats,
+}: {
+  requests: SeatRequest[];
+  paidSeats: PaidSeats | null;
+}) {
+  return (
+    <div className="border-t border-line px-6 py-5">
+      <h3 className="text-base font-semibold text-fg-strong">
+        Seat requests{" "}
+        <span className="font-normal text-fg-muted">({requests.length})</span>
+      </h3>
+      <p className="mt-1 text-sm text-fg-muted">
+        These viewers asked to record. Approving makes them a member
+        {paidSeats ? ", which adds a paid seat" : ""}.
+      </p>
+      <ul className="mt-3 flex flex-col divide-y divide-line rounded-xl ring-1 ring-line">
+        {requests.map((r) => (
+          <SeatRequestRow key={r.user_id} request={r} paidSeats={paidSeats} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function SeatRequestRow({
+  request,
+  paidSeats,
+}: {
+  request: SeatRequest;
+  paidSeats: PaidSeats | null;
+}) {
+  const [pending, startTransition] = useTransition();
+  const [confirming, setConfirming] = useState(false);
+  const name = request.name || request.email.split("@")[0];
+  const approve = () =>
+    startTransition(() => submitRole(request.user_id, "member"));
+  const deny = () =>
+    startTransition(() => {
+      const fd = new FormData();
+      fd.set("userId", request.user_id);
+      return denySeatRequestAction(fd);
+    });
+  return (
+    <li className="flex flex-wrap items-center gap-3 px-4 py-3">
+      <Avatar className="h-8 w-8 shrink-0">
+        {request.image && <Avatar.Image src={request.image} alt={name} />}
+        <Avatar.Fallback className="text-xs">
+          {initials(request.name || request.email)}
+        </Avatar.Fallback>
+      </Avatar>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate font-medium text-fg-strong">{name}</span>
+        <span
+          className="truncate text-xs text-fg-muted"
+          suppressHydrationWarning
+        >
+          {request.email} · asked {formatAdded(request.created_at)}
+        </span>
+      </span>
+      <Button variant="secondary" size="sm" isDisabled={pending} onPress={deny}>
+        Deny
+      </Button>
+      <Button
+        size="sm"
+        isDisabled={pending}
+        onPress={() => (paidSeats ? setConfirming(true) : approve())}
+      >
+        Approve
+      </Button>
+      {paidSeats && (
+        <SeatConfirm
+          change="add"
+          name={name}
+          paidSeats={paidSeats}
+          isOpen={confirming}
+          onOpenChange={setConfirming}
+          onConfirm={approve}
+        />
+      )}
+    </li>
+  );
+}
+
+function SeatConfirm({
+  change,
+  name,
+  paidSeats,
+  isOpen,
+  onOpenChange,
+  onConfirm,
+}: {
+  change: SeatChange;
+  name: string;
+  paidSeats: PaidSeats;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+}) {
+  const { plan, cycle, seats, periodEnd } = paidSeats;
+  const adding = change === "add";
+  const nextSeats = adding ? seats + 1 : Math.max(1, seats - 1);
+  const before = seatPriceUsd(seats, cycle, plan);
+  const after = seatPriceUsd(nextSeats, cycle, plan);
+  const planLine = `Your ${getSeatPlan(plan).name} plan goes from ${seats} to ${nextSeats} seats, $${before} to $${after} a month${cycle === "annual" ? ", billed yearly" : ""}.`;
+  const until = periodEnd ? formatAdded(periodEnd * 1000) : null;
+  return (
+    <AlertDialog isOpen={isOpen} onOpenChange={onOpenChange}>
+      <AlertDialog.Backdrop>
+        <AlertDialog.Container size="sm">
+          <AlertDialog.Dialog>
+            <AlertDialog.Header>
+              <AlertDialog.Heading>
+                {adding
+                  ? `Give ${name} a paid seat?`
+                  : `Move ${name} to viewer?`}
+              </AlertDialog.Heading>
+            </AlertDialog.Header>
+            <AlertDialog.Body className="flex flex-col gap-2 text-sm text-fg">
+              {adding ? (
+                <>
+                  <p>Members record, so each one is a paid seat. {planLine}</p>
+                  <p className="text-fg-muted">
+                    The rest of this billing period is added to your next
+                    invoice.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p suppressHydrationWarning>
+                    {name} keeps recording until {until}, the end of the period
+                    you&apos;ve paid for. Then they become a viewer, who can
+                    watch and comment but not record.
+                  </p>
+                  <p className="text-fg-muted">
+                    From then, {planLine.charAt(0).toLowerCase()}
+                    {planLine.slice(1)}
+                  </p>
+                </>
+              )}
+            </AlertDialog.Body>
+            <AlertDialog.Footer className="flex justify-end gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onPress={() => {
+                  onOpenChange(false);
+                  onConfirm();
+                }}
+              >
+                {adding ? "Add paid seat" : "Move to viewer"}
+              </Button>
+            </AlertDialog.Footer>
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
+  );
+}
+
+function RowAction({
+  row,
+  workspaceName,
+  paidSeats,
+}: {
+  row: Row;
+  workspaceName: string;
+  paidSeats: PaidSeats | null;
+}) {
+  const name = row.name || row.email;
   switch (row.action) {
     case "remove":
       return (
-        <form action={removeMemberAction} className="inline-flex">
-          <input type="hidden" name="userId" value={row.actionId} />
-          <Button
-            variant="ghost"
-            size="sm"
-            isIconOnly
-            type="submit"
-            aria-label={`Remove ${row.name || row.email} from workspace`}
-            className="text-danger"
-          >
-            <X size={16} />
-          </Button>
-        </form>
+        <ConfirmAction
+          trigger={(open) => (
+            <Button
+              variant="ghost"
+              size="sm"
+              isIconOnly
+              onPress={open}
+              aria-label={`Remove ${name} from workspace`}
+              className="text-danger"
+            >
+              <X size={16} />
+            </Button>
+          )}
+          heading={`Remove ${name} from ${workspaceName}?`}
+          body={[
+            "They lose access straight away. Their recordings and screenshots stay in the workspace.",
+            ...(paidSeats && row.role === "member"
+              ? [
+                  `That frees their paid seat: your plan goes from ${paidSeats.seats} to ${Math.max(1, paidSeats.seats - 1)} seats.`,
+                ]
+              : []),
+          ]}
+          confirmLabel="Remove"
+          onConfirm={() => {
+            const form = new FormData();
+            form.set("userId", row.actionId);
+            return removeMemberAction(form);
+          }}
+        />
       );
     case "leave":
       return (
-        <form action={leaveWorkspaceAction} className="inline-flex">
-          <Button variant="secondary" size="sm" type="submit">
-            <LogOut size={14} />
-            Leave
-          </Button>
-        </form>
+        <ConfirmAction
+          trigger={(open) => (
+            <Button variant="secondary" size="sm" onPress={open}>
+              <LogOut size={14} />
+              Leave
+            </Button>
+          )}
+          heading={`Leave ${workspaceName}?`}
+          body={[
+            "You’ll lose access to its recordings and screenshots. Anything you recorded there stays in the workspace.",
+            "To come back, someone has to invite you again.",
+          ]}
+          confirmLabel="Leave workspace"
+          onConfirm={leaveWorkspaceAction}
+        />
       );
     case "revoke":
       return (
@@ -373,4 +649,67 @@ function RowAction({ row }: { row: Row }) {
     default:
       return null;
   }
+}
+
+function ConfirmAction({
+  trigger,
+  heading,
+  body,
+  confirmLabel,
+  onConfirm,
+}: {
+  trigger: (open: () => void) => React.ReactNode;
+  heading: string;
+  body: string[];
+  confirmLabel: string;
+  onConfirm: () => Promise<void>;
+}) {
+  const [isOpen, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+  return (
+    <>
+      {trigger(() => setOpen(true))}
+      <AlertDialog isOpen={isOpen} onOpenChange={setOpen}>
+        <AlertDialog.Backdrop>
+          <AlertDialog.Container size="sm">
+            <AlertDialog.Dialog>
+              <AlertDialog.Header>
+                <AlertDialog.Heading>{heading}</AlertDialog.Heading>
+              </AlertDialog.Header>
+              <AlertDialog.Body className="flex flex-col gap-2 text-sm text-fg">
+                {body.map((line, i) => (
+                  <p key={line} className={i > 0 ? "text-fg-muted" : undefined}>
+                    {line}
+                  </p>
+                ))}
+              </AlertDialog.Body>
+              <AlertDialog.Footer className="flex justify-end gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  isDisabled={pending}
+                  onPress={() => setOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  isDisabled={pending}
+                  onPress={() =>
+                    startTransition(async () => {
+                      await onConfirm();
+                      setOpen(false);
+                    })
+                  }
+                >
+                  {confirmLabel}
+                </Button>
+              </AlertDialog.Footer>
+            </AlertDialog.Dialog>
+          </AlertDialog.Container>
+        </AlertDialog.Backdrop>
+      </AlertDialog>
+    </>
+  );
 }

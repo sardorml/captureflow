@@ -1,5 +1,6 @@
 "use client";
 
+import type { PaidSeats } from "@/lib/billing/seat-checkout";
 import { useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
@@ -83,6 +84,7 @@ type Props = {
   memberCount: number;
   recordingCount: number;
   canInvite: boolean;
+  paidSeats: PaidSeats | null;
   // The row under the divider: who is in the workspace, with the invite.
   footer?: ReactNode;
 };
@@ -93,6 +95,7 @@ export function WorkspaceSwitcher({
   memberCount,
   recordingCount,
   canInvite,
+  paidSeats,
   footer,
 }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -238,7 +241,11 @@ export function WorkspaceSwitcher({
       {/* Outside the Dropdown on purpose: closing the popover unmounts its
           subtree, which would take the modal down with it. */}
       {inviteMounted ? (
-        <InviteModal isOpen={isInviting} onOpenChange={setInviting} />
+        <InviteModal
+          isOpen={isInviting}
+          onOpenChange={setInviting}
+          paidSeats={paidSeats}
+        />
       ) : null}
 
       <form ref={formRef} action={switchWorkspaceAction} className="hidden">

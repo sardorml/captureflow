@@ -9,12 +9,13 @@ import {
   Settings,
 } from "lucide-react";
 import { Avatar, Chip, Dropdown, Separator, Typography } from "@heroui/react";
+import { getSeatPlan, type SeatPlanId } from "@captureflow/quota";
 import type { ThemePreference } from "@captureflow/ui";
 import { initials } from "@/lib/format";
 import { SUPPORT_EMAIL } from "@/lib/site";
 import { ThemeSegments } from "./ThemeSegments";
 
-export type AccountMenuPlan = "free" | "team";
+export type AccountMenuPlan = "free" | SeatPlanId;
 
 export type AccountMenuNavItem = {
   key: string;
@@ -36,10 +37,12 @@ export function accountNavItems({
   base = "",
   plan,
   selfHosted = false,
+  billing = true,
 }: {
   base?: string;
   plan?: AccountMenuPlan;
   selfHosted?: boolean;
+  billing?: boolean;
 }): AccountMenuNavItem[] {
   const items: AccountMenuNavItem[] = [
     {
@@ -49,8 +52,8 @@ export function accountNavItems({
       href: `${base}/billing`,
       trailing:
         plan === undefined ? undefined : (
-          <Chip size="sm" color={plan === "team" ? "accent" : "default"}>
-            {plan === "team" ? "Paid" : "Free"}
+          <Chip size="sm" color={plan === "free" ? "default" : "accent"}>
+            {plan === "free" ? "Free" : getSeatPlan(plan).name}
           </Chip>
         ),
     },
@@ -73,9 +76,11 @@ export function accountNavItems({
       href: `mailto:${SUPPORT_EMAIL}`,
     },
   ];
-  return selfHosted
-    ? items.filter((i) => i.key !== "billing" && i.key !== "support")
-    : items;
+  return items.filter(
+    (i) =>
+      !(selfHosted && (i.key === "billing" || i.key === "support")) &&
+      !(!billing && i.key === "billing"),
+  );
 }
 
 type Props = {

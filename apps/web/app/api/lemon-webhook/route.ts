@@ -41,6 +41,12 @@ type LSSubscriptionEvent = {
       updated_at: string;
       // The item carries the seat quantity, and its id is what the quantity update API takes.
       first_subscription_item?: { id: number; quantity: number } | null;
+      card_brand?: string | null;
+      card_last_four?: string | null;
+      urls?: {
+        customer_portal?: string | null;
+        update_payment_method?: string | null;
+      } | null;
     };
   };
 };
@@ -137,8 +143,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, ignored: name });
   }
 
+  // Payment events carry an invoice, not the subscription; the subscription
+  // events that follow them hold everything this route needs.
   const data = event.data;
-  if (!data || data.type !== "subscriptions" || !data.attributes) {
+  if (data?.type !== "subscriptions") {
+    return NextResponse.json({ ok: true, ignored: name });
+  }
+  if (!data.attributes) {
     return NextResponse.json({ error: "unexpected payload" }, { status: 400 });
   }
   const attrs = data.attributes;
@@ -177,6 +188,10 @@ export async function POST(req: NextRequest) {
     quantity: Math.max(1, item?.quantity ?? 1),
     current_period_end: periodEndFromAttributes(attrs),
     cancelled_at: attrs.cancelled ? now : null,
+    card_brand: attrs.card_brand ?? null,
+    card_last_four: attrs.card_last_four ?? null,
+    portal_url: attrs.urls?.customer_portal ?? null,
+    update_payment_url: attrs.urls?.update_payment_method ?? null,
     now,
   });
   return NextResponse.json({ ok: true });

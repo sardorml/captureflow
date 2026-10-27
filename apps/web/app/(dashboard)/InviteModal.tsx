@@ -8,7 +8,8 @@ import {
 } from "react";
 import { Check, UserPlus, X } from "lucide-react";
 import { Alert, Button, Chip, Modal, Typography } from "@heroui/react";
-import type { AssignableRole } from "@captureflow/quota";
+import { getSeatPlan, type AssignableRole } from "@captureflow/quota";
+import type { PaidSeats } from "@/lib/billing/seat-checkout";
 import { cn } from "@/lib/utils";
 import { ASSIGNABLE_ROLES } from "@/lib/workspace/labels";
 import { inviteMemberAction } from "./members/actions";
@@ -24,6 +25,7 @@ type InviteModalProps = {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   workspaceName?: string;
+  paidSeats?: PaidSeats | null;
 };
 
 export function InviteModal({
@@ -31,7 +33,10 @@ export function InviteModal({
   isOpen,
   onOpenChange,
   workspaceName,
+  paidSeats = null,
 }: InviteModalProps = {}) {
+  // In a paid workspace a member costs a seat, so the owner opts into it.
+  const defaultRole: AssignableRole = paidSeats ? "viewer" : "member";
   const [ownOpen, setOwnOpen] = useState(false);
   // Controlled when a caller passes isOpen — the workspace switcher opens this
   // from inside a popover it has to close first, so the trigger can't live here.
@@ -39,7 +44,7 @@ export function InviteModal({
   const open = isOpen ?? ownOpen;
   const setOpen = onOpenChange ?? setOwnOpen;
   const [emails, setEmails] = useState<string[]>([]);
-  const [role, setRole] = useState<AssignableRole>("member");
+  const [role, setRole] = useState<AssignableRole>(defaultRole);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -47,7 +52,7 @@ export function InviteModal({
 
   const reset = () => {
     setEmails([]);
-    setRole("member");
+    setRole(defaultRole);
     setDraft("");
     setError(null);
     setResult(null);
@@ -221,6 +226,20 @@ export function InviteModal({
                     );
                   })}
                 </div>
+
+                {paidSeats && role === "member" && (
+                  <Typography
+                    type="body-xs"
+                    color="muted"
+                    className="mt-2 block"
+                  >
+                    {`Each member who accepts adds a paid seat to your ${getSeatPlan(paidSeats.plan).name} plan, $${
+                      paidSeats.cycle === "annual"
+                        ? getSeatPlan(paidSeats.plan).priceAnnualUsdPerMonth
+                        : getSeatPlan(paidSeats.plan).priceMonthlyUsd
+                    } a month each. The rest of this period goes on your next invoice.`}
+                  </Typography>
+                )}
 
                 {error && (
                   <Alert status="danger" className="mt-3">

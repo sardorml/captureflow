@@ -51,6 +51,10 @@ export type WorkspaceSubscriptionRow = {
   quantity: number;
   current_period_end: number | null;
   cancelled_at: number | null;
+  card_brand: string | null;
+  card_last_four: string | null;
+  portal_url: string | null;
+  update_payment_url: string | null;
   created_at: number;
   updated_at: number;
 };
@@ -58,7 +62,8 @@ export type WorkspaceSubscriptionRow = {
 const COLUMNS =
   "ls_subscription_id, ls_subscription_item_id, workspace_id, ls_variant_id, " +
   "ls_customer_id, ls_customer_email, status, plan, cycle, quantity, " +
-  "current_period_end, cancelled_at, created_at, updated_at";
+  "current_period_end, cancelled_at, card_brand, card_last_four, portal_url, " +
+  "update_payment_url, created_at, updated_at";
 
 // The latest row for a workspace decides: a cancelled row can sit beside an
 // active resubscribe.
@@ -95,9 +100,10 @@ export async function upsertWorkspaceSubscription(
       `INSERT INTO workspace_subscription (
          ls_subscription_id, ls_subscription_item_id, workspace_id, ls_variant_id,
          ls_customer_id, ls_customer_email, status, plan, cycle, quantity,
-         current_period_end, cancelled_at, created_at, updated_at
+         current_period_end, cancelled_at, card_brand, card_last_four,
+         portal_url, update_payment_url, created_at, updated_at
        )
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?13)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?14, ?15, ?16, ?17, ?13, ?13)
        ON CONFLICT(ls_subscription_id) DO UPDATE SET
          ls_subscription_item_id = COALESCE(excluded.ls_subscription_item_id, ls_subscription_item_id),
          workspace_id       = COALESCE(excluded.workspace_id, workspace_id),
@@ -110,6 +116,10 @@ export async function upsertWorkspaceSubscription(
          quantity           = excluded.quantity,
          current_period_end = excluded.current_period_end,
          cancelled_at       = excluded.cancelled_at,
+         card_brand         = COALESCE(excluded.card_brand, card_brand),
+         card_last_four     = COALESCE(excluded.card_last_four, card_last_four),
+         portal_url         = COALESCE(excluded.portal_url, portal_url),
+         update_payment_url = COALESCE(excluded.update_payment_url, update_payment_url),
          updated_at         = excluded.updated_at`,
     )
     .bind(
@@ -126,6 +136,10 @@ export async function upsertWorkspaceSubscription(
       row.current_period_end,
       row.cancelled_at,
       row.now,
+      row.card_brand,
+      row.card_last_four,
+      row.portal_url,
+      row.update_payment_url,
     )
     .run();
 }

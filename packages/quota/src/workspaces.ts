@@ -58,6 +58,7 @@ export type WorkspaceMember = {
   image: string | null;
   role: WorkspaceRole;
   joined_at: number;
+  downgrade_at: number | null;
 };
 
 export type WorkspaceInviteRow = {
@@ -456,7 +457,8 @@ export async function listMembers(
               u.email AS email,
               u.image AS image,
               m.role  AS role,
-              m.joined_at
+              m.joined_at,
+              m.downgrade_at
          FROM workspace_member m
          JOIN users u ON u.id = m.user_id
          WHERE m.workspace_id = ?1
@@ -487,7 +489,7 @@ export async function updateWorkspaceMemberRole(
   if (existing === role) return { ok: true, changed: false };
   await db
     .prepare(
-      `UPDATE workspace_member SET role = ?3
+      `UPDATE workspace_member SET role = ?3, downgrade_at = NULL
          WHERE workspace_id = ?1 AND user_id = ?2`,
     )
     .bind(workspaceId, userId, role)
@@ -717,6 +719,73 @@ export async function listPendingInvites(
     .bind(workspaceId, nowMs())
     .all<WorkspaceInviteRow>();
   return (results ?? []).map(hydrateInvite);
+}
+
+export type InviteForUser = {
+  id: string;
+  workspace_id: string;
+  workspace_name: string;
+  role: AssignableRole;
+  inviter_name: string | null;
+  inviter_image: string | null;
+  created_at: number;
+};
+
+export async function listInvitesForEmail(
+  db: D1Database,
+  email: string,
+): Promise<InviteForUser[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT i.id, i.workspace_id, w.name AS workspace_name, i.role,
+              u.name AS inviter_name, u.image AS inviter_image, i.created_at
+         FROM workspace_invite i
+         JOIN workspace w ON w.id = i.workspace_id
+         LEFT JOIN users u ON u.id = i.invited_by_user_id
+        WHERE LOWER(i.email) = LOWER(?1)
+          AND i.accepted_at IS NULL
+          AND i.expires_at > ?2
+        ORDER BY i.created_at DESC`,
+    )
+    .bind(email, nowMs())
+    .all<Omit<InviteForUser, "role"> & { role: string }>();
+  return (results ?? []).map((row) => ({
+    ...row,
+    role: isAssignableRole(row.role) ? row.role : "member",
+  }));
+}
+
+// Like findInviteByToken, but for an invite the signed-in account was shown.
+export async function findPendingInviteForEmail(
+  db: D1Database,
+  inviteId: string,
+  email: string,
+): Promise<WorkspaceInviteRow | null> {
+  const row = await db
+    .prepare(
+      `SELECT id, workspace_id, email, role, invited_by_user_id,
+              created_at, expires_at, accepted_at
+         FROM workspace_invite
+         WHERE id = ?1 AND LOWER(email) = LOWER(?2)
+           AND accepted_at IS NULL AND expires_at > ?3
+         LIMIT 1`,
+    )
+    .bind(inviteId, email, nowMs())
+    .first<WorkspaceInviteRow>();
+  return row ? hydrateInvite(row) : null;
+}
+
+export async function declineInvite(
+  db: D1Database,
+  args: { inviteId: string; email: string },
+): Promise<void> {
+  await db
+    .prepare(
+      `DELETE FROM workspace_invite
+         WHERE id = ?1 AND LOWER(email) = LOWER(?2) AND accepted_at IS NULL`,
+    )
+    .bind(args.inviteId, args.email)
+    .run();
 }
 
 export async function revokeInvite(

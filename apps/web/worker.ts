@@ -8,6 +8,7 @@ import {
   runDailyRetentionSweep,
   runHourlyMultipartGc,
 } from "./lib/recording/cron";
+import { runDailySeatSync } from "./lib/billing/seat-cron";
 import { hydrateTranscriptionJobMessage } from "./lib/recording/transcription";
 import {
   failTranscription,
@@ -19,6 +20,7 @@ type Env = {
   BUCKET: R2Bucket;
   AI: Ai;
   SELF_HOSTED?: string;
+  LEMON_API_KEY?: string;
 };
 
 // Keep equal to the consumer's max_retries in wrangler.jsonc: the delivery
@@ -42,6 +44,7 @@ const handler: ExportedHandler<Env> = {
         break;
       case "0 4 * * *":
         ctx.waitUntil(runDailyRetentionSweep(env));
+        ctx.waitUntil(runDailySeatSync(env));
         break;
       default:
         console.warn(`[cron] unknown schedule: ${event.cron}`);

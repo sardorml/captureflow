@@ -21,6 +21,14 @@ export type SeatOffer = {
 
 export type SeatCycle = "monthly" | "annual";
 
+// A paid workspace's seats as the members page and invites price them.
+export type PaidSeats = {
+  plan: SeatPlanId;
+  cycle: SeatCycle;
+  seats: number;
+  periodEnd: number | null;
+};
+
 // Lemon Squeezy's buy links are per variant, so each plan and cycle has its own.
 export type SeatCheckoutUrls = Record<
   SeatPlanId,

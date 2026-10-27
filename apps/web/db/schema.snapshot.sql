@@ -186,6 +186,7 @@ CREATE TABLE workspace_member (
   
   role            TEXT NOT NULL DEFAULT 'member',
   joined_at       INTEGER NOT NULL,
+  downgrade_at    INTEGER,
   PRIMARY KEY (workspace_id, user_id)
 ) STRICT;
 CREATE TABLE workspace_invite (
@@ -331,7 +332,39 @@ CREATE TABLE workspace_subscription (
   created_at              INTEGER NOT NULL,
   updated_at              INTEGER NOT NULL,
   plan                    TEXT NOT NULL DEFAULT 'light',
+  card_brand              TEXT,
+  card_last_four          TEXT,
+  portal_url              TEXT,
+  update_payment_url      TEXT,
   CHECK (cycle IN ('monthly', 'annual'))
 ) STRICT;
 CREATE INDEX idx_workspace_subscription_workspace
   ON workspace_subscription (workspace_id, updated_at DESC);
+CREATE TABLE seat_request (
+  workspace_id TEXT NOT NULL REFERENCES workspace(id) ON DELETE CASCADE,
+  user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at   INTEGER NOT NULL,
+  PRIMARY KEY (workspace_id, user_id)
+) STRICT;
+CREATE TABLE notification (
+  id            TEXT PRIMARY KEY,
+  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  workspace_id  TEXT NOT NULL REFERENCES workspace(id) ON DELETE CASCADE,
+  kind          TEXT NOT NULL,
+  actor_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  role          TEXT,
+  effective_at  INTEGER,
+  created_at    INTEGER NOT NULL,
+  read_at       INTEGER
+) STRICT;
+CREATE INDEX idx_notification_user
+  ON notification (user_id, created_at DESC);
+CREATE TABLE seat_change (
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  ls_subscription_id TEXT NOT NULL,
+  from_quantity      INTEGER NOT NULL,
+  to_quantity        INTEGER NOT NULL,
+  changed_at         INTEGER NOT NULL
+) STRICT;
+CREATE INDEX idx_seat_change_subscription
+  ON seat_change (ls_subscription_id, changed_at);

@@ -53,7 +53,8 @@ beforeEach(() => {
       ls_subscription_item_id TEXT, workspace_id TEXT, ls_variant_id TEXT,
       ls_customer_id TEXT, ls_customer_email TEXT, status TEXT, cycle TEXT,
       quantity INTEGER, current_period_end INTEGER, cancelled_at INTEGER,
-      created_at INTEGER, updated_at INTEGER, plan TEXT NOT NULL DEFAULT 'light');
+      created_at INTEGER, updated_at INTEGER, plan TEXT NOT NULL DEFAULT 'light',
+      card_brand TEXT, card_last_four TEXT, portal_url TEXT, update_payment_url TEXT);
     INSERT INTO users (id, name, email) VALUES ('ann', 'Ann', 'ann@x.io'),
       ('bob', 'Bob', 'bob@x.io'), ('vic', 'Vic', 'vic@x.io'), ('zed', 'Zed', 'zed@x.io');
     INSERT INTO workspace (id, name, slug, kind, owner_user_id)
@@ -62,7 +63,7 @@ beforeEach(() => {
       ('team', 'ann', 'owner'), ('team', 'bob', 'member'), ('team', 'vic', 'viewer'),
       ('solo', 'zed', 'owner');
     INSERT INTO workspace_subscription VALUES ('sub-1', 'item-1', 'team', 'v', NULL,
-      'ann@x.io', 'active', 'monthly', 2, ${NOW_S + 3600}, NULL, 1, 2, 'pro');
+      'ann@x.io', 'active', 'monthly', 2, ${NOW_S + 3600}, NULL, 1, 2, 'pro', NULL, NULL, NULL, NULL);
     INSERT INTO recordings (slug, user_id, workspace_id, state, size_bytes)
       VALUES ('r1', 'bob', 'team', 'ready', 100), ('r2', 'zed', 'solo', 'ready', 5);
   `);

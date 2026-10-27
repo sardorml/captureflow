@@ -36,6 +36,7 @@ import {
   formatRelativeShort as formatRelative,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useDevPref } from "@/lib/dev/prefs";
 
 // Over the thumbnail the secondary button's pale fill and soft accent icon
 // disappear against a light capture, so the controls there take the same
@@ -107,6 +108,7 @@ export function MediaCard({
   onDelete,
   onChangeVisibility,
 }: MediaCardProps) {
+  const showSize = useDevPref("file-sizes");
   const [hovered, setHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -391,13 +393,15 @@ export function MediaCard({
             <Stat icon={<Smile size={14} />} value={stats.reactions} />
           </div>
           <div className="flex items-center gap-3">
-            <Typography
-              color="muted"
-              type="body-sm"
-              className="whitespace-nowrap"
-            >
-              {formatBytes(sizeBytes)}
-            </Typography>
+            {showSize && (
+              <Typography
+                color="muted"
+                type="body-sm"
+                className="whitespace-nowrap"
+              >
+                {formatBytes(sizeBytes)}
+              </Typography>
+            )}
             {canAuthor && (
               <Tooltip>
                 <Tooltip.Trigger className="relative z-10 inline-flex">

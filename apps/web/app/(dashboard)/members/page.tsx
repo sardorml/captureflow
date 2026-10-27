@@ -1,9 +1,13 @@
 import { Alert } from "@heroui/react";
-import { listMembers, listPendingInvites } from "@captureflow/quota";
+import {
+  listMembers,
+  listPendingInvites,
+  listSeatRequests,
+} from "@captureflow/quota";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
-import { getWorkspaceSeatContext } from "@/lib/billing/seats";
+import { getWorkspaceSeatContext, paidSeatsOf } from "@/lib/billing/seats";
 import { WorkspacePageHeader } from "../WorkspacePageHeader";
 import { MembersTable } from "./MembersTable";
 import { SeatSummary } from "./SeatSummary";
@@ -33,11 +37,14 @@ export default async function MembersPage() {
     );
   }
 
-  const [members, pending, seats] = await Promise.all([
+  const [members, pending, seats, seatRequests] = await Promise.all([
     listMembers(env.DB, workspace.id),
     isOwner ? listPendingInvites(env.DB, workspace.id) : Promise.resolve([]),
     getWorkspaceSeatContext(workspace),
+    isOwner ? listSeatRequests(env.DB, workspace.id) : Promise.resolve([]),
   ]);
+
+  const paidSeats = paidSeatsOf(seats);
 
   return (
     <div className="flex flex-col gap-8">
@@ -56,6 +63,8 @@ export default async function MembersPage() {
         viewerUserId={session.user.id}
         viewerIsOwner={isOwner}
         workspaceName={workspace.name}
+        paidSeats={paidSeats}
+        seatRequests={seatRequests}
       />
     </div>
   );

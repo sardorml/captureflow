@@ -37,7 +37,7 @@ beforeEach(() => {
       allow_public_links INTEGER DEFAULT 1, allow_member_uploads INTEGER DEFAULT 1,
       card_bg TEXT);
     CREATE TABLE workspace_member (workspace_id TEXT, user_id TEXT, role TEXT,
-      joined_at INTEGER, PRIMARY KEY (workspace_id, user_id));
+      joined_at INTEGER, downgrade_at INTEGER, PRIMARY KEY (workspace_id, user_id));
     CREATE TABLE workspace_invite (id TEXT PRIMARY KEY, workspace_id TEXT, email TEXT,
       role TEXT NOT NULL DEFAULT 'member', token_hash TEXT UNIQUE,
       invited_by_user_id TEXT, created_at INTEGER, expires_at INTEGER,
@@ -46,7 +46,7 @@ beforeEach(() => {
     INSERT INTO users VALUES ('bob', 'Bob', 'bob@x.io', NULL);
     INSERT INTO workspace (id, slug, kind, name, owner_user_id, created_at, updated_at)
       VALUES ('team', 'team', 'team', 'Team', 'ann', 1, 1);
-    INSERT INTO workspace_member VALUES ('team', 'ann', 'owner', 1);
+    INSERT INTO workspace_member VALUES ('team', 'ann', 'owner', 1, NULL);
   `);
   db = d1(sqlite);
 });
@@ -106,7 +106,7 @@ describe("membership data", () => {
       .run();
     sqlite
       .prepare(
-        `INSERT INTO workspace_member VALUES ('team', 'cat', 'member', 0)`,
+        `INSERT INTO workspace_member VALUES ('team', 'cat', 'member', 0, NULL)`,
       )
       .run();
     const members = await listMembers(db, "team");
@@ -116,7 +116,7 @@ describe("membership data", () => {
   it("reads a role it does not know as the least privileged one", async () => {
     sqlite
       .prepare(
-        `INSERT INTO workspace_member VALUES ('team', 'bob', 'editor', 1)`,
+        `INSERT INTO workspace_member VALUES ('team', 'bob', 'editor', 1, NULL)`,
       )
       .run();
     expect(await getWorkspaceRole(db, "team", "bob")).toBe("viewer");

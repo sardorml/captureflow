@@ -3,16 +3,20 @@ import {
   countWorkspaceSeats,
   getActiveWorkspaceSubscription,
   getWorkspaceEntitlement,
+  DEFAULT_SEAT_PLAN_ID,
   isSelfHosted,
   listMembers,
-  setSubscriptionItemQuantity,
-  setWorkspaceSubscriptionQuantity,
   totalStorageForWorkspace,
   type WorkspaceEntitlement,
   type WorkspaceSubscriptionRow,
 } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
-import { seatCheckoutBases, type SeatOffer } from "./seat-checkout";
+import {
+  seatCheckoutBases,
+  type PaidSeats,
+  type SeatOffer,
+} from "./seat-checkout";
+import { syncSeatsWithBilling } from "./seat-sync";
 
 export type WorkspaceSeatContext = {
   entitlement: WorkspaceEntitlement;
@@ -67,43 +71,22 @@ export async function getWorkspaceSeatContext(workspace: {
   };
 }
 
-/*
- * Pushes the member count to billing as the seat quantity after a join or a
- * leave. Best-effort by design: a failed call is logged and the member change
- * stands, since billing must never block someone joining a team. Without an
- * API key (local dev, self-hosted) it only reports what it would have done.
- */
+export function paidSeatsOf(
+  context: WorkspaceSeatContext | null,
+): PaidSeats | null {
+  if (!context?.subscription || context.entitlement.tier !== "team") {
+    return null;
+  }
+  return {
+    plan: context.entitlement.plan ?? DEFAULT_SEAT_PLAN_ID,
+    cycle: context.subscription.cycle,
+    seats: context.memberCount,
+    periodEnd: context.subscription.current_period_end,
+  };
+}
+
 export async function syncWorkspaceSeats(workspaceId: string): Promise<void> {
   const env = await getAppWebEnv();
-  if (!env?.DB || isSelfHosted(env)) return;
-  const subscription = await getActiveWorkspaceSubscription(
-    env.DB,
-    workspaceId,
-  );
-  if (!subscription) return;
-  const seats = Math.max(1, await countWorkspaceSeats(env.DB, workspaceId));
-  if (seats === subscription.quantity) return;
-
-  if (!env.LEMON_API_KEY || !subscription.ls_subscription_item_id) {
-    console.info(
-      `[seats] workspace ${workspaceId}: would set quantity ${subscription.quantity} → ${seats} (no LEMON_API_KEY or item id)`,
-    );
-    return;
-  }
-  const result = await setSubscriptionItemQuantity({
-    apiKey: env.LEMON_API_KEY,
-    subscriptionItemId: subscription.ls_subscription_item_id,
-    quantity: seats,
-  });
-  if (!result.ok) {
-    console.error(
-      `[seats] workspace ${workspaceId}: quantity update failed ${result.status}: ${result.body.slice(0, 200)}`,
-    );
-    return;
-  }
-  await setWorkspaceSubscriptionQuantity(
-    env.DB,
-    subscription.ls_subscription_id,
-    seats,
-  );
+  if (!env?.DB) return;
+  await syncSeatsWithBilling({ ...env, DB: env.DB }, workspaceId);
 }

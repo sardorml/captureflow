@@ -3,13 +3,7 @@ import Link from "next/link";
 import { preconnect } from "react-dom";
 import { ArrowRight, PenLine, TrendingUp } from "lucide-react";
 import { buttonVariants } from "@heroui/react";
-import {
-  can,
-  getWorkspaceEntitlement,
-  isSelfHosted,
-  totalStorageForWorkspace,
-  UNLIMITED_STORAGE_BYTES,
-} from "@captureflow/quota";
+import { can, getWorkspaceEntitlement, isSelfHosted } from "@captureflow/quota";
 import { SplitLoaded } from "@/components/dev/split-loaded";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
@@ -24,7 +18,7 @@ import {
   loadDashboardActivity,
   loadDashboardTotals,
 } from "@/lib/dashboard-metrics-db";
-import { formatBytes, formatDuration } from "@/lib/format";
+import { formatDuration } from "@/lib/format";
 import { viewerMediaUrl } from "@/lib/recording/media-url";
 import { countUserRecordingsInWorkspace } from "@/lib/recording/quota";
 import {
@@ -83,16 +77,11 @@ export default async function DashboardPage() {
   const workspaceId = current.workspace.id;
   const now = Date.now();
   const since = (dayOf(now) - (WEEK_DAYS - 1)) * DAY_MS;
-  /*
-   * The last tile meters what the plan bounds: the pooled storage on a paid
-   * workspace, or this person's recording allowance on free, where storage
-   * is uncapped.
-   */
-  const [activity, totals, usedBytes, entitlement, recentRows, ownCount] =
+  // Free adds a fourth tile for this person's recording allowance.
+  const [activity, totals, entitlement, recentRows, ownCount] =
     await Promise.all([
       loadDashboardActivity(workspaceId, userId, since),
       loadDashboardTotals(workspaceId, userId),
-      env?.DB ? totalStorageForWorkspace(env.DB, workspaceId) : 0,
       env?.DB
         ? getWorkspaceEntitlement(env.DB, workspaceId, {
             selfHosted: isSelfHosted(env),
@@ -109,9 +98,6 @@ export default async function DashboardPage() {
     preconnect(env?.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL);
   }
 
-  const limit = entitlement?.storageBytes ?? UNLIMITED_STORAGE_BYTES;
-  const limitBytes = limit >= UNLIMITED_STORAGE_BYTES ? null : limit;
-  const fill = storageFill(usedBytes, limitBytes);
   const allowance = entitlement?.recordingsPerPerson ?? null;
   const allowanceFill =
     allowance === null ? null : storageFill(ownCount, allowance);
@@ -156,7 +142,9 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div
+        className={`grid grid-cols-2 gap-3 ${allowanceFill ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}
+      >
         <Stat
           label="Recordings"
           value={totals.recordings.toLocaleString()}
@@ -192,7 +180,7 @@ export default async function DashboardPage() {
             label="Recordings left"
             value={`${Math.max(0, allowance - ownCount)} of ${allowance}`}
             hint={`Free plan, up to ${minutesEach} min each`}
-            href="/billing"
+            href={current.role === "owner" ? "/billing" : "/recordings"}
             aside={
               <Ring
                 ratio={allowanceFill.ratio}
@@ -200,21 +188,7 @@ export default async function DashboardPage() {
               />
             }
           />
-        ) : (
-          <Stat
-            label="Storage"
-            value={formatBytes(usedBytes)}
-            hint={
-              limitBytes === null
-                ? "No limit"
-                : `${Math.round((fill?.ratio ?? 0) * 100)}% of ${formatBytes(limitBytes)}`
-            }
-            href="/billing"
-            aside={
-              fill && <Ring ratio={fill.ratio} tone={METER_TONE[fill.tone]} />
-            }
-          />
-        )}
+        ) : null}
       </div>
 
       <section className="flex flex-col gap-4">

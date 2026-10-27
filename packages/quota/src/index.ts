@@ -42,6 +42,25 @@ export type {
   WorkspaceSubscriptionUpsert,
 } from "./workspace-subscription";
 export { getWorkspaceEntitlement } from "./entitlement";
+export {
+  applyDueDowngrades,
+  cancelMemberDowngrade,
+  clearSeatRequest,
+  hasSeatRequest,
+  listSeatRequests,
+  requestSeat,
+  scheduleMemberDowngrade,
+} from "./seat-requests";
+export type { SeatRequest } from "./seat-requests";
+export { listSeatChangesSince, recordSeatChange } from "./seat-changes";
+export type { SeatChange } from "./seat-changes";
+export {
+  addNotification,
+  countUnreadNotifications,
+  listNotifications,
+  markNotificationsRead,
+} from "./notifications";
+export type { NotificationKind, NotificationRow } from "./notifications";
 export { setSubscriptionItemQuantity } from "./lemon-api";
 export type { SeatQuantityResult } from "./lemon-api";
 export {
@@ -61,7 +80,10 @@ export {
   listMembers,
   createInvite,
   findInviteByToken,
+  findPendingInviteForEmail,
   acceptInvite,
+  declineInvite,
+  listInvitesForEmail,
   listPendingInvites,
   revokeInvite,
   removeWorkspaceMember,
@@ -88,6 +110,7 @@ export type {
   WorkspaceMember,
   WorkspaceMembership,
   WorkspaceInviteRow,
+  InviteForUser,
   CreateInviteResult,
   CreateInviteError,
   AcceptInviteResult,

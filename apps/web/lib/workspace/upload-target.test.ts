@@ -66,7 +66,7 @@ beforeEach(() => {
       allow_public_links INTEGER DEFAULT 1, allow_member_uploads INTEGER DEFAULT 1,
       card_bg TEXT);
     CREATE TABLE workspace_member (workspace_id TEXT, user_id TEXT, role TEXT,
-      joined_at INTEGER, PRIMARY KEY (workspace_id, user_id));
+      joined_at INTEGER, downgrade_at INTEGER, PRIMARY KEY (workspace_id, user_id));
   `);
   sqlite.prepare(`INSERT INTO users (id, name) VALUES ('ann', 'Ann')`).run();
   personal("ann");

@@ -45,7 +45,7 @@ import { SessionLoadingShell } from "./SessionLoadingShell";
 import { AuthPrompt } from "./AuthPrompt";
 import { RecordingActions } from "./RecordingActions";
 import { RecordingViewer } from "./RecordingViewer";
-import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
+import { NotificationsBell } from "@/app/_components/NotificationsBell";
 import { SidebarDrawer } from "@/app/_components/SidebarDrawer";
 import { ViewerUserMenu } from "@/app/_components/ViewerUserMenu";
 import { Sidebar } from "@/app/(dashboard)/Sidebar";
@@ -328,7 +328,12 @@ export default async function RecordingPage({
           )
         }
         notifications={
-          visitor ? <NotificationsMenu base={APP_WEB_SITE_URL} /> : null
+          visitor ? (
+            <NotificationsBell
+              user={{ id: visitor.userId, email: visitor.email }}
+              base={APP_WEB_SITE_URL}
+            />
+          ) : null
         }
         userMenu={
           visitor ? (

@@ -10,9 +10,11 @@ import { requireWorkspaceAccess } from "@/lib/workspace/access";
 import {
   acceptWorkspaceInvite,
   changeMemberRole,
+  denySeatRequest,
   inviteToWorkspace,
   leaveWorkspace,
   removeMember,
+  requestPaidSeat,
   revokeWorkspaceInvite,
 } from "@/lib/workspace/membership";
 
@@ -88,7 +90,11 @@ export async function removeMemberAction(formData: FormData): Promise<void> {
   if (!access.ok) return;
   const userId = text(formData.get("userId"));
   if (!userId || userId === access.userId) return;
-  await removeMember(access.db, { workspaceId: access.workspace.id, userId });
+  await removeMember(access.db, {
+    workspaceId: access.workspace.id,
+    userId,
+    actorUserId: access.userId,
+  });
   revalidatePath("/members");
 }
 
@@ -103,9 +109,46 @@ export async function changeMemberRoleAction(
     workspaceId: access.workspace.id,
     userId,
     role: hydrateAssignableRole(formData.get("role")),
+    actorUserId: access.userId,
   });
   // The upgrade dialog in the top bar and sidebar shows the seats too.
   revalidatePath("/", "layout");
+}
+
+export async function requestPaidSeatAction(): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
+  const access = await requireWorkspaceAccess("view");
+  if (!access.ok) return { ok: false, error: access.error };
+  if (access.role !== "viewer") {
+    return { ok: false, error: "You can already record here" };
+  }
+  const result = await requestPaidSeat(access.db, {
+    workspace: access.workspace,
+    requester: {
+      userId: access.userId,
+      name: access.userName,
+      email: access.email,
+    },
+    baseUrl: await getAppBaseUrl(),
+  });
+  if (!result.ok) return { ok: false, error: result.error };
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+export async function denySeatRequestAction(formData: FormData): Promise<void> {
+  const access = await requireWorkspaceAccess("manage-members");
+  if (!access.ok) return;
+  const userId = text(formData.get("userId"));
+  if (!userId) return;
+  await denySeatRequest(access.db, {
+    workspaceId: access.workspace.id,
+    userId,
+    actorUserId: access.userId,
+  });
+  revalidatePath("/members");
 }
 
 export async function leaveWorkspaceAction(): Promise<void> {
@@ -133,6 +176,7 @@ export async function acceptInviteAction(formData: FormData): Promise<void> {
     token,
     userId: session.user.id,
     email: session.user.email,
+    baseUrl: await getAppBaseUrl(),
   });
   if (!result.ok) redirect(`/recordings?invite=${result.reason}`);
 

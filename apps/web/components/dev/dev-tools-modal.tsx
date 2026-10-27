@@ -9,6 +9,9 @@ import {
   getSplitLoads,
   subscribeSplitLoads,
 } from "@/lib/dev/split-loads";
+import { setDevPref, useDevPref } from "@/lib/dev/prefs";
+
+const LOCAL_DEV = process.env.NODE_ENV === "development";
 
 type Props = {
   isOpen: boolean;
@@ -31,6 +34,8 @@ export function DevToolsModal({
   useEffect(() => {
     if (isOpen) drainSplitStamps();
   }, [isOpen]);
+  const fakeCheckout = useDevPref("fake-checkout");
+  const fileSizes = useDevPref("file-sizes");
   const arrived = [...loads].sort((a, b) => a.at - b.at);
 
   return (
@@ -64,6 +69,49 @@ export function DevToolsModal({
                   </span>
                 </Checkbox.Content>
               </Checkbox>
+
+              <Checkbox
+                isSelected={fileSizes}
+                onChange={(on) => setDevPref("file-sizes", on)}
+              >
+                <Checkbox.Content className="items-start gap-3">
+                  <Checkbox.Control className="mt-0.5">
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <span className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-fg">
+                      File sizes
+                    </span>
+                    <span className="text-xs text-fg-muted">
+                      Shows each recording&apos;s and screenshot&apos;s size on
+                      its card.
+                    </span>
+                  </span>
+                </Checkbox.Content>
+              </Checkbox>
+
+              {LOCAL_DEV ? (
+                <Checkbox
+                  isSelected={fakeCheckout}
+                  onChange={(on) => setDevPref("fake-checkout", on)}
+                >
+                  <Checkbox.Content className="items-start gap-3">
+                    <Checkbox.Control className="mt-0.5">
+                      <Checkbox.Indicator />
+                    </Checkbox.Control>
+                    <span className="flex flex-col gap-1">
+                      <span className="text-sm font-medium text-fg">
+                        Fake checkout
+                      </span>
+                      <span className="text-xs text-fg-muted">
+                        Upgrade in the upgrade dialog applies the seat picks and
+                        activates the plan here, without Lemon Squeezy. Only
+                        under next dev.
+                      </span>
+                    </span>
+                  </Checkbox.Content>
+                </Checkbox>
+              ) : null}
 
               <div className="flex flex-col gap-2">
                 <p className="text-xs font-medium text-fg-subtle">

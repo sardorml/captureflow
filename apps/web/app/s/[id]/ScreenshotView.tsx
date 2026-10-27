@@ -6,7 +6,6 @@ import { ThemeToggle, type Theme, type ThemePreference } from "@captureflow/ui";
 import { AuthSync } from "./AuthSync";
 import { AuthPrompt } from "./AuthPrompt";
 import { ScreenshotActions } from "./ScreenshotActions";
-import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
 import { ViewerUserMenu } from "@/app/_components/ViewerUserMenu";
 import { ZoomableScreenshotImage } from "./ZoomableScreenshotImage";
 import type { ReactNode } from "react";
@@ -23,6 +22,7 @@ type Props = {
   /** Sits to the left of the nav brand, e.g. the workspace drawer trigger. */
   leading?: ReactNode;
   viewer?: ViewerNavViewer | null;
+  notifications?: ReactNode;
   viewerUserId?: string | null;
   viewerImageUrl?: string | null;
   isOwner: boolean;
@@ -48,6 +48,7 @@ export function ScreenshotView({
   ownerName,
   leading,
   viewer,
+  notifications,
   viewerUserId,
   viewerImageUrl,
   isOwner,
@@ -91,9 +92,7 @@ export function ScreenshotView({
             signedIn={!!viewer}
           />
         }
-        notifications={
-          viewer ? <NotificationsMenu base={APP_SITE_URL} /> : null
-        }
+        notifications={viewer ? notifications : null}
         userMenu={
           viewer ? (
             <ViewerUserMenu

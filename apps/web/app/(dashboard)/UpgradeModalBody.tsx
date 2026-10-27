@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Check, ChevronDown, Sparkle, Users } from "lucide-react";
 import { Avatar, Button, Checkbox, Label, Modal, Popover } from "@heroui/react";
 import {
@@ -25,9 +26,13 @@ import {
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ROLE_LABEL } from "@/lib/workspace/labels";
+import { useDevPref } from "@/lib/dev/prefs";
+import { fakeCheckoutAction } from "./dev-checkout-action";
 import { changeMemberRoleAction } from "./members/actions";
 
 const PLAN_COPY = MESSAGES.pricing.plans;
+
+const LOCAL_DEV = process.env.NODE_ENV === "development";
 
 const CYCLES: { key: SeatCycle; label: string }[] = [
   { key: "monthly", label: "Monthly" },
@@ -61,7 +66,9 @@ export function UpgradeModalBody({
   const people = seat.people.map((p) =>
     picks[p.userId] ? { ...p, role: picks[p.userId] } : p,
   );
-  const [, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
+  const router = useRouter();
+  const fakeCheckout = useDevPref("fake-checkout") && LOCAL_DEV;
 
   const canManage = people.some(
     (p) => p.userId === userId && p.role === "owner",
@@ -105,6 +112,21 @@ export function UpgradeModalBody({
       }
     });
   };
+
+  const runFakeCheckout = (planId: SeatPlanId) =>
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("plan", planId);
+      fd.set("cycle", cycle);
+      fd.set("picks", JSON.stringify(picks));
+      const result = await fakeCheckoutAction(fd);
+      if (!result.ok) {
+        window.alert(result.error);
+        return;
+      }
+      onOpenChange(false);
+      router.refresh();
+    });
 
   // PostHog distinct_id isn't available server-side at render, so append it
   // at click time.
@@ -251,6 +273,10 @@ export function UpgradeModalBody({
                     viewers={viewers}
                     href={checkoutHref(p.id)}
                     onCheckout={handleCheckoutClick}
+                    onFakeCheckout={
+                      fakeCheckout ? () => runFakeCheckout(p.id) : undefined
+                    }
+                    pending={pending}
                   />
                 ))}
               </div>
@@ -269,6 +295,8 @@ function PlanOption({
   viewers,
   href,
   onCheckout,
+  onFakeCheckout,
+  pending,
 }: {
   planId: SeatPlanId;
   cycle: SeatCycle;
@@ -276,6 +304,8 @@ function PlanOption({
   viewers: number;
   href: string | null;
   onCheckout: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  onFakeCheckout?: () => void;
+  pending: boolean;
 }) {
   const plan = getSeatPlan(planId);
   const copy = PLAN_COPY[planId];
@@ -283,6 +313,12 @@ function PlanOption({
   const perSeat =
     cycle === "annual" ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
   const total = seatPriceUsd(seats, cycle, planId);
+  const buttonClass = cn(
+    "mt-4 inline-flex h-10 w-fit items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors motion-reduce:transition-none",
+    highlighted
+      ? "bg-accent text-white hover:bg-accent/90"
+      : "bg-accent/10 text-fg hover:bg-accent/20",
+  );
 
   const card = (
     <div
@@ -320,19 +356,23 @@ function PlanOption({
         {cycle === "annual" ? ", billed yearly" : ""}
       </p>
 
-      {href ? (
+      {onFakeCheckout ? (
+        <button
+          type="button"
+          disabled={pending}
+          onClick={onFakeCheckout}
+          className={cn(buttonClass, "cursor-pointer disabled:opacity-60")}
+        >
+          Fake upgrade to {plan.name}
+        </button>
+      ) : href ? (
         <a
           href={href}
           data-plan={planId}
           target="_blank"
           rel="noopener noreferrer"
           onClick={onCheckout}
-          className={cn(
-            "mt-4 inline-flex h-10 w-fit items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors motion-reduce:transition-none",
-            highlighted
-              ? "bg-accent text-white hover:bg-accent/90"
-              : "bg-accent/10 text-fg hover:bg-accent/20",
-          )}
+          className={buttonClass}
         >
           Upgrade to {plan.name}
         </a>
