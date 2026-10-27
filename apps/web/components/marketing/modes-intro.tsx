@@ -54,10 +54,12 @@ const PAUSE_ICON = (
 function Scaled({
   width,
   height,
+  maxScale = 1,
   children,
 }: {
   width: number;
   height: number;
+  maxScale?: number;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -66,19 +68,19 @@ function Scaled({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const update = () => setScale(Math.min(1, el.clientWidth / width));
+    const update = () => setScale(Math.min(maxScale, el.clientWidth / width));
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [width]);
+  }, [width, maxScale]);
 
   return (
     <div
       ref={ref}
       aria-hidden
       className="relative w-full"
-      style={{ maxWidth: width, height: height * scale }}
+      style={{ maxWidth: width * maxScale, height: height * scale }}
     >
       <div
         className="absolute top-0 left-0 origin-top-left"
@@ -456,11 +458,8 @@ function CanvasScene({ t }: { t: number }) {
   );
 }
 
-const STAGE_PAD = 28;
-const STAGE = {
-  width: STAGE_PAD * 2 + SCENE.width,
-  height: STAGE_PAD * 2 + SCENE.height,
-};
+// Drawn at up to 1.2× its 600px design so it holds the wider column.
+const CANVAS_MAX_SCALE = 1.2;
 
 function RecordingMockup() {
   const ref = useRef<HTMLDivElement>(null);
@@ -469,19 +468,16 @@ function RecordingMockup() {
   const t = useLoopClock(onScreen && !reducedMotion);
 
   return (
-    <Scaled width={STAGE.width} height={STAGE.height}>
-      <div ref={ref} className="absolute inset-0">
-        <div
-          className="absolute overflow-hidden rounded-2xl border border-black/5 shadow-[0_28px_70px_rgb(0_0_0/0.18)] dark:border-white/10 dark:shadow-[0_28px_70px_rgb(0_0_0/0.5)]"
-          style={{
-            top: STAGE_PAD,
-            left: STAGE_PAD,
-            width: SCENE.width,
-            height: SCENE.height,
-          }}
-        >
-          <CanvasScene t={reducedMotion ? REST_T : t} />
-        </div>
+    <Scaled
+      width={SCENE.width}
+      height={SCENE.height}
+      maxScale={CANVAS_MAX_SCALE}
+    >
+      <div
+        ref={ref}
+        className="absolute inset-0 overflow-hidden rounded-2xl border border-black/5 shadow-[0_30px_60px_rgb(0_0_0/0.15),0_8px_20px_rgb(0_0_0/0.105)] dark:border-white/10 dark:shadow-[0_30px_60px_rgb(0_0_0/0.5),0_8px_20px_rgb(0_0_0/0.35)]"
+      >
+        <CanvasScene t={reducedMotion ? REST_T : t} />
       </div>
     </Scaled>
   );
