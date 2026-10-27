@@ -46,7 +46,7 @@ function EmbedContent({ step }: SceneState) {
     <>
       <div
         className={cn(
-          "absolute top-5 right-10 w-[500px] rounded-2xl rounded-br-[4px] bg-white px-5 py-3.5 text-[16px] leading-snug font-medium text-[#a855f7] shadow-[0_16px_36px_rgb(76_29_149/0.14)] transition-all duration-300",
+          "absolute top-5 right-10 w-[340px] rounded-2xl rounded-br-[4px] bg-white px-5 py-3.5 text-[16px] leading-snug font-medium text-[#a855f7] shadow-[0_16px_36px_rgb(76_29_149/0.14)] transition-all duration-300",
           asked ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
         )}
       >
@@ -55,7 +55,7 @@ function EmbedContent({ step }: SceneState) {
 
       <div
         className={cn(
-          "absolute top-[92px] left-10 rounded-2xl rounded-tl-[4px] bg-[#42275a] px-5 py-3.5 shadow-[0_22px_44px_rgb(66_39_90/0.3)] transition-all duration-300",
+          "absolute top-[114px] left-10 rounded-2xl rounded-tl-[4px] bg-[#42275a] px-5 py-3.5 shadow-[0_22px_44px_rgb(66_39_90/0.3)] transition-all duration-300",
           typing ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
         )}
       >
@@ -64,7 +64,7 @@ function EmbedContent({ step }: SceneState) {
 
       <div
         className={cn(
-          "absolute top-[92px] left-10 w-[430px] rounded-2xl rounded-tl-[4px] bg-[#42275a] px-5 py-3.5 shadow-[0_22px_44px_rgb(66_39_90/0.3)] transition-[opacity,translate] duration-300",
+          "absolute top-[114px] left-10 w-[430px] rounded-2xl rounded-tl-[4px] bg-[#42275a] px-5 py-3.5 shadow-[0_22px_44px_rgb(66_39_90/0.3)] transition-[opacity,translate] duration-300",
           replied ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
         )}
       >
@@ -110,7 +110,7 @@ function Player({
   );
 
   return (
-    <div className="relative h-[200px] overflow-hidden rounded-xl bg-[linear-gradient(160deg,#4f6fb8,#3a2b5c_45%,#8c2f3a_75%,#2a1020)]">
+    <div className="relative h-[184px] overflow-hidden rounded-xl bg-[linear-gradient(160deg,#4f6fb8,#3a2b5c_45%,#8c2f3a_75%,#2a1020)]">
       <div className="absolute inset-x-6 top-4 bottom-0 overflow-hidden rounded-t-lg bg-[#f5f5f5] text-[#181818]">
         <div className="flex h-5 items-center gap-1 bg-[#eaeaea] px-2">
           <span className="size-1.5 rounded-full bg-[#ff5f57]" />
@@ -181,7 +181,7 @@ function Player({
       <MousePointer2
         className={cn(
           "absolute size-6 fill-white text-[#3b3550] drop-shadow transition-all duration-450 ease-[cubic-bezier(0.22,1,0.36,1)]",
-          pointing ? "top-[118px] left-[215px]" : "top-[180px] left-[360px]",
+          pointing ? "top-[104px] left-[215px]" : "top-[160px] left-[360px]",
           playing && "opacity-0",
         )}
       />
