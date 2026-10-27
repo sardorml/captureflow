@@ -6,6 +6,7 @@ import {
   listWorkspaceInvites,
   listWorkspaceMembers,
 } from "@captureflow/admin";
+import { getSeatPlan } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
 import {
@@ -138,9 +139,27 @@ export default async function WorkspacePage({
           </span>
         }
         actions={
-          <Tone color={workspace.kind === "team" ? "accent" : "default"}>
-            {workspace.kind}
-          </Tone>
+          <>
+            <Tone color={workspace.kind === "team" ? "accent" : "default"}>
+              {workspace.kind}
+            </Tone>
+            <Tone
+              color={
+                workspace.plan.status === "past_due"
+                  ? "warning"
+                  : workspace.plan.tier === "team"
+                    ? "accent"
+                    : "default"
+              }
+            >
+              {workspace.plan.tier === "team"
+                ? `${workspace.plan.plan ? getSeatPlan(workspace.plan.plan).name : "Paid"} · ${workspace.plan.seats} ${workspace.plan.seats === 1 ? "seat" : "seats"}`
+                : "Free"}
+              {workspace.plan.status && workspace.plan.status !== "active"
+                ? ` · ${workspace.plan.status.replace("_", " ")}`
+                : ""}
+            </Tone>
+          </>
         }
       >
         <Monogram name={workspace.name} size="lg" />
@@ -160,7 +179,11 @@ export default async function WorkspacePage({
         <Stat
           label="Stored"
           value={formatBytes(workspace.storageBytes)}
-          hint="Charged to the owner"
+          hint={
+            workspace.plan.tier === "team"
+              ? "Pooled across the plan's seats"
+              : "Free plan: capped per recording"
+          }
         />
         <Stat
           label="Sharing"

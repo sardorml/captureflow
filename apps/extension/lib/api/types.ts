@@ -4,9 +4,13 @@
  * `@captureflow/*` packages). Must stay wire-compatible — change both sides.
  */
 
+import type { RecordingQualityId } from "@captureflow/engine";
+
 export type RecordingSource = "instant" | "edited";
 export type RecordingPreset = "recording";
 export type RecordingVisibility = "public" | "workspace" | "private";
+export type RecordingClient = "extension" | "desktop";
+export type RecordingCaptureSource = "tab" | "window" | "screen";
 
 export type InitRequest = {
   contentType: string;
@@ -19,20 +23,38 @@ export type InitRequest = {
   visibility?: RecordingVisibility;
   hasWebcam?: boolean;
   workspaceId?: string;
+  // What made the recording and how, for the admin's usage view.
+  client?: RecordingClient;
+  captureSource?: RecordingCaptureSource;
+  quality?: RecordingQualityId;
 };
 
 /*
- * `remainingBytes` is how far this recording may grow before it fills the
- * account's storage — the client stops itself there. Absent means unmetered,
- * which is a dev device, where no cap was read.
+ * `remainingBytes` is how far this recording may grow before it hits its
+ * ceiling, and `maxDurationMs` how long it may run; the client stops itself
+ * at both. Absent means uncapped, which is a paid workspace or a dev device.
+ * `maxQuality` is the highest preset the workspace may record at.
  */
 export type InitResponse = {
   slug: string;
   uploadId: string;
   storageKey: string;
   remainingBytes?: number;
+  maxDurationMs?: number;
+  maxQuality?: RecordingQualityId;
   webcamUploadId?: string;
   webcamStorageKey?: string;
+};
+
+// The limits probe (GET /api/r/usage), read before a recording starts.
+export type UsageResponse = {
+  usedBytes: number;
+  limitBytes: number;
+  capReached: boolean;
+  isDev: boolean;
+  tier: "free" | "team";
+  maxDurationMs: number | null;
+  maxQuality: RecordingQualityId | null;
 };
 
 export type PartResponse = {

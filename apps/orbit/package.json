@@ -1,0 +1,37 @@
+{
+  "name": "@captureflow/orbit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Developer-only board of the CaptureFlow user journey under the Orbit workspace model. Runs locally, never deployed.",
+  "scripts": {
+    "dev": "vite --port 3035 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "echo \"(orbit) lint: TODO\""
+  },
+  "dependencies": {
+    "@captureflow/quota": "workspace:*",
+    "@heroui/react": "^3.2.6",
+    "@heroui/styles": "^3.2.6",
+    "d3-force": "^3.0.0",
+    "d3-selection": "^3.0.0",
+    "d3-zoom": "^3.0.0",
+    "lucide-react": "^1.14.0",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4",
+    "@types/d3-force": "^3.0.10",
+    "@types/d3-selection": "^3.0.12",
+    "@types/d3-zoom": "^3.0.9",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "^5.0.0",
+    "tailwindcss": "^4",
+    "typescript": "catalog:",
+    "vite": "^7.3.5",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,8 +1,7 @@
 "use client";
 
-import { Paragraph, Text } from "./typography";
-import { Col, Row } from "./layout";
-import { MarketingSection, SectionHeading } from "./_shared";
+import { MarketingSection, SectionHeading, WIDE_RAIL } from "./_shared";
+import { CARD_SURFACE } from "./tokens";
 import type { ComponentType } from "react";
 import { EditorScene } from "./editor-scene";
 import { EmbedScene } from "./embed-scene";
@@ -12,6 +11,7 @@ import NextLink from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CHROME_WEBSTORE_URL } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
+import { cn } from "@/lib/utils";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 type CategoryKind = "share" | "embed" | "feedback" | "workspaces";
@@ -35,8 +35,6 @@ const CATEGORIES = [
   href: string;
 }[];
 
-const SCENE_MAX_WIDTH = 600;
-
 export function CollaborationSection() {
   const m = useMessages();
 
@@ -46,75 +44,60 @@ export function CollaborationSection() {
         title={m.collaboration.heading}
         subtitle={m.collaboration.subtitle}
       />
-      <div className="flex flex-col gap-24">
-        {CATEGORIES.map((cat, i) => (
-          <CategoryRow key={cat.id} cat={cat} flip={i % 2 === 1} />
+      <div className={cn(WIDE_RAIL, "grid gap-5 lg:grid-cols-2")}>
+        {CATEGORIES.map((cat) => (
+          <CategoryCard key={cat.id} cat={cat} />
         ))}
       </div>
     </MarketingSection>
   );
 }
 
-/*
- * One row per capability under the shared heading, each keeping its #anchor.
- * The scene side alternates so the three don't read as one column.
- */
-function CategoryRow({
-  cat,
-  flip,
-}: {
-  cat: (typeof CATEGORIES)[number];
-  flip: boolean;
-}) {
+// One card per capability under the shared heading, each keeping its #anchor:
+// the scene on top, then an optional tag, the title and the body.
+function CategoryCard({ cat }: { cat: (typeof CATEGORIES)[number] }) {
   const m = useMessages();
   const lh = useLocalizedHref();
   const { feature } = m.collaboration.categories[cat.kind];
+  const tag = "tag" in feature ? feature.tag : undefined;
   const href =
     cat.href === "install"
       ? (CHROME_WEBSTORE_URL ?? lh("/download"))
       : lh(cat.href);
 
   return (
-    <div id={cat.id} style={{ scrollMarginTop: 96 }}>
-      <Row gutter={[64, 40]} align="middle">
-        <Col xs={{ span: 24, order: 2 }} lg={{ span: 10, order: flip ? 1 : 2 }}>
-          <Text
-            className="text-balance"
-            style={{
-              display: "block",
-              fontSize: 32,
-              fontWeight: 700,
-              lineHeight: 1.2,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            {feature.title}
-          </Text>
-          <Paragraph
-            className="text-pretty"
-            style={{
-              maxWidth: 496,
-              margin: "16px 0 0",
-              fontSize: 18,
-              fontWeight: 350,
-              lineHeight: 1.6,
-            }}
-          >
-            {feature.body}
-          </Paragraph>
-          <FeatureLink
-            href={href}
-            label={feature.cta}
-            location={`feature_${cat.id}`}
-          />
-        </Col>
-        <Col xs={{ span: 24, order: 1 }} lg={{ span: 14, order: flip ? 2 : 1 }}>
-          <div style={{ maxWidth: SCENE_MAX_WIDTH, marginInline: "auto" }}>
-            <cat.Scene />
-          </div>
-        </Col>
-      </Row>
-    </div>
+    <article
+      id={cat.id}
+      className={cn(
+        CARD_SURFACE,
+        "flex flex-col rounded-[40px] p-6 sm:p-8 lg:p-10",
+      )}
+      style={{ scrollMarginTop: 96 }}
+    >
+      <cat.Scene />
+      <div className="mt-7 flex flex-col items-start">
+        {/* The tag row is always there, so every card's title sits on the
+            same line. */}
+        <div className="flex h-9 items-end">
+          {tag && (
+            <span className="-ml-1.5 inline-block rounded-md bg-[#fde047] px-1.5 text-[20px] leading-tight font-semibold text-[#111]">
+              {tag}
+            </span>
+          )}
+        </div>
+        <h3 className="-ml-2 mt-2 inline-block rounded-md bg-canvas px-2 py-1 text-[24px] leading-tight font-semibold tracking-[-0.02em] text-fg-strong">
+          {feature.title}
+        </h3>
+        <p className="mt-4 max-w-[560px] text-[17px] leading-[1.55] text-fg-muted">
+          {feature.body}
+        </p>
+        <FeatureLink
+          href={href}
+          label={feature.cta}
+          location={`feature_${cat.id}`}
+        />
+      </div>
+    </article>
   );
 }
 
@@ -128,7 +111,7 @@ function FeatureLink({
   location: string;
 }) {
   const className =
-    "group mt-7 inline-flex items-center gap-2 text-[18px] font-semibold text-[#1184f7] transition-colors hover:text-[#0071e2] dark:text-[#6ea8ff] dark:hover:text-[#9cc3ff]";
+    "group mt-5 inline-flex items-center gap-2 text-[16px] font-semibold text-[#1184f7] transition-colors hover:text-[#0071e2] dark:text-[#6ea8ff] dark:hover:text-[#9cc3ff]";
   const onClick = () => track("marketing_cta_clicked", { location });
   const content = (
     <>

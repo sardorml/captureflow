@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactElement } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
+import type { SeatOffer } from "@/lib/billing/seat-checkout";
 
 // The dialog's copy and the managed card only download on the first open.
 const UpgradeModalBody = dynamic(
@@ -25,6 +26,7 @@ type Props = {
   // signed-out buyers through /login?mode=signup&next=/recordings?upgrade=1. Enable on
   // one instance per page or they all pop.
   openOnUpgradeParam?: boolean;
+  seat: SeatOffer;
 };
 
 export function UpgradeModal({
@@ -32,6 +34,7 @@ export function UpgradeModal({
   userId,
   trigger,
   openOnUpgradeParam = false,
+  seat,
 }: Props) {
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(
@@ -76,6 +79,7 @@ export function UpgradeModal({
         <UpgradeModalBody
           email={email}
           userId={userId}
+          seat={seat}
           isOpen={open}
           onOpenChange={setOpen}
         />

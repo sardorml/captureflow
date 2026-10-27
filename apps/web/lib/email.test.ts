@@ -33,6 +33,7 @@ describe("sendWorkspaceInviteEmail", () => {
     inviterName: "Sam",
     inviterEmail: "sam@example.com",
     workspaceName: "Sam's Workspace",
+    role: "member" as const,
     acceptUrl: "https://captureflow.dev/invite/tok",
   };
 

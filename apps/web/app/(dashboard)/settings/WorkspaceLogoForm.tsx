@@ -2,12 +2,13 @@
 
 import { useActionState, useRef } from "react";
 import { Upload } from "lucide-react";
-import { Avatar, Button, Spinner, Typography } from "@heroui/react";
+import { Avatar, Button, Spinner } from "@heroui/react";
 import { initials } from "@/lib/format";
 import {
   removeWorkspaceLogoAction,
   uploadWorkspaceLogoAction,
 } from "./actions";
+import { SettingsRow } from "./SettingsRow";
 
 type FormState = { error: string | null; ok: string | null };
 const INITIAL: FormState = { error: null, ok: null };
@@ -31,60 +32,56 @@ export function WorkspaceLogoForm({
   };
 
   return (
-    <div className="flex flex-wrap items-start justify-between gap-6">
-      <div className="flex min-w-60 flex-1 flex-col gap-1">
-        <Typography weight="semibold">Workspace logo</Typography>
-        <Typography type="body-xs" color="muted">
-          Shown next to your workspace name. PNG, JPEG, WebP, GIF, or SVG. Max 2
-          MB.
-        </Typography>
-      </div>
-      <div className="flex w-full max-w-96 items-center gap-4">
-        <Avatar className="h-14 w-14 rounded-full">
+    <SettingsRow
+      title="Workspace logo"
+      description="Shown next to your workspace name. PNG, JPEG, WebP, GIF or SVG, 2 MB max."
+    >
+      <div className="flex items-center gap-4">
+        <Avatar className="h-12 w-12 rounded-full">
           {logoUrl && <Avatar.Image src={logoUrl} alt={workspaceName} />}
           <Avatar.Fallback>{initials(workspaceName)}</Avatar.Fallback>
         </Avatar>
-        <div className="flex flex-1 flex-col items-stretch gap-2">
-          {/* Siblings, never nested: the HTML parser drops a <form> inside a
-              <form>, which left Remove submitting the upload action instead. */}
-          <div className="flex items-center justify-end gap-2">
-            <form action={formAction}>
-              <input
-                ref={fileRef}
-                type="file"
-                name="logo"
-                accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-                className="hidden"
-                onChange={submitOnChange}
-              />
-              <Button
-                variant="secondary"
-                isDisabled={pending}
-                onPress={() => fileRef.current?.click()}
-              >
-                {pending ? (
-                  <Spinner size="sm" color="current" />
-                ) : (
-                  <Upload size={14} />
-                )}
-                {pending ? "Uploading…" : logoUrl ? "Replace" : "Upload logo"}
+        {/* Siblings, never nested: the HTML parser drops a <form> inside a
+            <form>, which left Remove submitting the upload action instead. */}
+        <div className="flex flex-1 items-center justify-end gap-2">
+          {logoUrl && (
+            <form action={removeWorkspaceLogoAction}>
+              <Button variant="ghost" type="submit" size="sm">
+                Remove
               </Button>
             </form>
-            {logoUrl && (
-              <form action={removeWorkspaceLogoAction}>
-                <Button variant="ghost" type="submit" size="sm">
-                  Remove
-                </Button>
-              </form>
-            )}
-          </div>
-          {state.error && (
-            <span className="text-right text-xs text-danger">
-              {state.error}
-            </span>
           )}
+          <form action={formAction}>
+            <input
+              ref={fileRef}
+              type="file"
+              name="logo"
+              accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+              className="hidden"
+              onChange={submitOnChange}
+            />
+            <Button
+              variant="secondary"
+              isDisabled={pending}
+              onPress={() => fileRef.current?.click()}
+            >
+              {pending ? (
+                <Spinner size="sm" color="current" />
+              ) : (
+                <Upload size={14} />
+              )}
+              {pending
+                ? "Uploading…"
+                : logoUrl
+                  ? "Replace logo"
+                  : "Upload logo"}
+            </Button>
+          </form>
         </div>
       </div>
-    </div>
+      {state.error && (
+        <span className="text-right text-xs text-danger">{state.error}</span>
+      )}
+    </SettingsRow>
   );
 }

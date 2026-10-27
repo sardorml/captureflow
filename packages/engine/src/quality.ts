@@ -117,8 +117,9 @@ export const RECORDING_QUALITY_IDS = Object.keys(
   RECORDING_QUALITIES,
 ) as RecordingQualityId[];
 
-// Low keeps a typical recording under 10 MB a minute; the picker offers more.
-export const DEFAULT_RECORDING_QUALITY: RecordingQualityId = "low";
+// Data saver keeps a typical recording around 5 MB a minute; the picker
+// offers more.
+export const DEFAULT_RECORDING_QUALITY: RecordingQualityId = "saver";
 
 export function isRecordingQualityId(v: unknown): v is RecordingQualityId {
   return typeof v === "string" && v in RECORDING_QUALITIES;

@@ -1,21 +1,31 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { headers } from "next/headers";
-import { Button, Skeleton } from "@heroui/react";
+import { Sparkle } from "lucide-react";
+import { Button, Skeleton, buttonVariants } from "@heroui/react";
 import {
-  getActiveGrantedPlan,
-  getActiveProSubscription,
+  DEFAULT_SEAT_PLAN_ID,
+  getSeatPlan,
+  hasSeatRequest,
+  isSeatRole,
   isSelfHosted,
 } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { resolveCurrentWorkspace } from "@/lib/current-workspace";
+import { getWorkspaceSeatContext } from "@/lib/billing/seats";
+import { loadNotificationFeed } from "@/lib/notification-feed";
 import type { requireSession } from "@/lib/session-guard";
 import { readThemePreferenceFromCookieHeader } from "@captureflow/ui/theme";
 import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
 import { SplitLoaded } from "@/components/dev/split-loaded";
 import { SearchTrigger } from "./SearchTrigger";
+import { RequestSeatButton } from "./RequestSeatButton";
 import { UpgradeModal } from "./UpgradeModal";
 import { UserMenu } from "./UserMenu";
 
 type Session = Awaited<ReturnType<typeof requireSession>>;
+
+const NOTIFICATION_MENU_LIMIT = 6;
 
 // The search field paints with the shell; only the account menu waits for
 // its plan and avatar queries, behind a stand-in of the same size.
@@ -57,31 +67,66 @@ async function Account({
   selfHosted: boolean;
 }) {
   const env = await getAppWebEnv();
-  const [subscription, grant, userRow] = env?.DB
+  const current = await resolveCurrentWorkspace(
+    session.user.id,
+    session.user.name ?? null,
+  );
+  const isViewer = current.role === "viewer";
+  const [userRow, seat, seatRequested, feed] = env?.DB
     ? await Promise.all([
-        getActiveProSubscription(env.DB, session.user.id),
-        getActiveGrantedPlan(env.DB, session.user.id),
         env.DB.prepare(`SELECT image FROM users WHERE id = ?1 LIMIT 1`)
           .bind(session.user.id)
           .first<{ image: string | null }>(),
+        getWorkspaceSeatContext(current.workspace),
+        isViewer
+          ? hasSeatRequest(env.DB, current.workspace.id, session.user.id)
+          : false,
+        loadNotificationFeed(session.user, NOTIFICATION_MENU_LIMIT),
       ])
-    : [null, null, null];
+    : [null, null, false, null];
   const themePreference = readThemePreferenceFromCookieHeader(
     (await headers()).get("cookie"),
   );
 
-  const isPro = subscription?.status === "active" || grant !== null;
+  // The upgrade is the workspace's, so only its owner is offered one.
+  const offer = current.role === "owner" ? (seat?.offer ?? null) : null;
+  const isOwner = current.role === "owner";
+  const plan =
+    seat?.entitlement.tier === "team"
+      ? (seat.entitlement.plan ?? DEFAULT_SEAT_PLAN_ID)
+      : "free";
+  // A viewer holds no seat, so the workspace's plan isn't theirs to show.
+  const showPlan = plan !== "free" && isSeatRole(current.role) && !selfHosted;
 
   return (
     <>
-      {!isPro && !selfHosted && (
+      {offer && !selfHosted && (
         <UpgradeModal
           email={session.user.email}
           userId={session.user.id}
+          seat={offer}
           trigger={<Button variant="primary">Upgrade</Button>}
         />
       )}
-      <NotificationsMenu />
+      {showPlan &&
+        (isOwner ? (
+          <Link
+            href="/billing"
+            className={buttonVariants({ variant: "secondary" })}
+          >
+            <Sparkle size={14} className="fill-current" />
+            {getSeatPlan(plan).name}
+          </Link>
+        ) : (
+          <span className={buttonVariants({ variant: "secondary" })}>
+            <Sparkle size={14} className="fill-current" />
+            {getSeatPlan(plan).name}
+          </span>
+        ))}
+      {isViewer && !selfHosted && (
+        <RequestSeatButton requested={seatRequested} />
+      )}
+      <NotificationsMenu feed={feed} />
       <UserMenu
         themePreference={themePreference}
         userId={session.user.id}
@@ -89,13 +134,8 @@ async function Account({
         email={session.user.email}
         imageUrl={userRow?.image ?? null}
         selfHosted={selfHosted}
-        pro={
-          subscription
-            ? { status: subscription.status }
-            : grant
-              ? { status: "granted" }
-              : null
-        }
+        plan={plan}
+        billing={isOwner}
       />
     </>
   );

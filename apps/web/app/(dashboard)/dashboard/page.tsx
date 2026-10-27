@@ -3,10 +3,7 @@ import Link from "next/link";
 import { preconnect } from "react-dom";
 import { ArrowRight, PenLine, TrendingUp } from "lucide-react";
 import { buttonVariants } from "@heroui/react";
-import {
-  totalStorageForUser,
-  UNLIMITED_STORAGE_BYTES,
-} from "@captureflow/quota";
+import { can, getWorkspaceEntitlement, isSelfHosted } from "@captureflow/quota";
 import { SplitLoaded } from "@/components/dev/split-loaded";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
@@ -21,8 +18,9 @@ import {
   loadDashboardActivity,
   loadDashboardTotals,
 } from "@/lib/dashboard-metrics-db";
-import { formatBytes, formatDuration } from "@/lib/format";
+import { formatDuration } from "@/lib/format";
 import { viewerMediaUrl } from "@/lib/recording/media-url";
+import { countUserRecordingsInWorkspace } from "@/lib/recording/quota";
 import {
   listRecordingsForWorkspace,
   type DashboardRecordingRow,
@@ -30,7 +28,6 @@ import {
 import { requireSession } from "@/lib/session-guard";
 import { CHROME_WEBSTORE_URL, R2_PUBLIC_BASE_URL } from "@/lib/site";
 import { storageFill, type StorageTone } from "@/lib/storage-fill";
-import { getEffectiveStorageLimit } from "@/lib/user-quota";
 import { RecordButton } from "../RecordButton";
 import {
   RecentRecordingCard,
@@ -80,23 +77,31 @@ export default async function DashboardPage() {
   const workspaceId = current.workspace.id;
   const now = Date.now();
   const since = (dayOf(now) - (WEEK_DAYS - 1)) * DAY_MS;
-  const [activity, totals, usedBytes, limit, recentRows] = await Promise.all([
-    loadDashboardActivity(workspaceId, userId, since),
-    loadDashboardTotals(workspaceId, userId),
-    env?.DB ? totalStorageForUser(env.DB, userId) : 0,
-    getEffectiveStorageLimit(userId),
-    listRecordingsForWorkspace(workspaceId, userId, {
-      limit: RECENT_COUNT,
-      offset: 0,
-    }),
-  ]);
+  // Free adds a fourth tile for this person's recording allowance.
+  const [activity, totals, entitlement, recentRows, ownCount] =
+    await Promise.all([
+      loadDashboardActivity(workspaceId, userId, since),
+      loadDashboardTotals(workspaceId, userId),
+      env?.DB
+        ? getWorkspaceEntitlement(env.DB, workspaceId, {
+            selfHosted: isSelfHosted(env),
+          })
+        : null,
+      listRecordingsForWorkspace(workspaceId, userId, {
+        limit: RECENT_COUNT,
+        offset: 0,
+      }),
+      countUserRecordingsInWorkspace(workspaceId, userId),
+    ]);
   const recent = await Promise.all(recentRows.map(toRecent));
   if (recentRows.some((r) => r.visibility === "public")) {
     preconnect(env?.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL);
   }
 
-  const limitBytes = limit >= UNLIMITED_STORAGE_BYTES ? null : limit;
-  const fill = storageFill(usedBytes, limitBytes);
+  const allowance = entitlement?.recordingsPerPerson ?? null;
+  const allowanceFill =
+    allowance === null ? null : storageFill(ownCount, allowance);
+  const minutesEach = Math.round((entitlement?.maxRecordingMs ?? 0) / 60_000);
   const recordingsByDay = lastDays(activity.recordings, WEEK_DAYS, now);
   const viewersByDay = lastDays(activity.viewers, WEEK_DAYS, now);
   const thisWeek = countSince(activity.recordings, WEEK_DAYS, now);
@@ -104,6 +109,7 @@ export default async function DashboardPage() {
   const averageMs =
     totals.recordings > 0 ? totals.recordedMs / totals.recordings : 0;
   const firstName = session.user.name?.trim().split(/\s+/)[0];
+  const canRecord = can(current.role, "record");
 
   return (
     <div className="flex flex-col gap-8">
@@ -128,13 +134,17 @@ export default async function DashboardPage() {
             <PenLine size={16} />
             Open the canvas
           </a>
-          <div className="hidden md:block">
-            <RecordButton label="New recording" />
-          </div>
+          {canRecord && (
+            <div className="hidden md:block">
+              <RecordButton label="New recording" />
+            </div>
+          )}
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div
+        className={`grid grid-cols-2 gap-3 ${allowanceFill ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}
+      >
         <Stat
           label="Recordings"
           value={totals.recordings.toLocaleString()}
@@ -165,19 +175,20 @@ export default async function DashboardPage() {
           }
           href="/recordings"
         />
-        <Stat
-          label="Storage"
-          value={formatBytes(usedBytes)}
-          hint={
-            limitBytes === null
-              ? "No limit"
-              : `${Math.round((fill?.ratio ?? 0) * 100)}% of ${formatBytes(limitBytes)}`
-          }
-          href="/storage"
-          aside={
-            fill && <Ring ratio={fill.ratio} tone={METER_TONE[fill.tone]} />
-          }
-        />
+        {allowance !== null && allowanceFill ? (
+          <Stat
+            label="Recordings left"
+            value={`${Math.max(0, allowance - ownCount)} of ${allowance}`}
+            hint={`Free plan, up to ${minutesEach} min each`}
+            href={current.role === "owner" ? "/billing" : "/recordings"}
+            aside={
+              <Ring
+                ratio={allowanceFill.ratio}
+                tone={METER_TONE[allowanceFill.tone]}
+              />
+            }
+          />
+        ) : null}
       </div>
 
       <section className="flex flex-col gap-4">
@@ -193,8 +204,12 @@ export default async function DashboardPage() {
             <ArrowRight size={14} aria-hidden />
           </Link>
         </div>
-        {recent.length === 0 ? (
+        {recent.length === 0 && canRecord ? (
           <StartCard storeUrl={CHROME_WEBSTORE_URL} />
+        ) : recent.length === 0 ? (
+          <p className="text-sm text-fg-muted">
+            Nothing has been shared in this workspace yet.
+          </p>
         ) : (
           <div className="-m-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {recent.map((r) => (
@@ -320,6 +335,7 @@ function Ring({ ratio, tone }: { ratio: number; tone: Tone }) {
         strokeWidth={RING_STROKE}
         strokeLinecap="round"
         strokeDasharray={`${arc * RING_LENGTH} ${RING_LENGTH}`}
+        opacity={arc > 0 ? 1 : 0}
         className={TONE_STROKE[tone]}
       />
     </svg>

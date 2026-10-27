@@ -9,11 +9,27 @@ import {
 } from "react";
 
 const SCENE = { width: 600, height: 424 };
-// Square frame; the scene sits vertically centred on the card's background.
-const FRAME = { width: 600, height: 600 };
-const RADIUS = 28;
+// The scene sits vertically centred on the frame's background.
+const FRAME = { width: 600, height: 400 };
+const RADIUS = 40;
 
 export type SceneState = { step: number; playing: boolean };
+
+/*
+ * Enlarges a scene authored at the frame's width: `bounds` are the x extents
+ * its content actually spans, so the scaled content lands centred in the
+ * frame instead of being clipped on the far side.
+ */
+export type SceneZoom = { scale: number; bounds: readonly [number, number] };
+
+function zoomStyle(zoom: SceneZoom | undefined) {
+  if (!zoom) return {};
+  const centre = (zoom.bounds[0] + zoom.bounds[1]) / 2;
+  return {
+    transformOrigin: `${centre}px 50%`,
+    transform: `translateX(${FRAME.width / 2 - centre}px) scale(${zoom.scale})`,
+  };
+}
 
 /*
  * A pixel-authored scene scaled to its column. `steps` are the ms offsets at
@@ -24,11 +40,15 @@ export function SceneFrame({
   steps,
   loopMs,
   background,
+  sceneHeight = SCENE.height,
+  zoom,
   children,
 }: {
   steps: readonly number[];
   loopMs: number;
   background: string;
+  sceneHeight?: number;
+  zoom?: SceneZoom;
   children: (state: SceneState) => ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -94,7 +114,12 @@ export function SceneFrame({
       >
         <div
           className="absolute left-0"
-          style={{ ...SCENE, top: (FRAME.height - SCENE.height) / 2 }}
+          style={{
+            width: SCENE.width,
+            height: sceneHeight,
+            top: (FRAME.height - sceneHeight) / 2,
+            ...zoomStyle(zoom),
+          }}
         >
           {children({ step, playing })}
         </div>

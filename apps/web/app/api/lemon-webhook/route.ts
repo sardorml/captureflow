@@ -2,12 +2,17 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAppWebEnv } from "@/lib/cf-env";
-import type { ProSubscriptionStatus } from "@captureflow/quota";
+import {
+  hydrateSeatPlanId,
+  upsertWorkspaceSubscription,
+  type SeatPlanId,
+  type SubscriptionStatus,
+} from "@captureflow/quota";
 
 /*
- * Lemon Squeezy subscription event sink. Does NOT handle the lifetime
- * license-key product — that flows through Lemon's licensing endpoints,
- * activated locally via `licenses/activate`.
+ * Lemon Squeezy subscription event sink for the seat plans. Does NOT handle
+ * the lifetime license-key product — that flows through Lemon's licensing
+ * endpoints, activated locally via `licenses/activate`.
  *
  * Signature: HMAC-SHA256 of the raw request body, hex-encoded, in the
  * X-Signature header. The body must be hashed as text (not re-stringified
@@ -17,7 +22,7 @@ import type { ProSubscriptionStatus } from "@captureflow/quota";
 type LSSubscriptionEvent = {
   meta: {
     event_name: string;
-    // From `checkout[custom][...]`; carries the signed-in user_id when set.
+    // From `checkout[custom][...]`; carries the workspace the checkout was for.
     custom_data?: Record<string, string> | null;
   };
   data: {
@@ -26,7 +31,7 @@ type LSSubscriptionEvent = {
     attributes: {
       customer_id: number | null;
       user_email: string;
-      status: ProSubscriptionStatus | string;
+      status: SubscriptionStatus | string;
       variant_id: number;
       // ISO from LS; normalised to unix seconds before writing to match the schema's INTEGER timestamp columns.
       renews_at: string | null;
@@ -34,6 +39,14 @@ type LSSubscriptionEvent = {
       cancelled: boolean;
       created_at: string;
       updated_at: string;
+      // The item carries the seat quantity, and its id is what the quantity update API takes.
+      first_subscription_item?: { id: number; quantity: number } | null;
+      card_brand?: string | null;
+      card_last_four?: string | null;
+      urls?: {
+        customer_portal?: string | null;
+        update_payment_method?: string | null;
+      } | null;
     };
   };
 };
@@ -47,21 +60,6 @@ function periodEndFromAttributes(
   if (!iso) return null;
   const ms = Date.parse(iso);
   return Number.isFinite(ms) ? Math.floor(ms / 1000) : null;
-}
-
-function cycleFromVariant(
-  variantId: number,
-  monthlyIds: Array<string | undefined>,
-  annualIds: Array<string | undefined>,
-): "monthly" | "annual" {
-  const v = String(variantId);
-  if (annualIds.some((id) => id && id === v)) return "annual";
-  if (monthlyIds.some((id) => id && id === v)) return "monthly";
-  // Default to monthly rather than drop the row on a misconfigured env var.
-  console.warn(
-    `[lemon-webhook] unknown variant_id=${v}; defaulting to monthly. Set LEMON_{MONTHLY,ANNUAL,TEST_MONTHLY,TEST_ANNUAL}_VARIANT_ID.`,
-  );
-  return "monthly";
 }
 
 async function verifySignature(
@@ -92,6 +90,26 @@ async function verifySignature(
     diff |= computed.charCodeAt(i) ^ signatureHex.charCodeAt(i);
   }
   return diff === 0;
+}
+
+type SeatVariant = { plan: SeatPlanId; cycle: "monthly" | "annual" };
+
+function seatVariant(
+  env: Partial<
+    Record<
+      `LEMON_${"LIGHT" | "PRO"}_${"MONTHLY" | "ANNUAL"}_VARIANT_ID`,
+      string
+    >
+  >,
+  variant: string,
+): SeatVariant | null {
+  const table: [string | undefined, SeatVariant][] = [
+    [env.LEMON_LIGHT_MONTHLY_VARIANT_ID, { plan: "light", cycle: "monthly" }],
+    [env.LEMON_LIGHT_ANNUAL_VARIANT_ID, { plan: "light", cycle: "annual" }],
+    [env.LEMON_PRO_MONTHLY_VARIANT_ID, { plan: "pro", cycle: "monthly" }],
+    [env.LEMON_PRO_ANNUAL_VARIANT_ID, { plan: "pro", cycle: "annual" }],
+  ];
+  return table.find(([id]) => id && id === variant)?.[1] ?? null;
 }
 
 export async function POST(req: NextRequest) {
@@ -125,65 +143,56 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, ignored: name });
   }
 
+  // Payment events carry an invoice, not the subscription; the subscription
+  // events that follow them hold everything this route needs.
   const data = event.data;
-  if (!data || data.type !== "subscriptions" || !data.attributes) {
+  if (data?.type !== "subscriptions") {
+    return NextResponse.json({ ok: true, ignored: name });
+  }
+  if (!data.attributes) {
     return NextResponse.json({ error: "unexpected payload" }, { status: 400 });
   }
   const attrs = data.attributes;
-  const now = Math.floor(Date.now() / 1000);
-  const cycle = cycleFromVariant(
-    attrs.variant_id,
-    [env.LEMON_MONTHLY_VARIANT_ID, env.LEMON_TEST_MONTHLY_VARIANT_ID],
-    [env.LEMON_ANNUAL_VARIANT_ID, env.LEMON_TEST_ANNUAL_VARIANT_ID],
-  );
-  const periodEnd = periodEndFromAttributes(attrs);
-  // Resolve user_id from checkout custom_data, else by case-insensitive email
-  // match (covers buyers who paid before signing in); unattached otherwise.
-  let userId: string | null = event.meta.custom_data?.user_id ?? null;
-  if (!userId && attrs.user_email) {
-    const u = await env.DB.prepare(
-      `SELECT id FROM users WHERE LOWER(email) = LOWER(?1) LIMIT 1`,
-    )
-      .bind(attrs.user_email)
-      .first<{ id: string }>();
-    if (u) userId = u.id;
+
+  /*
+   * A seat subscription is told apart by its variant, or by the workspace id
+   * the checkout attached; the custom data only rides the first event, so
+   * renewals match on the variant alone. Anything else is a product this
+   * deployment does not sell, acknowledged so LS stops retrying.
+   */
+  const variant = String(attrs.variant_id);
+  const known = seatVariant(env, variant);
+  const custom = event.meta.custom_data;
+  if (!known && !custom?.workspace_id) {
+    console.warn(
+      `[lemon-webhook] ignoring ${name} for unknown variant_id=${variant}; set LEMON_{LIGHT,PRO}_{MONTHLY,ANNUAL}_VARIANT_ID`,
+    );
+    return NextResponse.json({ ok: true, ignored: `variant ${variant}` });
   }
-  const cancelledAt = attrs.cancelled ? now : null;
+  const plan = known?.plan ?? hydrateSeatPlanId(custom?.plan);
+  const cycle = known?.cycle ?? "monthly";
 
-  // Upsert by LS subscription id. COALESCE(excluded.user_id, user_id) keeps a
-  // later event (e.g. a renewal lacking custom_data) from clobbering an
-  // already-attached user.
-  await env.DB.prepare(
-    `INSERT INTO pro_subscription (
-       ls_subscription_id, user_id, ls_variant_id, ls_customer_id,
-       ls_customer_email, status, cycle, current_period_end,
-       cancelled_at, created_at, updated_at
-     )
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?10)
-     ON CONFLICT(ls_subscription_id) DO UPDATE SET
-       user_id            = COALESCE(excluded.user_id, user_id),
-       ls_variant_id      = excluded.ls_variant_id,
-       ls_customer_id     = excluded.ls_customer_id,
-       ls_customer_email  = excluded.ls_customer_email,
-       status             = excluded.status,
-       cycle              = excluded.cycle,
-       current_period_end = excluded.current_period_end,
-       cancelled_at       = excluded.cancelled_at,
-       updated_at         = excluded.updated_at`,
-  )
-    .bind(
-      data.id,
-      userId,
-      String(attrs.variant_id),
+  const now = Math.floor(Date.now() / 1000);
+  const item = attrs.first_subscription_item ?? null;
+  await upsertWorkspaceSubscription(env.DB, {
+    ls_subscription_id: data.id,
+    ls_subscription_item_id: item ? String(item.id) : null,
+    workspace_id: custom?.workspace_id ?? null,
+    ls_variant_id: variant,
+    ls_customer_id:
       attrs.customer_id !== null ? String(attrs.customer_id) : null,
-      attrs.user_email,
-      attrs.status,
-      cycle,
-      periodEnd,
-      cancelledAt,
-      now,
-    )
-    .run();
-
+    ls_customer_email: attrs.user_email,
+    status: attrs.status as SubscriptionStatus,
+    plan,
+    cycle,
+    quantity: Math.max(1, item?.quantity ?? 1),
+    current_period_end: periodEndFromAttributes(attrs),
+    cancelled_at: attrs.cancelled ? now : null,
+    card_brand: attrs.card_brand ?? null,
+    card_last_four: attrs.card_last_four ?? null,
+    portal_url: attrs.urls?.customer_portal ?? null,
+    update_payment_url: attrs.urls?.update_payment_method ?? null,
+    now,
+  });
   return NextResponse.json({ ok: true });
 }

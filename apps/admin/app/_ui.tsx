@@ -315,31 +315,25 @@ export function PersonCell({
   );
 }
 
-const PLAN_COLOR = {
-  subscription: "accent",
-  granted: "success",
-  free: "default",
-} as const;
-
 // A lapsed subscription stays visible beside whatever plan applies now, so
 // "never paid" and "card declined" read differently.
 export function PlanChip({ plan }: { plan: AdminPlanSummary }) {
   const status = plan.subscriptionStatus;
   const note =
-    status && status !== "active"
-      ? ` · ${plan.source === "subscription" ? "" : "sub "}${status.replace("_", " ")}`
-      : "";
-  const name =
-    plan.source === "free"
-      ? "Free"
-      : `${plan.source === "granted" ? "Granted" : "Pro"} · ${plan.label}`;
+    status && status !== "active" ? ` · ${status.replace("_", " ")}` : "";
   return (
     <Chip
       size="sm"
       variant="soft"
-      color={status === "past_due" ? "warning" : PLAN_COLOR[plan.source]}
+      color={
+        status === "past_due"
+          ? "warning"
+          : plan.tier === "team"
+            ? "accent"
+            : "default"
+      }
     >
-      {name}
+      {plan.tier === "team" ? "Paid" : "Free"}
       {note}
     </Chip>
   );

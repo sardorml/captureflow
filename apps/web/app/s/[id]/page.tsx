@@ -24,6 +24,7 @@ import { RequestAccess } from "./RequestAccess";
 import { SessionLoadingShell } from "./SessionLoadingShell";
 import { ScreenshotView } from "./ScreenshotView";
 import { getWorkspaceForUpload } from "@/lib/screenshot/quota";
+import { NotificationsBell } from "@/app/_components/NotificationsBell";
 import { SidebarDrawer } from "@/app/_components/SidebarDrawer";
 import { Sidebar } from "@/app/(dashboard)/Sidebar";
 import { Suspense } from "react";
@@ -150,6 +151,14 @@ export default async function ScreenshotPage({ params }: Props) {
         ) : null
       }
       viewer={visitor ? { name: visitor.name, email: visitor.email } : null}
+      notifications={
+        visitor ? (
+          <NotificationsBell
+            user={{ id: visitor.userId, email: visitor.email }}
+            base={APP_SITE_URL}
+          />
+        ) : null
+      }
       viewerUserId={visitor?.userId ?? null}
       viewerImageUrl={visitor?.image ?? null}
       isOwner={isOwner}

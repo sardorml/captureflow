@@ -15,7 +15,7 @@ CREATE TABLE recordings (
   last_viewed_at    INTEGER NOT NULL,
   state             TEXT NOT NULL, view_count INTEGER NOT NULL DEFAULT 0, title TEXT, user_id TEXT, visibility TEXT NOT NULL DEFAULT 'public', bake_status TEXT NOT NULL DEFAULT 'none'
   CHECK (bake_status IN ('none', 'expected', 'done')), webcam_storage_key TEXT, webcam_upload_id   TEXT, webcam_size_bytes  INTEGER NOT NULL DEFAULT 0, webcam_state       TEXT NOT NULL DEFAULT 'none'
-  CHECK (webcam_state IN ('none', 'pending', 'ready', 'failed')), workspace_id TEXT REFERENCES workspace(id), config_json TEXT, summary_chapters_json TEXT, poster_blur TEXT, poster_thumb_key TEXT,
+  CHECK (webcam_state IN ('none', 'pending', 'ready', 'failed')), workspace_id TEXT REFERENCES workspace(id), config_json TEXT, summary_chapters_json TEXT, poster_blur TEXT, poster_thumb_key TEXT, client TEXT, capture_source TEXT, quality TEXT,
   CHECK (state IN ('pending', 'ready', 'failed')),
   CHECK (source IN ('instant', 'edited')),
   CHECK (preset IN ('recording'))
@@ -121,12 +121,6 @@ CREATE TABLE device_tokens (
   revoked_at    INTEGER,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE TABLE user_quotas (
-  user_id                TEXT PRIMARY KEY,
-  storage_bytes_override INTEGER,
-  note                   TEXT,
-  updated_at             INTEGER NOT NULL
-, granted_plan_variant_id TEXT, granted_plan_expires_at INTEGER) STRICT;
 CREATE TABLE screenshots (
   id              TEXT PRIMARY KEY,
   
@@ -158,40 +152,6 @@ CREATE TABLE screenshots (
   last_viewed_at  INTEGER,
   view_count      INTEGER NOT NULL DEFAULT 0, workspace_id TEXT REFERENCES workspace(id), visibility TEXT NOT NULL DEFAULT 'public',
   CHECK (state IN ('ready', 'deleted'))
-) STRICT;
-CREATE TABLE pro_subscription (
-  
-  
-  
-  ls_subscription_id     TEXT PRIMARY KEY,
-  
-  
-  
-  
-  
-  user_id                TEXT,
-  
-  
-  ls_variant_id          TEXT NOT NULL,
-  ls_customer_id         TEXT,
-  ls_customer_email      TEXT NOT NULL,
-  
-  
-  
-  status                 TEXT NOT NULL,
-  
-  
-  cycle                  TEXT NOT NULL,
-  
-  
-  
-  
-  current_period_end     INTEGER,
-  
-  
-  cancelled_at           INTEGER,
-  created_at             INTEGER NOT NULL,
-  updated_at             INTEGER NOT NULL
 ) STRICT;
 CREATE TABLE workspace (
   
@@ -226,6 +186,7 @@ CREATE TABLE workspace_member (
   
   role            TEXT NOT NULL DEFAULT 'member',
   joined_at       INTEGER NOT NULL,
+  downgrade_at    INTEGER,
   PRIMARY KEY (workspace_id, user_id)
 ) STRICT;
 CREATE TABLE workspace_invite (
@@ -243,7 +204,7 @@ CREATE TABLE workspace_invite (
   expires_at           INTEGER NOT NULL,
   
   accepted_at          INTEGER
-) STRICT;
+, role TEXT NOT NULL DEFAULT 'member') STRICT;
 CREATE TABLE recording_comments (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   slug        TEXT NOT NULL,
@@ -318,10 +279,6 @@ CREATE INDEX idx_screenshots_active
 CREATE INDEX idx_screenshots_gc
   ON screenshots (last_viewed_at)
   WHERE state = 'ready';
-CREATE INDEX idx_pro_subscription_email
-  ON pro_subscription(ls_customer_email);
-CREATE INDEX idx_pro_subscription_user_id
-  ON pro_subscription(user_id) WHERE user_id IS NOT NULL;
 CREATE INDEX idx_workspace_owner
   ON workspace(owner_user_id);
 CREATE UNIQUE INDEX idx_workspace_owner_personal
@@ -360,3 +317,54 @@ CREATE TABLE recording_views (
 ) STRICT;
 CREATE INDEX idx_recording_views_slug_last
   ON recording_views (slug, last_viewed_at DESC);
+CREATE TABLE workspace_subscription (
+  ls_subscription_id      TEXT PRIMARY KEY,
+  ls_subscription_item_id TEXT,
+  workspace_id            TEXT REFERENCES workspace(id) ON DELETE SET NULL,
+  ls_variant_id           TEXT NOT NULL,
+  ls_customer_id          TEXT,
+  ls_customer_email       TEXT NOT NULL,
+  status                  TEXT NOT NULL,
+  cycle                   TEXT NOT NULL,
+  quantity                INTEGER NOT NULL DEFAULT 1,
+  current_period_end      INTEGER,
+  cancelled_at            INTEGER,
+  created_at              INTEGER NOT NULL,
+  updated_at              INTEGER NOT NULL,
+  plan                    TEXT NOT NULL DEFAULT 'light',
+  card_brand              TEXT,
+  card_last_four          TEXT,
+  portal_url              TEXT,
+  update_payment_url      TEXT,
+  CHECK (cycle IN ('monthly', 'annual'))
+) STRICT;
+CREATE INDEX idx_workspace_subscription_workspace
+  ON workspace_subscription (workspace_id, updated_at DESC);
+CREATE TABLE seat_request (
+  workspace_id TEXT NOT NULL REFERENCES workspace(id) ON DELETE CASCADE,
+  user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at   INTEGER NOT NULL,
+  PRIMARY KEY (workspace_id, user_id)
+) STRICT;
+CREATE TABLE notification (
+  id            TEXT PRIMARY KEY,
+  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  workspace_id  TEXT NOT NULL REFERENCES workspace(id) ON DELETE CASCADE,
+  kind          TEXT NOT NULL,
+  actor_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  role          TEXT,
+  effective_at  INTEGER,
+  created_at    INTEGER NOT NULL,
+  read_at       INTEGER
+) STRICT;
+CREATE INDEX idx_notification_user
+  ON notification (user_id, created_at DESC);
+CREATE TABLE seat_change (
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  ls_subscription_id TEXT NOT NULL,
+  from_quantity      INTEGER NOT NULL,
+  to_quantity        INTEGER NOT NULL,
+  changed_at         INTEGER NOT NULL
+) STRICT;
+CREATE INDEX idx_seat_change_subscription
+  ON seat_change (ls_subscription_id, changed_at);

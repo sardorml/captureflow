@@ -9,7 +9,7 @@ export default function Loading() {
         workspaceName={<InlineSkeleton className="h-3.5 w-40" />}
         title="Members"
       />
-      <section className="rounded-2xl bg-panel ring-1 ring-line-strong">
+      <section className="rounded-2xl bg-panel ring-1 ring-line">
         <div className="px-6 pt-6 pb-5">
           <h2 className="text-2xl font-semibold tracking-tight text-fg-strong">
             People <InlineSkeleton className="h-4 w-8" />

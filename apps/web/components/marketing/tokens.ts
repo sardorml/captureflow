@@ -42,3 +42,8 @@ export const TOKENS = {
   boxShadowSecondary:
     "0 6px 16px 0 rgb(0 0 0 / 0.08), 0 3px 6px -4px rgb(0 0 0 / 0.12), 0 9px 28px 8px rgb(0 0 0 / 0.05)",
 } as const;
+
+// The landing's tinted card: a shade off the page in light, a step up in dark,
+// where the stage is the page itself. Lives here rather than in _shared so
+// server components can read it as a string.
+export const CARD_SURFACE = "bg-stage dark:bg-panel-2";

@@ -3,15 +3,17 @@ import {
   ALLOWED_CONTENT_TYPES,
   ALLOWED_PRESETS,
   ALLOWED_SOURCES,
+  exceedsQuality,
+  hydrateRecordingCaptureSource,
+  hydrateRecordingClient,
+  hydrateRecordingQualityId,
 } from "@/lib/recording/limits";
 import { insertRecording } from "@/lib/recording/db";
 import {
-  getEffectiveLimitsForUser,
-  getWorkspaceForUpload,
-  resolveUploadWorkspaceId,
-  resolveUserWorkspaceId,
-  validateWorkspaceMembership,
-  totalStorageForUser,
+  countUserRecordingsInWorkspace,
+  getWorkspaceEntitlement,
+  resolveUploadTarget,
+  uploadBudgetFor,
 } from "@/lib/recording/quota";
 import { resolveDeviceTokenToUser } from "@/lib/recording/device-tokens";
 import { newStorageId } from "@/lib/recording/media-url";
@@ -93,43 +95,60 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Quota draws down the workspace owner's cap, not the uploader's.
-  let workspaceId: string | null = null;
-  if (typeof body.workspaceId === "string" && body.workspaceId) {
-    workspaceId = await validateWorkspaceMembership(userId, body.workspaceId);
-  }
-  if (!workspaceId) {
-    workspaceId = await resolveUploadWorkspaceId(userId);
-  }
-  let workspace = workspaceId ? await getWorkspaceForUpload(workspaceId) : null;
-  if (
-    workspace &&
-    !workspace.allow_member_uploads &&
-    workspace.owner_user_id !== userId
-  ) {
-    workspaceId = await resolveUserWorkspaceId(userId);
-    workspace = workspaceId ? await getWorkspaceForUpload(workspaceId) : null;
-  }
-  const quotaUserId = workspace?.owner_user_id ?? userId;
-
+  // Where it lands is the workspace's call, not the client's: membership,
+  // the record permission and the member-uploads policy are all checked there.
+  const target = await resolveUploadTarget(userId, body.workspaceId);
+  const workspace = target?.workspace ?? null;
+  const workspaceId = workspace?.id ?? null;
   /*
-   * Storage is the whole budget: what is left here is how much this recording
-   * may grow, and the client stops itself on the same number. Returning it
-   * costs nothing — the figures are already read to run the caps below — and it
-   * saves the client a second round trip on the path to first frame.
+   * How much this recording may grow, which the client stops itself on: its
+   * own byte ceiling on the free tier, what is left of the pool on a paid one.
+   * The free tier adds per-person caps: a recording count and a quality,
+   * refused here, and a length, returned here and enforced at finalize.
    */
+  const quality = hydrateRecordingQualityId(body.quality);
   const isDev = await isDevDevice(deviceId);
   let remainingBytes: number | null = null;
+  let maxDurationMs: number | null = null;
+  let maxQuality: InitResponse["maxQuality"] = undefined;
   if (!isDev) {
-    const [storageUsed, limits] = await Promise.all([
-      totalStorageForUser(quotaUserId),
-      getEffectiveLimitsForUser(quotaUserId),
-    ]);
+    const entitlement = workspaceId
+      ? await getWorkspaceEntitlement(workspaceId)
+      : null;
+    if (
+      entitlement?.recordingsPerPerson != null &&
+      workspaceId &&
+      contentType !== "image/jpeg"
+    ) {
+      const count = await countUserRecordingsInWorkspace(workspaceId, userId);
+      if (count >= entitlement.recordingsPerPerson) {
+        return jsonError(
+          `Free plan limit: ${entitlement.recordingsPerPerson} recordings per person`,
+          429,
+          "recording_limit",
+        );
+      }
+    }
+    maxDurationMs = entitlement?.maxRecordingMs ?? null;
+    maxQuality = entitlement?.maxQuality ?? undefined;
+    if (exceedsQuality(quality, maxQuality ?? null)) {
+      return jsonError(
+        "Free plan limit: recordings at data saver quality",
+        403,
+        "quality_limit",
+      );
+    }
 
-    if (storageUsed >= limits.storageBytes) {
+    const budget = await uploadBudgetFor({
+      userId,
+      workspaceId,
+      sizeBytes: 0,
+      webcamSizeBytes: 0,
+    });
+    if (budget.kind === "storage" && budget.used >= budget.limit) {
       return jsonError("Storage cap reached", 429, "storage_limit");
     }
-    remainingBytes = limits.storageBytes - storageUsed;
+    remainingBytes = budget.limit - budget.used;
   }
 
   const slug = generateSlug();
@@ -190,6 +209,9 @@ export async function POST(req: NextRequest) {
     height: numberOrNull(body.height),
     source,
     preset,
+    client: hydrateRecordingClient(body.client),
+    captureSource: hydrateRecordingCaptureSource(body.captureSource),
+    quality,
     createdAt,
     lastViewedAt: createdAt,
     viewCount: 0,
@@ -211,6 +233,8 @@ export async function POST(req: NextRequest) {
     uploadId,
     storageKey,
     ...(remainingBytes === null ? {} : { remainingBytes }),
+    ...(maxDurationMs === null ? {} : { maxDurationMs }),
+    ...(maxQuality === undefined ? {} : { maxQuality }),
     ...(webcamUploadId && webcamStorageKey
       ? { webcamUploadId, webcamStorageKey }
       : {}),

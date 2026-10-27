@@ -3,24 +3,13 @@
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-type TabId = "general" | "access";
-
-const TABS: { id: TabId; label: string }[] = [
-  { id: "general", label: "General" },
-  { id: "access", label: "Access" },
-];
+export type SettingsTab = { id: string; label: string; content: ReactNode };
 
 // Plain buttons: HeroUI's tab list centres and scrolls its items, which is
 // wrong for an underlined row that sits flush left.
-export function SettingsTabs({
-  general,
-  access,
-}: {
-  general: ReactNode;
-  access?: ReactNode;
-}) {
-  const [tab, setTab] = useState<TabId>("general");
-  const tabs = access ? TABS : TABS.filter((t) => t.id === "general");
+export function SettingsTabs({ tabs }: { tabs: SettingsTab[] }) {
+  const [tab, setTab] = useState(tabs[0]?.id);
+  const active = tabs.find((t) => t.id === tab) ?? tabs[0];
   return (
     <div className="flex flex-col gap-6">
       <div
@@ -33,11 +22,11 @@ export function SettingsTabs({
             key={t.id}
             type="button"
             role="tab"
-            aria-selected={tab === t.id}
+            aria-selected={active?.id === t.id}
             onClick={() => setTab(t.id)}
             className={cn(
               "-mb-px h-10 border-b-2 text-base font-medium transition-colors",
-              tab === t.id
+              active?.id === t.id
                 ? "border-accent text-accent"
                 : "border-transparent text-fg-muted hover:text-fg",
             )}
@@ -47,7 +36,7 @@ export function SettingsTabs({
         ))}
       </div>
       <div role="tabpanel" className="flex flex-col gap-6">
-        {tab === "access" && access ? access : general}
+        {active?.content}
       </div>
     </div>
   );

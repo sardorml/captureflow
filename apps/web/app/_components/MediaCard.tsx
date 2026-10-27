@@ -36,6 +36,7 @@ import {
   formatRelativeShort as formatRelative,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useDevPref } from "@/lib/dev/prefs";
 
 // Over the thumbnail the secondary button's pale fill and soft accent icon
 // disappear against a light capture, so the controls there take the same
@@ -107,6 +108,7 @@ export function MediaCard({
   onDelete,
   onChangeVisibility,
 }: MediaCardProps) {
+  const showSize = useDevPref("file-sizes");
   const [hovered, setHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -182,7 +184,7 @@ export function MediaCard({
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
       className={cn(
-        "group gap-0 overflow-hidden border border-black/[0.15] p-0 shadow-none transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)] dark:border-white/[0.16]",
+        "group gap-0 overflow-hidden border border-line p-0 shadow-none transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)]",
         selected &&
           "border-accent-bg shadow-[0_0_0_1px_var(--color-accent-bg)]",
       )}
@@ -298,14 +300,24 @@ export function MediaCard({
           <div className="min-w-0 leading-tight">
             {/* size on each child, not text-sm on the wrapper: Typography
                 always emits its own size class, which wins over inheritance. */}
-            <div className="flex items-center gap-1.5">
-              <Typography weight="semibold" type="body-sm" truncate>
+            {/* The name gives way; the dot and the time never wrap. */}
+            <div className="flex min-w-0 items-center gap-1.5">
+              <Typography
+                weight="semibold"
+                type="body-sm"
+                truncate
+                className="min-w-0"
+              >
                 {authorLabel}
               </Typography>
-              <Typography color="muted" type="body-sm">
+              <Typography color="muted" type="body-sm" className="shrink-0">
                 ·
               </Typography>
-              <Typography color="muted" type="body-sm">
+              <Typography
+                color="muted"
+                type="body-sm"
+                className="shrink-0 whitespace-nowrap"
+              >
                 <span suppressHydrationWarning>
                   {formatRelative(createdAt)}
                 </span>
@@ -381,13 +393,15 @@ export function MediaCard({
             <Stat icon={<Smile size={14} />} value={stats.reactions} />
           </div>
           <div className="flex items-center gap-3">
-            <Typography
-              color="muted"
-              type="body-sm"
-              className="whitespace-nowrap"
-            >
-              {formatBytes(sizeBytes)}
-            </Typography>
+            {showSize && (
+              <Typography
+                color="muted"
+                type="body-sm"
+                className="whitespace-nowrap"
+              >
+                {formatBytes(sizeBytes)}
+              </Typography>
+            )}
             {canAuthor && (
               <Tooltip>
                 <Tooltip.Trigger className="relative z-10 inline-flex">

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Enterprise",
   description:
-    "Managed CaptureFlow for larger teams: more than 1 TB of storage, one price for the whole company, no per-seat fees. Tell us what you need.",
+    "Managed CaptureFlow for larger companies: seats for everyone, custom terms and a single invoice. Tell us what you need.",
   alternates: { canonical: "/enterprise" },
 };
 

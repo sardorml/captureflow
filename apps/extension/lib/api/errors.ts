@@ -6,6 +6,12 @@ const FRIENDLY_BY_CODE: Record<string, string> = {
   storage_limit:
     "Storage is full — delete old recordings or upgrade your plan.",
   duration_exceeded: "This recording exceeds your plan's duration limit.",
+  recording_limit:
+    "Free plan limit reached — delete old recordings or upgrade your workspace.",
+  size_limit:
+    "This recording is larger than the free plan allows — upgrade your workspace for more.",
+  quality_limit:
+    "Your workspace's plan records at Data saver quality — upgrade it for more.",
   invalid_token: "Your sign-in expired. Sign in again to keep recording.",
   missing_token: "Sign in to record.",
 };

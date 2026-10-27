@@ -62,22 +62,13 @@ function addRecording(
     .run(slug, `videos/${slug}.mp4`, STALE, STALE, userId, workspaceId);
 }
 
-function subscribe(userId: string, status: string) {
+function subscribeWorkspace(workspaceId: string, status: string) {
   sqlite
     .prepare(
-      `INSERT INTO pro_subscription (ls_subscription_id, user_id, ls_variant_id, ls_customer_email, status, cycle, current_period_end, created_at, updated_at)
-       VALUES (?, ?, 'v', 'a@b.c', ?, 'monthly', NULL, 1, 1)`,
+      `INSERT INTO workspace_subscription (ls_subscription_id, workspace_id, ls_variant_id, ls_customer_email, status, cycle, quantity, created_at, updated_at)
+       VALUES (?, ?, 'v', 'a@b.c', ?, 'monthly', 2, 1, 1)`,
     )
-    .run(`sub-${userId}`, userId, status);
-}
-
-function grant(userId: string, expiresAt: number | null) {
-  sqlite
-    .prepare(
-      `INSERT INTO user_quotas (user_id, granted_plan_variant_id, granted_plan_expires_at, updated_at)
-       VALUES (?, '1849425', ?, 1)`,
-    )
-    .run(userId, expiresAt);
+    .run(`wsub-${workspaceId}`, workspaceId, status);
 }
 
 const remaining = () =>
@@ -97,13 +88,12 @@ beforeEach(() => {
       last_viewed_at INTEGER, created_at INTEGER, updated_at INTEGER,
       user_id TEXT, workspace_id TEXT);
     CREATE TABLE workspace (id TEXT PRIMARY KEY, owner_user_id TEXT);
-    CREATE TABLE pro_subscription (ls_subscription_id TEXT PRIMARY KEY, user_id TEXT,
-      ls_variant_id TEXT, ls_customer_id TEXT, ls_customer_email TEXT, status TEXT,
-      cycle TEXT, current_period_end INTEGER, cancelled_at INTEGER,
-      created_at INTEGER, updated_at INTEGER);
-    CREATE TABLE user_quotas (user_id TEXT PRIMARY KEY, storage_bytes_override INTEGER,
-      note TEXT, updated_at INTEGER, granted_plan_variant_id TEXT,
-      granted_plan_expires_at INTEGER);
+    CREATE TABLE workspace_subscription (ls_subscription_id TEXT PRIMARY KEY,
+      ls_subscription_item_id TEXT, workspace_id TEXT, ls_variant_id TEXT,
+      ls_customer_id TEXT, ls_customer_email TEXT, status TEXT, cycle TEXT,
+      quantity INTEGER, current_period_end INTEGER, cancelled_at INTEGER,
+      created_at INTEGER, updated_at INTEGER, plan TEXT NOT NULL DEFAULT 'light',
+      card_brand TEXT, card_last_four TEXT, portal_url TEXT, update_payment_url TEXT);
   `);
   deleted = [];
   objects = new Map();
@@ -187,33 +177,20 @@ describe("backfillPosterDerivatives", () => {
 });
 
 describe("runDailyRetentionSweep", () => {
-  it("expires idle recordings on free accounts and keeps paid ones", async () => {
-    subscribe("paid", "active");
-    subscribe("lapsed", "expired");
-    sqlite.prepare(`INSERT INTO workspace VALUES ('team', 'paid')`).run();
-    addRecording("free-own", "free", null);
-    addRecording("paid-own", "paid", null);
-    addRecording("lapsed-own", "lapsed", null);
-    addRecording("member-in-paid-workspace", "free", "team");
+  it("keeps a workspace on a seat plan and sweeps one whose plan lapsed", async () => {
+    sqlite.prepare(`INSERT INTO workspace VALUES ('team', 'owner')`).run();
+    sqlite.prepare(`INSERT INTO workspace VALUES ('lapsed', 'owner')`).run();
+    subscribeWorkspace("team", "active");
+    subscribeWorkspace("lapsed", "expired");
+    addRecording("in-team", "someone", "team");
+    addRecording("in-lapsed", "someone", "lapsed");
+    addRecording("free-own", "owner", null);
     addRecording("ownerless", null, null);
 
     await runDailyRetentionSweep({ DB: d1(sqlite), BUCKET: bucket() });
 
-    expect(remaining()).toEqual(["member-in-paid-workspace", "paid-own"]);
+    expect(remaining()).toEqual(["in-team"]);
     expect(deleted).toContain("videos/free-own.mp4");
-  });
-
-  it("keeps idle recordings of accounts with a granted plan until it ends", async () => {
-    grant("comped", null);
-    grant("trial-ended", Date.now() - DAY_MS);
-    grant("trial-running", Date.now() + DAY_MS);
-    addRecording("comped-own", "comped", null);
-    addRecording("trial-ended-own", "trial-ended", null);
-    addRecording("trial-running-own", "trial-running", null);
-
-    await runDailyRetentionSweep({ DB: d1(sqlite), BUCKET: bucket() });
-
-    expect(remaining()).toEqual(["comped-own", "trial-running-own"]);
   });
 
   it("keeps idle uploads on a self-hosted instance but still clears failed ones", async () => {

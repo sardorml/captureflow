@@ -1,0 +1,42 @@
+import { requireSession } from "@/lib/session-guard";
+import { getAppWebEnv } from "@/lib/cf-env";
+import { PageHeader } from "../../PageHeader";
+import { SettingsCard } from "../../WorkspacePageHeader";
+import { AccountForm } from "../AccountForm";
+
+export const dynamic = "force-dynamic";
+
+export default async function PersonalSettingsPage() {
+  const session = await requireSession();
+  const user = session.user;
+  const env = await getAppWebEnv();
+
+  // Read the image column directly: the better-auth session payload doesn't
+  // always carry it.
+  let imageUrl: string | null = null;
+  if (env?.DB) {
+    const row = await env.DB.prepare(
+      `SELECT image FROM users WHERE id = ?1 LIMIT 1`,
+    )
+      .bind(user.id)
+      .first<{ image: string | null }>();
+    imageUrl = row?.image ?? null;
+  }
+
+  return (
+    <div className="flex flex-col gap-8">
+      <PageHeader title="Personal Settings" showRecord={false} />
+      <SettingsCard
+        title="Account"
+        description="How you appear to teammates and to the people who watch your recordings."
+      >
+        <AccountForm
+          userId={user.id}
+          initialName={user.name ?? ""}
+          email={user.email}
+          imageUrl={imageUrl}
+        />
+      </SettingsCard>
+    </div>
+  );
+}

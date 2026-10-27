@@ -1,50 +1,89 @@
 export {
   ACCOUNT_LIMITS,
-  STORAGE_PLANS,
   UNLIMITED_STORAGE_BYTES,
   isSelfHosted,
-  storageBytesForVariant,
 } from "./limits";
-export type { AccountLimits, StoragePlan } from "./limits";
+export type { AccountLimits } from "./limits";
 export {
-  getActiveGrantedPlan,
-  getEffectiveLimitsForUser,
-  isGrantActive,
-  listActiveGrantedUserIds,
-  listPaidUserIds,
-  resolveEffectiveLimits,
-} from "./user-quotas";
-export type { EffectiveLimits, GrantedPlan } from "./user-quotas";
-export { totalStorageForUser } from "./totals";
-export { listStorageItemsForUser } from "./storage-items";
-export type { StorageItem, StorageItemKind } from "./storage-items";
+  countUserRecordingsInWorkspace,
+  totalStorageForWorkspace,
+} from "./totals";
 export {
-  getActiveProSubscription,
-  isProActive,
-  listActiveProUserIds,
-  pickActiveProUserIds,
-  getUnclaimedProSubscriptionByEmail,
-  attachSubscriptionToUser,
-} from "./pro-subscription";
+  DEFAULT_SEAT_PLAN_ID,
+  RECOMMENDED_SEAT_PLAN_ID,
+  FREE_TIER,
+  SEAT_ANNUAL_SAVING_PERCENT,
+  SEAT_PLANS,
+  getSeatPlan,
+  hydrateSeatPlanId,
+  isSeatPlanId,
+  resolveWorkspaceEntitlement,
+  seatAnnualSavingPercent,
+  seatPriceUsd,
+} from "./seat-plans";
 export type {
-  ProSubscriptionRow,
-  ProSubscriptionStatus,
-} from "./pro-subscription";
+  FreeQuality,
+  SeatPlan,
+  SeatPlanId,
+  SeatSubscriptionInput,
+  WorkspaceEntitlement,
+  WorkspaceTier,
+} from "./seat-plans";
+export {
+  getActiveWorkspaceSubscription,
+  isSubscriptionActive,
+  listPaidWorkspaceIds,
+  setWorkspaceSubscriptionQuantity,
+  upsertWorkspaceSubscription,
+} from "./workspace-subscription";
+export type {
+  SubscriptionStatus,
+  WorkspaceSubscriptionRow,
+  WorkspaceSubscriptionUpsert,
+} from "./workspace-subscription";
+export { getWorkspaceEntitlement } from "./entitlement";
+export {
+  applyDueDowngrades,
+  cancelMemberDowngrade,
+  clearSeatRequest,
+  hasSeatRequest,
+  listSeatRequests,
+  requestSeat,
+  scheduleMemberDowngrade,
+} from "./seat-requests";
+export type { SeatRequest } from "./seat-requests";
+export { listSeatChangesSince, recordSeatChange } from "./seat-changes";
+export type { SeatChange } from "./seat-changes";
+export {
+  addNotification,
+  countUnreadNotifications,
+  listNotifications,
+  markNotificationsRead,
+} from "./notifications";
+export type { NotificationKind, NotificationRow } from "./notifications";
+export { setSubscriptionItemQuantity } from "./lemon-api";
+export type { SeatQuantityResult } from "./lemon-api";
 export {
   getPersonalWorkspaceForUser,
   getWorkspaceById,
   ensurePersonalWorkspace,
-  createTeamWorkspace,
   listWorkspacesForUser,
   countWorkspaceMembers,
+  countWorkspaceSeats,
   countWorkspaceRecordings,
   getCurrentWorkspaceId,
   setCurrentWorkspaceId,
   isWorkspaceMember,
+  getWorkspaceRole,
+  updateWorkspaceMemberRole,
+  resolveUploadWorkspace,
   listMembers,
   createInvite,
   findInviteByToken,
+  findPendingInviteForEmail,
   acceptInvite,
+  declineInvite,
+  listInvitesForEmail,
   listPendingInvites,
   revokeInvite,
   removeWorkspaceMember,
@@ -53,13 +92,25 @@ export {
   updateWorkspaceCard,
   updateWorkspacePolicy,
 } from "./workspaces";
+export {
+  WORKSPACE_ROLES,
+  can,
+  isSeatRole,
+  isWorkspaceRole,
+  isAssignableRole,
+  hydrateWorkspaceRole,
+  hydrateAssignableRole,
+} from "./roles";
+export type { AssignableRole, WorkspaceAction, WorkspaceRole } from "./roles";
 export type {
+  ChangeRoleResult,
+  UploadTarget,
   WorkspaceKind,
-  WorkspaceRole,
   WorkspaceRow,
   WorkspaceMember,
   WorkspaceMembership,
   WorkspaceInviteRow,
+  InviteForUser,
   CreateInviteResult,
   CreateInviteError,
   AcceptInviteResult,

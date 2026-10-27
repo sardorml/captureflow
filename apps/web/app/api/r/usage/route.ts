@@ -3,9 +3,11 @@ import { isDevDevice } from "@/lib/recording/dev-allowlist";
 import { resolveDeviceTokenToUser } from "@/lib/recording/device-tokens";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import {
-  getEffectiveLimitsForUser,
-  totalStorageForUser,
+  getWorkspaceEntitlement,
+  resolveUploadTarget,
+  uploadBudgetFor,
 } from "@/lib/recording/quota";
+import type { RecordingQualityId } from "@/lib/recording/limits";
 
 const DEVICE_HEADER = "x-captureflow-device";
 
@@ -20,12 +22,18 @@ export type UsageResponse = {
   limitBytes: number;
   capReached: boolean;
   isDev: boolean;
+  tier: "free" | "team";
+  // Free-tier caps the recorder applies before it starts; null once paid or for a dev device.
+  maxDurationMs: number | null;
+  maxQuality: RecordingQualityId | null;
 };
 
 export function OPTIONS() {
   return optionsResponse();
 }
 
+// The limits of the workspace the next upload lands in: the pool on a paid
+// one, the per-recording caps on a free one, which has no pool to fill.
 export async function GET(req: NextRequest) {
   const deviceId = req.headers.get(DEVICE_HEADER);
   if (!deviceId || deviceId.length < 8 || deviceId.length > 64) {
@@ -41,20 +49,27 @@ export async function GET(req: NextRequest) {
     return jsonError("Sign-in expired or revoked", 401, "invalid_token");
   }
 
-  const [usedBytes, isDev, limits] = await Promise.all([
-    totalStorageForUser(userId),
+  const [target, isDev] = await Promise.all([
+    resolveUploadTarget(userId, null),
     isDevDevice(deviceId),
-    getEffectiveLimitsForUser(userId),
   ]);
-
-  const limitBytes = limits.storageBytes;
-  const capReached = !isDev && usedBytes >= limitBytes;
+  const workspaceId = target?.workspace.id ?? null;
+  const [budget, entitlement] = await Promise.all([
+    uploadBudgetFor({ userId, workspaceId, sizeBytes: 0, webcamSizeBytes: 0 }),
+    workspaceId ? getWorkspaceEntitlement(workspaceId) : null,
+  ]);
+  const usedBytes = budget.kind === "storage" ? budget.used : 0;
+  const limitBytes =
+    budget.kind === "storage" ? budget.limit : Number.MAX_SAFE_INTEGER;
 
   const body: UsageResponse = {
     usedBytes,
     limitBytes,
-    capReached,
+    capReached: !isDev && usedBytes >= limitBytes,
     isDev,
+    tier: entitlement?.tier ?? "free",
+    maxDurationMs: isDev ? null : (entitlement?.maxRecordingMs ?? null),
+    maxQuality: isDev ? null : (entitlement?.maxQuality ?? null),
   };
   return withCors(NextResponse.json(body));
 }

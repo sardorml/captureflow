@@ -11,7 +11,12 @@ import type {
   StateResponse,
   TranscribeRequest,
   UploadTransport,
+  UsageResponse,
 } from "./types";
+import {
+  hydrateRecordingLimits,
+  type RecordingLimits,
+} from "../capture/quality-limits";
 
 export const RECORDING_API_BASE = `${WEB_BASE}/api/r`;
 
@@ -165,6 +170,31 @@ export async function checkAuth(
     return res.status === 401 ? { kind: "invalid" } : { kind: "unreachable" };
   } catch {
     return { kind: "unreachable" };
+  }
+}
+
+/*
+ * The caps the next recording starts under. Null when the server cannot be
+ * asked, so the recorder starts on its own settings and the server's own
+ * checks still apply at init and finalize.
+ */
+export async function fetchRecordingLimits(
+  deviceId: string,
+  token: string,
+  timeoutMs = 2500,
+): Promise<RecordingLimits | null> {
+  try {
+    const res = await fetch(`${RECORDING_API_BASE}/usage`, {
+      headers: recordingHeaders(deviceId, token),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!res.ok) return null;
+    const body = (await res
+      .json()
+      .catch(() => null)) as Partial<UsageResponse> | null;
+    return body ? hydrateRecordingLimits(body) : null;
+  } catch {
+    return null;
   }
 }
 

@@ -30,21 +30,12 @@ export function InstallButton({
   badge?: string;
   primary?: boolean;
 }) {
-  /* The alternative install is a white pill with navy text: a solid white
-     reads as a cloud-bright object on the blue sky where the graphite accent
-     looked stamped on. Setting .button's own colour vars rather than bg and
-     text utilities, so hover and pressed follow from the same place instead
-     of needing their own variants. */
-  /* Explicit height: HeroUI's lg is 44px and drops to 40 at md, which reads
-     undersized under a headline this large. */
-  const base =
-    "h-13 gap-[11px] rounded-full pr-[26px] pl-3 text-[18px] font-medium";
+  /* Explicit height: HeroUI's lg drops to 40px at md, which reads undersized
+     under a headline this large. */
   const className = buttonVariants({
-    variant: primary ? "primary" : "tertiary",
+    variant: primary ? "primary" : "secondary",
     size: "lg",
-    className: primary
-      ? base
-      : `${base} shadow-[0_6px_18px_-8px_rgb(6_26_51/0.25)] [--button-bg:#ffffff] [--button-fg:#061a33] [--button-bg-hover:#eef4fb] [--button-bg-pressed:#e1ebf7]`,
+    className: "h-11 gap-2.5 rounded-full pr-5 pl-2.5 text-[16px] font-medium",
   });
   const onClick = () => track("marketing_cta_clicked", { location });
 

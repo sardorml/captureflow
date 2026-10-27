@@ -14,6 +14,8 @@ import {
   setCapturePrefs,
   watchCapturePrefs,
 } from "@/lib/storage";
+import { sendMessage } from "@/lib/messaging";
+import { clampQuality, exceedsQuality } from "@/lib/capture/quality-limits";
 
 const BACK_ICON = (
   <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
@@ -59,13 +61,18 @@ function perMinute(quality: RecordingQuality, camera: boolean): string {
   return `≈ ${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB/min`;
 }
 
-// The ceilings the next recording is encoded under, lowest first. Saved with
-// the capture prefs so the service worker sends it with the capture request.
+/*
+ * The ceilings the next recording is encoded under, lowest first. Saved with
+ * the capture prefs so the service worker sends it with the capture request.
+ * A free workspace locks the presets above its cap; the choice stays saved
+ * for when the workspace upgrades.
+ */
 export function QualityPanel({ onBack }: { onBack: () => void }) {
   const [quality, setQuality] = useState<RecordingQualityId>(
     DEFAULT_RECORDING_QUALITY,
   );
   const [camera, setCamera] = useState(true);
+  const [maxQuality, setMaxQuality] = useState<RecordingQualityId | null>(null);
 
   useEffect(() => {
     const read = (p: { quality?: unknown; camera: boolean }) => {
@@ -75,6 +82,20 @@ export function QualityPanel({ onBack }: { onBack: () => void }) {
     void getCapturePrefs().then(read);
     return watchCapturePrefs(read);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    sendMessage("recordingLimits", undefined)
+      .then((limits) => {
+        if (!cancelled) setMaxQuality(limits?.maxQuality ?? null);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const effective = clampQuality(quality, maxQuality);
 
   const choose = (next: RecordingQualityId) => {
     setQuality(next);
@@ -99,15 +120,18 @@ export function QualityPanel({ onBack }: { onBack: () => void }) {
       >
         {RECORDING_QUALITY_IDS.map((id) => {
           const preset = RECORDING_QUALITIES[id];
-          const on = id === quality;
+          const on = id === effective;
+          const locked = exceedsQuality(id, maxQuality);
           return (
             <button
               key={id}
               type="button"
               role="radio"
               aria-checked={on}
+              aria-disabled={locked}
+              disabled={locked}
               onClick={() => choose(id)}
-              className="flex cursor-pointer flex-col gap-0.5 border-t border-separator px-4 py-3 text-left outline-none first:border-t-0 hover:bg-overlay focus-visible:bg-overlay"
+              className="flex cursor-pointer flex-col gap-0.5 border-t border-separator px-4 py-3 text-left outline-none first:border-t-0 hover:bg-overlay focus-visible:bg-overlay disabled:cursor-default disabled:opacity-50 disabled:hover:bg-transparent"
             >
               <span className="flex w-full items-center gap-3">
                 <span className="flex-1 text-[15px] font-semibold text-foreground">
@@ -133,8 +157,9 @@ export function QualityPanel({ onBack }: { onBack: () => void }) {
         })}
       </div>
       <p className="text-xs text-muted">
-        Estimates for a typical screen recording
-        {camera ? " with the camera on" : ""}.
+        {maxQuality
+          ? `Your workspace's plan records at ${RECORDING_QUALITIES[maxQuality].label}. Upgrade it for the rest.`
+          : `Estimates for a typical screen recording${camera ? " with the camera on" : ""}.`}
       </p>
     </div>
   );

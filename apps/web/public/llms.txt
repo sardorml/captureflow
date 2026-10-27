@@ -5,18 +5,18 @@
 ## Product
 
 - [Features](https://captureflow.dev/features): Recording modes, annotated screenshots, share links, comments and workspaces
-- [Pricing](https://captureflow.dev/pricing): Free 200 MB plan, then flat team plans for 100 GB, 500 GB or 1 TB
+- [Pricing](https://captureflow.dev/pricing): Free plan with 25 recordings per person, then Light and Pro at one price per member with free viewers
 - [Download](https://captureflow.dev/download): Install the Chrome extension
 - [FAQ](https://captureflow.dev/faq): Sharing, storage, privacy and self-hosting questions
 - [CaptureFlow vs Loom](https://captureflow.dev/alternatives/loom): Feature and price comparison
-- [Enterprise](https://captureflow.dev/enterprise): Managed hosting with more than 1 TB of storage, priced per company with no per-seat fees
+- [Enterprise](https://captureflow.dev/enterprise): Managed hosting for whole companies on custom terms with a single invoice
 - [Self-hosting setup service](https://captureflow.dev/self-host-setup): We set up CaptureFlow on a company's own Cloudflare account
 
 ## Guides
 
 - [How to set up a self-hosted screen recorder](https://captureflow.dev/blog/self-hosted-screen-recorder): Step-by-step deployment to Cloudflare Workers, D1 and R2
 - [Self-hosted Loom alternative for companies](https://captureflow.dev/blog/self-hosted-loom-alternative): Keeping recordings on your own infrastructure
-- [Loom pricing explained](https://captureflow.dev/blog/loom-pricing): Per-person costs compared with a flat storage price
+- [Loom pricing explained](https://captureflow.dev/blog/loom-pricing): Per-person costs compared with a lower per-member price and free viewers
 
 ## Docs
 

@@ -28,6 +28,7 @@ import type { CaptureContext } from "../messaging";
 import { createCameraEffectStream } from "./camera-effect-stream";
 import { isPlainCameraEffect } from "./camera-effects";
 import { startCaptureDiagnostics } from "./dev-diagnostics";
+import { clampQuality } from "./quality-limits";
 
 const DEV = import.meta.env.MODE !== "production";
 const devLog = DEV ? console : undefined;
@@ -289,26 +290,48 @@ async function runSession(
   stopAllTracks: () => void,
 ): Promise<SessionEnd> {
   const { screenStream, webcamStream, micStream, voice } = streams;
-  const quality = RECORDING_QUALITIES[hydrateRecordingQuality(ctx.quality)];
   const mark = (step: string): void =>
     devLog?.info(`[capture] ${step} at ${new Date().toISOString()}`);
 
   const transport = createRecordingTransport(ctx.deviceId, ctx.token);
+  /*
+   * The server names the highest preset a free workspace may record at. The
+   * start flow already lowered the choice to the last cap it read; a refusal
+   * here means the cap moved since, so the recording drops to the lowest
+   * preset rather than failing. The streams were acquired at the chosen
+   * preset's ceilings, which the lower encoder settings sit within.
+   */
+  let qualityId = hydrateRecordingQuality(ctx.quality);
+  const initRequest = (quality: typeof qualityId) => ({
+    contentType: "video/mp4" as const,
+    source: "instant" as const,
+    visibility: ctx.visibility,
+    hasWebcam: webcamStream !== null,
+    client: "extension" as const,
+    captureSource: ctx.source,
+    quality,
+  });
   let upload: RecordingUpload;
   try {
-    upload = await startRecordingUpload(
-      {
-        contentType: "video/mp4",
-        source: "instant",
-        visibility: ctx.visibility,
-        hasWebcam: webcamStream !== null,
-      },
-      { transport },
-    );
+    try {
+      upload = await startRecordingUpload(initRequest(qualityId), {
+        transport,
+      });
+    } catch (err) {
+      const refusedQuality =
+        err instanceof RecordingApiHttpError && err.code === "quality_limit";
+      const lowest = clampQuality(qualityId, "saver");
+      if (!refusedQuality || lowest === qualityId) throw err;
+      qualityId = lowest;
+      upload = await startRecordingUpload(initRequest(qualityId), {
+        transport,
+      });
+    }
   } catch (err) {
     cb.onResult(failure(err));
     return "done";
   }
+  const quality = RECORDING_QUALITIES[qualityId];
   cb.onActiveUpload({ slug: upload.slug, deviceId: ctx.deviceId });
   mark("upload started");
 
@@ -323,14 +346,15 @@ async function runSession(
   let sessionRef: SessionCommands | null = null;
 
   /*
-   * Storage is the only ceiling, so the recording runs until the account has no
-   * room left rather than against a clock. Checked as bytes are produced, which
-   * is what keeps the stop honest: the upload streams while recording, so by the
-   * time the budget is gone those bytes are already committed.
+   * The byte ceiling is checked as bytes are produced, which is what keeps the
+   * stop honest: the upload streams while recording, so by the time the budget
+   * is gone those bytes are already committed. The length cap runs on the
+   * recording clock below, once it exists.
    */
   const storageSpent = (): boolean =>
     upload.remainingBytes !== null &&
     upload.screenBytes + upload.webcamBytes >= upload.remainingBytes;
+  const maxDurationMs = upload.maxDurationMs ?? ctx.maxDurationMs ?? null;
 
   let screenRecorder: StreamRecorder;
   try {
@@ -389,6 +413,14 @@ async function runSession(
   const activeElapsed = (): number =>
     (pausedAt ?? Date.now()) - startedAt - pausedMs;
 
+  // Finalize refuses a longer recording, so stopping here is what saves it.
+  const durationTimer =
+    maxDurationMs === null
+      ? null
+      : setInterval(() => {
+          if (activeElapsed() >= maxDurationMs) sessionRef?.stop();
+        }, 250);
+
   // The transcript is made server-side from the mic alone (the webcam stream
   // carries the track when there is a camera), uploaded as small audio
   // chunks beside the video. Best-effort: it never gates the recording.
@@ -400,6 +432,7 @@ async function runSession(
   mark("audio upload started");
 
   const stopRecorders = async (): Promise<void> => {
+    if (durationTimer) clearInterval(durationTimer);
     await Promise.all([
       screenRecorder.stop().catch(() => null),
       webcamRecorder?.stop().catch(() => null) ?? Promise.resolve(null),
@@ -408,6 +441,7 @@ async function runSession(
   };
 
   const finalize = async (): Promise<void> => {
+    if (durationTimer) clearInterval(durationTimer);
     cb.onFinalizing(recordingViewUrl(upload.slug));
     const progress = (): void =>
       cb.onStatus({

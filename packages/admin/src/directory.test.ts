@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   inviteStatus,
-  planLabel,
   summarizePlan,
   weeklyBuckets,
+  workspacePlan,
 } from "./directory";
 
 const NOW = Date.parse("2026-10-11T12:00:00Z");
@@ -11,87 +11,56 @@ const NOW_S = NOW / 1000;
 const DAY_MS = 24 * 3600 * 1000;
 
 describe("summarizePlan", () => {
-  it("reports a free account", () => {
+  it("is Team while the user holds a seat in a paid workspace", () => {
     expect(
-      summarizePlan({ subscription: null, grant: null, nowMs: NOW }),
-    ).toEqual({
-      source: "free",
-      isPro: false,
-      label: "Free",
-      subscriptionStatus: null,
-      grantExpiresAt: null,
-    });
+      summarizePlan({ inPaidWorkspace: true, subscriptionStatus: "active" }),
+    ).toEqual({ tier: "team", subscriptionStatus: "active" });
   });
 
-  it("prefers an active subscription over a grant", () => {
-    const plan = summarizePlan({
-      subscription: {
-        variantId: "1849425",
-        status: "active",
-        currentPeriodEnd: null,
-      },
-      grant: { variantId: "1828191", expiresAt: null },
-      nowMs: NOW,
-    });
-    expect(plan).toMatchObject({
-      source: "subscription",
-      isPro: true,
-      label: "500 GB",
-    });
+  it("keeps a lapsed subscription's status on a free user", () => {
+    expect(
+      summarizePlan({ inPaidWorkspace: false, subscriptionStatus: "expired" }),
+    ).toEqual({ tier: "free", subscriptionStatus: "expired" });
   });
+});
 
-  it("falls to the grant when the subscription has lapsed, keeping its status", () => {
-    const plan = summarizePlan({
-      subscription: {
-        variantId: "1849425",
-        status: "expired",
-        currentPeriodEnd: NOW_S - 10,
-      },
-      grant: { variantId: "1828191", expiresAt: NOW + DAY_MS },
-      nowMs: NOW,
-    });
-    expect(plan).toEqual({
-      source: "granted",
-      isPro: true,
-      label: "1 TB",
-      subscriptionStatus: "expired",
-      grantExpiresAt: NOW + DAY_MS,
+describe("workspacePlan", () => {
+  const sub = {
+    quantity: 4,
+    status: "active" as const,
+    plan: "pro",
+    cycle: "monthly",
+    currentPeriodEnd: NOW_S + 60,
+  };
+
+  it("reports the seats of an active subscription", () => {
+    expect(workspacePlan(sub, NOW)).toEqual({
+      tier: "team",
+      plan: "pro",
+      seats: 4,
+      status: "active",
+      cycle: "monthly",
+      currentPeriodEnd: NOW_S + 60,
     });
   });
 
   it("keeps a cancelled subscription until its period ends", () => {
-    const sub = { variantId: "1849420", status: "cancelled" as const };
+    const cancelled = { ...sub, status: "cancelled" as const };
+    expect(workspacePlan(cancelled, NOW).tier).toBe("team");
     expect(
-      summarizePlan({
-        subscription: { ...sub, currentPeriodEnd: NOW_S + 60 },
-        grant: null,
-        nowMs: NOW,
-      }).isPro,
-    ).toBe(true);
-    expect(
-      summarizePlan({
-        subscription: { ...sub, currentPeriodEnd: NOW_S - 60 },
-        grant: null,
-        nowMs: NOW,
-      }),
-    ).toMatchObject({ source: "free", subscriptionStatus: "cancelled" });
+      workspacePlan({ ...cancelled, currentPeriodEnd: NOW_S - 60 }, NOW),
+    ).toMatchObject({ tier: "free", seats: 0, status: "cancelled" });
   });
 
-  it("treats an expired grant as free", () => {
-    expect(
-      summarizePlan({
-        subscription: null,
-        grant: { variantId: "1849420", expiresAt: NOW - 1 },
-        nowMs: NOW,
-      }).source,
-    ).toBe("free");
-  });
-});
-
-describe("planLabel", () => {
-  it("names known plans and falls back to the smallest", () => {
-    expect(planLabel("1828191")).toBe("1 TB");
-    expect(planLabel("nope")).toBe("100 GB");
+  it("is free without a subscription", () => {
+    expect(workspacePlan(null, NOW)).toEqual({
+      tier: "free",
+      plan: null,
+      seats: 0,
+      status: null,
+      cycle: null,
+      currentPeriodEnd: null,
+    });
   });
 });
 

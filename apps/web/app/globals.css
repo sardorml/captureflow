@@ -121,7 +121,10 @@ html[data-theme="light"] {
   --cf-field: oklch(100% 0 0);
   --cf-tint: oklch(21.03% 0 0 / 4.5%);
   --cf-tint-strong: oklch(93.73% 0 0);
-  --cf-line: oklch(92% 0 0);
+  /* A wash close to the share page's 6% edge, so cards sit on the canvas
+     instead of being drawn on it. The marketing block remaps it to the
+     strong line. */
+  --cf-line: oklch(21.03% 0 0 / 8%);
 
   --cf-accent-strong: oklch(62.04% 0.195 254.55);
   --cf-accent-bg: oklch(62.04% 0.195 254.55);
@@ -463,58 +466,6 @@ html:not(:has([data-marketing])) .card {
   animation: beta-confetti 0.9s cubic-bezier(0.16, 0.8, 0.3, 1) forwards;
 }
 
-/* Playback mockup: the progress bar and the reactions and comments beside the
-   recording share one 6s loop. Each item lifts off the bottom of its column
-   and fades, offset by an inline delay so it appears as the playhead reaches
-   its marker. With motion reduced the
-   bar holds at --rest and the feed holds at its --rest offsets as a still
-   stack. */
-@keyframes playback-fill {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-@keyframes playback-head {
-  from {
-    left: 0%;
-  }
-  to {
-    left: 100%;
-  }
-}
-@keyframes rise-fade {
-  0% {
-    opacity: 0;
-    transform: translateY(16px) scale(0.92);
-  }
-  10% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  65% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-240px) scale(1);
-  }
-}
-.animate-playback-fill {
-  transform: scaleX(var(--rest, 0.6));
-  animation: playback-fill 6s linear infinite;
-}
-.animate-playback-head {
-  left: calc(var(--rest, 0.6) * 100%);
-  animation: playback-head 6s linear infinite;
-}
-.animate-rise-fade {
-  transform: translateY(var(--rest, 0));
-  animation: rise-fade 6s cubic-bezier(0.22, 0.61, 0.36, 1) infinite backwards;
-}
-
 /* Pricing: the storage amount pops when the tier switch changes it. */
 @keyframes storage-pop {
   0% {
@@ -535,9 +486,6 @@ html:not(:has([data-marketing])) .card {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-storage-pop,
-  .animate-playback-fill,
-  .animate-playback-head,
-  .animate-rise-fade,
   .animate-rec-breathe,
   .animate-reveal,
   .animate-recording-icon-pop,

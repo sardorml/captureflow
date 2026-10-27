@@ -1,5 +1,6 @@
 "use client";
 
+import type { PaidSeats } from "@/lib/billing/seat-checkout";
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
@@ -21,9 +22,10 @@ const MAX_VISIBLE = 4;
 type Props = {
   items: AvatarGroupItem[];
   canInvite: boolean;
+  paidSeats: PaidSeats | null;
 };
 
-export function WorkspaceMembersStack({ items, canInvite }: Props) {
+export function WorkspaceMembersStack({ items, canInvite, paidSeats }: Props) {
   const [inviting, setInviting] = useState(false);
   // Stays mounted after the first invite so closing can animate out.
   const [inviteMounted, setInviteMounted] = useState(false);
@@ -37,7 +39,7 @@ export function WorkspaceMembersStack({ items, canInvite }: Props) {
         {visible.map((m) => (
           <Tooltip key={m.key}>
             <Tooltip.Trigger className="inline-flex" tabIndex={0}>
-              <Avatar className="h-8 w-8 ring-2 ring-canvas-2">
+              <Avatar className="h-8 w-8 ring-2 ring-panel">
                 {m.image && <Avatar.Image src={m.image} alt={m.label} />}
                 <Avatar.Fallback>{m.initials}</Avatar.Fallback>
               </Avatar>
@@ -46,7 +48,7 @@ export function WorkspaceMembersStack({ items, canInvite }: Props) {
           </Tooltip>
         ))}
         {overflow > 0 && (
-          <Avatar className="h-8 w-8 ring-2 ring-canvas-2">
+          <Avatar className="h-8 w-8 ring-2 ring-panel">
             <Avatar.Fallback>+{overflow}</Avatar.Fallback>
           </Avatar>
         )}
@@ -65,7 +67,11 @@ export function WorkspaceMembersStack({ items, canInvite }: Props) {
             <UserPlus size={14} />
           </button>
           {inviteMounted ? (
-            <InviteModal isOpen={inviting} onOpenChange={setInviting} />
+            <InviteModal
+              isOpen={inviting}
+              onOpenChange={setInviting}
+              paidSeats={paidSeats}
+            />
           ) : null}
         </>
       )}

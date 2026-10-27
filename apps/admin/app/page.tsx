@@ -58,8 +58,7 @@ export default async function OverviewPage() {
   ]);
   const thisWeek = signups[signups.length - 1] ?? 0;
   const quarter = signups.reduce((a, b) => a + b, 0);
-  const paidOnly = totals.proUsers - totals.grantedUsers;
-  const free = totals.users - totals.proUsers;
+  const free = totals.users - totals.teamUsers;
 
   return (
     <div className="flex flex-col gap-8">
@@ -77,14 +76,14 @@ export default async function OverviewPage() {
           hint={share(free, totals.users)}
         />
         <Stat
-          label="Pro, paid"
-          value={paidOnly.toLocaleString()}
-          hint={share(paidOnly, totals.users)}
+          label="Paid"
+          value={totals.teamUsers.toLocaleString()}
+          hint={share(totals.teamUsers, totals.users)}
         />
         <Stat
-          label="Pro, granted"
-          value={totals.grantedUsers.toLocaleString()}
-          hint={share(totals.grantedUsers, totals.users)}
+          label="Paid workspaces"
+          value={totals.paidWorkspaces.toLocaleString()}
+          hint={`of ${totals.teamWorkspaces} team`}
         />
         <Stat
           label="Workspaces"

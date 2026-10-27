@@ -8,6 +8,7 @@ import {
 } from "@captureflow/engine";
 import type { RecordingVisibility } from "@/lib/api/types";
 import { sendMessage } from "@/lib/messaging";
+import { clampQuality } from "@/lib/capture/quality-limits";
 import { WEB_BASE } from "@/lib/config";
 import {
   getCapturePrefs,
@@ -324,6 +325,7 @@ export function FooterActions({
   const [quality, setQuality] = useState<RecordingQualityId>(
     DEFAULT_RECORDING_QUALITY,
   );
+  const [maxQuality, setMaxQuality] = useState<RecordingQualityId | null>(null);
   useEffect(() => {
     void getCapturePrefs().then((p) =>
       setQuality(hydrateRecordingQuality(p.quality)),
@@ -331,6 +333,17 @@ export function FooterActions({
     return watchCapturePrefs((p) =>
       setQuality(hydrateRecordingQuality(p.quality)),
     );
+  }, []);
+  useEffect(() => {
+    let cancelled = false;
+    sendMessage("recordingLimits", undefined)
+      .then((limits) => {
+        if (!cancelled) setMaxQuality(limits?.maxQuality ?? null);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
   }, []);
   const openDashboard = () => {
     void chrome.tabs.create({ url: `${WEB_BASE}/recordings` });
@@ -371,7 +384,7 @@ export function FooterActions({
             >
               Quality
               <span className="text-sm text-muted">
-                {RECORDING_QUALITIES[quality].label}
+                {RECORDING_QUALITIES[clampQuality(quality, maxQuality)].label}
               </span>
             </Dropdown.Item>
             <Dropdown.Item onAction={openDashboard} className={MENU_ITEM}>

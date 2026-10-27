@@ -1,7 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
   getWorkspaceById,
@@ -9,40 +7,32 @@ import {
   updateWorkspaceName,
   updateWorkspacePolicy,
 } from "@captureflow/quota";
-import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
-import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { deleteObject, putObject } from "@/lib/r2";
+import { requireWorkspaceAccess } from "@/lib/workspace/access";
 import { readImageUpload } from "@/lib/workspace-images";
 import { hydrateWorkspaceName } from "@/lib/workspace-name";
-
-// Every action re-verifies owner access server-side: a replayed action lands
-// here directly and can't trust the UI hiding the page from members.
 
 type FormState = { error: string | null; ok: string | null };
 
 async function requireOwnerWorkspace(): Promise<{
   userId: string;
   workspaceId: string;
-}> {
-  const auth = await getAuth();
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
-  const current = await resolveCurrentWorkspace(
-    session.user.id,
-    session.user.name ?? null,
-  );
-  if (current.role !== "owner") {
-    redirect("/recordings");
-  }
-  return { userId: session.user.id, workspaceId: current.workspace.id };
+} | null> {
+  const access = await requireWorkspaceAccess("manage-workspace");
+  return access.ok
+    ? { userId: access.userId, workspaceId: access.workspace.id }
+    : null;
 }
 
 export async function updateWorkspaceNameAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { workspaceId } = await requireOwnerWorkspace();
+  const owned = await requireOwnerWorkspace();
+  if (!owned)
+    return { error: "Only the workspace owner can change this", ok: null };
+  const { workspaceId } = owned;
   const env = await getAppWebEnv();
   if (!env?.DB) return { error: "Database unavailable", ok: null };
 
@@ -59,7 +49,10 @@ export async function uploadWorkspaceLogoAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { workspaceId } = await requireOwnerWorkspace();
+  const owned = await requireOwnerWorkspace();
+  if (!owned)
+    return { error: "Only the workspace owner can change this", ok: null };
+  const { workspaceId } = owned;
   const env = await getAppWebEnv();
   if (!env?.DB) return { error: "Database unavailable", ok: null };
 
@@ -93,7 +86,9 @@ export async function uploadWorkspaceLogoAction(
 }
 
 export async function removeWorkspaceLogoAction(): Promise<void> {
-  const { workspaceId } = await requireOwnerWorkspace();
+  const owned = await requireOwnerWorkspace();
+  if (!owned) return;
+  const { workspaceId } = owned;
   const env = await getAppWebEnv();
   if (!env?.DB) return;
   const existing = await getWorkspaceById(env.DB, workspaceId);
@@ -104,28 +99,17 @@ export async function removeWorkspaceLogoAction(): Promise<void> {
   revalidatePath("/", "layout");
 }
 
-export async function setPublicLinksPolicyAction(
-  formData: FormData,
-): Promise<void> {
-  const { workspaceId } = await requireOwnerWorkspace();
-  const env = await getAppWebEnv();
-  if (!env?.DB) return;
-  const value = formData.get("allow_public_links");
-  await updateWorkspacePolicy(env.DB, workspaceId, {
-    allowPublicLinks: value === "1",
-  });
-  revalidatePath("/settings");
-}
-
 export async function setMemberUploadsPolicyAction(
   formData: FormData,
 ): Promise<void> {
-  const { workspaceId } = await requireOwnerWorkspace();
+  const owned = await requireOwnerWorkspace();
+  if (!owned) return;
+  const { workspaceId } = owned;
   const env = await getAppWebEnv();
   if (!env?.DB) return;
   const value = formData.get("allow_member_uploads");
   await updateWorkspacePolicy(env.DB, workspaceId, {
     allowMemberUploads: value === "1",
   });
-  revalidatePath("/settings");
+  revalidatePath("/settings/workspace");
 }

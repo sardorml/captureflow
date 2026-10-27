@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TOKENS } from "./tokens";
 import { Play } from "lucide-react";
 
 const VIDEO_ID = "srmlA5aT394";
@@ -9,7 +8,6 @@ const VIDEO_ID = "srmlA5aT394";
 // A short muted loop cut from the demo stands in until someone hits play; the
 // YouTube iframe only loads then. Reduced motion gets the loop's first frame.
 export function RecorderMockup() {
-  const token = TOKENS;
   const [playing, setPlaying] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -22,11 +20,8 @@ export function RecorderMockup() {
   }, []);
 
   return (
-    <div className="relative mx-auto w-full max-w-[1172px] px-5 pb-24 pt-6 sm:px-8">
-      <div
-        className="relative aspect-video w-full overflow-hidden"
-        style={{ borderRadius: token.borderRadiusLG }}
-      >
+    <div className="relative mx-auto w-full max-w-[1040px] px-5 pt-10 pb-8 sm:px-8 sm:pt-12">
+      <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black/5 ring-1 ring-black/10 dark:ring-white/10">
         {playing ? (
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${VIDEO_ID}?autoplay=1&rel=0`}

@@ -254,24 +254,3 @@ export const memoryDb: RecordingDb = {
     }
   },
 };
-
-// Quota fallback when no D1 binding is reachable. The screenshots table is D1-only,
-// so these walk the recordings store alone.
-
-export function memoryTotalStorageForUser(userId: string): number {
-  let total = 0;
-  for (const row of store.values()) {
-    if (row.userId === userId && row.state === "ready") {
-      total += row.sizeBytes + row.webcamSizeBytes;
-    }
-  }
-  return total;
-}
-
-export function memoryActiveArtifactCountForUser(userId: string): number {
-  let n = 0;
-  for (const row of store.values()) {
-    if (row.userId === userId && row.state === "ready") n++;
-  }
-  return n;
-}

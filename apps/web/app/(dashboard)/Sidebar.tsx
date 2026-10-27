@@ -1,12 +1,8 @@
 import Link from "next/link";
 import {
   countWorkspaceRecordings,
-  getActiveGrantedPlan,
-  getActiveProSubscription,
   isSelfHosted,
   listMembers,
-  totalStorageForUser,
-  UNLIMITED_STORAGE_BYTES,
 } from "@captureflow/quota";
 import type { AvatarGroupItem } from "@captureflow/ui";
 import { AppIcon } from "@/components/brand-mark";
@@ -15,7 +11,7 @@ import { initials as initialsOf } from "@/lib/format";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
-import { getEffectiveStorageLimit } from "@/lib/user-quota";
+import { getWorkspaceSeatContext, paidSeatsOf } from "@/lib/billing/seats";
 import { SidebarNav } from "./SidebarNav";
 import { SidebarUpgradeCard } from "./SidebarUpgradeCard";
 import { WorkspaceMembersStack } from "./WorkspaceMembersStack";
@@ -25,26 +21,21 @@ export async function Sidebar() {
   const session = await requireSession();
   const env = await getAppWebEnv();
   const userId = session.user.id;
-  // Storage is owner-scoped: sums recording + screenshot bytes across the user's owned
-  // workspaces (uploads into others' workspaces don't count against their cap).
-  const [current, usedBytes, limitBytes, subscription, grant] =
-    await Promise.all([
-      resolveCurrentWorkspace(userId, session.user.name ?? null),
-      env?.DB ? totalStorageForUser(env.DB, userId) : Promise.resolve(0),
-      getEffectiveStorageLimit(userId),
-      env?.DB ? getActiveProSubscription(env.DB, userId) : null,
-      env?.DB ? getActiveGrantedPlan(env.DB, userId) : null,
-    ]);
+  const current = await resolveCurrentWorkspace(
+    userId,
+    session.user.name ?? null,
+  );
 
-  const [members, recordingCount] = env?.DB
+  const [members, recordingCount, seat] = env?.DB
     ? await Promise.all([
         listMembers(env.DB, current.workspace.id),
         countWorkspaceRecordings(env.DB, current.workspace.id),
+        getWorkspaceSeatContext(current.workspace),
       ])
-    : [[], 0];
+    : [[], 0, null];
   const isOwner = current.role === "owner";
   const selfHosted = isSelfHosted(env);
-  const isPro = subscription?.status === "active" || grant !== null;
+  const paidSeats = paidSeatsOf(seat);
   const memberItems: AvatarGroupItem[] = members.map((m) => {
     const display = m.name?.trim() || m.email;
     return {
@@ -70,27 +61,28 @@ export async function Sidebar() {
           memberCount={members.length}
           recordingCount={recordingCount}
           canInvite={isOwner}
+          paidSeats={paidSeats}
+          footer={
+            <WorkspaceMembersStack
+              items={memberItems}
+              canInvite={isOwner}
+              paidSeats={paidSeats}
+            />
+          }
         />
-        <div className="mt-2.5 px-1">
-          <WorkspaceMembersStack items={memberItems} canInvite={isOwner} />
-        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <SidebarNav
-          isOwner={isOwner}
-          selfHosted={selfHosted}
-          storage={{
-            usedBytes,
-            limitBytes:
-              limitBytes >= UNLIMITED_STORAGE_BYTES ? null : limitBytes,
-          }}
-        />
+        <SidebarNav isOwner={isOwner} selfHosted={selfHosted} />
       </div>
 
-      {!isPro && !selfHosted && (
+      {isOwner && seat?.offer && (
         <div className="px-3 pt-3 pb-4">
-          <SidebarUpgradeCard email={session.user.email} userId={userId} />
+          <SidebarUpgradeCard
+            email={session.user.email}
+            userId={userId}
+            seat={seat.offer}
+          />
         </div>
       )}
     </div>

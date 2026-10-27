@@ -6,8 +6,12 @@ import {
   type KeyboardEvent,
   type ReactElement,
 } from "react";
-import { UserPlus, X } from "lucide-react";
+import { Check, UserPlus, X } from "lucide-react";
 import { Alert, Button, Chip, Modal, Typography } from "@heroui/react";
+import { getSeatPlan, type AssignableRole } from "@captureflow/quota";
+import type { PaidSeats } from "@/lib/billing/seat-checkout";
+import { cn } from "@/lib/utils";
+import { ASSIGNABLE_ROLES } from "@/lib/workspace/labels";
 import { inviteMemberAction } from "./members/actions";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,18 +24,19 @@ type InviteModalProps = {
   trigger?: ReactElement;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
-  // Invites to this workspace instead of the current one.
-  workspaceId?: string;
   workspaceName?: string;
+  paidSeats?: PaidSeats | null;
 };
 
 export function InviteModal({
   trigger,
   isOpen,
   onOpenChange,
-  workspaceId,
   workspaceName,
+  paidSeats = null,
 }: InviteModalProps = {}) {
+  // In a paid workspace a member costs a seat, so the owner opts into it.
+  const defaultRole: AssignableRole = paidSeats ? "viewer" : "member";
   const [ownOpen, setOwnOpen] = useState(false);
   // Controlled when a caller passes isOpen — the workspace switcher opens this
   // from inside a popover it has to close first, so the trigger can't live here.
@@ -39,6 +44,7 @@ export function InviteModal({
   const open = isOpen ?? ownOpen;
   const setOpen = onOpenChange ?? setOwnOpen;
   const [emails, setEmails] = useState<string[]>([]);
+  const [role, setRole] = useState<AssignableRole>(defaultRole);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -46,6 +52,7 @@ export function InviteModal({
 
   const reset = () => {
     setEmails([]);
+    setRole(defaultRole);
     setDraft("");
     setError(null);
     setResult(null);
@@ -90,7 +97,7 @@ export function InviteModal({
       for (const email of all) {
         const fd = new FormData();
         fd.set("email", email);
-        if (workspaceId) fd.set("workspaceId", workspaceId);
+        fd.set("role", role);
         const res = await inviteMemberAction({ error: null, ok: null }, fd);
         if (res.ok) sent.push(email);
         else failed.push({ email, error: res.error ?? "Failed" });
@@ -179,6 +186,60 @@ export function InviteModal({
                 <Typography type="body-xs" color="muted">
                   Separate emails with a space, comma, or enter.
                 </Typography>
+
+                <div
+                  role="radiogroup"
+                  aria-label="Role"
+                  className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2"
+                >
+                  {ASSIGNABLE_ROLES.map((option) => {
+                    const isOn = option.id === role;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={isOn}
+                        onClick={() => setRole(option.id)}
+                        className={cn(
+                          "flex cursor-pointer items-start gap-3 rounded-xl border p-3 text-left transition-colors",
+                          isOn
+                            ? "border-accent-ring bg-accent-soft"
+                            : "border-line hover:bg-tint",
+                        )}
+                      >
+                        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <Typography weight="semibold">
+                            {option.label}
+                          </Typography>
+                          <Typography type="body-xs" color="muted">
+                            {option.hint}
+                          </Typography>
+                        </span>
+                        {isOn && (
+                          <Check
+                            size={16}
+                            className="mt-0.5 shrink-0 text-accent"
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {paidSeats && role === "member" && (
+                  <Typography
+                    type="body-xs"
+                    color="muted"
+                    className="mt-2 block"
+                  >
+                    {`Each member who accepts adds a paid seat to your ${getSeatPlan(paidSeats.plan).name} plan, $${
+                      paidSeats.cycle === "annual"
+                        ? getSeatPlan(paidSeats.plan).priceAnnualUsdPerMonth
+                        : getSeatPlan(paidSeats.plan).priceMonthlyUsd
+                    } a month each. The rest of this period goes on your next invoice.`}
+                  </Typography>
+                )}
 
                 {error && (
                   <Alert status="danger" className="mt-3">

@@ -7,12 +7,7 @@ import { nextCookies } from "better-auth/next-js";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { drizzle } from "drizzle-orm/d1";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import {
-  attachSubscriptionToUser,
-  ensurePersonalWorkspace,
-  getUnclaimedProSubscriptionByEmail,
-  isSelfHosted,
-} from "@captureflow/quota";
+import { ensurePersonalWorkspace, isSelfHosted } from "@captureflow/quota";
 import { authSchema } from "./auth-schema";
 import { sendWelcomeEmail } from "./email";
 
@@ -118,24 +113,6 @@ function buildAuth(
             } catch (err) {
               console.error("auth: ensurePersonalWorkspace failed", err);
             }
-            try {
-              const email = claimableEmail(user);
-              if (email) {
-                const unclaimed = await getUnclaimedProSubscriptionByEmail(
-                  db,
-                  email,
-                );
-                if (unclaimed) {
-                  await attachSubscriptionToUser(
-                    db,
-                    unclaimed.ls_subscription_id,
-                    user.id,
-                  );
-                }
-              }
-            } catch (err) {
-              console.error("auth: pro-subscription claim failed", err);
-            }
             // Self-hosted instances are someone else's product; skip ours.
             if (baseURL && !isSelfHosted(env)) {
               const welcome = sendWelcomeEmail({
@@ -155,17 +132,6 @@ function buildAuth(
     },
   };
   return betterAuth(options);
-}
-
-// Only a provider-verified address may claim an unclaimed subscription:
-// password sign-up never verifies, so anyone could register a buyer's email.
-export function claimableEmail(user: {
-  email?: unknown;
-  emailVerified?: unknown;
-}): string | null {
-  return user.emailVerified === true && typeof user.email === "string"
-    ? user.email
-    : null;
 }
 
 export function signupBlockedMessage(domains: string[]): string {

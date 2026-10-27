@@ -38,16 +38,14 @@ import {
   readThemePreferenceFromCookieHeader,
 } from "@captureflow/ui/theme";
 import { getWorkspaceForUpload } from "@/lib/recording/quota";
-import { getUpgradeOffer } from "@/lib/upgrade-offer";
 import { AuthSync } from "./AuthSync";
-import { StorageUpgradeBanner } from "./StorageUpgradeBanner";
 import { PendingRecording } from "./PendingRecording";
 import { RequestAccess } from "./RequestAccess";
 import { SessionLoadingShell } from "./SessionLoadingShell";
 import { AuthPrompt } from "./AuthPrompt";
 import { RecordingActions } from "./RecordingActions";
 import { RecordingViewer } from "./RecordingViewer";
-import { NotificationsMenu } from "@/app/_components/NotificationsMenu";
+import { NotificationsBell } from "@/app/_components/NotificationsBell";
 import { SidebarDrawer } from "@/app/_components/SidebarDrawer";
 import { ViewerUserMenu } from "@/app/_components/ViewerUserMenu";
 import { Sidebar } from "@/app/(dashboard)/Sidebar";
@@ -253,7 +251,6 @@ export default async function RecordingPage({
     webcamUrlRaw,
     transcriptRow,
     viewers,
-    upgradeOffer,
   ] = await Promise.all([
     viewerMediaUrl(row, row.storageKey),
     row.posterKey
@@ -268,7 +265,6 @@ export default async function RecordingPage({
     getTranscript(id),
     // Only the owner sees who watched.
     isOwner ? listViewers(id, row.userId) : Promise.resolve(null),
-    visitor ? getUpgradeOffer(visitor.userId) : Promise.resolve(null),
   ]);
   const recordingConfig = parseRecordingConfigJson(row.configJson);
   const summaryChapters = parseSummaryChaptersJson(row.summaryChaptersJson);
@@ -303,13 +299,6 @@ export default async function RecordingPage({
   return (
     <div className="flex min-h-screen flex-col bg-panel text-fg lg:h-screen lg:overflow-hidden">
       <AuthSync initialUserId={visitor?.userId ?? null} />
-      {visitor && upgradeOffer && (
-        <StorageUpgradeBanner
-          offer={upgradeOffer}
-          email={visitor.email}
-          userId={visitor.userId}
-        />
-      )}
       <ViewerNav
         homeUrl={APP_WEB_SITE_URL}
         productName={PRODUCT_NAME}
@@ -339,7 +328,12 @@ export default async function RecordingPage({
           )
         }
         notifications={
-          visitor ? <NotificationsMenu base={APP_WEB_SITE_URL} /> : null
+          visitor ? (
+            <NotificationsBell
+              user={{ id: visitor.userId, email: visitor.email }}
+              base={APP_WEB_SITE_URL}
+            />
+          ) : null
         }
         userMenu={
           visitor ? (

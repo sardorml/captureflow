@@ -21,8 +21,7 @@ import { FilterBar, Pager } from "../_filters";
 
 const PLAN_FILTERS = [
   { id: "all", label: "All plans" },
-  { id: "pro", label: "Pro (paid or granted)" },
-  { id: "granted", label: "Granted" },
+  { id: "team", label: "Paid" },
   { id: "free", label: "Free" },
 ] as const;
 

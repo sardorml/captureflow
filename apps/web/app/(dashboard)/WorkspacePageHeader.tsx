@@ -36,7 +36,7 @@ export function SettingsCard({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl bg-panel ring-1 ring-line-strong">
+    <section className="rounded-2xl bg-panel ring-1 ring-line">
       <div className="px-6 pt-6 pb-5">
         <h2 className="text-2xl font-semibold tracking-tight text-fg-strong">
           {title}
