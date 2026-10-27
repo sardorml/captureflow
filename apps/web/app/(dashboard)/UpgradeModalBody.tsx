@@ -35,7 +35,7 @@ const CYCLES: { key: SeatCycle; label: string }[] = [
 ];
 
 const SEAT_CHOICES: { role: AssignableRole; label: string }[] = [
-  { role: "member", label: "Seat" },
+  { role: "member", label: "Paid seat" },
   { role: "viewer", label: "Viewer" },
 ];
 
@@ -122,40 +122,69 @@ export function UpgradeModalBody({
           >
             <Modal.CloseTrigger />
             <Modal.Body className="p-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 pe-8">
-                <Modal.Heading className="text-2xl font-bold tracking-[-0.02em] text-fg">
-                  Upgrade {seat.workspaceName}
-                </Modal.Heading>
-                <div
-                  role="radiogroup"
-                  aria-label="Billing cycle"
-                  className="grid grid-cols-2 gap-1 rounded-full bg-tint p-1"
-                >
-                  {CYCLES.map((c) => {
-                    const isOn = c.key === cycle;
-                    return (
-                      <button
-                        key={c.key}
-                        type="button"
-                        role="radio"
-                        aria-checked={isOn}
-                        onClick={() => setCycle(c.key)}
-                        className={cn(
-                          "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium transition-colors motion-reduce:transition-none",
-                          isOn
-                            ? "bg-panel text-fg shadow-sm"
-                            : "text-fg-muted hover:text-fg",
-                        )}
-                      >
-                        {c.label}
-                        {c.key === "annual" ? (
-                          <span className="ms-1.5 text-xs text-accent">
-                            save up to {SEAT_ANNUAL_SAVING_PERCENT}%
-                          </span>
-                        ) : null}
-                      </button>
-                    );
-                  })}
+              <div className="grid gap-5 pe-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-start">
+                <div className="flex flex-col items-start gap-4">
+                  <Modal.Heading className="text-2xl font-bold tracking-[-0.02em] text-fg">
+                    Upgrade {seat.workspaceName}
+                  </Modal.Heading>
+                  <div
+                    role="radiogroup"
+                    aria-label="Billing cycle"
+                    className="grid grid-cols-2 gap-1 rounded-full bg-tint p-1"
+                  >
+                    {CYCLES.map((c) => {
+                      const isOn = c.key === cycle;
+                      return (
+                        <button
+                          key={c.key}
+                          type="button"
+                          role="radio"
+                          aria-checked={isOn}
+                          onClick={() => setCycle(c.key)}
+                          className={cn(
+                            "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
+                            isOn
+                              ? "bg-panel text-fg shadow-sm"
+                              : "text-fg-muted hover:text-fg",
+                          )}
+                        >
+                          {c.label}
+                          {c.key === "annual" ? (
+                            <span className="ms-1.5 text-xs text-accent">
+                              save {SEAT_ANNUAL_SAVING_PERCENT}%
+                            </span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-fg">
+                    Who gets a paid seat
+                  </p>
+                  <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-xs leading-snug">
+                    <dt className="font-semibold text-accent">Paid seat</dt>
+                    <dd className="text-fg-muted">
+                      Records and shares. You pay for each one.
+                    </dd>
+                    <dt className="font-semibold text-fg">Viewer</dt>
+                    <dd className="text-fg-muted">
+                      Free. Watches, comments and reacts, but can&apos;t record.
+                    </dd>
+                  </dl>
+                  <ul className="mt-2 max-h-[184px] divide-y divide-line overflow-y-auto rounded-xl border border-line">
+                    {people.map((p) => (
+                      <PersonRow
+                        key={p.userId}
+                        person={p}
+                        isSelf={p.userId === userId}
+                        editable={canManage && p.role !== "owner"}
+                        onRole={(role) => setRole(p.userId, role)}
+                      />
+                    ))}
+                  </ul>
                 </div>
               </div>
 
@@ -172,21 +201,6 @@ export function UpgradeModalBody({
                   />
                 ))}
               </div>
-
-              <p className="mt-5 text-sm font-semibold text-fg">
-                Who gets a seat
-              </p>
-              <ul className="mt-2 divide-y divide-line overflow-hidden rounded-2xl border border-line">
-                {people.map((p) => (
-                  <PersonRow
-                    key={p.userId}
-                    person={p}
-                    isSelf={p.userId === userId}
-                    editable={canManage && p.role !== "owner"}
-                    onRole={(role) => setRole(p.userId, role)}
-                  />
-                ))}
-              </ul>
             </Modal.Body>
           </Modal.Dialog>
         </Modal.Container>
@@ -305,25 +319,22 @@ function PersonRow({
   const display = person.name || person.email.split("@")[0];
   const seated = isSeatRole(person.role);
   return (
-    <li className="flex items-center gap-3 px-4 py-2">
-      <Avatar className="h-8 w-8 shrink-0">
+    <li className="flex items-center gap-2.5 px-3 py-1.5" title={person.email}>
+      <Avatar className="h-6 w-6 shrink-0">
         {person.image && <Avatar.Image src={person.image} alt={display} />}
-        <Avatar.Fallback className="text-xs">
+        <Avatar.Fallback className="text-[10px]">
           {initials(person.name || person.email)}
         </Avatar.Fallback>
       </Avatar>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-sm font-medium text-fg">
-          {display}
-          {isSelf && <span className="text-fg-muted"> (you)</span>}
-        </span>
-        <span className="truncate text-xs text-fg-muted">{person.email}</span>
+      <span className="min-w-0 flex-1 truncate text-sm font-medium text-fg">
+        {display}
+        {isSelf && <span className="text-fg-muted"> (you)</span>}
       </span>
       {editable ? (
         <div
           role="radiogroup"
           aria-label={`Role for ${display}`}
-          className="flex shrink-0 items-center gap-1.5"
+          className="flex shrink-0 items-center gap-1"
         >
           {SEAT_CHOICES.map((c) => {
             const isOn = c.role === person.role;
@@ -335,7 +346,7 @@ function PersonRow({
                 aria-checked={isOn}
                 onClick={() => !isOn && onRole(c.role)}
                 className={cn(
-                  "h-8 cursor-pointer rounded-full px-3.5 text-sm font-semibold transition-colors motion-reduce:transition-none",
+                  "h-7 cursor-pointer rounded-full px-3 text-xs font-semibold transition-colors motion-reduce:transition-none",
                   isOn
                     ? "bg-accent text-white shadow-sm"
                     : "border border-line bg-panel text-fg hover:border-accent hover:text-accent",
@@ -349,7 +360,7 @@ function PersonRow({
       ) : (
         <span className="shrink-0 text-xs font-medium text-fg-muted">
           {ROLE_LABEL[person.role]}
-          {seated ? " · seat" : " · free"}
+          {seated ? " · paid seat" : " · free"}
         </span>
       )}
     </li>
