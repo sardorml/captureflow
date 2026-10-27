@@ -9,8 +9,8 @@ import {
 } from "react";
 
 const SCENE = { width: 600, height: 424 };
-// Square frame; the scene sits vertically centred on the card's background.
-const FRAME = { width: 600, height: 600 };
+// The scene sits vertically centred on the frame's background.
+const FRAME = { width: 600, height: 460 };
 const RADIUS = 40;
 
 export type SceneState = { step: number; playing: boolean };
