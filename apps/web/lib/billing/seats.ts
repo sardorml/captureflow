@@ -54,7 +54,7 @@ export async function getWorkspaceSeatContext(workspace: {
           image: m.image,
           role: m.role,
         })),
-        checkoutUrls: seatCheckoutBases(),
+        checkoutUrls: seatCheckoutBases(env),
       }
     : null;
   return {

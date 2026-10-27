@@ -27,6 +27,11 @@ export type AppWebBindings = {
   LEMON_LIGHT_ANNUAL_VARIANT_ID?: string;
   LEMON_PRO_MONTHLY_VARIANT_ID?: string;
   LEMON_PRO_ANNUAL_VARIANT_ID?: string;
+  // Buy links for the seat plans, one per plan and cycle; empty shows the choice without a working button.
+  NEXT_PUBLIC_LEMON_LIGHT_MONTHLY_CHECKOUT_URL?: string;
+  NEXT_PUBLIC_LEMON_LIGHT_ANNUAL_CHECKOUT_URL?: string;
+  NEXT_PUBLIC_LEMON_PRO_MONTHLY_CHECKOUT_URL?: string;
+  NEXT_PUBLIC_LEMON_PRO_ANNUAL_CHECKOUT_URL?: string;
   // Lets the app change a seat subscription's quantity when a member joins or leaves. Without it, seat sync only logs.
   LEMON_API_KEY?: string;
   EMAIL?: SendEmail;

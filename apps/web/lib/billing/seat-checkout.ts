@@ -50,16 +50,24 @@ export function seatCheckoutUrl(input: {
   return u.toString();
 }
 
-// Spelled out per link: Next inlines NEXT_PUBLIC_* only when the name is literal.
-export function seatCheckoutBases(): SeatCheckoutUrls {
+type CheckoutEnv = Partial<
+  Record<
+    `NEXT_PUBLIC_LEMON_${"LIGHT" | "PRO"}_${"MONTHLY" | "ANNUAL"}_CHECKOUT_URL`,
+    string
+  >
+>;
+
+// Read from the request's worker env, not process.env, so a deploy's vars
+// apply without a rebuild.
+export function seatCheckoutBases(env: CheckoutEnv): SeatCheckoutUrls {
   return {
     light: {
-      monthly: process.env.NEXT_PUBLIC_LEMON_LIGHT_MONTHLY_CHECKOUT_URL || null,
-      annual: process.env.NEXT_PUBLIC_LEMON_LIGHT_ANNUAL_CHECKOUT_URL || null,
+      monthly: env.NEXT_PUBLIC_LEMON_LIGHT_MONTHLY_CHECKOUT_URL || null,
+      annual: env.NEXT_PUBLIC_LEMON_LIGHT_ANNUAL_CHECKOUT_URL || null,
     },
     pro: {
-      monthly: process.env.NEXT_PUBLIC_LEMON_PRO_MONTHLY_CHECKOUT_URL || null,
-      annual: process.env.NEXT_PUBLIC_LEMON_PRO_ANNUAL_CHECKOUT_URL || null,
+      monthly: env.NEXT_PUBLIC_LEMON_PRO_MONTHLY_CHECKOUT_URL || null,
+      annual: env.NEXT_PUBLIC_LEMON_PRO_ANNUAL_CHECKOUT_URL || null,
     },
   };
 }
