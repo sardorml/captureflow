@@ -611,7 +611,6 @@ export const MESSAGES = {
           "Edit the video from its transcript",
           "Your own workspace, invite anyone",
           "Comments and emoji reactions",
-          "Viewers and commenters are free",
         ],
         cta: "Try for free",
       },
