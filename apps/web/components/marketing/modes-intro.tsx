@@ -96,18 +96,23 @@ function Presenter({
   size,
   ring,
   live = false,
+  soft = false,
 }: {
   size: number;
   ring: number;
   live?: boolean;
+  soft?: boolean;
 }) {
+  const drop = soft
+    ? "0 6px 16px rgb(0 0 0 / 0.14)"
+    : "0 18px 40px rgb(0 0 0 / 0.45)";
   return (
     <span
       className="block overflow-hidden rounded-full"
       style={{
         width: size,
         height: size,
-        boxShadow: `0 0 0 ${ring}px #fff, 0 18px 40px rgb(0 0 0 / 0.45)`,
+        boxShadow: `0 0 0 ${ring}px #fff, ${drop}`,
       }}
     >
       {live ? (
@@ -452,7 +457,7 @@ function CanvasScene({ t }: { t: number }) {
         <ControlBar time={timer} />
       </div>
       <div className="absolute right-4 bottom-4">
-        <Presenter size={76} ring={3} live />
+        <Presenter size={100} ring={3} live soft />
       </div>
     </div>
   );
