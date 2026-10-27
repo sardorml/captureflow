@@ -313,14 +313,10 @@ export const MESSAGES = {
       workspaces: {
         feature: {
           title: "Workspaces for your whole team",
-          cta: "Create a workspace",
+          cta: "Invite your team",
           body: "Invite your teammates to a workspace and everyone's recordings live in one place. Share a video with anyone, keep it inside the workspace, or keep it to yourself until it's ready.",
         },
         scene: {
-          newWorkspace: "New workspace",
-          nameLabel: "Workspace name",
-          create: "Create workspace",
-          created: "Created",
           team: "CaptureFlow team",
           members: ["1 member", "2 members", "3 members"],
           memberInitials: ["AR", "CK", "JB"],
@@ -329,27 +325,6 @@ export const MESSAGES = {
           invite: "Invite",
           invited: "Sent",
           joined: "Chris and Jordan joined 🎉",
-          recordings: "Recordings",
-          videos: [
-            {
-              title: "Launch plan walkthrough",
-              author: "Alex",
-              initials: "AR",
-              duration: "1:12",
-            },
-            {
-              title: "Bug: promo code check",
-              author: "Chris",
-              initials: "CK",
-              duration: "0:48",
-            },
-            {
-              title: "Weekly update",
-              author: "Jordan",
-              initials: "JB",
-              duration: "2:05",
-            },
-          ],
           whoCanWatch: "Who can watch:",
           visibility: [
             { label: "Public", detail: "Anyone with the link" },

@@ -6,13 +6,12 @@ import { cn } from "@/lib/utils";
 import { useMessages } from "./i18n-provider";
 import { SceneFrame, type SceneState } from "./scene-frame";
 
-const LOOP_MS = 14000;
+const LOOP_MS = 10000;
 
-// Name and create the workspace, type two invites and send them, Chris then
-// Jordan join, then the first recording walks Public → Workspace → Private.
-const STEPS = [0, 900, 2200, 3000, 3900, 5700, 6600, 7300, 9400, 11400];
+// Type two invites and send them, Chris then Jordan join, then the sharing
+// default walks Public → Workspace → Private.
+const STEPS = [0, 600, 2100, 3000, 3700, 5600, 7600];
 
-const NAME_TYPING_MS = 900;
 const INVITE_TYPING_MS = 1500;
 
 const INITIALS_COLORS: Record<string, string> = {
@@ -21,12 +20,6 @@ const INITIALS_COLORS: Record<string, string> = {
   JB: "#1184f7",
 };
 const VISIBILITY_ICONS = [Globe, Users, Lock];
-const THUMBS = [BoardThumb, CodeThumb, ChartThumb];
-const PRESENTERS = [
-  "/webcam/sweater.jpg",
-  "/presenter-engineering.webp",
-  "/webcam/headband.jpg",
-];
 
 export function TeamsScene() {
   return (
@@ -34,7 +27,6 @@ export function TeamsScene() {
       steps={STEPS}
       loopMs={LOOP_MS}
       background="linear-gradient(160deg,#b6ecd3,#97d9c2)"
-      zoom={{ scale: 1.04, bounds: [28, 572] }}
     >
       {(state) => <TeamsContent {...state} />}
     </SceneFrame>
@@ -43,252 +35,100 @@ export function TeamsScene() {
 
 function TeamsContent({ step }: SceneState) {
   const copy = useMessages().collaboration.categories.workspaces.scene;
-  const naming = step >= 1;
-  const created = step >= 2;
-  const inviting = step >= 3;
-  const typing = step === 4 || step === 5;
-  const sent = step === 5;
-  const memberCount = step >= 7 ? 3 : step >= 6 ? 2 : 1;
-  const celebrating = step === 7;
-  const visibility = step >= 9 ? 2 : step >= 8 ? 1 : 0;
+  const typing = step === 1 || step === 2;
+  const sent = step === 2;
+  const memberCount = step >= 4 ? 3 : step >= 3 ? 2 : 1;
+  const celebrating = step === 4;
+  const visibility = step >= 6 ? 2 : step >= 5 ? 1 : 0;
   const VisibilityIcon = VISIBILITY_ICONS[visibility];
 
   return (
-    <div className="absolute inset-x-7 top-1/2 flex -translate-y-1/2 items-stretch justify-between gap-4 text-[#181818]">
-      {inviting ? (
-        <div className="flex min-h-[280px] w-[316px] flex-col rounded-2xl bg-white p-5 shadow-[0_24px_50px_rgb(6_78_59/0.16)]">
-          <p className="text-[18px] leading-tight font-bold">{copy.team}</p>
-          <p className="mt-0.5 text-[12px] text-black/50 tabular-nums">
-            {copy.members[memberCount - 1]}
-          </p>
+    <div className="absolute inset-0 flex items-center justify-center text-[#181818]">
+      <div className="flex w-[440px] flex-col rounded-2xl bg-white p-6 shadow-[0_24px_50px_rgb(6_78_59/0.16)]">
+        <p className="text-[22px] leading-tight font-bold">{copy.team}</p>
+        <p className="mt-1 text-[14px] text-black/50 tabular-nums">
+          {copy.members[memberCount - 1]}
+        </p>
 
-          <div className="mt-4 flex h-11 items-center">
-            {copy.memberInitials.map((initials, i) => (
+        <div className="mt-5 flex h-12 items-center">
+          {copy.memberInitials.map((initials, i) => (
+            <span
+              key={initials}
+              className={cn(
+                "flex size-12 shrink-0 items-center justify-center rounded-full text-[14px] font-bold text-white shadow-[0_0_0_3px_#fff] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                i === 0
+                  ? ""
+                  : i < memberCount
+                    ? "-ml-2.5 scale-100 opacity-100"
+                    : "-ml-12 scale-50 opacity-0",
+              )}
+              style={{ background: INITIALS_COLORS[initials] }}
+            >
+              {initials}
+            </span>
+          ))}
+          <span
+            className={cn(
+              "ml-3 rounded-full bg-[#1184f7] px-3 py-1 text-[12px] font-semibold whitespace-nowrap text-white transition-all duration-300",
+              celebrating
+                ? "translate-x-0 opacity-100"
+                : "-translate-x-1 opacity-0",
+            )}
+          >
+            {copy.joined}
+          </span>
+        </div>
+
+        <div className="mt-5 flex gap-2">
+          <span className="flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-lg border border-black/10 px-3 text-[14px] whitespace-nowrap">
+            {typing ? (
+              <Typed text={copy.inviteEmail} duration={INVITE_TYPING_MS} />
+            ) : (
+              <span className="text-black/35">{copy.invitePlaceholder}</span>
+            )}
+          </span>
+          <span
+            className={cn(
+              "flex h-10 w-[76px] shrink-0 items-center justify-center gap-1 rounded-lg text-[14px] font-semibold transition-colors duration-300",
+              sent ? "bg-[#dcfce7] text-[#15803d]" : "bg-[#181818] text-white",
+            )}
+          >
+            {sent ? <Check className="size-3.5" strokeWidth={3} /> : null}
+            {sent ? copy.invited : copy.invite}
+          </span>
+        </div>
+
+        <div className="mt-5 border-t border-black/5 pt-5">
+          <p className="flex items-center gap-1.5 text-[15px] font-medium">
+            {copy.whoCanWatch}
+            <VisibilityIcon className="size-4 text-[#1184f7]" />
+            <span className="text-[#1184f7]">
+              {copy.visibility[visibility].detail}
+            </span>
+          </p>
+          <div className="relative mt-3 grid grid-cols-3 rounded-lg bg-[#eaeaea] p-1 text-[14px] font-semibold">
+            <span
+              className="absolute inset-y-1 left-1 rounded-md bg-[#1184f7] shadow transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              style={{
+                width: "calc((100% - 8px) / 3)",
+                transform: `translateX(${visibility * 100}%)`,
+              }}
+            />
+            {copy.visibility.map((option, i) => (
               <span
-                key={initials}
+                key={option.label}
                 className={cn(
-                  "flex size-11 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white shadow-[0_0_0_3px_#fff] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-                  i === 0
-                    ? ""
-                    : i < memberCount
-                      ? "-ml-2.5 scale-100 opacity-100"
-                      : "-ml-11 scale-50 opacity-0",
+                  "relative py-2 text-center transition-colors duration-300",
+                  i === visibility ? "text-white" : "text-black/45",
                 )}
-                style={{ background: INITIALS_COLORS[initials] }}
               >
-                {initials}
+                {option.label}
               </span>
             ))}
-            <span
-              className={cn(
-                "ml-3 rounded-full bg-[#1184f7] px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap text-white transition-all duration-300",
-                celebrating
-                  ? "translate-x-0 opacity-100"
-                  : "-translate-x-1 opacity-0",
-              )}
-            >
-              {copy.joined}
-            </span>
-          </div>
-
-          <div className="mt-4 flex gap-1.5">
-            <span className="flex h-8 min-w-0 flex-1 items-center overflow-hidden rounded-lg border border-black/10 px-2.5 text-[12px] whitespace-nowrap">
-              {typing ? (
-                <Typed text={copy.inviteEmail} duration={INVITE_TYPING_MS} />
-              ) : (
-                <span className="text-black/35">{copy.invitePlaceholder}</span>
-              )}
-            </span>
-            <span
-              className={cn(
-                "flex h-8 w-[62px] shrink-0 items-center justify-center gap-1 rounded-lg text-[12px] font-semibold transition-colors duration-300",
-                sent
-                  ? "bg-[#dcfce7] text-[#15803d]"
-                  : "bg-[#181818] text-white",
-              )}
-            >
-              {sent ? <Check className="size-3" strokeWidth={3} /> : null}
-              {sent ? copy.invited : copy.invite}
-            </span>
-          </div>
-
-          <div className="mt-4 border-t border-black/5 pt-4">
-            <p className="text-[13px] font-medium">
-              {copy.whoCanWatch}{" "}
-              <span className="text-[#1184f7]">
-                {copy.visibility[visibility].detail}
-              </span>
-            </p>
-            <div className="relative mt-2 grid grid-cols-3 rounded-lg bg-[#eaeaea] p-1 text-[12px] font-semibold">
-              <span
-                className="absolute inset-y-1 left-1 rounded-md bg-[#1184f7] shadow transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
-                style={{
-                  width: "calc((100% - 8px) / 3)",
-                  transform: `translateX(${visibility * 100}%)`,
-                }}
-              />
-              {copy.visibility.map((option, i) => (
-                <span
-                  key={option.label}
-                  className={cn(
-                    "relative py-1.5 text-center transition-colors duration-300",
-                    i === visibility ? "text-white" : "text-black/45",
-                  )}
-                >
-                  {option.label}
-                </span>
-              ))}
-            </div>
           </div>
         </div>
-      ) : (
-        <div className="flex min-h-[280px] w-[316px] flex-col justify-center rounded-2xl bg-white p-5 shadow-[0_24px_50px_rgb(6_78_59/0.16)]">
-          <p className="text-[18px] leading-tight font-bold">
-            {copy.newWorkspace}
-          </p>
-          <p className="mt-5 text-[12px] font-medium text-black/60">
-            {copy.nameLabel}
-          </p>
-          <span className="mt-1.5 flex h-9 items-center rounded-lg border border-black/10 px-2.5 text-[13px]">
-            {naming ? (
-              <Typed text={copy.team} duration={NAME_TYPING_MS} />
-            ) : (
-              <span className="h-3.5 w-px animate-pulse bg-black/60" />
-            )}
-          </span>
-          <span
-            className={cn(
-              "mt-4 flex h-9 items-center justify-center gap-1.5 rounded-lg text-[13px] font-semibold transition-colors duration-300",
-              created
-                ? "bg-[#dcfce7] text-[#15803d]"
-                : "bg-[#1184f7] text-white",
-            )}
-          >
-            {created ? <Check className="size-3" strokeWidth={3} /> : null}
-            {created ? copy.created : copy.create}
-          </span>
-        </div>
-      )}
-
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5 rounded-2xl bg-white p-4 shadow-[0_24px_50px_rgb(6_78_59/0.16)]">
-        <p className="text-[12px] font-bold">{copy.recordings}</p>
-        {copy.videos.map((video, i) => {
-          const Thumb = THUMBS[i];
-          return (
-            <div
-              key={video.title}
-              className={cn(
-                "flex items-center gap-2 rounded-lg p-1",
-                i === 0 && "bg-[#e1f0ff] shadow-[0_0_0_1.5px_#1184f7]",
-              )}
-            >
-              <span className="relative h-[42px] w-[64px] shrink-0 overflow-hidden rounded-md border border-black/5">
-                <Thumb />
-                <span
-                  className="absolute right-1 bottom-1 size-[18px] overflow-hidden rounded-full shadow-[0_0_0_1.5px_#fff]"
-                  style={{
-                    background: `center / cover url(${PRESENTERS[i]})`,
-                  }}
-                />
-                <span className="absolute bottom-1 left-1 rounded-[3px] bg-black/70 px-1 font-mono text-[8.5px] leading-[10px] text-white">
-                  {video.duration}
-                </span>
-              </span>
-              <span className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="line-clamp-2 text-[11px] leading-tight font-semibold">
-                  {video.title}
-                </span>
-                <span className="flex items-center gap-1 text-[10px] text-black/50">
-                  <span
-                    className="flex size-3 shrink-0 items-center justify-center rounded-full text-[7px] font-bold text-white"
-                    style={{ background: INITIALS_COLORS[video.initials] }}
-                  >
-                    {video.initials}
-                  </span>
-                  {video.author}
-                </span>
-              </span>
-              {i === 0 ? (
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-white text-[#1184f7] shadow-[0_1px_3px_rgb(0_0_0/0.12)]">
-                  <VisibilityIcon className="size-2.5" />
-                </span>
-              ) : null}
-            </div>
-          );
-        })}
       </div>
     </div>
-  );
-}
-
-function BoardThumb() {
-  return (
-    <span className="flex size-full flex-col bg-[#f5f5f5]">
-      <span className="h-1.5 shrink-0 bg-[#e6e6e6]" />
-      <span className="flex flex-1 gap-[3px] p-1">
-        {["#f59e0b", "#1184f7", "#22c55e"].map((color) => (
-          <span
-            key={color}
-            className="flex flex-1 flex-col gap-[2px] rounded-[2px] bg-[#ededed] p-[2px]"
-          >
-            <span className="flex h-2 flex-col justify-end rounded-[1px] bg-white p-[1px]">
-              <span
-                className="h-[1.5px] w-2/3 rounded-full"
-                style={{ background: color }}
-              />
-            </span>
-            <span className="flex h-2 flex-col justify-end rounded-[1px] bg-white p-[1px]">
-              <span
-                className="h-[1.5px] w-1/2 rounded-full"
-                style={{ background: color }}
-              />
-            </span>
-          </span>
-        ))}
-      </span>
-    </span>
-  );
-}
-
-function CodeThumb() {
-  const rows = [
-    { width: "70%", tone: "bg-[#a78bfa]/70" },
-    { width: "55%", tone: "bg-[#93c5fd]/70" },
-    { width: "62%", tone: "bg-[#fca5a5]", row: "bg-[#ef4444]/20" },
-    { width: "66%", tone: "bg-[#86efac]", row: "bg-[#22c55e]/20" },
-    { width: "48%", tone: "bg-[#93c5fd]/70" },
-  ];
-  return (
-    <span className="flex size-full flex-col gap-[2px] bg-[#1e2433] py-1.5">
-      {rows.map((r, i) => (
-        <span key={i} className={cn("flex h-[4px] items-center px-1.5", r.row)}>
-          <span
-            className={cn("h-[2px] rounded-full", r.tone)}
-            style={{ width: r.width }}
-          />
-        </span>
-      ))}
-    </span>
-  );
-}
-
-function ChartThumb() {
-  return (
-    <span className="flex size-full flex-col bg-white p-1.5">
-      <span className="h-[2px] w-6 rounded-full bg-black/40" />
-      <span className="mt-auto flex h-6 items-end gap-[2px]">
-        {[40, 55, 48, 66, 78, 100].map((h, i) => (
-          <span
-            key={i}
-            className={cn(
-              "flex-1 rounded-t-[1px]",
-              i === 5 ? "bg-[#1184f7]" : "bg-[#e3e3e3]",
-            )}
-            style={{ height: `${h}%` }}
-          />
-        ))}
-      </span>
-    </span>
   );
 }
 
