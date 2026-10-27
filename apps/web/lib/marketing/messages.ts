@@ -591,7 +591,7 @@ export const MESSAGES = {
       },
       team: {
         name: PLAN,
-        badge: "Most popular",
+        badge: "Best value",
         description:
           "Unlimited recordings in full quality, with AI chapters, titles and clean-up for the whole team.",
         period: "per member / month",

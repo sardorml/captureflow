@@ -164,7 +164,7 @@ export function UpgradeModalBody({
                 >
                   <div className="flex h-full flex-col rounded-[20px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))] p-6 text-fg">
                     <span className="inline-flex w-fit items-center rounded-lg bg-accent/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
-                      Most popular
+                      Best value
                     </span>
                     <p className="mt-3 flex items-start gap-1 text-2xl font-bold tracking-[-0.02em]">
                       {SEAT_PLAN.name}
