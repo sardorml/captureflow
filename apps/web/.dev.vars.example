@@ -60,21 +60,24 @@ ALLOWED_EMAIL_DOMAINS=
 # In prod set with: wrangler secret put LEMON_WEBHOOK_SECRET
 LEMON_WEBHOOK_SECRET=
 
-# Team plan variant IDs (strings, matching Lemon Squeezy's payload encoding).
-# A subscription on either belongs to a workspace; the annual one sets the
-# billing cycle. Set both before the first sale: a renewal event carries no
-# checkout custom data, so the variant is the only way to recognise it.
-LEMON_SEAT_MONTHLY_VARIANT_ID=
-LEMON_SEAT_ANNUAL_VARIANT_ID=
+# Seat plan variant IDs (strings, matching Lemon Squeezy's payload encoding).
+# A subscription on any of these belongs to a workspace; the variant names the
+# plan and the billing cycle. Set them before the first sale: a renewal event
+# carries no checkout custom data, so the variant is the only way to tell.
+LEMON_LIGHT_MONTHLY_VARIANT_ID=
+LEMON_LIGHT_ANNUAL_VARIANT_ID=
+LEMON_PRO_MONTHLY_VARIANT_ID=
+LEMON_PRO_ANNUAL_VARIANT_ID=
 
 # Lets the app change a seat subscription's quantity when a member joins or
 # leaves. Without it, seat sync only logs. Prod: wrangler secret put LEMON_API_KEY
 LEMON_API_KEY=
 
-# Public checkout link for the Team plan, with quantity enabled on the variant.
-# PUBLIC (inlined into the client bundle). Leave empty to show the plan without
-# a working button. Declared in wrangler.jsonc "vars" for prod.
-NEXT_PUBLIC_LEMON_SEAT_CHECKOUT_URL=
+# Public checkout links for the seat plans, with quantity enabled on the
+# variants. PUBLIC (inlined into the client bundle). Leave empty to show a plan
+# without a working button. Declared in wrangler.jsonc "vars" for prod.
+NEXT_PUBLIC_LEMON_LIGHT_CHECKOUT_URL=
+NEXT_PUBLIC_LEMON_PRO_CHECKOUT_URL=
 
 
 # -----------------------------------------------------------------------------

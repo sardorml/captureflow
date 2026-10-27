@@ -3,12 +3,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAppWebEnv } from "@/lib/cf-env";
 import {
+  hydrateSeatPlanId,
   upsertWorkspaceSubscription,
+  type SeatPlanId,
   type SubscriptionStatus,
 } from "@captureflow/quota";
 
 /*
- * Lemon Squeezy subscription event sink for the Team plan. Does NOT handle
+ * Lemon Squeezy subscription event sink for the seat plans. Does NOT handle
  * the lifetime license-key product — that flows through Lemon's licensing
  * endpoints, activated locally via `licenses/activate`.
  *
@@ -84,6 +86,26 @@ async function verifySignature(
   return diff === 0;
 }
 
+type SeatVariant = { plan: SeatPlanId; cycle: "monthly" | "annual" };
+
+function seatVariant(
+  env: Partial<
+    Record<
+      `LEMON_${"LIGHT" | "PRO"}_${"MONTHLY" | "ANNUAL"}_VARIANT_ID`,
+      string
+    >
+  >,
+  variant: string,
+): SeatVariant | null {
+  const table: [string | undefined, SeatVariant][] = [
+    [env.LEMON_LIGHT_MONTHLY_VARIANT_ID, { plan: "light", cycle: "monthly" }],
+    [env.LEMON_LIGHT_ANNUAL_VARIANT_ID, { plan: "light", cycle: "annual" }],
+    [env.LEMON_PRO_MONTHLY_VARIANT_ID, { plan: "pro", cycle: "monthly" }],
+    [env.LEMON_PRO_ANNUAL_VARIANT_ID, { plan: "pro", cycle: "annual" }],
+  ];
+  return table.find(([id]) => id && id === variant)?.[1] ?? null;
+}
+
 export async function POST(req: NextRequest) {
   const env = await getAppWebEnv();
   if (!env?.DB) {
@@ -122,35 +144,36 @@ export async function POST(req: NextRequest) {
   const attrs = data.attributes;
 
   /*
-   * A Team subscription is told apart by its variant, or by the workspace id
+   * A seat subscription is told apart by its variant, or by the workspace id
    * the checkout attached; the custom data only rides the first event, so
    * renewals match on the variant alone. Anything else is a product this
    * deployment does not sell, acknowledged so LS stops retrying.
    */
   const variant = String(attrs.variant_id);
-  const isSeatPlan =
-    variant === env.LEMON_SEAT_MONTHLY_VARIANT_ID ||
-    variant === env.LEMON_SEAT_ANNUAL_VARIANT_ID ||
-    Boolean(event.meta.custom_data?.workspace_id);
-  if (!isSeatPlan) {
+  const known = seatVariant(env, variant);
+  const custom = event.meta.custom_data;
+  if (!known && !custom?.workspace_id) {
     console.warn(
-      `[lemon-webhook] ignoring ${name} for unknown variant_id=${variant}; set LEMON_SEAT_{MONTHLY,ANNUAL}_VARIANT_ID`,
+      `[lemon-webhook] ignoring ${name} for unknown variant_id=${variant}; set LEMON_{LIGHT,PRO}_{MONTHLY,ANNUAL}_VARIANT_ID`,
     );
     return NextResponse.json({ ok: true, ignored: `variant ${variant}` });
   }
+  const plan = known?.plan ?? hydrateSeatPlanId(custom?.plan);
+  const cycle = known?.cycle ?? "monthly";
 
   const now = Math.floor(Date.now() / 1000);
   const item = attrs.first_subscription_item ?? null;
   await upsertWorkspaceSubscription(env.DB, {
     ls_subscription_id: data.id,
     ls_subscription_item_id: item ? String(item.id) : null,
-    workspace_id: event.meta.custom_data?.workspace_id ?? null,
+    workspace_id: custom?.workspace_id ?? null,
     ls_variant_id: variant,
     ls_customer_id:
       attrs.customer_id !== null ? String(attrs.customer_id) : null,
     ls_customer_email: attrs.user_email,
     status: attrs.status as SubscriptionStatus,
-    cycle: variant === env.LEMON_SEAT_ANNUAL_VARIANT_ID ? "annual" : "monthly",
+    plan,
+    cycle,
     quantity: Math.max(1, item?.quantity ?? 1),
     current_period_end: periodEndFromAttributes(attrs),
     cancelled_at: attrs.cancelled ? now : null,

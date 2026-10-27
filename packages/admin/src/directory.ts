@@ -1,8 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import {
+  hydrateSeatPlanId,
   isSubscriptionActive,
   listPaidWorkspaceIds,
+  type SeatPlanId,
   type SubscriptionStatus,
   hydrateWorkspaceRole,
   type WorkspaceRole,
@@ -57,6 +59,8 @@ export type AdminSubscriptionRow = {
 
 export type AdminWorkspacePlan = {
   tier: "free" | "team";
+  // Which seat plan, while the subscription is active.
+  plan: SeatPlanId | null;
   seats: number;
   status: SubscriptionStatus | null;
   cycle: string | null;
@@ -168,6 +172,7 @@ export function workspacePlan(
   sub: {
     quantity: number;
     status: SubscriptionStatus;
+    plan: string;
     cycle: string;
     currentPeriodEnd: number | null;
   } | null,
@@ -181,6 +186,7 @@ export function workspacePlan(
     );
   return {
     tier: active ? "team" : "free",
+    plan: active ? hydrateSeatPlanId(sub.plan) : null,
     seats: active ? Math.max(1, sub.quantity) : 0,
     status: sub?.status ?? null,
     cycle: sub?.cycle ?? null,
@@ -234,7 +240,7 @@ const IN_PAID_WORKSPACE = (uid: string, paidParam: string) => `
                  AND m.workspace_id IN (SELECT value FROM json_each(${paidParam}))))`;
 
 const LATEST_WORKSPACE_SUB = `
-  SELECT workspace_id, quantity, status, cycle, current_period_end, created_at,
+  SELECT workspace_id, quantity, status, plan, cycle, current_period_end, created_at,
          ROW_NUMBER() OVER (PARTITION BY workspace_id ORDER BY updated_at DESC) AS rn
     FROM workspace_subscription WHERE workspace_id IS NOT NULL`;
 
@@ -584,7 +590,7 @@ const WORKSPACE_SELECT = (roleFor: string) => `
          + COALESCE((SELECT SUM(s.size_bytes) FROM screenshots s
                     WHERE s.workspace_id = w.id AND s.state = 'ready'), 0) AS storage_bytes,
          ${roleFor} AS role,
-         ls.quantity AS sub_quantity, ls.status AS sub_status,
+         ls.quantity AS sub_quantity, ls.status AS sub_status, ls.plan AS sub_plan,
          ls.cycle AS sub_cycle, ls.current_period_end AS sub_period_end
     FROM workspace w
     JOIN users o ON o.id = w.owner_user_id
@@ -609,6 +615,7 @@ type WorkspaceD1Row = {
   role: string | null;
   sub_quantity: number | null;
   sub_status: string | null;
+  sub_plan: string | null;
   sub_cycle: string | null;
   sub_period_end: number | null;
 };
@@ -634,6 +641,7 @@ function workspaceFromD1(r: WorkspaceD1Row): AdminWorkspaceRow {
         ? {
             quantity: r.sub_quantity ?? 1,
             status: r.sub_status as SubscriptionStatus,
+            plan: r.sub_plan ?? "light",
             cycle: r.sub_cycle ?? "monthly",
             currentPeriodEnd: r.sub_period_end,
           }

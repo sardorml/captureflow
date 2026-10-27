@@ -16,7 +16,8 @@ interface CloudflareEnv {
   R2_PUBLIC_BASE_URL: string;
   BETTER_AUTH_URL: string;
   APP_DEEP_LINK_SCHEME: string;
-  NEXT_PUBLIC_LEMON_SEAT_CHECKOUT_URL?: string;
+  NEXT_PUBLIC_LEMON_LIGHT_CHECKOUT_URL?: string;
+  NEXT_PUBLIC_LEMON_PRO_CHECKOUT_URL?: string;
   SELF_HOSTED?: string;
   ALLOWED_EMAIL_DOMAINS?: string;
 

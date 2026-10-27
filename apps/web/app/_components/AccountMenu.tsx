@@ -9,7 +9,6 @@ import {
   Settings,
 } from "lucide-react";
 import { Avatar, Chip, Dropdown, Separator, Typography } from "@heroui/react";
-import { SEAT_PLAN } from "@captureflow/quota";
 import type { ThemePreference } from "@captureflow/ui";
 import { initials } from "@/lib/format";
 import { SUPPORT_EMAIL } from "@/lib/site";
@@ -51,7 +50,7 @@ export function accountNavItems({
       trailing:
         plan === undefined ? undefined : (
           <Chip size="sm" color={plan === "team" ? "accent" : "default"}>
-            {plan === "team" ? SEAT_PLAN.name : "Free"}
+            {plan === "team" ? "Paid" : "Free"}
           </Chip>
         ),
     },

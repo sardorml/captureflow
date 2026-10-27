@@ -330,6 +330,7 @@ CREATE TABLE workspace_subscription (
   cancelled_at            INTEGER,
   created_at              INTEGER NOT NULL,
   updated_at              INTEGER NOT NULL,
+  plan                    TEXT NOT NULL DEFAULT 'light',
   CHECK (cycle IN ('monthly', 'annual'))
 ) STRICT;
 CREATE INDEX idx_workspace_subscription_workspace

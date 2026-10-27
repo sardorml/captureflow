@@ -28,6 +28,7 @@ describe("workspacePlan", () => {
   const sub = {
     quantity: 4,
     status: "active" as const,
+    plan: "pro",
     cycle: "monthly",
     currentPeriodEnd: NOW_S + 60,
   };
@@ -35,6 +36,7 @@ describe("workspacePlan", () => {
   it("reports the seats of an active subscription", () => {
     expect(workspacePlan(sub, NOW)).toEqual({
       tier: "team",
+      plan: "pro",
       seats: 4,
       status: "active",
       cycle: "monthly",
@@ -53,6 +55,7 @@ describe("workspacePlan", () => {
   it("is free without a subscription", () => {
     expect(workspacePlan(null, NOW)).toEqual({
       tier: "free",
+      plan: null,
       seats: 0,
       status: null,
       cycle: null,

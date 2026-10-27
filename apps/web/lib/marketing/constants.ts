@@ -1,4 +1,4 @@
-import { FREE_TIER, SEAT_PLAN } from "@captureflow/quota";
+import { FREE_TIER, SEAT_PLANS } from "@captureflow/quota";
 import { CHROME_WEBSTORE_URL, SUPPORT_EMAIL } from "@/lib/site";
 import { MESSAGES } from "./messages";
 
@@ -165,7 +165,8 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     originalPrice: null,
     discountBadge: null,
     pricingHeading: "Choose the plan that fits your team",
-    pricingSubheading: `Free covers your first recordings. ${SEAT_PLAN.name} is one price per member, and viewers are always free.`,
+    pricingSubheading:
+      "Free covers your first recordings. Paid plans are one price per member, and viewers are always free.",
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -205,7 +206,8 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     originalPrice: null,
     discountBadge: null,
     pricingHeading: "Choose the plan that fits your team",
-    pricingSubheading: `Free covers your first recordings. ${SEAT_PLAN.name} is one price per member, and viewers are always free.`,
+    pricingSubheading:
+      "Free covers your first recordings. Paid plans are one price per member, and viewers are always free.",
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -316,13 +318,13 @@ export const APP_SCHEMA = {
       name: "Free",
       description: `Fully managed hosting with ${FREE_TIER.recordingsPerPerson} recordings per person at data saver quality: instant share links, screenshots and a workspace to invite anyone into`,
     },
-    {
+    ...SEAT_PLANS.map((plan) => ({
       "@type": "Offer",
-      price: String(SEAT_PLAN.priceMonthlyUsd),
+      price: String(plan.priceMonthlyUsd),
       priceCurrency: "USD",
-      name: SEAT_PLAN.name,
-      description: `Fully managed hosting at $${SEAT_PLAN.priceMonthlyUsd} per member a month: unlimited recordings, ${Math.round(SEAT_PLAN.storageBytesPerSeat / 1024 ** 3)} GB of pooled storage per member, free viewers`,
-    },
+      name: plan.name,
+      description: `Fully managed hosting at $${plan.priceMonthlyUsd} per member a month: unlimited recordings with AI chapters and titles, ${Math.round(plan.storageBytesPerSeat / 1024 ** 3)} GB of pooled storage per member, free viewers`,
+    })),
   ],
 };
 

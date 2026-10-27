@@ -6,7 +6,7 @@ import {
   listWorkspaceInvites,
   listWorkspaceMembers,
 } from "@captureflow/admin";
-import { SEAT_PLAN } from "@captureflow/admin";
+import { getSeatPlan } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
 import {
@@ -153,7 +153,7 @@ export default async function WorkspacePage({
               }
             >
               {workspace.plan.tier === "team"
-                ? `${SEAT_PLAN.name} · ${workspace.plan.seats} ${workspace.plan.seats === 1 ? "seat" : "seats"}`
+                ? `${workspace.plan.plan ? getSeatPlan(workspace.plan.plan).name : "Paid"} · ${workspace.plan.seats} ${workspace.plan.seats === 1 ? "seat" : "seats"}`
                 : "Free"}
               {workspace.plan.status && workspace.plan.status !== "active"
                 ? ` · ${workspace.plan.status.replace("_", " ")}`

@@ -9,14 +9,21 @@ export {
   totalStorageForWorkspace,
 } from "./totals";
 export {
+  DEFAULT_SEAT_PLAN_ID,
   FREE_TIER,
   SEAT_ANNUAL_SAVING_PERCENT,
-  SEAT_PLAN,
+  SEAT_PLANS,
+  getSeatPlan,
+  hydrateSeatPlanId,
+  isSeatPlanId,
   resolveWorkspaceEntitlement,
+  seatAnnualSavingPercent,
   seatPriceUsd,
 } from "./seat-plans";
 export type {
   FreeQuality,
+  SeatPlan,
+  SeatPlanId,
   SeatSubscriptionInput,
   WorkspaceEntitlement,
   WorkspaceTier,

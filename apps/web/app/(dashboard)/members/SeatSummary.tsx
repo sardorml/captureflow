@@ -1,6 +1,6 @@
 import { Button, Card, Typography } from "@heroui/react";
 import { Sparkles } from "lucide-react";
-import { SEAT_PLAN } from "@captureflow/quota";
+import { getSeatPlan } from "@captureflow/quota";
 import type { WorkspaceSeatContext } from "@/lib/billing/seats";
 import { UpgradeModal } from "../UpgradeModal";
 
@@ -38,7 +38,9 @@ export function SeatSummary({
     <Card className="flex flex-row flex-wrap items-center justify-between gap-4 p-4">
       <div className="min-w-0">
         <Typography weight="semibold">
-          {paid ? `${SEAT_PLAN.name} plan` : "Free plan"}
+          {paid
+            ? `${entitlement.plan ? getSeatPlan(entitlement.plan).name : "Paid"} plan`
+            : "Free plan"}
         </Typography>
         <Typography type="body-sm" color="muted" className="mt-0.5 block">
           {line}

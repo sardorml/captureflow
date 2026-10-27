@@ -11,7 +11,6 @@ import {
   Table,
 } from "@heroui/react";
 import type { AdminPlanSummary } from "@captureflow/admin";
-import { SEAT_PLAN } from "@captureflow/admin";
 import { cn } from "@captureflow/ui/cn";
 
 export function formatBytes(bytes: number): string {
@@ -334,7 +333,7 @@ export function PlanChip({ plan }: { plan: AdminPlanSummary }) {
             : "default"
       }
     >
-      {plan.tier === "team" ? SEAT_PLAN.name : "Free"}
+      {plan.tier === "team" ? "Paid" : "Free"}
       {note}
     </Chip>
   );

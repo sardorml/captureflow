@@ -22,9 +22,11 @@ export type AppWebBindings = {
   APP_DEEP_LINK_SCHEME?: string;
   // Lemon Squeezy webhook signing secret, used to verify HMAC-SHA256 of the raw body against X-Signature before trusting a subscription event.
   LEMON_WEBHOOK_SECRET?: string;
-  // Per-seat plan variants; a subscription on one of these is a workspace's, not a user's.
-  LEMON_SEAT_MONTHLY_VARIANT_ID?: string;
-  LEMON_SEAT_ANNUAL_VARIANT_ID?: string;
+  // Seat plan variants; a subscription on one of these is a workspace's, not a user's.
+  LEMON_LIGHT_MONTHLY_VARIANT_ID?: string;
+  LEMON_LIGHT_ANNUAL_VARIANT_ID?: string;
+  LEMON_PRO_MONTHLY_VARIANT_ID?: string;
+  LEMON_PRO_ANNUAL_VARIANT_ID?: string;
   // Lets the app change a seat subscription's quantity when a member joins or leaves. Without it, seat sync only logs.
   LEMON_API_KEY?: string;
   EMAIL?: SendEmail;

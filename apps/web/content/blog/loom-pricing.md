@@ -24,25 +24,26 @@ Most teams start paying because of the 5-minute limit. A bug report fits in 5 mi
 
 CaptureFlow charges per member, and a member is someone who records. Anyone you invite as a viewer watches, comments and reacts for free.
 
-| Plan      | Price                                       | What you get                                                   |
-| --------- | ------------------------------------------- | -------------------------------------------------------------- |
-| Free      | $0                                          | 25 recordings per person, up to 5 minutes each, in data saver  |
-| Team + AI | $10 per member a month, or $8 billed yearly | Unlimited recordings at full quality, AI chapters and clean-up |
+| Plan  | Price                                        | What you get                                                   |
+| ----- | -------------------------------------------- | -------------------------------------------------------------- |
+| Free  | $0                                           | 25 recordings per person, up to 5 minutes each, in data saver  |
+| Light | $5 per member a month, or $4 billed yearly   | Unlimited recordings at full quality, AI chapters and clean-up |
+| Pro   | $12 per member a month, or $10 billed yearly | Light with 50 GB per member, custom branding, priority support |
 
-On Team + AI, recordings stay until you delete them. On the free plan, a recording is removed after 30 days without a view. See [pricing](/pricing) for details.
+On Light and Pro, recordings stay until you delete them. On the free plan, a recording is removed after 30 days without a view. See [pricing](/pricing) for details.
 
 ## What each costs for your team
 
 Assume everyone on the team records, which is the most you would pay. Monthly billing on both sides.
 
-| Team size  | Loom Business  | CaptureFlow Team + AI |
-| ---------- | -------------- | --------------------- |
-| 10 people  | $2,160 a year  | $1,200 a year         |
-| 25 people  | $5,400 a year  | $3,000 a year         |
-| 50 people  | $10,800 a year | $6,000 a year         |
-| 100 people | $21,600 a year | $12,000 a year        |
+| Team size  | Loom Business  | CaptureFlow Light |
+| ---------- | -------------- | ----------------- |
+| 10 people  | $2,160 a year  | $600 a year       |
+| 25 people  | $5,400 a year  | $1,500 a year     |
+| 50 people  | $10,800 a year | $3,000 a year     |
+| 100 people | $21,600 a year | $6,000 a year     |
 
-A 50-person team saves $4,800 a year, and $9,600 a year against Loom Business + AI. Billed yearly, CaptureFlow comes down another 20%.
+A 50-person team saves $7,800 a year, and $11,400 a year against Loom Business + AI. Billed yearly, CaptureFlow comes down another 20%.
 
 In practice most teams pay for fewer seats than that. On Loom, everyone who needs to watch and comment needs a paid seat. On CaptureFlow, the designer who records three walkthroughs a week is a member, and the twelve people who watch them are free.
 
@@ -74,7 +75,7 @@ If your team depends on meeting recaps or records from phones, Loom may be worth
 1. [Create a free CaptureFlow account](/signup) and install the Chrome extension.
 2. Invite your team to a workspace. Invite the people who only watch as viewers, which is free.
 3. Download the Loom videos you still need and upload them, or simply start fresh.
-4. Upgrade to Team + AI when you need longer recordings or full quality.
+4. Upgrade to Light when you need longer recordings or full quality.
 
 There’s no automatic import from Loom yet, so most teams move only the videos they still use.
 
@@ -88,11 +89,11 @@ Loom Business costs $18 per person per month and Business + AI costs $24, on mon
 
 ### What is a cheaper alternative to Loom?
 
-CaptureFlow records your screen and shares a link the same way, for $10 per member a month, or $8 billed yearly, and viewers are free. A 50-person team pays $6,000 a year instead of $10,800 on Loom Business, and less again if not everyone records.
+CaptureFlow records your screen and shares a link the same way, for $5 per member a month, or $4 billed yearly, and viewers are free. A 50-person team pays $3,000 a year instead of $10,800 on Loom Business, and less again if not everyone records.
 
 ### Does CaptureFlow limit video length?
 
-On Team + AI there’s no limit on video length or the number of videos. The free plan allows 25 recordings per person, up to 5 minutes each.
+On Light and Pro there’s no limit on video length or the number of videos. The free plan allows 25 recordings per person, up to 5 minutes each.
 
 ### Is CaptureFlow free?
 

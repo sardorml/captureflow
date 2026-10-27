@@ -4,11 +4,14 @@ import { useOptimistic, useState, useTransition } from "react";
 import { Check, Sparkle } from "lucide-react";
 import { Avatar, Modal } from "@heroui/react";
 import {
-  SEAT_ANNUAL_SAVING_PERCENT,
-  SEAT_PLAN,
+  DEFAULT_SEAT_PLAN_ID,
+  SEAT_PLANS,
+  getSeatPlan,
   isSeatRole,
+  seatAnnualSavingPercent,
   seatPriceUsd,
   type AssignableRole,
+  type SeatPlanId,
 } from "@captureflow/quota";
 import { GRADIENT_BORDER } from "@/components/marketing/plan-cards";
 import { MESSAGES } from "@/lib/marketing/messages";
@@ -25,6 +28,7 @@ import { ROLE_LABEL } from "@/lib/workspace/labels";
 import { changeMemberRoleAction } from "./members/actions";
 
 const includes = MESSAGES.pricing.includes;
+const PLAN_COPY = MESSAGES.pricing.plans;
 
 const CYCLES: { key: SeatCycle; label: string }[] = [
   { key: "monthly", label: "Monthly" },
@@ -57,6 +61,8 @@ export function UpgradeModalBody({
   onOpenChange,
 }: Props) {
   const [cycle, setCycle] = useState<SeatCycle>("monthly");
+  const [planId, setPlanId] = useState<SeatPlanId>(DEFAULT_SEAT_PLAN_ID);
+  const plan = getSeatPlan(planId);
   const [people, applyRole] = useOptimistic(
     seat.people,
     (state, next: { userId: string; role: AssignableRole }) =>
@@ -72,16 +78,16 @@ export function UpgradeModalBody({
   const seats = Math.max(1, people.filter((p) => isSeatRole(p.role)).length);
   const viewers = people.length - seats;
   const perSeat =
-    cycle === "annual"
-      ? SEAT_PLAN.priceAnnualUsdPerMonth
-      : SEAT_PLAN.priceMonthlyUsd;
-  const total = seatPriceUsd(seats, cycle);
-  const href = seat.checkoutUrl
+    cycle === "annual" ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
+  const total = seatPriceUsd(seats, cycle, planId);
+  const checkoutBase = seat.checkoutUrls[planId];
+  const href = checkoutBase
     ? seatCheckoutUrl({
-        base: seat.checkoutUrl,
+        base: checkoutBase,
         email,
         userId,
         workspaceId: seat.workspaceId,
+        plan: planId,
         seats,
       })
     : null;
@@ -163,12 +169,45 @@ export function UpgradeModalBody({
                   className={cn("h-full rounded-[22px] p-0.5", GRADIENT_BORDER)}
                 >
                   <div className="flex h-full flex-col rounded-[20px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))] p-6 text-fg">
-                    <span className="inline-flex w-fit items-center rounded-lg bg-accent/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
-                      Best value
-                    </span>
-                    <p className="mt-3 flex items-start gap-1 text-2xl font-bold tracking-[-0.02em]">
-                      {SEAT_PLAN.name}
-                      <Sparkle size={14} className="shrink-0 fill-current" />
+                    <div
+                      role="radiogroup"
+                      aria-label="Plan"
+                      className="grid grid-cols-2 gap-2"
+                    >
+                      {SEAT_PLANS.map((p) => {
+                        const isOn = p.id === planId;
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={isOn}
+                            onClick={() => setPlanId(p.id)}
+                            className={cn(
+                              "flex cursor-pointer flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-colors motion-reduce:transition-none",
+                              isOn
+                                ? "border-accent bg-panel shadow-sm"
+                                : "border-line bg-transparent hover:bg-panel/60",
+                            )}
+                          >
+                            <span className="flex items-center gap-1 text-base font-bold tracking-[-0.01em]">
+                              {p.name}
+                              {p.id === DEFAULT_SEAT_PLAN_ID && (
+                                <Sparkle
+                                  size={12}
+                                  className="shrink-0 fill-current"
+                                />
+                              )}
+                            </span>
+                            <span className="text-xs text-fg-muted">
+                              ${p.priceMonthlyUsd} per member
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-3 text-sm text-fg-muted">
+                      {PLAN_COPY[planId].description}
                     </p>
 
                     <div
@@ -195,7 +234,7 @@ export function UpgradeModalBody({
                             {c.label}
                             {c.key === "annual" ? (
                               <span className="ms-1.5 text-xs opacity-80">
-                                save {SEAT_ANNUAL_SAVING_PERCENT}%
+                                save {seatAnnualSavingPercent(plan)}%
                               </span>
                             ) : null}
                           </button>
@@ -222,7 +261,7 @@ export function UpgradeModalBody({
 
                     <p className="mt-5 border-t border-line pt-5 text-4xl font-bold tracking-[-0.02em]">
                       <span
-                        key={`${cycle}-${total}`}
+                        key={`${planId}-${cycle}-${total}`}
                         className="animate-storage-pop inline-block"
                       >
                         ${total}

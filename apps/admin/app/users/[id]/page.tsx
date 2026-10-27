@@ -9,7 +9,6 @@ import {
   listUserSubscriptions,
   listUserWorkspaces,
 } from "@captureflow/admin";
-import { SEAT_PLAN } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
 import {
@@ -277,7 +276,7 @@ export default async function UserPage({
     <div className="grid gap-5 lg:grid-cols-2">
       <FormCard
         title="Plan"
-        description={`A person is on ${SEAT_PLAN.name} while they hold a seat in a paid workspace. Plans belong to workspaces, so change them from the workspace or the billing provider.`}
+        description="A person is on a paid plan while they hold a seat in a paid workspace. Plans belong to workspaces, so change them from the workspace or the billing provider."
       >
         <PlanChip plan={user.plan} />
       </FormCard>

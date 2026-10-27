@@ -1,10 +1,13 @@
-import { ACCOUNT_LIMITS, FREE_TIER, SEAT_PLAN } from "@captureflow/quota";
+import { ACCOUNT_LIMITS, FREE_TIER, SEAT_PLANS } from "@captureflow/quota";
 import type { Rule } from "./types";
 
 const MB = 1024 * 1024;
 const freeMinutes = Math.round(FREE_TIER.maxRecordingMs / 60_000);
 const freeMb = Math.round(FREE_TIER.maxRecordingBytes / MB);
-const seatGb = Math.round(SEAT_PLAN.storageBytesPerSeat / (1024 * MB));
+const plans = SEAT_PLANS.map(
+  (p) =>
+    `${p.name} at $${p.priceMonthlyUsd} per member monthly or $${p.priceAnnualUsdPerMonth} yearly with ${Math.round(p.storageBytesPerSeat / (1024 * MB))} GB pooled per seat`,
+).join("; ");
 
 export const RULES: Rule[] = [
   // Workspaces
@@ -185,7 +188,7 @@ export const RULES: Rule[] = [
   {
     id: "every-member-is-a-seat",
     title: `Every recording member of a Team workspace is a seat`,
-    text: `$${SEAT_PLAN.priceMonthlyUsd} per member monthly or $${SEAT_PLAN.priceAnnualUsdPerMonth} yearly. An upgraded workspace invites paid seats only; viewers are free and cannot record. Members record without a count, bounded on our side by the pooled ${seatGb} GB per seat and a per-recording ceiling.`,
+    text: `${plans}. An upgraded workspace invites paid seats only; viewers are free and cannot record. Members record without a count, bounded on our side by the pooled storage per seat and a per-recording ceiling.`,
     domains: ["billing", "workspaces"],
     attachedTo: [
       "invite-member",

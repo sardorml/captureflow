@@ -12,6 +12,10 @@ import { Typography } from "@heroui/react";
 // floating pill (max-w-5xl) all resolve to the same 1024px.
 export const MARKETING_MAX_WIDTH = 1024;
 
+// Breaks a block out of the rail to 1240px, keeping the 24px gutter below that.
+export const WIDE_RAIL =
+  "relative left-1/2 w-[min(calc(100vw-48px),1240px)] -translate-x-1/2";
+
 /*
  * A section is an h2 inside the landing, but the same section heads a route of
  * its own under /features, /pricing and friends, where it has to be the h1.

@@ -19,7 +19,9 @@ export async function getWorkspaceEntitlement(
     countWorkspaceSeats(db, workspaceId),
   ]);
   return resolveWorkspaceEntitlement({
-    subscription: subscription ? { quantity: subscription.quantity } : null,
+    subscription: subscription
+      ? { quantity: subscription.quantity, plan: subscription.plan }
+      : null,
     memberCount,
     selfHosted: options.selfHosted,
   });

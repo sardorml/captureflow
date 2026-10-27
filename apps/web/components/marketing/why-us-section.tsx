@@ -14,7 +14,7 @@ import {
 import { track } from "@/lib/marketing/track";
 import { PRODUCT_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
-import { SectionHeading, type SectionProps } from "./_shared";
+import { SectionHeading, WIDE_RAIL, type SectionProps } from "./_shared";
 import {
   CompareCell,
   OURS_BG,
@@ -27,8 +27,6 @@ import { usd } from "./price-breakdown";
 const THEIR_PLAN = "businessAi";
 const GRID =
   "grid-cols-[minmax(170px,1.3fr)_repeat(3,minmax(140px,1fr))_minmax(210px,1fr)]";
-const WIDE =
-  "relative left-1/2 w-[min(calc(100vw-48px),1240px)] -translate-x-1/2";
 
 type Row = {
   label: string;
@@ -109,7 +107,7 @@ export function WhyUsSection({
   ];
 
   return (
-    <div id="why-captureflow" className={cn("mt-24", WIDE)}>
+    <div id="why-captureflow" className={cn("mt-24", WIDE_RAIL)}>
       <SectionHeading
         title={copy.heading
           .replace("{product}", PRODUCT_NAME)

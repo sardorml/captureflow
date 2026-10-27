@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { SEAT_PLAN } from "@captureflow/quota";
 import {
   CAPTUREFLOW_PER_SEAT,
+  CAPTUREFLOW_PLAN,
   LOOM_BRAND,
   LOOM_PLANS,
   LOOM_PRICES_CHECKED,
@@ -35,7 +35,7 @@ const ROWS: ReadonlyArray<{
   {
     label: "Pricing",
     loom: "Per person, $18–24 a month each",
-    captureflow: `$${CAPTUREFLOW_PER_SEAT} a month per member, viewers free`,
+    captureflow: `From $${CAPTUREFLOW_PER_SEAT} a month per member, viewers free`,
   },
   {
     label: "Free plan",
@@ -63,7 +63,7 @@ const ROWS: ReadonlyArray<{
   {
     label: "AI titles, chapters and filler word removal",
     loom: "On Business + AI",
-    captureflow: `On ${SEAT_PLAN.name}`,
+    captureflow: `On every paid plan, from ${CAPTUREFLOW_PLAN.name}`,
   },
   {
     label: "Apps",

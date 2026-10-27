@@ -5,7 +5,6 @@ import {
   type PlanFilter,
   type UserSort,
 } from "@captureflow/admin";
-import { SEAT_PLAN } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
 import {
@@ -22,7 +21,7 @@ import { FilterBar, Pager } from "../_filters";
 
 const PLAN_FILTERS = [
   { id: "all", label: "All plans" },
-  { id: "team", label: SEAT_PLAN.name },
+  { id: "team", label: "Paid" },
   { id: "free", label: "Free" },
 ] as const;
 

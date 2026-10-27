@@ -12,7 +12,7 @@ const free = resolveWorkspaceEntitlement({
   memberCount: 1,
 });
 const team = resolveWorkspaceEntitlement({
-  subscription: { quantity: 2 },
+  subscription: { quantity: 2, plan: "light" },
   memberCount: 2,
 });
 

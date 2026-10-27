@@ -1,5 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import type { SeatPlanId } from "./seat-plans";
+
 export type SubscriptionStatus =
   | "on_trial"
   | "active"
@@ -44,6 +46,7 @@ export type WorkspaceSubscriptionRow = {
   ls_customer_id: string | null;
   ls_customer_email: string;
   status: SubscriptionStatus;
+  plan: SeatPlanId;
   cycle: "monthly" | "annual";
   quantity: number;
   current_period_end: number | null;
@@ -54,7 +57,7 @@ export type WorkspaceSubscriptionRow = {
 
 const COLUMNS =
   "ls_subscription_id, ls_subscription_item_id, workspace_id, ls_variant_id, " +
-  "ls_customer_id, ls_customer_email, status, cycle, quantity, " +
+  "ls_customer_id, ls_customer_email, status, plan, cycle, quantity, " +
   "current_period_end, cancelled_at, created_at, updated_at";
 
 // The latest row for a workspace decides: a cancelled row can sit beside an
@@ -91,10 +94,10 @@ export async function upsertWorkspaceSubscription(
     .prepare(
       `INSERT INTO workspace_subscription (
          ls_subscription_id, ls_subscription_item_id, workspace_id, ls_variant_id,
-         ls_customer_id, ls_customer_email, status, cycle, quantity,
+         ls_customer_id, ls_customer_email, status, plan, cycle, quantity,
          current_period_end, cancelled_at, created_at, updated_at
        )
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?12)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?13)
        ON CONFLICT(ls_subscription_id) DO UPDATE SET
          ls_subscription_item_id = COALESCE(excluded.ls_subscription_item_id, ls_subscription_item_id),
          workspace_id       = COALESCE(excluded.workspace_id, workspace_id),
@@ -102,6 +105,7 @@ export async function upsertWorkspaceSubscription(
          ls_customer_id     = excluded.ls_customer_id,
          ls_customer_email  = excluded.ls_customer_email,
          status             = excluded.status,
+         plan               = excluded.plan,
          cycle              = excluded.cycle,
          quantity           = excluded.quantity,
          current_period_end = excluded.current_period_end,
@@ -116,6 +120,7 @@ export async function upsertWorkspaceSubscription(
       row.ls_customer_id,
       row.ls_customer_email,
       row.status,
+      row.plan,
       row.cycle,
       row.quantity,
       row.current_period_end,

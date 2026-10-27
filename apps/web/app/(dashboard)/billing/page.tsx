@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { ExternalLink, Sparkles } from "lucide-react";
 import { Button, Card, Chip, ProgressBar, Typography } from "@heroui/react";
 import {
-  SEAT_PLAN,
+  getSeatPlan,
   isSelfHosted,
   type SubscriptionStatus,
 } from "@captureflow/quota";
@@ -105,7 +105,11 @@ function WorkspacePlanSection({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Typography weight="semibold">
-              {paid ? SEAT_PLAN.name : "Free"}
+              {paid
+                ? entitlement.plan
+                  ? getSeatPlan(entitlement.plan).name
+                  : "Paid"
+                : "Free"}
             </Typography>
             {subscription && (
               <Chip

@@ -6,8 +6,9 @@ import { Check, Sparkle } from "lucide-react";
 import {
   FREE_TIER,
   SEAT_ANNUAL_SAVING_PERCENT,
-  SEAT_PLAN,
+  getSeatPlan,
   seatPriceUsd,
+  type SeatPlanId,
 } from "@captureflow/quota";
 import { TEAM_CHECKOUT_URL } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
@@ -26,7 +27,7 @@ export const DEFAULT_SEATS = 5;
 export const GRADIENT_BORDER =
   "bg-[linear-gradient(165deg,#a855f7,#f97316_45%,#2563eb)]";
 
-// Three plans side by side: Free, Team at one price per member, and
+// Four plans side by side: Free, Light and Pro at one price per member, and
 // Enterprise on custom terms. The copy reads its numbers from the quota
 // package so the page can't drift from what the server enforces.
 export function PlanCards({
@@ -49,15 +50,43 @@ export function PlanCards({
   const teamHref = TEAM_CHECKOUT_URL || upgradeHref;
 
   const annual = cycle === "annual";
-  const total = (seatPriceUsd(seats, cycle) * 12).toLocaleString("en-US");
   const values = {
     recordings: FREE_TIER.recordingsPerPerson,
     minutes: Math.round(FREE_TIER.maxRecordingMs / 60_000),
-    perSeat: annual
-      ? SEAT_PLAN.priceAnnualUsdPerMonth
-      : SEAT_PLAN.priceMonthlyUsd,
     seats,
-    members: seats === 1 ? copy.team.member : copy.team.members,
+    members: seats === 1 ? copy.light.member : copy.light.members,
+    lightStorage: Math.round(
+      getSeatPlan("light").storageBytesPerSeat / 1024 ** 3,
+    ),
+    proStorage: Math.round(getSeatPlan("pro").storageBytesPerSeat / 1024 ** 3),
+  };
+  const paid = (id: SeatPlanId, highlighted: boolean) => {
+    const plan = getSeatPlan(id);
+    const planCopy = copy[id];
+    const perSeat = annual ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
+    const yearly = (seatPriceUsd(seats, cycle, id) * 12).toLocaleString(
+      "en-US",
+    );
+    const planValues = { ...values, perSeat };
+    return (
+      <PlanCard
+        highlighted={highlighted}
+        badge={"badge" in planCopy ? planCopy.badge : undefined}
+        name={planCopy.name}
+        description={planCopy.description}
+        price={annual ? `$${yearly}` : `$${plan.priceMonthlyUsd}`}
+        priceKey={`${cycle}-${seats}`}
+        period={annual ? planCopy.periodAnnual : planCopy.period}
+        note={annual ? fill(planCopy.rateAnnual, planValues) : undefined}
+        featuresHeading={planCopy.featuresHeading}
+        features={planCopy.features.map((f) => fill(f, planValues))}
+        cta={{
+          label: planCopy.cta,
+          href: teamHref,
+          onClick: () => track("upgrade_signup_opened", { plan: id }),
+        }}
+      />
+    );
   };
 
   return (
@@ -71,7 +100,7 @@ export function PlanCards({
         cycle={cycle}
         onCycleChange={setCycle}
       />
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <PlanCard
           name={copy.free.name}
           description={copy.free.description}
@@ -85,23 +114,8 @@ export function PlanCards({
               track("marketing_cta_clicked", { location: "pricing_free" }),
           }}
         />
-        <PlanCard
-          highlighted
-          badge={copy.team.badge}
-          name={copy.team.name}
-          description={copy.team.description}
-          price={annual ? `$${total}` : `$${SEAT_PLAN.priceMonthlyUsd}`}
-          priceKey={`${cycle}-${seats}`}
-          period={annual ? copy.team.periodAnnual : copy.team.period}
-          note={annual ? fill(copy.team.rateAnnual, values) : undefined}
-          featuresHeading={copy.team.featuresHeading}
-          features={copy.team.features.map((f) => fill(f, values))}
-          cta={{
-            label: copy.team.cta,
-            href: teamHref,
-            onClick: () => track("upgrade_signup_opened", { plan: "seats" }),
-          }}
-        />
+        {paid("light", true)}
+        {paid("pro", false)}
         <PlanCard
           name={copy.enterprise.name}
           description={copy.enterprise.description}
@@ -194,7 +208,7 @@ function PlanCard({
       <div
         className={cn(
           "mb-4 min-h-7 items-center",
-          badge ? "flex" : "hidden md:flex",
+          badge ? "flex" : "hidden xl:flex",
         )}
       >
         {badge && (
@@ -258,7 +272,7 @@ function PlanCard({
   if (!highlighted) return card;
   return (
     <div
-      className={cn("rounded-[28px] p-0.5 md:-translate-y-3", GRADIENT_BORDER)}
+      className={cn("rounded-[28px] p-0.5 xl:-translate-y-3", GRADIENT_BORDER)}
     >
       {card}
     </div>

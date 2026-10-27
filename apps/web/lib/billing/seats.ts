@@ -12,7 +12,7 @@ import {
   type WorkspaceSubscriptionRow,
 } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
-import { seatCheckoutBase, type SeatOffer } from "./seat-checkout";
+import { seatCheckoutBases, type SeatOffer } from "./seat-checkout";
 
 export type WorkspaceSeatContext = {
   entitlement: WorkspaceEntitlement;
@@ -54,7 +54,7 @@ export async function getWorkspaceSeatContext(workspace: {
           image: m.image,
           role: m.role,
         })),
-        checkoutUrl: seatCheckoutBase(),
+        checkoutUrls: seatCheckoutBases(),
       }
     : null;
   return {

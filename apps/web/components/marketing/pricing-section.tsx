@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { CURRENT_STAGE } from "@/lib/marketing/constants";
 import { useMessages } from "./i18n-provider";
-import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
+import {
+  MarketingSection,
+  SectionHeading,
+  WIDE_RAIL,
+  type SectionProps,
+} from "./_shared";
 import { DEFAULT_SEATS, PlanCards } from "./plan-cards";
 import { PlanTable } from "./plan-table";
 import { WhyUsSection } from "./why-us-section";
@@ -30,12 +35,12 @@ export function PricingSection({
           level={headingLevel}
         />
       )}
-      <div className="mx-auto max-w-270">
+      <div className={WIDE_RAIL}>
         <PlanCards onSeatsChange={setSeats} />
       </div>
       <WhyUsSection seats={seats} />
       {showTable && (
-        <div className="mx-auto max-w-270">
+        <div className={WIDE_RAIL}>
           <PlanTable />
         </div>
       )}

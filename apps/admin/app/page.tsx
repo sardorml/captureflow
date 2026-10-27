@@ -6,7 +6,6 @@ import {
   listAdminUsers,
   listAudit,
 } from "@captureflow/admin";
-import { SEAT_PLAN } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
 import {
@@ -77,7 +76,7 @@ export default async function OverviewPage() {
           hint={share(free, totals.users)}
         />
         <Stat
-          label={SEAT_PLAN.name}
+          label="Paid"
           value={totals.teamUsers.toLocaleString()}
           hint={share(totals.teamUsers, totals.users)}
         />

@@ -5,7 +5,7 @@
 ## Product
 
 - [Features](https://captureflow.dev/features): Recording modes, annotated screenshots, share links, comments and workspaces
-- [Pricing](https://captureflow.dev/pricing): Free plan with 25 recordings per person, then Team at one price per member with free viewers
+- [Pricing](https://captureflow.dev/pricing): Free plan with 25 recordings per person, then Light and Pro at one price per member with free viewers
 - [Download](https://captureflow.dev/download): Install the Chrome extension
 - [FAQ](https://captureflow.dev/faq): Sharing, storage, privacy and self-hosting questions
 - [CaptureFlow vs Loom](https://captureflow.dev/alternatives/loom): Feature and price comparison

@@ -1,8 +1,4 @@
-import {
-  SEAT_PLAN,
-  type AssignableRole,
-  type WorkspaceRole,
-} from "@captureflow/quota";
+import { type AssignableRole, type WorkspaceRole } from "@captureflow/quota";
 
 export const ROLE_LABEL: Record<WorkspaceRole, string> = {
   owner: "Admin",
@@ -18,7 +14,7 @@ export const ASSIGNABLE_ROLES: {
   {
     id: "member",
     label: "Member",
-    hint: `Records into this workspace. A paid seat on the ${SEAT_PLAN.name} plan.`,
+    hint: "Records into this workspace. A paid seat on Light and Pro.",
   },
   {
     id: "viewer",

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, Sparkle } from "lucide-react";
-import { FREE_TIER, SEAT_PLAN } from "@captureflow/quota";
+import { FREE_TIER, getSeatPlan } from "@captureflow/quota";
 import { TEAM_CHECKOUT_URL } from "@/lib/marketing/constants";
 import { GRADIENT_BORDER } from "./plan-cards";
 import { track } from "@/lib/marketing/track";
@@ -11,11 +11,12 @@ import { cn } from "@/lib/utils";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 type Cell = Messages["pricing"]["table"]["groups"][number]["rows"][number];
-type PlanKey = "free" | "team" | "enterprise";
+type PlanKey = "free" | "light" | "pro" | "enterprise";
 
-const PLANS: PlanKey[] = ["free", "team", "enterprise"];
+const PLANS: PlanKey[] = ["free", "light", "pro", "enterprise"];
+const HIGHLIGHTED: PlanKey = "light";
 const GRID =
-  "grid-cols-[minmax(150px,1.3fr)_repeat(3,minmax(140px,1fr))] md:grid-cols-[minmax(200px,1.3fr)_repeat(3,minmax(150px,1fr))]";
+  "grid-cols-[minmax(150px,1.3fr)_repeat(4,minmax(130px,1fr))] md:grid-cols-[minmax(190px,1.3fr)_repeat(4,minmax(140px,1fr))]";
 
 function fill(template: string, values: Record<string, string | number>) {
   return template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ""));
@@ -32,6 +33,11 @@ export function PlanTable() {
   const upgradeHref = `${lh("/login")}?mode=signup&next=${encodeURIComponent(
     "/recordings?upgrade=1",
   )}`;
+  const paidCta = (plan: "light" | "pro") => ({
+    label: plans[plan].cta,
+    href: TEAM_CHECKOUT_URL || upgradeHref,
+    onClick: () => track("upgrade_signup_opened", { plan }),
+  });
   const ctas: Record<
     PlanKey,
     { label: string; href: string; onClick: () => void }
@@ -42,11 +48,8 @@ export function PlanTable() {
       onClick: () =>
         track("marketing_cta_clicked", { location: "pricing_table_free" }),
     },
-    team: {
-      label: plans.team.cta,
-      href: TEAM_CHECKOUT_URL || upgradeHref,
-      onClick: () => track("upgrade_signup_opened", { plan: "seats" }),
-    },
+    light: paidCta("light"),
+    pro: paidCta("pro"),
     enterprise: {
       label: plans.enterprise.cta,
       href: lh("/enterprise"),
@@ -60,7 +63,10 @@ export function PlanTable() {
   const values = {
     recordings: FREE_TIER.recordingsPerPerson,
     minutes: Math.round(FREE_TIER.maxRecordingMs / 60_000),
-    storage: Math.round(SEAT_PLAN.storageBytesPerSeat / 1024 ** 3),
+    lightStorage: Math.round(
+      getSeatPlan("light").storageBytesPerSeat / 1024 ** 3,
+    ),
+    proStorage: Math.round(getSeatPlan("pro").storageBytesPerSeat / 1024 ** 3),
   };
 
   return (
@@ -69,7 +75,7 @@ export function PlanTable() {
         {copy.heading}
       </h3>
       <div className="-mx-5 overflow-x-auto px-5 md:mx-0 md:overflow-visible md:px-0">
-        <div className="min-w-180">
+        <div className="min-w-200">
           <div
             className={cn(
               "z-10 grid border-b border-line bg-canvas py-3 md:sticky md:top-20",
@@ -77,47 +83,50 @@ export function PlanTable() {
             )}
           >
             <div />
-            {PLANS.map((key) => (
-              <div
-                key={key}
-                className={cn(
-                  "mx-1 rounded-2xl",
-                  key === "team"
-                    ? cn("p-0.5", GRADIENT_BORDER)
-                    : "border border-line bg-panel",
-                )}
-              >
+            {PLANS.map((key) => {
+              const highlighted = key === HIGHLIGHTED;
+              return (
                 <div
+                  key={key}
                   className={cn(
-                    "flex h-full items-center justify-between gap-2 px-3 py-2.5 text-fg",
-                    key === "team" &&
-                      "rounded-[14px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]",
+                    "mx-1 rounded-2xl",
+                    highlighted
+                      ? cn("p-0.5", GRADIENT_BORDER)
+                      : "border border-line bg-panel",
                   )}
                 >
-                  <span className="flex items-center gap-1 text-base font-semibold tracking-[-0.01em] whitespace-nowrap">
-                    {plans[key].name}
-                    {key === "team" && (
-                      <Sparkle
-                        size={12}
-                        className="shrink-0 fill-current text-fg"
-                      />
-                    )}
-                  </span>
-                  <Link
-                    href={ctas[key].href}
-                    onClick={ctas[key].onClick}
+                  <div
                     className={cn(
-                      "hidden h-8 shrink-0 items-center rounded-full px-3 text-[11px] font-semibold whitespace-nowrap transition-colors motion-reduce:transition-none lg:inline-flex",
-                      key === "team"
-                        ? "bg-accent text-white hover:bg-accent/90"
-                        : "bg-accent/10 text-fg hover:bg-accent/20",
+                      "flex h-full items-center justify-between gap-2 px-3 py-2.5 text-fg",
+                      highlighted &&
+                        "rounded-[14px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]",
                     )}
                   >
-                    {ctas[key].label}
-                  </Link>
+                    <span className="flex items-center gap-1 text-base font-semibold tracking-[-0.01em] whitespace-nowrap">
+                      {plans[key].name}
+                      {highlighted && (
+                        <Sparkle
+                          size={12}
+                          className="shrink-0 fill-current text-fg"
+                        />
+                      )}
+                    </span>
+                    <Link
+                      href={ctas[key].href}
+                      onClick={ctas[key].onClick}
+                      className={cn(
+                        "hidden h-8 shrink-0 items-center rounded-full px-3 text-[11px] font-semibold whitespace-nowrap transition-colors motion-reduce:transition-none lg:inline-flex",
+                        highlighted
+                          ? "bg-accent text-white hover:bg-accent/90"
+                          : "bg-accent/10 text-fg hover:bg-accent/20",
+                      )}
+                    >
+                      {ctas[key].label}
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mt-6 flex flex-col gap-6">
