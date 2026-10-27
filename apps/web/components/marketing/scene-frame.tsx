@@ -10,7 +10,7 @@ import {
 
 const SCENE = { width: 600, height: 424 };
 // The scene sits vertically centred on the frame's background.
-const FRAME = { width: 600, height: 460 };
+const FRAME = { width: 600, height: 400 };
 const RADIUS = 40;
 
 export type SceneState = { step: number; playing: boolean };

@@ -27,7 +27,7 @@ const BARS = Array.from(
 const FILLER_BARS = { from: 22, to: 30 };
 
 const PAD = 20;
-const SCENE_HEIGHT = 470;
+const SCENE_HEIGHT = 450;
 const PREVIEW = { width: 392, height: 282 };
 const TOOLS_WIDTH = 600 - PAD * 2 - PREVIEW.width - 12;
 const CAMERA = {
@@ -47,6 +47,7 @@ export function EditorScene() {
       loopMs={LOOP_MS}
       background="linear-gradient(160deg,#c3d6ff,#a7c0ff)"
       sceneHeight={SCENE_HEIGHT}
+      zoom={{ scale: 0.9, bounds: [0, 600] }}
     >
       {(state) => <EditorContent {...state} />}
     </SceneFrame>
