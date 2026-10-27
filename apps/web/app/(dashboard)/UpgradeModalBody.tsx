@@ -8,7 +8,7 @@ import {
   SEAT_PLANS,
   getSeatPlan,
   isSeatRole,
-  seatAnnualSavingPercent,
+  SEAT_ANNUAL_SAVING_PERCENT,
   seatPriceUsd,
   type AssignableRole,
   type SeatPlanId,
@@ -60,8 +60,6 @@ export function UpgradeModalBody({
   onOpenChange,
 }: Props) {
   const [cycle, setCycle] = useState<SeatCycle>("monthly");
-  const [planId, setPlanId] = useState<SeatPlanId>(DEFAULT_SEAT_PLAN_ID);
-  const plan = getSeatPlan(planId);
   const [people, applyRole] = useOptimistic(
     seat.people,
     (state, next: { userId: string; role: AssignableRole }) =>
@@ -76,21 +74,19 @@ export function UpgradeModalBody({
   );
   const seats = Math.max(1, people.filter((p) => isSeatRole(p.role)).length);
   const viewers = people.length - seats;
-  const perSeat =
-    cycle === "annual" ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
-  const total = seatPriceUsd(seats, cycle, planId);
-  const planCopy = PLAN_COPY[planId];
-  const checkoutBase = seat.checkoutUrls[planId][cycle];
-  const href = checkoutBase
-    ? seatCheckoutUrl({
-        base: checkoutBase,
-        email,
-        userId,
-        workspaceId: seat.workspaceId,
-        plan: planId,
-        seats,
-      })
-    : null;
+  const checkoutHref = (planId: SeatPlanId) => {
+    const base = seat.checkoutUrls[planId][cycle];
+    return base
+      ? seatCheckoutUrl({
+          base,
+          email,
+          userId,
+          workspaceId: seat.workspaceId,
+          plan: planId,
+          seats,
+        })
+      : null;
+  };
 
   const setRole = (personId: string, role: AssignableRole) =>
     startTransition(async () => {
@@ -104,7 +100,7 @@ export function UpgradeModalBody({
   // PostHog distinct_id isn't available server-side at render, so append it
   // at click time.
   const handleCheckoutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    track("checkout_opened", { plan: "seats" });
+    track("checkout_opened", { plan: e.currentTarget.dataset.plan ?? "seats" });
     const distinctId = getPosthogDistinctId();
     if (!distinctId) return;
     try {
@@ -122,166 +118,177 @@ export function UpgradeModalBody({
         <Modal.Container>
           <Modal.Dialog
             data-split="upgrade-modal"
-            className="max-w-4xl rounded-3xl bg-panel p-0"
+            className="max-w-3xl rounded-3xl bg-panel p-0"
           >
             <Modal.CloseTrigger />
-            <Modal.Body className="grid gap-0 p-0 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-              <div className="flex min-w-0 flex-col p-6 sm:p-8 md:order-2">
+            <Modal.Body className="p-6 sm:p-8">
+              <div className="flex flex-wrap items-center justify-between gap-4 pe-8">
                 <Modal.Heading className="text-2xl font-bold tracking-[-0.02em] text-fg">
                   Upgrade {seat.workspaceName}
                 </Modal.Heading>
-                <ul className="mt-5 divide-y divide-line overflow-hidden rounded-2xl border border-line">
-                  {people.map((p) => (
-                    <PersonRow
-                      key={p.userId}
-                      person={p}
-                      isSelf={p.userId === userId}
-                      editable={canManage && p.role !== "owner"}
-                      onRole={(role) => setRole(p.userId, role)}
-                    />
-                  ))}
-                </ul>
-              </div>
-
-              <div className="p-2 md:order-1 md:pr-0">
                 <div
-                  className={cn("h-full rounded-[28px] p-0.5", GRADIENT_BORDER)}
+                  role="radiogroup"
+                  aria-label="Billing cycle"
+                  className="grid grid-cols-2 gap-1 rounded-full bg-tint p-1"
                 >
-                  <div className="flex h-full flex-col rounded-[26px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))] p-6 text-fg">
-                    <div
-                      role="radiogroup"
-                      aria-label="Plan"
-                      className="grid grid-cols-2 gap-2"
-                    >
-                      {SEAT_PLANS.map((p) => {
-                        const isOn = p.id === planId;
-                        return (
-                          <button
-                            key={p.id}
-                            type="button"
-                            role="radio"
-                            aria-checked={isOn}
-                            onClick={() => setPlanId(p.id)}
-                            className={cn(
-                              "flex cursor-pointer flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-colors motion-reduce:transition-none",
-                              isOn
-                                ? "border-accent bg-panel shadow-sm"
-                                : "border-line bg-transparent hover:bg-panel/60",
-                            )}
-                          >
-                            <span className="flex items-center gap-1 text-base font-bold tracking-[-0.01em]">
-                              {p.name}
-                              {p.id === DEFAULT_SEAT_PLAN_ID && (
-                                <Sparkle
-                                  size={12}
-                                  className="shrink-0 fill-current"
-                                />
-                              )}
-                            </span>
-                            <span className="text-xs text-fg-muted">
-                              ${p.priceMonthlyUsd} per member
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <p className="mt-3 min-h-12 text-[15px] leading-relaxed text-fg-muted">
-                      {planCopy.description}
-                    </p>
-
-                    <div
-                      role="radiogroup"
-                      aria-label="Billing cycle"
-                      className="mt-4 grid grid-cols-2 gap-1 rounded-lg bg-tint p-1"
-                    >
-                      {CYCLES.map((c) => {
-                        const isOn = c.key === cycle;
-                        return (
-                          <button
-                            key={c.key}
-                            type="button"
-                            role="radio"
-                            aria-checked={isOn}
-                            onClick={() => setCycle(c.key)}
-                            className={cn(
-                              "cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-colors motion-reduce:transition-none",
-                              isOn
-                                ? "bg-panel text-fg shadow-sm"
-                                : "text-fg-muted hover:text-fg",
-                            )}
-                          >
-                            {c.label}
-                            {c.key === "annual" ? (
-                              <span className="ms-1.5 text-xs opacity-80">
-                                save {seatAnnualSavingPercent(plan)}%
-                              </span>
-                            ) : null}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <p className="mt-6 text-4xl font-bold tracking-[-0.03em]">
-                      <span
-                        key={`${planId}-${cycle}-${total}`}
-                        className="animate-storage-pop inline-block"
+                  {CYCLES.map((c) => {
+                    const isOn = c.key === cycle;
+                    return (
+                      <button
+                        key={c.key}
+                        type="button"
+                        role="radio"
+                        aria-checked={isOn}
+                        onClick={() => setCycle(c.key)}
+                        className={cn(
+                          "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium transition-colors motion-reduce:transition-none",
+                          isOn
+                            ? "bg-panel text-fg shadow-sm"
+                            : "text-fg-muted hover:text-fg",
+                        )}
                       >
-                        ${total}
-                      </span>
-                      <span className="ms-2 align-baseline text-sm font-normal text-fg-muted">
-                        per month
-                      </span>
-                    </p>
-                    <p className="mt-1 text-sm text-fg-muted">
-                      {seats} {seats === 1 ? "seat" : "seats"} × ${perSeat}
-                      {viewers > 0
-                        ? `, ${viewers} ${viewers === 1 ? "viewer" : "viewers"} free`
-                        : ""}
-                      {cycle === "annual" ? ", billed yearly" : ""}
-                    </p>
-
-                    {href ? (
-                      <a
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={handleCheckoutClick}
-                        className="mt-6 inline-flex h-11 w-fit items-center justify-center rounded-full bg-accent px-6 text-sm font-semibold text-white transition-colors hover:bg-accent/90 motion-reduce:transition-none"
-                      >
-                        Upgrade to {plan.name}
-                      </a>
-                    ) : (
-                      <span className="mt-6 inline-flex h-11 w-fit items-center justify-center rounded-full bg-accent/10 px-6 text-sm font-medium text-fg-muted">
-                        Checkout not configured
-                      </span>
-                    )}
-
-                    <p className="mt-8 text-sm font-semibold">
-                      {planCopy.featuresHeading}
-                    </p>
-                    <ul className="mt-3 flex list-none flex-col gap-2.5">
-                      {planCopy.features.map((label) => (
-                        <li
-                          key={label}
-                          className="flex items-start gap-2.5 text-[15px]"
-                        >
-                          <Check
-                            size={16}
-                            className="mt-1 shrink-0 text-fg-muted"
-                          />
-                          <span>{label}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                        {c.label}
+                        {c.key === "annual" ? (
+                          <span className="ms-1.5 text-xs text-accent">
+                            save up to {SEAT_ANNUAL_SAVING_PERCENT}%
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
+
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {SEAT_PLANS.map((p) => (
+                  <PlanOption
+                    key={p.id}
+                    planId={p.id}
+                    cycle={cycle}
+                    seats={seats}
+                    viewers={viewers}
+                    href={checkoutHref(p.id)}
+                    onCheckout={handleCheckoutClick}
+                  />
+                ))}
+              </div>
+
+              <p className="mt-8 text-sm font-semibold text-fg">
+                Who gets a seat
+              </p>
+              <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line">
+                {people.map((p) => (
+                  <PersonRow
+                    key={p.userId}
+                    person={p}
+                    isSelf={p.userId === userId}
+                    editable={canManage && p.role !== "owner"}
+                    onRole={(role) => setRole(p.userId, role)}
+                  />
+                ))}
+              </ul>
             </Modal.Body>
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>
     </Modal>
   );
+}
+
+function PlanOption({
+  planId,
+  cycle,
+  seats,
+  viewers,
+  href,
+  onCheckout,
+}: {
+  planId: SeatPlanId;
+  cycle: SeatCycle;
+  seats: number;
+  viewers: number;
+  href: string | null;
+  onCheckout: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+}) {
+  const plan = getSeatPlan(planId);
+  const copy = PLAN_COPY[planId];
+  const highlighted = planId === DEFAULT_SEAT_PLAN_ID;
+  const perSeat =
+    cycle === "annual" ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
+  const total = seatPriceUsd(seats, cycle, planId);
+
+  const card = (
+    <div
+      className={cn(
+        "flex h-full flex-col p-6 text-fg",
+        highlighted
+          ? "rounded-[22px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
+          : "rounded-3xl border border-line bg-panel",
+      )}
+    >
+      <h3 className="flex items-start gap-1 text-2xl font-bold tracking-[-0.03em]">
+        {plan.name}
+        {highlighted && <Sparkle size={13} className="shrink-0 fill-current" />}
+      </h3>
+      <p className="mt-1.5 min-h-12 text-sm leading-relaxed text-fg-muted">
+        {copy.description}
+      </p>
+
+      <p className="mt-4 text-4xl font-bold tracking-[-0.03em]">
+        <span
+          key={`${cycle}-${total}`}
+          className="animate-storage-pop inline-block"
+        >
+          ${total}
+        </span>
+        <span className="ms-2 align-baseline text-sm font-normal text-fg-muted">
+          per month
+        </span>
+      </p>
+      <p className="mt-1 text-sm text-fg-muted">
+        {seats} {seats === 1 ? "seat" : "seats"} × ${perSeat}
+        {viewers > 0
+          ? `, ${viewers} ${viewers === 1 ? "viewer" : "viewers"} free`
+          : ""}
+        {cycle === "annual" ? ", billed yearly" : ""}
+      </p>
+
+      {href ? (
+        <a
+          href={href}
+          data-plan={planId}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onCheckout}
+          className={cn(
+            "mt-5 inline-flex h-11 w-fit items-center justify-center rounded-full px-6 text-sm font-semibold transition-colors motion-reduce:transition-none",
+            highlighted
+              ? "bg-accent text-white hover:bg-accent/90"
+              : "bg-accent/10 text-fg hover:bg-accent/20",
+          )}
+        >
+          Upgrade to {plan.name}
+        </a>
+      ) : (
+        <span className="mt-5 inline-flex h-11 w-fit items-center justify-center rounded-full bg-accent/10 px-6 text-sm font-medium text-fg-muted">
+          Checkout not configured
+        </span>
+      )}
+
+      <p className="mt-6 text-sm font-semibold">{copy.featuresHeading}</p>
+      <ul className="mt-3 flex list-none flex-col gap-2">
+        {copy.features.map((label) => (
+          <li key={label} className="flex items-start gap-2.5 text-sm">
+            <Check size={15} className="mt-0.5 shrink-0 text-fg-muted" />
+            <span>{label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  if (!highlighted) return card;
+  return <div className={cn("rounded-3xl p-0.5", GRADIENT_BORDER)}>{card}</div>;
 }
 
 function PersonRow({
@@ -316,7 +323,7 @@ function PersonRow({
         <div
           role="radiogroup"
           aria-label={`Role for ${display}`}
-          className="grid shrink-0 grid-cols-2 gap-0.5 rounded-lg bg-tint p-0.5 text-xs font-medium"
+          className="flex shrink-0 items-center gap-1.5"
         >
           {SEAT_CHOICES.map((c) => {
             const isOn = c.role === person.role;
@@ -328,10 +335,10 @@ function PersonRow({
                 aria-checked={isOn}
                 onClick={() => !isOn && onRole(c.role)}
                 className={cn(
-                  "cursor-pointer rounded-md px-2.5 py-1 transition-colors motion-reduce:transition-none",
+                  "h-8 cursor-pointer rounded-full px-3.5 text-sm font-semibold transition-colors motion-reduce:transition-none",
                   isOn
-                    ? "bg-panel text-fg shadow-sm"
-                    : "text-fg-muted hover:text-fg",
+                    ? "bg-accent text-white shadow-sm"
+                    : "border border-line bg-panel text-fg hover:border-accent hover:text-accent",
                 )}
               >
                 {c.label}
