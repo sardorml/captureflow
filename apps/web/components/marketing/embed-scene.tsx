@@ -46,7 +46,7 @@ function EmbedContent({ step }: SceneState) {
     <>
       <div
         className={cn(
-          "absolute top-6 right-10 w-[340px] rounded-2xl rounded-br-[4px] bg-white px-5 py-3.5 text-[16px] leading-snug font-medium text-[#a855f7] shadow-[0_16px_36px_rgb(76_29_149/0.14)] transition-all duration-300",
+          "absolute top-5 right-10 w-[500px] rounded-2xl rounded-br-[4px] bg-white px-5 py-3.5 text-[16px] leading-snug font-medium text-[#a855f7] shadow-[0_16px_36px_rgb(76_29_149/0.14)] transition-all duration-300",
           asked ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
         )}
       >
@@ -55,7 +55,7 @@ function EmbedContent({ step }: SceneState) {
 
       <div
         className={cn(
-          "absolute top-[100px] left-10 rounded-2xl rounded-tl-[4px] bg-[#42275a] px-5 py-3.5 shadow-[0_22px_44px_rgb(66_39_90/0.3)] transition-all duration-300",
+          "absolute top-[92px] left-10 rounded-2xl rounded-tl-[4px] bg-[#42275a] px-5 py-3.5 shadow-[0_22px_44px_rgb(66_39_90/0.3)] transition-all duration-300",
           typing ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
         )}
       >
@@ -64,7 +64,7 @@ function EmbedContent({ step }: SceneState) {
 
       <div
         className={cn(
-          "absolute top-[100px] left-10 w-[430px] rounded-2xl rounded-tl-[4px] bg-[#42275a] px-5 py-3.5 shadow-[0_22px_44px_rgb(66_39_90/0.3)] transition-[opacity,translate] duration-300",
+          "absolute top-[92px] left-10 w-[430px] rounded-2xl rounded-tl-[4px] bg-[#42275a] px-5 py-3.5 shadow-[0_22px_44px_rgb(66_39_90/0.3)] transition-[opacity,translate] duration-300",
           replied ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
         )}
       >
