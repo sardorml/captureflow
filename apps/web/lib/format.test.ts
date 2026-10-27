@@ -3,6 +3,7 @@ import {
   formatBytes,
   formatDuration,
   formatRelativeLong,
+  formatPostedAt,
   formatRelativeShort,
   formatTimestamp,
   initials,
@@ -90,5 +91,38 @@ describe("initials", () => {
   it("returns ? for empty/whitespace", () => {
     expect(initials("")).toBe("?");
     expect(initials("   ")).toBe("?");
+  });
+});
+
+describe("formatPostedAt", () => {
+  const utc = { locale: "en-US", timeZone: "UTC" };
+  const now = Date.UTC(2026, 9, 27, 18, 0);
+
+  it("names today and yesterday with the time", () => {
+    expect(formatPostedAt(Date.UTC(2026, 9, 27, 14, 14), now, utc)).toBe(
+      "Today at 2:14 PM",
+    );
+    expect(formatPostedAt(Date.UTC(2026, 9, 26, 9, 3), now, utc)).toBe(
+      "Yesterday at 9:03 AM",
+    );
+  });
+
+  it("gives the date and time earlier this year, and the year before that", () => {
+    expect(formatPostedAt(Date.UTC(2026, 9, 20, 16, 40), now, utc)).toBe(
+      "Oct 20 at 4:40 PM",
+    );
+    expect(formatPostedAt(Date.UTC(2025, 9, 26, 16, 40), now, utc)).toBe(
+      "Oct 26, 2025",
+    );
+  });
+
+  it("decides the day in the viewer's zone", () => {
+    const lateUtc = Date.UTC(2026, 9, 27, 1, 0);
+    expect(
+      formatPostedAt(lateUtc, now, {
+        locale: "en-US",
+        timeZone: "America/New_York",
+      }),
+    ).toBe("Yesterday at 9:00 PM");
   });
 });

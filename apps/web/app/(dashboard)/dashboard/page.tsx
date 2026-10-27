@@ -3,7 +3,13 @@ import Link from "next/link";
 import { preconnect } from "react-dom";
 import { ArrowRight, PenLine, TrendingUp } from "lucide-react";
 import { buttonVariants } from "@heroui/react";
-import { can, getWorkspaceEntitlement, isSelfHosted } from "@captureflow/quota";
+import {
+  can,
+  getWorkspaceEntitlement,
+  isSelfHosted,
+  listMembers,
+  type WorkspaceMember,
+} from "@captureflow/quota";
 import { SplitLoaded } from "@/components/dev/split-loaded";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
@@ -78,7 +84,7 @@ export default async function DashboardPage() {
   const now = Date.now();
   const since = (dayOf(now) - (WEEK_DAYS - 1)) * DAY_MS;
   // Free adds a fourth tile for this person's recording allowance.
-  const [activity, totals, entitlement, recentRows, ownCount] =
+  const [activity, totals, entitlement, recentRows, ownCount, members] =
     await Promise.all([
       loadDashboardActivity(workspaceId, userId, since),
       loadDashboardTotals(workspaceId, userId),
@@ -92,8 +98,12 @@ export default async function DashboardPage() {
         offset: 0,
       }),
       countUserRecordingsInWorkspace(workspaceId, userId),
+      env?.DB ? listMembers(env.DB, workspaceId) : [],
     ]);
-  const recent = await Promise.all(recentRows.map(toRecent));
+  const authors = new Map(members.map((m) => [m.user_id, m]));
+  const recent = await Promise.all(
+    recentRows.map((row) => toRecent(row, authors.get(row.userId))),
+  );
   if (recentRows.some((r) => r.visibility === "public")) {
     preconnect(env?.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL);
   }
@@ -222,7 +232,10 @@ export default async function DashboardPage() {
   );
 }
 
-async function toRecent(row: DashboardRecordingRow): Promise<RecentRecording> {
+async function toRecent(
+  row: DashboardRecordingRow,
+  author: WorkspaceMember | undefined,
+): Promise<RecentRecording> {
   const posterSource = row.posterThumbKey ?? row.posterKey;
   return {
     slug: row.slug,
@@ -233,7 +246,12 @@ async function toRecent(row: DashboardRecordingRow): Promise<RecentRecording> {
     height: row.height,
     durationMs: row.durationMs,
     viewCount: row.viewCount,
+    commentCount: row.commentCount,
+    reactionCount: row.reactionCount,
     createdAt: row.createdAt,
+    author: author
+      ? { name: author.name?.trim() || author.email, image: author.image }
+      : null,
     ready: row.state === "ready",
   };
 }
