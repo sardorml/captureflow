@@ -475,7 +475,7 @@ function RecordingMockup() {
     >
       <div
         ref={ref}
-        className="absolute inset-0 overflow-hidden rounded-2xl border border-black/5 shadow-[0_30px_60px_rgb(0_0_0/0.15),0_8px_20px_rgb(0_0_0/0.105)] dark:border-white/10 dark:shadow-[0_30px_60px_rgb(0_0_0/0.5),0_8px_20px_rgb(0_0_0/0.35)]"
+        className="absolute inset-0 overflow-hidden rounded-2xl border border-black/5 shadow-[0_16px_40px_rgb(0_0_0/0.08),0_4px_12px_rgb(0_0_0/0.06)] dark:border-white/10 dark:shadow-[0_16px_40px_rgb(0_0_0/0.4),0_4px_12px_rgb(0_0_0/0.3)]"
       >
         <CanvasScene t={reducedMotion ? REST_T : t} />
       </div>
