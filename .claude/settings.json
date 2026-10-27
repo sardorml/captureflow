@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(npx wrangler d1 migrations apply captureflow --remote:*)",
+      "Bash(wrangler d1 migrations apply captureflow --remote:*)",
+      "Bash(pnpm --filter @captureflow/web db:apply:remote:*)",
+      "Bash(pnpm db:apply:remote:*)"
+    ]
+  }
+}

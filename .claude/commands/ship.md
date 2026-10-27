@@ -84,7 +84,7 @@ What was clicked or observed in the dev server or a browser, and what wasn't. No
 
 **Before merging** is required when the diff (merging to `main` deploys the web worker, so this is the deadline):
 
-- adds a file under `apps/web/migrations` → `wrangler d1 migrations apply captureflow --remote`
+- adds a file under `apps/web/migrations` → note that the deploy applies it; never tell anyone to run it by hand. It must be additive: a drop or rename ships in a later PR, once the code still on `main` stops using it (CI's migration check enforces this)
 - changes bindings, crons or vars in `apps/web/wrangler.jsonc`, or reads a new secret → list them
 - changes `STORAGE_PLANS` in `packages/quota/src/limits.ts` → the Lemon Squeezy products to match, done first
 - changes extension permissions or host matches → expect a slower store review
