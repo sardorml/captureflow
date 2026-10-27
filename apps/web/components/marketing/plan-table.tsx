@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, Sparkle } from "lucide-react";
-import { FREE_TIER } from "@captureflow/quota";
+import { FREE_TIER, RECOMMENDED_SEAT_PLAN_ID } from "@captureflow/quota";
 import { TEAM_CHECKOUT_URL } from "@/lib/marketing/constants";
 import { GRADIENT_BORDER } from "./plan-cards";
 import { track } from "@/lib/marketing/track";
@@ -14,7 +14,7 @@ type Cell = Messages["pricing"]["table"]["groups"][number]["rows"][number];
 type PlanKey = "free" | "light" | "pro" | "enterprise";
 
 const PLANS: PlanKey[] = ["free", "light", "pro", "enterprise"];
-const HIGHLIGHTED: PlanKey = "light";
+const HIGHLIGHTED: PlanKey = RECOMMENDED_SEAT_PLAN_ID;
 const GRID =
   "grid-cols-[minmax(150px,1.3fr)_repeat(4,minmax(130px,1fr))] md:grid-cols-[minmax(190px,1.3fr)_repeat(4,minmax(140px,1fr))]";
 

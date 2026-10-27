@@ -573,7 +573,6 @@ export const MESSAGES = {
       },
       light: {
         name: LIGHT,
-        badge: "Best value",
         description:
           "Record as much as you like, as long as you like, in data saver quality.",
         period: "per member / month",
@@ -591,6 +590,7 @@ export const MESSAGES = {
         cta: "Try for free",
       },
       pro: {
+        badge: "Recommended",
         name: PRO,
         description:
           "Full quality, AI chapters, titles and clean-up, with your own branding on every share page.",

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, Sparkle } from "lucide-react";
 import {
   FREE_TIER,
+  RECOMMENDED_SEAT_PLAN_ID,
   SEAT_ANNUAL_SAVING_PERCENT,
   getSeatPlan,
   seatPriceUsd,
@@ -110,8 +111,8 @@ export function PlanCards({
               track("marketing_cta_clicked", { location: "pricing_free" }),
           }}
         />
-        {paid("light", true)}
-        {paid("pro", false)}
+        {paid("light", RECOMMENDED_SEAT_PLAN_ID === "light")}
+        {paid("pro", RECOMMENDED_SEAT_PLAN_ID === "pro")}
         <PlanCard
           name={copy.enterprise.name}
           description={copy.enterprise.description}

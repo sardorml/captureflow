@@ -4,7 +4,7 @@ import { useOptimistic, useState, useTransition } from "react";
 import { Check, Sparkle } from "lucide-react";
 import { Avatar, Modal } from "@heroui/react";
 import {
-  DEFAULT_SEAT_PLAN_ID,
+  RECOMMENDED_SEAT_PLAN_ID,
   SEAT_PLANS,
   getSeatPlan,
   isSeatRole,
@@ -226,7 +226,7 @@ function PlanOption({
 }) {
   const plan = getSeatPlan(planId);
   const copy = PLAN_COPY[planId];
-  const highlighted = planId === DEFAULT_SEAT_PLAN_ID;
+  const highlighted = planId === RECOMMENDED_SEAT_PLAN_ID;
   const perSeat =
     cycle === "annual" ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
   const total = seatPriceUsd(seats, cycle, planId);

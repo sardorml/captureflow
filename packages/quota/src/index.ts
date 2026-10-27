@@ -10,6 +10,7 @@ export {
 } from "./totals";
 export {
   DEFAULT_SEAT_PLAN_ID,
+  RECOMMENDED_SEAT_PLAN_ID,
   FREE_TIER,
   SEAT_ANNUAL_SAVING_PERCENT,
   SEAT_PLANS,

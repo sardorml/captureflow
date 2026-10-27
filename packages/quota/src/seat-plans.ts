@@ -45,6 +45,9 @@ export const SEAT_PLANS: readonly SeatPlan[] = [
 
 export const DEFAULT_SEAT_PLAN_ID: SeatPlanId = "light";
 
+// The plan the pricing page and the upgrade dialog point people to.
+export const RECOMMENDED_SEAT_PLAN_ID: SeatPlanId = "pro";
+
 export function getSeatPlan(id: SeatPlanId): SeatPlan {
   return SEAT_PLANS.find((p) => p.id === id)!;
 }
