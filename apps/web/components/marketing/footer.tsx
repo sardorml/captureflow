@@ -92,7 +92,7 @@ export function Footer() {
         paddingBlock: "88px 56px",
       }}
     >
-      <div className="mx-auto w-full max-w-[1156px] px-6">
+      <div className="w-full px-[clamp(20px,4vw,56px)]">
         <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div className="flex flex-col gap-4">
             <NextLink
