@@ -12,8 +12,8 @@ import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { getWorkspaceSeatContext, paidSeatsOf } from "@/lib/billing/seats";
+import { RecordButton } from "./RecordButton";
 import { SidebarNav } from "./SidebarNav";
-import { SidebarPlanCard } from "./SidebarPlanCard";
 import { SidebarUpgradeCard } from "./SidebarUpgradeCard";
 import { WorkspaceMembersStack } from "./WorkspaceMembersStack";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
@@ -77,27 +77,17 @@ export async function Sidebar() {
         <SidebarNav isOwner={isOwner} selfHosted={selfHosted} />
       </div>
 
-      {/* Whoever can't upgrade sees what the workspace has instead. */}
-      {seat && !selfHosted && (
-        <div className="px-3 pt-3 pb-4">
-          {isOwner && seat.offer ? (
-            <SidebarUpgradeCard
-              email={session.user.email}
-              userId={userId}
-              seat={seat.offer}
-            />
-          ) : (
-            <SidebarPlanCard
-              entitlement={seat.entitlement}
-              seats={seat.memberCount}
-              recordingCount={recordingCount}
-              renewsAt={paidSeats?.periodEnd ?? null}
-              isEnding={seat.subscription?.cancelled_at != null}
-              canManageBilling={isOwner}
-            />
-          )}
-        </div>
-      )}
+      <div className="px-3 pt-3 pb-4">
+        {isOwner && seat?.offer ? (
+          <SidebarUpgradeCard
+            email={session.user.email}
+            userId={userId}
+            seat={seat.offer}
+          />
+        ) : (
+          <RecordButton label="New recording" fullWidth />
+        )}
+      </div>
     </div>
   );
 }
