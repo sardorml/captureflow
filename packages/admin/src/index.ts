@@ -93,5 +93,17 @@ export { SEAT_PLANS, getSeatPlan, isSelfHosted } from "@captureflow/quota";
 export type { SeatPlanId } from "@captureflow/quota";
 export type { SubscriptionStatus } from "@captureflow/quota";
 
+export {
+  getRecordingActivityByWeek,
+  getRecordingTotals,
+  listAdminRecordings,
+} from "./recordings";
+export type {
+  AdminRecordingRow,
+  AdminRecordingTotals,
+  RecordingSort,
+  RecordingVisibilityFilter,
+} from "./recordings";
+
 export { listContactRequests } from "./contact-requests";
 export type { ContactKind, ContactRequestRow } from "./contact-requests";

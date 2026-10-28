@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import NextLink from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import {
   Alert,
   Avatar,
@@ -181,6 +181,68 @@ export function StatGrid({
         {children}
       </div>
     </Card>
+  );
+}
+
+export function formatClock(ms: number | null): string {
+  if (!ms) return "—";
+  const seconds = Math.round(ms / 1000);
+  const m = Math.floor(seconds / 60);
+  return `${m}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+export function shareUrl(appBaseUrl: string | undefined, slug: string) {
+  return appBaseUrl ? `${appBaseUrl.replace(/\/+$/, "")}/r/${slug}` : null;
+}
+
+// Only public recordings get a link: the share page asks anyone else to sign
+// in, and a failed upload has nothing to play.
+export function RecordingCell({
+  title,
+  slug,
+  visibility,
+  state,
+  appBaseUrl,
+  detail,
+}: {
+  title: string | null;
+  slug: string;
+  visibility: string;
+  state: string;
+  appBaseUrl: string | undefined;
+  detail?: ReactNode;
+}) {
+  const href =
+    visibility === "public" && state !== "failed"
+      ? shareUrl(appBaseUrl, slug)
+      : null;
+  const name = title || "Untitled recording";
+  return (
+    <div className="min-w-0">
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-fg-strong group flex max-w-60 items-center gap-1.5 font-medium hover:underline"
+        >
+          <span className="truncate">{name}</span>
+          <ExternalLink
+            size={13}
+            className="text-fg-subtle group-hover:text-fg shrink-0"
+            aria-hidden
+          />
+        </a>
+      ) : (
+        <div className="text-fg-strong max-w-60 truncate font-medium">
+          {name}
+        </div>
+      )}
+      <div className="text-fg-subtle truncate text-xs">
+        <span className="font-mono">{slug}</span>
+        {detail}
+      </div>
+    </div>
   );
 }
 
