@@ -11,6 +11,7 @@ import {
 import { Avatar, Chip, Dropdown, Separator, Typography } from "@heroui/react";
 import { getSeatPlan, type SeatPlanId } from "@captureflow/quota";
 import type { ThemePreference } from "@captureflow/ui";
+import { openSupportChat } from "@/components/marketing/support-chat";
 import { initials } from "@/lib/format";
 import { SUPPORT_EMAIL } from "@/lib/site";
 import { ThemeSegments } from "./ThemeSegments";
@@ -22,6 +23,7 @@ export type AccountMenuNavItem = {
   icon: ReactNode;
   label: string;
   href: string;
+  onOpen?: () => void;
   // Right-aligned accessory — a plan chip, a count. Purely decorative.
   trailing?: ReactNode;
 };
@@ -74,6 +76,7 @@ export function accountNavItems({
       icon: <MessageSquare size={16} />,
       label: "Contact support",
       href: `mailto:${SUPPORT_EMAIL}`,
+      onOpen: openSupportChat,
     },
   ];
   return items.filter(
@@ -143,7 +146,12 @@ export function AccountMenu({
 
         <Dropdown.Menu>
           {navItems.map((item) => (
-            <Dropdown.Item key={item.key} href={item.href}>
+            <Dropdown.Item
+              key={item.key}
+              {...(item.onOpen
+                ? { onAction: item.onOpen }
+                : { href: item.href })}
+            >
               {item.icon}
               {item.label}
               {item.trailing ? (
