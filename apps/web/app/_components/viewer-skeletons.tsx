@@ -27,7 +27,7 @@ export function ViewerNavSkeleton({ className }: { className?: string }) {
         </span>
         <div className="flex items-center gap-2">
           <AppIcon size={28} />
-          <span className="text-xl font-semibold tracking-tight text-fg-strong">
+          <span className="text-xl font-semibold tracking-tight text-fg-strong max-sm:sr-only">
             {PRODUCT_NAME}
           </span>
         </div>

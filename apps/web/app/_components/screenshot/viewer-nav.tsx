@@ -68,7 +68,7 @@ export function ViewerNav({
     >
       {/* The header is justify-between over exactly two children, so anything
           left of the brand has to group with it rather than become a third. */}
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         {leading}
         <a
           href={homeUrl}
@@ -76,7 +76,7 @@ export function ViewerNav({
           className="group flex items-center gap-2"
         >
           <AppIcon size={28} />
-          <span className="flex items-baseline gap-1.5 text-xl font-semibold tracking-tight">
+          <span className="flex items-baseline gap-1.5 text-xl font-semibold tracking-tight max-sm:sr-only">
             <span className="text-fg-strong">{productName}</span>
             {label ? (
               <>
@@ -92,7 +92,7 @@ export function ViewerNav({
       {/* One gap for the whole row, matching what the actions use internally:
           the icon buttons pad their own glyphs, so anything wider here opens a
           visible hole between two of them. */}
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         {typeof viewCount === "number" ? (
           <span className="text-sm tabular-nums text-fg-muted">
             {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}

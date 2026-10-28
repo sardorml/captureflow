@@ -10,7 +10,10 @@ export function AuthPrompt({ marketingUrl, loginUrl }: Props) {
     <div className="flex items-center gap-1.5">
       <a
         href={`${marketingUrl}/#pricing`}
-        className={buttonVariants({ variant: "ghost" })}
+        className={buttonVariants({
+          variant: "ghost",
+          className: "max-sm:hidden",
+        })}
       >
         Pricing
       </a>
@@ -18,7 +21,8 @@ export function AuthPrompt({ marketingUrl, loginUrl }: Props) {
         Log in
       </a>
       <a href={marketingUrl} className={buttonVariants({ variant: "primary" })}>
-        Get CaptureFlow free
+        <span className="sm:hidden">Get started</span>
+        <span className="max-sm:hidden">Get CaptureFlow free</span>
       </a>
     </div>
   );
