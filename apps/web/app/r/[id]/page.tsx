@@ -15,8 +15,12 @@ import {
 import { hydrateStartSeconds } from "@/lib/recording/share-time";
 import { viewerKeyFor } from "@/lib/recording/viewer-key";
 import { resolveTranscript } from "@/lib/recording/transcript";
-import { verifySession } from "@/lib/recording/verify-session";
+import {
+  verifySession,
+  type VerifiedSession,
+} from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
+import type { RecordingVisibility } from "@/lib/recording/types";
 import {
   posterMimeOf,
   viewerMediaUrl,
@@ -293,76 +297,22 @@ export default async function RecordingPage({
     : null;
   const workspaceName = workspaceRow?.name ?? null;
   const allowPublicLinks = workspaceRow?.allow_public_links ?? true;
-  const recordingUrl = viewUrlFor(id);
   const editUrl = `${APP_WEB_SITE_URL}/recordings/${id}/edit`;
 
   return (
     <div className="flex min-h-screen flex-col bg-panel text-fg lg:h-screen lg:overflow-hidden">
       <AuthSync initialUserId={visitor?.userId ?? null} />
-      <ViewerNav
-        homeUrl={APP_WEB_SITE_URL}
-        productName={PRODUCT_NAME}
-        className="border-b border-black/[0.06] bg-panel dark:border-white/[0.07]"
-        /* The workspace panel is the signed-in user's own; an anonymous viewer
-           has nothing to put in it, and Sidebar's requireSession would bounce
-           them to /auth/clear mid-render. Suspense keeps its workspace queries
-           off the critical path — the drawer is shut on arrival either way. */
-        leading={
-          visitor ? (
-            <SidebarDrawer>
-              <div data-split="sidebar" className="contents">
-                <Suspense fallback={null}>
-                  <Sidebar />
-                </Suspense>
-              </div>
-            </SidebarDrawer>
-          ) : null
-        }
-        viewer={visitor ? { name: visitor.name, email: visitor.email } : null}
-        /* Signed in, the theme lives in the account menu exactly as it does on
-           the dashboard; anonymous viewers have no menu, so they keep the
-           standalone toggle. */
-        themeToggle={
-          visitor ? null : (
-            <ThemeToggle initialTheme={theme} className="h-9 w-9 rounded-xl" />
-          )
-        }
-        notifications={
-          visitor ? (
-            <NotificationsBell
-              user={{ id: visitor.userId, email: visitor.email }}
-              base={APP_WEB_SITE_URL}
-            />
-          ) : null
-        }
-        userMenu={
-          visitor ? (
-            <ViewerUserMenu
-              userId={visitor.userId}
-              name={visitor.name}
-              email={visitor.email}
-              imageUrl={visitor.image}
-              appWebUrl={APP_WEB_SITE_URL}
-              themePreference={themePreference}
-              selfHosted={selfHosted}
-            />
-          ) : (
-            <AuthPrompt marketingUrl={MARKETING_SITE_URL} loginUrl={loginUrl} />
-          )
-        }
-        actions={
-          <RecordingActions
-            slug={id}
-            recordingUrl={recordingUrl}
-            embedUrl={embedUrlFor(id)}
-            editUrl={editUrl}
-            initialVisibility={row.visibility}
-            isOwner={isOwner}
-            workspaceName={workspaceName}
-            allowPublicLinks={allowPublicLinks}
-            signedIn={!!visitor}
-          />
-        }
+      <RecordingNav
+        slug={id}
+        visitor={visitor}
+        theme={theme}
+        themePreference={themePreference}
+        selfHosted={selfHosted}
+        loginUrl={loginUrl}
+        visibility={row.visibility}
+        isOwner={isOwner}
+        workspaceName={workspaceName}
+        allowPublicLinks={allowPublicLinks}
       />
       <RecordingViewer
         slug={id}
@@ -401,5 +351,97 @@ export default async function RecordingPage({
         editUrl={editUrl}
       />
     </div>
+  );
+}
+
+function RecordingNav({
+  slug,
+  visitor,
+  theme,
+  themePreference,
+  selfHosted,
+  loginUrl,
+  visibility,
+  isOwner,
+  workspaceName,
+  allowPublicLinks,
+}: {
+  slug: string;
+  visitor: VerifiedSession | null;
+  theme: ReturnType<typeof readThemeFromCookieHeader>;
+  themePreference: ReturnType<typeof readThemePreferenceFromCookieHeader>;
+  selfHosted: boolean;
+  loginUrl: string;
+  visibility: RecordingVisibility;
+  isOwner: boolean;
+  workspaceName: string | null;
+  allowPublicLinks: boolean;
+}) {
+  return (
+    <ViewerNav
+      homeUrl={APP_WEB_SITE_URL}
+      productName={PRODUCT_NAME}
+      className="border-b border-black/[0.06] bg-panel dark:border-white/[0.07]"
+      /* The workspace panel is the signed-in user's own; an anonymous viewer
+         has nothing to put in it, and Sidebar's requireSession would bounce
+         them to /auth/clear mid-render. Suspense keeps its workspace queries
+         off the critical path — the drawer is shut on arrival either way. */
+      leading={
+        visitor ? (
+          <SidebarDrawer>
+            <div data-split="sidebar" className="contents">
+              <Suspense fallback={null}>
+                <Sidebar />
+              </Suspense>
+            </div>
+          </SidebarDrawer>
+        ) : null
+      }
+      viewer={visitor ? { name: visitor.name, email: visitor.email } : null}
+      /* Signed in, the theme lives in the account menu exactly as it does on
+         the dashboard; anonymous viewers have no menu, so they keep the
+         standalone toggle. */
+      themeToggle={
+        visitor ? null : (
+          <ThemeToggle initialTheme={theme} className="h-9 w-9 rounded-xl" />
+        )
+      }
+      notifications={
+        visitor ? (
+          <NotificationsBell
+            user={{ id: visitor.userId, email: visitor.email }}
+            base={APP_WEB_SITE_URL}
+          />
+        ) : null
+      }
+      userMenu={
+        visitor ? (
+          <ViewerUserMenu
+            userId={visitor.userId}
+            name={visitor.name}
+            email={visitor.email}
+            imageUrl={visitor.image}
+            appWebUrl={APP_WEB_SITE_URL}
+            themePreference={themePreference}
+            selfHosted={selfHosted}
+          />
+        ) : (
+          <AuthPrompt marketingUrl={MARKETING_SITE_URL} loginUrl={loginUrl} />
+        )
+      }
+      actions={
+        <RecordingActions
+          slug={slug}
+          recordingUrl={viewUrlFor(slug)}
+          embedUrl={embedUrlFor(slug)}
+          editUrl={`${APP_WEB_SITE_URL}/recordings/${slug}/edit`}
+          initialVisibility={visibility}
+          isOwner={isOwner}
+          workspaceName={workspaceName}
+          allowPublicLinks={allowPublicLinks}
+          signedIn={!!visitor}
+        />
+      }
+    />
   );
 }
