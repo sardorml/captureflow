@@ -5,7 +5,7 @@ import {
   type LegalSection,
 } from "@/components/marketing/legal-page";
 
-const LAST_UPDATED = "10 October 2026";
+const LAST_UPDATED = "28 October 2026";
 
 const SECTIONS: LegalSection[] = [
   {
@@ -25,6 +25,7 @@ const SECTIONS: LegalSection[] = [
       "Session details — a session token, your IP address, and your browser's user-agent string, used to keep you signed in and to protect your account against session abuse.",
       "Your captures — the screen recordings and screenshots you create, including their audio and camera track when you enable them. For a screenshot, we also store the title of the tab you captured, so the capture is recognisable in your library.",
       "Website analytics — on the CaptureFlow website only, we record page views and basic product usage through PostHog to understand which features are used.",
+      "Support chat — if you message us through the chat bubble on the CaptureFlow website, tawk.to stores the conversation along with anything you choose to share in it, such as your name or email.",
     ],
   },
   {
@@ -46,7 +47,7 @@ const SECTIONS: LegalSection[] = [
     heading: "Who we share it with",
     body: [
       "We do not sell your data, and we do not share it for advertising. Your captures are shared only with the people you send a link to, according to the visibility you set.",
-      "We rely on a small number of providers to run the service: Cloudflare for hosting and storage, PostHog for website analytics, Lemon Squeezy for payments, and Google or GitHub when you choose to sign in with them. They process data on our behalf so that CaptureFlow can function.",
+      "We rely on a small number of providers to run the service: Cloudflare for hosting and storage, PostHog for website analytics, tawk.to for the support chat, Lemon Squeezy for payments, and Google or GitHub when you choose to sign in with them. They process data on our behalf so that CaptureFlow can function.",
     ],
   },
   {
