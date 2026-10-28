@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
+import { SupportChat } from "./support-chat";
 import { TOKENS } from "./tokens";
 
 /*
@@ -29,6 +30,7 @@ export function MarketingShell({
       }}
     >
       {children}
+      <SupportChat />
     </div>
   );
 }

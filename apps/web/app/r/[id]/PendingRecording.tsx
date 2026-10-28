@@ -3,15 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MessageSquare } from "lucide-react";
-import { Skeleton, Spinner } from "@heroui/react";
+import { Avatar, Skeleton, Spinner } from "@heroui/react";
+import { initials } from "@/lib/format";
 import { ContentByline } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
+import { sizeStyleForAspect } from "../../_components/recording/layout";
+import { DEFAULT_REACTIONS } from "@/lib/recording/reactions";
+import { ViewCount } from "./ViewCount";
 
 type PendingRecordingProps = {
   slug: string;
   titleLine: string;
+  ownerName: string | null;
   createdAt: number;
   viewCount: number;
+  isOwner: boolean;
 };
 
 const POLL_INTERVAL_MS = 1500;
@@ -26,8 +32,10 @@ const MAX_ATTEMPTS = 400;
 export function PendingRecording({
   slug,
   titleLine,
+  ownerName,
   createdAt,
   viewCount,
+  isOwner,
 }: PendingRecordingProps) {
   const router = useRouter();
   const [exhausted, setExhausted] = useState(false);
@@ -78,29 +86,46 @@ export function PendingRecording({
 
   const showRetry = exhausted || failed;
 
-  // Mirrors RecordingViewer's skeleton — grid, sticky header, player column,
-  // activity card — so nothing moves when the ready page swaps in.
+  // Mirrors RecordingViewer, RecordingPlayer and ActivitySidebar so nothing
+  // moves when the ready page swaps in.
   return (
-    <div className="grid w-full grid-cols-1 bg-canvas lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
-      <main className="flex flex-col lg:min-h-0 lg:overflow-y-auto">
-        <header className="sticky top-0 z-20 bg-canvas-2">
-          <div className="relative px-6 py-5 lg:px-12">
-            <div className="mx-auto w-full max-w-5xl pr-32 sm:pr-36">
-              <h1 className="truncate text-[22px] font-[600] tracking-tight text-neutral-100 sm:text-2xl">
-                {titleLine}
-              </h1>
-              <ContentByline ownerName={null} createdAt={createdAt} />
+    <div className="grid w-full grid-cols-1 bg-panel lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      <main className="flex flex-col bg-stage lg:min-h-0 lg:overflow-y-auto">
+        <header className="sticky top-0 z-20 bg-panel max-lg:static max-lg:order-2">
+          <div className="px-6 py-5 sm:px-8">
+            <div className="flex w-full gap-5 max-lg:flex-col max-lg:gap-3 lg:items-start">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-3xl font-[600] tracking-tight text-neutral-100 lg:truncate lg:text-2xl">
+                  {titleLine}
+                </h1>
+                <ContentByline
+                  ownerName={ownerName}
+                  createdAt={createdAt}
+                  leading={
+                    ownerName ? (
+                      <Avatar className="size-9 lg:hidden">
+                        <Avatar.Fallback className="text-sm">
+                          {initials(ownerName)}
+                        </Avatar.Fallback>
+                      </Avatar>
+                    ) : null
+                  }
+                />
+              </div>
+              <ViewCount
+                count={viewCount}
+                viewers={null}
+                className="max-lg:self-start"
+              />
             </div>
-            <span className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-tint px-3 py-1 text-xs font-medium text-neutral-300 ring-1 ring-line lg:right-12">
-              {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
-            </span>
           </div>
         </header>
-        <div className="mx-auto flex w-full max-w-5xl flex-col px-6 py-6 lg:px-12">
-          {/* Match RecordingPlayer's frame so swapping in the video doesn't
-              reflow; the shimmering skeleton stands in for the poster. */}
-          <div className="relative aspect-video w-full overflow-hidden rounded-2xl">
-            <Skeleton className="absolute inset-0 rounded-2xl" />
+        <div className="mx-auto flex w-full max-w-5xl flex-col items-center py-6 max-lg:contents">
+          <div
+            className="relative overflow-clip rounded-[var(--media-border-radius,16px)] max-lg:order-1 max-lg:w-full! max-lg:rounded-none"
+            style={sizeStyleForAspect(16 / 10, "calc(100vh - 19rem)")}
+          >
+            <Skeleton className="absolute inset-0 rounded-[inherit]" />
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
               {showRetry ? (
                 <>
@@ -126,19 +151,48 @@ export function PendingRecording({
               )}
             </div>
           </div>
-          <footer className="mt-8 flex justify-center border-t border-line pt-6">
+          <div
+            aria-hidden="true"
+            className="mt-8 flex items-center justify-center gap-2 opacity-50 max-lg:order-3 max-lg:mt-5 max-lg:px-4"
+          >
+            <div className="flex items-center gap-1 rounded-full bg-panel px-2 py-1.5 shadow-md">
+              {DEFAULT_REACTIONS.map((r) => (
+                <span
+                  key={r.emoji}
+                  className="flex h-12 w-12 items-center justify-center rounded-full text-[28px] leading-none max-sm:h-10 max-sm:w-10 max-sm:text-[22px]"
+                >
+                  {r.emoji}
+                </span>
+              ))}
+            </div>
+            <span className="flex h-[60px] items-center gap-2.5 rounded-full bg-panel px-6 text-base font-medium text-fg shadow-md max-sm:h-[52px] max-sm:px-4">
+              <MessageSquare className="h-6 w-6" />
+              <span className="hidden sm:inline">Comment</span>
+            </span>
+          </div>
+          <footer className="mt-8 flex w-full justify-center border-t border-line pt-6 max-lg:order-4 max-lg:mb-6">
             <PoweredBy />
           </footer>
         </div>
       </main>
-      <aside className="hidden w-full flex-col lg:mr-4 lg:mb-4 lg:flex lg:h-[calc(100%-1rem)] lg:overflow-hidden lg:rounded-3xl lg:border lg:border-black/[0.07] lg:bg-panel lg:dark:border-white/[0.07]">
-        <header className="flex items-center justify-between px-6 pt-5 pb-4">
-          <h2 className="text-sm font-semibold tracking-tight text-fg">
-            Activity
-          </h2>
-          <span className="rounded-full bg-tint-strong px-2.5 py-0.5 text-xs font-medium text-fg tabular-nums">
-            0
-          </span>
+      <aside className="flex w-full flex-col border-black/[0.06] bg-panel max-lg:border-t lg:h-full lg:w-auto lg:overflow-hidden lg:border-l dark:border-white/[0.07]">
+        <header className="flex items-center px-5 py-4 lg:px-6 lg:pt-5">
+          <div className="flex w-full rounded-xl bg-tint p-1">
+            <span className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg bg-panel px-3.5 text-sm font-medium text-fg shadow-sm dark:bg-white/10">
+              Activity
+              <span className="rounded-full bg-tint-strong px-2 py-0.5 text-xs font-medium tabular-nums">
+                0
+              </span>
+            </span>
+            <span className="flex h-8 flex-1 items-center justify-center px-3.5 text-sm font-medium text-fg-muted">
+              Transcript
+            </span>
+            {isOwner ? (
+              <span className="flex h-8 flex-1 items-center justify-center px-3.5 text-sm font-medium text-fg-muted">
+                Edit
+              </span>
+            ) : null}
+          </div>
         </header>
         <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-tint text-fg-muted ring-1 ring-line-strong">

@@ -306,15 +306,13 @@ export function Nav({ stars = null }: { stars?: string | null }) {
     >
       <div
         className={cn(
-          "flex h-20 w-full items-center bg-canvas px-6 transition-shadow duration-300 ease-out motion-reduce:transition-none [--island:#ffffff] dark:[--island:#181818]",
+          "flex h-20 w-full items-center bg-canvas px-[clamp(20px,4vw,56px)] transition-shadow duration-300 ease-out motion-reduce:transition-none [--island:#ffffff] dark:[--island:#181818]",
           scrolled
             ? "shadow-[0_4px_20px_rgb(0_0_0/0.10)] dark:shadow-[0_4px_20px_rgb(0_0_0/0.55)]"
             : "shadow-none",
         )}
       >
-        {/* Contents share the hero's column, so the bar reads full width while
-            the logo and links line up with the copy below. */}
-        <div className="mx-auto flex w-full max-w-[1232px] items-center justify-between">
+        <div className="flex w-full items-center justify-between">
           {/* Logo: 32×32 app icon + 19px rounded wordmark in deep ink. */}
           <div className="flex items-center gap-2.5">
             <NextLink
