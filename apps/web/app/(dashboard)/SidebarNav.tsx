@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { openSupportChat } from "@/components/marketing/support-chat";
 import { SUPPORT_EMAIL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,7 @@ type NavLink = {
   label: string;
   external?: boolean;
   newTab?: boolean;
+  onOpen?: () => void;
 };
 
 const ICON = 18;
@@ -66,12 +68,14 @@ const WORKSPACE_LINK: NavLink = {
 };
 const BILLING_LINK: NavLink = { href: "/billing", label: "Billing" };
 
-// Mail, like the account menu's entry; a self-hosted instance has its own support.
+// Opens the support chat, which falls back to mail when it can't load; the
+// href covers a click before hydration. A self-hosted instance has its own support.
 const SUPPORT_LINK: NavLink = {
   href: `mailto:${SUPPORT_EMAIL}`,
   icon: <MessageSquare size={ICON} />,
   label: "Contact support",
   external: true,
+  onOpen: openSupportChat,
 };
 
 export function SidebarNav({
@@ -156,6 +160,14 @@ function NavItem({
           href={link.href}
           target={link.newTab ? "_blank" : undefined}
           rel={link.newTab ? "noopener noreferrer" : undefined}
+          onClick={
+            link.onOpen
+              ? (event) => {
+                  event.preventDefault();
+                  link.onOpen?.();
+                }
+              : undefined
+          }
           className={className}
         >
           {link.icon}
