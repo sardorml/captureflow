@@ -18,6 +18,7 @@ import {
   Monogram,
   PageHeader,
   PlanChip,
+  RecordingCell,
   Stat,
   StatGrid,
   Tone,
@@ -110,13 +111,14 @@ export default async function UserPage({
         {activity.recent.map((r) => (
           <Table.Row key={r.slug}>
             <Table.Cell>
-              <div className="text-fg-strong max-w-xs truncate font-medium">
-                {r.title || "Untitled"}
-              </div>
-              <div className="text-fg-subtle text-xs">
-                <span className="font-mono">{r.slug}</span>
-                {r.workspaceName ? ` · ${r.workspaceName}` : ""}
-              </div>
+              <RecordingCell
+                title={r.title}
+                slug={r.slug}
+                visibility={r.visibility}
+                state={r.state}
+                appBaseUrl={env.APP_BASE_URL}
+                detail={r.workspaceName ? ` · ${r.workspaceName}` : null}
+              />
             </Table.Cell>
             <Table.Cell>
               <Tone

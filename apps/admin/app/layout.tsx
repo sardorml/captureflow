@@ -24,6 +24,12 @@ const TABS: (NavItem & { permission: AdminPermission })[] = [
   { href: "/", label: "Overview", icon: "overview", permission: "users.read" },
   { href: "/users", label: "Users", icon: "users", permission: "users.read" },
   {
+    href: "/recordings",
+    label: "Recordings",
+    icon: "recordings",
+    permission: "users.read",
+  },
+  {
     href: "/workspaces",
     label: "Workspaces",
     icon: "workspaces",

@@ -31,6 +31,7 @@ setInjectedEnv({
   ...secrets,
   SELF_HOSTED: "true",
   ADMIN_BASE_URL: runtime.adminUrl,
+  APP_BASE_URL: runtime.appUrl,
   ADMIN_SESSION_TTL_HOURS: process.env.ADMIN_SESSION_TTL_HOURS,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   RESEND_FROM_ADDRESS: runtime.mailFrom,

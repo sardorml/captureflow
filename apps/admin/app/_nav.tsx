@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Sun,
   Users,
+  Video,
 } from "lucide-react";
 import {
   Avatar,
@@ -33,6 +34,7 @@ import {
 const ICONS = {
   overview: LayoutDashboard,
   users: Users,
+  recordings: Video,
   workspaces: Building2,
   emails: Mail,
   inbox: Inbox,
