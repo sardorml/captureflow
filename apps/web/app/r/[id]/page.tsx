@@ -186,20 +186,37 @@ export default async function RecordingPage({
   // copyable link immediately; the row flips to 'ready' on /api/r/finalize
   // and the loading shell polls /api/r/state to reload on flip.
   if (row.state === "pending") {
+    const pendingVisitor = await verifySession(cookieHeader);
+    const visitor = pendingVisitor === "unknown" ? null : pendingVisitor;
+    const isOwner = !!(visitor && row.userId && visitor.userId === row.userId);
+    const [ownerName, workspaceRow, env] = await Promise.all([
+      row.userId ? getOwnerName(row.userId) : Promise.resolve(null),
+      row.workspaceId
+        ? getWorkspaceForUpload(row.workspaceId)
+        : Promise.resolve(null),
+      getAppWebEnv(),
+    ]);
     return (
-      <div className="flex min-h-screen flex-col bg-canvas text-fg lg:h-screen lg:overflow-hidden">
-        <ViewerNav
-          homeUrl={APP_WEB_SITE_URL}
-          productName={PRODUCT_NAME}
-          themeToggle={
-            <ThemeToggle initialTheme={theme} className="h-9 w-9 rounded-xl" />
-          }
+      <div className="flex min-h-screen flex-col bg-panel text-fg lg:h-screen lg:overflow-hidden">
+        <RecordingNav
+          slug={id}
+          visitor={visitor}
+          theme={theme}
+          themePreference={themePreference}
+          selfHosted={isSelfHosted(env)}
+          loginUrl={loginUrlFor(id)}
+          visibility={row.visibility}
+          isOwner={isOwner}
+          workspaceName={workspaceRow?.name ?? null}
+          allowPublicLinks={workspaceRow?.allow_public_links ?? true}
         />
         <PendingRecording
           slug={id}
-          titleLine={row.title ?? `${PRODUCT_NAME}`}
+          titleLine={row.title ?? PRODUCT_NAME}
+          ownerName={ownerName}
           createdAt={row.createdAt}
           viewCount={row.viewCount}
+          isOwner={isOwner}
         />
       </div>
     );
@@ -288,9 +305,7 @@ export default async function RecordingPage({
   const displayViews = isOwner ? row.viewCount : row.viewCount + 1;
   const headlineText = row.title ?? PRODUCT_NAME;
 
-  const loginUrl = `${APP_WEB_SITE_URL}/login?next=${encodeURIComponent(
-    viewUrlFor(id),
-  )}`;
+  const loginUrl = loginUrlFor(id);
 
   const workspaceRow = row.workspaceId
     ? await getWorkspaceForUpload(row.workspaceId)
@@ -353,6 +368,9 @@ export default async function RecordingPage({
     </div>
   );
 }
+
+const loginUrlFor = (slug: string): string =>
+  `${APP_WEB_SITE_URL}/login?next=${encodeURIComponent(viewUrlFor(slug))}`;
 
 function RecordingNav({
   slug,
