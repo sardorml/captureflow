@@ -12,6 +12,7 @@ import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { getWorkspaceSeatContext, paidSeatsOf } from "@/lib/billing/seats";
+import { RecordButton } from "./RecordButton";
 import { SidebarNav } from "./SidebarNav";
 import { SidebarUpgradeCard } from "./SidebarUpgradeCard";
 import { WorkspaceMembersStack } from "./WorkspaceMembersStack";
@@ -76,15 +77,17 @@ export async function Sidebar() {
         <SidebarNav isOwner={isOwner} selfHosted={selfHosted} />
       </div>
 
-      {isOwner && seat?.offer && (
-        <div className="px-3 pt-3 pb-4">
+      <div className="px-3 pt-3 pb-4">
+        {isOwner && seat?.offer ? (
           <SidebarUpgradeCard
             email={session.user.email}
             userId={userId}
             seat={seat.offer}
           />
-        </div>
-      )}
+        ) : (
+          <RecordButton label="New recording" fullWidth />
+        )}
+      </div>
     </div>
   );
 }
