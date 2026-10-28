@@ -5,8 +5,12 @@
  */
 
 // Same project key as the desktop app, so the cross-surface funnel stitches into
-// one journey.
-export const POSTHOG_KEY = "phc_rX8yKmqsTKMUQ5dUkyW2aCv3vV8pAfQztbKgXag8cY73";
+// one journey. The Docker image builds with analytics off: self-hosted
+// instances never report to us.
+export const POSTHOG_KEY =
+  process.env.NEXT_PUBLIC_CAPTUREFLOW_NO_ANALYTICS === "1"
+    ? ""
+    : "phc_rX8yKmqsTKMUQ5dUkyW2aCv3vV8pAfQztbKgXag8cY73";
 export const POSTHOG_HOST = "https://us.i.posthog.com";
 
 // Leave empty: Cloudflare auto-injects its own beacon at the edge, so a manual

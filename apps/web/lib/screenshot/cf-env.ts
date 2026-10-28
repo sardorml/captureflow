@@ -1,6 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getInjectedEnv } from "@captureflow/selfhost/env-slot";
 
 export type ScreenshotCloudflareBindings = {
   DB?: D1Database;
@@ -14,6 +15,8 @@ export type ScreenshotCloudflareBindings = {
 };
 
 export async function getCloudflareEnv(): Promise<ScreenshotCloudflareBindings | null> {
+  const injected = getInjectedEnv<ScreenshotCloudflareBindings>();
+  if (injected) return injected;
   try {
     const ctx = await getCloudflareContext({ async: true });
     return ctx.env as ScreenshotCloudflareBindings;

@@ -56,6 +56,9 @@ importers:
       '@captureflow/mail':
         specifier: workspace:*
         version: link:../../packages/mail
+      '@captureflow/selfhost':
+        specifier: workspace:*
+        version: link:../../packages/selfhost
       '@captureflow/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -123,6 +126,9 @@ importers:
       '@types/react-dom':
         specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.17)
+      esbuild:
+        specifier: ^0.27.3
+        version: 0.27.3
       tailwindcss:
         specifier: ^4
         version: 4.3.1
@@ -409,6 +415,9 @@ importers:
       '@captureflow/quota':
         specifier: workspace:*
         version: link:../../packages/quota
+      '@captureflow/selfhost':
+        specifier: workspace:*
+        version: link:../../packages/selfhost
       '@captureflow/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -506,6 +515,9 @@ importers:
       '@types/three':
         specifier: ^0.186.0
         version: 0.186.0
+      esbuild:
+        specifier: ^0.27.3
+        version: 0.27.3
       raw-loader:
         specifier: ^4.0.2
         version: 4.0.2(webpack@5.111.1(esbuild@0.27.3)(sharp@0.35.1))
@@ -587,6 +599,28 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
+
+  packages/selfhost:
+    dependencies:
+      nodemailer:
+        specifier: ^7.0.0
+        version: 7.0.13
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20240620.0
+        version: 4.20260615.1
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.21
+      '@types/nodemailer':
+        specifier: ^7.0.0
+        version: 7.0.12
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@22.19.21)(vite@8.1.0(@types/node@22.19.21)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.0))
 
   packages/shared:
     devDependencies:
@@ -4324,6 +4358,9 @@ packages:
   '@types/node@26.6.5':
     resolution: {integrity: sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==}
 
+  '@types/nodemailer@7.0.12':
+    resolution: {integrity: sha512-80vKwiIsVSyFA1rRovH59jNPLBOuc6dRZIHEu40gXTkBkZnQv8vog1xSGEb9j5q/tdMAs5ivvDR2pLTU0hGHXA==}
+
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
     peerDependencies:
@@ -7228,6 +7265,10 @@ packages:
   node-releases@2.0.59:
     resolution: {integrity: sha512-5qr2okC4ItAI0hG5SaV0HoYMpnM/Y6+Oqr7AmPYy/2uEoGvS+GbSKLeRxSS1uAdu59yz0ouzcuXievSgg///WA==}
     engines: {node: '>=18'}
+
+  nodemailer@7.0.13:
+    resolution: {integrity: sha512-PNDFSJdP+KFgdsG3ZzMXCgquO7I6McjY2vlqILjtJd0hy8wEvtugS9xKRF2NWlPNGxvLCXlTNIae4serI7dinw==}
+    engines: {node: '>=6.0.0'}
 
   nopt@9.0.0:
     resolution: {integrity: sha512-Zhq3a+yFKrYwSBluL4H9XP3m3y5uvQkB/09CwDruCiRmR/UJYnn9W4R48ry0uGC70aeTPKLynBtscP9efFFcPw==}
@@ -12720,6 +12761,10 @@ snapshots:
     dependencies:
       undici-types: 8.9.0
 
+  '@types/nodemailer@7.0.12':
+    dependencies:
+      '@types/node': 26.6.5
+
   '@types/react-dom@19.2.3(@types/react@19.2.17)':
     dependencies:
       '@types/react': 19.2.17
@@ -15871,6 +15916,8 @@ snapshots:
   node-releases@2.0.47: {}
 
   node-releases@2.0.59: {}
+
+  nodemailer@7.0.13: {}
 
   nopt@9.0.0:
     dependencies:

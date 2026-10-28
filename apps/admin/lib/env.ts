@@ -2,6 +2,7 @@
 
 import type { MailerMessage } from "@captureflow/mail";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getInjectedEnv } from "@captureflow/selfhost/env-slot";
 
 type MailQueue = { send(message: MailerMessage): Promise<unknown> };
 
@@ -38,6 +39,8 @@ function devMailQueue(base: string): MailQueue {
 // Bindings are request-scoped, so this resolves per call and is never cached at
 // module scope.
 export async function getAdminEnv(): Promise<AdminBindings | null> {
+  const injected = getInjectedEnv<AdminBindings>();
+  if (injected) return injected;
   try {
     const ctx = await getCloudflareContext({ async: true });
     const env = ctx.env as AdminBindings;

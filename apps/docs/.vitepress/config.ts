@@ -88,6 +88,7 @@ export default defineConfig({
         collapsed: false,
         items: [
           { text: "Overview", link: "/self-hosting/overview" },
+          { text: "Run with Docker", link: "/self-hosting/docker" },
           { text: "Deploy to Cloudflare", link: "/self-hosting/cloudflare" },
           { text: "Configuration & env", link: "/self-hosting/configuration" },
           { text: "Point the desktop app", link: "/self-hosting/desktop" },

@@ -9,11 +9,13 @@
     "typecheck": "tsc --noEmit",
     "lint": "echo \"(admin) lint: TODO\"",
     "cf:build": "opennextjs-cloudflare build",
-    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
+    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "selfhost:build": "esbuild selfhost/server.ts --bundle --platform=node --format=esm --target=node24 --outfile=selfhost/dist/server.mjs --external:./server.js --log-level=warning \"--banner:js=import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\""
   },
   "dependencies": {
     "@captureflow/admin": "workspace:*",
     "@captureflow/mail": "workspace:*",
+    "@captureflow/selfhost": "workspace:*",
     "@captureflow/ui": "workspace:*",
     "@heroui/react": "^3.2.6",
     "@heroui/styles": "^3.2.6",
@@ -40,6 +42,7 @@
     "@types/react-dom": "catalog:",
     "tailwindcss": "^4",
     "typescript": "catalog:",
-    "wrangler": "^4.40.0"
+    "wrangler": "^4.40.0",
+    "esbuild": "^0.27.3"
   }
 }

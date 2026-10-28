@@ -1,0 +1,50 @@
+# Self-hosted CaptureFlow: `cp .env.example .env`, set APP_URL, then
+#   docker compose up -d
+# Everything lives in ./data (SQLite database, recordings, generated secrets).
+# Add `--profile whisper` to run a local transcription server too.
+
+services:
+  web:
+    image: ghcr.io/sardorml/captureflow:latest
+    build: { context: ., target: web }
+    restart: unless-stopped
+    env_file: .env
+    ports: ["${WEB_PORT:-3000}:3000"]
+    volumes: ["./data:/data"]
+
+  admin:
+    image: ghcr.io/sardorml/captureflow-admin:latest
+    build: { context: ., target: admin }
+    restart: unless-stopped
+    env_file: .env
+    ports: ["${ADMIN_PORT:-3001}:3001"]
+    volumes: ["./data:/data"]
+    depends_on:
+      web: { condition: service_healthy }
+
+  # OpenAI-compatible Whisper on CPU. Set WHISPER_API_URL=http://whisper:8000 in .env.
+  whisper:
+    profiles: [whisper]
+    image: ghcr.io/speaches-ai/speaches:latest-cpu
+    restart: unless-stopped
+    volumes: ["whisper-models:/home/ubuntu/.cache/huggingface/hub"]
+
+  # speaches serves only models it has downloaded; this fetches WHISPER_MODEL once.
+  whisper-model:
+    profiles: [whisper]
+    image: curlimages/curl:latest
+    depends_on: [whisper]
+    restart: on-failure
+    command:
+      - -fsS
+      - --retry
+      - "30"
+      - --retry-all-errors
+      - --retry-delay
+      - "2"
+      - -X
+      - POST
+      - http://whisper:8000/v1/models/${WHISPER_MODEL:-Systran/faster-whisper-small}
+
+volumes:
+  whisper-models:

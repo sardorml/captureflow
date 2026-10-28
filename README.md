@@ -55,9 +55,20 @@ Open-source screen recorder with instant share links, self-hostable on your own 
 ## 📦 Get started
 
 - **Hosted:** [create a free account](https://captureflow.dev/login?mode=signup) and install the [Chrome extension][chrome-url]. Paid plans add 100 GB, 500 GB or 1 TB for the whole team; see [pricing](https://captureflow.dev/pricing).
-- **Self-hosted:** run the whole thing on your own Cloudflare account (Workers, D1 and R2). Follow the [step-by-step guide](https://captureflow.dev/blog/self-hosted-screen-recorder), or [let us set it up for you](https://captureflow.dev/self-host-setup).
+- **Self-hosted:** `docker compose up` on your own server, or run it on your own Cloudflare account (Workers, D1 and R2). Follow the [step-by-step guide](https://captureflow.dev/blog/self-hosted-screen-recorder), or [let us set it up for you](https://captureflow.dev/self-host-setup).
 
 ## ☁️ Self-hosting
+
+### Docker
+
+```bash
+cp .env.example .env    # set APP_URL
+docker compose up -d
+```
+
+Everything lives in `./data`: a SQLite database, the recordings on disk, and secrets generated on first start. You don't need a Cloudflare account. Transcripts can use any OpenAI-compatible Whisper server, including one compose runs for you with `--profile whisper`. See the [Docker guide](https://docs.captureflow.dev/self-hosting/docker).
+
+### Cloudflare
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/sardorml/captureflow)
 

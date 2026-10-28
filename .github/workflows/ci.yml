@@ -42,6 +42,8 @@ jobs:
       # Campaign SQL, unsubscribe tokens and the mailer's send loop.
       - run: pnpm --filter @captureflow/mail test
       - run: pnpm --filter @captureflow/mailer test
+      # The Docker image's D1/R2/queue stand-ins.
+      - run: pnpm --filter @captureflow/selfhost test
       - run: pnpm build
 
   # Server-side secret scan — the safety net for the local pre-push hook (which

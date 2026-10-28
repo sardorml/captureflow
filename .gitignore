@@ -43,3 +43,6 @@ scripts/store5/
 
 # /ship PR description cache
 .cache/
+
+# docker compose self-host state (SQLite, recordings, generated secrets)
+/data/

@@ -7,6 +7,7 @@ import { nextCookies } from "better-auth/next-js";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { drizzle } from "drizzle-orm/d1";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getInjectedEnv } from "@captureflow/selfhost/env-slot";
 import { ensurePersonalWorkspace, isSelfHosted } from "@captureflow/quota";
 import { authSchema } from "./auth-schema";
 import { sendWelcomeEmail } from "./email";
@@ -183,6 +184,12 @@ export type AuthInstance = ReturnType<typeof buildAuth>;
 // One instance per request: the dashboard's layout, chrome and page each ask
 // for it, and outside a render React's cache is a plain call.
 export const getAuth = cache(async (): Promise<AuthInstance> => {
+  const injected = getInjectedEnv<AppWebEnv>();
+  if (injected) {
+    return buildAuth(injected, injected.BETTER_AUTH_URL, (p) => {
+      p.catch((err) => console.error("auth: background task failed", err));
+    });
+  }
   const ctx = await getCloudflareContext({ async: true });
   const env = (ctx?.env ?? null) as AppWebEnv | null;
   const baseURL = env?.BETTER_AUTH_URL;
