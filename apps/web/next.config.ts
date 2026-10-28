@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
@@ -34,6 +35,11 @@ const nextConfig: NextConfig = {
   },
   skipTrailingSlashRedirect: true,
   poweredByHeader: false,
+  // Only the Docker image sets this; the Cloudflare build is unchanged.
+  ...(process.env.CAPTUREFLOW_STANDALONE === "1" && {
+    output: "standalone",
+    outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
+  }),
   /*
    * Transport and sniffing protections only. No CSP here on purpose: this app
    * pulls media from the CDN, proxies PostHog through /ingest, and takes camera,

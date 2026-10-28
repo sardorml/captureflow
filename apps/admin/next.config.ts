@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
@@ -25,6 +26,11 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@captureflow/admin"],
   // Names the framework and its version to anyone curious which CVEs to try.
   poweredByHeader: false,
+  // Only the Docker image sets this; the Cloudflare build is unchanged.
+  ...(process.env.CAPTUREFLOW_STANDALONE === "1" && {
+    output: "standalone",
+    outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
+  }),
   experimental: {
     // Same reason as apps/web: the dev filesystem cache is reloaded on boot, so
     // a stale chunk survives every restart.

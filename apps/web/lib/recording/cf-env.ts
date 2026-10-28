@@ -1,6 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getInjectedEnv } from "@captureflow/selfhost/env-slot";
 import type { TranscriptionJobMessage } from "./types";
 
 export type CloudflareBindings = {
@@ -17,6 +18,8 @@ export type CloudflareBindings = {
 };
 
 export async function getCloudflareEnv(): Promise<CloudflareBindings | null> {
+  const injected = getInjectedEnv<CloudflareBindings>();
+  if (injected) return injected;
   try {
     const ctx = await getCloudflareContext({ async: true });
     return ctx.env as CloudflareBindings;
