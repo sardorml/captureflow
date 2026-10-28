@@ -1,8 +1,13 @@
 # Self-hosting overview
 
-CaptureFlow's backend is designed to run on **your own Cloudflare account**. One
-unified Worker serves the dashboard, auth, the recording viewer, the screenshot viewer, and
-all API routes, backed by a single D1 database and a single R2 bucket.
+There are two ways to run your own CaptureFlow:
+
+- **[Docker](/self-hosting/docker).** `docker compose up` on any server. Data
+  stays in a local folder (SQLite plus files on disk), and you don't need a
+  Cloudflare account.
+- **Your own Cloudflare account.** One Worker serves the dashboard, auth, the
+  recording and screenshot viewers, and every API route. It uses one D1
+  database and one R2 bucket. The rest of this page covers this option.
 
 > [!TIP]
 > Almost everything is optional. Recording, sharing, the dashboard, and storage
@@ -66,7 +71,7 @@ before anything else. See [Storage & limits](/reference/limits).
 
 ## Next steps
 
-1. [Deploy to Cloudflare](/self-hosting/cloudflare) — the ordered runbook.
+1. [Run with Docker](/self-hosting/docker), or [deploy to Cloudflare](/self-hosting/cloudflare) with the ordered runbook.
 2. [Configuration & env](/self-hosting/configuration) — every variable explained.
 3. [Point the desktop app at your backend](/self-hosting/desktop).
 4. [Point the Chrome extension at your backend](/self-hosting/extension).
