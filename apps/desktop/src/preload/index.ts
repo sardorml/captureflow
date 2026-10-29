@@ -90,9 +90,9 @@ const electronAPI = {
   /*
    * Streaming-upload bridges. recordingStart reserves a slug via /api/init at
    * record start. recordingPartScreen/recordingPartWebcam are fire-and-forget; main
-   * buffers per stream and POSTs each 5+ MiB part. recordingFinish flushes tail
-   * bytes + finalizes, returning the edit URL. recordingAbort discards in-flight
-   * streamer state on cancel/restart/crash.
+   * writes them to a file on disk and uploads 5 MiB parts from it. recordingFinish
+   * writes the seek index + finalizes, returning the edit URL. recordingAbort
+   * discards the upload on cancel/restart/crash.
    */
   recordingStart: (meta: RecordingStartMeta): Promise<RecordingStartResult> =>
     ipcRenderer.invoke(IPC_CHANNELS.RECORDING_START, meta),

@@ -244,7 +244,7 @@ export async function startRecordingUpload<Init>(
 export async function resumeRecordingUpload<Init>(
   pending: PendingUpload<Init>,
   options: RecordingUploadOptions<Init>,
-): Promise<{ url: string }> {
+): Promise<{ url: string; slug: string }> {
   const { transport, online } = options;
   const files = await options.openFiles(pending.slug, pending.hasWebcam);
   const screen = await finishRecordingFile("mp4", files.screen);
@@ -259,7 +259,7 @@ export async function resumeRecordingUpload<Init>(
   const state = await transport.state(pending.slug).catch(() => null);
   if (state?.state === "ready") {
     await files.remove();
-    return { url: transport.viewUrl(pending.slug) };
+    return { url: transport.viewUrl(pending.slug), slug: pending.slug };
   }
   let slug = pending.slug;
   let hasWebcam = pending.hasWebcam;
@@ -301,5 +301,5 @@ export async function resumeRecordingUpload<Init>(
     await transport.abort({ slug: pending.slug }).catch(() => {});
   }
   await files.remove();
-  return result;
+  return { url: result.url, slug };
 }

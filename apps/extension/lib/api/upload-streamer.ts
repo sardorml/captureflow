@@ -43,7 +43,7 @@ export function startRecordingUpload(
 export function resumeRecordingUpload(
   pending: PendingUpload,
   options: RecordingUploadOptions,
-): Promise<{ url: string }> {
+): Promise<{ url: string; slug: string }> {
   return resumeUpload(pending, {
     ...options,
     online: options.online ?? defaultOnlineSignal(),

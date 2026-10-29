@@ -3,11 +3,12 @@
  *
  *   RECORDING_START         → invoke; main reserves a slug via /api/init
  *                          and the renderer arms the pipeline.
- *   RECORDING_PART_SCREEN   → fire-and-forget; main buffers bytes per
- *   RECORDING_PART_WEBCAM     stream, pumps a part once ≥5 MiB.
- *   RECORDING_FINISH        → invoke; flushes both tails, calls
- *                          /api/finalize + /api/webcam-finalize, returns
- *                          the edit URL (or partial-URL failure).
+ *   RECORDING_PART_SCREEN   → fire-and-forget; main writes the bytes to
+ *   RECORDING_PART_WEBCAM     disk and uploads each whole 5 MiB part.
+ *   RECORDING_FINISH        → invoke; writes the seek index, uploads the
+ *                          rest, calls /api/finalize + /api/webcam-finalize,
+ *                          returns the edit URL (or an upload_pending failure
+ *                          that resumes on the next launch or reconnect).
  *   RECORDING_ABORT         → fire-and-forget; discards in-flight state.
  *
  * Recording visibility + deletion are managed on the web edit page, not in
