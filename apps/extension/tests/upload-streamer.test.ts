@@ -9,31 +9,32 @@ import {
   type PendingUpload,
   type RecordingUploadOptions,
 } from "../lib/api/upload-streamer";
+import { RecordingApiHttpError } from "../lib/api/client";
 import type {
-  FinalizeRequest,
+  SegmentFinalizeRequest,
   InitRequest,
+  RecordingStream,
   UploadTransport,
 } from "../lib/api/types";
 
 const INIT: InitRequest = { contentType: "video/mp4", source: "instant" };
 
-type PartCall = { partNumber: number; size: number };
+type SegmentCall = { stream: RecordingStream; offset: number; size: number };
 
 type FakeTransport = UploadTransport & {
-  screenParts: PartCall[];
-  webcamParts: PartCall[];
-  finalizedScreen: FinalizeRequest | null;
-  finalizedWebcam: FinalizeRequest | null;
+  segments: SegmentCall[];
+  received(stream: RecordingStream): number;
+  finalizedScreen: SegmentFinalizeRequest | null;
+  finalizedWebcam: SegmentFinalizeRequest | null;
   abortedSlugs: string[];
 };
 
 function fakeTransport(
   opts: { webcam?: boolean; overrides?: Partial<UploadTransport> } = {},
 ): FakeTransport {
-  const screenParts: PartCall[] = [];
-  const webcamParts: PartCall[] = [];
-  let finalizedScreen: FinalizeRequest | null = null;
-  let finalizedWebcam: FinalizeRequest | null = null;
+  const segments: SegmentCall[] = [];
+  let finalizedScreen: SegmentFinalizeRequest | null = null;
+  let finalizedWebcam: SegmentFinalizeRequest | null = null;
   const abortedSlugs: string[] = [];
 
   const base: UploadTransport = {
@@ -48,13 +49,8 @@ function fakeTransport(
           }
         : {}),
     }),
-    uploadScreenPart: async (_slug, partNumber, bytes) => {
-      screenParts.push({ partNumber, size: bytes.byteLength });
-      return { partNumber, etag: `s-${partNumber}` };
-    },
-    uploadWebcamPart: async (_slug, partNumber, bytes) => {
-      webcamParts.push({ partNumber, size: bytes.byteLength });
-      return { partNumber, etag: `w-${partNumber}` };
+    uploadSegment: async (_slug, stream, offset, bytes) => {
+      segments.push({ stream, offset, size: bytes.byteLength });
     },
     finalizeScreen: async (req) => {
       finalizedScreen = req;
@@ -77,11 +73,16 @@ function fakeTransport(
   const transport = { ...base, ...opts.overrides };
   return {
     ...transport,
-    get screenParts() {
-      return screenParts;
-    },
-    get webcamParts() {
-      return webcamParts;
+    segments,
+    // Bytes from 0 the server holds without a gap.
+    received(stream) {
+      let end = 0;
+      for (const s of segments
+        .filter((c) => c.stream === stream)
+        .sort((a, b) => a.offset - b.offset)) {
+        if (s.offset <= end) end = Math.max(end, s.offset + s.size);
+      }
+      return end;
     },
     get finalizedScreen() {
       return finalizedScreen;
@@ -117,6 +118,7 @@ function fakeOnline(initial = true) {
   };
 }
 
+// Not MP4 or WebM, so no index header: segments start at byte 0.
 const bytes = (n: number): Uint8Array => new Uint8Array(n);
 
 function memoryFile(): RecordingFile {
@@ -163,6 +165,20 @@ function deviceFiles() {
   return { openFiles, store, removed };
 }
 
+// The segment interval, fired by hand.
+function clock() {
+  const ticks = new Set<() => void>();
+  return {
+    every: (_ms: number, cb: () => void) => {
+      ticks.add(cb);
+      return () => ticks.delete(cb);
+    },
+    tick: () => {
+      for (const cb of ticks) cb();
+    },
+  };
+}
+
 function options(
   transport: UploadTransport,
   extra: Partial<RecordingUploadOptions> = {},
@@ -170,80 +186,96 @@ function options(
   return {
     transport,
     openFiles: deviceFiles().openFiles,
-    partBytes: 100,
-    retryWait: async () => {},
+    retryWait: () => new Promise((r) => setTimeout(r, 0)),
+    every: clock().every,
     ...extra,
   };
 }
 
-const byPart = (parts: PartCall[]) =>
-  [...parts].sort((a, b) => a.partNumber - b.partNumber);
-
 const tick = (): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, 0));
+  new Promise((resolve) => setTimeout(resolve, 5));
 
 describe("startRecordingUpload — screen stream", () => {
-  it("buffers below the chunk size and ships one trailing part on finish", async () => {
+  it("sends what the file gained at each interval while recording", async () => {
+    const transport = fakeTransport();
+    const time = clock();
+    const upload = await startRecordingUpload(
+      INIT,
+      options(transport, { every: time.every }),
+    );
+
+    upload.pushScreen(bytes(50));
+    await tick();
+    expect(transport.segments).toHaveLength(0);
+    time.tick();
+    await tick();
+    upload.pushScreen(bytes(30));
+    await tick();
+    time.tick();
+    await tick();
+
+    expect(transport.segments).toEqual([
+      { stream: "screen", offset: 0, size: 50 },
+      { stream: "screen", offset: 50, size: 30 },
+    ]);
+  });
+
+  it("sends the rest at stop and finalizes from segments", async () => {
     const transport = fakeTransport();
     const upload = await startRecordingUpload(INIT, options(transport));
 
     upload.pushScreen(bytes(50));
     upload.pushScreen(bytes(30));
-    expect(transport.screenParts).toHaveLength(0);
-
     const res = await upload.finish();
 
-    expect(transport.screenParts).toEqual([{ partNumber: 1, size: 80 }]);
+    expect(transport.received("screen")).toBe(80);
     expect(transport.finalizedScreen).toEqual({
       slug: "abc12345",
-      parts: [{ partNumber: 1, etag: "s-1" }],
+      segments: true,
       sizeBytes: 80,
     });
     expect(res.url).toContain("abc12345");
   });
 
-  it("splits a large body into equal chunks plus a smaller trailing part", async () => {
+  it("cuts a long stretch into bounded segments", async () => {
     const transport = fakeTransport();
-    const upload = await startRecordingUpload(INIT, options(transport));
-
+    const upload = await startRecordingUpload(
+      INIT,
+      options(transport, { maxSegmentBytes: 100 }),
+    );
     upload.pushScreen(bytes(250));
     await upload.finish();
-
-    expect(byPart(transport.screenParts)).toEqual([
-      { partNumber: 1, size: 100 },
-      { partNumber: 2, size: 100 },
-      { partNumber: 3, size: 50 },
-    ]);
+    expect(transport.segments.map((s) => s.size)).toEqual([100, 100, 50]);
   });
 
-  it("sends part 1 last, after the rest of the file", async () => {
-    const transport = fakeTransport();
-    const upload = await startRecordingUpload(INIT, options(transport));
-    upload.pushScreen(bytes(250));
-    await upload.finish();
-    expect(transport.screenParts.at(-1)?.partNumber).toBe(1);
-  });
-
-  it("retries a part that fails instead of losing the recording", async () => {
+  it("retries a segment that fails instead of losing the recording", async () => {
     let failures = 2;
-    const uploadScreenPart = vi.fn(async (_slug, partNumber: number) => {
-      if (partNumber === 2 && failures-- > 0) throw new Error("network down");
-      return { partNumber, etag: `s-${partNumber}` };
+    const sent: SegmentCall[] = [];
+    const transport = fakeTransport({
+      overrides: {
+        uploadSegment: async (_slug, stream, offset, b) => {
+          if (failures-- > 0) throw new Error("network down");
+          sent.push({ stream, offset, size: b.byteLength });
+        },
+      },
     });
-    const transport = fakeTransport({ overrides: { uploadScreenPart } });
     const upload = await startRecordingUpload(INIT, options(transport));
 
     upload.pushScreen(bytes(250));
     await upload.finish();
 
-    expect(transport.finalizedScreen?.parts).toHaveLength(3);
+    expect(sent).toEqual([{ stream: "screen", offset: 0, size: 250 }]);
+    expect(transport.finalizedScreen?.sizeBytes).toBe(250);
   });
 
-  it("keeps the files and reports a stall when parts never land", async () => {
-    const uploadScreenPart = vi.fn(async () => {
-      throw new Error("network down");
+  it("keeps the files and reports a stall when segments never land", async () => {
+    const transport = fakeTransport({
+      overrides: {
+        uploadSegment: async () => {
+          throw new Error("network down");
+        },
+      },
     });
-    const transport = fakeTransport({ overrides: { uploadScreenPart } });
     const device = deviceFiles();
     const upload = await startRecordingUpload(
       INIT,
@@ -263,6 +295,51 @@ describe("startRecordingUpload — screen stream", () => {
     const upload = await startRecordingUpload(INIT, options(transport));
     await expect(upload.finish()).rejects.toThrow("No screen parts");
   });
+
+  it("counts uploadedBytes as segments land, not as they are queued", async () => {
+    const gate: (() => void)[] = [];
+    const transport = fakeTransport({
+      overrides: {
+        uploadSegment: () => new Promise<void>((r) => gate.push(r)),
+      },
+    });
+    const time = clock();
+    const upload = await startRecordingUpload(
+      INIT,
+      options(transport, { every: time.every }),
+    );
+
+    upload.pushScreen(bytes(200));
+    await tick();
+    time.tick();
+    await tick();
+    expect(upload.uploadedBytes).toBe(0);
+    gate.shift()?.();
+    await tick();
+    expect(upload.uploadedBytes).toBe(200);
+  });
+
+  it("finalizes only after the work it was handed", async () => {
+    const order: string[] = [];
+    const transport = fakeTransport({
+      overrides: {
+        finalizeScreen: async (req) => {
+          order.push("finalize");
+          return { url: req.slug };
+        },
+      },
+    });
+    const upload = await startRecordingUpload(INIT, options(transport));
+    upload.pushScreen(bytes(40));
+    const transcript = new Promise<void>((r) =>
+      setTimeout(() => {
+        order.push("transcript");
+        r();
+      }, 20),
+    );
+    await upload.finish(undefined, transcript);
+    expect(order).toEqual(["transcript", "finalize"]);
+  });
 });
 
 /*
@@ -270,110 +347,6 @@ describe("startRecordingUpload — screen stream", () => {
  * what the recorder stops on. Surfacing it verbatim — including its absence —
  * is this layer's whole job in that decision.
  */
-/*
- * Throughput hangs on this: sequential parts cap the flush at chunk ÷
- * round-trip, which is what made "Saving…" run for minutes on long captures.
- */
-// Resolves every part as it is requested until the finish settles.
-async function settle(
-  parts: { resolve(n: number): void },
-  finishing: Promise<unknown>,
-): Promise<void> {
-  let done = false;
-  void finishing.finally(() => {
-    done = true;
-  });
-  while (!done) {
-    for (let n = 1; n <= 20; n++) parts.resolve(n);
-    await tick();
-  }
-  await finishing;
-}
-
-describe("startRecordingUpload — concurrent parts", () => {
-  function deferredScreenParts() {
-    const resolvers = new Map<number, () => void>();
-    let inFlight = 0;
-    let maxInFlight = 0;
-    const uploadScreenPart = async (
-      _slug: string,
-      partNumber: number,
-      bytes: Uint8Array,
-    ) => {
-      inFlight++;
-      maxInFlight = Math.max(maxInFlight, inFlight);
-      await new Promise<void>((resolve) => resolvers.set(partNumber, resolve));
-      inFlight--;
-      return { partNumber, etag: `s-${partNumber}`, size: bytes.byteLength };
-    };
-    return {
-      uploadScreenPart,
-      resolve: (partNumber: number) => resolvers.get(partNumber)?.(),
-      get maxInFlight() {
-        return maxInFlight;
-      },
-    };
-  }
-
-  it("keeps several parts in flight at once", async () => {
-    const parts = deferredScreenParts();
-    const transport = fakeTransport({
-      overrides: { uploadScreenPart: parts.uploadScreenPart },
-    });
-    const upload = await startRecordingUpload(INIT, options(transport));
-
-    upload.pushScreen(bytes(650));
-    await tick();
-    expect(parts.maxInFlight).toBe(4);
-
-    const finishing = upload.finish();
-    await settle(parts, finishing);
-
-    expect(transport.finalizedScreen?.sizeBytes).toBe(650);
-  });
-
-  it("finalizes with ascending part numbers when parts finish out of order", async () => {
-    const parts = deferredScreenParts();
-    const transport = fakeTransport({
-      overrides: { uploadScreenPart: parts.uploadScreenPart },
-    });
-    const upload = await startRecordingUpload(INIT, options(transport));
-
-    upload.pushScreen(bytes(300));
-    await tick();
-    parts.resolve(3);
-    await tick();
-    parts.resolve(2);
-    const finishing = upload.finish();
-    await settle(parts, finishing);
-
-    expect(transport.finalizedScreen?.parts.map((p) => p.partNumber)).toEqual([
-      1, 2, 3,
-    ]);
-  });
-
-  it("counts uploadedBytes as parts complete, not as they are queued", async () => {
-    const parts = deferredScreenParts();
-    const transport = fakeTransport({
-      overrides: { uploadScreenPart: parts.uploadScreenPart },
-    });
-    const upload = await startRecordingUpload(INIT, options(transport));
-
-    upload.pushScreen(bytes(200));
-    await tick();
-    expect(upload.uploadedBytes).toBe(0);
-
-    parts.resolve(2);
-    await tick();
-    await tick();
-    expect(upload.uploadedBytes).toBe(100);
-
-    const finishing = upload.finish();
-    await settle(parts, finishing);
-    expect(upload.uploadedBytes).toBe(200);
-  });
-});
-
 describe("startRecordingUpload — storage budget", () => {
   it("carries the remaining budget through from init", async () => {
     const transport = fakeTransport({
@@ -399,10 +372,7 @@ describe("startRecordingUpload — storage budget", () => {
 
   it("counts both streams against the one budget", async () => {
     const transport = fakeTransport({ webcam: true });
-    const upload = await startRecordingUpload(
-      INIT,
-      options(transport, { partBytes: 1_000 }),
-    );
+    const upload = await startRecordingUpload(INIT, options(transport));
 
     upload.pushScreen(bytes(60));
     upload.pushWebcam(bytes(40));
@@ -421,7 +391,7 @@ describe("startRecordingUpload — webcam stream", () => {
     upload.pushWebcam(bytes(40));
     await upload.finish();
 
-    expect(transport.webcamParts).toHaveLength(0);
+    expect(transport.received("webcam")).toBe(0);
     expect(transport.finalizedWebcam).toBeNull();
   });
 
@@ -434,11 +404,13 @@ describe("startRecordingUpload — webcam stream", () => {
     upload.pushWebcam(bytes(60));
     await upload.finish();
 
-    expect(byPart(transport.screenParts).map((p) => p.size)).toEqual([100, 20]);
-    expect(transport.webcamParts).toEqual([{ partNumber: 1, size: 60 }]);
-    expect(transport.finalizedWebcam?.parts).toEqual([
-      { partNumber: 1, etag: "w-1" },
-    ]);
+    expect(transport.received("screen")).toBe(120);
+    expect(transport.received("webcam")).toBe(60);
+    expect(transport.finalizedWebcam).toEqual({
+      slug: "abc12345",
+      segments: true,
+      sizeBytes: 60,
+    });
   });
 
   it("treats a webcam finalize failure as best-effort (recording still succeeds)", async () => {
@@ -496,30 +468,29 @@ describe("startRecordingUpload — abort", () => {
 });
 
 describe("startRecordingUpload — offline handling", () => {
-  it("holds queued parts while offline and resumes on the online signal", async () => {
+  it("holds segments while offline and sends them on the online signal", async () => {
     const transport = fakeTransport();
     const net = fakeOnline(false);
+    const time = clock();
     const upload = await startRecordingUpload(
       INIT,
-      options(transport, { online: net.signal }),
+      options(transport, { online: net.signal, every: time.every }),
     );
 
     upload.pushScreen(bytes(250));
     await tick();
-    expect(transport.screenParts).toHaveLength(0);
+    time.tick();
+    await tick();
+    expect(transport.segments).toHaveLength(0);
 
     net.set(true);
     await tick();
-    await tick();
-    expect(transport.screenParts.map((p) => p.partNumber)).toEqual([2]);
-
+    expect(transport.received("screen")).toBe(250);
     await upload.finish();
-    expect(byPart(transport.screenParts).map((p) => p.size)).toEqual([
-      100, 100, 50,
-    ]);
+    expect(transport.finalizedScreen?.sizeBytes).toBe(250);
   });
 
-  it("waits for connectivity before draining the tail", async () => {
+  it("waits for connectivity before sending the rest", async () => {
     const transport = fakeTransport();
     const net = fakeOnline(true);
     const upload = await startRecordingUpload(
@@ -531,11 +502,11 @@ describe("startRecordingUpload — offline handling", () => {
     net.set(false);
     const finishing = upload.finish();
     await tick();
-    expect(transport.screenParts).toHaveLength(0);
+    expect(transport.segments).toHaveLength(0);
 
     net.set(true);
     await finishing;
-    expect(transport.screenParts).toEqual([{ partNumber: 1, size: 40 }]);
+    expect(transport.received("screen")).toBe(40);
   });
 });
 
@@ -555,17 +526,31 @@ describe("startRecordingUpload — finalize fallback", () => {
     expect(res.url).toBe("https://captureflow.dev/r/abc12345");
   });
 
-  it("rethrows the finalize failure when the recording is not ready", async () => {
-    const transport = fakeTransport({
-      overrides: {
-        finalizeScreen: async () => {
-          throw new TypeError("fetch failed");
-        },
-      },
+  it("retries a lost finalize, then keeps the files for later", async () => {
+    const finalizeScreen = vi.fn(async () => {
+      throw new TypeError("fetch failed");
     });
+    const device = deviceFiles();
+    const transport = fakeTransport({ overrides: { finalizeScreen } });
+    const upload = await startRecordingUpload(
+      INIT,
+      options(transport, { openFiles: device.openFiles }),
+    );
+    upload.pushScreen(bytes(40));
+    await expect(upload.finish()).rejects.toBeInstanceOf(UploadStalledError);
+    expect(finalizeScreen.mock.calls.length).toBeGreaterThan(1);
+    expect(device.store.has("abc12345")).toBe(true);
+  });
+
+  it("gives up at once when the server refuses the recording", async () => {
+    const finalizeScreen = vi.fn(async () => {
+      throw new RecordingApiHttpError("over cap", 413, "storage_limit");
+    });
+    const transport = fakeTransport({ overrides: { finalizeScreen } });
     const upload = await startRecordingUpload(INIT, options(transport));
     upload.pushScreen(bytes(40));
-    await expect(upload.finish()).rejects.toThrow("fetch failed");
+    await expect(upload.finish()).rejects.toThrow("over cap");
+    expect(finalizeScreen).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -583,9 +568,7 @@ describe("resumeRecordingUpload", () => {
       INIT,
       options(
         fakeTransport({
-          overrides: {
-            uploadScreenPart: async () => new Promise(() => {}),
-          },
+          overrides: { uploadSegment: async () => new Promise(() => {}) },
         }),
         { openFiles: device.openFiles },
       ),
@@ -605,9 +588,7 @@ describe("resumeRecordingUpload", () => {
     );
 
     expect(res.url).toContain("abc12345");
-    expect(byPart(transport.screenParts).map((p) => p.size)).toEqual([
-      100, 100, 50,
-    ]);
+    expect(transport.received("screen")).toBe(250);
     expect(transport.finalizedScreen?.sizeBytes).toBe(250);
     expect(device.store.has("abc12345")).toBe(false);
   });
@@ -648,7 +629,7 @@ describe("resumeRecordingUpload", () => {
       options(transport, { openFiles: device.openFiles }),
     );
 
-    expect(transport.screenParts).toEqual([]);
+    expect(transport.segments).toEqual([]);
     expect(device.store.has("abc12345")).toBe(false);
   });
 });

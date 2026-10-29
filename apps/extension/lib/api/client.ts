@@ -2,11 +2,10 @@ import { WEB_BASE } from "../config";
 import type { UserProfile } from "../auth/session";
 import type {
   AbortRequest,
-  FinalizeRequest,
+  SegmentFinalizeRequest,
   FinalizeResponse,
   InitRequest,
   InitResponse,
-  PartResponse,
   RecordingApiError,
   StateResponse,
   TranscribeRequest,
@@ -106,6 +105,7 @@ async function postBytes<T>(
   deviceId: string,
   bytes: Uint8Array,
   contentType: string,
+  signal?: AbortSignal,
 ): Promise<T> {
   const res = await fetch(`${RECORDING_API_BASE}${path}`, {
     method: "POST",
@@ -114,6 +114,7 @@ async function postBytes<T>(
       "x-captureflow-device": deviceId,
     },
     body: toBody(bytes),
+    signal,
   });
   return parseResponse<T>(res, path);
 }
@@ -205,23 +206,18 @@ export function createRecordingTransport(
   return {
     init: (req: InitRequest) =>
       postJson<InitResponse>("/init", deviceId, token, req),
-    uploadScreenPart: (slug, partNumber, bytes) =>
-      postBytes<PartResponse>(
-        partPath("part", slug, partNumber),
+    uploadSegment: async (slug, stream, offset, bytes, signal) => {
+      await postBytes<{ ok: true }>(
+        `/segment?slug=${encodeURIComponent(slug)}&stream=${stream}&offset=${offset}`,
         deviceId,
         bytes,
         "application/octet-stream",
-      ),
-    uploadWebcamPart: (slug, partNumber, bytes) =>
-      postBytes<PartResponse>(
-        partPath("webcam-part", slug, partNumber),
-        deviceId,
-        bytes,
-        "application/octet-stream",
-      ),
-    finalizeScreen: (req: FinalizeRequest) =>
+        signal,
+      );
+    },
+    finalizeScreen: (req: SegmentFinalizeRequest) =>
       postJson<FinalizeResponse>("/finalize", deviceId, token, req),
-    finalizeWebcam: async (req: FinalizeRequest) => {
+    finalizeWebcam: async (req: SegmentFinalizeRequest) => {
       await postJson<{ ok: true }>("/webcam-finalize", deviceId, token, req);
     },
     uploadPoster: async (slug: string, bytes: Uint8Array) => {

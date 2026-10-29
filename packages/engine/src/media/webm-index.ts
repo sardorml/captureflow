@@ -1,5 +1,5 @@
 import { concat, view, type ByteReader } from "./bytes";
-import type { BytePatch } from "./fmp4-index";
+import type { BytePatch, IndexReserver } from "./fmp4-index";
 
 /*
  * MediaRecorder writes WebM with no Duration and no Cues, so the browser can
@@ -136,51 +136,68 @@ function voidElement(total: number): Uint8Array {
  * known sizes (the Segment's own size is unknown and is only stepped into).
  * A stream that doesn't parse as that passes through untouched.
  */
-export function createWebmReserver(reserveBytes = WEBM_INDEX_RESERVE_BYTES): {
-  write(chunk: Uint8Array): Uint8Array[];
-} {
+export function createWebmReserver(
+  reserveBytes = WEBM_INDEX_RESERVE_BYTES,
+): IndexReserver {
   let pending: Uint8Array = new Uint8Array(0);
   let skip = 0;
   let done = false;
+  let emitted = 0;
+  let headerBytes: number | null = null;
+  const reserve = voidElement(reserveBytes);
+
+  function account(out: Uint8Array[]): Uint8Array[] {
+    for (const part of out) {
+      emitted += part.byteLength;
+      if (part === reserve) headerBytes = emitted;
+    }
+    if (done) headerBytes ??= 0;
+    return out;
+  }
+
+  function split(chunk: Uint8Array): Uint8Array[] {
+    if (done) return [chunk];
+    const out: Uint8Array[] = [];
+    let data = concat([pending, chunk]);
+    pending = new Uint8Array(0);
+    let at = 0;
+    while (at < data.byteLength) {
+      if (skip > 0) {
+        const n = Math.min(skip, data.byteLength - at);
+        out.push(data.subarray(at, at + n));
+        skip -= n;
+        at += n;
+        continue;
+      }
+      const id = readId(data, at);
+      const size = id && readSize(data, at + id.length);
+      if (!id || !size) {
+        if (data.byteLength - at >= MAX_HEADER_BYTES) {
+          done = true;
+          out.push(data.subarray(at));
+          return out;
+        }
+        pending = data.slice(at);
+        return out;
+      }
+      if (id.id === ID.cluster) {
+        done = true;
+        out.push(reserve, data.subarray(at));
+        return out;
+      }
+      const headerLength = id.length + size.length;
+      out.push(data.subarray(at, at + headerLength));
+      at += headerLength;
+      if (id.id !== ID.segment) skip = size.size === UNKNOWN ? 0 : size.size;
+    }
+    return out;
+  }
 
   return {
-    write(chunk) {
-      if (done) return [chunk];
-      const out: Uint8Array[] = [];
-      let data = concat([pending, chunk]);
-      pending = new Uint8Array(0);
-      let at = 0;
-      while (at < data.byteLength) {
-        if (skip > 0) {
-          const n = Math.min(skip, data.byteLength - at);
-          out.push(data.subarray(at, at + n));
-          skip -= n;
-          at += n;
-          continue;
-        }
-        const id = readId(data, at);
-        const size = id && readSize(data, at + id.length);
-        if (!id || !size) {
-          if (data.byteLength - at >= MAX_HEADER_BYTES) {
-            done = true;
-            out.push(data.subarray(at));
-            return out;
-          }
-          pending = data.slice(at);
-          return out;
-        }
-        if (id.id === ID.cluster) {
-          done = true;
-          out.push(voidElement(reserveBytes), data.subarray(at));
-          return out;
-        }
-        const headerLength = id.length + size.length;
-        out.push(data.subarray(at, at + headerLength));
-        at += headerLength;
-        if (id.id !== ID.segment) skip = size.size === UNKNOWN ? 0 : size.size;
-      }
-      return out;
+    get headerBytes() {
+      return headerBytes;
     },
+    write: (chunk) => account(split(chunk)),
   };
 }
 

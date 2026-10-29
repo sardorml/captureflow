@@ -90,7 +90,7 @@ const electronAPI = {
   /*
    * Streaming-upload bridges. recordingStart reserves a slug via /api/init at
    * record start. recordingPartScreen/recordingPartWebcam are fire-and-forget; main
-   * writes them to a file on disk and uploads 5 MiB parts from it. recordingFinish
+   * writes them to a file on disk and uploads what is new every ~2s. recordingFinish
    * writes the seek index + finalizes, returning the edit URL. recordingAbort
    * discards the upload on cancel/restart/crash.
    */

@@ -17,14 +17,12 @@ export {
   type WebmScan,
 } from "./webm-index";
 export {
-  PART_BYTES,
   UploadStalledError,
-  createPartUploader,
+  createSegmentUploader,
   type OnlineSignal,
-  type PartRef,
-  type PartUploader,
-  type PartUploaderOptions,
-} from "./part-uploader";
+  type SegmentUploader,
+  type SegmentUploaderOptions,
+} from "./segment-uploader";
 export {
   createIndexedRecording,
   finishRecordingFile,
@@ -45,4 +43,5 @@ export {
   type RecordingUploadTransport,
   type UploadFinalizeRequest,
   type UploadInitResponse,
+  type UploadStream,
 } from "./recording-upload";

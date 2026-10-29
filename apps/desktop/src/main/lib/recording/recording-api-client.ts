@@ -74,6 +74,7 @@ export async function postBytes<T>(
   path: string,
   deviceId: string,
   bytes: Uint8Array,
+  signal?: AbortSignal,
 ): Promise<T> {
   const res = await fetch(`${RECORDING_API_BASE}${path}`, {
     method: "POST",
@@ -83,6 +84,7 @@ export async function postBytes<T>(
       "content-length": String(bytes.byteLength),
     },
     body: toBody(bytes),
+    signal,
   });
   return parseResponse<T>(res, path);
 }

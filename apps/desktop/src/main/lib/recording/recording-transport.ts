@@ -1,5 +1,4 @@
 import type {
-  PartRef,
   RecordingUploadTransport,
   UploadInitResponse,
 } from "@captureflow/engine/media";
@@ -24,16 +23,16 @@ export type RecordingInitRequest = {
 export function createRecordingTransport(
   deviceId: string,
 ): RecordingUploadTransport<RecordingInitRequest> {
-  const part = (path: string, slug: string, n: number, bytes: Uint8Array) =>
-    postBytes<PartRef>(
-      `${path}?slug=${encodeURIComponent(slug)}&part=${n}`,
-      deviceId,
-      bytes,
-    );
   return {
     init: (req) => postJson<UploadInitResponse>("/init", deviceId, req),
-    uploadScreenPart: (slug, n, bytes) => part("/part", slug, n, bytes),
-    uploadWebcamPart: (slug, n, bytes) => part("/webcam-part", slug, n, bytes),
+    uploadSegment: async (slug, stream, offset, bytes, signal) => {
+      await postBytes(
+        `/segment?slug=${encodeURIComponent(slug)}&stream=${stream}&offset=${offset}`,
+        deviceId,
+        bytes,
+        signal,
+      );
+    },
     finalizeScreen: (req) =>
       postJson<{ url: string }>("/finalize", deviceId, req),
     finalizeWebcam: async (req) => {

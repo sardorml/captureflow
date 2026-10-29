@@ -478,10 +478,11 @@ async function runSession(
       stopAllTracks();
       const durationMs = activeElapsed();
       // Same stance as the webcam companion: a lost transcript is not a
-      // failed recording. Requested before finalize, while the device id
-      // still authorizes it, so the share page can show it transcribing.
-      if (audio) await audio.requestTranscript().catch(() => undefined);
-      const { url } = await upload.finish(durationMs);
+      // failed recording. It goes up beside the video and is requested
+      // before finalize, while the device id still authorizes it, so the
+      // share page can show it transcribing.
+      const transcript = audio?.requestTranscript();
+      const { url } = await upload.finish(durationMs, transcript);
       cb.onActiveUpload(null);
       cb.onResult({
         ok: true,
