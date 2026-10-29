@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { readThemeFromCookieHeader } from "@captureflow/ui/theme";
-import { loadSession } from "@/lib/session-guard";
+import { loadSessionForRedirect } from "@/lib/session-guard";
 import { renderTrace } from "@/lib/render-trace";
 import { oauthErrorMessage, parseEmailDomains } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
@@ -27,7 +27,7 @@ export default async function LoginPage({
   // Only same-origin path redirects — strip a forged "?next=https://evil".
   const safeNext = next.startsWith("/") ? next : "/dashboard";
   const trace = await renderTrace("/login");
-  const session = await loadSession();
+  const session = await loadSessionForRedirect();
   trace("session");
   if (session) redirect(safeNext);
 

@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAuth, type AuthInstance } from "./auth";
 import { renderTrace } from "./render-trace";
+import { withTimeout } from "./with-timeout";
 
 /*
  * getSession can throw on a stale cookie (deleted session row, rotated
@@ -32,6 +33,18 @@ export const loadSession = cache(async (): Promise<Session | null> => {
     return null;
   }
 });
+
+const REDIRECT_SESSION_TIMEOUT_MS = 3000;
+
+/*
+ * For public pages that read the session only to send a signed-in visitor on.
+ * Prod renders have stalled inside the lookup on long-lived isolates; past the
+ * limit the page renders signed-out instead of never responding. Never use it
+ * to gate the app: a timeout there would read as signed out.
+ */
+export function loadSessionForRedirect(): Promise<Session | null> {
+  return withTimeout(loadSession(), REDIRECT_SESSION_TIMEOUT_MS, null);
+}
 
 // Route through /auth/clear (a Route Handler) to delete the stale cookie;
 // server components can't delete cookies, which would otherwise bounce-loop.
