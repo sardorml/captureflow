@@ -217,6 +217,10 @@ function fragmentTiming(
   return null;
 }
 
+function reserveEnd(reserve: Fmp4Scan["reserve"]): number {
+  return reserve ? reserve.offset + reserve.size : -1;
+}
+
 // Reads box headers and moofs only; mdat payloads are skipped.
 export async function scanFmp4(reader: ByteReader): Promise<Fmp4Scan | null> {
   let at = 0;
@@ -246,8 +250,14 @@ export async function scanFmp4(reader: ByteReader): Promise<Fmp4Scan | null> {
     if (type === "moov") {
       track = videoTrack(await reader.read(at, size));
       completeBytes = at + size;
-    } else if (type === "free" && previous === "moov") {
-      reserve = { offset: at, size };
+    } else if (
+      (type === "free" || type === "sidx") &&
+      (previous === "moov" || reserveEnd(reserve) === at)
+    ) {
+      // An earlier index (free filler + sidx) counts as the reserve again.
+      reserve = reserve
+        ? { offset: reserve.offset, size: reserve.size + size }
+        : { offset: at, size };
       completeBytes = at + size;
     } else if (type === "moof" && track) {
       const timing = fragmentTiming(

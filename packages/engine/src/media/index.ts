@@ -16,3 +16,19 @@ export {
   type WebmKeyframe,
   type WebmScan,
 } from "./webm-index";
+export {
+  PART_BYTES,
+  UploadStalledError,
+  createPartUploader,
+  type OnlineSignal,
+  type PartRef,
+  type PartUploader,
+  type PartUploaderOptions,
+} from "./part-uploader";
+export {
+  createIndexedRecording,
+  finishRecordingFile,
+  type IndexedRecording,
+  type RecordingFile,
+  type RecordingFormat,
+} from "./recording-file";

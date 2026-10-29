@@ -185,6 +185,7 @@ export type WebmScan = {
   timecodeScale: number;
   videoTrack: number | null;
   keyframes: WebmKeyframe[];
+  indexed: boolean;
   durationTicks: number;
   completeBytes: number;
 };
@@ -251,6 +252,7 @@ export async function scanWebm(reader: ByteReader): Promise<WebmScan | null> {
   let clusterTime = 0;
   let durationTicks = 0;
   let completeBytes = 0;
+  let indexed = false;
 
   while (at < reader.size) {
     const head = await read(at, Math.min(12, reader.size - at));
@@ -285,6 +287,8 @@ export async function scanWebm(reader: ByteReader): Promise<WebmScan | null> {
       }
     } else if (id.id === ID.tracks) {
       videoTrack = parseTracks(await reader.read(bodyStart, size.size));
+    } else if (id.id === ID.cues) {
+      indexed = true;
     } else if (id.id === ID.void && clusterPosition < 0 && segmentStart >= 0) {
       reserve = { offset: at, size: end - at };
     } else if (id.id === ID.timecode && clusterPosition >= 0) {
@@ -319,6 +323,7 @@ export async function scanWebm(reader: ByteReader): Promise<WebmScan | null> {
     timecodeScale,
     videoTrack,
     keyframes,
+    indexed,
     durationTicks,
     completeBytes,
   };
@@ -352,7 +357,12 @@ export async function webmIndexPatch(
   lastFrameTicks = 0,
 ): Promise<BytePatch | null> {
   const { reserve, info, videoTrack } = scan;
-  if (!reserve || videoTrack === null || reserve.offset < info.offset)
+  if (
+    scan.indexed ||
+    !reserve ||
+    videoTrack === null ||
+    reserve.offset < info.offset
+  )
     return null;
 
   const between = await reader.read(
