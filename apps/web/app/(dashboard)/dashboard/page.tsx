@@ -253,6 +253,7 @@ async function toRecent(
       ? { name: author.name?.trim() || author.email, image: author.image }
       : null,
     ready: row.state === "ready",
+    aiGenerated: row.client === "agent",
   };
 }
 

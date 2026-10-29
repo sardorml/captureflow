@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Chip, EmptyState } from "@heroui/react";
-import { Film } from "lucide-react";
+import { Film, Sparkles } from "lucide-react";
 import { FadeInImage } from "@/components/ui/fade-in-image";
 import { ListToolbar } from "./_components/ListToolbar";
 import { HoverPreview } from "./_components/HoverPreview";
@@ -209,6 +209,15 @@ function RecordingCard({
           className="absolute right-2 bottom-2 border-none bg-black/75 text-white"
         >
           {formatDuration(recording.durationMs)}
+        </Chip>
+      )}
+      {recording.client === "agent" && (
+        <Chip
+          size="sm"
+          className="absolute bottom-2 left-2 gap-1 border-none bg-violet-600 text-white shadow-md shadow-black/40"
+        >
+          <Sparkles size={12} />
+          AI generated
         </Chip>
       )}
       {recording.state !== "ready" && (

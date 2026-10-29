@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Eye, Film, MessageSquare, Smile } from "lucide-react";
+import { Eye, Film, MessageSquare, Smile, Sparkles } from "lucide-react";
 import { Avatar } from "@heroui/react";
 import { PostedAt } from "@/app/_components/PostedAt";
 import { FadeInImage } from "@/components/ui/fade-in-image";
@@ -20,6 +20,7 @@ export type RecentRecording = {
   createdAt: number;
   author: { name: string; image: string | null } | null;
   ready: boolean;
+  aiGenerated: boolean;
 };
 
 function recordingTitle(title: string | null): string {
@@ -127,6 +128,12 @@ function RecordingPoster({ recording }: { recording: RecentRecording }) {
         <div className="flex h-full w-full items-center justify-center text-fg-subtle">
           <Film size={20} aria-hidden />
         </div>
+      )}
+      {recording.aiGenerated && recording.ready && (
+        <span className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded-md bg-violet-600 px-1.5 py-0.5 text-[11px] font-medium text-white shadow-md shadow-black/40">
+          <Sparkles size={10} aria-hidden />
+          AI generated
+        </span>
       )}
       {!recording.ready ? (
         <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/70 px-1.5 py-0.5 text-[11px] font-medium text-white">
