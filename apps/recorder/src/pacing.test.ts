@@ -40,4 +40,34 @@ describe("createAudioMixer", () => {
     expect(done).toBe(true);
     expect(mixer.playing).toBe(false);
   });
+
+  it("mixes the page's live sound under narration, clamped", async () => {
+    const mixer = createAudioMixer();
+    void mixer.play(Int16Array.from([30000, 1, 2, 3]));
+    const live = new Int16Array(SAMPLE_RATE * CHANNELS);
+    live.set([10000, 10, 20, 30, 40, 50]);
+    mixer.feed(live);
+    const out = Array.from(new Int16Array(mixer.take(3).buffer.slice(0)));
+    expect(out).toEqual([32767, 11, 22, 33, 40, 50]);
+  });
+
+  it("drops a live backlog so the sound stays in sync", () => {
+    const mixer = createAudioMixer();
+    mixer.feed(new Int16Array(SAMPLE_RATE * CHANNELS).fill(1));
+    mixer.feed(new Int16Array(SAMPLE_RATE * CHANNELS * 0.3).fill(7));
+    const out = new Int16Array(mixer.take(1).buffer.slice(0));
+    expect(Array.from(out)).toEqual([7, 7]);
+  });
+
+  it("holds the live sound until a little has built up", () => {
+    const mixer = createAudioMixer();
+    mixer.feed(Int16Array.from([5, 5]));
+    expect(Array.from(new Int16Array(mixer.take(1).buffer.slice(0)))).toEqual([
+      0, 0,
+    ]);
+    mixer.feed(new Int16Array(SAMPLE_RATE * CHANNELS * 0.3).fill(5));
+    expect(Array.from(new Int16Array(mixer.take(1).buffer.slice(0)))).toEqual([
+      5, 5,
+    ]);
+  });
 });

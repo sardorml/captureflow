@@ -6,6 +6,7 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright";
 import { startCapture, type Capture } from "./capture";
 import { CURSOR_SCRIPT } from "./cursor";
 import { isAllowedUrl } from "./guard";
+import { PAGE_AUDIO_BINDING, PAGE_AUDIO_SCRIPT } from "./page-audio";
 import { renderSlide, type Slide } from "./slide";
 import {
   createTransport,
@@ -62,8 +63,16 @@ export async function startSession(browser: Browser, req: StartRequest) {
     viewport: { width, height },
     deviceScaleFactor: 1,
     colorScheme: "light",
+    locale: "en-US",
   });
   await context.addInitScript(CURSOR_SCRIPT);
+  // The page's sound, once the capture is there to take it.
+  let pageAudio: ((pcm: Int16Array) => void) | null = null;
+  await context.exposeBinding(PAGE_AUDIO_BINDING, (_source, base64: string) => {
+    const bytes = Uint8Array.from(Buffer.from(base64, "base64"));
+    pageAudio?.(new Int16Array(bytes.buffer, 0, bytes.byteLength >> 1));
+  });
+  await context.addInitScript(PAGE_AUDIO_SCRIPT);
   await context.route("**/*", async (route) => {
     if (await isAllowedUrl(route.request().url())) await route.continue();
     else await route.abort("blockedbyclient");
@@ -108,6 +117,11 @@ export async function startSession(browser: Browser, req: StartRequest) {
     bitrate: BITRATE,
     onData: (bytes) => upload.pushScreen(bytes),
   });
+
+  // A page hidden behind a slide is out of the picture, and out of the sound too.
+  pageAudio = (pcm) => {
+    if (!onSlide) capture.feed(pcm);
+  };
 
   // Only actions and narration are recorded; the agent's thinking between calls is left out.
   let busy = 0;

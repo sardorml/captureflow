@@ -12,6 +12,7 @@ import {
 export type Capture = {
   readonly durationMs: number;
   play(pcm: Int16Array): Promise<void>;
+  feed(pcm: Int16Array): void;
   readonly audio: Uint8Array;
   pause(): void;
   resume(): void;
@@ -124,6 +125,7 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
   );
 
   const mixer = createAudioMixer();
+  let paused = false;
   const pacer = createPacer(Date.now());
   const feed = () => {
     const { frames, samples } = pacer.due(Date.now());
@@ -142,14 +144,22 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
       return pacer.durationMs;
     },
     play: (pcm) => mixer.play(pcm),
+    feed(pcm) {
+      if (!paused) mixer.feed(pcm);
+    },
     get audio() {
       return new Uint8Array(Buffer.concat(opusChunks));
     },
     pause() {
       feed();
       pacer.pause(Date.now());
+      paused = true;
+      mixer.holdLive();
     },
-    resume: () => pacer.resume(Date.now()),
+    resume() {
+      pacer.resume(Date.now());
+      paused = false;
+    },
     show,
     stop() {
       stopping ??= (async () => {
