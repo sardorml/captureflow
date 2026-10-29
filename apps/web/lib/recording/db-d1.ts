@@ -669,5 +669,49 @@ export function createD1Db(d1: D1Database): RecordingDb {
     async failTranscript(slug, error) {
       await stmtFailTranscript.bind(slug, error, Date.now()).run();
     },
+
+    async putUploadSegment(slug, stream, segment) {
+      await d1
+        .prepare(
+          `INSERT INTO recording_upload_segments (slug, stream, byte_offset, size)
+           VALUES (?1, ?2, ?3, ?4)
+           ON CONFLICT (slug, stream, byte_offset) DO UPDATE SET size = excluded.size`,
+        )
+        .bind(slug, stream, segment.offset, segment.size)
+        .run();
+    },
+
+    async listUploadSegments(slug, stream) {
+      const res = await d1
+        .prepare(
+          `SELECT byte_offset AS offset, size FROM recording_upload_segments
+           WHERE slug = ?1 AND stream = ?2 ORDER BY byte_offset`,
+        )
+        .bind(slug, stream)
+        .all<{ offset: number; size: number }>();
+      return res.results;
+    },
+
+    async putUploadPart(slug, stream, part) {
+      await d1
+        .prepare(
+          `INSERT INTO recording_upload_parts (slug, stream, part_number, etag)
+           VALUES (?1, ?2, ?3, ?4)
+           ON CONFLICT (slug, stream, part_number) DO UPDATE SET etag = excluded.etag`,
+        )
+        .bind(slug, stream, part.partNumber, part.etag)
+        .run();
+    },
+
+    async listUploadParts(slug, stream) {
+      const res = await d1
+        .prepare(
+          `SELECT part_number AS partNumber, etag FROM recording_upload_parts
+           WHERE slug = ?1 AND stream = ?2 ORDER BY part_number`,
+        )
+        .bind(slug, stream)
+        .all<{ partNumber: number; etag: string }>();
+      return res.results;
+    },
   };
 }

@@ -4,6 +4,7 @@ import type {
   RecordingRow,
   TranscriptPartRow,
   TranscriptRow,
+  UploadSegment,
 } from "./types";
 import type { RecordingDb } from "./db-types";
 
@@ -13,6 +14,8 @@ const transcripts = new Map<string, TranscriptRow>();
 const transcriptParts = new Map<string, TranscriptPartRow[]>();
 const reactions: RecordingReaction[] = [];
 const comments: RecordingComment[] = [];
+const uploadSegments = new Map<string, Map<number, UploadSegment>>();
+const uploadParts = new Map<string, Map<number, string>>();
 type MemoryView = {
   userId: string | null;
   lastViewedAt: number;
@@ -23,6 +26,32 @@ let nextReactionId = 1;
 let nextCommentId = 1;
 
 export const memoryDb: RecordingDb = {
+  async putUploadSegment(slug, stream, segment) {
+    const key = `${slug}:${stream}`;
+    const segments = uploadSegments.get(key) ?? new Map();
+    segments.set(segment.offset, segment);
+    uploadSegments.set(key, segments);
+  },
+
+  async listUploadSegments(slug, stream) {
+    return [...(uploadSegments.get(`${slug}:${stream}`)?.values() ?? [])].sort(
+      (a, b) => a.offset - b.offset,
+    );
+  },
+
+  async putUploadPart(slug, stream, part) {
+    const key = `${slug}:${stream}`;
+    const parts = uploadParts.get(key) ?? new Map();
+    parts.set(part.partNumber, part.etag);
+    uploadParts.set(key, parts);
+  },
+
+  async listUploadParts(slug, stream) {
+    return [...(uploadParts.get(`${slug}:${stream}`) ?? [])]
+      .map(([partNumber, etag]) => ({ partNumber, etag }))
+      .sort((a, b) => a.partNumber - b.partNumber);
+  },
+
   async insertRecording(row) {
     store.set(row.slug, row);
   },

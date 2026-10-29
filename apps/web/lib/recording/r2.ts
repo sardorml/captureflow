@@ -104,6 +104,17 @@ export async function putObject(
   });
 }
 
+export async function readObjectRange(
+  storageKey: string,
+  offset: number,
+  length: number,
+): Promise<Uint8Array | null> {
+  const bucket = await getBucket();
+  const obj = await bucket.get(storageKey, { range: { offset, length } });
+  if (!obj) return null;
+  return new Uint8Array(await obj.arrayBuffer());
+}
+
 // Null when the object is absent. R2's size is authoritative; the byte count
 // the client reports at finalize is not.
 export async function objectSize(storageKey: string): Promise<number | null> {

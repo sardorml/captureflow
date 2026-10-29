@@ -3,8 +3,10 @@ import type {
   RecordingReaction,
   RecordingRow,
   RecordingViewerEntry,
+  RecordingStream,
   TranscriptPartRow,
   TranscriptRow,
+  UploadSegment,
 } from "./types";
 
 export type CreateTranscriptJobInput = {
@@ -80,4 +82,22 @@ export type RecordingDb = {
   // Both only move a pending job; a finished or failed one stays as it is.
   finishTranscript(slug: string, autoJson: string): Promise<void>;
   failTranscript(slug: string, error: string): Promise<void>;
+  putUploadSegment(
+    slug: string,
+    stream: RecordingStream,
+    segment: UploadSegment,
+  ): Promise<void>;
+  listUploadSegments(
+    slug: string,
+    stream: RecordingStream,
+  ): Promise<UploadSegment[]>;
+  putUploadPart(
+    slug: string,
+    stream: RecordingStream,
+    part: { partNumber: number; etag: string },
+  ): Promise<void>;
+  listUploadParts(
+    slug: string,
+    stream: RecordingStream,
+  ): Promise<{ partNumber: number; etag: string }[]>;
 };

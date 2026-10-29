@@ -1,7 +1,11 @@
 import { purgeRecordingMedia, type CachedMedia } from "./cdn-purge";
 import { getCloudflareEnv } from "./cf-env";
 import { deleteRecording } from "./db";
-import { audioPartPrefixFor, objectKeysFor } from "./object-keys";
+import {
+  audioPartPrefixFor,
+  objectKeysFor,
+  segmentPrefixFor,
+} from "./object-keys";
 import { abortMultipartUpload, deleteObject, deleteObjectPrefix } from "./r2";
 import type { RecordingRow } from "./types";
 
@@ -26,6 +30,10 @@ export async function removeRecording(row: RecordingRow): Promise<void> {
       .filter((key) => key !== row.storageKey)
       .map((key) => deleteObject(key)),
     deleteObjectPrefix(audioPartPrefixFor(row.storageKey)),
+    deleteObjectPrefix(segmentPrefixFor(row.storageKey)),
+    ...(row.webcamStorageKey
+      ? [deleteObjectPrefix(segmentPrefixFor(row.webcamStorageKey))]
+      : []),
   ]);
   for (const result of stranded) {
     if (result.status === "rejected") {

@@ -8,6 +8,7 @@ import {
   retryCdnPurges,
   runDailyRetentionSweep,
   runHourlyMultipartGc,
+  sweepUploadSegments,
 } from "./lib/recording/cron";
 import { runDailySeatSync } from "./lib/billing/seat-cron";
 import { hydrateTranscriptionJobMessage } from "./lib/recording/transcription";
@@ -46,6 +47,7 @@ const handler: ExportedHandler<Env> = {
         ctx.waitUntil(runHourlyMultipartGc(env));
         ctx.waitUntil(backfillPosterDerivatives(env));
         ctx.waitUntil(retryCdnPurges(env));
+        ctx.waitUntil(sweepUploadSegments(env));
         break;
       case "0 4 * * *":
         ctx.waitUntil(runDailyRetentionSweep(env));

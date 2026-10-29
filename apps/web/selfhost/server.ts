@@ -16,6 +16,7 @@ import {
   backfillPosterDerivatives,
   runDailyRetentionSweep,
   runHourlyMultipartGc,
+  sweepUploadSegments,
 } from "../lib/recording/cron";
 import { hydrateTranscriptionJobMessage } from "../lib/recording/transcription";
 import {
@@ -145,6 +146,7 @@ queue.start();
 const stopCron = startCron([
   { cron: "0 * * * *", run: () => runHourlyMultipartGc(jobEnv) },
   { cron: "0 * * * *", run: () => backfillPosterDerivatives(jobEnv) },
+  { cron: "0 * * * *", run: () => sweepUploadSegments(jobEnv) },
   { cron: "0 4 * * *", run: () => runDailyRetentionSweep(jobEnv) },
 ]);
 
