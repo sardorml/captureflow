@@ -155,3 +155,15 @@ function indexOf(bytes: Uint8Array, needle: number[]): number {
   }
   return -1;
 }
+
+describe("createWebmReserver on a stream that isn't WebM", () => {
+  it("passes it through untouched", () => {
+    const junk = new Uint8Array(300);
+    const reserver = createWebmReserver(1024);
+    const out = concat([
+      ...reserver.write(junk.subarray(0, 5)),
+      ...reserver.write(junk.subarray(5)),
+    ]);
+    expect(out).toEqual(junk);
+  });
+});

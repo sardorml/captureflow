@@ -28,6 +28,7 @@ export {
 export {
   createIndexedRecording,
   finishRecordingFile,
+  type FinishedRecording,
   type IndexedRecording,
   type RecordingFile,
   type RecordingFormat,

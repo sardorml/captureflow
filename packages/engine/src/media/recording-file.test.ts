@@ -74,8 +74,9 @@ describe("createIndexedRecording", () => {
     const file = memoryFile();
     const recording = createIndexedRecording("mp4", file);
     record(recording, 10).finalize();
-    const size = await recording.finish();
+    const { size, durationMs } = await recording.finish();
     expect(size).toBe(file.size);
+    expect(durationMs).toBe(10_000);
     expect(sidxCount(file.bytes())).toBe(5);
   });
 });

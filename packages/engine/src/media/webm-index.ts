@@ -34,6 +34,8 @@ const ID = {
 } as const;
 
 const VIDEO_TRACK_TYPE = 1;
+// A 4-byte element ID plus an 8-byte size.
+const MAX_HEADER_BYTES = 12;
 const UNKNOWN = -1;
 
 function readId(
@@ -132,6 +134,7 @@ function voidElement(total: number): Uint8Array {
  * Passes MediaRecorder's stream through, adding the reserve the moment the
  * first Cluster starts. Everything before it is small header elements with
  * known sizes (the Segment's own size is unknown and is only stepped into).
+ * A stream that doesn't parse as that passes through untouched.
  */
 export function createWebmReserver(reserveBytes = WEBM_INDEX_RESERVE_BYTES): {
   write(chunk: Uint8Array): Uint8Array[];
@@ -158,6 +161,11 @@ export function createWebmReserver(reserveBytes = WEBM_INDEX_RESERVE_BYTES): {
         const id = readId(data, at);
         const size = id && readSize(data, at + id.length);
         if (!id || !size) {
+          if (data.byteLength - at >= MAX_HEADER_BYTES) {
+            done = true;
+            out.push(data.subarray(at));
+            return out;
+          }
           pending = data.slice(at);
           return out;
         }

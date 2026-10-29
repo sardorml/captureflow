@@ -160,3 +160,16 @@ describe("scanFmp4 + fmp4IndexPatch", () => {
     expect(fmp4IndexPatch(scan)).toBeNull();
   });
 });
+
+describe("createFmp4Reserver on a stream that isn't MP4", () => {
+  it("passes it through untouched", () => {
+    const junk = new Uint8Array(300).fill(0);
+    junk[3] = 3;
+    const reserver = createFmp4Reserver(1024);
+    const out = concat([
+      ...reserver.write(junk.subarray(0, 5)),
+      ...reserver.write(junk.subarray(5)),
+    ]);
+    expect(out).toEqual(junk);
+  });
+});

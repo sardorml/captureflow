@@ -33,7 +33,7 @@ export type PartUploader = {
 export class UploadStalledError extends Error {
   constructor(readonly cause: unknown) {
     super(
-      "The upload could not be finished; the recording is kept on this device.",
+      "The upload couldn't finish. Your recording is saved on this device and finishes uploading once you're back online.",
     );
   }
 }

@@ -28,11 +28,14 @@ export type IndexedRecording = {
   // Settles once every pushed byte is in the file.
   flushed(): Promise<void>;
   /*
-   * Writes the seek index in place and resolves with the final size. A failed
-   * index leaves a playable (if slow-to-start) file, so it never throws for that.
+   * Writes the seek index in place. A failed index leaves a playable (if
+   * slow-to-start) file, so it never throws for that.
    */
-  finish(): Promise<number>;
+  finish(): Promise<FinishedRecording>;
 };
+
+// durationMs is read back from the file, so a recovered upload knows it too.
+export type FinishedRecording = { size: number; durationMs: number | null };
 
 export function createIndexedRecording(
   format: RecordingFormat,
@@ -74,14 +77,17 @@ export function createIndexedRecording(
 export async function finishRecordingFile(
   format: RecordingFormat,
   file: RecordingFile,
-): Promise<number> {
+): Promise<FinishedRecording> {
   let patch: BytePatch | null = null;
   let completeBytes: number | null = null;
+  let durationMs: number | null = null;
   if (format === "mp4") {
     const scan = await scanFmp4(file);
     if (scan) {
       completeBytes = scan.completeBytes;
       patch = fmp4IndexPatch(scan);
+      const ticks = scan.fragments.reduce((n, f) => n + f.duration, 0);
+      durationMs = Math.round((ticks / scan.timescale) * 1000);
     }
   } else {
     const scan = await scanWebm(file);
@@ -90,11 +96,14 @@ export async function finishRecordingFile(
       patch = await webmIndexPatch(file, scan, WEBM_LAST_FRAME_MS).catch(
         () => null,
       );
+      durationMs = Math.round(
+        ((scan.durationTicks + WEBM_LAST_FRAME_MS) * scan.timecodeScale) / 1e6,
+      );
     }
   }
   if (completeBytes !== null && completeBytes < file.size) {
     await file.truncate(completeBytes);
   }
   if (patch) await file.write(patch.offset, patch.bytes);
-  return file.size;
+  return { size: file.size, durationMs };
 }

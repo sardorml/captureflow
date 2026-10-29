@@ -18,6 +18,11 @@ const WEBCAM_MIME_WEBM_VP9_OPUS = "video/webm;codecs=vp9,opus";
 const WEBCAM_MIME_WEBM_VP8_OPUS = "video/webm;codecs=vp8,opus";
 
 const WEBCAM_VIDEO_BITRATE = 4_000_000;
+/*
+ * Left to itself Chrome puts a camera keyframe every 13-17s, so a seek decodes
+ * that much before the picture moves. Browsers without the option ignore it.
+ */
+const WEBCAM_KEYFRAME_INTERVAL_MS = 2000;
 const WEBCAM_AUDIO_BITRATE = 128_000;
 const WEBCAM_TIMESLICE_MS = 200;
 
@@ -137,7 +142,8 @@ export function startWebcamRecorder(
     mimeType,
     videoBitsPerSecond: opts.videoBitrate ?? WEBCAM_VIDEO_BITRATE,
     audioBitsPerSecond: opts.audioBitrate ?? WEBCAM_AUDIO_BITRATE,
-  });
+    videoKeyFrameIntervalDuration: WEBCAM_KEYFRAME_INTERVAL_MS,
+  } as MediaRecorderOptions);
 
   let totalBytes = 0;
   // Awaited on stop so the final dataavailable conversion isn't dropped.

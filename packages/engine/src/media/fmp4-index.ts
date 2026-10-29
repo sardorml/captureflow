@@ -82,8 +82,11 @@ export function createFmp4Reserver(reserveBytes = FMP4_INDEX_RESERVE_BYTES): {
         type = fourcc(header, 4);
         forward = type !== "mfra";
         if (forward) out.push(header);
-        // size 0 means "to the end of the file"
-        remaining = size === 0 ? Number.MAX_SAFE_INTEGER : size - need;
+        // Size 0 means "to the end of the file"; one too small to be a box
+        // means this isn't MP4 after all, and the rest passes through as is.
+        const opaque = size === 0 || size < need;
+        if (opaque) forward = true;
+        remaining = opaque ? Number.MAX_SAFE_INTEGER : size - need;
         header = new Uint8Array(0);
         if (remaining === 0 && type === "moov" && !reserved) {
           reserved = true;
