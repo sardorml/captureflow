@@ -24,8 +24,6 @@ type FakeTransport = UploadTransport & {
   webcamParts: PartCall[];
   finalizedScreen: FinalizeRequest | null;
   finalizedWebcam: FinalizeRequest | null;
-  posterBytes: number | null;
-  posterCardBytes: number | null;
   abortedSlugs: string[];
 };
 
@@ -36,8 +34,6 @@ function fakeTransport(
   const webcamParts: PartCall[] = [];
   let finalizedScreen: FinalizeRequest | null = null;
   let finalizedWebcam: FinalizeRequest | null = null;
-  let posterBytes: number | null = null;
-  let posterCardBytes: number | null = null;
   const abortedSlugs: string[] = [];
 
   const base: UploadTransport = {
@@ -67,12 +63,8 @@ function fakeTransport(
     finalizeWebcam: async (req) => {
       finalizedWebcam = req;
     },
-    uploadPoster: async (_slug, bytes) => {
-      posterBytes = bytes.byteLength;
-    },
-    uploadPosterCard: async (_slug, bytes) => {
-      posterCardBytes = bytes.byteLength;
-    },
+    uploadPoster: async () => {},
+    uploadPosterCard: async () => {},
     uploadAudioPart: async () => {},
     transcribe: async () => {},
     abort: async (req) => {
@@ -96,12 +88,6 @@ function fakeTransport(
     },
     get finalizedWebcam() {
       return finalizedWebcam;
-    },
-    get posterBytes() {
-      return posterBytes;
-    },
-    get posterCardBytes() {
-      return posterCardBytes;
     },
     get abortedSlugs() {
       return abortedSlugs;
@@ -482,22 +468,6 @@ describe("startRecordingUpload — webcam stream", () => {
     await upload.finish();
 
     expect(transport.finalizedWebcam).toBeNull();
-  });
-});
-
-describe("startRecordingUpload — poster", () => {
-  it("delegates poster upload to the transport", async () => {
-    const transport = fakeTransport();
-    const upload = await startRecordingUpload(INIT, options(transport));
-    await upload.uploadPoster(bytes(512));
-    expect(transport.posterBytes).toBe(512);
-  });
-
-  it("delegates the card upload to the transport", async () => {
-    const transport = fakeTransport();
-    const upload = await startRecordingUpload(INIT, options(transport));
-    await upload.uploadPosterCard(bytes(256));
-    expect(transport.posterCardBytes).toBe(256);
   });
 });
 

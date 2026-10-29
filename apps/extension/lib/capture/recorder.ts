@@ -567,8 +567,9 @@ async function runSession(
     .then(async (poster) => {
       if (!poster) return;
       mark("poster captured");
-      await upload.uploadPoster(poster.frame);
-      if (poster.card) await upload.uploadPosterCard(poster.card);
+      await transport.uploadPoster(upload.slug, poster.frame);
+      if (poster.card)
+        await transport.uploadPosterCard(upload.slug, poster.card);
     })
     .catch(() => undefined);
 

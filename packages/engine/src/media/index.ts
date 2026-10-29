@@ -33,3 +33,15 @@ export {
   type RecordingFile,
   type RecordingFormat,
 } from "./recording-file";
+export {
+  NothingRecordedError,
+  resumeRecordingUpload,
+  startRecordingUpload,
+  type LocalFiles,
+  type PendingUpload,
+  type RecordingUpload,
+  type RecordingUploadOptions,
+  type RecordingUploadTransport,
+  type UploadFinalizeRequest,
+  type UploadInitResponse,
+} from "./recording-upload";
