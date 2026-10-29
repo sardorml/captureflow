@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "../../../packages/ui/src/styles/tokens.css";
+
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
+
+html,
+body {
+  height: 100%;
+  background: var(--cf-canvas);
+  color: var(--cf-fg);
+  font-family:
+    var(--font-inter),
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}

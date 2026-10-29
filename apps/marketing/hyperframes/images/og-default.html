@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1200, height=630" />
+    <title>Open Graph poster</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="../assets/brand.css" />
+    <style>
+      html,
+      body {
+        width: 1200px;
+        height: 630px;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      #poster {
+        padding: 72px 80px;
+        align-items: flex-start;
+        justify-content: space-between;
+        background:
+          radial-gradient(60% 80% at 100% 0%, var(--accent-soft), transparent 70%),
+          var(--canvas);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .brand img {
+        width: 52px;
+        height: 52px;
+      }
+      .headline {
+        font-size: 76px;
+        text-align: left;
+      }
+      .chips {
+        display: flex;
+        gap: 14px;
+        font-size: 22px;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-ihm5"
+      id="root"
+      data-composition-id="og-default"
+      data-start="0"
+      data-duration="1"
+      data-width="1200"
+      data-height="630"
+    >
+      <div data-hf-id="hf-wa3s" id="poster" class="clip" data-start="0" data-duration="1">
+        <div data-hf-id="hf-z0kr" class="brand"><img data-hf-id="hf-yaeh" src="../assets/brand-mark-light.svg" alt="" />CaptureFlow</div>
+        <h1 data-hf-id="hf-s88x" class="headline">
+          Skip the meeting,<br data-hf-id="hf-x5px" />
+          <span data-hf-id="hf-zaro" class="muted">send a recording instead.</span>
+        </h1>
+        <div data-hf-id="hf-exrd" class="chips">
+          <span data-hf-id="hf-450c" class="chip">Open source</span>
+          <span data-hf-id="hf-vqfu" class="chip">Self-host on Cloudflare</span>
+          <span data-hf-id="hf-zsce" class="chip">captureflow.dev</span>
+        </div>
+      </div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines = window.__timelines || {};
+      window.__timelines["og-default"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
