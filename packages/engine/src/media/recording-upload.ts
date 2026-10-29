@@ -6,9 +6,11 @@ import {
 } from "./recording-file";
 import {
   createSegmentUploader,
+  createThroughputMeter,
   UploadStalledError,
   type OnlineSignal,
   type SegmentUploader,
+  type ThroughputMeter,
 } from "./segment-uploader";
 
 const defaultWait = (ms: number) =>
@@ -39,6 +41,8 @@ export type RecordingUploadTransport<Init> = {
     bytes: Uint8Array,
     signal: AbortSignal,
   ): Promise<void>;
+  // How far from byte 0 the server has the stream.
+  uploadedThrough(slug: string, stream: UploadStream): Promise<number>;
   finalizeScreen(req: UploadFinalizeRequest): Promise<{ url: string }>;
   finalizeWebcam(req: UploadFinalizeRequest): Promise<void>;
   abort(req: { slug: string }): Promise<void>;
@@ -68,6 +72,8 @@ export type RecordingUpload = {
   readonly screenBytes: number;
   readonly webcamBytes: number;
   readonly uploadedBytes: number;
+  // Measured upload speed in bits per second; null until enough went up.
+  readonly uploadBitsPerSecond: number | null;
   // Null where the server set no cap.
   readonly remainingBytes: number | null;
   readonly maxDurationMs: number | null;
@@ -106,8 +112,10 @@ function segmentUploader<Init>(
   stream: UploadStream,
   file: RecordingFile,
   headerBytes: () => number | null,
+  meter?: ThroughputMeter,
 ): SegmentUploader {
   return createSegmentUploader({
+    meter,
     file,
     uploadSegment: (offset, bytes, signal) =>
       options.transport.uploadSegment(slug, stream, offset, bytes, signal),
@@ -191,6 +199,7 @@ export async function startRecordingUpload<Init>(
   const slug = res.slug;
   const hasWebcam = !!res.webcamUploadId;
   const files = await options.openFiles(slug, hasWebcam);
+  const meter = createThroughputMeter();
 
   const open = (
     format: RecordingFormat,
@@ -207,6 +216,7 @@ export async function startRecordingUpload<Init>(
       stream,
       file,
       () => recording.headerBytes,
+      meter,
     );
     return { recording, uploader };
   };
@@ -232,6 +242,9 @@ export async function startRecordingUpload<Init>(
       return (
         screen.uploader.uploadedBytes + (webcam?.uploader.uploadedBytes ?? 0)
       );
+    },
+    get uploadBitsPerSecond() {
+      return meter.bitsPerSecond();
     },
     pushScreen(bytes) {
       if (stopped || bytes.byteLength === 0) return;
@@ -280,11 +293,10 @@ export async function startRecordingUpload<Init>(
 }
 
 /*
- * Finishes a recording from the files it left on this device. The whole file
- * is sent again (a segment re-sent at the same offset replaces it), so
- * nothing has to be known about what reached the server before the crash. If
- * the server already gave up on the upload, the recording goes up as a new
- * one.
+ * Finishes a recording from the files it left on this device, sending only
+ * what the server doesn't have yet plus the header, which now carries the
+ * index. If the server already gave up on the upload, the recording goes up
+ * as a new one.
  */
 export async function resumeRecordingUpload<Init>(
   pending: PendingUpload<Init>,
@@ -314,13 +326,17 @@ export async function resumeRecordingUpload<Init>(
     hasWebcam = !!fresh.webcamUploadId;
   }
 
-  const upload = (
+  const upload = async (
     stream: UploadStream,
     file: RecordingFile,
     headerBytes: number,
   ) => {
+    const serverHas =
+      slug === pending.slug
+        ? await transport.uploadedThrough(slug, stream).catch(() => 0)
+        : 0;
     const uploader = segmentUploader(options, slug, stream, file, () => null);
-    return uploader.finish(headerBytes);
+    return uploader.finish(headerBytes, serverHas);
   };
   await upload("screen", files.screen, screen.headerBytes);
   const result = await finalizeScreen(

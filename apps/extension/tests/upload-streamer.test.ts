@@ -52,6 +52,7 @@ function fakeTransport(
     uploadSegment: async (_slug, stream, offset, bytes) => {
       segments.push({ stream, offset, size: bytes.byteLength });
     },
+    uploadedThrough: async () => 0,
     finalizeScreen: async (req) => {
       finalizedScreen = req;
       return { url: `https://captureflow.dev/s/${req.slug}` };
@@ -591,6 +592,22 @@ describe("resumeRecordingUpload", () => {
     expect(transport.received("screen")).toBe(250);
     expect(transport.finalizedScreen?.sizeBytes).toBe(250);
     expect(device.store.has("abc12345")).toBe(false);
+  });
+
+  it("sends only what the server is missing", async () => {
+    const device = deviceFiles();
+    await crashed(device);
+    const transport = fakeTransport({
+      overrides: { uploadedThrough: async () => 200 },
+    });
+
+    await resumeRecordingUpload(
+      PENDING,
+      options(transport, { openFiles: device.openFiles }),
+    );
+
+    expect(transport.segments.map((s) => s.offset)).toEqual([200]);
+    expect(transport.finalizedScreen?.sizeBytes).toBe(250);
   });
 
   it("uploads as a new recording when the server already gave up", async () => {

@@ -23,19 +23,22 @@ import {
   setRecordingStatus,
   getRememberedLimits,
   setRememberedLimits,
+  getUploadSpeed,
+  setUploadSpeed,
 } from "@/lib/storage";
 import { LIVE_KINDS } from "@/lib/capture/status";
-import { isCanvasUrl } from "@/lib/overlay/canvas-url";
 import {
-  createRecordingTransport,
-  fetchRecordingLimits,
-} from "@/lib/api/client";
-import {
+  blendUploadSpeed,
   clampQuality,
   resolveRecordingLimits,
   type RecordingLimits,
   hydrateRecordingQuality,
 } from "@captureflow/engine";
+import { isCanvasUrl } from "@/lib/overlay/canvas-url";
+import {
+  createRecordingTransport,
+  fetchRecordingLimits,
+} from "@/lib/api/client";
 import {
   isTrustedAuthSender,
   isTrustedWebOrigin,
@@ -923,6 +926,14 @@ export default defineBackground(() => {
     await setRecordingStatus(
       data.ok ? { kind: "done" } : { kind: "error", detail: data.error },
     );
+    if (data.ok && data.uploadBitsPerSecond) {
+      const speed = blendUploadSpeed(
+        await getUploadSpeed(),
+        data.uploadBitsPerSecond,
+        Date.now(),
+      );
+      await setUploadSpeed(speed);
+    }
     if (
       !data.ok &&
       (data.code === "invalid_token" || data.code === "missing_token")

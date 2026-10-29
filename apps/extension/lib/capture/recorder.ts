@@ -15,6 +15,7 @@ import {
   type StreamRecorder,
   type WebcamRecorder,
 } from "@captureflow/engine/web";
+import { startBitrateGovernor } from "@captureflow/engine/media";
 import {
   createRecordingTransport,
   RecordingApiHttpError,
@@ -399,6 +400,17 @@ async function runSession(
 
   mark("screen recorder started");
 
+  // On a connection slower than the preset, the screen bitrate drops to
+  // what the upload moves, so stopping still leaves only seconds to send.
+  const stopGovernor = startBitrateGovernor({
+    ceiling: quality.screen.bitrate,
+    read: () => ({
+      recordedBytes: upload.screenBytes + upload.webcamBytes,
+      uploadedBytes: upload.uploadedBytes,
+    }),
+    apply: (bitrate) => screenRecorder.setBitrate(bitrate),
+  });
+
   // A webcam recorder failure is contained to its own stream so the
   // load-bearing screen capture keeps going (webcam best-effort).
   let webcamRecorder: WebcamRecorder | null = null;
@@ -450,6 +462,7 @@ async function runSession(
 
   const stopRecorders = async (): Promise<void> => {
     if (durationTimer) clearInterval(durationTimer);
+    stopGovernor();
     await Promise.all([
       screenRecorder.stop().catch(() => null),
       webcamRecorder?.stop().catch(() => null) ?? Promise.resolve(null),
@@ -459,6 +472,7 @@ async function runSession(
 
   const finalize = async (): Promise<void> => {
     if (durationTimer) clearInterval(durationTimer);
+    stopGovernor();
     cb.onFinalizing(recordingViewUrl(upload.slug));
     const progress = (): void =>
       cb.onStatus({
@@ -489,6 +503,7 @@ async function runSession(
         url,
         bytes: upload.screenBytes + upload.webcamBytes,
         durationMs,
+        uploadBitsPerSecond: upload.uploadBitsPerSecond ?? undefined,
       });
     } catch (err) {
       stopAllTracks();

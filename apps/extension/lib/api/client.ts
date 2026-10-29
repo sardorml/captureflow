@@ -2,6 +2,7 @@ import { WEB_BASE } from "../config";
 import type { UserProfile } from "../auth/session";
 import type {
   AbortRequest,
+  SegmentCoverageResponse,
   SegmentFinalizeRequest,
   FinalizeResponse,
   InitRequest,
@@ -214,6 +215,14 @@ export function createRecordingTransport(
         "application/octet-stream",
         signal,
       );
+    },
+    uploadedThrough: async (slug, stream) => {
+      const path = `/segment?slug=${encodeURIComponent(slug)}&stream=${stream}`;
+      const res = await fetch(`${RECORDING_API_BASE}${path}`, {
+        headers: { "x-captureflow-device": deviceId },
+        signal: AbortSignal.timeout(10_000),
+      });
+      return (await parseResponse<SegmentCoverageResponse>(res, path)).covered;
     },
     finalizeScreen: (req: SegmentFinalizeRequest) =>
       postJson<FinalizeResponse>("/finalize", deviceId, token, req),

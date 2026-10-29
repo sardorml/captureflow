@@ -28,4 +28,14 @@ describe("createRateGate", () => {
     gate.spent(240_000);
     expect(gate.over(60_000_000 + FRAME_US)).toBe(false);
   });
+
+  it("follows a new ceiling without stalling on what the old one allowed", () => {
+    const gate = createRateGate(4_000_000);
+    gate.over(0);
+    gate.spent(900_000);
+    gate.setBitrate(1_000_000);
+    expect(gate.over(FRAME_US)).toBe(false);
+    gate.spent(300_000);
+    expect(gate.over(2 * FRAME_US)).toBe(true);
+  });
 });

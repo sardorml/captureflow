@@ -1,6 +1,10 @@
 import type { RecordingVisibility } from "./api/types";
 import type { PendingUpload } from "./api/upload-streamer";
-import type { RecordingQualityId, RecordingLimits } from "@captureflow/engine";
+import type {
+  RecordingQualityId,
+  RecordingLimits,
+  UploadSpeed,
+} from "@captureflow/engine";
 import type { CameraEffect } from "./capture/camera-effects";
 
 /*
@@ -42,7 +46,13 @@ export type RecordingStatus =
 export type RecordingStatusKind = RecordingStatus["kind"];
 
 export type RecordingResultPayload =
-  | { ok: true; url: string; bytes: number; durationMs: number }
+  | {
+      ok: true;
+      url: string;
+      bytes: number;
+      durationMs: number;
+      uploadBitsPerSecond?: number;
+    }
   | { ok: false; error: string; code?: string };
 
 /*
@@ -145,6 +155,16 @@ export const setCameraBlocked = (blocked: boolean): Promise<void> =>
 export const watchCameraBlocked = (
   cb: (blocked: boolean) => void,
 ): (() => void) => cameraBlockedItem.watch(cb);
+
+// Blended from past recordings' uploads (blendUploadSpeed).
+const uploadSpeedItem = storage.defineItem<UploadSpeed | null>(
+  "local:uploadSpeed",
+  { fallback: null },
+);
+export const getUploadSpeed = (): Promise<UploadSpeed | null> =>
+  uploadSpeedItem.getValue();
+export const setUploadSpeed = (speed: UploadSpeed): Promise<void> =>
+  uploadSpeedItem.setValue(speed);
 
 const pendingUploadsItem = storage.defineItem<PendingUpload[]>(
   "local:pendingUploads",

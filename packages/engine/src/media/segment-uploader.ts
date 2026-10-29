@@ -5,6 +5,45 @@ export type OnlineSignal = {
   onOnline(cb: () => void): () => void;
 };
 
+/*
+ * Upload speed over the time at least one request was in flight, so the
+ * gaps between ticks while the upload keeps up don't count against it.
+ * Shared by a recording's streams, since they share the connection.
+ */
+export type ThroughputMeter = {
+  begin(): (bytes: number) => void;
+  // Bits per second; null until enough has gone up to tell.
+  bitsPerSecond(): number | null;
+};
+
+const MIN_MEASURED_BYTES = 1024 * 1024;
+
+export function createThroughputMeter(
+  now: () => number = () => performance.now(),
+): ThroughputMeter {
+  let inFlight = 0;
+  let busySince = 0;
+  let busyMs = 0;
+  let bytes = 0;
+  return {
+    begin() {
+      if (inFlight++ === 0) busySince = now();
+      let done = false;
+      return (sent) => {
+        if (done) return;
+        done = true;
+        bytes += sent;
+        if (--inFlight === 0) busyMs += now() - busySince;
+      };
+    },
+    bitsPerSecond() {
+      const ms = busyMs + (inFlight > 0 ? now() - busySince : 0);
+      if (bytes < MIN_MEASURED_BYTES || ms <= 0) return null;
+      return Math.round((bytes * 8 * 1000) / ms);
+    },
+  };
+}
+
 export type SegmentUploaderOptions = {
   file: ByteReader;
   uploadSegment(
@@ -18,6 +57,7 @@ export type SegmentUploaderOptions = {
   maxSegmentBytes?: number;
   concurrency?: number;
   online?: OnlineSignal;
+  meter?: ThroughputMeter;
   // A segment that keeps failing after the recording stopped gives up after this many tries.
   finishAttempts?: number;
   wait?: (ms: number) => Promise<void>;
@@ -31,8 +71,9 @@ export type SegmentUploader = {
   /*
    * Sends what is left, then the header again: by now the index has been
    * written into it. Resolves once every byte of the file is on the server.
+   * A resumed upload passes how far the server already has the file.
    */
-  finish(headerBytes: number): Promise<void>;
+  finish(headerBytes: number, serverHas?: number): Promise<void>;
   abort(): void;
 };
 
@@ -117,11 +158,17 @@ export function createSegmentUploader(
         const bytes = await file.read(segment.offset, end - segment.offset);
         const timeout =
           BASE_TIMEOUT_MS + Math.ceil(bytes.byteLength / SLOWEST_BYTES_PER_MS);
-        await uploadSegment(
-          segment.offset,
-          bytes,
-          AbortSignal.timeout(timeout),
-        );
+        const done = options.meter?.begin();
+        try {
+          await uploadSegment(
+            segment.offset,
+            bytes,
+            AbortSignal.timeout(timeout),
+          );
+          done?.(bytes.byteLength);
+        } finally {
+          done?.(0);
+        }
         uploadedBytes += bytes.byteLength;
         return;
       } catch (err) {
@@ -177,14 +224,14 @@ export function createSegmentUploader(
       return uploadedBytes;
     },
     notify: () => cut(false),
-    async finish(headerBytes) {
+    async finish(headerBytes, serverHas = 0) {
       stopTimer();
       finishing = true;
       await settle();
       if (aborted) throw new Error("Upload aborted");
       queue.push(...failed.splice(0));
       for (
-        let at = sent ?? headerBytes;
+        let at = Math.max(sent ?? headerBytes, serverHas);
         at < file.size;
         at += maxSegmentBytes
       ) {

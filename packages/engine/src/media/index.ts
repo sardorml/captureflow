@@ -19,7 +19,9 @@ export {
 export {
   UploadStalledError,
   createSegmentUploader,
+  createThroughputMeter,
   type OnlineSignal,
+  type ThroughputMeter,
   type SegmentUploader,
   type SegmentUploaderOptions,
 } from "./segment-uploader";
@@ -45,3 +47,10 @@ export {
   type UploadInitResponse,
   type UploadStream,
 } from "./recording-upload";
+export {
+  createBitrateGovernor,
+  startBitrateGovernor,
+  type BitrateGovernor,
+  type BitrateGovernorOptions,
+  type UploadSample,
+} from "./bitrate-governor";

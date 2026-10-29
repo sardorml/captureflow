@@ -67,6 +67,9 @@ export type SegmentFinalizeRequest = {
 
 export type RecordingStream = "screen" | "webcam";
 
+// GET /api/r/segment: how far from byte 0 the server has the stream.
+export type SegmentCoverageResponse = { covered: number };
+
 export type FinalizeResponse = {
   url: string;
 };
@@ -109,6 +112,7 @@ export type UploadTransport = {
     bytes: Uint8Array,
     signal: AbortSignal,
   ): Promise<void>;
+  uploadedThrough(slug: string, stream: RecordingStream): Promise<number>;
   finalizeScreen(req: SegmentFinalizeRequest): Promise<FinalizeResponse>;
   finalizeWebcam(req: SegmentFinalizeRequest): Promise<void>;
   uploadPoster(slug: string, bytes: Uint8Array): Promise<void>;

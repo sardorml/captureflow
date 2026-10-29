@@ -7,6 +7,7 @@ import {
   postJson,
   RECORDING_API_BASE,
   parseResponse,
+  recordingHeaders,
 } from "./recording-api-client";
 import { buildRecordingEditUrl } from "./recording-edit-url";
 
@@ -32,6 +33,14 @@ export function createRecordingTransport(
         bytes,
         signal,
       );
+    },
+    uploadedThrough: async (slug, stream) => {
+      const path = `/segment?slug=${encodeURIComponent(slug)}&stream=${stream}`;
+      const res = await fetch(`${RECORDING_API_BASE}${path}`, {
+        headers: recordingHeaders(deviceId),
+        signal: AbortSignal.timeout(10_000),
+      });
+      return (await parseResponse<{ covered: number }>(res, path)).covered;
     },
     finalizeScreen: (req) =>
       postJson<{ url: string }>("/finalize", deviceId, req),

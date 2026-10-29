@@ -15,6 +15,7 @@ const SHARED_TYPES = [
   "InitResponse",
   "SegmentFinalizeRequest",
   "RecordingStream",
+  "SegmentCoverageResponse",
   "FinalizeResponse",
   "AbortRequest",
   "RecordingApiError",

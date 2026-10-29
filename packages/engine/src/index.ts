@@ -7,6 +7,7 @@ export {
   estimateBytesPerMinute,
   hydrateRecordingQuality,
   isRecordingQualityId,
+  peakBitsPerSecond,
   type RecordingQuality,
   type RecordingQualityId,
 } from "./quality";
@@ -18,3 +19,8 @@ export {
   resolveRecordingLimits,
   type RecordingLimits,
 } from "./quality-limits";
+export {
+  blendUploadSpeed,
+  outpacesUpload,
+  type UploadSpeed,
+} from "./upload-speed";

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { RecordingFile } from "./recording-file";
 import {
   createSegmentUploader,
+  createThroughputMeter,
   UploadStalledError,
   type OnlineSignal,
   type SegmentUploaderOptions,
@@ -162,6 +163,20 @@ describe("createSegmentUploader", () => {
     expect(s.file(file.size)).toEqual(file.bytes());
   });
 
+  it("skips what the server already has when resuming", async () => {
+    const file = memoryFile();
+    const s = server();
+    const { u, setHeader } = uploader(file, s.upload, { maxSegmentBytes: 64 });
+    setHeader(null);
+    await file.append(fill(300));
+    await u.finish(40, 200);
+    expect(s.calls).toEqual([
+      { offset: 200, size: 64 },
+      { offset: 264, size: 36 },
+      { offset: 0, size: 40 },
+    ]);
+  });
+
   it("stops at a file a crash cut back", async () => {
     const file = memoryFile();
     const s = server();
@@ -223,5 +238,34 @@ describe("createSegmentUploader", () => {
     for (const cb of waiting) cb();
     await u.finish(100);
     expect(s.file(150)).toEqual(file.bytes());
+  });
+});
+
+describe("createThroughputMeter", () => {
+  it("measures over the time a request was in flight, not the gaps", () => {
+    let t = 0;
+    const meter = createThroughputMeter(() => t);
+    const MB = 1024 * 1024;
+    const a = meter.begin();
+    t = 500;
+    const b = meter.begin();
+    t = 1000;
+    a(MB);
+    t = 1500;
+    b(MB);
+    t = 10_000;
+    const c = meter.begin();
+    t = 10_500;
+    c(0);
+    expect(meter.bitsPerSecond()).toBe(Math.round((2 * MB * 8) / 2));
+  });
+
+  it("says nothing until enough has gone up", () => {
+    let t = 0;
+    const meter = createThroughputMeter(() => t);
+    const done = meter.begin();
+    t = 100;
+    done(1000);
+    expect(meter.bitsPerSecond()).toBeNull();
   });
 });
