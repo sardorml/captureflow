@@ -1,0 +1,73 @@
+export const FPS = 30;
+export const SAMPLE_RATE = 48_000;
+export const CHANNELS = 2;
+export const BYTES_PER_SAMPLE = 2;
+
+/*
+ * ffmpeg stamps piped frames and samples by count, so the feed has to match
+ * wall-clock time exactly: each tick writes however many frames and samples
+ * are due since the start, repeating the last frame when the page hasn't
+ * changed. A late tick catches up instead of drifting. Paused time is left
+ * out, so the recording jumps straight to whatever comes after it.
+ */
+export function createPacer(startMs: number) {
+  let framesWritten = 0;
+  let samplesWritten = 0;
+  let pausedAt: number | null = null;
+  return {
+    pause(nowMs: number) {
+      pausedAt ??= nowMs;
+    },
+    resume(nowMs: number) {
+      if (pausedAt === null) return;
+      startMs += nowMs - pausedAt;
+      pausedAt = null;
+    },
+    due(nowMs: number): { frames: number; samples: number } {
+      if (pausedAt !== null) return { frames: 0, samples: 0 };
+      const elapsed = Math.max(0, nowMs - startMs) / 1000;
+      const frames = Math.floor(elapsed * FPS) - framesWritten;
+      const samples = Math.floor(elapsed * SAMPLE_RATE) - samplesWritten;
+      framesWritten += frames;
+      samplesWritten += samples;
+      return { frames, samples };
+    },
+    get durationMs() {
+      return Math.round((framesWritten / FPS) * 1000);
+    },
+  };
+}
+
+/*
+ * Interleaved 16-bit stereo for the recording's audio track: queued clips
+ * (the narration) are played in order and silence fills the rest. A clip's
+ * promise resolves once its last sample has gone out.
+ */
+export function createAudioMixer() {
+  type Clip = { pcm: Int16Array; at: number; done: () => void };
+  const queue: Clip[] = [];
+  return {
+    play(pcm: Int16Array): Promise<void> {
+      return new Promise((done) => queue.push({ pcm, at: 0, done }));
+    },
+    take(samples: number): Buffer {
+      const out = new Int16Array(samples * CHANNELS);
+      let filled = 0;
+      while (filled < out.length && queue.length > 0) {
+        const clip = queue[0]!;
+        const n = Math.min(out.length - filled, clip.pcm.length - clip.at);
+        out.set(clip.pcm.subarray(clip.at, clip.at + n), filled);
+        filled += n;
+        clip.at += n;
+        if (clip.at >= clip.pcm.length) {
+          queue.shift();
+          clip.done();
+        }
+      }
+      return Buffer.from(out.buffer, out.byteOffset, out.byteLength);
+    },
+    get playing() {
+      return queue.length > 0;
+    },
+  };
+}

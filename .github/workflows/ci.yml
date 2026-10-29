@@ -98,6 +98,9 @@ jobs:
       # the build job's migration check enforces that. Never apply them by hand.
       - name: Build worker
         run: pnpm --filter @captureflow/web cf:build
+      # The recorder container's image copies this bundle; wrangler builds the image on upload.
+      - name: Build recorder bundle
+        run: pnpm --filter @captureflow/recorder build
       - name: Apply D1 migrations (production)
         run: pnpm --filter @captureflow/web db:apply:remote
       # Bindings (D1/R2), vars, and cron triggers come from apps/web/wrangler.jsonc.
