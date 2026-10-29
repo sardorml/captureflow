@@ -6,6 +6,7 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright";
 import { startCapture, type Capture } from "./capture";
 import { CURSOR_SCRIPT } from "./cursor";
 import { isAllowedUrl } from "./guard";
+import { renderSlide, type Slide } from "./slide";
 import {
   createTransport,
   openTempFiles,
@@ -33,7 +34,9 @@ export type Action =
   | { type: "press"; key: string }
   | { type: "scroll"; direction: "down" | "up"; amount?: number }
   | { type: "navigate"; url: string }
-  | { type: "wait"; seconds: number };
+  | { type: "wait"; seconds: number }
+  | { type: "show_slide"; slide: Slide }
+  | { type: "hide_slide" };
 
 export class SessionError extends Error {}
 
@@ -42,6 +45,8 @@ const MOUSE_STEPS = 24;
 const TYPE_DELAY_MS = 45;
 const SETTLE_MS = 600;
 const OUTLINE_CHARS = 6000;
+// Long enough for the slide's staggered entrance to finish on camera.
+const SLIDE_IN_MS = 1200;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -65,6 +70,8 @@ export async function startSession(browser: Browser, req: StartRequest) {
   });
   const page: Page = await context.newPage();
   let mouse = { x: width / 2, y: height / 2 };
+  let slidePage: Page | null = null;
+  let onSlide = false;
 
   try {
     await page.goto(req.url, { waitUntil: "load", timeout: 30_000 });
@@ -187,7 +194,31 @@ export async function startSession(browser: Browser, req: StartRequest) {
 
   async function act(action: Action) {
     live();
-    await recorded(() => perform(action));
+    if (action.type === "show_slide")
+      return recorded(() => showSlide(action.slide));
+    if (action.type === "hide_slide") return recorded(hideSlide);
+    // Acting on the page under a slide sets up what the viewer sees once it's hidden; a wait holds the slide.
+    const behind = onSlide && action.type !== "wait";
+    await (behind ? perform(action) : recorded(() => perform(action)));
+  }
+
+  async function showSlide(slide: Slide) {
+    slidePage ??= await context.newPage();
+    await slidePage.setContent(renderSlide(slide), {
+      waitUntil: "load",
+      timeout: 15_000,
+    });
+    await slidePage.evaluate(() => document.fonts.ready).catch(() => {});
+    await capture.show(slidePage);
+    onSlide = true;
+    await sleep(SLIDE_IN_MS);
+  }
+
+  async function hideSlide() {
+    if (!onSlide) return;
+    await capture.show(page);
+    onSlide = false;
+    await sleep(SETTLE_MS);
   }
 
   async function perform(action: Action) {
@@ -234,6 +265,9 @@ export async function startSession(browser: Browser, req: StartRequest) {
       case "wait":
         await sleep(Math.min(10, Math.max(0, action.seconds)) * 1000);
         break;
+      case "show_slide":
+      case "hide_slide":
+        break;
     }
     await page.waitForLoadState("load", { timeout: 10_000 }).catch(() => {});
     await sleep(SETTLE_MS);
@@ -248,7 +282,10 @@ export async function startSession(browser: Browser, req: StartRequest) {
     async look() {
       live();
       const [image, outline] = await Promise.all([
-        page.screenshot({ type: "jpeg", quality: 70 }),
+        (onSlide && slidePage ? slidePage : page).screenshot({
+          type: "jpeg",
+          quality: 70,
+        }),
         page
           .locator("body")
           .ariaSnapshot({ timeout: 5000 })
@@ -257,6 +294,7 @@ export async function startSession(browser: Browser, req: StartRequest) {
       return {
         url: page.url(),
         title: await page.title(),
+        onSlide,
         image: image.toString("base64"),
         outline: outline.slice(0, OUTLINE_CHARS),
       };

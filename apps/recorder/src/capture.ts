@@ -15,6 +15,7 @@ export type Capture = {
   readonly audio: Uint8Array;
   pause(): void;
   resume(): void;
+  show(page: Page): Promise<void>;
   stop(): Promise<void>;
 };
 
@@ -41,25 +42,35 @@ function write(stream: Writable, chunk: Buffer): void {
  */
 // `audio` is the track alone as Opus WebM, the format the server transcribes; complete once stopped.
 export async function startCapture(opts: CaptureOptions): Promise<Capture> {
-  const { page, width, height } = opts;
-  const cdp: CDPSession = await page.context().newCDPSession(page);
+  const { width, height } = opts;
   let frame: Buffer | null = null;
-  cdp.on("Page.screencastFrame", (event) => {
-    frame = Buffer.from(event.data, "base64");
-    void cdp
-      .send("Page.screencastFrameAck", { sessionId: event.sessionId })
-      .catch(() => {});
-  });
-  await cdp.send("Page.startScreencast", {
-    format: "jpeg",
-    quality: 85,
-    maxWidth: width,
-    maxHeight: height,
-    everyNthFrame: 1,
-  });
-  // A still page paints once; this is the frame the first ticks repeat.
-  const first = await page.screenshot({ type: "jpeg", quality: 85 });
-  frame ??= first;
+  let cdp: CDPSession | null = null;
+  // Switching pages is a cut: the new page's first frame replaces the last one.
+  async function show(page: Page) {
+    if (cdp) {
+      await cdp.send("Page.stopScreencast").catch(() => {});
+      await cdp.detach().catch(() => {});
+    }
+    await page.bringToFront();
+    const session = await page.context().newCDPSession(page);
+    cdp = session;
+    session.on("Page.screencastFrame", (event) => {
+      if (cdp === session) frame = Buffer.from(event.data, "base64");
+      void session
+        .send("Page.screencastFrameAck", { sessionId: event.sessionId })
+        .catch(() => {});
+    });
+    await session.send("Page.startScreencast", {
+      format: "jpeg",
+      quality: 85,
+      maxWidth: width,
+      maxHeight: height,
+      everyNthFrame: 1,
+    });
+    // A still page paints once; this is the frame the next ticks repeat.
+    frame = await page.screenshot({ type: "jpeg", quality: 85 });
+  }
+  await show(opts.page);
 
   const kbps = Math.round(opts.bitrate / 1000);
   const ffmpeg = spawn(
@@ -139,12 +150,13 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
       pacer.pause(Date.now());
     },
     resume: () => pacer.resume(Date.now()),
+    show,
     stop() {
       stopping ??= (async () => {
         clearInterval(timer);
         feed();
-        await cdp.send("Page.stopScreencast").catch(() => {});
-        await cdp.detach().catch(() => {});
+        await cdp?.send("Page.stopScreencast").catch(() => {});
+        await cdp?.detach().catch(() => {});
         video.end();
         audio.end();
         opus.stdin!.end();

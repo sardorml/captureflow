@@ -25,7 +25,34 @@ export type RecorderAction =
   | { type: "press"; key: string }
   | { type: "scroll"; direction: "down" | "up"; amount?: number }
   | { type: "navigate"; url: string }
-  | { type: "wait"; seconds: number };
+  | { type: "wait"; seconds: number }
+  | { type: "show_slide"; slide: Slide }
+  | { type: "hide_slide" };
+
+export const SLIDE_LAYOUTS = [
+  "cover",
+  "list",
+  "statement",
+  "feature",
+  "big_idea",
+] as const;
+export const SLIDE_THEMES = ["navy", "blue", "cream"] as const;
+
+export type Slide = {
+  layout?: (typeof SLIDE_LAYOUTS)[number];
+  theme?: (typeof SLIDE_THEMES)[number];
+  section?: string;
+  page?: number;
+  total?: number;
+  tag?: string;
+  title: string;
+  subtitle?: string;
+  items?: { text: string; tag?: string }[];
+  facts?: { title: string; text?: string }[];
+  from?: string;
+  to?: string;
+  imageUrl?: string;
+};
 
 export type PageLook = {
   url: string;

@@ -29,6 +29,8 @@ import {
   startAgentRecording,
   stopAgentRecording,
   type RecorderAction,
+  SLIDE_LAYOUTS,
+  SLIDE_THEMES,
   VOICES,
 } from "./recording";
 
@@ -93,6 +95,18 @@ async function run(
   }
 }
 
+// Shown to the agent on connect: the defaults it follows when the user doesn't say.
+const INSTRUCTIONS = `CaptureFlow records screen videos people share as a link. You can read the user's library and record a cloud browser for them.
+
+When you record:
+- The user's words always win. "No slides", "only an intro" or "no voice" override everything below.
+- Tutorials, demos, walkthroughs, onboarding and feature presentations: open with a slide (cover for a title, list for the steps), and end with a closing slide (statement or big_idea) that says what the viewer can do now. Before each major part of the demo, a short feature slide helps when there's more than one part.
+- A plain "record this page" or a quick capture: no slides.
+- Keep slides to a few seconds each and never let them outweigh the screen time. Short headline, one-sentence subtitle.
+- Plan the walkthrough before start_recording, move at a pace a viewer can follow, and stop as soon as it's done.
+- Narrate only when the user asks for a voice or voiceover. Then narrate every slide and every step, a sentence or two at a time.
+- Give the user the share link from stop_recording.`;
+
 function lookResult(value: unknown): CallToolResult {
   const { image, ...page } = value as { image: string };
   return {
@@ -109,7 +123,10 @@ function createServer(
   user: McpUser,
   cdnBase: string,
 ): McpServer {
-  const server = new McpServer({ name: "CaptureFlow", version: "1.0.0" });
+  const server = new McpServer(
+    { name: "CaptureFlow", version: "1.0.0" },
+    { instructions: INSTRUCTIONS },
+  );
 
   server.registerTool(
     "list_workspaces",
@@ -208,6 +225,7 @@ function createServer(
       description:
         "Opens the page in a cloud browser and starts recording it, with a visible cursor. " +
         "Then call look to see the page, drive it with click, type, press, scroll, navigate and wait, " +
+        "put up show_slide for title or feature slides, " +
         "narrate over it if asked for a voiceover, " +
         "and call stop_recording for the share link. Only the actions and narration are recorded, not the time between calls. " +
         "Plan the walkthrough, move at a pace a viewer can follow, and stop as soon as it's done. " +
@@ -319,6 +337,101 @@ function createServer(
       },
     },
     ({ recording_id, seconds }) => act(recording_id, { type: "wait", seconds }),
+  );
+
+  server.registerTool(
+    "show_slide",
+    {
+      title: "Show a slide",
+      description:
+        "Cuts the recording to a full-screen slide; call hide_slide to cut back to the page. Pick a layout: " +
+        "cover (opening title + subtitle), list (title + numbered items, for steps or contents), " +
+        "statement (one big sentence + subtitle), feature (tag + title + subtitle, with up to 3 facts or an image), " +
+        "big_idea (a few huge words + a from/to caption). " +
+        "Keep text short: a headline of a few words, a subtitle of one sentence. " +
+        "Use section and page/total for a running top bar across a deck. " +
+        "Narrate over a slide if you like; clicks and typing while it's up happen unseen on the page underneath.",
+      inputSchema: {
+        recording_id: sessionId,
+        layout: z
+          .enum(SLIDE_LAYOUTS)
+          .optional()
+          .describe("Defaults to feature."),
+        title: z.string().min(1).max(140),
+        subtitle: z.string().max(240).optional(),
+        tag: z
+          .string()
+          .max(24)
+          .optional()
+          .describe("A short pill above a feature's title, like 'New'."),
+        items: z
+          .array(
+            z.object({
+              text: z.string().min(1).max(80),
+              tag: z.string().max(24).optional(),
+            }),
+          )
+          .max(6)
+          .optional()
+          .describe("For list: numbered rows."),
+        facts: z
+          .array(
+            z.object({
+              title: z.string().min(1).max(40),
+              text: z.string().max(90).optional(),
+            }),
+          )
+          .max(3)
+          .optional()
+          .describe("For feature: up to 3 short facts along the bottom."),
+        from: z
+          .string()
+          .max(40)
+          .optional()
+          .describe(
+            "For big_idea: the caption's start, like 'From a meeting'.",
+          ),
+        to: z
+          .string()
+          .max(40)
+          .optional()
+          .describe("For big_idea: the caption's end, like 'to a link'."),
+        image_url: z
+          .string()
+          .url()
+          .max(2000)
+          .optional()
+          .describe(
+            "For feature: a public http(s) image shown beside the text.",
+          ),
+        section: z
+          .string()
+          .max(40)
+          .optional()
+          .describe("Top bar, left: the deck section."),
+        page: z.number().int().min(1).max(99).optional(),
+        total: z.number().int().min(1).max(99).optional(),
+        theme: z
+          .enum(SLIDE_THEMES)
+          .optional()
+          .describe("Overrides the layout's colour."),
+      },
+    },
+    ({ recording_id, image_url, ...slide }) =>
+      act(recording_id, {
+        type: "show_slide",
+        slide: { ...slide, imageUrl: image_url },
+      }),
+  );
+
+  server.registerTool(
+    "hide_slide",
+    {
+      title: "Hide the slide",
+      description: "Cuts back from the slide to the page.",
+      inputSchema: { recording_id: sessionId },
+    },
+    ({ recording_id }) => act(recording_id, { type: "hide_slide" }),
   );
 
   server.registerTool(
