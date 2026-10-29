@@ -1,5 +1,9 @@
 import { ipcMain, shell, type BrowserWindow } from "electron";
-import { IPC_CHANNELS, type WindowBounds } from "../../shared/types";
+import {
+  IPC_CHANNELS,
+  type NativeStreamingConfig,
+  type WindowBounds,
+} from "../../shared/types";
 import { getSources } from "../capture";
 import {
   startNativeRecording,
@@ -47,6 +51,7 @@ export function registerRecordingHandlers(
         captureAudio?: boolean;
         includeSelfWindows?: boolean;
         cropRect?: WindowBounds;
+        streaming?: NativeStreamingConfig;
       },
     ) =>
       // Recordings capture the native cursor in-frame; screenshots stay

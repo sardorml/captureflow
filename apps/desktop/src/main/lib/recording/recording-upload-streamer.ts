@@ -1,12 +1,19 @@
 import { shell } from "electron";
 import {
+  RECORDING_QUALITIES,
+  clampQuality,
+  type RecordingQualityId,
+} from "@captureflow/engine";
+import {
   NothingRecordedError,
   resumeRecordingUpload,
+  startBitrateGovernor,
   startRecordingUpload as startUpload,
   UploadStalledError,
   type OnlineSignal,
   type RecordingUpload,
 } from "@captureflow/engine/media";
+import { setNativeRecordingBitrate } from "../../native-recorder";
 import { loadDeviceId } from "../device-id";
 import { logInfo, logWarn } from "../logger";
 import {
@@ -34,7 +41,11 @@ import type {
   RecordingStartResult,
 } from "../../../shared/types";
 
-type Session = { upload: RecordingUpload; deviceId: string };
+type Session = {
+  upload: RecordingUpload;
+  deviceId: string;
+  stopGovernor: () => void;
+};
 
 let session: Session | null = null;
 let isStarting = false;
@@ -75,7 +86,7 @@ export async function startRecordingUpload(
   isStarting = true;
   try {
     const deviceId = await loadDeviceId();
-    const init: RecordingInitRequest = {
+    const initFor = (quality: RecordingQualityId): RecordingInitRequest => ({
       contentType: "video/mp4",
       source: "instant",
       preset: "recording",
@@ -83,9 +94,38 @@ export async function startRecordingUpload(
       title: meta.title ?? undefined,
       hasWebcam: meta.hasWebcam === true,
       workspaceId: getActiveWorkspaceId() ?? undefined,
-    };
-    const upload = await startUpload(init, uploadOptions({ deviceId, init }));
-    session = { upload, deviceId };
+      quality,
+    });
+    /*
+     * The toolbar already lowered the choice to the last cap it read; a
+     * refusal means the cap moved since, so the recording drops to the
+     * lowest preset rather than failing.
+     */
+    let quality = meta.quality;
+    let upload: RecordingUpload;
+    try {
+      const init = initFor(quality);
+      upload = await startUpload(init, uploadOptions({ deviceId, init }));
+    } catch (err) {
+      const lowest = clampQuality(quality, "saver");
+      const refused =
+        err instanceof RecordingApiHttpError && err.code === "quality_limit";
+      if (!refused || lowest === quality) throw err;
+      quality = lowest;
+      const init = initFor(quality);
+      upload = await startUpload(init, uploadOptions({ deviceId, init }));
+    }
+    // On a connection slower than the preset, the screen bitrate drops to
+    // what the upload moves, so stopping still leaves only seconds to send.
+    const stopGovernor = startBitrateGovernor({
+      ceiling: RECORDING_QUALITIES[quality].screen.bitrate,
+      read: () => ({
+        recordedBytes: upload.screenBytes + upload.webcamBytes,
+        uploadedBytes: upload.uploadedBytes,
+      }),
+      apply: setNativeRecordingBitrate,
+    });
+    session = { upload, deviceId, stopGovernor };
     busySlugs.add(upload.slug);
     logInfo(
       "recording-streamer",
@@ -95,6 +135,7 @@ export async function startRecordingUpload(
       ok: true,
       slug: upload.slug,
       editUrl: buildRecordingEditUrl(upload.slug),
+      quality,
     };
   } catch (err) {
     const failure = handleUploadError(err, { phase: "init" });
@@ -146,15 +187,21 @@ export async function finishRecordingUpload(
     };
   }
   session = null;
+  s.stopGovernor();
   const { slug } = s.upload;
 
   try {
     await s.upload.finish(meta.durationMs);
     logInfo(
       "recording-streamer",
-      `finished: slug=${slug}, screenBytes=${s.upload.screenBytes}, webcamBytes=${s.upload.webcamBytes}`,
+      `finished: slug=${slug}, screenBytes=${s.upload.screenBytes}, webcamBytes=${s.upload.webcamBytes}, upload=${s.upload.uploadBitsPerSecond ?? "?"} bps`,
     );
-    return { ok: true, slug, url: buildRecordingEditUrl(slug) };
+    return {
+      ok: true,
+      slug,
+      url: buildRecordingEditUrl(slug),
+      uploadBitsPerSecond: s.upload.uploadBitsPerSecond ?? undefined,
+    };
   } catch (err) {
     if (s.upload.screenBytes > 0 && !isRejected(err)) {
       logWarn(
@@ -189,6 +236,7 @@ export function abortRecordingUpload(): void {
   const s = session;
   if (!s) return;
   session = null;
+  s.stopGovernor();
   s.upload.abort();
   busySlugs.delete(s.upload.slug);
   logInfo("recording-streamer", `aborted: slug=${s.upload.slug}`);

@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { useRecordingStore } from "@/stores/recording-store";
+import {
+  RECORDING_QUALITIES,
+  RECORDING_QUALITY_IDS,
+  estimateBytesPerMinute,
+  exceedsQuality,
+  outpacesUpload,
+  type RecordingQualityId,
+} from "@captureflow/engine";
+import {
+  effectiveRecordingQuality,
+  useRecordingStore,
+} from "@/stores/recording-store";
 import { useSources } from "@/hooks/use-sources";
 import { useMediaDevices } from "@/hooks/use-media-devices";
 import { useRecorder } from "@/hooks/use-recorder";
@@ -15,6 +26,7 @@ import {
   Camera,
   CameraOff,
   ChevronDown,
+  Gauge,
   Mic,
   MicOff,
   Monitor,
@@ -205,6 +217,81 @@ function DeviceCell({
   );
 }
 
+const MB = 1024 * 1024;
+
+function mbps(bitsPerSecond: number): string {
+  const value = bitsPerSecond / 1_000_000;
+  return value < 10 ? value.toFixed(1) : String(Math.round(value));
+}
+
+/*
+ * The ceilings the next recording is encoded under, as the extension's
+ * quality panel offers them. A capped plan locks the presets above its cap
+ * and picking one opens the upgrade; the choice stays saved for when it
+ * does. A preset faster than the last measured upload says so.
+ */
+function QualityCell({ camera }: { camera: boolean }): React.JSX.Element {
+  const chosen = useRecordingStore((s) => s.recordingQuality);
+  const limits = useRecordingStore((s) => s.recordingLimits);
+  const speed = useRecordingStore((s) => s.uploadSpeed);
+  const setRecordingQuality = useRecordingStore((s) => s.setRecordingQuality);
+  const effective = effectiveRecordingQuality({
+    recordingQuality: chosen,
+    recordingLimits: limits,
+  });
+  const now = Date.now();
+  const outpaces = (id: RecordingQualityId): boolean =>
+    outpacesUpload(id, camera, speed, now);
+
+  const options = RECORDING_QUALITY_IDS.map((id) => {
+    const preset = RECORDING_QUALITIES[id];
+    const mb = estimateBytesPerMinute(preset, camera) / MB;
+    const parts = [
+      preset.label,
+      `≈ ${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB/min`,
+    ];
+    if (exceedsQuality(id, limits.maxQuality)) parts.push("upgrade");
+    else if (outpaces(id)) parts.push("above your upload speed");
+    return { value: id, label: parts.join(" · ") };
+  });
+
+  const choose = (value: string): void => {
+    const id = value as RecordingQualityId;
+    if (exceedsQuality(id, limits.maxQuality)) {
+      void window.electronAPI.openRecordingUpgradeCheckout();
+      return;
+    }
+    setRecordingQuality(id);
+  };
+
+  const label = RECORDING_QUALITIES[effective].label;
+  const warn = speed !== null && outpaces(effective);
+  const tooltip = warn
+    ? `${label} sends more than your last uploads carried (about ${mbps(speed.bitsPerSecond)} Mbps). It lowers its bitrate to keep up, so fast motion may look softer.`
+    : `Recording quality: ${label}`;
+
+  return (
+    <div className="relative">
+      <DeviceCell
+        icon={Gauge}
+        offIcon={Gauge}
+        iconLabel="Recording quality"
+        selectValue={effective}
+        isActive
+        options={options}
+        onChange={choose}
+        tooltip={tooltip}
+      />
+      {warn && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-1 right-1 size-1.5 rounded-full bg-amber-400"
+        />
+      )}
+    </div>
+  );
+}
+
 /**
  * Drive macOS TCC for camera/mic via the main process. We deliberately do
  * NOT use `getUserMedia` as a probe here: Chromium's media stack succeeds
@@ -236,6 +323,21 @@ function IdleToolbar(): React.JSX.Element {
   );
   const recordingMode = useRecordingStore((s) => s.recordingMode);
   const showDeviceCells = recordingMode !== "screenshot";
+  const recordingAuth = useRecordingStore((s) => s.recordingAuth);
+  const setRecordingLimits = useRecordingStore((s) => s.setRecordingLimits);
+
+  useEffect(() => {
+    let cancelled = false;
+    void window.electronAPI
+      .getRecordingLimits()
+      .then((limits) => {
+        if (!cancelled) setRecordingLimits(limits);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [recordingAuth, setRecordingLimits]);
 
   const handleCameraChange = async (value: string): Promise<void> => {
     if (value === "none") {
@@ -417,6 +519,7 @@ function IdleToolbar(): React.JSX.Element {
             onChange={(v) => setSystemAudioEnabled(v === "on")}
             tooltip="Include audio from your Mac (app sounds, video playback)"
           />
+          <QualityCell camera={!!selectedVideoDevice} />
         </div>
         {!showDeviceCells && (
           <span className="absolute inset-0 flex items-center justify-center select-none">

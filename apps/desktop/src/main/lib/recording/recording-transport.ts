@@ -1,3 +1,4 @@
+import type { RecordingQualityId } from "@captureflow/engine";
 import type {
   RecordingUploadTransport,
   UploadInitResponse,
@@ -19,6 +20,7 @@ export type RecordingInitRequest = {
   title?: string;
   hasWebcam: boolean;
   workspaceId?: string;
+  quality?: RecordingQualityId;
 };
 
 export function createRecordingTransport(

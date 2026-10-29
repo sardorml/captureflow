@@ -1,4 +1,13 @@
 import { create } from "zustand";
+import {
+  UNREAD_LIMITS,
+  blendUploadSpeed,
+  clampQuality,
+  hydrateRecordingQuality,
+  type RecordingLimits,
+  type RecordingQualityId,
+  type UploadSpeed,
+} from "@captureflow/engine";
 import type {
   CaptureSource,
   RecordingMode,
@@ -27,6 +36,9 @@ type RecordingState = {
   selectedVideoDevice: string | null;
   systemAudioEnabled: boolean;
   recordingMode: RecordingMode;
+  recordingQuality: RecordingQualityId;
+  recordingLimits: RecordingLimits;
+  uploadSpeed: UploadSpeed | null;
   devicesReady: boolean;
   elapsedTime: number;
   error: string | null;
@@ -41,6 +53,9 @@ type RecordingState = {
   setSelectedVideoDevice: (deviceId: string | null) => void;
   setSystemAudioEnabled: (enabled: boolean) => void;
   setRecordingMode: (mode: RecordingMode) => void;
+  setRecordingQuality: (quality: RecordingQualityId) => void;
+  setRecordingLimits: (limits: RecordingLimits) => void;
+  noteUploadSpeed: (bitsPerSecond: number) => void;
   setStatus: (status: RecordingStatus) => void;
   setElapsedTime: (time: number) => void;
   setError: (error: string | null) => void;
@@ -68,6 +83,36 @@ function loadPersistedMode(): RecordingMode {
   }
 }
 
+function loadPersistedQuality(): RecordingQualityId {
+  try {
+    return hydrateRecordingQuality(localStorage.getItem("captureflow-quality"));
+  } catch {
+    return hydrateRecordingQuality(null);
+  }
+}
+
+function loadPersistedUploadSpeed(): UploadSpeed | null {
+  try {
+    const raw = JSON.parse(
+      localStorage.getItem("captureflow-upload-speed") ?? "null",
+    ) as Partial<UploadSpeed> | null;
+    return typeof raw?.bitsPerSecond === "number" &&
+      typeof raw.measuredAt === "number"
+      ? { bitsPerSecond: raw.bitsPerSecond, measuredAt: raw.measuredAt }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+// The preset a recording starts at: the chosen one, lowered to the plan's cap.
+export function effectiveRecordingQuality(state: {
+  recordingQuality: RecordingQualityId;
+  recordingLimits: RecordingLimits;
+}): RecordingQualityId {
+  return clampQuality(state.recordingQuality, state.recordingLimits.maxQuality);
+}
+
 /*
  * Selected mic/camera deviceIds are intentionally NOT loaded here: the toolbar
  * restores them only after `getPermissions()` confirms TCC access, else a stale
@@ -83,6 +128,9 @@ const initialState = {
   selectedVideoDevice: null as string | null,
   systemAudioEnabled: loadPersistedBool("captureflow-sysaudio", false),
   recordingMode: loadPersistedMode(),
+  recordingQuality: loadPersistedQuality(),
+  recordingLimits: UNREAD_LIMITS,
+  uploadSpeed: loadPersistedUploadSpeed(),
   devicesReady: false,
   elapsedTime: 0,
   error: null as string | null,
@@ -147,6 +195,28 @@ export const useRecordingStore = create<RecordingState>((set, get) => ({
     }
     set({ recordingMode: mode });
   },
+  setRecordingQuality: (quality): void => {
+    try {
+      localStorage.setItem("captureflow-quality", quality);
+    } catch {
+      // ignore
+    }
+    set({ recordingQuality: quality });
+  },
+  setRecordingLimits: (limits): void => set({ recordingLimits: limits }),
+  noteUploadSpeed: (bitsPerSecond): void => {
+    const speed = blendUploadSpeed(
+      get().uploadSpeed,
+      bitsPerSecond,
+      Date.now(),
+    );
+    try {
+      localStorage.setItem("captureflow-upload-speed", JSON.stringify(speed));
+    } catch {
+      // ignore
+    }
+    set({ uploadSpeed: speed });
+  },
   setStatus: (status): void => set({ status }),
   setElapsedTime: (time): void => set({ elapsedTime: time }),
   setError: (error): void => set({ error }),
@@ -162,6 +232,9 @@ export const useRecordingStore = create<RecordingState>((set, get) => ({
       selectedVideoDevice: state.selectedVideoDevice,
       systemAudioEnabled: state.systemAudioEnabled,
       recordingMode: state.recordingMode,
+      recordingQuality: state.recordingQuality,
+      recordingLimits: state.recordingLimits,
+      uploadSpeed: state.uploadSpeed,
       recordingAuth: state.recordingAuth,
     })),
 }));

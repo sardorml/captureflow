@@ -1,5 +1,12 @@
 import { useRef, useCallback, useEffect } from "react";
-import { useRecordingStore } from "../stores/recording-store";
+import {
+  RECORDING_QUALITIES,
+  type RecordingQuality,
+} from "@captureflow/engine";
+import {
+  effectiveRecordingQuality,
+  useRecordingStore,
+} from "../stores/recording-store";
 import {
   acquireMicCapture,
   acquireWebcamCapture,
@@ -131,6 +138,11 @@ export function useRecorder(): {
             webcamTotalBytes,
           })
           .then((finishRes) => {
+            if (finishRes.ok && finishRes.uploadBitsPerSecond) {
+              useRecordingStore
+                .getState()
+                .noteUploadSpeed(finishRes.uploadBitsPerSecond);
+            }
             if (!finishRes.ok) {
               window.electronAPI.log(
                 "warn",
@@ -186,7 +198,14 @@ export function useRecorder(): {
       useRecordingStore.getState();
 
     if (selectedVideoDevice) {
-      const webcamCapture = await acquireWebcamCapture(selectedVideoDevice);
+      const { webcam } =
+        RECORDING_QUALITIES[
+          effectiveRecordingQuality(useRecordingStore.getState())
+        ];
+      const webcamCapture = await acquireWebcamCapture(
+        selectedVideoDevice,
+        webcam,
+      );
       if (webcamCapture) {
         webcamStreamRef.current = webcamCapture.stream;
       }
@@ -239,6 +258,7 @@ export function useRecorder(): {
       const cropRect: WindowBounds | undefined =
         windowId === undefined ? source.windowBounds : undefined;
 
+      let quality: RecordingQuality | null = null;
       if (isRecording) {
         // Recording prep was kicked off at countdown start; if the prep ref is
         // missing (cancel race or non-overlay entry path) run the inline
@@ -248,7 +268,11 @@ export function useRecorder(): {
         const title = formatRecordingTitle(source);
         const hasWebcam = webcamStreamRef.current !== null;
         const startRes = await (prep?.recordingStartPromise ??
-          window.electronAPI.recordingStart({ title, hasWebcam }));
+          window.electronAPI.recordingStart({
+            title,
+            hasWebcam,
+            quality: effectiveRecordingQuality(useRecordingStore.getState()),
+          }));
         if (!startRes.ok) {
           window.electronAPI.log(
             "warn",
@@ -258,6 +282,7 @@ export function useRecorder(): {
           throw new Error(startRes.error);
         }
         recordingEditUrlRef.current = startRes.editUrl;
+        quality = RECORDING_QUALITIES[startRes.quality];
 
         // audioExpected holds encoder init until the first audio-format event
         // arrives — required because mp4-muxer locks its track set at
@@ -272,6 +297,14 @@ export function useRecorder(): {
         captureAudio: systemAudioEnabled,
         includeSelfWindows,
         cropRect,
+        streaming: quality
+          ? {
+              width: quality.screen.maxWidth,
+              height: quality.screen.maxHeight,
+              fps: quality.screen.fps,
+              bitrate: quality.screen.bitrate,
+            }
+          : undefined,
       });
       const windowBounds: WindowBounds | undefined =
         result?.windowBounds ?? source.windowBounds;
@@ -285,6 +318,8 @@ export function useRecorder(): {
         uploader.start({
           webcamStream: webcamStreamRef.current,
           micStream: micStreamRef.current,
+          videoBitrate: quality?.webcam.bitrate,
+          audioBitrate: quality?.webcam.audioBitrate,
         });
         recordingWebcamUploaderRef.current = uploader;
       }
@@ -462,6 +497,7 @@ export function useRecorder(): {
           recordingStartPromise: window.electronAPI.recordingStart({
             title,
             hasWebcam,
+            quality: effectiveRecordingQuality(state),
           }),
         };
       }

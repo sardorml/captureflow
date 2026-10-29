@@ -16,6 +16,7 @@ import {
   getRecordingAuthState,
   onRecordingAuthChange,
 } from "../lib/recording/recording-auth";
+import { readRecordingLimits } from "../lib/recording/recording-limits";
 import {
   getRecordingConnectivity,
   onRecordingConnectivityChange,
@@ -75,6 +76,10 @@ export function registerRecordingAuthHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.RECORDING_USAGE_GET, (): RecordingUsageState => {
     return getRecordingUsage();
   });
+
+  ipcMain.handle(IPC_CHANNELS.RECORDING_LIMITS_GET, () =>
+    readRecordingLimits(),
+  );
 
   // Refreshed on overlay open so a stale cache can't paint the wrong lock affordance.
   ipcMain.handle(
