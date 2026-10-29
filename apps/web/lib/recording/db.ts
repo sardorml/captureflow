@@ -189,8 +189,9 @@ export async function putUploadSegment(
 export async function listUploadSegments(
   slug: string,
   stream: RecordingStream,
+  fromOffset?: number,
 ): Promise<UploadSegment[]> {
-  return (await resolveDb()).listUploadSegments(slug, stream);
+  return (await resolveDb()).listUploadSegments(slug, stream, fromOffset);
 }
 
 export async function putUploadPart(

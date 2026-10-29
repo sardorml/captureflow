@@ -31,25 +31,30 @@ export type SegmentRead = { offset: number; start: number; length: number };
 
 export type SegmentTarget = { storageKey: string; uploadId: string };
 
-export type SegmentParams = {
-  slug: string;
-  stream: RecordingStream;
-  offset: number;
-};
+export type StreamParams = { slug: string; stream: RecordingStream };
+
+export type SegmentParams = StreamParams & { offset: number };
+
+export function hydrateStreamParams(
+  params: URLSearchParams,
+): StreamParams | null {
+  const slug = params.get("slug");
+  const stream = params.get("stream") ?? "screen";
+  if (!isValidSlug(slug) || (stream !== "screen" && stream !== "webcam"))
+    return null;
+  return { slug, stream };
+}
 
 export function hydrateSegmentParams(
   params: URLSearchParams,
 ): SegmentParams | null {
-  const slug = params.get("slug");
-  const stream = params.get("stream") ?? "screen";
+  const target = hydrateStreamParams(params);
   const rawOffset = params.get("offset");
-  if (!rawOffset) return null;
+  if (!target || !rawOffset) return null;
   const offset = Number(rawOffset);
-  if (!isValidSlug(slug) || (stream !== "screen" && stream !== "webcam"))
-    return null;
   if (!Number.isSafeInteger(offset) || offset < 0 || offset > MAX_OFFSET)
     return null;
-  return { slug, stream, offset };
+  return { ...target, offset };
 }
 
 // The multipart upload a stream's pieces go into, or null once it is closed.
@@ -73,9 +78,9 @@ function segmentKey(storageKey: string, offset: number): string {
   return `${segmentPrefixFor(storageKey)}${offset}`;
 }
 
-// How far from byte 0 the pieces reach without a gap.
-export function coveredBytes(segments: UploadSegment[]): number {
-  let end = 0;
+// How far from `from` the pieces reach without a gap.
+export function coveredBytes(segments: UploadSegment[], from = 0): number {
+  let end = from;
   for (const s of [...segments].sort((a, b) => a.offset - b.offset)) {
     if (s.offset > end) break;
     end = Math.max(end, s.offset + s.size);
@@ -108,6 +113,16 @@ export function planReads(
     at += length;
   }
   return reads;
+}
+
+/*
+ * Where the pieces are known to reach without reading them: parts 2..k
+ * built while recording mean bytes [0, k·P) were all there.
+ */
+export function builtThrough(built: Set<number>): number {
+  let k = 1;
+  while (built.has(k + 1)) k++;
+  return k === 1 ? 0 : k * PART_BYTES;
 }
 
 // Parts 2.. that the pieces fully cover and nobody has built yet.
@@ -201,20 +216,36 @@ async function inBatches<T, R>(
   return out;
 }
 
+// Reads only the pieces past the parts already built.
+async function uploadProgress(slug: string, stream: RecordingStream) {
+  const built = new Set(
+    (await listUploadParts(slug, stream)).map((p) => p.partNumber),
+  );
+  const base = builtThrough(built);
+  const segments = await listUploadSegments(
+    slug,
+    stream,
+    Math.max(0, base - MAX_SEGMENT_BYTES),
+  );
+  return { built, segments, covered: coveredBytes(segments, base) };
+}
+
+// How far from byte 0 the server has the stream without a gap.
+export async function uploadedThrough(
+  slug: string,
+  stream: RecordingStream,
+): Promise<number> {
+  return (await uploadProgress(slug, stream)).covered;
+}
+
 // Runs after each piece lands; finalize builds anything this misses.
 export async function buildCoveredParts(
   slug: string,
   stream: RecordingStream,
   target: SegmentTarget,
 ): Promise<void> {
-  const [segments, built] = await Promise.all([
-    listUploadSegments(slug, stream),
-    listUploadParts(slug, stream),
-  ]);
-  const ready = partsReadyToBuild(
-    coveredBytes(segments),
-    new Set(built.map((p) => p.partNumber)),
-  );
+  const { built, segments, covered } = await uploadProgress(slug, stream);
+  const ready = partsReadyToBuild(covered, built);
   for (const n of ready) {
     const part = await buildPart(target, segments, n, n * PART_BYTES);
     await putUploadPart(slug, stream, part);

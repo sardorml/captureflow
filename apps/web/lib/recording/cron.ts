@@ -67,8 +67,12 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
          FROM recordings
         WHERE state = 'pending'
           AND upload_id IS NOT NULL
-          AND created_at < ?
-        LIMIT ?`,
+          AND created_at < ?1
+          AND NOT EXISTS (
+            SELECT 1 FROM recording_upload_segments s
+             WHERE s.slug = recordings.slug AND s.received_at >= ?1
+          )
+        LIMIT ?2`,
     )
       .bind(cutoff, BATCH_SIZE)
       .all<{

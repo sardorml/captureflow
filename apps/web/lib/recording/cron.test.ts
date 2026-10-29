@@ -5,6 +5,7 @@ import { encode } from "jpeg-js";
 import {
   backfillPosterDerivatives,
   runDailyRetentionSweep,
+  runHourlyMultipartGc,
   sweepUploadSegments,
 } from "./cron";
 
@@ -49,6 +50,7 @@ function bucket(): R2Bucket {
       const obj = objects.get(key);
       return obj ? { arrayBuffer: async () => obj.body.buffer } : null;
     },
+    resumeMultipartUpload: () => ({ abort: async () => {} }),
     put: async (
       key: string,
       body: Uint8Array,
@@ -97,9 +99,10 @@ beforeEach(() => {
       poster_blur TEXT, poster_thumb_key TEXT, width INTEGER, height INTEGER,
       webcam_storage_key TEXT, webcam_state TEXT DEFAULT 'none', state TEXT,
       last_viewed_at INTEGER, created_at INTEGER, user_id TEXT, workspace_id TEXT,
-      size_bytes INTEGER DEFAULT 0, webcam_size_bytes INTEGER DEFAULT 0);
+      size_bytes INTEGER DEFAULT 0, webcam_size_bytes INTEGER DEFAULT 0,
+      upload_id TEXT, webcam_upload_id TEXT);
     CREATE TABLE recording_upload_segments (slug TEXT, stream TEXT,
-      byte_offset INTEGER, size INTEGER);
+      byte_offset INTEGER, size INTEGER, received_at INTEGER);
     CREATE TABLE recording_upload_parts (slug TEXT, stream TEXT,
       part_number INTEGER, etag TEXT);
     CREATE TABLE screenshots (id TEXT PRIMARY KEY, storage_key TEXT, state TEXT,
@@ -270,7 +273,9 @@ describe("sweepUploadSegments", () => {
       ["webcam", `videos/${slug}-cam.webm`],
     ] as const) {
       sqlite
-        .prepare(`INSERT INTO recording_upload_segments VALUES (?, ?, 0, 10)`)
+        .prepare(
+          `INSERT INTO recording_upload_segments VALUES (?, ?, 0, 10, 1)`,
+        )
         .run(slug, stream);
       objects.set(`${key}.seg/0`, { body: new Uint8Array(10) });
     }
@@ -300,6 +305,46 @@ describe("sweepUploadSegments", () => {
       "videos/done-cam.webm.seg/0",
       "videos/done.mp4.seg/0",
       "videos/half.mp4.seg/0",
+    ]);
+  });
+});
+
+describe("runHourlyMultipartGc", () => {
+  const HOUR_MS = 60 * 60 * 1000;
+
+  function addPending(slug: string, receivedAt: number | null) {
+    sqlite
+      .prepare(
+        `INSERT INTO recordings (slug, storage_key, state, upload_id, created_at)
+         VALUES (?, ?, 'pending', 'u', ?)`,
+      )
+      .run(slug, `videos/${slug}.mp4`, Date.now() - 3 * HOUR_MS);
+    if (receivedAt !== null) {
+      sqlite
+        .prepare(
+          `INSERT INTO recording_upload_segments VALUES (?, 'screen', 0, 10, ?)`,
+        )
+        .run(slug, receivedAt);
+    }
+  }
+
+  const states = () =>
+    sqlite
+      .prepare(`SELECT slug, state FROM recordings ORDER BY slug`)
+      .all()
+      .map((r) => `${r.slug}:${r.state}`);
+
+  it("fails an old upload that went quiet and keeps one still sending", async () => {
+    addPending("legacy", null);
+    addPending("quiet", Date.now() - 2 * HOUR_MS);
+    addPending("sending", Date.now() - 60_000);
+
+    await runHourlyMultipartGc({ DB: d1(sqlite), BUCKET: bucket() });
+
+    expect(states()).toEqual([
+      "legacy:failed",
+      "quiet:failed",
+      "sending:pending",
     ]);
   });
 });

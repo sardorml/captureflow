@@ -200,6 +200,9 @@ export type RecordingStream = "screen" | "webcam";
 
 export type UploadSegment = { offset: number; size: number };
 
+// GET /api/r/segment: how far from byte 0 the server has the stream.
+export type SegmentCoverageResponse = { covered: number };
+
 export type FinalizeResponse = {
   url: string;
 };

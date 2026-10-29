@@ -673,21 +673,23 @@ export function createD1Db(d1: D1Database): RecordingDb {
     async putUploadSegment(slug, stream, segment) {
       await d1
         .prepare(
-          `INSERT INTO recording_upload_segments (slug, stream, byte_offset, size)
-           VALUES (?1, ?2, ?3, ?4)
-           ON CONFLICT (slug, stream, byte_offset) DO UPDATE SET size = excluded.size`,
+          `INSERT INTO recording_upload_segments (slug, stream, byte_offset, size, received_at)
+           VALUES (?1, ?2, ?3, ?4, ?5)
+           ON CONFLICT (slug, stream, byte_offset)
+           DO UPDATE SET size = excluded.size, received_at = excluded.received_at`,
         )
-        .bind(slug, stream, segment.offset, segment.size)
+        .bind(slug, stream, segment.offset, segment.size, Date.now())
         .run();
     },
 
-    async listUploadSegments(slug, stream) {
+    async listUploadSegments(slug, stream, fromOffset = 0) {
       const res = await d1
         .prepare(
           `SELECT byte_offset AS offset, size FROM recording_upload_segments
-           WHERE slug = ?1 AND stream = ?2 ORDER BY byte_offset`,
+           WHERE slug = ?1 AND stream = ?2 AND byte_offset >= ?3
+           ORDER BY byte_offset`,
         )
-        .bind(slug, stream)
+        .bind(slug, stream, fromOffset)
         .all<{ offset: number; size: number }>();
       return res.results;
     },

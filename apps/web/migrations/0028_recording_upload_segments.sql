@@ -6,14 +6,17 @@
 --
 -- recording_upload_segments is one row per piece: which stream and where in
 -- the file it sits. recording_upload_parts is the multipart parts already
--- built from them. Both only live while the recording is pending; finalize
--- clears them, and ON DELETE CASCADE covers a deleted recording.
+-- built from them. Both only live while the stream is pending; the hourly
+-- cron clears them after, and ON DELETE CASCADE covers a deleted recording.
+-- received_at keeps a long recording that is still sending from being
+-- swept as a stale upload.
 
 CREATE TABLE IF NOT EXISTS recording_upload_segments (
   slug        TEXT NOT NULL REFERENCES recordings(slug) ON DELETE CASCADE,
   stream      TEXT NOT NULL CHECK (stream IN ('screen', 'webcam')),
   byte_offset INTEGER NOT NULL,
   size        INTEGER NOT NULL,
+  received_at INTEGER NOT NULL,
   PRIMARY KEY (slug, stream, byte_offset)
 ) STRICT;
 

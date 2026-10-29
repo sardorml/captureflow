@@ -4,15 +4,41 @@ import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import {
   buildCoveredParts,
   hydrateSegmentParams,
+  hydrateStreamParams,
   MAX_SEGMENT_BYTES,
   segmentTarget,
   storeSegment,
+  uploadedThrough,
 } from "@/lib/recording/segments";
+import type { SegmentCoverageResponse } from "@/lib/recording/types";
 
 const DEVICE_HEADER = "x-captureflow-device";
 
 export function OPTIONS() {
   return optionsResponse();
+}
+
+// GET /api/r/segment?slug=…&stream=…: what a resumed upload can skip.
+export async function GET(req: NextRequest) {
+  const deviceId = req.headers.get(DEVICE_HEADER);
+  if (!deviceId)
+    return jsonError("Missing device header", 400, "invalid_device");
+
+  const params = hydrateStreamParams(req.nextUrl.searchParams);
+  if (!params) return jsonError("Invalid stream", 400, "invalid_segment");
+
+  const row = await getRecording(params.slug);
+  if (!row) return jsonError("Recording not found", 404, "not_found");
+  if (row.deviceId !== deviceId)
+    return jsonError("Forbidden", 403, "forbidden");
+  if (!segmentTarget(row, params.stream)) {
+    return jsonError("Recording has no upload in progress", 409, "no_upload");
+  }
+
+  const body: SegmentCoverageResponse = {
+    covered: await uploadedThrough(row.slug, params.stream),
+  };
+  return withCors(NextResponse.json(body));
 }
 
 // POST /api/r/segment?slug=…&stream=screen|webcam&offset=N with the bytes at N.

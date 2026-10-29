@@ -33,10 +33,10 @@ export const memoryDb: RecordingDb = {
     uploadSegments.set(key, segments);
   },
 
-  async listUploadSegments(slug, stream) {
-    return [...(uploadSegments.get(`${slug}:${stream}`)?.values() ?? [])].sort(
-      (a, b) => a.offset - b.offset,
-    );
+  async listUploadSegments(slug, stream, fromOffset = 0) {
+    return [...(uploadSegments.get(`${slug}:${stream}`)?.values() ?? [])]
+      .filter((s) => s.offset >= fromOffset)
+      .sort((a, b) => a.offset - b.offset);
   },
 
   async putUploadPart(slug, stream, part) {

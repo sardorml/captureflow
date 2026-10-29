@@ -87,9 +87,11 @@ export type RecordingDb = {
     stream: RecordingStream,
     segment: UploadSegment,
   ): Promise<void>;
+  // Pieces starting at fromOffset or later, by offset.
   listUploadSegments(
     slug: string,
     stream: RecordingStream,
+    fromOffset?: number,
   ): Promise<UploadSegment[]>;
   putUploadPart(
     slug: string,

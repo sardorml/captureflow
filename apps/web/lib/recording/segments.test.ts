@@ -23,6 +23,7 @@ vi.mock("./r2", () => ({
 const {
   PART_BYTES,
   buildCoveredParts,
+  builtThrough,
   completeSegmentParts,
   coveredBytes,
   hydrateFinalizeSource,
@@ -112,6 +113,8 @@ describe("coveredBytes and planReads", () => {
 
   it("stops at the first gap", () => {
     expect(coveredBytes(segs)).toBe(200);
+    expect(coveredBytes(segs.slice(2), 130)).toBe(200);
+    expect(coveredBytes(segs.slice(3), 250)).toBe(250);
   });
 
   it("reads across pieces, preferring the one that reaches furthest", () => {
@@ -131,6 +134,12 @@ describe("partsReadyToBuild and partsToBuild", () => {
   it("builds whole parts after the first while recording", () => {
     expect(partsReadyToBuild(3 * PART_BYTES + 1, new Set([2]))).toEqual([3]);
     expect(partsReadyToBuild(PART_BYTES * 1.5, new Set())).toEqual([]);
+  });
+
+  it("knows how far the built parts already reach", () => {
+    expect(builtThrough(new Set())).toBe(0);
+    expect(builtThrough(new Set([3]))).toBe(0);
+    expect(builtThrough(new Set([2, 3, 5]))).toBe(3 * PART_BYTES);
   });
 
   it("always rebuilds part 1 and the partial last part", () => {
