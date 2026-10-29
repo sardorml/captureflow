@@ -30,9 +30,9 @@ configure.
 
 ## How is the share link ready so fast?
 
-The recording uploads **while you record** (a streaming multipart upload), so by
-the time you stop, the bytes are already in storage and only a quick finalize
-step remains. See [How it works](/guide/how-it-works).
+The recording uploads **while you record**, in small pieces every couple of
+seconds, so by the time you stop almost every byte is already in storage and
+only the last few seconds and a quick finalize step remain. See [How it works](/guide/how-it-works).
 
 ## Can I use my own domain?
 

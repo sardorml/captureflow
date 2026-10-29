@@ -27,8 +27,9 @@ CaptureFlow has two halves that talk to each other over HTTPS:
    detection, cursor tracking) to grab frames, compositing the webcam bubble and
    smoothed cursor on top.
 2. **Stream while recording** — instead of waiting for you to finish, the app
-   uploads the recording in parts (a multipart upload) as it's being made. By
-   the time you stop, most of the bytes are already in storage.
+   saves the recording on your device and uploads whatever is new every couple
+   of seconds. The server joins those pieces into the final file as they
+   arrive, so when you stop only the last few seconds are left to send.
 3. **Finalize** — on stop, the upload is finalized, a poster image is generated,
    and a row is written to the database. You immediately get a recording URL.
 4. **Serve** — viewers open the recording page; the video and poster are served from
