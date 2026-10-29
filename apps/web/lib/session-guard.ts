@@ -4,6 +4,7 @@ import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAuth, type AuthInstance } from "./auth";
+import { renderTrace } from "./render-trace";
 
 /*
  * getSession can throw on a stale cookie (deleted session row, rotated
@@ -19,9 +20,12 @@ type Session = NonNullable<
 >;
 
 export const loadSession = cache(async (): Promise<Session | null> => {
+  const trace = await renderTrace("session");
   const auth = await getAuth();
+  trace("auth built");
   try {
     const result = await auth.api.getSession({ headers: await headers() });
+    trace("session read");
     return (result ?? null) as Session | null;
   } catch (err) {
     console.error("[auth] getSession threw:", err);
