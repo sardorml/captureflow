@@ -2,6 +2,7 @@ import {
   RECORDING_QUALITIES,
   hydrateRecordingQuality,
   type RecordingQuality,
+  clampQuality,
 } from "@captureflow/engine";
 import {
   MIC_CONSTRAINTS,
@@ -31,7 +32,6 @@ import { createCameraEffectStream } from "./camera-effect-stream";
 import { isPlainCameraEffect } from "./camera-effects";
 import { startCaptureDiagnostics } from "./dev-diagnostics";
 import { openLocalRecording } from "./local-recording";
-import { clampQuality } from "./quality-limits";
 
 const DEV = import.meta.env.MODE !== "production";
 const devLog = DEV ? console : undefined;

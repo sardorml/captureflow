@@ -1,8 +1,7 @@
 import type { RecordingVisibility } from "./api/types";
 import type { PendingUpload } from "./api/upload-streamer";
-import type { RecordingQualityId } from "@captureflow/engine";
+import type { RecordingQualityId, RecordingLimits } from "@captureflow/engine";
 import type { CameraEffect } from "./capture/camera-effects";
-import type { RecordingLimits } from "./capture/quality-limits";
 
 /*
  * Which surface the picker opens on. Chrome treats displaySurface as a hint —

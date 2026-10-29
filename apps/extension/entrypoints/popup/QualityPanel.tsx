@@ -8,6 +8,10 @@ import {
   hydrateRecordingQuality,
   type RecordingQuality,
   type RecordingQualityId,
+  UNREAD_LIMITS,
+  clampQuality,
+  exceedsQuality,
+  type RecordingLimits,
 } from "@captureflow/engine";
 import {
   getCapturePrefs,
@@ -15,12 +19,6 @@ import {
   watchCapturePrefs,
 } from "@/lib/storage";
 import { sendMessage } from "@/lib/messaging";
-import {
-  UNREAD_LIMITS,
-  clampQuality,
-  exceedsQuality,
-  type RecordingLimits,
-} from "@/lib/capture/quality-limits";
 import { WEB_BASE } from "@/lib/config";
 
 const BACK_ICON = (

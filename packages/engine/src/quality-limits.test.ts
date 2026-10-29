@@ -5,7 +5,7 @@ import {
   hydrateRecordingLimits,
   resolveRecordingLimits,
   UNREAD_LIMITS,
-} from "../lib/capture/quality-limits";
+} from "./quality-limits";
 
 describe("quality limits", () => {
   it("lowers a preset above the cap and leaves the rest alone", () => {

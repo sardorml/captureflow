@@ -15,7 +15,7 @@ import type {
 import {
   hydrateRecordingLimits,
   type RecordingLimits,
-} from "../capture/quality-limits";
+} from "@captureflow/engine";
 
 export const RECORDING_API_BASE = `${WEB_BASE}/api/r`;
 

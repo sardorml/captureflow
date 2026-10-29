@@ -34,8 +34,8 @@ import {
   clampQuality,
   resolveRecordingLimits,
   type RecordingLimits,
-} from "@/lib/capture/quality-limits";
-import { hydrateRecordingQuality } from "@captureflow/engine";
+  hydrateRecordingQuality,
+} from "@captureflow/engine";
 import {
   isTrustedAuthSender,
   isTrustedWebOrigin,

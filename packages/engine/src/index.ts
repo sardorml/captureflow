@@ -10,3 +10,11 @@ export {
   type RecordingQuality,
   type RecordingQualityId,
 } from "./quality";
+export {
+  UNREAD_LIMITS,
+  clampQuality,
+  exceedsQuality,
+  hydrateRecordingLimits,
+  resolveRecordingLimits,
+  type RecordingLimits,
+} from "./quality-limits";
