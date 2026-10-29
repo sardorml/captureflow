@@ -22,12 +22,15 @@ import {
 import { friendlyUploadError } from "../api/errors";
 import {
   startRecordingUpload,
+  UploadStalledError,
+  type PendingUpload,
   type RecordingUpload,
 } from "../api/upload-streamer";
 import type { CaptureContext } from "../messaging";
 import { createCameraEffectStream } from "./camera-effect-stream";
 import { isPlainCameraEffect } from "./camera-effects";
 import { startCaptureDiagnostics } from "./dev-diagnostics";
+import { openLocalRecording } from "./local-recording";
 import { clampQuality } from "./quality-limits";
 
 const DEV = import.meta.env.MODE !== "production";
@@ -53,6 +56,8 @@ type Callbacks = {
   onResult: (result: RecordingResultPayload) => void;
   // Relayed to the SW: chrome.storage is unavailable in offscreen documents.
   onActiveUpload: (upload: ActiveUpload | null) => void;
+  // The connection never came back; the files stay for a later resume.
+  onUploadPending: (upload: PendingUpload) => void;
 };
 
 type SessionCommands = {
@@ -66,6 +71,10 @@ type SessionCommands = {
 type SessionEnd = "done" | "restart";
 
 let sessionActive = false;
+
+export function isRecording(): boolean {
+  return sessionActive;
+}
 let commands: SessionCommands | null = null;
 
 export function stopActiveRecording(): void {
@@ -316,6 +325,7 @@ async function runSession(
     try {
       upload = await startRecordingUpload(initRequest(qualityId), {
         transport,
+        openFiles: openLocalRecording,
       });
     } catch (err) {
       const refusedQuality =
@@ -325,6 +335,7 @@ async function runSession(
       qualityId = lowest;
       upload = await startRecordingUpload(initRequest(qualityId), {
         transport,
+        openFiles: openLocalRecording,
       });
     }
   } catch (err) {
@@ -332,7 +343,13 @@ async function runSession(
     return "done";
   }
   const quality = RECORDING_QUALITIES[qualityId];
-  cb.onActiveUpload({ slug: upload.slug, deviceId: ctx.deviceId });
+  const pending: PendingUpload = {
+    slug: upload.slug,
+    deviceId: ctx.deviceId,
+    init: initRequest(qualityId),
+    hasWebcam: upload.hasWebcam,
+  };
+  cb.onActiveUpload(pending);
   mark("upload started");
 
   let endSession!: (end: SessionEnd) => void;
@@ -474,9 +491,15 @@ async function runSession(
       });
     } catch (err) {
       stopAllTracks();
-      upload.abort();
-      cb.onActiveUpload(null);
-      cb.onResult(failure(err));
+      if (err instanceof UploadStalledError) {
+        cb.onUploadPending(pending);
+        cb.onActiveUpload(null);
+        cb.onResult({ ok: false, error: err.message, code: "upload_pending" });
+      } else {
+        upload.abort();
+        cb.onActiveUpload(null);
+        cb.onResult(failure(err));
+      }
     } finally {
       clearInterval(progressTimer);
     }

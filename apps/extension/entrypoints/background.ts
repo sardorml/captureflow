@@ -8,12 +8,15 @@ import {
 } from "@/lib/messaging";
 import {
   getActiveUpload,
+  getPendingUploads,
   getBubblePosition,
   getCameraBlocked,
   getCapturePrefs,
   getRecordingStatus,
   getThemePreference,
   setActiveUpload,
+  setPendingUploads,
+  type PendingUpload,
   setBubblePosition,
   setCameraBlocked,
   setCapturePrefs,
@@ -359,10 +362,12 @@ async function ensureOffscreenDocument(): Promise<void> {
   if (await chrome.offscreen.hasDocument()) return;
   // Reason string literals — NOT chrome.offscreen.Reason.*, which isn't a
   // runtime object. DISPLAY_MEDIA permits getDisplayMedia in the offscreen doc.
+  // WORKERS: the recording's local copy is written from a dedicated worker.
   await chrome.offscreen.createDocument({
     url: OFFSCREEN_URL,
-    reasons: ["DISPLAY_MEDIA", "USER_MEDIA"],
-    justification: "Record the selected screen, window, or tab.",
+    reasons: ["DISPLAY_MEDIA", "USER_MEDIA", "WORKERS"],
+    justification:
+      "Record the selected screen, window, or tab, and finish uploading recordings saved on this device.",
   });
 }
 
@@ -401,10 +406,14 @@ async function tabStreamIdFor(
  * with "Receiving end does not exist", which surfaced as a failed start.
  */
 async function beginCaptureWhenReady(ctx: CaptureContext): Promise<void> {
+  await sendWhenReady(() => sendMessage("beginCapture", ctx));
+}
+
+async function sendWhenReady(send: () => Promise<unknown>): Promise<void> {
   const attempts = 20;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
-      await sendMessage("beginCapture", ctx);
+      await send();
       return;
     } catch (error) {
       if (attempt === attempts || !NO_RECEIVER.test(errorMessage(error))) {
@@ -524,8 +533,10 @@ async function onActionClicked(): Promise<void> {
  * Live state with no offscreen document means the browser (or the offscreen
  * doc) died mid-recording. The status outlives that crash now that it is kept
  * in local:, so without this the control bar would stay pinned to every page.
- * An upload marker also has a server-side multipart to release so it doesn't
- * sit against the user's quota; /api/r/abort authorizes by device id.
+ * The recording itself is on this device, so its upload joins the pending
+ * ones to be finished. A marker from before local copies existed has nothing
+ * to finish from; its multipart is released so it doesn't sit against the
+ * user's quota (/api/r/abort authorizes by device id).
  */
 async function sweepStaleRecording(): Promise<void> {
   const [stale, status] = await Promise.all([
@@ -536,14 +547,41 @@ async function sweepStaleRecording(): Promise<void> {
   if (await chrome.offscreen.hasDocument()) return;
   if (stale) {
     await setActiveUpload(null);
-    const transport = createRecordingTransport(stale.deviceId, null);
-    await transport.abort({ slug: stale.slug }).catch(() => {});
+    if (stale.init && stale.hasWebcam !== undefined) {
+      await addPendingUpload({
+        ...stale,
+        init: stale.init,
+        hasWebcam: stale.hasWebcam,
+      });
+    } else {
+      const transport = createRecordingTransport(stale.deviceId, null);
+      await transport.abort({ slug: stale.slug }).catch(() => {});
+    }
   }
   await setRecordingStatus({ kind: "idle" });
 }
 
+async function addPendingUpload(upload: PendingUpload): Promise<void> {
+  const pending = await getPendingUploads();
+  if (pending.some((p) => p.slug === upload.slug)) return;
+  await setPendingUploads([...pending, upload]);
+}
+
+// Never alongside a live recording: it owns the offscreen document's attention.
+async function resumePendingUploads(): Promise<void> {
+  const [pending, status] = await Promise.all([
+    getPendingUploads(),
+    getRecordingStatus(),
+  ]);
+  if (pending.length === 0 || LIVE_KINDS.has(status.kind)) return;
+  await ensureOffscreenDocument();
+  await sendWhenReady(() => sendMessage("resumeUploads", pending));
+}
+
 export default defineBackground(() => {
-  void sweepStaleRecording();
+  void sweepStaleRecording()
+    .then(resumePendingUploads)
+    .catch(() => {});
 
   chrome.action.onClicked.addListener(() => void onActionClicked());
 
@@ -858,6 +896,22 @@ export default defineBackground(() => {
   onMessage("recordingStatus", ({ data }) => setRecordingStatus(data));
 
   onMessage("activeUploadChanged", ({ data }) => setActiveUpload(data));
+
+  onMessage("uploadPending", async ({ data }) => {
+    await addPendingUpload(data);
+    await resumePendingUploads();
+  });
+
+  // A recording that had to start over under a new link opens it; the
+  // original link's page was already open from the stop.
+  onMessage("uploadResumed", async ({ data }) => {
+    if (!data.done) return;
+    const pending = await getPendingUploads();
+    await setPendingUploads(pending.filter((p) => p.slug !== data.slug));
+    if (data.url && !data.url.includes(data.slug)) {
+      await chrome.tabs.create({ url: data.url });
+    }
+  });
 
   // Land the user on the share page the moment stop lands; it renders a
   // pending state and swaps in the player when the tail upload finalizes.

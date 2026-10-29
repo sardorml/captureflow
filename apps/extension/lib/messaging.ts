@@ -5,6 +5,7 @@ import type { PageArea } from "./overlay/area-select";
 import type {
   ActiveUpload,
   CaptureSource,
+  PendingUpload,
   RecordingResultPayload,
   RecordingStatus,
 } from "./storage";
@@ -113,6 +114,12 @@ type ProtocolMap = {
   // Offscreen docs can't touch chrome.storage, so the crash marker is relayed
   // to the SW.
   activeUploadChanged(upload: ActiveUpload | null): void;
+  // offscreen→SW: an upload stalled and its files stay for a later resume.
+  uploadPending(upload: PendingUpload): void;
+  // SW→offscreen: finish uploads left on this device, one at a time.
+  resumeUploads(uploads: PendingUpload[]): void;
+  // offscreen→SW: done means it left the pending list, finished or not.
+  uploadResumed(result: { slug: string; done: boolean; url?: string }): void;
 };
 
 export const { sendMessage, onMessage } =

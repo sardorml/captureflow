@@ -1,4 +1,5 @@
 import type { RecordingVisibility } from "./api/types";
+import type { PendingUpload } from "./api/upload-streamer";
 import type { RecordingQualityId } from "@captureflow/engine";
 import type { CameraEffect } from "./capture/camera-effects";
 import type { RecordingLimits } from "./capture/quality-limits";
@@ -45,12 +46,16 @@ export type RecordingResultPayload =
   | { ok: true; url: string; bytes: number; durationMs: number }
   | { ok: false; error: string; code?: string };
 
-// Marker for the recording being uploaded right now; a marker that outlives
-// its offscreen document is a crashed upload the SW aborts server-side.
-export type ActiveUpload = {
-  slug: string;
-  deviceId: string;
-};
+/*
+ * Marker for the recording being uploaded right now. One that outlives its
+ * offscreen document is a crashed recording: the SW finishes its upload from
+ * the files it left on this device. Markers written before those files
+ * existed carry no init and are aborted server-side instead.
+ */
+export type ActiveUpload = Pick<PendingUpload, "slug" | "deviceId"> &
+  Partial<PendingUpload>;
+
+export type { PendingUpload };
 
 /*
  * local: (not session:) because the control bar reads this from a content
@@ -141,6 +146,16 @@ export const setCameraBlocked = (blocked: boolean): Promise<void> =>
 export const watchCameraBlocked = (
   cb: (blocked: boolean) => void,
 ): (() => void) => cameraBlockedItem.watch(cb);
+
+const pendingUploadsItem = storage.defineItem<PendingUpload[]>(
+  "local:pendingUploads",
+  { fallback: [] },
+);
+
+export const getPendingUploads = (): Promise<PendingUpload[]> =>
+  pendingUploadsItem.getValue();
+export const setPendingUploads = (uploads: PendingUpload[]): Promise<void> =>
+  pendingUploadsItem.setValue(uploads);
 
 export const getActiveUpload = (): Promise<ActiveUpload | null> =>
   activeUploadItem.getValue();
