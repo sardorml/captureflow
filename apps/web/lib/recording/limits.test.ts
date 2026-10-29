@@ -9,6 +9,7 @@ describe("recording capture metadata hydration", () => {
   it("keeps known values", () => {
     expect(hydrateRecordingClient("extension")).toBe("extension");
     expect(hydrateRecordingClient("desktop")).toBe("desktop");
+    expect(hydrateRecordingClient("agent")).toBe("agent");
     expect(hydrateRecordingCaptureSource("tab")).toBe("tab");
     expect(hydrateRecordingCaptureSource("screen")).toBe("screen");
     expect(hydrateRecordingQualityId("saver")).toBe("saver");

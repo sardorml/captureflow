@@ -13,7 +13,11 @@ export const ALLOWED_PRESETS = new Set(["recording"] as const);
 
 // What made the recording and how; reported by the client at /init for the
 // admin's usage view. Older clients send none of it, so every field is nullable.
-export const ALLOWED_CLIENTS = new Set(["extension", "desktop"] as const);
+export const ALLOWED_CLIENTS = new Set([
+  "extension",
+  "desktop",
+  "agent",
+] as const);
 export const ALLOWED_CAPTURE_SOURCES = new Set([
   "tab",
   "window",
@@ -31,7 +35,7 @@ export const ALLOWED_QUALITIES = new Set([
 export type RecordingSource = "instant" | "edited";
 export type RecordingPreset = "recording";
 export type RecordingState = "pending" | "ready" | "failed";
-export type RecordingClient = "extension" | "desktop";
+export type RecordingClient = "extension" | "desktop" | "agent";
 export type RecordingCaptureSource = "tab" | "window" | "screen";
 export type RecordingQualityId = "saver" | "low" | "balanced" | "high" | "max";
 

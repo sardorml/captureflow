@@ -39,6 +39,7 @@ const STATE_COLOR = {
 const CLIENT_LABEL: Record<string, string> = {
   extension: "Extension",
   desktop: "Desktop",
+  agent: "Agent",
 };
 const CAPTURE_LABEL: Record<string, string> = {
   tab: "tab",
