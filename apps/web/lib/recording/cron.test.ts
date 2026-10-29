@@ -83,7 +83,8 @@ beforeEach(() => {
     CREATE TABLE recordings (slug TEXT PRIMARY KEY, storage_key TEXT, poster_key TEXT,
       poster_blur TEXT, poster_thumb_key TEXT, width INTEGER, height INTEGER,
       webcam_storage_key TEXT, webcam_state TEXT DEFAULT 'none', state TEXT,
-      last_viewed_at INTEGER, created_at INTEGER, user_id TEXT, workspace_id TEXT);
+      last_viewed_at INTEGER, created_at INTEGER, user_id TEXT, workspace_id TEXT,
+      size_bytes INTEGER DEFAULT 0, webcam_size_bytes INTEGER DEFAULT 0);
     CREATE TABLE screenshots (id TEXT PRIMARY KEY, storage_key TEXT, state TEXT,
       last_viewed_at INTEGER, created_at INTEGER, updated_at INTEGER,
       user_id TEXT, workspace_id TEXT);

@@ -47,6 +47,7 @@ import {
 } from "@/lib/recording-config";
 import { audioPartPrefixFor, objectKeysFor } from "@/lib/recording/object-keys";
 import { deleteObjectPrefix } from "@/lib/recording/r2";
+import { purgeCachedMedia } from "@/lib/recording/remove";
 import { revokeDeviceToken } from "@/lib/device-tokens";
 
 // Middleware only guards page requests; a forged/replayed direct action
@@ -141,6 +142,7 @@ export async function deleteRecordingAction(slug: string): Promise<{
       .map((key) => deleteObject(key)),
     deleteObjectPrefix(audioPartPrefixFor(row.storageKey)),
   ]);
+  await purgeCachedMedia(row);
   await deleteRecordingForAdmin(userId, cleanSlug);
   revalidatePath("/");
   return { error: null };

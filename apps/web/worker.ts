@@ -5,6 +5,7 @@
 import openNextWorker from "./.open-next/worker.js";
 import {
   backfillPosterDerivatives,
+  retryCdnPurges,
   runDailyRetentionSweep,
   runHourlyMultipartGc,
 } from "./lib/recording/cron";
@@ -21,6 +22,9 @@ type Env = {
   AI: Ai;
   SELF_HOSTED?: string;
   LEMON_API_KEY?: string;
+  CLOUDFLARE_ZONE_ID?: string;
+  CLOUDFLARE_PURGE_TOKEN?: string;
+  R2_PUBLIC_BASE_URL?: string;
 };
 
 // Keep equal to the consumer's max_retries in wrangler.jsonc: the delivery
@@ -41,6 +45,7 @@ const handler: ExportedHandler<Env> = {
       case "0 * * * *":
         ctx.waitUntil(runHourlyMultipartGc(env));
         ctx.waitUntil(backfillPosterDerivatives(env));
+        ctx.waitUntil(retryCdnPurges(env));
         break;
       case "0 4 * * *":
         ctx.waitUntil(runDailyRetentionSweep(env));

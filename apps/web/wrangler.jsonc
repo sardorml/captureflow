@@ -78,6 +78,9 @@
     "NEXT_PUBLIC_SCREENSHOT_SITE_URL": "https://captureflow.dev",
     "NEXT_PUBLIC_MARKETING_SITE_URL": "https://captureflow.dev",
     "R2_PUBLIC_BASE_URL": "https://cdn.captureflow.dev",
+    // Zone the media CDN lives in; deletes purge its cached files. The purge
+    // token itself is the CLOUDFLARE_PURGE_TOKEN secret.
+    "CLOUDFLARE_ZONE_ID": "d84c1c46cf08267d2864adf4bbbaaf59",
     "BETTER_AUTH_URL": "https://captureflow.dev",
     // Floor for the nav's star badge, used only when the GitHub call fails
     // (its rate limit is per-IP and Workers share egress IPs). Without it the
