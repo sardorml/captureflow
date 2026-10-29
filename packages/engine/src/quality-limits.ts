@@ -2,7 +2,7 @@ import {
   RECORDING_QUALITY_IDS,
   isRecordingQualityId,
   type RecordingQualityId,
-} from "@captureflow/engine";
+} from "./quality";
 
 // What the workspace lets a recording be; null means uncapped.
 export type RecordingLimits = {

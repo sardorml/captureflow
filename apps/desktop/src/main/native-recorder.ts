@@ -5,7 +5,11 @@ import {
 } from "@captureflow/engine/main";
 import { engineBinaryPath } from "./lib/engine-paths";
 import { logInfo, logWarn, logError, logRaw } from "./lib/logger";
-import type { RecordingFrameEvent, WindowBounds } from "../shared/types";
+import type {
+  NativeStreamingConfig,
+  RecordingFrameEvent,
+  WindowBounds,
+} from "../shared/types";
 
 export type { StopResult };
 
@@ -22,6 +26,7 @@ type RecorderConfig = {
   captureAudio?: boolean;
   excludePid?: number;
   cropRect?: WindowBounds;
+  streaming?: NativeStreamingConfig;
 };
 
 export function setOnUnexpectedExit(cb: (() => void) | null): void {
@@ -37,8 +42,14 @@ export function setOnRecordingEvent(
 export function startNativeRecording(
   config: RecorderConfig,
 ): Promise<StartResult> {
-  // Always streaming at the contract defaults; the app has no disk mode.
-  return recorder.start({ ...config, outputDir: "", streaming: {} });
+  // Always streaming, at the contract defaults where the preset leaves a
+  // gap; the app has no disk mode.
+  const { streaming = {}, ...rest } = config;
+  return recorder.start({ ...rest, outputDir: "", streaming });
+}
+
+export function setNativeRecordingBitrate(bitrate: number): void {
+  recorder.setBitrate(bitrate);
 }
 
 export function stopNativeRecording(): Promise<StopResult> {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createFmp4Muxer } from "../web/fmp4-mux";
 import { concat, fourcc, readerFromBytes, view } from "./bytes";
+import { FMP4_INDEX_RESERVE_BYTES } from "./fmp4-index";
 import {
   createIndexedRecording,
   finishRecordingFile,
@@ -82,6 +83,27 @@ describe("createIndexedRecording", () => {
   });
 });
 
+describe("headerBytes", () => {
+  it("marks the end of the reserve, live and read back from the file", async () => {
+    const file = memoryFile();
+    const recording = createIndexedRecording("mp4", file);
+    expect(recording.headerBytes).toBeNull();
+    record(recording, 4).finalize();
+    const live = recording.headerBytes;
+    expect(live).toBeGreaterThan(FMP4_INDEX_RESERVE_BYTES);
+    await recording.flushed();
+    expect(fourcc(file.bytes(), live! + 4)).toBe("moof");
+    const finished = await recording.finish();
+    expect(finished.headerBytes).toBe(live);
+  });
+
+  it("is 0 for a stream that takes no index", () => {
+    const recording = createIndexedRecording("mp4", memoryFile());
+    recording.push(new Uint8Array([0, 0, 0, 0, 1, 2, 3, 4, 5]));
+    expect(recording.headerBytes).toBe(0);
+  });
+});
+
 describe("finishRecordingFile", () => {
   it("recovers a file cut off mid-fragment by a crash", async () => {
     const file = memoryFile();
@@ -125,7 +147,7 @@ describe("indexRecordingFile", () => {
       readerFromBytes(source),
       target,
     );
-    expect(result).toEqual({ size: target.size, durationMs: 10_000 });
+    expect(result).toMatchObject({ size: target.size, durationMs: 10_000 });
     expect(sidxCount(target.bytes())).toBe(5);
   });
 

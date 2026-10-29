@@ -1011,6 +1011,10 @@ class RecordingSession {
     clock.resume()
   }
 
+  func setBitrate(_ bitrate: Int) {
+    recordingWriter?.setBitrate(bitrate)
+  }
+
   // ── Frame Handlers ──
 
   private func handleVideoFrame(_ sampleBuffer: CMSampleBuffer) {
@@ -1406,6 +1410,12 @@ stdinQueue.async {
       DispatchQueue.main.async { session.resume() }
       fputs("{\"status\":\"resumed\"}\n", stdout)
       fflush(stdout)
+    case let bitrate where bitrate.hasPrefix("bitrate "):
+      if let value = Int(bitrate.dropFirst("bitrate ".count)), value > 0 {
+        DispatchQueue.main.async { session.setBitrate(value) }
+      } else {
+        log(.warn, "main", "bad bitrate command: \(bitrate)")
+      }
     case "stop":
       DispatchQueue.main.async {
         session.stop { path, audioPath, duration in

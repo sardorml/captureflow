@@ -5,10 +5,11 @@ import {
   RECORDING_QUALITIES,
   hydrateRecordingQuality,
   type RecordingQualityId,
+  UNREAD_LIMITS,
+  clampQuality,
 } from "@captureflow/engine";
 import type { RecordingVisibility } from "@/lib/api/types";
 import { sendMessage } from "@/lib/messaging";
-import { UNREAD_LIMITS, clampQuality } from "@/lib/capture/quality-limits";
 import { WEB_BASE } from "@/lib/config";
 import {
   getCapturePrefs,

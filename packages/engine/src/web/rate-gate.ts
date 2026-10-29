@@ -12,10 +12,13 @@ export type RateGate = {
   spent(bytes: number): void;
   /** True when the frame at this timestamp should be skipped. */
   over(timestampUs: number): boolean;
+  /** A new ceiling; what the bucket held is cut to half the new size. */
+  setBitrate(next: number): void;
 };
 
-export function createRateGate(bitrate: number): RateGate {
-  const capacityBits = bitrate * BUCKET_SECONDS;
+export function createRateGate(initialBitrate: number): RateGate {
+  let bitrate = initialBitrate;
+  let capacityBits = bitrate * BUCKET_SECONDS;
   let bits = 0;
   let lastUs: number | null = null;
   return {
@@ -28,6 +31,11 @@ export function createRateGate(bitrate: number): RateGate {
       }
       lastUs = timestampUs;
       return bits > capacityBits;
+    },
+    setBitrate(next) {
+      bitrate = next;
+      capacityBits = next * BUCKET_SECONDS;
+      bits = Math.min(bits, capacityBits / 2);
     },
   };
 }

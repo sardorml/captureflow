@@ -1,4 +1,4 @@
-import type { WindowBounds } from "@captureflow/engine";
+import type { RecordingQualityId, WindowBounds } from "@captureflow/engine";
 
 export type {
   RecordingFrameEvent,
@@ -134,6 +134,7 @@ export const IPC_CHANNELS = {
   RECORDING_CONNECTIVITY_GET: "recording-connectivity-get",
   RECORDING_CONNECTIVITY_CHANGED: "recording-connectivity-changed",
   RECORDING_USAGE_GET: "recording-usage-get",
+  RECORDING_LIMITS_GET: "recording-limits-get",
   RECORDING_USAGE_CHANGED: "recording-usage-changed",
   RECORDING_USAGE_REFRESH: "recording-usage-refresh",
   RECORDING_USAGE_OPEN_UPGRADE: "recording-usage-open-upgrade",
@@ -211,13 +212,23 @@ export type UserPrefs = {
   termsAccepted: boolean;
 };
 
+// The encoder ceilings the native recorder streams at, from the chosen preset.
+export type NativeStreamingConfig = {
+  width: number;
+  height: number;
+  fps: number;
+  bitrate: number;
+};
+
 export type RecordingStartMeta = {
   title: string | null;
   hasWebcam: boolean;
+  quality: RecordingQualityId;
 };
 
+// `quality` is what the server accepted, lower than asked when its cap moved.
 export type RecordingStartResult =
-  | { ok: true; slug: string; editUrl: string }
+  | { ok: true; slug: string; editUrl: string; quality: RecordingQualityId }
   | { ok: false; error: string; code?: string; status?: number };
 
 // `webcamTotalBytes` is only meaningful when RECORDING_START.hasWebcam was true.
@@ -228,7 +239,7 @@ export type RecordingFinishMeta = {
 };
 
 export type RecordingFinishResult =
-  | { ok: true; slug: string; url: string }
+  | { ok: true; slug: string; url: string; uploadBitsPerSecond?: number }
   | {
       ok: false;
       error: string;

@@ -9,9 +9,8 @@ import type {
   RecordingResultPayload,
   RecordingStatus,
 } from "./storage";
-import type { RecordingQualityId } from "@captureflow/engine";
+import type { RecordingQualityId, RecordingLimits } from "@captureflow/engine";
 import type { CameraEffect } from "./capture/camera-effects";
-import type { RecordingLimits } from "./capture/quality-limits";
 
 export type StartResult = { ok: true } | { ok: false; error: string };
 

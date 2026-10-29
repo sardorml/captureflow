@@ -7,6 +7,10 @@ import {
   objectSize,
 } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
+import {
+  hydrateFinalizeSource,
+  resolveFinalizeParts,
+} from "@/lib/recording/segments";
 import { uploadOverrun } from "@/lib/recording/quota";
 import { overrunError } from "@/lib/recording/upload-errors";
 import type { FinalizeRequest } from "@/lib/recording/types";
@@ -32,19 +36,8 @@ export async function POST(req: NextRequest) {
   if (!isValidSlug(body.slug)) {
     return jsonError("Invalid slug", 400, "invalid_slug");
   }
-  if (!Array.isArray(body.parts) || body.parts.length === 0) {
-    return jsonError("Missing parts", 400, "invalid_parts");
-  }
-  for (const p of body.parts) {
-    if (
-      !p ||
-      typeof p.partNumber !== "number" ||
-      typeof p.etag !== "string" ||
-      p.etag.length === 0
-    ) {
-      return jsonError("Malformed part entry", 400, "invalid_parts");
-    }
-  }
+  const source = hydrateFinalizeSource(body);
+  if (!source) return jsonError("Missing parts", 400, "invalid_parts");
   const sizeBytes = body.sizeBytes;
   if (
     typeof sizeBytes !== "number" ||
@@ -74,10 +67,34 @@ export async function POST(req: NextRequest) {
   const overrun = await uploadOverrun(deviceId, row, sizeBytes);
   if (overrun) return overrunError(overrun);
 
+  const target = {
+    storageKey: row.webcamStorageKey,
+    uploadId: row.webcamUploadId,
+  };
+  let parts;
+  try {
+    parts = await resolveFinalizeParts(
+      source,
+      row.slug,
+      "webcam",
+      target,
+      sizeBytes,
+    );
+  } catch (err) {
+    console.error("[webcam-finalize] segment build failed", {
+      slug: row.slug,
+      err,
+    });
+    return jsonError("Couldn't build the upload", 503, "segments_failed");
+  }
+  if (!parts) {
+    return jsonError("Upload incomplete", 409, "segments_incomplete");
+  }
+
   await completeMultipartUpload(
     row.webcamStorageKey,
     row.webcamUploadId,
-    body.parts,
+    parts,
   );
 
   const actualWebcamBytes = await objectSize(row.webcamStorageKey);

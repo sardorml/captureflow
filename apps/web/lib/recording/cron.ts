@@ -10,6 +10,7 @@ import { createD1Db } from "./db-d1";
 import {
   audioPartPrefixFor,
   objectKeysFor,
+  segmentPrefixFor,
   THUMB_SUFFIX,
   posterThumbKeyFor,
 } from "./object-keys";
@@ -66,8 +67,12 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
          FROM recordings
         WHERE state = 'pending'
           AND upload_id IS NOT NULL
-          AND created_at < ?
-        LIMIT ?`,
+          AND created_at < ?1
+          AND NOT EXISTS (
+            SELECT 1 FROM recording_upload_segments s
+             WHERE s.slug = recordings.slug AND s.received_at >= ?1
+          )
+        LIMIT ?2`,
     )
       .bind(cutoff, BATCH_SIZE)
       .all<{
@@ -110,6 +115,51 @@ export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
       )
         .bind(row.slug)
         .run();
+    }
+    if (rows.length < BATCH_SIZE) break;
+  }
+}
+
+/*
+ * Upload segments (see segments.ts) only matter while their stream is still
+ * uploading. Once it is finalized, failed or aborted they are copies, so this
+ * removes them here rather than on the finalize path. Deleted recordings take
+ * their rows with them (ON DELETE CASCADE) and their objects in remove.ts.
+ */
+export async function sweepUploadSegments(env: CronEnv): Promise<void> {
+  for (let batch = 0; batch < MAX_BATCHES; batch++) {
+    const done = await env.DB.prepare(
+      `SELECT DISTINCT s.slug, s.stream,
+              CASE s.stream WHEN 'screen' THEN r.storage_key
+                            ELSE r.webcam_storage_key END AS storageKey
+         FROM recording_upload_segments s
+         JOIN recordings r ON r.slug = s.slug
+        WHERE CASE s.stream WHEN 'screen' THEN r.state
+                            ELSE r.webcam_state END != 'pending'
+        LIMIT ?`,
+    )
+      .bind(BATCH_SIZE)
+      .all<{ slug: string; stream: string; storageKey: string | null }>();
+    const rows = done.results ?? [];
+    for (const row of rows) {
+      try {
+        if (row.storageKey) {
+          await deleteObjectsWithPrefix(
+            env.BUCKET,
+            segmentPrefixFor(row.storageKey),
+          );
+        }
+        await env.DB.batch([
+          env.DB.prepare(
+            `DELETE FROM recording_upload_segments WHERE slug = ? AND stream = ?`,
+          ).bind(row.slug, row.stream),
+          env.DB.prepare(
+            `DELETE FROM recording_upload_parts WHERE slug = ? AND stream = ?`,
+          ).bind(row.slug, row.stream),
+        ]);
+      } catch (err) {
+        console.warn(`[cron] segment sweep failed for ${row.slug}:`, err);
+      }
     }
     if (rows.length < BATCH_SIZE) break;
   }

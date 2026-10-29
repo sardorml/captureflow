@@ -26,11 +26,14 @@ const WEBCAM_KEYFRAME_INTERVAL_MS = 2000;
 const WEBCAM_AUDIO_BITRATE = 128_000;
 const WEBCAM_TIMESLICE_MS = 200;
 
+export type WebcamCaptureSize = { width: number; height: number; fps: number };
+
 export async function acquireWebcamCapture(
   deviceId: string,
+  size?: WebcamCaptureSize,
 ): Promise<WebcamCaptureResult | null> {
   try {
-    const stream = await acquireWebcamStream(deviceId);
+    const stream = await acquireWebcamStream(deviceId, size);
     return { stream };
   } catch (err) {
     console.warn("Could not access webcam for recording:", err);
@@ -38,12 +41,22 @@ export async function acquireWebcamCapture(
   }
 }
 
-async function acquireWebcamStream(deviceId: string): Promise<MediaStream> {
+async function acquireWebcamStream(
+  deviceId: string,
+  size?: WebcamCaptureSize,
+): Promise<MediaStream> {
+  const constraints = size
+    ? {
+        width: { ideal: size.width },
+        height: { ideal: size.height },
+        frameRate: { ideal: size.fps },
+      }
+    : WEBCAM_CONSTRAINTS;
   try {
     return await navigator.mediaDevices.getUserMedia({
       video: {
         deviceId: { exact: deviceId },
-        ...WEBCAM_CONSTRAINTS,
+        ...constraints,
       },
       audio: false,
     });
@@ -52,9 +65,9 @@ async function acquireWebcamStream(deviceId: string): Promise<MediaStream> {
     return navigator.mediaDevices.getUserMedia({
       video: {
         deviceId: { exact: deviceId },
-        width: { ideal: WEBCAM_CONSTRAINTS.width.ideal },
-        height: { ideal: WEBCAM_CONSTRAINTS.height.ideal },
-        frameRate: WEBCAM_CONSTRAINTS.frameRate,
+        width: { ideal: constraints.width.ideal },
+        height: { ideal: constraints.height.ideal },
+        frameRate: constraints.frameRate,
       },
       audio: false,
     });

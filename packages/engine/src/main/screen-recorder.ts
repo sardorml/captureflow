@@ -55,6 +55,8 @@ export type ScreenRecorder = {
   stop(): Promise<StopResult>;
   pause(): void;
   resume(): void;
+  // The streaming encoder's average bitrate, live.
+  setBitrate(bitrate: number): void;
   isActive(): boolean;
   getHealth(): RecorderHealth | null;
   setOnUnexpectedExit(cb: (() => void) | null): void;
@@ -386,6 +388,10 @@ export function createScreenRecorder(opts: {
     resume() {
       log.info("recorder", "resume requested");
       proc?.stdin?.write("resume\n");
+    },
+    setBitrate(bitrate) {
+      log.info("recorder", `bitrate ${bitrate} requested`);
+      proc?.stdin?.write(`bitrate ${Math.round(bitrate)}\n`);
     },
     isActive() {
       return proc !== null;

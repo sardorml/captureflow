@@ -17,6 +17,11 @@ export function audioPartKeyFor(
   return `${audioPartPrefixFor(videoStorageKey)}${partNumber}.webm`;
 }
 
+// Upload pieces of a recording still being recorded (see segments.ts).
+export function segmentPrefixFor(storageKey: string): string {
+  return `${storageKey}.seg/`;
+}
+
 // The digest of the poster bytes is part of the key, so a replaced poster
 // gets a new URL and the old one can be cached forever.
 // Bumped when thumbnails change size or quality, so the backfill can tell an

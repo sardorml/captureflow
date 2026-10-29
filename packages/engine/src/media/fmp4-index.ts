@@ -40,61 +40,85 @@ function freeBox(size: number): Uint8Array {
 }
 
 /*
+ * headerBytes is where the reserve ends in the output, once it is written,
+ * or 0 for a stream that turned out not to take one. Everything before it is
+ * what the index rewrites.
+ */
+export type IndexReserver = {
+  readonly headerBytes: number | null;
+  write(chunk: Uint8Array): Uint8Array[];
+};
+
+/*
  * Rewrites the muxer's output stream on the way to storage: a reserve after
  * moov, no mfra. Box headers may arrive split across writes.
  */
-export function createFmp4Reserver(reserveBytes = FMP4_INDEX_RESERVE_BYTES): {
-  write(chunk: Uint8Array): Uint8Array[];
-} {
+export function createFmp4Reserver(
+  reserveBytes = FMP4_INDEX_RESERVE_BYTES,
+): IndexReserver {
   let header: Uint8Array = new Uint8Array(0);
   let remaining = 0;
   let forward = true;
   let type = "";
   let reserved = false;
+  let emitted = 0;
+  let headerBytes: number | null = null;
+  const reserve = freeBox(reserveBytes);
 
-  return {
-    write(chunk) {
-      const out: Uint8Array[] = [];
-      let at = 0;
-      while (at < chunk.byteLength) {
-        if (remaining > 0) {
-          const n = Math.min(remaining, chunk.byteLength - at);
-          if (forward) out.push(chunk.subarray(at, at + n));
-          remaining -= n;
-          at += n;
-          if (remaining === 0 && type === "moov" && !reserved) {
-            reserved = true;
-            out.push(freeBox(reserveBytes));
-          }
-          continue;
-        }
-        const need =
-          header.byteLength >= 8 && readSize32(header) === 1 ? 16 : 8;
-        const take = Math.min(need - header.byteLength, chunk.byteLength - at);
-        header = concat([header, chunk.subarray(at, at + take)]);
-        at += take;
-        if (header.byteLength < need) continue;
-        if (need === 8 && readSize32(header) === 1) continue;
-        const size =
-          need === 16
-            ? Number(view(header).getBigUint64(8))
-            : readSize32(header);
-        type = fourcc(header, 4);
-        forward = type !== "mfra";
-        if (forward) out.push(header);
-        // Size 0 means "to the end of the file"; one too small to be a box
-        // means this isn't MP4 after all, and the rest passes through as is.
-        const opaque = size === 0 || size < need;
-        if (opaque) forward = true;
-        remaining = opaque ? Number.MAX_SAFE_INTEGER : size - need;
-        header = new Uint8Array(0);
+  function account(out: Uint8Array[]): Uint8Array[] {
+    for (const part of out) {
+      emitted += part.byteLength;
+      if (part === reserve) headerBytes = emitted;
+    }
+    return out;
+  }
+
+  function split(chunk: Uint8Array): Uint8Array[] {
+    const out: Uint8Array[] = [];
+    let at = 0;
+    while (at < chunk.byteLength) {
+      if (remaining > 0) {
+        const n = Math.min(remaining, chunk.byteLength - at);
+        if (forward) out.push(chunk.subarray(at, at + n));
+        remaining -= n;
+        at += n;
         if (remaining === 0 && type === "moov" && !reserved) {
           reserved = true;
-          out.push(freeBox(reserveBytes));
+          out.push(reserve);
         }
+        continue;
       }
-      return out;
+      const need = header.byteLength >= 8 && readSize32(header) === 1 ? 16 : 8;
+      const take = Math.min(need - header.byteLength, chunk.byteLength - at);
+      header = concat([header, chunk.subarray(at, at + take)]);
+      at += take;
+      if (header.byteLength < need) continue;
+      if (need === 8 && readSize32(header) === 1) continue;
+      const size =
+        need === 16 ? Number(view(header).getBigUint64(8)) : readSize32(header);
+      type = fourcc(header, 4);
+      forward = type !== "mfra";
+      if (forward) out.push(header);
+      // Size 0 means "to the end of the file"; one too small to be a box
+      // means this isn't MP4 after all, and the rest passes through as is.
+      const opaque = size === 0 || size < need;
+      if (opaque) forward = true;
+      if (opaque && !reserved) headerBytes ??= 0;
+      remaining = opaque ? Number.MAX_SAFE_INTEGER : size - need;
+      header = new Uint8Array(0);
+      if (remaining === 0 && type === "moov" && !reserved) {
+        reserved = true;
+        out.push(reserve);
+      }
+    }
+    return out;
+  }
+
+  return {
+    get headerBytes() {
+      return headerBytes;
     },
+    write: (chunk) => account(split(chunk)),
   };
 }
 

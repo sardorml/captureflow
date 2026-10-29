@@ -1,7 +1,9 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { IPC_CHANNELS } from "../shared/types";
+import type { RecordingLimits } from "@captureflow/engine";
 import type {
   CaptureSource,
+  NativeStreamingConfig,
   WindowBounds,
   SelectionOverlayMode,
   WindowAtPoint,
@@ -90,7 +92,7 @@ const electronAPI = {
   /*
    * Streaming-upload bridges. recordingStart reserves a slug via /api/init at
    * record start. recordingPartScreen/recordingPartWebcam are fire-and-forget; main
-   * writes them to a file on disk and uploads 5 MiB parts from it. recordingFinish
+   * writes them to a file on disk and uploads what is new every ~2s. recordingFinish
    * writes the seek index + finalizes, returning the edit URL. recordingAbort
    * discards the upload on cancel/restart/crash.
    */
@@ -296,6 +298,7 @@ const electronAPI = {
     captureAudio?: boolean;
     includeSelfWindows?: boolean;
     cropRect?: WindowBounds;
+    streaming?: NativeStreamingConfig;
   }): Promise<{
     windowBounds?: WindowBounds;
     wallClockMs?: number;
@@ -441,6 +444,8 @@ const electronAPI = {
 
   getRecordingUsage: (): Promise<RecordingUsageState> =>
     ipcRenderer.invoke(IPC_CHANNELS.RECORDING_USAGE_GET),
+  getRecordingLimits: (): Promise<RecordingLimits> =>
+    ipcRenderer.invoke(IPC_CHANNELS.RECORDING_LIMITS_GET),
 
   refreshRecordingUsage: (): Promise<RecordingUsageState> =>
     ipcRenderer.invoke(IPC_CHANNELS.RECORDING_USAGE_REFRESH),

@@ -1,5 +1,6 @@
 import type {
   CaptureSource,
+  NativeStreamingConfig,
   WindowBounds,
   SelectionOverlayMode,
   WindowAtPoint,
@@ -20,6 +21,7 @@ import type {
   RecordingFailureState,
   UpgradeReason,
 } from "../shared/types";
+import type { RecordingLimits } from "@captureflow/engine";
 
 declare global {
   interface Window {
@@ -75,6 +77,7 @@ declare global {
         callback: (state: RecordingConnectivityState) => void,
       ) => () => void;
       getRecordingUsage: () => Promise<RecordingUsageState>;
+      getRecordingLimits: () => Promise<RecordingLimits>;
       refreshRecordingUsage: () => Promise<RecordingUsageState>;
       openRecordingUpgradeCheckout: () => Promise<void>;
       openRecordingDashboard: () => Promise<void>;
@@ -103,6 +106,7 @@ declare global {
         captureAudio?: boolean;
         includeSelfWindows?: boolean;
         cropRect?: WindowBounds;
+        streaming?: NativeStreamingConfig;
       }) => Promise<{
         windowBounds?: WindowBounds;
         wallClockMs?: number;

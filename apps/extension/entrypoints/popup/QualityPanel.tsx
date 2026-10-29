@@ -8,19 +8,20 @@ import {
   hydrateRecordingQuality,
   type RecordingQuality,
   type RecordingQualityId,
-} from "@captureflow/engine";
-import {
-  getCapturePrefs,
-  setCapturePrefs,
-  watchCapturePrefs,
-} from "@/lib/storage";
-import { sendMessage } from "@/lib/messaging";
-import {
   UNREAD_LIMITS,
   clampQuality,
   exceedsQuality,
   type RecordingLimits,
-} from "@/lib/capture/quality-limits";
+  outpacesUpload,
+  type UploadSpeed,
+} from "@captureflow/engine";
+import {
+  getCapturePrefs,
+  getUploadSpeed,
+  setCapturePrefs,
+  watchCapturePrefs,
+} from "@/lib/storage";
+import { sendMessage } from "@/lib/messaging";
 import { WEB_BASE } from "@/lib/config";
 
 const BACK_ICON = (
@@ -51,7 +52,11 @@ const CHECK_ICON = (
 
 const MB = 1024 * 1024;
 
-function detail(quality: RecordingQuality, camera: boolean): string {
+function detail(
+  quality: RecordingQuality,
+  camera: boolean,
+  outpaces: boolean,
+): string {
   const { screen, webcam } = quality;
   const parts = [
     `${screen.maxHeight}p`,
@@ -59,7 +64,13 @@ function detail(quality: RecordingQuality, camera: boolean): string {
     `${screen.bitrate / 1_000_000} Mbps`,
   ];
   if (camera) parts.push(`camera ${webcam.height}p`);
+  if (outpaces) parts.push("above your upload speed");
   return parts.join(" · ");
+}
+
+function mbps(bitsPerSecond: number): string {
+  const value = bitsPerSecond / 1_000_000;
+  return value < 10 ? value.toFixed(1) : String(Math.round(value));
 }
 
 function perMinute(quality: RecordingQuality, camera: boolean): string {
@@ -79,7 +90,14 @@ export function QualityPanel({ onBack }: { onBack: () => void }) {
   );
   const [camera, setCamera] = useState(true);
   const [limits, setLimits] = useState<RecordingLimits | null>(UNREAD_LIMITS);
+  const [speed, setSpeed] = useState<UploadSpeed | null>(null);
   const maxQuality = limits?.maxQuality ?? null;
+  const outpaces = (id: RecordingQualityId) =>
+    outpacesUpload(id, camera, speed, Date.now());
+
+  useEffect(() => {
+    void getUploadSpeed().then(setSpeed);
+  }, []);
 
   useEffect(() => {
     const read = (p: { quality?: unknown; camera: boolean }) => {
@@ -166,12 +184,20 @@ export function QualityPanel({ onBack }: { onBack: () => void }) {
                 </span>
               </span>
               <span className="text-xs text-muted">
-                {detail(preset, camera)}
+                {detail(preset, camera, outpaces(id))}
               </span>
             </button>
           );
         })}
       </div>
+      {speed && outpaces(effective) ? (
+        <p className="rounded-[14px] border border-separator bg-surface px-4 py-3 text-xs text-muted">
+          Your last uploads ran at about {mbps(speed.bitsPerSecond)} Mbps, less
+          than {RECORDING_QUALITIES[effective].label} sends during motion. The
+          recording lowers its bitrate to keep up, so fast motion may look
+          softer.
+        </p>
+      ) : null}
       {maxQuality ? (
         <div className="flex items-center gap-3 rounded-[14px] border border-separator bg-surface px-4 py-3">
           <p className="flex-1 text-xs text-muted">

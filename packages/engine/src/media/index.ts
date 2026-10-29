@@ -17,14 +17,14 @@ export {
   type WebmScan,
 } from "./webm-index";
 export {
-  PART_BYTES,
   UploadStalledError,
-  createPartUploader,
+  createSegmentUploader,
+  createThroughputMeter,
   type OnlineSignal,
-  type PartRef,
-  type PartUploader,
-  type PartUploaderOptions,
-} from "./part-uploader";
+  type ThroughputMeter,
+  type SegmentUploader,
+  type SegmentUploaderOptions,
+} from "./segment-uploader";
 export {
   createIndexedRecording,
   finishRecordingFile,
@@ -45,4 +45,12 @@ export {
   type RecordingUploadTransport,
   type UploadFinalizeRequest,
   type UploadInitResponse,
+  type UploadStream,
 } from "./recording-upload";
+export {
+  createBitrateGovernor,
+  startBitrateGovernor,
+  type BitrateGovernor,
+  type BitrateGovernorOptions,
+  type UploadSample,
+} from "./bitrate-governor";

@@ -4,8 +4,10 @@ import type {
   RecordingComment,
   RecordingReaction,
   RecordingRow,
+  RecordingStream,
   RecordingViewerEntry,
   TranscriptRow,
+  UploadSegment,
 } from "./types";
 import type { CreateTranscriptJobInput, RecordingDb } from "./db-types";
 import { memoryDb } from "./db-memory";
@@ -174,4 +176,35 @@ export async function getTranscript(
   slug: string,
 ): Promise<TranscriptRow | null> {
   return (await resolveDb()).getTranscript(slug);
+}
+
+export async function putUploadSegment(
+  slug: string,
+  stream: RecordingStream,
+  segment: UploadSegment,
+): Promise<void> {
+  return (await resolveDb()).putUploadSegment(slug, stream, segment);
+}
+
+export async function listUploadSegments(
+  slug: string,
+  stream: RecordingStream,
+  fromOffset?: number,
+): Promise<UploadSegment[]> {
+  return (await resolveDb()).listUploadSegments(slug, stream, fromOffset);
+}
+
+export async function putUploadPart(
+  slug: string,
+  stream: RecordingStream,
+  part: { partNumber: number; etag: string },
+): Promise<void> {
+  return (await resolveDb()).putUploadPart(slug, stream, part);
+}
+
+export async function listUploadParts(
+  slug: string,
+  stream: RecordingStream,
+): Promise<{ partNumber: number; etag: string }[]> {
+  return (await resolveDb()).listUploadParts(slug, stream);
 }

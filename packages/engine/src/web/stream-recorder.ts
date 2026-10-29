@@ -60,6 +60,8 @@ export type StreamRecorder = {
   /** Stops encoding new media; the output timeline stays continuous across the gap. */
   pause(): Promise<void>;
   resume(): void;
+  /** A new video bitrate mid-recording; ignored once the encoder can't take one. */
+  setBitrate(bitrate: number): void;
   /** Idempotent; flushes the encoders and finalizes the muxer. */
   stop(): Promise<StreamRecorderResult>;
 };
@@ -119,6 +121,10 @@ function createLumaSampler(): (frame: VideoFrame) => Float32Array | null {
       return null;
     }
   };
+}
+
+function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
+  return a.byteLength === b.byteLength && a.every((v, i) => v === b[i]);
 }
 
 async function isAacSupported(config: AudioEncoderConfig): Promise<boolean> {
@@ -237,11 +243,60 @@ export async function startStreamRecorder(
   let pauseStartedAtMs: number | null = null;
   let pauseOffsetUs = 0;
   let forceKeyframe = false;
+  let currentBitrate = bitrate;
+  let reconfigured = false;
+  let adaptable = true;
+  let firstDescription: Uint8Array | null = null;
   let lastVideoTsUs = -Infinity;
   let lastAudioTsUs = -Infinity;
 
+  const videoConfig: VideoEncoderConfig = {
+    codec,
+    width,
+    height,
+    framerate,
+    bitrate,
+    hardwareAcceleration: acceleration,
+    // Screen-content mode in the encoder: it halved the bytes a playing
+    // thumbnail cost at the same ceiling, so more frames survive the gate.
+    contentHint: "text",
+    avc: { format: "avc" },
+  };
+
+  /*
+   * The muxer writes the first decoder config only, so a new bitrate is safe
+   * only while the encoder keeps its parameter sets. If one ever changes them,
+   * the recording goes back to the start bitrate and stops adapting.
+   */
+  function noteDescription(meta: EncodedVideoChunkMetadata | undefined) {
+    const raw = meta?.decoderConfig?.description;
+    if (!raw) return;
+    const description = ArrayBuffer.isView(raw)
+      ? new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength)
+      : new Uint8Array(raw);
+    if (!firstDescription) {
+      firstDescription = description.slice();
+      return;
+    }
+    if (!reconfigured || !adaptable) return;
+    if (sameBytes(firstDescription, description)) return;
+    adaptable = false;
+    log.warn(
+      "stream-recorder: the encoder changed its parameter sets on a bitrate change; keeping the start bitrate",
+    );
+    applyBitrate(bitrate);
+  }
+
+  function applyBitrate(next: number) {
+    currentBitrate = next;
+    gate.setBitrate(next);
+    encoder.configure({ ...videoConfig, bitrate: next });
+    forceKeyframe = true;
+  }
+
   const encoder = new VideoEncoder({
     output: (chunk, meta) => {
+      noteDescription(meta);
       gate.spent(chunk.byteLength);
       const data = new Uint8Array(chunk.byteLength);
       chunk.copyTo(data);
@@ -281,18 +336,7 @@ export async function startStreamRecorder(
    * the hardware encoder repays an oversized keyframe by stalling, which
    * froze every capture device for seconds at the start of a recording.
    */
-  encoder.configure({
-    codec,
-    width,
-    height,
-    framerate,
-    bitrate,
-    hardwareAcceleration: acceleration,
-    // Screen-content mode in the encoder: it halved the bytes a playing
-    // thumbnail cost at the same ceiling, so more frames survive the gate.
-    contentHint: "text",
-    avc: { format: "avc" },
-  });
+  encoder.configure(videoConfig);
 
   // Mic encode errors are contained: the screen capture is load-bearing, the
   // mic track is best-effort.
@@ -472,6 +516,13 @@ export async function startStreamRecorder(
       }
       forceKeyframe = true;
       paused = false;
+    },
+    setBitrate(next) {
+      if (stopping || !adaptable || encoder.state !== "configured") return;
+      if (next === currentBitrate) return;
+      log.info(`stream-recorder: bitrate ${currentBitrate} → ${next}`);
+      reconfigured = true;
+      applyBitrate(next);
     },
     stop() {
       finishPromise ??= finish();

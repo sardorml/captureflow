@@ -24,6 +24,8 @@ export type RecordingFormat = "mp4" | "webm";
 const WEBM_LAST_FRAME_MS = 33;
 
 export type IndexedRecording = {
+  // Bytes up to the index reserve, which finish() rewrites; null until written.
+  readonly headerBytes: number | null;
   push(bytes: Uint8Array): void;
   // Settles once every pushed byte is in the file.
   flushed(): Promise<void>;
@@ -34,8 +36,12 @@ export type IndexedRecording = {
   finish(): Promise<FinishedRecording>;
 };
 
-// durationMs is read back from the file, so a recovered upload knows it too.
-export type FinishedRecording = { size: number; durationMs: number | null };
+// Read back from the file, so a recovered upload knows them too.
+export type FinishedRecording = {
+  size: number;
+  durationMs: number | null;
+  headerBytes: number;
+};
 
 export function createIndexedRecording(
   format: RecordingFormat,
@@ -48,6 +54,9 @@ export function createIndexedRecording(
   let failure: unknown = null;
 
   return {
+    get headerBytes() {
+      return reserver.headerBytes;
+    },
     push(bytes) {
       for (const part of reserver.write(bytes)) {
         const copy = part.slice();
@@ -81,10 +90,12 @@ export async function finishRecordingFile(
   let patch: BytePatch | null = null;
   let completeBytes: number | null = null;
   let durationMs: number | null = null;
+  let headerBytes = 0;
   if (format === "mp4") {
     const scan = await scanFmp4(file);
     if (scan) {
       completeBytes = scan.completeBytes;
+      if (scan.reserve) headerBytes = scan.reserve.offset + scan.reserve.size;
       patch = fmp4IndexPatch(scan);
       const ticks = scan.fragments.reduce((n, f) => n + f.duration, 0);
       durationMs = Math.round((ticks / scan.timescale) * 1000);
@@ -93,6 +104,7 @@ export async function finishRecordingFile(
     const scan = await scanWebm(file);
     if (scan) {
       completeBytes = scan.completeBytes;
+      if (scan.reserve) headerBytes = scan.reserve.offset + scan.reserve.size;
       patch = await webmIndexPatch(file, scan, WEBM_LAST_FRAME_MS).catch(
         () => null,
       );
@@ -105,7 +117,7 @@ export async function finishRecordingFile(
     await file.truncate(completeBytes);
   }
   if (patch) await file.write(patch.offset, patch.bytes);
-  return { size: file.size, durationMs };
+  return { size: file.size, durationMs, headerBytes };
 }
 
 const COPY_BYTES = 4 * 1024 * 1024;

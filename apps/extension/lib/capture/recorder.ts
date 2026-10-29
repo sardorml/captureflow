@@ -2,6 +2,7 @@ import {
   RECORDING_QUALITIES,
   hydrateRecordingQuality,
   type RecordingQuality,
+  clampQuality,
 } from "@captureflow/engine";
 import {
   MIC_CONSTRAINTS,
@@ -14,6 +15,7 @@ import {
   type StreamRecorder,
   type WebcamRecorder,
 } from "@captureflow/engine/web";
+import { startBitrateGovernor } from "@captureflow/engine/media";
 import {
   createRecordingTransport,
   RecordingApiHttpError,
@@ -31,7 +33,6 @@ import { createCameraEffectStream } from "./camera-effect-stream";
 import { isPlainCameraEffect } from "./camera-effects";
 import { startCaptureDiagnostics } from "./dev-diagnostics";
 import { openLocalRecording } from "./local-recording";
-import { clampQuality } from "./quality-limits";
 
 const DEV = import.meta.env.MODE !== "production";
 const devLog = DEV ? console : undefined;
@@ -399,6 +400,17 @@ async function runSession(
 
   mark("screen recorder started");
 
+  // On a connection slower than the preset, the screen bitrate drops to
+  // what the upload moves, so stopping still leaves only seconds to send.
+  const stopGovernor = startBitrateGovernor({
+    ceiling: quality.screen.bitrate,
+    read: () => ({
+      recordedBytes: upload.screenBytes + upload.webcamBytes,
+      uploadedBytes: upload.uploadedBytes,
+    }),
+    apply: (bitrate) => screenRecorder.setBitrate(bitrate),
+  });
+
   // A webcam recorder failure is contained to its own stream so the
   // load-bearing screen capture keeps going (webcam best-effort).
   let webcamRecorder: WebcamRecorder | null = null;
@@ -450,6 +462,7 @@ async function runSession(
 
   const stopRecorders = async (): Promise<void> => {
     if (durationTimer) clearInterval(durationTimer);
+    stopGovernor();
     await Promise.all([
       screenRecorder.stop().catch(() => null),
       webcamRecorder?.stop().catch(() => null) ?? Promise.resolve(null),
@@ -459,6 +472,7 @@ async function runSession(
 
   const finalize = async (): Promise<void> => {
     if (durationTimer) clearInterval(durationTimer);
+    stopGovernor();
     cb.onFinalizing(recordingViewUrl(upload.slug));
     const progress = (): void =>
       cb.onStatus({
@@ -478,16 +492,18 @@ async function runSession(
       stopAllTracks();
       const durationMs = activeElapsed();
       // Same stance as the webcam companion: a lost transcript is not a
-      // failed recording. Requested before finalize, while the device id
-      // still authorizes it, so the share page can show it transcribing.
-      if (audio) await audio.requestTranscript().catch(() => undefined);
-      const { url } = await upload.finish(durationMs);
+      // failed recording. It goes up beside the video and is requested
+      // before finalize, while the device id still authorizes it, so the
+      // share page can show it transcribing.
+      const transcript = audio?.requestTranscript();
+      const { url } = await upload.finish(durationMs, transcript);
       cb.onActiveUpload(null);
       cb.onResult({
         ok: true,
         url,
         bytes: upload.screenBytes + upload.webcamBytes,
         durationMs,
+        uploadBitsPerSecond: upload.uploadBitsPerSecond ?? undefined,
       });
     } catch (err) {
       stopAllTracks();

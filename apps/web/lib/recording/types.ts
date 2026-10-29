@@ -174,13 +174,34 @@ export type PartResponse = {
   etag: string;
 };
 
-export type FinalizeRequest = {
+/*
+ * Newer recorders POST the file in small pieces to /api/r/segment and
+ * finalize with `segments: true`; the server builds the parts from them.
+ * Older ones send their own parts.
+ */
+export type SegmentFinalizeRequest = {
+  slug: string;
+  segments: true;
+  sizeBytes: number;
+  durationMs?: number;
+};
+
+export type PartsFinalizeRequest = {
   slug: string;
   parts: { partNumber: number; etag: string }[];
   sizeBytes: number;
   // Uploads stream while recording, so /init can't know it yet.
   durationMs?: number;
 };
+
+export type FinalizeRequest = SegmentFinalizeRequest | PartsFinalizeRequest;
+
+export type RecordingStream = "screen" | "webcam";
+
+export type UploadSegment = { offset: number; size: number };
+
+// GET /api/r/segment: how far from byte 0 the server has the stream.
+export type SegmentCoverageResponse = { covered: number };
 
 export type FinalizeResponse = {
   url: string;

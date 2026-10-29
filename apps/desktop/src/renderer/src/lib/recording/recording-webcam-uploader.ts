@@ -7,6 +7,8 @@ import { logRendererInfo, logRendererWarn } from "./recording-log";
 export type RecordingWebcamUploaderInputs = {
   webcamStream: MediaStream;
   micStream: MediaStream | null;
+  videoBitrate?: number;
+  audioBitrate?: number;
 };
 
 export type RecordingWebcamUploaderResult = {
@@ -20,6 +22,8 @@ export class RecordingWebcamUploader {
     this.recorder = startWebcamRecorder({
       webcamStream: inputs.webcamStream,
       micStream: inputs.micStream,
+      videoBitrate: inputs.videoBitrate,
+      audioBitrate: inputs.audioBitrate,
       onChunk: (buf) => window.electronAPI.recordingPartWebcam(buf),
       log: { info: logRendererInfo, warn: logRendererWarn },
     });

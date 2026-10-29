@@ -2,7 +2,12 @@ import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ACCOUNT_LIMITS } from "@captureflow/quota";
 import { encode } from "jpeg-js";
-import { backfillPosterDerivatives, runDailyRetentionSweep } from "./cron";
+import {
+  backfillPosterDerivatives,
+  runDailyRetentionSweep,
+  runHourlyMultipartGc,
+  sweepUploadSegments,
+} from "./cron";
 
 // Minimal D1 over node:sqlite. Statements compile lazily, as the facade
 // prepares queries against columns this fixture schema doesn't have.
@@ -16,7 +21,10 @@ function d1(sqlite: DatabaseSync): D1Database {
       return { meta: { changes: Number(r.changes) } };
     },
   });
-  return { prepare } as unknown as D1Database;
+  const batch = async (statements: { run(): Promise<unknown> }[]) => {
+    for (const statement of statements) await statement.run();
+  };
+  return { prepare, batch } as unknown as D1Database;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -32,10 +40,17 @@ function bucket(): R2Bucket {
     delete: async (keys: string | string[]) => {
       deleted.push(...(Array.isArray(keys) ? keys : [keys]));
     },
+    list: async ({ prefix }: { prefix: string }) => ({
+      objects: [...objects.keys()]
+        .filter((key) => key.startsWith(prefix))
+        .map((key) => ({ key })),
+      truncated: false,
+    }),
     get: async (key: string) => {
       const obj = objects.get(key);
       return obj ? { arrayBuffer: async () => obj.body.buffer } : null;
     },
+    resumeMultipartUpload: () => ({ abort: async () => {} }),
     put: async (
       key: string,
       body: Uint8Array,
@@ -84,7 +99,12 @@ beforeEach(() => {
       poster_blur TEXT, poster_thumb_key TEXT, width INTEGER, height INTEGER,
       webcam_storage_key TEXT, webcam_state TEXT DEFAULT 'none', state TEXT,
       last_viewed_at INTEGER, created_at INTEGER, user_id TEXT, workspace_id TEXT,
-      size_bytes INTEGER DEFAULT 0, webcam_size_bytes INTEGER DEFAULT 0);
+      size_bytes INTEGER DEFAULT 0, webcam_size_bytes INTEGER DEFAULT 0,
+      upload_id TEXT, webcam_upload_id TEXT);
+    CREATE TABLE recording_upload_segments (slug TEXT, stream TEXT,
+      byte_offset INTEGER, size INTEGER, received_at INTEGER);
+    CREATE TABLE recording_upload_parts (slug TEXT, stream TEXT,
+      part_number INTEGER, etag TEXT);
     CREATE TABLE screenshots (id TEXT PRIMARY KEY, storage_key TEXT, state TEXT,
       last_viewed_at INTEGER, created_at INTEGER, updated_at INTEGER,
       user_id TEXT, workspace_id TEXT);
@@ -231,5 +251,100 @@ describe("runDailyRetentionSweep", () => {
     await runDailyRetentionSweep({ DB: d1(sqlite), BUCKET: bucket() });
 
     expect(remaining()).toEqual([]);
+  });
+});
+
+describe("sweepUploadSegments", () => {
+  function addUpload(slug: string, state: string, webcamState: string) {
+    sqlite
+      .prepare(
+        `INSERT INTO recordings (slug, storage_key, webcam_storage_key, state, webcam_state, created_at)
+         VALUES (?, ?, ?, ?, ?, 1)`,
+      )
+      .run(
+        slug,
+        `videos/${slug}.mp4`,
+        `videos/${slug}-cam.webm`,
+        state,
+        webcamState,
+      );
+    for (const [stream, key] of [
+      ["screen", `videos/${slug}.mp4`],
+      ["webcam", `videos/${slug}-cam.webm`],
+    ] as const) {
+      sqlite
+        .prepare(
+          `INSERT INTO recording_upload_segments VALUES (?, ?, 0, 10, 1)`,
+        )
+        .run(slug, stream);
+      objects.set(`${key}.seg/0`, { body: new Uint8Array(10) });
+    }
+  }
+
+  const segmentRows = () =>
+    sqlite
+      .prepare(
+        `SELECT slug, stream FROM recording_upload_segments ORDER BY slug, stream`,
+      )
+      .all()
+      .map((r) => `${r.slug}:${r.stream}`);
+
+  it("clears the pieces of streams that are done and keeps live ones", async () => {
+    addUpload("live", "pending", "pending");
+    addUpload("half", "ready", "pending");
+    addUpload("done", "ready", "ready");
+
+    await sweepUploadSegments({ DB: d1(sqlite), BUCKET: bucket() });
+
+    expect(segmentRows()).toEqual([
+      "half:webcam",
+      "live:screen",
+      "live:webcam",
+    ]);
+    expect(deleted.sort()).toEqual([
+      "videos/done-cam.webm.seg/0",
+      "videos/done.mp4.seg/0",
+      "videos/half.mp4.seg/0",
+    ]);
+  });
+});
+
+describe("runHourlyMultipartGc", () => {
+  const HOUR_MS = 60 * 60 * 1000;
+
+  function addPending(slug: string, receivedAt: number | null) {
+    sqlite
+      .prepare(
+        `INSERT INTO recordings (slug, storage_key, state, upload_id, created_at)
+         VALUES (?, ?, 'pending', 'u', ?)`,
+      )
+      .run(slug, `videos/${slug}.mp4`, Date.now() - 3 * HOUR_MS);
+    if (receivedAt !== null) {
+      sqlite
+        .prepare(
+          `INSERT INTO recording_upload_segments VALUES (?, 'screen', 0, 10, ?)`,
+        )
+        .run(slug, receivedAt);
+    }
+  }
+
+  const states = () =>
+    sqlite
+      .prepare(`SELECT slug, state FROM recordings ORDER BY slug`)
+      .all()
+      .map((r) => `${r.slug}:${r.state}`);
+
+  it("fails an old upload that went quiet and keeps one still sending", async () => {
+    addPending("legacy", null);
+    addPending("quiet", Date.now() - 2 * HOUR_MS);
+    addPending("sending", Date.now() - 60_000);
+
+    await runHourlyMultipartGc({ DB: d1(sqlite), BUCKET: bucket() });
+
+    expect(states()).toEqual([
+      "legacy:failed",
+      "quiet:failed",
+      "sending:pending",
+    ]);
   });
 });

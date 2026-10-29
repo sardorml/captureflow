@@ -1,13 +1,20 @@
 import {
-  createPartUploader,
-  type OnlineSignal,
-  type PartRef,
-} from "./part-uploader";
-import {
   createIndexedRecording,
   finishRecordingFile,
   type RecordingFile,
+  type RecordingFormat,
 } from "./recording-file";
+import {
+  createSegmentUploader,
+  createThroughputMeter,
+  UploadStalledError,
+  type OnlineSignal,
+  type SegmentUploader,
+  type ThroughputMeter,
+} from "./segment-uploader";
+
+const defaultWait = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export type UploadInitResponse = {
   slug: string;
@@ -16,25 +23,26 @@ export type UploadInitResponse = {
   maxDurationMs?: number;
 };
 
+export type UploadStream = "screen" | "webcam";
+
 export type UploadFinalizeRequest = {
   slug: string;
-  parts: PartRef[];
+  segments: true;
   sizeBytes: number;
   durationMs?: number;
 };
 
 export type RecordingUploadTransport<Init> = {
   init(req: Init): Promise<UploadInitResponse>;
-  uploadScreenPart(
+  uploadSegment(
     slug: string,
-    partNumber: number,
+    stream: UploadStream,
+    offset: number,
     bytes: Uint8Array,
-  ): Promise<PartRef>;
-  uploadWebcamPart(
-    slug: string,
-    partNumber: number,
-    bytes: Uint8Array,
-  ): Promise<PartRef>;
+    signal: AbortSignal,
+  ): Promise<void>;
+  // How far from byte 0 the server has the stream.
+  uploadedThrough(slug: string, stream: UploadStream): Promise<number>;
   finalizeScreen(req: UploadFinalizeRequest): Promise<{ url: string }>;
   finalizeWebcam(req: UploadFinalizeRequest): Promise<void>;
   abort(req: { slug: string }): Promise<void>;
@@ -52,8 +60,10 @@ export type RecordingUploadOptions<Init> = {
   transport: RecordingUploadTransport<Init>;
   openFiles(slug: string, hasWebcam: boolean): Promise<LocalFiles>;
   online?: OnlineSignal;
-  partBytes?: number;
   retryWait?: (ms: number) => Promise<void>;
+  intervalMs?: number;
+  maxSegmentBytes?: number;
+  every?: (ms: number, cb: () => void) => () => void;
 };
 
 export type RecordingUpload = {
@@ -62,6 +72,8 @@ export type RecordingUpload = {
   readonly screenBytes: number;
   readonly webcamBytes: number;
   readonly uploadedBytes: number;
+  // Measured upload speed in bits per second; null until enough went up.
+  readonly uploadBitsPerSecond: number | null;
   // Null where the server set no cap.
   readonly remainingBytes: number | null;
   readonly maxDurationMs: number | null;
@@ -69,10 +81,14 @@ export type RecordingUpload = {
   pushWebcam(bytes: Uint8Array): void;
   /*
    * durationMs rides finalize because /init runs before the recording exists.
-   * Throws UploadStalledError when the connection never came back: the files
-   * stay on this device for resumeRecordingUpload.
+   * beforeFinalize is awaited after the bytes are up and before the
+   * recording is finalized. Throws UploadStalledError when the connection
+   * never came back: the files stay on this device for resumeRecordingUpload.
    */
-  finish(durationMs?: number): Promise<{ url: string }>;
+  finish(
+    durationMs?: number,
+    beforeFinalize?: Promise<unknown>,
+  ): Promise<{ url: string }>;
   abort(): void;
 };
 
@@ -90,80 +106,122 @@ export type PendingUpload<Init> = {
   hasWebcam: boolean;
 };
 
+function segmentUploader<Init>(
+  options: RecordingUploadOptions<Init>,
+  slug: string,
+  stream: UploadStream,
+  file: RecordingFile,
+  headerBytes: () => number | null,
+  meter?: ThroughputMeter,
+): SegmentUploader {
+  return createSegmentUploader({
+    meter,
+    file,
+    uploadSegment: (offset, bytes, signal) =>
+      options.transport.uploadSegment(slug, stream, offset, bytes, signal),
+    headerBytes,
+    online: options.online,
+    wait: options.retryWait,
+    intervalMs: options.intervalMs,
+    maxSegmentBytes: options.maxSegmentBytes,
+    every: options.every,
+  });
+}
+
+const FINALIZE_ATTEMPTS = 4;
+
+// Only a request the server refused for good makes the local copy worthless.
+function isRejection(err: unknown): boolean {
+  const { status, code } = (err ?? {}) as { status?: unknown; code?: unknown };
+  return (
+    typeof status === "number" &&
+    status >= 400 &&
+    status < 500 &&
+    code !== "segments_incomplete"
+  );
+}
+
 async function finalizeScreen<Init>(
   transport: RecordingUploadTransport<Init>,
   slug: string,
-  parts: PartRef[],
   sizeBytes: number,
   durationMs: number | null | undefined,
+  wait: (ms: number) => Promise<void>,
 ): Promise<{ url: string }> {
-  try {
-    return await transport.finalizeScreen({
-      slug,
-      parts,
-      sizeBytes,
-      ...(durationMs && durationMs > 0 ? { durationMs } : {}),
-    });
-  } catch (err) {
-    // A finalize lost to the network may still have been applied — the
-    // no-auth state probe disambiguates (finalize is idempotent).
-    const probe = await transport.state(slug).catch(() => null);
-    if (probe?.state !== "ready") throw err;
-    return { url: transport.viewUrl(slug) };
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await transport.finalizeScreen({
+        slug,
+        segments: true,
+        sizeBytes,
+        ...(durationMs && durationMs > 0 ? { durationMs } : {}),
+      });
+    } catch (err) {
+      // A finalize lost to the network may still have been applied — the
+      // no-auth state probe disambiguates (finalize is idempotent).
+      const probe = await transport.state(slug).catch(() => null);
+      if (probe?.state === "ready") return { url: transport.viewUrl(slug) };
+      if (isRejection(err)) throw err;
+      if (attempt >= FINALIZE_ATTEMPTS) throw new UploadStalledError(err);
+      await wait(1000 * attempt);
+    }
   }
 }
 
 // Best-effort: a camera that fails to land leaves the viewer playing screen-only.
-async function finalizeWebcam<Init>(
-  transport: RecordingUploadTransport<Init>,
-  slug: string,
-  parts: PartRef[],
-  sizeBytes: number,
+async function finishWebcam(
+  finishFile: () => Promise<{ size: number; headerBytes: number }>,
+  upload: (headerBytes: number) => Promise<void>,
+  finalize: (sizeBytes: number) => Promise<void>,
 ): Promise<void> {
-  if (parts.length === 0) return;
-  await transport.finalizeWebcam({ slug, parts, sizeBytes }).catch(() => {});
+  try {
+    const cam = await finishFile();
+    if (cam.size === 0) return;
+    await upload(cam.headerBytes);
+    await finalize(cam.size);
+  } catch {
+    /* see above */
+  }
 }
 
 /*
- * Open a (dual) multipart recording upload. Bytes go to this device's copy
- * first and are uploaded from there, so nothing is lost to a crash or a dead
- * connection. The webcam stream exists only when /init reserved one.
+ * Open a (dual) recording upload. Bytes go to this device's copy first and
+ * are uploaded from there in small segments while recording, so nothing is
+ * lost to a crash or a dead connection and little is left to send at stop.
+ * The webcam stream exists only when /init reserved one.
  */
 export async function startRecordingUpload<Init>(
   init: Init,
   options: RecordingUploadOptions<Init>,
 ): Promise<RecordingUpload> {
-  const { transport, online } = options;
+  const { transport } = options;
   const res = await transport.init(init);
   const slug = res.slug;
   const hasWebcam = !!res.webcamUploadId;
   const files = await options.openFiles(slug, hasWebcam);
+  const meter = createThroughputMeter();
 
-  const screenUploader = createPartUploader({
-    file: files.screen,
-    uploadPart: (n, bytes) => transport.uploadScreenPart(slug, n, bytes),
-    partBytes: options.partBytes,
-    online,
-    wait: options.retryWait,
-  });
-  const screen = createIndexedRecording("mp4", files.screen, () =>
-    screenUploader.notify(),
-  );
-  const webcamUploader =
-    files.webcam &&
-    createPartUploader({
-      file: files.webcam,
-      uploadPart: (n, bytes) => transport.uploadWebcamPart(slug, n, bytes),
-      partBytes: options.partBytes,
-      online,
-      wait: options.retryWait,
-    });
-  const webcam =
-    files.webcam && webcamUploader
-      ? createIndexedRecording("webm", files.webcam, () =>
-          webcamUploader.notify(),
-        )
-      : null;
+  const open = (
+    format: RecordingFormat,
+    stream: UploadStream,
+    file: RecordingFile,
+  ) => {
+    let uploader: SegmentUploader | null = null;
+    const recording = createIndexedRecording(format, file, () =>
+      uploader?.notify(),
+    );
+    uploader = segmentUploader(
+      options,
+      slug,
+      stream,
+      file,
+      () => recording.headerBytes,
+      meter,
+    );
+    return { recording, uploader };
+  };
+  const screen = open("mp4", "screen", files.screen);
+  const webcam = files.webcam ? open("webm", "webcam", files.webcam) : null;
 
   let screenBytes = 0;
   let webcamBytes = 0;
@@ -182,43 +240,42 @@ export async function startRecordingUpload<Init>(
     },
     get uploadedBytes() {
       return (
-        screenUploader.uploadedBytes + (webcamUploader?.uploadedBytes ?? 0)
+        screen.uploader.uploadedBytes + (webcam?.uploader.uploadedBytes ?? 0)
       );
+    },
+    get uploadBitsPerSecond() {
+      return meter.bitsPerSecond();
     },
     pushScreen(bytes) {
       if (stopped || bytes.byteLength === 0) return;
       screenBytes += bytes.byteLength;
-      screen.push(bytes);
+      screen.recording.push(bytes);
     },
     pushWebcam(bytes) {
       if (stopped || !webcam || bytes.byteLength === 0) return;
       webcamBytes += bytes.byteLength;
-      webcam.push(bytes);
+      webcam.recording.push(bytes);
     },
-    async finish(durationMs) {
+    async finish(durationMs, beforeFinalize) {
       stopped = true;
-      const finished = await screen.finish();
+      const finished = await screen.recording.finish();
       if (finished.size === 0) throw new Error("No screen parts uploaded");
-      const screenParts = await screenUploader.finish();
+      await screen.uploader.finish(finished.headerBytes);
+      await beforeFinalize?.catch(() => undefined);
       const result = await finalizeScreen(
         transport,
         slug,
-        screenParts,
         finished.size,
         durationMs ?? finished.durationMs,
+        options.retryWait ?? defaultWait,
       );
-      if (webcam && webcamUploader) {
-        try {
-          const cam = await webcam.finish();
-          await finalizeWebcam(
-            transport,
-            slug,
-            await webcamUploader.finish(),
-            cam.size,
-          );
-        } catch {
-          /* best-effort, see finalizeWebcam */
-        }
+      if (webcam) {
+        await finishWebcam(
+          () => webcam.recording.finish(),
+          (headerBytes) => webcam.uploader.finish(headerBytes),
+          (sizeBytes) =>
+            transport.finalizeWebcam({ slug, segments: true, sizeBytes }),
+        );
       }
       await files.remove().catch(() => {});
       return result;
@@ -226,9 +283,9 @@ export async function startRecordingUpload<Init>(
     abort() {
       if (stopped) return;
       stopped = true;
-      screenUploader.abort();
-      webcamUploader?.abort();
-      // Release the server-side multipart + pending row; best-effort.
+      screen.uploader.abort();
+      webcam?.uploader.abort();
+      // Release the server-side upload + pending row; best-effort.
       void transport.abort({ slug }).catch(() => {});
       void files.remove().catch(() => {});
     },
@@ -236,16 +293,16 @@ export async function startRecordingUpload<Init>(
 }
 
 /*
- * Finishes a recording from the files it left on this device. Every part is
- * sent again (re-sending a part number replaces it), so nothing has to be
- * known about what reached the server before the crash. If the server already
- * gave up on the upload, the recording goes up as a new one.
+ * Finishes a recording from the files it left on this device, sending only
+ * what the server doesn't have yet plus the header, which now carries the
+ * index. If the server already gave up on the upload, the recording goes up
+ * as a new one.
  */
 export async function resumeRecordingUpload<Init>(
   pending: PendingUpload<Init>,
   options: RecordingUploadOptions<Init>,
 ): Promise<{ url: string; slug: string }> {
-  const { transport, online } = options;
+  const { transport } = options;
   const files = await options.openFiles(pending.slug, pending.hasWebcam);
   const screen = await finishRecordingFile("mp4", files.screen);
   if (screen.size === 0) {
@@ -269,33 +326,34 @@ export async function resumeRecordingUpload<Init>(
     hasWebcam = !!fresh.webcamUploadId;
   }
 
-  const screenParts = await createPartUploader({
-    file: files.screen,
-    uploadPart: (n, bytes) => transport.uploadScreenPart(slug, n, bytes),
-    partBytes: options.partBytes,
-    online,
-    wait: options.retryWait,
-  }).finish();
+  const upload = async (
+    stream: UploadStream,
+    file: RecordingFile,
+    headerBytes: number,
+  ) => {
+    const serverHas =
+      slug === pending.slug
+        ? await transport.uploadedThrough(slug, stream).catch(() => 0)
+        : 0;
+    const uploader = segmentUploader(options, slug, stream, file, () => null);
+    return uploader.finish(headerBytes, serverHas);
+  };
+  await upload("screen", files.screen, screen.headerBytes);
   const result = await finalizeScreen(
     transport,
     slug,
-    screenParts,
     screen.size,
     screen.durationMs,
+    options.retryWait ?? defaultWait,
   );
   if (files.webcam && webcam && hasWebcam) {
-    try {
-      const parts = await createPartUploader({
-        file: files.webcam,
-        uploadPart: (n, bytes) => transport.uploadWebcamPart(slug, n, bytes),
-        partBytes: options.partBytes,
-        online,
-        wait: options.retryWait,
-      }).finish();
-      await finalizeWebcam(transport, slug, parts, webcam.size);
-    } catch {
-      /* best-effort, see finalizeWebcam */
-    }
+    const file = files.webcam;
+    await finishWebcam(
+      async () => webcam,
+      (headerBytes) => upload("webcam", file, headerBytes),
+      (sizeBytes) =>
+        transport.finalizeWebcam({ slug, segments: true, sizeBytes }),
+    );
   }
   if (slug !== pending.slug) {
     await transport.abort({ slug: pending.slug }).catch(() => {});

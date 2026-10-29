@@ -54,6 +54,9 @@ final class RecordingWriter {
   private var outputHeight: Int = 0
 
   private var session: VTCompressionSession?
+  // Set from the stdin queue, applied on the encode thread before the next frame.
+  private let bitrateLock = NSLock()
+  private var pendingBitrate: Int?
   private var ciContext: CIContext?
   private var scratchPixelBuffer: CVPixelBuffer?
   private var pixelBufferPool: CVPixelBufferPool?
@@ -194,6 +197,25 @@ final class RecordingWriter {
     )
   }
 
+  /// A new average bitrate mid-recording; the parameter sets stay the same.
+  func setBitrate(_ bitrate: Int) {
+    bitrateLock.lock()
+    pendingBitrate = bitrate
+    bitrateLock.unlock()
+  }
+
+  private func applyPendingBitrate(_ session: VTCompressionSession) {
+    bitrateLock.lock()
+    let next = pendingBitrate
+    pendingBitrate = nil
+    bitrateLock.unlock()
+    guard let next else { return }
+    VTSessionSetProperty(
+      session, key: kVTCompressionPropertyKey_AverageBitRate, value: next as CFNumber
+    )
+    log(.info, "recording-writer", "bitrate=\(next)")
+  }
+
   /// Push one frame from the recording-tap closure. The pixel buffer is
   /// downscaled into a pooled CVPixelBuffer at the encoder's chosen
   /// output size (computed from the source aspect ratio on first
@@ -218,6 +240,7 @@ final class RecordingWriter {
     }
     guard let session else { return }
     guard let pool = pixelBufferPool, let ctx = ciContext else { return }
+    applyPendingBitrate(session)
 
     let pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
     if firstPts == nil { firstPts = pts }

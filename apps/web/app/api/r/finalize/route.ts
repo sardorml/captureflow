@@ -7,6 +7,10 @@ import {
   objectSize,
 } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
+import {
+  hydrateFinalizeSource,
+  resolveFinalizeParts,
+} from "@/lib/recording/segments";
 import { getWorkspaceEntitlement, uploadOverrun } from "@/lib/recording/quota";
 import { overrunError } from "@/lib/recording/upload-errors";
 import { isDevDevice } from "@/lib/recording/dev-allowlist";
@@ -35,19 +39,8 @@ export async function POST(req: NextRequest) {
   if (!isValidSlug(body.slug)) {
     return jsonError("Invalid slug", 400, "invalid_slug");
   }
-  if (!Array.isArray(body.parts) || body.parts.length === 0) {
-    return jsonError("Missing parts", 400, "invalid_parts");
-  }
-  for (const p of body.parts) {
-    if (
-      !p ||
-      typeof p.partNumber !== "number" ||
-      typeof p.etag !== "string" ||
-      p.etag.length === 0
-    ) {
-      return jsonError("Malformed part entry", 400, "invalid_parts");
-    }
-  }
+  const source = hydrateFinalizeSource(body);
+  if (!source) return jsonError("Missing parts", 400, "invalid_parts");
   const sizeBytes = body.sizeBytes;
   if (
     typeof sizeBytes !== "number" ||
@@ -98,14 +91,33 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const target = { storageKey: row.storageKey, uploadId: row.uploadId };
+  let parts;
   try {
-    await completeMultipartUpload(row.storageKey, row.uploadId, body.parts);
+    parts = await resolveFinalizeParts(
+      source,
+      row.slug,
+      "screen",
+      target,
+      sizeBytes,
+    );
+  } catch (err) {
+    // Building parts from segments read R2; a retry may well succeed.
+    console.error("[finalize] segment build failed", { slug: row.slug, err });
+    return jsonError("Couldn't build the upload", 503, "segments_failed");
+  }
+  if (!parts) {
+    return jsonError("Upload incomplete", 409, "segments_incomplete");
+  }
+
+  try {
+    await completeMultipartUpload(row.storageKey, row.uploadId, parts);
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     console.error("[finalize] r2 complete failed", {
       slug: row.slug,
       uploadId: row.uploadId,
-      partCount: body.parts.length,
+      partCount: parts.length,
       reason,
     });
     await updateRecording(row.slug, { state: "failed", uploadId: null });

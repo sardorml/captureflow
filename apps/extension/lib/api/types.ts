@@ -57,17 +57,18 @@ export type UsageResponse = {
   maxQuality: RecordingQualityId | null;
 };
 
-export type PartResponse = {
-  partNumber: number;
-  etag: string;
-};
-
-export type FinalizeRequest = {
+// The server builds the parts from the segments sent to /api/r/segment.
+export type SegmentFinalizeRequest = {
   slug: string;
-  parts: { partNumber: number; etag: string }[];
+  segments: true;
   sizeBytes: number;
   durationMs?: number;
 };
+
+export type RecordingStream = "screen" | "webcam";
+
+// GET /api/r/segment: how far from byte 0 the server has the stream.
+export type SegmentCoverageResponse = { covered: number };
 
 export type FinalizeResponse = {
   url: string;
@@ -104,18 +105,16 @@ export type StateResponse = {
 // is unused.
 export type UploadTransport = {
   init(req: InitRequest): Promise<InitResponse>;
-  uploadScreenPart(
+  uploadSegment(
     slug: string,
-    partNumber: number,
+    stream: RecordingStream,
+    offset: number,
     bytes: Uint8Array,
-  ): Promise<PartResponse>;
-  uploadWebcamPart(
-    slug: string,
-    partNumber: number,
-    bytes: Uint8Array,
-  ): Promise<PartResponse>;
-  finalizeScreen(req: FinalizeRequest): Promise<FinalizeResponse>;
-  finalizeWebcam(req: FinalizeRequest): Promise<void>;
+    signal: AbortSignal,
+  ): Promise<void>;
+  uploadedThrough(slug: string, stream: RecordingStream): Promise<number>;
+  finalizeScreen(req: SegmentFinalizeRequest): Promise<FinalizeResponse>;
+  finalizeWebcam(req: SegmentFinalizeRequest): Promise<void>;
   uploadPoster(slug: string, bytes: Uint8Array): Promise<void>;
   uploadPosterCard(slug: string, bytes: Uint8Array): Promise<void>;
   uploadAudioPart(

@@ -168,3 +168,14 @@ export function estimateBytesPerMinute(
   }
   return (bps / 8) * 60;
 }
+
+// What a preset sends per second at its ceilings, while the picture keeps moving.
+export function peakBitsPerSecond(
+  quality: RecordingQuality,
+  withCamera: boolean,
+): number {
+  const { screen, webcam } = quality;
+  return (
+    screen.bitrate + screen.audioBitrate + (withCamera ? webcam.bitrate : 0)
+  );
+}

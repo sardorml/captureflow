@@ -4,7 +4,7 @@
  *   RECORDING_START         → invoke; main reserves a slug via /api/init
  *                          and the renderer arms the pipeline.
  *   RECORDING_PART_SCREEN   → fire-and-forget; main writes the bytes to
- *   RECORDING_PART_WEBCAM     disk and uploads each whole 5 MiB part.
+ *   RECORDING_PART_WEBCAM     disk and uploads what is new every ~2s.
  *   RECORDING_FINISH        → invoke; writes the seek index, uploads the
  *                          rest, calls /api/finalize + /api/webcam-finalize,
  *                          returns the edit URL (or an upload_pending failure

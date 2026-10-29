@@ -1,5 +1,5 @@
+import type { RecordingQualityId } from "@captureflow/engine";
 import type {
-  PartRef,
   RecordingUploadTransport,
   UploadInitResponse,
 } from "@captureflow/engine/media";
@@ -8,6 +8,7 @@ import {
   postJson,
   RECORDING_API_BASE,
   parseResponse,
+  recordingHeaders,
 } from "./recording-api-client";
 import { buildRecordingEditUrl } from "./recording-edit-url";
 
@@ -19,21 +20,30 @@ export type RecordingInitRequest = {
   title?: string;
   hasWebcam: boolean;
   workspaceId?: string;
+  quality?: RecordingQualityId;
 };
 
 export function createRecordingTransport(
   deviceId: string,
 ): RecordingUploadTransport<RecordingInitRequest> {
-  const part = (path: string, slug: string, n: number, bytes: Uint8Array) =>
-    postBytes<PartRef>(
-      `${path}?slug=${encodeURIComponent(slug)}&part=${n}`,
-      deviceId,
-      bytes,
-    );
   return {
     init: (req) => postJson<UploadInitResponse>("/init", deviceId, req),
-    uploadScreenPart: (slug, n, bytes) => part("/part", slug, n, bytes),
-    uploadWebcamPart: (slug, n, bytes) => part("/webcam-part", slug, n, bytes),
+    uploadSegment: async (slug, stream, offset, bytes, signal) => {
+      await postBytes(
+        `/segment?slug=${encodeURIComponent(slug)}&stream=${stream}&offset=${offset}`,
+        deviceId,
+        bytes,
+        signal,
+      );
+    },
+    uploadedThrough: async (slug, stream) => {
+      const path = `/segment?slug=${encodeURIComponent(slug)}&stream=${stream}`;
+      const res = await fetch(`${RECORDING_API_BASE}${path}`, {
+        headers: recordingHeaders(deviceId),
+        signal: AbortSignal.timeout(10_000),
+      });
+      return (await parseResponse<{ covered: number }>(res, path)).covered;
+    },
     finalizeScreen: (req) =>
       postJson<{ url: string }>("/finalize", deviceId, req),
     finalizeWebcam: async (req) => {
