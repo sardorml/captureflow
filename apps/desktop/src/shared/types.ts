@@ -237,7 +237,11 @@ export type RecordingFinishResult =
       partialUrl?: string;
     };
 
-export type RecordingFailureKind = "no-link" | "partial" | "init-failed";
+export type RecordingFailureKind =
+  | "no-link"
+  | "partial"
+  | "pending"
+  | "init-failed";
 
 export type RecordingFailureState = {
   kind: RecordingFailureKind;

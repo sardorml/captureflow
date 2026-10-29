@@ -1,6 +1,18 @@
 import { COUNTDOWN_SECONDS, onMessage, sendMessage } from "@/lib/messaging";
+import { createRecordingTransport } from "@/lib/api/client";
+import {
+  NothingRecordedError,
+  resumeRecordingUpload,
+  type PendingUpload,
+} from "@/lib/api/upload-streamer";
+import {
+  listLocalRecordings,
+  openLocalRecording,
+  removeLocalRecording,
+} from "@/lib/capture/local-recording";
 import {
   deleteActiveRecording,
+  isRecording,
   pauseActiveRecording,
   recordAndUpload,
   restartActiveRecording,
@@ -57,8 +69,50 @@ onMessage("beginCapture", ({ data }) =>
     },
     onResult: (result) => void sendMessage("recordingResult", result),
     onActiveUpload: (upload) => void sendMessage("activeUploadChanged", upload),
+    onUploadPending: (upload) => void sendMessage("uploadPending", upload),
   }),
 );
+
+/*
+ * Uploads a crash or a dead connection left on this device. Each one waits
+ * out an offline spell inside the uploader, so this can run for as long as
+ * the document lives. Files no pending upload owns are leftovers and go.
+ */
+let resuming = false;
+
+async function resumeUploads(uploads: PendingUpload[]): Promise<void> {
+  if (resuming) return;
+  resuming = true;
+  try {
+    if (!isRecording()) {
+      const owned = new Set(uploads.map((u) => u.slug));
+      for (const slug of await listLocalRecordings().catch(() => [])) {
+        if (!owned.has(slug)) await removeLocalRecording(slug).catch(() => {});
+      }
+    }
+    for (const upload of uploads) {
+      try {
+        const { url } = await resumeRecordingUpload(upload, {
+          transport: createRecordingTransport(upload.deviceId, null),
+          openFiles: openLocalRecording,
+        });
+        void sendMessage("uploadResumed", {
+          slug: upload.slug,
+          done: true,
+          url,
+        });
+      } catch (err) {
+        // Anything but an empty file stays: losing a recording is worse than retrying one.
+        const done = err instanceof NothingRecordedError;
+        void sendMessage("uploadResumed", { slug: upload.slug, done });
+      }
+    }
+  } finally {
+    resuming = false;
+  }
+}
+
+onMessage("resumeUploads", ({ data }) => void resumeUploads(data));
 
 onMessage("stopCapture", () => stopActiveRecording());
 onMessage("pauseCapture", () => pauseActiveRecording());

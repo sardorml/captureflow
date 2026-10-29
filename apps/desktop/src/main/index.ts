@@ -33,6 +33,7 @@ import {
 } from "./window-detector";
 import { registerRecordingHandlers } from "./ipc/recording-handlers";
 import { registerRecordingStreamHandlers } from "./ipc/recording-stream-handlers";
+import { initRecordingUploadRecovery } from "./lib/recording/recording-upload-streamer";
 import {
   ensureOverlayWindow,
   registerWindowHandlers,
@@ -1043,6 +1044,7 @@ app.whenReady().then(async () => {
   // error → 'offline', showing the WifiOff lock). Backgrounded so a slow
   // network doesn't delay startup; results broadcast via RECORDING_*_CHANGED.
   void validateRecordingAuth();
+  initRecordingUploadRecovery();
   // Background poll for near-real-time revoke + connectivity detection
   // without a push channel. Runs even without a cached token — anonymous
   // flows still need the connectivity signal for the lock icon. Never

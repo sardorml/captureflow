@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./main": "./src/main/index.ts",
-    "./web": "./src/web/index.ts"
+    "./web": "./src/web/index.ts",
+    "./media": "./src/media/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.main.json && tsc --noEmit -p tsconfig.web.json",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "tsx": "^4.23.15",
     "typescript": "catalog:",
     "vitest": "^4.1.9"
   }

@@ -80,5 +80,7 @@ function headlineFor(kind: RecordingFailureState["kind"]): string {
       return "Couldn’t upload your recording";
     case "partial":
       return "Connection dropped — saved what got through";
+    case "pending":
+      return "Your recording is saved on this Mac";
   }
 }

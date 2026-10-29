@@ -4,9 +4,6 @@ import { getRecordingAuthToken } from "./recording-auth";
 export const RECORDING_API_BASE =
   process.env.CAPTUREFLOW_RECORDING_API_BASE ?? "https://captureflow.dev/api/r";
 
-// R2 multipart minimum part size (except the last); worker caps a part at 100 MiB.
-export const CHUNK_BYTES = 5 * 1024 * 1024;
-
 export class RecordingApiHttpError extends Error {
   readonly status: number;
   readonly code: string | undefined;

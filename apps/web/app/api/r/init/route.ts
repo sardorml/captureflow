@@ -18,7 +18,7 @@ import {
 import { resolveDeviceTokenToUser } from "@/lib/recording/device-tokens";
 import { newStorageId } from "@/lib/recording/media-url";
 import { generateSlug } from "@/lib/recording/slug";
-import { createMultipartUpload } from "@/lib/recording/r2";
+import { createMultipartUpload, MEDIA_CACHE_CONTROL } from "@/lib/recording/r2";
 import { isDevDevice } from "@/lib/recording/dev-allowlist";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import {
@@ -160,12 +160,10 @@ export async function POST(req: NextRequest) {
         ? `videos/${storageId}.webm`
         : `videos/${storageId}.mp4`;
 
-  // Must be `no-cache`, not `no-store`: the latter forced a full re-download
-  // every refresh, leaving some browsers stuck buffering before first decode.
   const { uploadId } = await createMultipartUpload(
     storageKey,
     contentType,
-    "no-cache",
+    contentType === "image/jpeg" ? "no-cache" : MEDIA_CACHE_CONTROL,
   );
 
   // Optional companion webcam stream: the viewer composites the two tracks at
@@ -178,7 +176,7 @@ export async function POST(req: NextRequest) {
     const wcUpload = await createMultipartUpload(
       webcamStorageKey,
       "video/webm",
-      "no-cache",
+      MEDIA_CACHE_CONTROL,
     );
     webcamUploadId = wcUpload.uploadId;
     webcamState = "pending";

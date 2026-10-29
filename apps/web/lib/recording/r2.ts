@@ -15,6 +15,16 @@ async function getBucket(): Promise<R2Bucket> {
   return env.BUCKET;
 }
 
+/*
+ * Screen and webcam files: Cloudflare's edge keeps them for a year (a new file
+ * gets a new ?v= URL, and deletes purge them, see cdn-purge.ts) while browsers
+ * revalidate every load, so a deleted recording never plays from a local copy.
+ * Not `no-store`: that forced a full re-download each refresh and left some
+ * browsers buffering before the first frame.
+ */
+export const MEDIA_CACHE_CONTROL =
+  "public, max-age=0, must-revalidate, s-maxage=31536000";
+
 export type R2MultipartHandle = {
   uploadId: string;
   storageKey: string;

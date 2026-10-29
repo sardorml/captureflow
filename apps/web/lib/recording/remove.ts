@@ -1,3 +1,5 @@
+import { purgeRecordingMedia, type CachedMedia } from "./cdn-purge";
+import { getCloudflareEnv } from "./cf-env";
 import { deleteRecording } from "./db";
 import { audioPartPrefixFor, objectKeysFor } from "./object-keys";
 import { abortMultipartUpload, deleteObject, deleteObjectPrefix } from "./r2";
@@ -30,5 +32,13 @@ export async function removeRecording(row: RecordingRow): Promise<void> {
       console.warn(`[delete] r2 delete failed for ${row.slug}:`, result.reason);
     }
   }
+  await purgeCachedMedia(row);
   await deleteRecording(row.slug);
+}
+
+// After the objects are gone, so a refill straight after the purge finds nothing.
+export async function purgeCachedMedia(row: CachedMedia): Promise<void> {
+  const env = await getCloudflareEnv();
+  if (!env?.DB) return;
+  await purgeRecordingMedia({ ...env, DB: env.DB }, row);
 }

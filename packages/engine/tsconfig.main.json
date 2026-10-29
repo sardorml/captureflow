@@ -3,5 +3,12 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "include": ["src/index.ts", "src/types.ts", "src/contract.ts", "src/main"]
+  "include": [
+    "src/index.ts",
+    "src/types.ts",
+    "src/contract.ts",
+    "src/media",
+    "src/main"
+  ],
+  "exclude": ["src/media/**/*.test.ts"]
 }

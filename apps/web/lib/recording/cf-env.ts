@@ -12,6 +12,8 @@ export type CloudflareBindings = {
   NEXT_PUBLIC_RECORDING_SITE_URL?: string;
   NEXT_PUBLIC_MARKETING_SITE_URL?: string;
   R2_PUBLIC_BASE_URL?: string;
+  CLOUDFLARE_ZONE_ID?: string;
+  CLOUDFLARE_PURGE_TOKEN?: string;
   // Comma-separated device IDs that bypass per-device caps. Plaintext is fine: the device id is already long-random and is itself the /api/init auth token.
   DEV_DEVICE_IDS?: string;
   SELF_HOSTED?: string;

@@ -141,13 +141,15 @@ export function useRecorder(): {
                     : ""),
               );
               void window.electronAPI.recordingFailureOpen(
-                finishRes.partialUrl
-                  ? {
-                      kind: "partial",
-                      message: finishRes.error,
-                      url: finishRes.partialUrl,
-                    }
-                  : { kind: "no-link", message: finishRes.error },
+                finishRes.code === "upload_pending"
+                  ? { kind: "pending", message: finishRes.error }
+                  : finishRes.partialUrl
+                    ? {
+                        kind: "partial",
+                        message: finishRes.error,
+                        url: finishRes.partialUrl,
+                      }
+                    : { kind: "no-link", message: finishRes.error },
               );
             }
           });

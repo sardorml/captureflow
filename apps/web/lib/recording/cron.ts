@@ -5,6 +5,7 @@ import {
   isSelfHosted,
   listPaidWorkspaceIds,
 } from "@captureflow/quota";
+import { purgeRecordingMedia, retryQueuedPurges } from "./cdn-purge";
 import { createD1Db } from "./db-d1";
 import {
   audioPartPrefixFor,
@@ -32,6 +33,9 @@ type CronEnv = {
   DB: D1Database;
   BUCKET: R2Bucket;
   SELF_HOSTED?: string;
+  CLOUDFLARE_ZONE_ID?: string;
+  CLOUDFLARE_PURGE_TOKEN?: string;
+  R2_PUBLIC_BASE_URL?: string;
 };
 
 const STALE_PENDING_WINDOW_MS = ACCOUNT_LIMITS.multipartTtlSeconds * 1000;
@@ -46,6 +50,10 @@ const BATCH_SIZE = 100;
  * against rows that refuse to clear (every iteration re-reads them).
  */
 const MAX_BATCHES = 50;
+
+export async function retryCdnPurges(env: CronEnv): Promise<void> {
+  await retryQueuedPurges(env);
+}
 
 export async function runHourlyMultipartGc(env: CronEnv): Promise<void> {
   const cutoff = Date.now() - STALE_PENDING_WINDOW_MS;
@@ -187,7 +195,8 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
     const expiring = await env.DB.prepare(
       `SELECT slug, storage_key AS storageKey, poster_key AS posterKey,
               poster_thumb_key AS posterThumbKey,
-              webcam_storage_key AS webcamStorageKey, state
+              webcam_storage_key AS webcamStorageKey, state,
+              size_bytes AS sizeBytes, webcam_size_bytes AS webcamSizeBytes
          FROM recordings
         WHERE (state = 'ready' AND last_viewed_at < ?
                AND COALESCE(workspace_id, '') NOT IN (SELECT value FROM json_each(?)))
@@ -202,6 +211,8 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
         posterThumbKey: string | null;
         webcamStorageKey: string | null;
         state: string;
+        sizeBytes: number;
+        webcamSizeBytes: number;
       }>();
 
     const rows = expiring.results ?? [];
@@ -215,6 +226,7 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
       } catch (err) {
         console.warn(`[cron] r2 delete failed for ${row.slug}:`, err);
       }
+      await purgeRecordingMedia(env, row);
       await db.deleteRecording(row.slug);
     }
     if (rows.length < BATCH_SIZE) break;
