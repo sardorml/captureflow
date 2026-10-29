@@ -1,0 +1,57 @@
+<template id="promo-outro-template">
+  <div data-hf-id="hf-35e4" data-composition-id="promo-outro" data-width="1920" data-height="1080" data-duration="3.5">
+    <div data-hf-id="hf-wua0" class="scene">
+      <div data-hf-id="hf-exrd" class="chips">
+        <span data-hf-id="hf-450c" class="chip"><svg data-hf-id="hf-ulu9" viewBox="0 0 24 24"><path data-hf-id="hf-2q26" d="M20 6 9 17l-5-5" /></svg>Open source</span>
+        <span data-hf-id="hf-vqfu" class="chip"><svg data-hf-id="hf-1tol" viewBox="0 0 24 24"><path data-hf-id="hf-l5ki" d="M20 6 9 17l-5-5" /></svg>Self-host on Cloudflare</span>
+        <span data-hf-id="hf-mfzi" class="chip"><svg data-hf-id="hf-30lo" viewBox="0 0 24 24"><path data-hf-id="hf-ljvj" d="M20 6 9 17l-5-5" /></svg>Free to start</span>
+      </div>
+      <h2 data-hf-id="hf-bq9h" class="headline">Try CaptureFlow for free</h2>
+      <p data-hf-id="hf-xlyh" class="url">captureflow.dev</p>
+    </div>
+    <style>
+      [data-composition-id="promo-outro"] .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      [data-composition-id="promo-outro"] .chips {
+        display: flex;
+        gap: 24px;
+        font-size: 36px;
+        margin-bottom: 80px;
+      }
+      [data-composition-id="promo-outro"] .chip svg {
+        width: 1em;
+        height: 1em;
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 2.5;
+      }
+      [data-composition-id="promo-outro"] .headline {
+        font-size: 96px;
+      }
+      [data-composition-id="promo-outro"] .url {
+        margin-top: 44px;
+        font-size: 44px;
+        font-weight: 600;
+        color: var(--accent);
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        const $ = (s) => `[data-composition-id="promo-outro"] ${s}`;
+        const tl = gsap.timeline({ paused: true });
+        tl.from($(".chip"), { y: 40, opacity: 0, duration: 0.5, ease: "power3.out", stagger: 0.15 }, 0.05)
+          .from($(".headline"), { y: 50, opacity: 0, duration: 0.6, ease: "power3.out" }, 0.5)
+          .from($(".url"), { opacity: 0, duration: 0.5, ease: "power2.out" }, 0.9);
+        window.__timelines = window.__timelines || {};
+        window.__timelines["promo-outro"] = tl;
+      })();
+    </script>
+  </div>
+</template>

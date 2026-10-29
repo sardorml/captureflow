@@ -1,0 +1,35 @@
+{
+  "name": "@captureflow/marketing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local studio for marketing images, GIFs and videos: HyperFrames compositions authored with Claude Code, rendered into one library. Never deployed.",
+  "scripts": {
+    "dev": "next dev -p 3036 -H 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "echo \"(marketing) lint: TODO\"",
+    "make": "node scripts/make.ts",
+    "check": "cd hyperframes && HYPERFRAMES_NO_TELEMETRY=1 hyperframes check",
+    "hf": "cd hyperframes && HYPERFRAMES_NO_TELEMETRY=1 hyperframes"
+  },
+  "dependencies": {
+    "@captureflow/ui": "workspace:*",
+    "@heroui/react": "^3.2.6",
+    "@heroui/styles": "^3.2.6",
+    "lucide-react": "^1.14.0",
+    "next": "^16.2.0",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "hyperframes": "0.8.214",
+    "tailwindcss": "^4",
+    "typescript": "catalog:",
+    "vitest": "^4.1.9"
+  }
+}

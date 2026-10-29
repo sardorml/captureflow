@@ -1,0 +1,42 @@
+<template id="promo-intro-template">
+  <div data-hf-id="hf-roqw" data-composition-id="promo-intro" data-width="1920" data-height="1080" data-duration="3">
+    <div data-hf-id="hf-wua0" class="scene">
+      <img data-hf-id="hf-4bto" class="mark" src="assets/brand-mark-light.svg" alt="" />
+      <h1 data-hf-id="hf-3ubu" class="headline">
+        <span data-hf-id="hf-qlo2" class="line">Skip the meeting,</span><br data-hf-id="hf-x5px" />
+        <span data-hf-id="hf-rsbw" class="line muted">send a recording instead.</span>
+      </h1>
+    </div>
+    <style>
+      [data-composition-id="promo-intro"] .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      [data-composition-id="promo-intro"] .mark {
+        width: 132px;
+        height: 132px;
+        margin-bottom: 56px;
+      }
+      [data-composition-id="promo-intro"] .headline {
+        font-size: 112px;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        const $ = (s) => `[data-composition-id="promo-intro"] ${s}`;
+        const tl = gsap.timeline({ paused: true });
+        // The first frame is the thumbnail on social players, so the intro starts on screen and settles.
+        tl.from($(".mark"), { scale: 0.85, rotation: -45, duration: 1, ease: "power3.out" }, 0)
+          .from($(".line"), { y: 24, duration: 1, ease: "power3.out", stagger: 0.15 }, 0)
+          .to($(".scene"), { opacity: 0, y: -40, duration: 0.4, ease: "power2.in" }, 2.6);
+        window.__timelines = window.__timelines || {};
+        window.__timelines["promo-intro"] = tl;
+      })();
+    </script>
+  </div>
+</template>

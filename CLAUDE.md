@@ -15,6 +15,7 @@ pnpm + nx monorepo.
 - `apps/extension` — WXT/MV3 Chrome extension recorder.
 - `apps/desktop` — Electron macOS recorder.
 - `apps/docs` — VitePress docs site.
+- `apps/marketing` — local marketing studio (Next.js, never deployed): images and GIFs written with Claude Code, video in the HyperFrames Studio, every render in one `library/`.
 - `packages/engine` — capture pipeline shared by desktop + extension (MIT; Swift sidecar).
 - `packages/admin` — admin auth/data logic behind `apps/admin`.
 - `packages/mail` — campaign SQL, rendering, unsubscribe tokens and Resend delivery for admin + mailer, plus the Cloudflare-then-Resend transactional sender web and admin share.
