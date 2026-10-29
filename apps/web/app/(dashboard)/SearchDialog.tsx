@@ -10,7 +10,7 @@ import {
   SearchField,
   Spinner,
 } from "@heroui/react";
-import type { SearchHit } from "@/app/api/search/route";
+import type { SearchHit } from "@/lib/library-search";
 
 type Props = {
   isOpen: boolean;
