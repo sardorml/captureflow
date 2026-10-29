@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { isSelfHosted } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
-import { loadSession } from "@/lib/session-guard";
+import { loadSessionForRedirect } from "@/lib/session-guard";
+import { renderTrace } from "@/lib/render-trace";
 import { getRepoActivity, getStarCount, formatStars } from "@/lib/github";
 import { Nav } from "@/components/marketing/nav";
 import { HeroSection } from "@/components/marketing/hero-section";
@@ -53,14 +54,16 @@ export const metadata: Metadata = {
 };
 
 export default async function RootPage() {
-  const session = await loadSession();
+  const trace = await renderTrace("/");
+  const session = await loadSessionForRedirect();
+  trace("session");
   if (session) redirect("/recordings");
   // A self-hosted instance is a company's internal tool, not our storefront.
   if (isSelfHosted(await getAppWebEnv())) redirect("/login");
 
   const [starCount, activity] = await Promise.all([
-    getStarCount(),
-    getRepoActivity(),
+    getStarCount().finally(() => trace("stars")),
+    getRepoActivity().finally(() => trace("activity")),
   ]);
   const stars = starCount != null ? formatStars(starCount) : null;
 
