@@ -107,3 +107,39 @@ export async function finishRecordingFile(
   if (patch) await file.write(patch.offset, patch.bytes);
   return { size: file.size, durationMs };
 }
+
+const COPY_BYTES = 4 * 1024 * 1024;
+
+async function needsIndex(
+  format: RecordingFormat,
+  source: ByteReader,
+): Promise<boolean> {
+  if (format === "mp4") {
+    const scan = await scanFmp4(source);
+    return !!scan && !scan.reserve && scan.fragments.length > 0;
+  }
+  const scan = await scanWebm(source);
+  return !!scan && !scan.indexed && !scan.reserve && scan.keyframes.length > 0;
+}
+
+/*
+ * Copies a recording made before files carried a seek index into target
+ * with one. Returns null, writing nothing, for a file that already has it
+ * or isn't a fragmented MP4 / indexable WebM (a progressive MP4 would break:
+ * its chunk offsets are absolute).
+ */
+export async function indexRecordingFile(
+  format: RecordingFormat,
+  source: ByteReader,
+  target: RecordingFile,
+): Promise<FinishedRecording | null> {
+  if (!(await needsIndex(format, source))) return null;
+  const recording = createIndexedRecording(format, target);
+  for (let at = 0; at < source.size; at += COPY_BYTES) {
+    recording.push(
+      await source.read(at, Math.min(COPY_BYTES, source.size - at)),
+    );
+    await recording.flushed();
+  }
+  return recording.finish();
+}

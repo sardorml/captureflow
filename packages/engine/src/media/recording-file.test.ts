@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createFmp4Muxer } from "../web/fmp4-mux";
-import { fourcc, view } from "./bytes";
+import { concat, fourcc, readerFromBytes, view } from "./bytes";
 import {
   createIndexedRecording,
   finishRecordingFile,
+  indexRecordingFile,
   type RecordingFile,
 } from "./recording-file";
 
@@ -105,5 +106,50 @@ describe("finishRecordingFile", () => {
     const once = file.bytes().slice();
     await finishRecordingFile("mp4", file);
     expect(file.bytes()).toEqual(once);
+  });
+});
+
+describe("indexRecordingFile", () => {
+  function unindexed(seconds: number): Uint8Array {
+    const chunks: Uint8Array[] = [];
+    record({ push: (b) => chunks.push(b) }, seconds).finalize();
+    return concat(chunks);
+  }
+
+  it("adds the index to a recording made without one", async () => {
+    const source = unindexed(10);
+    expect(sidxCount(source)).toBe(0);
+    const target = memoryFile();
+    const result = await indexRecordingFile(
+      "mp4",
+      readerFromBytes(source),
+      target,
+    );
+    expect(result).toEqual({ size: target.size, durationMs: 10_000 });
+    expect(sidxCount(target.bytes())).toBe(5);
+  });
+
+  it("leaves an indexed recording alone", async () => {
+    const indexed = memoryFile();
+    const recording = createIndexedRecording("mp4", indexed);
+    record(recording, 4).finalize();
+    await recording.finish();
+    const target = memoryFile();
+    expect(
+      await indexRecordingFile("mp4", readerFromBytes(indexed.bytes()), target),
+    ).toBeNull();
+    expect(target.size).toBe(0);
+  });
+
+  it("leaves a file that isn't a fragmented MP4 alone", async () => {
+    const target = memoryFile();
+    expect(
+      await indexRecordingFile(
+        "mp4",
+        readerFromBytes(new Uint8Array(4096).fill(7)),
+        target,
+      ),
+    ).toBeNull();
+    expect(target.size).toBe(0);
   });
 });
