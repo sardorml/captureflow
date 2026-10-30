@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Kbd } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
+import { DevSubscription } from "./dev-subscription";
 
 const LOCAL_DEV = process.env.NODE_ENV === "development";
 
@@ -104,6 +105,8 @@ export function DevToolsModal({
               </span>
             </Label>
           ) : null}
+
+          {LOCAL_DEV ? <DevSubscription isOpen={isOpen} /> : null}
 
           <div className="flex flex-col gap-2">
             <p className="text-xs font-medium text-fg-subtle">
