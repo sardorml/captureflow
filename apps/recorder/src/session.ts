@@ -14,6 +14,7 @@ import {
   type AgentInitRequest,
   type UploadCredentials,
 } from "./upload";
+import { fitBitrate, nearBudget } from "./budget";
 
 export type StartRequest = {
   url: string;
@@ -42,6 +43,11 @@ export type Action =
 export class SessionError extends Error {}
 
 const BITRATE = 4_000_000;
+const STOP_REASONS = {
+  idle: "no action for a while",
+  length: "it reached its length limit",
+  size: "it reached its plan's size limit",
+};
 const MOUSE_STEPS = 24;
 const TYPE_DELAY_MS = 45;
 const SETTLE_MS = 600;
@@ -114,8 +120,13 @@ export async function startSession(browser: Browser, req: StartRequest) {
     page,
     width,
     height,
-    bitrate: BITRATE,
-    onData: (bytes) => upload.pushScreen(bytes),
+    bitrate: fitBitrate(BITRATE, upload.remainingBytes, maxDurationMs),
+    onData: (bytes) => {
+      upload.pushScreen(bytes);
+      if (nearBudget(upload.screenBytes, upload.remainingBytes)) {
+        void finish("size");
+      }
+    },
   });
 
   // A page hidden behind a slide is out of the picture, and out of the sound too.
@@ -152,7 +163,7 @@ export async function startSession(browser: Browser, req: StartRequest) {
   }
 
   let ended: Promise<{ url: string; durationSeconds: number }> | null = null;
-  let endedBy: "agent" | "idle" | "length" | null = null;
+  let endedBy: "agent" | "idle" | "length" | "size" | null = null;
   let idleTimer: NodeJS.Timeout | null = null;
   const lengthTimer = setTimeout(() => void finish("length"), maxDurationMs);
   const touch = () => {
@@ -161,7 +172,7 @@ export async function startSession(browser: Browser, req: StartRequest) {
   };
   touch();
 
-  function finish(by: "agent" | "idle" | "length") {
+  function finish(by: "agent" | "idle" | "length" | "size") {
     ended ??= (async () => {
       endedBy = by;
       clearTimeout(lengthTimer);
@@ -184,7 +195,7 @@ export async function startSession(browser: Browser, req: StartRequest) {
       throw new SessionError(
         endedBy === "agent"
           ? "This recording already stopped."
-          : `This recording stopped on its own (${endedBy === "idle" ? "no action for a while" : "it reached its length limit"}). Its link still works: call stop_recording to get it.`,
+          : `This recording stopped on its own (${STOP_REASONS[endedBy!]}). Its link still works: call stop_recording to get it.`,
       );
     }
     touch();

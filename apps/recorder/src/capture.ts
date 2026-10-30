@@ -8,6 +8,7 @@ import {
   FPS,
   SAMPLE_RATE,
 } from "./pacing";
+import { AUDIO_BITRATE } from "./budget";
 
 export type Capture = {
   readonly durationMs: number;
@@ -89,7 +90,7 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
       ...["-c:v", "libx264", "-preset", "veryfast", "-profile:v", "high"],
       ...["-b:v", `${kbps}k`, "-maxrate", `${kbps * 2}k`],
       ...["-bufsize", `${kbps * 2}k`, "-g", String(FPS * 2)],
-      ...["-c:a", "aac", "-b:a", "128k"],
+      ...["-c:a", "aac", "-b:a", `${AUDIO_BITRATE / 1000}k`],
       ...[
         "-f",
         "mp4",
