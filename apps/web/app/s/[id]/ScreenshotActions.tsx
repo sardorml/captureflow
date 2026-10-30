@@ -1,6 +1,16 @@
 "use client";
 
-import { Button, ButtonGroup, Dropdown, buttonVariants } from "@heroui/react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  ButtonGroup,
+  ButtonGroupSeparator,
+} from "@/components/ui/button-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Check,
   Link2,
@@ -129,50 +139,44 @@ export function ScreenshotActions({
         )}
         {signedIn ? (
           <ButtonGroup>
-            <Button variant="primary" onPress={() => setOpen(true)}>
+            <Button onClick={() => setOpen(true)}>
               <Users size={18} />
               Share
             </Button>
-            {/* See RecordingActions: a Tooltip.Trigger wrapper breaks
-                ButtonGroup's first/last-child radii. */}
+            <ButtonGroupSeparator />
             <Button
-              variant="primary"
-              isIconOnly
+              size="icon"
               aria-label={copied ? "Link copied" : "Copy link"}
-              onPress={copyLink}
+              onClick={copyLink}
             >
-              <ButtonGroup.Separator />
               {copied ? <Check size={18} /> : <Link2 size={18} />}
             </Button>
           </ButtonGroup>
         ) : (
-          <Button variant="secondary" onPress={copyLink}>
+          <Button variant="secondary" onClick={copyLink}>
             {copied ? <Check size={16} /> : <Link2 size={16} />}
             {copied ? "Copied" : "Copy link"}
           </Button>
         )}
 
         {isOwner && (
-          <Dropdown>
-            <Dropdown.Trigger
-              aria-label="More actions"
-              className={buttonVariants({ variant: "ghost", isIconOnly: true })}
-            >
-              <MoreHorizontal size={18} />
-            </Dropdown.Trigger>
-            <Dropdown.Popover placement="bottom end">
-              <Dropdown.Menu>
-                <Dropdown.Item
-                  isDisabled={deleting}
-                  onAction={onDelete}
-                  className="text-danger"
-                >
-                  <Trash2 size={16} />
-                  {deleting ? "Deleting…" : "Delete screenshot"}
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown.Popover>
-          </Dropdown>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="More actions">
+                <MoreHorizontal size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                variant="destructive"
+                disabled={deleting}
+                onSelect={onDelete}
+              >
+                <Trash2 size={16} />
+                {deleting ? "Deleting…" : "Delete screenshot"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 

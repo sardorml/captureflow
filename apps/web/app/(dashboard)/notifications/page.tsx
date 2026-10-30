@@ -1,4 +1,4 @@
-import { Card } from "@heroui/react";
+import { Card } from "@/components/ui/card";
 import { NotificationList } from "@/app/_components/NotificationList";
 import { loadNotificationFeed } from "@/lib/notification-feed";
 import { requireSession } from "@/lib/session-guard";
@@ -23,7 +23,7 @@ export default async function NotificationsPage() {
         showRecord={false}
       />
       {hasStoredUnread && <MarkRead />}
-      <Card className="mt-10 overflow-hidden p-0">
+      <Card className="mt-10 gap-0 overflow-hidden p-0">
         <NotificationList
           invites={feed?.invites ?? []}
           notifications={feed?.notifications ?? []}

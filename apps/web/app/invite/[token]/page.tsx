@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { findInviteByToken, getWorkspaceById } from "@captureflow/quota";
-import { Button, Card, buttonVariants } from "@heroui/react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { loadSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { acceptInviteAction } from "../../(dashboard)/members/actions";
@@ -47,7 +48,7 @@ export default async function InvitePage({ params }: Props) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas p-6 text-fg">
-      <Card className="w-full max-w-110 p-6">
+      <Card className="block w-full max-w-110 p-6">
         <h1 className="text-2xl font-bold text-fg-strong">
           You&rsquo;re invited
         </h1>
@@ -61,7 +62,7 @@ export default async function InvitePage({ params }: Props) {
         </p>
         <form action={acceptInviteAction} className="mt-6">
           <input type="hidden" name="token" value={token} />
-          <Button variant="primary" type="submit" fullWidth>
+          <Button type="submit" className="w-full">
             Accept invitation
           </Button>
         </form>
@@ -84,7 +85,7 @@ function ErrorFrame({
 }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas p-6 text-fg">
-      <Card className="w-full max-w-110 p-6 text-center">
+      <Card className="block w-full max-w-110 p-6 text-center">
         <h1 className="text-xl font-semibold text-fg-strong">{title}</h1>
         {body && <p className="mt-2 text-sm text-fg-muted">{body}</p>}
         <div className="mt-6 flex items-center justify-center gap-2">
@@ -92,10 +93,7 @@ function ErrorFrame({
             Go to dashboard
           </a>
           {signOut && (
-            <a
-              href="/auth/clear"
-              className={buttonVariants({ variant: "primary" })}
-            >
+            <a href="/auth/clear" className={buttonVariants()}>
               Sign out
             </a>
           )}

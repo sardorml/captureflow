@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { Avatar } from "@heroui/react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { avatarInitial, displayName } from "./display-name";
 
 export type PostedByProps = {
@@ -19,7 +19,7 @@ export function PostedBy({
       className={`hidden items-center gap-2 border-l border-line pl-4 sm:flex ${className}`}
     >
       <Avatar className="h-8 w-8">
-        <Avatar.Fallback>{avatarInitial(owner)}</Avatar.Fallback>
+        <AvatarFallback>{avatarInitial(owner)}</AvatarFallback>
       </Avatar>
       <div className="leading-tight">
         <p className="text-[11px] uppercase tracking-wider text-fg-subtle">

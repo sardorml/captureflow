@@ -113,7 +113,7 @@ export function PlanTable() {
                       className={cn(
                         "hidden h-8 shrink-0 items-center rounded-lg px-3 text-[11px] font-semibold whitespace-nowrap transition-colors motion-reduce:transition-none lg:inline-flex",
                         highlighted
-                          ? "bg-accent text-white hover:bg-accent/90"
+                          ? "bg-primary text-white hover:bg-primary/90"
                           : "bg-fg-strong/10 text-fg-strong hover:bg-fg-strong/15",
                       )}
                     >
@@ -175,7 +175,7 @@ function PlanCell({
       )}
     >
       {value === true ? (
-        <span className="flex size-5 items-center justify-center rounded-full bg-accent text-white">
+        <span className="flex size-5 items-center justify-center rounded-full bg-primary text-white">
           <Check size={12} strokeWidth={3} />
         </span>
       ) : value === false ? null : (

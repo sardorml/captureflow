@@ -1,4 +1,4 @@
-import { buttonVariants } from "@heroui/react";
+import { buttonVariants } from "@/components/ui/button";
 
 type Props = {
   marketingUrl: string;
@@ -20,7 +20,7 @@ export function AuthPrompt({ marketingUrl, loginUrl }: Props) {
       <a href={loginUrl} className={buttonVariants({ variant: "secondary" })}>
         Log in
       </a>
-      <a href={marketingUrl} className={buttonVariants({ variant: "primary" })}>
+      <a href={marketingUrl} className={buttonVariants()}>
         <span className="sm:hidden">Get started</span>
         <span className="max-sm:hidden">Get CaptureFlow free</span>
       </a>

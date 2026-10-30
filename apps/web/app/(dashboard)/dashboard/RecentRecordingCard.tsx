@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Bot, Eye, Film, MessageSquare, Smile } from "lucide-react";
-import { Avatar } from "@heroui/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PostedAt } from "@/app/_components/PostedAt";
 import { FadeInImage } from "@/components/ui/fade-in-image";
 import { formatDuration, initials } from "@/lib/format";
@@ -47,14 +47,14 @@ export function RecentRecordingCard({
             <>
               <Avatar className="size-5 shrink-0">
                 {recording.author.image && (
-                  <Avatar.Image
+                  <AvatarImage
                     src={recording.author.image}
                     alt={recording.author.name}
                   />
                 )}
-                <Avatar.Fallback className="text-[9px]">
+                <AvatarFallback className="text-[9px]">
                   {initials(recording.author.name)}
-                </Avatar.Fallback>
+                </AvatarFallback>
               </Avatar>
               <span className="truncate font-medium text-fg">
                 {recording.author.name}

@@ -1,7 +1,8 @@
 "use client";
 
 import NextLink from "next/link";
-import { buttonVariants } from "@heroui/react";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { CURRENT_STAGE } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
 import { MarketingSection } from "./_shared";
@@ -27,12 +28,10 @@ export function CtaSection() {
           <NextLink
             href={lh("/download")}
             onClick={() => track("marketing_cta_clicked", { location: "cta" })}
-            className={buttonVariants({
-              variant: "primary",
-              size: "lg",
-              className:
-                "h-14 w-full shrink-0 px-8 text-lg font-semibold md:w-auto",
-            })}
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "h-14 w-full shrink-0 px-8 text-lg font-semibold md:w-auto",
+            )}
           >
             {CURRENT_STAGE.ctaButtonLabel || m.cta.button}
           </NextLink>

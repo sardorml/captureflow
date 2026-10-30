@@ -8,9 +8,17 @@ import {
   Receipt,
   Settings,
 } from "lucide-react";
-import { Avatar, Chip, Dropdown, Separator, Typography } from "@heroui/react";
 import { getSeatPlan, type SeatPlanId } from "@captureflow/quota";
 import type { ThemePreference } from "@captureflow/ui";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { openSupportChat } from "@/components/marketing/support-chat";
 import { initials } from "@/lib/format";
 import { SUPPORT_EMAIL } from "@/lib/site";
@@ -54,9 +62,9 @@ export function accountNavItems({
       href: `${base}/billing`,
       trailing:
         plan === undefined ? undefined : (
-          <Chip size="sm" color={plan === "free" ? "default" : "accent"}>
+          <Badge variant={plan === "free" ? "secondary" : "default"}>
             {plan === "free" ? "Free" : getSeatPlan(plan).name}
-          </Chip>
+          </Badge>
         ),
     },
     {
@@ -112,75 +120,77 @@ export function AccountMenu({
   const displayName = name?.trim() || email;
 
   return (
-    <Dropdown>
-      <Dropdown.Trigger
+    <DropdownMenu>
+      <DropdownMenuTrigger
         aria-label="Account menu"
         className="cursor-pointer rounded-full outline-none"
       >
         {/* 36px, the height of the buttons either side of it. */}
         <Avatar className="h-9 w-9">
-          {imageUrl && <Avatar.Image src={imageUrl} alt={displayName} />}
-          <Avatar.Fallback>{initials(displayName)}</Avatar.Fallback>
+          {imageUrl && <AvatarImage src={imageUrl} alt={displayName} />}
+          <AvatarFallback>{initials(displayName)}</AvatarFallback>
         </Avatar>
-      </Dropdown.Trigger>
+      </DropdownMenuTrigger>
 
-      <Dropdown.Popover placement="bottom end" className="w-64">
+      <DropdownMenuContent side="bottom" align="end" className="w-64">
         {/* Identity reads as one block: avatar beside the name and address,
             rather than the name alone over the address. */}
         <div className="flex items-center gap-2.5 px-3 py-2.5">
           <Avatar className="h-9 w-9 shrink-0">
-            {imageUrl && <Avatar.Image src={imageUrl} alt={displayName} />}
-            <Avatar.Fallback>{initials(displayName)}</Avatar.Fallback>
+            {imageUrl && <AvatarImage src={imageUrl} alt={displayName} />}
+            <AvatarFallback>{initials(displayName)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <Typography weight="semibold" className="truncate">
+            <p className="truncate text-base leading-7 font-semibold text-foreground">
               {displayName}
-            </Typography>
-            <Typography type="body-xs" color="muted" className="truncate">
+            </p>
+            <p className="truncate text-xs leading-5 text-muted-foreground">
               {email}
-            </Typography>
+            </p>
           </div>
         </div>
 
-        <Separator />
+        <DropdownMenuSeparator />
 
-        <Dropdown.Menu>
-          {navItems.map((item) => (
-            <Dropdown.Item
-              key={item.key}
-              {...(item.onOpen
-                ? { onAction: item.onOpen }
-                : { href: item.href })}
-            >
+        {navItems.map((item) => {
+          const content = (
+            <>
               {item.icon}
               {item.label}
               {item.trailing ? (
                 <span className="ms-auto ps-2">{item.trailing}</span>
               ) : null}
-            </Dropdown.Item>
-          ))}
-        </Dropdown.Menu>
+            </>
+          );
+          return item.onOpen ? (
+            <DropdownMenuItem key={item.key} onSelect={item.onOpen}>
+              {content}
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem key={item.key} asChild>
+              <a href={item.href}>{content}</a>
+            </DropdownMenuItem>
+          );
+        })}
 
         {themePreference ? (
           <>
-            <Separator />
+            <DropdownMenuSeparator />
             <ThemeSegments initialPreference={themePreference} />
           </>
         ) : null}
 
-        <Separator />
+        <DropdownMenuSeparator />
 
-        <Dropdown.Menu>
-          <Dropdown.Item
-            isDisabled={signingOut}
-            onAction={onSignOut}
-            className="text-danger"
-          >
-            <LogOut size={16} />
-            {signingOut ? "Signing out…" : "Sign out"}
-          </Dropdown.Item>
-        </Dropdown.Menu>
-      </Dropdown.Popover>
-    </Dropdown>
+        <DropdownMenuItem
+          variant="destructive"
+          disabled={signingOut}
+          onSelect={onSignOut}
+        >
+          <LogOut size={16} />
+          {signingOut ? "Signing out…" : "Sign out"}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

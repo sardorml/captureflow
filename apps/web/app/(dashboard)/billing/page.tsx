@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { ExternalLink, Sparkles } from "lucide-react";
-import { Button, Card, Chip, ProgressBar, Typography } from "@heroui/react";
 import {
   UNLIMITED_STORAGE_BYTES,
   getSeatPlan,
@@ -11,7 +10,12 @@ import {
   type SubscriptionStatus,
   type WorkspaceSubscriptionRow,
 } from "@captureflow/quota";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { formatBytes } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
@@ -157,27 +161,27 @@ function WorkspacePlanSection({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <Typography weight="semibold">
+            <p className="text-base leading-7 font-semibold text-foreground">
               {paid
                 ? entitlement.plan
                   ? getSeatPlan(entitlement.plan).name
                   : "Paid"
                 : "Free"}
-            </Typography>
+            </p>
             {subscription && (
-              <Chip
-                size="sm"
-                color={
-                  subscription.status === "past_due" ? "warning" : "accent"
-                }
+              <Badge
+                className={cn(
+                  subscription.status === "past_due" &&
+                    "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+                )}
               >
                 {STATUS_LABEL[subscription.status]}
-              </Chip>
+              </Badge>
             )}
           </div>
-          <Typography type="body-sm" color="muted" className="mt-1 block">
+          <p className="mt-1 block text-sm leading-6 text-muted-foreground">
             {line}
-          </Typography>
+          </p>
         </div>
 
         {subscription ? (
@@ -193,16 +197,16 @@ function WorkspacePlanSection({
                   defaultOpen={openSwitch}
                 />
               )}
-            <a
-              href={subscription.portal_url ?? LEMON_PORTAL_URL}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Button variant="secondary">
+            <Button variant="secondary" asChild>
+              <a
+                href={subscription.portal_url ?? LEMON_PORTAL_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
                 Manage subscription
                 <ExternalLink size={14} />
-              </Button>
-            </a>
+              </a>
+            </Button>
           </div>
         ) : offer && isOwner ? (
           <UpgradeModal
@@ -210,7 +214,7 @@ function WorkspacePlanSection({
             userId={userId}
             seat={offer}
             trigger={
-              <Button variant="primary" className="shrink-0">
+              <Button className="shrink-0">
                 <Sparkles size={16} />
                 Upgrade workspace
               </Button>
@@ -328,7 +332,7 @@ function BillingDetails({
                 href={subscription.update_payment_url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-accent hover:underline"
+                className="text-accent-strong hover:underline"
               >
                 Update
               </a>
@@ -367,10 +371,10 @@ function cardBrand(brand: string | null): string {
 function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
     <section>
-      <Typography type="body-sm" weight="semibold" className="mb-2 block">
+      <p className="mb-2 block text-sm leading-6 font-semibold text-foreground">
         {label}
-      </Typography>
-      <Card className="p-5">{children}</Card>
+      </p>
+      <Card className="gap-3 p-5">{children}</Card>
     </section>
   );
 }
@@ -392,28 +396,24 @@ function Meter({
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
-        <Typography type="body-sm" weight="medium">
-          {label}
-        </Typography>
-        <Typography type="body-sm" color="muted">
+        <p className="text-sm leading-6 font-medium text-foreground">{label}</p>
+        <p className="text-sm leading-6 text-muted-foreground">
           {unlimited
             ? `${format(value)} — no limit`
             : `${format(value)} of ${format(limit)}`}
-        </Typography>
+        </p>
       </div>
       {!unlimited && (
-        /* The track and fill are children, not something the root draws for
-           you — a childless ProgressBar renders an empty grid. */
-        <ProgressBar
+        <Progress
           value={pct}
-          color={ratio >= 1 ? "danger" : ratio >= 0.8 ? "warning" : "accent"}
           aria-label={label}
-          className="mt-2"
-        >
-          <ProgressBar.Track className="h-1.5 rounded-full bg-tint-strong">
-            <ProgressBar.Fill className="rounded-full" />
-          </ProgressBar.Track>
-        </ProgressBar>
+          className={cn(
+            "mt-2 h-1.5 rounded-full bg-tint-strong *:data-[slot=progress-indicator]:rounded-full",
+            ratio >= 1
+              ? "*:data-[slot=progress-indicator]:bg-destructive"
+              : ratio >= 0.8 && "*:data-[slot=progress-indicator]:bg-amber-500",
+          )}
+        />
       )}
     </div>
   );

@@ -41,7 +41,7 @@ export function CompareCell({
       )}
     >
       {value === true ? (
-        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent text-white">
+        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-white">
           <Check size={12} strokeWidth={3} />
         </span>
       ) : value === false ? null : (

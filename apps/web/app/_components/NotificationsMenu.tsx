@@ -2,8 +2,15 @@
 
 import { useState } from "react";
 import { Bell } from "lucide-react";
-import { Dropdown, Separator, Typography, buttonVariants } from "@heroui/react";
 import { markNotificationsReadAction } from "@/app/(dashboard)/notifications/actions";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { NotificationFeed } from "@/lib/notification-text";
 import { cn } from "@/lib/utils";
 import { NotificationList } from "./NotificationList";
@@ -45,32 +52,32 @@ export function NotificationsMenu({
   };
 
   return (
-    <Dropdown onOpenChange={onOpenChange}>
-      <Dropdown.Trigger
+    <DropdownMenu onOpenChange={onOpenChange}>
+      <DropdownMenuTrigger
         aria-label={
           unread ? `Notifications, ${unread} unread` : "Notifications"
         }
         className={cn(
-          buttonVariants({ variant: "ghost", isIconOnly: true }),
+          buttonVariants({ variant: "ghost", size: "icon" }),
           "relative",
         )}
       >
-        {/* Class, not the size prop: HeroUI's button sizes the svgs inside it
-            (16px past the sm breakpoint), which a prop can't outrank. */}
         <Bell className="size-5" />
         {unread > 0 && (
-          <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] leading-none font-semibold text-white">
+          <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-none font-semibold text-white">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
-      </Dropdown.Trigger>
+      </DropdownMenuTrigger>
 
-      <Dropdown.Popover placement="bottom end" className="w-96">
+      <DropdownMenuContent side="bottom" align="end" className="w-96">
         <div className="px-3 py-2.5">
-          <Typography weight="semibold">Notifications</Typography>
+          <p className="text-base leading-7 font-semibold text-foreground">
+            Notifications
+          </p>
         </div>
 
-        <Separator />
+        <DropdownMenuSeparator />
 
         <NotificationList
           invites={invites}
@@ -80,17 +87,12 @@ export function NotificationsMenu({
           emptyText="You’re all caught up. Invites, new teammates, and role changes show up here."
         />
 
-        <Separator />
+        <DropdownMenuSeparator />
 
-        <Dropdown.Menu>
-          <Dropdown.Item
-            href={`${base}/notifications`}
-            className="justify-center"
-          >
-            View all
-          </Dropdown.Item>
-        </Dropdown.Menu>
-      </Dropdown.Popover>
-    </Dropdown>
+        <DropdownMenuItem asChild className="justify-center">
+          <a href={`${base}/notifications`}>View all</a>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

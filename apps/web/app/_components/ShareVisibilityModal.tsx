@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   Check,
   ChevronDown,
@@ -11,15 +11,23 @@ import {
   Lock,
   Users,
 } from "lucide-react";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Alert,
-  Button,
-  Checkbox,
-  Dropdown,
-  Label,
-  Modal,
-  buttonVariants,
-} from "@heroui/react";
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
 import { formatTimestamp } from "@/lib/format";
 import { shareUrlAt } from "@/lib/recording/share-time";
 import { cn } from "@/lib/utils";
@@ -94,6 +102,7 @@ export function ShareVisibilityModal({
   const [embedOpen, setEmbedOpen] = useState(false);
   const [atMs, setAtMs] = useState(0);
   const [shareAtTime, setShareAtTime] = useState(false);
+  const shareAtId = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -133,170 +142,158 @@ export function ShareVisibilityModal({
   ].filter(Boolean) as Visibility[];
 
   return (
-    <Modal isOpen={open} onOpenChange={(next) => !next && onClose()}>
-      <Modal.Backdrop>
-        <Modal.Container size="md">
-          <Modal.Dialog>
-            <Modal.Header>
-              <Modal.Heading>{title}</Modal.Heading>
-            </Modal.Header>
-            <Modal.Body className="gap-5">
-              {embedSnippet ? (
-                <div>
-                  <Button
-                    size="sm"
-                    variant={embedOpen ? "primary" : "secondary"}
-                    onPress={() => setEmbedOpen((v) => !v)}
-                    aria-pressed={embedOpen}
-                  >
-                    <Code2 size={14} />
-                    Embed
-                  </Button>
-                  {embedOpen ? (
-                    <div className="mt-3 rounded-xl border border-black/[0.15] bg-panel-2 p-3 dark:border-white/[0.16]">
-                      <pre className="overflow-x-auto font-mono text-xs leading-relaxed break-all whitespace-pre-wrap text-fg">
-                        {embedSnippet}
-                      </pre>
-                      <div className="mt-2 flex items-center justify-between gap-3">
-                        <p className="text-xs text-fg-muted">
-                          {visibility === "public"
-                            ? "Plays wherever the snippet is pasted."
-                            : "Plays only for people who can already open the link."}
-                        </p>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onPress={() => copy("embed", embedSnippet)}
-                        >
-                          {copied === "embed" ? (
-                            <Check size={14} />
-                          ) : (
-                            <Copy size={14} />
-                          )}
-                          {copied === "embed" ? "Copied" : "Copy code"}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-
-              <section>
-                <p className="text-sm font-semibold text-fg">General access</p>
-                <div className="mt-3 flex items-center gap-3">
-                  <span
-                    className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
-                      visibility === "public"
-                        ? "bg-accent/15 text-accent"
-                        : "bg-tint text-fg-muted",
-                    )}
-                  >
-                    <VisibilityIcon value={visibility} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    {canEdit ? (
-                      <Dropdown>
-                        <Dropdown.Trigger
-                          isDisabled={pending}
-                          aria-label={`General access: ${optionLabel(visibility, workspaceName)}`}
-                          className={cn(
-                            buttonVariants({ variant: "ghost", size: "sm" }),
-                            "-ml-3 gap-1",
-                          )}
-                        >
-                          {optionLabel(visibility, workspaceName)}
-                          <ChevronDown size={14} className="text-fg-muted" />
-                        </Dropdown.Trigger>
-                        <Dropdown.Popover
-                          placement="bottom start"
-                          className="min-w-72"
-                        >
-                          <Dropdown.Menu
-                            aria-label="General access"
-                            onAction={(key) =>
-                              onChange(String(key) as Visibility)
-                            }
-                          >
-                            {options.map((value) => (
-                              <Dropdown.Item
-                                key={value}
-                                id={value}
-                                textValue={VISIBILITY_LABELS[value]}
-                              >
-                                <span className="flex w-full items-center gap-3">
-                                  <span className="text-fg-muted">
-                                    <VisibilityIcon value={value} />
-                                  </span>
-                                  <span className="min-w-0 flex-1">
-                                    <span className="block text-sm text-fg">
-                                      {optionLabel(value, workspaceName)}
-                                    </span>
-                                    <span className="block text-xs text-fg-muted">
-                                      {VISIBILITY_DESCRIPTIONS[value]}
-                                    </span>
-                                  </span>
-                                  {value === visibility ? (
-                                    <Check size={14} className="text-accent" />
-                                  ) : null}
-                                </span>
-                              </Dropdown.Item>
-                            ))}
-                          </Dropdown.Menu>
-                        </Dropdown.Popover>
-                      </Dropdown>
-                    ) : (
-                      <p className="text-sm font-medium text-fg">
-                        {optionLabel(visibility, workspaceName)}
-                      </p>
-                    )}
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-5">
+          {embedSnippet ? (
+            <div>
+              <Button
+                size="sm"
+                variant={embedOpen ? "default" : "secondary"}
+                onClick={() => setEmbedOpen((v) => !v)}
+                aria-pressed={embedOpen}
+              >
+                <Code2 size={14} />
+                Embed
+              </Button>
+              {embedOpen ? (
+                <div className="mt-3 rounded-xl border border-black/[0.15] bg-panel-2 p-3 dark:border-white/[0.16]">
+                  <pre className="overflow-x-auto font-mono text-xs leading-relaxed break-all whitespace-pre-wrap text-fg">
+                    {embedSnippet}
+                  </pre>
+                  <div className="mt-2 flex items-center justify-between gap-3">
                     <p className="text-xs text-fg-muted">
-                      {VISIBILITY_DESCRIPTIONS[visibility]}
+                      {visibility === "public"
+                        ? "Plays wherever the snippet is pasted."
+                        : "Plays only for people who can already open the link."}
                     </p>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => copy("embed", embedSnippet)}
+                    >
+                      {copied === "embed" ? (
+                        <Check size={14} />
+                      ) : (
+                        <Copy size={14} />
+                      )}
+                      {copied === "embed" ? "Copied" : "Copy code"}
+                    </Button>
                   </div>
                 </div>
-                {error && (
-                  <Alert status="danger" className="mt-3">
-                    <Alert.Content>
-                      <Alert.Title>{error}</Alert.Title>
-                    </Alert.Content>
-                  </Alert>
+              ) : null}
+            </div>
+          ) : null}
+
+          <section>
+            <p className="text-sm font-semibold text-fg">General access</p>
+            <div className="mt-3 flex items-center gap-3">
+              <span
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
+                  visibility === "public"
+                    ? "bg-primary/15 text-accent-strong"
+                    : "bg-tint text-fg-muted",
                 )}
-              </section>
-            </Modal.Body>
-            <Modal.Footer className="flex flex-wrap items-center gap-3">
-              {shareUrl && linkToShare ? (
-                <Button
-                  variant="secondary"
-                  onPress={() => copy("link", linkToShare)}
-                >
-                  {copied === "link" ? (
-                    <Check size={16} />
-                  ) : (
-                    <Link2 size={16} />
-                  )}
-                  {copied === "link" ? "Link copied" : "Copy link"}
-                </Button>
-              ) : null}
-              {canShareAt ? (
-                <Checkbox isSelected={shareAtTime} onChange={setShareAtTime}>
-                  <Checkbox.Content>
-                    <Checkbox.Control>
-                      <Checkbox.Indicator />
-                    </Checkbox.Control>
-                    <Label className="text-sm font-normal text-fg">
-                      Share at {formatTimestamp(atMs)}
-                    </Label>
-                  </Checkbox.Content>
-                </Checkbox>
-              ) : null}
-              <Button variant="primary" className="ml-auto" onPress={onClose}>
-                Done
-              </Button>
-            </Modal.Footer>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+              >
+                <VisibilityIcon value={visibility} />
+              </span>
+              <div className="min-w-0 flex-1">
+                {canEdit ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      disabled={pending}
+                      aria-label={`General access: ${optionLabel(visibility, workspaceName)}`}
+                      className={cn(
+                        buttonVariants({ variant: "ghost", size: "sm" }),
+                        "-ml-3 gap-1",
+                      )}
+                    >
+                      {optionLabel(visibility, workspaceName)}
+                      <ChevronDown size={14} className="text-fg-muted" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      side="bottom"
+                      align="start"
+                      aria-label="General access"
+                      className="w-auto min-w-72"
+                    >
+                      {options.map((value) => (
+                        <DropdownMenuItem
+                          key={value}
+                          textValue={VISIBILITY_LABELS[value]}
+                          onSelect={() => onChange(value)}
+                        >
+                          <span className="flex w-full items-center gap-3">
+                            <span className="text-fg-muted">
+                              <VisibilityIcon value={value} />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-sm text-fg">
+                                {optionLabel(value, workspaceName)}
+                              </span>
+                              <span className="block text-xs text-fg-muted">
+                                {VISIBILITY_DESCRIPTIONS[value]}
+                              </span>
+                            </span>
+                            {value === visibility ? (
+                              <Check size={14} className="text-accent-strong" />
+                            ) : null}
+                          </span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <p className="text-sm font-medium text-fg">
+                    {optionLabel(visibility, workspaceName)}
+                  </p>
+                )}
+                <p className="text-xs text-fg-muted">
+                  {VISIBILITY_DESCRIPTIONS[visibility]}
+                </p>
+              </div>
+            </div>
+            {error && (
+              <Alert variant="destructive" className="mt-3">
+                <AlertTitle>{error}</AlertTitle>
+              </Alert>
+            )}
+          </section>
+        </div>
+        <DialogFooter className="flex-row flex-wrap items-center gap-3">
+          {shareUrl && linkToShare ? (
+            <Button
+              variant="secondary"
+              onClick={() => copy("link", linkToShare)}
+            >
+              {copied === "link" ? <Check size={16} /> : <Link2 size={16} />}
+              {copied === "link" ? "Link copied" : "Copy link"}
+            </Button>
+          ) : null}
+          {canShareAt ? (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id={shareAtId}
+                checked={shareAtTime}
+                onCheckedChange={(next) => setShareAtTime(next === true)}
+              />
+              <Label
+                htmlFor={shareAtId}
+                className="text-sm font-normal text-fg"
+              >
+                Share at {formatTimestamp(atMs)}
+              </Label>
+            </div>
+          ) : null}
+          <Button className="ml-auto" onClick={onClose}>
+            Done
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

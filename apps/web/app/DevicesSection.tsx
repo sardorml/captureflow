@@ -4,13 +4,20 @@ import { useTransition } from "react";
 import { Monitor } from "lucide-react";
 import {
   AlertDialog,
-  Button,
-  Card,
-  Chip,
-  EmptyState,
-  Spinner,
-  buttonVariants,
-} from "@heroui/react";
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Empty } from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
 import type { DeviceTokenRow } from "@/lib/device-tokens";
 import { revokeDeviceTokenAction } from "./actions";
 
@@ -21,10 +28,10 @@ type DevicesSectionProps = {
 export function DevicesSection({ tokens }: DevicesSectionProps) {
   if (tokens.length === 0) {
     return (
-      <EmptyState className="mt-4 text-center text-sm text-fg-muted">
+      <Empty className="mt-4 text-center text-sm text-fg-muted">
         No connected devices. Open the CaptureFlow desktop app and click Sign in
         on the record bar to link this account.
-      </EmptyState>
+      </Empty>
     );
   }
   return (
@@ -61,44 +68,38 @@ function DeviceRow({ token }: { token: DeviceTokenRow }) {
               ? ` · last used ${formatDate(token.lastUsedAt)}`
               : ""}
           </span>
-          {token.lastUsedAt ? null : <Chip size="sm">Never used</Chip>}
+          {token.lastUsedAt ? null : (
+            <Badge variant="secondary">Never used</Badge>
+          )}
         </p>
       </div>
       <AlertDialog>
-        <AlertDialog.Trigger className="inline-flex">
-          <Button variant="ghost" size="sm" className="text-danger">
-            {pending && <Spinner size="sm" color="current" />}
+        <AlertDialogTrigger asChild>
+          <Button variant="ghost" size="sm" className="text-destructive">
+            {pending && <Spinner />}
             Revoke
           </Button>
-        </AlertDialog.Trigger>
-        <AlertDialog.Backdrop>
-          <AlertDialog.Container size="sm">
-            <AlertDialog.Dialog>
-              <AlertDialog.Header>
-                <AlertDialog.Heading>Sign this device out?</AlertDialog.Heading>
-              </AlertDialog.Header>
-              <AlertDialog.Body>
-                It will need to sign in again to manage recordings.
-              </AlertDialog.Body>
-              <AlertDialog.Footer className="flex justify-end gap-2">
-                <AlertDialog.CloseTrigger
-                  className={buttonVariants({
-                    variant: "secondary",
-                    size: "sm",
-                  })}
-                >
-                  Cancel
-                </AlertDialog.CloseTrigger>
-                <AlertDialog.CloseTrigger
-                  className={buttonVariants({ variant: "danger", size: "sm" })}
-                  onPress={onRevoke}
-                >
-                  Revoke
-                </AlertDialog.CloseTrigger>
-              </AlertDialog.Footer>
-            </AlertDialog.Dialog>
-          </AlertDialog.Container>
-        </AlertDialog.Backdrop>
+        </AlertDialogTrigger>
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign this device out?</AlertDialogTitle>
+            <AlertDialogDescription>
+              It will need to sign in again to manage recordings.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel variant="secondary" size="sm">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              size="sm"
+              onClick={onRevoke}
+            >
+              Revoke
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </li>
   );

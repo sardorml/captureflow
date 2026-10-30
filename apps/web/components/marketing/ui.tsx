@@ -1,19 +1,16 @@
 "use client";
 
 import type { CSSProperties, MouseEventHandler, ReactNode } from "react";
-import {
-  Card as HeroCard,
-  Chip,
-  Separator,
-  Button as HeroButton,
-  buttonVariants,
-} from "@heroui/react";
+import { Badge } from "@/components/ui/badge";
+import { Button as UiButton, buttonVariants } from "@/components/ui/button";
+import { Card as UiCard } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 /*
- * Marketing-local adapters over HeroUI. The 20 landing sections were written
+ * Marketing-local adapters over shadcn/ui. The 20 landing sections were written
  * against a different prop vocabulary (`type="primary"`, `styles.body`); these
- * keep that call shape so the sections stay untouched while HeroUI does the
- * rendering. New product code should use @heroui/react directly.
+ * keep that call shape so the sections stay untouched.
  */
 
 export function Card({
@@ -34,36 +31,28 @@ export function Card({
   onClick?: () => void;
 }) {
   return (
-    <HeroCard
+    <UiCard
       onClick={onClick}
-      className={[
-        /* HeroUI's default card surface is #18181b, a single step off the
-           marketing page's #171717, and both are #fff in light mode — so cards
-           vanish. `panel-2` is the one raised token that separates in both. */
-        "border border-line bg-panel-2",
-        hoverable ? "transition-colors hover:bg-tint-strong" : "",
+      className={cn(
+        "gap-3 overflow-visible rounded-3xl border border-line bg-panel-2 p-4 ring-0",
+        hoverable && "transition-colors hover:bg-tint-strong",
         className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      )}
       style={style}
     >
-      {/* Note: HeroUI's .card pads itself (16px), so a card's real inset is that
-          plus whatever lands here. Every marketing card is tuned against the
-          pair — change the sum at the call site, not by zeroing one half. */}
+      {/* A card's real inset is the Card's own 16px plus whatever lands here.
+          Every marketing card is tuned against the pair — change the sum at the
+          call site, not by zeroing one half. */}
       <div style={{ padding: 20, ...styles?.body }}>{children}</div>
-    </HeroCard>
+    </UiCard>
   );
 }
 
-/* default maps to tertiary, not secondary: both take the same grey fill, but
-   secondary paints its label with the soft accent, and blue on grey reads as
-   a disabled button rather than an alternative action. */
 const VARIANT_FOR_TYPE = {
-  primary: "primary",
+  primary: "default",
   text: "ghost",
   link: "ghost",
-  default: "tertiary",
+  default: "secondary",
 } as const;
 
 type AntButtonType = keyof typeof VARIANT_FOR_TYPE;
@@ -104,7 +93,7 @@ export function Button({
   "aria-label"?: string;
 }) {
   const variant = VARIANT_FOR_TYPE[type];
-  const heroSize = size === "large" ? "lg" : size === "small" ? "sm" : "md";
+  const uiSize = size === "large" ? "lg" : size === "small" ? "sm" : "default";
 
   if (href) {
     return (
@@ -115,12 +104,11 @@ export function Button({
         style={style}
         tabIndex={tabIndex}
         aria-label={rest["aria-label"]}
-        className={buttonVariants({
-          variant,
-          size: heroSize,
-          fullWidth: block,
+        className={cn(
+          buttonVariants({ variant, size: uiSize }),
+          block && "w-full",
           className,
-        })}
+        )}
       >
         {icon}
         {children}
@@ -129,28 +117,27 @@ export function Button({
   }
 
   return (
-    <HeroButton
+    <UiButton
       variant={variant}
-      size={heroSize}
-      type={htmlType === "submit" ? "submit" : undefined}
-      fullWidth={block}
-      isDisabled={disabled || loading}
-      onPress={onClick as () => void}
-      className={className}
+      size={uiSize}
+      type={htmlType === "submit" ? "submit" : "button"}
+      disabled={disabled || loading}
+      onClick={onClick as MouseEventHandler<HTMLButtonElement> | undefined}
+      className={cn(block && "w-full", className)}
       style={style}
       aria-label={rest["aria-label"]}
     >
       {icon}
       {children}
-    </HeroButton>
+    </UiButton>
   );
 }
 
-const CHIP_COLOR = {
-  blue: "accent",
-  orange: "warning",
-  green: "success",
-  red: "danger",
+const TAG_CLASS = {
+  blue: "text-accent-strong",
+  orange: "text-amber-500",
+  green: "text-emerald-500",
+  red: "text-destructive",
 } as const;
 
 export function Tag({
@@ -166,14 +153,16 @@ export function Tag({
   style?: CSSProperties;
 }) {
   return (
-    <Chip
-      size="sm"
-      color={color ? CHIP_COLOR[color as keyof typeof CHIP_COLOR] : undefined}
-      className={className}
+    <Badge
+      variant="secondary"
+      className={cn(
+        color && TAG_CLASS[color as keyof typeof TAG_CLASS],
+        className,
+      )}
       style={style}
     >
       {children}
-    </Chip>
+    </Badge>
   );
 }
 

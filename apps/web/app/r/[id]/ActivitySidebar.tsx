@@ -1,13 +1,19 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
-  Avatar,
-  Button,
-  Dropdown,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Popover,
-  Tabs,
-  buttonVariants,
-} from "@heroui/react";
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AtSign, MessageSquare, Smile, Sparkles, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
@@ -106,7 +112,7 @@ type Props = {
 type SidebarTab = "edit" | "activity" | "transcript";
 
 const TAB_CLASS =
-  "isolate h-8 flex-1 justify-center gap-1.5 px-3.5 text-sm font-medium text-fg-muted data-[selected=true]:text-fg";
+  "h-full flex-1 group-data-horizontal/tabs:after:bottom-[-1px]";
 
 export function ActivitySidebar({
   slug,
@@ -325,6 +331,10 @@ export function ActivitySidebar({
     });
   };
 
+  const keepComposerFocus = (e: Event) => {
+    if (document.activeElement === composerRef.current) e.preventDefault();
+  };
+
   const submitComment = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!viewerSignedIn) {
@@ -385,36 +395,37 @@ export function ActivitySidebar({
   return (
     <aside className="flex w-full flex-col border-black/[0.06] bg-panel max-lg:border-t lg:h-full lg:w-auto lg:overflow-hidden lg:border-l dark:border-white/[0.07]">
       <Tabs
-        selectedKey={tab}
-        onSelectionChange={(key) => setTab(key as SidebarTab)}
+        value={tab}
+        onValueChange={(value) => setTab(value as SidebarTab)}
         aria-label="Recording sidebar"
-        className="flex min-h-0 flex-1 flex-col"
+        className="flex min-h-0 flex-1 flex-col gap-0"
       >
-        <header className="sticky top-0 z-10 flex items-center bg-canvas-2/90 px-5 py-4 backdrop-blur-md lg:static lg:bg-transparent lg:px-6 lg:pt-5 lg:backdrop-blur-none">
-          <Tabs.ListContainer className="w-full rounded-xl bg-tint p-1">
-            <Tabs.List className="flex w-full gap-0 p-0">
-              <Tabs.Tab id="activity" className={TAB_CLASS}>
-                <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
-                Activity
-                <span className="rounded-full bg-tint-strong px-2 py-0.5 text-xs font-medium text-fg tabular-nums">
-                  {entries.length}
-                </span>
-              </Tabs.Tab>
-              <Tabs.Tab id="transcript" className={TAB_CLASS}>
-                <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
-                Transcript
-              </Tabs.Tab>
-              {editPanel ? (
-                <Tabs.Tab id="edit" className={TAB_CLASS}>
-                  <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
-                  Edit
-                </Tabs.Tab>
-              ) : null}
-            </Tabs.List>
-          </Tabs.ListContainer>
+        <header className="sticky top-0 z-10 flex h-12 shrink-0 items-stretch border-b border-line bg-panel/90 backdrop-blur-md lg:static lg:bg-transparent lg:backdrop-blur-none">
+          <TabsList
+            variant="line"
+            className="w-full gap-0 p-0 group-data-horizontal/tabs:h-full"
+          >
+            <TabsTrigger value="activity" className={TAB_CLASS}>
+              Activity
+              <span className="rounded-full bg-muted px-1.5 text-xs font-medium text-muted-foreground tabular-nums">
+                {entries.length}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="transcript" className={TAB_CLASS}>
+              Transcript
+            </TabsTrigger>
+            {editPanel ? (
+              <TabsTrigger value="edit" className={TAB_CLASS}>
+                Edit
+              </TabsTrigger>
+            ) : null}
+          </TabsList>
         </header>
 
-        <Tabs.Panel id="activity" className="flex min-h-0 flex-1 flex-col p-0">
+        <TabsContent
+          value="activity"
+          className="flex min-h-0 flex-1 flex-col p-0"
+        >
           <div
             ref={listRef}
             onScroll={onListScroll}
@@ -464,22 +475,22 @@ export function ActivitySidebar({
               </ol>
             )}
           </div>
-        </Tabs.Panel>
+        </TabsContent>
 
-        <Tabs.Panel
-          id="transcript"
+        <TabsContent
+          value="transcript"
           className="flex min-h-0 flex-1 flex-col px-5 py-4 lg:px-6"
         >
           {transcript}
-        </Tabs.Panel>
+        </TabsContent>
 
         {editPanel ? (
-          <Tabs.Panel
-            id="edit"
+          <TabsContent
+            value="edit"
             className="min-h-0 flex-1 px-5 py-4 lg:overflow-y-auto lg:px-6"
           >
             {editPanel}
-          </Tabs.Panel>
+          </TabsContent>
         ) : null}
       </Tabs>
 
@@ -490,24 +501,24 @@ export function ActivitySidebar({
         )}
       >
         {!viewerSignedIn ? (
-          <Button variant="primary" size="lg" fullWidth onPress={onSignIn}>
+          <Button size="lg" className="w-full" onClick={onSignIn}>
             <Sparkles size={16} />
             Sign in to react &amp; comment
           </Button>
         ) : (
           <form
             onSubmit={submitComment}
-            className="focus-within:ring-focus relative rounded-2xl border border-black/[0.15] bg-panel-2 p-3 focus-within:ring-2 dark:border-white/[0.16]"
+            className="focus-within:ring-ring relative rounded-2xl border border-black/[0.15] bg-panel-2 p-3 focus-within:ring-2 dark:border-white/[0.16]"
           >
             <div className="flex items-start gap-2.5">
               <Avatar
-                className="h-7 w-7 mt-0.5 shrink-0"
+                className="mt-0.5 size-7 shrink-0"
                 style={{ backgroundColor: toneFromSeed(viewerUserId) }}
               >
-                {viewerImageUrl && <Avatar.Image src={viewerImageUrl} alt="" />}
-                <Avatar.Fallback className="text-[11px]">
+                {viewerImageUrl && <AvatarImage src={viewerImageUrl} alt="" />}
+                <AvatarFallback className="bg-transparent text-[11px] font-medium text-white">
                   {initials(viewerName ?? "You")}
-                </Avatar.Fallback>
+                </AvatarFallback>
               </Avatar>
               <textarea
                 ref={(el) => {
@@ -520,84 +531,92 @@ export function ActivitySidebar({
                 onFocus={warmEmojiPicker}
                 placeholder="Leave a comment…"
                 rows={1}
-                className="block min-h-[1.5rem] w-full resize-none bg-transparent text-sm text-fg placeholder:text-muted focus:outline-none"
+                className="block min-h-[1.5rem] w-full resize-none bg-transparent text-sm text-fg placeholder:text-muted-foreground focus:outline-none"
               />
             </div>
             <div className="mt-2.5 flex items-center justify-between">
               <div className="flex items-center gap-0.5">
-                <Dropdown
-                  isOpen={mentionOpen}
+                <DropdownMenu
+                  open={mentionOpen}
                   onOpenChange={(o) => {
                     setMentionOpen(o);
                     if (o) setEmojiOpen(false);
                   }}
                 >
-                  <Dropdown.Trigger
-                    aria-label="Mention someone"
-                    className={buttonVariants({
-                      variant: "ghost",
-                      size: "sm",
-                      isIconOnly: true,
-                    })}
-                  >
-                    <AtSign className="h-4 w-4" />
-                  </Dropdown.Trigger>
-                  <Dropdown.Popover placement="top start">
-                    <Dropdown.Menu
-                      onAction={(key) => {
-                        const p = participants.find((x) => x.userId === key);
-                        if (p) insertAtCaret(`@${p.userName} `);
-                        setMentionOpen(false);
-                      }}
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Mention someone"
                     >
-                      {mentionCandidates.length === 0 ? (
-                        <Dropdown.Item id="none" isDisabled>
-                          No one has reacted or commented yet
-                        </Dropdown.Item>
-                      ) : (
-                        mentionCandidates.map((c) => (
-                          <Dropdown.Item key={c.key} id={c.key}>
-                            {c.name}
-                          </Dropdown.Item>
-                        ))
-                      )}
-                    </Dropdown.Menu>
-                  </Dropdown.Popover>
-                </Dropdown>
+                      <AtSign className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    side="top"
+                    align="start"
+                    onCloseAutoFocus={keepComposerFocus}
+                  >
+                    {mentionCandidates.length === 0 ? (
+                      <DropdownMenuItem disabled>
+                        No one has reacted or commented yet
+                      </DropdownMenuItem>
+                    ) : (
+                      mentionCandidates.map((c) => (
+                        <DropdownMenuItem
+                          key={c.key}
+                          onSelect={() => {
+                            const p = participants.find(
+                              (x) => x.userId === c.key,
+                            );
+                            if (p) insertAtCaret(`@${p.userName} `);
+                            setMentionOpen(false);
+                          }}
+                        >
+                          {c.name}
+                        </DropdownMenuItem>
+                      ))
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Popover
-                  isOpen={emojiOpen}
+                  open={emojiOpen}
                   onOpenChange={(o) => {
                     setEmojiOpen(o);
                     if (o) setMentionOpen(false);
                   }}
                 >
-                  <Popover.Trigger className="inline-flex">
+                  <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
-                      size="sm"
-                      isIconOnly
+                      size="icon-sm"
                       aria-label="Insert emoji"
-                      onHoverStart={warmEmojiPicker}
+                      onMouseEnter={warmEmojiPicker}
                       onFocus={warmEmojiPicker}
                     >
                       <Smile className="h-4 w-4" />
                     </Button>
-                  </Popover.Trigger>
-                  <Popover.Content placement="top start" className="p-0">
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="top"
+                    align="start"
+                    className="w-auto p-0"
+                    onCloseAutoFocus={keepComposerFocus}
+                  >
                     <EmojiPickerThemed
                       onPick={(emoji) => {
                         insertAtCaret(emoji);
                         setEmojiOpen(false);
                       }}
                     />
-                  </Popover.Content>
+                  </PopoverContent>
                 </Popover>
               </div>
               <Button
                 type="submit"
-                variant={draft.trim() ? "primary" : "ghost"}
+                variant={draft.trim() ? "default" : "ghost"}
                 size="sm"
-                isDisabled={posting || !draft.trim()}
+                disabled={posting || !draft.trim()}
               >
                 {posting
                   ? "Posting…"
@@ -719,13 +738,13 @@ function ReactionRow({
     <div className="group -mx-2 flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-tint">
       <span className="relative shrink-0">
         <Avatar
-          className="h-8 w-8"
+          className="size-8"
           style={{ backgroundColor: toneFromSeed(burst.userId ?? name) }}
         >
-          {burst.userImage && <Avatar.Image src={burst.userImage} alt="" />}
-          <Avatar.Fallback className="text-[11px]">
+          {burst.userImage && <AvatarImage src={burst.userImage} alt="" />}
+          <AvatarFallback className="bg-transparent text-[11px] font-medium text-white">
             {initials(name)}
-          </Avatar.Fallback>
+          </AvatarFallback>
         </Avatar>
         <span className="absolute -right-1.5 -bottom-1 flex h-5 w-5 items-center justify-center rounded-full bg-panel text-[12px] leading-none ring-2 ring-panel">
           {burst.emojis[0]?.emoji}
@@ -788,15 +807,15 @@ function CommentRow({
   return (
     <div className="group -mx-2 flex items-start gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-tint">
       <Avatar
-        className="h-8 w-8 shrink-0"
+        className="size-8 shrink-0"
         style={{
           backgroundColor: toneFromSeed(comment.userId ?? comment.userName),
         }}
       >
-        {comment.userImage && <Avatar.Image src={comment.userImage} alt="" />}
-        <Avatar.Fallback className="text-[11px]">
+        {comment.userImage && <AvatarImage src={comment.userImage} alt="" />}
+        <AvatarFallback className="bg-transparent text-[11px] font-medium text-white">
           {initials(comment.userName)}
-        </Avatar.Fallback>
+        </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex h-8 items-center gap-2">
@@ -839,7 +858,7 @@ function TimestampChip({ ms, onClick }: { ms: number; onClick: () => void }) {
       type="button"
       onClick={onClick}
       title="Jump to this moment"
-      className="inline-flex shrink-0 items-center rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent tabular-nums transition-colors hover:bg-accent-soft-hover"
+      className="inline-flex shrink-0 items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-accent-strong tabular-nums transition-colors hover:bg-primary/15"
     >
       {formatTimestamp(ms)}
     </button>

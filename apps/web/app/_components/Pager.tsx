@@ -1,8 +1,17 @@
 "use client";
 
-import { Pagination } from "@heroui/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { MouseEvent } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+} from "@/components/ui/pagination";
 import { pageItems } from "@/lib/pagination";
+import { cn } from "@/lib/utils";
 
 type PagerProps = {
   page: number;
@@ -17,53 +26,57 @@ export function Pager({ page, pageCount }: PagerProps) {
   const searchParams = useSearchParams();
   if (pageCount <= 1) return null;
 
-  const go = (next: number) => {
+  const hrefFor = (next: number) => {
     const params = new URLSearchParams(searchParams);
     if (next <= 1) params.delete("page");
     else params.set("page", String(next));
     const query = params.toString();
-    router.push(query ? `${pathname}?${query}` : pathname);
+    return query ? `${pathname}?${query}` : pathname;
   };
+
+  const linkTo = (next: number, disabled = false) => ({
+    href: disabled ? undefined : hrefFor(next),
+    "aria-disabled": disabled || undefined,
+    className: cn(disabled && "pointer-events-none opacity-50"),
+    onClick: (event: MouseEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      if (!disabled) router.push(hrefFor(next));
+    },
+  });
 
   return (
     <Pagination aria-label="Pages" className="mt-8 flex justify-center">
-      <Pagination.Content>
-        <Pagination.Item>
-          <Pagination.Previous
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationLink
             aria-label="Previous page"
-            isDisabled={page <= 1}
-            onPress={() => go(page - 1)}
+            {...linkTo(page - 1, page <= 1)}
           >
-            <Pagination.PreviousIcon />
-          </Pagination.Previous>
-        </Pagination.Item>
+            <ChevronLeft />
+          </PaginationLink>
+        </PaginationItem>
         {pageItems(page, pageCount).map((item, i) =>
           item === "gap" ? (
-            <Pagination.Item key={`gap-${i}`}>
-              <Pagination.Ellipsis />
-            </Pagination.Item>
+            <PaginationItem key={`gap-${i}`}>
+              <PaginationEllipsis />
+            </PaginationItem>
           ) : (
-            <Pagination.Item key={item}>
-              <Pagination.Link
-                isActive={item === page}
-                aria-current={item === page ? "page" : undefined}
-                onPress={() => go(item)}
-              >
+            <PaginationItem key={item}>
+              <PaginationLink isActive={item === page} {...linkTo(item)}>
                 {item}
-              </Pagination.Link>
-            </Pagination.Item>
+              </PaginationLink>
+            </PaginationItem>
           ),
         )}
-        <Pagination.Item>
-          <Pagination.Next
+        <PaginationItem>
+          <PaginationLink
             aria-label="Next page"
-            isDisabled={page >= pageCount}
-            onPress={() => go(page + 1)}
+            {...linkTo(page + 1, page >= pageCount)}
           >
-            <Pagination.NextIcon />
-          </Pagination.Next>
-        </Pagination.Item>
-      </Pagination.Content>
+            <ChevronRight />
+          </PaginationLink>
+        </PaginationItem>
+      </PaginationContent>
     </Pagination>
   );
 }

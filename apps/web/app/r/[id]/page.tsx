@@ -412,7 +412,7 @@ function RecordingNav({
           <SidebarDrawer>
             <div data-split="sidebar" className="contents">
               <Suspense fallback={null}>
-                <Sidebar />
+                <Sidebar collapsible="none" />
               </Suspense>
             </div>
           </SidebarDrawer>

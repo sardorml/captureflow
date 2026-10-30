@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { buttonVariants } from "@heroui/react";
 import { Check, Copy } from "lucide-react";
 import { APP_WEB_SITE_URL } from "@/lib/site";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ClaudeLogo, CursorLogo, OpenAILogo } from "./platform-logos";
 import { useMessages } from "./i18n-provider";
@@ -85,11 +85,10 @@ export function McpConnectDetails() {
       ) : (
         <a
           href={CURSOR_INSTALL}
-          className={buttonVariants({
-            variant: "secondary",
-            size: "sm",
-            className: "w-fit rounded-lg",
-          })}
+          className={cn(
+            buttonVariants({ variant: "secondary", size: "sm" }),
+            "w-fit rounded-lg",
+          )}
         >
           {m.hero.mcpAddToCursor}
         </a>

@@ -3,7 +3,15 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, ChevronDown, Sparkle, Users } from "lucide-react";
-import { Avatar, Button, Checkbox, Label, Modal, Popover } from "@heroui/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   RECOMMENDED_SEAT_PLAN_ID,
   SEAT_PLANS,
@@ -145,146 +153,140 @@ export function UpgradeModalBody({
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-      <Modal.Backdrop>
-        <Modal.Container>
-          <Modal.Dialog
-            data-split="upgrade-modal"
-            className="max-w-3xl rounded-3xl bg-panel p-0"
-          >
-            <Modal.CloseTrigger />
-            <Modal.Body className="p-6">
-              <Modal.Heading className="pe-8 text-2xl font-bold tracking-[-0.02em] text-fg">
-                Upgrade {seat.workspaceName}
-              </Modal.Heading>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <div
-                  role="radiogroup"
-                  aria-label="Billing cycle"
-                  className="grid grid-cols-2 gap-1 rounded-full bg-tint p-1"
-                >
-                  {CYCLES.map((c) => {
-                    const isOn = c.key === cycle;
-                    return (
-                      <button
-                        key={c.key}
-                        type="button"
-                        role="radio"
-                        aria-checked={isOn}
-                        onClick={() => setCycle(c.key)}
-                        className={cn(
-                          "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
-                          isOn
-                            ? "bg-panel text-fg shadow-sm"
-                            : "text-fg-muted hover:text-fg",
-                        )}
-                      >
-                        {c.label}
-                        {c.key === "annual" ? (
-                          <span className="ms-1.5 text-xs text-accent">
-                            save {SEAT_ANNUAL_SAVING_PERCENT}%
-                          </span>
-                        ) : null}
-                      </button>
-                    );
-                  })}
-                </div>
-                <Popover>
-                  <Popover.Trigger className="inline-flex">
-                    <Button
-                      variant="secondary"
-                      className="h-10 rounded-full px-4 text-sm font-medium"
-                    >
-                      <Users size={15} />
-                      {seats} paid {seats === 1 ? "seat" : "seats"}
-                      {viewers > 0 ? (
-                        <span className="text-fg-muted">
-                          · {viewers} free{" "}
-                          {viewers === 1 ? "viewer" : "viewers"}
-                        </span>
-                      ) : null}
-                      <ChevronDown size={15} className="text-fg-muted" />
-                    </Button>
-                  </Popover.Trigger>
-                  <Popover.Content
-                    placement="bottom start"
-                    className="w-96 p-0"
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent
+        data-split="upgrade-modal"
+        aria-describedby={undefined}
+        className="max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl bg-panel p-0 sm:max-w-3xl"
+      >
+        <div className="p-6">
+          <DialogTitle className="pe-8 text-2xl leading-tight font-bold tracking-[-0.02em] text-fg">
+            Upgrade {seat.workspaceName}
+          </DialogTitle>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div
+              role="radiogroup"
+              aria-label="Billing cycle"
+              className="grid grid-cols-2 gap-1 rounded-full bg-tint p-1"
+            >
+              {CYCLES.map((c) => {
+                const isOn = c.key === cycle;
+                return (
+                  <button
+                    key={c.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={isOn}
+                    onClick={() => setCycle(c.key)}
+                    className={cn(
+                      "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
+                      isOn
+                        ? "bg-panel text-fg shadow-sm"
+                        : "text-fg-muted hover:text-fg",
+                    )}
                   >
-                    <Popover.Dialog
-                      aria-label="Who gets a paid seat"
-                      className="p-3 outline-none"
-                    >
-                      <div className="flex items-baseline justify-between gap-3 px-1">
-                        <p className="text-sm font-semibold text-fg">
-                          Who gets a paid seat
-                        </p>
-                        <span className="text-xs text-fg-muted tabular-nums">
-                          {seats} of {people.length}
-                        </span>
+                    {c.label}
+                    {c.key === "annual" ? (
+                      <span className="ms-1.5 text-xs text-accent-strong">
+                        save {SEAT_ANNUAL_SAVING_PERCENT}%
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="secondary"
+                  className="h-10 rounded-full px-4 text-sm font-medium"
+                >
+                  <Users size={15} />
+                  {seats} paid {seats === 1 ? "seat" : "seats"}
+                  {viewers > 0 ? (
+                    <span className="text-fg-muted">
+                      · {viewers} free {viewers === 1 ? "viewer" : "viewers"}
+                    </span>
+                  ) : null}
+                  <ChevronDown size={15} className="text-fg-muted" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                side="bottom"
+                align="start"
+                aria-label="Who gets a paid seat"
+                className="w-96 p-0"
+              >
+                <div className="p-3">
+                  <div className="flex items-baseline justify-between gap-3 px-1">
+                    <p className="text-sm font-semibold text-fg">
+                      Who gets a paid seat
+                    </p>
+                    <span className="text-xs text-fg-muted tabular-nums">
+                      {seats} of {people.length}
+                    </span>
+                  </div>
+                  <div className="px-1">
+                    <p className="mt-0.5 text-xs leading-snug text-fg-muted">
+                      Ticked people record and are billed. Everyone else is a
+                      free viewer who can watch, comment and react, but
+                      can&apos;t record. Roles change when you upgrade.
+                    </p>
+                    {canManage && assignable.length > 1 ? (
+                      <div className="mt-2 flex gap-3 text-xs font-medium">
+                        <button
+                          type="button"
+                          onClick={() => setAll("member")}
+                          className="cursor-pointer text-accent-strong hover:underline"
+                        >
+                          Select all
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAll("viewer")}
+                          className="cursor-pointer text-fg-muted hover:text-fg hover:underline"
+                        >
+                          Clear
+                        </button>
                       </div>
-                      <div className="px-1">
-                        <p className="mt-0.5 text-xs leading-snug text-fg-muted">
-                          Ticked people record and are billed. Everyone else is
-                          a free viewer who can watch, comment and react, but
-                          can&apos;t record. Roles change when you upgrade.
-                        </p>
-                        {canManage && assignable.length > 1 ? (
-                          <div className="mt-2 flex gap-3 text-xs font-medium">
-                            <button
-                              type="button"
-                              onClick={() => setAll("member")}
-                              className="cursor-pointer text-accent hover:underline"
-                            >
-                              Select all
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setAll("viewer")}
-                              className="cursor-pointer text-fg-muted hover:text-fg hover:underline"
-                            >
-                              Clear
-                            </button>
-                          </div>
-                        ) : null}
-                      </div>
-                      <ul className="mt-2 max-h-72 divide-y divide-line overflow-y-auto rounded-xl border border-line">
-                        {people.map((p) => (
-                          <PersonRow
-                            key={p.userId}
-                            person={p}
-                            isSelf={p.userId === userId}
-                            editable={canManage && p.role !== "owner"}
-                            onRole={(role) => setRole(p.userId, role)}
-                          />
-                        ))}
-                      </ul>
-                    </Popover.Dialog>
-                  </Popover.Content>
-                </Popover>
-              </div>
+                    ) : null}
+                  </div>
+                  <ul className="mt-2 max-h-72 divide-y divide-line overflow-y-auto rounded-xl border border-line">
+                    {people.map((p) => (
+                      <PersonRow
+                        key={p.userId}
+                        person={p}
+                        isSelf={p.userId === userId}
+                        editable={canManage && p.role !== "owner"}
+                        onRole={(role) => setRole(p.userId, role)}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
 
-              <div className="mt-5 grid gap-3 md:grid-cols-2">
-                {SEAT_PLANS.map((p) => (
-                  <PlanOption
-                    key={p.id}
-                    planId={p.id}
-                    cycle={cycle}
-                    seats={seats}
-                    viewers={viewers}
-                    href={checkoutHref(p.id)}
-                    onCheckout={handleCheckoutClick}
-                    onFakeCheckout={
-                      fakeCheckout ? () => runFakeCheckout(p.id) : undefined
-                    }
-                    pending={pending}
-                  />
-                ))}
-              </div>
-            </Modal.Body>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {SEAT_PLANS.map((p) => (
+              <PlanOption
+                key={p.id}
+                planId={p.id}
+                cycle={cycle}
+                seats={seats}
+                viewers={viewers}
+                href={checkoutHref(p.id)}
+                onCheckout={handleCheckoutClick}
+                onFakeCheckout={
+                  fakeCheckout ? () => runFakeCheckout(p.id) : undefined
+                }
+                pending={pending}
+              />
+            ))}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -316,8 +318,8 @@ function PlanOption({
   const buttonClass = cn(
     "mt-4 inline-flex h-10 w-fit items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors motion-reduce:transition-none",
     highlighted
-      ? "bg-accent text-white hover:bg-accent/90"
-      : "bg-accent/10 text-fg hover:bg-accent/20",
+      ? "bg-primary text-white hover:bg-primary/90"
+      : "bg-primary/10 text-fg hover:bg-primary/20",
   );
 
   const card = (
@@ -377,7 +379,7 @@ function PlanOption({
           Upgrade to {plan.name}
         </a>
       ) : (
-        <span className="mt-4 inline-flex h-10 w-fit items-center justify-center rounded-full bg-accent/10 px-6 text-sm font-medium text-fg-muted">
+        <span className="mt-4 inline-flex h-10 w-fit items-center justify-center rounded-full bg-primary/10 px-6 text-sm font-medium text-fg-muted">
           Checkout not configured
         </span>
       )}
@@ -413,40 +415,36 @@ function PersonRow({
   const seated = isSeatRole(person.role);
   return (
     <li title={person.email}>
-      <Checkbox
-        isSelected={seated}
-        isDisabled={!editable}
-        onChange={(on) => onRole(on ? "member" : "viewer")}
-        className="flex w-full cursor-pointer items-center px-3 py-2 hover:bg-tint data-[disabled=true]:cursor-default data-[disabled=true]:opacity-100 data-[disabled=true]:hover:bg-transparent"
-      >
-        <Checkbox.Content className="flex w-full items-center gap-2.5">
-          <Checkbox.Control>
-            <Checkbox.Indicator />
-          </Checkbox.Control>
-          <Avatar className="h-6 w-6 shrink-0">
-            {person.image && <Avatar.Image src={person.image} alt={display} />}
-            <Avatar.Fallback className="text-[10px]">
-              {initials(person.name || person.email)}
-            </Avatar.Fallback>
-          </Avatar>
-          <Label className="min-w-0 flex-1 cursor-[inherit] truncate text-sm font-medium text-fg">
-            {display}
-            {isSelf && <span className="text-fg-muted"> (you)</span>}
-          </Label>
-          <span
-            className={cn(
-              "shrink-0 text-xs font-medium",
-              seated ? "text-accent" : "text-fg-muted",
-            )}
-          >
-            {person.role === "owner"
-              ? ROLE_LABEL[person.role]
-              : seated
-                ? "Paid seat"
-                : "Viewer"}
-          </span>
-        </Checkbox.Content>
-      </Checkbox>
+      <label className="flex w-full cursor-pointer items-center gap-2.5 px-3 py-2 hover:bg-tint has-disabled:cursor-default has-disabled:hover:bg-transparent">
+        <Checkbox
+          checked={seated}
+          disabled={!editable}
+          onCheckedChange={(on) => onRole(on === true ? "member" : "viewer")}
+          className="disabled:cursor-default disabled:opacity-100"
+        />
+        <Avatar className="h-6 w-6 shrink-0">
+          {person.image && <AvatarImage src={person.image} alt={display} />}
+          <AvatarFallback className="text-[10px]">
+            {initials(person.name || person.email)}
+          </AvatarFallback>
+        </Avatar>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-fg">
+          {display}
+          {isSelf && <span className="text-fg-muted"> (you)</span>}
+        </span>
+        <span
+          className={cn(
+            "shrink-0 text-xs font-medium",
+            seated ? "text-accent-strong" : "text-fg-muted",
+          )}
+        >
+          {person.role === "owner"
+            ? ROLE_LABEL[person.role]
+            : seated
+              ? "Paid seat"
+              : "Viewer"}
+        </span>
+      </label>
     </li>
   );
 }

@@ -2,7 +2,15 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { preconnect } from "react-dom";
 import { ArrowRight, PenLine, TrendingUp } from "lucide-react";
-import { buttonVariants } from "@heroui/react";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   can,
   getWorkspaceEntitlement,
@@ -55,15 +63,15 @@ const METER_TONE: Record<StorageTone, Tone> = {
 };
 
 const TONE_FILL: Record<Tone, string> = {
-  accent: "fill-accent",
-  warning: "fill-warning",
-  danger: "fill-danger",
+  accent: "fill-primary",
+  warning: "fill-amber-500",
+  danger: "fill-destructive",
 };
 
 const TONE_STROKE: Record<Tone, string> = {
-  accent: "stroke-accent",
-  warning: "stroke-warning",
-  danger: "stroke-danger",
+  accent: "stroke-primary",
+  warning: "stroke-amber-500",
+  danger: "stroke-destructive",
 };
 
 const SPARK_HEIGHT = 24;
@@ -279,21 +287,23 @@ function Stat({
   return (
     <Link
       href={href}
-      className="flex min-w-0 flex-col gap-3 rounded-2xl bg-tint p-4 transition-colors hover:bg-tint-strong"
+      className="min-w-0 rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
-      <span className="text-sm font-medium text-fg-muted">{label}</span>
-      <span className="flex items-end justify-between gap-3">
-        <span className="text-2xl font-semibold tracking-tight tabular-nums text-fg-strong">
-          {value}
-        </span>
-        {aside}
-      </span>
-      <span
-        className={`flex items-center gap-1 text-xs ${up ? "text-accent" : "text-fg-subtle"}`}
-      >
-        {up && <TrendingUp size={13} aria-hidden />}
-        {hint}
-      </span>
+      <Card className="h-full transition-colors hover:bg-muted/50">
+        <CardHeader>
+          <CardDescription>{label}</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums">
+            {value}
+          </CardTitle>
+          {aside && <CardAction>{aside}</CardAction>}
+        </CardHeader>
+        <CardContent
+          className={`flex items-center gap-1 text-xs ${up ? "text-accent-strong" : "text-muted-foreground"}`}
+        >
+          {up && <TrendingUp size={13} aria-hidden />}
+          {hint}
+        </CardContent>
+      </Card>
     </Link>
   );
 }

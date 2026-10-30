@@ -2,7 +2,7 @@
 
 import { useState, type ReactElement } from "react";
 import { Check, Link2 } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 
 export type CopyLinkButtonProps = {
   url: string;
@@ -28,7 +28,7 @@ export function CopyLinkButton({
   };
 
   return (
-    <Button variant="primary" onPress={handlePress} className={className}>
+    <Button onClick={handlePress} className={className}>
       {copied ? <Check size={16} /> : <Link2 size={16} />}
       {copied ? "Copied" : label}
     </Button>

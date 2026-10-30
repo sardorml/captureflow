@@ -10,7 +10,8 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { Captions, RotateCcw, Scissors, Undo2, X } from "lucide-react";
-import { Button, Spinner } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import {
   resetTranscriptEditsAction,
   saveTranscriptEditsAction,
@@ -233,7 +234,7 @@ export function EditorTranscriptPanel({
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-1 px-6 py-10 text-center">
         {transcriptStatus === "pending" ? (
-          <Spinner size="sm" />
+          <Spinner />
         ) : (
           <Captions className="h-6 w-6 text-fg-subtle" />
         )}
@@ -258,14 +259,14 @@ export function EditorTranscriptPanel({
       <div className="flex min-h-11 shrink-0 items-center justify-between gap-2 border-b border-line px-4 py-1.5">
         {selectedCount > 0 ? (
           <span className="flex items-center gap-1">
-            <Button variant="danger-soft" size="sm" onPress={deleteSelection}>
+            <Button variant="destructive" size="sm" onClick={deleteSelection}>
               <Scissors className="h-3.5 w-3.5" />
               Delete {selectedCount === 1 ? "line" : `${selectedCount} lines`}
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onPress={() => setSelection(null)}
+              onClick={() => setSelection(null)}
               aria-label="Clear selection"
             >
               <X className="h-3.5 w-3.5" />
@@ -281,8 +282,8 @@ export function EditorTranscriptPanel({
           <Button
             variant="ghost"
             size="sm"
-            onPress={resetEdits}
-            isDisabled={pending}
+            onClick={resetEdits}
+            disabled={pending}
             className="shrink-0"
           >
             <RotateCcw className="h-3.5 w-3.5" />
@@ -291,7 +292,7 @@ export function EditorTranscriptPanel({
         ) : null}
       </div>
       {error ? (
-        <p className="mx-4 mt-2 rounded-md border border-danger/30 bg-danger/10 px-2 py-1.5 text-xs text-danger">
+        <p className="mx-4 mt-2 rounded-md border border-destructive/30 bg-destructive/10 px-2 py-1.5 text-xs text-destructive">
           {error}
         </p>
       ) : null}
@@ -306,7 +307,7 @@ export function EditorTranscriptPanel({
             const isActive = segment.id === activeId;
             if (editingId === segment.id) {
               return (
-                <li key={segment.id} className="rounded-md bg-field p-2">
+                <li key={segment.id} className="rounded-md bg-input/30 p-2">
                   <textarea
                     autoFocus
                     value={draft}
@@ -332,11 +333,12 @@ export function EditorTranscriptPanel({
                   className={cn(
                     "flex w-full items-start gap-3 rounded-md px-2.5 py-2 text-left transition-colors",
                     isSelected
-                      ? "bg-accent/20 text-fg"
+                      ? "bg-primary/20 text-fg"
                       : isActive
                         ? "bg-tint text-fg"
                         : "text-fg-muted hover:bg-tint",
-                    isCut && "text-fg-subtle line-through decoration-danger/60",
+                    isCut &&
+                      "text-fg-subtle line-through decoration-destructive/60",
                   )}
                 >
                   <span className="shrink-0 pt-0.5 font-mono text-[11px] text-fg-subtle tabular-nums">
@@ -363,7 +365,7 @@ export function EditorTranscriptPanel({
       </div>
       {pending ? (
         <p className="flex shrink-0 items-center gap-2 border-t border-line px-4 py-2 text-xs text-fg-subtle">
-          <Spinner size="sm" />
+          <Spinner />
           Saving…
         </p>
       ) : null}

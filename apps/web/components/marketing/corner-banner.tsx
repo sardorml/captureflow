@@ -135,7 +135,7 @@ function BetaNote({
       </p>
       <NextLink
         href={lh("/suggest-feature")}
-        className="text-accent hover:text-accent-strong mt-3 inline-block text-[13px] font-medium transition-colors motion-reduce:transition-none"
+        className="text-accent-strong hover:text-accent-strong mt-3 inline-block text-[13px] font-medium transition-colors motion-reduce:transition-none"
       >
         {m.banner.cta}
       </NextLink>

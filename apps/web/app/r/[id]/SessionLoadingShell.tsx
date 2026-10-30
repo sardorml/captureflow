@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Spinner } from "@heroui/react";
+import { Spinner } from "@/components/ui/spinner";
 
 type Props = {
   appWebUrl: string;
@@ -43,7 +43,7 @@ export function SessionLoadingShell({ appWebUrl }: Props) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 py-16 text-neutral-300">
       <div className="flex flex-col items-center gap-4">
-        <Spinner />
+        <Spinner className="size-5" />
         <p className="text-sm text-fg-subtle">Loading recording…</p>
       </div>
     </div>

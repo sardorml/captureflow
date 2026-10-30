@@ -1,4 +1,4 @@
-import { Skeleton } from "@heroui/react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { InlineSkeleton } from "../_skeletons";
 import { WorkspacePageHeader } from "../WorkspacePageHeader";
 

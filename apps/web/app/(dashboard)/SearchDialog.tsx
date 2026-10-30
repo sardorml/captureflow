@@ -1,15 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Camera, Video } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Command as CommandPrimitive } from "cmdk";
+import { Camera, Search, Video, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
-  Chip,
-  EmptyState,
-  ListBox,
-  Modal,
-  SearchField,
-  Spinner,
-} from "@heroui/react";
+  Command,
+  CommandEmpty,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+} from "@/components/ui/input-group";
+import { Spinner } from "@/components/ui/spinner";
 import type { SearchHit } from "@/lib/library-search";
 
 type Props = {
@@ -19,6 +32,7 @@ type Props = {
 
 // The ⌘K dialog, loaded on first open.
 export function SearchDialog({ isOpen, onOpenChange }: Props) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchHit[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,66 +84,82 @@ export function SearchDialog({ isOpen, onOpenChange }: Props) {
   const trimmed = query.trim();
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-      <Modal.Backdrop>
-        <Modal.Container size="lg">
-          <Modal.Dialog data-split="search-dialog">
-            <Modal.Header>
-              <Modal.Heading>Search</Modal.Heading>
-            </Modal.Header>
-            <Modal.Body>
-              <SearchField
-                autoFocus
-                value={query}
-                onChange={setQuery}
-                aria-label="Search your recordings and screenshots"
-                fullWidth
-              >
-                <SearchField.Group>
-                  <SearchField.SearchIcon />
-                  <SearchField.Input placeholder="Search your recordings and screenshots" />
-                  <SearchField.ClearButton />
-                </SearchField.Group>
-              </SearchField>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent
+        data-split="search-dialog"
+        aria-describedby={undefined}
+        showCloseButton={false}
+        className="sm:max-w-lg"
+      >
+        <DialogHeader>
+          <DialogTitle>Search</DialogTitle>
+        </DialogHeader>
+        <Command
+          shouldFilter={false}
+          className="overflow-visible rounded-none! bg-transparent p-0"
+        >
+          <InputGroup className="h-9 has-[[data-slot=input-group-control]:focus-visible]:border-input has-[[data-slot=input-group-control]:focus-visible]:ring-0">
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <CommandPrimitive.Input
+              data-slot="input-group-control"
+              autoFocus
+              value={query}
+              onValueChange={setQuery}
+              aria-label="Search your recordings and screenshots"
+              placeholder="Search your recordings and screenshots"
+              className="h-full flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground"
+            />
+            {query && (
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  size="icon-xs"
+                  aria-label="Clear search"
+                  onClick={() => setQuery("")}
+                >
+                  <X />
+                </InputGroupButton>
+              </InputGroupAddon>
+            )}
+          </InputGroup>
 
-              <div className="mt-4 max-h-96 overflow-y-auto">
-                {loading ? (
-                  <div className="p-6 text-center">
-                    <Spinner />
-                  </div>
-                ) : results.length === 0 ? (
-                  <EmptyState className="py-6 text-center text-sm text-fg-muted">
-                    {trimmed.length < 2
-                      ? "Search your recordings and screenshots by title."
-                      : "No matches"}
-                  </EmptyState>
-                ) : (
-                  <ListBox aria-label="Search results">
-                    {results.map((hit) => (
-                      <ListBox.Item
-                        key={hit.href}
-                        id={hit.href}
-                        href={hit.href}
-                        textValue={hit.title}
-                      >
-                        {hit.kind === "recording" ? (
-                          <Video size={16} />
-                        ) : (
-                          <Camera size={16} />
-                        )}
-                        <span className="min-w-0 flex-1 truncate">
-                          {hit.title}
-                        </span>
-                        <Chip size="sm">{hit.kind}</Chip>
-                      </ListBox.Item>
-                    ))}
-                  </ListBox>
-                )}
+          <CommandList aria-label="Search results" className="mt-4 max-h-96">
+            {loading ? (
+              <div className="p-6 text-center">
+                <Spinner className="inline-block size-5" />
               </div>
-            </Modal.Body>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+            ) : (
+              <>
+                <CommandEmpty className="text-fg-muted">
+                  {trimmed.length < 2
+                    ? "Search your recordings and screenshots by title."
+                    : "No matches"}
+                </CommandEmpty>
+                {results.map((hit) => (
+                  <CommandItem
+                    key={hit.href}
+                    value={hit.href}
+                    onSelect={() => {
+                      onOpenChange(false);
+                      router.push(hit.href);
+                    }}
+                    className="gap-2.5"
+                  >
+                    {hit.kind === "recording" ? (
+                      <Video size={16} />
+                    ) : (
+                      <Camera size={16} />
+                    )}
+                    <span className="min-w-0 flex-1 truncate">{hit.title}</span>
+                    <Badge variant="secondary">{hit.kind}</Badge>
+                  </CommandItem>
+                ))}
+              </>
+            )}
+          </CommandList>
+        </Command>
+      </DialogContent>
+    </Dialog>
   );
 }

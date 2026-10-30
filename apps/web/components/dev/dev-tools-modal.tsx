@@ -1,6 +1,5 @@
 "use client";
 
-import { Checkbox, Kbd, Modal } from "@heroui/react";
 import { useEffect, useSyncExternalStore } from "react";
 import {
   drainSplitStamps,
@@ -10,6 +9,15 @@ import {
   subscribeSplitLoads,
 } from "@/lib/dev/split-loads";
 import { setDevPref, useDevPref } from "@/lib/dev/prefs";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Kbd } from "@/components/ui/kbd";
+import { Label } from "@/components/ui/label";
 
 const LOCAL_DEV = process.env.NODE_ENV === "development";
 
@@ -39,109 +47,89 @@ export function DevToolsModal({
   const arrived = [...loads].sort((a, b) => a.at - b.at);
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-      <Modal.Backdrop>
-        <Modal.Container>
-          <Modal.Dialog>
-            <Modal.Header>
-              <Modal.Heading>Developer</Modal.Heading>
-            </Modal.Header>
-            <Modal.Body className="flex flex-col gap-5 pb-6">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>Developer</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-5">
+          <Label className="items-start gap-3 leading-normal font-normal">
+            <Checkbox
+              className="mt-0.5"
+              checked={codeSplitView}
+              onCheckedChange={(v) => onCodeSplitViewChange(v === true)}
+            />
+            <span className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-fg">
+                Code-split view
+              </span>
+              <span className="text-xs text-fg-muted">
+                Outlines every section that streams on its own or ships in its
+                own chunk, with when it arrived. Stays on across reloads.
+              </span>
+            </span>
+          </Label>
+
+          <Label className="items-start gap-3 leading-normal font-normal">
+            <Checkbox
+              className="mt-0.5"
+              checked={fileSizes}
+              onCheckedChange={(v) => setDevPref("file-sizes", v === true)}
+            />
+            <span className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-fg">File sizes</span>
+              <span className="text-xs text-fg-muted">
+                Shows each recording&apos;s and screenshot&apos;s size on its
+                card.
+              </span>
+            </span>
+          </Label>
+
+          {LOCAL_DEV ? (
+            <Label className="items-start gap-3 leading-normal font-normal">
               <Checkbox
-                isSelected={codeSplitView}
-                onChange={onCodeSplitViewChange}
-              >
-                {/* Content is the <label>, so the text has to sit inside it
-                    for a click on the words to toggle. */}
-                <Checkbox.Content className="items-start gap-3">
-                  <Checkbox.Control className="mt-0.5">
-                    <Checkbox.Indicator />
-                  </Checkbox.Control>
-                  <span className="flex flex-col gap-1">
-                    <span className="text-sm font-medium text-fg">
-                      Code-split view
-                    </span>
-                    <span className="text-xs text-fg-muted">
-                      Outlines every section that streams on its own or ships in
-                      its own chunk, with when it arrived. Stays on across
-                      reloads.
-                    </span>
-                  </span>
-                </Checkbox.Content>
-              </Checkbox>
+                className="mt-0.5"
+                checked={fakeCheckout}
+                onCheckedChange={(v) => setDevPref("fake-checkout", v === true)}
+              />
+              <span className="flex flex-col gap-1">
+                <span className="text-sm font-medium text-fg">
+                  Fake checkout
+                </span>
+                <span className="text-xs text-fg-muted">
+                  Upgrade in the upgrade dialog applies the seat picks and
+                  activates the plan here, without Lemon Squeezy. Only under
+                  next dev.
+                </span>
+              </span>
+            </Label>
+          ) : null}
 
-              <Checkbox
-                isSelected={fileSizes}
-                onChange={(on) => setDevPref("file-sizes", on)}
-              >
-                <Checkbox.Content className="items-start gap-3">
-                  <Checkbox.Control className="mt-0.5">
-                    <Checkbox.Indicator />
-                  </Checkbox.Control>
-                  <span className="flex flex-col gap-1">
-                    <span className="text-sm font-medium text-fg">
-                      File sizes
-                    </span>
-                    <span className="text-xs text-fg-muted">
-                      Shows each recording&apos;s and screenshot&apos;s size on
-                      its card.
-                    </span>
-                  </span>
-                </Checkbox.Content>
-              </Checkbox>
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-medium text-fg-subtle">
+              Sections on this page
+            </p>
+            {arrived.length === 0 ? (
+              <p className="text-xs text-fg-muted">None have arrived yet.</p>
+            ) : (
+              <dl className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 font-mono text-xs">
+                {arrived.map((load) => (
+                  <div key={load.name} className="contents">
+                    <dt className="text-fg">{load.name}</dt>
+                    <dd className="text-right text-fg-muted">
+                      {formatSplitTime(load.at, navAt)}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+          </div>
 
-              {LOCAL_DEV ? (
-                <Checkbox
-                  isSelected={fakeCheckout}
-                  onChange={(on) => setDevPref("fake-checkout", on)}
-                >
-                  <Checkbox.Content className="items-start gap-3">
-                    <Checkbox.Control className="mt-0.5">
-                      <Checkbox.Indicator />
-                    </Checkbox.Control>
-                    <span className="flex flex-col gap-1">
-                      <span className="text-sm font-medium text-fg">
-                        Fake checkout
-                      </span>
-                      <span className="text-xs text-fg-muted">
-                        Upgrade in the upgrade dialog applies the seat picks and
-                        activates the plan here, without Lemon Squeezy. Only
-                        under next dev.
-                      </span>
-                    </span>
-                  </Checkbox.Content>
-                </Checkbox>
-              ) : null}
-
-              <div className="flex flex-col gap-2">
-                <p className="text-xs font-medium text-fg-subtle">
-                  Sections on this page
-                </p>
-                {arrived.length === 0 ? (
-                  <p className="text-xs text-fg-muted">
-                    None have arrived yet.
-                  </p>
-                ) : (
-                  <dl className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 font-mono text-xs">
-                    {arrived.map((load) => (
-                      <div key={load.name} className="contents">
-                        <dt className="text-fg">{load.name}</dt>
-                        <dd className="text-right text-fg-muted">
-                          {formatSplitTime(load.at, navAt)}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                )}
-              </div>
-
-              <p className="text-xs text-fg-subtle">
-                <Kbd>⌘⇧E</Kbd> opens this panel on any page.
-              </p>
-            </Modal.Body>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+          <p className="text-xs text-fg-subtle">
+            <Kbd>⌘⇧E</Kbd> opens this panel on any page.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

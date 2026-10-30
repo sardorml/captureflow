@@ -1,7 +1,8 @@
 "use client";
 
 import { Video } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { installedExtensionId, openRecorder } from "@/lib/extension-bridge";
 import { CHROME_WEBSTORE_URL } from "@/lib/site";
 
@@ -10,14 +11,8 @@ import { CHROME_WEBSTORE_URL } from "@/lib/site";
  * nothing answers, the extension isn't installed and the store listing is the
  * next step rather than a dead button.
  */
-export function RecordButton({
-  label,
-  fullWidth = false,
-}: {
-  label: string;
-  fullWidth?: boolean;
-}) {
-  const start = () => {
+export function useStartRecording(): () => void {
+  return () => {
     const extId = installedExtensionId();
     if (!extId) {
       /*
@@ -42,9 +37,18 @@ export function RecordButton({
         window.location.href = CHROME_WEBSTORE_URL;
     });
   };
+}
 
+export function RecordButton({
+  label,
+  fullWidth = false,
+}: {
+  label: string;
+  fullWidth?: boolean;
+}) {
+  const start = useStartRecording();
   return (
-    <Button variant="primary" fullWidth={fullWidth} onPress={start}>
+    <Button className={cn(fullWidth && "w-full")} onClick={start}>
       <Video size={16} />
       {label}
     </Button>

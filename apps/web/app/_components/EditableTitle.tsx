@@ -103,7 +103,7 @@ export function EditableTitle({
           {title}
         </h1>
       </button>
-      {error ? <p className="mt-1 text-sm text-danger">{error}</p> : null}
+      {error ? <p className="mt-1 text-sm text-destructive">{error}</p> : null}
     </>
   );
 }

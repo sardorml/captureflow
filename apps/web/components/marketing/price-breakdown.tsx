@@ -62,7 +62,7 @@ export function PriceBreakdown({
           </span>
           <span
             key={savings}
-            className="animate-storage-pop inline-block text-2xl font-bold tracking-[-0.02em] whitespace-nowrap text-accent tabular-nums"
+            className="animate-storage-pop inline-block text-2xl font-bold tracking-[-0.02em] whitespace-nowrap text-accent-strong tabular-nums"
           >
             {fill(copy.saveValue)}
           </span>

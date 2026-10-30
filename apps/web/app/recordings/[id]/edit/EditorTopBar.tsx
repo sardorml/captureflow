@@ -2,7 +2,13 @@
 
 import type { ReactNode } from "react";
 import { ArrowLeft, History, Redo2, Smile, Undo2 } from "lucide-react";
-import { Button, Spinner, Tooltip } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { EditableTitle } from "@/app/_components/EditableTitle";
 import { cn } from "@/lib/utils";
 import type { SaveStatus } from "./use-editor-config";
@@ -45,11 +51,11 @@ export function EditorTopBar({
       aria-live="polite"
       className={cn(
         "mr-1 flex items-center gap-1.5 text-xs",
-        status === "error" ? "text-danger" : "text-fg-muted",
+        status === "error" ? "text-destructive" : "text-fg-muted",
       )}
     >
       {status === "saving" ? (
-        <Spinner size="sm" />
+        <Spinner />
       ) : (
         <Smile className="h-4 w-4" aria-hidden />
       )}
@@ -83,21 +89,25 @@ export function EditorTopBar({
       <div className="flex shrink-0 items-center gap-1">
         {status === "error" && saveError ? (
           <Tooltip>
-            <Tooltip.Trigger className="inline-flex" tabIndex={0}>
-              {statusNode}
-            </Tooltip.Trigger>
-            <Tooltip.Content>{saveError}</Tooltip.Content>
+            <TooltipTrigger asChild>
+              <span className="inline-flex" tabIndex={0}>
+                {statusNode}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>{saveError}</TooltipContent>
           </Tooltip>
         ) : (
           statusNode
         )}
         <Tooltip>
-          <Tooltip.Trigger className="inline-flex" tabIndex={0}>
-            <span className="inline-flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-md text-fg-subtle opacity-50">
-              <History className="h-4 w-4" />
+          <TooltipTrigger asChild>
+            <span className="inline-flex" tabIndex={0}>
+              <span className="inline-flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-md text-fg-subtle opacity-50">
+                <History className="h-4 w-4" />
+              </span>
             </span>
-          </Tooltip.Trigger>
-          <Tooltip.Content>Version history (coming soon)</Tooltip.Content>
+          </TooltipTrigger>
+          <TooltipContent>Version history (coming soon)</TooltipContent>
         </Tooltip>
         <button
           type="button"
@@ -119,7 +129,7 @@ export function EditorTopBar({
         >
           <Redo2 className="h-4 w-4" />
         </button>
-        <Button variant="primary" onPress={onFinish} className="ml-1">
+        <Button onClick={onFinish} className="ml-1">
           Finish
         </Button>
       </div>

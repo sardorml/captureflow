@@ -1,6 +1,8 @@
 "use client";
 
-import { Card, Chip, EmptyState } from "@heroui/react";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Empty } from "@/components/ui/empty";
 import { Bot, Film } from "lucide-react";
 import { FadeInImage } from "@/components/ui/fade-in-image";
 import { ListToolbar } from "./_components/ListToolbar";
@@ -77,11 +79,11 @@ export function RecordingsList({
       <>
         {toolbar}
         <Card className="mt-6 p-6">
-          <EmptyState className="text-center text-sm text-fg-muted">
+          <Empty className="text-center text-sm text-fg-muted">
             {isFiltered(filters)
               ? "No recordings match these filters."
               : "You haven\u2019t created any recording links yet. Record in the CaptureFlow desktop app and your recordings will show up here."}
-          </EmptyState>
+          </Empty>
         </Card>
       </>
     );
@@ -204,27 +206,21 @@ function RecordingCard({
         </div>
       )}
       {recording.durationMs != null && (
-        <Chip
-          size="sm"
-          className="absolute right-2 bottom-2 border-none bg-black/75 text-white"
-        >
+        <Badge className="absolute right-2 bottom-2 border-none bg-black/75 text-white">
           {formatDuration(recording.durationMs)}
-        </Chip>
+        </Badge>
       )}
       {recording.client === "agent" && (
-        <Chip
-          size="sm"
-          className="absolute bottom-2 left-2 h-5 border-none bg-black/75 text-white"
-        >
+        <Badge className="absolute bottom-2 left-2 h-5 border-none bg-black/75 text-white">
           <Bot size={14} aria-label="AI generated">
             <title>AI generated</title>
           </Bot>
-        </Chip>
+        </Badge>
       )}
       {recording.state !== "ready" && (
-        <Chip size="sm" color="warning" className="absolute top-2 left-2">
+        <Badge className="absolute top-2 left-2 bg-amber-500/15 text-amber-600 dark:text-amber-400">
           {recording.state}
-        </Chip>
+        </Badge>
       )}
     </>
   );

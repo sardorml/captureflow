@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MessageSquare } from "lucide-react";
-import { Avatar, Skeleton, Spinner } from "@heroui/react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { initials } from "@/lib/format";
 import { ContentByline } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
@@ -104,9 +106,9 @@ export function PendingRecording({
                   leading={
                     ownerName ? (
                       <Avatar className="size-9 lg:hidden">
-                        <Avatar.Fallback className="text-sm">
+                        <AvatarFallback className="text-sm">
                           {initials(ownerName)}
-                        </Avatar.Fallback>
+                        </AvatarFallback>
                       </Avatar>
                     ) : null
                   }
@@ -139,7 +141,7 @@ export function PendingRecording({
                 </>
               ) : (
                 <>
-                  <Spinner size="lg" />
+                  <Spinner className="size-6" />
                   <p className="mt-1 text-base font-semibold text-fg">
                     Preparing your recording…
                   </p>

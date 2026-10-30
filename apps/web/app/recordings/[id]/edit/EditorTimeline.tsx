@@ -11,7 +11,12 @@ import {
   type RefObject,
 } from "react";
 import { AudioLines, Scissors, Trash2, ZoomIn, ZoomOut } from "lucide-react";
-import { Spinner, Tooltip } from "@heroui/react";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { RecordingPlayerHandle } from "@/app/_components/recording";
 import { useFrameStrip } from "@/app/_components/recording/use-frame-strip";
 import { isInsideCut, type RecordingCut } from "@/lib/recording/cuts";
@@ -321,7 +326,7 @@ export function EditorTimeline({
             <div className="relative h-16 overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
               {frames === null ? (
                 <div className="absolute inset-0 flex animate-pulse items-center justify-center gap-2 text-xs text-fg-muted">
-                  <Spinner size="sm" />
+                  <Spinner />
                   <span>Loading frames…</span>
                 </div>
               ) : null}
@@ -339,7 +344,7 @@ export function EditorTimeline({
                   <div
                     key={cut.startMs}
                     aria-hidden
-                    className="pointer-events-none absolute inset-y-0 border-x border-danger/60 bg-[repeating-linear-gradient(135deg,var(--danger)_0_2px,transparent_2px_6px)] opacity-40"
+                    className="pointer-events-none absolute inset-y-0 border-x border-destructive/60 bg-[repeating-linear-gradient(135deg,var(--danger)_0_2px,transparent_2px_6px)] opacity-40"
                     style={{
                       left: pct(cut.startMs),
                       width: pct(cut.endMs - cut.startMs),
@@ -352,7 +357,7 @@ export function EditorTimeline({
               <div
                 aria-hidden
                 data-timeline-selection
-                className="pointer-events-none absolute inset-y-0 rounded-md border-x-2 border-danger bg-danger/25"
+                className="pointer-events-none absolute inset-y-0 rounded-md border-x-2 border-destructive bg-destructive/25"
                 style={{
                   left: pct(selection.startMs),
                   width: pct(selection.endMs - selection.startMs),
@@ -373,8 +378,8 @@ export function EditorTimeline({
                     className="group/split absolute inset-y-0 w-3 -translate-x-1/2"
                     style={{ left: pct(s * 1000) }}
                   >
-                    <span className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-accent group-hover/split:bg-danger" />
-                    <span className="absolute top-0 left-1/2 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full bg-accent text-white group-hover/split:bg-danger">
+                    <span className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-primary group-hover/split:bg-destructive" />
+                    <span className="absolute top-0 left-1/2 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-white group-hover/split:bg-destructive">
                       <Scissors className="h-2.5 w-2.5" />
                     </span>
                   </button>
@@ -425,10 +430,12 @@ function ToolButton({
   if (!disabled) return button;
   return (
     <Tooltip>
-      <Tooltip.Trigger className="inline-flex" tabIndex={0}>
-        {button}
-      </Tooltip.Trigger>
-      <Tooltip.Content>{hint}</Tooltip.Content>
+      <TooltipTrigger asChild>
+        <span className="inline-flex" tabIndex={0}>
+          {button}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>{hint}</TooltipContent>
     </Tooltip>
   );
 }

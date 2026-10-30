@@ -18,7 +18,7 @@ import type {
 import { ContentByline } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
 import { RecordingPlayer } from "./RecordingPlayer";
-import { Avatar } from "@heroui/react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { initials } from "@/lib/format";
 import { useEditorConfig } from "@/app/recordings/[id]/edit/use-editor-config";
 import dynamic from "next/dynamic";
@@ -200,9 +200,9 @@ export function RecordingViewer({
                   leading={
                     ownerName ? (
                       <Avatar className="size-9 lg:hidden">
-                        <Avatar.Fallback className="text-sm">
+                        <AvatarFallback className="text-sm">
                           {initials(ownerName)}
-                        </Avatar.Fallback>
+                        </AvatarFallback>
                       </Avatar>
                     ) : null
                   }

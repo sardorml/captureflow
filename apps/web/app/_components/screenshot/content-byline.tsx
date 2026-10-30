@@ -1,5 +1,9 @@
 import type { ReactElement, ReactNode } from "react";
-import { Tooltip } from "@heroui/react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { formatRelativeLong as formatRelative } from "@/lib/format";
 
 export type ContentBylineProps = {
@@ -25,10 +29,12 @@ export function ContentByline({
         </>
       ) : null}
       <Tooltip>
-        <Tooltip.Trigger className="cursor-default" tabIndex={0}>
-          {relative}
-        </Tooltip.Trigger>
-        <Tooltip.Content>{absolute}</Tooltip.Content>
+        <TooltipTrigger asChild>
+          <span className="cursor-default" tabIndex={0}>
+            {relative}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>{absolute}</TooltipContent>
       </Tooltip>
     </div>
   );

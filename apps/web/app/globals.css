@@ -1,66 +1,8 @@
-/*
- * The same composition as @heroui/styles' own index.css, minus the ~40
- * component sheets nothing here renders (tables, calendars, colour pickers,
- * toasts…). Component order is the bundle's: later sheets override earlier.
- */
 @layer theme, base, components, utilities;
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@heroui/styles/base/base.css" layer(base);
-@import "@heroui/styles/base/scrollbar.css" layer(base);
-@import "@heroui/styles/components/close-button.css" layer(components);
-@import "@heroui/styles/components/description.css" layer(components);
-@import "@heroui/styles/components/error-message.css" layer(components);
-@import "@heroui/styles/components/field-error.css" layer(components);
-@import "@heroui/styles/components/label.css" layer(components);
-@import "@heroui/styles/components/accordion.css" layer(components);
-@import "@heroui/styles/components/disclosure-group.css" layer(components);
-@import "@heroui/styles/components/disclosure.css" layer(components);
-@import "@heroui/styles/components/link.css" layer(components);
-@import "@heroui/styles/components/pagination.css" layer(components);
-@import "@heroui/styles/components/tabs.css" layer(components);
-@import "@heroui/styles/components/button.css" layer(components);
-@import "@heroui/styles/components/button-group.css" layer(components);
-@import "@heroui/styles/components/dropdown.css" layer(components);
-@import "@heroui/styles/components/list-box-item.css" layer(components);
-@import "@heroui/styles/components/list-box-section.css" layer(components);
-@import "@heroui/styles/components/list-box.css" layer(components);
-@import "@heroui/styles/components/menu-item.css" layer(components);
-@import "@heroui/styles/components/menu-section.css" layer(components);
-@import "@heroui/styles/components/menu.css" layer(components);
-@import "@heroui/styles/components/slider.css" layer(components);
-@import "@heroui/styles/components/chip.css" layer(components);
-@import "@heroui/styles/components/alert.css" layer(components);
-@import "@heroui/styles/components/empty-state.css" layer(components);
-@import "@heroui/styles/components/skeleton.css" layer(components);
-@import "@heroui/styles/components/progress-bar.css" layer(components);
-@import "@heroui/styles/components/spinner.css" layer(components);
-@import "@heroui/styles/components/checkbox.css" layer(components);
-@import "@heroui/styles/components/input.css" layer(components);
-@import "@heroui/styles/components/input-group.css" layer(components);
-@import "@heroui/styles/components/radio-group.css" layer(components);
-@import "@heroui/styles/components/radio.css" layer(components);
-@import "@heroui/styles/components/textfield.css" layer(components);
-@import "@heroui/styles/components/search-field.css" layer(components);
-@import "@heroui/styles/components/textarea.css" layer(components);
-@import "@heroui/styles/components/card.css" layer(components);
-@import "@heroui/styles/components/header.css" layer(components);
-@import "@heroui/styles/components/separator.css" layer(components);
-@import "@heroui/styles/components/avatar.css" layer(components);
-@import "@heroui/styles/components/avatar-group.css" layer(components);
-@import "@heroui/styles/components/alert-dialog.css" layer(components);
-@import "@heroui/styles/components/drawer.css" layer(components);
-@import "@heroui/styles/components/modal.css" layer(components);
-@import "@heroui/styles/components/popover.css" layer(components);
-@import "@heroui/styles/components/tooltip.css" layer(components);
-@import "@heroui/styles/components/select.css" layer(components);
-@import "@heroui/styles/components/kbd.css" layer(components);
-@import "@heroui/styles/components/typography.css" layer(components);
-@import "@heroui/styles/components/scroll-shadow.css" layer(components);
-@import "@heroui/styles/themes/default";
-@import "@heroui/styles/utilities";
-@import "@heroui/styles/variants";
 @import "../../../packages/ui/src/styles/tokens.css";
+@import "shadcn/tailwind.css";
 
 /* Tailwind v4 only auto-scans the app's own source tree. The shared
    @captureflow/ui package lives outside it, so its utility classes need
@@ -78,240 +20,126 @@ body {
   /* Kill horizontal overscroll/drag without making <body> a scroll container
      (which `overflow-x: hidden` would, breaking the sticky nav). */
   overflow-x: clip;
-  /* Paint the document itself so the rubber-band overscroll past the top/bottom
-     edge matches the page instead of flashing the default white. The default
-     (no data-theme) is dark, per tokens.css. Kept in step with --cf-canvas —
-     surfaces paint from the token, this literal only shows past the edges. */
-  background-color: #0a0a0a;
-  font-family:
-    var(--font-sans),
-    -apple-system,
-    BlinkMacSystemFont,
-    "SF Pro Text",
-    "Segoe UI",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
+  /* Paints the overscroll past the page edges before the theme resolves;
+     kept in step with the dark --background below. */
+  background-color: oklch(0.141 0.005 285.823);
+  font-family: var(--font-geist), system-ui, sans-serif;
 }
 
 /*
- * One soft canvas, solid surfaces, a blue accent and pill-shaped controls.
- * Declared on <html> so menus, popovers and modals,
- * which portal out of the page, pick it up too. The dark block also matches
- * an element that scopes itself dark inside a light page, or tokens.css's
- * defaults would paint it instead. The unprefixed names are
- * HeroUI's own theming hooks, set on purpose. The marketing pages share the
- * palette; the frosting, hidden scrollbars and card radius below skip them.
+ * The shadcn preset b5J5Qtnwe (blue on zinc, primary lifted to blue-600) is
+ * the one source of colour. Declared on <html> and on any nested data-theme scope, so portalled
+ * menus and dark subtrees pick it up. The default (no data-theme) is dark.
  */
-html[data-theme="light"] {
-  /*
-   * HeroUI Theme Builder, light: accent oklch(0.6204 0.195 254.55), base 0,
-   * vibrant palette off. Base 0 leaves every neutral a pure grey at the
-   * builder's default lightness; the status hues shift with the accent.
-   */
-  --cf-canvas: oklch(100% 0 0);
-  --cf-canvas-2: oklch(100% 0 0);
-  --cf-stage: oklch(97.02% 0 0);
-  --cf-fg: oklch(21.03% 0 0);
-  --cf-fg-strong: oklch(14% 0 0);
-  --foreground: oklch(21.03% 0 0);
-  --cf-panel: oklch(100% 0 0);
-  --cf-panel-2: oklch(93.73% 0 0);
-  --cf-field: oklch(100% 0 0);
-  --cf-tint: oklch(21.03% 0 0 / 4.5%);
-  --cf-tint-strong: oklch(93.73% 0 0);
-  /* A wash close to the share page's 6% edge, so cards sit on the canvas
-     instead of being drawn on it. The marketing block remaps it to the
-     strong line. */
-  --cf-line: oklch(21.03% 0 0 / 8%);
-
-  --cf-accent-strong: oklch(62.04% 0.195 254.55);
-  --cf-accent-bg: oklch(62.04% 0.195 254.55);
-  --cf-accent-bg-hover: oklch(66% 0.195 254.55);
-  --cf-accent-ring: oklch(62.04% 0.195 254.55 / 30%);
-
-  --background: oklch(100% 0 0);
-  --accent: oklch(62.04% 0.195 254.55);
-  --accent-foreground: oklch(99.11% 0 0);
-  --focus: oklch(62.04% 0.195 254.55);
-  --muted: oklch(55.17% 0 0);
-  --default: oklch(94% 0 0);
-  --default-foreground: oklch(21.03% 0.0059 254.55);
-  --surface: oklch(100% 0 0);
-  --surface-secondary: oklch(95.24% 0 0);
-  --surface-tertiary: oklch(93.73% 0 0);
-  --overlay: oklch(100% 0 0);
-  --scrollbar: oklch(87.1% 0 0);
-  --segment: oklch(100% 0 0);
-  --border: oklch(90% 0 0);
-  --separator: oklch(92% 0 0);
-  --success: oklch(73.29% 0.1935 150.9);
-  --success-foreground: oklch(21.03% 0.0059 150.9);
-  --warning: oklch(78.19% 0.1585 72.42);
-  --warning-foreground: oklch(21.03% 0.0059 72.42);
-  --danger: oklch(65.32% 0.2328 25.83);
-  --danger-foreground: oklch(99.11% 0 0);
-  --cf-line-strong: oklch(87.1% 0 0);
-  --cf-inverse: oklch(21.03% 0 0);
-  --cf-on-inverse: oklch(99.11% 0 0);
-  --cf-danger-strong: oklch(58% 0.2328 25.83);
-  --cf-glass-blur: 20px;
+html[data-theme="light"],
+[data-theme="light"] {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.546 0.245 262.881);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.21 0.006 285.885);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.705 0.015 286.067);
+  --chart-1: oklch(0.828 0.111 230.318);
+  --chart-2: oklch(0.685 0.169 237.323);
+  --chart-3: oklch(0.588 0.158 241.966);
+  --chart-4: oklch(0.5 0.134 242.749);
+  --chart-5: oklch(0.443 0.11 240.79);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-primary: oklch(0.546 0.245 262.881);
+  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.705 0.015 286.067);
+  --cf-stage: oklch(0.967 0.001 286.375);
+  --cf-showcase-bg: oklch(0.967 0.001 286.375);
 }
 
 [data-theme="dark"],
 html:not([data-theme]) {
-  /*
-   * HeroUI Theme Builder, dark, same accent and base 0 as the light block:
-   * pure greys at the builder's dark lightness table.
-   */
-  --cf-canvas: oklch(16% 0 0);
-  --cf-canvas-2: oklch(16% 0 0);
-  --cf-stage: oklch(16% 0 0);
-  --cf-fg: oklch(99.11% 0 0);
-  --cf-fg-strong: oklch(100% 0 0);
-  --foreground: oklch(99.11% 0 0);
-  --cf-panel: oklch(22.5% 0 0);
-  --cf-panel-2: oklch(27.21% 0 0);
-  --cf-field: oklch(22.5% 0 0);
-  --cf-tint: oklch(99.11% 0 0 / 5%);
-  --cf-tint-strong: oklch(27.21% 0 0);
-  --cf-line: oklch(25% 0 0);
-  --cf-line-strong: oklch(32% 0 0);
-  --cf-inverse: oklch(99.11% 0 0);
-  --cf-on-inverse: oklch(16% 0 0);
+  --background: oklch(0.141 0.005 285.823);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.546 0.245 262.881);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.552 0.016 285.938);
+  --chart-1: oklch(0.828 0.111 230.318);
+  --chart-2: oklch(0.685 0.169 237.323);
+  --chart-3: oklch(0.588 0.158 241.966);
+  --chart-4: oklch(0.5 0.134 242.749);
+  --chart-5: oklch(0.443 0.11 240.79);
+  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.623 0.214 259.815);
+  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.552 0.016 285.938);
+  --cf-stage: oklch(0.141 0.005 285.823);
+  --cf-showcase-bg: oklch(0.21 0.006 285.885);
+}
 
-  --cf-accent-strong: oklch(62.04% 0.195 254.55);
-  --cf-accent-bg: oklch(62.04% 0.195 254.55);
-  --cf-accent-bg-hover: oklch(66% 0.195 254.55);
-  --cf-accent-ring: oklch(62.04% 0.195 254.55 / 30%);
-  --cf-danger-strong: oklch(54% 0.1967 24.72);
+:root {
+  --radius: 0.45rem;
+}
 
-  --background: oklch(16% 0 0);
-  --accent: oklch(62.04% 0.195 254.55);
-  --accent-foreground: oklch(99.11% 0 0);
-  --focus: oklch(62.04% 0.195 254.55);
-  --muted: oklch(70.5% 0 0);
-  --default: oklch(27.4% 0 0);
-  --default-foreground: oklch(99.11% 0 0);
-  --surface: oklch(22.5% 0 0);
-  --surface-secondary: oklch(25.7% 0 0);
-  --surface-tertiary: oklch(27.21% 0 0);
-  --overlay: oklch(22.5% 0 0);
-  --scrollbar: oklch(70.5% 0 0);
-  --segment: oklch(39.64% 0 0);
-  --border: oklch(28% 0 0);
-  --separator: oklch(25% 0 0);
-  --success: oklch(73.29% 0.1935 150.9);
-  --success-foreground: oklch(21.03% 0.0059 150.9);
-  --warning: oklch(82.03% 0.1388 76.43);
-  --warning-foreground: oklch(21.03% 0.0059 76.43);
-  --danger: oklch(59.4% 0.1967 24.72);
-  --danger-foreground: oklch(99.11% 0 0);
-  --cf-glass-blur: 36px;
+/* The older --cf-* tokens (bg-canvas, text-fg, …) alias onto the preset, so
+   existing utilities follow it. Re-declared on every theme scope so a nested
+   data-theme resolves them against its own values. */
+:root,
+[data-theme] {
+  --cf-canvas: var(--background);
+  --cf-canvas-2: var(--background);
+  --cf-panel: var(--card);
+  --cf-panel-2: var(--secondary);
+  --cf-field: transparent;
+  --cf-fg: var(--foreground);
+  --cf-fg-strong: var(--foreground);
+  --cf-fg-muted: var(--muted-foreground);
+  --cf-fg-subtle: var(--muted-foreground);
+  --cf-line: var(--border);
+  --cf-line-strong: var(--input);
+  --cf-tint: var(--accent);
+  --cf-tint-strong: var(--secondary);
+  --cf-inverse: var(--foreground);
+  --cf-on-inverse: var(--background);
+  --cf-accent-strong: var(--sidebar-primary);
+  --cf-accent-bg: var(--primary);
+  --cf-accent-bg-hover: color-mix(in oklab, var(--primary) 90%, transparent);
+  --cf-accent-ring: color-mix(in oklab, var(--primary) 40%, transparent);
+  --cf-danger-strong: var(--destructive);
 }
 
 html,
 html body {
-  background-color: var(--cf-canvas);
-}
-
-/* Text is never faded: secondary and tertiary text read in the body colour.
-   Re-declared on every theme scope so a nested data-theme can't restore the
-   greys; it follows tokens.css, so equal specificity lets it win. HeroUI's
-   --muted stays grey outside marketing, since field placeholders paint from it. */
-:root,
-[data-theme] {
-  --cf-fg-muted: var(--cf-fg);
-  --cf-fg-subtle: var(--cf-fg);
-}
-[data-marketing] {
-  --muted: var(--cf-fg);
-  /* Landing cards are panel on a canvas of the same white, so their edge is
-     the strong line, the weight the dashboard cards carry. */
-  --cf-line: var(--cf-line-strong);
-}
-
-html:not(:has([data-marketing])) :is(.card, .bg-panel) {
-  backdrop-filter: blur(var(--cf-glass-blur));
-}
-
-html:not(:has([data-marketing]))
-  :is(
-    .popover,
-    .dropdown__popover,
-    .select__popover,
-    .modal__dialog,
-    .drawer__dialog,
-    .alert-dialog__dialog,
-    .tooltip
-  ) {
-  backdrop-filter: blur(var(--cf-glass-blur)) saturate(1.6);
-}
-
-html:not(:has([data-marketing])),
-html:not(:has([data-marketing])) * {
-  scrollbar-width: none;
-}
-html:not(:has([data-marketing]))::-webkit-scrollbar,
-html:not(:has([data-marketing])) *::-webkit-scrollbar {
-  display: none;
-}
-
-html:not(:has([data-marketing])) .card {
-  border-radius: 12px;
-}
-
-/* HeroUI's buttons are pills; every page squares them a step tighter than
-   the 12px cards, large ones a little rounder. A button group keeps only its
-   outer corners, so it still reads as one control. */
-.button {
-  --button-radius: 8px;
-  border-radius: var(--button-radius);
-}
-.button--lg {
-  --button-radius: 10px;
-}
-.button-group--horizontal .button {
-  border-radius: 0;
-}
-.button-group--horizontal .button:first-child {
-  border-start-start-radius: var(--button-radius);
-  border-end-start-radius: var(--button-radius);
-}
-.button-group--horizontal .button:last-child {
-  border-start-end-radius: var(--button-radius);
-  border-end-end-radius: var(--button-radius);
-}
-
-/* HeroUI's .dropdown__trigger is `display: inline-block`, which lands after
-   buttonVariants' `inline-flex` at equal specificity and wins. Any trigger
-   styled as a button then loses its flex centering: icon-only ones sit on the
-   text baseline instead of centered, and justify-* on the trigger is inert.
-   Scoped to .button so bare triggers (an avatar, say) keep inline-block. */
-.dropdown__trigger.button {
-  display: inline-flex;
-}
-
-/* HeroUI caps every dropdown at 48svw. On a phone that is narrower than the
-   menus themselves — the account menu asks for w-64 and gets 187px, so
-   "Connected devices" wraps and the email truncates mid-word. Below md, where
-   HeroUI also drops its own min-width, let a menu use the viewport instead.
-   Desktop keeps the 48svw cap. */
-@media (width < 48rem) {
-  .dropdown__popover {
-    max-width: calc(100vw - 2rem);
-  }
-}
-
-/* Showcase panel behind the toolbar mockup — a defined surface in both themes
-   (surface-tertiary grey in light, raised neutral in dark). Default (no attr) is dark. */
-:root,
-[data-theme="dark"] {
-  --cf-showcase-bg: oklch(25.7% 0 0);
-}
-[data-theme="light"] {
-  --cf-showcase-bg: oklch(93.73% 0 0);
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 /* Play/pause flash overlay on the RecordingPlayer. Shared between the
@@ -506,36 +334,6 @@ html[data-theme-switching] *,
 html[data-theme-switching] *::before,
 html[data-theme-switching] *::after {
   transition: none !important;
-}
-
-/* Theme switch: a left-to-right wipe. The toggle drives the swap through
-   document.startViewTransition, so the browser cross-fades by default — we
-   override that with the new snapshot clipped in from the left edge while the
-   old one holds underneath. */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-::view-transition-old(root) {
-  z-index: 1;
-}
-::view-transition-new(root) {
-  z-index: 2;
-  animation: cf-theme-wipe 0.45s ease-in-out forwards;
-}
-@keyframes cf-theme-wipe {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-new(root) {
-    animation: none;
-  }
 }
 
 /* 24-column spans for the marketing <Col> primitive. Breakpoints match the
@@ -940,6 +738,46 @@ html[data-theme-switching] *::after {
   --spacing-media-hidden-indicator-offset: var(--media-hidden-indicator-offset);
   --spacing-media-hidden-preview-offset: var(--media-hidden-preview-offset);
   --spacing-media-hidden-seek-offset: var(--media-hidden-seek-offset);
+  --font-sans: var(--font-geist), system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 @utility duration-media-* {
@@ -1244,4 +1082,10 @@ html[data-theme-switching] *::after {
       var(--media-chapter-inset-start)
   );
   clip-path: inset(-1px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
 }

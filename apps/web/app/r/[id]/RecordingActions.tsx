@@ -1,6 +1,16 @@
 "use client";
 
-import { Button, ButtonGroup, Dropdown, buttonVariants } from "@heroui/react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  ButtonGroup,
+  ButtonGroupSeparator,
+} from "@/components/ui/button-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Check,
   Link2,
@@ -132,30 +142,23 @@ export function RecordingActions({
         )}
         {signedIn ? (
           <ButtonGroup>
-            <Button variant="primary" onPress={() => setOpen(true)}>
+            <Button onClick={() => setOpen(true)}>
               <Users size={18} />
               <span className="hidden sm:inline">Share</span>
             </Button>
-            {/* No Tooltip here: its Trigger renders a wrapping div, and
-                ButtonGroup's radii key off :first-child/:last-child, so a
-                wrapped button rounds on all sides and collides with Share. The
-                aria-label plus the icon swap already convey the state. */}
+            <ButtonGroupSeparator />
             <Button
-              variant="primary"
-              isIconOnly
-              onPress={copyLink}
+              size="icon"
+              onClick={copyLink}
               aria-label={copied ? "Link copied" : "Copy link"}
             >
-              {/* Absolutely positioned against this button, so it draws the
-                  hairline between the two halves of the split control. */}
-              <ButtonGroup.Separator />
               {copied ? <Check size={18} /> : <Link2 size={18} />}
             </Button>
           </ButtonGroup>
         ) : (
           <Button
             variant="secondary"
-            onPress={copyLink}
+            onClick={copyLink}
             aria-label={copied ? "Link copied" : "Copy link"}
           >
             {copied ? <Check size={16} /> : <Link2 size={16} />}
@@ -166,26 +169,23 @@ export function RecordingActions({
         )}
 
         {isOwner && (
-          <Dropdown>
-            <Dropdown.Trigger
-              aria-label="More actions"
-              className={buttonVariants({ variant: "ghost", isIconOnly: true })}
-            >
-              <MoreHorizontal size={18} />
-            </Dropdown.Trigger>
-            <Dropdown.Popover placement="bottom end">
-              <Dropdown.Menu>
-                <Dropdown.Item
-                  isDisabled={deleting}
-                  onAction={onDelete}
-                  className="text-danger"
-                >
-                  <Trash2 size={16} />
-                  {deleting ? "Deleting…" : "Delete recording"}
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown.Popover>
-          </Dropdown>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="More actions">
+                <MoreHorizontal size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                variant="destructive"
+                disabled={deleting}
+                onSelect={onDelete}
+              >
+                <Trash2 size={16} />
+                {deleting ? "Deleting…" : "Delete recording"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 

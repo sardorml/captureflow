@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { Link as HeroLink, Typography } from "@heroui/react";
+import { cn } from "@/lib/utils";
 
 /*
  * The marketing tree renders these from Server Components, so each is its own
@@ -26,10 +26,25 @@ type TextProps = {
 
 const TONE_CLASS: Record<Tone, string> = {
   secondary: "text-fg-muted",
-  success: "text-success",
-  warning: "text-warning",
-  danger: "text-danger",
+  success: "text-emerald-500",
+  warning: "text-amber-500",
+  danger: "text-destructive",
 };
+
+const ALIGN_CLASS: Record<Align, string> = {
+  start: "text-start",
+  center: "text-center",
+  end: "text-end",
+};
+
+const HEADING_SIZE = {
+  1: "text-4xl",
+  2: "text-3xl",
+  3: "text-2xl",
+  4: "text-xl",
+  5: "text-lg",
+  6: "text-base",
+} as const;
 
 function toneClass(type?: Tone): string | undefined {
   return type ? TONE_CLASS[type] : undefined;
@@ -37,7 +52,7 @@ function toneClass(type?: Tone): string | undefined {
 
 export function Text({
   children,
-  align,
+  align = "start",
   type,
   strong,
   className,
@@ -45,54 +60,66 @@ export function Text({
   ...rest
 }: TextProps) {
   return (
-    <Typography
-      align={align}
-      weight={strong ? "semibold" : undefined}
-      className={[toneClass(type), className].filter(Boolean).join(" ")}
+    <p
+      className={cn(
+        "text-base leading-7 text-foreground",
+        ALIGN_CLASS[align],
+        strong && "font-semibold",
+        toneClass(type),
+        className,
+      )}
       style={style}
       {...rest}
     >
       {children}
-    </Typography>
+    </p>
   );
 }
 
 export function Title({
   children,
-  align,
+  align = "start",
   level = 1,
   className,
   style,
 }: TextProps & { level?: 1 | 2 | 3 | 4 | 5 | 6 }) {
+  const Heading = `h${level}` as const;
   return (
-    <Typography.Heading
-      align={align}
-      level={level}
-      className={className}
+    <Heading
+      className={cn(
+        "font-heading font-semibold tracking-tight text-foreground",
+        HEADING_SIZE[level],
+        ALIGN_CLASS[align],
+        className,
+      )}
       style={style}
     >
       {children}
-    </Typography.Heading>
+    </Heading>
   );
 }
 
 export function Paragraph({
   children,
-  align,
+  align = "start",
   type,
   className,
   style,
   ...rest
 }: TextProps) {
   return (
-    <Typography.Paragraph
-      align={align}
-      className={[toneClass(type), className].filter(Boolean).join(" ")}
+    <p
+      className={cn(
+        "text-base leading-7 text-foreground",
+        ALIGN_CLASS[align],
+        toneClass(type),
+        className,
+      )}
       style={style}
       {...rest}
     >
       {children}
-    </Typography.Paragraph>
+    </p>
   );
 }
 
@@ -105,14 +132,17 @@ export function Link({
   style,
 }: TextProps & { href?: string; target?: string; rel?: string }) {
   return (
-    <HeroLink
+    <a
       href={href}
       target={target}
       rel={rel}
-      className={className}
+      className={cn(
+        "relative inline-flex h-fit w-fit items-center rounded-xl font-medium text-accent-strong underline-offset-4 decoration-[1.5px] transition-colors hover:underline motion-reduce:transition-none",
+        className,
+      )}
       style={style}
     >
       {children}
-    </HeroLink>
+    </a>
   );
 }

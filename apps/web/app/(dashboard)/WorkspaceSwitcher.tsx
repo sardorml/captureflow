@@ -1,15 +1,28 @@
 "use client";
 
 import type { PaidSeats } from "@/lib/billing/seat-checkout";
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
-import { ChevronsUpDown, Info, UserPlus } from "lucide-react";
-import { Avatar, Button, Chip, Dropdown, Popover } from "@heroui/react";
+import { Check, ChevronsUpDown, UserPlus } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import type { WorkspaceMembership } from "@captureflow/quota";
 import { initials } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { workspaceLogoUrl } from "@/lib/site";
-import { resolveWorkspaceCard, workspaceCardStyle } from "@/lib/workspace-card";
 import { switchWorkspaceAction } from "./switch-workspace-action";
 
 // Loaded on the first invite, not with every dashboard page.
@@ -22,59 +35,25 @@ const InviteModal = dynamic(
 );
 
 // The logo the workspace settings promise is "shown next to your workspace
-// name". Without one it falls back to initials, the same treatment member
-// avatars get.
+// name". Without one it falls back to initials.
 function WorkspaceMark({
   membership,
-  size,
+  className,
 }: {
   membership: WorkspaceMembership;
-  size: number;
+  className: string;
 }) {
   const url = workspaceLogoUrl(
     membership.workspace_logo_key,
     membership.workspace_updated_at,
   );
   return (
-    <Avatar
-      className="shrink-0 rounded-full"
-      style={{ width: size, height: size }}
-    >
-      {url && <Avatar.Image src={url} alt="" />}
-      <Avatar.Fallback style={{ fontSize: Math.round(size * 0.4) }}>
+    <Avatar className={cn("shrink-0 rounded-md after:rounded-md", className)}>
+      {url && <AvatarImage src={url} alt="" className="rounded-md" />}
+      <AvatarFallback className="rounded-md bg-sidebar-primary text-xs text-sidebar-primary-foreground">
         {initials(membership.workspace_name)}
-      </Avatar.Fallback>
+      </AvatarFallback>
     </Avatar>
-  );
-}
-
-/* A Popover rather than a Tooltip: this opens on press, which is both what the
-   icon looks like it does and what works on touch. Popover.Content is only the
-   container — Popover.Dialog is what carries the padding. */
-function DefaultBadge({ canSwitch }: { canSwitch: boolean }) {
-  return (
-    <span className="flex items-center gap-1.5">
-      <Chip size="sm" variant="soft" color="default">
-        Default
-      </Chip>
-      <Popover>
-        <Popover.Trigger
-          className="inline-flex rounded-full text-fg-subtle transition-colors hover:text-fg"
-          aria-label="What the default workspace means"
-        >
-          <Info size={14} />
-        </Popover.Trigger>
-        <Popover.Content placement="right" className="w-56">
-          <Popover.Dialog className="p-3">
-            <p className="text-start text-xs leading-5 text-fg-muted">
-              New recordings and screenshots save here, including the ones you
-              capture in the extension and the desktop app.
-              {canSwitch && " Switch below to change that."}
-            </p>
-          </Popover.Dialog>
-        </Popover.Content>
-      </Popover>
-    </span>
   );
 }
 
@@ -82,25 +61,19 @@ type Props = {
   currentWorkspaceId: string;
   memberships: WorkspaceMembership[];
   memberCount: number;
-  recordingCount: number;
   canInvite: boolean;
   paidSeats: PaidSeats | null;
-  // The row under the divider: who is in the workspace, with the invite.
-  footer?: ReactNode;
 };
 
 export function WorkspaceSwitcher({
   currentWorkspaceId,
   memberships,
   memberCount,
-  recordingCount,
   canInvite,
   paidSeats,
-  footer,
 }: Props) {
+  const { isMobile } = useSidebar();
   const formRef = useRef<HTMLFormElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [isOpen, setOpen] = useState(false);
   const [isInviting, setInviting] = useState(false);
   // Stays mounted after the first invite so closing can animate out.
   const [inviteMounted, setInviteMounted] = useState(false);
@@ -118,128 +91,82 @@ export function WorkspaceSwitcher({
     formRef.current.requestSubmit();
   };
 
-  const plural = (n: number, noun: string) =>
-    `${n} ${noun}${n === 1 ? "" : "s"}`;
-
-  // The card above already is the current workspace; the list is what you can
-  // move to.
-  const others = memberships.filter(
-    (m) => m.workspace_id !== current.workspace_id,
-  );
-  const canSwitch = others.length > 0;
-  // The workspace colour heads the open menu only, so the sidebar stays quiet.
-  const sheetStyle = workspaceCardStyle(
-    resolveWorkspaceCard(current.workspace_card_bg, current.workspace_id),
-  );
-
   return (
-    <div className="flex flex-col gap-1.5">
-      {/* The card states which workspace you are in and that it is the default
-          without you having to open anything. The info button sits outside the
-          Dropdown because React Aria's press context would otherwise route its
-          press to the trigger. */}
-      <div className="relative">
-        <div
-          ref={cardRef}
-          data-testid="workspace-card"
-          className="relative rounded-xl border border-line bg-panel"
-        >
-          <Dropdown isOpen={isOpen} onOpenChange={setOpen}>
-            <Dropdown.Trigger
-              aria-label="Switch workspace"
-              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-t-xl px-3 pt-2.5 pb-1 outline-none"
+    <>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton
+                size="lg"
+                aria-label="Switch workspace"
+                data-testid="workspace-card"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              >
+                <WorkspaceMark membership={current} className="size-8" />
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-medium">
+                    {current.workspace_name}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    Default · {memberCount}{" "}
+                    {memberCount === 1 ? "member" : "members"}
+                  </span>
+                </div>
+                <ChevronsUpDown className="ml-auto" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="min-w-60"
+              align="start"
+              side={isMobile ? "bottom" : "right"}
+              sideOffset={4}
             >
-              <span className="truncate font-medium text-fg">
-                {current.workspace_name}
-              </span>
-              <ChevronsUpDown size={14} className="shrink-0 text-fg-muted" />
-            </Dropdown.Trigger>
-            {/* Anchored to the card rather than to the trigger row, so it opens
-              clear of the Default line instead of on top of it. outline-none
-              because HeroUI resets the popover's focus ring with
-              `:focus-visible:not(:focus)`, which never matches — so the browser
-              draws its own ring around the whole panel on open. */}
-            <Dropdown.Popover
-              triggerRef={cardRef}
-              placement="bottom start"
-              className="min-w-64 outline-none"
-            >
-              <div
-                className="h-14 rounded-t-[inherit]"
-                style={sheetStyle}
-                aria-hidden="true"
-              />
-              <div className="-mt-6 flex flex-col items-center gap-2 px-4 pb-3 text-center">
-                <span className="rounded-full bg-panel p-1">
-                  <WorkspaceMark membership={current} size={48} />
-                </span>
-                <span className="truncate font-semibold text-fg">
-                  {current.workspace_name}
-                </span>
-                <DefaultBadge canSwitch={canSwitch} />
-                <span className="text-xs text-fg-muted">
-                  {plural(memberCount, "member")} &middot;{" "}
-                  {plural(recordingCount, "recording")}
-                </span>
-                {/* Inside the current workspace's block, since that is the
-                  workspace the invite is to. */}
-                {canInvite && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    fullWidth
-                    className="mt-1"
-                    onPress={() => {
-                      setOpen(false);
-                      setInviteMounted(true);
-                      setInviting(true);
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                Workspaces
+              </DropdownMenuLabel>
+              {memberships.map((m) => {
+                const isCurrent = m.workspace_id === current.workspace_id;
+                return (
+                  <DropdownMenuItem
+                    key={m.workspace_id}
+                    onSelect={() => {
+                      if (!isCurrent) choose(m.workspace_id);
                     }}
+                    className="gap-2 p-2"
                   >
-                    <UserPlus size={16} />
-                    Invite to this workspace
-                  </Button>
-                )}
-              </div>
+                    <WorkspaceMark membership={m} className="size-6" />
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="truncate">{m.workspace_name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {m.role === "owner" ? "You own this" : "You joined"}
+                      </span>
+                    </span>
+                    {isCurrent && <Check className="ml-auto" />}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+        {canInvite && (
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Invite members"
+              onClick={() => {
+                setInviteMounted(true);
+                setInviting(true);
+              }}
+            >
+              <UserPlus />
+              <span>Invite members</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )}
+      </SidebarMenu>
 
-              {canSwitch && (
-                <>
-                  <hr className="border-line" />
-                  <p className="px-4 pt-2.5 pb-0.5 text-[11px] font-medium tracking-wide text-fg-subtle uppercase">
-                    Switch to
-                  </p>
-                  <Dropdown.Menu onAction={(key) => choose(String(key))}>
-                    {others.map((m) => (
-                      <Dropdown.Item key={m.workspace_id} id={m.workspace_id}>
-                        <WorkspaceMark membership={m} size={22} />
-                        <span className="flex min-w-0 flex-col">
-                          <span className="truncate font-medium text-fg">
-                            {m.workspace_name}
-                          </span>
-                          <span className="text-xs text-fg-muted">
-                            {m.role === "owner" ? "You own this" : "You joined"}
-                          </span>
-                        </span>
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </>
-              )}
-            </Dropdown.Popover>
-          </Dropdown>
-
-          <div className="flex items-center gap-2 px-3 pb-2.5 text-xs text-fg-muted">
-            <DefaultBadge canSwitch={canSwitch} />
-            <span className="h-3 w-px shrink-0 bg-line" />
-            <span className="truncate">{plural(memberCount, "member")}</span>
-          </div>
-          {footer && (
-            <div className="border-t border-line px-3 py-2">{footer}</div>
-          )}
-        </div>
-      </div>
-
-      {/* Outside the Dropdown on purpose: closing the popover unmounts its
-          subtree, which would take the modal down with it. */}
+      {/* Outside the menu on purpose: closing it unmounts its subtree, which
+          would take the modal down with it. */}
       {inviteMounted ? (
         <InviteModal
           isOpen={isInviting}
@@ -251,6 +178,6 @@ export function WorkspaceSwitcher({
       <form ref={formRef} action={switchWorkspaceAction} className="hidden">
         <input type="hidden" name="workspaceId" value="" />
       </form>
-    </div>
+    </>
   );
 }

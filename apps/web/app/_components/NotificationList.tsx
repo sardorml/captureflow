@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Avatar, Button, Typography } from "@heroui/react";
 import type { InviteForUser, NotificationRow } from "@captureflow/quota";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   acceptInviteFromFeedAction,
   declineInviteFromFeedAction,
@@ -34,15 +35,15 @@ export function NotificationList({
   if (openInvites.length === 0 && notifications.length === 0) {
     return (
       <div className="px-3 py-6">
-        <Typography type="body-sm" color="muted" align="center">
+        <p className="text-center text-sm leading-6 text-muted-foreground">
           {emptyText}
-        </Typography>
+        </p>
       </div>
     );
   }
 
   return (
-    <ul className={cn("divide-y divide-separator", className)}>
+    <ul className={cn("divide-y divide-border", className)}>
       {openInvites.map((invite) => (
         <InviteEntry
           key={invite.id}
@@ -98,27 +99,20 @@ function InviteEntry({
       base={base}
     >
       <div className="mt-2 flex gap-2">
-        <Button
-          size="sm"
-          variant="primary"
-          isDisabled={pending}
-          onPress={accept}
-        >
+        <Button size="sm" disabled={pending} onClick={accept}>
           Accept
         </Button>
         <Button
           size="sm"
           variant="secondary"
-          isDisabled={pending}
-          onPress={decline}
+          disabled={pending}
+          onClick={decline}
         >
           Decline
         </Button>
       </div>
       {error && (
-        <Typography type="body-sm" className="mt-1.5 text-danger">
-          {error}
-        </Typography>
+        <p className="mt-1.5 text-sm leading-6 text-destructive">{error}</p>
       )}
     </Entry>
   );
@@ -142,10 +136,10 @@ function Entry({
   const body = (
     <>
       <Avatar className="size-8 shrink-0">
-        {image && <Avatar.Image src={image} alt={message.actor} />}
-        <Avatar.Fallback className="text-xs">
+        {image && <AvatarImage src={image} alt={message.actor} />}
+        <AvatarFallback className="text-xs">
           {initials(message.actor)}
-        </Avatar.Fallback>
+        </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1 text-sm">
         <p className="text-fg">
@@ -167,7 +161,7 @@ function Entry({
       {unread && (
         <span
           aria-label="Unread"
-          className="mt-1.5 size-2 shrink-0 rounded-full bg-accent"
+          className="mt-1.5 size-2 shrink-0 rounded-full bg-primary"
         />
       )}
     </>

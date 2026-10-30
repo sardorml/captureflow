@@ -53,7 +53,7 @@ export function BlogIndex({
                   </span>
                 </p>
                 <div className="max-w-180">
-                  <h2 className="text-[clamp(1.5rem,1.1rem+1.4vw,2.25rem)] leading-[1.15] font-semibold tracking-[-0.02em] text-balance text-fg transition-colors group-hover:text-accent">
+                  <h2 className="text-[clamp(1.5rem,1.1rem+1.4vw,2.25rem)] leading-[1.15] font-semibold tracking-[-0.02em] text-balance text-fg transition-colors group-hover:text-accent-strong">
                     {post.title}
                   </h2>
                   <p className="mt-4 text-lg leading-relaxed text-pretty text-fg/70">

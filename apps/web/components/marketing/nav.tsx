@@ -5,7 +5,8 @@ import Image from "next/image";
 import { Rubik } from "next/font/google";
 import { AnimatePresence, motion } from "motion/react";
 import NextLink from "next/link";
-import { Button, Drawer, Header, buttonVariants } from "@heroui/react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import {
   ArrowUpRight,
   ChevronDown,
@@ -27,11 +28,9 @@ const GITHUB_URL = "https://github.com/sardorml/captureflow";
 const wordmark = Rubik({ subsets: ["latin"], weight: "500", display: "swap" });
 
 /*
- * HeroUI's free tier has no Navbar (it ships only in the paid Pro package), so
- * the bar is composed from Header + Button + Drawer. Links render as anchors
- * carrying `buttonVariants` rather than a Button nested inside an <a> — an
- * anchor wrapping a button is invalid markup and lands two tab stops on one
- * control.
+ * Links render as anchors carrying `buttonVariants` rather than a Button nested
+ * inside an <a> — an anchor wrapping a button is invalid markup and lands two
+ * tab stops on one control.
  */
 
 // Bare muted text in the bar; full-width ghost buttons once stacked in the drawer.
@@ -40,10 +39,10 @@ const TEXT_LINK =
 
 // The one solid control in the bar. `inverse` is the token that sits opposite
 // the canvas, so it reads white-on-dark and black-on-light without a branch.
-const PILL_CTA = buttonVariants({
-  variant: "primary",
-  className: "h-[42px] px-5 text-[15px] font-semibold",
-});
+const PILL_CTA = cn(
+  buttonVariants(),
+  "h-[42px] px-5 text-[15px] font-semibold",
+);
 
 type NavLinkProps = {
   href: string;
@@ -99,11 +98,7 @@ function NavLink({
   children,
 }: NavLinkProps) {
   const className = block
-    ? buttonVariants({
-        variant: "ghost",
-        fullWidth: true,
-        className: "justify-start",
-      })
+    ? cn(buttonVariants({ variant: "ghost" }), "w-full justify-start")
     : TEXT_LINK;
 
   if (external) {
@@ -209,7 +204,7 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
       >
         <ul
           className={cn(
-            "bg-(--island) shadow-overlay border-line flex w-[22rem] flex-col rounded-xl border p-2 will-change-[opacity,translate] motion-reduce:[transition:none]",
+            "bg-(--island) shadow-lg border-line flex w-[22rem] flex-col rounded-xl border p-2 will-change-[opacity,translate] motion-reduce:[transition:none]",
             open ? PANEL_OPEN : PANEL_CLOSED,
           )}
         >
@@ -301,10 +296,12 @@ export function Nav() {
   const menuLinks = [...barLinks, ...moreLinks];
 
   return (
-    <Header
-      className={[
-        "sticky top-0 z-[100] flex h-20 w-full max-w-full items-start px-0 pt-0",
-      ].join(" ")}
+    <header
+      className={cn(
+        "sticky top-0 flex h-20 w-full max-w-full items-start pb-1 text-start text-xs font-medium text-muted-foreground",
+        // The sheet's overlay sits at z-50; drop under it so the open menu dims the bar.
+        menuOpen ? "z-40" : "z-[100]",
+      )}
     >
       <div
         className={cn(
@@ -407,10 +404,9 @@ export function Nav() {
             />
             <Button
               variant="ghost"
-              size="sm"
-              isIconOnly
+              size="icon-sm"
               aria-label="Open menu"
-              onPress={() => setMenuOpen(true)}
+              onClick={() => setMenuOpen(true)}
             >
               <MenuIcon size={20} />
             </Button>
@@ -418,68 +414,46 @@ export function Nav() {
         </div>
       </div>
 
-      <Drawer isOpen={menuOpen} onOpenChange={setMenuOpen}>
-        {/* HeroUI's overlays sit at z-50 and this bar sits above them at 100,
-            so the logo and the trigger painted straight over the open panel.
-            Raising the backdrop lifts the panel with it — it is the stacking
-            context the panel is painted in. */}
-        <Drawer.Backdrop style={{ zIndex: 120 }}>
-          {/* The width belongs on the dialog, not on Content: Content is the
-              inset-0 flex wrapper that positions the panel, so sizing it there
-              pinned a 280px box to the left edge and the panel slid in against
-              it — right-to-left, on the wrong side of the viewport. */}
-          <Drawer.Content placement="right">
-            <Drawer.Dialog className="w-70">
-              <Drawer.Body className="flex flex-col items-stretch gap-2 p-4">
-                <nav
-                  aria-label="Main"
-                  className="flex flex-col items-stretch gap-2"
-                >
-                  {menuLinks.map((link) => (
-                    <NavLink
-                      key={link.label}
-                      href={link.href}
-                      external={link.external}
-                      block
-                      onNavigate={closeMenu}
-                    >
-                      {link.label}
-                    </NavLink>
-                  ))}
-                </nav>
-                <NavLink
-                  href={GITHUB_URL}
-                  external
-                  block
-                  icon={<Star size={16} />}
-                >
-                  {starLabel}
-                </NavLink>
-                <NextLink
-                  href={lh("/login")}
-                  onClick={closeMenu}
-                  className={buttonVariants({
-                    variant: "tertiary",
-                    fullWidth: true,
-                  })}
-                >
-                  {m.nav.login}
-                </NextLink>
-                <NextLink
-                  href={lh("/download")}
-                  onClick={closeMenu}
-                  className={buttonVariants({
-                    variant: "primary",
-                    fullWidth: true,
-                  })}
-                >
-                  {m.nav.download}
-                </NextLink>
-              </Drawer.Body>
-            </Drawer.Dialog>
-          </Drawer.Content>
-        </Drawer.Backdrop>
-      </Drawer>
-    </Header>
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+        <SheetContent
+          side="right"
+          showCloseButton={false}
+          aria-describedby={undefined}
+          className="w-70 gap-2 p-4"
+        >
+          <SheetTitle className="sr-only">Menu</SheetTitle>
+          <nav aria-label="Main" className="flex flex-col items-stretch gap-2">
+            {menuLinks.map((link) => (
+              <NavLink
+                key={link.label}
+                href={link.href}
+                external={link.external}
+                block
+                onNavigate={closeMenu}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+          <NavLink href={GITHUB_URL} external block icon={<Star size={16} />}>
+            {starLabel}
+          </NavLink>
+          <NextLink
+            href={lh("/login")}
+            onClick={closeMenu}
+            className={cn(buttonVariants({ variant: "ghost" }), "w-full")}
+          >
+            {m.nav.login}
+          </NextLink>
+          <NextLink
+            href={lh("/download")}
+            onClick={closeMenu}
+            className={cn(buttonVariants(), "w-full")}
+          >
+            {m.nav.download}
+          </NextLink>
+        </SheetContent>
+      </Sheet>
+    </header>
   );
 }

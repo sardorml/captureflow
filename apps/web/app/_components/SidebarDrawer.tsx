@@ -1,8 +1,10 @@
 "use client";
 
-import { Button, Drawer } from "@heroui/react";
 import { PanelLeft } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 /*
  * Puts the dashboard's own sidebar on the viewer pages without duplicating it:
@@ -16,27 +18,26 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
     <>
       <Button
         variant="ghost"
-        size="sm"
-        isIconOnly
+        size="icon-sm"
         aria-label="Open workspace menu"
-        onPress={() => setOpen(true)}
+        onClick={() => setOpen(true)}
       >
         <PanelLeft size={18} />
       </Button>
-      <Drawer isOpen={open} onOpenChange={setOpen}>
-        <Drawer.Backdrop>
-          <Drawer.Content placement="left">
-            {/* w-60 matches the docked width in DashboardShell, so the panel is
-                the same measure in both places. Sizing belongs on the dialog:
-                Content is the inset-0 wrapper that positions it. p-0 drops the
-                dialog's default p-6 — the sidebar brings its own insets, and
-                w-60 has to measure the panel, not the panel plus a gutter. */}
-            <Drawer.Dialog className="w-60 bg-canvas-2 p-0">
-              <Drawer.Body>{children}</Drawer.Body>
-            </Drawer.Dialog>
-          </Drawer.Content>
-        </Drawer.Backdrop>
-      </Drawer>
+      <Sheet open={open} onOpenChange={setOpen}>
+        {/* w-64 is the docked sidebar's width, so the panel is the same
+            measure in both places. */}
+        <SheetContent
+          side="left"
+          showCloseButton={false}
+          className="gap-0 bg-sidebar p-0 data-[side=left]:w-64"
+        >
+          <SheetTitle className="sr-only">Workspace menu</SheetTitle>
+          <SidebarProvider className="min-h-0 flex-1">
+            {children}
+          </SidebarProvider>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

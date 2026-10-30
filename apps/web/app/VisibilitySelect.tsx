@@ -1,7 +1,13 @@
 "use client";
 
 import { Globe, Lock, Users } from "lucide-react";
-import { ListBox, Select } from "@heroui/react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type Visibility = "public" | "workspace" | "private";
 
@@ -40,26 +46,23 @@ export function VisibilitySelect({
 
   return (
     <Select
-      selectedKey={value}
-      isDisabled={disabled}
-      onSelectionChange={(next) => onChange(next as Visibility)}
-      aria-label="Visibility"
+      value={value}
+      disabled={disabled}
+      onValueChange={(next) => onChange(next as Visibility)}
     >
-      <Select.Trigger className="min-w-[130px]">
-        <Select.Value />
-      </Select.Trigger>
-      <Select.Popover>
-        <ListBox>
-          {options.map((option) => (
-            <ListBox.Item key={option} id={option} textValue={LABELS[option]}>
-              <span className="inline-flex items-center gap-1.5">
-                {icon(option)}
-                {LABELS[option]}
-              </span>
-            </ListBox.Item>
-          ))}
-        </ListBox>
-      </Select.Popover>
+      <SelectTrigger aria-label="Visibility" className="min-w-[130px]">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem key={option} value={option} textValue={LABELS[option]}>
+            <span className="inline-flex items-center gap-1.5">
+              {icon(option)}
+              {LABELS[option]}
+            </span>
+          </SelectItem>
+        ))}
+      </SelectContent>
     </Select>
   );
 }
