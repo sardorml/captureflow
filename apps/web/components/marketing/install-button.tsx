@@ -35,8 +35,7 @@ export function InstallButton({
   const className = buttonVariants({
     variant: primary ? "primary" : "secondary",
     size: "lg",
-    className:
-      "h-11 gap-2.5 pr-5 pl-2.5 text-[16px] font-medium",
+    className: "h-11 gap-2.5 pr-5 pl-2.5 text-[16px] font-medium",
   });
   const onClick = () => track("marketing_cta_clicked", { location });
 
