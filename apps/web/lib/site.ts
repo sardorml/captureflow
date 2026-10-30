@@ -9,6 +9,9 @@ export const APP_WEB_SITE_URL =
 
 export const PRODUCT_NAME = "CaptureFlow";
 
+// The maker's X account, which build-in-public directories also check to verify the site.
+export const X_CREATOR = "@sardorml";
+
 export const SUPPORT_EMAIL = "support@captureflow.dev";
 
 // Extension store listings. null until published; the hero renders a

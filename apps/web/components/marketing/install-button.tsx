@@ -35,11 +35,19 @@ export function InstallButton({
   const className = buttonVariants({
     variant: primary ? "primary" : "secondary",
     size: "lg",
-    className: "h-11 gap-2.5 rounded-full pr-5 pl-2.5 text-[16px] font-medium",
+    className:
+      "h-11 gap-2.5 pr-5 pl-2.5 text-[16px] font-medium",
   });
   const onClick = () => track("marketing_cta_clicked", { location });
 
-  const link = /^https?:/.test(href) ? (
+  // Next's router skips the scroll when the hash is already in the URL, so a
+  // second click on an in-page link would do nothing.
+  const link = href.startsWith("#") ? (
+    <a href={href} className={className} onClick={onClick}>
+      {icon}
+      {label}
+    </a>
+  ) : /^https?:/.test(href) ? (
     <a
       href={href}
       target="_blank"
@@ -67,7 +75,7 @@ export function InstallButton({
     <span className="relative inline-flex">
       {link}
       <span
-        className="pointer-events-none absolute -top-1.5 -right-1 rounded-full px-2 py-0.5 text-[11px] leading-none font-semibold"
+        className="pointer-events-none absolute -top-1.5 -right-1 rounded px-2 py-0.5 text-[11px] leading-none font-semibold"
         style={{ backgroundColor: SOON_AMBER, color: "#0a0a0a" }}
       >
         {badge}

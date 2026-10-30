@@ -3,6 +3,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — resolved after the OpenNext Cloudflare build runs.
 import openNextWorker from "./.open-next/worker.js";
+import { Container } from "@cloudflare/containers";
 import {
   backfillPosterDerivatives,
   retryCdnPurges,
@@ -11,6 +12,7 @@ import {
   sweepUploadSegments,
 } from "./lib/recording/cron";
 import { runDailySeatSync } from "./lib/billing/seat-cron";
+import { sweepAgentRecordings } from "./lib/mcp/agent-recordings-db";
 import { hydrateTranscriptionJobMessage } from "./lib/recording/transcription";
 import {
   failTranscription,
@@ -26,7 +28,33 @@ type Env = {
   CLOUDFLARE_ZONE_ID?: string;
   CLOUDFLARE_PURGE_TOKEN?: string;
   R2_PUBLIC_BASE_URL?: string;
+  RECORDER_SECRET?: string;
 };
+
+// The cloud browser behind agent recordings (apps/recorder), one container
+// per session. It sleeps a minute past the recorder's own idle limit, and
+// right away once the session is stopped or cancelled.
+export class RecorderContainer extends Container<Env> {
+  defaultPort = 8080;
+  sleepAfter = "3m";
+  pingEndpoint = "recorder/ping";
+
+  constructor(ctx: DurableObjectState<{}>, env: Env) {
+    super(ctx, env);
+    this.envVars = { RECORDER_SECRET: env.RECORDER_SECRET ?? "" };
+  }
+
+  override async fetch(request: Request): Promise<Response> {
+    const res = await this.containerFetch(request);
+    const ended =
+      request.method === "DELETE" ||
+      new URL(request.url).pathname.endsWith("/stop");
+    if (!ended || !res.ok) return res;
+    const body = await res.arrayBuffer();
+    this.ctx.waitUntil(this.stop());
+    return new Response(body, res);
+  }
+}
 
 // Keep equal to the consumer's max_retries in wrangler.jsonc: the delivery
 // that would be the last is the one that records the failure.
@@ -48,6 +76,7 @@ const handler: ExportedHandler<Env> = {
         ctx.waitUntil(backfillPosterDerivatives(env));
         ctx.waitUntil(retryCdnPurges(env));
         ctx.waitUntil(sweepUploadSegments(env));
+        ctx.waitUntil(sweepAgentRecordings(env.DB, Date.now()));
         break;
       case "0 4 * * *":
         ctx.waitUntil(runDailyRetentionSweep(env));

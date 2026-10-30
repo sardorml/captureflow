@@ -44,7 +44,7 @@ export function PriceBreakdown({
 
   return (
     <div className={className}>
-      <div className="overflow-hidden rounded-2xl border border-line bg-panel">
+      <div className="overflow-hidden rounded-xl border border-line bg-panel">
         <CostRow
           label={fill(copy.loomRow)}
           detail={fill(copy.loomDetail)}

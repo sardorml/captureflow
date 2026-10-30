@@ -14,7 +14,7 @@ const inter = Inter({
 });
 import { AnalyticsProvider } from "./analytics-provider";
 import { DevTools } from "@/components/dev/dev-tools";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, X_CREATOR } from "@/lib/site";
 import "./globals.css";
 import "./material-symbols-subset.css";
 
@@ -59,6 +59,7 @@ export const metadata: Metadata = {
     title: "CaptureFlow",
     description: SITE_DESCRIPTION,
     images: ["/og-image.png?v=3"],
+    creator: X_CREATOR,
   },
 };
 

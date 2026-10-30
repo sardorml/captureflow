@@ -9,6 +9,10 @@ export type AppWebBindings = {
   BUCKET?: R2Bucket;
   AI?: Ai;
   TRANSCRIPTION_QUEUE?: Queue<TranscriptionJobMessage>;
+  // Agent recordings: a cloud browser per session, or RECORDER_URL in local dev.
+  RECORDER?: DurableObjectNamespace;
+  RECORDER_URL?: string;
+  RECORDER_SECRET?: string;
   NEXT_PUBLIC_APP_WEB_SITE_URL?: string;
   NEXT_PUBLIC_RECORDING_SITE_URL?: string;
   // Legacy standalone-screenshot host, retained for parity until cutover.

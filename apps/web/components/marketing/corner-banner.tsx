@@ -119,7 +119,7 @@ function BetaNote({
     <div
       role="dialog"
       aria-label={m.banner.title}
-      className={`animate-beta-card border-line-strong bg-panel absolute w-[304px] rounded-2xl border p-4 shadow-[0_16px_40px_rgba(0,0,0,0.28)] ${className}`}
+      className={`animate-beta-card border-line-strong bg-panel absolute w-[304px] rounded-xl border p-4 shadow-[0_16px_40px_rgba(0,0,0,0.28)] ${className}`}
     >
       <button
         type="button"

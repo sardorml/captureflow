@@ -70,15 +70,19 @@ export const MESSAGES = {
     genericError: "Something went wrong. Please try again.",
   },
   hero: {
-    title: "Skip the meeting,\nsend a recording instead.",
+    title: "Screen recorder for\nyour agentic workflow.",
     subtitle:
-      "Open-source, AI-powered screen recordings you can share with your team as a link.",
+      "Record demos, how-tos, walkthroughs and presentations yourself, or have your AI record them for you. Share each one as a link anyone can watch.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Install Chrome extension",
     installMac: "Download for macOS",
     installSoon: "Soon",
+    connectMcp: "Connect to MCP",
     macSoon: "macOS app coming soon",
     installOr: "or",
+    mcpCopy: "Copy",
+    mcpCopied: "Copied",
+    mcpAddToCursor: "Add to Cursor",
     badge: "Open source, free to run",
     noCreditCard: "No credit card required",
     teaser: {
@@ -142,10 +146,58 @@ export const MESSAGES = {
     updatesShipped: "Shipped",
     updatesFeatures: "features",
   },
-  modes: {
-    heading: "Screen recording, made simple",
+  agents: {
+    heading: "Let your agent record your",
+    headingWords: ["demo", "how-to", "bug report", "presentation"],
     subtitle:
-      "Record in two clicks. Share with a link. Get feedback on the video.",
+      "Ask in plain words. It records a cloud browser, adds slides and a voiceover if you want, and hands you a link.",
+    placeholder: "Ask your agent to record something",
+    mode: "Build",
+    prompt:
+      "Record a demo of the new dark mode, attach it to PR #482 and send the link to #product on Slack",
+    statuses: [
+      "Recording the demo",
+      "Attaching it to PR #482",
+      "Posting the link to #product",
+    ],
+    reply:
+      "Done. The demo is on PR #482 and in #product: captureflow.dev/r/k3J9xQ",
+    video: {
+      title: "Demo: dark mode",
+      page: "Settings",
+      button: "Dark mode",
+      duration: "0:42",
+    },
+    pr: {
+      repo: "acme/web",
+      title: "Add dark mode",
+      number: "#482",
+      comment: "Demo added to the conversation",
+    },
+    slack: {
+      channel: "product",
+      author: "You",
+      text: "Dark mode is up for review. Here's a 42-second demo.",
+    },
+    steps: [
+      {
+        title: "Connect your agent",
+        body: "Add CaptureFlow to Claude Code, Codex or Cursor with one line. Your agent signs in once.",
+      },
+      {
+        title: "Ask for a video",
+        body: "A feature demo, a how-to, a bug report or a narrated deck. Your agent records it in a cloud browser, with slides and a voiceover if you want them.",
+      },
+      {
+        title: "Share it anywhere",
+        body: "Attach it to a pull request, post it to your team in Slack or send it to a customer. The link plays in any browser.",
+      },
+    ],
+  },
+  modes: {
+    heading: "Or record it yourself",
+    subtitle:
+      "Record your screen, camera and voice in Chrome, or sketch on a canvas to explain something fast. Share it as a link anyone can watch.",
     tabs: {
       share: { label: "Share", caption: "Instant share link" },
       screenshot: { label: "Screenshot", caption: "Annotated screenshots" },
@@ -539,6 +591,7 @@ export const MESSAGES = {
         recordings: "Recordings per person",
         length: "Recording length",
         minutes: "{n} min per video",
+        agents: "Your AI agent records for you",
         transcripts: "Transcripts and captions",
         transcript: "Edit the video from its transcript",
         ai: "AI chapters and filler word removal",
@@ -568,6 +621,7 @@ export const MESSAGES = {
           "Data saver quality",
           "AI transcripts and captions",
           "Comments and emoji reactions",
+          "Agent recordings from Claude Code, Codex or Cursor",
         ],
         cta: "Sign up",
       },
@@ -585,7 +639,7 @@ export const MESSAGES = {
         features: [
           "Unlimited recordings",
           "Unlimited recording time",
-          "Recordings never expire",
+          "Longer agent recordings, up to 10 minutes",
         ],
         cta: "Try for free",
       },
@@ -605,6 +659,7 @@ export const MESSAGES = {
           "Full quality, up to 1080p",
           "AI chapters, titles and filler removal",
           "Custom branding",
+          "AI voiceover on agent recordings",
           "Viewer insights (coming soon)",
           "Slack, Notion and Zapier integrations (coming soon)",
         ],
@@ -757,6 +812,32 @@ export const MESSAGES = {
             },
             {
               label: "Filler word removal",
+              free: false,
+              light: false,
+              pro: true,
+              enterprise: true,
+            },
+          ],
+        },
+        {
+          title: "Agents",
+          rows: [
+            {
+              label: "Recordings by your agent over MCP",
+              free: true,
+              light: true,
+              pro: true,
+              enterprise: true,
+            },
+            {
+              label: "Slides in agent recordings",
+              free: true,
+              light: true,
+              pro: true,
+              enterprise: true,
+            },
+            {
+              label: "AI voiceover",
               free: false,
               light: false,
               pro: true,

@@ -1,0 +1,23 @@
+{
+  "name": "@captureflow/recorder",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cloud browser recorder behind CaptureFlow's MCP recording tools; runs in a Cloudflare Container.",
+  "scripts": {
+    "build": "esbuild src/server.ts --bundle --platform=node --format=esm --target=node22 --external:playwright --outfile=dist/server.mjs",
+    "dev": "pnpm build && node dist/server.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "playwright": "1.64.1"
+  },
+  "devDependencies": {
+    "@captureflow/engine": "workspace:*",
+    "@types/node": "catalog:",
+    "esbuild": "^0.28.2",
+    "typescript": "catalog:",
+    "vitest": "^4.1.9"
+  }
+}

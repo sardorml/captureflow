@@ -42,6 +42,11 @@ const ROWS: ReadonlyArray<{
     loom: "25 videos per person, 5 minutes each",
     captureflow: "25 recordings per person, 5 minutes each",
   },
+  {
+    label: "Your AI agent records for you",
+    loom: false,
+    captureflow: `Every plan, over MCP. Voiceover on ${getSeatPlan("pro").name}`,
+  },
   { label: "Self-host on your own cloud", loom: false, captureflow: true },
   { label: "Open source", loom: false, captureflow: "Yes, AGPL" },
   { label: "Instant share link", loom: true, captureflow: true },
@@ -92,6 +97,7 @@ const CAPTUREFLOW_FITS = [
   "You're paying for every person when only a few of them record.",
   "You want recordings in storage you own, or need to self-host.",
   "You'd rather read the code that handles your videos.",
+  "You want your AI agent to record demos and how-tos for you.",
 ];
 
 export function LoomComparison() {
@@ -157,7 +163,7 @@ export function LoomComparison() {
 
 function ComparisonTable() {
   return (
-    <section className="overflow-hidden rounded-2xl border border-line bg-panel">
+    <section className="overflow-hidden rounded-xl border border-line bg-panel">
       <div className="overflow-x-auto">
         <div className={cn("grid min-w-120", GRID)}>
           <div className="px-6 py-3" />
@@ -201,8 +207,8 @@ function FitCard({
       className={cn(
         "h-full p-6 text-fg sm:p-8",
         isHighlighted
-          ? "rounded-[26px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
-          : "rounded-[28px] border border-line bg-panel",
+          ? "rounded-[10px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
+          : "rounded-xl border border-line bg-panel",
       )}
     >
       <h3 className="text-xl font-bold tracking-[-0.02em]">{title}</h3>
@@ -217,7 +223,5 @@ function FitCard({
     </div>
   );
   if (!isHighlighted) return card;
-  return (
-    <div className={cn("rounded-[28px] p-0.5", GRADIENT_BORDER)}>{card}</div>
-  );
+  return <div className={cn("rounded-xl p-0.5", GRADIENT_BORDER)}>{card}</div>;
 }

@@ -10,6 +10,7 @@ import { HeroSection } from "@/components/marketing/hero-section";
 import { HighlightsSection } from "@/components/marketing/highlights-section";
 import { UseCasesSection } from "@/components/marketing/use-cases-section";
 import { ModesIntro } from "@/components/marketing/modes-intro";
+import { AgentsSection } from "@/components/marketing/agents-section";
 import { CollaborationSection } from "@/components/marketing/collaboration-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { FaqSection } from "@/components/marketing/faq-section";
@@ -27,6 +28,7 @@ import {
   SITE_TITLE,
   SITE_DESCRIPTION,
 } from "@/lib/marketing/constants";
+import { X_CREATOR } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +52,7 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     images: ["/og-image.png?v=3"],
+    creator: X_CREATOR,
   },
 };
 
@@ -78,6 +81,7 @@ export default async function RootPage() {
             blurring it in on load reads as a burst rather than an arrival. */}
         <main>
           <HeroSection />
+          <AgentsSection />
           <ModesIntro />
           <CollaborationSection />
           <HighlightsSection />

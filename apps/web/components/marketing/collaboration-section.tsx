@@ -70,7 +70,7 @@ function CategoryCard({ cat }: { cat: (typeof CATEGORIES)[number] }) {
       id={cat.id}
       className={cn(
         CARD_SURFACE,
-        "flex flex-col rounded-[40px] p-6 sm:p-8 lg:p-10",
+        "flex flex-col rounded-xl p-6 sm:p-8 lg:p-10",
       )}
       style={{ scrollMarginTop: 96 }}
     >

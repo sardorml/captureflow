@@ -126,3 +126,9 @@ APP_DEEP_LINK_SCHEME=captureflow
 # Server-only public URL used when composing invite links. Defaults to
 # NEXT_PUBLIC_APP_WEB_SITE_URL; override when invites should point elsewhere.
 APP_WEB_PUBLIC_URL=http://localhost:3000
+
+# Agent recordings over MCP. Production runs the recorder as a container
+# (the RECORDER binding); local dev points at `pnpm --filter
+# @captureflow/recorder dev` instead. The secret must match the recorder's.
+RECORDER_URL=
+RECORDER_SECRET=

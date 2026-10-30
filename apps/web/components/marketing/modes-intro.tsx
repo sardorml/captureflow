@@ -20,7 +20,10 @@ import { AppIcon } from "@/components/brand-mark";
 import { PRODUCT_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
-import { useMessages } from "./i18n-provider";
+import { CHROME_WEBSTORE_URL } from "@/lib/marketing/constants";
+import { useLocalizedHref, useMessages } from "./i18n-provider";
+import { InstallButton } from "./install-button";
+import { ChromeLogoColor } from "./platform-logos";
 import { RecorderPanel } from "./recorder-panel";
 import { WebcamLoop } from "./webcam-loop";
 
@@ -222,8 +225,12 @@ function typed(text: string, p: number): string {
 }
 
 // The loop's position, 0–1, ticking only while the scene is on screen.
-function useLoopClock(running: boolean): number {
-  const [t, setT] = useState(REST_T);
+export function useLoopClock(
+  running: boolean,
+  loopS = LOOP_S,
+  rest = REST_T,
+): number {
+  const [t, setT] = useState(rest);
   useEffect(() => {
     if (!running) return;
     let frame = 0;
@@ -232,17 +239,17 @@ function useLoopClock(running: boolean): number {
     const tick = (now: number) => {
       if (now - last >= FRAME_MS) {
         last = now;
-        setT(((now - start) % (LOOP_S * 1000)) / (LOOP_S * 1000));
+        setT(((now - start) % (loopS * 1000)) / (loopS * 1000));
       }
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [running]);
+  }, [running, loopS]);
   return t;
 }
 
-function useOnScreen(ref: React.RefObject<HTMLElement | null>): boolean {
+export function useOnScreen(ref: React.RefObject<HTMLElement | null>): boolean {
   const [onScreen, setOnScreen] = useState(false);
   useEffect(() => {
     const el = ref.current;
@@ -256,7 +263,7 @@ function useOnScreen(ref: React.RefObject<HTMLElement | null>): boolean {
   return onScreen;
 }
 
-function useReducedMotion(): boolean {
+export function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -649,6 +656,7 @@ function RecorderMockup() {
 
 export function ModesIntro({ headingLevel = 2 }: SectionProps = {}) {
   const m = useMessages();
+  const lh = useLocalizedHref();
 
   return (
     <MarketingSection
@@ -661,6 +669,15 @@ export function ModesIntro({ headingLevel = 2 }: SectionProps = {}) {
           subtitle={m.modes.subtitle}
           level={headingLevel}
         />
+        <div className="-mt-4 mb-14 flex justify-center">
+          <InstallButton
+            href={CHROME_WEBSTORE_URL ?? lh("/download")}
+            label={m.hero.installChrome}
+            icon={<ChromeLogoColor className="size-7" />}
+            location="modes_chrome"
+            primary
+          />
+        </div>
 
         <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.6fr]">
           <div className="flex justify-center">

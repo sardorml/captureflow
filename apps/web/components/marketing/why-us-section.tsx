@@ -100,6 +100,7 @@ export function WhyUsSection({
       ],
     },
     { label: r.length, cells: [minutes, minutes, r.unlimited, r.unlimited] },
+    { label: r.agents, cells: [false, true, false, true] },
     { label: r.transcripts, cells: [true, true, true, true] },
     { label: r.transcript, cells: [false, true, true, true] },
     { label: r.ai, cells: [false, false, true, true] },
@@ -116,7 +117,7 @@ export function WhyUsSection({
         subtitle={copy.subtitle}
         level={headingLevel}
       />
-      <section className="overflow-hidden rounded-2xl border border-line bg-panel">
+      <section className="overflow-hidden rounded-xl border border-line bg-panel">
         <div className="overflow-x-auto">
           <div className={cn("grid min-w-200", GRID)}>
             <div className="px-6 py-3" />

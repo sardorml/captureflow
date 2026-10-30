@@ -408,7 +408,7 @@ function UseCaseCard({
     <article
       className={cn(
         CARD_SURFACE,
-        "flex min-w-0 flex-col overflow-hidden rounded-[28px] transition-transform duration-300 ease-out hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+        "flex min-w-0 flex-col overflow-hidden rounded-xl transition-transform duration-300 ease-out hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0",
       )}
     >
       <ScaledScene>{children}</ScaledScene>

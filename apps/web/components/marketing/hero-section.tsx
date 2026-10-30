@@ -9,9 +9,9 @@ import {
 } from "@/lib/marketing/constants";
 import { MARKETING_SITE_URL } from "@/lib/site";
 import { WaitlistForm } from "./waitlist-form";
-import { AppleLogo, ChromeLogoColor } from "./platform-logos";
+import { AppleLogo, ChromeLogoColor, ClaudeLogo } from "./platform-logos";
 import { InstallButton } from "./install-button";
-import { RecorderMockup } from "./recorder-mockup";
+import { AgentChatDemo } from "./agents-section";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 // Clicking the copy selects it for copying, so the highlight is part of the
@@ -67,23 +67,31 @@ export function HeroSection() {
         </div>
 
         {CURRENT_STAGE.showHeroBuyCta ? (
-          <div className="mt-7 flex flex-col items-center gap-3">
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <InstallButton
-                href={CHROME_WEBSTORE_URL ?? lh("/download")}
-                label={m.hero.installChrome}
-                icon={<ChromeLogoColor className="size-7" />}
-                location="hero_chrome"
-                primary
-              />
-              <InstallButton
-                href={DOWNLOAD_URL}
-                label={m.hero.installMac}
-                icon={<AppleLogo className="ml-1.5 size-4" />}
-                location="hero_macos"
-                badge={m.hero.installSoon}
-              />
-            </div>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3 lg:flex-nowrap">
+            <InstallButton
+              href={CHROME_WEBSTORE_URL ?? lh("/download")}
+              label={m.hero.installChrome}
+              icon={<ChromeLogoColor className="size-7" />}
+              location="hero_chrome"
+              primary
+            />
+            <InstallButton
+              href={DOWNLOAD_URL}
+              label={m.hero.installMac}
+              icon={<AppleLogo className="ml-1.5 size-4" />}
+              location="hero_macos"
+              badge={m.hero.installSoon}
+            />
+            <InstallButton
+              href="#agents"
+              label={m.hero.connectMcp}
+              icon={
+                <span className="flex size-7 items-center justify-center rounded-full bg-[#0d0d10]">
+                  <ClaudeLogo className="size-4" />
+                </span>
+              }
+              location="hero_mcp"
+            />
           </div>
         ) : (
           <div style={{ marginTop: 36 }}>
@@ -92,7 +100,9 @@ export function HeroSection() {
         )}
       </div>
 
-      <RecorderMockup />
+      <div className="mx-auto mt-2 max-w-[1280px] px-6 pb-16">
+        <AgentChatDemo />
+      </div>
     </section>
   );
 }

@@ -24,7 +24,7 @@ export function PricingStrip({
   cta,
 }: PricingStripProps) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-line bg-panel p-5">
+    <div className="flex flex-col gap-4 rounded-xl border border-line bg-panel p-5">
       <div className="flex items-start gap-3.5">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-fg text-canvas">
           {icon}

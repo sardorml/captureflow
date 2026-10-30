@@ -7,6 +7,7 @@ import {
   type ListFilters,
 } from "@/lib/list-filters";
 import { getAppWebEnv } from "./cf-env";
+import type { RecordingClient } from "./recording/limits";
 
 export type RecordingVisibility = "public" | "workspace" | "private";
 export type RecordingState = "pending" | "ready" | "failed";
@@ -43,6 +44,7 @@ export type DashboardRecordingRow = {
   workspaceId: string | null;
   configJson: string | null;
   summaryChaptersJson: string | null;
+  client: RecordingClient | null;
 };
 
 type D1Row = {
@@ -72,13 +74,14 @@ type D1Row = {
   workspace_id: string | null;
   config_json: string | null;
   summary_chapters_json: string | null;
+  client: string | null;
 };
 
 const COLUMNS_SELECT =
   "slug, user_id, storage_key, poster_key, poster_blur, poster_thumb_key, size_bytes, duration_ms, width, height, " +
   "source, preset, created_at, last_viewed_at, view_count, title, state, " +
   "visibility, webcam_storage_key, webcam_size_bytes, webcam_state, workspace_id, " +
-  "config_json, summary_chapters_json, " +
+  "config_json, summary_chapters_json, client, " +
   "(SELECT COUNT(*) FROM recording_activity WHERE recording_activity.slug = recordings.slug AND recording_activity.kind = 'comment') AS comment_count, " +
   "(SELECT COUNT(*) FROM recording_activity WHERE recording_activity.slug = recordings.slug AND recording_activity.kind = 'reaction') AS reaction_count";
 
@@ -111,6 +114,7 @@ function rowFromD1(r: D1Row): DashboardRecordingRow {
     workspaceId: r.workspace_id ?? null,
     configJson: r.config_json ?? null,
     summaryChaptersJson: r.summary_chapters_json ?? null,
+    client: (r.client as RecordingClient | null) ?? null,
   };
 }
 
