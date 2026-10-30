@@ -30,7 +30,9 @@ export type {
   WorkspaceTier,
 } from "./seat-plans";
 export {
+  deleteWorkspaceSubscription,
   getActiveWorkspaceSubscription,
+  getWorkspaceSubscriptionById,
   isSubscriptionActive,
   listPaidWorkspaceIds,
   setWorkspaceSubscriptionPlan,

@@ -89,6 +89,28 @@ export type WorkspaceSubscriptionUpsert = Omit<
   "created_at" | "updated_at"
 > & { now: number };
 
+export async function getWorkspaceSubscriptionById(
+  db: D1Database,
+  lsSubscriptionId: string,
+): Promise<WorkspaceSubscriptionRow | null> {
+  return db
+    .prepare(
+      `SELECT ${COLUMNS} FROM workspace_subscription WHERE ls_subscription_id = ?1`,
+    )
+    .bind(lsSubscriptionId)
+    .first<WorkspaceSubscriptionRow>();
+}
+
+export async function deleteWorkspaceSubscription(
+  db: D1Database,
+  lsSubscriptionId: string,
+): Promise<void> {
+  await db
+    .prepare(`DELETE FROM workspace_subscription WHERE ls_subscription_id = ?1`)
+    .bind(lsSubscriptionId)
+    .run();
+}
+
 // COALESCE keeps a later event without custom data from detaching the
 // workspace.
 export async function upsertWorkspaceSubscription(
