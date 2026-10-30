@@ -29,6 +29,8 @@ import {
 import { parseRecordingConfigJson } from "@/lib/recording-config";
 import { parseSummaryChaptersJson } from "@/lib/recording/summary-chapters";
 import { isValidSlug } from "@/lib/recording/slug";
+import { shareTitle } from "@/lib/recording/title";
+import { formatDuration } from "@/lib/format";
 import {
   APP_WEB_SITE_URL,
   PRODUCT_NAME,
@@ -93,8 +95,9 @@ export async function generateMetadata({
     if (!canViewResource(visitor, row)) return { title: "Not found" };
   }
 
-  const title = row.title ?? PRODUCT_NAME;
-  const description = `A screen recording shared from ${PRODUCT_NAME}.`;
+  const title = row.title ? shareTitle(row.title) : PRODUCT_NAME;
+  const length = row.durationMs ? `${formatDuration(row.durationMs)} ` : "";
+  const description = `A ${length}screen recording shared from ${PRODUCT_NAME}. Watch it in your browser, no sign-up needed.`;
   const [videoUrlRaw, posterUrlRaw] = await Promise.all([
     viewerMediaUrl(row, row.storageKey),
     row.posterKey

@@ -34,3 +34,15 @@ export function sanitizeSourceTitle(v: unknown): string | null {
   if (trimmed.length === 0) return null;
   return trimmed.slice(0, TITLE_MAX_CHARS);
 }
+
+const DATE_LABEL = /^[A-Z][a-z]+ \d{1,2}, \d{4}$/;
+
+// A share card names what was recorded; the brand line and date only crowd it.
+export function shareTitle(title: string): string {
+  const parts = title.split(" — ");
+  const brand = parts.lastIndexOf(RECORDING_BRAND_LINE);
+  if (brand === -1 || brand !== parts.length - 2) return title;
+  if (!DATE_LABEL.test(parts[parts.length - 1]!)) return title;
+  if (brand === 0) return `${PRODUCT_NAME} recording — ${parts[1]}`;
+  return parts.slice(0, brand).join(" — ");
+}
