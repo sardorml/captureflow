@@ -14,6 +14,7 @@ export type Capture = {
   play(pcm: Int16Array): Promise<void>;
   feed(pcm: Int16Array): void;
   readonly audio: Uint8Array;
+  readonly poster: Buffer;
   pause(): void;
   resume(): void;
   show(page: Page): Promise<void>;
@@ -72,6 +73,8 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
     frame = await page.screenshot({ type: "jpeg", quality: 85 });
   }
   await show(opts.page);
+  // The opening frame stands for the recording in link previews, as the extension's does.
+  const poster = frame!;
 
   const kbps = Math.round(opts.bitrate / 1000);
   const ffmpeg = spawn(
@@ -147,6 +150,7 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
     feed(pcm) {
       if (!paused) mixer.feed(pcm);
     },
+    poster,
     get audio() {
       return new Uint8Array(Buffer.concat(opusChunks));
     },

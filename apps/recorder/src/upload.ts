@@ -44,6 +44,7 @@ export type AgentTransport = RecordingUploadTransport<AgentInitRequest> & {
     partNumber: number,
     bytes: Uint8Array,
   ): Promise<void>;
+  uploadPoster(slug: string, jpeg: Uint8Array): Promise<void>;
   transcribe(req: {
     slug: string;
     language: string;
@@ -113,6 +114,17 @@ export function createTransport(creds: UploadCredentials): AgentTransport {
           method: "POST",
           headers: headers({ "content-type": "audio/webm" }),
           body: Uint8Array.from(bytes).buffer,
+        }),
+        path,
+      );
+    },
+    async uploadPoster(slug, jpeg) {
+      const path = `/poster?slug=${encodeURIComponent(slug)}`;
+      await parse(
+        await fetch(`${creds.apiBase}${path}`, {
+          method: "POST",
+          headers: headers({ "content-type": "image/jpeg" }),
+          body: Uint8Array.from(jpeg).buffer,
         }),
         path,
       );

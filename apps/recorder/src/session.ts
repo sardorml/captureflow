@@ -168,6 +168,9 @@ export async function startSession(browser: Browser, req: StartRequest) {
       if (idleTimer) clearTimeout(idleTimer);
       await capture.stop();
       const durationMs = capture.durationMs;
+      await transport
+        .uploadPoster(upload.slug, capture.poster)
+        .catch((err) => console.warn("[recorder] poster upload failed", err));
       if (narrated) await requestTranscript(durationMs);
       const { url } = await upload.finish(durationMs);
       await context.close().catch(() => {});
