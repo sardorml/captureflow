@@ -25,6 +25,7 @@ that is what keeps a deployment from ending up with no owner.
 wrangler secret put ADMIN_SESSION_SECRET   # signs the admin session cookie
 wrangler secret put ADMIN_SETUP_TOKEN      # gates the one-time first-run claim
 wrangler secret put RESEND_API_KEY         # optional; fallback invite sender
+wrangler secret put POSTHOG_PERSONAL_API_KEY  # optional; Query Read key for /analytics web stats
 ```
 
 The setup token proves you control the deployment, so a stranger who finds the

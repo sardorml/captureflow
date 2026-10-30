@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-export type Hue = "blue" | "violet" | "emerald" | "amber";
+export type Hue = "blue" | "violet" | "emerald" | "amber" | "muted";
 
 const HUE: Record<
   Hue,
@@ -37,6 +37,13 @@ const HUE: Record<
     stroke: "stroke-emerald-500",
     fill: "fill-emerald-500/10",
     dot: "bg-emerald-500",
+  },
+  muted: {
+    chip: "bg-muted text-muted-foreground",
+    bar: "bg-muted-foreground/35",
+    stroke: "stroke-muted-foreground/50",
+    fill: "fill-muted-foreground/10",
+    dot: "bg-muted-foreground/35",
   },
   amber: {
     chip: "bg-amber-500/10 text-amber-600 dark:text-amber-400",

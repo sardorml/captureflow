@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
+  ChartLine,
   ChevronsUpDown,
   LayoutDashboard,
   Inbox,
@@ -48,6 +49,7 @@ import {
 
 const ICONS = {
   overview: LayoutDashboard,
+  analytics: ChartLine,
   users: Users,
   recordings: Video,
   workspaces: Building2,

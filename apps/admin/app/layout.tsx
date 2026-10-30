@@ -34,6 +34,12 @@ export const metadata: Metadata = {
 
 const TABS: (NavItem & { permission: AdminPermission })[] = [
   { href: "/", label: "Overview", icon: "overview", permission: "users.read" },
+  {
+    href: "/analytics",
+    label: "Analytics",
+    icon: "analytics",
+    permission: "users.read",
+  },
   { href: "/users", label: "Users", icon: "users", permission: "users.read" },
   {
     href: "/recordings",

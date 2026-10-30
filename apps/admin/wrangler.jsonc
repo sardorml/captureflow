@@ -47,7 +47,8 @@
    * `wrangler secret put <NAME>` so they stay out of the repo. Locally they come
    * from apps/admin/.dev.vars, which is gitignored. RESEND_API_KEY is the
    * fallback sender; if neither channel delivers, the invite link is shown to
-   * the operator instead.
+   * the operator instead. POSTHOG_PERSONAL_API_KEY (a personal key with the
+   * Query Read scope) turns on the web analytics on /analytics.
    */
   "vars": {
     "ADMIN_SESSION_TTL_HOURS": "12",
@@ -55,5 +56,7 @@
     "ADMIN_BASE_URL": "https://admin.captureflow.dev",
     // Where the admin links a public recording's share page.
     "APP_BASE_URL": "https://captureflow.dev",
+    "POSTHOG_API_HOST": "https://us.posthog.com",
+    "POSTHOG_PROJECT_ID": "479718",
   },
 }

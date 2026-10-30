@@ -21,6 +21,9 @@ export type AdminBindings = {
   RESEND_FROM_ADDRESS?: string;
   SELF_HOSTED?: string;
   MAILER_DEV_URL?: string;
+  POSTHOG_API_HOST?: string;
+  POSTHOG_PROJECT_ID?: string;
+  POSTHOG_PERSONAL_API_KEY?: string;
 };
 
 // Local dev only: `next dev` can't reach the mailer's queue, so post to the
