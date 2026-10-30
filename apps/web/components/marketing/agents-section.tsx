@@ -420,7 +420,7 @@ export function AgentsSection({ headingLevel = 2 }: SectionProps = {}) {
                 {step.body}
               </p>
               {i === 0 && (
-                <div className={cn(CARD_SURFACE, "mt-1 rounded-2xl p-4")}>
+                <div className={cn(CARD_SURFACE, "mt-1 rounded-xl p-4")}>
                   <McpConnectDetails />
                 </div>
               )}

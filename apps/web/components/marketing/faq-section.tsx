@@ -15,7 +15,7 @@ export function FaqSection({ headingLevel = 2 }: SectionProps = {}) {
   const m = useMessages();
 
   return (
-    <MarketingSection id="faq">
+    <MarketingSection id="faq" style={{ maxWidth: 1240 }}>
       <Row gutter={[32, 32]}>
         <Col xs={24} md={8}>
           <Title

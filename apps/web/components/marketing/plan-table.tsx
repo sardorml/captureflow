@@ -85,7 +85,7 @@ export function PlanTable() {
                 <div
                   key={key}
                   className={cn(
-                    "mx-1 rounded-2xl",
+                    "mx-1 rounded-xl",
                     highlighted
                       ? cn("p-0.5", GRADIENT_BORDER)
                       : "border border-line bg-panel",
@@ -95,7 +95,7 @@ export function PlanTable() {
                     className={cn(
                       "flex h-full items-center justify-between gap-2 px-3 py-2.5 text-fg",
                       highlighted &&
-                        "rounded-[14px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]",
+                        "rounded-[10px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]",
                     )}
                   >
                     <span className="flex items-center gap-1 text-base font-semibold tracking-[-0.01em] whitespace-nowrap">
@@ -111,7 +111,7 @@ export function PlanTable() {
                       href={ctas[key].href}
                       onClick={ctas[key].onClick}
                       className={cn(
-                        "hidden h-8 shrink-0 items-center rounded-full px-3 text-[11px] font-semibold whitespace-nowrap transition-colors motion-reduce:transition-none lg:inline-flex",
+                        "hidden h-8 shrink-0 items-center rounded-lg px-3 text-[11px] font-semibold whitespace-nowrap transition-colors motion-reduce:transition-none lg:inline-flex",
                         highlighted
                           ? "bg-accent text-white hover:bg-accent/90"
                           : "bg-fg-strong/10 text-fg-strong hover:bg-fg-strong/15",
@@ -129,7 +129,7 @@ export function PlanTable() {
             {copy.groups.map((group) => (
               <section
                 key={group.title}
-                className="overflow-hidden rounded-2xl border border-line bg-panel"
+                className="overflow-hidden rounded-xl border border-line bg-panel"
               >
                 <h4 className="border-b border-line px-6 py-5 text-lg font-semibold text-fg">
                   {group.title}

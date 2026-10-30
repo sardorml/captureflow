@@ -77,7 +77,7 @@ export function SetupRequestSection() {
       </p>
       <ul className="mx-auto grid max-w-215 gap-3 sm:grid-cols-2 md:grid-cols-3">
         {INCLUDED.map(({ key, icon }) => (
-          <li key={key} className="rounded-2xl border border-line bg-panel p-5">
+          <li key={key} className="rounded-xl border border-line bg-panel p-5">
             <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-xl bg-panel-2 px-2.5">
               {icon}
             </span>
@@ -93,7 +93,7 @@ export function SetupRequestSection() {
 
       <div
         id="request"
-        className="mx-auto mt-16 max-w-160 rounded-3xl border border-line bg-panel p-6 sm:p-8"
+        className="mx-auto mt-16 max-w-160 rounded-xl border border-line bg-panel p-6 sm:p-8"
       >
         <p className="text-2xl font-semibold tracking-[-0.02em] text-fg">
           {copy.nextHeading}

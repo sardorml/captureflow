@@ -35,13 +35,13 @@ const wordmark = Rubik({ subsets: ["latin"], weight: "500", display: "swap" });
 
 // Bare muted text in the bar; full-width ghost buttons once stacked in the drawer.
 const TEXT_LINK =
-  "text-[15px] font-semibold whitespace-nowrap text-fg transition-colors hover:text-fg/70 motion-reduce:transition-none";
+  "text-[15px] font-normal whitespace-nowrap text-fg transition-colors hover:text-fg/70 motion-reduce:transition-none";
 
 // The one solid control in the bar. `inverse` is the token that sits opposite
 // the canvas, so it reads white-on-dark and black-on-light without a branch.
 const PILL_CTA = buttonVariants({
   variant: "primary",
-  className: "h-[42px] rounded-full px-5 text-[15px] font-semibold",
+  className: "h-[42px] px-5 text-[15px] font-semibold",
 });
 
 type NavLinkProps = {
@@ -208,7 +208,7 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
       >
         <ul
           className={cn(
-            "bg-(--island) shadow-overlay border-line flex w-[22rem] flex-col rounded-2xl border p-2 will-change-[opacity,translate] motion-reduce:[transition:none]",
+            "bg-(--island) shadow-overlay border-line flex w-[22rem] flex-col rounded-xl border p-2 will-change-[opacity,translate] motion-reduce:[transition:none]",
             open ? PANEL_OPEN : PANEL_CLOSED,
           )}
         >
@@ -219,16 +219,16 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
                 target={link.external ? "_blank" : undefined}
                 rel={link.external ? "noopener noreferrer" : undefined}
                 onClick={() => setOpen(false)}
-                className="hover:bg-tint focus-visible:bg-tint flex items-start rounded-xl px-3.5 py-3 outline-none transition-colors duration-150 motion-reduce:transition-none"
+                className="hover:bg-tint focus-visible:bg-tint flex items-start rounded-lg px-3.5 py-3 outline-none transition-colors duration-150 motion-reduce:transition-none"
               >
                 <span className="flex min-w-0 flex-col gap-0.5">
-                  <span className="text-fg flex items-center gap-1 text-[15px] font-medium">
+                  <span className="text-fg flex items-center gap-1 text-[15px] font-normal">
                     {link.label}
                     {link.external && (
                       <ArrowUpRight size={14} className="text-fg-subtle" />
                     )}
                   </span>
-                  <span className="text-fg-muted text-[13px] leading-snug">
+                  <span className="text-fg-muted text-[13px] leading-snug font-normal">
                     {link.description}
                   </span>
                 </span>
@@ -391,7 +391,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
             </NextLink>
             <ThemeToggle
               initialTheme={DEFAULT_THEME}
-              className="h-9 w-9 rounded-full text-fg"
+              className="h-9 w-9 rounded text-fg"
             />
             <NextLink href={lh("/download")} className={PILL_CTA}>
               {m.nav.download}
@@ -401,7 +401,7 @@ export function Nav({ stars = null }: { stars?: string | null }) {
           <div className="flex items-center gap-1 md:hidden">
             <ThemeToggle
               initialTheme={DEFAULT_THEME}
-              className="h-9 w-9 rounded-full text-fg"
+              className="h-9 w-9 rounded text-fg"
             />
             <Button
               variant="ghost"

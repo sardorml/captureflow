@@ -11,7 +11,7 @@ import {
 const SCENE = { width: 600, height: 424 };
 // The scene sits vertically centred on the frame's background.
 const FRAME = { width: 600, height: 400 };
-const RADIUS = 40;
+const RADIUS = 12;
 
 export type SceneState = { step: number; playing: boolean };
 
@@ -105,7 +105,7 @@ export function SceneFrame({
       className="relative w-full overflow-hidden"
       style={{
         aspectRatio: `${FRAME.width} / ${FRAME.height}`,
-        borderRadius: RADIUS * scale,
+        borderRadius: RADIUS,
       }}
     >
       <div

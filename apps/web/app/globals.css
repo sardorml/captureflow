@@ -262,22 +262,26 @@ html:not(:has([data-marketing])) .card {
   border-radius: 12px;
 }
 
-/* HeroUI's buttons are pills; every page squares them to match the cards,
-   the landing's own `rounded-full` buttons included. A button group keeps
-   only its outer corners, so it still reads as one control. */
+/* HeroUI's buttons are pills; every page squares them a step tighter than
+   the 12px cards, large ones a little rounder. A button group keeps only its
+   outer corners, so it still reads as one control. */
 .button {
-  border-radius: 12px;
+  --button-radius: 8px;
+  border-radius: var(--button-radius);
+}
+.button--lg {
+  --button-radius: 10px;
 }
 .button-group--horizontal .button {
   border-radius: 0;
 }
 .button-group--horizontal .button:first-child {
-  border-start-start-radius: 12px;
-  border-end-start-radius: 12px;
+  border-start-start-radius: var(--button-radius);
+  border-end-start-radius: var(--button-radius);
 }
 .button-group--horizontal .button:last-child {
-  border-start-end-radius: 12px;
-  border-end-end-radius: 12px;
+  border-start-end-radius: var(--button-radius);
+  border-end-end-radius: var(--button-radius);
 }
 
 /* HeroUI's .dropdown__trigger is `display: inline-block`, which lands after

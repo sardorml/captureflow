@@ -76,7 +76,7 @@ function ActivityList({
   link: { label: string; href: string };
 }) {
   return (
-    <div className={cn(CARD_SURFACE, "flex flex-col rounded-3xl p-6")}>
+    <div className={cn(CARD_SURFACE, "flex flex-col rounded-xl p-6")}>
       <p className="text-sm font-medium text-fg">{heading}</p>
       {items.length === 0 ? (
         <p className="mt-4 text-sm text-fg-muted">{empty}</p>

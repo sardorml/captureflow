@@ -161,7 +161,7 @@ function PricingControls({
         options={cycles}
         onChange={onCycleChange}
         trailing={
-          <span className="inline-flex items-center rounded-lg bg-accent/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
+          <span className="inline-flex items-center rounded bg-accent/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
             {fill(copy.save, { percent: SEAT_ANNUAL_SAVING_PERCENT })}
           </span>
         }
@@ -200,8 +200,8 @@ function PlanCard({
       className={cn(
         "flex h-full flex-col text-fg",
         highlighted
-          ? "rounded-[26px] p-[23px] sm:px-[31px] sm:py-[27px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
-          : "rounded-[28px] border border-line bg-panel p-6 sm:px-8 sm:py-7",
+          ? "rounded-[10px] p-[23px] sm:px-[31px] sm:py-[27px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
+          : "rounded-xl border border-line bg-panel p-6 sm:px-8 sm:py-7",
       )}
     >
       <div
@@ -211,7 +211,7 @@ function PlanCard({
         )}
       >
         {badge && (
-          <span className="inline-flex items-center rounded-lg bg-accent/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
+          <span className="inline-flex items-center rounded bg-accent/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
             {badge}
           </span>
         )}
@@ -249,7 +249,7 @@ function PlanCard({
         href={cta.href}
         onClick={cta.onClick}
         className={cn(
-          "mt-5 inline-flex h-11 w-fit shrink-0 items-center justify-center rounded-full px-6 text-sm font-semibold transition-colors motion-reduce:transition-none",
+          "mt-5 inline-flex h-11 w-fit shrink-0 items-center justify-center rounded-[10px] px-6 text-sm font-semibold transition-colors motion-reduce:transition-none",
           highlighted
             ? "bg-accent text-white hover:bg-accent/90"
             : "bg-fg-strong/10 text-fg-strong hover:bg-fg-strong/15",
@@ -271,7 +271,5 @@ function PlanCard({
   );
 
   if (!highlighted) return card;
-  return (
-    <div className={cn("rounded-[28px] p-0.5", GRADIENT_BORDER)}>{card}</div>
-  );
+  return <div className={cn("rounded-xl p-0.5", GRADIENT_BORDER)}>{card}</div>;
 }
