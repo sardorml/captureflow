@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { MarketingPage } from "@/components/marketing/marketing-page";
 import { LoomComparison } from "@/components/marketing/loom-comparison";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: { absolute: "CaptureFlow vs Loom: an open-source Loom alternative" },
   description:

@@ -4,8 +4,6 @@ import { FaqSection } from "@/components/marketing/faq-section";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { FAQ_SCHEMA } from "@/lib/marketing/constants";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "FAQ: sharing, storage and self-hosting",
   description:

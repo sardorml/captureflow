@@ -7,12 +7,14 @@ import { JsonLd } from "@/components/marketing/json-ld";
 import { PostBody } from "@/components/marketing/blog/prose";
 import { TableOfContents } from "@/components/marketing/blog/toc";
 import { formatPostDate } from "@/lib/blog/format";
-import { BLOG_AUTHOR, getPost, postImagePath } from "@/lib/blog/posts";
+import { BLOG_AUTHOR, POSTS, getPost, postImagePath } from "@/lib/blog/posts";
 import { SITE_URL } from "@/lib/marketing/constants";
 
-export const dynamic = "force-dynamic";
-
 type Params = { params: Promise<{ slug: string }> };
+
+export function generateStaticParams() {
+  return POSTS.map((post) => ({ slug: post.slug }));
+}
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const post = getPost((await params).slug);

@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { MarketingPage } from "@/components/marketing/marketing-page";
 import { PricingSection } from "@/components/marketing/pricing-section";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Pricing: free to start, one price per member",
   description:

@@ -7,8 +7,6 @@ import { MarketingPage } from "@/components/marketing/marketing-page";
 import { DownloadHero } from "@/components/marketing/download-hero";
 import { RELEASES_URL, DOCS_URL } from "@/lib/site";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Download the screen recorder for Chrome",
   description:

@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { getRepoActivity } from "@/lib/github";
 import { MarketingPage } from "@/components/marketing/marketing-page";
-import { RepoActivitySection } from "@/components/marketing/repo-activity-section";
+import { LiveRepoActivity } from "@/components/marketing/live-repo-activity";
 import { SuggestFeatureClient } from "./suggest-feature-client";
-
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Suggest a feature",
@@ -13,12 +10,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/suggest-feature" },
 };
 
-export default async function SuggestFeaturePage() {
-  const activity = await getRepoActivity();
+export default function SuggestFeaturePage() {
   return (
     <MarketingPage>
       <SuggestFeatureClient />
-      <RepoActivitySection activity={activity} />
+      <LiveRepoActivity />
     </MarketingPage>
   );
 }

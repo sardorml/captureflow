@@ -1,17 +1,42 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
-import { isAppRoute } from "@/lib/app-routes";
+import { isSelfHosted } from "@captureflow/quota";
+import { isAppRoute, isMarketingRoute } from "@/lib/app-routes";
 
 export const config = {
   matcher: [
     // Bearer-token APIs are excluded so desktop bearer calls get a JSON 401, not a 302.
-    "/((?!_next/|favicon\\.ico|robots\\.txt|ingest/|api/auth|api/health|api/lemon-webhook|api/usage|api/verify-session|api/workspaces|api/request-access|api/r/|api/s/|r/|r$|s/|s$|login|signup|download|features|pricing|faq|plan|privacy|terms|refund|security|alternatives/|suggest-feature|self-host-setup|blog|auth/callback|auth/clear|invite|.*\\.[\\w]+$).*)",
+    "/((?!_next/|favicon\\.ico|robots\\.txt|ingest/|api/auth|api/health|api/lemon-webhook|api/usage|api/verify-session|api/workspaces|api/request-access|api/github|api/r/|api/s/|r/|r$|s/|s$|login|signup|plan|privacy|terms|refund|security|auth/callback|auth/clear|invite|.*\\.[\\w]+$).*)",
   ],
 };
 
+function redirectTo(
+  req: NextRequest,
+  pathname: string,
+  search = "",
+): NextResponse {
+  const url = req.nextUrl.clone();
+  url.pathname = pathname;
+  url.search = search;
+  const res = NextResponse.redirect(url);
+  res.headers.set("cache-control", "no-store, must-revalidate");
+  return res;
+}
+
+/*
+ * Marketing pages are prerendered, so their per-visitor redirects live here.
+ * process.env carries SELF_HOSTED both on Workers (OpenNext copies string vars
+ * into it) and in the Docker server. A stale session cookie on `/` lands on
+ * /recordings, whose guard clears it.
+ */
 export function middleware(req: NextRequest) {
-  // The bare `/` is the public landing (app/page.tsx self-branches); never gate it.
-  if (req.nextUrl.pathname === "/") {
+  const { pathname } = req.nextUrl;
+  if (isMarketingRoute(pathname)) {
+    if (pathname === "/" && getSessionCookie(req)) {
+      return redirectTo(req, "/recordings");
+    }
+    if (isSelfHosted({ SELF_HOSTED: process.env.SELF_HOSTED }))
+      return redirectTo(req, "/login");
     return NextResponse.next();
   }
 
@@ -22,14 +47,8 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
   if (!cookie) {
-    const url = req.nextUrl.clone();
-    const next = url.pathname + (url.search || "");
-    url.pathname = "/login";
-    url.search =
-      next && next !== "/" ? `?next=${encodeURIComponent(next)}` : "";
-    const res = NextResponse.redirect(url);
-    res.headers.set("cache-control", "no-store, must-revalidate");
-    return res;
+    const next = pathname + req.nextUrl.search;
+    return redirectTo(req, "/login", `?next=${encodeURIComponent(next)}`);
   }
   const res = NextResponse.next();
   res.headers.set("cache-control", "private, no-store, must-revalidate");

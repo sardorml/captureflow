@@ -4,8 +4,6 @@ import { BlogIndex } from "@/components/marketing/blog/blog-index";
 import { formatPostDate } from "@/lib/blog/format";
 import { POSTS } from "@/lib/blog/posts";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Screen recording guides and updates",
   description:

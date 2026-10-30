@@ -94,6 +94,8 @@ export type RepoItem = {
 
 export type RepoActivity = { shipped: RepoItem[]; open: RepoItem[] };
 
+export type RepoStats = { stars: string | null; activity: RepoActivity | null };
+
 const ACTIVITY_CACHE_KEY = "https://captureflow.dev/__cache/github-activity";
 const ACTIVITY_REFRESH_SECONDS = 900;
 const ACTIVITY_KEEP_SECONDS = 7 * 24 * 3600;
