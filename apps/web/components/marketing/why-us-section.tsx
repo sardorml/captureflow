@@ -100,6 +100,7 @@ export function WhyUsSection({
       ],
     },
     { label: r.length, cells: [minutes, minutes, r.unlimited, r.unlimited] },
+    { label: r.agents, cells: [false, true, false, true] },
     { label: r.transcripts, cells: [true, true, true, true] },
     { label: r.transcript, cells: [false, true, true, true] },
     { label: r.ai, cells: [false, false, true, true] },

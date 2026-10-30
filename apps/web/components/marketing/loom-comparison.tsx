@@ -42,6 +42,11 @@ const ROWS: ReadonlyArray<{
     loom: "25 videos per person, 5 minutes each",
     captureflow: "25 recordings per person, 5 minutes each",
   },
+  {
+    label: "Your AI agent records for you",
+    loom: false,
+    captureflow: `Every plan, over MCP. Voiceover on ${getSeatPlan("pro").name}`,
+  },
   { label: "Self-host on your own cloud", loom: false, captureflow: true },
   { label: "Open source", loom: false, captureflow: "Yes, AGPL" },
   { label: "Instant share link", loom: true, captureflow: true },
@@ -92,6 +97,7 @@ const CAPTUREFLOW_FITS = [
   "You're paying for every person when only a few of them record.",
   "You want recordings in storage you own, or need to self-host.",
   "You'd rather read the code that handles your videos.",
+  "You want your AI agent to record demos and how-tos for you.",
 ];
 
 export function LoomComparison() {

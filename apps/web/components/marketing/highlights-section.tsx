@@ -14,7 +14,7 @@ export function HighlightsSection({ headingLevel = 2 }: SectionProps = {}) {
       <ul className="mx-auto grid max-w-3xl list-none gap-x-12 gap-y-6 sm:grid-cols-2">
         {copy.items.map((item) => (
           <li key={item} className="flex items-center gap-4 text-lg text-fg">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent-bg text-white">
               <Check size={20} strokeWidth={2.25} />
             </span>
             {item}

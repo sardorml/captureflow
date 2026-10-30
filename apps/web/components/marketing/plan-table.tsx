@@ -114,7 +114,7 @@ export function PlanTable() {
                         "hidden h-8 shrink-0 items-center rounded-full px-3 text-[11px] font-semibold whitespace-nowrap transition-colors motion-reduce:transition-none lg:inline-flex",
                         highlighted
                           ? "bg-accent text-white hover:bg-accent/90"
-                          : "bg-accent/10 text-fg hover:bg-accent/20",
+                          : "bg-fg-strong/10 text-fg-strong hover:bg-fg-strong/15",
                       )}
                     >
                       {ctas[key].label}

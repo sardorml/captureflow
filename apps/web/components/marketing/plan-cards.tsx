@@ -101,6 +101,7 @@ export function PlanCards({
         <PlanCard
           name={copy.free.name}
           description={copy.free.description}
+          note={annual ? "" : undefined}
           price="$0"
           featuresHeading={copy.free.featuresHeading}
           features={copy.free.features.map((f) => fill(f, values))}
@@ -116,6 +117,7 @@ export function PlanCards({
         <PlanCard
           name={copy.enterprise.name}
           description={copy.enterprise.description}
+          note={annual ? "" : undefined}
           price={copy.enterprise.price}
           featuresHeading={copy.enterprise.featuresHeading}
           features={copy.enterprise.features}
@@ -196,10 +198,10 @@ function PlanCard({
   const card = (
     <div
       className={cn(
-        "flex h-full flex-col p-6 text-fg sm:p-8",
+        "flex h-full flex-col text-fg",
         highlighted
-          ? "rounded-[26px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
-          : "rounded-[28px] border border-line bg-panel",
+          ? "rounded-[26px] p-[23px] sm:px-[31px] sm:py-[27px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
+          : "rounded-[28px] border border-line bg-panel p-6 sm:px-8 sm:py-7",
       )}
     >
       <div
@@ -222,14 +224,14 @@ function PlanCard({
       </h3>
       <p
         className={cn(
-          "mt-2 min-h-18 text-[15px] leading-relaxed",
+          "mt-2 min-h-[3lh] text-[15px] leading-relaxed",
           "text-fg-muted",
         )}
       >
         {description}
       </p>
 
-      <p className="mt-6 text-4xl font-bold tracking-[-0.03em]">
+      <p className="mt-4 text-4xl font-bold tracking-[-0.03em]">
         <span key={priceKey} className="animate-storage-pop inline-block">
           {price}
         </span>
@@ -239,22 +241,24 @@ function PlanCard({
           </span>
         )}
       </p>
-      <p className="mt-1 min-h-10 text-sm text-fg-muted">{note}</p>
+      {note !== undefined && (
+        <p className="mt-1 min-h-10 text-sm text-fg-muted">{note}</p>
+      )}
 
       <Link
         href={cta.href}
         onClick={cta.onClick}
         className={cn(
-          "mt-6 inline-flex h-11 w-fit shrink-0 items-center justify-center rounded-full px-6 text-sm font-semibold transition-colors motion-reduce:transition-none",
+          "mt-5 inline-flex h-11 w-fit shrink-0 items-center justify-center rounded-full px-6 text-sm font-semibold transition-colors motion-reduce:transition-none",
           highlighted
             ? "bg-accent text-white hover:bg-accent/90"
-            : "bg-accent/10 text-fg hover:bg-accent/20",
+            : "bg-fg-strong/10 text-fg-strong hover:bg-fg-strong/15",
         )}
       >
         {cta.label}
       </Link>
 
-      <p className="mt-8 text-sm font-semibold">{featuresHeading}</p>
+      <p className="mt-6 text-sm font-semibold">{featuresHeading}</p>
       <ul className="mt-3 flex list-none flex-col gap-2.5">
         {features.map((label) => (
           <li key={label} className="flex items-start gap-2.5 text-[15px]">
@@ -268,10 +272,6 @@ function PlanCard({
 
   if (!highlighted) return card;
   return (
-    <div
-      className={cn("rounded-[28px] p-0.5 xl:-translate-y-3", GRADIENT_BORDER)}
-    >
-      {card}
-    </div>
+    <div className={cn("rounded-[28px] p-0.5", GRADIENT_BORDER)}>{card}</div>
   );
 }

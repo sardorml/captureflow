@@ -39,7 +39,14 @@ export function InstallButton({
   });
   const onClick = () => track("marketing_cta_clicked", { location });
 
-  const link = /^https?:/.test(href) ? (
+  // Next's router skips the scroll when the hash is already in the URL, so a
+  // second click on an in-page link would do nothing.
+  const link = href.startsWith("#") ? (
+    <a href={href} className={className} onClick={onClick}>
+      {icon}
+      {label}
+    </a>
+  ) : /^https?:/.test(href) ? (
     <a
       href={href}
       target="_blank"
