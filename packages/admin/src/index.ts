@@ -107,3 +107,27 @@ export type {
 
 export { listContactRequests } from "./contact-requests";
 export type { ContactKind, ContactRequestRow } from "./contact-requests";
+
+export { getActivation } from "./activation";
+export type {
+  ActivationFunnel,
+  AdminActivation,
+  Bucket,
+  CohortRow,
+  OneAndDoneUser,
+} from "./activation";
+
+export {
+  WEB_RANGES,
+  getWebAnalytics,
+  isWebRange,
+  postHogConfig,
+} from "./web-analytics";
+export type {
+  Compared,
+  PostHogConfig,
+  WebAnalytics,
+  WebPoint,
+  WebRange,
+  WebRow,
+} from "./web-analytics";
