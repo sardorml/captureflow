@@ -75,7 +75,7 @@ export async function Sidebar({
       </SidebarContent>
 
       <SidebarFooter>
-        {isOwner && seat?.offer && (
+        {isOwner && seat?.offer ? (
           <div className="group-data-[collapsible=icon]:hidden">
             <SidebarUpgradeCard
               email={session.user.email}
@@ -83,8 +83,9 @@ export async function Sidebar({
               seat={seat.offer}
             />
           </div>
+        ) : (
+          <SidebarRecordItem />
         )}
-        <SidebarRecordItem />
       </SidebarFooter>
       {collapsible === "icon" && <SidebarRail />}
     </SidebarRoot>
