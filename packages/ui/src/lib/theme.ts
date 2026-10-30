@@ -61,17 +61,19 @@ export function writeThemePreferenceCookie(value: ThemePreference): void {
 }
 
 /*
- * Runs blocking ahead of any paint, so a "system" preference never shows the
- * server's guess first. The listener stays for the session and re-reads the
- * cookie each time, so it covers both an OS switch made later and a preference
- * switched to "system" without a reload.
+ * Runs blocking ahead of any paint and applies the cookie's theme, so a page
+ * served from a static cache (rendered with DEFAULT_THEME) never shows the
+ * wrong one. The listener stays for the session and re-reads the cookie each
+ * time, so it covers both an OS switch made later and a preference switched to
+ * "system" without a reload.
  */
 const THEME_INIT_SCRIPT = `(function(){try{
 var q=window.matchMedia("(prefers-color-scheme: dark)");
 var apply=function(){
 var m=document.cookie.match(/(?:^|; )${THEME_COOKIE}=([^;]*)/);
-if(!m||decodeURIComponent(m[1])!=="system")return;
-document.documentElement.setAttribute("data-theme",q.matches?"dark":"light");
+var v=m?decodeURIComponent(m[1]):"";
+var t=v==="system"?(q.matches?"dark":"light"):v==="light"||v==="dark"?v:"";
+if(t)document.documentElement.setAttribute("data-theme",t);
 };
 apply();
 q.addEventListener("change",apply);

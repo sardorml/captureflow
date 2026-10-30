@@ -19,6 +19,7 @@ import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { NavBetaChip } from "./corner-banner";
 import { GitHubIcon } from "./platform-logos";
 import { DEFAULT_THEME, ThemeToggle } from "@captureflow/ui";
+import { useRepoStats } from "./use-repo-stats";
 
 const GITHUB_URL = "https://github.com/sardorml/captureflow";
 
@@ -241,7 +242,8 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
   );
 }
 
-export function Nav({ stars = null }: { stars?: string | null }) {
+export function Nav() {
+  const { stars } = useRepoStats();
   const m = useMessages();
   const lh = useLocalizedHref();
   const [menuOpen, setMenuOpen] = useState(false);

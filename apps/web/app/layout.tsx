@@ -1,10 +1,6 @@
-import {
-  readThemeFromCookieHeader,
-  THEME_INIT_HTML,
-} from "@captureflow/ui/theme";
+import { DEFAULT_THEME, THEME_INIT_HTML } from "@captureflow/ui/theme";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
 const inter = Inter({
@@ -67,18 +63,17 @@ export const viewport: Viewport = {
   themeColor: "#2563eb",
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
+/*
+ * No cookie read here: it would make every route dynamic, marketing pages
+ * included. The init script applies the visitor's theme before first paint.
+ */
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    /* suppressHydrationWarning: data-theme above is the server's best guess,
-       and the init script below corrects it before React ever sees it. */
+    /* suppressHydrationWarning: the init script below may change data-theme
+       before React ever sees it. */
     <html
       lang="en"
-      data-theme={theme}
+      data-theme={DEFAULT_THEME}
       className={inter.variable}
       suppressHydrationWarning
     >

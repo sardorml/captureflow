@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { MarketingPage } from "@/components/marketing/marketing-page";
 import { SetupRequestSection } from "@/components/marketing/setup-request-section";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Self-hosting setup",
   description:

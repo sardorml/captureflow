@@ -3,8 +3,6 @@ import { MarketingPage } from "@/components/marketing/marketing-page";
 import { ModesIntro } from "@/components/marketing/modes-intro";
 import { CollaborationSection } from "@/components/marketing/collaboration-section";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Screen recorder features",
   description:

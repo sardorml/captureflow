@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAppRoute } from "./app-routes";
+import { isAppRoute, isMarketingRoute } from "./app-routes";
 
 describe("isAppRoute", () => {
   it("matches signed-in app pages and their children", () => {
@@ -19,5 +19,21 @@ describe("isAppRoute", () => {
     expect(isAppRoute("/some/old/page")).toBe(false);
     expect(isAppRoute("/recordingsx")).toBe(false);
     expect(isAppRoute("/blog/loom-pricing")).toBe(false);
+  });
+});
+
+describe("isMarketingRoute", () => {
+  it("matches the landing and the prerendered marketing pages", () => {
+    expect(isMarketingRoute("/")).toBe(true);
+    expect(isMarketingRoute("/pricing")).toBe(true);
+    expect(isMarketingRoute("/blog/some-post")).toBe(true);
+    expect(isMarketingRoute("/suggest-feature")).toBe(true);
+  });
+
+  it("leaves app, share and unknown paths alone", () => {
+    expect(isMarketingRoute("/recordings")).toBe(false);
+    expect(isMarketingRoute("/r/abc123")).toBe(false);
+    expect(isMarketingRoute("/login")).toBe(false);
+    expect(isMarketingRoute("/pricingx")).toBe(false);
   });
 });

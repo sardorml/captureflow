@@ -1,10 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { isSelfHosted } from "@captureflow/quota";
-import { getAppWebEnv } from "@/lib/cf-env";
-import { loadSessionForRedirect } from "@/lib/session-guard";
-import { renderTrace } from "@/lib/render-trace";
-import { getRepoActivity, getStarCount, formatStars } from "@/lib/github";
 import { Nav } from "@/components/marketing/nav";
 import { HeroSection } from "@/components/marketing/hero-section";
 import { HighlightsSection } from "@/components/marketing/highlights-section";
@@ -14,7 +8,7 @@ import { AgentsSection } from "@/components/marketing/agents-section";
 import { CollaborationSection } from "@/components/marketing/collaboration-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { FaqSection } from "@/components/marketing/faq-section";
-import { RepoActivitySection } from "@/components/marketing/repo-activity-section";
+import { LiveRepoActivity } from "@/components/marketing/live-repo-activity";
 import { CtaSection } from "@/components/marketing/cta-section";
 import { Footer } from "@/components/marketing/footer";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
@@ -29,8 +23,6 @@ import {
   SITE_DESCRIPTION,
 } from "@/lib/marketing/constants";
 import { X_CREATOR } from "@/lib/site";
-
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: { absolute: SITE_TITLE },
@@ -56,27 +48,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootPage() {
-  const trace = await renderTrace("/");
-  const session = await loadSessionForRedirect();
-  trace("session");
-  if (session) redirect("/recordings");
-  // A self-hosted instance is a company's internal tool, not our storefront.
-  if (isSelfHosted(await getAppWebEnv())) redirect("/login");
-
-  const [starCount, activity] = await Promise.all([
-    getStarCount().finally(() => trace("stars")),
-    getRepoActivity().finally(() => trace("activity")),
-  ]);
-  const stars = starCount != null ? formatStars(starCount) : null;
-
+export default function RootPage() {
   return (
     <I18nProvider>
       <MarketingShell>
         <JsonLd
           data={[WEBSITE_SCHEMA, ORGANIZATION_SCHEMA, APP_SCHEMA, FAQ_SCHEMA]}
         />
-        <Nav stars={stars} />
+        <Nav />
         {/* No page-rise here: the hero's sky runs up behind the nav, and
             blurring it in on load reads as a burst rather than an arrival. */}
         <main>
@@ -88,7 +67,7 @@ export default async function RootPage() {
           <UseCasesSection />
           <PricingSection />
           <FaqSection />
-          <RepoActivitySection activity={activity} />
+          <LiveRepoActivity />
           <CtaSection />
         </main>
         <Footer />
