@@ -1,12 +1,12 @@
 ---
 title: Self-hosted Loom alternative for companies
-description: Run CaptureFlow on your own Cloudflare account. Videos stay on your infrastructure, nobody pays per seat, and we can set it up for you.
-date: 2026-10-11
+description: Run CaptureFlow on your own Cloudflare account or server. Videos stay on your infrastructure, nobody pays per seat, and we can set it up for you.
+date: 2026-10-30
 ---
 
 Screen recordings show a lot: customer accounts, internal dashboards, unreleased features, code. With Loom, all of that sits on someone else’s servers, and you pay $18 to $24 a month for every person who records it.
 
-CaptureFlow is an open-source Loom alternative that your company can run on its own Cloudflare account. Your team records and shares videos the same way, but every recording stays in storage you own, and the cost doesn’t grow with headcount.
+CaptureFlow is an open-source Loom alternative that your company can run on its own Cloudflare account, or on its own server with Docker. Your team records and shares videos the same way, but every recording stays in storage you own, and the cost doesn’t grow with headcount.
 
 ## Why companies self-host their screen recorder
 
@@ -44,7 +44,8 @@ A 100-person company keeps 1.2 TB of video by the end of that year and still pay
 Everyone records and shares the way they’re used to:
 
 - Record a screen, a tab or a camera from the Chrome extension or the macOS app.
-- Get a share link the moment the recording stops.
+- Get a link you can share with anyone, and the recording plays seconds after it stops.
+- Uploads pick up where they left off after a crash or a dropped connection.
 - Viewers watch in the browser, comment and react right on the video.
 - See who watched, and organize videos into shared workspaces.
 - Share annotated screenshots with arrows, text and blur.
@@ -70,13 +71,16 @@ Everything runs on your account, and nothing depends on us afterward. If you eve
 
 ## Prefer to do it yourself?
 
-The full setup is open and documented. Follow the [step-by-step self-hosting guide](/blog/self-hosted-screen-recorder), which takes about an hour or two if you’re comfortable in a terminal.
+The full setup is open and documented, and there are two ways to run it:
+
+- **On your Cloudflare account.** Follow the [step-by-step self-hosting guide](/blog/self-hosted-screen-recorder), which takes about an hour or two if you’re comfortable in a terminal.
+- **On your own server with Docker.** Run `docker compose up` and everything lives in one folder: a SQLite database, the recordings on disk, and the app’s secrets. No Cloudflare account is needed, and transcripts can run on your own Whisper server.
 
 ## What Loom has that CaptureFlow doesn’t
 
 To be fair about the trade-offs:
 
-- **AI titles, summaries and chapters** come with Loom Business + AI. CaptureFlow chapters are manual.
+- **AI titles, summaries and chapters** come with Loom Business + AI. A self-hosted CaptureFlow transcribes every recording, but its chapters are manual.
 - **Apps:** Loom also has Windows, iOS and Android apps.
 - **SAML single sign-on** isn’t supported. Sign-in is through Google or GitHub, limited to your domain.
 
@@ -90,11 +94,11 @@ No. Loom only runs as a hosted service, so your videos are always stored on Loom
 
 ### Where are the videos stored when we self-host?
 
-In a Cloudflare R2 bucket on your own Cloudflare account. Accounts, workspaces and comments are stored in a Cloudflare D1 database on the same account. No video or data passes through CaptureFlow’s servers.
+On Cloudflare, in an R2 bucket on your own account, with accounts, workspaces and comments in a D1 database on the same account. With Docker, they’re files and a SQLite database on your own server. Either way, no video or data passes through CaptureFlow’s servers.
 
 ### How long does the setup take?
 
-Doing it yourself takes about an hour or two for someone comfortable with a terminal, plus time to publish the Chrome extension and sign the Mac app. If we set it up for you, your team can start recording as soon as it’s handed over.
+With Docker, it’s one `docker compose up` on a server. On Cloudflare, it takes about an hour or two for someone comfortable with a terminal, plus time to publish the Chrome extension and sign the Mac app. If we set it up for you, your team can start recording as soon as it’s handed over.
 
 ### What happens if we stop working with you?
 

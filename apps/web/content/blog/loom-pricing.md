@@ -1,7 +1,7 @@
 ---
 title: Loom pricing explained: what teams really pay
 description: Loom costs $18 to $24 per person each month. See what that adds up to for 10 to 100 people, and what a lower per-member price with free viewers costs instead.
-date: 2026-10-11
+date: 2026-10-30
 ---
 
 Loom charges for every person on your team. That’s fine for three people, but the bill grows with every hire. CaptureFlow does the same job, recording your screen and sharing a link, at a lower price per member, and the people who only watch and comment are free.
@@ -51,8 +51,9 @@ In practice most teams pay for fewer seats than that. On Loom, everyone who need
 
 The everyday workflow is the one you’re used to:
 
-- Record your screen, a tab, or your camera with the Chrome extension.
-- Get a share link the moment you stop recording.
+- Record your screen, a tab, or your camera with the Chrome extension or the macOS app.
+- Get a link you can share with anyone, and the recording plays seconds after you stop.
+- Uploads pick up where they left off after a crash or a dropped connection.
 - Viewers watch in the browser, react with emoji and leave comments.
 - See who watched and how many times.
 - Organize videos into shared workspaces for your team.
@@ -60,12 +61,16 @@ The everyday workflow is the one you’re used to:
 
 CaptureFlow also shares annotated screenshots as links, with arrows, text and blur.
 
+## New: your AI agent can record for you
+
+CaptureFlow works with AI coding agents such as Claude Code and Codex. Ask the agent for a demo, a how-to or a walkthrough, and it opens a browser, clicks through the site and records it. You get back a link you can share with anyone, like any other recording. It works on every plan, including free; narration is on Pro.
+
 ## What Loom has that CaptureFlow doesn’t
 
 It’s worth being clear about the gaps:
 
 - **Meeting recaps and notes** come with Loom Business + AI. CaptureFlow transcribes and chapters your recordings, but does not write meeting recaps.
-- **Apps:** Loom has apps for Mac, Windows, iOS and Android. CaptureFlow has a Chrome extension today, and a macOS app is on the way.
+- **Apps:** Loom has apps for Mac, Windows, iOS and Android. CaptureFlow has a Chrome extension and a macOS app, but no Windows or mobile apps yet.
 - **Enterprise single sign-on** with SAML isn’t supported.
 
 If your team depends on meeting recaps or records from phones, Loom may be worth the extra cost. If you mostly record screen walkthroughs, bug reports, demos and async updates, you’re paying more per person, and paying for people who only watch.
@@ -97,4 +102,4 @@ On Light and Pro there’s no limit on video length or the number of videos. The
 
 ### Is CaptureFlow free?
 
-There’s a free plan with 25 recordings per person. CaptureFlow is also open source, so companies can run it on their own Cloudflare account. See [the self-hosted option for companies](/blog/self-hosted-loom-alternative).
+There’s a free plan with 25 recordings per person. CaptureFlow is also open source, so companies can run it on their own Cloudflare account or their own server. See [the self-hosted option for companies](/blog/self-hosted-loom-alternative).
