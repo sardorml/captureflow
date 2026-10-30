@@ -154,7 +154,7 @@ export const MESSAGES = {
     placeholder: "Ask your agent to record something",
     mode: "Build",
     prompt:
-      "Record a demo of the new CSV export, attach it to PR #482 and send the link to #product on Slack",
+      "Record a demo of the new dark mode, attach it to PR #482 and send the link to #product on Slack",
     statuses: [
       "Recording the demo",
       "Attaching it to PR #482",
@@ -163,21 +163,21 @@ export const MESSAGES = {
     reply:
       "Done. The demo is on PR #482 and in #product: captureflow.dev/r/k3J9xQ",
     video: {
-      title: "Demo: export reports to CSV",
-      page: "Reports",
-      button: "Export CSV",
+      title: "Demo: dark mode",
+      page: "Settings",
+      button: "Dark mode",
       duration: "0:42",
     },
     pr: {
       repo: "acme/web",
-      title: "Add CSV export to reports",
+      title: "Add dark mode",
       number: "#482",
       comment: "Demo added to the conversation",
     },
     slack: {
       channel: "product",
       author: "You",
-      text: "The new CSV export is up for review. Here's a 42-second demo.",
+      text: "Dark mode is up for review. Here's a 42-second demo.",
     },
     steps: [
       {
@@ -639,7 +639,7 @@ export const MESSAGES = {
         features: [
           "Unlimited recordings",
           "Unlimited recording time",
-          "Recordings never expire",
+          "Longer agent recordings, up to 10 minutes",
         ],
         cta: "Try for free",
       },
