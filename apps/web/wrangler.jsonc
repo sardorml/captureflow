@@ -58,8 +58,9 @@
     {
       "class_name": "RecorderContainer",
       "image": "../recorder/Dockerfile",
-      "instance_type": "standard-2",
-      "max_instances": 10,
+      // A session peaks near 1.3 GB; 3 GiB is the least Cloudflare allows per vCPU.
+      "instance_type": { "vcpu": 1, "memory_mib": 3072, "disk_mb": 6000 },
+      "max_instances": 3,
     },
   ],
   "durable_objects": {
