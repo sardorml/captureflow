@@ -1,6 +1,9 @@
+@layer theme, base, components, utilities;
 @import "tailwindcss";
-@import "@heroui/styles";
+@import "tw-animate-css";
 @import "../../../packages/ui/src/styles/tokens.css";
+@import "shadcn/tailwind.css";
+@import "../../../packages/ui/src/styles/shadcn.css";
 
 /* Tailwind v4 only auto-scans this app's own tree; the shared tokens package
    lives outside it. */
@@ -8,6 +11,5 @@
 
 html,
 body {
-  background: var(--color-canvas);
-  color: var(--color-fg);
+  font-family: var(--font-geist), system-ui, sans-serif;
 }

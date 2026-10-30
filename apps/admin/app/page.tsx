@@ -1,4 +1,5 @@
 import NextLink from "next/link";
+import { Badge } from "@/components/ui/badge";
 import {
   CreditCard,
   Eye,
@@ -160,9 +161,9 @@ export default async function OverviewPage() {
         title="Overview"
         description="How the instance is growing, what people watch, and where storage goes"
         actions={
-          <span className="border-line text-fg-muted rounded-full border px-3 py-1 text-xs">
+          <Badge variant="outline" className="text-muted-foreground">
             Last {WEEKS} weeks
-          </span>
+          </Badge>
         }
       />
 

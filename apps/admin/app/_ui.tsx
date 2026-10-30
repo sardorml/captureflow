@@ -1,17 +1,33 @@
 import type { ReactNode } from "react";
 import NextLink from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
-import {
-  Alert,
-  Avatar,
-  Card,
-  Chip,
-  EmptyState,
-  ProgressBar,
-  Table,
-} from "@heroui/react";
 import type { AdminPlanSummary } from "@captureflow/admin";
-import { cn } from "@captureflow/ui/cn";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Empty as EmptyRoot,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Progress } from "@/components/ui/progress";
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 export function formatBytes(bytes: number): string {
   if (!bytes) return "0 B";
@@ -64,7 +80,7 @@ export function PageHeader({
       {back && (
         <NextLink
           href={back.href}
-          className="text-fg-muted hover:text-fg flex w-fit items-center gap-1.5 text-sm transition-colors motion-reduce:transition-none"
+          className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
         >
           <ArrowLeft size={14} aria-hidden />
           {back.label}
@@ -74,11 +90,13 @@ export function PageHeader({
         <div className="flex min-w-0 items-center gap-4">
           {children}
           <div className="min-w-0">
-            <h1 className="text-fg-strong truncate text-[28px] leading-tight font-semibold tracking-tight">
+            <h1 className="truncate text-2xl leading-tight font-semibold tracking-tight">
               {title}
             </h1>
             {description && (
-              <div className="text-fg-muted mt-1 text-sm">{description}</div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                {description}
+              </div>
             )}
           </div>
         </div>
@@ -103,9 +121,11 @@ export function Section({
     <section className="flex min-w-0 flex-col gap-3">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-fg-strong text-base font-semibold">{title}</h2>
+          <h2 className="text-base font-semibold">{title}</h2>
           {description && (
-            <p className="text-fg-muted mt-0.5 text-sm">{description}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {description}
+            </p>
           )}
         </div>
         {actions}
@@ -125,18 +145,12 @@ export function FormCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="border-line bg-canvas border">
-      <Card.Header className="flex flex-col gap-1">
-        <Card.Title className="text-fg-strong text-[15px] font-semibold">
-          {title}
-        </Card.Title>
-        {description && (
-          <Card.Description className="text-fg-muted text-sm">
-            {description}
-          </Card.Description>
-        )}
-      </Card.Header>
-      <Card.Content className="flex flex-col gap-4">{children}</Card.Content>
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">{children}</CardContent>
     </Card>
   );
 }
@@ -152,11 +166,11 @@ export function Stat({
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-1 px-5 py-4">
-      <span className="text-fg-muted text-sm">{label}</span>
-      <span className="text-fg-strong text-2xl font-semibold tracking-tight tabular-nums">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-2xl font-semibold tracking-tight tabular-nums">
         {value}
       </span>
-      {hint && <span className="text-fg-subtle text-xs">{hint}</span>}
+      {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
     </div>
   );
 }
@@ -169,10 +183,10 @@ export function StatGrid({
   columns?: 3 | 4 | 6;
 }) {
   return (
-    <Card className="border-line bg-canvas border p-0">
+    <Card className="py-0">
       <div
         className={cn(
-          "divide-line grid grid-cols-2 divide-x [&>*:nth-child(n+3)]:border-t sm:[&>*:nth-child(n+3)]:border-t-0",
+          "grid grid-cols-2 divide-x [&>*:nth-child(n+3)]:border-t sm:[&>*:nth-child(n+3)]:border-t-0",
           columns === 3 && "sm:grid-cols-3",
           columns === 4 && "sm:grid-cols-4",
           columns === 6 && "sm:grid-cols-3 xl:grid-cols-6",
@@ -224,21 +238,19 @@ export function RecordingCell({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-fg-strong group flex max-w-60 items-center gap-1.5 font-medium hover:underline"
+          className="group flex max-w-60 items-center gap-1.5 font-medium hover:underline"
         >
           <span className="truncate">{name}</span>
           <ExternalLink
             size={13}
-            className="text-fg-subtle group-hover:text-fg shrink-0"
+            className="shrink-0 text-muted-foreground group-hover:text-foreground"
             aria-hidden
           />
         </a>
       ) : (
-        <div className="text-fg-strong max-w-60 truncate font-medium">
-          {name}
-        </div>
+        <div className="max-w-60 truncate font-medium">{name}</div>
       )}
-      <div className="text-fg-subtle truncate text-xs">
+      <div className="truncate text-xs text-muted-foreground">
         <span className="font-mono">{slug}</span>
         {detail}
       </div>
@@ -256,22 +268,20 @@ export function DataTable({
   children: ReactNode;
 }) {
   return (
-    <Table variant="secondary">
-      <Table.ScrollContainer>
-        <Table.Content aria-label={label} className="w-full">
-          <Table.Header className="[&_th]:border-line [&_th]:bg-canvas-2 [&_th]:text-fg-muted [&_th]:border-y [&_th]:after:hidden [&_th:first-child]:border-l [&_th:last-child]:border-r">
+    <div className="overflow-hidden rounded-lg border">
+      <Table aria-label={label}>
+        <TableHeader className="bg-muted/50">
+          <TableRow className="hover:bg-transparent">
             {columns.map((c, i) => (
-              <Table.Column key={c || `actions-${i}`} isRowHeader={i === 0}>
+              <TableHead key={c || `actions-${i}`} className="px-4">
                 {c}
-              </Table.Column>
+              </TableHead>
             ))}
-          </Table.Header>
-          <Table.Body className="[&_td]:border-line [&_td]:py-3.5">
-            {children}
-          </Table.Body>
-        </Table.Content>
-      </Table.ScrollContainer>
-    </Table>
+          </TableRow>
+        </TableHeader>
+        <TableBody className="[&_td]:px-4 [&_td]:py-3">{children}</TableBody>
+      </Table>
+    </div>
   );
 }
 
@@ -285,11 +295,13 @@ export function Empty({
   action?: ReactNode;
 }) {
   return (
-    <EmptyState className="border-line flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-14 text-center">
-      <p className="text-fg-strong text-sm font-medium">{title}</p>
-      {children && <p className="text-fg-muted max-w-sm text-sm">{children}</p>}
-      {action && <div className="mt-2">{action}</div>}
-    </EmptyState>
+    <EmptyRoot className="border border-dashed">
+      <EmptyHeader>
+        <EmptyTitle>{title}</EmptyTitle>
+        {children && <EmptyDescription>{children}</EmptyDescription>}
+      </EmptyHeader>
+      {action && <EmptyContent>{action}</EmptyContent>}
+    </EmptyRoot>
   );
 }
 
@@ -301,10 +313,8 @@ export function Notice({
   children: ReactNode;
 }) {
   return (
-    <Alert status={tone === "error" ? "danger" : "accent"}>
-      <Alert.Content>
-        <Alert.Description>{children}</Alert.Description>
-      </Alert.Content>
+    <Alert variant={tone === "error" ? "destructive" : "default"}>
+      <AlertDescription>{children}</AlertDescription>
     </Alert>
   );
 }
@@ -329,20 +339,19 @@ export function Monogram({
 }) {
   return (
     <Avatar
-      size={size === "lg" ? "lg" : "sm"}
       className={cn(
-        "border-line bg-canvas-2 shrink-0 rounded-lg border",
+        "shrink-0 rounded-lg after:rounded-lg",
         size === "lg" ? "size-14" : "size-9",
       )}
     >
-      <Avatar.Fallback
+      <AvatarFallback
         className={cn(
-          "text-fg font-semibold",
+          "rounded-lg font-semibold",
           size === "lg" ? "text-lg" : "text-xs",
         )}
       >
         {initials(name)}
-      </Avatar.Fallback>
+      </AvatarFallback>
     </Avatar>
   );
 }
@@ -365,13 +374,15 @@ export function PersonCell({
         <div className="flex items-center gap-2">
           <NextLink
             href={`/users/${id}`}
-            className="text-fg-strong truncate font-medium hover:underline"
+            className="truncate font-medium hover:underline"
           >
             {name || email}
           </NextLink>
           {badge}
         </div>
-        {name && <div className="text-fg-subtle truncate text-xs">{email}</div>}
+        {name && (
+          <div className="truncate text-xs text-muted-foreground">{email}</div>
+        )}
       </div>
     </div>
   );
@@ -384,9 +395,7 @@ export function PlanChip({ plan }: { plan: AdminPlanSummary }) {
   const note =
     status && status !== "active" ? ` · ${status.replace("_", " ")}` : "";
   return (
-    <Chip
-      size="sm"
-      variant="soft"
+    <Tone
       color={
         status === "past_due"
           ? "warning"
@@ -397,21 +406,29 @@ export function PlanChip({ plan }: { plan: AdminPlanSummary }) {
     >
       {plan.tier === "team" ? "Paid" : "Free"}
       {note}
-    </Chip>
+    </Tone>
   );
 }
+
+const TONES = {
+  default: "bg-secondary text-secondary-foreground",
+  accent: "bg-primary/15 text-accent-strong",
+  success: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+  warning: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  danger: "bg-destructive/15 text-destructive",
+} as const;
 
 export function Tone({
   color,
   children,
 }: {
-  color: "default" | "accent" | "success" | "warning" | "danger";
+  color: keyof typeof TONES;
   children: ReactNode;
 }) {
   return (
-    <Chip size="sm" variant="soft" color={color} className="capitalize">
+    <Badge className={cn("border-transparent capitalize", TONES[color])}>
       {children}
-    </Chip>
+    </Badge>
   );
 }
 
@@ -437,22 +454,22 @@ export function StorageMeter({ used, limit }: { used: number; limit: number }) {
   const ratio = limit > 0 ? Math.min(1, used / limit) : 1;
   return (
     <div>
-      <div className="text-fg-muted flex justify-between text-sm tabular-nums">
+      <div className="flex justify-between text-sm text-muted-foreground tabular-nums">
         <span>
           {formatBytes(used)} of {formatBytes(limit)}
         </span>
         <span>{Math.round(ratio * 100)}%</span>
       </div>
-      <ProgressBar
+      <Progress
         value={Math.round(ratio * 100)}
-        color={ratio >= 1 ? "danger" : ratio >= 0.8 ? "warning" : "accent"}
         aria-label="Storage used"
-        className="mt-2"
-      >
-        <ProgressBar.Track className="bg-tint-strong h-1.5 rounded-full">
-          <ProgressBar.Fill className="rounded-full" />
-        </ProgressBar.Track>
-      </ProgressBar>
+        className={cn(
+          "mt-2 h-1.5",
+          ratio >= 1
+            ? "*:data-[slot=progress-indicator]:bg-destructive"
+            : ratio >= 0.8 && "*:data-[slot=progress-indicator]:bg-amber-500",
+        )}
+      />
     </div>
   );
 }
@@ -467,30 +484,22 @@ export function AuthCard({
   children?: ReactNode;
 }) {
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 py-12">
-      <div className="flex items-center gap-2.5">
-        <Avatar size="sm" color="accent" className="size-8 rounded-lg">
-          <Avatar.Fallback className="text-sm font-semibold">C</Avatar.Fallback>
+    <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 py-12">
+      <div className="flex items-center gap-2.5 self-center">
+        <Avatar className="size-8 rounded-lg after:rounded-lg">
+          <AvatarFallback className="rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
+            C
+          </AvatarFallback>
         </Avatar>
-        <span className="text-fg-strong text-[15px] font-semibold">
-          CaptureFlow admin
-        </span>
+        <span className="font-semibold">CaptureFlow admin</span>
       </div>
-      <Card className="border-line bg-canvas border">
-        <Card.Header className="flex flex-col gap-1">
-          <Card.Title className="text-fg-strong text-xl font-semibold">
-            {title}
-          </Card.Title>
-          {description && (
-            <Card.Description className="text-fg-muted text-sm">
-              {description}
-            </Card.Description>
-          )}
-        </Card.Header>
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">{title}</CardTitle>
+          {description && <CardDescription>{description}</CardDescription>}
+        </CardHeader>
         {children && (
-          <Card.Content className="flex flex-col gap-4">
-            {children}
-          </Card.Content>
+          <CardContent className="flex flex-col gap-4">{children}</CardContent>
         )}
       </Card>
     </div>

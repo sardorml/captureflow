@@ -2,15 +2,24 @@
 
 import { useActionState } from "react";
 import { Plus } from "lucide-react";
-import {
-  Button,
-  Description,
-  Label,
-  Modal,
-  Radio,
-  RadioGroup,
-} from "@heroui/react";
 import { ADMIN_ROLES, ROLE_SUMMARY } from "@captureflow/admin";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { inviteAction } from "../actions";
 import type { InviteState } from "../actions";
 import { TextRow, keepTyped } from "../_form";
@@ -30,24 +39,31 @@ function InviteForm() {
         placeholder="person@example.com"
         autoFocus
       />
-      <RadioGroup
-        name="role"
-        defaultValue="viewer"
-        className="flex flex-col gap-2"
-      >
-        <Label>Role</Label>
-        {ADMIN_ROLES.map((role) => (
-          <Radio key={role} value={role} className="mt-0">
-            <Radio.Content>
-              <Radio.Control>
-                <Radio.Indicator />
-              </Radio.Control>
-              <Label className="capitalize">{role}</Label>
-            </Radio.Content>
-            <Description>{ROLE_SUMMARY[role]}</Description>
-          </Radio>
-        ))}
-      </RadioGroup>
+      <FieldSet className="gap-2">
+        <FieldLegend variant="label" className="mb-0">
+          Role
+        </FieldLegend>
+        <RadioGroup
+          name="role"
+          defaultValue="viewer"
+          className="flex flex-col gap-2"
+        >
+          {ADMIN_ROLES.map((role) => (
+            <Field key={role} orientation="horizontal">
+              <RadioGroupItem value={role} id={`invite-role-${role}`} />
+              <FieldContent>
+                <FieldLabel
+                  htmlFor={`invite-role-${role}`}
+                  className="capitalize"
+                >
+                  {role}
+                </FieldLabel>
+                <FieldDescription>{ROLE_SUMMARY[role]}</FieldDescription>
+              </FieldContent>
+            </Field>
+          ))}
+        </RadioGroup>
+      </FieldSet>
       {state.error && <Notice tone="error">{state.error}</Notice>}
       {state.sent && <Notice>Invite emailed. It expires in 7 days.</Notice>}
       {state.link && (
@@ -60,12 +76,7 @@ function InviteForm() {
           </code>
         </Notice>
       )}
-      <Button
-        type="submit"
-        variant="primary"
-        isDisabled={pending}
-        className="self-end"
-      >
+      <Button type="submit" disabled={pending} className="self-end">
         {pending ? "Sending…" : "Send invite"}
       </Button>
     </form>
@@ -74,24 +85,19 @@ function InviteForm() {
 
 export function InviteDialog() {
   return (
-    <Modal>
-      <Button variant="primary">
-        <Plus size={16} aria-hidden />
-        Invite admin
-      </Button>
-      <Modal.Backdrop>
-        <Modal.Container size="md">
-          <Modal.Dialog>
-            <Modal.CloseTrigger />
-            <Modal.Header>
-              <Modal.Heading>Invite an admin</Modal.Heading>
-            </Modal.Header>
-            <Modal.Body>
-              <InviteForm />
-            </Modal.Body>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus size={16} aria-hidden />
+          Invite admin
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Invite an admin</DialogTitle>
+        </DialogHeader>
+        <InviteForm />
+      </DialogContent>
+    </Dialog>
   );
 }

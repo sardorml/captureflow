@@ -1,10 +1,10 @@
-import { Chip, Table } from "@heroui/react";
 import {
   ADMIN_PAGE_SIZE,
   listAdminUsers,
   type PlanFilter,
   type UserSort,
 } from "@captureflow/admin";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
 import {
@@ -13,6 +13,7 @@ import {
   PageHeader,
   PersonCell,
   PlanChip,
+  Tone,
   formatBytes,
   formatRelative,
   pageParam,
@@ -100,40 +101,38 @@ export default async function UsersPage({
             ]}
           >
             {rows.map((u) => (
-              <Table.Row key={u.id}>
-                <Table.Cell>
+              <TableRow key={u.id}>
+                <TableCell>
                   <PersonCell
                     id={u.id}
                     name={u.name}
                     email={u.email}
                     badge={
                       u.emailVerified ? null : (
-                        <Chip size="sm" variant="soft" color="warning">
-                          Unverified
-                        </Chip>
+                        <Tone color="warning">Unverified</Tone>
                       )
                     }
                   />
-                </Table.Cell>
-                <Table.Cell>
+                </TableCell>
+                <TableCell>
                   <PlanChip plan={u.plan} />
-                </Table.Cell>
-                <Table.Cell className="tabular-nums">
+                </TableCell>
+                <TableCell className="tabular-nums">
                   {u.recordingCount}
-                </Table.Cell>
-                <Table.Cell className="tabular-nums">
+                </TableCell>
+                <TableCell className="tabular-nums">
                   {u.screenshotCount}
-                </Table.Cell>
-                <Table.Cell className="tabular-nums whitespace-nowrap">
+                </TableCell>
+                <TableCell className="tabular-nums whitespace-nowrap">
                   {formatBytes(u.storageBytes)}
-                </Table.Cell>
-                <Table.Cell className="text-fg-muted whitespace-nowrap">
+                </TableCell>
+                <TableCell className="text-fg-muted whitespace-nowrap">
                   {formatRelative(u.lastActiveAt)}
-                </Table.Cell>
-                <Table.Cell className="text-fg-muted whitespace-nowrap">
+                </TableCell>
+                <TableCell className="text-fg-muted whitespace-nowrap">
                   {formatRelative(u.createdAt)}
-                </Table.Cell>
-              </Table.Row>
+                </TableCell>
+              </TableRow>
             ))}
           </DataTable>
         )}

@@ -1,5 +1,6 @@
 import NextLink from "next/link";
-import { Chip, Table } from "@heroui/react";
+import { Badge } from "@/components/ui/badge";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { listContactRequests, type ContactKind } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
@@ -74,27 +75,27 @@ export default async function InboxPage({
             ]}
           >
             {rows.map((r) => (
-              <Table.Row key={r.id}>
-                <Table.Cell className="max-w-xl">
+              <TableRow key={r.id}>
+                <TableCell className="max-w-xl">
                   <div className="text-fg-strong font-medium">{r.subject}</div>
                   {r.body ? (
                     <p className="text-fg-muted mt-0.5 line-clamp-3 text-sm whitespace-pre-wrap">
                       {r.body}
                     </p>
                   ) : null}
-                </Table.Cell>
-                <Table.Cell>
+                </TableCell>
+                <TableCell>
                   <div className="flex flex-wrap gap-1.5">
                     {Object.entries(r.details)
                       .filter(([, value]) => value)
                       .map(([key, value]) => (
-                        <Chip key={key} size="sm" variant="soft">
+                        <Badge key={key} variant="secondary">
                           {value}
-                        </Chip>
+                        </Badge>
                       ))}
                   </div>
-                </Table.Cell>
-                <Table.Cell>
+                </TableCell>
+                <TableCell>
                   <div className="text-fg">
                     {r.userId ? (
                       <NextLink
@@ -113,13 +114,13 @@ export default async function InboxPage({
                   >
                     {r.email}
                   </a>
-                </Table.Cell>
-                <Table.Cell className="text-fg-muted whitespace-nowrap">
+                </TableCell>
+                <TableCell className="text-fg-muted whitespace-nowrap">
                   <span title={formatDate(r.createdAt)}>
                     {formatRelative(r.createdAt)}
                   </span>
-                </Table.Cell>
-              </Table.Row>
+                </TableCell>
+              </TableRow>
             ))}
           </DataTable>
         )}
