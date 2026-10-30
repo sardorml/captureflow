@@ -191,7 +191,11 @@ export async function startAgentRecording(
     };
   } catch (err) {
     await endAgentRecording(db, id, Date.now());
-    throw err;
+    // Only a few cloud browsers run at once, so a start that fails is most often all of them busy.
+    if (err instanceof LibraryError) throw err;
+    throw new LibraryError(
+      "Couldn't start a cloud browser; they may all be busy. Try again in a few minutes.",
+    );
   }
 }
 
