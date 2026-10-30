@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { MIN_PASSWORD_LENGTH } from "@captureflow/admin";
 import { mintSetupTokenAction, setupAction } from "../actions";
 import type { FormState, MintState } from "../actions";
@@ -49,7 +49,7 @@ export function SetupForm({ configured }: { configured: boolean }) {
           autoComplete="new-password"
         />
         {state.error && <Notice tone="error">{state.error}</Notice>}
-        <Button type="submit" variant="primary" isDisabled={pending}>
+        <Button type="submit" disabled={pending}>
           {pending ? "Working…" : "Create owner account"}
         </Button>
       </form>
@@ -63,12 +63,7 @@ export function SetupForm({ configured }: { configured: boolean }) {
         }
       >
         <form action={mintAction}>
-          <Button
-            type="submit"
-            variant="outline"
-            size="sm"
-            isDisabled={minting}
-          >
+          <Button type="submit" variant="outline" size="sm" disabled={minting}>
             {minting ? "Generating…" : "Generate a setup token"}
           </Button>
         </form>
@@ -80,7 +75,7 @@ export function SetupForm({ configured }: { configured: boolean }) {
               <Button
                 variant="ghost"
                 size="sm"
-                onPress={() => setToken(mint.token ?? "")}
+                onClick={() => setToken(mint.token ?? "")}
               >
                 Use it
               </Button>

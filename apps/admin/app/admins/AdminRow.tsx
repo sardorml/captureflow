@@ -1,8 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ListBox, Select, Table } from "@heroui/react";
 import { ADMIN_ROLES, type AdminAccount } from "@captureflow/admin";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TableCell, TableRow } from "@/components/ui/table";
 import {
   changeRoleAction,
   removeAdminAction,
@@ -19,11 +26,9 @@ function RoleCell({ admin }: { admin: AdminAccount }) {
   return (
     <div className="flex items-center gap-2">
       <Select
-        aria-label={`Role for ${admin.email}`}
-        selectedKey={role}
-        isDisabled={pending}
-        onSelectionChange={(key) => {
-          const next = String(key);
+        value={role}
+        disabled={pending}
+        onValueChange={(next) => {
           const previous = role;
           setRole(next);
           setError(null);
@@ -38,24 +43,22 @@ function RoleCell({ admin }: { admin: AdminAccount }) {
             }
           });
         }}
-        className="w-32"
       >
-        <Select.Trigger className="capitalize">
-          <Select.Value />
-          <Select.Indicator />
-        </Select.Trigger>
-        <Select.Popover>
-          <ListBox>
-            {ADMIN_ROLES.map((r) => (
-              <ListBox.Item key={r} id={r} textValue={r} className="capitalize">
-                {r}
-                <ListBox.ItemIndicator />
-              </ListBox.Item>
-            ))}
-          </ListBox>
-        </Select.Popover>
+        <SelectTrigger
+          aria-label={`Role for ${admin.email}`}
+          className="w-32 capitalize"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {ADMIN_ROLES.map((r) => (
+            <SelectItem key={r} value={r} className="capitalize">
+              {r}
+            </SelectItem>
+          ))}
+        </SelectContent>
       </Select>
-      {error && <span className="text-danger text-xs">{error}</span>}
+      {error && <span className="text-destructive text-xs">{error}</span>}
     </div>
   );
 }
@@ -68,8 +71,8 @@ export function AdminRow({
   isSelf: boolean;
 }) {
   return (
-    <Table.Row>
-      <Table.Cell>
+    <TableRow>
+      <TableCell>
         <div className="flex items-center gap-3">
           <Monogram name={admin.email} />
           <div className="min-w-0">
@@ -79,23 +82,23 @@ export function AdminRow({
             {isSelf && <div className="text-fg-subtle text-xs">You</div>}
           </div>
         </div>
-      </Table.Cell>
-      <Table.Cell>
+      </TableCell>
+      <TableCell>
         {isSelf ? (
           <span className="text-fg-muted capitalize">{admin.role}</span>
         ) : (
           <RoleCell admin={admin} />
         )}
-      </Table.Cell>
-      <Table.Cell>
+      </TableCell>
+      <TableCell>
         <Tone color={admin.status === "active" ? "success" : "warning"}>
           {admin.status}
         </Tone>
-      </Table.Cell>
-      <Table.Cell className="text-fg-muted whitespace-nowrap">
+      </TableCell>
+      <TableCell className="text-fg-muted whitespace-nowrap">
         {formatRelative(admin.lastLoginAt)}
-      </Table.Cell>
-      <Table.Cell>
+      </TableCell>
+      <TableCell>
         {!isSelf && (
           <RowMenu
             label={`Actions for ${admin.email}`}
@@ -120,7 +123,7 @@ export function AdminRow({
             ]}
           />
         )}
-      </Table.Cell>
-    </Table.Row>
+      </TableCell>
+    </TableRow>
   );
 }

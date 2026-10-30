@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { signInAction } from "../actions";
 import type { FormState } from "../actions";
 import { TextRow, keepTyped } from "../_form";
@@ -28,7 +28,7 @@ export function LoginForm() {
         autoComplete="current-password"
       />
       {state.error && <Notice tone="error">{state.error}</Notice>}
-      <Button type="submit" variant="primary" isDisabled={pending}>
+      <Button type="submit" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}
       </Button>
     </form>

@@ -1,4 +1,4 @@
-import { Table } from "@heroui/react";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { listAudit } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
@@ -31,23 +31,23 @@ export default async function AuditPage() {
           columns={["Action", "Target", "Detail", "By", "When"]}
         >
           {audit.map((a) => (
-            <Table.Row key={a.id}>
-              <Table.Cell>
+            <TableRow key={a.id}>
+              <TableCell>
                 <Tone color="default">{a.action}</Tone>
-              </Table.Cell>
-              <Table.Cell className="text-fg-muted max-w-xs truncate">
+              </TableCell>
+              <TableCell className="text-fg-muted max-w-xs truncate">
                 {a.targetType}/{a.targetId}
-              </Table.Cell>
-              <Table.Cell className="text-fg-subtle max-w-xs truncate">
+              </TableCell>
+              <TableCell className="text-fg-subtle max-w-xs truncate">
                 {a.detail ?? "—"}
-              </Table.Cell>
-              <Table.Cell className="text-fg-muted">{a.actor}</Table.Cell>
-              <Table.Cell className="text-fg-muted whitespace-nowrap">
+              </TableCell>
+              <TableCell className="text-fg-muted">{a.actor}</TableCell>
+              <TableCell className="text-fg-muted whitespace-nowrap">
                 <span title={formatDate(a.createdAt)}>
                   {formatRelative(a.createdAt)}
                 </span>
-              </Table.Cell>
-            </Table.Row>
+              </TableCell>
+            </TableRow>
           ))}
         </DataTable>
       )}

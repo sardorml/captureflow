@@ -76,15 +76,19 @@ import {
 } from "@lexical/markdown";
 import { $setBlocksType } from "@lexical/selection";
 import { $findMatchingParent, $getNearestNodeOfType } from "@lexical/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
-  Button,
-  Input,
   Popover,
-  Separator,
-  ToggleButton,
-  Toolbar,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import {
   Tooltip,
-} from "@heroui/react";
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Only what renderCampaign's Markdown parser turns into email HTML.
 const TRANSFORMERS: Transformer[] = [
@@ -115,7 +119,7 @@ const THEME = {
     listitem: "my-0.5",
     nested: { listitem: "list-none" },
   },
-  link: "text-accent underline",
+  link: "text-accent-strong underline",
   code: "mb-3 block rounded-lg bg-canvas-2 p-3 font-mono text-sm",
   text: {
     bold: "font-semibold",
@@ -141,19 +145,21 @@ function ToolButton({
   children: React.ReactNode;
 }) {
   return (
-    <Tooltip delay={400}>
-      <ToggleButton
-        aria-label={label}
-        isIconOnly
-        size="sm"
-        variant="ghost"
-        isSelected={!!isSelected}
-        isDisabled={isDisabled}
-        onChange={onPress}
-      >
-        {children}
-      </ToggleButton>
-      <Tooltip.Content>{label}</Tooltip.Content>
+    <Tooltip delayDuration={400}>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          aria-label={label}
+          aria-pressed={!!isSelected}
+          size="icon-sm"
+          variant={isSelected ? "secondary" : "ghost"}
+          disabled={isDisabled}
+          onClick={onPress}
+        >
+          {children}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
     </Tooltip>
   );
 }
@@ -174,7 +180,7 @@ function LinkButton({ active }: { active: boolean }) {
 
   return (
     <Popover
-      isOpen={open}
+      open={open}
       onOpenChange={(next) => {
         if (next) {
           editor.getEditorState().read(() => {
@@ -189,44 +195,49 @@ function LinkButton({ active }: { active: boolean }) {
         setOpen(next);
       }}
     >
-      <ToggleButton
-        aria-label="Link"
-        isIconOnly
-        size="sm"
-        variant="ghost"
-        isSelected={active}
-      >
-        <Link2 size={16} />
-      </ToggleButton>
-      <Popover.Content placement="bottom start" className="w-80">
-        <Popover.Dialog>
-          <form
-            className="flex flex-col gap-2 p-1"
-            onSubmit={(event) => {
-              event.preventDefault();
-              apply(url.trim() || null);
-            }}
-          >
-            <Input
-              aria-label="Link URL"
-              autoFocus
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://captureflow.dev"
-            />
-            <div className="flex justify-end gap-2">
-              {active && (
-                <Button size="sm" variant="ghost" onPress={() => apply(null)}>
-                  Remove
-                </Button>
-              )}
-              <Button size="sm" variant="primary" type="submit">
-                Apply
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          aria-label="Link"
+          aria-pressed={active}
+          size="icon-sm"
+          variant={active ? "secondary" : "ghost"}
+        >
+          <Link2 size={16} />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent side="bottom" align="start" className="w-80">
+        <form
+          className="flex flex-col gap-2 p-1"
+          onSubmit={(event) => {
+            event.preventDefault();
+            apply(url.trim() || null);
+          }}
+        >
+          <Input
+            aria-label="Link URL"
+            autoFocus
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://captureflow.dev"
+          />
+          <div className="flex justify-end gap-2">
+            {active && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => apply(null)}
+              >
+                Remove
               </Button>
-            </div>
-          </form>
-        </Popover.Dialog>
-      </Popover.Content>
+            )}
+            <Button size="sm" type="submit">
+              Apply
+            </Button>
+          </div>
+        </form>
+      </PopoverContent>
     </Popover>
   );
 }
@@ -332,7 +343,8 @@ function EditorToolbar() {
   };
 
   return (
-    <Toolbar
+    <div
+      role="toolbar"
       aria-label="Formatting"
       className="border-line flex w-full flex-wrap items-center gap-0.5 border-b px-2 py-1.5"
     >
@@ -417,7 +429,7 @@ function EditorToolbar() {
       >
         <Quote size={16} />
       </ToolButton>
-    </Toolbar>
+    </div>
   );
 }
 
@@ -453,7 +465,7 @@ export function EmailEditor({
         },
       }}
     >
-      <div className="border-line bg-field focus-within:border-line-strong overflow-hidden rounded-xl border">
+      <div className="border-line bg-transparent dark:bg-input/30 focus-within:border-line-strong overflow-hidden rounded-xl border">
         <EditorToolbar />
         <div className="relative">
           <RichTextPlugin

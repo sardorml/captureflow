@@ -2,7 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { Ellipsis } from "lucide-react";
-import { Button, Dropdown, Label, Spinner } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
 import type { FormState } from "./actions";
 import { EMPTY } from "./_form";
 
@@ -26,9 +33,7 @@ export function RowMenu({
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
-  const run = (id: string) => {
-    const item = actions.find((a) => a.id === id);
-    if (!item) return;
+  const run = (item: RowAction) => {
     if (item.confirm && !window.confirm(item.confirm)) return;
     const data = new FormData();
     for (const [k, v] of Object.entries(item.fields)) data.set(k, v);
@@ -41,35 +46,34 @@ export function RowMenu({
 
   return (
     <div className="flex items-center justify-end gap-2">
-      {error && <span className="text-danger text-xs">{error}</span>}
-      <Dropdown>
-        <Button
-          isIconOnly
-          size="sm"
-          variant="ghost"
-          aria-label={label}
-          isDisabled={pending}
-        >
-          {pending ? <Spinner size="sm" /> : <Ellipsis size={16} />}
-        </Button>
-        <Dropdown.Popover placement="bottom end" className="min-w-44">
-          <Dropdown.Menu
+      {error && <span className="text-destructive text-xs">{error}</span>}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            size="icon-sm"
+            variant="ghost"
             aria-label={label}
-            onAction={(key) => run(String(key))}
+            disabled={pending}
           >
-            {actions.map((a) => (
-              <Dropdown.Item
-                key={a.id}
-                id={a.id}
-                textValue={a.label}
-                variant={a.danger ? "danger" : "default"}
-              >
-                <Label>{a.label}</Label>
-              </Dropdown.Item>
-            ))}
-          </Dropdown.Menu>
-        </Dropdown.Popover>
-      </Dropdown>
+            {pending ? <Spinner /> : <Ellipsis size={16} />}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          aria-label={label}
+          className="min-w-44"
+        >
+          {actions.map((a) => (
+            <DropdownMenuItem
+              key={a.id}
+              variant={a.danger ? "destructive" : "default"}
+              onSelect={() => run(a)}
+            >
+              {a.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

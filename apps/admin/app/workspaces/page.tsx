@@ -1,5 +1,5 @@
 import NextLink from "next/link";
-import { Table } from "@heroui/react";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { ADMIN_PAGE_SIZE, listAdminWorkspaces } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
@@ -74,8 +74,8 @@ export default async function WorkspacesPage({
             ]}
           >
             {rows.map((w) => (
-              <Table.Row key={w.id}>
-                <Table.Cell>
+              <TableRow key={w.id}>
+                <TableCell>
                   <div className="flex items-center gap-3">
                     <Monogram name={w.name} />
                     <NextLink
@@ -85,20 +85,20 @@ export default async function WorkspacesPage({
                       {w.name}
                     </NextLink>
                   </div>
-                </Table.Cell>
-                <Table.Cell>
+                </TableCell>
+                <TableCell>
                   <Tone color={w.kind === "team" ? "accent" : "default"}>
                     {w.kind}
                   </Tone>
-                </Table.Cell>
-                <Table.Cell>
+                </TableCell>
+                <TableCell>
                   <PersonCell
                     id={w.owner.id}
                     name={w.owner.name}
                     email={w.owner.email}
                   />
-                </Table.Cell>
-                <Table.Cell className="tabular-nums whitespace-nowrap">
+                </TableCell>
+                <TableCell className="tabular-nums whitespace-nowrap">
                   {w.memberCount}
                   {w.pendingInvites ? (
                     <span className="text-fg-subtle">
@@ -106,17 +106,17 @@ export default async function WorkspacesPage({
                       +{w.pendingInvites} invited
                     </span>
                   ) : null}
-                </Table.Cell>
-                <Table.Cell className="tabular-nums">
+                </TableCell>
+                <TableCell className="tabular-nums">
                   {w.recordingCount}
-                </Table.Cell>
-                <Table.Cell className="tabular-nums whitespace-nowrap">
+                </TableCell>
+                <TableCell className="tabular-nums whitespace-nowrap">
                   {formatBytes(w.storageBytes)}
-                </Table.Cell>
-                <Table.Cell className="text-fg-muted whitespace-nowrap">
+                </TableCell>
+                <TableCell className="text-fg-muted whitespace-nowrap">
                   {formatRelative(w.createdAt)}
-                </Table.Cell>
-              </Table.Row>
+                </TableCell>
+              </TableRow>
             ))}
           </DataTable>
         )}

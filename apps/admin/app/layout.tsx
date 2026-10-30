@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Geist } from "next/font/google";
 import { type AdminPermission, can } from "@captureflow/admin";
 import { currentOperator } from "@/lib/guard";
 import { headers } from "next/headers";
@@ -8,9 +9,20 @@ import {
   readThemeFromCookieHeader,
   readThemePreferenceFromCookieHeader,
 } from "@captureflow/ui/theme";
-import { AccountMenu, type NavItem, SideNav, ThemeSwitcher } from "./_nav";
-import { Providers } from "./_providers";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AdminSidebar, type NavItem } from "./_nav";
 import "./globals.css";
+
+const geist = Geist({
+  variable: "--font-geist",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -68,40 +80,43 @@ export default async function RootLayout({
 }) {
   const operator = await currentOperator();
   const cookie = (await headers()).get("cookie");
+  const sidebarOpen = !/(?:^|;\s*)sidebar_state=false/.test(cookie ?? "");
   return (
     /* suppressHydrationWarning: data-theme is the server's guess for a
        "system" preference; the init script corrects it before paint. */
     <html
       lang="en"
       data-theme={readThemeFromCookieHeader(cookie)}
+      className={geist.variable}
       suppressHydrationWarning
     >
-      <body className="bg-canvas text-fg min-h-dvh">
+      <body className="min-h-dvh bg-background text-foreground">
         <div hidden dangerouslySetInnerHTML={{ __html: THEME_INIT_HTML }} />
-        <Providers>
+        <TooltipProvider>
           {operator ? (
-            <div className="md:flex">
-              <aside className="border-line flex flex-col gap-5 border-b px-3 py-4 md:sticky md:top-0 md:h-dvh md:w-64 md:shrink-0 md:border-r md:border-b-0">
-                <AccountMenu email={operator.email} role={operator.role} />
-                <div className="-mx-1 overflow-x-auto px-1 md:overflow-visible">
-                  <SideNav
-                    items={TABS.filter((t) => can(operator.role, t.permission))}
-                  />
-                </div>
-                <div className="hidden md:mt-auto md:block">
-                  <ThemeSwitcher
-                    initial={readThemePreferenceFromCookieHeader(cookie)}
-                  />
-                </div>
-              </aside>
-              <main className="min-w-0 flex-1 px-4 py-8 md:px-12 md:py-12">
-                <div className="mx-auto max-w-[1280px]">{children}</div>
-              </main>
-            </div>
+            <SidebarProvider
+              defaultOpen={sidebarOpen}
+              className="h-svh overflow-hidden"
+            >
+              <AdminSidebar
+                email={operator.email}
+                role={operator.role}
+                items={TABS.filter((t) => can(operator.role, t.permission))}
+                themePreference={readThemePreferenceFromCookieHeader(cookie)}
+              />
+              <SidebarInset className="min-w-0 overflow-hidden">
+                <header className="flex h-12 shrink-0 items-center gap-2 px-4">
+                  <SidebarTrigger className="-ml-1" />
+                </header>
+                <main className="min-w-0 flex-1 overflow-y-auto px-4 pb-12 md:px-12">
+                  <div className="mx-auto max-w-[1280px]">{children}</div>
+                </main>
+              </SidebarInset>
+            </SidebarProvider>
           ) : (
             <main className="px-4">{children}</main>
           )}
-        </Providers>
+        </TooltipProvider>
       </body>
     </html>
   );

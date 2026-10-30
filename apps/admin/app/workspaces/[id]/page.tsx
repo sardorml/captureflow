@@ -1,6 +1,6 @@
 import NextLink from "next/link";
 import { notFound } from "next/navigation";
-import { Table } from "@heroui/react";
+import { TableCell, TableRow } from "@/components/ui/table";
 import {
   getAdminWorkspace,
   listWorkspaceInvites,
@@ -61,27 +61,27 @@ export default async function WorkspacePage({
       ]}
     >
       {members.map((m) => (
-        <Table.Row key={m.userId}>
-          <Table.Cell>
+        <TableRow key={m.userId}>
+          <TableCell>
             <PersonCell id={m.userId} name={m.name} email={m.email} />
-          </Table.Cell>
-          <Table.Cell>
+          </TableCell>
+          <TableCell>
             <Tone color={m.role === "owner" ? "accent" : "default"}>
               {m.role}
             </Tone>
-          </Table.Cell>
-          <Table.Cell className="tabular-nums">{m.recordingCount}</Table.Cell>
-          <Table.Cell className="tabular-nums">{m.screenshotCount}</Table.Cell>
-          <Table.Cell className="tabular-nums whitespace-nowrap">
+          </TableCell>
+          <TableCell className="tabular-nums">{m.recordingCount}</TableCell>
+          <TableCell className="tabular-nums">{m.screenshotCount}</TableCell>
+          <TableCell className="tabular-nums whitespace-nowrap">
             {formatBytes(m.storageBytes)}
-          </Table.Cell>
-          <Table.Cell className="text-fg-muted whitespace-nowrap">
+          </TableCell>
+          <TableCell className="text-fg-muted whitespace-nowrap">
             {formatRelative(m.lastActiveAt)}
-          </Table.Cell>
-          <Table.Cell className="text-fg-muted whitespace-nowrap">
+          </TableCell>
+          <TableCell className="text-fg-muted whitespace-nowrap">
             {formatRelative(m.joinedAt)}
-          </Table.Cell>
-        </Table.Row>
+          </TableCell>
+        </TableRow>
       ))}
     </DataTable>
   );
@@ -95,25 +95,25 @@ export default async function WorkspacePage({
         columns={["Email", "Status", "Invited by", "Sent", "Expires"]}
       >
         {invites.map((i) => (
-          <Table.Row key={i.id}>
-            <Table.Cell className="text-fg-strong font-medium">
+          <TableRow key={i.id}>
+            <TableCell className="text-fg-strong font-medium">
               {i.email}
-            </Table.Cell>
-            <Table.Cell>
+            </TableCell>
+            <TableCell>
               <Tone color={INVITE_COLOR[i.status]}>{i.status}</Tone>
-            </Table.Cell>
-            <Table.Cell className="text-fg-muted">
+            </TableCell>
+            <TableCell className="text-fg-muted">
               {i.invitedBy ?? "—"}
-            </Table.Cell>
-            <Table.Cell className="text-fg-muted whitespace-nowrap">
+            </TableCell>
+            <TableCell className="text-fg-muted whitespace-nowrap">
               {formatRelative(i.createdAt)}
-            </Table.Cell>
-            <Table.Cell className="text-fg-muted whitespace-nowrap">
+            </TableCell>
+            <TableCell className="text-fg-muted whitespace-nowrap">
               {i.status === "accepted"
                 ? `Accepted ${formatRelative(i.acceptedAt)}`
                 : formatDate(i.expiresAt).slice(0, 10)}
-            </Table.Cell>
-          </Table.Row>
+            </TableCell>
+          </TableRow>
         ))}
       </DataTable>
     );
