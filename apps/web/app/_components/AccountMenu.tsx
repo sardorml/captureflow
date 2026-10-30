@@ -19,7 +19,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { openSupportChat } from "@/components/marketing/support-chat";
 import { initials } from "@/lib/format";
 import { SUPPORT_EMAIL } from "@/lib/site";
 import { ThemeSegments } from "./ThemeSegments";
@@ -31,7 +30,6 @@ export type AccountMenuNavItem = {
   icon: ReactNode;
   label: string;
   href: string;
-  onOpen?: () => void;
   // Right-aligned accessory — a plan chip, a count. Purely decorative.
   trailing?: ReactNode;
 };
@@ -84,7 +82,6 @@ export function accountNavItems({
       icon: <MessageSquare size={16} />,
       label: "Contact support",
       href: `mailto:${SUPPORT_EMAIL}`,
-      onOpen: openSupportChat,
     },
   ];
   return items.filter(
@@ -162,11 +159,7 @@ export function AccountMenu({
               ) : null}
             </>
           );
-          return item.onOpen ? (
-            <DropdownMenuItem key={item.key} onSelect={item.onOpen}>
-              {content}
-            </DropdownMenuItem>
-          ) : (
+          return (
             <DropdownMenuItem key={item.key} asChild>
               <a href={item.href}>{content}</a>
             </DropdownMenuItem>

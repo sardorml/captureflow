@@ -8,7 +8,6 @@ import {
   ExternalLink,
   LayoutDashboard,
   Link2,
-  MessageSquare,
   PenLine,
   Settings,
   Users,
@@ -29,8 +28,6 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { openSupportChat } from "@/components/marketing/support-chat";
-import { SUPPORT_EMAIL } from "@/lib/site";
 
 type NavLink = {
   href: string;
@@ -38,7 +35,6 @@ type NavLink = {
   label: string;
   external?: boolean;
   newTab?: boolean;
-  onOpen?: () => void;
 };
 
 const CAPTURE_LINKS: NavLink[] = [
@@ -80,16 +76,6 @@ const WORKSPACE_LINK: NavLink = {
   label: "Workspace",
 };
 const BILLING_LINK: NavLink = { href: "/billing", label: "Billing" };
-
-// Opens the support chat, which falls back to mail when it can't load; the
-// href covers a click before hydration. A self-hosted instance has its own support.
-const SUPPORT_LINK: NavLink = {
-  href: `mailto:${SUPPORT_EMAIL}`,
-  icon: <MessageSquare />,
-  label: "Contact support",
-  external: true,
-  onOpen: openSupportChat,
-};
 
 export function SidebarNav({
   isOwner,
@@ -146,7 +132,6 @@ export function SidebarNav({
               </CollapsibleContent>
             </SidebarMenuItem>
           </Collapsible>
-          {!selfHosted && <NavItem link={SUPPORT_LINK} active={false} />}
         </SidebarMenu>
       </SidebarGroup>
     </>
@@ -162,14 +147,6 @@ function NavItem({ link, active }: { link: NavLink; active: boolean }) {
             href={link.href}
             target={link.newTab ? "_blank" : undefined}
             rel={link.newTab ? "noopener noreferrer" : undefined}
-            onClick={
-              link.onOpen
-                ? (event) => {
-                    event.preventDefault();
-                    link.onOpen?.();
-                  }
-                : undefined
-            }
           >
             {link.icon}
             <span>{link.label}</span>
