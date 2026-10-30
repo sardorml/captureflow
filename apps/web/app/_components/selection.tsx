@@ -1,8 +1,9 @@
 "use client";
 
-import { Button, Spinner, Typography } from "@heroui/react";
 import { Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { useConfirm } from "./confirm-dialog";
 
 export type Selection = {
@@ -106,28 +107,20 @@ export function SelectionBar({ noun, selection, onDelete }: SelectionBarProps) {
     <div className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-4">
       {dialog}
       <div className="pointer-events-auto flex max-w-full items-center gap-3 rounded-full border border-line-strong bg-panel px-3 py-2 shadow-lg">
-        <Typography type="body-sm" className="ps-2 whitespace-nowrap">
+        <p className="ps-2 text-sm leading-6 whitespace-nowrap text-foreground">
           {count} {plural} selected
-        </Typography>
-        {error && (
-          <Typography type="body-sm" className="text-danger">
-            {error}
-          </Typography>
-        )}
-        <Button size="sm" variant="ghost" onPress={clear} isDisabled={pending}>
+        </p>
+        {error && <p className="text-sm leading-6 text-destructive">{error}</p>}
+        <Button size="sm" variant="ghost" onClick={clear} disabled={pending}>
           Clear
         </Button>
         <Button
           size="sm"
-          variant="danger"
-          onPress={remove}
-          isDisabled={pending}
+          variant="destructive"
+          onClick={remove}
+          disabled={pending}
         >
-          {pending ? (
-            <Spinner size="sm" color="current" />
-          ) : (
-            <Trash2 size={14} />
-          )}
+          {pending ? <Spinner /> : <Trash2 size={14} />}
           Delete
         </Button>
       </div>

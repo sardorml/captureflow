@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { Sparkle } from "lucide-react";
-import { Button, Skeleton, buttonVariants } from "@heroui/react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DEFAULT_SEAT_PLAN_ID,
   getSeatPlan,
@@ -27,19 +28,17 @@ type Session = Awaited<ReturnType<typeof requireSession>>;
 
 const NOTIFICATION_MENU_LIMIT = 6;
 
-// The search field paints with the shell; only the account menu waits for
+// The search field paints with the shell; only the account cluster waits for
 // its plan and avatar queries, behind a stand-in of the same size.
 export async function TopBar({ session }: { session: Session }) {
   const selfHosted = isSelfHosted(await getAppWebEnv());
   return (
     <div className="flex w-full items-center justify-between gap-4">
       <SplitLoaded name="top-bar" />
-      {/* Below md the drawer toggle takes this slot instead — see DashboardShell. */}
       <div className="hidden min-w-0 flex-1 justify-center md:flex">
         <SearchTrigger />
       </div>
-      {/* ml-auto because below md the search slot is display:none, which leaves
-          justify-between a single child to push around. */}
+      {/* ml-auto because below md the search slot is display:none. */}
       <div className="ml-auto flex items-center gap-2">
         <Suspense fallback={<AccountSkeleton withUpgrade={!selfHosted} />}>
           <Account session={session} selfHosted={selfHosted} />
@@ -105,7 +104,7 @@ async function Account({
           email={session.user.email}
           userId={session.user.id}
           seat={offer}
-          trigger={<Button variant="primary">Upgrade</Button>}
+          trigger={<Button>Upgrade</Button>}
         />
       )}
       {showPlan &&

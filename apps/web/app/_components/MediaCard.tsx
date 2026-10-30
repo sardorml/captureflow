@@ -1,20 +1,6 @@
 "use client";
 
 import {
-  Avatar,
-  Button,
-  ButtonGroup,
-  Card,
-  Checkbox,
-  Dropdown,
-  Input,
-  Separator,
-  Spinner,
-  Tooltip,
-  Typography,
-  buttonVariants,
-} from "@heroui/react";
-import {
   Check,
   ChevronDown,
   ExternalLink,
@@ -28,6 +14,25 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useTransition, type FormEvent, type ReactNode } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useConfirm } from "./confirm-dialog";
 import { VisibilityDialog, type Visibility } from "@/app/VisibilityDialog";
 import {
@@ -42,7 +47,7 @@ import { useDevPref } from "@/lib/dev/prefs";
 // disappear against a light capture, so the controls there take the same
 // dark glass as the selection checkbox.
 const OVERLAY_BUTTON =
-  "[--button-bg:rgb(0_0_0/0.55)] [--button-bg-hover:rgb(0_0_0/0.7)] [--button-bg-pressed:rgb(0_0_0/0.7)] [--button-fg:white] backdrop-blur-sm";
+  "bg-black/55 text-white hover:bg-black/70 hover:text-white aria-expanded:bg-black/70 aria-expanded:text-white backdrop-blur-sm";
 
 type ActionResult = { error: string | null } | void;
 
@@ -170,21 +175,12 @@ export function MediaCard({
     });
   };
 
-  const onMenuAction = (key: React.Key) => {
-    if (key === "open") window.open(viewUrl, "_blank", "noreferrer");
-    else if (key === "rename") setEditing(true);
-    else if (key === "delete") remove();
-  };
-
   return (
-    /* p-0/gap-0: HeroUI's .card pads itself, which insets the thumbnail and
-       leaves the text (Card.Content's own p-4) at double that — the image and
-       the copy end up on different rails. Card.Content owns the inset now. */
     <Card
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
       className={cn(
-        "group gap-0 overflow-hidden border border-line p-0 shadow-none transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)]",
+        "group relative gap-0 overflow-hidden border border-line p-0 shadow-none ring-0 transition-[border-color,box-shadow] hover:border-accent-bg hover:shadow-[0_0_0_1px_var(--color-accent-bg)]",
         selected &&
           "border-accent-bg shadow-[0_0_0_1px_var(--color-accent-bg)]",
       )}
@@ -203,27 +199,19 @@ export function MediaCard({
              as it was before selection existed. Once anything is selected the
              whole grid shows its boxes: picking a second card shouldn't mean
              hunting for a control that only appears under the cursor. */
+          /* Field colours vanish against a thumbnail: fixed white-on-scrim reads
+             over whatever the frame happens to be. */
           <Checkbox
             aria-label={`Select ${displayTitle}`}
-            isSelected={selected}
-            onChange={onSelectedChange}
+            checked={selected}
+            onCheckedChange={(next) => onSelectedChange(next === true)}
             className={cn(
-              "absolute top-2 left-2 z-10 p-1 transition-opacity group-hover:opacity-100 motion-reduce:transition-none",
+              "absolute top-3 left-3 z-10 size-5 border-2 border-white/90 bg-black/40 shadow-sm backdrop-blur-sm transition-opacity group-hover:opacity-100 motion-reduce:transition-none dark:bg-black/40",
               selected || selectionActive
                 ? "opacity-100"
-                : "opacity-0 focus-within:opacity-100",
+                : "opacity-0 focus-visible:opacity-100",
             )}
-          >
-            {/* Control and indicator are children, not something the root
-                draws — a bare Checkbox renders an empty box. Its own colours
-                are field colours, which vanish against a thumbnail: fixed
-                white-on-scrim reads over whatever the frame happens to be. */}
-            <Checkbox.Content>
-              <Checkbox.Control className="size-5 border-2 border-white/90 bg-black/40 shadow-sm backdrop-blur-sm">
-                <Checkbox.Indicator />
-              </Checkbox.Control>
-            </Checkbox.Content>
-          </Checkbox>
+          />
         )}
 
         {/* Hidden until the card is hovered, so the thumbnail reads clean in
@@ -231,97 +219,77 @@ export function MediaCard({
             have no hover, keep the controls shown. */}
         <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 has-[[aria-expanded=true]]:opacity-100 pointer-coarse:opacity-100">
           <Tooltip>
-            <Tooltip.Trigger className="inline-flex">
+            <TooltipTrigger asChild>
               <Button
-                size="sm"
-                isIconOnly
-                variant={copied ? "primary" : "secondary"}
+                size="icon-sm"
+                variant={copied ? "default" : "secondary"}
                 className={copied ? undefined : OVERLAY_BUTTON}
                 aria-label={copied ? "Link copied" : "Copy link"}
-                onPress={copyLink}
+                onClick={copyLink}
               >
                 {copied ? <Check size={16} /> : <Link2 size={16} />}
               </Button>
-            </Tooltip.Trigger>
-            <Tooltip.Content>
+            </TooltipTrigger>
+            <TooltipContent>
               {copied ? "Link copied" : "Copy link"}
-            </Tooltip.Content>
+            </TooltipContent>
           </Tooltip>
           {canManage && (
-            <Dropdown>
-              <Dropdown.Trigger
+            <DropdownMenu>
+              <DropdownMenuTrigger
                 aria-label="More actions"
                 className={cn(
-                  buttonVariants({
-                    variant: "secondary",
-                    size: "sm",
-                    isIconOnly: true,
-                  }),
+                  buttonVariants({ variant: "secondary", size: "icon-sm" }),
                   OVERLAY_BUTTON,
                 )}
               >
                 <MoreHorizontal size={16} />
-              </Dropdown.Trigger>
-              <Dropdown.Popover placement="bottom end">
-                <Dropdown.Menu onAction={onMenuAction}>
-                  <Dropdown.Item id="open">
-                    <ExternalLink size={16} />
-                    Open {noun}
-                  </Dropdown.Item>
-                  {canAuthor ? (
-                    <Dropdown.Item id="rename">
-                      <Pencil size={16} />
-                      Rename
-                    </Dropdown.Item>
-                  ) : null}
-                  <Dropdown.Item
-                    id="delete"
-                    isDisabled={pending}
-                    className="text-danger"
-                  >
-                    <Trash2 size={16} />
-                    Delete {noun}
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown.Popover>
-            </Dropdown>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="bottom" align="end" className="w-auto">
+                <DropdownMenuItem
+                  onSelect={() => window.open(viewUrl, "_blank", "noreferrer")}
+                >
+                  <ExternalLink size={16} />
+                  Open {noun}
+                </DropdownMenuItem>
+                {canAuthor ? (
+                  <DropdownMenuItem onSelect={() => setEditing(true)}>
+                    <Pencil size={16} />
+                    Rename
+                  </DropdownMenuItem>
+                ) : null}
+                <DropdownMenuItem
+                  variant="destructive"
+                  disabled={pending}
+                  onSelect={() => void remove()}
+                >
+                  <Trash2 size={16} />
+                  Delete {noun}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
 
-      <Card.Content className="flex flex-col gap-3 p-4">
+      <CardContent className="flex flex-col gap-3 p-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <Avatar className="h-7 w-7 shrink-0">
-            {authorImage && (
-              <Avatar.Image src={authorImage} alt={authorLabel} />
-            )}
-            <Avatar.Fallback>{initials(authorLabel)}</Avatar.Fallback>
+            {authorImage && <AvatarImage src={authorImage} alt={authorLabel} />}
+            <AvatarFallback>{initials(authorLabel)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 leading-tight">
-            {/* size on each child, not text-sm on the wrapper: Typography
-                always emits its own size class, which wins over inheritance. */}
             {/* The name gives way; the dot and the time never wrap. */}
-            <div className="flex min-w-0 items-center gap-1.5">
-              <Typography
-                weight="semibold"
-                type="body-sm"
-                truncate
-                className="min-w-0"
-              >
+            <div className="flex min-w-0 items-center gap-1.5 text-sm leading-6">
+              <p className="block min-w-0 truncate font-semibold text-foreground">
                 {authorLabel}
-              </Typography>
-              <Typography color="muted" type="body-sm" className="shrink-0">
-                ·
-              </Typography>
-              <Typography
-                color="muted"
-                type="body-sm"
-                className="shrink-0 whitespace-nowrap"
-              >
+              </p>
+              <p className="shrink-0 text-muted-foreground">·</p>
+              <p className="shrink-0 whitespace-nowrap text-muted-foreground">
                 <span suppressHydrationWarning>
                   {formatRelative(createdAt)}
                 </span>
-              </Typography>
+              </p>
             </div>
             <div className="relative z-10 -mt-1 w-fit">
               {canManage ? (
@@ -353,15 +321,15 @@ export function MediaCard({
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={titlePlaceholder}
                 value={title}
-                fullWidth
               />
-              <Button type="submit" variant="primary" isDisabled={pending}>
-                {pending && <Spinner size="sm" color="current" />}
+              <Button type="submit" disabled={pending}>
+                {pending && <Spinner />}
                 Save
               </Button>
               <Button
+                type="button"
                 variant="secondary"
-                onPress={() => {
+                onClick={() => {
                   setEditing(false);
                   setTitle(initialTitle);
                   setError(null);
@@ -394,41 +362,32 @@ export function MediaCard({
           </div>
           <div className="flex items-center gap-3">
             {showSize && (
-              <Typography
-                color="muted"
-                type="body-sm"
-                className="whitespace-nowrap"
-              >
+              <p className="text-sm leading-6 whitespace-nowrap text-muted-foreground">
                 {formatBytes(sizeBytes)}
-              </Typography>
+              </p>
             )}
             {canAuthor && (
               <Tooltip>
-                <Tooltip.Trigger className="relative z-10 inline-flex">
+                <TooltipTrigger asChild>
                   <Link
                     href={editUrl}
                     aria-label={`Edit ${noun}`}
-                    className={buttonVariants({
-                      variant: "ghost",
-                      size: "sm",
-                      isIconOnly: true,
-                    })}
+                    className={cn(
+                      buttonVariants({ variant: "ghost", size: "icon-sm" }),
+                      "relative z-10",
+                    )}
                   >
                     <Pencil size={16} />
                   </Link>
-                </Tooltip.Trigger>
-                <Tooltip.Content>Edit {noun}</Tooltip.Content>
+                </TooltipTrigger>
+                <TooltipContent>Edit {noun}</TooltipContent>
               </Tooltip>
             )}
           </div>
         </div>
 
-        {error && (
-          <Typography type="body-xs" className="text-danger">
-            {error}
-          </Typography>
-        )}
-      </Card.Content>
+        {error && <p className="text-xs leading-5 text-destructive">{error}</p>}
+      </CardContent>
     </Card>
   );
 }
@@ -437,9 +396,7 @@ function Stat({ icon, value }: { icon: ReactNode; value: number }) {
   return (
     <div className="flex items-center gap-1 text-fg-muted">
       {icon}
-      <Typography color="muted" type="body-sm">
-        {value}
-      </Typography>
+      <p className="text-sm leading-6 text-muted-foreground">{value}</p>
     </div>
   );
 }
@@ -459,13 +416,13 @@ function VisibilityText({
 }) {
   if (!interactive) {
     return (
-      <Typography type="body-xs" color="muted">
+      <p className="text-xs leading-5 text-muted-foreground">
         {visibilityLabel(visibility)}
-      </Typography>
+      </p>
     );
   }
   return (
-    <span className="inline-flex cursor-pointer items-center gap-0.5 text-xs text-accent hover:text-accent-strong">
+    <span className="inline-flex cursor-pointer items-center gap-0.5 text-xs text-accent-strong hover:text-accent-strong">
       {visibilityLabel(visibility)}
       <ChevronDown size={12} />
     </span>

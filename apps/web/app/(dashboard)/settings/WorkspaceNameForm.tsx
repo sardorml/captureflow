@@ -2,7 +2,9 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { Check } from "lucide-react";
-import { Button, Input, Spinner } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { updateWorkspaceNameAction } from "./actions";
 import { SettingsRow } from "./SettingsRow";
 
@@ -42,18 +44,18 @@ export function WorkspaceNameForm({ initialName }: { initialName: string }) {
             required
             className="flex-1"
           />
-          <Button variant="primary" type="submit" isDisabled={!dirty}>
-            {pending && <Spinner size="sm" color="current" />}
+          <Button type="submit" disabled={!dirty}>
+            {pending && <Spinner />}
             Save
           </Button>
         </div>
         {(state.error || showSaved) && (
           <div className="flex items-center justify-end gap-3">
             {state.error && (
-              <span className="text-xs text-danger">{state.error}</span>
+              <span className="text-xs text-destructive">{state.error}</span>
             )}
             {showSaved && (
-              <span className="inline-flex items-center gap-1 text-xs text-success">
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-500">
                 <Check size={14} /> Saved
               </span>
             )}

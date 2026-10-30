@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Spinner } from "@heroui/react";
+import { Spinner } from "@/components/ui/spinner";
 
 /*
  * Rendered when the SSR call to verify-session fails transiently
@@ -60,7 +60,7 @@ export function SessionLoadingShell({ appWebUrl }: Props) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 py-16 text-neutral-300">
       <div className="flex flex-col items-center gap-4">
-        <Spinner size="lg" />
+        <Spinner className="size-6" />
         <p className="text-sm text-neutral-500">Loading screenshot…</p>
       </div>
     </div>

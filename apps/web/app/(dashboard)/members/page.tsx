@@ -1,9 +1,9 @@
-import { Alert } from "@heroui/react";
 import {
   listMembers,
   listPendingInvites,
   listSeatRequests,
 } from "@captureflow/quota";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
@@ -28,10 +28,8 @@ export default async function MembersPage() {
     return (
       <div className="flex flex-col gap-8">
         <WorkspacePageHeader workspaceName={workspace.name} title="Members" />
-        <Alert status="warning">
-          <Alert.Content>
-            <Alert.Title>Database unavailable.</Alert.Title>
-          </Alert.Content>
+        <Alert>
+          <AlertTitle>Database unavailable.</AlertTitle>
         </Alert>
       </div>
     );

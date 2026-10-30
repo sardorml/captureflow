@@ -6,11 +6,28 @@ import {
   type KeyboardEvent,
   type ReactElement,
 } from "react";
-import { Check, UserPlus, X } from "lucide-react";
-import { Alert, Button, Chip, Modal, Typography } from "@heroui/react";
+import { UserPlus, X } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldTitle,
+} from "@/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { getSeatPlan, type AssignableRole } from "@captureflow/quota";
 import type { PaidSeats } from "@/lib/billing/seat-checkout";
-import { cn } from "@/lib/utils";
 import { ASSIGNABLE_ROLES } from "@/lib/workspace/labels";
 import { inviteMemberAction } from "./members/actions";
 
@@ -114,8 +131,7 @@ export function InviteModal({
        * prop, and React can deliver a server-created element to a client
        * component as a lazy reference — cloneElement reads `.type` off that
        * wrapper, gets undefined, and the whole page dies with "Element type is
-       * invalid". Capture phase, because React Aria's usePress calls
-       * stopPropagation() on click, so a bubbling handler here never fires.
+       * invalid".
        */}
       {!controlled && (
         <span className="contents" onClickCapture={() => setOpen(true)}>
@@ -127,8 +143,8 @@ export function InviteModal({
           )}
         </span>
       )}
-      <Modal
-        isOpen={open}
+      <Dialog
+        open={open}
         onOpenChange={(next) => {
           if (!next) {
             setOpen(false);
@@ -136,173 +152,137 @@ export function InviteModal({
           }
         }}
       >
-        <Modal.Backdrop>
-          <Modal.Container>
-            <Modal.Dialog data-split="invite-modal">
-              <Modal.Header>
-                <Modal.Heading>
-                  {workspaceName
-                    ? `Invite teammates to ${workspaceName}`
-                    : "Invite teammates to your workspace"}
-                </Modal.Heading>
-              </Modal.Header>
-              <Modal.Body>
-                <Typography.Paragraph color="muted">
-                  They&rsquo;ll get an email with a link that expires in 7 days.
-                  Make sure they sign in with the same address.
-                </Typography.Paragraph>
+        <DialogContent data-split="invite-modal" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>
+              {workspaceName
+                ? `Invite teammates to ${workspaceName}`
+                : "Invite teammates to your workspace"}
+            </DialogTitle>
+          </DialogHeader>
+          <div>
+            <DialogDescription className="mb-3">
+              They&rsquo;ll get an email with a link that expires in 7 days.
+              Make sure they sign in with the same address.
+            </DialogDescription>
 
-                {/* The container is the field: it owns the fill and the focus
-                    ring, so the inner control is a bare <input>. A HeroUI Input
-                    here nests its own background/shadow inside this one — its
-                    chrome can't be fully stripped from the wrapper. */}
-                <div className="flex flex-wrap items-center gap-1.5 rounded-md bg-field p-2 transition-shadow focus-within:ring-2 focus-within:ring-focus motion-reduce:transition-none">
-                  {emails.map((email) => (
-                    <Chip key={email} size="sm">
-                      {email}
-                      <button
-                        type="button"
-                        aria-label={`Remove ${email}`}
-                        onClick={() =>
-                          setEmails(emails.filter((e) => e !== email))
-                        }
-                        className="ml-1 cursor-pointer"
-                      >
-                        <X size={12} />
-                      </button>
-                    </Chip>
-                  ))}
-                  <input
-                    type="text"
-                    className="min-w-40 flex-1 bg-transparent px-1 py-0.5 text-sm text-fg outline-none placeholder:text-fg-muted"
-                    placeholder="Add emails"
-                    aria-label="Add emails"
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={onKeyDown}
-                    onBlur={commitDraft}
-                  />
-                </div>
-                <Typography type="body-xs" color="muted">
-                  Separate emails with a space, comma, or enter.
-                </Typography>
-
-                <div
-                  role="radiogroup"
-                  aria-label="Role"
-                  className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2"
-                >
-                  {ASSIGNABLE_ROLES.map((option) => {
-                    const isOn = option.id === role;
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={isOn}
-                        onClick={() => setRole(option.id)}
-                        className={cn(
-                          "flex cursor-pointer items-start gap-3 rounded-xl border p-3 text-left transition-colors",
-                          isOn
-                            ? "border-accent-ring bg-accent-soft"
-                            : "border-line hover:bg-tint",
-                        )}
-                      >
-                        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                          <Typography weight="semibold">
-                            {option.label}
-                          </Typography>
-                          <Typography type="body-xs" color="muted">
-                            {option.hint}
-                          </Typography>
-                        </span>
-                        {isOn && (
-                          <Check
-                            size={16}
-                            className="mt-0.5 shrink-0 text-accent"
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {paidSeats && role === "member" && (
-                  <Typography
-                    type="body-xs"
-                    color="muted"
-                    className="mt-2 block"
+            {/* The container is the field: it owns the border and the focus
+                ring, so the inner control is a bare <input>. */}
+            <div className="flex min-h-9 flex-wrap items-center gap-1.5 rounded-xl border border-input bg-input/30 px-2 py-1.5 transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 motion-reduce:transition-none">
+              {emails.map((email) => (
+                <Badge key={email} variant="secondary">
+                  {email}
+                  <button
+                    type="button"
+                    aria-label={`Remove ${email}`}
+                    onClick={() => setEmails(emails.filter((e) => e !== email))}
+                    className="ml-1 cursor-pointer"
                   >
-                    {`Each member who accepts adds a paid seat to your ${getSeatPlan(paidSeats.plan).name} plan, $${
-                      paidSeats.cycle === "annual"
-                        ? getSeatPlan(paidSeats.plan).priceAnnualUsdPerMonth
-                        : getSeatPlan(paidSeats.plan).priceMonthlyUsd
-                    } a month each. The rest of this period goes on your next invoice.`}
-                  </Typography>
-                )}
+                    <X size={12} />
+                  </button>
+                </Badge>
+              ))}
+              <input
+                type="text"
+                className="min-w-40 flex-1 bg-transparent px-1 py-0.5 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                placeholder="Add emails"
+                aria-label="Add emails"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={onKeyDown}
+                onBlur={commitDraft}
+              />
+            </div>
+            <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
+              Separate emails with a space, comma, or enter.
+            </p>
 
-                {error && (
-                  <Alert status="danger" className="mt-3">
-                    <Alert.Content>
-                      <Alert.Title>{error}</Alert.Title>
-                    </Alert.Content>
+            <RadioGroup
+              value={role}
+              onValueChange={(value) => setRole(value as AssignableRole)}
+              aria-label="Role"
+              className="mt-4 grid-cols-1 sm:grid-cols-2"
+            >
+              {ASSIGNABLE_ROLES.map((option) => (
+                <FieldLabel
+                  key={option.id}
+                  htmlFor={`invite-role-${option.id}`}
+                >
+                  <Field orientation="horizontal">
+                    <FieldContent>
+                      <FieldTitle>{option.label}</FieldTitle>
+                      <FieldDescription>{option.hint}</FieldDescription>
+                    </FieldContent>
+                    <RadioGroupItem
+                      value={option.id}
+                      id={`invite-role-${option.id}`}
+                    />
+                  </Field>
+                </FieldLabel>
+              ))}
+            </RadioGroup>
+
+            {paidSeats && role === "member" && (
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                {`Each member who accepts adds a paid seat to your ${getSeatPlan(paidSeats.plan).name} plan, $${
+                  paidSeats.cycle === "annual"
+                    ? getSeatPlan(paidSeats.plan).priceAnnualUsdPerMonth
+                    : getSeatPlan(paidSeats.plan).priceMonthlyUsd
+                } a month each. The rest of this period goes on your next invoice.`}
+              </p>
+            )}
+
+            {error && (
+              <Alert variant="destructive" className="mt-3">
+                <AlertTitle>{error}</AlertTitle>
+              </Alert>
+            )}
+            {result && (
+              <div className="mt-3 flex flex-col gap-2">
+                {result.sent.length > 0 && (
+                  <Alert>
+                    <AlertTitle>
+                      {`Sent ${result.sent.length} ${
+                        result.sent.length === 1 ? "invite" : "invites"
+                      }.`}
+                    </AlertTitle>
                   </Alert>
                 )}
-                {result && (
-                  <div className="mt-3 flex flex-col gap-2">
-                    {result.sent.length > 0 && (
-                      <Alert status="success">
-                        <Alert.Content>
-                          <Alert.Title>
-                            {`Sent ${result.sent.length} ${
-                              result.sent.length === 1 ? "invite" : "invites"
-                            }.`}
-                          </Alert.Title>
-                        </Alert.Content>
-                      </Alert>
-                    )}
-                    {result.failed.length > 0 && (
-                      <Alert status="danger">
-                        <Alert.Content>
-                          <Alert.Description>
-                            <ul className="m-0 list-disc ps-4">
-                              {result.failed.map((f) => (
-                                <li key={f.email}>
-                                  {f.email}: {f.error}
-                                </li>
-                              ))}
-                            </ul>
-                          </Alert.Description>
-                        </Alert.Content>
-                      </Alert>
-                    )}
-                  </div>
+                {result.failed.length > 0 && (
+                  <Alert variant="destructive">
+                    <AlertDescription>
+                      <ul className="m-0 list-disc ps-4">
+                        {result.failed.map((f) => (
+                          <li key={f.email}>
+                            {f.email}: {f.error}
+                          </li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
                 )}
-              </Modal.Body>
-              <Modal.Footer className="flex justify-end gap-2">
-                <Button
-                  variant="secondary"
-                  onPress={() => {
-                    setOpen(false);
-                    reset();
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  onPress={submit}
-                  isDisabled={
-                    isPending || (emails.length === 0 && !draft.trim())
-                  }
-                >
-                  {isPending ? "Sending…" : "Send invites"}
-                </Button>
-              </Modal.Footer>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setOpen(false);
+                reset();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={submit}
+              disabled={isPending || (emails.length === 0 && !draft.trim())}
+            >
+              {isPending ? "Sending…" : "Send invites"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

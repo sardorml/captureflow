@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Typography } from "@heroui/react";
 import { cn } from "@/lib/utils";
 
 // One setting: its name and what it does on the left, the control on the
@@ -30,10 +29,10 @@ export function SettingsRow({
           stacked ? "" : "min-w-60 flex-1 md:max-w-sm",
         )}
       >
-        <Typography weight="semibold">{title}</Typography>
-        <Typography type="body-xs" color="muted">
-          {description}
-        </Typography>
+        <p className="text-base leading-7 font-semibold text-foreground">
+          {title}
+        </p>
+        <p className="text-xs leading-5 text-muted-foreground">{description}</p>
       </div>
       <div className={stacked ? "" : "flex w-full flex-col gap-2 md:max-w-96"}>
         {children}

@@ -14,7 +14,7 @@ function textOf(node: ReactNode): string {
 }
 
 const LINK_CLASS =
-  "font-medium text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent";
+  "font-medium text-accent-strong underline decoration-primary/40 underline-offset-4 hover:decoration-primary";
 
 const COMPONENTS: Components = {
   h2: ({ children }) => (
@@ -77,7 +77,7 @@ const COMPONENTS: Components = {
     </pre>
   ),
   blockquote: ({ children }) => (
-    <aside className="my-8 rounded-2xl border-l-4 border-accent bg-accent/10 px-6 py-1 [&_p]:my-4 [&_p]:text-[17px]">
+    <aside className="my-8 rounded-2xl border-l-4 border-primary bg-primary/10 px-6 py-1 [&_p]:my-4 [&_p]:text-[17px]">
       {children}
     </aside>
   ),

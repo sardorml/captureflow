@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Typography } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
 import { CARD_SURFACE } from "./tokens";
@@ -421,11 +420,12 @@ function UseCaseCard({
         >
           {title}
         </h3>
-        <Typography.Paragraph
+        <p
+          className="text-start text-foreground"
           style={{ fontSize: 17, lineHeight: 1.5, margin: 0 }}
         >
           {body}
-        </Typography.Paragraph>
+        </p>
       </div>
     </article>
   );

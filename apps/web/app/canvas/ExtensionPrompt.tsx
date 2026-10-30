@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { Video } from "lucide-react";
-import { AlertDialog, Button, buttonVariants } from "@heroui/react";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { installedExtensionId } from "@/lib/extension-bridge";
 import { CHROME_WEBSTORE_URL } from "@/lib/site";
 
@@ -25,41 +33,33 @@ export function ExtensionPrompt() {
   if (!CHROME_WEBSTORE_URL) return null;
 
   return (
-    <AlertDialog isOpen={isOpen} onOpenChange={setOpen}>
-      <AlertDialog.Backdrop>
-        <AlertDialog.Container size="sm">
-          <AlertDialog.Dialog>
-            <AlertDialog.Header className="flex flex-col items-start gap-3">
-              <span className="flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
-                <Video size={20} />
-              </span>
-              <AlertDialog.Heading>Record this canvas</AlertDialog.Heading>
-            </AlertDialog.Header>
-            <AlertDialog.Body className="text-sm text-fg-muted">
-              Add the CaptureFlow extension to record your screen and camera
-              while you draw, then share a link.
-            </AlertDialog.Body>
-            <AlertDialog.Footer className="flex justify-end gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onPress={() => setOpen(false)}
-              >
-                Not now
-              </Button>
-              <a
-                href={CHROME_WEBSTORE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setOpen(false)}
-                className={buttonVariants({ variant: "primary", size: "sm" })}
-              >
-                Add to Chrome
-              </a>
-            </AlertDialog.Footer>
-          </AlertDialog.Dialog>
-        </AlertDialog.Container>
-      </AlertDialog.Backdrop>
+    <AlertDialog open={isOpen} onOpenChange={setOpen}>
+      <AlertDialogContent size="sm">
+        <AlertDialogHeader className="flex flex-col items-start gap-3 text-left">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-accent-strong">
+            <Video size={20} />
+          </span>
+          <AlertDialogTitle>Record this canvas</AlertDialogTitle>
+        </AlertDialogHeader>
+        <AlertDialogDescription className="text-sm text-fg-muted">
+          Add the CaptureFlow extension to record your screen and camera while
+          you draw, then share a link.
+        </AlertDialogDescription>
+        <AlertDialogFooter className="flex flex-row justify-end gap-2">
+          <Button variant="secondary" size="sm" onClick={() => setOpen(false)}>
+            Not now
+          </Button>
+          <a
+            href={CHROME_WEBSTORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setOpen(false)}
+            className={buttonVariants({ size: "sm" })}
+          >
+            Add to Chrome
+          </a>
+        </AlertDialogFooter>
+      </AlertDialogContent>
     </AlertDialog>
   );
 }

@@ -2,8 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { Sparkles } from "lucide-react";
-import { AlertDialog, Button } from "@heroui/react";
 import { getSeatPlan, seatPriceUsd, type SeatPlanId } from "@captureflow/quota";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { switchPlanAction } from "./actions";
 
 export function SwitchPlanButton({
@@ -37,51 +45,43 @@ export function SwitchPlanButton({
 
   return (
     <>
-      <Button
-        variant="primary"
-        className="shrink-0"
-        onPress={() => setOpen(true)}
-      >
+      <Button className="shrink-0" onClick={() => setOpen(true)}>
         <Sparkles size={16} />
         Switch to {target.name}
       </Button>
-      <AlertDialog isOpen={isOpen} onOpenChange={setOpen}>
-        <AlertDialog.Backdrop>
-          <AlertDialog.Container size="sm">
-            <AlertDialog.Dialog>
-              <AlertDialog.Header>
-                <AlertDialog.Heading>
-                  Switch to {target.name}?
-                </AlertDialog.Heading>
-              </AlertDialog.Header>
-              <AlertDialog.Body className="flex flex-col gap-2 text-sm text-fg">
-                <p>
-                  Your {seats} {seatWord} go from ${before} to ${after} a month
-                  {cycle === "annual" ? ", billed yearly" : ""}. {target.name}{" "}
-                  records at every quality up to 60 fps and adds AI editing.
-                </p>
-                <p className="text-fg-muted">
-                  It starts now. The difference for the rest of this billing
-                  period is added to your next invoice.
-                </p>
-                {error && <p className="text-danger">{error}</p>}
-              </AlertDialog.Body>
-              <AlertDialog.Footer className="flex justify-end gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  isDisabled={pending}
-                  onPress={() => setOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button size="sm" isDisabled={pending} onPress={confirm}>
-                  Switch to {target.name}
-                </Button>
-              </AlertDialog.Footer>
-            </AlertDialog.Dialog>
-          </AlertDialog.Container>
-        </AlertDialog.Backdrop>
+      <AlertDialog open={isOpen} onOpenChange={setOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Switch to {target.name}?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogDescription asChild>
+            <div className="flex flex-col gap-2 text-sm text-fg">
+              <p>
+                Your {seats} {seatWord} go from ${before} to ${after} a month
+                {cycle === "annual" ? ", billed yearly" : ""}. {target.name}{" "}
+                records at every quality up to 60 fps and adds AI editing.
+              </p>
+              <p className="text-fg-muted">
+                It starts now. The difference for the rest of this billing
+                period is added to your next invoice.
+              </p>
+              {error && <p className="text-destructive">{error}</p>}
+            </div>
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={pending}
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button size="sm" disabled={pending} onClick={confirm}>
+              Switch to {target.name}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </>
   );

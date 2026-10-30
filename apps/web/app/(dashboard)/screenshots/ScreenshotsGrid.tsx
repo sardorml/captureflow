@@ -1,6 +1,8 @@
 "use client";
 
-import { Card, Chip, EmptyState } from "@heroui/react";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Empty } from "@/components/ui/empty";
 import { ListToolbar } from "../../_components/ListToolbar";
 import { MediaCard } from "../../_components/MediaCard";
 import { SelectionBar, useSelection } from "../../_components/selection";
@@ -69,11 +71,11 @@ export function ScreenshotsGrid({
       <>
         {toolbar}
         <Card className="mt-6 p-6">
-          <EmptyState className="text-center text-sm text-fg-muted">
+          <Empty className="p-0 text-center text-sm text-fg-muted">
             {isFiltered(filters)
               ? "No screenshots match these filters."
               : "No screenshots yet. Open CaptureFlow \u2192 Screenshot tab \u2192 pick a Display, Window, or Area to capture. Your screenshot appears here automatically."}
-          </EmptyState>
+          </Empty>
         </Card>
       </>
     );
@@ -152,12 +154,9 @@ function ScreenshotCard({
         height={screenshot.height}
         className="h-full w-full object-cover"
       />
-      <Chip
-        size="sm"
-        className="absolute right-2 bottom-2 border-none bg-black/75 text-white"
-      >
+      <Badge className="absolute right-2 bottom-2 border-none bg-black/75 text-white">
         {screenshot.width}×{screenshot.height}
-      </Chip>
+      </Badge>
     </>
   );
 

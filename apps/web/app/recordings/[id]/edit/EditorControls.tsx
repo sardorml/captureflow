@@ -160,7 +160,7 @@ export function BackgroundPicker({
 const SWATCH_CLASS =
   "relative flex aspect-square items-center justify-center rounded-md ring-1 ring-line transition-shadow hover:ring-line-strong";
 const SWATCH_SELECTED_CLASS =
-  "ring-2 ring-accent ring-offset-2 ring-offset-panel hover:ring-accent";
+  "ring-2 ring-primary ring-offset-2 ring-offset-panel hover:ring-primary";
 
 function SwatchGroup({
   label,
@@ -424,7 +424,7 @@ function CameraPad({
               "absolute aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed transition-colors",
               active
                 ? "border-transparent"
-                : "border-line-strong hover:border-accent hover:bg-accent-soft",
+                : "border-line-strong hover:border-primary hover:bg-primary/10",
             )}
             style={{
               width: `${fraction * 100}%`,
@@ -435,7 +435,7 @@ function CameraPad({
         );
       })}
       <div
-        className="pointer-events-none absolute aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-accent shadow-sm"
+        className="pointer-events-none absolute aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-primary shadow-sm"
         style={{
           width: `${fraction * 100}%`,
           left: `${shown.x * 100}%`,
@@ -473,7 +473,7 @@ function OptionRow<T extends string>({
               className={cn(
                 "rounded-full px-2.5 py-1 text-xs transition-colors",
                 on
-                  ? "bg-accent-soft text-accent"
+                  ? "bg-primary/10 text-accent-strong"
                   : "text-fg-muted hover:text-fg",
               )}
             >
@@ -513,7 +513,7 @@ function ToggleRow({
       <span
         className={cn(
           "inline-flex items-center gap-1 text-xs",
-          on ? "text-accent" : "text-fg-muted",
+          on ? "text-accent-strong" : "text-fg-muted",
         )}
       >
         {on ? (

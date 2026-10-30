@@ -1,6 +1,10 @@
 "use client";
 
-import { Input, Label, Radio, RadioGroup, TextField } from "@heroui/react";
+import { useId } from "react";
+import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { LANDING_FORM_FIELDS } from "./form-parts";
 import { useMessages } from "./i18n-provider";
@@ -15,18 +19,24 @@ export function SeatsField({
   onChange: (seats: number) => void;
 }) {
   const copy = useMessages().pricing.controls;
+  const inputId = useId();
   return (
-    <TextField
-      type="number"
-      value={String(seats)}
-      onChange={(v) => {
-        const n = Number.parseInt(v, 10);
-        onChange(Number.isFinite(n) ? Math.min(MAX_SEATS, Math.max(1, n)) : 1);
-      }}
+    <div
       className={cn("flex flex-row items-center gap-3", LANDING_FORM_FIELDS)}
     >
-      <Label className="text-base font-semibold text-fg">{copy.teamSize}</Label>
+      <Label htmlFor={inputId} className="text-base font-semibold text-fg">
+        {copy.teamSize}
+      </Label>
       <Input
+        id={inputId}
+        type="number"
+        value={String(seats)}
+        onChange={(e) => {
+          const n = Number.parseInt(e.target.value, 10);
+          onChange(
+            Number.isFinite(n) ? Math.min(MAX_SEATS, Math.max(1, n)) : 1,
+          );
+        }}
         min={1}
         max={MAX_SEATS}
         inputMode="numeric"
@@ -34,7 +44,7 @@ export function SeatsField({
         className="w-24 text-center tabular-nums"
       />
       <span className="text-base text-fg-muted">{copy.members}</span>
-    </TextField>
+    </div>
   );
 }
 
@@ -51,35 +61,29 @@ export function RadioChoice<T extends string>({
   onChange: (value: T) => void;
   trailing?: React.ReactNode;
 }) {
+  const labelId = useId();
   return (
     <RadioGroup
       value={value}
-      onChange={(v) => onChange(v as T)}
+      onValueChange={(v) => onChange(v as T)}
       orientation="horizontal"
-      className="flex-row items-center gap-3"
+      aria-labelledby={labelId}
+      className="flex w-auto flex-row flex-wrap items-center gap-3"
     >
-      <Label className="text-base font-semibold text-fg">{label}</Label>
+      <Label id={labelId} className="text-base font-semibold text-fg">
+        {label}
+      </Label>
       {options.map((o) => (
-        <Radio key={o.key} value={o.key}>
-          {({ isSelected }) => (
-            <Radio.Content className="flex cursor-pointer items-center gap-2 text-base text-fg">
-              <span
-                className={cn(
-                  "flex size-5 items-center justify-center rounded-full border-2 transition-colors motion-reduce:transition-none",
-                  isSelected ? "border-accent" : "border-fg/60",
-                )}
-              >
-                <span
-                  className={cn(
-                    "size-2.5 rounded-full bg-accent transition-transform motion-reduce:transition-none",
-                    isSelected ? "scale-100" : "scale-0",
-                  )}
-                />
-              </span>
-              {o.label}
-            </Radio.Content>
-          )}
-        </Radio>
+        <RadioGroupPrimitive.Item
+          key={o.key}
+          value={o.key}
+          className="group flex cursor-pointer items-center gap-2 rounded-sm text-base text-fg outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        >
+          <span className="flex size-5 items-center justify-center rounded-full border-2 border-fg/60 transition-colors group-data-[state=checked]:border-primary motion-reduce:transition-none">
+            <span className="size-2.5 scale-0 rounded-full bg-primary transition-transform group-data-[state=checked]:scale-100 motion-reduce:transition-none" />
+          </span>
+          {o.label}
+        </RadioGroupPrimitive.Item>
       ))}
       {trailing}
     </RadioGroup>

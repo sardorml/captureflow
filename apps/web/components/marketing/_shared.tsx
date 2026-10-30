@@ -1,7 +1,6 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { Typography } from "@heroui/react";
 
 // Shared layout + type primitives so every marketing section keeps one rhythm: a
 // wide centered column, consistent vertical padding, and ONE heading/subtitle
@@ -86,16 +85,12 @@ export function SectionHeading({
   align?: "center" | "left";
   level?: HeadingLevel;
 }) {
-  /* HeroUI's Typography always emits its own text-align, so the wrapper's
-     value has to be handed to each child rather than inherited. */
-  const heroUiAlign = align === "center" ? "center" : "start";
+  const Heading = level === 1 ? "h1" : "h2";
 
   return (
     <div style={{ textAlign: align, marginBottom: 48 }}>
-      <Typography.Heading
-        align={heroUiAlign}
-        level={level}
-        className="text-balance"
+      <Heading
+        className="font-heading text-balance text-foreground"
         style={{ ...SECTION_TITLE_STYLE, marginBottom: subtitle ? 16 : 0 }}
       >
         {title}
@@ -105,10 +100,10 @@ export function SectionHeading({
             <span className="text-fg-muted">{titleMuted}</span>
           </>
         ) : null}
-      </Typography.Heading>
+      </Heading>
       {subtitle ? (
-        <Typography.Paragraph
-          align={heroUiAlign}
+        <p
+          className="text-base leading-7 text-foreground"
           style={{
             ...SECTION_SUBTITLE_STYLE,
             maxWidth: 720,
@@ -116,7 +111,7 @@ export function SectionHeading({
           }}
         >
           {subtitle}
-        </Typography.Paragraph>
+        </p>
       ) : null}
     </div>
   );

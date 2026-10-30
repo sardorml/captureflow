@@ -30,7 +30,8 @@ import Konva from "konva";
 // Side-effect import: without it `Konva.Filters.Blur` is undefined and the
 // blur tool silently no-ops (the cached node gets filters=[undefined]).
 import "konva/lib/filters/Blur";
-import { Button, Spinner } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { AnimatedTooltip } from "@/lib/animated-tooltip";
 import type { ScreenshotEditorProps } from "./ScreenshotEditor";
 import { renameScreenshotAction, saveScreenshotAction } from "../../../actions";
@@ -961,12 +962,11 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
             <Redo2 className="h-5 w-5" />
           </IconButton>
           <Button
-            variant="primary"
-            onPress={handleSave}
-            isDisabled={saving || !image}
+            onClick={handleSave}
+            disabled={saving || !image}
             className="ml-2"
           >
-            {saving ? <Spinner size="sm" color="current" /> : null}
+            {saving ? <Spinner /> : null}
             Finish
           </Button>
         </div>
@@ -1020,7 +1020,7 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
           className="flex min-h-0 min-w-0 flex-1 items-center justify-center"
         >
           {!image ? (
-            <Spinner size="lg" />
+            <Spinner className="size-6" />
           ) : (
             <div
               className="rounded-lg"
@@ -1749,7 +1749,7 @@ function ElementInspector({
         <button
           type="button"
           onClick={onDelete}
-          className="rounded-md p-1.5 text-fg-muted hover:bg-danger-soft hover:text-danger"
+          className="rounded-md p-1.5 text-fg-muted hover:bg-destructive/10 hover:text-destructive"
           title="Delete"
         >
           <Trash2 className="h-4 w-4" />

@@ -1,6 +1,7 @@
-import { Button, Card, Typography } from "@heroui/react";
 import { Sparkles } from "lucide-react";
 import { getSeatPlan } from "@captureflow/quota";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import type { WorkspaceSeatContext } from "@/lib/billing/seats";
 import { UpgradeModal } from "../UpgradeModal";
 
@@ -37,14 +38,14 @@ export function SeatSummary({
   return (
     <Card className="flex flex-row flex-wrap items-center justify-between gap-4 p-4">
       <div className="min-w-0">
-        <Typography weight="semibold">
+        <p className="text-base leading-7 font-semibold text-foreground">
           {paid
             ? `${entitlement.plan ? getSeatPlan(entitlement.plan).name : "Paid"} plan`
             : "Free plan"}
-        </Typography>
-        <Typography type="body-sm" color="muted" className="mt-0.5 block">
+        </p>
+        <p className="mt-0.5 block text-sm leading-6 text-muted-foreground">
           {line}
-        </Typography>
+        </p>
       </div>
       {offer && isOwner ? (
         <UpgradeModal
@@ -52,7 +53,7 @@ export function SeatSummary({
           userId={userId}
           seat={offer}
           trigger={
-            <Button variant="primary" size="sm">
+            <Button size="sm">
               <Sparkles size={14} />
               Upgrade workspace
             </Button>

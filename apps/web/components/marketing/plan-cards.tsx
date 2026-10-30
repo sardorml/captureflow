@@ -161,7 +161,7 @@ function PricingControls({
         options={cycles}
         onChange={onCycleChange}
         trailing={
-          <span className="inline-flex items-center rounded bg-accent/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
+          <span className="inline-flex items-center rounded bg-primary/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent-strong uppercase">
             {fill(copy.save, { percent: SEAT_ANNUAL_SAVING_PERCENT })}
           </span>
         }
@@ -211,7 +211,7 @@ function PlanCard({
         )}
       >
         {badge && (
-          <span className="inline-flex items-center rounded bg-accent/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
+          <span className="inline-flex items-center rounded bg-primary/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent-strong uppercase">
             {badge}
           </span>
         )}
@@ -251,7 +251,7 @@ function PlanCard({
         className={cn(
           "mt-5 inline-flex h-11 w-fit shrink-0 items-center justify-center rounded-[10px] px-6 text-sm font-semibold transition-colors motion-reduce:transition-none",
           highlighted
-            ? "bg-accent text-white hover:bg-accent/90"
+            ? "bg-primary text-white hover:bg-primary/90"
             : "bg-fg-strong/10 text-fg-strong hover:bg-fg-strong/15",
         )}
       >

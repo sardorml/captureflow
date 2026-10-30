@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Terminal, Package } from "lucide-react";
-import { Card } from "@heroui/react";
+import { Card } from "@/components/ui/card";
 import { Title, Paragraph } from "@/components/marketing/typography";
 import { MarketingPage } from "@/components/marketing/marketing-page";
 import { DownloadHero } from "@/components/marketing/download-hero";
@@ -47,7 +47,7 @@ export default function DownloadPage() {
               rel="noreferrer"
               className="block h-full"
             >
-              <Card className="h-full p-5 transition-colors hover:bg-tint">
+              <Card className="h-full gap-0 p-5 transition-colors hover:bg-tint">
                 <div className="flex items-start justify-between text-fg-muted">
                   <Icon size={22} />
                   <ArrowUpRight size={16} />

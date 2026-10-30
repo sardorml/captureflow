@@ -1,4 +1,4 @@
-import { Skeleton } from "@heroui/react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PanelLeft } from "lucide-react";
 import { AppIcon } from "@/components/brand-mark";
 import { PRODUCT_NAME } from "@/lib/site";

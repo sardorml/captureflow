@@ -10,19 +10,22 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Copy } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
-  Avatar,
-  Button,
-  Description,
+  Field,
+  FieldDescription,
   FieldError,
-  Form,
-  Input,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
   InputGroup,
-  Label,
-  Spinner,
-  TextField,
-  Typography,
-} from "@heroui/react";
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import {
   removeUserAvatarAction,
@@ -120,9 +123,9 @@ function AvatarField({
 
   return (
     <div>
-      <Typography type="body-sm" weight="medium" className="mb-2 block">
+      <p className="mb-2 block text-sm leading-6 font-medium text-foreground">
         Avatar
-      </Typography>
+      </p>
       <input
         ref={fileRef}
         type="file"
@@ -139,16 +142,16 @@ function AvatarField({
             imageUrl ? undefined : { backgroundColor: avatarColor(userId) }
           }
         >
-          {imageUrl && <Avatar.Image src={imageUrl} alt={name || email} />}
-          <Avatar.Fallback>{initials(name, email)}</Avatar.Fallback>
+          {imageUrl && <AvatarImage src={imageUrl} alt={name || email} />}
+          <AvatarFallback>{initials(name, email)}</AvatarFallback>
         </Avatar>
         <div className="flex min-w-0 flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-2">
             <Button
-              variant="tertiary"
+              variant="ghost"
               size="sm"
-              isDisabled={busy}
-              onPress={() => fileRef.current?.click()}
+              disabled={busy}
+              onClick={() => fileRef.current?.click()}
             >
               {uploading ? "Uploading…" : "Change avatar"}
             </Button>
@@ -156,19 +159,19 @@ function AvatarField({
               <Button
                 variant="ghost"
                 size="sm"
-                onPress={onRemove}
-                isDisabled={busy}
+                onClick={onRemove}
+                disabled={busy}
               >
                 {removePending ? "Removing…" : "Remove"}
               </Button>
             )}
           </div>
           {error ? (
-            <span className="text-danger text-xs">{error}</span>
+            <span className="text-destructive text-xs">{error}</span>
           ) : (
-            <Typography type="body-xs" color="muted">
+            <p className="text-xs leading-5 text-muted-foreground">
               {AVATAR_HINT}
-            </Typography>
+            </p>
           )}
         </div>
       </div>
@@ -232,72 +235,85 @@ function AccountFields({
   };
 
   return (
-    <Form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
       {/* Name and email pair up on one row; the id spans both since it is long
           enough to wrap in half the width. */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField
-          name="name"
-          isInvalid={Boolean(error)}
-          fullWidth
-          value={name}
-          onChange={(next) => {
-            setName(next);
-            if (error) setError(null);
-          }}
-        >
-          <Label>Full name</Label>
-          <Input placeholder="Your name" autoComplete="name" />
+        <Field data-invalid={Boolean(error) || undefined}>
+          <FieldLabel htmlFor="account-name">Full name</FieldLabel>
+          <Input
+            id="account-name"
+            name="name"
+            placeholder="Your name"
+            autoComplete="name"
+            aria-invalid={Boolean(error) || undefined}
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (error) setError(null);
+            }}
+          />
           {error ? (
             <FieldError>{error}</FieldError>
           ) : (
-            <Description>
+            <FieldDescription>
               Shown on recordings, screenshots, and activity rows.
-            </Description>
+            </FieldDescription>
           )}
-        </TextField>
+        </Field>
 
-        <TextField name="email" fullWidth value={email} isReadOnly>
-          <Label>Email address</Label>
-          <Input type="email" readOnly />
-          <Description>Used to sign in. Contact support to change.</Description>
-        </TextField>
+        <Field>
+          <FieldLabel htmlFor="account-email">Email address</FieldLabel>
+          <Input
+            id="account-email"
+            name="email"
+            type="email"
+            value={email}
+            readOnly
+          />
+          <FieldDescription>
+            Used to sign in. Contact support to change.
+          </FieldDescription>
+        </Field>
       </div>
 
-      <TextField name="userId" fullWidth value={userId} isReadOnly>
-        <Label>User ID</Label>
+      <Field>
+        <FieldLabel htmlFor="account-user-id">User ID</FieldLabel>
         <InputGroup>
-          <InputGroup.Input readOnly />
-          <InputGroup.Suffix>
-            <Button
-              variant="ghost"
-              size="sm"
-              isIconOnly
+          <InputGroupInput
+            id="account-user-id"
+            name="userId"
+            value={userId}
+            readOnly
+          />
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton
+              size="icon-sm"
               aria-label={copied ? "Copied" : "Copy user ID"}
-              onPress={() => {
+              onClick={() => {
                 void navigator.clipboard
                   ?.writeText(userId)
                   .then(() => setCopied(true));
               }}
             >
               {copied ? <Check size={14} /> : <Copy size={14} />}
-            </Button>
-          </InputGroup.Suffix>
+            </InputGroupButton>
+          </InputGroupAddon>
         </InputGroup>
-        <Description>Quote this when contacting support.</Description>
-      </TextField>
+        <FieldDescription>Quote this when contacting support.</FieldDescription>
+      </Field>
 
       <div className="flex items-center gap-3">
-        <Button variant="primary" type="submit" isDisabled={!dirty || pending}>
-          {pending && <Spinner size="sm" color="current" />}
+        <Button type="submit" disabled={!dirty || pending}>
+          {pending && <Spinner />}
           {pending ? "Saving…" : "Save changes"}
         </Button>
         {savedAt && (
-          <span className="text-success inline-flex items-center gap-1">
+          <span className="text-emerald-500 inline-flex items-center gap-1">
             <Check className="h-3.5 w-3.5" /> Saved
           </span>
         )}
       </div>
-    </Form>
+    </form>
   );
 }

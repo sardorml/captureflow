@@ -1,8 +1,17 @@
 "use client";
 
-import { Checkbox, Dropdown, Label, buttonVariants } from "@heroui/react";
 import { Check, ChevronDown } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useId } from "react";
+import { buttonVariants } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
 import {
   ACCESS_FILTERS,
   ACCESS_LABELS,
@@ -33,6 +42,7 @@ export function ListToolbar({ noun, filters, selectAll }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const selectAllId = useId();
 
   const setFilter = (key: keyof ListFilters, value: string): void => {
     const params = new URLSearchParams(searchParams);
@@ -46,22 +56,23 @@ export function ListToolbar({ noun, filters, selectAll }: Props) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       {selectAll && selectAll.total > 0 ? (
-        <Checkbox
-          isSelected={selectAll.selected === selectAll.total}
-          isIndeterminate={
-            selectAll.selected > 0 && selectAll.selected < selectAll.total
-          }
-          onChange={selectAll.onChange}
-        >
-          <Checkbox.Content>
-            <Checkbox.Control className="size-[18px] border-black/[0.12] bg-[var(--default)] dark:border-white/[0.14]">
-              <Checkbox.Indicator />
-            </Checkbox.Control>
-            <Label className="text-sm font-normal text-fg">
-              Select all {noun}s
-            </Label>
-          </Checkbox.Content>
-        </Checkbox>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id={selectAllId}
+            className="size-[18px]"
+            checked={
+              selectAll.selected === selectAll.total
+                ? true
+                : selectAll.selected > 0
+                  ? "indeterminate"
+                  : false
+            }
+            onCheckedChange={(next) => selectAll.onChange(next === true)}
+          />
+          <Label htmlFor={selectAllId} className="text-sm font-normal text-fg">
+            Select all {noun}s
+          </Label>
+        </div>
       ) : (
         <span />
       )}
@@ -99,8 +110,8 @@ function FilterMenu<T extends string>({
   onPick: (value: T) => void;
 }) {
   return (
-    <Dropdown>
-      <Dropdown.Trigger
+    <DropdownMenu>
+      <DropdownMenuTrigger
         aria-label={`${label}: ${labels[value]}`}
         className={cn(
           buttonVariants({ variant: "secondary", size: "sm" }),
@@ -109,22 +120,24 @@ function FilterMenu<T extends string>({
       >
         {labels[value]}
         <ChevronDown size={14} className="text-fg-muted" />
-      </Dropdown.Trigger>
-      <Dropdown.Popover placement="bottom end" className="min-w-48">
-        <Dropdown.Menu
-          aria-label={label}
-          onAction={(key) => onPick(String(key) as T)}
-        >
-          {options.map((option) => (
-            <Dropdown.Item key={option} id={option} textValue={labels[option]}>
-              <span className="flex-1">{labels[option]}</span>
-              {option === value ? (
-                <Check size={14} className="text-fg" />
-              ) : null}
-            </Dropdown.Item>
-          ))}
-        </Dropdown.Menu>
-      </Dropdown.Popover>
-    </Dropdown>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="bottom"
+        align="end"
+        aria-label={label}
+        className="w-auto min-w-48"
+      >
+        {options.map((option) => (
+          <DropdownMenuItem
+            key={option}
+            textValue={labels[option]}
+            onSelect={() => onPick(option)}
+          >
+            <span className="flex-1">{labels[option]}</span>
+            {option === value ? <Check size={14} className="text-fg" /> : null}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

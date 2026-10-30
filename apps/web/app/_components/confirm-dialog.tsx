@@ -1,7 +1,15 @@
 "use client";
 
-import { Button, Modal } from "@heroui/react";
 import { useCallback, useRef, useState, type ReactElement } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export type ConfirmOptions = {
   title: string;
@@ -68,34 +76,28 @@ function ConfirmDialog({
   onConfirm: () => void;
 }): ReactElement {
   return (
-    <Modal isOpen={open} onOpenChange={(next) => !next && onCancel()}>
-      <Modal.Backdrop>
-        <Modal.Container size="sm">
-          <Modal.Dialog>
-            <Modal.Header>
-              <Modal.Heading>{title}</Modal.Heading>
-            </Modal.Header>
-            {description ? (
-              <Modal.Body>
-                <p className="text-sm text-fg-muted">{description}</p>
-              </Modal.Body>
-            ) : null}
-            <Modal.Footer>
-              <Button variant="ghost" onPress={onCancel}>
-                {cancelLabel}
-              </Button>
-              {/* autoFocus on the destructive action would make Enter delete;
-                  the cancel path is the safe default for a keyboard user. */}
-              <Button
-                variant={destructive ? "danger" : "primary"}
-                onPress={onConfirm}
-              >
-                {confirmLabel}
-              </Button>
-            </Modal.Footer>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+    <Dialog open={open} onOpenChange={(next) => !next && onCancel()}>
+      <DialogContent showCloseButton={false} className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          {description ? (
+            <DialogDescription>{description}</DialogDescription>
+          ) : null}
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onCancel}>
+            {cancelLabel}
+          </Button>
+          {/* autoFocus on the destructive action would make Enter delete;
+              the cancel path is the safe default for a keyboard user. */}
+          <Button
+            variant={destructive ? "destructive" : "default"}
+            onClick={onConfirm}
+          >
+            {confirmLabel}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useId, useState, type FormEvent, type ReactNode } from "react";
 import {
   CalendarCheck,
   CheckCircle2,
@@ -14,17 +14,12 @@ import {
   Wand2,
 } from "lucide-react";
 import NextLink from "next/link";
-import {
-  Alert,
-  Button,
-  Form,
-  Input,
-  Label,
-  Spinner,
-  TextArea,
-  TextField,
-  buttonVariants,
-} from "@heroui/react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { submitEnterpriseRequestAction } from "@/app/enterprise/actions";
 import { SUPPORT_EMAIL } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
@@ -212,6 +207,7 @@ export function EnterpriseSection() {
 function EnterpriseForm() {
   const copy = useMessages().enterprise.form;
   const lh = useLocalizedHref();
+  const id = useId();
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -242,14 +238,14 @@ function EnterpriseForm() {
   if (sentTo) {
     return (
       <div className="flex h-full flex-col items-center justify-center py-10 text-center">
-        <CheckCircle2 size={44} className="text-success" />
+        <CheckCircle2 size={44} className="text-emerald-500" />
         <p className="mt-4 text-xl font-semibold text-fg">{copy.sentTitle}</p>
         <p className="mt-2 max-w-80 text-sm text-fg-muted">
           {copy.sentBody.replace("{email}", sentTo)}
         </p>
         <NextLink
           href={lh("/")}
-          className={buttonVariants({ variant: "tertiary", className: "mt-6" })}
+          className={cn(buttonVariants({ variant: "ghost" }), "mt-6")}
         >
           {copy.back}
         </NextLink>
@@ -260,32 +256,43 @@ function EnterpriseForm() {
   const [errorBefore, errorAfter] = copy.error.split("{email}");
 
   return (
-    <Form
+    <form
       onSubmit={onSubmit}
-      validationBehavior="native"
       className={cn("flex flex-col gap-4", LANDING_FORM_FIELDS)}
     >
-      <TextField name="company" isRequired fullWidth>
-        <Label>{copy.company}</Label>
+      <Field>
+        <FieldLabel htmlFor={`${id}-company`}>{copy.company}</FieldLabel>
         <Input
+          id={`${id}-company`}
+          name="company"
+          required
           placeholder={copy.companyPlaceholder}
           autoComplete="organization"
         />
-      </TextField>
+      </Field>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField name="name" isRequired fullWidth>
-          <Label>{copy.name}</Label>
-          <Input placeholder={copy.namePlaceholder} autoComplete="name" />
-        </TextField>
-        <TextField name="email" type="email" isRequired fullWidth>
-          <Label>{copy.email}</Label>
+        <Field>
+          <FieldLabel htmlFor={`${id}-name`}>{copy.name}</FieldLabel>
           <Input
+            id={`${id}-name`}
+            name="name"
+            required
+            placeholder={copy.namePlaceholder}
+            autoComplete="name"
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${id}-email`}>{copy.email}</FieldLabel>
+          <Input
+            id={`${id}-email`}
+            name="email"
             type="email"
+            required
             placeholder={copy.emailPlaceholder}
             autoComplete="email"
           />
-        </TextField>
+        </Field>
       </div>
 
       <PillChoice name="need" label={copy.need} options={copy.needs} />
@@ -300,10 +307,15 @@ function EnterpriseForm() {
         options={copy.storageOptions}
       />
 
-      <TextField name="notes" fullWidth>
-        <Label>{copy.notes}</Label>
-        <TextArea placeholder={copy.notesPlaceholder} rows={3} />
-      </TextField>
+      <Field>
+        <FieldLabel htmlFor={`${id}-notes`}>{copy.notes}</FieldLabel>
+        <Textarea
+          id={`${id}-notes`}
+          name="notes"
+          placeholder={copy.notesPlaceholder}
+          rows={3}
+        />
+      </Field>
 
       <input
         type="text"
@@ -314,28 +326,20 @@ function EnterpriseForm() {
         className="hidden"
       />
 
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        fullWidth
-        isDisabled={loading}
-      >
-        {loading && <Spinner size="sm" color="current" />}
+      <Button type="submit" size="lg" className="w-full" disabled={loading}>
+        {loading && <Spinner className="size-4" />}
         {copy.submit}
       </Button>
 
       {error && (
-        <Alert status="danger">
-          <Alert.Content>
-            <Alert.Description>
-              {errorBefore}
-              <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
-              {errorAfter}
-            </Alert.Description>
-          </Alert.Content>
+        <Alert variant="destructive">
+          <AlertDescription>
+            {errorBefore}
+            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+            {errorAfter}
+          </AlertDescription>
         </Alert>
       )}
-    </Form>
+    </form>
   );
 }

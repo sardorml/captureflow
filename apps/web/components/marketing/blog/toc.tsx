@@ -45,7 +45,7 @@ export function TableOfContents({ items }: { items: TocItem[] }) {
               className={cn(
                 "-ml-px block border-l-2 py-1.5 pl-4 transition-colors",
                 active
-                  ? "border-accent font-medium text-fg"
+                  ? "border-primary font-medium text-fg"
                   : "border-transparent text-fg-muted hover:text-fg",
               )}
             >

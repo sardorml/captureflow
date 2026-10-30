@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Camera,
+  ChevronRight,
   ExternalLink,
   LayoutDashboard,
   Link2,
@@ -13,9 +14,23 @@ import {
   Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from "@/components/ui/sidebar";
 import { openSupportChat } from "@/components/marketing/support-chat";
 import { SUPPORT_EMAIL } from "@/lib/site";
-import { cn } from "@/lib/utils";
 
 type NavLink = {
   href: string;
@@ -26,19 +41,17 @@ type NavLink = {
   onOpen?: () => void;
 };
 
-const ICON = 18;
-
 const CAPTURE_LINKS: NavLink[] = [
   {
     href: "/dashboard",
-    icon: <LayoutDashboard size={ICON} />,
+    icon: <LayoutDashboard />,
     label: "Dashboard",
   },
-  { href: "/recordings", icon: <Link2 size={ICON} />, label: "Recordings" },
-  { href: "/screenshots", icon: <Camera size={ICON} />, label: "Screenshots" },
+  { href: "/recordings", icon: <Link2 />, label: "Recordings" },
+  { href: "/screenshots", icon: <Camera />, label: "Screenshots" },
   {
     href: "/canvas",
-    icon: <PenLine size={ICON} />,
+    icon: <PenLine />,
     label: "Canvas",
     external: true,
     newTab: true,
@@ -48,13 +61,13 @@ const CAPTURE_LINKS: NavLink[] = [
 // Members is for everyone: the page already draws itself for both roles.
 const MEMBERS_LINK: NavLink = {
   href: "/members",
-  icon: <Users size={ICON} />,
+  icon: <Users />,
   label: "Members",
 };
 
 const SETTINGS_LINK: NavLink = {
   href: "/settings",
-  icon: <Settings size={ICON} />,
+  icon: <Settings />,
   label: "Settings",
 };
 
@@ -72,7 +85,7 @@ const BILLING_LINK: NavLink = { href: "/billing", label: "Billing" };
 // href covers a click before hydration. A self-hosted instance has its own support.
 const SUPPORT_LINK: NavLink = {
   href: `mailto:${SUPPORT_EMAIL}`,
-  icon: <MessageSquare size={ICON} />,
+  icon: <MessageSquare />,
   label: "Contact support",
   external: true,
   onOpen: openSupportChat,
@@ -89,13 +102,6 @@ export function SidebarNav({
   const isActive = (link: NavLink) =>
     !link.external &&
     (pathname === link.href || pathname.startsWith(link.href + "/"));
-  const group = (links: NavLink[]) => (
-    <ul className="flex flex-col gap-0.5">
-      {links.map((link) => (
-        <NavItem key={link.href} link={link} active={isActive(link)} />
-      ))}
-    </ul>
-  );
 
   const settingsLinks = [
     PERSONAL_LINK,
@@ -104,91 +110,80 @@ export function SidebarNav({
   ];
 
   return (
-    <nav className="flex flex-col px-3">
-      {group(CAPTURE_LINKS)}
-      <Divider />
-      <ul className="flex flex-col gap-0.5">
-        <NavItem link={MEMBERS_LINK} active={isActive(MEMBERS_LINK)} />
-        {/* The parent never lights up on its own: /settings redirects to a
-            child, and the child row carries the highlight. */}
-        <NavItem link={SETTINGS_LINK} active={false} />
-        <li>
-          <ul className="ml-[21px] flex flex-col gap-0.5 border-l border-line pl-2">
-            {settingsLinks.map((link) => (
-              <NavItem
-                key={link.href}
-                link={link}
-                active={isActive(link)}
-                nested
-              />
-            ))}
-          </ul>
-        </li>
-      </ul>
-      {!selfHosted && (
-        <>
-          <Divider />
-          {group([SUPPORT_LINK])}
-        </>
-      )}
-    </nav>
+    <>
+      <SidebarGroup>
+        <SidebarMenu>
+          {CAPTURE_LINKS.map((link) => (
+            <NavItem key={link.href} link={link} active={isActive(link)} />
+          ))}
+        </SidebarMenu>
+      </SidebarGroup>
+      <SidebarGroup>
+        <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+        <SidebarMenu>
+          <NavItem link={MEMBERS_LINK} active={isActive(MEMBERS_LINK)} />
+          <Collapsible asChild defaultOpen className="group/collapsible">
+            <SidebarMenuItem>
+              <CollapsibleTrigger asChild>
+                <SidebarMenuButton tooltip={SETTINGS_LINK.label}>
+                  {SETTINGS_LINK.icon}
+                  <span>{SETTINGS_LINK.label}</span>
+                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                </SidebarMenuButton>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarMenuSub>
+                  {settingsLinks.map((link) => (
+                    <SidebarMenuSubItem key={link.href}>
+                      <SidebarMenuSubButton asChild isActive={isActive(link)}>
+                        <Link href={link.href}>
+                          <span>{link.label}</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  ))}
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            </SidebarMenuItem>
+          </Collapsible>
+          {!selfHosted && <NavItem link={SUPPORT_LINK} active={false} />}
+        </SidebarMenu>
+      </SidebarGroup>
+    </>
   );
 }
 
-function Divider() {
-  return <hr className="my-2 border-line" />;
-}
-
-function NavItem({
-  link,
-  active,
-  nested = false,
-}: {
-  link: NavLink;
-  active: boolean;
-  nested?: boolean;
-}) {
-  const className = cn(
-    "flex items-center gap-3 rounded-lg px-3 transition-colors",
-    nested ? "h-8 text-sm" : "h-9 text-[15px]",
-    active ? "bg-accent-soft font-medium text-accent" : "text-fg hover:bg-tint",
-  );
-  if (link.external) {
-    return (
-      <li>
-        <a
-          href={link.href}
-          target={link.newTab ? "_blank" : undefined}
-          rel={link.newTab ? "noopener noreferrer" : undefined}
-          onClick={
-            link.onOpen
-              ? (event) => {
-                  event.preventDefault();
-                  link.onOpen?.();
-                }
-              : undefined
-          }
-          className={className}
-        >
-          {link.icon}
-          {link.label}
-          {link.newTab && (
-            <ExternalLink size={16} className="ml-auto text-fg-subtle" />
-          )}
-        </a>
-      </li>
-    );
-  }
+function NavItem({ link, active }: { link: NavLink; active: boolean }) {
   return (
-    <li>
-      <Link
-        href={link.href}
-        aria-current={active ? "page" : undefined}
-        className={className}
-      >
-        {link.icon}
-        {link.label}
-      </Link>
-    </li>
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={active} tooltip={link.label}>
+        {link.external ? (
+          <a
+            href={link.href}
+            target={link.newTab ? "_blank" : undefined}
+            rel={link.newTab ? "noopener noreferrer" : undefined}
+            onClick={
+              link.onOpen
+                ? (event) => {
+                    event.preventDefault();
+                    link.onOpen?.();
+                  }
+                : undefined
+            }
+          >
+            {link.icon}
+            <span>{link.label}</span>
+            {link.newTab && (
+              <ExternalLink className="ml-auto text-muted-foreground" />
+            )}
+          </a>
+        ) : (
+          <Link href={link.href} aria-current={active ? "page" : undefined}>
+            {link.icon}
+            <span>{link.label}</span>
+          </Link>
+        )}
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
 }

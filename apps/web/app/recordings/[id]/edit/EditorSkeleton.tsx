@@ -1,6 +1,6 @@
 "use client";
 
-import { Skeleton } from "@heroui/react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PosterLayer } from "@/app/_components/recording/PosterLayer";
 
 // Stands in for the editor while its chunk loads: the same bar, stage,

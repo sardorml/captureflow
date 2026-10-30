@@ -2,13 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Captions, Check, Copy, Pencil, Search } from "lucide-react";
-import {
-  Button,
-  Input,
-  Spinner,
-  TextField,
-  buttonVariants,
-} from "@heroui/react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { formatTimestamp } from "@/lib/format";
 import type { RecordingCut } from "@/lib/recording/cuts";
 import { activeSegmentId, isSegmentCut } from "@/lib/recording/transcript";
@@ -121,7 +117,7 @@ export function TranscriptPanel({
       <div className="flex h-full flex-col items-center justify-center py-16 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-tint text-fg-muted ring-1 ring-line-strong">
           {status === "pending" ? (
-            <Spinner size="sm" />
+            <Spinner className="size-4" />
           ) : (
             <Captions className="h-5 w-5" />
           )}
@@ -156,7 +152,7 @@ export function TranscriptPanel({
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="secondary" onPress={() => void copyAll()}>
+        <Button size="sm" variant="secondary" onClick={() => void copyAll()}>
           {copied ? (
             <Check className="h-3.5 w-3.5" />
           ) : (
@@ -175,8 +171,8 @@ export function TranscriptPanel({
         ) : null}
         <Button
           size="sm"
-          variant={searching ? "primary" : "secondary"}
-          onPress={toggleSearch}
+          variant={searching ? "default" : "secondary"}
+          onClick={toggleSearch}
           aria-pressed={searching}
         >
           <Search className="h-3.5 w-3.5" />
@@ -184,16 +180,14 @@ export function TranscriptPanel({
         </Button>
       </div>
       {searching ? (
-        <TextField
+        <Input
           aria-label="Search transcript"
+          placeholder="Search transcript"
           value={query}
-          onChange={setQuery}
-          className="mt-3"
-          fullWidth
+          onChange={(e) => setQuery(e.target.value)}
+          className="mt-3 w-full"
           autoFocus
-        >
-          <Input placeholder="Search transcript" />
-        </TextField>
+        />
       ) : null}
       <ol className="mt-4 max-h-[60vh] flex-1 space-y-1 overflow-y-auto lg:max-h-none lg:min-h-0">
         {shown.map((s) => {
@@ -206,11 +200,11 @@ export function TranscriptPanel({
                 className={cn(
                   "flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
                   active
-                    ? "border-accent/40 bg-accent/10"
+                    ? "border-primary/40 bg-primary/10"
                     : "border-transparent hover:bg-tint",
                 )}
               >
-                <span className="w-9 shrink-0 pt-0.5 text-xs text-accent tabular-nums">
+                <span className="w-9 shrink-0 pt-0.5 text-xs text-accent-strong tabular-nums">
                   {formatTimestamp(s.startMs)}
                 </span>
                 <span className="text-sm leading-relaxed text-fg">

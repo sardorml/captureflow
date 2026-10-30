@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { buttonVariants } from "@heroui/react";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import NextLink from "next/link";
 import { track } from "@/lib/marketing/track";
 
@@ -30,13 +31,10 @@ export function InstallButton({
   badge?: string;
   primary?: boolean;
 }) {
-  /* Explicit height: HeroUI's lg drops to 40px at md, which reads undersized
-     under a headline this large. */
-  const className = buttonVariants({
-    variant: primary ? "primary" : "secondary",
-    size: "lg",
-    className: "h-11 gap-2.5 pr-5 pl-2.5 text-[16px] font-medium",
-  });
+  const className = cn(
+    buttonVariants({ variant: primary ? "default" : "secondary", size: "lg" }),
+    "h-11 gap-2.5 pr-5 pl-2.5 text-[16px] font-medium",
+  );
   const onClick = () => track("marketing_cta_clicked", { location });
 
   // Next's router skips the scroll when the hash is already in the URL, so a

@@ -2,14 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Lock, Mail, ArrowRight } from "lucide-react";
-import {
-  Alert,
-  Button,
-  Card,
-  Spinner,
-  TextArea,
-  buttonVariants,
-} from "@heroui/react";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 
 type Props = {
   appWebUrl: string;
@@ -98,7 +95,7 @@ export function RequestAccess({
     return (
       <div className="flex min-h-screen items-center justify-center bg-canvas px-6 py-16">
         <div className="flex flex-col items-center gap-4">
-          <Spinner />
+          <Spinner className="size-5" />
           <p className="text-sm text-fg-subtle">Loading recording…</p>
         </div>
       </div>
@@ -107,7 +104,7 @@ export function RequestAccess({
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-6 py-16">
-      <Card className="w-full max-w-md p-6">
+      <Card className="w-full max-w-md gap-0 p-6">
         <div className="flex flex-col items-center text-center">
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-tint text-fg-muted ring-1 ring-line-strong">
             <Lock className="h-6 w-6" aria-hidden />
@@ -131,10 +128,8 @@ export function RequestAccess({
             <a
               href={signInUrl}
               className={buttonVariants({
-                variant: "primary",
                 size: "lg",
-                fullWidth: true,
-                className: "mt-5",
+                className: "mt-5 w-full",
               })}
             >
               Sign in to continue
@@ -166,7 +161,7 @@ export function RequestAccess({
             >
               Add a note <span className="text-fg-subtle">(optional)</span>
             </label>
-            <TextArea
+            <Textarea
               id="access-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -176,21 +171,17 @@ export function RequestAccess({
               className="mt-2 w-full resize-none"
             />
             <Button
-              variant="primary"
               size="lg"
-              fullWidth
               type="submit"
-              isDisabled={submitting}
-              className="mt-4"
+              disabled={submitting}
+              className="mt-4 w-full"
             >
-              {submitting && <Spinner size="sm" color="current" />}
+              {submitting && <Spinner className="size-4" />}
               {submitting ? "Sending…" : "Request access"}
             </Button>
             {error && (
-              <Alert status="danger" className="mt-3">
-                <Alert.Content>
-                  <Alert.Title>{error}</Alert.Title>
-                </Alert.Content>
+              <Alert variant="destructive" className="mt-3">
+                <AlertTitle>{error}</AlertTitle>
               </Alert>
             )}
           </form>

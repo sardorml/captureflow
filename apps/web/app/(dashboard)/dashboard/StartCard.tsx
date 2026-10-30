@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { ExternalLink, PenLine } from "lucide-react";
-import { Button, Chip, Tabs, buttonVariants } from "@heroui/react";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PRODUCT_NAME } from "@/lib/site";
 import { RecordButton } from "../RecordButton";
 
 type Surface = "extension" | "desktop" | "canvas";
 
 const TAB_CLASS =
-  "isolate h-9 justify-center px-4 text-sm font-medium whitespace-nowrap text-fg-muted data-[selected=true]:text-fg";
+  "h-9 flex-none justify-center rounded-lg border-none px-4 text-sm font-medium whitespace-nowrap text-fg-muted data-active:bg-panel-2 data-active:text-fg data-active:shadow-sm dark:data-active:bg-white/10";
 
 const SURFACES: { id: Surface; label: string }[] = [
   { id: "extension", label: "Extension" },
@@ -23,24 +25,21 @@ export function StartCard({ storeUrl }: { storeUrl: string | null }) {
   return (
     <section className="rounded-3xl bg-panel p-6 ring-1 ring-line md:p-7">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
-        <h2 className="text-2xl font-semibold tracking-tight text-accent">
+        <h2 className="text-2xl font-semibold tracking-tight text-accent-strong">
           Start recording with {PRODUCT_NAME}
         </h2>
         <Tabs
-          selectedKey={surface}
-          onSelectionChange={(key) => setSurface(key as Surface)}
+          value={surface}
+          onValueChange={(value) => setSurface(value as Surface)}
           aria-label="Where to record"
         >
-          <Tabs.ListContainer className="w-fit max-w-full overflow-x-auto rounded-xl bg-tint p-1">
-            <Tabs.List className="flex gap-0 p-0">
-              {SURFACES.map((s) => (
-                <Tabs.Tab key={s.id} id={s.id} className={TAB_CLASS}>
-                  <Tabs.Indicator className="rounded-lg bg-panel-2 shadow-sm dark:bg-white/10" />
-                  {s.label}
-                </Tabs.Tab>
-              ))}
-            </Tabs.List>
-          </Tabs.ListContainer>
+          <TabsList className="h-auto w-fit max-w-full justify-start gap-0 overflow-x-auto rounded-xl bg-tint p-1">
+            {SURFACES.map((s) => (
+              <TabsTrigger key={s.id} value={s.id} className={TAB_CLASS}>
+                {s.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
         </Tabs>
       </div>
 
@@ -75,12 +74,8 @@ export function StartCard({ storeUrl }: { storeUrl: string | null }) {
               window or your whole screen.
             </p>
             <div className="flex flex-wrap items-center gap-3">
-              <Button variant="primary" isDisabled>
-                Download for Mac
-              </Button>
-              <Chip size="sm" color="accent">
-                Coming soon
-              </Chip>
+              <Button disabled>Download for Mac</Button>
+              <Badge>Coming soon</Badge>
             </div>
           </>
         )}
@@ -95,7 +90,7 @@ export function StartCard({ storeUrl }: { storeUrl: string | null }) {
                 href="/canvas"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={buttonVariants({ variant: "primary" })}
+                className={buttonVariants()}
               >
                 <PenLine size={16} />
                 Open the canvas

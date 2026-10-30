@@ -2,8 +2,14 @@
 
 import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { Check, Download, Link2 } from "lucide-react";
-import { Avatar, Button, Tooltip, buttonVariants } from "@heroui/react";
 import { AppIcon } from "@/components/brand-mark";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 export type ViewerNavViewer = {
@@ -104,7 +110,7 @@ export function ViewerNav({
           <>
             {downloadUrl ? (
               <Tooltip>
-                <Tooltip.Trigger className="inline-flex">
+                <TooltipTrigger asChild>
                   <a
                     href={downloadUrl}
                     download={downloadName ?? true}
@@ -114,15 +120,15 @@ export function ViewerNav({
                     <Download size={18} />
                     <span className="hidden sm:inline">Download</span>
                   </a>
-                </Tooltip.Trigger>
-                <Tooltip.Content>Download</Tooltip.Content>
+                </TooltipTrigger>
+                <TooltipContent>Download</TooltipContent>
               </Tooltip>
             ) : null}
             <Tooltip>
-              <Tooltip.Trigger className="inline-flex">
+              <TooltipTrigger asChild>
                 <Button
                   variant="secondary"
-                  onPress={handleCopy}
+                  onClick={handleCopy}
                   aria-label={copied ? "Link copied" : "Copy link"}
                 >
                   {copied ? <Check size={18} /> : <Link2 size={18} />}
@@ -130,10 +136,10 @@ export function ViewerNav({
                     {copied ? "Copied" : "Copy link"}
                   </span>
                 </Button>
-              </Tooltip.Trigger>
-              <Tooltip.Content>
+              </TooltipTrigger>
+              <TooltipContent>
                 {copied ? "Link copied" : "Copy link"}
-              </Tooltip.Content>
+              </TooltipContent>
             </Tooltip>
           </>
         )}
@@ -143,14 +149,16 @@ export function ViewerNav({
           userMenu
         ) : viewer ? (
           <Tooltip>
-            <Tooltip.Trigger tabIndex={0}>
-              <Avatar className="h-9 w-9">
-                <Avatar.Fallback>{initials(viewer)}</Avatar.Fallback>
-              </Avatar>
-            </Tooltip.Trigger>
-            <Tooltip.Content>
+            <TooltipTrigger asChild>
+              <span tabIndex={0} className="inline-flex rounded-full">
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback>{initials(viewer)}</AvatarFallback>
+                </Avatar>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
               {viewer.name?.trim() || viewer.email}
-            </Tooltip.Content>
+            </TooltipContent>
           </Tooltip>
         ) : null}
       </div>

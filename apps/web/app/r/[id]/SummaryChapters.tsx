@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { ListVideo, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { formatTimestamp } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -187,7 +187,7 @@ export function SummaryChapters({
             title="Summary"
             actions={
               isOwner && !summaryEditing ? (
-                <Button variant="ghost" size="sm" onPress={startSummaryEdit}>
+                <Button variant="ghost" size="sm" onClick={startSummaryEdit}>
                   <Pencil className="size-3.5" />
                   {hasSummary ? "Edit" : "Add"}
                 </Button>
@@ -234,7 +234,7 @@ export function SummaryChapters({
             actions={
               isOwner && !chaptersEditing ? (
                 <>
-                  <Button variant="ghost" size="sm" onPress={onAddChapter}>
+                  <Button variant="ghost" size="sm" onClick={onAddChapter}>
                     <Plus className="size-3.5" />
                     Add at playhead
                   </Button>
@@ -242,7 +242,7 @@ export function SummaryChapters({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onPress={startChaptersEdit}
+                      onClick={startChaptersEdit}
                     >
                       <Pencil className="size-3.5" />
                       Edit
@@ -389,15 +389,15 @@ function EditBox({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-3 rounded-xl bg-field p-3 ring-1 ring-line transition-shadow focus-within:ring-2 focus-within:ring-accent-ring">
+    <div className="space-y-3 rounded-xl bg-input/30 p-3 ring-1 ring-line transition-shadow focus-within:ring-2 focus-within:ring-accent-ring">
       {children}
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-fg-subtle">{hint}</p>
         <div className="flex shrink-0 gap-2">
-          <Button variant="secondary" size="sm" onPress={onCancel}>
+          <Button variant="secondary" size="sm" onClick={onCancel}>
             Cancel
           </Button>
-          <Button variant="primary" size="sm" onPress={onSave}>
+          <Button size="sm" onClick={onSave}>
             Save
           </Button>
         </div>

@@ -48,7 +48,7 @@ export function EditorWaveform({ buckets }: { buckets: Float32Array | null }) {
     <canvas
       ref={ref}
       aria-hidden
-      className="pointer-events-none absolute inset-0 h-full w-full text-accent/85"
+      className="pointer-events-none absolute inset-0 h-full w-full text-accent-strong/85"
     />
   );
 }

@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { FREE_TIER, SEAT_PLANS } from "@captureflow/quota";
 import type { SeatOffer } from "@/lib/billing/seat-checkout";
 import { UpgradeModal } from "./UpgradeModal";
@@ -27,11 +27,7 @@ export function SidebarUpgradeCard({
         userId={userId}
         seat={seat}
         openOnUpgradeParam
-        trigger={
-          <Button variant="primary" fullWidth className="mt-3">
-            View plans
-          </Button>
-        }
+        trigger={<Button className="mt-3 w-full">View plans</Button>}
       />
     </div>
   );

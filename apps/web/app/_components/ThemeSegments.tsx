@@ -79,22 +79,14 @@ export function ThemeSegments({
 
   const choose = (next: ThemePreference) => {
     if (next === preference) return;
-    const apply = () => {
-      setPreference(next);
-      document.documentElement.setAttribute("data-theme", resolve(next));
-      writeThemeCookie(next);
-    };
-    const reduceMotion = window.matchMedia?.(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const doc = document as Document & {
-      startViewTransition?: (cb: () => void) => unknown;
-    };
-    if (!reduceMotion && typeof doc.startViewTransition === "function") {
-      doc.startViewTransition(apply);
-    } else {
-      apply();
-    }
+    const root = document.documentElement;
+    root.setAttribute("data-theme-switching", "");
+    setPreference(next);
+    root.setAttribute("data-theme", resolve(next));
+    writeThemeCookie(next);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => root.removeAttribute("data-theme-switching")),
+    );
   };
 
   return (

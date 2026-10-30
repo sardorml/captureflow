@@ -1,4 +1,4 @@
-import { buttonVariants } from "@heroui/react";
+import { buttonVariants } from "@/components/ui/button";
 
 type Props = {
   marketingUrl: string;
@@ -20,10 +20,7 @@ export function AuthPrompt({ marketingUrl, loginUrl }: Props) {
       >
         Log in
       </a>
-      <a
-        href={marketingUrl}
-        className={buttonVariants({ variant: "primary", size: "sm" })}
-      >
+      <a href={marketingUrl} className={buttonVariants({ size: "sm" })}>
         Get CaptureFlow free
       </a>
     </div>

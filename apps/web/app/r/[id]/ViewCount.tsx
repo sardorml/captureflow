@@ -1,6 +1,12 @@
 "use client";
 
-import { Avatar, Button, Popover } from "@heroui/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { User, Users } from "lucide-react";
 import type { RecordingViewerEntry } from "@/lib/recording/types";
 import { formatRelativeLong, initials } from "@/lib/format";
@@ -29,46 +35,46 @@ export function ViewCount({ count, viewers, className }: Props) {
   }
   return (
     <Popover>
-      <Popover.Trigger className={cn("inline-flex", className)}>
+      <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          className={cn(PILL_CLASS, "min-w-0 hover:bg-tint-strong")}
+          className={cn(PILL_CLASS, "min-w-0 hover:bg-tint-strong", className)}
           aria-label={`${viewsLabel(count)}, show who watched`}
         >
           {viewsLabel(count)}
         </Button>
-      </Popover.Trigger>
-      <Popover.Content placement="bottom end" className="w-80 p-0">
-        <Popover.Dialog aria-label="Viewers" className="outline-none">
-          {viewers.length === 0 ? (
-            <div className="flex flex-col items-center px-6 py-8 text-center">
-              <span className="flex size-12 items-center justify-center rounded-full bg-tint text-fg-muted">
-                <Users className="size-6" aria-hidden="true" />
-              </span>
-              <p className="mt-4 text-base font-semibold text-fg">
-                No views yet
-              </p>
-              <p className="mt-1 text-sm text-fg-muted">
-                Share the link and the people who watch show up here.
-              </p>
-            </div>
-          ) : (
-            <>
-              <p className="px-4 pt-3 pb-2 text-sm font-semibold text-fg">
-                Viewers
-              </p>
-              <ul className="max-h-80 overflow-y-auto pb-2">
-                {viewers.map((entry, index) => (
-                  <ViewerRow
-                    key={entry.userId ?? `anon-${index}`}
-                    entry={entry}
-                  />
-                ))}
-              </ul>
-            </>
-          )}
-        </Popover.Dialog>
-      </Popover.Content>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        aria-label="Viewers"
+        className="w-80 gap-0 p-0 outline-none"
+      >
+        {viewers.length === 0 ? (
+          <div className="flex flex-col items-center px-6 py-8 text-center">
+            <span className="flex size-12 items-center justify-center rounded-full bg-tint text-fg-muted">
+              <Users className="size-6" aria-hidden="true" />
+            </span>
+            <p className="mt-4 text-base font-semibold text-fg">No views yet</p>
+            <p className="mt-1 text-sm text-fg-muted">
+              Share the link and the people who watch show up here.
+            </p>
+          </div>
+        ) : (
+          <>
+            <p className="px-4 pt-3 pb-2 text-sm font-semibold text-fg">
+              Viewers
+            </p>
+            <ul className="max-h-80 overflow-y-auto pb-2">
+              {viewers.map((entry, index) => (
+                <ViewerRow
+                  key={entry.userId ?? `anon-${index}`}
+                  entry={entry}
+                />
+              ))}
+            </ul>
+          </>
+        )}
+      </PopoverContent>
     </Popover>
   );
 }
@@ -88,10 +94,8 @@ function ViewerRow({ entry }: { entry: RecordingViewerEntry }) {
     <li className="flex items-center gap-3 px-4 py-2">
       {entry.userId ? (
         <Avatar className="size-8 shrink-0">
-          {entry.image ? <Avatar.Image src={entry.image} alt="" /> : null}
-          <Avatar.Fallback className="text-xs">
-            {initials(name)}
-          </Avatar.Fallback>
+          {entry.image ? <AvatarImage src={entry.image} alt="" /> : null}
+          <AvatarFallback className="text-xs">{initials(name)}</AvatarFallback>
         </Avatar>
       ) : (
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-tint text-fg-muted">

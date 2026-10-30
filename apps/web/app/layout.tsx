@@ -1,18 +1,19 @@
 import { DEFAULT_THEME, THEME_INIT_HTML } from "@captureflow/ui/theme";
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Geist } from "next/font/google";
 import type { ReactNode } from "react";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
 import { AnalyticsProvider } from "./analytics-provider";
 import { DevTools } from "@/components/dev/dev-tools";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { SITE_URL, X_CREATOR } from "@/lib/site";
 import "./globals.css";
 import "./material-symbols-subset.css";
+
+const geist = Geist({
+  variable: "--font-geist",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 const SITE_DESCRIPTION =
   "Open-source, self-hostable screen recording and screenshots with instant shareable links.";
@@ -74,7 +75,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html
       lang="en"
       data-theme={DEFAULT_THEME}
-      className={inter.variable}
+      className={geist.variable}
       suppressHydrationWarning
     >
       <body>
@@ -83,7 +84,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <div hidden dangerouslySetInnerHTML={{ __html: THEME_INIT_HTML }} />
         <AnalyticsProvider />
         <DevTools />
-        {children}
+        <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
   );

@@ -27,7 +27,7 @@ import {
   Type,
   Undo2,
 } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { AppIcon } from "@/components/brand-mark";
 import { AnimatedTooltip } from "@/lib/animated-tooltip";
 import {
@@ -717,12 +717,11 @@ export function CanvasBoardImpl() {
               placement="bottom"
             >
               <Button
-                isIconOnly
-                size="sm"
+                size="icon-sm"
                 variant={tool === t.id ? "secondary" : "ghost"}
                 aria-label={t.label}
                 aria-pressed={tool === t.id}
-                onPress={() => setTool(t.id)}
+                onClick={() => setTool(t.id)}
               >
                 {t.icon}
               </Button>
@@ -778,36 +777,33 @@ export function CanvasBoardImpl() {
       <div className="absolute right-4 top-4 flex items-center gap-1 rounded-2xl bg-canvas-2 p-1 shadow-lg ring-1 ring-line">
         <AnimatedTooltip content="Undo · ⌘Z" placement="bottom">
           <Button
-            isIconOnly
-            size="sm"
+            size="icon-sm"
             variant="ghost"
             aria-label="Undo"
-            isDisabled={!canUndo}
-            onPress={undo}
+            disabled={!canUndo}
+            onClick={undo}
           >
             <Undo2 size={18} />
           </Button>
         </AnimatedTooltip>
         <AnimatedTooltip content="Redo · ⇧⌘Z" placement="bottom">
           <Button
-            isIconOnly
-            size="sm"
+            size="icon-sm"
             variant="ghost"
             aria-label="Redo"
-            isDisabled={!canRedo}
-            onPress={redo}
+            disabled={!canRedo}
+            onClick={redo}
           >
             <Redo2 size={18} />
           </Button>
         </AnimatedTooltip>
         <AnimatedTooltip content="Clear the board" placement="bottom">
           <Button
-            isIconOnly
-            size="sm"
+            size="icon-sm"
             variant="ghost"
             aria-label="Clear the board"
-            isDisabled={elements.length === 0}
-            onPress={() => {
+            disabled={elements.length === 0}
+            onClick={() => {
               commit([]);
               setSelectedId(null);
             }}
@@ -819,11 +815,10 @@ export function CanvasBoardImpl() {
 
       <div className="absolute bottom-4 left-4 flex items-center gap-1 rounded-2xl bg-canvas-2 p-1 shadow-lg ring-1 ring-line">
         <Button
-          isIconOnly
-          size="sm"
+          size="icon-sm"
           variant="ghost"
           aria-label="Zoom out"
-          onPress={() => zoomBy(1 / ZOOM_STEP)}
+          onClick={() => zoomBy(1 / ZOOM_STEP)}
         >
           <Minus size={18} />
         </Button>
@@ -836,11 +831,10 @@ export function CanvasBoardImpl() {
           {Math.round(view.scale * 100)}%
         </button>
         <Button
-          isIconOnly
-          size="sm"
+          size="icon-sm"
           variant="ghost"
           aria-label="Zoom in"
-          onPress={() => zoomBy(ZOOM_STEP)}
+          onClick={() => zoomBy(ZOOM_STEP)}
         >
           <Plus size={18} />
         </Button>

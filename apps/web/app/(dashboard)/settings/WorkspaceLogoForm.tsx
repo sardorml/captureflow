@@ -2,7 +2,9 @@
 
 import { useActionState, useRef } from "react";
 import { Upload } from "lucide-react";
-import { Avatar, Button, Spinner } from "@heroui/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { initials } from "@/lib/format";
 import {
   removeWorkspaceLogoAction,
@@ -38,8 +40,8 @@ export function WorkspaceLogoForm({
     >
       <div className="flex items-center gap-4">
         <Avatar className="h-12 w-12 rounded-full">
-          {logoUrl && <Avatar.Image src={logoUrl} alt={workspaceName} />}
-          <Avatar.Fallback>{initials(workspaceName)}</Avatar.Fallback>
+          {logoUrl && <AvatarImage src={logoUrl} alt={workspaceName} />}
+          <AvatarFallback>{initials(workspaceName)}</AvatarFallback>
         </Avatar>
         {/* Siblings, never nested: the HTML parser drops a <form> inside a
             <form>, which left Remove submitting the upload action instead. */}
@@ -61,15 +63,12 @@ export function WorkspaceLogoForm({
               onChange={submitOnChange}
             />
             <Button
+              type="button"
               variant="secondary"
-              isDisabled={pending}
-              onPress={() => fileRef.current?.click()}
+              disabled={pending}
+              onClick={() => fileRef.current?.click()}
             >
-              {pending ? (
-                <Spinner size="sm" color="current" />
-              ) : (
-                <Upload size={14} />
-              )}
+              {pending ? <Spinner /> : <Upload size={14} />}
               {pending
                 ? "Uploading…"
                 : logoUrl
@@ -80,7 +79,9 @@ export function WorkspaceLogoForm({
         </div>
       </div>
       {state.error && (
-        <span className="text-right text-xs text-danger">{state.error}</span>
+        <span className="text-right text-xs text-destructive">
+          {state.error}
+        </span>
       )}
     </SettingsRow>
   );

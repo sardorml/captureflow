@@ -1,6 +1,6 @@
 "use client";
 
-import { Tabs } from "@heroui/react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ReactNode } from "react";
 import type { RecordingConfig } from "@/lib/recording-config";
 import {
@@ -25,7 +25,7 @@ type Props = {
 };
 
 const TAB_CLASS =
-  "isolate h-8 flex-1 justify-center px-3 text-sm font-medium text-fg-muted data-[selected=true]:text-fg";
+  "isolate h-8 flex-1 justify-center rounded-lg px-3 text-sm font-medium text-fg-muted data-active:bg-panel data-active:text-fg data-active:shadow-sm dark:data-active:border-transparent dark:data-active:bg-white/10";
 const PANEL_CLASS = "flex min-h-0 flex-1 flex-col p-0 outline-hidden";
 
 // The right-hand panel: the transcript, the look of the recording, and its
@@ -41,32 +41,29 @@ export function EditorInspector({
   return (
     <aside className="hidden w-[360px] shrink-0 flex-col border-l border-line bg-panel lg:flex">
       <Tabs
-        defaultSelectedKey="transcript"
-        aria-label="Editor panels"
-        className="flex min-h-0 flex-1 flex-col"
+        defaultValue="transcript"
+        className="flex min-h-0 flex-1 flex-col gap-0"
       >
-        <Tabs.ListContainer className="m-3 shrink-0 rounded-xl bg-tint p-1">
-          <Tabs.List className="flex w-full gap-0 p-0">
-            <Tabs.Tab id="transcript" className={TAB_CLASS}>
-              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
-              Transcript
-            </Tabs.Tab>
-            <Tabs.Tab id="design" className={TAB_CLASS}>
-              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
-              Design
-            </Tabs.Tab>
-            <Tabs.Tab id="details" className={TAB_CLASS}>
-              <Tabs.Indicator className="rounded-lg bg-panel shadow-sm dark:bg-white/10" />
-              Details
-            </Tabs.Tab>
-          </Tabs.List>
-        </Tabs.ListContainer>
+        <TabsList
+          aria-label="Editor panels"
+          className="m-3 flex h-auto w-auto shrink-0 gap-0 rounded-xl bg-tint p-1"
+        >
+          <TabsTrigger value="transcript" className={TAB_CLASS}>
+            Transcript
+          </TabsTrigger>
+          <TabsTrigger value="design" className={TAB_CLASS}>
+            Design
+          </TabsTrigger>
+          <TabsTrigger value="details" className={TAB_CLASS}>
+            Details
+          </TabsTrigger>
+        </TabsList>
 
-        <Tabs.Panel id="transcript" className={PANEL_CLASS}>
+        <TabsContent value="transcript" className={PANEL_CLASS}>
           <EditorTranscriptPanel {...transcript} />
-        </Tabs.Panel>
+        </TabsContent>
 
-        <Tabs.Panel id="design" className={PANEL_CLASS}>
+        <TabsContent value="design" className={PANEL_CLASS}>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <Section title="Background">
               <BackgroundPicker
@@ -101,15 +98,15 @@ export function EditorInspector({
               />
             </Section>
           </div>
-        </Tabs.Panel>
+        </TabsContent>
 
-        <Tabs.Panel id="details" className={PANEL_CLASS}>
+        <TabsContent value="details" className={PANEL_CLASS}>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <Section title="Recording">
               <DetailsList {...details} />
             </Section>
           </div>
-        </Tabs.Panel>
+        </TabsContent>
       </Tabs>
     </aside>
   );

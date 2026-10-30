@@ -1,6 +1,6 @@
 "use client";
 
-import { Spinner } from "@heroui/react";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Check,
   ChevronRight,
@@ -72,10 +72,10 @@ export function EditPanel({
               aria-live="polite"
               className={cn(
                 "flex items-center gap-1.5 text-xs",
-                status === "error" ? "text-danger" : "text-fg-muted",
+                status === "error" ? "text-destructive" : "text-fg-muted",
               )}
             >
-              {status === "saving" ? <Spinner size="sm" /> : null}
+              {status === "saving" ? <Spinner className="size-4" /> : null}
               {STATUS_LABEL[status]}
             </span>
           }

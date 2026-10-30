@@ -27,7 +27,7 @@ export function SettingsTabs({ tabs }: { tabs: SettingsTab[] }) {
             className={cn(
               "-mb-px h-10 border-b-2 text-base font-medium transition-colors",
               active?.id === t.id
-                ? "border-accent text-accent"
+                ? "border-primary text-accent-strong"
                 : "border-transparent text-fg-muted hover:text-fg",
             )}
           >

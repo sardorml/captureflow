@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Text } from "./typography";
 import Link from "next/link";
 import { Flex, Space } from "./layout";
-import { Alert, Input } from "@heroui/react";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { Button } from "./ui";
 import { track } from "@/lib/marketing/track";
 import { useMessages } from "./i18n-provider";
@@ -49,10 +51,8 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
 
   if (submitted) {
     return (
-      <Alert className={className} status="success">
-        <Alert.Content>
-          <Alert.Title>{m.waitlist.success}</Alert.Title>
-        </Alert.Content>
+      <Alert className={cn("text-emerald-500", className)}>
+        <AlertTitle>{m.waitlist.success}</AlertTitle>
       </Alert>
     );
   }
@@ -70,7 +70,6 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
             name="email"
             type="email"
             required
-            fullWidth
             aria-label={m.waitlist.emailPlaceholder}
             placeholder={m.waitlist.emailPlaceholder}
           />
@@ -85,10 +84,8 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         </Space.Compact>
       </form>
       {error && (
-        <Alert status="danger">
-          <Alert.Content>
-            <Alert.Title>{error}</Alert.Title>
-          </Alert.Content>
+        <Alert variant="destructive">
+          <AlertTitle>{error}</AlertTitle>
         </Alert>
       )}
       <Text type="secondary">
