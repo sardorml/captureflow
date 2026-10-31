@@ -7,6 +7,7 @@ import {
   Building2,
   ChartLine,
   ChevronsUpDown,
+  Globe,
   LayoutDashboard,
   Inbox,
   LogOut,
@@ -50,6 +51,7 @@ import {
 const ICONS = {
   overview: LayoutDashboard,
   analytics: ChartLine,
+  website: Globe,
   users: Users,
   recordings: Video,
   workspaces: Building2,

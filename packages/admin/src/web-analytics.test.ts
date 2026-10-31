@@ -7,6 +7,7 @@ import {
   isWebRange,
   overviewQuery,
   postHogConfig,
+  seriesQuery,
 } from "./web-analytics";
 
 const CONFIG: PostHogConfig = {
@@ -14,6 +15,7 @@ const CONFIG: PostHogConfig = {
   projectId: "42",
   apiKey: "phx_test",
   siteHost: "captureflow.dev",
+  siteHosts: ["captureflow.dev"],
 };
 
 afterEach(() => vi.unstubAllGlobals());
@@ -41,6 +43,13 @@ describe("queries", () => {
     expect(breakdownQuery(CONFIG, "24h", "properties.$browser")).toContain(
       "INTERVAL 24 HOUR",
     );
+  });
+
+  it("fill every bucket of the series, empty ones included", () => {
+    const sql = seriesQuery(CONFIG, "90d");
+    expect(sql).toContain("WITH FILL");
+    expect(sql).toContain("FROM toStartOfWeek(now() - INTERVAL 90 DAY)");
+    expect(sql).toContain("STEP INTERVAL 1 WEEK");
   });
 });
 
@@ -113,7 +122,26 @@ describe("postHogConfig", () => {
       projectId: "42",
       apiKey: "phx_test",
       siteHost: "captureflow.dev",
+      siteHosts: ["captureflow.dev"],
     });
+  });
+
+  it("offers the extra site first and switches only between known hosts", () => {
+    const local = {
+      ...env,
+      APP_BASE_URL: "http://localhost:3032",
+      POSTHOG_SITE_HOST: "captureflow.dev",
+    };
+    expect(postHogConfig(local)).toMatchObject({
+      siteHost: "captureflow.dev",
+      siteHosts: ["captureflow.dev", "localhost:3032"],
+    });
+    expect(postHogConfig(local, "localhost:3032")?.siteHost).toBe(
+      "localhost:3032",
+    );
+    expect(postHogConfig(local, "evil.example")?.siteHost).toBe(
+      "captureflow.dev",
+    );
   });
 
   it("is off for self-hosted instances even when configured", () => {

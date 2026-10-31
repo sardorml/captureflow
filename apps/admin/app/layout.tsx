@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist } from "next/font/google";
-import { type AdminPermission, can } from "@captureflow/admin";
+import { type AdminPermission, can, postHogConfig } from "@captureflow/admin";
+import { getAdminEnv } from "@/lib/env";
 import { currentOperator } from "@/lib/guard";
 import { headers } from "next/headers";
 import {
@@ -38,6 +39,12 @@ const TABS: (NavItem & { permission: AdminPermission })[] = [
     href: "/analytics",
     label: "Analytics",
     icon: "analytics",
+    permission: "users.read",
+  },
+  {
+    href: "/website",
+    label: "Website",
+    icon: "website",
     permission: "users.read",
   },
   { href: "/users", label: "Users", icon: "users", permission: "users.read" },
@@ -85,6 +92,7 @@ export default async function RootLayout({
   children: ReactNode;
 }) {
   const operator = await currentOperator();
+  const hasWebsite = postHogConfig(await getAdminEnv()) !== null;
   const cookie = (await headers()).get("cookie");
   const sidebarOpen = !/(?:^|;\s*)sidebar_state=false/.test(cookie ?? "");
   return (
@@ -107,7 +115,11 @@ export default async function RootLayout({
               <AdminSidebar
                 email={operator.email}
                 role={operator.role}
-                items={TABS.filter((t) => can(operator.role, t.permission))}
+                items={TABS.filter(
+                  (t) =>
+                    can(operator.role, t.permission) &&
+                    (t.href !== "/website" || hasWebsite),
+                )}
                 themePreference={readThemePreferenceFromCookieHeader(cookie)}
               />
               <SidebarInset className="min-w-0 overflow-hidden">

@@ -151,7 +151,6 @@ function AreaSpark({ values, hue }: { values: number[]; hue: Hue }) {
 }
 
 export function KpiCard({
-  icon,
   hue,
   label,
   value,
@@ -159,7 +158,6 @@ export function KpiCard({
   trend,
   footnote,
 }: {
-  icon: ReactNode;
   hue: Hue;
   label: string;
   value: string;
@@ -175,21 +173,13 @@ export function KpiCard({
       className="group min-w-0 rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <Card className="h-full px-5 transition-colors group-hover:bg-muted/50 motion-reduce:transition-none">
-        <div className="flex items-center justify-between gap-3">
-          <span
-            className={cn(
-              "flex size-9 items-center justify-center rounded-xl",
-              HUE[hue].chip,
-            )}
-          >
-            {icon}
-          </span>
+        <div className="flex min-h-6 items-center justify-between gap-3">
+          <p className="text-fg-muted text-sm">{label}</p>
           {trend && <Delta current={current} previous={previous} />}
         </div>
-        <div className="flex items-end justify-between gap-3">
+        <div className="flex min-h-10 items-end justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-fg-muted text-sm">{label}</p>
-            <p className="mt-1 text-[28px] leading-none font-semibold tracking-tight tabular-nums">
+            <p className="text-[28px] leading-none font-semibold tracking-tight tabular-nums">
               {value}
             </p>
           </div>
@@ -201,7 +191,12 @@ export function KpiCard({
   );
 }
 
-export type Series = { label: string; hue: Hue; values: number[] };
+export type Series = {
+  label: string;
+  hue: Hue;
+  values: number[];
+  total?: number;
+};
 
 export function GrowthChart({
   series,
@@ -220,7 +215,9 @@ export function GrowthChart({
             <span className={cn("size-2.5 rounded-full", HUE[s.hue].dot)} />
             <span className="text-fg-muted">{s.label}</span>
             <span className="text-fg-strong font-medium tabular-nums">
-              {s.values.reduce((a, b) => a + b, 0).toLocaleString()}
+              {(
+                s.total ?? s.values.reduce((a, b) => a + b, 0)
+              ).toLocaleString()}
             </span>
           </li>
         ))}
@@ -248,7 +245,7 @@ export function GrowthChart({
             <div className="absolute inset-0 grid grid-flow-col items-end gap-1.5 sm:gap-3">
               {labels.map((label, week) => (
                 <div
-                  key={label}
+                  key={week}
                   className="flex h-full items-end justify-center gap-0.5"
                   title={series
                     .map((s) => `${s.label}: ${s.values[week] ?? 0}`)
@@ -277,7 +274,7 @@ export function GrowthChart({
           <div className="text-fg-subtle grid grid-flow-col gap-1.5 text-center text-[11px] sm:gap-3">
             {labels.map((label, i) => (
               <span
-                key={label}
+                key={i}
                 className={cn(i % 2 === 1 && "invisible sm:visible")}
               >
                 {label}

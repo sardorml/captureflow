@@ -3,6 +3,7 @@ export type PostHogConfig = {
   projectId: string;
   apiKey: string;
   siteHost: string;
+  siteHosts: string[];
 };
 
 export type PostHogEnv = {
@@ -11,28 +12,38 @@ export type PostHogEnv = {
   POSTHOG_API_HOST?: string;
   POSTHOG_PROJECT_ID?: string;
   POSTHOG_PERSONAL_API_KEY?: string;
+  POSTHOG_SITE_HOST?: string;
 };
 
 // Web analytics are the hosted instance's alone: a self-hosted admin never
-// reads PostHog, configured or not.
-export function postHogConfig(env: PostHogEnv | null): PostHogConfig | null {
+// reads PostHog, configured or not. POSTHOG_SITE_HOST adds a second site to
+// switch to, such as the live one from a local admin.
+export function postHogConfig(
+  env: PostHogEnv | null,
+  site?: string,
+): PostHogConfig | null {
   if (!env || env.SELF_HOSTED === "true") return null;
   const { POSTHOG_API_HOST, POSTHOG_PROJECT_ID, POSTHOG_PERSONAL_API_KEY } =
     env;
   if (!POSTHOG_API_HOST || !POSTHOG_PROJECT_ID || !POSTHOG_PERSONAL_API_KEY) {
     return null;
   }
-  let siteHost: string;
+  let appHost: string | undefined;
   try {
-    siteHost = new URL(env.APP_BASE_URL ?? "").host;
+    appHost = new URL(env.APP_BASE_URL ?? "").host;
   } catch {
-    return null;
+    appHost = undefined;
   }
+  const siteHosts = [
+    ...new Set([env.POSTHOG_SITE_HOST, appHost].filter((h) => !!h)),
+  ] as string[];
+  if (siteHosts.length === 0) return null;
   return {
     apiHost: POSTHOG_API_HOST,
     projectId: POSTHOG_PROJECT_ID,
     apiKey: POSTHOG_PERSONAL_API_KEY,
-    siteHost,
+    siteHost: site && siteHosts.includes(site) ? site : siteHosts[0]!,
+    siteHosts,
   };
 }
 
@@ -42,10 +53,29 @@ export const WEB_RANGES = {
     n: 24,
     unit: "HOUR",
     bucket: "toStartOfHour",
+    step: "HOUR",
   },
-  "7d": { label: "Last 7 days", n: 7, unit: "DAY", bucket: "toStartOfDay" },
-  "30d": { label: "Last 30 days", n: 30, unit: "DAY", bucket: "toStartOfDay" },
-  "90d": { label: "Last 90 days", n: 90, unit: "DAY", bucket: "toStartOfWeek" },
+  "7d": {
+    label: "Last 7 days",
+    n: 7,
+    unit: "DAY",
+    bucket: "toStartOfDay",
+    step: "DAY",
+  },
+  "30d": {
+    label: "Last 30 days",
+    n: 30,
+    unit: "DAY",
+    bucket: "toStartOfDay",
+    step: "DAY",
+  },
+  "90d": {
+    label: "Last 90 days",
+    n: 90,
+    unit: "DAY",
+    bucket: "toStartOfWeek",
+    step: "WEEK",
+  },
 } as const;
 
 export type WebRange = keyof typeof WEB_RANGES;
@@ -142,7 +172,7 @@ export function sessionsQuery(config: PostHogConfig, range: WebRange): string {
 
 export function seriesQuery(config: PostHogConfig, range: WebRange): string {
   const w = periods(range);
-  const { bucket } = WEB_RANGES[range];
+  const { bucket, step } = WEB_RANGES[range];
   return `
     SELECT
       ${bucket}(if(${w.current}, timestamp, timestamp + ${w.interval})) AS at,
@@ -151,7 +181,10 @@ export function seriesQuery(config: PostHogConfig, range: WebRange): string {
     FROM events
     WHERE ${pageviews(config, range, true)}
     GROUP BY at
-    ORDER BY at`;
+    ORDER BY at WITH FILL
+      FROM ${bucket}(now() - ${w.interval})
+      TO ${bucket}(now()) + INTERVAL 1 ${step}
+      STEP INTERVAL 1 ${step}`;
 }
 
 export function breakdownQuery(

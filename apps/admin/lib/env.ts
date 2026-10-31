@@ -24,6 +24,7 @@ export type AdminBindings = {
   POSTHOG_API_HOST?: string;
   POSTHOG_PROJECT_ID?: string;
   POSTHOG_PERSONAL_API_KEY?: string;
+  POSTHOG_SITE_HOST?: string;
 };
 
 // Local dev only: `next dev` can't reach the mailer's queue, so post to the

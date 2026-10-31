@@ -1,13 +1,6 @@
 import NextLink from "next/link";
 import { Badge } from "@/components/ui/badge";
-import {
-  CreditCard,
-  Eye,
-  ShieldCheck,
-  UserPlus,
-  Users,
-  Video,
-} from "lucide-react";
+import { ShieldCheck, UserPlus, Video } from "lucide-react";
 import {
   getAdminTotals,
   getRecordingActivityByWeek,
@@ -169,7 +162,6 @@ export default async function OverviewPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
-          icon={<Users size={18} aria-hidden />}
           hue="blue"
           label="Users"
           value={totals.users.toLocaleString()}
@@ -178,7 +170,6 @@ export default async function OverviewPage() {
           footnote={`${signups.at(-1) ?? 0} signed up this week`}
         />
         <KpiCard
-          icon={<Video size={18} aria-hidden />}
           hue="violet"
           label="Recordings"
           value={totals.recordings.toLocaleString()}
@@ -187,7 +178,6 @@ export default async function OverviewPage() {
           footnote={`${formatDuration(recordingTotals.recordedMs)} recorded · ${recordingTotals.publicRecordings} public`}
         />
         <KpiCard
-          icon={<Eye size={18} aria-hidden />}
           hue="emerald"
           label="Views"
           value={recordingTotals.views.toLocaleString()}
@@ -196,7 +186,6 @@ export default async function OverviewPage() {
           footnote={`${recordingTotals.viewers.toLocaleString()} unique viewers`}
         />
         <KpiCard
-          icon={<CreditCard size={18} aria-hidden />}
           hue="amber"
           label="Paid users"
           value={totals.teamUsers.toLocaleString()}
