@@ -152,7 +152,11 @@ export function InviteModal({
           }
         }}
       >
-        <DialogContent data-split="invite-modal" showCloseButton={false}>
+        <DialogContent
+          data-split="invite-modal"
+          showCloseButton={false}
+          className="sm:max-w-xl"
+        >
           <DialogHeader>
             <DialogTitle>
               {workspaceName
@@ -168,7 +172,7 @@ export function InviteModal({
 
             {/* The container is the field: it owns the border and the focus
                 ring, so the inner control is a bare <input>. */}
-            <div className="flex min-h-9 flex-wrap items-center gap-1.5 rounded-xl border border-input bg-input/30 px-2 py-1.5 transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 motion-reduce:transition-none">
+            <div className="flex max-h-48 min-h-9 flex-wrap items-center gap-1.5 overflow-y-auto rounded-xl border border-input bg-input/30 px-2 py-1.5 transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 motion-reduce:transition-none">
               {emails.map((email) => (
                 <Badge key={email} variant="secondary">
                   {email}
