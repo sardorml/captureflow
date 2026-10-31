@@ -1,5 +1,5 @@
 import NextLink from "next/link";
-import { Table } from "@heroui/react";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { MessageSquare, Smile } from "lucide-react";
 import type { AdminRecordingRow } from "@captureflow/admin";
 import {
@@ -46,8 +46,8 @@ export function RecordingsTable({
       ]}
     >
       {rows.map((r) => (
-        <Table.Row key={r.slug}>
-          <Table.Cell>
+        <TableRow key={r.slug}>
+          <TableCell>
             <RecordingCell
               title={r.title}
               slug={r.slug}
@@ -68,8 +68,8 @@ export function RecordingsTable({
                 )
               }
             />
-          </Table.Cell>
-          <Table.Cell>
+          </TableCell>
+          <TableCell>
             {r.owner ? (
               <PersonCell
                 id={r.owner.id}
@@ -79,8 +79,8 @@ export function RecordingsTable({
             ) : (
               <span className="text-fg-subtle">—</span>
             )}
-          </Table.Cell>
-          <Table.Cell>
+          </TableCell>
+          <TableCell>
             <div className="flex items-center gap-1.5">
               <Tone
                 color={
@@ -102,8 +102,8 @@ export function RecordingsTable({
                 </Tone>
               )}
             </div>
-          </Table.Cell>
-          <Table.Cell className="whitespace-nowrap">
+          </TableCell>
+          <TableCell className="whitespace-nowrap">
             <div className="text-fg-strong tabular-nums">
               {r.viewCount.toLocaleString()}
             </div>
@@ -111,8 +111,8 @@ export function RecordingsTable({
               {r.viewerCount === 1 ? "1 viewer" : `${r.viewerCount} viewers`}
               {r.lastViewedAt && ` · ${formatRelative(r.lastViewedAt)}`}
             </div>
-          </Table.Cell>
-          <Table.Cell className="text-fg-muted whitespace-nowrap tabular-nums">
+          </TableCell>
+          <TableCell className="text-fg-muted whitespace-nowrap tabular-nums">
             <span className="flex items-center gap-3">
               <span className="flex items-center gap-1" title="Comments">
                 <MessageSquare size={14} aria-label="Comments" />
@@ -123,19 +123,19 @@ export function RecordingsTable({
                 {r.reactionCount}
               </span>
             </span>
-          </Table.Cell>
-          <Table.Cell className="whitespace-nowrap">
+          </TableCell>
+          <TableCell className="whitespace-nowrap">
             <div className="text-fg-strong tabular-nums">
               {formatClock(r.durationMs)}
             </div>
             <div className="text-fg-subtle text-xs tabular-nums">
               {formatBytes(r.sizeBytes)}
             </div>
-          </Table.Cell>
-          <Table.Cell className="text-fg-muted whitespace-nowrap">
+          </TableCell>
+          <TableCell className="text-fg-muted whitespace-nowrap">
             {formatRelative(r.createdAt)}
-          </Table.Cell>
-        </Table.Row>
+          </TableCell>
+        </TableRow>
       ))}
     </DataTable>
   );

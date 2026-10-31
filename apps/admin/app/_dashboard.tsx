@@ -1,20 +1,28 @@
 import type { ReactNode } from "react";
 import NextLink from "next/link";
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
-import { cn } from "@captureflow/ui/cn";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
-export type Hue = "blue" | "violet" | "emerald" | "amber";
+export type Hue = "blue" | "violet" | "emerald" | "amber" | "muted";
 
 const HUE: Record<
   Hue,
   { chip: string; bar: string; stroke: string; fill: string; dot: string }
 > = {
   blue: {
-    chip: "bg-accent/10 text-accent",
-    bar: "bg-accent",
-    stroke: "stroke-accent",
-    fill: "fill-accent/10",
-    dot: "bg-accent",
+    chip: "bg-primary/10 text-accent-strong",
+    bar: "bg-primary",
+    stroke: "stroke-primary",
+    fill: "fill-primary/10",
+    dot: "bg-primary",
   },
   violet: {
     chip: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
@@ -29,6 +37,13 @@ const HUE: Record<
     stroke: "stroke-emerald-500",
     fill: "fill-emerald-500/10",
     dot: "bg-emerald-500",
+  },
+  muted: {
+    chip: "bg-muted text-muted-foreground",
+    bar: "bg-muted-foreground/35",
+    stroke: "stroke-muted-foreground/50",
+    fill: "fill-muted-foreground/10",
+    dot: "bg-muted-foreground/35",
   },
   amber: {
     chip: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
@@ -53,31 +68,26 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <section
-      className={cn(
-        "border-line bg-panel flex min-w-0 flex-col gap-5 rounded-2xl border p-5",
-        className,
-      )}
-    >
-      <header className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-fg-strong text-[15px] font-semibold">{title}</h2>
-          {description && (
-            <p className="text-fg-muted mt-0.5 text-sm">{description}</p>
-          )}
-        </div>
+    <Card className={cn("min-w-0", className)}>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
         {action && (
-          <NextLink
-            href={action.href}
-            className="text-fg-muted hover:text-fg flex shrink-0 items-center gap-1 text-sm transition-colors motion-reduce:transition-none"
-          >
-            {action.label}
-            <ArrowRight size={14} aria-hidden />
-          </NextLink>
+          <CardAction>
+            <NextLink
+              href={action.href}
+              className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
+            >
+              {action.label}
+              <ArrowRight size={14} aria-hidden />
+            </NextLink>
+          </CardAction>
         )}
-      </header>
-      {children}
-    </section>
+      </CardHeader>
+      <CardContent className="flex min-w-0 flex-col gap-5">
+        {children}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -93,7 +103,9 @@ function Delta({ current, previous }: { current: number; previous: number }) {
     <span
       className={cn(
         "flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-medium tabular-nums",
-        up ? "bg-success/10 text-success" : "bg-danger/10 text-danger",
+        up
+          ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+          : "bg-destructive/10 text-destructive",
       )}
       title="Against last week"
     >
@@ -139,7 +151,6 @@ function AreaSpark({ values, hue }: { values: number[]; hue: Hue }) {
 }
 
 export function KpiCard({
-  icon,
   hue,
   label,
   value,
@@ -147,7 +158,6 @@ export function KpiCard({
   trend,
   footnote,
 }: {
-  icon: ReactNode;
   hue: Hue;
   label: string;
   value: string;
@@ -160,34 +170,33 @@ export function KpiCard({
   return (
     <NextLink
       href={href}
-      className="border-line bg-panel hover:border-line-strong group flex min-w-0 flex-col gap-4 rounded-2xl border p-5 transition-colors motion-reduce:transition-none"
+      className="group min-w-0 rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
-      <div className="flex items-center justify-between gap-3">
-        <span
-          className={cn(
-            "flex size-9 items-center justify-center rounded-xl",
-            HUE[hue].chip,
-          )}
-        >
-          {icon}
-        </span>
-        {trend && <Delta current={current} previous={previous} />}
-      </div>
-      <div className="flex items-end justify-between gap-3">
-        <div className="min-w-0">
+      <Card className="h-full px-5 transition-colors group-hover:bg-muted/50 motion-reduce:transition-none">
+        <div className="flex min-h-6 items-center justify-between gap-3">
           <p className="text-fg-muted text-sm">{label}</p>
-          <p className="text-fg-strong mt-1 text-[28px] leading-none font-semibold tracking-tight tabular-nums">
-            {value}
-          </p>
+          {trend && <Delta current={current} previous={previous} />}
         </div>
-        {trend && <AreaSpark values={trend} hue={hue} />}
-      </div>
-      <p className="text-fg-subtle truncate text-xs">{footnote}</p>
+        <div className="flex min-h-10 items-end justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[28px] leading-none font-semibold tracking-tight tabular-nums">
+              {value}
+            </p>
+          </div>
+          {trend && <AreaSpark values={trend} hue={hue} />}
+        </div>
+        <p className="truncate text-xs text-muted-foreground">{footnote}</p>
+      </Card>
     </NextLink>
   );
 }
 
-export type Series = { label: string; hue: Hue; values: number[] };
+export type Series = {
+  label: string;
+  hue: Hue;
+  values: number[];
+  total?: number;
+};
 
 export function GrowthChart({
   series,
@@ -206,7 +215,9 @@ export function GrowthChart({
             <span className={cn("size-2.5 rounded-full", HUE[s.hue].dot)} />
             <span className="text-fg-muted">{s.label}</span>
             <span className="text-fg-strong font-medium tabular-nums">
-              {s.values.reduce((a, b) => a + b, 0).toLocaleString()}
+              {(
+                s.total ?? s.values.reduce((a, b) => a + b, 0)
+              ).toLocaleString()}
             </span>
           </li>
         ))}
@@ -234,7 +245,7 @@ export function GrowthChart({
             <div className="absolute inset-0 grid grid-flow-col items-end gap-1.5 sm:gap-3">
               {labels.map((label, week) => (
                 <div
-                  key={label}
+                  key={week}
                   className="flex h-full items-end justify-center gap-0.5"
                   title={series
                     .map((s) => `${s.label}: ${s.values[week] ?? 0}`)
@@ -263,7 +274,7 @@ export function GrowthChart({
           <div className="text-fg-subtle grid grid-flow-col gap-1.5 text-center text-[11px] sm:gap-3">
             {labels.map((label, i) => (
               <span
-                key={label}
+                key={i}
                 className={cn(i % 2 === 1 && "invisible sm:visible")}
               >
                 {label}

@@ -2,7 +2,29 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ListBox, Pagination, SearchField, Select, Tabs } from "@heroui/react";
+import NextLink from "next/link";
+import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 type Option = { id: string; label: string };
 
@@ -53,41 +75,46 @@ export function FilterBar({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {search && (
-        <SearchField
-          aria-label="Search"
-          value={query}
-          onChange={setQuery}
-          className="min-w-64 flex-1"
-        >
-          <SearchField.Group>
-            <SearchField.SearchIcon />
-            <SearchField.Input placeholder={search.placeholder} />
-            <SearchField.ClearButton />
-          </SearchField.Group>
-        </SearchField>
+        <InputGroup className="min-w-64 flex-1">
+          <InputGroupAddon>
+            <Search aria-hidden />
+          </InputGroupAddon>
+          <InputGroupInput
+            type="search"
+            aria-label="Search"
+            placeholder={search.placeholder}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          {query && (
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                size="icon-xs"
+                aria-label="Clear search"
+                onClick={() => setQuery("")}
+              >
+                <X />
+              </InputGroupButton>
+            </InputGroupAddon>
+          )}
+        </InputGroup>
       )}
       {selects.map((s) => (
         <Select
           key={s.param}
-          aria-label={s.label}
-          selectedKey={s.value}
-          onSelectionChange={(key) => update({ [s.param]: String(key) })}
-          className="w-52"
+          value={s.value}
+          onValueChange={(value) => update({ [s.param]: value })}
         >
-          <Select.Trigger>
-            <Select.Value />
-            <Select.Indicator />
-          </Select.Trigger>
-          <Select.Popover>
-            <ListBox>
-              {s.options.map((o) => (
-                <ListBox.Item key={o.id} id={o.id} textValue={o.label}>
-                  {o.label}
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              ))}
-            </ListBox>
-          </Select.Popover>
+          <SelectTrigger aria-label={s.label} className="w-52">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {s.options.map((o) => (
+              <SelectItem key={o.id} value={o.id}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
         </Select>
       ))}
     </div>
@@ -104,23 +131,21 @@ export function LinkTabs({
   items: { id: string; label: string; href: string }[];
 }) {
   return (
-    <Tabs selectedKey={selected} className="w-fit">
-      <Tabs.ListContainer className="bg-transparent">
-        <Tabs.List aria-label={label} className="gap-1 bg-transparent p-0">
-          {items.map((item) => (
-            <Tabs.Tab
-              key={item.id}
-              id={item.id}
-              href={item.href}
-              className="rounded-lg px-3.5 whitespace-nowrap"
-            >
-              {item.label}
-              <Tabs.Indicator className="bg-tint-strong rounded-lg shadow-none" />
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-      </Tabs.ListContainer>
-    </Tabs>
+    <nav aria-label={label} className="flex w-fit gap-1">
+      {items.map((item) => (
+        <NextLink
+          key={item.id}
+          href={item.href}
+          aria-current={item.id === selected ? "page" : undefined}
+          className={cn(
+            "text-muted-foreground hover:text-foreground rounded-lg px-3.5 py-1 text-sm font-medium whitespace-nowrap transition-colors",
+            item.id === selected && "bg-tint-strong text-foreground",
+          )}
+        >
+          {item.label}
+        </NextLink>
+      ))}
+    </nav>
   );
 }
 
@@ -132,25 +157,22 @@ export function PanelTabs({
   items: { id: string; label: string; content: ReactNode }[];
 }) {
   return (
-    <Tabs className="flex flex-col gap-5">
-      <Tabs.ListContainer className="w-fit bg-transparent">
-        <Tabs.List aria-label={label} className="gap-1 bg-transparent p-0">
-          {items.map((item) => (
-            <Tabs.Tab
-              key={item.id}
-              id={item.id}
-              className="rounded-lg px-3.5 whitespace-nowrap"
-            >
-              {item.label}
-              <Tabs.Indicator className="bg-tint-strong rounded-lg shadow-none" />
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-      </Tabs.ListContainer>
+    <Tabs defaultValue={items[0]?.id} className="flex flex-col gap-5">
+      <TabsList aria-label={label} className="gap-1 bg-transparent p-0">
+        {items.map((item) => (
+          <TabsTrigger
+            key={item.id}
+            value={item.id}
+            className="data-active:bg-tint-strong rounded-lg px-3.5 whitespace-nowrap data-active:shadow-none"
+          >
+            {item.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
       {items.map((item) => (
-        <Tabs.Panel key={item.id} id={item.id} className="p-0">
+        <TabsContent key={item.id} value={item.id}>
           {item.content}
-        </Tabs.Panel>
+        </TabsContent>
       ))}
     </Tabs>
   );
@@ -175,30 +197,36 @@ export function Pager({
         {total.toLocaleString()} {total === 1 ? "result" : "results"}
       </span>
       {pages > 1 && (
-        <Pagination size="sm">
-          <Pagination.Content>
-            <Pagination.Item>
-              <Pagination.Previous
-                isDisabled={current <= 1}
-                onPress={() => go(current - 1)}
+        <Pagination className="mx-0 w-auto">
+          <PaginationContent>
+            <PaginationItem>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Previous page"
+                disabled={current <= 1}
+                onClick={() => go(current - 1)}
               >
-                <Pagination.PreviousIcon />
-              </Pagination.Previous>
-            </Pagination.Item>
-            <Pagination.Item>
+                <ChevronLeft />
+              </Button>
+            </PaginationItem>
+            <PaginationItem>
               <span className="px-2 tabular-nums">
                 {current} / {pages}
               </span>
-            </Pagination.Item>
-            <Pagination.Item>
-              <Pagination.Next
-                isDisabled={current >= pages}
-                onPress={() => go(current + 1)}
+            </PaginationItem>
+            <PaginationItem>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Next page"
+                disabled={current >= pages}
+                onClick={() => go(current + 1)}
               >
-                <Pagination.NextIcon />
-              </Pagination.Next>
-            </Pagination.Item>
-          </Pagination.Content>
+                <ChevronRight />
+              </Button>
+            </PaginationItem>
+          </PaginationContent>
         </Pagination>
       )}
     </div>

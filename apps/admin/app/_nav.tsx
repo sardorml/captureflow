@@ -1,10 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
+  ChartLine,
   ChevronsUpDown,
+  Globe,
   LayoutDashboard,
   Inbox,
   LogOut,
@@ -18,21 +21,37 @@ import {
   Video,
 } from "lucide-react";
 import {
-  Avatar,
-  Dropdown,
-  Label,
-  ListBox,
-  ToggleButton,
-  ToggleButtonGroup,
-} from "@heroui/react";
-import {
   type ThemePreference,
-  isThemePreference,
   writeThemePreferenceCookie,
 } from "@captureflow/ui/theme";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
 const ICONS = {
   overview: LayoutDashboard,
+  analytics: ChartLine,
+  website: Globe,
   users: Users,
   recordings: Video,
   workspaces: Building2,
@@ -48,82 +67,102 @@ function isActive(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-export function SideNav({ items }: { items: NavItem[] }) {
+export function AdminSidebar({
+  email,
+  role,
+  items,
+  themePreference,
+}: {
+  email: string;
+  role: string;
+  items: NavItem[];
+  themePreference: ThemePreference;
+}) {
   const pathname = usePathname();
-  const active = items.find((item) => isActive(pathname, item.href))?.href;
   return (
-    <ListBox
-      aria-label="Admin"
-      selectionMode="single"
-      selectedKeys={active ? [active] : []}
-      disallowEmptySelection
-      className="flex gap-0.5 overflow-x-auto p-0 md:flex-col md:overflow-visible [&>*+*]:mt-0"
-    >
-      {items.map((item) => {
-        const Icon = ICONS[item.icon];
-        return (
-          <ListBox.Item
-            key={item.href}
-            id={item.href}
-            href={item.href}
-            textValue={item.label}
-            className="w-auto shrink-0 md:w-full text-fg-muted data-[hovered=true]:text-fg data-[selected=true]:bg-tint-strong data-[selected=true]:text-fg-strong h-9 gap-3 rounded-lg px-3 text-[15px]"
-          >
-            <Icon size={17} aria-hidden />
-            <Label className="cursor-[inherit] text-inherit">
-              {item.label}
-            </Label>
-          </ListBox.Item>
-        );
-      })}
-    </ListBox>
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <AccountMenu email={email} role={role} />
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarMenu>
+            {items.map((item) => {
+              const Icon = ICONS[item.icon];
+              return (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(pathname, item.href)}
+                    tooltip={item.label}
+                  >
+                    <Link href={item.href}>
+                      <Icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter className="group-data-[collapsible=icon]:hidden">
+        <ThemeSwitcher initial={themePreference} />
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
   );
 }
 
-export function AccountMenu({ email, role }: { email: string; role: string }) {
+function AccountMenu({ email, role }: { email: string; role: string }) {
+  const { isMobile } = useSidebar();
   const signOut = useRef<HTMLFormElement>(null);
   return (
-    <>
-      <form ref={signOut} action="/logout" method="post" hidden />
-      <Dropdown>
-        <Dropdown.Trigger className="hover:bg-tint flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors motion-reduce:transition-none">
-          <Avatar size="sm" color="accent" className="size-7 rounded-md">
-            <Avatar.Fallback className="text-xs font-semibold">
-              {email[0]?.toUpperCase() ?? "?"}
-            </Avatar.Fallback>
-          </Avatar>
-          <span className="min-w-0 flex-1">
-            <span className="text-fg-strong block truncate text-[15px] font-medium">
-              CaptureFlow
-            </span>
-          </span>
-          <ChevronsUpDown size={15} className="text-fg-subtle" aria-hidden />
-        </Dropdown.Trigger>
-        <Dropdown.Popover placement="bottom start" className="min-w-60">
-          <Dropdown.Menu
-            aria-label="Account"
-            onAction={(key) => {
-              if (key === "sign-out") signOut.current?.requestSubmit();
-            }}
-          >
-            <Dropdown.Section>
-              <Dropdown.Item id="who" textValue={email} isDisabled>
-                <span className="flex min-w-0 flex-col">
-                  <span className="text-fg truncate text-sm">{email}</span>
-                  <span className="text-fg-subtle text-xs capitalize">
-                    {role}
-                  </span>
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <form ref={signOut} action="/logout" method="post" hidden />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <Avatar className="size-8 rounded-md after:rounded-md">
+                <AvatarFallback className="rounded-md bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground">
+                  {email[0]?.toUpperCase() ?? "?"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">CaptureFlow</span>
+                <span className="truncate text-xs text-muted-foreground">
+                  Instance admin
                 </span>
-              </Dropdown.Item>
-            </Dropdown.Section>
-            <Dropdown.Item id="sign-out" textValue="Sign out">
-              <LogOut size={15} aria-hidden />
-              <Label>Sign out</Label>
-            </Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown.Popover>
-      </Dropdown>
-    </>
+              </div>
+              <ChevronsUpDown className="ml-auto" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="min-w-60"
+            align="start"
+            side={isMobile ? "bottom" : "right"}
+            sideOffset={4}
+          >
+            <DropdownMenuLabel className="flex flex-col font-normal">
+              <span className="truncate text-sm text-foreground">{email}</span>
+              <span className="text-xs text-muted-foreground capitalize">
+                {role}
+              </span>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => signOut.current?.requestSubmit()}>
+              <LogOut />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }
 
@@ -133,7 +172,7 @@ const THEMES = [
   { id: "system", label: "System", Icon: Monitor },
 ] as const;
 
-export function ThemeSwitcher({ initial }: { initial: ThemePreference }) {
+function ThemeSwitcher({ initial }: { initial: ThemePreference }) {
   const [preference, setPreference] = useState<ThemePreference>(initial);
   const choose = (next: ThemePreference) => {
     setPreference(next);
@@ -144,27 +183,31 @@ export function ThemeSwitcher({ initial }: { initial: ThemePreference }) {
           ? "dark"
           : "light"
         : next;
-    document.documentElement.setAttribute("data-theme", theme);
+    const root = document.documentElement;
+    // Colour transitions are held off for two frames so nothing fades
+    // between the themes.
+    root.setAttribute("data-theme-switching", "");
+    root.setAttribute("data-theme", theme);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => root.removeAttribute("data-theme-switching")),
+    );
   };
   return (
-    <ToggleButtonGroup
-      aria-label="Theme"
-      selectionMode="single"
-      disallowEmptySelection
-      selectedKeys={[preference]}
-      onSelectionChange={(keys) => {
-        const [key] = [...keys];
-        if (isThemePreference(key)) choose(key);
-      }}
-      size="sm"
-      className="w-full"
-    >
+    <ButtonGroup aria-label="Theme" className="w-full">
       {THEMES.map(({ id, label, Icon }) => (
-        <ToggleButton key={id} id={id} aria-label={label} className="flex-1">
-          <Icon size={14} aria-hidden />
+        <Button
+          key={id}
+          type="button"
+          size="sm"
+          variant={preference === id ? "secondary" : "outline"}
+          aria-pressed={preference === id}
+          className="flex-1"
+          onClick={() => choose(id)}
+        >
+          <Icon />
           {label}
-        </ToggleButton>
+        </Button>
       ))}
-    </ToggleButtonGroup>
+    </ButtonGroup>
   );
 }

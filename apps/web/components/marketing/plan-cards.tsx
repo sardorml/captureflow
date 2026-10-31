@@ -200,7 +200,7 @@ function PlanCard({
       className={cn(
         "flex h-full flex-col text-fg",
         highlighted
-          ? "rounded-[10px] p-[23px] sm:px-[31px] sm:py-[27px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
+          ? "rounded-[calc(var(--radius-xl)-2px)] p-[23px] sm:px-[31px] sm:py-[27px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
           : "rounded-xl border border-line bg-panel p-6 sm:px-8 sm:py-7",
       )}
     >

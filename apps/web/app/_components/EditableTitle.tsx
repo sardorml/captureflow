@@ -1,8 +1,19 @@
 "use client";
 
 import { Pencil } from "lucide-react";
-import { useEffect, useRef, useState, useTransition } from "react";
+import {
+  type ReactElement,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { renameRecordingAction } from "@/app/actions";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -28,14 +39,36 @@ export function EditableTitle({
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const headingRef = useRef<HTMLHeadingElement | null>(null);
+  const [fullTitleShown, setFullTitleShown] = useState(false);
   const editing = draft != null;
+
+  // Only a title the line actually cuts off gets the tooltip.
+  const withFullTitle = (trigger: ReactElement) => (
+    <Tooltip
+      open={fullTitleShown}
+      onOpenChange={(open) => {
+        const el = headingRef.current;
+        setFullTitleShown(open && !!el && el.scrollWidth > el.clientWidth);
+      }}
+    >
+      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+      <TooltipContent side="bottom" align="start" className="max-w-lg">
+        {title}
+      </TooltipContent>
+    </Tooltip>
+  );
 
   useEffect(() => {
     if (editing) inputRef.current?.select();
   }, [editing]);
 
   if (!canEdit) {
-    return <h1 className={cn("lg:truncate", headline)}>{title}</h1>;
+    return withFullTitle(
+      <h1 ref={headingRef} className={cn("lg:truncate", headline)}>
+        {title}
+      </h1>,
+    );
   }
 
   const commit = (): void => {
@@ -84,25 +117,28 @@ export function EditableTitle({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setDraft(title)}
-        className="group/title -mx-3 flex w-[calc(100%+1.5rem)] items-center gap-3 rounded-xl px-3 py-1.5 text-left transition-colors hover:bg-tint"
-        aria-label="Rename recording"
-      >
-        <Pencil
-          className="hidden size-5 shrink-0 text-fg-muted group-hover/title:block"
-          aria-hidden="true"
-        />
-        <h1
-          className={cn(
-            "min-w-0 transition-colors group-hover/title:text-accent-strong lg:truncate",
-            headline,
-          )}
+      {withFullTitle(
+        <button
+          type="button"
+          onClick={() => setDraft(title)}
+          className="group/title -mx-3 flex w-[calc(100%+1.5rem)] items-center gap-3 rounded-xl px-3 py-1.5 text-left transition-colors hover:bg-tint"
+          aria-label="Rename recording"
         >
-          {title}
-        </h1>
-      </button>
+          <Pencil
+            className="hidden size-5 shrink-0 text-fg-muted group-hover/title:block"
+            aria-hidden="true"
+          />
+          <h1
+            ref={headingRef}
+            className={cn(
+              "min-w-0 transition-colors group-hover/title:text-accent-strong lg:truncate",
+              headline,
+            )}
+          >
+            {title}
+          </h1>
+        </button>,
+      )}
       {error ? <p className="mt-1 text-sm text-destructive">{error}</p> : null}
     </>
   );

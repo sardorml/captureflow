@@ -195,7 +195,7 @@ export function UpgradeModalBody({
                 );
               })}
             </div>
-            <Popover>
+            <Popover modal>
               <PopoverTrigger asChild>
                 <Button
                   variant="secondary"
@@ -327,7 +327,7 @@ function PlanOption({
       className={cn(
         "flex h-full flex-col p-5 text-fg",
         highlighted
-          ? "rounded-[22px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
+          ? "rounded-[calc(var(--radius-3xl)-2px)] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
           : "rounded-3xl border border-line bg-panel",
       )}
     >

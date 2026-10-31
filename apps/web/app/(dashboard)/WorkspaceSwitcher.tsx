@@ -1,7 +1,7 @@
 "use client";
 
 import type { PaidSeats } from "@/lib/billing/seat-checkout";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
 import { Check, ChevronsUpDown, UserPlus } from "lucide-react";
@@ -22,10 +22,11 @@ import {
 import type { WorkspaceMembership } from "@captureflow/quota";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { whenIdle } from "@/lib/when-idle";
 import { workspaceLogoUrl } from "@/lib/site";
 import { switchWorkspaceAction } from "./switch-workspace-action";
 
-// Loaded on the first invite, not with every dashboard page.
+// Loaded once the page is idle, not with the dashboard's first paint.
 const InviteModal = dynamic(
   () =>
     import("./InviteModal").then((m) =>
@@ -75,8 +76,13 @@ export function WorkspaceSwitcher({
   const { isMobile } = useSidebar();
   const formRef = useRef<HTMLFormElement>(null);
   const [isInviting, setInviting] = useState(false);
-  // Stays mounted after the first invite so closing can animate out.
+  // Mounted closed once the page is idle, so the first invite opens at once,
+  // and kept mounted so closing can animate out.
   const [inviteMounted, setInviteMounted] = useState(false);
+  useEffect(
+    () => (canInvite ? whenIdle(() => setInviteMounted(true)) : undefined),
+    [canInvite],
+  );
   const current =
     memberships.find((m) => m.workspace_id === currentWorkspaceId) ??
     memberships[0];

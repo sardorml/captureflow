@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { revokeUserAccessAction } from "../../actions";
 import { EMPTY, keepTyped } from "../../_form";
 
@@ -33,15 +33,15 @@ export function SignOutEverywhere({
       <input type="hidden" name="userId" value={userId} />
       <Button
         type="submit"
-        variant="danger-soft"
+        variant="destructive"
         size="sm"
-        isDisabled={pending || sessions + devices === 0}
+        disabled={pending || sessions + devices === 0}
         className="w-fit"
       >
         {pending ? "Signing out…" : "Sign out everywhere"}
       </Button>
       {state.error && (
-        <span className="text-danger text-xs">{state.error}</span>
+        <span className="text-destructive text-xs">{state.error}</span>
       )}
     </form>
   );

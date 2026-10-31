@@ -1,12 +1,13 @@
 import NextLink from "next/link";
 import { Mail, Plus } from "lucide-react";
-import { Table, buttonVariants } from "@heroui/react";
 import {
   type CampaignStatus,
   countRecipients,
   countUnsubscribed,
   listCampaigns,
 } from "@captureflow/mail";
+import { buttonVariants } from "@/components/ui/button";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
 import {
@@ -33,7 +34,7 @@ const FILTERS = [
 const NEW_EMAIL = (
   <NextLink
     href="/emails/new"
-    className={buttonVariants({ variant: "primary", className: "gap-2" })}
+    className={buttonVariants({ className: "gap-2" })}
   >
     <Plus size={16} aria-hidden />
     New email
@@ -123,8 +124,8 @@ export default async function EmailsPage({
             ]}
           >
             {shown.map((c) => (
-              <Table.Row key={c.id}>
-                <Table.Cell>
+              <TableRow key={c.id}>
+                <TableCell>
                   <div className="flex items-center gap-3">
                     <span className="border-line bg-canvas-2 text-fg-muted grid size-9 shrink-0 place-items-center rounded-lg border">
                       <Mail size={16} aria-hidden />
@@ -136,32 +137,32 @@ export default async function EmailsPage({
                       {c.subject}
                     </NextLink>
                   </div>
-                </Table.Cell>
-                <Table.Cell>
+                </TableCell>
+                <TableCell>
                   <StatusChip status={c.status} />
-                </Table.Cell>
-                <Table.Cell className="text-fg-muted">
+                </TableCell>
+                <TableCell className="text-fg-muted">
                   {c.audience === "all" ? "Everyone" : "Selected people"}
-                </Table.Cell>
-                <Table.Cell className="tabular-nums whitespace-nowrap">
+                </TableCell>
+                <TableCell className="tabular-nums whitespace-nowrap">
                   {c.status === "draft" ? (
                     <span className="text-fg-subtle">—</span>
                   ) : (
                     <>
                       {c.sentCount}
                       {c.failedCount > 0 && (
-                        <span className="text-danger">
+                        <span className="text-destructive">
                           {" "}
                           · {c.failedCount} failed
                         </span>
                       )}
                     </>
                   )}
-                </Table.Cell>
-                <Table.Cell className="text-fg-muted whitespace-nowrap">
+                </TableCell>
+                <TableCell className="text-fg-muted whitespace-nowrap">
                   {formatRelative(c.finishedAt ?? c.startedAt ?? c.createdAt)}
-                </Table.Cell>
-                <Table.Cell>
+                </TableCell>
+                <TableCell>
                   <RowMenu
                     label={`Actions for ${c.subject}`}
                     actions={[
@@ -185,8 +186,8 @@ export default async function EmailsPage({
                         : []),
                     ]}
                   />
-                </Table.Cell>
-              </Table.Row>
+                </TableCell>
+              </TableRow>
             ))}
           </DataTable>
         )}

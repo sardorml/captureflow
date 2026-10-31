@@ -1,12 +1,6 @@
 import NextLink from "next/link";
-import {
-  CreditCard,
-  Eye,
-  ShieldCheck,
-  UserPlus,
-  Users,
-  Video,
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ShieldCheck, UserPlus, Video } from "lucide-react";
 import {
   getAdminTotals,
   getRecordingActivityByWeek,
@@ -160,15 +154,14 @@ export default async function OverviewPage() {
         title="Overview"
         description="How the instance is growing, what people watch, and where storage goes"
         actions={
-          <span className="border-line text-fg-muted rounded-full border px-3 py-1 text-xs">
+          <Badge variant="outline" className="text-muted-foreground">
             Last {WEEKS} weeks
-          </span>
+          </Badge>
         }
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
-          icon={<Users size={18} aria-hidden />}
           hue="blue"
           label="Users"
           value={totals.users.toLocaleString()}
@@ -177,7 +170,6 @@ export default async function OverviewPage() {
           footnote={`${signups.at(-1) ?? 0} signed up this week`}
         />
         <KpiCard
-          icon={<Video size={18} aria-hidden />}
           hue="violet"
           label="Recordings"
           value={totals.recordings.toLocaleString()}
@@ -186,7 +178,6 @@ export default async function OverviewPage() {
           footnote={`${formatDuration(recordingTotals.recordedMs)} recorded · ${recordingTotals.publicRecordings} public`}
         />
         <KpiCard
-          icon={<Eye size={18} aria-hidden />}
           hue="emerald"
           label="Views"
           value={recordingTotals.views.toLocaleString()}
@@ -195,7 +186,6 @@ export default async function OverviewPage() {
           footnote={`${recordingTotals.viewers.toLocaleString()} unique viewers`}
         />
         <KpiCard
-          icon={<CreditCard size={18} aria-hidden />}
           hue="amber"
           label="Paid users"
           value={totals.teamUsers.toLocaleString()}

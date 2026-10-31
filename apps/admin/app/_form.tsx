@@ -1,20 +1,19 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { useActionState } from "react";
-import { Button, Description, Input, Label, TextField } from "@heroui/react";
+import { type ReactNode, useActionState, useId } from "react";
+import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import type { FormState } from "./actions";
 import { Notice } from "./_ui";
 
 export const EMPTY: FormState = { error: null };
 
 /*
- * React 19 resets a form once its action resolves, and React Aria's fields
- * revert along with it — so a failed submit would wipe the token that was
- * pasted and the email that was typed, which is the loop that made a wrong
- * setup token look unfixable. Cancelling the reset is the supported opt-out:
- * the fields skip their revert when the event was already default-prevented.
- * A ref callback registers this ahead of theirs, which is what makes it win.
+ * React 19 resets a form once its action resolves, so a failed submit would
+ * wipe the token that was pasted and the email that was typed, which is the
+ * loop that made a wrong setup token look unfixable. Cancelling the reset
+ * event keeps what was typed.
  */
 export function keepTyped(form: HTMLFormElement | null) {
   form?.addEventListener("reset", (event) => event.preventDefault());
@@ -43,12 +42,7 @@ export function ActionForm({
     <form action={formAction} ref={keepTyped} className={className}>
       {children}
       {state.error && <Notice tone="error">{state.error}</Notice>}
-      <Button
-        type="submit"
-        variant="primary"
-        isDisabled={pending}
-        className="w-fit"
-      >
+      <Button type="submit" disabled={pending} className="w-fit">
         {pending ? (busy ?? "Working…") : submit}
       </Button>
     </form>
@@ -77,11 +71,16 @@ export function ActionButton({
       className="flex items-center gap-2"
     >
       {children}
-      <Button type="submit" variant={variant} size="sm" isDisabled={pending}>
+      <Button
+        type="submit"
+        variant={variant === "danger-soft" ? "destructive" : "ghost"}
+        size="sm"
+        disabled={pending}
+      >
         {pending ? (busyLabel ?? "…") : label}
       </Button>
       {state.error && (
-        <span className="text-danger text-xs">{state.error}</span>
+        <span className="text-destructive text-xs">{state.error}</span>
       )}
     </form>
   );
@@ -112,23 +111,23 @@ export function TextRow({
   placeholder?: string;
   inputMode?: "numeric" | "decimal";
 }) {
+  const id = useId();
   return (
-    <TextField
-      name={name}
-      type={type}
-      fullWidth
-      value={value}
-      defaultValue={defaultValue}
-      onChange={onChange}
-    >
-      <Label>{label}</Label>
+    <Field>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <Input
+        id={id}
+        name={name}
+        type={type}
+        value={value}
+        defaultValue={defaultValue}
+        onChange={onChange && ((e) => onChange(e.target.value))}
         autoComplete={autoComplete}
         autoFocus={autoFocus}
         placeholder={placeholder}
         inputMode={inputMode}
       />
-      {hint && <Description>{hint}</Description>}
-    </TextField>
+      {hint && <FieldDescription>{hint}</FieldDescription>}
+    </Field>
   );
 }

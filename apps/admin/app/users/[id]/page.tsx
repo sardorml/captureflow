@@ -1,6 +1,6 @@
 import NextLink from "next/link";
 import { notFound } from "next/navigation";
-import { Table } from "@heroui/react";
+import { TableCell, TableRow } from "@/components/ui/table";
 import {
   can,
   getAdminUser,
@@ -110,8 +110,8 @@ export default async function UserPage({
         ]}
       >
         {activity.recent.map((r) => (
-          <Table.Row key={r.slug}>
-            <Table.Cell>
+          <TableRow key={r.slug}>
+            <TableCell>
               <RecordingCell
                 title={r.title}
                 slug={r.slug}
@@ -120,8 +120,8 @@ export default async function UserPage({
                 appBaseUrl={env.APP_BASE_URL}
                 detail={r.workspaceName ? ` · ${r.workspaceName}` : null}
               />
-            </Table.Cell>
-            <Table.Cell>
+            </TableCell>
+            <TableCell>
               <Tone
                 color={
                   STATE_COLOR[r.state as keyof typeof STATE_COLOR] ?? "default"
@@ -129,27 +129,27 @@ export default async function UserPage({
               >
                 {r.state}
               </Tone>
-            </Table.Cell>
-            <Table.Cell className="text-fg-muted capitalize">
+            </TableCell>
+            <TableCell className="text-fg-muted capitalize">
               {r.visibility}
-            </Table.Cell>
-            <Table.Cell className="text-fg-muted whitespace-nowrap">
+            </TableCell>
+            <TableCell className="text-fg-muted whitespace-nowrap">
               {captureLabel(r.client, r.captureSource)}
-            </Table.Cell>
-            <Table.Cell className="text-fg-muted whitespace-nowrap">
+            </TableCell>
+            <TableCell className="text-fg-muted whitespace-nowrap">
               {r.quality ? (QUALITY_LABEL[r.quality] ?? r.quality) : "—"}
-            </Table.Cell>
-            <Table.Cell className="tabular-nums whitespace-nowrap">
+            </TableCell>
+            <TableCell className="tabular-nums whitespace-nowrap">
               {r.durationMs ? formatDuration(r.durationMs) : "—"}
-            </Table.Cell>
-            <Table.Cell className="tabular-nums whitespace-nowrap">
+            </TableCell>
+            <TableCell className="tabular-nums whitespace-nowrap">
               {formatBytes(r.sizeBytes)}
-            </Table.Cell>
-            <Table.Cell className="tabular-nums">{r.viewCount}</Table.Cell>
-            <Table.Cell className="text-fg-muted whitespace-nowrap">
+            </TableCell>
+            <TableCell className="tabular-nums">{r.viewCount}</TableCell>
+            <TableCell className="text-fg-muted whitespace-nowrap">
               {formatRelative(r.createdAt)}
-            </Table.Cell>
-          </Table.Row>
+            </TableCell>
+          </TableRow>
         ))}
       </DataTable>
     );
@@ -167,8 +167,8 @@ export default async function UserPage({
       ]}
     >
       {workspaces.map((w) => (
-        <Table.Row key={w.id}>
-          <Table.Cell>
+        <TableRow key={w.id}>
+          <TableCell>
             <div className="flex items-center gap-3">
               <Monogram name={w.name} />
               <div className="min-w-0">
@@ -183,13 +183,13 @@ export default async function UserPage({
                 </div>
               </div>
             </div>
-          </Table.Cell>
-          <Table.Cell>
+          </TableCell>
+          <TableCell>
             <Tone color={w.role === "owner" ? "accent" : "default"}>
               {w.role ?? "—"}
             </Tone>
-          </Table.Cell>
-          <Table.Cell className="text-fg-muted">
+          </TableCell>
+          <TableCell className="text-fg-muted">
             {w.owner.id === user.id ? (
               "This user"
             ) : (
@@ -200,8 +200,8 @@ export default async function UserPage({
                 {w.owner.email}
               </NextLink>
             )}
-          </Table.Cell>
-          <Table.Cell className="tabular-nums whitespace-nowrap">
+          </TableCell>
+          <TableCell className="tabular-nums whitespace-nowrap">
             {w.memberCount}
             {w.pendingInvites ? (
               <span className="text-fg-subtle">
@@ -209,12 +209,12 @@ export default async function UserPage({
                 +{w.pendingInvites} invited
               </span>
             ) : null}
-          </Table.Cell>
-          <Table.Cell className="tabular-nums">{w.recordingCount}</Table.Cell>
-          <Table.Cell className="tabular-nums whitespace-nowrap">
+          </TableCell>
+          <TableCell className="tabular-nums">{w.recordingCount}</TableCell>
+          <TableCell className="tabular-nums whitespace-nowrap">
             {formatBytes(w.storageBytes)}
-          </Table.Cell>
-        </Table.Row>
+          </TableCell>
+        </TableRow>
       ))}
     </DataTable>
   );
@@ -236,17 +236,17 @@ export default async function UserPage({
         ]}
       >
         {subscriptions.map((s) => (
-          <Table.Row key={s.id}>
-            <Table.Cell>
+          <TableRow key={s.id}>
+            <TableCell>
               <NextLink
                 href={`/workspaces/${s.workspaceId}`}
                 className="text-fg-strong font-medium hover:underline"
               >
                 {s.workspaceName}
               </NextLink>
-            </Table.Cell>
-            <Table.Cell className="tabular-nums">{s.quantity}</Table.Cell>
-            <Table.Cell>
+            </TableCell>
+            <TableCell className="tabular-nums">{s.quantity}</TableCell>
+            <TableCell>
               <Tone
                 color={
                   s.status === "past_due"
@@ -259,18 +259,18 @@ export default async function UserPage({
                 {s.status.replace("_", " ")}
                 {s.isActive ? "" : " · inactive"}
               </Tone>
-            </Table.Cell>
-            <Table.Cell className="capitalize">{s.cycle}</Table.Cell>
-            <Table.Cell className="tabular-nums whitespace-nowrap">
+            </TableCell>
+            <TableCell className="capitalize">{s.cycle}</TableCell>
+            <TableCell className="tabular-nums whitespace-nowrap">
               {s.currentPeriodEnd
                 ? formatDate(s.currentPeriodEnd * 1000).slice(0, 10)
                 : "—"}
-            </Table.Cell>
-            <Table.Cell className="tabular-nums whitespace-nowrap">
+            </TableCell>
+            <TableCell className="tabular-nums whitespace-nowrap">
               {formatDate(s.createdAt * 1000).slice(0, 10)}
-            </Table.Cell>
-            <Table.Cell className="text-fg-muted">{s.customerEmail}</Table.Cell>
-          </Table.Row>
+            </TableCell>
+            <TableCell className="text-fg-muted">{s.customerEmail}</TableCell>
+          </TableRow>
         ))}
       </DataTable>
     );
@@ -311,18 +311,18 @@ export default async function UserPage({
         columns={["Action", "Detail", "By", "When"]}
       >
         {audit.map((a) => (
-          <Table.Row key={a.id}>
-            <Table.Cell>
+          <TableRow key={a.id}>
+            <TableCell>
               <Tone color="default">{a.action}</Tone>
-            </Table.Cell>
-            <Table.Cell className="text-fg-muted max-w-sm truncate">
+            </TableCell>
+            <TableCell className="text-fg-muted max-w-sm truncate">
               {a.detail ?? "—"}
-            </Table.Cell>
-            <Table.Cell className="text-fg-muted">{a.actor}</Table.Cell>
-            <Table.Cell className="text-fg-muted whitespace-nowrap">
+            </TableCell>
+            <TableCell className="text-fg-muted">{a.actor}</TableCell>
+            <TableCell className="text-fg-muted whitespace-nowrap">
               {formatRelative(a.createdAt)}
-            </Table.Cell>
-          </Table.Row>
+            </TableCell>
+          </TableRow>
         ))}
       </DataTable>
     );
