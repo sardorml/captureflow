@@ -39,6 +39,7 @@ import {
   type ReactionBurst,
 } from "@/lib/recording/reaction-bursts";
 import { cn } from "@/lib/utils";
+import { whenIdle } from "@/lib/when-idle";
 
 const AVATAR_TONES = [
   "#2563eb",
@@ -285,6 +286,14 @@ export function ActivitySidebar({
    * without spending the page's load on a picker most viewers never open.
    */
   const warmEmojiPicker = () => void loadEmojiPicker();
+
+  // Its first render sets the library up, a few hundred ms even with the
+  // chunk loaded, so a signed-in viewer gets one off-screen render at idle.
+  const [primingEmoji, setPrimingEmoji] = useState(false);
+  useEffect(
+    () => (viewerSignedIn ? whenIdle(() => setPrimingEmoji(true)) : undefined),
+    [viewerSignedIn],
+  );
 
   // The composer lives in the Activity tab, so the shortcut switches to it.
   useEffect(() => {
@@ -627,7 +636,26 @@ export function ActivitySidebar({
         )}
         {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
       </div>
+      {primingEmoji && (
+        <EmojiPickerPrimer onDone={() => setPrimingEmoji(false)} />
+      )}
     </aside>
+  );
+}
+
+function EmojiPickerPrimer({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const id = requestAnimationFrame(onDone);
+    return () => cancelAnimationFrame(id);
+  }, [onDone]);
+  return (
+    <div
+      aria-hidden
+      inert
+      className="pointer-events-none fixed top-0 left-0 opacity-0"
+    >
+      <EmojiPickerThemed onPick={() => {}} />
+    </div>
   );
 }
 

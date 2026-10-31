@@ -30,7 +30,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
 };
 
-// The ⌘K dialog, loaded on first open.
+// The ⌘K dialog, loaded once the page is idle.
 export function SearchDialog({ isOpen, onOpenChange }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState("");

@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { Search } from "lucide-react";
 import { Kbd } from "@/components/ui/kbd";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
+import { whenIdle } from "@/lib/when-idle";
 
 const SearchDialog = dynamic(
   () =>
@@ -16,12 +17,15 @@ const SearchDialog = dynamic(
 
 export function SearchTrigger() {
   const [open, setOpen] = useState(false);
-  // Stays mounted after the first open so closing can animate out.
+  // Mounted closed once the page is idle, so the first ⌘K opens at once, and
+  // kept mounted so closing can animate out.
   const [opened, setOpened] = useState(false);
   const show = () => {
     setOpened(true);
     setOpen(true);
   };
+
+  useEffect(() => whenIdle(() => setOpened(true)), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
