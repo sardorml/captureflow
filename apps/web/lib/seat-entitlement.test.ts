@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   FREE_TIER,
+  VOICEOVER_CHARS_PER_MINUTE,
+  agentAllowanceLeft,
+  startOfMonthUtc,
   UNLIMITED_STORAGE_BYTES,
   getSeatPlan,
   hydrateSeatPlanId,
@@ -73,6 +76,53 @@ describe("resolveWorkspaceEntitlement", () => {
         memberCount: 0,
       }).seats,
     ).toBe(1);
+  });
+});
+
+describe("agent allowances", () => {
+  it("give each free person minutes but no voiceover", () => {
+    const e = resolveWorkspaceEntitlement({
+      subscription: null,
+      memberCount: 3,
+    });
+    expect(e.agentMinutes).toBe(FREE_TIER.agentMinutesPerPerson * 3);
+    expect(e.voiceoverMinutes).toBe(0);
+  });
+
+  it("scale with seats on paid plans", () => {
+    const pro = getSeatPlan("pro");
+    const e = resolveWorkspaceEntitlement({
+      subscription: { quantity: 2, plan: "pro" },
+      memberCount: 2,
+    });
+    expect(e.agentMinutes).toBe(pro.agentMinutesPerSeat * 2);
+    expect(e.voiceoverMinutes).toBe(pro.voiceoverMinutesPerSeat * 2);
+  });
+
+  it("are unlimited when self-hosted", () => {
+    const e = resolveWorkspaceEntitlement({
+      subscription: null,
+      memberCount: 1,
+      selfHosted: true,
+    });
+    expect(
+      agentAllowanceLeft(e, { agentMs: 1e12, narratedChars: 1e9 }),
+    ).toEqual({ agentMs: null, voiceoverChars: null });
+  });
+
+  it("subtract this month's use and never go below zero", () => {
+    expect(
+      agentAllowanceLeft(
+        { agentMinutes: 10, voiceoverMinutes: 2 },
+        { agentMs: 4 * 60_000, narratedChars: 5 * VOICEOVER_CHARS_PER_MINUTE },
+      ),
+    ).toEqual({ agentMs: 6 * 60_000, voiceoverChars: 0 });
+  });
+
+  it("reset on the first of the month, in UTC", () => {
+    expect(startOfMonthUtc(Date.UTC(2026, 9, 31, 23, 59))).toBe(
+      Date.UTC(2026, 9, 1),
+    );
   });
 });
 

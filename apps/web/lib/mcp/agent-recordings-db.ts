@@ -1,5 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import type { AgentUsage } from "@captureflow/quota";
+
 export const MAX_RECORDING_MS = 10 * 60_000;
 export const IDLE_MS = 2 * 60_000;
 // Past this a session can't still be running: the recorder ends it at its length limit.
@@ -9,6 +11,7 @@ export type AgentRecordingRow = {
   id: string;
   userId: string;
   deviceTokenId: string;
+  workspaceId: string | null;
   slug: string | null;
   createdAt: number;
 };
@@ -17,6 +20,7 @@ type D1Row = {
   id: string;
   user_id: string;
   device_token_id: string;
+  workspace_id: string | null;
   slug: string | null;
   created_at: number;
 };
@@ -25,20 +29,64 @@ const toRow = (r: D1Row): AgentRecordingRow => ({
   id: r.id,
   userId: r.user_id,
   deviceTokenId: r.device_token_id,
+  workspaceId: r.workspace_id,
   slug: r.slug,
   createdAt: r.created_at,
 });
 
 export async function insertAgentRecording(
   db: D1Database,
-  row: { id: string; userId: string; deviceTokenId: string; now: number },
+  row: {
+    id: string;
+    userId: string;
+    deviceTokenId: string;
+    workspaceId: string;
+    now: number;
+  },
 ): Promise<void> {
   await db
     .prepare(
-      `INSERT INTO agent_recordings (id, user_id, device_token_id, created_at)
-       VALUES (?1, ?2, ?3, ?4)`,
+      `INSERT INTO agent_recordings
+         (id, user_id, device_token_id, workspace_id, created_at)
+       VALUES (?1, ?2, ?3, ?4, ?5)`,
     )
-    .bind(row.id, row.userId, row.deviceTokenId, row.now)
+    .bind(row.id, row.userId, row.deviceTokenId, row.workspaceId, row.now)
+    .run();
+}
+
+// A running session counts up to now, and never past the length it can run.
+export async function getAgentUsage(
+  db: D1Database,
+  workspaceId: string,
+  since: number,
+  now: number,
+): Promise<AgentUsage> {
+  const row = await db
+    .prepare(
+      `SELECT
+         COALESCE(SUM(MIN(COALESCE(ended_at, ?3), created_at + ?4) - created_at), 0) AS agent_ms,
+         COALESCE(SUM(narrated_chars), 0) AS narrated_chars
+         FROM agent_recordings
+        WHERE workspace_id = ?1 AND created_at >= ?2`,
+    )
+    .bind(workspaceId, since, now, SESSION_LIFETIME_MS)
+    .first<{ agent_ms: number; narrated_chars: number }>();
+  return {
+    agentMs: Math.max(0, row?.agent_ms ?? 0),
+    narratedChars: row?.narrated_chars ?? 0,
+  };
+}
+
+export async function addNarratedChars(
+  db: D1Database,
+  id: string,
+  chars: number,
+): Promise<void> {
+  await db
+    .prepare(
+      `UPDATE agent_recordings SET narrated_chars = narrated_chars + ?2 WHERE id = ?1`,
+    )
+    .bind(id, chars)
     .run();
 }
 
@@ -60,7 +108,7 @@ export async function getRunningAgentRecording(
 ): Promise<AgentRecordingRow | null> {
   const row = await db
     .prepare(
-      `SELECT id, user_id, device_token_id, slug, created_at
+      `SELECT id, user_id, device_token_id, workspace_id, slug, created_at
          FROM agent_recordings
         WHERE id = ?1 AND user_id = ?2 AND ended_at IS NULL`,
     )
@@ -76,7 +124,7 @@ export async function findRunningAgentRecording(
 ): Promise<AgentRecordingRow | null> {
   const row = await db
     .prepare(
-      `SELECT id, user_id, device_token_id, slug, created_at
+      `SELECT id, user_id, device_token_id, workspace_id, slug, created_at
          FROM agent_recordings
         WHERE user_id = ?1 AND ended_at IS NULL AND created_at > ?2
         ORDER BY created_at DESC

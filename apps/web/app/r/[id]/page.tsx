@@ -51,6 +51,7 @@ import { SessionLoadingShell } from "./SessionLoadingShell";
 import { AuthPrompt } from "./AuthPrompt";
 import { RecordingActions } from "./RecordingActions";
 import { RecordingViewer } from "./RecordingViewer";
+import { UpgradeBanner, getFreePlanUsage } from "./UpgradeBanner";
 import { NotificationsBell } from "@/app/_components/NotificationsBell";
 import { SidebarDrawer } from "@/app/_components/SidebarDrawer";
 import { ViewerUserMenu } from "@/app/_components/ViewerUserMenu";
@@ -275,6 +276,7 @@ export default async function RecordingPage({
     webcamUrlRaw,
     transcriptRow,
     viewers,
+    freePlanUsage,
   ] = await Promise.all([
     viewerMediaUrl(row, row.storageKey),
     row.posterKey
@@ -289,6 +291,9 @@ export default async function RecordingPage({
     getTranscript(id),
     // Only the owner sees who watched.
     isOwner ? listViewers(id, row.userId) : Promise.resolve(null),
+    visitor && !selfHosted
+      ? getFreePlanUsage(visitor).catch(() => null)
+      : Promise.resolve(null),
   ]);
   const recordingConfig = parseRecordingConfigJson(row.configJson);
   const summaryChapters = parseSummaryChaptersJson(row.summaryChaptersJson);
@@ -320,6 +325,13 @@ export default async function RecordingPage({
   return (
     <div className="flex min-h-screen flex-col bg-panel text-fg lg:h-screen lg:overflow-hidden">
       <AuthSync initialUserId={visitor?.userId ?? null} />
+      {visitor && freePlanUsage && (
+        <UpgradeBanner
+          usage={freePlanUsage}
+          email={visitor.email}
+          userId={visitor.userId}
+        />
+      )}
       <RecordingNav
         slug={id}
         visitor={visitor}
