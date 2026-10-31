@@ -4,10 +4,14 @@
  * order as their counterparts in lib/marketing/constants.ts so components can zip
  * them by index.
  */
-import { getSeatPlan } from "@captureflow/quota";
+import { FREE_TIER, getSeatPlan } from "@captureflow/quota";
 
 const LIGHT = getSeatPlan("light").name;
 const PRO = getSeatPlan("pro").name;
+const FREE_AGENT_MIN = FREE_TIER.agentMinutesPerPerson;
+const LIGHT_AGENT_MIN = getSeatPlan("light").agentMinutesPerSeat;
+const PRO_AGENT_MIN = getSeatPlan("pro").agentMinutesPerSeat;
+const PRO_VOICEOVER_MIN = getSeatPlan("pro").voiceoverMinutesPerSeat;
 
 export const MESSAGES = {
   nav: {
@@ -621,7 +625,7 @@ export const MESSAGES = {
           "Data saver quality",
           "AI transcripts and captions",
           "Comments and emoji reactions",
-          "Agent recordings from Claude Code, Codex or Cursor",
+          `${FREE_AGENT_MIN} min a month of agent recordings from Claude Code, Codex or Cursor`,
         ],
         cta: "Sign up",
       },
@@ -639,7 +643,7 @@ export const MESSAGES = {
         features: [
           "Unlimited recordings",
           "Unlimited recording time",
-          "Longer agent recordings, up to 10 minutes",
+          `${LIGHT_AGENT_MIN} min a month of agent recordings, up to 10 min each`,
         ],
         cta: "Try for free",
       },
@@ -659,7 +663,7 @@ export const MESSAGES = {
           "Full quality, up to 1080p",
           "AI chapters, titles and filler removal",
           "Custom branding",
-          "AI voiceover on agent recordings",
+          `${PRO_AGENT_MIN} min a month of agent recordings, with ${PRO_VOICEOVER_MIN} min of AI voiceover`,
           "Viewer insights (coming soon)",
           "Slack, Notion and Zapier integrations (coming soon)",
         ],
@@ -824,10 +828,10 @@ export const MESSAGES = {
           rows: [
             {
               label: "Recordings by your agent over MCP",
-              free: true,
-              light: true,
-              pro: true,
-              enterprise: true,
+              free: `${FREE_AGENT_MIN} min a month per person`,
+              light: `${LIGHT_AGENT_MIN} min a month per member`,
+              pro: `${PRO_AGENT_MIN} min a month per member`,
+              enterprise: "Custom",
             },
             {
               label: "Slides in agent recordings",
@@ -840,8 +844,8 @@ export const MESSAGES = {
               label: "AI voiceover",
               free: false,
               light: false,
-              pro: true,
-              enterprise: true,
+              pro: `${PRO_VOICEOVER_MIN} min a month per member`,
+              enterprise: "Custom",
             },
           ],
         },

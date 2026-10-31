@@ -15,6 +15,8 @@ export type SeatPlan = {
   maxQuality: FreeQuality | null;
   // Chapters, titles and filler removal; transcripts are free everywhere.
   ai: boolean;
+  agentMinutesPerSeat: number;
+  voiceoverMinutesPerSeat: number;
 };
 
 /*
@@ -32,6 +34,8 @@ export const SEAT_PLANS: readonly SeatPlan[] = [
     priceAnnualUsdPerMonth: 4,
     maxQuality: "saver",
     ai: false,
+    agentMinutesPerSeat: 120,
+    voiceoverMinutesPerSeat: 0,
   },
   {
     id: "pro",
@@ -40,6 +44,8 @@ export const SEAT_PLANS: readonly SeatPlan[] = [
     priceAnnualUsdPerMonth: 10,
     maxQuality: null,
     ai: true,
+    agentMinutesPerSeat: 300,
+    voiceoverMinutesPerSeat: 60,
   },
 ];
 
@@ -81,7 +87,15 @@ export const FREE_TIER = {
   maxRecordingMs: 5 * 60 * 1000,
   maxRecordingBytes: 50 * MB,
   quality: "saver" as FreeQuality,
+  agentMinutesPerPerson: 30,
 } as const;
+
+/*
+ * Agent recordings run a cloud browser and voiceover is billed per character,
+ * so both have a monthly allowance a workspace's members share. Voiceover is
+ * metered in characters at this speaking rate and shown in minutes.
+ */
+export const VOICEOVER_CHARS_PER_MINUTE = 900;
 
 export type WorkspaceTier = "free" | "team";
 
@@ -97,7 +111,33 @@ export type WorkspaceEntitlement = {
   maxRecordingMs: number | null;
   maxRecordingBytes: number | null;
   maxQuality: FreeQuality | null;
+  agentMinutes: number | null;
+  voiceoverMinutes: number | null;
 };
+
+export type AgentUsage = { agentMs: number; narratedChars: number };
+
+// What's left of this month's allowances; null where the plan has none.
+export function agentAllowanceLeft(
+  entitlement: Pick<WorkspaceEntitlement, "agentMinutes" | "voiceoverMinutes">,
+  usage: AgentUsage,
+): { agentMs: number | null; voiceoverChars: number | null } {
+  const left = (allowance: number | null, unit: number, used: number) =>
+    allowance === null ? null : Math.max(0, allowance * unit - used);
+  return {
+    agentMs: left(entitlement.agentMinutes, 60_000, usage.agentMs),
+    voiceoverChars: left(
+      entitlement.voiceoverMinutes,
+      VOICEOVER_CHARS_PER_MINUTE,
+      usage.narratedChars,
+    ),
+  };
+}
+
+export function startOfMonthUtc(now: number): number {
+  const d = new Date(now);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+}
 
 export type SeatSubscriptionInput = {
   quantity: number;
@@ -109,6 +149,8 @@ const UNCAPPED = {
   maxRecordingMs: null,
   maxRecordingBytes: null,
   maxQuality: null,
+  agentMinutes: null,
+  voiceoverMinutes: null,
 } as const;
 
 export function resolveWorkspaceEntitlement(input: {
@@ -140,6 +182,8 @@ export function resolveWorkspaceEntitlement(input: {
       ai: plan.ai,
       ...UNCAPPED,
       maxQuality: plan.maxQuality,
+      agentMinutes: plan.agentMinutesPerSeat * seats,
+      voiceoverMinutes: plan.voiceoverMinutesPerSeat * seats,
     };
   }
   return {
@@ -152,6 +196,9 @@ export function resolveWorkspaceEntitlement(input: {
     maxRecordingMs: FREE_TIER.maxRecordingMs,
     maxRecordingBytes: FREE_TIER.maxRecordingBytes,
     maxQuality: FREE_TIER.quality,
+    agentMinutes:
+      FREE_TIER.agentMinutesPerPerson * Math.max(1, input.memberCount),
+    voiceoverMinutes: 0,
   };
 }
 

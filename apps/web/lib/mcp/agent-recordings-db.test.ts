@@ -1,8 +1,10 @@
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  addNarratedChars,
   endAgentRecording,
   findRunningAgentRecording,
+  getAgentUsage,
   getRunningAgentRecording,
   insertAgentRecording,
   SESSION_LIFETIME_MS,
@@ -37,7 +39,8 @@ beforeEach(async () => {
     CREATE TABLE device_tokens (id TEXT PRIMARY KEY, revoked_at INTEGER);
     CREATE TABLE agent_recordings (id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
       device_token_id TEXT NOT NULL, slug TEXT, created_at INTEGER NOT NULL,
-      ended_at INTEGER);
+      ended_at INTEGER, workspace_id TEXT,
+      narrated_chars INTEGER NOT NULL DEFAULT 0);
     INSERT INTO device_tokens (id) VALUES ('t-old'), ('t-new');
   `);
   db = d1(sqlite);
@@ -45,12 +48,14 @@ beforeEach(async () => {
     id: "old",
     userId: "me",
     deviceTokenId: "t-old",
+    workspaceId: "ws",
     now: 1_000,
   });
   await insertAgentRecording(db, {
     id: "new",
     userId: "me",
     deviceTokenId: "t-new",
+    workspaceId: "ws",
     now: SESSION_LIFETIME_MS + 5_000,
   });
 });
@@ -76,5 +81,34 @@ describe("agent recordings", () => {
     expect(tokenRevoked("t-old")).toBe(true);
     expect(tokenRevoked("t-new")).toBe(false);
     expect(await getRunningAgentRecording(db, "me", "old")).toBeNull();
+  });
+
+  it("adds up a workspace's minutes and voiceover since a date", async () => {
+    await endAgentRecording(db, "old", 61_000);
+    await addNarratedChars(db, "new", 400);
+    await addNarratedChars(db, "new", 50);
+    const now = SESSION_LIFETIME_MS + 35_000;
+    expect(await getAgentUsage(db, "ws", 0, now)).toEqual({
+      agentMs: 60_000 + 30_000,
+      narratedChars: 450,
+    });
+    expect(await getAgentUsage(db, "ws", 2_000, now)).toEqual({
+      agentMs: 30_000,
+      narratedChars: 450,
+    });
+    expect(await getAgentUsage(db, "other", 0, now)).toEqual({
+      agentMs: 0,
+      narratedChars: 0,
+    });
+  });
+
+  it("never counts a session past the length it can run", async () => {
+    const usage = await getAgentUsage(
+      db,
+      "ws",
+      2_000,
+      100 * SESSION_LIFETIME_MS,
+    );
+    expect(usage.agentMs).toBe(SESSION_LIFETIME_MS);
   });
 });

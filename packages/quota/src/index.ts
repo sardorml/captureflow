@@ -14,14 +14,18 @@ export {
   FREE_TIER,
   SEAT_ANNUAL_SAVING_PERCENT,
   SEAT_PLANS,
+  VOICEOVER_CHARS_PER_MINUTE,
+  agentAllowanceLeft,
   getSeatPlan,
   hydrateSeatPlanId,
   isSeatPlanId,
   resolveWorkspaceEntitlement,
   seatAnnualSavingPercent,
   seatPriceUsd,
+  startOfMonthUtc,
 } from "./seat-plans";
 export type {
+  AgentUsage,
   FreeQuality,
   SeatPlan,
   SeatPlanId,

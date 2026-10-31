@@ -1,13 +1,16 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { agentAllowanceLeft, startOfMonthUtc } from "@captureflow/quota";
 import type { AppWebBindings } from "../cf-env";
 import { issueDeviceToken } from "../device-tokens";
 import { getRecording } from "../recording/db";
 import { getWorkspaceEntitlement } from "../recording/quota";
 import { SITE_URL, viewUrlFor } from "../site";
 import {
+  addNarratedChars,
   endAgentRecording,
   findRunningAgentRecording,
+  getAgentUsage,
   getRunningAgentRecording,
   IDLE_MS,
   insertAgentRecording,
@@ -120,6 +123,18 @@ async function callRecorder<T>(
   return json as T;
 }
 
+async function allowanceLeft(db: D1Database, workspaceId: string) {
+  const now = Date.now();
+  const [entitlement, usage] = await Promise.all([
+    getWorkspaceEntitlement(workspaceId),
+    getAgentUsage(db, workspaceId, startOfMonthUtc(now), now),
+  ]);
+  const left = entitlement
+    ? agentAllowanceLeft(entitlement, usage)
+    : { agentMs: null, voiceoverChars: null };
+  return { entitlement, left };
+}
+
 function newSessionId(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
@@ -151,9 +166,14 @@ export async function startAgentRecording(
       `You already have a recording running (recording_id ${running.id}). Stop or cancel it first.`,
     );
   }
-  const workspaceId = args.workspaceId
-    ? await resolveWorkspaceId(user, args.workspaceId)
-    : undefined;
+  const workspaceId = await resolveWorkspaceId(user, args.workspaceId);
+  const { left } = await allowanceLeft(db, workspaceId);
+  if (left.agentMs !== null && left.agentMs < 60_000) {
+    throw new LibraryError(
+      "This workspace has used its agent recording minutes for this month. They reset on the 1st, or upgrade for more.",
+    );
+  }
+  const maxDurationMs = Math.min(MAX_RECORDING_MS, left.agentMs ?? Infinity);
 
   const id = newSessionId();
   const token = await issueDeviceToken(user.userId, "Agent recording");
@@ -161,6 +181,7 @@ export async function startAgentRecording(
     id,
     userId: user.userId,
     deviceTokenId: token.id,
+    workspaceId,
     now,
   });
   try {
@@ -174,7 +195,7 @@ export async function startAgentRecording(
         title: args.title,
         visibility: args.visibility,
         workspaceId,
-        maxDurationMs: MAX_RECORDING_MS,
+        maxDurationMs,
         idleMs: IDLE_MS,
         upload: {
           apiBase: `${SITE_URL}/api/r`,
@@ -263,7 +284,7 @@ export async function cancelAgentRecording(
   return { cancelled: true };
 }
 
-// Pro only: the voice is generated with Workers AI and mixed into the recording as it plays.
+// Pro only, within the month's allowance: the voice is generated with Workers AI and mixed into the recording as it plays.
 export async function narrate(
   db: D1Database,
   env: RecorderEnv,
@@ -273,13 +294,19 @@ export async function narrate(
   voice: Voice,
 ): Promise<{ ok: true; elapsedSeconds: number }> {
   const row = await running(db, user, id);
-  const recording = row.slug ? await getRecording(row.slug) : null;
-  const entitlement = recording?.workspaceId
-    ? await getWorkspaceEntitlement(recording.workspaceId)
-    : null;
-  if (!entitlement?.ai) {
+  const workspaceId =
+    row.workspaceId ??
+    (row.slug ? (await getRecording(row.slug))?.workspaceId : null);
+  const allowance = workspaceId ? await allowanceLeft(db, workspaceId) : null;
+  if (!allowance?.entitlement?.ai) {
     throw new LibraryError(
       "Voiceover is a Pro feature. The recording keeps going without it.",
+    );
+  }
+  const charsLeft = allowance.left.voiceoverChars;
+  if (charsLeft !== null && text.length > charsLeft) {
+    throw new LibraryError(
+      "This workspace has used its voiceover minutes for this month. The recording keeps going without it.",
     );
   }
   if (!env.AI) throw new LibraryError("Voiceover isn't available here.");
@@ -294,6 +321,7 @@ export async function narrate(
   const audio = new Uint8Array(
     await new Response(speech as unknown as BodyInit).arrayBuffer(),
   );
+  await addNarratedChars(db, id, text.length);
   return callRecorder(env, id, "POST", "narrate", {
     audio: Buffer.from(audio).toString("base64"),
   });
