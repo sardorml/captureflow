@@ -1,0 +1,33 @@
+{
+  "name": "@captureflow/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CaptureFlow's MCP server on your own machine: agents record your local browser, screen and apps, narrate, and share a link.",
+  "type": "module",
+  "bin": {
+    "captureflow-mcp": "dist/cli.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "esbuild src/cli.ts --bundle --platform=node --format=esm --target=node20 --external:playwright --banner:js=\"#!/usr/bin/env node\nimport { createRequire as __cfRequire } from 'node:module'; const require = __cfRequire(import.meta.url);\" --outfile=dist/cli.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "playwright": "1.64.1"
+  },
+  "devDependencies": {
+    "@captureflow/agent-recorder": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@types/node": "catalog:",
+    "esbuild": "^0.28.2",
+    "typescript": "catalog:",
+    "vitest": "^4.1.9",
+    "zod": "^4.6.7"
+  }
+}
