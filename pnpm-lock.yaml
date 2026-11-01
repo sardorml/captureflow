@@ -349,6 +349,34 @@ importers:
         specifier: ^4.40.0
         version: 4.100.0(@cloudflare/workers-types@4.20260615.1)
 
+  apps/mcp:
+    dependencies:
+      playwright:
+        specifier: 1.64.1
+        version: 1.64.1
+    devDependencies:
+      '@captureflow/agent-recorder':
+        specifier: workspace:*
+        version: link:../../packages/agent-recorder
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.32.2
+        version: 1.32.2(zod@4.6.7)
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.21
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@22.19.21)(vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+
   apps/orbit:
     dependencies:
       '@captureflow/quota':
@@ -419,9 +447,9 @@ importers:
         specifier: 1.64.1
         version: 1.64.1
     devDependencies:
-      '@captureflow/engine':
+      '@captureflow/agent-recorder':
         specifier: workspace:*
-        version: link:../../packages/engine
+        version: link:../../packages/agent-recorder
       '@types/node':
         specifier: 'catalog:'
         version: 22.19.21
@@ -431,9 +459,6 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
-      vitest:
-        specifier: ^4.1.9
-        version: 4.1.9(@types/node@22.19.21)(vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))
 
   apps/web:
     dependencies:
@@ -600,6 +625,25 @@ importers:
         version: 22.19.21
       typescript:
         specifier: ^5
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@22.19.21)(vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))
+
+  packages/agent-recorder:
+    dependencies:
+      '@captureflow/engine':
+        specifier: workspace:*
+        version: link:../engine
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.21
+      playwright:
+        specifier: 1.64.1
+        version: 1.64.1
+      typescript:
+        specifier: 'catalog:'
         version: 5.9.3
       vitest:
         specifier: ^4.1.9
