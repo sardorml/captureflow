@@ -23,13 +23,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { AppIcon } from "@/components/brand-mark";
-import { signIn, signUp } from "@/lib/auth-client";
+import { authClient, signIn, signUp } from "@/lib/auth-client";
 import type { InviteContext } from "@/lib/invite-context";
 
 type Mode = "signin" | "signup";
 // Email-first: the address is collected on its own, then the password (and a
 // name on signup) on a second step, so the entry screen stays one field deep.
-type Step = "email" | "credentials";
+type Step = "email" | "credentials" | "verify";
 type SocialProvider = "google" | "github";
 
 function GoogleIcon() {
@@ -92,6 +92,7 @@ export function AuthForm({
   const [busyProvider, setBusyProvider] = useState<SocialProvider | null>(null);
   const [emailInvalid, setEmailInvalid] = useState(false);
   const [passwordInvalid, setPasswordInvalid] = useState(false);
+  const [resent, setResent] = useState(false);
 
   const isSignup = mode === "signup";
 
@@ -140,8 +141,20 @@ export function AuthForm({
             email,
             password,
             name: name.trim() || email.split("@")[0],
+            callbackURL: next,
           })
-        : await signIn.email({ email, password });
+        : await signIn.email({ email, password, callbackURL: next });
+      // No session until the address is confirmed; the server has already
+      // sent the link.
+      const unverified = res.error
+        ? res.error.code === "EMAIL_NOT_VERIFIED"
+        : isSignup && !res.data?.token;
+      if (unverified) {
+        setResent(false);
+        setStep("verify");
+        setBusy(false);
+        return;
+      }
       if (res.error) {
         setError(
           res.error.message ?? "Something went wrong. Please try again.",
@@ -158,17 +171,34 @@ export function AuthForm({
     }
   }
 
+  async function onResend() {
+    setError(null);
+    setBusy(true);
+    const res = await authClient
+      .sendVerificationEmail({ email, callbackURL: next })
+      .catch(() => null);
+    setBusy(false);
+    if (!res || res.error) {
+      setError("Couldn't send the email. Please try again.");
+      return;
+    }
+    setResent(true);
+  }
+
   const errorAlert = error ? (
     <Alert variant="destructive">
       <AlertTitle>{error}</AlertTitle>
     </Alert>
   ) : null;
 
-  const title = invite
-    ? `Join ${invite.workspaceName}`
-    : isSignup
-      ? "Create your account"
-      : "Welcome back";
+  const title =
+    step === "verify"
+      ? "Check your email"
+      : invite
+        ? `Join ${invite.workspaceName}`
+        : isSignup
+          ? "Create your account"
+          : "Welcome back";
 
   return (
     <div className="flex flex-col gap-6">
@@ -186,7 +216,13 @@ export function AuthForm({
               they already have an account, so offering the pair beats
               guessing which they need. */}
           <CardDescription>
-            {invite ? (
+            {step === "verify" ? (
+              <>
+                We sent a link to{" "}
+                <span className="text-foreground">{email}</span>. Open it to
+                finish setting up your account.
+              </>
+            ) : invite ? (
               <>
                 {invite.inviterLabel} invited you. Sign in or create an account
                 with <span className="text-foreground">{invite.email}</span> to
@@ -273,6 +309,29 @@ export function AuthForm({
                   </Field>
                 </FieldGroup>
               </form>
+            </FieldGroup>
+          ) : step === "verify" ? (
+            <FieldGroup>
+              <Field>
+                {errorAlert}
+                <Button variant="outline" disabled={busy} onClick={onResend}>
+                  {busy && <Spinner />}
+                  {resent ? "Sent again" : "Resend email"}
+                </Button>
+                <FieldDescription className="text-center">
+                  Wrong address?{" "}
+                  <button
+                    type="button"
+                    className="cursor-pointer underline underline-offset-4 hover:text-primary"
+                    onClick={() => {
+                      setStep("email");
+                      setError(null);
+                    }}
+                  >
+                    Use a different email
+                  </button>
+                </FieldDescription>
+              </Field>
             </FieldGroup>
           ) : (
             <form onSubmit={onSubmit}>

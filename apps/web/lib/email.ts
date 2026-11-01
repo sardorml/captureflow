@@ -359,6 +359,33 @@ const WELCOME_POINTS = [
   ],
 ] as const;
 
+export async function sendVerificationEmail(args: {
+  to: string;
+  url: string;
+}): Promise<boolean> {
+  const text = [
+    "Confirm your email to finish creating your CaptureFlow account:",
+    args.url,
+    "",
+    "This link expires in 24 hours. If you didn't sign up, you can ignore this email.",
+  ].join("\n");
+  const html = emailHtml({
+    heading: "Confirm your email",
+    body: emailParagraph(
+      "Click the button below to finish creating your CaptureFlow account.",
+    ),
+    cta: { label: "Confirm email", url: args.url },
+    footnote:
+      "This link expires in 24 hours. If you didn't sign up, you can ignore this email.",
+  });
+  return sendEmail({
+    to: args.to,
+    subject: "Confirm your email for CaptureFlow",
+    html,
+    text,
+  });
+}
+
 export async function sendWelcomeEmail(args: {
   to: string;
   name: string | null;
