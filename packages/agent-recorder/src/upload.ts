@@ -14,6 +14,7 @@ export type AgentInitRequest = {
   source: "instant";
   preset: "recording";
   client: "agent";
+  captureSource?: "tab" | "window" | "screen";
   hasWebcam: false;
   title?: string;
   visibility?: "public" | "workspace" | "private";

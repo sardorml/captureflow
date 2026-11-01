@@ -8,6 +8,7 @@ import {
   type Action,
   type Session,
   type StartRequest,
+  type UploadCredentials,
 } from "@captureflow/agent-recorder";
 
 const PORT = Number(process.env.PORT ?? 8080);
@@ -72,10 +73,14 @@ async function route(
   if (method === "POST" && !verb) {
     if (sessions.has(id))
       throw new SessionError("That session already exists.");
-    const s = await startSession(
-      await getBrowser(),
-      (await body()) as StartRequest,
-    );
+    const { upload, ...rest } = (await body()) as Omit<
+      StartRequest,
+      "output"
+    > & { upload: UploadCredentials };
+    const s = await startSession(await getBrowser(), {
+      ...rest,
+      output: { kind: "upload", credentials: upload },
+    });
     sessions.set(id, s);
     return { slug: s.slug, maxDurationMs: s.maxDurationMs };
   }

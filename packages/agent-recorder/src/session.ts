@@ -1,20 +1,15 @@
-import {
-  startRecordingUpload,
-  type RecordingUpload,
-} from "@captureflow/engine/media";
 import type { Browser, BrowserContext, Locator, Page } from "playwright";
-import { startCapture, type Capture } from "./capture";
+import { pageFeed } from "./capture";
 import { CURSOR_SCRIPT } from "./cursor";
 import { isAllowedUrl } from "./guard";
 import { PAGE_AUDIO_BINDING, PAGE_AUDIO_SCRIPT } from "./page-audio";
-import { renderSlide, type Slide } from "./slide";
 import {
-  createTransport,
-  openTempFiles,
-  type AgentInitRequest,
-  type UploadCredentials,
-} from "./upload";
-import { fitBitrate, nearBudget } from "./budget";
+  openRecording,
+  SessionError,
+  sleep,
+  type RecordingOutput,
+} from "./recording";
+import type { Slide } from "./slide";
 
 export type StartRequest = {
   url: string;
@@ -25,7 +20,12 @@ export type StartRequest = {
   height?: number;
   maxDurationMs: number;
   idleMs: number;
-  upload: UploadCredentials;
+  output: RecordingOutput;
+};
+
+export type SessionOptions = {
+  allowUrl?: (url: string) => Promise<boolean>;
+  ffmpegPath?: string;
 };
 
 export type Target = { text?: string; selector?: string };
@@ -40,27 +40,21 @@ export type Action =
   | { type: "show_slide"; slide: Slide }
   | { type: "hide_slide" };
 
-export class SessionError extends Error {}
-
 const BITRATE = 4_000_000;
-const STOP_REASONS = {
-  idle: "no action for a while",
-  length: "it reached its length limit",
-  size: "it reached its plan's size limit",
-};
 const MOUSE_STEPS = 24;
 const TYPE_DELAY_MS = 45;
 const SETTLE_MS = 600;
 const OUTLINE_CHARS = 6000;
-// Long enough for the slide's staggered entrance to finish on camera.
-const SLIDE_IN_MS = 1200;
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export type Session = Awaited<ReturnType<typeof startSession>>;
 
-export async function startSession(browser: Browser, req: StartRequest) {
-  if (!(await isAllowedUrl(req.url))) {
+export async function startSession(
+  browser: Browser,
+  req: StartRequest,
+  opts: SessionOptions = {},
+) {
+  const allowUrl = opts.allowUrl ?? ((url: string) => isAllowedUrl(url));
+  if (!(await allowUrl(req.url))) {
     throw new SessionError("That address can't be opened in the recorder.");
   }
   const width = req.width ?? 1920;
@@ -80,13 +74,11 @@ export async function startSession(browser: Browser, req: StartRequest) {
   });
   await context.addInitScript(PAGE_AUDIO_SCRIPT);
   await context.route("**/*", async (route) => {
-    if (await isAllowedUrl(route.request().url())) await route.continue();
+    if (await allowUrl(route.request().url())) await route.continue();
     else await route.abort("blockedbyclient");
   });
   const page: Page = await context.newPage();
   let mouse = { x: width / 2, y: height / 2 };
-  let slidePage: Page | null = null;
-  let onSlide = false;
 
   try {
     await page.goto(req.url, { waitUntil: "load", timeout: 30_000 });
@@ -97,109 +89,25 @@ export async function startSession(browser: Browser, req: StartRequest) {
   await page.mouse.move(mouse.x, mouse.y);
   await sleep(SETTLE_MS);
 
-  const init: AgentInitRequest = {
-    contentType: "video/mp4",
-    source: "instant",
-    preset: "recording",
-    client: "agent",
-    hasWebcam: false,
-    title: req.title || (await page.title()) || undefined,
+  const pageTitle = await page.title();
+  const rec = await openRecording({
+    title: req.title || pageTitle || undefined,
     visibility: req.visibility,
     workspaceId: req.workspaceId,
-  };
-  const transport = createTransport(req.upload);
-  const upload: RecordingUpload = await startRecordingUpload(init, {
-    transport,
-    openFiles: () => openTempFiles(),
-  });
-  const maxDurationMs = Math.min(
-    req.maxDurationMs,
-    upload.maxDurationMs ?? Infinity,
-  );
-  const capture: Capture = await startCapture({
-    page,
     width,
     height,
-    bitrate: fitBitrate(BITRATE, upload.remainingBytes, maxDurationMs),
-    onData: (bytes) => {
-      upload.pushScreen(bytes);
-      if (nearBudget(upload.screenBytes, upload.remainingBytes)) {
-        void finish("size");
-      }
-    },
+    maxDurationMs: req.maxDurationMs,
+    idleMs: req.idleMs,
+    output: req.output,
+    feed: pageFeed(page, width, height),
+    slides: context,
+    pauseBetweenActions: true,
+    bitrate: BITRATE,
+    ffmpegPath: opts.ffmpegPath,
+    close: () => context.close(),
   });
-
-  // A page hidden behind a slide is out of the picture, and out of the sound too.
-  pageAudio = (pcm) => {
-    if (!onSlide) capture.feed(pcm);
-  };
-
-  // Only actions and narration are recorded; the agent's thinking between calls is left out.
-  let busy = 0;
-  async function recorded<T>(work: () => Promise<T>): Promise<T> {
-    busy++;
-    capture.resume();
-    try {
-      return await work();
-    } finally {
-      if (--busy === 0) capture.pause();
-    }
-  }
-  await recorded(() => sleep(1000));
-
-  let narrated = false;
-  // A failed transcript leaves the recording without one; it never fails the recording.
-  async function requestTranscript(durationMs: number) {
-    try {
-      await transport.uploadAudioPart(upload.slug, 1, capture.audio);
-      await transport.transcribe({
-        slug: upload.slug,
-        language: "en",
-        parts: [{ partNumber: 1, startMs: 0, endMs: durationMs }],
-      });
-    } catch (err) {
-      console.warn("[recorder] transcript request failed", err);
-    }
-  }
-
-  let ended: Promise<{ url: string; durationSeconds: number }> | null = null;
-  let endedBy: "agent" | "idle" | "length" | "size" | null = null;
-  let idleTimer: NodeJS.Timeout | null = null;
-  const lengthTimer = setTimeout(() => void finish("length"), maxDurationMs);
-  const touch = () => {
-    if (idleTimer) clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => void finish("idle"), req.idleMs);
-  };
-  touch();
-
-  function finish(by: "agent" | "idle" | "length" | "size") {
-    ended ??= (async () => {
-      endedBy = by;
-      clearTimeout(lengthTimer);
-      if (idleTimer) clearTimeout(idleTimer);
-      await capture.stop();
-      const durationMs = capture.durationMs;
-      await transport
-        .uploadPoster(upload.slug, capture.poster)
-        .catch((err) => console.warn("[recorder] poster upload failed", err));
-      if (narrated) await requestTranscript(durationMs);
-      const { url } = await upload.finish(durationMs);
-      await context.close().catch(() => {});
-      return { url, durationSeconds: Math.round(durationMs / 1000) };
-    })();
-    return ended;
-  }
-
-  function live() {
-    if (ended) {
-      throw new SessionError(
-        endedBy === "agent"
-          ? "This recording already stopped."
-          : `This recording stopped on its own (${STOP_REASONS[endedBy!]}). Its link still works: call stop_recording to get it.`,
-      );
-    }
-    touch();
-  }
+  rec.mark(pageTitle || new URL(page.url()).host);
+  pageAudio = (pcm) => rec.feedAudio(pcm);
 
   async function locate(target: Target): Promise<Locator> {
     if (target.selector) return page.locator(target.selector).first();
@@ -221,32 +129,17 @@ export async function startSession(browser: Browser, req: StartRequest) {
   }
 
   async function act(action: Action) {
-    live();
-    if (action.type === "show_slide")
-      return recorded(() => showSlide(action.slide));
-    if (action.type === "hide_slide") return recorded(hideSlide);
+    rec.live();
+    if (action.type === "show_slide") {
+      rec.mark(action.slide.title);
+      return rec.recorded(() => rec.showSlide(action.slide));
+    }
+    if (action.type === "hide_slide") {
+      return rec.recorded(() => rec.hideSlide(pageFeed(page, width, height)));
+    }
     // Acting on the page under a slide sets up what the viewer sees once it's hidden; a wait holds the slide.
-    const behind = onSlide && action.type !== "wait";
-    await (behind ? perform(action) : recorded(() => perform(action)));
-  }
-
-  async function showSlide(slide: Slide) {
-    slidePage ??= await context.newPage();
-    await slidePage.setContent(renderSlide(slide), {
-      waitUntil: "load",
-      timeout: 15_000,
-    });
-    await slidePage.evaluate(() => document.fonts.ready).catch(() => {});
-    await capture.show(slidePage);
-    onSlide = true;
-    await sleep(SLIDE_IN_MS);
-  }
-
-  async function hideSlide() {
-    if (!onSlide) return;
-    await capture.show(page);
-    onSlide = false;
-    await sleep(SETTLE_MS);
+    const behind = rec.onSlide && action.type !== "wait";
+    await (behind ? perform(action) : rec.recorded(() => perform(action)));
   }
 
   async function perform(action: Action) {
@@ -282,13 +175,14 @@ export async function startSession(browser: Browser, req: StartRequest) {
         break;
       }
       case "navigate":
-        if (!(await isAllowedUrl(action.url))) {
+        if (!(await allowUrl(action.url))) {
           throw new SessionError(
             "That address can't be opened in the recorder.",
           );
         }
         await page.goto(action.url, { waitUntil: "load", timeout: 30_000 });
         await page.mouse.move(mouse.x, mouse.y);
+        if (!rec.onSlide) rec.mark((await page.title()) || action.url);
         break;
       case "wait":
         await sleep(Math.min(10, Math.max(0, action.seconds)) * 1000);
@@ -302,15 +196,16 @@ export async function startSession(browser: Browser, req: StartRequest) {
   }
 
   return {
-    slug: upload.slug,
-    maxDurationMs,
+    slug: rec.slug,
+    maxDurationMs: rec.maxDurationMs,
+    chapters: rec.chapters,
     get elapsedSeconds() {
-      return Math.round(capture.durationMs / 1000);
+      return rec.elapsedSeconds;
     },
     async look() {
-      live();
+      rec.live();
       const [image, outline] = await Promise.all([
-        (onSlide && slidePage ? slidePage : page).screenshot({
+        (rec.onSlide && rec.slidePage ? rec.slidePage : page).screenshot({
           type: "jpeg",
           quality: 70,
         }),
@@ -322,27 +217,17 @@ export async function startSession(browser: Browser, req: StartRequest) {
       return {
         url: page.url(),
         title: await page.title(),
-        onSlide,
+        onSlide: rec.onSlide,
         image: image.toString("base64"),
         outline: outline.slice(0, OUTLINE_CHARS),
       };
     },
     act,
     async play(pcm: Int16Array) {
-      live();
-      narrated = true;
-      await recorded(async () => {
-        await capture.play(pcm);
-        await sleep(SETTLE_MS);
-      });
+      rec.live();
+      await rec.play(pcm);
     },
-    stop: () => finish("agent"),
-    async cancel() {
-      clearTimeout(lengthTimer);
-      if (idleTimer) clearTimeout(idleTimer);
-      await capture.stop().catch(() => {});
-      upload.abort();
-      await context.close().catch(() => {});
-    },
+    stop: rec.stop,
+    cancel: rec.cancel,
   };
 }
