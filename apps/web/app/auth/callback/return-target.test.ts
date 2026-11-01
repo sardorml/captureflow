@@ -21,6 +21,32 @@ describe("classifyReturn", () => {
     }
   });
 
+  it("accepts a loopback /callback on an explicit port", () => {
+    for (const raw of [
+      "http://127.0.0.1:53111/callback?state=abc",
+      "http://[::1]:53111/callback",
+      "http://localhost:4000/callback",
+    ]) {
+      expect(classifyReturn(raw, "captureflow")).toEqual({
+        kind: "loopback",
+        url: raw,
+      });
+    }
+  });
+
+  it("rejects loopback lookalikes", () => {
+    for (const raw of [
+      "https://127.0.0.1:53111/callback",
+      "http://127.0.0.1/callback",
+      "http://127.0.0.1:53111/other",
+      "http://127.0.0.1.evil.com:53111/callback",
+      "http://user@127.0.0.1:53111/callback",
+      "http://10.0.0.5:53111/callback",
+    ]) {
+      expect(classifyReturn(raw, "captureflow")).toEqual({ kind: "none" });
+    }
+  });
+
   it("returns none for an absent or empty param", () => {
     expect(classifyReturn(undefined, "captureflow")).toEqual({ kind: "none" });
     expect(classifyReturn("", "captureflow")).toEqual({ kind: "none" });

@@ -70,12 +70,15 @@ export default async function CallbackPage({
     );
   }
 
-  // Desktop flow: a custom-scheme deep link the OS routes to the app. ?return=
-  // is attacker-influenceable, so it's locked to the scheme; anything else falls
-  // back to the default deep link.
+  // Desktop flow: a custom-scheme deep link the OS routes to the app; the local
+  // MCP's sign-in instead gets a redirect to its loopback listener. See
+  // classifyReturn for what ?return= may be.
   const scheme = DEFAULT_SCHEME;
   const target = classifyReturn(sp.return, scheme);
   const issued = await issueDeviceToken(session.user.id, label);
+  if (target.kind === "loopback") {
+    redirect(appendTokenToReturn(target.url, issued.rawToken, issued.id));
+  }
   const deepLink =
     target.kind === "deeplink"
       ? appendTokenToReturn(target.url, issued.rawToken, issued.id)
