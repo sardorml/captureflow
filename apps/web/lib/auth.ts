@@ -11,7 +11,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getInjectedEnv } from "@captureflow/selfhost/env-slot";
 import { ensurePersonalWorkspace, isSelfHosted } from "@captureflow/quota";
 import { authSchema } from "./auth-schema";
-import { sendWelcomeEmail } from "./email";
+import { sendVerificationEmail, sendWelcomeEmail } from "./email";
 
 // D1 is request-scoped (binding only exists inside a fetch handler), so the
 // auth instance is built per request.
@@ -69,6 +69,28 @@ function buildAuth(
     };
   }
 
+  // Self-hosted instances may have no mail set up, so requiring it there
+  // would lock everyone out.
+  const verifyEmail = !!env && !isSelfHosted(env);
+
+  const background = async (task: Promise<unknown>, label: string) => {
+    const guarded = task.catch((err) => console.error(`auth: ${label}`, err));
+    if (waitUntil) waitUntil(guarded);
+    else await guarded;
+  };
+
+  const welcome = (user: { email: string; name?: unknown }) =>
+    baseURL && env && !isSelfHosted(env)
+      ? background(
+          sendWelcomeEmail({
+            to: user.email,
+            name: typeof user.name === "string" ? user.name : null,
+            appUrl: baseURL,
+          }),
+          "welcome email failed",
+        )
+      : Promise.resolve();
+
   const options = {
     baseURL,
     trustedOrigins,
@@ -81,6 +103,19 @@ function buildAuth(
       enabled: true,
       autoSignIn: true,
       minPasswordLength: 12,
+      requireEmailVerification: verifyEmail,
+    },
+    emailVerification: {
+      sendOnSignUp: verifyEmail,
+      sendOnSignIn: verifyEmail,
+      autoSignInAfterVerification: true,
+      expiresIn: 60 * 60 * 24,
+      sendVerificationEmail: ({ user, url }) =>
+        background(
+          sendVerificationEmail({ to: user.email, url }),
+          "verification email failed",
+        ),
+      afterEmailVerification: (user) => welcome(user),
     },
     socialProviders,
     session: {
@@ -116,19 +151,8 @@ function buildAuth(
             } catch (err) {
               console.error("auth: ensurePersonalWorkspace failed", err);
             }
-            // Self-hosted instances are someone else's product; skip ours.
-            if (baseURL && !isSelfHosted(env)) {
-              const welcome = sendWelcomeEmail({
-                to: user.email,
-                name: typeof user.name === "string" ? user.name : null,
-                appUrl: baseURL,
-              }).catch((err) => {
-                console.error("auth: welcome email failed", err);
-                return false;
-              });
-              if (waitUntil) waitUntil(welcome);
-              else await welcome;
-            }
+            // Password sign-ups get it once they confirm their address.
+            if (user.emailVerified === true) await welcome(user);
           },
         },
       },
