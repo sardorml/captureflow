@@ -1,14 +1,14 @@
 import { createServer, type IncomingMessage } from "node:http";
 import { timingSafeEqual } from "node:crypto";
 import { chromium, type Browser } from "playwright";
-import { decodeAudio } from "./audio";
 import {
+  decodeAudio,
   SessionError,
   startSession,
   type Action,
   type Session,
   type StartRequest,
-} from "./session";
+} from "@captureflow/agent-recorder";
 
 const PORT = Number(process.env.PORT ?? 8080);
 const SECRET = process.env.RECORDER_SECRET ?? "";
