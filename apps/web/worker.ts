@@ -12,6 +12,7 @@ import {
   sweepUploadSegments,
 } from "./lib/recording/cron";
 import { runDailySeatSync } from "./lib/billing/seat-cron";
+import { refreshRepoStats, serveRepoStats } from "./lib/github";
 import { sweepAgentRecordings } from "./lib/mcp/agent-recordings-db";
 import { hydrateTranscriptionJobMessage } from "./lib/recording/transcription";
 import {
@@ -29,6 +30,7 @@ type Env = {
   CLOUDFLARE_PURGE_TOKEN?: string;
   R2_PUBLIC_BASE_URL?: string;
   RECORDER_SECRET?: string;
+  GITHUB_TOKEN?: string;
 };
 
 // The cloud browser behind agent recordings (apps/recorder), one container
@@ -62,6 +64,14 @@ const TRANSCRIPTION_MAX_RETRIES = 3;
 
 const handler: ExportedHandler<Env> = {
   fetch(request, env, ctx) {
+    if (
+      request.method === "GET" &&
+      new URL(request.url).pathname === "/api/github"
+    ) {
+      return serveRepoStats(request, env.BUCKET, env.GITHUB_TOKEN, (work) =>
+        ctx.waitUntil(work),
+      );
+    }
     return openNextWorker.fetch(request, env, ctx);
   },
 
@@ -71,6 +81,9 @@ const handler: ExportedHandler<Env> = {
     ctx: ExecutionContext,
   ): Promise<void> {
     switch (event.cron) {
+      case "*/5 * * * *":
+        ctx.waitUntil(refreshRepoStats(env.BUCKET, env.GITHUB_TOKEN));
+        break;
       case "0 * * * *":
         ctx.waitUntil(runHourlyMultipartGc(env));
         ctx.waitUntil(backfillPosterDerivatives(env));

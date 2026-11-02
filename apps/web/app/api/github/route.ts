@@ -1,17 +1,14 @@
-import { NextResponse } from "next/server";
-import { formatStars, getRepoActivity, getStarCount } from "@/lib/github";
-import type { RepoStats } from "@/lib/github";
+import { after, NextResponse } from "next/server";
+import { getAppWebEnv } from "@/lib/cf-env";
+import { loadRepoStats, type RepoStats } from "@/lib/github";
 
+// In the Worker, worker.ts answers this path first; this serves next dev and Docker.
 export async function GET() {
-  const [starCount, activity] = await Promise.all([
-    getStarCount(),
-    getRepoActivity(),
-  ]);
-  const stats: RepoStats = {
-    stars: starCount != null ? formatStars(starCount) : null,
-    activity,
-  };
+  const env = await getAppWebEnv();
+  const stats: RepoStats = env?.BUCKET
+    ? await loadRepoStats(env.BUCKET, env.GITHUB_TOKEN, (work) => after(work))
+    : { stars: null, activity: null };
   return NextResponse.json(stats, {
-    headers: { "cache-control": "public, max-age=300" },
+    headers: { "cache-control": "public, max-age=60" },
   });
 }
