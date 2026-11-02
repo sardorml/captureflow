@@ -2,28 +2,28 @@
 
 import { useState, type ReactNode } from "react";
 import { Check, Copy } from "lucide-react";
-import { APP_WEB_SITE_URL } from "@/lib/site";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ClaudeLogo, CursorLogo, OpenAILogo } from "./platform-logos";
 import { useMessages } from "./i18n-provider";
 
-const MCP_URL = `${APP_WEB_SITE_URL}/mcp`;
+const NPX_ARGS = ["-y", "@captureflow/mcp"];
+const NPX_COMMAND = `npx ${NPX_ARGS.join(" ")}`;
 
 const CURSOR_INSTALL = `cursor://anysphere.cursor-deeplink/mcp/install?name=captureflow&config=${btoa(
-  JSON.stringify({ url: MCP_URL }),
+  JSON.stringify({ command: "npx", args: NPX_ARGS }),
 )}`;
 
 const AGENTS: { name: string; logo: ReactNode; command?: string }[] = [
   {
     name: "Claude Code",
     logo: <ClaudeLogo className="size-4" />,
-    command: `claude mcp add --transport http captureflow ${MCP_URL}`,
+    command: `claude mcp add captureflow -- ${NPX_COMMAND}`,
   },
   {
     name: "Codex",
     logo: <OpenAILogo className="size-4" />,
-    command: `codex mcp add captureflow --url ${MCP_URL}`,
+    command: `codex mcp add captureflow -- ${NPX_COMMAND}`,
   },
   { name: "Cursor", logo: <CursorLogo className="size-4" /> },
 ];
