@@ -9,6 +9,7 @@ import {
   parseTranscriptJson,
   resolveTranscript,
   segmentWords,
+  transcriptToCaptionVtt,
   transcriptToVtt,
 } from "./transcript";
 import type { RecordingTranscript, TranscriptRow } from "./types";
@@ -295,6 +296,120 @@ describe("word timings", () => {
 
   it("returns an untouched line as it was", () => {
     expect(keptSegments([TIMED], [])[0]).toBe(TIMED);
+  });
+});
+
+describe("transcriptToCaptionVtt", () => {
+  const transcript: RecordingTranscript = {
+    version: 1,
+    language: "en",
+    segments: [
+      {
+        id: "s1",
+        startMs: 0,
+        endMs: 1000,
+        text: "one two",
+        words: [
+          { text: "one", startMs: 0, endMs: 400 },
+          { text: "two", startMs: 500, endMs: 1000 },
+        ],
+      },
+      {
+        id: "s2",
+        startMs: 3000,
+        endMs: 3000,
+        text: "<three>",
+        words: [{ text: "<three>", startMs: 3000, endMs: 3000 }],
+      },
+    ],
+  };
+
+  it("grows a caption word by word, then swaps at the next line", () => {
+    expect(transcriptToCaptionVtt(transcript)).toBe(
+      [
+        "WEBVTT",
+        "",
+        "1",
+        "00:00:00.000 --> 00:00:00.499",
+        "one",
+        "",
+        "2",
+        "00:00:00.500 --> 00:00:01.400",
+        "one two",
+        "",
+        "3",
+        "00:00:03.000 --> 00:00:03.100",
+        "&lt;three&gt;",
+        "",
+      ].join("\n"),
+    );
+  });
+
+  it("never lets two captions show at the same moment", () => {
+    const words = [
+      { text: "a", startMs: 1000, endMs: 1050 },
+      { text: "bb", startMs: 1050, endMs: 1500 },
+      { text: "same", startMs: 1500, endMs: 1500 },
+      { text: "start", startMs: 1500, endMs: 2000 },
+      { text: "back", startMs: 1900, endMs: 2400 },
+    ];
+    const vtt = transcriptToCaptionVtt({
+      version: 1,
+      language: "en",
+      segments: [
+        {
+          id: "s1",
+          startMs: 1000,
+          endMs: 2400,
+          text: words.map((w) => w.text).join(" "),
+          words,
+        },
+      ],
+    });
+    const seconds = (stamp: string): number => {
+      const [h, m, s] = stamp.split(":").map(Number);
+      return h! * 3600 + m! * 60 + s!;
+    };
+    const cues = [...vtt.matchAll(/([\d:.]+) --> ([\d:.]+)/g)].map((m) => [
+      seconds(m[1]!),
+      seconds(m[2]!),
+    ]);
+    expect(cues.length).toBeGreaterThan(2);
+    for (let i = 1; i < cues.length; i++) {
+      expect(cues[i - 1]![1]).toBeLessThan(cues[i]![0]!);
+    }
+  });
+
+  it("swaps within a line once the text gets too long", () => {
+    const word = "x".repeat(20);
+    const words = [0, 1, 2].map((i) => ({
+      text: word,
+      startMs: i * 1000,
+      endMs: i * 1000 + 900,
+    }));
+    const vtt = transcriptToCaptionVtt({
+      version: 1,
+      language: "en",
+      segments: [
+        {
+          id: "s1",
+          startMs: 0,
+          endMs: 2900,
+          text: words.map((w) => w.text).join(" "),
+          words,
+        },
+      ],
+    });
+    expect(vtt).toContain(`00:00:01.000 --> 00:00:01.999\n${word} ${word}\n`);
+    expect(vtt).toContain(`00:00:02.000 --> 00:00:02.900\n${word}\n`);
+  });
+
+  it("leaves cut words out of the caption", () => {
+    const vtt = transcriptToCaptionVtt(transcript, [
+      { startMs: 0, endMs: 450 },
+    ]);
+    expect(vtt).not.toContain("one");
+    expect(vtt).toContain("1\n00:00:00.500 --> 00:00:01.400\ntwo");
   });
 });
 

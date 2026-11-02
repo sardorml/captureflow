@@ -14,6 +14,9 @@ const MAX_WORDS = 20_000;
 const MAX_SEGMENT_CHARS = 1_000;
 const MAX_WORD_CHARS = 100;
 const SEGMENT_ID = /^[A-Za-z0-9_-]{1,32}$/;
+const CAPTION_HOLD_MS = 400;
+const MIN_CAPTION_MS = 100;
+const MAX_CAPTION_CHARS = 42;
 const LANGUAGE_TAG = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$/;
 
 export type TranscriptEdits = {
@@ -236,6 +239,64 @@ export function activeSegmentId(
     active = segment.id;
   }
   return active;
+}
+
+// A caption's words, ending at each line of the transcript and before the text
+// would outgrow what reads comfortably on screen.
+function captionGroups(
+  segments: readonly TranscriptSegment[],
+): TranscriptWord[][] {
+  return segments.flatMap((segment) => {
+    const groups: TranscriptWord[][] = [];
+    let chars = 0;
+    for (const word of segmentWords(segment)) {
+      const last = groups[groups.length - 1];
+      if (last && chars + word.text.length + 1 <= MAX_CAPTION_CHARS) {
+        last.push(word);
+        chars += word.text.length + 1;
+      } else {
+        groups.push([word]);
+        chars = word.text.length;
+      }
+    }
+    return groups;
+  });
+}
+
+// The captions the player shows: each caption grows a word at a time, then
+// swaps for the next. A cue lasts to the next word, or briefly past a pause.
+export function transcriptToCaptionVtt(
+  transcript: RecordingTranscript,
+  cuts: readonly RecordingCut[] = [],
+): string {
+  const groups = captionGroups(keptSegments(transcript.segments, cuts));
+  const lines = ["WEBVTT", ""];
+  let index = 0;
+  groups.forEach((group, g) => {
+    group.forEach((word, i) => {
+      const next = group[i + 1] ?? groups[g + 1]?.[0];
+      const shown = Math.max(word.endMs, word.startMs + MIN_CAPTION_MS);
+      // Browsers count a cue's end as inside it, so one ending exactly where the
+      // next starts shows both when the player is paused on that moment.
+      const endMs = next
+        ? Math.min(next.startMs - 1, shown + CAPTION_HOLD_MS)
+        : shown;
+      if (endMs <= word.startMs) return;
+      index++;
+      lines.push(
+        String(index),
+        `${vttTime(word.startMs)} --> ${vttTime(endMs)}`,
+        escapeCue(
+          group
+            .slice(0, i + 1)
+            .map((w) => w.text)
+            .join(" "),
+        ),
+        "",
+      );
+    });
+  });
+  return lines.join("\n");
 }
 
 export function transcriptToVtt(
