@@ -7,6 +7,7 @@ import type { TranscriptionJobMessage } from "./recording/types";
 export type AppWebBindings = {
   DB?: D1Database;
   BUCKET?: R2Bucket;
+  GITHUB_TOKEN?: string;
   AI?: Ai;
   TRANSCRIPTION_QUEUE?: Queue<TranscriptionJobMessage>;
   // Agent recordings: a cloud browser per session, or RECORDER_URL in local dev.

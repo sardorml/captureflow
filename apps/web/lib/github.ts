@@ -1,81 +1,18 @@
+/// <reference types="@cloudflare/workers-types" />
+
 import { SOURCE_REPO_URL } from "./site";
 
 const REPO_PATH = SOURCE_REPO_URL.replace("https://github.com/", "");
 
-export async function getStarCount(): Promise<number | null> {
-  const live = await fetchLiveStars();
-  if (live != null) return live;
-
-  const fallback = process.env.NEXT_PUBLIC_GITHUB_STARS;
-  if (fallback) {
-    const n = Number(fallback);
-    if (Number.isFinite(n)) return n;
-  }
-  return null;
-}
-
 /*
- * `next: { revalidate }` is a no-op here — the Cloudflare adapter has no
- * incremental cache configured — so every render used to call GitHub. Its
- * unauthenticated limit is 60/hour per IP and a Worker shares egress IPs with
- * the whole colo, so the call 403s most of the time and the count vanished from
- * the nav. The Cache API holds the answer instead: one call per colo per hour.
+ * One saved copy in R2 serves every colo, so a visitor never waits on GitHub or
+ * depends on its rate limit, which Workers share per egress IP. A cron refreshes
+ * it; a visit that finds it stale refreshes it in the background too.
  */
-const STAR_CACHE_KEY = "https://captureflow.dev/__cache/github-stars";
-const STAR_CACHE_SECONDS = 3600;
-// The landing page awaits these; a slow GitHub must not hold it hostage.
+const STATS_KEY = "site/github-stats.json";
+const STALE_MS = 10 * 60 * 1000;
+const EDGE_CACHE_SECONDS = 60;
 const GITHUB_TIMEOUT_MS = 2500;
-
-type EdgeCache = {
-  match(key: string): Promise<Response | undefined>;
-  put(key: string, response: Response): Promise<void>;
-};
-
-// Absent under `next dev` (Node), present in the Worker.
-function edgeCache(): EdgeCache | null {
-  const store = (globalThis as { caches?: { default?: EdgeCache } }).caches;
-  return store?.default ?? null;
-}
-
-async function fetchLiveStars(): Promise<number | null> {
-  const cache = edgeCache();
-  try {
-    const hit = await cache?.match(STAR_CACHE_KEY);
-    if (hit) {
-      const cached = Number(await hit.text());
-      if (Number.isFinite(cached)) return cached;
-    }
-  } catch {
-    /* cache miss behaves like no cache */
-  }
-
-  try {
-    const res = await fetch(`https://api.github.com/repos/${REPO_PATH}`, {
-      headers: {
-        Accept: "application/vnd.github+json",
-        "User-Agent": "captureflow-web",
-      },
-      next: { revalidate: STAR_CACHE_SECONDS },
-      signal: AbortSignal.timeout(GITHUB_TIMEOUT_MS),
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { stargazers_count?: number };
-    const count = data.stargazers_count;
-    if (typeof count !== "number") return null;
-
-    await cache
-      ?.put(
-        STAR_CACHE_KEY,
-        new Response(String(count), {
-          headers: { "cache-control": `max-age=${STAR_CACHE_SECONDS}` },
-        }),
-      )
-      .catch(() => {});
-    return count;
-  } catch {
-    return null;
-  }
-}
 
 export function formatStars(n: number): string {
   if (n < 1000) return String(n);
@@ -96,9 +33,6 @@ export type RepoActivity = { shipped: RepoItem[]; open: RepoItem[] };
 
 export type RepoStats = { stars: string | null; activity: RepoActivity | null };
 
-const ACTIVITY_CACHE_KEY = "https://captureflow.dev/__cache/github-activity";
-const ACTIVITY_REFRESH_SECONDS = 900;
-const ACTIVITY_KEEP_SECONDS = 7 * 24 * 3600;
 const ACTIVITY_LIMIT = 5;
 
 function hydrateRepoItem(raw: unknown): RepoItem | null {
@@ -147,67 +81,126 @@ export function hydrateRepoActivity(raw: unknown): RepoActivity {
   };
 }
 
-type CachedActivity = { activity: RepoActivity; fetchedAt: number };
+type SavedStats = {
+  stars: number | null;
+  activity: RepoActivity | null;
+  fetchedAt: number;
+};
 
-async function readCachedActivity(
-  cache: EdgeCache | null,
-): Promise<CachedActivity | null> {
-  try {
-    const hit = await cache?.match(ACTIVITY_CACHE_KEY);
-    if (!hit) return null;
-    const cached = (await hit.json()) as Partial<CachedActivity>;
-    if (
-      typeof cached.fetchedAt === "number" &&
-      Array.isArray(cached.activity?.shipped) &&
-      Array.isArray(cached.activity?.open)
-    ) {
-      return cached as CachedActivity;
-    }
-  } catch {
-    /* cache miss behaves like no cache */
-  }
-  return null;
+export type RepoStatsStore = Pick<R2Bucket, "get" | "put">;
+
+function hydrateSavedStats(raw: unknown): SavedStats | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Partial<SavedStats>;
+  if (typeof r.fetchedAt !== "number") return null;
+  return {
+    stars: typeof r.stars === "number" ? r.stars : null,
+    activity:
+      Array.isArray(r.activity?.shipped) && Array.isArray(r.activity?.open)
+        ? r.activity
+        : null,
+    fetchedAt: r.fetchedAt,
+  };
 }
 
-/*
- * The entry outlives its refresh interval so a rate-limited GitHub call (the
- * Worker's egress IP is shared, see the stars cache above) serves the last good
- * copy instead of hiding the section.
- */
-export async function getRepoActivity(
-  nowMs = Date.now(),
-): Promise<RepoActivity | null> {
-  const cache = edgeCache();
-  const cached = await readCachedActivity(cache);
-  if (cached && nowMs - cached.fetchedAt < ACTIVITY_REFRESH_SECONDS * 1000) {
-    return cached.activity;
+async function readSavedStats(
+  store: RepoStatsStore,
+): Promise<SavedStats | null> {
+  try {
+    const saved = await store.get(STATS_KEY);
+    return saved ? hydrateSavedStats(await saved.json()) : null;
+  } catch {
+    return null;
   }
+}
 
+async function fetchGitHub(
+  path: string,
+  token: string | undefined,
+): Promise<unknown> {
   try {
     const res = await fetch(
-      `https://api.github.com/repos/${REPO_PATH}/issues?state=all&sort=updated&per_page=50`,
+      `https://api.github.com/repos/${REPO_PATH}${path}`,
       {
         headers: {
           Accept: "application/vnd.github+json",
           "User-Agent": "captureflow-web",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         signal: AbortSignal.timeout(GITHUB_TIMEOUT_MS),
       },
     );
-    if (!res.ok) return cached?.activity ?? null;
-    const activity = hydrateRepoActivity(await res.json());
-
-    const entry: CachedActivity = { activity, fetchedAt: nowMs };
-    await cache
-      ?.put(
-        ACTIVITY_CACHE_KEY,
-        new Response(JSON.stringify(entry), {
-          headers: { "cache-control": `max-age=${ACTIVITY_KEEP_SECONDS}` },
-        }),
-      )
-      .catch(() => {});
-    return activity;
+    return res.ok ? await res.json() : null;
   } catch {
-    return cached?.activity ?? null;
+    return null;
   }
+}
+
+// A failed call keeps the last good value; nothing is saved if both fail.
+export async function refreshRepoStats(
+  store: RepoStatsStore,
+  token: string | undefined,
+  nowMs = Date.now(),
+): Promise<SavedStats | null> {
+  const [previous, repo, issues] = await Promise.all([
+    readSavedStats(store),
+    fetchGitHub("", token),
+    fetchGitHub("/issues?state=all&sort=updated&per_page=50", token),
+  ]);
+  const count = (repo as { stargazers_count?: unknown } | null)
+    ?.stargazers_count;
+  const stars = typeof count === "number" ? count : null;
+  const activity = Array.isArray(issues) ? hydrateRepoActivity(issues) : null;
+  if (stars === null && activity === null) return previous;
+
+  const next: SavedStats = {
+    stars: stars ?? previous?.stars ?? null,
+    activity: activity ?? previous?.activity ?? null,
+    fetchedAt: nowMs,
+  };
+  await store.put(STATS_KEY, JSON.stringify(next)).catch(() => {});
+  return next;
+}
+
+export async function loadRepoStats(
+  store: RepoStatsStore,
+  token: string | undefined,
+  defer: (work: Promise<unknown>) => void,
+  nowMs = Date.now(),
+): Promise<RepoStats> {
+  let saved = await readSavedStats(store);
+  if (!saved) saved = await refreshRepoStats(store, token, nowMs);
+  else if (nowMs - saved.fetchedAt >= STALE_MS) {
+    defer(refreshRepoStats(store, token, nowMs));
+  }
+  return {
+    stars: saved?.stars != null ? formatStars(saved.stars) : null,
+    activity: saved?.activity ?? null,
+  };
+}
+
+type EdgeCache = {
+  match(key: string): Promise<Response | undefined>;
+  put(key: string, response: Response): Promise<void>;
+};
+
+// Runs ahead of Next.js in the Worker, so a visit doesn't pay for the app to start.
+export async function serveRepoStats(
+  request: Request,
+  store: RepoStatsStore,
+  token: string | undefined,
+  defer: (work: Promise<unknown>) => void,
+): Promise<Response> {
+  const cache = (globalThis as unknown as { caches: { default: EdgeCache } })
+    .caches.default;
+  const url = new URL(request.url);
+  const key = `${url.origin}${url.pathname}`;
+  const hit = await cache.match(key).catch(() => undefined);
+  if (hit) return hit;
+
+  const response = Response.json(await loadRepoStats(store, token, defer), {
+    headers: { "cache-control": `public, max-age=${EDGE_CACHE_SECONDS}` },
+  });
+  defer(cache.put(key, response.clone()).catch(() => {}));
+  return response;
 }

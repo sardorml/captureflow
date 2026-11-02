@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getRepoActivity, hydrateRepoActivity } from "./github";
+import {
+  hydrateRepoActivity,
+  loadRepoStats,
+  refreshRepoStats,
+  serveRepoStats,
+  type RepoStatsStore,
+} from "./github";
 import { SOURCE_REPO_URL } from "./site";
 
 const issue = (n: number, extra: Record<string, unknown> = {}) => ({
@@ -70,80 +76,178 @@ describe("hydrateRepoActivity", () => {
   });
 });
 
-describe("getRepoActivity", () => {
-  const NOW = Date.parse("2026-10-11T12:00:00Z");
-  const merged = issue(7, {
-    state: "closed",
-    pull_request: { merged_at: "2026-10-10T00:00:00Z" },
-  });
-  const cachedActivity = {
-    shipped: [
-      {
-        kind: "pr",
-        number: 3,
-        title: "Old",
-        url: `${SOURCE_REPO_URL}/pull/3`,
-        state: "merged",
-        date: "2026-10-01T00:00:00Z",
-      },
-    ],
-    open: [],
-  };
+const NOW = Date.parse("2026-10-11T12:00:00Z");
+const MINUTE = 60_000;
+const STATS_KEY = "site/github-stats.json";
 
-  function stubCache(entry: unknown) {
-    const store = new Map<string, Response>();
-    if (entry) {
-      store.set(
-        "https://captureflow.dev/__cache/github-activity",
-        new Response(JSON.stringify(entry)),
-      );
-    }
+const activity = {
+  shipped: [
+    {
+      kind: "pr",
+      number: 3,
+      title: "Old",
+      url: `${SOURCE_REPO_URL}/pull/3`,
+      state: "merged",
+      date: "2026-10-01T00:00:00Z",
+    },
+  ],
+  open: [],
+};
+
+function stubStore(saved?: unknown) {
+  const objects = new Map<string, string>();
+  if (saved) objects.set(STATS_KEY, JSON.stringify(saved));
+  const store = {
+    get: async (key: string) => {
+      const body = objects.get(key);
+      return body ? { json: async () => JSON.parse(body) } : null;
+    },
+    put: async (key: string, body: string) => void objects.set(key, body),
+  } as unknown as RepoStatsStore;
+  const read = () => JSON.parse(objects.get(STATS_KEY) ?? "null");
+  return { store, read };
+}
+
+function stubGitHub(stars: number | "fail", issues: unknown[] | "fail" = []) {
+  const fetchMock = vi.fn(async (url: string) => {
+    const body = url.includes("/issues") ? issues : { stargazers_count: stars };
+    return stars === "fail" && !url.includes("/issues")
+      ? new Response("{}", { status: 403 })
+      : issues === "fail" && url.includes("/issues")
+        ? new Response("{}", { status: 403 })
+        : Response.json(body);
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+afterEach(() => vi.unstubAllGlobals());
+
+describe("loadRepoStats", () => {
+  it("serves a fresh saved copy without calling GitHub", async () => {
+    const { store } = stubStore({
+      stars: 61,
+      activity,
+      fetchedAt: NOW - MINUTE,
+    });
+    const fetchMock = stubGitHub(99);
+    const defer = vi.fn();
+
+    expect(await loadRepoStats(store, undefined, defer, NOW)).toEqual({
+      stars: "61",
+      activity,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(defer).not.toHaveBeenCalled();
+  });
+
+  it("answers from a stale copy and refreshes it in the background", async () => {
+    const { store, read } = stubStore({
+      stars: 61,
+      activity,
+      fetchedAt: NOW - 60 * MINUTE,
+    });
+    stubGitHub(62);
+    const work: Promise<unknown>[] = [];
+
+    const stats = await loadRepoStats(
+      store,
+      undefined,
+      (p) => work.push(p),
+      NOW,
+    );
+    expect(stats.stars).toBe("61");
+
+    await Promise.all(work);
+    expect(read()).toMatchObject({ stars: 62, fetchedAt: NOW });
+  });
+
+  it("waits for GitHub only when nothing is saved yet", async () => {
+    const { store, read } = stubStore();
+    stubGitHub(61);
+
+    const stats = await loadRepoStats(store, undefined, vi.fn(), NOW);
+    expect(stats.stars).toBe("61");
+    expect(read()).toMatchObject({ stars: 61, fetchedAt: NOW });
+  });
+
+  it("shows no count, not a made-up one, when GitHub never answered", async () => {
+    const { store } = stubStore();
+    stubGitHub("fail", "fail");
+
+    expect(await loadRepoStats(store, undefined, vi.fn(), NOW)).toEqual({
+      stars: null,
+      activity: null,
+    });
+  });
+});
+
+describe("refreshRepoStats", () => {
+  const saved = { stars: 61, activity, fetchedAt: NOW - 60 * MINUTE };
+
+  it("keeps the saved copy when GitHub rate-limits", async () => {
+    const { store, read } = stubStore(saved);
+    stubGitHub("fail", "fail");
+
+    await refreshRepoStats(store, undefined, NOW);
+    expect(read()).toEqual(saved);
+  });
+
+  it("keeps the last count when only the stars call fails", async () => {
+    const { store, read } = stubStore(saved);
+    stubGitHub("fail", []);
+
+    await refreshRepoStats(store, undefined, NOW);
+    expect(read()).toEqual({
+      stars: 61,
+      activity: { shipped: [], open: [] },
+      fetchedAt: NOW,
+    });
+  });
+
+  it("sends the token when there is one", async () => {
+    const { store } = stubStore();
+    const fetchMock = stubGitHub(61);
+
+    await refreshRepoStats(store, "secret", NOW);
+    const init = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(init[1].headers).toMatchObject({ Authorization: "Bearer secret" });
+  });
+});
+
+describe("serveRepoStats", () => {
+  const request = new Request("https://captureflow.dev/api/github");
+
+  function stubEdgeCache() {
+    const entries = new Map<string, Response>();
     vi.stubGlobal("caches", {
       default: {
-        match: async (key: string) => store.get(key)?.clone(),
-        put: async (key: string, res: Response) => void store.set(key, res),
+        match: async (key: string) => entries.get(key)?.clone(),
+        put: async (key: string, res: Response) => void entries.set(key, res),
       },
     });
-    return store;
+    return entries;
   }
 
-  afterEach(() => vi.unstubAllGlobals());
-
-  it("serves a fresh cache entry without calling GitHub", async () => {
-    stubCache({ activity: cachedActivity, fetchedAt: NOW - 60_000 });
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
-
-    expect(await getRepoActivity(NOW)).toEqual(cachedActivity);
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("falls back to a stale entry when GitHub rate-limits", async () => {
-    stubCache({ activity: cachedActivity, fetchedAt: NOW - 3600_000 });
-    vi.stubGlobal("fetch", async () => new Response("{}", { status: 403 }));
-
-    expect(await getRepoActivity(NOW)).toEqual(cachedActivity);
-  });
-
-  it("refreshes a stale entry when GitHub answers", async () => {
-    const store = stubCache({
-      activity: cachedActivity,
-      fetchedAt: NOW - 3600_000,
+  it("answers a repeat visit from the edge without reading the store", async () => {
+    const entries = stubEdgeCache();
+    const { store } = stubStore({
+      stars: 61,
+      activity,
+      fetchedAt: Date.now(),
     });
-    vi.stubGlobal("fetch", async () => Response.json([merged]));
+    const work: Promise<unknown>[] = [];
 
-    const activity = await getRepoActivity(NOW);
-    expect(activity?.shipped.map((i) => i.number)).toEqual([7]);
-    const saved = await store
-      .get("https://captureflow.dev/__cache/github-activity")
-      ?.json();
-    expect(saved).toEqual({ activity, fetchedAt: NOW });
-  });
+    const first = await serveRepoStats(request, store, undefined, (p) =>
+      work.push(p),
+    );
+    expect(await first.json()).toMatchObject({ stars: "61" });
+    await Promise.all(work);
+    expect(entries.has("https://captureflow.dev/api/github")).toBe(true);
 
-  it("returns null with no cache and a failed call", async () => {
-    stubCache(null);
-    vi.stubGlobal("fetch", async () => new Response("{}", { status: 403 }));
-
-    expect(await getRepoActivity(NOW)).toBeNull();
+    const getSpy = vi.spyOn(store, "get");
+    const second = await serveRepoStats(request, store, undefined, vi.fn());
+    expect(await second.json()).toMatchObject({ stars: "61" });
+    expect(getSpy).not.toHaveBeenCalled();
   });
 });

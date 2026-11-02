@@ -25,10 +25,10 @@
   // deploys preserve the binding; custom_domain:true lets Cloudflare manage the
   // apex DNS record for the worker.
   "routes": [{ "pattern": "captureflow.dev", "custom_domain": true }],
-  // Cron Triggers → worker.ts scheduled(): hourly multipart GC + daily
-  // retention sweep against D1 + R2.
+  // Cron Triggers → worker.ts scheduled(): GitHub stats every five minutes,
+  // hourly multipart GC + daily retention sweep against D1 + R2.
   "triggers": {
-    "crons": ["0 * * * *", "0 4 * * *"],
+    "crons": ["*/5 * * * *", "0 * * * *", "0 4 * * *"],
   },
   // Create with `wrangler d1 create captureflow`, then paste the id.
   "d1_databases": [
@@ -99,10 +99,6 @@
     // token itself is the CLOUDFLARE_PURGE_TOKEN secret.
     "CLOUDFLARE_ZONE_ID": "d84c1c46cf08267d2864adf4bbbaaf59",
     "BETTER_AUTH_URL": "https://captureflow.dev",
-    // Floor for the nav's star badge, used only when the GitHub call fails
-    // (its rate limit is per-IP and Workers share egress IPs). Without it the
-    // badge disappears instead of holding its last known figure.
-    "NEXT_PUBLIC_GITHUB_STARS": "3",
     // Desktop registers the captureflow:// scheme; keep it until the desktop
     // deep-link parser is rebranded in lockstep.
     "APP_DEEP_LINK_SCHEME": "captureflow",
