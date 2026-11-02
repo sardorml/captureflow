@@ -3,9 +3,12 @@ import {
   activeSegmentId,
   hydrateTranscript,
   hydrateTranscriptEdits,
-  isSegmentCut,
+  isWordCut,
+  isWordInSpan,
+  keptSegments,
   parseTranscriptJson,
   resolveTranscript,
+  segmentWords,
   transcriptToVtt,
 } from "./transcript";
 import type { RecordingTranscript, TranscriptRow } from "./types";
@@ -235,21 +238,63 @@ describe("resolveTranscript", () => {
 });
 
 describe("segment lookups", () => {
-  it("marks only segments wholly inside a cut", () => {
-    const cuts = [{ startMs: 1900, endMs: 4100 }];
-    expect(isSegmentCut(AUTO.segments[1]!, cuts)).toBe(true);
-    expect(isSegmentCut(AUTO.segments[0]!, cuts)).toBe(false);
-    expect(
-      isSegmentCut(AUTO.segments[1]!, [{ startMs: 2500, endMs: 9000 }]),
-    ).toBe(false);
-  });
-
   it("picks the last segment that has started", () => {
     expect(activeSegmentId(AUTO.segments, 0)).toBe("s1");
     expect(activeSegmentId(AUTO.segments, 1900)).toBe("s1");
     expect(activeSegmentId(AUTO.segments, 2000)).toBe("s2");
     expect(activeSegmentId(AUTO.segments, 9_999_999)).toBe("s3");
     expect(activeSegmentId([], 5)).toBeNull();
+  });
+});
+
+describe("word timings", () => {
+  const TIMED = {
+    id: "s1",
+    startMs: 0,
+    endMs: 3000,
+    text: "one two three",
+    words: [
+      { text: "one", startMs: 0, endMs: 1000 },
+      { text: "two", startMs: 1000, endMs: 2000 },
+      { text: "three", startMs: 2000, endMs: 3000 },
+    ],
+  };
+
+  it("uses a line's own word timings", () => {
+    expect(segmentWords(TIMED)).toBe(TIMED.words);
+  });
+
+  it("shares a fixed line's length out by character count", () => {
+    expect(
+      segmentWords({ id: "s1", startMs: 100, endMs: 1100, text: "a bbb" }),
+    ).toEqual([
+      { text: "a", startMs: 100, endMs: 350 },
+      { text: "bbb", startMs: 350, endMs: 1100 },
+    ]);
+  });
+
+  it("decides a word by its middle", () => {
+    const word = TIMED.words[1]!;
+    expect(isWordInSpan(word, { startMs: 1400, endMs: 1600 })).toBe(true);
+    expect(isWordInSpan(word, { startMs: 1600, endMs: 5000 })).toBe(false);
+    expect(isWordCut(word, [{ startMs: 0, endMs: 1500 }])).toBe(false);
+    expect(isWordCut(word, [{ startMs: 0, endMs: 1501 }])).toBe(true);
+  });
+
+  it("holds a selection on a word with no length", () => {
+    const word = { text: "uh", startMs: 500, endMs: 500 };
+    expect(isWordInSpan(word, { startMs: 500, endMs: 501 })).toBe(true);
+  });
+
+  it("drops cut words, then emptied lines", () => {
+    const [kept] = keptSegments([TIMED], [{ startMs: 1000, endMs: 2000 }]);
+    expect(kept).toMatchObject({ text: "one three" });
+    expect(kept!.words!.map((w) => w.text)).toEqual(["one", "three"]);
+    expect(keptSegments([TIMED], [{ startMs: 0, endMs: 3000 }])).toEqual([]);
+  });
+
+  it("returns an untouched line as it was", () => {
+    expect(keptSegments([TIMED], [])[0]).toBe(TIMED);
   });
 });
 
@@ -281,9 +326,10 @@ describe("transcriptToVtt", () => {
     expect(vtt).toContain("2\n01:01:01.250");
   });
 
-  it("keeps a cue that only overlaps a cut edge", () => {
-    const vtt = transcriptToVtt(AUTO, [{ startMs: 1000, endMs: 3000 }]);
-    expect(vtt).toContain("Hello there");
+  it("takes only the cut words out of a cue the cut overlaps", () => {
+    const vtt = transcriptToVtt(AUTO, [{ startMs: 1000, endMs: 2200 }]);
+    expect(vtt).toContain("Hello\n");
+    expect(vtt).not.toContain("there");
     expect(vtt).toContain("second phrase");
   });
 });

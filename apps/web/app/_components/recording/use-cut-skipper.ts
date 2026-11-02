@@ -16,15 +16,22 @@ type Args = {
   storeRef: RefObject<VideoPlayerStore | null>;
   videoRef: RefObject<HTMLVideoElement | null>;
   cuts: RecordingCut[];
+  parkInCuts: boolean;
 };
 
 /*
  * Jumps the playhead over each cut. `timeupdate` only fires a few times a
  * second, so the hop is scheduled from the time left until the next cut
  * rather than waiting for a tick inside it; seeks that land in a cut snap
- * to its end.
+ * to its end. With `parkInCuts` (the editor) a paused playhead may rest inside
+ * a cut, so scrubbing can reach deleted footage, and pressing play hops it.
  */
-export function useCutSkipper({ storeRef, videoRef, cuts }: Args): void {
+export function useCutSkipper({
+  storeRef,
+  videoRef,
+  cuts,
+  parkInCuts,
+}: Args): void {
   useEffect(() => {
     const video = videoRef.current;
     if (!video || cuts.length === 0) return;
@@ -35,7 +42,14 @@ export function useCutSkipper({ storeRef, videoRef, cuts }: Args): void {
       timer = null;
     };
 
+    // The cut end last hopped to. A hop that lands short of it just plays out
+    // the sliver left, because hopping again could land short forever.
+    let hoppedTo: number | null = null;
+    let hopInFlight = false;
+
     const seekToMs = (ms: number): void => {
+      hoppedTo = ms;
+      hopInFlight = true;
       const seconds = Math.min(
         ms / 1000,
         Number.isFinite(video.duration) ? video.duration : ms / 1000,
@@ -52,9 +66,10 @@ export function useCutSkipper({ storeRef, videoRef, cuts }: Args): void {
       const cut = nextCutFrom(nowMs, cuts);
       if (!cut) return;
       if (nowMs >= cut.startMs) {
-        seekToMs(cut.endMs);
+        if (hoppedTo !== cut.endMs) seekToMs(cut.endMs);
         return;
       }
+      hoppedTo = null;
       const rate = video.playbackRate || 1;
       timer = window.setTimeout(
         () => {
@@ -66,10 +81,21 @@ export function useCutSkipper({ storeRef, videoRef, cuts }: Args): void {
     };
 
     const onSeeked = (): void => {
+      // Anyone else's seek may mean to cross this same cut again.
+      if (!hopInFlight) hoppedTo = null;
+      hopInFlight = false;
+      if (parkInCuts && video.paused) return;
       const nowMs = video.currentTime * 1000;
       const cut = findCutAt(nowMs, cuts);
-      if (cut && cut.endMs - nowMs > SNAP_TOLERANCE_MS) seekToMs(cut.endMs);
-      else schedule();
+      if (
+        cut &&
+        hoppedTo !== cut.endMs &&
+        cut.endMs - nowMs > SNAP_TOLERANCE_MS
+      ) {
+        seekToMs(cut.endMs);
+      } else {
+        schedule();
+      }
     };
 
     const rescheduleOn = ["play", "pause", "timeupdate", "ratechange"];
@@ -83,5 +109,5 @@ export function useCutSkipper({ storeRef, videoRef, cuts }: Args): void {
       }
       video.removeEventListener("seeked", onSeeked);
     };
-  }, [storeRef, videoRef, cuts]);
+  }, [storeRef, videoRef, cuts, parkInCuts]);
 }

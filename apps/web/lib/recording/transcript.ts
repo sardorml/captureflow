@@ -1,4 +1,4 @@
-import type { RecordingCut } from "./cuts";
+import { isInsideCut, type RecordingCut } from "./cuts";
 import type {
   RecordingTranscript,
   TranscriptResponse,
@@ -170,14 +170,60 @@ function escapeCue(text: string): string {
     .replace(/>/g, "&gt;");
 }
 
-// A segment lying wholly inside a cut: the player never reaches it.
-export function isSegmentCut(
-  segment: TranscriptSegment,
+// A line's words with their timings. A line whose text the owner fixed has
+// lost its word timings, so its length is shared out by character count.
+export function segmentWords(segment: TranscriptSegment): TranscriptWord[] {
+  if (segment.words?.length) return segment.words;
+  const parts = segment.text.split(" ").filter(Boolean);
+  const totalChars = parts.reduce((sum, part) => sum + part.length, 0);
+  const length = segment.endMs - segment.startMs;
+  let chars = 0;
+  return parts.map((text) => {
+    const startMs = segment.startMs + (length * chars) / totalChars;
+    chars += text.length;
+    return {
+      text,
+      startMs: Math.round(startMs),
+      endMs: Math.round(segment.startMs + (length * chars) / totalChars),
+    };
+  });
+}
+
+// A word belongs to whichever span holds its middle, so a cut landing partway
+// through a word still decides it one way.
+function wordMiddleMs(word: TranscriptWord): number {
+  return Math.floor((word.startMs + word.endMs) / 2);
+}
+
+export function isWordInSpan(
+  word: TranscriptWord,
+  span: RecordingCut,
+): boolean {
+  const middle = wordMiddleMs(word);
+  return middle >= span.startMs && middle < span.endMs;
+}
+
+export function isWordCut(
+  word: TranscriptWord,
   cuts: readonly RecordingCut[],
 ): boolean {
-  return cuts.some(
-    (cut) => segment.startMs >= cut.startMs && segment.endMs <= cut.endMs,
-  );
+  return isInsideCut(wordMiddleMs(word), cuts);
+}
+
+// The transcript as playback hears it: cut words gone, emptied lines dropped.
+export function keptSegments(
+  segments: readonly TranscriptSegment[],
+  cuts: readonly RecordingCut[],
+): TranscriptSegment[] {
+  return segments.flatMap((segment) => {
+    const words = segmentWords(segment);
+    const kept = words.filter((word) => !isWordCut(word, cuts));
+    if (kept.length === words.length) return [segment];
+    if (kept.length === 0) return [];
+    return [
+      { ...segment, text: kept.map((w) => w.text).join(" "), words: kept },
+    ];
+  });
 }
 
 export function activeSegmentId(
@@ -198,8 +244,7 @@ export function transcriptToVtt(
 ): string {
   const lines = ["WEBVTT", ""];
   let index = 0;
-  for (const segment of transcript.segments) {
-    if (isSegmentCut(segment, cuts)) continue;
+  for (const segment of keptSegments(transcript.segments, cuts)) {
     index++;
     lines.push(
       String(index),

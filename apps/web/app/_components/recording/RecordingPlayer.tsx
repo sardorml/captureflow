@@ -15,11 +15,7 @@ import type { VideoPlayerStore } from "@videojs/core/dom";
 import { selectFullscreen } from "@videojs/react";
 import { Video, VideoPlayer, usePlayer } from "@videojs/react/video";
 import type { RecordingConfig } from "@/lib/recording-config";
-import {
-  chapterCues,
-  cuesToTrackUrl,
-  selectionCue,
-} from "@/lib/recording/chapter-cues";
+import { chapterCues, cuesToTrackUrl } from "@/lib/recording/chapter-cues";
 import { snapOutOfCuts, type RecordingCut } from "@/lib/recording/cuts";
 import type { RecordingChapter } from "@/lib/recording/summary-chapters";
 import { cn } from "@/lib/utils";
@@ -40,6 +36,7 @@ export type { ProgressOverlayInfo } from "./RecordingSkin";
 export type RecordingPlayerHandle = {
   getCurrentTime(): number;
   getDuration(): number;
+  isPlaying(): boolean;
   // Seek and start playing, so clicking a timestamped reaction/comment lands at its moment without a second press-play.
   seekTo(seconds: number): void;
   // Seek without changing play state — the edit-page timeline scrubs the
@@ -81,12 +78,10 @@ type Props = {
   captionsLang?: string;
   // Sections of the time slider, with their titles in the hover preview.
   chapters?: RecordingChapter[];
-  // A span the editor is about to cut, drawn as its own red segment of the
-  // time slider in place of the chapters.
-  selection?: RecordingCut | null;
   // Keeps the real timeline and marks the cut spans on it (the editor).
   // Otherwise the slider and clock run on the edited timeline.
   showCuts?: boolean;
+  parkInCuts?: boolean;
   // Viewport-aware max-height for LANDSCAPE sources, e.g. 'min(34rem, calc(100vh - 19rem))'. The public viewer passes this so the reaction bar below the player stays in view without scrolling; the editor omits it so the preview fills the available panel height.
   landscapeMaxHeightCss?: string;
   // Takes the whole of its parent instead of sizing from the aspect; the
@@ -119,8 +114,8 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       captionsUrl,
       captionsLang,
       chapters,
-      selection,
       showCuts = false,
+      parkInCuts = false,
       landscapeMaxHeightCss,
       fill = false,
       className,
@@ -142,11 +137,8 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
     const cutsRef = useRef(cuts);
     cutsRef.current = cuts;
     const cues = useMemo(
-      () =>
-        selection
-          ? [selectionCue(selection)]
-          : chapterCues(chapters ?? [], serverDurationMs),
-      [selection, chapters, serverDurationMs],
+      () => chapterCues(chapters ?? [], serverDurationMs),
+      [chapters, serverDurationMs],
     );
     const cuesUrl = useMemo(
       () => (cues.length > 0 ? cuesToTrackUrl(cues) : null),
@@ -157,6 +149,10 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       handleRef,
       () => ({
         getCurrentTime: () => videoRef.current?.currentTime ?? 0,
+        isPlaying: () => {
+          const v = videoRef.current;
+          return !!v && !v.paused && !v.ended;
+        },
         getDuration: () => {
           const v = videoRef.current;
           if (!v) return 0;
@@ -168,13 +164,13 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
           return 0;
         },
         seekTo: (seconds: number) => {
-          seekMedia(storeRef, videoRef, seconds, cutsRef.current);
+          seekMedia(storeRef, videoRef, seconds, cutsRef.current, false);
           const store = storeRef.current;
           if (store) void store.play().catch(() => {});
           else void videoRef.current?.play().catch(() => {});
         },
         seek: (seconds: number) =>
-          seekMedia(storeRef, videoRef, seconds, cutsRef.current),
+          seekMedia(storeRef, videoRef, seconds, cutsRef.current, parkInCuts),
         togglePlay: () => {
           const v = videoRef.current;
           if (!v) return;
@@ -192,7 +188,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       [],
     );
 
-    useCutSkipper({ storeRef, videoRef, cuts });
+    useCutSkipper({ storeRef, videoRef, cuts, parkInCuts });
 
     /*
      * If the browser already has the video buffered (304 from edge cache,
@@ -342,10 +338,14 @@ function seekMedia(
   videoRef: RefObject<HTMLVideoElement | null>,
   seconds: number,
   cuts: RecordingCut[],
+  parkInCuts: boolean,
 ): void {
   const v = videoRef.current;
   if (!v) return;
-  const snapped = snapOutOfCuts(seconds * 1000, cuts) / 1000;
+  const snapped =
+    parkInCuts && v.paused
+      ? seconds
+      : snapOutOfCuts(seconds * 1000, cuts) / 1000;
   const clamped = Math.max(0, Math.min(snapped, v.duration || snapped));
   const store = storeRef.current;
   if (store) void store.seek(clamped).catch(() => {});

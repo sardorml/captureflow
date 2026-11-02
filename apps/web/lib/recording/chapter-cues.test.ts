@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  chapterCues,
-  cuesToVtt,
-  SELECTION_CUE_ID,
-  selectionCue,
-} from "./chapter-cues";
+import { chapterCues, cuesToVtt } from "./chapter-cues";
 
 const CHAPTERS = [
   { id: "c", ms: 17_000, title: "Chapter 1" },
@@ -37,11 +32,11 @@ describe("chapterCues", () => {
 describe("cuesToVtt", () => {
   it("writes ids, timestamps and single-line titles", () => {
     const vtt = cuesToVtt([
-      selectionCue({ startMs: 1_500, endMs: 62_250 }),
+      { id: "b", startMs: 1_500, endMs: 62_250, title: "Second" },
       { id: "a", startMs: 0, endMs: 1_500, title: "Two\nlines" },
     ]);
     expect(vtt).toBe(
-      `WEBVTT\n\n${SELECTION_CUE_ID}\n00:00:01.500 --> 00:01:02.250\nSelection\n\na\n00:00:00.000 --> 00:00:01.500\nTwo lines\n`,
+      `WEBVTT\n\nb\n00:00:01.500 --> 00:01:02.250\nSecond\n\na\n00:00:00.000 --> 00:00:01.500\nTwo lines\n`,
     );
   });
 });

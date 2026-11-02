@@ -77,6 +77,8 @@ export function useEditorConfig(
   const scheduleSave = useCallback(
     (next: RecordingConfig) => {
       pendingRef.current = next;
+      // Saving from the moment it's queued, so leaving the page warns about it.
+      setStatus("saving");
       if (timerRef.current !== null) window.clearTimeout(timerRef.current);
       timerRef.current = window.setTimeout(() => {
         timerRef.current = null;
@@ -90,7 +92,16 @@ export function useEditorConfig(
   // bytes already match disk (initial mount, undo back to the saved state, and
   // React strict-mode's dev double-invoke all land here).
   useEffect(() => {
-    if (shallowEqualConfig(config, lastSavedRef.current)) return;
+    if (shallowEqualConfig(config, lastSavedRef.current)) {
+      // An undo back to what's on disk must not let the queued edit land.
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+        pendingRef.current = null;
+        setStatus("saved");
+      }
+      return;
+    }
     scheduleSave(config);
   }, [config, scheduleSave]);
 

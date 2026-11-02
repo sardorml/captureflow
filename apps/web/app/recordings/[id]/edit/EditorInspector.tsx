@@ -1,8 +1,18 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { ReactNode } from "react";
+import {
+  Captions,
+  Info,
+  Palette,
+  PanelRightClose,
+  PanelRightOpen,
+  type LucideIcon,
+} from "lucide-react";
+import { Tabs as TabsPrimitive } from "radix-ui";
+import { useState, type ReactNode } from "react";
+import { TabsContent } from "@/components/ui/tabs";
 import type { RecordingConfig } from "@/lib/recording-config";
+import { cn } from "@/lib/utils";
 import {
   AudioControls,
   BackgroundPicker,
@@ -22,14 +32,30 @@ type Props = {
   aspect: number;
   details: RecordingDetails;
   transcript: EditorTranscriptPanelProps;
+  stage: ReactNode;
+  timeline: ReactNode;
 };
 
-const TAB_CLASS =
-  "isolate h-8 flex-1 justify-center rounded-lg px-3 text-sm font-medium text-fg-muted data-active:bg-panel data-active:text-fg data-active:shadow-sm dark:data-active:border-transparent dark:data-active:bg-white/10";
+const PANELS = [
+  { value: "transcript", label: "Transcript", icon: Captions },
+  { value: "design", label: "Design", icon: Palette },
+  { value: "details", label: "Details", icon: Info },
+] as const satisfies readonly {
+  value: string;
+  label: string;
+  icon: LucideIcon;
+}[];
+
+const RAIL_ITEM_CLASS =
+  "flex w-full flex-col items-center gap-1 rounded-lg px-1 py-2 text-[11px] leading-tight font-medium text-fg-muted transition-colors outline-none hover:bg-tint hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-ring";
 const PANEL_CLASS = "flex min-h-0 flex-1 flex-col p-0 outline-hidden";
 
-// The right-hand panel: the transcript, the look of the recording, and its
-// facts, one tab each.
+/*
+ * The editor's frame: the stage and the open panel side by side with the
+ * timeline under both, and the rail that picks the panel running the full
+ * height beside them. The rail has to share a Tabs root with the panels, so
+ * this owns the layout and takes the stage and timeline as slots.
+ */
 export function EditorInspector({
   config,
   onConfig,
@@ -37,78 +63,120 @@ export function EditorInspector({
   aspect,
   details,
   transcript,
+  stage,
+  timeline,
 }: Props) {
+  const [panel, setPanel] = useState<string>("transcript");
+  const [open, setOpen] = useState(true);
+  const panelLabel = PANELS.find((p) => p.value === panel)?.label.toLowerCase();
+
   return (
-    <aside className="hidden w-[360px] shrink-0 flex-col border-l border-line bg-panel lg:flex">
-      <Tabs
-        defaultValue="transcript"
-        className="flex min-h-0 flex-1 flex-col gap-0"
-      >
-        <TabsList
+    <TabsPrimitive.Root
+      value={panel}
+      onValueChange={setPanel}
+      orientation="vertical"
+      activationMode="manual"
+      className="flex min-h-0 flex-1"
+    >
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1">
+          <section className="min-h-0 min-w-0 flex-1 bg-canvas">
+            {stage}
+          </section>
+          {open ? (
+            <aside className="hidden w-[max(20rem,29vw)] shrink-0 flex-col border-l border-line bg-panel lg:flex">
+              <TabsContent value="transcript" className={PANEL_CLASS}>
+                <EditorTranscriptPanel {...transcript} />
+              </TabsContent>
+
+              <TabsContent value="design" className={PANEL_CLASS}>
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                  <Section title="Background">
+                    <BackgroundPicker
+                      background={config.background}
+                      onChange={(bg) => onConfig({ background: bg })}
+                    />
+                  </Section>
+                  {hasWebcam ? (
+                    <Section title="Camera">
+                      <CameraPicker
+                        corner={config.cameraCorner}
+                        point={config.cameraPoint}
+                        size={config.cameraSize}
+                        hidden={config.cameraHidden}
+                        aspect={aspect}
+                        onCorner={(corner) =>
+                          onConfig({ cameraCorner: corner, cameraPoint: null })
+                        }
+                        onPoint={(point) => onConfig({ cameraPoint: point })}
+                        onSize={(size) => onConfig({ cameraSize: size })}
+                        onHidden={(hidden) =>
+                          onConfig({ cameraHidden: hidden })
+                        }
+                      />
+                    </Section>
+                  ) : null}
+                  <Section title="Audio">
+                    <AudioControls
+                      micMuted={config.micMuted}
+                      systemMuted={config.systemMuted}
+                      hasMic={hasWebcam}
+                      onMic={(muted) => onConfig({ micMuted: muted })}
+                      onSystem={(muted) => onConfig({ systemMuted: muted })}
+                    />
+                  </Section>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="details" className={PANEL_CLASS}>
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                  <Section title="Recording">
+                    <DetailsList {...details} />
+                  </Section>
+                </div>
+              </TabsContent>
+            </aside>
+          ) : null}
+        </div>
+        {timeline}
+      </div>
+
+      <div className="hidden w-16 shrink-0 flex-col justify-between border-l border-line bg-panel p-1.5 lg:flex">
+        <TabsPrimitive.List
           aria-label="Editor panels"
-          className="m-3 flex h-auto w-auto shrink-0 gap-0 rounded-xl bg-tint p-1"
+          className="flex flex-col gap-1"
         >
-          <TabsTrigger value="transcript" className={TAB_CLASS}>
-            Transcript
-          </TabsTrigger>
-          <TabsTrigger value="design" className={TAB_CLASS}>
-            Design
-          </TabsTrigger>
-          <TabsTrigger value="details" className={TAB_CLASS}>
-            Details
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="transcript" className={PANEL_CLASS}>
-          <EditorTranscriptPanel {...transcript} />
-        </TabsContent>
-
-        <TabsContent value="design" className={PANEL_CLASS}>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <Section title="Background">
-              <BackgroundPicker
-                background={config.background}
-                onChange={(bg) => onConfig({ background: bg })}
-              />
-            </Section>
-            {hasWebcam ? (
-              <Section title="Camera">
-                <CameraPicker
-                  corner={config.cameraCorner}
-                  point={config.cameraPoint}
-                  size={config.cameraSize}
-                  hidden={config.cameraHidden}
-                  aspect={aspect}
-                  onCorner={(corner) =>
-                    onConfig({ cameraCorner: corner, cameraPoint: null })
-                  }
-                  onPoint={(point) => onConfig({ cameraPoint: point })}
-                  onSize={(size) => onConfig({ cameraSize: size })}
-                  onHidden={(hidden) => onConfig({ cameraHidden: hidden })}
-                />
-              </Section>
-            ) : null}
-            <Section title="Audio">
-              <AudioControls
-                micMuted={config.micMuted}
-                systemMuted={config.systemMuted}
-                hasMic={hasWebcam}
-                onMic={(muted) => onConfig({ micMuted: muted })}
-                onSystem={(muted) => onConfig({ systemMuted: muted })}
-              />
-            </Section>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="details" className={PANEL_CLASS}>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <Section title="Recording">
-              <DetailsList {...details} />
-            </Section>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </aside>
+          {PANELS.map(({ value, label, icon: Icon }) => (
+            <TabsPrimitive.Trigger
+              key={value}
+              value={value}
+              onClick={() => setOpen(true)}
+              className={cn(
+                RAIL_ITEM_CLASS,
+                open &&
+                  "data-[state=active]:bg-tint data-[state=active]:text-fg",
+              )}
+            >
+              <Icon className="size-5" aria-hidden />
+              {label}
+            </TabsPrimitive.Trigger>
+          ))}
+        </TabsPrimitive.List>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className={RAIL_ITEM_CLASS}
+        >
+          {open ? (
+            <PanelRightClose className="size-5" aria-hidden />
+          ) : (
+            <PanelRightOpen className="size-5" aria-hidden />
+          )}
+          {open ? `Hide ${panelLabel}` : `Show ${panelLabel}`}
+        </button>
+      </div>
+    </TabsPrimitive.Root>
   );
 }
 

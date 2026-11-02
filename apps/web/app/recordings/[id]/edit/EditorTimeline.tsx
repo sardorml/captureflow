@@ -11,17 +11,20 @@ import {
   type RefObject,
 } from "react";
 import { AudioLines, Scissors, Trash2, ZoomIn, ZoomOut } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { RecordingPlayerHandle } from "@/app/_components/recording";
-import { useFrameStrip } from "@/app/_components/recording/use-frame-strip";
-import { isInsideCut, type RecordingCut } from "@/lib/recording/cuts";
+import {
+  cutsEqual,
+  isCutHop,
+  timelineClips,
+  trimClip,
+  type RecordingCut,
+} from "@/lib/recording/cuts";
 import { cn } from "@/lib/utils";
-import { EditorFilmstrip } from "./EditorFilmstrip";
 import { EditorWaveform } from "./EditorWaveform";
 import { useWaveform } from "./use-waveform";
 
@@ -33,12 +36,16 @@ type Props = {
   durationMs: number | null;
   sizeBytes: number;
   cuts: RecordingCut[];
-  // The span about to be cut, shared with the transcript panel: lines picked
-  // there or a segment picked here, whichever was chosen last.
   selection?: RecordingCut | null;
   onSelectSpan?: (span: RecordingCut | null) => void;
   onDeleteSelection?: () => void;
+  onCutsChange?: (cuts: RecordingCut[]) => void;
+  onTrimPreview?: (preview: TrimPreview | null) => void;
+  onHoverMs?: (ms: number | null) => void;
 };
+
+export type TrimPreview = { cuts: RecordingCut[]; edgeMs: number };
+type Edge = "start" | "end";
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 8;
@@ -47,6 +54,8 @@ const ZOOM_STEP = 1;
 const SPLIT_MERGE_MS = 50;
 // A press that travels further than this is a scrub, not a segment pick.
 const PICK_SLOP_PX = 3;
+const TRIM_KEY_STEP_MS = 250;
+const PLAYHEAD_GLIDE_MS = 180;
 
 export function EditorTimeline({
   playerRef,
@@ -58,20 +67,29 @@ export function EditorTimeline({
   selection,
   onSelectSpan,
   onDeleteSelection,
+  onCutsChange,
+  onTrimPreview,
+  onHoverMs,
 }: Props) {
   const [showWaveform, setShowWaveform] = useState(true);
   const [fraction, setFraction] = useState(0);
+  // Where the playhead is drawn while it slides over a cut playback hopped;
+  // `fraction` is already past it.
+  const [glidingAt, setGlidingAt] = useState<number | null>(null);
+  const cutsRef = useRef(cuts);
+  cutsRef.current = cuts;
   const [duration, setDuration] = useState((durationMs ?? 0) / 1000);
-  // Flips once the player has the file's metadata, which is when the lanes
-  // start pulling at the file: the second element's metadata then comes from
-  // cache and the player already has its head start.
+  // Flips once the player has the file's metadata, which is when the waveform
+  // starts pulling at the file, so the player already has its head start.
   const [playerReady, setPlayerReady] = useState(false);
   const [zoom, setZoom] = useState(MIN_ZOOM);
   const [splits, setSplits] = useState<number[]>([]);
+  const [trimmedCuts, setTrimmedCuts] = useState<RecordingCut[] | null>(null);
+  const shownCuts = trimmedCuts ?? cuts;
+  const endTrimRef = useRef<(() => void) | null>(null);
   const durationRef = useRef(duration);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const frames = useFrameStrip(playerReady ? videoUrl : null, 0);
   const audioSources = useMemo(
     () => (playerReady ? [videoUrl, ...(webcamUrl ? [webcamUrl] : [])] : null),
     [playerReady, videoUrl, webcamUrl],
@@ -82,7 +100,12 @@ export function EditorTimeline({
   // mirror its playhead each frame rather than lifting currentTime into React.
   useEffect(() => {
     let raf = 0;
-    const tick = (): void => {
+    let lastF = 0;
+    let glide: { from: number; startedAt: number } | null = null;
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const tick = (now: number): void => {
       const p = playerRef.current;
       if (p) {
         const d = p.getDuration();
@@ -95,6 +118,24 @@ export function EditorTimeline({
         const f =
           denom > 0 ? Math.max(0, Math.min(1, p.getCurrentTime() / denom)) : 0;
         setFraction((prev) => (Math.abs(prev - f) > 0.0005 ? f : prev));
+        const fromMs = lastF * denom * 1000;
+        if (
+          !reducedMotion &&
+          p.isPlaying() &&
+          isCutHop(fromMs, f * denom * 1000, cutsRef.current)
+        ) {
+          glide = { from: lastF, startedAt: now };
+        }
+        lastF = f;
+        if (glide) {
+          const t = (now - glide.startedAt) / PLAYHEAD_GLIDE_MS;
+          if (t >= 1) {
+            glide = null;
+            setGlidingAt(null);
+          } else {
+            setGlidingAt(glide.from + (f - glide.from) * (1 - (1 - t) ** 2));
+          }
+        }
       }
       raf = window.requestAnimationFrame(tick);
     };
@@ -123,21 +164,89 @@ export function EditorTimeline({
     return f;
   };
 
-  const segments = useMemo((): RecordingCut[] => {
-    if (duration <= 0 || splits.length === 0) return [];
-    const edges = [0, ...splits.map((s) => s * 1000), duration * 1000];
-    const out: RecordingCut[] = [];
-    for (let i = 0; i < edges.length - 1; i++) {
-      out.push({ startMs: edges[i]!, endMs: edges[i + 1]! });
-    }
-    return out;
-  }, [duration, splits]);
+  const clips = useMemo(
+    () =>
+      timelineClips(
+        Math.round(duration * 1000),
+        shownCuts,
+        splits.map((s) => Math.round(s * 1000)),
+      ),
+    [duration, shownCuts, splits],
+  );
+
+  // A split only means something where two clips still meet; one a trim has
+  // pulled apart comes back if the clips are dragged together again.
+  const joinedSplits = splits.filter((s) => {
+    const ms = Math.round(s * 1000);
+    return (
+      clips.some((c) => c.endMs === ms) && clips.some((c) => c.startMs === ms)
+    );
+  });
+
+  useEffect(() => () => endTrimRef.current?.(), []);
+
+  const commitTrim = (next: RecordingCut[]): void => {
+    if (cutsEqual(next, cuts)) return;
+    onCutsChange?.(next);
+    onSelectSpan?.(null);
+  };
+
+  const startTrim = (
+    e: ReactPointerEvent<HTMLElement>,
+    clip: RecordingCut,
+    edge: Edge,
+  ): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    const base = cuts;
+    let next = base;
+    const move = (ev: PointerEvent): void => {
+      const rect = trackRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const edgeMs = ((ev.clientX - rect.left) / rect.width) * duration * 1000;
+      next = trimClip(base, clip, edge, edgeMs);
+      setTrimmedCuts(next);
+      onTrimPreview?.({ cuts: next, edgeMs });
+    };
+    const finish = (): void => {
+      endTrimRef.current = null;
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", finish);
+      setTrimmedCuts(null);
+      onTrimPreview?.(null);
+    };
+    const up = (): void => {
+      finish();
+      commitTrim(next);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", finish);
+    endTrimRef.current = finish;
+  };
+
+  const onTrimKey = (
+    e: ReactKeyboardEvent<HTMLElement>,
+    clip: RecordingCut,
+    edge: Edge,
+  ): void => {
+    const step = { ArrowLeft: -TRIM_KEY_STEP_MS, ArrowRight: TRIM_KEY_STEP_MS }[
+      e.key
+    ];
+    if (step === undefined) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const at = edge === "end" ? clip.endMs : clip.startMs;
+    commitTrim(trimClip(cuts, clip, edge, at + step));
+  };
 
   const pickSegment = (f: number): void => {
-    if (!onSelectSpan || segments.length === 0) return;
+    // A lone clip stays unpicked, so the whole recording can't be deleted.
+    if (!onSelectSpan || clips.length < 2) return;
     const ms = f * duration * 1000;
-    const hit = segments.find((s) => ms >= s.startMs && ms < s.endMs);
-    if (!hit || isInsideCut(ms, cuts)) return;
+    const hit = clips.find((s) => ms >= s.startMs && ms < s.endMs);
+    if (!hit) return;
     // A second click on the picked segment lets it go.
     const same =
       selection?.startMs === hit.startMs && selection.endMs === hit.endMs;
@@ -218,35 +327,49 @@ export function EditorTimeline({
   const current = fraction * duration;
 
   return (
-    <div className="flex h-52 shrink-0 flex-col border-t border-line bg-panel">
-      <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-b border-line px-3">
+    <div
+      data-timeline
+      className={cn(
+        "flex shrink-0 flex-col border-t border-line bg-panel",
+        showWaveform && "h-40",
+      )}
+    >
+      <div
+        className={cn(
+          "flex h-11 shrink-0 items-center justify-between gap-2 px-3",
+          showWaveform && "border-b border-line",
+        )}
+      >
         <div className="flex items-center gap-1">
-          <span className="mr-2 font-mono text-xs text-fg tabular-nums">
-            {formatTime(current)}
-            <span className="text-fg-subtle"> / {formatTime(duration)}</span>
-          </span>
           <ToolButton
-            icon={<Scissors className="h-4 w-4" />}
-            label="Split"
-            onClick={splitAtPlayhead}
-            disabled={duration <= 0}
-            hint="Play or scrub to a moment first"
+            icon={<AudioLines className="h-4 w-4" />}
+            label={showWaveform ? "Hide waveform" : "Show waveform"}
+            onClick={() => {
+              setShowWaveform((v) => !v);
+              onHoverMs?.(null);
+            }}
           />
           <ToolButton
             icon={<Trash2 className="h-4 w-4" />}
             label="Delete selection"
             onClick={onDeleteSelection}
             disabled={!onDeleteSelection}
-            hint="Select lines in the transcript, or split the timeline and pick a segment"
+            hint="Select words in the transcript, or split the timeline and pick a segment"
+          />
+          <ToolButton
+            icon={<Scissors className="h-4 w-4" />}
+            label={`Split at ${formatTime(current)}`}
+            onClick={splitAtPlayhead}
+            disabled={duration <= 0}
+            hint="Play or scrub to a moment first"
           />
         </div>
-        <div className="flex items-center gap-2 text-xs text-fg-muted">
-          <ToolButton
-            icon={<AudioLines className="h-4 w-4" />}
-            label={showWaveform ? "Hide audio" : "Show audio"}
-            onClick={() => setShowWaveform((v) => !v)}
-          />
-          <span className="h-5 w-px bg-line" aria-hidden />
+        <div
+          className={cn(
+            "flex items-center gap-2 text-xs text-fg-muted",
+            !showWaveform && "hidden",
+          )}
+        >
           <button
             type="button"
             onClick={() => setZoomClamped(MIN_ZOOM)}
@@ -286,116 +409,171 @@ export function EditorTimeline({
         </div>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden px-4 pb-3"
-      >
-        <div className="relative h-full" style={{ width: `${zoom * 100}%` }}>
-          <div
-            onPointerDown={scrubFrom(false)}
-            className="relative h-6 cursor-pointer touch-none border-b border-line text-[10px] text-fg-subtle tabular-nums select-none"
-          >
-            {ticks.map((tick) => (
-              <span
-                key={tick.t}
-                className={cn(
-                  "absolute bottom-0 flex flex-col items-center",
-                  tick.t > 0 && "-translate-x-1/2",
-                )}
-                style={{ left: `${tick.leftPct}%` }}
-              >
-                <span>{tick.label}</span>
-                <span className="h-1.5 w-px bg-line-strong" />
-              </span>
-            ))}
-          </div>
-
-          <div
-            ref={trackRef}
-            onPointerDown={scrubFrom(true)}
-            onKeyDown={onKeyDown}
-            role="slider"
-            tabIndex={0}
-            aria-label="Seek"
-            aria-valuemin={0}
-            aria-valuemax={Math.round(duration)}
-            aria-valuenow={Math.round(current)}
-            aria-valuetext={formatTime(current)}
-            className="relative mt-2.5 cursor-pointer touch-none rounded-lg select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
-          >
-            <div className="relative h-16 overflow-hidden rounded-lg bg-tint-strong ring-1 ring-line">
-              {frames === null ? (
-                <div className="absolute inset-0 flex animate-pulse items-center justify-center gap-2 text-xs text-fg-muted">
-                  <Spinner />
-                  <span>Loading frames…</span>
-                </div>
-              ) : null}
-              <EditorFilmstrip strip={frames} />
-              {showWaveform ? (
-                <div className="absolute inset-x-0 bottom-0 h-[36%] bg-gradient-to-t from-zinc-900/45 via-zinc-900/20 to-transparent">
-                  <EditorWaveform buckets={waveform} />
-                </div>
-              ) : null}
+      {showWaveform ? (
+        <div
+          ref={scrollRef}
+          className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden px-4 pb-3"
+        >
+          <div className="relative h-full" style={{ width: `${zoom * 100}%` }}>
+            <div
+              onPointerDown={scrubFrom(false)}
+              className="relative h-6 cursor-pointer touch-none text-[11px] text-fg-muted tabular-nums select-none"
+            >
+              {ticks.map((tick) => (
+                <span
+                  key={tick.t}
+                  className={cn(
+                    "absolute bottom-0 flex flex-col items-center",
+                    tick.t > 0 && "-translate-x-1/2",
+                  )}
+                  style={{ left: `${tick.leftPct}%` }}
+                >
+                  <span>{tick.label}</span>
+                  <span className="h-1.5 w-px bg-line-strong" />
+                </span>
+              ))}
             </div>
 
-            {/* Cut spans the player skips, from the transcript panel. */}
-            {duration > 0
-              ? cuts.map((cut) => (
+            <div
+              ref={trackRef}
+              onPointerDown={scrubFrom(true)}
+              onPointerMove={(e) => {
+                if (e.pointerType !== "mouse") return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const ms =
+                  ((e.clientX - rect.left) / rect.width) * duration * 1000;
+                const onClip = clips.some(
+                  (c) => ms >= c.startMs && ms < c.endMs,
+                );
+                onHoverMs?.(onClip ? ms : null);
+              }}
+              onPointerLeave={() => onHoverMs?.(null)}
+              onKeyDown={onKeyDown}
+              role="slider"
+              tabIndex={0}
+              aria-label="Seek"
+              aria-valuemin={0}
+              aria-valuemax={Math.round(duration)}
+              aria-valuenow={Math.round(current)}
+              aria-valuetext={formatTime(current)}
+              className="group/lane relative mt-1 cursor-pointer touch-none rounded-lg select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
+            >
+              <div data-timeline-lane className="relative h-14 bg-tint">
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 top-1/2 h-px bg-line-strong"
+                />
+                {clips.map((clip, i) => (
                   <div
-                    key={cut.startMs}
+                    key={i}
+                    data-timeline-clip
                     aria-hidden
-                    className="pointer-events-none absolute inset-y-0 border-x border-destructive/60 bg-[repeating-linear-gradient(135deg,var(--danger)_0_2px,transparent_2px_6px)] opacity-40"
+                    className="pointer-events-none absolute inset-y-0 overflow-hidden rounded-lg border-2 border-accent-bg bg-panel"
                     style={{
-                      left: pct(cut.startMs),
-                      width: pct(cut.endMs - cut.startMs),
+                      left: pct(clip.startMs),
+                      width: `calc(${pct(clip.endMs - clip.startMs)} - 2px)`,
                     }}
-                  />
-                ))
-              : null}
-
-            {selection && duration > 0 ? (
-              <div
-                aria-hidden
-                data-timeline-selection
-                className="pointer-events-none absolute inset-y-0 rounded-md border-x-2 border-destructive bg-destructive/25"
-                style={{
-                  left: pct(selection.startMs),
-                  width: pct(selection.endMs - selection.startMs),
-                }}
-              />
-            ) : null}
-
-            {/* Split points; click one to remove it. */}
-            {duration > 0
-              ? splits.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    title={`Remove split at ${formatTime(s)}`}
-                    aria-label={`Remove split at ${formatTime(s)}`}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={() => removeSplit(s)}
-                    className="group/split absolute inset-y-0 w-3 -translate-x-1/2"
-                    style={{ left: pct(s * 1000) }}
                   >
-                    <span className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-primary group-hover/split:bg-destructive" />
-                    <span className="absolute top-0 left-1/2 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-white group-hover/split:bg-destructive">
-                      <Scissors className="h-2.5 w-2.5" />
-                    </span>
-                  </button>
-                ))
-              : null}
-          </div>
+                    <EditorWaveform
+                      buckets={waveform}
+                      from={clip.startMs / totalMs}
+                      to={clip.endMs / totalMs}
+                    />
+                  </div>
+                ))}
+              </div>
 
-          {/* Live playhead, mirrored from the player, from the ruler down. */}
-          <div
-            className="pointer-events-none absolute inset-y-0 w-px -translate-x-1/2 bg-fg"
-            style={{ left: `${fraction * 100}%` }}
-          >
-            <span className="absolute top-0 left-1/2 h-3 w-2.5 -translate-x-1/2 rounded-b-sm bg-fg" />
+              {selection &&
+              clips.some(
+                (c) =>
+                  c.startMs === selection.startMs &&
+                  c.endMs === selection.endMs,
+              ) ? (
+                <div
+                  aria-hidden
+                  data-timeline-selection
+                  className="pointer-events-none absolute inset-y-0 rounded-lg border-2 border-accent-deep"
+                  style={{
+                    left: pct(selection.startMs),
+                    width: `calc(${pct(selection.endMs - selection.startMs)} - 2px)`,
+                  }}
+                />
+              ) : null}
+
+              {onCutsChange
+                ? clips.flatMap((clip, i) =>
+                    (["start", "end"] as const).map((edge) => {
+                      const edgeMs =
+                        edge === "start" ? clip.startMs : clip.endMs;
+                      const picked =
+                        selection?.startMs === clip.startMs &&
+                        selection.endMs === clip.endMs;
+                      return (
+                        <div
+                          key={`${i}-${edge}`}
+                          data-trim-handle={edge}
+                          role="slider"
+                          tabIndex={0}
+                          aria-label={`Trim the ${edge} of the clip`}
+                          aria-valuemin={0}
+                          aria-valuemax={Math.round(totalMs)}
+                          aria-valuenow={edgeMs}
+                          aria-valuetext={formatTime(edgeMs / 1000)}
+                          onPointerDown={(e) => startTrim(e, clip, edge)}
+                          onKeyDown={(e) => onTrimKey(e, clip, edge)}
+                          className="group/trim absolute inset-y-0 z-10 w-3 cursor-ew-resize outline-none"
+                          style={{
+                            left:
+                              edge === "start"
+                                ? pct(edgeMs)
+                                : `calc(${pct(edgeMs)} - 14px)`,
+                          }}
+                        >
+                          <span
+                            className={cn(
+                              "absolute top-1/2 h-6 w-2 -translate-y-1/2 rounded-sm opacity-0 transition-opacity group-focus-visible/trim:opacity-100 group-hover/lane:opacity-100",
+                              edge === "start" ? "-left-[3px]" : "-right-[3px]",
+                              picked
+                                ? "bg-accent-deep opacity-100"
+                                : "bg-accent-bg group-hover/trim:bg-accent-deep",
+                            )}
+                          />
+                        </div>
+                      );
+                    }),
+                  )
+                : null}
+
+              {/* Split points; click one to remove it. */}
+              {duration > 0
+                ? joinedSplits.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      title={`Remove split at ${formatTime(s)}`}
+                      aria-label={`Remove split at ${formatTime(s)}`}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => removeSplit(s)}
+                      className="absolute -top-3 z-20 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full bg-accent-bg text-white opacity-0 transition-opacity group-hover/lane:opacity-100 hover:bg-destructive focus-visible:opacity-100"
+                      style={{ left: pct(s * 1000) }}
+                    >
+                      <Scissors className="h-2.5 w-2.5" />
+                    </button>
+                  ))
+                : null}
+            </div>
+
+            {/* Live playhead, mirrored from the player, from the ruler down. */}
+            <div
+              data-playhead
+              className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 bg-destructive"
+              style={{ left: `${(glidingAt ?? fraction) * 100}%` }}
+            >
+              <span className="absolute top-0 left-1/2 h-3.5 w-3 -translate-x-1/2 bg-destructive [clip-path:polygon(0_0,100%_0,100%_60%,50%_100%,0_60%)]" />
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

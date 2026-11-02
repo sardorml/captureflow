@@ -6,6 +6,8 @@
 export type RecordingCut = { startMs: number; endMs: number };
 
 const MAX_CUTS = 500;
+const MIN_CLIP_MS = 200;
+const HOP_SLACK_MS = 300;
 
 export function normalizeCuts(
   raw: unknown,
@@ -105,6 +107,71 @@ export function effectiveDurationMs(
   cuts: readonly RecordingCut[],
 ): number {
   return toEditedMs(durationMs, cuts);
+}
+
+// Whether a move from `fromMs` to `toMs` is playback hopping a cut: it left at
+// the cut's start, or from inside it, and landed at its end, unlike a seek that
+// just crosses it.
+export function isCutHop(
+  fromMs: number,
+  toMs: number,
+  cuts: readonly RecordingCut[],
+): boolean {
+  return cuts.some(
+    (cut) =>
+      fromMs >= cut.startMs - HOP_SLACK_MS &&
+      fromMs < cut.endMs - HOP_SLACK_MS &&
+      Math.abs(toMs - cut.endMs) <= HOP_SLACK_MS,
+  );
+}
+
+// What the timeline draws as clips: the recording minus its cuts, divided at
+// each split.
+export function timelineClips(
+  durationMs: number,
+  cuts: readonly RecordingCut[],
+  splitsMs: readonly number[],
+): RecordingCut[] {
+  if (durationMs <= 0) return [];
+  const clips: RecordingCut[] = [];
+  let start = 0;
+  for (const cut of [...cuts, { startMs: durationMs, endMs: durationMs }]) {
+    const end = Math.min(cut.startMs, durationMs);
+    let from = start;
+    for (const split of [...splitsMs].sort((a, b) => a - b)) {
+      if (split <= from || split >= end) continue;
+      clips.push({ startMs: from, endMs: split });
+      from = split;
+    }
+    if (end > from) clips.push({ startMs: from, endMs: end });
+    start = Math.max(start, cut.endMs);
+  }
+  return clips;
+}
+
+// Drags one edge of a clip to `toMs`: inward cuts away what it leaves behind,
+// outward takes back the gap beside it, and it stops at the clip's neighbour.
+export function trimClip(
+  cuts: readonly RecordingCut[],
+  clip: RecordingCut,
+  edge: "start" | "end",
+  toMs: number,
+): RecordingCut[] {
+  const target = Math.round(toMs);
+  if (edge === "end") {
+    const limit =
+      cuts.find((cut) => cut.startMs === clip.endMs)?.endMs ?? clip.endMs;
+    const to = Math.min(limit, Math.max(clip.startMs + MIN_CLIP_MS, target));
+    return to < clip.endMs
+      ? addCut(cuts, { startMs: to, endMs: clip.endMs })
+      : removeCut(cuts, { startMs: clip.endMs, endMs: to });
+  }
+  const limit =
+    cuts.find((cut) => cut.endMs === clip.startMs)?.startMs ?? clip.startMs;
+  const to = Math.max(limit, Math.min(clip.endMs - MIN_CLIP_MS, target));
+  return to > clip.startMs
+    ? addCut(cuts, { startMs: clip.startMs, endMs: to })
+    : removeCut(cuts, { startMs: to, endMs: clip.startMs });
 }
 
 export function addCut(

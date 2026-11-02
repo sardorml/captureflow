@@ -4,13 +4,16 @@ import {
   cutsEqual,
   effectiveDurationMs,
   findCutAt,
+  isCutHop,
   isInsideCut,
   nextCutFrom,
   normalizeCuts,
   removeCut,
   snapOutOfCuts,
   toEditedMs,
+  timelineClips,
   toSourceMs,
+  trimClip,
 } from "./cuts";
 
 const CUTS = [
@@ -137,6 +140,112 @@ describe("addCut / removeCut", () => {
     ]);
     expect(removeCut(CUTS, { startMs: 1000, endMs: 2000 })).toEqual([CUTS[1]]);
     expect(removeCut(CUTS, { startMs: 3000, endMs: 4000 })).toEqual(CUTS);
+  });
+});
+
+describe("isCutHop", () => {
+  it("is a move from a cut's start to its end", () => {
+    expect(isCutHop(990, 2010, CUTS)).toBe(true);
+    expect(isCutHop(4950, 8000, CUTS)).toBe(true);
+  });
+
+  it("is a move out of a cut the playhead was resting in", () => {
+    expect(isCutHop(6500, 8000, CUTS)).toBe(true);
+  });
+
+  it("isn't a seek that merely crosses a cut, or ordinary playback", () => {
+    expect(isCutHop(100, 2010, CUTS)).toBe(false);
+    expect(isCutHop(990, 6000, CUTS)).toBe(false);
+    expect(isCutHop(3000, 3016, CUTS)).toBe(false);
+  });
+});
+
+describe("timelineClips", () => {
+  it("is one clip for an untouched recording", () => {
+    expect(timelineClips(10000, [], [])).toEqual([
+      { startMs: 0, endMs: 10000 },
+    ]);
+  });
+
+  it("leaves a gap for each cut", () => {
+    expect(timelineClips(10000, CUTS, [])).toEqual([
+      { startMs: 0, endMs: 1000 },
+      { startMs: 2000, endMs: 5000 },
+      { startMs: 8000, endMs: 10000 },
+    ]);
+  });
+
+  it("divides at splits, in any order, ignoring those inside a cut", () => {
+    expect(timelineClips(10000, CUTS, [9000, 3000, 6000])).toEqual([
+      { startMs: 0, endMs: 1000 },
+      { startMs: 2000, endMs: 3000 },
+      { startMs: 3000, endMs: 5000 },
+      { startMs: 8000, endMs: 9000 },
+      { startMs: 9000, endMs: 10000 },
+    ]);
+  });
+
+  it("draws no clip where a cut touches an edge, or with no duration", () => {
+    expect(
+      timelineClips(
+        10000,
+        [
+          { startMs: 0, endMs: 1000 },
+          { startMs: 9000, endMs: 10000 },
+        ],
+        [],
+      ),
+    ).toEqual([{ startMs: 1000, endMs: 9000 }]);
+    expect(timelineClips(0, CUTS, [])).toEqual([]);
+  });
+});
+
+describe("trimClip", () => {
+  const CLIP = { startMs: 2000, endMs: 5000 };
+
+  it("cuts away what an edge leaves behind", () => {
+    expect(trimClip(CUTS, CLIP, "end", 4000)).toEqual([
+      CUTS[0],
+      { startMs: 4000, endMs: 8000 },
+    ]);
+    expect(trimClip(CUTS, CLIP, "start", 3000)).toEqual([
+      { startMs: 1000, endMs: 3000 },
+      CUTS[1],
+    ]);
+  });
+
+  it("takes back part of the gap beside an edge", () => {
+    expect(trimClip(CUTS, CLIP, "end", 6000)).toEqual([
+      CUTS[0],
+      { startMs: 6000, endMs: 8000 },
+    ]);
+    expect(trimClip(CUTS, CLIP, "start", 1500)).toEqual([
+      { startMs: 1000, endMs: 1500 },
+      CUTS[1],
+    ]);
+  });
+
+  it("closes the gap and stops at the neighbouring clip", () => {
+    expect(trimClip(CUTS, CLIP, "end", 9500)).toEqual([CUTS[0]]);
+    expect(trimClip(CUTS, CLIP, "start", 0)).toEqual([CUTS[1]]);
+  });
+
+  it("can't grow into a clip with no gap between them", () => {
+    expect(trimClip([], { startMs: 0, endMs: 1000 }, "end", 2000)).toEqual([]);
+    expect(trimClip([], { startMs: 1000, endMs: 2000 }, "start", 0)).toEqual(
+      [],
+    );
+  });
+
+  it("never trims a clip away entirely", () => {
+    expect(trimClip(CUTS, CLIP, "end", 0)).toEqual([
+      CUTS[0],
+      { startMs: 2200, endMs: 8000 },
+    ]);
+    expect(trimClip(CUTS, CLIP, "start", 9000)).toEqual([
+      { startMs: 1000, endMs: 4800 },
+      CUTS[1],
+    ]);
   });
 });
 

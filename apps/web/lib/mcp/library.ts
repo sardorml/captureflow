@@ -11,7 +11,7 @@ import { getRecording, getTranscript } from "../recording/db";
 import { parseSummaryChaptersJson } from "../recording/summary-chapters";
 import { parseRecordingConfigJson } from "../recording-config";
 import {
-  isSegmentCut,
+  keptSegments,
   resolveTranscript,
   transcriptToVtt,
 } from "../recording/transcript";
@@ -160,13 +160,12 @@ function timestamp(ms: number): string {
   return `${m}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-// What the player says aloud: segments the owner cut out are left out.
+// What the player says aloud: words the owner cut out are left out.
 export function transcriptToText(
   transcript: RecordingTranscript,
   cuts: readonly RecordingCut[] = [],
 ): string {
-  return transcript.segments
-    .filter((s) => !isSegmentCut(s, cuts))
+  return keptSegments(transcript.segments, cuts)
     .map((s) => `[${timestamp(s.startMs)}] ${s.text.trim()}`)
     .join("\n");
 }
