@@ -15,7 +15,10 @@ pnpm + nx monorepo.
 - `apps/extension` — WXT/MV3 Chrome extension recorder.
 - `apps/desktop` — Electron macOS recorder.
 - `apps/docs` — VitePress docs site.
+- `apps/recorder` — the cloud browser recorder container behind the hosted MCP's recording tools.
+- `apps/mcp` — `@captureflow/mcp`, the MCP server agents run locally (npx): records a local browser, the screen or an app window.
 - `packages/engine` — capture pipeline shared by desktop + extension (MIT; Swift sidecar).
+- `packages/agent-recorder` — agent recording (frames + narration → ffmpeg → upload, slides, chapters) shared by `apps/recorder` and `apps/mcp`.
 - `packages/admin` — admin auth/data logic behind `apps/admin`.
 - `packages/mail` — campaign SQL, rendering, unsubscribe tokens and Resend delivery for admin + mailer, plus the Cloudflare-then-Resend transactional sender web and admin share.
 - `packages/{quota,ui,shared}`.

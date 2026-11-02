@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import type { Writable } from "node:stream";
-import type { CDPSession, Page } from "playwright";
+import type { Page } from "playwright";
 import {
   CHANNELS,
   createAudioMixer,
@@ -16,14 +16,20 @@ export type Capture = {
   feed(pcm: Int16Array): void;
   readonly audio: Uint8Array;
   readonly poster: Buffer;
+  readonly frame: Buffer;
   pause(): void;
   resume(): void;
-  show(page: Page): Promise<void>;
+  show(feed: FrameFeed): Promise<void>;
   stop(): Promise<void>;
 };
 
+// Hands over a JPEG whenever the picture changes, the first one before it resolves; what it resolves to stops it.
+export type FrameFeed = (
+  onFrame: (jpeg: Buffer) => void,
+) => Promise<() => Promise<void>>;
+
 export type CaptureOptions = {
-  page: Page;
+  feed: FrameFeed;
   width: number;
   height: number;
   bitrate: number;
@@ -37,28 +43,14 @@ function write(stream: Writable, chunk: Buffer): void {
   if (!stream.destroyed && stream.writable) stream.write(chunk);
 }
 
-/*
- * Records a page the way a screen recorder would: Chrome's screencast hands
- * over a JPEG whenever the page repaints, and the pacer turns that into a
- * steady 30 fps beside the audio mixer's track. ffmpeg encodes both into the
- * same fragmented MP4 the other recorders upload, written as it goes.
- */
-// `audio` is the track alone as Opus WebM, the format the server transcribes; complete once stopped.
-export async function startCapture(opts: CaptureOptions): Promise<Capture> {
-  const { width, height } = opts;
-  let frame: Buffer | null = null;
-  let cdp: CDPSession | null = null;
-  // Switching pages is a cut: the new page's first frame replaces the last one.
-  async function show(page: Page) {
-    if (cdp) {
-      await cdp.send("Page.stopScreencast").catch(() => {});
-      await cdp.detach().catch(() => {});
-    }
+// Chrome's screencast sends a frame whenever the page repaints.
+export function pageFeed(page: Page, width: number, height: number): FrameFeed {
+  return async (onFrame) => {
     await page.bringToFront();
     const session = await page.context().newCDPSession(page);
-    cdp = session;
+    let live = true;
     session.on("Page.screencastFrame", (event) => {
-      if (cdp === session) frame = Buffer.from(event.data, "base64");
+      if (live) onFrame(Buffer.from(event.data, "base64"));
       void session
         .send("Page.screencastFrameAck", { sessionId: event.sessionId })
         .catch(() => {});
@@ -71,9 +63,36 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
       everyNthFrame: 1,
     });
     // A still page paints once; this is the frame the next ticks repeat.
-    frame = await page.screenshot({ type: "jpeg", quality: 85 });
+    onFrame(await page.screenshot({ type: "jpeg", quality: 85 }));
+    return async () => {
+      live = false;
+      await session.send("Page.stopScreencast").catch(() => {});
+      await session.detach().catch(() => {});
+    };
+  };
+}
+
+/*
+ * Records the way a screen recorder would: the feed hands over JPEGs as the
+ * picture changes, and the pacer turns that into a steady 30 fps beside the
+ * audio mixer's track. ffmpeg encodes both into the same fragmented MP4 the
+ * other recorders upload, written as it goes.
+ */
+// `audio` is the track alone as Opus WebM, the format the server transcribes; complete once stopped.
+export async function startCapture(opts: CaptureOptions): Promise<Capture> {
+  const { width, height } = opts;
+  let frame: Buffer | null = null;
+  let stopFeed: (() => Promise<void>) | null = null;
+  let shown = 0;
+  // Switching feeds is a cut: the new feed's first frame replaces the last one.
+  async function show(feed: FrameFeed) {
+    await stopFeed?.();
+    const id = ++shown;
+    stopFeed = await feed((jpeg) => {
+      if (id === shown) frame = jpeg;
+    });
   }
-  await show(opts.page);
+  await show(opts.feed);
   // The opening frame stands for the recording in link previews, as the extension's does.
   const poster = frame!;
 
@@ -152,6 +171,9 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
       if (!paused) mixer.feed(pcm);
     },
     poster,
+    get frame() {
+      return frame!;
+    },
     get audio() {
       return new Uint8Array(Buffer.concat(opusChunks));
     },
@@ -170,8 +192,7 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
       stopping ??= (async () => {
         clearInterval(timer);
         feed();
-        await cdp?.send("Page.stopScreencast").catch(() => {});
-        await cdp?.detach().catch(() => {});
+        await stopFeed?.();
         video.end();
         audio.end();
         opus.stdin!.end();

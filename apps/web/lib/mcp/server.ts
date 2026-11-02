@@ -8,6 +8,7 @@ import { z } from "zod";
 import { getAuth } from "../auth";
 import { getAppWebEnv, type AppWebBindings } from "../cf-env";
 import { SORT_ORDERS } from "../list-filters";
+import { resolveDeviceTokenToUser } from "../recording/device-tokens";
 import { isValidSlug } from "../recording/slug";
 import { R2_PUBLIC_BASE_URL } from "../site";
 import {
@@ -478,30 +479,46 @@ function createServer(
   return server;
 }
 
+async function serve(request: Request, userId: string): Promise<Response> {
+  const env = await getAppWebEnv();
+  if (!env?.DB) {
+    return Response.json({ error: "unavailable" }, { status: 503 });
+  }
+  const user = await loadMcpUser(env.DB, userId);
+  const server = createServer(
+    env.DB,
+    env,
+    user,
+    env.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL,
+  );
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true,
+  });
+  await server.connect(transport);
+  return transport.handleRequest(request);
+}
+
+function extractBearerToken(req: Request): string | null {
+  const h = req.headers.get("authorization") ?? "";
+  const m = /^bearer\s+(.+)$/i.exec(h.trim());
+  return m ? m[1]!.trim() : null;
+}
+
 /*
  * Stateless: every request builds its server for the token's user and
  * answers in JSON, so no session outlives the request and bindings are
- * resolved per call.
+ * resolved per call. The local MCP signs in with a device token instead of
+ * OAuth, and reaches the library tools through here.
  */
 export async function handleMcpRequest(req: Request): Promise<Response> {
+  const bearer = extractBearerToken(req);
+  const deviceUserId = bearer ? await resolveDeviceTokenToUser(bearer) : null;
+  if (deviceUserId) return serve(req, deviceUserId);
   const auth = await getAuth();
-  return withMcpAuth(auth, async (request, session) => {
-    const env = await getAppWebEnv();
-    if (!env?.DB || !session.userId) {
-      return Response.json({ error: "unavailable" }, { status: 503 });
-    }
-    const user = await loadMcpUser(env.DB, session.userId);
-    const server = createServer(
-      env.DB,
-      env,
-      user,
-      env.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL,
-    );
-    const transport = new WebStandardStreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-      enableJsonResponse: true,
-    });
-    await server.connect(transport);
-    return transport.handleRequest(request);
-  })(req);
+  return withMcpAuth(auth, async (request, session) =>
+    session.userId
+      ? serve(request, session.userId)
+      : Response.json({ error: "unavailable" }, { status: 503 }),
+  )(req);
 }

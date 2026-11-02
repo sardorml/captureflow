@@ -81,6 +81,7 @@ export default defineConfig({
           { text: "Recording a recording", link: "/guide/sharing" },
           { text: "Transcripts and cuts", link: "/guide/transcripts" },
           { text: "Screenshots (screenshots)", link: "/guide/screenshots" },
+          { text: "Record with your AI agent", link: "/guide/local-agent" },
         ],
       },
       {

@@ -42,6 +42,9 @@ jobs:
       # Campaign SQL, unsubscribe tokens and the mailer's send loop.
       - run: pnpm --filter @captureflow/mail test
       - run: pnpm --filter @captureflow/mailer test
+      # The agent recorder behind the cloud container and the local MCP.
+      - run: pnpm --filter @captureflow/agent-recorder test
+      - run: pnpm --filter @captureflow/mcp test
       # The Docker image's D1/R2/queue stand-ins.
       - run: pnpm --filter @captureflow/selfhost test
       - run: pnpm build

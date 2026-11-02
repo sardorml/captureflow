@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { getRecording, updateRecording } from "@/lib/recording/db";
+import { resolveDeviceTokenToUser } from "@/lib/recording/device-tokens";
 import { isValidSlug } from "@/lib/recording/slug";
 import { verifySessionOrNull } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
@@ -13,6 +14,14 @@ import {
 export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ id: string }> };
+
+// The owner edits in the viewer with a cookie; the local MCP writes an agent's report with its device token.
+async function callerUserId(): Promise<string | null> {
+  const h = await headers();
+  const bearer = /^bearer\s+(.+)$/i.exec((h.get("authorization") ?? "").trim());
+  if (bearer) return resolveDeviceTokenToUser(bearer[1]!.trim());
+  return (await verifySessionOrNull(h.get("cookie")))?.userId ?? null;
+}
 
 export async function GET(_req: Request, { params }: Params) {
   const { id } = await params;
@@ -36,9 +45,8 @@ export async function PUT(req: Request, { params }: Params) {
   if (!row || row.state !== "ready") {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
-  const cookieHeader = (await headers()).get("cookie");
-  const session = await verifySessionOrNull(cookieHeader);
-  if (!session || session.userId !== row.userId) {
+  const userId = await callerUserId();
+  if (!userId || userId !== row.userId) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   let body: unknown;
