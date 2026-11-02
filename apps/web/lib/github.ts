@@ -130,8 +130,18 @@ async function fetchGitHub(
         signal: AbortSignal.timeout(GITHUB_TIMEOUT_MS),
       },
     );
-    return res.ok ? await res.json() : null;
-  } catch {
+    // A bad or revoked token must not take the count down with it.
+    if (res.status === 401 && token) {
+      console.warn("[github] token rejected, retrying without it");
+      return fetchGitHub(path, undefined);
+    }
+    if (!res.ok) {
+      console.warn(`[github] ${path || "repo"} answered ${res.status}`);
+      return null;
+    }
+    return await res.json();
+  } catch (err) {
+    console.warn(`[github] ${path || "repo"} failed`, err);
     return null;
   }
 }
@@ -195,12 +205,19 @@ export async function serveRepoStats(
     .caches.default;
   const url = new URL(request.url);
   const key = `${url.origin}${url.pathname}`;
+  const headers = {
+    "cache-control": `public, max-age=${EDGE_CACHE_SECONDS}`,
+    "content-type": "application/json",
+  };
   const hit = await cache.match(key).catch(() => undefined);
-  if (hit) return hit;
+  // A cache hit comes back with the zone's four-hour browser TTL; keep ours.
+  if (hit) return new Response(hit.body, { headers });
 
-  const response = Response.json(await loadRepoStats(store, token, defer), {
-    headers: { "cache-control": `public, max-age=${EDGE_CACHE_SECONDS}` },
-  });
-  defer(cache.put(key, response.clone()).catch(() => {}));
+  const stats = await loadRepoStats(store, token, defer);
+  const response = new Response(JSON.stringify(stats), { headers });
+  // A count GitHub couldn't give us yet must not be held for the next visitor.
+  if (stats.stars !== null) {
+    defer(cache.put(key, response.clone()).catch(() => {}));
+  }
   return response;
 }

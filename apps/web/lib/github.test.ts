@@ -121,7 +121,10 @@ function stubGitHub(stars: number | "fail", issues: unknown[] | "fail" = []) {
   return fetchMock;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 describe("loadRepoStats", () => {
   it("serves a fresh saved copy without calling GitHub", async () => {
@@ -205,6 +208,23 @@ describe("refreshRepoStats", () => {
     });
   });
 
+  it("retries without a token GitHub rejects", async () => {
+    const { store, read } = stubStore();
+    const fetchMock = vi.fn(async (url: string, init: RequestInit) => {
+      const headers = init.headers as Record<string, string>;
+      if (headers.Authorization) return new Response("{}", { status: 401 });
+      return url.includes("/issues")
+        ? Response.json([])
+        : Response.json({ stargazers_count: 61 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await refreshRepoStats(store, "revoked", NOW);
+    expect(read()).toMatchObject({ stars: 61 });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
   it("sends the token when there is one", async () => {
     const { store } = stubStore();
     const fetchMock = stubGitHub(61);
@@ -249,5 +269,21 @@ describe("serveRepoStats", () => {
     const second = await serveRepoStats(request, store, undefined, vi.fn());
     expect(await second.json()).toMatchObject({ stars: "61" });
     expect(getSpy).not.toHaveBeenCalled();
+    expect(second.headers.get("cache-control")).toBe("public, max-age=60");
+  });
+
+  it("doesn't hold an empty answer at the edge", async () => {
+    const entries = stubEdgeCache();
+    const { store } = stubStore();
+    stubGitHub("fail", "fail");
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const work: Promise<unknown>[] = [];
+
+    const response = await serveRepoStats(request, store, undefined, (p) =>
+      work.push(p),
+    );
+    await Promise.all(work);
+    expect(await response.json()).toEqual({ stars: null, activity: null });
+    expect(entries.size).toBe(0);
   });
 });

@@ -9,7 +9,7 @@ const NO_STATS: RepoStats = { stars: null, activity: null };
 let pending: Promise<RepoStats> | null = null;
 
 function loadRepoStats(): Promise<RepoStats> {
-  pending ??= fetch("/api/github")
+  pending ??= fetch("/api/github", { cache: "no-cache" })
     .then((res) => (res.ok ? (res.json() as Promise<RepoStats>) : NO_STATS))
     .catch(() => NO_STATS);
   return pending;
