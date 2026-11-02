@@ -45,8 +45,8 @@
   /* Solid blue fill. Accent *text* comes from HeroUI's `--accent`. */
   --cf-accent-strong: #bfdbfe; /* hover / emphasized accent text */
   --cf-accent-deep: #bfdbfe; /* a selected clip against the accent */
-  --cf-word-hover: rgb(56 189 248 / 0.25);
-  --cf-word-selected: rgb(56 189 248 / 0.55);
+  --cf-word-hover: rgb(59 130 246 / 0.3);
+  --cf-word-selected: rgb(59 130 246 / 0.6);
   --cf-accent-bg: #2563eb;
   --cf-accent-bg-hover: #3b82f6; /* lighter on hover (dark) */
   --cf-accent-ring: rgb(59 130 246 / 0.4); /* focus / selected ring */
@@ -77,8 +77,8 @@
 
   --cf-accent-strong: #1d4ed8;
   --cf-accent-deep: #1e3a8a;
-  --cf-word-hover: rgb(56 189 248 / 0.25);
-  --cf-word-selected: rgb(56 189 248 / 0.55);
+  --cf-word-hover: rgb(59 130 246 / 0.3);
+  --cf-word-selected: rgb(59 130 246 / 0.6);
   --cf-accent-bg: #2563eb;
   --cf-accent-bg-hover: #1d4ed8; /* darker on hover (light) */
   --cf-accent-ring: rgb(37 99 235 / 0.35);
