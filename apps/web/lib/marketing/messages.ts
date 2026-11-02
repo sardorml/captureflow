@@ -154,7 +154,7 @@ export const MESSAGES = {
     heading: "Let your agent record your",
     headingWords: ["demo", "how-to", "bug report", "presentation"],
     subtitle:
-      "Ask in plain words. It records a cloud browser, adds slides and a voiceover if you want, and hands you a link.",
+      "Ask in plain words. It records a browser, your screen or an app on your own computer, adds slides and a voiceover if you want, and hands you a link.",
     placeholder: "Ask your agent to record something",
     mode: "Build",
     prompt:
@@ -186,11 +186,11 @@ export const MESSAGES = {
     steps: [
       {
         title: "Connect your agent",
-        body: "Add CaptureFlow to Claude Code, Codex or Cursor with one line. Your agent signs in once.",
+        body: "Add CaptureFlow to Claude Code, Codex or Cursor with one line. You need Node.js 20 or newer, and your agent signs in once.",
       },
       {
         title: "Ask for a video",
-        body: "A feature demo, a how-to, a bug report or a narrated deck. Your agent records it in a cloud browser, with slides and a voiceover if you want them.",
+        body: "A feature demo, a how-to, a bug report or a narrated deck. Your agent records it on your computer, even an app on localhost, with slides and a voiceover if you want them.",
       },
       {
         title: "Share it anywhere",
