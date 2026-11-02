@@ -51,10 +51,7 @@ import { CaptionsMenu } from "./CaptionsMenu";
 import "./player.css";
 import { cn } from "@/lib/utils";
 import { formatTimestamp } from "@/lib/format";
-import {
-  SELECTION_CUE_ID,
-  type ChapterCue,
-} from "@/lib/recording/chapter-cues";
+import { type ChapterCue } from "@/lib/recording/chapter-cues";
 import {
   effectiveDurationMs,
   toEditedMs,
@@ -623,9 +620,6 @@ function RecordingControls({
   captionLook,
 }: RecordingControlsProps) {
   const { edited, durationSeconds, currentSeconds, toTimelineMs } = timeline;
-  // The editor's selection replaces the chapters on the track, so any cue
-  // present is the selection.
-  const selecting = cues.some((cue) => cue.id === SELECTION_CUE_ID);
   const frames = useFrameStrip(framePreview ? videoUrl : null);
   const sourceSecondsAt = useCallback(
     (fraction: number) => {
@@ -684,7 +678,6 @@ function RecordingControls({
                 <TimeSlider
                   className="rounded-none"
                   previewOverflow="clamp"
-                  isChapterSelected={(chapter) => selecting && !!chapter.cue}
                   preview={preview}
                 />
                 <CutGaps cuts={cuts} durationSeconds={durationSeconds} />

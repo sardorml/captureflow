@@ -64,7 +64,7 @@ export function EditorTopBar({
   );
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-line bg-panel px-3">
+    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line bg-panel px-3">
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <button
           type="button"
@@ -76,7 +76,7 @@ export function EditorTopBar({
         </button>
         {/* The same rename control as the share page's header, so the title
             reads and edits the same way on both. */}
-        <div className="min-w-0 flex-1 px-3">
+        <div className="max-w-3xl min-w-0 flex-1 px-3">
           <EditableTitle
             slug={slug}
             title={title.trim() || "Untitled recording"}
@@ -114,7 +114,7 @@ export function EditorTopBar({
           onClick={onUndo}
           disabled={!canUndo}
           aria-label="Undo"
-          title="Undo"
+          title="Undo (⌘Z)"
           className="inline-flex h-9 w-9 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
         >
           <Undo2 className="h-4 w-4" />
@@ -124,7 +124,7 @@ export function EditorTopBar({
           onClick={onRedo}
           disabled={!canRedo}
           aria-label="Redo"
-          title="Redo"
+          title="Redo (⇧⌘Z)"
           className="inline-flex h-9 w-9 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
         >
           <Redo2 className="h-4 w-4" />

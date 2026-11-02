@@ -193,12 +193,10 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
       </button>
       {/* While open, the top padding bridges the pointer from the trigger to
           the panel. While closed, none of this box takes the pointer, so only
-          the trigger itself can open the menu. The padding runs from this
-          box's bottom (30px above the bar's edge) to 8px below the bar, so
-          the panel hangs clear of the bar instead of overlapping it. */}
+          the trigger itself can open the menu. */}
       <div
         className={cn(
-          "absolute top-full left-1/2 -translate-x-1/2 pt-[38px]",
+          "absolute top-full left-1/2 -translate-x-1/2 pt-3.5",
           !open && "pointer-events-none",
         )}
       >

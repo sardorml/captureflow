@@ -5,7 +5,10 @@ import { isValidSlug } from "@/lib/recording/slug";
 import { verifySessionOrNull } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
 import { parseRecordingConfigJson } from "@/lib/recording-config";
-import { resolveTranscript, transcriptToVtt } from "@/lib/recording/transcript";
+import {
+  resolveTranscript,
+  transcriptToCaptionVtt,
+} from "@/lib/recording/transcript";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +30,7 @@ export async function GET(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
   const { cuts } = parseRecordingConfigJson(row.configJson);
-  return new NextResponse(transcriptToVtt(transcript, cuts), {
+  return new NextResponse(transcriptToCaptionVtt(transcript, cuts), {
     headers: {
       "content-type": "text/vtt; charset=utf-8",
       "cache-control": "private, no-store",

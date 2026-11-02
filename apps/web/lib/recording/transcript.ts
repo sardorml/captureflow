@@ -1,4 +1,4 @@
-import type { RecordingCut } from "./cuts";
+import { isInsideCut, type RecordingCut } from "./cuts";
 import type {
   RecordingTranscript,
   TranscriptResponse,
@@ -14,6 +14,9 @@ const MAX_WORDS = 20_000;
 const MAX_SEGMENT_CHARS = 1_000;
 const MAX_WORD_CHARS = 100;
 const SEGMENT_ID = /^[A-Za-z0-9_-]{1,32}$/;
+const CAPTION_HOLD_MS = 400;
+const MIN_CAPTION_MS = 100;
+const MAX_CAPTION_CHARS = 42;
 const LANGUAGE_TAG = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$/;
 
 export type TranscriptEdits = {
@@ -170,14 +173,60 @@ function escapeCue(text: string): string {
     .replace(/>/g, "&gt;");
 }
 
-// A segment lying wholly inside a cut: the player never reaches it.
-export function isSegmentCut(
-  segment: TranscriptSegment,
+// A line's words with their timings. A line whose text the owner fixed has
+// lost its word timings, so its length is shared out by character count.
+export function segmentWords(segment: TranscriptSegment): TranscriptWord[] {
+  if (segment.words?.length) return segment.words;
+  const parts = segment.text.split(" ").filter(Boolean);
+  const totalChars = parts.reduce((sum, part) => sum + part.length, 0);
+  const length = segment.endMs - segment.startMs;
+  let chars = 0;
+  return parts.map((text) => {
+    const startMs = segment.startMs + (length * chars) / totalChars;
+    chars += text.length;
+    return {
+      text,
+      startMs: Math.round(startMs),
+      endMs: Math.round(segment.startMs + (length * chars) / totalChars),
+    };
+  });
+}
+
+// A word belongs to whichever span holds its middle, so a cut landing partway
+// through a word still decides it one way.
+function wordMiddleMs(word: TranscriptWord): number {
+  return Math.floor((word.startMs + word.endMs) / 2);
+}
+
+export function isWordInSpan(
+  word: TranscriptWord,
+  span: RecordingCut,
+): boolean {
+  const middle = wordMiddleMs(word);
+  return middle >= span.startMs && middle < span.endMs;
+}
+
+export function isWordCut(
+  word: TranscriptWord,
   cuts: readonly RecordingCut[],
 ): boolean {
-  return cuts.some(
-    (cut) => segment.startMs >= cut.startMs && segment.endMs <= cut.endMs,
-  );
+  return isInsideCut(wordMiddleMs(word), cuts);
+}
+
+// The transcript as playback hears it: cut words gone, emptied lines dropped.
+export function keptSegments(
+  segments: readonly TranscriptSegment[],
+  cuts: readonly RecordingCut[],
+): TranscriptSegment[] {
+  return segments.flatMap((segment) => {
+    const words = segmentWords(segment);
+    const kept = words.filter((word) => !isWordCut(word, cuts));
+    if (kept.length === words.length) return [segment];
+    if (kept.length === 0) return [];
+    return [
+      { ...segment, text: kept.map((w) => w.text).join(" "), words: kept },
+    ];
+  });
 }
 
 export function activeSegmentId(
@@ -192,14 +241,71 @@ export function activeSegmentId(
   return active;
 }
 
+// A caption's words, ending at each line of the transcript and before the text
+// would outgrow what reads comfortably on screen.
+function captionGroups(
+  segments: readonly TranscriptSegment[],
+): TranscriptWord[][] {
+  return segments.flatMap((segment) => {
+    const groups: TranscriptWord[][] = [];
+    let chars = 0;
+    for (const word of segmentWords(segment)) {
+      const last = groups[groups.length - 1];
+      if (last && chars + word.text.length + 1 <= MAX_CAPTION_CHARS) {
+        last.push(word);
+        chars += word.text.length + 1;
+      } else {
+        groups.push([word]);
+        chars = word.text.length;
+      }
+    }
+    return groups;
+  });
+}
+
+// The captions the player shows: each caption grows a word at a time, then
+// swaps for the next. A cue lasts to the next word, or briefly past a pause.
+export function transcriptToCaptionVtt(
+  transcript: RecordingTranscript,
+  cuts: readonly RecordingCut[] = [],
+): string {
+  const groups = captionGroups(keptSegments(transcript.segments, cuts));
+  const lines = ["WEBVTT", ""];
+  let index = 0;
+  groups.forEach((group, g) => {
+    group.forEach((word, i) => {
+      const next = group[i + 1] ?? groups[g + 1]?.[0];
+      const shown = Math.max(word.endMs, word.startMs + MIN_CAPTION_MS);
+      // Browsers count a cue's end as inside it, so one ending exactly where the
+      // next starts shows both when the player is paused on that moment.
+      const endMs = next
+        ? Math.min(next.startMs - 1, shown + CAPTION_HOLD_MS)
+        : shown;
+      if (endMs <= word.startMs) return;
+      index++;
+      lines.push(
+        String(index),
+        `${vttTime(word.startMs)} --> ${vttTime(endMs)}`,
+        escapeCue(
+          group
+            .slice(0, i + 1)
+            .map((w) => w.text)
+            .join(" "),
+        ),
+        "",
+      );
+    });
+  });
+  return lines.join("\n");
+}
+
 export function transcriptToVtt(
   transcript: RecordingTranscript,
   cuts: readonly RecordingCut[] = [],
 ): string {
   const lines = ["WEBVTT", ""];
   let index = 0;
-  for (const segment of transcript.segments) {
-    if (isSegmentCut(segment, cuts)) continue;
+  for (const segment of keptSegments(transcript.segments, cuts)) {
     index++;
     lines.push(
       String(index),

@@ -3,9 +3,13 @@ import {
   activeSegmentId,
   hydrateTranscript,
   hydrateTranscriptEdits,
-  isSegmentCut,
+  isWordCut,
+  isWordInSpan,
+  keptSegments,
   parseTranscriptJson,
   resolveTranscript,
+  segmentWords,
+  transcriptToCaptionVtt,
   transcriptToVtt,
 } from "./transcript";
 import type { RecordingTranscript, TranscriptRow } from "./types";
@@ -235,21 +239,177 @@ describe("resolveTranscript", () => {
 });
 
 describe("segment lookups", () => {
-  it("marks only segments wholly inside a cut", () => {
-    const cuts = [{ startMs: 1900, endMs: 4100 }];
-    expect(isSegmentCut(AUTO.segments[1]!, cuts)).toBe(true);
-    expect(isSegmentCut(AUTO.segments[0]!, cuts)).toBe(false);
-    expect(
-      isSegmentCut(AUTO.segments[1]!, [{ startMs: 2500, endMs: 9000 }]),
-    ).toBe(false);
-  });
-
   it("picks the last segment that has started", () => {
     expect(activeSegmentId(AUTO.segments, 0)).toBe("s1");
     expect(activeSegmentId(AUTO.segments, 1900)).toBe("s1");
     expect(activeSegmentId(AUTO.segments, 2000)).toBe("s2");
     expect(activeSegmentId(AUTO.segments, 9_999_999)).toBe("s3");
     expect(activeSegmentId([], 5)).toBeNull();
+  });
+});
+
+describe("word timings", () => {
+  const TIMED = {
+    id: "s1",
+    startMs: 0,
+    endMs: 3000,
+    text: "one two three",
+    words: [
+      { text: "one", startMs: 0, endMs: 1000 },
+      { text: "two", startMs: 1000, endMs: 2000 },
+      { text: "three", startMs: 2000, endMs: 3000 },
+    ],
+  };
+
+  it("uses a line's own word timings", () => {
+    expect(segmentWords(TIMED)).toBe(TIMED.words);
+  });
+
+  it("shares a fixed line's length out by character count", () => {
+    expect(
+      segmentWords({ id: "s1", startMs: 100, endMs: 1100, text: "a bbb" }),
+    ).toEqual([
+      { text: "a", startMs: 100, endMs: 350 },
+      { text: "bbb", startMs: 350, endMs: 1100 },
+    ]);
+  });
+
+  it("decides a word by its middle", () => {
+    const word = TIMED.words[1]!;
+    expect(isWordInSpan(word, { startMs: 1400, endMs: 1600 })).toBe(true);
+    expect(isWordInSpan(word, { startMs: 1600, endMs: 5000 })).toBe(false);
+    expect(isWordCut(word, [{ startMs: 0, endMs: 1500 }])).toBe(false);
+    expect(isWordCut(word, [{ startMs: 0, endMs: 1501 }])).toBe(true);
+  });
+
+  it("holds a selection on a word with no length", () => {
+    const word = { text: "uh", startMs: 500, endMs: 500 };
+    expect(isWordInSpan(word, { startMs: 500, endMs: 501 })).toBe(true);
+  });
+
+  it("drops cut words, then emptied lines", () => {
+    const [kept] = keptSegments([TIMED], [{ startMs: 1000, endMs: 2000 }]);
+    expect(kept).toMatchObject({ text: "one three" });
+    expect(kept!.words!.map((w) => w.text)).toEqual(["one", "three"]);
+    expect(keptSegments([TIMED], [{ startMs: 0, endMs: 3000 }])).toEqual([]);
+  });
+
+  it("returns an untouched line as it was", () => {
+    expect(keptSegments([TIMED], [])[0]).toBe(TIMED);
+  });
+});
+
+describe("transcriptToCaptionVtt", () => {
+  const transcript: RecordingTranscript = {
+    version: 1,
+    language: "en",
+    segments: [
+      {
+        id: "s1",
+        startMs: 0,
+        endMs: 1000,
+        text: "one two",
+        words: [
+          { text: "one", startMs: 0, endMs: 400 },
+          { text: "two", startMs: 500, endMs: 1000 },
+        ],
+      },
+      {
+        id: "s2",
+        startMs: 3000,
+        endMs: 3000,
+        text: "<three>",
+        words: [{ text: "<three>", startMs: 3000, endMs: 3000 }],
+      },
+    ],
+  };
+
+  it("grows a caption word by word, then swaps at the next line", () => {
+    expect(transcriptToCaptionVtt(transcript)).toBe(
+      [
+        "WEBVTT",
+        "",
+        "1",
+        "00:00:00.000 --> 00:00:00.499",
+        "one",
+        "",
+        "2",
+        "00:00:00.500 --> 00:00:01.400",
+        "one two",
+        "",
+        "3",
+        "00:00:03.000 --> 00:00:03.100",
+        "&lt;three&gt;",
+        "",
+      ].join("\n"),
+    );
+  });
+
+  it("never lets two captions show at the same moment", () => {
+    const words = [
+      { text: "a", startMs: 1000, endMs: 1050 },
+      { text: "bb", startMs: 1050, endMs: 1500 },
+      { text: "same", startMs: 1500, endMs: 1500 },
+      { text: "start", startMs: 1500, endMs: 2000 },
+      { text: "back", startMs: 1900, endMs: 2400 },
+    ];
+    const vtt = transcriptToCaptionVtt({
+      version: 1,
+      language: "en",
+      segments: [
+        {
+          id: "s1",
+          startMs: 1000,
+          endMs: 2400,
+          text: words.map((w) => w.text).join(" "),
+          words,
+        },
+      ],
+    });
+    const seconds = (stamp: string): number => {
+      const [h, m, s] = stamp.split(":").map(Number);
+      return h! * 3600 + m! * 60 + s!;
+    };
+    const cues = [...vtt.matchAll(/([\d:.]+) --> ([\d:.]+)/g)].map((m) => [
+      seconds(m[1]!),
+      seconds(m[2]!),
+    ]);
+    expect(cues.length).toBeGreaterThan(2);
+    for (let i = 1; i < cues.length; i++) {
+      expect(cues[i - 1]![1]).toBeLessThan(cues[i]![0]!);
+    }
+  });
+
+  it("swaps within a line once the text gets too long", () => {
+    const word = "x".repeat(20);
+    const words = [0, 1, 2].map((i) => ({
+      text: word,
+      startMs: i * 1000,
+      endMs: i * 1000 + 900,
+    }));
+    const vtt = transcriptToCaptionVtt({
+      version: 1,
+      language: "en",
+      segments: [
+        {
+          id: "s1",
+          startMs: 0,
+          endMs: 2900,
+          text: words.map((w) => w.text).join(" "),
+          words,
+        },
+      ],
+    });
+    expect(vtt).toContain(`00:00:01.000 --> 00:00:01.999\n${word} ${word}\n`);
+    expect(vtt).toContain(`00:00:02.000 --> 00:00:02.900\n${word}\n`);
+  });
+
+  it("leaves cut words out of the caption", () => {
+    const vtt = transcriptToCaptionVtt(transcript, [
+      { startMs: 0, endMs: 450 },
+    ]);
+    expect(vtt).not.toContain("one");
+    expect(vtt).toContain("1\n00:00:00.500 --> 00:00:01.400\ntwo");
   });
 });
 
@@ -281,9 +441,10 @@ describe("transcriptToVtt", () => {
     expect(vtt).toContain("2\n01:01:01.250");
   });
 
-  it("keeps a cue that only overlaps a cut edge", () => {
-    const vtt = transcriptToVtt(AUTO, [{ startMs: 1000, endMs: 3000 }]);
-    expect(vtt).toContain("Hello there");
+  it("takes only the cut words out of a cue the cut overlaps", () => {
+    const vtt = transcriptToVtt(AUTO, [{ startMs: 1000, endMs: 2200 }]);
+    expect(vtt).toContain("Hello\n");
+    expect(vtt).not.toContain("there");
     expect(vtt).toContain("second phrase");
   });
 });

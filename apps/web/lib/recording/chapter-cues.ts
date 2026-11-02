@@ -1,4 +1,3 @@
-import type { RecordingCut } from "./cuts";
 import type { RecordingChapter } from "./summary-chapters";
 
 export type ChapterCue = {
@@ -7,8 +6,6 @@ export type ChapterCue = {
   endMs: number;
   title: string;
 };
-
-export const SELECTION_CUE_ID = "selection";
 
 // The last chapter runs to a day; Video.js clamps cues to the media
 // duration, which the recording row only knows approximately.
@@ -40,15 +37,6 @@ export function chapterCues(
     });
   }
   return cues;
-}
-
-export function selectionCue(selection: RecordingCut): ChapterCue {
-  return {
-    id: SELECTION_CUE_ID,
-    startMs: selection.startMs,
-    endMs: selection.endMs,
-    title: "Selection",
-  };
 }
 
 export function cuesToVtt(cues: readonly ChapterCue[]): string {

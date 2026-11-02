@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { formatTimestamp } from "@/lib/format";
 import type { RecordingCut } from "@/lib/recording/cuts";
-import { activeSegmentId, isSegmentCut } from "@/lib/recording/transcript";
+import { activeSegmentId, keptSegments } from "@/lib/recording/transcript";
 import type {
   RecordingTranscript,
   TranscriptResponse,
@@ -87,10 +87,7 @@ export function TranscriptPanel({
   }, [getCurrentMs]);
 
   const visible = useMemo(
-    () =>
-      transcript
-        ? transcript.segments.filter((s) => !isSegmentCut(s, cuts))
-        : [],
+    () => (transcript ? keptSegments(transcript.segments, cuts) : []),
     [transcript, cuts],
   );
   const needle = query.trim().toLowerCase();
