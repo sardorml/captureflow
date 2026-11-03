@@ -80,7 +80,7 @@ export const MESSAGES = {
     cta: "Connect",
   },
   hero: {
-    title: "Screen recorder for\nyour agentic workflow.",
+    title: "Screen recorder for\nyou and your AI agents",
     subtitle:
       "Record demos, how-tos, walkthroughs and presentations yourself, or have your AI record them for you. Share each one as a link anyone can watch.",
     ctaLabel: "Try CaptureFlow for free",
