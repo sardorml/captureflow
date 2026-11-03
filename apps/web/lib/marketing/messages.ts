@@ -215,11 +215,11 @@ export const MESSAGES = {
         body: "On your computer, even an app on localhost.",
       },
       {
-        title: "Add slides and a voice",
+        title: "Adds slides and a voice",
         body: "Title slides and a voiceover, if you want them.",
       },
       {
-        title: "Share it anywhere",
+        title: "Gives you a link to share",
         body: "Attach it to a pull request, post it in Slack or send it to a customer.",
       },
     ],
@@ -321,14 +321,14 @@ export const MESSAGES = {
     heading: "What you can do after recording",
     cta: "Try it free",
     subtitle:
-      "Edit it, share or embed it, and get comments. Recordings are kept in a team workspace.",
+      "Edit it, share or embed it, and get comments. Invite your team to watch and comment on each other's videos.",
     categories: {
       share: {
         feature: {
           tag: "new",
           title: "Edit your video",
           cta: "Install the extension",
-          body: "Every recording gets a transcript. Delete a sentence from it to cut that part of the video. You can also change the background and move or resize your camera. Edits appear on the same link.",
+          body: "Delete words from the transcript to cut them from the video, or trim clips on the timeline. Change the background, move, resize or hide your camera, and mute the mic or system sound.",
         },
         scene: {
           app: "Launch plan",
@@ -378,9 +378,9 @@ export const MESSAGES = {
       },
       feedback: {
         feature: {
-          title: "Get comments and reactions",
+          title: "Collaborate on your videos",
           cta: "Sign in",
-          body: "Viewers can react with emojis and leave comments on the timeline. Each comment is tied to a point in the video, and replies stay with it.",
+          body: "Work together without a meeting, across time zones. Your team can react with emojis, comment at any moment in the video, and follow along with transcripts and captions.",
         },
         scene: {
           title: "Launch plan walkthrough",
