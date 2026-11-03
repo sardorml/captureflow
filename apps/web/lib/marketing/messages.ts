@@ -608,7 +608,7 @@ export const MESSAGES = {
         features: [
           "Unlimited recordings",
           "Unlimited recording time",
-          `${LIGHT_AGENT_MIN} min a month of agent recordings, up to 10 min each`,
+          `${LIGHT_AGENT_MIN} min a month of cloud agent recordings, up to 10 min each`,
         ],
         description: "Unlimited recordings in data saver quality.",
         period: "/mo",
@@ -625,7 +625,7 @@ export const MESSAGES = {
           "Full quality, up to 1080p",
           "AI chapters, titles and filler removal",
           "Custom branding",
-          `${PRO_AGENT_MIN} min a month of agent recordings, with ${PRO_VOICEOVER_MIN} min of AI voiceover`,
+          `${PRO_AGENT_MIN} min a month of cloud agent recordings, with ${PRO_VOICEOVER_MIN} min of AI voiceover`,
           "Viewer insights (coming soon)",
           "Slack, Notion and Zapier integrations (coming soon)",
         ],
@@ -686,13 +686,25 @@ export const MESSAGES = {
           pro: true,
         },
         agents: {
-          label: "Agent recordings",
+          label: "Local agent recordings",
+          free: true,
+          light: true,
+          pro: true,
+        },
+        cloudAgents: {
+          label: "Cloud agent recordings",
           free: `${FREE_AGENT_MIN} min a month`,
           light: `${LIGHT_AGENT_MIN} min a month`,
           pro: `${PRO_AGENT_MIN} min a month`,
         },
         voiceover: {
-          label: "AI voiceover",
+          label: "Local AI voiceover",
+          free: true,
+          light: true,
+          pro: true,
+        },
+        cloudVoiceover: {
+          label: "Cloud AI voiceover",
           free: false,
           light: false,
           pro: `${PRO_VOICEOVER_MIN} min a month`,
@@ -825,7 +837,13 @@ export const MESSAGES = {
           title: "Agents",
           rows: [
             {
-              label: "Recordings by your agent over MCP",
+              label: "Agent recordings on your computer",
+              free: true,
+              light: true,
+              pro: true,
+            },
+            {
+              label: "Agent recordings in a cloud browser",
               free: `${FREE_AGENT_MIN} min a month per person`,
               light: `${LIGHT_AGENT_MIN} min a month per member`,
               pro: `${PRO_AGENT_MIN} min a month per member`,
@@ -837,7 +855,13 @@ export const MESSAGES = {
               pro: true,
             },
             {
-              label: "AI voiceover",
+              label: "AI voiceover on your computer",
+              free: true,
+              light: true,
+              pro: true,
+            },
+            {
+              label: "AI voiceover in a cloud browser",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} min a month per member`,

@@ -3,10 +3,12 @@
 import { useId, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import {
+  AudioLines,
   Bot,
   Captions,
   Check,
   Clock,
+  Cloud,
   Eraser,
   MessageCircle,
   Mic,
@@ -60,7 +62,9 @@ const ROW_ICONS: Record<RowKey, LucideIcon> = {
   filler: Eraser,
   feedback: MessageCircle,
   agents: Bot,
+  cloudAgents: Cloud,
   voiceover: Mic,
+  cloudVoiceover: AudioLines,
   branding: Palette,
 };
 
