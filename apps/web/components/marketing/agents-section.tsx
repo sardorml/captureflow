@@ -47,7 +47,7 @@ export function AgentsSection({ headingLevel = 2 }: SectionProps = {}) {
         level={headingLevel}
       />
       <ol
-        className={cn(FRAME_CELLS, "list-none sm:grid-cols-2 lg:grid-cols-4")}
+        className={cn(FRAME_CELLS, "list-none md:grid-cols-2 lg:grid-cols-4")}
       >
         {steps.map((step, i) => {
           const Scene = SCENES[i - 1];
@@ -56,23 +56,19 @@ export function AgentsSection({ headingLevel = 2 }: SectionProps = {}) {
               key={step.title}
               className={cn(FRAME_CELL, FRAME_CARD, "flex flex-col")}
             >
-              <div
-                className={cn(
-                  CARD_ZOOM,
-                  CARD_GRAY,
-                  "p-3 motion-safe:group-hover/card:scale-[1.01] motion-safe:group-focus-within/card:scale-[1.01]",
-                )}
-              >
-                <Scene />
-              </div>
-              <div className="px-5 pt-2 pb-6">
-                <h3 className="flex items-center gap-2.5 text-[17px] leading-6 font-medium tracking-[-0.02em] text-fg-strong">
+              <div className="flex flex-col gap-1.5 p-5">
+                <h3 className="flex items-center gap-2 text-base font-medium text-fg-strong">
                   <StepNumber number={i + 1} />
                   {step.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-fg-muted">
+                <p className="text-sm leading-relaxed text-fg-muted">
                   {step.body}
                 </p>
+              </div>
+              <div
+                className={cn(CARD_ZOOM, CARD_GRAY, "mt-auto origin-bottom")}
+              >
+                <Scene />
               </div>
             </li>
           ) : (

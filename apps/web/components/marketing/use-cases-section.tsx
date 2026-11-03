@@ -35,7 +35,7 @@ const SCENE_HEIGHT = 360;
 const CHART_BARS = [34, 48, 40, 58, 70, 96] as const;
 
 // The window every scene but support sits in, bleeding off the bottom.
-const WINDOW =
+export const WINDOW =
   "absolute inset-x-9 top-10 -bottom-6 overflow-hidden rounded-[22px] text-[#181818]";
 
 function Presenter({ photo }: { photo: string }) {
@@ -53,7 +53,7 @@ function Presenter({ photo }: { photo: string }) {
   );
 }
 
-function WindowBar({
+export function WindowBar({
   name,
   badge,
   barClass,
@@ -355,7 +355,7 @@ function UpdatesScene({
   );
 }
 
-function ScaledScene({ children }: { children: ReactNode }) {
+export function ScaledScene({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 

@@ -217,11 +217,14 @@ export const MESSAGES = {
     ],
     scenes: {
       ask: {
+        name: "terminal",
+        badge: "agent",
         prompt: "Record a checkout demo",
         steps: ["Opening the app", "Clicking through", "Your link is ready"],
       },
       record: {
         url: "localhost:3000",
+        badge: "demo",
         title: "Checkout",
         fields: ["Your name", "Card number"],
         pay: "Pay now",
@@ -232,6 +235,7 @@ export const MESSAGES = {
         subtitle: "How to pay in three steps",
       },
       share: {
+        title: "Checkout demo",
         link: "captureflow.dev/r/checkout",
         places: ["PR", "Slack", "Email"],
       },
