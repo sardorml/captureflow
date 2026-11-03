@@ -34,19 +34,19 @@ const COMPONENTS: Components = {
     </h3>
   ),
   table: ({ children }) => (
-    <div className="my-8 overflow-x-auto rounded-2xl bg-panel">
+    <div className="my-8 overflow-x-auto">
       <table className="w-full min-w-120 border-collapse text-left text-[15px] leading-snug">
         {children}
       </table>
     </div>
   ),
   th: ({ children }) => (
-    <th className="border-b border-fg/10 px-5 py-4 font-semibold whitespace-nowrap text-fg">
+    <th className="border-b border-line-strong py-3 pr-5 font-semibold whitespace-nowrap text-fg">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="border-b border-fg/5 px-5 py-4 text-fg/80 first:whitespace-nowrap [tr:last-child_&]:border-0">
+    <td className="border-b border-line py-3 pr-5 text-fg/80 first:whitespace-nowrap [tr:last-child_&]:border-0">
       {children}
     </td>
   ),
@@ -72,7 +72,7 @@ const COMPONENTS: Components = {
     </code>
   ),
   pre: ({ children }) => (
-    <pre className="my-8 overflow-x-auto rounded-2xl bg-panel p-6 font-mono text-[14px] leading-relaxed text-fg [&>code]:bg-transparent [&>code]:p-0 [&>code]:text-[1em]">
+    <pre className="my-8 overflow-x-auto rounded-2xl bg-panel-2 p-6 font-mono text-[14px] leading-relaxed text-fg [&>code]:bg-transparent [&>code]:p-0 [&>code]:text-[1em]">
       {children}
     </pre>
   ),

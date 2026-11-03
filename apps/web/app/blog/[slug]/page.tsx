@@ -108,8 +108,8 @@ export default async function BlogPostPage({ params }: Params) {
           },
         ]}
       />
-      <article className="mx-auto w-full max-w-5xl px-6 pt-[clamp(56px,9vw,120px)]">
-        <header className="max-w-215">
+      <article className="pt-[clamp(48px,7vw,80px)]">
+        <header className="max-w-215 px-6 pb-12 md:px-12">
           <NextLink
             href="/blog"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-fg-muted hover:text-fg"
@@ -117,7 +117,7 @@ export default async function BlogPostPage({ params }: Params) {
             <ArrowLeft size={16} />
             Blog
           </NextLink>
-          <h1 className="mt-8 text-[clamp(2.25rem,1.4rem+3vw,3.75rem)] leading-[1.06] font-bold tracking-[-0.03em] text-balance text-fg">
+          <h1 className="mt-8 text-[clamp(2.25rem,1.4rem+3vw,3.75rem)] leading-[1.06] font-semibold tracking-[-0.05em] text-balance text-fg-strong">
             {post.title}
           </h1>
           <p className="mt-6 max-w-180 text-xl leading-relaxed text-pretty text-fg-muted">
@@ -137,9 +137,12 @@ export default async function BlogPostPage({ params }: Params) {
           </p>
         </header>
 
-        <div className="mt-16 border-t border-fg/10 pt-6 lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-20">
-          <nav aria-label="On this page" className="hidden lg:block">
-            <div className="sticky top-28 pt-8">
+        <div className="border-t border-line-strong lg:grid lg:grid-cols-[minmax(0,1fr)_280px]">
+          <nav
+            aria-label="On this page"
+            className="hidden px-6 lg:order-last lg:block"
+          >
+            <div className="sticky top-14 py-10">
               <p className="text-xs font-semibold tracking-wider text-fg-muted uppercase">
                 On this page
               </p>
@@ -147,8 +150,8 @@ export default async function BlogPostPage({ params }: Params) {
             </div>
           </nav>
 
-          <div className="max-w-180 min-w-0">
-            <details className="mt-4 rounded-2xl bg-panel px-5 py-4 lg:hidden">
+          <div className="min-w-0 px-6 pt-10 pb-16 md:px-12">
+            <details className="mb-8 border-b border-line-strong pb-4 lg:hidden">
               <summary className="cursor-pointer text-sm font-semibold text-fg">
                 On this page
               </summary>
