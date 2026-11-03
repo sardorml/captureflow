@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { OURS_BG } from "./compare-table";
 import { useMessages } from "./i18n-provider";
 
-export const usd = (n: number) =>
+const usd = (n: number) =>
   n.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",

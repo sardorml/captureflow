@@ -41,7 +41,7 @@ function fill(template: string, values: Record<string, string | number>) {
 
 type Cycle = "monthly" | "annual";
 
-export const DEFAULT_SEATS = 5;
+const DEFAULT_SEATS = 5;
 
 export const GRADIENT_BORDER =
   "bg-[linear-gradient(165deg,#a855f7,#f97316_45%,#2563eb)]";
@@ -76,11 +76,7 @@ const ROW_CELL =
 
 // The copy reads its numbers from the quota package so the page can't drift
 // from what the server enforces.
-export function PlanCards({
-  onSeatsChange,
-}: {
-  onSeatsChange?: (seats: number) => void;
-} = {}) {
+export function PlanCards() {
   const m = useMessages();
   const lh = useLocalizedHref();
   const copy = m.pricing.plans;
@@ -149,10 +145,7 @@ export function PlanCards({
     >
       <BillingColumn
         seats={seats}
-        onSeatsChange={(n) => {
-          setSeats(n);
-          onSeatsChange?.(n);
-        }}
+        onSeatsChange={setSeats}
         cycle={cycle}
         onCycleChange={setCycle}
       />
