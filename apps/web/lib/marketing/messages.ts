@@ -200,13 +200,42 @@ export const MESSAGES = {
       },
       {
         title: "Ask for a video",
-        body: "A feature demo, a how-to, a bug report or a narrated deck. Your agent records it on your computer, even an app on localhost, with slides and a voiceover if you want them.",
+        body: "A feature demo, a how-to, a bug report or a narrated deck.",
+      },
+      {
+        title: "It records for you",
+        body: "On your computer, even an app on localhost.",
+      },
+      {
+        title: "Add slides and a voice",
+        body: "Title slides and a voiceover, if you want them.",
       },
       {
         title: "Share it anywhere",
-        body: "Attach it to a pull request, post it to your team in Slack or send it to a customer. The link plays in any browser.",
+        body: "Attach it to a pull request, post it in Slack or send it to a customer.",
       },
     ],
+    scenes: {
+      ask: {
+        prompt: "Record a checkout demo",
+        steps: ["Opening the app", "Clicking through", "Your link is ready"],
+      },
+      record: {
+        url: "localhost:3000",
+        title: "Checkout",
+        fields: ["Your name", "Card number"],
+        pay: "Pay now",
+        paid: "Paid",
+      },
+      voice: {
+        title: "Checkout demo",
+        subtitle: "How to pay in three steps",
+      },
+      share: {
+        link: "captureflow.dev/r/checkout",
+        places: ["PR", "Slack", "Email"],
+      },
+    },
     chats: {
       claude:
         "In Claude, open Customize, then Connectors, and choose Add custom connector. Name it CaptureFlow, paste this URL, then sign in.",

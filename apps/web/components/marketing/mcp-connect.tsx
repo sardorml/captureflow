@@ -57,8 +57,8 @@ function CopyCommand({ command }: { command: string }) {
     });
   };
   return (
-    <div className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-lg bg-tint px-3 py-2">
-      <code className="min-w-0 flex-1 overflow-x-auto text-left font-mono text-[13px] whitespace-nowrap text-fg [scrollbar-width:none]">
+    <div className="flex w-full min-w-0 items-center gap-2 rounded-lg bg-tint px-3 py-2">
+      <code className="min-w-0 flex-1 text-left font-mono text-[13px] [overflow-wrap:anywhere] text-fg">
         {command}
       </code>
       <button
@@ -100,29 +100,43 @@ export function McpConnectDetails() {
           </button>
         ))}
       </div>
-      {agent.chat && (
-        <p className="text-[13px] leading-relaxed text-fg-muted">
-          {m.agents.chats[agent.chat]}
-        </p>
-      )}
-      {agent.command ? (
-        <CopyCommand command={agent.command} />
-      ) : (
-        <a
-          href={CURSOR_INSTALL}
-          className={cn(
-            buttonVariants({ variant: "secondary", size: "sm" }),
-            "w-fit rounded-lg",
-          )}
-        >
-          {m.hero.mcpAddToCursor}
-        </a>
-      )}
-      {agent.chat && (
-        <p className="text-[13px] leading-relaxed text-fg-muted">
-          {m.agents.chats.limits}
-        </p>
-      )}
+      {/* Every panel shares one grid cell, so the tallest sets the height and
+          switching tabs doesn't move the page. */}
+      <div className="grid">
+        {AGENTS.map((a) => (
+          <div
+            key={a.name}
+            className={cn(
+              "col-start-1 row-start-1 flex min-w-0 flex-col items-start gap-2.5",
+              a !== agent && "invisible",
+            )}
+          >
+            {a.chat && (
+              <p className="text-[13px] leading-relaxed text-fg-muted">
+                {m.agents.chats[a.chat]}
+              </p>
+            )}
+            {a.command ? (
+              <CopyCommand command={a.command} />
+            ) : (
+              <a
+                href={CURSOR_INSTALL}
+                className={cn(
+                  buttonVariants({ variant: "secondary", size: "sm" }),
+                  "w-fit rounded-lg",
+                )}
+              >
+                {m.hero.mcpAddToCursor}
+              </a>
+            )}
+            {a.chat && (
+              <p className="text-[13px] leading-relaxed text-fg-muted">
+                {m.agents.chats.limits}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
