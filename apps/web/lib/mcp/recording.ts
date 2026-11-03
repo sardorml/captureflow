@@ -170,7 +170,7 @@ export async function startAgentRecording(
   const { left } = await allowanceLeft(db, workspaceId);
   if (left.agentMs !== null && left.agentMs < 60_000) {
     throw new LibraryError(
-      "This workspace has used its agent recording minutes for this month. They reset on the 1st, or upgrade for more.",
+      "This workspace has used its agent recording minutes for this month. They reset on the 1st.",
     );
   }
   const maxDurationMs = Math.min(MAX_RECORDING_MS, left.agentMs ?? Infinity);
