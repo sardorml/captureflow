@@ -1,6 +1,6 @@
 import { PRODUCT_NAME } from "@/lib/site";
 
-const SCREENSHOT_BRAND_LINE = `${PRODUCT_NAME} | Free Screen & Video Recording for macOS`;
+const UNTITLED = `${PRODUCT_NAME} screenshot`;
 
 const TITLE_MAX_CHARS = 200;
 
@@ -16,14 +16,8 @@ export function buildScreenshotHeadline(
   sourceTitle: string | null,
   createdAt: number,
 ): string {
-  const date = formatDateLabel(createdAt);
-  const parts = sourceTitle
-    ? [sourceTitle, SCREENSHOT_BRAND_LINE, date]
-    : [SCREENSHOT_BRAND_LINE, date];
-  const joined = parts.join(" — ");
-  return joined.length > TITLE_MAX_CHARS
-    ? joined.slice(0, TITLE_MAX_CHARS)
-    : joined;
+  const joined = `${sourceTitle ?? UNTITLED} — ${formatDateLabel(createdAt)}`;
+  return joined.slice(0, TITLE_MAX_CHARS);
 }
 
 export function sanitizeSourceTitle(v: unknown): string | null {
