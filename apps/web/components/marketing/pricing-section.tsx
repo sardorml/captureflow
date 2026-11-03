@@ -1,13 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { CURRENT_STAGE } from "@/lib/marketing/constants";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 import type { SectionProps } from "./_shared";
 import { FrameHeader, FrameSection, PillLink } from "./frame";
-import { DEFAULT_SEATS, PlanCards } from "./plan-cards";
+import { PlanCards } from "./plan-cards";
 import { PlanTable } from "./plan-table";
-import { WhyUsSection } from "./why-us-section";
 
 type PricingSectionProps = SectionProps & {
   hideHeading?: boolean;
@@ -21,7 +19,6 @@ export function PricingSection({
 }: PricingSectionProps = {}) {
   const m = useMessages();
   const lh = useLocalizedHref();
-  const [seats, setSeats] = useState(DEFAULT_SEATS);
   if (!CURRENT_STAGE.showPricingSection) return null;
   return (
     <>
@@ -38,9 +35,8 @@ export function PricingSection({
             }
           />
         )}
-        <PlanCards onSeatsChange={setSeats} />
+        <PlanCards />
       </FrameSection>
-      {!showTable && <WhyUsSection seats={seats} />}
       {showTable && (
         <FrameSection>
           <PlanTable />

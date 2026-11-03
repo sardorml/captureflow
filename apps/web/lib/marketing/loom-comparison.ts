@@ -21,8 +21,6 @@ export const LOOM_PLANS: ReadonlyArray<{
 ];
 
 export const LOOM_BRAND = "Loom";
-// Their free tier, kept out of LOOM_PLANS so the paid-plan switch stays paid.
-export const LOOM_STARTER = { label: "Starter", maxMembers: 50 } as const;
 
 export const CAPTUREFLOW_PER_SEAT = getSeatPlan("light").priceMonthlyUsd;
 

@@ -3,18 +3,25 @@
 import { useState, type ReactNode } from "react";
 import { Check, Copy } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { MARKETING_SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { ClaudeLogo, CursorLogo, OpenAILogo } from "./platform-logos";
 import { useMessages } from "./i18n-provider";
 
 const NPX_ARGS = ["-y", "@captureflow/mcp"];
 const NPX_COMMAND = `npx ${NPX_ARGS.join(" ")}`;
+const HOSTED_MCP_URL = `${MARKETING_SITE_URL}/mcp`;
 
 const CURSOR_INSTALL = `cursor://anysphere.cursor-deeplink/mcp/install?name=captureflow&config=${btoa(
   JSON.stringify({ command: "npx", args: NPX_ARGS }),
 )}`;
 
-const AGENTS: { name: string; logo: ReactNode; command?: string }[] = [
+const AGENTS: {
+  name: string;
+  logo: ReactNode;
+  command?: string;
+  chat?: "claude" | "chatgpt";
+}[] = [
   {
     name: "Claude Code",
     logo: <ClaudeLogo className="size-4" />,
@@ -26,6 +33,18 @@ const AGENTS: { name: string; logo: ReactNode; command?: string }[] = [
     command: `codex mcp add captureflow -- ${NPX_COMMAND}`,
   },
   { name: "Cursor", logo: <CursorLogo className="size-4" /> },
+  {
+    name: "Claude",
+    logo: <ClaudeLogo className="size-4" />,
+    command: HOSTED_MCP_URL,
+    chat: "claude",
+  },
+  {
+    name: "ChatGPT",
+    logo: <OpenAILogo className="size-4" />,
+    command: HOSTED_MCP_URL,
+    chat: "chatgpt",
+  },
 ];
 
 function CopyCommand({ command }: { command: string }) {
@@ -38,8 +57,8 @@ function CopyCommand({ command }: { command: string }) {
     });
   };
   return (
-    <div className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-lg bg-tint px-3 py-2">
-      <code className="min-w-0 flex-1 overflow-x-auto text-left font-mono text-[13px] whitespace-nowrap text-fg [scrollbar-width:none]">
+    <div className="flex w-full min-w-0 items-center gap-2 rounded-lg bg-tint px-3 py-2">
+      <code className="min-w-0 flex-1 text-left font-mono text-[13px] [overflow-wrap:anywhere] text-fg">
         {command}
       </code>
       <button
@@ -54,7 +73,8 @@ function CopyCommand({ command }: { command: string }) {
   );
 }
 
-// One agent at a time: its tab, then the one line that adds the server.
+// One agent at a time: its tab, then what adds the server. Chat apps can't run
+// npx, so they connect to the hosted server by URL.
 export function McpConnectDetails() {
   const m = useMessages();
   const [picked, setPicked] = useState(0);
@@ -80,19 +100,43 @@ export function McpConnectDetails() {
           </button>
         ))}
       </div>
-      {agent.command ? (
-        <CopyCommand command={agent.command} />
-      ) : (
-        <a
-          href={CURSOR_INSTALL}
-          className={cn(
-            buttonVariants({ variant: "secondary", size: "sm" }),
-            "w-fit rounded-lg",
-          )}
-        >
-          {m.hero.mcpAddToCursor}
-        </a>
-      )}
+      {/* Every panel shares one grid cell, so the tallest sets the height and
+          switching tabs doesn't move the page. */}
+      <div className="grid">
+        {AGENTS.map((a) => (
+          <div
+            key={a.name}
+            className={cn(
+              "col-start-1 row-start-1 flex min-w-0 flex-col items-start gap-2.5",
+              a !== agent && "invisible",
+            )}
+          >
+            {a.command ? (
+              <CopyCommand command={a.command} />
+            ) : (
+              <a
+                href={CURSOR_INSTALL}
+                className={cn(
+                  buttonVariants({ variant: "secondary", size: "sm" }),
+                  "w-fit rounded-lg transition-colors",
+                )}
+              >
+                {m.hero.mcpAddToCursor}
+              </a>
+            )}
+            {a.chat && (
+              <p className="text-[13px] leading-relaxed text-fg-muted">
+                {m.agents.chats[a.chat]}
+              </p>
+            )}
+            {a.chat && (
+              <p className="text-[13px] leading-relaxed text-fg-muted">
+                {m.agents.chats.limits}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -2,8 +2,8 @@
 
 import type { ComponentType } from "react";
 import {
-  Code,
   Captions,
+  FileText,
   Image as ImageIcon,
   MessageCircle,
   PenTool,
@@ -19,9 +19,9 @@ import {
   CanvasPreview,
   EditingPreview,
   FeedbackPreview,
-  OpenSourcePreview,
   RecordingPreview,
   ScreenshotsPreview,
+  SummaryPreview,
   TranscriptsPreview,
 } from "./highlight-previews";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
@@ -35,7 +35,7 @@ type TileKey =
   | "canvas"
   | "screenshots"
   | "feedback"
-  | "openSource";
+  | "summary";
 
 const TILES: readonly {
   key: TileKey;
@@ -43,12 +43,6 @@ const TILES: readonly {
   color: string;
   Preview: ComponentType;
 }[] = [
-  {
-    key: "recording",
-    Icon: Video,
-    color: "text-rose-500",
-    Preview: RecordingPreview,
-  },
   {
     key: "transcripts",
     Icon: Captions,
@@ -60,6 +54,18 @@ const TILES: readonly {
     Icon: Scissors,
     color: "text-sky-500",
     Preview: EditingPreview,
+  },
+  {
+    key: "summary",
+    Icon: FileText,
+    color: "text-blue-500",
+    Preview: SummaryPreview,
+  },
+  {
+    key: "recording",
+    Icon: Video,
+    color: "text-rose-500",
+    Preview: RecordingPreview,
   },
   {
     key: "camera",
@@ -84,12 +90,6 @@ const TILES: readonly {
     Icon: MessageCircle,
     color: "text-orange-500",
     Preview: FeedbackPreview,
-  },
-  {
-    key: "openSource",
-    Icon: Code,
-    color: "text-teal-500",
-    Preview: OpenSourcePreview,
   },
 ];
 

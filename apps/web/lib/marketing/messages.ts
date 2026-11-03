@@ -111,12 +111,16 @@ export const MESSAGES = {
     subtitle: "Record, edit and share. It all lives in one place.",
     items: {
       recording: { title: "Screen and camera", body: "Record both at once" },
-      transcripts: { title: "AI transcripts", body: "In 99 languages" },
+      transcripts: { title: "Transcripts", body: "In 99 languages", tag: "AI" },
       editing: {
         title: "Transcript editing",
         body: "Delete text to cut the video",
+        tag: "AI",
       },
-      camera: { title: "Camera effects", body: "Backgrounds and filters" },
+      camera: {
+        title: "Camera effects",
+        body: "Backgrounds and filters",
+      },
       canvas: { title: "Infinite canvas", body: "Sketch while you record" },
       screenshots: {
         title: "Annotated screenshots",
@@ -126,7 +130,11 @@ export const MESSAGES = {
         title: "Comments and reactions",
         body: "Feedback on the video",
       },
-      openSource: { title: "Open source", body: "Self-host any time" },
+      summary: {
+        title: "Summaries and chapters",
+        body: "With a title for each video",
+        tag: "AI",
+      },
     },
     cta: "See all features",
   },
@@ -196,17 +204,58 @@ export const MESSAGES = {
     steps: [
       {
         title: "Connect your agent",
-        body: "Add CaptureFlow to Claude Code, Codex or Cursor with one line. You need Node.js 20 or newer, and your agent signs in once.",
+        body: "Add CaptureFlow to Claude Code, Codex or Cursor with one line. You need Node.js 20 or newer, and your agent signs in once. In Claude or ChatGPT, add it by URL.",
       },
       {
         title: "Ask for a video",
-        body: "A feature demo, a how-to, a bug report or a narrated deck. Your agent records it on your computer, even an app on localhost, with slides and a voiceover if you want them.",
+        body: "A feature demo, a how-to, a bug report or a narrated deck.",
       },
       {
-        title: "Share it anywhere",
-        body: "Attach it to a pull request, post it to your team in Slack or send it to a customer. The link plays in any browser.",
+        title: "It records for you",
+        body: "On your computer, even an app on localhost.",
+      },
+      {
+        title: "Adds slides and a voice",
+        body: "Title slides and a voiceover, if you want them.",
+      },
+      {
+        title: "Gives you a link to share",
+        body: "Attach it to a pull request, post it in Slack or send it to a customer.",
       },
     ],
+    scenes: {
+      ask: {
+        name: "terminal",
+        badge: "agent",
+        prompt: "Record a checkout demo",
+        steps: ["Opening the app", "Clicking through", "Your link is ready"],
+      },
+      record: {
+        url: "localhost:3000",
+        badge: "demo",
+        title: "Checkout",
+        fields: ["Your name", "Card number"],
+        pay: "Pay now",
+        paid: "Paid",
+      },
+      voice: {
+        title: "Checkout demo",
+        subtitle: "How to pay in three steps",
+      },
+      share: {
+        title: "Checkout demo",
+        link: "captureflow.dev/r/checkout",
+        places: ["PR", "Slack", "Email"],
+      },
+    },
+    chats: {
+      claude:
+        "In Claude, open Customize, then Connectors, and choose Add custom connector. Name it CaptureFlow, paste this URL, then sign in.",
+      chatgpt:
+        "In ChatGPT on the web, open Plugins, press +, and choose Add custom MCP server. Name it CaptureFlow, paste this URL, choose OAuth, then install the plugin and sign in. Needs a Business, Enterprise or Edu plan.",
+      limits:
+        "Chats record websites in a cloud browser, not your computer, and use your plan's cloud agent minutes.",
+    },
   },
   modes: {
     cta: "Start recording",
@@ -272,14 +321,14 @@ export const MESSAGES = {
     heading: "What you can do after recording",
     cta: "Try it free",
     subtitle:
-      "Edit it, share or embed it, and get comments. Recordings are kept in a team workspace.",
+      "Edit it, share or embed it, and get comments. Invite your team to watch and comment on each other's videos.",
     categories: {
       share: {
         feature: {
           tag: "new",
           title: "Edit your video",
           cta: "Install the extension",
-          body: "Every recording gets a transcript. Delete a sentence from it to cut that part of the video. You can also change the background and move or resize your camera. Edits appear on the same link.",
+          body: "Delete words from the transcript to cut them from the video, or trim clips on the timeline. Change the background, move, resize or hide your camera, and mute the mic or system sound.",
         },
         scene: {
           app: "Launch plan",
@@ -329,9 +378,9 @@ export const MESSAGES = {
       },
       feedback: {
         feature: {
-          title: "Get comments and reactions",
+          title: "Collaborate on your videos",
           cta: "Sign in",
-          body: "Viewers can react with emojis and leave comments on the timeline. Each comment is tied to a point in the video, and replies stay with it.",
+          body: "Work together without a meeting, across time zones. Your team can react with emojis, comment at any moment in the video, and follow along with transcripts and captions.",
         },
         scene: {
           title: "Launch plan walkthrough",
@@ -583,29 +632,6 @@ export const MESSAGES = {
       annually: "Annually",
       save: "Save {percent}%",
     },
-    whyUs: {
-      heading: "How we compare",
-      subtitle:
-        "A leading competitor's plans beside ours, priced for your team size.",
-      rows: {
-        perMember: "Per member, a month",
-        team: "Your team of {seats}",
-        monthly: "{amount} a month",
-        members: "Members",
-        upTo: "Up to {n}",
-        unlimited: "Unlimited",
-        recordings: "Recordings per person",
-        length: "Recording length",
-        minutes: "{n} min per video",
-        agents: "Your AI agent records for you",
-        transcripts: "Transcripts and captions",
-        transcript: "Edit the video from its transcript",
-        ai: "AI chapters and filler word removal",
-        openSource: "Open source, self-host any time",
-        free: "Free",
-      },
-      cta: "See the full comparison",
-    },
     compare: {
       loomRow: "Loom {plan}",
       loomDetail: "{seats} people × {perSeat} each",
@@ -631,7 +657,7 @@ export const MESSAGES = {
         features: [
           "Unlimited recordings",
           "Unlimited recording time",
-          `${LIGHT_AGENT_MIN} min a month of agent recordings, up to 10 min each`,
+          `${LIGHT_AGENT_MIN} min a month of cloud agent recordings, up to 10 min each`,
         ],
         description: "Unlimited recordings in data saver quality.",
         period: "/mo",
@@ -648,7 +674,7 @@ export const MESSAGES = {
           "Full quality, up to 1080p",
           "AI chapters, titles and filler removal",
           "Custom branding",
-          `${PRO_AGENT_MIN} min a month of agent recordings, with ${PRO_VOICEOVER_MIN} min of AI voiceover`,
+          `${PRO_AGENT_MIN} min a month of cloud agent recordings, with ${PRO_VOICEOVER_MIN} min of AI voiceover`,
           "Viewer insights (coming soon)",
           "Slack, Notion and Zapier integrations (coming soon)",
         ],
@@ -709,13 +735,25 @@ export const MESSAGES = {
           pro: true,
         },
         agents: {
-          label: "Agent recordings",
+          label: "Local agent recordings",
+          free: true,
+          light: true,
+          pro: true,
+        },
+        cloudAgents: {
+          label: "Cloud agent recordings",
           free: `${FREE_AGENT_MIN} min a month`,
           light: `${LIGHT_AGENT_MIN} min a month`,
           pro: `${PRO_AGENT_MIN} min a month`,
         },
         voiceover: {
-          label: "AI voiceover",
+          label: "Local AI voiceover",
+          free: true,
+          light: true,
+          pro: true,
+        },
+        cloudVoiceover: {
+          label: "Cloud AI voiceover",
           free: false,
           light: false,
           pro: `${PRO_VOICEOVER_MIN} min a month`,
@@ -848,7 +886,13 @@ export const MESSAGES = {
           title: "Agents",
           rows: [
             {
-              label: "Recordings by your agent over MCP",
+              label: "Agent recordings on your computer",
+              free: true,
+              light: true,
+              pro: true,
+            },
+            {
+              label: "Agent recordings in a cloud browser",
               free: `${FREE_AGENT_MIN} min a month per person`,
               light: `${LIGHT_AGENT_MIN} min a month per member`,
               pro: `${PRO_AGENT_MIN} min a month per member`,
@@ -860,7 +904,13 @@ export const MESSAGES = {
               pro: true,
             },
             {
-              label: "AI voiceover",
+              label: "AI voiceover on your computer",
+              free: true,
+              light: true,
+              pro: true,
+            },
+            {
+              label: "AI voiceover in a cloud browser",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} min a month per member`,

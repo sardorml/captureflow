@@ -15,8 +15,6 @@
 ## Guides
 
 - [How to set up a self-hosted screen recorder](https://captureflow.dev/blog/self-hosted-screen-recorder): Step-by-step deployment to Cloudflare Workers, D1 and R2
-- [Self-hosted Loom alternative for companies](https://captureflow.dev/blog/self-hosted-loom-alternative): Keeping recordings on your own infrastructure
-- [Loom pricing explained](https://captureflow.dev/blog/loom-pricing): Per-person costs compared with a lower per-member price
 
 ## Docs
 

@@ -18,7 +18,7 @@ describe("isAppRoute", () => {
     expect(isAppRoute("/storage")).toBe(false);
     expect(isAppRoute("/some/old/page")).toBe(false);
     expect(isAppRoute("/recordingsx")).toBe(false);
-    expect(isAppRoute("/blog/loom-pricing")).toBe(false);
+    expect(isAppRoute("/blog/self-hosted-screen-recorder")).toBe(false);
   });
 });
 

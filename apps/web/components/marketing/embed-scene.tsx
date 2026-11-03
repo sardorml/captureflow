@@ -33,7 +33,7 @@ export function EmbedScene() {
   );
 }
 
-function EmbedContent({ step }: SceneState) {
+function EmbedContent({ step, playing: looping }: SceneState) {
   const copy = useMessages().collaboration.categories.embed.scene;
   const asked = step >= 1;
   const typing = step === 2;
@@ -59,7 +59,7 @@ function EmbedContent({ step }: SceneState) {
           typing ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
         )}
       >
-        <TypingDots />
+        <TypingDots active={typing} />
       </div>
 
       <div
@@ -80,6 +80,7 @@ function EmbedContent({ step }: SceneState) {
             <Player
               pointing={pointing}
               playing={playing}
+              looping={looping}
               screen={copy}
               duration={copy.duration}
             />
@@ -93,11 +94,13 @@ function EmbedContent({ step }: SceneState) {
 function Player({
   pointing,
   playing,
+  looping,
   screen,
   duration,
 }: {
   pointing: boolean;
   playing: boolean;
+  looping: boolean;
   screen: EmbedCopy;
   duration: string;
 }) {
@@ -106,7 +109,7 @@ function Player({
     fillRef,
     [{ width: "0%" }, { width: "100%" }],
     LOOP_MS - STEPS[6],
-    playing,
+    playing && looping,
   );
 
   return (
@@ -195,7 +198,7 @@ function Player({
         <span className="relative h-1 flex-1 rounded-full bg-white/35">
           <span
             ref={fillRef}
-            className="absolute inset-y-0 left-0 rounded-full bg-white"
+            className="absolute inset-y-0 left-0 w-[30%] rounded-full bg-white"
           />
         </span>
         <span className="font-mono text-[12px] text-white">{duration}</span>
@@ -204,13 +207,16 @@ function Player({
   );
 }
 
-function TypingDots() {
+function TypingDots({ active }: { active: boolean }) {
   return (
     <span className="flex h-4 items-center justify-center gap-1">
       {[0, 150, 300].map((delay) => (
         <span
           key={delay}
-          className="size-1.5 animate-bounce rounded-full bg-white/70"
+          className={cn(
+            "size-1.5 rounded-full bg-white/70",
+            active && "animate-bounce",
+          )}
           style={{ animationDelay: `${delay}ms` }}
         />
       ))}
