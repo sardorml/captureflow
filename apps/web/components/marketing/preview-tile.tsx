@@ -37,7 +37,12 @@ export function PreviewTileGrid({
   items: readonly PreviewTileItem[];
 }) {
   return (
-    <ul className={cn(FRAME_CELLS, "list-none grid-cols-1 sm:grid-cols-2 lg:grid-cols-4")}>
+    <ul
+      className={cn(
+        FRAME_CELLS,
+        "list-none grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+      )}
+    >
       {items.map(({ key, title, body, tag, Icon, color, Preview }) => (
         <li key={key} className={cn(FRAME_CELL, FRAME_CARD, "relative h-40")}>
           <div
