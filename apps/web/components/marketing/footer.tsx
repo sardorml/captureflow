@@ -7,6 +7,7 @@ import { DOCS_URL, RELEASES_URL, SOURCE_REPO_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { FRAME_WIDTH } from "./frame";
 import { useLocalizedHref } from "./i18n-provider";
+import { ThemePullCord } from "./theme-pull-cord";
 
 type FooterLink = { label: string; href: string; external?: boolean };
 type FooterColumn = { title: string; links: FooterLink[] };
@@ -108,6 +109,7 @@ export function Footer() {
             <p className="max-w-64 text-[15px] leading-relaxed text-fg-muted">
               Open-source screen recording with instant share links.
             </p>
+            <ThemePullCord />
           </div>
 
           {columns.map((column) => (
