@@ -38,21 +38,30 @@ const SECTIONS: LegalSection[] = [
     heading: "How your captures are stored",
     body: [
       "Recordings and screenshots are stored as files in Cloudflare R2, with their metadata in Cloudflare D1. Every capture gets a link with an unguessable address. You control who can open it, and you can change a capture's visibility or delete it at any time from your library.",
-      "Deleting a capture removes both the file and its metadata. Deleting your account removes your captures along with it.",
+      "Deleting a capture removes both the file and its metadata. To delete your account, email us. Deleting it removes your captures along with it.",
       "On free accounts, a capture that nobody has viewed for 30 days is deleted automatically, file and metadata together. Captures on a paid plan are kept until you delete them. If a paid plan ends, its captures follow the free-account rule again.",
+      "Your account details are kept until your account is deleted. A sign-in session expires after 30 days without use.",
+    ],
+  },
+  {
+    heading: "AI agents and the cloud browser",
+    body: [
+      "You can connect an AI agent, such as an MCP client, to your account. It signs in through CaptureFlow with your account. It can then list and search your recordings, read their details and transcripts, change who can view them, and make new recordings. What it reads goes to the agent you connected, under that agent's own privacy terms.",
+      "When an agent records for you, it opens the address it was given in a cloud browser on our servers, and that browser is used for that one recording only. It can't reach your computer, your own browser, or the accounts you are signed in to. The result is stored as one of your captures, and it shows whatever the agent opened or typed, so don't give an agent passwords or private details you don't want in the video.",
+      "A voiceover in the cloud browser sends the text to be spoken to Cloudflare Workers AI. Transcripts are also made there, from the recording's audio.",
     ],
   },
   {
     heading: "Who we share it with",
     body: [
       "We do not sell your data, and we do not share it for advertising. Your captures are shared only with the people you send a link to, according to the visibility you set.",
-      "We rely on a small number of providers to run the service: Cloudflare for hosting and storage, PostHog for website analytics, Lemon Squeezy for payments, and Google or GitHub when you choose to sign in with them. They process data on our behalf so that CaptureFlow can function.",
+      "We rely on a small number of providers to run the service: Cloudflare for hosting, storage, voiceovers and transcripts, PostHog for website analytics, Lemon Squeezy for payments, and Google or GitHub when you choose to sign in with them. They process data on our behalf so that CaptureFlow can function.",
     ],
   },
   {
     heading: "Your choices",
     body: [
-      "You can delete any capture at any time, change who can view it, or delete your account entirely. If you would rather no third party held your recordings at all, CaptureFlow is licensed under AGPL-3.0 and every feature ships in the open-source build — you can run the whole service on infrastructure you control.",
+      "You can delete any capture at any time, change who can view it, or ask us to delete your account. If you would rather no third party held your recordings at all, CaptureFlow is licensed under AGPL-3.0 and every feature ships in the open-source build — you can run the whole service on infrastructure you control.",
     ],
   },
   {

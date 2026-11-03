@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
 };
 
-const LAST_UPDATED = "10 October 2026";
+const LAST_UPDATED = "3 November 2026";
 
 const SECTIONS: LegalSection[] = [
   {
@@ -64,7 +64,7 @@ const SECTIONS: LegalSection[] = [
   {
     heading: "Ending your use",
     body: [
-      "You can stop using CaptureFlow and delete your account whenever you like. We may suspend or close an account that breaks these terms, and where we can, we will tell you why first.",
+      "You can stop using CaptureFlow whenever you like, and email us to delete your account. We may suspend or close an account that breaks these terms, and where we can, we will tell you why first.",
     ],
   },
   {
