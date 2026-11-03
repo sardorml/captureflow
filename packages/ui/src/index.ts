@@ -11,6 +11,7 @@ export {
   readThemePreferenceFromCookieHeader,
 } from "./lib/theme";
 export { ThemeToggle } from "./ui/theme-toggle";
+export { applyTheme } from "./lib/theme";
 export { STALE_CHUNK_GUARD_SCRIPT } from "./ui/stale-chunk-guard";
 export { GridLoader } from "./ui/grid-loader";
 export type { GridLoaderProps } from "./ui/grid-loader";

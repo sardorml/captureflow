@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "../lib/cn";
-import { type Theme, THEME_COOKIE } from "../lib/theme";
+import { applyTheme, type Theme } from "../lib/theme";
 
 type Props = {
   initialTheme: Theme;
@@ -11,52 +11,30 @@ type Props = {
   onAfterToggle?: (next: Theme) => void;
 };
 
-const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
-
-// Browsers silently drop a Domain set on a host without a public suffix
-// (e.g. localhost), so only scope to the apex on captureflow.dev hosts.
-function cookieDomainFor(hostname: string): string | null {
-  if (hostname.endsWith(".captureflow.dev") || hostname === "captureflow.dev") {
-    return ".captureflow.dev";
-  }
-  return null;
-}
-
-function writeThemeCookie(value: Theme) {
-  const domain = cookieDomainFor(window.location.hostname);
-  const isHttps = window.location.protocol === "https:";
-  const parts = [
-    `${THEME_COOKIE}=${value}`,
-    "Path=/",
-    `Max-Age=${ONE_YEAR_SECONDS}`,
-    "SameSite=Lax",
-  ];
-  if (domain) parts.push(`Domain=${domain}`);
-  if (isHttps) parts.push("Secure");
-  document.cookie = parts.join("; ");
-}
-
 export function ThemeToggle({ initialTheme, className, onAfterToggle }: Props) {
   const [theme, setTheme] = React.useState<Theme>(initialTheme);
 
+  // Follows <html>, since another control can change the theme too.
   React.useEffect(() => {
-    const attr = document.documentElement.getAttribute("data-theme");
-    if (attr === "light" || attr === "dark") setTheme(attr);
+    const root = document.documentElement;
+    const sync = () => {
+      const attr = root.getAttribute("data-theme");
+      if (attr === "light" || attr === "dark") setTheme(attr);
+    };
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => observer.disconnect();
   }, []);
 
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
-    const root = document.documentElement;
-    // An instant swap: colour transitions are held off for two frames so
-    // nothing fades between the themes.
-    root.setAttribute("data-theme-switching", "");
     setTheme(next);
-    root.setAttribute("data-theme", next);
-    writeThemeCookie(next);
+    applyTheme(next);
     onAfterToggle?.(next);
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => root.removeAttribute("data-theme-switching")),
-    );
   };
 
   const isDark = theme === "dark";
