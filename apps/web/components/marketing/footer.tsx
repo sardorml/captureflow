@@ -43,6 +43,7 @@ export function Footer() {
       links: [
         { label: "Features", href: lh("/features") },
         { label: "Pricing", href: lh("/pricing") },
+        { label: "Compare", href: lh("/alternatives/loom") },
         { label: "Download", href: lh("/download") },
         { label: "Suggest a feature", href: lh("/suggest-feature") },
       ],
