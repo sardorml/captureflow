@@ -274,6 +274,30 @@ export const MESSAGES = {
       ],
     },
   },
+  pageHeroes: {
+    home: "Home",
+    features: {
+      label: "Features",
+      word: "FEATURES",
+      title: "Record, edit and share your screen",
+      subtitle:
+        "Record your screen and camera. Share each recording as a link your team can comment on.",
+    },
+    pricing: {
+      label: "Pricing",
+      word: "PRICING",
+      title: "Start free. Pay one price per member.",
+      subtitle:
+        "Free covers your first 25 recordings. Light and Pro remove the limit. You can also self-host CaptureFlow for free.",
+    },
+    faq: {
+      label: "FAQ",
+      word: "FAQ",
+      title: "Frequently Asked Questions",
+      subtitle:
+        "What people ask before they start. The docs go deeper on everything else.",
+    },
+  },
   features: {
     titleLine1: "Open Recorder &",
     titleLine2: "Sharing",

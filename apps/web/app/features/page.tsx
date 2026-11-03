@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { MarketingPage } from "@/components/marketing/marketing-page";
+import { PageHero } from "@/components/marketing/page-hero";
 import { ModesIntro } from "@/components/marketing/modes-intro";
 import { CollaborationSection } from "@/components/marketing/collaboration-section";
 
@@ -13,7 +14,8 @@ export const metadata: Metadata = {
 export default function FeaturesPage() {
   return (
     <MarketingPage>
-      <ModesIntro headingLevel={1} />
+      <PageHero page="features" />
+      <ModesIntro />
       <CollaborationSection />
     </MarketingPage>
   );

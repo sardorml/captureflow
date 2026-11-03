@@ -28,18 +28,23 @@ const CATEGORIES = [
   { label: "Plans and storage", items: [2, 3] },
 ] as const;
 
-export function FaqSection({ headingLevel = 2 }: SectionProps = {}) {
+export function FaqSection({
+  hideHeading = false,
+  headingLevel = 2,
+}: SectionProps & { hideHeading?: boolean } = {}) {
   const m = useMessages();
   const [picked, setPicked] = useState(0);
 
   return (
     <FrameSection id="faq">
-      <FrameHeader
-        title={m.faq.heading}
-        subtitle={m.faq.subtitle}
-        level={headingLevel}
-        action={<PillLink href={DOCS_URL}>{m.faq.cta}</PillLink>}
-      />
+      {!hideHeading && (
+        <FrameHeader
+          title={m.faq.heading}
+          subtitle={m.faq.subtitle}
+          level={headingLevel}
+          action={<PillLink href={DOCS_URL}>{m.faq.cta}</PillLink>}
+        />
+      )}
       <div className={cn(FRAME_CELLS, "md:grid-cols-[1fr_3fr]")}>
         <div className={cn(FRAME_CELL, "flex flex-col")}>
           {CATEGORIES.map((category, i) => (
