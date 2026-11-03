@@ -1,6 +1,6 @@
 import { PRODUCT_NAME } from "../site";
 
-const RECORDING_BRAND_LINE = `${PRODUCT_NAME} | Free Screen & Video Recording for macOS`;
+const UNTITLED = `${PRODUCT_NAME} recording`;
 
 const TITLE_MAX_CHARS = 200;
 
@@ -18,14 +18,8 @@ export function buildRecordingHeadline(
   sourceTitle: string | null,
   createdAt: number,
 ): string {
-  const date = formatDateLabel(createdAt);
-  const parts = sourceTitle
-    ? [sourceTitle, RECORDING_BRAND_LINE, date]
-    : [RECORDING_BRAND_LINE, date];
-  const joined = parts.join(" — ");
-  return joined.length > TITLE_MAX_CHARS
-    ? joined.slice(0, TITLE_MAX_CHARS)
-    : joined;
+  const joined = `${sourceTitle ?? UNTITLED} — ${formatDateLabel(createdAt)}`;
+  return joined.slice(0, TITLE_MAX_CHARS);
 }
 
 export function sanitizeSourceTitle(v: unknown): string | null {
@@ -35,14 +29,11 @@ export function sanitizeSourceTitle(v: unknown): string | null {
   return trimmed.slice(0, TITLE_MAX_CHARS);
 }
 
-const DATE_LABEL = /^[A-Z][a-z]+ \d{1,2}, \d{4}$/;
+const TRAILING_DATE = / — [A-Z][a-z]+ \d{1,2}, \d{4}$/;
 
-// A share card names what was recorded; the brand line and date only crowd it.
+// A share card names what was recorded; the date only crowds it, unless there
+// is nothing else to tell recordings apart.
 export function shareTitle(title: string): string {
-  const parts = title.split(" — ");
-  const brand = parts.lastIndexOf(RECORDING_BRAND_LINE);
-  if (brand === -1 || brand !== parts.length - 2) return title;
-  if (!DATE_LABEL.test(parts[parts.length - 1]!)) return title;
-  if (brand === 0) return `${PRODUCT_NAME} recording — ${parts[1]}`;
-  return parts.slice(0, brand).join(" — ");
+  const named = title.replace(TRAILING_DATE, "");
+  return named === UNTITLED ? title : named;
 }
