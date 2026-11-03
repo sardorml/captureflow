@@ -62,11 +62,25 @@
       "instance_type": { "vcpu": 1, "memory_mib": 3072, "disk_mb": 6000 },
       "max_instances": 3,
     },
+    // The editor's waveform: ffmpeg over one file, the first time it's opened.
+    // Apart from RecorderContainer so it can't take a slot from agent recordings.
+    {
+      "class_name": "WaveformContainer",
+      "image": "../waveform/Dockerfile",
+      "instance_type": "basic",
+      "max_instances": 5,
+    },
   ],
   "durable_objects": {
-    "bindings": [{ "name": "RECORDER", "class_name": "RecorderContainer" }],
+    "bindings": [
+      { "name": "RECORDER", "class_name": "RecorderContainer" },
+      { "name": "WAVEFORM", "class_name": "WaveformContainer" },
+    ],
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RecorderContainer"] }],
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["RecorderContainer"] },
+    { "tag": "v2", "new_sqlite_classes": ["WaveformContainer"] },
+  ],
   // cf:preview skips building the image; local recording uses RECORDER_URL.
   "dev": { "enable_containers": false },
   // /api/r/transcribe enqueues a message per chunk; worker.ts queue() runs

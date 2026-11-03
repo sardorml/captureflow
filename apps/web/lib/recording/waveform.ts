@@ -1,4 +1,17 @@
 export const WAVEFORM_BUCKETS = 2000;
+export const WAVEFORM_BYTES = WAVEFORM_BUCKETS * Float32Array.BYTES_PER_ELEMENT;
+
+// Saved peaks are 32-bit little-endian floats, one per bucket, unnormalised.
+export function hydratePeaks(
+  bytes: ArrayBuffer,
+): Float32Array<ArrayBuffer> | null {
+  if (bytes.byteLength !== WAVEFORM_BYTES) return null;
+  const peaks = new Float32Array(bytes);
+  return peaks.every((peak) => Number.isFinite(peak) && peak >= 0)
+    ? peaks
+    : null;
+}
+
 // Louder than this share of the buckets counts as a spike and is clipped, so
 // one click doesn't flatten a quiet voice.
 const NORMALISE_PERCENTILE = 0.98;
@@ -7,7 +20,7 @@ const NORMALISE_PERCENTILE = 0.98;
 export function peakBuckets(
   channels: readonly Float32Array[],
   bucketCount: number,
-): Float32Array {
+): Float32Array<ArrayBuffer> {
   const out = new Float32Array(bucketCount);
   const length = channels[0]?.length ?? 0;
   if (length === 0 || bucketCount <= 0) return out;

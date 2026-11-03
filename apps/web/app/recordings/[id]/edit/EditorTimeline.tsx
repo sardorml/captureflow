@@ -80,7 +80,6 @@ export function EditorTimeline({
   const [duration, setDuration] = useState((durationMs ?? 0) / 1000);
   // Flips once the player has the file's metadata, which is when the waveform
   // starts pulling at the file, so the player already has its head start.
-  const [playerReady, setPlayerReady] = useState(false);
   const [zoom, setZoom] = useState(MIN_ZOOM);
   const [splits, setSplits] = useState<number[]>([]);
   const [trimmedCuts, setTrimmedCuts] = useState<RecordingCut[] | null>(null);
@@ -90,12 +89,17 @@ export function EditorTimeline({
   const trackRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   // The camera file carries the mic, so the audio lane reads it too.
-  const audioSources = useMemo(() => {
-    if (!playerReady) return null;
-    const screen = `/api/r/waveform/${slug}`;
-    return hasWebcam ? [screen, `${screen}?track=webcam`] : [screen];
-  }, [playerReady, slug, hasWebcam]);
-  const waveform = useWaveform(audioSources, durationMs, sizeBytes);
+  const audioTracks = useMemo(() => {
+    const base = `/api/r/waveform/${slug}`;
+    const screen = { peaksUrl: base, audioUrl: `${base}/audio` };
+    if (!hasWebcam) return [screen];
+    const query = "?track=webcam";
+    return [
+      screen,
+      { peaksUrl: base + query, audioUrl: `${base}/audio${query}` },
+    ];
+  }, [slug, hasWebcam]);
+  const waveform = useWaveform(audioTracks, durationMs, sizeBytes);
 
   // The player owns the <video> and exposes only an imperative handle, so
   // mirror its playhead each frame rather than lifting currentTime into React.
@@ -110,7 +114,6 @@ export function EditorTimeline({
       const p = playerRef.current;
       if (p) {
         const d = p.getDuration();
-        if (d > 0) setPlayerReady(true);
         if (d > 0 && Math.abs(durationRef.current - d) > 0.01) {
           durationRef.current = d;
           setDuration(d);

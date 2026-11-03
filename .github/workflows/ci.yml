@@ -45,6 +45,8 @@ jobs:
       # The agent recorder behind the cloud container and the local MCP.
       - run: pnpm --filter @captureflow/agent-recorder test
       - run: pnpm --filter @captureflow/mcp test
+      # The ffmpeg job behind the editor's waveform.
+      - run: pnpm --filter @captureflow/waveform test
       # The Docker image's D1/R2/queue stand-ins.
       - run: pnpm --filter @captureflow/selfhost test
       - run: pnpm build

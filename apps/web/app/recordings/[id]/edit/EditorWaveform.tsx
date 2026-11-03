@@ -83,10 +83,14 @@ export function EditorWaveform({
   if (!buckets) {
     return (
       <span
-        aria-hidden
         data-waveform-loading
-        className="absolute inset-0 bg-accent-bg/15 motion-safe:animate-pulse"
-      />
+        className="absolute inset-0 flex items-center justify-center overflow-hidden"
+      >
+        <span className="absolute inset-0 bg-accent-bg/20 motion-safe:animate-pulse" />
+        <span className="relative truncate px-2 text-xs font-medium text-fg">
+          Loading audio…
+        </span>
+      </span>
     );
   }
 

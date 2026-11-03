@@ -1,0 +1,16 @@
+{
+  "name": "@captureflow/waveform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Reads a recording's audio with ffmpeg for the editor's waveform; runs in a Cloudflare Container.",
+  "scripts": {
+    "dev": "node src/server.ts",
+    "test": "node --test src/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

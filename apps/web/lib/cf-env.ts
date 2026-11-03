@@ -14,6 +14,9 @@ export type AppWebBindings = {
   RECORDER?: DurableObjectNamespace;
   RECORDER_URL?: string;
   RECORDER_SECRET?: string;
+  // The editor's waveform: ffmpeg in a container, or WAVEFORM_URL in local dev.
+  WAVEFORM?: DurableObjectNamespace;
+  WAVEFORM_URL?: string;
   NEXT_PUBLIC_APP_WEB_SITE_URL?: string;
   NEXT_PUBLIC_RECORDING_SITE_URL?: string;
   // Legacy standalone-screenshot host, retained for parity until cutover.

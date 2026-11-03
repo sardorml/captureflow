@@ -58,6 +58,21 @@ export class RecorderContainer extends Container<Env> {
   }
 }
 
+// Reads one file for the editor's waveform (apps/waveform), then stops, so it
+// costs only the time the job takes.
+export class WaveformContainer extends Container<Env> {
+  defaultPort = 8080;
+  sleepAfter = "2m";
+  pingEndpoint = "waveform/ping";
+
+  override async fetch(request: Request): Promise<Response> {
+    const res = await this.containerFetch(request);
+    const body = await res.arrayBuffer();
+    this.ctx.waitUntil(this.stop());
+    return new Response(body, res);
+  }
+}
+
 // Keep equal to the consumer's max_retries in wrangler.jsonc: the delivery
 // that would be the last is the one that records the failure.
 const TRANSCRIPTION_MAX_RETRIES = 3;
