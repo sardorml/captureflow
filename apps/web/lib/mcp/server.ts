@@ -118,7 +118,47 @@ function lookResult(value: unknown): CallToolResult {
   };
 }
 
-function createServer(
+const ANNOTATIONS = {
+  readsLibrary: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    openWorldHint: false,
+  },
+  readsPage: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    openWorldHint: true,
+  },
+  changesLibrary: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    openWorldHint: false,
+  },
+  removesAccess: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    openWorldHint: false,
+    idempotentHint: true,
+  },
+  discardsRecording: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    openWorldHint: false,
+  },
+  opensPage: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    openWorldHint: true,
+  },
+  // A click or keypress on an arbitrary site can submit a form or delete something there.
+  actsOnPage: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    openWorldHint: true,
+  },
+} as const;
+
+export function createServer(
   db: D1Database,
   env: AppWebBindings,
   user: McpUser,
@@ -134,7 +174,7 @@ function createServer(
     {
       title: "List workspaces",
       description: "The workspaces you belong to, with your role in each.",
-      annotations: { readOnlyHint: true },
+      annotations: ANNOTATIONS.readsLibrary,
     },
     () => run(async () => ({ workspaces: listWorkspaces(user) })),
   );
@@ -150,7 +190,7 @@ function createServer(
         page: z.number().int().min(1).optional(),
         sort: z.enum(SORT_ORDERS).optional(),
       },
-      annotations: { readOnlyHint: true },
+      annotations: ANNOTATIONS.readsLibrary,
     },
     ({ workspace_id, page, sort }) =>
       run(() =>
@@ -164,7 +204,7 @@ function createServer(
       title: "Search recordings",
       description: "Your own recordings whose title contains the query.",
       inputSchema: { query: z.string().min(2).max(200) },
-      annotations: { readOnlyHint: true },
+      annotations: ANNOTATIONS.readsLibrary,
     },
     ({ query }) =>
       run(async () => ({
@@ -179,7 +219,7 @@ function createServer(
       description:
         "A recording's share link, length, visibility, AI summary and chapters.",
       inputSchema: { id: recordingId },
-      annotations: { readOnlyHint: true },
+      annotations: ANNOTATIONS.readsLibrary,
     },
     ({ id }) => run(() => getRecordingDetails(user, id)),
   );
@@ -194,7 +234,7 @@ function createServer(
         id: recordingId,
         format: z.enum(["text", "vtt"]).optional(),
       },
-      annotations: { readOnlyHint: true },
+      annotations: ANNOTATIONS.readsLibrary,
     },
     ({ id, format }) =>
       run(() => getRecordingTranscript(user, id, format ?? "text")),
@@ -210,7 +250,7 @@ function createServer(
         id: recordingId,
         visibility: z.enum(["public", "workspace", "private"]),
       },
-      annotations: { idempotentHint: true },
+      annotations: ANNOTATIONS.removesAccess,
     },
     ({ id, visibility }) =>
       run(() => setRecordingVisibility(user, id, visibility)),
@@ -237,6 +277,7 @@ function createServer(
         visibility: z.enum(["public", "workspace", "private"]).optional(),
         workspace_id: z.string().optional(),
       },
+      annotations: ANNOTATIONS.opensPage,
     },
     ({ url, title, visibility, workspace_id }) =>
       run(() =>
@@ -257,7 +298,7 @@ function createServer(
         "A screenshot of what the recording shows right now, plus the page's URL, title and accessibility outline. " +
         "Use the outline's names as click targets.",
       inputSchema: { recording_id: sessionId },
-      annotations: { readOnlyHint: true },
+      annotations: ANNOTATIONS.readsPage,
     },
     ({ recording_id }) =>
       run(() => lookAtPage(db, env, user, recording_id), lookResult),
@@ -269,6 +310,7 @@ function createServer(
       title: "Click",
       description: "Moves the cursor to an element and clicks it.",
       inputSchema: { recording_id: sessionId, target },
+      annotations: ANNOTATIONS.actsOnPage,
     },
     ({ recording_id, target }) => act(recording_id, { type: "click", target }),
   );
@@ -285,6 +327,7 @@ function createServer(
         target: target.optional(),
         submit: z.boolean().optional(),
       },
+      annotations: ANNOTATIONS.actsOnPage,
     },
     ({ recording_id, text, target, submit }) =>
       act(recording_id, { type: "type", text, target, submit }),
@@ -296,6 +339,7 @@ function createServer(
       title: "Press a key",
       description: "Presses a key or chord, like Enter, Escape, Tab or Meta+K.",
       inputSchema: { recording_id: sessionId, key: z.string().min(1).max(40) },
+      annotations: ANNOTATIONS.actsOnPage,
     },
     ({ recording_id, key }) => act(recording_id, { type: "press", key }),
   );
@@ -311,6 +355,7 @@ function createServer(
         direction: z.enum(["down", "up"]),
         amount: z.number().min(0.1).max(5).optional(),
       },
+      annotations: ANNOTATIONS.opensPage,
     },
     ({ recording_id, direction, amount }) =>
       act(recording_id, { type: "scroll", direction, amount }),
@@ -322,6 +367,7 @@ function createServer(
       title: "Go to a page",
       description: "Loads another address in the recorded browser.",
       inputSchema: { recording_id: sessionId, url: z.string().url().max(2000) },
+      annotations: ANNOTATIONS.opensPage,
     },
     ({ recording_id, url }) => act(recording_id, { type: "navigate", url }),
   );
@@ -336,6 +382,7 @@ function createServer(
         recording_id: sessionId,
         seconds: z.number().min(0.5).max(10),
       },
+      annotations: ANNOTATIONS.changesLibrary,
     },
     ({ recording_id, seconds }) => act(recording_id, { type: "wait", seconds }),
   );
@@ -417,6 +464,7 @@ function createServer(
           .optional()
           .describe("Overrides the layout's colour."),
       },
+      annotations: ANNOTATIONS.opensPage,
     },
     ({ recording_id, image_url, ...slide }) =>
       act(recording_id, {
@@ -431,6 +479,7 @@ function createServer(
       title: "Hide the slide",
       description: "Cuts back from the slide to the page.",
       inputSchema: { recording_id: sessionId },
+      annotations: ANNOTATIONS.changesLibrary,
     },
     ({ recording_id }) => act(recording_id, { type: "hide_slide" }),
   );
@@ -447,6 +496,7 @@ function createServer(
         text: z.string().min(1).max(600),
         voice: z.enum(VOICES).optional().describe("Defaults to luna."),
       },
+      annotations: ANNOTATIONS.changesLibrary,
     },
     ({ recording_id, text, voice }) =>
       run(() => narrate(db, env, user, recording_id, text, voice ?? "luna")),
@@ -459,6 +509,7 @@ function createServer(
       description:
         "Ends the recording and returns its share link. Give the link to the user.",
       inputSchema: { recording_id: sessionId },
+      annotations: ANNOTATIONS.changesLibrary,
     },
     ({ recording_id }) =>
       run(() => stopAgentRecording(db, env, user, recording_id)),
@@ -470,7 +521,7 @@ function createServer(
       title: "Cancel a recording",
       description: "Ends the recording and throws it away.",
       inputSchema: { recording_id: sessionId },
-      annotations: { destructiveHint: true },
+      annotations: ANNOTATIONS.discardsRecording,
     },
     ({ recording_id }) =>
       run(() => cancelAgentRecording(db, env, user, recording_id)),
