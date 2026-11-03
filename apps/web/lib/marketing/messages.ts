@@ -130,6 +130,25 @@ export const MESSAGES = {
     },
     cta: "See all features",
   },
+  mcpFeatures: {
+    heading: "MCP features",
+    subtitle:
+      "What your AI agent can do once it's connected. It records on your own computer, with Claude Code, Codex, Cursor or any MCP client.",
+    cta: "Read the guide",
+    items: {
+      webApp: { title: "Record a web app", body: "Including localhost" },
+      screen: { title: "Record your screen", body: "A whole display" },
+      window: {
+        title: "Record one window",
+        body: "Terminal, VS Code or Figma",
+      },
+      slides: { title: "Add slides", body: "Titles, steps and closing lines" },
+      voiceover: { title: "Add a voiceover", body: "Runs on your computer" },
+      report: { title: "Write a report", body: "What it did and what failed" },
+      search: { title: "Search recordings", body: "Videos and transcripts" },
+      save: { title: "Save MP4 files", body: "No upload or sign-in" },
+    },
+  },
   useCases: {
     heading: "How teams use it",
     subtitle:

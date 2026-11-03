@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Nav } from "@/components/marketing/nav";
 import { HeroSection } from "@/components/marketing/hero-section";
 import { HighlightsSection } from "@/components/marketing/highlights-section";
+import { McpFeaturesSection } from "@/components/marketing/mcp-features-section";
 import { UseCasesSection } from "@/components/marketing/use-cases-section";
 import { ModesIntro } from "@/components/marketing/modes-intro";
 import { AgentsSection } from "@/components/marketing/agents-section";
@@ -66,6 +67,7 @@ export default function RootPage() {
             <AgentsSection />
             <CollaborationSection />
             <HighlightsSection />
+            <McpFeaturesSection />
             <UseCasesSection />
             <PricingSection />
             <FaqSection />
