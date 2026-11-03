@@ -5,6 +5,8 @@ import {
   peakBuckets,
   peakBetween,
   waveformBuckets,
+  hydratePeaks,
+  WAVEFORM_BYTES,
 } from "./waveform";
 
 function tone(samples: number, amplitude: number): Float32Array {
@@ -63,5 +65,26 @@ describe("peakBetween", () => {
     expect(peakBetween(buckets, 0, 0.5)).toBeCloseTo(0.9);
     expect(peakBetween(buckets, 0.5, 1)).toBeCloseTo(0.3);
     expect(peakBetween(buckets, 0.6, 0.6)).toBeCloseTo(0.2);
+  });
+});
+
+describe("hydratePeaks", () => {
+  it("reads saved peaks", () => {
+    const bytes = new ArrayBuffer(WAVEFORM_BYTES);
+    new Float32Array(bytes)[3] = 0.5;
+    expect(hydratePeaks(bytes)?.[3]).toBe(0.5);
+  });
+
+  it("refuses the wrong size", () => {
+    expect(hydratePeaks(new ArrayBuffer(WAVEFORM_BYTES - 4))).toBeNull();
+    expect(hydratePeaks(new ArrayBuffer(WAVEFORM_BYTES + 4))).toBeNull();
+  });
+
+  it("refuses values that aren't levels", () => {
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, -0.5]) {
+      const bytes = new ArrayBuffer(WAVEFORM_BYTES);
+      new Float32Array(bytes)[0] = bad;
+      expect(hydratePeaks(bytes)).toBeNull();
+    }
   });
 });

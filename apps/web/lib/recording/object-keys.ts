@@ -4,6 +4,12 @@ export function summaryChaptersKeyFor(videoStorageKey: string): string {
   return `${videoStorageKey}.summary-chapters.json`;
 }
 
+// One per media file, so a camera file finishing later can't leave it stale.
+// Named after the file's storage id, never the slug: the CDN can serve it too.
+export function waveformKeyFor(mediaStorageKey: string): string {
+  return `${mediaStorageKey}.peaks`;
+}
+
 // Mic audio chunks for transcription sit next to the video; their count is
 // only known from the transcript parts table, so deletes sweep the prefix.
 export function audioPartPrefixFor(videoStorageKey: string): string {
@@ -58,6 +64,8 @@ export function objectKeysFor(row: RecordingObjects): string[] {
     row.webcamStorageKey,
     recordingConfigKeyFor(row.storageKey),
     summaryChaptersKeyFor(row.storageKey),
+    waveformKeyFor(row.storageKey),
+    row.webcamStorageKey && waveformKeyFor(row.webcamStorageKey),
   ];
   return keys.filter((k): k is string => k !== null);
 }

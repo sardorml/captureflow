@@ -24,6 +24,8 @@ describe("objectKeysFor", () => {
       "videos/abc12345-webcam.webm",
       "videos/abc12345.config.json",
       "videos/abc12345.mp4.summary-chapters.json",
+      "videos/abc12345.mp4.peaks",
+      "videos/abc12345-webcam.webm.peaks",
     ]);
   });
 
@@ -39,6 +41,7 @@ describe("objectKeysFor", () => {
       "videos/abc12345.mp4",
       "videos/abc12345.config.json",
       "videos/abc12345.mp4.summary-chapters.json",
+      "videos/abc12345.mp4.peaks",
     ]);
   });
 
