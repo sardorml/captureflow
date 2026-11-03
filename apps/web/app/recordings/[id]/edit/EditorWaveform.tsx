@@ -80,6 +80,16 @@ export function EditorWaveform({
     return () => observer.disconnect();
   }, [buckets, from, to]);
 
+  if (!buckets) {
+    return (
+      <span
+        aria-hidden
+        data-waveform-loading
+        className="absolute inset-0 bg-accent-bg/15 motion-safe:animate-pulse"
+      />
+    );
+  }
+
   return (
     <canvas
       ref={ref}

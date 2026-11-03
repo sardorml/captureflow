@@ -30,9 +30,8 @@ import { useWaveform } from "./use-waveform";
 
 type Props = {
   playerRef: RefObject<RecordingPlayerHandle | null>;
-  videoUrl: string;
-  // The camera file carries the mic, so the audio lane reads it too.
-  webcamUrl: string | null;
+  slug: string;
+  hasWebcam: boolean;
   durationMs: number | null;
   sizeBytes: number;
   cuts: RecordingCut[];
@@ -59,8 +58,8 @@ const PLAYHEAD_GLIDE_MS = 180;
 
 export function EditorTimeline({
   playerRef,
-  videoUrl,
-  webcamUrl,
+  slug,
+  hasWebcam,
   durationMs,
   sizeBytes,
   cuts,
@@ -90,10 +89,12 @@ export function EditorTimeline({
   const durationRef = useRef(duration);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const audioSources = useMemo(
-    () => (playerReady ? [videoUrl, ...(webcamUrl ? [webcamUrl] : [])] : null),
-    [playerReady, videoUrl, webcamUrl],
-  );
+  // The camera file carries the mic, so the audio lane reads it too.
+  const audioSources = useMemo(() => {
+    if (!playerReady) return null;
+    const screen = `/api/r/waveform/${slug}`;
+    return hasWebcam ? [screen, `${screen}?track=webcam`] : [screen];
+  }, [playerReady, slug, hasWebcam]);
   const waveform = useWaveform(audioSources, durationMs, sizeBytes);
 
   // The player owns the <video> and exposes only an imperative handle, so
