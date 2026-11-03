@@ -13,6 +13,7 @@ export type PreviewTileItem = {
   key: string;
   title: string;
   body: string;
+  tag?: string;
   Icon: LucideIcon;
   color: string;
   Preview: ComponentType;
@@ -37,7 +38,7 @@ export function PreviewTileGrid({
 }) {
   return (
     <ul className={cn(FRAME_CELLS, "list-none grid-cols-2 lg:grid-cols-4")}>
-      {items.map(({ key, title, body, Icon, color, Preview }) => (
+      {items.map(({ key, title, body, tag, Icon, color, Preview }) => (
         <li key={key} className={cn(FRAME_CELL, FRAME_CARD, "relative h-40")}>
           <div
             aria-hidden
@@ -64,8 +65,13 @@ export function PreviewTileGrid({
             )}
           />
           <div className="relative p-5">
-            <h3 className="pr-6 text-[15px] leading-5 font-medium text-fg-strong">
+            <h3 className="flex items-center gap-1.5 pr-6 text-[15px] leading-5 font-medium text-fg-strong">
               {title}
+              {tag && (
+                <span className="rounded-full bg-[#fde047] px-1.5 text-[11px] leading-4 font-semibold text-[#111]">
+                  {tag}
+                </span>
+              )}
             </h3>
             <p className="mt-0.5 text-xs leading-4 text-fg-muted">{body}</p>
           </div>

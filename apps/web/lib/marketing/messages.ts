@@ -111,12 +111,16 @@ export const MESSAGES = {
     subtitle: "Record, edit and share. It all lives in one place.",
     items: {
       recording: { title: "Screen and camera", body: "Record both at once" },
-      transcripts: { title: "AI transcripts", body: "In 99 languages" },
+      transcripts: { title: "Transcripts", body: "In 99 languages", tag: "AI" },
       editing: {
         title: "Transcript editing",
         body: "Delete text to cut the video",
+        tag: "AI",
       },
-      camera: { title: "Camera effects", body: "Backgrounds and filters" },
+      camera: {
+        title: "Camera effects",
+        body: "Backgrounds and filters",
+      },
       canvas: { title: "Infinite canvas", body: "Sketch while you record" },
       screenshots: {
         title: "Annotated screenshots",
@@ -126,7 +130,11 @@ export const MESSAGES = {
         title: "Comments and reactions",
         body: "Feedback on the video",
       },
-      openSource: { title: "Open source", body: "Self-host any time" },
+      summary: {
+        title: "Summaries and chapters",
+        body: "With a title for each video",
+        tag: "AI",
+      },
     },
     cta: "See all features",
   },

@@ -1,6 +1,59 @@
 import type { ReactNode } from "react";
 
-const POSTER = "/demo-loop-poster.jpg";
+const DUMMY_BOARD = [
+  { name: "To do", tasks: ["#f59e0b", "#f59e0b"] },
+  { name: "Doing", tasks: ["#1184f7"] },
+  { name: "Done", tasks: ["#22c55e", "#22c55e"] },
+];
+
+function DummyApp({ className = "" }: { className?: string }) {
+  return (
+    <div
+      className={`absolute inset-0 flex flex-col bg-white text-[#181818] ${className}`}
+    >
+      <div className="flex h-4 shrink-0 items-center gap-1 bg-[#eaeaea] px-2">
+        <span className="size-1.5 rounded-full bg-[#ff5f57]" />
+        <span className="size-1.5 rounded-full bg-[#febc2e]" />
+        <span className="size-1.5 rounded-full bg-[#28c840]" />
+        <span className="ml-1 h-2 flex-1 rounded-full bg-white" />
+      </div>
+      <div className="flex min-h-0 flex-1">
+        <div className="flex w-9 shrink-0 flex-col gap-1.5 bg-[#f5f5f5] p-1.5">
+          <span className="h-1 rounded-full bg-[#1184f7]" />
+          <span className="h-1 rounded-full bg-[#d4d4d4]" />
+          <span className="h-1 rounded-full bg-[#d4d4d4]" />
+        </div>
+        <div className="min-w-0 flex-1 p-2">
+          <p className="text-[8px] leading-none font-bold">Launch plan</p>
+          <div className="mt-1.5 grid grid-cols-3 gap-1">
+            {DUMMY_BOARD.map((column) => (
+              <div
+                key={column.name}
+                className="flex flex-col gap-1 rounded-sm bg-[#f5f5f5] p-1"
+              >
+                <span className="text-[6px] leading-none text-black/55">
+                  {column.name}
+                </span>
+                {column.tasks.map((color, i) => (
+                  <span
+                    key={i}
+                    className="flex flex-col gap-0.5 rounded-sm bg-white p-1"
+                  >
+                    <span className="h-0.5 rounded-full bg-[#d4d4d4]" />
+                    <span
+                      className="h-0.5 w-2/3 rounded-full"
+                      style={{ background: color }}
+                    />
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Photo({ src, className }: { src: string; className: string }) {
   return (
@@ -26,14 +79,9 @@ function Line({ time, children }: { time: string; children: ReactNode }) {
 
 export function RecordingPreview() {
   return (
-    <div className="relative size-full bg-[#10131a]">
-      <img
-        src={POSTER}
-        alt=""
-        loading="lazy"
-        className="absolute -top-5 left-0 h-auto w-[130%] max-w-none"
-      />
-      <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-white px-1.5 py-0.5 font-mono text-[8px] leading-none font-semibold text-[#181818]">
+    <div className="relative size-full">
+      <DummyApp />
+      <span className="absolute bottom-[38px] left-2 flex items-center gap-1 rounded-full bg-[#181818] px-1.5 py-0.5 font-mono text-[8px] leading-none font-semibold text-white">
         <span className="size-1.5 rounded-full bg-[#ef4444]" />
         0:42
       </span>
@@ -164,12 +212,7 @@ export function ScreenshotsPreview() {
 export function FeedbackPreview() {
   return (
     <div className="relative size-full bg-[#3b2a4f]">
-      <img
-        src={POSTER}
-        alt=""
-        loading="lazy"
-        className="absolute -top-5 left-0 h-auto w-[130%] max-w-none opacity-40"
-      />
+      <DummyApp className="opacity-40" />
       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 rounded-[10px_10px_10px_3px] bg-white py-1 pr-2 pl-1 text-[8px] leading-none font-semibold text-[#181818]">
         <span className="flex size-4 items-center justify-center rounded-full bg-[#f59e0b] text-[6px] font-bold text-white">
           MR
@@ -190,17 +233,23 @@ export function FeedbackPreview() {
   );
 }
 
-export function OpenSourcePreview() {
+const DEMO_CHAPTERS = [
+  ["0:00", "Intro"],
+  ["0:24", "Pick a workspace"],
+];
+
+export function SummaryPreview() {
   return (
-    <div className="flex size-full flex-col gap-1.5 bg-[#0d1117] p-2.5 font-mono text-[8px] leading-tight whitespace-nowrap text-[#dbe3f7]">
-      <div className="mb-0.5 flex gap-1">
-        <span className="size-1.5 rounded-full bg-[#ff5f57]" />
-        <span className="size-1.5 rounded-full bg-[#febc2e]" />
-        <span className="size-1.5 rounded-full bg-[#28c840]" />
-      </div>
-      <div>$ git clone captureflow</div>
-      <div>$ docker compose up</div>
-      <div className="text-[#34d399]">✓ running on your server</div>
+    <div className="flex size-full flex-col gap-1 bg-white p-2.5 text-[8px] leading-tight font-medium text-[#181818]">
+      <p className="text-[10px] font-bold">How to invite your team</p>
+      <p className="mb-1 text-black/55">
+        Pick a workspace, then share the link.
+      </p>
+      {DEMO_CHAPTERS.map(([time, name]) => (
+        <Line key={time} time={time!}>
+          {name}
+        </Line>
+      ))}
     </div>
   );
 }
