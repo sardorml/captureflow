@@ -34,8 +34,8 @@ function zoomStyle(zoom: SceneZoom | undefined) {
 /*
  * A pixel-authored scene scaled to fit its column, with the background filling
  * whatever space is left. `steps` are the ms offsets at
- * which each step starts within one `loopMs` cycle; the loop only runs while
- * the scene is on screen, and reduced motion holds the last step.
+ * which each step starts within one `loopMs` cycle; see `useSceneLoop` for when
+ * it runs.
  */
 export function SceneFrame({
   steps,
@@ -103,15 +103,19 @@ export function SceneFrame({
   );
 }
 
-// Steps through `steps` while `ref` is on screen; reduced motion holds the last.
+// Plays from the first step while the card holding `ref` is hovered and on
+// screen, and otherwise holds the last. Touch screens can't hover, so they play
+// whenever it's on screen.
 export function useSceneLoop(
   ref: RefObject<HTMLElement | null>,
   steps: readonly number[],
   loopMs: number,
 ): SceneState {
   const [visible, setVisible] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [step, setStep] = useState(0);
+  const playing = visible && hovered && !reducedMotion;
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -132,11 +136,30 @@ export function useSceneLoop(
   }, [ref]);
 
   useEffect(() => {
-    if (reducedMotion) {
+    const card = ref.current?.closest(".group\\/card");
+    if (!card || !window.matchMedia("(hover: hover)").matches) {
+      setHovered(true);
+      return;
+    }
+    const enter = () => setHovered(true);
+    const leave = () => setHovered(false);
+    card.addEventListener("pointerenter", enter);
+    card.addEventListener("pointerleave", leave);
+    card.addEventListener("focusin", enter);
+    card.addEventListener("focusout", leave);
+    return () => {
+      card.removeEventListener("pointerenter", enter);
+      card.removeEventListener("pointerleave", leave);
+      card.removeEventListener("focusin", enter);
+      card.removeEventListener("focusout", leave);
+    };
+  }, [ref]);
+
+  useEffect(() => {
+    if (!playing) {
       setStep(steps.length - 1);
       return;
     }
-    if (!visible) return;
     const timers: ReturnType<typeof setTimeout>[] = [];
     const run = () => {
       steps.forEach((at, i) => timers.push(setTimeout(() => setStep(i), at)));
@@ -144,9 +167,17 @@ export function useSceneLoop(
     };
     run();
     return () => timers.forEach(clearTimeout);
-  }, [steps, loopMs, visible, reducedMotion]);
+  }, [steps, loopMs, playing]);
 
-  return { step, playing: visible && !reducedMotion };
+  // `step` is a dependency because a scene can mount its video partway through.
+  useEffect(() => {
+    ref.current?.querySelectorAll("video").forEach((video) => {
+      if (playing) void video.play().catch(() => {});
+      else video.pause();
+    });
+  }, [ref, playing, step]);
+
+  return { step, playing };
 }
 
 // Runs `keyframes` across one loop while the scene plays, restarting with it.
