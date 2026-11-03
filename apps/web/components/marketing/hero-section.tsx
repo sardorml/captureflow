@@ -21,8 +21,8 @@ const COPY_SELECTION =
 
 // A soft blue that's still opaque, because the tight line height makes a
 // translucent highlight double up where two lines overlap.
-const TITLE_SELECTION =
-  "selection:bg-[color-mix(in_srgb,var(--color-accent-bg)_22%,var(--cf-canvas))] selection:text-fg-strong";
+export const HERO_TITLE =
+  "text-[clamp(2.5rem,1.5rem+5vw,4.5rem)] leading-[1.05] font-semibold tracking-[-0.05em] text-balance text-fg-strong selection:bg-[color-mix(in_srgb,var(--color-accent-bg)_22%,var(--cf-canvas))] selection:text-fg-strong";
 
 export function HeroSection() {
   const m = useMessages();
@@ -49,10 +49,7 @@ export function HeroSection() {
               GitHub
             </a>
           </p>
-          <h1
-            onClick={selectAndCopyWithLink}
-            className={`text-[clamp(2.5rem,1.5rem+5vw,4.5rem)] leading-[1.05] font-semibold tracking-[-0.05em] text-balance text-fg-strong ${TITLE_SELECTION}`}
-          >
+          <h1 onClick={selectAndCopyWithLink} className={HERO_TITLE}>
             {/* The copy decides the line break; phones wrap on their own. */}
             {m.hero.title.split("\n").map((line) => (
               <span key={line} className="sm:block">
