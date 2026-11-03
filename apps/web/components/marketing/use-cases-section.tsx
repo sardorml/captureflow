@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { DOCS_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import type { SectionProps } from "./_shared";
 import {
@@ -14,7 +13,7 @@ import {
   FrameSection,
   PillLink,
 } from "./frame";
-import { useMessages } from "./i18n-provider";
+import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 type CardKey = "engineering" | "design" | "support" | "updates";
 
@@ -414,6 +413,7 @@ function UseCaseCard({
 
 export function UseCasesSection({ headingLevel = 2 }: SectionProps = {}) {
   const m = useMessages();
+  const lh = useLocalizedHref();
   const copy = m.useCases;
 
   const scenes: Record<CardKey, ReactNode> = {
@@ -453,11 +453,7 @@ export function UseCasesSection({ headingLevel = 2 }: SectionProps = {}) {
         title={copy.heading}
         subtitle={copy.subtitle}
         level={headingLevel}
-        action={
-          <PillLink href={`${DOCS_URL}/guide/how-it-works`}>
-            {copy.cta}
-          </PillLink>
-        }
+        action={<PillLink href={lh("/features")}>{copy.cta}</PillLink>}
       />
       <div className={cn(FRAME_CELLS, "md:grid-cols-2 lg:grid-cols-4")}>
         {CARDS.map((key) => (
