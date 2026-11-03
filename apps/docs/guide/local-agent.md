@@ -1,7 +1,7 @@
 # Record with your AI agent
 
-CaptureFlow's local MCP server lets an AI agent (Claude Code, Cursor, or any
-MCP client) record videos on your own computer: the web app you're running on
+CaptureFlow's local MCP server lets an AI agent (Claude Code, Codex, Cursor, or
+any MCP client) record videos on your own computer: the web app you're running on
 `localhost`, your whole screen, or one app's window. It can add title slides
 and a voiceover, then hands you a link you can share with anyone.
 
@@ -15,6 +15,12 @@ You need Node.js 20 or newer.
 
 ```sh
 claude mcp add captureflow -- npx -y @captureflow/mcp
+```
+
+**Codex**
+
+```sh
+codex mcp add captureflow -- npx -y @captureflow/mcp
 ```
 
 **Cursor, Windsurf and other MCP clients**: add a stdio server to the client's

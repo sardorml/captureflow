@@ -73,8 +73,14 @@ export const MESSAGES = {
     invalidCredentials: "Invalid email or password.",
     genericError: "Something went wrong. Please try again.",
   },
+  announcement: {
+    badge: "New",
+    lead: "Your AI agent can now record for you.",
+    rest: "Connect it once, ask for a video, and get back a link.",
+    cta: "Connect",
+  },
   hero: {
-    title: "Screen recorder for\nyour agentic workflow.",
+    title: "Screen recorder for\nyou and your AI agents",
     subtitle:
       "Record demos, how-tos, walkthroughs and presentations yourself, or have your AI record them for you. Share each one as a link anyone can watch.",
     ctaLabel: "Try CaptureFlow for free",
@@ -101,37 +107,69 @@ export const MESSAGES = {
     },
   },
   highlights: {
-    heading: "Everything you need, built in",
-    items: [
-      "Screen and camera recording",
-      "AI transcripts in 99 languages",
-      "Edit the video from its transcript",
-      "Camera backgrounds and filters",
-      "Infinite canvas while you record",
-      "Annotated screenshots",
-      "Comments and emoji reactions",
-      "Open source and self-hostable",
-    ],
+    heading: "All features",
+    subtitle: "Record, edit and share. It all lives in one place.",
+    items: {
+      recording: { title: "Screen and camera", body: "Record both at once" },
+      transcripts: { title: "AI transcripts", body: "In 99 languages" },
+      editing: {
+        title: "Transcript editing",
+        body: "Delete text to cut the video",
+      },
+      camera: { title: "Camera effects", body: "Backgrounds and filters" },
+      canvas: { title: "Infinite canvas", body: "Sketch while you record" },
+      screenshots: {
+        title: "Annotated screenshots",
+        body: "Arrows, text and blur",
+      },
+      feedback: {
+        title: "Comments and reactions",
+        body: "Feedback on the video",
+      },
+      openSource: { title: "Open source", body: "Self-host any time" },
+    },
     cta: "See all features",
   },
+  mcpFeatures: {
+    heading: "MCP features",
+    subtitle:
+      "What your AI agent can do once it's connected. It records on your own computer, with Claude Code, Codex, Cursor or any MCP client.",
+    cta: "Read the guide",
+    items: {
+      webApp: { title: "Record a web app", body: "Including localhost" },
+      screen: { title: "Record your screen", body: "A whole display" },
+      window: {
+        title: "Record one window",
+        body: "Terminal, VS Code or Figma",
+      },
+      slides: { title: "Add slides", body: "Titles, steps and closing lines" },
+      voiceover: { title: "Add a voiceover", body: "Runs on your computer" },
+      report: { title: "Write a report", body: "What it did and what failed" },
+      search: { title: "Search recordings", body: "Videos and transcripts" },
+      save: { title: "Save MP4 files", body: "No upload or sign-in" },
+    },
+  },
   useCases: {
-    heading: "Video messages for every team",
+    heading: "How teams use it",
+    subtitle:
+      "Examples of what teams record. Each video is a link that plays in any browser.",
+    cta: "See how it works",
     cards: {
       engineering: {
         title: "Engineering",
-        body: "Walk through a PR or a bug repro so reviewers see the code run.",
+        body: "Record a walkthrough of a PR or a bug repro.",
       },
       design: {
         title: "Design",
-        body: "Talk through a mockup and collect feedback without booking a review.",
+        body: "Record a walkthrough of a mockup and collect comments.",
       },
       support: {
         title: "Customer support",
-        body: "Answer the ticket with a short walkthrough instead of ten steps of text.",
+        body: "Answer a ticket with a short walkthrough.",
       },
       updates: {
         title: "Team updates",
-        body: "Record the weekly update once and let everyone watch it when they can.",
+        body: "Record the weekly update and share the link.",
       },
     },
     engineeringFile: "checkout.ts",
@@ -151,38 +189,10 @@ export const MESSAGES = {
     updatesFeatures: "features",
   },
   agents: {
-    heading: "Let your agent record your",
-    headingWords: ["demo", "how-to", "bug report", "presentation"],
+    heading: "Or ask your AI agent to record your demos and how-tos",
+    cta: "Read the guide",
     subtitle:
       "Ask in plain words. It records a browser, your screen or an app on your own computer, adds slides and a voiceover if you want, and hands you a link.",
-    placeholder: "Ask your agent to record something",
-    mode: "Build",
-    prompt:
-      "Record a demo of the new dark mode, attach it to PR #482 and send the link to #product on Slack",
-    statuses: [
-      "Recording the demo",
-      "Attaching it to PR #482",
-      "Posting the link to #product",
-    ],
-    reply:
-      "Done. The demo is on PR #482 and in #product: captureflow.dev/r/k3J9xQ",
-    video: {
-      title: "Demo: dark mode",
-      page: "Settings",
-      button: "Dark mode",
-      duration: "0:42",
-    },
-    pr: {
-      repo: "acme/web",
-      title: "Add dark mode",
-      number: "#482",
-      comment: "Demo added to the conversation",
-    },
-    slack: {
-      channel: "product",
-      author: "You",
-      text: "Dark mode is up for review. Here's a 42-second demo.",
-    },
     steps: [
       {
         title: "Connect your agent",
@@ -199,22 +209,10 @@ export const MESSAGES = {
     ],
   },
   modes: {
-    heading: "Or record it yourself",
+    cta: "Start recording",
+    heading: "Record your screen with the Chrome extension",
     subtitle:
-      "Record your screen, camera and voice in Chrome, or sketch on a canvas to explain something fast. Share it as a link anyone can watch.",
-    tabs: {
-      share: { label: "Share", caption: "Instant share link" },
-      screenshot: { label: "Screenshot", caption: "Annotated screenshots" },
-    },
-    panel: {
-      sourceAria: "Capture source",
-      source: "Full screen",
-      camera: "Camera",
-      microphone: "Microphone",
-      startRecording: "Start Recording",
-      public: "Public",
-      more: "More",
-    },
+      "Install it and press record. When you finish, you get a link anyone can watch, with a title, summary, chapters and transcript.",
     scene: {
       timer: "0:42",
       heading: "How a refund works",
@@ -271,16 +269,17 @@ export const MESSAGES = {
     },
   },
   collaboration: {
-    heading: "Recording is just the start",
+    heading: "What you can do after recording",
+    cta: "Try it free",
     subtitle:
-      "Some things are quicker to show than to type. Record it, send the link, and your team watches when they're free.",
+      "Edit it, share or embed it, and get comments. Recordings are kept in a team workspace.",
     categories: {
       share: {
         feature: {
           tag: "new",
-          title: "Clean it up before you share",
-          cta: "Record now",
-          body: "Every recording gets an AI transcript, and you edit the video from it: cut a sentence, strip the filler words, add a background, move or resize your camera. Your link stays the same, so everyone sees the new version straight away.",
+          title: "Edit your video",
+          cta: "Install the extension",
+          body: "Every recording gets a transcript. Delete a sentence from it to cut that part of the video. You can also change the background and move or resize your camera. Edits appear on the same link.",
         },
         scene: {
           app: "Launch plan",
@@ -308,9 +307,9 @@ export const MESSAGES = {
       },
       embed: {
         feature: {
-          title: "Share or embed it anywhere you work",
-          cta: "Start sharing",
-          body: "Paste the link into Slack, GitHub, Notion or an email and it shows up with a preview. Embed the player in your docs or site, and with the extension it plays right inside GitHub issues and pull requests.",
+          title: "Share or embed your video",
+          cta: "Install the extension",
+          body: "Paste the link into Slack, GitHub, Notion or an email and it shows a preview. You can also embed the player in your docs or site. With the extension installed, it plays inside GitHub issues and pull requests.",
         },
         scene: {
           question: "Can you show me how to invite my team to the workspace?",
@@ -330,9 +329,9 @@ export const MESSAGES = {
       },
       feedback: {
         feature: {
-          title: "Get feedback right on the video",
-          cta: "Start collecting feedback",
-          body: "Viewers react with emojis and leave comments right on the timeline, at the exact moment they mean. Every reply stays with the video, so the conversation moves forward without another meeting.",
+          title: "Get comments and reactions",
+          cta: "Sign in",
+          body: "Viewers can react with emojis and leave comments on the timeline. Each comment is tied to a point in the video, and replies stay with it.",
         },
         scene: {
           title: "Launch plan walkthrough",
@@ -368,9 +367,9 @@ export const MESSAGES = {
       },
       workspaces: {
         feature: {
-          title: "Workspaces for your whole team",
-          cta: "Invite your team",
-          body: "Invite your teammates to a workspace and everyone's recordings live in one place. Share a video with anyone, keep it inside the workspace, or keep it to yourself until it's ready.",
+          title: "Invite your team to a workspace",
+          cta: "Create a workspace",
+          body: "Everyone's recordings are kept in one workspace. Each video can be public, visible to the workspace, or private.",
         },
         scene: {
           team: "CaptureFlow team",
@@ -570,19 +569,22 @@ export const MESSAGES = {
     },
   },
   pricing: {
-    heading: "Choose the plan that fits your team",
+    heading: "Pricing",
+    cta: "Compare all plans",
     subheading:
-      "Free covers your first recordings. Paid plans are one price per member, and viewers are always free.",
+      "Free covers your first recordings. Paid plans are one price per member.",
     controls: {
       teamSize: "Team size",
       members: "members",
+      title: "Billing",
+      note: "One price per member.",
       billing: "Bill me",
       monthly: "Monthly",
       annually: "Annually",
       save: "Save {percent}%",
     },
     whyUs: {
-      heading: "Why choose us",
+      heading: "How we compare",
       subtitle:
         "A leading competitor's plans beside ours, priced for your team size.",
       rows: {
@@ -600,7 +602,6 @@ export const MESSAGES = {
         transcript: "Edit the video from its transcript",
         ai: "AI chapters and filler word removal",
         openSource: "Open source, self-host any time",
-        viewers: "Viewers and commenters",
         free: "Free",
       },
       cta: "See the full comparison",
@@ -608,56 +609,40 @@ export const MESSAGES = {
     compare: {
       loomRow: "Loom {plan}",
       loomDetail: "{seats} people × {perSeat} each",
-      caption: "Monthly prices. People who only watch and comment are free.",
+      caption: "Monthly prices.",
       captureflowRow: "CaptureFlow {ourPlan}",
       captureflowDetail: "{seats} members × {ourPerSeat} each",
       saveLabel: "Your team saves",
       saveValue: "{savings} a year",
     },
     plans: {
+      member: "member",
+      members: "members",
+      included: "Included",
+      notIncluded: "Not included",
       free: {
         name: "Free",
-        description: "Get started with screen recordings you share as a link.",
-        featuresHeading: "Key features",
-        features: [
-          "{recordings} recordings per person",
-          "{minutes} minute recordings",
-          "Data saver quality",
-          "AI transcripts and captions",
-          "Comments and emoji reactions",
-          `${FREE_AGENT_MIN} min a month of agent recordings from Claude Code, Codex or Cursor`,
-        ],
+        description: "Screen recordings you share as a link.",
         cta: "Sign up",
       },
       light: {
         name: LIGHT,
-        description:
-          "Record as much as you like, as long as you like, in data saver quality.",
-        period: "per member / month",
-        periodAnnual: "per year",
-        rateAnnual:
-          "${perSeat} per member a month for {seats} {members}, billed yearly",
-        member: "member",
-        members: "members",
         featuresHeading: "Everything in Free, and",
         features: [
           "Unlimited recordings",
           "Unlimited recording time",
           `${LIGHT_AGENT_MIN} min a month of agent recordings, up to 10 min each`,
         ],
+        description: "Unlimited recordings in data saver quality.",
+        period: "/mo",
+        noteMonthly: "Per member, billed monthly",
+        noteAnnual:
+          "Per member, billed yearly. ${yearly} a year for {seats} {members}",
         cta: "Try for free",
       },
       pro: {
         badge: "Recommended",
         name: PRO,
-        description:
-          "Full quality, AI chapters, titles and clean-up, with your own branding on every share page.",
-        period: "per member / month",
-        periodAnnual: "per year",
-        rateAnnual:
-          "${perSeat} per member a month for {seats} {members}, billed yearly",
-        member: "member",
-        members: "members",
         featuresHeading: `Everything in ${LIGHT}, and`,
         features: [
           "Full quality, up to 1080p",
@@ -667,25 +652,85 @@ export const MESSAGES = {
           "Viewer insights (coming soon)",
           "Slack, Notion and Zapier integrations (coming soon)",
         ],
+        description: "Full quality, AI clean-up and your own branding.",
+        period: "/mo",
+        noteMonthly: "Per member, billed monthly",
+        noteAnnual:
+          "Per member, billed yearly. ${yearly} a year for {seats} {members}",
         cta: "Try for free",
       },
-      enterprise: {
-        name: "Enterprise",
-        description:
-          "Manage recordings for your whole company, on terms agreed with you.",
-        price: "Let’s talk",
-        featuresHeading: `Everything in ${PRO}, and`,
-        features: [
-          "Custom terms and a single annual invoice",
-          "Storage sized to your company",
-          "Your feature requests first",
-          "A direct line to the team",
-        ],
-        cta: "Contact us",
+      rows: {
+        recordings: {
+          label: "Recordings per person",
+          free: "Up to {recordings}",
+          light: "Unlimited",
+          pro: "Unlimited",
+        },
+        length: {
+          label: "Recording length",
+          free: "{minutes} min per video",
+          light: "Unlimited",
+          pro: "Unlimited",
+        },
+        quality: {
+          label: "Video quality",
+          free: "Data saver",
+          light: "Data saver",
+          pro: "Up to 1080p",
+        },
+        transcripts: {
+          label: "Transcripts and captions",
+          free: true,
+          light: true,
+          pro: true,
+        },
+        editing: {
+          label: "Edit from the transcript",
+          free: true,
+          light: true,
+          pro: true,
+        },
+        chapters: {
+          label: "AI chapters and titles",
+          free: false,
+          light: false,
+          pro: true,
+        },
+        filler: {
+          label: "Filler word removal",
+          free: false,
+          light: false,
+          pro: true,
+        },
+        feedback: {
+          label: "Comments and reactions",
+          free: true,
+          light: true,
+          pro: true,
+        },
+        agents: {
+          label: "Agent recordings",
+          free: `${FREE_AGENT_MIN} min a month`,
+          light: `${LIGHT_AGENT_MIN} min a month`,
+          pro: `${PRO_AGENT_MIN} min a month`,
+        },
+        voiceover: {
+          label: "AI voiceover",
+          free: false,
+          light: false,
+          pro: `${PRO_VOICEOVER_MIN} min a month`,
+        },
+        branding: {
+          label: "Custom branding",
+          free: false,
+          light: false,
+          pro: true,
+        },
       },
     },
     table: {
       heading: "Every feature, plan by plan",
+      subtitle: "Free, Light and Pro, side by side.",
       groups: [
         {
           title: "Recording",
@@ -695,84 +740,66 @@ export const MESSAGES = {
               free: "Unlimited",
               light: "Unlimited",
               pro: "Unlimited",
-              enterprise: "Unlimited",
-            },
-            {
-              label: "Viewers and commenters",
-              free: "Free",
-              light: "Free",
-              pro: "Free",
-              enterprise: "Free",
             },
             {
               label: "Recordings per person",
               free: "Up to {recordings}",
               light: "Unlimited",
               pro: "Unlimited",
-              enterprise: "Unlimited",
             },
             {
               label: "Recording length",
               free: "{minutes} min per video",
               light: "Unlimited",
               pro: "Unlimited",
-              enterprise: "Unlimited",
             },
             {
               label: "Video quality",
               free: "Data saver",
               light: "Data saver",
               pro: "Up to 1080p",
-              enterprise: "Up to 1080p",
             },
             {
               label: "Screenshots",
               free: "Unlimited",
               light: "Unlimited",
               pro: "Unlimited",
-              enterprise: "Unlimited",
             },
             {
               label: "Recordings kept",
               free: "30 days without a view",
               light: "Until you delete them",
               pro: "Until you delete them",
-              enterprise: "Until you delete them",
             },
             {
               label: "Full screen, window or tab capture",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Camera bubble and camera effects",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Microphone and system audio",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Smooth cursor",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Chrome extension and Mac app",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
           ],
         },
@@ -784,42 +811,36 @@ export const MESSAGES = {
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Closed captions",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Summary chapters",
               free: false,
               light: false,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Auto-suggested titles",
               free: false,
               light: false,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Edit the video from its transcript",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Filler word removal",
               free: false,
               light: false,
               pro: true,
-              enterprise: true,
             },
           ],
         },
@@ -831,21 +852,18 @@ export const MESSAGES = {
               free: `${FREE_AGENT_MIN} min a month per person`,
               light: `${LIGHT_AGENT_MIN} min a month per member`,
               pro: `${PRO_AGENT_MIN} min a month per member`,
-              enterprise: "Custom",
             },
             {
               label: "Slides in agent recordings",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "AI voiceover",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} min a month per member`,
-              enterprise: "Custom",
             },
           ],
         },
@@ -857,42 +875,36 @@ export const MESSAGES = {
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Backgrounds",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Move or resize the camera bubble",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Cut parts of the video",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Annotated screenshots with arrows, text and blur",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Infinite canvas",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
           ],
         },
@@ -904,70 +916,60 @@ export const MESSAGES = {
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Public, workspace or private links",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Request access on restricted links",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Link previews in chat and email",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Embed the player anywhere",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Plays inside GitHub issues and pull requests",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Comments on the timeline",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Emoji reactions",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "View counts",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Download the original file",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
           ],
         },
@@ -979,49 +981,30 @@ export const MESSAGES = {
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Owner, member and viewer roles",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Default visibility and upload permissions",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Search across recordings and screenshots",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Custom branding",
               free: false,
               light: false,
               pro: true,
-              enterprise: true,
-            },
-            {
-              label: "Single annual invoice",
-              free: false,
-              light: false,
-              pro: false,
-              enterprise: true,
-            },
-            {
-              label: "Custom terms",
-              free: false,
-              light: false,
-              pro: false,
-              enterprise: true,
             },
           ],
         },
@@ -1033,28 +1016,18 @@ export const MESSAGES = {
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Self-host on your own Cloudflare account",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
             },
             {
               label: "Managed hosting and updates",
               free: true,
               light: true,
               pro: true,
-              enterprise: true,
-            },
-            {
-              label: "Your feature requests first",
-              free: false,
-              light: false,
-              pro: false,
-              enterprise: true,
             },
           ],
         },
@@ -1064,7 +1037,6 @@ export const MESSAGES = {
       heading: "Every plan includes",
       items: [
         "Your own workspace, invite anyone",
-        "Free viewers and commenters",
         "Camera effects",
         "AI transcripts & captions",
         "Edit the video from its transcript",
@@ -1085,8 +1057,10 @@ export const MESSAGES = {
     },
   },
   activity: {
-    heading: "Built in the open",
-    subtitle: "Recent pull requests and open issues from GitHub.",
+    heading: "Latest changes on GitHub",
+    subtitle:
+      "Every change is public. These are the latest pull requests and open issues on GitHub.",
+    cta: "View on GitHub",
     shippedHeading: "Recently merged",
     openHeading: "Open issues and pull requests",
     emptyOpen: "Nothing open right now.",
@@ -1095,6 +1069,9 @@ export const MESSAGES = {
   },
   faq: {
     heading: "Frequently Asked Questions",
+    subtitle:
+      "What people ask before they start. The docs go deeper on everything else.",
+    cta: "Read the docs",
     waitlistLink: "Join the waitlist",
     items: [
       {
@@ -1105,11 +1082,11 @@ export const MESSAGES = {
       {
         question: "Why does CaptureFlow run on Cloudflare?",
         answer:
-          "Because video gets expensive in the wrong places. Most clouds charge every time someone watches a file, and Cloudflare R2 doesn't, so a recording watched a hundred times costs no more than one watched once. That's what lets viewers stay free.\n\nIt also makes self-hosting cheap. Cloudflare's free tiers cover the app, the database, and the first 10 GB of storage, so a small team can run CaptureFlow for nothing. R2 does ask for a card on file.",
+          "Because video gets expensive in the wrong places. Most clouds charge every time someone watches a file, and Cloudflare R2 doesn't, so a recording watched a hundred times costs no more than one watched once.\n\nIt also makes self-hosting cheap. Cloudflare's free tiers cover the app, the database, and the first 10 GB of storage, so a small team can run CaptureFlow for nothing. R2 does ask for a card on file.",
       },
       {
         question: "How does paid pricing work?",
-        answer: `${LIGHT} and ${PRO} are one price per member a month, less when billed yearly. A member is someone who records. People you invite as viewers watch, comment and react for free, so the whole company can be in the workspace while you pay only for the people making recordings.\n\nWhen someone joins or leaves, the seat count follows on the next invoice.`,
+        answer: `${LIGHT} and ${PRO} are one price per member a month, less when billed yearly. A member is someone who records, so you pay only for the people making recordings.\n\nWhen someone joins or leaves, the seat count follows on the next invoice.`,
       },
       {
         question: "How long are my recordings kept?",
@@ -1118,12 +1095,12 @@ export const MESSAGES = {
       },
       {
         question: "What is managed hosting?",
-        answer: `It's CaptureFlow run by us, for teams that don't want to set up Cloudflare themselves. You get the same open-source app, and we take care of the hosting, storage, and updates. Sign up, install the Chrome extension, and start recording.\n\nYou can start free with 25 recordings per person, up to 5 minutes each, which are removed after 30 days without a view. ${LIGHT} removes the limits for one price per member, keeps recordings until you delete them, and viewers are always free.`,
+        answer: `It's CaptureFlow run by us, for teams that don't want to set up Cloudflare themselves. You get the same open-source app, and we take care of the hosting, storage, and updates. Sign up, install the Chrome extension, and start recording.\n\nYou can start free with 25 recordings per person, up to 5 minutes each, which are removed after 30 days without a view. ${LIGHT} removes the limits for one price per member and keeps recordings until you delete them.`,
       },
     ],
   },
   cta: {
-    headline: "Ready to record?",
+    headline: "Start recording",
     subtitle:
       "Free download. No credit card. Say it in a quick video message instead of another meeting.",
     button: "Try CaptureFlow for free",
@@ -1268,7 +1245,7 @@ export const MESSAGES = {
   download: {
     heading: "Download CaptureFlow",
     subtitle:
-      "Record your screen and get an instant share link, free and open source. Self-host on your own Cloudflare account, with screenshots and workspaces included.",
+      "Available for Chrome, with a macOS app coming soon. Each recording gets a link you can share.",
     button: "Download for macOS",
     requires: "Requires {version} or later on Apple Silicon.",
     requirements: "Requires macOS 14 or later on Apple Silicon.",

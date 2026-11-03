@@ -2,9 +2,18 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
-import { CARD_SURFACE } from "./tokens";
-import { useMessages } from "./i18n-provider";
+import type { SectionProps } from "./_shared";
+import {
+  CARD_GRAY,
+  CARD_ZOOM,
+  FRAME_CARD,
+  FRAME_CELL,
+  FRAME_CELLS,
+  FrameHeader,
+  FrameSection,
+  PillLink,
+} from "./frame";
+import { useLocalizedHref, useMessages } from "./i18n-provider";
 
 type CardKey = "engineering" | "design" | "support" | "updates";
 
@@ -380,52 +389,23 @@ function ScaledScene({ children }: { children: ReactNode }) {
   );
 }
 
-// Each card's title sits on its own highlight, in the scene's accent.
-const TITLE_TONES: Record<CardKey, string> = {
-  design:
-    "bg-[#ede9fe] text-[#6d28d9] dark:bg-[#6d28d9]/35 dark:text-[#ddd6fe]",
-  engineering:
-    "bg-[#dbeafe] text-[#1d4ed8] dark:bg-[#1d4ed8]/35 dark:text-[#bfdbfe]",
-  support:
-    "bg-[#ccfbf1] text-[#0f766e] dark:bg-[#0f766e]/35 dark:text-[#99f6e4]",
-  updates:
-    "bg-[#fef3c7] text-[#b45309] dark:bg-[#b45309]/35 dark:text-[#fde68a]",
-};
-
 function UseCaseCard({
-  tone,
   title,
   body,
   children,
 }: {
-  tone: CardKey;
   title: string;
   body: string;
   children: ReactNode;
 }) {
   return (
-    <article
-      className={cn(
-        CARD_SURFACE,
-        "flex min-w-0 flex-col overflow-hidden rounded-xl transition-transform duration-300 ease-out hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0",
-      )}
-    >
-      <ScaledScene>{children}</ScaledScene>
-      <div className="flex flex-col items-start gap-2.5 px-7 pt-7 pb-8">
-        <h3
-          className={cn(
-            TITLE_TONES[tone],
-            "-ml-2 inline-block rounded-md px-2 py-1 text-[24px] leading-tight font-bold tracking-[-0.03em]",
-          )}
-        >
-          {title}
-        </h3>
-        <p
-          className="text-start text-foreground"
-          style={{ fontSize: 17, lineHeight: 1.5, margin: 0 }}
-        >
-          {body}
-        </p>
+    <article className={cn(FRAME_CELL, FRAME_CARD, "flex flex-col")}>
+      <div className="flex flex-col gap-1.5 p-5">
+        <h3 className="text-base font-medium text-fg-strong">{title}</h3>
+        <p className="text-sm leading-relaxed text-fg-muted">{body}</p>
+      </div>
+      <div className={cn(CARD_ZOOM, CARD_GRAY, "mt-auto origin-bottom")}>
+        <ScaledScene>{children}</ScaledScene>
       </div>
     </article>
   );
@@ -433,6 +413,7 @@ function UseCaseCard({
 
 export function UseCasesSection({ headingLevel = 2 }: SectionProps = {}) {
   const m = useMessages();
+  const lh = useLocalizedHref();
   const copy = m.useCases;
 
   const scenes: Record<CardKey, ReactNode> = {
@@ -467,17 +448,17 @@ export function UseCasesSection({ headingLevel = 2 }: SectionProps = {}) {
   };
 
   return (
-    <MarketingSection
-      id="use-cases"
-      // Wider than the 1024 rail so four cards fit in one row.
-      style={{ maxWidth: 1328 }}
-    >
-      <SectionHeading title={copy.heading} level={headingLevel} />
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+    <FrameSection id="use-cases">
+      <FrameHeader
+        title={copy.heading}
+        subtitle={copy.subtitle}
+        level={headingLevel}
+        action={<PillLink href={lh("/features")}>{copy.cta}</PillLink>}
+      />
+      <div className={cn(FRAME_CELLS, "md:grid-cols-2 lg:grid-cols-4")}>
         {CARDS.map((key) => (
           <UseCaseCard
             key={key}
-            tone={key}
             title={copy.cards[key].title}
             body={copy.cards[key].body}
           >
@@ -485,6 +466,6 @@ export function UseCasesSection({ headingLevel = 2 }: SectionProps = {}) {
           </UseCaseCard>
         ))}
       </div>
-    </MarketingSection>
+    </FrameSection>
   );
 }

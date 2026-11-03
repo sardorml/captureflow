@@ -1,10 +1,10 @@
 ---
 title: Loom pricing explained: what teams really pay
-description: Loom costs $18 to $24 per person each month. See what that adds up to for 10 to 100 people, and what a lower per-member price with free viewers costs instead.
+description: Loom costs $18 to $24 per person each month. See what that adds up to for 10 to 100 people, and what a lower per-member price costs instead.
 date: 2026-10-30
 ---
 
-Loom charges for every person on your team. That’s fine for three people, but the bill grows with every hire. CaptureFlow does the same job, recording your screen and sharing a link, at a lower price per member, and the people who only watch and comment are free.
+Loom charges for every person on your team. That’s fine for three people, but the bill grows with every hire. CaptureFlow does the same job, recording your screen and sharing a link, at a lower price per member.
 
 This post compares the two for real team sizes. Loom’s prices are its published monthly prices, checked in October 2026.
 
@@ -22,7 +22,7 @@ Most teams start paying because of the 5-minute limit. A bug report fits in 5 mi
 
 ## How CaptureFlow pricing works
 
-CaptureFlow charges per member, and a member is someone who records. Anyone you invite as a viewer watches, comments and reacts for free.
+CaptureFlow charges per member, and a member is someone who records.
 
 | Plan  | Price                                        | What you get                                                  |
 | ----- | -------------------------------------------- | ------------------------------------------------------------- |
@@ -45,7 +45,7 @@ Assume everyone on the team records, which is the most you would pay. Monthly bi
 
 A 50-person team saves $7,800 a year on Light, and $7,200 a year on Pro against Loom Business + AI. Billed yearly, CaptureFlow comes down further still.
 
-In practice most teams pay for fewer seats than that. On Loom, everyone who needs to watch and comment needs a paid seat. On CaptureFlow, the designer who records three walkthroughs a week is a member, and the twelve people who watch them are free.
+In practice most teams pay for fewer seats than that, because only the people who record need one.
 
 ## What’s the same
 
@@ -73,12 +73,12 @@ It’s worth being clear about the gaps:
 - **Apps:** Loom has apps for Mac, Windows, iOS and Android. CaptureFlow has a Chrome extension and a macOS app, but no Windows or mobile apps yet.
 - **Enterprise single sign-on** with SAML isn’t supported.
 
-If your team depends on meeting recaps or records from phones, Loom may be worth the extra cost. If you mostly record screen walkthroughs, bug reports, demos and async updates, you’re paying more per person, and paying for people who only watch.
+If your team depends on meeting recaps or records from phones, Loom may be worth the extra cost. If you mostly record screen walkthroughs, bug reports, demos and async updates, you’re paying more per person.
 
 ## How to switch
 
 1. [Create a free CaptureFlow account](/signup) and install the Chrome extension.
-2. Invite your team to a workspace. Invite the people who only watch as viewers, which is free.
+2. Invite your team to a workspace.
 3. Download the Loom videos you still need and upload them, or simply start fresh.
 4. Upgrade to Light when you need longer recordings, or Pro for full quality and AI editing.
 
@@ -94,7 +94,7 @@ Loom Business costs $18 per person per month and Business + AI costs $24, on mon
 
 ### What is a cheaper alternative to Loom?
 
-CaptureFlow records your screen and shares a link the same way, for $5 per member a month, or $4 billed yearly, and viewers are free. A 50-person team pays $3,000 a year instead of $10,800 on Loom Business, and less again if not everyone records.
+CaptureFlow records your screen and shares a link the same way, for $5 per member a month, or $4 billed yearly. A 50-person team pays $3,000 a year instead of $10,800 on Loom Business, and less again if not everyone records.
 
 ### Does CaptureFlow limit video length?
 

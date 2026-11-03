@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import NextLink from "next/link";
 import { track } from "@/lib/marketing/track";
+import { PILL_OUTLINE, PILL_SOLID } from "./frame";
 
 // Same amber as the beta banner, and dark ink on it for the same reason: the
 // fill stays amber in both themes, so a theme-flipping token would go near-white
@@ -32,8 +32,8 @@ export function InstallButton({
   primary?: boolean;
 }) {
   const className = cn(
-    buttonVariants({ variant: primary ? "default" : "secondary", size: "lg" }),
-    "h-11 gap-2.5 pr-5 pl-2.5 text-[16px] font-medium",
+    primary ? PILL_SOLID : PILL_OUTLINE,
+    "gap-2 pr-5 pl-2.5",
   );
   const onClick = () => track("marketing_cta_clicked", { location });
 

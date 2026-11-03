@@ -3,6 +3,7 @@
 import { Flex } from "./layout";
 import { Paragraph, Title } from "./typography";
 import { CHROME_WEBSTORE_URL } from "@/lib/marketing/constants";
+import { TwoTone } from "./frame";
 import { InstallButton } from "./install-button";
 import { AppleLogo, ChromeLogoColor } from "./platform-logos";
 import { useMessages } from "./i18n-provider";
@@ -32,25 +33,21 @@ export function DownloadHero() {
           level={1}
           className="text-balance text-fg-strong"
           style={{
-            fontSize: "clamp(2.5rem, 1.25rem + 4.5vw, 5rem)",
-            fontWeight: 700,
-            lineHeight: 1.02,
-            letterSpacing: "-0.04em",
-            marginBottom: 24,
+            fontSize: "2.25rem",
+            fontWeight: 600,
+            lineHeight: 1.11,
+            letterSpacing: "-0.05em",
+            marginBottom: 16,
           }}
         >
           {m.download.heading}
         </Title>
         <Paragraph
           align="center"
-          className="text-balance text-fg-muted"
-          style={{
-            fontSize: "clamp(1.125rem, 1rem + 0.5vw, 1.375rem)",
-            lineHeight: 1.45,
-            maxWidth: 760,
-          }}
+          className="text-lg leading-7 text-balance sm:[&>span]:block"
+          style={{ maxWidth: 720 }}
         >
-          {m.download.subtitle}
+          <TwoTone text={m.download.subtitle} />
         </Paragraph>
 
         <Flex vertical gap={16} align="center" style={{ marginTop: 32 }}>

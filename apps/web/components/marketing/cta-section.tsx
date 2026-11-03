@@ -1,11 +1,8 @@
 "use client";
 
-import NextLink from "next/link";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { CURRENT_STAGE } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
-import { MarketingSection } from "./_shared";
+import { FrameSection, PillLink, TwoTone } from "./frame";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { WaitlistForm } from "./waitlist-form";
 
@@ -14,31 +11,29 @@ export function CtaSection() {
   const lh = useLocalizedHref();
 
   return (
-    <MarketingSection id="waitlist">
-      <div className="mx-auto flex max-w-215 flex-col items-center gap-6 rounded-xl border border-line bg-panel p-6 text-center sm:p-8 md:flex-row md:justify-between md:text-left">
-        <div className="min-w-0">
-          <h2 className="text-3xl font-bold tracking-[-0.02em] text-fg sm:text-4xl">
-            {CURRENT_STAGE.ctaHeadline || m.cta.headline}
-          </h2>
-          <p className="mt-2 max-w-110 text-base leading-relaxed text-balance text-fg-muted">
-            {CURRENT_STAGE.ctaSubtitle || m.cta.subtitle}
-          </p>
+    <FrameSection id="waitlist">
+      <div className="flex flex-col items-center px-6 py-24 text-center">
+        <h2 className="text-[clamp(2.5rem,1.75rem+3vw,3.5rem)] leading-[1.05] font-semibold tracking-[-0.05em] text-balance text-fg-strong">
+          {CURRENT_STAGE.ctaHeadline || m.cta.headline}
+        </h2>
+        <p className="mt-5 max-w-[560px] text-lg leading-7 text-balance">
+          <TwoTone text={CURRENT_STAGE.ctaSubtitle || m.cta.subtitle} />
+        </p>
+        <div className="mt-8">
+          {CURRENT_STAGE.showCtaBuyButton ? (
+            <PillLink
+              href={lh("/download")}
+              onClick={() =>
+                track("marketing_cta_clicked", { location: "cta" })
+              }
+            >
+              {CURRENT_STAGE.ctaButtonLabel || m.cta.button}
+            </PillLink>
+          ) : (
+            <WaitlistForm />
+          )}
         </div>
-        {CURRENT_STAGE.showCtaBuyButton ? (
-          <NextLink
-            href={lh("/download")}
-            onClick={() => track("marketing_cta_clicked", { location: "cta" })}
-            className={cn(
-              buttonVariants({ size: "lg" }),
-              "h-14 w-full shrink-0 px-8 text-lg font-semibold md:w-auto",
-            )}
-          >
-            {CURRENT_STAGE.ctaButtonLabel || m.cta.button}
-          </NextLink>
-        ) : (
-          <WaitlistForm />
-        )}
       </div>
-    </MarketingSection>
+    </FrameSection>
   );
 }

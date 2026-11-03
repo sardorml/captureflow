@@ -5,7 +5,7 @@ export type Theme = "light" | "dark";
 export type ThemePreference = Theme | "system";
 
 export const THEME_COOKIE = "captureflow_theme";
-export const DEFAULT_THEME: Theme = "dark";
+export const DEFAULT_THEME: Theme = "light";
 
 export function isTheme(value: unknown): value is Theme {
   return value === "light" || value === "dark";
@@ -28,13 +28,13 @@ export function readThemePreferenceFromCookieHeader(
   cookieHeader: string | null | undefined,
 ): ThemePreference {
   const value = readCookie(cookieHeader);
-  return isThemePreference(value) ? value : DEFAULT_THEME;
+  return isThemePreference(value) ? value : "system";
 }
 
 /*
- * What to paint on the server. A "system" preference has no server-side answer
- * — the OS setting never reaches us — so it renders as the default, and
- * THEME_INIT_SCRIPT corrects it before first paint.
+ * What to paint on the server. A visitor who hasn't chosen follows the OS, which
+ * has no server-side answer, so it renders as the default and THEME_INIT_SCRIPT
+ * corrects it before first paint.
  */
 export function readThemeFromCookieHeader(
   cookieHeader: string | null | undefined,
@@ -61,19 +61,19 @@ export function writeThemePreferenceCookie(value: ThemePreference): void {
 }
 
 /*
- * Runs blocking ahead of any paint and applies the cookie's theme, so a page
- * served from a static cache (rendered with DEFAULT_THEME) never shows the
- * wrong one. The listener stays for the session and re-reads the cookie each
- * time, so it covers both an OS switch made later and a preference switched to
- * "system" without a reload.
+ * Runs blocking ahead of any paint and applies the cookie's theme, or the OS's
+ * without one, so a page served from a static cache (rendered with
+ * DEFAULT_THEME) never shows the wrong one. The listener stays for the session
+ * and re-reads the cookie each time, so it covers both an OS switch made later
+ * and a preference switched to "system" without a reload.
  */
 const THEME_INIT_SCRIPT = `(function(){try{
 var q=window.matchMedia("(prefers-color-scheme: dark)");
 var apply=function(){
 var m=document.cookie.match(/(?:^|; )${THEME_COOKIE}=([^;]*)/);
 var v=m?decodeURIComponent(m[1]):"";
-var t=v==="system"?(q.matches?"dark":"light"):v==="light"||v==="dark"?v:"";
-if(t)document.documentElement.setAttribute("data-theme",t);
+var t=v==="light"||v==="dark"?v:q.matches?"dark":"light";
+document.documentElement.setAttribute("data-theme",t);
 };
 apply();
 q.addEventListener("change",apply);

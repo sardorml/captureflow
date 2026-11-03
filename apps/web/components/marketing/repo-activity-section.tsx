@@ -12,8 +12,13 @@ import { formatRelativeShort } from "@/lib/format";
 import { MESSAGES } from "@/lib/marketing/messages";
 import { SOURCE_REPO_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
-import { MarketingSection, SectionHeading } from "./_shared";
-import { CARD_SURFACE } from "./tokens";
+import {
+  FRAME_CELL,
+  FRAME_CELLS,
+  FrameHeader,
+  FrameSection,
+  PillLink,
+} from "./frame";
 
 const copy = MESSAGES.activity;
 
@@ -42,9 +47,13 @@ export function RepoActivitySection({
   if (!activity || activity.shipped.length === 0) return null;
 
   return (
-    <MarketingSection id="activity">
-      <SectionHeading title={copy.heading} subtitle={copy.subtitle} />
-      <div className="grid gap-4 md:grid-cols-2">
+    <FrameSection id="activity">
+      <FrameHeader
+        title={copy.heading}
+        subtitle={copy.subtitle}
+        action={<PillLink href={SOURCE_REPO_URL}>{copy.cta}</PillLink>}
+      />
+      <div className={cn(FRAME_CELLS, "md:grid-cols-2")}>
         <ActivityList
           heading={copy.shippedHeading}
           items={activity.shipped}
@@ -60,7 +69,7 @@ export function RepoActivitySection({
           link={{ label: copy.newIssue, href: `${SOURCE_REPO_URL}/issues/new` }}
         />
       </div>
-    </MarketingSection>
+    </FrameSection>
   );
 }
 
@@ -76,7 +85,7 @@ function ActivityList({
   link: { label: string; href: string };
 }) {
   return (
-    <div className={cn(CARD_SURFACE, "flex flex-col rounded-xl p-6")}>
+    <div className={cn(FRAME_CELL, "flex flex-col p-6")}>
       <p className="text-sm font-medium text-fg">{heading}</p>
       {items.length === 0 ? (
         <p className="mt-4 text-sm text-fg-muted">{empty}</p>
@@ -90,7 +99,7 @@ function ActivityList({
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="-mx-2 flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-canvas motion-reduce:transition-none"
+                  className="-mx-2 flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-tint motion-reduce:transition-none"
                 >
                   <Icon
                     size={16}

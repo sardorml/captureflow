@@ -10,21 +10,16 @@ import {
   MousePointer2,
   MoveUpRight,
   Pencil,
-  Plus,
-  Redo2,
   Square,
   Type,
-  Undo2,
 } from "lucide-react";
-import { AppIcon } from "@/components/brand-mark";
-import { PRODUCT_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
-import { MarketingSection, SectionHeading, type SectionProps } from "./_shared";
+import type { SectionProps } from "./_shared";
+import { FRAME_TITLE, FrameSection, TwoTone } from "./frame";
 import { CHROME_WEBSTORE_URL } from "@/lib/marketing/constants";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { InstallButton } from "./install-button";
 import { ChromeLogoColor } from "./platform-logos";
-import { RecorderPanel } from "./recorder-panel";
 import { WebcamLoop } from "./webcam-loop";
 
 /*
@@ -225,11 +220,7 @@ function typed(text: string, p: number): string {
 }
 
 // The loop's position, 0–1, ticking only while the scene is on screen.
-export function useLoopClock(
-  running: boolean,
-  loopS = LOOP_S,
-  rest = REST_T,
-): number {
+function useLoopClock(running: boolean, loopS = LOOP_S, rest = REST_T): number {
   const [t, setT] = useState(rest);
   useEffect(() => {
     if (!running) return;
@@ -249,7 +240,7 @@ export function useLoopClock(
   return t;
 }
 
-export function useOnScreen(ref: React.RefObject<HTMLElement | null>): boolean {
+function useOnScreen(ref: React.RefObject<HTMLElement | null>): boolean {
   const [onScreen, setOnScreen] = useState(false);
   useEffect(() => {
     const el = ref.current;
@@ -263,7 +254,7 @@ export function useOnScreen(ref: React.RefObject<HTMLElement | null>): boolean {
   return onScreen;
 }
 
-export function useReducedMotion(): boolean {
+function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -399,35 +390,12 @@ function CanvasScene({ t }: { t: number }) {
         backgroundSize: "24px 24px",
       }}
     >
-      <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-lg bg-canvas-2 px-2 py-1 shadow-sm ring-1 ring-line">
-        <AppIcon size={16} />
-        <span className="text-[11px] font-semibold tracking-tight text-fg-strong">
-          {PRODUCT_NAME}
-        </span>
-      </div>
       <Pill className="top-3 left-1/2 -translate-x-1/2">
         {TOOLS.map((item) => (
           <ToolButton key={item.id} on={item.id === tool}>
             {item.icon}
           </ToolButton>
         ))}
-      </Pill>
-      <Pill className="top-3 right-3">
-        <ToolButton>
-          <Undo2 size={13} />
-        </ToolButton>
-        <ToolButton>
-          <Redo2 size={13} />
-        </ToolButton>
-      </Pill>
-      <Pill className="bottom-3 left-3">
-        <ToolButton>
-          <Minus size={13} />
-        </ToolButton>
-        <span className="px-1.5 text-[10px] text-fg tabular-nums">100%</span>
-        <ToolButton>
-          <Plus size={13} />
-        </ToolButton>
       </Pill>
 
       <div className="absolute inset-0" style={{ opacity: fade }}>
@@ -516,7 +484,7 @@ function CanvasScene({ t }: { t: number }) {
       >
         <p
           key={captionIndex}
-          className="animate-reveal rounded-lg bg-fg/80 px-3 py-1.5 text-center text-[12px] leading-snug font-medium text-canvas"
+          className="animate-reveal rounded-lg bg-fg/80 px-3 py-1.5 text-center text-[13px] leading-snug font-medium text-canvas"
         >
           {copy.captions[captionIndex]}
         </p>
@@ -558,9 +526,6 @@ function underlinePoint(
   return { x: at.x, y: at.y };
 }
 
-// Drawn at up to 1.2× its 600px design so it holds the wider column.
-const CANVAS_MAX_SCALE = 1.2;
-
 function RecordingMockup() {
   const ref = useRef<HTMLDivElement>(null);
   const onScreen = useOnScreen(ref);
@@ -568,11 +533,7 @@ function RecordingMockup() {
   const t = useLoopClock(onScreen && !reducedMotion);
 
   return (
-    <Scaled
-      width={SCENE.width}
-      height={SCENE.height}
-      maxScale={CANVAS_MAX_SCALE}
-    >
+    <Scaled width={SCENE.width} height={SCENE.height}>
       <div
         ref={ref}
         className="absolute inset-0 overflow-hidden rounded-2xl border border-black/5 shadow-[0_16px_40px_rgb(0_0_0/0.08),0_4px_12px_rgb(0_0_0/0.06)] dark:border-white/10 dark:shadow-[0_16px_40px_rgb(0_0_0/0.4),0_4px_12px_rgb(0_0_0/0.3)]"
@@ -603,8 +564,7 @@ function BarButton({
   );
 }
 
-function ControlBar({ time }: { time?: string }) {
-  const copy = useMessages().modes.scene;
+function ControlBar({ time }: { time: string }) {
   return (
     <div
       className="flex flex-col items-center rounded-[20px] border px-2.5 py-2 shadow-[0_8px_28px_rgba(0,0,0,0.45)]"
@@ -617,77 +577,36 @@ function ControlBar({ time }: { time?: string }) {
         className="flex h-9 items-center text-xs font-bold tabular-nums"
         style={{ color: BAR.fg }}
       >
-        {time ?? copy.timer}
+        {time}
       </span>
       <BarButton color={BAR.icon}>{PAUSE_ICON}</BarButton>
     </div>
   );
 }
 
-// Measured: the panel renders 280×418 and the folded bar 58×126.
-const RECORDER = { width: 400, height: 418 };
-
-// The popup panel with what starts when you hit record: the camera bubble and
-// the control bar.
-function RecorderMockup() {
-  return (
-    <Scaled width={RECORDER.width} height={RECORDER.height}>
-      {/* Depth from light, not rotation: a lit top edge and stacked shadows
-          lift each layer off the card while the layout stays square. */}
-      <div className="absolute top-0 left-0 rounded-[20px] shadow-[0_30px_60px_rgb(0_0_0/0.15),0_8px_20px_rgb(0_0_0/0.105)] dark:shadow-[0_30px_60px_rgb(0_0_0/0.5),0_8px_20px_rgb(0_0_0/0.35)]">
-        <RecorderPanel />
-        <span className="pointer-events-none absolute inset-0 rounded-[20px] shadow-[inset_0_1px_0_rgb(255_255_255/0.1)]" />
-      </div>
-      <div
-        className="absolute top-0 rounded-[20px] shadow-[0_24px_48px_rgb(0_0_0/0.15),0_6px_14px_rgb(0_0_0/0.105)] dark:shadow-[0_24px_48px_rgb(0_0_0/0.5),0_6px_14px_rgb(0_0_0/0.35)]"
-        style={{ left: 296 }}
-      >
-        <ControlBar />
-      </div>
-      <div
-        className="absolute rounded-full shadow-[0_28px_56px_rgb(0_0_0/0.165)] dark:shadow-[0_28px_56px_rgb(0_0_0/0.55)]"
-        style={{ left: 248, top: 250 }}
-      >
-        <Presenter size={150} ring={4} />
-      </div>
-    </Scaled>
-  );
-}
-
 export function ModesIntro({ headingLevel = 2 }: SectionProps = {}) {
   const m = useMessages();
   const lh = useLocalizedHref();
+  const Heading = headingLevel === 1 ? "h1" : "h2";
 
   return (
-    <MarketingSection
-      id="modes"
-      style={{ scrollMarginTop: 24, maxWidth: 1328 }}
-    >
-      <div className="px-5 py-12 text-fg md:px-10 md:py-16 lg:px-16 lg:py-20">
-        <SectionHeading
-          title={m.modes.heading}
-          subtitle={m.modes.subtitle}
-          level={headingLevel}
-        />
-        <div className="-mt-4 mb-14 flex justify-center">
+    <FrameSection id="modes">
+      <div className="grid items-center gap-10 px-6 py-16 md:px-12 lg:grid-cols-[2fr_3fr] lg:gap-12">
+        <div className="flex flex-col items-start">
+          <Heading className={FRAME_TITLE}>{m.modes.heading}</Heading>
+          <p className="mt-4 mb-6 text-lg leading-7">
+            <TwoTone text={m.modes.subtitle} />
+          </p>
           <InstallButton
             href={CHROME_WEBSTORE_URL ?? lh("/download")}
-            label={m.hero.installChrome}
-            icon={<ChromeLogoColor className="size-7" />}
+            label={m.modes.cta}
+            icon={<ChromeLogoColor className="size-6" />}
             location="modes_chrome"
             primary
           />
         </div>
-
-        <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.6fr]">
-          <div className="flex justify-center">
-            <RecorderMockup />
-          </div>
-          <div className="flex justify-center">
-            <RecordingMockup />
-          </div>
-        </div>
+        <RecordingMockup />
       </div>
-    </MarketingSection>
+    </FrameSection>
   );
 }

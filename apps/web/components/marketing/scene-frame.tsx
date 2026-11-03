@@ -32,7 +32,8 @@ function zoomStyle(zoom: SceneZoom | undefined) {
 }
 
 /*
- * A pixel-authored scene scaled to its column. `steps` are the ms offsets at
+ * A pixel-authored scene scaled to fit its column, with the background filling
+ * whatever space is left. `steps` are the ms offsets at
  * which each step starts within one `loopMs` cycle; the loop only runs while
  * the scene is on screen, and reduced motion holds the last step.
  */
@@ -69,7 +70,10 @@ export function SceneFrame({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const resize = () => setScale(el.clientWidth / FRAME.width);
+    const resize = () =>
+      setScale(
+        Math.min(el.clientWidth / FRAME.width, el.clientHeight / FRAME.height),
+      );
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(el);
@@ -102,15 +106,19 @@ export function SceneFrame({
     <div
       ref={ref}
       aria-hidden
-      className="relative w-full overflow-hidden"
+      className="relative size-full overflow-hidden"
       style={{
         aspectRatio: `${FRAME.width} / ${FRAME.height}`,
+        background,
         borderRadius: RADIUS,
       }}
     >
       <div
-        className="absolute top-0 left-0 origin-top-left"
-        style={{ ...FRAME, background, transform: `scale(${scale})` }}
+        className="absolute top-1/2 left-1/2"
+        style={{
+          ...FRAME,
+          transform: `translate(-50%, -50%) scale(${scale})`,
+        }}
       >
         <div
           className="absolute left-0"

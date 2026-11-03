@@ -27,6 +27,11 @@ body {
   font-family: var(--font-geist), system-ui, sans-serif;
 }
 
+/* Headings follow the marketing face set on the shell. */
+[data-marketing] .font-heading {
+  font-family: inherit;
+}
+
 /* Play/pause flash overlay on the RecordingPlayer. Shared between the
    edit-page preview and public viewer so they stay in sync. */
 @keyframes recording-icon-pop {

@@ -25,6 +25,7 @@
   --cf-stage: #0a0a0a; /* the share page's player area */
   --cf-panel: #1f1f1f; /* cards / popovers */
   --cf-panel-2: #262626; /* raised surface */
+  --cf-emphasis: #1f1f1f; /* a page-level area set apart from the canvas */
   --cf-field: #171717; /* form fields */
 
   --cf-fg: #f5f5f5;
@@ -60,6 +61,7 @@
   --cf-stage: #f5f5f5;
   --cf-panel: #ffffff;
   --cf-panel-2: #f5f5f5;
+  --cf-emphasis: #fbfbfb;
   --cf-field: #f5f5f5;
 
   --cf-fg: #171717;
@@ -161,6 +163,7 @@
   --color-stage: var(--cf-stage);
   --color-panel: var(--cf-panel);
   --color-panel-2: var(--cf-panel-2);
+  --color-emphasis: var(--cf-emphasis);
 
   --color-fg: var(--cf-fg);
   --color-fg-strong: var(--cf-fg-strong);

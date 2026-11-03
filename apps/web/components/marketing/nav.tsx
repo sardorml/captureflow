@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { Rubik } from "next/font/google";
 import { AnimatePresence, motion } from "motion/react";
@@ -17,7 +17,9 @@ import { DISCORD_URL } from "@/lib/marketing/constants";
 import { DOCS_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
+import { TopBar } from "./announcement-bars";
 import { NavBetaChip } from "./corner-banner";
+import { FRAME_WIDTH } from "./frame";
 import { GitHubIcon } from "./platform-logos";
 import { DEFAULT_THEME, ThemeToggle } from "@captureflow/ui";
 import { useRepoStats } from "./use-repo-stats";
@@ -35,14 +37,11 @@ const wordmark = Rubik({ subsets: ["latin"], weight: "500", display: "swap" });
 
 // Bare muted text in the bar; full-width ghost buttons once stacked in the drawer.
 const TEXT_LINK =
-  "text-[15px] font-normal whitespace-nowrap text-fg transition-colors hover:text-fg/70 motion-reduce:transition-none";
+  "text-sm font-normal whitespace-nowrap text-fg transition-colors hover:text-fg/70 motion-reduce:transition-none";
 
-// The one solid control in the bar. `inverse` is the token that sits opposite
-// the canvas, so it reads white-on-dark and black-on-light without a branch.
-const PILL_CTA = cn(
-  buttonVariants(),
-  "h-[42px] px-5 text-[15px] font-semibold",
-);
+// The one solid control in the bar.
+const PILL_CTA =
+  "inline-flex h-[30px] items-center rounded-full bg-fg px-3.5 text-[13px] font-medium whitespace-nowrap text-canvas transition-colors hover:bg-fg/85 motion-reduce:transition-none";
 
 type NavLinkProps = {
   href: string;
@@ -68,7 +67,7 @@ function HoverSlot({
 }) {
   return (
     <span
-      className="relative isolate flex h-10 items-center px-3 [&_:is(a,button):hover]:text-fg"
+      className="relative isolate flex h-8 items-center px-2.5 [&_:is(a,button):hover]:text-fg"
       onMouseEnter={() => onHover(id)}
     >
       <AnimatePresence>
@@ -243,19 +242,6 @@ export function Nav() {
   const closeMenu = () => setMenuOpen(false);
   const [hovered, setHovered] = useState<string | null>(null);
 
-  /*
-   * A soft shadow lifts the bar off the page once content has scrolled under
-   * it. Starts false so the server render matches an unscrolled page, then
-   * syncs on mount to survive a restored scroll position.
-   */
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const sync = () => setScrolled(window.scrollY > 8);
-    sync();
-    window.addEventListener("scroll", sync, { passive: true });
-    return () => window.removeEventListener("scroll", sync);
-  }, []);
-
   const starLabel = stars ? `Star on GitHub (${stars})` : "Star on GitHub";
 
   /*
@@ -294,164 +280,171 @@ export function Nav() {
   const menuLinks = [...barLinks, ...moreLinks];
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 flex h-20 w-full max-w-full items-start pb-1 text-start text-xs font-medium text-muted-foreground",
-        // The sheet's overlay sits at z-50; drop under it so the open menu dims the bar.
-        menuOpen ? "z-40" : "z-[100]",
-      )}
-    >
-      <div
+    <>
+      <TopBar />
+      <header
         className={cn(
-          "flex h-20 w-full items-center bg-canvas px-[clamp(20px,4vw,56px)] transition-shadow duration-300 ease-out motion-reduce:transition-none [--island:#ffffff] dark:[--island:#181818]",
-          scrolled
-            ? "shadow-[0_4px_20px_rgb(0_0_0/0.10)] dark:shadow-[0_4px_20px_rgb(0_0_0/0.55)]"
-            : "shadow-none",
+          "sticky top-0 flex h-14 w-full max-w-full items-start text-start text-xs font-medium text-muted-foreground",
+          // The sheet's overlay sits at z-50; drop under it so the open menu dims the bar.
+          menuOpen ? "z-40" : "z-[100]",
         )}
       >
-        <div className="flex w-full items-center justify-between">
-          {/* Logo: 32×32 app icon + 19px rounded wordmark in deep ink. */}
-          <div className="flex items-center gap-2.5">
-            <NextLink
-              href={lh("/")}
-              aria-label="CaptureFlow"
-              className="group inline-flex items-center gap-2 text-fg"
-            >
-              <Image
-                src="/logo-96.png"
-                alt=""
-                width={32}
-                height={32}
-                unoptimized
-                priority
-                draggable={false}
-              />
-              <span
-                className={cn(
-                  wordmark.className,
-                  "text-[19px] leading-none tracking-[-0.02em] text-fg",
-                )}
+        <div className="flex h-14 w-full items-center border-b border-line-strong bg-panel/80 backdrop-blur-md [--island:#ffffff] dark:[--island:#181818]">
+          <div
+            className={cn(
+              "mx-auto flex w-[calc(100%-48px)] items-center justify-between",
+              FRAME_WIDTH,
+            )}
+          >
+            <div className="flex items-center gap-2.5">
+              <NextLink
+                href={lh("/")}
+                aria-label="CaptureFlow"
+                className="group inline-flex items-center gap-2 text-fg"
               >
-                CaptureFlow
-              </span>
-            </NextLink>
-            <NavBetaChip />
-            {/* The links follow the logo so the bar fills across, with the
+                <Image
+                  src="/logo-96.png"
+                  alt=""
+                  width={28}
+                  height={28}
+                  unoptimized
+                  priority
+                  draggable={false}
+                />
+                <span
+                  className={cn(
+                    wordmark.className,
+                    "text-[17px] leading-none tracking-[-0.02em] text-fg",
+                  )}
+                >
+                  CaptureFlow
+                </span>
+              </NextLink>
+              <NavBetaChip />
+              {/* The links follow the logo so the bar fills across, with the
               actions on the right. Desktop/mobile split is CSS-gated (not JS
               breakpoints) so the server render matches the viewport — no
               mobile→desktop flip after hydration. */}
-            <nav
-              aria-label="Main"
-              className="ml-3.5 hidden items-center md:flex"
-              onMouseLeave={() => setHovered(null)}
-            >
-              {barLinks.map((link) => (
+              <nav
+                aria-label="Main"
+                className="ml-3.5 hidden items-center md:flex"
+                onMouseLeave={() => setHovered(null)}
+              >
+                {barLinks.map((link) => (
+                  <HoverSlot
+                    key={link.label}
+                    id={link.label}
+                    hovered={hovered}
+                    onHover={setHovered}
+                  >
+                    <NavLink href={link.href} external={link.external}>
+                      {link.label}
+                    </NavLink>
+                  </HoverSlot>
+                ))}
                 <HoverSlot
-                  key={link.label}
-                  id={link.label}
+                  id="Resources"
                   hovered={hovered}
                   onHover={setHovered}
                 >
-                  <NavLink href={link.href} external={link.external}>
-                    {link.label}
-                  </NavLink>
+                  <HoverMenu label="Resources" links={moreLinks} />
                 </HoverSlot>
-              ))}
-              <HoverSlot id="Resources" hovered={hovered} onHover={setHovered}>
-                <HoverMenu label="Resources" links={moreLinks} />
-              </HoverSlot>
-            </nav>
-          </div>
+              </nav>
+            </div>
 
-          {/* Discord lives under Resources and in the footer rather than
+            {/* Discord lives under Resources and in the footer rather than
             competing with the single CTA here; GitHub earns its place in the
             bar as the source link. */}
-          <div className="hidden items-center gap-5 md:flex">
-            <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={starLabel}
-              title={starLabel}
-              className={`${TEXT_LINK} inline-flex items-center gap-1.5`}
-            >
-              <GitHubIcon />
-              {/* tabular-nums so the bar doesn't shift width as the count grows
+            <div className="hidden items-center gap-5 md:flex">
+              <a
+                href={GITHUB_URL}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={starLabel}
+                title={starLabel}
+                className={`${TEXT_LINK} inline-flex items-center gap-1.5`}
+              >
+                <GitHubIcon />
+                {/* tabular-nums so the bar doesn't shift width as the count grows
                 into another digit between revalidations. */}
-              <span>
-                GitHub
-                {stars && <span className="tabular-nums"> ({stars})</span>}
-              </span>
-            </a>
-            <NextLink href={lh("/login")} className={TEXT_LINK}>
-              {m.nav.login}
-            </NextLink>
-            <ThemeToggle
-              initialTheme={DEFAULT_THEME}
-              className="h-9 w-9 rounded text-fg"
-            />
-            <NextLink href={lh("/download")} className={PILL_CTA}>
-              {m.nav.download}
-            </NextLink>
-          </div>
+                <span>
+                  GitHub
+                  {stars && <span className="tabular-nums"> ({stars})</span>}
+                </span>
+              </a>
+              <NextLink href={lh("/login")} className={TEXT_LINK}>
+                {m.nav.login}
+              </NextLink>
+              <ThemeToggle
+                initialTheme={DEFAULT_THEME}
+                className="h-9 w-9 rounded text-fg"
+              />
+              <NextLink href={lh("/download")} className={PILL_CTA}>
+                {m.nav.download}
+              </NextLink>
+            </div>
 
-          <div className="flex items-center gap-1 md:hidden">
-            <ThemeToggle
-              initialTheme={DEFAULT_THEME}
-              className="h-9 w-9 rounded text-fg"
-            />
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Open menu"
-              onClick={() => setMenuOpen(true)}
-            >
-              <MenuIcon size={20} />
-            </Button>
+            <div className="flex items-center gap-1 md:hidden">
+              <ThemeToggle
+                initialTheme={DEFAULT_THEME}
+                className="h-9 w-9 rounded text-fg"
+              />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Open menu"
+                onClick={() => setMenuOpen(true)}
+              >
+                <MenuIcon size={20} />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-        <SheetContent
-          side="right"
-          showCloseButton={false}
-          aria-describedby={undefined}
-          className="w-70 gap-2 p-4"
-        >
-          <SheetTitle className="sr-only">Menu</SheetTitle>
-          <nav aria-label="Main" className="flex flex-col items-stretch gap-2">
-            {menuLinks.map((link) => (
-              <NavLink
-                key={link.label}
-                href={link.href}
-                external={link.external}
-                block
-                onNavigate={closeMenu}
-              >
-                {link.label}
-              </NavLink>
-            ))}
-          </nav>
-          <NavLink href={GITHUB_URL} external block icon={<Star size={16} />}>
-            {starLabel}
-          </NavLink>
-          <NextLink
-            href={lh("/login")}
-            onClick={closeMenu}
-            className={cn(buttonVariants({ variant: "ghost" }), "w-full")}
+        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+          <SheetContent
+            side="right"
+            showCloseButton={false}
+            aria-describedby={undefined}
+            className="w-70 gap-2 p-4"
           >
-            {m.nav.login}
-          </NextLink>
-          <NextLink
-            href={lh("/download")}
-            onClick={closeMenu}
-            className={cn(buttonVariants(), "w-full")}
-          >
-            {m.nav.download}
-          </NextLink>
-        </SheetContent>
-      </Sheet>
-    </header>
+            <SheetTitle className="sr-only">Menu</SheetTitle>
+            <nav
+              aria-label="Main"
+              className="flex flex-col items-stretch gap-2"
+            >
+              {menuLinks.map((link) => (
+                <NavLink
+                  key={link.label}
+                  href={link.href}
+                  external={link.external}
+                  block
+                  onNavigate={closeMenu}
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+            </nav>
+            <NavLink href={GITHUB_URL} external block icon={<Star size={16} />}>
+              {starLabel}
+            </NavLink>
+            <NextLink
+              href={lh("/login")}
+              onClick={closeMenu}
+              className={cn(buttonVariants({ variant: "ghost" }), "w-full")}
+            >
+              {m.nav.login}
+            </NextLink>
+            <NextLink
+              href={lh("/download")}
+              onClick={closeMenu}
+              className={cn(buttonVariants(), "w-full")}
+            >
+              {m.nav.download}
+            </NextLink>
+          </SheetContent>
+        </Sheet>
+      </header>
+    </>
   );
 }
