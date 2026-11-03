@@ -12,18 +12,8 @@ import {
   Video,
   type LucideIcon,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { SectionProps } from "./_shared";
-import {
-  CARD_GRAY,
-  CARD_ZOOM,
-  FRAME_CARD,
-  FRAME_CELL,
-  FRAME_CELLS,
-  FrameHeader,
-  FrameSection,
-  PillLink,
-} from "./frame";
+import { FrameHeader, FrameSection, PillLink } from "./frame";
 import {
   CameraPreview,
   CanvasPreview,
@@ -35,6 +25,7 @@ import {
   TranscriptsPreview,
 } from "./highlight-previews";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
+import { PreviewTileGrid } from "./preview-tile";
 
 type TileKey =
   | "recording"
@@ -102,12 +93,6 @@ const TILES: readonly {
   },
 ];
 
-const ARCS = [
-  "right-[-44px] top-1 size-[272px] rounded-[118px] border-line/50",
-  "right-[-20px] top-7 size-[224px] rounded-[94px] border-line/75",
-  "right-1 top-[52px] size-44 rounded-[70px] border-line",
-];
-
 export function HighlightsSection({ headingLevel = 2 }: SectionProps = {}) {
   const copy = useMessages().highlights;
   const lh = useLocalizedHref();
@@ -119,40 +104,9 @@ export function HighlightsSection({ headingLevel = 2 }: SectionProps = {}) {
         level={headingLevel}
         action={<PillLink href={lh("/features")}>{copy.cta}</PillLink>}
       />
-      <ul className={cn(FRAME_CELLS, "list-none grid-cols-2 lg:grid-cols-4")}>
-        {TILES.map(({ key, Icon, color, Preview }) => (
-          <li key={key} className={cn(FRAME_CELL, FRAME_CARD, "relative h-40")}>
-            <div aria-hidden className="absolute inset-0">
-              {ARCS.map((arc) => (
-                <span key={arc} className={cn("absolute border", arc)} />
-              ))}
-            </div>
-            <div
-              aria-hidden
-              className="absolute top-[72px] -right-6 h-[120px] w-48 overflow-hidden rounded-2xl border border-line-strong max-sm:top-[84px]"
-            >
-              <div className={cn(CARD_ZOOM, CARD_GRAY, "size-full")}>
-                <Preview />
-              </div>
-            </div>
-            <Icon
-              aria-hidden
-              className={cn(
-                "absolute top-[22px] right-5 size-4 transition-colors duration-300 motion-reduce:transition-none [@media(hover:hover)]:not-group-hover/card:text-fg-muted",
-                color,
-              )}
-            />
-            <div className="relative p-5">
-              <h3 className="pr-6 text-[15px] leading-5 font-medium text-fg-strong">
-                {copy.items[key].title}
-              </h3>
-              <p className="mt-0.5 text-xs leading-4 text-fg-muted">
-                {copy.items[key].body}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <PreviewTileGrid
+        items={TILES.map((tile) => ({ ...tile, ...copy.items[tile.key] }))}
+      />
     </FrameSection>
   );
 }

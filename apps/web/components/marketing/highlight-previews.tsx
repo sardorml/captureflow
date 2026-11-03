@@ -138,8 +138,9 @@ export function ScreenshotsPreview() {
       <div className="mt-2.5 text-[8px] leading-none font-medium text-[#555555] blur-[2.5px]">
         jane@example.com
       </div>
-      <div className="mt-2.5 h-4 w-16 rounded-full bg-[#1184f7]" />
-      <span className="absolute top-[47px] left-2 h-[22px] w-[72px] rounded-full ring-[1.5px] ring-[#ef4444]" />
+      <div className="relative mt-2.5 h-4 w-16 rounded-full bg-[#1184f7]">
+        <span className="absolute -inset-1 rounded-full ring-[1.5px] ring-[#ef4444]" />
+      </div>
       <svg
         viewBox="0 0 192 120"
         fill="none"
@@ -148,7 +149,7 @@ export function ScreenshotsPreview() {
         className="absolute inset-0 size-full"
       >
         <path
-          d="M122 44L88 56m8-8l-8 8 11 3"
+          d="M122 46L84 62m8-8l-8 8 11 2"
           stroke="#ef4444"
           strokeWidth="2"
         />
