@@ -196,7 +196,7 @@ export const MESSAGES = {
     steps: [
       {
         title: "Connect your agent",
-        body: "Add CaptureFlow to Claude Code, Codex or Cursor with one line. You need Node.js 20 or newer, and your agent signs in once.",
+        body: "Add CaptureFlow to Claude Code, Codex or Cursor with one line. You need Node.js 20 or newer, and your agent signs in once. In Claude or ChatGPT, add it by URL.",
       },
       {
         title: "Ask for a video",
@@ -207,6 +207,14 @@ export const MESSAGES = {
         body: "Attach it to a pull request, post it to your team in Slack or send it to a customer. The link plays in any browser.",
       },
     ],
+    chats: {
+      claude:
+        "In Claude, open Customize, then Connectors, and choose Add custom connector. Name it CaptureFlow, paste this URL, then sign in.",
+      chatgpt:
+        "In ChatGPT on the web, open Plugins, press +, and choose Add custom MCP server. Name it CaptureFlow, paste this URL, choose OAuth, then install the plugin and sign in. Needs a Business, Enterprise or Edu plan.",
+      limits:
+        "Chats record websites in a cloud browser, not your computer, and use your plan's cloud agent minutes.",
+    },
   },
   modes: {
     cta: "Start recording",

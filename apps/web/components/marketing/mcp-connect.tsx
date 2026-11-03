@@ -3,18 +3,25 @@
 import { useState, type ReactNode } from "react";
 import { Check, Copy } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { MARKETING_SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { ClaudeLogo, CursorLogo, OpenAILogo } from "./platform-logos";
 import { useMessages } from "./i18n-provider";
 
 const NPX_ARGS = ["-y", "@captureflow/mcp"];
 const NPX_COMMAND = `npx ${NPX_ARGS.join(" ")}`;
+const HOSTED_MCP_URL = `${MARKETING_SITE_URL}/mcp`;
 
 const CURSOR_INSTALL = `cursor://anysphere.cursor-deeplink/mcp/install?name=captureflow&config=${btoa(
   JSON.stringify({ command: "npx", args: NPX_ARGS }),
 )}`;
 
-const AGENTS: { name: string; logo: ReactNode; command?: string }[] = [
+const AGENTS: {
+  name: string;
+  logo: ReactNode;
+  command?: string;
+  chat?: "claude" | "chatgpt";
+}[] = [
   {
     name: "Claude Code",
     logo: <ClaudeLogo className="size-4" />,
@@ -26,6 +33,18 @@ const AGENTS: { name: string; logo: ReactNode; command?: string }[] = [
     command: `codex mcp add captureflow -- ${NPX_COMMAND}`,
   },
   { name: "Cursor", logo: <CursorLogo className="size-4" /> },
+  {
+    name: "Claude",
+    logo: <ClaudeLogo className="size-4" />,
+    command: HOSTED_MCP_URL,
+    chat: "claude",
+  },
+  {
+    name: "ChatGPT",
+    logo: <OpenAILogo className="size-4" />,
+    command: HOSTED_MCP_URL,
+    chat: "chatgpt",
+  },
 ];
 
 function CopyCommand({ command }: { command: string }) {
@@ -54,7 +73,8 @@ function CopyCommand({ command }: { command: string }) {
   );
 }
 
-// One agent at a time: its tab, then the one line that adds the server.
+// One agent at a time: its tab, then what adds the server. Chat apps can't run
+// npx, so they connect to the hosted server by URL.
 export function McpConnectDetails() {
   const m = useMessages();
   const [picked, setPicked] = useState(0);
@@ -80,6 +100,11 @@ export function McpConnectDetails() {
           </button>
         ))}
       </div>
+      {agent.chat && (
+        <p className="text-[13px] leading-relaxed text-fg-muted">
+          {m.agents.chats[agent.chat]}
+        </p>
+      )}
       {agent.command ? (
         <CopyCommand command={agent.command} />
       ) : (
@@ -92,6 +117,11 @@ export function McpConnectDetails() {
         >
           {m.hero.mcpAddToCursor}
         </a>
+      )}
+      {agent.chat && (
+        <p className="text-[13px] leading-relaxed text-fg-muted">
+          {m.agents.chats.limits}
+        </p>
       )}
     </div>
   );

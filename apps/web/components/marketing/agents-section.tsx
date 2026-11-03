@@ -20,8 +20,8 @@ export function AgentsSection({ headingLevel = 2 }: SectionProps = {}) {
           <>
             <span className="font-medium text-fg">
               Works with <ClaudeLogo className={AGENT_LOGO} />
-              Claude Code, <OpenAILogo className={AGENT_LOGO} />
-              Codex and <CursorLogo className={AGENT_LOGO} />
+              Claude Code, Claude, <OpenAILogo className={AGENT_LOGO} />
+              Codex, ChatGPT and <CursorLogo className={AGENT_LOGO} />
               Cursor.
             </span>{" "}
             <span className="text-fg-muted">{m.agents.subtitle}</span>
