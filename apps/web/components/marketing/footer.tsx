@@ -1,10 +1,11 @@
 "use client";
 
 import NextLink from "next/link";
-import { TOKENS } from "./tokens";
 import { AppIcon } from "../brand-mark";
 import { DISCORD_URL } from "@/lib/marketing/constants";
 import { DOCS_URL, RELEASES_URL, SOURCE_REPO_URL } from "@/lib/site";
+import { cn } from "@/lib/utils";
+import { FRAME_WIDTH } from "./frame";
 import { useLocalizedHref } from "./i18n-provider";
 
 type FooterLink = { label: string; href: string; external?: boolean };
@@ -35,7 +36,6 @@ function FooterAnchor({ link }: { link: FooterLink }) {
 
 export function Footer() {
   const lh = useLocalizedHref();
-  const token = TOKENS;
 
   const columns: FooterColumn[] = [
     {
@@ -86,13 +86,12 @@ export function Footer() {
 
   return (
     <footer
-      style={{
-        marginTop: "auto",
-        background: token.colorBgContainer,
-        paddingBlock: "88px 56px",
-      }}
+      className={cn(
+        "mx-auto mt-auto w-full border-t border-line-strong bg-panel min-[1104px]:border-x",
+        FRAME_WIDTH,
+      )}
     >
-      <div className="w-full px-[clamp(20px,4vw,56px)]">
+      <div className="px-6 pt-12 pb-8 md:px-12">
         <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div className="flex flex-col gap-4">
             <NextLink

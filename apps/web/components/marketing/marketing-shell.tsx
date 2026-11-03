@@ -1,7 +1,6 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { SupportChat } from "./support-chat";
 import { TOKENS } from "./tokens";
 
 /*
@@ -14,14 +13,17 @@ import { TOKENS } from "./tokens";
  */
 export function MarketingShell({
   children,
+  className,
   style,
 }: {
   children: ReactNode;
+  className?: string;
   style?: CSSProperties;
 }) {
   return (
     <div
       data-marketing=""
+      className={className}
       style={{
         minHeight: "100vh",
         background: TOKENS.colorBgContainer,
@@ -30,7 +32,6 @@ export function MarketingShell({
       }}
     >
       {children}
-      <SupportChat />
     </div>
   );
 }

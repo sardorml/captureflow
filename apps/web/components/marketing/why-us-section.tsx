@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { FREE_TIER } from "@captureflow/quota";
 import {
   ourPlanFor,
@@ -14,7 +12,8 @@ import {
 import { track } from "@/lib/marketing/track";
 import { PRODUCT_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
-import { SectionHeading, WIDE_RAIL, type SectionProps } from "./_shared";
+import type { SectionProps } from "./_shared";
+import { FrameHeader, FrameSection, PillLink } from "./frame";
 import {
   CompareCell,
   OURS_BG,
@@ -105,19 +104,28 @@ export function WhyUsSection({
     { label: r.transcript, cells: [false, true, true, true] },
     { label: r.ai, cells: [false, false, true, true] },
     { label: r.openSource, cells: [false, true, false, true] },
-    { label: r.viewers, cells: [r.free, r.free, r.free, r.free] },
   ];
 
   return (
-    <div id="why-captureflow" className={cn("mt-24", WIDE_RAIL)}>
-      <SectionHeading
+    <FrameSection id="why-captureflow">
+      <FrameHeader
         title={copy.heading
           .replace("{product}", PRODUCT_NAME)
           .replace("{brand}", LOOM_BRAND)}
         subtitle={copy.subtitle}
         level={headingLevel}
+        action={
+          <PillLink
+            href={lh("/alternatives/loom")}
+            onClick={() =>
+              track("marketing_cta_clicked", { location: "pricing_why_us" })
+            }
+          >
+            {copy.cta}
+          </PillLink>
+        }
       />
-      <section className="overflow-hidden rounded-xl border border-line bg-panel">
+      <div className="border-t border-line-strong">
         <div className="overflow-x-auto">
           <div className={cn("grid min-w-200", GRID)}>
             <div className="px-6 py-3" />
@@ -155,22 +163,7 @@ export function WhyUsSection({
             ))}
           </div>
         </div>
-      </section>
-      <div className="mt-6 text-center">
-        <Link
-          href={lh("/alternatives/loom")}
-          onClick={() =>
-            track("marketing_cta_clicked", { location: "pricing_why_us" })
-          }
-          className="group inline-flex items-center gap-1.5 text-[15px] font-semibold text-fg transition-colors hover:text-fg/70 motion-reduce:transition-none"
-        >
-          {copy.cta}
-          <ArrowRight
-            size={16}
-            className="transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
-          />
-        </Link>
       </div>
-    </div>
+    </FrameSection>
   );
 }

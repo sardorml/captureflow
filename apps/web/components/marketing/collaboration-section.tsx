@@ -1,7 +1,15 @@
 "use client";
 
-import { MarketingSection, SectionHeading, WIDE_RAIL } from "./_shared";
-import { CARD_SURFACE } from "./tokens";
+import {
+  CARD_GRAY,
+  CARD_ZOOM,
+  FRAME_CARD,
+  FRAME_CELL,
+  FRAME_CELLS,
+  FrameHeader,
+  FrameSection,
+  PillLink,
+} from "./frame";
 import type { ComponentType } from "react";
 import { EditorScene } from "./editor-scene";
 import { EmbedScene } from "./embed-scene";
@@ -37,24 +45,30 @@ const CATEGORIES = [
 
 export function CollaborationSection() {
   const m = useMessages();
+  const lh = useLocalizedHref();
 
   return (
-    <MarketingSection id="capabilities" style={{ scrollMarginTop: 96 }}>
-      <SectionHeading
+    <FrameSection id="capabilities">
+      <FrameHeader
         title={m.collaboration.heading}
         subtitle={m.collaboration.subtitle}
+        action={
+          <PillLink href={lh("/login?mode=signup")}>
+            {m.collaboration.cta}
+          </PillLink>
+        }
       />
-      <div className={cn(WIDE_RAIL, "grid gap-5 lg:grid-cols-2")}>
+      <div className={FRAME_CELLS}>
         {CATEGORIES.map((cat) => (
           <CategoryCard key={cat.id} cat={cat} />
         ))}
       </div>
-    </MarketingSection>
+    </FrameSection>
   );
 }
 
-// One card per capability under the shared heading, each keeping its #anchor:
-// the scene on top, then an optional tag, the title and the body.
+// One row per capability under the shared heading, each keeping its #anchor:
+// the copy beside a scene that stays gray until the row is hovered.
 function CategoryCard({ cat }: { cat: (typeof CATEGORIES)[number] }) {
   const m = useMessages();
   const lh = useLocalizedHref();
@@ -69,28 +83,25 @@ function CategoryCard({ cat }: { cat: (typeof CATEGORIES)[number] }) {
     <article
       id={cat.id}
       className={cn(
-        CARD_SURFACE,
-        "flex flex-col rounded-xl p-6 sm:p-8 lg:p-10",
+        FRAME_CELL,
+        FRAME_CARD,
+        "grid items-center gap-8 p-6 md:grid-cols-2 md:gap-12 md:px-12 md:py-10",
       )}
-      style={{ scrollMarginTop: 96 }}
+      style={{ scrollMarginTop: 72 }}
     >
-      <cat.Scene />
-      <div className="mt-7 flex flex-col items-start">
-        {/* The tag row is always there, so every card's title sits on the
-            same line. */}
-        <div className="flex h-9 items-end">
+      <div className={cn(CARD_ZOOM, CARD_GRAY, "md:order-last")}>
+        <cat.Scene />
+      </div>
+      <div className="flex flex-col items-start">
+        <h3 className="flex flex-wrap items-center gap-2 text-2xl font-medium tracking-[-0.03em] text-fg-strong">
+          {feature.title}
           {tag && (
-            <span className="-ml-1.5 inline-block rounded-md bg-[#fde047] px-1.5 text-[20px] leading-tight font-semibold text-[#111]">
+            <span className="rounded-full bg-tint-strong px-2.5 py-0.5 text-xs font-medium tracking-normal text-fg">
               {tag}
             </span>
           )}
-        </div>
-        <h3 className="-ml-2 mt-2 inline-block rounded-md bg-canvas px-2 py-1 text-[24px] leading-tight font-semibold tracking-[-0.02em] text-fg-strong">
-          {feature.title}
         </h3>
-        <p className="mt-4 max-w-[560px] text-[17px] leading-[1.55] text-fg-muted">
-          {feature.body}
-        </p>
+        <p className="mt-3 text-lg leading-7 text-fg-muted">{feature.body}</p>
         <FeatureLink
           href={href}
           label={feature.cta}
@@ -111,12 +122,12 @@ function FeatureLink({
   location: string;
 }) {
   const className =
-    "group mt-5 inline-flex items-center gap-2 text-[16px] font-semibold text-[#1184f7] transition-colors hover:text-[#0071e2] dark:text-[#6ea8ff] dark:hover:text-[#9cc3ff]";
+    "group mt-5 inline-flex items-center gap-1.5 text-base font-medium text-fg transition-colors hover:text-fg/70 motion-reduce:transition-none";
   const onClick = () => track("marketing_cta_clicked", { location });
   const content = (
     <>
       {label}
-      <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
+      <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
     </>
   );
 

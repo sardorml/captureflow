@@ -1,8 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
-import { Check, Sparkle } from "lucide-react";
+import {
+  Bot,
+  Captions,
+  Check,
+  Clock,
+  Eraser,
+  MessageCircle,
+  Mic,
+  Minus,
+  Monitor,
+  Palette,
+  Scissors,
+  Sparkles,
+  Video,
+  type LucideIcon,
+} from "lucide-react";
+import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import {
   FREE_TIER,
   RECOMMENDED_SEAT_PLAN_ID,
@@ -14,8 +30,10 @@ import {
 import { TEAM_CHECKOUT_URL } from "@/lib/marketing/constants";
 import { track } from "@/lib/marketing/track";
 import { cn } from "@/lib/utils";
+import { RadioGroup } from "@/components/ui/radio-group";
+import { FRAME_CELLS, PILL_OUTLINE, PILL_SOLID } from "./frame";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
-import { RadioChoice, SeatsField } from "./pricing-fields";
+import { SeatsField } from "./pricing-fields";
 
 function fill(template: string, values: Record<string, string | number>) {
   return template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ""));
@@ -28,9 +46,36 @@ export const DEFAULT_SEATS = 5;
 export const GRADIENT_BORDER =
   "bg-[linear-gradient(165deg,#a855f7,#f97316_45%,#2563eb)]";
 
-// Four plans side by side: Free, Light and Pro at one price per member, and
-// Enterprise on custom terms. The copy reads its numbers from the quota
-// package so the page can't drift from what the server enforces.
+type PlanKey = "free" | "light" | "pro";
+type RowKey = keyof ReturnType<typeof useMessages>["pricing"]["plans"]["rows"];
+type RowValue = string | boolean;
+
+const ROW_ICONS: Record<RowKey, LucideIcon> = {
+  recordings: Video,
+  length: Clock,
+  quality: Monitor,
+  transcripts: Captions,
+  editing: Scissors,
+  chapters: Sparkles,
+  filler: Eraser,
+  feedback: MessageCircle,
+  agents: Bot,
+  voiceover: Mic,
+  branding: Palette,
+};
+
+const ROW_KEYS = Object.keys(ROW_ICONS) as RowKey[];
+const HEADER_ROWS = 3;
+
+// Every column spans the same grid rows through subgrid, so a row lines up
+// across plans however its text wraps. Below lg each plan stacks with its labels.
+const COLUMN =
+  "flex min-w-0 flex-col px-5 pt-6 pb-2 lg:grid lg:grid-rows-subgrid lg:[grid-row:span_var(--rows)]";
+const ROW_CELL =
+  "flex min-h-14 items-center gap-2.5 border-t border-line-strong py-3 text-sm";
+
+// The copy reads its numbers from the quota package so the page can't drift
+// from what the server enforces.
 export function PlanCards({
   onSeatsChange,
 }: {
@@ -54,29 +99,37 @@ export function PlanCards({
   const values = {
     recordings: FREE_TIER.recordingsPerPerson,
     minutes: Math.round(FREE_TIER.maxRecordingMs / 60_000),
-    seats,
-    members: seats === 1 ? copy.light.member : copy.light.members,
   };
-  const paid = (id: SeatPlanId, highlighted: boolean) => {
+  const rowValues = (plan: PlanKey) =>
+    ROW_KEYS.map((key) => {
+      const value: RowValue = copy.rows[key][plan];
+      return typeof value === "string" ? fill(value, values) : value;
+    });
+  const paid = (id: SeatPlanId) => {
     const plan = getSeatPlan(id);
     const planCopy = copy[id];
-    const perSeat = annual ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
     const yearly = (seatPriceUsd(seats, cycle, id) * 12).toLocaleString(
       "en-US",
     );
-    const planValues = { ...values, perSeat };
     return (
-      <PlanCard
-        highlighted={highlighted}
+      <PlanColumn
+        highlighted={RECOMMENDED_SEAT_PLAN_ID === id}
         badge={"badge" in planCopy ? planCopy.badge : undefined}
         name={planCopy.name}
         description={planCopy.description}
-        price={annual ? `$${yearly}` : `$${plan.priceMonthlyUsd}`}
-        priceKey={`${cycle}-${seats}`}
-        period={annual ? planCopy.periodAnnual : planCopy.period}
-        note={annual ? fill(planCopy.rateAnnual, planValues) : undefined}
-        featuresHeading={planCopy.featuresHeading}
-        features={planCopy.features.map((f) => fill(f, planValues))}
+        price={`$${annual ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd}`}
+        priceKey={`${cycle}-${id}`}
+        period={planCopy.period}
+        note={
+          annual
+            ? fill(planCopy.noteAnnual, {
+                yearly,
+                seats,
+                members: seats === 1 ? copy.member : copy.members,
+              })
+            : planCopy.noteMonthly
+        }
+        cells={rowValues(id)}
         cta={{
           label: planCopy.cta,
           href: teamHref,
@@ -87,8 +140,14 @@ export function PlanCards({
   };
 
   return (
-    <div>
-      <PricingControls
+    <div
+      className={cn(
+        FRAME_CELLS,
+        "gap-y-px md:grid-cols-3 lg:grid-cols-4 lg:gap-y-0",
+      )}
+      style={{ "--rows": HEADER_ROWS + ROW_KEYS.length } as CSSProperties}
+    >
+      <BillingColumn
         seats={seats}
         onSeatsChange={(n) => {
           setSeats(n);
@@ -97,45 +156,25 @@ export function PlanCards({
         cycle={cycle}
         onCycleChange={setCycle}
       />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <PlanCard
-          name={copy.free.name}
-          description={copy.free.description}
-          note={annual ? "" : undefined}
-          price="$0"
-          featuresHeading={copy.free.featuresHeading}
-          features={copy.free.features.map((f) => fill(f, values))}
-          cta={{
-            label: copy.free.cta,
-            href: lh("/download"),
-            onClick: () =>
-              track("marketing_cta_clicked", { location: "pricing_free" }),
-          }}
-        />
-        {paid("light", RECOMMENDED_SEAT_PLAN_ID === "light")}
-        {paid("pro", RECOMMENDED_SEAT_PLAN_ID === "pro")}
-        <PlanCard
-          name={copy.enterprise.name}
-          description={copy.enterprise.description}
-          note={annual ? "" : undefined}
-          price={copy.enterprise.price}
-          featuresHeading={copy.enterprise.featuresHeading}
-          features={copy.enterprise.features}
-          cta={{
-            label: copy.enterprise.cta,
-            href: lh("/enterprise"),
-            onClick: () =>
-              track("marketing_cta_clicked", {
-                location: "pricing_enterprise",
-              }),
-          }}
-        />
-      </div>
+      <PlanColumn
+        name={copy.free.name}
+        description={copy.free.description}
+        price="$0"
+        cells={rowValues("free")}
+        cta={{
+          label: copy.free.cta,
+          href: lh("/download"),
+          onClick: () =>
+            track("marketing_cta_clicked", { location: "pricing_free" }),
+        }}
+      />
+      {paid("light")}
+      {paid("pro")}
     </div>
   );
 }
 
-function PricingControls({
+function BillingColumn({
   seats,
   onSeatsChange,
   cycle,
@@ -146,31 +185,71 @@ function PricingControls({
   cycle: Cycle;
   onCycleChange: (cycle: Cycle) => void;
 }) {
-  const copy = useMessages().pricing.controls;
-  const cycles: { key: Cycle; label: string }[] = [
+  const m = useMessages();
+  const copy = m.pricing.controls;
+  const labelId = useId();
+  const cycles: { key: Cycle; label: string; trailing?: ReactNode }[] = [
+    {
+      key: "annual",
+      label: copy.annually,
+      trailing: (
+        <span className="rounded-full bg-tint-strong px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-fg">
+          {fill(copy.save, { percent: SEAT_ANNUAL_SAVING_PERCENT })}
+        </span>
+      ),
+    },
     { key: "monthly", label: copy.monthly },
-    { key: "annual", label: copy.annually },
   ];
 
   return (
-    <div className="mb-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-      <SeatsField seats={seats} onChange={onSeatsChange} />
-      <RadioChoice
-        label={copy.billing}
-        value={cycle}
-        options={cycles}
-        onChange={onCycleChange}
-        trailing={
-          <span className="inline-flex items-center rounded bg-primary/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent-strong uppercase">
-            {fill(copy.save, { percent: SEAT_ANNUAL_SAVING_PERCENT })}
-          </span>
-        }
-      />
+    <div className={cn(COLUMN, "bg-canvas md:col-span-3 lg:col-span-1")}>
+      <div className="pb-5">
+        <h3 id={labelId} className="text-lg font-medium tracking-[-0.025em]">
+          {copy.title}
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-fg-muted">
+          {copy.note}
+        </p>
+      </div>
+      <div className="pb-6 lg:row-span-2">
+        <div className="border-t border-line-strong py-3">
+          <SeatsField seats={seats} onChange={onSeatsChange} compact />
+        </div>
+        <RadioGroup
+          value={cycle}
+          onValueChange={(v) => onCycleChange(v as Cycle)}
+          aria-labelledby={labelId}
+          className="gap-0"
+        >
+          {cycles.map((option) => (
+            <RadioGroupPrimitive.Item
+              key={option.key}
+              value={option.key}
+              className="group flex min-h-11 cursor-pointer items-center gap-2.5 border-t border-line-strong text-sm text-fg-muted outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[state=checked]:text-fg"
+            >
+              <span className="flex size-[18px] shrink-0 items-center justify-center rounded-full border border-fg/40 group-data-[state=checked]:border-fg">
+                <span className="size-2.5 scale-0 rounded-full bg-fg transition-transform group-data-[state=checked]:scale-100 motion-reduce:transition-none" />
+              </span>
+              {option.label}
+              <span className="ml-auto">{option.trailing}</span>
+            </RadioGroupPrimitive.Item>
+          ))}
+        </RadioGroup>
+      </div>
+      {ROW_KEYS.map((key) => {
+        const Icon = ROW_ICONS[key];
+        return (
+          <div key={key} className={cn(ROW_CELL, "hidden lg:flex")}>
+            <Icon size={16} className="shrink-0 text-fg-muted" />
+            <span>{m.pricing.plans.rows[key].label}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-function PlanCard({
+function PlanColumn({
   name,
   badge,
   description,
@@ -178,8 +257,7 @@ function PlanCard({
   priceKey,
   period,
   note,
-  featuresHeading,
-  features,
+  cells,
   cta,
   highlighted = false,
 }: {
@@ -190,86 +268,73 @@ function PlanCard({
   priceKey?: string;
   period?: string;
   note?: string;
-  featuresHeading: string;
-  features: readonly string[];
+  cells: readonly RowValue[];
   cta: { label: string; href: string; onClick: () => void };
   highlighted?: boolean;
 }) {
-  const card = (
-    <div
-      className={cn(
-        "flex h-full flex-col text-fg",
-        highlighted
-          ? "rounded-[calc(var(--radius-xl)-2px)] p-[23px] sm:px-[31px] sm:py-[27px] bg-[color-mix(in_oklab,var(--accent)_8%,var(--cf-panel))]"
-          : "rounded-xl border border-line bg-panel p-6 sm:px-8 sm:py-7",
-      )}
-    >
-      <div
-        className={cn(
-          "mb-4 min-h-7 items-center",
-          badge ? "flex" : "hidden xl:flex",
-        )}
-      >
-        {badge && (
-          <span className="inline-flex items-center rounded bg-primary/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent-strong uppercase">
-            {badge}
-          </span>
-        )}
+  const copy = useMessages().pricing.plans;
+  return (
+    <div className={cn(COLUMN, highlighted ? "bg-emphasis" : "bg-canvas")}>
+      <div className="pb-5">
+        <div className="flex min-h-7 items-center justify-between gap-2">
+          <h3 className="text-lg font-medium tracking-[-0.025em]">{name}</h3>
+          {badge && (
+            <span className="rounded-full border border-line-strong px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-fg">
+              {badge}
+            </span>
+          )}
+        </div>
+        <p className="mt-2 text-sm leading-relaxed text-fg-muted">
+          {description}
+        </p>
       </div>
-      <h3 className="flex items-start gap-1 text-4xl font-bold tracking-[-0.03em]">
-        {name}
-        {highlighted && (
-          <Sparkle size={16} className="shrink-0 fill-current text-fg" />
-        )}
-      </h3>
-      <p
-        className={cn(
-          "mt-2 min-h-[3lh] text-[15px] leading-relaxed",
-          "text-fg-muted",
-        )}
-      >
-        {description}
-      </p>
-
-      <p className="mt-4 text-4xl font-bold tracking-[-0.03em]">
+      <p className="pb-5 text-4xl font-medium tracking-[-0.04em]">
         <span key={priceKey} className="animate-storage-pop inline-block">
           {price}
         </span>
         {period && (
-          <span className="ms-2 align-baseline text-sm font-normal text-fg-muted">
+          <span className="ms-1.5 text-lg font-normal tracking-normal text-fg-muted">
             {period}
           </span>
         )}
       </p>
-      {note !== undefined && (
-        <p className="mt-1 min-h-10 text-sm text-fg-muted">{note}</p>
-      )}
-
-      <Link
-        href={cta.href}
-        onClick={cta.onClick}
-        className={cn(
-          "mt-5 inline-flex h-11 w-fit shrink-0 items-center justify-center rounded-[10px] px-6 text-sm font-semibold transition-colors motion-reduce:transition-none",
-          highlighted
-            ? "bg-primary text-white hover:bg-primary/90"
-            : "bg-fg-strong/10 text-fg-strong hover:bg-fg-strong/15",
+      <div className="pb-6">
+        <Link
+          href={cta.href}
+          onClick={cta.onClick}
+          className={cn(
+            highlighted ? PILL_SOLID : PILL_OUTLINE,
+            "w-full px-3 text-sm",
+          )}
+        >
+          {cta.label}
+        </Link>
+        {note && (
+          <p className="mt-3 text-center text-[13px] leading-snug text-fg-muted">
+            {note}
+          </p>
         )}
-      >
-        {cta.label}
-      </Link>
-
-      <p className="mt-6 text-sm font-semibold">{featuresHeading}</p>
-      <ul className="mt-3 flex list-none flex-col gap-2.5">
-        {features.map((label) => (
-          <li key={label} className="flex items-start gap-2.5 text-[15px]">
-            <Check size={16} className={cn("mt-1 shrink-0", "text-fg-muted")} />
-            <span>{label}</span>
-          </li>
-        ))}
-      </ul>
+      </div>
+      {cells.map((value, i) => (
+        <div key={ROW_KEYS[i]} className={ROW_CELL}>
+          <span className="flex-1 text-fg-muted lg:hidden">
+            {copy.rows[ROW_KEYS[i]!].label}
+          </span>
+          {value === false ? (
+            <Minus
+              size={16}
+              aria-label={copy.notIncluded}
+              className="shrink-0 text-fg-subtle"
+            />
+          ) : (
+            <Check size={16} className="shrink-0 text-fg" aria-hidden />
+          )}
+          {value === true && (
+            <span className="sr-only lg:not-sr-only">{copy.included}</span>
+          )}
+          {typeof value === "string" && <span>{value}</span>}
+        </div>
+      ))}
     </div>
   );
-
-  if (!highlighted) return card;
-  return <div className={cn("rounded-xl p-0.5", GRADIENT_BORDER)}>{card}</div>;
 }

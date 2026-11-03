@@ -14,6 +14,9 @@ import { Footer } from "@/components/marketing/footer";
 import { I18nProvider } from "@/components/marketing/i18n-provider";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { JsonLd } from "@/components/marketing/json-ld";
+import { BottomBar } from "@/components/marketing/announcement-bars";
+import { Frame } from "@/components/marketing/frame";
+import { marketingFont } from "@/components/marketing/marketing-font";
 import {
   APP_SCHEMA,
   FAQ_SCHEMA,
@@ -51,26 +54,27 @@ export const metadata: Metadata = {
 export default function RootPage() {
   return (
     <I18nProvider>
-      <MarketingShell>
+      <MarketingShell className={marketingFont.className}>
         <JsonLd
           data={[WEBSITE_SCHEMA, ORGANIZATION_SCHEMA, APP_SCHEMA, FAQ_SCHEMA]}
         />
         <Nav />
-        {/* No page-rise here: the hero's sky runs up behind the nav, and
-            blurring it in on load reads as a burst rather than an arrival. */}
         <main>
-          <HeroSection />
-          <AgentsSection />
-          <ModesIntro />
-          <CollaborationSection />
-          <HighlightsSection />
-          <UseCasesSection />
-          <PricingSection />
-          <FaqSection />
-          <LiveRepoActivity />
-          <CtaSection />
+          <Frame>
+            <HeroSection />
+            <ModesIntro />
+            <AgentsSection />
+            <CollaborationSection />
+            <HighlightsSection />
+            <UseCasesSection />
+            <PricingSection />
+            <FaqSection />
+            <LiveRepoActivity />
+            <CtaSection />
+          </Frame>
         </main>
         <Footer />
+        <BottomBar />
       </MarketingShell>
     </I18nProvider>
   );

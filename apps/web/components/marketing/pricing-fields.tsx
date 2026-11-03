@@ -14,17 +14,30 @@ export const MAX_SEATS = 9999;
 export function SeatsField({
   seats,
   onChange,
+  compact = false,
 }: {
   seats: number;
   onChange: (seats: number) => void;
+  compact?: boolean;
 }) {
   const copy = useMessages().pricing.controls;
   const inputId = useId();
   return (
     <div
-      className={cn("flex flex-row items-center gap-3", LANDING_FORM_FIELDS)}
+      className={cn(
+        "flex flex-row items-center gap-3",
+        compact && "justify-between",
+        LANDING_FORM_FIELDS,
+      )}
     >
-      <Label htmlFor={inputId} className="text-base font-semibold text-fg">
+      <Label
+        htmlFor={inputId}
+        className={
+          compact
+            ? "text-sm font-normal text-fg"
+            : "text-base font-semibold text-fg"
+        }
+      >
         {copy.teamSize}
       </Label>
       <Input
@@ -41,9 +54,11 @@ export function SeatsField({
         max={MAX_SEATS}
         inputMode="numeric"
         autoComplete="off"
-        className="w-24 text-center tabular-nums"
+        className={cn("text-center tabular-nums", compact ? "w-20" : "w-24")}
       />
-      <span className="text-base text-fg-muted">{copy.members}</span>
+      {!compact && (
+        <span className="text-base text-fg-muted">{copy.members}</span>
+      )}
     </div>
   );
 }
