@@ -599,7 +599,7 @@ export function ModesIntro({ headingLevel = 2 }: SectionProps = {}) {
           </p>
           <InstallButton
             href={CHROME_WEBSTORE_URL ?? lh("/download")}
-            label={m.hero.installChrome}
+            label={m.modes.cta}
             icon={<ChromeLogoColor className="size-6" />}
             location="modes_chrome"
             primary

@@ -190,6 +190,7 @@ export const MESSAGES = {
     ],
   },
   modes: {
+    cta: "Start recording",
     heading: "Record your screen with the Chrome extension",
     subtitle:
       "Install it and press record. When you finish, you get a link anyone can watch, with a title, summary, chapters and transcript.",
