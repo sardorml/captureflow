@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { MarketingPage } from "@/components/marketing/marketing-page";
+import { PageHero } from "@/components/marketing/page-hero";
 import { PricingSection } from "@/components/marketing/pricing-section";
 
 export const metadata: Metadata = {
@@ -12,7 +13,8 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <MarketingPage>
-      <PricingSection headingLevel={1} showTable />
+      <PageHero page="pricing" />
+      <PricingSection hideHeading showTable />
     </MarketingPage>
   );
 }
