@@ -54,18 +54,7 @@ export function SceneFrame({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
-  const [visible, setVisible] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const [step, setStep] = useState(0);
-  const playing = visible && !reducedMotion;
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReducedMotion(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
+  const { step, playing } = useSceneLoop(ref, steps, loopMs);
 
   useEffect(() => {
     const el = ref.current;
@@ -77,30 +66,8 @@ export function SceneFrame({
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(el);
-    const io = new IntersectionObserver(([entry]) =>
-      setVisible(entry.isIntersecting),
-    );
-    io.observe(el);
-    return () => {
-      ro.disconnect();
-      io.disconnect();
-    };
+    return () => ro.disconnect();
   }, []);
-
-  useEffect(() => {
-    if (reducedMotion) {
-      setStep(steps.length - 1);
-      return;
-    }
-    if (!visible) return;
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    const run = () => {
-      steps.forEach((at, i) => timers.push(setTimeout(() => setStep(i), at)));
-      timers.push(setTimeout(run, loopMs));
-    };
-    run();
-    return () => timers.forEach(clearTimeout);
-  }, [steps, loopMs, visible, reducedMotion]);
 
   return (
     <div
@@ -134,6 +101,52 @@ export function SceneFrame({
       </div>
     </div>
   );
+}
+
+// Steps through `steps` while `ref` is on screen; reduced motion holds the last.
+export function useSceneLoop(
+  ref: RefObject<HTMLElement | null>,
+  steps: readonly number[],
+  loopMs: number,
+): SceneState {
+  const [visible, setVisible] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) =>
+      setVisible(entry.isIntersecting),
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setStep(steps.length - 1);
+      return;
+    }
+    if (!visible) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const run = () => {
+      steps.forEach((at, i) => timers.push(setTimeout(() => setStep(i), at)));
+      timers.push(setTimeout(run, loopMs));
+    };
+    run();
+    return () => timers.forEach(clearTimeout);
+  }, [steps, loopMs, visible, reducedMotion]);
+
+  return { step, playing: visible && !reducedMotion };
 }
 
 // Runs `keyframes` across one loop while the scene plays, restarting with it.
