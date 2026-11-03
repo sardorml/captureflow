@@ -59,8 +59,8 @@ export function CollaborationSection() {
         }
       />
       <div className={FRAME_CELLS}>
-        {CATEGORIES.map((cat) => (
-          <CategoryCard key={cat.id} cat={cat} />
+        {CATEGORIES.map((cat, index) => (
+          <CategoryCard key={cat.id} cat={cat} sceneFirst={index % 2 === 1} />
         ))}
       </div>
     </FrameSection>
@@ -69,7 +69,13 @@ export function CollaborationSection() {
 
 // One row per capability under the shared heading, each keeping its #anchor:
 // the copy beside a scene that stays gray until the row is hovered.
-function CategoryCard({ cat }: { cat: (typeof CATEGORIES)[number] }) {
+function CategoryCard({
+  cat,
+  sceneFirst,
+}: {
+  cat: (typeof CATEGORIES)[number];
+  sceneFirst: boolean;
+}) {
   const m = useMessages();
   const lh = useLocalizedHref();
   const { feature } = m.collaboration.categories[cat.kind];
@@ -82,17 +88,20 @@ function CategoryCard({ cat }: { cat: (typeof CATEGORIES)[number] }) {
   return (
     <article
       id={cat.id}
-      className={cn(
-        FRAME_CELL,
-        FRAME_CARD,
-        "grid items-center gap-8 p-6 md:grid-cols-2 md:gap-12 md:px-12 md:py-10",
-      )}
+      className={cn(FRAME_CELL, FRAME_CARD, "grid md:grid-cols-2")}
       style={{ scrollMarginTop: 72 }}
     >
-      <div className={cn(CARD_ZOOM, CARD_GRAY, "md:order-last")}>
+      <div
+        className={cn(
+          CARD_ZOOM,
+          CARD_GRAY,
+          "p-3 motion-safe:group-hover/card:scale-[1.01] motion-safe:group-focus-within/card:scale-[1.01]",
+          !sceneFirst && "md:order-last",
+        )}
+      >
         <cat.Scene />
       </div>
-      <div className="flex flex-col items-start">
+      <div className="flex flex-col items-start justify-center p-6 md:px-12 md:py-10">
         <h3 className="flex flex-wrap items-center gap-2 text-2xl font-medium tracking-[-0.03em] text-fg-strong">
           {feature.title}
           {tag && (
