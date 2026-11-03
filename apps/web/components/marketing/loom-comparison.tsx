@@ -35,7 +35,7 @@ const ROWS: ReadonlyArray<{
   {
     label: "Pricing",
     loom: "Per person, $18–24 a month each",
-    captureflow: `From $${CAPTUREFLOW_PER_SEAT} a month per member, viewers free`,
+    captureflow: `From $${CAPTUREFLOW_PER_SEAT} a month per member`,
   },
   {
     label: "Free plan",

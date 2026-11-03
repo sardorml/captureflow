@@ -166,7 +166,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     discountBadge: null,
     pricingHeading: "Choose the plan that fits your team",
     pricingSubheading:
-      "Free covers your first recordings. Paid plans are one price per member, and viewers are always free.",
+      "Free covers your first recordings. Paid plans are one price per member.",
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -207,7 +207,7 @@ export const STAGE_CONFIG: Record<LaunchStage, StageConfig> = {
     discountBadge: null,
     pricingHeading: "Choose the plan that fits your team",
     pricingSubheading:
-      "Free covers your first recordings. Paid plans are one price per member, and viewers are always free.",
+      "Free covers your first recordings. Paid plans are one price per member.",
     pricingButtonLabel: "Get started",
     priceFootnote: "Cancel anytime.",
   },
@@ -323,7 +323,7 @@ export const APP_SCHEMA = {
       price: String(plan.priceMonthlyUsd),
       priceCurrency: "USD",
       name: plan.name,
-      description: `Fully managed hosting at $${plan.priceMonthlyUsd} per member a month: unlimited recordings${plan.maxQuality ? " in data saver quality" : " in full quality with AI chapters and titles"}, free viewers`,
+      description: `Fully managed hosting at $${plan.priceMonthlyUsd} per member a month: unlimited recordings${plan.maxQuality ? " in data saver quality" : " in full quality with AI chapters and titles"}`,
     })),
   ],
 };

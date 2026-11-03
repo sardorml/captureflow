@@ -5,7 +5,7 @@ import { PricingSection } from "@/components/marketing/pricing-section";
 export const metadata: Metadata = {
   title: "Pricing: free to start, one price per member",
   description:
-    "Start free with 25 recordings. Light and Pro are one price per member with unlimited recordings and AI, and viewers are always free. Or self-host CaptureFlow free.",
+    "Start free with 25 recordings. Light and Pro are one price per member with unlimited recordings and AI. Or self-host CaptureFlow free.",
   alternates: { canonical: "/pricing" },
 };
 
