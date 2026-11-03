@@ -40,11 +40,18 @@ export function PreviewTileGrid({
     <ul
       className={cn(
         FRAME_CELLS,
-        "list-none grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+        "list-none grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
       )}
     >
       {items.map(({ key, title, body, tag, Icon, color, Preview }) => (
-        <li key={key} className={cn(FRAME_CELL, FRAME_CARD, "relative h-40")}>
+        <li
+          key={key}
+          className={cn(
+            FRAME_CELL,
+            FRAME_CARD,
+            "relative h-40 sm:max-lg:last:col-span-2",
+          )}
+        >
           <div
             aria-hidden
             className="absolute inset-0 max-sm:translate-y-3"

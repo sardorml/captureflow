@@ -3,6 +3,7 @@
 import type { ComponentType } from "react";
 import {
   Captions,
+  Eraser,
   FileText,
   Image as ImageIcon,
   MessageCircle,
@@ -19,6 +20,7 @@ import {
   CanvasPreview,
   EditingPreview,
   FeedbackPreview,
+  FillerPreview,
   RecordingPreview,
   ScreenshotsPreview,
   SummaryPreview,
@@ -35,7 +37,8 @@ type TileKey =
   | "canvas"
   | "screenshots"
   | "feedback"
-  | "summary";
+  | "summary"
+  | "filler";
 
 const TILES: readonly {
   key: TileKey;
@@ -60,6 +63,12 @@ const TILES: readonly {
     Icon: FileText,
     color: "text-blue-500",
     Preview: SummaryPreview,
+  },
+  {
+    key: "filler",
+    Icon: Eraser,
+    color: "text-pink-500",
+    Preview: FillerPreview,
   },
   {
     key: "recording",

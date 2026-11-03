@@ -129,6 +129,38 @@ export function EditingPreview() {
   );
 }
 
+function Filler({ children }: { children: ReactNode }) {
+  return (
+    <span className="rounded-sm bg-[rgb(239_68_68/0.25)] px-0.5 text-[#fca5a5] line-through">
+      {children}
+    </span>
+  );
+}
+
+export function FillerPreview() {
+  return (
+    <div className="flex size-full flex-col gap-1.5 bg-[#1b2233] p-2.5 text-[8px] leading-tight font-medium text-[#dbe3f7]">
+      <Line time="0:02">
+        <Filler>Um,</Filler> here is the new flow.
+      </Line>
+      <Line time="0:05">
+        First, <Filler>uh,</Filler> pick a workspace.
+      </Line>
+      <Line time="0:09">
+        Then, <Filler>um,</Filler> share the link.
+      </Line>
+      <div className="mt-1 flex h-4 w-[148px] gap-0.5">
+        <span className="w-1.5 rounded-sm bg-[rgb(239_68_68/0.5)]" />
+        <span className="flex-[3] rounded-sm bg-[#60a5fa]" />
+        <span className="w-1.5 rounded-sm bg-[rgb(239_68_68/0.5)]" />
+        <span className="flex-[3] rounded-sm bg-[#60a5fa]" />
+        <span className="w-1.5 rounded-sm bg-[rgb(239_68_68/0.5)]" />
+        <span className="flex-[2] rounded-sm bg-[#60a5fa]" />
+      </div>
+    </div>
+  );
+}
+
 export function CameraPreview() {
   return (
     <div className="relative size-full bg-[linear-gradient(135deg,#6d4fb3,#2f80ff)]">

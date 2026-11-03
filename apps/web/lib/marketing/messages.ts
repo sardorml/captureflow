@@ -135,6 +135,11 @@ export const MESSAGES = {
         body: "With a title for each video",
         tag: "AI",
       },
+      filler: {
+        title: "Auto filler removal",
+        body: "Cuts out ums and uhs",
+        tag: "AI",
+      },
     },
     cta: "See all features",
   },
