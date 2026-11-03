@@ -111,11 +111,6 @@ export function McpConnectDetails() {
               a !== agent && "invisible",
             )}
           >
-            {a.chat && (
-              <p className="text-[13px] leading-relaxed text-fg-muted">
-                {m.agents.chats[a.chat]}
-              </p>
-            )}
             {a.command ? (
               <CopyCommand command={a.command} />
             ) : (
@@ -123,11 +118,16 @@ export function McpConnectDetails() {
                 href={CURSOR_INSTALL}
                 className={cn(
                   buttonVariants({ variant: "secondary", size: "sm" }),
-                  "w-fit rounded-lg",
+                  "w-fit rounded-lg transition-colors",
                 )}
               >
                 {m.hero.mcpAddToCursor}
               </a>
+            )}
+            {a.chat && (
+              <p className="text-[13px] leading-relaxed text-fg-muted">
+                {m.agents.chats[a.chat]}
+              </p>
             )}
             {a.chat && (
               <p className="text-[13px] leading-relaxed text-fg-muted">
