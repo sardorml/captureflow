@@ -105,7 +105,7 @@ function CategoryCard({
         <h3 className="flex flex-wrap items-center gap-2 text-2xl font-medium tracking-[-0.03em] text-fg-strong">
           {feature.title}
           {tag && (
-            <span className="rounded-full bg-tint-strong px-2.5 py-0.5 text-xs font-medium tracking-normal text-fg">
+            <span className="rounded-full bg-[#fde047] px-2.5 py-0.5 text-xs font-medium tracking-normal text-[#111]">
               {tag}
             </span>
           )}
