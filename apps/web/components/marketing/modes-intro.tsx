@@ -254,7 +254,7 @@ function useOnScreen(ref: React.RefObject<HTMLElement | null>): boolean {
   return onScreen;
 }
 
-export function useReducedMotion(): boolean {
+function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");

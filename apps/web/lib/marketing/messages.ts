@@ -107,14 +107,14 @@ export const MESSAGES = {
     },
   },
   highlights: {
-    heading: "Everything you need, built in",
+    heading: "All features",
     subtitle: "Record, edit and share. It all lives in one place.",
     items: {
       recording: { title: "Screen and camera", body: "Record both at once" },
       transcripts: { title: "AI transcripts", body: "In 99 languages" },
       editing: {
         title: "Transcript editing",
-        body: "Cut a sentence, cut the clip",
+        body: "Delete text to cut the video",
       },
       camera: { title: "Camera effects", body: "Backgrounds and filters" },
       canvas: { title: "Infinite canvas", body: "Sketch while you record" },
@@ -131,26 +131,26 @@ export const MESSAGES = {
     cta: "See all features",
   },
   useCases: {
-    heading: "Video messages for every team",
+    heading: "How teams use it",
     subtitle:
-      "Say it once, on video. Everyone on the team watches from one link, in any browser.",
+      "Examples of what teams record. Each video is a link that plays in any browser.",
     cta: "See how it works",
     cards: {
       engineering: {
         title: "Engineering",
-        body: "Walk through a PR or a bug repro so reviewers see the code run.",
+        body: "Record a walkthrough of a PR or a bug repro.",
       },
       design: {
         title: "Design",
-        body: "Talk through a mockup and collect feedback without booking a review.",
+        body: "Record a walkthrough of a mockup and collect comments.",
       },
       support: {
         title: "Customer support",
-        body: "Answer the ticket with a short walkthrough instead of ten steps of text.",
+        body: "Answer a ticket with a short walkthrough.",
       },
       updates: {
         title: "Team updates",
-        body: "Record the weekly update once and let everyone watch it when they can.",
+        body: "Record the weekly update and share the link.",
       },
     },
     engineeringFile: "checkout.ts",
@@ -170,9 +170,8 @@ export const MESSAGES = {
     updatesFeatures: "features",
   },
   agents: {
-    heading: "Let your agent make the",
+    heading: "Or ask your AI agent to record your demos and how-tos",
     cta: "Read the guide",
-    headingWords: ["demo", "how-to", "bug report", "presentation"],
     subtitle:
       "Ask in plain words. It records a browser, your screen or an app on your own computer, adds slides and a voiceover if you want, and hands you a link.",
     steps: [
@@ -191,9 +190,9 @@ export const MESSAGES = {
     ],
   },
   modes: {
-    heading: "Hit record and talk it through",
+    heading: "Record your screen with the Chrome extension",
     subtitle:
-      "CaptureFlow does the rest. It writes the title, summary, chapters and transcript, then hands you a link anyone can watch.",
+      "Install it and press record. When you finish, you get a link anyone can watch, with a title, summary, chapters and transcript.",
     scene: {
       timer: "0:42",
       heading: "How a refund works",
@@ -250,17 +249,17 @@ export const MESSAGES = {
     },
   },
   collaboration: {
-    heading: "Recording is just the start",
+    heading: "What you can do after recording",
     cta: "Try it free",
     subtitle:
-      "Clean it up, embed it anywhere and get feedback. Your team keeps every video in one workspace.",
+      "Edit it, share or embed it, and get comments. Recordings are kept in a team workspace.",
     categories: {
       share: {
         feature: {
           tag: "new",
-          title: "Clean it up before you share",
-          cta: "Record now",
-          body: "Every recording gets an AI transcript, and you edit the video from it: cut a sentence, strip the filler words, add a background, move or resize your camera. Your link stays the same, so everyone sees the new version straight away.",
+          title: "Edit your video",
+          cta: "Install the extension",
+          body: "Every recording gets a transcript. Delete a sentence from it to cut that part of the video. You can also change the background and move or resize your camera. Edits appear on the same link.",
         },
         scene: {
           app: "Launch plan",
@@ -288,9 +287,9 @@ export const MESSAGES = {
       },
       embed: {
         feature: {
-          title: "Share or embed it anywhere you work",
-          cta: "Start sharing",
-          body: "Paste the link into Slack, GitHub, Notion or an email and it shows up with a preview. Embed the player in your docs or site, and with the extension it plays right inside GitHub issues and pull requests.",
+          title: "Share or embed your video",
+          cta: "Install the extension",
+          body: "Paste the link into Slack, GitHub, Notion or an email and it shows a preview. You can also embed the player in your docs or site. With the extension installed, it plays inside GitHub issues and pull requests.",
         },
         scene: {
           question: "Can you show me how to invite my team to the workspace?",
@@ -310,9 +309,9 @@ export const MESSAGES = {
       },
       feedback: {
         feature: {
-          title: "Get feedback right on the video",
-          cta: "Start collecting feedback",
-          body: "Viewers react with emojis and leave comments right on the timeline, at the exact moment they mean. Every reply stays with the video, so the conversation moves forward without another meeting.",
+          title: "Get comments and reactions",
+          cta: "Sign in",
+          body: "Viewers can react with emojis and leave comments on the timeline. Each comment is tied to a point in the video, and replies stay with it.",
         },
         scene: {
           title: "Launch plan walkthrough",
@@ -348,9 +347,9 @@ export const MESSAGES = {
       },
       workspaces: {
         feature: {
-          title: "Workspaces for your whole team",
-          cta: "Invite your team",
-          body: "Invite your teammates to a workspace and everyone's recordings live in one place. Share a video with anyone, keep it inside the workspace, or keep it to yourself until it's ready.",
+          title: "Invite your team to a workspace",
+          cta: "Create a workspace",
+          body: "Everyone's recordings are kept in one workspace. Each video can be public, visible to the workspace, or private.",
         },
         scene: {
           team: "CaptureFlow team",
@@ -550,7 +549,7 @@ export const MESSAGES = {
     },
   },
   pricing: {
-    heading: "Choose the plan that fits your team",
+    heading: "Pricing",
     cta: "Compare all plans",
     subheading:
       "Free covers your first recordings. Paid plans are one price per member.",
@@ -565,7 +564,7 @@ export const MESSAGES = {
       save: "Save {percent}%",
     },
     whyUs: {
-      heading: "Why choose us",
+      heading: "How we compare",
       subtitle:
         "A leading competitor's plans beside ours, priced for your team size.",
       rows: {
@@ -1038,7 +1037,7 @@ export const MESSAGES = {
     },
   },
   activity: {
-    heading: "Built in the open",
+    heading: "Latest changes on GitHub",
     subtitle:
       "Every change is public. These are the latest pull requests and open issues on GitHub.",
     cta: "View on GitHub",
@@ -1081,7 +1080,7 @@ export const MESSAGES = {
     ],
   },
   cta: {
-    headline: "Ready to record?",
+    headline: "Start recording",
     subtitle:
       "Free download. No credit card. Say it in a quick video message instead of another meeting.",
     button: "Try CaptureFlow for free",
@@ -1226,7 +1225,7 @@ export const MESSAGES = {
   download: {
     heading: "Download CaptureFlow",
     subtitle:
-      "Record your screen and get an instant share link, free and open source. Self-host on your own Cloudflare account, with screenshots and workspaces included.",
+      "Available for Chrome, with a macOS app coming soon. Each recording gets a link you can share.",
     button: "Download for macOS",
     requires: "Requires {version} or later on Apple Silicon.",
     requirements: "Requires macOS 14 or later on Apple Silicon.",
