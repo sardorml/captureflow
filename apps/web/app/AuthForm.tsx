@@ -9,6 +9,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -31,6 +32,10 @@ type Mode = "signin" | "signup";
 // name on signup) on a second step, so the entry screen stays one field deep.
 type Step = "email" | "credentials" | "verify";
 type SocialProvider = "google" | "github";
+
+const SUBMIT_BUTTON =
+  "h-10.5 rounded-[10px] bg-foreground text-background hover:bg-foreground/80";
+const SOCIAL_BUTTON = "h-11 rounded-xl";
 
 function GoogleIcon() {
   return (
@@ -201,222 +206,225 @@ export function AuthForm({
           : "Welcome back";
 
   return (
-    <div className="flex flex-col gap-6">
-      <Link
-        href="/"
-        className="flex items-center gap-2 self-center font-medium"
-      >
-        <AppIcon size={24} />
-        CaptureFlow
-      </Link>
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">{title}</CardTitle>
-          {/* One line for both modes when invited: they can't know whether
+    <Card className="gap-0 rounded-2xl py-0 shadow-[0_8px_32px_-8px_rgb(0_0_0/0.12)]">
+      <CardHeader className="justify-items-center border-b px-6 pt-8 pb-6 text-center [.border-b]:pb-6">
+        <Link href="/" aria-label="CaptureFlow" className="mb-4">
+          <AppIcon size={44} />
+        </Link>
+        <CardTitle className="text-2xl tracking-tight">{title}</CardTitle>
+        {/* One line for both modes when invited: they can't know whether
               they already have an account, so offering the pair beats
               guessing which they need. */}
-          <CardDescription>
-            {step === "verify" ? (
-              <>
-                We sent a link to{" "}
-                <span className="text-foreground">{email}</span>. Open it to
-                finish setting up your account.
-              </>
-            ) : invite ? (
-              <>
-                {invite.inviterLabel} invited you. Sign in or create an account
-                with <span className="text-foreground">{invite.email}</span> to
-                accept.
-              </>
-            ) : isSignup ? (
-              "Sign up with Google, GitHub or your email"
-            ) : (
-              "Log in with Google, GitHub or your email"
-            )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {step === "email" ? (
-            <FieldGroup>
-              <Field>
-                <Button
-                  variant="outline"
-                  disabled={busy && busyProvider !== "google"}
-                  onClick={() => onSocial("google")}
-                >
-                  {busyProvider === "google" ? <Spinner /> : <GoogleIcon />}
-                  Continue with Google
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={busy && busyProvider !== "github"}
-                  onClick={() => onSocial("github")}
-                >
-                  {busyProvider === "github" ? <Spinner /> : <GitHubIcon />}
-                  Continue with GitHub
-                </Button>
-              </Field>
-              <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-                Or continue with
-              </FieldSeparator>
-              <form onSubmit={onEmailSubmit}>
-                <FieldGroup>
-                  <Field data-invalid={emailInvalid || undefined}>
-                    <FieldLabel htmlFor="auth-email">Email</FieldLabel>
-                    <Input
-                      id="auth-email"
-                      name="email"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        setEmailInvalid(false);
-                      }}
-                      onInvalid={(e) => {
-                        e.preventDefault();
-                        setEmailInvalid(true);
-                        e.currentTarget.focus();
-                      }}
-                      aria-invalid={emailInvalid || undefined}
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                    />
-                    {emailInvalid && (
-                      <FieldError>Enter a valid email.</FieldError>
-                    )}
-                  </Field>
-                  <Field>
-                    <Button type="submit" disabled={busy}>
-                      Continue with Email
-                    </Button>
-                    {errorAlert}
-                    <FieldDescription className="text-center">
-                      {isSignup
-                        ? "Already have an account? "
-                        : "Don't have an account? "}
-                      <button
-                        type="button"
-                        className="cursor-pointer underline underline-offset-4 hover:text-primary"
-                        onClick={() => {
-                          setMode(isSignup ? "signin" : "signup");
-                          setError(null);
-                        }}
-                      >
-                        {isSignup ? "Log in" : "Sign up"}
-                      </button>
-                    </FieldDescription>
-                  </Field>
-                </FieldGroup>
-              </form>
-            </FieldGroup>
-          ) : step === "verify" ? (
-            <FieldGroup>
-              <Field>
-                {errorAlert}
-                <Button variant="outline" disabled={busy} onClick={onResend}>
-                  {busy && <Spinner />}
-                  {resent ? "Sent again" : "Resend email"}
-                </Button>
-                <FieldDescription className="text-center">
-                  Wrong address?{" "}
-                  <button
-                    type="button"
-                    className="cursor-pointer underline underline-offset-4 hover:text-primary"
-                    onClick={() => {
-                      setStep("email");
-                      setError(null);
-                    }}
-                  >
-                    Use a different email
-                  </button>
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
+        <CardDescription>
+          {step === "verify" ? (
+            <>
+              We sent a link to <span className="text-foreground">{email}</span>
+              . Open it to finish setting up your account.
+            </>
+          ) : invite ? (
+            <>
+              {invite.inviterLabel} invited you. Sign in or create an account
+              with <span className="text-foreground">{invite.email}</span> to
+              accept.
+            </>
+          ) : isSignup ? (
+            "Sign up with Google, GitHub or your email"
           ) : (
-            <form onSubmit={onSubmit}>
+            "Log in with Google, GitHub or your email"
+          )}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-6">
+        {step === "email" ? (
+          <FieldGroup>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                className={SOCIAL_BUTTON}
+                aria-label="Continue with Google"
+                disabled={busy && busyProvider !== "google"}
+                onClick={() => onSocial("google")}
+              >
+                {busyProvider === "google" ? <Spinner /> : <GoogleIcon />}
+                Google
+              </Button>
+              <Button
+                variant="outline"
+                className={SOCIAL_BUTTON}
+                aria-label="Continue with GitHub"
+                disabled={busy && busyProvider !== "github"}
+                onClick={() => onSocial("github")}
+              >
+                {busyProvider === "github" ? <Spinner /> : <GitHubIcon />}
+                GitHub
+              </Button>
+            </div>
+            <FieldSeparator className="text-xs tracking-wide uppercase *:data-[slot=field-separator-content]:bg-card">
+              Or
+            </FieldSeparator>
+            <form onSubmit={onEmailSubmit}>
               <FieldGroup>
-                {/* The address is already captured; this is the receipt for it
-                    plus the way back to change it. */}
-                <div className="flex items-center justify-between gap-3">
-                  <span className="min-w-0 truncate text-sm text-muted-foreground">
-                    {email}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    className="inline-flex cursor-pointer items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-                    onClick={() => {
-                      setStep("email");
-                      setError(null);
-                    }}
-                  >
-                    <ChevronLeft size={14} />
-                    Change
-                  </button>
-                </div>
-
-                {isSignup && (
-                  <Field>
-                    <FieldLabel htmlFor="auth-name">Name</FieldLabel>
-                    <Input
-                      id="auth-name"
-                      name="name"
-                      placeholder="Your name"
-                      autoComplete="name"
-                    />
-                  </Field>
-                )}
-
-                <Field data-invalid={passwordInvalid || undefined}>
-                  <FieldLabel htmlFor="auth-password">Password</FieldLabel>
+                <Field data-invalid={emailInvalid || undefined}>
+                  <FieldLabel htmlFor="auth-email">Email</FieldLabel>
                   <Input
-                    id="auth-password"
-                    name="password"
-                    type="password"
+                    id="auth-email"
+                    name="email"
+                    type="email"
                     required
-                    minLength={isSignup ? 12 : undefined}
-                    autoFocus
-                    onChange={() => setPasswordInvalid(false)}
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setEmailInvalid(false);
+                    }}
                     onInvalid={(e) => {
                       e.preventDefault();
-                      setPasswordInvalid(true);
+                      setEmailInvalid(true);
                       e.currentTarget.focus();
                     }}
-                    aria-invalid={passwordInvalid || undefined}
-                    placeholder={
-                      isSignup ? "At least 12 characters" : undefined
-                    }
-                    autoComplete={
-                      isSignup ? "new-password" : "current-password"
-                    }
+                    aria-invalid={emailInvalid || undefined}
+                    placeholder="you@example.com"
+                    autoComplete="email"
                   />
-                  {passwordInvalid && (
-                    <FieldError>
-                      {isSignup
-                        ? "Use at least 12 characters."
-                        : "Enter your password."}
-                    </FieldError>
+                  {emailInvalid && (
+                    <FieldError>Enter a valid email.</FieldError>
                   )}
                 </Field>
-
                 <Field>
-                  {errorAlert}
-                  <Button type="submit" disabled={busy}>
-                    {busy && <Spinner />}
-                    {isSignup ? "Create account" : "Log in"}
+                  <Button
+                    type="submit"
+                    className={SUBMIT_BUTTON}
+                    disabled={busy}
+                  >
+                    Continue with Email
                   </Button>
+                  {errorAlert}
+                  <FieldDescription className="text-center">
+                    {isSignup
+                      ? "Already have an account? "
+                      : "Don't have an account? "}
+                    <button
+                      type="button"
+                      className="cursor-pointer underline underline-offset-4 hover:text-primary"
+                      onClick={() => {
+                        setMode(isSignup ? "signin" : "signup");
+                        setError(null);
+                      }}
+                    >
+                      {isSignup ? "Log in" : "Sign up"}
+                    </button>
+                  </FieldDescription>
                 </Field>
               </FieldGroup>
             </form>
-          )}
-        </CardContent>
-      </Card>
-      <FieldDescription className="px-6 text-center">
-        By continuing, you agree to our{" "}
-        <Link href="/terms">Terms of Service</Link> and{" "}
-        <Link href="/privacy">Privacy Policy</Link>.
-      </FieldDescription>
-    </div>
+          </FieldGroup>
+        ) : step === "verify" ? (
+          <FieldGroup>
+            <Field>
+              {errorAlert}
+              <Button
+                variant="outline"
+                className={SOCIAL_BUTTON}
+                disabled={busy}
+                onClick={onResend}
+              >
+                {busy && <Spinner />}
+                {resent ? "Sent again" : "Resend email"}
+              </Button>
+              <FieldDescription className="text-center">
+                Wrong address?{" "}
+                <button
+                  type="button"
+                  className="cursor-pointer underline underline-offset-4 hover:text-primary"
+                  onClick={() => {
+                    setStep("email");
+                    setError(null);
+                  }}
+                >
+                  Use a different email
+                </button>
+              </FieldDescription>
+            </Field>
+          </FieldGroup>
+        ) : (
+          <form onSubmit={onSubmit}>
+            <FieldGroup>
+              {/* The address is already captured; this is the receipt for it
+                    plus the way back to change it. */}
+              <div className="flex items-center justify-between gap-3">
+                <span className="min-w-0 truncate text-sm text-muted-foreground">
+                  {email}
+                </span>
+                <button
+                  type="button"
+                  disabled={busy}
+                  className="inline-flex cursor-pointer items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setStep("email");
+                    setError(null);
+                  }}
+                >
+                  <ChevronLeft size={14} />
+                  Change
+                </button>
+              </div>
+
+              {isSignup && (
+                <Field>
+                  <FieldLabel htmlFor="auth-name">Name</FieldLabel>
+                  <Input
+                    id="auth-name"
+                    name="name"
+                    placeholder="Your name"
+                    autoComplete="name"
+                  />
+                </Field>
+              )}
+
+              <Field data-invalid={passwordInvalid || undefined}>
+                <FieldLabel htmlFor="auth-password">Password</FieldLabel>
+                <Input
+                  id="auth-password"
+                  name="password"
+                  type="password"
+                  required
+                  minLength={isSignup ? 12 : undefined}
+                  autoFocus
+                  onChange={() => setPasswordInvalid(false)}
+                  onInvalid={(e) => {
+                    e.preventDefault();
+                    setPasswordInvalid(true);
+                    e.currentTarget.focus();
+                  }}
+                  aria-invalid={passwordInvalid || undefined}
+                  placeholder={isSignup ? "At least 12 characters" : undefined}
+                  autoComplete={isSignup ? "new-password" : "current-password"}
+                />
+                {passwordInvalid && (
+                  <FieldError>
+                    {isSignup
+                      ? "Use at least 12 characters."
+                      : "Enter your password."}
+                  </FieldError>
+                )}
+              </Field>
+
+              <Field>
+                {errorAlert}
+                <Button type="submit" className={SUBMIT_BUTTON} disabled={busy}>
+                  {busy && <Spinner />}
+                  {isSignup ? "Create account" : "Log in"}
+                </Button>
+              </Field>
+            </FieldGroup>
+          </form>
+        )}
+      </CardContent>
+      <CardFooter className="justify-center px-4 py-3.5">
+        <FieldDescription className="text-center text-[13px]">
+          By continuing, you agree to our <Link href="/terms">Terms</Link> and{" "}
+          <Link href="/privacy">Privacy Policy</Link>.
+        </FieldDescription>
+      </CardFooter>
+    </Card>
   );
 }
