@@ -244,8 +244,8 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
         timeline={
           <EditorTimeline
             playerRef={playerRef}
-            videoUrl={videoUrl}
-            webcamUrl={webcamUrl}
+            slug={slug}
+            hasWebcam={!!webcamUrl}
             durationMs={durationMs}
             sizeBytes={sizeBytes}
             cuts={config.cuts}
