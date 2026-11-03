@@ -19,9 +19,10 @@ import { useLocalizedHref, useMessages } from "./i18n-provider";
 const COPY_SELECTION =
   "selection:bg-tint-strong selection:text-fg-strong dark:selection:bg-white/20 dark:selection:text-fg-strong";
 
-// Opaque, because the tight line height makes a translucent highlight double up
-// where two lines overlap.
-const TITLE_SELECTION = "selection:bg-accent-bg selection:text-white";
+// A soft blue that's still opaque, because the tight line height makes a
+// translucent highlight double up where two lines overlap.
+const TITLE_SELECTION =
+  "selection:bg-[color-mix(in_srgb,var(--color-accent-bg)_22%,var(--cf-canvas))] selection:text-fg-strong";
 
 export function HeroSection() {
   const m = useMessages();

@@ -60,6 +60,18 @@ export function writeThemePreferenceCookie(value: ThemePreference): void {
   document.cookie = parts.join("; ");
 }
 
+export function applyTheme(next: Theme): void {
+  const root = document.documentElement;
+  // An instant swap: colour transitions are held off for two frames so
+  // nothing fades between the themes.
+  root.setAttribute("data-theme-switching", "");
+  root.setAttribute("data-theme", next);
+  writeThemePreferenceCookie(next);
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => root.removeAttribute("data-theme-switching")),
+  );
+}
+
 /*
  * Runs blocking ahead of any paint and applies the cookie's theme, or the OS's
  * without one, so a page served from a static cache (rendered with
