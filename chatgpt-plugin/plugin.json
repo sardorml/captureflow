@@ -1,0 +1,100 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "captureflow",
+  "version": "1.0.0",
+  "description": "Record websites in a cloud browser and share each video as a link.",
+  "author": {
+    "name": "CaptureFlow",
+    "email": "support@captureflow.dev",
+    "url": "https://captureflow.dev"
+  },
+  "homepage": "https://captureflow.dev",
+  "repository": "https://github.com/sardorml/captureflow",
+  "license": "AGPL-3.0",
+  "keywords": ["screen recording", "video", "walkthrough", "demo"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "CaptureFlow",
+        "shortDescription": "Record and share screen videos",
+        "longDescription": "CaptureFlow records screen videos you can share as a link.\n\nAsk ChatGPT to record a website and it opens the page in a cloud browser, moves through it, can add title slides, and returns a link to the video. You can also list and search your recordings, read their transcripts, and change who can watch them.\n\nIt's for people who want a demo, walkthrough or how-to video without recording it themselves.\n\nLimitations: it only records websites in a cloud browser, so it can't record your computer, localhost, or sites using your existing sign-ins. Recording time is limited each month. The video shows what the agent types, so don't give it passwords or private details you don't want in the video.",
+        "developerName": "CaptureFlow",
+        "category": "Productivity",
+        "capabilities": [
+          "Record a website in a cloud browser",
+          "Add title slides to a recording",
+          "List and search recordings",
+          "Read recording transcripts",
+          "Change who can watch a recording"
+        ],
+        "websiteURL": "https://captureflow.dev",
+        "supportURL": "https://github.com/sardorml/captureflow/issues",
+        "privacyPolicyURL": "https://captureflow.dev/privacy",
+        "termsOfServiceURL": "https://captureflow.dev/terms",
+        "defaultPrompt": [
+          "Record a walkthrough of the pricing page on example.com and give me the link.",
+          "Find my recordings about onboarding and show me the transcript of the newest one.",
+          "Record a demo of this site with a title slide and a closing slide: example.com"
+        ],
+        "brandColor": "#2563EB",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Record a website",
+              "prompt": "Record a short walkthrough of example.com and give me the link.",
+              "tools_triggered": "start_recording, look, scroll, stop_recording",
+              "expected_behavior": "Returns a share link that plays a recording of the page."
+            },
+            {
+              "description": "Record with a title slide",
+              "prompt": "Record example.com with a title slide that says Welcome.",
+              "tools_triggered": "start_recording, show_slide, hide_slide, stop_recording",
+              "expected_behavior": "Returns a share link to a video that opens on the Welcome slide, then shows the page."
+            },
+            {
+              "description": "List recordings",
+              "prompt": "List my recordings.",
+              "tools_triggered": "list_recordings",
+              "expected_behavior": "Lists the account's recordings with their titles and links."
+            },
+            {
+              "description": "Read a transcript",
+              "prompt": "Show me the transcript of my newest recording.",
+              "tools_triggered": "list_recordings, get_transcript",
+              "expected_behavior": "Returns the timestamped text of the newest recording."
+            },
+            {
+              "description": "Change who can watch a recording",
+              "prompt": "Make my newest recording private.",
+              "tools_triggered": "list_recordings, set_visibility",
+              "expected_behavior": "Sets the newest recording's visibility to private and confirms the change."
+            }
+          ],
+          "negative": [
+            {
+              "description": "General knowledge question, unrelated to recording, so the plugin should not be used.",
+              "prompt": "What's the capital of France?"
+            },
+            {
+              "description": "Writing request with no recording involved, so the plugin should not be used.",
+              "prompt": "Write me a video script about coffee."
+            },
+            {
+              "description": "The plugin can't record the user's own computer, so it should explain that it only records websites in a cloud browser and not start a recording.",
+              "prompt": "Record my computer's screen."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "This plugin does not sell products or process payments."
+      },
+      "publication": {
+        "release_notes": "Initial release."
+      }
+    }
+  }
+}
