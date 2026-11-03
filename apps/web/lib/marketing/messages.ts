@@ -321,7 +321,7 @@ export const MESSAGES = {
     heading: "What you can do after recording",
     cta: "Try it free",
     subtitle:
-      "Edit it, share or embed it, and get comments. Invite your team to watch and comment on each other's videos.",
+      "Edit it, then share or embed it. Invite your team to watch, react and comment on each other's videos.",
     categories: {
       share: {
         feature: {
