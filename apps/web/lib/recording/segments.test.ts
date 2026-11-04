@@ -31,8 +31,10 @@ const {
   partsReadyToBuild,
   partsToBuild,
   planReads,
+  segmentTarget,
   storeSegment,
 } = await import("./segments");
+import type { RecordingRow } from "./types";
 
 const MiB = 1024 * 1024;
 const TARGET = { storageKey: "videos/abc.mp4", uploadId: "up-1" };
@@ -64,6 +66,44 @@ function assembled(list: { partNumber: number }[]): Uint8Array {
 beforeEach(() => {
   objects.clear();
   parts.clear();
+});
+
+function row(over: Partial<RecordingRow>): RecordingRow {
+  return {
+    state: "pending",
+    storageKey: "videos/abc.mp4",
+    uploadId: "up-1",
+    webcamState: "pending",
+    webcamStorageKey: "videos/abc-webcam.webm",
+    webcamUploadId: "up-2",
+    ...over,
+  } as RecordingRow;
+}
+
+describe("segmentTarget", () => {
+  it("keeps the webcam open after the screen is finalized", () => {
+    const ready = row({ state: "ready", uploadId: null });
+    expect(segmentTarget(ready, "screen")).toBeNull();
+    expect(segmentTarget(ready, "webcam")).toEqual({
+      storageKey: "videos/abc-webcam.webm",
+      uploadId: "up-2",
+    });
+  });
+
+  it("closes each stream on its own state", () => {
+    expect(segmentTarget(row({}), "screen")).toEqual({
+      storageKey: "videos/abc.mp4",
+      uploadId: "up-1",
+    });
+    expect(
+      segmentTarget(
+        row({ webcamState: "ready", webcamUploadId: null }),
+        "webcam",
+      ),
+    ).toBeNull();
+    expect(segmentTarget(row({ webcamState: "none" }), "webcam")).toBeNull();
+    expect(segmentTarget(row({ state: "failed" }), "screen")).toBeNull();
+  });
 });
 
 describe("hydrateSegmentParams", () => {
