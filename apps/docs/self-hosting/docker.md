@@ -3,12 +3,12 @@
 The Docker images run CaptureFlow on any machine with Docker: a home server, a
 NAS or a VPS. You don't need a Cloudflare account. Everything is stored in one
 `data/` folder: a SQLite database, the recordings, and the secrets generated on
-first start.
+first start. One login covers everything: admins get an Admin page at
+`<APP_URL>/admin`.
 
 | Piece                | In Docker                                                  |
 | -------------------- | ---------------------------------------------------------- |
 | Web app (`apps/web`) | `ghcr.io/sardorml/captureflow`, port 3000                  |
-| Admin panel          | `ghcr.io/sardorml/captureflow-admin`, port 3001            |
 | Database             | SQLite, `data/captureflow.sqlite`                          |
 | Recordings           | Files under `data/storage/`, served at `<APP_URL>/media/…` |
 | Scheduled jobs       | Run inside the web container (same schedule as Cloudflare) |
@@ -20,11 +20,12 @@ first start.
 ```bash
 git clone https://github.com/sardorml/captureflow.git
 cd captureflow
-cp .env.example .env    # set APP_URL and ADMIN_URL
+cp .env.example .env    # set APP_URL
 docker compose up -d
 ```
 
-Open `APP_URL` and create the first account. `/` goes straight to sign-in:
+Open `APP_URL` and create the first account. That account becomes the admin, so
+do this before you share the address. `/` goes straight to sign-in:
 self-hosted instances have no landing page, billing or storage caps, and idle
 recordings are never deleted.
 
@@ -41,7 +42,7 @@ these:
   Cloudflare Tunnel, with `APP_URL=https://rec.example.com`.
 
 A plain `http://192.168.x.x` address loads the dashboard, but recording won't
-start. The admin panel's session cookie also needs HTTPS outside localhost.
+start.
 
 A minimal Caddyfile:
 
@@ -49,32 +50,34 @@ A minimal Caddyfile:
 rec.example.com {
   reverse_proxy localhost:3000
 }
-admin.rec.example.com {
-  reverse_proxy localhost:3001
-}
 ```
 
 Uploads stream through the app in chunks of a few MB, so the proxy doesn't need
 a large body limit.
 
-## First admin
+## Admins, workspaces and people
 
-The admin panel at `ADMIN_URL` manages users, workspaces, plans and the audit
-log. On first start it creates a one-time setup token:
+The first account to sign up is the admin. Admins get an **Admin** link in the
+sidebar (it opens `<APP_URL>/admin`), where they can:
 
-```bash
-docker compose exec admin cat /data/secrets.json   # ADMIN_SETUP_TOKEN
-```
+- create a workspace for each team
+- invite people to a workspace, or remove them
+- make another user an admin
+- choose who can sign up
 
-Open `ADMIN_URL`, paste the token and create the owner account.
+Only admins can invite people. Sign-up is invite-only by default: someone new
+needs an invite link, and has to sign up with the address it was sent to. Choose
+**Open sign-up** on the Admin page to let anyone who can reach your site create
+an account.
 
-Campaign emails need the separate mailer Worker, so sending is switched off in
-Docker. You can still write drafts.
+Each invite shows a link you can copy and send yourself, so inviting works
+without any email set up. With mail set up, the person is emailed as well.
+
+Everyone also has a personal workspace of their own, created with their account.
 
 ## Email
 
-Workspace invites, access requests and welcome notes go out by email. Pick
-one:
+Workspace invites and access requests go out by email. Pick one:
 
 - `SMTP_URL=smtps://user:pass@smtp.example.com:465` and
   `MAIL_FROM=CaptureFlow <rec@example.com>`
@@ -137,8 +140,7 @@ migrations apply automatically when the web container starts.
 | Variable                           | Default                 | What it does                                                 |
 | ---------------------------------- | ----------------------- | ------------------------------------------------------------ |
 | `APP_URL`                          | `http://localhost:3000` | Public URL of the web app; share links and media use it      |
-| `ADMIN_URL`                        | `http://localhost:3001` | Public URL of the admin panel                                |
-| `WEB_PORT` / `ADMIN_PORT`          | `3000` / `3001`         | Host ports in `docker-compose.yml`                           |
+| `WEB_PORT`                         | `3000`                  | Host port in `docker-compose.yml`                            |
 | `SMTP_URL`, `MAIL_FROM`            | unset                   | Outgoing mail over SMTP                                      |
 | `RESEND_API_KEY`                   | unset                   | Outgoing mail through Resend instead                         |
 | `WHISPER_API_URL`                  | unset                   | OpenAI-compatible transcription server; turns transcripts on |
@@ -148,8 +150,6 @@ migrations apply automatically when the web container starts.
 | `GITHUB_CLIENT_ID/SECRET`          | unset                   | GitHub sign-in                                               |
 | `CAPTUREFLOW_EXTENSION_ID`         | unset                   | Your extension build's id, so it can sign in                 |
 | `BETTER_AUTH_SECRET`               | generated               | Session signing; kept in `data/secrets.json`                 |
-| `ADMIN_SESSION_SECRET`             | generated               | Admin session signing                                        |
-| `ADMIN_SETUP_TOKEN`                | generated               | One-time admin claim token                                   |
 | `DATA_DIR`                         | `/data`                 | Where the containers keep their state                        |
 
 Self-hosted instances don't send analytics: the images are built with analytics

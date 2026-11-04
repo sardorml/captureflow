@@ -7,7 +7,6 @@ import { createR2 } from "./r2";
 export type SelfHostRuntime = {
   dataDir: string;
   appUrl: string;
-  adminUrl: string;
   mailFrom: string;
   DB: D1Database;
   BUCKET: R2Bucket;
@@ -24,18 +23,13 @@ function origin(raw: string, name: string): string {
   }
 }
 
-// The pieces web and admin share: one SQLite file and one object directory
-// under DATA_DIR, and the same outgoing-mail setup.
+// One SQLite file and one object directory under DATA_DIR, plus outgoing mail.
 export function createRuntime(
   env: NodeJS.ProcessEnv = process.env,
 ): SelfHostRuntime {
   const dataDir = env.DATA_DIR ?? "/data";
   mkdirSync(join(dataDir, "storage"), { recursive: true });
   const appUrl = origin(env.APP_URL ?? "http://localhost:3000", "APP_URL");
-  const adminUrl = origin(
-    env.ADMIN_URL ?? "http://localhost:3001",
-    "ADMIN_URL",
-  );
   const mailFrom =
     env.MAIL_FROM ?? `CaptureFlow <noreply@${new URL(appUrl).hostname}>`;
   // With RESEND_API_KEY set the binding stays empty and the app's own Resend path sends.
@@ -47,7 +41,6 @@ export function createRuntime(
   return {
     dataDir,
     appUrl,
-    adminUrl,
     mailFrom,
     DB: createD1(join(dataDir, "captureflow.sqlite")),
     BUCKET: createR2(join(dataDir, "storage")),
