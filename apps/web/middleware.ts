@@ -25,7 +25,7 @@ function redirectTo(
 
 /*
  * Marketing pages are prerendered, so their per-visitor redirects live here.
- * process.env carries SELF_HOSTED both on Workers (OpenNext copies string vars
+ * process.env carries the vars both on Workers (OpenNext copies string vars
  * into it) and in the Docker server. A stale session cookie on `/` lands on
  * /recordings, whose guard clears it.
  */
@@ -35,7 +35,12 @@ export function middleware(req: NextRequest) {
     if (pathname === "/" && getSessionCookie(req)) {
       return redirectTo(req, "/recordings");
     }
-    if (isSelfHosted({ SELF_HOSTED: process.env.SELF_HOSTED }))
+    if (
+      isSelfHosted({
+        BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+        CAPTUREFLOW_HOSTED: process.env.CAPTUREFLOW_HOSTED,
+      })
+    )
       return redirectTo(req, "/login");
     return NextResponse.next();
   }

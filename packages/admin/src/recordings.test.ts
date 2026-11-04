@@ -152,6 +152,28 @@ describe("listAdminRecordings", () => {
     });
     expect(byViews.rows[0]?.slug).toBe("demo");
 
+    const inWorkspace = await listAdminRecordings(db, {
+      search: "",
+      page: 1,
+      visibility: "all",
+      workspaceId: "w1",
+    });
+    expect(inWorkspace.total).toBe(4);
+    const elsewhere = await listAdminRecordings(db, {
+      search: "",
+      page: 1,
+      visibility: "all",
+      workspaceId: "nope",
+    });
+    expect(elsewhere.total).toBe(0);
+    const anns = await listAdminRecordings(db, {
+      search: "",
+      page: 1,
+      visibility: "all",
+      userId: "ann",
+    });
+    expect(anns.rows.every((r) => r.owner?.id === "ann")).toBe(true);
+    expect(anns.total).toBeGreaterThan(0);
     const bySize = await listAdminRecordings(db, {
       search: "",
       page: 2,

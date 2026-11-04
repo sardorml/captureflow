@@ -12,16 +12,6 @@ services:
     ports: ["${WEB_PORT:-3000}:3000"]
     volumes: ["./data:/data"]
 
-  admin:
-    image: ghcr.io/sardorml/captureflow-admin:latest
-    build: { context: ., target: admin }
-    restart: unless-stopped
-    env_file: .env
-    ports: ["${ADMIN_PORT:-3001}:3001"]
-    volumes: ["./data:/data"]
-    depends_on:
-      web: { condition: service_healthy }
-
   # OpenAI-compatible Whisper on CPU. Set WHISPER_API_URL=http://whisper:8000 in .env.
   whisper:
     profiles: [whisper]

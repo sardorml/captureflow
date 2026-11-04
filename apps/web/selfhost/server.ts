@@ -1,9 +1,12 @@
-import { join } from "node:path";
+import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
 import {
   applyMigrations,
   applyPublicOrigin,
   createLocalQueue,
   createRuntime,
+  createSelfHostHooks,
   createWhisperAi,
   ensureSecrets,
   serveNextAt,
@@ -29,7 +32,8 @@ import type { TranscriptionJobMessage } from "../lib/recording/types";
  * Docker entry for apps/web: builds Node stand-ins for every Cloudflare
  * binding, hands them to the cf-env wrappers through the env slot, runs what
  * worker.ts runs on Cloudflare (crons, the transcription queue consumer),
- * then boots Next's standalone server in this same process.
+ * then boots Next's standalone server in this same process. The admin app is
+ * a second Next server in a child process, answering under /admin.
  */
 
 // Same as the consumer's max_retries in wrangler.jsonc (see worker.ts).
@@ -81,7 +85,6 @@ const AI = process.env.WHISPER_API_URL
 const derived = {
   ...stringEnv(process.env, PASSTHROUGH),
   ...secrets,
-  SELF_HOSTED: "true",
   BETTER_AUTH_URL: runtime.appUrl,
   APP_WEB_PUBLIC_URL: runtime.appUrl,
   NEXT_PUBLIC_APP_WEB_SITE_URL: runtime.appUrl,
@@ -93,7 +96,11 @@ const derived = {
 };
 Object.assign(process.env, derived);
 
-const jobEnv = { DB: runtime.DB, BUCKET: runtime.BUCKET, SELF_HOSTED: "true" };
+const jobEnv = {
+  DB: runtime.DB,
+  BUCKET: runtime.BUCKET,
+  BETTER_AUTH_URL: runtime.appUrl,
+};
 
 async function consumeTranscription(
   body: unknown,
@@ -140,6 +147,7 @@ setInjectedEnv({
   EMAIL: runtime.EMAIL,
   AI,
   TRANSCRIPTION_QUEUE: queue.producer,
+  SELFHOST: createSelfHostHooks(runtime.DB),
 });
 
 queue.start();
@@ -150,17 +158,54 @@ const stopCron = startCron([
   { cron: "0 4 * * *", run: () => runDailyRetentionSweep(jobEnv) },
 ]);
 
+const bindPort = Number(process.env.PORT ?? 3000);
+const ADMIN_PORT = 3001;
+const adminServer =
+  process.env.CAPTUREFLOW_ADMIN_SERVER ??
+  join(appDir, "..", "selfhost-admin", "selfhost-server.mjs");
+let stopping = false;
+let admin: ReturnType<typeof spawn> | undefined;
+
+function startAdmin() {
+  admin = spawn(
+    process.execPath,
+    ["--disable-warning=ExperimentalWarning", adminServer],
+    {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        HOSTNAME: "127.0.0.1",
+        PORT: String(ADMIN_PORT),
+        WEB_INTERNAL_URL: `http://127.0.0.1:${bindPort}`,
+        CAPTUREFLOW_APP_DIR: dirname(adminServer),
+      },
+    },
+  );
+  admin.on("exit", (code) => {
+    if (stopping) return;
+    console.error(`[selfhost] admin app exited (${code}); restarting`);
+    setTimeout(startAdmin, 2000);
+  });
+}
+
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   process.once(signal, () => {
+    stopping = true;
     stopCron();
+    admin?.kill();
     void queue.stop().finally(() => process.exit(0));
   });
 }
 
-serveNextAt(
-  runtime.appUrl,
-  process.env.BIND_HOST ?? "0.0.0.0",
-  Number(process.env.PORT ?? 3000),
-);
+if (existsSync(adminServer)) {
+  startAdmin();
+} else {
+  console.warn(`[selfhost] no admin app at ${adminServer}; /admin is off`);
+}
+
+serveNextAt(runtime.appUrl, process.env.BIND_HOST ?? "0.0.0.0", bindPort, {
+  prefix: "/admin",
+  port: ADMIN_PORT,
+});
 // Next's standalone server; the Dockerfile puts this bundle beside it.
 await import("./server.js");

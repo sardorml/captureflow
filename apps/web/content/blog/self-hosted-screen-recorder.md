@@ -126,14 +126,13 @@ Leave the other entries in that block as they are. Anything starting with `NEXT_
 
 ## Step 6: Limit sign-in to your company
 
-This step turns CaptureFlow from a public sign-up site into an internal tool. Add two more entries to the same `vars` block:
+This step turns CaptureFlow from a public sign-up site into an internal tool. Add one more entry to the same `vars` block:
 
 ```jsonc
-"SELF_HOSTED": "true",
 "ALLOWED_EMAIL_DOMAINS": "acme.com"
 ```
 
-`SELF_HOSTED` changes a handful of things at once. Storage has no default cap, so people are limited only by what you’re willing to pay R2 for. Recordings are never deleted for sitting idle. Pricing and upgrade screens disappear, and the public marketing pages send visitors straight to the login page.
+Running on your own domain already changes a handful of things. Storage has no default cap, so people are limited only by what you’re willing to pay R2 for. Recordings are never deleted for sitting idle. Pricing and upgrade screens disappear, and the public marketing pages send visitors straight to the login page.
 
 `ALLOWED_EMAIL_DOMAINS` decides who can create an account. You can list more than one, separated by commas, like `acme.com,acme.io`. Sign-up then works only through Google or GitHub, because those providers have already verified that the person really owns the address. Someone typing an email and password could claim any address, so that path is closed for new accounts.
 
@@ -239,7 +238,7 @@ Once it’s running, there’s very little to look after. A few things worth kno
 
 - **Updating.** Pull the latest code, run `db:apply:remote` to bring the database up to date, then `cf:deploy` again.
 - **Cost.** Cloudflare’s free tiers cover a small team for a while: 10 GB of R2 storage, 5 GB of D1, and 100,000 Worker requests a day. Video adds up faster than anything else, so R2 storage is the number to watch. Viewers downloading videos from R2 cost nothing extra, because Cloudflare doesn’t charge for egress.
-- **Limits per person.** With `SELF_HOSTED` on, nobody has a cap by default. If one person needs a ceiling, you can set it for them from the admin app, which is a separate Worker covered in the [admin README](https://github.com/sardorml/captureflow/tree/main/apps/admin).
+- **Limits per person.** On your own domain, nobody has a cap by default. If one person needs a ceiling, you can set it for them from the admin app, which is a separate Worker covered in the [admin README](https://github.com/sardorml/captureflow/tree/main/apps/admin).
 - **Your data stays yours.** Everything lives in your Cloudflare account. You can back up the database with Wrangler’s `d1 export` command, and the bucket is plain files you can copy anywhere.
 
 Every setting is listed with its default in the [configuration reference](https://docs.captureflow.dev/self-hosting/configuration), and the [self-hosting docs](https://docs.captureflow.dev/self-hosting/overview) go deeper on each piece.

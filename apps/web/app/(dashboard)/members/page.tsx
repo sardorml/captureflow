@@ -1,4 +1,5 @@
 import {
+  isSelfHosted,
   listMembers,
   listPendingInvites,
   listSeatRequests,
@@ -7,6 +8,7 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
+import { isInstanceAdminUser } from "@/lib/selfhost";
 import { getWorkspaceSeatContext, paidSeatsOf } from "@/lib/billing/seats";
 import { WorkspacePageHeader } from "../WorkspacePageHeader";
 import { MembersTable } from "./MembersTable";
@@ -43,6 +45,8 @@ export default async function MembersPage() {
   ]);
 
   const paidSeats = paidSeatsOf(seats);
+  const selfHosted = isSelfHosted(env);
+  const instanceAdmin = await isInstanceAdminUser(session.user.id);
 
   return (
     <div className="flex flex-col gap-8">
@@ -60,6 +64,8 @@ export default async function MembersPage() {
         invites={pending}
         viewerUserId={session.user.id}
         viewerIsOwner={isOwner}
+        canInvite={selfHosted ? instanceAdmin : isOwner}
+        inviteHref={selfHosted ? `/admin/workspaces/${workspace.id}` : null}
         workspaceName={workspace.name}
         paidSeats={paidSeats}
         seatRequests={seatRequests}

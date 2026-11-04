@@ -5,7 +5,7 @@ import {
   audioPartPrefixFor,
   objectKeysFor,
   segmentPrefixFor,
-} from "./object-keys";
+} from "@captureflow/shared/object-keys";
 import { abortMultipartUpload, deleteObject, deleteObjectPrefix } from "./r2";
 import type { RecordingRow } from "./types";
 

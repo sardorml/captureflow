@@ -1,6 +1,6 @@
 name: Docker images
 
-# Publishes the self-host images (Dockerfile targets `web` and `admin`) to
+# Publishes the self-host image (Dockerfile target `web`) to
 # GHCR. Runs on version tags or by hand, never on every push to main.
 on:
   push:
@@ -13,13 +13,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    strategy:
-      matrix:
-        include:
-          - target: web
-            image: ghcr.io/${{ github.repository_owner }}/captureflow
-          - target: admin
-            image: ghcr.io/${{ github.repository_owner }}/captureflow-admin
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
@@ -32,7 +25,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ matrix.image }}
+          images: ghcr.io/${{ github.repository_owner }}/captureflow
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -41,10 +34,10 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          target: ${{ matrix.target }}
+          target: web
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.target }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.target }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web

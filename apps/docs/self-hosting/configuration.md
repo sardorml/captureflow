@@ -56,13 +56,15 @@ These turn a deployment into an internal tool for one company.
 
 | Var                               | Scope | Purpose                                                                                                                                                                               |
 | --------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SELF_HOSTED`                     | var   | `"true"` removes the default storage cap and the 30-day idle-recording sweep, hides billing and upgrade screens, and sends the marketing pages to the login page.                     |
 | `ALLOWED_EMAIL_DOMAINS`           | var   | Comma-separated, e.g. `acme.com,acme.io`. Only addresses on these domains can create an account, and only through Google or GitHub, which verify the address. Unset = open sign-up.   |
 | `CAPTUREFLOW_EXTENSION_ID`        | var   | The id of your own build of the Chrome extension. Sign-in is only handed to this id, so leaving it unset rejects every extension. See [Point the extension](/self-hosting/extension). |
 | `NEXT_PUBLIC_CHROME_WEBSTORE_URL` | build | Where record buttons send people who don't have the extension yet. Set it in the build environment before `cf:deploy`; defaults to the public CaptureFlow listing.                    |
 
-With `SELF_HOSTED` on, each user's storage is limited only by your R2 bill. To
-cap someone, set a per-user override from the admin app.
+Any deployment whose `BETTER_AUTH_URL` isn't `https://captureflow.dev` runs as a
+self-hosted instance: there is no default storage cap and no 30-day
+idle-recording sweep, billing and upgrade screens are hidden, and the marketing
+pages go to the login page. Each user's storage is limited only by your R2
+bill; to cap someone, set a per-user override from the admin app.
 
 ## Site URLs & CDN (public vars)
 

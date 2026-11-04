@@ -38,9 +38,11 @@ BETTER_AUTH_URL=http://localhost:3000
 # OPTIONAL — private company instance
 # -----------------------------------------------------------------------------
 
-# "true" removes the default storage cap and the idle-recording sweep, hides
-# billing, and sends the marketing pages to /login.
-SELF_HOSTED=
+# Any BETTER_AUTH_URL other than https://captureflow.dev runs as a self-hosted
+# instance: no storage cap, no idle-recording sweep, no billing, and the
+# marketing pages go to /login. Set this to "true" to work on the hosted
+# product from a local dev server.
+CAPTUREFLOW_HOSTED=true
 
 # Comma-separated email domains allowed to sign up (Google/GitHub only, since
 # those verify the address). Empty = open sign-up.

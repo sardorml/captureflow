@@ -56,9 +56,6 @@ importers:
       '@captureflow/mail':
         specifier: workspace:*
         version: link:../../packages/mail
-      '@captureflow/selfhost':
-        specifier: workspace:*
-        version: link:../../packages/selfhost
       '@captureflow/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -460,6 +457,70 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
+  apps/selfhost-admin:
+    dependencies:
+      '@captureflow/admin':
+        specifier: workspace:*
+        version: link:../../packages/admin
+      '@captureflow/mail':
+        specifier: workspace:*
+        version: link:../../packages/mail
+      '@captureflow/quota':
+        specifier: workspace:*
+        version: link:../../packages/quota
+      '@captureflow/selfhost':
+        specifier: workspace:*
+        version: link:../../packages/selfhost
+      '@captureflow/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@captureflow/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      lucide-react:
+        specifier: ^1.14.0
+        version: 1.18.0(react@19.2.7)
+      next:
+        specifier: ^16.2.0
+        version: 16.2.9(@babel/core@7.29.7)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.7
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.7(react@19.2.7)
+      shadcn:
+        specifier: ^4.23.0
+        version: 4.23.0
+      tw-animate-css:
+        specifier: 1.4.0
+        version: 1.4.0
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20251001.0
+        version: 4.20260615.1
+      '@tailwindcss/postcss':
+        specifier: ^4
+        version: 4.3.1
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.21
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      esbuild:
+        specifier: ^0.27.3
+        version: 0.27.3
+      tailwindcss:
+        specifier: ^4
+        version: 4.3.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
   apps/waveform:
     devDependencies:
       '@types/node':
@@ -707,6 +768,12 @@ importers:
 
   packages/selfhost:
     dependencies:
+      '@captureflow/quota':
+        specifier: workspace:*
+        version: link:../quota
+      '@captureflow/shared':
+        specifier: workspace:*
+        version: link:../shared
       nodemailer:
         specifier: ^7.0.0
         version: 7.0.13
