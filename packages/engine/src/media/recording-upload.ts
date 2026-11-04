@@ -66,6 +66,7 @@ export type RecordingUploadOptions<Init> = {
   intervalMs?: number;
   maxSegmentBytes?: number;
   every?: (ms: number, cb: () => void) => () => void;
+  warn?: (message: string) => void;
 };
 
 export type RecordingUpload = {
@@ -178,14 +179,15 @@ async function finishWebcam(
   finishFile: () => Promise<{ size: number; headerBytes: number }>,
   upload: (headerBytes: number) => Promise<void>,
   finalize: (sizeBytes: number) => Promise<void>,
+  warn?: (message: string) => void,
 ): Promise<void> {
   try {
     const cam = await finishFile();
     if (cam.size === 0) return;
     await upload(cam.headerBytes);
     await finalize(cam.size);
-  } catch {
-    /* see above */
+  } catch (err) {
+    warn?.(`webcam upload did not finish (${String(err)})`);
   }
 }
 
@@ -281,6 +283,7 @@ export async function startRecordingUpload<Init>(
           (headerBytes) => webcam.uploader.finish(headerBytes),
           (sizeBytes) =>
             transport.finalizeWebcam({ slug, segments: true, sizeBytes }),
+          options.warn,
         );
       }
       await files.remove().catch(() => {});
@@ -359,6 +362,7 @@ export async function resumeRecordingUpload<Init>(
       (headerBytes) => upload("webcam", file, headerBytes),
       (sizeBytes) =>
         transport.finalizeWebcam({ slug, segments: true, sizeBytes }),
+      options.warn,
     );
   }
   if (slug !== pending.slug) {

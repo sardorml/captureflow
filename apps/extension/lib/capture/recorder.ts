@@ -395,6 +395,7 @@ async function runSession(
       upload = await startRecordingUpload(initRequest(qualityId), {
         transport,
         openFiles: openLocalRecording,
+        warn: log.warn,
       });
     } catch (err) {
       const refusedQuality =
@@ -405,6 +406,7 @@ async function runSession(
       upload = await startRecordingUpload(initRequest(qualityId), {
         transport,
         openFiles: openLocalRecording,
+        warn: log.warn,
       });
     }
   } catch (err) {
