@@ -61,6 +61,33 @@ describe("GET", () => {
     expect(bucketPut.mock.calls[0]?.[0]).toBe("videos/k-webcam.webm.peaks");
   });
 
+  it("answers a flat line for a file the recorder left silent", async () => {
+    getRecording.mockResolvedValue({
+      state: "ready",
+      userId: "owner",
+      storageKey: "videos/k.mp4",
+      webcamStorageKey: "videos/k-webcam.webm",
+      captureJson: JSON.stringify({
+        userAgent: "ua",
+        surface: "window",
+        camera: { requested: true, acquired: true },
+        mic: { requested: true, acquired: true },
+        audio: { muxed: "webcam" },
+        warnings: [],
+      }),
+    });
+    const res = await GET(new NextRequest(url()), ctx());
+    expect(res.status).toBe(200);
+    expect(
+      new Float32Array(await res.arrayBuffer()).every((p) => p === 0),
+    ).toBe(true);
+    expect(bucketGet).not.toHaveBeenCalled();
+    expect(computePeaks).not.toHaveBeenCalled();
+    const cam = await GET(new NextRequest(url("?track=webcam")), ctx());
+    expect(cam.status).toBe(200);
+    expect(computePeaks).toHaveBeenCalled();
+  });
+
   it("says so when the job can't run, saving nothing", async () => {
     computePeaks.mockResolvedValue(null);
     expect((await GET(new NextRequest(url()), ctx())).status).toBe(503);

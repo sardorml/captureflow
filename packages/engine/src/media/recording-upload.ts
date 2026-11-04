@@ -1,3 +1,5 @@
+import type { CaptureReport } from "./capture-report";
+import type { WaveformUpload } from "./waveform";
 import {
   createIndexedRecording,
   finishRecordingFile,
@@ -30,6 +32,14 @@ export type UploadFinalizeRequest = {
   segments: true;
   sizeBytes: number;
   durationMs?: number;
+  capture?: CaptureReport;
+  waveform?: WaveformUpload;
+};
+
+// What finalize learns only once the recording ends.
+export type FinalizeReport = {
+  capture?: CaptureReport;
+  waveform?: WaveformUpload;
 };
 
 export type RecordingUploadTransport<Init> = {
@@ -64,6 +74,7 @@ export type RecordingUploadOptions<Init> = {
   intervalMs?: number;
   maxSegmentBytes?: number;
   every?: (ms: number, cb: () => void) => () => void;
+  warn?: (message: string) => void;
 };
 
 export type RecordingUpload = {
@@ -88,6 +99,7 @@ export type RecordingUpload = {
   finish(
     durationMs?: number,
     beforeFinalize?: Promise<unknown>,
+    report?: FinalizeReport,
   ): Promise<{ url: string }>;
   abort(): void;
 };
@@ -147,6 +159,7 @@ async function finalizeScreen<Init>(
   sizeBytes: number,
   durationMs: number | null | undefined,
   wait: (ms: number) => Promise<void>,
+  report?: FinalizeReport,
 ): Promise<{ url: string }> {
   for (let attempt = 1; ; attempt++) {
     try {
@@ -155,6 +168,7 @@ async function finalizeScreen<Init>(
         segments: true,
         sizeBytes,
         ...(durationMs && durationMs > 0 ? { durationMs } : {}),
+        ...report,
       });
     } catch (err) {
       // A finalize lost to the network may still have been applied — the
@@ -173,14 +187,15 @@ async function finishWebcam(
   finishFile: () => Promise<{ size: number; headerBytes: number }>,
   upload: (headerBytes: number) => Promise<void>,
   finalize: (sizeBytes: number) => Promise<void>,
+  warn?: (message: string) => void,
 ): Promise<void> {
   try {
     const cam = await finishFile();
     if (cam.size === 0) return;
     await upload(cam.headerBytes);
     await finalize(cam.size);
-  } catch {
-    /* see above */
+  } catch (err) {
+    warn?.(`webcam upload did not finish (${String(err)})`);
   }
 }
 
@@ -256,7 +271,7 @@ export async function startRecordingUpload<Init>(
       webcamBytes += bytes.byteLength;
       webcam.recording.push(bytes);
     },
-    async finish(durationMs, beforeFinalize) {
+    async finish(durationMs, beforeFinalize, report) {
       stopped = true;
       const finished = await screen.recording.finish();
       if (finished.size === 0) throw new Error("No screen parts uploaded");
@@ -268,6 +283,7 @@ export async function startRecordingUpload<Init>(
         finished.size,
         durationMs ?? finished.durationMs,
         options.retryWait ?? defaultWait,
+        report,
       );
       if (webcam) {
         await finishWebcam(
@@ -275,6 +291,7 @@ export async function startRecordingUpload<Init>(
           (headerBytes) => webcam.uploader.finish(headerBytes),
           (sizeBytes) =>
             transport.finalizeWebcam({ slug, segments: true, sizeBytes }),
+          options.warn,
         );
       }
       await files.remove().catch(() => {});
@@ -353,6 +370,7 @@ export async function resumeRecordingUpload<Init>(
       (headerBytes) => upload("webcam", file, headerBytes),
       (sizeBytes) =>
         transport.finalizeWebcam({ slug, segments: true, sizeBytes }),
+      options.warn,
     );
   }
   if (slug !== pending.slug) {

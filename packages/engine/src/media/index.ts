@@ -34,10 +34,17 @@ export {
   type RecordingFile,
   type RecordingFormat,
 } from "./recording-file";
+export type {
+  CaptureAudio,
+  CaptureDevice,
+  CaptureReport,
+} from "./capture-report";
+export { WAVEFORM_BUCKETS, type WaveformUpload } from "./waveform";
 export {
   NothingRecordedError,
   resumeRecordingUpload,
   startRecordingUpload,
+  type FinalizeReport,
   type LocalFiles,
   type PendingUpload,
   type RecordingUpload,

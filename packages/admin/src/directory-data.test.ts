@@ -46,7 +46,8 @@ beforeEach(() => {
     CREATE TABLE recordings (slug TEXT, user_id TEXT, workspace_id TEXT, state TEXT,
       size_bytes INTEGER DEFAULT 0, webcam_size_bytes INTEGER DEFAULT 0,
       view_count INTEGER DEFAULT 0, duration_ms INTEGER, created_at INTEGER DEFAULT 1,
-      title TEXT, visibility TEXT, client TEXT, capture_source TEXT, quality TEXT);
+      title TEXT, visibility TEXT, client TEXT, capture_source TEXT, quality TEXT,
+      capture_json TEXT);
     CREATE TABLE screenshots (id TEXT, user_id TEXT, workspace_id TEXT, state TEXT,
       size_bytes INTEGER DEFAULT 0, view_count INTEGER DEFAULT 0, created_at INTEGER DEFAULT 1);
     CREATE TABLE workspace_subscription (ls_subscription_id TEXT PRIMARY KEY,

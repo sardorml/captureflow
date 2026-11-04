@@ -6,6 +6,8 @@ import {
   peakBetween,
   waveformBuckets,
   hydratePeaks,
+  hydrateWaveformUpload,
+  WAVEFORM_BUCKETS,
   WAVEFORM_BYTES,
 } from "./waveform";
 
@@ -86,5 +88,30 @@ describe("hydratePeaks", () => {
       new Float32Array(bytes)[0] = bad;
       expect(hydratePeaks(bytes)).toBeNull();
     }
+  });
+});
+
+describe("hydrateWaveformUpload", () => {
+  const peaks = () => Array.from({ length: WAVEFORM_BUCKETS }, () => 0.5);
+
+  it("takes a full set of peaks for a known track", () => {
+    const got = hydrateWaveformUpload({ track: "webcam", peaks: peaks() });
+    expect(got?.track).toBe("webcam");
+    expect(got?.peaks.length).toBe(WAVEFORM_BUCKETS);
+    expect(got?.peaks[7]).toBe(0.5);
+  });
+
+  it("refuses the wrong count, a bad value or an unknown track", () => {
+    expect(hydrateWaveformUpload({ track: "screen", peaks: [0.5] })).toBeNull();
+    const negative = peaks();
+    negative[3] = -1;
+    expect(
+      hydrateWaveformUpload({ track: "screen", peaks: negative }),
+    ).toBeNull();
+    const text = peaks() as unknown[];
+    text[3] = "1";
+    expect(hydrateWaveformUpload({ track: "screen", peaks: text })).toBeNull();
+    expect(hydrateWaveformUpload({ track: "mic", peaks: peaks() })).toBeNull();
+    expect(hydrateWaveformUpload(undefined)).toBeNull();
   });
 });

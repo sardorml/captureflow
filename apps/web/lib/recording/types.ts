@@ -51,6 +51,8 @@ export type RecordingRow = {
   webcamState: WebcamState;
   configJson: string | null;
   summaryChaptersJson: string | null;
+  // The devices it was made from (lib/recording/capture-report.ts); null before the client reported.
+  captureJson: string | null;
 };
 
 export type InitRequest = {
@@ -184,6 +186,8 @@ export type SegmentFinalizeRequest = {
   segments: true;
   sizeBytes: number;
   durationMs?: number;
+  capture?: CaptureReport;
+  waveform?: WaveformUpload;
 };
 
 export type PartsFinalizeRequest = {
@@ -192,11 +196,47 @@ export type PartsFinalizeRequest = {
   sizeBytes: number;
   // Uploads stream while recording, so /init can't know it yet.
   durationMs?: number;
+  capture?: CaptureReport;
+  waveform?: WaveformUpload;
+};
+
+/*
+ * What the recording was made from, a copy of the engine's CaptureReport
+ * (packages/engine/src/media/capture-report.ts). Stored as capture_json so a
+ * recording with no sound or camera can be traced to the device picked.
+ */
+export type CaptureDevice = {
+  requested: boolean;
+  acquired: boolean;
+  deviceId?: string;
+  label?: string;
+  sampleRate?: number;
+  channelCount?: number;
+};
+
+export type CaptureAudio =
+  | { muxed: "aac"; sampleRate: number; channelCount: number; bitrate: number }
+  | { muxed: "webcam" }
+  | { muxed: "none"; reason: string };
+
+export type CaptureReport = {
+  userAgent: string;
+  surface: string | null;
+  camera: CaptureDevice;
+  mic: CaptureDevice;
+  audio: CaptureAudio;
+  warnings: string[];
 };
 
 export type FinalizeRequest = SegmentFinalizeRequest | PartsFinalizeRequest;
 
 export type RecordingStream = "screen" | "webcam";
+
+// The mic's peaks the recorder measured, WAVEFORM_BUCKETS of them, for the file the mic went into.
+export type WaveformUpload = {
+  track: RecordingStream;
+  peaks: number[];
+};
 
 export type UploadSegment = { offset: number; size: number };
 

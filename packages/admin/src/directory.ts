@@ -138,6 +138,7 @@ export type AdminRecentRecording = {
   client: string | null;
   captureSource: string | null;
   quality: string | null;
+  captureJson: string | null;
 };
 
 export type AdminUserActivity = {
@@ -422,7 +423,7 @@ export async function getUserActivity(
         `SELECT r.slug, r.title, r.state, r.visibility,
                 r.size_bytes + r.webcam_size_bytes AS size_bytes, r.duration_ms,
                 r.view_count, r.created_at, w.name AS workspace_name,
-                r.client, r.capture_source, r.quality
+                r.client, r.capture_source, r.quality, r.capture_json
            FROM recordings r
            LEFT JOIN workspace w ON w.id = r.workspace_id
           WHERE r.user_id = ?1
@@ -442,6 +443,7 @@ export async function getUserActivity(
         client: string | null;
         capture_source: string | null;
         quality: string | null;
+        capture_json: string | null;
       }>(),
   ]);
   return {
@@ -478,6 +480,7 @@ export async function getUserActivity(
       client: r.client,
       captureSource: r.capture_source,
       quality: r.quality,
+      captureJson: r.capture_json,
     })),
   };
 }

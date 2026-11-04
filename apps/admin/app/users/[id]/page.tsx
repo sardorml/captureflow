@@ -8,6 +8,7 @@ import {
   listAuditForTarget,
   listUserSubscriptions,
   listUserWorkspaces,
+  summarizeCapture,
 } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
@@ -68,6 +69,25 @@ function captureLabel(
   return parts.length ? parts.join(" · ") : "—";
 }
 
+function CaptureCell({ captureJson }: { captureJson: string | null }) {
+  const capture = summarizeCapture(captureJson);
+  if (!capture) return "—";
+  const warningCount = capture.warnings.length;
+  return (
+    <span title={warningCount > 0 ? capture.warnings.join("\n") : undefined}>
+      {capture.mic}
+      <br />
+      {capture.camera}
+      {warningCount > 0 && (
+        <>
+          <br />
+          {warningCount} {warningCount === 1 ? "warning" : "warnings"}
+        </>
+      )}
+    </span>
+  );
+}
+
 export default async function UserPage({
   params,
 }: {
@@ -102,6 +122,7 @@ export default async function UserPage({
           "State",
           "Visibility",
           "Source",
+          "Devices",
           "Quality",
           "Length",
           "Size",
@@ -135,6 +156,9 @@ export default async function UserPage({
             </TableCell>
             <TableCell className="text-fg-muted whitespace-nowrap">
               {captureLabel(r.client, r.captureSource)}
+            </TableCell>
+            <TableCell className="text-fg-muted text-xs whitespace-nowrap">
+              <CaptureCell captureJson={r.captureJson} />
             </TableCell>
             <TableCell className="text-fg-muted whitespace-nowrap">
               {r.quality ? (QUALITY_LABEL[r.quality] ?? r.quality) : "—"}

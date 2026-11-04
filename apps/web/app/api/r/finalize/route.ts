@@ -5,6 +5,7 @@ import {
   completeMultipartUpload,
   deleteObject,
   objectSize,
+  putObject,
 } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import {
@@ -14,6 +15,9 @@ import {
 import { getWorkspaceEntitlement, uploadOverrun } from "@/lib/recording/quota";
 import { overrunError } from "@/lib/recording/upload-errors";
 import { isDevDevice } from "@/lib/recording/dev-allowlist";
+import { hydrateCaptureReport } from "@/lib/recording/capture-report";
+import { hydrateWaveformUpload } from "@/lib/recording/waveform";
+import { waveformKeyFor } from "@captureflow/shared/object-keys";
 import { viewUrlForRequest } from "@/lib/site";
 import type { FinalizeRequest, FinalizeResponse } from "@/lib/recording/types";
 
@@ -153,6 +157,9 @@ export async function POST(req: NextRequest) {
     body.durationMs > 0
       ? Math.round(body.durationMs)
       : null;
+  const capture = hydrateCaptureReport(body.capture);
+  if (capture)
+    console.info("[finalize] capture", { slug: row.slug, ...capture });
 
   try {
     await updateRecording(row.slug, {
@@ -161,6 +168,7 @@ export async function POST(req: NextRequest) {
       sizeBytes: actualBytes,
       lastViewedAt: Date.now(),
       ...(durationMs === null ? {} : { durationMs }),
+      ...(capture === null ? {} : { captureJson: JSON.stringify(capture) }),
     });
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
@@ -169,6 +177,20 @@ export async function POST(req: NextRequest) {
       reason,
     });
     return jsonError(`DB update: ${reason}`, 500, "db_update_failed");
+  }
+
+  // The editor's lane: saved now so opening it never reads the file back.
+  const waveform = hydrateWaveformUpload(body.waveform);
+  const waveformMediaKey =
+    waveform?.track === "webcam" ? row.webcamStorageKey : row.storageKey;
+  if (waveform && waveformMediaKey) {
+    await putObject(
+      waveformKeyFor(waveformMediaKey),
+      waveform.peaks.buffer,
+      "application/octet-stream",
+    ).catch((err: unknown) => {
+      console.warn("[finalize] waveform save failed", { slug: row.slug, err });
+    });
   }
 
   const res: FinalizeResponse = { url: viewUrlForRequest(req, row.slug) };

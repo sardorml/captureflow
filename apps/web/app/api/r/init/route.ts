@@ -224,6 +224,7 @@ export async function POST(req: NextRequest) {
     webcamState,
     configJson: null,
     summaryChaptersJson: null,
+    captureJson: null,
   });
 
   const res: InitResponse = {

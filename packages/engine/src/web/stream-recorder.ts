@@ -48,6 +48,15 @@ export type StreamRecorderOptions = {
   log?: StreamRecorderLog;
 };
 
+export type StreamRecorderAudio =
+  | {
+      codec: "aac";
+      sampleRate: number;
+      numberOfChannels: number;
+      bitrate: number;
+    }
+  | { codec: null; reason: string };
+
 export type StreamRecorderResult = {
   sizeBytes: number;
   durationMs: number;
@@ -57,6 +66,8 @@ export type StreamRecorderResult = {
 };
 
 export type StreamRecorder = {
+  /** What the mic became in the file, settled before the first byte is written. */
+  readonly audio: StreamRecorderAudio;
   /** Stops encoding new media; the output timeline stays continuous across the gap. */
   pause(): Promise<void>;
   resume(): void;
@@ -200,10 +211,21 @@ export async function startStreamRecorder(
     ? await supportedAacConfig(requestedAudio)
     : null;
   const withAudio = audioConfig !== null;
-  if (requestedAudio && !audioConfig) {
-    log.warn(
-      `stream-recorder: AAC encoding unavailable (${requestedAudio.sampleRate} Hz, ${requestedAudio.numberOfChannels} ch), recording without mic`,
-    );
+  const audio: StreamRecorderAudio = audioConfig
+    ? {
+        codec: "aac",
+        sampleRate: audioConfig.sampleRate,
+        numberOfChannels: audioConfig.numberOfChannels,
+        bitrate: audioConfig.bitrate ?? AUDIO_BITRATE,
+      }
+    : {
+        codec: null,
+        reason: requestedAudio
+          ? `AAC encoding unavailable (${requestedAudio.sampleRate} Hz, ${requestedAudio.numberOfChannels} ch)`
+          : "no mic track",
+      };
+  if (audio.codec === null && requestedAudio) {
+    log.warn(`stream-recorder: ${audio.reason}, recording without mic`);
   } else if (audioConfig && audioConfig.bitrate !== requestedAudio?.bitrate) {
     log.info(
       `stream-recorder: AAC at ${audioConfig.bitrate} bps, the encoder refused ${requestedAudio?.bitrate}`,
@@ -494,6 +516,7 @@ export async function startStreamRecorder(
 
   let finishPromise: Promise<StreamRecorderResult> | null = null;
   return {
+    audio,
     async pause() {
       if (paused || stopping) return;
       paused = true;

@@ -845,14 +845,10 @@ export default defineBackground(() => {
         activeTab?.id === undefined
           ? undefined
           : await tabStreamIdFor(activeTab.id);
-      // A whole-screen recording would film the window, so it never opens
-      // for that source; the picker's result still closes it in case a
-      // screen was picked from another pane.
-      if (
-        prefs.camera &&
-        prefs.source !== "screen" &&
-        !(await getCameraBlocked())
-      ) {
+      // Opening takes the Start press's gesture, so it happens before the
+      // picker whatever its default pane is; a whole-screen capture would
+      // film the window, so the picker's result closes it in that case.
+      if (prefs.camera && !(await getCameraBlocked())) {
         await openRecordingWindow(overlayTabId ?? (await activeTabId()));
       }
       await setRecordingStatus({ kind: "preparing" });
