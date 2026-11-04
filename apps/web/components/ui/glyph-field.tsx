@@ -462,6 +462,16 @@ export function GlyphField({ word, clearRef, className }: GlyphFieldProps) {
       wake();
     };
 
+    // A lost WebGL context can't allocate targets. The field is decoration, so
+    // an error here must not reach React and replace the page.
+    const safeResize = () => {
+      try {
+        resize();
+      } catch (error) {
+        console.warn("The glyph field couldn't resize", error);
+      }
+    };
+
     const flowPass = (
       built: {
         program: WebGLProgram;
@@ -652,7 +662,7 @@ export function GlyphField({ word, clearRef, className }: GlyphFieldProps) {
       if (!document.hidden) wake();
     };
 
-    const resizeObserver = new ResizeObserver(resize);
+    const resizeObserver = new ResizeObserver(safeResize);
     resizeObserver.observe(canvas);
     const clearTarget = clearRef?.current;
     if (clearTarget) resizeObserver.observe(clearTarget);
@@ -667,7 +677,7 @@ export function GlyphField({ word, clearRef, className }: GlyphFieldProps) {
     host.addEventListener("pointercancel", onLeave);
     document.addEventListener("visibilitychange", onVisibility);
     reduceMotion.addEventListener("change", wake);
-    resize();
+    safeResize();
 
     return () => {
       cancelAnimationFrame(raf);
