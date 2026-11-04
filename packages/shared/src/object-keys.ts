@@ -1,4 +1,19 @@
-import { recordingConfigKeyFor } from "../recording-config";
+/*
+ * Every object key a recording or screenshot owns, derived from the keys the
+ * row stores. The web app (dashboard delete, DELETE /api/r/[id], retention
+ * sweep) and the self-hosted admin app all read these, so nothing strands a
+ * sidecar by keeping its own list.
+ */
+
+const MP4 = ".mp4";
+const PNG = ".png";
+
+export function recordingConfigKeyFor(storageKey: string): string {
+  if (storageKey.endsWith(MP4)) {
+    return `${storageKey.slice(0, -MP4.length)}.config.json`;
+  }
+  return `${storageKey}.config.json`;
+}
 
 export function summaryChaptersKeyFor(videoStorageKey: string): string {
   return `${videoStorageKey}.summary-chapters.json`;
@@ -46,15 +61,10 @@ type RecordingObjects = {
 };
 
 /*
- * Every R2 object a recording owns. The three delete paths (dashboard action,
- * DELETE /api/r/[id], retention sweep) each drifted to their own list and
- * stranded a different subset; they all read this now. Keep it free of
- * binding/runtime imports — lib/recording/cron.ts is bundled into worker.ts by
- * wrangler, which can't resolve @opennextjs/cloudflare.
- *
  * The config/summary sidecar keys outlive migration 0007 (which moved those
  * payloads into the row) so deleting a pre-migration recording still clears
- * its legacy R2 objects; for newer recordings they delete as no-ops.
+ * its legacy objects; for newer recordings they delete as no-ops. Keep this
+ * file free of binding/runtime imports: it is bundled into the web worker.
  */
 export function objectKeysFor(row: RecordingObjects): string[] {
   const keys = [
@@ -68,4 +78,22 @@ export function objectKeysFor(row: RecordingObjects): string[] {
     row.webcamStorageKey && waveformKeyFor(row.webcamStorageKey),
   ];
   return keys.filter((k): k is string => k !== null);
+}
+
+export function sourceKeyFor(storageKey: string): string {
+  if (storageKey.endsWith(PNG)) {
+    return `${storageKey.slice(0, -PNG.length)}.source.png`;
+  }
+  return `${storageKey}.source.png`;
+}
+
+export function stateKeyFor(storageKey: string): string {
+  if (storageKey.endsWith(PNG)) {
+    return `${storageKey.slice(0, -PNG.length)}.state.json`;
+  }
+  return `${storageKey}.state.json`;
+}
+
+export function screenshotObjectKeysFor(storageKey: string): string[] {
+  return [storageKey, sourceKeyFor(storageKey), stateKeyFor(storageKey)];
 }

@@ -4,9 +4,9 @@ import {
   audioPartPrefixFor,
   objectKeysFor,
   posterThumbKeyFor,
+  screenshotObjectKeysFor,
   summaryChaptersKeyFor,
-} from "./object-keys";
-import { screenshotObjectKeysFor } from "../screenshot-keys";
+} from "@captureflow/shared/object-keys";
 
 const full = {
   storageKey: "videos/abc12345.mp4",

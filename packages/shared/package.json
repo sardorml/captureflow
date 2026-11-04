@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./object-keys": "./src/object-keys.ts"
   },
   "scripts": {
     "lint": "echo \"(shared) lint: TODO\"",

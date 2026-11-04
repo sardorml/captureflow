@@ -20,7 +20,7 @@ export type RecordingRow = {
   posterKey: string | null;
   // A tiny JPEG of the poster as a data URL (lib/recording/poster-blur.ts).
   posterBlur: string | null;
-  // Card-sized JPEG under a content-addressed key (lib/recording/object-keys.ts).
+  // Card-sized JPEG under a content-addressed key (packages/shared/src/object-keys.ts).
   posterThumbKey: string | null;
   uploadId: string | null;
   sizeBytes: number;

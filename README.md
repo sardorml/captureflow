@@ -82,7 +82,7 @@ pnpm --filter @captureflow/web db:apply:remote
 pnpm --filter @captureflow/web cf:deploy
 ```
 
-[`DEPLOY.md`](./DEPLOY.md) is the full runbook: secrets, sign-in providers, custom domains, and pointing the extension and desktop app at your own instance. To run it as a private company tool, set `SELF_HOSTED` and `ALLOWED_EMAIL_DOMAINS` as described in the [configuration docs](https://docs.captureflow.dev/self-hosting/configuration).
+[`DEPLOY.md`](./DEPLOY.md) is the full runbook: secrets, sign-in providers, custom domains, and pointing the extension and desktop app at your own instance. A deployment on your own domain runs as a self-hosted instance; to make it a private company tool, set `ALLOWED_EMAIL_DOMAINS` as described in the [configuration docs](https://docs.captureflow.dev/self-hosting/configuration).
 
 ## ⌨️ Development
 

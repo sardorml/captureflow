@@ -47,8 +47,8 @@ use the workspace-local copy of Wrangler — no global install needed.
 
 ## Running it as a company tool
 
-Set `SELF_HOSTED` and `ALLOWED_EMAIL_DOMAINS` and the deployment becomes your
-company's private recorder:
+A deployment on your own domain is a self-hosted instance. Set
+`ALLOWED_EMAIL_DOMAINS` and it becomes your company's private recorder:
 
 - Only people with a verified address on your domains can sign up.
 - Storage has no default cap and nothing is deleted for being idle.

@@ -81,11 +81,13 @@ export function AuthForm({
   initialMode = "signin",
   invite = null,
   initialError = null,
+  canSignUp = true,
 }: {
   next: string;
   initialMode?: Mode;
   invite?: InviteContext | null;
   initialError?: string | null;
+  canSignUp?: boolean;
 }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [step, setStep] = useState<Step>("email");
@@ -298,21 +300,27 @@ export function AuthForm({
                     Continue with Email
                   </Button>
                   {errorAlert}
-                  <FieldDescription className="text-center">
-                    {isSignup
-                      ? "Already have an account? "
-                      : "Don't have an account? "}
-                    <button
-                      type="button"
-                      className="cursor-pointer underline underline-offset-4 hover:text-primary"
-                      onClick={() => {
-                        setMode(isSignup ? "signin" : "signup");
-                        setError(null);
-                      }}
-                    >
-                      {isSignup ? "Log in" : "Sign up"}
-                    </button>
-                  </FieldDescription>
+                  {!canSignUp ? (
+                    <FieldDescription className="text-center">
+                      Need an account? Ask an admin for an invite.
+                    </FieldDescription>
+                  ) : (
+                    <FieldDescription className="text-center">
+                      {isSignup
+                        ? "Already have an account? "
+                        : "Don't have an account? "}
+                      <button
+                        type="button"
+                        className="cursor-pointer underline underline-offset-4 hover:text-primary"
+                        onClick={() => {
+                          setMode(isSignup ? "signin" : "signup");
+                          setError(null);
+                        }}
+                      >
+                        {isSignup ? "Log in" : "Sign up"}
+                      </button>
+                    </FieldDescription>
+                  )}
                 </Field>
               </FieldGroup>
             </form>

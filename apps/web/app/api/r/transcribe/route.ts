@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createTranscriptJob, getRecording } from "@/lib/recording/db";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import { callerOwns } from "@/lib/recording/caller";
-import { audioPartKeyFor } from "@/lib/recording/object-keys";
+import { audioPartKeyFor } from "@captureflow/shared/object-keys";
 import { hydrateTranscribeRequest } from "@/lib/recording/transcription";
 import { dispatchTranscription } from "@/lib/recording/transcription-dispatch";
 

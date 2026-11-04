@@ -4,13 +4,14 @@ import type { PaidSeats } from "@/lib/billing/seat-checkout";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
-import { Check, ChevronsUpDown, UserPlus } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, UserPlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -63,6 +64,8 @@ type Props = {
   memberships: WorkspaceMembership[];
   memberCount: number;
   canInvite: boolean;
+  // A self-hosted admin: invites and new workspaces live in the admin app.
+  instanceAdmin: boolean;
   paidSeats: PaidSeats | null;
 };
 
@@ -71,6 +74,7 @@ export function WorkspaceSwitcher({
   memberships,
   memberCount,
   canInvite,
+  instanceAdmin,
   paidSeats,
 }: Props) {
   const { isMobile } = useSidebar();
@@ -80,8 +84,11 @@ export function WorkspaceSwitcher({
   // and kept mounted so closing can animate out.
   const [inviteMounted, setInviteMounted] = useState(false);
   useEffect(
-    () => (canInvite ? whenIdle(() => setInviteMounted(true)) : undefined),
-    [canInvite],
+    () =>
+      canInvite && !instanceAdmin
+        ? whenIdle(() => setInviteMounted(true))
+        : undefined,
+    [canInvite, instanceAdmin],
   );
   const current =
     memberships.find((m) => m.workspace_id === currentWorkspaceId) ??
@@ -152,21 +159,41 @@ export function WorkspaceSwitcher({
                   </DropdownMenuItem>
                 );
               })}
+              {instanceAdmin && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="gap-2 p-2">
+                    <a href="/admin">
+                      <Plus />
+                      New workspace
+                    </a>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
         {canInvite && (
           <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Invite members"
-              onClick={() => {
-                setInviteMounted(true);
-                setInviting(true);
-              }}
-            >
-              <UserPlus />
-              <span>Invite members</span>
-            </SidebarMenuButton>
+            {instanceAdmin ? (
+              <SidebarMenuButton asChild tooltip="Invite members">
+                <a href={`/admin/workspaces/${currentWorkspaceId}`}>
+                  <UserPlus />
+                  <span>Invite members</span>
+                </a>
+              </SidebarMenuButton>
+            ) : (
+              <SidebarMenuButton
+                tooltip="Invite members"
+                onClick={() => {
+                  setInviteMounted(true);
+                  setInviting(true);
+                }}
+              >
+                <UserPlus />
+                <span>Invite members</span>
+              </SidebarMenuButton>
+            )}
           </SidebarMenuItem>
         )}
       </SidebarMenu>

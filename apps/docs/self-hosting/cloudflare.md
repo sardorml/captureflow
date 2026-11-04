@@ -82,7 +82,8 @@ domain other than `captureflow.dev`, update them now (`NEXT_PUBLIC_*` site URLs,
 > `NEXT_PUBLIC_*` vars are inlined into the client bundle at build time — they
 > are public by design. **Never** put a secret behind a `NEXT_PUBLIC_` name.
 
-For an internal tool, also add `"SELF_HOSTED": "true"` and
+Any address other than `captureflow.dev` runs as a self-hosted instance, with
+no storage cap or billing. For an internal tool, also add
 `"ALLOWED_EMAIL_DOMAINS": "yourcompany.com"`, and set the Google or GitHub
 secrets so people can sign in. See
 [Private company instance](/self-hosting/configuration#private-company-instance).

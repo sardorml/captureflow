@@ -16,6 +16,7 @@ import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { getWorkspaceSeatContext, paidSeatsOf } from "@/lib/billing/seats";
+import { isInstanceAdminUser } from "@/lib/selfhost";
 import { SidebarNav } from "./SidebarNav";
 import { SidebarRecordItem } from "./SidebarRecordItem";
 import { SidebarUpgradeCard } from "./SidebarUpgradeCard";
@@ -43,6 +44,7 @@ export async function Sidebar({
   const isOwner = current.role === "owner";
   const selfHosted = isSelfHosted(env);
   const paidSeats = paidSeatsOf(seat);
+  const instanceAdmin = await isInstanceAdminUser(userId);
 
   return (
     <SidebarRoot
@@ -65,13 +67,18 @@ export async function Sidebar({
           currentWorkspaceId={current.workspace.id}
           memberships={current.memberships}
           memberCount={members.length}
-          canInvite={isOwner}
+          canInvite={selfHosted ? instanceAdmin : isOwner}
+          instanceAdmin={instanceAdmin}
           paidSeats={paidSeats}
         />
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarNav isOwner={isOwner} selfHosted={selfHosted} />
+        <SidebarNav
+          isOwner={isOwner}
+          selfHosted={selfHosted}
+          instanceAdmin={instanceAdmin}
+        />
       </SidebarContent>
 
       <SidebarFooter>

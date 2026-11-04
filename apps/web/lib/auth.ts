@@ -12,6 +12,11 @@ import { getInjectedEnv } from "@captureflow/selfhost/env-slot";
 import { ensurePersonalWorkspace, isSelfHosted } from "@captureflow/quota";
 import { authSchema } from "./auth-schema";
 import { sendVerificationEmail, sendWelcomeEmail } from "./email";
+import type { SelfHostHooks } from "@captureflow/selfhost/hooks";
+import {
+  INVITE_ONLY_MESSAGE,
+  domainsMessage,
+} from "@captureflow/selfhost/instance";
 
 // D1 is request-scoped (binding only exists inside a fetch handler), so the
 // auth instance is built per request.
@@ -30,7 +35,8 @@ type AppWebEnv = {
   GITHUB_CLIENT_SECRET?: string;
   // Comma-separated; when set, only verified addresses on these domains can sign up.
   ALLOWED_EMAIL_DOMAINS?: string;
-  SELF_HOSTED?: string;
+  CAPTUREFLOW_HOSTED?: string;
+  SELFHOST?: SelfHostHooks;
 };
 
 function buildAuth(
@@ -130,18 +136,28 @@ function buildAuth(
     databaseHooks: {
       user: {
         create: {
-          before: async (user) => {
+          before: async (user, ctx) => {
             const domains = parseEmailDomains(env?.ALLOWED_EMAIL_DOMAINS);
             if (!signupAllowed(user, domains)) {
               throw new APIError("FORBIDDEN", {
                 message: signupBlockedMessage(domains),
               });
             }
+            const refusal = await env?.SELFHOST?.signupRefusal(
+              user,
+              ctx?.body?.callbackURL,
+            );
+            if (refusal) throw new APIError("FORBIDDEN", { message: refusal });
           },
           // Best-effort: never block sign-up on failure (user row is committed).
           after: async (user) => {
             if (!env?.DB) return;
             const db = env.DB;
+            try {
+              await env.SELFHOST?.afterSignup(user.id);
+            } catch (err) {
+              console.error("auth: self-host afterSignup failed", err);
+            }
             try {
               await ensurePersonalWorkspace(
                 db,
@@ -173,8 +189,17 @@ export function signupBlockedMessage(domains: string[]): string {
 export function oauthErrorMessage(
   error: string | undefined,
   domains: string[],
+  selfhost?: { domains: string[] },
 ): string | null {
   if (!error) return null;
+  if (error.startsWith("This_CaptureFlow_is_invite-only")) {
+    return INVITE_ONLY_MESSAGE;
+  }
+  if (selfhost && error.startsWith("Sign_up_with_an_address_on")) {
+    return selfhost.domains.length > 0
+      ? domainsMessage(selfhost.domains)
+      : INVITE_ONLY_MESSAGE;
+  }
   if (domains.length > 0 && error.startsWith("Sign_up_with_a_Google")) {
     return signupBlockedMessage(domains);
   }

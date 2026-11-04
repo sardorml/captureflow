@@ -3,6 +3,7 @@ export {
   UNLIMITED_STORAGE_BYTES,
   isSelfHosted,
 } from "./limits";
+export type { SelfHostEnv } from "./limits";
 export type { AccountLimits } from "./limits";
 export {
   countUserRecordingsInWorkspace,

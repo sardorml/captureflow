@@ -1,14 +1,5 @@
 import { normalizeCuts, type RecordingCut } from "@/lib/recording/cuts";
 
-const MP4 = ".mp4";
-
-export function recordingConfigKeyFor(storageKey: string): string {
-  if (storageKey.endsWith(MP4)) {
-    return `${storageKey.slice(0, -MP4.length)}.config.json`;
-  }
-  return `${storageKey}.config.json`;
-}
-
 export type RecordingCameraCorner =
   | "bottom-right"
   | "bottom-left"

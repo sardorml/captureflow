@@ -2,6 +2,7 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getInjectedEnv } from "@captureflow/selfhost/env-slot";
+import type { SelfHostHooks } from "@captureflow/selfhost/hooks";
 import type { TranscriptionJobMessage } from "./recording/types";
 
 export type AppWebBindings = {
@@ -49,7 +50,9 @@ export type AppWebBindings = {
   // Must use a domain verified in both Email Service and Resend, e.g. "CaptureFlow <hello@captureflow.dev>".
   RESEND_FROM_ADDRESS?: string;
   CAPTUREFLOW_EXTENSION_ID?: string;
-  SELF_HOSTED?: string;
+  CAPTUREFLOW_HOSTED?: string;
+  // Filled by the Docker server only; see apps/web/lib/selfhost.ts.
+  SELFHOST?: SelfHostHooks;
   ALLOWED_EMAIL_DOMAINS?: string;
 };
 

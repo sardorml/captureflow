@@ -10,7 +10,7 @@ import {
   uploadPart,
   type R2UploadedPart,
 } from "./r2";
-import { segmentPrefixFor } from "./object-keys";
+import { segmentPrefixFor } from "@captureflow/shared/object-keys";
 import { isValidSlug } from "./slug";
 import type { RecordingRow, RecordingStream, UploadSegment } from "./types";
 

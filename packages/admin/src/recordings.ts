@@ -56,7 +56,9 @@ const RECORDING_SELECT = `
 const RECORDING_WHERE = `
   WHERE (?1 = '' OR r.title LIKE ?2 OR r.slug LIKE ?2
          OR u.email LIKE ?2 OR u.name LIKE ?2 OR w.name LIKE ?2)
-    AND (?3 = 'all' OR r.visibility = ?3)`;
+    AND (?3 = 'all' OR r.visibility = ?3)
+    AND (?4 = '' OR r.workspace_id = ?4)
+    AND (?5 = '' OR r.user_id = ?5)`;
 
 const RECORDING_ORDER: Record<RecordingSort, string> = {
   newest: "r.created_at DESC",
@@ -119,16 +121,24 @@ export async function listAdminRecordings(
     visibility: RecordingVisibilityFilter;
     sort?: RecordingSort;
     pageSize?: number;
+    workspaceId?: string;
+    userId?: string;
   },
 ): Promise<Page<AdminRecordingRow>> {
   const pageSize = opts.pageSize ?? ADMIN_PAGE_SIZE;
   const term = opts.search.trim();
-  const args = [term, `%${term}%`, opts.visibility];
+  const args = [
+    term,
+    `%${term}%`,
+    opts.visibility,
+    opts.workspaceId ?? "",
+    opts.userId ?? "",
+  ];
   const [{ results }, count] = await Promise.all([
     db
       .prepare(
         `${RECORDING_SELECT} ${RECORDING_WHERE}
-         ORDER BY ${RECORDING_ORDER[opts.sort ?? "newest"]} LIMIT ?4 OFFSET ?5`,
+         ORDER BY ${RECORDING_ORDER[opts.sort ?? "newest"]} LIMIT ?6 OFFSET ?7`,
       )
       .bind(...args, pageSize, Math.max(0, opts.page - 1) * pageSize)
       .all<RecordingD1Row>(),
