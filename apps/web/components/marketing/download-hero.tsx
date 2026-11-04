@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { Flex } from "./layout";
 import { Paragraph, Title } from "./typography";
 import { CHROME_WEBSTORE_URL } from "@/lib/marketing/constants";
-import { TwoTone } from "./frame";
+import { splitLead } from "@/lib/marketing/split-lead";
 import { InstallButton } from "./install-button";
 import { AppleLogo, ChromeLogoColor } from "./platform-logos";
 import { useMessages } from "./i18n-provider";
@@ -12,6 +13,7 @@ import { useMessages } from "./i18n-provider";
 // to do on this page.
 export function DownloadHero() {
   const m = useMessages();
+  const { lead, rest } = splitLead(m.download.subtitle);
 
   return (
     <section className="relative overflow-hidden">
@@ -23,31 +25,34 @@ export function DownloadHero() {
           maxWidth: 1280,
           marginInline: "auto",
           paddingInline: 24,
-          paddingTop: 96,
+          paddingTop: 72,
           paddingBottom: 72,
           textAlign: "center",
         }}
       >
+        <Image
+          src="/logo.png"
+          alt=""
+          width={104}
+          height={104}
+          unoptimized
+          priority
+          className="mb-8 rounded-[24px]"
+        />
         <Title
           align="center"
           level={1}
-          className="text-balance text-fg-strong"
-          style={{
-            fontSize: "2.25rem",
-            fontWeight: 600,
-            lineHeight: 1.11,
-            letterSpacing: "-0.05em",
-            marginBottom: 16,
-          }}
+          className="text-[clamp(2.25rem,1.5rem+3vw,3.5rem)] leading-[1.05] font-semibold tracking-[-0.05em] text-balance text-fg-strong"
+          style={{ marginBottom: 24 }}
         >
           {m.download.heading}
         </Title>
         <Paragraph
           align="center"
-          className="text-lg leading-7 text-balance sm:[&>span]:block"
+          className="text-xl leading-8 text-balance text-fg-muted"
           style={{ maxWidth: 720 }}
         >
-          <TwoTone text={m.download.subtitle} />
+          <span className="sm:block">{lead}</span> {rest}
         </Paragraph>
 
         <Flex vertical gap={16} align="center" style={{ marginTop: 32 }}>
