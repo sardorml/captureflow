@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   CARD_GRAY,
+  CARD_SNAP,
   CARD_ZOOM,
   FRAME_CARD,
   FRAME_CELL,
@@ -20,7 +21,7 @@ export type PreviewTileItem = {
 };
 
 const ARC_MOTION =
-  "absolute border transition-[scale,border-color] duration-300 ease-out motion-reduce:transition-none motion-safe:group-hover/card:scale-[1.03]";
+  "absolute border transition-[scale,border-color] duration-[120ms] ease-out group-hover/card:[transition-duration:120ms,0ms] motion-reduce:transition-none motion-safe:group-hover/card:scale-[1.03]";
 const ARCS = [
   "-right-[72px] -bottom-20 h-54 w-72 rounded-[64px] border-[color-mix(in_oklab,var(--cf-fg)_9%,transparent)] group-hover/card:border-[color-mix(in_oklab,var(--cf-fg)_14%,transparent)]",
   "-right-12 -bottom-14 h-42 w-60 rounded-[40px] border-[color-mix(in_oklab,var(--cf-fg)_12%,transparent)] group-hover/card:border-[color-mix(in_oklab,var(--cf-fg)_18%,transparent)]",
@@ -72,7 +73,8 @@ export function PreviewTileGrid({
           <Icon
             aria-hidden
             className={cn(
-              "absolute top-[22px] right-5 size-4 transition-colors duration-300 motion-reduce:transition-none [@media(hover:hover)]:not-group-hover/card:text-fg-muted",
+              "absolute top-[22px] right-5 size-4 transition-colors motion-reduce:transition-none [@media(hover:hover)]:not-group-hover/card:text-fg-muted",
+              CARD_SNAP,
               color,
             )}
           />
