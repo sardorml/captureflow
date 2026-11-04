@@ -57,8 +57,8 @@ type CaptureLog = {
 
 // Dev builds print everything; a warning also rides the capture report, so
 // what went wrong is readable from the recording itself.
-function createCaptureLog(): CaptureLog {
-  const warnings: string[] = [];
+function createCaptureLog(initial: string[] = []): CaptureLog {
+  const warnings = [...initial];
   return {
     warnings,
     info: (message) => devLog?.info(message),
@@ -237,6 +237,7 @@ export async function recordAndUpload(
 
   // Webcam (camera + optional mic) is best-effort: if it can't be acquired (no
   // permission yet, no device), fall back to a screen-only recording.
+  const acquire = createCaptureLog();
   let webcamStream: MediaStream | null = null;
   if (ctx.camera) {
     try {
@@ -244,7 +245,8 @@ export async function recordAndUpload(
         video: cameraConstraint(ctx.cameraId, quality),
         audio: ctx.mic ? micConstraint(ctx.micId) : false,
       });
-    } catch {
+    } catch (err) {
+      acquire.warn(`camera: not acquired (${String(err)})`);
       webcamStream = null;
     }
   }
@@ -262,7 +264,8 @@ export async function recordAndUpload(
       );
       effectStop = processed.stop;
       webcamStream = processed.stream;
-    } catch {
+    } catch (err) {
+      acquire.warn(`camera-effect: not applied (${String(err)})`);
       effectStop = null;
     }
   }
@@ -275,7 +278,8 @@ export async function recordAndUpload(
         video: false,
         audio: micConstraint(ctx.micId),
       });
-    } catch {
+    } catch (err) {
+      acquire.warn(`mic: not acquired (${String(err)})`);
       micStream = null;
     }
   }
@@ -330,6 +334,7 @@ export async function recordAndUpload(
           micStream,
           voice: voice?.stream ?? null,
           devices,
+          warnings: acquire.warnings,
         },
         stopAllTracks,
       );
@@ -351,6 +356,8 @@ type SessionStreams = {
   // The mic after the voice chain; null without a mic.
   voice: MediaStream | null;
   devices: CaptureDevices;
+  // What went wrong while acquiring the streams; a restart keeps them.
+  warnings: string[];
 };
 
 async function runSession(
@@ -360,7 +367,7 @@ async function runSession(
   stopAllTracks: () => void,
 ): Promise<SessionEnd> {
   const { screenStream, webcamStream, micStream, voice, devices } = streams;
-  const log = createCaptureLog();
+  const log = createCaptureLog(streams.warnings);
   const mark = (step: string): void =>
     log.info(`[capture] ${step} at ${new Date().toISOString()}`);
 
