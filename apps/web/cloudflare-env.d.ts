@@ -24,7 +24,8 @@ interface CloudflareEnv {
   LEMON_LIGHT_ANNUAL_VARIANT_ID?: string;
   LEMON_PRO_MONTHLY_VARIANT_ID?: string;
   LEMON_PRO_ANNUAL_VARIANT_ID?: string;
-  SELF_HOSTED?: string;
+  BETTER_AUTH_URL?: string;
+  CAPTUREFLOW_HOSTED?: string;
   ALLOWED_EMAIL_DOMAINS?: string;
 
   // Secrets (set via `wrangler secret put`, or `.dev.vars` in local dev).

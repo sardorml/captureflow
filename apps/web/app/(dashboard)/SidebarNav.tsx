@@ -10,6 +10,7 @@ import {
   Link2,
   PenLine,
   Settings,
+  ShieldCheck,
   Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -76,13 +77,23 @@ const WORKSPACE_LINK: NavLink = {
   label: "Workspace",
 };
 const BILLING_LINK: NavLink = { href: "/billing", label: "Billing" };
+// The self-hosted admin app, served beside this one; a plain link, since the
+// router has no page for it.
+const ADMIN_LINK: NavLink = {
+  href: "/admin",
+  icon: <ShieldCheck />,
+  label: "Admin",
+  external: true,
+};
 
 export function SidebarNav({
   isOwner,
   selfHosted,
+  instanceAdmin,
 }: {
   isOwner: boolean;
   selfHosted: boolean;
+  instanceAdmin: boolean;
 }) {
   const pathname = usePathname();
   const isActive = (link: NavLink) =>
@@ -132,6 +143,7 @@ export function SidebarNav({
               </CollapsibleContent>
             </SidebarMenuItem>
           </Collapsible>
+          {instanceAdmin && <NavItem link={ADMIN_LINK} active={false} />}
         </SidebarMenu>
       </SidebarGroup>
     </>

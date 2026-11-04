@@ -33,7 +33,8 @@ import { screenshotObjectKeysFor } from "../screenshot-keys";
 type CronEnv = {
   DB: D1Database;
   BUCKET: R2Bucket;
-  SELF_HOSTED?: string;
+  BETTER_AUTH_URL?: string;
+  CAPTUREFLOW_HOSTED?: string;
   CLOUDFLARE_ZONE_ID?: string;
   CLOUDFLARE_PURGE_TOKEN?: string;
   R2_PUBLIC_BASE_URL?: string;

@@ -13,5 +13,7 @@ export { createLogEmail, createSmtpEmail } from "./email";
 export { ensureSecrets } from "./secrets";
 export { createRuntime, stringEnv, type SelfHostRuntime } from "./runtime";
 export { getInjectedEnv, setInjectedEnv } from "./env-slot";
-export { serveNextAt } from "./listen";
+export { serveNextAt, type Mount } from "./listen";
+export { createSelfHostHooks, type SelfHostHooks } from "./hooks";
+export * from "./instance";
 export { applyPublicOrigin, ORIGIN_SENTINEL } from "./origin";

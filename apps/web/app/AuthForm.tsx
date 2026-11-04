@@ -81,11 +81,15 @@ export function AuthForm({
   initialMode = "signin",
   invite = null,
   initialError = null,
+  canSignUp = true,
+  firstRun = false,
 }: {
   next: string;
   initialMode?: Mode;
   invite?: InviteContext | null;
   initialError?: string | null;
+  canSignUp?: boolean;
+  firstRun?: boolean;
 }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [step, setStep] = useState<Step>("email");
@@ -201,9 +205,11 @@ export function AuthForm({
       ? "Check your email"
       : invite
         ? `Join ${invite.workspaceName}`
-        : isSignup
-          ? "Create your account"
-          : "Welcome back";
+        : firstRun
+          ? "Create the admin account"
+          : isSignup
+            ? "Create your account"
+            : "Welcome back";
 
   return (
     <Card className="gap-0 rounded-2xl py-0 shadow-[0_8px_32px_-8px_rgb(0_0_0/0.12)]">
@@ -227,6 +233,8 @@ export function AuthForm({
               with <span className="text-foreground">{invite.email}</span> to
               accept.
             </>
+          ) : firstRun ? (
+            "The first account runs this CaptureFlow. You can add people next."
           ) : isSignup ? (
             "Sign up with Google, GitHub or your email"
           ) : (
@@ -298,21 +306,27 @@ export function AuthForm({
                     Continue with Email
                   </Button>
                   {errorAlert}
-                  <FieldDescription className="text-center">
-                    {isSignup
-                      ? "Already have an account? "
-                      : "Don't have an account? "}
-                    <button
-                      type="button"
-                      className="cursor-pointer underline underline-offset-4 hover:text-primary"
-                      onClick={() => {
-                        setMode(isSignup ? "signin" : "signup");
-                        setError(null);
-                      }}
-                    >
-                      {isSignup ? "Log in" : "Sign up"}
-                    </button>
-                  </FieldDescription>
+                  {!canSignUp ? (
+                    <FieldDescription className="text-center">
+                      Need an account? Ask an admin for an invite.
+                    </FieldDescription>
+                  ) : firstRun ? null : (
+                    <FieldDescription className="text-center">
+                      {isSignup
+                        ? "Already have an account? "
+                        : "Don't have an account? "}
+                      <button
+                        type="button"
+                        className="cursor-pointer underline underline-offset-4 hover:text-primary"
+                        onClick={() => {
+                          setMode(isSignup ? "signin" : "signup");
+                          setError(null);
+                        }}
+                      >
+                        {isSignup ? "Log in" : "Sign up"}
+                      </button>
+                    </FieldDescription>
+                  )}
                 </Field>
               </FieldGroup>
             </form>

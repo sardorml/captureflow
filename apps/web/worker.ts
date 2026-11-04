@@ -24,7 +24,8 @@ type Env = {
   DB: D1Database;
   BUCKET: R2Bucket;
   AI: Ai;
-  SELF_HOSTED?: string;
+  BETTER_AUTH_URL?: string;
+  CAPTUREFLOW_HOSTED?: string;
   LEMON_API_KEY?: string;
   CLOUDFLARE_ZONE_ID?: string;
   CLOUDFLARE_PURGE_TOKEN?: string;

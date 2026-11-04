@@ -12,6 +12,7 @@ import { getInjectedEnv } from "@captureflow/selfhost/env-slot";
 import { ensurePersonalWorkspace, isSelfHosted } from "@captureflow/quota";
 import { authSchema } from "./auth-schema";
 import { sendVerificationEmail, sendWelcomeEmail } from "./email";
+import type { SelfHostHooks } from "@captureflow/selfhost/hooks";
 
 // D1 is request-scoped (binding only exists inside a fetch handler), so the
 // auth instance is built per request.
@@ -30,7 +31,8 @@ type AppWebEnv = {
   GITHUB_CLIENT_SECRET?: string;
   // Comma-separated; when set, only verified addresses on these domains can sign up.
   ALLOWED_EMAIL_DOMAINS?: string;
-  SELF_HOSTED?: string;
+  CAPTUREFLOW_HOSTED?: string;
+  SELFHOST?: SelfHostHooks;
 };
 
 function buildAuth(
@@ -130,18 +132,30 @@ function buildAuth(
     databaseHooks: {
       user: {
         create: {
-          before: async (user) => {
+          before: async (user, ctx) => {
             const domains = parseEmailDomains(env?.ALLOWED_EMAIL_DOMAINS);
             if (!signupAllowed(user, domains)) {
               throw new APIError("FORBIDDEN", {
                 message: signupBlockedMessage(domains),
               });
             }
+            const selfhost = env?.SELFHOST;
+            if (
+              selfhost &&
+              !(await selfhost.signupAllowed(user, ctx?.body?.callbackURL))
+            ) {
+              throw new APIError("FORBIDDEN", { message: INVITE_ONLY_MESSAGE });
+            }
           },
           // Best-effort: never block sign-up on failure (user row is committed).
           after: async (user) => {
             if (!env?.DB) return;
             const db = env.DB;
+            try {
+              await env.SELFHOST?.afterSignup(user.id);
+            } catch (err) {
+              console.error("auth: self-host afterSignup failed", err);
+            }
             try {
               await ensurePersonalWorkspace(
                 db,
@@ -161,6 +175,9 @@ function buildAuth(
   return betterAuth(options);
 }
 
+export const INVITE_ONLY_MESSAGE =
+  "This CaptureFlow is invite-only. Ask an admin for an invite.";
+
 export function signupBlockedMessage(domains: string[]): string {
   return `Sign up with a Google or GitHub account on ${domains.map((d) => `@${d}`).join(" or ")}.`;
 }
@@ -175,6 +192,9 @@ export function oauthErrorMessage(
   domains: string[],
 ): string | null {
   if (!error) return null;
+  if (error.startsWith("This_CaptureFlow_is_invite-only")) {
+    return INVITE_ONLY_MESSAGE;
+  }
   if (domains.length > 0 && error.startsWith("Sign_up_with_a_Google")) {
     return signupBlockedMessage(domains);
   }

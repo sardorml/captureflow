@@ -9,6 +9,7 @@ import { getAppWebEnv } from "@/lib/cf-env";
 import { AuthForm } from "@/app/AuthForm";
 import { AuthShell } from "@/app/AuthShell";
 import { inviteContextFromNext } from "@/lib/invite-context";
+import { selfHostHooks } from "@/lib/selfhost";
 
 export const dynamic = "force-dynamic";
 
@@ -32,10 +33,15 @@ export default async function LoginPage({
   if (session) redirect(safeNext);
 
   const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
-  const initialMode = sp.mode === "signup" ? "signup" : "signin";
   const invite = await inviteContextFromNext(safeNext);
   const env = await getAppWebEnv();
+  const selfhost = await selfHostHooks();
+  const instance = selfhost ? await selfhost.signupState() : null;
   trace("invite and env");
+  const firstRun = instance?.firstRun ?? false;
+  const canSignUp = !instance || firstRun || instance.open || !!invite;
+  const initialMode =
+    firstRun || (canSignUp && sp.mode === "signup") ? "signup" : "signin";
   const initialError = oauthErrorMessage(
     sp.error,
     parseEmailDomains(env?.ALLOWED_EMAIL_DOMAINS),
@@ -48,6 +54,8 @@ export default async function LoginPage({
         initialMode={initialMode}
         invite={invite}
         initialError={initialError}
+        canSignUp={canSignUp}
+        firstRun={firstRun}
       />
     </AuthShell>
   );

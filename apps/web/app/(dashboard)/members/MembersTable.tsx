@@ -97,6 +97,8 @@ export function MembersTable({
   invites,
   viewerUserId,
   viewerIsOwner,
+  canInvite,
+  inviteHref,
   workspaceName,
   paidSeats,
   seatRequests,
@@ -105,6 +107,9 @@ export function MembersTable({
   invites: WorkspaceInviteRow[];
   viewerUserId: string;
   viewerIsOwner: boolean;
+  canInvite: boolean;
+  // Set on a self-hosted instance, where invites are sent from the admin app.
+  inviteHref: string | null;
   workspaceName: string;
   paidSeats: PaidSeats | null;
   seatRequests: SeatRequest[];
@@ -204,18 +209,27 @@ export function MembersTable({
               onChange={setStatus}
             />
           )}
-          {viewerIsOwner && (
+          {canInvite && (
             <div className="ml-auto">
-              <InviteModal
-                workspaceName={workspaceName}
-                paidSeats={paidSeats}
-                trigger={
-                  <Button>
+              {inviteHref ? (
+                <Button asChild>
+                  <a href={inviteHref}>
                     <UserPlus size={16} />
                     Invite teammates
-                  </Button>
-                }
-              />
+                  </a>
+                </Button>
+              ) : (
+                <InviteModal
+                  workspaceName={workspaceName}
+                  paidSeats={paidSeats}
+                  trigger={
+                    <Button>
+                      <UserPlus size={16} />
+                      Invite teammates
+                    </Button>
+                  }
+                />
+              )}
             </div>
           )}
         </div>

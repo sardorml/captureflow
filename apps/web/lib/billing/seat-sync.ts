@@ -15,7 +15,8 @@ export const DEV_SUBSCRIPTION_PREFIX = "dev-";
 export type SeatSyncEnv = {
   DB: D1Database;
   LEMON_API_KEY?: string;
-  SELF_HOSTED?: string;
+  BETTER_AUTH_URL?: string;
+  CAPTUREFLOW_HOSTED?: string;
 };
 
 /*

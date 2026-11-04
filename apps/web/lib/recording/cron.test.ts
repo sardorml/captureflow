@@ -232,7 +232,7 @@ describe("runDailyRetentionSweep", () => {
     await runDailyRetentionSweep({
       DB: d1(sqlite),
       BUCKET: bucket(),
-      SELF_HOSTED: "true",
+      BETTER_AUTH_URL: "https://rec.example.com",
     });
 
     expect(remaining()).toEqual(["idle"]);

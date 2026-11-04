@@ -9,6 +9,7 @@ import {
 } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
+import { selfHostHooks } from "@/lib/selfhost";
 import { loadSession } from "@/lib/session-guard";
 
 export type WorkspaceAccess = {
@@ -40,7 +41,14 @@ export async function requireWorkspaceAccess(
     session.user.id,
     session.user.name ?? null,
   );
-  if (!can(current.role, action)) {
+  // On a self-hosted instance an invite is what lets someone create an
+  // account, so only its admins send them, whoever owns the workspace.
+  const selfhost = action === "invite" ? await selfHostHooks() : null;
+  if (selfhost) {
+    if (!(await selfhost.isAdmin(session.user.id))) {
+      return { ok: false, error: "Only an admin can invite people" };
+    }
+  } else if (!can(current.role, action)) {
     return { ok: false, error: DENIED[action] };
   }
   return {
