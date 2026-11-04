@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { callerOwns } from "@/lib/recording/caller";
 import { getRecording } from "@/lib/recording/db";
-import { waveformKeyFor } from "@/lib/recording/object-keys";
+import { waveformKeyFor } from "@captureflow/shared/object-keys";
 import { publicUrlFor } from "@/lib/recording/r2";
 import { isValidSlug } from "@/lib/recording/slug";
 import { hydratePeaks, WAVEFORM_BYTES } from "@/lib/recording/waveform";

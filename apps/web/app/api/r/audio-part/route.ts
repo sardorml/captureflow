@@ -4,7 +4,7 @@ import { isValidSlug } from "@/lib/recording/slug";
 import { putObject } from "@/lib/recording/r2";
 import { optionsResponse, withCors, jsonError } from "@/lib/recording/cors";
 import { callerOwns } from "@/lib/recording/caller";
-import { audioPartKeyFor } from "@/lib/recording/object-keys";
+import { audioPartKeyFor } from "@captureflow/shared/object-keys";
 
 const DEVICE_HEADER = "x-captureflow-device";
 const CONTENT_TYPE = "audio/webm";

@@ -10,17 +10,17 @@ import { createD1Db } from "./db-d1";
 import {
   audioPartPrefixFor,
   objectKeysFor,
+  screenshotObjectKeysFor,
   segmentPrefixFor,
   THUMB_SUFFIX,
   posterThumbKeyFor,
-} from "./object-keys";
+} from "@captureflow/shared/object-keys";
 import {
   THUMB_CACHE_CONTROL,
   posterDigest,
   posterThumbnail,
 } from "./poster-blur";
 import { deleteObjectsWithPrefix } from "./r2-prefix";
-import { screenshotObjectKeysFor } from "../screenshot-keys";
 
 /*
  * Cron handlers, invoked by the wrapper worker's `scheduled()` entry:

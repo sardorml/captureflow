@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/session-guard";
 import { getScreenshotForUser } from "@/lib/screenshots-db";
 import { getObjectJson, objectExists } from "@/lib/r2";
-import { sourceKeyFor, stateKeyFor } from "@/lib/screenshot-keys";
+import { sourceKeyFor, stateKeyFor } from "@captureflow/shared/object-keys";
 import { CDN_BASE_URL, screenshotViewUrlFor } from "@/lib/site";
 import { ScreenshotEditor } from "./ScreenshotEditor";
 

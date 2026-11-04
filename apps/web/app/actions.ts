@@ -37,15 +37,16 @@ import {
   putObject,
 } from "@/lib/r2";
 import {
+  audioPartPrefixFor,
+  objectKeysFor,
   screenshotObjectKeysFor,
   sourceKeyFor,
   stateKeyFor,
-} from "@/lib/screenshot-keys";
+} from "@captureflow/shared/object-keys";
 import {
   hydrateRecordingConfig,
   type RecordingConfig,
 } from "@/lib/recording-config";
-import { audioPartPrefixFor, objectKeysFor } from "@/lib/recording/object-keys";
 import { deleteObjectPrefix } from "@/lib/recording/r2";
 import { purgeCachedMedia } from "@/lib/recording/remove";
 import { revokeDeviceToken } from "@/lib/device-tokens";

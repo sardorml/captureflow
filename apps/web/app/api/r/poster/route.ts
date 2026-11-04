@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRecording, updateRecording } from "@/lib/recording/db";
-import { posterThumbKeyFor } from "@/lib/recording/object-keys";
+import { posterThumbKeyFor } from "@captureflow/shared/object-keys";
 import {
   THUMB_CACHE_CONTROL,
   posterDigest,
