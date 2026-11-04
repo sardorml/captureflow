@@ -57,19 +57,23 @@ export function hydrateSegmentParams(
   return { ...target, offset };
 }
 
-// The multipart upload a stream's pieces go into, or null once it is closed.
+/*
+ * The multipart upload a stream's pieces go into, or null once it is closed.
+ * Each stream closes on its own: the recorder finalizes the screen first and
+ * sends the camera's last pieces after, so the webcam stays open past that.
+ */
 export function segmentTarget(
   row: RecordingRow,
   stream: RecordingStream,
 ): SegmentTarget | null {
-  if (row.state !== "pending") return null;
   if (stream === "screen") {
-    return row.uploadId
+    return row.state === "pending" && row.uploadId
       ? { storageKey: row.storageKey, uploadId: row.uploadId }
       : null;
   }
-  if (row.webcamState !== "pending") return null;
-  return row.webcamUploadId && row.webcamStorageKey
+  return row.webcamState === "pending" &&
+    row.webcamUploadId &&
+    row.webcamStorageKey
     ? { storageKey: row.webcamStorageKey, uploadId: row.webcamUploadId }
     : null;
 }
