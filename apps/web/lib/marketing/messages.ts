@@ -300,7 +300,7 @@ export const MESSAGES = {
       word: "FAQ",
       title: "Frequently Asked Questions",
       subtitle:
-        "What people ask before they start. The docs go deeper on everything else.",
+        "Answers on recording, pricing, storage and self-hosting. Read the docs for everything else.",
     },
   },
   features: {
@@ -1149,19 +1149,24 @@ export const MESSAGES = {
   faq: {
     heading: "Frequently Asked Questions",
     subtitle:
-      "What people ask before they start. The docs go deeper on everything else.",
+      "Answers on recording, pricing, storage and self-hosting. Read the docs for everything else.",
     cta: "Read the docs",
     waitlistLink: "Join the waitlist",
     items: [
+      {
+        question: "How do I make a recording?",
+        answer:
+          "There are two ways, and the difference is who does the recording.\n\nWith the Chrome extension, you record it yourself. You click through your screen and can talk over it with your own voice and camera. Use it for quick updates, feedback or anything that needs you in it.\n\nWith an AI agent, you describe the video and the agent clicks through and records it for you, so you can keep working. It can add slides and an AI voiceover. Use it for product demos, how-tos and bug reports.\n\nTo record it yourself:\n1. Install the CaptureFlow extension from the Chrome Web Store.\n2. Click its icon in your browser's toolbar and sign in.\n3. Click the icon again. Choose This tab, Window or Full screen, and turn on your camera and microphone if you want them.\n4. Press Start Recording. A bar on the page lets you pause or stop.\n5. Press stop. Your recording's page opens, with a link you can share with anyone.\n\nTo have an agent record it:\n1. Connect CaptureFlow to the AI app you use. The Agents section of the home page has the steps for Claude, ChatGPT, Claude Code, Codex and Cursor.\n2. Sign in when a browser tab opens. You only do this once.\n3. Ask for the video in plain words, such as: Record a demo of how to sign up on our website, with a voiceover.\n4. The agent records it and gives you a link you can share with anyone.",
+      },
       {
         question: "Can I self-host CaptureFlow?",
         answer:
           "Yes. CaptureFlow is open source under the AGPL, and the whole backend runs on Cloudflare: Workers for the app and API, R2 for recordings, and D1 for everything else. Create a D1 database and an R2 bucket, apply the migrations, set one secret, and deploy. There's also a Deploy to Cloudflare button. The guide is at docs.captureflow.dev.",
       },
       {
-        question: "Why does CaptureFlow run on Cloudflare?",
+        question: "Can my AI agent record videos for me?",
         answer:
-          "Because video gets expensive in the wrong places. Most clouds charge every time someone watches a file, and Cloudflare R2 doesn't, so a recording watched a hundred times costs no more than one watched once.\n\nIt also makes self-hosting cheap. Cloudflare's free tiers cover the app, the database, and the first 10 GB of storage, so a small team can run CaptureFlow for nothing. R2 does ask for a card on file.",
+          "Yes. Add CaptureFlow to Claude Code, Codex or Cursor with one line, or add it in Claude or ChatGPT, then ask for a video in plain words. It records a browser, your screen or an app on your own computer, adds slides and a voiceover if you want, and gives you a link to share.\n\nLocal agent recordings are included on every plan. Cloud agent recordings come with a monthly allowance that depends on your plan.",
       },
       {
         question: "How does paid pricing work?",
@@ -1173,8 +1178,8 @@ export const MESSAGES = {
           "On paid plans, until you delete them. On the free plan, a recording is removed after 30 days without a view, so idle accounts don't hold on to space. If you self-host, you set the rules.",
       },
       {
-        question: "What is managed hosting?",
-        answer: `It's CaptureFlow run by us, for teams that don't want to set up Cloudflare themselves. You get the same open-source app, and we take care of the hosting, storage, and updates. Sign up, install the Chrome extension, and start recording.\n\nYou can start free with 25 recordings per person, up to 5 minutes each, which are removed after 30 days without a view. ${LIGHT} removes the limits for one price per member and keeps recordings until you delete them.`,
+        question: "What does the free plan include?",
+        answer: `You get 25 recordings per person, up to 5 minutes each, in data saver quality, with transcripts and captions. Recordings are removed after 30 days without a view. Sign up, install the Chrome extension, and start recording.\n\n${LIGHT} removes the limits for one price per member and keeps recordings until you delete them.`,
       },
     ],
   },
