@@ -34,6 +34,11 @@ export {
   type RecordingFile,
   type RecordingFormat,
 } from "./recording-file";
+export type {
+  CaptureAudio,
+  CaptureDevice,
+  CaptureReport,
+} from "./capture-report";
 export {
   NothingRecordedError,
   resumeRecordingUpload,

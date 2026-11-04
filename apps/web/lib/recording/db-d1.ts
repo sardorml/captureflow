@@ -50,6 +50,7 @@ type D1Row = {
   webcam_state: string;
   config_json: string | null;
   summary_chapters_json: string | null;
+  capture_json: string | null;
 };
 
 type D1ReactionRow = {
@@ -115,6 +116,7 @@ function rowFromD1(r: D1Row): RecordingRow {
     webcamState: (r.webcam_state as WebcamState) ?? "none",
     configJson: r.config_json ?? null,
     summaryChaptersJson: r.summary_chapters_json ?? null,
+    captureJson: r.capture_json ?? null,
   };
 }
 
@@ -202,7 +204,7 @@ const COLUMNS_SELECT =
   "size_bytes, duration_ms, width, height, source, preset, client, capture_source, quality, " +
   "created_at, last_viewed_at, view_count, title, state, user_id, workspace_id, visibility, " +
   "webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state, " +
-  "config_json, summary_chapters_json";
+  "config_json, summary_chapters_json, capture_json";
 
 export function createD1Db(d1: D1Database): RecordingDb {
   /*
@@ -218,10 +220,10 @@ export function createD1Db(d1: D1Database): RecordingDb {
        created_at, last_viewed_at, view_count, title, state,
        user_id, workspace_id, visibility,
        webcam_storage_key, webcam_upload_id, webcam_size_bytes, webcam_state,
-       config_json, summary_chapters_json
+       config_json, summary_chapters_json, capture_json
      )
      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18,
-             ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30)`,
+             ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31)`,
   );
 
   const stmtGet = d1.prepare(
@@ -443,6 +445,7 @@ export function createD1Db(d1: D1Database): RecordingDb {
           row.webcamState,
           row.configJson,
           row.summaryChaptersJson,
+          row.captureJson,
         )
         .run();
     },
@@ -486,6 +489,7 @@ export function createD1Db(d1: D1Database): RecordingDb {
         webcamState: "webcam_state",
         configJson: "config_json",
         summaryChaptersJson: "summary_chapters_json",
+        captureJson: "capture_json",
       };
       let placeholder = 1;
       for (const key of Object.keys(patch) as (keyof RecordingRow)[]) {

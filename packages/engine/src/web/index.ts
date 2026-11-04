@@ -24,6 +24,7 @@ export { decodePosterJpeg, type PosterSource } from "./poster";
 export {
   startStreamRecorder,
   type StreamRecorder,
+  type StreamRecorderAudio,
   type StreamRecorderOptions,
   type StreamRecorderResult,
 } from "./stream-recorder";

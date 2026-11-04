@@ -14,6 +14,7 @@ import {
 import { getWorkspaceEntitlement, uploadOverrun } from "@/lib/recording/quota";
 import { overrunError } from "@/lib/recording/upload-errors";
 import { isDevDevice } from "@/lib/recording/dev-allowlist";
+import { hydrateCaptureReport } from "@/lib/recording/capture-report";
 import { viewUrlForRequest } from "@/lib/site";
 import type { FinalizeRequest, FinalizeResponse } from "@/lib/recording/types";
 
@@ -153,6 +154,9 @@ export async function POST(req: NextRequest) {
     body.durationMs > 0
       ? Math.round(body.durationMs)
       : null;
+  const capture = hydrateCaptureReport(body.capture);
+  if (capture)
+    console.info("[finalize] capture", { slug: row.slug, ...capture });
 
   try {
     await updateRecording(row.slug, {
@@ -161,6 +165,7 @@ export async function POST(req: NextRequest) {
       sizeBytes: actualBytes,
       lastViewedAt: Date.now(),
       ...(durationMs === null ? {} : { durationMs }),
+      ...(capture === null ? {} : { captureJson: JSON.stringify(capture) }),
     });
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);

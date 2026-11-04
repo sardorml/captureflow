@@ -131,3 +131,4 @@ export type {
   WebRange,
   WebRow,
 } from "./web-analytics";
+export { summarizeCapture, type CaptureSummary } from "./capture-summary";

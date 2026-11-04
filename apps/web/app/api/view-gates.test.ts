@@ -80,6 +80,7 @@ function recording(visibility: string) {
     workspaceId: "ws",
     durationMs: 10_000,
     summaryChaptersJson: null,
+    captureJson: null,
   };
 }
 

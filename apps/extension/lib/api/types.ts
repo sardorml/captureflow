@@ -5,6 +5,7 @@
  */
 
 import type { RecordingQualityId } from "@captureflow/engine";
+import type { CaptureReport } from "@captureflow/engine/media";
 
 export type RecordingSource = "instant" | "edited";
 export type RecordingPreset = "recording";
@@ -63,6 +64,7 @@ export type SegmentFinalizeRequest = {
   segments: true;
   sizeBytes: number;
   durationMs?: number;
+  capture?: CaptureReport;
 };
 
 export type RecordingStream = "screen" | "webcam";

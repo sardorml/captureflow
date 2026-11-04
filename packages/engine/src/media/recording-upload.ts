@@ -1,3 +1,4 @@
+import type { CaptureReport } from "./capture-report";
 import {
   createIndexedRecording,
   finishRecordingFile,
@@ -30,6 +31,7 @@ export type UploadFinalizeRequest = {
   segments: true;
   sizeBytes: number;
   durationMs?: number;
+  capture?: CaptureReport;
 };
 
 export type RecordingUploadTransport<Init> = {
@@ -88,6 +90,7 @@ export type RecordingUpload = {
   finish(
     durationMs?: number,
     beforeFinalize?: Promise<unknown>,
+    capture?: CaptureReport,
   ): Promise<{ url: string }>;
   abort(): void;
 };
@@ -147,6 +150,7 @@ async function finalizeScreen<Init>(
   sizeBytes: number,
   durationMs: number | null | undefined,
   wait: (ms: number) => Promise<void>,
+  capture?: CaptureReport,
 ): Promise<{ url: string }> {
   for (let attempt = 1; ; attempt++) {
     try {
@@ -155,6 +159,7 @@ async function finalizeScreen<Init>(
         segments: true,
         sizeBytes,
         ...(durationMs && durationMs > 0 ? { durationMs } : {}),
+        ...(capture ? { capture } : {}),
       });
     } catch (err) {
       // A finalize lost to the network may still have been applied — the
@@ -256,7 +261,7 @@ export async function startRecordingUpload<Init>(
       webcamBytes += bytes.byteLength;
       webcam.recording.push(bytes);
     },
-    async finish(durationMs, beforeFinalize) {
+    async finish(durationMs, beforeFinalize, capture) {
       stopped = true;
       const finished = await screen.recording.finish();
       if (finished.size === 0) throw new Error("No screen parts uploaded");
@@ -268,6 +273,7 @@ export async function startRecordingUpload<Init>(
         finished.size,
         durationMs ?? finished.durationMs,
         options.retryWait ?? defaultWait,
+        capture,
       );
       if (webcam) {
         await finishWebcam(

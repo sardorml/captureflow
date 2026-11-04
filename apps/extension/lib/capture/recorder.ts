@@ -15,7 +15,12 @@ import {
   type StreamRecorder,
   type WebcamRecorder,
 } from "@captureflow/engine/web";
-import { startBitrateGovernor } from "@captureflow/engine/media";
+import {
+  startBitrateGovernor,
+  type CaptureAudio,
+  type CaptureDevice,
+  type CaptureReport,
+} from "@captureflow/engine/media";
 import {
   createRecordingTransport,
   RecordingApiHttpError,
@@ -33,15 +38,52 @@ import { createCameraEffectStream } from "./camera-effect-stream";
 import { isPlainCameraEffect } from "./camera-effects";
 import { startCaptureDiagnostics } from "./dev-diagnostics";
 import { openLocalRecording } from "./local-recording";
-
-const DEV = import.meta.env.MODE !== "production";
-const devLog = DEV ? console : undefined;
 import type { TranscribeRequest, UploadTransport } from "../api/types";
 import type {
   ActiveUpload,
   RecordingResultPayload,
   RecordingStatus,
 } from "../storage";
+
+const DEV = import.meta.env.MODE !== "production";
+const devLog = DEV ? console : undefined;
+const MAX_WARNINGS = 20;
+
+type CaptureLog = {
+  info(message: string): void;
+  warn(message: string): void;
+  warnings: string[];
+};
+
+// Dev builds print everything; a warning also rides the capture report, so
+// what went wrong is readable from the recording itself.
+function createCaptureLog(): CaptureLog {
+  const warnings: string[] = [];
+  return {
+    warnings,
+    info: (message) => devLog?.info(message),
+    warn: (message) => {
+      devLog?.warn(message);
+      if (warnings.length < MAX_WARNINGS) warnings.push(message);
+    },
+  };
+}
+
+function describeDevice(
+  requested: boolean,
+  deviceId: string | undefined,
+  track: MediaStreamTrack | null,
+): CaptureDevice {
+  const settings = track?.getSettings();
+  return {
+    requested,
+    acquired: track !== null,
+    ...(deviceId ? { deviceId } : {}),
+    ...(track?.label ? { label: track.label } : {}),
+    ...(settings?.sampleRate ? { sampleRate: settings.sampleRate } : {}),
+    ...(settings?.channelCount ? { channelCount: settings.channelCount } : {}),
+  };
+}
 
 type Callbacks = {
   // Pre-roll countdown, shown by the SW on the page. Runs after all grants
@@ -189,9 +231,9 @@ export async function recordAndUpload(
     }
     return;
   }
-  cb.onSurface(
-    screenStream.getVideoTracks()[0]?.getSettings().displaySurface ?? null,
-  );
+  const surface =
+    screenStream.getVideoTracks()[0]?.getSettings().displaySurface ?? null;
+  cb.onSurface(surface);
 
   // Webcam (camera + optional mic) is best-effort: if it can't be acquired (no
   // permission yet, no device), fall back to a screen-only recording.
@@ -243,6 +285,15 @@ export async function recordAndUpload(
   const micTrack =
     webcamStream?.getAudioTracks()[0] ?? micStream?.getAudioTracks()[0] ?? null;
   const voice = micTrack ? openMicChain(micTrack) : null;
+  const devices: CaptureDevices = {
+    surface,
+    camera: describeDevice(
+      ctx.camera,
+      ctx.cameraId,
+      rawWebcam?.getVideoTracks()[0] ?? null,
+    ),
+    mic: describeDevice(ctx.mic, ctx.micId, micTrack),
+  };
 
   const stopDiagnostics = DEV
     ? startCaptureDiagnostics(screenStream, webcamStream)
@@ -273,7 +324,13 @@ export async function recordAndUpload(
       const end = await runSession(
         ctx,
         cb,
-        { screenStream, webcamStream, micStream, voice: voice?.stream ?? null },
+        {
+          screenStream,
+          webcamStream,
+          micStream,
+          voice: voice?.stream ?? null,
+          devices,
+        },
         stopAllTracks,
       );
       if (end !== "restart") break;
@@ -285,12 +342,15 @@ export async function recordAndUpload(
   }
 }
 
+type CaptureDevices = Pick<CaptureReport, "surface" | "camera" | "mic">;
+
 type SessionStreams = {
   screenStream: MediaStream;
   webcamStream: MediaStream | null;
   micStream: MediaStream | null;
   // The mic after the voice chain; null without a mic.
   voice: MediaStream | null;
+  devices: CaptureDevices;
 };
 
 async function runSession(
@@ -299,9 +359,10 @@ async function runSession(
   streams: SessionStreams,
   stopAllTracks: () => void,
 ): Promise<SessionEnd> {
-  const { screenStream, webcamStream, micStream, voice } = streams;
+  const { screenStream, webcamStream, micStream, voice, devices } = streams;
+  const log = createCaptureLog();
   const mark = (step: string): void =>
-    devLog?.info(`[capture] ${step} at ${new Date().toISOString()}`);
+    log.info(`[capture] ${step} at ${new Date().toISOString()}`);
 
   const transport = createRecordingTransport(ctx.deviceId, ctx.token);
   /*
@@ -380,7 +441,7 @@ async function runSession(
       stream: screenStream,
       micStream: micStream ? voice : null,
       quality: quality.screen,
-      log: devLog,
+      log,
       // fMP4 fragments are strictly appended, so position is ignorable; copy
       // because the muxer reuses its output buffer.
       output: (bytes) => {
@@ -399,6 +460,18 @@ async function runSession(
   }
 
   mark("screen recorder started");
+  const audio: CaptureAudio = !ctx.mic
+    ? { muxed: "none", reason: "mic off" }
+    : webcamStream && voice
+      ? { muxed: "webcam" }
+      : screenRecorder.audio.codec === "aac"
+        ? {
+            muxed: "aac",
+            sampleRate: screenRecorder.audio.sampleRate,
+            channelCount: screenRecorder.audio.numberOfChannels,
+            bitrate: screenRecorder.audio.bitrate,
+          }
+        : { muxed: "none", reason: screenRecorder.audio.reason };
 
   // On a connection slower than the preset, the screen bitrate drops to
   // what the upload moves, so stopping still leaves only seconds to send.
@@ -423,13 +496,14 @@ async function runSession(
         micStream: voice,
         videoBitrate: quality.webcam.bitrate,
         audioBitrate: quality.webcam.audioBitrate,
-        log: devLog,
+        log,
         onChunk: (buf) => {
           upload.pushWebcam(new Uint8Array(buf));
           if (storageSpent()) sessionRef?.stop();
         },
       });
-    } catch {
+    } catch (err) {
+      log.warn(`webcam-recorder: failed to start (${String(err)})`);
       webcamRecorder = null;
     }
   }
@@ -454,7 +528,7 @@ async function runSession(
   // carries the track when there is a camera), uploaded as small audio
   // chunks beside the video. Best-effort: it never gates the recording.
   const micTrack = voice?.getAudioTracks()[0] ?? null;
-  const audio =
+  const audioUpload =
     ctx.mic && micTrack
       ? startAudioUpload(micTrack, upload.slug, transport, activeElapsed)
       : null;
@@ -466,7 +540,7 @@ async function runSession(
     await Promise.all([
       screenRecorder.stop().catch(() => null),
       webcamRecorder?.stop().catch(() => null) ?? Promise.resolve(null),
-      audio?.recorder.stop().catch(() => null) ?? Promise.resolve(null),
+      audioUpload?.recorder.stop().catch(() => null) ?? Promise.resolve(null),
     ]);
   };
 
@@ -486,7 +560,7 @@ async function runSession(
       await Promise.all([
         screenRecorder.stop(),
         webcamRecorder?.stop() ?? Promise.resolve(null),
-        audio?.recorder.stop().catch(() => null) ?? Promise.resolve(null),
+        audioUpload?.recorder.stop().catch(() => null) ?? Promise.resolve(null),
       ]);
       // Release the capture (sharing indicator) before the tail upload.
       stopAllTracks();
@@ -495,8 +569,14 @@ async function runSession(
       // failed recording. It goes up beside the video and is requested
       // before finalize, while the device id still authorizes it, so the
       // share page can show it transcribing.
-      const transcript = audio?.requestTranscript();
-      const { url } = await upload.finish(durationMs, transcript);
+      const transcript = audioUpload?.requestTranscript();
+      const capture: CaptureReport = {
+        userAgent: navigator.userAgent,
+        ...devices,
+        audio,
+        warnings: log.warnings,
+      };
+      const { url } = await upload.finish(durationMs, transcript, capture);
       cb.onActiveUpload(null);
       cb.onResult({
         ok: true,
@@ -526,7 +606,7 @@ async function runSession(
   // where pushes are no-ops.
   const discardSession = async (): Promise<void> => {
     upload.abort();
-    audio?.recorder.abort();
+    audioUpload?.recorder.abort();
     await stopRecorders();
     cb.onActiveUpload(null);
   };
@@ -542,7 +622,7 @@ async function runSession(
       pausedAt = Date.now();
       void screenRecorder.pause();
       webcamRecorder?.pause();
-      audio?.recorder.pause();
+      audioUpload?.recorder.pause();
       cb.onStatus({ kind: "paused", startedAt, pausedMs, pausedAt });
     },
     resume() {
@@ -551,7 +631,7 @@ async function runSession(
       pausedAt = null;
       screenRecorder.resume();
       webcamRecorder?.resume();
-      audio?.recorder.resume();
+      audioUpload?.recorder.resume();
       cb.onStatus({ kind: "recording", startedAt, pausedMs });
     },
     restart() {
