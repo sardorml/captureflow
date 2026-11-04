@@ -17,7 +17,7 @@ import { overrunError } from "@/lib/recording/upload-errors";
 import { isDevDevice } from "@/lib/recording/dev-allowlist";
 import { hydrateCaptureReport } from "@/lib/recording/capture-report";
 import { hydrateWaveformUpload } from "@/lib/recording/waveform";
-import { waveformKeyFor } from "@/lib/recording/object-keys";
+import { waveformKeyFor } from "@captureflow/shared/object-keys";
 import { viewUrlForRequest } from "@/lib/site";
 import type { FinalizeRequest, FinalizeResponse } from "@/lib/recording/types";
 
