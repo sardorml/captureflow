@@ -20,6 +20,12 @@ export {
   type RecordPipelineState,
 } from "./record-pipeline";
 export { MIC_CHAIN, openMicChain, type MicChain } from "./mic-chain";
+export {
+  bucketPeaks,
+  createPeakMeter,
+  type PeakMeter,
+  type PeakMeterInput,
+} from "./peak-meter";
 export { decodePosterJpeg, type PosterSource } from "./poster";
 export {
   startStreamRecorder,

@@ -1,5 +1,28 @@
+import type { RecordingStream, WaveformUpload } from "./types";
+
 export const WAVEFORM_BUCKETS = 2000;
 export const WAVEFORM_BYTES = WAVEFORM_BUCKETS * Float32Array.BYTES_PER_ELEMENT;
+
+export type HydratedWaveform = {
+  track: RecordingStream;
+  peaks: Float32Array<ArrayBuffer>;
+};
+
+// The peaks a recorder sends with finalize, in the saved format.
+export function hydrateWaveformUpload(raw: unknown): HydratedWaveform | null {
+  const r = raw as Partial<WaveformUpload> | null | undefined;
+  if (!r || typeof r !== "object") return null;
+  if (r.track !== "screen" && r.track !== "webcam") return null;
+  if (!Array.isArray(r.peaks) || r.peaks.length !== WAVEFORM_BUCKETS)
+    return null;
+  const peaks = new Float32Array(WAVEFORM_BUCKETS);
+  for (let i = 0; i < peaks.length; i++) {
+    const v: unknown = r.peaks[i];
+    if (typeof v !== "number" || !Number.isFinite(v) || v < 0) return null;
+    peaks[i] = v;
+  }
+  return { track: r.track, peaks };
+}
 
 // Saved peaks are 32-bit little-endian floats, one per bucket, unnormalised.
 export function hydratePeaks(

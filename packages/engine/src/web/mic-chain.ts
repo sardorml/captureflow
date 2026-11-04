@@ -6,6 +6,8 @@
  * the peaks short of clipping. Measured on a MacBook mic: -33 dB RMS in,
  * -23 dB out; a hot -22 dB mic comes out at -19 dB with peaks under -3 dB.
  */
+import { createPeakMeter, type PeakMeter } from "./peak-meter";
+
 export const MIC_CHAIN = {
   highpassHz: 90,
   compressor: {
@@ -26,6 +28,7 @@ export const MIC_CHAIN = {
 
 export type MicChain = {
   stream: MediaStream;
+  peaks: PeakMeter;
   close(): Promise<void>;
 };
 
@@ -33,6 +36,7 @@ export type MicChain = {
 // encoders take 44.1 or 48 kHz only, and a Bluetooth headset in call mode
 // hands over 8 or 16 kHz, which left the mic out of the file.
 const CHAIN_SAMPLE_RATE = 48_000;
+const PEAK_BUFFER_SAMPLES = 4096;
 
 export function openMicChain(micTrack: MediaStreamTrack): MicChain {
   const context = new AudioContext({ sampleRate: CHAIN_SAMPLE_RATE });
@@ -46,9 +50,17 @@ export function openMicChain(micTrack: MediaStreamTrack): MicChain {
   const limiter = new DynamicsCompressorNode(context, MIC_CHAIN.limiter);
   const sink = context.createMediaStreamDestination();
   source.connect(highpass).connect(compressor).connect(limiter).connect(sink);
+  // A ScriptProcessorNode only runs on the way to the destination, so the
+  // meter reaches it through a muted gain.
+  const meter = createPeakMeter();
+  const tap = context.createScriptProcessor(PEAK_BUFFER_SAMPLES, 1, 1);
+  tap.onaudioprocess = (e) => meter.push(e.inputBuffer.getChannelData(0));
+  const mute = new GainNode(context, { gain: 0 });
+  limiter.connect(tap).connect(mute).connect(context.destination);
   void context.resume();
   return {
     stream: sink.stream,
+    peaks: meter,
     close: () => context.close(),
   };
 }

@@ -187,6 +187,7 @@ export type SegmentFinalizeRequest = {
   sizeBytes: number;
   durationMs?: number;
   capture?: CaptureReport;
+  waveform?: WaveformUpload;
 };
 
 export type PartsFinalizeRequest = {
@@ -196,6 +197,7 @@ export type PartsFinalizeRequest = {
   // Uploads stream while recording, so /init can't know it yet.
   durationMs?: number;
   capture?: CaptureReport;
+  waveform?: WaveformUpload;
 };
 
 /*
@@ -229,6 +231,12 @@ export type CaptureReport = {
 export type FinalizeRequest = SegmentFinalizeRequest | PartsFinalizeRequest;
 
 export type RecordingStream = "screen" | "webcam";
+
+// The mic's peaks the recorder measured, WAVEFORM_BUCKETS of them, for the file the mic went into.
+export type WaveformUpload = {
+  track: RecordingStream;
+  peaks: number[];
+};
 
 export type UploadSegment = { offset: number; size: number };
 

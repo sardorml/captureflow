@@ -5,7 +5,15 @@ import { getRecording } from "@/lib/recording/db";
 import { waveformKeyFor } from "@/lib/recording/object-keys";
 import { publicUrlFor } from "@/lib/recording/r2";
 import { isValidSlug } from "@/lib/recording/slug";
-import { hydratePeaks, WAVEFORM_BYTES } from "@/lib/recording/waveform";
+import {
+  hydratePeaks,
+  WAVEFORM_BUCKETS,
+  WAVEFORM_BYTES,
+} from "@/lib/recording/waveform";
+import {
+  parseCaptureJson,
+  trackHasAudio,
+} from "@/lib/recording/capture-report";
 import { computePeaks } from "@/lib/recording/waveform-compute";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +38,7 @@ function peaksResponse(body: BodyInit) {
 async function ownedMediaKey(
   req: NextRequest,
   { params }: Params,
-): Promise<{ key: string } | { failure: NextResponse }> {
+): Promise<{ key: string; silent: boolean } | { failure: NextResponse }> {
   const { id } = await params;
   if (!isValidSlug(id)) return { failure: error("invalid_slug", 400) };
   const track = req.nextUrl.searchParams.get("track");
@@ -42,12 +50,22 @@ async function ownedMediaKey(
     return { failure: error("not_found", 404) };
   }
   const key = track === "webcam" ? row.webcamStorageKey : row.storageKey;
-  return key ? { key } : { failure: error("not_found", 404) };
+  if (!key) return { failure: error("not_found", 404) };
+  const silent =
+    trackHasAudio(
+      parseCaptureJson(row.captureJson),
+      track === "webcam" ? "webcam" : "screen",
+    ) === false;
+  return { key, silent };
 }
 
 export async function GET(req: NextRequest, ctx: Params) {
   const media = await ownedMediaKey(req, ctx);
   if ("failure" in media) return media.failure;
+  // A file the recorder put no audio in is a flat line, no reading needed.
+  if (media.silent) {
+    return peaksResponse(new Float32Array(WAVEFORM_BUCKETS).buffer);
+  }
   const env = await getAppWebEnv();
   if (!env?.BUCKET) return error("r2_unavailable", 500);
 

@@ -1,4 +1,5 @@
 import type { CaptureReport } from "./capture-report";
+import type { WaveformUpload } from "./waveform";
 import {
   createIndexedRecording,
   finishRecordingFile,
@@ -32,6 +33,13 @@ export type UploadFinalizeRequest = {
   sizeBytes: number;
   durationMs?: number;
   capture?: CaptureReport;
+  waveform?: WaveformUpload;
+};
+
+// What finalize learns only once the recording ends.
+export type FinalizeReport = {
+  capture?: CaptureReport;
+  waveform?: WaveformUpload;
 };
 
 export type RecordingUploadTransport<Init> = {
@@ -91,7 +99,7 @@ export type RecordingUpload = {
   finish(
     durationMs?: number,
     beforeFinalize?: Promise<unknown>,
-    capture?: CaptureReport,
+    report?: FinalizeReport,
   ): Promise<{ url: string }>;
   abort(): void;
 };
@@ -151,7 +159,7 @@ async function finalizeScreen<Init>(
   sizeBytes: number,
   durationMs: number | null | undefined,
   wait: (ms: number) => Promise<void>,
-  capture?: CaptureReport,
+  report?: FinalizeReport,
 ): Promise<{ url: string }> {
   for (let attempt = 1; ; attempt++) {
     try {
@@ -160,7 +168,7 @@ async function finalizeScreen<Init>(
         segments: true,
         sizeBytes,
         ...(durationMs && durationMs > 0 ? { durationMs } : {}),
-        ...(capture ? { capture } : {}),
+        ...report,
       });
     } catch (err) {
       // A finalize lost to the network may still have been applied — the
@@ -263,7 +271,7 @@ export async function startRecordingUpload<Init>(
       webcamBytes += bytes.byteLength;
       webcam.recording.push(bytes);
     },
-    async finish(durationMs, beforeFinalize, capture) {
+    async finish(durationMs, beforeFinalize, report) {
       stopped = true;
       const finished = await screen.recording.finish();
       if (finished.size === 0) throw new Error("No screen parts uploaded");
@@ -275,7 +283,7 @@ export async function startRecordingUpload<Init>(
         finished.size,
         durationMs ?? finished.durationMs,
         options.retryWait ?? defaultWait,
-        capture,
+        report,
       );
       if (webcam) {
         await finishWebcam(

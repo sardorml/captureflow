@@ -39,10 +39,12 @@ export type {
   CaptureDevice,
   CaptureReport,
 } from "./capture-report";
+export { WAVEFORM_BUCKETS, type WaveformUpload } from "./waveform";
 export {
   NothingRecordedError,
   resumeRecordingUpload,
   startRecordingUpload,
+  type FinalizeReport,
   type LocalFiles,
   type PendingUpload,
   type RecordingUpload,

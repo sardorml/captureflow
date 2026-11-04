@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { hydrateCaptureReport, parseCaptureJson } from "./capture-report";
+import {
+  hydrateCaptureReport,
+  parseCaptureJson,
+  trackHasAudio,
+} from "./capture-report";
 
 const report = {
   userAgent: "Mozilla/5.0 (Macintosh) Chrome/142",
@@ -80,5 +84,24 @@ describe("parseCaptureJson", () => {
     expect(parseCaptureJson(JSON.stringify(report))).toEqual(report);
     expect(parseCaptureJson("{nope")).toBeNull();
     expect(parseCaptureJson(null)).toBeNull();
+  });
+});
+
+describe("trackHasAudio", () => {
+  const withAudio = (audio: object) => ({ ...report, audio }) as never;
+
+  it("follows where the mic was muxed", () => {
+    const aac = withAudio(report.audio);
+    expect(trackHasAudio(aac, "screen")).toBe(true);
+    expect(trackHasAudio(aac, "webcam")).toBe(false);
+    const webcam = withAudio({ muxed: "webcam" });
+    expect(trackHasAudio(webcam, "screen")).toBe(false);
+    expect(trackHasAudio(webcam, "webcam")).toBe(true);
+    const none = withAudio({ muxed: "none", reason: "mic off" });
+    expect(trackHasAudio(none, "screen")).toBe(false);
+  });
+
+  it("does not know without a report", () => {
+    expect(trackHasAudio(null, "screen")).toBeNull();
   });
 });

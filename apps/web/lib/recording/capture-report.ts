@@ -1,4 +1,9 @@
-import type { CaptureAudio, CaptureDevice, CaptureReport } from "./types";
+import type {
+  CaptureAudio,
+  CaptureDevice,
+  CaptureReport,
+  RecordingStream,
+} from "./types";
 
 const MAX_TEXT = 200;
 const MAX_WARNINGS = 20;
@@ -94,4 +99,14 @@ export function parseCaptureJson(
   } catch {
     return null;
   }
+}
+
+// Whether the recorder put any audio in the file, so nobody reads a silent
+// file to find out. Unknown without a report.
+export function trackHasAudio(
+  capture: CaptureReport | null,
+  track: RecordingStream,
+): boolean | null {
+  if (!capture) return null;
+  return capture.audio.muxed === (track === "webcam" ? "webcam" : "aac");
 }

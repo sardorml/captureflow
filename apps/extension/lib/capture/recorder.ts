@@ -8,6 +8,7 @@ import {
   MIC_CONSTRAINTS,
   isAudioChunkRecordingSupported,
   openMicChain,
+  type PeakMeter,
   startAudioChunkRecorder,
   startStreamRecorder,
   startWebcamRecorder,
@@ -20,6 +21,8 @@ import {
   type CaptureAudio,
   type CaptureDevice,
   type CaptureReport,
+  WAVEFORM_BUCKETS,
+  type WaveformUpload,
 } from "@captureflow/engine/media";
 import {
   createRecordingTransport,
@@ -66,6 +69,19 @@ function createCaptureLog(initial: string[] = []): CaptureLog {
       devLog?.warn(message);
       if (warnings.length < MAX_WARNINGS) warnings.push(message);
     },
+  };
+}
+
+// The mic's peaks, filed under the file the mic went into.
+function waveformOf(
+  meter: PeakMeter | null,
+  audio: CaptureAudio,
+): WaveformUpload | null {
+  if (!meter || audio.muxed === "none") return null;
+  const peaks = meter.finish(WAVEFORM_BUCKETS);
+  return {
+    track: audio.muxed === "webcam" ? "webcam" : "screen",
+    peaks: Array.from(peaks, (p) => Math.round(p * 10_000) / 10_000),
   };
 }
 
@@ -333,6 +349,7 @@ export async function recordAndUpload(
           webcamStream,
           micStream,
           voice: voice?.stream ?? null,
+          micPeaks: voice?.peaks ?? null,
           devices,
           warnings: acquire.warnings,
         },
@@ -355,6 +372,7 @@ type SessionStreams = {
   micStream: MediaStream | null;
   // The mic after the voice chain; null without a mic.
   voice: MediaStream | null;
+  micPeaks: PeakMeter | null;
   devices: CaptureDevices;
   // What went wrong while acquiring the streams; a restart keeps them.
   warnings: string[];
@@ -366,7 +384,8 @@ async function runSession(
   streams: SessionStreams,
   stopAllTracks: () => void,
 ): Promise<SessionEnd> {
-  const { screenStream, webcamStream, micStream, voice, devices } = streams;
+  const { screenStream, webcamStream, micStream, voice, micPeaks, devices } =
+    streams;
   const log = createCaptureLog(streams.warnings);
   const mark = (step: string): void =>
     log.info(`[capture] ${step} at ${new Date().toISOString()}`);
@@ -520,6 +539,7 @@ async function runSession(
   mark("webcam recorder started");
 
   const startedAt = Date.now();
+  micPeaks?.start();
   let pausedMs = 0;
   let pausedAt: number | null = null;
   const activeElapsed = (): number =>
@@ -585,7 +605,11 @@ async function runSession(
         audio,
         warnings: log.warnings,
       };
-      const { url } = await upload.finish(durationMs, transcript, capture);
+      const waveform = waveformOf(micPeaks, audio);
+      const { url } = await upload.finish(durationMs, transcript, {
+        capture,
+        ...(waveform ? { waveform } : {}),
+      });
       cb.onActiveUpload(null);
       cb.onResult({
         ok: true,
@@ -632,6 +656,7 @@ async function runSession(
       void screenRecorder.pause();
       webcamRecorder?.pause();
       audioUpload?.recorder.pause();
+      micPeaks?.pause();
       cb.onStatus({ kind: "paused", startedAt, pausedMs, pausedAt });
     },
     resume() {
@@ -641,6 +666,7 @@ async function runSession(
       screenRecorder.resume();
       webcamRecorder?.resume();
       audioUpload?.recorder.resume();
+      micPeaks?.resume();
       cb.onStatus({ kind: "recording", startedAt, pausedMs });
     },
     restart() {
