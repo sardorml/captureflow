@@ -29,8 +29,13 @@ export type MicChain = {
   close(): Promise<void>;
 };
 
+// The chain runs at 48 kHz whatever the mic delivers: the platform AAC
+// encoders take 44.1 or 48 kHz only, and a Bluetooth headset in call mode
+// hands over 8 or 16 kHz, which left the mic out of the file.
+const CHAIN_SAMPLE_RATE = 48_000;
+
 export function openMicChain(micTrack: MediaStreamTrack): MicChain {
-  const context = new AudioContext();
+  const context = new AudioContext({ sampleRate: CHAIN_SAMPLE_RATE });
   const source = context.createMediaStreamSource(new MediaStream([micTrack]));
   const highpass = new BiquadFilterNode(context, {
     type: "highpass",
