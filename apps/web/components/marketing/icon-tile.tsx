@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FRAME_CARD, FRAME_CELL, FRAME_CELLS } from "./frame";
+import { CARD_SNAP, FRAME_CARD, FRAME_CELL, FRAME_CELLS } from "./frame";
 
 export type IconTileItem = {
   key: string;
@@ -12,7 +12,7 @@ export type IconTileItem = {
 };
 
 const ARC_MOTION =
-  "absolute border transition-[scale,border-color] duration-300 ease-out motion-reduce:transition-none motion-safe:group-hover/card:scale-[1.03]";
+  "absolute border transition-[scale,border-color] duration-[120ms] ease-out group-hover/card:[transition-duration:120ms,0ms] motion-reduce:transition-none motion-safe:group-hover/card:scale-[1.03]";
 const ARCS = [
   "-right-[92px] -bottom-[100px] size-64 rounded-[100px] border-[color-mix(in_oklab,var(--cf-fg)_7%,transparent)] group-hover/card:border-[color-mix(in_oklab,var(--cf-fg)_11%,transparent)]",
   "-right-[68px] -bottom-[76px] size-52 rounded-[76px] border-[color-mix(in_oklab,var(--cf-fg)_10%,transparent)] group-hover/card:border-[color-mix(in_oklab,var(--cf-fg)_15%,transparent)]",
@@ -50,14 +50,16 @@ export function IconTileGrid({ items }: { items: readonly IconTileItem[] }) {
             <Icon
               strokeWidth={1.5}
               className={cn(
-                "absolute top-[18px] left-[22px] size-12 scale-110 opacity-0 blur-[24px] transition-opacity duration-300 group-hover/card:opacity-30 motion-reduce:transition-none",
+                "absolute top-[18px] left-[22px] size-12 scale-110 opacity-0 blur-[24px] transition-opacity group-hover/card:opacity-30 motion-reduce:transition-none",
+                CARD_SNAP,
                 color,
               )}
             />
             <Icon
               strokeWidth={1.5}
               className={cn(
-                "absolute top-[18px] left-[22px] size-12 transition-[filter,opacity] duration-300 group-hover/card:opacity-100 group-hover/card:brightness-100 group-hover/card:contrast-100 group-hover/card:grayscale-0 motion-reduce:transition-none [@media(hover:hover)]:opacity-85 [@media(hover:hover)]:brightness-[0.6] [@media(hover:hover)]:contrast-125 [@media(hover:hover)]:grayscale dark:[@media(hover:hover)]:brightness-[1.5]",
+                "absolute top-[18px] left-[22px] size-12 transition-[filter,opacity] group-hover/card:opacity-100 group-hover/card:brightness-100 group-hover/card:contrast-100 group-hover/card:grayscale-0 motion-reduce:transition-none [@media(hover:hover)]:opacity-85 [@media(hover:hover)]:brightness-[0.6] [@media(hover:hover)]:contrast-125 [@media(hover:hover)]:grayscale dark:[@media(hover:hover)]:brightness-[1.5]",
+                CARD_SNAP,
                 color,
               )}
             />

@@ -14,14 +14,19 @@ export const FRAME_CELLS =
   "grid gap-px border-t border-line-strong bg-line-strong";
 export const FRAME_CELL = "min-w-0 bg-canvas";
 
+// Colors switch the moment the pointer arrives, so a quick glide across a row
+// doesn't trail behind it, and fade only briefly on the way out.
+export const CARD_SNAP =
+  "duration-[120ms] group-hover/card:duration-0 group-focus-within/card:duration-0";
+
 // A cell that reacts to hover. The picture inside it scales rather than the
 // cell, so the hairlines stay put.
 export const FRAME_CARD =
-  "group/card overflow-hidden transition-colors duration-300 hover:bg-emphasis focus-within:bg-emphasis motion-reduce:transition-none";
+  "group/card overflow-hidden transition-colors duration-[120ms] hover:duration-0 focus-within:duration-0 hover:bg-emphasis focus-within:bg-emphasis motion-reduce:transition-none";
 // `will-change` keeps the picture on its own layer: without it, text inside jumps
 // as it's redrawn at each step of the scale.
 export const CARD_ZOOM =
-  "[will-change:scale,filter] transition-[filter,scale] duration-300 ease-out motion-reduce:transition-none motion-safe:group-hover/card:scale-[1.04] motion-safe:group-focus-within/card:scale-[1.04]";
+  "[will-change:scale,filter] transition-[filter,scale] duration-[120ms] ease-out group-hover/card:[transition-duration:0ms,120ms] group-focus-within/card:[transition-duration:0ms,120ms] motion-reduce:transition-none motion-safe:group-hover/card:scale-[1.04] motion-safe:group-focus-within/card:scale-[1.04]";
 // Touch screens can't hover, so they keep the color.
 export const CARD_GRAY =
   "group-focus-within/card:grayscale-0 group-hover/card:grayscale-0 [@media(hover:hover)]:grayscale";
