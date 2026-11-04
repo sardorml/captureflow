@@ -46,9 +46,7 @@ export default async function RootLayout({
             </a>
           </div>
         </header>
-        <main className="mx-auto flex max-w-5xl flex-col gap-8 px-6 py-10">
-          {children}
-        </main>
+        {children}
       </body>
     </html>
   );

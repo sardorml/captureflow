@@ -8,7 +8,7 @@ type WebUser = { id: string; email: string; name: string | null };
 
 // The web app owns sign-in. Its cookie arrives here unchanged, since both
 // answer on one address, and it says over loopback whose session it is.
-const currentUser = cache(async (): Promise<WebUser | null> => {
+export const currentUser = cache(async (): Promise<WebUser | null> => {
   const cookie = (await headers()).get("cookie");
   if (!cookie) return null;
   try {

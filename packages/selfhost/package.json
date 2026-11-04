@@ -11,7 +11,8 @@
     ".": "./src/index.ts",
     "./env-slot": "./src/env-slot.ts",
     "./hooks": "./src/hooks.ts",
-    "./instance": "./src/instance.ts"
+    "./instance": "./src/instance.ts",
+    "./library": "./src/library.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -20,6 +21,7 @@
   },
   "dependencies": {
     "@captureflow/quota": "workspace:*",
+    "@captureflow/shared": "workspace:*",
     "nodemailer": "^7.0.0"
   },
   "devDependencies": {

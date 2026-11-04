@@ -2,18 +2,14 @@
 
 import { getInjectedEnv } from "@captureflow/selfhost/env-slot";
 
-export type Mailer = {
-  send(message: {
-    from: string;
-    to: string;
-    subject: string;
-    text: string;
-  }): Promise<unknown>;
-};
-
 export type AdminEnv = {
   DB: D1Database;
-  EMAIL?: Mailer;
+  BUCKET: R2Bucket;
+  DATA_DIR: string;
+  EMAIL?: SendEmail;
+  RESEND_API_KEY?: string;
+  // Whether invites can reach an inbox, as opposed to the container log.
+  MAIL_CONFIGURED: boolean;
   APP_URL: string;
   // The web app on its loopback port; it answers who the cookie belongs to.
   WEB_INTERNAL_URL: string;

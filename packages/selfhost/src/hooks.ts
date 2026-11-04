@@ -3,7 +3,7 @@
 import {
   claimFirstInstanceAdmin,
   getInstanceSignupState,
-  instanceSignupAllowed,
+  instanceSignupRefusal,
   isInstanceAdmin,
   type InstanceSignupState,
 } from "./instance";
@@ -12,12 +12,13 @@ import {
  * What the web app asks a self-hosted instance. The Docker server puts one of
  * these in the injected env; on Cloudflare the field is absent and the web app
  * skips every call, so the hosted product never runs this code.
+ * signupRefusal gives the message to refuse a sign-up with, or null.
  */
 export type SelfHostHooks = {
-  signupAllowed(
+  signupRefusal(
     user: { email: string; emailVerified?: unknown },
     callbackUrl: unknown,
-  ): Promise<boolean>;
+  ): Promise<string | null>;
   afterSignup(userId: string): Promise<void>;
   signupState(): Promise<InstanceSignupState>;
   isAdmin(userId: string): Promise<boolean>;
@@ -30,8 +31,8 @@ export function inviteTokenFromPath(path: unknown): string | null {
 
 export function createSelfHostHooks(db: D1Database): SelfHostHooks {
   return {
-    signupAllowed: (user, callbackUrl) =>
-      instanceSignupAllowed(db, user, inviteTokenFromPath(callbackUrl)),
+    signupRefusal: (user, callbackUrl) =>
+      instanceSignupRefusal(db, user, inviteTokenFromPath(callbackUrl)),
     afterSignup: (userId) => claimFirstInstanceAdmin(db, userId),
     signupState: () => getInstanceSignupState(db),
     isAdmin: (userId) => isInstanceAdmin(db, userId),

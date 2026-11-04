@@ -1,6 +1,6 @@
 export default function NotFound() {
   return (
-    <div className="py-20 text-center">
+    <div className="px-6 py-20 text-center">
       <h1 className="text-2xl font-semibold text-fg-strong">
         There&rsquo;s nothing here
       </h1>

@@ -14,12 +14,13 @@ import {
   createTeamWorkspace,
   getInstanceSignupState,
   grantInstanceAdmin,
-  instanceSignupAllowed,
+  instanceSignupRefusal,
   isInstanceAdmin,
-  listInstanceTeams,
-  listInstanceUsers,
+  listInstanceAdminIds,
+  markInstanceSetupCompleted,
+  parseDomains,
   revokeInstanceAdmin,
-  setInstanceOpenSignup,
+  setInstanceSignupDomains,
 } from "./instance";
 import { applyMigrations } from "./migrate";
 
@@ -79,37 +80,53 @@ describe("instance admins", () => {
     await addUser("a");
     await addUser("b");
     await grantInstanceAdmin(db, "b");
-    const users = await listInstanceUsers(db);
-    expect(users.map((u) => [u.id, u.is_admin])).toEqual([
-      ["a", false],
-      ["b", true],
-    ]);
+    expect(await listInstanceAdminIds(db)).toEqual(["b"]);
   });
 });
 
-describe("instanceSignupAllowed", () => {
+describe("instanceSignupRefusal", () => {
   const stranger = { email: "new@example.com", emailVerified: false };
 
   it("lets the first account in", async () => {
     expect(await getInstanceSignupState(db)).toEqual({
       firstRun: true,
-      open: false,
+      domains: [],
+      setupCompleted: false,
     });
-    expect(await instanceSignupAllowed(db, stranger, null)).toBe(true);
+    expect(await instanceSignupRefusal(db, stranger, null)).toBe(null);
   });
 
   it("refuses strangers once someone has signed up", async () => {
     await addUser("a");
-    expect(await instanceSignupAllowed(db, stranger, null)).toBe(false);
-    expect(await instanceSignupAllowed(db, stranger, "bad-token")).toBe(false);
+    expect(await instanceSignupRefusal(db, stranger, null)).toMatch(
+      /invite-only/,
+    );
+    expect(await instanceSignupRefusal(db, stranger, "bad-token")).toMatch(
+      /invite-only/,
+    );
   });
 
-  it("lets anyone in when sign-up is open, and closes again", async () => {
+  it("lets company addresses in once domains are set", async () => {
     await addUser("a");
-    await setInstanceOpenSignup(db, true);
-    expect(await instanceSignupAllowed(db, stranger, null)).toBe(true);
-    await setInstanceOpenSignup(db, false);
-    expect(await instanceSignupAllowed(db, stranger, null)).toBe(false);
+    await setInstanceSignupDomains(db, [
+      " @Acme.com ",
+      "acme.io",
+      "bad domain",
+    ]);
+    expect((await getInstanceSignupState(db)).domains).toEqual([
+      "acme.com",
+      "acme.io",
+    ]);
+    expect(
+      await instanceSignupRefusal(db, { email: "Pat@ACME.com" }, null),
+    ).toBe(null);
+    expect(await instanceSignupRefusal(db, stranger, null)).toBe(
+      "Sign up with an address on @acme.com or @acme.io, or ask an admin for an invite.",
+    );
+    await setInstanceSignupDomains(db, []);
+    expect(
+      await instanceSignupRefusal(db, { email: "pat@acme.com" }, null),
+    ).toMatch(/invite-only/);
   });
 
   describe("with an invite", () => {
@@ -131,24 +148,37 @@ describe("instanceSignupAllowed", () => {
 
     it("needs the link for a password sign-up, whatever the case", async () => {
       const token = await invite("New@Example.com");
-      expect(await instanceSignupAllowed(db, stranger, token)).toBe(true);
-      expect(await instanceSignupAllowed(db, stranger, null)).toBe(false);
+      expect(await instanceSignupRefusal(db, stranger, token)).toBe(null);
+      expect(await instanceSignupRefusal(db, stranger, null)).toMatch(
+        /invite-only/,
+      );
     });
 
     it("won't let a link be used for a different address", async () => {
       const token = await invite("someone-else@example.com");
-      expect(await instanceSignupAllowed(db, stranger, token)).toBe(false);
+      expect(await instanceSignupRefusal(db, stranger, token)).toMatch(
+        /invite-only/,
+      );
     });
 
     it("takes a provider's verified address without the link", async () => {
       await invite("new@example.com");
       expect(
-        await instanceSignupAllowed(
+        await instanceSignupRefusal(
           db,
           { email: "new@example.com", emailVerified: true },
           null,
         ),
-      ).toBe(true);
+      ).toBe(null);
+    });
+  });
+});
+
+describe("markInstanceSetupCompleted", () => {
+  it("is remembered", async () => {
+    await markInstanceSetupCompleted(db);
+    expect(await getInstanceSignupState(db)).toMatchObject({
+      setupCompleted: true,
     });
   });
 });
@@ -164,11 +194,17 @@ describe("createTeamWorkspace", () => {
 
     expect((await getWorkspaceById(db, first))?.kind).toBe("team");
     expect(await getWorkspaceRole(db, first, "a")).toBe("owner");
-    const teams = await listInstanceTeams(db);
-    expect(teams.map((t) => [t.name, t.member_count])).toEqual([
-      ["Design", 1],
-      ["Sales", 1],
+    expect((await getWorkspaceById(db, first))?.name).toBe("Design");
+  });
+});
+
+describe("parseDomains", () => {
+  it("keeps real domains, lowercased and without the @", () => {
+    expect(parseDomains("@Acme.com, acme.io\nnot a domain;acme.com")).toEqual([
+      "acme.com",
+      "acme.io",
     ]);
+    expect(parseDomains(undefined)).toEqual([]);
   });
 });
 

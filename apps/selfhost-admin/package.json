@@ -2,15 +2,18 @@
   "name": "@captureflow/selfhost-admin",
   "version": "0.1.0",
   "private": true,
-  "description": "The admin app of a self-hosted CaptureFlow: workspaces, people and sign-up, served under /admin by the Docker image. Never deployed to Cloudflare.",
+  "description": "The admin app of a self-hosted CaptureFlow: people, workspaces, recordings, storage and sign-up, served under /admin by the Docker image. Never deployed to Cloudflare.",
   "scripts": {
     "build": "next build",
     "typecheck": "tsc --noEmit",
     "selfhost:build": "esbuild selfhost/server.ts --bundle --platform=node --format=esm --target=node24 --outfile=selfhost/dist/server.mjs --external:./server.js --log-level=warning \"--banner:js=import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\""
   },
   "dependencies": {
+    "@captureflow/admin": "workspace:*",
+    "@captureflow/mail": "workspace:*",
     "@captureflow/quota": "workspace:*",
     "@captureflow/selfhost": "workspace:*",
+    "@captureflow/shared": "workspace:*",
     "@captureflow/ui": "workspace:*",
     "lucide-react": "^1.14.0",
     "next": "^16.2.0",

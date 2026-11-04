@@ -10,8 +10,11 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   poweredByHeader: false,
   transpilePackages: [
+    "@captureflow/admin",
+    "@captureflow/mail",
     "@captureflow/quota",
     "@captureflow/selfhost",
+    "@captureflow/shared",
     "@captureflow/ui",
   ],
 };

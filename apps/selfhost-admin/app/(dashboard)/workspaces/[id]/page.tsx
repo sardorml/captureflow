@@ -1,18 +1,29 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  getWorkspaceById,
-  listMembers,
-  listPendingInvites,
-} from "@captureflow/quota";
+import { getAdminWorkspace, listAdminRecordings } from "@captureflow/admin";
+import { listMembers, listPendingInvites } from "@captureflow/quota";
+import { formatBytes, plural } from "@/lib/format";
 import { requireAdmin } from "@/lib/session";
-import { Actions, Button, Card, Cell, Table } from "../../_ui";
+import { DangerForm } from "@/app/_danger";
+import { RecordingsTable } from "@/app/_recordings";
+import {
+  Actions,
+  Badge,
+  Button,
+  Card,
+  Cell,
+  PageHeader,
+  Stat,
+  Stats,
+  Table,
+} from "@/app/_ui";
 import {
   changeRoleAction,
+  deleteWorkspaceAction,
   removeMemberAction,
   revokeInviteAction,
-} from "../../actions";
-import { InviteForm } from "../../forms";
+} from "@/app/actions";
+import { InviteForm } from "@/app/forms";
 
 const ROLE_NAME = { owner: "Owner", member: "Member", viewer: "Viewer" };
 
@@ -21,36 +32,57 @@ export default async function WorkspacePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { DB } = await requireAdmin();
+  const { DB, APP_URL } = await requireAdmin();
   const { id } = await params;
-  const workspace = await getWorkspaceById(DB, id);
+  const workspace = await getAdminWorkspace(DB, id);
   if (!workspace) notFound();
 
-  const [members, invites] = await Promise.all([
+  const [members, invites, recordings] = await Promise.all([
     listMembers(DB, id),
     listPendingInvites(DB, id),
+    listAdminRecordings(DB, {
+      search: "",
+      page: 1,
+      visibility: "all",
+      pageSize: 10,
+      workspaceId: id,
+    }),
   ]);
+  const personal = workspace.kind === "personal";
 
   return (
     <>
-      <div>
-        <Link
-          href="/"
-          className="text-sm text-fg-muted underline-offset-4 hover:underline"
-        >
-          Back to Admin
-        </Link>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-fg-strong">
-          {workspace.name}
-        </h1>
-      </div>
-
-      <Card
-        title="Invite people"
-        description="Members record into this workspace. Viewers watch and comment."
+      <PageHeader
+        title={workspace.name}
+        description={
+          personal
+            ? `${workspace.owner.name || workspace.owner.email}'s personal workspace.`
+            : `Owned by ${workspace.owner.name || workspace.owner.email}.`
+        }
+        back={{ href: "/workspaces", label: "All workspaces" }}
       >
-        <InviteForm workspaceId={id} />
-      </Card>
+        <Badge tone="muted">{personal ? "Personal" : "Team"}</Badge>
+      </PageHeader>
+
+      <Stats>
+        <Stat label="People" value={workspace.memberCount} />
+        <Stat label="Invited" value={workspace.pendingInvites} />
+        <Stat
+          label="Recordings"
+          value={workspace.recordingCount}
+          hint={`${plural(workspace.screenshotCount, "screenshot")} too`}
+        />
+        <Stat label="Storage" value={formatBytes(workspace.storageBytes)} />
+      </Stats>
+
+      {!personal && (
+        <Card
+          title="Invite people"
+          description="Members record into this workspace. Viewers watch and comment."
+        >
+          <InviteForm workspaceId={id} />
+        </Card>
+      )}
 
       <Card
         title={`People (${members.length})`}
@@ -59,7 +91,14 @@ export default async function WorkspacePage({
         <Table head={["Name", "Email", "Role", ""]}>
           {members.map((member) => (
             <tr key={member.user_id}>
-              <Cell className="font-medium text-fg-strong">{member.name}</Cell>
+              <Cell className="font-medium text-fg-strong">
+                <Link
+                  href={`/people/${member.user_id}`}
+                  className="underline-offset-4 hover:underline"
+                >
+                  {member.name}
+                </Link>
+              </Cell>
               <Cell>{member.email}</Cell>
               <Cell>{ROLE_NAME[member.role]}</Cell>
               <Actions>
@@ -126,6 +165,36 @@ export default async function WorkspacePage({
               </tr>
             ))}
           </Table>
+        </Card>
+      )}
+
+      <Card
+        title="Recordings"
+        description={
+          recordings.total > recordings.rows.length
+            ? `The latest 10 of ${recordings.total}.`
+            : undefined
+        }
+      >
+        <RecordingsTable
+          rows={recordings.rows}
+          appUrl={APP_URL}
+          show={{ owner: true }}
+        />
+      </Card>
+
+      {!personal && (
+        <Card
+          title="Delete workspace"
+          description="Removes the workspace with every recording and screenshot in it. People keep their accounts."
+        >
+          <DangerForm
+            action={deleteWorkspaceAction}
+            fields={{ workspaceId: id }}
+            label="Delete workspace"
+            pendingLabel="Deleting…"
+            confirm={`Delete "${workspace.name}" and its ${plural(workspace.recordingCount, "recording")}? This can't be undone.`}
+          />
         </Card>
       )}
     </>

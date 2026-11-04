@@ -459,12 +459,21 @@ importers:
 
   apps/selfhost-admin:
     dependencies:
+      '@captureflow/admin':
+        specifier: workspace:*
+        version: link:../../packages/admin
+      '@captureflow/mail':
+        specifier: workspace:*
+        version: link:../../packages/mail
       '@captureflow/quota':
         specifier: workspace:*
         version: link:../../packages/quota
       '@captureflow/selfhost':
         specifier: workspace:*
         version: link:../../packages/selfhost
+      '@captureflow/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@captureflow/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -762,6 +771,9 @@ importers:
       '@captureflow/quota':
         specifier: workspace:*
         version: link:../quota
+      '@captureflow/shared':
+        specifier: workspace:*
+        version: link:../shared
       nodemailer:
         specifier: ^7.0.0
         version: 7.0.13

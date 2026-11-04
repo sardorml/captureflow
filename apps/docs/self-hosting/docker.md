@@ -24,8 +24,9 @@ cp .env.example .env    # set APP_URL
 docker compose up -d
 ```
 
-Open `APP_URL` and create the first account. That account becomes the admin, so
-do this before you share the address. `/` goes straight to sign-in:
+Open `APP_URL`. A fresh install opens a short setup: it creates the admin
+account, names your first workspace and invites your first people, so do this
+before you share the address. `/` goes straight to sign-in afterwards:
 self-hosted instances have no landing page, billing or storage caps, and idle
 recordings are never deleted.
 
@@ -57,18 +58,23 @@ a large body limit.
 
 ## Admins, workspaces and people
 
-The first account to sign up is the admin. Admins get an **Admin** link in the
-sidebar (it opens `<APP_URL>/admin`), where they can:
+The account created during setup is the admin. Admins get an **Admin** link in
+the sidebar (it opens `<APP_URL>/admin`): an overview of the instance with
+pages for people, workspaces, recordings, storage and settings. From there they
+can:
 
-- create a workspace for each team
-- invite people to a workspace, or remove them
-- make another user an admin
+- create a workspace for each team, or delete one with everything in it
+- invite people to a workspace, change their role, or remove them
+- make another user an admin, sign someone out everywhere, or delete an account
+- see and delete any recording, whoever made it
+- watch disk space, see who holds the most, and clear uploads that never
+  finished
 - choose who can sign up
 
-Only admins can invite people. Sign-up is invite-only by default: someone new
-needs an invite link, and has to sign up with the address it was sent to. Choose
-**Open sign-up** on the Admin page to let anyone who can reach your site create
-an account.
+Only admins can invite people. Sign-up is invite-only unless you list your
+company's email domains under Admin → Settings; then anyone with an address on them
+can create an account on their own, and invites still work for everyone else.
+Nobody confirms these addresses by email, so list only domains you trust.
 
 Each invite shows a link you can copy and send yourself, so inviting works
 without any email set up. With mail set up, the person is emailed as well.

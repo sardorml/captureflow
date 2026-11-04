@@ -16,4 +16,5 @@ export { getInjectedEnv, setInjectedEnv } from "./env-slot";
 export { serveNextAt, type Mount } from "./listen";
 export { createSelfHostHooks, type SelfHostHooks } from "./hooks";
 export * from "./instance";
+export * from "./library";
 export { applyPublicOrigin, ORIGIN_SENTINEL } from "./origin";
