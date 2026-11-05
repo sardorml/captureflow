@@ -501,18 +501,18 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "{name} için ücretli lisans eklensin mi?",
       addBody:
-        "Üyeler kayıt yapar, bu yüzden her biri ücretli bir lisanstır. {plan} planınız {seats} lisanstan {nextSeats} lisansa çıkar; aylık ücret ${before} yerine ${after} olur.",
+        "Üyeler kayıt yapar, bu yüzden her biri ücretli bir lisanstır. {plan} planınız {seats} lisanstan {nextSeats} lisansa çıkar; aylık ücret {before} yerine {after} olur.",
       addBodyYearly:
-        "Üyeler kayıt yapar, bu yüzden her biri ücretli bir lisanstır. {plan} planınız {seats} lisanstan {nextSeats} lisansa çıkar; aylık ücret ${before} yerine ${after} olur ve yıllık faturalandırılır.",
+        "Üyeler kayıt yapar, bu yüzden her biri ücretli bir lisanstır. {plan} planınız {seats} lisanstan {nextSeats} lisansa çıkar; aylık ücret {before} yerine {after} olur ve yıllık faturalandırılır.",
       addInvoice: "Bu fatura döneminin kalanı bir sonraki faturanıza eklenir.",
       addConfirm: "Ücretli lisans ekle",
       removeTitle: "{name} izleyici rolüne geçirilsin mi?",
       removeBody:
         "{name}, ödemesini yaptığınız dönemin sonuna, yani {date} tarihine kadar kayıt yapmaya devam eder. Ardından izleyici olur; izleyebilir ve yorum yapabilir ama kayıt yapamaz.",
       removePlan:
-        "O tarihten itibaren {plan} planınız {seats} lisanstan {nextSeats} lisansa iner; aylık ücret ${before} yerine ${after} olur.",
+        "O tarihten itibaren {plan} planınız {seats} lisanstan {nextSeats} lisansa iner; aylık ücret {before} yerine {after} olur.",
       removePlanYearly:
-        "O tarihten itibaren {plan} planınız {seats} lisanstan {nextSeats} lisansa iner; aylık ücret ${before} yerine ${after} olur ve yıllık faturalandırılır.",
+        "O tarihten itibaren {plan} planınız {seats} lisanstan {nextSeats} lisansa iner; aylık ücret {before} yerine {after} olur ve yıllık faturalandırılır.",
       removeConfirm: "İzleyici rolüne geçir",
     },
     remove: {
@@ -539,7 +539,7 @@ const messages: AppMessages = {
       addEmails: "E-posta ekle",
       separatorHint: "E-postaları boşluk, virgül veya Enter ile ayırın.",
       paidSeatNote:
-        "Daveti kabul eden her üye, {plan} planınıza aylık ${price} karşılığında ücretli bir lisans ekler. Bu dönemin kalanı bir sonraki faturanıza yansıtılır.",
+        "Daveti kabul eden her üye, {plan} planınıza aylık {price} karşılığında ücretli bir lisans ekler. Bu dönemin kalanı bir sonraki faturanıza yansıtılır.",
       noEmails: "En az bir e-posta ekleyin",
       invalidEmails: "Geçerli bir e-posta değil: {emails}",
       failed: "Başarısız",
@@ -677,6 +677,9 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "ABD doları olarak tahsil edilir.",
+    shownIn:
+      "Fiyatlar {currency} olarak gösterilir. Ödeme ABD doları olarak alınır.",
     page: {
       title: "Faturalandırma",
       subtitle: "Planınız ve ne kadarını kullandığınız.",

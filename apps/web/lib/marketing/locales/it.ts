@@ -628,6 +628,8 @@ const messages: Messages = {
     subheading:
       "Il piano Gratuito copre le tue prime registrazioni. I piani a pagamento hanno un prezzo per membro.",
     controls: {
+      shownIn:
+        "I prezzi sono mostrati in {currency}. L'addebito è in dollari statunitensi.",
       teamSize: "Dimensione del team",
       members: "membri",
       title: "Fatturazione",
@@ -647,6 +649,7 @@ const messages: Messages = {
       saveValue: "{savings} all'anno",
     },
     plans: {
+      chargedInUsd: "Addebitato in dollari statunitensi.",
       member: "membro",
       members: "membri",
       included: "Incluso",
@@ -668,7 +671,7 @@ const messages: Messages = {
         period: "/mese",
         noteMonthly: "Per membro, con fatturazione mensile",
         noteAnnual:
-          "Per membro, con fatturazione annuale. ${yearly} all'anno per {seats} {members}",
+          "Per membro, con fatturazione annuale. {yearly} all'anno per {seats} {members}",
         cta: "Prova gratis",
       },
       pro: {
@@ -687,7 +690,7 @@ const messages: Messages = {
         period: "/mese",
         noteMonthly: "Per membro, con fatturazione mensile",
         noteAnnual:
-          "Per membro, con fatturazione annuale. ${yearly} all'anno per {seats} {members}",
+          "Per membro, con fatturazione annuale. {yearly} all'anno per {seats} {members}",
         cta: "Prova gratis",
       },
       rows: {

@@ -1,4 +1,6 @@
 export const BILLING = {
+  chargedInUsd: "Charged in US dollars.",
+  shownIn: "Prices are shown in {currency}. You are charged in US dollars.",
   page: {
     title: "Billing",
     subtitle: "Your plan, and what you've used of it.",

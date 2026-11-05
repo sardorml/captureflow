@@ -628,6 +628,8 @@ const messages: Messages = {
     subheading:
       "Ilmainen tilaus kattaa ensimmäiset tallenteesi. Maksullisissa tilauksissa on yksi hinta jäsentä kohden.",
     controls: {
+      shownIn:
+        "Hinnat näytetään valuutassa {currency}. Veloitus tapahtuu Yhdysvaltain dollareina.",
       teamSize: "Tiimin koko",
       members: "jäsentä",
       title: "Laskutus",
@@ -647,6 +649,7 @@ const messages: Messages = {
       saveValue: "{savings} vuodessa",
     },
     plans: {
+      chargedInUsd: "Veloitetaan Yhdysvaltain dollareina.",
       member: "jäsen",
       members: "jäsentä",
       included: "Sisältyy",
@@ -668,7 +671,7 @@ const messages: Messages = {
         period: "/kk",
         noteMonthly: "Jäsentä kohden, laskutus kuukausittain",
         noteAnnual:
-          "Jäsentä kohden, laskutus vuosittain. ${yearly} vuodessa, {seats} {members}",
+          "Jäsentä kohden, laskutus vuosittain. {yearly} vuodessa, {seats} {members}",
         cta: "Kokeile ilmaiseksi",
       },
       pro: {
@@ -687,7 +690,7 @@ const messages: Messages = {
         period: "/kk",
         noteMonthly: "Jäsentä kohden, laskutus kuukausittain",
         noteAnnual:
-          "Jäsentä kohden, laskutus vuosittain. ${yearly} vuodessa, {seats} {members}",
+          "Jäsentä kohden, laskutus vuosittain. {yearly} vuodessa, {seats} {members}",
         cta: "Kokeile ilmaiseksi",
       },
       rows: {

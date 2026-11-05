@@ -20,7 +20,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import {
+  useAppLocale,
+  useAppMessages,
+  useMoney,
+} from "@/components/app-i18n-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -557,6 +561,7 @@ function SeatConfirm({
 }) {
   const formatAdded = useFormatAdded();
   const messages = useAppMessages();
+  const money = useMoney();
   const m = messages.members.seatConfirm;
   const { plan, cycle, seats, periodEnd } = paidSeats;
   const adding = change === "add";
@@ -566,8 +571,8 @@ function SeatConfirm({
     plan: getSeatPlan(plan).name,
     seats,
     nextSeats,
-    before: seatPriceUsd(seats, cycle, plan),
-    after: seatPriceUsd(nextSeats, cycle, plan),
+    before: money.format(seatPriceUsd(seats, cycle, plan)),
+    after: money.format(seatPriceUsd(nextSeats, cycle, plan)),
   };
   const until = periodEnd ? formatAdded(periodEnd * 1000) : null;
   return (

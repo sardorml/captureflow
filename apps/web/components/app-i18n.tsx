@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { DEFAULT_LOCALE } from "@/lib/i18n/config";
 import { getAppI18n } from "@/lib/i18n/app/server";
 import { getMessages } from "@/lib/i18n/messages";
+import { loadMoney } from "@/lib/i18n/rates";
 import { AppI18nProvider } from "./app-i18n-provider";
 import { HtmlLang } from "./html-lang";
 
@@ -12,9 +13,12 @@ export async function AppI18n({ children }: { children: ReactNode }) {
   if (i18n.locale === DEFAULT_LOCALE) {
     return <AppI18nProvider>{children}</AppI18nProvider>;
   }
-  const { plans } = (await getMessages(i18n.locale)).pricing;
+  const [{ pricing }, money] = await Promise.all([
+    getMessages(i18n.locale),
+    loadMoney(i18n.locale),
+  ]);
   return (
-    <AppI18nProvider i18n={{ ...i18n, plans }}>
+    <AppI18nProvider i18n={{ ...i18n, plans: pricing.plans, money }}>
       <HtmlLang lang={i18n.lang} />
       {children}
     </AppI18nProvider>

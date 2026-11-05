@@ -483,18 +483,18 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "{name} 님에게 유료 시트를 줄까요?",
       addBody:
-        "멤버는 녹화하므로 한 명당 유료 시트 하나입니다. {plan} 요금제가 {seats}시트에서 {nextSeats}시트로, 월 ${before}에서 ${after}로 바뀝니다.",
+        "멤버는 녹화하므로 한 명당 유료 시트 하나입니다. {plan} 요금제가 {seats}시트에서 {nextSeats}시트로, 월 {before}에서 {after}로 바뀝니다.",
       addBodyYearly:
-        "멤버는 녹화하므로 한 명당 유료 시트 하나입니다. {plan} 요금제가 {seats}시트에서 {nextSeats}시트로, 월 ${before}에서 ${after}로 바뀌며 연간 결제됩니다.",
+        "멤버는 녹화하므로 한 명당 유료 시트 하나입니다. {plan} 요금제가 {seats}시트에서 {nextSeats}시트로, 월 {before}에서 {after}로 바뀌며 연간 결제됩니다.",
       addInvoice: "이번 결제 기간의 남은 금액은 다음 청구서에 추가됩니다.",
       addConfirm: "유료 시트 추가",
       removeTitle: "{name} 님을 뷰어로 전환할까요?",
       removeBody:
         "{name} 님은 이미 결제한 기간이 끝나는 {date}까지 계속 녹화할 수 있습니다. 그 뒤에는 시청하고 댓글은 남기지만 녹화는 할 수 없는 뷰어가 됩니다.",
       removePlan:
-        "그때부터 {plan} 요금제가 {seats}시트에서 {nextSeats}시트로, 월 ${before}에서 ${after}로 바뀝니다.",
+        "그때부터 {plan} 요금제가 {seats}시트에서 {nextSeats}시트로, 월 {before}에서 {after}로 바뀝니다.",
       removePlanYearly:
-        "그때부터 {plan} 요금제가 {seats}시트에서 {nextSeats}시트로, 월 ${before}에서 ${after}로 바뀌며 연간 결제됩니다.",
+        "그때부터 {plan} 요금제가 {seats}시트에서 {nextSeats}시트로, 월 {before}에서 {after}로 바뀌며 연간 결제됩니다.",
       removeConfirm: "뷰어로 전환",
     },
     remove: {
@@ -521,7 +521,7 @@ const messages: AppMessages = {
       addEmails: "이메일 추가",
       separatorHint: "이메일은 공백, 쉼표 또는 Enter로 구분하세요.",
       paidSeatNote:
-        "수락한 멤버마다 {plan} 요금제에 유료 시트가 추가되며, 한 명당 월 ${price}입니다. 이번 기간의 남은 금액은 다음 청구서에 포함됩니다.",
+        "수락한 멤버마다 {plan} 요금제에 유료 시트가 추가되며, 한 명당 월 {price}입니다. 이번 기간의 남은 금액은 다음 청구서에 포함됩니다.",
       noEmails: "이메일을 하나 이상 추가하세요",
       invalidEmails: "올바르지 않은 이메일: {emails}",
       failed: "실패",
@@ -656,6 +656,8 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "미국 달러로 청구됩니다.",
+    shownIn: "가격은 {currency}로 표시됩니다. 결제는 미국 달러로 청구됩니다.",
     page: {
       title: "결제",
       subtitle: "요금제와 사용량입니다.",

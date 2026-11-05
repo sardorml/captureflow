@@ -619,6 +619,7 @@ export const MESSAGES = {
     subheading:
       "Free covers your first recordings. Paid plans are one price per member.",
     controls: {
+      shownIn: "Prices are shown in {currency}. You are charged in US dollars.",
       teamSize: "Team size",
       members: "members",
       title: "Billing",
@@ -638,6 +639,7 @@ export const MESSAGES = {
       saveValue: "{savings} a year",
     },
     plans: {
+      chargedInUsd: "Charged in US dollars.",
       member: "member",
       members: "members",
       included: "Included",
@@ -659,7 +661,7 @@ export const MESSAGES = {
         period: "/mo",
         noteMonthly: "Per member, billed monthly",
         noteAnnual:
-          "Per member, billed yearly. ${yearly} a year for {seats} {members}",
+          "Per member, billed yearly. {yearly} a year for {seats} {members}",
         cta: "Try for free",
       },
       pro: {
@@ -678,7 +680,7 @@ export const MESSAGES = {
         period: "/mo",
         noteMonthly: "Per member, billed monthly",
         noteAnnual:
-          "Per member, billed yearly. ${yearly} a year for {seats} {members}",
+          "Per member, billed yearly. {yearly} a year for {seats} {members}",
         cta: "Try for free",
       },
       rows: {

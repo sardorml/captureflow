@@ -25,6 +25,7 @@ import {
 import {
   useAppLocale,
   useAppMessages,
+  useMoney,
   usePlanCopy,
 } from "@/components/app-i18n-provider";
 import { GRADIENT_BORDER } from "@/components/marketing/plan-cards";
@@ -78,6 +79,7 @@ export function UpgradeModalBody({
   const fakeCheckout = useDevPref("fake-checkout") && LOCAL_DEV;
   const m = useAppMessages();
   const { lang } = useAppLocale();
+  const money = useMoney();
   const t = m.billing.upgrade;
 
   const canManage = people.some(
@@ -289,6 +291,9 @@ export function UpgradeModalBody({
               />
             ))}
           </div>
+          {money.note && (
+            <p className="mt-3 text-xs text-fg-muted">{money.note}</p>
+          )}
         </div>
       </DialogContent>
     </Dialog>
@@ -316,6 +321,7 @@ function PlanOption({
 }) {
   const m = useAppMessages();
   const { lang } = useAppLocale();
+  const money = useMoney();
   const t = m.billing.upgrade;
   const plan = getSeatPlan(planId);
   const copy = usePlanCopy()[planId];
@@ -324,7 +330,7 @@ function PlanOption({
     cycle === "annual" ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
   const total = seatPriceUsd(seats, cycle, planId);
   const seatsPrice = fmt(plural(t.seatsPrice, seats, lang), {
-    price: `$${perSeat}`,
+    price: money.format(perSeat),
   });
   const annual = cycle === "annual";
   const priceLine =
@@ -365,13 +371,16 @@ function PlanOption({
           key={`${cycle}-${total}`}
           className="animate-storage-pop inline-block"
         >
-          ${total}
+          {money.format(total)}
         </span>
         <span className="ms-2 align-baseline text-sm font-normal text-fg-muted">
           {t.perMonth}
         </span>
       </p>
-      <p className="mt-1 text-sm text-fg-muted">{priceLine}</p>
+      <p className="mt-1 text-sm text-fg-muted">
+        {priceLine}
+        {money.charged && <span className="block">{money.charged}</span>}
+      </p>
 
       {onFakeCheckout ? (
         <button

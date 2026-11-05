@@ -34,7 +34,7 @@ import { track } from "@/lib/marketing/track";
 import { cn } from "@/lib/utils";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { FRAME_CELLS, PILL_OUTLINE, PILL_SOLID } from "./frame";
-import { useLocalizedHref, useMessages } from "./i18n-provider";
+import { useLocalizedHref, useMessages, useMoney } from "./i18n-provider";
 import { SeatsField } from "./pricing-fields";
 
 function fill(template: string, values: Record<string, string | number>) {
@@ -83,6 +83,7 @@ const ROW_CELL =
 export function PlanCards() {
   const m = useMessages();
   const lh = useLocalizedHref();
+  const money = useMoney();
   const copy = m.pricing.plans;
   const [seats, setSeats] = useState(DEFAULT_SEATS);
   const [cycle, setCycle] = useState<Cycle>("monthly");
@@ -108,16 +109,16 @@ export function PlanCards() {
   const paid = (id: SeatPlanId) => {
     const plan = getSeatPlan(id);
     const planCopy = copy[id];
-    const yearly = (seatPriceUsd(seats, cycle, id) * 12).toLocaleString(
-      "en-US",
-    );
+    const yearly = money.format(seatPriceUsd(seats, cycle, id) * 12);
     return (
       <PlanColumn
         highlighted={RECOMMENDED_SEAT_PLAN_ID === id}
         badge={"badge" in planCopy ? planCopy.badge : undefined}
         name={planCopy.name}
         description={planCopy.description}
-        price={`$${annual ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd}`}
+        price={money.format(
+          annual ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd,
+        )}
         priceKey={`${cycle}-${id}`}
         period={planCopy.period}
         note={
@@ -156,7 +157,7 @@ export function PlanCards() {
       <PlanColumn
         name={copy.free.name}
         description={copy.free.description}
-        price="$0"
+        price={money.format(0)}
         cells={rowValues("free")}
         cta={{
           label: copy.free.cta,
@@ -183,6 +184,7 @@ function BillingColumn({
   onCycleChange: (cycle: Cycle) => void;
 }) {
   const m = useMessages();
+  const { note } = useMoney();
   const copy = m.pricing.controls;
   const labelId = useId();
   const cycles: { key: Cycle; label: string; trailing?: ReactNode }[] = [
@@ -206,6 +208,7 @@ function BillingColumn({
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-fg-muted">
           {copy.note}
+          {note && <span className="block">{note}</span>}
         </p>
       </div>
       <div className="pb-6 lg:row-span-2">
@@ -270,6 +273,7 @@ function PlanColumn({
   highlighted?: boolean;
 }) {
   const copy = useMessages().pricing.plans;
+  const { charged } = useMoney();
   return (
     <div className={cn(COLUMN, highlighted ? "bg-emphasis" : "bg-canvas")}>
       <div className="pb-5">
@@ -309,6 +313,7 @@ function PlanColumn({
         {note && (
           <p className="mt-3 text-center text-[13px] leading-snug text-fg-muted">
             {note}
+            {charged && <span className="block">{charged}</span>}
           </p>
         )}
       </div>

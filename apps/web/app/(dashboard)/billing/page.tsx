@@ -19,6 +19,8 @@ import type { AppMessages } from "@/lib/i18n/app/messages";
 import { getAppI18n } from "@/lib/i18n/app/server";
 import { fmt, plural } from "@/lib/i18n/format";
 import { formatDate } from "@/lib/i18n/intl";
+import { currencyName, formatMoney } from "@/lib/i18n/money";
+import { loadMoney } from "@/lib/i18n/rates";
 import { cn } from "@/lib/utils";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
@@ -256,17 +258,11 @@ async function WorkspacePlanSection({
   );
 }
 
-function usd(n: number): string {
-  return `$${n.toLocaleString("en-US", {
-    minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
-
 function prorationLine(
   charge: NextCharge,
   t: BillingCopy["details"],
   lang: string,
+  usd: (n: number) => string,
 ): string {
   const amount = usd(Math.abs(charge.prorated));
   if (charge.seatsRemoved === 0) {
@@ -293,7 +289,15 @@ async function BillingDetails({
   viewerCount: number;
   nextCharge: NextCharge | null;
 }) {
-  const { messages: m, lang } = await getAppI18n();
+  const { locale, messages: m, lang } = await getAppI18n();
+  const money = await loadMoney(locale);
+  const usd = (n: number) => formatMoney(n, lang, money);
+  const shownIn =
+    money.currency === "USD"
+      ? null
+      : fmt(m.billing.shownIn, {
+          currency: currencyName(lang, money.currency),
+        });
   const t = m.billing.details;
   const { plan, cycle, quantity: seats } = subscription;
   const seatPlan = getSeatPlan(plan);
@@ -331,6 +335,9 @@ async function BillingDetails({
             total: usd(perMonth),
           })}
         </span>
+        {shownIn && (
+          <span className="mt-0.5 block text-fg-muted">{shownIn}</span>
+        )}
       </Detail>
       <Detail label={ending ? t.ends : t.nextPayment}>
         {ending
@@ -347,7 +354,7 @@ async function BillingDetails({
               base: fmt(plural(t.baseForSeats, seats, lang), {
                 amount: usd(nextCharge.base),
               }),
-              change: prorationLine(nextCharge, t, lang),
+              change: prorationLine(nextCharge, t, lang, usd),
             })}
           </span>
         )}

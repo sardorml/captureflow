@@ -488,9 +488,9 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "Vil du gi {name} en betalt lisens?",
       addBody:
-        "Medlemmer tar opp, så hvert medlem er en betalt lisens. {plan}-abonnementet ditt går fra {seats} til {nextSeats} lisenser, ${before} til ${after} per måned.",
+        "Medlemmer tar opp, så hvert medlem er en betalt lisens. {plan}-abonnementet ditt går fra {seats} til {nextSeats} lisenser, {before} til {after} per måned.",
       addBodyYearly:
-        "Medlemmer tar opp, så hvert medlem er en betalt lisens. {plan}-abonnementet ditt går fra {seats} til {nextSeats} lisenser, ${before} til ${after} per måned, faktureres årlig.",
+        "Medlemmer tar opp, så hvert medlem er en betalt lisens. {plan}-abonnementet ditt går fra {seats} til {nextSeats} lisenser, {before} til {after} per måned, faktureres årlig.",
       addInvoice:
         "Resten av denne faktureringsperioden legges til på neste faktura.",
       addConfirm: "Legg til betalt lisens",
@@ -498,9 +498,9 @@ const messages: AppMessages = {
       removeBody:
         "{name} fortsetter å ta opp frem til {date}, slutten av perioden du har betalt for, og blir deretter seer. Seere kan se og kommentere, men ikke ta opp.",
       removePlan:
-        "Fra da går {plan}-abonnementet ditt fra {seats} til {nextSeats} lisenser, ${before} til ${after} per måned.",
+        "Fra da går {plan}-abonnementet ditt fra {seats} til {nextSeats} lisenser, {before} til {after} per måned.",
       removePlanYearly:
-        "Fra da går {plan}-abonnementet ditt fra {seats} til {nextSeats} lisenser, ${before} til ${after} per måned, faktureres årlig.",
+        "Fra da går {plan}-abonnementet ditt fra {seats} til {nextSeats} lisenser, {before} til {after} per måned, faktureres årlig.",
       removeConfirm: "Endre til seer",
     },
     remove: {
@@ -527,7 +527,7 @@ const messages: AppMessages = {
       addEmails: "Legg til e-postadresser",
       separatorHint: "Skill e-postadressene med mellomrom, komma eller Enter.",
       paidSeatNote:
-        "Hvert medlem som godtar, legger til en betalt lisens i {plan}-abonnementet ditt, ${price} per måned for hver. Resten av denne perioden kommer på neste faktura.",
+        "Hvert medlem som godtar, legger til en betalt lisens i {plan}-abonnementet ditt, {price} per måned for hver. Resten av denne perioden kommer på neste faktura.",
       noEmails: "Legg til minst én e-postadresse",
       invalidEmails: "Ugyldig e-postadresse: {emails}",
       failed: "Mislyktes",
@@ -665,6 +665,8 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "Belastes i amerikanske dollar.",
+    shownIn: "Prisene vises i {currency}. Du belastes i amerikanske dollar.",
     page: {
       title: "Fakturering",
       subtitle: "Abonnementet ditt, og hvor mye av det du har brukt.",

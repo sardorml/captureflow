@@ -4,6 +4,7 @@ import { LOCALES, isLocaleCode } from "./config";
 import type { I18n } from "./english";
 import { getMessages } from "./messages";
 import { pageMetadata, type MarketingPageId } from "./metadata";
+import { loadMoney } from "./rates";
 
 export type LocaleParams = { params: Promise<{ locale: string }> };
 
@@ -15,7 +16,11 @@ export function localeStaticParams(): { locale: string }[] {
 export async function resolveI18n({ params }: LocaleParams): Promise<I18n> {
   const { locale } = await params;
   if (!isLocaleCode(locale)) notFound();
-  return { locale, messages: await getMessages(locale) };
+  const [messages, money] = await Promise.all([
+    getMessages(locale),
+    loadMoney(locale),
+  ]);
+  return { locale, messages, money };
 }
 
 export function localizedMetadata(page: MarketingPageId) {

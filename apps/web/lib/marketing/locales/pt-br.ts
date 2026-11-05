@@ -633,6 +633,8 @@ const messages: Messages = {
     subheading:
       "O Gratuito cobre suas primeiras gravações. Os planos pagos têm um preço por membro.",
     controls: {
+      shownIn:
+        "Os preços são exibidos em {currency}. A cobrança é feita em dólares americanos.",
       teamSize: "Tamanho da equipe",
       members: "membros",
       title: "Cobrança",
@@ -652,6 +654,7 @@ const messages: Messages = {
       saveValue: "{savings} por ano",
     },
     plans: {
+      chargedInUsd: "Cobrado em dólares americanos.",
       member: "membro",
       members: "membros",
       included: "Incluído",
@@ -673,7 +676,7 @@ const messages: Messages = {
         period: "/mês",
         noteMonthly: "Por membro, cobrado mensalmente",
         noteAnnual:
-          "Por membro, cobrado anualmente. ${yearly} por ano para {seats} {members}",
+          "Por membro, cobrado anualmente. {yearly} por ano para {seats} {members}",
         cta: "Experimente grátis",
       },
       pro: {
@@ -692,7 +695,7 @@ const messages: Messages = {
         period: "/mês",
         noteMonthly: "Por membro, cobrado mensalmente",
         noteAnnual:
-          "Por membro, cobrado anualmente. ${yearly} por ano para {seats} {members}",
+          "Por membro, cobrado anualmente. {yearly} por ano para {seats} {members}",
         cta: "Experimente grátis",
       },
       rows: {

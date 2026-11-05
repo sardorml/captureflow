@@ -489,9 +489,9 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "Cấp cho {name} một suất dùng trả phí?",
       addBody:
-        "Thành viên có quyền quay nên mỗi người là một suất dùng trả phí. Gói {plan} của bạn tăng từ {seats} lên {nextSeats} suất dùng, từ ${before} lên ${after} mỗi tháng.",
+        "Thành viên có quyền quay nên mỗi người là một suất dùng trả phí. Gói {plan} của bạn tăng từ {seats} lên {nextSeats} suất dùng, từ {before} lên {after} mỗi tháng.",
       addBodyYearly:
-        "Thành viên có quyền quay nên mỗi người là một suất dùng trả phí. Gói {plan} của bạn tăng từ {seats} lên {nextSeats} suất dùng, từ ${before} lên ${after} mỗi tháng, thanh toán theo năm.",
+        "Thành viên có quyền quay nên mỗi người là một suất dùng trả phí. Gói {plan} của bạn tăng từ {seats} lên {nextSeats} suất dùng, từ {before} lên {after} mỗi tháng, thanh toán theo năm.",
       addInvoice:
         "Phần còn lại của kỳ thanh toán này sẽ được cộng vào hóa đơn tiếp theo của bạn.",
       addConfirm: "Thêm suất dùng trả phí",
@@ -499,9 +499,9 @@ const messages: AppMessages = {
       removeBody:
         "{name} vẫn quay được đến ngày {date}, ngày kết thúc kỳ bạn đã thanh toán. Sau đó họ trở thành người xem, có thể xem và bình luận nhưng không quay được.",
       removePlan:
-        "Từ lúc đó, gói {plan} của bạn giảm từ {seats} xuống {nextSeats} suất dùng, từ ${before} xuống ${after} mỗi tháng.",
+        "Từ lúc đó, gói {plan} của bạn giảm từ {seats} xuống {nextSeats} suất dùng, từ {before} xuống {after} mỗi tháng.",
       removePlanYearly:
-        "Từ lúc đó, gói {plan} của bạn giảm từ {seats} xuống {nextSeats} suất dùng, từ ${before} xuống ${after} mỗi tháng, thanh toán theo năm.",
+        "Từ lúc đó, gói {plan} của bạn giảm từ {seats} xuống {nextSeats} suất dùng, từ {before} xuống {after} mỗi tháng, thanh toán theo năm.",
       removeConfirm: "Chuyển sang người xem",
     },
     remove: {
@@ -529,7 +529,7 @@ const messages: AppMessages = {
       separatorHint:
         "Phân tách các email bằng dấu cách, dấu phẩy hoặc phím Enter.",
       paidSeatNote:
-        "Mỗi thành viên chấp nhận sẽ thêm một suất dùng trả phí vào gói {plan} của bạn, ${price} mỗi tháng cho mỗi suất. Phần còn lại của kỳ này sẽ được tính vào hóa đơn tiếp theo của bạn.",
+        "Mỗi thành viên chấp nhận sẽ thêm một suất dùng trả phí vào gói {plan} của bạn, {price} mỗi tháng cho mỗi suất. Phần còn lại của kỳ này sẽ được tính vào hóa đơn tiếp theo của bạn.",
       noEmails: "Hãy thêm ít nhất một email",
       invalidEmails: "Email không hợp lệ: {emails}",
       failed: "Thất bại",
@@ -665,6 +665,8 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "Thanh toán bằng đô la Mỹ.",
+    shownIn: "Giá hiển thị bằng {currency}. Bạn được tính phí bằng đô la Mỹ.",
     page: {
       title: "Thanh toán",
       subtitle: "Gói của bạn và mức bạn đã sử dụng.",

@@ -68,9 +68,9 @@ export const MEMBERS = {
   seatConfirm: {
     addTitle: "Give {name} a paid seat?",
     addBody:
-      "Members record, so each one is a paid seat. Your {plan} plan goes from {seats} to {nextSeats} seats, ${before} to ${after} a month.",
+      "Members record, so each one is a paid seat. Your {plan} plan goes from {seats} to {nextSeats} seats, {before} to {after} a month.",
     addBodyYearly:
-      "Members record, so each one is a paid seat. Your {plan} plan goes from {seats} to {nextSeats} seats, ${before} to ${after} a month, billed yearly.",
+      "Members record, so each one is a paid seat. Your {plan} plan goes from {seats} to {nextSeats} seats, {before} to {after} a month, billed yearly.",
     addInvoice:
       "The rest of this billing period is added to your next invoice.",
     addConfirm: "Add paid seat",
@@ -78,9 +78,9 @@ export const MEMBERS = {
     removeBody:
       "{name} keeps recording until {date}, the end of the period you've paid for. Then they become a viewer, who can watch and comment but not record.",
     removePlan:
-      "From then, your {plan} plan goes from {seats} to {nextSeats} seats, ${before} to ${after} a month.",
+      "From then, your {plan} plan goes from {seats} to {nextSeats} seats, {before} to {after} a month.",
     removePlanYearly:
-      "From then, your {plan} plan goes from {seats} to {nextSeats} seats, ${before} to ${after} a month, billed yearly.",
+      "From then, your {plan} plan goes from {seats} to {nextSeats} seats, {before} to {after} a month, billed yearly.",
     removeConfirm: "Move to viewer",
   },
   remove: {
@@ -107,7 +107,7 @@ export const MEMBERS = {
     addEmails: "Add emails",
     separatorHint: "Separate emails with a space, comma, or enter.",
     paidSeatNote:
-      "Each member who accepts adds a paid seat to your {plan} plan, ${price} a month each. The rest of this period goes on your next invoice.",
+      "Each member who accepts adds a paid seat to your {plan} plan, {price} a month each. The rest of this period goes on your next invoice.",
     noEmails: "Add at least one email",
     invalidEmails: "Not a valid email: {emails}",
     failed: "Failed",

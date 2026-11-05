@@ -485,18 +485,18 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "{name} に有料シートを割り当てますか？",
       addBody:
-        "メンバーは録画できるため、一人につき有料シート一席です。{plan} プランは {seats} 席から {nextSeats} 席になり、月額 ${before} から ${after} になります。",
+        "メンバーは録画できるため、一人につき有料シート一席です。{plan} プランは {seats} 席から {nextSeats} 席になり、月額 {before} から {after} になります。",
       addBodyYearly:
-        "メンバーは録画できるため、一人につき有料シート一席です。{plan} プランは {seats} 席から {nextSeats} 席になり、月額 ${before} から ${after} になります（年払い）。",
+        "メンバーは録画できるため、一人につき有料シート一席です。{plan} プランは {seats} 席から {nextSeats} 席になり、月額 {before} から {after} になります（年払い）。",
       addInvoice: "今回の請求期間の残り分は、次回の請求書に追加されます。",
       addConfirm: "有料シートを追加",
       removeTitle: "{name} を閲覧者に変更しますか？",
       removeBody:
         "{name} は支払い済みの期間が終わる {date} までは録画できます。その後は閲覧者になり、視聴とコメントはできますが録画はできません。",
       removePlan:
-        "それ以降、{plan} プランは {seats} 席から {nextSeats} 席になり、月額 ${before} から ${after} になります。",
+        "それ以降、{plan} プランは {seats} 席から {nextSeats} 席になり、月額 {before} から {after} になります。",
       removePlanYearly:
-        "それ以降、{plan} プランは {seats} 席から {nextSeats} 席になり、月額 ${before} から ${after} になります（年払い）。",
+        "それ以降、{plan} プランは {seats} 席から {nextSeats} 席になり、月額 {before} から {after} になります（年払い）。",
       removeConfirm: "閲覧者に変更",
     },
     remove: {
@@ -524,7 +524,7 @@ const messages: AppMessages = {
       separatorHint:
         "メールアドレスはスペース、カンマ、または Enter で区切ります。",
       paidSeatNote:
-        "承諾したメンバー一人につき、{plan} プランに有料シートが一席追加されます（一人あたり月額 ${price}）。今回の期間の残り分は次回の請求書に加算されます。",
+        "承諾したメンバー一人につき、{plan} プランに有料シートが一席追加されます（一人あたり月額 {price}）。今回の期間の残り分は次回の請求書に加算されます。",
       noEmails: "メールアドレスを一つ以上追加してください",
       invalidEmails: "無効なメールアドレス: {emails}",
       failed: "失敗",
@@ -661,6 +661,8 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "請求は米ドルで行われます。",
+    shownIn: "価格は{currency}で表示しています。請求は米ドルで行われます。",
     page: {
       title: "請求",
       subtitle: "ご利用中のプランと、その使用状況です。",

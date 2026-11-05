@@ -625,6 +625,8 @@ const messages: Messages = {
     subheading:
       "Bepul tarif dastlabki yozuvlaringizni qamraydi. Pullik tariflarda har bir aʼzo uchun bitta narx.",
     controls: {
+      shownIn:
+        "Narxlar {currency}da koʻrsatilgan. Toʻlov AQSH dollarida olinadi.",
       teamSize: "Jamoa hajmi",
       members: "aʼzo",
       title: "Toʻlov",
@@ -644,6 +646,7 @@ const messages: Messages = {
       saveValue: "yiliga {savings}",
     },
     plans: {
+      chargedInUsd: "AQSH dollarida undiriladi.",
       member: "aʼzo",
       members: "aʼzo",
       included: "Kiritilgan",
@@ -665,7 +668,7 @@ const messages: Messages = {
         period: "/oy",
         noteMonthly: "Har bir aʼzo uchun, oylik toʻlov",
         noteAnnual:
-          "Har bir aʼzo uchun, yillik toʻlov. {seats} {members} uchun yiliga ${yearly}",
+          "Har bir aʼzo uchun, yillik toʻlov. {seats} {members} uchun yiliga {yearly}",
         cta: "Bepul sinab koʻring",
       },
       pro: {
@@ -684,7 +687,7 @@ const messages: Messages = {
         period: "/oy",
         noteMonthly: "Har bir aʼzo uchun, oylik toʻlov",
         noteAnnual:
-          "Har bir aʼzo uchun, yillik toʻlov. {seats} {members} uchun yiliga ${yearly}",
+          "Har bir aʼzo uchun, yillik toʻlov. {seats} {members} uchun yiliga {yearly}",
         cta: "Bepul sinab koʻring",
       },
       rows: {

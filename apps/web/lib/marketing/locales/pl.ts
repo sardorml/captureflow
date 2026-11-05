@@ -619,6 +619,8 @@ const messages: Messages = {
     subheading:
       "Plan Darmowy obejmuje pierwsze nagrania. Płatne plany to jedna cena za członka.",
     controls: {
+      shownIn:
+        "Ceny są wyświetlane w {currency}. Płatność jest pobierana w dolarach amerykańskich.",
       teamSize: "Wielkość zespołu",
       members: "członków",
       title: "Rozliczenie",
@@ -638,6 +640,7 @@ const messages: Messages = {
       saveValue: "{savings} rocznie",
     },
     plans: {
+      chargedInUsd: "Płatność w dolarach amerykańskich.",
       member: "członka",
       members: "członków",
       included: "W planie",
@@ -659,7 +662,7 @@ const messages: Messages = {
         period: "/mies.",
         noteMonthly: "Za członka, rozliczane miesięcznie",
         noteAnnual:
-          "Za członka, rozliczane rocznie. ${yearly} rocznie za {seats} {members}",
+          "Za członka, rozliczane rocznie. {yearly} rocznie za {seats} {members}",
         cta: "Wypróbuj za darmo",
       },
       pro: {
@@ -678,7 +681,7 @@ const messages: Messages = {
         period: "/mies.",
         noteMonthly: "Za członka, rozliczane miesięcznie",
         noteAnnual:
-          "Za członka, rozliczane rocznie. ${yearly} rocznie za {seats} {members}",
+          "Za członka, rozliczane rocznie. {yearly} rocznie za {seats} {members}",
         cta: "Wypróbuj za darmo",
       },
       rows: {

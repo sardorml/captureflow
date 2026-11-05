@@ -501,9 +501,9 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "Przyznać osobie {name} płatne stanowisko?",
       addBody:
-        "Członkowie nagrywają, więc każdy z nich to płatne stanowisko. Liczba stanowisk w twoim planie {plan} zmieni się z {seats} na {nextSeats}, a opłata z ${before} na ${after} miesięcznie.",
+        "Członkowie nagrywają, więc każdy z nich to płatne stanowisko. Liczba stanowisk w twoim planie {plan} zmieni się z {seats} na {nextSeats}, a opłata z {before} na {after} miesięcznie.",
       addBodyYearly:
-        "Członkowie nagrywają, więc każdy z nich to płatne stanowisko. Liczba stanowisk w twoim planie {plan} zmieni się z {seats} na {nextSeats}, a opłata z ${before} na ${after} miesięcznie, przy rozliczeniu rocznym.",
+        "Członkowie nagrywają, więc każdy z nich to płatne stanowisko. Liczba stanowisk w twoim planie {plan} zmieni się z {seats} na {nextSeats}, a opłata z {before} na {after} miesięcznie, przy rozliczeniu rocznym.",
       addInvoice:
         "Opłata za resztę tego okresu rozliczeniowego zostanie doliczona do następnej faktury.",
       addConfirm: "Dodaj płatne stanowisko",
@@ -511,9 +511,9 @@ const messages: AppMessages = {
       removeBody:
         "{name} może nagrywać do {date}, czyli do końca opłaconego okresu. Potem zostanie widzem, który może oglądać i komentować, ale nie nagrywać.",
       removePlan:
-        "Od tego momentu liczba stanowisk w twoim planie {plan} zmieni się z {seats} na {nextSeats}, a opłata z ${before} na ${after} miesięcznie.",
+        "Od tego momentu liczba stanowisk w twoim planie {plan} zmieni się z {seats} na {nextSeats}, a opłata z {before} na {after} miesięcznie.",
       removePlanYearly:
-        "Od tego momentu liczba stanowisk w twoim planie {plan} zmieni się z {seats} na {nextSeats}, a opłata z ${before} na ${after} miesięcznie, przy rozliczeniu rocznym.",
+        "Od tego momentu liczba stanowisk w twoim planie {plan} zmieni się z {seats} na {nextSeats}, a opłata z {before} na {after} miesięcznie, przy rozliczeniu rocznym.",
       removeConfirm: "Zmień na widza",
     },
     remove: {
@@ -540,7 +540,7 @@ const messages: AppMessages = {
       addEmails: "Dodaj adresy e-mail",
       separatorHint: "Oddziel adresy spacją, przecinkiem lub klawiszem Enter.",
       paidSeatNote:
-        "Każdy członek, który przyjmie zaproszenie, dodaje płatne stanowisko do twojego planu {plan}, ${price} miesięcznie za każde. Opłata za resztę tego okresu trafi na następną fakturę.",
+        "Każdy członek, który przyjmie zaproszenie, dodaje płatne stanowisko do twojego planu {plan}, {price} miesięcznie za każde. Opłata za resztę tego okresu trafi na następną fakturę.",
       noEmails: "Dodaj co najmniej jeden adres e-mail",
       invalidEmails: "Nieprawidłowy adres e-mail: {emails}",
       failed: "Nie udało się",
@@ -680,6 +680,9 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "Płatność w dolarach amerykańskich.",
+    shownIn:
+      "Ceny są wyświetlane w {currency}. Płatność jest pobierana w dolarach amerykańskich.",
     page: {
       title: "Płatności",
       subtitle: "Twój plan i to, ile z niego wykorzystujesz.",

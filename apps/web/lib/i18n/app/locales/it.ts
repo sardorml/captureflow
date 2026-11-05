@@ -495,9 +495,9 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "Assegnare a {name} una licenza a pagamento?",
       addBody:
-        "I membri registrano, quindi ognuno occupa una licenza a pagamento. Il tuo piano {plan} passa da {seats} a {nextSeats} licenze, da ${before} a ${after} al mese.",
+        "I membri registrano, quindi ognuno occupa una licenza a pagamento. Il tuo piano {plan} passa da {seats} a {nextSeats} licenze, da {before} a {after} al mese.",
       addBodyYearly:
-        "I membri registrano, quindi ognuno occupa una licenza a pagamento. Il tuo piano {plan} passa da {seats} a {nextSeats} licenze, da ${before} a ${after} al mese, con fatturazione annuale.",
+        "I membri registrano, quindi ognuno occupa una licenza a pagamento. Il tuo piano {plan} passa da {seats} a {nextSeats} licenze, da {before} a {after} al mese, con fatturazione annuale.",
       addInvoice:
         "Il resto di questo periodo di fatturazione viene aggiunto alla prossima fattura.",
       addConfirm: "Aggiungi licenza a pagamento",
@@ -505,9 +505,9 @@ const messages: AppMessages = {
       removeBody:
         "{name} continua a registrare fino al {date}, la fine del periodo che hai già pagato. Poi diventa spettatore: può guardare e commentare, ma non registrare.",
       removePlan:
-        "Da quel momento, il tuo piano {plan} passa da {seats} a {nextSeats} licenze, da ${before} a ${after} al mese.",
+        "Da quel momento, il tuo piano {plan} passa da {seats} a {nextSeats} licenze, da {before} a {after} al mese.",
       removePlanYearly:
-        "Da quel momento, il tuo piano {plan} passa da {seats} a {nextSeats} licenze, da ${before} a ${after} al mese, con fatturazione annuale.",
+        "Da quel momento, il tuo piano {plan} passa da {seats} a {nextSeats} licenze, da {before} a {after} al mese, con fatturazione annuale.",
       removeConfirm: "Sposta tra gli spettatori",
     },
     remove: {
@@ -534,7 +534,7 @@ const messages: AppMessages = {
       addEmails: "Aggiungi email",
       separatorHint: "Separa le email con uno spazio, una virgola o Invio.",
       paidSeatNote:
-        "Ogni membro che accetta aggiunge una licenza a pagamento al tuo piano {plan}, ${price} al mese ciascuna. Il resto di questo periodo va nella prossima fattura.",
+        "Ogni membro che accetta aggiunge una licenza a pagamento al tuo piano {plan}, {price} al mese ciascuna. Il resto di questo periodo va nella prossima fattura.",
       noEmails: "Aggiungi almeno un'email",
       invalidEmails: "Email non valida: {emails}",
       failed: "Operazione non riuscita",
@@ -673,6 +673,9 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "Addebitato in dollari statunitensi.",
+    shownIn:
+      "I prezzi sono mostrati in {currency}. L'addebito è in dollari statunitensi.",
     page: {
       title: "Fatturazione",
       subtitle: "Il tuo piano e quanto ne hai usato.",
