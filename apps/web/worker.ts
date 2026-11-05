@@ -13,6 +13,12 @@ import {
 } from "./lib/recording/cron";
 import { runDailySeatSync } from "./lib/billing/seat-cron";
 import { refreshRepoStats, serveRepoStats } from "./lib/github";
+import {
+  cachedStylesheets,
+  stylesheetName,
+  stylesheetText,
+  TRACK_CACHED_STYLESHEETS,
+} from "./lib/inline-stylesheet";
 import { langOf, splitLocale } from "./lib/i18n/config";
 import { sweepAgentRecordings } from "./lib/mcp/agent-recordings-db";
 import { hydrateTranscriptionJobMessage } from "./lib/recording/transcription";
@@ -24,6 +30,7 @@ import {
 type Env = {
   DB: D1Database;
   BUCKET: R2Bucket;
+  ASSETS: Fetcher;
   AI: Ai;
   BETTER_AUTH_URL?: string;
   CAPTUREFLOW_HOSTED?: string;
@@ -92,23 +99,60 @@ function withCountry(request: Request): Request {
 }
 
 /*
+ * Rewrites a page's HTML on the way out; other responses pass through.
+ *
+ * Stylesheets ride inside the HTML. As a separate request each one shares a
+ * slow link with the fonts, images and script chunks found in the same head,
+ * and first paint waits for it; inline, it arrives before any of them is
+ * known. The link stays, disabled, so the browser does not fetch it and React
+ * still finds the stylesheet it expects. A stylesheet the browser already has
+ * cached is left as a plain link, so only a first visit carries it in the
+ * HTML. Next's own `inlineCss` copies the stylesheet into every route's
+ * server chunk instead, which put the Worker past its size limit.
+ *
  * The root layout is static, so a translated page's HTML arrives saying
  * lang="en". Search engines read the language from that attribute and the
  * Content-Language header, so both are set here.
  */
-async function withLang(
+async function withPageRewrites(
   pending: Response | Promise<Response>,
-  lang: string,
+  assets: Fetcher,
+  origin: string,
+  cached: Set<string>,
+  lang: string | null,
 ): Promise<Response> {
   const response = await pending;
   if (!response.headers.get("content-type")?.includes("text/html")) {
     return response;
   }
-  const localized = new HTMLRewriter()
-    .on("html", { element: (html) => void html.setAttribute("lang", lang) })
-    .transform(response);
-  localized.headers.set("content-language", lang);
-  return localized;
+  const rewriter = new HTMLRewriter().on(
+    'link[rel="stylesheet"][data-precedence]',
+    {
+      async element(link) {
+        const href = link.getAttribute("href");
+        if (!href?.startsWith("/_next/static/")) return;
+        if (cached.has(stylesheetName(href))) return;
+        const css = await stylesheetText(assets, href, origin);
+        if (css === null) return;
+        link.before(`<style>${css}</style>`, { html: true });
+        link.setAttribute("disabled", "");
+      },
+    },
+  );
+  rewriter.on("head", {
+    element: (head) =>
+      void head.append(`<script>${TRACK_CACHED_STYLESHEETS}</script>`, {
+        html: true,
+      }),
+  });
+  if (lang) {
+    rewriter.on("html", {
+      element: (html) => void html.setAttribute("lang", lang),
+    });
+  }
+  const page = rewriter.transform(response);
+  if (lang) page.headers.set("content-language", lang);
+  return page;
 }
 
 const handler: ExportedHandler<Env> = {
@@ -122,8 +166,15 @@ const handler: ExportedHandler<Env> = {
       );
     }
     const response = openNextWorker.fetch(withCountry(request), env, ctx);
-    const [locale] = splitLocale(new URL(request.url).pathname);
-    return locale ? withLang(response, langOf(locale)) : response;
+    const url = new URL(request.url);
+    const [locale] = splitLocale(url.pathname);
+    return withPageRewrites(
+      response,
+      env.ASSETS,
+      url.origin,
+      cachedStylesheets(request.headers.get("cookie")),
+      locale ? langOf(locale) : null,
+    );
   },
 
   async scheduled(
