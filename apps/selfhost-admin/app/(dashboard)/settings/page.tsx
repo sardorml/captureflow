@@ -1,6 +1,6 @@
 import { getInstanceSignupState } from "@captureflow/selfhost/instance";
 import { requireAdmin } from "@/lib/session";
-import { Badge, Card, PageHeader } from "@/app/_ui";
+import { Badge, Card, EmailSetupLink, PageHeader } from "@/app/_ui";
 import { SignupPolicyForm } from "@/app/signup-policy";
 
 export default async function SettingsPage() {
@@ -11,7 +11,7 @@ export default async function SettingsPage() {
     <>
       <PageHeader
         title="Settings"
-        description="How people get in, and how this CaptureFlow reaches them."
+        description="Who can create an account, and how this CaptureFlow reaches people."
       />
 
       <Card
@@ -19,7 +19,7 @@ export default async function SettingsPage() {
         description={
           setup.domains.length > 0
             ? `Anyone with an address on ${setup.domains.map((d) => `@${d}`).join(" or ")} can create an account.`
-            : "Only people you invite can create an account."
+            : "Only people an administrator adds or invites get an account."
         }
       >
         <SignupPolicyForm domains={setup.domains} submitLabel="Save" />
@@ -41,11 +41,20 @@ export default async function SettingsPage() {
           <dd className="text-fg-strong">{env.MAIL_FROM}</dd>
           <dt className="text-fg-muted">Delivery</dt>
           <dd className="text-fg-strong">
-            {env.MAIL_CONFIGURED
-              ? env.RESEND_API_KEY
-                ? "Resend"
-                : "SMTP"
-              : "Printed to the container log. Set SMTP_URL or RESEND_API_KEY in .env and restart to send real mail; invite links on this admin work either way."}
+            {env.MAIL_CONFIGURED ? (
+              env.RESEND_API_KEY ? (
+                "Resend"
+              ) : (
+                "SMTP"
+              )
+            ) : (
+              <>
+                Not set up. Messages are only printed to the container log.{" "}
+                <EmailSetupLink>Follow the email setup guide</EmailSetupLink>,
+                then restart. Until then the admin area shows each invite and
+                password link for you to send yourself.
+              </>
+            )}
           </dd>
         </dl>
       </Card>

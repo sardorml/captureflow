@@ -1,36 +1,35 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Alert, Button, Input, Select } from "./_ui";
-import { createWorkspaceAction, inviteAction } from "./actions";
+import { useActionState, useState } from "react";
+import { Alert, Button, EmailSetupLink, Input, Select } from "./_ui";
+import { inviteAction, passwordLinkAction } from "./actions";
 
-export function CreateWorkspaceForm() {
-  const router = useRouter();
-  const [state, action, pending] = useActionState(createWorkspaceAction, {
-    error: null,
-    id: null,
-  });
-  useEffect(() => {
-    if (state.id) router.push(`/workspaces/${state.id}`);
-  }, [state.id, router]);
+export function CopyableLink({
+  link,
+  label,
+  children,
+}: {
+  link: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  const [copied, setCopied] = useState(false);
   return (
-    <form action={action} className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2 rounded-xl bg-tint p-4">
+      <p className="text-sm text-fg">{children}</p>
       <div className="flex flex-wrap gap-2">
-        <Input
-          name="name"
-          required
-          maxLength={80}
-          placeholder="Workspace name"
-          aria-label="Workspace name"
-          className="w-full max-w-sm"
-        />
-        <Button type="submit" disabled={pending || !!state.id}>
-          {pending || state.id ? "Creating…" : "Create workspace"}
+        <Input readOnly value={link} aria-label={label} className="flex-1" />
+        <Button
+          variant="secondary"
+          onClick={async () => {
+            await navigator.clipboard.writeText(link);
+            setCopied(true);
+          }}
+        >
+          {copied ? "Copied" : "Copy link"}
         </Button>
       </div>
-      {state.error && <Alert tone="error">{state.error}</Alert>}
-    </form>
+    </div>
   );
 }
 
@@ -40,15 +39,8 @@ export function InviteForm({ workspaceId }: { workspaceId: string }) {
     email: null,
     link: null,
   });
-  const [copied, setCopied] = useState(false);
   return (
-    <form
-      action={(formData) => {
-        setCopied(false);
-        action(formData);
-      }}
-      className="flex flex-col gap-3"
-    >
+    <form action={action} className="flex flex-col gap-3">
       <input type="hidden" name="workspaceId" value={workspaceId} />
       <div className="flex flex-wrap gap-2">
         <Input
@@ -69,30 +61,65 @@ export function InviteForm({ workspaceId }: { workspaceId: string }) {
       </div>
       {state.error && <Alert tone="error">{state.error}</Alert>}
       {state.link && (
-        <div className="flex flex-col gap-2 rounded-xl bg-tint p-4">
-          <p className="text-sm text-fg">
-            Send this link to {state.email}. It works for 7 days, and they need
-            to sign up or log in with that address.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Input
-              readOnly
-              value={state.link}
-              aria-label="Invite link"
-              className="flex-1"
-            />
-            <Button
-              variant="secondary"
-              onClick={async () => {
-                await navigator.clipboard.writeText(state.link ?? "");
-                setCopied(true);
-              }}
-            >
-              {copied ? "Copied" : "Copy link"}
-            </Button>
-          </div>
-        </div>
+        <CopyableLink key={state.link} link={state.link} label="Invite link">
+          Send this link to {state.email}. It works for 7 days, and they need to
+          sign up or log in with that address.
+        </CopyableLink>
       )}
     </form>
+  );
+}
+
+export function PasswordLinkForm({
+  userId,
+  mailConfigured,
+}: {
+  userId: string;
+  mailConfigured: boolean;
+}) {
+  const [state, action, pending] = useActionState(passwordLinkAction, {
+    error: null,
+    email: null,
+    link: null,
+  });
+  return (
+    <>
+      <form action={action}>
+        <input type="hidden" name="userId" value={userId} />
+        <Button type="submit" variant="secondary" disabled={pending}>
+          {pending
+            ? "Sending…"
+            : mailConfigured
+              ? "Email password link"
+              : "Create password link"}
+        </Button>
+      </form>
+      {state.error && (
+        <div className="w-full">
+          <Alert tone="error">{state.error}</Alert>
+        </div>
+      )}
+      {state.email && !state.link && (
+        <div className="w-full">
+          <Alert>
+            We emailed {state.email} a link to choose a password. It works once,
+            for 24 hours, and replaces any earlier link.
+          </Alert>
+        </div>
+      )}
+      {state.link && (
+        <div className="w-full">
+          <CopyableLink
+            key={state.link}
+            link={state.link}
+            label="Password link"
+          >
+            No email was sent: email isn&rsquo;t set up on this CaptureFlow.{" "}
+            <EmailSetupLink />, or send this link to {state.email} yourself. It
+            works once, for 24 hours, and replaces any earlier link.
+          </CopyableLink>
+        </div>
+      )}
+    </>
   );
 }

@@ -22,7 +22,7 @@ export function RecordingsTable({
   if (rows.length === 0) return <Empty>No recordings yet.</Empty>;
   const head = [
     "Title",
-    ...(show.owner ? ["Owner"] : []),
+    ...(show.owner ? ["Recorded by"] : []),
     ...(show.workspace ? ["Workspace"] : []),
     "Length",
     "Size",
@@ -55,7 +55,7 @@ export function RecordingsTable({
             <Cell className="max-w-48 truncate">
               {r.owner ? (
                 <Link
-                  href={`/people/${r.owner.id}`}
+                  href={`/users/${r.owner.id}`}
                   className="underline-offset-4 hover:underline"
                 >
                   {r.owner.name || r.owner.email}

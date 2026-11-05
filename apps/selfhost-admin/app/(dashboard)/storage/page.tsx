@@ -104,7 +104,7 @@ export default async function StoragePage() {
         {stranded.length === 0 ? (
           <Empty>Nothing to clean up.</Empty>
         ) : (
-          <Table head={["Title", "Owner", "State", "Size", "Started"]}>
+          <Table head={["Title", "Recorded by", "State", "Size", "Started"]}>
             {stranded.map((r) => (
               <tr key={r.slug}>
                 <Cell className="max-w-64 truncate font-medium text-fg-strong">
@@ -168,7 +168,7 @@ export default async function StoragePage() {
         )}
       </Card>
 
-      <Card title="By person" description="The ten people who hold the most.">
+      <Card title="By user" description="The ten users who hold the most.">
         {people.rows.length === 0 ? (
           <Empty>No one yet.</Empty>
         ) : (
@@ -177,7 +177,7 @@ export default async function StoragePage() {
               <tr key={u.id}>
                 <Cell className="max-w-64">
                   <Link
-                    href={`/people/${u.id}`}
+                    href={`/users/${u.id}`}
                     className="block truncate font-medium text-fg-strong underline-offset-4 hover:underline"
                   >
                     {u.name || u.email}

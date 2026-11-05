@@ -5,6 +5,7 @@ import {
   listAdminRecordings,
   listUserWorkspaces,
 } from "@captureflow/admin";
+import { isSuspended } from "@captureflow/selfhost/accounts";
 import {
   countInstanceAdmins,
   isInstanceAdmin,
@@ -28,43 +29,51 @@ import {
   deleteUserAction,
   setAdminAction,
   signOutUserAction,
+  suspendUserAction,
+  unsuspendUserAction,
 } from "@/app/actions";
+import { PasswordLinkForm } from "@/app/forms";
 
 const ROLE_NAME = { owner: "Owner", member: "Member", viewer: "Viewer" };
 
-export default async function PersonPage({
+export default async function UserPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { DB, APP_URL, user: me } = await requireAdmin();
+  const { DB, APP_URL, MAIL_CONFIGURED, user: me } = await requireAdmin();
   const { id } = await params;
   const user = await getAdminUser(DB, id);
   if (!user) notFound();
 
-  const [workspaces, recordings, admin, adminCount] = await Promise.all([
-    listUserWorkspaces(DB, id),
-    listAdminRecordings(DB, {
-      search: "",
-      page: 1,
-      visibility: "all",
-      pageSize: 10,
-      userId: id,
-    }),
-    isInstanceAdmin(DB, id),
-    countInstanceAdmins(DB),
-  ]);
+  const [workspaces, recordings, admin, adminCount, suspended] =
+    await Promise.all([
+      listUserWorkspaces(DB, id),
+      listAdminRecordings(DB, {
+        search: "",
+        page: 1,
+        visibility: "all",
+        pageSize: 10,
+        userId: id,
+      }),
+      isInstanceAdmin(DB, id),
+      countInstanceAdmins(DB),
+      isSuspended(DB, id),
+    ]);
   const lastAdmin = admin && adminCount === 1;
+  const hasPassword = user.providers.includes("credential");
+  const who = user.name || user.email;
 
   return (
     <>
       <PageHeader
-        title={user.name || user.email}
+        title={who}
         description={user.email}
-        back={{ href: "/people", label: "All people" }}
+        back={{ href: "/users", label: "All users" }}
       >
         <div className="flex items-center gap-2">
-          {admin && <Badge>Admin</Badge>}
+          {admin && <Badge>Administrator</Badge>}
+          {suspended && <Badge tone="warn">Suspended</Badge>}
           {id === me.id && <Badge tone="muted">You</Badge>}
         </div>
       </PageHeader>
@@ -84,7 +93,7 @@ export default async function PersonPage({
         {workspaces.length === 0 ? (
           <Empty>Not in any workspace.</Empty>
         ) : (
-          <Table head={["Name", "Kind", "Role", "People"]}>
+          <Table head={["Name", "Kind", "Role", "Members"]}>
             {workspaces.map((w) => (
               <tr key={w.id}>
                 <Cell>
@@ -121,16 +130,16 @@ export default async function PersonPage({
 
       <Card
         title="Access"
-        description="Admins open this admin and manage every workspace."
+        description="Administrators open the admin area and manage every user and workspace."
       >
         <div className="flex flex-col gap-4">
           <Row
-            title={admin ? "Admin of this CaptureFlow" : "Not an admin"}
+            title={admin ? "Administrator" : "Not an administrator"}
             body={
               lastAdmin
-                ? "The only admin. Make someone else an admin before removing this one."
+                ? "The only administrator. Make someone else one before removing this one."
                 : admin
-                  ? "Can create workspaces, invite people and change who signs up."
+                  ? "Can add users, create workspaces and change who signs up."
                   : "Can only use the workspaces they belong to."
             }
           >
@@ -139,9 +148,43 @@ export default async function PersonPage({
                 <input type="hidden" name="userId" value={id} />
                 <input type="hidden" name="admin" value={String(!admin)} />
                 <Button type="submit" variant="secondary">
-                  {admin ? "Remove admin" : "Make admin"}
+                  {admin ? "Remove administrator" : "Make administrator"}
                 </Button>
               </form>
+            )}
+          </Row>
+          <Row
+            title={hasPassword ? "Reset password" : "Set password"}
+            body={`${MAIL_CONFIGURED ? "Emails them a link" : "Creates a link for them"} to choose ${hasPassword ? "a new password. Their current one keeps working until they do." : "a password. They haven't set one yet."}`}
+          >
+            <PasswordLinkForm userId={id} mailConfigured={MAIL_CONFIGURED} />
+          </Row>
+          <Row
+            title={suspended ? "Suspended" : "Suspend account"}
+            body={
+              suspended
+                ? "They can't sign in. Their recordings and workspaces are kept."
+                : "Signs them out everywhere and blocks sign-in until you restore the account. Nothing is deleted."
+            }
+          >
+            {suspended ? (
+              <form action={unsuspendUserAction}>
+                <input type="hidden" name="userId" value={id} />
+                <Button type="submit" variant="secondary">
+                  Restore account
+                </Button>
+              </form>
+            ) : (
+              id !== me.id && (
+                <DangerForm
+                  action={suspendUserAction}
+                  fields={{ userId: id }}
+                  label="Suspend"
+                  pendingLabel="Suspending…"
+                  variant="secondary"
+                  confirm={`Suspend ${who}? They are signed out everywhere and can't sign in until you restore the account.`}
+                />
+              )
             )}
           </Row>
           <Row
@@ -154,19 +197,19 @@ export default async function PersonPage({
               label="Sign out"
               pendingLabel="Signing out…"
               variant="secondary"
-              confirm={`Sign ${user.name || user.email} out of every browser and app?`}
+              confirm={`Sign ${who} out of every browser and app?`}
             />
           </Row>
           <Row
             title="Delete account"
-            body="Removes the account with its personal workspace, recordings and screenshots. Team workspaces they own have to go first."
+            body="Removes the account with its personal workspace, recordings and screenshots. Team workspaces they own need a new owner first."
           >
             <DangerForm
               action={deleteUserAction}
               fields={{ userId: id }}
               label="Delete account"
               pendingLabel="Deleting…"
-              confirm={`Delete ${user.name || user.email} and everything they recorded? This can't be undone.`}
+              confirm={`Delete ${who} and everything they recorded? This can't be undone.`}
             />
           </Row>
         </div>

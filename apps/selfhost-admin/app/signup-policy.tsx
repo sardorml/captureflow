@@ -53,7 +53,7 @@ export function SignupPolicyForm({
         {option(
           "invite",
           "Invite-only",
-          "Only people an admin invites can create an account, whatever their address.",
+          "Only people an administrator adds or invites get an account, whatever their address.",
         )}
         {option(
           "domains",

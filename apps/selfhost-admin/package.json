@@ -2,7 +2,7 @@
   "name": "@captureflow/selfhost-admin",
   "version": "0.1.0",
   "private": true,
-  "description": "The admin app of a self-hosted CaptureFlow: people, workspaces, recordings, storage and sign-up, served under /admin by the Docker image. Never deployed to Cloudflare.",
+  "description": "The admin app of a self-hosted CaptureFlow: users, workspaces, recordings, storage and sign-up, served under /admin by the Docker image. Never deployed to Cloudflare.",
   "scripts": {
     "build": "next build",
     "typecheck": "tsc --noEmit",
