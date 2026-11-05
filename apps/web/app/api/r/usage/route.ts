@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
   const workspaceId = target?.workspace.id ?? null;
   const [budget, entitlement] = await Promise.all([
     uploadBudgetFor({ userId, workspaceId, sizeBytes: 0, webcamSizeBytes: 0 }),
-    workspaceId ? getWorkspaceEntitlement(workspaceId) : null,
+    workspaceId ? getWorkspaceEntitlement(workspaceId, userId) : null,
   ]);
   const usedBytes = budget.kind === "storage" ? budget.used : 0;
   const limitBytes =

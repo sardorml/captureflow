@@ -29,16 +29,21 @@ export type WorkspaceSeatContext = {
   offer: SeatOffer | null;
 };
 
-export async function getWorkspaceSeatContext(workspace: {
-  id: string;
-  name: string;
-}): Promise<WorkspaceSeatContext | null> {
+// With `userId`, the caps are that person's: limits staff raised for them
+// count on top of the workspace's.
+export async function getWorkspaceSeatContext(
+  workspace: { id: string; name: string },
+  options: { userId?: string } = {},
+): Promise<WorkspaceSeatContext | null> {
   const env = await getAppWebEnv();
   if (!env?.DB) return null;
   const selfHosted = isSelfHosted(env);
   const [entitlement, subscription, memberCount, everyone, usedBytes] =
     await Promise.all([
-      getWorkspaceEntitlement(env.DB, workspace.id, { selfHosted }),
+      getWorkspaceEntitlement(env.DB, workspace.id, {
+        selfHosted,
+        userId: options.userId,
+      }),
       getActiveWorkspaceSubscription(env.DB, workspace.id),
       countWorkspaceSeats(env.DB, workspace.id),
       countWorkspaceMembers(env.DB, workspace.id),

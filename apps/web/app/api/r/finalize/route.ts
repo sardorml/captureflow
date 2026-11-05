@@ -81,7 +81,10 @@ export async function POST(req: NextRequest) {
   // The free tier's length cap was handed out at /init; the client stops on
   // it, and a little slack covers the encoder's trailing frames.
   if (row.workspaceId && typeof body.durationMs === "number") {
-    const entitlement = await getWorkspaceEntitlement(row.workspaceId);
+    const entitlement = await getWorkspaceEntitlement(
+      row.workspaceId,
+      row.userId,
+    );
     if (
       entitlement?.maxRecordingMs != null &&
       body.durationMs > entitlement.maxRecordingMs + DURATION_SLACK_MS &&

@@ -50,6 +50,14 @@ export type {
   WorkspaceSubscriptionUpsert,
 } from "./workspace-subscription";
 export { getWorkspaceEntitlement } from "./entitlement";
+export {
+  LIMIT_OVERRIDE_MAX,
+  applyLimitOverrides,
+  getLimitOverride,
+  listLimitOverrides,
+  setLimitOverride,
+} from "./limit-overrides";
+export type { LimitOverride, LimitOverrideScope } from "./limit-overrides";
 export { failingTables } from "./health";
 export {
   applyDueDowngrades,

@@ -81,16 +81,26 @@ export {
   hydrateAdminId,
   hydrateEmail,
   hydrateInviteToken,
+  hydrateLimitOverride,
   hydratePassword,
   hydrateRole,
   hydrateUserId,
+  hydrateWorkspaceId,
 } from "./input";
 export type { Hydrated } from "./input";
 export { ADMIN_ROLES, ROLE_SUMMARY, can } from "./roles";
 export type { AdminPermission, AdminRole, AdminStatus } from "./roles";
 
-export { SEAT_PLANS, getSeatPlan, isSelfHosted } from "@captureflow/quota";
-export type { SeatPlanId } from "@captureflow/quota";
+export {
+  FREE_TIER,
+  LIMIT_OVERRIDE_MAX,
+  SEAT_PLANS,
+  getLimitOverride,
+  getSeatPlan,
+  isSelfHosted,
+  setLimitOverride,
+} from "@captureflow/quota";
+export type { LimitOverride, SeatPlanId } from "@captureflow/quota";
 export type { SubscriptionStatus } from "@captureflow/quota";
 
 export {

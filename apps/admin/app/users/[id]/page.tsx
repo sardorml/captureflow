@@ -4,6 +4,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import {
   can,
   getAdminUser,
+  getLimitOverride,
   getUserActivity,
   listAuditForTarget,
   listUserSubscriptions,
@@ -28,7 +29,9 @@ import {
   formatDuration,
   formatRelative,
 } from "../../_ui";
+import { setUserLimitsAction } from "../../actions";
 import { PanelTabs } from "../../_filters";
+import { LimitsCard } from "../../_limits-card";
 import { SignOutEverywhere } from "./SignOutEverywhere";
 
 const STATE_COLOR = {
@@ -98,13 +101,15 @@ export default async function UserPage({
   const env = await getAdminEnv();
   if (!env?.DB) notFound();
 
-  const [user, activity, subscriptions, workspaces, audit] = await Promise.all([
-    getAdminUser(env.DB, id),
-    getUserActivity(env.DB, id),
-    listUserSubscriptions(env.DB, id),
-    listUserWorkspaces(env.DB, id),
-    listAuditForTarget(env.DB, "user", id),
-  ]);
+  const [user, activity, subscriptions, workspaces, audit, limits] =
+    await Promise.all([
+      getAdminUser(env.DB, id),
+      getUserActivity(env.DB, id),
+      listUserSubscriptions(env.DB, id),
+      listUserWorkspaces(env.DB, id),
+      listAuditForTarget(env.DB, "user", id),
+      getLimitOverride(env.DB, "user", id),
+    ]);
   if (!user) notFound();
   const canWrite = can(operator.role, "users.write");
   const ownedTeams = workspaces.filter(
@@ -323,6 +328,13 @@ export default async function UserPage({
           </p>
         )}
       </FormCard>
+      <LimitsCard
+        appliesTo="this person can record in every free workspace they belong to"
+        action={setUserLimitsAction}
+        id={user.id}
+        override={limits}
+        canWrite={canWrite}
+      />
     </div>
   );
 

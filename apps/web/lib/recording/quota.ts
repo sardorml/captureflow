@@ -17,14 +17,17 @@ import { isDevDevice } from "./dev-allowlist";
 
 export { ACCOUNT_LIMITS };
 
-// Null without a database (tests, memory mode).
+// Null without a database (tests, memory mode). Naming the person recording
+// adds any limits staff raised for them.
 export async function getWorkspaceEntitlement(
   workspaceId: string,
+  userId?: string | null,
 ): Promise<WorkspaceEntitlement | null> {
   const env = await getCloudflareEnv();
   if (!env?.DB) return null;
   return getWorkspaceEntitlementD1(env.DB, workspaceId, {
     selfHosted: isSelfHosted(env),
+    userId,
   });
 }
 
@@ -93,7 +96,7 @@ const FREE_ENTITLEMENT = resolveWorkspaceEntitlement({
 
 export async function uploadBudgetFor(row: UploadRow): Promise<UploadBudget> {
   const entitlement = row.workspaceId
-    ? await getWorkspaceEntitlement(row.workspaceId)
+    ? await getWorkspaceEntitlement(row.workspaceId, row.userId)
     : null;
   if (!entitlement || !row.workspaceId) {
     return budgetFromEntitlement(FREE_ENTITLEMENT, row, 0);

@@ -16,7 +16,7 @@ export async function getFreePlanUsage(
   const current = await resolveCurrentWorkspace(visitor.userId, visitor.name);
   if (current.role !== "owner") return null;
   const [seat, used] = await Promise.all([
-    getWorkspaceSeatContext(current.workspace),
+    getWorkspaceSeatContext(current.workspace, { userId: visitor.userId }),
     countUserRecordingsInWorkspace(current.workspace.id, visitor.userId),
   ]);
   const limit = seat?.entitlement.recordingsPerPerson;

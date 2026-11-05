@@ -79,6 +79,7 @@ export default async function DashboardPage() {
       env?.DB
         ? getWorkspaceEntitlement(env.DB, workspaceId, {
             selfHosted: isSelfHosted(env),
+            userId,
           })
         : null,
       listRecordingsForWorkspace(workspaceId, userId, {
