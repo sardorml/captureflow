@@ -4,6 +4,7 @@ import {
   type IncomingMessage,
   type ServerResponse,
 } from "node:http";
+import { answerCrawler } from "./crawlers";
 
 // Another app on a loopback port, answering for one path prefix.
 export type Mount = { prefix: string; port: number };
@@ -50,16 +51,16 @@ export function serveNextAt(
         ? { ...bound, port: Number(publicPort) }
         : bound;
     };
-    if (mount) {
-      const next = this.listeners("request") as RequestHandler[];
-      this.removeAllListeners("request");
-      this.on("request", (req: IncomingMessage, res: ServerResponse) => {
-        if (underPrefix(req.url, mount.prefix)) forward(req, res, mount.port);
-        else for (const handler of next) handler.call(this, req, res);
-      });
-    }
-    this.prependListener("request", (req) => {
+    const next = this.listeners("request") as RequestHandler[];
+    this.removeAllListeners("request");
+    this.on("request", (req: IncomingMessage, res: ServerResponse) => {
       req.headers["x-forwarded-proto"] = protocol;
+      if (answerCrawler(req, res)) return;
+      if (mount && underPrefix(req.url, mount.prefix)) {
+        forward(req, res, mount.port);
+      } else {
+        for (const handler of next) handler.call(this, req, res);
+      }
     });
     // Next fetches its own pages from this origin after a server action
     // redirects, and would otherwise use the public port, where nothing listens

@@ -97,6 +97,13 @@ copy and send it yourself.
 
 Everyone also has a personal workspace of their own, created with their account.
 
+## Search engines
+
+A self-hosted instance stays out of search results. Every response carries
+`X-Robots-Tag: noindex, nofollow`, including share pages, videos and
+screenshots, so a link you post publicly still opens for anyone who has it but
+is never listed. If a proxy in front strips response headers, keep that one.
+
 ## Email
 
 Workspace invites, password links and access requests go out by email. Pick one:
