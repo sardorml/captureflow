@@ -1,6 +1,7 @@
 "use client";
 
 import type { SectionProps } from "./_shared";
+import { fill } from "@/lib/i18n/fill";
 import { DOCS_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { AskScene, RecordScene, ShareScene, VoiceScene } from "./agent-scenes";
@@ -31,10 +32,26 @@ export function AgentsSection({ headingLevel = 2 }: SectionProps = {}) {
         subtitle={
           <>
             <span className="font-medium text-fg">
-              Works with <ClaudeLogo className={AGENT_LOGO} />
-              Claude Code, Claude, <OpenAILogo className={AGENT_LOGO} />
-              Codex, ChatGPT and <CursorLogo className={AGENT_LOGO} />
-              Cursor.
+              {fill(m.agents.worksWith, {
+                claude: (
+                  <>
+                    <ClaudeLogo className={AGENT_LOGO} />
+                    Claude Code, Claude
+                  </>
+                ),
+                openai: (
+                  <>
+                    <OpenAILogo className={AGENT_LOGO} />
+                    Codex, ChatGPT
+                  </>
+                ),
+                cursor: (
+                  <>
+                    <CursorLogo className={AGENT_LOGO} />
+                    Cursor
+                  </>
+                ),
+              })}
             </span>{" "}
             <span className="text-fg-muted">{m.agents.subtitle}</span>
           </>

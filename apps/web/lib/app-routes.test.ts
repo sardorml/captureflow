@@ -30,6 +30,13 @@ describe("isMarketingRoute", () => {
     expect(isMarketingRoute("/suggest-feature")).toBe(true);
   });
 
+  it("matches the same pages in another language", () => {
+    expect(isMarketingRoute("/de")).toBe(true);
+    expect(isMarketingRoute("/pt-br/pricing")).toBe(true);
+    expect(isMarketingRoute("/de/blog")).toBe(false);
+    expect(isMarketingRoute("/de/recordings")).toBe(false);
+  });
+
   it("leaves app, share and unknown paths alone", () => {
     expect(isMarketingRoute("/recordings")).toBe(false);
     expect(isMarketingRoute("/r/abc123")).toBe(false);

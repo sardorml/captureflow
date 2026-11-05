@@ -340,7 +340,11 @@ export function GlyphField({ word, clearRef, className }: GlyphFieldProps) {
       return;
     }
 
-    const letters = Array.from(word);
+    // One cell per written letter, so a base character keeps its marks.
+    const letters = Array.from(
+      new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(word),
+      (part) => part.segment,
+    );
     const glyphs = [...RAMP, ...letters, ...SYMBOLS];
     const wordStart = RAMP.length;
     const symbolStart = wordStart + letters.length;

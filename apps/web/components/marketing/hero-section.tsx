@@ -6,6 +6,7 @@ import {
   CURRENT_STAGE,
   DOWNLOAD_URL,
 } from "@/lib/marketing/constants";
+import { fill } from "@/lib/i18n/fill";
 import { MARKETING_SITE_URL, SOURCE_REPO_URL } from "@/lib/site";
 import { GlyphField } from "@/components/ui/glyph-field";
 import { TwoTone } from "./frame";
@@ -39,15 +40,18 @@ export function HeroSection() {
       <div className="flex flex-col items-center px-6 pt-16 pb-20 text-center sm:pt-[90px] sm:pb-[104px]">
         <div ref={textRef} className="flex flex-col items-center">
           <p className="mb-8 text-[13px] leading-5 text-fg-muted">
-            {m.hero.badge} on{" "}
-            <a
-              href={SOURCE_REPO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-fg underline underline-offset-2"
-            >
-              GitHub
-            </a>
+            {fill(m.hero.badge, {
+              github: (
+                <a
+                  href={SOURCE_REPO_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-fg underline underline-offset-2"
+                >
+                  GitHub
+                </a>
+              ),
+            })}
           </p>
           <h1 onClick={selectAndCopyWithLink} className={HERO_TITLE}>
             {/* The copy decides the line break; phones wrap on their own. */}

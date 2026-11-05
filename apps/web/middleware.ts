@@ -2,6 +2,18 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 import { isSelfHosted } from "@captureflow/quota";
 import { isAppRoute, isMarketingRoute } from "@/lib/app-routes";
+import {
+  DEFAULT_LOCALE,
+  isLocalizedPath,
+  localizedHref,
+  splitLocale,
+} from "@/lib/i18n/config";
+import {
+  LANGUAGE_COOKIE,
+  LANGUAGE_COOKIE_MAX_AGE,
+  parseLanguageChoice,
+  redirectLocale,
+} from "@/lib/i18n/preference";
 
 export const config = {
   matcher: [
@@ -31,8 +43,14 @@ function redirectTo(
  */
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  // English has no prefix, so /en/pricing is one address too many for a page.
+  if (pathname.split("/")[1] === DEFAULT_LOCALE) {
+    const url = req.nextUrl.clone();
+    url.pathname = pathname.slice(DEFAULT_LOCALE.length + 1) || "/";
+    return NextResponse.redirect(url, 308);
+  }
   if (isMarketingRoute(pathname)) {
-    if (pathname === "/" && getSessionCookie(req)) {
+    if (splitLocale(pathname)[1] === "/" && getSessionCookie(req)) {
       return redirectTo(req, "/recordings");
     }
     if (
@@ -42,6 +60,28 @@ export function middleware(req: NextRequest) {
       })
     )
       return redirectTo(req, "/login");
+    // An English address shows the visitor's own language when there is one.
+    if (isLocalizedPath(pathname)) {
+      const locale = redirectLocale({
+        chosen: parseLanguageChoice(req.cookies.get(LANGUAGE_COOKIE)?.value),
+        country: req.headers.get("cf-ipcountry"),
+        userAgent: req.headers.get("user-agent"),
+      });
+      if (locale) {
+        const res = redirectTo(
+          req,
+          localizedHref(pathname, locale),
+          req.nextUrl.search,
+        );
+        // Kept, so pages that exist in English only know the language too.
+        res.cookies.set(LANGUAGE_COOKIE, locale, {
+          path: "/",
+          maxAge: LANGUAGE_COOKIE_MAX_AGE,
+          sameSite: "lax",
+        });
+        return res;
+      }
+    }
     return NextResponse.next();
   }
 

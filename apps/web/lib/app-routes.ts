@@ -1,3 +1,5 @@
+import { isLocalizedPath, splitLocale } from "./i18n/config";
+
 const APP_ROUTE_SEGMENTS = new Set([
   "api",
   "billing",
@@ -28,6 +30,9 @@ const MARKETING_ROUTE_SEGMENTS = new Set([
   "suggest-feature",
 ]);
 
+// A translated page (/de/pricing) is the same marketing page in another language.
 export function isMarketingRoute(pathname: string): boolean {
+  const [locale, path] = splitLocale(pathname);
+  if (locale) return isLocalizedPath(path);
   return MARKETING_ROUTE_SEGMENTS.has(pathname.split("/")[1] ?? "");
 }

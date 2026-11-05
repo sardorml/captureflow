@@ -1,18 +1,10 @@
-import type { Metadata } from "next";
-import { MarketingPage } from "@/components/marketing/marketing-page";
-import { SetupRequestSection } from "@/components/marketing/setup-request-section";
+import { SelfHostSetupPage } from "@/components/marketing/site-pages";
+import { DEFAULT_LOCALE } from "@/lib/i18n/config";
+import { pageMetadata } from "@/lib/i18n/metadata";
+import { MESSAGES } from "@/lib/marketing/messages";
 
-export const metadata: Metadata = {
-  title: "Self-hosting setup",
-  description:
-    "Have CaptureFlow set up on your company's own Cloudflare account: your domain, company-only sign-in, and a private Chrome extension for your team.",
-  alternates: { canonical: "/self-host-setup" },
-};
+export const metadata = pageMetadata("selfHostSetup", DEFAULT_LOCALE, MESSAGES);
 
-export default function SelfHostSetupPage() {
-  return (
-    <MarketingPage>
-      <SetupRequestSection />
-    </MarketingPage>
-  );
+export default function Page() {
+  return <SelfHostSetupPage />;
 }

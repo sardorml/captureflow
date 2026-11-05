@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { I18n } from "@/lib/i18n/english";
 import { I18nProvider } from "./i18n-provider";
 import { MarketingShell } from "./marketing-shell";
 import { BottomBar } from "./announcement-bars";
@@ -8,9 +9,15 @@ import { Footer } from "./footer";
 import { Frame } from "./frame";
 import { marketingFont } from "./marketing-font";
 
-export function MarketingPage({ children }: { children: ReactNode }) {
+export function MarketingPage({
+  i18n,
+  children,
+}: {
+  i18n?: I18n;
+  children: ReactNode;
+}) {
   return (
-    <I18nProvider>
+    <I18nProvider i18n={i18n}>
       <MarketingShell className={marketingFont.className}>
         <Nav />
         <main className="animate-page-rise">

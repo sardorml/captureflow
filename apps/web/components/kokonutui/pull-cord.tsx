@@ -129,6 +129,8 @@ export interface PullCordProps {
   onCheckedChange?: (checked: boolean) => void;
   /** Accessible name of the switch. */
   label?: string;
+  /** Line under the label; defaults to the English on/off hint. */
+  hint?: string;
   className?: string;
 }
 
@@ -137,6 +139,7 @@ export default function PullCord({
   defaultChecked = true,
   onCheckedChange,
   label = "Desk lamp",
+  hint,
   className,
 }: PullCordProps) {
   const [internal, setInternal] = useState(defaultChecked);
@@ -513,7 +516,7 @@ export default function PullCord({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 p-6">
         <p className="font-medium text-sm">{label}</p>
         <p className="text-sm text-zinc-500">
-          {checked ? "On" : "Off"} · pull the cord
+          {hint ?? `${checked ? "On" : "Off"} · pull the cord`}
         </p>
       </div>
 

@@ -242,39 +242,45 @@ export function Nav() {
   const closeMenu = () => setMenuOpen(false);
   const [hovered, setHovered] = useState<string | null>(null);
 
-  const starLabel = stars ? `Star on GitHub (${stars})` : "Star on GitHub";
+  const starLabel = stars
+    ? m.nav.starCount.replace("{stars}", String(stars))
+    : m.nav.star;
+  const themeLabels = {
+    toLight: m.nav.themeToLight,
+    toDark: m.nav.themeToDark,
+  };
 
   /*
    * In the bar the main links sit inline and the rest go under Resources; the
    * drawer stacks them all as block links.
    */
   const barLinks: MenuLink[] = [
-    { label: "Features", href: lh("/features") },
-    { label: "Pricing", href: lh("/pricing") },
-    { label: "Docs", href: DOCS_URL, external: true },
+    { label: m.nav.features, href: lh("/features") },
+    { label: m.nav.pricing, href: lh("/pricing") },
+    { label: m.nav.docs, href: DOCS_URL, external: true },
   ];
   const moreLinks: TileLink[] = [
     {
-      label: "FAQ",
+      label: m.nav.faq,
       href: lh("/faq"),
-      description: "Common questions, answered",
+      description: m.nav.faqDescription,
     },
     {
-      label: "Blog",
+      label: m.nav.blog,
       href: lh("/blog"),
-      description: "Guides and updates",
+      description: m.nav.blogDescription,
     },
     {
-      label: "Self-hosting",
+      label: m.nav.selfHosting,
       href: `${DOCS_URL}/self-hosting/overview`,
       external: true,
-      description: "Run it on your own Cloudflare",
+      description: m.nav.selfHostingDescription,
     },
     {
-      label: "Community",
+      label: m.nav.community,
       href: DISCORD_URL,
       external: true,
-      description: "Get help and chat on Discord",
+      description: m.nav.communityDescription,
     },
   ];
   const menuLinks = [...barLinks, ...moreLinks];
@@ -326,7 +332,7 @@ export function Nav() {
               breakpoints) so the server render matches the viewport — no
               mobile→desktop flip after hydration. */}
               <nav
-                aria-label="Main"
+                aria-label={m.nav.main}
                 className="ml-3.5 hidden items-center md:flex"
                 onMouseLeave={() => setHovered(null)}
               >
@@ -347,7 +353,7 @@ export function Nav() {
                   hovered={hovered}
                   onHover={setHovered}
                 >
-                  <HoverMenu label="Resources" links={moreLinks} />
+                  <HoverMenu label={m.nav.resources} links={moreLinks} />
                 </HoverSlot>
               </nav>
             </div>
@@ -378,6 +384,7 @@ export function Nav() {
               <ThemeToggle
                 initialTheme={DEFAULT_THEME}
                 className="h-9 w-9 rounded text-fg"
+                labels={themeLabels}
               />
               <NextLink href={lh("/download")} className={PILL_CTA}>
                 {m.nav.download}
@@ -388,11 +395,12 @@ export function Nav() {
               <ThemeToggle
                 initialTheme={DEFAULT_THEME}
                 className="h-9 w-9 rounded text-fg"
+                labels={themeLabels}
               />
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Open menu"
+                aria-label={m.nav.openMenu}
                 onClick={() => setMenuOpen(true)}
               >
                 <MenuIcon size={20} />
@@ -408,9 +416,9 @@ export function Nav() {
             aria-describedby={undefined}
             className="w-70 gap-2 p-4"
           >
-            <SheetTitle className="sr-only">Menu</SheetTitle>
+            <SheetTitle className="sr-only">{m.nav.menu}</SheetTitle>
             <nav
-              aria-label="Main"
+              aria-label={m.nav.main}
               className="flex flex-col items-stretch gap-2"
             >
               {menuLinks.map((link) => (

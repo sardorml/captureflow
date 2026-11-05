@@ -10,7 +10,7 @@ import { TOKENS } from "./tokens";
 import { AppIcon } from "../brand-mark";
 import { Footer } from "./footer";
 import { MarketingShell } from "./marketing-shell";
-import { useMessages, useLocalizedHref } from "./i18n-provider";
+import { I18nProvider, useLocalizedHref, useMessages } from "./i18n-provider";
 
 type PageShellProps = {
   children: ReactNode;
@@ -19,7 +19,16 @@ type PageShellProps = {
   subtitle?: string;
 };
 
-export function PageShell({
+// These pages are English only, so the provider follows the visitor's choice.
+export function PageShell(props: PageShellProps) {
+  return (
+    <I18nProvider>
+      <PageShellFrame {...props} />
+    </I18nProvider>
+  );
+}
+
+function PageShellFrame({
   children,
   maxWidth = 960,
   title,
