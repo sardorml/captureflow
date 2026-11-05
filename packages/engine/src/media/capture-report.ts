@@ -13,12 +13,7 @@ export type CaptureDevice = {
 };
 
 export type CaptureAudio =
-  | {
-      muxed: "aac" | "opus";
-      sampleRate: number;
-      channelCount: number;
-      bitrate: number;
-    }
+  | { muxed: "aac"; sampleRate: number; channelCount: number; bitrate: number }
   | { muxed: "webcam" }
   | { muxed: "none"; reason: string };
 

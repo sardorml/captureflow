@@ -103,7 +103,6 @@ class RecordMuxSession {
       },
       audio: audioFormat
         ? {
-            codec: "aac",
             numberOfChannels: audioFormat.numberOfChannels,
             sampleRate: audioFormat.sampleRate,
           }

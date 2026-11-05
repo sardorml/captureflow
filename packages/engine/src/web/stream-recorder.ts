@@ -1,10 +1,10 @@
 import { ENGINE_OUTPUT } from "../contract";
 import {
-  type AudioContainerCodec,
-  type RequestedAudio,
-  audioEncoderCandidates,
-  containerCodec,
-} from "./audio-encoder-config";
+  type AacEncoder,
+  type AacEncoderConfig,
+  type AacFrame,
+  createAacEncoder,
+} from "./aac-encoder";
 import {
   ENCODER_ACCELERATION,
   type EncoderAcceleration,
@@ -41,7 +41,7 @@ export type StreamRecorderLog = {
 export type StreamRecorderOptions = {
   /** Display capture; constrain it to the contract's max dims at getDisplayMedia time. */
   stream: MediaStream;
-  /** Mic capture muxed into the fMP4 as AAC-LC, or Opus where AAC encoding is unavailable; dropped (warn) where neither is. */
+  /** Mic capture muxed into the fMP4 as AAC-LC by the bundled encoder; dropped (warn) if it fails to start. */
   micStream?: MediaStream | null;
   /** Receives muxed fMP4 bytes as they are written (the upload feed). */
   output(bytes: Uint8Array, position: number): void;
@@ -54,7 +54,7 @@ export type StreamRecorderOptions = {
 
 export type StreamRecorderAudio =
   | {
-      codec: AudioContainerCodec;
+      codec: "aac";
       sampleRate: number;
       numberOfChannels: number;
       bitrate: number;
@@ -142,24 +142,6 @@ function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
   return a.byteLength === b.byteLength && a.every((v, i) => v === b[i]);
 }
 
-async function isAudioSupported(config: AudioEncoderConfig): Promise<boolean> {
-  try {
-    const res = await AudioEncoder.isConfigSupported(config);
-    return res.supported === true;
-  } catch {
-    return false;
-  }
-}
-
-async function supportedAudioConfig(
-  requested: RequestedAudio,
-): Promise<AudioEncoderConfig | null> {
-  for (const config of audioEncoderCandidates(requested)) {
-    if (await isAudioSupported(config)) return config;
-  }
-  return null;
-}
-
 /*
  * The MediaStream frame source of the output contract: getDisplayMedia →
  * MediaStreamTrackProcessor → VideoEncoder → the shared fMP4 muxer (+ an
@@ -202,50 +184,32 @@ export async function startStreamRecorder(
 
   const micTrack = opts.micStream?.getAudioTracks()[0] ?? null;
   const micSettings = micTrack?.getSettings();
-  const requestedAudio: RequestedAudio | null = micTrack
+  const requestedAudio: AacEncoderConfig | null = micTrack
     ? {
         sampleRate: micSettings?.sampleRate ?? 48_000,
         numberOfChannels: micSettings?.channelCount ?? 1,
         bitrate: opts.quality?.audioBitrate ?? AUDIO_BITRATE,
       }
     : null;
-  const audioConfig = requestedAudio
-    ? await supportedAudioConfig(requestedAudio)
-    : null;
-  const withAudio = audioConfig !== null;
-  const audio: StreamRecorderAudio = audioConfig
-    ? {
-        codec: containerCodec(audioConfig),
-        sampleRate: audioConfig.sampleRate,
-        numberOfChannels: audioConfig.numberOfChannels,
-        bitrate: audioConfig.bitrate ?? AUDIO_BITRATE,
-      }
-    : {
+  let aac: AacEncoder | null = null;
+  let audio: StreamRecorderAudio = { codec: null, reason: "no mic track" };
+  if (requestedAudio) {
+    try {
+      aac = await createAacEncoder(requestedAudio);
+      audio = { codec: "aac", ...requestedAudio };
+    } catch (err) {
+      audio = {
         codec: null,
-        reason: requestedAudio
-          ? `AAC and Opus encoding unavailable (${requestedAudio.sampleRate} Hz, ${requestedAudio.numberOfChannels} ch)`
-          : "no mic track",
+        reason: `AAC encoder failed to start (${String(err)})`,
       };
-  if (audio.codec === null && requestedAudio) {
-    log.warn(`stream-recorder: ${audio.reason}, recording without mic`);
-  } else if (audio.codec === "opus") {
-    log.info("stream-recorder: AAC encoding unavailable, mic as Opus");
-  } else if (audioConfig && audioConfig.bitrate !== requestedAudio?.bitrate) {
-    log.info(
-      `stream-recorder: AAC at ${audioConfig.bitrate} bps, the encoder refused ${requestedAudio?.bitrate}`,
-    );
+      log.warn(`stream-recorder: ${audio.reason}, recording without mic`);
+    }
   }
+  const withAudio = aac !== null;
 
   const muxer = createFmp4Muxer({
     video: { width, height, frameRate: framerate },
-    audio:
-      withAudio && audioConfig
-        ? {
-            codec: containerCodec(audioConfig),
-            numberOfChannels: audioConfig.numberOfChannels,
-            sampleRate: audioConfig.sampleRate,
-          }
-        : null,
+    audio: requestedAudio && aac ? requestedAudio : null,
     output: opts.output,
     // Both tracks arrive on the shared clock below, so one common shift
     // brings the earliest to zero and keeps them aligned.
@@ -368,31 +332,32 @@ export async function startStreamRecorder(
   // Mic encode errors are contained: the screen capture is load-bearing, the
   // mic track is best-effort.
   let audioFailed = false;
-  const audioEncoder =
-    withAudio && audioConfig
-      ? new AudioEncoder({
-          output: (chunk, meta) => {
-            const data = new Uint8Array(chunk.byteLength);
-            chunk.copyTo(data);
-            const tsUs = Math.max(
-              audioClock.toShared(chunk.timestamp) - pauseOffsetUs,
-              lastAudioTsUs + 1,
-            );
-            lastAudioTsUs = tsUs;
-            try {
-              muxer.addAudioChunkRaw(data, tsUs, chunk.duration ?? 0, meta);
-            } catch (err) {
-              audioFailed = true;
-              log.warn(`stream-recorder: audio mux failed (${String(err)})`);
-            }
-          },
-          error: (err) => {
-            audioFailed = true;
-            log.warn(`stream-recorder: audio encode failed (${String(err)})`);
-          },
-        })
-      : null;
-  if (audioEncoder && audioConfig) audioEncoder.configure(audioConfig);
+  const muxAudio = (frames: AacFrame[]): void => {
+    for (const frame of frames) {
+      const tsUs = Math.max(
+        audioClock.toShared(frame.timestampUs) - pauseOffsetUs,
+        lastAudioTsUs + 1,
+      );
+      lastAudioTsUs = tsUs;
+      try {
+        muxer.addAudioChunkRaw(frame.data, tsUs, frame.durationUs, {
+          decoderConfig: aac!.decoderConfig,
+        });
+      } catch (err) {
+        audioFailed = true;
+        log.warn(`stream-recorder: audio mux failed (${String(err)})`);
+      }
+    }
+  };
+  const drainAudio = (frames: () => AacFrame[]): void => {
+    if (!aac || audioFailed) return;
+    try {
+      muxAudio(frames());
+    } catch (err) {
+      audioFailed = true;
+      log.warn(`stream-recorder: audio encode failed (${String(err)})`);
+    }
+  };
 
   log.info(
     `stream-recorder: started (${width}x${height}@${framerate}fps, track reports ${settings.frameRate ?? "no"} fps, ${codec}, ${acceleration}${audio.codec ? ` + ${audio.codec} mic` : ""})`,
@@ -442,7 +407,7 @@ export async function startStreamRecorder(
     }
   })();
 
-  const audioReader = audioEncoder
+  const audioReader = aac
     ? new MediaStreamTrackProcessor<AudioData>({
         track: micTrack!,
       }).readable.getReader()
@@ -459,7 +424,7 @@ export async function startStreamRecorder(
             continue;
           }
           audioClock.noteSample(data.timestamp);
-          audioEncoder!.encode(data);
+          drainAudio(() => aac!.encode(data));
           data.close();
         }
       })()
@@ -487,15 +452,9 @@ export async function startStreamRecorder(
     } catch {
       /* already closed */
     }
-    if (audioEncoder) {
-      if (audioEncoder.state === "configured") {
-        await audioEncoder.flush().catch(() => {});
-      }
-      try {
-        audioEncoder.close();
-      } catch {
-        /* already closed */
-      }
+    if (aac) {
+      drainAudio(() => aac!.flush());
+      aac.close();
     }
     if (encoderError) throw encoderError;
     muxer.finalize();
@@ -530,9 +489,7 @@ export async function startStreamRecorder(
       if (encoder.state === "configured") {
         await encoder.flush().catch(() => {});
       }
-      if (audioEncoder?.state === "configured") {
-        await audioEncoder.flush().catch(() => {});
-      }
+      drainAudio(() => aac!.flush());
     },
     resume() {
       if (!paused || stopping) return;

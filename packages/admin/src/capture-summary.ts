@@ -29,12 +29,10 @@ function audioLine(raw: unknown): string | null {
       ? (raw as Record<string, unknown>)
       : null;
   if (!a) return null;
-  if (a.muxed === "aac" || a.muxed === "opus") {
-    const codec = a.muxed === "opus" ? "Opus" : "AAC";
+  if (a.muxed === "aac")
     return typeof a.sampleRate === "number"
-      ? `${codec} ${Math.round(a.sampleRate / 1000)} kHz`
-      : codec;
-  }
+      ? `AAC ${Math.round(a.sampleRate / 1000)} kHz`
+      : "AAC";
   if (a.muxed === "webcam") return "in the camera track";
   if (a.muxed === "none")
     return typeof a.reason === "string"

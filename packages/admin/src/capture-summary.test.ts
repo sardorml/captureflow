@@ -49,22 +49,6 @@ describe("summarizeCapture", () => {
     expect(summary?.warnings).toEqual([]);
   });
 
-  it("names an Opus track where AAC was unavailable", () => {
-    const summary = summarizeCapture(
-      JSON.stringify({
-        camera: { requested: false, acquired: false },
-        mic: { requested: true, acquired: true, label: "Headset" },
-        audio: {
-          muxed: "opus",
-          sampleRate: 48000,
-          channelCount: 1,
-          bitrate: 96000,
-        },
-      }),
-    );
-    expect(summary?.mic).toBe("Mic: Headset · Opus 48 kHz");
-  });
-
   it("marks a device the browser never handed over", () => {
     const summary = summarizeCapture(
       JSON.stringify({
