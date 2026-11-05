@@ -19,6 +19,7 @@ export type Capture = {
   readonly frame: Buffer;
   pause(): void;
   resume(): void;
+  step(jpeg: Buffer): void;
   show(feed: FrameFeed): Promise<void>;
   stop(): Promise<void>;
 };
@@ -38,6 +39,7 @@ export type CaptureOptions = {
 };
 
 const TICK_MS = 20;
+const FIRST_FRAME_MS = 400;
 
 function write(stream: Writable, chunk: Buffer): void {
   if (!stream.destroyed && stream.writable) stream.write(chunk);
@@ -49,7 +51,13 @@ export function pageFeed(page: Page, width: number, height: number): FrameFeed {
     await page.bringToFront();
     const session = await page.context().newCDPSession(page);
     let live = true;
+    let painted: () => void = () => {};
+    const firstFrame = new Promise<boolean>((resolve) => {
+      painted = () => resolve(true);
+      setTimeout(() => resolve(false), FIRST_FRAME_MS);
+    });
     session.on("Page.screencastFrame", (event) => {
+      painted();
       if (live) onFrame(Buffer.from(event.data, "base64"));
       void session
         .send("Page.screencastFrameAck", { sessionId: event.sessionId })
@@ -62,8 +70,14 @@ export function pageFeed(page: Page, width: number, height: number): FrameFeed {
       maxHeight: height,
       everyNthFrame: 1,
     });
-    // A still page paints once; this is the frame the next ticks repeat.
-    onFrame(await page.screenshot({ type: "jpeg", quality: 85 }));
+    /*
+     * A still page may never paint, so a screenshot stands in for it, but
+     * only when the screencast sends nothing: a screenshot is rendered a
+     * little differently, and swapping one for the other pops on camera.
+     */
+    if (!(await firstFrame)) {
+      onFrame(await page.screenshot({ type: "jpeg", quality: 85 }));
+    }
     return async () => {
       live = false;
       await session.send("Page.stopScreencast").catch(() => {});
@@ -186,6 +200,19 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
     resume() {
       pacer.resume(Date.now());
       paused = false;
+    },
+    /*
+     * One frame rendered off the clock, while paused: motion the agent
+     * animates is drawn this way, a frame at a time, so it's smooth however
+     * slowly the page paints. The audio keeps pace with the frames.
+     */
+    step(jpeg) {
+      frame = jpeg;
+      write(video, jpeg);
+      const pcm = mixer.take(SAMPLE_RATE / FPS);
+      write(audio, pcm);
+      write(opus.stdin!, pcm);
+      pacer.advance();
     },
     show,
     stop() {

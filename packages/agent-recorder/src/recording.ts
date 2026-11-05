@@ -15,7 +15,8 @@ import {
   type Capture,
   type FrameFeed,
 } from "./capture";
-import { renderSlide, type Slide } from "./slide";
+import { FPS } from "./pacing";
+import { slideLayer, slideShell, type Slide } from "./slide";
 import {
   createTransport,
   openTempFiles,
@@ -62,8 +63,7 @@ const STOP_REASONS = {
   size: "it reached its plan's size limit",
 };
 const SETTLE_MS = 600;
-// Long enough for the slide's staggered entrance to finish on camera.
-const SLIDE_IN_MS = 1200;
+const SLIDE_HOLD_MS = 300;
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -269,16 +269,53 @@ export async function openRecording(opts: OpenRecordingOptions) {
     feedAudio(pcm: Int16Array) {
       if (!onSlide) capture.feed(pcm);
     },
+    /*
+     * The slide is laid over the last one off camera, with every animation
+     * held at zero. Its entrance is then drawn a frame at a time off the
+     * clock, like the cursor's motion, so the transition and the words
+     * landing are smooth however slowly the page paints.
+     */
     async showSlide(slide: Slide) {
-      slidePage ??= await opts.slides.newPage();
-      await slidePage.setContent(renderSlide(slide), {
-        waitUntil: "load",
-        timeout: 15_000,
+      const page = (slidePage ??= await (async () => {
+        const p = await opts.slides.newPage();
+        await p.setContent(slideShell(), {
+          waitUntil: "load",
+          timeout: 15_000,
+        });
+        await p.evaluate(() => document.fonts.ready).catch(() => {});
+        return p;
+      })());
+      const { html, entrance } = slideLayer(slide);
+      const settleMs = (await page.evaluate(
+        `window.__cfEnter(${JSON.stringify(html)}, ${JSON.stringify(entrance)})`,
+      )) as number;
+      await page.evaluate("window.__cfImagesReady()").catch(() => {});
+      await recorded(async () => {
+        const cdp = await opts.slides.newCDPSession(page);
+        // Paused before the cut, so the wait for the slide page's first frame isn't recorded.
+        capture.pause();
+        if (!onSlide) {
+          await capture.show(pageFeed(page, width, height));
+          onSlide = true;
+        }
+        try {
+          const frames = Math.round((settleMs / 1000) * FPS);
+          for (let i = 1; i <= frames; i++) {
+            await page.evaluate(`window.__cfSeek(${(i * 1000) / FPS})`);
+            const { data } = await cdp.send("Page.captureScreenshot", {
+              format: "jpeg",
+              quality: 85,
+              optimizeForSpeed: true,
+            });
+            capture.step(Buffer.from(data, "base64"));
+          }
+        } finally {
+          capture.resume();
+          await cdp.detach().catch(() => {});
+        }
+        await page.evaluate("window.__cfSettle()").catch(() => {});
+        await sleep(SLIDE_HOLD_MS);
       });
-      await slidePage.evaluate(() => document.fonts.ready).catch(() => {});
-      await capture.show(pageFeed(slidePage, width, height));
-      onSlide = true;
-      await sleep(SLIDE_IN_MS);
     },
     async hideSlide(back: FrameFeed) {
       if (!onSlide) return;

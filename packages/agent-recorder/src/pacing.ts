@@ -23,6 +23,12 @@ export function createPacer(startMs: number) {
       startMs += nowMs - pausedAt;
       pausedAt = null;
     },
+    // One frame of virtual time while paused: the clock moves on as if it had played out.
+    advance() {
+      framesWritten += 1;
+      samplesWritten += SAMPLE_RATE / FPS;
+      startMs -= 1000 / FPS;
+    },
     due(nowMs: number): { frames: number; samples: number } {
       if (pausedAt !== null) return { frames: 0, samples: 0 };
       const elapsed = Math.max(0, nowMs - startMs) / 1000;
