@@ -1,5 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import {
+  getWorkspaceEntitlement,
+  isSelfHosted,
+  type SelfHostEnv,
+} from "@captureflow/quota";
 import { createD1Db } from "./db-d1";
 import {
   WHISPER_MODEL,
@@ -9,7 +14,9 @@ import {
   parseLinesJson,
   whisperLanguage,
 } from "./transcription";
-import type { TranscriptionJobMessage } from "./types";
+import { generateSummaryChapters } from "./summary-ai";
+import { parseSummaryChaptersJson } from "./summary-chapters";
+import type { RecordingTranscript, TranscriptionJobMessage } from "./types";
 
 /*
  * One queue message = one audio chunk through Whisper. Runs in the Worker's
@@ -17,7 +24,7 @@ import type { TranscriptionJobMessage } from "./types";
  * inline from the /transcribe route. Keep it free of @opennextjs imports:
  * worker.ts is bundled by wrangler, which can't resolve them.
  */
-export type TranscriptionEnv = {
+export type TranscriptionEnv = SelfHostEnv & {
   DB: D1Database;
   BUCKET: R2Bucket;
   AI: Ai;
@@ -59,6 +66,40 @@ export async function processTranscriptionPart(
     job.language,
   );
   await db.finishTranscript(slug, JSON.stringify(transcript));
+  await addSummaryChapters(env, db, slug, transcript);
+}
+
+// On plans with AI, fills in what the owner hasn't written: a summary always, chapters unless some are there already.
+async function addSummaryChapters(
+  env: TranscriptionEnv,
+  db: ReturnType<typeof createD1Db>,
+  slug: string,
+  transcript: RecordingTranscript,
+): Promise<void> {
+  try {
+    const row = await db.getRecording(slug);
+    if (!row?.workspaceId) return;
+    const existing = parseSummaryChaptersJson(row.summaryChaptersJson);
+    if (existing.summary) return;
+    const entitlement = await getWorkspaceEntitlement(env.DB, row.workspaceId, {
+      selfHosted: isSelfHosted(env),
+    });
+    if (!entitlement.ai) return;
+    const made = await generateSummaryChapters(
+      env.AI,
+      transcript,
+      row.durationMs,
+    );
+    if (!made) return;
+    await db.updateRecording(slug, {
+      summaryChaptersJson: JSON.stringify({
+        summary: made.summary,
+        chapters: existing.chapters.length ? existing.chapters : made.chapters,
+      }),
+    });
+  } catch (err) {
+    console.warn(`[transcribe] summary for ${slug} failed:`, err);
+  }
 }
 
 export async function failTranscription(
