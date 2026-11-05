@@ -98,4 +98,39 @@ describe("serveNextAt", () => {
     const down = await fetch(`${base}/admin`);
     expect(down.status).toBe(502);
   });
+
+  it("keeps every response out of search indexes", async () => {
+    const admin = createServer((_req, res) => res.end("admin"));
+    servers.push(admin);
+    await new Promise<void>((resolve) => admin.listen(0, "127.0.0.1", resolve));
+
+    const port = await freePort();
+    serveNextAt("https://rec.example.com", "127.0.0.1", port, {
+      prefix: "/admin",
+      port: (admin.address() as AddressInfo).port,
+    });
+    const web = createServer((req, res) => res.end(`next saw ${req.url}`));
+    servers.push(web);
+    await new Promise<void>((resolve) =>
+      web.listen(443, "rec.example.com", resolve),
+    );
+
+    const base = `http://127.0.0.1:${port}`;
+    for (const path of ["/r/abc", "/media/abc.mp4", "/privacy", "/admin"]) {
+      const res = await fetch(`${base}${path}`);
+      expect(res.headers.get("x-robots-tag")).toBe("noindex, nofollow");
+    }
+
+    const robots = await fetch(`${base}/robots.txt`);
+    const rules = (await robots.text())
+      .split("\n")
+      .filter((line) => line && !line.startsWith("#"));
+    expect(rules).toEqual(["User-agent: *", "Disallow: /api/"]);
+
+    for (const path of ["/sitemap.xml", "/llms.txt?x=1"]) {
+      const res = await fetch(`${base}${path}`);
+      expect(res.status).toBe(404);
+      expect(await res.text()).toBe("Not found");
+    }
+  });
 });
