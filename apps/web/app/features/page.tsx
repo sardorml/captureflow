@@ -1,22 +1,10 @@
-import type { Metadata } from "next";
-import { MarketingPage } from "@/components/marketing/marketing-page";
-import { PageHero } from "@/components/marketing/page-hero";
-import { ModesIntro } from "@/components/marketing/modes-intro";
-import { CollaborationSection } from "@/components/marketing/collaboration-section";
+import { FeaturesPage } from "@/components/marketing/site-pages";
+import { DEFAULT_LOCALE } from "@/lib/i18n/config";
+import { pageMetadata } from "@/lib/i18n/metadata";
+import { MESSAGES } from "@/lib/marketing/messages";
 
-export const metadata: Metadata = {
-  title: "Screen recorder features",
-  description:
-    "Record a tab, window or your whole screen with camera and mic, take annotated screenshots, and share each capture as a link your team can comment on.",
-  alternates: { canonical: "/features" },
-};
+export const metadata = pageMetadata("features", DEFAULT_LOCALE, MESSAGES);
 
-export default function FeaturesPage() {
-  return (
-    <MarketingPage>
-      <PageHero page="features" />
-      <ModesIntro />
-      <CollaborationSection />
-    </MarketingPage>
-  );
+export default function Page() {
+  return <FeaturesPage />;
 }

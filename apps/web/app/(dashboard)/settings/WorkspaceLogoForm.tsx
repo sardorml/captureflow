@@ -5,6 +5,7 @@ import { Upload } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { initials } from "@/lib/format";
 import {
   removeWorkspaceLogoAction,
@@ -27,6 +28,7 @@ export function WorkspaceLogoForm({
     INITIAL,
   );
   const fileRef = useRef<HTMLInputElement>(null);
+  const m = useAppMessages();
 
   const submitOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -35,8 +37,8 @@ export function WorkspaceLogoForm({
 
   return (
     <SettingsRow
-      title="Workspace logo"
-      description="Shown next to your workspace name. PNG, JPEG, WebP, GIF or SVG, 2 MB max."
+      title={m.settings.workspace.logo.title}
+      description={m.settings.workspace.logo.description}
     >
       <div className="flex items-center gap-4">
         <Avatar className="h-12 w-12 rounded-full">
@@ -49,7 +51,7 @@ export function WorkspaceLogoForm({
           {logoUrl && (
             <form action={removeWorkspaceLogoAction}>
               <Button variant="ghost" type="submit" size="sm">
-                Remove
+                {m.common.remove}
               </Button>
             </form>
           )}
@@ -70,10 +72,10 @@ export function WorkspaceLogoForm({
             >
               {pending ? <Spinner /> : <Upload size={14} />}
               {pending
-                ? "Uploading…"
+                ? m.settings.upload.uploading
                 : logoUrl
-                  ? "Replace logo"
-                  : "Upload logo"}
+                  ? m.settings.workspace.logo.replace
+                  : m.settings.workspace.logo.upload}
             </Button>
           </form>
         </div>

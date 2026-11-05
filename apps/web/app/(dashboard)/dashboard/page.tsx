@@ -24,6 +24,9 @@ import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { formatRecordedTime } from "@/lib/dashboard-metrics";
 import { loadDashboardTotals } from "@/lib/dashboard-metrics-db";
 import { formatDuration } from "@/lib/format";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fmt, plural } from "@/lib/i18n/format";
+import { formatNumber } from "@/lib/i18n/intl";
 import { viewerMediaUrl } from "@/lib/recording/media-url";
 import { countUserRecordingsInWorkspace } from "@/lib/recording/quota";
 import {
@@ -65,6 +68,8 @@ const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 
 export default async function DashboardPage() {
   const session = await requireSession();
+  const { messages, lang } = await getAppI18n();
+  const copy = messages.library.dashboard;
   const env = await getAppWebEnv();
   const userId = session.user.id;
   const current = await resolveCurrentWorkspace(
@@ -113,7 +118,9 @@ export default async function DashboardPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-fg-strong">
-            {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
+            {firstName
+              ? fmt(copy.welcomeName, { name: firstName })
+              : copy.welcome}
           </h1>
           <p className="mt-1 text-sm text-fg-muted">{current.workspace.name}</p>
         </div>
@@ -125,11 +132,11 @@ export default async function DashboardPage() {
             className={buttonVariants({ variant: "secondary" })}
           >
             <PenLine size={16} />
-            Open the canvas
+            {copy.openCanvas}
           </a>
           {canRecord && (
             <div className="hidden md:block">
-              <RecordButton label="New recording" />
+              <RecordButton label={copy.newRecording} />
             </div>
           )}
         </div>
@@ -139,40 +146,52 @@ export default async function DashboardPage() {
         className={`grid grid-cols-2 gap-3 ${allowanceFill ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}
       >
         <Stat
-          label="Recordings"
-          value={totals.recordings.toLocaleString()}
+          label={copy.stats.recordings}
+          value={formatNumber(totals.recordings, lang)}
           hint={
             totals.screenshots > 0
-              ? `Plus ${totals.screenshots.toLocaleString()} ${totals.screenshots === 1 ? "screenshot" : "screenshots"}`
-              : "No screenshots yet"
+              ? fmt(
+                  plural(copy.stats.plusScreenshots, totals.screenshots, lang),
+                  { count: formatNumber(totals.screenshots, lang) },
+                )
+              : copy.stats.noScreenshots
           }
           href="/recordings"
         />
         <Stat
-          label="Views"
-          value={totals.views.toLocaleString()}
+          label={copy.stats.views}
+          value={formatNumber(totals.views, lang)}
           hint={
             totals.recordings > 0
-              ? `${(totals.views / totals.recordings).toLocaleString(undefined, { maximumFractionDigits: 1 })} per recording on average`
-              : "No views yet"
+              ? fmt(copy.stats.viewsAverage, {
+                  count: formatNumber(totals.views / totals.recordings, lang, {
+                    maximumFractionDigits: 1,
+                  }),
+                })
+              : copy.stats.noViews
           }
           href="/recordings?sort=views"
         />
         <Stat
-          label="Recorded"
-          value={formatRecordedTime(totals.recordedMs)}
+          label={copy.stats.recorded}
+          value={formatRecordedTime(totals.recordedMs, copy.recordedTime)}
           hint={
             totals.recordings > 0
-              ? `${formatDuration(averageMs)} per recording on average`
-              : "Nothing recorded yet"
+              ? fmt(copy.stats.recordedAverage, {
+                  duration: formatDuration(averageMs),
+                })
+              : copy.stats.nothingRecorded
           }
           href="/recordings"
         />
         {allowance !== null && allowanceFill ? (
           <Stat
-            label="Recordings left"
-            value={`${Math.max(0, allowance - ownCount)} of ${allowance}`}
-            hint={`Free plan, up to ${minutesEach} min each`}
+            label={copy.stats.recordingsLeft}
+            value={fmt(copy.stats.leftOfAllowance, {
+              left: Math.max(0, allowance - ownCount),
+              allowance,
+            })}
+            hint={fmt(copy.stats.freePlanLimit, { minutes: minutesEach })}
             href={current.role === "owner" ? "/billing" : "/recordings"}
             aside={
               <Ring
@@ -187,22 +206,20 @@ export default async function DashboardPage() {
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-fg-strong">
-            Recent recordings
+            {copy.recent.title}
           </h2>
           <Link
             href="/recordings"
             className="flex items-center gap-1 text-sm text-fg-muted transition-colors hover:text-fg"
           >
-            All recordings
+            {copy.recent.all}
             <ArrowRight size={14} aria-hidden />
           </Link>
         </div>
         {recent.length === 0 && canRecord ? (
           <StartCard storeUrl={CHROME_WEBSTORE_URL} />
         ) : recent.length === 0 ? (
-          <p className="text-sm text-fg-muted">
-            Nothing has been shared in this workspace yet.
-          </p>
+          <p className="text-sm text-fg-muted">{copy.recent.empty}</p>
         ) : (
           <div className="-m-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-xl:[&>*:nth-child(n+7)]:hidden">
             {recent.map((r) => (

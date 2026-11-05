@@ -4,6 +4,7 @@ import {
   listMembers,
 } from "@captureflow/quota";
 import { getAppWebEnv } from "./cf-env";
+import { APP_MESSAGES, type AppMessages } from "./i18n/app/messages";
 
 export type InviteContext = {
   email: string;
@@ -25,6 +26,8 @@ export type InviteContext = {
  */
 export async function inviteContextFromNext(
   next: string,
+  fallbacks: AppMessages["auth"]["inviteFallbacks"] = APP_MESSAGES.auth
+    .inviteFallbacks,
 ): Promise<InviteContext | null> {
   const token = /^\/invite\/([^/?#]+)$/.exec(next)?.[1];
   if (!token) return null;
@@ -43,7 +46,7 @@ export async function inviteContextFromNext(
 
   return {
     email: invite.email,
-    workspaceName: workspace?.name ?? "a CaptureFlow workspace",
-    inviterLabel: inviter?.name?.trim() || inviter?.email || "A teammate",
+    workspaceName: workspace?.name ?? fallbacks.workspace,
+    inviterLabel: inviter?.name?.trim() || inviter?.email || fallbacks.inviter,
   };
 }

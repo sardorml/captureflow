@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { ArrowLeft, History, Redo2, Smile, Undo2 } from "lucide-react";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -10,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { EditableTitle } from "@/app/_components/EditableTitle";
+import { fmt } from "@/lib/i18n/format";
 import { cn } from "@/lib/utils";
 import type { SaveStatus } from "./use-editor-config";
 
@@ -26,13 +28,6 @@ type Props = {
   onRedo: () => void;
 };
 
-const STATUS_LABEL: Record<SaveStatus, string> = {
-  idle: "Edits save automatically",
-  saving: "Saving…",
-  saved: "Saved",
-  error: "Couldn't save",
-};
-
 export function EditorTopBar({
   slug,
   title,
@@ -45,6 +40,12 @@ export function EditorTopBar({
   onUndo,
   onRedo,
 }: Props) {
+  const m = useAppMessages();
+  const t = m.recordingEditor.topBar;
+  const statusLabel: Record<SaveStatus, string> = {
+    ...t.status,
+    saving: m.common.saving,
+  };
   const statusNode: ReactNode = (
     <span
       role="status"
@@ -59,7 +60,7 @@ export function EditorTopBar({
       ) : (
         <Smile className="h-4 w-4" aria-hidden />
       )}
-      <span>{STATUS_LABEL[status]}</span>
+      <span>{statusLabel[status]}</span>
     </span>
   );
 
@@ -69,7 +70,7 @@ export function EditorTopBar({
         <button
           type="button"
           onClick={onBack}
-          aria-label="Back to recording"
+          aria-label={t.back}
           className="inline-flex h-9 w-9 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-tint hover:text-fg"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -79,7 +80,7 @@ export function EditorTopBar({
         <div className="max-w-3xl min-w-0 flex-1 px-3">
           <EditableTitle
             slug={slug}
-            title={title.trim() || "Untitled recording"}
+            title={title.trim() || m.library.recording.untitled}
             canEdit
             sizeClassName="text-xl lg:text-xl"
           />
@@ -107,14 +108,14 @@ export function EditorTopBar({
               </span>
             </span>
           </TooltipTrigger>
-          <TooltipContent>Version history (coming soon)</TooltipContent>
+          <TooltipContent>{t.versionHistory}</TooltipContent>
         </Tooltip>
         <button
           type="button"
           onClick={onUndo}
           disabled={!canUndo}
-          aria-label="Undo"
-          title="Undo (⌘Z)"
+          aria-label={t.undo}
+          title={fmt(t.undoShortcut, { key: "⌘Z" })}
           className="inline-flex h-9 w-9 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
         >
           <Undo2 className="h-4 w-4" />
@@ -123,14 +124,14 @@ export function EditorTopBar({
           type="button"
           onClick={onRedo}
           disabled={!canRedo}
-          aria-label="Redo"
-          title="Redo (⇧⌘Z)"
+          aria-label={t.redo}
+          title={fmt(t.redoShortcut, { key: "⇧⌘Z" })}
           className="inline-flex h-9 w-9 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-tint hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
         >
           <Redo2 className="h-4 w-4" />
         </button>
         <Button onClick={onFinish} className="ml-1">
-          Finish
+          {t.finish}
         </Button>
       </div>
     </header>

@@ -17,6 +17,8 @@ import {
   pageOffset,
 } from "@/lib/pagination";
 import { hydrateListFilters } from "@/lib/list-filters";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { plural } from "@/lib/i18n/format";
 import { RecordingsList, type RecordingCardRow } from "../../RecordingsList";
 import { Pager } from "../../_components/Pager";
 import { PageHeader } from "../PageHeader";
@@ -34,6 +36,8 @@ export default async function RecordingsPage({
 }) {
   // Re-check: the layout's session narrowing doesn't cross the segment boundary.
   const session = await requireSession();
+  const { messages, lang } = await getAppI18n();
+  const copy = messages.library.recording;
 
   const current = await resolveCurrentWorkspace(
     session.user.id,
@@ -76,12 +80,12 @@ export default async function RecordingsPage({
   if (recordings.some((r) => r.visibility === "public")) {
     preconnect(env?.R2_PUBLIC_BASE_URL ?? R2_PUBLIC_BASE_URL);
   }
-  const subtitle = `${total} recording${total === 1 ? "" : "s"}`;
+  const subtitle = plural(copy.count, total, lang);
 
   return (
     <>
       <PageHeader
-        title="Recordings"
+        title={copy.pageTitle}
         subtitle={subtitle}
         showRecord={can(current.role, "record")}
       />

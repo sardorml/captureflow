@@ -14,6 +14,7 @@ import {
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { getWorkspaceSeatContext } from "@/lib/billing/seats";
+import { getAppI18n } from "@/lib/i18n/app/server";
 import { loadNotificationFeed } from "@/lib/notification-feed";
 import type { requireSession } from "@/lib/session-guard";
 import { readThemePreferenceFromCookieHeader } from "@captureflow/ui/theme";
@@ -66,6 +67,7 @@ async function Account({
   selfHosted: boolean;
 }) {
   const env = await getAppWebEnv();
+  const { messages: m } = await getAppI18n();
   const current = await resolveCurrentWorkspace(
     session.user.id,
     session.user.name ?? null,
@@ -104,7 +106,7 @@ async function Account({
           email={session.user.email}
           userId={session.user.id}
           seat={offer}
-          trigger={<Button>Upgrade</Button>}
+          trigger={<Button>{m.shell.topBar.upgrade}</Button>}
         />
       )}
       {showPlan &&

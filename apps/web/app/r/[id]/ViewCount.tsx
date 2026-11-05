@@ -9,7 +9,10 @@ import {
 } from "@/components/ui/popover";
 import { User, Users } from "lucide-react";
 import type { RecordingViewerEntry } from "@/lib/recording/types";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
 import { formatRelativeLong, initials } from "@/lib/format";
+import { fmt, plural } from "@/lib/i18n/format";
+import { formatNumber } from "@/lib/i18n/intl";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -24,10 +27,18 @@ type Props = {
 const PILL_CLASS =
   "inline-flex h-12 shrink-0 items-center rounded-xl bg-panel px-4 text-sm font-medium text-fg ring-1 ring-line lg:h-11";
 
-const viewsLabel = (n: number): string =>
-  `${n.toLocaleString()} ${n === 1 ? "view" : "views"}`;
+function useViewsLabel(): (n: number) => string {
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
+  return (n) =>
+    fmt(plural(m.viewer.views.count, n, lang), {
+      count: formatNumber(n, lang),
+    });
+}
 
 export function ViewCount({ count, viewers, className }: Props) {
+  const copy = useAppMessages().viewer.views;
+  const viewsLabel = useViewsLabel();
   if (!viewers) {
     return (
       <span className={cn(PILL_CLASS, className)}>{viewsLabel(count)}</span>
@@ -39,14 +50,14 @@ export function ViewCount({ count, viewers, className }: Props) {
         <Button
           variant="ghost"
           className={cn(PILL_CLASS, "min-w-0 hover:bg-tint-strong", className)}
-          aria-label={`${viewsLabel(count)}, show who watched`}
+          aria-label={fmt(copy.showWhoWatched, { views: viewsLabel(count) })}
         >
           {viewsLabel(count)}
         </Button>
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        aria-label="Viewers"
+        aria-label={copy.viewers}
         className="w-80 gap-0 p-0 outline-none"
       >
         {viewers.length === 0 ? (
@@ -54,15 +65,17 @@ export function ViewCount({ count, viewers, className }: Props) {
             <span className="flex size-12 items-center justify-center rounded-full bg-tint text-fg-muted">
               <Users className="size-6" aria-hidden="true" />
             </span>
-            <p className="mt-4 text-base font-semibold text-fg">No views yet</p>
+            <p className="mt-4 text-base font-semibold text-fg">
+              {copy.emptyTitle}
+            </p>
             <p className="mt-1 text-sm text-fg-muted">
-              Share the link and the people who watch show up here.
+              {copy.emptyDescription}
             </p>
           </div>
         ) : (
           <>
             <p className="px-4 pt-3 pb-2 text-sm font-semibold text-fg">
-              Viewers
+              {copy.viewers}
             </p>
             <ul className="max-h-80 overflow-y-auto pb-2">
               {viewers.map((entry, index) => (
@@ -80,12 +93,15 @@ export function ViewCount({ count, viewers, className }: Props) {
 }
 
 function ViewerRow({ entry }: { entry: RecordingViewerEntry }) {
+  const copy = useAppMessages().viewer.views;
+  const { lang } = useAppLocale();
+  const viewsLabel = useViewsLabel();
   const name =
     entry.name?.trim() ||
     entry.email ||
-    (entry.userId ? "Signed-in viewer" : "Anonymous");
+    (entry.userId ? copy.signedInViewer : copy.anonymous);
   const detail = [
-    formatRelativeLong(entry.lastViewedAt),
+    formatRelativeLong(entry.lastViewedAt, lang),
     entry.views > 1 ? viewsLabel(entry.views) : null,
   ]
     .filter(Boolean)

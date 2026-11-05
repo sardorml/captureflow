@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { useAppMessages } from "@/components/app-i18n-provider";
 
 /*
  * Puts the dashboard's own sidebar on the viewer pages without duplicating it:
@@ -12,6 +13,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
  * component straight through and this stays a thin client shell around it.
  */
 export function SidebarDrawer({ children }: { children: ReactNode }) {
+  const copy = useAppMessages().shell.drawer;
   const [open, setOpen] = useState(false);
 
   return (
@@ -19,7 +21,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
       <Button
         variant="ghost"
         size="icon-sm"
-        aria-label="Open workspace menu"
+        aria-label={copy.open}
         onClick={() => setOpen(true)}
       >
         <PanelLeft size={18} />
@@ -32,7 +34,7 @@ export function SidebarDrawer({ children }: { children: ReactNode }) {
           showCloseButton={false}
           className="gap-0 bg-sidebar p-0 data-[side=left]:w-64"
         >
-          <SheetTitle className="sr-only">Workspace menu</SheetTitle>
+          <SheetTitle className="sr-only">{copy.title}</SheetTitle>
           <SidebarProvider className="min-h-0 flex-1">
             {children}
           </SidebarProvider>

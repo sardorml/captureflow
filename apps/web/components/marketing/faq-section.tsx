@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { FAQ_ITEMS, LAUNCH_STAGE } from "@/lib/marketing/constants";
+import { LAUNCH_STAGE } from "@/lib/marketing/constants";
 import { DOCS_URL } from "@/lib/site";
 import { Paragraph, Link as TypoLink } from "./typography";
 import type { SectionProps } from "./_shared";
@@ -20,7 +20,7 @@ import {
 } from "./frame";
 import { useMessages } from "./i18n-provider";
 
-// Indexes into FAQ_ITEMS, in display order.
+// Indexes into the catalog's faq.items, in display order.
 const ORDER = [0, 2, 5, 3, 4, 1] as const;
 
 export function FaqSection({
@@ -45,7 +45,7 @@ export function FaqSection({
           <Accordion type="single" collapsible>
             {ORDER.map((index, position) => {
               const showWaitlistLink =
-                index === FAQ_ITEMS.length - 1 && LAUNCH_STAGE === "waitlist";
+                index === m.faq.items.length - 1 && LAUNCH_STAGE === "waitlist";
               const paragraphs = m.faq.items[index].answer.split("\n\n");
               return (
                 <AccordionItem

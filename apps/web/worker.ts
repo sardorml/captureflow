@@ -13,6 +13,7 @@ import {
 } from "./lib/recording/cron";
 import { runDailySeatSync } from "./lib/billing/seat-cron";
 import { refreshRepoStats, serveRepoStats } from "./lib/github";
+import { langOf, splitLocale } from "./lib/i18n/config";
 import { sweepAgentRecordings } from "./lib/mcp/agent-recordings-db";
 import { hydrateTranscriptionJobMessage } from "./lib/recording/transcription";
 import {
@@ -78,6 +79,38 @@ export class WaveformContainer extends Container<Env> {
 // that would be the last is the one that records the failure.
 const TRANSCRIPTION_MAX_RETRIES = 3;
 
+// The middleware reads the visitor's country from this header. Cloudflare
+// sends it only while the zone's IP geolocation setting is on, so fill it in.
+function withCountry(request: Request): Request {
+  const country = request.cf?.country;
+  if (typeof country !== "string" || request.headers.has("cf-ipcountry")) {
+    return request;
+  }
+  const headers = new Headers(request.headers);
+  headers.set("cf-ipcountry", country);
+  return new Request(request, { headers });
+}
+
+/*
+ * The root layout is static, so a translated page's HTML arrives saying
+ * lang="en". Search engines read the language from that attribute and the
+ * Content-Language header, so both are set here.
+ */
+async function withLang(
+  pending: Response | Promise<Response>,
+  lang: string,
+): Promise<Response> {
+  const response = await pending;
+  if (!response.headers.get("content-type")?.includes("text/html")) {
+    return response;
+  }
+  const localized = new HTMLRewriter()
+    .on("html", { element: (html) => void html.setAttribute("lang", lang) })
+    .transform(response);
+  localized.headers.set("content-language", lang);
+  return localized;
+}
+
 const handler: ExportedHandler<Env> = {
   fetch(request, env, ctx) {
     if (
@@ -88,7 +121,9 @@ const handler: ExportedHandler<Env> = {
         ctx.waitUntil(work),
       );
     }
-    return openNextWorker.fetch(request, env, ctx);
+    const response = openNextWorker.fetch(withCountry(request), env, ctx);
+    const [locale] = splitLocale(new URL(request.url).pathname);
+    return locale ? withLang(response, langOf(locale)) : response;
   },
 
   async scheduled(

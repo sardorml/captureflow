@@ -4,6 +4,8 @@ import { Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import { fmt, plural } from "@/lib/i18n/format";
 import { useConfirm } from "./confirm-dialog";
 
 export type Selection = {
@@ -62,7 +64,7 @@ export function useSelection(available: string[]): Selection {
 }
 
 type SelectionBarProps = {
-  noun: string;
+  noun: "recording" | "screenshot";
   selection: Selection;
   onDelete: (key: string) => Promise<{ error: string | null }>;
 };
@@ -76,17 +78,17 @@ export function SelectionBar({ noun, selection, onDelete }: SelectionBarProps) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const { confirm, dialog } = useConfirm();
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
   const { count, keys, clear } = selection;
 
   if (count === 0) return null;
 
-  const plural = count === 1 ? noun : `${noun}s`;
-
   const remove = async () => {
     const ok = await confirm({
-      title: `Delete ${count} ${plural}?`,
-      description: "Their links stop working immediately.",
-      confirmLabel: "Delete",
+      title: plural(m.library[noun].deleteSelectedTitle, count, lang),
+      description: m.library.selection.deleteDescription,
+      confirmLabel: m.common.delete,
       destructive: true,
     });
     if (!ok) return;
@@ -95,9 +97,7 @@ export function SelectionBar({ noun, selection, onDelete }: SelectionBarProps) {
       const results = await Promise.all(keys.map((key) => onDelete(key)));
       const failed = results.filter((r) => r?.error).length;
       if (failed > 0) {
-        setError(
-          `${failed} of ${count} couldn't be deleted. The rest are gone.`,
-        );
+        setError(fmt(m.library.selection.deleteFailed, { failed, count }));
       }
       clear();
     });
@@ -108,11 +108,11 @@ export function SelectionBar({ noun, selection, onDelete }: SelectionBarProps) {
       {dialog}
       <div className="pointer-events-auto flex max-w-full items-center gap-3 rounded-full border border-line-strong bg-panel px-3 py-2 shadow-lg">
         <p className="ps-2 text-sm leading-6 whitespace-nowrap text-foreground">
-          {count} {plural} selected
+          {plural(m.library[noun].selected, count, lang)}
         </p>
         {error && <p className="text-sm leading-6 text-destructive">{error}</p>}
         <Button size="sm" variant="ghost" onClick={clear} disabled={pending}>
-          Clear
+          {m.library.selection.clear}
         </Button>
         <Button
           size="sm"
@@ -121,7 +121,7 @@ export function SelectionBar({ noun, selection, onDelete }: SelectionBarProps) {
           disabled={pending}
         >
           {pending ? <Spinner /> : <Trash2 size={14} />}
-          Delete
+          {m.common.delete}
         </Button>
       </div>
     </div>

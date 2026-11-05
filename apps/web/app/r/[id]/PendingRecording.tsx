@@ -6,6 +6,7 @@ import { MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { initials } from "@/lib/format";
 import { ContentByline } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
@@ -39,6 +40,8 @@ export function PendingRecording({
   viewCount,
   isOwner,
 }: PendingRecordingProps) {
+  const m = useAppMessages();
+  const copy = m.viewer.pending;
   const router = useRouter();
   const [exhausted, setExhausted] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -132,22 +135,20 @@ export function PendingRecording({
               {showRetry ? (
                 <>
                   <p className="text-base font-semibold text-fg">
-                    This recording didn&apos;t finish uploading
+                    {copy.failedTitle}
                   </p>
                   <p className="max-w-sm text-sm text-fg-muted">
-                    The link was created but the video never arrived. Try the
-                    link again in a minute, or record a fresh one.
+                    {copy.failedDescription}
                   </p>
                 </>
               ) : (
                 <>
                   <Spinner className="size-6" />
                   <p className="mt-1 text-base font-semibold text-fg">
-                    Preparing your recording…
+                    {copy.preparingTitle}
                   </p>
                   <p className="max-w-xs text-sm text-fg-muted">
-                    The upload is still finishing. This page refreshes on its
-                    own once it&apos;s ready.
+                    {copy.preparingDescription}
                   </p>
                 </>
               )}
@@ -169,7 +170,7 @@ export function PendingRecording({
             </div>
             <span className="flex h-[60px] items-center gap-2.5 rounded-full bg-panel px-6 text-base font-medium text-fg shadow-md max-sm:h-[52px] max-sm:px-4">
               <MessageSquare className="h-6 w-6" />
-              <span className="hidden sm:inline">Comment</span>
+              <span className="hidden sm:inline">{copy.comment}</span>
             </span>
           </div>
           <footer className="mt-8 flex w-full justify-center border-t border-line pt-6 max-lg:order-4 max-lg:mb-6">
@@ -181,17 +182,17 @@ export function PendingRecording({
         <header className="flex items-center px-5 py-4 lg:px-6 lg:pt-5">
           <div className="flex w-full rounded-xl bg-tint p-1">
             <span className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg bg-panel px-3.5 text-sm font-medium text-fg shadow-sm dark:bg-white/10">
-              Activity
+              {copy.activityTab}
               <span className="rounded-full bg-tint-strong px-2 py-0.5 text-xs font-medium tabular-nums">
                 0
               </span>
             </span>
             <span className="flex h-8 flex-1 items-center justify-center px-3.5 text-sm font-medium text-fg-muted">
-              Transcript
+              {copy.transcriptTab}
             </span>
             {isOwner ? (
               <span className="flex h-8 flex-1 items-center justify-center px-3.5 text-sm font-medium text-fg-muted">
-                Edit
+                {m.common.edit}
               </span>
             ) : null}
           </div>
@@ -201,11 +202,10 @@ export function PendingRecording({
             <MessageSquare className="h-5 w-5" />
           </div>
           <p className="mt-4 text-base font-semibold text-fg">
-            No activity yet
+            {copy.emptyTitle}
           </p>
           <p className="mt-1.5 max-w-[18rem] text-xs leading-relaxed text-fg-muted">
-            Reactions and comments from viewers will show up here once the
-            recording is ready.
+            {copy.emptyDescription}
           </p>
         </div>
       </aside>

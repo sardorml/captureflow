@@ -27,6 +27,7 @@ import {
   type RefObject,
   type SyntheticEvent,
 } from "react";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { AirPlayButton } from "@/components/videojs/ui/airplay-button";
 import { BufferingIndicator } from "@/components/videojs/ui/buffering-indicator";
 import { Button } from "@/components/videojs/ui/button";
@@ -385,6 +386,7 @@ function stopPropagation(e: SyntheticEvent): void {
 }
 
 function StartOverlay({ compact }: { compact: boolean }) {
+  const m = useAppMessages();
   const playback = usePlayer(selectPlayback);
   const time = usePlayer(selectTime);
   if (!playback) return null;
@@ -401,11 +403,13 @@ function StartOverlay({ compact }: { compact: boolean }) {
           void playback.play();
         }}
         className="absolute inset-0 z-20 flex cursor-pointer items-center justify-center bg-black/55 backdrop-blur-[1px] focus:outline-none"
-        aria-label="Watch again"
+        aria-label={m.player.overlay.watchAgain}
       >
         <span className="flex items-center gap-3 text-white">
           <RotateCcw className="h-7 w-7" />
-          <span className="text-xl font-semibold">Watch again</span>
+          <span className="text-xl font-semibold">
+            {m.player.overlay.watchAgain}
+          </span>
         </span>
       </button>
     );
@@ -422,7 +426,7 @@ function StartOverlay({ compact }: { compact: boolean }) {
         void playback.play();
       }}
       className="group absolute inset-0 z-20 flex cursor-pointer items-center justify-center bg-black/10 transition-colors hover:bg-black/20 focus:outline-none"
-      aria-label="Play"
+      aria-label={m.player.controls.buttons.play}
     >
       {/* The same button as the landing page's demo. */}
       {compact ? (
@@ -527,6 +531,7 @@ function ClockTime({
   cuts: RecordingCut[];
   durationSeconds: number;
 }) {
+  const m = useAppMessages();
   const currentTime = usePlayer(selectTime)?.currentTime ?? 0;
   const seconds =
     type === "current"
@@ -536,7 +541,11 @@ function ClockTime({
     <time
       className={TIME_CLASS}
       data-unavailable={durationSeconds > 0 ? undefined : ""}
-      aria-label={type === "current" ? "Current time" : "Duration"}
+      aria-label={
+        type === "current"
+          ? m.player.controls.time.current
+          : m.player.controls.time.duration
+      }
     >
       {formatTimestamp(seconds * 1000)}
     </time>

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import type { RepoActivity, RepoItem } from "@/lib/github";
 import { formatRelativeShort } from "@/lib/format";
-import { MESSAGES } from "@/lib/marketing/messages";
+import type { Messages } from "@/lib/marketing/messages";
 import { SOURCE_REPO_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import {
@@ -19,8 +19,6 @@ import {
   FrameSection,
   PillLink,
 } from "./frame";
-
-const copy = MESSAGES.activity;
 
 // GitHub's own state colours (Primer), dark by default and its light-mode
 // shades under data-theme=light, so each item reads the way it does there.
@@ -38,11 +36,14 @@ function stateIcon(item: RepoItem): LucideIcon {
   return item.state === "closed" ? GitPullRequestClosed : GitPullRequest;
 }
 
-// Rendered on the server so relative dates can't drift between server and client.
 export function RepoActivitySection({
   activity,
+  copy,
+  lang,
 }: {
   activity: RepoActivity | null;
+  copy: Messages["activity"];
+  lang: string;
 }) {
   if (!activity || activity.shipped.length === 0) return null;
 
@@ -57,6 +58,7 @@ export function RepoActivitySection({
         <ActivityList
           heading={copy.shippedHeading}
           items={activity.shipped}
+          lang={lang}
           link={{
             label: copy.viewAll,
             href: `${SOURCE_REPO_URL}/pulls?q=is%3Amerged`,
@@ -65,6 +67,7 @@ export function RepoActivitySection({
         <ActivityList
           heading={copy.openHeading}
           items={activity.open}
+          lang={lang}
           empty={copy.emptyOpen}
           link={{ label: copy.newIssue, href: `${SOURCE_REPO_URL}/issues/new` }}
         />
@@ -78,9 +81,11 @@ function ActivityList({
   items,
   empty,
   link,
+  lang,
 }: {
   heading: string;
   items: RepoItem[];
+  lang: string;
   empty?: string;
   link: { label: string; href: string };
 }) {
@@ -112,7 +117,7 @@ function ActivityList({
                     </span>
                     <span className="text-xs text-fg-subtle tabular-nums">
                       #{item.number} ·{" "}
-                      {formatRelativeShort(Date.parse(item.date))}
+                      {formatRelativeShort(Date.parse(item.date), lang)}
                     </span>
                   </span>
                 </a>

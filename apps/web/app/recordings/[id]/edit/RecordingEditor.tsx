@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { Spinner } from "@/components/ui/spinner";
 import { type Theme } from "@captureflow/ui";
 import { useRouter } from "next/navigation";
@@ -108,24 +109,27 @@ export function RecordingEditor(props: RecordingEditorProps) {
 }
 
 function PreparingRecording() {
+  const m = useAppMessages();
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-sm text-neutral-300">
       <Spinner className="size-6" />
-      <p className="font-medium">Preparing recording…</p>
+      <p className="font-medium">{m.recordingEditor.preparing.title}</p>
       <p className="text-xs text-neutral-500">
-        The recording is still uploading. This page will refresh automatically
-        when it&apos;s ready.
+        {m.recordingEditor.preparing.description}
       </p>
     </div>
   );
 }
 
 function RecordingFailed() {
+  const m = useAppMessages();
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-2 text-sm text-neutral-300">
-      <p className="font-medium text-red-300">Recording upload failed.</p>
+      <p className="font-medium text-red-300">
+        {m.recordingEditor.failed.title}
+      </p>
       <p className="text-xs text-neutral-500">
-        Try recording again from the desktop app.
+        {m.recordingEditor.failed.description}
       </p>
     </div>
   );

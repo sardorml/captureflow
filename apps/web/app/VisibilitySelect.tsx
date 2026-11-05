@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAppMessages } from "@/components/app-i18n-provider";
 
 export type Visibility = "public" | "workspace" | "private";
 
@@ -24,18 +25,13 @@ function icon(value: Visibility) {
   return <Lock size={14} />;
 }
 
-const LABELS: Record<Visibility, string> = {
-  public: "Public",
-  workspace: "Workspace",
-  private: "Private",
-};
-
 export function VisibilitySelect({
   value,
   disabled,
   onChange,
   allowPublic = true,
 }: Props) {
+  const copy = useAppMessages().library.visibility;
   // Already-public legacy rows stay selectable so the owner can flip them.
   const showPublic = allowPublic || value === "public";
   const options: Visibility[] = [
@@ -50,15 +46,19 @@ export function VisibilitySelect({
       disabled={disabled}
       onValueChange={(next) => onChange(next as Visibility)}
     >
-      <SelectTrigger aria-label="Visibility" className="min-w-[130px]">
+      <SelectTrigger aria-label={copy.label} className="min-w-[130px]">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (
-          <SelectItem key={option} value={option} textValue={LABELS[option]}>
+          <SelectItem
+            key={option}
+            value={option}
+            textValue={copy.labels[option]}
+          >
             <span className="inline-flex items-center gap-1.5">
               {icon(option)}
-              {LABELS[option]}
+              {copy.labels[option]}
             </span>
           </SelectItem>
         ))}

@@ -22,8 +22,12 @@ import {
   type AssignableRole,
   type SeatPlanId,
 } from "@captureflow/quota";
+import {
+  useAppLocale,
+  useAppMessages,
+  usePlanCopy,
+} from "@/components/app-i18n-provider";
 import { GRADIENT_BORDER } from "@/components/marketing/plan-cards";
-import { MESSAGES } from "@/lib/marketing/messages";
 import { getPosthogDistinctId, track } from "@/lib/marketing/track";
 import {
   seatCheckoutUrl,
@@ -32,20 +36,15 @@ import {
   type SeatPerson,
 } from "@/lib/billing/seat-checkout";
 import { initials } from "@/lib/format";
+import { fmt, plural } from "@/lib/i18n/format";
 import { cn } from "@/lib/utils";
-import { ROLE_LABEL } from "@/lib/workspace/labels";
 import { useDevPref } from "@/lib/dev/prefs";
 import { fakeCheckoutAction } from "./dev-checkout-action";
 import { changeMemberRoleAction } from "./members/actions";
 
-const PLAN_COPY = MESSAGES.pricing.plans;
-
 const LOCAL_DEV = process.env.NODE_ENV === "development";
 
-const CYCLES: { key: SeatCycle; label: string }[] = [
-  { key: "monthly", label: "Monthly" },
-  { key: "annual", label: "Yearly" },
-];
+const CYCLES: SeatCycle[] = ["monthly", "annual"];
 
 type Props = {
   email: string;
@@ -77,6 +76,9 @@ export function UpgradeModalBody({
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const fakeCheckout = useDevPref("fake-checkout") && LOCAL_DEV;
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
+  const t = m.billing.upgrade;
 
   const canManage = people.some(
     (p) => p.userId === userId && p.role === "owner",
@@ -161,23 +163,23 @@ export function UpgradeModalBody({
       >
         <div className="p-6">
           <DialogTitle className="pe-8 text-2xl leading-tight font-bold tracking-[-0.02em] text-fg">
-            Upgrade {seat.workspaceName}
+            {fmt(t.title, { name: seat.workspaceName })}
           </DialogTitle>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <div
               role="radiogroup"
-              aria-label="Billing cycle"
+              aria-label={t.billingCycle}
               className="grid grid-cols-2 gap-1 rounded-full bg-tint p-1"
             >
-              {CYCLES.map((c) => {
-                const isOn = c.key === cycle;
+              {CYCLES.map((key) => {
+                const isOn = key === cycle;
                 return (
                   <button
-                    key={c.key}
+                    key={key}
                     type="button"
                     role="radio"
                     aria-checked={isOn}
-                    onClick={() => setCycle(c.key)}
+                    onClick={() => setCycle(key)}
                     className={cn(
                       "cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none",
                       isOn
@@ -185,10 +187,12 @@ export function UpgradeModalBody({
                         : "text-fg-muted hover:text-fg",
                     )}
                   >
-                    {c.label}
-                    {c.key === "annual" ? (
+                    {t.cycles[key]}
+                    {key === "annual" ? (
                       <span className="ms-1.5 text-xs text-accent-strong">
-                        save {SEAT_ANNUAL_SAVING_PERCENT}%
+                        {fmt(t.annualSaving, {
+                          percent: SEAT_ANNUAL_SAVING_PERCENT,
+                        })}
                       </span>
                     ) : null}
                   </button>
@@ -202,10 +206,10 @@ export function UpgradeModalBody({
                   className="h-10 rounded-full px-4 text-sm font-medium"
                 >
                   <Users size={15} />
-                  {seats} paid {seats === 1 ? "seat" : "seats"}
+                  {plural(m.billing.counts.paidSeats, seats, lang)}
                   {viewers > 0 ? (
                     <span className="text-fg-muted">
-                      · {viewers} free {viewers === 1 ? "viewer" : "viewers"}
+                      · {plural(m.billing.counts.freeViewers, viewers, lang)}
                     </span>
                   ) : null}
                   <ChevronDown size={15} className="text-fg-muted" />
@@ -214,23 +218,24 @@ export function UpgradeModalBody({
               <PopoverContent
                 side="bottom"
                 align="start"
-                aria-label="Who gets a paid seat"
+                aria-label={t.seatPicker.title}
                 className="w-96 p-0"
               >
                 <div className="p-3">
                   <div className="flex items-baseline justify-between gap-3 px-1">
                     <p className="text-sm font-semibold text-fg">
-                      Who gets a paid seat
+                      {t.seatPicker.title}
                     </p>
                     <span className="text-xs text-fg-muted tabular-nums">
-                      {seats} of {people.length}
+                      {fmt(t.seatPicker.selected, {
+                        seats,
+                        total: people.length,
+                      })}
                     </span>
                   </div>
                   <div className="px-1">
                     <p className="mt-0.5 text-xs leading-snug text-fg-muted">
-                      Ticked people record and are billed. Everyone else is a
-                      free viewer who can watch, comment and react, but
-                      can&apos;t record. Roles change when you upgrade.
+                      {t.seatPicker.description}
                     </p>
                     {canManage && assignable.length > 1 ? (
                       <div className="mt-2 flex gap-3 text-xs font-medium">
@@ -239,14 +244,14 @@ export function UpgradeModalBody({
                           onClick={() => setAll("member")}
                           className="cursor-pointer text-accent-strong hover:underline"
                         >
-                          Select all
+                          {t.seatPicker.selectAll}
                         </button>
                         <button
                           type="button"
                           onClick={() => setAll("viewer")}
                           className="cursor-pointer text-fg-muted hover:text-fg hover:underline"
                         >
-                          Clear
+                          {t.seatPicker.clear}
                         </button>
                       </div>
                     ) : null}
@@ -309,12 +314,28 @@ function PlanOption({
   onFakeCheckout?: () => void;
   pending: boolean;
 }) {
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
+  const t = m.billing.upgrade;
   const plan = getSeatPlan(planId);
-  const copy = PLAN_COPY[planId];
+  const copy = usePlanCopy()[planId];
   const highlighted = planId === RECOMMENDED_SEAT_PLAN_ID;
   const perSeat =
     cycle === "annual" ? plan.priceAnnualUsdPerMonth : plan.priceMonthlyUsd;
   const total = seatPriceUsd(seats, cycle, planId);
+  const seatsPrice = fmt(plural(t.seatsPrice, seats, lang), {
+    price: `$${perSeat}`,
+  });
+  const annual = cycle === "annual";
+  const priceLine =
+    viewers > 0
+      ? fmt(annual ? t.priceWithViewersYearly : t.priceWithViewers, {
+          seats: seatsPrice,
+          viewers: plural(t.viewersFree, viewers, lang),
+        })
+      : annual
+        ? fmt(t.priceYearly, { seats: seatsPrice })
+        : seatsPrice;
   const buttonClass = cn(
     "mt-4 inline-flex h-10 w-fit items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors motion-reduce:transition-none",
     highlighted
@@ -347,16 +368,10 @@ function PlanOption({
           ${total}
         </span>
         <span className="ms-2 align-baseline text-sm font-normal text-fg-muted">
-          per month
+          {t.perMonth}
         </span>
       </p>
-      <p className="mt-1 text-sm text-fg-muted">
-        {seats} {seats === 1 ? "seat" : "seats"} × ${perSeat}
-        {viewers > 0
-          ? `, ${viewers} ${viewers === 1 ? "viewer" : "viewers"} free`
-          : ""}
-        {cycle === "annual" ? ", billed yearly" : ""}
-      </p>
+      <p className="mt-1 text-sm text-fg-muted">{priceLine}</p>
 
       {onFakeCheckout ? (
         <button
@@ -376,11 +391,11 @@ function PlanOption({
           onClick={onCheckout}
           className={buttonClass}
         >
-          Upgrade to {plan.name}
+          {fmt(t.upgradeTo, { plan: plan.name })}
         </a>
       ) : (
         <span className="mt-4 inline-flex h-10 w-fit items-center justify-center rounded-full bg-primary/10 px-6 text-sm font-medium text-fg-muted">
-          Checkout not configured
+          {t.checkoutUnavailable}
         </span>
       )}
 
@@ -411,6 +426,8 @@ function PersonRow({
   editable: boolean;
   onRole: (role: AssignableRole) => void;
 }) {
+  const m = useAppMessages();
+  const t = m.billing.upgrade.seatPicker;
   const display = person.name || person.email.split("@")[0];
   const seated = isSeatRole(person.role);
   return (
@@ -430,7 +447,7 @@ function PersonRow({
         </Avatar>
         <span className="min-w-0 flex-1 truncate text-sm font-medium text-fg">
           {display}
-          {isSelf && <span className="text-fg-muted"> (you)</span>}
+          {isSelf && <span className="text-fg-muted"> {t.you}</span>}
         </span>
         <span
           className={cn(
@@ -439,10 +456,10 @@ function PersonRow({
           )}
         >
           {person.role === "owner"
-            ? ROLE_LABEL[person.role]
+            ? m.members.roles[person.role]
             : seated
-              ? "Paid seat"
-              : "Viewer"}
+              ? t.paidSeat
+              : t.viewer}
         </span>
       </label>
     </li>

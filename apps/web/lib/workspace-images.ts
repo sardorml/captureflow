@@ -15,23 +15,26 @@ export type ImageUpload =
   | { ok: true; ext: string; mime: string; buffer: ArrayBuffer }
   | { ok: false; error: string };
 
-// A form field that should hold a small image; `what` names it in errors.
+export type ImageUploadCopy = {
+  missing: string;
+  tooLarge: string;
+  badType: string;
+};
+
+// A form field that should hold a small image; `copy` is its error text.
 export async function readImageUpload(
   file: unknown,
-  what: string,
+  copy: ImageUploadCopy,
 ): Promise<ImageUpload> {
   if (!(file instanceof Blob) || file.size === 0) {
-    return { ok: false, error: "Pick an image file" };
+    return { ok: false, error: copy.missing };
   }
   if (file.size > WORKSPACE_IMAGE_MAX_BYTES) {
-    return { ok: false, error: `${what} must be 2 MB or smaller` };
+    return { ok: false, error: copy.tooLarge };
   }
   const ext = IMAGE_EXT.get(file.type);
   if (!ext) {
-    return {
-      ok: false,
-      error: `${what} must be PNG, JPEG, WebP, GIF, or SVG`,
-    };
+    return { ok: false, error: copy.badType };
   }
   const buffer = (await file.arrayBuffer()) as ArrayBuffer;
   return { ok: true, ext, mime: file.type, buffer };

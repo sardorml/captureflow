@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { ShareVisibilityModal } from "@/app/_components/ShareVisibilityModal";
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import type { RecordingVisibility } from "@/lib/recording/types";
 import { currentPlayerMs } from "./player-clock";
 
@@ -50,6 +51,7 @@ export function RecordingActions({
   allowPublicLinks,
   signedIn,
 }: Props) {
+  const m = useAppMessages();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -95,7 +97,9 @@ export function RecordingActions({
       } catch (err) {
         setVisibility(previous);
         setError(
-          err instanceof Error ? err.message : "Could not update visibility",
+          err instanceof Error
+            ? err.message
+            : m.viewer.actions.visibilityFailed,
         );
       }
     });
@@ -104,10 +108,9 @@ export function RecordingActions({
   const onDelete = async () => {
     if (!isOwner) return;
     const ok = await confirm({
-      title: "Delete this recording?",
-      description:
-        "The video and its link stop working immediately. This cannot be undone.",
-      confirmLabel: "Delete",
+      title: m.library.recording.deleteTitle,
+      description: m.library.recording.deleteDescription,
+      confirmLabel: m.common.delete,
       destructive: true,
     });
     if (!ok) return;
@@ -121,7 +124,7 @@ export function RecordingActions({
         router.replace("/");
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Could not delete the recording",
+          err instanceof Error ? err.message : m.viewer.actions.deleteFailed,
         );
       }
     });
@@ -137,20 +140,22 @@ export function RecordingActions({
             className={buttonVariants({ variant: "secondary" })}
           >
             <Pencil size={16} />
-            <span className="hidden sm:inline">Edit recording</span>
+            <span className="hidden sm:inline">{m.library.recording.edit}</span>
           </a>
         )}
         {signedIn ? (
           <ButtonGroup>
             <Button onClick={() => setOpen(true)}>
               <Users size={18} />
-              <span className="hidden sm:inline">Share</span>
+              <span className="hidden sm:inline">{m.viewer.actions.share}</span>
             </Button>
             <ButtonGroupSeparator />
             <Button
               size="icon"
               onClick={copyLink}
-              aria-label={copied ? "Link copied" : "Copy link"}
+              aria-label={
+                copied ? m.library.share.linkCopied : m.library.share.copyLink
+              }
             >
               {copied ? <Check size={18} /> : <Link2 size={18} />}
             </Button>
@@ -159,11 +164,13 @@ export function RecordingActions({
           <Button
             variant="secondary"
             onClick={copyLink}
-            aria-label={copied ? "Link copied" : "Copy link"}
+            aria-label={
+              copied ? m.library.share.linkCopied : m.library.share.copyLink
+            }
           >
             {copied ? <Check size={16} /> : <Link2 size={16} />}
             <span className="hidden sm:inline">
-              {copied ? "Copied" : "Copy link"}
+              {copied ? m.common.copied : m.library.share.copyLink}
             </span>
           </Button>
         )}
@@ -171,7 +178,11 @@ export function RecordingActions({
         {isOwner && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="More actions">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={m.library.card.moreActions}
+              >
                 <MoreHorizontal size={18} />
               </Button>
             </DropdownMenuTrigger>
@@ -182,7 +193,7 @@ export function RecordingActions({
                 onSelect={onDelete}
               >
                 <Trash2 size={16} />
-                {deleting ? "Deleting…" : "Delete recording"}
+                {deleting ? m.common.deleting : m.library.recording.delete}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -192,7 +203,7 @@ export function RecordingActions({
       <ShareVisibilityModal
         open={open}
         onClose={() => setOpen(false)}
-        title="Share recording"
+        title={m.library.recording.share}
         visibility={visibility}
         onChange={changeVisibility}
         canEdit={isOwner}

@@ -28,23 +28,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
+import { useAppMessages } from "@/components/app-i18n-provider";
+import type { AppMessages } from "@/lib/i18n/app/messages";
+import { fmt } from "@/lib/i18n/format";
 import { formatTimestamp } from "@/lib/format";
 import { shareUrlAt } from "@/lib/recording/share-time";
 import { cn } from "@/lib/utils";
 
 export type Visibility = "public" | "workspace" | "private";
-
-const VISIBILITY_LABELS: Record<Visibility, string> = {
-  public: "Public",
-  workspace: "Workspace",
-  private: "Private",
-};
-
-const VISIBILITY_DESCRIPTIONS: Record<Visibility, string> = {
-  public: "Anyone with the link can view",
-  workspace: "Only signed-in workspace members can view",
-  private: "Only you can view",
-};
 
 function VisibilityIcon({ value }: { value: Visibility }) {
   const Icon =
@@ -52,10 +43,14 @@ function VisibilityIcon({ value }: { value: Visibility }) {
   return <Icon className="h-4 w-4" />;
 }
 
-function optionLabel(value: Visibility, workspaceName?: string | null): string {
+function optionLabel(
+  copy: AppMessages["library"]["visibility"],
+  value: Visibility,
+  workspaceName?: string | null,
+): string {
   return value === "workspace" && workspaceName
-    ? `Workspace · ${workspaceName}`
-    : VISIBILITY_LABELS[value];
+    ? fmt(copy.workspaceNamed, { name: workspaceName })
+    : copy.labels[value];
 }
 
 function embedSnippetFor(embedUrl: string): string {
@@ -103,6 +98,9 @@ export function ShareVisibilityModal({
   const [atMs, setAtMs] = useState(0);
   const [shareAtTime, setShareAtTime] = useState(false);
   const shareAtId = useId();
+  const m = useAppMessages();
+  const share = m.library.share;
+  const access = m.library.visibility;
 
   useEffect(() => {
     if (!open) return;
@@ -157,7 +155,7 @@ export function ShareVisibilityModal({
                 aria-pressed={embedOpen}
               >
                 <Code2 size={14} />
-                Embed
+                {share.embed}
               </Button>
               {embedOpen ? (
                 <div className="mt-3 rounded-xl border border-black/[0.15] bg-panel-2 p-3 dark:border-white/[0.16]">
@@ -167,8 +165,8 @@ export function ShareVisibilityModal({
                   <div className="mt-2 flex items-center justify-between gap-3">
                     <p className="text-xs text-fg-muted">
                       {visibility === "public"
-                        ? "Plays wherever the snippet is pasted."
-                        : "Plays only for people who can already open the link."}
+                        ? share.embedPublic
+                        : share.embedRestricted}
                     </p>
                     <Button
                       size="sm"
@@ -180,7 +178,7 @@ export function ShareVisibilityModal({
                       ) : (
                         <Copy size={14} />
                       )}
-                      {copied === "embed" ? "Copied" : "Copy code"}
+                      {copied === "embed" ? m.common.copied : share.copyCode}
                     </Button>
                   </div>
                 </div>
@@ -189,7 +187,9 @@ export function ShareVisibilityModal({
           ) : null}
 
           <section>
-            <p className="text-sm font-semibold text-fg">General access</p>
+            <p className="text-sm font-semibold text-fg">
+              {share.generalAccess}
+            </p>
             <div className="mt-3 flex items-center gap-3">
               <span
                 className={cn(
@@ -206,25 +206,27 @@ export function ShareVisibilityModal({
                   <DropdownMenu>
                     <DropdownMenuTrigger
                       disabled={pending}
-                      aria-label={`General access: ${optionLabel(visibility, workspaceName)}`}
+                      aria-label={fmt(share.generalAccessCurrent, {
+                        access: optionLabel(access, visibility, workspaceName),
+                      })}
                       className={cn(
                         buttonVariants({ variant: "ghost", size: "sm" }),
                         "-ml-3 gap-1",
                       )}
                     >
-                      {optionLabel(visibility, workspaceName)}
+                      {optionLabel(access, visibility, workspaceName)}
                       <ChevronDown size={14} className="text-fg-muted" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       side="bottom"
                       align="start"
-                      aria-label="General access"
+                      aria-label={share.generalAccess}
                       className="w-auto min-w-72"
                     >
                       {options.map((value) => (
                         <DropdownMenuItem
                           key={value}
-                          textValue={VISIBILITY_LABELS[value]}
+                          textValue={access.labels[value]}
                           onSelect={() => onChange(value)}
                         >
                           <span className="flex w-full items-center gap-3">
@@ -233,10 +235,10 @@ export function ShareVisibilityModal({
                             </span>
                             <span className="min-w-0 flex-1">
                               <span className="block text-sm text-fg">
-                                {optionLabel(value, workspaceName)}
+                                {optionLabel(access, value, workspaceName)}
                               </span>
                               <span className="block text-xs text-fg-muted">
-                                {VISIBILITY_DESCRIPTIONS[value]}
+                                {access.descriptions[value]}
                               </span>
                             </span>
                             {value === visibility ? (
@@ -249,11 +251,11 @@ export function ShareVisibilityModal({
                   </DropdownMenu>
                 ) : (
                   <p className="text-sm font-medium text-fg">
-                    {optionLabel(visibility, workspaceName)}
+                    {optionLabel(access, visibility, workspaceName)}
                   </p>
                 )}
                 <p className="text-xs text-fg-muted">
-                  {VISIBILITY_DESCRIPTIONS[visibility]}
+                  {access.descriptions[visibility]}
                 </p>
               </div>
             </div>
@@ -271,7 +273,7 @@ export function ShareVisibilityModal({
               onClick={() => copy("link", linkToShare)}
             >
               {copied === "link" ? <Check size={16} /> : <Link2 size={16} />}
-              {copied === "link" ? "Link copied" : "Copy link"}
+              {copied === "link" ? share.linkCopied : share.copyLink}
             </Button>
           ) : null}
           {canShareAt ? (
@@ -285,12 +287,12 @@ export function ShareVisibilityModal({
                 htmlFor={shareAtId}
                 className="text-sm font-normal text-fg"
               >
-                Share at {formatTimestamp(atMs)}
+                {fmt(share.shareAt, { time: formatTimestamp(atMs) })}
               </Label>
             </div>
           ) : null}
           <Button className="ml-auto" onClick={onClose}>
-            Done
+            {m.common.done}
           </Button>
         </DialogFooter>
       </DialogContent>

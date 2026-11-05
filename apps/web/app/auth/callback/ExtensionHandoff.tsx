@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { getRuntime, rememberExtensionId } from "@/lib/extension-bridge";
+import { fmt } from "@/lib/i18n/format";
 
 type ExtensionHandoffProps = {
   extId: string;
@@ -18,6 +20,7 @@ export function ExtensionHandoff({
   tokenId,
   email,
 }: ExtensionHandoffProps) {
+  const m = useAppMessages();
   const [state, setState] = useState<State>("sending");
 
   useEffect(() => {
@@ -50,13 +53,10 @@ export function ExtensionHandoff({
     <main className="flex min-h-screen items-center justify-center bg-canvas px-4 text-center">
       <div className="max-w-sm">
         {state === "error" ? (
-          <p className="text-fg">
-            Couldn’t reach the CaptureFlow extension. Make sure it’s installed,
-            then click its icon to try again.
-          </p>
+          <p className="text-fg">{m.auth.handoff.extensionUnreachable}</p>
         ) : (
           <p className="text-fg">
-            Signed in as {email}. You can close this tab.
+            {fmt(m.auth.handoff.extensionDone, { email })}
           </p>
         )}
       </div>

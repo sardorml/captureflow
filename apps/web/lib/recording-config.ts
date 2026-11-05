@@ -56,10 +56,9 @@ export type RecordingGradientKey = (typeof RECORDING_GRADIENT_KEYS)[number];
 
 export const RECORDING_GRADIENT_PRESETS: Record<
   RecordingGradientKey,
-  { label: string; stops: { offset: number; color: string }[] }
+  { stops: { offset: number; color: string }[] }
 > = {
   violet: {
-    label: "Violet",
     stops: [
       { offset: 0, color: "#6366f1" },
       { offset: 0.5, color: "#a855f7" },
@@ -67,7 +66,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   sunset: {
-    label: "Sunset",
     stops: [
       { offset: 0, color: "#fcd5b5" },
       { offset: 0.55, color: "#f5946a" },
@@ -75,7 +73,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   orchid: {
-    label: "Orchid",
     stops: [
       { offset: 0, color: "#7c3aed" },
       { offset: 0.5, color: "#ec4899" },
@@ -83,7 +80,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   forest: {
-    label: "Forest",
     stops: [
       { offset: 0, color: "#022c22" },
       { offset: 0.5, color: "#15803d" },
@@ -91,7 +87,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   flamingo: {
-    label: "Flamingo",
     stops: [
       { offset: 0, color: "#9d174d" },
       { offset: 0.5, color: "#db2777" },
@@ -99,7 +94,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   citrus: {
-    label: "Citrus",
     stops: [
       { offset: 0, color: "#f59e0b" },
       { offset: 0.4, color: "#ec4899" },
@@ -108,7 +102,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   arctic: {
-    label: "Arctic",
     stops: [
       { offset: 0, color: "#0ea5e9" },
       { offset: 0.5, color: "#a5f3fc" },
@@ -116,7 +109,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   ocean: {
-    label: "Ocean",
     stops: [
       { offset: 0, color: "#0c4a6e" },
       { offset: 0.5, color: "#0e7490" },
@@ -124,7 +116,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   deep: {
-    label: "Deep",
     stops: [
       { offset: 0, color: "#312e81" },
       { offset: 0.55, color: "#7c3aed" },
@@ -132,7 +123,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   ember: {
-    label: "Ember",
     stops: [
       { offset: 0, color: "#7f1d1d" },
       { offset: 0.5, color: "#ea580c" },
@@ -140,7 +130,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   mint: {
-    label: "Mint",
     stops: [
       { offset: 0, color: "#134e4a" },
       { offset: 0.5, color: "#2dd4bf" },
@@ -148,7 +137,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   dusk: {
-    label: "Dusk",
     stops: [
       { offset: 0, color: "#1e1b4b" },
       { offset: 0.55, color: "#475569" },
@@ -156,7 +144,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   peach: {
-    label: "Peach",
     stops: [
       { offset: 0, color: "#f9a8d4" },
       { offset: 0.5, color: "#fdba74" },
@@ -164,7 +151,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   midnight: {
-    label: "Midnight",
     stops: [
       { offset: 0, color: "#020617" },
       { offset: 0.6, color: "#1e293b" },
@@ -172,7 +158,6 @@ export const RECORDING_GRADIENT_PRESETS: Record<
     ],
   },
   slate: {
-    label: "Slate",
     stops: [
       { offset: 0, color: "#1f2937" },
       { offset: 0.5, color: "#64748b" },

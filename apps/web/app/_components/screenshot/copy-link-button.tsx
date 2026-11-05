@@ -3,6 +3,7 @@
 import { useState, type ReactElement } from "react";
 import { Check, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAppMessages } from "@/components/app-i18n-provider";
 
 export type CopyLinkButtonProps = {
   url: string;
@@ -13,8 +14,9 @@ export type CopyLinkButtonProps = {
 export function CopyLinkButton({
   url,
   className,
-  label = "Copy link",
+  label,
 }: CopyLinkButtonProps): ReactElement {
+  const m = useAppMessages();
   const [copied, setCopied] = useState(false);
 
   const handlePress = async (): Promise<void> => {
@@ -30,7 +32,7 @@ export function CopyLinkButton({
   return (
     <Button onClick={handlePress} className={className}>
       {copied ? <Check size={16} /> : <Link2 size={16} />}
-      {copied ? "Copied" : label}
+      {copied ? m.common.copied : (label ?? m.library.share.copyLink)}
     </Button>
   );
 }

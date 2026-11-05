@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { Search } from "lucide-react";
 import { Kbd } from "@/components/ui/kbd";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { whenIdle } from "@/lib/when-idle";
 
 const SearchDialog = dynamic(
@@ -16,6 +17,7 @@ const SearchDialog = dynamic(
 );
 
 export function SearchTrigger() {
+  const m = useAppMessages();
   const [open, setOpen] = useState(false);
   // Mounted closed once the page is idle, so the first ⌘K opens at once, and
   // kept mounted so closing can animate out.
@@ -47,7 +49,7 @@ export function SearchTrigger() {
       >
         <Search size={16} className="shrink-0" />
         <span className="flex-1 truncate text-left">
-          Search your recordings and screenshots
+          {m.shell.search.prompt}
         </span>
         <Kbd>⌘K</Kbd>
       </button>

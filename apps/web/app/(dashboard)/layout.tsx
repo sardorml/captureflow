@@ -6,6 +6,8 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { AppI18n } from "@/components/app-i18n";
+import { getAppI18n } from "@/lib/i18n/app/server";
 import { requireSession } from "@/lib/session-guard";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
@@ -22,6 +24,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSession();
+  const { messages } = await getAppI18n();
   const sidebarOpen = (await cookies()).get("sidebar_state")?.value !== "false";
   /*
    * The inset owns scrolling rather than the document: modals scroll-lock
@@ -29,33 +32,38 @@ export default async function DashboardLayout({
    * streams ahead of the sidebar's and the account cluster's queries.
    */
   return (
-    <SidebarProvider
-      defaultOpen={sidebarOpen}
-      className="h-svh overflow-hidden"
-    >
-      <div data-split="sidebar" className="contents">
-        <Suspense fallback={<SidebarSkeleton />}>
-          <Sidebar />
-        </Suspense>
-      </div>
-      <SidebarInset className="min-w-0 overflow-hidden">
-        <header className="flex h-16 shrink-0 items-center gap-2 px-4 md:px-6">
-          <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-vertical:h-4 data-vertical:self-auto"
-          />
-          <div data-split="top-bar" className="contents">
-            <TopBar session={session} />
-          </div>
-        </header>
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <PostHogIdentify email={session.user.email} />
-          <div data-split="page" className="mx-auto max-w-[1184px] p-8">
-            {children}
-          </div>
+    <AppI18n>
+      <SidebarProvider
+        defaultOpen={sidebarOpen}
+        className="h-svh overflow-hidden"
+      >
+        <div data-split="sidebar" className="contents">
+          <Suspense fallback={<SidebarSkeleton />}>
+            <Sidebar />
+          </Suspense>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+        <SidebarInset className="min-w-0 overflow-hidden">
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4 md:px-6">
+            <SidebarTrigger
+              className="-ml-1"
+              label={messages.shell.nav.toggleSidebar}
+            />
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-vertical:h-4 data-vertical:self-auto"
+            />
+            <div data-split="top-bar" className="contents">
+              <TopBar session={session} />
+            </div>
+          </header>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <PostHogIdentify email={session.user.email} />
+            <div data-split="page" className="mx-auto max-w-[1184px] p-8">
+              {children}
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </AppI18n>
   );
 }

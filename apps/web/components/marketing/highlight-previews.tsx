@@ -1,12 +1,19 @@
-import type { ReactNode } from "react";
+"use client";
 
+import type { ReactNode } from "react";
+import { useMessages } from "./i18n-provider";
+
+// Task colours per board column; the column names come from the catalog.
 const DUMMY_BOARD = [
-  { name: "To do", tasks: ["#f59e0b", "#f59e0b"] },
-  { name: "Doing", tasks: ["#1184f7"] },
-  { name: "Done", tasks: ["#22c55e", "#22c55e"] },
+  ["#f59e0b", "#f59e0b"],
+  ["#1184f7"],
+  ["#22c55e", "#22c55e"],
 ];
 
+const usePreviewCopy = () => useMessages().highlights.previews;
+
 function DummyApp({ className = "" }: { className?: string }) {
+  const copy = usePreviewCopy();
   return (
     <div
       className={`absolute inset-0 flex flex-col bg-white text-[#181818] ${className}`}
@@ -24,17 +31,17 @@ function DummyApp({ className = "" }: { className?: string }) {
           <span className="h-1 rounded-full bg-[#d4d4d4]" />
         </div>
         <div className="min-w-0 flex-1 p-2">
-          <p className="text-[8px] leading-none font-bold">Launch plan</p>
+          <p className="text-[8px] leading-none font-bold">{copy.app}</p>
           <div className="mt-1.5 grid grid-cols-3 gap-1">
-            {DUMMY_BOARD.map((column) => (
+            {DUMMY_BOARD.map((tasks, column) => (
               <div
-                key={column.name}
+                key={column}
                 className="flex flex-col gap-1 rounded-sm bg-[#f5f5f5] p-1"
               >
                 <span className="text-[6px] leading-none text-black/55">
-                  {column.name}
+                  {copy.columns[column]}
                 </span>
-                {column.tasks.map((color, i) => (
+                {tasks.map((color, i) => (
                   <span
                     key={i}
                     className="flex flex-col gap-0.5 rounded-sm bg-white p-1"
@@ -94,6 +101,7 @@ export function RecordingPreview() {
 }
 
 export function TranscriptsPreview() {
+  const { lines } = usePreviewCopy();
   return (
     <div className="flex size-full flex-col gap-2 bg-white p-2.5 text-[8px] leading-tight font-medium text-[#181818]">
       <div className="flex gap-1">
@@ -103,23 +111,22 @@ export function TranscriptsPreview() {
         <span className="rounded-full bg-[#eeeeee] px-1.5 py-0.5">Español</span>
         <span className="rounded-full bg-[#eeeeee] px-1.5 py-0.5">日本語</span>
       </div>
-      <Line time="0:02">Here is the new flow.</Line>
-      <Line time="0:06">First, pick a workspace.</Line>
-      <Line time="0:11">Then share the link.</Line>
+      <Line time="0:02">{lines[0]}</Line>
+      <Line time="0:06">{lines[1]}</Line>
+      <Line time="0:11">{lines[2]}</Line>
     </div>
   );
 }
 
 export function EditingPreview() {
+  const { lines, retake } = usePreviewCopy();
   return (
     <div className="flex size-full flex-col gap-1.5 bg-[#1b2233] p-2.5 text-[8px] leading-tight font-medium text-[#dbe3f7]">
-      <Line time="0:02">Here is the new flow.</Line>
+      <Line time="0:02">{lines[0]}</Line>
       <Line time="0:05">
-        <span className="rounded-sm bg-[rgb(239_68_68/0.25)] px-0.5 text-[#fca5a5] line-through">
-          Um, let me start again.
-        </span>
+        <Filler>{retake}</Filler>
       </Line>
-      <Line time="0:09">First, pick a workspace.</Line>
+      <Line time="0:09">{lines[1]}</Line>
       <div className="mt-1 flex h-4 w-[148px] gap-0.5">
         <span className="flex-[3] rounded-sm bg-[#60a5fa]" />
         <span className="flex-1 rounded-sm bg-[rgb(239_68_68/0.5)]" />
@@ -137,18 +144,19 @@ function Filler({ children }: { children: ReactNode }) {
   );
 }
 
+const FILLER_TIMES = ["0:02", "0:05", "0:09"];
+
 export function FillerPreview() {
+  const { filler } = usePreviewCopy();
   return (
     <div className="flex size-full flex-col gap-1.5 bg-[#1b2233] p-2.5 text-[8px] leading-tight font-medium text-[#dbe3f7]">
-      <Line time="0:02">
-        <Filler>Um,</Filler> here is the new flow.
-      </Line>
-      <Line time="0:05">
-        First, <Filler>uh,</Filler> pick a workspace.
-      </Line>
-      <Line time="0:09">
-        Then, <Filler>um,</Filler> share the link.
-      </Line>
+      {filler.map((line, i) => (
+        <Line key={i} time={FILLER_TIMES[i]!}>
+          {line
+            .split(/\[([^\]]*)\]/)
+            .map((part, p) => (p % 2 ? <Filler key={p}>{part}</Filler> : part))}
+        </Line>
+      ))}
       <div className="mt-1 flex h-4 w-[148px] gap-0.5">
         <span className="w-1.5 rounded-sm bg-[rgb(239_68_68/0.5)]" />
         <span className="flex-[3] rounded-sm bg-[#60a5fa]" />
@@ -179,6 +187,7 @@ export function CameraPreview() {
 }
 
 export function CanvasPreview() {
+  const { step } = usePreviewCopy();
   return (
     <div className="relative size-full bg-[#fafafa] [background-image:radial-gradient(#d4d4d4_1px,transparent_1px)] [background-size:10px_10px]">
       <svg
@@ -200,7 +209,7 @@ export function CanvasPreview() {
         />
       </svg>
       <span className="absolute top-2.5 left-2.5 rounded-sm bg-[#fde68a] px-1.5 py-1 text-[8px] leading-none font-semibold text-[#181818]">
-        Step 1
+        {step}
       </span>
       <Photo
         src="/presenter-design.webp"
@@ -211,6 +220,7 @@ export function CanvasPreview() {
 }
 
 export function ScreenshotsPreview() {
+  const { note } = usePreviewCopy();
   return (
     <div className="relative size-full bg-white p-2.5">
       <div className="h-1.5 w-20 rounded-full bg-[#d4d4d4]" />
@@ -235,13 +245,14 @@ export function ScreenshotsPreview() {
         />
       </svg>
       <span className="absolute top-8 left-[110px] text-[8px] leading-none font-semibold text-[#ef4444]">
-        Move this
+        {note}
       </span>
     </div>
   );
 }
 
 export function FeedbackPreview() {
+  const { comment } = usePreviewCopy();
   return (
     <div className="relative size-full bg-[#3b2a4f]">
       <DummyApp className="opacity-40" />
@@ -249,7 +260,7 @@ export function FeedbackPreview() {
         <span className="flex size-4 items-center justify-center rounded-full bg-[#f59e0b] text-[6px] font-bold text-white">
           MR
         </span>
-        Love this flow
+        {comment}
       </div>
       <div className="absolute top-10 left-2.5 flex gap-1">
         {["🔥", "👏", "❤️"].map((emoji) => (
@@ -265,20 +276,16 @@ export function FeedbackPreview() {
   );
 }
 
-const DEMO_CHAPTERS = [
-  ["0:00", "Intro"],
-  ["0:24", "Pick a workspace"],
-];
+const CHAPTER_TIMES = ["0:00", "0:24"];
 
 export function SummaryPreview() {
+  const copy = usePreviewCopy();
   return (
     <div className="flex size-full flex-col gap-1 bg-white p-2.5 text-[8px] leading-tight font-medium text-[#181818]">
-      <p className="text-[10px] font-bold">How to invite your team</p>
-      <p className="mb-1 text-black/55">
-        Pick a workspace, then share the link.
-      </p>
-      {DEMO_CHAPTERS.map(([time, name]) => (
-        <Line key={time} time={time!}>
+      <p className="text-[10px] font-bold">{copy.summaryTitle}</p>
+      <p className="mb-1 text-black/55">{copy.summaryBody}</p>
+      {copy.chapters.map((name, i) => (
+        <Line key={i} time={CHAPTER_TIMES[i]!}>
           {name}
         </Line>
       ))}

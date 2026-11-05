@@ -1,18 +1,10 @@
-import type { Metadata } from "next";
-import { EnterpriseSection } from "@/components/marketing/enterprise-section";
-import { MarketingPage } from "@/components/marketing/marketing-page";
+import { EnterprisePage } from "@/components/marketing/site-pages";
+import { DEFAULT_LOCALE } from "@/lib/i18n/config";
+import { pageMetadata } from "@/lib/i18n/metadata";
+import { MESSAGES } from "@/lib/marketing/messages";
 
-export const metadata: Metadata = {
-  title: "Enterprise",
-  description:
-    "Managed CaptureFlow for larger companies: seats for everyone, custom terms and a single invoice. Tell us what you need.",
-  alternates: { canonical: "/enterprise" },
-};
+export const metadata = pageMetadata("enterprise", DEFAULT_LOCALE, MESSAGES);
 
-export default function EnterprisePage() {
-  return (
-    <MarketingPage>
-      <EnterpriseSection />
-    </MarketingPage>
-  );
+export default function Page() {
+  return <EnterprisePage />;
 }

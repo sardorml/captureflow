@@ -12,11 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
+import { useAppMessages } from "@/components/app-i18n-provider";
+import { fmt } from "@/lib/i18n/format";
 import {
   ACCESS_FILTERS,
-  ACCESS_LABELS,
   DEFAULT_LIST_FILTERS,
-  SORT_LABELS,
   SORT_ORDERS,
   type ListFilters,
 } from "@/lib/list-filters";
@@ -29,7 +29,7 @@ type SelectAll = {
 };
 
 type Props = {
-  noun: string;
+  noun: "recording" | "screenshot";
   filters: ListFilters;
   // Absent when the viewer can manage nothing on the page.
   selectAll?: SelectAll;
@@ -43,6 +43,8 @@ export function ListToolbar({ noun, filters, selectAll }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectAllId = useId();
+  const m = useAppMessages();
+  const copy = m.library.filters;
 
   const setFilter = (key: keyof ListFilters, value: string): void => {
     const params = new URLSearchParams(searchParams);
@@ -70,7 +72,7 @@ export function ListToolbar({ noun, filters, selectAll }: Props) {
             onCheckedChange={(next) => selectAll.onChange(next === true)}
           />
           <Label htmlFor={selectAllId} className="text-sm font-normal text-fg">
-            Select all {noun}s
+            {m.library[noun].selectAll}
           </Label>
         </div>
       ) : (
@@ -78,17 +80,17 @@ export function ListToolbar({ noun, filters, selectAll }: Props) {
       )}
       <div className="flex items-center gap-2">
         <FilterMenu
-          label="Access"
+          label={copy.access}
           value={filters.access}
           options={ACCESS_FILTERS}
-          labels={ACCESS_LABELS}
+          labels={copy.accessOptions}
           onPick={(value) => setFilter("access", value)}
         />
         <FilterMenu
-          label="Sort"
+          label={copy.sort}
           value={filters.sort}
           options={SORT_ORDERS}
-          labels={SORT_LABELS}
+          labels={copy.sortOptions}
           onPick={(value) => setFilter("sort", value)}
         />
       </div>
@@ -109,10 +111,11 @@ function FilterMenu<T extends string>({
   labels: Record<T, string>;
   onPick: (value: T) => void;
 }) {
+  const copy = useAppMessages().library.filters;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`${label}: ${labels[value]}`}
+        aria-label={fmt(copy.current, { label, value: labels[value] })}
         className={cn(
           buttonVariants({ variant: "secondary", size: "sm" }),
           "gap-1.5 text-fg",

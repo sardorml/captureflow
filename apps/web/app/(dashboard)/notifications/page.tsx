@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { NotificationList } from "@/app/_components/NotificationList";
+import { getAppI18n } from "@/lib/i18n/app/server";
 import { loadNotificationFeed } from "@/lib/notification-feed";
 import { requireSession } from "@/lib/session-guard";
 import { PageHeader } from "../PageHeader";
@@ -11,6 +12,7 @@ const PAGE_LIMIT = 100;
 
 export default async function NotificationsPage() {
   const session = await requireSession();
+  const copy = (await getAppI18n()).messages.shell.notifications;
   const feed = await loadNotificationFeed(session.user, PAGE_LIMIT);
   const hasStoredUnread =
     feed?.notifications.some((n) => n.read_at === null) ?? false;
@@ -18,8 +20,8 @@ export default async function NotificationsPage() {
   return (
     <>
       <PageHeader
-        title="Notifications"
-        subtitle="Invites and changes to your workspaces."
+        title={copy.title}
+        subtitle={copy.subtitle}
         showRecord={false}
       />
       {hasStoredUnread && <MarkRead />}
@@ -27,7 +29,7 @@ export default async function NotificationsPage() {
         <NotificationList
           invites={feed?.invites ?? []}
           notifications={feed?.notifications ?? []}
-          emptyText="You’re all caught up. When someone invites you, joins your workspace, or changes your role, you’ll see it here."
+          emptyText={copy.pageEmpty}
         />
       </Card>
     </>

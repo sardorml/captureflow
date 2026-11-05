@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Tabs as TabsPrimitive } from "radix-ui";
 import { useState, type ReactNode } from "react";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { TabsContent } from "@/components/ui/tabs";
 import type { RecordingConfig } from "@/lib/recording-config";
 import { cn } from "@/lib/utils";
@@ -37,17 +38,16 @@ type Props = {
 };
 
 const PANELS = [
-  { value: "transcript", label: "Transcript", icon: Captions },
-  { value: "design", label: "Design", icon: Palette },
-  { value: "details", label: "Details", icon: Info },
+  { value: "transcript", icon: Captions },
+  { value: "design", icon: Palette },
+  { value: "details", icon: Info },
 ] as const satisfies readonly {
   value: string;
-  label: string;
   icon: LucideIcon;
 }[];
 
 const RAIL_ITEM_CLASS =
-  "flex w-full flex-col items-center gap-1 rounded-lg px-1 py-2 text-[11px] leading-tight font-medium text-fg-muted transition-colors outline-none hover:bg-tint hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-ring";
+  "flex w-full flex-col items-center gap-1 rounded-lg px-1 py-2 text-center text-[11px] leading-tight font-medium wrap-anywhere hyphens-auto text-fg-muted transition-colors outline-none hover:bg-tint hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-ring";
 const PANEL_CLASS = "flex min-h-0 flex-1 flex-col p-0 outline-hidden";
 
 /*
@@ -68,7 +68,10 @@ export function EditorInspector({
 }: Props) {
   const [panel, setPanel] = useState<string>("transcript");
   const [open, setOpen] = useState(true);
-  const panelLabel = PANELS.find((p) => p.value === panel)?.label.toLowerCase();
+  const m = useAppMessages();
+  const t = m.recordingEditor;
+  const shownPanel =
+    PANELS.find((p) => p.value === panel)?.value ?? PANELS[0].value;
 
   return (
     <TabsPrimitive.Root
@@ -91,14 +94,14 @@ export function EditorInspector({
 
               <TabsContent value="design" className={PANEL_CLASS}>
                 <div className="min-h-0 flex-1 overflow-y-auto">
-                  <Section title="Background">
+                  <Section title={t.background.title}>
                     <BackgroundPicker
                       background={config.background}
                       onChange={(bg) => onConfig({ background: bg })}
                     />
                   </Section>
                   {hasWebcam ? (
-                    <Section title="Camera">
+                    <Section title={t.camera.title}>
                       <CameraPicker
                         corner={config.cameraCorner}
                         point={config.cameraPoint}
@@ -116,7 +119,7 @@ export function EditorInspector({
                       />
                     </Section>
                   ) : null}
-                  <Section title="Audio">
+                  <Section title={t.audio.title}>
                     <AudioControls
                       micMuted={config.micMuted}
                       systemMuted={config.systemMuted}
@@ -130,7 +133,7 @@ export function EditorInspector({
 
               <TabsContent value="details" className={PANEL_CLASS}>
                 <div className="min-h-0 flex-1 overflow-y-auto">
-                  <Section title="Recording">
+                  <Section title={t.details.title}>
                     <DetailsList {...details} />
                   </Section>
                 </div>
@@ -143,10 +146,10 @@ export function EditorInspector({
 
       <div className="hidden w-16 shrink-0 flex-col justify-between border-l border-line bg-panel p-1.5 lg:flex">
         <TabsPrimitive.List
-          aria-label="Editor panels"
+          aria-label={t.panels.label}
           className="flex flex-col gap-1"
         >
-          {PANELS.map(({ value, label, icon: Icon }) => (
+          {PANELS.map(({ value, icon: Icon }) => (
             <TabsPrimitive.Trigger
               key={value}
               value={value}
@@ -158,7 +161,7 @@ export function EditorInspector({
               )}
             >
               <Icon className="size-5" aria-hidden />
-              {label}
+              {t.panels.tabs[value]}
             </TabsPrimitive.Trigger>
           ))}
         </TabsPrimitive.List>
@@ -173,7 +176,7 @@ export function EditorInspector({
           ) : (
             <PanelRightOpen className="size-5" aria-hidden />
           )}
-          {open ? `Hide ${panelLabel}` : `Show ${panelLabel}`}
+          {open ? t.panels.hide[shownPanel] : t.panels.show[shownPanel]}
         </button>
       </div>
     </TabsPrimitive.Root>

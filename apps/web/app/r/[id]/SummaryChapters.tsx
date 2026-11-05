@@ -12,6 +12,9 @@ import { ListVideo, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatTimestamp } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import { fill } from "@/lib/i18n/fill";
+import { fmt, plural } from "@/lib/i18n/format";
 
 type Props = {
   slug: string;
@@ -50,6 +53,9 @@ export function SummaryChapters({
   getCurrentMs,
   onChaptersChange,
 }: Props) {
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
+  const saveFailed = m.activity.saveFailed;
   const [summary, setSummary] = useState<string>(initialSummary);
   const [summaryEditing, setSummaryEditing] = useState(false);
   const [summaryDraft, setSummaryDraft] = useState<string>("");
@@ -73,15 +79,15 @@ export function SummaryChapters({
           }),
         });
         if (!res.ok) {
-          setSaveError("Could not save. Try again.");
+          setSaveError(saveFailed);
           return;
         }
         setSaveError(null);
       } catch {
-        setSaveError("Could not save. Try again.");
+        setSaveError(saveFailed);
       }
     },
-    [slug],
+    [slug, saveFailed],
   );
 
   useEffect(() => {
@@ -124,7 +130,13 @@ export function SummaryChapters({
     const ms = getCurrentMs?.() ?? 0;
     persistChapters([
       ...chapters,
-      { id: newId(), ms, title: `Chapter ${chapters.length + 1}` },
+      {
+        id: newId(),
+        ms,
+        title: fmt(m.activity.chapters.defaultTitle, {
+          n: chapters.length + 1,
+        }),
+      },
     ]);
   };
 
@@ -184,12 +196,12 @@ export function SummaryChapters({
         {showSummary && (
           <Card
             icon={<Sparkles className="size-4" />}
-            title="Summary"
+            title={m.activity.summary.title}
             actions={
               isOwner && !summaryEditing ? (
                 <Button variant="ghost" size="sm" onClick={startSummaryEdit}>
                   <Pencil className="size-3.5" />
-                  {hasSummary ? "Edit" : "Add"}
+                  {hasSummary ? m.common.edit : m.activity.summary.add}
                 </Button>
               ) : null
             }
@@ -204,7 +216,7 @@ export function SummaryChapters({
                   value={summaryDraft}
                   onChange={(e) => setSummaryDraft(e.target.value)}
                   rows={5}
-                  placeholder="What happens in this recording?"
+                  placeholder={m.activity.summary.placeholder}
                   className="block w-full resize-none bg-transparent text-[15px] leading-7 text-fg placeholder:text-fg-subtle focus:outline-none"
                 />
               </EditBox>
@@ -214,8 +226,8 @@ export function SummaryChapters({
               </p>
             ) : (
               <EmptyState
-                text={"No summary yet."}
-                action={isOwner ? "Add a summary" : undefined}
+                text={m.activity.summary.empty}
+                action={isOwner ? m.activity.summary.emptyAction : undefined}
                 onAction={startSummaryEdit}
               />
             )}
@@ -225,10 +237,10 @@ export function SummaryChapters({
         {showChapters && (
           <Card
             icon={<ListVideo className="size-4" />}
-            title="Chapters"
+            title={m.activity.chapters.title}
             meta={
               hasChapters
-                ? `${chapters.length} ${chapters.length === 1 ? "chapter" : "chapters"}`
+                ? plural(m.activity.chapters.count, chapters.length, lang)
                 : undefined
             }
             actions={
@@ -236,7 +248,7 @@ export function SummaryChapters({
                 <>
                   <Button variant="ghost" size="sm" onClick={onAddChapter}>
                     <Plus className="size-3.5" />
-                    Add at playhead
+                    {m.activity.chapters.addAtPlayhead}
                   </Button>
                   {hasChapters && (
                     <Button
@@ -245,7 +257,7 @@ export function SummaryChapters({
                       onClick={startChaptersEdit}
                     >
                       <Pencil className="size-3.5" />
-                      Edit
+                      {m.common.edit}
                     </Button>
                   )}
                 </>
@@ -254,12 +266,10 @@ export function SummaryChapters({
           >
             {chaptersEditing ? (
               <EditBox
-                hint={
-                  <>
-                    One chapter per line, as <code>M:SS Title</code> or{" "}
-                    <code>H:MM:SS Title</code>.
-                  </>
-                }
+                hint={fill(m.activity.chapters.editHint, {
+                  short: <code>{m.activity.chapters.editHintShort}</code>,
+                  long: <code>{m.activity.chapters.editHintLong}</code>,
+                })}
                 onCancel={() => setChaptersEditing(false)}
                 onSave={commitChaptersEdit}
               >
@@ -267,7 +277,7 @@ export function SummaryChapters({
                   value={chaptersDraft}
                   onChange={(e) => setChaptersDraft(e.target.value)}
                   rows={Math.max(4, chaptersDraft.split("\n").length)}
-                  placeholder={"0:00 Intro\n0:30 Demo\n1:20 Wrap-up"}
+                  placeholder={m.activity.chapters.editPlaceholder}
                   className="block w-full resize-none bg-transparent font-mono text-sm leading-6 text-fg placeholder:text-fg-subtle focus:outline-none"
                 />
               </EditBox>
@@ -308,7 +318,7 @@ export function SummaryChapters({
                           </span>
                           {active ? (
                             <span className="shrink-0 text-[11px] font-medium text-accent-strong">
-                              Playing
+                              {m.activity.chapters.playing}
                             </span>
                           ) : null}
                         </button>
@@ -316,7 +326,7 @@ export function SummaryChapters({
                           <button
                             type="button"
                             onClick={() => removeChapter(c.id)}
-                            aria-label="Remove chapter"
+                            aria-label={m.activity.chapters.remove}
                             className="rounded-lg p-1.5 text-fg-subtle opacity-0 transition-opacity hover:bg-tint-strong hover:text-red-400 focus-visible:opacity-100 group-hover:opacity-100"
                           >
                             <Trash2 className="size-3.5" />
@@ -329,8 +339,8 @@ export function SummaryChapters({
               </ol>
             ) : (
               <EmptyState
-                text={"No chapters yet."}
-                action={isOwner ? "Add one at the playhead" : undefined}
+                text={m.activity.chapters.empty}
+                action={isOwner ? m.activity.chapters.emptyAction : undefined}
                 onAction={onAddChapter}
               />
             )}
@@ -388,6 +398,7 @@ function EditBox({
   onSave: () => void;
   children: ReactNode;
 }) {
+  const m = useAppMessages();
   return (
     <div className="space-y-3 rounded-xl bg-input/30 p-3 ring-1 ring-line transition-shadow focus-within:ring-2 focus-within:ring-accent-ring">
       {children}
@@ -395,10 +406,10 @@ function EditBox({
         <p className="text-xs text-fg-subtle">{hint}</p>
         <div className="flex shrink-0 gap-2">
           <Button variant="secondary" size="sm" onClick={onCancel}>
-            Cancel
+            {m.common.cancel}
           </Button>
           <Button size="sm" onClick={onSave}>
-            Save
+            {m.common.save}
           </Button>
         </div>
       </div>

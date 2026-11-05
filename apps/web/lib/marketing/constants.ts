@@ -1,17 +1,10 @@
 import { FREE_TIER, SEAT_PLANS } from "@captureflow/quota";
 import { CHROME_WEBSTORE_URL, SUPPORT_EMAIL } from "@/lib/site";
-import { MESSAGES } from "./messages";
+import { MESSAGES, type Messages } from "./messages";
 
 export const SITE_URL = "https://captureflow.dev";
 export const SITE_NAME = "CaptureFlow";
-/*
- * Brand first. "captureflow" is a contested term — three unrelated products
- * hold it — and for that query the docs homepage was outranking this one on
- * the strength of naming the brand up front while this title trailed it.
- */
-export const SITE_TITLE = "CaptureFlow - Screen Recorder with Shareable Links";
-export const SITE_DESCRIPTION =
-  "Record your screen and share a link with your team or customers. An open-source screen recorder with AI transcripts and annotated screenshots, self-hostable on Cloudflare.";
+export const SITE_DESCRIPTION = MESSAGES.meta.home.description;
 // Shared with app chrome (account menu, record button) via @/lib/site so
 // those pages don't carry this module and the marketing copy it pulls in.
 export {
@@ -217,17 +210,6 @@ export const CURRENT_STAGE: StageConfig = STAGE_CONFIG[LAUNCH_STAGE];
 
 export const PRO_PRICE: number = CURRENT_STAGE.price;
 
-/*
- * The FAQ text has one home: the message catalogue the section renders from.
- * A second copy lived here and drifted — it still carried a comparison answer
- * naming other products that the catalogue had already replaced, and
- * FAQ_SCHEMA was publishing that stale version into the homepage's structured
- * data where nothing on screen would ever have shown it.
- */
-export const FAQ_ITEMS: { question: string; answer: string }[] = [
-  ...MESSAGES.faq.items,
-];
-
 export const FEATURE_HIGHLIGHTS = [
   {
     label: "Three capture modes",
@@ -354,15 +336,19 @@ export const WEBSITE_SCHEMA = {
   url: SITE_URL,
 };
 
-export const FAQ_SCHEMA = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: FAQ_ITEMS.map((item) => ({
-    "@type": "Question",
-    name: item.question,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: item.answer,
-    },
-  })),
-};
+// Built from the catalog the FAQ section renders, in the page's language, so
+// the structured data never says something the page does not.
+export function faqSchema(messages: Messages) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: messages.faq.items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+}

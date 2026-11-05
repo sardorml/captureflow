@@ -25,8 +25,8 @@ export function PricingSection({
       <FrameSection id="pricing">
         {!hideHeading && (
           <FrameHeader
-            title={CURRENT_STAGE.pricingHeading ?? m.pricing.heading}
-            subtitle={CURRENT_STAGE.pricingSubheading ?? m.pricing.subheading}
+            title={m.pricing.heading}
+            subtitle={m.pricing.subheading}
             level={headingLevel}
             action={
               showTable ? undefined : (

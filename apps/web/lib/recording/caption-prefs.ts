@@ -13,16 +13,9 @@ export const DEFAULT_CAPTION_PREFS: CaptionPrefs = {
 
 export const CAPTION_PREFS_STORAGE_KEY = "captureflow:captions";
 
-export const CAPTION_SIZES: { value: CaptionSize; label: string }[] = [
-  { value: "small", label: "Small" },
-  { value: "medium", label: "Medium" },
-  { value: "large", label: "Large" },
-];
+export const CAPTION_SIZES: CaptionSize[] = ["small", "medium", "large"];
 
-export const CAPTION_POSITIONS: { value: CaptionPosition; label: string }[] = [
-  { value: "top", label: "Top" },
-  { value: "bottom", label: "Bottom" },
-];
+export const CAPTION_POSITIONS: CaptionPosition[] = ["top", "bottom"];
 
 export function hydrateCaptionPrefs(raw: unknown): CaptionPrefs {
   if (!raw || typeof raw !== "object") return DEFAULT_CAPTION_PREFS;

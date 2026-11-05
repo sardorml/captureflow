@@ -8,6 +8,8 @@ import {
   updateWorkspacePolicy,
 } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fmt } from "@/lib/i18n/format";
 import { deleteObject, putObject } from "@/lib/r2";
 import { requireWorkspaceAccess } from "@/lib/workspace/access";
 import { readImageUpload } from "@/lib/workspace-images";
@@ -29,18 +31,22 @@ export async function updateWorkspaceNameAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const { messages: m } = await getAppI18n();
   const owned = await requireOwnerWorkspace();
-  if (!owned)
-    return { error: "Only the workspace owner can change this", ok: null };
+  if (!owned) return { error: m.settings.errors.ownerOnly, ok: null };
   const { workspaceId } = owned;
   const env = await getAppWebEnv();
-  if (!env?.DB) return { error: "Database unavailable", ok: null };
+  if (!env?.DB)
+    return { error: m.settings.errors.databaseUnavailable, ok: null };
 
-  const name = hydrateWorkspaceName(formData.get("name"));
+  const name = hydrateWorkspaceName(formData.get("name"), {
+    empty: m.settings.workspace.name.empty,
+    tooLong: m.settings.workspace.name.tooLong,
+  });
   if (!name.ok) return { error: name.error, ok: null };
 
   const ok = await updateWorkspaceName(env.DB, workspaceId, name.name);
-  if (!ok) return { error: "Couldn’t save — try again", ok: null };
+  if (!ok) return { error: m.settings.errors.saveFailed, ok: null };
   revalidatePath("/", "layout");
   return { error: null, ok: "Saved" };
 }
@@ -49,14 +55,19 @@ export async function uploadWorkspaceLogoAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const { messages: m } = await getAppI18n();
   const owned = await requireOwnerWorkspace();
-  if (!owned)
-    return { error: "Only the workspace owner can change this", ok: null };
+  if (!owned) return { error: m.settings.errors.ownerOnly, ok: null };
   const { workspaceId } = owned;
   const env = await getAppWebEnv();
-  if (!env?.DB) return { error: "Database unavailable", ok: null };
+  if (!env?.DB)
+    return { error: m.settings.errors.databaseUnavailable, ok: null };
 
-  const image = await readImageUpload(formData.get("logo"), "Logo");
+  const image = await readImageUpload(formData.get("logo"), {
+    missing: m.settings.upload.missing,
+    tooLarge: m.settings.workspace.logo.tooLarge,
+    badType: m.settings.workspace.logo.badType,
+  });
   if (!image.ok) return { error: image.error, ok: null };
 
   // Key on workspaceId so a same-extension re-upload overwrites in place; the
@@ -66,9 +77,9 @@ export async function uploadWorkspaceLogoAction(
     await putObject(key, image.buffer, image.mime, "public, max-age=86400");
   } catch (err) {
     return {
-      error: `Upload failed: ${
-        err instanceof Error ? err.message : String(err)
-      }`,
+      error: fmt(m.settings.upload.failedReason, {
+        reason: err instanceof Error ? err.message : String(err),
+      }),
       ok: null,
     };
   }
@@ -80,7 +91,7 @@ export async function uploadWorkspaceLogoAction(
   }
 
   const ok = await updateWorkspaceLogo(env.DB, workspaceId, key);
-  if (!ok) return { error: "Couldn’t save — try again", ok: null };
+  if (!ok) return { error: m.settings.errors.saveFailed, ok: null };
   revalidatePath("/", "layout");
   return { error: null, ok: "Logo updated" };
 }

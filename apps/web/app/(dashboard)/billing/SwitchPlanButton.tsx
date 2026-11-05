@@ -12,6 +12,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import { fmt, plural } from "@/lib/i18n/format";
 import { switchPlanAction } from "./actions";
 
 export function SwitchPlanButton({
@@ -30,41 +32,49 @@ export function SwitchPlanButton({
   const [isOpen, setOpen] = useState(defaultOpen);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
+  const t = m.billing.switchPlan;
   const target = getSeatPlan(to);
   const before = seatPriceUsd(seats, cycle, from);
   const after = seatPriceUsd(seats, cycle, to);
-  const seatWord = seats === 1 ? "seat" : "seats";
+  const switchTo = fmt(t.switchTo, { plan: target.name });
 
   const confirm = () =>
     startTransition(async () => {
       setError(null);
       const result = await switchPlanAction(to);
       if (result.ok) setOpen(false);
-      else setError(result.error ?? "Couldn’t change the plan");
+      else setError(result.error ?? t.errors.failed);
     });
 
   return (
     <>
       <Button className="shrink-0" onClick={() => setOpen(true)}>
         <Sparkles size={16} />
-        Switch to {target.name}
+        {switchTo}
       </Button>
       <AlertDialog open={isOpen} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Switch to {target.name}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {fmt(t.title, { plan: target.name })}
+            </AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogDescription asChild>
             <div className="flex flex-col gap-2 text-sm text-fg">
               <p>
-                Your {seats} {seatWord} go from ${before} to ${after} a month
-                {cycle === "annual" ? ", billed yearly" : ""}. {target.name}{" "}
-                records at every quality up to 60 fps and adds AI editing.
+                {fmt(
+                  plural(
+                    cycle === "annual" ? t.priceYearly : t.priceMonthly,
+                    seats,
+                    lang,
+                  ),
+                  { before: `$${before}`, after: `$${after}` },
+                )}{" "}
+                {fmt(t.benefits, { plan: target.name })}
               </p>
-              <p className="text-fg-muted">
-                It starts now. The difference for the rest of this billing
-                period is added to your next invoice.
-              </p>
+              <p className="text-fg-muted">{t.timing}</p>
               {error && <p className="text-destructive">{error}</p>}
             </div>
           </AlertDialogDescription>
@@ -75,10 +85,10 @@ export function SwitchPlanButton({
               disabled={pending}
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {m.common.cancel}
             </Button>
             <Button size="sm" disabled={pending} onClick={confirm}>
-              Switch to {target.name}
+              {switchTo}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

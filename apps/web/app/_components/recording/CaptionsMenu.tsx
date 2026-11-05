@@ -5,6 +5,7 @@ import { Menu, Text as TextPrimitive } from "@videojs/react";
 import { CaptionsOffIcon } from "@videojs/react/icons";
 import { CaptionsRadioGroup } from "@videojs/react/ui/captions-radio-group";
 import { MenuChevron } from "@/components/videojs/ui/menu-chevron";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { RadioItem } from "@/components/videojs/ui/radio-item";
 import { cn } from "@/lib/utils";
 import {
@@ -126,6 +127,7 @@ export function CaptionsMenu({
   prefs: CaptionPrefs;
   onChange: (patch: Partial<CaptionPrefs>) => void;
 }) {
+  const m = useAppMessages();
   return (
     <Menu.Root>
       <CaptionsRadioGroup.Root>
@@ -157,16 +159,22 @@ export function CaptionsMenu({
           />
           <Menu.Separator className={SEPARATOR_CLASS} />
           <LookGroup
-            label="Size"
+            label={m.player.captions.size}
             value={prefs.size}
-            options={CAPTION_SIZES}
+            options={CAPTION_SIZES.map((value) => ({
+              value,
+              label: m.player.captions.sizes[value],
+            }))}
             onChange={(size) => onChange({ size })}
           />
           <Menu.Separator className={SEPARATOR_CLASS} />
           <LookGroup
-            label="Position"
+            label={m.player.captions.position}
             value={prefs.position}
-            options={CAPTION_POSITIONS}
+            options={CAPTION_POSITIONS.map((value) => ({
+              value,
+              label: m.player.captions.positions[value],
+            }))}
             onChange={(position) => onChange({ position })}
           />
         </Menu.Content>

@@ -30,6 +30,8 @@ import { Sidebar } from "@/app/(dashboard)/Sidebar";
 import { Suspense } from "react";
 import { isSelfHosted } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fmt } from "@/lib/i18n/format";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -53,10 +55,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
   const imageUrl = await publicScreenshotUrlFor(screenshot.id);
-  const title = screenshot.title ?? `${PRODUCT_NAME} screenshot`;
+  const { messages: m } = await getAppI18n();
+  const title =
+    screenshot.title ??
+    fmt(m.screenshotView.page.defaultTitle, { product: PRODUCT_NAME });
   return {
     title,
-    description: `A screenshot shared from ${PRODUCT_NAME}.`,
+    description: fmt(m.screenshotView.page.description, {
+      product: PRODUCT_NAME,
+    }),
     // noindex: user-generated screenshots must never surface in organic search.
     robots: { index: false, follow: false },
     openGraph: {

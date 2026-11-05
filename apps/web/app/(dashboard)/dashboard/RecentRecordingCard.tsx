@@ -4,6 +4,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PostedAt } from "@/app/_components/PostedAt";
 import { FadeInImage } from "@/components/ui/fade-in-image";
 import { formatDuration, initials } from "@/lib/format";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { plural } from "@/lib/i18n/format";
 import { viewUrlFor } from "@/lib/site";
 
 export type RecentRecording = {
@@ -23,24 +25,26 @@ export type RecentRecording = {
   aiGenerated: boolean;
 };
 
-function recordingTitle(title: string | null): string {
-  return title?.trim() || "Untitled recording";
-}
-
-export function RecentRecordingCard({
+export async function RecentRecordingCard({
   recording,
 }: {
   recording: RecentRecording;
 }) {
+  const { messages: m, lang } = await getAppI18n();
+  const counts = m.library.dashboard.recent;
   return (
     <a
       href={viewUrlFor(recording.slug)}
       className="group flex flex-col gap-2.5 rounded-2xl p-2 transition-colors hover:bg-tint"
     >
-      <RecordingPoster recording={recording} />
+      <RecordingPoster
+        recording={recording}
+        aiGeneratedLabel={m.library.recording.aiGenerated}
+        processingLabel={m.library.recording.processing}
+      />
       <div className="min-w-0 px-1">
         <p className="truncate text-sm font-medium text-fg-strong">
-          {recordingTitle(recording.title)}
+          {recording.title?.trim() || m.library.recording.untitled}
         </p>
         <div className="mt-1.5 flex min-w-0 items-center gap-1.5 text-xs text-fg-muted">
           {recording.author && (
@@ -65,16 +69,20 @@ export function RecentRecordingCard({
           <PostedAt at={recording.createdAt} className="shrink-0" />
         </div>
         <div className="mt-1 flex items-center gap-3 text-xs text-fg-muted">
-          <Count icon={<Eye size={12} />} n={recording.viewCount} noun="view" />
+          <Count
+            icon={<Eye size={12} />}
+            n={recording.viewCount}
+            label={plural(counts.views, recording.viewCount, lang)}
+          />
           <Count
             icon={<MessageSquare size={12} />}
             n={recording.commentCount}
-            noun="comment"
+            label={plural(counts.comments, recording.commentCount, lang)}
           />
           <Count
             icon={<Smile size={12} />}
             n={recording.reactionCount}
-            noun="reaction"
+            label={plural(counts.reactions, recording.reactionCount, lang)}
           />
         </div>
       </div>
@@ -85,17 +93,14 @@ export function RecentRecordingCard({
 function Count({
   icon,
   n,
-  noun,
+  label,
 }: {
   icon: ReactNode;
   n: number;
-  noun: string;
+  label: string;
 }) {
   return (
-    <span
-      className="flex items-center gap-1 tabular-nums"
-      aria-label={`${n} ${noun}${n === 1 ? "" : "s"}`}
-    >
+    <span className="flex items-center gap-1 tabular-nums" aria-label={label}>
       <span aria-hidden className="flex">
         {icon}
       </span>
@@ -104,7 +109,15 @@ function Count({
   );
 }
 
-function RecordingPoster({ recording }: { recording: RecentRecording }) {
+function RecordingPoster({
+  recording,
+  aiGeneratedLabel,
+  processingLabel,
+}: {
+  recording: RecentRecording;
+  aiGeneratedLabel: string;
+  processingLabel: string;
+}) {
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-tint ring-1 ring-line">
       {recording.posterBlur && (
@@ -134,15 +147,15 @@ function RecordingPoster({ recording }: { recording: RecentRecording }) {
           <Bot
             size={12}
             className="inline align-middle"
-            aria-label="AI generated"
+            aria-label={aiGeneratedLabel}
           >
-            <title>AI generated</title>
+            <title>{aiGeneratedLabel}</title>
           </Bot>
         </span>
       )}
       {!recording.ready ? (
         <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/70 px-1.5 py-0.5 text-[11px] font-medium text-white">
-          Processing
+          {processingLabel}
         </span>
       ) : recording.durationMs ? (
         <span className="absolute right-1.5 bottom-1.5 rounded-md bg-black/70 px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-white">

@@ -7,6 +7,7 @@ import {
   type ReactElement,
 } from "react";
 import { UserPlus, X } from "lucide-react";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { getSeatPlan, type AssignableRole } from "@captureflow/quota";
 import type { PaidSeats } from "@/lib/billing/seat-checkout";
+import { fmt, plural } from "@/lib/i18n/format";
 import { assignableRoles } from "@/lib/workspace/labels";
 import { inviteMemberAction } from "./members/actions";
 
@@ -54,6 +56,9 @@ export function InviteModal({
   paidSeats = null,
   selfHosted = false,
 }: InviteModalProps = {}) {
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
+  const copy = m.members.invite;
   // In a paid workspace a member costs a seat, so the owner opts into it.
   const defaultRole: AssignableRole = paidSeats ? "viewer" : "member";
   const [ownOpen, setOwnOpen] = useState(false);
@@ -101,12 +106,12 @@ export function InviteModal({
     setResult(null);
     const all = draft.trim() ? [...emails, draft.trim()] : emails;
     if (all.length === 0) {
-      setError("Add at least one email");
+      setError(copy.noEmails);
       return;
     }
     const invalid = all.filter((e) => !EMAIL_RE.test(e));
     if (invalid.length > 0) {
-      setError(`Not a valid email: ${invalid.join(", ")}`);
+      setError(fmt(copy.invalidEmails, { emails: invalid.join(", ") }));
       return;
     }
     setDraft("");
@@ -119,7 +124,7 @@ export function InviteModal({
         fd.set("role", role);
         const res = await inviteMemberAction({ error: null, ok: null }, fd);
         if (res.ok) sent.push(email);
-        else failed.push({ email, error: res.error ?? "Failed" });
+        else failed.push({ email, error: res.error ?? copy.failed });
       }
       setResult({ sent, failed });
       setEmails(failed.map((f) => f.email));
@@ -140,7 +145,7 @@ export function InviteModal({
           {trigger ?? (
             <Button variant="secondary">
               <UserPlus size={16} />
-              Invite members
+              {copy.trigger}
             </Button>
           )}
         </span>
@@ -162,14 +167,13 @@ export function InviteModal({
           <DialogHeader>
             <DialogTitle>
               {workspaceName
-                ? `Invite members to ${workspaceName}`
-                : "Invite members to your workspace"}
+                ? fmt(copy.title, { workspace: workspaceName })
+                : copy.titleOwnWorkspace}
             </DialogTitle>
           </DialogHeader>
           <div>
             <DialogDescription className="mb-3">
-              They&rsquo;ll get an email with a link that expires in 7 days.
-              Make sure they sign in with the same address.
+              {copy.description}
             </DialogDescription>
 
             {/* The container is the field: it owns the border and the focus
@@ -180,7 +184,7 @@ export function InviteModal({
                   {email}
                   <button
                     type="button"
-                    aria-label={`Remove ${email}`}
+                    aria-label={fmt(copy.removeEmail, { email })}
                     onClick={() => setEmails(emails.filter((e) => e !== email))}
                     className="ml-1 cursor-pointer"
                   >
@@ -191,8 +195,8 @@ export function InviteModal({
               <input
                 type="text"
                 className="min-w-40 flex-1 bg-transparent px-1 py-0.5 text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                placeholder="Add emails"
-                aria-label="Add emails"
+                placeholder={copy.addEmails}
+                aria-label={copy.addEmails}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={onKeyDown}
@@ -200,16 +204,16 @@ export function InviteModal({
               />
             </div>
             <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
-              Separate emails with a space, comma, or enter.
+              {copy.separatorHint}
             </p>
 
             <RadioGroup
               value={role}
               onValueChange={(value) => setRole(value as AssignableRole)}
-              aria-label="Role"
+              aria-label={m.members.role}
               className="mt-4 grid-cols-1 sm:grid-cols-2"
             >
-              {assignableRoles(selfHosted).map((option) => (
+              {assignableRoles(selfHosted, m.members).map((option) => (
                 <FieldLabel
                   key={option.id}
                   htmlFor={`invite-role-${option.id}`}
@@ -230,11 +234,13 @@ export function InviteModal({
 
             {paidSeats && role === "member" && (
               <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                {`Each member who accepts adds a paid seat to your ${getSeatPlan(paidSeats.plan).name} plan, $${
-                  paidSeats.cycle === "annual"
-                    ? getSeatPlan(paidSeats.plan).priceAnnualUsdPerMonth
-                    : getSeatPlan(paidSeats.plan).priceMonthlyUsd
-                } a month each. The rest of this period goes on your next invoice.`}
+                {fmt(copy.paidSeatNote, {
+                  plan: getSeatPlan(paidSeats.plan).name,
+                  price:
+                    paidSeats.cycle === "annual"
+                      ? getSeatPlan(paidSeats.plan).priceAnnualUsdPerMonth
+                      : getSeatPlan(paidSeats.plan).priceMonthlyUsd,
+                })}
               </p>
             )}
 
@@ -248,9 +254,7 @@ export function InviteModal({
                 {result.sent.length > 0 && (
                   <Alert>
                     <AlertTitle>
-                      {`Sent ${result.sent.length} ${
-                        result.sent.length === 1 ? "invite" : "invites"
-                      }.`}
+                      {plural(copy.sent, result.sent.length, lang)}
                     </AlertTitle>
                   </Alert>
                 )}
@@ -278,13 +282,13 @@ export function InviteModal({
                 reset();
               }}
             >
-              Cancel
+              {m.common.cancel}
             </Button>
             <Button
               onClick={submit}
               disabled={isPending || (emails.length === 0 && !draft.trim())}
             >
-              {isPending ? "Sending…" : "Send invites"}
+              {isPending ? copy.sending : copy.submit}
             </Button>
           </DialogFooter>
         </DialogContent>

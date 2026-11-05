@@ -1,13 +1,15 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { getAppI18n } from "@/lib/i18n/app/server";
 import { InlineSkeleton } from "../_skeletons";
 
-export default function Loading() {
+export default async function Loading() {
+  const { messages: m } = await getAppI18n();
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-fg-strong">
-            Welcome back
+            {m.library.dashboard.welcome}
           </h1>
           <p className="mt-1 text-sm text-fg-muted">
             <InlineSkeleton className="h-3.5 w-40" />

@@ -12,7 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { NotificationFeed } from "@/lib/notification-text";
+import { plural } from "@/lib/i18n/format";
 import { cn } from "@/lib/utils";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
 import { NotificationList } from "./NotificationList";
 
 const MENU_LIMIT = 6;
@@ -32,6 +34,8 @@ export function NotificationsMenu({
   base?: string;
   feed: NotificationFeed | null;
 }) {
+  const copy = useAppMessages().shell.notifications;
+  const { lang } = useAppLocale();
   const invites = feed?.invites ?? [];
   const [opened, setOpened] = useState(false);
   const [closed, setClosed] = useState(false);
@@ -54,9 +58,7 @@ export function NotificationsMenu({
   return (
     <DropdownMenu onOpenChange={onOpenChange}>
       <DropdownMenuTrigger
-        aria-label={
-          unread ? `Notifications, ${unread} unread` : "Notifications"
-        }
+        aria-label={unread ? plural(copy.bellUnread, unread, lang) : copy.title}
         className={cn(
           buttonVariants({ variant: "ghost", size: "icon" }),
           "relative",
@@ -73,7 +75,7 @@ export function NotificationsMenu({
       <DropdownMenuContent side="bottom" align="end" className="w-96">
         <div className="px-3 py-2.5">
           <p className="text-base leading-7 font-semibold text-foreground">
-            Notifications
+            {copy.title}
           </p>
         </div>
 
@@ -84,13 +86,13 @@ export function NotificationsMenu({
           notifications={notifications}
           base={base}
           className="max-h-[60vh] overflow-y-auto"
-          emptyText="You’re all caught up. Invites, new teammates, and role changes show up here."
+          emptyText={copy.menuEmpty}
         />
 
         <DropdownMenuSeparator />
 
         <DropdownMenuItem asChild className="justify-center">
-          <a href={`${base}/notifications`}>View all</a>
+          <a href={`${base}/notifications`}>{copy.viewAll}</a>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,20 +1,10 @@
-import type { Metadata } from "next";
-import { MarketingPage } from "@/components/marketing/marketing-page";
-import { PageHero } from "@/components/marketing/page-hero";
-import { PricingSection } from "@/components/marketing/pricing-section";
+import { PricingPage } from "@/components/marketing/site-pages";
+import { DEFAULT_LOCALE } from "@/lib/i18n/config";
+import { pageMetadata } from "@/lib/i18n/metadata";
+import { MESSAGES } from "@/lib/marketing/messages";
 
-export const metadata: Metadata = {
-  title: "Pricing: free to start, one price per member",
-  description:
-    "Start free with 25 recordings. Light and Pro are one price per member with unlimited recordings and AI. Or self-host CaptureFlow free.",
-  alternates: { canonical: "/pricing" },
-};
+export const metadata = pageMetadata("pricing", DEFAULT_LOCALE, MESSAGES);
 
-export default function PricingPage() {
-  return (
-    <MarketingPage>
-      <PageHero page="pricing" />
-      <PricingSection hideHeading showTable />
-    </MarketingPage>
-  );
+export default function Page() {
+  return <PricingPage />;
 }

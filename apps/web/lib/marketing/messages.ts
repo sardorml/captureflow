@@ -2,18 +2,58 @@
  * `{n}`, `{total}`, `{amount}` (and other `{…}`) are runtime placeholders filled
  * via `.replace()` — keep them verbatim. Arrays here keep the SAME length and
  * order as their counterparts in lib/marketing/constants.ts so components can zip
- * them by index.
+ * them by index. This is the English catalog; each file in ./locales is the
+ * same shape in another language.
  */
-import { FREE_TIER, getSeatPlan } from "@captureflow/quota";
-
-const LIGHT = getSeatPlan("light").name;
-const PRO = getSeatPlan("pro").name;
-const FREE_AGENT_MIN = FREE_TIER.agentMinutesPerPerson;
-const LIGHT_AGENT_MIN = getSeatPlan("light").agentMinutesPerSeat;
-const PRO_AGENT_MIN = getSeatPlan("pro").agentMinutesPerSeat;
-const PRO_VOICEOVER_MIN = getSeatPlan("pro").voiceoverMinutesPerSeat;
+import {
+  FREE_AGENT_MIN,
+  FREE_RECORDINGS,
+  LIGHT,
+  LIGHT_AGENT_MIN,
+  PRO,
+  PRO_AGENT_MIN,
+  PRO_VOICEOVER_MIN,
+} from "./message-values";
+import type { Widen } from "@/lib/i18n/widen";
 
 export const MESSAGES = {
+  // The home title leads with the brand: the name is a contested search term.
+  meta: {
+    home: {
+      title: "CaptureFlow - Screen Recorder with Shareable Links",
+      description:
+        "Record your screen and share a link with your team or customers. An open-source screen recorder with AI transcripts and annotated screenshots, self-hostable on Cloudflare.",
+    },
+    features: {
+      title: "Screen recorder features",
+      description:
+        "Record a tab, window or your whole screen with camera and mic, take annotated screenshots, and share each capture as a link your team can comment on.",
+    },
+    pricing: {
+      title: "Pricing: free to start, one price per member",
+      description: `Start free with ${FREE_RECORDINGS} recordings. ${LIGHT} and ${PRO} are one price per member with unlimited recordings and AI. Or self-host CaptureFlow free.`,
+    },
+    faq: {
+      title: "FAQ: sharing, storage and self-hosting",
+      description:
+        "Common questions about CaptureFlow: how share links work, what self-hosting on Cloudflare involves, storage limits, and how recordings stay private.",
+    },
+    download: {
+      title: "Download the screen recorder for Chrome",
+      description:
+        "Install the CaptureFlow Chrome extension to record your screen and share it with a link.",
+    },
+    enterprise: {
+      title: "Enterprise",
+      description:
+        "Managed CaptureFlow for larger companies: seats for everyone, custom terms and a single invoice. Tell us what you need.",
+    },
+    selfHostSetup: {
+      title: "Self-hosting setup",
+      description:
+        "Have CaptureFlow set up on your company's own Cloudflare account: your domain, company-only sign-in, and a private Chrome extension for your team.",
+    },
+  },
   nav: {
     features: "Features",
     discover: "Discover",
@@ -22,7 +62,23 @@ export const MESSAGES = {
     changelog: "Changelog",
     login: "Log in",
     download: "Download",
-    languageAria: "Change language",
+    language: "Language",
+    openMenu: "Open menu",
+    menu: "Menu",
+    main: "Main",
+    docs: "Docs",
+    resources: "Resources",
+    faqDescription: "Common questions, answered",
+    blog: "Blog",
+    blogDescription: "Guides and updates",
+    selfHosting: "Self-hosting",
+    selfHostingDescription: "Run it on your own Cloudflare",
+    community: "Community",
+    communityDescription: "Get help and chat on Discord",
+    star: "Star on GitHub",
+    starCount: "Star on GitHub ({stars})",
+    themeToLight: "Switch to light theme",
+    themeToDark: "Switch to dark theme",
   },
   banner: {
     label: "Beta",
@@ -33,45 +89,6 @@ export const MESSAGES = {
     body: "CaptureFlow is in public beta. Something new lands most weeks, and the things people ask for are the things that get built first.",
     cta: "Tell me what to build next",
     close: "Close",
-  },
-  languagePicker: {
-    title: "Select your language",
-    close: "Close",
-    loading: "Loading…",
-  },
-  auth: {
-    title: "Log in or sign up",
-    subtitle: "Record, share, and screenshot from one menu bar app.",
-    continueWithGoogle: "Continue with Google",
-    continueWithEmail: "Continue with email",
-    emailStepTitle: "Continue with email",
-    emailLabel: "Email",
-    emailPlaceholder: "Enter email",
-    continue: "Continue",
-    welcomeBack: "Welcome back",
-    passwordLabel: "Password",
-    passwordPlaceholder: "Enter password",
-    signIn: "Sign in",
-    forgotPassword: "Forgot password?",
-    signupTitle: "Create your account",
-    nameLabel: "Name",
-    namePlaceholder: "Enter your name",
-    passwordHint: "At least 12 characters",
-    back: "Back",
-    close: "Close",
-    showPassword: "Show password",
-    hidePassword: "Hide password",
-    newHere: "New to CaptureFlow?",
-    createAccount: "Create an account",
-    haveAccount: "Already have an account?",
-    showcaseTitle: "Share and review with your team",
-    showcaseSubtitle: "Record, share, and react in real time.",
-    emailRequired: "Enter your email address.",
-    passwordRequired: "Enter your password.",
-    nameRequired: "Enter your name.",
-    passwordTooShort: "Use a password of at least 12 characters.",
-    invalidCredentials: "Invalid email or password.",
-    genericError: "Something went wrong. Please try again.",
   },
   announcement: {
     badge: "New",
@@ -93,7 +110,7 @@ export const MESSAGES = {
     mcpCopy: "Copy",
     mcpCopied: "Copied",
     mcpAddToCursor: "Add to Cursor",
-    badge: "Open source, free to run",
+    badge: "Open source, free to run on {github}",
     noCreditCard: "No credit card required",
     teaser: {
       title: "Self-hostable",
@@ -142,6 +159,29 @@ export const MESSAGES = {
       },
     },
     cta: "See all features",
+    // Text inside the small illustrations. In `filler`, the [bracketed] word
+    // is the filler shown struck out.
+    previews: {
+      app: "Launch plan",
+      columns: ["To do", "Doing", "Done"],
+      lines: [
+        "Here is the new flow.",
+        "First, pick a workspace.",
+        "Then share the link.",
+      ],
+      retake: "Um, let me start again.",
+      filler: [
+        "[Um,] here is the new flow.",
+        "First, [uh,] pick a workspace.",
+        "Then, [um,] share the link.",
+      ],
+      step: "Step 1",
+      note: "Move this",
+      comment: "Love this flow",
+      summaryTitle: "How to invite your team",
+      summaryBody: "Pick a workspace, then share the link.",
+      chapters: ["Intro", "Pick a workspace"],
+    },
   },
   mcpFeatures: {
     heading: "MCP features",
@@ -203,6 +243,7 @@ export const MESSAGES = {
   },
   agents: {
     heading: "Or ask your AI agent to record your demos and how-tos",
+    worksWith: "Works with {claude}, {openai} and {cursor}.",
     cta: "Read the guide",
     subtitle:
       "Ask in plain words. It records a browser, your screen or an app on your own computer, adds slides and a voiceover if you want, and hands you a link.",
@@ -301,49 +342,6 @@ export const MESSAGES = {
       title: "Frequently Asked Questions",
       subtitle:
         "Answers on recording, pricing, storage and self-hosting. Read the docs for everything else.",
-    },
-  },
-  features: {
-    titleLine1: "Open Recorder &",
-    titleLine2: "Sharing",
-    subtitle:
-      "Record, share, and screenshot in one app, from quick bug reports to polished demos.",
-    // `feature-camera` is no longer in FEATURES; its key is retained so locale
-    // catalogs typed `Messages = typeof MESSAGES` still type-check.
-    tags: {
-      "feature-zoom": "Instant links",
-      "feature-export": "Self-hosted",
-      "feature-timeline": "Recording viewer",
-      "feature-backgrounds": "Screenshots",
-      "feature-camera": "Camera",
-    },
-    items: {
-      "feature-zoom": {
-        heading: "Stop recording, link is ready",
-        description:
-          "Your screen uploads while you record, so the share link is on your clipboard the moment you stop. No export queue, no render wait.",
-      },
-      "feature-export": {
-        heading: "Open source and self-hostable",
-        description:
-          "Run CaptureFlow on your own Cloudflare account: Workers, R2, and D1. AGPL-licensed, free, and yours to control.",
-      },
-      "feature-timeline": {
-        heading: "A recording viewer built for feedback",
-        description:
-          "Every link opens to reactions, comments, and view counts, so your team can respond without leaving the page.",
-      },
-      "feature-backgrounds": {
-        heading: "Annotate a screenshot and share it",
-        description:
-          "Grab a region, window, or full screen, mark it up with arrows, text, and blur, and share it as an instant link.",
-      },
-      // Retained for locale type-compat only (not in FEATURES — never rendered).
-      "feature-camera": {
-        heading: "Camera and audio capture",
-        description:
-          "Drop a webcam bubble in any corner and capture system audio and mic alongside your screen.",
-      },
     },
   },
   collaboration: {
@@ -466,37 +464,6 @@ export const MESSAGES = {
           ],
         },
       },
-    },
-  },
-  selfHosting: {
-    heading: "Run it on your own",
-    subheading:
-      "Host CaptureFlow as your company's internal screen recorder. Every recording, comment, and workspace stays private on infrastructure you own.",
-    account: "Your Cloudflare account",
-    deployed: "Uploaded captureflow-web",
-    pieces: {
-      workers: {
-        kind: "Worker",
-        title: "App",
-        body: "Serves the app and every share link.",
-      },
-      r2: {
-        kind: "R2",
-        title: "Recordings",
-        body: "Holds your videos and screenshots.",
-      },
-      d1: {
-        kind: "D1",
-        title: "Database",
-        body: "Keeps workspaces and comments.",
-      },
-    },
-    guide: "Read the self-hosting guide",
-    source: "View the source",
-    setup: {
-      title: "Let us set it up for you",
-      body: "We set up the app, the Chrome extension, the macOS app, and all the infrastructure for your company, ready for your team to use.",
-      cta: "Get setup help",
     },
   },
   setupService: {
@@ -1189,45 +1156,40 @@ export const MESSAGES = {
       "Free download. No credit card. Say it in a quick video message instead of another meeting.",
     button: "Try CaptureFlow for free",
   },
-  sectionHeader: {
-    cta: "Try CaptureFlow",
-  },
   footer: {
-    brand: "CaptureFlow",
-    columns: {
-      brand: {
-        title: "CaptureFlow",
-        download: "Download",
-        pricing: "Pricing",
-        contact: "Contact",
-        about: "About",
-      },
-      features: {
-        title: "Use cases",
-        zoom: "Async updates",
-        timeline: "Product demos",
-        backgrounds: "Bug reports",
-        camera: "Camera",
-        export: "Quick screenshots",
-      },
-      resources: {
-        title: "Resources",
-        changelog: "Changelog",
-        blog: "Blog",
-        faq: "FAQ",
-      },
-      legal: {
-        title: "Legal",
-        terms: "Terms",
-        privacy: "Privacy",
-        refund: "Refund Policy",
-      },
-      social: {
-        title: "Social",
-        telegram: "Telegram",
-        twitter: "X / Twitter",
-      },
+    tagline: "Open-source screen recording with instant share links.",
+    lights: "Lights",
+    lightsOn: "On · pull the cord",
+    lightsOff: "Off · pull the cord",
+    product: {
+      title: "Product",
+      features: "Features",
+      pricing: "Pricing",
+      compare: "Compare",
+      download: "Download",
+      suggest: "Suggest a feature",
     },
+    resources: {
+      title: "Resources",
+      docs: "Docs",
+      selfHosting: "Self-hosting",
+      blog: "Blog",
+      releases: "Releases",
+      faq: "FAQ",
+      security: "Security",
+    },
+    community: {
+      title: "Community",
+    },
+    legal: {
+      title: "Legal",
+      privacy: "Privacy Policy",
+      terms: "Terms of Service",
+      refund: "Refund Policy",
+      license: "License (AGPL-3.0)",
+    },
+    rights: "© {year} CaptureFlow. All rights reserved.",
+    openSource: "Open source under AGPL-3.0",
   },
   pageShell: {
     logoAlt: "CaptureFlow",
@@ -1245,87 +1207,6 @@ export const MESSAGES = {
     earlyAccessPrompt: "Want early access?",
     earlyAccessLink: "Become a beta tester",
   },
-  forms: {
-    name: "Name",
-    email: "Email",
-    namePlaceholder: "Your name",
-    emailPlaceholder: "you@example.com",
-    sending: "Sending…",
-    submitting: "Submitting…",
-  },
-  contact: {
-    title: "Get in touch",
-    subtitle:
-      "Questions, feedback, or just want to say hi? I'd love to hear from you.",
-    successTitle: "Message sent",
-    successBody: "Thanks for reaching out. I'll get back to you soon.",
-    subjectLabel: "Subject",
-    subjectPlaceholder: "What's this about?",
-    messageLabel: "Message",
-    messagePlaceholder: "Tell me what's on your mind…",
-    send: "Send message",
-    errorBody:
-      "Your message couldn't be sent. Please try again, or email me directly at {email}.",
-  },
-  suggestFeature: {
-    title: "Suggest a feature",
-    subtitle: "Got an idea that would make CaptureFlow better? I'm all ears.",
-    successTitle: "Idea received!",
-    successBody: "Thanks for sharing your idea. I read every suggestion.",
-    categoryLabel: "Category",
-    categoryOptions: [
-      "Performance",
-      "UI / Design",
-      "Sharing",
-      "Self-hosting",
-      "Recording",
-      "Other",
-    ],
-    featureTitleLabel: "Feature title",
-    featureTitlePlaceholder: "A short title for your idea",
-    descriptionLabel: "Description",
-    descriptionPlaceholder: "Describe the feature and why it would be useful…",
-    submit: "Submit idea",
-    errorBody:
-      "Your idea couldn't be sent. Please try again, or email me directly at {email}.",
-  },
-  betaTester: {
-    title: "Try out the beta",
-    subtitle:
-      "Want early access? Tell me a bit about how you record and I'll get you in.",
-    successTitle: "You're on the list!",
-    successBody:
-      "Thanks for signing up. I'll reach out by email when the next beta wave goes out.",
-    macLabel: "Mac model and macOS version",
-    macPlaceholder: "e.g. MacBook Pro M2, macOS 14.5",
-    recordLabel: "What do you record?",
-    pickAny: "(pick any)",
-    recordingTypes: [
-      "Product demos",
-      "Tutorials",
-      "Bug reports",
-      "Marketing clips",
-      "Course content",
-      "Internal walkthroughs",
-      "Other",
-    ],
-    frequencyLabel: "How often do you record?",
-    frequencyOptions: [
-      "A few times a week",
-      "A few times a month",
-      "A few times a year",
-      "First time recording",
-    ],
-    currentToolLabel: "What do you currently use?",
-    currentToolPlaceholder:
-      "e.g. a screen recorder, a screenshot tool, nothing yet",
-    motivationLabel: "What made you want to try CaptureFlow?",
-    motivationPlaceholder:
-      "What are you hoping it does well? Any features that would make it a no-brainer for you?",
-    submit: "Join beta",
-    errorJoin: "Could not join the beta. Please try again.",
-    errorNetwork: "Network error. Please try again.",
-  },
   download: {
     heading: "Download CaptureFlow",
     subtitle:
@@ -1337,20 +1218,14 @@ export const MESSAGES = {
     sizeLabel: "{size} MB DMG",
     notarized: "Signed & notarized by Apple",
   },
-  plan: {
-    heading: "Pick your plan",
-    subtitle:
-      "Self-host CaptureFlow for free on your own Cloudflare account, or let the managed plan host it for you, with screenshots and cloud workspaces included.",
-  },
-  about: {
-    title: "About",
-    subtitle: "The story behind CaptureFlow.",
-    story: [
-      "Hi, I'm the solo developer behind CaptureFlow. I built it because recording my screen always meant juggling apps: one to record, one to share, and one to mark up a screenshot. None of them talked to each other, and the good ones were closed-source clouds I couldn't host myself.",
-      "CaptureFlow is my fix: one open-source macOS menu bar app with three tools. Record captures your screen and uploads as you go, so the share link is on your clipboard the moment you stop. Share opens to a viewer with reactions, comments, and view counts. Screenshot does the same for annotated screenshots. The whole thing runs on your own Cloudflare account (Workers, R2, and D1), or on our managed service if you would rather not.",
-      "CaptureFlow is in public beta, which means it's young and improving quickly. It's open source under the AGPL, so updates ship often and the roadmap is shaped by the people using it. If something breaks or you wish it worked differently, open an issue or write to me. Every message lands in my inbox, and I reply myself.",
-    ],
-    reachUs: "Reach me anytime at {email}.",
+  downloadPage: {
+    otherWays: "Other ways to get it",
+    buildTitle: "Build from source",
+    buildBody: "Clone the repo and run the recorder locally with pnpm.",
+    releasesTitle: "All releases",
+    releasesBody: "Browse every published build and changelog on GitHub.",
+    cloud: "Prefer the cloud? {link} and view recordings in your browser.",
+    cloudLink: "Create an account",
   },
   blog: {
     title: "Blog",
@@ -1360,4 +1235,4 @@ export const MESSAGES = {
   },
 } as const;
 
-export type Messages = typeof MESSAGES;
+export type Messages = Widen<typeof MESSAGES>;

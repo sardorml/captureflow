@@ -9,20 +9,8 @@ import {
   FieldTitle,
 } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { setMemberUploadsPolicyAction } from "./actions";
-
-const OPTIONS = [
-  {
-    value: "1",
-    title: "Allow teammates to post here",
-    body: "Members can record into this workspace.",
-  },
-  {
-    value: "0",
-    title: "Only the workspace owner",
-    body: "Teammate uploads go to their personal workspace.",
-  },
-];
 
 export function MemberUploadsPolicy({
   allowMemberUploads,
@@ -32,6 +20,11 @@ export function MemberUploadsPolicy({
   const id = useId();
   const [pending, startTransition] = useTransition();
   const [allow, setAllow] = useOptimistic(allowMemberUploads);
+  const copy = useAppMessages().settings.workspace.recordingAccess;
+  const options = [
+    { value: "1", ...copy.allow },
+    { value: "0", ...copy.ownerOnly },
+  ];
 
   const onValueChange = (value: string) => {
     if (pending) return;
@@ -47,11 +40,11 @@ export function MemberUploadsPolicy({
     <RadioGroup
       value={allow ? "1" : "0"}
       onValueChange={onValueChange}
-      aria-label="Recording access"
+      aria-label={copy.title}
       aria-busy={pending}
       className="grid-cols-1 sm:grid-cols-2"
     >
-      {OPTIONS.map((option) => (
+      {options.map((option) => (
         <FieldLabel key={option.value} htmlFor={`${id}-${option.value}`}>
           <Field orientation="horizontal">
             <FieldContent>

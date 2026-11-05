@@ -4,13 +4,14 @@ import { revalidatePath } from "next/cache";
 import { declineInvite, markNotificationsRead } from "@captureflow/quota";
 import { getAppBaseUrl } from "@/lib/app-base-url";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { getAppI18n } from "@/lib/i18n/app/server";
 import { loadSession } from "@/lib/session-guard";
 import { acceptWorkspaceInviteById } from "@/lib/workspace/membership";
 
 const ACCEPT_ERRORS = {
-  invalid: "This invitation has expired or was withdrawn",
-  "email-mismatch": "This invitation is for a different email address",
-  "already-member": "You’re already in this workspace",
+  invalid: "invalid",
+  "email-mismatch": "emailMismatch",
+  "already-member": "alreadyMember",
 } as const;
 
 async function signedIn() {
@@ -28,10 +29,11 @@ export async function markNotificationsReadAction(): Promise<void> {
 export async function acceptInviteFromFeedAction(
   inviteId: string,
 ): Promise<{ ok: boolean; error?: string }> {
+  const copy = (await getAppI18n()).messages.shell.notifications.acceptErrors;
   const auth = await signedIn();
-  if (!auth) return { ok: false, error: "Sign in to accept" };
+  if (!auth) return { ok: false, error: copy.signedOut };
   if (typeof inviteId !== "string" || !inviteId) {
-    return { ok: false, error: ACCEPT_ERRORS.invalid };
+    return { ok: false, error: copy.invalid };
   }
   const result = await acceptWorkspaceInviteById(auth.db, {
     inviteId,
@@ -39,7 +41,8 @@ export async function acceptInviteFromFeedAction(
     email: auth.user.email,
     baseUrl: await getAppBaseUrl(),
   });
-  if (!result.ok) return { ok: false, error: ACCEPT_ERRORS[result.reason] };
+  if (!result.ok)
+    return { ok: false, error: copy[ACCEPT_ERRORS[result.reason]] };
   revalidatePath("/", "layout");
   return { ok: true };
 }

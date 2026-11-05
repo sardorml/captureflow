@@ -28,7 +28,9 @@ import {
   sizeStyleForAspect,
 } from "../../_components/recording/layout";
 import { PosterLayer } from "../../_components/recording/PosterLayer";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
+import type { AppMessages } from "@/lib/i18n/app/messages";
 import type { RecordingConfig } from "@/lib/recording-config";
 import { DEFAULT_REACTIONS, reactionColor } from "@/lib/recording/reactions";
 import { cn } from "@/lib/utils";
@@ -69,6 +71,18 @@ type Props = {
 
 // Reactions within this fraction of the timeline collapse into one cluster.
 const REACTION_CLUSTER_FRACTION = 0.03;
+
+const REACTION_LABEL_KEYS: Record<
+  (typeof DEFAULT_REACTIONS)[number]["emoji"],
+  keyof AppMessages["player"]["reactions"]
+> = {
+  "❤️": "heart",
+  "👍": "thumbsUp",
+  "🔥": "fire",
+  "👏": "clap",
+  "🙌": "raisedHands",
+  "👀": "eyes",
+};
 
 type BaseProps = ComponentPropsWithoutRef<typeof BaseRecordingPlayer>;
 
@@ -190,6 +204,7 @@ export function RecordingPlayer({
   className,
   comments = [],
 }: Props) {
+  const m = useAppMessages();
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
 
   const setHandle = useCallback(
@@ -294,10 +309,12 @@ export function RecordingPlayer({
           type="button"
           onClick={onCommentClick}
           className="flex h-[60px] items-center gap-2.5 rounded-full bg-panel px-6 text-base font-medium text-fg shadow-md max-sm:h-[52px] max-sm:px-4 backdrop-blur-xl transition-transform duration-100 ease-out hover:-translate-y-0.5"
-          aria-label="Leave a comment"
+          aria-label={m.player.reactionBar.leaveComment}
         >
           <MessageSquare className="h-6 w-6" aria-hidden="true" />
-          <span className="hidden sm:inline">Comment</span>
+          <span className="hidden sm:inline">
+            {m.player.reactionBar.comment}
+          </span>
         </button>
       ) : null}
     </div>
@@ -675,6 +692,7 @@ function ReactionBursts({
   durationSeconds: number;
   controlsVisible: boolean;
 }) {
+  const seekLabel = useAppMessages().player.controls.slider.seek;
   const layerRef = useRef<HTMLDivElement | null>(null);
   const [bursts, setBursts] = useState<ReactionBurst[]>([]);
   const burstIdRef = useRef(0);
@@ -684,31 +702,34 @@ function ReactionBursts({
     [durationSeconds],
   );
 
-  const spawn = useCallback((hits: ReactionCluster[]) => {
-    const layer = layerRef.current;
-    if (!layer) return;
-    const origin = takeoffOrigin(layer);
-    const added: ReactionBurst[] = [];
-    for (const c of hits) {
-      if (c.isFresh) continue;
-      c.emojis.forEach((emoji, i) => {
-        added.push({
-          id: ++burstIdRef.current,
-          x: origin.left + c.fraction * origin.width,
-          y: origin.y,
-          emoji,
-          delayMs: i * BURST_STAGGER_MS,
+  const spawn = useCallback(
+    (hits: ReactionCluster[]) => {
+      const layer = layerRef.current;
+      if (!layer) return;
+      const origin = takeoffOrigin(layer, seekLabel);
+      const added: ReactionBurst[] = [];
+      for (const c of hits) {
+        if (c.isFresh) continue;
+        c.emojis.forEach((emoji, i) => {
+          added.push({
+            id: ++burstIdRef.current,
+            x: origin.left + c.fraction * origin.width,
+            y: origin.y,
+            emoji,
+            delayMs: i * BURST_STAGGER_MS,
+          });
         });
-      });
-    }
-    if (added.length === 0) return;
-    setBursts((prev) => [...prev, ...added]);
-    const ids = new Set(added.map((b) => b.id));
-    const longest = Math.max(...added.map((b) => b.delayMs));
-    window.setTimeout(() => {
-      setBursts((prev) => prev.filter((b) => !ids.has(b.id)));
-    }, BURST_MS + longest);
-  }, []);
+      }
+      if (added.length === 0) return;
+      setBursts((prev) => [...prev, ...added]);
+      const ids = new Set(added.map((b) => b.id));
+      const longest = Math.max(...added.map((b) => b.delayMs));
+      window.setTimeout(() => {
+        setBursts((prev) => prev.filter((b) => !ids.has(b.id)));
+      }, BURST_MS + longest);
+    },
+    [seekLabel],
+  );
 
   usePassedMarks(clusters, timeOf, currentSeconds, !controlsVisible, spawn);
 
@@ -781,6 +802,7 @@ function CommentBursts({
 }) {
   const { currentSeconds, durationSeconds, controlsVisible, toTimelineMs } =
     info;
+  const seekLabel = useAppMessages().player.controls.slider.seek;
   const layerRef = useRef<HTMLDivElement | null>(null);
   const [bursts, setBursts] = useState<CommentBurst[]>([]);
   const burstIdRef = useRef(0);
@@ -797,7 +819,7 @@ function CommentBursts({
     (hits: RecordingComment[]) => {
       const layer = layerRef.current;
       if (!layer || durationSeconds <= 0) return;
-      const origin = takeoffOrigin(layer);
+      const origin = takeoffOrigin(layer, seekLabel);
       const width = layer.clientWidth;
       const added = hits.map((comment, i) => {
         const x =
@@ -820,7 +842,7 @@ function CommentBursts({
         setBursts((prev) => prev.filter((b) => !ids.has(b.id)));
       }, COMMENT_BURST_MS + longest);
     },
-    [durationSeconds, timeOf],
+    [durationSeconds, timeOf, seekLabel],
   );
 
   usePassedMarks(timed, timeOf, currentSeconds, !controlsVisible, spawn);
@@ -857,14 +879,17 @@ function CommentBursts({
 
 // Where emojis take off from: the time slider's span inside the player, so
 // they rise from their dot, or the bottom edge when there is no slider.
-function takeoffOrigin(layer: HTMLElement): {
+function takeoffOrigin(
+  layer: HTMLElement,
+  seekLabel: string,
+): {
   left: number;
   width: number;
   y: number;
 } {
   const own = layer.getBoundingClientRect();
   const slider = layer.parentElement?.querySelector<HTMLElement>(
-    '[role="slider"][aria-label="Seek"]',
+    `[role="slider"][aria-label="${CSS.escape(seekLabel)}"]`,
   )?.parentElement;
   if (!slider) return { left: 0, width: own.width, y: own.height - 24 };
   const r = slider.getBoundingClientRect();
@@ -884,9 +909,11 @@ function ReactionBar({
   pulseEmoji: string | null;
   counts: Record<string, number>;
 }) {
+  const m = useAppMessages();
   return (
     <div className="flex items-center gap-1 rounded-full bg-panel px-2 py-1.5 shadow-md backdrop-blur-xl">
       {DEFAULT_REACTIONS.map((r) => {
+        const label = m.player.reactions[REACTION_LABEL_KEYS[r.emoji]];
         const isPulsing = pulseEmoji === r.emoji;
         const count = counts[r.emoji] ?? 0;
         return (
@@ -894,7 +921,7 @@ function ReactionBar({
             <button
               type="button"
               onClick={() => onReact(r.emoji)}
-              aria-label={r.label}
+              aria-label={label}
               className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-[28px] leading-none max-sm:h-10 max-sm:w-10 max-sm:text-[22px] transition-transform duration-100 ease-out hover:-translate-y-2 active:translate-y-0 ${
                 isPulsing ? "animate-recording-icon-pop" : ""
               }`}
@@ -902,7 +929,7 @@ function ReactionBar({
               <span aria-hidden="true">{r.emoji}</span>
             </button>
             <div className="pointer-events-none absolute -top-11 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-lg bg-panel px-2.5 py-1.5 text-sm font-medium text-fg opacity-0 shadow-lg ring-1 ring-line-strong transition-opacity duration-100 group-hover:opacity-100">
-              <span>{r.label}</span>
+              <span>{label}</span>
               {count > 0 ? (
                 <span className="rounded bg-tint-strong px-1.5 py-0.5 tabular-nums text-xs text-fg-muted">
                   {count}
@@ -925,6 +952,7 @@ function InlineReactions({
   pulseEmoji: string | null;
   onCommentClick?: () => void;
 }) {
+  const m = useAppMessages();
   return (
     <div className="mx-auto flex items-center">
       {DEFAULT_REACTIONS.map((r) => (
@@ -932,8 +960,8 @@ function InlineReactions({
           key={r.emoji}
           type="button"
           onClick={() => onReact(r.emoji)}
-          aria-label={r.label}
-          title={r.label}
+          aria-label={m.player.reactions[REACTION_LABEL_KEYS[r.emoji]]}
+          title={m.player.reactions[REACTION_LABEL_KEYS[r.emoji]]}
           className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-[22px] leading-none transition-transform duration-100 ease-out hover:-translate-y-0.5 motion-reduce:transition-none ${
             pulseEmoji === r.emoji ? "animate-recording-icon-pop" : ""
           }`}
@@ -945,8 +973,8 @@ function InlineReactions({
         <button
           type="button"
           onClick={onCommentClick}
-          aria-label="Leave a comment"
-          title="Leave a comment"
+          aria-label={m.player.reactionBar.leaveComment}
+          title={m.player.reactionBar.leaveComment}
           className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-white/90 transition-colors hover:bg-tint-strong hover:text-white"
         >
           <MessageSquare className="h-5 w-5" aria-hidden="true" />

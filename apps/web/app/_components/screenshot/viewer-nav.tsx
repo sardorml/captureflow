@@ -10,6 +10,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import { fmt, plural } from "@/lib/i18n/format";
+import { formatNumber } from "@/lib/i18n/intl";
 import { cn } from "@/lib/utils";
 
 export type ViewerNavViewer = {
@@ -49,6 +52,8 @@ export function ViewerNav({
   themeToggle,
   className,
 }: ViewerNavProps): ReactElement {
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -98,10 +103,12 @@ export function ViewerNav({
       {/* One gap for the whole row, matching what the actions use internally:
           the icon buttons pad their own glyphs, so anything wider here opens a
           visible hole between two of them. */}
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         {typeof viewCount === "number" ? (
-          <span className="text-sm tabular-nums text-fg-muted">
-            {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
+          <span className="min-w-0 truncate text-sm tabular-nums text-fg-muted">
+            {fmt(plural(m.viewer.views.count, viewCount, lang), {
+              count: formatNumber(viewCount, lang),
+            })}
           </span>
         ) : null}
         {actions ? (
@@ -114,14 +121,16 @@ export function ViewerNav({
                   <a
                     href={downloadUrl}
                     download={downloadName ?? true}
-                    aria-label="Download"
+                    aria-label={m.viewer.nav.download}
                     className={buttonVariants({ variant: "secondary" })}
                   >
                     <Download size={18} />
-                    <span className="hidden sm:inline">Download</span>
+                    <span className="hidden sm:inline">
+                      {m.viewer.nav.download}
+                    </span>
                   </a>
                 </TooltipTrigger>
-                <TooltipContent>Download</TooltipContent>
+                <TooltipContent>{m.viewer.nav.download}</TooltipContent>
               </Tooltip>
             ) : null}
             <Tooltip>
@@ -129,16 +138,20 @@ export function ViewerNav({
                 <Button
                   variant="secondary"
                   onClick={handleCopy}
-                  aria-label={copied ? "Link copied" : "Copy link"}
+                  aria-label={
+                    copied
+                      ? m.library.share.linkCopied
+                      : m.library.share.copyLink
+                  }
                 >
                   {copied ? <Check size={18} /> : <Link2 size={18} />}
                   <span className="hidden sm:inline">
-                    {copied ? "Copied" : "Copy link"}
+                    {copied ? m.common.copied : m.library.share.copyLink}
                   </span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {copied ? "Link copied" : "Copy link"}
+                {copied ? m.library.share.linkCopied : m.library.share.copyLink}
               </TooltipContent>
             </Tooltip>
           </>

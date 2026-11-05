@@ -7,6 +7,9 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { useAppMessages } from "@/components/app-i18n-provider";
+import { fill } from "@/lib/i18n/fill";
+import { fmt } from "@/lib/i18n/format";
 
 type Props = {
   appWebUrl: string;
@@ -26,6 +29,8 @@ export function RequestAccess({
   returnUrl,
   ownerName,
 }: Props) {
+  const m = useAppMessages();
+  const copy = m.viewer.requestAccess;
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
@@ -83,7 +88,7 @@ export function RequestAccess({
       setSent(true);
     } catch (err) {
       console.error("request-access submit", err);
-      setError("Something went wrong. Try again in a moment.");
+      setError(copy.failed);
     } finally {
       setSubmitting(false);
     }
@@ -96,7 +101,7 @@ export function RequestAccess({
       <div className="flex min-h-screen items-center justify-center bg-canvas px-6 py-16">
         <div className="flex flex-col items-center gap-4">
           <Spinner className="size-5" />
-          <p className="text-sm text-fg-subtle">Loading recording…</p>
+          <p className="text-sm text-fg-subtle">{m.viewer.loading}</p>
         </div>
       </div>
     );
@@ -110,21 +115,18 @@ export function RequestAccess({
             <Lock className="h-6 w-6" aria-hidden />
           </span>
           <h1 className="mt-6 text-2xl font-semibold tracking-tight text-fg-strong">
-            Request access to view this video
+            {copy.title}
           </h1>
           <p className="mt-2 text-sm text-fg-muted">
             {ownerName
-              ? `${ownerName} hasn't shared this recording with you yet.`
-              : "The owner hasn't shared this recording with you yet."}
+              ? fmt(copy.notSharedBy, { name: ownerName })
+              : copy.notSharedByOwner}
           </p>
         </div>
 
         {!viewer ? (
           <div className="mt-8">
-            <p className="text-sm text-fg-muted">
-              Sign in with your work email — if you&apos;re already on the
-              owner&apos;s team you&apos;ll be let straight in.
-            </p>
+            <p className="text-sm text-fg-muted">{copy.signInHint}</p>
             <a
               href={signInUrl}
               className={buttonVariants({
@@ -132,34 +134,40 @@ export function RequestAccess({
                 className: "mt-5 w-full",
               })}
             >
-              Sign in to continue
+              {copy.signIn}
               <ArrowRight size={16} />
             </a>
           </div>
         ) : sent ? (
           <div className="mt-8 text-center">
-            <p className="text-lg font-semibold text-fg-strong">Request sent</p>
-            <p className="mt-1 text-sm text-fg-muted">
-              We let the owner know. You&apos;ll get an email if they grant
-              access.
+            <p className="text-lg font-semibold text-fg-strong">
+              {copy.sentTitle}
             </p>
+            <p className="mt-1 text-sm text-fg-muted">{copy.sentDescription}</p>
           </div>
         ) : (
           <form onSubmit={onSubmit} className="mt-8">
             <div className="flex items-center gap-2 text-sm text-fg-muted">
               <Mail className="h-4 w-4 text-fg-subtle" aria-hidden />
               <span className="truncate">
-                Asking as{" "}
-                <strong className="font-medium text-fg-strong">
-                  {viewer.email}
-                </strong>
+                {fill(copy.askingAs, {
+                  email: (
+                    <strong className="font-medium text-fg-strong">
+                      {viewer.email}
+                    </strong>
+                  ),
+                })}
               </span>
             </div>
             <label
               htmlFor="access-message"
               className="mt-5 block text-sm font-medium text-fg"
             >
-              Add a note <span className="text-fg-subtle">(optional)</span>
+              {fill(copy.noteLabel, {
+                optional: (
+                  <span className="text-fg-subtle">{copy.noteOptional}</span>
+                ),
+              })}
             </label>
             <Textarea
               id="access-message"
@@ -167,7 +175,7 @@ export function RequestAccess({
               onChange={(e) => setMessage(e.target.value)}
               maxLength={500}
               rows={3}
-              placeholder="Hi — I'd like to watch this recording from yesterday's review."
+              placeholder={copy.notePlaceholder}
               className="mt-2 w-full resize-none"
             />
             <Button
@@ -177,7 +185,7 @@ export function RequestAccess({
               className="mt-4 w-full"
             >
               {submitting && <Spinner className="size-4" />}
-              {submitting ? "Sending…" : "Request access"}
+              {submitting ? copy.sending : copy.submit}
             </Button>
             {error && (
               <Alert variant="destructive" className="mt-3">

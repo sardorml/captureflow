@@ -14,6 +14,7 @@ import type {
   TranscriptStatus,
 } from "@/lib/recording/types";
 import { cn } from "@/lib/utils";
+import { useAppMessages } from "@/components/app-i18n-provider";
 
 type Props = {
   slug: string;
@@ -47,6 +48,7 @@ export function TranscriptPanel({
   onSeek,
   getCurrentMs,
 }: Props) {
+  const m = useAppMessages();
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [currentMs, setCurrentMs] = useState(0);
@@ -121,19 +123,19 @@ export function TranscriptPanel({
         </div>
         <p className="mt-4 text-base font-semibold text-fg">
           {status === "pending"
-            ? "Transcribing…"
+            ? m.activity.transcript.pendingTitle
             : status === "failed"
-              ? "Transcription didn't finish"
-              : "No transcript"}
+              ? m.activity.transcript.failedTitle
+              : m.activity.transcript.noneTitle}
         </p>
         <p className="mt-1.5 max-w-[18rem] text-xs leading-relaxed text-fg-muted">
           {status === "pending"
-            ? "The transcript shows up here as soon as it's ready."
+            ? m.activity.transcript.pendingDescription
             : status === "failed"
-              ? "Something went wrong while transcribing this recording."
+              ? m.activity.transcript.failedDescription
               : isOwner
-                ? "Record with the microphone on and one is written for you."
-                : "This recording was made without a microphone."}
+                ? m.activity.transcript.noneOwnerDescription
+                : m.activity.transcript.noneViewerDescription}
         </p>
       </div>
     );
@@ -155,7 +157,7 @@ export function TranscriptPanel({
           ) : (
             <Copy className="h-3.5 w-3.5" />
           )}
-          {copied ? "Copied" : "Copy"}
+          {copied ? m.common.copied : m.common.copy}
         </Button>
         {isOwner ? (
           <a
@@ -163,7 +165,7 @@ export function TranscriptPanel({
             className={buttonVariants({ size: "sm", variant: "secondary" })}
           >
             <Pencil className="h-3.5 w-3.5" />
-            Edit
+            {m.common.edit}
           </a>
         ) : null}
         <Button
@@ -173,13 +175,13 @@ export function TranscriptPanel({
           aria-pressed={searching}
         >
           <Search className="h-3.5 w-3.5" />
-          Search
+          {m.common.search}
         </Button>
       </div>
       {searching ? (
         <Input
-          aria-label="Search transcript"
-          placeholder="Search transcript"
+          aria-label={m.activity.transcript.searchLabel}
+          placeholder={m.activity.transcript.searchLabel}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="mt-3 w-full"
@@ -212,7 +214,9 @@ export function TranscriptPanel({
           );
         })}
         {shown.length === 0 ? (
-          <li className="px-3 py-2.5 text-sm text-fg-subtle">No matches.</li>
+          <li className="px-3 py-2.5 text-sm text-fg-subtle">
+            {m.activity.transcript.noMatches}
+          </li>
         ) : null}
       </ol>
     </div>

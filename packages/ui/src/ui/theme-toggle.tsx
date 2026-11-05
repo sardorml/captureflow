@@ -5,13 +5,26 @@ import { Moon, Sun } from "lucide-react";
 import { cn } from "../lib/cn";
 import { applyTheme, type Theme } from "../lib/theme";
 
+type Labels = { toLight: string; toDark: string };
+
 type Props = {
   initialTheme: Theme;
   className?: string;
   onAfterToggle?: (next: Theme) => void;
+  labels?: Labels;
 };
 
-export function ThemeToggle({ initialTheme, className, onAfterToggle }: Props) {
+const ENGLISH_LABELS: Labels = {
+  toLight: "Switch to light theme",
+  toDark: "Switch to dark theme",
+};
+
+export function ThemeToggle({
+  initialTheme,
+  className,
+  onAfterToggle,
+  labels = ENGLISH_LABELS,
+}: Props) {
   const [theme, setTheme] = React.useState<Theme>(initialTheme);
 
   // Follows <html>, since another control can change the theme too.
@@ -38,12 +51,13 @@ export function ThemeToggle({ initialTheme, className, onAfterToggle }: Props) {
   };
 
   const isDark = theme === "dark";
+  const label = isDark ? labels.toLight : labels.toDark;
   return (
     <button
       type="button"
       onClick={toggle}
-      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-      title={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      aria-label={label}
+      title={label}
       className={cn(
         "relative inline-flex h-10 w-10 items-center justify-center rounded-md text-fg-muted transition duration-150 ease-out hover:scale-[1.04] hover:bg-overlay hover:text-fg active:scale-[0.92] motion-reduce:transition-none",
         className,

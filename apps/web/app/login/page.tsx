@@ -8,15 +8,19 @@ import { oauthErrorMessage, parseEmailDomains } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { AuthForm } from "@/app/AuthForm";
 import { AuthShell } from "@/app/AuthShell";
+import { getAppI18n } from "@/lib/i18n/app/server";
 import { inviteContextFromNext } from "@/lib/invite-context";
 import { selfHostHooks } from "@/lib/selfhost";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Log in",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { messages: m } = await getAppI18n();
+  return {
+    title: m.auth.login.metaTitle,
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function LoginPage({
   searchParams,
@@ -33,7 +37,8 @@ export default async function LoginPage({
   if (session) redirect(safeNext);
 
   const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
-  const invite = await inviteContextFromNext(safeNext);
+  const { messages: m } = await getAppI18n();
+  const invite = await inviteContextFromNext(safeNext, m.auth.inviteFallbacks);
   const env = await getAppWebEnv();
   const selfhost = await selfHostHooks();
   const instance = selfhost ? await selfhost.signupState() : null;
@@ -46,6 +51,7 @@ export default async function LoginPage({
     sp.error,
     parseEmailDomains(env?.ALLOWED_EMAIL_DOMAINS),
     instance ?? undefined,
+    m.auth.oauthErrors,
   );
 
   return (

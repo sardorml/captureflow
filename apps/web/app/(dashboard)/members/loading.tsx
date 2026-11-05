@@ -1,18 +1,22 @@
+"use client";
+
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InlineSkeleton } from "../_skeletons";
 import { WorkspacePageHeader } from "../WorkspacePageHeader";
 
 export default function Loading() {
+  const m = useAppMessages();
   return (
     <div className="flex flex-col gap-8">
       <WorkspacePageHeader
         workspaceName={<InlineSkeleton className="h-3.5 w-40" />}
-        title="Members"
+        title={m.members.title}
       />
       <section className="rounded-2xl bg-panel ring-1 ring-line">
         <div className="px-6 pt-6 pb-5">
           <h2 className="text-2xl font-semibold tracking-tight text-fg-strong">
-            Members <InlineSkeleton className="h-4 w-8" />
+            {m.members.title} <InlineSkeleton className="h-4 w-8" />
           </h2>
           <p className="mt-1 text-base text-fg-muted">
             <InlineSkeleton className="h-3.5 w-96 max-w-full" />

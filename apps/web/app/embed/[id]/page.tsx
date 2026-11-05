@@ -16,14 +16,19 @@ import { viewerMediaUrl, withVersion } from "@/lib/recording/media-url";
 import { parseRecordingConfigJson } from "@/lib/recording-config";
 import { isValidSlug } from "@/lib/recording/slug";
 import { APP_WEB_SITE_URL, PRODUCT_NAME, viewUrlFor } from "@/lib/site";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fmt } from "@/lib/i18n/format";
 import { EmbedPlayer } from "./EmbedPlayer";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: `${PRODUCT_NAME} recording`,
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { messages: m } = await getAppI18n();
+  return {
+    title: fmt(m.player.embed.title, { product: PRODUCT_NAME }),
+    robots: { index: false, follow: false },
+  };
+}
 
 // The share page's player alone, for the extension to frame on GitHub.
 export default async function EmbedPage({

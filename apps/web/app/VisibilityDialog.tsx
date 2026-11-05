@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, type ReactNode } from "react";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import {
   ShareVisibilityModal,
   type Visibility,
@@ -25,10 +26,11 @@ export function VisibilityDialog({
   onChange,
   allowPublic = true,
   workspaceName,
-  title = "Share",
+  title,
   shareUrl,
   trigger,
 }: Props) {
+  const m = useAppMessages();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -52,7 +54,7 @@ export function VisibilityDialog({
       <ShareVisibilityModal
         open={open}
         onClose={() => setOpen(false)}
-        title={title}
+        title={title ?? m.library.share.title}
         visibility={value}
         onChange={pick}
         workspaceName={workspaceName}

@@ -23,8 +23,11 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { AppIcon } from "@/components/brand-mark";
 import { authClient, signIn, signUp } from "@/lib/auth-client";
+import { fill } from "@/lib/i18n/fill";
+import { fmt } from "@/lib/i18n/format";
 import type { InviteContext } from "@/lib/invite-context";
 
 type Mode = "signin" | "signup";
@@ -74,8 +77,6 @@ function GitHubIcon() {
   );
 }
 
-// Kept separate from the marketing AuthPanel, which pulls in the i18n provider
-// and marketing shell.
 export function AuthForm({
   next,
   initialMode = "signin",
@@ -89,6 +90,7 @@ export function AuthForm({
   initialError?: string | null;
   canSignUp?: boolean;
 }) {
+  const m = useAppMessages();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [step, setStep] = useState<Step>("email");
   // Prefilled, not locked: accepting needs this exact address, but someone who
@@ -114,15 +116,13 @@ export function AuthForm({
         errorCallbackURL: `/login?next=${encodeURIComponent(next)}`,
       });
       if (res.error) {
-        setError(
-          res.error.message ?? "Something went wrong. Please try again.",
-        );
+        setError(res.error.message ?? m.auth.errors.generic);
         setBusy(false);
         setBusyProvider(null);
       }
       // On success the client navigates to the provider's consent page.
     } catch {
-      setError("Network error. Please try again.");
+      setError(m.auth.errors.network);
       setBusy(false);
       setBusyProvider(null);
     }
@@ -163,9 +163,7 @@ export function AuthForm({
         return;
       }
       if (res.error) {
-        setError(
-          res.error.message ?? "Something went wrong. Please try again.",
-        );
+        setError(res.error.message ?? m.auth.errors.generic);
         setBusy(false);
         return;
       }
@@ -173,7 +171,7 @@ export function AuthForm({
       // middleware and server components on the destination.
       window.location.assign(next);
     } catch {
-      setError("Network error. Please try again.");
+      setError(m.auth.errors.network);
       setBusy(false);
     }
   }
@@ -186,7 +184,7 @@ export function AuthForm({
       .catch(() => null);
     setBusy(false);
     if (!res || res.error) {
-      setError("Couldn't send the email. Please try again.");
+      setError(m.auth.verify.resendFailed);
       return;
     }
     setResent(true);
@@ -200,12 +198,12 @@ export function AuthForm({
 
   const title =
     step === "verify"
-      ? "Check your email"
+      ? m.auth.verify.title
       : invite
-        ? `Join ${invite.workspaceName}`
+        ? fmt(m.auth.login.inviteTitle, { workspace: invite.workspaceName })
         : isSignup
-          ? "Create your account"
-          : "Welcome back";
+          ? m.auth.login.signUpTitle
+          : m.auth.login.signInTitle;
 
   return (
     <Card className="gap-0 rounded-2xl py-0 shadow-[0_8px_32px_-8px_rgb(0_0_0/0.12)]">
@@ -218,22 +216,20 @@ export function AuthForm({
               they already have an account, so offering the pair beats
               guessing which they need. */}
         <CardDescription>
-          {step === "verify" ? (
-            <>
-              We sent a link to <span className="text-foreground">{email}</span>
-              . Open it to finish setting up your account.
-            </>
-          ) : invite ? (
-            <>
-              {invite.inviterLabel} invited you. Sign in or create an account
-              with <span className="text-foreground">{invite.email}</span> to
-              accept.
-            </>
-          ) : isSignup ? (
-            "Sign up with Google, GitHub or your email"
-          ) : (
-            "Log in with Google, GitHub or your email"
-          )}
+          {step === "verify"
+            ? fill(m.auth.verify.description, {
+                email: <span className="text-foreground">{email}</span>,
+              })
+            : invite
+              ? fill(m.auth.login.inviteDescription, {
+                  inviter: invite.inviterLabel,
+                  email: (
+                    <span className="text-foreground">{invite.email}</span>
+                  ),
+                })
+              : isSignup
+                ? m.auth.login.signUpDescription
+                : m.auth.login.signInDescription}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6">
@@ -243,7 +239,9 @@ export function AuthForm({
               <Button
                 variant="outline"
                 className={SOCIAL_BUTTON}
-                aria-label="Continue with Google"
+                aria-label={fmt(m.auth.login.continueWith, {
+                  provider: "Google",
+                })}
                 disabled={busy && busyProvider !== "google"}
                 onClick={() => onSocial("google")}
               >
@@ -253,7 +251,9 @@ export function AuthForm({
               <Button
                 variant="outline"
                 className={SOCIAL_BUTTON}
-                aria-label="Continue with GitHub"
+                aria-label={fmt(m.auth.login.continueWith, {
+                  provider: "GitHub",
+                })}
                 disabled={busy && busyProvider !== "github"}
                 onClick={() => onSocial("github")}
               >
@@ -262,12 +262,14 @@ export function AuthForm({
               </Button>
             </div>
             <FieldSeparator className="text-xs tracking-wide uppercase *:data-[slot=field-separator-content]:bg-card">
-              Or
+              {m.auth.login.or}
             </FieldSeparator>
             <form onSubmit={onEmailSubmit}>
               <FieldGroup>
                 <Field data-invalid={emailInvalid || undefined}>
-                  <FieldLabel htmlFor="auth-email">Email</FieldLabel>
+                  <FieldLabel htmlFor="auth-email">
+                    {m.auth.login.emailLabel}
+                  </FieldLabel>
                   <Input
                     id="auth-email"
                     name="email"
@@ -284,11 +286,11 @@ export function AuthForm({
                       e.currentTarget.focus();
                     }}
                     aria-invalid={emailInvalid || undefined}
-                    placeholder="you@example.com"
+                    placeholder={m.auth.login.emailPlaceholder}
                     autoComplete="email"
                   />
                   {emailInvalid && (
-                    <FieldError>Enter a valid email.</FieldError>
+                    <FieldError>{m.auth.login.emailInvalid}</FieldError>
                   )}
                 </Field>
                 <Field>
@@ -297,28 +299,36 @@ export function AuthForm({
                     className={SUBMIT_BUTTON}
                     disabled={busy}
                   >
-                    Continue with Email
+                    {m.auth.login.continueWithEmail}
                   </Button>
                   {errorAlert}
                   {!canSignUp ? (
                     <FieldDescription className="text-center">
-                      Need an account? Ask an admin for an invite.
+                      {m.auth.login.askForInvite}
                     </FieldDescription>
                   ) : (
                     <FieldDescription className="text-center">
-                      {isSignup
-                        ? "Already have an account? "
-                        : "Don't have an account? "}
-                      <button
-                        type="button"
-                        className="cursor-pointer underline underline-offset-4 hover:text-primary"
-                        onClick={() => {
-                          setMode(isSignup ? "signin" : "signup");
-                          setError(null);
-                        }}
-                      >
-                        {isSignup ? "Log in" : "Sign up"}
-                      </button>
+                      {fill(
+                        isSignup
+                          ? m.auth.login.haveAccount
+                          : m.auth.login.noAccount,
+                        {
+                          action: (
+                            <button
+                              type="button"
+                              className="cursor-pointer underline underline-offset-4 hover:text-primary"
+                              onClick={() => {
+                                setMode(isSignup ? "signin" : "signup");
+                                setError(null);
+                              }}
+                            >
+                              {isSignup
+                                ? m.auth.login.haveAccountAction
+                                : m.auth.login.noAccountAction}
+                            </button>
+                          ),
+                        },
+                      )}
                     </FieldDescription>
                   )}
                 </Field>
@@ -336,20 +346,23 @@ export function AuthForm({
                 onClick={onResend}
               >
                 {busy && <Spinner />}
-                {resent ? "Sent again" : "Resend email"}
+                {resent ? m.auth.verify.resent : m.auth.verify.resend}
               </Button>
               <FieldDescription className="text-center">
-                Wrong address?{" "}
-                <button
-                  type="button"
-                  className="cursor-pointer underline underline-offset-4 hover:text-primary"
-                  onClick={() => {
-                    setStep("email");
-                    setError(null);
-                  }}
-                >
-                  Use a different email
-                </button>
+                {fill(m.auth.verify.wrongAddress, {
+                  action: (
+                    <button
+                      type="button"
+                      className="cursor-pointer underline underline-offset-4 hover:text-primary"
+                      onClick={() => {
+                        setStep("email");
+                        setError(null);
+                      }}
+                    >
+                      {m.auth.verify.wrongAddressAction}
+                    </button>
+                  ),
+                })}
               </FieldDescription>
             </Field>
           </FieldGroup>
@@ -372,24 +385,28 @@ export function AuthForm({
                   }}
                 >
                   <ChevronLeft size={14} />
-                  Change
+                  {m.auth.login.changeEmail}
                 </button>
               </div>
 
               {isSignup && (
                 <Field>
-                  <FieldLabel htmlFor="auth-name">Name</FieldLabel>
+                  <FieldLabel htmlFor="auth-name">
+                    {m.auth.login.nameLabel}
+                  </FieldLabel>
                   <Input
                     id="auth-name"
                     name="name"
-                    placeholder="Your name"
+                    placeholder={m.auth.login.namePlaceholder}
                     autoComplete="name"
                   />
                 </Field>
               )}
 
               <Field data-invalid={passwordInvalid || undefined}>
-                <FieldLabel htmlFor="auth-password">Password</FieldLabel>
+                <FieldLabel htmlFor="auth-password">
+                  {m.auth.login.passwordLabel}
+                </FieldLabel>
                 <Input
                   id="auth-password"
                   name="password"
@@ -404,14 +421,16 @@ export function AuthForm({
                     e.currentTarget.focus();
                   }}
                   aria-invalid={passwordInvalid || undefined}
-                  placeholder={isSignup ? "At least 12 characters" : undefined}
+                  placeholder={
+                    isSignup ? m.auth.login.newPasswordPlaceholder : undefined
+                  }
                   autoComplete={isSignup ? "new-password" : "current-password"}
                 />
                 {passwordInvalid && (
                   <FieldError>
                     {isSignup
-                      ? "Use at least 12 characters."
-                      : "Enter your password."}
+                      ? m.auth.login.passwordTooShort
+                      : m.auth.login.passwordMissing}
                   </FieldError>
                 )}
               </Field>
@@ -420,7 +439,9 @@ export function AuthForm({
                 {errorAlert}
                 <Button type="submit" className={SUBMIT_BUTTON} disabled={busy}>
                   {busy && <Spinner />}
-                  {isSignup ? "Create account" : "Log in"}
+                  {isSignup
+                    ? m.auth.login.signUpSubmit
+                    : m.auth.login.signInSubmit}
                 </Button>
               </Field>
             </FieldGroup>
@@ -429,8 +450,10 @@ export function AuthForm({
       </CardContent>
       <CardFooter className="justify-center px-4 py-3.5">
         <FieldDescription className="text-center text-[13px]">
-          By continuing, you agree to our <Link href="/terms">Terms</Link> and{" "}
-          <Link href="/privacy">Privacy Policy</Link>.
+          {fill(m.auth.login.terms, {
+            terms: <Link href="/terms">{m.auth.login.termsLink}</Link>,
+            privacy: <Link href="/privacy">{m.auth.login.privacyLink}</Link>,
+          })}
         </FieldDescription>
       </CardFooter>
     </Card>

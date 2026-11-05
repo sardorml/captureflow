@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Empty } from "@/components/ui/empty";
 import { Bot, Film } from "lucide-react";
 import { FadeInImage } from "@/components/ui/fade-in-image";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { ListToolbar } from "./_components/ListToolbar";
 import { HoverPreview } from "./_components/HoverPreview";
 import { parseRecordingConfigJson } from "@/lib/recording-config";
@@ -58,6 +59,7 @@ export function RecordingsList({
   );
   const manageableKeys = manageable.map((r) => r.slug);
   const selection = useSelection(manageableKeys);
+  const copy = useAppMessages().library.recording;
   const toolbar = (
     <ListToolbar
       noun="recording"
@@ -80,9 +82,7 @@ export function RecordingsList({
         {toolbar}
         <Card className="mt-6 p-6">
           <Empty className="text-center text-sm text-fg-muted">
-            {isFiltered(filters)
-              ? "No recordings match these filters."
-              : "You haven\u2019t created any recording links yet. Record in the CaptureFlow desktop app and your recordings will show up here."}
+            {isFiltered(filters) ? copy.noMatches : copy.empty}
           </Empty>
         </Card>
       </>
@@ -150,6 +150,8 @@ function RecordingCard({
   selectionActive,
   onSelectedChange,
 }: RecordingCardProps) {
+  const m = useAppMessages();
+  const copy = m.library.recording;
   const { posterUrl, posterBlur, videoUrl, webcamUrl, videoThumbUrl } =
     recording;
   const config = parseRecordingConfigJson(recording.configJson);
@@ -212,8 +214,8 @@ function RecordingCard({
       )}
       {recording.client === "agent" && (
         <Badge className="absolute bottom-2 left-2 h-5 border-none bg-black/75 text-white">
-          <Bot size={14} aria-label="AI generated">
-            <title>AI generated</title>
+          <Bot size={14} aria-label={copy.aiGenerated}>
+            <title>{copy.aiGenerated}</title>
           </Bot>
         </Badge>
       )}
@@ -231,10 +233,10 @@ function RecordingCard({
       media={media}
       viewUrl={viewUrlFor(recording.slug)}
       editUrl={`/recordings/${recording.slug}/edit`}
-      displayTitle={recording.title?.trim() || "Untitled recording"}
+      displayTitle={recording.title?.trim() || copy.untitled}
       initialTitle={recording.title ?? ""}
-      titlePlaceholder="Untitled recording"
-      authorLabel={authorName ?? "Unknown"}
+      titlePlaceholder={copy.untitled}
+      authorLabel={authorName ?? m.library.card.unknownAuthor}
       authorImage={authorImage}
       createdAt={recording.createdAt}
       visibility={recording.visibility}
@@ -249,9 +251,8 @@ function RecordingCard({
       }}
       sizeBytes={recording.totalBytes}
       deleteConfirm={{
-        title: "Delete this recording?",
-        description:
-          "The video and its link stop working immediately. This cannot be undone.",
+        title: copy.deleteTitle,
+        description: copy.deleteDescription,
       }}
       selected={selected}
       selectionActive={selectionActive}

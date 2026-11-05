@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { peakBetween } from "@/lib/recording/waveform";
 
 const BASELINE_PX = 1;
@@ -23,6 +24,7 @@ export function EditorWaveform({
   from: number;
   to: number;
 }) {
+  const m = useAppMessages();
   const ref = useRef<HTMLCanvasElement | null>(null);
 
   useLayoutEffect(() => {
@@ -88,7 +90,7 @@ export function EditorWaveform({
       >
         <span className="absolute inset-0 bg-accent-bg/20 motion-safe:animate-pulse" />
         <span className="relative truncate px-2 text-xs font-medium text-fg">
-          Loading audio…
+          {m.recordingEditor.timeline.loadingAudio}
         </span>
       </span>
     );

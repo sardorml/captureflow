@@ -62,5 +62,17 @@ Apps depend on packages, never the reverse; apps never depend on each other. The
 - Blog posts are Markdown in `apps/web/content/blog/`: register each in
   `apps/web/lib/blog/posts.ts`, run `python3 scripts/gen-blog-images.py` for its preview
   image, and add it to `apps/web/public/llms.txt`.
+- Public site copy is `apps/web/lib/marketing/messages.ts` (English) with one file per
+  language in `lib/marketing/locales/`. The app (sign-in, dashboard, share pages, editors,
+  canvas) reads `lib/i18n/app/en/*.ts`, translated in `lib/i18n/app/locales/`. A new or
+  changed key goes into every language; typecheck and the `locales.test.ts` files fail
+  otherwise. Never hard-code copy in those pages: client components read
+  `useAppMessages()`, server code `getAppI18n()`.
+- Format dates, numbers and relative times with `lib/i18n/intl.ts`, not `toLocaleString`:
+  the Workers runtime has no Uzbek data, so that module writes Uzbek out itself.
+- The public site has one address per language (`/de/pricing`); a new translated page
+  needs its segment in `lib/i18n/config.ts`, its path in `lib/i18n/metadata.ts` and a page
+  under `app/[locale]/`. The app keeps one address and follows the `captureflow_lang`
+  cookie.
 
 Work on a branch, not `main`. Commit/push only when asked.

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PosterLayer } from "@/app/_components/recording/PosterLayer";
 
@@ -9,10 +10,11 @@ import { PosterLayer } from "@/app/_components/recording/PosterLayer";
 // behind the poster: the stage is wider than the video, and the blur would
 // smear past the frame's edges.
 export function EditorSkeleton({ posterUrl }: { posterUrl?: string }) {
+  const m = useAppMessages();
   return (
     <div
       role="status"
-      aria-label="Opening the editor"
+      aria-label={m.recordingEditor.skeleton.label}
       className="flex h-screen flex-col overflow-hidden bg-canvas"
     >
       <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line bg-panel px-3">
@@ -79,7 +81,7 @@ export function EditorSkeleton({ posterUrl }: { posterUrl?: string }) {
           <Skeleton className="h-12 w-full rounded-lg" />
         </div>
       </div>
-      <span className="sr-only">Opening the editor…</span>
+      <span className="sr-only">{m.recordingEditor.skeleton.status}</span>
     </div>
   );
 }

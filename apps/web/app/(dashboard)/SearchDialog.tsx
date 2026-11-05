@@ -23,6 +23,7 @@ import {
   InputGroupButton,
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import type { SearchHit } from "@/lib/library-search";
 
 type Props = {
@@ -32,6 +33,8 @@ type Props = {
 
 // The ⌘K dialog, loaded once the page is idle.
 export function SearchDialog({ isOpen, onOpenChange }: Props) {
+  const m = useAppMessages();
+  const copy = m.shell.search;
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchHit[]>([]);
@@ -92,7 +95,7 @@ export function SearchDialog({ isOpen, onOpenChange }: Props) {
         className="sm:max-w-lg"
       >
         <DialogHeader>
-          <DialogTitle>Search</DialogTitle>
+          <DialogTitle>{m.common.search}</DialogTitle>
         </DialogHeader>
         <Command
           shouldFilter={false}
@@ -107,15 +110,15 @@ export function SearchDialog({ isOpen, onOpenChange }: Props) {
               autoFocus
               value={query}
               onValueChange={setQuery}
-              aria-label="Search your recordings and screenshots"
-              placeholder="Search your recordings and screenshots"
+              aria-label={copy.prompt}
+              placeholder={copy.prompt}
               className="h-full flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground"
             />
             {query && (
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
                   size="icon-xs"
-                  aria-label="Clear search"
+                  aria-label={copy.clear}
                   onClick={() => setQuery("")}
                 >
                   <X />
@@ -124,7 +127,7 @@ export function SearchDialog({ isOpen, onOpenChange }: Props) {
             )}
           </InputGroup>
 
-          <CommandList aria-label="Search results" className="mt-4 max-h-96">
+          <CommandList aria-label={copy.results} className="mt-4 max-h-96">
             {loading ? (
               <div className="p-6 text-center">
                 <Spinner className="inline-block size-5" />
@@ -132,9 +135,7 @@ export function SearchDialog({ isOpen, onOpenChange }: Props) {
             ) : (
               <>
                 <CommandEmpty className="text-fg-muted">
-                  {trimmed.length < 2
-                    ? "Search your recordings and screenshots by title."
-                    : "No matches"}
+                  {trimmed.length < 2 ? copy.hint : copy.noMatches}
                 </CommandEmpty>
                 {results.map((hit) => (
                   <CommandItem
@@ -152,7 +153,7 @@ export function SearchDialog({ isOpen, onOpenChange }: Props) {
                       <Camera size={16} />
                     )}
                     <span className="min-w-0 flex-1 truncate">{hit.title}</span>
-                    <Badge variant="secondary">{hit.kind}</Badge>
+                    <Badge variant="secondary">{copy.kind[hit.kind]}</Badge>
                   </CommandItem>
                 ))}
               </>

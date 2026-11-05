@@ -1,12 +1,12 @@
 // Also the /api/reactions allowlist: adding an emoji here lets it through
 // validation. `color` is the emoji's dot on the player's time slider.
 export const DEFAULT_REACTIONS = [
-  { emoji: "❤️", label: "Heart", color: "#f0384a" },
-  { emoji: "👍", label: "Thumbs up", color: "#3b82f6" },
-  { emoji: "🔥", label: "Fire", color: "#f97316" },
-  { emoji: "👏", label: "Clap", color: "#facc15" },
-  { emoji: "🙌", label: "Raised hands", color: "#f59e0b" },
-  { emoji: "👀", label: "Eyes", color: "#a3e635" },
+  { emoji: "❤️", color: "#f0384a" },
+  { emoji: "👍", color: "#3b82f6" },
+  { emoji: "🔥", color: "#f97316" },
+  { emoji: "👏", color: "#facc15" },
+  { emoji: "🙌", color: "#f59e0b" },
+  { emoji: "👀", color: "#a3e635" },
 ] as const;
 
 export const ALLOWED_REACTION_EMOJIS = new Set<string>(

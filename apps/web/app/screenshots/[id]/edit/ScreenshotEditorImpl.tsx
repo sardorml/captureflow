@@ -30,9 +30,11 @@ import Konva from "konva";
 // Side-effect import: without it `Konva.Filters.Blur` is undefined and the
 // blur tool silently no-ops (the cached node gets filters=[undefined]).
 import "konva/lib/filters/Blur";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { AnimatedTooltip } from "@/lib/animated-tooltip";
+import { fmt } from "@/lib/i18n/format";
 import type { ScreenshotEditorProps } from "./ScreenshotEditor";
 import { renameScreenshotAction, saveScreenshotAction } from "../../../actions";
 
@@ -105,44 +107,32 @@ type EditorState = {
 // (offset, color, offset, color, …) tuple — numbers and strings mixed.
 type GradientStops = (number | string)[];
 
-const GRADIENT_PRESETS: Record<
-  GradientKey,
-  { label: string; stops: GradientStops }
-> = {
+const GRADIENT_PRESETS: Record<GradientKey, { stops: GradientStops }> = {
   violet: {
-    label: "Violet",
     stops: [0, "#6366f1", 0.5, "#a855f7", 1, "#e9d5ff"],
   },
   sunset: {
-    label: "Sunset",
     stops: [0, "#fcd5b5", 0.55, "#f5946a", 1, "#a47bd6"],
   },
   orchid: {
-    label: "Orchid",
     stops: [0, "#7c3aed", 0.5, "#ec4899", 1, "#fb923c"],
   },
   forest: {
-    label: "Forest",
     stops: [0, "#022c22", 0.5, "#15803d", 1, "#86efac"],
   },
   flamingo: {
-    label: "Flamingo",
     stops: [0, "#9d174d", 0.5, "#db2777", 1, "#fbcfe8"],
   },
   citrus: {
-    label: "Citrus",
     stops: [0, "#f59e0b", 0.4, "#ec4899", 0.8, "#3b82f6", 1, "#1e3a8a"],
   },
   arctic: {
-    label: "Arctic",
     stops: [0, "#0ea5e9", 0.5, "#a5f3fc", 1, "#e0f2fe"],
   },
   ocean: {
-    label: "Ocean",
     stops: [0, "#0c4a6e", 0.5, "#0e7490", 1, "#67e8f9"],
   },
   deep: {
-    label: "Deep",
     stops: [0, "#312e81", 0.55, "#7c3aed", 1, "#f472b6"],
   },
 };
@@ -283,6 +273,8 @@ function hydrateAnnotations(raw: unknown[] | null): Annotation[] {
 
 export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
   const router = useRouter();
+  const m = useAppMessages();
+  const t = m.screenshotEditor;
   const {
     screenshotId,
     imageUrl,
@@ -310,7 +302,9 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
   const nodeRefs = useRef<Map<string, Konva.Node>>(new Map());
 
   const [image, setImage] = useState<HTMLImageElement | null>(null);
-  const [imageLoadError, setImageLoadError] = useState<string | null>(null);
+  const [imageLoadError, setImageLoadError] = useState<
+    "decode" | "fetch" | null
+  >(null);
 
   /*
    * Can't use props `imgW`/`imgH`: after the first save the D1 row holds the
@@ -396,15 +390,12 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
           setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
         };
         img.onerror = () => {
-          if (!cancelled)
-            setImageLoadError("Failed to decode screenshot image.");
+          if (!cancelled) setImageLoadError("decode");
         };
         img.src = objectUrl;
       } catch {
         if (!cancelled) {
-          setImageLoadError(
-            "Could not load the screenshot image. The bucket may have lost CORS access.",
-          );
+          setImageLoadError("fetch");
         }
       }
     })();
@@ -728,7 +719,7 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
     setSaveError(null);
     try {
       const stage = stageRef.current;
-      if (!stage) throw new Error("Editor not mounted");
+      if (!stage) throw new Error(t.saveError.notMounted);
 
       // De-select so the transformer handles aren't baked into the PNG.
       const previouslySelected = selectedId;
@@ -746,7 +737,7 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
 
       // Ship RGBA bytes to a Web Worker for PNG-8 re-encoding off-thread.
       const exportCtx = exportCanvas.getContext("2d");
-      if (!exportCtx) throw new Error("Could not acquire export canvas");
+      if (!exportCtx) throw new Error(t.saveError.noCanvas);
       const rgba = exportCtx.getImageData(0, 0, exportW, exportH);
 
       const pngBuf = await new Promise<ArrayBuffer>((resolve, reject) => {
@@ -765,7 +756,7 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
         };
         worker.onerror = (e) => {
           worker.terminate();
-          reject(new Error(e.message || "PNG encode worker crashed"));
+          reject(new Error(e.message || t.saveError.workerCrashed));
         };
         // Transfer (not copy) the multi-MB RGBA buffer into the worker.
         const transferable = rgba.data.buffer as ArrayBuffer;
@@ -856,7 +847,7 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-neutral-950 text-center text-sm text-neutral-400">
         <ImageOff className="h-8 w-8 text-neutral-500" />
-        <p className="mt-4 max-w-md">{imageLoadError}</p>
+        <p className="mt-4 max-w-md">{t.imageError[imageLoadError]}</p>
       </main>
     );
   }
@@ -869,8 +860,8 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
         <div className="flex min-w-0 flex-1 items-center gap-2 lg:max-w-[calc(50%-220px)]">
           <IconButton
             onClick={() => router.push(viewUrl)}
-            tooltip="Back to screenshot"
-            ariaLabel="Back to screenshot"
+            tooltip={t.header.back}
+            ariaLabel={t.header.back}
           >
             <ArrowLeft className="h-5 w-5" />
           </IconButton>
@@ -894,7 +885,7 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
                   }
                 }}
                 maxLength={200}
-                placeholder="Untitled screenshot"
+                placeholder={m.library.screenshot.untitled}
                 disabled={titleSaving}
                 className="w-[28rem] max-w-[60vw] rounded-md border border-line bg-neutral-900 px-2 py-1 text-sm text-neutral-100 focus:border-line-strong focus:outline-none disabled:opacity-50"
               />
@@ -907,10 +898,10 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
                 setTitleEditing(true);
               }}
               className="group flex min-w-0 items-center gap-1 rounded-md px-2 py-1 text-left hover:bg-tint"
-              title="Rename"
+              title={m.library.card.rename}
             >
               <span className="truncate text-sm text-neutral-200">
-                {title?.trim() || "Untitled screenshot"}
+                {title?.trim() || m.library.screenshot.untitled}
               </span>
               <Pencil className="h-3.5 w-3.5 shrink-0 text-neutral-600 opacity-0 transition-opacity group-hover:opacity-100" />
             </button>
@@ -940,24 +931,24 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
           <IconButton
             onClick={reset}
             disabled={!hasEdits}
-            tooltip="Reset edits"
-            ariaLabel="Reset edits"
+            tooltip={t.header.reset}
+            ariaLabel={t.header.reset}
           >
             <History className="h-5 w-5" />
           </IconButton>
           <IconButton
             onClick={undo}
             disabled={past.length === 0}
-            tooltip="Undo (⌘Z)"
-            ariaLabel="Undo"
+            tooltip={fmt(t.header.undoTooltip, { key: "⌘Z" })}
+            ariaLabel={t.header.undo}
           >
             <Undo2 className="h-5 w-5" />
           </IconButton>
           <IconButton
             onClick={redo}
             disabled={future.length === 0}
-            tooltip="Redo (⌘⇧Z)"
-            ariaLabel="Redo"
+            tooltip={fmt(t.header.redoTooltip, { key: "⌘⇧Z" })}
+            ariaLabel={t.header.redo}
           >
             <Redo2 className="h-5 w-5" />
           </IconButton>
@@ -967,7 +958,7 @@ export function ScreenshotEditorImpl(props: ScreenshotEditorProps) {
             className="ml-2"
           >
             {saving ? <Spinner /> : null}
-            Finish
+            {t.header.finish}
           </Button>
         </div>
       </header>
@@ -1134,26 +1125,27 @@ function Toolbar({
   background: Background;
   onBackground: (b: Background) => void;
 }) {
+  const t = useAppMessages().screenshotEditor.tools;
   return (
     <div className="inline-flex items-center gap-1 rounded-xl bg-canvas-2 p-1 shadow-sm ring-1 ring-line">
       <ToolButton
         active={tool === "text"}
         onClick={() => onTool("text")}
-        title="Text"
+        title={t.text}
       >
         <TypeIcon className="h-4 w-4" />
       </ToolButton>
       <ToolButton
         active={tool === "rect"}
         onClick={() => onTool("rect")}
-        title="Rectangle"
+        title={t.rect}
       >
         <Square className="h-4 w-4" />
       </ToolButton>
       <ToolButton
         active={tool === "arrow"}
         onClick={() => onTool("arrow")}
-        title="Arrow"
+        title={t.arrow}
       >
         <ArrowUpRight className="h-4 w-4" />
       </ToolButton>
@@ -1270,26 +1262,26 @@ function BackgroundPicker({
   onChange: (b: Background) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const m = useAppMessages();
+  const t = m.screenshotEditor.background;
   return (
     <div className="relative">
       <ToolButton
         active={false}
         onClick={() => setOpen((v) => !v)}
-        title="Background"
+        title={m.screenshotEditor.tools.background}
       >
         <BackgroundSwatch bg={active} />
       </ToolButton>
       {open && (
         <div className="absolute right-0 top-full z-20 mt-2 w-80 rounded-xl bg-neutral-900 p-3 shadow-2xl ring-1 ring-line-strong">
           <div className="mb-3 flex items-center justify-between px-1">
-            <h3 className="text-sm font-medium text-neutral-100">
-              Add a background
-            </h3>
+            <h3 className="text-sm font-medium text-neutral-100">{t.title}</h3>
             <button
               type="button"
               onClick={() => setOpen(false)}
               className="rounded-md p-1 text-fg-muted hover:bg-tint hover:text-fg-strong"
-              aria-label="Close background picker"
+              aria-label={t.close}
             >
               <X className="h-4 w-4" />
             </button>
@@ -1309,7 +1301,7 @@ function BackgroundPicker({
                   : "ring-line hover:ring-line-strong")
               }
             >
-              None
+              {t.none}
             </button>
             {GRADIENT_KEYS.map((k) => (
               <button
@@ -1326,7 +1318,7 @@ function BackgroundPicker({
                     : "ring-line hover:ring-line-strong")
                 }
                 style={{ background: gradientCss(GRADIENT_PRESETS[k].stops) }}
-                title={GRADIENT_PRESETS[k].label}
+                title={t.gradients[k]}
               />
             ))}
           </div>
@@ -1347,7 +1339,7 @@ function BackgroundPicker({
                     : "ring-line-strong hover:ring-line-strong")
                 }
                 style={{ backgroundColor: hex }}
-                aria-label={`Solid ${hex}`}
+                aria-label={fmt(t.solid, { color: hex })}
               />
             ))}
             <label
@@ -1356,7 +1348,7 @@ function BackgroundPicker({
                 background:
                   "conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444)",
               }}
-              aria-label="Pick a custom color"
+              aria-label={t.custom}
             >
               <input
                 type="color"
@@ -1430,6 +1422,7 @@ function AnnotationNode({
   sourceImage?: HTMLImageElement | null;
   imgRect?: { x: number; y: number; w: number; h: number };
 }) {
+  const m = useAppMessages();
   // Commit on dragEnd so each drag is one undo step, not one per move.
   const onDragEnd = (e: Konva.KonvaEventObject<DragEvent>): void => {
     if (annotation.kind === "arrow") {
@@ -1471,7 +1464,10 @@ function AnnotationNode({
         verticalAlign="top"
         {...commonProps}
         onDblClick={() => {
-          const next = window.prompt("Text", annotation.text);
+          const next = window.prompt(
+            m.screenshotEditor.textPrompt,
+            annotation.text,
+          );
           if (next !== null) onChange({ text: next } as Partial<Annotation>);
         }}
         onTransformEnd={(e) => {
@@ -1663,6 +1659,8 @@ function ElementInspector({
   const hasColor = annotation.kind !== "blur";
   const hasStroke = annotation.kind === "rect" || annotation.kind === "arrow";
   const isBlur = annotation.kind === "blur";
+  const m = useAppMessages();
+  const t = m.screenshotEditor.inspector;
   return (
     <div className="flex items-center justify-center px-3 py-2">
       <div className="inline-flex items-center gap-2 rounded-xl bg-canvas-2 p-1.5 shadow-sm ring-1 ring-line">
@@ -1694,7 +1692,7 @@ function ElementInspector({
                       : "border-line hover:scale-110")
                   }
                   style={{ backgroundColor: c }}
-                  title={`Color ${c}`}
+                  title={fmt(t.color, { color: c })}
                 />
               );
             })}
@@ -1713,7 +1711,7 @@ function ElementInspector({
           >
             {[4, 8, 12, 20, 32].map((w) => (
               <option key={w} value={w}>
-                {w}px
+                {fmt(t.size, { n: w })}
               </option>
             ))}
           </select>
@@ -1731,7 +1729,7 @@ function ElementInspector({
           >
             {[2, 4, 6, 8, 12].map((w) => (
               <option key={w} value={w}>
-                {w}px
+                {fmt(t.size, { n: w })}
               </option>
             ))}
           </select>
@@ -1742,7 +1740,7 @@ function ElementInspector({
           type="button"
           onClick={onDuplicate}
           className="rounded-md p-1.5 text-fg-muted hover:bg-tint hover:text-fg-strong"
-          title="Duplicate"
+          title={t.duplicate}
         >
           <MoveUpRight className="h-4 w-4" />
         </button>
@@ -1750,7 +1748,7 @@ function ElementInspector({
           type="button"
           onClick={onDelete}
           className="rounded-md p-1.5 text-fg-muted hover:bg-destructive/10 hover:text-destructive"
-          title="Delete"
+          title={m.common.delete}
         >
           <Trash2 className="h-4 w-4" />
         </button>

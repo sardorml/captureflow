@@ -18,6 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Empty } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import { fmt } from "@/lib/i18n/format";
+import { formatDate } from "@/lib/i18n/intl";
 import type { DeviceTokenRow } from "@/lib/device-tokens";
 import { revokeDeviceTokenAction } from "./actions";
 
@@ -26,11 +29,11 @@ type DevicesSectionProps = {
 };
 
 export function DevicesSection({ tokens }: DevicesSectionProps) {
+  const m = useAppMessages();
   if (tokens.length === 0) {
     return (
       <Empty className="mt-4 text-center text-sm text-fg-muted">
-        No connected devices. Open the CaptureFlow desktop app and click Sign in
-        on the record bar to link this account.
+        {m.settings.devices.empty}
       </Empty>
     );
   }
@@ -46,6 +49,9 @@ export function DevicesSection({ tokens }: DevicesSectionProps) {
 }
 
 function DeviceRow({ token }: { token: DeviceTokenRow }) {
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
+  const added = (ts: number) => formatDate(ts, lang, DEVICE_DATE);
   const [pending, startTransition] = useTransition();
 
   const onRevoke = () => {
@@ -59,17 +65,21 @@ function DeviceRow({ token }: { token: DeviceTokenRow }) {
       <Monitor className="h-4 w-4 shrink-0 text-fg-subtle" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm text-fg">
-          {token.label || "Unlabelled device"}
+          {token.label || m.settings.devices.unlabelled}
         </p>
         <p className="mt-0.5 flex items-center gap-2 text-xs text-fg-muted">
           <span>
-            Added {formatDate(token.createdAt)}
             {token.lastUsedAt
-              ? ` · last used ${formatDate(token.lastUsedAt)}`
-              : ""}
+              ? fmt(m.settings.devices.addedLastUsed, {
+                  date: added(token.createdAt),
+                  lastUsed: added(token.lastUsedAt),
+                })
+              : fmt(m.settings.devices.added, {
+                  date: added(token.createdAt),
+                })}
           </span>
           {token.lastUsedAt ? null : (
-            <Badge variant="secondary">Never used</Badge>
+            <Badge variant="secondary">{m.settings.devices.neverUsed}</Badge>
           )}
         </p>
       </div>
@@ -77,26 +87,28 @@ function DeviceRow({ token }: { token: DeviceTokenRow }) {
         <AlertDialogTrigger asChild>
           <Button variant="ghost" size="sm" className="text-destructive">
             {pending && <Spinner />}
-            Revoke
+            {m.settings.devices.revoke.action}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
-            <AlertDialogTitle>Sign this device out?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {m.settings.devices.revoke.title}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              It will need to sign in again to manage recordings.
+              {m.settings.devices.revoke.description}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel variant="secondary" size="sm">
-              Cancel
+              {m.common.cancel}
             </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               size="sm"
               onClick={onRevoke}
             >
-              Revoke
+              {m.settings.devices.revoke.action}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -105,10 +117,8 @@ function DeviceRow({ token }: { token: DeviceTokenRow }) {
   );
 }
 
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+const DEVICE_DATE = {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+} as const;
