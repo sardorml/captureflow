@@ -101,6 +101,12 @@ describe("trackHasAudio", () => {
     expect(trackHasAudio(none, "screen")).toBe(false);
   });
 
+  it("counts an Opus track as audio", () => {
+    const opus = withAudio({ ...report.audio, muxed: "opus" });
+    expect(trackHasAudio(opus, "screen")).toBe(true);
+    expect(hydrateCaptureReport(opus)?.audio.muxed).toBe("opus");
+  });
+
   it("does not know without a report", () => {
     expect(trackHasAudio(null, "screen")).toBeNull();
   });

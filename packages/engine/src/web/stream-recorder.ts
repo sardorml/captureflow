@@ -1,5 +1,10 @@
 import { ENGINE_OUTPUT } from "../contract";
-import { aacBitrateCandidates } from "./aac-bitrate";
+import {
+  type AudioContainerCodec,
+  type RequestedAudio,
+  audioEncoderCandidates,
+  containerCodec,
+} from "./audio-encoder-config";
 import {
   ENCODER_ACCELERATION,
   type EncoderAcceleration,
@@ -26,7 +31,6 @@ const LUMA_SAMPLE = { width: 48, height: 27 };
 // Encoder back-pressure bound: drop frames rather than queue unboundedly.
 const MAX_ENCODE_QUEUE = 2;
 
-const AAC_CODEC = "mp4a.40.2";
 const AUDIO_BITRATE = 128_000;
 
 export type StreamRecorderLog = {
@@ -37,7 +41,7 @@ export type StreamRecorderLog = {
 export type StreamRecorderOptions = {
   /** Display capture; constrain it to the contract's max dims at getDisplayMedia time. */
   stream: MediaStream;
-  /** Mic capture muxed into the fMP4 as AAC-LC; dropped (warn) where AAC encoding is unavailable. */
+  /** Mic capture muxed into the fMP4 as AAC-LC, or Opus where AAC encoding is unavailable; dropped (warn) where neither is. */
   micStream?: MediaStream | null;
   /** Receives muxed fMP4 bytes as they are written (the upload feed). */
   output(bytes: Uint8Array, position: number): void;
@@ -50,7 +54,7 @@ export type StreamRecorderOptions = {
 
 export type StreamRecorderAudio =
   | {
-      codec: "aac";
+      codec: AudioContainerCodec;
       sampleRate: number;
       numberOfChannels: number;
       bitrate: number;
@@ -138,7 +142,7 @@ function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
   return a.byteLength === b.byteLength && a.every((v, i) => v === b[i]);
 }
 
-async function isAacSupported(config: AudioEncoderConfig): Promise<boolean> {
+async function isAudioSupported(config: AudioEncoderConfig): Promise<boolean> {
   try {
     const res = await AudioEncoder.isConfigSupported(config);
     return res.supported === true;
@@ -147,12 +151,11 @@ async function isAacSupported(config: AudioEncoderConfig): Promise<boolean> {
   }
 }
 
-async function supportedAacConfig(
-  requested: AudioEncoderConfig,
+async function supportedAudioConfig(
+  requested: RequestedAudio,
 ): Promise<AudioEncoderConfig | null> {
-  for (const bitrate of aacBitrateCandidates(requested.bitrate ?? 0)) {
-    const config = { ...requested, bitrate };
-    if (await isAacSupported(config)) return config;
+  for (const config of audioEncoderCandidates(requested)) {
+    if (await isAudioSupported(config)) return config;
   }
   return null;
 }
@@ -199,21 +202,20 @@ export async function startStreamRecorder(
 
   const micTrack = opts.micStream?.getAudioTracks()[0] ?? null;
   const micSettings = micTrack?.getSettings();
-  const requestedAudio: AudioEncoderConfig | null = micTrack
+  const requestedAudio: RequestedAudio | null = micTrack
     ? {
-        codec: AAC_CODEC,
         sampleRate: micSettings?.sampleRate ?? 48_000,
         numberOfChannels: micSettings?.channelCount ?? 1,
         bitrate: opts.quality?.audioBitrate ?? AUDIO_BITRATE,
       }
     : null;
   const audioConfig = requestedAudio
-    ? await supportedAacConfig(requestedAudio)
+    ? await supportedAudioConfig(requestedAudio)
     : null;
   const withAudio = audioConfig !== null;
   const audio: StreamRecorderAudio = audioConfig
     ? {
-        codec: "aac",
+        codec: containerCodec(audioConfig),
         sampleRate: audioConfig.sampleRate,
         numberOfChannels: audioConfig.numberOfChannels,
         bitrate: audioConfig.bitrate ?? AUDIO_BITRATE,
@@ -221,11 +223,13 @@ export async function startStreamRecorder(
     : {
         codec: null,
         reason: requestedAudio
-          ? `AAC encoding unavailable (${requestedAudio.sampleRate} Hz, ${requestedAudio.numberOfChannels} ch)`
+          ? `AAC and Opus encoding unavailable (${requestedAudio.sampleRate} Hz, ${requestedAudio.numberOfChannels} ch)`
           : "no mic track",
       };
   if (audio.codec === null && requestedAudio) {
     log.warn(`stream-recorder: ${audio.reason}, recording without mic`);
+  } else if (audio.codec === "opus") {
+    log.info("stream-recorder: AAC encoding unavailable, mic as Opus");
   } else if (audioConfig && audioConfig.bitrate !== requestedAudio?.bitrate) {
     log.info(
       `stream-recorder: AAC at ${audioConfig.bitrate} bps, the encoder refused ${requestedAudio?.bitrate}`,
@@ -237,6 +241,7 @@ export async function startStreamRecorder(
     audio:
       withAudio && audioConfig
         ? {
+            codec: containerCodec(audioConfig),
             numberOfChannels: audioConfig.numberOfChannels,
             sampleRate: audioConfig.sampleRate,
           }
@@ -390,7 +395,7 @@ export async function startStreamRecorder(
   if (audioEncoder && audioConfig) audioEncoder.configure(audioConfig);
 
   log.info(
-    `stream-recorder: started (${width}x${height}@${framerate}fps, track reports ${settings.frameRate ?? "no"} fps, ${codec}, ${acceleration}${audioEncoder ? " + aac mic" : ""})`,
+    `stream-recorder: started (${width}x${height}@${framerate}fps, track reports ${settings.frameRate ?? "no"} fps, ${codec}, ${acceleration}${audio.codec ? ` + ${audio.codec} mic` : ""})`,
   );
 
   const reader = new MediaStreamTrackProcessor<VideoFrame>({

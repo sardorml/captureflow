@@ -52,7 +52,7 @@ function hydrateAudio(raw: unknown): CaptureAudio | null {
   if (r.muxed === "webcam") return { muxed: "webcam" };
   if (r.muxed === "none")
     return { muxed: "none", reason: text(r.reason) ?? "unknown" };
-  if (r.muxed === "aac") {
+  if (r.muxed === "aac" || r.muxed === "opus") {
     const sampleRate = count(r.sampleRate);
     const channelCount = count(r.channelCount);
     const bitrate = count(r.bitrate);
@@ -62,7 +62,7 @@ function hydrateAudio(raw: unknown): CaptureAudio | null {
       bitrate === undefined
     )
       return null;
-    return { muxed: "aac", sampleRate, channelCount, bitrate };
+    return { muxed: r.muxed, sampleRate, channelCount, bitrate };
   }
   return null;
 }
@@ -108,5 +108,8 @@ export function trackHasAudio(
   track: RecordingStream,
 ): boolean | null {
   if (!capture) return null;
-  return capture.audio.muxed === (track === "webcam" ? "webcam" : "aac");
+  const { muxed } = capture.audio;
+  return track === "webcam"
+    ? muxed === "webcam"
+    : muxed === "aac" || muxed === "opus";
 }

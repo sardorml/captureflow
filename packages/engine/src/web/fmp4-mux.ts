@@ -3,11 +3,16 @@ import { Muxer, StreamTarget } from "mp4-muxer";
 /*
  * The canonical output muxer (requirement: identical recordings from every
  * app). H.264 + AAC in fragmented MP4 — fragments stream out through
- * `output` as they are written, so uploads can start before finalize.
+ * `output` as they are written, so uploads can start before finalize. Opus
+ * is the mic's stand-in where the browser cannot encode AAC.
  */
 export type Fmp4MuxerOptions = {
   video: { width: number; height: number; frameRate: number };
-  audio?: { numberOfChannels: number; sampleRate: number } | null;
+  audio?: {
+    codec: "aac" | "opus";
+    numberOfChannels: number;
+    sampleRate: number;
+  } | null;
   output(bytes: Uint8Array, position: number): void;
   // 'offset' rebases the first chunk to t=0 — needed when encoder timestamps
   // don't start at zero (MediaStream capture clocks).
@@ -59,7 +64,7 @@ export function createFmp4Muxer(opts: Fmp4MuxerOptions): Fmp4Muxer {
     },
     audio: opts.audio
       ? {
-          codec: "aac",
+          codec: opts.audio.codec,
           numberOfChannels: opts.audio.numberOfChannels,
           sampleRate: opts.audio.sampleRate,
         }
