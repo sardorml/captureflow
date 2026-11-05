@@ -12,8 +12,9 @@ import {
 } from "./recording";
 import type { Slide } from "./slide";
 
+// Without a url the recording is a presentation: slides and narration on a blank stage.
 export type StartRequest = {
-  url: string;
+  url?: string;
   title?: string;
   visibility?: "public" | "workspace" | "private";
   workspaceId?: string;
@@ -49,6 +50,8 @@ const FRAME_MS = 16;
 const MOUSE_MS = { min: 450, max: 900, perPx: 0.8 };
 const SCROLL_DRIFT_MS = 800;
 const KEY_SHOWN_MS = 500;
+const STAGE_HTML =
+  '<!doctype html><html><head><meta charset="utf-8"><title>Presentation</title></head><body style="margin:0;background:#f4f4f5"></body></html>';
 
 type Point = { x: number; y: number };
 
@@ -129,7 +132,7 @@ export async function startSession(
   opts: SessionOptions = {},
 ) {
   const allowUrl = opts.allowUrl ?? ((url: string) => isAllowedUrl(url));
-  if (!(await allowUrl(req.url))) {
+  if (req.url && !(await allowUrl(req.url))) {
     throw new SessionError("That address can't be opened in the recorder.");
   }
   const width = req.width ?? 1920;
@@ -155,16 +158,20 @@ export async function startSession(
   const page: Page = await context.newPage();
   let mouse = { x: width / 2, y: height / 2 };
 
-  try {
-    await page.goto(req.url, { waitUntil: "load", timeout: 30_000 });
-  } catch (err) {
-    await context.close();
-    throw new SessionError(`The page didn't load: ${(err as Error).message}`);
+  if (req.url) {
+    try {
+      await page.goto(req.url, { waitUntil: "load", timeout: 30_000 });
+    } catch (err) {
+      await context.close();
+      throw new SessionError(`The page didn't load: ${(err as Error).message}`);
+    }
+    await page.mouse.move(mouse.x, mouse.y);
+  } else {
+    await page.setContent(STAGE_HTML);
   }
-  await page.mouse.move(mouse.x, mouse.y);
   await sleep(SETTLE_MS);
 
-  const pageTitle = await page.title();
+  const pageTitle = req.url ? await page.title() : "";
   const rec = await openRecording({
     title: req.title || pageTitle || undefined,
     visibility: req.visibility,
@@ -178,10 +185,11 @@ export async function startSession(
     slides: context,
     pauseBetweenActions: true,
     bitrate: BITRATE,
+    leadInMs: req.url ? undefined : 0,
     ffmpegPath: opts.ffmpegPath,
     close: () => context.close(),
   });
-  rec.mark(pageTitle || new URL(page.url()).host);
+  if (req.url) rec.mark(pageTitle || new URL(req.url).host);
   pageAudio = (pcm) => rec.feedAudio(pcm);
 
   async function locate(target: Target): Promise<Locator> {

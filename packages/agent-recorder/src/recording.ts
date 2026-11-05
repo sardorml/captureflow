@@ -49,9 +49,13 @@ export type OpenRecordingOptions = {
   slides: BrowserContext;
   pauseBetweenActions: boolean;
   bitrate: number;
+  leadInMs?: number;
   ffmpegPath?: string;
   close(): Promise<void>;
 };
+
+// A page gets a moment on camera before the first action; a bare stage has nothing to show yet.
+const LEAD_IN_MS = 1000;
 
 export type Chapter = { ms: number; title: string };
 
@@ -205,7 +209,7 @@ export async function openRecording(opts: OpenRecordingOptions) {
       if (--busy === 0) capture.pause();
     }
   }
-  await recorded(() => sleep(1000));
+  await recorded(() => sleep(opts.leadInMs ?? LEAD_IN_MS));
 
   let narrated = false;
   let ended: Promise<{ url: string; durationSeconds: number }> | null = null;

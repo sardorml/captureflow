@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "captureflow",
   "version": "1.0.0",
-  "description": "Record websites in a cloud browser and share each video as a link.",
+  "description": "Turn a chat into a presentation, how-to or walkthrough video and share it as a link.",
   "author": {
     "name": "CaptureFlow",
     "email": "support@captureflow.dev",
@@ -11,18 +11,26 @@
   "homepage": "https://captureflow.dev",
   "repository": "https://github.com/sardorml/captureflow",
   "license": "AGPL-3.0",
-  "keywords": ["screen recording", "video", "walkthrough", "demo"],
+  "keywords": [
+    "presentation",
+    "how-to",
+    "walkthrough",
+    "video",
+    "screen recording"
+  ],
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "CaptureFlow",
-        "shortDescription": "Record and share screen videos",
-        "longDescription": "CaptureFlow records screen videos you can share as a link.\n\nAsk ChatGPT to record a website and it opens the page in a cloud browser, moves through it, can add title slides, and returns a link to the video. You can also list and search your recordings, read their transcripts, and change who can watch them.\n\nIt's for people who want a demo, walkthrough or how-to video without recording it themselves.\n\nLimitations: it only records websites in a cloud browser, so it can't record your computer, localhost, or sites using your existing sign-ins. Recording time is limited each month. The video shows what the agent types, so don't give it passwords or private details you don't want in the video.",
+        "shortDescription": "Make presentation and how-to videos",
+        "longDescription": "CaptureFlow turns what you tell ChatGPT into a video you can share as a link.\n\nDescribe a presentation, a how-to or a walkthrough and ChatGPT builds it slide by slide: title and step slides, your screenshots with a ring around what to click, code with the lines that matter highlighted, and a closing slide. Ask for a voiceover and it narrates every slide. You get a link to the finished video, with chapters for each slide and a transcript.\n\nYou can also list and search the recordings in your CaptureFlow library, read their transcripts, and change who can watch them.\n\nIt's for people who need a demo, a how-to for a colleague or customer, a release walkthrough or a short explainer without opening a video editor.\n\nLimitations: images must be at public http(s) links. It doesn't record your computer or sign in to websites; the CaptureFlow extension, app and local agent do that. Video minutes are limited each month, and voiceover needs a Pro plan.",
         "developerName": "CaptureFlow",
         "category": "Productivity",
         "capabilities": [
-          "Record a website in a cloud browser",
-          "Add title slides to a recording",
+          "Build a presentation or how-to video from slides",
+          "Frame screenshots with a callout on what matters",
+          "Show code with highlighted lines",
+          "Narrate a video with an AI voice",
           "List and search recordings",
           "Read recording transcripts",
           "Change who can watch a recording"
@@ -32,9 +40,9 @@
         "privacyPolicyURL": "https://captureflow.dev/privacy",
         "termsOfServiceURL": "https://captureflow.dev/terms",
         "defaultPrompt": [
-          "Record a walkthrough of the pricing page on example.com and give me the link.",
-          "Find my recordings about onboarding and show me the transcript of the newest one.",
-          "Record a demo of this site with a title slide and a closing slide: example.com"
+          "Make a one-minute how-to video on setting up two-factor authentication, with a title slide, the steps and a closing slide.",
+          "Turn these release notes into a short narrated walkthrough video.",
+          "Find my recordings about onboarding and show me the transcript of the newest one."
         ],
         "brandColor": "#2563EB",
         "composerIcon": "./assets/icon.png",
@@ -44,16 +52,16 @@
         "test_cases": {
           "positive": [
             {
-              "description": "Record a website",
-              "prompt": "Record a short walkthrough of example.com and give me the link.",
-              "tools_triggered": "start_recording, look, scroll, stop_recording",
-              "expected_behavior": "Returns a share link that plays a recording of the page."
+              "description": "Make a how-to video from a description",
+              "prompt": "Make a short how-to video on resetting a forgotten password, with a title slide, the three steps and a closing slide.",
+              "tools_triggered": "start_presentation, show_slide, wait, stop_recording",
+              "expected_behavior": "Returns a share link to a video that opens on a title slide, shows the steps, and ends on a closing slide."
             },
             {
-              "description": "Record with a title slide",
-              "prompt": "Record example.com with a title slide that says Welcome.",
-              "tools_triggered": "start_recording, show_slide, hide_slide, stop_recording",
-              "expected_behavior": "Returns a share link to a video that opens on the Welcome slide, then shows the page."
+              "description": "Make a video with a screenshot and a callout",
+              "prompt": "Make a one-slide video that shows https://captureflow.dev/og.png with a ring around the top left corner and the caption 'Start here'.",
+              "tools_triggered": "start_presentation, show_slide, wait, stop_recording",
+              "expected_behavior": "Returns a share link to a video with the image framed, a ring at the top left, and the caption under it."
             },
             {
               "description": "List recordings",
@@ -76,15 +84,15 @@
           ],
           "negative": [
             {
-              "description": "General knowledge question, unrelated to recording, so the plugin should not be used.",
+              "description": "General knowledge question, unrelated to video, so the plugin should not be used.",
               "prompt": "What's the capital of France?"
             },
             {
-              "description": "Writing request with no recording involved, so the plugin should not be used.",
+              "description": "Writing request with no video involved, so the plugin should not be used.",
               "prompt": "Write me a video script about coffee."
             },
             {
-              "description": "The plugin can't record the user's own computer, so it should explain that it only records websites in a cloud browser and not start a recording.",
+              "description": "The plugin can't record the user's computer, so it should explain that it makes videos from slides and point to the CaptureFlow apps for screen recording, without starting anything.",
               "prompt": "Record my computer's screen."
             }
           ]
@@ -93,7 +101,7 @@
         "commerce_description": "This plugin does not sell products or process payments."
       },
       "publication": {
-        "release_notes": "Initial release."
+        "release_notes": "First release: build presentation, how-to and walkthrough videos from slides, with screenshots, callouts, code and an optional AI voiceover; list and search recordings, read transcripts, and change who can watch a recording."
       }
     }
   }

@@ -20,26 +20,22 @@ import {
 } from "./agent-recordings-db";
 import { LibraryError, resolveWorkspaceId, type McpUser } from "./library";
 
-export type Target = { text?: string; selector?: string };
-
+// The cloud recorder makes presentations: slides and narration, no page to drive.
 export type RecorderAction =
-  | { type: "click"; target: Target }
-  | { type: "type"; text: string; target?: Target; submit?: boolean }
-  | { type: "press"; key: string }
-  | { type: "scroll"; direction: "down" | "up"; amount?: number }
-  | { type: "navigate"; url: string }
   | { type: "wait"; seconds: number }
-  | { type: "show_slide"; slide: Slide }
-  | { type: "hide_slide" };
+  | { type: "show_slide"; slide: Slide };
 
 export const SLIDE_LAYOUTS = [
   "cover",
   "list",
   "statement",
   "feature",
+  "image",
+  "code",
   "big_idea",
+  "end_card",
 ] as const;
-export const SLIDE_THEMES = ["navy", "blue", "cream"] as const;
+export const SLIDE_THEMES = ["white", "gray", "ink", "blue"] as const;
 
 export type Slide = {
   layout?: (typeof SLIDE_LAYOUTS)[number];
@@ -55,6 +51,14 @@ export type Slide = {
   from?: string;
   to?: string;
   imageUrl?: string;
+  caption?: string;
+  callout?: { x: number; y: number; w: number; h: number };
+  code?: string;
+  language?: string;
+  lines?: string;
+  highlight?: string;
+  logo?: boolean;
+  cta?: string;
 };
 
 export type PageLook = {
@@ -146,7 +150,6 @@ export async function startAgentRecording(
   env: RecorderEnv,
   user: McpUser,
   args: {
-    url: string;
     title?: string;
     visibility?: "public" | "workspace" | "private";
     workspaceId?: string;
@@ -191,7 +194,6 @@ export async function startAgentRecording(
       "POST",
       "",
       {
-        url: args.url,
         title: args.title,
         visibility: args.visibility,
         workspaceId,
