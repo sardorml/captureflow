@@ -16,6 +16,7 @@ import { plural } from "@/lib/i18n/format";
 import { cn } from "@/lib/utils";
 import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
 import { NotificationList } from "./NotificationList";
+import Link from "next/link";
 
 const MENU_LIMIT = 6;
 
@@ -92,7 +93,7 @@ export function NotificationsMenu({
         <DropdownMenuSeparator />
 
         <DropdownMenuItem asChild className="justify-center">
-          <a href={`${base}/notifications`}>{copy.viewAll}</a>
+          <Link href={`${base}/notifications`}>{copy.viewAll}</Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

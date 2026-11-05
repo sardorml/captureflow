@@ -27,6 +27,7 @@ import {
 } from "@/app/_components/ShareVisibilityModal";
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import { useAppMessages } from "@/components/app-i18n-provider";
+import Link from "next/link";
 
 type Props = {
   screenshotId: string;
@@ -125,13 +126,13 @@ export function ScreenshotActions({
       {dialog}
       <div className="flex items-center gap-2">
         {isOwner && (
-          <a
+          <Link
             href={editUrl}
             className={buttonVariants({ variant: "secondary" })}
           >
             <Pencil size={16} />
             {copy.edit}
-          </a>
+          </Link>
         )}
         {signedIn ? (
           <ButtonGroup>

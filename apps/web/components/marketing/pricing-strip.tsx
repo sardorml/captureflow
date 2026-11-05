@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 type PricingStripProps = {
   icon: ReactNode;
@@ -39,7 +40,7 @@ export function PricingStrip({
           <p className="mt-0.5 text-sm text-fg/80">{body}</p>
         </div>
       </div>
-      <a
+      <Link
         href={cta.href}
         target={cta.isExternal ? "_blank" : undefined}
         rel={cta.isExternal ? "noopener noreferrer" : undefined}
@@ -51,7 +52,7 @@ export function PricingStrip({
           size={15}
           className="transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
         />
-      </a>
+      </Link>
     </div>
   );
 }

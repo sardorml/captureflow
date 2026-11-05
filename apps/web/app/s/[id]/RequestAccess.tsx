@@ -5,6 +5,7 @@ import { Lock, Mail, ArrowRight, Check } from "lucide-react";
 import { useAppMessages } from "@/components/app-i18n-provider";
 import { fmt } from "@/lib/i18n/format";
 import { fill } from "@/lib/i18n/fill";
+import Link from "next/link";
 
 // Access-request screen shown when a visitor isn't authorized for a screenshot.
 
@@ -111,13 +112,13 @@ export function RequestAccess({
         {!viewer ? (
           <div className="mt-8 rounded-2xl border border-line-strong bg-neutral-900/60 p-6">
             <p className="text-sm text-neutral-300">{copy.signInHint}</p>
-            <a
+            <Link
               href={signInUrl}
               className="mt-5 inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
             >
               {copy.signIn}
               <ArrowRight className="h-4 w-4" />
-            </a>
+            </Link>
           </div>
         ) : sent ? (
           <div className="mt-8 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.06] p-6 text-center">

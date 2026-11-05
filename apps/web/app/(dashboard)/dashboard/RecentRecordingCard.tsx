@@ -7,6 +7,7 @@ import { formatDuration, initials } from "@/lib/format";
 import { getAppI18n } from "@/lib/i18n/app/server";
 import { plural } from "@/lib/i18n/format";
 import { viewUrlFor } from "@/lib/site";
+import Link from "next/link";
 
 export type RecentRecording = {
   slug: string;
@@ -33,7 +34,7 @@ export async function RecentRecordingCard({
   const { messages: m, lang } = await getAppI18n();
   const counts = m.library.dashboard.recent;
   return (
-    <a
+    <Link
       href={viewUrlFor(recording.slug)}
       className="group flex flex-col gap-2.5 rounded-2xl p-2 transition-colors hover:bg-tint"
     >
@@ -86,7 +87,7 @@ export async function RecentRecordingCard({
           />
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
 

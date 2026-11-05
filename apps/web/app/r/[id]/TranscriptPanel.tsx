@@ -15,6 +15,7 @@ import type {
 } from "@/lib/recording/types";
 import { cn } from "@/lib/utils";
 import { useAppMessages } from "@/components/app-i18n-provider";
+import Link from "next/link";
 
 type Props = {
   slug: string;
@@ -160,13 +161,13 @@ export function TranscriptPanel({
           {copied ? m.common.copied : m.common.copy}
         </Button>
         {isOwner ? (
-          <a
+          <Link
             href={editUrl}
             className={buttonVariants({ size: "sm", variant: "secondary" })}
           >
             <Pencil className="h-3.5 w-3.5" />
             {m.common.edit}
-          </a>
+          </Link>
         ) : null}
         <Button
           size="sm"
