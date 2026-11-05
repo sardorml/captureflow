@@ -492,9 +492,9 @@ async function runSession(
     ? { muxed: "none", reason: "mic off" }
     : webcamStream && voice
       ? { muxed: "webcam" }
-      : screenRecorder.audio.codec === "aac"
+      : screenRecorder.audio.codec !== null
         ? {
-            muxed: "aac",
+            muxed: screenRecorder.audio.codec,
             sampleRate: screenRecorder.audio.sampleRate,
             channelCount: screenRecorder.audio.numberOfChannels,
             bitrate: screenRecorder.audio.bitrate,
