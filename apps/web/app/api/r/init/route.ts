@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
   let maxQuality: InitResponse["maxQuality"] = undefined;
   if (!isDev) {
     const entitlement = workspaceId
-      ? await getWorkspaceEntitlement(workspaceId)
+      ? await getWorkspaceEntitlement(workspaceId, userId)
       : null;
     if (
       entitlement?.recordingsPerPerson != null &&
