@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   createInvite,
+  ensurePersonalWorkspace,
   getWorkspaceById,
   getWorkspaceRole,
 } from "@captureflow/quota";
@@ -10,6 +11,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createD1 } from "./d1";
 import { inviteTokenFromPath } from "./hooks";
 import {
+  addWorkspaceMembers,
   claimFirstInstanceAdmin,
   createTeamWorkspace,
   getInstanceSignupState,
@@ -17,10 +19,12 @@ import {
   instanceSignupRefusal,
   isInstanceAdmin,
   listInstanceAdminIds,
+  listTeamWorkspaceOptions,
   markInstanceSetupCompleted,
   parseDomains,
   revokeInstanceAdmin,
   setInstanceSignupDomains,
+  transferWorkspaceOwnership,
 } from "./instance";
 import { applyMigrations } from "./migrate";
 
@@ -121,7 +125,7 @@ describe("instanceSignupRefusal", () => {
       await instanceSignupRefusal(db, { email: "Pat@ACME.com" }, null),
     ).toBe(null);
     expect(await instanceSignupRefusal(db, stranger, null)).toBe(
-      "Sign up with an address on @acme.com or @acme.io, or ask an admin for an invite.",
+      "Sign up with an address on @acme.com or @acme.io, or ask an administrator for an invite.",
     );
     await setInstanceSignupDomains(db, []);
     expect(
@@ -130,8 +134,9 @@ describe("instanceSignupRefusal", () => {
   });
 
   describe("with an invite", () => {
-    async function invite(email: string) {
+    async function invite(email: string, { asAdmin = true } = {}) {
       await addUser("a");
+      if (asAdmin) await claimFirstInstanceAdmin(db, "a");
       const id = await createTeamWorkspace(db, {
         name: "Design",
         ownerUserId: "a",
@@ -159,6 +164,20 @@ describe("instanceSignupRefusal", () => {
       expect(await instanceSignupRefusal(db, stranger, token)).toMatch(
         /invite-only/,
       );
+    });
+
+    it("ignores an invite that no administrator sent", async () => {
+      const token = await invite("new@example.com", { asAdmin: false });
+      expect(await instanceSignupRefusal(db, stranger, token)).toMatch(
+        /invite-only/,
+      );
+      expect(
+        await instanceSignupRefusal(
+          db,
+          { email: "new@example.com", emailVerified: true },
+          null,
+        ),
+      ).toMatch(/invite-only/);
     });
 
     it("takes a provider's verified address without the link", async () => {
@@ -195,6 +214,107 @@ describe("createTeamWorkspace", () => {
     expect((await getWorkspaceById(db, first))?.kind).toBe("team");
     expect(await getWorkspaceRole(db, first, "a")).toBe("owner");
     expect((await getWorkspaceById(db, first))?.name).toBe("Design");
+  });
+});
+
+describe("addWorkspaceMembers", () => {
+  it("adds accounts to a team once and keeps existing roles", async () => {
+    await addUser("a");
+    await addUser("b");
+    const id = await createTeamWorkspace(db, {
+      name: "Design",
+      ownerUserId: "a",
+    });
+
+    await addWorkspaceMembers(db, {
+      workspaceId: id,
+      userIds: ["a", "b", "nobody"],
+      role: "viewer",
+    });
+    await addWorkspaceMembers(db, {
+      workspaceId: id,
+      userIds: ["b"],
+      role: "member",
+    });
+
+    expect(await getWorkspaceRole(db, id, "a")).toBe("owner");
+    expect(await getWorkspaceRole(db, id, "b")).toBe("viewer");
+    expect(await getWorkspaceRole(db, id, "nobody")).toBe(null);
+    expect(await listTeamWorkspaceOptions(db)).toEqual([
+      { id, name: "Design" },
+    ]);
+  });
+
+  it("never fills a personal workspace", async () => {
+    await addUser("a");
+    await addUser("b");
+    const personal = await ensurePersonalWorkspace(db, "a", "a");
+    await addWorkspaceMembers(db, {
+      workspaceId: personal.id,
+      userIds: ["b"],
+      role: "member",
+    });
+    expect(await getWorkspaceRole(db, personal.id, "b")).toBe(null);
+  });
+});
+
+describe("transferWorkspaceOwnership", () => {
+  it("hands a team to a member and keeps the old owner as a member", async () => {
+    await addUser("a");
+    await addUser("b");
+    const id = await createTeamWorkspace(db, {
+      name: "Design",
+      ownerUserId: "a",
+    });
+
+    expect(
+      await transferWorkspaceOwnership(db, { workspaceId: id, userId: "b" }),
+    ).toBe(null);
+    expect((await getWorkspaceById(db, id))?.owner_user_id).toBe("b");
+    expect(await getWorkspaceRole(db, id, "b")).toBe("owner");
+    expect(await getWorkspaceRole(db, id, "a")).toBe("member");
+  });
+
+  it("promotes someone who was already in the workspace", async () => {
+    await addUser("a");
+    await addUser("b");
+    const id = await createTeamWorkspace(db, {
+      name: "Design",
+      ownerUserId: "a",
+    });
+    await db
+      .prepare(
+        `INSERT INTO workspace_member (workspace_id, user_id, role, joined_at)
+           VALUES (?1, 'b', 'viewer', 1)`,
+      )
+      .bind(id)
+      .run();
+
+    await transferWorkspaceOwnership(db, { workspaceId: id, userId: "b" });
+    expect(await getWorkspaceRole(db, id, "b")).toBe("owner");
+  });
+
+  it("leaves personal workspaces and unknown accounts alone", async () => {
+    await addUser("a");
+    await addUser("b");
+    const personal = await ensurePersonalWorkspace(db, "a", "a");
+    expect(
+      await transferWorkspaceOwnership(db, {
+        workspaceId: personal.id,
+        userId: "b",
+      }),
+    ).toMatch(/personal workspace/);
+    const team = await createTeamWorkspace(db, {
+      name: "Design",
+      ownerUserId: "a",
+    });
+    expect(
+      await transferWorkspaceOwnership(db, {
+        workspaceId: team,
+        userId: "nobody",
+      }),
+    ).toMatch(/account no longer exists/);
+    expect((await getWorkspaceById(db, team))?.owner_user_id).toBe("a");
   });
 });
 

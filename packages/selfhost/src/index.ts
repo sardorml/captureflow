@@ -15,6 +15,7 @@ export { createRuntime, stringEnv, type SelfHostRuntime } from "./runtime";
 export { getInjectedEnv, setInjectedEnv } from "./env-slot";
 export { serveNextAt, type Mount } from "./listen";
 export { createSelfHostHooks, type SelfHostHooks } from "./hooks";
+export * from "./accounts";
 export * from "./instance";
 export * from "./library";
 export { applyPublicOrigin, ORIGIN_SENTINEL } from "./origin";
