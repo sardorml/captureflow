@@ -3,7 +3,7 @@
 The Docker images run CaptureFlow on any machine with Docker: a home server, a
 NAS or a VPS. You don't need a Cloudflare account. Everything is stored in one
 `data/` folder: a SQLite database, the recordings, and the secrets generated on
-first start. One login covers everything: admins get an Admin page at
+first start. One login covers everything: administrators get an Admin page at
 `<APP_URL>/admin`.
 
 | Piece                | In Docker                                                  |
@@ -24,10 +24,10 @@ cp .env.example .env    # set APP_URL
 docker compose up -d
 ```
 
-Open `APP_URL`. A fresh install opens a short setup: it creates the admin
-account, names your first workspace and invites your first people, so do this
-before you share the address. `/` goes straight to sign-in afterwards:
-self-hosted instances have no landing page, billing or storage caps, and idle
+Open `APP_URL`. A fresh install opens a short setup: it creates the
+administrator account, names your first workspace and invites its first
+members, so do this before you share the address. `/` goes straight to sign-in
+afterwards: self-hosted instances have no landing page, billing or storage caps, and idle
 recordings are never deleted.
 
 The images are built from this repo. `docker compose up -d --build` builds them
@@ -56,34 +56,50 @@ rec.example.com {
 Uploads stream through the app in chunks of a few MB, so the proxy doesn't need
 a large body limit.
 
-## Admins, workspaces and people
+## Administrators, users and workspaces
 
-The account created during setup is the admin. Admins get an **Admin** link in
-the sidebar (it opens `<APP_URL>/admin`): an overview of the instance with
-pages for people, workspaces, recordings, storage and settings. From there they
-can:
+There are two levels of access:
 
-- create a workspace for each team, or delete one with everything in it
-- invite people to a workspace, change their role, or remove them
-- make another user an admin, sign someone out everywhere, or delete an account
+- **Administrator** is for the whole instance. The account created during setup
+  is the first one. Administrators get an **Admin** link in the sidebar, which
+  opens the admin area at `<APP_URL>/admin`.
+- **Owner**, **member** and **viewer** are roles inside one workspace. The owner
+  manages its members, members record into it, and viewers watch and comment.
+
+In the admin area an administrator can:
+
+- add a user, which creates the account and emails them a link to set their
+  own password. They can be made an administrator and put into workspaces in
+  the same step, and they open on the first of those workspaces
+- send a new password link to someone who forgot theirs
+- suspend an account, which signs it out everywhere and blocks sign-in until
+  it is restored, or delete it
+- make another user an administrator, or sign someone out everywhere
+- create a workspace for each team, pick its owner and its first members,
+  change the owner later, or delete a workspace with everything in it. Users
+  picked as members join straight away
+- invite members to any workspace, change their role, or remove them
 - see and delete any recording, whoever made it
 - watch disk space, see who holds the most, and clear uploads that never
   finished
 - choose who can sign up
 
-Only admins can invite people. Sign-up is invite-only unless you list your
-company's email domains under Admin → Settings; then anyone with an address on them
-can create an account on their own, and invites still work for everyone else.
-Nobody confirms these addresses by email, so list only domains you trust.
+A workspace owner can invite anyone who already has an account. Only an
+administrator can invite an address that has no account yet, because that invite
+lets its holder create one. Sign-up is otherwise closed unless you list your
+company's email domains under Admin → Settings; then anyone with an address on
+them can create an account on their own. Nobody confirms these addresses by
+email, so list only domains you trust.
 
-Each invite shows a link you can copy and send yourself, so inviting works
-without any email set up. With mail set up, the person is emailed as well.
+Invites and password links go out by email once [email](#email) is set up.
+Until then the admin area says no email was sent and shows each link, so you can
+copy and send it yourself.
 
 Everyone also has a personal workspace of their own, created with their account.
 
 ## Email
 
-Workspace invites and access requests go out by email. Pick one:
+Workspace invites, password links and access requests go out by email. Pick one:
 
 - `SMTP_URL=smtps://user:pass@smtp.example.com:465` and
   `MAIL_FROM=CaptureFlow <rec@example.com>`
