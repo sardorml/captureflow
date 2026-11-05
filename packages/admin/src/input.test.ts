@@ -3,6 +3,7 @@ import {
   MIN_PASSWORD_LENGTH,
   hydrateEmail,
   hydrateInviteToken,
+  hydrateLimitOverride,
   hydratePassword,
   hydrateRole,
   hydrateUserId,
@@ -91,5 +92,48 @@ describe("hydrateInviteToken", () => {
     for (const bad of ["", "short", "x".repeat(129), "has space", "a+b/c="]) {
       expect(hydrateInviteToken(bad)).toBeNull();
     }
+  });
+});
+
+describe("hydrateLimitOverride", () => {
+  it("reads whole numbers above the defaults, minutes as milliseconds", () => {
+    expect(
+      hydrateLimitOverride({ recordings: " 100 ", minutes: "15" }),
+    ).toEqual({
+      ok: true,
+      value: { recordings: 100, maxRecordingMs: 15 * 60_000 },
+    });
+  });
+
+  it("treats a blank field as the default", () => {
+    expect(hydrateLimitOverride({ recordings: "", minutes: null })).toEqual({
+      ok: true,
+      value: { recordings: null, maxRecordingMs: null },
+    });
+    expect(hydrateLimitOverride({ recordings: "40", minutes: "" })).toEqual({
+      ok: true,
+      value: { recordings: 40, maxRecordingMs: null },
+    });
+  });
+
+  it("refuses values that would not raise a limit, or are not whole numbers", () => {
+    for (const recordings of [
+      "25",
+      "0",
+      "-5",
+      "12.5",
+      "1e3",
+      "lots",
+      "10001",
+    ]) {
+      const result = hydrateLimitOverride({ recordings, minutes: "" });
+      expect(result.ok).toBe(false);
+    }
+    const minutes = hydrateLimitOverride({ recordings: "", minutes: "5" });
+    expect(minutes).toEqual({
+      ok: false,
+      error:
+        "Minutes must be a whole number from 6 to 180, or blank for the default.",
+    });
   });
 });

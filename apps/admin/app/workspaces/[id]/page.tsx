@@ -2,7 +2,9 @@ import NextLink from "next/link";
 import { notFound } from "next/navigation";
 import { TableCell, TableRow } from "@/components/ui/table";
 import {
+  can,
   getAdminWorkspace,
+  getLimitOverride,
   listWorkspaceInvites,
   listWorkspaceMembers,
 } from "@captureflow/admin";
@@ -22,7 +24,9 @@ import {
   formatDate,
   formatRelative,
 } from "../../_ui";
+import { setWorkspaceLimitsAction } from "../../actions";
 import { PanelTabs } from "../../_filters";
+import { LimitsCard } from "../../_limits-card";
 
 const INVITE_COLOR = {
   pending: "accent",
@@ -35,15 +39,16 @@ export default async function WorkspacePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requirePermission("users.read");
+  const operator = await requirePermission("users.read");
   const { id } = await params;
   const env = await getAdminEnv();
   if (!env?.DB) notFound();
 
-  const [workspace, members, invites] = await Promise.all([
+  const [workspace, members, invites, limits] = await Promise.all([
     getAdminWorkspace(env.DB, id),
     listWorkspaceMembers(env.DB, id),
     listWorkspaceInvites(env.DB, id),
+    getLimitOverride(env.DB, "workspace", id),
   ]);
   if (!workspace) notFound();
 
@@ -197,6 +202,16 @@ export default async function WorkspacePage({
           }
         />
       </StatGrid>
+
+      {workspace.plan.tier === "free" && (
+        <LimitsCard
+          appliesTo="every member of this workspace can record here"
+          action={setWorkspaceLimitsAction}
+          id={workspace.id}
+          override={limits}
+          canWrite={can(operator.role, "users.write")}
+        />
+      )}
 
       <PanelTabs
         label="Workspace details"

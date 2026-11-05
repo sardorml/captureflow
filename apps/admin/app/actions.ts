@@ -23,20 +23,25 @@ import {
   deleteInvite,
   getAdmin,
   getAdminCredentials,
+  getAdminUser,
+  getAdminWorkspace,
   getPendingInvite,
   hashPassword,
   hashToken,
   hydrateAdminId,
   hydrateEmail,
   hydrateInviteToken,
+  hydrateLimitOverride,
   hydratePassword,
   hydrateRole,
   hydrateUserId,
+  hydrateWorkspaceId,
   issueSession,
   loginScopeKeys,
   recordFailure,
   revokeUserAccess,
   setAdminStatus,
+  setLimitOverride,
   throttleMessage,
   touchAdminLogin,
   updateAdminRole,
@@ -314,6 +319,74 @@ export async function revokeUserAccessAction(
   });
   revalidatePath(`/users/${userId}`);
   return { error: null };
+}
+
+// The free plan's caps, raised for one person or for a whole workspace.
+async function saveLimits(
+  db: D1Database,
+  actor: string,
+  scope: "user" | "workspace",
+  id: string,
+  formData: FormData,
+): Promise<FormState> {
+  const limits = hydrateLimitOverride({
+    recordings: formData.get("recordings"),
+    minutes: formData.get("minutes"),
+  });
+  if (!limits.ok) return { error: limits.error };
+  const { recordings, maxRecordingMs } = limits.value;
+  await setLimitOverride(db, scope, id, limits.value, actor);
+  await writeAudit(db, {
+    actor,
+    action: `${scope}.limits`,
+    targetType: scope,
+    targetId: id,
+    detail: `${recordings ?? "default"} recordings, ${
+      maxRecordingMs === null ? "default" : maxRecordingMs / 60_000
+    } minutes each`,
+  });
+  revalidatePath(`/${scope}s/${id}`);
+  return { error: null };
+}
+
+export async function setUserLimitsAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const operator = await requirePermission("users.write");
+  const env = await getAdminEnv();
+  if (!env?.DB) return { error: NO_DB };
+
+  const userId = hydrateUserId(formData.get("id"));
+  if (!userId || !(await getAdminUser(env.DB, userId))) {
+    return { error: "Unknown user." };
+  }
+  return saveLimits(env.DB, operator.email, "user", userId, formData);
+}
+
+export async function setWorkspaceLimitsAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const operator = await requirePermission("users.write");
+  const env = await getAdminEnv();
+  if (!env?.DB) return { error: NO_DB };
+
+  const id = hydrateWorkspaceId(formData.get("id"));
+  const workspace = id ? await getAdminWorkspace(env.DB, id) : null;
+  if (!workspace) return { error: "Unknown workspace." };
+  if (workspace.plan.tier === "team") {
+    return {
+      error: "This workspace is on a paid plan, which has no recording limits.",
+    };
+  }
+  return saveLimits(
+    env.DB,
+    operator.email,
+    "workspace",
+    workspace.id,
+    formData,
+  );
 }
 
 export async function inviteAction(
