@@ -14,7 +14,7 @@ import { cn } from "@captureflow/ui/cn";
 
 const ITEMS = [
   { href: "/", label: "Overview", icon: LayoutDashboard },
-  { href: "/people", label: "People", icon: Users },
+  { href: "/users", label: "Users", icon: Users },
   { href: "/workspaces", label: "Workspaces", icon: Building2 },
   { href: "/recordings", label: "Recordings", icon: Video },
   { href: "/storage", label: "Storage", icon: HardDrive },
@@ -26,7 +26,7 @@ export function AdminNav() {
   return (
     <nav
       aria-label="Admin"
-      className="-mx-6 flex gap-1 overflow-x-auto px-6 lg:mx-0 lg:w-48 lg:shrink-0 lg:flex-col lg:px-0"
+      className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:py-2"
     >
       {ITEMS.map(({ href, label, icon: Icon }) => {
         const active =

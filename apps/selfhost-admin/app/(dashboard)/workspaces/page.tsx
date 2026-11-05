@@ -4,7 +4,7 @@ import { formatBytes, plural } from "@/lib/format";
 import { requireAdmin } from "@/lib/session";
 import { Filters } from "@/app/_filters";
 import { Card, Cell, Empty, PageHeader, Pager, Table } from "@/app/_ui";
-import { CreateWorkspaceForm } from "@/app/forms";
+import { NewWorkspaceButton } from "@/app/create-buttons";
 
 const KINDS = [
   { value: "team", label: "Teams" },
@@ -41,14 +41,9 @@ export default async function WorkspacesPage({
       <PageHeader
         title="Workspaces"
         description="A workspace for each team. Everyone also has a personal one."
-      />
-
-      <Card
-        title="New workspace"
-        description="You become its owner; invite people from its page."
       >
-        <CreateWorkspaceForm />
-      </Card>
+        <NewWorkspaceButton />
+      </PageHeader>
 
       <Card
         title={plural(total, "workspace")}
@@ -63,7 +58,7 @@ export default async function WorkspacesPage({
         {rows.length === 0 ? (
           <Empty>No workspaces match.</Empty>
         ) : (
-          <Table head={["Name", "Owner", "People", "Recordings", "Storage"]}>
+          <Table head={["Name", "Owner", "Members", "Recordings", "Storage"]}>
             {rows.map((w) => (
               <tr key={w.id}>
                 <Cell className="max-w-64">

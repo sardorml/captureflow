@@ -22,6 +22,7 @@ import {
   deleteWorkspaceAction,
   removeMemberAction,
   revokeInviteAction,
+  transferOwnershipAction,
 } from "@/app/actions";
 import { InviteForm } from "@/app/forms";
 
@@ -65,7 +66,7 @@ export default async function WorkspacePage({
       </PageHeader>
 
       <Stats>
-        <Stat label="People" value={workspace.memberCount} />
+        <Stat label="Members" value={workspace.memberCount} />
         <Stat label="Invited" value={workspace.pendingInvites} />
         <Stat
           label="Recordings"
@@ -77,23 +78,27 @@ export default async function WorkspacePage({
 
       {!personal && (
         <Card
-          title="Invite people"
-          description="Members record into this workspace. Viewers watch and comment."
+          title="Invite members"
+          description="Members record into this workspace. Viewers watch and comment. An address without an account can create one with the invite."
         >
           <InviteForm workspaceId={id} />
         </Card>
       )}
 
       <Card
-        title={`People (${members.length})`}
-        description="Removing someone keeps what they recorded in this workspace."
+        title={`Members (${members.length})`}
+        description={
+          personal
+            ? "Removing someone keeps what they recorded in this workspace."
+            : "Removing someone keeps what they recorded in this workspace. Making someone the owner turns the current owner into a member."
+        }
       >
         <Table head={["Name", "Email", "Role", ""]}>
           {members.map((member) => (
             <tr key={member.user_id}>
               <Cell className="font-medium text-fg-strong">
                 <Link
-                  href={`/people/${member.user_id}`}
+                  href={`/users/${member.user_id}`}
                   className="underline-offset-4 hover:underline"
                 >
                   {member.name}
@@ -104,6 +109,17 @@ export default async function WorkspacePage({
               <Actions>
                 {member.role !== "owner" && (
                   <>
+                    {!personal && (
+                      <DangerForm
+                        action={transferOwnershipAction}
+                        fields={{ workspaceId: id, userId: member.user_id }}
+                        label="Make owner"
+                        pendingLabel="Changing…"
+                        size="sm"
+                        variant="secondary"
+                        confirm={`Make ${member.name} the owner of "${workspace.name}"? ${workspace.owner.name || workspace.owner.email} becomes a member.`}
+                      />
+                    )}
                     <form action={changeRoleAction}>
                       <input type="hidden" name="workspaceId" value={id} />
                       <input
@@ -186,7 +202,7 @@ export default async function WorkspacePage({
       {!personal && (
         <Card
           title="Delete workspace"
-          description="Removes the workspace with every recording and screenshot in it. People keep their accounts."
+          description="Removes the workspace with every recording and screenshot in it. Its members keep their accounts."
         >
           <DangerForm
             action={deleteWorkspaceAction}

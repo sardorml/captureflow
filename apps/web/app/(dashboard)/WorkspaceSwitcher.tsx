@@ -67,6 +67,7 @@ type Props = {
   // A self-hosted admin: invites and new workspaces live in the admin app.
   instanceAdmin: boolean;
   paidSeats: PaidSeats | null;
+  selfHosted: boolean;
 };
 
 export function WorkspaceSwitcher({
@@ -76,6 +77,7 @@ export function WorkspaceSwitcher({
   canInvite,
   instanceAdmin,
   paidSeats,
+  selfHosted,
 }: Props) {
   const { isMobile } = useSidebar();
   const formRef = useRef<HTMLFormElement>(null);
@@ -205,6 +207,7 @@ export function WorkspaceSwitcher({
           isOpen={isInviting}
           onOpenChange={setInviting}
           paidSeats={paidSeats}
+          selfHosted={selfHosted}
         />
       ) : null}
 

@@ -51,7 +51,7 @@ export default async function MembersPage() {
   return (
     <div className="flex flex-col gap-8">
       <WorkspacePageHeader workspaceName={workspace.name} title="Members" />
-      {seats ? (
+      {seats && !selfHosted ? (
         <SeatSummary
           context={seats}
           isOwner={isOwner}
@@ -64,10 +64,11 @@ export default async function MembersPage() {
         invites={pending}
         viewerUserId={session.user.id}
         viewerIsOwner={isOwner}
-        canInvite={selfHosted ? instanceAdmin : isOwner}
-        inviteHref={selfHosted ? `/admin/workspaces/${workspace.id}` : null}
+        canInvite={isOwner || instanceAdmin}
+        inviteHref={instanceAdmin ? `/admin/workspaces/${workspace.id}` : null}
         workspaceName={workspace.name}
         paidSeats={paidSeats}
+        selfHosted={selfHosted}
         seatRequests={seatRequests}
       />
     </div>

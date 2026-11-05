@@ -10,7 +10,14 @@ import {
 } from "../actions";
 import { SignupPolicyForm } from "../signup-policy";
 
-const STEPS = ["Welcome", "Admin", "Workspace", "People", "Sign-up", "Done"];
+const STEPS = [
+  "Welcome",
+  "Administrator",
+  "Workspace",
+  "Members",
+  "Sign-up",
+  "Done",
+];
 
 type Props = { appUrl: string; mailConfigured: boolean; initialStep: number };
 
@@ -34,7 +41,7 @@ export function SetupWizard({ appUrl, mailConfigured, initialStep }: Props) {
         {step === 0 && (
           <Screen
             title="Set up your CaptureFlow"
-            description="This is a fresh install. In the next few steps you'll create the admin account, name a workspace and invite your first people. It takes about a minute."
+            description="This is a fresh install. In the next few steps you'll create the administrator account, name a workspace and invite its first members. It takes about a minute."
           >
             <Button onClick={next}>Get started</Button>
           </Screen>
@@ -75,12 +82,12 @@ export function SetupWizard({ appUrl, mailConfigured, initialStep }: Props) {
           <Screen
             title="You're set up"
             description={[
-              "Your admin account is ready.",
+              "Your administrator account is ready.",
               workspace ? `${workspace.name} is waiting for recordings.` : "",
               invited.length > 0
                 ? `${invited.length} ${invited.length === 1 ? "person has" : "people have"} an invite.`
                 : "",
-              "Workspaces, people and sign-up stay under Admin in the sidebar.",
+              "Users, workspaces and sign-up stay under Admin in the sidebar.",
             ]
               .filter(Boolean)
               .join(" ")}
@@ -178,8 +185,8 @@ function AccountStep({ onDone }: { onDone: () => void }) {
 
   return (
     <Screen
-      title="Create the admin account"
-      description="This account runs this CaptureFlow. You can make other people admins later."
+      title="Create the administrator account"
+      description="This account runs this CaptureFlow. You can make other users administrators later."
     >
       <form onSubmit={submit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
@@ -340,7 +347,7 @@ function InviteStep({
 
   return (
     <Screen
-      title="Invite your first people"
+      title="Invite your first members"
       description={
         workspaceId
           ? "They'll join the workspace you just created. Members record; viewers watch and comment."

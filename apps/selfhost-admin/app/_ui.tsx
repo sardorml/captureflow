@@ -101,25 +101,45 @@ export function Select({
   return <select className={cn(FIELD, "pr-8", className)} {...props} />;
 }
 
+const ALERT_TONE = {
+  info: "bg-tint text-fg",
+  warn: "bg-amber-500/15 text-amber-800 dark:text-amber-200",
+  error: "bg-destructive/10 text-destructive",
+};
+
 export function Alert({
   tone = "info",
   children,
 }: {
-  tone?: "info" | "error";
+  tone?: keyof typeof ALERT_TONE;
   children: ReactNode;
 }) {
   return (
     <div
       role="alert"
-      className={cn(
-        "rounded-xl px-4 py-3 text-sm",
-        tone === "error"
-          ? "bg-destructive/10 text-destructive"
-          : "bg-tint text-fg",
-      )}
+      className={cn("rounded-xl px-4 py-3 text-sm", ALERT_TONE[tone])}
     >
       {children}
     </div>
+  );
+}
+
+const EMAIL_DOCS_URL = "https://docs.captureflow.dev/self-hosting/docker#email";
+
+export function EmailSetupLink({
+  children = "Set up email",
+}: {
+  children?: ReactNode;
+}) {
+  return (
+    <a
+      href={EMAIL_DOCS_URL}
+      target="_blank"
+      rel="noreferrer"
+      className="font-medium underline underline-offset-4"
+    >
+      {children}
+    </a>
   );
 }
 

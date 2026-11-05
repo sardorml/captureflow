@@ -60,7 +60,7 @@ export default async function RecordingsPage({
         action={
           <Filters
             search={q}
-            placeholder="Title, person or workspace"
+            placeholder="Title, user or workspace"
             selects={[
               { name: "visibility", value: visibility, options: VISIBILITIES },
               { name: "sort", value: sort, options: SORTS },

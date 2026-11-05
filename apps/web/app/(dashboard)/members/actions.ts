@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { hydrateAssignableRole } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { getAppBaseUrl } from "@/lib/app-base-url";
+import { selfHostHooks } from "@/lib/selfhost";
 import { loadSession } from "@/lib/session-guard";
 import { requireWorkspaceAccess } from "@/lib/workspace/access";
 import {
@@ -48,6 +49,10 @@ export async function inviteMemberAction(
   if (email.toLowerCase() === access.email.toLowerCase()) {
     return { error: "You’re already in your own workspace", ok: null };
   }
+  const refusal = await (
+    await selfHostHooks()
+  )?.inviteRefusal(access.userId, email);
+  if (refusal) return { error: refusal, ok: null };
 
   const result = await inviteToWorkspace(access.db, {
     workspace: access.workspace,

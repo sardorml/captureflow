@@ -4,11 +4,13 @@ import {
   listAdminUsers,
   type UserSort,
 } from "@captureflow/admin";
+import { listSuspendedUserIds } from "@captureflow/selfhost/accounts";
 import { listInstanceAdminIds } from "@captureflow/selfhost/instance";
 import { formatAgo, formatBytes, formatDate, plural } from "@/lib/format";
 import { requireAdmin } from "@/lib/session";
 import { Filters } from "@/app/_filters";
 import { Badge, Card, Cell, Empty, PageHeader, Pager, Table } from "@/app/_ui";
+import { NewUserButton } from "@/app/create-buttons";
 
 const SORTS: { value: UserSort; label: string }[] = [
   { value: "newest", label: "Newest first" },
@@ -20,7 +22,7 @@ function one(v: string | string[] | undefined): string {
   return typeof v === "string" ? v : "";
 }
 
-export default async function PeoplePage({
+export default async function UsersPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -32,20 +34,24 @@ export default async function PeoplePage({
     ? (one(sp.sort) as UserSort)
     : "newest";
   const page = Math.max(1, Number(one(sp.page)) || 1);
-  const [{ rows, total }, adminIds] = await Promise.all([
+  const [{ rows, total }, adminIds, suspendedIds] = await Promise.all([
     listAdminUsers(DB, { search: q, page, plan: "all", sort }),
     listInstanceAdminIds(DB),
+    listSuspendedUserIds(DB),
   ]);
   const admins = new Set(adminIds);
+  const suspended = new Set(suspendedIds);
 
   return (
     <>
       <PageHeader
-        title="People"
-        description="Everyone with an account here. Open someone to manage their access."
-      />
+        title="Users"
+        description="Everyone with an account here. Open a user to manage their access."
+      >
+        <NewUserButton />
+      </PageHeader>
       <Card
-        title={plural(total, "person", "people")}
+        title={plural(total, "user")}
         action={
           <Filters
             search={q}
@@ -55,7 +61,7 @@ export default async function PeoplePage({
         }
       >
         {rows.length === 0 ? (
-          <Empty>No one matches.</Empty>
+          <Empty>No users match.</Empty>
         ) : (
           <Table
             head={[
@@ -72,7 +78,7 @@ export default async function PeoplePage({
               <tr key={u.id}>
                 <Cell className="max-w-64">
                   <Link
-                    href={`/people/${u.id}`}
+                    href={`/users/${u.id}`}
                     className="block truncate font-medium text-fg-strong underline-offset-4 hover:underline"
                   >
                     {u.name || u.email}
@@ -93,10 +99,12 @@ export default async function PeoplePage({
                   {formatBytes(u.storageBytes)}
                 </Cell>
                 <Cell className="text-right">
-                  {admins.has(u.id) ? (
-                    <Badge>Admin</Badge>
+                  {suspended.has(u.id) ? (
+                    <Badge tone="warn">Suspended</Badge>
+                  ) : admins.has(u.id) ? (
+                    <Badge>Administrator</Badge>
                   ) : (
-                    <span className="text-fg-muted">Member</span>
+                    <span className="text-fg-muted">User</span>
                   )}
                 </Cell>
               </tr>

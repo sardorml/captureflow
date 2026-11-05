@@ -45,7 +45,7 @@ import {
 } from "@/components/ui/table";
 import type { PaidSeats } from "@/lib/billing/seat-checkout";
 import { initials } from "@/lib/format";
-import { ASSIGNABLE_ROLES, ROLE_LABEL } from "@/lib/workspace/labels";
+import { assignableRoles, ROLE_LABEL } from "@/lib/workspace/labels";
 import { InviteModal } from "../InviteModal";
 import {
   changeMemberRoleAction,
@@ -101,6 +101,7 @@ export function MembersTable({
   inviteHref,
   workspaceName,
   paidSeats,
+  selfHosted,
   seatRequests,
 }: {
   members: WorkspaceMember[];
@@ -108,10 +109,11 @@ export function MembersTable({
   viewerUserId: string;
   viewerIsOwner: boolean;
   canInvite: boolean;
-  // Set on a self-hosted instance, where invites are sent from the admin app.
+  // Set for a self-hosted administrator, who invites from the admin area.
   inviteHref: string | null;
   workspaceName: string;
   paidSeats: PaidSeats | null;
+  selfHosted: boolean;
   seatRequests: SeatRequest[];
 }) {
   const [query, setQuery] = useState("");
@@ -169,14 +171,15 @@ export function MembersTable({
     <section className="rounded-2xl bg-panel ring-1 ring-line">
       <div className="px-6 pt-6 pb-5">
         <h2 className="text-2xl font-semibold tracking-tight text-fg-strong">
-          People{" "}
+          Members{" "}
           <span className="text-lg font-normal text-fg-muted">
             ({members.length})
           </span>
         </h2>
         <p className="mt-1 text-base text-fg-muted">
           Members record here; viewers watch and comment.
-          {viewerIsOwner && " Admins can invite, remove and change roles."}
+          {viewerIsOwner &&
+            " As the owner you can invite, remove and change roles."}
         </p>
       </div>
       {viewerIsOwner && seatRequests.length > 0 && (
@@ -215,17 +218,18 @@ export function MembersTable({
                 <Button asChild>
                   <a href={inviteHref}>
                     <UserPlus size={16} />
-                    Invite teammates
+                    Invite members
                   </a>
                 </Button>
               ) : (
                 <InviteModal
                   workspaceName={workspaceName}
                   paidSeats={paidSeats}
+                  selfHosted={selfHosted}
                   trigger={
                     <Button>
                       <UserPlus size={16} />
-                      Invite teammates
+                      Invite members
                     </Button>
                   }
                 />
@@ -269,6 +273,7 @@ export function MembersTable({
                       role={r.role}
                       downgradeAt={r.downgradeAt}
                       paidSeats={paidSeats}
+                      selfHosted={selfHosted}
                     />
                   ) : r.role ? (
                     ROLE_LABEL[r.role]
@@ -363,12 +368,14 @@ function RoleSelect({
   role,
   downgradeAt,
   paidSeats,
+  selfHosted,
 }: {
   userId: string;
   name: string;
   role: AssignableRole;
   downgradeAt: number | null;
   paidSeats: PaidSeats | null;
+  selfHosted: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState<SeatChange | null>(null);
@@ -393,7 +400,7 @@ function RoleSelect({
           <SelectValue>{ROLE_LABEL[role]}</SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {ASSIGNABLE_ROLES.map((o) => (
+          {assignableRoles(selfHosted).map((o) => (
             <SelectItem key={o.id} value={o.id} textValue={o.label}>
               <span className="flex flex-col items-start">
                 {o.label}

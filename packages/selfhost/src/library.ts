@@ -202,7 +202,7 @@ export async function deleteInstanceUser(
     .all<{ name: string }>();
   const names = (owned.results ?? []).map((w) => w.name);
   if (names.length > 0) {
-    return `Delete the workspaces they own first: ${names.join(", ")}.`;
+    return `Give these workspaces a new owner or delete them first: ${names.join(", ")}.`;
   }
   await removeLibrary(db, bucket, { column: "user_id", value: args.userId });
   await db.prepare(`DELETE FROM users WHERE id = ?1`).bind(args.userId).run();
