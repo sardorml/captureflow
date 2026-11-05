@@ -18,6 +18,12 @@ import {
 } from "@/lib/i18n/config";
 import { ENGLISH, type I18n } from "@/lib/i18n/english";
 import { getMessages } from "@/lib/i18n/messages";
+import {
+  currencyName,
+  formatMoney,
+  moneyFor,
+  RATES_SNAPSHOT,
+} from "@/lib/i18n/money";
 import { readLanguageChoice } from "@/lib/i18n/preference";
 import type { Messages } from "@/lib/marketing/messages";
 
@@ -50,8 +56,14 @@ function useChosenLanguage(enabled: boolean): I18n | null {
     const locale = enabled ? readLanguageChoice() : null;
     if (!locale || locale === DEFAULT_LOCALE) return;
     let current = true;
+    // An English-only page shows no prices, so the snapshot rate is enough.
     void getMessages(locale).then((messages) => {
-      if (current) setChosen({ locale, messages });
+      if (current)
+        setChosen({
+          locale,
+          messages,
+          money: moneyFor(locale, RATES_SNAPSHOT),
+        });
     });
     return () => {
       current = false;
@@ -67,6 +79,32 @@ export function useMessages(): Messages {
 // The BCP 47 tag, for date and number formatting.
 export function useLang(): string {
   return langOf(useContext(I18nContext).locale);
+}
+
+/*
+ * Prices in the reader's currency: `format` takes dollars, `note` is the
+ * "shown in won, charged in dollars" line for a page that lists prices and
+ * `charged` the short form for one price; both null when the reader pays in
+ * dollars anyway.
+ */
+export function useMoney(): {
+  format: (usd: number) => string;
+  note: string | null;
+  charged: string | null;
+} {
+  const { locale, messages, money } = useContext(I18nContext);
+  const lang = langOf(locale);
+  const converted = money.currency !== "USD";
+  return {
+    format: (usd) => formatMoney(usd, lang, money),
+    charged: converted ? messages.pricing.plans.chargedInUsd : null,
+    note: !converted
+      ? null
+      : messages.pricing.controls.shownIn.replace(
+          "{currency}",
+          currencyName(lang, money.currency),
+        ),
+  };
 }
 
 export function useLocalizedHref(): (href: string) => string {

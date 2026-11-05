@@ -12,7 +12,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import {
+  useAppLocale,
+  useAppMessages,
+  useMoney,
+} from "@/components/app-i18n-provider";
 import { fmt, plural } from "@/lib/i18n/format";
 import { switchPlanAction } from "./actions";
 
@@ -34,6 +38,7 @@ export function SwitchPlanButton({
   const [error, setError] = useState<string | null>(null);
   const m = useAppMessages();
   const { lang } = useAppLocale();
+  const money = useMoney();
   const t = m.billing.switchPlan;
   const target = getSeatPlan(to);
   const before = seatPriceUsd(seats, cycle, from);
@@ -70,7 +75,7 @@ export function SwitchPlanButton({
                     seats,
                     lang,
                   ),
-                  { before: `$${before}`, after: `$${after}` },
+                  { before: money.format(before), after: money.format(after) },
                 )}{" "}
                 {fmt(t.benefits, { plan: target.name })}
               </p>

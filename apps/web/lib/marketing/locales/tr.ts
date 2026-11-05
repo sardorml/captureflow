@@ -633,6 +633,8 @@ const messages: Messages = {
     subheading:
       "Ücretsiz plan ilk kayıtlarınızı kapsar. Ücretli planlarda üye başına tek fiyat vardır.",
     controls: {
+      shownIn:
+        "Fiyatlar {currency} olarak gösterilir. Ödeme ABD doları olarak alınır.",
       teamSize: "Ekip büyüklüğü",
       members: "üye",
       title: "Faturalandırma",
@@ -652,6 +654,7 @@ const messages: Messages = {
       saveValue: "yılda {savings}",
     },
     plans: {
+      chargedInUsd: "ABD doları olarak tahsil edilir.",
       member: "üye",
       members: "üye",
       included: "Dahil",
@@ -673,7 +676,7 @@ const messages: Messages = {
         period: "/ay",
         noteMonthly: "Üye başına, aylık faturalandırılır",
         noteAnnual:
-          "Üye başına, yıllık faturalandırılır. {seats} {members} için yılda ${yearly}",
+          "Üye başına, yıllık faturalandırılır. {seats} {members} için yılda {yearly}",
         cta: "Ücretsiz deneyin",
       },
       pro: {
@@ -692,7 +695,7 @@ const messages: Messages = {
         period: "/ay",
         noteMonthly: "Üye başına, aylık faturalandırılır",
         noteAnnual:
-          "Üye başına, yıllık faturalandırılır. {seats} {members} için yılda ${yearly}",
+          "Üye başına, yıllık faturalandırılır. {seats} {members} için yılda {yearly}",
         cta: "Ücretsiz deneyin",
       },
       rows: {

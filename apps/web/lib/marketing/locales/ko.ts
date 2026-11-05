@@ -604,6 +604,7 @@ const messages: Messages = {
     subheading:
       "무료 요금제는 처음 몇 개의 녹화를 지원합니다. 유료 요금제는 멤버당 하나의 가격입니다.",
     controls: {
+      shownIn: "가격은 {currency}로 표시됩니다. 결제는 미국 달러로 청구됩니다.",
       teamSize: "팀 규모",
       members: "명",
       title: "결제",
@@ -623,6 +624,7 @@ const messages: Messages = {
       saveValue: "연간 {savings}",
     },
     plans: {
+      chargedInUsd: "미국 달러로 청구됩니다.",
       member: "멤버",
       members: "멤버",
       included: "포함",
@@ -643,7 +645,7 @@ const messages: Messages = {
         description: "데이터 절약 화질로 무제한 녹화.",
         period: "/월",
         noteMonthly: "멤버당, 월간 결제",
-        noteAnnual: "멤버당, 연간 결제. {members} {seats}명 기준 연 ${yearly}",
+        noteAnnual: "멤버당, 연간 결제. {members} {seats}명 기준 연 {yearly}",
         cta: "무료로 사용해 보기",
       },
       pro: {
@@ -661,7 +663,7 @@ const messages: Messages = {
         description: "풀 화질, AI 정리, 나만의 브랜딩.",
         period: "/월",
         noteMonthly: "멤버당, 월간 결제",
-        noteAnnual: "멤버당, 연간 결제. {members} {seats}명 기준 연 ${yearly}",
+        noteAnnual: "멤버당, 연간 결제. {members} {seats}명 기준 연 {yearly}",
         cta: "무료로 사용해 보기",
       },
       rows: {

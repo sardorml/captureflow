@@ -621,6 +621,7 @@ const messages: Messages = {
     subheading:
       "無料プランは最初の録画をカバーします。有料プランはメンバーごとの定額制です。",
     controls: {
+      shownIn: "価格は{currency}で表示しています。請求は米ドルで行われます。",
       teamSize: "チームの人数",
       members: "人",
       title: "請求",
@@ -640,6 +641,7 @@ const messages: Messages = {
       saveValue: "年間{savings}",
     },
     plans: {
+      chargedInUsd: "請求は米ドルで行われます。",
       member: "メンバー",
       members: "メンバー",
       included: "含まれる",
@@ -660,7 +662,7 @@ const messages: Messages = {
         description: "データセーバー画質で録画数無制限。",
         period: "/月",
         noteMonthly: "メンバーごと、月払い",
-        noteAnnual: "メンバーごと、年払い。{members}{seats}人で年間${yearly}",
+        noteAnnual: "メンバーごと、年払い。{members}{seats}人で年間{yearly}",
         cta: "無料で試す",
       },
       pro: {
@@ -678,7 +680,7 @@ const messages: Messages = {
         description: "フル画質、AIによるクリーンアップ、独自のブランディング。",
         period: "/月",
         noteMonthly: "メンバーごと、月払い",
-        noteAnnual: "メンバーごと、年払い。{members}{seats}人で年間${yearly}",
+        noteAnnual: "メンバーごと、年払い。{members}{seats}人で年間{yearly}",
         cta: "無料で試す",
       },
       rows: {

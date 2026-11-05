@@ -643,6 +643,8 @@ const messages: Messages = {
     subheading:
       "Der kostenlose Tarif deckt deine ersten Aufnahmen ab. Bezahlte Tarife kosten einen Preis pro Mitglied.",
     controls: {
+      shownIn:
+        "Preise werden in {currency} angezeigt. Abgerechnet wird in US-Dollar.",
       teamSize: "Teamgröße",
       members: "Mitglieder",
       title: "Abrechnung",
@@ -662,6 +664,7 @@ const messages: Messages = {
       saveValue: "{savings} pro Jahr",
     },
     plans: {
+      chargedInUsd: "Abgerechnet in US-Dollar.",
       member: "Mitglied",
       members: "Mitglieder",
       included: "Enthalten",
@@ -683,7 +686,7 @@ const messages: Messages = {
         period: "/Monat",
         noteMonthly: "Pro Mitglied, monatliche Abrechnung",
         noteAnnual:
-          "Pro Mitglied, jährliche Abrechnung. ${yearly} pro Jahr für {seats} {members}",
+          "Pro Mitglied, jährliche Abrechnung. {yearly} pro Jahr für {seats} {members}",
         cta: "Kostenlos testen",
       },
       pro: {
@@ -703,7 +706,7 @@ const messages: Messages = {
         period: "/Monat",
         noteMonthly: "Pro Mitglied, monatliche Abrechnung",
         noteAnnual:
-          "Pro Mitglied, jährliche Abrechnung. ${yearly} pro Jahr für {seats} {members}",
+          "Pro Mitglied, jährliche Abrechnung. {yearly} pro Jahr für {seats} {members}",
         cta: "Kostenlos testen",
       },
       rows: {

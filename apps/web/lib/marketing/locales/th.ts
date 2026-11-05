@@ -618,6 +618,7 @@ const messages: Messages = {
     subheading:
       "แพ็กเกจฟรีครอบคลุมการบันทึกชุดแรกของคุณ แพ็กเกจแบบชำระเงินคิดราคาเดียวต่อสมาชิก",
     controls: {
+      shownIn: "แสดงราคาเป็น{currency} เรียกเก็บเงินเป็นดอลลาร์สหรัฐ",
       teamSize: "ขนาดทีม",
       members: "คน",
       title: "การเรียกเก็บเงิน",
@@ -637,6 +638,7 @@ const messages: Messages = {
       saveValue: "{savings} ต่อปี",
     },
     plans: {
+      chargedInUsd: "เรียกเก็บเป็นดอลลาร์สหรัฐ",
       member: "สมาชิก",
       members: "สมาชิก",
       included: "รวมอยู่ด้วย",
@@ -658,7 +660,7 @@ const messages: Messages = {
         period: "/เดือน",
         noteMonthly: "ต่อสมาชิก เรียกเก็บรายเดือน",
         noteAnnual:
-          "ต่อสมาชิก เรียกเก็บรายปี ${yearly} ต่อปีสำหรับ{members} {seats} คน",
+          "ต่อสมาชิก เรียกเก็บรายปี {yearly} ต่อปีสำหรับ{members} {seats} คน",
         cta: "ลองใช้ฟรี",
       },
       pro: {
@@ -677,7 +679,7 @@ const messages: Messages = {
         period: "/เดือน",
         noteMonthly: "ต่อสมาชิก เรียกเก็บรายเดือน",
         noteAnnual:
-          "ต่อสมาชิก เรียกเก็บรายปี ${yearly} ต่อปีสำหรับ{members} {seats} คน",
+          "ต่อสมาชิก เรียกเก็บรายปี {yearly} ต่อปีสำหรับ{members} {seats} คน",
         cta: "ลองใช้ฟรี",
       },
       rows: {

@@ -494,18 +494,18 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "Annetaanko käyttäjälle {name} maksullinen käyttäjäpaikka?",
       addBody:
-        "Jäsenet tallentavat, joten jokainen heistä on maksullinen käyttäjäpaikka. {plan}-tilauksesi muuttuu {seats} käyttäjäpaikasta {nextSeats} käyttäjäpaikkaan, ja hinnaksi tulee ${after} kuukaudessa (nyt ${before}).",
+        "Jäsenet tallentavat, joten jokainen heistä on maksullinen käyttäjäpaikka. {plan}-tilauksesi muuttuu {seats} käyttäjäpaikasta {nextSeats} käyttäjäpaikkaan, ja hinnaksi tulee {after} kuukaudessa (nyt {before}).",
       addBodyYearly:
-        "Jäsenet tallentavat, joten jokainen heistä on maksullinen käyttäjäpaikka. {plan}-tilauksesi muuttuu {seats} käyttäjäpaikasta {nextSeats} käyttäjäpaikkaan, ja hinnaksi tulee ${after} kuukaudessa (nyt ${before}), laskutus vuosittain.",
+        "Jäsenet tallentavat, joten jokainen heistä on maksullinen käyttäjäpaikka. {plan}-tilauksesi muuttuu {seats} käyttäjäpaikasta {nextSeats} käyttäjäpaikkaan, ja hinnaksi tulee {after} kuukaudessa (nyt {before}), laskutus vuosittain.",
       addInvoice: "Tämän laskutuskauden loppuosa lisätään seuraavaan laskuusi.",
       addConfirm: "Lisää maksullinen käyttäjäpaikka",
       removeTitle: "Muutetaanko {name} katsojaksi?",
       removeBody:
         "{name} voi tallentaa {date} asti eli maksamasi kauden loppuun. Sen jälkeen hänestä tulee katsoja, joka voi katsoa ja kommentoida mutta ei tallentaa.",
       removePlan:
-        "Siitä alkaen {plan}-tilauksesi muuttuu {seats} käyttäjäpaikasta {nextSeats} käyttäjäpaikkaan, ja hinnaksi tulee ${after} kuukaudessa (nyt ${before}).",
+        "Siitä alkaen {plan}-tilauksesi muuttuu {seats} käyttäjäpaikasta {nextSeats} käyttäjäpaikkaan, ja hinnaksi tulee {after} kuukaudessa (nyt {before}).",
       removePlanYearly:
-        "Siitä alkaen {plan}-tilauksesi muuttuu {seats} käyttäjäpaikasta {nextSeats} käyttäjäpaikkaan, ja hinnaksi tulee ${after} kuukaudessa (nyt ${before}), laskutus vuosittain.",
+        "Siitä alkaen {plan}-tilauksesi muuttuu {seats} käyttäjäpaikasta {nextSeats} käyttäjäpaikkaan, ja hinnaksi tulee {after} kuukaudessa (nyt {before}), laskutus vuosittain.",
       removeConfirm: "Muuta katsojaksi",
     },
     remove: {
@@ -532,7 +532,7 @@ const messages: AppMessages = {
       addEmails: "Lisää sähköpostiosoitteita",
       separatorHint: "Erota osoitteet välilyönnillä, pilkulla tai Enterillä.",
       paidSeatNote:
-        "Jokainen kutsun hyväksyvä jäsen lisää {plan}-tilaukseesi maksullisen käyttäjäpaikan, ${price} kuukaudessa kultakin. Tämän kauden loppuosa lisätään seuraavaan laskuusi.",
+        "Jokainen kutsun hyväksyvä jäsen lisää {plan}-tilaukseesi maksullisen käyttäjäpaikan, {price} kuukaudessa kultakin. Tämän kauden loppuosa lisätään seuraavaan laskuusi.",
       noEmails: "Lisää vähintään yksi sähköpostiosoite",
       invalidEmails: "Virheellinen sähköpostiosoite: {emails}",
       failed: "Epäonnistui",
@@ -670,6 +670,9 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "Veloitetaan Yhdysvaltain dollareina.",
+    shownIn:
+      "Hinnat näytetään valuutassa {currency}. Veloitus tapahtuu Yhdysvaltain dollareina.",
     page: {
       title: "Laskutus",
       subtitle: "Tilauksesi ja se, mitä olet siitä käyttänyt.",

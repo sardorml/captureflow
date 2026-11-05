@@ -624,6 +624,7 @@ const messages: Messages = {
     subheading:
       "Gratis dekker de første opptakene dine. Betalte abonnementer har én pris per medlem.",
     controls: {
+      shownIn: "Prisene vises i {currency}. Du belastes i amerikanske dollar.",
       teamSize: "Teamstørrelse",
       members: "medlemmer",
       title: "Fakturering",
@@ -643,6 +644,7 @@ const messages: Messages = {
       saveValue: "{savings} i året",
     },
     plans: {
+      chargedInUsd: "Belastes i amerikanske dollar.",
       member: "medlem",
       members: "medlemmer",
       included: "Inkludert",
@@ -664,7 +666,7 @@ const messages: Messages = {
         period: "/mnd",
         noteMonthly: "Per medlem, faktureres månedlig",
         noteAnnual:
-          "Per medlem, faktureres årlig. ${yearly} i året for {seats} {members}",
+          "Per medlem, faktureres årlig. {yearly} i året for {seats} {members}",
         cta: "Prøv gratis",
       },
       pro: {
@@ -683,7 +685,7 @@ const messages: Messages = {
         period: "/mnd",
         noteMonthly: "Per medlem, faktureres månedlig",
         noteAnnual:
-          "Per medlem, faktureres årlig. ${yearly} i året for {seats} {members}",
+          "Per medlem, faktureres årlig. {yearly} i året for {seats} {members}",
         cta: "Prøv gratis",
       },
       rows: {

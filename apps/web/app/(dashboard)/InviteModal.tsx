@@ -7,7 +7,11 @@ import {
   type ReactElement,
 } from "react";
 import { UserPlus, X } from "lucide-react";
-import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import {
+  useAppLocale,
+  useAppMessages,
+  useMoney,
+} from "@/components/app-i18n-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,6 +62,7 @@ export function InviteModal({
 }: InviteModalProps = {}) {
   const m = useAppMessages();
   const { lang } = useAppLocale();
+  const money = useMoney();
   const copy = m.members.invite;
   // In a paid workspace a member costs a seat, so the owner opts into it.
   const defaultRole: AssignableRole = paidSeats ? "viewer" : "member";
@@ -236,10 +241,11 @@ export function InviteModal({
               <p className="mt-2 text-xs leading-5 text-muted-foreground">
                 {fmt(copy.paidSeatNote, {
                   plan: getSeatPlan(paidSeats.plan).name,
-                  price:
+                  price: money.format(
                     paidSeats.cycle === "annual"
                       ? getSeatPlan(paidSeats.plan).priceAnnualUsdPerMonth
                       : getSeatPlan(paidSeats.plan).priceMonthlyUsd,
+                  ),
                 })}
               </p>
             )}

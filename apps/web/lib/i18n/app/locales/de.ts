@@ -498,9 +498,9 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "{name} einen bezahlten Platz geben?",
       addBody:
-        "Mitglieder nehmen auf, daher ist jedes ein bezahlter Platz. Die Zahl der Plätze in deinem {plan}-Tarif steigt von {seats} auf {nextSeats}, der Preis von ${before} auf ${after} pro Monat.",
+        "Mitglieder nehmen auf, daher ist jedes ein bezahlter Platz. Die Zahl der Plätze in deinem {plan}-Tarif steigt von {seats} auf {nextSeats}, der Preis von {before} auf {after} pro Monat.",
       addBodyYearly:
-        "Mitglieder nehmen auf, daher ist jedes ein bezahlter Platz. Die Zahl der Plätze in deinem {plan}-Tarif steigt von {seats} auf {nextSeats}, der Preis von ${before} auf ${after} pro Monat bei jährlicher Abrechnung.",
+        "Mitglieder nehmen auf, daher ist jedes ein bezahlter Platz. Die Zahl der Plätze in deinem {plan}-Tarif steigt von {seats} auf {nextSeats}, der Preis von {before} auf {after} pro Monat bei jährlicher Abrechnung.",
       addInvoice:
         "Der Rest dieses Abrechnungszeitraums wird auf deine nächste Rechnung gesetzt.",
       addConfirm: "Bezahlten Platz hinzufügen",
@@ -508,9 +508,9 @@ const messages: AppMessages = {
       removeBody:
         "{name} kann noch bis {date} aufnehmen, dem Ende des bereits bezahlten Zeitraums, und wird danach Betrachter. Betrachter können ansehen und kommentieren, aber nicht aufnehmen.",
       removePlan:
-        "Ab dann sinkt die Zahl der Plätze in deinem {plan}-Tarif von {seats} auf {nextSeats}, der Preis von ${before} auf ${after} pro Monat.",
+        "Ab dann sinkt die Zahl der Plätze in deinem {plan}-Tarif von {seats} auf {nextSeats}, der Preis von {before} auf {after} pro Monat.",
       removePlanYearly:
-        "Ab dann sinkt die Zahl der Plätze in deinem {plan}-Tarif von {seats} auf {nextSeats}, der Preis von ${before} auf ${after} pro Monat bei jährlicher Abrechnung.",
+        "Ab dann sinkt die Zahl der Plätze in deinem {plan}-Tarif von {seats} auf {nextSeats}, der Preis von {before} auf {after} pro Monat bei jährlicher Abrechnung.",
       removeConfirm: "Auf Betrachter umstellen",
     },
     remove: {
@@ -538,7 +538,7 @@ const messages: AppMessages = {
       separatorHint:
         "Trenne E-Mail-Adressen mit Leerzeichen, Komma oder Eingabetaste.",
       paidSeatNote:
-        "Jedes Mitglied, das annimmt, fügt deinem {plan}-Tarif einen bezahlten Platz hinzu, für je ${price} pro Monat. Der Rest dieses Zeitraums wird auf deine nächste Rechnung gesetzt.",
+        "Jedes Mitglied, das annimmt, fügt deinem {plan}-Tarif einen bezahlten Platz hinzu, für je {price} pro Monat. Der Rest dieses Zeitraums wird auf deine nächste Rechnung gesetzt.",
       noEmails: "Füge mindestens eine E-Mail-Adresse hinzu",
       invalidEmails: "Keine gültige E-Mail-Adresse: {emails}",
       failed: "Fehlgeschlagen",
@@ -676,6 +676,9 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "Abgerechnet in US-Dollar.",
+    shownIn:
+      "Preise werden in {currency} angezeigt. Abgerechnet wird in US-Dollar.",
     page: {
       title: "Abrechnung",
       subtitle: "Dein Tarif und was du davon genutzt hast.",

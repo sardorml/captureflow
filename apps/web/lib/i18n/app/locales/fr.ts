@@ -501,9 +501,9 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "Attribuer une licence payante à {name} ?",
       addBody:
-        "Les membres enregistrent : chacun occupe donc une licence payante. Votre forfait {plan} passe de {seats} à {nextSeats} licences, soit de ${before} à ${after} par mois.",
+        "Les membres enregistrent : chacun occupe donc une licence payante. Votre forfait {plan} passe de {seats} à {nextSeats} licences, soit de {before} à {after} par mois.",
       addBodyYearly:
-        "Les membres enregistrent : chacun occupe donc une licence payante. Votre forfait {plan} passe de {seats} à {nextSeats} licences, soit de ${before} à ${after} par mois, en facturation annuelle.",
+        "Les membres enregistrent : chacun occupe donc une licence payante. Votre forfait {plan} passe de {seats} à {nextSeats} licences, soit de {before} à {after} par mois, en facturation annuelle.",
       addInvoice:
         "Le reste de cette période de facturation est ajouté à votre prochaine facture.",
       addConfirm: "Ajouter une licence payante",
@@ -511,9 +511,9 @@ const messages: AppMessages = {
       removeBody:
         "{name} peut continuer à enregistrer jusqu’au {date}, fin de la période que vous avez payée. Ce membre devient ensuite lecteur : il peut regarder et commenter, mais pas enregistrer.",
       removePlan:
-        "À partir de cette date, votre forfait {plan} passe de {seats} à {nextSeats} licences, soit de ${before} à ${after} par mois.",
+        "À partir de cette date, votre forfait {plan} passe de {seats} à {nextSeats} licences, soit de {before} à {after} par mois.",
       removePlanYearly:
-        "À partir de cette date, votre forfait {plan} passe de {seats} à {nextSeats} licences, soit de ${before} à ${after} par mois, en facturation annuelle.",
+        "À partir de cette date, votre forfait {plan} passe de {seats} à {nextSeats} licences, soit de {before} à {after} par mois, en facturation annuelle.",
       removeConfirm: "Passer en lecteur",
     },
     remove: {
@@ -541,7 +541,7 @@ const messages: AppMessages = {
       separatorHint:
         "Séparez les adresses par un espace, une virgule ou la touche Entrée.",
       paidSeatNote:
-        "Chaque membre qui accepte ajoute une licence payante à votre forfait {plan}, à ${price} par mois chacune. Le reste de cette période est reporté sur votre prochaine facture.",
+        "Chaque membre qui accepte ajoute une licence payante à votre forfait {plan}, à {price} par mois chacune. Le reste de cette période est reporté sur votre prochaine facture.",
       noEmails: "Ajoutez au moins une adresse e-mail",
       invalidEmails: "Adresse e-mail non valide : {emails}",
       failed: "Échec",
@@ -680,6 +680,9 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "Facturé en dollars américains.",
+    shownIn:
+      "Les prix sont affichés en {currency}. Le paiement est en dollars américains.",
     page: {
       title: "Facturation",
       subtitle: "Votre forfait et ce que vous en avez utilisé.",

@@ -10,14 +10,7 @@ import {
 } from "@/lib/marketing/loom-comparison";
 import { cn } from "@/lib/utils";
 import { OURS_BG } from "./compare-table";
-import { useMessages } from "./i18n-provider";
-
-const usd = (n: number) =>
-  n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: n % 1 === 0 ? 0 : 2,
-  });
+import { useMessages, useMoney } from "./i18n-provider";
 
 export function PriceBreakdown({
   plan,
@@ -29,6 +22,7 @@ export function PriceBreakdown({
   className?: string;
 }) {
   const copy = useMessages().pricing.compare;
+  const { format: usd } = useMoney();
   const { label: planLabel, perSeat } = LOOM_PLANS.find((p) => p.id === plan)!;
   const ours = ourPlanFor(plan);
   const loom = getLoomMonthly(plan, seats);
@@ -84,6 +78,7 @@ function CostRow({
   monthly: number;
   isOurs?: boolean;
 }) {
+  const { format: usd } = useMoney();
   return (
     <div
       className={cn(

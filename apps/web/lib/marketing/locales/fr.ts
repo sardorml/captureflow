@@ -652,6 +652,8 @@ const messages: Messages = {
     subheading:
       "Le forfait Gratuit couvre vos premiers enregistrements. Les forfaits payants sont à un prix par membre.",
     controls: {
+      shownIn:
+        "Les prix sont affichés en {currency}. Le paiement est en dollars américains.",
       teamSize: "Taille de l’équipe",
       members: "membres",
       title: "Facturation",
@@ -671,6 +673,7 @@ const messages: Messages = {
       saveValue: "{savings} par an",
     },
     plans: {
+      chargedInUsd: "Facturé en dollars américains.",
       member: "membre",
       members: "membres",
       included: "Inclus",
@@ -693,7 +696,7 @@ const messages: Messages = {
         period: "/mois",
         noteMonthly: "Par membre, facturation mensuelle",
         noteAnnual:
-          "Par membre, facturation annuelle. ${yearly} par an pour {seats} {members}",
+          "Par membre, facturation annuelle. {yearly} par an pour {seats} {members}",
         cta: "Essayer gratuitement",
       },
       pro: {
@@ -713,7 +716,7 @@ const messages: Messages = {
         period: "/mois",
         noteMonthly: "Par membre, facturation mensuelle",
         noteAnnual:
-          "Par membre, facturation annuelle. ${yearly} par an pour {seats} {members}",
+          "Par membre, facturation annuelle. {yearly} par an pour {seats} {members}",
         cta: "Essayer gratuitement",
       },
       rows: {

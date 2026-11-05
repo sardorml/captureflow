@@ -486,9 +486,9 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "Ge {name} en betald licens?",
       addBody:
-        "Medlemmar spelar in, så var och en är en betald licens. Din {plan}-plan går från {seats} till {nextSeats} licenser, från ${before} till ${after} per månad.",
+        "Medlemmar spelar in, så var och en är en betald licens. Din {plan}-plan går från {seats} till {nextSeats} licenser, från {before} till {after} per månad.",
       addBodyYearly:
-        "Medlemmar spelar in, så var och en är en betald licens. Din {plan}-plan går från {seats} till {nextSeats} licenser, från ${before} till ${after} per månad, faktureras årsvis.",
+        "Medlemmar spelar in, så var och en är en betald licens. Din {plan}-plan går från {seats} till {nextSeats} licenser, från {before} till {after} per månad, faktureras årsvis.",
       addInvoice:
         "Resten av den här faktureringsperioden läggs till på din nästa faktura.",
       addConfirm: "Lägg till betald licens",
@@ -496,9 +496,9 @@ const messages: AppMessages = {
       removeBody:
         "{name} kan fortsätta spela in till {date}, då perioden du har betalat för tar slut. Sedan blir hen tittare och kan titta och kommentera men inte spela in.",
       removePlan:
-        "Därefter går din {plan}-plan från {seats} till {nextSeats} licenser, från ${before} till ${after} per månad.",
+        "Därefter går din {plan}-plan från {seats} till {nextSeats} licenser, från {before} till {after} per månad.",
       removePlanYearly:
-        "Därefter går din {plan}-plan från {seats} till {nextSeats} licenser, från ${before} till ${after} per månad, faktureras årsvis.",
+        "Därefter går din {plan}-plan från {seats} till {nextSeats} licenser, från {before} till {after} per månad, faktureras årsvis.",
       removeConfirm: "Ändra till tittare",
     },
     remove: {
@@ -526,7 +526,7 @@ const messages: AppMessages = {
       separatorHint:
         "Separera e-postadresser med mellanslag, komma eller Enter.",
       paidSeatNote:
-        "Varje medlem som accepterar lägger till en betald licens i din {plan}-plan, ${price} per månad styck. Resten av den här perioden hamnar på din nästa faktura.",
+        "Varje medlem som accepterar lägger till en betald licens i din {plan}-plan, {price} per månad styck. Resten av den här perioden hamnar på din nästa faktura.",
       noEmails: "Lägg till minst en e-postadress",
       invalidEmails: "Ogiltig e-postadress: {emails}",
       failed: "Misslyckades",
@@ -663,6 +663,8 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "Debiteras i amerikanska dollar.",
+    shownIn: "Priserna visas i {currency}. Du debiteras i amerikanska dollar.",
     page: {
       title: "Fakturering",
       subtitle: "Din plan och hur mycket av den du har använt.",

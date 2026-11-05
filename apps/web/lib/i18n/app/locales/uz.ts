@@ -495,9 +495,9 @@ const messages: AppMessages = {
     seatConfirm: {
       addTitle: "{name} uchun pullik oʻrin qoʻshilsinmi?",
       addBody:
-        "Aʼzolar yozib oladi, shuning uchun har biri pullik oʻrin hisoblanadi. {plan} tarifingizdagi oʻrinlar soni {seats} tadan {nextSeats} taga, narxi esa oyiga ${before} dan ${after} ga oʻzgaradi.",
+        "Aʼzolar yozib oladi, shuning uchun har biri pullik oʻrin hisoblanadi. {plan} tarifingizdagi oʻrinlar soni {seats} tadan {nextSeats} taga, narxi esa oyiga {before} dan {after} ga oʻzgaradi.",
       addBodyYearly:
-        "Aʼzolar yozib oladi, shuning uchun har biri pullik oʻrin hisoblanadi. {plan} tarifingizdagi oʻrinlar soni {seats} tadan {nextSeats} taga, narxi esa yillik toʻlovda oyiga ${before} dan ${after} ga oʻzgaradi.",
+        "Aʼzolar yozib oladi, shuning uchun har biri pullik oʻrin hisoblanadi. {plan} tarifingizdagi oʻrinlar soni {seats} tadan {nextSeats} taga, narxi esa yillik toʻlovda oyiga {before} dan {after} ga oʻzgaradi.",
       addInvoice:
         "Joriy toʻlov davrining qolgan qismi keyingi hisob-fakturangizga qoʻshiladi.",
       addConfirm: "Pullik oʻrin qoʻshish",
@@ -505,9 +505,9 @@ const messages: AppMessages = {
       removeBody:
         "{name} siz toʻlagan davr oxirigacha, yaʼni {date} gacha yozib olishda davom etadi. Keyin u tomoshabinga aylanadi: koʻra oladi va fikr qoldira oladi, lekin yozib ololmaydi.",
       removePlan:
-        "Shundan soʻng {plan} tarifingizdagi oʻrinlar soni {seats} tadan {nextSeats} taga, narxi esa oyiga ${before} dan ${after} ga oʻzgaradi.",
+        "Shundan soʻng {plan} tarifingizdagi oʻrinlar soni {seats} tadan {nextSeats} taga, narxi esa oyiga {before} dan {after} ga oʻzgaradi.",
       removePlanYearly:
-        "Shundan soʻng {plan} tarifingizdagi oʻrinlar soni {seats} tadan {nextSeats} taga, narxi esa yillik toʻlovda oyiga ${before} dan ${after} ga oʻzgaradi.",
+        "Shundan soʻng {plan} tarifingizdagi oʻrinlar soni {seats} tadan {nextSeats} taga, narxi esa yillik toʻlovda oyiga {before} dan {after} ga oʻzgaradi.",
       removeConfirm: "Tomoshabinga oʻtkazish",
     },
     remove: {
@@ -534,7 +534,7 @@ const messages: AppMessages = {
       addEmails: "E-pochta manzillarini qoʻshing",
       separatorHint: "Manzillarni probel, vergul yoki Enter bilan ajrating.",
       paidSeatNote:
-        "Taklifni qabul qilgan har bir aʼzo {plan} tarifingizga pullik oʻrin qoʻshadi, har biri oyiga ${price}. Joriy davrning qolgan qismi keyingi hisob-fakturangizga qoʻshiladi.",
+        "Taklifni qabul qilgan har bir aʼzo {plan} tarifingizga pullik oʻrin qoʻshadi, har biri oyiga {price}. Joriy davrning qolgan qismi keyingi hisob-fakturangizga qoʻshiladi.",
       noEmails: "Kamida bitta e-pochta manzilini qoʻshing",
       invalidEmails: "Notoʻgʻri e-pochta manzili: {emails}",
       failed: "Yuborilmadi",
@@ -675,6 +675,9 @@ const messages: AppMessages = {
     },
   },
   billing: {
+    chargedInUsd: "AQSH dollarida undiriladi.",
+    shownIn:
+      "Narxlar {currency}da koʻrsatilgan. Toʻlov AQSH dollarida olinadi.",
     page: {
       title: "Toʻlovlar",
       subtitle: "Tarifingiz va undan qancha foydalanganingiz.",

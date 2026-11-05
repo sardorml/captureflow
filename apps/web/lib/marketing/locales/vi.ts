@@ -622,6 +622,7 @@ const messages: Messages = {
     subheading:
       "Gói Miễn phí gồm những bản ghi đầu tiên của bạn. Các gói trả phí có một mức giá cho mỗi thành viên.",
     controls: {
+      shownIn: "Giá hiển thị bằng {currency}. Bạn được tính phí bằng đô la Mỹ.",
       teamSize: "Quy mô nhóm",
       members: "thành viên",
       title: "Thanh toán",
@@ -641,6 +642,7 @@ const messages: Messages = {
       saveValue: "{savings} mỗi năm",
     },
     plans: {
+      chargedInUsd: "Thanh toán bằng đô la Mỹ.",
       member: "thành viên",
       members: "thành viên",
       included: "Bao gồm",
@@ -662,7 +664,7 @@ const messages: Messages = {
         period: "/tháng",
         noteMonthly: "Mỗi thành viên, thanh toán theo tháng",
         noteAnnual:
-          "Mỗi thành viên, thanh toán theo năm. ${yearly} một năm cho {seats} {members}",
+          "Mỗi thành viên, thanh toán theo năm. {yearly} một năm cho {seats} {members}",
         cta: "Dùng thử miễn phí",
       },
       pro: {
@@ -682,7 +684,7 @@ const messages: Messages = {
         period: "/tháng",
         noteMonthly: "Mỗi thành viên, thanh toán theo tháng",
         noteAnnual:
-          "Mỗi thành viên, thanh toán theo năm. ${yearly} một năm cho {seats} {members}",
+          "Mỗi thành viên, thanh toán theo năm. {yearly} một năm cho {seats} {members}",
         cta: "Dùng thử miễn phí",
       },
       rows: {
