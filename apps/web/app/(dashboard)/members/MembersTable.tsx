@@ -45,7 +45,7 @@ import {
 } from "@/components/ui/table";
 import type { PaidSeats } from "@/lib/billing/seat-checkout";
 import { initials } from "@/lib/format";
-import { ASSIGNABLE_ROLES, ROLE_LABEL } from "@/lib/workspace/labels";
+import { assignableRoles, ROLE_LABEL } from "@/lib/workspace/labels";
 import { InviteModal } from "../InviteModal";
 import {
   changeMemberRoleAction,
@@ -101,6 +101,7 @@ export function MembersTable({
   inviteHref,
   workspaceName,
   paidSeats,
+  selfHosted,
   seatRequests,
 }: {
   members: WorkspaceMember[];
@@ -112,6 +113,7 @@ export function MembersTable({
   inviteHref: string | null;
   workspaceName: string;
   paidSeats: PaidSeats | null;
+  selfHosted: boolean;
   seatRequests: SeatRequest[];
 }) {
   const [query, setQuery] = useState("");
@@ -223,6 +225,7 @@ export function MembersTable({
                 <InviteModal
                   workspaceName={workspaceName}
                   paidSeats={paidSeats}
+                  selfHosted={selfHosted}
                   trigger={
                     <Button>
                       <UserPlus size={16} />
@@ -270,6 +273,7 @@ export function MembersTable({
                       role={r.role}
                       downgradeAt={r.downgradeAt}
                       paidSeats={paidSeats}
+                      selfHosted={selfHosted}
                     />
                   ) : r.role ? (
                     ROLE_LABEL[r.role]
@@ -364,12 +368,14 @@ function RoleSelect({
   role,
   downgradeAt,
   paidSeats,
+  selfHosted,
 }: {
   userId: string;
   name: string;
   role: AssignableRole;
   downgradeAt: number | null;
   paidSeats: PaidSeats | null;
+  selfHosted: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState<SeatChange | null>(null);
@@ -394,7 +400,7 @@ function RoleSelect({
           <SelectValue>{ROLE_LABEL[role]}</SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {ASSIGNABLE_ROLES.map((o) => (
+          {assignableRoles(selfHosted).map((o) => (
             <SelectItem key={o.id} value={o.id} textValue={o.label}>
               <span className="flex flex-col items-start">
                 {o.label}

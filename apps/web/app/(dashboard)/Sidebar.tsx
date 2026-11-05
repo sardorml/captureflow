@@ -70,6 +70,7 @@ export async function Sidebar({
           canInvite={isOwner || instanceAdmin}
           instanceAdmin={instanceAdmin}
           paidSeats={paidSeats}
+          selfHosted={selfHosted}
         />
       </SidebarHeader>
 

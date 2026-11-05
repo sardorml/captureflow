@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { getSeatPlan, type AssignableRole } from "@captureflow/quota";
 import type { PaidSeats } from "@/lib/billing/seat-checkout";
-import { ASSIGNABLE_ROLES } from "@/lib/workspace/labels";
+import { assignableRoles } from "@/lib/workspace/labels";
 import { inviteMemberAction } from "./members/actions";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -43,6 +43,7 @@ type InviteModalProps = {
   onOpenChange?: (open: boolean) => void;
   workspaceName?: string;
   paidSeats?: PaidSeats | null;
+  selfHosted?: boolean;
 };
 
 export function InviteModal({
@@ -51,6 +52,7 @@ export function InviteModal({
   onOpenChange,
   workspaceName,
   paidSeats = null,
+  selfHosted = false,
 }: InviteModalProps = {}) {
   // In a paid workspace a member costs a seat, so the owner opts into it.
   const defaultRole: AssignableRole = paidSeats ? "viewer" : "member";
@@ -207,7 +209,7 @@ export function InviteModal({
               aria-label="Role"
               className="mt-4 grid-cols-1 sm:grid-cols-2"
             >
-              {ASSIGNABLE_ROLES.map((option) => (
+              {assignableRoles(selfHosted).map((option) => (
                 <FieldLabel
                   key={option.id}
                   htmlFor={`invite-role-${option.id}`}

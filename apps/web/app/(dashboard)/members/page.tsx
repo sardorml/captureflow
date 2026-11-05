@@ -1,4 +1,5 @@
 import {
+  isSelfHosted,
   listMembers,
   listPendingInvites,
   listSeatRequests,
@@ -44,12 +45,13 @@ export default async function MembersPage() {
   ]);
 
   const paidSeats = paidSeatsOf(seats);
+  const selfHosted = isSelfHosted(env);
   const instanceAdmin = await isInstanceAdminUser(session.user.id);
 
   return (
     <div className="flex flex-col gap-8">
       <WorkspacePageHeader workspaceName={workspace.name} title="Members" />
-      {seats ? (
+      {seats && !selfHosted ? (
         <SeatSummary
           context={seats}
           isOwner={isOwner}
@@ -66,6 +68,7 @@ export default async function MembersPage() {
         inviteHref={instanceAdmin ? `/admin/workspaces/${workspace.id}` : null}
         workspaceName={workspace.name}
         paidSeats={paidSeats}
+        selfHosted={selfHosted}
         seatRequests={seatRequests}
       />
     </div>
