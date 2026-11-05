@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppIcon } from "@/components/brand-mark";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { AnimatedTooltip } from "@/lib/animated-tooltip";
 import {
   CANVAS_COLORS,
@@ -49,6 +50,7 @@ import {
   type Point,
   type Viewport,
 } from "@/lib/canvas/viewport";
+import { fmt } from "@/lib/i18n/format";
 import { MARKETING_SITE_URL, PRODUCT_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -64,27 +66,17 @@ type Tool =
   | "text"
   | "eraser";
 
-const TOOLS: { id: Tool; label: string; key: string; icon: ReactNode }[] = [
-  {
-    id: "select",
-    label: "Select",
-    key: "V",
-    icon: <MousePointer2 size={18} />,
-  },
-  { id: "hand", label: "Hand", key: "H", icon: <Hand size={18} /> },
-  { id: "pen", label: "Pen", key: "P", icon: <Pencil size={18} /> },
-  {
-    id: "highlighter",
-    label: "Highlighter",
-    key: "M",
-    icon: <Highlighter size={18} />,
-  },
-  { id: "rect", label: "Rectangle", key: "R", icon: <Square size={18} /> },
-  { id: "ellipse", label: "Ellipse", key: "O", icon: <Circle size={18} /> },
-  { id: "arrow", label: "Arrow", key: "A", icon: <MoveUpRight size={18} /> },
-  { id: "line", label: "Line", key: "L", icon: <Minus size={18} /> },
-  { id: "text", label: "Text", key: "T", icon: <Type size={18} /> },
-  { id: "eraser", label: "Eraser", key: "E", icon: <Eraser size={18} /> },
+const TOOLS: { id: Tool; key: string; icon: ReactNode }[] = [
+  { id: "select", key: "V", icon: <MousePointer2 size={18} /> },
+  { id: "hand", key: "H", icon: <Hand size={18} /> },
+  { id: "pen", key: "P", icon: <Pencil size={18} /> },
+  { id: "highlighter", key: "M", icon: <Highlighter size={18} /> },
+  { id: "rect", key: "R", icon: <Square size={18} /> },
+  { id: "ellipse", key: "O", icon: <Circle size={18} /> },
+  { id: "arrow", key: "A", icon: <MoveUpRight size={18} /> },
+  { id: "line", key: "L", icon: <Minus size={18} /> },
+  { id: "text", key: "T", icon: <Type size={18} /> },
+  { id: "eraser", key: "E", icon: <Eraser size={18} /> },
 ];
 
 const KEY_TO_TOOL = new Map(TOOLS.map((t) => [t.key.toLowerCase(), t.id]));
@@ -143,6 +135,7 @@ function save(data: Saved): void {
 }
 
 export function CanvasBoardImpl() {
+  const m = useAppMessages();
   const saved = useMemo(loadSaved, []);
   const [elements, setElements] = useState<CanvasElement[]>(
     () => saved?.elements ?? [],
@@ -678,7 +671,7 @@ export function CanvasBoardImpl() {
           key={editing.id}
           defaultValue={editing.text}
           onBlur={finishText}
-          placeholder="Type…"
+          placeholder={m.canvas.textPlaceholder}
           className="absolute m-0 resize-none overflow-hidden border-0 bg-transparent p-0 leading-none outline-none"
           style={{
             left: editing.x * view.scale + view.x,
@@ -713,13 +706,16 @@ export function CanvasBoardImpl() {
           {TOOLS.map((t) => (
             <AnimatedTooltip
               key={t.id}
-              content={`${t.label} · ${t.key}`}
+              content={fmt(m.canvas.shortcut, {
+                label: m.canvas.tools[t.id],
+                key: t.key,
+              })}
               placement="bottom"
             >
               <Button
                 size="icon-sm"
                 variant={tool === t.id ? "secondary" : "ghost"}
-                aria-label={t.label}
+                aria-label={m.canvas.tools[t.id]}
                 aria-pressed={tool === t.id}
                 onClick={() => setTool(t.id)}
               >
@@ -732,7 +728,7 @@ export function CanvasBoardImpl() {
             <button
               key={c}
               type="button"
-              aria-label={`Colour ${c}`}
+              aria-label={fmt(m.canvas.colour, { colour: c })}
               aria-pressed={color === c}
               onClick={() => setColor(c)}
               className={cn(
@@ -754,7 +750,7 @@ export function CanvasBoardImpl() {
             <button
               key={w}
               type="button"
-              aria-label={`Stroke ${w}`}
+              aria-label={fmt(m.canvas.stroke, { width: w })}
               aria-pressed={width === w}
               onClick={() => setWidth(w)}
               className={cn(
@@ -770,38 +766,50 @@ export function CanvasBoardImpl() {
           ))}
         </div>
         <p className="text-xs text-fg-subtle">
-          Scroll to pan · ⌘ scroll to zoom · hold Space to drag
+          {fmt(m.canvas.hint, { mod: "⌘", space: "Space" })}
         </p>
       </div>
 
       <div className="absolute right-4 top-4 flex items-center gap-1 rounded-2xl bg-canvas-2 p-1 shadow-lg ring-1 ring-line">
-        <AnimatedTooltip content="Undo · ⌘Z" placement="bottom">
+        <AnimatedTooltip
+          content={fmt(m.canvas.shortcut, {
+            label: m.canvas.history.undo,
+            key: "⌘Z",
+          })}
+          placement="bottom"
+        >
           <Button
             size="icon-sm"
             variant="ghost"
-            aria-label="Undo"
+            aria-label={m.canvas.history.undo}
             disabled={!canUndo}
             onClick={undo}
           >
             <Undo2 size={18} />
           </Button>
         </AnimatedTooltip>
-        <AnimatedTooltip content="Redo · ⇧⌘Z" placement="bottom">
+        <AnimatedTooltip
+          content={fmt(m.canvas.shortcut, {
+            label: m.canvas.history.redo,
+            key: "⇧⌘Z",
+          })}
+          placement="bottom"
+        >
           <Button
             size="icon-sm"
             variant="ghost"
-            aria-label="Redo"
+            aria-label={m.canvas.history.redo}
             disabled={!canRedo}
             onClick={redo}
           >
             <Redo2 size={18} />
           </Button>
         </AnimatedTooltip>
-        <AnimatedTooltip content="Clear the board" placement="bottom">
+        <AnimatedTooltip content={m.canvas.history.clear} placement="bottom">
           <Button
             size="icon-sm"
             variant="ghost"
-            aria-label="Clear the board"
+            aria-label={m.canvas.history.clear}
             disabled={elements.length === 0}
             onClick={() => {
               commit([]);
@@ -817,7 +825,7 @@ export function CanvasBoardImpl() {
         <Button
           size="icon-sm"
           variant="ghost"
-          aria-label="Zoom out"
+          aria-label={m.canvas.zoom.out}
           onClick={() => zoomBy(1 / ZOOM_STEP)}
         >
           <Minus size={18} />
@@ -825,7 +833,7 @@ export function CanvasBoardImpl() {
         <button
           type="button"
           className="min-w-14 rounded-lg px-2 py-1 text-sm tabular-nums text-fg hover:bg-tint"
-          aria-label="Reset zoom"
+          aria-label={m.canvas.zoom.reset}
           onClick={() => setView({ x: 0, y: 0, scale: 1 })}
         >
           {Math.round(view.scale * 100)}%
@@ -833,7 +841,7 @@ export function CanvasBoardImpl() {
         <Button
           size="icon-sm"
           variant="ghost"
-          aria-label="Zoom in"
+          aria-label={m.canvas.zoom.in}
           onClick={() => zoomBy(ZOOM_STEP)}
         >
           <Plus size={18} />

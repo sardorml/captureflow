@@ -10,6 +10,7 @@ import {
   PaginationItem,
   PaginationLink,
 } from "@/components/ui/pagination";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { pageItems } from "@/lib/pagination";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export function Pager({ page, pageCount }: PagerProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const copy = useAppMessages().library.pager;
   if (pageCount <= 1) return null;
 
   const hrefFor = (next: number) => {
@@ -45,11 +47,11 @@ export function Pager({ page, pageCount }: PagerProps) {
   });
 
   return (
-    <Pagination aria-label="Pages" className="mt-8 flex justify-center">
+    <Pagination aria-label={copy.label} className="mt-8 flex justify-center">
       <PaginationContent>
         <PaginationItem>
           <PaginationLink
-            aria-label="Previous page"
+            aria-label={copy.previous}
             {...linkTo(page - 1, page <= 1)}
           >
             <ChevronLeft />
@@ -70,7 +72,7 @@ export function Pager({ page, pageCount }: PagerProps) {
         )}
         <PaginationItem>
           <PaginationLink
-            aria-label="Next page"
+            aria-label={copy.next}
             {...linkTo(page + 1, page >= pageCount)}
           >
             <ChevronRight />

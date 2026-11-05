@@ -2,6 +2,7 @@
 
 import { Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { cn } from "@/lib/utils";
 import { installedExtensionId, openRecorder } from "@/lib/extension-bridge";
 import { CHROME_WEBSTORE_URL } from "@/lib/site";
@@ -43,14 +44,15 @@ export function RecordButton({
   label,
   fullWidth = false,
 }: {
-  label: string;
+  label?: string;
   fullWidth?: boolean;
 }) {
+  const m = useAppMessages();
   const start = useStartRecording();
   return (
     <Button className={cn(fullWidth && "w-full")} onClick={start}>
       <Video size={16} />
-      {label}
+      {label ?? m.shell.record.newRecording}
     </Button>
   );
 }

@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactElement, ReactNode } from "react";
+import { useAppLocale } from "@/components/app-i18n-provider";
 import { PostedBy } from "./posted-by";
 import { timeAgo } from "./time";
 import { AppIcon } from "@/components/brand-mark";
@@ -24,6 +27,7 @@ export function ScreenshotNavbar({
   right,
   className = "",
 }: ScreenshotNavbarProps): ReactElement {
+  const { lang } = useAppLocale();
   const showPostedBy = postedByName !== null || postedByEmail !== null;
   return (
     <header
@@ -40,7 +44,7 @@ export function ScreenshotNavbar({
         <h1 className="truncate text-base font-semibold tracking-tight text-fg-strong">
           {title}
         </h1>
-        <p className="text-xs text-fg-subtle">{timeAgo(createdAt)}</p>
+        <p className="text-xs text-fg-subtle">{timeAgo(createdAt, lang)}</p>
       </div>
       {right}
       {showPostedBy && <PostedBy name={postedByName} email={postedByEmail} />}

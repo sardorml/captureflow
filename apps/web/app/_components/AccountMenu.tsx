@@ -21,14 +21,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/format";
 import { SUPPORT_EMAIL } from "@/lib/site";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { ThemeSegments } from "./ThemeSegments";
 
 export type AccountMenuPlan = "free" | SeatPlanId;
 
 export type AccountMenuNavItem = {
-  key: string;
+  key: "billing" | "devices" | "settings" | "support";
   icon: ReactNode;
-  label: string;
   href: string;
   // Right-aligned accessory — a plan chip, a count. Purely decorative.
   trailing?: ReactNode;
@@ -56,31 +56,22 @@ export function accountNavItems({
     {
       key: "billing",
       icon: <Receipt size={16} />,
-      label: "Billing",
       href: `${base}/billing`,
-      trailing:
-        plan === undefined ? undefined : (
-          <Badge variant={plan === "free" ? "secondary" : "default"}>
-            {plan === "free" ? "Free" : getSeatPlan(plan).name}
-          </Badge>
-        ),
+      trailing: plan === undefined ? undefined : <PlanChip plan={plan} />,
     },
     {
       key: "devices",
       icon: <HardDrive size={16} />,
-      label: "Connected devices",
       href: `${base}/devices`,
     },
     {
       key: "settings",
       icon: <Settings size={16} />,
-      label: "Settings",
       href: `${base}/settings`,
     },
     {
       key: "support",
       icon: <MessageSquare size={16} />,
-      label: "Contact support",
       href: `mailto:${SUPPORT_EMAIL}`,
     },
   ];
@@ -88,6 +79,15 @@ export function accountNavItems({
     (i) =>
       !(selfHosted && (i.key === "billing" || i.key === "support")) &&
       !(!billing && i.key === "billing"),
+  );
+}
+
+function PlanChip({ plan }: { plan: AccountMenuPlan }) {
+  const m = useAppMessages();
+  return (
+    <Badge variant={plan === "free" ? "secondary" : "default"}>
+      {plan === "free" ? m.shell.account.freePlan : getSeatPlan(plan).name}
+    </Badge>
   );
 }
 
@@ -114,12 +114,13 @@ export function AccountMenu({
   signingOut,
   onSignOut,
 }: Props) {
+  const copy = useAppMessages().shell.account;
   const displayName = name?.trim() || email;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Account menu"
+        aria-label={copy.menu}
         className="cursor-pointer rounded-full outline-none"
       >
         {/* 36px, the height of the buttons either side of it. */}
@@ -153,7 +154,7 @@ export function AccountMenu({
           const content = (
             <>
               {item.icon}
-              {item.label}
+              {copy.nav[item.key]}
               {item.trailing ? (
                 <span className="ms-auto ps-2">{item.trailing}</span>
               ) : null}
@@ -181,7 +182,7 @@ export function AccountMenu({
           onSelect={onSignOut}
         >
           <LogOut size={16} />
-          {signingOut ? "Signing out…" : "Sign out"}
+          {signingOut ? copy.signingOut : copy.signOut}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -10,6 +10,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import {
   SliderFill,
   SliderThumb,
@@ -54,6 +55,7 @@ export function EditedTimeSlider({
   durationSeconds,
   preview,
 }: Props) {
+  const m = useAppMessages();
   const time = usePlayer(selectTime);
   const current = time ? toEditedMs(time.currentTime * 1000, cuts) / 1000 : 0;
   // Holds the fill at the drop point until the media lands there, so it
@@ -130,7 +132,7 @@ export function EditedTimeSlider({
 
   return (
     <SliderPrimitive.Root
-      label="Seek"
+      label={m.player.controls.slider.seek}
       min={0}
       max={durationSeconds}
       step={STEP_SECONDS}

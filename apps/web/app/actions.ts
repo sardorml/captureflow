@@ -50,6 +50,8 @@ import {
 import { deleteObjectPrefix } from "@/lib/recording/r2";
 import { purgeCachedMedia } from "@/lib/recording/remove";
 import { revokeDeviceToken } from "@/lib/device-tokens";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fmt } from "@/lib/i18n/format";
 
 // Middleware only guards page requests; a forged/replayed direct action
 // invocation bypasses it, so every action re-checks the session here.
@@ -62,11 +64,16 @@ async function requireUserId(): Promise<string> {
   return session.user.id;
 }
 
+async function actionCopy() {
+  return (await getAppI18n()).messages.actions;
+}
+
 export async function renameRecordingAction(
   _prev: { error: string | null; slug: string | null },
   formData: FormData,
 ): Promise<{ error: string | null; slug: string | null }> {
   const userId = await requireUserId();
+  const t = await actionCopy();
   const slug =
     typeof formData.get("slug") === "string"
       ? (formData.get("slug") as string).trim()
@@ -76,13 +83,13 @@ export async function renameRecordingAction(
       ? (formData.get("title") as string).trim()
       : "";
   if (!slug) {
-    return { error: "Missing slug", slug: null };
+    return { error: t.missingSlug, slug: null };
   }
   // Same 200-char cap the recording /api/init enforces.
   const next = title.length === 0 ? null : title.slice(0, 200);
   const ok = await updateRecordingTitleForUser(userId, slug, next);
   if (!ok) {
-    return { error: "Recording not found", slug };
+    return { error: t.recordingNotFound, slug };
   }
   revalidatePath("/");
   revalidatePath(`/r/${slug}`);
@@ -94,21 +101,22 @@ export async function setVisibilityAction(
   visibility: RecordingVisibility,
 ): Promise<{ error: string | null }> {
   const userId = await requireUserId();
+  const t = await actionCopy();
   const cleanSlug = typeof slug === "string" ? slug.trim() : "";
-  if (!cleanSlug) return { error: "Missing slug" };
+  if (!cleanSlug) return { error: t.missingSlug };
   if (
     visibility !== "public" &&
     visibility !== "workspace" &&
     visibility !== "private"
   ) {
-    return { error: "Invalid visibility" };
+    return { error: t.invalidVisibility };
   }
   const ok = await updateRecordingVisibilityForAdmin(
     userId,
     cleanSlug,
     visibility,
   );
-  if (!ok) return { error: "Recording not found" };
+  if (!ok) return { error: t.recordingNotFound };
   revalidatePath("/");
   return { error: null };
 }
@@ -117,12 +125,13 @@ export async function deleteRecordingAction(slug: string): Promise<{
   error: string | null;
 }> {
   const userId = await requireUserId();
+  const t = await actionCopy();
   const cleanSlug = typeof slug === "string" ? slug.trim() : "";
-  if (!cleanSlug) return { error: "Missing slug" };
+  if (!cleanSlug) return { error: t.missingSlug };
   // getRecordingForAdmin authorises uploader OR workspace owner.
   const row = await getRecordingForAdmin(userId, cleanSlug);
   if (!row) {
-    return { error: "Recording not found" };
+    return { error: t.recordingNotFound };
   }
   // R2 objects first, then reactions, then the row, so a failure strands
   // at worst a row pointing at a missing object (delete again to clean up).
@@ -130,9 +139,9 @@ export async function deleteRecordingAction(slug: string): Promise<{
     await deleteObject(row.storageKey);
   } catch (err) {
     return {
-      error: `Could not delete the video file: ${
-        err instanceof Error ? err.message : String(err)
-      }`,
+      error: fmt(t.deleteVideoFailed, {
+        reason: err instanceof Error ? err.message : String(err),
+      }),
     };
   }
   // Poster/webcam/sidecars/audio are best-effort: the video is already gone,
@@ -156,15 +165,16 @@ export async function saveRecordingConfigAction(
   raw: unknown,
 ): Promise<{ error: string | null }> {
   const userId = await requireUserId();
+  const t = await actionCopy();
   const cleanSlug = typeof slug === "string" ? slug.trim() : "";
-  if (!cleanSlug) return { error: "Missing slug" };
+  if (!cleanSlug) return { error: t.missingSlug };
   const config: RecordingConfig = hydrateRecordingConfig(raw);
   const ok = await updateRecordingConfigForUser(
     userId,
     cleanSlug,
     JSON.stringify(config),
   );
-  if (!ok) return { error: "Recording not found" };
+  if (!ok) return { error: t.recordingNotFound };
   revalidatePath(`/recordings/${cleanSlug}/edit`);
   revalidatePath("/");
   return { error: null };
@@ -192,13 +202,14 @@ export async function saveTranscriptEditsAction(
   raw: unknown,
 ): Promise<TranscriptActionResult> {
   const userId = await requireUserId();
-  if (!isValidSlug(slug)) return { error: "Missing slug", transcript: null };
+  const t = await actionCopy();
+  if (!isValidSlug(slug)) return { error: t.missingSlug, transcript: null };
   const auto = await getAutoTranscriptForOwner(userId, slug);
-  if (!auto) return { error: "Transcript not found", transcript: null };
+  if (!auto) return { error: t.transcriptNotFound, transcript: null };
   const edited = hydrateTranscriptEdits(raw, auto);
   if (!edited) {
     return {
-      error: "The transcript can't be left empty. Reset it instead.",
+      error: t.transcriptEmpty,
       transcript: null,
     };
   }
@@ -207,7 +218,7 @@ export async function saveTranscriptEditsAction(
     slug,
     JSON.stringify(edited),
   );
-  if (!ok) return { error: "Transcript not found", transcript: null };
+  if (!ok) return { error: t.transcriptNotFound, transcript: null };
   revalidatePath(`/recordings/${slug}/edit`);
   return { error: null, transcript: edited };
 }
@@ -216,11 +227,12 @@ export async function resetTranscriptEditsAction(
   slug: string,
 ): Promise<TranscriptActionResult> {
   const userId = await requireUserId();
-  if (!isValidSlug(slug)) return { error: "Missing slug", transcript: null };
+  const t = await actionCopy();
+  if (!isValidSlug(slug)) return { error: t.missingSlug, transcript: null };
   const auto = await getAutoTranscriptForOwner(userId, slug);
-  if (!auto) return { error: "Transcript not found", transcript: null };
+  if (!auto) return { error: t.transcriptNotFound, transcript: null };
   const ok = await updateTranscriptEditsForUser(userId, slug, null);
-  if (!ok) return { error: "Transcript not found", transcript: null };
+  if (!ok) return { error: t.transcriptNotFound, transcript: null };
   revalidatePath(`/recordings/${slug}/edit`);
   return { error: null, transcript: auto };
 }
@@ -229,10 +241,11 @@ export async function revokeDeviceTokenAction(tokenId: string): Promise<{
   error: string | null;
 }> {
   const userId = await requireUserId();
+  const t = await actionCopy();
   const cleanId = typeof tokenId === "string" ? tokenId.trim() : "";
-  if (!cleanId) return { error: "Missing token id" };
+  if (!cleanId) return { error: t.missingTokenId };
   const ok = await revokeDeviceToken(userId, cleanId);
-  if (!ok) return { error: "Token not found" };
+  if (!ok) return { error: t.tokenNotFound };
   revalidatePath("/");
   return { error: null };
 }
@@ -241,12 +254,13 @@ export async function deleteScreenshotAction(screenshotId: string): Promise<{
   error: string | null;
 }> {
   const userId = await requireUserId();
+  const t = await actionCopy();
   const cleanId = typeof screenshotId === "string" ? screenshotId.trim() : "";
-  if (!cleanId) return { error: "Missing screenshot id" };
+  if (!cleanId) return { error: t.missingScreenshotId };
   const screenshot = await getScreenshotForAdmin(cleanId, userId);
-  if (!screenshot) return { error: "Screenshot not found" };
+  if (!screenshot) return { error: t.screenshotNotFound };
   const ok = await softDeleteScreenshotForAdmin(cleanId, userId);
-  if (!ok) return { error: "Screenshot not found" };
+  if (!ok) return { error: t.screenshotNotFound };
   // Best-effort R2 cleanup; row is already soft-deleted and the retention
   // cron sweeps any stranded bytes.
   await Promise.allSettled(
@@ -263,21 +277,22 @@ export async function setScreenshotVisibilityAction(
   visibility: ScreenshotVisibility,
 ): Promise<{ error: string | null }> {
   const userId = await requireUserId();
+  const t = await actionCopy();
   const cleanId = typeof screenshotId === "string" ? screenshotId.trim() : "";
-  if (!cleanId) return { error: "Missing screenshot id" };
+  if (!cleanId) return { error: t.missingScreenshotId };
   if (
     visibility !== "public" &&
     visibility !== "workspace" &&
     visibility !== "private"
   ) {
-    return { error: "Invalid visibility" };
+    return { error: t.invalidVisibility };
   }
   const ok = await updateScreenshotVisibilityForAdmin(
     userId,
     cleanId,
     visibility,
   );
-  if (!ok) return { error: "Screenshot not found" };
+  if (!ok) return { error: t.screenshotNotFound };
   revalidatePath("/screenshots");
   return { error: null };
 }
@@ -287,11 +302,12 @@ export async function renameScreenshotAction(
   title: string,
 ): Promise<{ error: string | null }> {
   const userId = await requireUserId();
+  const t = await actionCopy();
   const cleanId = typeof screenshotId === "string" ? screenshotId.trim() : "";
-  if (!cleanId) return { error: "Missing screenshot id" };
+  if (!cleanId) return { error: t.missingScreenshotId };
   const trimmed = typeof title === "string" ? title.trim().slice(0, 200) : "";
   const ok = await renameScreenshot(cleanId, userId, trimmed || null);
-  if (!ok) return { error: "Screenshot not found" };
+  if (!ok) return { error: t.screenshotNotFound };
   revalidatePath("/screenshots");
   revalidatePath(`/screenshots/${cleanId}/edit`);
   return { error: null };
@@ -321,7 +337,8 @@ export async function saveScreenshotAction(
     // so the client gets a readable string and we log a breadcrumb.
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[saveScreenshotAction] uncaught:", msg, err);
-    return { error: `Save failed: ${msg}` };
+    const t = await actionCopy();
+    return { error: fmt(t.saveFailed, { reason: msg }) };
   }
 }
 
@@ -331,8 +348,9 @@ async function saveScreenshotActionInner(
   state: ScreenshotEditState,
 ): Promise<{ error: string | null }> {
   const userId = await requireUserId();
+  const t = await actionCopy();
   const cleanId = typeof screenshotId === "string" ? screenshotId.trim() : "";
-  if (!cleanId) return { error: "Missing screenshot id" };
+  if (!cleanId) return { error: t.missingScreenshotId };
   // PNG arrives as a Blob: a raw Uint8Array trips React's array-nesting guard
   // past ~1 MB, so the serializer must take the binary path.
   if (!blob || typeof (blob as Blob).arrayBuffer !== "function") {
@@ -342,17 +360,17 @@ async function saveScreenshotActionInner(
       constructor:
         blob && (blob as { constructor?: { name?: string } }).constructor?.name,
     });
-    return { error: "Missing image bytes" };
+    return { error: t.missingImageBytes };
   }
   const size = (blob as Blob).size;
   if (!Number.isFinite(size) || size === 0) {
-    return { error: "Missing image bytes" };
+    return { error: t.missingImageBytes };
   }
   if (size > MAX_SCREENSHOT_BYTES) {
-    return { error: "Edited screenshot exceeds the per-screenshot size cap." };
+    return { error: t.screenshotTooLarge };
   }
   const screenshot = await getScreenshotForUser(cleanId, userId);
-  if (!screenshot) return { error: "Screenshot not found" };
+  if (!screenshot) return { error: t.screenshotNotFound };
 
   const buffer = (await (blob as Blob).arrayBuffer()) as ArrayBuffer;
   const byteLength = buffer.byteLength;
@@ -377,9 +395,9 @@ async function saveScreenshotActionInner(
     await putObject(screenshot.storageKey, buffer, "image/png");
   } catch (err) {
     return {
-      error: `Could not save the screenshot: ${
-        err instanceof Error ? err.message : String(err)
-      }`,
+      error: fmt(t.saveScreenshotFailed, {
+        reason: err instanceof Error ? err.message : String(err),
+      }),
     };
   }
 
@@ -413,7 +431,7 @@ async function saveScreenshotActionInner(
       ? Math.round(state.height)
       : null;
   if (w === null || h === null) {
-    return { error: "Save failed: invalid canvas dimensions" };
+    return { error: t.invalidCanvasDimensions };
   }
   await updateScreenshotAfterEdit(cleanId, userId, byteLength, w, h);
   revalidatePath(`/screenshots/${cleanId}/edit`);

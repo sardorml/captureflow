@@ -31,6 +31,8 @@ import { parseSummaryChaptersJson } from "@/lib/recording/summary-chapters";
 import { isValidSlug } from "@/lib/recording/slug";
 import { shareTitle } from "@/lib/recording/title";
 import { formatDuration } from "@/lib/format";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fmt } from "@/lib/i18n/format";
 import {
   APP_WEB_SITE_URL,
   PRODUCT_NAME,
@@ -38,7 +40,7 @@ import {
   viewUrlFor,
 } from "@/lib/site";
 import { ViewerNav } from "../../_components/screenshot";
-import { ThemeToggle } from "@captureflow/ui";
+import { AppThemeToggle } from "@/components/app-theme-toggle";
 import {
   readThemeFromCookieHeader,
   readThemePreferenceFromCookieHeader,
@@ -78,9 +80,10 @@ export async function generateMetadata({
   if (!row) {
     return { title: PRODUCT_NAME, robots: { index: false, follow: false } };
   }
+  const meta = (await getAppI18n()).messages.viewer.meta;
   if (row.state === "pending") {
     return {
-      title: `Preparing recording… — ${PRODUCT_NAME}`,
+      title: fmt(meta.preparingTitle, { product: PRODUCT_NAME }),
       robots: { index: false, follow: false },
     };
   }
@@ -93,12 +96,16 @@ export async function generateMetadata({
     const cookieHeader = (await headers()).get("cookie");
     const visitorResult = await verifySession(cookieHeader);
     const visitor = visitorResult === "unknown" ? null : visitorResult;
-    if (!canViewResource(visitor, row)) return { title: "Not found" };
+    if (!canViewResource(visitor, row)) return { title: meta.notFoundTitle };
   }
 
   const title = row.title ? shareTitle(row.title) : PRODUCT_NAME;
-  const length = row.durationMs ? `${formatDuration(row.durationMs)} ` : "";
-  const description = `A ${length}screen recording shared from ${PRODUCT_NAME}. Watch it in your browser, no sign-up needed.`;
+  const description = row.durationMs
+    ? fmt(meta.descriptionTimed, {
+        duration: formatDuration(row.durationMs),
+        product: PRODUCT_NAME,
+      })
+    : fmt(meta.description, { product: PRODUCT_NAME });
   const [videoUrlRaw, posterUrlRaw] = await Promise.all([
     viewerMediaUrl(row, row.storageKey),
     row.posterKey
@@ -436,7 +443,7 @@ function RecordingNav({
          standalone toggle. */
       themeToggle={
         visitor ? null : (
-          <ThemeToggle initialTheme={theme} className="h-9 w-9 rounded-xl" />
+          <AppThemeToggle initialTheme={theme} className="h-9 w-9 rounded-xl" />
         )
       }
       notifications={

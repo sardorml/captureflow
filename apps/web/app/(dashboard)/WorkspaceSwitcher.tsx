@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/sidebar";
 import type { WorkspaceMembership } from "@captureflow/quota";
 import { initials } from "@/lib/format";
+import { plural } from "@/lib/i18n/format";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
 import { cn } from "@/lib/utils";
 import { whenIdle } from "@/lib/when-idle";
 import { workspaceLogoUrl } from "@/lib/site";
@@ -79,6 +81,8 @@ export function WorkspaceSwitcher({
   paidSeats,
   selfHosted,
 }: Props) {
+  const copy = useAppMessages().shell.workspaceSwitcher;
+  const { lang } = useAppLocale();
   const { isMobile } = useSidebar();
   const formRef = useRef<HTMLFormElement>(null);
   const [isInviting, setInviting] = useState(false);
@@ -114,7 +118,7 @@ export function WorkspaceSwitcher({
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
-                aria-label="Switch workspace"
+                aria-label={copy.switchWorkspace}
                 data-testid="workspace-card"
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
@@ -124,8 +128,7 @@ export function WorkspaceSwitcher({
                     {current.workspace_name}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
-                    Default · {memberCount}{" "}
-                    {memberCount === 1 ? "member" : "members"}
+                    {plural(copy.summary, memberCount, lang)}
                   </span>
                 </div>
                 <ChevronsUpDown className="ml-auto" />
@@ -138,7 +141,7 @@ export function WorkspaceSwitcher({
               sideOffset={4}
             >
               <DropdownMenuLabel className="text-xs text-muted-foreground">
-                Workspaces
+                {copy.workspaces}
               </DropdownMenuLabel>
               {memberships.map((m) => {
                 const isCurrent = m.workspace_id === current.workspace_id;
@@ -154,7 +157,7 @@ export function WorkspaceSwitcher({
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate">{m.workspace_name}</span>
                       <span className="text-xs text-muted-foreground">
-                        {m.role === "owner" ? "You own this" : "You joined"}
+                        {m.role === "owner" ? copy.owned : copy.joined}
                       </span>
                     </span>
                     {isCurrent && <Check className="ml-auto" />}
@@ -167,7 +170,7 @@ export function WorkspaceSwitcher({
                   <DropdownMenuItem asChild className="gap-2 p-2">
                     <a href="/admin">
                       <Plus />
-                      New workspace
+                      {copy.newWorkspace}
                     </a>
                   </DropdownMenuItem>
                 </>
@@ -178,22 +181,22 @@ export function WorkspaceSwitcher({
         {canInvite && (
           <SidebarMenuItem>
             {instanceAdmin ? (
-              <SidebarMenuButton asChild tooltip="Invite members">
+              <SidebarMenuButton asChild tooltip={copy.inviteMembers}>
                 <a href={`/admin/workspaces/${currentWorkspaceId}`}>
                   <UserPlus />
-                  <span>Invite members</span>
+                  <span>{copy.inviteMembers}</span>
                 </a>
               </SidebarMenuButton>
             ) : (
               <SidebarMenuButton
-                tooltip="Invite members"
+                tooltip={copy.inviteMembers}
                 onClick={() => {
                   setInviteMounted(true);
                   setInviting(true);
                 }}
               >
                 <UserPlus />
-                <span>Invite members</span>
+                <span>{copy.inviteMembers}</span>
               </SidebarMenuButton>
             )}
           </SidebarMenuItem>

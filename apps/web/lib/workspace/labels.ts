@@ -1,10 +1,5 @@
-import { type AssignableRole, type WorkspaceRole } from "@captureflow/quota";
-
-export const ROLE_LABEL: Record<WorkspaceRole, string> = {
-  owner: "Admin",
-  member: "Member",
-  viewer: "Viewer",
-};
+import type { AssignableRole } from "@captureflow/quota";
+import type { AppMessages } from "@/lib/i18n/app/messages";
 
 export type AssignableRoleOption = {
   id: AssignableRole;
@@ -12,31 +7,19 @@ export type AssignableRoleOption = {
   hint: string;
 };
 
-const ASSIGNABLE_ROLES: {
-  id: AssignableRole;
-  label: string;
-  does: string;
-  costs: string;
-}[] = [
-  {
-    id: "member",
-    label: "Member",
-    does: "Records into this workspace.",
-    costs: "A paid seat on Light and Pro.",
-  },
-  {
-    id: "viewer",
-    label: "Viewer",
-    does: "Watches and comments.",
-    costs: "Always free.",
-  },
-];
+const ASSIGNABLE_ROLES: AssignableRole[] = ["member", "viewer"];
 
 // A self-hosted instance has no plans, so its hints leave the price out.
-export function assignableRoles(selfHosted: boolean): AssignableRoleOption[] {
-  return ASSIGNABLE_ROLES.map(({ id, label, does, costs }) => ({
-    id,
-    label,
-    hint: selfHosted ? does : `${does} ${costs}`,
-  }));
+export function assignableRoles(
+  selfHosted: boolean,
+  copy: Pick<AppMessages["members"], "roles" | "roleHints">,
+): AssignableRoleOption[] {
+  return ASSIGNABLE_ROLES.map((id) => {
+    const { does, costs } = copy.roleHints[id];
+    return {
+      id,
+      label: copy.roles[id],
+      hint: selfHosted ? does : `${does} ${costs}`,
+    };
+  });
 }

@@ -14,7 +14,15 @@ export type PlanSwitchEnv = SeatVariantEnv & {
   LEMON_API_KEY?: string;
 };
 
-export type PlanSwitchResult = { ok: true } | { ok: false; error: string };
+type PlanSwitchFailure =
+  | "noSubscription"
+  | "cancelled"
+  | "unavailable"
+  | "rejected";
+
+export type PlanSwitchResult =
+  | { ok: true }
+  | { ok: false; reason: PlanSwitchFailure };
 
 /*
  * Moves a paid workspace to another plan on the same billing cycle. Seats and
@@ -29,14 +37,9 @@ export async function switchWorkspacePlan(
     env.DB,
     args.workspaceId,
   );
-  if (!subscription) {
-    return { ok: false, error: "This workspace has no active subscription" };
-  }
+  if (!subscription) return { ok: false, reason: "noSubscription" };
   if (subscription.cancelled_at !== null) {
-    return {
-      ok: false,
-      error: "Resume the subscription before changing its plan",
-    };
+    return { ok: false, reason: "cancelled" };
   }
   if (subscription.plan === args.plan) return { ok: true };
 
@@ -55,7 +58,7 @@ export async function switchWorkspacePlan(
     console.error(
       `[plan-switch] missing ${variantId ? "LEMON_API_KEY" : `variant for ${args.plan} ${subscription.cycle}`}`,
     );
-    return { ok: false, error: "Plan changes aren't available right now" };
+    return { ok: false, reason: "unavailable" };
   }
   const result = await setSubscriptionVariant({
     apiKey: env.LEMON_API_KEY,
@@ -66,7 +69,7 @@ export async function switchWorkspacePlan(
     console.error(
       `[plan-switch] workspace ${args.workspaceId}: ${result.status} ${result.body.slice(0, 200)}`,
     );
-    return { ok: false, error: "Billing didn’t accept the change. Try again." };
+    return { ok: false, reason: "rejected" };
   }
   await setWorkspaceSubscriptionPlan(env.DB, {
     lsSubscriptionId: subscription.ls_subscription_id,

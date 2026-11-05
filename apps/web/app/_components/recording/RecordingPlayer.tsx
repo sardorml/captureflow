@@ -12,8 +12,9 @@ import {
   type RefObject,
 } from "react";
 import type { VideoPlayerStore } from "@videojs/core/dom";
-import { selectFullscreen } from "@videojs/react";
+import { I18nProvider, selectFullscreen } from "@videojs/react";
 import { Video, VideoPlayer, usePlayer } from "@videojs/react/video";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
 import type { RecordingConfig } from "@/lib/recording-config";
 import { chapterCues, cuesToTrackUrl } from "@/lib/recording/chapter-cues";
 import { snapOutOfCuts, type RecordingCut } from "@/lib/recording/cuts";
@@ -122,6 +123,8 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
     },
     handleRef,
   ) {
+    const m = useAppMessages();
+    const { lang } = useAppLocale();
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const webcamRef = useRef<HTMLVideoElement | null>(null);
     const storeRef = useRef<VideoPlayerStore | null>(null);
@@ -247,84 +250,87 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
           fill ? "h-full w-full" : "max-lg:contents",
         )}
       >
-        <VideoPlayer>
-          <StoreBridge storeRef={storeRef} />
-          <RecordingSkin
-            className={className}
-            sizeStyle={sizeStyle}
-            aspect={aspect}
-            background={config.background}
-            captionPrefs={captionPrefs}
-            onCaptionPrefs={updateCaptionPrefs}
-            webcam={
-              webcamUrl
-                ? {
-                    url: webcamUrl,
-                    corner: config.cameraCorner,
-                    point: config.cameraPoint,
-                    size: config.cameraSize,
-                    hidden: config.cameraHidden,
-                  }
-                : null
-            }
-            webcamRef={webcamRef}
-            syncingCamera={syncingCamera}
-            compact={compactControls}
-            alwaysVisible={controlsAlwaysVisible}
-            serverDurationMs={serverDurationMs}
-            cuts={cuts}
-            showCuts={showCuts}
-            cues={cues}
-            videoUrl={videoUrl}
-            posterUrl={posterUrl}
-            posterBlur={posterBlur}
-            framePreview={framePreview}
-            previewLoopUrl={previewLoop ? videoUrl : undefined}
-            previewCaptions={
-              previewLoop && captionsUrl
-                ? { url: captionsUrl, lang: captionsLang ?? "en" }
-                : undefined
-            }
-            progressOverlay={progressOverlay}
-            floatingOverlay={floatingOverlay}
-            controlsExtra={controlsExtra}
-          >
-            <Video
-              ref={videoRef}
-              src={videoUrl}
-              poster={posterUrl}
-              // object-contain so an aspect mismatch (server row dim vs the
-              // actual encoded video) shows as a small letterbox against
-              // the container bg instead of cropping content.
-              className="block h-full w-full object-contain"
-              playsInline
-              // With the preview loop fetching the opening seconds of the same
-              // file, buffering here too would download them twice.
-              preload={previewLoop ? "metadata" : "auto"}
-              onLoadedMetadata={(e) => {
-                const v = e.currentTarget;
-                if (v.videoWidth > 0 && v.videoHeight > 0) {
-                  setActualAspect(v.videoWidth / v.videoHeight);
-                }
-              }}
+        {/* The stock controls take their labels from Video.js's translator. */}
+        <I18nProvider locale={lang} translations={m.player.controls}>
+          <VideoPlayer>
+            <StoreBridge storeRef={storeRef} />
+            <RecordingSkin
+              className={className}
+              sizeStyle={sizeStyle}
+              aspect={aspect}
+              background={config.background}
+              captionPrefs={captionPrefs}
+              onCaptionPrefs={updateCaptionPrefs}
+              webcam={
+                webcamUrl
+                  ? {
+                      url: webcamUrl,
+                      corner: config.cameraCorner,
+                      point: config.cameraPoint,
+                      size: config.cameraSize,
+                      hidden: config.cameraHidden,
+                    }
+                  : null
+              }
+              webcamRef={webcamRef}
+              syncingCamera={syncingCamera}
+              compact={compactControls}
+              alwaysVisible={controlsAlwaysVisible}
+              serverDurationMs={serverDurationMs}
+              cuts={cuts}
+              showCuts={showCuts}
+              cues={cues}
+              videoUrl={videoUrl}
+              posterUrl={posterUrl}
+              posterBlur={posterBlur}
+              framePreview={framePreview}
+              previewLoopUrl={previewLoop ? videoUrl : undefined}
+              previewCaptions={
+                previewLoop && captionsUrl
+                  ? { url: captionsUrl, lang: captionsLang ?? "en" }
+                  : undefined
+              }
+              progressOverlay={progressOverlay}
+              floatingOverlay={floatingOverlay}
+              controlsExtra={controlsExtra}
             >
-              {captionsUrl ? (
-                <track
-                  key={captionsUrl}
-                  kind="captions"
-                  src={captionsUrl}
-                  srcLang={captionsLang ?? "en"}
-                  label="Captions"
-                  default
-                />
-              ) : null}
-              {cuesUrl ? (
-                <track key={cuesUrl} kind="chapters" src={cuesUrl} default />
-              ) : null}
-            </Video>
-          </RecordingSkin>
-          {belowPlayer ? <BelowPlayer>{belowPlayer}</BelowPlayer> : null}
-        </VideoPlayer>
+              <Video
+                ref={videoRef}
+                src={videoUrl}
+                poster={posterUrl}
+                // object-contain so an aspect mismatch (server row dim vs the
+                // actual encoded video) shows as a small letterbox against
+                // the container bg instead of cropping content.
+                className="block h-full w-full object-contain"
+                playsInline
+                // With the preview loop fetching the opening seconds of the same
+                // file, buffering here too would download them twice.
+                preload={previewLoop ? "metadata" : "auto"}
+                onLoadedMetadata={(e) => {
+                  const v = e.currentTarget;
+                  if (v.videoWidth > 0 && v.videoHeight > 0) {
+                    setActualAspect(v.videoWidth / v.videoHeight);
+                  }
+                }}
+              >
+                {captionsUrl ? (
+                  <track
+                    key={captionsUrl}
+                    kind="captions"
+                    src={captionsUrl}
+                    srcLang={captionsLang ?? "en"}
+                    label={m.player.captions.track}
+                    default
+                  />
+                ) : null}
+                {cuesUrl ? (
+                  <track key={cuesUrl} kind="chapters" src={cuesUrl} default />
+                ) : null}
+              </Video>
+            </RecordingSkin>
+            {belowPlayer ? <BelowPlayer>{belowPlayer}</BelowPlayer> : null}
+          </VideoPlayer>
+        </I18nProvider>
       </div>
     );
   },

@@ -12,11 +12,9 @@ import { getInjectedEnv } from "@captureflow/selfhost/env-slot";
 import { ensurePersonalWorkspace, isSelfHosted } from "@captureflow/quota";
 import { authSchema } from "./auth-schema";
 import { sendVerificationEmail, sendWelcomeEmail } from "./email";
+import { APP_MESSAGES, type AppMessages } from "./i18n/app/messages";
+import { fmt } from "./i18n/format";
 import type { SelfHostHooks } from "@captureflow/selfhost/hooks";
-import {
-  INVITE_ONLY_MESSAGE,
-  domainsMessage,
-} from "@captureflow/selfhost/instance";
 
 // D1 is request-scoped (binding only exists inside a fetch handler), so the
 // auth instance is built per request.
@@ -190,6 +188,8 @@ export function signupBlockedMessage(domains: string[]): string {
   return `Sign up with a Google or GitHub account on ${domains.map((d) => `@${d}`).join(" or ")}.`;
 }
 
+type OAuthErrorCopy = AppMessages["auth"]["oauthErrors"];
+
 /*
  * OAuth failures come back as ?error= on /login. The text is never echoed, so
  * a crafted link can't put its own words in the form: a refused sign-up is
@@ -199,20 +199,32 @@ export function oauthErrorMessage(
   error: string | undefined,
   domains: string[],
   selfhost?: { domains: string[] },
+  copy: OAuthErrorCopy = APP_MESSAGES.auth.oauthErrors,
 ): string | null {
   if (!error) return null;
   if (error.startsWith("This_CaptureFlow_is_invite-only")) {
-    return INVITE_ONLY_MESSAGE;
+    return copy.inviteOnly;
   }
   if (selfhost && error.startsWith("Sign_up_with_an_address_on")) {
     return selfhost.domains.length > 0
-      ? domainsMessage(selfhost.domains)
-      : INVITE_ONLY_MESSAGE;
+      ? fmt(copy.allowedDomains, {
+          domains: domainChoices(selfhost.domains, copy.domainChoice),
+        })
+      : copy.inviteOnly;
   }
   if (domains.length > 0 && error.startsWith("Sign_up_with_a_Google")) {
-    return signupBlockedMessage(domains);
+    return fmt(copy.providerDomains, {
+      domains: domainChoices(domains, copy.domainChoice),
+    });
   }
-  return "Sign-in didn't finish. Please try again.";
+  return copy.unfinished;
+}
+
+// "@a or @b or @c": the pair form is applied left to right.
+function domainChoices(domains: string[], pair: string): string {
+  return domains
+    .map((d) => `@${d}`)
+    .reduce((first, second) => fmt(pair, { first, second }));
 }
 
 export function parseEmailDomains(raw: string | undefined): string[] {

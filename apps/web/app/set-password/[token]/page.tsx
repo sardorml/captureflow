@@ -3,15 +3,19 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { readThemeFromCookieHeader } from "@captureflow/ui/theme";
 import { AuthShell } from "@/app/AuthShell";
+import { getAppI18n } from "@/lib/i18n/app/server";
 import { selfHostHooks } from "@/lib/selfhost";
 import { SetPasswordForm } from "./SetPasswordForm";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Set your password",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { messages: m } = await getAppI18n();
+  return {
+    title: m.auth.setPassword.title,
+    robots: { index: false, follow: false },
+  };
+}
 
 // Only a self-hosted administrator hands these links out, from the admin area.
 export default async function SetPasswordPage({

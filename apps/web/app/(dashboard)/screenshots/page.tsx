@@ -4,6 +4,8 @@ import { getAppWebEnv } from "@/lib/cf-env";
 import { listScreenshotsForWorkspace } from "@/lib/screenshots-db";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { hydrateListFilters } from "@/lib/list-filters";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { plural } from "@/lib/i18n/format";
 import { ScreenshotsGrid } from "./ScreenshotsGrid";
 import { PageHeader } from "../PageHeader";
 
@@ -18,6 +20,8 @@ export default async function ScreenshotsPage({
   }>;
 }) {
   const session = await requireSession();
+  const { messages, lang } = await getAppI18n();
+  const copy = messages.library.screenshot;
   const filters = hydrateListFilters(await searchParams);
 
   const current = await resolveCurrentWorkspace(
@@ -43,12 +47,12 @@ export default async function ScreenshotsPage({
     if (m.image) ownerImages[m.user_id] = m.image;
   }
 
-  const subtitle = `${screenshots.length} screenshot${screenshots.length === 1 ? "" : "s"}`;
+  const subtitle = plural(copy.count, screenshots.length, lang);
 
   return (
     <>
       <PageHeader
-        title="Screenshots"
+        title={copy.pageTitle}
         subtitle={subtitle}
         showRecord={can(current.role, "record")}
       />

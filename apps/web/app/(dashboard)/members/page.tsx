@@ -7,6 +7,7 @@ import {
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { getAppI18n } from "@/lib/i18n/app/server";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { isInstanceAdminUser } from "@/lib/selfhost";
 import { getWorkspaceSeatContext, paidSeatsOf } from "@/lib/billing/seats";
@@ -19,6 +20,7 @@ export const dynamic = "force-dynamic";
 export default async function MembersPage() {
   const session = await requireSession();
   const env = await getAppWebEnv();
+  const { messages: m } = await getAppI18n();
   const current = await resolveCurrentWorkspace(
     session.user.id,
     session.user.name ?? null,
@@ -29,9 +31,12 @@ export default async function MembersPage() {
   if (!env?.DB) {
     return (
       <div className="flex flex-col gap-8">
-        <WorkspacePageHeader workspaceName={workspace.name} title="Members" />
+        <WorkspacePageHeader
+          workspaceName={workspace.name}
+          title={m.members.title}
+        />
         <Alert>
-          <AlertTitle>Database unavailable.</AlertTitle>
+          <AlertTitle>{m.members.databaseUnavailable}</AlertTitle>
         </Alert>
       </div>
     );
@@ -50,7 +55,10 @@ export default async function MembersPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <WorkspacePageHeader workspaceName={workspace.name} title="Members" />
+      <WorkspacePageHeader
+        workspaceName={workspace.name}
+        title={m.members.title}
+      />
       {seats && !selfHosted ? (
         <SeatSummary
           context={seats}

@@ -20,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,10 @@ import {
 } from "@/components/ui/table";
 import type { PaidSeats } from "@/lib/billing/seat-checkout";
 import { initials } from "@/lib/format";
-import { assignableRoles, ROLE_LABEL } from "@/lib/workspace/labels";
+import { fill } from "@/lib/i18n/fill";
+import { fmt } from "@/lib/i18n/format";
+import { formatDate } from "@/lib/i18n/intl";
+import { assignableRoles } from "@/lib/workspace/labels";
 import { InviteModal } from "../InviteModal";
 import {
   changeMemberRoleAction,
@@ -57,17 +61,6 @@ import {
 
 type RoleFilter = "all" | WorkspaceRole;
 type StatusFilter = "all" | "active" | "invited";
-
-const ROLE_OPTIONS: { id: RoleFilter; label: string }[] = [
-  { id: "all", label: "All roles" },
-  ...WORKSPACE_ROLES.map((role) => ({ id: role, label: ROLE_LABEL[role] })),
-];
-
-const STATUS_OPTIONS: { id: StatusFilter; label: string }[] = [
-  { id: "all", label: "Everyone" },
-  { id: "active", label: "Active" },
-  { id: "invited", label: "Invited" },
-];
 
 type Row = {
   key: string;
@@ -84,12 +77,16 @@ type Row = {
   downgradeAt: number | null;
 };
 
-function formatAdded(ms: number): string {
-  return new Date(ms).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+// English keeps its day-first form ("5 November 2026").
+function useFormatAdded(): (ms: number) => string {
+  const { lang } = useAppLocale();
+  return (ms) =>
+    formatDate(
+      ms,
+      lang,
+      { day: "numeric", month: "long", year: "numeric" },
+      "en-GB",
+    );
 }
 
 export function MembersTable({
@@ -116,29 +113,40 @@ export function MembersTable({
   selfHosted: boolean;
   seatRequests: SeatRequest[];
 }) {
+  const m = useAppMessages().members;
+  const formatAdded = useFormatAdded();
+  const roleOptions: { id: RoleFilter; label: string }[] = [
+    { id: "all", label: m.table.allRoles },
+    ...WORKSPACE_ROLES.map((id) => ({ id, label: m.roles[id] })),
+  ];
+  const statusOptions: { id: StatusFilter; label: string }[] = [
+    { id: "all", label: m.table.everyone },
+    { id: "active", label: m.statuses.active },
+    { id: "invited", label: m.statuses.invited },
+  ];
   const [query, setQuery] = useState("");
   const [role, setRole] = useState<RoleFilter>("all");
   const [status, setStatus] = useState<StatusFilter>("all");
 
   const rows = useMemo<Row[]>(
     () => [
-      ...members.map((m) => ({
-        key: m.user_id,
-        name: m.name,
-        email: m.email,
-        image: m.image,
-        role: m.role,
-        addedAt: m.joined_at,
+      ...members.map((member) => ({
+        key: member.user_id,
+        name: member.name,
+        email: member.email,
+        image: member.image,
+        role: member.role,
+        addedAt: member.joined_at,
         status: "active" as const,
         action:
-          viewerIsOwner && m.role !== "owner"
+          viewerIsOwner && member.role !== "owner"
             ? ("remove" as const)
-            : !viewerIsOwner && m.user_id === viewerUserId
+            : !viewerIsOwner && member.user_id === viewerUserId
               ? ("leave" as const)
               : null,
-        actionId: m.user_id,
-        roleEditable: viewerIsOwner && m.role !== "owner",
-        downgradeAt: m.downgrade_at,
+        actionId: member.user_id,
+        roleEditable: viewerIsOwner && member.role !== "owner",
+        downgradeAt: member.downgrade_at,
       })),
       ...invites.map((i) => ({
         key: `invite-${i.id}`,
@@ -171,15 +179,14 @@ export function MembersTable({
     <section className="rounded-2xl bg-panel ring-1 ring-line">
       <div className="px-6 pt-6 pb-5">
         <h2 className="text-2xl font-semibold tracking-tight text-fg-strong">
-          Members{" "}
+          {m.title}{" "}
           <span className="text-lg font-normal text-fg-muted">
             ({members.length})
           </span>
         </h2>
         <p className="mt-1 text-base text-fg-muted">
-          Members record here; viewers watch and comment.
-          {viewerIsOwner &&
-            " As the owner you can invite, remove and change roles."}
+          {m.table.intro}
+          {viewerIsOwner && ` ${m.table.ownerIntro}`}
         </p>
       </div>
       {viewerIsOwner && seatRequests.length > 0 && (
@@ -194,21 +201,21 @@ export function MembersTable({
             <InputGroupInput
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Name or email address"
-              aria-label="Search members"
+              placeholder={m.table.searchPlaceholder}
+              aria-label={m.table.searchLabel}
             />
           </InputGroup>
           <FilterSelect
-            label="Role"
+            label={m.role}
             value={role}
-            options={ROLE_OPTIONS}
+            options={roleOptions}
             onChange={setRole}
           />
           {invites.length > 0 && (
             <FilterSelect
-              label="Status"
+              label={m.status}
               value={status}
-              options={STATUS_OPTIONS}
+              options={statusOptions}
               onChange={setStatus}
             />
           )}
@@ -218,7 +225,7 @@ export function MembersTable({
                 <Button asChild>
                   <a href={inviteHref}>
                     <UserPlus size={16} />
-                    Invite members
+                    {m.invite.trigger}
                   </a>
                 </Button>
               ) : (
@@ -229,7 +236,7 @@ export function MembersTable({
                   trigger={
                     <Button>
                       <UserPlus size={16} />
-                      Invite members
+                      {m.invite.trigger}
                     </Button>
                   }
                 />
@@ -238,15 +245,15 @@ export function MembersTable({
           )}
         </div>
 
-        <Table aria-label="Members" className="w-full">
+        <Table aria-label={m.title} className="w-full">
           <TableHeader className="[&_th]:bg-panel-2 [&_th]:px-3 [&_th]:text-left [&_th]:text-fg-muted [&_th:first-child]:rounded-l-lg [&_th:last-child]:rounded-r-lg [&_tr]:border-0">
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Date added</TableHead>
-              <TableHead>Email address</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead aria-label="Actions"> </TableHead>
+              <TableHead>{m.table.columns.name}</TableHead>
+              <TableHead>{m.role}</TableHead>
+              <TableHead>{m.table.columns.dateAdded}</TableHead>
+              <TableHead>{m.table.columns.email}</TableHead>
+              <TableHead>{m.status}</TableHead>
+              <TableHead aria-label={m.table.columns.actions}> </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="[&_td]:border-line [&_td]:px-3 [&_td]:py-3">
@@ -276,7 +283,7 @@ export function MembersTable({
                       selfHosted={selfHosted}
                     />
                   ) : r.role ? (
-                    ROLE_LABEL[r.role]
+                    m.roles[r.role]
                   ) : (
                     "—"
                   )}
@@ -297,7 +304,7 @@ export function MembersTable({
                         : undefined
                     }
                   >
-                    {r.status === "active" ? "Active" : "Invited"}
+                    {m.statuses[r.status]}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
@@ -313,7 +320,7 @@ export function MembersTable({
         </Table>
         {shown.length === 0 && (
           <p className="py-6 text-center text-sm text-fg-muted">
-            Nobody matches these filters.
+            {m.table.empty}
           </p>
         )}
       </div>
@@ -377,6 +384,8 @@ function RoleSelect({
   paidSeats: PaidSeats | null;
   selfHosted: boolean;
 }) {
+  const formatAdded = useFormatAdded();
+  const m = useAppMessages().members;
   const [pending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState<SeatChange | null>(null);
   const submit = (next: AssignableRole) =>
@@ -395,12 +404,12 @@ function RoleSelect({
           submit(next as AssignableRole);
         }}
       >
-        <SelectTrigger aria-label="Role" size="sm" className="min-w-28">
+        <SelectTrigger aria-label={m.role} size="sm" className="min-w-28">
           {/* The trigger shows the role alone; the hint is for the list. */}
-          <SelectValue>{ROLE_LABEL[role]}</SelectValue>
+          <SelectValue>{m.roles[role]}</SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {assignableRoles(selfHosted).map((o) => (
+          {assignableRoles(selfHosted, m).map((o) => (
             <SelectItem key={o.id} value={o.id} textValue={o.label}>
               <span className="flex flex-col items-start">
                 {o.label}
@@ -412,15 +421,19 @@ function RoleSelect({
       </Select>
       {downgradeAt !== null && (
         <span className="text-xs text-fg-muted" suppressHydrationWarning>
-          Viewer from {formatAdded(downgradeAt)} ·{" "}
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => submit("member")}
-            className="cursor-pointer text-accent-strong hover:underline"
-          >
-            Keep as member
-          </button>
+          {fill(m.table.downgradeNote, {
+            date: formatAdded(downgradeAt),
+            keep: (
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => submit("member")}
+                className="cursor-pointer text-accent-strong hover:underline"
+              >
+                {m.table.keepAsMember}
+              </button>
+            ),
+          })}
         </span>
       )}
       {paidSeats && confirming ? (
@@ -444,15 +457,15 @@ function SeatRequests({
   requests: SeatRequest[];
   paidSeats: PaidSeats | null;
 }) {
+  const m = useAppMessages().members.seatRequests;
   return (
     <div className="border-t border-line px-6 py-5">
       <h3 className="text-base font-semibold text-fg-strong">
-        Seat requests{" "}
+        {m.title}{" "}
         <span className="font-normal text-fg-muted">({requests.length})</span>
       </h3>
       <p className="mt-1 text-sm text-fg-muted">
-        These viewers asked to record. Approving makes them a member
-        {paidSeats ? ", which adds a paid seat" : ""}.
+        {paidSeats ? m.descriptionPaid : m.description}
       </p>
       <ul className="mt-3 flex flex-col divide-y divide-line rounded-xl ring-1 ring-line">
         {requests.map((r) => (
@@ -470,6 +483,8 @@ function SeatRequestRow({
   request: SeatRequest;
   paidSeats: PaidSeats | null;
 }) {
+  const formatAdded = useFormatAdded();
+  const m = useAppMessages().members.seatRequests;
   const [pending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState(false);
   const name = request.name || request.email.split("@")[0];
@@ -495,18 +510,21 @@ function SeatRequestRow({
           className="truncate text-xs text-fg-muted"
           suppressHydrationWarning
         >
-          {request.email} · asked {formatAdded(request.created_at)}
+          {fmt(m.asked, {
+            email: request.email,
+            date: formatAdded(request.created_at),
+          })}
         </span>
       </span>
       <Button variant="secondary" size="sm" disabled={pending} onClick={deny}>
-        Deny
+        {m.deny}
       </Button>
       <Button
         size="sm"
         disabled={pending}
         onClick={() => (paidSeats ? setConfirming(true) : approve())}
       >
-        Approve
+        {m.approve}
       </Button>
       {paidSeats && (
         <SeatConfirm
@@ -537,40 +555,43 @@ function SeatConfirm({
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
 }) {
+  const formatAdded = useFormatAdded();
+  const messages = useAppMessages();
+  const m = messages.members.seatConfirm;
   const { plan, cycle, seats, periodEnd } = paidSeats;
   const adding = change === "add";
   const nextSeats = adding ? seats + 1 : Math.max(1, seats - 1);
-  const before = seatPriceUsd(seats, cycle, plan);
-  const after = seatPriceUsd(nextSeats, cycle, plan);
-  const planLine = `Your ${getSeatPlan(plan).name} plan goes from ${seats} to ${nextSeats} seats, $${before} to $${after} a month${cycle === "annual" ? ", billed yearly" : ""}.`;
+  const yearly = cycle === "annual";
+  const planChange = {
+    plan: getSeatPlan(plan).name,
+    seats,
+    nextSeats,
+    before: seatPriceUsd(seats, cycle, plan),
+    after: seatPriceUsd(nextSeats, cycle, plan),
+  };
   const until = periodEnd ? formatAdded(periodEnd * 1000) : null;
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {adding ? `Give ${name} a paid seat?` : `Move ${name} to viewer?`}
+            {fmt(adding ? m.addTitle : m.removeTitle, { name })}
           </AlertDialogTitle>
         </AlertDialogHeader>
         <AlertDialogDescription asChild>
           <div className="flex flex-col gap-2 text-sm text-fg">
             {adding ? (
               <>
-                <p>Members record, so each one is a paid seat. {planLine}</p>
-                <p className="text-fg-muted">
-                  The rest of this billing period is added to your next invoice.
-                </p>
+                <p>{fmt(yearly ? m.addBodyYearly : m.addBody, planChange)}</p>
+                <p className="text-fg-muted">{m.addInvoice}</p>
               </>
             ) : (
               <>
                 <p suppressHydrationWarning>
-                  {name} keeps recording until {until}, the end of the period
-                  you&apos;ve paid for. Then they become a viewer, who can watch
-                  and comment but not record.
+                  {fmt(m.removeBody, { name, date: until ?? "" })}
                 </p>
                 <p className="text-fg-muted">
-                  From then, {planLine.charAt(0).toLowerCase()}
-                  {planLine.slice(1)}
+                  {fmt(yearly ? m.removePlanYearly : m.removePlan, planChange)}
                 </p>
               </>
             )}
@@ -582,7 +603,7 @@ function SeatConfirm({
             size="sm"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {messages.common.cancel}
           </Button>
           <Button
             size="sm"
@@ -591,7 +612,7 @@ function SeatConfirm({
               onConfirm();
             }}
           >
-            {adding ? "Add paid seat" : "Move to viewer"}
+            {adding ? m.addConfirm : m.removeConfirm}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -608,6 +629,8 @@ function RowAction({
   workspaceName: string;
   paidSeats: PaidSeats | null;
 }) {
+  const messages = useAppMessages();
+  const m = messages.members;
   const name = row.name || row.email;
   switch (row.action) {
     case "remove":
@@ -618,22 +641,25 @@ function RowAction({
               variant="ghost"
               size="icon-sm"
               onClick={open}
-              aria-label={`Remove ${name} from workspace`}
+              aria-label={fmt(m.remove.label, { name })}
               className="text-destructive"
             >
               <X size={16} />
             </Button>
           )}
-          heading={`Remove ${name} from ${workspaceName}?`}
+          heading={fmt(m.remove.title, { name, workspace: workspaceName })}
           body={[
-            "They lose access straight away. Their recordings and screenshots stay in the workspace.",
+            m.remove.body,
             ...(paidSeats && row.role === "member"
               ? [
-                  `That frees their paid seat: your plan goes from ${paidSeats.seats} to ${Math.max(1, paidSeats.seats - 1)} seats.`,
+                  fmt(m.remove.freesSeat, {
+                    seats: paidSeats.seats,
+                    nextSeats: Math.max(1, paidSeats.seats - 1),
+                  }),
                 ]
               : []),
           ]}
-          confirmLabel="Remove"
+          confirmLabel={messages.common.remove}
           onConfirm={() => {
             const form = new FormData();
             form.set("userId", row.actionId);
@@ -647,15 +673,12 @@ function RowAction({
           trigger={(open) => (
             <Button variant="secondary" size="sm" onClick={open}>
               <LogOut size={14} />
-              Leave
+              {m.leave.button}
             </Button>
           )}
-          heading={`Leave ${workspaceName}?`}
-          body={[
-            "You’ll lose access to its recordings and screenshots. Anything you recorded there stays in the workspace.",
-            "To come back, someone has to invite you again.",
-          ]}
-          confirmLabel="Leave workspace"
+          heading={fmt(m.leave.title, { workspace: workspaceName })}
+          body={[m.leave.body, m.leave.comeBack]}
+          confirmLabel={m.leave.confirm}
           onConfirm={leaveWorkspaceAction}
         />
       );
@@ -669,7 +692,7 @@ function RowAction({
             type="submit"
             className="text-destructive"
           >
-            Revoke
+            {m.table.revoke}
           </Button>
         </form>
       );
@@ -691,6 +714,7 @@ function ConfirmAction({
   confirmLabel: string;
   onConfirm: () => Promise<void>;
 }) {
+  const m = useAppMessages();
   const [isOpen, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   return (
@@ -717,7 +741,7 @@ function ConfirmAction({
               disabled={pending}
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {m.common.cancel}
             </Button>
             <Button
               variant="destructive"

@@ -29,11 +29,13 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { useAppMessages } from "@/components/app-i18n-provider";
+import type { AppMessages } from "@/lib/i18n/app/messages";
 
 type NavLink = {
   href: string;
   icon?: ReactNode;
-  label: string;
+  labelKey: keyof AppMessages["shell"]["nav"];
   external?: boolean;
   newTab?: boolean;
 };
@@ -42,14 +44,14 @@ const CAPTURE_LINKS: NavLink[] = [
   {
     href: "/dashboard",
     icon: <LayoutDashboard />,
-    label: "Dashboard",
+    labelKey: "dashboard",
   },
-  { href: "/recordings", icon: <Link2 />, label: "Recordings" },
-  { href: "/screenshots", icon: <Camera />, label: "Screenshots" },
+  { href: "/recordings", icon: <Link2 />, labelKey: "recordings" },
+  { href: "/screenshots", icon: <Camera />, labelKey: "screenshots" },
   {
     href: "/canvas",
     icon: <PenLine />,
-    label: "Canvas",
+    labelKey: "canvas",
     external: true,
     newTab: true,
   },
@@ -59,30 +61,30 @@ const CAPTURE_LINKS: NavLink[] = [
 const MEMBERS_LINK: NavLink = {
   href: "/members",
   icon: <Users />,
-  label: "Members",
+  labelKey: "members",
 };
 
 const SETTINGS_LINK: NavLink = {
   href: "/settings",
   icon: <Settings />,
-  label: "Settings",
+  labelKey: "settings",
 };
 
 const PERSONAL_LINK: NavLink = {
   href: "/settings/personal",
-  label: "Personal",
+  labelKey: "personal",
 };
 const WORKSPACE_LINK: NavLink = {
   href: "/settings/workspace",
-  label: "Workspace",
+  labelKey: "workspace",
 };
-const BILLING_LINK: NavLink = { href: "/billing", label: "Billing" };
+const BILLING_LINK: NavLink = { href: "/billing", labelKey: "billing" };
 // The self-hosted admin app, served beside this one; a plain link, since the
 // router has no page for it.
 const ADMIN_LINK: NavLink = {
   href: "/admin",
   icon: <ShieldCheck />,
-  label: "Admin",
+  labelKey: "admin",
   external: true,
 };
 
@@ -95,6 +97,7 @@ export function SidebarNav({
   selfHosted: boolean;
   instanceAdmin: boolean;
 }) {
+  const nav = useAppMessages().shell.nav;
   const pathname = usePathname();
   const isActive = (link: NavLink) =>
     !link.external &&
@@ -116,15 +119,15 @@ export function SidebarNav({
         </SidebarMenu>
       </SidebarGroup>
       <SidebarGroup>
-        <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+        <SidebarGroupLabel>{nav.workspaceGroup}</SidebarGroupLabel>
         <SidebarMenu>
           <NavItem link={MEMBERS_LINK} active={isActive(MEMBERS_LINK)} />
           <Collapsible asChild defaultOpen className="group/collapsible">
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={SETTINGS_LINK.label}>
+                <SidebarMenuButton tooltip={nav[SETTINGS_LINK.labelKey]}>
                   {SETTINGS_LINK.icon}
-                  <span>{SETTINGS_LINK.label}</span>
+                  <span>{nav[SETTINGS_LINK.labelKey]}</span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </SidebarMenuButton>
               </CollapsibleTrigger>
@@ -134,7 +137,7 @@ export function SidebarNav({
                     <SidebarMenuSubItem key={link.href}>
                       <SidebarMenuSubButton asChild isActive={isActive(link)}>
                         <Link href={link.href}>
-                          <span>{link.label}</span>
+                          <span>{nav[link.labelKey]}</span>
                         </Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
@@ -151,9 +154,10 @@ export function SidebarNav({
 }
 
 function NavItem({ link, active }: { link: NavLink; active: boolean }) {
+  const label = useAppMessages().shell.nav[link.labelKey];
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={active} tooltip={link.label}>
+      <SidebarMenuButton asChild isActive={active} tooltip={label}>
         {link.external ? (
           <a
             href={link.href}
@@ -161,7 +165,7 @@ function NavItem({ link, active }: { link: NavLink; active: boolean }) {
             rel={link.newTab ? "noopener noreferrer" : undefined}
           >
             {link.icon}
-            <span>{link.label}</span>
+            <span>{label}</span>
             {link.newTab && (
               <ExternalLink className="ml-auto text-muted-foreground" />
             )}
@@ -169,7 +173,7 @@ function NavItem({ link, active }: { link: NavLink; active: boolean }) {
         ) : (
           <Link href={link.href} aria-current={active ? "page" : undefined}>
             {link.icon}
-            <span>{link.label}</span>
+            <span>{label}</span>
           </Link>
         )}
       </SidebarMenuButton>

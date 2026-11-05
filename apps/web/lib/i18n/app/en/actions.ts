@@ -1,0 +1,17 @@
+export const ACTIONS = {
+  missingSlug: "Missing slug",
+  recordingNotFound: "Recording not found",
+  invalidVisibility: "Invalid visibility",
+  deleteVideoFailed: "Could not delete the video file: {reason}",
+  transcriptNotFound: "Transcript not found",
+  transcriptEmpty: "The transcript can't be left empty. Reset it instead.",
+  missingTokenId: "Missing token id",
+  tokenNotFound: "Token not found",
+  missingScreenshotId: "Missing screenshot id",
+  screenshotNotFound: "Screenshot not found",
+  missingImageBytes: "Missing image bytes",
+  screenshotTooLarge: "Edited screenshot exceeds the per-screenshot size cap.",
+  saveScreenshotFailed: "Could not save the screenshot: {reason}",
+  saveFailed: "Save failed: {reason}",
+  invalidCanvasDimensions: "Save failed: invalid canvas dimensions",
+} as const;

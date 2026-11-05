@@ -33,6 +33,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import { fmt } from "@/lib/i18n/format";
 import { useConfirm } from "./confirm-dialog";
 import { VisibilityDialog, type Visibility } from "@/app/VisibilityDialog";
 import {
@@ -58,7 +60,7 @@ export type MediaCardStats = {
 };
 
 export type MediaCardProps = {
-  noun: string;
+  noun: "recording" | "screenshot";
   // A function receives whether the card is hovered, for a live preview.
   media: ReactNode | ((hovered: boolean) => ReactNode);
   viewUrl: string;
@@ -122,6 +124,9 @@ export function MediaCard({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const { confirm, dialog } = useConfirm();
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
+  const copy = m.library[noun];
 
   const copyLink = () => {
     if (typeof window === "undefined") return;
@@ -150,7 +155,7 @@ export function MediaCard({
   const remove = async () => {
     const ok = await confirm({
       ...deleteConfirm,
-      confirmLabel: "Delete",
+      confirmLabel: m.common.delete,
       destructive: true,
     });
     if (!ok) return;
@@ -202,7 +207,7 @@ export function MediaCard({
           /* Field colours vanish against a thumbnail: fixed white-on-scrim reads
              over whatever the frame happens to be. */
           <Checkbox
-            aria-label={`Select ${displayTitle}`}
+            aria-label={fmt(m.library.card.select, { title: displayTitle })}
             checked={selected}
             onCheckedChange={(next) => onSelectedChange(next === true)}
             className={cn(
@@ -224,20 +229,22 @@ export function MediaCard({
                 size="icon-sm"
                 variant={copied ? "default" : "secondary"}
                 className={copied ? undefined : OVERLAY_BUTTON}
-                aria-label={copied ? "Link copied" : "Copy link"}
+                aria-label={
+                  copied ? m.library.share.linkCopied : m.library.share.copyLink
+                }
                 onClick={copyLink}
               >
                 {copied ? <Check size={16} /> : <Link2 size={16} />}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {copied ? "Link copied" : "Copy link"}
+              {copied ? m.library.share.linkCopied : m.library.share.copyLink}
             </TooltipContent>
           </Tooltip>
           {canManage && (
             <DropdownMenu>
               <DropdownMenuTrigger
-                aria-label="More actions"
+                aria-label={m.library.card.moreActions}
                 className={cn(
                   buttonVariants({ variant: "secondary", size: "icon-sm" }),
                   OVERLAY_BUTTON,
@@ -250,12 +257,12 @@ export function MediaCard({
                   onSelect={() => window.open(viewUrl, "_blank", "noreferrer")}
                 >
                   <ExternalLink size={16} />
-                  Open {noun}
+                  {copy.open}
                 </DropdownMenuItem>
                 {canAuthor ? (
                   <DropdownMenuItem onSelect={() => setEditing(true)}>
                     <Pencil size={16} />
-                    Rename
+                    {m.library.card.rename}
                   </DropdownMenuItem>
                 ) : null}
                 <DropdownMenuItem
@@ -264,7 +271,7 @@ export function MediaCard({
                   onSelect={() => void remove()}
                 >
                   <Trash2 size={16} />
-                  Delete {noun}
+                  {copy.delete}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -287,7 +294,7 @@ export function MediaCard({
               <p className="shrink-0 text-muted-foreground">·</p>
               <p className="shrink-0 whitespace-nowrap text-muted-foreground">
                 <span suppressHydrationWarning>
-                  {formatRelative(createdAt)}
+                  {formatRelative(createdAt, lang)}
                 </span>
               </p>
             </div>
@@ -299,7 +306,7 @@ export function MediaCard({
                   onChange={changeVisibility}
                   allowPublic={allowPublicLinks}
                   workspaceName={workspaceName}
-                  title={`Share ${noun}`}
+                  title={copy.share}
                   shareUrl={viewUrl}
                   trigger={
                     <VisibilityText visibility={visibility} interactive />
@@ -324,7 +331,7 @@ export function MediaCard({
               />
               <Button type="submit" disabled={pending}>
                 {pending && <Spinner />}
-                Save
+                {m.common.save}
               </Button>
               <Button
                 type="button"
@@ -335,7 +342,7 @@ export function MediaCard({
                   setError(null);
                 }}
               >
-                Cancel
+                {m.common.cancel}
               </Button>
             </ButtonGroup>
           </form>
@@ -371,7 +378,7 @@ export function MediaCard({
                 <TooltipTrigger asChild>
                   <Link
                     href={editUrl}
-                    aria-label={`Edit ${noun}`}
+                    aria-label={copy.edit}
                     className={cn(
                       buttonVariants({ variant: "ghost", size: "icon-sm" }),
                       "relative z-10",
@@ -380,7 +387,7 @@ export function MediaCard({
                     <Pencil size={16} />
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent>Edit {noun}</TooltipContent>
+                <TooltipContent>{copy.edit}</TooltipContent>
               </Tooltip>
             )}
           </div>
@@ -401,12 +408,6 @@ function Stat({ icon, value }: { icon: ReactNode; value: number }) {
   );
 }
 
-function visibilityLabel(v: Visibility): string {
-  if (v === "public") return "Public";
-  if (v === "workspace") return "Workspace";
-  return "Private";
-}
-
 function VisibilityText({
   visibility,
   interactive,
@@ -414,16 +415,13 @@ function VisibilityText({
   visibility: Visibility;
   interactive?: boolean;
 }) {
+  const label = useAppMessages().library.visibility.labels[visibility];
   if (!interactive) {
-    return (
-      <p className="text-xs leading-5 text-muted-foreground">
-        {visibilityLabel(visibility)}
-      </p>
-    );
+    return <p className="text-xs leading-5 text-muted-foreground">{label}</p>;
   }
   return (
     <span className="inline-flex cursor-pointer items-center gap-0.5 text-xs text-accent-strong hover:text-accent-strong">
-      {visibilityLabel(visibility)}
+      {label}
       <ChevronDown size={12} />
     </span>
   );

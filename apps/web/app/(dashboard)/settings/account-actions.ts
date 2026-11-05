@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fmt } from "@/lib/i18n/format";
 import { deleteObject, putObject } from "@/lib/r2";
 import { CDN_BASE_URL } from "@/lib/site";
 
@@ -30,20 +32,22 @@ export async function uploadUserAvatarAction(
   formData: FormData,
 ): Promise<FormState> {
   const userId = await requireUserId();
+  const { messages: m } = await getAppI18n();
   const env = await getAppWebEnv();
-  if (!env?.DB) return { error: "Database unavailable", ok: null };
+  if (!env?.DB)
+    return { error: m.settings.errors.databaseUnavailable, ok: null };
 
   const file = formData.get("avatar");
   if (!(file instanceof Blob) || file.size === 0) {
-    return { error: "Pick an image file", ok: null };
+    return { error: m.settings.upload.missing, ok: null };
   }
   if (file.size > AVATAR_MAX_BYTES) {
-    return { error: "Avatar must be 2 MB or smaller", ok: null };
+    return { error: m.settings.avatar.tooLarge, ok: null };
   }
   const mime = file.type;
   const ext = AVATAR_MIME.get(mime);
   if (!ext) {
-    return { error: "Avatar must be PNG, JPEG, WebP, or GIF", ok: null };
+    return { error: m.settings.avatar.badType, ok: null };
   }
 
   const key = `user-avatars/${userId}.${ext}`;
@@ -52,9 +56,9 @@ export async function uploadUserAvatarAction(
     await putObject(key, buffer, mime, "public, max-age=86400");
   } catch (err) {
     return {
-      error: `Upload failed: ${
-        err instanceof Error ? err.message : String(err)
-      }`,
+      error: fmt(m.settings.upload.failedReason, {
+        reason: err instanceof Error ? err.message : String(err),
+      }),
       ok: null,
     };
   }

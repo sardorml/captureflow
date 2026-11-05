@@ -7,6 +7,7 @@ import {
   THEME_COOKIE,
   type ThemePreference,
 } from "@captureflow/ui/theme";
+import { useAppMessages } from "@/components/app-i18n-provider";
 
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
@@ -32,10 +33,10 @@ function writeThemeCookie(value: ThemePreference) {
   document.cookie = parts.join("; ");
 }
 
-const OPTIONS: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
+const OPTIONS: { value: ThemePreference; icon: typeof Sun }[] = [
+  { value: "light", icon: Sun },
+  { value: "dark", icon: Moon },
+  { value: "system", icon: Monitor },
 ];
 
 // "system" is a preference, not a paint value — resolve it here the same way
@@ -66,6 +67,7 @@ export function ThemeSegments({
 }: {
   initialPreference: ThemePreference;
 }) {
+  const copy = useAppMessages().shell.theme;
   const [preference, setPreference] =
     useState<ThemePreference>(initialPreference);
 
@@ -93,14 +95,14 @@ export function ThemeSegments({
     <div className="flex items-center justify-between gap-3 px-3 py-2">
       <span className="text-fg flex items-center gap-2 text-sm">
         <Palette size={16} className="text-fg-muted" />
-        Theme
+        {copy.label}
       </span>
       <div
         role="radiogroup"
-        aria-label="Theme"
+        aria-label={copy.label}
         className="bg-tint flex items-center gap-0.5 rounded-full p-0.5"
       >
-        {OPTIONS.map(({ value, label, icon: Icon }) => {
+        {OPTIONS.map(({ value, icon: Icon }) => {
           const on = value === preference;
           return (
             <button
@@ -108,7 +110,7 @@ export function ThemeSegments({
               type="button"
               role="radio"
               aria-checked={on}
-              aria-label={label}
+              aria-label={copy[value]}
               onClick={() => choose(value)}
               className={[
                 "flex size-7 cursor-pointer items-center justify-center rounded-full transition-colors motion-reduce:transition-none",

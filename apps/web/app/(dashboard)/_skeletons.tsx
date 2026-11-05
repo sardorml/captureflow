@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { cn } from "@/lib/utils";
 
 export function PageHeaderSkeleton({
@@ -229,11 +230,12 @@ function FieldSkeleton({ hint = true }: { hint?: boolean }) {
 // Settings → Account: the avatar picker, the two-column name and email
 // fields, the user id and the save button.
 export function AccountFormSkeleton() {
+  const copy = useAppMessages().shell.skeletons;
   return (
     <div className="flex flex-col gap-6">
       <div>
         <span className="mb-2 block text-sm leading-6 font-medium text-foreground">
-          Avatar
+          {copy.avatar}
         </span>
         <div className="flex items-center gap-4">
           <Skeleton className="size-14 shrink-0 rounded-full" />
@@ -260,12 +262,13 @@ export function AccountFormSkeleton() {
 // Settings → Workspace: the name form over the logo form, split by the
 // same separator.
 export function WorkspaceFormsSkeleton() {
+  const copy = useAppMessages().shell.skeletons;
   return (
     <>
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="flex min-w-60 flex-1 flex-col gap-1">
           <span className="text-base leading-7 font-semibold text-foreground">
-            Workspace name
+            {copy.workspaceName}
           </span>
           <div className="flex h-5 items-center">
             <Skeleton className="h-3 w-80 max-w-full rounded" />
@@ -281,7 +284,7 @@ export function WorkspaceFormsSkeleton() {
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="flex min-w-60 flex-1 flex-col gap-1">
           <span className="text-base leading-7 font-semibold text-foreground">
-            Workspace logo
+            {copy.workspaceLogo}
           </span>
           <div className="flex h-10 items-center">
             <Skeleton className="h-8 w-full max-w-md rounded" />

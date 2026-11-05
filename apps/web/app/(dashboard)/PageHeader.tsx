@@ -33,7 +33,7 @@ export function PageHeader({
               has nothing to offer a phone. */}
           {showRecord && (
             <div className="hidden md:block">
-              <RecordButton label="New recording" />
+              <RecordButton />
             </div>
           )}
         </div>

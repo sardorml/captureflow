@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { ThemeToggle, type Theme } from "@captureflow/ui";
+import type { Theme } from "@captureflow/ui";
+import { AppThemeToggle } from "@/components/app-theme-toggle";
+import { useAppMessages } from "@/components/app-i18n-provider";
 
 // lucide-react v1 dropped brand glyphs, so the GitHub mark is inline.
 function GitHubIcon({ className }: { className?: string }) {
@@ -30,6 +32,7 @@ export function MobileNav({
   docsUrl: string;
   githubUrl: string;
 }) {
+  const copy = useAppMessages().shell.mobileNav;
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -55,10 +58,10 @@ export function MobileNav({
 
   return (
     <div ref={ref} className="flex items-center gap-1 md:hidden">
-      <ThemeToggle initialTheme={theme} />
+      <AppThemeToggle initialTheme={theme} />
       <button
         type="button"
-        aria-label={open ? "Close menu" : "Open menu"}
+        aria-label={open ? copy.close : copy.open}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-tint hover:text-fg"
@@ -76,7 +79,7 @@ export function MobileNav({
               onClick={() => setOpen(false)}
               className={linkClass}
             >
-              Docs
+              {copy.docs}
             </a>
             <a
               href={githubUrl}
@@ -85,7 +88,7 @@ export function MobileNav({
               onClick={() => setOpen(false)}
               className={`flex items-center gap-2 ${linkClass}`}
             >
-              <GitHubIcon className="h-4 w-4" /> Star on GitHub
+              <GitHubIcon className="h-4 w-4" /> {copy.star}
               {stars && <span className="text-fg-subtle">({stars})</span>}
             </a>
             <Link
@@ -93,14 +96,14 @@ export function MobileNav({
               onClick={() => setOpen(false)}
               className={linkClass}
             >
-              Sign in
+              {copy.signIn}
             </Link>
             <Link
               href="/login?mode=signup"
               onClick={() => setOpen(false)}
               className="mt-1 rounded-lg bg-accent-bg px-3 py-2.5 text-center font-medium text-white shadow-[0_1px_2px_rgba(37,99,235,0.25),inset_0_1px_0_rgba(255,255,255,0.18)] transition-colors hover:bg-accent-bg-hover"
             >
-              Get started
+              {copy.getStarted}
             </Link>
           </nav>
         </div>

@@ -14,8 +14,10 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { AppIcon } from "@/components/brand-mark";
 import { authClient, signIn } from "@/lib/auth-client";
+import { fill } from "@/lib/i18n/fill";
 import { cn } from "@/lib/utils";
 
 const SUBMIT_BUTTON =
@@ -28,6 +30,7 @@ export function SetPasswordForm({
   token: string;
   email: string | null;
 }) {
+  const m = useAppMessages();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -43,16 +46,14 @@ export function SetPasswordForm({
         token,
       });
       if (reset.error) {
-        setError(
-          reset.error.message ?? "Something went wrong. Please try again.",
-        );
+        setError(reset.error.message ?? m.auth.errors.generic);
         setBusy(false);
         return;
       }
       const signedIn = await signIn.email({ email, password });
       window.location.assign(signedIn.error ? "/login" : "/dashboard");
     } catch {
-      setError("Network error. Please try again.");
+      setError(m.auth.errors.network);
       setBusy(false);
     }
   }
@@ -64,18 +65,14 @@ export function SetPasswordForm({
           <AppIcon size={44} />
         </span>
         <CardTitle className="text-2xl tracking-tight">
-          {email ? "Set your password" : "This link no longer works"}
+          {email ? m.auth.setPassword.title : m.auth.setPassword.expiredTitle}
         </CardTitle>
         <CardDescription>
-          {email ? (
-            <>
-              Choose a password for{" "}
-              <span className="text-foreground">{email}</span>. You&rsquo;ll be
-              signed in afterwards.
-            </>
-          ) : (
-            "It was already used or has expired. Ask an administrator for a new one."
-          )}
+          {email
+            ? fill(m.auth.setPassword.description, {
+                email: <span className="text-foreground">{email}</span>,
+              })
+            : m.auth.setPassword.expiredDescription}
         </CardDescription>
       </CardHeader>
       <CardContent className="px-6 py-6">
@@ -83,7 +80,9 @@ export function SetPasswordForm({
           <form onSubmit={onSubmit}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="set-password">New password</FieldLabel>
+                <FieldLabel htmlFor="set-password">
+                  {m.auth.setPassword.passwordLabel}
+                </FieldLabel>
                 <Input
                   id="set-password"
                   name="password"
@@ -91,7 +90,7 @@ export function SetPasswordForm({
                   required
                   minLength={12}
                   autoFocus
-                  placeholder="At least 12 characters"
+                  placeholder={m.auth.setPassword.passwordPlaceholder}
                   autoComplete="new-password"
                 />
               </Field>
@@ -102,13 +101,13 @@ export function SetPasswordForm({
               )}
               <Button type="submit" disabled={busy} className={SUBMIT_BUTTON}>
                 {busy && <Spinner />}
-                Save password
+                {m.auth.setPassword.submit}
               </Button>
             </FieldGroup>
           </form>
         ) : (
           <Button asChild className={cn("w-full", SUBMIT_BUTTON)}>
-            <Link href="/login">Go to sign in</Link>
+            <Link href="/login">{m.auth.setPassword.goToSignIn}</Link>
           </Button>
         )}
       </CardContent>

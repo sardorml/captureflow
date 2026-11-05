@@ -1,10 +1,14 @@
+"use client";
+
 import type { ReactElement, ReactNode } from "react";
+import { useAppLocale } from "@/components/app-i18n-provider";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { formatRelativeLong as formatRelative } from "@/lib/format";
+import { formatDate } from "@/lib/i18n/intl";
 
 export type ContentBylineProps = {
   ownerName: string | null;
@@ -17,8 +21,9 @@ export function ContentByline({
   createdAt,
   leading,
 }: ContentBylineProps): ReactElement {
-  const relative = formatRelative(createdAt);
-  const absolute = formatAbsolute(createdAt);
+  const { lang } = useAppLocale();
+  const relative = formatRelative(createdAt, lang);
+  const absolute = formatAbsolute(createdAt, lang);
   return (
     <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-sm text-fg-muted">
       {leading}
@@ -40,12 +45,17 @@ export function ContentByline({
   );
 }
 
-function formatAbsolute(epochMs: number): string {
-  return new Date(epochMs).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+function formatAbsolute(epochMs: number, lang: string): string {
+  return formatDate(
+    epochMs,
+    lang,
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    },
+    "en-US",
+  );
 }

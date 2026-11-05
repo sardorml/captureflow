@@ -15,6 +15,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { formatBytes } from "@/lib/format";
+import type { AppMessages } from "@/lib/i18n/app/messages";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fmt, plural } from "@/lib/i18n/format";
+import { formatDate } from "@/lib/i18n/intl";
 import { cn } from "@/lib/utils";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { requireSession } from "@/lib/session-guard";
@@ -38,22 +42,25 @@ export const dynamic = "force-dynamic";
 // link yet; subscribers identify themselves by email there.
 const LEMON_PORTAL_URL = "https://app.lemonsqueezy.com/my-orders";
 
-const STATUS_LABEL: Record<SubscriptionStatus, string> = {
-  on_trial: "Trial",
-  active: "Active",
-  paused: "Paused",
-  past_due: "Payment failed",
-  unpaid: "Unpaid",
-  cancelled: "Cancelled",
-  expired: "Expired",
+type BillingCopy = AppMessages["billing"];
+
+const STATUS_KEY: Record<SubscriptionStatus, keyof BillingCopy["status"]> = {
+  on_trial: "onTrial",
+  active: "active",
+  paused: "paused",
+  past_due: "pastDue",
+  unpaid: "unpaid",
+  cancelled: "cancelled",
+  expired: "expired",
 };
 
-function formatDate(epochSeconds: number): string {
-  return new Date(epochSeconds * 1000).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+function periodDate(epochSeconds: number, lang: string): string {
+  return formatDate(
+    epochSeconds * 1000,
+    lang,
+    { year: "numeric", month: "long", day: "numeric" },
+    "en",
+  );
 }
 
 export default async function BillingPage({
@@ -62,6 +69,7 @@ export default async function BillingPage({
   searchParams: Promise<{ switch?: string }>;
 }) {
   const openSwitch = (await searchParams).switch === "pro";
+  const { messages: m } = await getAppI18n();
   const session = await requireSession();
   const user = session.user;
   const env = await getAppWebEnv();
@@ -79,8 +87,8 @@ export default async function BillingPage({
   return (
     <div className="mx-auto max-w-[880px]">
       <PageHeader
-        title="Billing"
-        subtitle="Your plan, and what you've used of it."
+        title={m.billing.page.title}
+        subtitle={m.billing.page.subtitle}
         showRecord={false}
       />
 
@@ -123,7 +131,7 @@ async function loadNextCharge(
 
 // The workspace's plan: its tier and seats, the pooled storage once paid,
 // and the upgrade for its owner.
-function WorkspacePlanSection({
+async function WorkspacePlanSection({
   workspaceName,
   isOwner,
   context,
@@ -148,16 +156,21 @@ function WorkspacePlanSection({
     usedBytes,
     offer,
   } = context;
+  const { messages: m, lang } = await getAppI18n();
+  const t = m.billing;
   const paid = entitlement.tier === "team";
-  const members = `${memberCount} ${memberCount === 1 ? "member" : "members"}`;
   const line = subscription
     ? subscription.cycle === "annual"
-      ? "Billed yearly"
-      : "Billed monthly"
-    : `${members} · up to ${entitlement.recordingsPerPerson} recordings per person, ${Math.round((entitlement.maxRecordingMs ?? 0) / 60000)} minutes each, data saver quality`;
+      ? t.plan.billedYearly
+      : t.plan.billedMonthly
+    : fmt(t.plan.freeSummary, {
+        members: plural(t.counts.members, memberCount, lang),
+        recordings: String(entitlement.recordingsPerPerson),
+        minutes: Math.round((entitlement.maxRecordingMs ?? 0) / 60000),
+      });
 
   return (
-    <Section label={`Workspace · ${workspaceName}`}>
+    <Section label={fmt(t.page.workspaceLabel, { name: workspaceName })}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -165,8 +178,8 @@ function WorkspacePlanSection({
               {paid
                 ? entitlement.plan
                   ? getSeatPlan(entitlement.plan).name
-                  : "Paid"
-                : "Free"}
+                  : t.plan.paid
+                : t.plan.free}
             </p>
             {subscription && (
               <Badge
@@ -175,7 +188,7 @@ function WorkspacePlanSection({
                     "bg-amber-500/15 text-amber-600 dark:text-amber-400",
                 )}
               >
-                {STATUS_LABEL[subscription.status]}
+                {t.status[STATUS_KEY[subscription.status]]}
               </Badge>
             )}
           </div>
@@ -203,7 +216,7 @@ function WorkspacePlanSection({
                 target="_blank"
                 rel="noreferrer"
               >
-                Manage subscription
+                {t.page.manageSubscription}
                 <ExternalLink size={14} />
               </a>
             </Button>
@@ -216,7 +229,7 @@ function WorkspacePlanSection({
             trigger={
               <Button className="shrink-0">
                 <Sparkles size={16} />
-                Upgrade workspace
+                {t.page.upgradeWorkspace}
               </Button>
             }
           />
@@ -232,7 +245,7 @@ function WorkspacePlanSection({
       {paid && entitlement.storageBytes < UNLIMITED_STORAGE_BYTES && (
         <div className="mt-5">
           <Meter
-            label="Workspace storage"
+            label={t.page.storage}
             value={usedBytes}
             limit={entitlement.storageBytes}
             format={formatBytes}
@@ -250,22 +263,28 @@ function usd(n: number): string {
   })}`;
 }
 
-function seatCount(n: number): string {
-  return `${n} ${n === 1 ? "seat" : "seats"}`;
-}
-
-function prorationLine(charge: NextCharge): string {
-  const amount = Math.abs(charge.prorated);
+function prorationLine(
+  charge: NextCharge,
+  t: BillingCopy["details"],
+  lang: string,
+): string {
+  const amount = usd(Math.abs(charge.prorated));
   if (charge.seatsRemoved === 0) {
-    return `+${usd(amount)} for ${seatCount(charge.seatsAdded)} added this period`;
+    return fmt(plural(t.seatsAdded, charge.seatsAdded, lang), {
+      amount: `+${amount}`,
+    });
   }
   if (charge.seatsAdded === 0) {
-    return `−${usd(amount)} credit for ${seatCount(charge.seatsRemoved)} removed this period`;
+    return fmt(plural(t.seatsRemoved, charge.seatsRemoved, lang), {
+      amount: `−${amount}`,
+    });
   }
-  return `${charge.prorated < 0 ? "−" : "+"}${usd(amount)} for seat changes this period`;
+  return fmt(t.seatChanges, {
+    amount: `${charge.prorated < 0 ? "−" : "+"}${amount}`,
+  });
 }
 
-function BillingDetails({
+async function BillingDetails({
   subscription,
   viewerCount,
   nextCharge,
@@ -274,6 +293,8 @@ function BillingDetails({
   viewerCount: number;
   nextCharge: NextCharge | null;
 }) {
+  const { messages: m, lang } = await getAppI18n();
+  const t = m.billing.details;
   const { plan, cycle, quantity: seats } = subscription;
   const seatPlan = getSeatPlan(plan);
   const annual = cycle === "annual";
@@ -284,46 +305,64 @@ function BillingDetails({
   const charge = annual ? perMonth * 12 : perMonth;
   const ending = subscription.cancelled_at !== null;
   const date = subscription.current_period_end
-    ? formatDate(subscription.current_period_end)
+    ? periodDate(subscription.current_period_end, lang)
     : null;
   const card = subscription.card_last_four
-    ? `${cardBrand(subscription.card_brand)} ending ${subscription.card_last_four}`
+    ? fmt(t.cardEnding, {
+        brand: cardBrand(subscription.card_brand, t.card),
+        last4: subscription.card_last_four,
+      })
     : null;
+  const paidSeats = plural(m.billing.counts.paidSeats, seats, lang);
 
   return (
     <dl className="mt-5 grid grid-cols-[auto_1fr] gap-x-8 gap-y-3 border-t border-line pt-5 text-sm">
-      <Detail label="You pay">
+      <Detail label={t.youPay}>
         <span className="font-semibold text-fg">
-          {usd(charge)} {annual ? "a year" : "a month"}
+          {fmt(annual ? t.amountPerYear : t.amountPerMonth, {
+            amount: usd(charge),
+          })}
         </span>
         <span className="text-fg-muted">
           {" "}
-          · {seats} {seats === 1 ? "seat" : "seats"} × {usd(perSeat)} a month
-          {annual ? `, ${usd(perMonth)} a month billed yearly` : ""}
+          ·{" "}
+          {fmt(plural(annual ? t.seatsYearly : t.seatsMonthly, seats, lang), {
+            price: usd(perSeat),
+            total: usd(perMonth),
+          })}
         </span>
       </Detail>
-      <Detail label={ending ? "Ends" : "Next payment"}>
+      <Detail label={ending ? t.ends : t.nextPayment}>
         {ending
-          ? (date ?? "At the end of this period")
+          ? (date ?? t.endOfPeriod)
           : date
-            ? `${usd(Math.max(0, nextCharge?.total ?? charge))} on ${date}`
-            : "When the first payment settles"}
+            ? fmt(t.amountOnDate, {
+                amount: usd(Math.max(0, nextCharge?.total ?? charge)),
+                date,
+              })
+            : t.firstPaymentPending}
         {!ending && nextCharge && nextCharge.prorated !== 0 && (
           <span className="mt-0.5 block text-fg-muted">
-            {usd(nextCharge.base)} for {seatCount(seats)} ·{" "}
-            {prorationLine(nextCharge)}, estimated
+            {fmt(t.estimate, {
+              base: fmt(plural(t.baseForSeats, seats, lang), {
+                amount: usd(nextCharge.base),
+              }),
+              change: prorationLine(nextCharge, t, lang),
+            })}
           </span>
         )}
       </Detail>
-      <Detail label="Seats">
-        {seats} paid {seats === 1 ? "seat" : "seats"}
+      <Detail label={t.seats}>
         {viewerCount > 0
-          ? `, ${viewerCount} free ${viewerCount === 1 ? "viewer" : "viewers"}`
-          : ""}
+          ? fmt(t.seatsAndViewers, {
+              seats: paidSeats,
+              viewers: plural(m.billing.counts.freeViewers, viewerCount, lang),
+            })
+          : paidSeats}
       </Detail>
-      <Detail label="Billed to">{subscription.ls_customer_email}</Detail>
+      <Detail label={t.billedTo}>{subscription.ls_customer_email}</Detail>
       {card && (
-        <Detail label="Payment method">
+        <Detail label={t.paymentMethod}>
           {card}
           {subscription.update_payment_url && (
             <>
@@ -334,7 +373,7 @@ function BillingDetails({
                 rel="noreferrer"
                 className="text-accent-strong hover:underline"
               >
-                Update
+                {t.updateCard}
               </a>
             </>
           )}
@@ -363,8 +402,8 @@ const CARD_BRANDS: Record<string, string> = {
   unionpay: "UnionPay",
 };
 
-function cardBrand(brand: string | null): string {
-  if (!brand) return "Card";
+function cardBrand(brand: string | null, fallback: string): string {
+  if (!brand) return fallback;
   return CARD_BRANDS[brand.toLowerCase()] ?? brand;
 }
 
@@ -379,7 +418,7 @@ function Section({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function Meter({
+async function Meter({
   label,
   value,
   limit,
@@ -393,14 +432,18 @@ function Meter({
   const unlimited = limit >= Number.MAX_SAFE_INTEGER;
   const ratio = unlimited || limit <= 0 ? 0 : Math.min(1, value / limit);
   const pct = Math.round(ratio * 100);
+  const t = (await getAppI18n()).messages.billing.page;
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-sm leading-6 font-medium text-foreground">{label}</p>
         <p className="text-sm leading-6 text-muted-foreground">
           {unlimited
-            ? `${format(value)} — no limit`
-            : `${format(value)} of ${format(limit)}`}
+            ? fmt(t.usedNoLimit, { used: format(value) })
+            : fmt(t.usedOfLimit, {
+                used: format(value),
+                limit: format(limit),
+              })}
         </p>
       </div>
       {!unlimited && (

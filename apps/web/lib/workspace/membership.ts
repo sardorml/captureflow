@@ -64,6 +64,7 @@ export async function inviteToWorkspace(
     role: AssignableRole;
     inviter: { userId: string; name: string | null; email: string };
     baseUrl: string;
+    alreadyMemberError: string;
   },
 ): Promise<MembershipResult<{ emailSent: boolean }>> {
   const result = await createInvite(db, {
@@ -73,10 +74,7 @@ export async function inviteToWorkspace(
     invitedByUserId: args.inviter.userId,
   });
   if (!result.ok) {
-    return {
-      ok: false,
-      error: "That person is already a member of this workspace",
-    };
+    return { ok: false, error: args.alreadyMemberError };
   }
   const emailSent = await sendWorkspaceInviteEmail({
     to: args.email,

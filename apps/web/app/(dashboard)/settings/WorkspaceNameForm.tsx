@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { updateWorkspaceNameAction } from "./actions";
 import { SettingsRow } from "./SettingsRow";
 
@@ -12,6 +13,7 @@ type FormState = { error: string | null; ok: string | null };
 const INITIAL: FormState = { error: null, ok: null };
 
 export function WorkspaceNameForm({ initialName }: { initialName: string }) {
+  const m = useAppMessages();
   const [state, formAction, pending] = useActionState(
     updateWorkspaceNameAction,
     INITIAL,
@@ -31,8 +33,8 @@ export function WorkspaceNameForm({ initialName }: { initialName: string }) {
   return (
     <form action={formAction}>
       <SettingsRow
-        title="Workspace name"
-        description="The name that appears for your workspace."
+        title={m.settings.workspace.name.title}
+        description={m.settings.workspace.name.description}
       >
         <div className="flex items-center gap-2">
           <Input
@@ -46,7 +48,7 @@ export function WorkspaceNameForm({ initialName }: { initialName: string }) {
           />
           <Button type="submit" disabled={!dirty}>
             {pending && <Spinner />}
-            Save
+            {m.common.save}
           </Button>
         </div>
         {(state.error || showSaved) && (
@@ -56,7 +58,7 @@ export function WorkspaceNameForm({ initialName }: { initialName: string }) {
             )}
             {showSaved && (
               <span className="inline-flex items-center gap-1 text-xs text-emerald-500">
-                <Check size={14} /> Saved
+                <Check size={14} /> {m.settings.saved}
               </span>
             )}
           </div>

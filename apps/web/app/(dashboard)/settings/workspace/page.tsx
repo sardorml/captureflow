@@ -3,6 +3,7 @@ import { getWorkspaceById } from "@captureflow/quota";
 import { requireSession } from "@/lib/session-guard";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
+import { getAppI18n } from "@/lib/i18n/app/server";
 import { CDN_BASE_URL } from "@/lib/site";
 import { SettingsCard, WorkspacePageHeader } from "../../WorkspacePageHeader";
 import { MemberUploadsPolicy } from "../MemberUploadsPolicy";
@@ -24,6 +25,7 @@ export default async function WorkspaceSettingsPage() {
       ? await getWorkspaceById(env.DB, current.workspace.id)
       : null;
   if (!workspace) redirect("/settings/personal");
+  const { messages: m } = await getAppI18n();
 
   const logoUrl = workspace.logo_key
     ? `${CDN_BASE_URL}/${workspace.logo_key}?v=${workspace.updated_at}`
@@ -31,8 +33,8 @@ export default async function WorkspaceSettingsPage() {
 
   const general = (
     <SettingsCard
-      title="General"
-      description="The name and logo that identify this workspace in the switcher, on the members page and on share previews."
+      title={m.settings.workspace.general.title}
+      description={m.settings.workspace.general.description}
     >
       <WorkspaceNameForm initialName={workspace.name} />
       <WorkspaceLogoForm logoUrl={logoUrl} workspaceName={workspace.name} />
@@ -41,12 +43,12 @@ export default async function WorkspaceSettingsPage() {
 
   const security = (
     <SettingsCard
-      title="Default permissions"
-      description="Settings applied to every new recording and screenshot in the workspace."
+      title={m.settings.workspace.permissions.title}
+      description={m.settings.workspace.permissions.description}
     >
       <SettingsRow
-        title="Recording access"
-        description="Decide whether teammates can post recordings and screenshots into this workspace."
+        title={m.settings.workspace.recordingAccess.title}
+        description={m.settings.workspace.recordingAccess.description}
         stacked
       >
         <MemberUploadsPolicy
@@ -60,12 +62,20 @@ export default async function WorkspaceSettingsPage() {
     <div className="flex flex-col gap-8">
       <WorkspacePageHeader
         workspaceName={current.workspace.name}
-        title="Workspace Settings"
+        title={m.settings.workspace.title}
       />
       <SettingsTabs
         tabs={[
-          { id: "general", label: "General", content: general },
-          { id: "security", label: "Security", content: security },
+          {
+            id: "general",
+            label: m.settings.workspace.tabs.general,
+            content: general,
+          },
+          {
+            id: "security",
+            label: m.settings.workspace.tabs.security,
+            content: security,
+          },
         ]}
       />
     </div>

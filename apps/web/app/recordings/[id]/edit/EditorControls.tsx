@@ -15,6 +15,9 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import { fmt } from "@/lib/i18n/format";
+import { formatDate } from "@/lib/i18n/intl";
 import { cn } from "@/lib/utils";
 import { formatBytes, formatDuration } from "@/lib/format";
 import {
@@ -51,18 +54,14 @@ const SOLID_PALETTE = [
   "#ffffff",
 ];
 
-const CAMERA_CORNERS: { value: RecordingCameraCorner; label: string }[] = [
-  { value: "top-left", label: "Top left" },
-  { value: "top-right", label: "Top right" },
-  { value: "bottom-left", label: "Bottom left" },
-  { value: "bottom-right", label: "Bottom right" },
-];
+const CAMERA_CORNERS = [
+  { value: "top-left", key: "topLeft" },
+  { value: "top-right", key: "topRight" },
+  { value: "bottom-left", key: "bottomLeft" },
+  { value: "bottom-right", key: "bottomRight" },
+] as const satisfies readonly { value: RecordingCameraCorner; key: string }[];
 
-const CAMERA_SIZES: { value: RecordingCameraSize; label: string }[] = [
-  { value: "small", label: "Small" },
-  { value: "medium", label: "Medium" },
-  { value: "large", label: "Large" },
-];
+const CAMERA_SIZES: RecordingCameraSize[] = ["small", "medium", "large"];
 
 // One row of each palette fits the inspector; the rest unfolds on request,
 // or straight away when the saved background lives in a hidden row.
@@ -77,6 +76,7 @@ export function BackgroundPicker({
   background: string;
   onChange: (bg: string) => void;
 }) {
+  const t = useAppMessages().recordingEditor.background;
   const isSolid = (hex: string): boolean =>
     background.toLowerCase() === hex.toLowerCase();
   const inFirstRows =
@@ -88,21 +88,21 @@ export function BackgroundPicker({
   const solids = expanded ? SOLID_PALETTE : FIRST_SOLIDS;
   return (
     <div className="flex flex-col gap-3">
-      <SwatchGroup label="Gradients">
+      <SwatchGroup label={t.gradients}>
         <Swatch
           selected={background === "transparent"}
           onClick={() => onChange("transparent")}
-          label="No background"
+          label={t.noBackground}
           className="bg-tint text-[9px] font-medium text-fg-muted"
         >
-          None
+          {t.none}
         </Swatch>
         {gradients.map((k) => (
           <Swatch
             key={k}
             selected={background === k}
             onClick={() => onChange(k)}
-            label={RECORDING_GRADIENT_PRESETS[k].label}
+            label={t.presets[k]}
             style={{
               background: recordingGradientCss(
                 RECORDING_GRADIENT_PRESETS[k].stops,
@@ -111,13 +111,13 @@ export function BackgroundPicker({
           />
         ))}
       </SwatchGroup>
-      <SwatchGroup label="Solid">
+      <SwatchGroup label={t.solid}>
         {solids.map((hex) => (
           <Swatch
             key={hex}
             selected={isSolid(hex)}
             onClick={() => onChange(hex)}
-            label={`Solid ${hex}`}
+            label={fmt(t.solidColor, { color: hex })}
             style={{ backgroundColor: hex }}
           />
         ))}
@@ -134,7 +134,7 @@ export function BackgroundPicker({
               background:
                 "conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444)",
             }}
-            aria-label="Pick a custom color"
+            aria-label={t.customColor}
           >
             <input
               type="color"
@@ -151,7 +151,7 @@ export function BackgroundPicker({
         aria-expanded={expanded}
         className="self-start text-xs font-medium text-fg-muted hover:text-fg"
       >
-        {expanded ? "Show less" : "See more"}
+        {expanded ? t.showLess : t.seeMore}
       </button>
     </div>
   );
@@ -229,23 +229,22 @@ export function CameraPicker({
   onSize: (s: RecordingCameraSize) => void;
   onHidden: (hidden: boolean) => void;
 }) {
+  const t = useAppMessages().recordingEditor.camera;
   return (
     <div className="flex flex-col gap-3">
       <ToggleRow
-        label="Show camera"
+        label={t.show}
         on={!hidden}
         onChange={(on) => onHidden(!on)}
         OnIcon={Video}
         OffIcon={VideoOff}
-        offText="Hidden"
+        offText={t.hidden}
       />
       <div>
         <div className="mb-2 flex items-baseline justify-between gap-3">
-          <span className="text-sm text-fg">Position</span>
+          <span className="text-sm text-fg">{t.position}</span>
           <span className="text-[11px] text-fg-muted">
-            {hidden
-              ? "Show the camera to place it."
-              : "Drag the dot or tap a corner"}
+            {hidden ? t.positionHintHidden : t.positionHint}
           </span>
         </div>
         <CameraPad
@@ -259,9 +258,12 @@ export function CameraPicker({
         />
       </div>
       <OptionRow
-        label="Size"
+        label={t.size}
         value={size}
-        options={CAMERA_SIZES}
+        options={CAMERA_SIZES.map((value) => ({
+          value,
+          label: t.sizes[value],
+        }))}
         onChange={onSize}
       />
     </div>
@@ -281,33 +283,32 @@ export function AudioControls({
   onMic: (muted: boolean) => void;
   onSystem: (muted: boolean) => void;
 }) {
+  const t = useAppMessages().recordingEditor.audio;
   // The microphone is its own track only next to a camera; otherwise it is
   // mixed with the system sound and the one toggle covers both.
   return (
     <div>
       <ToggleRow
-        label={hasMic ? "System sound" : "Sound"}
+        label={hasMic ? t.systemSound : t.sound}
         on={!systemMuted}
         onChange={(on) => onSystem(!on)}
         OnIcon={Volume2}
         OffIcon={VolumeX}
-        offText="Muted"
+        offText={t.muted}
       />
       {hasMic ? (
         <div className="mt-1.5">
           <ToggleRow
-            label="Microphone"
+            label={t.microphone}
             on={!micMuted}
             onChange={(on) => onMic(!on)}
             OnIcon={Mic}
             OffIcon={MicOff}
-            offText="Muted"
+            offText={t.muted}
           />
         </div>
       ) : (
-        <p className="mt-1.5 text-[11px] text-fg-muted">
-          Microphone and system sound share one track on this recording.
-        </p>
+        <p className="mt-1.5 text-[11px] text-fg-muted">{t.sharedTrack}</p>
       )}
     </div>
   );
@@ -341,6 +342,7 @@ function CameraPad({
   onCorner: (c: RecordingCameraCorner) => void;
   onPoint: (p: RecordingCameraPoint) => void;
 }) {
+  const t = useAppMessages().recordingEditor.camera;
   const [dragPoint, setDragPoint] = useState<RecordingCameraPoint | null>(null);
   const fraction = webcamSizeFraction(size);
   const half = { x: fraction / 2, y: (fraction / 2) * aspect };
@@ -414,7 +416,7 @@ function CameraPad({
             key={opt.value}
             type="button"
             data-corner={opt.value}
-            aria-label={opt.label}
+            aria-label={t.corners[opt.key]}
             aria-pressed={active}
             disabled={disabled}
             onClick={(e) => {
@@ -501,6 +503,7 @@ function ToggleRow({
   OffIcon: LucideIcon;
   offText: string;
 }) {
+  const m = useAppMessages();
   return (
     <button
       type="button"
@@ -521,7 +524,7 @@ function ToggleRow({
         ) : (
           <OffIcon className="h-3.5 w-3.5" />
         )}
-        {on ? "On" : offText}
+        {on ? m.recordingEditor.toggleOn : offText}
       </span>
     </button>
   );
@@ -542,15 +545,17 @@ export function DetailsList({
   viewCount,
   createdAt,
 }: RecordingDetails) {
+  const t = useAppMessages().recordingEditor.details;
+  const { lang } = useAppLocale();
   return (
     <dl className="space-y-1 text-xs text-fg-muted">
-      <Row label="Link" value={`/${slug}`} mono />
-      <Row label="Size" value={formatBytes(sizeBytes)} />
+      <Row label={t.link} value={`/${slug}`} mono />
+      <Row label={t.size} value={formatBytes(sizeBytes)} />
       {durationMs != null ? (
-        <Row label="Duration" value={formatDuration(durationMs)} />
+        <Row label={t.duration} value={formatDuration(durationMs)} />
       ) : null}
-      <Row label="Views" value={String(viewCount)} />
-      <Row label="Created" value={formatDate(createdAt)} />
+      <Row label={t.views} value={String(viewCount)} />
+      <Row label={t.created} value={createdDate(createdAt, lang)} />
     </dl>
   );
 }
@@ -572,8 +577,8 @@ function Row({
   );
 }
 
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString(undefined, {
+function createdDate(ts: number, lang: string): string {
+  return formatDate(ts, lang, {
     month: "short",
     day: "numeric",
     year: "numeric",

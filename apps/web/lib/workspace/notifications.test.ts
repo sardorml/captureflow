@@ -10,7 +10,10 @@ import {
   markNotificationsRead,
   type NotificationRow,
 } from "@captureflow/quota";
+import { APP_MESSAGES } from "@/lib/i18n/app/messages";
 import { notificationMessage } from "@/lib/notification-text";
+
+const COPY = APP_MESSAGES.shell.notifications;
 
 // Minimal D1 over node:sqlite, the same shim the seat request tests use.
 function d1(sqlite: DatabaseSync): D1Database {
@@ -137,11 +140,12 @@ describe("notificationMessage", () => {
   });
 
   it("says who joined and as what, linking the owner to members", () => {
-    expect(notificationMessage(row({ role: "viewer" }))).toMatchObject({
+    expect(
+      notificationMessage(row({ role: "viewer" }), COPY, "en"),
+    ).toMatchObject({
       actor: "Vic",
-      action: "joined",
       workspace: "Acme",
-      suffix: "as a viewer",
+      text: "{actor} joined {workspace} as a viewer",
       href: "/members",
     });
   });
@@ -152,16 +156,22 @@ describe("notificationMessage", () => {
         kind: "downgrade_scheduled",
         effective_at: Date.UTC(2026, 10, 12),
       }),
+      COPY,
+      "en",
     );
     expect(message.note).toBe("You can keep recording until 12 November.");
   });
 
   it("falls back to the email, then to someone", () => {
-    expect(notificationMessage(row({ actor_name: null })).actor).toBe(
-      "vic@x.io",
-    );
     expect(
-      notificationMessage(row({ actor_name: null, actor_email: null })).actor,
+      notificationMessage(row({ actor_name: null }), COPY, "en").actor,
+    ).toBe("vic@x.io");
+    expect(
+      notificationMessage(
+        row({ actor_name: null, actor_email: null }),
+        COPY,
+        "en",
+      ).actor,
     ).toBe("Someone");
   });
 });

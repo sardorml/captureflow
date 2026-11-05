@@ -13,6 +13,8 @@ import {
 } from "../../actions";
 import type { Visibility } from "@/app/VisibilityDialog";
 import { FadeInImage } from "@/components/ui/fade-in-image";
+import { useAppMessages } from "@/components/app-i18n-provider";
+import { fmt } from "@/lib/i18n/format";
 import { isFiltered, type ListFilters } from "@/lib/list-filters";
 import type { DashboardScreenshotRow } from "@/lib/screenshots-db";
 import { CDN_BASE_URL, screenshotViewUrlFor } from "@/lib/site";
@@ -50,6 +52,7 @@ export function ScreenshotsGrid({
   );
   const manageableKeys = manageable.map((s) => s.id);
   const selection = useSelection(manageableKeys);
+  const copy = useAppMessages().library.screenshot;
   const toolbar = (
     <ListToolbar
       noun="screenshot"
@@ -72,9 +75,7 @@ export function ScreenshotsGrid({
         {toolbar}
         <Card className="mt-6 p-6">
           <Empty className="p-0 text-center text-sm text-fg-muted">
-            {isFiltered(filters)
-              ? "No screenshots match these filters."
-              : "No screenshots yet. Open CaptureFlow \u2192 Screenshot tab \u2192 pick a Display, Window, or Area to capture. Your screenshot appears here automatically."}
+            {isFiltered(filters) ? copy.noMatches : copy.empty}
           </Empty>
         </Card>
       </>
@@ -142,8 +143,10 @@ function ScreenshotCard({
   selectionActive: boolean;
   onSelectedChange?: (next: boolean) => void;
 }) {
+  const m = useAppMessages();
+  const copy = m.library.screenshot;
   const displayTitle =
-    screenshot.title?.trim() || `Screenshot ${screenshot.id}`;
+    screenshot.title?.trim() || fmt(copy.numbered, { id: screenshot.id });
 
   const media = (
     <>
@@ -168,8 +171,8 @@ function ScreenshotCard({
       editUrl={`/screenshots/${screenshot.id}/edit`}
       displayTitle={displayTitle}
       initialTitle={screenshot.title ?? ""}
-      titlePlaceholder="Untitled screenshot"
-      authorLabel={authorName ?? "Unknown"}
+      titlePlaceholder={copy.untitled}
+      authorLabel={authorName ?? m.library.card.unknownAuthor}
       authorImage={authorImage}
       createdAt={screenshot.createdAt}
       visibility={screenshot.visibility}
@@ -180,9 +183,8 @@ function ScreenshotCard({
       stats={{ views: screenshot.viewCount, comments: 0, reactions: 0 }}
       sizeBytes={screenshot.sizeBytes}
       deleteConfirm={{
-        title: "Delete this screenshot?",
-        description:
-          "The image and its link stop working immediately. This cannot be undone.",
+        title: copy.deleteTitle,
+        description: copy.deleteDescription,
       }}
       selected={selected}
       selectionActive={selectionActive}

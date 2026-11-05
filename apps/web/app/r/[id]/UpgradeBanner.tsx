@@ -6,6 +6,9 @@ import { getWorkspaceSeatContext } from "@/lib/billing/seats";
 import type { SeatOffer } from "@/lib/billing/seat-checkout";
 import { countUserRecordingsInWorkspace } from "@/lib/recording/quota";
 import type { VerifiedSession } from "@/lib/recording/verify-session";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fill } from "@/lib/i18n/fill";
+import { fmt, plural } from "@/lib/i18n/format";
 
 export type FreePlanUsage = { seat: SeatOffer; used: number; limit: number };
 
@@ -24,7 +27,7 @@ export async function getFreePlanUsage(
   return { seat: seat.offer, used, limit };
 }
 
-export function UpgradeBanner({
+export async function UpgradeBanner({
   usage,
   email,
   userId,
@@ -33,13 +36,20 @@ export function UpgradeBanner({
   email: string;
   userId: string;
 }) {
+  const { messages: m, lang } = await getAppI18n();
+  const copy = m.viewer.upgradeBanner;
   return (
     <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 bg-primary/10 px-4 py-2.5 text-sm text-fg">
       <p>
-        <span className="font-semibold">
-          {Math.min(usage.used, usage.limit)} of {usage.limit} recordings used
-        </span>{" "}
-        on the Free plan. Upgrade for unlimited recordings in full quality.
+        {fill(copy.message, {
+          usage: (
+            <span className="font-semibold">
+              {fmt(plural(copy.usage, usage.limit, lang), {
+                used: Math.min(usage.used, usage.limit),
+              })}
+            </span>
+          ),
+        })}
       </p>
       <UpgradeModal
         email={email}
@@ -48,7 +58,7 @@ export function UpgradeBanner({
         trigger={
           <Button size="sm">
             <Sparkles size={14} />
-            Upgrade
+            {m.shell.topBar.upgrade}
           </Button>
         }
       />

@@ -26,6 +26,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { authClient } from "@/lib/auth-client";
 import {
   removeUserAvatarAction,
@@ -39,8 +40,7 @@ type Props = {
   imageUrl: string | null;
 };
 
-// Mirrors AVATAR_MAX_BYTES and the accepted types in ./actions.
-const AVATAR_HINT = "JPG, PNG, WebP or GIF. 2 MB max.";
+// Mirrors the accepted types in ./account-actions.
 const AVATAR_ACCEPT = "image/png,image/jpeg,image/webp,image/gif";
 
 function initials(name: string, email: string): string {
@@ -86,6 +86,7 @@ function AvatarField({
   imageUrl: string | null;
 }) {
   const router = useRouter();
+  const m = useAppMessages();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [removePending, startRemove] = useTransition();
@@ -105,7 +106,7 @@ function AvatarField({
         if (res.error) setError(res.error);
         else router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Upload failed");
+        setError(err instanceof Error ? err.message : m.settings.upload.failed);
       } finally {
         setUploading(false);
         if (fileRef.current) fileRef.current.value = "";
@@ -124,7 +125,7 @@ function AvatarField({
   return (
     <div>
       <p className="mb-2 block text-sm leading-6 font-medium text-foreground">
-        Avatar
+        {m.settings.avatar.label}
       </p>
       <input
         ref={fileRef}
@@ -153,7 +154,9 @@ function AvatarField({
               disabled={busy}
               onClick={() => fileRef.current?.click()}
             >
-              {uploading ? "Uploading…" : "Change avatar"}
+              {uploading
+                ? m.settings.upload.uploading
+                : m.settings.avatar.change}
             </Button>
             {imageUrl && !uploading && (
               <Button
@@ -162,7 +165,7 @@ function AvatarField({
                 onClick={onRemove}
                 disabled={busy}
               >
-                {removePending ? "Removing…" : "Remove"}
+                {removePending ? m.settings.avatar.removing : m.common.remove}
               </Button>
             )}
           </div>
@@ -170,7 +173,7 @@ function AvatarField({
             <span className="text-destructive text-xs">{error}</span>
           ) : (
             <p className="text-xs leading-5 text-muted-foreground">
-              {AVATAR_HINT}
+              {m.settings.avatar.hint}
             </p>
           )}
         </div>
@@ -189,6 +192,7 @@ function AccountFields({
   email: string;
 }) {
   const router = useRouter();
+  const m = useAppMessages();
   const [name, setName] = useState(initialName);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
@@ -213,7 +217,7 @@ function AccountFields({
     e.preventDefault();
     const next = name.trim();
     if (!next) {
-      setError("Name is required.");
+      setError(m.settings.account.name.required);
       return;
     }
     if (next === initialName.trim()) return;
@@ -223,13 +227,17 @@ function AccountFields({
         const res = await authClient.updateUser({ name: next });
         const apiError = (res as { error?: { message?: string } }).error;
         if (apiError) {
-          setError(apiError.message ?? "Could not update name.");
+          setError(apiError.message ?? m.settings.account.name.updateFailed);
           return;
         }
         setSavedAt(Date.now());
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not update name.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : m.settings.account.name.updateFailed,
+        );
       }
     });
   };
@@ -240,11 +248,13 @@ function AccountFields({
           enough to wrap in half the width. */}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field data-invalid={Boolean(error) || undefined}>
-          <FieldLabel htmlFor="account-name">Full name</FieldLabel>
+          <FieldLabel htmlFor="account-name">
+            {m.settings.account.name.label}
+          </FieldLabel>
           <Input
             id="account-name"
             name="name"
-            placeholder="Your name"
+            placeholder={m.settings.account.name.placeholder}
             autoComplete="name"
             aria-invalid={Boolean(error) || undefined}
             value={name}
@@ -257,13 +267,15 @@ function AccountFields({
             <FieldError>{error}</FieldError>
           ) : (
             <FieldDescription>
-              Shown on recordings, screenshots, and activity rows.
+              {m.settings.account.name.description}
             </FieldDescription>
           )}
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="account-email">Email address</FieldLabel>
+          <FieldLabel htmlFor="account-email">
+            {m.settings.account.email.label}
+          </FieldLabel>
           <Input
             id="account-email"
             name="email"
@@ -272,13 +284,15 @@ function AccountFields({
             readOnly
           />
           <FieldDescription>
-            Used to sign in. Contact support to change.
+            {m.settings.account.email.description}
           </FieldDescription>
         </Field>
       </div>
 
       <Field>
-        <FieldLabel htmlFor="account-user-id">User ID</FieldLabel>
+        <FieldLabel htmlFor="account-user-id">
+          {m.settings.account.userId.label}
+        </FieldLabel>
         <InputGroup>
           <InputGroupInput
             id="account-user-id"
@@ -289,7 +303,9 @@ function AccountFields({
           <InputGroupAddon align="inline-end">
             <InputGroupButton
               size="icon-sm"
-              aria-label={copied ? "Copied" : "Copy user ID"}
+              aria-label={
+                copied ? m.common.copied : m.settings.account.userId.copy
+              }
               onClick={() => {
                 void navigator.clipboard
                   ?.writeText(userId)
@@ -300,17 +316,19 @@ function AccountFields({
             </InputGroupButton>
           </InputGroupAddon>
         </InputGroup>
-        <FieldDescription>Quote this when contacting support.</FieldDescription>
+        <FieldDescription>
+          {m.settings.account.userId.description}
+        </FieldDescription>
       </Field>
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={!dirty || pending}>
           {pending && <Spinner />}
-          {pending ? "Saving…" : "Save changes"}
+          {pending ? m.common.saving : m.settings.account.saveChanges}
         </Button>
         {savedAt && (
           <span className="text-emerald-500 inline-flex items-center gap-1">
-            <Check className="h-3.5 w-3.5" /> Saved
+            <Check className="h-3.5 w-3.5" /> {m.settings.saved}
           </span>
         )}
       </div>

@@ -11,6 +11,7 @@ import {
   type RefObject,
 } from "react";
 import { AudioLines, Scissors, Trash2, ZoomIn, ZoomOut } from "lucide-react";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import {
   Tooltip,
   TooltipContent,
@@ -24,6 +25,7 @@ import {
   trimClip,
   type RecordingCut,
 } from "@/lib/recording/cuts";
+import { fmt } from "@/lib/i18n/format";
 import { cn } from "@/lib/utils";
 import { EditorWaveform } from "./EditorWaveform";
 import { useWaveform } from "./use-waveform";
@@ -70,6 +72,7 @@ export function EditorTimeline({
   onTrimPreview,
   onHoverMs,
 }: Props) {
+  const t = useAppMessages().recordingEditor.timeline;
   const [showWaveform, setShowWaveform] = useState(true);
   const [fraction, setFraction] = useState(0);
   // Where the playhead is drawn while it slides over a cut playback hopped;
@@ -347,7 +350,7 @@ export function EditorTimeline({
         <div className="flex items-center gap-1">
           <ToolButton
             icon={<AudioLines className="h-4 w-4" />}
-            label={showWaveform ? "Hide waveform" : "Show waveform"}
+            label={showWaveform ? t.hideWaveform : t.showWaveform}
             onClick={() => {
               setShowWaveform((v) => !v);
               onHoverMs?.(null);
@@ -355,17 +358,17 @@ export function EditorTimeline({
           />
           <ToolButton
             icon={<Trash2 className="h-4 w-4" />}
-            label="Delete selection"
+            label={t.deleteSelection}
             onClick={onDeleteSelection}
             disabled={!onDeleteSelection}
-            hint="Select words in the transcript, or split the timeline and pick a segment"
+            hint={t.deleteSelectionHint}
           />
           <ToolButton
             icon={<Scissors className="h-4 w-4" />}
-            label={`Split at ${formatTime(current)}`}
+            label={fmt(t.splitAt, { time: formatTime(current) })}
             onClick={splitAtPlayhead}
             disabled={duration <= 0}
-            hint="Play or scrub to a moment first"
+            hint={t.splitHint}
           />
         </div>
         <div
@@ -380,13 +383,13 @@ export function EditorTimeline({
             disabled={zoom === MIN_ZOOM}
             className="rounded-md px-1.5 py-0.5 transition-colors hover:bg-tint hover:text-fg disabled:opacity-60 disabled:hover:bg-transparent"
           >
-            Fit
+            {t.fit}
           </button>
           <button
             type="button"
             onClick={() => setZoomClamped(zoom - ZOOM_STEP)}
             disabled={zoom <= MIN_ZOOM}
-            aria-label="Zoom out"
+            aria-label={t.zoomOut}
             className="rounded-md p-0.5 transition-colors hover:bg-tint hover:text-fg disabled:opacity-60 disabled:hover:bg-transparent"
           >
             <ZoomOut className="h-4 w-4" />
@@ -398,14 +401,14 @@ export function EditorTimeline({
             step={0.25}
             value={zoom}
             onChange={(e) => setZoomClamped(Number(e.target.value))}
-            aria-label="Timeline zoom"
+            aria-label={t.zoom}
             className="h-1 w-28 cursor-pointer accent-accent"
           />
           <button
             type="button"
             onClick={() => setZoomClamped(zoom + ZOOM_STEP)}
             disabled={zoom >= MAX_ZOOM}
-            aria-label="Zoom in"
+            aria-label={t.zoomIn}
             className="rounded-md p-0.5 transition-colors hover:bg-tint hover:text-fg disabled:opacity-60 disabled:hover:bg-transparent"
           >
             <ZoomIn className="h-4 w-4" />
@@ -455,7 +458,7 @@ export function EditorTimeline({
               onKeyDown={onKeyDown}
               role="slider"
               tabIndex={0}
-              aria-label="Seek"
+              aria-label={t.seek}
               aria-valuemin={0}
               aria-valuemax={Math.round(duration)}
               aria-valuenow={Math.round(current)}
@@ -518,7 +521,9 @@ export function EditorTimeline({
                           data-trim-handle={edge}
                           role="slider"
                           tabIndex={0}
-                          aria-label={`Trim the ${edge} of the clip`}
+                          aria-label={
+                            edge === "start" ? t.trimStart : t.trimEnd
+                          }
                           aria-valuemin={0}
                           aria-valuemax={Math.round(totalMs)}
                           aria-valuenow={edgeMs}
@@ -554,8 +559,10 @@ export function EditorTimeline({
                     <button
                       key={s}
                       type="button"
-                      title={`Remove split at ${formatTime(s)}`}
-                      aria-label={`Remove split at ${formatTime(s)}`}
+                      title={fmt(t.removeSplit, { time: formatTime(s) })}
+                      aria-label={fmt(t.removeSplit, {
+                        time: formatTime(s),
+                      })}
                       onPointerDown={(e) => e.stopPropagation()}
                       onClick={() => removeSplit(s)}
                       className="absolute -top-3 z-20 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full bg-accent-bg text-white opacity-0 transition-opacity group-hover/lane:opacity-100 hover:bg-destructive focus-visible:opacity-100"
@@ -587,7 +594,7 @@ function ToolButton({
   label,
   onClick,
   disabled,
-  hint = "Coming soon",
+  hint,
 }: {
   icon: ReactNode;
   label: string;
@@ -595,6 +602,7 @@ function ToolButton({
   disabled?: boolean;
   hint?: string;
 }) {
+  const m = useAppMessages();
   const button = (
     <button
       type="button"
@@ -617,7 +625,9 @@ function ToolButton({
           {button}
         </span>
       </TooltipTrigger>
-      <TooltipContent>{hint}</TooltipContent>
+      <TooltipContent>
+        {hint ?? m.recordingEditor.timeline.comingSoon}
+      </TooltipContent>
     </Tooltip>
   );
 }

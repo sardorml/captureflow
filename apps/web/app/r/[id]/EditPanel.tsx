@@ -16,6 +16,7 @@ import {
   CameraPicker,
 } from "@/app/recordings/[id]/edit/EditorControls";
 import type { SaveStatus } from "@/app/recordings/[id]/edit/use-editor-config";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import type { RecordingConfig } from "@/lib/recording-config";
 import { RECORDING_SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -30,13 +31,6 @@ type Props = {
   aspect: number;
 };
 
-const STATUS_LABEL: Record<SaveStatus, string> = {
-  idle: "Saved automatically",
-  saving: "Saving…",
-  saved: "Saved",
-  error: "Couldn't save",
-};
-
 // The owner's Edit tab in the viewer sidebar: the look of the recording is
 // changed in place, the heavier edits open the editor.
 export function EditPanel({
@@ -48,6 +42,14 @@ export function EditPanel({
   hasWebcam,
   aspect,
 }: Props) {
+  const m = useAppMessages();
+  const copy = m.viewer.editPanel;
+  const statusLabel: Record<SaveStatus, string> = {
+    idle: copy.status.idle,
+    saving: m.common.saving,
+    saved: copy.status.saved,
+    error: copy.status.error,
+  };
   const [copied, setCopied] = useState(false);
   const embedCode = `<iframe src="${RECORDING_SITE_URL}/embed/${slug}" width="100%" style="aspect-ratio: 16 / 9; border: 0;" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
 
@@ -65,7 +67,7 @@ export function EditPanel({
     <div data-split="edit-panel" className="flex flex-col gap-6">
       <section>
         <SectionHeading
-          title="Make edits"
+          title={copy.makeEdits}
           aside={
             <span
               role="status"
@@ -76,25 +78,25 @@ export function EditPanel({
               )}
             >
               {status === "saving" ? <Spinner className="size-4" /> : null}
-              {STATUS_LABEL[status]}
+              {statusLabel[status]}
             </span>
           }
         />
         <ActionRow
           href={editUrl}
           icon={Scissors}
-          title="Trim and cut"
-          description="Split the timeline, cut sections out and fix the transcript."
+          title={copy.trimTitle}
+          description={copy.trimDescription}
         />
         <div className="mt-5 flex flex-col gap-5 px-2">
-          <Field label="Background">
+          <Field label={copy.background}>
             <BackgroundPicker
               background={config.background}
               onChange={(bg) => onConfig({ background: bg })}
             />
           </Field>
           {hasWebcam ? (
-            <Field label="Camera">
+            <Field label={copy.camera}>
               <CameraPicker
                 corner={config.cameraCorner}
                 point={config.cameraPoint}
@@ -110,7 +112,7 @@ export function EditPanel({
               />
             </Field>
           ) : null}
-          <Field label="Audio">
+          <Field label={copy.audio}>
             <AudioControls
               micMuted={config.micMuted}
               systemMuted={config.systemMuted}
@@ -123,18 +125,18 @@ export function EditPanel({
       </section>
 
       <section>
-        <SectionHeading title="Take action" />
+        <SectionHeading title={copy.takeAction} />
         <ActionRow
           href={`/api/r/download?slug=${encodeURIComponent(slug)}`}
           icon={Download}
-          title="Download video"
-          description="The full recording as an MP4."
+          title={copy.downloadTitle}
+          description={copy.downloadDescription}
         />
         <ActionRow
           onPress={copyEmbed}
           icon={copied ? Check : Code2}
-          title={copied ? "Embed code copied" : "Copy embed code"}
-          description="Paste the player into any web page."
+          title={copied ? copy.embedCopied : copy.copyEmbed}
+          description={copy.embedDescription}
         />
       </section>
     </div>

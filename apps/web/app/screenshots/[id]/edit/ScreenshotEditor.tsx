@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
 
 // Konva touches `window` at import time, so the impl must load client-only;
@@ -21,6 +22,15 @@ export type ScreenshotEditorProps = {
   initialAnnotations: unknown[] | null;
 };
 
+function EditorLoading() {
+  const m = useAppMessages();
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-sm text-neutral-400">
+      {m.screenshotEditor.loading}
+    </div>
+  );
+}
+
 const ScreenshotEditorImpl = dynamic(
   () =>
     import("./ScreenshotEditorImpl").then((m) =>
@@ -28,11 +38,7 @@ const ScreenshotEditorImpl = dynamic(
     ),
   {
     ssr: false,
-    loading: () => (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-sm text-neutral-400">
-        Loading editor…
-      </div>
-    ),
+    loading: () => <EditorLoading />,
   },
 );
 

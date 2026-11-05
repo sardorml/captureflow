@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Lock, Mail, ArrowRight, Check } from "lucide-react";
+import { useAppMessages } from "@/components/app-i18n-provider";
+import { fmt } from "@/lib/i18n/format";
+import { fill } from "@/lib/i18n/fill";
 
 // Access-request screen shown when a visitor isn't authorized for a screenshot.
 
@@ -23,6 +26,7 @@ export function RequestAccess({
   returnUrl,
   ownerName,
 }: Props) {
+  const copy = useAppMessages().screenshotView.requestAccess;
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
@@ -81,7 +85,7 @@ export function RequestAccess({
       setSent(true);
     } catch (err) {
       console.error("request-access submit", err);
-      setError("Something went wrong. Try again in a moment.");
+      setError(copy.failed);
     } finally {
       setSubmitting(false);
     }
@@ -96,25 +100,22 @@ export function RequestAccess({
           <Lock className="h-6 w-6 text-neutral-400" aria-hidden />
         </div>
         <h1 className="mt-6 text-center text-2xl font-semibold tracking-tight text-neutral-50">
-          Request access to view this screenshot
+          {copy.title}
         </h1>
         <p className="mt-2 text-center text-sm text-neutral-400">
           {ownerName
-            ? `${ownerName} hasn't shared this screenshot with you yet.`
-            : "The owner hasn't shared this screenshot with you yet."}
+            ? fmt(copy.notSharedBy, { name: ownerName })
+            : copy.notSharedByOwner}
         </p>
 
         {!viewer ? (
           <div className="mt-8 rounded-2xl border border-line-strong bg-neutral-900/60 p-6">
-            <p className="text-sm text-neutral-300">
-              Sign in with your work email — if you&apos;re already on the
-              owner&apos;s team you&apos;ll be let straight in.
-            </p>
+            <p className="text-sm text-neutral-300">{copy.signInHint}</p>
             <a
               href={signInUrl}
               className="mt-5 inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
             >
-              Sign in to continue
+              {copy.signIn}
               <ArrowRight className="h-4 w-4" />
             </a>
           </div>
@@ -124,11 +125,10 @@ export function RequestAccess({
               <Check className="h-5 w-5 text-emerald-300" aria-hidden />
             </div>
             <p className="mt-3 text-sm font-medium text-emerald-200">
-              Request sent
+              {copy.sentTitle}
             </p>
             <p className="mt-1 text-sm text-emerald-200/70">
-              We let the owner know. You&apos;ll get an email if they grant
-              access.
+              {copy.sentDescription}
             </p>
           </div>
         ) : (
@@ -139,17 +139,24 @@ export function RequestAccess({
             <div className="flex items-center gap-2 text-sm text-neutral-300">
               <Mail className="h-4 w-4 text-neutral-500" aria-hidden />
               <span className="truncate">
-                Asking as{" "}
-                <strong className="font-medium text-neutral-100">
-                  {viewer.email}
-                </strong>
+                {fill(copy.askingAs, {
+                  email: (
+                    <strong className="font-medium text-neutral-100">
+                      {viewer.email}
+                    </strong>
+                  ),
+                })}
               </span>
             </div>
             <label
               htmlFor="access-message"
               className="mt-5 block text-sm font-medium text-neutral-300"
             >
-              Add a note <span className="text-neutral-500">(optional)</span>
+              {fill(copy.noteLabel, {
+                optional: (
+                  <span className="text-neutral-500">{copy.noteOptional}</span>
+                ),
+              })}
             </label>
             <textarea
               id="access-message"
@@ -157,7 +164,7 @@ export function RequestAccess({
               onChange={(e) => setMessage(e.target.value)}
               maxLength={500}
               rows={3}
-              placeholder="Hi — I'd like a copy of this screenshot from the design review."
+              placeholder={copy.notePlaceholder}
               className="focus:ring-ring mt-2 w-full resize-none rounded-md bg-input/30 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-2"
             />
             <button
@@ -165,7 +172,7 @@ export function RequestAccess({
               disabled={submitting}
               className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-60"
             >
-              {submitting ? "Sending…" : "Request access"}
+              {submitting ? copy.sending : copy.submit}
             </button>
             {error && (
               <p className="mt-3 text-center text-sm text-red-400">{error}</p>

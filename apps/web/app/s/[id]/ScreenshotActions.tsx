@@ -26,6 +26,7 @@ import {
   type Visibility,
 } from "@/app/_components/ShareVisibilityModal";
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { useAppMessages } from "@/components/app-i18n-provider";
 
 type Props = {
   screenshotId: string;
@@ -49,6 +50,8 @@ export function ScreenshotActions({
   signedIn,
 }: Props) {
   const router = useRouter();
+  const m = useAppMessages();
+  const copy = m.screenshotView.actions;
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [visibility, setVisibility] = useState<Visibility>(initialVisibility);
@@ -89,9 +92,7 @@ export function ScreenshotActions({
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
       } catch (err) {
         setVisibility(previous);
-        setError(
-          err instanceof Error ? err.message : "Could not update visibility",
-        );
+        setError(err instanceof Error ? err.message : copy.visibilityFailed);
       }
     });
   };
@@ -99,10 +100,9 @@ export function ScreenshotActions({
   const onDelete = async () => {
     if (!isOwner) return;
     const ok = await confirm({
-      title: "Delete this screenshot?",
-      description:
-        "The image and its link stop working immediately. This cannot be undone.",
-      confirmLabel: "Delete",
+      title: copy.deleteTitle,
+      description: copy.deleteDescription,
+      confirmLabel: m.common.delete,
       destructive: true,
     });
     if (!ok) return;
@@ -115,11 +115,7 @@ export function ScreenshotActions({
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         router.replace("/");
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Could not delete the screenshot",
-        );
+        setError(err instanceof Error ? err.message : copy.deleteFailed);
       }
     });
   };
@@ -134,35 +130,41 @@ export function ScreenshotActions({
             className={buttonVariants({ variant: "secondary" })}
           >
             <Pencil size={16} />
-            Edit screenshot
+            {copy.edit}
           </a>
         )}
         {signedIn ? (
           <ButtonGroup>
             <Button onClick={() => setOpen(true)}>
               <Users size={18} />
-              Share
+              {copy.share}
             </Button>
             <ButtonGroupSeparator />
             <Button
               size="icon"
-              aria-label={copied ? "Link copied" : "Copy link"}
+              aria-label={copied ? copy.linkCopied : copy.copyLink}
               onClick={copyLink}
             >
               {copied ? <Check size={18} /> : <Link2 size={18} />}
             </Button>
           </ButtonGroup>
         ) : (
-          <Button variant="secondary" onClick={copyLink}>
+          <Button
+            variant="secondary"
+            aria-label={copied ? copy.linkCopied : copy.copyLink}
+            onClick={copyLink}
+          >
             {copied ? <Check size={16} /> : <Link2 size={16} />}
-            {copied ? "Copied" : "Copy link"}
+            <span className="max-sm:hidden">
+              {copied ? m.common.copied : copy.copyLink}
+            </span>
           </Button>
         )}
 
         {isOwner && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="More actions">
+              <Button variant="ghost" size="icon" aria-label={copy.more}>
                 <MoreHorizontal size={18} />
               </Button>
             </DropdownMenuTrigger>
@@ -173,7 +175,7 @@ export function ScreenshotActions({
                 onSelect={onDelete}
               >
                 <Trash2 size={16} />
-                {deleting ? "Deleting…" : "Delete screenshot"}
+                {deleting ? m.common.deleting : copy.delete}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -183,7 +185,7 @@ export function ScreenshotActions({
       <ShareVisibilityModal
         open={open}
         onClose={() => setOpen(false)}
-        title="Share screenshot"
+        title={copy.shareTitle}
         visibility={visibility}
         onChange={changeVisibility}
         canEdit={isOwner}

@@ -14,7 +14,9 @@ import {
   notificationMessage,
   type NotificationMessage,
 } from "@/lib/notification-text";
+import { fill } from "@/lib/i18n/fill";
 import { cn } from "@/lib/utils";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
 
 export function NotificationList({
   invites,
@@ -29,6 +31,8 @@ export function NotificationList({
   emptyText: string;
   className?: string;
 }) {
+  const copy = useAppMessages().shell.notifications;
+  const { lang } = useAppLocale();
   const [declined, setDeclined] = useState<string[]>([]);
   const openInvites = invites.filter((i) => !declined.includes(i.id));
 
@@ -55,7 +59,7 @@ export function NotificationList({
       {notifications.map((row) => (
         <Entry
           key={row.id}
-          message={notificationMessage(row)}
+          message={notificationMessage(row, copy, lang)}
           image={row.actor_image}
           at={row.created_at}
           unread={row.read_at === null}
@@ -75,6 +79,7 @@ function InviteEntry({
   base: string;
   onDeclined: () => void;
 }) {
+  const copy = useAppMessages().shell.notifications;
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -82,7 +87,7 @@ function InviteEntry({
     startTransition(async () => {
       const result = await acceptInviteFromFeedAction(invite.id);
       if (result.ok) window.location.assign(`${base}/recordings`);
-      else setError(result.error ?? "Couldn’t accept the invitation");
+      else setError(result.error ?? copy.acceptErrors.failed);
     });
   const decline = () =>
     startTransition(async () => {
@@ -92,7 +97,7 @@ function InviteEntry({
 
   return (
     <Entry
-      message={inviteMessage(invite)}
+      message={inviteMessage(invite, copy)}
       image={invite.inviter_image}
       at={invite.created_at}
       unread
@@ -100,7 +105,7 @@ function InviteEntry({
     >
       <div className="mt-2 flex gap-2">
         <Button size="sm" disabled={pending} onClick={accept}>
-          Accept
+          {copy.accept}
         </Button>
         <Button
           size="sm"
@@ -108,7 +113,7 @@ function InviteEntry({
           disabled={pending}
           onClick={decline}
         >
-          Decline
+          {copy.decline}
         </Button>
       </div>
       {error && (
@@ -133,6 +138,8 @@ function Entry({
   base: string;
   children?: React.ReactNode;
 }) {
+  const copy = useAppMessages().shell.notifications;
+  const { lang } = useAppLocale();
   const body = (
     <>
       <Avatar className="size-8 shrink-0">
@@ -143,24 +150,28 @@ function Entry({
       </Avatar>
       <div className="min-w-0 flex-1 text-sm">
         <p className="text-fg">
-          <strong className="font-semibold text-fg-strong">
-            {message.actor}
-          </strong>{" "}
-          {message.action}{" "}
-          <strong className="font-semibold text-fg-strong">
-            {message.workspace}
-          </strong>
-          {message.suffix && ` ${message.suffix}`}
+          {fill(message.text, {
+            actor: (
+              <strong className="font-semibold text-fg-strong">
+                {message.actor}
+              </strong>
+            ),
+            workspace: (
+              <strong className="font-semibold text-fg-strong">
+                {message.workspace}
+              </strong>
+            ),
+          })}
         </p>
         {message.note && <p className="mt-0.5 text-fg-muted">{message.note}</p>}
         <p className="mt-0.5 text-xs text-fg-subtle">
-          {formatRelativeShort(at)}
+          {formatRelativeShort(at, lang)}
         </p>
         {children}
       </div>
       {unread && (
         <span
-          aria-label="Unread"
+          aria-label={copy.unread}
           className="mt-1.5 size-2 shrink-0 rounded-full bg-primary"
         />
       )}

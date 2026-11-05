@@ -16,19 +16,6 @@ export const DEFAULT_LIST_FILTERS: ListFilters = {
   sort: "newest",
 };
 
-export const ACCESS_LABELS: Record<AccessFilter, string> = {
-  all: "Any access",
-  public: "Public",
-  workspace: "Workspace",
-  private: "Private",
-};
-
-export const SORT_LABELS: Record<SortOrder, string> = {
-  newest: "Newest to oldest",
-  oldest: "Oldest to newest",
-  views: "Most viewed",
-};
-
 // The filters from the URL: anything unrecognised is the default, so a stale
 // or hand-edited link still lists something.
 export function hydrateListFilters(raw: {

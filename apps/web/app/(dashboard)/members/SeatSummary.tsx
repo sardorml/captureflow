@@ -3,15 +3,13 @@ import { getSeatPlan } from "@captureflow/quota";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { WorkspaceSeatContext } from "@/lib/billing/seats";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fmt, plural } from "@/lib/i18n/format";
 import { UpgradeModal } from "../UpgradeModal";
-
-function count(n: number, noun: string): string {
-  return `${n} ${noun}${n === 1 ? "" : "s"}`;
-}
 
 // One line on the members page saying what a member costs here: nothing on
 // the free tier, a seat on a paid one. Viewers are free everywhere.
-export function SeatSummary({
+export async function SeatSummary({
   context,
   isOwner,
   email,
@@ -24,24 +22,40 @@ export function SeatSummary({
 }) {
   const { entitlement, subscription, memberCount, viewerCount, offer } =
     context;
+  const { messages, lang } = await getAppI18n();
+  const m = messages.members.seatSummary;
   const paid = entitlement.tier === "team";
+  const members = plural(m.members, memberCount, lang);
   const people =
     viewerCount > 0
-      ? `${count(memberCount, "member")} and ${count(viewerCount, "viewer")}`
-      : count(memberCount, "member");
+      ? fmt(m.membersAndViewers, {
+          members,
+          viewers: plural(m.viewers, viewerCount, lang),
+        })
+      : members;
   const line = subscription
-    ? `${people} on ${count(subscription.quantity, "paid seat")}. Every member is a seat; viewers are free.`
+    ? fmt(m.onPaidSeats, {
+        people,
+        seats: plural(m.paidSeats, subscription.quantity, lang),
+      })
     : paid
-      ? `${people}. Members are free on this plan.`
-      : `${people}. Free plan: each member gets ${entitlement.recordingsPerPerson} recordings of up to ${Math.round((entitlement.maxRecordingMs ?? 0) / 60000)} minutes; viewers watch and comment.`;
+      ? fmt(m.membersFree, { people })
+      : fmt(m.freePlan, {
+          people,
+          recordings: String(entitlement.recordingsPerPerson),
+          minutes: Math.round((entitlement.maxRecordingMs ?? 0) / 60000),
+        });
+  const planTitle = !paid
+    ? m.freePlanTitle
+    : entitlement.plan
+      ? fmt(m.planTitle, { plan: getSeatPlan(entitlement.plan).name })
+      : m.paidPlanTitle;
 
   return (
     <Card className="flex flex-row flex-wrap items-center justify-between gap-4 p-4">
       <div className="min-w-0">
         <p className="text-base leading-7 font-semibold text-foreground">
-          {paid
-            ? `${entitlement.plan ? getSeatPlan(entitlement.plan).name : "Paid"} plan`
-            : "Free plan"}
+          {planTitle}
         </p>
         <p className="mt-0.5 block text-sm leading-6 text-muted-foreground">
           {line}
@@ -55,7 +69,7 @@ export function SeatSummary({
           trigger={
             <Button size="sm">
               <Sparkles size={14} />
-              Upgrade workspace
+              {m.upgrade}
             </Button>
           }
         />

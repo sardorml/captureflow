@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAppMessages } from "@/components/app-i18n-provider";
+import { fill } from "@/lib/i18n/fill";
 
 type CallbackHandoffProps = {
   deepLink: string;
@@ -13,6 +15,7 @@ type CallbackHandoffProps = {
  * mount so the browser registers this page as the originator.
  */
 export function CallbackHandoff({ deepLink, email }: CallbackHandoffProps) {
+  const m = useAppMessages();
   const [opened, setOpened] = useState(false);
   const anchorRef = useRef<HTMLAnchorElement>(null);
 
@@ -29,22 +32,21 @@ export function CallbackHandoff({ deepLink, email }: CallbackHandoffProps) {
     <main className="flex min-h-screen items-center justify-center px-6 py-10">
       <div className="w-full max-w-md text-center">
         <h1 className="text-2xl font-semibold tracking-tight text-neutral-100">
-          {opened ? "Returning to CaptureFlow…" : "Signing you in…"}
+          {opened ? m.auth.handoff.returning : m.auth.handoff.signingIn}
         </h1>
         <p className="mt-2 text-sm text-neutral-400">
-          Signed in as <span className="text-neutral-200">{email}</span>.
+          {fill(m.auth.signedInAs, {
+            email: <span className="text-neutral-200">{email}</span>,
+          })}
         </p>
         <a
           ref={anchorRef}
           className="mt-8 inline-block rounded-lg bg-white px-4 py-2 text-sm font-medium text-neutral-950 transition-opacity hover:opacity-90"
           href={deepLink}
         >
-          Open CaptureFlow
+          {m.auth.handoff.open}
         </a>
-        <p className="mt-6 text-xs text-neutral-500">
-          If nothing happens, click the button above. You can close this tab
-          once the desktop app reopens.
-        </p>
+        <p className="mt-6 text-xs text-neutral-500">{m.auth.handoff.hint}</p>
       </div>
     </main>
   );

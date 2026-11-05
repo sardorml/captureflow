@@ -17,6 +17,7 @@ import { requireSession } from "@/lib/session-guard";
 import { resolveCurrentWorkspace } from "@/lib/current-workspace";
 import { getWorkspaceSeatContext, paidSeatsOf } from "@/lib/billing/seats";
 import { isInstanceAdminUser } from "@/lib/selfhost";
+import { getAppI18n } from "@/lib/i18n/app/server";
 import { SidebarNav } from "./SidebarNav";
 import { SidebarRecordItem } from "./SidebarRecordItem";
 import { SidebarUpgradeCard } from "./SidebarUpgradeCard";
@@ -28,6 +29,7 @@ export async function Sidebar({
   collapsible?: "icon" | "none";
 }) {
   const session = await requireSession();
+  const { messages } = await getAppI18n();
   const env = await getAppWebEnv();
   const userId = session.user.id;
   const current = await resolveCurrentWorkspace(
@@ -95,7 +97,9 @@ export async function Sidebar({
           <SidebarRecordItem />
         )}
       </SidebarFooter>
-      {collapsible === "icon" && <SidebarRail />}
+      {collapsible === "icon" && (
+        <SidebarRail label={messages.shell.nav.toggleSidebar} />
+      )}
     </SidebarRoot>
   );
 }

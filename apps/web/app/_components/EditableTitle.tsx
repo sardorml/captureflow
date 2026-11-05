@@ -14,6 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -33,6 +34,7 @@ export function EditableTitle({
   canEdit,
   sizeClassName,
 }: Props) {
+  const copy = useAppMessages().library.editableTitle;
   const headline = cn(HEADLINE_CLASS, sizeClassName);
   const [title, setTitle] = useState(initialTitle);
   const [draft, setDraft] = useState<string | null>(null);
@@ -102,7 +104,7 @@ export function EditableTitle({
           autoFocus
           value={draft}
           maxLength={200}
-          aria-label="Recording title"
+          aria-label={copy.label}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commit}
           onKeyDown={(e) => {
@@ -122,7 +124,7 @@ export function EditableTitle({
           type="button"
           onClick={() => setDraft(title)}
           className="group/title -mx-3 flex w-[calc(100%+1.5rem)] items-center gap-3 rounded-xl px-3 py-1.5 text-left transition-colors hover:bg-tint"
-          aria-label="Rename recording"
+          aria-label={copy.rename}
         >
           <Pencil
             className="hidden size-5 shrink-0 text-fg-muted group-hover/title:block"

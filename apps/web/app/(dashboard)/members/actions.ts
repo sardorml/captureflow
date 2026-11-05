@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { hydrateAssignableRole } from "@captureflow/quota";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { getAppBaseUrl } from "@/lib/app-base-url";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fmt } from "@/lib/i18n/format";
 import { selfHostHooks } from "@/lib/selfhost";
 import { loadSession } from "@/lib/session-guard";
 import { requireWorkspaceAccess } from "@/lib/workspace/access";
@@ -39,15 +41,16 @@ export async function inviteMemberAction(
 ): Promise<FormState> {
   const access = await requireWorkspaceAccess("invite");
   if (!access.ok) return { error: access.error, ok: null };
+  const copy = (await getAppI18n()).messages.members.actions;
 
   const email = text(formData.get("email"));
-  if (!email) return { error: "Enter an email address", ok: null };
+  if (!email) return { error: copy.emailRequired, ok: null };
   // Loose check suffices: the recipient must sign in with this exact address to accept, so a typo just no-ops.
   if (!EMAIL_RE.test(email)) {
-    return { error: "That doesn’t look like a valid email", ok: null };
+    return { error: copy.emailInvalid, ok: null };
   }
   if (email.toLowerCase() === access.email.toLowerCase()) {
-    return { error: "You’re already in your own workspace", ok: null };
+    return { error: copy.ownWorkspace, ok: null };
   }
   const refusal = await (
     await selfHostHooks()
@@ -64,18 +67,15 @@ export async function inviteMemberAction(
       email: access.email,
     },
     baseUrl: await getAppBaseUrl(),
+    alreadyMemberError: copy.alreadyMember,
   });
   if (!result.ok) return { error: result.error, ok: null };
 
   revalidatePath("/members");
   if (!result.emailSent) {
-    return {
-      error:
-        "Invitation created but email delivery failed. Copy the link from the pending list.",
-      ok: null,
-    };
+    return { error: copy.emailNotSent, ok: null };
   }
-  return { error: null, ok: `Invitation sent to ${email}` };
+  return { error: null, ok: fmt(copy.invitationSent, { email }) };
 }
 
 export async function revokeInviteAction(formData: FormData): Promise<void> {
@@ -127,7 +127,8 @@ export async function requestPaidSeatAction(): Promise<{
   const access = await requireWorkspaceAccess("view");
   if (!access.ok) return { ok: false, error: access.error };
   if (access.role !== "viewer") {
-    return { ok: false, error: "You can already record here" };
+    const { messages: m } = await getAppI18n();
+    return { ok: false, error: m.members.actions.alreadyRecording };
   }
   const result = await requestPaidSeat(access.db, {
     workspace: access.workspace,

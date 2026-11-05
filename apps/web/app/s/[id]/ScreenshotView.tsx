@@ -2,13 +2,16 @@ import { ContentByline, ViewerNav } from "../../_components/screenshot";
 import type { ViewerNavViewer } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
 import { APP_SITE_URL, MARKETING_SITE_URL, PRODUCT_NAME } from "@/lib/site";
-import { ThemeToggle, type Theme, type ThemePreference } from "@captureflow/ui";
+import type { Theme, ThemePreference } from "@captureflow/ui";
+import { AppThemeToggle } from "@/components/app-theme-toggle";
 import { AuthSync } from "./AuthSync";
 import { AuthPrompt } from "./AuthPrompt";
 import { ScreenshotActions } from "./ScreenshotActions";
 import { ViewerUserMenu } from "@/app/_components/ViewerUserMenu";
 import { ZoomableScreenshotImage } from "./ZoomableScreenshotImage";
 import type { ReactNode } from "react";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { fmt } from "@/lib/i18n/format";
 
 type Props = {
   id: string;
@@ -37,7 +40,7 @@ type Props = {
   selfHosted: boolean;
 };
 
-export function ScreenshotView({
+export async function ScreenshotView({
   id,
   title,
   imageUrl,
@@ -62,7 +65,10 @@ export function ScreenshotView({
   loginUrl,
   selfHosted,
 }: Props) {
-  const headline = title?.trim() || `${PRODUCT_NAME} screenshot`;
+  const { messages: m } = await getAppI18n();
+  const headline =
+    title?.trim() ||
+    fmt(m.screenshotView.page.defaultTitle, { product: PRODUCT_NAME });
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-fg">
       <AuthSync initialUserId={viewerUserId ?? null} />
@@ -77,7 +83,7 @@ export function ScreenshotView({
            standalone toggle. */
         themeToggle={
           viewer ? null : (
-            <ThemeToggle initialTheme={theme} className="h-9 w-9" />
+            <AppThemeToggle initialTheme={theme} className="h-9 w-9" />
           )
         }
         actions={
@@ -135,7 +141,7 @@ export function ScreenshotView({
             className="transition-colors hover:text-neutral-200"
             rel="noopener noreferrer"
           >
-            Made with {PRODUCT_NAME}
+            {fmt(m.screenshotView.page.madeWith, { product: PRODUCT_NAME })}
           </a>
           <PoweredBy />
           <span className="font-mono text-xs text-neutral-600">{id}</span>

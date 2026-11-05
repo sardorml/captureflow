@@ -1,7 +1,9 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useAppLocale } from "@/components/app-i18n-provider";
 import { formatPostedAt, formatRelativeShort } from "@/lib/format";
+import { formatDate } from "@/lib/i18n/intl";
 
 const noSubscribe = () => () => {};
 
@@ -14,18 +16,15 @@ export function PostedAt({
   at: number;
   className?: string;
 }) {
+  const { lang } = useAppLocale();
   const label = useSyncExternalStore(
     noSubscribe,
-    () => formatPostedAt(at),
-    () => formatRelativeShort(at),
+    () => formatPostedAt(at, Date.now(), { lang }),
+    () => formatRelativeShort(at, lang),
   );
   const full = useSyncExternalStore(
     noSubscribe,
-    () =>
-      new Date(at).toLocaleString(undefined, {
-        dateStyle: "full",
-        timeStyle: "short",
-      }),
+    () => formatDate(at, lang, { dateStyle: "full", timeStyle: "short" }),
     () => undefined,
   );
   return (

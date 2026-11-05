@@ -12,6 +12,7 @@ import {
   type RefObject,
 } from "react";
 import { Captions, RotateCcw, Scissors, Undo2, X } from "lucide-react";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -19,6 +20,7 @@ import {
   saveTranscriptEditsAction,
 } from "@/app/actions";
 import { formatTimestamp } from "@/lib/format";
+import { fmt, plural } from "@/lib/i18n/format";
 import { addCut, removeCut, type RecordingCut } from "@/lib/recording/cuts";
 import {
   isWordCut,
@@ -103,6 +105,9 @@ export function EditorTranscriptPanel({
   onSelectionChange,
   onTranscriptSaved,
 }: EditorTranscriptPanelProps) {
+  const m = useAppMessages();
+  const t = m.recordingEditor.transcript;
+  const { lang } = useAppLocale();
   const [transcript, setTranscript] = useState(initialTranscript);
   const [hasEdits, setHasEdits] = useState(initialHasEdits);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -351,7 +356,7 @@ export function EditorTranscriptPanel({
       });
       if (res.error || !res.transcript) {
         setTranscript(previous);
-        setError(res.error ?? "Could not save");
+        setError(res.error ?? t.saveFailed);
         return;
       }
       setTranscript(res.transcript);
@@ -365,7 +370,7 @@ export function EditorTranscriptPanel({
     startTransition(async () => {
       const res = await resetTranscriptEditsAction(slug);
       if (res.error || !res.transcript) {
-        setError(res.error ?? "Could not reset");
+        setError(res.error ?? t.resetFailed);
         return;
       }
       setTranscript(res.transcript);
@@ -409,16 +414,14 @@ export function EditorTranscriptPanel({
           <Captions className="h-6 w-6 text-fg-subtle" />
         )}
         <p className="mt-2 text-sm font-medium text-fg">
-          {transcriptStatus === "pending"
-            ? "Transcribing…"
-            : "No transcript available"}
+          {transcriptStatus === "pending" ? t.transcribing : t.unavailable}
         </p>
         <p className="text-xs text-fg-muted">
           {transcriptStatus === "pending"
-            ? "Reload this page in a minute to edit it."
+            ? t.pendingHint
             : transcriptStatus === "failed"
-              ? "Transcription didn't finish for this recording."
-              : "Record with the microphone on and one is written for you."}
+              ? t.failedHint
+              : t.missingHint}
         </p>
       </div>
     );
@@ -431,22 +434,21 @@ export function EditorTranscriptPanel({
           <span className="flex items-center gap-1">
             <Button variant="destructive" size="sm" onClick={deleteSelection}>
               <Scissors className="h-3.5 w-3.5" />
-              Delete {selectedCount === 1 ? "word" : `${selectedCount} words`}
+              {selectedCount === 1
+                ? t.deleteWord
+                : plural(t.deleteWords, selectedCount, lang)}
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onSelectionChange(null)}
-              aria-label="Clear selection"
+              aria-label={t.clearSelection}
             >
               <X className="h-3.5 w-3.5" />
             </Button>
           </span>
         ) : (
-          <p className="text-[11px] leading-snug text-fg-subtle">
-            Click a word or drag across words to select, double-click to fix the
-            text.
-          </p>
+          <p className="text-[11px] leading-snug text-fg-subtle">{t.hint}</p>
         )}
         {hasEdits ? (
           <Button
@@ -457,7 +459,7 @@ export function EditorTranscriptPanel({
             className="shrink-0"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            Reset edits
+            {t.resetEdits}
           </Button>
         ) : null}
       </div>
@@ -480,7 +482,7 @@ export function EditorTranscriptPanel({
                     onChange={(e) => setDraft(e.target.value)}
                     onKeyDown={onDraftKeyDown}
                     onBlur={commitEdit}
-                    aria-label="Edit transcript line"
+                    aria-label={t.editLine}
                     className="block w-full resize-none bg-transparent text-sm leading-relaxed text-fg focus:outline-none"
                   />
                 </li>
@@ -495,7 +497,9 @@ export function EditorTranscriptPanel({
                 <button
                   type="button"
                   onClick={(e) => onTimeClick(line, e)}
-                  aria-label={`Select the line at ${formatTimestamp(segment.startMs)}`}
+                  aria-label={fmt(t.selectLine, {
+                    time: formatTimestamp(segment.startMs),
+                  })}
                   className="w-8 shrink-0 pt-[3px] text-left text-xs text-fg-subtle tabular-nums transition-colors hover:text-fg"
                 >
                   {formatTimestamp(segment.startMs)}
@@ -555,7 +559,7 @@ export function EditorTranscriptPanel({
                     className="absolute top-1 right-1 hidden items-center gap-1 rounded-md bg-panel px-1.5 py-0.5 text-[11px] text-fg-muted shadow-sm group-hover:flex hover:text-fg"
                   >
                     <Undo2 className="h-3 w-3" />
-                    Restore
+                    {t.restore}
                   </button>
                 ) : null}
               </li>
@@ -566,7 +570,7 @@ export function EditorTranscriptPanel({
       {pending ? (
         <p className="flex shrink-0 items-center gap-2 border-t border-line px-4 py-2 text-xs text-fg-subtle">
           <Spinner />
-          Saving…
+          {m.common.saving}
         </p>
       ) : null}
     </div>

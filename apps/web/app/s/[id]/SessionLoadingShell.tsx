@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppMessages } from "@/components/app-i18n-provider";
 
 /*
  * Rendered when the SSR call to verify-session fails transiently
@@ -22,6 +23,7 @@ type Props = {
 const PROBE_DELAYS_MS = [0, 400, 1200, 2500, 5000] as const;
 
 export function SessionLoadingShell({ appWebUrl }: Props) {
+  const m = useAppMessages();
   useEffect(() => {
     let cancelled = false;
 
@@ -61,7 +63,9 @@ export function SessionLoadingShell({ appWebUrl }: Props) {
     <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 py-16 text-neutral-300">
       <div className="flex flex-col items-center gap-4">
         <Spinner className="size-6" />
-        <p className="text-sm text-neutral-500">Loading screenshot…</p>
+        <p className="text-sm text-neutral-500">
+          {m.screenshotView.page.loading}
+        </p>
       </div>
     </div>
   );

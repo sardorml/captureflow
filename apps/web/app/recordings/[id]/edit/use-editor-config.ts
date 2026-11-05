@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import type { RecordingConfig } from "@/lib/recording-config";
 import { cutsEqual } from "@/lib/recording/cuts";
 import { saveRecordingConfigAction } from "@/app/actions";
@@ -35,6 +36,7 @@ export function useEditorConfig(
   });
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const saveFailed = useAppMessages().recordingEditor.saveFailed;
 
   const config = history.stack[history.pointer];
 
@@ -70,9 +72,9 @@ export function useEditorConfig(
     chainRef.current = run.catch(() => {});
     return run.then(
       () => ({ error: null }),
-      (e) => ({ error: e instanceof Error ? e.message : "Could not save" }),
+      (e) => ({ error: e instanceof Error ? e.message : saveFailed }),
     );
-  }, [slug]);
+  }, [slug, saveFailed]);
 
   const scheduleSave = useCallback(
     (next: RecordingConfig) => {

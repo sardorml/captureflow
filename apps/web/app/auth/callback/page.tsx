@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { loadSession } from "@/lib/session-guard";
 import { issueDeviceToken } from "@/lib/device-tokens";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { getAppI18n } from "@/lib/i18n/app/server";
+import { AppI18n } from "@/components/app-i18n";
 import { CallbackHandoff } from "./CallbackHandoff";
 import { ExtensionHandoff } from "./ExtensionHandoff";
 import { classifyReturn } from "./return-target";
@@ -51,22 +53,25 @@ export default async function CallbackPage({
       process.env.NODE_ENV === "production",
     );
     if (!extTarget) {
+      const { messages: m } = await getAppI18n();
       return (
         <main className="flex min-h-screen items-center justify-center bg-canvas px-4 text-center">
           <p className="max-w-sm text-fg">
-            Couldn’t verify the extension. Reinstall it and try again.
+            {m.auth.handoff.extensionUnverified}
           </p>
         </main>
       );
     }
     const issued = await issueDeviceToken(session.user.id, label);
     return (
-      <ExtensionHandoff
-        extId={extTarget}
-        token={issued.rawToken}
-        tokenId={issued.id}
-        email={session.user.email}
-      />
+      <AppI18n>
+        <ExtensionHandoff
+          extId={extTarget}
+          token={issued.rawToken}
+          tokenId={issued.id}
+          email={session.user.email}
+        />
+      </AppI18n>
     );
   }
 
@@ -84,7 +89,11 @@ export default async function CallbackPage({
       ? appendTokenToReturn(target.url, issued.rawToken, issued.id)
       : buildDeepLink(scheme, issued.rawToken, issued.id);
 
-  return <CallbackHandoff deepLink={deepLink} email={session.user.email} />;
+  return (
+    <AppI18n>
+      <CallbackHandoff deepLink={deepLink} email={session.user.email} />
+    </AppI18n>
+  );
 }
 
 function appendTokenToReturn(

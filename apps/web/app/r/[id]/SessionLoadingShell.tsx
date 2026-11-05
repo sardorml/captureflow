@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppMessages } from "@/components/app-i18n-provider";
 
 type Props = {
   appWebUrl: string;
@@ -10,6 +11,7 @@ type Props = {
 const PROBE_DELAYS_MS = [0, 400, 1200, 2500, 5000] as const;
 
 export function SessionLoadingShell({ appWebUrl }: Props) {
+  const m = useAppMessages();
   useEffect(() => {
     let cancelled = false;
 
@@ -44,7 +46,7 @@ export function SessionLoadingShell({ appWebUrl }: Props) {
     <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 py-16 text-neutral-300">
       <div className="flex flex-col items-center gap-4">
         <Spinner className="size-5" />
-        <p className="text-sm text-fg-subtle">Loading recording…</p>
+        <p className="text-sm text-fg-subtle">{m.viewer.loading}</p>
       </div>
     </div>
   );

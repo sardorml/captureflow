@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useAppMessages } from "@/components/app-i18n-provider";
 
 export type ConfirmOptions = {
   title: string;
@@ -66,8 +67,8 @@ function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   destructive = false,
   onCancel,
   onConfirm,
@@ -75,6 +76,7 @@ function ConfirmDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }): ReactElement {
+  const m = useAppMessages();
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onCancel()}>
       <DialogContent showCloseButton={false} className="sm:max-w-sm">
@@ -86,7 +88,7 @@ function ConfirmDialog({
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={onCancel}>
-            {cancelLabel}
+            {cancelLabel ?? m.common.cancel}
           </Button>
           {/* autoFocus on the destructive action would make Enter delete;
               the cancel path is the safe default for a keyboard user. */}
@@ -94,7 +96,7 @@ function ConfirmDialog({
             variant={destructive ? "destructive" : "default"}
             onClick={onConfirm}
           >
-            {confirmLabel}
+            {confirmLabel ?? m.common.confirm}
           </Button>
         </DialogFooter>
       </DialogContent>

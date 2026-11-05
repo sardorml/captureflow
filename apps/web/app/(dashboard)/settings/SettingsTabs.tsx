@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useAppMessages } from "@/components/app-i18n-provider";
 import { cn } from "@/lib/utils";
 
 export type SettingsTab = { id: string; label: string; content: ReactNode };
@@ -8,13 +9,14 @@ export type SettingsTab = { id: string; label: string; content: ReactNode };
 // Plain buttons: HeroUI's tab list centres and scrolls its items, which is
 // wrong for an underlined row that sits flush left.
 export function SettingsTabs({ tabs }: { tabs: SettingsTab[] }) {
+  const m = useAppMessages();
   const [tab, setTab] = useState(tabs[0]?.id);
   const active = tabs.find((t) => t.id === tab) ?? tabs[0];
   return (
     <div className="flex flex-col gap-6">
       <div
         role="tablist"
-        aria-label="Settings sections"
+        aria-label={m.settings.workspace.tabs.label}
         className="flex gap-6 border-b border-line"
       >
         {tabs.map((t) => (

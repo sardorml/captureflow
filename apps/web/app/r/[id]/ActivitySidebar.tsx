@@ -40,6 +40,9 @@ import {
 } from "@/lib/recording/reaction-bursts";
 import { cn } from "@/lib/utils";
 import { whenIdle } from "@/lib/when-idle";
+import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import { fill } from "@/lib/i18n/fill";
+import { fmt, plural } from "@/lib/i18n/format";
 
 const AVATAR_TONES = [
   "#2563eb",
@@ -134,6 +137,7 @@ export function ActivitySidebar({
   getCurrentMs,
   commentInputRef,
 }: Props) {
+  const m = useAppMessages();
   const [tab, setTab] = useState<SidebarTab>("activity");
   const [comments, setComments] = useState<RecordingComment[]>(initialComments);
   useEffect(() => {
@@ -172,7 +176,7 @@ export function ActivitySidebar({
         for (const id of failed) next.delete(id);
         return next;
       });
-      setError("Could not delete reaction");
+      setError(m.activity.reaction.deleteFailed);
     }
     setDeletingReactionId(null);
   };
@@ -191,7 +195,9 @@ export function ActivitySidebar({
       }
     } catch (err) {
       setComments(snapshot);
-      setError(err instanceof Error ? err.message : "Could not delete comment");
+      setError(
+        err instanceof Error ? err.message : m.activity.comment.deleteFailed,
+      );
     } finally {
       setDeletingId(null);
     }
@@ -360,7 +366,7 @@ export function ActivitySidebar({
       id: optimisticId,
       slug,
       userId: "pending",
-      userName: viewerName ?? "You",
+      userName: viewerName ?? m.activity.you,
       userImage: viewerImageUrl,
       body,
       createdAt: Date.now(),
@@ -389,7 +395,9 @@ export function ActivitySidebar({
         );
       } catch (err) {
         setComments((prev) => prev.filter((c) => c.id !== optimisticId));
-        setError(err instanceof Error ? err.message : "Could not post comment");
+        setError(
+          err instanceof Error ? err.message : m.activity.composer.postFailed,
+        );
       }
     });
   };
@@ -406,7 +414,7 @@ export function ActivitySidebar({
       <Tabs
         value={tab}
         onValueChange={(value) => setTab(value as SidebarTab)}
-        aria-label="Recording sidebar"
+        aria-label={m.activity.sidebar.label}
         className="flex min-h-0 flex-1 flex-col gap-0"
       >
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-stretch border-b border-line bg-panel/90 backdrop-blur-md lg:static lg:bg-transparent lg:backdrop-blur-none">
@@ -415,17 +423,17 @@ export function ActivitySidebar({
             className="w-full gap-0 p-0 group-data-horizontal/tabs:h-full"
           >
             <TabsTrigger value="activity" className={TAB_CLASS}>
-              Activity
+              {m.activity.sidebar.activityTab}
               <span className="rounded-full bg-muted px-1.5 text-xs font-medium text-muted-foreground tabular-nums">
                 {entries.length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="transcript" className={TAB_CLASS}>
-              Transcript
+              {m.activity.sidebar.transcriptTab}
             </TabsTrigger>
             {editPanel ? (
               <TabsTrigger value="edit" className={TAB_CLASS}>
-                Edit
+                {m.common.edit}
               </TabsTrigger>
             ) : null}
           </TabsList>
@@ -512,7 +520,7 @@ export function ActivitySidebar({
         {!viewerSignedIn ? (
           <Button size="lg" className="w-full" onClick={onSignIn}>
             <Sparkles size={16} />
-            Sign in to react &amp; comment
+            {m.activity.composer.signIn}
           </Button>
         ) : (
           <form
@@ -526,7 +534,7 @@ export function ActivitySidebar({
               >
                 {viewerImageUrl && <AvatarImage src={viewerImageUrl} alt="" />}
                 <AvatarFallback className="bg-transparent text-[11px] font-medium text-white">
-                  {initials(viewerName ?? "You")}
+                  {initials(viewerName ?? m.activity.you)}
                 </AvatarFallback>
               </Avatar>
               <textarea
@@ -538,7 +546,7 @@ export function ActivitySidebar({
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={onKeyDown}
                 onFocus={warmEmojiPicker}
-                placeholder="Leave a comment…"
+                placeholder={m.activity.composer.placeholder}
                 rows={1}
                 className="block min-h-[1.5rem] w-full resize-none bg-transparent text-sm text-fg placeholder:text-muted-foreground focus:outline-none"
               />
@@ -556,7 +564,7 @@ export function ActivitySidebar({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label="Mention someone"
+                      aria-label={m.activity.composer.mention}
                     >
                       <AtSign className="h-4 w-4" />
                     </Button>
@@ -568,7 +576,7 @@ export function ActivitySidebar({
                   >
                     {mentionCandidates.length === 0 ? (
                       <DropdownMenuItem disabled>
-                        No one has reacted or commented yet
+                        {m.activity.composer.noOneToMention}
                       </DropdownMenuItem>
                     ) : (
                       mentionCandidates.map((c) => (
@@ -599,7 +607,7 @@ export function ActivitySidebar({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label="Insert emoji"
+                      aria-label={m.activity.composer.insertEmoji}
                       onMouseEnter={warmEmojiPicker}
                       onFocus={warmEmojiPicker}
                     >
@@ -628,8 +636,10 @@ export function ActivitySidebar({
                 disabled={posting || !draft.trim()}
               >
                 {posting
-                  ? "Posting…"
-                  : `Comment at ${formatTimestamp(previewMs)}`}
+                  ? m.activity.composer.posting
+                  : fmt(m.activity.composer.submitAt, {
+                      time: formatTimestamp(previewMs),
+                    })}
               </Button>
             </div>
           </form>
@@ -660,6 +670,7 @@ function EmojiPickerPrimer({ onDone }: { onDone: () => void }) {
 }
 
 function EmojiPickerThemed({ onPick }: { onPick: (emoji: string) => void }) {
+  const m = useAppMessages();
   // Watches <html> data-theme since ThemeToggle mutates it imperatively.
   const [emojiTheme, setEmojiTheme] = useState<"light" | "dark">(() => {
     if (typeof document === "undefined") return "dark";
@@ -685,7 +696,7 @@ function EmojiPickerThemed({ onPick }: { onPick: (emoji: string) => void }) {
         theme={emojiTheme as never}
         emojiStyle={"native" as never}
         lazyLoadEmojis
-        searchPlaceholder="Search emoji"
+        searchPlaceholder={m.activity.composer.searchEmoji}
         width={320}
         height={380}
         onEmojiClick={(data: { emoji: string }) => onPick(data.emoji)}
@@ -703,6 +714,7 @@ function EmptyState({
   viewerName: string | null;
   commentInputRef?: React.MutableRefObject<HTMLTextAreaElement | null>;
 }) {
+  const m = useAppMessages();
   const firstName = (viewerName ?? "").trim().split(/\s+/)[0] || null;
   const focusComposer = () => {
     const el = commentInputRef?.current;
@@ -719,26 +731,28 @@ function EmptyState({
       <p className="mt-4 text-base font-semibold text-fg">
         {viewerSignedIn
           ? firstName
-            ? `Be the first to comment, ${firstName}`
-            : "Be the first to comment"
-          : "No activity yet"}
+            ? fmt(m.activity.empty.firstTitleNamed, { name: firstName })
+            : m.activity.empty.firstTitle
+          : m.activity.empty.title}
       </p>
       {viewerSignedIn ? (
         <p className="mt-1.5 max-w-[18rem] text-xs leading-relaxed text-fg-muted">
-          Hit{" "}
-          <button
-            type="button"
-            onClick={focusComposer}
-            className="inline-flex items-center rounded border border-line-strong bg-tint px-1.5 py-0.5 font-mono text-[10px] font-semibold text-fg transition-colors hover:border-blue-500/40 hover:text-blue-600 dark:hover:text-blue-300"
-            title="Focus the comment box"
-          >
-            C
-          </button>{" "}
-          to reply or leave a comment at the bottom of this panel.
+          {fill(m.activity.empty.hint, {
+            key: (
+              <button
+                type="button"
+                onClick={focusComposer}
+                className="inline-flex items-center rounded border border-line-strong bg-tint px-1.5 py-0.5 font-mono text-[10px] font-semibold text-fg transition-colors hover:border-blue-500/40 hover:text-blue-600 dark:hover:text-blue-300"
+                title={m.activity.empty.focusComposer}
+              >
+                C
+              </button>
+            ),
+          })}
         </p>
       ) : (
         <p className="mt-1.5 max-w-[18rem] text-xs leading-relaxed text-fg-muted">
-          Reactions and comments from viewers will show up here as they happen.
+          {m.activity.empty.description}
         </p>
       )}
     </div>
@@ -760,8 +774,14 @@ function ReactionRow({
   onDelete: () => void;
   deleting: boolean;
 }) {
-  const name = burst.userName?.trim() || "Anonymous";
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
+  const name = burst.userName?.trim() || m.activity.anonymous;
   const total = burst.reactionIds.length;
+  const deleteLabel =
+    total > 1
+      ? plural(m.activity.reaction.deleteMany, total, lang)
+      : m.activity.reaction.delete;
   return (
     <div className="group -mx-2 flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-tint">
       <span className="relative shrink-0">
@@ -783,7 +803,7 @@ function ReactionRow({
         {total > 1 && (
           <span
             className="flex shrink-0 items-center gap-1.5 text-xs text-fg-muted"
-            aria-label={`${total} reactions`}
+            aria-label={plural(m.activity.reaction.count, total, lang)}
           >
             {burst.emojis.map(({ emoji, count }) => (
               <span key={emoji} className="inline-flex items-center gap-0.5">
@@ -798,17 +818,15 @@ function ReactionRow({
           onClick={() => onSeek(burst.timestampMs)}
         />
         <span className="shrink-0 text-xs">
-          {formatRelative(burst.createdAt)}
+          {formatRelative(burst.createdAt, lang)}
         </span>
         {canDelete && (
           <button
             type="button"
             onClick={onDelete}
             disabled={deleting}
-            aria-label={
-              total > 1 ? `Delete ${total} reactions` : "Delete reaction"
-            }
-            title={total > 1 ? `Delete ${total} reactions` : "Delete reaction"}
+            aria-label={deleteLabel}
+            title={deleteLabel}
             className="ml-auto rounded-md p-1.5 text-fg-subtle opacity-0 transition-opacity transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:opacity-100 disabled:cursor-progress group-hover:opacity-100 dark:hover:text-red-300"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -832,6 +850,8 @@ function CommentRow({
   onDelete: () => void;
   deleting: boolean;
 }) {
+  const m = useAppMessages();
+  const { lang } = useAppLocale();
   return (
     <div className="group -mx-2 flex items-start gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-tint">
       <Avatar
@@ -857,15 +877,15 @@ function CommentRow({
             />
           )}
           <span className="shrink-0 text-xs text-fg">
-            {formatRelative(comment.createdAt)}
+            {formatRelative(comment.createdAt, lang)}
           </span>
           {canDelete && (
             <button
               type="button"
               onClick={onDelete}
               disabled={deleting}
-              aria-label="Delete comment"
-              title="Delete comment"
+              aria-label={m.activity.comment.delete}
+              title={m.activity.comment.delete}
               className="ml-auto rounded-md p-1.5 text-fg-subtle opacity-0 transition-opacity transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:opacity-100 disabled:cursor-progress group-hover:opacity-100 dark:hover:text-red-300"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -881,11 +901,12 @@ function CommentRow({
 }
 
 function TimestampChip({ ms, onClick }: { ms: number; onClick: () => void }) {
+  const m = useAppMessages();
   return (
     <button
       type="button"
       onClick={onClick}
-      title="Jump to this moment"
+      title={m.activity.jumpToMoment}
       className="inline-flex shrink-0 items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-accent-strong tabular-nums transition-colors hover:bg-primary/15"
     >
       {formatTimestamp(ms)}
