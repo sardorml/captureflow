@@ -300,7 +300,7 @@ export const MESSAGES = {
       chatgpt:
         "In ChatGPT on the web, open Plugins, press +, and choose Add custom MCP server. Name it CaptureFlow, paste this URL, choose OAuth, then install the plugin and sign in. Needs a Business, Enterprise or Edu plan.",
       limits:
-        "Chats record websites in a cloud browser, not your computer, and use your plan's cloud agent minutes.",
+        "Chats build presentation and how-to videos from slides on our servers, not recordings of your computer, and use your plan's cloud agent minutes.",
     },
   },
   modes: {
@@ -890,7 +890,7 @@ export const MESSAGES = {
               pro: true,
             },
             {
-              label: "Agent recordings in a cloud browser",
+              label: "Agent presentations made in the cloud",
               free: `${FREE_AGENT_MIN} min a month per person`,
               light: `${LIGHT_AGENT_MIN} min a month per member`,
               pro: `${PRO_AGENT_MIN} min a month per member`,
@@ -908,7 +908,7 @@ export const MESSAGES = {
               pro: true,
             },
             {
-              label: "AI voiceover in a cloud browser",
+              label: "AI voiceover in cloud presentations",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} min a month per member`,

@@ -16,7 +16,7 @@ const geist = Geist({
 });
 
 const SITE_DESCRIPTION =
-  "Open-source, self-hostable screen recording and screenshots with instant shareable links.";
+  "Open-source, self-hostable screen recording with instant shareable links, for you and your AI agents.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

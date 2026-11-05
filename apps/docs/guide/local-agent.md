@@ -118,7 +118,7 @@ to sign in.
 Recordings stop at 30 minutes; browser recordings also stop after 5 minutes
 without an action. Uploaded recordings count toward your plan like any other
 recording. They don't use your plan's agent recording minutes, which are for
-the cloud browser.
+presentations made in the cloud.
 
 To disconnect a computer, run `npx @captureflow/mcp logout` and revoke its token
 on the [Devices](https://captureflow.dev/devices) page.
