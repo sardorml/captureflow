@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { Globe } from "lucide-react";
 import {
   Select,
@@ -9,26 +9,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { chooseLanguageAction } from "@/app/choose-language-action";
 import { LANGUAGE_OPTIONS } from "@/lib/i18n/config";
-import { parseLanguageChoice, rememberLanguage } from "@/lib/i18n/preference";
+import { cn } from "@/lib/utils";
 import { useAppLocale, useAppMessages } from "./app-i18n-provider";
 
 // Saves the choice in a cookie and re-renders the page in the new language.
 export function LanguagePreference({ className }: { className?: string }) {
-  const router = useRouter();
   const { locale } = useAppLocale();
   const label = useAppMessages().common.language;
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   const choose = (value: string) => {
-    const next = parseLanguageChoice(value);
-    if (!next || next === locale) return;
-    rememberLanguage(next);
-    router.refresh();
+    if (value === locale) return;
+    startTransition(async () => {
+      const res = await chooseLanguageAction(value);
+      setError(res.error);
+    });
   };
 
   return (
-    <Select value={locale} onValueChange={choose}>
-      <SelectTrigger aria-label={label} className={className}>
+    <Select value={locale} onValueChange={choose} disabled={pending}>
+      <SelectTrigger
+        aria-label={label}
+        aria-invalid={error ? true : undefined}
+        className={cn(pending && "opacity-70", className)}
+      >
         <span className="flex items-center gap-2">
           <Globe className="text-muted-foreground" />
           <SelectValue />
