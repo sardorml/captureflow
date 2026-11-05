@@ -138,7 +138,7 @@ export function InviteModal({
           {trigger ?? (
             <Button variant="secondary">
               <UserPlus size={16} />
-              Invite teammates
+              Invite members
             </Button>
           )}
         </span>
@@ -160,8 +160,8 @@ export function InviteModal({
           <DialogHeader>
             <DialogTitle>
               {workspaceName
-                ? `Invite teammates to ${workspaceName}`
-                : "Invite teammates to your workspace"}
+                ? `Invite members to ${workspaceName}`
+                : "Invite members to your workspace"}
             </DialogTitle>
           </DialogHeader>
           <div>
