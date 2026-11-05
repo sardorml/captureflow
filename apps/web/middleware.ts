@@ -14,11 +14,12 @@ import {
   parseLanguageChoice,
   redirectLocale,
 } from "@/lib/i18n/preference";
+import { LOGIN_NEXT_HEADER } from "@/lib/login-next";
 
 export const config = {
   matcher: [
     // Bearer-token APIs are excluded so desktop bearer calls get a JSON 401, not a 302.
-    "/((?!_next/|favicon\\.ico|robots\\.txt|ingest/|api/auth|api/health|api/lemon-webhook|api/usage|api/verify-session|api/workspaces|api/request-access|api/github|api/r/|api/s/|r/|r$|s/|s$|login|signup|plan|privacy|terms|refund|security|auth/callback|auth/clear|invite|.*\\.[\\w]+$).*)",
+    "/((?!_next/|favicon\\.ico|robots\\.txt|ingest/|api/auth|api/health|api/lemon-webhook|api/usage|api/verify-session|api/workspaces|api/request-access|api/github|api/r/|api/s/|r/|r$|s/|s$|signup|plan|privacy|terms|refund|security|auth/callback|auth/clear|invite|.*\\.[\\w]+$).*)",
   ],
 };
 
@@ -95,7 +96,17 @@ export function middleware(req: NextRequest) {
     const next = pathname + req.nextUrl.search;
     return redirectTo(req, "/login", `?next=${encodeURIComponent(next)}`);
   }
-  const res = NextResponse.next();
+  const res = NextResponse.next(
+    pathname === "/login" ? { request: { headers: withLoginNext(req) } } : {},
+  );
   res.headers.set("cache-control", "private, no-store, must-revalidate");
   return res;
+}
+
+// The login layout sends a signed-in visitor on before any HTML is out, and
+// only the middleware can hand it the address to send them to.
+function withLoginNext(req: NextRequest): Headers {
+  const headers = new Headers(req.headers);
+  headers.set(LOGIN_NEXT_HEADER, req.nextUrl.searchParams.get("next") ?? "");
+  return headers;
 }
