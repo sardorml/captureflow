@@ -67,7 +67,7 @@ export async function Sidebar({
           currentWorkspaceId={current.workspace.id}
           memberships={current.memberships}
           memberCount={members.length}
-          canInvite={selfHosted ? instanceAdmin : isOwner}
+          canInvite={isOwner || instanceAdmin}
           instanceAdmin={instanceAdmin}
           paidSeats={paidSeats}
         />

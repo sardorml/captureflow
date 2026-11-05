@@ -110,6 +110,7 @@ function buildAuth(
       autoSignIn: true,
       minPasswordLength: 12,
       requireEmailVerification: verifyEmail,
+      revokeSessionsOnPasswordReset: Boolean(env?.SELFHOST),
     },
     emailVerification: {
       sendOnSignUp: verifyEmail,
@@ -134,6 +135,14 @@ function buildAuth(
     // Cookie is host-only so prod and preview (shared D1) stay isolated.
     // Do NOT re-enable crossSubDomainCookies with a .captureflow.dev domain.
     databaseHooks: {
+      session: {
+        create: {
+          before: async (session) => {
+            const refusal = await env?.SELFHOST?.signinRefusal(session.userId);
+            if (refusal) throw new APIError("FORBIDDEN", { message: refusal });
+          },
+        },
+      },
       user: {
         create: {
           before: async (user, ctx) => {

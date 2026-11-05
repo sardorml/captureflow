@@ -1,5 +1,4 @@
 import {
-  isSelfHosted,
   listMembers,
   listPendingInvites,
   listSeatRequests,
@@ -45,7 +44,6 @@ export default async function MembersPage() {
   ]);
 
   const paidSeats = paidSeatsOf(seats);
-  const selfHosted = isSelfHosted(env);
   const instanceAdmin = await isInstanceAdminUser(session.user.id);
 
   return (
@@ -64,8 +62,8 @@ export default async function MembersPage() {
         invites={pending}
         viewerUserId={session.user.id}
         viewerIsOwner={isOwner}
-        canInvite={selfHosted ? instanceAdmin : isOwner}
-        inviteHref={selfHosted ? `/admin/workspaces/${workspace.id}` : null}
+        canInvite={isOwner || instanceAdmin}
+        inviteHref={instanceAdmin ? `/admin/workspaces/${workspace.id}` : null}
         workspaceName={workspace.name}
         paidSeats={paidSeats}
         seatRequests={seatRequests}

@@ -41,16 +41,12 @@ export async function requireWorkspaceAccess(
     session.user.id,
     session.user.name ?? null,
   );
-  // On a self-hosted instance an invite is what lets someone create an
-  // account, so only its admins send them, whoever owns the workspace.
+  // A self-hosted administrator invites into any workspace, owned or not.
   const selfhost = action === "invite" ? await selfHostHooks() : null;
-  if (selfhost) {
-    if (!(await selfhost.isAdmin(session.user.id))) {
-      return { ok: false, error: "Only an admin can invite people" };
-    }
-  } else if (!can(current.role, action)) {
-    return { ok: false, error: DENIED[action] };
-  }
+  const allowed =
+    can(current.role, action) ||
+    (!!selfhost && (await selfhost.isAdmin(session.user.id)));
+  if (!allowed) return { ok: false, error: DENIED[action] };
   return {
     ok: true,
     db: env.DB,
