@@ -22,6 +22,8 @@ const CATALOGS: Record<LocaleCode, () => Promise<{ default: Messages }>> = {
   uz: () => import("@/lib/marketing/locales/uz"),
   vi: () => import("@/lib/marketing/locales/vi"),
   th: () => import("@/lib/marketing/locales/th"),
+  ja: () => import("@/lib/marketing/locales/ja"),
+  ko: () => import("@/lib/marketing/locales/ko"),
 };
 
 export async function getMessages(locale: Locale): Promise<Messages> {

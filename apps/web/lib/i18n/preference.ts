@@ -51,6 +51,8 @@ const COUNTRY_LOCALE: Record<string, LocaleCode> = {
   UZ: "uz",
   VN: "vi",
   TH: "th",
+  JP: "ja",
+  KR: "ko",
 };
 
 const CRAWLER =
