@@ -21,6 +21,8 @@ export const LOCALES = [
   { code: "uz", lang: "uz", og: "uz_UZ", label: "Oʻzbekcha" },
   { code: "vi", lang: "vi", og: "vi_VN", label: "Tiếng Việt" },
   { code: "th", lang: "th", og: "th_TH", label: "ไทย" },
+  { code: "ja", lang: "ja", og: "ja_JP", label: "日本語" },
+  { code: "ko", lang: "ko", og: "ko_KR", label: "한국어" },
 ] as const;
 
 export type LocaleCode = (typeof LOCALES)[number]["code"];

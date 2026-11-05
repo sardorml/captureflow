@@ -18,6 +18,8 @@ const CATALOGS: Record<LocaleCode, () => Promise<{ default: AppMessages }>> = {
   uz: () => import("./locales/uz"),
   vi: () => import("./locales/vi"),
   th: () => import("./locales/th"),
+  ja: () => import("./locales/ja"),
+  ko: () => import("./locales/ko"),
 };
 
 export async function getAppMessages(locale: Locale): Promise<AppMessages> {

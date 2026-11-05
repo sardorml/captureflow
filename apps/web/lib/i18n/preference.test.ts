@@ -24,6 +24,8 @@ describe("redirectLocale", () => {
     expect(visit("PT")).toBe("pt");
     expect(visit("MX")).toBe("es");
     expect(visit("UZ")).toBe("uz");
+    expect(visit("JP")).toBe("ja");
+    expect(visit("KR")).toBe("ko");
   });
 
   it("leaves English-speaking, mixed and unknown countries on English", () => {
