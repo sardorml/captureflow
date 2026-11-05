@@ -17,6 +17,7 @@ import {
 import { fill } from "@/lib/i18n/fill";
 import { cn } from "@/lib/utils";
 import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
+import Link from "next/link";
 
 export function NotificationList({
   invites,
@@ -181,12 +182,12 @@ function Entry({
   return (
     <li>
       {message.href ? (
-        <a
+        <Link
           href={`${base}${message.href}`}
           className="flex gap-3 px-3 py-3 hover:bg-tint"
         >
           {body}
-        </a>
+        </Link>
       ) : (
         <div className="flex gap-3 px-3 py-3">{body}</div>
       )}

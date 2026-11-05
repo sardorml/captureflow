@@ -3,6 +3,7 @@
 import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getSessionCookie } from "better-auth/cookies";
 import { getAuth, type AuthInstance } from "./auth";
 import { renderTrace } from "./render-trace";
 import { withTimeout } from "./with-timeout";
@@ -40,9 +41,11 @@ const REDIRECT_SESSION_TIMEOUT_MS = 3000;
  * For public pages that read the session only to send a signed-in visitor on.
  * Prod renders have stalled inside the lookup on long-lived isolates; past the
  * limit the page renders signed-out instead of never responding. Never use it
- * to gate the app: a timeout there would read as signed out.
+ * to gate the app: a timeout there would read as signed out. A visitor with no
+ * session cookie is signed out without building auth or asking D1.
  */
-export function loadSessionForRedirect(): Promise<Session | null> {
+export async function loadSessionForRedirect(): Promise<Session | null> {
+  if (!getSessionCookie(await headers())) return null;
   return withTimeout(loadSession(), REDIRECT_SESSION_TIMEOUT_MS, null);
 }
 

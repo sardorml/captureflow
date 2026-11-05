@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppMessages } from "@/components/app-i18n-provider";
 import { fill } from "@/lib/i18n/fill";
 import { fmt } from "@/lib/i18n/format";
+import Link from "next/link";
 
 type Props = {
   appWebUrl: string;
@@ -127,7 +128,7 @@ export function RequestAccess({
         {!viewer ? (
           <div className="mt-8">
             <p className="text-sm text-fg-muted">{copy.signInHint}</p>
-            <a
+            <Link
               href={signInUrl}
               className={buttonVariants({
                 size: "lg",
@@ -136,7 +137,7 @@ export function RequestAccess({
             >
               {copy.signIn}
               <ArrowRight size={16} />
-            </a>
+            </Link>
           </div>
         ) : sent ? (
           <div className="mt-8 text-center">

@@ -207,7 +207,7 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
         >
           {links.map((link) => (
             <li key={link.label}>
-              <a
+              <NextLink
                 href={link.href}
                 target={link.external ? "_blank" : undefined}
                 rel={link.external ? "noopener noreferrer" : undefined}
@@ -225,7 +225,7 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
                     {link.description}
                   </span>
                 </span>
-              </a>
+              </NextLink>
             </li>
           ))}
         </ul>
@@ -378,7 +378,7 @@ export function Nav() {
                   {stars && <span className="tabular-nums"> ({stars})</span>}
                 </span>
               </a>
-              <NextLink href={lh("/login")} className={TEXT_LINK}>
+              <NextLink href={lh("/login")} prefetch className={TEXT_LINK}>
                 {m.nav.login}
               </NextLink>
               <ThemeToggle
@@ -438,6 +438,7 @@ export function Nav() {
             </NavLink>
             <NextLink
               href={lh("/login")}
+              prefetch
               onClick={closeMenu}
               className={cn(buttonVariants({ variant: "ghost" }), "w-full")}
             >

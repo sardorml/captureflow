@@ -20,6 +20,7 @@ import { useAppMessages } from "@/components/app-i18n-provider";
 import type { RecordingConfig } from "@/lib/recording-config";
 import { RECORDING_SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 type Props = {
   slug: string;
@@ -200,9 +201,9 @@ function ActionRow({
     "flex w-full items-center gap-3 rounded-2xl px-2 py-2.5 text-left transition-colors hover:bg-tint";
   if (href) {
     return (
-      <a href={href} className={className}>
+      <Link href={href} className={className}>
         {body}
-      </a>
+      </Link>
     );
   }
   return (

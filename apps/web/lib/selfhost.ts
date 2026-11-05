@@ -14,3 +14,9 @@ export const isInstanceAdminUser = cache(async function isInstanceAdminUser(
   const hooks = await selfHostHooks();
   return hooks ? hooks.isAdmin(userId) : false;
 });
+
+// Null when hosted. Cached per request: the login layout and page both ask.
+export const signupState = cache(async function signupState() {
+  const hooks = await selfHostHooks();
+  return hooks ? hooks.signupState() : null;
+});

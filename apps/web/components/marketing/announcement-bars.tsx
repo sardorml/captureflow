@@ -1,6 +1,7 @@
 "use client";
 
 import NextLink from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { track } from "@/lib/marketing/track";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
@@ -10,9 +11,13 @@ const BOTTOM_BAR_HEIGHT = 46;
 export function TopBar() {
   const copy = useMessages().announcement;
   const lh = useLocalizedHref();
+  const home = lh("/");
+  // Next's router skips the scroll when the hash is already in the URL, so on
+  // the landing page itself this stays a plain in-page link.
+  const Anchor = usePathname() === home ? "a" : NextLink;
   return (
-    <a
-      href={`${lh("/")}#agents`}
+    <Anchor
+      href={`${home}#agents`}
       onClick={() => track("marketing_cta_clicked", { location: "top_bar" })}
       className="group flex h-10 items-center justify-center gap-2 border-b border-line bg-panel px-4 text-sm whitespace-nowrap"
     >
@@ -28,7 +33,7 @@ export function TopBar() {
           className="transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
         />
       </span>
-    </a>
+    </Anchor>
   );
 }
 

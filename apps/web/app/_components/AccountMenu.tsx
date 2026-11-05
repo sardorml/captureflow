@@ -23,6 +23,7 @@ import { initials } from "@/lib/format";
 import { SUPPORT_EMAIL } from "@/lib/site";
 import { useAppMessages } from "@/components/app-i18n-provider";
 import { ThemeSegments } from "./ThemeSegments";
+import Link from "next/link";
 
 export type AccountMenuPlan = "free" | SeatPlanId;
 
@@ -67,7 +68,7 @@ export function accountNavItems({
     {
       key: "settings",
       icon: <Settings size={16} />,
-      href: `${base}/settings`,
+      href: `${base}/settings/personal`,
     },
     {
       key: "support",
@@ -162,7 +163,7 @@ export function AccountMenu({
           );
           return (
             <DropdownMenuItem key={item.key} asChild>
-              <a href={item.href}>{content}</a>
+              <Link href={item.href}>{content}</Link>
             </DropdownMenuItem>
           );
         })}

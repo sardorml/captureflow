@@ -26,6 +26,7 @@ import { useConfirm } from "@/app/_components/confirm-dialog";
 import { useAppMessages } from "@/components/app-i18n-provider";
 import type { RecordingVisibility } from "@/lib/recording/types";
 import { currentPlayerMs } from "./player-clock";
+import Link from "next/link";
 
 type Props = {
   slug: string;
@@ -135,13 +136,13 @@ export function RecordingActions({
       {dialog}
       <div className="flex items-center gap-2">
         {isOwner && (
-          <a
+          <Link
             href={editUrl}
             className={buttonVariants({ variant: "secondary" })}
           >
             <Pencil size={16} />
             <span className="hidden sm:inline">{m.library.recording.edit}</span>
-          </a>
+          </Link>
         )}
         {signedIn ? (
           <ButtonGroup>

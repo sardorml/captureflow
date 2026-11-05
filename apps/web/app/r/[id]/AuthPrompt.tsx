@@ -2,6 +2,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { getAppI18n } from "@/lib/i18n/app/server";
 import { fmt } from "@/lib/i18n/format";
 import { PRODUCT_NAME } from "@/lib/site";
+import Link from "next/link";
 
 type Props = {
   marketingUrl: string;
@@ -21,9 +22,12 @@ export async function AuthPrompt({ marketingUrl, loginUrl }: Props) {
       >
         {copy.pricing}
       </a>
-      <a href={loginUrl} className={buttonVariants({ variant: "secondary" })}>
+      <Link
+        href={loginUrl}
+        className={buttonVariants({ variant: "secondary" })}
+      >
         {copy.logIn}
-      </a>
+      </Link>
       <a href={marketingUrl} className={buttonVariants()}>
         <span className="sm:hidden">{copy.getStarted}</span>
         <span className="max-sm:hidden">

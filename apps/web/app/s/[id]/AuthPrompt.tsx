@@ -2,6 +2,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { getAppI18n } from "@/lib/i18n/app/server";
 import { fmt } from "@/lib/i18n/format";
 import { PRODUCT_NAME } from "@/lib/site";
+import Link from "next/link";
 
 type Props = {
   marketingUrl: string;
@@ -22,12 +23,12 @@ export async function AuthPrompt({ marketingUrl, loginUrl }: Props) {
       >
         {m.screenshotView.authPrompt.pricing}
       </a>
-      <a
+      <Link
         href={loginUrl}
         className={buttonVariants({ variant: "secondary", size: "sm" })}
       >
         {m.screenshotView.authPrompt.logIn}
-      </a>
+      </Link>
       <a href={marketingUrl} className={buttonVariants({ size: "sm" })}>
         <span className="sm:hidden">
           {m.screenshotView.authPrompt.getStarted}
