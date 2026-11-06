@@ -77,6 +77,13 @@ export type {
   UserSort,
 } from "./directory";
 export {
+  TIMELINE_LIMIT,
+  describeUserAgent,
+  getUserTimeline,
+  mergeTimeline,
+} from "./timeline";
+export type { AdminTimelineEvent, AdminTimelineKind } from "./timeline";
+export {
   MIN_PASSWORD_LENGTH,
   hydrateAdminId,
   hydrateEmail,
