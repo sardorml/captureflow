@@ -1,15 +1,35 @@
 import NextLink from "next/link";
 import { notFound } from "next/navigation";
+import {
+  Bot,
+  Camera,
+  CreditCard,
+  Eye,
+  Inbox,
+  LogIn,
+  Mail,
+  MessageSquare,
+  MonitorSmartphone,
+  ShieldCheck,
+  SmilePlus,
+  UserPlus,
+  Users,
+  Video,
+  type LucideIcon,
+} from "lucide-react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import {
   can,
   getAdminUser,
   getLimitOverride,
   getUserActivity,
+  getUserTimeline,
   listAuditForTarget,
   listUserSubscriptions,
   listUserWorkspaces,
   summarizeCapture,
+  type AdminTimelineEvent,
+  type AdminTimelineKind,
 } from "@captureflow/admin";
 import { requirePermission } from "@/lib/guard";
 import { getAdminEnv } from "@/lib/env";
@@ -28,11 +48,77 @@ import {
   formatDate,
   formatDuration,
   formatRelative,
+  shareUrl,
 } from "../../_ui";
 import { setUserLimitsAction } from "../../actions";
+import { Feed, type FeedItem, type Hue } from "../../_dashboard";
 import { PanelTabs } from "../../_filters";
 import { LimitsCard } from "../../_limits-card";
 import { SignOutEverywhere } from "./SignOutEverywhere";
+
+const TIMELINE_ICON: Record<AdminTimelineKind, [LucideIcon, Hue]> = {
+  signup: [UserPlus, "blue"],
+  signin: [LogIn, "blue"],
+  device: [MonitorSmartphone, "blue"],
+  recording: [Video, "violet"],
+  screenshot: [Camera, "violet"],
+  agent: [Bot, "violet"],
+  workspace: [Users, "emerald"],
+  member: [Users, "emerald"],
+  invite: [Mail, "emerald"],
+  subscription: [CreditCard, "amber"],
+  seats: [CreditCard, "amber"],
+  seatRequest: [CreditCard, "amber"],
+  comment: [MessageSquare, "violet"],
+  reaction: [SmilePlus, "violet"],
+  view: [Eye, "muted"],
+  contact: [Inbox, "muted"],
+  admin: [ShieldCheck, "amber"],
+};
+
+// The person's name leads each line, except where an admin acted on them.
+function timelineItem(
+  event: AdminTimelineEvent,
+  userName: string,
+  appBaseUrl: string | undefined,
+): FeedItem {
+  const [Icon, hue] = TIMELINE_ICON[event.kind];
+  const href = event.workspaceId
+    ? `/workspaces/${event.workspaceId}`
+    : event.slug
+      ? shareUrl(appBaseUrl, event.slug)
+      : null;
+  return {
+    key: event.key,
+    icon: <Icon size={15} aria-hidden />,
+    hue,
+    at: event.at,
+    text: (
+      <>
+        <span className="text-fg-strong font-medium">
+          {event.actor ?? userName}
+        </span>{" "}
+        {event.text}
+        {event.subject && (
+          <>
+            {" "}
+            {href ? (
+              <NextLink
+                href={href}
+                className="text-fg-strong hover:underline"
+                target={event.workspaceId ? undefined : "_blank"}
+              >
+                {event.subject}
+              </NextLink>
+            ) : (
+              <span className="text-fg-strong">{event.subject}</span>
+            )}
+          </>
+        )}
+      </>
+    ),
+  };
+}
 
 const STATE_COLOR = {
   ready: "success",
@@ -101,10 +187,11 @@ export default async function UserPage({
   const env = await getAdminEnv();
   if (!env?.DB) notFound();
 
-  const [user, activity, subscriptions, workspaces, audit, limits] =
+  const [user, activity, timeline, subscriptions, workspaces, audit, limits] =
     await Promise.all([
       getAdminUser(env.DB, id),
       getUserActivity(env.DB, id),
+      getUserTimeline(env.DB, id),
       listUserSubscriptions(env.DB, id),
       listUserWorkspaces(env.DB, id),
       listAuditForTarget(env.DB, "user", id),
@@ -112,6 +199,22 @@ export default async function UserPage({
     ]);
   if (!user) notFound();
   const canWrite = can(operator.role, "users.write");
+  const now = Date.now();
+  const displayName = user.name || user.email;
+
+  const timelineFeed =
+    timeline.length === 0 ? (
+      <Empty title="Nothing yet" />
+    ) : (
+      <div className="max-w-2xl">
+        <Feed
+          items={timeline.map((e) =>
+            timelineItem(e, displayName, env.APP_BASE_URL),
+          )}
+          formatTime={(ms) => formatRelative(ms, now)}
+        />
+      </div>
+    );
   const ownedTeams = workspaces.filter(
     (w) => w.kind === "team" && w.owner.id === user.id,
   ).length;
@@ -418,6 +521,7 @@ export default async function UserPage({
       <PanelTabs
         label="User details"
         items={[
+          { id: "activity", label: "Activity", content: timelineFeed },
           { id: "recordings", label: "Recordings", content: recentTable },
           {
             id: "workspaces",
