@@ -115,9 +115,9 @@ const messages: Messages = {
     cta: "Yhdistä",
   },
   hero: {
-    title: "Näytön tallennus sinulle\nja tekoälyagenteillesi",
+    title: "Näytön tallennus {bubble}\nsinulle ja tekoälyagenteillesi",
     subtitle:
-      "Tallenna demot, ohjeet, läpikäynnit ja esitykset itse tai anna tekoälyn tallentaa ne puolestasi. Jaa jokainen linkkinä, jonka kuka tahansa voi katsoa.",
+      "Tallenna demot, ohjeet ja läpikäynnit itse {chrome}-laajennuksella, tai anna tekoälyn, kuten {claude}, {chatgpt} tai {cursor}, tallentaa ne puolestasi. Jaa jokainen linkkinä, jonka kuka tahansa voi katsoa.",
     ctaLabel: "Kokeile CaptureFlow'ta ilmaiseksi",
     installChrome: "Asenna Chrome-laajennus",
     installMac: "Lataa macOS:lle",

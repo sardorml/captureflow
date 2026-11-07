@@ -112,9 +112,9 @@ const messages: Messages = {
     cta: "Conectar",
   },
   hero: {
-    title: "Grabador de pantalla para\nti y tus agentes de IA",
+    title: "Grabador de pantalla {bubble}\npara ti y tus agentes de IA",
     subtitle:
-      "Graba demos, tutoriales, recorridos y presentaciones por tu cuenta, o deja que tu IA los grabe por ti. Comparte cada uno como un enlace que cualquiera puede ver.",
+      "Graba demos, tutoriales y recorridos por tu cuenta con la extensión de {chrome}, o deja que {claude}, {chatgpt} o {cursor} los graben por ti. Comparte cada uno como un enlace que cualquiera puede ver.",
     ctaLabel: "Prueba CaptureFlow gratis",
     installChrome: "Instalar extensión de Chrome",
     installMac: "Descargar para macOS",

@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import NextLink from "next/link";
 import { ArrowRight } from "lucide-react";
+import { fill } from "@/lib/i18n/fill";
 import { splitLead } from "@/lib/marketing/split-lead";
 import { cn } from "@/lib/utils";
 import type { HeadingLevel } from "./_shared";
@@ -82,12 +83,18 @@ export function FrameSection({
   );
 }
 
-export function TwoTone({ text }: { text: string }) {
+export function TwoTone({
+  text,
+  slots = {},
+}: {
+  text: string;
+  slots?: Record<string, ReactNode>;
+}) {
   const { lead, rest } = splitLead(text);
   return (
     <>
-      <span className="font-medium text-fg">{lead}</span>
-      {rest && <span className="text-fg-muted"> {rest}</span>}
+      <span className="font-medium text-fg">{fill(lead, slots)}</span>
+      {rest && <span className="text-fg-muted"> {fill(rest, slots)}</span>}
     </>
   );
 }

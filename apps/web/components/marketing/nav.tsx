@@ -43,7 +43,7 @@ const wordmark = Rubik({ subsets: ["latin"], weight: "500", display: "swap" });
 
 // Bare muted text in the bar; full-width ghost buttons once stacked in the drawer.
 const TEXT_LINK =
-  "text-sm font-normal whitespace-nowrap text-fg transition-colors hover:text-fg/70 motion-reduce:transition-none";
+  "text-sm font-normal tracking-[-0.01em] whitespace-nowrap text-fg/80 transition-colors hover:text-fg motion-reduce:transition-none";
 
 // The one solid control in the bar.
 const PILL_CTA =

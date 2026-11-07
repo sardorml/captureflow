@@ -113,9 +113,9 @@ const messages: Messages = {
     cta: "Anslut",
   },
   hero: {
-    title: "Skärminspelare för\ndig och dina AI-agenter",
+    title: "Skärminspelare {bubble}\nför dig och dina AI-agenter",
     subtitle:
-      "Spela in demor, guider, genomgångar och presentationer själv, eller låt din AI spela in dem åt dig. Dela var och en som en länk som vem som helst kan titta på.",
+      "Spela in demor, guider och genomgångar själv med {chrome}-tillägget, eller låt {claude}, {chatgpt} eller {cursor} spela in dem åt dig. Dela var och en som en länk som vem som helst kan titta på.",
     ctaLabel: "Prova CaptureFlow gratis",
     installChrome: "Installera Chrome-tillägget",
     installMac: "Ladda ner för macOS",

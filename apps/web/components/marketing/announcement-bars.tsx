@@ -19,15 +19,17 @@ export function TopBar() {
     <Anchor
       href={`${home}#agents`}
       onClick={() => track("marketing_cta_clicked", { location: "top_bar" })}
-      className="group flex h-10 items-center justify-center gap-2 border-b border-line bg-panel px-4 text-sm whitespace-nowrap"
+      className="group flex h-[41px] items-center justify-center gap-2 border-b border-line-strong bg-panel bg-clip-padding px-4 text-sm whitespace-nowrap outline-none hover:bg-muted focus-visible:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
     >
-      <span className="rounded-full bg-tint-strong px-2 py-0.5 text-xs font-medium text-fg">
+      <span className="rounded-full bg-tint-strong px-2 py-0.5 text-xs font-medium text-fg group-hover:bg-panel group-focus-visible:bg-panel">
         {copy.badge}
       </span>
       <span className="font-medium text-fg">{copy.lead}</span>
       <span className="hidden text-fg-muted md:inline">{copy.rest}</span>
       <span className="ml-1 hidden items-center gap-1.5 font-medium text-fg sm:inline-flex">
-        {copy.cta}
+        <span className="underline-offset-4 group-hover:underline">
+          {copy.cta}
+        </span>
         <ArrowRight
           size={15}
           className="transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"

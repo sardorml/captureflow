@@ -32,6 +32,11 @@ body {
   font-family: inherit;
 }
 
+/* The marketing frame, nav and bars draw their rules at the hairline border weight. */
+[data-marketing] {
+  --cf-line-strong: var(--border);
+}
+
 /* Play/pause flash overlay on the RecordingPlayer. Shared between the
    edit-page preview and public viewer so they stay in sync. */
 @keyframes recording-icon-pop {
