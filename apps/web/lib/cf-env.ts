@@ -56,6 +56,18 @@ export type AppWebBindings = {
   ALLOWED_EMAIL_DOMAINS?: string;
 };
 
+// Work that may outlast the response: the Worker keeps running for it; outside one it simply runs on.
+export async function runInBackground(task: Promise<unknown>): Promise<void> {
+  const guarded = task.catch((err) =>
+    console.error("[background] task failed", err),
+  );
+  if (getInjectedEnv()) return;
+  try {
+    const ctx = await getCloudflareContext({ async: true });
+    ctx.ctx.waitUntil(guarded);
+  } catch {}
+}
+
 export async function getAppWebEnv(): Promise<AppWebBindings | null> {
   const injected = getInjectedEnv<AppWebBindings>();
   if (injected) return injected;
