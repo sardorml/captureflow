@@ -24,6 +24,10 @@ const messages: AppMessages = {
     themeToLight: "Vaihda vaaleaan teemaan",
     themeToDark: "Vaihda tummaan teemaan",
     somethingWrong: "Jokin meni vikaan. Yritä uudelleen.",
+    pageFailed: "Tätä sivua ei voitu ladata.",
+    partFailed: "Tätä osaa ei voitu ladata.",
+    failedBody: "Jokin meni vikaan. Yritä uudelleen tai lataa sivu uudelleen.",
+    reload: "Lataa sivu uudelleen",
   },
   auth: {
     signedInAs: "Olet kirjautunut osoitteella {email}.",

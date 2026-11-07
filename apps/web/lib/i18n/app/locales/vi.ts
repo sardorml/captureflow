@@ -24,6 +24,10 @@ const messages: AppMessages = {
     themeToLight: "Chuyển sang giao diện sáng",
     themeToDark: "Chuyển sang giao diện tối",
     somethingWrong: "Đã xảy ra lỗi. Hãy thử lại.",
+    pageFailed: "Không thể tải trang này.",
+    partFailed: "Không thể tải phần này.",
+    failedBody: "Đã xảy ra lỗi. Hãy thử lại hoặc tải lại trang.",
+    reload: "Tải lại trang",
   },
   auth: {
     signedInAs: "Đã đăng nhập bằng {email}.",

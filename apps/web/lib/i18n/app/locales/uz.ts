@@ -24,6 +24,11 @@ const messages: AppMessages = {
     themeToLight: "Yorugʻ mavzuga oʻtish",
     themeToDark: "Qorongʻi mavzuga oʻtish",
     somethingWrong: "Xatolik yuz berdi. Qayta urinib koʻring.",
+    pageFailed: "Bu sahifani yuklab bo'lmadi.",
+    partFailed: "Bu qismni yuklab bo'lmadi.",
+    failedBody:
+      "Nimadir xato ketdi. Qaytadan urinib ko'ring yoki sahifani qayta yuklang.",
+    reload: "Sahifani qayta yuklash",
   },
   auth: {
     signedInAs: "{email} sifatida kirgansiz.",

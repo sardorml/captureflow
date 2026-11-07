@@ -24,6 +24,10 @@ const messages: AppMessages = {
     themeToLight: "Passa al tema chiaro",
     themeToDark: "Passa al tema scuro",
     somethingWrong: "Si è verificato un errore. Riprova.",
+    pageFailed: "Impossibile caricare questa pagina.",
+    partFailed: "Impossibile caricare questa parte.",
+    failedBody: "Qualcosa è andato storto. Riprova o ricarica la pagina.",
+    reload: "Ricarica la pagina",
   },
   auth: {
     signedInAs: "Accesso effettuato come {email}.",

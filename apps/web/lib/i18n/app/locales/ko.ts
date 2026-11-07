@@ -24,6 +24,10 @@ const messages: AppMessages = {
     themeToLight: "라이트 테마로 전환",
     themeToDark: "다크 테마로 전환",
     somethingWrong: "문제가 발생했습니다. 다시 시도하세요.",
+    pageFailed: "이 페이지를 불러오지 못했습니다.",
+    partFailed: "이 부분을 불러오지 못했습니다.",
+    failedBody: "문제가 발생했습니다. 다시 시도하거나 페이지를 새로고침하세요.",
+    reload: "페이지 새로고침",
   },
   auth: {
     signedInAs: "{email}(으)로 로그인했습니다.",
