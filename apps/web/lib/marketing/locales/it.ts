@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Digita l'indirizzo di un sito e guarda uno sciame di cursori di agenti ricostruirlo elemento per elemento, a ritmo di musica. Ottieni un video con un link da condividere.",
     },
+    chromeExtension: {
+      title: "Estensione per Chrome: registra lo schermo e condividi un link",
+      description:
+        "Registra lo schermo, una scheda o la fotocamera da Chrome. Alla fine ottieni un link che chiunque può guardare, con trascrizione, riepilogo e capitoli.",
+    },
   },
   nav: {
     features: "Funzionalità",
@@ -361,6 +366,13 @@ const messages: Messages = {
       title: "Domande frequenti",
       subtitle:
         "Risposte su registrazione, prezzi, archiviazione e self-hosting. Per tutto il resto, leggi la documentazione.",
+    },
+    chromeExtension: {
+      label: "Estensione per Chrome",
+      word: "CHROME",
+      title: "Registra lo schermo da Chrome",
+      subtitle:
+        "Registra lo schermo, una scheda o la fotocamera. Alla fine ottieni un link che chiunque può guardare, con trascrizione, riepilogo e capitoli.",
     },
   },
   collaboration: {

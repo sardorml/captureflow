@@ -19,7 +19,7 @@ export function PageHero({
   page,
   action,
 }: {
-  page: "features" | "pricing" | "faq";
+  page: "features" | "pricing" | "faq" | "chromeExtension";
   action?: ReactNode;
 }) {
   const m = useMessages();

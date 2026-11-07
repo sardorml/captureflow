@@ -51,6 +51,11 @@ const messages: Messages = {
       description:
         "Bir web sitesi adresi yazın ve bir ajan imleci sürüsünün onu müzik eşliğinde öğe öğe yeniden kurmasını izleyin. Paylaşabileceğiniz bir bağlantıyla birlikte bir video alırsınız.",
     },
+    chromeExtension: {
+      title: "Chrome uzantısı: ekranınızı kaydedin ve bir bağlantı paylaşın",
+      description:
+        "Chrome'dan ekranınızı, bir sekmeyi veya kameranızı kaydedin. Bitirdiğinizde transkript, özet ve bölümlerle herkesin izleyebileceği bir bağlantı alırsınız.",
+    },
   },
   nav: {
     features: "Özellikler",
@@ -364,6 +369,13 @@ const messages: Messages = {
       title: "Sık Sorulan Sorular",
       subtitle:
         "Kayıt, fiyatlandırma, depolama ve kendiniz barındırma hakkında yanıtlar. Diğer her şey için belgeleri okuyun.",
+    },
+    chromeExtension: {
+      label: "Chrome uzantısı",
+      word: "CHROME",
+      title: "Chrome'dan ekranınızı kaydedin",
+      subtitle:
+        "Ekranınızı, bir sekmeyi veya kameranızı kaydedin. Bitirdiğinizde transkript, özet ve bölümlerle herkesin izleyebileceği bir bağlantı alırsınız.",
     },
   },
   collaboration: {

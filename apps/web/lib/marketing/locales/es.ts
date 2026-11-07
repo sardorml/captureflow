@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Escribe la dirección de una web y mira cómo un enjambre de cursores de agentes la reconstruye elemento a elemento, con música. Obtienes un video con un enlace para compartir.",
     },
+    chromeExtension: {
+      title: "Extensión de Chrome: graba tu pantalla y comparte un enlace",
+      description:
+        "Graba tu pantalla, una pestaña o tu cámara desde Chrome. Al terminar, obtienes un enlace que cualquiera puede ver, con transcripción, resumen y capítulos.",
+    },
   },
   nav: {
     features: "Funciones",
@@ -362,6 +367,13 @@ const messages: Messages = {
       title: "Preguntas frecuentes",
       subtitle:
         "Respuestas sobre grabación, precios, almacenamiento y autoalojamiento. Consulta la documentación para todo lo demás.",
+    },
+    chromeExtension: {
+      label: "Extensión de Chrome",
+      word: "CHROME",
+      title: "Graba tu pantalla desde Chrome",
+      subtitle:
+        "Graba tu pantalla, una pestaña o tu cámara. Al terminar, obtienes un enlace que cualquiera puede ver, con transcripción, resumen y capítulos.",
     },
   },
   collaboration: {

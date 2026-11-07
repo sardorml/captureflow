@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "웹사이트 주소를 입력하면 에이전트 커서 떼가 음악에 맞춰 요소 하나하나를 다시 만들어 가는 모습을 볼 수 있습니다. 공유 링크가 있는 영상을 받습니다.",
     },
+    chromeExtension: {
+      title: "Chrome 확장 프로그램: 화면을 녹화하고 링크로 공유하세요",
+      description:
+        "Chrome에서 화면, 탭 또는 카메라를 녹화하세요. 녹화를 마치면 자막, 요약, 챕터가 포함된, 누구나 볼 수 있는 링크를 받습니다.",
+    },
   },
   nav: {
     features: "기능",
@@ -345,6 +350,13 @@ const messages: Messages = {
       title: "자주 묻는 질문",
       subtitle:
         "녹화, 요금제, 저장 공간, 셀프 호스팅에 대한 답변입니다. 그 외에는 문서를 읽어 보세요.",
+    },
+    chromeExtension: {
+      label: "Chrome 확장 프로그램",
+      word: "CHROME",
+      title: "Chrome에서 화면 녹화",
+      subtitle:
+        "화면, 탭 또는 카메라를 녹화하세요. 녹화를 마치면 자막, 요약, 챕터가 포함된, 누구나 볼 수 있는 링크를 받습니다.",
     },
   },
   collaboration: {

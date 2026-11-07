@@ -51,6 +51,11 @@ const messages: Messages = {
       description:
         "Nhập địa chỉ website và xem một bầy con trỏ agent dựng lại nó từng phần tử một trên nền nhạc. Bạn nhận được một video kèm liên kết để chia sẻ.",
     },
+    chromeExtension: {
+      title: "Tiện ích Chrome: quay màn hình và chia sẻ liên kết",
+      description:
+        "Quay màn hình, một thẻ hoặc camera ngay trong Chrome. Khi xong, bạn nhận được một liên kết ai cũng xem được, kèm bản chép lời, tóm tắt và chương.",
+    },
   },
   nav: {
     features: "Tính năng",
@@ -353,6 +358,13 @@ const messages: Messages = {
       title: "Câu hỏi thường gặp",
       subtitle:
         "Giải đáp về quay màn hình, giá, lưu trữ và tự host. Những nội dung khác có trong tài liệu.",
+    },
+    chromeExtension: {
+      label: "Tiện ích Chrome",
+      word: "CHROME",
+      title: "Quay màn hình ngay trong Chrome",
+      subtitle:
+        "Quay màn hình, một thẻ hoặc camera. Khi xong, bạn nhận được một liên kết ai cũng xem được, kèm bản chép lời, tóm tắt và chương.",
     },
   },
   collaboration: {

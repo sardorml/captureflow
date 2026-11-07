@@ -55,6 +55,7 @@ describe("isLocalizedPath", () => {
     expect(isLocalizedPath("/")).toBe(true);
     expect(isLocalizedPath("/self-host-setup")).toBe(true);
     expect(isLocalizedPath("/swarm-demo")).toBe(true);
+    expect(isLocalizedPath("/chrome-extension")).toBe(true);
     expect(isLocalizedPath("/blog/some-post")).toBe(false);
     expect(isLocalizedPath("/pricingx")).toBe(false);
   });

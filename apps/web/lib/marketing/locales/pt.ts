@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Escreva o endereço de um site e veja um enxame de cursores de agentes reconstruí-lo elemento a elemento, ao som de música. Recebe um vídeo com um link para partilhar.",
     },
+    chromeExtension: {
+      title: "Extensão do Chrome: grave o ecrã e partilhe um link",
+      description:
+        "Grave o ecrã, um separador ou a câmara a partir do Chrome. Quando terminar, recebe um link que qualquer pessoa pode ver, com transcrição, resumo e capítulos.",
+    },
   },
   nav: {
     features: "Funcionalidades",
@@ -367,6 +372,13 @@ const messages: Messages = {
       title: "Perguntas frequentes",
       subtitle:
         "Respostas sobre gravação, preços, armazenamento e alojamento próprio. Para tudo o resto, consulte a documentação.",
+    },
+    chromeExtension: {
+      label: "Extensão do Chrome",
+      word: "CHROME",
+      title: "Grave o ecrã a partir do Chrome",
+      subtitle:
+        "Grave o ecrã, um separador ou a câmara. Quando terminar, recebe um link que qualquer pessoa pode ver, com transcrição, resumo e capítulos.",
     },
   },
   collaboration: {

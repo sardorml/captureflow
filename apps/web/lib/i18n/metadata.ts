@@ -20,6 +20,7 @@ export const PAGE_PATHS: Record<MarketingPageId, string> = {
   enterprise: "/enterprise",
   selfHostSetup: "/self-host-setup",
   swarmDemo: "/swarm-demo",
+  chromeExtension: "/chrome-extension",
 };
 
 const OG_IMAGE = "/og-image.png?v=5";

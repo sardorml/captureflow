@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "サイトのアドレスを入力すると、エージェントカーソルの群れが音楽に合わせて要素ごとに再構築していく様子を見られます。共有リンク付きの動画が手に入ります。",
     },
+    chromeExtension: {
+      title: "Chrome拡張機能：画面を録画してリンクで共有",
+      description:
+        "Chromeから画面、タブ、カメラを録画できます。録画を終えると、文字起こし・要約・チャプター付きで誰でも見られるリンクが手に入ります。",
+    },
   },
   nav: {
     features: "機能",
@@ -355,6 +360,13 @@ const messages: Messages = {
       title: "よくある質問",
       subtitle:
         "録画、料金、ストレージ、セルフホストについての回答です。それ以外はドキュメントをご覧ください。",
+    },
+    chromeExtension: {
+      label: "Chrome拡張機能",
+      word: "CHROME",
+      title: "Chromeで画面を録画",
+      subtitle:
+        "画面、タブ、カメラを録画できます。録画を終えると、文字起こし・要約・チャプター付きで誰でも見られるリンクが手に入ります。",
     },
   },
   collaboration: {

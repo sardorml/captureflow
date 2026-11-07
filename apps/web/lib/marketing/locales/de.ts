@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Gib eine Website-Adresse ein und sieh zu, wie ein Schwarm aus Agenten-Cursorn sie Element für Element nachbaut, mit Musik. Du bekommst ein Video mit Link zum Teilen.",
     },
+    chromeExtension: {
+      title: "Chrome-Erweiterung: Bildschirm aufnehmen und Link teilen",
+      description:
+        "Nimm deinen Bildschirm, einen Tab oder deine Kamera in Chrome auf. Danach bekommst du einen Link, den jeder ansehen kann, mit Transkript, Zusammenfassung und Kapiteln.",
+    },
   },
   nav: {
     features: "Funktionen",
@@ -371,6 +376,13 @@ const messages: Messages = {
       title: "Häufig gestellte Fragen",
       subtitle:
         "Antworten zu Aufnahme, Preisen, Speicher und Self-Hosting. Alles Weitere steht in der Dokumentation.",
+    },
+    chromeExtension: {
+      label: "Chrome-Erweiterung",
+      word: "CHROME",
+      title: "Bildschirm aufnehmen in Chrome",
+      subtitle:
+        "Nimm deinen Bildschirm, einen Tab oder deine Kamera auf. Danach bekommst du einen Link, den jeder ansehen kann, mit Transkript, Zusammenfassung und Kapiteln.",
     },
   },
   collaboration: {

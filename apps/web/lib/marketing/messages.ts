@@ -58,6 +58,11 @@ export const MESSAGES = {
       description:
         "Type a website address and watch a swarm of agent cursors rebuild it element by element, to music. You get a video with a link to share.",
     },
+    chromeExtension: {
+      title: "Chrome extension: record your screen and share a link",
+      description:
+        "Record your screen, a tab or your camera from Chrome. When you finish, you get a link anyone can watch, with a transcript, summary and chapters.",
+    },
   },
   nav: {
     features: "Features",
@@ -355,6 +360,13 @@ export const MESSAGES = {
       title: "Frequently Asked Questions",
       subtitle:
         "Answers on recording, pricing, storage and self-hosting. Read the docs for everything else.",
+    },
+    chromeExtension: {
+      label: "Chrome extension",
+      word: "CHROME",
+      title: "Record your screen from Chrome",
+      subtitle:
+        "Record your screen, a tab or your camera. When you finish, you get a link anyone can watch, with a transcript, summary and chapters.",
     },
   },
   collaboration: {

@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Wpisz adres strony i zobacz, jak rój kursorów agentów odbudowuje ją element po elemencie, do muzyki. Otrzymasz wideo z linkiem do udostępnienia.",
     },
+    chromeExtension: {
+      title: "Rozszerzenie Chrome: nagraj ekran i udostępnij link",
+      description:
+        "Nagraj ekran, kartę lub kamerę w Chrome. Po zakończeniu dostajesz link, który każdy może obejrzeć, z transkrypcją, podsumowaniem i rozdziałami.",
+    },
   },
   nav: {
     features: "Funkcje",
@@ -352,6 +357,13 @@ const messages: Messages = {
       title: "Najczęściej zadawane pytania",
       subtitle:
         "Odpowiedzi na pytania o nagrywanie, ceny, przechowywanie i self-hosting. Resztę znajdziesz w dokumentacji.",
+    },
+    chromeExtension: {
+      label: "Rozszerzenie Chrome",
+      word: "CHROME",
+      title: "Nagrywaj ekran w Chrome",
+      subtitle:
+        "Nagraj ekran, kartę lub kamerę. Po zakończeniu dostajesz link, który każdy może obejrzeć, z transkrypcją, podsumowaniem i rozdziałami.",
     },
   },
   collaboration: {

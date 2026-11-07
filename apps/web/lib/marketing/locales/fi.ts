@@ -51,6 +51,11 @@ const messages: Messages = {
       description:
         "Kirjoita sivuston osoite ja katso, kuinka parvi agenttikursoreita rakentaa sen uudelleen elementti kerrallaan musiikin tahdissa. Saat videon ja jaettavan linkin.",
     },
+    chromeExtension: {
+      title: "Chrome-laajennus: tallenna näyttösi ja jaa linkki",
+      description:
+        "Tallenna näyttösi, välilehti tai kamerasi Chromessa. Lopuksi saat linkin, jota kuka tahansa voi katsoa, tekstityksen, yhteenvedon ja lukujen kanssa.",
+    },
   },
   nav: {
     features: "Ominaisuudet",
@@ -364,6 +369,13 @@ const messages: Messages = {
       title: "Usein kysytyt kysymykset",
       subtitle:
         "Vastauksia tallentamisesta, hinnoista, tallennustilasta ja omasta ylläpidosta. Kaikki muu löytyy dokumentaatiosta.",
+    },
+    chromeExtension: {
+      label: "Chrome-laajennus",
+      word: "CHROME",
+      title: "Tallenna näyttösi Chromessa",
+      subtitle:
+        "Tallenna näyttösi, välilehti tai kamerasi. Lopuksi saat linkin, jota kuka tahansa voi katsoa, tekstityksen, yhteenvedon ja lukujen kanssa.",
     },
   },
   collaboration: {

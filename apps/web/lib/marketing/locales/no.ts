@@ -51,6 +51,11 @@ const messages: Messages = {
       description:
         "Skriv inn en nettadresse og se en sverm av agentmarkører bygge nettstedet opp igjen element for element, til musikk. Du får en video med en lenke å dele.",
     },
+    chromeExtension: {
+      title: "Chrome-utvidelse: ta opp skjermen og del en lenke",
+      description:
+        "Ta opp skjermen, en fane eller kameraet i Chrome. Når du er ferdig, får du en lenke alle kan se, med transkripsjon, sammendrag og kapitler.",
+    },
   },
   nav: {
     features: "Funksjoner",
@@ -358,6 +363,13 @@ const messages: Messages = {
       title: "Ofte stilte spørsmål",
       subtitle:
         "Svar om opptak, priser, lagring og selvhosting. Les dokumentasjonen for alt annet.",
+    },
+    chromeExtension: {
+      label: "Chrome-utvidelse",
+      word: "CHROME",
+      title: "Ta opp skjermen i Chrome",
+      subtitle:
+        "Ta opp skjermen, en fane eller kameraet. Når du er ferdig, får du en lenke alle kan se, med transkripsjon, sammendrag og kapitler.",
     },
   },
   collaboration: {

@@ -51,6 +51,11 @@ const messages: Messages = {
       description:
         "Saisissez l’adresse d’un site et regardez un essaim de curseurs d’agents le reconstruire élément par élément, en musique. Vous obtenez une vidéo avec un lien à partager.",
     },
+    chromeExtension: {
+      title: "Extension Chrome : enregistrez votre écran et partagez un lien",
+      description:
+        "Enregistrez votre écran, un onglet ou votre caméra depuis Chrome. À la fin, vous obtenez un lien que tout le monde peut regarder, avec transcription, résumé et chapitres.",
+    },
   },
   nav: {
     features: "Fonctionnalités",
@@ -380,6 +385,13 @@ const messages: Messages = {
       title: "Questions fréquentes",
       subtitle:
         "Des réponses sur l’enregistrement, les tarifs, le stockage et l’auto-hébergement. Consultez la documentation pour tout le reste.",
+    },
+    chromeExtension: {
+      label: "Extension Chrome",
+      word: "CHROME",
+      title: "Enregistrez votre écran depuis Chrome",
+      subtitle:
+        "Enregistrez votre écran, un onglet ou votre caméra. À la fin, vous obtenez un lien que tout le monde peut regarder, avec transcription, résumé et chapitres.",
     },
   },
   collaboration: {

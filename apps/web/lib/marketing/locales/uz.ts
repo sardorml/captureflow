@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Sayt manzilini kiriting va agent kursorlari toʻdasi uni musiqa ostida elementma-element qayta qurishini tomosha qiling. Sizga ulashish uchun havolali video beriladi.",
     },
+    chromeExtension: {
+      title: "Chrome kengaytmasi: ekraningizni yozib oling va havola ulashing",
+      description:
+        "Chrome’da ekraningiz, tab yoki kamerangizni yozib oling. Tugatganingizdan soʻng transkript, xulosa va boblar bilan hamma koʻra oladigan havola olasiz.",
+    },
   },
   nav: {
     features: "Imkoniyatlar",
@@ -357,6 +362,13 @@ const messages: Messages = {
       title: "Koʻp beriladigan savollar",
       subtitle:
         "Yozib olish, narxlar, saqlash va mustaqil hosting boʻyicha javoblar. Qolgan hammasi uchun hujjatlarni oʻqing.",
+    },
+    chromeExtension: {
+      label: "Chrome kengaytmasi",
+      word: "CHROME",
+      title: "Chrome’da ekraningizni yozib oling",
+      subtitle:
+        "Ekraningiz, tab yoki kamerangizni yozib oling. Tugatganingizdan soʻng transkript, xulosa va boblar bilan hamma koʻra oladigan havola olasiz.",
     },
   },
   collaboration: {

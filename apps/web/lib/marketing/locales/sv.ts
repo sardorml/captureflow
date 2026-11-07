@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Skriv in en webbadress och se en svärm av agentmarkörer bygga om den element för element, till musik. Du får en video med en länk att dela.",
     },
+    chromeExtension: {
+      title: "Chrome-tillägg: spela in skärmen och dela en länk",
+      description:
+        "Spela in skärmen, en flik eller kameran i Chrome. När du är klar får du en länk som alla kan titta på, med transkription, sammanfattning och kapitel.",
+    },
   },
   nav: {
     features: "Funktioner",
@@ -364,6 +369,13 @@ const messages: Messages = {
       title: "Vanliga frågor",
       subtitle:
         "Svar om inspelning, priser, lagring och självhosting. Läs dokumentationen för allt annat.",
+    },
+    chromeExtension: {
+      label: "Chrome-tillägg",
+      word: "CHROME",
+      title: "Spela in skärmen i Chrome",
+      subtitle:
+        "Spela in skärmen, en flik eller kameran. När du är klar får du en länk som alla kan titta på, med transkription, sammanfattning och kapitel.",
     },
   },
   collaboration: {
