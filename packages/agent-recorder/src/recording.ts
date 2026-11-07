@@ -287,6 +287,16 @@ export async function openRecording(opts: OpenRecordingOptions) {
       if (--busy === 0) capture.pause();
     }
   }
+  // Work off camera, like getting a page ready, that still isn't idle time.
+  let offCameraWork = 0;
+  async function offCamera<T>(work: () => Promise<T>): Promise<T> {
+    offCameraWork++;
+    try {
+      return await work();
+    } finally {
+      offCameraWork--;
+    }
+  }
   await recorded(() => sleep(opts.leadInMs ?? LEAD_IN_MS));
 
   let narrated = false;
@@ -302,7 +312,7 @@ export async function openRecording(opts: OpenRecordingOptions) {
     if (opts.idleMs === null) return;
     if (idleTimer) clearTimeout(idleTimer);
     idleTimer = setTimeout(
-      () => (busy > 0 ? touch() : void finish("idle")),
+      () => (busy + offCameraWork > 0 ? touch() : void finish("idle")),
       opts.idleMs,
     );
   };
@@ -351,6 +361,7 @@ export async function openRecording(opts: OpenRecordingOptions) {
       return Math.round(capture.durationMs / 1000);
     },
     recorded,
+    offCamera,
     live() {
       if (ended) {
         throw new SessionError(
