@@ -54,6 +54,7 @@ import { RequestAccess } from "./RequestAccess";
 import { SessionLoadingShell } from "./SessionLoadingShell";
 import { AuthPrompt } from "./AuthPrompt";
 import { RecordingActions } from "./RecordingActions";
+import { shareImageLinkFor } from "@/lib/recording/share-image-link";
 import { RecordingViewer } from "./RecordingViewer";
 import { UpgradeBanner, getFreePlanUsage } from "./UpgradeBanner";
 import { NotificationsBell } from "@/app/_components/NotificationsBell";
@@ -122,10 +123,12 @@ export async function generateMetadata({
     : undefined;
   const pageUrl = viewUrlFor(id);
 
-  const posterType = posterMimeOf(row.posterKey);
   // Facebook/Instagram skip the image without explicit og:image dimensions.
-  const imageWidth = row.width ?? 1280;
-  const imageHeight = row.height ?? 720;
+  const framed = await shareImageLinkFor(row);
+  const imageUrl = framed?.url ?? posterUrl;
+  const posterType = framed ? "image/jpeg" : posterMimeOf(row.posterKey);
+  const imageWidth = framed?.width ?? row.width ?? 1280;
+  const imageHeight = framed?.height ?? row.height ?? 720;
 
   return {
     title,
@@ -138,11 +141,11 @@ export async function generateMetadata({
       title,
       description,
       siteName: PRODUCT_NAME,
-      images: posterUrl
+      images: imageUrl
         ? [
             {
-              url: posterUrl,
-              secureUrl: posterUrl,
+              url: imageUrl,
+              secureUrl: imageUrl,
               type: posterType,
               width: imageWidth,
               height: imageHeight,
@@ -164,7 +167,7 @@ export async function generateMetadata({
       card: "player",
       title,
       description,
-      images: posterUrl ? [posterUrl] : undefined,
+      images: imageUrl ? [imageUrl] : undefined,
       players: [
         {
           playerUrl: pageUrl,

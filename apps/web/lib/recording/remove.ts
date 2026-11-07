@@ -5,6 +5,7 @@ import {
   audioPartPrefixFor,
   objectKeysFor,
   segmentPrefixFor,
+  shareImagePrefixFor,
 } from "@captureflow/shared/object-keys";
 import { abortMultipartUpload, deleteObject, deleteObjectPrefix } from "./r2";
 import type { RecordingRow } from "./types";
@@ -31,6 +32,7 @@ export async function removeRecording(row: RecordingRow): Promise<void> {
       .map((key) => deleteObject(key)),
     deleteObjectPrefix(audioPartPrefixFor(row.storageKey)),
     deleteObjectPrefix(segmentPrefixFor(row.storageKey)),
+    deleteObjectPrefix(shareImagePrefixFor(row.storageKey)),
     ...(row.webcamStorageKey
       ? [deleteObjectPrefix(segmentPrefixFor(row.webcamStorageKey))]
       : []),
