@@ -84,9 +84,10 @@ export async function Sidebar({
         />
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="overflow-hidden">
         {isOwner && seat?.offer ? (
-          <div className="group-data-[collapsible=icon]:hidden">
+          // Held at the open sidebar's width, so opening the drawer uncovers the card instead of reflowing it through every width.
+          <div className="w-[calc(var(--sidebar-width)-1rem)] group-data-[collapsible=icon]:hidden">
             <SidebarUpgradeCard
               email={session.user.email}
               userId={userId}
