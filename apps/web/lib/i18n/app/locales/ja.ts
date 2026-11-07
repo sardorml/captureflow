@@ -414,6 +414,9 @@ const messages: AppMessages = {
       copyLink: "リンクをコピー",
       linkCopied: "リンクをコピーしました",
       shareAt: "{time} から共有",
+      socialHeading: "共有先",
+      socialText: "「{title}」をチェック",
+      email: "メール",
     },
     editableTitle: {
       label: "録画のタイトル",

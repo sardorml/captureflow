@@ -212,6 +212,7 @@ export default async function RecordingPage({
       <div className="flex min-h-screen flex-col bg-panel text-fg lg:h-screen lg:overflow-hidden">
         <RecordingNav
           slug={id}
+          title={row.title ?? PRODUCT_NAME}
           visitor={visitor}
           theme={theme}
           themePreference={themePreference}
@@ -359,6 +360,7 @@ export default async function RecordingPage({
       )}
       <RecordingNav
         slug={id}
+        title={headlineText}
         visitor={visitor}
         theme={theme}
         themePreference={themePreference}
@@ -424,8 +426,10 @@ function RecordingNav({
   isOwner,
   workspaceName,
   allowPublicLinks,
+  title,
 }: {
   slug: string;
+  title: string;
   visitor: VerifiedSession | null;
   theme: ReturnType<typeof readThemeFromCookieHeader>;
   themePreference: ReturnType<typeof readThemePreferenceFromCookieHeader>;
@@ -493,6 +497,7 @@ function RecordingNav({
           slug={slug}
           recordingUrl={viewUrlFor(slug)}
           embedUrl={embedUrlFor(slug)}
+          shareText={title}
           editUrl={`${APP_WEB_SITE_URL}/recordings/${slug}/edit`}
           initialVisibility={visibility}
           isOwner={isOwner}

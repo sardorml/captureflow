@@ -414,6 +414,9 @@ const messages: AppMessages = {
       copyLink: "Kopiera länk",
       linkCopied: "Länk kopierad",
       shareAt: "Dela från {time}",
+      socialHeading: "Dela på",
+      socialText: "Kolla in ”{title}”",
+      email: "E-post",
     },
     editableTitle: {
       label: "Inspelningens titel",

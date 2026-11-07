@@ -90,6 +90,7 @@ export async function ScreenshotView({
           <ScreenshotActions
             screenshotId={id}
             screenshotUrl={screenshotUrl}
+            shareText={headline}
             editUrl={editUrl}
             initialVisibility={visibility}
             isOwner={isOwner}

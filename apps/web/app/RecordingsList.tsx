@@ -20,7 +20,7 @@ import type { Visibility } from "@/app/VisibilityDialog";
 import { formatDuration } from "@/lib/format";
 import { isFiltered, type ListFilters } from "@/lib/list-filters";
 import type { DashboardRecordingRow } from "@/lib/recordings-db";
-import { viewUrlFor } from "@/lib/site";
+import { embedUrlFor, viewUrlFor } from "@/lib/site";
 
 // Storage keys stay on the server; cards get ready-made URLs.
 export type RecordingCardRow = Omit<
@@ -232,6 +232,7 @@ function RecordingCard({
       noun="recording"
       media={media}
       viewUrl={viewUrlFor(recording.slug)}
+      embedUrl={embedUrlFor(recording.slug)}
       editUrl={`/recordings/${recording.slug}/edit`}
       displayTitle={recording.title?.trim() || copy.untitled}
       initialTitle={recording.title ?? ""}

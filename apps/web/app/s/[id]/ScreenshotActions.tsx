@@ -32,6 +32,7 @@ import Link from "next/link";
 type Props = {
   screenshotId: string;
   screenshotUrl: string;
+  shareText: string;
   editUrl: string;
   initialVisibility: Visibility;
   isOwner: boolean;
@@ -43,6 +44,7 @@ type Props = {
 export function ScreenshotActions({
   screenshotId,
   screenshotUrl,
+  shareText,
   editUrl,
   initialVisibility,
   isOwner,
@@ -195,6 +197,7 @@ export function ScreenshotActions({
         pending={pending}
         error={error}
         shareUrl={screenshotUrl}
+        shareText={shareText}
       />
     </>
   );

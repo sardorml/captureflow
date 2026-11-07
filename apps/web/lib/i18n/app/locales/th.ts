@@ -410,6 +410,9 @@ const messages: AppMessages = {
       copyLink: "คัดลอกลิงก์",
       linkCopied: "คัดลอกลิงก์แล้ว",
       shareAt: "แชร์โดยเริ่มที่ {time}",
+      socialHeading: "แชร์ไปที่",
+      socialText: "ดู “{title}”",
+      email: "อีเมล",
     },
     editableTitle: {
       label: "ชื่อการบันทึก",

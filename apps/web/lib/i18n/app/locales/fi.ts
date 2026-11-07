@@ -420,6 +420,9 @@ const messages: AppMessages = {
       copyLink: "Kopioi linkki",
       linkCopied: "Linkki kopioitu",
       shareAt: "Jaa kohdasta {time}",
+      socialHeading: "Jaa palveluun",
+      socialText: "Katso ”{title}”",
+      email: "Sähköposti",
     },
     editableTitle: {
       label: "Tallenteen otsikko",

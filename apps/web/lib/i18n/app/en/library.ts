@@ -156,6 +156,9 @@ export const LIBRARY = {
     copyLink: "Copy link",
     linkCopied: "Link copied",
     shareAt: "Share at {time}",
+    socialHeading: "Share to",
+    socialText: "Check out “{title}”",
+    email: "Email",
   },
   editableTitle: {
     label: "Recording title",

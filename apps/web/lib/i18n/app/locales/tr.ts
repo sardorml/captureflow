@@ -429,6 +429,9 @@ const messages: AppMessages = {
       copyLink: "Bağlantıyı kopyala",
       linkCopied: "Bağlantı kopyalandı",
       shareAt: "{time} anından itibaren paylaş",
+      socialHeading: "Şurada paylaş",
+      socialText: "“{title}” kaydına göz at",
+      email: "E-posta",
     },
     editableTitle: {
       label: "Kayıt başlığı",

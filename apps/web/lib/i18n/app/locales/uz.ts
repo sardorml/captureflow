@@ -422,6 +422,9 @@ const messages: AppMessages = {
       copyLink: "Havolani nusxalash",
       linkCopied: "Havola nusxalandi",
       shareAt: "{time} lahzasidan ulashish",
+      socialHeading: "Ulashish",
+      socialText: "“{title}” ni ko‘ring",
+      email: "Email",
     },
     editableTitle: {
       label: "Yozuv sarlavhasi",

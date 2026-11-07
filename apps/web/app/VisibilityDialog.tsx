@@ -17,6 +17,8 @@ type Props = {
   workspaceName?: string | null;
   title?: string;
   shareUrl?: string;
+  embedUrl?: string;
+  shareText?: string;
   trigger: ReactNode;
 };
 
@@ -28,6 +30,8 @@ export function VisibilityDialog({
   workspaceName,
   title,
   shareUrl,
+  embedUrl,
+  shareText,
   trigger,
 }: Props) {
   const m = useAppMessages();
@@ -61,6 +65,8 @@ export function VisibilityDialog({
         allowPublic={allowPublic}
         pending={pending || disabled}
         shareUrl={shareUrl}
+        embedUrl={embedUrl}
+        shareText={shareText}
       />
     </>
   );

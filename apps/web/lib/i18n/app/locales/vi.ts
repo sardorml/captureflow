@@ -417,6 +417,9 @@ const messages: AppMessages = {
       copyLink: "Sao chép liên kết",
       linkCopied: "Đã sao chép liên kết",
       shareAt: "Chia sẻ tại {time}",
+      socialHeading: "Chia sẻ lên",
+      socialText: "Xem “{title}”",
+      email: "Email",
     },
     editableTitle: {
       label: "Tiêu đề bản ghi",

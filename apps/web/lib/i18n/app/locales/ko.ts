@@ -412,6 +412,9 @@ const messages: AppMessages = {
       copyLink: "링크 복사",
       linkCopied: "링크 복사됨",
       shareAt: "{time} 지점 공유",
+      socialHeading: "공유하기",
+      socialText: "“{title}” 확인해 보세요",
+      email: "이메일",
     },
     editableTitle: {
       label: "녹화 제목",

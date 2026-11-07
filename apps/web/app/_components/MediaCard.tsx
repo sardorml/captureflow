@@ -64,6 +64,7 @@ export type MediaCardProps = {
   // A function receives whether the card is hovered, for a live preview.
   media: ReactNode | ((hovered: boolean) => ReactNode);
   viewUrl: string;
+  embedUrl?: string;
   editUrl: string;
   displayTitle: string;
   initialTitle: string;
@@ -93,6 +94,7 @@ export function MediaCard({
   noun,
   media,
   viewUrl,
+  embedUrl,
   editUrl,
   displayTitle,
   initialTitle,
@@ -308,6 +310,8 @@ export function MediaCard({
                   workspaceName={workspaceName}
                   title={copy.share}
                   shareUrl={viewUrl}
+                  embedUrl={embedUrl}
+                  shareText={displayTitle}
                   trigger={
                     <VisibilityText visibility={visibility} interactive />
                   }

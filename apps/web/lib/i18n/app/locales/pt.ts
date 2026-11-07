@@ -423,6 +423,9 @@ const messages: AppMessages = {
       copyLink: "Copiar link",
       linkCopied: "Link copiado",
       shareAt: "Partilhar a partir de {time}",
+      socialHeading: "Partilhar em",
+      socialText: "Vê “{title}”",
+      email: "Email",
     },
     editableTitle: {
       label: "Título da gravação",
