@@ -63,3 +63,13 @@ export async function requireSession(): Promise<Session> {
   if (!session) redirect("/auth/clear");
   return session;
 }
+
+// Null when the lookup stalled: the caller renders SessionStalled rather than failing the whole document.
+export async function requireSessionOrStall(): Promise<Session | null> {
+  try {
+    return await requireSession();
+  } catch (err) {
+    if (err instanceof SessionLookupStalled) return null;
+    throw err;
+  }
+}

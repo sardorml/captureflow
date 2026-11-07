@@ -3,7 +3,9 @@ import { headers } from "next/headers";
 import { getWorkspaceById } from "@captureflow/quota";
 import { readThemeFromCookieHeader } from "@captureflow/ui/theme";
 import { getAppWebEnv } from "@/lib/cf-env";
-import { requireSession } from "@/lib/session-guard";
+import { requireSessionOrStall } from "@/lib/session-guard";
+import { SessionStalled } from "@/components/session-stalled";
+import { AppI18n } from "@/components/app-i18n";
 import { getRecordingForUser } from "@/lib/recordings-db";
 import { parseRecordingConfigJson } from "@/lib/recording-config";
 import { getTranscript } from "@/lib/recording/db";
@@ -19,7 +21,14 @@ export default async function RecordingEditPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await requireSession();
+  const session = await requireSessionOrStall();
+  if (!session) {
+    return (
+      <AppI18n>
+        <SessionStalled />
+      </AppI18n>
+    );
+  }
   const recording = await getRecordingForUser(session.user.id, id);
   if (!recording) notFound();
 
