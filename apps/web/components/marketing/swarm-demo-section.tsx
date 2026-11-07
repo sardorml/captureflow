@@ -186,11 +186,31 @@ function DemoForm() {
   const signedIn = useSignedIn();
   const busy = phase !== "idle";
 
+  /*
+   * A request that throws is most often this page outliving a deploy: its
+   * server actions are gone. One reload with the address kept fetches the
+   * new page; a second failure shows the error instead of spinning.
+   */
+  function recover(address: string) {
+    if (readReloaded()) {
+      writeReloaded(false);
+      setError("failed");
+      setPhase("idle");
+      return;
+    }
+    writeReloaded(true);
+    window.location.assign(
+      `${lh("/swarm-demo")}?url=${encodeURIComponent(address)}&go=1`,
+    );
+  }
+
   async function check(address: string) {
     setPhase("checking");
     setError(null);
     setSite(null);
-    const result = await checkSwarmDemoAction(address);
+    const result = await settle(checkSwarmDemoAction(address));
+    if (!result) return recover(address);
+    writeReloaded(false);
     if (result.kind === "ok") {
       track("swarm_demo_checked");
       setSite(result.site);
@@ -204,7 +224,9 @@ function DemoForm() {
     setPhase("starting");
     setError(null);
     track("swarm_demo_requested");
-    const result = await startSwarmDemoAction(address);
+    const result = await settle(startSwarmDemoAction(address));
+    if (!result) return recover(address);
+    writeReloaded(false);
     if (result.kind === "login") {
       const next = `${lh("/swarm-demo")}?url=${encodeURIComponent(address)}&go=1`;
       router.push(`/login?next=${encodeURIComponent(next)}`);
@@ -374,4 +396,32 @@ function SitePreviewCard({
       </div>
     </div>
   );
+}
+
+const ACTION_TIMEOUT_MS = 45_000;
+const RELOADED_KEY = "captureflow_swarm_demo_reloaded";
+
+// Null when the request fails or never answers.
+function settle<T>(request: Promise<T>): Promise<T | null> {
+  return Promise.race([
+    request.catch(() => null),
+    new Promise<null>((resolve) =>
+      setTimeout(() => resolve(null), ACTION_TIMEOUT_MS),
+    ),
+  ]);
+}
+
+function readReloaded(): boolean {
+  try {
+    return sessionStorage.getItem(RELOADED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeReloaded(reloaded: boolean) {
+  try {
+    if (reloaded) sessionStorage.setItem(RELOADED_KEY, "1");
+    else sessionStorage.removeItem(RELOADED_KEY);
+  } catch {}
 }
