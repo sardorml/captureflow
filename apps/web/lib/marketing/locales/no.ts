@@ -56,6 +56,11 @@ const messages: Messages = {
       description:
         "Ta opp skjermen, en fane eller kameraet i Chrome. Når du er ferdig, får du en lenke alle kan se, med transkripsjon, sammendrag og kapitler.",
     },
+    agentRecorder: {
+      title: "MCP-server: KI-agenten din tar opp videoer",
+      description:
+        "Koble Claude Code, Codex, Cursor eller ChatGPT til CaptureFlow via MCP. Agenten tar opp en nettapp, skjermen din eller ett vindu og gir deg en lenke du kan dele.",
+    },
   },
   nav: {
     features: "Funksjoner",
@@ -371,6 +376,13 @@ const messages: Messages = {
       subtitle:
         "Ta opp skjermen, en fane eller kameraet. Når du er ferdig, får du en lenke alle kan se, med transkripsjon, sammendrag og kapitler.",
     },
+    agentRecorder: {
+      label: "Opptaker for agenter",
+      word: "MCP",
+      title: "La KI-agenten din ta opp videoene dine",
+      subtitle:
+        "Koble den til via MCP og spør med vanlige ord. Den tar opp en nettapp, skjermen din eller ett vindu, legger til lysbilder og stemme om du vil, og gir deg en lenke.",
+    },
   },
   collaboration: {
     heading: "Dette kan du gjøre etter opptaket",
@@ -569,9 +581,8 @@ const messages: Messages = {
     previewNote:
       "Dette er siden agentene bygger opp igjen. Lag demoen når den ser riktig ut.",
     change: "Endre adresse",
-    note: "Gratis opptil 25 opptak. Logg inn for å lage en demo. Hver demo bruker ett eller to av planens agentminutter i skyen og havner i biblioteket ditt.",
-    noteSignedIn:
-      "Gratis opptil 25 opptak. Hver demo bruker ett eller to av planens agentminutter i skyen og havner i biblioteket ditt.",
+    note: "Logg inn for å lage en demo gratis. Hver demo havner i biblioteket ditt.",
+    noteSignedIn: "Lag gratis. Hver demo havner i biblioteket ditt.",
     howHeading: "Slik fungerer det",
     how: {
       type: {

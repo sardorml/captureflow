@@ -21,6 +21,8 @@ const MAX_BODY_BYTES = 8 * 1024 * 1024;
 const DRAIN_MS = 14 * 60_000;
 
 const sessions = new Map<string, Session>();
+// Sessions still launching: a cold browser can take longer than a status check waits.
+const starting = new Set<string>();
 let browser: Promise<Browser> | null = null;
 let draining = false;
 
@@ -81,7 +83,10 @@ async function begin(id: string, { upload, ...rest }: StartBody) {
       "The recorder is restarting. Try again in a minute.",
     );
   }
-  if (sessions.has(id)) throw new SessionError("That session already exists.");
+  if (sessions.has(id) || starting.has(id)) {
+    throw new SessionError("That session already exists.");
+  }
+  starting.add(id);
   try {
     const s = await startSession(await getBrowser(), {
       ...rest,
@@ -97,6 +102,8 @@ async function begin(id: string, { upload, ...rest }: StartBody) {
         .catch(() => {});
     }
     throw err;
+  } finally {
+    starting.delete(id);
   }
 }
 
@@ -108,7 +115,7 @@ async function route(
   const [root, id, verb] = path;
   if (root !== "sessions" || !id) throw new SessionError("Not found.");
   if (method === "GET" && !verb) {
-    session(id);
+    if (!starting.has(id)) session(id);
     return { running: true };
   }
   if (method === "POST" && !verb) {
@@ -185,7 +192,7 @@ process.on("SIGTERM", () => {
   draining = true;
   const until = Date.now() + DRAIN_MS;
   console.log(
-    `[recorder] SIGTERM: finishing ${sessions.size} session(s) first`,
+    `[recorder] SIGTERM: finishing ${sessions.size + starting.size} session(s) first`,
   );
   const exit = () => {
     server.close();
@@ -195,7 +202,7 @@ process.on("SIGTERM", () => {
       .finally(() => process.exit(0));
   };
   const wait = setInterval(() => {
-    if (sessions.size > 0 && Date.now() < until) return;
+    if (sessions.size + starting.size > 0 && Date.now() < until) return;
     clearInterval(wait);
     exit();
   }, 1000);

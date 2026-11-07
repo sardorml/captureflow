@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Spela in skärmen, en flik eller kameran i Chrome. När du är klar får du en länk som alla kan titta på, med transkription, sammanfattning och kapitel.",
     },
+    agentRecorder: {
+      title: "MCP-server: din AI-agent spelar in videor",
+      description:
+        "Anslut Claude Code, Codex, Cursor eller ChatGPT till CaptureFlow via MCP. Din agent spelar in en webbapp, din skärm eller ett fönster och ger dig en länk att dela.",
+    },
   },
   nav: {
     features: "Funktioner",
@@ -377,6 +382,13 @@ const messages: Messages = {
       subtitle:
         "Spela in skärmen, en flik eller kameran. När du är klar får du en länk som alla kan titta på, med transkription, sammanfattning och kapitel.",
     },
+    agentRecorder: {
+      label: "Inspelare för agenter",
+      word: "MCP",
+      title: "Låt din AI-agent spela in dina videor",
+      subtitle:
+        "Anslut den via MCP och be med vanliga ord. Den spelar in en webbapp, din skärm eller ett fönster, lägger till bilder och röst om du vill och ger dig en länk.",
+    },
   },
   collaboration: {
     heading: "Det här kan du göra efter inspelningen",
@@ -574,9 +586,8 @@ const messages: Messages = {
     previewNote:
       "Det här är sidan som agenterna bygger upp igen. Skapa demon när den ser rätt ut.",
     change: "Ändra adress",
-    note: "Gratis upp till 25 inspelningar. Logga in för att skapa. Varje demo tar en minut eller två av din plans agentminuter i molnet och hamnar i ditt bibliotek.",
-    noteSignedIn:
-      "Gratis upp till 25 inspelningar. Varje demo tar en minut eller två av din plans agentminuter i molnet och hamnar i ditt bibliotek.",
+    note: "Logga in för att skapa gratis. Varje demo hamnar i ditt bibliotek.",
+    noteSignedIn: "Skapa gratis. Varje demo hamnar i ditt bibliotek.",
     howHeading: "Så fungerar det",
     how: {
       type: {

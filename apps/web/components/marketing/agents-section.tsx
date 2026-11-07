@@ -22,47 +22,52 @@ import { McpConnectDetails } from "./mcp-connect";
 const AGENT_LOGO = "mr-1 inline-block size-[19px] align-middle";
 const SCENES = [AskScene, RecordScene, VoiceScene, ShareScene];
 
-export function AgentsSection({ headingLevel = 2 }: SectionProps = {}) {
+export function AgentsSection({
+  headingLevel = 2,
+  hideHeading = false,
+}: SectionProps & { hideHeading?: boolean } = {}) {
   const m = useMessages();
   const steps = m.agents.steps;
   return (
     <FrameSection id="agents">
-      <FrameHeader
-        title={m.agents.heading}
-        subtitle={
-          <>
-            <span className="font-medium text-fg">
-              {fill(m.agents.worksWith, {
-                claude: (
-                  <>
-                    <ClaudeLogo className={AGENT_LOGO} />
-                    Claude Code, Claude
-                  </>
-                ),
-                openai: (
-                  <>
-                    <OpenAILogo className={AGENT_LOGO} />
-                    Codex, ChatGPT
-                  </>
-                ),
-                cursor: (
-                  <>
-                    <CursorLogo className={AGENT_LOGO} />
-                    Cursor
-                  </>
-                ),
-              })}
-            </span>{" "}
-            <span className="text-fg-muted">{m.agents.subtitle}</span>
-          </>
-        }
-        action={
-          <PillLink href={`${DOCS_URL}/guide/local-agent`}>
-            {m.agents.cta}
-          </PillLink>
-        }
-        level={headingLevel}
-      />
+      {!hideHeading && (
+        <FrameHeader
+          title={m.agents.heading}
+          subtitle={
+            <>
+              <span className="font-medium text-fg">
+                {fill(m.agents.worksWith, {
+                  claude: (
+                    <>
+                      <ClaudeLogo className={AGENT_LOGO} />
+                      Claude Code, Claude
+                    </>
+                  ),
+                  openai: (
+                    <>
+                      <OpenAILogo className={AGENT_LOGO} />
+                      Codex, ChatGPT
+                    </>
+                  ),
+                  cursor: (
+                    <>
+                      <CursorLogo className={AGENT_LOGO} />
+                      Cursor
+                    </>
+                  ),
+                })}
+              </span>{" "}
+              <span className="text-fg-muted">{m.agents.subtitle}</span>
+            </>
+          }
+          action={
+            <PillLink href={`${DOCS_URL}/guide/local-agent`}>
+              {m.agents.cta}
+            </PillLink>
+          }
+          level={headingLevel}
+        />
+      )}
       <ol
         className={cn(FRAME_CELLS, "list-none md:grid-cols-2 lg:grid-cols-4")}
       >

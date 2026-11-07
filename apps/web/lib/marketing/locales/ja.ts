@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Chromeから画面、タブ、カメラを録画できます。録画を終えると、文字起こし・要約・チャプター付きで誰でも見られるリンクが手に入ります。",
     },
+    agentRecorder: {
+      title: "MCP サーバー：AI エージェントが動画を録画",
+      description:
+        "Claude Code、Codex、Cursor、ChatGPT を MCP で CaptureFlow に接続します。エージェントが Web アプリ、画面、またはひとつのウィンドウを録画し、共有用のリンクを渡します。",
+    },
   },
   nav: {
     features: "機能",
@@ -368,6 +373,13 @@ const messages: Messages = {
       subtitle:
         "画面、タブ、カメラを録画できます。録画を終えると、文字起こし・要約・チャプター付きで誰でも見られるリンクが手に入ります。",
     },
+    agentRecorder: {
+      label: "エージェント用レコーダー",
+      word: "MCP",
+      title: "AI エージェントに動画を録画させる",
+      subtitle:
+        "MCP で接続して、ふだんの言葉で頼むだけ。Web アプリ、画面、またはひとつのウィンドウを録画し、必要ならスライドと音声を加えて、リンクを渡します。",
+    },
   },
   collaboration: {
     heading: "録画した後にできること",
@@ -565,9 +577,8 @@ const messages: Messages = {
     previewNote:
       "エージェントが再構築するページです。問題なければデモを生成してください。",
     change: "アドレスを変更",
-    note: "25件の録画まで無料です。生成にはサインインが必要です。各デモはプランのクラウドエージェント分数を一、二分使い、ライブラリに保存されます。",
-    noteSignedIn:
-      "25件の録画まで無料です。各デモはプランのクラウドエージェント分数を一、二分使い、ライブラリに保存されます。",
+    note: "サインインすると無料で生成できます。デモはライブラリに保存されます。",
+    noteSignedIn: "無料で生成できます。デモはライブラリに保存されます。",
     howHeading: "仕組み",
     how: {
       type: {

@@ -19,7 +19,7 @@ export function PageHero({
   page,
   action,
 }: {
-  page: "features" | "pricing" | "faq" | "chromeExtension";
+  page: "features" | "pricing" | "faq" | "chromeExtension" | "agentRecorder";
   action?: ReactNode;
 }) {
   const m = useMessages();

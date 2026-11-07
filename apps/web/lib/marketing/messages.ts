@@ -63,6 +63,11 @@ export const MESSAGES = {
       description:
         "Record your screen, a tab or your camera from Chrome. When you finish, you get a link anyone can watch, with a transcript, summary and chapters.",
     },
+    agentRecorder: {
+      title: "MCP server: your AI agent records videos",
+      description:
+        "Connect Claude Code, Codex, Cursor or ChatGPT to CaptureFlow over MCP. Your agent records a web app, your screen or one window and hands you a link to share.",
+    },
   },
   nav: {
     features: "Features",
@@ -368,6 +373,13 @@ export const MESSAGES = {
       subtitle:
         "Record your screen, a tab or your camera. When you finish, you get a link anyone can watch, with a transcript, summary and chapters.",
     },
+    agentRecorder: {
+      label: "Recorder for agents",
+      word: "MCP",
+      title: "Let your AI agent record your videos",
+      subtitle:
+        "Connect it over MCP and ask in plain words. It records a web app, your screen or one window, adds slides and a voice if you want, and hands you a link.",
+    },
   },
   collaboration: {
     heading: "What you can do after recording",
@@ -562,9 +574,8 @@ export const MESSAGES = {
     previewNote:
       "This is the page the agents will rebuild. Generate the demo when it looks right.",
     change: "Change address",
-    note: "Free up to 25 recordings. Sign in to generate. Each demo takes a minute or two of your plan's cloud agent minutes and lands in your library.",
-    noteSignedIn:
-      "Free up to 25 recordings. Each demo takes a minute or two of your plan's cloud agent minutes and lands in your library.",
+    note: "Sign in to generate for free. Each demo lands in your library.",
+    noteSignedIn: "Generate for free. Each demo lands in your library.",
     howHeading: "How it works",
     how: {
       type: {

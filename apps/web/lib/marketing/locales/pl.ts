@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Nagraj ekran, kartę lub kamerę w Chrome. Po zakończeniu dostajesz link, który każdy może obejrzeć, z transkrypcją, podsumowaniem i rozdziałami.",
     },
+    agentRecorder: {
+      title: "Serwer MCP: twój agent AI nagrywa filmy",
+      description:
+        "Połącz Claude Code, Codex, Cursor lub ChatGPT z CaptureFlow przez MCP. Twój agent nagrywa aplikację webową, ekran lub jedno okno i daje ci link do udostępnienia.",
+    },
   },
   nav: {
     features: "Funkcje",
@@ -365,6 +370,13 @@ const messages: Messages = {
       subtitle:
         "Nagraj ekran, kartę lub kamerę. Po zakończeniu dostajesz link, który każdy może obejrzeć, z transkrypcją, podsumowaniem i rozdziałami.",
     },
+    agentRecorder: {
+      label: "Rejestrator dla agentów",
+      word: "MCP",
+      title: "Niech twój agent AI nagrywa twoje filmy",
+      subtitle:
+        "Połącz go przez MCP i poproś zwykłymi słowami. Nagrywa aplikację webową, ekran lub jedno okno, dodaje slajdy i głos, jeśli chcesz, i daje ci link.",
+    },
   },
   collaboration: {
     heading: "Co możesz zrobić po nagraniu",
@@ -562,9 +574,8 @@ const messages: Messages = {
     previewNote:
       "To jest strona, którą agenci odbudują. Wygeneruj demo, gdy wygląda dobrze.",
     change: "Zmień adres",
-    note: "Za darmo do 25 nagrań. Zaloguj się, aby wygenerować. Każde demo zużywa minutę lub dwie minut agenta w chmurze z twojego planu i trafia do twojej biblioteki.",
-    noteSignedIn:
-      "Za darmo do 25 nagrań. Każde demo zużywa minutę lub dwie minut agenta w chmurze z twojego planu i trafia do twojej biblioteki.",
+    note: "Zaloguj się, aby wygenerować za darmo. Każde demo trafia do twojej biblioteki.",
+    noteSignedIn: "Generuj za darmo. Każde demo trafia do twojej biblioteki.",
     howHeading: "Jak to działa",
     how: {
       type: {

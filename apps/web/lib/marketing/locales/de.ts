@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Nimm deinen Bildschirm, einen Tab oder deine Kamera in Chrome auf. Danach bekommst du einen Link, den jeder ansehen kann, mit Transkript, Zusammenfassung und Kapiteln.",
     },
+    agentRecorder: {
+      title: "MCP-Server: Dein KI-Agent nimmt Videos auf",
+      description:
+        "Verbinde Claude Code, Codex, Cursor oder ChatGPT über MCP mit CaptureFlow. Dein Agent nimmt eine Web-App, deinen Bildschirm oder ein Fenster auf und gibt dir einen Link zum Teilen.",
+    },
   },
   nav: {
     features: "Funktionen",
@@ -384,6 +389,13 @@ const messages: Messages = {
       subtitle:
         "Nimm deinen Bildschirm, einen Tab oder deine Kamera auf. Danach bekommst du einen Link, den jeder ansehen kann, mit Transkript, Zusammenfassung und Kapiteln.",
     },
+    agentRecorder: {
+      label: "Recorder für Agenten",
+      word: "MCP",
+      title: "Lass deinen KI-Agenten deine Videos aufnehmen",
+      subtitle:
+        "Verbinde ihn über MCP und bitte ihn in einfachen Worten. Er nimmt eine Web-App, deinen Bildschirm oder ein Fenster auf, fügt auf Wunsch Folien und eine Stimme hinzu und gibt dir einen Link.",
+    },
   },
   collaboration: {
     heading: "Was du nach der Aufnahme tun kannst",
@@ -586,9 +598,8 @@ const messages: Messages = {
     previewNote:
       "Diese Seite bauen die Agenten nach. Erstelle die Demo, wenn sie passt.",
     change: "Adresse ändern",
-    note: "Kostenlos bis zu 25 Aufnahmen. Melde dich an, um eine Demo zu erstellen. Jede Demo verbraucht ein bis zwei Cloud-Agentenminuten deines Tarifs und landet in deiner Bibliothek.",
-    noteSignedIn:
-      "Kostenlos bis zu 25 Aufnahmen. Jede Demo verbraucht ein bis zwei Cloud-Agentenminuten deines Tarifs und landet in deiner Bibliothek.",
+    note: "Melde dich an, um kostenlos eine Demo zu erstellen. Jede Demo landet in deiner Bibliothek.",
+    noteSignedIn: "Kostenlos erstellen. Jede Demo landet in deiner Bibliothek.",
     howHeading: "So funktioniert es",
     how: {
       type: {

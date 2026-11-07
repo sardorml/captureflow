@@ -56,6 +56,11 @@ const messages: Messages = {
       description:
         "Quay màn hình, một thẻ hoặc camera ngay trong Chrome. Khi xong, bạn nhận được một liên kết ai cũng xem được, kèm bản chép lời, tóm tắt và chương.",
     },
+    agentRecorder: {
+      title: "Máy chủ MCP: agent AI của bạn quay video",
+      description:
+        "Kết nối Claude Code, Codex, Cursor hoặc ChatGPT với CaptureFlow qua MCP. Agent của bạn quay một ứng dụng web, màn hình hoặc một cửa sổ và đưa bạn đường liên kết để chia sẻ.",
+    },
   },
   nav: {
     features: "Tính năng",
@@ -366,6 +371,13 @@ const messages: Messages = {
       subtitle:
         "Quay màn hình, một thẻ hoặc camera. Khi xong, bạn nhận được một liên kết ai cũng xem được, kèm bản chép lời, tóm tắt và chương.",
     },
+    agentRecorder: {
+      label: "Trình quay cho agent",
+      word: "MCP",
+      title: "Để agent AI quay video cho bạn",
+      subtitle:
+        "Kết nối qua MCP và yêu cầu bằng lời bình thường. Agent quay một ứng dụng web, màn hình hoặc một cửa sổ, thêm slide và giọng đọc nếu bạn muốn, rồi đưa bạn đường liên kết.",
+    },
   },
   collaboration: {
     heading: "Những việc bạn làm được sau khi quay",
@@ -565,9 +577,8 @@ const messages: Messages = {
     previewNote:
       "Đây là trang mà các agent sẽ dựng lại. Tạo demo khi thấy đúng.",
     change: "Đổi địa chỉ",
-    note: "Miễn phí đến 25 bản ghi. Đăng nhập để tạo. Mỗi demo dùng một đến hai phút agent đám mây trong gói của bạn và được lưu vào thư viện của bạn.",
-    noteSignedIn:
-      "Miễn phí đến 25 bản ghi. Mỗi demo dùng một đến hai phút agent đám mây trong gói của bạn và được lưu vào thư viện của bạn.",
+    note: "Đăng nhập để tạo miễn phí. Mỗi demo được lưu vào thư viện của bạn.",
+    noteSignedIn: "Tạo miễn phí. Mỗi demo được lưu vào thư viện của bạn.",
     howHeading: "Cách hoạt động",
     how: {
       type: {

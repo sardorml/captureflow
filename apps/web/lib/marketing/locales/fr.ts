@@ -56,6 +56,11 @@ const messages: Messages = {
       description:
         "Enregistrez votre écran, un onglet ou votre caméra depuis Chrome. À la fin, vous obtenez un lien que tout le monde peut regarder, avec transcription, résumé et chapitres.",
     },
+    agentRecorder: {
+      title: "Serveur MCP : votre agent IA enregistre des vidéos",
+      description:
+        "Connectez Claude Code, Codex, Cursor ou ChatGPT à CaptureFlow via MCP. Votre agent enregistre une app web, votre écran ou une fenêtre et vous donne un lien à partager.",
+    },
   },
   nav: {
     features: "Fonctionnalités",
@@ -393,6 +398,13 @@ const messages: Messages = {
       subtitle:
         "Enregistrez votre écran, un onglet ou votre caméra. À la fin, vous obtenez un lien que tout le monde peut regarder, avec transcription, résumé et chapitres.",
     },
+    agentRecorder: {
+      label: "Enregistreur pour agents",
+      word: "MCP",
+      title: "Laissez votre agent IA enregistrer vos vidéos",
+      subtitle:
+        "Connectez-le via MCP et demandez-lui en termes simples. Il enregistre une app web, votre écran ou une fenêtre, ajoute des diapositives et une voix si vous le souhaitez, et vous donne un lien.",
+    },
   },
   collaboration: {
     heading: "Ce que vous pouvez faire après l’enregistrement",
@@ -596,9 +608,9 @@ const messages: Messages = {
     previewNote:
       "Voici la page que les agents vont reconstruire. Lancez la démo si elle vous convient.",
     change: "Changer d'adresse",
-    note: "Gratuit jusqu’à 25 enregistrements. Connectez-vous pour générer. Chaque démo consomme une à deux minutes d’agent cloud de votre forfait et arrive dans votre bibliothèque.",
+    note: "Connectez-vous pour générer gratuitement. Chaque démo arrive dans votre bibliothèque.",
     noteSignedIn:
-      "Gratuit jusqu’à 25 enregistrements. Chaque démo consomme une à deux minutes d’agent cloud de votre forfait et arrive dans votre bibliothèque.",
+      "Générez gratuitement. Chaque démo arrive dans votre bibliothèque.",
     howHeading: "Comment ça marche",
     how: {
       type: {

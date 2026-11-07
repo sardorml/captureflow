@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Chrome’da ekraningiz, tab yoki kamerangizni yozib oling. Tugatganingizdan soʻng transkript, xulosa va boblar bilan hamma koʻra oladigan havola olasiz.",
     },
+    agentRecorder: {
+      title: "MCP server: AI agentingiz video yozib oladi",
+      description:
+        "Claude Code, Codex, Cursor yoki ChatGPT'ni CaptureFlow'ga MCP orqali ulang. Agentingiz veb-ilovani, ekraningizni yoki bitta oynani yozib oladi va ulashish uchun havola beradi.",
+    },
   },
   nav: {
     features: "Imkoniyatlar",
@@ -370,6 +375,13 @@ const messages: Messages = {
       subtitle:
         "Ekraningiz, tab yoki kamerangizni yozib oling. Tugatganingizdan soʻng transkript, xulosa va boblar bilan hamma koʻra oladigan havola olasiz.",
     },
+    agentRecorder: {
+      label: "Agentlar uchun yozuvchi",
+      word: "MCP",
+      title: "Videolaringizni AI agentingiz yozib olsin",
+      subtitle:
+        "Uni MCP orqali ulang va oddiy so'zlar bilan so'rang. U veb-ilovani, ekraningizni yoki bitta oynani yozib oladi, xohlasangiz slayd va ovoz qo'shadi va sizga havola beradi.",
+    },
   },
   collaboration: {
     heading: "Yozib olgandan keyin nima qilish mumkin",
@@ -568,9 +580,8 @@ const messages: Messages = {
     previewNote:
       "Agentlar qayta quradigan sahifa shu. To‘g‘ri ko‘rinsa, demo yarating.",
     change: "Manzilni o‘zgartirish",
-    note: "25 tagacha yozuv bepul. Yaratish uchun tizimga kiring. Har bir demo tarifingizdagi bulutli agent daqiqalaridan bir-ikki daqiqa sarflaydi va kutubxonangizga tushadi.",
-    noteSignedIn:
-      "25 tagacha yozuv bepul. Har bir demo tarifingizdagi bulutli agent daqiqalaridan bir-ikki daqiqa sarflaydi va kutubxonangizga tushadi.",
+    note: "Bepul yaratish uchun tizimga kiring. Har bir demo kutubxonangizga tushadi.",
+    noteSignedIn: "Bepul yarating. Har bir demo kutubxonangizga tushadi.",
     howHeading: "Bu qanday ishlaydi",
     how: {
       type: {

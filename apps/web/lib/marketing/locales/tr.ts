@@ -56,6 +56,11 @@ const messages: Messages = {
       description:
         "Chrome'dan ekranınızı, bir sekmeyi veya kameranızı kaydedin. Bitirdiğinizde transkript, özet ve bölümlerle herkesin izleyebileceği bir bağlantı alırsınız.",
     },
+    agentRecorder: {
+      title: "MCP sunucusu: yapay zekâ ajanınız video kaydeder",
+      description:
+        "Claude Code, Codex, Cursor veya ChatGPT'yi MCP ile CaptureFlow'a bağlayın. Ajanınız bir web uygulamasını, ekranınızı veya tek bir pencereyi kaydeder ve paylaşmanız için bir bağlantı verir.",
+    },
   },
   nav: {
     features: "Özellikler",
@@ -377,6 +382,13 @@ const messages: Messages = {
       subtitle:
         "Ekranınızı, bir sekmeyi veya kameranızı kaydedin. Bitirdiğinizde transkript, özet ve bölümlerle herkesin izleyebileceği bir bağlantı alırsınız.",
     },
+    agentRecorder: {
+      label: "Ajanlar için kaydedici",
+      word: "MCP",
+      title: "Videolarınızı yapay zekâ ajanınız kaydetsin",
+      subtitle:
+        "MCP ile bağlayın ve sade sözcüklerle isteyin. Bir web uygulamasını, ekranınızı veya tek bir pencereyi kaydeder, isterseniz slayt ve ses ekler ve size bir bağlantı verir.",
+    },
   },
   collaboration: {
     heading: "Kayıttan sonra yapabilecekleriniz",
@@ -579,9 +591,8 @@ const messages: Messages = {
     previewNote:
       "Ajanların yeniden kuracağı sayfa bu. Doğru görünüyorsa demoyu oluştur.",
     change: "Adresi değiştir",
-    note: "25 kayda kadar ücretsiz. Oluşturmak için giriş yapın. Her demo planınızın bulut ajan dakikalarından bir iki dakika kullanır ve kitaplığınıza eklenir.",
-    noteSignedIn:
-      "25 kayda kadar ücretsiz. Her demo planınızın bulut ajan dakikalarından bir iki dakika kullanır ve kitaplığınıza eklenir.",
+    note: "Ücretsiz oluşturmak için giriş yapın. Her demo kitaplığınıza eklenir.",
+    noteSignedIn: "Ücretsiz oluşturun. Her demo kitaplığınıza eklenir.",
     howHeading: "Nasıl çalışır",
     how: {
       type: {

@@ -276,12 +276,6 @@ export function Nav() {
   ];
   const productLinks: TileLink[] = [
     {
-      label: m.nav.swarmDemo,
-      href: lh("/swarm-demo"),
-      description: m.nav.swarmDemoDescription,
-      icon: <SwarmCursorsLogo className="size-6" />,
-    },
-    {
       label: m.nav.extension,
       href: lh("/chrome-extension"),
       description: m.nav.extensionDescription,
@@ -289,10 +283,15 @@ export function Nav() {
     },
     {
       label: m.nav.agentRecorder,
-      href: `${DOCS_URL}/guide/local-agent`,
-      external: true,
+      href: lh("/agent-recorder"),
       description: m.nav.agentRecorderDescription,
       icon: <McpLogo className="size-5 text-fg" />,
+    },
+    {
+      label: m.nav.swarmDemo,
+      href: lh("/swarm-demo"),
+      description: m.nav.swarmDemoDescription,
+      icon: <SwarmCursorsLogo className="size-6" />,
     },
   ];
   const moreLinks: TileLink[] = [

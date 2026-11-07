@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Graba tu pantalla, una pestaña o tu cámara desde Chrome. Al terminar, obtienes un enlace que cualquiera puede ver, con transcripción, resumen y capítulos.",
     },
+    agentRecorder: {
+      title: "Servidor MCP: tu agente de IA graba vídeos",
+      description:
+        "Conecta Claude Code, Codex, Cursor o ChatGPT a CaptureFlow por MCP. Tu agente graba una app web, tu pantalla o una ventana y te da un enlace para compartir.",
+    },
   },
   nav: {
     features: "Funciones",
@@ -375,6 +380,13 @@ const messages: Messages = {
       subtitle:
         "Graba tu pantalla, una pestaña o tu cámara. Al terminar, obtienes un enlace que cualquiera puede ver, con transcripción, resumen y capítulos.",
     },
+    agentRecorder: {
+      label: "Grabador para agentes",
+      word: "MCP",
+      title: "Deja que tu agente de IA grabe tus vídeos",
+      subtitle:
+        "Conéctalo por MCP y pídeselo con palabras sencillas. Graba una app web, tu pantalla o una ventana, añade diapositivas y voz si quieres, y te da un enlace.",
+    },
   },
   collaboration: {
     heading: "Qué puedes hacer después de grabar",
@@ -573,9 +585,8 @@ const messages: Messages = {
     previewNote:
       "Esta es la página que los agentes reconstruirán. Genera la demo cuando se vea bien.",
     change: "Cambiar dirección",
-    note: "Gratis hasta 25 grabaciones. Inicia sesión para generar. Cada demo consume uno o dos minutos de agente en la nube de tu plan y aparece en tu biblioteca.",
-    noteSignedIn:
-      "Gratis hasta 25 grabaciones. Cada demo consume uno o dos minutos de agente en la nube de tu plan y aparece en tu biblioteca.",
+    note: "Inicia sesión para generar gratis. Cada demo aparece en tu biblioteca.",
+    noteSignedIn: "Genera gratis. Cada demo aparece en tu biblioteca.",
     howHeading: "Cómo funciona",
     how: {
       type: {

@@ -56,6 +56,11 @@ const messages: Messages = {
       description:
         "Tallenna näyttösi, välilehti tai kamerasi Chromessa. Lopuksi saat linkin, jota kuka tahansa voi katsoa, tekstityksen, yhteenvedon ja lukujen kanssa.",
     },
+    agentRecorder: {
+      title: "MCP-palvelin: tekoälyagenttisi tallentaa videoita",
+      description:
+        "Yhdistä Claude Code, Codex, Cursor tai ChatGPT CaptureFlow'hun MCP:n kautta. Agenttisi tallentaa verkkosovelluksen, näyttösi tai yhden ikkunan ja antaa sinulle jaettavan linkin.",
+    },
   },
   nav: {
     features: "Ominaisuudet",
@@ -377,6 +382,13 @@ const messages: Messages = {
       subtitle:
         "Tallenna näyttösi, välilehti tai kamerasi. Lopuksi saat linkin, jota kuka tahansa voi katsoa, tekstityksen, yhteenvedon ja lukujen kanssa.",
     },
+    agentRecorder: {
+      label: "Tallennin agenteille",
+      word: "MCP",
+      title: "Anna tekoälyagenttisi tallentaa videosi",
+      subtitle:
+        "Yhdistä se MCP:n kautta ja pyydä tavallisin sanoin. Se tallentaa verkkosovelluksen, näyttösi tai yhden ikkunan, lisää halutessasi diat ja äänen ja antaa sinulle linkin.",
+    },
   },
   collaboration: {
     heading: "Mitä voit tehdä tallennuksen jälkeen",
@@ -574,9 +586,8 @@ const messages: Messages = {
     previewNote:
       "Tämän sivun agentit rakentavat uudelleen. Luo demo, kun se näyttää oikealta.",
     change: "Vaihda osoite",
-    note: "Ilmainen 25 tallenteeseen asti. Kirjaudu sisään luodaksesi demon. Jokainen demo kuluttaa minuutin tai pari tilauksesi pilviagenttiminuutteja ja ilmestyy kirjastoosi.",
-    noteSignedIn:
-      "Ilmainen 25 tallenteeseen asti. Jokainen demo kuluttaa minuutin tai pari tilauksesi pilviagenttiminuutteja ja ilmestyy kirjastoosi.",
+    note: "Kirjaudu sisään luodaksesi demon ilmaiseksi. Jokainen demo ilmestyy kirjastoosi.",
+    noteSignedIn: "Luo ilmaiseksi. Jokainen demo ilmestyy kirjastoosi.",
     howHeading: "Näin se toimii",
     how: {
       type: {
