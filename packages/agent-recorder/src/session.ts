@@ -18,6 +18,7 @@ import type { Slide } from "./slide";
 import {
   mountSwarm,
   CONSENT_SELECTOR,
+  hideConsent,
   planSwarm,
   scanSwarmUnits,
   seekSwarm,
@@ -346,14 +347,63 @@ export async function startSession(
   }
 
   /*
+   * The page's own scripts, animations and media are stopped while a build is
+   * drawn, so it stays as scanned however long each frame takes to capture:
+   * nothing it loads late or animates moves under the cursors on a slow machine.
+   */
+  async function freezePage(): Promise<() => Promise<void>> {
+    // A canvas that hasn't reached the screen before scripts stop never paints.
+    await page.evaluate(
+      () =>
+        new Promise<void>((done) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => done()));
+          setTimeout(done, 500);
+        }),
+    );
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Emulation.setScriptExecutionDisabled", { value: true });
+    await cdp.send("Animation.enable");
+    await cdp.send("Animation.setPlaybackRate", { playbackRate: 0 });
+    const paused = await page.evaluateHandle(() =>
+      Array.from(document.querySelectorAll("video, audio")).filter((el) => {
+        const media = el as HTMLMediaElement;
+        if (media.paused) return false;
+        media.pause();
+        return true;
+      }),
+    );
+    let thawed = false;
+    return async () => {
+      if (thawed) return;
+      thawed = true;
+      await cdp
+        .send("Emulation.setScriptExecutionDisabled", { value: false })
+        .catch(() => {});
+      await cdp
+        .send("Animation.setPlaybackRate", { playbackRate: 1 })
+        .catch(() => {});
+      await paused
+        .evaluate((list) =>
+          list.forEach((el) => {
+            void (el as HTMLMediaElement).play().catch(() => {});
+          }),
+        )
+        .catch(() => {});
+      await paused.dispose().catch(() => {});
+      await cdp.detach().catch(() => {});
+    };
+  }
+
+  /*
    * The page is scrolled through and scanned off camera, then the build is
    * drawn a frame at a time; the recorder's own pointer stays out of it.
    */
   async function rebuild(req: RebuildRequest) {
     rec.live();
     const startedAt = Date.now();
+    let thaw = async () => {};
     // Getting the page ready isn't recorded, but on a slow machine it can outlast the idle stop.
-    const { plan, built } = await rec.offCamera(async () => {
+    const prepared = rec.offCamera(async () => {
       if (req.url) {
         if (!(await allowUrl(req.url))) {
           throw new SessionError(
@@ -393,6 +443,7 @@ export async function startSession(
             top,
           );
           await sleep(REVEAL_MS);
+          await page.evaluate(hideConsent, CONSENT_SELECTOR);
           units = await page.evaluate(scanSwarmUnits, {
             maxUnits: SWARM_LIMITS.maxUnits,
             maxY: scanY,
@@ -462,6 +513,9 @@ export async function startSession(
       });
       await page.evaluate(mountSwarm, { units, plan, hide: CONSENT_SELECTOR });
       await cursorHidden(true);
+      await page.evaluate(hideConsent, CONSENT_SELECTOR);
+      await page.evaluate(seekSwarm, 0);
+      thaw = await freezePage();
       // The keys are heard as the prompt is typed; the music starts on send, shares the build's tempo and is gone when the build is.
       const sounds: SoundLayer[] = [];
       if (plan.prompt) {
@@ -487,6 +541,10 @@ export async function startSession(
       if (sounds.length) rec.music(layerSounds(sounds));
       return { plan, built };
     });
+    const { plan, built } = await prepared.catch(async (err) => {
+      await thaw();
+      throw err;
+    });
     const drawFrom = Date.now();
     rec.mark(`Rebuilding ${new URL(page.url()).host}`);
     try {
@@ -499,6 +557,7 @@ export async function startSession(
       );
     } finally {
       await page.evaluate(unmountSwarm).catch(() => {});
+      await thaw();
       await cursorHidden(false);
     }
     await rec.recorded(() => sleep(SETTLE_MS));

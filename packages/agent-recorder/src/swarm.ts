@@ -205,6 +205,23 @@ export function planSwarm(units: SwarmUnit[], opts: SwarmOptions): SwarmPlan {
 export const CONSENT_SELECTOR =
   "#onetrust-consent-sdk, #CybotCookiebotDialog, #CybotCookiebotDialogBodyUnderlay, .cc-window, #cookie-banner, #cookieBanner, [id*='cookie-consent' i], [class*='cookie-banner' i], [class*='cookie-consent' i], [id*='gdpr' i][role='dialog'], [aria-label*='cookie' i][role='dialog']";
 
+// Runs in the page: banners other selectors miss are told by their words, on a box pinned over the page.
+export function hideConsent(selector: string) {
+  const hide = (el: HTMLElement) =>
+    el.style.setProperty("display", "none", "important");
+  document.querySelectorAll<HTMLElement>(selector).forEach(hide);
+  for (const el of Array.from(
+    document.body.querySelectorAll<HTMLElement>("*"),
+  )) {
+    const { position } = getComputedStyle(el);
+    if (position !== "fixed" && position !== "sticky") continue;
+    const text = el.innerText ?? "";
+    if (text.length < 2000 && /\bcookies?\b|\bconsent\b/i.test(text)) {
+      hide(el);
+    }
+  }
+}
+
 // Runs in the page: scrolls through it once so lazy pictures and reveal-on-scroll content exist before the scan.
 export async function settlePage(limits: {
   step: number;
