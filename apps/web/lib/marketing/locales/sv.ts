@@ -84,6 +84,10 @@ const messages: Messages = {
     community: "Community",
     communityDescription: "Få hjälp och chatta på Discord",
     products: "Produkter",
+    exploreProducts: "Utforska CaptureFlow",
+    plans: "Abonnemang",
+    exploreResources: "Utforska resurser",
+    enterprise: "Företag",
     swarmDemo: "Svärmdemo",
     swarmDemoDescription:
       "Agenter bygger om vilken webbplats som helst på video",

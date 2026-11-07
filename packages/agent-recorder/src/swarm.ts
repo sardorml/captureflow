@@ -12,6 +12,13 @@ import { tempoWarp, type TempoRamp } from "./tempo";
 
 export type SwarmUnitKind = "text" | "box" | "media" | "frame";
 
+export type SwarmRow = {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
 export type SwarmUnit = {
   kind: SwarmUnitKind;
   x: number;
@@ -20,6 +27,7 @@ export type SwarmUnit = {
   h: number;
   lines: number;
   chars: number;
+  rows?: SwarmRow[];
 };
 
 export type SwarmTask = {
@@ -311,6 +319,46 @@ export function scanSwarmUnits(limits: {
     }
     return s.replace(/\s+/g, " ").trim();
   };
+  /*
+   * The text's own line boxes, from the glyphs rather than the box height over
+   * the line height: a guessed count or glyphs taller than a tight line height
+   * would put a cut through the middle of a line. Neighbouring lines meet
+   * halfway across any overlap, so each line is drawn whole.
+   */
+  const textRows = (el: HTMLElement, r: DOMRect): SwarmRow[] => {
+    const rows: SwarmRow[] = [];
+    const range = document.createRange();
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      if (!(n.textContent ?? "").trim()) continue;
+      range.selectNodeContents(n);
+      for (const b of Array.from(range.getClientRects())) {
+        if (b.width <= 0 || b.height <= 0) continue;
+        const mid = (b.top + b.bottom) / 2 - r.top;
+        const row = rows.find((x) => mid >= x.top && mid <= x.bottom);
+        if (row) {
+          row.top = Math.min(row.top, b.top - r.top);
+          row.bottom = Math.max(row.bottom, b.bottom - r.top);
+          row.left = Math.min(row.left, b.left - r.left);
+          row.right = Math.max(row.right, b.right - r.left);
+        } else {
+          rows.push({
+            top: b.top - r.top,
+            bottom: b.bottom - r.top,
+            left: b.left - r.left,
+            right: b.right - r.left,
+          });
+        }
+      }
+    }
+    rows.sort((a, b) => a.top - b.top);
+    for (let k = 1; k < rows.length; k++) {
+      const cut = (rows[k - 1]!.bottom + rows[k]!.top) / 2;
+      rows[k - 1]!.bottom = cut;
+      rows[k]!.top = cut;
+    }
+    return rows;
+  };
   const add = (
     el: HTMLElement,
     kind: SwarmUnitKind,
@@ -320,14 +368,16 @@ export function scanSwarmUnits(limits: {
     if (seen.has(el)) return;
     seen.add(el);
     const all = (el.textContent ?? "").replace(/\s+/g, " ").trim();
+    const rows = kind === "text" ? textRows(el, r) : [];
     units.push({
       kind,
       x: r.left + window.scrollX,
       y: r.top + window.scrollY,
       w: r.width,
       h: r.height,
-      lines: Math.max(1, Math.round(r.height / lh)),
+      lines: rows.length || Math.max(1, Math.round(r.height / lh)),
       chars: kind === "text" ? Math.max(1, all.length) : 1,
+      ...(rows.length ? { rows } : {}),
     });
     els.push(el);
   };
@@ -765,18 +815,29 @@ export function seekSwarm(ms: number) {
       height: r.height,
     };
   };
+  const rowsOf = (u: SwarmUnit, r: Rect): SwarmRow[] =>
+    u.rows?.length
+      ? u.rows
+      : Array.from({ length: u.lines }, (_, k) => ({
+          top: (k * r.height) / u.lines,
+          bottom: ((k + 1) * r.height) / u.lines,
+          left: 0,
+          right: r.width,
+        }));
   const startPoint = (t: SwarmTask) => {
     const r = rectOf(t.unit);
     const u = units[t.unit]!;
-    return u.kind === "text"
-      ? { x: r.left, y: r.top + r.height / u.lines / 2 }
-      : { x: r.left, y: r.top };
+    if (u.kind !== "text") return { x: r.left, y: r.top };
+    const row = rowsOf(u, r)[0]!;
+    return { x: r.left + row.left, y: r.top + (row.top + row.bottom) / 2 };
   };
   const endPoint = (t: SwarmTask) => {
     const r = rectOf(t.unit);
     const u = units[t.unit]!;
-    if (u.kind === "text")
-      return { x: r.right, y: r.bottom - r.height / u.lines / 2 };
+    if (u.kind === "text") {
+      const row = rowsOf(u, r).at(-1)!;
+      return { x: r.left + row.right, y: r.top + (row.top + row.bottom) / 2 };
+    }
     if (u.kind === "media" || u.kind === "frame")
       return { x: r.right, y: r.bottom };
     return { x: r.left, y: r.top };
@@ -808,17 +869,19 @@ export function seekSwarm(ms: number) {
     const r = rectOf(i);
     const color = s.colors[t.agent]!;
     if (u.kind === "text") {
-      const line = Math.min(u.lines - 1, Math.floor(p * u.lines));
-      const f = p * u.lines - line;
-      const yTop = (line / u.lines) * 100;
-      const yBot = ((line + 1) / u.lines) * 100;
-      const xr = f * 100;
+      const rows = rowsOf(u, r);
+      const line = Math.min(rows.length - 1, Math.floor(p * rows.length));
+      const f = p * rows.length - line;
+      const row = rows[line]!;
+      const xr = row.left + f * (row.right - row.left);
+      // Reaches past the box so glyphs that overhang it are not cut off.
+      const out = 64;
       el.style.visibility = "visible";
       el.style.opacity = "";
-      el.style.clipPath = `polygon(0 0, 100% 0, 100% ${yTop}%, ${xr}% ${yTop}%, ${xr}% ${yBot}%, 0 ${yBot}%)`;
+      el.style.clipPath = `polygon(-${out}px -${out}px, calc(100% + ${out}px) -${out}px, calc(100% + ${out}px) ${row.top}px, ${xr}px ${row.top}px, ${xr}px ${row.bottom}px, -${out}px ${row.bottom}px)`;
       const caret = {
-        x: r.left + f * r.width,
-        y: r.top + ((line + 0.5) * r.height) / u.lines,
+        x: r.left + xr,
+        y: r.top + (row.top + row.bottom) / 2,
       };
       marks.push({ kind: "text", rect: r, caret, color });
       cursors.push({ ...caret, glyph: "ibeam", color });

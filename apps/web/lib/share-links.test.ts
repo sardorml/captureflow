@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { SOCIAL_NETWORKS, socialShareUrl } from "./share-links";
+import {
+  SOCIAL_NETWORKS,
+  socialShareUrl,
+  unlinkHostnames,
+} from "./share-links";
 
 const link = {
   url: "https://captureflow.dev/r/abc?t=12",
@@ -28,5 +32,15 @@ describe("socialShareUrl", () => {
     for (const n of SOCIAL_NETWORKS) {
       expect(socialShareUrl(n, link)).toMatch(/^(https:\/\/|mailto:)/);
     }
+  });
+
+  it("keeps hostnames in the message from becoming links", () => {
+    const message = "Check out “www.figma.com rebuilt by agents”";
+    const text = new URL(
+      socialShareUrl("x", { ...link, message }),
+    ).searchParams.get("text")!;
+    expect(text).not.toMatch(/figma\.com/);
+    expect(text.replaceAll("\u2060", "")).toBe(message);
+    expect(unlinkHostnames("Q3 demo. Next steps")).toBe("Q3 demo. Next steps");
   });
 });

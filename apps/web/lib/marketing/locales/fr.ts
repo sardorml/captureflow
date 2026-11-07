@@ -85,6 +85,10 @@ const messages: Messages = {
     community: "Communauté",
     communityDescription: "Obtenez de l’aide et discutez sur Discord",
     products: "Produits",
+    exploreProducts: "Découvrir CaptureFlow",
+    plans: "Offres",
+    exploreResources: "Découvrir les ressources",
+    enterprise: "Entreprise",
     swarmDemo: "Démo en essaim",
     swarmDemoDescription:
       "Des agents reconstruisent n’importe quel site en vidéo",

@@ -3,34 +3,22 @@
 import { useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { Rubik } from "next/font/google";
-import { AnimatePresence, motion } from "motion/react";
 import NextLink from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import {
-  ArrowUpRight,
-  ChevronDown,
-  Menu as MenuIcon,
-  Star,
-} from "lucide-react";
+import { Menu as MenuIcon, Star } from "lucide-react";
 import { DISCORD_URL } from "@/lib/marketing/constants";
-import { DOCS_URL } from "@/lib/site";
+import { DOCS_URL, RELEASES_URL, SOURCE_REPO_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { TopBar } from "./announcement-bars";
 import { NavBetaChip } from "./corner-banner";
 import { FRAME_WIDTH } from "./frame";
-import {
-  ChromeLogoColor,
-  GitHubIcon,
-  McpLogo,
-  SwarmCursorsLogo,
-} from "./platform-logos";
+import { GitHubIcon } from "./platform-logos";
+import { NavFlyoutPanel, useFlyoutState, type Flyout } from "./nav-flyout";
 import { DEFAULT_THEME, ThemeToggle } from "@captureflow/ui";
 import { useRepoStats } from "./use-repo-stats";
 import { useSignedIn } from "./use-signed-in";
-
-const GITHUB_URL = "https://github.com/sardorml/captureflow";
 
 // The wordmark's face: a plain grotesk with rounded corners.
 const wordmark = Rubik({ subsets: ["latin"], weight: "500", display: "swap" });
@@ -58,41 +46,9 @@ type NavLinkProps = {
   children: ReactNode;
 };
 
-// One grey pill slides between the bar's links on hover rather than each link
-// lighting up on its own.
-function HoverSlot({
-  id,
-  hovered,
-  onHover,
-  children,
-}: {
-  id: string;
-  hovered: string | null;
-  onHover: (id: string) => void;
-  children: ReactNode;
-}) {
-  return (
-    <span
-      className="relative isolate flex h-8 items-center px-2.5 [&_:is(a,button):hover]:text-fg"
-      onMouseEnter={() => onHover(id)}
-    >
-      <AnimatePresence>
-        {hovered === id && (
-          <motion.span
-            aria-hidden
-            layoutId="nav-hover"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: "spring", visualDuration: 0.25, bounce: 0.15 }}
-            className="pointer-events-none absolute inset-0 -z-10 rounded-[10px] bg-black/[0.055] dark:bg-white/[0.08]"
-          />
-        )}
-      </AnimatePresence>
-      {children}
-    </span>
-  );
-}
+const BAR_SLOT = "flex h-8 items-center px-2.5";
+const BAR_LINK_HOVER =
+  "decoration-1 underline-offset-[3px] hover:text-fg hover:underline";
 
 function NavLink({
   href,
@@ -129,122 +85,6 @@ function NavLink({
 
 type MenuLink = { label: string; href: string; external?: boolean };
 
-type TileLink = MenuLink & { description: string; icon?: ReactNode };
-
-/*
- * Only opacity and translate animate, so the slide stays on the compositor;
- * scaling would re-rasterize the text every frame. Opening eases out (quint)
- * so it lands softly; closing uses the standard curve so it leaves smoothly
- * instead of snapping. Visibility flips instantly on open and only after the
- * fade on close, keeping closed links out of the tab order. Written out in
- * full because Tailwind only generates classes it can read verbatim.
- */
-const PANEL_OPEN =
-  "visible translate-y-0 opacity-100 [transition:opacity_260ms_cubic-bezier(0.22,1,0.36,1),translate_260ms_cubic-bezier(0.22,1,0.36,1),visibility_0s]";
-const PANEL_CLOSED =
-  "invisible -translate-y-1.5 opacity-0 [transition:opacity_200ms_cubic-bezier(0.4,0,0.2,1),translate_200ms_cubic-bezier(0.4,0,0.2,1),visibility_0s_linear_200ms]";
-
-/*
- * Opens on hover and on keyboard focus, which a React Aria menu can't do: it
- * only opens on press. The panel stays mounted and is hidden with `invisible`,
- * so closed links are out of the tab order but still in the HTML for crawlers.
- */
-function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
-  const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const refocusing = useRef(false);
-
-  const show = () => setOpen(true);
-
-  return (
-    <div
-      className="relative"
-      onMouseEnter={show}
-      onMouseLeave={() => setOpen(false)}
-      onFocus={() => {
-        if (refocusing.current) refocusing.current = false;
-        else show();
-      }}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
-      }}
-      onKeyDown={(event) => {
-        if (event.key !== "Escape" || !open) return;
-        setOpen(false);
-        refocusing.current = true;
-        triggerRef.current?.focus();
-      }}
-    >
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-expanded={open}
-        aria-haspopup="true"
-        onClick={() => setOpen((v) => !v)}
-        className={cn(
-          TEXT_LINK,
-          "-mx-3 -my-4 inline-flex cursor-pointer items-center gap-1 px-3 py-4 outline-none",
-          open && "text-fg",
-        )}
-      >
-        {label}
-        <ChevronDown
-          size={15}
-          className={cn(
-            "transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
-            open && "rotate-180",
-          )}
-        />
-      </button>
-      {/* While open, the top padding bridges the pointer from the trigger to
-          the panel. While closed, none of this box takes the pointer, so only
-          the trigger itself can open the menu. */}
-      <div
-        className={cn(
-          "absolute top-full left-1/2 -translate-x-1/2 pt-3.5",
-          !open && "pointer-events-none",
-        )}
-      >
-        <ul
-          className={cn(
-            "bg-(--island) shadow-lg border-line flex w-[22rem] flex-col rounded-xl border p-2 will-change-[opacity,translate] motion-reduce:[transition:none]",
-            open ? PANEL_OPEN : PANEL_CLOSED,
-          )}
-        >
-          {links.map((link) => (
-            <li key={link.label}>
-              <NextLink
-                href={link.href}
-                target={link.external ? "_blank" : undefined}
-                rel={link.external ? "noopener noreferrer" : undefined}
-                onClick={() => setOpen(false)}
-                className="hover:bg-tint focus-visible:bg-tint flex items-start gap-3 rounded-lg px-3.5 py-3 outline-none transition-colors duration-150 motion-reduce:transition-none"
-              >
-                {link.icon && (
-                  <span className="flex size-6 shrink-0 items-center justify-center pt-0.5">
-                    {link.icon}
-                  </span>
-                )}
-                <span className="flex min-w-0 flex-col gap-0.5">
-                  <span className="text-fg flex items-center gap-1 text-[15px] font-normal">
-                    {link.label}
-                    {link.external && (
-                      <ArrowUpRight size={14} className="text-fg-subtle" />
-                    )}
-                  </span>
-                  <span className="text-fg-muted text-[13px] leading-snug font-normal">
-                    {link.description}
-                  </span>
-                </span>
-              </NextLink>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
 export function Nav() {
   const { stars } = useRepoStats();
   const m = useMessages();
@@ -255,7 +95,9 @@ export function Nav() {
     : { href: lh("/login"), label: m.nav.login };
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
-  const [hovered, setHovered] = useState<string | null>(null);
+  const flyoutState = useFlyoutState();
+  const triggers = useRef<Record<string, HTMLButtonElement | null>>({});
+  const { footer } = m;
 
   const starLabel = stars
     ? m.nav.starCount.replace("{stars}", String(stars))
@@ -265,72 +107,155 @@ export function Nav() {
     toDark: m.nav.themeToDark,
   };
 
-  /*
-   * In the bar the main links sit inline between the Products and Resources
-   * menus; the drawer stacks them all as block links.
-   */
   const barLinks: MenuLink[] = [
     { label: m.nav.features, href: lh("/features") },
     { label: m.nav.pricing, href: lh("/pricing") },
     { label: m.nav.docs, href: DOCS_URL, external: true },
   ];
-  const productLinks: TileLink[] = [
-    {
-      label: m.nav.extension,
-      href: lh("/chrome-extension"),
-      description: m.nav.extensionDescription,
-      icon: <ChromeLogoColor className="size-5" />,
-    },
-    {
-      label: m.nav.agentRecorder,
-      href: lh("/agent-recorder"),
-      description: m.nav.agentRecorderDescription,
-      icon: <McpLogo className="size-5 text-fg" />,
-    },
-    {
-      label: m.nav.swarmDemo,
-      href: lh("/swarm-demo"),
-      description: m.nav.swarmDemoDescription,
-      icon: <SwarmCursorsLogo className="size-6" />,
-    },
-  ];
-  const moreLinks: TileLink[] = [
-    {
-      label: m.nav.faq,
-      href: lh("/faq"),
-      description: m.nav.faqDescription,
-    },
-    {
-      label: m.nav.blog,
-      href: lh("/blog"),
-      description: m.nav.blogDescription,
-    },
+  const products: Flyout = {
+    id: "products",
+    label: m.nav.products,
+    groups: [
+      {
+        title: m.nav.exploreProducts,
+        featured: [
+          { label: m.nav.extension, href: lh("/chrome-extension") },
+          { label: m.nav.agentRecorder, href: lh("/agent-recorder") },
+          { label: m.nav.swarmDemo, href: lh("/swarm-demo") },
+          { label: footer.product.download, href: lh("/download") },
+        ],
+        links: [
+          { label: footer.product.features, href: lh("/features") },
+          { label: footer.product.suggest, href: lh("/suggest-feature") },
+        ],
+      },
+      {
+        title: m.nav.plans,
+        links: [
+          { label: footer.product.pricing, href: lh("/pricing") },
+          { label: m.nav.enterprise, href: lh("/enterprise") },
+          {
+            label: footer.resources.selfHosting,
+            href: `${DOCS_URL}/self-hosting/overview`,
+            external: true,
+          },
+          { label: footer.resources.security, href: lh("/security") },
+        ],
+      },
+    ],
+  };
+  const resources: Flyout = {
+    id: "resources",
+    label: m.nav.resources,
+    groups: [
+      {
+        title: m.nav.exploreResources,
+        featured: [
+          { label: footer.resources.docs, href: DOCS_URL, external: true },
+          { label: footer.resources.blog, href: lh("/blog") },
+          { label: footer.resources.faq, href: lh("/faq") },
+        ],
+        links: [
+          {
+            label: footer.resources.releases,
+            href: RELEASES_URL,
+            external: true,
+          },
+        ],
+      },
+      {
+        title: footer.community.title,
+        links: [
+          { label: "GitHub", href: SOURCE_REPO_URL, external: true },
+          { label: "Discord", href: DISCORD_URL, external: true },
+        ],
+      },
+      {
+        title: footer.legal.title,
+        links: [
+          { label: footer.legal.privacy, href: lh("/privacy") },
+          { label: footer.legal.terms, href: lh("/terms") },
+          { label: footer.legal.refund, href: lh("/refund") },
+        ],
+      },
+    ],
+  };
+  const flyouts = [products, resources];
+  const menuLinks: MenuLink[] = [
+    { label: m.nav.extension, href: lh("/chrome-extension") },
+    { label: m.nav.agentRecorder, href: lh("/agent-recorder") },
+    { label: m.nav.swarmDemo, href: lh("/swarm-demo") },
+    ...barLinks,
+    { label: m.nav.faq, href: lh("/faq") },
+    { label: m.nav.blog, href: lh("/blog") },
     {
       label: m.nav.selfHosting,
       href: `${DOCS_URL}/self-hosting/overview`,
       external: true,
-      description: m.nav.selfHostingDescription,
     },
-    {
-      label: m.nav.community,
-      href: DISCORD_URL,
-      external: true,
-      description: m.nav.communityDescription,
-    },
+    { label: m.nav.community, href: DISCORD_URL, external: true },
   ];
-  const menuLinks = [...productLinks, ...barLinks, ...moreLinks];
+
+  const trigger = (flyout: Flyout) => (
+    <span key={flyout.id} className={BAR_SLOT}>
+      <button
+        ref={(el) => {
+          triggers.current[flyout.id] = el;
+        }}
+        type="button"
+        aria-expanded={flyoutState.isOpen(flyout.id)}
+        aria-controls={`nav-flyout-${flyout.id}`}
+        onPointerEnter={(event) => {
+          if (event.pointerType === "mouse") flyoutState.intend(flyout.id);
+        }}
+        onClick={() =>
+          flyoutState.isOpen(flyout.id)
+            ? flyoutState.close()
+            : flyoutState.open(flyout.id)
+        }
+        className={cn(
+          TEXT_LINK,
+          "-mx-3 -my-4 inline-flex cursor-pointer items-center px-3 py-4 outline-none",
+          BAR_LINK_HOVER,
+          flyoutState.isOpen(flyout.id) && "text-fg underline",
+        )}
+      >
+        {flyout.label}
+      </button>
+    </span>
+  );
 
   return (
     <>
       <TopBar />
       <header
+        onPointerLeave={flyoutState.close}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) {
+            flyoutState.close();
+          }
+        }}
+        onKeyDown={(event) => {
+          const open = flyoutState.active;
+          if (event.key !== "Escape" || !open) return;
+          flyoutState.close();
+          triggers.current[open]?.focus();
+        }}
         className={cn(
           "sticky top-0 flex h-14 w-full max-w-full items-start text-start text-xs font-medium text-muted-foreground",
           // The sheet's overlay sits at z-50; drop under it so the open menu dims the bar.
           menuOpen ? "z-40" : "z-[100]",
         )}
       >
-        <div className="flex h-14 w-full items-center border-b border-line-strong bg-panel/80 backdrop-blur-md [--island:#ffffff] dark:[--island:#181818]">
+        <NavFlyoutPanel flyouts={flyouts} state={flyoutState} />
+        <div
+          className={cn(
+            "flex h-14 w-full items-center border-b bg-panel/80 backdrop-blur-md transition-[border-color] duration-[240ms] [--island:#ffffff] dark:[--island:#181818]",
+            flyoutState.active && flyoutState.mode !== "leave"
+              ? "border-transparent"
+              : "border-line-strong",
+          )}
+        >
           <div
             className={cn(
               "mx-auto flex w-[calc(100%-48px)] items-center justify-between",
@@ -369,30 +294,27 @@ export function Nav() {
               <nav
                 aria-label={m.nav.main}
                 className="ml-3.5 hidden items-center md:flex"
-                onMouseLeave={() => setHovered(null)}
               >
-                <HoverSlot id="Products" hovered={hovered} onHover={setHovered}>
-                  <HoverMenu label={m.nav.products} links={productLinks} />
-                </HoverSlot>
+                {trigger(products)}
                 {barLinks.map((link) => (
-                  <HoverSlot
+                  <span
                     key={link.label}
-                    id={link.label}
-                    hovered={hovered}
-                    onHover={setHovered}
+                    className={cn(
+                      BAR_SLOT,
+                      "[&_a]:decoration-1 [&_a]:underline-offset-[3px] [&_a:hover]:underline",
+                    )}
+                    onPointerEnter={(event) => {
+                      if (event.pointerType === "mouse") {
+                        flyoutState.intend(null);
+                      }
+                    }}
                   >
                     <NavLink href={link.href} external={link.external}>
                       {link.label}
                     </NavLink>
-                  </HoverSlot>
+                  </span>
                 ))}
-                <HoverSlot
-                  id="Resources"
-                  hovered={hovered}
-                  onHover={setHovered}
-                >
-                  <HoverMenu label={m.nav.resources} links={moreLinks} />
-                </HoverSlot>
+                {trigger(resources)}
               </nav>
             </div>
 
@@ -401,7 +323,7 @@ export function Nav() {
             bar as the source link. */}
             <div className="hidden items-center gap-5 md:flex">
               <a
-                href={GITHUB_URL}
+                href={SOURCE_REPO_URL}
                 target="_blank"
                 rel="noreferrer"
                 aria-label={starLabel}
@@ -471,7 +393,12 @@ export function Nav() {
                 </NavLink>
               ))}
             </nav>
-            <NavLink href={GITHUB_URL} external block icon={<Star size={16} />}>
+            <NavLink
+              href={SOURCE_REPO_URL}
+              external
+              block
+              icon={<Star size={16} />}
+            >
               {starLabel}
             </NavLink>
             <NextLink
