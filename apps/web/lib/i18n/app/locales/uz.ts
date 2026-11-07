@@ -892,7 +892,7 @@ const messages: AppMessages = {
         "Yuklash hali tugamadi. Tayyor boʻlgach, bu sahifa oʻzi yangilanadi.",
       generatingTitle: "Videongiz tayyorlanmoqda…",
       generatingDescription:
-        "Bu bir-ikki daqiqa olishi mumkin. Tayyor boʻlgach sahifa oʻzi yangilanadi.",
+        "Bu bir necha daqiqa olishi mumkin, bir piyola qahva yoki gazak oling ☕️🍪 Tayyor bo‘lgach, sahifa o‘zi yangilanadi.",
       failedTitle: "Bu yozuv oxirigacha yuklanmadi",
       failedDescription:
         "Havola yaratildi, lekin video yetib kelmadi. Bir daqiqadan soʻng havolani qayta ochib koʻring yoki yangisini yozib oling.",

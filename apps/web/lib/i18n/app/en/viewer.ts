@@ -62,7 +62,7 @@ export const VIEWER = {
       "The upload is still finishing. This page refreshes on its own once it's ready.",
     generatingTitle: "Generating your video…",
     generatingDescription:
-      "This may take a minute or two. The page refreshes on its own once it's ready.",
+      "This can take a few minutes, so grab a coffee or a snack ☕️🍪 The page refreshes on its own once it's ready.",
     failedTitle: "This recording didn't finish uploading",
     failedDescription:
       "The link was created but the video never arrived. Try the link again in a minute, or record a fresh one.",

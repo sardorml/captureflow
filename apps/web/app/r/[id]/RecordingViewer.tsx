@@ -201,12 +201,15 @@ export function RecordingViewer({
                       </Avatar>
                     ) : null
                   }
+                  trailing={<ViewCount count={viewCount} viewers={viewers} />}
+                  trailingClassName="lg:hidden"
                 />
               </div>
               <ViewCount
                 count={viewCount}
                 viewers={viewers}
-                className="max-lg:self-start"
+                variant="pill"
+                className="max-lg:hidden"
               />
             </div>
           </div>

@@ -402,11 +402,11 @@ export function ActivitySidebar({
     });
   };
 
+  // Enter sends and Shift+Enter breaks the line; an Enter that confirms an IME composition stays with the IME.
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-      e.preventDefault();
-      submitComment();
-    }
+    if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) return;
+    e.preventDefault();
+    submitComment();
   };
 
   return (

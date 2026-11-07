@@ -901,7 +901,7 @@ const messages: AppMessages = {
         "Der Upload wird noch abgeschlossen. Diese Seite aktualisiert sich von selbst, sobald die Aufnahme bereit ist.",
       generatingTitle: "Dein Video wird erstellt…",
       generatingDescription:
-        "Das kann ein bis zwei Minuten dauern. Die Seite aktualisiert sich von selbst, sobald es fertig ist.",
+        "Das kann ein paar Minuten dauern – hol dir einen Kaffee oder einen Snack ☕️🍪 Die Seite aktualisiert sich von selbst, sobald es fertig ist.",
       failedTitle: "Diese Aufnahme wurde nicht vollständig hochgeladen",
       failedDescription:
         "Der Link wurde erstellt, aber das Video ist nie angekommen. Versuch den Link in einer Minute noch einmal oder nimm neu auf.",

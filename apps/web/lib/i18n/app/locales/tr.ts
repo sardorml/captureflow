@@ -895,7 +895,7 @@ const messages: AppMessages = {
         "Yükleme hâlâ tamamlanıyor. Hazır olduğunda bu sayfa kendiliğinden yenilenir.",
       generatingTitle: "Videonuz oluşturuluyor…",
       generatingDescription:
-        "Bu bir iki dakika sürebilir. Hazır olduğunda sayfa kendiliğinden yenilenir.",
+        "Bu birkaç dakika sürebilir, bir kahve ya da atıştırmalık alın ☕️🍪 Hazır olduğunda sayfa kendiliğinden yenilenir.",
       failedTitle: "Bu kaydın yüklenmesi tamamlanmadı",
       failedDescription:
         "Bağlantı oluşturuldu ama video hiç ulaşmadı. Bağlantıyı bir dakika sonra tekrar deneyin veya yeni bir kayıt yapın.",

@@ -903,9 +903,9 @@ const messages: AppMessages = {
       preparingTitle: "Przygotowywanie twojego nagrania…",
       preparingDescription:
         "Przesyłanie jeszcze się kończy. Ta strona odświeży się sama, gdy nagranie będzie gotowe.",
-      generatingTitle: "Generowanie filmu…",
+      generatingTitle: "Tworzymy Twoje wideo…",
       generatingDescription:
-        "Może to potrwać minutę lub dwie. Strona odświeży się sama, gdy film będzie gotowy.",
+        "To może potrwać kilka minut, więc zrób sobie kawę albo przekąskę ☕️🍪 Strona odświeży się sama, gdy wszystko będzie gotowe.",
       failedTitle: "Przesyłanie tego nagrania nie zostało dokończone",
       failedDescription:
         "Link został utworzony, ale wideo nigdy nie dotarło. Spróbuj otworzyć link ponownie za minutę albo nagraj nowe.",

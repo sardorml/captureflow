@@ -879,7 +879,7 @@ const messages: AppMessages = {
         "Quá trình tải lên vẫn đang hoàn tất. Trang này sẽ tự làm mới khi bản ghi sẵn sàng.",
       generatingTitle: "Đang tạo video của bạn…",
       generatingDescription:
-        "Có thể mất một hai phút. Trang sẽ tự làm mới khi video sẵn sàng.",
+        "Việc này có thể mất vài phút, hãy pha một tách cà phê hoặc lấy chút đồ ăn vặt ☕️🍪 Trang sẽ tự làm mới khi video sẵn sàng.",
       failedTitle: "Bản ghi này chưa tải lên xong",
       failedDescription:
         "Liên kết đã được tạo nhưng video không đến nơi. Hãy thử lại liên kết sau một phút, hoặc quay một bản mới.",

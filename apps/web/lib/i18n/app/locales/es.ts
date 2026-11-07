@@ -894,9 +894,9 @@ const messages: AppMessages = {
       preparingTitle: "Preparando tu grabación…",
       preparingDescription:
         "La subida aún está terminando. Esta página se actualiza sola cuando esté lista.",
-      generatingTitle: "Generando tu vídeo…",
+      generatingTitle: "Generando tu video…",
       generatingDescription:
-        "Puede tardar uno o dos minutos. La página se actualiza sola cuando esté listo.",
+        "Puede tardar unos minutos, así que ve por un café o algo de picar ☕️🍪 La página se actualiza sola cuando esté listo.",
       failedTitle: "Esta grabación no terminó de subirse",
       failedDescription:
         "El enlace se creó, pero el video nunca llegó. Prueba el enlace de nuevo en un minuto o haz una grabación nueva.",

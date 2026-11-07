@@ -889,9 +889,9 @@ const messages: AppMessages = {
       preparingTitle: "Tallennettasi valmistellaan…",
       preparingDescription:
         "Lähetys on vielä kesken. Tämä sivu päivittyy itsestään, kun tallenne on valmis.",
-      generatingTitle: "Videota luodaan…",
+      generatingTitle: "Videotasi luodaan…",
       generatingDescription:
-        "Tämä voi kestää minuutin tai kaksi. Sivu päivittyy itsestään, kun video on valmis.",
+        "Tämä voi kestää muutaman minuutin, joten hae kahvia tai välipala ☕️🍪 Sivu päivittyy itsestään, kun video on valmis.",
       failedTitle: "Tämän tallenteen lähetys jäi kesken",
       failedDescription:
         "Linkki luotiin, mutta video ei koskaan saapunut. Kokeile linkkiä uudelleen minuutin kuluttua tai tee uusi tallenne.",

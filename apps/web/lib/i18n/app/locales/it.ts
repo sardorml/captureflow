@@ -894,9 +894,9 @@ const messages: AppMessages = {
       preparingTitle: "Preparazione della registrazione…",
       preparingDescription:
         "Il caricamento è ancora in corso. Questa pagina si aggiorna da sola appena è pronta.",
-      generatingTitle: "Generazione del video…",
+      generatingTitle: "Stiamo creando il tuo video…",
       generatingDescription:
-        "Potrebbe volerci un minuto o due. La pagina si aggiorna da sola quando è pronto.",
+        "Può volerci qualche minuto, quindi prenditi un caffè o uno spuntino ☕️🍪 La pagina si aggiorna da sola quando è pronto.",
       failedTitle:
         "Il caricamento di questa registrazione non è stato completato",
       failedDescription:

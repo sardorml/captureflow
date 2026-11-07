@@ -140,12 +140,15 @@ export function PendingRecording({
                       </Avatar>
                     ) : null
                   }
+                  trailing={<ViewCount count={viewCount} viewers={null} />}
+                  trailingClassName="lg:hidden"
                 />
               </div>
               <ViewCount
                 count={viewCount}
                 viewers={null}
-                className="max-lg:self-start"
+                variant="pill"
+                className="max-lg:hidden"
               />
             </div>
           </div>
@@ -173,6 +176,9 @@ export function PendingRecording({
                 </>
               ) : generated ? (
                 <>
+                  <span aria-hidden className="text-3xl leading-none">
+                    🎬
+                  </span>
                   <TextShimmer
                     as="p"
                     text={copy.generatingTitle}

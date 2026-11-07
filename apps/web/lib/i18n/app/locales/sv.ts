@@ -878,9 +878,9 @@ const messages: AppMessages = {
       preparingTitle: "Förbereder din inspelning…",
       preparingDescription:
         "Uppladdningen håller på att slutföras. Sidan uppdateras av sig själv när den är klar.",
-      generatingTitle: "Skapar din video…",
+      generatingTitle: "Din video skapas…",
       generatingDescription:
-        "Det kan ta en minut eller två. Sidan uppdateras av sig själv när den är klar.",
+        "Det kan ta några minuter, så ta en kaffe eller ett mellanmål ☕️🍪 Sidan uppdateras av sig själv när den är klar.",
       failedTitle: "Uppladdningen av den här inspelningen slutfördes inte",
       failedDescription:
         "Länken skapades men videon kom aldrig fram. Prova länken igen om en minut, eller gör en ny inspelning.",

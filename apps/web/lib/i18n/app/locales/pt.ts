@@ -897,7 +897,7 @@ const messages: AppMessages = {
         "O carregamento ainda está a terminar. Esta página atualiza-se sozinha quando estiver pronta.",
       generatingTitle: "A gerar o seu vídeo…",
       generatingDescription:
-        "Pode demorar um ou dois minutos. A página atualiza-se sozinha quando estiver pronto.",
+        "Isto pode demorar alguns minutos, por isso vá buscar um café ou um lanche ☕️🍪 A página atualiza-se sozinha quando estiver pronto.",
       failedTitle: "O carregamento desta gravação não foi concluído",
       failedDescription:
         "O link foi criado, mas o vídeo nunca chegou. Tente abrir o link novamente dentro de um minuto ou faça uma nova gravação.",

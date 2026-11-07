@@ -861,9 +861,9 @@ const messages: AppMessages = {
       preparingTitle: "녹화를 준비하는 중…",
       preparingDescription:
         "업로드가 아직 끝나지 않았습니다. 준비되면 이 페이지가 자동으로 새로 고쳐집니다.",
-      generatingTitle: "동영상을 생성하고 있습니다…",
+      generatingTitle: "동영상을 만들고 있어요…",
       generatingDescription:
-        "일이 분 정도 걸릴 수 있습니다. 준비되면 이 페이지가 자동으로 새로고침됩니다.",
+        "몇 분 정도 걸릴 수 있어요. 커피나 간식 한잔하고 오세요 ☕️🍪 준비가 되면 페이지가 자동으로 새로고침됩니다.",
       failedTitle: "이 녹화는 업로드를 마치지 못했습니다",
       failedDescription:
         "링크는 만들어졌지만 영상이 도착하지 않았습니다. 잠시 후 링크를 다시 열거나 새로 녹화하세요.",

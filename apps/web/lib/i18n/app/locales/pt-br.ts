@@ -889,7 +889,7 @@ const messages: AppMessages = {
         "O envio ainda está terminando. Esta página se atualiza sozinha assim que a gravação estiver pronta.",
       generatingTitle: "Gerando seu vídeo…",
       generatingDescription:
-        "Isso pode levar um ou dois minutos. A página atualiza sozinha quando estiver pronto.",
+        "Isso pode levar alguns minutos, então pegue um café ou um lanche ☕️🍪 A página se atualiza sozinha quando estiver pronto.",
       failedTitle: "O envio desta gravação não foi concluído",
       failedDescription:
         "O link foi criado, mas o vídeo nunca chegou. Tente o link de novo em um minuto ou faça uma nova gravação.",

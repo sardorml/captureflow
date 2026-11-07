@@ -879,9 +879,9 @@ const messages: AppMessages = {
       preparingTitle: "Klargjør opptaket ditt…",
       preparingDescription:
         "Opplastingen er ikke helt ferdig. Siden oppdateres av seg selv når opptaket er klart.",
-      generatingTitle: "Lager videoen din…",
+      generatingTitle: "Videoen din lages…",
       generatingDescription:
-        "Det kan ta et minutt eller to. Siden oppdaterer seg selv når den er klar.",
+        "Dette kan ta noen minutter, så ta deg en kaffe eller en matbit ☕️🍪 Siden oppdateres av seg selv når den er klar.",
       failedTitle: "Dette opptaket ble ikke ferdig opplastet",
       failedDescription:
         "Lenken ble opprettet, men videoen kom aldri frem. Prøv lenken igjen om et minutt, eller lag et nytt opptak.",

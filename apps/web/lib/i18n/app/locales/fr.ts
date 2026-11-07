@@ -903,9 +903,9 @@ const messages: AppMessages = {
       preparingTitle: "Préparation de votre enregistrement…",
       preparingDescription:
         "L’envoi est en train de se terminer. Cette page s’actualise toute seule dès qu’il est prêt.",
-      generatingTitle: "Génération de votre vidéo…",
+      generatingTitle: "Création de votre vidéo…",
       generatingDescription:
-        "Cela peut prendre une à deux minutes. La page se rafraîchit d’elle-même dès que c’est prêt.",
+        "Cela peut prendre quelques minutes : allez vous chercher un café ou un en-cas ☕️🍪 La page s'actualise d'elle-même dès qu'elle est prête.",
       failedTitle: "L’envoi de cet enregistrement n’a pas abouti",
       failedDescription:
         "Le lien a été créé, mais la vidéo n’est jamais arrivée. Réessayez le lien dans une minute ou faites un nouvel enregistrement.",
