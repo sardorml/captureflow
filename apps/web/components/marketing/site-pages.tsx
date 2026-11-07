@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Package, Terminal } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -198,9 +197,7 @@ export function SelfHostSetupPage({ i18n }: PageProps) {
 export function SwarmDemoPage({ i18n }: PageProps) {
   return (
     <MarketingPage i18n={i18n}>
-      <Suspense>
-        <SwarmDemoSection />
-      </Suspense>
+      <SwarmDemoSection />
     </MarketingPage>
   );
 }

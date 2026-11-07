@@ -8,7 +8,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ArrowUp, Globe } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -177,9 +177,8 @@ function DemoForm() {
   const copy = useMessages().swarmDemo;
   const lh = useLocalizedHref();
   const router = useRouter();
-  const params = useSearchParams();
   const id = useId();
-  const [url, setUrl] = useState(() => params.get("url") ?? "");
+  const [url, setUrl] = useState("");
   const [phase, setPhase] = useState<"idle" | "checking" | "starting">("idle");
   const [site, setSite] = useState<SitePreview | null>(null);
   const [error, setError] = useState<SwarmDemoErrorCode | null>(null);
@@ -220,10 +219,14 @@ function DemoForm() {
     setPhase("idle");
   }
 
+  // Read after mount, so the page is prerendered whole instead of waiting on the query.
   useEffect(() => {
-    if (resumed.current || params.get("go") !== "1") return;
+    if (resumed.current) return;
     resumed.current = true;
+    const params = new URLSearchParams(window.location.search);
     const address = params.get("url") ?? "";
+    if (address) setUrl(address);
+    if (params.get("go") !== "1") return;
     router.replace(lh("/swarm-demo"));
     if (address) void check(address);
     // Runs once, for the address carried back from sign-in.
