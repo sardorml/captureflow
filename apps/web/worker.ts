@@ -46,6 +46,9 @@ type Env = {
   GITHUB_TOKEN?: string;
 };
 
+const DEMO_KEY = "demo";
+const DEMO_CHECK_SECONDS = 30;
+
 // The cloud browser behind agent recordings (apps/recorder), one container
 // per session. It sleeps a minute past the recorder's own idle limit, and
 // right away once the session is stopped or cancelled.
@@ -65,7 +68,10 @@ export class RecorderContainer extends Container<Env> {
   override async fetch(request: Request): Promise<Response> {
     const path = new URL(request.url).pathname;
     if (request.method === "POST" && path.endsWith("/demo")) {
-      this.ctx.waitUntil(this.runDemo(request, path.split("/")[2] ?? ""));
+      const id = path.split("/")[2] ?? "";
+      await this.ctx.storage.put(DEMO_KEY, id);
+      await this.schedule(DEMO_CHECK_SECONDS, "checkDemo", id);
+      this.ctx.waitUntil(this.runDemo(request, id));
       return Response.json({ ok: true }, { status: 202 });
     }
     const res = await this.containerFetch(request);
@@ -90,11 +96,39 @@ export class RecorderContainer extends Container<Env> {
     } catch (err) {
       console.warn(`[swarm-demo] ${id} failed:`, err);
     } finally {
-      await endAgentRecording(this.env.DB, id, Date.now()).catch((err) =>
-        console.error(`[swarm-demo] ${id} not ended:`, err),
-      );
-      await this.stop();
+      await this.finishDemo(id);
     }
+  }
+
+  /*
+   * A deploy restarts this object and drops the wait above, while the
+   * container carries on. This check outlives the restart: it keeps the
+   * container awake while the demo runs and ends the session once the demo
+   * is gone, so the user's next recording isn't blocked by it.
+   */
+  async checkDemo(id: string) {
+    if ((await this.ctx.storage.get(DEMO_KEY)) !== id) return;
+    let running = false;
+    if (this.ctx.container?.running) {
+      const res = await this.containerFetch(
+        new Request(`http://recorder/sessions/${id}`, {
+          headers: { "x-recorder-secret": this.env.RECORDER_SECRET ?? "" },
+        }),
+      ).catch(() => null);
+      running = res?.ok ?? false;
+    }
+    if (!running) return this.finishDemo(id);
+    this.renewActivityTimeout();
+    await this.schedule(DEMO_CHECK_SECONDS, "checkDemo", id);
+  }
+
+  private async finishDemo(id: string) {
+    if ((await this.ctx.storage.get(DEMO_KEY)) !== id) return;
+    await this.ctx.storage.delete(DEMO_KEY);
+    await endAgentRecording(this.env.DB, id, Date.now()).catch((err) =>
+      console.error(`[swarm-demo] ${id} not ended:`, err),
+    );
+    await this.stop();
   }
 }
 
