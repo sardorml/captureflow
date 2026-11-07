@@ -573,7 +573,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Katso, kuinka agentit rakentavat uudelleen",
+    title: "Katso, kuinka agenttiparvi rakentaa uudelleen",
     titleHighlight: "minkä tahansa sivuston",
     subtitle:
       "Kirjoita sivuston osoite. Parvi agenttikursoreita piirtää sen takaisin elementti kerrallaan musiikin tahdissa, ja saat jaettavan videolinkin.",

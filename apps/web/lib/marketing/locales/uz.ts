@@ -567,7 +567,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Tomosha qiling: agentlar qayta quradi",
+    title: "Tomosha qiling: agentlar to'dasi qayta quradi",
     titleHighlight: "istalgan saytni",
     subtitle:
       "Sayt manzilini kiriting. Agent kursorlari toʻdasi uni musiqa ostida elementma-element qaytadan chizadi va siz ulashish uchun video havolasini olasiz.",

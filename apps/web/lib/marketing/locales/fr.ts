@@ -595,7 +595,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Regardez des agents reconstruire",
+    title: "Regardez un essaim d’agents reconstruire",
     titleHighlight: "n’importe quel site",
     subtitle:
       "Saisissez l’adresse d’un site. Un essaim de curseurs d’agents le redessine élément par élément, en musique, et vous obtenez un lien vidéo à partager.",

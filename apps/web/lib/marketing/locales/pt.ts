@@ -581,7 +581,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Veja agentes a reconstruir",
+    title: "Veja um enxame de agentes a reconstruir",
     titleHighlight: "qualquer site",
     subtitle:
       "Escreva o endereço de um site. Um enxame de cursores de agentes volta a desenhá-lo elemento a elemento, ao som de música, e recebe um link de vídeo para partilhar.",
