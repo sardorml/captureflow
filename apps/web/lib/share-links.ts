@@ -17,12 +17,22 @@ export const SOCIAL_NETWORKS: readonly SocialNetwork[] = [
 
 const enc = encodeURIComponent;
 
+const HOSTNAME = /\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b/gi;
+
+// A word joiner after each dot keeps a hostname in the text (a title like
+// "figma.com rebuilt by agents") from becoming the post's first link, which
+// X and WhatsApp would turn into the preview card instead of ours.
+export function unlinkHostnames(text: string): string {
+  return text.replace(HOSTNAME, (host) => host.replaceAll(".", ".\u2060"));
+}
+
 // LinkedIn and Facebook take only the link and build the post from its preview card.
 export function socialShareUrl(
   network: SocialNetwork,
   link: { url: string; title: string; message: string },
 ): string {
-  const { url, title, message } = link;
+  const { url, title } = link;
+  const message = unlinkHostnames(link.message);
   switch (network) {
     case "x":
       return `https://x.com/intent/post?text=${enc(message)}&url=${enc(url)}`;
