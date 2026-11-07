@@ -136,6 +136,21 @@ export async function findRunningAgentRecording(
 }
 
 // Ends the session and revokes the token its upload used, in one batch.
+// The recording made for a session whose recorder never took it would stay pending forever.
+export async function failPendingAgentRecording(
+  db: D1Database,
+  id: string,
+): Promise<void> {
+  await db
+    .prepare(
+      `UPDATE recordings SET state = 'failed'
+        WHERE state = 'pending'
+          AND slug = (SELECT slug FROM agent_recordings WHERE id = ?1)`,
+    )
+    .bind(id)
+    .run();
+}
+
 export async function endAgentRecording(
   db: D1Database,
   id: string,

@@ -34,4 +34,4 @@ export {
   type SlideLayout,
   type SlideTheme,
 } from "./slide";
-export type { UploadCredentials } from "./upload";
+export { createTransport, type UploadCredentials } from "./upload";

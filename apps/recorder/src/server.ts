@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage } from "node:http";
 import { timingSafeEqual } from "node:crypto";
 import { chromium, type Browser } from "playwright";
 import {
+  createTransport,
   decodeAudio,
   deviceScaleArg,
   SessionError,
@@ -72,6 +73,33 @@ function session(id: string): Session {
   return s;
 }
 
+type StartBody = Omit<StartRequest, "output"> & { upload: UploadCredentials };
+
+async function begin(id: string, { upload, ...rest }: StartBody) {
+  if (draining) {
+    throw new SessionError(
+      "The recorder is restarting. Try again in a minute.",
+    );
+  }
+  if (sessions.has(id)) throw new SessionError("That session already exists.");
+  try {
+    const s = await startSession(await getBrowser(), {
+      ...rest,
+      output: { kind: "upload", credentials: upload },
+    });
+    sessions.set(id, s);
+    return s;
+  } catch (err) {
+    // A recording made for this session ahead of time would wait as pending forever.
+    if (upload.created) {
+      await createTransport(upload)
+        .abort({ slug: upload.created.slug })
+        .catch(() => {});
+    }
+    throw err;
+  }
+}
+
 async function route(
   method: string,
   path: string[],
@@ -84,22 +112,7 @@ async function route(
     return { running: true };
   }
   if (method === "POST" && !verb) {
-    if (draining) {
-      throw new SessionError(
-        "The recorder is restarting. Try again in a minute.",
-      );
-    }
-    if (sessions.has(id))
-      throw new SessionError("That session already exists.");
-    const { upload, ...rest } = (await body()) as Omit<
-      StartRequest,
-      "output"
-    > & { upload: UploadCredentials };
-    const s = await startSession(await getBrowser(), {
-      ...rest,
-      output: { kind: "upload", credentials: upload },
-    });
-    sessions.set(id, s);
+    const s = await begin(id, (await body()) as StartBody);
     return { slug: s.slug, maxDurationMs: s.maxDurationMs };
   }
   if (method === "GET" && verb === "look") return session(id).look();
@@ -119,10 +132,14 @@ async function route(
     return { ok: true, elapsedSeconds: session(id).elapsedSeconds };
   }
   if (method === "POST" && verb === "demo") {
-    const { url } = (await body()) as { url?: unknown };
+    const { url, start } = (await body()) as {
+      url?: unknown;
+      start?: StartBody;
+    };
     if (typeof url !== "string" || !url) {
       throw new SessionError("Give the url of the page to rebuild.");
     }
+    if (start) await begin(id, start);
     try {
       return await runDemo(session(id), url);
     } finally {
