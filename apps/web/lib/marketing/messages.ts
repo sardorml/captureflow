@@ -561,7 +561,7 @@ export const MESSAGES = {
     },
   },
   swarmDemo: {
-    title: "Watch agents rebuild",
+    title: "Watch a swarm of agents rebuild",
     titleHighlight: "any website",
     subtitle:
       "Type a website address. A swarm of agent cursors draws it back element by element, to music, and you get a video link to share.",

@@ -561,7 +561,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Zobacz, jak agenci odbudowują",
+    title: "Zobacz, jak rój agentów odbudowuje",
     titleHighlight: "dowolną stronę",
     subtitle:
       "Wpisz adres strony. Rój kursorów agentów rysuje ją od nowa element po elemencie, do muzyki, a ty dostajesz link do wideo, którym możesz się podzielić.",

@@ -564,7 +564,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Xem các agent dựng lại",
+    title: "Xem một bầy agent dựng lại",
     titleHighlight: "bất kỳ website nào",
     subtitle:
       "Nhập địa chỉ website. Một bầy con trỏ agent vẽ lại nó từng phần tử một trên nền nhạc, và bạn nhận được liên kết video để chia sẻ.",

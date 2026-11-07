@@ -573,7 +573,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Se agenter bygga om",
+    title: "Se en svärm av agenter bygga om",
     titleHighlight: "vilken webbplats som helst",
     subtitle:
       "Skriv in en webbadress. En svärm av agentmarkörer ritar upp den igen element för element, till musik, och du får en videolänk att dela.",

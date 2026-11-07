@@ -585,7 +585,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Sieh zu, wie Agenten",
+    title: "Sieh zu, wie ein Schwarm von Agenten",
     titleHighlight: "jede Website nachbauen",
     subtitle:
       "Gib eine Website-Adresse ein. Ein Schwarm aus Agenten-Cursorn zeichnet sie Element für Element nach, mit Musik, und du bekommst einen Videolink zum Teilen.",

@@ -578,7 +578,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Ajanlar yeniden kuruyor:",
+    title: "Bir ajan sürüsü yeniden kuruyor:",
     titleHighlight: "istediğiniz her web sitesini",
     subtitle:
       "Bir web sitesi adresi yazın. Bir ajan imleci sürüsü onu müzik eşliğinde öğe öğe yeniden çizer ve paylaşabileceğiniz bir video bağlantısı alırsınız.",

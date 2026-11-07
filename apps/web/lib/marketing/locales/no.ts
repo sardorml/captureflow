@@ -568,7 +568,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Se agenter bygge opp igjen",
+    title: "Se en sverm av agenter bygge opp igjen",
     titleHighlight: "ethvert nettsted",
     subtitle:
       "Skriv inn en nettadresse. En sverm av agentmarkører tegner nettstedet opp igjen element for element, til musikk, og du får en videolenke å dele.",

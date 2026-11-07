@@ -570,7 +570,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Guarda gli agenti ricostruire",
+    title: "Guarda uno sciame di agenti ricostruire",
     titleHighlight: "qualsiasi sito",
     subtitle:
       "Digita l'indirizzo di un sito. Uno sciame di cursori di agenti lo ridisegna elemento per elemento, a ritmo di musica, e ottieni un link video da condividere.",

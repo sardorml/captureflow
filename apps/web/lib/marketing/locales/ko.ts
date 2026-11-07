@@ -551,7 +551,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "에이전트가 다시 만드는 모습을 보세요:",
+    title: "에이전트 무리가 다시 만드는 모습을 보세요:",
     titleHighlight: "어떤 웹사이트든",
     subtitle:
       "웹사이트 주소를 입력하세요. 에이전트 커서 떼가 음악에 맞춰 요소 하나하나를 다시 그리고, 공유할 수 있는 영상 링크를 받습니다.",

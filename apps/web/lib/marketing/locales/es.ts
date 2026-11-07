@@ -572,7 +572,7 @@ const messages: Messages = {
     },
   },
   swarmDemo: {
-    title: "Mira cómo los agentes reconstruyen",
+    title: "Mira cómo un enjambre de agentes reconstruye",
     titleHighlight: "cualquier web",
     subtitle:
       "Escribe la dirección de una web. Un enjambre de cursores de agentes la vuelve a dibujar elemento a elemento, con música, y obtienes un enlace de video para compartir.",
