@@ -115,9 +115,9 @@ const messages: Messages = {
     cta: "Bağlayın",
   },
   hero: {
-    title: "Siz ve yapay zeka ajanlarınız\niçin ekran kaydedici",
+    title: "Siz ve yapay zeka ajanlarınız\niçin ekran kaydedici {bubble}",
     subtitle:
-      "Demoları, nasıl yapılır videolarını, adım adım anlatımları ve sunumları kendiniz kaydedin ya da yapay zekanıza kaydettirin. Her birini herkesin izleyebileceği bir bağlantı olarak paylaşın.",
+      "Demoları, nasıl yapılır videolarını ve adım adım anlatımları {chrome} uzantısıyla kendiniz kaydedin ya da {claude}, {chatgpt} veya {cursor} sizin için kaydetsin. Her birini herkesin izleyebileceği bir bağlantı olarak paylaşın.",
     ctaLabel: "CaptureFlow'u ücretsiz deneyin",
     installChrome: "Chrome uzantısını yükleyin",
     installMac: "macOS için indirin",

@@ -114,9 +114,9 @@ const messages: Messages = {
     cta: "Connecter",
   },
   hero: {
-    title: "Enregistreur d’écran pour\nvous et vos agents IA",
+    title: "Enregistreur d’écran {bubble}\npour vous et vos agents IA",
     subtitle:
-      "Enregistrez vous-même vos démos, tutoriels, pas-à-pas et présentations, ou laissez votre IA les enregistrer pour vous. Partagez chaque vidéo par un lien que tout le monde peut regarder.",
+      "Enregistrez vous-même vos démos, tutoriels et pas-à-pas avec l'extension {chrome}, ou laissez {claude}, {chatgpt} ou {cursor} les enregistrer pour vous. Partagez chaque vidéo par un lien que tout le monde peut regarder.",
     ctaLabel: "Essayer CaptureFlow gratuitement",
     installChrome: "Installer l’extension Chrome",
     installMac: "Télécharger pour macOS",

@@ -112,9 +112,9 @@ const messages: Messages = {
     cta: "Połącz",
   },
   hero: {
-    title: "Nagrywanie ekranu\ndla ciebie i twoich agentów AI",
+    title: "Nagrywanie ekranu {bubble}\ndla ciebie i twoich agentów AI",
     subtitle:
-      "Nagrywaj dema, poradniki, omówienia i prezentacje samodzielnie albo zleć to swojemu AI. Każde nagranie udostępnisz jako link, który może obejrzeć każdy.",
+      "Nagrywaj dema, poradniki i omówienia samodzielnie z rozszerzeniem {chrome} albo pozwól, by nagrały je za Ciebie {claude}, {chatgpt} lub {cursor}. Każde nagranie udostępnisz jako link, który może obejrzeć każdy.",
     ctaLabel: "Wypróbuj CaptureFlow za darmo",
     installChrome: "Zainstaluj rozszerzenie Chrome",
     installMac: "Pobierz na macOS",

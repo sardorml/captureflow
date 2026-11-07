@@ -417,6 +417,9 @@ const messages: AppMessages = {
       copyLink: "Sao chép liên kết",
       linkCopied: "Đã sao chép liên kết",
       shareAt: "Chia sẻ tại {time}",
+      socialHeading: "Chia sẻ lên",
+      socialText: "Xem “{title}”",
+      email: "Email",
     },
     editableTitle: {
       label: "Tiêu đề bản ghi",
@@ -879,7 +882,7 @@ const messages: AppMessages = {
         "Quá trình tải lên vẫn đang hoàn tất. Trang này sẽ tự làm mới khi bản ghi sẵn sàng.",
       generatingTitle: "Đang tạo video của bạn…",
       generatingDescription:
-        "Có thể mất một hai phút. Trang sẽ tự làm mới khi video sẵn sàng.",
+        "Việc này có thể mất vài phút, hãy pha một tách cà phê hoặc lấy chút đồ ăn vặt ☕️🍪 Trang sẽ tự làm mới khi video sẵn sàng.",
       failedTitle: "Bản ghi này chưa tải lên xong",
       failedDescription:
         "Liên kết đã được tạo nhưng video không đến nơi. Hãy thử lại liên kết sau một phút, hoặc quay một bản mới.",
@@ -895,7 +898,15 @@ const messages: AppMessages = {
       editDescription:
         "Cắt gọn, cắt bỏ, đổi giao diện và sửa bản chép lời trong trình chỉnh sửa.",
       downloadTitle: "Tải video xuống",
-      downloadDescription: "Toàn bộ bản ghi ở dạng MP4.",
+      downloadDescription:
+        "Tệp MP4 có các chỉnh sửa của bạn: nền, camera và đoạn cắt.",
+      downloadRendering: "Đang xử lý {percent}%. Hãy giữ thẻ này mở.",
+      downloadCancel: "Hủy",
+      downloadFailed: "Không thể xử lý video. Hãy tải bản gốc thay thế.",
+      downloadUnsupported:
+        "Trình duyệt này không thể xử lý video. Hãy tải bản gốc thay thế.",
+      originalTitle: "Tải bản gốc",
+      originalDescription: "Bản ghi như lúc quay, chưa chỉnh sửa.",
       copyEmbed: "Sao chép mã nhúng",
       embedCopied: "Đã sao chép mã nhúng",
       embedDescription: "Dán trình phát vào bất kỳ trang web nào.",
@@ -912,7 +923,7 @@ const messages: AppMessages = {
       label: "Thanh bên bản ghi",
       activityTab: "Hoạt động",
       transcriptTab: "Bản chép lời",
-      toolsTab: "Công cụ",
+      toolsTab: "Thao tác",
     },
     you: "Bạn",
     anonymous: "Ẩn danh",
@@ -939,6 +950,9 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Xóa bình luận",
+      deleteTitle: "Xóa bình luận này?",
+      deleteDescription:
+        "Bình luận sẽ bị xóa với mọi người. Không thể hoàn tác.",
       deleteFailed: "Không xóa được bình luận",
     },
     reaction: {
@@ -1198,16 +1212,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "Bản chép lời",
         design: "Thiết kế",
+        camera: "Camera",
+        audio: "Âm thanh",
         details: "Chi tiết",
       },
       hide: {
         transcript: "Ẩn bản chép lời",
         design: "Ẩn thiết kế",
+        camera: "Ẩn camera",
+        audio: "Ẩn âm thanh",
         details: "Ẩn chi tiết",
       },
       show: {
         transcript: "Hiện bản chép lời",
         design: "Hiện thiết kế",
+        camera: "Hiện camera",
+        audio: "Hiện âm thanh",
         details: "Hiện chi tiết",
       },
     },
@@ -1223,8 +1243,16 @@ const messages: AppMessages = {
       solid: "Màu trơn",
       solidColor: "Màu trơn {color}",
       customColor: "Chọn màu tùy chỉnh",
-      showLess: "Thu gọn",
-      seeMore: "Xem thêm",
+      colors: "Màu sắc",
+      wallpaper: "Hình nền {group} {n}",
+      wallpaperGroups: {
+        general: "Chung",
+        cities: "Thành phố",
+        blue: "Xanh dương",
+        purple: "Tím",
+        orange: "Cam",
+        dark: "Tối",
+      },
       presets: {
         violet: "Tím",
         sunset: "Hoàng hôn",

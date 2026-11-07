@@ -410,6 +410,9 @@ const messages: AppMessages = {
       copyLink: "คัดลอกลิงก์",
       linkCopied: "คัดลอกลิงก์แล้ว",
       shareAt: "แชร์โดยเริ่มที่ {time}",
+      socialHeading: "แชร์ไปที่",
+      socialText: "ดู “{title}”",
+      email: "อีเมล",
     },
     editableTitle: {
       label: "ชื่อการบันทึก",
@@ -864,7 +867,7 @@ const messages: AppMessages = {
         "การอัปโหลดยังไม่เสร็จ หน้านี้จะรีเฟรชเองเมื่อพร้อม",
       generatingTitle: "กำลังสร้างวิดีโอของคุณ…",
       generatingDescription:
-        "อาจใช้เวลาหนึ่งถึงสองนาที หน้านี้จะรีเฟรชเองเมื่อพร้อม",
+        "อาจใช้เวลาสักครู่ หยิบกาแฟหรือขนมมานั่งรอได้เลย ☕️🍪 หน้านี้จะรีเฟรชเองเมื่อวิดีโอพร้อม",
       failedTitle: "การบันทึกนี้อัปโหลดไม่เสร็จ",
       failedDescription:
         "สร้างลิงก์แล้วแต่วิดีโอมาไม่ถึง ลองเปิดลิงก์อีกครั้งในอีกหนึ่งนาที หรือบันทึกใหม่",
@@ -879,7 +882,15 @@ const messages: AppMessages = {
       editDescription:
         "ตัดต่อ ตัดส่วนออก เปลี่ยนรูปลักษณ์ และแก้ไขคำบรรยายในตัวแก้ไข",
       downloadTitle: "ดาวน์โหลดวิดีโอ",
-      downloadDescription: "การบันทึกทั้งหมดเป็นไฟล์ MP4",
+      downloadDescription:
+        "ไฟล์ MP4 พร้อมการแก้ไขของคุณ: พื้นหลัง กล้อง และส่วนที่ตัด",
+      downloadRendering: "กำลังเรนเดอร์ {percent}% โปรดเปิดแท็บนี้ไว้",
+      downloadCancel: "ยกเลิก",
+      downloadFailed: "เรนเดอร์วิดีโอไม่สำเร็จ ดาวน์โหลดต้นฉบับแทน",
+      downloadUnsupported:
+        "เบราว์เซอร์นี้เรนเดอร์วิดีโอไม่ได้ ดาวน์โหลดต้นฉบับแทน",
+      originalTitle: "ดาวน์โหลดต้นฉบับ",
+      originalDescription: "การบันทึกตามที่บันทึกไว้ ไม่มีการแก้ไข",
       copyEmbed: "คัดลอกโค้ดฝัง",
       embedCopied: "คัดลอกโค้ดฝังแล้ว",
       embedDescription: "วางเครื่องเล่นลงในหน้าเว็บใดก็ได้",
@@ -896,7 +907,7 @@ const messages: AppMessages = {
       label: "แถบด้านข้างของการบันทึก",
       activityTab: "กิจกรรม",
       transcriptTab: "บทถอดเสียง",
-      toolsTab: "เครื่องมือ",
+      toolsTab: "การดำเนินการ",
     },
     you: "คุณ",
     anonymous: "ไม่ระบุตัวตน",
@@ -923,6 +934,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "ลบความคิดเห็น",
+      deleteTitle: "ลบความคิดเห็นนี้ไหม",
+      deleteDescription: "ความคิดเห็นจะถูกลบสำหรับทุกคน และย้อนกลับไม่ได้",
       deleteFailed: "ลบความคิดเห็นไม่สำเร็จ",
     },
     reaction: {
@@ -1179,16 +1192,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "บทถอดเสียง",
         design: "การออกแบบ",
+        camera: "กล้อง",
+        audio: "เสียง",
         details: "รายละเอียด",
       },
       hide: {
         transcript: "ซ่อนบทถอดเสียง",
         design: "ซ่อนการออกแบบ",
+        camera: "ซ่อนกล้อง",
+        audio: "ซ่อนเสียง",
         details: "ซ่อนรายละเอียด",
       },
       show: {
         transcript: "แสดงบทถอดเสียง",
         design: "แสดงการออกแบบ",
+        camera: "แสดงกล้อง",
+        audio: "แสดงเสียง",
         details: "แสดงรายละเอียด",
       },
     },
@@ -1204,8 +1223,16 @@ const messages: AppMessages = {
       solid: "สีพื้น",
       solidColor: "สีพื้น {color}",
       customColor: "เลือกสีเอง",
-      showLess: "แสดงน้อยลง",
-      seeMore: "ดูเพิ่มเติม",
+      colors: "สี",
+      wallpaper: "วอลเปเปอร์{group} {n}",
+      wallpaperGroups: {
+        general: "ทั่วไป",
+        cities: "เมือง",
+        blue: "สีน้ำเงิน",
+        purple: "สีม่วง",
+        orange: "สีส้ม",
+        dark: "โทนมืด",
+      },
       presets: {
         violet: "ม่วง",
         sunset: "อาทิตย์ตก",

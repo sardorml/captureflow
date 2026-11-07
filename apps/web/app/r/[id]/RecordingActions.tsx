@@ -32,6 +32,7 @@ type Props = {
   slug: string;
   recordingUrl: string;
   embedUrl: string;
+  shareText: string;
   editUrl: string;
   initialVisibility: RecordingVisibility;
   isOwner: boolean;
@@ -45,6 +46,7 @@ export function RecordingActions({
   slug,
   recordingUrl,
   embedUrl,
+  shareText,
   editUrl,
   initialVisibility,
   isOwner,
@@ -214,6 +216,7 @@ export function RecordingActions({
         error={error}
         shareUrl={recordingUrl}
         embedUrl={embedUrl}
+        shareText={shareText}
         getCurrentMs={currentPlayerMs}
       />
     </>

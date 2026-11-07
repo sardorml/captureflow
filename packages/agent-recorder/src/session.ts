@@ -89,6 +89,7 @@ const BITRATE = 4_000_000;
 const TYPE_DELAY_MS = 45;
 const SETTLE_MS = 600;
 const REVEAL_MS = 400;
+const QUICK_REVEAL_MS = 80;
 const PROMPT_POSTER_MS = 250;
 const LOAD_MS = 30_000;
 // A page with fewer units than this is checked for being a block page.
@@ -437,13 +438,13 @@ export async function startSession(
        */
       const scanY = maxY + height;
       let units: SwarmUnit[] = [];
-      const scanScreens = async () => {
+      const scanScreens = async (revealMs: number) => {
         for (let top = 0; top <= scanY; top += height) {
           await page.evaluate(
             (y) => window.scrollTo({ top: y, behavior: "instant" }),
             top,
           );
-          await sleep(REVEAL_MS);
+          await sleep(revealMs);
           await page.evaluate(hideConsent, CONSENT_SELECTOR);
           units = await page.evaluate(scanSwarmUnits, {
             maxUnits: SWARM_LIMITS.maxUnits,
@@ -464,8 +465,13 @@ export async function startSession(
         );
         return grown;
       });
-      await scanScreens();
-      if (await grew.evaluate((g) => g.value)) await scanScreens();
+      await scanScreens(REVEAL_MS);
+      // Most pages keep changing without adding anything to build, so a quick look decides whether the slow pass is needed.
+      if (await grew.evaluate((g) => g.value)) {
+        const before = units.length;
+        await scanScreens(QUICK_REVEAL_MS);
+        if (units.length > before) await scanScreens(REVEAL_MS);
+      }
       await page.evaluate(() =>
         window.scrollTo({ top: 0, behavior: "instant" }),
       );

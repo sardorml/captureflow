@@ -429,6 +429,9 @@ const messages: AppMessages = {
       copyLink: "Bağlantıyı kopyala",
       linkCopied: "Bağlantı kopyalandı",
       shareAt: "{time} anından itibaren paylaş",
+      socialHeading: "Şurada paylaş",
+      socialText: "“{title}” kaydına göz at",
+      email: "E-posta",
     },
     editableTitle: {
       label: "Kayıt başlığı",
@@ -895,7 +898,7 @@ const messages: AppMessages = {
         "Yükleme hâlâ tamamlanıyor. Hazır olduğunda bu sayfa kendiliğinden yenilenir.",
       generatingTitle: "Videonuz oluşturuluyor…",
       generatingDescription:
-        "Bu bir iki dakika sürebilir. Hazır olduğunda sayfa kendiliğinden yenilenir.",
+        "Bu birkaç dakika sürebilir, bir kahve ya da atıştırmalık alın ☕️🍪 Hazır olduğunda sayfa kendiliğinden yenilenir.",
       failedTitle: "Bu kaydın yüklenmesi tamamlanmadı",
       failedDescription:
         "Bağlantı oluşturuldu ama video hiç ulaşmadı. Bağlantıyı bir dakika sonra tekrar deneyin veya yeni bir kayıt yapın.",
@@ -911,7 +914,15 @@ const messages: AppMessages = {
       editDescription:
         "Düzenleyicide kırpın, kesin, görünümü değiştirin ve transkripti düzeltin.",
       downloadTitle: "Videoyu indir",
-      downloadDescription: "Kaydın tamamı, MP4 olarak.",
+      downloadDescription:
+        "Düzenlemelerinle MP4: arka plan, kamera ve kesimler.",
+      downloadRendering: "İşleniyor: %{percent}. Bu sekmeyi açık tut.",
+      downloadCancel: "İptal",
+      downloadFailed: "Video işlenemedi. Bunun yerine orijinali indir.",
+      downloadUnsupported:
+        "Bu tarayıcı video işleyemiyor. Bunun yerine orijinali indir.",
+      originalTitle: "Orijinali indir",
+      originalDescription: "Kaydın düzenlenmemiş, çekildiği hali.",
       copyEmbed: "Gömme kodunu kopyala",
       embedCopied: "Gömme kodu kopyalandı",
       embedDescription: "Oynatıcıyı herhangi bir web sayfasına yapıştırın.",
@@ -928,7 +939,7 @@ const messages: AppMessages = {
       label: "Kayıt kenar çubuğu",
       activityTab: "Etkinlik",
       transcriptTab: "Transkript",
-      toolsTab: "Araçlar",
+      toolsTab: "İşlemler",
     },
     you: "Siz",
     anonymous: "Anonim",
@@ -955,6 +966,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Yorumu sil",
+      deleteTitle: "Bu yorum silinsin mi?",
+      deleteDescription: "Herkes için kaldırılır. Bu işlem geri alınamaz.",
       deleteFailed: "Yorum silinemedi",
     },
     reaction: {
@@ -1214,16 +1227,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "Transkript",
         design: "Tasarım",
+        camera: "Kamera",
+        audio: "Ses",
         details: "Ayrıntılar",
       },
       hide: {
         transcript: "Transkripti gizle",
         design: "Tasarımı gizle",
+        camera: "Kamerayı gizle",
+        audio: "Sesi gizle",
         details: "Ayrıntıları gizle",
       },
       show: {
         transcript: "Transkripti göster",
         design: "Tasarımı göster",
+        camera: "Kamerayı göster",
+        audio: "Sesi göster",
         details: "Ayrıntıları göster",
       },
     },
@@ -1239,8 +1258,16 @@ const messages: AppMessages = {
       solid: "Düz renk",
       solidColor: "Düz renk {color}",
       customColor: "Özel renk seç",
-      showLess: "Daha az göster",
-      seeMore: "Daha fazla göster",
+      colors: "Renkler",
+      wallpaper: "{group} duvar kâğıdı {n}",
+      wallpaperGroups: {
+        general: "Genel",
+        cities: "Şehirler",
+        blue: "Mavi",
+        purple: "Mor",
+        orange: "Turuncu",
+        dark: "Koyu",
+      },
       presets: {
         violet: "Menekşe",
         sunset: "Gün batımı",

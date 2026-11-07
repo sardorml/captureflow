@@ -422,6 +422,9 @@ const messages: AppMessages = {
       copyLink: "Havolani nusxalash",
       linkCopied: "Havola nusxalandi",
       shareAt: "{time} lahzasidan ulashish",
+      socialHeading: "Ulashish",
+      socialText: "“{title}” ni ko‘ring",
+      email: "Email",
     },
     editableTitle: {
       label: "Yozuv sarlavhasi",
@@ -892,7 +895,7 @@ const messages: AppMessages = {
         "Yuklash hali tugamadi. Tayyor boʻlgach, bu sahifa oʻzi yangilanadi.",
       generatingTitle: "Videongiz tayyorlanmoqda…",
       generatingDescription:
-        "Bu bir-ikki daqiqa olishi mumkin. Tayyor boʻlgach sahifa oʻzi yangilanadi.",
+        "Bu bir necha daqiqa olishi mumkin, bir piyola qahva yoki gazak oling ☕️🍪 Tayyor bo‘lgach, sahifa o‘zi yangilanadi.",
       failedTitle: "Bu yozuv oxirigacha yuklanmadi",
       failedDescription:
         "Havola yaratildi, lekin video yetib kelmadi. Bir daqiqadan soʻng havolani qayta ochib koʻring yoki yangisini yozib oling.",
@@ -908,7 +911,16 @@ const messages: AppMessages = {
       editDescription:
         "Muharrirda qisqartiring, kesing, koʻrinishini oʻzgartiring va transkriptni tuzating.",
       downloadTitle: "Videoni yuklab olish",
-      downloadDescription: "Butun yozuv MP4 formatida.",
+      downloadDescription:
+        "Tahrirlaringiz bilan MP4: fon, kamera va kesilgan joylar.",
+      downloadRendering: "Tayyorlanmoqda: {percent}%. Bu varaqni yopmang.",
+      downloadCancel: "Bekor qilish",
+      downloadFailed:
+        "Videoni tayyorlab bo‘lmadi. Uning o‘rniga asl faylni yuklab oling.",
+      downloadUnsupported:
+        "Bu brauzer videoni tayyorlay olmaydi. Uning o‘rniga asl faylni yuklab oling.",
+      originalTitle: "Asl faylni yuklab olish",
+      originalDescription: "Yozuv tahrirsiz, yozib olinganidek.",
       copyEmbed: "Joylash kodini nusxalash",
       embedCopied: "Joylash kodi nusxalandi",
       embedDescription: "Pleyerni istalgan veb-sahifaga joylang.",
@@ -925,7 +937,7 @@ const messages: AppMessages = {
       label: "Yozuvning yon paneli",
       activityTab: "Faollik",
       transcriptTab: "Transkript",
-      toolsTab: "Asboblar",
+      toolsTab: "Amallar",
     },
     you: "Siz",
     anonymous: "Anonim",
@@ -952,6 +964,9 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Fikrni oʻchirish",
+      deleteTitle: "Bu izoh o‘chirilsinmi?",
+      deleteDescription:
+        "U hamma uchun o‘chiriladi. Buni ortga qaytarib bo‘lmaydi.",
       deleteFailed: "Fikrni oʻchirib boʻlmadi",
     },
     reaction: {
@@ -1214,16 +1229,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "Transkript",
         design: "Dizayn",
+        camera: "Kamera",
+        audio: "Ovoz",
         details: "Tafsilotlar",
       },
       hide: {
         transcript: "Transkriptni yashirish",
         design: "Dizaynni yashirish",
+        camera: "Kamerani yashirish",
+        audio: "Ovozni yashirish",
         details: "Tafsilotlarni yashirish",
       },
       show: {
         transcript: "Transkriptni koʻrsatish",
         design: "Dizaynni koʻrsatish",
+        camera: "Kamerani ko‘rsatish",
+        audio: "Ovozni ko‘rsatish",
         details: "Tafsilotlarni koʻrsatish",
       },
     },
@@ -1239,8 +1260,16 @@ const messages: AppMessages = {
       solid: "Yaxlit rang",
       solidColor: "Yaxlit rang {color}",
       customColor: "Maxsus rang tanlash",
-      showLess: "Kamroq koʻrsatish",
-      seeMore: "Koʻproq koʻrsatish",
+      colors: "Ranglar",
+      wallpaper: "{group}: fon rasmi {n}",
+      wallpaperGroups: {
+        general: "Umumiy",
+        cities: "Shaharlar",
+        blue: "Ko‘k",
+        purple: "Binafsha",
+        orange: "To‘q sariq",
+        dark: "Qorong‘i",
+      },
       presets: {
         violet: "Binafsha",
         sunset: "Shafaq",

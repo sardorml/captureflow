@@ -112,9 +112,9 @@ const messages: Messages = {
     cta: "Collega",
   },
   hero: {
-    title: "Registratore dello schermo per\nte e i tuoi agenti AI",
+    title: "Registratore dello schermo {bubble}\nper te e i tuoi agenti AI",
     subtitle:
-      "Registra demo, tutorial, guide passo passo e presentazioni in prima persona, oppure falli registrare alla tua AI. Condividi ogni registrazione con un link che chiunque può guardare.",
+      "Registra demo, tutorial e guide passo passo in prima persona con l'estensione per {chrome}, oppure lascia che {claude}, {chatgpt} o {cursor} li registrino per te. Condividi ogni registrazione con un link che chiunque può guardare.",
     ctaLabel: "Prova CaptureFlow gratis",
     installChrome: "Installa l'estensione Chrome",
     installMac: "Scarica per macOS",

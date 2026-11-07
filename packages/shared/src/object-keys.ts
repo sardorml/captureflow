@@ -43,6 +43,11 @@ export function segmentPrefixFor(storageKey: string): string {
   return `${storageKey}.seg/`;
 }
 
+// Link-preview pictures of the framed poster, one per look (see share-image.ts).
+export function shareImagePrefixFor(storageKey: string): string {
+  return `${storageKey}.og/`;
+}
+
 // The digest of the poster bytes is part of the key, so a replaced poster
 // gets a new URL and the old one can be cached forever.
 // Bumped when thumbnails change size or quality, so the backfill can tell an

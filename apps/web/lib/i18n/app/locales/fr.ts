@@ -427,6 +427,9 @@ const messages: AppMessages = {
       copyLink: "Copier le lien",
       linkCopied: "Lien copié",
       shareAt: "Partager à {time}",
+      socialHeading: "Partager sur",
+      socialText: "Regarde « {title} »",
+      email: "E-mail",
     },
     editableTitle: {
       label: "Titre de l’enregistrement",
@@ -903,9 +906,9 @@ const messages: AppMessages = {
       preparingTitle: "Préparation de votre enregistrement…",
       preparingDescription:
         "L’envoi est en train de se terminer. Cette page s’actualise toute seule dès qu’il est prêt.",
-      generatingTitle: "Génération de votre vidéo…",
+      generatingTitle: "Création de votre vidéo…",
       generatingDescription:
-        "Cela peut prendre une à deux minutes. La page se rafraîchit d’elle-même dès que c’est prêt.",
+        "Cela peut prendre quelques minutes : allez vous chercher un café ou un en-cas ☕️🍪 La page s'actualise d'elle-même dès qu'elle est prête.",
       failedTitle: "L’envoi de cet enregistrement n’a pas abouti",
       failedDescription:
         "Le lien a été créé, mais la vidéo n’est jamais arrivée. Réessayez le lien dans une minute ou faites un nouvel enregistrement.",
@@ -921,7 +924,18 @@ const messages: AppMessages = {
       editDescription:
         "Raccourcissez, coupez, changez l’apparence et corrigez la transcription dans l’éditeur.",
       downloadTitle: "Télécharger la vidéo",
-      downloadDescription: "L’enregistrement complet au format MP4.",
+      downloadDescription:
+        "Un MP4 avec vos modifications : arrière-plan, caméra et coupes.",
+      downloadRendering:
+        "Rendu en cours : {percent} %. Gardez cet onglet ouvert.",
+      downloadCancel: "Annuler",
+      downloadFailed:
+        "Impossible de générer la vidéo. Téléchargez plutôt l’original.",
+      downloadUnsupported:
+        "Ce navigateur ne peut pas générer de vidéo. Téléchargez plutôt l’original.",
+      originalTitle: "Télécharger l’original",
+      originalDescription:
+        "L’enregistrement tel que capturé, sans modifications.",
       copyEmbed: "Copier le code d’intégration",
       embedCopied: "Code d’intégration copié",
       embedDescription: "Collez le lecteur dans n’importe quelle page web.",
@@ -938,7 +952,7 @@ const messages: AppMessages = {
       label: "Barre latérale de l’enregistrement",
       activityTab: "Activité",
       transcriptTab: "Transcription",
-      toolsTab: "Outils",
+      toolsTab: "Actions",
     },
     you: "Vous",
     anonymous: "Anonyme",
@@ -965,6 +979,9 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Supprimer le commentaire",
+      deleteTitle: "Supprimer ce commentaire ?",
+      deleteDescription:
+        "Il sera supprimé pour tout le monde. Cette action est irréversible.",
       deleteFailed: "Impossible de supprimer le commentaire",
     },
     reaction: {
@@ -1230,16 +1247,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "Transcription",
         design: "Design",
+        camera: "Caméra",
+        audio: "Son",
         details: "Détails",
       },
       hide: {
         transcript: "Masquer la transcription",
         design: "Masquer le design",
+        camera: "Masquer la caméra",
+        audio: "Masquer le son",
         details: "Masquer les détails",
       },
       show: {
         transcript: "Afficher la transcription",
         design: "Afficher le design",
+        camera: "Afficher la caméra",
+        audio: "Afficher le son",
         details: "Afficher les détails",
       },
     },
@@ -1255,8 +1278,16 @@ const messages: AppMessages = {
       solid: "Uni",
       solidColor: "Couleur unie {color}",
       customColor: "Choisir une couleur personnalisée",
-      showLess: "Afficher moins",
-      seeMore: "Afficher plus",
+      colors: "Couleurs",
+      wallpaper: "{group} : fond d'écran {n}",
+      wallpaperGroups: {
+        general: "Général",
+        cities: "Villes",
+        blue: "Bleu",
+        purple: "Violet",
+        orange: "Orange",
+        dark: "Sombre",
+      },
       presets: {
         violet: "Violet",
         sunset: "Couchant",

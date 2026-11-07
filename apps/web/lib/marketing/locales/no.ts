@@ -113,9 +113,9 @@ const messages: Messages = {
     cta: "Koble til",
   },
   hero: {
-    title: "Skjermopptaker for\ndeg og AI-agentene dine",
+    title: "Skjermopptaker {bubble}\nfor deg og AI-agentene dine",
     subtitle:
-      "Ta opp demoer, veiledninger, gjennomganger og presentasjoner selv, eller la AI-en din ta dem opp for deg. Del hvert opptak som en lenke alle kan se.",
+      "Ta opp demoer, veiledninger og gjennomganger selv med {chrome}-utvidelsen, eller la {claude}, {chatgpt} eller {cursor} ta dem opp for deg. Del hvert opptak som en lenke alle kan se.",
     ctaLabel: "Prøv CaptureFlow gratis",
     installChrome: "Installer Chrome-utvidelsen",
     installMac: "Last ned for macOS",

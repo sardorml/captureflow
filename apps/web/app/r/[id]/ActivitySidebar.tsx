@@ -40,6 +40,7 @@ import {
 } from "@/lib/recording/reaction-bursts";
 import { cn } from "@/lib/utils";
 import { whenIdle } from "@/lib/when-idle";
+import { useConfirm } from "@/app/_components/confirm-dialog";
 import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
 import { fill } from "@/lib/i18n/fill";
 import { fmt, plural } from "@/lib/i18n/format";
@@ -138,6 +139,7 @@ export function ActivitySidebar({
   commentInputRef,
 }: Props) {
   const m = useAppMessages();
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const [tab, setTab] = useState<SidebarTab>("activity");
   const [comments, setComments] = useState<RecordingComment[]>(initialComments);
   useEffect(() => {
@@ -183,6 +185,13 @@ export function ActivitySidebar({
 
   const handleDeleteComment = async (id: number) => {
     if (deletingId != null) return;
+    const ok = await confirm({
+      title: m.activity.comment.deleteTitle,
+      description: m.activity.comment.deleteDescription,
+      confirmLabel: m.common.delete,
+      destructive: true,
+    });
+    if (!ok) return;
     setDeletingId(id);
     setError(null);
     const snapshot = comments;
@@ -402,15 +411,16 @@ export function ActivitySidebar({
     });
   };
 
+  // Enter sends and Shift+Enter breaks the line; an Enter that confirms an IME composition stays with the IME.
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-      e.preventDefault();
-      submitComment();
-    }
+    if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) return;
+    e.preventDefault();
+    submitComment();
   };
 
   return (
     <aside className="flex w-full flex-col border-black/[0.06] bg-panel max-lg:border-t lg:h-full lg:w-auto lg:overflow-hidden lg:border-l dark:border-white/[0.07]">
+      {confirmDialog}
       <Tabs
         value={tab}
         onValueChange={(value) => setTab(value as SidebarTab)}

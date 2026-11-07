@@ -62,7 +62,7 @@ export const VIEWER = {
       "The upload is still finishing. This page refreshes on its own once it's ready.",
     generatingTitle: "Generating your video…",
     generatingDescription:
-      "This may take a minute or two. The page refreshes on its own once it's ready.",
+      "This can take a few minutes, so grab a coffee or a snack ☕️🍪 The page refreshes on its own once it's ready.",
     failedTitle: "This recording didn't finish uploading",
     failedDescription:
       "The link was created but the video never arrived. Try the link again in a minute, or record a fresh one.",
@@ -78,7 +78,14 @@ export const VIEWER = {
     editDescription:
       "Trim, cut, change the look and fix the transcript in the editor.",
     downloadTitle: "Download video",
-    downloadDescription: "The full recording as an MP4.",
+    downloadDescription: "An MP4 with your edits: background, camera and cuts.",
+    downloadRendering: "Rendering {percent}%. Keep this tab open.",
+    downloadCancel: "Cancel",
+    downloadFailed: "Couldn't render the video. Download the original instead.",
+    downloadUnsupported:
+      "This browser can't render video. Download the original instead.",
+    originalTitle: "Download original",
+    originalDescription: "The recording as captured, without edits.",
     copyEmbed: "Copy embed code",
     embedCopied: "Embed code copied",
     embedDescription: "Paste the player into any web page.",

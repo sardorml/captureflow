@@ -113,9 +113,9 @@ const messages: Messages = {
     cta: "Kết nối",
   },
   hero: {
-    title: "Phần mềm quay màn hình\ncho bạn và AI agent của bạn",
+    title: "Phần mềm quay màn hình {bubble}\ncho bạn và AI agent của bạn",
     subtitle:
-      "Tự quay demo, video hướng dẫn, video giải thích từng bước và bài thuyết trình, hoặc để AI quay thay bạn. Chia sẻ mỗi video bằng một liên kết mà ai cũng xem được.",
+      "Tự quay demo, video hướng dẫn và video giải thích từng bước bằng tiện ích {chrome}, hoặc để {claude}, {chatgpt} hay {cursor} quay thay bạn. Chia sẻ mỗi video bằng một liên kết mà ai cũng xem được.",
     ctaLabel: "Dùng thử CaptureFlow miễn phí",
     installChrome: "Cài tiện ích Chrome",
     installMac: "Tải cho macOS",

@@ -416,6 +416,9 @@ const messages: AppMessages = {
       copyLink: "Kopier lenken",
       linkCopied: "Lenken er kopiert",
       shareAt: "Del fra {time}",
+      socialHeading: "Del på",
+      socialText: "Se «{title}»",
+      email: "E-post",
     },
     editableTitle: {
       label: "Tittel på opptaket",
@@ -879,9 +882,9 @@ const messages: AppMessages = {
       preparingTitle: "Klargjør opptaket ditt…",
       preparingDescription:
         "Opplastingen er ikke helt ferdig. Siden oppdateres av seg selv når opptaket er klart.",
-      generatingTitle: "Lager videoen din…",
+      generatingTitle: "Videoen din lages…",
       generatingDescription:
-        "Det kan ta et minutt eller to. Siden oppdaterer seg selv når den er klar.",
+        "Dette kan ta noen minutter, så ta deg en kaffe eller en matbit ☕️🍪 Siden oppdateres av seg selv når den er klar.",
       failedTitle: "Dette opptaket ble ikke ferdig opplastet",
       failedDescription:
         "Lenken ble opprettet, men videoen kom aldri frem. Prøv lenken igjen om et minutt, eller lag et nytt opptak.",
@@ -897,7 +900,16 @@ const messages: AppMessages = {
       editDescription:
         "Trim, klipp, endre utseendet og rett opp transkripsjonen i redigeringsverktøyet.",
       downloadTitle: "Last ned videoen",
-      downloadDescription: "Hele opptaket som MP4.",
+      downloadDescription:
+        "En MP4 med endringene dine: bakgrunn, kamera og klipp.",
+      downloadRendering: "Gjengir {percent} %. Hold denne fanen åpen.",
+      downloadCancel: "Avbryt",
+      downloadFailed:
+        "Kunne ikke gjengi videoen. Last ned originalen i stedet.",
+      downloadUnsupported:
+        "Denne nettleseren kan ikke gjengi video. Last ned originalen i stedet.",
+      originalTitle: "Last ned original",
+      originalDescription: "Opptaket slik det ble tatt opp, uten endringer.",
       copyEmbed: "Kopier innbyggingskoden",
       embedCopied: "Innbyggingskoden er kopiert",
       embedDescription: "Lim inn spilleren på en hvilken som helst nettside.",
@@ -914,7 +926,7 @@ const messages: AppMessages = {
       label: "Sidepanel for opptaket",
       activityTab: "Aktivitet",
       transcriptTab: "Transkripsjon",
-      toolsTab: "Verktøy",
+      toolsTab: "Handlinger",
     },
     you: "Du",
     anonymous: "Anonym",
@@ -941,6 +953,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Slett kommentaren",
+      deleteTitle: "Vil du slette denne kommentaren?",
+      deleteDescription: "Den fjernes for alle. Dette kan ikke angres.",
       deleteFailed: "Kunne ikke slette kommentaren",
     },
     reaction: {
@@ -1202,16 +1216,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "Transkripsjon",
         design: "Utforming",
+        camera: "Kamera",
+        audio: "Lyd",
         details: "Detaljer",
       },
       hide: {
         transcript: "Skjul transkripsjonen",
         design: "Skjul utformingen",
+        camera: "Skjul kameraet",
+        audio: "Skjul lyden",
         details: "Skjul detaljene",
       },
       show: {
         transcript: "Vis transkripsjonen",
         design: "Vis utformingen",
+        camera: "Vis kameraet",
+        audio: "Vis lyden",
         details: "Vis detaljene",
       },
     },
@@ -1227,8 +1247,16 @@ const messages: AppMessages = {
       solid: "Ensfarget",
       solidColor: "Ensfarget {color}",
       customColor: "Velg en egen farge",
-      showLess: "Vis færre",
-      seeMore: "Vis flere",
+      colors: "Farger",
+      wallpaper: "{group}: bakgrunnsbilde {n}",
+      wallpaperGroups: {
+        general: "Generelt",
+        cities: "Byer",
+        blue: "Blå",
+        purple: "Lilla",
+        orange: "Oransje",
+        dark: "Mørk",
+      },
       presets: {
         violet: "Fiolett",
         sunset: "Solnedgang",

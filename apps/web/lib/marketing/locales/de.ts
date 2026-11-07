@@ -112,9 +112,9 @@ const messages: Messages = {
     cta: "Verbinden",
   },
   hero: {
-    title: "Screen Recorder für\ndich und deine KI-Agenten",
+    title: "Screen Recorder {bubble}\nfür dich und deine KI-Agenten",
     subtitle:
-      "Nimm Demos, Anleitungen, Walkthroughs und Präsentationen selbst auf oder lass sie von deiner KI aufnehmen. Teile jede Aufnahme als Link, den jeder ansehen kann.",
+      "Nimm Demos, Anleitungen und Walkthroughs selbst mit der {chrome}-Erweiterung auf oder lass {claude}, {chatgpt} oder {cursor} sie für dich aufnehmen. Teile jede Aufnahme als Link, den jeder ansehen kann.",
     ctaLabel: "CaptureFlow kostenlos testen",
     installChrome: "Chrome-Erweiterung installieren",
     installMac: "Für macOS herunterladen",

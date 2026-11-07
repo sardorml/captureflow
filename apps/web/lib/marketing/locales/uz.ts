@@ -112,9 +112,10 @@ const messages: Messages = {
     cta: "Ulash",
   },
   hero: {
-    title: "Siz va SI agentlaringiz uchun\nekranni yozib olish dasturi",
+    title:
+      "Siz va SI agentlaringiz uchun\nekranni yozib olish dasturi {bubble}",
     subtitle:
-      "Demo, yoʻriqnoma, tanishtiruv va taqdimotlarni oʻzingiz yozib oling yoki SI agentingizga yozdiring. Har birini istalgan kishi koʻra oladigan havola sifatida ulashing.",
+      "Demo, yoʻriqnoma va tanishtiruvlarni {chrome} kengaytmasi bilan oʻzingiz yozib oling yoki {claude}, {chatgpt} yoki {cursor} siz uchun yozib bersin. Har birini istalgan kishi koʻra oladigan havola sifatida ulashing.",
     ctaLabel: "CaptureFlowni bepul sinab koʻring",
     installChrome: "Chrome kengaytmasini oʻrnatish",
     installMac: "macOS uchun yuklab olish",

@@ -422,6 +422,9 @@ const messages: AppMessages = {
       copyLink: "Copiar enlace",
       linkCopied: "Enlace copiado",
       shareAt: "Compartir en {time}",
+      socialHeading: "Compartir en",
+      socialText: "Mira «{title}»",
+      email: "Correo",
     },
     editableTitle: {
       label: "Título de la grabación",
@@ -894,9 +897,9 @@ const messages: AppMessages = {
       preparingTitle: "Preparando tu grabación…",
       preparingDescription:
         "La subida aún está terminando. Esta página se actualiza sola cuando esté lista.",
-      generatingTitle: "Generando tu vídeo…",
+      generatingTitle: "Generando tu video…",
       generatingDescription:
-        "Puede tardar uno o dos minutos. La página se actualiza sola cuando esté listo.",
+        "Puede tardar unos minutos, así que ve por un café o algo de picar ☕️🍪 La página se actualiza sola cuando esté listo.",
       failedTitle: "Esta grabación no terminó de subirse",
       failedDescription:
         "El enlace se creó, pero el video nunca llegó. Prueba el enlace de nuevo en un minuto o haz una grabación nueva.",
@@ -912,7 +915,15 @@ const messages: AppMessages = {
       editDescription:
         "Recorta, corta, cambia el aspecto y corrige la transcripción en el editor.",
       downloadTitle: "Descargar video",
-      downloadDescription: "La grabación completa en MP4.",
+      downloadDescription: "Un MP4 con tus cambios: fondo, cámara y cortes.",
+      downloadRendering: "Procesando {percent} %. Mantén esta pestaña abierta.",
+      downloadCancel: "Cancelar",
+      downloadFailed:
+        "No se pudo procesar el vídeo. Descarga el original en su lugar.",
+      downloadUnsupported:
+        "Este navegador no puede procesar vídeo. Descarga el original en su lugar.",
+      originalTitle: "Descargar original",
+      originalDescription: "La grabación tal como se capturó, sin cambios.",
       copyEmbed: "Copiar código de inserción",
       embedCopied: "Código de inserción copiado",
       embedDescription: "Pega el reproductor en cualquier página web.",
@@ -929,7 +940,7 @@ const messages: AppMessages = {
       label: "Barra lateral de la grabación",
       activityTab: "Actividad",
       transcriptTab: "Transcripción",
-      toolsTab: "Herramientas",
+      toolsTab: "Acciones",
     },
     you: "Tú",
     anonymous: "Anónimo",
@@ -956,6 +967,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Eliminar comentario",
+      deleteTitle: "¿Eliminar este comentario?",
+      deleteDescription: "Se eliminará para todos. No se puede deshacer.",
       deleteFailed: "No se pudo eliminar el comentario",
     },
     reaction: {
@@ -1219,16 +1232,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "Transcripción",
         design: "Diseño",
+        camera: "Cámara",
+        audio: "Sonido",
         details: "Detalles",
       },
       hide: {
         transcript: "Ocultar transcripción",
         design: "Ocultar diseño",
+        camera: "Ocultar cámara",
+        audio: "Ocultar sonido",
         details: "Ocultar detalles",
       },
       show: {
         transcript: "Mostrar transcripción",
         design: "Mostrar diseño",
+        camera: "Mostrar cámara",
+        audio: "Mostrar sonido",
         details: "Mostrar detalles",
       },
     },
@@ -1244,8 +1263,16 @@ const messages: AppMessages = {
       solid: "Sólido",
       solidColor: "Sólido {color}",
       customColor: "Elegir un color personalizado",
-      showLess: "Ver menos",
-      seeMore: "Ver más",
+      colors: "Colores",
+      wallpaper: "{group}: fondo {n}",
+      wallpaperGroups: {
+        general: "General",
+        cities: "Ciudades",
+        blue: "Azul",
+        purple: "Morado",
+        orange: "Naranja",
+        dark: "Oscuro",
+      },
       presets: {
         violet: "Violeta",
         sunset: "Atardecer",

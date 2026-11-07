@@ -31,11 +31,16 @@ import {
   RECORDING_FRAME_LIMITS,
   RECORDING_GRADIENT_KEYS,
   RECORDING_GRADIENT_PRESETS,
+  RECORDING_WALLPAPERS,
+  RECORDING_WALLPAPER_GROUPS,
   isRecordingHexColor,
   recordingGradientCss,
+  recordingWallpaperKey,
+  recordingWallpaperUrl,
   type RecordingCameraCorner,
   type RecordingCameraPoint,
   type RecordingCameraSize,
+  type RecordingWallpaperGroup,
 } from "@/lib/recording-config";
 
 const SOLID_PALETTE = [
@@ -65,11 +70,7 @@ const CAMERA_CORNERS = [
 
 const CAMERA_SIZES: RecordingCameraSize[] = ["small", "medium", "large"];
 
-// One row of each palette fits the inspector; the rest unfolds on request,
-// or straight away when the saved background lives in a hidden row.
-const SWATCHES_PER_ROW = 8;
-const FIRST_GRADIENTS = RECORDING_GRADIENT_KEYS.slice(0, SWATCHES_PER_ROW - 1);
-const FIRST_SOLIDS = SOLID_PALETTE.slice(0, SWATCHES_PER_ROW);
+type BackgroundTab = "colors" | RecordingWallpaperGroup;
 
 export function BackgroundPicker({
   background,
@@ -85,6 +86,12 @@ export function BackgroundPicker({
   onUpload: (file: File) => Promise<string | null>;
 }) {
   const t = useAppMessages().recordingEditor.background;
+  const [tab, setTab] = useState<BackgroundTab>(
+    () =>
+      RECORDING_WALLPAPER_GROUPS.find((g) =>
+        background.startsWith(`wallpaper:${g}/`),
+      ) ?? "colors",
+  );
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   async function upload(file: File | undefined) {
@@ -94,74 +101,56 @@ export function BackgroundPicker({
     setUploadError(await onUpload(file));
     setUploading(false);
   }
-  const isSolid = (hex: string): boolean =>
-    background.toLowerCase() === hex.toLowerCase();
-  const inFirstRows =
-    background === "transparent" ||
-    (FIRST_GRADIENTS as readonly string[]).includes(background) ||
-    FIRST_SOLIDS.some(isSolid);
-  const [expanded, setExpanded] = useState(!inFirstRows);
-  const gradients = expanded ? RECORDING_GRADIENT_KEYS : FIRST_GRADIENTS;
-  const solids = expanded ? SOLID_PALETTE : FIRST_SOLIDS;
+  const tabs: BackgroundTab[] = ["colors", ...RECORDING_WALLPAPER_GROUPS];
   return (
     <div className="flex flex-col gap-3">
-      <SwatchGroup label={t.gradients}>
-        <Swatch
-          selected={background === "transparent"}
-          onClick={() => onChange("transparent")}
-          label={t.noBackground}
-          className="bg-tint text-[9px] font-medium text-fg-muted"
-        >
-          {t.none}
-        </Swatch>
-        {gradients.map((k) => (
-          <Swatch
-            key={k}
-            selected={background === k}
-            onClick={() => onChange(k)}
-            label={t.presets[k]}
-            style={{
-              background: recordingGradientCss(
-                RECORDING_GRADIENT_PRESETS[k].stops,
-              ),
-            }}
-          />
-        ))}
-      </SwatchGroup>
-      <SwatchGroup label={t.solid}>
-        {solids.map((hex) => (
-          <Swatch
-            key={hex}
-            selected={isSolid(hex)}
-            onClick={() => onChange(hex)}
-            label={fmt(t.solidColor, { color: hex })}
-            style={{ backgroundColor: hex }}
-          />
-        ))}
-        {expanded && (
-          <label
+      <div
+        role="tablist"
+        aria-label={t.title}
+        className="-mx-1 flex gap-0.5 overflow-x-auto px-1 [scrollbar-width:none]"
+      >
+        {tabs.map((value) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            aria-selected={value === tab}
+            onClick={() => setTab(value)}
             className={cn(
-              SWATCH_CLASS,
-              "cursor-pointer",
-              isRecordingHexColor(background) &&
-                !SOLID_PALETTE.some(isSolid) &&
-                SWATCH_SELECTED_CLASS,
+              "shrink-0 rounded-full px-2 py-1 text-xs whitespace-nowrap transition-colors",
+              value === tab
+                ? "bg-primary/10 text-accent-strong"
+                : "text-fg-muted hover:bg-tint hover:text-fg",
             )}
-            style={{
-              background:
-                "conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444)",
-            }}
-            aria-label={t.customColor}
           >
-            <input
-              type="color"
-              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              value={isRecordingHexColor(background) ? background : "#000000"}
-              onChange={(e) => onChange(e.target.value)}
-            />
-          </label>
-        )}
-      </SwatchGroup>
+            {value === "colors" ? t.colors : t.wallpaperGroups[value]}
+          </button>
+        ))}
+      </div>
+      {tab === "colors" ? (
+        <ColorSwatches background={background} onChange={onChange} />
+      ) : (
+        <div className="grid grid-cols-10 gap-1.5">
+          {RECORDING_WALLPAPERS[tab].map((name, i) => {
+            const key = recordingWallpaperKey(tab, name);
+            return (
+              <Swatch
+                key={key}
+                selected={background === key}
+                onClick={() => onChange(key)}
+                label={fmt(t.wallpaper, {
+                  group: t.wallpaperGroups[tab],
+                  n: i + 1,
+                })}
+                className="bg-tint bg-cover bg-center"
+                style={{
+                  backgroundImage: `url("${recordingWallpaperUrl(key, "thumbnail")}")`,
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
       <SwatchGroup label={t.uploadedImage}>
         {imageUrl && imageBackground ? (
           <Swatch
@@ -184,7 +173,7 @@ export function BackgroundPicker({
           aria-label={uploading ? t.uploading : t.upload}
           title={uploading ? t.uploading : t.upload}
         >
-          <ImagePlus className="size-4" aria-hidden />
+          <ImagePlus className="size-3.5" aria-hidden />
           <input
             type="file"
             accept="image/png,image/jpeg,image/webp"
@@ -202,15 +191,78 @@ export function BackgroundPicker({
           {uploadError}
         </p>
       ) : null}
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        aria-expanded={expanded}
-        className="self-start text-xs font-medium text-fg-muted hover:text-fg"
-      >
-        {expanded ? t.showLess : t.seeMore}
-      </button>
     </div>
+  );
+}
+
+function ColorSwatches({
+  background,
+  onChange,
+}: {
+  background: string;
+  onChange: (bg: string) => void;
+}) {
+  const t = useAppMessages().recordingEditor.background;
+  const isSolid = (hex: string): boolean =>
+    background.toLowerCase() === hex.toLowerCase();
+  return (
+    <>
+      <SwatchGroup label={t.gradients}>
+        <Swatch
+          selected={background === "transparent"}
+          onClick={() => onChange("transparent")}
+          label={t.noBackground}
+          className="bg-tint text-[8px] font-medium text-fg-muted"
+        >
+          {t.none}
+        </Swatch>
+        {RECORDING_GRADIENT_KEYS.map((k) => (
+          <Swatch
+            key={k}
+            selected={background === k}
+            onClick={() => onChange(k)}
+            label={t.presets[k]}
+            style={{
+              background: recordingGradientCss(
+                RECORDING_GRADIENT_PRESETS[k].stops,
+              ),
+            }}
+          />
+        ))}
+      </SwatchGroup>
+      <SwatchGroup label={t.solid}>
+        {SOLID_PALETTE.map((hex) => (
+          <Swatch
+            key={hex}
+            selected={isSolid(hex)}
+            onClick={() => onChange(hex)}
+            label={fmt(t.solidColor, { color: hex })}
+            style={{ backgroundColor: hex }}
+          />
+        ))}
+        <label
+          className={cn(
+            SWATCH_CLASS,
+            "cursor-pointer",
+            isRecordingHexColor(background) &&
+              !SOLID_PALETTE.some(isSolid) &&
+              SWATCH_SELECTED_CLASS,
+          )}
+          style={{
+            background:
+              "conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ec4899, #ef4444)",
+          }}
+          aria-label={t.customColor}
+        >
+          <input
+            type="color"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            value={isRecordingHexColor(background) ? background : "#000000"}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </label>
+      </SwatchGroup>
+    </>
   );
 }
 
@@ -268,7 +320,7 @@ function SwatchGroup({
   return (
     <div>
       <div className="mb-1.5 text-[11px] text-fg-subtle">{label}</div>
-      <div className="grid grid-cols-8 gap-1.5">{children}</div>
+      <div className="grid grid-cols-10 gap-1.5">{children}</div>
     </div>
   );
 }

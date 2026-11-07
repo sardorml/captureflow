@@ -1,13 +1,12 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { User, Users } from "lucide-react";
+import { Eye, User, Users } from "lucide-react";
 import type { RecordingViewerEntry } from "@/lib/recording/types";
 import { useAppLocale, useAppMessages } from "@/components/app-i18n-provider";
 import { formatRelativeLong, initials } from "@/lib/format";
@@ -19,13 +18,16 @@ type Props = {
   count: number;
   // Null for anyone but the owner, who alone gets the list.
   viewers: RecordingViewerEntry[] | null;
+  variant?: "pill" | "inline";
   className?: string;
 };
+
+const INLINE_CLASS = "inline-flex items-center gap-1 tabular-nums";
 
 // The title row's hover box, so the two read as one row: same height and
 // corner radius, on the panel surface (white in light mode).
 const PILL_CLASS =
-  "inline-flex h-11 shrink-0 items-center rounded-xl bg-panel px-4 text-sm font-medium text-fg ring-1 ring-line lg:h-10";
+  "inline-flex h-10 shrink-0 items-center rounded-xl bg-panel px-4 text-sm font-medium text-fg ring-1 ring-line";
 
 function useViewsLabel(): (n: number) => string {
   const m = useAppMessages();
@@ -36,27 +38,50 @@ function useViewsLabel(): (n: number) => string {
     });
 }
 
-export function ViewCount({ count, viewers, className }: Props) {
+export function ViewCount({
+  count,
+  viewers,
+  variant = "inline",
+  className,
+}: Props) {
+  const pill = variant === "pill";
   const copy = useAppMessages().viewer.views;
   const viewsLabel = useViewsLabel();
+  const label = (
+    <>
+      {pill ? null : <Eye className="size-3.5" aria-hidden="true" />}
+      {viewsLabel(count)}
+    </>
+  );
   if (!viewers) {
     return (
-      <span className={cn(PILL_CLASS, className)}>{viewsLabel(count)}</span>
+      <span className={cn(pill ? PILL_CLASS : INLINE_CLASS, className)}>
+        {label}
+      </span>
     );
   }
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          className={cn(PILL_CLASS, "min-w-0 hover:bg-tint-strong", className)}
+        <button
+          type="button"
+          className={cn(
+            pill
+              ? cn(PILL_CLASS, "min-w-0 transition-colors hover:bg-tint-strong")
+              : cn(
+                  INLINE_CLASS,
+                  "-mx-1.5 rounded-md px-1.5 py-0.5 transition-colors hover:bg-tint hover:text-fg",
+                ),
+            "focus-visible:outline-2 focus-visible:outline-primary",
+            className,
+          )}
           aria-label={fmt(copy.showWhoWatched, { views: viewsLabel(count) })}
         >
-          {viewsLabel(count)}
-        </Button>
+          {label}
+        </button>
       </PopoverTrigger>
       <PopoverContent
-        align="end"
+        align={pill ? "end" : "start"}
         aria-label={copy.viewers}
         className="w-80 gap-0 p-0 outline-none"
       >

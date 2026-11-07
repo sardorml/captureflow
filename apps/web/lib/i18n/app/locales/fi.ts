@@ -420,6 +420,9 @@ const messages: AppMessages = {
       copyLink: "Kopioi linkki",
       linkCopied: "Linkki kopioitu",
       shareAt: "Jaa kohdasta {time}",
+      socialHeading: "Jaa palveluun",
+      socialText: "Katso ”{title}”",
+      email: "Sähköposti",
     },
     editableTitle: {
       label: "Tallenteen otsikko",
@@ -889,9 +892,9 @@ const messages: AppMessages = {
       preparingTitle: "Tallennettasi valmistellaan…",
       preparingDescription:
         "Lähetys on vielä kesken. Tämä sivu päivittyy itsestään, kun tallenne on valmis.",
-      generatingTitle: "Videota luodaan…",
+      generatingTitle: "Videotasi luodaan…",
       generatingDescription:
-        "Tämä voi kestää minuutin tai kaksi. Sivu päivittyy itsestään, kun video on valmis.",
+        "Tämä voi kestää muutaman minuutin, joten hae kahvia tai välipala ☕️🍪 Sivu päivittyy itsestään, kun video on valmis.",
       failedTitle: "Tämän tallenteen lähetys jäi kesken",
       failedDescription:
         "Linkki luotiin, mutta video ei koskaan saapunut. Kokeile linkkiä uudelleen minuutin kuluttua tai tee uusi tallenne.",
@@ -907,7 +910,15 @@ const messages: AppMessages = {
       editDescription:
         "Lyhennä, leikkaa, muuta ulkoasua ja korjaa tekstitys editorissa.",
       downloadTitle: "Lataa video",
-      downloadDescription: "Koko tallenne MP4-tiedostona.",
+      downloadDescription: "MP4 muokkauksineen: tausta, kamera ja leikkaukset.",
+      downloadRendering: "Renderöidään {percent} %. Pidä tämä välilehti auki.",
+      downloadCancel: "Peruuta",
+      downloadFailed:
+        "Videon renderöinti epäonnistui. Lataa alkuperäinen sen sijaan.",
+      downloadUnsupported:
+        "Tämä selain ei pysty renderöimään videota. Lataa alkuperäinen sen sijaan.",
+      originalTitle: "Lataa alkuperäinen",
+      originalDescription: "Tallenne sellaisenaan, ilman muokkauksia.",
       copyEmbed: "Kopioi upotuskoodi",
       embedCopied: "Upotuskoodi kopioitu",
       embedDescription: "Liitä soitin mille tahansa verkkosivulle.",
@@ -924,7 +935,7 @@ const messages: AppMessages = {
       label: "Tallenteen sivupalkki",
       activityTab: "Toiminta",
       transcriptTab: "Litterointi",
-      toolsTab: "Työkalut",
+      toolsTab: "Toiminnot",
     },
     you: "Sinä",
     anonymous: "Anonyymi",
@@ -951,6 +962,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Poista kommentti",
+      deleteTitle: "Poistetaanko tämä kommentti?",
+      deleteDescription: "Se poistuu kaikilta. Toimintoa ei voi kumota.",
       deleteFailed: "Kommentin poisto ei onnistunut",
     },
     reaction: {
@@ -1211,16 +1224,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "Litterointi",
         design: "Ulkoasu",
+        camera: "Kamera",
+        audio: "Ääni",
         details: "Tiedot",
       },
       hide: {
         transcript: "Piilota litterointi",
         design: "Piilota ulkoasu",
+        camera: "Piilota kamera",
+        audio: "Piilota ääni",
         details: "Piilota tiedot",
       },
       show: {
         transcript: "Näytä litterointi",
         design: "Näytä ulkoasu",
+        camera: "Näytä kamera",
+        audio: "Näytä ääni",
         details: "Näytä tiedot",
       },
     },
@@ -1236,8 +1255,16 @@ const messages: AppMessages = {
       solid: "Yksivärinen",
       solidColor: "Yksivärinen {color}",
       customColor: "Valitse oma väri",
-      showLess: "Näytä vähemmän",
-      seeMore: "Näytä lisää",
+      colors: "Värit",
+      wallpaper: "{group}: taustakuva {n}",
+      wallpaperGroups: {
+        general: "Yleiset",
+        cities: "Kaupungit",
+        blue: "Sininen",
+        purple: "Violetti",
+        orange: "Oranssi",
+        dark: "Tumma",
+      },
       presets: {
         violet: "Violetti",
         sunset: "Auringonlasku",

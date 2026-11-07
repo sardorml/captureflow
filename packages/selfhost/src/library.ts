@@ -7,6 +7,7 @@ import {
   objectKeysFor,
   screenshotObjectKeysFor,
   segmentPrefixFor,
+  shareImagePrefixFor,
 } from "@captureflow/shared/object-keys";
 import { countInstanceAdmins, isInstanceAdmin } from "./instance";
 
@@ -109,6 +110,7 @@ export async function removeInstanceRecording(
   );
   await deletePrefix(bucket, audioPartPrefixFor(row.storage_key));
   await deletePrefix(bucket, segmentPrefixFor(row.storage_key));
+  await deletePrefix(bucket, shareImagePrefixFor(row.storage_key));
   if (row.webcam_storage_key) {
     await deletePrefix(bucket, segmentPrefixFor(row.webcam_storage_key));
   }

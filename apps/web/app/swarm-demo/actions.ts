@@ -1,6 +1,6 @@
 "use server";
 
-import { getAppWebEnv } from "@/lib/cf-env";
+import { getAppWebEnv, runInBackground } from "@/lib/cf-env";
 import {
   loadMcpUser,
   LibraryError,
@@ -46,7 +46,9 @@ export async function startSwarmDemoAction(
   if (!env?.DB) return { kind: "error", code: "unavailable" };
   try {
     const user = await loadMcpUser(env.DB, session.user.id);
-    const started = await startSwarmDemo(env.DB, env, user, url);
+    const started = await startSwarmDemo(env.DB, env, user, url, (task) => {
+      void runInBackground(task);
+    });
     return { kind: "started", url: started.url };
   } catch (err) {
     if (err instanceof LibraryError) return { kind: "error", code: err.code };

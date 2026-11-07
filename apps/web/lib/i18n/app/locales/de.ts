@@ -425,6 +425,9 @@ const messages: AppMessages = {
       copyLink: "Link kopieren",
       linkCopied: "Link kopiert",
       shareAt: "Ab {time} teilen",
+      socialHeading: "Teilen auf",
+      socialText: "Schau dir „{title}“ an",
+      email: "E-Mail",
     },
     editableTitle: {
       label: "Titel der Aufnahme",
@@ -901,7 +904,7 @@ const messages: AppMessages = {
         "Der Upload wird noch abgeschlossen. Diese Seite aktualisiert sich von selbst, sobald die Aufnahme bereit ist.",
       generatingTitle: "Dein Video wird erstellt…",
       generatingDescription:
-        "Das kann ein bis zwei Minuten dauern. Die Seite aktualisiert sich von selbst, sobald es fertig ist.",
+        "Das kann ein paar Minuten dauern – hol dir einen Kaffee oder einen Snack ☕️🍪 Die Seite aktualisiert sich von selbst, sobald es fertig ist.",
       failedTitle: "Diese Aufnahme wurde nicht vollständig hochgeladen",
       failedDescription:
         "Der Link wurde erstellt, aber das Video ist nie angekommen. Versuch den Link in einer Minute noch einmal oder nimm neu auf.",
@@ -917,7 +920,16 @@ const messages: AppMessages = {
       editDescription:
         "Kürze, schneide, ändere das Aussehen und korrigiere das Transkript im Editor.",
       downloadTitle: "Video herunterladen",
-      downloadDescription: "Die gesamte Aufnahme als MP4.",
+      downloadDescription:
+        "Ein MP4 mit deinen Änderungen: Hintergrund, Kamera und Schnitte.",
+      downloadRendering: "Wird gerendert: {percent} %. Lass diesen Tab offen.",
+      downloadCancel: "Abbrechen",
+      downloadFailed:
+        "Das Video konnte nicht gerendert werden. Lade stattdessen das Original herunter.",
+      downloadUnsupported:
+        "Dieser Browser kann kein Video rendern. Lade stattdessen das Original herunter.",
+      originalTitle: "Original herunterladen",
+      originalDescription: "Die Aufnahme wie aufgenommen, ohne Änderungen.",
       copyEmbed: "Einbettungscode kopieren",
       embedCopied: "Einbettungscode kopiert",
       embedDescription: "Füge den Player in eine beliebige Webseite ein.",
@@ -934,7 +946,7 @@ const messages: AppMessages = {
       label: "Seitenleiste der Aufnahme",
       activityTab: "Aktivität",
       transcriptTab: "Transkript",
-      toolsTab: "Werkzeuge",
+      toolsTab: "Aktionen",
     },
     you: "Du",
     anonymous: "Anonym",
@@ -961,6 +973,9 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Kommentar löschen",
+      deleteTitle: "Diesen Kommentar löschen?",
+      deleteDescription:
+        "Er wird für alle entfernt. Das lässt sich nicht rückgängig machen.",
       deleteFailed: "Der Kommentar konnte nicht gelöscht werden",
     },
     reaction: {
@@ -1224,16 +1239,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "Transkript",
         design: "Design",
+        camera: "Kamera",
+        audio: "Ton",
         details: "Details",
       },
       hide: {
         transcript: "Transkript ausblenden",
         design: "Design ausblenden",
+        camera: "Kamera ausblenden",
+        audio: "Ton ausblenden",
         details: "Details ausblenden",
       },
       show: {
         transcript: "Transkript einblenden",
         design: "Design einblenden",
+        camera: "Kamera einblenden",
+        audio: "Ton einblenden",
         details: "Details einblenden",
       },
     },
@@ -1249,8 +1270,16 @@ const messages: AppMessages = {
       solid: "Einfarbig",
       solidColor: "Einfarbig {color}",
       customColor: "Eigene Farbe wählen",
-      showLess: "Weniger anzeigen",
-      seeMore: "Mehr anzeigen",
+      colors: "Farben",
+      wallpaper: "{group}: Hintergrundbild {n}",
+      wallpaperGroups: {
+        general: "Allgemein",
+        cities: "Städte",
+        blue: "Blau",
+        purple: "Lila",
+        orange: "Orange",
+        dark: "Dunkel",
+      },
       presets: {
         violet: "Violett",
         sunset: "Abendrot",

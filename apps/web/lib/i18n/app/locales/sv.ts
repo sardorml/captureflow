@@ -414,6 +414,9 @@ const messages: AppMessages = {
       copyLink: "Kopiera länk",
       linkCopied: "Länk kopierad",
       shareAt: "Dela från {time}",
+      socialHeading: "Dela på",
+      socialText: "Kolla in ”{title}”",
+      email: "E-post",
     },
     editableTitle: {
       label: "Inspelningens titel",
@@ -878,9 +881,9 @@ const messages: AppMessages = {
       preparingTitle: "Förbereder din inspelning…",
       preparingDescription:
         "Uppladdningen håller på att slutföras. Sidan uppdateras av sig själv när den är klar.",
-      generatingTitle: "Skapar din video…",
+      generatingTitle: "Din video skapas…",
       generatingDescription:
-        "Det kan ta en minut eller två. Sidan uppdateras av sig själv när den är klar.",
+        "Det kan ta några minuter, så ta en kaffe eller ett mellanmål ☕️🍪 Sidan uppdateras av sig själv när den är klar.",
       failedTitle: "Uppladdningen av den här inspelningen slutfördes inte",
       failedDescription:
         "Länken skapades men videon kom aldrig fram. Prova länken igen om en minut, eller gör en ny inspelning.",
@@ -897,7 +900,16 @@ const messages: AppMessages = {
       editDescription:
         "Trimma, klipp, ändra utseendet och rätta transkriptionen i redigeraren.",
       downloadTitle: "Ladda ner video",
-      downloadDescription: "Hela inspelningen som MP4.",
+      downloadDescription:
+        "En MP4 med dina ändringar: bakgrund, kamera och klipp.",
+      downloadRendering: "Renderar {percent} %. Håll den här fliken öppen.",
+      downloadCancel: "Avbryt",
+      downloadFailed:
+        "Det gick inte att rendera videon. Ladda ner originalet i stället.",
+      downloadUnsupported:
+        "Den här webbläsaren kan inte rendera video. Ladda ner originalet i stället.",
+      originalTitle: "Ladda ner original",
+      originalDescription: "Inspelningen som den spelades in, utan ändringar.",
       copyEmbed: "Kopiera inbäddningskod",
       embedCopied: "Inbäddningskod kopierad",
       embedDescription: "Klistra in spelaren på valfri webbsida.",
@@ -914,7 +926,7 @@ const messages: AppMessages = {
       label: "Inspelningens sidofält",
       activityTab: "Aktivitet",
       transcriptTab: "Transkription",
-      toolsTab: "Verktyg",
+      toolsTab: "Åtgärder",
     },
     you: "Du",
     anonymous: "Anonym",
@@ -941,6 +953,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Radera kommentar",
+      deleteTitle: "Ta bort den här kommentaren?",
+      deleteDescription: "Den tas bort för alla. Det går inte att ångra.",
       deleteFailed: "Det gick inte att radera kommentaren",
     },
     reaction: {
@@ -1201,16 +1215,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "Transkription",
         design: "Design",
+        camera: "Kamera",
+        audio: "Ljud",
         details: "Detaljer",
       },
       hide: {
         transcript: "Dölj transkription",
         design: "Dölj design",
+        camera: "Dölj kamera",
+        audio: "Dölj ljud",
         details: "Dölj detaljer",
       },
       show: {
         transcript: "Visa transkription",
         design: "Visa design",
+        camera: "Visa kamera",
+        audio: "Visa ljud",
         details: "Visa detaljer",
       },
     },
@@ -1226,8 +1246,16 @@ const messages: AppMessages = {
       solid: "Enfärgad",
       solidColor: "Enfärgad {color}",
       customColor: "Välj en egen färg",
-      showLess: "Visa färre",
-      seeMore: "Visa fler",
+      colors: "Färger",
+      wallpaper: "{group}: bakgrundsbild {n}",
+      wallpaperGroups: {
+        general: "Allmänt",
+        cities: "Städer",
+        blue: "Blå",
+        purple: "Lila",
+        orange: "Orange",
+        dark: "Mörk",
+      },
       presets: {
         violet: "Violett",
         sunset: "Solnedgång",

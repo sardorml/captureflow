@@ -120,9 +120,9 @@ export const MESSAGES = {
     cta: "Connect",
   },
   hero: {
-    title: "Screen recorder for\nyou and your AI agents",
+    title: "Screen recorder {bubble}\nfor you and your AI agents",
     subtitle:
-      "Record demos, how-tos, walkthroughs and presentations yourself, or have your AI record them for you. Share each one as a link anyone can watch.",
+      "Record demos and how-tos in {chrome}, or have {claude}, {chatgpt} or {cursor} record them for you. Share each one as a link anyone can watch.",
     ctaLabel: "Try CaptureFlow for free",
     installChrome: "Install Chrome extension",
     installMac: "Download for macOS",

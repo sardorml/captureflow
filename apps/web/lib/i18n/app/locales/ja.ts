@@ -414,6 +414,9 @@ const messages: AppMessages = {
       copyLink: "リンクをコピー",
       linkCopied: "リンクをコピーしました",
       shareAt: "{time} から共有",
+      socialHeading: "共有先",
+      socialText: "「{title}」をチェック",
+      email: "メール",
     },
     editableTitle: {
       label: "録画のタイトル",
@@ -875,7 +878,7 @@ const messages: AppMessages = {
         "アップロードはまだ完了していません。準備ができるとこのページは自動的に更新されます。",
       generatingTitle: "動画を生成しています…",
       generatingDescription:
-        "一、二分かかることがあります。準備ができると、このページは自動的に更新されます。",
+        "数分かかることがあります。コーヒーやおやつでもどうぞ ☕️🍪 準備ができると、このページは自動的に更新されます。",
       failedTitle: "この録画のアップロードは完了しませんでした",
       failedDescription:
         "リンクは作成されましたが、動画が届きませんでした。しばらくしてからリンクをもう一度開くか、新しく録画してください。",
@@ -891,7 +894,16 @@ const messages: AppMessages = {
       editDescription:
         "エディターでトリミング、カット、見た目の変更、文字起こしの修正ができます。",
       downloadTitle: "動画をダウンロード",
-      downloadDescription: "録画全体を MP4 として保存します。",
+      downloadDescription: "編集を反映した MP4(背景、カメラ、カット)。",
+      downloadRendering:
+        "レンダリング中 {percent}%。このタブを開いたままにしてください。",
+      downloadCancel: "キャンセル",
+      downloadFailed:
+        "動画をレンダリングできませんでした。代わりに元の動画をダウンロードしてください。",
+      downloadUnsupported:
+        "このブラウザでは動画をレンダリングできません。代わりに元の動画をダウンロードしてください。",
+      originalTitle: "元の動画をダウンロード",
+      originalDescription: "編集前の録画そのままです。",
       copyEmbed: "埋め込みコードをコピー",
       embedCopied: "埋め込みコードをコピーしました",
       embedDescription: "プレーヤーを任意のウェブページに貼り付けられます。",
@@ -908,7 +920,7 @@ const messages: AppMessages = {
       label: "録画のサイドバー",
       activityTab: "アクティビティ",
       transcriptTab: "文字起こし",
-      toolsTab: "ツール",
+      toolsTab: "アクション",
     },
     you: "あなた",
     anonymous: "匿名",
@@ -935,6 +947,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "コメントを削除",
+      deleteTitle: "このコメントを削除しますか?",
+      deleteDescription: "全員の画面から削除され、元に戻せません。",
       deleteFailed: "コメントを削除できませんでした",
     },
     reaction: {
@@ -1198,16 +1212,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "文字起こし",
         design: "デザイン",
+        camera: "カメラ",
+        audio: "サウンド",
         details: "詳細",
       },
       hide: {
         transcript: "文字起こしを隠す",
         design: "デザインを隠す",
+        camera: "カメラを隠す",
+        audio: "サウンドを隠す",
         details: "詳細を隠す",
       },
       show: {
         transcript: "文字起こしを表示",
         design: "デザインを表示",
+        camera: "カメラを表示",
+        audio: "サウンドを表示",
         details: "詳細を表示",
       },
     },
@@ -1223,8 +1243,16 @@ const messages: AppMessages = {
       solid: "単色",
       solidColor: "単色 {color}",
       customColor: "カスタムカラーを選択",
-      showLess: "折りたたむ",
-      seeMore: "もっと見る",
+      colors: "カラー",
+      wallpaper: "{group}の壁紙 {n}",
+      wallpaperGroups: {
+        general: "一般",
+        cities: "都市",
+        blue: "ブルー",
+        purple: "パープル",
+        orange: "オレンジ",
+        dark: "ダーク",
+      },
       presets: {
         violet: "バイオレット",
         sunset: "サンセット",

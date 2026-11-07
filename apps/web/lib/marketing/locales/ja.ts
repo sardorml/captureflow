@@ -112,9 +112,9 @@ const messages: Messages = {
     cta: "接続する",
   },
   hero: {
-    title: "あなたとAIエージェントの\nための画面録画ツール",
+    title: "あなたとAIエージェントの\nための画面録画ツール {bubble}",
     subtitle:
-      "デモ、使い方、操作手順、プレゼンを自分で録画するか、AIに録画を任せられます。それぞれを誰でも見られるリンクとして共有できます。",
+      "デモ、使い方、操作手順を{chrome}拡張機能で自分で録画するか、{claude}、{chatgpt}、{cursor}に録画を任せられます。それぞれを誰でも見られるリンクとして共有できます。",
     ctaLabel: "CaptureFlowを無料で試す",
     installChrome: "Chrome拡張機能をインストール",
     installMac: "macOS版をダウンロード",

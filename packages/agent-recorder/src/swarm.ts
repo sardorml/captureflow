@@ -48,6 +48,8 @@ export type SwarmPlan = {
   tempo: TempoRamp | null;
   introMs: number;
   outroMs: number;
+  celebrateMs: number;
+  cheer: string;
   durationMs: number;
 };
 
@@ -78,6 +80,14 @@ export function swarmSeconds(unitCount: number, screens: number): number {
 
 const INTRO_MS = 700;
 const OUTRO_MS = 600;
+const CELEBRATE_MS = 4600;
+const CHEERS = [
+  "{agents} agents. Zero coffee breaks.",
+  "Not a single pixel out of place.",
+  "Pixel-perfect and ready to ship!",
+  "Done before your coffee cooled.",
+  "From a blank page to the real thing.",
+];
 const RAMP_DONE = 0.9;
 const ROW_PX = 48;
 // The composer: rises in, the request is typed, a pause, then the pointer clicks send and the agents burst out.
@@ -197,7 +207,12 @@ export function planSwarm(units: SwarmUnit[], opts: SwarmOptions): SwarmPlan {
     tempo,
     introMs,
     outroMs: OUTRO_MS,
-    durationMs: opts.durationMs + promptMs,
+    celebrateMs: CELEBRATE_MS,
+    cheer: CHEERS[Math.floor(rng() * CHEERS.length)]!.replace(
+      "{agents}",
+      String(agents),
+    ),
+    durationMs: opts.durationMs + promptMs + CELEBRATE_MS,
   };
 }
 
@@ -402,6 +417,9 @@ type SwarmState = {
   aim: number;
   view: number;
   lastMs: number;
+  hudDone: number;
+  hudBumpAt: number;
+  celebrateFrom: number | null;
 };
 
 type SwarmWindow = Window & {
@@ -541,6 +559,9 @@ export function mountSwarm(args: {
     aim: 0,
     view: 0,
     lastMs: 0,
+    hudDone: 0,
+    hudBumpAt: -Infinity,
+    celebrateFrom: null,
   };
 }
 
@@ -566,6 +587,120 @@ export function seekSwarm(ms: number) {
   const ease = (t: number) =>
     t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
   const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
+
+  const INK = "#17120f";
+  const face = `"Arial Rounded MT Bold", "Nunito", "Baloo 2", "Comic Sans MS", system-ui, sans-serif`;
+  const buildEnd = plan.durationMs - plan.celebrateMs;
+  const celebrating = ms >= buildEnd;
+
+  function drawCounter(done: number, total: number, bumpAt: number) {
+    const all = done >= total;
+    const pop = clamp01((ms - bumpAt) / 260);
+    const bounce = 1 + 0.32 * Math.exp(-6 * pop) * Math.cos(pop * Math.PI * 3);
+    const wobble =
+      Math.sin(ms / 340) * 0.035 + (1 - pop) * 0.06 * Math.sin(ms / 30);
+    const outlined = (
+      text: string,
+      x: number,
+      y: number,
+      fill: string,
+      lw: number,
+    ) => {
+      ctx.lineJoin = "round";
+      ctx.lineWidth = lw;
+      ctx.strokeStyle = INK;
+      ctx.strokeText(text, x, y + lw * 0.45);
+      ctx.strokeText(text, x, y);
+      ctx.fillStyle = fill;
+      ctx.fillText(text, x, y);
+    };
+
+    ctx.save();
+    ctx.font = `900 46px ${face}`;
+    const numW = ctx.measureText(String(done)).width;
+    ctx.font = `900 22px ${face}`;
+    const totW = ctx.measureText(`/${total}`).width;
+    const tag = all ? "ALL BUILT!" : "ELEMENTS BUILT";
+    ctx.font = `900 13px ${face}`;
+    const tagW = ctx.measureText(tag).width;
+    const bw = Math.max(numW + totW + 6, tagW) + 40;
+    const bh = 108;
+    const cx = W - bw / 2 - 28;
+    const cy = H - bh / 2 - 30;
+    ctx.translate(cx, cy);
+    ctx.rotate(-0.06 + wobble);
+    ctx.scale(
+      all ? 1 + 0.06 * Math.sin(ms / 90) : 1,
+      all ? 1 + 0.06 * Math.sin(ms / 90) : 1,
+    );
+
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    ctx.roundRect(-bw / 2 + 5, -bh / 2 + 6, bw, bh, 22);
+    ctx.fill();
+    ctx.fillStyle = all ? "#7ee081" : "#ffd23f";
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(-bw / 2, -bh / 2, bw, bh, 22);
+    ctx.fill();
+    ctx.stroke();
+
+    const barX = -bw / 2 + 16;
+    const barW = bw - 32;
+    const barY = bh / 2 - 20;
+    ctx.fillStyle = "rgba(23,18,15,.18)";
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, barW, 10, 5);
+    ctx.fill();
+    ctx.fillStyle = all ? "#1f9d4a" : "#ff5a36";
+    ctx.beginPath();
+    ctx.roundRect(
+      barX,
+      barY,
+      Math.max(10, barW * (done / Math.max(1, total))),
+      10,
+      5,
+    );
+    ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    ctx.textBaseline = "alphabetic";
+    ctx.textAlign = "left";
+    const rowX = -(numW + totW + 6) / 2;
+    ctx.save();
+    ctx.translate(rowX + numW / 2, 18);
+    ctx.scale(bounce, 2 - bounce);
+    ctx.font = `900 46px ${face}`;
+    outlined(String(done), -numW / 2, 0, "#fff", 7);
+    ctx.restore();
+    ctx.font = `900 22px ${face}`;
+    outlined(`/${total}`, rowX + numW + 6, 16, "#fff", 5);
+    ctx.font = `900 13px ${face}`;
+    ctx.fillStyle = INK;
+    ctx.fillText(tag, -tagW / 2, -bh / 2 + 26);
+
+    const chip = `${plan.agents} AGENTS`;
+    ctx.font = `900 14px ${face}`;
+    const chipW = ctx.measureText(chip).width + 22;
+    ctx.translate(-bw / 2 + 8, -bh / 2 - 12);
+    ctx.rotate(-0.12 + Math.sin(ms / 210) * 0.05);
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    ctx.roundRect(-chipW / 2 + 3, -14 + 3, chipW, 28, 14);
+    ctx.fill();
+    ctx.fillStyle = BLUE;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(-chipW / 2, -14, chipW, 28, 14);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#fff";
+    ctx.textBaseline = "middle";
+    ctx.fillText(chip, -chipW / 2 + 11, 1);
+    ctx.restore();
+  }
   const dt = Math.max(0, ms - s.lastMs);
   s.lastMs = ms;
 
@@ -799,7 +934,13 @@ export function seekSwarm(ms: number) {
   }
   wanted = Math.min(maxScroll, Math.max(s.aim, wanted));
   const sec = dt / 1000;
-  if (ms < plan.introMs) {
+  if (celebrating) {
+    s.celebrateFrom ??= s.cam;
+    const up = clamp01((ms - buildEnd - 500) / (plan.celebrateMs - 1400));
+    s.cam = s.celebrateFrom * (1 - ease(up));
+    s.aim = s.cam;
+    s.camV = 0;
+  } else if (ms < plan.introMs) {
     s.aim = s.cam = s.camV = 0;
   } else if (sec > 0) {
     s.aim += (wanted - s.aim) * (1 - Math.exp(-sec / 0.35));
@@ -827,7 +968,7 @@ export function seekSwarm(ms: number) {
     }
   }
 
-  const outroAt = plan.durationMs - plan.outroMs;
+  const outroAt = buildEnd - plan.outroMs;
   const promptMs = plan.prompt?.ms ?? 0;
   const alpha =
     ms < promptMs + 400
@@ -835,7 +976,7 @@ export function seekSwarm(ms: number) {
       : ms > outroAt
         ? clamp01(1 - (ms - outroAt) / plan.outroMs)
         : 1;
-  if (ms >= plan.durationMs) {
+  if (celebrating) {
     units.forEach((_, i) => {
       if (s.stage[i] !== 2) {
         reveal(i);
@@ -844,15 +985,14 @@ export function seekSwarm(ms: number) {
     });
   }
   // Late arrivals show once the build has passed their place on the page.
-  const builtTo =
-    ms >= plan.durationMs
-      ? Infinity
-      : Math.min(
-          Infinity,
-          ...plan.tasks
-            .filter((t) => s.stage[t.unit] !== 2)
-            .map((t) => units[t.unit]!.y),
-        );
+  const builtTo = celebrating
+    ? Infinity
+    : Math.min(
+        Infinity,
+        ...plan.tasks
+          .filter((t) => s.stage[t.unit] !== 2)
+          .map((t) => units[t.unit]!.y),
+      );
   // Shown or gone, a node is no longer measured each frame, however much the page keeps adding.
   s.late = s.late.filter((el) => {
     if (!el.isConnected || el.style.visibility !== "hidden") return false;
@@ -1034,15 +1174,9 @@ export function seekSwarm(ms: number) {
   ctx.shadowColor = "transparent";
 
   const done = s.stage.filter((v) => v === 2).length;
-  const label = `${plan.agents} agents · ${done}/${units.length} elements`;
-  ctx.font = "600 13px -apple-system, system-ui, sans-serif";
-  const lw = ctx.measureText(label).width + 28;
-  ctx.fillStyle = "rgba(17,17,17,.88)";
-  ctx.beginPath();
-  ctx.roundRect(W - lw - 16, H - 46, lw, 30, 15);
-  ctx.fill();
-  ctx.fillStyle = "#fff";
-  ctx.fillText(label, W - lw - 16 + 14, H - 26);
+  if (done > s.hudDone) s.hudBumpAt = ms;
+  s.hudDone = done;
+  drawCounter(done, units.length, s.hudBumpAt);
   ctx.globalAlpha = 1;
 
   const paintRoom = () => {
@@ -1091,6 +1225,191 @@ export function seekSwarm(ms: number) {
       s.room = paintRoom();
     }
     drawComposer(pr, s.room);
+  }
+  const glass = celebrating
+    ? clamp01((ms - buildEnd) / 400) * clamp01((plan.durationMs - ms) / 600)
+    : 0;
+  const glassFilter = glass > 0 ? `blur(${(7 * glass).toFixed(2)}px)` : "";
+  if (s.host.style.backdropFilter !== glassFilter) {
+    s.host.style.backdropFilter = glassFilter;
+    s.host.style.background = glass
+      ? `rgba(12,10,24,${(0.12 * glass).toFixed(3)})`
+      : "";
+  }
+  if (celebrating) drawCelebration(ms - buildEnd, units.length);
+
+  /*
+   * The finish: a big sticker counts up to everything that was rebuilt while
+   * confetti bursts from the bottom corners. Each piece is a closed-form
+   * throw with air drag, seeded by its index, so any frame can be drawn
+   * straight from its time.
+   */
+  function drawCelebration(c: number, total: number) {
+    const u = Math.min(W / 1280, H / 720);
+    const backOut = (t: number) =>
+      1 + 2.70158 * Math.pow(t - 1, 3) + 1.70158 * Math.pow(t - 1, 2);
+    const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+    const rand = (i: number, k: number) => {
+      const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453;
+      return x - Math.floor(x);
+    };
+    const exit = clamp01((plan.celebrateMs - c) / 500);
+    const COLORS = [
+      "#ff5a36",
+      "#ffd23f",
+      "#2f7df6",
+      "#7ee081",
+      "#ff6ad5",
+      "#9b5cff",
+      "#17c3b2",
+    ];
+
+    ctx.save();
+    ctx.globalAlpha = exit;
+    const PIECES = 160;
+    for (let i = 0; i < PIECES; i++) {
+      const left = i % 2 === 0;
+      const t0 = 120 + rand(i, 1) * 260 + (i >= PIECES / 2 ? 650 : 0);
+      const t = (c - t0) / 1000;
+      if (t <= 0) continue;
+      const speed = (1500 + rand(i, 2) * 1300) * u;
+      const angle = (left ? 1 : -1) * (0.25 + rand(i, 3) * 0.55) - Math.PI / 2;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+      const k = 1.6 + rand(i, 4) * 0.8;
+      const fall = (900 * u) / k;
+      const drag = (1 - Math.exp(-k * t)) / k;
+      const x0 = left ? -10 * u : W + 10 * u;
+      const x =
+        x0 +
+        vx * drag +
+        Math.sin(t * (5 + rand(i, 5) * 4) + i) * 18 * u * Math.min(1, t);
+      const y = H + 10 * u + fall * t + (vy - fall) * drag;
+      if (y > H + 40 * u) continue;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rand(i, 6) * 6.28 + t * (4 + rand(i, 7) * 6));
+      ctx.scale(1, Math.cos(t * (6 + rand(i, 8) * 8)));
+      ctx.fillStyle = COLORS[i % COLORS.length]!;
+      const w = (8 + rand(i, 9) * 8) * u;
+      const h = (5 + rand(i, 10) * 4) * u;
+      if (i % 5 === 0) {
+        ctx.beginPath();
+        ctx.arc(0, 0, h * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillRect(-w / 2, -h / 2, w, h);
+      }
+      ctx.restore();
+    }
+
+    const pop = clamp01((c - 60) / 520);
+    if (pop <= 0) {
+      ctx.restore();
+      return;
+    }
+    const cw = 460 * u;
+    const ch = 270 * u;
+    ctx.translate(W / 2, H / 2);
+    ctx.rotate(-0.035 + Math.sin(c / 300) * 0.018);
+    const sc = backOut(pop) * (0.7 + 0.3 * exit);
+    ctx.scale(sc, sc);
+
+    ctx.save();
+    ctx.rotate(c / 2600);
+    const glow = ctx.createRadialGradient(0, 0, 60 * u, 0, 0, 430 * u);
+    glow.addColorStop(0, "rgba(255,240,170,.5)");
+    glow.addColorStop(1, "rgba(255,240,170,0)");
+    ctx.fillStyle = glow;
+    const rays = 18;
+    for (let r = 0; r < rays; r++) {
+      const a = (r / rays) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, 430 * u, a, a + Math.PI / rays);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    ctx.roundRect(-cw / 2 + 9 * u, -ch / 2 + 11 * u, cw, ch, 34 * u);
+    ctx.fill();
+    ctx.fillStyle = "#7ee081";
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 6 * u;
+    ctx.beginPath();
+    ctx.roundRect(-cw / 2, -ch / 2, cw, ch, 34 * u);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "rgba(255,255,255,.35)";
+    ctx.beginPath();
+    ctx.roundRect(
+      -cw / 2 + 18 * u,
+      -ch / 2 + 14 * u,
+      cw - 36 * u,
+      16 * u,
+      8 * u,
+    );
+    ctx.fill();
+
+    const count = Math.round(total * easeOut(clamp01((c - 300) / 1000)));
+    const landed = clamp01((c - 1300) / 380);
+    const bounce =
+      landed > 0 && landed < 1 ? 1 + 0.22 * Math.sin(landed * Math.PI) : 1;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.lineJoin = "round";
+    const outline = (
+      text: string,
+      y: number,
+      px: number,
+      fill: string,
+      lw: number,
+    ) => {
+      ctx.font = `900 ${px}px ${face}`;
+      ctx.lineWidth = lw;
+      ctx.strokeStyle = INK;
+      ctx.strokeText(text, 0, y + lw * 0.45);
+      ctx.strokeText(text, 0, y);
+      ctx.fillStyle = fill;
+      ctx.fillText(text, 0, y);
+    };
+    ctx.save();
+    ctx.translate(0, -12 * u);
+    ctx.scale(bounce, 2 - bounce);
+    outline(String(count), 0, 112 * u, "#fff", 12 * u);
+    ctx.restore();
+    outline("ELEMENTS REBUILT!", 46 * u, 32 * u, "#ffd23f", 7 * u);
+    let px = 21 * u;
+    ctx.font = `800 ${px}px ${face}`;
+    while (ctx.measureText(plan.cheer).width > cw - 48 * u && px > 12 * u) {
+      px -= 1;
+      ctx.font = `800 ${px}px ${face}`;
+    }
+    ctx.fillStyle = INK;
+    ctx.fillText(plan.cheer, 0, 92 * u);
+
+    const chip = `${plan.agents} AGENTS`;
+    ctx.font = `900 ${18 * u}px ${face}`;
+    const chipW = ctx.measureText(chip).width + 30 * u;
+    ctx.translate(-cw / 2 + 30 * u, -ch / 2 - 4 * u);
+    ctx.rotate(-0.14 + Math.sin(c / 220) * 0.05);
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    ctx.roundRect(-chipW / 2 + 4 * u, -17 * u + 4 * u, chipW, 34 * u, 17 * u);
+    ctx.fill();
+    ctx.fillStyle = BLUE;
+    ctx.lineWidth = 4 * u;
+    ctx.beginPath();
+    ctx.roundRect(-chipW / 2, -17 * u, chipW, 34 * u, 17 * u);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#fff";
+    ctx.textBaseline = "middle";
+    ctx.fillText(chip, 0, 1 * u);
+    ctx.restore();
   }
 
   /*

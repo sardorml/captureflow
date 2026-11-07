@@ -179,18 +179,16 @@ async function prepareAgentRecording(
     );
   }
   const now = Date.now();
-  const running = await findRunningAgentRecording(
-    db,
-    user.userId,
-    now - SESSION_LIFETIME_MS,
-  );
+  const [running, workspaceId] = await Promise.all([
+    findRunningAgentRecording(db, user.userId, now - SESSION_LIFETIME_MS),
+    resolveWorkspaceId(user, args.workspaceId),
+  ]);
   if (running) {
     throw new LibraryError(
       `You already have a recording running (recording_id ${running.id}). Stop or cancel it first.`,
       "running",
     );
   }
-  const workspaceId = await resolveWorkspaceId(user, args.workspaceId);
   const { entitlement, left } = await allowanceLeft(db, workspaceId);
   if (left.agentMs !== null && left.agentMs < 60_000) {
     throw new LibraryError(
@@ -276,16 +274,17 @@ export async function startAgentRecording(
 /*
  * The swarm demo from the public page: the recorder runs the whole fixed
  * script on its own, so no agent drives it. The recording is made here and
- * handed to the container with the script, so the visitor is sent to its
- * page at once instead of waiting out the container's cold start. The row
- * is ended by the Durable Object once the clip is uploaded, or here in local
- * dev where the container is reached directly.
+ * handed to the recorder in the background, so the visitor is sent to its
+ * page as soon as it exists; a start that fails marks it failed there. The
+ * row is ended by the Durable Object once the clip is uploaded, or here in
+ * local dev where the container is reached directly.
  */
 export async function startSwarmDemo(
   db: D1Database,
   env: RecorderEnv,
   user: McpUser,
   url: string,
+  background: (task: Promise<unknown>) => void,
 ): Promise<{ recording_id: string; url: string }> {
   const title = `${new URL(url).host} rebuilt by agents`;
   const { id, start } = await prepareAgentRecording(db, env, user, {
@@ -312,20 +311,22 @@ export async function startSwarmDemo(
     if (made.kind === "error") throw new LibraryError(made.error);
     const { slug } = made.response;
     await setAgentRecordingSlug(db, id, slug);
-    const demo = callRecorder(env, id, "POST", "demo", {
-      url,
-      start: { ...start, upload: { ...start.upload, created: made.response } },
-    });
-    if (env.RECORDER_URL) {
-      void demo
-        .catch((err) => {
+    background(
+      callRecorder(env, id, "POST", "demo", {
+        url,
+        start: {
+          ...start,
+          upload: { ...start.upload, created: made.response },
+        },
+      }).then(
+        () => (env.RECORDER_URL ? endAgentRecording(db, id, Date.now()) : null),
+        async (err) => {
           console.warn("[swarm-demo] failed", err);
-          return failPendingAgentRecording(db, id, errorText(err));
-        })
-        .finally(() => endAgentRecording(db, id, Date.now()));
-    } else {
-      await demo;
-    }
+          await failPendingAgentRecording(db, id, errorText(err));
+          await endAgentRecording(db, id, Date.now());
+        },
+      ),
+    );
     return { recording_id: id, url: viewUrlFor(slug) };
   } catch (err) {
     await failPendingAgentRecording(db, id, errorText(err));

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type MouseEvent } from "react";
+import { useRef, type MouseEvent, type ReactNode } from "react";
 import {
   CHROME_WEBSTORE_URL,
   CURRENT_STAGE,
@@ -11,7 +11,13 @@ import { MARKETING_SITE_URL, SOURCE_REPO_URL } from "@/lib/site";
 import { GlyphField } from "@/components/ui/glyph-field";
 import { TwoTone } from "./frame";
 import { WaitlistForm } from "./waitlist-form";
-import { AppleLogo, ChromeLogoColor, ClaudeLogo } from "./platform-logos";
+import {
+  AppleLogo,
+  ChromeLogoColor,
+  ClaudeLogo,
+  CursorLogo,
+  OpenAILogo,
+} from "./platform-logos";
 import { InstallButton } from "./install-button";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
@@ -39,7 +45,7 @@ export function HeroSection() {
       />
       <div className="flex flex-col items-center px-6 pt-16 pb-20 text-center sm:pt-[90px] sm:pb-[104px]">
         <div ref={textRef} className="flex flex-col items-center">
-          <p className="mb-8 text-[13px] leading-5 text-fg-muted">
+          <p className="mb-7 text-xs leading-4 text-fg-muted">
             {fill(m.hero.badge, {
               github: (
                 <a
@@ -57,15 +63,39 @@ export function HeroSection() {
             {/* The copy decides the line break; phones wrap on their own. */}
             {m.hero.title.split("\n").map((line) => (
               <span key={line} className="sm:block">
-                {line}{" "}
+                {fill(line, { bubble: <CameraBubble /> })}{" "}
               </span>
             ))}
           </h1>
           <p
             onClick={selectAndCopyWithLink}
-            className={`mt-6 max-w-[720px] text-lg leading-7 text-balance sm:text-xl ${COPY_SELECTION}`}
+            className={`mt-5 max-w-[800px] text-lg leading-7 text-balance sm:text-xl ${COPY_SELECTION}`}
           >
-            <TwoTone text={m.hero.subtitle} />
+            <TwoTone
+              text={m.hero.subtitle}
+              slots={{
+                chrome: (
+                  <Brand icon={<ChromeLogoColor className={BRAND_ICON} />}>
+                    Chrome
+                  </Brand>
+                ),
+                claude: (
+                  <Brand icon={<ClaudeLogo className={BRAND_ICON} />}>
+                    Claude
+                  </Brand>
+                ),
+                chatgpt: (
+                  <Brand icon={<OpenAILogo className={BRAND_ICON} />}>
+                    ChatGPT
+                  </Brand>
+                ),
+                cursor: (
+                  <Brand icon={<CursorLogo className={BRAND_ICON} />}>
+                    Cursor
+                  </Brand>
+                ),
+              }}
+            />
           </p>
         </div>
 
@@ -103,6 +133,39 @@ export function HeroSection() {
         )}
       </div>
     </section>
+  );
+}
+
+const BRAND_ICON =
+  "me-1 inline-block size-[1.05em] shrink-0 -translate-y-[0.1em] align-middle";
+
+function Brand({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <span className="font-medium whitespace-nowrap text-fg">
+      {icon}
+      {children}
+    </span>
+  );
+}
+
+function CameraBubble() {
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-block size-[0.82em] -translate-y-[0.05em] overflow-hidden rounded-full border border-fg/[0.12] align-middle"
+    >
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        poster="/webcam/cardigan.jpg"
+        className="size-full object-cover"
+      >
+        <source src="/webcam/cardigan.webm" type="video/webm" />
+        <source src="/webcam/cardigan.mp4" type="video/mp4" />
+      </video>
+    </span>
   );
 }
 

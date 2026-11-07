@@ -29,6 +29,7 @@ import { SummaryChapters } from "./SummaryChapters";
 import { ViewCount } from "./ViewCount";
 import { TranscriptPanel } from "./TranscriptPanel";
 import { registerPlayerClock } from "./player-clock";
+import type { ExportSources } from "@/lib/recording/export-plan";
 
 // Owner-only, so viewers never download the editor's controls.
 const EditPanel = dynamic(
@@ -52,6 +53,7 @@ type Props = {
   serverHeight: number | null;
   config: RecordingConfig;
   backgroundImageUrl: string | null;
+  exportSources: ExportSources | null;
   initialReactions: RecordingReaction[];
   initialComments: RecordingComment[];
   viewer: {
@@ -86,6 +88,7 @@ export function RecordingViewer({
   serverHeight,
   config,
   backgroundImageUrl,
+  exportSources,
   initialReactions,
   initialComments,
   viewer,
@@ -201,12 +204,15 @@ export function RecordingViewer({
                       </Avatar>
                     ) : null
                   }
+                  trailing={<ViewCount count={viewCount} viewers={viewers} />}
+                  trailingClassName="lg:hidden"
                 />
               </div>
               <ViewCount
                 count={viewCount}
                 viewers={viewers}
-                className="max-lg:self-start"
+                variant="pill"
+                className="max-lg:hidden"
               />
             </div>
           </div>
@@ -284,7 +290,13 @@ export function RecordingViewer({
           editPanel={
             isOwner ? (
               <ErrorBoundary className="m-4">
-                <EditPanel slug={slug} editUrl={editUrl} />
+                <EditPanel
+                  slug={slug}
+                  editUrl={editUrl}
+                  title={headlineText}
+                  config={config}
+                  exportSources={exportSources}
+                />
               </ErrorBoundary>
             ) : null
           }

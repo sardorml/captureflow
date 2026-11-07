@@ -4,6 +4,8 @@ import {
   Captions,
   Info,
   Palette,
+  Video,
+  Volume2,
   PanelRightClose,
   PanelRightOpen,
   type LucideIcon,
@@ -46,6 +48,8 @@ type Props = {
 const PANELS = [
   { value: "transcript", icon: Captions },
   { value: "design", icon: Palette },
+  { value: "camera", icon: Video },
+  { value: "audio", icon: Volume2 },
   { value: "details", icon: Info },
 ] as const satisfies readonly {
   value: string;
@@ -77,15 +81,16 @@ export function EditorInspector({
   const [open, setOpen] = useState(true);
   const m = useAppMessages();
   const t = m.recordingEditor;
+  const panels = PANELS.filter((p) => hasWebcam || p.value !== "camera");
   const shownPanel =
-    PANELS.find((p) => p.value === panel)?.value ?? PANELS[0].value;
+    panels.find((p) => p.value === panel)?.value ?? panels[0]!.value;
   const toggleLabel = open
     ? t.panels.hide[shownPanel]
     : t.panels.show[shownPanel];
 
   return (
     <TabsPrimitive.Root
-      value={panel}
+      value={shownPanel}
       onValueChange={setPanel}
       orientation="vertical"
       activationMode="manual"
@@ -125,25 +130,31 @@ export function EditorInspector({
                       />
                     </Section>
                   ) : null}
-                  {hasWebcam ? (
-                    <Section title={t.camera.title}>
-                      <CameraPicker
-                        corner={config.cameraCorner}
-                        point={config.cameraPoint}
-                        size={config.cameraSize}
-                        hidden={config.cameraHidden}
-                        aspect={aspect}
-                        onCorner={(corner) =>
-                          onConfig({ cameraCorner: corner, cameraPoint: null })
-                        }
-                        onPoint={(point) => onConfig({ cameraPoint: point })}
-                        onSize={(size) => onConfig({ cameraSize: size })}
-                        onHidden={(hidden) =>
-                          onConfig({ cameraHidden: hidden })
-                        }
-                      />
-                    </Section>
-                  ) : null}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="camera" className={PANEL_CLASS}>
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                  <Section title={t.camera.title}>
+                    <CameraPicker
+                      corner={config.cameraCorner}
+                      point={config.cameraPoint}
+                      size={config.cameraSize}
+                      hidden={config.cameraHidden}
+                      aspect={aspect}
+                      onCorner={(corner) =>
+                        onConfig({ cameraCorner: corner, cameraPoint: null })
+                      }
+                      onPoint={(point) => onConfig({ cameraPoint: point })}
+                      onSize={(size) => onConfig({ cameraSize: size })}
+                      onHidden={(hidden) => onConfig({ cameraHidden: hidden })}
+                    />
+                  </Section>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="audio" className={PANEL_CLASS}>
+                <div className="min-h-0 flex-1 overflow-y-auto">
                   <Section title={t.audio.title}>
                     <AudioControls
                       micMuted={config.micMuted}
@@ -174,7 +185,7 @@ export function EditorInspector({
           aria-label={t.panels.label}
           className="flex flex-col"
         >
-          {PANELS.map(({ value, icon: Icon }) => (
+          {panels.map(({ value, icon: Icon }) => (
             <TabsPrimitive.Trigger
               key={value}
               value={value}

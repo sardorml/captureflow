@@ -24,6 +24,7 @@ import type { RecordingVisibility } from "@/lib/recording/types";
 import {
   posterMimeOf,
   backgroundImageUrlFor,
+  exportSourcesFor,
   viewerMediaUrl,
   withVersion,
 } from "@/lib/recording/media-url";
@@ -53,6 +54,7 @@ import { RequestAccess } from "./RequestAccess";
 import { SessionLoadingShell } from "./SessionLoadingShell";
 import { AuthPrompt } from "./AuthPrompt";
 import { RecordingActions } from "./RecordingActions";
+import { shareImageLinkFor } from "@/lib/recording/share-image-link";
 import { RecordingViewer } from "./RecordingViewer";
 import { UpgradeBanner, getFreePlanUsage } from "./UpgradeBanner";
 import { NotificationsBell } from "@/app/_components/NotificationsBell";
@@ -121,10 +123,12 @@ export async function generateMetadata({
     : undefined;
   const pageUrl = viewUrlFor(id);
 
-  const posterType = posterMimeOf(row.posterKey);
   // Facebook/Instagram skip the image without explicit og:image dimensions.
-  const imageWidth = row.width ?? 1280;
-  const imageHeight = row.height ?? 720;
+  const framed = await shareImageLinkFor(row);
+  const imageUrl = framed?.url ?? posterUrl;
+  const posterType = framed ? "image/jpeg" : posterMimeOf(row.posterKey);
+  const imageWidth = framed?.width ?? row.width ?? 1280;
+  const imageHeight = framed?.height ?? row.height ?? 720;
 
   return {
     title,
@@ -137,11 +141,11 @@ export async function generateMetadata({
       title,
       description,
       siteName: PRODUCT_NAME,
-      images: posterUrl
+      images: imageUrl
         ? [
             {
-              url: posterUrl,
-              secureUrl: posterUrl,
+              url: imageUrl,
+              secureUrl: imageUrl,
               type: posterType,
               width: imageWidth,
               height: imageHeight,
@@ -163,7 +167,7 @@ export async function generateMetadata({
       card: "player",
       title,
       description,
-      images: posterUrl ? [posterUrl] : undefined,
+      images: imageUrl ? [imageUrl] : undefined,
       players: [
         {
           playerUrl: pageUrl,
@@ -212,6 +216,7 @@ export default async function RecordingPage({
       <div className="flex min-h-screen flex-col bg-panel text-fg lg:h-screen lg:overflow-hidden">
         <RecordingNav
           slug={id}
+          title={row.title ?? PRODUCT_NAME}
           visitor={visitor}
           theme={theme}
           themePreference={themePreference}
@@ -317,10 +322,12 @@ export default async function RecordingPage({
       : Promise.resolve(null),
   ]);
   const recordingConfig = parseRecordingConfigJson(row.configJson);
-  const backgroundImageUrl = await backgroundImageUrlFor(
-    row,
-    recordingConfig.background,
-  );
+  const [backgroundImageUrl, exportSources] = await Promise.all([
+    backgroundImageUrlFor(row, recordingConfig.background),
+    isOwner
+      ? exportSourcesFor(row, recordingConfig.background)
+      : Promise.resolve(null),
+  ]);
   const summaryChapters = parseSummaryChaptersJson(row.summaryChaptersJson);
   const { transcript, status: transcriptStatus } =
     resolveTranscript(transcriptRow);
@@ -359,6 +366,7 @@ export default async function RecordingPage({
       )}
       <RecordingNav
         slug={id}
+        title={headlineText}
         visitor={visitor}
         theme={theme}
         themePreference={themePreference}
@@ -381,6 +389,7 @@ export default async function RecordingPage({
         serverHeight={row.height}
         config={recordingConfig}
         backgroundImageUrl={backgroundImageUrl}
+        exportSources={exportSources}
         initialReactions={reactions}
         initialComments={comments}
         viewer={
@@ -424,8 +433,10 @@ function RecordingNav({
   isOwner,
   workspaceName,
   allowPublicLinks,
+  title,
 }: {
   slug: string;
+  title: string;
   visitor: VerifiedSession | null;
   theme: ReturnType<typeof readThemeFromCookieHeader>;
   themePreference: ReturnType<typeof readThemePreferenceFromCookieHeader>;
@@ -493,6 +504,7 @@ function RecordingNav({
           slug={slug}
           recordingUrl={viewUrlFor(slug)}
           embedUrl={embedUrlFor(slug)}
+          shareText={title}
           editUrl={`${APP_WEB_SITE_URL}/recordings/${slug}/edit`}
           initialVisibility={visibility}
           isOwner={isOwner}

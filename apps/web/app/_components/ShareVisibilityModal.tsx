@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import {
   Check,
   ChevronDown,
@@ -33,7 +33,13 @@ import type { AppMessages } from "@/lib/i18n/app/messages";
 import { fmt } from "@/lib/i18n/format";
 import { formatTimestamp } from "@/lib/format";
 import { shareUrlAt } from "@/lib/recording/share-time";
+import {
+  SOCIAL_NETWORKS,
+  socialShareUrl,
+  type SocialNetwork,
+} from "@/lib/share-links";
 import { cn } from "@/lib/utils";
+import { SocialIcon } from "./social-icons";
 
 export type Visibility = "public" | "workspace" | "private";
 
@@ -59,6 +65,58 @@ function embedSnippetFor(embedUrl: string): string {
 
 type Copied = "link" | "embed";
 
+const NETWORK_NAMES: Record<Exclude<SocialNetwork, "email">, string> = {
+  x: "X",
+  linkedin: "LinkedIn",
+  facebook: "Facebook",
+  reddit: "Reddit",
+  whatsapp: "WhatsApp",
+};
+
+function ShareTile({
+  label,
+  active,
+  children,
+  ...rest
+}: {
+  label: string;
+  active?: boolean;
+  children: ReactNode;
+} & (
+  | { href: string; onClick?: never }
+  | { href?: never; onClick: () => void }
+)) {
+  const className = cn(
+    "flex h-10 w-10 items-center justify-center rounded-full outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+    active
+      ? "bg-primary text-primary-foreground"
+      : "bg-tint text-fg hover:bg-tint-strong",
+  );
+  return rest.href ? (
+    <a
+      href={rest.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      title={label}
+      className={className}
+    >
+      {children}
+    </a>
+  ) : (
+    <button
+      type="button"
+      onClick={rest.onClick}
+      aria-pressed={active}
+      aria-label={label}
+      title={label}
+      className={className}
+    >
+      {children}
+    </button>
+  );
+}
+
 export type ShareVisibilityModalProps = {
   open: boolean;
   onClose: () => void;
@@ -74,6 +132,7 @@ export type ShareVisibilityModalProps = {
   error?: string | null;
   shareUrl?: string;
   embedUrl?: string;
+  shareText?: string;
   // Sampled when the dialog opens, for a link that starts at that moment.
   getCurrentMs?: () => number;
 };
@@ -91,6 +150,7 @@ export function ShareVisibilityModal({
   error,
   shareUrl,
   embedUrl,
+  shareText,
   getCurrentMs,
 }: ShareVisibilityModalProps) {
   const [copied, setCopied] = useState<Copied | null>(null);
@@ -130,6 +190,14 @@ export function ShareVisibilityModal({
       ? shareUrlAt(shareUrl, atMs / 1000)
       : shareUrl;
   const embedSnippet = embedUrl ? embedSnippetFor(embedUrl) : null;
+  const socialLink =
+    visibility === "public" && linkToShare
+      ? {
+          url: linkToShare,
+          title: shareText ?? "",
+          message: shareText ? fmt(share.socialText, { title: shareText }) : "",
+        }
+      : null;
 
   const renderPublic = allowPublic || visibility === "public";
   const renderWorkspace = !!workspaceName || visibility === "workspace";
@@ -146,18 +214,40 @@ export function ShareVisibilityModal({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-5">
-          {embedSnippet ? (
-            <div>
-              <Button
-                size="sm"
-                variant={embedOpen ? "default" : "secondary"}
-                onClick={() => setEmbedOpen((v) => !v)}
-                aria-pressed={embedOpen}
-              >
-                <Code2 size={14} />
-                {share.embed}
-              </Button>
-              {embedOpen ? (
+          {socialLink || embedSnippet ? (
+            <section>
+              <p className="text-sm font-semibold text-fg">
+                {share.socialHeading}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-1.5 sm:gap-2">
+                {socialLink
+                  ? SOCIAL_NETWORKS.map((network) => {
+                      const name =
+                        network === "email"
+                          ? share.email
+                          : NETWORK_NAMES[network];
+                      return (
+                        <ShareTile
+                          key={network}
+                          label={name}
+                          href={socialShareUrl(network, socialLink)}
+                        >
+                          <SocialIcon network={network} className="h-5 w-5" />
+                        </ShareTile>
+                      );
+                    })
+                  : null}
+                {embedSnippet ? (
+                  <ShareTile
+                    label={share.embed}
+                    active={embedOpen}
+                    onClick={() => setEmbedOpen((v) => !v)}
+                  >
+                    <Code2 className="h-5 w-5" />
+                  </ShareTile>
+                ) : null}
+              </div>
+              {embedSnippet && embedOpen ? (
                 <div className="mt-3 rounded-xl border border-black/[0.15] bg-panel-2 p-3 dark:border-white/[0.16]">
                   <pre className="overflow-x-auto font-mono text-xs leading-relaxed break-all whitespace-pre-wrap text-fg">
                     {embedSnippet}
@@ -183,7 +273,7 @@ export function ShareVisibilityModal({
                   </div>
                 </div>
               ) : null}
-            </div>
+            </section>
           ) : null}
 
           <section>

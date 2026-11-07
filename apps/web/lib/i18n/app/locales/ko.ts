@@ -412,6 +412,9 @@ const messages: AppMessages = {
       copyLink: "링크 복사",
       linkCopied: "링크 복사됨",
       shareAt: "{time} 지점 공유",
+      socialHeading: "공유하기",
+      socialText: "“{title}” 확인해 보세요",
+      email: "이메일",
     },
     editableTitle: {
       label: "녹화 제목",
@@ -861,9 +864,9 @@ const messages: AppMessages = {
       preparingTitle: "녹화를 준비하는 중…",
       preparingDescription:
         "업로드가 아직 끝나지 않았습니다. 준비되면 이 페이지가 자동으로 새로 고쳐집니다.",
-      generatingTitle: "동영상을 생성하고 있습니다…",
+      generatingTitle: "동영상을 만들고 있어요…",
       generatingDescription:
-        "일이 분 정도 걸릴 수 있습니다. 준비되면 이 페이지가 자동으로 새로고침됩니다.",
+        "몇 분 정도 걸릴 수 있어요. 커피나 간식 한잔하고 오세요 ☕️🍪 준비가 되면 페이지가 자동으로 새로고침됩니다.",
       failedTitle: "이 녹화는 업로드를 마치지 못했습니다",
       failedDescription:
         "링크는 만들어졌지만 영상이 도착하지 않았습니다. 잠시 후 링크를 다시 열거나 새로 녹화하세요.",
@@ -879,7 +882,15 @@ const messages: AppMessages = {
       editDescription:
         "편집기에서 다듬고, 잘라내고, 모양을 바꾸고, 자막을 고칩니다.",
       downloadTitle: "영상 다운로드",
-      downloadDescription: "전체 녹화를 MP4로 받습니다.",
+      downloadDescription: "편집 내용이 반영된 MP4: 배경, 카메라, 잘라낸 구간.",
+      downloadRendering: "렌더링 중 {percent}%. 이 탭을 열어 두세요.",
+      downloadCancel: "취소",
+      downloadFailed:
+        "동영상을 렌더링하지 못했습니다. 대신 원본을 다운로드하세요.",
+      downloadUnsupported:
+        "이 브라우저에서는 동영상을 렌더링할 수 없습니다. 대신 원본을 다운로드하세요.",
+      originalTitle: "원본 다운로드",
+      originalDescription: "편집하지 않은 녹화 원본입니다.",
       copyEmbed: "삽입 코드 복사",
       embedCopied: "삽입 코드 복사됨",
       embedDescription: "플레이어를 어떤 웹 페이지에든 붙여 넣으세요.",
@@ -896,7 +907,7 @@ const messages: AppMessages = {
       label: "녹화 사이드바",
       activityTab: "활동",
       transcriptTab: "스크립트",
-      toolsTab: "도구",
+      toolsTab: "작업",
     },
     you: "나",
     anonymous: "익명",
@@ -922,6 +933,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "댓글 삭제",
+      deleteTitle: "이 댓글을 삭제할까요?",
+      deleteDescription: "모든 사람에게서 삭제되며 되돌릴 수 없습니다.",
       deleteFailed: "댓글을 삭제하지 못했습니다",
     },
     reaction: {
@@ -1180,16 +1193,22 @@ const messages: AppMessages = {
       tabs: {
         transcript: "스크립트",
         design: "디자인",
+        camera: "카메라",
+        audio: "사운드",
         details: "세부 정보",
       },
       hide: {
         transcript: "스크립트 숨기기",
         design: "디자인 숨기기",
+        camera: "카메라 숨기기",
+        audio: "사운드 숨기기",
         details: "세부 정보 숨기기",
       },
       show: {
         transcript: "스크립트 표시",
         design: "디자인 표시",
+        camera: "카메라 표시",
+        audio: "사운드 표시",
         details: "세부 정보 표시",
       },
     },
@@ -1205,8 +1224,16 @@ const messages: AppMessages = {
       solid: "단색",
       solidColor: "단색 {color}",
       customColor: "사용자 지정 색상 선택",
-      showLess: "접기",
-      seeMore: "더 보기",
+      colors: "색상",
+      wallpaper: "{group} 배경화면 {n}",
+      wallpaperGroups: {
+        general: "일반",
+        cities: "도시",
+        blue: "파랑",
+        purple: "보라",
+        orange: "주황",
+        dark: "어두운",
+      },
       presets: {
         violet: "바이올렛",
         sunset: "선셋",
