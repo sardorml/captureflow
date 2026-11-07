@@ -5,8 +5,12 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
-  SidebarMenuSkeleton,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -102,36 +106,92 @@ export function CardGridSkeleton({ count = 8 }: { count?: number }) {
   return <MediaGridSkeleton count={count} />;
 }
 
-function NavRowSkeleton({ width }: { width: string }) {
+function NavRowSkeleton({
+  width,
+  trailing = false,
+}: {
+  width: string;
+  trailing?: boolean;
+}) {
   return (
-    <div className="flex h-9 items-center gap-3 px-3">
-      <Skeleton className="size-[18px] shrink-0 rounded-md" />
-      <Skeleton className={cn("h-3.5 rounded", width)} />
-    </div>
+    <SidebarMenuItem>
+      <div className="flex h-8 items-center gap-2 px-2">
+        <Skeleton className="size-4 shrink-0 rounded-md" />
+        <Skeleton className={cn("h-3.5 rounded", width)} />
+        {trailing && <Skeleton className="ml-auto size-4 rounded-md" />}
+      </div>
+    </SidebarMenuItem>
   );
 }
 
+function SubRowSkeleton({ width }: { width: string }) {
+  return (
+    <SidebarMenuSubItem>
+      <div className="flex h-7 items-center px-2">
+        <Skeleton className={cn("h-3.5 rounded", width)} />
+      </div>
+    </SidebarMenuSubItem>
+  );
+}
+
+// Box for box the loaded sidebar of a free workspace's owner: brand, switcher, invite, the two nav groups with settings open, the upgrade card.
 export function SidebarSkeleton() {
   return (
     <SidebarRoot collapsible="icon">
       <SidebarHeader>
-        <SidebarMenuSkeleton showIcon />
-        <SidebarMenuSkeleton showIcon className="h-12" />
+        <SidebarMenu>
+          <NavRowSkeleton width="w-24" />
+        </SidebarMenu>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <div className="flex h-12 items-center gap-2 p-2">
+              <Skeleton className="size-8 shrink-0 rounded-md" />
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Skeleton className="h-3.5 w-28 rounded" />
+                <Skeleton className="h-3 w-20 rounded" />
+              </div>
+              <Skeleton className="size-4 rounded-md" />
+            </div>
+          </SidebarMenuItem>
+          <NavRowSkeleton width="w-28" />
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          {[0, 1, 2, 3].map((i) => (
-            <SidebarMenuSkeleton key={i} showIcon />
-          ))}
+          <SidebarMenu>
+            <NavRowSkeleton width="w-20" />
+            <NavRowSkeleton width="w-20" />
+            <NavRowSkeleton width="w-24" />
+            <NavRowSkeleton width="w-14" trailing />
+          </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup>
-          {[0, 1, 2].map((i) => (
-            <SidebarMenuSkeleton key={i} showIcon />
-          ))}
+          <SidebarGroupLabel>
+            <Skeleton className="h-3 w-16 rounded" />
+          </SidebarGroupLabel>
+          <SidebarMenu>
+            <NavRowSkeleton width="w-16" />
+            <NavRowSkeleton width="w-16" trailing />
+            <SidebarMenuSub>
+              <SubRowSkeleton width="w-16" />
+              <SubRowSkeleton width="w-20" />
+              <SubRowSkeleton width="w-12" />
+            </SidebarMenuSub>
+          </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenuSkeleton showIcon />
+      <SidebarFooter className="overflow-hidden group-data-[collapsible=icon]:hidden">
+        <div className="w-[calc(var(--sidebar-width)-1rem)] rounded-2xl bg-panel p-4 ring-1 ring-line">
+          <div className="flex h-5 items-center">
+            <Skeleton className="h-3.5 w-40 rounded" />
+          </div>
+          <div className="mt-1 flex flex-col justify-center gap-2 py-1">
+            <Skeleton className="h-3 w-full rounded" />
+            <Skeleton className="h-3 w-11/12 rounded" />
+            <Skeleton className="h-3 w-3/5 rounded" />
+          </div>
+          <Skeleton className="mt-3 h-8 w-full rounded-xl" />
+        </div>
       </SidebarFooter>
     </SidebarRoot>
   );

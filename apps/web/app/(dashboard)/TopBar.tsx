@@ -33,14 +33,14 @@ const NOTIFICATION_MENU_LIMIT = 6;
 // its plan and avatar queries, behind a stand-in of the same size.
 export async function TopBar({ session }: { session: Session }) {
   const selfHosted = isSelfHosted(await getAppWebEnv());
+  // The search sits in a centre column of its own, so the account cluster settling to its loaded width never moves it.
   return (
-    <div className="flex w-full items-center justify-between gap-4">
-      <SplitLoaded name="top-bar" />
-      <div className="hidden min-w-0 flex-1 justify-center md:flex">
+    <div className="flex w-full items-center justify-end gap-4 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,36rem)_minmax(max-content,1fr)]">
+      <div className="hidden min-w-0 justify-center md:col-start-2 md:flex">
         <SearchTrigger />
       </div>
-      {/* ml-auto because below md the search slot is display:none. */}
-      <div className="ml-auto flex items-center gap-2">
+      <div className="flex items-center justify-end gap-2 md:col-start-3">
+        <SplitLoaded name="top-bar" />
         <Suspense fallback={<AccountSkeleton withUpgrade={!selfHosted} />}>
           <Account session={session} selfHosted={selfHosted} />
         </Suspense>
@@ -52,8 +52,8 @@ export async function TopBar({ session }: { session: Session }) {
 function AccountSkeleton({ withUpgrade }: { withUpgrade: boolean }) {
   return (
     <>
-      {withUpgrade && <Skeleton className="h-10 w-[109px] rounded-xl md:h-9" />}
-      <Skeleton className="h-10 w-10 rounded-xl md:h-9 md:w-9" />
+      {withUpgrade && <Skeleton className="h-10 w-[78px] rounded-xl md:h-9" />}
+      <Skeleton className="h-10 w-10 rounded-xl md:size-8" />
       <Skeleton className="h-9 w-9 rounded-full" />
     </>
   );
