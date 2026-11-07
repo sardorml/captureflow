@@ -56,6 +56,8 @@ const DEMO_CHECK_SECONDS = 30;
 export class RecorderContainer extends Container<Env> {
   defaultPort = 8080;
   sleepAfter = "3m";
+  // The demo whose request to the container is still open here; lost when a deploy restarts this object.
+  private demoInFlight: string | null = null;
   pingEndpoint = "recorder/ping";
 
   constructor(ctx: DurableObjectState<{}>, env: Env) {
@@ -72,6 +74,7 @@ export class RecorderContainer extends Container<Env> {
       const id = path.split("/")[2] ?? "";
       await this.ctx.storage.put(DEMO_KEY, id);
       await this.schedule(DEMO_CHECK_SECONDS, "checkDemo", id);
+      this.demoInFlight = id;
       this.ctx.waitUntil(this.runDemo(request, id));
       return Response.json({ ok: true }, { status: 202 });
     }
@@ -97,6 +100,7 @@ export class RecorderContainer extends Container<Env> {
     } catch (err) {
       console.warn(`[swarm-demo] ${id} failed:`, err);
     } finally {
+      if (this.demoInFlight === id) this.demoInFlight = null;
       await this.finishDemo(id);
     }
   }
@@ -115,6 +119,7 @@ export class RecorderContainer extends Container<Env> {
   }
 
   private async demoRunning(id: string) {
+    if (this.demoInFlight === id) return true;
     if (!this.ctx.container?.running) return false;
     const res = await this.containerFetch(
       new Request(`http://recorder/sessions/${id}`, {
