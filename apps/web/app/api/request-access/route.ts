@@ -5,6 +5,7 @@ import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
 import { sendAccessRequestEmail } from "@/lib/email";
 import { viewUrlFor, screenshotViewUrlFor } from "@/lib/site";
+import { getSessionWithin } from "@/lib/session-read";
 
 const ALLOWED_ORIGINS = new Set([
   "https://captureflow.dev",
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
   const auth = await getAuth();
   let session;
   try {
-    session = await auth.api.getSession({ headers: req.headers });
+    session = await getSessionWithin(auth, req.headers, "request-access");
   } catch (err) {
     console.error("request-access: getSession threw", err);
     return NextResponse.json(

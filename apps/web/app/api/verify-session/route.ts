@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { listWorkspacesForUser } from "@captureflow/quota";
 import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { getSessionWithin } from "@/lib/session-read";
 
 // CORS-locked to the allowlisted origins so a malicious origin can't extract
 // a user's workspace list by firing a credentialed request from the browser.
@@ -51,7 +52,7 @@ export async function GET(req: NextRequest) {
   const auth = await getAuth();
   let session;
   try {
-    session = await auth.api.getSession({ headers: req.headers });
+    session = await getSessionWithin(auth, req.headers, "verify-session");
   } catch (err) {
     console.error("verify-session: getSession threw", err);
     return NextResponse.json(

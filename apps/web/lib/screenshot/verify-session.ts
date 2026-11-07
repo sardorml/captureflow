@@ -3,6 +3,7 @@
 import { listWorkspacesForUser } from "@captureflow/quota";
 import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { getSessionWithin } from "@/lib/session-read";
 
 export type VerifiedSession = {
   userId: string;
@@ -31,9 +32,11 @@ export async function verifySession(
   try {
     const auth = await getAuth();
     // Cross-subdomain cookies must be enabled for the visitor's cookie to be present.
-    session = await auth.api.getSession({
-      headers: headersFromCookie(cookieHeader),
-    });
+    session = await getSessionWithin(
+      auth,
+      headersFromCookie(cookieHeader),
+      "screenshot viewer",
+    );
   } catch (err) {
     console.error("screenshot verify-session: getSession threw", err);
     return "unknown";

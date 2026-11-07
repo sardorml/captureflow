@@ -9,6 +9,7 @@ import {
   type ContactRequest,
   type Hydrated,
 } from "@/lib/contact-requests";
+import { getSessionWithin } from "@/lib/session-read";
 
 export type ContactFormState = { error: string | null; sent: boolean };
 
@@ -45,9 +46,11 @@ export async function submitContactRequest<T>(
     };
   }
 
-  const session = await (await getAuth()).api
-    .getSession({ headers: h })
-    .catch(() => null);
+  const session = await getSessionWithin(
+    await getAuth(),
+    h,
+    "contact form",
+  ).catch(() => null);
   await insertContactRequest(
     env.DB,
     { ...toRequest(input.value), userId: session?.user.id ?? null, ipHash },
