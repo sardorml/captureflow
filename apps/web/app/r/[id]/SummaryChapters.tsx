@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ListVideo, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatTimestamp } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -195,7 +195,6 @@ export function SummaryChapters({
       <div className="divide-y divide-line">
         {showSummary && (
           <Card
-            icon={<Sparkles className="size-4" />}
             title={m.activity.summary.title}
             actions={
               isOwner && !summaryEditing ? (
@@ -236,7 +235,6 @@ export function SummaryChapters({
 
         {showChapters && (
           <Card
-            icon={<ListVideo className="size-4" />}
             title={m.activity.chapters.title}
             meta={
               hasChapters
@@ -352,13 +350,11 @@ export function SummaryChapters({
 }
 
 function Card({
-  icon,
   title,
   meta,
   actions,
   children,
 }: {
-  icon: ReactNode;
   title: string;
   meta?: string;
   actions: ReactNode;
@@ -368,9 +364,6 @@ function Card({
     <section className="py-6 first:pt-0 last:pb-0">
       <div className="flex min-h-8 items-center justify-between gap-3">
         <h2 className="flex min-w-0 items-center gap-2.5 text-base font-semibold text-fg-strong">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent-bg/10 text-accent-strong">
-            {icon}
-          </span>
           <span className="truncate">{title}</span>
           {meta ? (
             <span className="rounded-full bg-tint px-2 py-0.5 text-xs font-medium text-fg-muted">

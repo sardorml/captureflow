@@ -14,7 +14,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AtSign, MessageSquare, Smile, Sparkles, Trash2 } from "lucide-react";
+import { AtSign, MessageSquare, Smile, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
 import {
@@ -519,7 +519,6 @@ export function ActivitySidebar({
       >
         {!viewerSignedIn ? (
           <Button size="lg" className="w-full" onClick={onSignIn}>
-            <Sparkles size={16} />
             {m.activity.composer.signIn}
           </Button>
         ) : (

@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
-import { requireSession } from "@/lib/session-guard";
+import { requireSessionOrStall } from "@/lib/session-guard";
+import { SessionStalled } from "@/components/session-stalled";
+import { AppI18n } from "@/components/app-i18n";
 import { getScreenshotForUser } from "@/lib/screenshots-db";
 import { getObjectJson, objectExists } from "@/lib/r2";
 import { sourceKeyFor, stateKeyFor } from "@captureflow/shared/object-keys";
@@ -16,7 +18,14 @@ export default async function ScreenshotEditPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await requireSession();
+  const session = await requireSessionOrStall();
+  if (!session) {
+    return (
+      <AppI18n>
+        <SessionStalled />
+      </AppI18n>
+    );
+  }
   const screenshot = await getScreenshotForUser(id, session.user.id);
   if (!screenshot) notFound();
 

@@ -9,7 +9,8 @@ import {
 import { AppI18n } from "@/components/app-i18n";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { getAppI18n } from "@/lib/i18n/app/server";
-import { requireSession } from "@/lib/session-guard";
+import { requireSessionOrStall } from "@/lib/session-guard";
+import { SessionStalled } from "@/components/session-stalled";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { SidebarSkeleton } from "./_skeletons";
@@ -24,7 +25,14 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await requireSession();
+  const session = await requireSessionOrStall();
+  if (!session) {
+    return (
+      <AppI18n>
+        <SessionStalled />
+      </AppI18n>
+    );
+  }
   const { messages } = await getAppI18n();
   const sidebarOpen = (await cookies()).get("sidebar_state")?.value !== "false";
   /*

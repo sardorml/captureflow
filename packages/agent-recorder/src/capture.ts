@@ -20,6 +20,7 @@ export type Capture = {
   readonly audio: Uint8Array;
   readonly poster: Buffer;
   readonly frame: Buffer;
+  posterAt(ms: number): void;
   pause(): void;
   resume(): void;
   step(jpeg: Buffer): void;
@@ -46,6 +47,35 @@ export type CaptureOptions = {
 const TICK_MS = 20;
 const POSTER_AT_MS = 2000;
 const FIRST_FRAME_MS = 400;
+
+// Frames come off a zoomed page a pixel or so larger than the video; the preview image is sized to match it exactly.
+function fitPoster(
+  jpeg: Buffer,
+  width: number,
+  height: number,
+  ffmpegPath = "ffmpeg",
+): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(
+      ffmpegPath,
+      [
+        ...["-hide_banner", "-loglevel", "error", "-i", "pipe:0"],
+        ...["-vf", `scale=${width}:${height}`, "-q:v", "2"],
+        ...["-f", "image2", "-c:v", "mjpeg", "pipe:1"],
+      ],
+      { stdio: ["pipe", "pipe", "ignore"] },
+    );
+    const out: Buffer[] = [];
+    proc.stdout!.on("data", (chunk: Buffer) => out.push(chunk));
+    proc.on("error", reject);
+    proc.on("close", (code) =>
+      code === 0 && out.length
+        ? resolve(Buffer.concat(out))
+        : reject(new Error(`poster resize exited ${code}`)),
+    );
+    proc.stdin!.end(jpeg);
+  });
+}
 
 function write(stream: Writable, chunk: Buffer): void {
   if (!stream.destroyed && stream.writable) stream.write(chunk);
@@ -117,8 +147,9 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
   await show(opts.feed);
   // The frame two seconds in stands for the recording in link previews: the opening one is often a blank stage.
   let poster = frame!;
+  let posterAtMs = POSTER_AT_MS;
   const keepPoster = () => {
-    if (frame && pacer.durationMs <= POSTER_AT_MS) poster = frame;
+    if (frame && pacer.durationMs <= posterAtMs) poster = frame;
   };
 
   const kbps = Math.round(opts.bitrate / 1000);
@@ -210,6 +241,9 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
     get poster() {
       return poster;
     },
+    posterAt(ms) {
+      posterAtMs = ms;
+    },
     get frame() {
       return frame!;
     },
@@ -258,6 +292,9 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
         opus.stdin!.end();
         const [code] = await Promise.all([exited, opusExited]);
         if (code !== 0) throw new Error(`ffmpeg exited ${code}: ${stderr}`);
+        poster = await fitPoster(poster, width, height, opts.ffmpegPath).catch(
+          () => poster,
+        );
       })();
       return stopping;
     },

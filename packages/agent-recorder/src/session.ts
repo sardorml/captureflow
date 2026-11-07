@@ -89,6 +89,7 @@ const BITRATE = 4_000_000;
 const TYPE_DELAY_MS = 45;
 const SETTLE_MS = 600;
 const REVEAL_MS = 400;
+const PROMPT_POSTER_MS = 250;
 const LOAD_MS = 30_000;
 // A page with fewer units than this is checked for being a block page.
 const WALL_UNITS = 12;
@@ -545,6 +546,12 @@ export async function startSession(
       await thaw();
       throw err;
     });
+    // The link preview shows the request typed out, before the pointer heads for send.
+    if (plan.prompt) {
+      rec.capture.posterAt(
+        rec.capture.durationMs + plan.prompt.at.at(-1)! + PROMPT_POSTER_MS,
+      );
+    }
     const drawFrom = Date.now();
     rec.mark(`Rebuilding ${new URL(page.url()).host}`);
     try {
