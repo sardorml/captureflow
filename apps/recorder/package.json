@@ -7,6 +7,7 @@
   "scripts": {
     "build": "esbuild src/server.ts --bundle --platform=node --format=esm --target=node22 --external:playwright --outfile=dist/server.mjs",
     "dev": "pnpm build && node dist/server.mjs",
+    "dev:container": "scripts/dev-container.sh",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
