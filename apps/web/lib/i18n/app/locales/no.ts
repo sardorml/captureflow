@@ -944,6 +944,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Slett kommentaren",
+      deleteTitle: "Vil du slette denne kommentaren?",
+      deleteDescription: "Den fjernes for alle. Dette kan ikke angres.",
       deleteFailed: "Kunne ikke slette kommentaren",
     },
     reaction: {

@@ -30,6 +30,8 @@ export const ACTIVITY = {
   },
   comment: {
     delete: "Delete comment",
+    deleteTitle: "Delete this comment?",
+    deleteDescription: "It's removed for everyone. This can't be undone.",
     deleteFailed: "Could not delete comment",
   },
   reaction: {

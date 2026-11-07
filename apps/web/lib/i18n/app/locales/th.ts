@@ -926,6 +926,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "ลบความคิดเห็น",
+      deleteTitle: "ลบความคิดเห็นนี้ไหม",
+      deleteDescription: "ความคิดเห็นจะถูกลบสำหรับทุกคน และย้อนกลับไม่ได้",
       deleteFailed: "ลบความคิดเห็นไม่สำเร็จ",
     },
     reaction: {

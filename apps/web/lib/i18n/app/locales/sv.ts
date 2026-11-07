@@ -944,6 +944,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Radera kommentar",
+      deleteTitle: "Ta bort den här kommentaren?",
+      deleteDescription: "Den tas bort för alla. Det går inte att ångra.",
       deleteFailed: "Det gick inte att radera kommentaren",
     },
     reaction: {

@@ -958,6 +958,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Yorumu sil",
+      deleteTitle: "Bu yorum silinsin mi?",
+      deleteDescription: "Herkes için kaldırılır. Bu işlem geri alınamaz.",
       deleteFailed: "Yorum silinemedi",
     },
     reaction: {

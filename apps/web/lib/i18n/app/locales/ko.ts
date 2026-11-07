@@ -925,6 +925,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "댓글 삭제",
+      deleteTitle: "이 댓글을 삭제할까요?",
+      deleteDescription: "모든 사람에게서 삭제되며 되돌릴 수 없습니다.",
       deleteFailed: "댓글을 삭제하지 못했습니다",
     },
     reaction: {

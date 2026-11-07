@@ -959,6 +959,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Eliminar comentario",
+      deleteTitle: "¿Eliminar este comentario?",
+      deleteDescription: "Se eliminará para todos. No se puede deshacer.",
       deleteFailed: "No se pudo eliminar el comentario",
     },
     reaction: {

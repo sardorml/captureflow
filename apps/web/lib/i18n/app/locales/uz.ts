@@ -955,6 +955,9 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Fikrni oʻchirish",
+      deleteTitle: "Bu izoh o‘chirilsinmi?",
+      deleteDescription:
+        "U hamma uchun o‘chiriladi. Buni ortga qaytarib bo‘lmaydi.",
       deleteFailed: "Fikrni oʻchirib boʻlmadi",
     },
     reaction: {

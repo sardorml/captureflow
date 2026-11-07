@@ -942,6 +942,9 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Xóa bình luận",
+      deleteTitle: "Xóa bình luận này?",
+      deleteDescription:
+        "Bình luận sẽ bị xóa với mọi người. Không thể hoàn tác.",
       deleteFailed: "Không xóa được bình luận",
     },
     reaction: {

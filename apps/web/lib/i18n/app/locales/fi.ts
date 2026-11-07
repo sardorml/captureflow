@@ -954,6 +954,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Poista kommentti",
+      deleteTitle: "Poistetaanko tämä kommentti?",
+      deleteDescription: "Se poistuu kaikilta. Toimintoa ei voi kumota.",
       deleteFailed: "Kommentin poisto ei onnistunut",
     },
     reaction: {

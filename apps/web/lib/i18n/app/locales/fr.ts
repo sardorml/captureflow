@@ -968,6 +968,9 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "Supprimer le commentaire",
+      deleteTitle: "Supprimer ce commentaire ?",
+      deleteDescription:
+        "Il sera supprimé pour tout le monde. Cette action est irréversible.",
       deleteFailed: "Impossible de supprimer le commentaire",
     },
     reaction: {

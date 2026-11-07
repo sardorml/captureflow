@@ -938,6 +938,8 @@ const messages: AppMessages = {
     },
     comment: {
       delete: "コメントを削除",
+      deleteTitle: "このコメントを削除しますか?",
+      deleteDescription: "全員の画面から削除され、元に戻せません。",
       deleteFailed: "コメントを削除できませんでした",
     },
     reaction: {
