@@ -74,13 +74,15 @@ actually serves for `captureflow.dev`: the 180px `apple-touch-icon` beat both th
 Google's own docs. If a site is ever observed to contradict the prediction,
 recalibrate `rank()` rather than trusting it.
 
-## `gen-og-image.py` — rebuild the link preview card
+## `gen-og-image.py` — rebuild the link preview cards
 
-Renders `apps/web/public/og-image.png` (1200x630, drawn at 2x): the hero title
-in white on a dark panel with the logo and the address, and a light blue panel
-with a recording library, the presenter's camera bubble and the recorder's
-controls. It is laid out in HTML on a running copy of the site, so it uses the
-site's fonts, logo and presenter photo. The title and rows are constants at the
+Renders the cards in `apps/web/public/` (1200x630, drawn at 2x). Each puts a
+title in white on a dark panel with the logo and an address, beside a scene on
+a light blue panel: `og-image.png` is the site-wide card (a recording library
+with the presenter's camera bubble and the recorder's controls) and
+`og-swarm-demo.png` the swarm demo page's (a page half rebuilt by agent
+cursors). They are laid out in HTML on a running copy of the site, so they use
+its fonts, logo and presenter photo. Titles and addresses are in `CARDS` at the
 top of the script.
 
 ```bash
@@ -88,9 +90,9 @@ python3 scripts/gen-og-image.py [site-url]   # defaults to http://localhost:3032
 ```
 
 **Requirements:** Google Chrome, `pip install pillow websocket-client`, and a
-running copy of the site. Rerun it whenever the hero title or the logo changes,
-then bump `?v=` on the image in `apps/web/app/layout.tsx` and
-`apps/web/lib/i18n/metadata.ts`.
+running copy of the site. After changing a card, bump its `?v=`: the site-wide
+one in `apps/web/app/layout.tsx` and `apps/web/lib/i18n/metadata.ts`, a page's
+own in `PAGE_IMAGES` in `apps/web/lib/i18n/metadata.ts`.
 
 ## `gen-readme-hero.py` — rebuild the README banner
 
