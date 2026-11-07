@@ -3,6 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import { chromium, type Browser } from "playwright";
 import {
   decodeAudio,
+  deviceScaleArg,
   SessionError,
   startSession,
   type Action,
@@ -10,6 +11,7 @@ import {
   type StartRequest,
   type UploadCredentials,
 } from "@captureflow/agent-recorder";
+import { runDemo } from "./demo";
 
 const PORT = Number(process.env.PORT ?? 8080);
 const SECRET = process.env.RECORDER_SECRET ?? "";
@@ -19,12 +21,15 @@ const sessions = new Map<string, Session>();
 let browser: Promise<Browser> | null = null;
 
 function getBrowser(): Promise<Browser> {
+  // The full build, not the headless shell: the shell has no H.264, and a page's videos are blank in it.
   browser ??= chromium
     .launch({
+      channel: "chromium",
       headless: true,
       args: [
         "--disable-dev-shm-usage",
         "--autoplay-policy=no-user-gesture-required",
+        deviceScaleArg(),
       ],
     })
     .then((launched) => {
@@ -99,6 +104,17 @@ async function route(
     });
     await session(id).play(pcm);
     return { ok: true, elapsedSeconds: session(id).elapsedSeconds };
+  }
+  if (method === "POST" && verb === "demo") {
+    const { url } = (await body()) as { url?: unknown };
+    if (typeof url !== "string" || !url) {
+      throw new SessionError("Give the url of the page to rebuild.");
+    }
+    try {
+      return await runDemo(session(id), url);
+    } finally {
+      sessions.delete(id);
+    }
   }
   if (method === "POST" && verb === "stop") {
     const result = await session(id).stop();

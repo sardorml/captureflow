@@ -58,6 +58,9 @@ export const CURSOR_SCRIPT = `(() => {
       clearTimeout(clickTimer);
       show(pinned, label);
     };
+    window.__cfCursorHidden = (hidden) => {
+      host.style.opacity = hidden ? "0" : "1";
+    };
     addEventListener("mousemove", (e) => {
       at = { x: e.clientX, y: e.clientY };
       place();

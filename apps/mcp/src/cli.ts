@@ -23,7 +23,9 @@ Environment:
   CAPTUREFLOW_TTS        kokoro (default), system, or openai
   CAPTUREFLOW_TTS_URL    An OpenAI-compatible speech server, e.g. http://localhost:8880/v1
   CAPTUREFLOW_TTS_MODEL  CAPTUREFLOW_TTS_KEY  CAPTUREFLOW_TTS_VOICE
-  CAPTUREFLOW_VIEWPORT   Browser size, default 1920x1080
+  CAPTUREFLOW_VIEWPORT   Video size, default 1920x1080
+  CAPTUREFLOW_ZOOM       How much larger the page is drawn, 1 to 3, default 1.3
+  CAPTUREFLOW_MUSIC      A music file played under website rebuilds
   CAPTUREFLOW_FFMPEG     Path to ffmpeg, if it isn't on PATH`;
 
 async function main() {

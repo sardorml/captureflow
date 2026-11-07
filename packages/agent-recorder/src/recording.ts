@@ -7,8 +7,9 @@ import {
   startRecordingUpload,
   type RecordingUpload,
 } from "@captureflow/engine/media";
-import type { BrowserContext, Page } from "playwright";
+import type { Browser, BrowserContext, Page } from "playwright";
 import { fitBitrate, nearBudget } from "./budget";
+import { jpegSize } from "./jpeg";
 import {
   pageFeed,
   startCapture,
@@ -46,7 +47,7 @@ export type OpenRecordingOptions = {
   idleMs: number | null;
   output: RecordingOutput;
   feed: FrameFeed;
-  slides: BrowserContext;
+  slides: () => Promise<Page>;
   pauseBetweenActions: boolean;
   bitrate: number;
   leadInMs?: number;
@@ -67,9 +68,86 @@ const STOP_REASONS = {
   size: "it reached its plan's size limit",
 };
 const SETTLE_MS = 600;
+const LENGTH_CHECK_MS = 250;
 const SLIDE_HOLD_MS = 300;
+const FONTS_WAIT_MS = 8_000;
+const MUSIC_FADE_MS = 1_200;
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/*
+ * Slides get a window of their own. Headless Chrome with a window frame
+ * stops repainting a tab once another tab opens beside it, so screenshots
+ * of the page would go stale after the first slide; a second window keeps
+ * both pages live.
+ */
+export function slideWindow(
+  browser: Browser,
+  width: number,
+  height: number,
+): () => Promise<Page> {
+  return async () => {
+    const context = await browser.newContext({
+      viewport: { width, height },
+      deviceScaleFactor: 1,
+      colorScheme: "light",
+      locale: "en-US",
+    });
+    return context.newPage();
+  };
+}
+
+/*
+ * That window frame also leaves the page short of the viewport it reports,
+ * so every frame of it would be stretched to fit. The window is grown by
+ * what the picture is missing; a browser without a frame is left alone.
+ */
+export async function fitWindow(
+  context: BrowserContext,
+  width: number,
+  height: number,
+) {
+  let short = { width: 0, height: 0 };
+  for (const page of context.pages()) {
+    const cdp = await context.newCDPSession(page).catch(() => null);
+    if (!cdp) continue;
+    try {
+      const { data } = await cdp.send("Page.captureScreenshot", {
+        format: "jpeg",
+        quality: 30,
+        optimizeForSpeed: true,
+      });
+      const size = jpegSize(Buffer.from(data, "base64"));
+      if (!size) continue;
+      // The picture is in the window's own pixels, which the page's width gives the scale of; the frame only ever takes height.
+      const scale = size.width / width;
+      short = {
+        width: Math.max(short.width, width - Math.round(size.width / scale)),
+        height: Math.max(
+          short.height,
+          height - Math.round(size.height / scale),
+        ),
+      };
+      if (short.width || short.height) {
+        const { windowId, bounds } = await cdp.send(
+          "Browser.getWindowForTarget",
+        );
+        await cdp.send("Browser.setWindowBounds", {
+          windowId,
+          bounds: {
+            width: (bounds.width ?? width) + short.width,
+            height: (bounds.height ?? height) + short.height,
+          },
+        });
+        return;
+      }
+    } catch {
+      return;
+    } finally {
+      await cdp.detach().catch(() => {});
+    }
+  }
+}
 
 type Sink = {
   slug: string | null;
@@ -215,23 +293,44 @@ export async function openRecording(opts: OpenRecordingOptions) {
   let ended: Promise<{ url: string; durationSeconds: number }> | null = null;
   let endedBy: EndReason | null = null;
   let idleTimer: NodeJS.Timeout | null = null;
-  const lengthTimer = setTimeout(() => void finish("length"), maxDurationMs);
+  // The cap is on recorded time: motion drawn a frame at a time can run slower than the clock.
+  const lengthTimer = setInterval(() => {
+    if (capture.durationMs >= maxDurationMs) void finish("length");
+  }, LENGTH_CHECK_MS);
+  // Idle is time with nothing running: a long action drawn frame by frame is not it.
   const touch = () => {
     if (opts.idleMs === null) return;
     if (idleTimer) clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => void finish("idle"), opts.idleMs);
+    idleTimer = setTimeout(
+      () => (busy > 0 ? touch() : void finish("idle")),
+      opts.idleMs,
+    );
   };
   touch();
+
+  async function close() {
+    await slidePage
+      ?.context()
+      .close()
+      .catch(() => {});
+    await opts.close().catch(() => {});
+  }
 
   function finish(by: EndReason) {
     ended ??= (async () => {
       endedBy = by;
-      clearTimeout(lengthTimer);
+      clearInterval(lengthTimer);
       if (idleTimer) clearTimeout(idleTimer);
+      if (capture.hasMusic) {
+        await recorded(async () => {
+          capture.fadeMusic(MUSIC_FADE_MS);
+          await sleep(MUSIC_FADE_MS);
+        });
+      }
       await capture.stop();
       const durationMs = capture.durationMs;
       const url = await sink.finish(capture, narrated);
-      await opts.close().catch(() => {});
+      await close();
       return { url, durationSeconds: Math.round(durationMs / 1000) };
     })();
     return ended;
@@ -281,21 +380,26 @@ export async function openRecording(opts: OpenRecordingOptions) {
      */
     async showSlide(slide: Slide) {
       const page = (slidePage ??= await (async () => {
-        const p = await opts.slides.newPage();
+        const p = await opts.slides();
         await p.setContent(slideShell(), {
           waitUntil: "load",
           timeout: 15_000,
         });
-        await p.evaluate(() => document.fonts.ready).catch(() => {});
+        // A slide is short, so its text can't wait for a font that arrives mid-way.
+        await Promise.race([
+          p.evaluate("window.__cfFontsReady()").catch(() => {}),
+          sleep(FONTS_WAIT_MS),
+        ]);
+        await fitWindow(p.context(), width, height);
         return p;
       })());
       const { html, entrance } = slideLayer(slide);
       const settleMs = (await page.evaluate(
-        `window.__cfEnter(${JSON.stringify(html)}, ${JSON.stringify(entrance)})`,
+        `window.__cfEnter(${JSON.stringify(html)}, ${JSON.stringify(entrance)}, ${!onSlide})`,
       )) as number;
       await page.evaluate("window.__cfImagesReady()").catch(() => {});
       await recorded(async () => {
-        const cdp = await opts.slides.newCDPSession(page);
+        const cdp = await page.context().newCDPSession(page);
         // Paused before the cut, so the wait for the slide page's first frame isn't recorded.
         capture.pause();
         if (!onSlide) {
@@ -334,13 +438,15 @@ export async function openRecording(opts: OpenRecordingOptions) {
         await sleep(SETTLE_MS);
       });
     },
+    // A bed under everything from here on; it only moves while something is being recorded.
+    music: (pcm: Int16Array) => capture.music(pcm),
     stop: () => finish("agent"),
     async cancel() {
       clearTimeout(lengthTimer);
       if (idleTimer) clearTimeout(idleTimer);
       await capture.stop().catch(() => {});
       sink.abort();
-      await opts.close().catch(() => {});
+      await close();
     },
   };
 }

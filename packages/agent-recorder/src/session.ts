@@ -3,14 +3,31 @@ import { pageFeed } from "./capture";
 import { CURSOR_SCRIPT, type CursorState } from "./cursor";
 import { FPS } from "./pacing";
 import { isAllowedUrl } from "./guard";
+import { renderMusic } from "./music";
 import { PAGE_AUDIO_BINDING, PAGE_AUDIO_SCRIPT } from "./page-audio";
+import { layerSounds, typingSound, type SoundLayer } from "./sound";
 import {
+  fitWindow,
   openRecording,
   SessionError,
   sleep,
+  slideWindow,
   type RecordingOutput,
 } from "./recording";
 import type { Slide } from "./slide";
+import {
+  mountSwarm,
+  CONSENT_SELECTOR,
+  planSwarm,
+  scanSwarmUnits,
+  seekSwarm,
+  settlePage,
+  SWARM_LIMITS,
+  swarmSeconds,
+  unmountSwarm,
+  type SwarmUnit,
+} from "./swarm";
+import { looksLikeWall } from "./wall";
 
 // Without a url the recording is a presentation: slides and narration on a blank stage.
 export type StartRequest = {
@@ -20,6 +37,9 @@ export type StartRequest = {
   workspaceId?: string;
   width?: number;
   height?: number;
+  zoom?: number;
+  // "high": motion is drawn at the video's own pixel size and given twice the bitrate; slower to make.
+  quality?: "standard" | "high";
   maxDurationMs: number;
   idleMs: number;
   output: RecordingOutput;
@@ -42,9 +62,35 @@ export type Action =
   | { type: "show_slide"; slide: Slide }
   | { type: "hide_slide" };
 
+export type RebuildRequest = {
+  url?: string;
+  agents?: number;
+  seconds?: number;
+  maxSeconds?: number;
+  screens?: number;
+  prompt?: string;
+  music?: string | null;
+};
+
+// Pages are drawn a little larger than life, so text reads at video size.
+export const DEFAULT_ZOOM = 1.3;
+/*
+ * A launch flag for the browser: a headless window's surface is at one
+ * device pixel per CSS pixel whatever the context emulates, so its frames
+ * come out page-sized and get scaled up. At the zoom, frames come out
+ * video-sized, and a plain screenshot is several times quicker than one
+ * clipped and scaled to that size.
+ */
+export function deviceScaleArg(zoom = DEFAULT_ZOOM): string {
+  return `--force-device-scale-factor=${zoom}`;
+}
 const BITRATE = 4_000_000;
 const TYPE_DELAY_MS = 45;
 const SETTLE_MS = 600;
+const REVEAL_MS = 400;
+const LOAD_MS = 30_000;
+// A page with fewer units than this is checked for being a block page.
+const WALL_UNITS = 12;
 const OUTLINE_CHARS = 6000;
 const FRAME_MS = 16;
 const MOUSE_MS = { min: 450, max: 900, perPx: 0.8 };
@@ -57,6 +103,9 @@ type Point = { x: number; y: number };
 
 const easeInOut = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const linear = (t: number) => t;
+const within = (v: number, lim: { min: number; max: number }) =>
+  Math.min(lim.max, Math.max(lim.min, v));
 
 const KEY_NAMES: Record<string, string> = {
   Enter: "Enter",
@@ -135,11 +184,14 @@ export async function startSession(
   if (req.url && !(await allowUrl(req.url))) {
     throw new SessionError("That address can't be opened in the recorder.");
   }
-  const width = req.width ?? 1920;
-  const height = req.height ?? 1080;
+  // The video keeps the asked size; the page is laid out smaller by the zoom and drawn larger.
+  const frame = { width: req.width ?? 1920, height: req.height ?? 1080 };
+  const zoom = req.zoom ?? DEFAULT_ZOOM;
+  const width = Math.round(frame.width / zoom);
+  const height = Math.round(frame.height / zoom);
   const context: BrowserContext = await browser.newContext({
     viewport: { width, height },
-    deviceScaleFactor: 1,
+    deviceScaleFactor: zoom,
     colorScheme: "light",
     locale: "en-US",
   });
@@ -158,9 +210,21 @@ export async function startSession(
   const page: Page = await context.newPage();
   let mouse = { x: width / 2, y: height / 2 };
 
+  // A page that never finishes loading its extras is still there to show once its document is.
+  async function open(url: string) {
+    try {
+      await page.goto(url, { waitUntil: "load", timeout: LOAD_MS });
+    } catch (err) {
+      const parsed = await page
+        .evaluate(() => document.readyState !== "loading" && !!document.body)
+        .catch(() => false);
+      if (!parsed) throw err;
+    }
+  }
+
   if (req.url) {
     try {
-      await page.goto(req.url, { waitUntil: "load", timeout: 30_000 });
+      await open(req.url);
     } catch (err) {
       await context.close();
       throw new SessionError(`The page didn't load: ${(err as Error).message}`);
@@ -169,6 +233,7 @@ export async function startSession(
   } else {
     await page.setContent(STAGE_HTML);
   }
+  await fitWindow(context, width, height);
   await sleep(SETTLE_MS);
 
   const pageTitle = req.url ? await page.title() : "";
@@ -176,15 +241,15 @@ export async function startSession(
     title: req.title || pageTitle || undefined,
     visibility: req.visibility,
     workspaceId: req.workspaceId,
-    width,
-    height,
+    width: frame.width,
+    height: frame.height,
     maxDurationMs: req.maxDurationMs,
     idleMs: req.idleMs,
     output: req.output,
-    feed: pageFeed(page, width, height),
-    slides: context,
+    feed: pageFeed(page, frame.width, frame.height),
+    slides: slideWindow(browser, frame.width, frame.height),
     pauseBetweenActions: true,
-    bitrate: BITRATE,
+    bitrate: req.quality === "high" ? BITRATE * 2 : BITRATE,
     leadInMs: req.url ? undefined : 0,
     ffmpegPath: opts.ffmpegPath,
     close: () => context.close(),
@@ -212,22 +277,26 @@ export async function startSession(
   async function animate(
     durationMs: number,
     draw: (t: number) => Promise<void>,
+    ease = easeInOut,
   ) {
     const frames = Math.max(1, Math.round((durationMs / 1000) * FPS));
     if (rec.onSlide) return draw(1);
     const cdp = await context.newCDPSession(page);
+    const shot =
+      req.quality === "high"
+        ? { format: "jpeg" as const, quality: 90 }
+        : { format: "jpeg" as const, quality: 85, optimizeForSpeed: true };
     rec.capture.pause();
+    // The feed's own frames are not wanted while frames are stepped in.
+    await rec.capture.holdFeed();
     try {
       for (let i = 1; i <= frames; i++) {
-        await draw(easeInOut(i / frames));
-        const { data } = await cdp.send("Page.captureScreenshot", {
-          format: "jpeg",
-          quality: 85,
-          optimizeForSpeed: true,
-        });
+        await draw(ease(i / frames));
+        const { data } = await cdp.send("Page.captureScreenshot", shot);
         rec.capture.step(Buffer.from(data, "base64"));
       }
     } finally {
+      await rec.capture.releaseFeed();
       rec.capture.resume();
       await cdp.detach().catch(() => {});
     }
@@ -270,6 +339,153 @@ export async function startSession(
       .catch(() => {});
   }
 
+  function cursorHidden(hidden: boolean) {
+    return page
+      .evaluate(`window.__cfCursorHidden && window.__cfCursorHidden(${hidden})`)
+      .catch(() => {});
+  }
+
+  /*
+   * The page is scrolled through and scanned off camera, then the build is
+   * drawn a frame at a time; the recorder's own pointer stays out of it.
+   */
+  async function rebuild(req: RebuildRequest) {
+    rec.live();
+    if (req.url) {
+      if (!(await allowUrl(req.url))) {
+        throw new SessionError("That address can't be opened in the recorder.");
+      }
+      await open(req.url);
+    } else if (!/^https?:/.test(page.url())) {
+      throw new SessionError(
+        "Give a url: this recording has no page open yet.",
+      );
+    }
+    const maxY =
+      height *
+      within(req.screens ?? SWARM_LIMITS.screens, {
+        min: 1,
+        max: SWARM_LIMITS.screens,
+      });
+    await page.evaluate(settlePage, {
+      step: height,
+      maxY,
+      hide: CONSENT_SELECTOR,
+    });
+    await page.evaluate(() => document.fonts.ready).catch(() => {});
+    /*
+     * Scanned a screen at a time, from where a viewer would see it, so what
+     * fades in on arrival is caught too. The screen past the build is scanned
+     * as well: hidden, never built, so nothing unbuilt shows when the camera
+     * reaches the bottom.
+     */
+    const scanY = maxY + height;
+    let units: SwarmUnit[] = [];
+    const scanScreens = async () => {
+      for (let top = 0; top <= scanY; top += height) {
+        await page.evaluate(
+          (y) => window.scrollTo({ top: y, behavior: "instant" }),
+          top,
+        );
+        await sleep(REVEAL_MS);
+        units = await page.evaluate(scanSwarmUnits, {
+          maxUnits: SWARM_LIMITS.maxUnits,
+          maxY: scanY,
+          hide: CONSENT_SELECTOR,
+        });
+      }
+    };
+    // A page still fetching parts of itself while it is scanned gets a second pass.
+    const grew = await page.evaluateHandle(() => {
+      const grown = { value: false };
+      new MutationObserver(() => (grown.value = true)).observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+      return grown;
+    });
+    await scanScreens();
+    if (await grew.evaluate((g) => g.value)) await scanScreens();
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await sleep(SETTLE_MS);
+    const built = units.filter((u) => u.y <= maxY);
+    if (built.length < WALL_UNITS) {
+      const [title, text] = await Promise.all([
+        page.title().catch(() => ""),
+        page.evaluate(() => document.body?.innerText ?? "").catch(() => ""),
+      ]);
+      if (looksLikeWall(title, text)) {
+        throw new SessionError(
+          "That site shows a bot check or a block page to automated browsers, so there's nothing to rebuild.",
+        );
+      }
+    }
+    if (!built.length) {
+      throw new SessionError("There's nothing on that page to rebuild.");
+    }
+    const screens =
+      Math.max(0, ...built.map((u) => u.y + u.h)) / Math.max(1, height);
+    const seconds =
+      req.seconds ??
+      Math.min(swarmSeconds(built.length, screens), req.maxSeconds ?? Infinity);
+    const durationMs = within(seconds, SWARM_LIMITS.seconds) * 1000;
+    const seed = Date.now() % 1_000_000;
+    const plan = planSwarm(units, {
+      agents: Math.round(
+        within(req.agents ?? SWARM_LIMITS.agents.default, SWARM_LIMITS.agents),
+      ),
+      durationMs,
+      seed,
+      prompt:
+        req.prompt === undefined
+          ? `Rebuild ${new URL(page.url()).host}`
+          : req.prompt.trim().slice(0, 120),
+      tempo: Boolean(req.music),
+      maxY,
+      screen: height,
+    });
+    await page.evaluate(mountSwarm, { units, plan, hide: CONSENT_SELECTOR });
+    await cursorHidden(true);
+    // The keys are heard as the prompt is typed; the music starts on send, shares the build's tempo and is gone when the build is.
+    const sounds: SoundLayer[] = [];
+    if (plan.prompt) {
+      sounds.push({ pcm: typingSound(plan.prompt, seed), atMs: 0 });
+    }
+    if (req.music && plan.tempo) {
+      const atMs = plan.prompt?.sendAt ?? 0;
+      const pcm = await renderMusic(
+        req.music,
+        {
+          rampFromMs: plan.tempo.rampFromMs - atMs,
+          rampToMs: plan.tempo.rampToMs - atMs,
+          lengthMs: plan.durationMs - atMs,
+        },
+        opts.ffmpegPath,
+      ).catch((err) => {
+        throw new SessionError(
+          `The music couldn't be prepared: ${(err as Error).message}`,
+        );
+      });
+      sounds.push({ pcm, atMs });
+    }
+    if (sounds.length) rec.music(layerSounds(sounds));
+    rec.mark(`Rebuilding ${new URL(page.url()).host}`);
+    try {
+      await rec.recorded(() =>
+        animate(
+          plan.durationMs,
+          (t) => page.evaluate(seekSwarm, t * plan.durationMs),
+          linear,
+        ),
+      );
+    } finally {
+      await page.evaluate(unmountSwarm).catch(() => {});
+      await cursorHidden(false);
+    }
+    await rec.recorded(() => sleep(SETTLE_MS));
+    return { elements: built.length, agents: plan.agents };
+  }
+
   async function act(action: Action) {
     rec.live();
     if (action.type === "show_slide") {
@@ -277,7 +493,9 @@ export async function startSession(
       return rec.showSlide(action.slide);
     }
     if (action.type === "hide_slide") {
-      return rec.recorded(() => rec.hideSlide(pageFeed(page, width, height)));
+      return rec.recorded(() =>
+        rec.hideSlide(pageFeed(page, frame.width, frame.height)),
+      );
     }
     // Acting on the page under a slide sets up what the viewer sees once it's hidden; a wait holds the slide.
     const behind = rec.onSlide && action.type !== "wait";
@@ -346,7 +564,7 @@ export async function startSession(
             "That address can't be opened in the recorder.",
           );
         }
-        await page.goto(action.url, { waitUntil: "load", timeout: 30_000 });
+        await open(action.url);
         await page.mouse.move(mouse.x, mouse.y);
         if (!rec.onSlide) {
           rec.mark((await page.title()) || action.url);
@@ -394,6 +612,7 @@ export async function startSession(
       };
     },
     act,
+    rebuild,
     async play(pcm: Int16Array) {
       rec.live();
       await rec.play(pcm);

@@ -48,12 +48,15 @@ export function createPacer(startMs: number) {
 const MAX_LIVE_BACKLOG = Math.round(SAMPLE_RATE * 0.5) * CHANNELS;
 // It arrives in bursts; holding this much back first rides out the gaps between them.
 const LIVE_PREBUFFER = Math.round(SAMPLE_RATE * 0.2) * CHANNELS;
+const MUSIC_DUCK = 0.3;
+const DUCK_STEP = 1 / (SAMPLE_RATE * 0.12);
 
 /*
  * Interleaved 16-bit stereo for the recording's audio track: queued clips
- * (the narration) are played in order over the page's live sound, and
- * silence fills the rest. A clip's promise resolves once its last sample
- * has gone out.
+ * (the narration) are played in order over the page's live sound and a
+ * music bed, and silence fills the rest. A clip's promise resolves once its
+ * last sample has gone out. The music drops under a clip and comes back
+ * after it, and can be faded out before the recording stops.
  */
 export function createAudioMixer() {
   type Clip = { pcm: Int16Array; at: number; done: () => void };
@@ -61,6 +64,27 @@ export function createAudioMixer() {
   let live: Int16Array[] = [];
   let liveLength = 0;
   let primed = false;
+  let bed: { pcm: Int16Array; at: number } | null = null;
+  let duck = 1;
+  let fadeLeft = -1;
+  let fadeTotal = 1;
+  function mixBed(out: Int16Array, underClip: boolean) {
+    if (!bed) return;
+    const target = underClip ? MUSIC_DUCK : 1;
+    for (let i = 0; i < out.length && bed.at < bed.pcm.length; i++, bed.at++) {
+      duck += (target - duck) * DUCK_STEP;
+      let gain = duck;
+      if (fadeLeft >= 0) {
+        gain *= fadeLeft / fadeTotal;
+        if (i % CHANNELS === CHANNELS - 1 && fadeLeft > 0) fadeLeft--;
+      }
+      out[i] = Math.max(
+        -32768,
+        Math.min(32767, out[i]! + Math.round(bed.pcm[bed.at]! * gain)),
+      );
+    }
+    if (bed.at >= bed.pcm.length) bed = null;
+  }
   function takeLive(out: Int16Array) {
     if (!primed && liveLength < LIVE_PREBUFFER) return;
     primed = liveLength > 0;
@@ -111,11 +135,24 @@ export function createAudioMixer() {
           clip.done();
         }
       }
+      const underClip = queue.length > 0 || filled > 0;
       takeLive(out);
+      mixBed(out, underClip);
       return Buffer.from(out.buffer, out.byteOffset, out.byteLength);
+    },
+    music(pcm: Int16Array) {
+      bed = { pcm, at: 0 };
+      fadeLeft = -1;
+    },
+    fadeMusic(samples: number) {
+      fadeTotal = Math.max(1, samples);
+      fadeLeft = fadeTotal;
     },
     get playing() {
       return queue.length > 0;
+    },
+    get hasMusic() {
+      return bed !== null;
     },
   };
 }

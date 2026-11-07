@@ -44,14 +44,16 @@ Talk to your agent the way you'd ask a teammate:
 - "Record a demo of the new signup flow on localhost:3000, with a voiceover."
 - "Run the test suite and record the terminal while it runs."
 - "Record a walkthrough of the settings page, then write a short report on what changed."
+- "Make a clip of example.com being rebuilt by a swarm of agents, with a title slide."
 
 ## What it can record
 
-| What                               | How the agent records it                                                                                                                                                                  |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **A web app**, including localhost | Runs a hidden browser in the background and drives it: clicks, typing, scrolling, navigating. You keep using your computer. Only the actions are recorded, not the agent's thinking time. |
-| **Your screen**                    | Records a whole display as it is, while the agent works with its own tools.                                                                                                               |
-| **One app's window**               | Records just that window, like Terminal, VS Code or Figma, on a dark backdrop.                                                                                                            |
+| What                               | How the agent records it                                                                                                                                                                   |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **A web app**, including localhost | Runs a hidden browser in the background and drives it: clicks, typing, scrolling, navigating. You keep using your computer. Only the actions are recorded, not the agent's thinking time.  |
+| **Your screen**                    | Records a whole display as it is, while the agent works with its own tools.                                                                                                                |
+| **One app's window**               | Records just that window, like Terminal, VS Code or Figma, on a dark backdrop.                                                                                                             |
+| **A website being rebuilt**        | Opens the page, hides everything on it, then a swarm of agent cursors types, drags and traces each heading, picture and button back into place on a design canvas until the page is whole. |
 
 The agent can cut to a full-screen slide (a title, a list of steps, a closing
 line) between scenes. Every slide and page becomes a chapter viewers can jump
@@ -110,7 +112,9 @@ to sign in.
 | ---------------------- | ------------------------------------------------------------------- |
 | `--show-browser`       | Show the browser window while recording (hidden by default).        |
 | `--save-dir <folder>`  | Save MP4 files instead of uploading.                                |
-| `CAPTUREFLOW_VIEWPORT` | The browser's size, `1920x1080` by default.                         |
+| `CAPTUREFLOW_VIEWPORT` | The video's size, `1920x1080` by default.                           |
+| `CAPTUREFLOW_ZOOM`     | How much larger the page is drawn, `1` to `3`, `1.3` by default.    |
+| `CAPTUREFLOW_MUSIC`    | A music file played under website rebuilds, speeding up with them.  |
 | `CAPTUREFLOW_FFMPEG`   | Path to ffmpeg. Otherwise the one on your PATH, or a bundled build. |
 
 ## Limits

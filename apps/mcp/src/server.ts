@@ -13,8 +13,10 @@ import {
 import { chromium, type Browser } from "playwright";
 import { z } from "zod";
 import {
+  deviceScaleArg,
   SessionError,
   startSession,
+  SWARM_LIMITS,
   type Action,
   type Chapter,
   type RecordingOutput,
@@ -64,6 +66,7 @@ Pick what to record:
 - A web app, including one on localhost: start_recording with its URL. You drive it with click, type, scroll and navigate.
 - Anything else on the computer (a terminal, a desktop app, the whole screen): list_screens, then start_screen_recording. It films what happens; do the work with your own tools while it runs.
 - A presentation, how-to or walkthrough made of slides alone (screenshots the user gave you, code, steps): start_presentation, then show_slide for each slide.
+- A website being built by a swarm of agents, for a demo or a teaser: start_presentation, then rebuild_website with the URL: the clip opens on the request being typed into a chat box and, with CAPTUREFLOW_MUSIC set, the music the agents build to. An end card after makes it a clip.
 
 When you record:
 - The user's words always win. "No slides", "only an intro" or "no voice" override everything below.
@@ -228,11 +231,13 @@ export function createLocalServer(settings: Settings) {
 
   async function launch(headless: boolean): Promise<Browser> {
     const args = ["--autoplay-policy=no-user-gesture-required"];
+    // A window on screen keeps the display's own scale.
+    if (headless) args.push(deviceScaleArg(settings.zoom));
     try {
       return await chromium.launch({ channel: "chrome", headless, args });
     } catch {
       try {
-        return await chromium.launch({ headless, args });
+        return await chromium.launch({ channel: "chromium", headless, args });
       } catch {
         throw new ToolError(
           "Couldn't start a browser. Install Google Chrome, or run `npx playwright install chromium` once.",
@@ -306,6 +311,7 @@ export function createLocalServer(settings: Settings) {
               workspaceId: workspace_id,
               width: settings.viewport.width,
               height: settings.viewport.height,
+              zoom: settings.zoom,
               maxDurationMs: MAX_RECORDING_MS,
               idleMs: IDLE_MS,
               output: out,
@@ -726,6 +732,77 @@ export function createLocalServer(settings: Settings) {
       "Cuts back from the slide to what's being recorded.",
       { recording_id: recordingId },
       ({ recording_id }) => act(recording_id, { type: "hide_slide" }),
+    ),
+    tool(
+      "rebuild_website",
+      "Rebuild a website with a swarm of agents",
+      "Plays the page being built from nothing by a swarm of coloured agent cursors on a design canvas: they type every heading and paragraph, drag out every picture and trace every button, with rulers and guides, until the real page stands complete and the canvas clears. " +
+        "Needs a recording from start_recording (leave url out to rebuild the page already open) or start_presentation. Narrate over it if asked; hide any slide first, or it plays unseen. " +
+        "Returns once the build has played and the finished page has been seen for a moment, so the next slide can follow right away: 12 to 40 seconds by default, depending on how much is on the page.",
+      {
+        recording_id: recordingId,
+        url: z
+          .string()
+          .url()
+          .max(2000)
+          .optional()
+          .describe(
+            "The page to rebuild. Defaults to the page the recording has open.",
+          ),
+        agents: z
+          .number()
+          .int()
+          .min(SWARM_LIMITS.agents.min)
+          .max(SWARM_LIMITS.agents.max)
+          .optional()
+          .describe(
+            `How many cursors work on it. Defaults to ${SWARM_LIMITS.agents.default}.`,
+          ),
+        seconds: z
+          .number()
+          .min(SWARM_LIMITS.seconds.min)
+          .max(SWARM_LIMITS.seconds.max)
+          .optional()
+          .describe(
+            `How long the build takes on screen, ${SWARM_LIMITS.seconds.min} to ${SWARM_LIMITS.seconds.max}. Leave it out to fit the page.`,
+          ),
+        prompt: z
+          .string()
+          .trim()
+          .max(120)
+          .optional()
+          .describe(
+            'The request typed into a chat box on the empty canvas before the agents set out; the keys are heard. Leave it out for "Rebuild <host>", or pass an empty string to begin with the agents.',
+          ),
+        music: z
+          .string()
+          .max(1000)
+          .optional()
+          .describe(
+            'Path to a music file on this computer to play under the build. It starts when the prompt is sent, at its own speed, and the agents work to its beat: both rise smoothly to four times the speed by the time four fifths of the page stands, hold there, and the music fades out as the build ends, before whatever comes next. Narration ducks it. Leave it out for the file set with CAPTUREFLOW_MUSIC; "none" builds in silence.',
+          ),
+      },
+      async ({ recording_id, url, agents, seconds, prompt, music }) => {
+        const entry = get(recording_id);
+        if (entry.kind !== "browser") {
+          throw new ToolError(
+            "rebuild_website needs a browser recording: start one with start_recording or start_presentation.",
+          );
+        }
+        const built = await entry.session.rebuild({
+          url,
+          agents,
+          seconds,
+          prompt,
+          music: music === "none" ? undefined : (music ?? settings.music),
+        });
+        return json({
+          ok: true,
+          elements: built.elements,
+          agents: built.agents,
+          elapsedSeconds: entry.session.elapsedSeconds,
+        });
+      },
     ),
     tool(
       "narrate",

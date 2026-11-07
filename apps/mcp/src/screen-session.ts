@@ -2,6 +2,7 @@ import type { Browser } from "playwright";
 import {
   openRecording,
   SessionError,
+  slideWindow,
   type Action,
   type RecordingOutput,
 } from "@captureflow/agent-recorder";
@@ -40,12 +41,6 @@ export async function startScreenSession(
     req.ffmpeg,
     grabArgs(process.platform, req.target, width, height, ctx),
   );
-  const slides = await slidesBrowser.newContext({
-    viewport: { width, height },
-    deviceScaleFactor: 1,
-    colorScheme: "light",
-    locale: "en-US",
-  });
   const rec = await openRecording({
     title: req.title || req.label,
     visibility: req.visibility,
@@ -56,14 +51,11 @@ export async function startScreenSession(
     idleMs: null,
     output: req.output,
     feed,
-    slides,
+    slides: slideWindow(slidesBrowser, width, height),
     pauseBetweenActions: false,
     bitrate: BITRATE,
     ffmpegPath: req.ffmpeg,
-    close: () => slides.close(),
-  }).catch(async (err) => {
-    await slides.close().catch(() => {});
-    throw err;
+    close: async () => {},
   });
   rec.mark(req.label);
 

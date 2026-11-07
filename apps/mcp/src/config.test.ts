@@ -8,7 +8,23 @@ describe("readSettings", () => {
     expect(s.headless).toBe(true);
     expect(s.saveDir).toBeNull();
     expect(s.viewport).toEqual({ width: 1920, height: 1080 });
+    expect(s.zoom).toBe(1.3);
     expect(s.tts.provider).toBe("kokoro");
+  });
+
+  it("takes a music file for rebuilds from the environment", () => {
+    expect(readSettings([], {}).music).toBeNull();
+    expect(readSettings([], { CAPTUREFLOW_MUSIC: "" }).music).toBeNull();
+    expect(readSettings([], { CAPTUREFLOW_MUSIC: "/m/a.mp3" }).music).toBe(
+      "/m/a.mp3",
+    );
+  });
+
+  it("reads a zoom and ignores one out of range", () => {
+    expect(readSettings([], { CAPTUREFLOW_ZOOM: "1.5" }).zoom).toBe(1.5);
+    expect(readSettings([], { CAPTUREFLOW_ZOOM: "1" }).zoom).toBe(1);
+    expect(readSettings([], { CAPTUREFLOW_ZOOM: "0.5" }).zoom).toBe(1.3);
+    expect(readSettings([], { CAPTUREFLOW_ZOOM: "big" }).zoom).toBe(1.3);
   });
 
   it("lets flags win over the environment", () => {

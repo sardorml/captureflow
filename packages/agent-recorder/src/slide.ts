@@ -543,9 +543,10 @@ const ENTER_SCRIPT = `
     }
     return n;
   }
-  window.__cfEnter = (html, kind) => {
+  // After a cut from the page the deck starts empty, so no earlier slide shows through.
+  window.__cfEnter = (html, kind, fresh) => {
     const d = deck();
-    const old = d.querySelector('.s');
+    const old = fresh ? null : d.querySelector('.s');
     for (const el of d.querySelectorAll('.s, .flash')) if (el !== old) el.remove();
     const tpl = document.createElement('template');
     tpl.innerHTML = html;
@@ -593,11 +594,17 @@ const ENTER_SCRIPT = `
   window.__cfImagesReady = () => Promise.all(
     [...document.images].map((img) => (img.complete ? null : img.decode().catch(() => {}))),
   );
+  // Fonts only load once text uses them, so every face a slide can use is asked for up front.
+  window.__cfFontsReady = () => Promise.all(
+    ["400", "500", "600", "700"].map((w) => document.fonts.load(w + " 16px 'Hanken Grotesk'"))
+      .concat([document.fonts.load("500 16px Rubik"), document.fonts.load("500 16px 'JetBrains Mono'")])
+      .map((p) => p.catch(() => {})),
+  );
 })();
 `;
 
 const HEAD = `<meta charset="utf-8">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Rubik:wght@500&family=JetBrains+Mono:wght@500&display=block">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Rubik:wght@500&family=JetBrains+Mono:wght@500&display=swap">
 <style>html,body{width:100%;height:100%;overflow:hidden;background:#f4f4f5}${CSS}</style>`;
 
 // The page the recorder keeps for its slides: styles and fonts once, then one layer per slide.
