@@ -58,6 +58,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "Lista zmian",
     login: "Zaloguj się",
+    library: "Moje nagrania",
     download: "Pobierz",
     language: "Język",
     openMenu: "Otwórz menu",
@@ -550,6 +551,8 @@ const messages: Messages = {
       "To jest strona, którą agenci odbudują. Wygeneruj demo, gdy wygląda dobrze.",
     change: "Zmień adres",
     note: "Za darmo do 25 nagrań. Zaloguj się, aby wygenerować. Każde demo zużywa minutę lub dwie minut agenta w chmurze z twojego planu i trafia do twojej biblioteki.",
+    noteSignedIn:
+      "Za darmo do 25 nagrań. Każde demo zużywa minutę lub dwie minut agenta w chmurze z twojego planu i trafia do twojej biblioteki.",
     howHeading: "Jak to działa",
     how: {
       type: {

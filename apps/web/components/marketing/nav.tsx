@@ -23,6 +23,7 @@ import { FRAME_WIDTH } from "./frame";
 import { GitHubIcon } from "./platform-logos";
 import { DEFAULT_THEME, ThemeToggle } from "@captureflow/ui";
 import { useRepoStats } from "./use-repo-stats";
+import { useSignedIn } from "./use-signed-in";
 
 const GITHUB_URL = "https://github.com/sardorml/captureflow";
 
@@ -238,6 +239,10 @@ export function Nav() {
   const { stars } = useRepoStats();
   const m = useMessages();
   const lh = useLocalizedHref();
+  const signedIn = useSignedIn();
+  const account = signedIn
+    ? { href: "/recordings", label: m.nav.library }
+    : { href: lh("/login"), label: m.nav.login };
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -399,8 +404,8 @@ export function Nav() {
                   {stars && <span className="tabular-nums"> ({stars})</span>}
                 </span>
               </a>
-              <NextLink href={lh("/login")} prefetch className={TEXT_LINK}>
-                {m.nav.login}
+              <NextLink href={account.href} prefetch className={TEXT_LINK}>
+                {account.label}
               </NextLink>
               <ThemeToggle
                 initialTheme={DEFAULT_THEME}
@@ -458,12 +463,12 @@ export function Nav() {
               {starLabel}
             </NavLink>
             <NextLink
-              href={lh("/login")}
+              href={account.href}
               prefetch
               onClick={closeMenu}
               className={cn(buttonVariants({ variant: "ghost" }), "w-full")}
             >
-              {m.nav.login}
+              {account.label}
             </NextLink>
             <NextLink
               href={lh("/download")}

@@ -58,6 +58,7 @@ const messages: Messages = {
     faq: "Vanliga frågor",
     changelog: "Ändringslogg",
     login: "Logga in",
+    library: "Mina inspelningar",
     download: "Ladda ner",
     language: "Språk",
     openMenu: "Öppna menyn",
@@ -562,6 +563,8 @@ const messages: Messages = {
       "Det här är sidan som agenterna bygger upp igen. Skapa demon när den ser rätt ut.",
     change: "Ändra adress",
     note: "Gratis upp till 25 inspelningar. Logga in för att skapa. Varje demo tar en minut eller två av din plans agentminuter i molnet och hamnar i ditt bibliotek.",
+    noteSignedIn:
+      "Gratis upp till 25 inspelningar. Varje demo tar en minut eller två av din plans agentminuter i molnet och hamnar i ditt bibliotek.",
     howHeading: "Så fungerar det",
     how: {
       type: {

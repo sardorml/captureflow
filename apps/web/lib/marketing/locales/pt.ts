@@ -58,6 +58,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "Alterações",
     login: "Iniciar sessão",
+    library: "As minhas gravações",
     download: "Transferir",
     language: "Idioma",
     openMenu: "Abrir menu",
@@ -570,6 +571,8 @@ const messages: Messages = {
       "Esta é a página que os agentes vão reconstruir. Gere a demo quando estiver certa.",
     change: "Mudar endereço",
     note: "Grátis até 25 gravações. Inicie sessão para gerar. Cada demo gasta um ou dois minutos de agente na nuvem do seu plano e fica na sua biblioteca.",
+    noteSignedIn:
+      "Grátis até 25 gravações. Cada demo gasta um ou dois minutos de agente na nuvem do seu plano e fica na sua biblioteca.",
     howHeading: "Como funciona",
     how: {
       type: {

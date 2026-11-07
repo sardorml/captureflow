@@ -58,6 +58,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "変更履歴",
     login: "ログイン",
+    library: "マイ録画",
     download: "ダウンロード",
     language: "言語",
     openMenu: "メニューを開く",
@@ -553,6 +554,8 @@ const messages: Messages = {
       "エージェントが再構築するページです。問題なければデモを生成してください。",
     change: "アドレスを変更",
     note: "25件の録画まで無料です。生成にはサインインが必要です。各デモはプランのクラウドエージェント分数を一、二分使い、ライブラリに保存されます。",
+    noteSignedIn:
+      "25件の録画まで無料です。各デモはプランのクラウドエージェント分数を一、二分使い、ライブラリに保存されます。",
     howHeading: "仕組み",
     how: {
       type: {

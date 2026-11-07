@@ -66,6 +66,7 @@ export const MESSAGES = {
     faq: "FAQ",
     changelog: "Changelog",
     login: "Log in",
+    library: "My recordings",
     download: "Download",
     language: "Language",
     openMenu: "Open menu",
@@ -550,6 +551,8 @@ export const MESSAGES = {
       "This is the page the agents will rebuild. Generate the demo when it looks right.",
     change: "Change address",
     note: "Free up to 25 recordings. Sign in to generate. Each demo takes a minute or two of your plan's cloud agent minutes and lands in your library.",
+    noteSignedIn:
+      "Free up to 25 recordings. Each demo takes a minute or two of your plan's cloud agent minutes and lands in your library.",
     howHeading: "How it works",
     how: {
       type: {

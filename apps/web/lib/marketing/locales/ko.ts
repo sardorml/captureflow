@@ -58,6 +58,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "변경 내역",
     login: "로그인",
+    library: "내 녹화",
     download: "다운로드",
     language: "언어",
     openMenu: "메뉴 열기",
@@ -539,6 +540,8 @@ const messages: Messages = {
     previewNote: "에이전트가 다시 만들 페이지입니다. 맞으면 데모를 생성하세요.",
     change: "주소 변경",
     note: "녹화 25개까지 무료입니다. 생성하려면 로그인하세요. 데모마다 플랜의 클라우드 에이전트 시간을 일이 분 사용하며 라이브러리에 저장됩니다.",
+    noteSignedIn:
+      "녹화 25개까지 무료입니다. 데모마다 플랜의 클라우드 에이전트 시간을 일이 분 사용하며 라이브러리에 저장됩니다.",
     howHeading: "작동 방식",
     how: {
       type: {

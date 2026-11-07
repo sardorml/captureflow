@@ -58,6 +58,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "Changelog",
     login: "Anmelden",
+    library: "Meine Aufnahmen",
     download: "Download",
     language: "Sprache",
     openMenu: "Menü öffnen",
@@ -574,6 +575,8 @@ const messages: Messages = {
       "Diese Seite bauen die Agenten nach. Erstelle die Demo, wenn sie passt.",
     change: "Adresse ändern",
     note: "Kostenlos bis zu 25 Aufnahmen. Melde dich an, um eine Demo zu erstellen. Jede Demo verbraucht ein bis zwei Cloud-Agentenminuten deines Tarifs und landet in deiner Bibliothek.",
+    noteSignedIn:
+      "Kostenlos bis zu 25 Aufnahmen. Jede Demo verbraucht ein bis zwei Cloud-Agentenminuten deines Tarifs und landet in deiner Bibliothek.",
     howHeading: "So funktioniert es",
     how: {
       type: {

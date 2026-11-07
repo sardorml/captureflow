@@ -59,6 +59,7 @@ const messages: Messages = {
     faq: "Hỏi đáp",
     changelog: "Nhật ký thay đổi",
     login: "Đăng nhập",
+    library: "Bản ghi của tôi",
     download: "Tải xuống",
     language: "Ngôn ngữ",
     openMenu: "Mở menu",
@@ -553,6 +554,8 @@ const messages: Messages = {
       "Đây là trang mà các agent sẽ dựng lại. Tạo demo khi thấy đúng.",
     change: "Đổi địa chỉ",
     note: "Miễn phí đến 25 bản ghi. Đăng nhập để tạo. Mỗi demo dùng một đến hai phút agent đám mây trong gói của bạn và được lưu vào thư viện của bạn.",
+    noteSignedIn:
+      "Miễn phí đến 25 bản ghi. Mỗi demo dùng một đến hai phút agent đám mây trong gói của bạn và được lưu vào thư viện của bạn.",
     howHeading: "Cách hoạt động",
     how: {
       type: {

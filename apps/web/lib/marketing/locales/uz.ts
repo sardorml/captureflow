@@ -58,6 +58,7 @@ const messages: Messages = {
     faq: "Savol-javob",
     changelog: "Oʻzgarishlar",
     login: "Kirish",
+    library: "Mening yozuvlarim",
     download: "Yuklab olish",
     language: "Til",
     openMenu: "Menyuni ochish",
@@ -556,6 +557,8 @@ const messages: Messages = {
       "Agentlar qayta quradigan sahifa shu. To‘g‘ri ko‘rinsa, demo yarating.",
     change: "Manzilni o‘zgartirish",
     note: "25 tagacha yozuv bepul. Yaratish uchun tizimga kiring. Har bir demo tarifingizdagi bulutli agent daqiqalaridan bir-ikki daqiqa sarflaydi va kutubxonangizga tushadi.",
+    noteSignedIn:
+      "25 tagacha yozuv bepul. Har bir demo tarifingizdagi bulutli agent daqiqalaridan bir-ikki daqiqa sarflaydi va kutubxonangizga tushadi.",
     howHeading: "Bu qanday ishlaydi",
     how: {
       type: {

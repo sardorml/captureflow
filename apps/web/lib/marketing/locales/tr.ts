@@ -59,6 +59,7 @@ const messages: Messages = {
     faq: "SSS",
     changelog: "Değişiklik günlüğü",
     login: "Giriş yapın",
+    library: "Kayıtlarım",
     download: "İndirin",
     language: "Dil",
     openMenu: "Menüyü aç",
@@ -567,6 +568,8 @@ const messages: Messages = {
       "Ajanların yeniden kuracağı sayfa bu. Doğru görünüyorsa demoyu oluştur.",
     change: "Adresi değiştir",
     note: "25 kayda kadar ücretsiz. Oluşturmak için giriş yapın. Her demo planınızın bulut ajan dakikalarından bir iki dakika kullanır ve kitaplığınıza eklenir.",
+    noteSignedIn:
+      "25 kayda kadar ücretsiz. Her demo planınızın bulut ajan dakikalarından bir iki dakika kullanır ve kitaplığınıza eklenir.",
     howHeading: "Nasıl çalışır",
     how: {
       type: {

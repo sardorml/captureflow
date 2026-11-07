@@ -59,6 +59,7 @@ const messages: Messages = {
     faq: "UKK",
     changelog: "Muutosloki",
     login: "Kirjaudu",
+    library: "Omat tallenteet",
     download: "Lataa",
     language: "Kieli",
     openMenu: "Avaa valikko",
@@ -562,6 +563,8 @@ const messages: Messages = {
       "Tämän sivun agentit rakentavat uudelleen. Luo demo, kun se näyttää oikealta.",
     change: "Vaihda osoite",
     note: "Ilmainen 25 tallenteeseen asti. Kirjaudu sisään luodaksesi demon. Jokainen demo kuluttaa minuutin tai pari tilauksesi pilviagenttiminuutteja ja ilmestyy kirjastoosi.",
+    noteSignedIn:
+      "Ilmainen 25 tallenteeseen asti. Jokainen demo kuluttaa minuutin tai pari tilauksesi pilviagenttiminuutteja ja ilmestyy kirjastoosi.",
     howHeading: "Näin se toimii",
     how: {
       type: {
