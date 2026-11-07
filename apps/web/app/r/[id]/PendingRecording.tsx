@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AtSign, MessageSquare, Smile, Sparkles } from "lucide-react";
+import { AtSign, MessageSquare, Smile } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -298,7 +298,6 @@ function PendingSidebar({
           <div className="sticky bottom-0 z-10 bg-canvas-2 p-4 backdrop-blur-md supports-[backdrop-filter]:bg-canvas-2/85 lg:bg-transparent lg:p-3 lg:backdrop-blur-none">
             {!viewer ? (
               <Button size="lg" className="w-full" disabled>
-                <Sparkles size={16} />
                 {m.activity.composer.signIn}
               </Button>
             ) : (
