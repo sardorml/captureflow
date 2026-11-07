@@ -16,7 +16,7 @@ export type RecordingCameraSize = "small" | "medium" | "large";
 // dragging; null keeps the bubble in its corner.
 export type RecordingCameraPoint = { x: number; y: number };
 
-// `background` is a gradient preset key, a '#hex' fill, an uploaded 'image:<file>', or 'transparent'.
+// `background` is a gradient preset key, a '#hex' fill, a 'wallpaper:<group>/<name>', an uploaded 'image:<file>', or 'transparent'.
 export type RecordingConfig = {
   background: string;
   padding: number;
@@ -187,6 +187,70 @@ export const RECORDING_FRAME_LIMITS = {
   shadow: { min: 0, max: 100 },
 } as const;
 
+const numbered = (n: number) =>
+  Array.from({ length: n }, (_, i) => String(i + 1));
+
+export const RECORDING_WALLPAPERS = {
+  general: [
+    "aurora",
+    "canopy",
+    "canyon",
+    "dawn",
+    "dusk",
+    "ember",
+    "lagoon",
+    "meadow",
+    "midnight",
+    "mist",
+    "pasture",
+    "petal",
+    "poppy",
+    "ripple",
+    "sunburst",
+    "twilight",
+    "vineyard",
+    "wave",
+  ],
+  cities: [
+    "liverpool",
+    "london",
+    "miami",
+    "monaco",
+    "nyc",
+    "rome",
+    "santorini",
+    "sf",
+  ],
+  blue: numbered(6),
+  purple: numbered(6),
+  orange: numbered(9),
+  dark: numbered(6),
+} as const satisfies Record<string, readonly string[]>;
+export type RecordingWallpaperGroup = keyof typeof RECORDING_WALLPAPERS;
+export const RECORDING_WALLPAPER_GROUPS = Object.keys(
+  RECORDING_WALLPAPERS,
+) as RecordingWallpaperGroup[];
+
+export function recordingWallpaperKey(
+  group: RecordingWallpaperGroup,
+  name: string,
+): string {
+  return `wallpaper:${group}/${name}`;
+}
+
+export function recordingWallpaperUrl(
+  background: string,
+  size: "full" | "thumbnail" = "full",
+): string | null {
+  const match = /^wallpaper:([a-z]+)\/([a-z0-9]+)$/.exec(background);
+  if (!match) return null;
+  const [, group, name] = match;
+  const names: readonly string[] | undefined =
+    RECORDING_WALLPAPERS[group as RecordingWallpaperGroup];
+  if (!names?.includes(name!)) return null;
+  return `/wallpapers/${group}/${name}${size === "thumbnail" ? "-thumbnail" : ""}.jpg`;
+}
+
 // The uploaded file a background names, or null when it isn't an image.
 export const recordingBackgroundImageFile = backgroundImageFileOf;
 export const recordingBackgroundImageKey = backgroundImageKeyFor;
@@ -223,6 +287,7 @@ export function hydrateRecordingConfig(raw: unknown): RecordingConfig {
     (obj.background === "transparent" ||
       isRecordingGradientKey(obj.background) ||
       isRecordingHexColor(obj.background) ||
+      recordingWallpaperUrl(obj.background) !== null ||
       recordingBackgroundImageFile(obj.background) !== null)
       ? obj.background
       : DEFAULT_RECORDING_CONFIG.background;

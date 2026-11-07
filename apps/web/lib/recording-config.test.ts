@@ -1,10 +1,18 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_RECORDING_CONFIG,
   hydrateRecordingConfig,
   parseRecordingConfigJson,
+  RECORDING_WALLPAPERS,
+  RECORDING_WALLPAPER_GROUPS,
   recordingBackgroundImageFile,
+  recordingWallpaperKey,
+  recordingWallpaperUrl,
 } from "./recording-config";
+
+const PUBLIC_DIR = new URL("../public", import.meta.url).pathname;
 
 describe("hydrateRecordingConfig", () => {
   it("falls back to the defaults for junk", () => {
@@ -91,5 +99,36 @@ describe("hydrateRecordingConfig", () => {
       );
     }
     expect(recordingBackgroundImageFile("violet")).toBe(null);
+  });
+
+  it("accepts a known wallpaper and nothing else under that prefix", () => {
+    expect(
+      hydrateRecordingConfig({ background: "wallpaper:cities/london" })
+        .background,
+    ).toBe("wallpaper:cities/london");
+    expect(recordingWallpaperUrl("wallpaper:blue/2", "thumbnail")).toBe(
+      "/wallpapers/blue/2-thumbnail.jpg",
+    );
+    for (const bad of [
+      "wallpaper:cities/paris",
+      "wallpaper:../secret",
+      "wallpaper:blue/2.jpg",
+    ]) {
+      expect(hydrateRecordingConfig({ background: bad }).background).toBe(
+        "transparent",
+      );
+    }
+  });
+
+  it("names a wallpaper only when both its files ship", () => {
+    for (const group of RECORDING_WALLPAPER_GROUPS) {
+      for (const name of RECORDING_WALLPAPERS[group]) {
+        const key = recordingWallpaperKey(group, name);
+        for (const size of ["full", "thumbnail"] as const) {
+          const url = recordingWallpaperUrl(key, size)!;
+          expect(existsSync(join(PUBLIC_DIR, url))).toBe(true);
+        }
+      }
+    }
   });
 });

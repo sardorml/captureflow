@@ -5,6 +5,7 @@ import {
   RECORDING_GRADIENT_PRESETS,
   recordingBackgroundImageFile,
   recordingGradientCss,
+  recordingWallpaperUrl,
   type RecordingCameraCorner,
   type RecordingConfig,
   type RecordingCameraPoint,
@@ -198,6 +199,15 @@ export function recordingBackgroundStyle(
           backgroundPosition: "center",
         }
       : { backgroundColor: IMAGE_PLACEHOLDER };
+  }
+  const wallpaper = recordingWallpaperUrl(background);
+  if (wallpaper) {
+    return {
+      backgroundColor: IMAGE_PLACEHOLDER,
+      backgroundImage: `url("${wallpaper}")`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    };
   }
   if (isRecordingHexColor(background)) return { backgroundColor: background };
   if (isRecordingGradientKey(background)) {
