@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Digite o endereço de um site e veja um enxame de cursores de agentes reconstruí-lo elemento por elemento, ao som de música. Você recebe um vídeo com um link para compartilhar.",
     },
+    chromeExtension: {
+      title: "Extensão do Chrome: grave sua tela e compartilhe um link",
+      description:
+        "Grave sua tela, uma aba ou sua câmera pelo Chrome. Ao terminar, você recebe um link que qualquer pessoa pode assistir, com transcrição, resumo e capítulos.",
+    },
   },
   nav: {
     features: "Recursos",
@@ -58,6 +63,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "Novidades",
     login: "Entrar",
+    library: "Minhas gravações",
     download: "Baixar",
     language: "Idioma",
     openMenu: "Abrir menu",
@@ -361,6 +367,13 @@ const messages: Messages = {
       subtitle:
         "Respostas sobre gravação, preços, armazenamento e auto-hospedagem. Leia a documentação para todo o resto.",
     },
+    chromeExtension: {
+      label: "Extensão do Chrome",
+      word: "CHROME",
+      title: "Grave sua tela pelo Chrome",
+      subtitle:
+        "Grave sua tela, uma aba ou sua câmera. Ao terminar, você recebe um link que qualquer pessoa pode assistir, com transcrição, resumo e capítulos.",
+    },
   },
   collaboration: {
     heading: "O que você pode fazer depois de gravar",
@@ -564,6 +577,8 @@ const messages: Messages = {
       "Esta é a página que os agentes vão reconstruir. Gere a demo quando estiver certa.",
     change: "Mudar endereço",
     note: "Grátis até 25 gravações. Faça login para gerar. Cada demo usa um ou dois minutos de agente na nuvem do seu plano e vai para a sua biblioteca.",
+    noteSignedIn:
+      "Grátis até 25 gravações. Cada demo usa um ou dois minutos de agente na nuvem do seu plano e vai para a sua biblioteca.",
     howHeading: "Como funciona",
     how: {
       type: {

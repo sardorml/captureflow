@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Digita l'indirizzo di un sito e guarda uno sciame di cursori di agenti ricostruirlo elemento per elemento, a ritmo di musica. Ottieni un video con un link da condividere.",
     },
+    chromeExtension: {
+      title: "Estensione per Chrome: registra lo schermo e condividi un link",
+      description:
+        "Registra lo schermo, una scheda o la fotocamera da Chrome. Alla fine ottieni un link che chiunque può guardare, con trascrizione, riepilogo e capitoli.",
+    },
   },
   nav: {
     features: "Funzionalità",
@@ -58,6 +63,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "Novità",
     login: "Accedi",
+    library: "Le mie registrazioni",
     download: "Scarica",
     language: "Lingua",
     openMenu: "Apri il menu",
@@ -361,6 +367,13 @@ const messages: Messages = {
       subtitle:
         "Risposte su registrazione, prezzi, archiviazione e self-hosting. Per tutto il resto, leggi la documentazione.",
     },
+    chromeExtension: {
+      label: "Estensione per Chrome",
+      word: "CHROME",
+      title: "Registra lo schermo da Chrome",
+      subtitle:
+        "Registra lo schermo, una scheda o la fotocamera. Alla fine ottieni un link che chiunque può guardare, con trascrizione, riepilogo e capitoli.",
+    },
   },
   collaboration: {
     heading: "Cosa puoi fare dopo la registrazione",
@@ -559,6 +572,8 @@ const messages: Messages = {
       "Questa è la pagina che gli agenti ricostruiranno. Genera la demo quando ti sembra giusta.",
     change: "Cambia indirizzo",
     note: "Gratis fino a 25 registrazioni. Accedi per generare. Ogni demo usa uno o due minuti agente cloud del tuo piano e finisce nella tua libreria.",
+    noteSignedIn:
+      "Gratis fino a 25 registrazioni. Ogni demo usa uno o due minuti agente cloud del tuo piano e finisce nella tua libreria.",
     howHeading: "Come funziona",
     how: {
       type: {

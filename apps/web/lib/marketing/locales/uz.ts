@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Sayt manzilini kiriting va agent kursorlari toʻdasi uni musiqa ostida elementma-element qayta qurishini tomosha qiling. Sizga ulashish uchun havolali video beriladi.",
     },
+    chromeExtension: {
+      title: "Chrome kengaytmasi: ekraningizni yozib oling va havola ulashing",
+      description:
+        "Chrome’da ekraningiz, tab yoki kamerangizni yozib oling. Tugatganingizdan soʻng transkript, xulosa va boblar bilan hamma koʻra oladigan havola olasiz.",
+    },
   },
   nav: {
     features: "Imkoniyatlar",
@@ -58,6 +63,7 @@ const messages: Messages = {
     faq: "Savol-javob",
     changelog: "Oʻzgarishlar",
     login: "Kirish",
+    library: "Mening yozuvlarim",
     download: "Yuklab olish",
     language: "Til",
     openMenu: "Menyuni ochish",
@@ -357,6 +363,13 @@ const messages: Messages = {
       subtitle:
         "Yozib olish, narxlar, saqlash va mustaqil hosting boʻyicha javoblar. Qolgan hammasi uchun hujjatlarni oʻqing.",
     },
+    chromeExtension: {
+      label: "Chrome kengaytmasi",
+      word: "CHROME",
+      title: "Chrome’da ekraningizni yozib oling",
+      subtitle:
+        "Ekraningiz, tab yoki kamerangizni yozib oling. Tugatganingizdan soʻng transkript, xulosa va boblar bilan hamma koʻra oladigan havola olasiz.",
+    },
   },
   collaboration: {
     heading: "Yozib olgandan keyin nima qilish mumkin",
@@ -556,6 +569,8 @@ const messages: Messages = {
       "Agentlar qayta quradigan sahifa shu. To‘g‘ri ko‘rinsa, demo yarating.",
     change: "Manzilni o‘zgartirish",
     note: "25 tagacha yozuv bepul. Yaratish uchun tizimga kiring. Har bir demo tarifingizdagi bulutli agent daqiqalaridan bir-ikki daqiqa sarflaydi va kutubxonangizga tushadi.",
+    noteSignedIn:
+      "25 tagacha yozuv bepul. Har bir demo tarifingizdagi bulutli agent daqiqalaridan bir-ikki daqiqa sarflaydi va kutubxonangizga tushadi.",
     howHeading: "Bu qanday ishlaydi",
     how: {
       type: {

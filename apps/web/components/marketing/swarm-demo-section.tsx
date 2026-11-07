@@ -23,6 +23,7 @@ import type { SitePreview } from "@/lib/swarm-demo";
 import { track } from "@/lib/marketing/track";
 import { MarketingSection, SectionHeading } from "./_shared";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
+import { useSignedIn } from "./use-signed-in";
 
 type HowKey = "type" | "build" | "share";
 
@@ -183,6 +184,7 @@ function DemoForm() {
   const [site, setSite] = useState<SitePreview | null>(null);
   const [error, setError] = useState<SwarmDemoErrorCode | null>(null);
   const resumed = useRef(false);
+  const signedIn = useSignedIn();
   const busy = phase !== "idle";
 
   async function check(address: string) {
@@ -241,7 +243,9 @@ function DemoForm() {
         ? copy.generating
         : site
           ? copy.previewNote
-          : copy.note;
+          : signedIn
+            ? copy.noteSignedIn
+            : copy.note;
 
   return (
     <form onSubmit={onSubmit} className="mx-auto max-w-160">

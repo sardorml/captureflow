@@ -10,6 +10,8 @@ import {
   WEBSITE_SCHEMA,
   faqSchema,
 } from "@/lib/marketing/constants";
+import { CHROME_WEBSTORE_URL } from "@/lib/marketing/constants";
+import { localizedHref } from "@/lib/i18n/config";
 import { DOCS_URL, RELEASES_URL } from "@/lib/site";
 import { AgentsSection } from "./agents-section";
 import { BottomBar } from "./announcement-bars";
@@ -22,6 +24,7 @@ import { Footer } from "./footer";
 import { Frame, PillLink } from "./frame";
 import { HeroSection } from "./hero-section";
 import { HighlightsSection } from "./highlights-section";
+import { InstallButton } from "./install-button";
 import { I18nProvider } from "./i18n-provider";
 import { JsonLd } from "./json-ld";
 import { LiveRepoActivity } from "./live-repo-activity";
@@ -35,6 +38,7 @@ import { PageHero } from "./page-hero";
 import { PricingSection } from "./pricing-section";
 import { SetupRequestSection } from "./setup-request-section";
 import { SwarmDemoSection } from "./swarm-demo-section";
+import { ChromeLogoColor } from "./platform-logos";
 import { Paragraph, Title } from "./typography";
 import { UseCasesSection } from "./use-cases-section";
 
@@ -197,6 +201,29 @@ export function SwarmDemoPage({ i18n }: PageProps) {
       <Suspense>
         <SwarmDemoSection />
       </Suspense>
+    </MarketingPage>
+  );
+}
+
+export function ChromeExtensionPage({ i18n }: PageProps) {
+  const { messages, locale } = i18n ?? ENGLISH;
+  return (
+    <MarketingPage i18n={i18n}>
+      <PageHero
+        page="chromeExtension"
+        action={
+          <InstallButton
+            href={CHROME_WEBSTORE_URL ?? localizedHref("/download", locale)}
+            label={messages.hero.installChrome}
+            icon={<ChromeLogoColor className="size-6" />}
+            location="chrome_extension_page"
+            primary
+          />
+        }
+      />
+      <ModesIntro />
+      <HighlightsSection />
+      <CollaborationSection />
     </MarketingPage>
   );
 }

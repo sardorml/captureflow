@@ -51,6 +51,11 @@ const messages: Messages = {
       description:
         "Kirjoita sivuston osoite ja katso, kuinka parvi agenttikursoreita rakentaa sen uudelleen elementti kerrallaan musiikin tahdissa. Saat videon ja jaettavan linkin.",
     },
+    chromeExtension: {
+      title: "Chrome-laajennus: tallenna näyttösi ja jaa linkki",
+      description:
+        "Tallenna näyttösi, välilehti tai kamerasi Chromessa. Lopuksi saat linkin, jota kuka tahansa voi katsoa, tekstityksen, yhteenvedon ja lukujen kanssa.",
+    },
   },
   nav: {
     features: "Ominaisuudet",
@@ -59,6 +64,7 @@ const messages: Messages = {
     faq: "UKK",
     changelog: "Muutosloki",
     login: "Kirjaudu",
+    library: "Omat tallenteet",
     download: "Lataa",
     language: "Kieli",
     openMenu: "Avaa valikko",
@@ -364,6 +370,13 @@ const messages: Messages = {
       subtitle:
         "Vastauksia tallentamisesta, hinnoista, tallennustilasta ja omasta ylläpidosta. Kaikki muu löytyy dokumentaatiosta.",
     },
+    chromeExtension: {
+      label: "Chrome-laajennus",
+      word: "CHROME",
+      title: "Tallenna näyttösi Chromessa",
+      subtitle:
+        "Tallenna näyttösi, välilehti tai kamerasi. Lopuksi saat linkin, jota kuka tahansa voi katsoa, tekstityksen, yhteenvedon ja lukujen kanssa.",
+    },
   },
   collaboration: {
     heading: "Mitä voit tehdä tallennuksen jälkeen",
@@ -562,6 +575,8 @@ const messages: Messages = {
       "Tämän sivun agentit rakentavat uudelleen. Luo demo, kun se näyttää oikealta.",
     change: "Vaihda osoite",
     note: "Ilmainen 25 tallenteeseen asti. Kirjaudu sisään luodaksesi demon. Jokainen demo kuluttaa minuutin tai pari tilauksesi pilviagenttiminuutteja ja ilmestyy kirjastoosi.",
+    noteSignedIn:
+      "Ilmainen 25 tallenteeseen asti. Jokainen demo kuluttaa minuutin tai pari tilauksesi pilviagenttiminuutteja ja ilmestyy kirjastoosi.",
     howHeading: "Näin se toimii",
     how: {
       type: {

@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "웹사이트 주소를 입력하면 에이전트 커서 떼가 음악에 맞춰 요소 하나하나를 다시 만들어 가는 모습을 볼 수 있습니다. 공유 링크가 있는 영상을 받습니다.",
     },
+    chromeExtension: {
+      title: "Chrome 확장 프로그램: 화면을 녹화하고 링크로 공유하세요",
+      description:
+        "Chrome에서 화면, 탭 또는 카메라를 녹화하세요. 녹화를 마치면 자막, 요약, 챕터가 포함된, 누구나 볼 수 있는 링크를 받습니다.",
+    },
   },
   nav: {
     features: "기능",
@@ -58,6 +63,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "변경 내역",
     login: "로그인",
+    library: "내 녹화",
     download: "다운로드",
     language: "언어",
     openMenu: "메뉴 열기",
@@ -345,6 +351,13 @@ const messages: Messages = {
       subtitle:
         "녹화, 요금제, 저장 공간, 셀프 호스팅에 대한 답변입니다. 그 외에는 문서를 읽어 보세요.",
     },
+    chromeExtension: {
+      label: "Chrome 확장 프로그램",
+      word: "CHROME",
+      title: "Chrome에서 화면 녹화",
+      subtitle:
+        "화면, 탭 또는 카메라를 녹화하세요. 녹화를 마치면 자막, 요약, 챕터가 포함된, 누구나 볼 수 있는 링크를 받습니다.",
+    },
   },
   collaboration: {
     heading: "녹화 후에 할 수 있는 일",
@@ -539,6 +552,8 @@ const messages: Messages = {
     previewNote: "에이전트가 다시 만들 페이지입니다. 맞으면 데모를 생성하세요.",
     change: "주소 변경",
     note: "녹화 25개까지 무료입니다. 생성하려면 로그인하세요. 데모마다 플랜의 클라우드 에이전트 시간을 일이 분 사용하며 라이브러리에 저장됩니다.",
+    noteSignedIn:
+      "녹화 25개까지 무료입니다. 데모마다 플랜의 클라우드 에이전트 시간을 일이 분 사용하며 라이브러리에 저장됩니다.",
     howHeading: "작동 방식",
     how: {
       type: {

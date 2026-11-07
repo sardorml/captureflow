@@ -58,6 +58,11 @@ export const MESSAGES = {
       description:
         "Type a website address and watch a swarm of agent cursors rebuild it element by element, to music. You get a video with a link to share.",
     },
+    chromeExtension: {
+      title: "Chrome extension: record your screen and share a link",
+      description:
+        "Record your screen, a tab or your camera from Chrome. When you finish, you get a link anyone can watch, with a transcript, summary and chapters.",
+    },
   },
   nav: {
     features: "Features",
@@ -66,6 +71,7 @@ export const MESSAGES = {
     faq: "FAQ",
     changelog: "Changelog",
     login: "Log in",
+    library: "My recordings",
     download: "Download",
     language: "Language",
     openMenu: "Open menu",
@@ -355,6 +361,13 @@ export const MESSAGES = {
       subtitle:
         "Answers on recording, pricing, storage and self-hosting. Read the docs for everything else.",
     },
+    chromeExtension: {
+      label: "Chrome extension",
+      word: "CHROME",
+      title: "Record your screen from Chrome",
+      subtitle:
+        "Record your screen, a tab or your camera. When you finish, you get a link anyone can watch, with a transcript, summary and chapters.",
+    },
   },
   collaboration: {
     heading: "What you can do after recording",
@@ -550,6 +563,8 @@ export const MESSAGES = {
       "This is the page the agents will rebuild. Generate the demo when it looks right.",
     change: "Change address",
     note: "Free up to 25 recordings. Sign in to generate. Each demo takes a minute or two of your plan's cloud agent minutes and lands in your library.",
+    noteSignedIn:
+      "Free up to 25 recordings. Each demo takes a minute or two of your plan's cloud agent minutes and lands in your library.",
     howHeading: "How it works",
     how: {
       type: {

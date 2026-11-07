@@ -49,6 +49,7 @@ export function ogLocaleOf(locale: Locale): string {
 // blog, the legal pages and the comparison page are English only.
 const LOCALIZED_SEGMENTS: ReadonlySet<string> = new Set([
   "",
+  "chrome-extension",
   "download",
   "enterprise",
   "faq",

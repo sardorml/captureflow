@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Gib eine Website-Adresse ein und sieh zu, wie ein Schwarm aus Agenten-Cursorn sie Element für Element nachbaut, mit Musik. Du bekommst ein Video mit Link zum Teilen.",
     },
+    chromeExtension: {
+      title: "Chrome-Erweiterung: Bildschirm aufnehmen und Link teilen",
+      description:
+        "Nimm deinen Bildschirm, einen Tab oder deine Kamera in Chrome auf. Danach bekommst du einen Link, den jeder ansehen kann, mit Transkript, Zusammenfassung und Kapiteln.",
+    },
   },
   nav: {
     features: "Funktionen",
@@ -58,6 +63,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "Changelog",
     login: "Anmelden",
+    library: "Meine Aufnahmen",
     download: "Download",
     language: "Sprache",
     openMenu: "Menü öffnen",
@@ -371,6 +377,13 @@ const messages: Messages = {
       subtitle:
         "Antworten zu Aufnahme, Preisen, Speicher und Self-Hosting. Alles Weitere steht in der Dokumentation.",
     },
+    chromeExtension: {
+      label: "Chrome-Erweiterung",
+      word: "CHROME",
+      title: "Bildschirm aufnehmen in Chrome",
+      subtitle:
+        "Nimm deinen Bildschirm, einen Tab oder deine Kamera auf. Danach bekommst du einen Link, den jeder ansehen kann, mit Transkript, Zusammenfassung und Kapiteln.",
+    },
   },
   collaboration: {
     heading: "Was du nach der Aufnahme tun kannst",
@@ -574,6 +587,8 @@ const messages: Messages = {
       "Diese Seite bauen die Agenten nach. Erstelle die Demo, wenn sie passt.",
     change: "Adresse ändern",
     note: "Kostenlos bis zu 25 Aufnahmen. Melde dich an, um eine Demo zu erstellen. Jede Demo verbraucht ein bis zwei Cloud-Agentenminuten deines Tarifs und landet in deiner Bibliothek.",
+    noteSignedIn:
+      "Kostenlos bis zu 25 Aufnahmen. Jede Demo verbraucht ein bis zwei Cloud-Agentenminuten deines Tarifs und landet in deiner Bibliothek.",
     howHeading: "So funktioniert es",
     how: {
       type: {

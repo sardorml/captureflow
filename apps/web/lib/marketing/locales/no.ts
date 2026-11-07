@@ -51,6 +51,11 @@ const messages: Messages = {
       description:
         "Skriv inn en nettadresse og se en sverm av agentmarkører bygge nettstedet opp igjen element for element, til musikk. Du får en video med en lenke å dele.",
     },
+    chromeExtension: {
+      title: "Chrome-utvidelse: ta opp skjermen og del en lenke",
+      description:
+        "Ta opp skjermen, en fane eller kameraet i Chrome. Når du er ferdig, får du en lenke alle kan se, med transkripsjon, sammendrag og kapitler.",
+    },
   },
   nav: {
     features: "Funksjoner",
@@ -59,6 +64,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "Endringslogg",
     login: "Logg inn",
+    library: "Mine opptak",
     download: "Last ned",
     language: "Språk",
     openMenu: "Åpne menyen",
@@ -358,6 +364,13 @@ const messages: Messages = {
       subtitle:
         "Svar om opptak, priser, lagring og selvhosting. Les dokumentasjonen for alt annet.",
     },
+    chromeExtension: {
+      label: "Chrome-utvidelse",
+      word: "CHROME",
+      title: "Ta opp skjermen i Chrome",
+      subtitle:
+        "Ta opp skjermen, en fane eller kameraet. Når du er ferdig, får du en lenke alle kan se, med transkripsjon, sammendrag og kapitler.",
+    },
   },
   collaboration: {
     heading: "Dette kan du gjøre etter opptaket",
@@ -557,6 +570,8 @@ const messages: Messages = {
       "Dette er siden agentene bygger opp igjen. Lag demoen når den ser riktig ut.",
     change: "Endre adresse",
     note: "Gratis opptil 25 opptak. Logg inn for å lage en demo. Hver demo bruker ett eller to av planens agentminutter i skyen og havner i biblioteket ditt.",
+    noteSignedIn:
+      "Gratis opptil 25 opptak. Hver demo bruker ett eller to av planens agentminutter i skyen og havner i biblioteket ditt.",
     howHeading: "Slik fungerer det",
     how: {
       type: {

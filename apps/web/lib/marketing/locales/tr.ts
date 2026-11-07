@@ -51,6 +51,11 @@ const messages: Messages = {
       description:
         "Bir web sitesi adresi yazın ve bir ajan imleci sürüsünün onu müzik eşliğinde öğe öğe yeniden kurmasını izleyin. Paylaşabileceğiniz bir bağlantıyla birlikte bir video alırsınız.",
     },
+    chromeExtension: {
+      title: "Chrome uzantısı: ekranınızı kaydedin ve bir bağlantı paylaşın",
+      description:
+        "Chrome'dan ekranınızı, bir sekmeyi veya kameranızı kaydedin. Bitirdiğinizde transkript, özet ve bölümlerle herkesin izleyebileceği bir bağlantı alırsınız.",
+    },
   },
   nav: {
     features: "Özellikler",
@@ -59,6 +64,7 @@ const messages: Messages = {
     faq: "SSS",
     changelog: "Değişiklik günlüğü",
     login: "Giriş yapın",
+    library: "Kayıtlarım",
     download: "İndirin",
     language: "Dil",
     openMenu: "Menüyü aç",
@@ -364,6 +370,13 @@ const messages: Messages = {
       subtitle:
         "Kayıt, fiyatlandırma, depolama ve kendiniz barındırma hakkında yanıtlar. Diğer her şey için belgeleri okuyun.",
     },
+    chromeExtension: {
+      label: "Chrome uzantısı",
+      word: "CHROME",
+      title: "Chrome'dan ekranınızı kaydedin",
+      subtitle:
+        "Ekranınızı, bir sekmeyi veya kameranızı kaydedin. Bitirdiğinizde transkript, özet ve bölümlerle herkesin izleyebileceği bir bağlantı alırsınız.",
+    },
   },
   collaboration: {
     heading: "Kayıttan sonra yapabilecekleriniz",
@@ -567,6 +580,8 @@ const messages: Messages = {
       "Ajanların yeniden kuracağı sayfa bu. Doğru görünüyorsa demoyu oluştur.",
     change: "Adresi değiştir",
     note: "25 kayda kadar ücretsiz. Oluşturmak için giriş yapın. Her demo planınızın bulut ajan dakikalarından bir iki dakika kullanır ve kitaplığınıza eklenir.",
+    noteSignedIn:
+      "25 kayda kadar ücretsiz. Her demo planınızın bulut ajan dakikalarından bir iki dakika kullanır ve kitaplığınıza eklenir.",
     howHeading: "Nasıl çalışır",
     how: {
       type: {

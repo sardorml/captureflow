@@ -20,9 +20,15 @@ import { useLocalizedHref, useMessages } from "./i18n-provider";
 import { TopBar } from "./announcement-bars";
 import { NavBetaChip } from "./corner-banner";
 import { FRAME_WIDTH } from "./frame";
-import { GitHubIcon } from "./platform-logos";
+import {
+  ChromeLogoColor,
+  GitHubIcon,
+  McpLogo,
+  SwarmCursorsLogo,
+} from "./platform-logos";
 import { DEFAULT_THEME, ThemeToggle } from "@captureflow/ui";
 import { useRepoStats } from "./use-repo-stats";
+import { useSignedIn } from "./use-signed-in";
 
 const GITHUB_URL = "https://github.com/sardorml/captureflow";
 
@@ -123,7 +129,7 @@ function NavLink({
 
 type MenuLink = { label: string; href: string; external?: boolean };
 
-type TileLink = MenuLink & { description: string };
+type TileLink = MenuLink & { description: string; icon?: ReactNode };
 
 /*
  * Only opacity and translate animate, so the slide stays on the compositor;
@@ -212,8 +218,13 @@ function HoverMenu({ label, links }: { label: string; links: TileLink[] }) {
                 target={link.external ? "_blank" : undefined}
                 rel={link.external ? "noopener noreferrer" : undefined}
                 onClick={() => setOpen(false)}
-                className="hover:bg-tint focus-visible:bg-tint flex items-start rounded-lg px-3.5 py-3 outline-none transition-colors duration-150 motion-reduce:transition-none"
+                className="hover:bg-tint focus-visible:bg-tint flex items-start gap-3 rounded-lg px-3.5 py-3 outline-none transition-colors duration-150 motion-reduce:transition-none"
               >
+                {link.icon && (
+                  <span className="flex size-6 shrink-0 items-center justify-center pt-0.5">
+                    {link.icon}
+                  </span>
+                )}
                 <span className="flex min-w-0 flex-col gap-0.5">
                   <span className="text-fg flex items-center gap-1 text-[15px] font-normal">
                     {link.label}
@@ -238,6 +249,10 @@ export function Nav() {
   const { stars } = useRepoStats();
   const m = useMessages();
   const lh = useLocalizedHref();
+  const signedIn = useSignedIn();
+  const account = signedIn
+    ? { href: "/recordings", label: m.nav.library }
+    : { href: lh("/login"), label: m.nav.login };
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -264,17 +279,20 @@ export function Nav() {
       label: m.nav.swarmDemo,
       href: lh("/swarm-demo"),
       description: m.nav.swarmDemoDescription,
+      icon: <SwarmCursorsLogo className="size-6" />,
     },
     {
       label: m.nav.extension,
-      href: lh("/download"),
+      href: lh("/chrome-extension"),
       description: m.nav.extensionDescription,
+      icon: <ChromeLogoColor className="size-5" />,
     },
     {
       label: m.nav.agentRecorder,
       href: `${DOCS_URL}/guide/local-agent`,
       external: true,
       description: m.nav.agentRecorderDescription,
+      icon: <McpLogo className="size-5 text-fg" />,
     },
   ];
   const moreLinks: TileLink[] = [
@@ -399,8 +417,8 @@ export function Nav() {
                   {stars && <span className="tabular-nums"> ({stars})</span>}
                 </span>
               </a>
-              <NextLink href={lh("/login")} prefetch className={TEXT_LINK}>
-                {m.nav.login}
+              <NextLink href={account.href} prefetch className={TEXT_LINK}>
+                {account.label}
               </NextLink>
               <ThemeToggle
                 initialTheme={DEFAULT_THEME}
@@ -458,12 +476,12 @@ export function Nav() {
               {starLabel}
             </NavLink>
             <NextLink
-              href={lh("/login")}
+              href={account.href}
               prefetch
               onClick={closeMenu}
               className={cn(buttonVariants({ variant: "ghost" }), "w-full")}
             >
-              {m.nav.login}
+              {account.label}
             </NextLink>
             <NextLink
               href={lh("/download")}

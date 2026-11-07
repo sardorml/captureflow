@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "サイトのアドレスを入力すると、エージェントカーソルの群れが音楽に合わせて要素ごとに再構築していく様子を見られます。共有リンク付きの動画が手に入ります。",
     },
+    chromeExtension: {
+      title: "Chrome拡張機能：画面を録画してリンクで共有",
+      description:
+        "Chromeから画面、タブ、カメラを録画できます。録画を終えると、文字起こし・要約・チャプター付きで誰でも見られるリンクが手に入ります。",
+    },
   },
   nav: {
     features: "機能",
@@ -58,6 +63,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "変更履歴",
     login: "ログイン",
+    library: "マイ録画",
     download: "ダウンロード",
     language: "言語",
     openMenu: "メニューを開く",
@@ -355,6 +361,13 @@ const messages: Messages = {
       subtitle:
         "録画、料金、ストレージ、セルフホストについての回答です。それ以外はドキュメントをご覧ください。",
     },
+    chromeExtension: {
+      label: "Chrome拡張機能",
+      word: "CHROME",
+      title: "Chromeで画面を録画",
+      subtitle:
+        "画面、タブ、カメラを録画できます。録画を終えると、文字起こし・要約・チャプター付きで誰でも見られるリンクが手に入ります。",
+    },
   },
   collaboration: {
     heading: "録画した後にできること",
@@ -553,6 +566,8 @@ const messages: Messages = {
       "エージェントが再構築するページです。問題なければデモを生成してください。",
     change: "アドレスを変更",
     note: "25件の録画まで無料です。生成にはサインインが必要です。各デモはプランのクラウドエージェント分数を一、二分使い、ライブラリに保存されます。",
+    noteSignedIn:
+      "25件の録画まで無料です。各デモはプランのクラウドエージェント分数を一、二分使い、ライブラリに保存されます。",
     howHeading: "仕組み",
     how: {
       type: {

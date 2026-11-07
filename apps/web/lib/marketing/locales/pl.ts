@@ -50,6 +50,11 @@ const messages: Messages = {
       description:
         "Wpisz adres strony i zobacz, jak rój kursorów agentów odbudowuje ją element po elemencie, do muzyki. Otrzymasz wideo z linkiem do udostępnienia.",
     },
+    chromeExtension: {
+      title: "Rozszerzenie Chrome: nagraj ekran i udostępnij link",
+      description:
+        "Nagraj ekran, kartę lub kamerę w Chrome. Po zakończeniu dostajesz link, który każdy może obejrzeć, z transkrypcją, podsumowaniem i rozdziałami.",
+    },
   },
   nav: {
     features: "Funkcje",
@@ -58,6 +63,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "Lista zmian",
     login: "Zaloguj się",
+    library: "Moje nagrania",
     download: "Pobierz",
     language: "Język",
     openMenu: "Otwórz menu",
@@ -352,6 +358,13 @@ const messages: Messages = {
       subtitle:
         "Odpowiedzi na pytania o nagrywanie, ceny, przechowywanie i self-hosting. Resztę znajdziesz w dokumentacji.",
     },
+    chromeExtension: {
+      label: "Rozszerzenie Chrome",
+      word: "CHROME",
+      title: "Nagrywaj ekran w Chrome",
+      subtitle:
+        "Nagraj ekran, kartę lub kamerę. Po zakończeniu dostajesz link, który każdy może obejrzeć, z transkrypcją, podsumowaniem i rozdziałami.",
+    },
   },
   collaboration: {
     heading: "Co możesz zrobić po nagraniu",
@@ -550,6 +563,8 @@ const messages: Messages = {
       "To jest strona, którą agenci odbudują. Wygeneruj demo, gdy wygląda dobrze.",
     change: "Zmień adres",
     note: "Za darmo do 25 nagrań. Zaloguj się, aby wygenerować. Każde demo zużywa minutę lub dwie minut agenta w chmurze z twojego planu i trafia do twojej biblioteki.",
+    noteSignedIn:
+      "Za darmo do 25 nagrań. Każde demo zużywa minutę lub dwie minut agenta w chmurze z twojego planu i trafia do twojej biblioteki.",
     howHeading: "Jak to działa",
     how: {
       type: {

@@ -51,6 +51,11 @@ const messages: Messages = {
       description:
         "Saisissez l’adresse d’un site et regardez un essaim de curseurs d’agents le reconstruire élément par élément, en musique. Vous obtenez une vidéo avec un lien à partager.",
     },
+    chromeExtension: {
+      title: "Extension Chrome : enregistrez votre écran et partagez un lien",
+      description:
+        "Enregistrez votre écran, un onglet ou votre caméra depuis Chrome. À la fin, vous obtenez un lien que tout le monde peut regarder, avec transcription, résumé et chapitres.",
+    },
   },
   nav: {
     features: "Fonctionnalités",
@@ -59,6 +64,7 @@ const messages: Messages = {
     faq: "FAQ",
     changelog: "Nouveautés",
     login: "Connexion",
+    library: "Mes enregistrements",
     download: "Télécharger",
     language: "Langue",
     openMenu: "Ouvrir le menu",
@@ -380,6 +386,13 @@ const messages: Messages = {
       subtitle:
         "Des réponses sur l’enregistrement, les tarifs, le stockage et l’auto-hébergement. Consultez la documentation pour tout le reste.",
     },
+    chromeExtension: {
+      label: "Extension Chrome",
+      word: "CHROME",
+      title: "Enregistrez votre écran depuis Chrome",
+      subtitle:
+        "Enregistrez votre écran, un onglet ou votre caméra. À la fin, vous obtenez un lien que tout le monde peut regarder, avec transcription, résumé et chapitres.",
+    },
   },
   collaboration: {
     heading: "Ce que vous pouvez faire après l’enregistrement",
@@ -584,6 +597,8 @@ const messages: Messages = {
       "Voici la page que les agents vont reconstruire. Lancez la démo si elle vous convient.",
     change: "Changer d'adresse",
     note: "Gratuit jusqu’à 25 enregistrements. Connectez-vous pour générer. Chaque démo consomme une à deux minutes d’agent cloud de votre forfait et arrive dans votre bibliothèque.",
+    noteSignedIn:
+      "Gratuit jusqu’à 25 enregistrements. Chaque démo consomme une à deux minutes d’agent cloud de votre forfait et arrive dans votre bibliothèque.",
     howHeading: "Comment ça marche",
     how: {
       type: {

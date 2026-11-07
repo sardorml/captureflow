@@ -51,6 +51,11 @@ const messages: Messages = {
       description:
         "Nhập địa chỉ website và xem một bầy con trỏ agent dựng lại nó từng phần tử một trên nền nhạc. Bạn nhận được một video kèm liên kết để chia sẻ.",
     },
+    chromeExtension: {
+      title: "Tiện ích Chrome: quay màn hình và chia sẻ liên kết",
+      description:
+        "Quay màn hình, một thẻ hoặc camera ngay trong Chrome. Khi xong, bạn nhận được một liên kết ai cũng xem được, kèm bản chép lời, tóm tắt và chương.",
+    },
   },
   nav: {
     features: "Tính năng",
@@ -59,6 +64,7 @@ const messages: Messages = {
     faq: "Hỏi đáp",
     changelog: "Nhật ký thay đổi",
     login: "Đăng nhập",
+    library: "Bản ghi của tôi",
     download: "Tải xuống",
     language: "Ngôn ngữ",
     openMenu: "Mở menu",
@@ -353,6 +359,13 @@ const messages: Messages = {
       subtitle:
         "Giải đáp về quay màn hình, giá, lưu trữ và tự host. Những nội dung khác có trong tài liệu.",
     },
+    chromeExtension: {
+      label: "Tiện ích Chrome",
+      word: "CHROME",
+      title: "Quay màn hình ngay trong Chrome",
+      subtitle:
+        "Quay màn hình, một thẻ hoặc camera. Khi xong, bạn nhận được một liên kết ai cũng xem được, kèm bản chép lời, tóm tắt và chương.",
+    },
   },
   collaboration: {
     heading: "Những việc bạn làm được sau khi quay",
@@ -553,6 +566,8 @@ const messages: Messages = {
       "Đây là trang mà các agent sẽ dựng lại. Tạo demo khi thấy đúng.",
     change: "Đổi địa chỉ",
     note: "Miễn phí đến 25 bản ghi. Đăng nhập để tạo. Mỗi demo dùng một đến hai phút agent đám mây trong gói của bạn và được lưu vào thư viện của bạn.",
+    noteSignedIn:
+      "Miễn phí đến 25 bản ghi. Mỗi demo dùng một đến hai phút agent đám mây trong gói của bạn và được lưu vào thư viện của bạn.",
     howHeading: "Cách hoạt động",
     how: {
       type: {
