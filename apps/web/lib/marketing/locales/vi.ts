@@ -565,9 +565,8 @@ const messages: Messages = {
     previewNote:
       "Đây là trang mà các agent sẽ dựng lại. Tạo demo khi thấy đúng.",
     change: "Đổi địa chỉ",
-    note: "Miễn phí đến 25 bản ghi. Đăng nhập để tạo. Mỗi demo dùng một đến hai phút agent đám mây trong gói của bạn và được lưu vào thư viện của bạn.",
-    noteSignedIn:
-      "Miễn phí đến 25 bản ghi. Mỗi demo dùng một đến hai phút agent đám mây trong gói của bạn và được lưu vào thư viện của bạn.",
+    note: "Đăng nhập để tạo miễn phí. Mỗi demo được lưu vào thư viện của bạn.",
+    noteSignedIn: "Tạo miễn phí. Mỗi demo được lưu vào thư viện của bạn.",
     howHeading: "Cách hoạt động",
     how: {
       type: {

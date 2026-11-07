@@ -574,9 +574,8 @@ const messages: Messages = {
     previewNote:
       "Det här är sidan som agenterna bygger upp igen. Skapa demon när den ser rätt ut.",
     change: "Ändra adress",
-    note: "Gratis upp till 25 inspelningar. Logga in för att skapa. Varje demo tar en minut eller två av din plans agentminuter i molnet och hamnar i ditt bibliotek.",
-    noteSignedIn:
-      "Gratis upp till 25 inspelningar. Varje demo tar en minut eller två av din plans agentminuter i molnet och hamnar i ditt bibliotek.",
+    note: "Logga in för att skapa gratis. Varje demo hamnar i ditt bibliotek.",
+    noteSignedIn: "Skapa gratis. Varje demo hamnar i ditt bibliotek.",
     howHeading: "Så fungerar det",
     how: {
       type: {

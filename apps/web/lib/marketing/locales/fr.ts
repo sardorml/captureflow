@@ -596,9 +596,9 @@ const messages: Messages = {
     previewNote:
       "Voici la page que les agents vont reconstruire. Lancez la démo si elle vous convient.",
     change: "Changer d'adresse",
-    note: "Gratuit jusqu’à 25 enregistrements. Connectez-vous pour générer. Chaque démo consomme une à deux minutes d’agent cloud de votre forfait et arrive dans votre bibliothèque.",
+    note: "Connectez-vous pour générer gratuitement. Chaque démo arrive dans votre bibliothèque.",
     noteSignedIn:
-      "Gratuit jusqu’à 25 enregistrements. Chaque démo consomme une à deux minutes d’agent cloud de votre forfait et arrive dans votre bibliothèque.",
+      "Générez gratuitement. Chaque démo arrive dans votre bibliothèque.",
     howHeading: "Comment ça marche",
     how: {
       type: {

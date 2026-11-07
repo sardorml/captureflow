@@ -571,9 +571,8 @@ const messages: Messages = {
     previewNote:
       "Questa è la pagina che gli agenti ricostruiranno. Genera la demo quando ti sembra giusta.",
     change: "Cambia indirizzo",
-    note: "Gratis fino a 25 registrazioni. Accedi per generare. Ogni demo usa uno o due minuti agente cloud del tuo piano e finisce nella tua libreria.",
-    noteSignedIn:
-      "Gratis fino a 25 registrazioni. Ogni demo usa uno o due minuti agente cloud del tuo piano e finisce nella tua libreria.",
+    note: "Accedi per generare gratis. Ogni demo finisce nella tua libreria.",
+    noteSignedIn: "Genera gratis. Ogni demo finisce nella tua libreria.",
     howHeading: "Come funziona",
     how: {
       type: {

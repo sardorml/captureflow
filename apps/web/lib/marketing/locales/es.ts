@@ -573,9 +573,8 @@ const messages: Messages = {
     previewNote:
       "Esta es la página que los agentes reconstruirán. Genera la demo cuando se vea bien.",
     change: "Cambiar dirección",
-    note: "Gratis hasta 25 grabaciones. Inicia sesión para generar. Cada demo consume uno o dos minutos de agente en la nube de tu plan y aparece en tu biblioteca.",
-    noteSignedIn:
-      "Gratis hasta 25 grabaciones. Cada demo consume uno o dos minutos de agente en la nube de tu plan y aparece en tu biblioteca.",
+    note: "Inicia sesión para generar gratis. Cada demo aparece en tu biblioteca.",
+    noteSignedIn: "Genera gratis. Cada demo aparece en tu biblioteca.",
     howHeading: "Cómo funciona",
     how: {
       type: {

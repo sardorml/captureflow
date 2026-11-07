@@ -574,9 +574,8 @@ const messages: Messages = {
     previewNote:
       "Tämän sivun agentit rakentavat uudelleen. Luo demo, kun se näyttää oikealta.",
     change: "Vaihda osoite",
-    note: "Ilmainen 25 tallenteeseen asti. Kirjaudu sisään luodaksesi demon. Jokainen demo kuluttaa minuutin tai pari tilauksesi pilviagenttiminuutteja ja ilmestyy kirjastoosi.",
-    noteSignedIn:
-      "Ilmainen 25 tallenteeseen asti. Jokainen demo kuluttaa minuutin tai pari tilauksesi pilviagenttiminuutteja ja ilmestyy kirjastoosi.",
+    note: "Kirjaudu sisään luodaksesi demon ilmaiseksi. Jokainen demo ilmestyy kirjastoosi.",
+    noteSignedIn: "Luo ilmaiseksi. Jokainen demo ilmestyy kirjastoosi.",
     howHeading: "Näin se toimii",
     how: {
       type: {

@@ -568,9 +568,8 @@ const messages: Messages = {
     previewNote:
       "Agentlar qayta quradigan sahifa shu. To‘g‘ri ko‘rinsa, demo yarating.",
     change: "Manzilni o‘zgartirish",
-    note: "25 tagacha yozuv bepul. Yaratish uchun tizimga kiring. Har bir demo tarifingizdagi bulutli agent daqiqalaridan bir-ikki daqiqa sarflaydi va kutubxonangizga tushadi.",
-    noteSignedIn:
-      "25 tagacha yozuv bepul. Har bir demo tarifingizdagi bulutli agent daqiqalaridan bir-ikki daqiqa sarflaydi va kutubxonangizga tushadi.",
+    note: "Bepul yaratish uchun tizimga kiring. Har bir demo kutubxonangizga tushadi.",
+    noteSignedIn: "Bepul yarating. Har bir demo kutubxonangizga tushadi.",
     howHeading: "Bu qanday ishlaydi",
     how: {
       type: {
