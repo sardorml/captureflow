@@ -34,7 +34,7 @@ export const SEAT_PLANS: readonly SeatPlan[] = [
     priceAnnualUsdPerMonth: 4,
     maxQuality: "saver",
     ai: false,
-    agentMinutesPerSeat: 120,
+    agentMinutesPerSeat: 60,
     voiceoverMinutesPerSeat: 0,
   },
   {
@@ -44,7 +44,7 @@ export const SEAT_PLANS: readonly SeatPlan[] = [
     priceAnnualUsdPerMonth: 10,
     maxQuality: null,
     ai: true,
-    agentMinutesPerSeat: 300,
+    agentMinutesPerSeat: 120,
     voiceoverMinutesPerSeat: 60,
   },
 ];
@@ -87,7 +87,7 @@ export const FREE_TIER = {
   maxRecordingMs: 5 * 60 * 1000,
   maxRecordingBytes: 50 * MB,
   quality: "saver" as FreeQuality,
-  agentMinutesPerPerson: 30,
+  agentMinutesPerPerson: 10,
 } as const;
 
 /*
