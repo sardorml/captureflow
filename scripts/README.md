@@ -26,8 +26,8 @@ packaged app via electron-builder `mac.icon` — and isn't CLI-extractable).
 **How it works:** the master is normalised to a full-bleed 1024 squircle, then
 everything is derived from it: square logos, round/disc logos, maskable +
 apple-touch cards, tray discs, favicons, `build/captureflow.icon` (copied from
-the `.icon`) + the pre-26 fallback `icon.icns`, and the logo is swapped into
-`og-image.png` in place. Pass an explicit path (`.icon` or `.png`) as the first
+the `.icon`) + the pre-26 fallback `icon.icns`. The link preview card is not
+touched: rerun `gen-og-image.py` afterwards. Pass an explicit path (`.icon` or `.png`) as the first
 arg to override the defaults.
 
 **Not touched:** `apps/desktop/resources/icon-dev.png` (the amber dev-build icon).
@@ -74,23 +74,23 @@ actually serves for `captureflow.dev`: the 180px `apple-touch-icon` beat both th
 Google's own docs. If a site is ever observed to contradict the prediction,
 recalibrate `rank()` rather than trusting it.
 
-## `gen-og-image.py` — rebuild the marketing OG card
+## `gen-og-image.py` — rebuild the link preview card
 
-Redraws `apps/web/public/og-image.png` (3200x1680, the 1.91:1 ratio Open Graph
-and Twitter both want, at 2x) from scratch: app icon over a soft brand-blue
-glow, white wordmark, slate tagline.
+Renders `apps/web/public/og-image.png` (1200x630, drawn at 2x): the hero title
+in white on a dark panel with the logo and the address, and a light blue panel
+with a recording library, the presenter's camera bubble and the recorder's
+controls. It is laid out in HTML on a running copy of the site, so it uses the
+site's fonts, logo and presenter photo. The title and rows are constants at the
+top of the script.
 
 ```bash
-python3 scripts/gen-og-image.py
+python3 scripts/gen-og-image.py [site-url]   # defaults to http://localhost:3032
 ```
 
-**Requirements:** `pip install pillow`. Fonts: macOS SF Pro (falls back to Arial).
-
-Reach for this when the wording, type, or layout changes. For a logo-only
-refresh use `gen-brand-icons.py` — its `swap_og()` pastes the new icon over the
-old one in place, which needs the tile this script draws to already be there.
-Both are kept in sync by hand; if you move the icon here, re-run the brand
-script afterwards to confirm it still finds it.
+**Requirements:** Google Chrome, `pip install pillow websocket-client`, and a
+running copy of the site. Rerun it whenever the hero title or the logo changes,
+then bump `?v=` on the image in `apps/web/app/layout.tsx` and
+`apps/web/lib/i18n/metadata.ts`.
 
 ## `gen-readme-hero.py` — rebuild the README banner
 

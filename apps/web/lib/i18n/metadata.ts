@@ -22,7 +22,7 @@ export const PAGE_PATHS: Record<MarketingPageId, string> = {
   swarmDemo: "/swarm-demo",
 };
 
-const OG_IMAGE = "/og-image.png?v=3";
+const OG_IMAGE = "/og-image.png?v=5";
 
 /*
  * Title, description, canonical and the hreflang set for one page in one
