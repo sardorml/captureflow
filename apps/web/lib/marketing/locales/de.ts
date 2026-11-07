@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Nimm deinen Bildschirm, einen Tab oder deine Kamera in Chrome auf. Danach bekommst du einen Link, den jeder ansehen kann, mit Transkript, Zusammenfassung und Kapiteln.",
     },
+    agentRecorder: {
+      title: "MCP-Server: Dein KI-Agent nimmt Videos auf",
+      description:
+        "Verbinde Claude Code, Codex, Cursor oder ChatGPT über MCP mit CaptureFlow. Dein Agent nimmt eine Web-App, deinen Bildschirm oder ein Fenster auf und gibt dir einen Link zum Teilen.",
+    },
   },
   nav: {
     features: "Funktionen",
@@ -383,6 +388,13 @@ const messages: Messages = {
       title: "Bildschirm aufnehmen in Chrome",
       subtitle:
         "Nimm deinen Bildschirm, einen Tab oder deine Kamera auf. Danach bekommst du einen Link, den jeder ansehen kann, mit Transkript, Zusammenfassung und Kapiteln.",
+    },
+    agentRecorder: {
+      label: "Recorder für Agenten",
+      word: "MCP",
+      title: "Lass deinen KI-Agenten deine Videos aufnehmen",
+      subtitle:
+        "Verbinde ihn über MCP und bitte ihn in einfachen Worten. Er nimmt eine Web-App, deinen Bildschirm oder ein Fenster auf, fügt auf Wunsch Folien und eine Stimme hinzu und gibt dir einen Link.",
     },
   },
   collaboration: {

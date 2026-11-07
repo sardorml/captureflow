@@ -21,6 +21,7 @@ export const PAGE_PATHS: Record<MarketingPageId, string> = {
   selfHostSetup: "/self-host-setup",
   swarmDemo: "/swarm-demo",
   chromeExtension: "/chrome-extension",
+  agentRecorder: "/agent-recorder",
 };
 
 const OG_IMAGE = "/og-image.png?v=5";

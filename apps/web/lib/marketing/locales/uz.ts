@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Chrome’da ekraningiz, tab yoki kamerangizni yozib oling. Tugatganingizdan soʻng transkript, xulosa va boblar bilan hamma koʻra oladigan havola olasiz.",
     },
+    agentRecorder: {
+      title: "MCP server: AI agentingiz video yozib oladi",
+      description:
+        "Claude Code, Codex, Cursor yoki ChatGPT'ni CaptureFlow'ga MCP orqali ulang. Agentingiz veb-ilovani, ekraningizni yoki bitta oynani yozib oladi va ulashish uchun havola beradi.",
+    },
   },
   nav: {
     features: "Imkoniyatlar",
@@ -369,6 +374,13 @@ const messages: Messages = {
       title: "Chrome’da ekraningizni yozib oling",
       subtitle:
         "Ekraningiz, tab yoki kamerangizni yozib oling. Tugatganingizdan soʻng transkript, xulosa va boblar bilan hamma koʻra oladigan havola olasiz.",
+    },
+    agentRecorder: {
+      label: "Agentlar uchun yozuvchi",
+      word: "MCP",
+      title: "Videolaringizni AI agentingiz yozib olsin",
+      subtitle:
+        "Uni MCP orqali ulang va oddiy so'zlar bilan so'rang. U veb-ilovani, ekraningizni yoki bitta oynani yozib oladi, xohlasangiz slayd va ovoz qo'shadi va sizga havola beradi.",
     },
   },
   collaboration: {

@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Chrome에서 화면, 탭 또는 카메라를 녹화하세요. 녹화를 마치면 자막, 요약, 챕터가 포함된, 누구나 볼 수 있는 링크를 받습니다.",
     },
+    agentRecorder: {
+      title: "MCP 서버: AI 에이전트가 동영상을 녹화합니다",
+      description:
+        "Claude Code, Codex, Cursor 또는 ChatGPT를 MCP로 CaptureFlow에 연결하세요. 에이전트가 웹 앱, 화면 또는 창 하나를 녹화하고 공유할 링크를 건넵니다.",
+    },
   },
   nav: {
     features: "기능",
@@ -357,6 +362,13 @@ const messages: Messages = {
       title: "Chrome에서 화면 녹화",
       subtitle:
         "화면, 탭 또는 카메라를 녹화하세요. 녹화를 마치면 자막, 요약, 챕터가 포함된, 누구나 볼 수 있는 링크를 받습니다.",
+    },
+    agentRecorder: {
+      label: "에이전트용 레코더",
+      word: "MCP",
+      title: "AI 에이전트가 동영상을 녹화하게 하세요",
+      subtitle:
+        "MCP로 연결하고 평소 말투로 요청하세요. 웹 앱, 화면 또는 창 하나를 녹화하고, 원하면 슬라이드와 음성을 더해 링크를 건넵니다.",
     },
   },
   collaboration: {

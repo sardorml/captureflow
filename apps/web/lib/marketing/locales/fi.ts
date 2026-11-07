@@ -56,6 +56,11 @@ const messages: Messages = {
       description:
         "Tallenna näyttösi, välilehti tai kamerasi Chromessa. Lopuksi saat linkin, jota kuka tahansa voi katsoa, tekstityksen, yhteenvedon ja lukujen kanssa.",
     },
+    agentRecorder: {
+      title: "MCP-palvelin: tekoälyagenttisi tallentaa videoita",
+      description:
+        "Yhdistä Claude Code, Codex, Cursor tai ChatGPT CaptureFlow'hun MCP:n kautta. Agenttisi tallentaa verkkosovelluksen, näyttösi tai yhden ikkunan ja antaa sinulle jaettavan linkin.",
+    },
   },
   nav: {
     features: "Ominaisuudet",
@@ -376,6 +381,13 @@ const messages: Messages = {
       title: "Tallenna näyttösi Chromessa",
       subtitle:
         "Tallenna näyttösi, välilehti tai kamerasi. Lopuksi saat linkin, jota kuka tahansa voi katsoa, tekstityksen, yhteenvedon ja lukujen kanssa.",
+    },
+    agentRecorder: {
+      label: "Tallennin agenteille",
+      word: "MCP",
+      title: "Anna tekoälyagenttisi tallentaa videosi",
+      subtitle:
+        "Yhdistä se MCP:n kautta ja pyydä tavallisin sanoin. Se tallentaa verkkosovelluksen, näyttösi tai yhden ikkunan, lisää halutessasi diat ja äänen ja antaa sinulle linkin.",
     },
   },
   collaboration: {

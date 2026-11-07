@@ -56,6 +56,11 @@ const messages: Messages = {
       description:
         "Ta opp skjermen, en fane eller kameraet i Chrome. Når du er ferdig, får du en lenke alle kan se, med transkripsjon, sammendrag og kapitler.",
     },
+    agentRecorder: {
+      title: "MCP-server: KI-agenten din tar opp videoer",
+      description:
+        "Koble Claude Code, Codex, Cursor eller ChatGPT til CaptureFlow via MCP. Agenten tar opp en nettapp, skjermen din eller ett vindu og gir deg en lenke du kan dele.",
+    },
   },
   nav: {
     features: "Funksjoner",
@@ -370,6 +375,13 @@ const messages: Messages = {
       title: "Ta opp skjermen i Chrome",
       subtitle:
         "Ta opp skjermen, en fane eller kameraet. Når du er ferdig, får du en lenke alle kan se, med transkripsjon, sammendrag og kapitler.",
+    },
+    agentRecorder: {
+      label: "Opptaker for agenter",
+      word: "MCP",
+      title: "La KI-agenten din ta opp videoene dine",
+      subtitle:
+        "Koble den til via MCP og spør med vanlige ord. Den tar opp en nettapp, skjermen din eller ett vindu, legger til lysbilder og stemme om du vil, og gir deg en lenke.",
     },
   },
   collaboration: {

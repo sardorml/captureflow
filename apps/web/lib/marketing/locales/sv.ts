@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Spela in skärmen, en flik eller kameran i Chrome. När du är klar får du en länk som alla kan titta på, med transkription, sammanfattning och kapitel.",
     },
+    agentRecorder: {
+      title: "MCP-server: din AI-agent spelar in videor",
+      description:
+        "Anslut Claude Code, Codex, Cursor eller ChatGPT till CaptureFlow via MCP. Din agent spelar in en webbapp, din skärm eller ett fönster och ger dig en länk att dela.",
+    },
   },
   nav: {
     features: "Funktioner",
@@ -376,6 +381,13 @@ const messages: Messages = {
       title: "Spela in skärmen i Chrome",
       subtitle:
         "Spela in skärmen, en flik eller kameran. När du är klar får du en länk som alla kan titta på, med transkription, sammanfattning och kapitel.",
+    },
+    agentRecorder: {
+      label: "Inspelare för agenter",
+      word: "MCP",
+      title: "Låt din AI-agent spela in dina videor",
+      subtitle:
+        "Anslut den via MCP och be med vanliga ord. Den spelar in en webbapp, din skärm eller ett fönster, lägger till bilder och röst om du vill och ger dig en länk.",
     },
   },
   collaboration: {

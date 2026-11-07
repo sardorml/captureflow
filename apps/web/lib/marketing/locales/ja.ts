@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Chromeから画面、タブ、カメラを録画できます。録画を終えると、文字起こし・要約・チャプター付きで誰でも見られるリンクが手に入ります。",
     },
+    agentRecorder: {
+      title: "MCP サーバー：AI エージェントが動画を録画",
+      description:
+        "Claude Code、Codex、Cursor、ChatGPT を MCP で CaptureFlow に接続します。エージェントが Web アプリ、画面、またはひとつのウィンドウを録画し、共有用のリンクを渡します。",
+    },
   },
   nav: {
     features: "機能",
@@ -367,6 +372,13 @@ const messages: Messages = {
       title: "Chromeで画面を録画",
       subtitle:
         "画面、タブ、カメラを録画できます。録画を終えると、文字起こし・要約・チャプター付きで誰でも見られるリンクが手に入ります。",
+    },
+    agentRecorder: {
+      label: "エージェント用レコーダー",
+      word: "MCP",
+      title: "AI エージェントに動画を録画させる",
+      subtitle:
+        "MCP で接続して、ふだんの言葉で頼むだけ。Web アプリ、画面、またはひとつのウィンドウを録画し、必要ならスライドと音声を加えて、リンクを渡します。",
     },
   },
   collaboration: {

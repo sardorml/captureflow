@@ -55,6 +55,11 @@ const messages: Messages = {
       description:
         "Grave sua tela, uma aba ou sua câmera pelo Chrome. Ao terminar, você recebe um link que qualquer pessoa pode assistir, com transcrição, resumo e capítulos.",
     },
+    agentRecorder: {
+      title: "Servidor MCP: seu agente de IA grava vídeos",
+      description:
+        "Conecte Claude Code, Codex, Cursor ou ChatGPT ao CaptureFlow por MCP. Seu agente grava um app web, sua tela ou uma janela e entrega um link para compartilhar.",
+    },
   },
   nav: {
     features: "Recursos",
@@ -373,6 +378,13 @@ const messages: Messages = {
       title: "Grave sua tela pelo Chrome",
       subtitle:
         "Grave sua tela, uma aba ou sua câmera. Ao terminar, você recebe um link que qualquer pessoa pode assistir, com transcrição, resumo e capítulos.",
+    },
+    agentRecorder: {
+      label: "Gravador para agentes",
+      word: "MCP",
+      title: "Deixe seu agente de IA gravar seus vídeos",
+      subtitle:
+        "Conecte por MCP e peça com palavras simples. Ele grava um app web, sua tela ou uma janela, adiciona slides e voz se você quiser, e entrega um link.",
     },
   },
   collaboration: {

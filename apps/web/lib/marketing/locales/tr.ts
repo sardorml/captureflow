@@ -56,6 +56,11 @@ const messages: Messages = {
       description:
         "Chrome'dan ekranınızı, bir sekmeyi veya kameranızı kaydedin. Bitirdiğinizde transkript, özet ve bölümlerle herkesin izleyebileceği bir bağlantı alırsınız.",
     },
+    agentRecorder: {
+      title: "MCP sunucusu: yapay zekâ ajanınız video kaydeder",
+      description:
+        "Claude Code, Codex, Cursor veya ChatGPT'yi MCP ile CaptureFlow'a bağlayın. Ajanınız bir web uygulamasını, ekranınızı veya tek bir pencereyi kaydeder ve paylaşmanız için bir bağlantı verir.",
+    },
   },
   nav: {
     features: "Özellikler",
@@ -376,6 +381,13 @@ const messages: Messages = {
       title: "Chrome'dan ekranınızı kaydedin",
       subtitle:
         "Ekranınızı, bir sekmeyi veya kameranızı kaydedin. Bitirdiğinizde transkript, özet ve bölümlerle herkesin izleyebileceği bir bağlantı alırsınız.",
+    },
+    agentRecorder: {
+      label: "Ajanlar için kaydedici",
+      word: "MCP",
+      title: "Videolarınızı yapay zekâ ajanınız kaydetsin",
+      subtitle:
+        "MCP ile bağlayın ve sade sözcüklerle isteyin. Bir web uygulamasını, ekranınızı veya tek bir pencereyi kaydeder, isterseniz slayt ve ses ekler ve size bir bağlantı verir.",
     },
   },
   collaboration: {

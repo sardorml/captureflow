@@ -56,6 +56,11 @@ const messages: Messages = {
       description:
         "Enregistrez votre écran, un onglet ou votre caméra depuis Chrome. À la fin, vous obtenez un lien que tout le monde peut regarder, avec transcription, résumé et chapitres.",
     },
+    agentRecorder: {
+      title: "Serveur MCP : votre agent IA enregistre des vidéos",
+      description:
+        "Connectez Claude Code, Codex, Cursor ou ChatGPT à CaptureFlow via MCP. Votre agent enregistre une app web, votre écran ou une fenêtre et vous donne un lien à partager.",
+    },
   },
   nav: {
     features: "Fonctionnalités",
@@ -392,6 +397,13 @@ const messages: Messages = {
       title: "Enregistrez votre écran depuis Chrome",
       subtitle:
         "Enregistrez votre écran, un onglet ou votre caméra. À la fin, vous obtenez un lien que tout le monde peut regarder, avec transcription, résumé et chapitres.",
+    },
+    agentRecorder: {
+      label: "Enregistreur pour agents",
+      word: "MCP",
+      title: "Laissez votre agent IA enregistrer vos vidéos",
+      subtitle:
+        "Connectez-le via MCP et demandez-lui en termes simples. Il enregistre une app web, votre écran ou une fenêtre, ajoute des diapositives et une voix si vous le souhaitez, et vous donne un lien.",
     },
   },
   collaboration: {

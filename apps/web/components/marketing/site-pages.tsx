@@ -224,3 +224,21 @@ export function ChromeExtensionPage({ i18n }: PageProps) {
     </MarketingPage>
   );
 }
+
+export function AgentRecorderPage({ i18n }: PageProps) {
+  const { messages } = i18n ?? ENGLISH;
+  return (
+    <MarketingPage i18n={i18n}>
+      <PageHero
+        page="agentRecorder"
+        action={
+          <PillLink href={`${DOCS_URL}/guide/local-agent`}>
+            {messages.agents.cta}
+          </PillLink>
+        }
+      />
+      <AgentsSection hideHeading />
+      <McpFeaturesSection />
+    </MarketingPage>
+  );
+}
