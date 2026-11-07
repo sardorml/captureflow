@@ -351,124 +351,143 @@ export async function startSession(
    */
   async function rebuild(req: RebuildRequest) {
     rec.live();
-    if (req.url) {
-      if (!(await allowUrl(req.url))) {
-        throw new SessionError("That address can't be opened in the recorder.");
-      }
-      await open(req.url);
-    } else if (!/^https?:/.test(page.url())) {
-      throw new SessionError(
-        "Give a url: this recording has no page open yet.",
-      );
-    }
-    const maxY =
-      height *
-      within(req.screens ?? SWARM_LIMITS.screens, {
-        min: 1,
-        max: SWARM_LIMITS.screens,
-      });
-    await page.evaluate(settlePage, {
-      step: height,
-      maxY,
-      hide: CONSENT_SELECTOR,
-    });
-    await page.evaluate(() => document.fonts.ready).catch(() => {});
-    /*
-     * Scanned a screen at a time, from where a viewer would see it, so what
-     * fades in on arrival is caught too. The screen past the build is scanned
-     * as well: hidden, never built, so nothing unbuilt shows when the camera
-     * reaches the bottom.
-     */
-    const scanY = maxY + height;
-    let units: SwarmUnit[] = [];
-    const scanScreens = async () => {
-      for (let top = 0; top <= scanY; top += height) {
-        await page.evaluate(
-          (y) => window.scrollTo({ top: y, behavior: "instant" }),
-          top,
+    const startedAt = Date.now();
+    // Getting the page ready isn't recorded, but on a slow machine it can outlast the idle stop.
+    const { plan, built } = await rec.offCamera(async () => {
+      if (req.url) {
+        if (!(await allowUrl(req.url))) {
+          throw new SessionError(
+            "That address can't be opened in the recorder.",
+          );
+        }
+        await open(req.url);
+      } else if (!/^https?:/.test(page.url())) {
+        throw new SessionError(
+          "Give a url: this recording has no page open yet.",
         );
-        await sleep(REVEAL_MS);
-        units = await page.evaluate(scanSwarmUnits, {
-          maxUnits: SWARM_LIMITS.maxUnits,
-          maxY: scanY,
-          hide: CONSENT_SELECTOR,
+      }
+      const maxY =
+        height *
+        within(req.screens ?? SWARM_LIMITS.screens, {
+          min: 1,
+          max: SWARM_LIMITS.screens,
         });
-      }
-    };
-    // A page still fetching parts of itself while it is scanned gets a second pass.
-    const grew = await page.evaluateHandle(() => {
-      const grown = { value: false };
-      new MutationObserver(() => (grown.value = true)).observe(document.body, {
-        childList: true,
-        subtree: true,
+      await page.evaluate(settlePage, {
+        step: height,
+        maxY,
+        hide: CONSENT_SELECTOR,
       });
-      return grown;
-    });
-    await scanScreens();
-    if (await grew.evaluate((g) => g.value)) await scanScreens();
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    await sleep(SETTLE_MS);
-    const built = units.filter((u) => u.y <= maxY);
-    if (built.length < WALL_UNITS) {
-      const [title, text] = await Promise.all([
-        page.title().catch(() => ""),
-        page.evaluate(() => document.body?.innerText ?? "").catch(() => ""),
-      ]);
-      if (looksLikeWall(title, text)) {
-        throw new SessionError(
-          "That site shows a bot check or a block page to automated browsers, so there's nothing to rebuild.",
+      await page.evaluate(() => document.fonts.ready).catch(() => {});
+      /*
+       * Scanned a screen at a time, from where a viewer would see it, so what
+       * fades in on arrival is caught too. The screen past the build is scanned
+       * as well: hidden, never built, so nothing unbuilt shows when the camera
+       * reaches the bottom.
+       */
+      const scanY = maxY + height;
+      let units: SwarmUnit[] = [];
+      const scanScreens = async () => {
+        for (let top = 0; top <= scanY; top += height) {
+          await page.evaluate(
+            (y) => window.scrollTo({ top: y, behavior: "instant" }),
+            top,
+          );
+          await sleep(REVEAL_MS);
+          units = await page.evaluate(scanSwarmUnits, {
+            maxUnits: SWARM_LIMITS.maxUnits,
+            maxY: scanY,
+            hide: CONSENT_SELECTOR,
+          });
+        }
+      };
+      // A page still fetching parts of itself while it is scanned gets a second pass.
+      const grew = await page.evaluateHandle(() => {
+        const grown = { value: false };
+        new MutationObserver(() => (grown.value = true)).observe(
+          document.body,
+          {
+            childList: true,
+            subtree: true,
+          },
         );
-      }
-    }
-    if (!built.length) {
-      throw new SessionError("There's nothing on that page to rebuild.");
-    }
-    const screens =
-      Math.max(0, ...built.map((u) => u.y + u.h)) / Math.max(1, height);
-    const seconds =
-      req.seconds ??
-      Math.min(swarmSeconds(built.length, screens), req.maxSeconds ?? Infinity);
-    const durationMs = within(seconds, SWARM_LIMITS.seconds) * 1000;
-    const seed = Date.now() % 1_000_000;
-    const plan = planSwarm(units, {
-      agents: Math.round(
-        within(req.agents ?? SWARM_LIMITS.agents.default, SWARM_LIMITS.agents),
-      ),
-      durationMs,
-      seed,
-      prompt:
-        req.prompt === undefined
-          ? `Rebuild ${new URL(page.url()).host}`
-          : req.prompt.trim().slice(0, 120),
-      tempo: Boolean(req.music),
-      maxY,
-      screen: height,
-    });
-    await page.evaluate(mountSwarm, { units, plan, hide: CONSENT_SELECTOR });
-    await cursorHidden(true);
-    // The keys are heard as the prompt is typed; the music starts on send, shares the build's tempo and is gone when the build is.
-    const sounds: SoundLayer[] = [];
-    if (plan.prompt) {
-      sounds.push({ pcm: typingSound(plan.prompt, seed), atMs: 0 });
-    }
-    if (req.music && plan.tempo) {
-      const atMs = plan.prompt?.sendAt ?? 0;
-      const pcm = await renderMusic(
-        req.music,
-        {
-          rampFromMs: plan.tempo.rampFromMs - atMs,
-          rampToMs: plan.tempo.rampToMs - atMs,
-          lengthMs: plan.durationMs - atMs,
-        },
-        opts.ffmpegPath,
-      ).catch((err) => {
-        throw new SessionError(
-          `The music couldn't be prepared: ${(err as Error).message}`,
-        );
+        return grown;
       });
-      sounds.push({ pcm, atMs });
-    }
-    if (sounds.length) rec.music(layerSounds(sounds));
+      await scanScreens();
+      if (await grew.evaluate((g) => g.value)) await scanScreens();
+      await page.evaluate(() =>
+        window.scrollTo({ top: 0, behavior: "instant" }),
+      );
+      await sleep(SETTLE_MS);
+      const built = units.filter((u) => u.y <= maxY);
+      if (built.length < WALL_UNITS) {
+        const [title, text] = await Promise.all([
+          page.title().catch(() => ""),
+          page.evaluate(() => document.body?.innerText ?? "").catch(() => ""),
+        ]);
+        if (looksLikeWall(title, text)) {
+          throw new SessionError(
+            "That site shows a bot check or a block page to automated browsers, so there's nothing to rebuild.",
+          );
+        }
+      }
+      if (!built.length) {
+        throw new SessionError("There's nothing on that page to rebuild.");
+      }
+      const screens =
+        Math.max(0, ...built.map((u) => u.y + u.h)) / Math.max(1, height);
+      const seconds =
+        req.seconds ??
+        Math.min(
+          swarmSeconds(built.length, screens),
+          req.maxSeconds ?? Infinity,
+        );
+      const durationMs = within(seconds, SWARM_LIMITS.seconds) * 1000;
+      const seed = Date.now() % 1_000_000;
+      const plan = planSwarm(units, {
+        agents: Math.round(
+          within(
+            req.agents ?? SWARM_LIMITS.agents.default,
+            SWARM_LIMITS.agents,
+          ),
+        ),
+        durationMs,
+        seed,
+        prompt:
+          req.prompt === undefined
+            ? `Rebuild ${new URL(page.url()).host}`
+            : req.prompt.trim().slice(0, 120),
+        tempo: Boolean(req.music),
+        maxY,
+        screen: height,
+      });
+      await page.evaluate(mountSwarm, { units, plan, hide: CONSENT_SELECTOR });
+      await cursorHidden(true);
+      // The keys are heard as the prompt is typed; the music starts on send, shares the build's tempo and is gone when the build is.
+      const sounds: SoundLayer[] = [];
+      if (plan.prompt) {
+        sounds.push({ pcm: typingSound(plan.prompt, seed), atMs: 0 });
+      }
+      if (req.music && plan.tempo) {
+        const atMs = plan.prompt?.sendAt ?? 0;
+        const pcm = await renderMusic(
+          req.music,
+          {
+            rampFromMs: plan.tempo.rampFromMs - atMs,
+            rampToMs: plan.tempo.rampToMs - atMs,
+            lengthMs: plan.durationMs - atMs,
+          },
+          opts.ffmpegPath,
+        ).catch((err) => {
+          throw new SessionError(
+            `The music couldn't be prepared: ${(err as Error).message}`,
+          );
+        });
+        sounds.push({ pcm, atMs });
+      }
+      if (sounds.length) rec.music(layerSounds(sounds));
+      return { plan, built };
+    });
+    const drawFrom = Date.now();
     rec.mark(`Rebuilding ${new URL(page.url()).host}`);
     try {
       await rec.recorded(() =>
@@ -483,7 +502,12 @@ export async function startSession(
       await cursorHidden(false);
     }
     await rec.recorded(() => sleep(SETTLE_MS));
-    return { elements: built.length, agents: plan.agents };
+    return {
+      elements: built.length,
+      agents: plan.agents,
+      prepareMs: drawFrom - startedAt,
+      drawMs: Date.now() - drawFrom,
+    };
   }
 
   async function act(action: Action) {

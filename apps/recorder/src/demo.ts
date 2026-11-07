@@ -52,13 +52,13 @@ export async function runDemo(
       return null;
     });
     const startedAt = Date.now();
-    await session.rebuild({ url, music: track, ...DEMO_BUILD });
+    const built = await session.rebuild({ url, music: track, ...DEMO_BUILD });
     const builtAt = Date.now();
     await session.act({ type: "show_slide", slide: END_CARD });
     await session.act({ type: "wait", seconds: END_CARD_SECONDS });
     const result = await session.stop();
     console.log(
-      `[recorder] demo ${new URL(url).host}: built in ${seconds(startedAt, builtAt)}s, done in ${seconds(startedAt, Date.now())}s`,
+      `[recorder] demo ${new URL(url).host}: built in ${seconds(startedAt, builtAt)}s (prepared ${seconds(0, built.prepareMs)}s, drawn ${seconds(0, built.drawMs)}s), done in ${seconds(startedAt, Date.now())}s`,
     );
     return result;
   } catch (err) {
