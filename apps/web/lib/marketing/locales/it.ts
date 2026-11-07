@@ -45,6 +45,11 @@ const messages: Messages = {
       description:
         "Fai configurare CaptureFlow sull'account Cloudflare della tua azienda: il tuo dominio, accesso solo aziendale e un'estensione Chrome privata per il team.",
     },
+    swarmDemo: {
+      title: "Demo sciame: gli agenti ricostruiscono qualsiasi sito in video",
+      description:
+        "Digita l'indirizzo di un sito e guarda uno sciame di cursori di agenti ricostruirlo elemento per elemento, a ritmo di musica. Ottieni un video con un link da condividere.",
+    },
   },
   nav: {
     features: "Funzionalità",
@@ -67,6 +72,13 @@ const messages: Messages = {
     selfHostingDescription: "Eseguilo sul tuo account Cloudflare",
     community: "Community",
     communityDescription: "Chiedi aiuto e chatta su Discord",
+    products: "Prodotti",
+    swarmDemo: "Demo sciame",
+    swarmDemoDescription: "Gli agenti ricostruiscono qualsiasi sito in video",
+    extension: "Estensione Chrome",
+    extensionDescription: "Registra lo schermo e condividi un link",
+    agentRecorder: "Registratore per agenti",
+    agentRecorderDescription: "I video che il tuo agente IA crea via MCP",
     star: "Metti una stella su GitHub",
     starCount: "Metti una stella su GitHub ({stars})",
     themeToLight: "Passa al tema chiaro",
@@ -306,7 +318,7 @@ const messages: Messages = {
       chatgpt:
         "In ChatGPT sul web, apri «Plugins», premi + e scegli «Add custom MCP server». Chiamalo CaptureFlow, incolla questo URL, scegli OAuth, poi installa il plugin e accedi. Richiede un piano Business, Enterprise o Edu.",
       limits:
-        "Le chat registrano siti web in un browser cloud, non il tuo computer, e usano i minuti di agente cloud del tuo piano.",
+        "Le chat creano video di presentazione e guide a partire da slide sui nostri server, non registrazioni del tuo computer, e usano i minuti agente cloud del tuo piano.",
     },
   },
   modes: {
@@ -530,6 +542,51 @@ const messages: Messages = {
       sentTitle: "Messaggio inviato",
       sentBody: "Grazie. Ti risponderemo a {email}.",
       back: "Torna alla home",
+    },
+  },
+  swarmDemo: {
+    title: "Guarda gli agenti ricostruire",
+    titleHighlight: "qualsiasi sito",
+    subtitle:
+      "Digita l'indirizzo di un sito. Uno sciame di cursori di agenti lo ridisegna elemento per elemento, a ritmo di musica, e ottieni un link video da condividere.",
+    url: "Indirizzo del sito",
+    urlPlaceholder: "https://example.com",
+    generate: "Genera demo",
+    generating: "Avvio di un browser cloud…",
+    check: "Controlla il sito",
+    checking: "Controllo del sito…",
+    previewNote:
+      "Questa è la pagina che gli agenti ricostruiranno. Genera la demo quando ti sembra giusta.",
+    change: "Cambia indirizzo",
+    note: "Accedi per generare. Ogni demo usa uno o due minuti agente cloud del tuo piano e finisce nella tua libreria.",
+    howHeading: "Come funziona",
+    how: {
+      type: {
+        title: "Digita un indirizzo",
+        body: "Qualsiasi sito pubblico. La pagina viene caricata in un browser cloud e ogni titolo, immagine, pulsante e card viene individuato.",
+      },
+      build: {
+        title: "Gli agenti lo ricostruiscono",
+        body: "La richiesta viene digitata in una casella di chat, poi uno sciame di cursori posiziona ogni elemento mentre la musica accelera.",
+      },
+      share: {
+        title: "Ottieni un link",
+        body: "Il video si apre nella tua libreria non appena è pronto. Condividi il link, scarica il file o pubblicalo.",
+      },
+    },
+    errors: {
+      invalidUrl: "Inserisci l'indirizzo di un sito, ad esempio example.com.",
+      unreachable:
+        "Impossibile raggiungere quel sito. Controlla l'indirizzo e riprova.",
+      unavailable: "Le demo non sono disponibili su questo server.",
+      running:
+        "Una tua registrazione è ancora in corso. Aspetta che finisca, poi riprova.",
+      limit:
+        "Questo workspace ha esaurito i minuti agente cloud di questo mese. Si rinnovano il giorno 1.",
+      recordings:
+        "Hai raggiunto il limite di registrazioni del piano gratuito. Elimina una registrazione o passa a un piano superiore, poi riprova.",
+      busy: "Tutti i browser cloud sono occupati in questo momento. Riprova tra qualche minuto.",
+      failed: "Non è stato possibile avviare la demo. Riprova.",
     },
   },
   enterprise: {
@@ -900,7 +957,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Registrazioni con agente in un browser cloud",
+              label: "Presentazioni dell'agente create nel cloud",
               free: `${FREE_AGENT_MIN} min al mese per persona`,
               light: `${LIGHT_AGENT_MIN} min al mese per membro`,
               pro: `${PRO_AGENT_MIN} min al mese per membro`,
@@ -918,7 +975,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Voce narrante AI in un browser cloud",
+              label: "Voce fuori campo IA nelle presentazioni cloud",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} min al mese per membro`,

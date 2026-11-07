@@ -20,7 +20,10 @@ import {
   TRACK_CACHED_STYLESHEETS,
 } from "./lib/inline-stylesheet";
 import { langOf, splitLocale } from "./lib/i18n/config";
-import { sweepAgentRecordings } from "./lib/mcp/agent-recordings-db";
+import {
+  endAgentRecording,
+  sweepAgentRecordings,
+} from "./lib/mcp/agent-recordings-db";
 import { hydrateTranscriptionJobMessage } from "./lib/recording/transcription";
 import {
   failTranscription,
@@ -39,6 +42,7 @@ type Env = {
   CLOUDFLARE_PURGE_TOKEN?: string;
   R2_PUBLIC_BASE_URL?: string;
   RECORDER_SECRET?: string;
+  RECORDER_MUSIC?: string;
   GITHUB_TOKEN?: string;
 };
 
@@ -52,18 +56,45 @@ export class RecorderContainer extends Container<Env> {
 
   constructor(ctx: DurableObjectState<{}>, env: Env) {
     super(ctx, env);
-    this.envVars = { RECORDER_SECRET: env.RECORDER_SECRET ?? "" };
+    this.envVars = {
+      RECORDER_SECRET: env.RECORDER_SECRET ?? "",
+      RECORDER_MUSIC: env.RECORDER_MUSIC ?? "",
+    };
   }
 
   override async fetch(request: Request): Promise<Response> {
+    const path = new URL(request.url).pathname;
+    if (request.method === "POST" && path.endsWith("/demo")) {
+      this.ctx.waitUntil(this.runDemo(request, path.split("/")[2] ?? ""));
+      return Response.json({ ok: true }, { status: 202 });
+    }
     const res = await this.containerFetch(request);
-    const ended =
-      request.method === "DELETE" ||
-      new URL(request.url).pathname.endsWith("/stop");
+    const ended = request.method === "DELETE" || path.endsWith("/stop");
     if (!ended || !res.ok) return res;
     const body = await res.arrayBuffer();
     this.ctx.waitUntil(this.stop());
     return new Response(body, res);
+  }
+
+  /*
+   * A swarm demo takes minutes, longer than the page that asked for it can
+   * wait, so the request is answered at once and the container's reply is
+   * awaited here. The open request keeps the container's idle timer fresh;
+   * when the clip is uploaded, or the demo fails, the session's row is ended
+   * so its minutes stop counting and the next demo may start.
+   */
+  private async runDemo(request: Request, id: string) {
+    try {
+      const res = await this.containerFetch(request);
+      if (!res.ok) console.warn(`[swarm-demo] ${id}: ${await res.text()}`);
+    } catch (err) {
+      console.warn(`[swarm-demo] ${id} failed:`, err);
+    } finally {
+      await endAgentRecording(this.env.DB, id, Date.now()).catch((err) =>
+        console.error(`[swarm-demo] ${id} not ended:`, err),
+      );
+      await this.stop();
+    }
   }
 }
 

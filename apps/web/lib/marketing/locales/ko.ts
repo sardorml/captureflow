@@ -45,6 +45,11 @@ const messages: Messages = {
       description:
         "회사의 Cloudflare 계정에 CaptureFlow를 설치해 드립니다: 회사 도메인, 회사 전용 로그인, 팀을 위한 비공개 Chrome 확장 프로그램.",
     },
+    swarmDemo: {
+      title: "스웜 데모: 에이전트가 어떤 웹사이트든 영상으로 다시 만듭니다",
+      description:
+        "웹사이트 주소를 입력하면 에이전트 커서 떼가 음악에 맞춰 요소 하나하나를 다시 만들어 가는 모습을 볼 수 있습니다. 공유 링크가 있는 영상을 받습니다.",
+    },
   },
   nav: {
     features: "기능",
@@ -67,6 +72,13 @@ const messages: Messages = {
     selfHostingDescription: "내 Cloudflare에서 직접 실행",
     community: "커뮤니티",
     communityDescription: "Discord에서 도움 받고 대화하기",
+    products: "제품",
+    swarmDemo: "스웜 데모",
+    swarmDemoDescription: "에이전트가 어떤 웹사이트든 영상으로 다시 만들기",
+    extension: "Chrome 확장 프로그램",
+    extensionDescription: "화면을 녹화하고 링크로 공유",
+    agentRecorder: "에이전트용 레코더",
+    agentRecorderDescription: "AI 에이전트가 MCP로 만드는 영상",
     star: "GitHub에서 스타 누르기",
     starCount: "GitHub에서 스타 누르기 ({stars})",
     themeToLight: "라이트 테마로 전환",
@@ -290,7 +302,7 @@ const messages: Messages = {
       chatgpt:
         "웹 ChatGPT에서 플러그인을 열고 +를 누른 다음 사용자 지정 MCP 서버 추가를 선택하세요. 이름을 CaptureFlow로 정하고 이 URL을 붙여넣고 OAuth를 선택한 뒤 플러그인을 설치하고 로그인하세요. Business, Enterprise 또는 Edu 요금제가 필요합니다.",
       limits:
-        "채팅에서는 내 컴퓨터가 아닌 클라우드 브라우저로 웹사이트를 녹화하며, 요금제의 클라우드 에이전트 사용 시간을 씁니다.",
+        "채팅은 컴퓨터를 녹화하지 않고 당사 서버에서 슬라이드로 프레젠테이션과 사용법 영상을 만들며, 플랜의 클라우드 에이전트 시간을 사용합니다.",
     },
   },
   modes: {
@@ -511,6 +523,50 @@ const messages: Messages = {
       sentTitle: "메시지를 보냈습니다",
       sentBody: "감사합니다. {email}로 답장드리겠습니다.",
       back: "홈으로 돌아가기",
+    },
+  },
+  swarmDemo: {
+    title: "에이전트가 다시 만드는 모습을 보세요:",
+    titleHighlight: "어떤 웹사이트든",
+    subtitle:
+      "웹사이트 주소를 입력하세요. 에이전트 커서 떼가 음악에 맞춰 요소 하나하나를 다시 그리고, 공유할 수 있는 영상 링크를 받습니다.",
+    url: "웹사이트 주소",
+    urlPlaceholder: "https://example.com",
+    generate: "데모 생성",
+    generating: "클라우드 브라우저 시작 중…",
+    check: "웹사이트 확인",
+    checking: "웹사이트를 확인하는 중…",
+    previewNote: "에이전트가 다시 만들 페이지입니다. 맞으면 데모를 생성하세요.",
+    change: "주소 변경",
+    note: "생성하려면 로그인하세요. 데모마다 플랜의 클라우드 에이전트 시간을 일이 분 사용하며 라이브러리에 저장됩니다.",
+    howHeading: "작동 방식",
+    how: {
+      type: {
+        title: "주소 입력",
+        body: "공개된 웹사이트라면 무엇이든. 페이지를 클라우드 브라우저에서 불러와 제목, 이미지, 버튼, 카드를 모두 찾아냅니다.",
+      },
+      build: {
+        title: "에이전트가 다시 만듭니다",
+        body: "요청이 채팅창에 입력되면 커서 떼가 각 요소를 배치하고, 그동안 음악은 점점 빨라집니다.",
+      },
+      share: {
+        title: "링크 받기",
+        body: "완성되는 즉시 영상이 라이브러리에서 열립니다. 링크를 공유하거나 파일을 다운로드하거나 게시하세요.",
+      },
+    },
+    errors: {
+      invalidUrl: "example.com 같은 웹사이트 주소를 입력하세요.",
+      unreachable:
+        "해당 웹사이트에 접속할 수 없습니다. 주소를 확인하고 다시 시도하세요.",
+      unavailable: "이 서버에서는 데모를 사용할 수 없습니다.",
+      running:
+        "아직 진행 중인 녹화가 있습니다. 끝날 때까지 기다린 뒤 다시 시도하세요.",
+      limit:
+        "이 워크스페이스는 이번 달 클라우드 에이전트 시간을 모두 사용했습니다. 매월 1일에 초기화됩니다.",
+      recordings:
+        "무료 플랜의 녹화 한도에 도달했습니다. 녹화를 삭제하거나 업그레이드한 뒤 다시 시도하세요.",
+      busy: "지금은 모든 클라우드 브라우저가 사용 중입니다. 몇 분 후에 다시 시도하세요.",
+      failed: "데모를 시작할 수 없습니다. 다시 시도하세요.",
     },
   },
   enterprise: {
@@ -873,7 +929,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "클라우드 브라우저에서 에이전트 녹화",
+              label: "클라우드에서 만드는 에이전트 프레젠테이션",
               free: `한 사람당 월 ${FREE_AGENT_MIN}분`,
               light: `멤버당 월 ${LIGHT_AGENT_MIN}분`,
               pro: `멤버당 월 ${PRO_AGENT_MIN}분`,
@@ -891,7 +947,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "클라우드 브라우저에서 AI 보이스오버",
+              label: "클라우드 프레젠테이션의 AI 보이스오버",
               free: false,
               light: false,
               pro: `멤버당 월 ${PRO_VOICEOVER_MIN}분`,

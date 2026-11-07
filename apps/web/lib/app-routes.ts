@@ -28,6 +28,7 @@ const MARKETING_ROUTE_SEGMENTS = new Set([
   "pricing",
   "self-host-setup",
   "suggest-feature",
+  "swarm-demo",
 ]);
 
 // A translated page (/de/pricing) is the same marketing page in another language.

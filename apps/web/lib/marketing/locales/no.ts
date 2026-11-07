@@ -45,6 +45,12 @@ const messages: Messages = {
       description:
         "Få CaptureFlow satt opp på bedriftens egen Cloudflare-konto: ditt domene, innlogging bare for bedriften og en privat Chrome-utvidelse for teamet.",
     },
+    swarmDemo: {
+      title:
+        "Svermdemo: agenter bygger opp igjen et hvilket som helst nettsted på video",
+      description:
+        "Skriv inn en nettadresse og se en sverm av agentmarkører bygge nettstedet opp igjen element for element, til musikk. Du får en video med en lenke å dele.",
+    },
   },
   nav: {
     features: "Funksjoner",
@@ -67,6 +73,13 @@ const messages: Messages = {
     selfHostingDescription: "Kjør det på din egen Cloudflare",
     community: "Fellesskap",
     communityDescription: "Få hjelp og prat på Discord",
+    products: "Produkter",
+    swarmDemo: "Svermdemo",
+    swarmDemoDescription: "Agenter bygger opp igjen ethvert nettsted på video",
+    extension: "Chrome-utvidelse",
+    extensionDescription: "Ta opp skjermen og del en lenke",
+    agentRecorder: "Opptaker for agenter",
+    agentRecorderDescription: "Videoer KI-agenten din lager over MCP",
     star: "Gi stjerne på GitHub",
     starCount: "Gi stjerne på GitHub ({stars})",
     themeToLight: "Bytt til lyst tema",
@@ -302,7 +315,7 @@ const messages: Messages = {
       chatgpt:
         "I ChatGPT på nettet åpner du Plugins, trykker på + og velger Add custom MCP server. Gi den navnet CaptureFlow, lim inn denne URL-en, velg OAuth, og installer deretter pluginen og logg inn. Krever et Business-, Enterprise- eller Edu-abonnement.",
       limits:
-        "Chatter tar opp nettsteder i en nettleser i skyen, ikke på datamaskinen din, og bruker abonnementets minutter for agentopptak i skyen.",
+        "Chatter lager presentasjons- og veiledningsvideoer av lysbilder på serverne våre, ikke opptak av datamaskinen din, og bruker planens agentminutter i skyen.",
     },
   },
   modes: {
@@ -527,6 +540,50 @@ const messages: Messages = {
       sentTitle: "Melding sendt",
       sentBody: "Takk. Vi svarer deg på {email}.",
       back: "Tilbake til forsiden",
+    },
+  },
+  swarmDemo: {
+    title: "Se agenter bygge opp igjen",
+    titleHighlight: "ethvert nettsted",
+    subtitle:
+      "Skriv inn en nettadresse. En sverm av agentmarkører tegner nettstedet opp igjen element for element, til musikk, og du får en videolenke å dele.",
+    url: "Nettadresse",
+    urlPlaceholder: "https://example.com",
+    generate: "Lag demo",
+    generating: "Starter en nettleser i skyen…",
+    check: "Sjekk nettstedet",
+    checking: "Sjekker nettstedet…",
+    previewNote:
+      "Dette er siden agentene bygger opp igjen. Lag demoen når den ser riktig ut.",
+    change: "Endre adresse",
+    note: "Logg inn for å lage en demo. Hver demo bruker ett eller to av planens agentminutter i skyen og havner i biblioteket ditt.",
+    howHeading: "Slik fungerer det",
+    how: {
+      type: {
+        title: "Skriv inn en adresse",
+        body: "Et hvilket som helst offentlig nettsted. Siden lastes i en nettleser i skyen, og hver overskrift, hvert bilde, hver knapp og hvert kort blir funnet.",
+      },
+      build: {
+        title: "Agentene bygger det opp igjen",
+        body: "Forespørselen skrives inn i en chatboks, og så plasserer en sverm av markører hvert element mens musikken går raskere.",
+      },
+      share: {
+        title: "Få en lenke",
+        body: "Videoen åpnes i biblioteket ditt så snart den er ferdig. Del lenken, last ned filen eller publiser den.",
+      },
+    },
+    errors: {
+      invalidUrl: "Skriv inn en nettadresse som example.com.",
+      unreachable: "Nettstedet kunne ikke nås. Sjekk adressen og prøv igjen.",
+      unavailable: "Demoer er ikke tilgjengelige på denne serveren.",
+      running:
+        "Et av opptakene dine kjører fortsatt. Vent til det er ferdig, og prøv igjen.",
+      limit:
+        "Dette arbeidsområdet har brukt opp agentminuttene i skyen for denne måneden. De tilbakestilles den 1.",
+      recordings:
+        "Du har nådd opptaksgrensen for gratisplanen. Slett et opptak eller oppgrader, og prøv igjen.",
+      busy: "Alle nettleserne i skyen er opptatt akkurat nå. Prøv igjen om noen minutter.",
+      failed: "Demoen kunne ikke startes. Prøv igjen.",
     },
   },
   enterprise: {
@@ -895,7 +952,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Agentopptak i en nettleser i skyen",
+              label: "Agentpresentasjoner laget i skyen",
               free: `${FREE_AGENT_MIN} min per måned per person`,
               light: `${LIGHT_AGENT_MIN} min per måned per medlem`,
               pro: `${PRO_AGENT_MIN} min per måned per medlem`,
@@ -913,7 +970,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "AI-fortellerstemme i en nettleser i skyen",
+              label: "KI-fortellerstemme i skypresentasjoner",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} min per måned per medlem`,

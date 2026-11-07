@@ -45,6 +45,11 @@ const messages: Messages = {
       description:
         "CaptureFlowni kompaniyangizning Cloudflare hisobiga oʻrnatib beramiz: oʻz domeningiz, faqat kompaniya uchun kirish va jamoangiz uchun yopiq Chrome kengaytmasi.",
     },
+    swarmDemo: {
+      title: "Toʻda demosi: agentlar istalgan saytni videoda qayta quradi",
+      description:
+        "Sayt manzilini kiriting va agent kursorlari toʻdasi uni musiqa ostida elementma-element qayta qurishini tomosha qiling. Sizga ulashish uchun havolali video beriladi.",
+    },
   },
   nav: {
     features: "Imkoniyatlar",
@@ -67,6 +72,13 @@ const messages: Messages = {
     selfHostingDescription: "Oʻz Cloudflare hisobingizda ishga tushiring",
     community: "Hamjamiyat",
     communityDescription: "Discordda yordam oling va suhbatlashing",
+    products: "Mahsulotlar",
+    swarmDemo: "Toʻda demosi",
+    swarmDemoDescription: "Agentlar istalgan saytni videoda qayta quradi",
+    extension: "Chrome kengaytmasi",
+    extensionDescription: "Ekraningizni yozib oling va havola ulashing",
+    agentRecorder: "Agentlar uchun yozuvchi",
+    agentRecorderDescription: "SI agentingiz MCP orqali yaratadigan videolar",
     star: "GitHubda yulduzcha qoʻying",
     starCount: "GitHubda yulduzcha qoʻying ({stars})",
     themeToLight: "Yorugʻ mavzuga oʻtish",
@@ -302,7 +314,7 @@ const messages: Messages = {
       chatgpt:
         "ChatGPT veb-versiyasida «Plugins» boʻlimini oching, + tugmasini bosing va «Add custom MCP server» bandini tanlang. Unga CaptureFlow deb nom bering, ushbu URLni joylang, OAuthni tanlang, soʻng plaginni oʻrnatib, hisobga kiring. Business, Enterprise yoki Edu tarifi kerak.",
       limits:
-        "Chatlar kompyuteringizni emas, bulutli brauzerda veb-saytlarni yozib oladi va tarifingizdagi bulutli agent daqiqalarini sarflaydi.",
+        "Chatlar kompyuteringizni yozib olmaydi: taqdimot va yoʻriqnoma videolarini bizning serverlarimizda slaydlardan yigʻadi va tarifingizdagi bulutli agent daqiqalarini sarflaydi.",
     },
   },
   modes: {
@@ -527,6 +539,51 @@ const messages: Messages = {
       sentTitle: "Xabar yuborildi",
       sentBody: "Rahmat. Sizga {email} manziliga javob yozamiz.",
       back: "Bosh sahifaga qaytish",
+    },
+  },
+  swarmDemo: {
+    title: "Tomosha qiling: agentlar qayta quradi",
+    titleHighlight: "istalgan saytni",
+    subtitle:
+      "Sayt manzilini kiriting. Agent kursorlari toʻdasi uni musiqa ostida elementma-element qaytadan chizadi va siz ulashish uchun video havolasini olasiz.",
+    url: "Sayt manzili",
+    urlPlaceholder: "https://example.com",
+    generate: "Demo yaratish",
+    generating: "Bulutli brauzer ishga tushirilmoqda…",
+    check: "Saytni tekshirish",
+    checking: "Sayt tekshirilmoqda…",
+    previewNote:
+      "Agentlar qayta quradigan sahifa shu. To‘g‘ri ko‘rinsa, demo yarating.",
+    change: "Manzilni o‘zgartirish",
+    note: "Yaratish uchun tizimga kiring. Har bir demo tarifingizdagi bulutli agent daqiqalaridan bir-ikki daqiqa sarflaydi va kutubxonangizga tushadi.",
+    howHeading: "Bu qanday ishlaydi",
+    how: {
+      type: {
+        title: "Manzil kiriting",
+        body: "Istalgan ochiq sayt. Sahifa bulutli brauzerda yuklanadi va undagi har bir sarlavha, rasm, tugma va karta topiladi.",
+      },
+      build: {
+        title: "Agentlar uni qayta quradi",
+        body: "Soʻrov chat oynasiga yoziladi, soʻng kursorlar toʻdasi musiqa tezlashgani sayin har bir elementni oʻz joyiga qoʻyadi.",
+      },
+      share: {
+        title: "Havola oling",
+        body: "Video tayyor boʻlishi bilan kutubxonangizda ochiladi. Havolani ulashing, faylni yuklab oling yoki joylang.",
+      },
+    },
+    errors: {
+      invalidUrl: "example.com kabi sayt manzilini kiriting.",
+      unreachable:
+        "Bu saytga ulanib bo‘lmadi. Manzilni tekshirib, qayta urinib ko‘ring.",
+      unavailable: "Bu serverda demolar mavjud emas.",
+      running:
+        "Yozuvlaringizdan biri hali davom etmoqda. Tugashini kutib, qayta urinib koʻring.",
+      limit:
+        "Bu ish maydoni shu oy uchun bulutli agent daqiqalarini sarflab boʻldi. Ular har oyning 1-sanasida yangilanadi.",
+      recordings:
+        "Bepul tarifdagi yozuvlar chegarasiga yetdingiz. Birorta yozuvni oʻchiring yoki tarifni yangilang, soʻng qayta urinib koʻring.",
+      busy: "Hozir barcha bulutli brauzerlar band. Bir necha daqiqadan soʻng qayta urinib koʻring.",
+      failed: "Demoni ishga tushirib boʻlmadi. Qayta urinib koʻring.",
     },
   },
   enterprise: {
@@ -897,7 +954,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Bulutli brauzerdagi agent yozuvlari",
+              label: "Bulutda tayyorlangan agent taqdimotlari",
               free: `Har bir kishiga oyiga ${FREE_AGENT_MIN} daqiqa`,
               light: `Har bir aʼzoga oyiga ${LIGHT_AGENT_MIN} daqiqa`,
               pro: `Har bir aʼzoga oyiga ${PRO_AGENT_MIN} daqiqa`,
@@ -915,7 +972,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Bulutli brauzerdagi SI ovozli sharhi",
+              label: "Bulutli taqdimotlarda AI ovozli izoh",
               free: false,
               light: false,
               pro: `Har bir aʼzoga oyiga ${PRO_VOICEOVER_MIN} daqiqa`,

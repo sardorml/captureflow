@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Package, Terminal } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -33,6 +34,7 @@ import { Nav } from "./nav";
 import { PageHero } from "./page-hero";
 import { PricingSection } from "./pricing-section";
 import { SetupRequestSection } from "./setup-request-section";
+import { SwarmDemoSection } from "./swarm-demo-section";
 import { Paragraph, Title } from "./typography";
 import { UseCasesSection } from "./use-cases-section";
 
@@ -185,6 +187,16 @@ export function SelfHostSetupPage({ i18n }: PageProps) {
   return (
     <MarketingPage i18n={i18n}>
       <SetupRequestSection />
+    </MarketingPage>
+  );
+}
+
+export function SwarmDemoPage({ i18n }: PageProps) {
+  return (
+    <MarketingPage i18n={i18n}>
+      <Suspense>
+        <SwarmDemoSection />
+      </Suspense>
     </MarketingPage>
   );
 }

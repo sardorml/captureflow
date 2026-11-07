@@ -45,6 +45,11 @@ const messages: Messages = {
       description:
         "貴社のCloudflareアカウント上にCaptureFlowを導入します: 貴社のドメイン、社内限定のサインイン、チーム向けの非公開Chrome拡張機能。",
     },
+    swarmDemo: {
+      title: "スウォームデモ: エージェントがあらゆるサイトを動画で再構築",
+      description:
+        "サイトのアドレスを入力すると、エージェントカーソルの群れが音楽に合わせて要素ごとに再構築していく様子を見られます。共有リンク付きの動画が手に入ります。",
+    },
   },
   nav: {
     features: "機能",
@@ -67,6 +72,13 @@ const messages: Messages = {
     selfHostingDescription: "自分のCloudflareで動かす",
     community: "コミュニティ",
     communityDescription: "Discordで質問や交流",
+    products: "製品",
+    swarmDemo: "スウォームデモ",
+    swarmDemoDescription: "エージェントがあらゆるサイトを動画で再構築",
+    extension: "Chrome拡張機能",
+    extensionDescription: "画面を録画してリンクで共有",
+    agentRecorder: "エージェント向けレコーダー",
+    agentRecorderDescription: "AIエージェントがMCP経由で作る動画",
     star: "GitHubでスターを付ける",
     starCount: "GitHubでスターを付ける ({stars})",
     themeToLight: "ライトテーマに切り替え",
@@ -300,7 +312,7 @@ const messages: Messages = {
       chatgpt:
         "Web版ChatGPTで「プラグイン」を開き、「+」を押して「カスタムMCPサーバーを追加」を選びます。名前をCaptureFlowにしてこのURLを貼り付け、OAuthを選び、プラグインをインストールしてサインインします。Business、Enterprise、Eduのいずれかのプランが必要です。",
       limits:
-        "チャットからの録画は、あなたのコンピューターではなくクラウドブラウザーでWebサイトを録画し、プランのクラウドエージェント分数を消費します。",
+        "チャットはお使いのコンピューターを録画するのではなく、当社サーバー上でスライドからプレゼン動画やハウツー動画を作成し、プランのクラウドエージェント分数を消費します。",
     },
   },
   modes: {
@@ -524,6 +536,51 @@ const messages: Messages = {
       sentTitle: "メッセージを送信しました",
       sentBody: "ありがとうございます。{email}宛てにご連絡します。",
       back: "ホームに戻る",
+    },
+  },
+  swarmDemo: {
+    title: "エージェントが再構築する様子を見る:",
+    titleHighlight: "あらゆるサイト",
+    subtitle:
+      "サイトのアドレスを入力してください。エージェントカーソルの群れが音楽に合わせて要素ごとに描き直し、共有できる動画リンクが手に入ります。",
+    url: "サイトのアドレス",
+    urlPlaceholder: "https://example.com",
+    generate: "デモを生成",
+    generating: "クラウドブラウザを起動中…",
+    check: "サイトを確認",
+    checking: "サイトを確認しています…",
+    previewNote:
+      "エージェントが再構築するページです。問題なければデモを生成してください。",
+    change: "アドレスを変更",
+    note: "生成にはサインインが必要です。各デモはプランのクラウドエージェント分数を一、二分使い、ライブラリに保存されます。",
+    howHeading: "仕組み",
+    how: {
+      type: {
+        title: "アドレスを入力",
+        body: "公開されているサイトならどれでも。ページをクラウドブラウザで読み込み、見出し、画像、ボタン、カードをすべて検出します。",
+      },
+      build: {
+        title: "エージェントが組み立て直す",
+        body: "リクエストがチャット欄に入力され、カーソルの群れが各要素を配置していきます。音楽はだんだん速くなります。",
+      },
+      share: {
+        title: "リンクを受け取る",
+        body: "完成するとすぐに動画がライブラリで開きます。リンクを共有したり、ファイルをダウンロードしたり、投稿したりできます。",
+      },
+    },
+    errors: {
+      invalidUrl: "example.com のようなサイトのアドレスを入力してください。",
+      unreachable:
+        "そのサイトにアクセスできませんでした。アドレスを確認してもう一度お試しください。",
+      unavailable: "このサーバーではデモを利用できません。",
+      running:
+        "あなたの録画がまだ実行中です。終わるのを待ってからもう一度お試しください。",
+      limit:
+        "このワークスペースは今月のクラウドエージェント分数を使い切りました。毎月1日にリセットされます。",
+      recordings:
+        "無料プランの録画数の上限に達しました。録画を削除するかアップグレードしてから、もう一度お試しください。",
+      busy: "現在すべてのクラウドブラウザが使用中です。数分後にもう一度お試しください。",
+      failed: "デモを開始できませんでした。もう一度お試しください。",
     },
   },
   enterprise: {
@@ -890,7 +947,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "クラウドブラウザーでのエージェント録画",
+              label: "クラウドで作るエージェントのプレゼン",
               free: `一人あたり月${FREE_AGENT_MIN}分`,
               light: `メンバーごとに月${LIGHT_AGENT_MIN}分`,
               pro: `メンバーごとに月${PRO_AGENT_MIN}分`,
@@ -908,7 +965,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "クラウドブラウザーでのAIナレーション",
+              label: "クラウドプレゼンのAIナレーション",
               free: false,
               light: false,
               pro: `メンバーごとに月${PRO_VOICEOVER_MIN}分`,

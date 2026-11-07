@@ -45,6 +45,11 @@ const messages: Messages = {
       description:
         "Zleć wdrożenie CaptureFlow na koncie Cloudflare twojej firmy: własna domena, logowanie tylko dla firmy i prywatne rozszerzenie Chrome dla zespołu.",
     },
+    swarmDemo: {
+      title: "Demo roju: agenci odbudowują dowolną stronę na wideo",
+      description:
+        "Wpisz adres strony i zobacz, jak rój kursorów agentów odbudowuje ją element po elemencie, do muzyki. Otrzymasz wideo z linkiem do udostępnienia.",
+    },
   },
   nav: {
     features: "Funkcje",
@@ -67,6 +72,13 @@ const messages: Messages = {
     selfHostingDescription: "Uruchom na własnym Cloudflare",
     community: "Społeczność",
     communityDescription: "Pomoc i rozmowy na Discordzie",
+    products: "Produkty",
+    swarmDemo: "Demo roju",
+    swarmDemoDescription: "Agenci odbudowują dowolną stronę na wideo",
+    extension: "Rozszerzenie Chrome",
+    extensionDescription: "Nagraj ekran i udostępnij link",
+    agentRecorder: "Rejestrator dla agentów",
+    agentRecorderDescription: "Filmy, które twój agent AI tworzy przez MCP",
     star: "Daj gwiazdkę na GitHubie",
     starCount: "Daj gwiazdkę na GitHubie ({stars})",
     themeToLight: "Przełącz na jasny motyw",
@@ -297,7 +309,7 @@ const messages: Messages = {
       chatgpt:
         "W ChatGPT w przeglądarce otwórz Plugins, naciśnij + i wybierz Add custom MCP server. Nazwij go CaptureFlow, wklej ten URL, wybierz OAuth, a potem zainstaluj wtyczkę i zaloguj się. Wymaga planu Business, Enterprise lub Edu.",
       limits:
-        "Czaty nagrywają strony internetowe w przeglądarce w chmurze, a nie twój komputer, i zużywają minuty agenta w chmurze z twojego planu.",
+        "Czaty tworzą filmy prezentacyjne i instruktażowe ze slajdów na naszych serwerach, a nie nagrania Twojego komputera, i zużywają minuty agenta w chmurze z Twojego planu.",
     },
   },
   modes: {
@@ -521,6 +533,51 @@ const messages: Messages = {
       sentTitle: "Wiadomość wysłana",
       sentBody: "Dziękujemy. Odpiszemy na adres {email}.",
       back: "Wróć na stronę główną",
+    },
+  },
+  swarmDemo: {
+    title: "Zobacz, jak agenci odbudowują",
+    titleHighlight: "dowolną stronę",
+    subtitle:
+      "Wpisz adres strony. Rój kursorów agentów rysuje ją od nowa element po elemencie, do muzyki, a ty dostajesz link do wideo, którym możesz się podzielić.",
+    url: "Adres strony",
+    urlPlaceholder: "https://example.com",
+    generate: "Wygeneruj demo",
+    generating: "Uruchamianie przeglądarki w chmurze…",
+    check: "Sprawdź stronę",
+    checking: "Sprawdzanie strony…",
+    previewNote:
+      "To jest strona, którą agenci odbudują. Wygeneruj demo, gdy wygląda dobrze.",
+    change: "Zmień adres",
+    note: "Zaloguj się, aby wygenerować. Każde demo zużywa minutę lub dwie minut agenta w chmurze z twojego planu i trafia do twojej biblioteki.",
+    howHeading: "Jak to działa",
+    how: {
+      type: {
+        title: "Wpisz adres",
+        body: "Dowolna publiczna strona. Strona jest ładowana w przeglądarce w chmurze, a każdy nagłówek, obraz, przycisk i karta zostają odnalezione.",
+      },
+      build: {
+        title: "Agenci budują ją od nowa",
+        body: "Prośba jest wpisywana w okno czatu, a potem rój kursorów umieszcza każdy element, podczas gdy muzyka przyspiesza.",
+      },
+      share: {
+        title: "Odbierz link",
+        body: "Wideo pojawia się w twojej bibliotece, gdy tylko będzie gotowe. Udostępnij link, pobierz plik albo opublikuj je.",
+      },
+    },
+    errors: {
+      invalidUrl: "Wpisz adres strony, np. example.com.",
+      unreachable:
+        "Nie udało się połączyć z tą stroną. Sprawdź adres i spróbuj ponownie.",
+      unavailable: "Dema nie są dostępne na tym serwerze.",
+      running:
+        "Jedno z twoich nagrań wciąż trwa. Poczekaj, aż się zakończy, i spróbuj ponownie.",
+      limit:
+        "Ta przestrzeń robocza wykorzystała minuty agenta w chmurze na ten miesiąc. Odnawiają się 1. dnia miesiąca.",
+      recordings:
+        "Osiągnięto limit nagrań w planie darmowym. Usuń nagranie lub zmień plan, a potem spróbuj ponownie.",
+      busy: "Wszystkie przeglądarki w chmurze są teraz zajęte. Spróbuj ponownie za kilka minut.",
+      failed: "Nie udało się uruchomić dema. Spróbuj ponownie.",
     },
   },
   enterprise: {
@@ -891,7 +948,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Nagrania agenta w przeglądarce w chmurze",
+              label: "Prezentacje agenta tworzone w chmurze",
               free: `${FREE_AGENT_MIN} min miesięcznie na osobę`,
               light: `${LIGHT_AGENT_MIN} min miesięcznie na członka`,
               pro: `${PRO_AGENT_MIN} min miesięcznie na członka`,
@@ -909,7 +966,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Lektor AI w przeglądarce w chmurze",
+              label: "Lektor AI w prezentacjach w chmurze",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} min miesięcznie na członka`,

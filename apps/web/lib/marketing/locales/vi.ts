@@ -45,6 +45,12 @@ const messages: Messages = {
       description:
         "Nhờ thiết lập CaptureFlow trên tài khoản Cloudflare riêng của công ty bạn: tên miền của bạn, đăng nhập chỉ dành cho công ty và tiện ích Chrome riêng cho nhóm.",
     },
+    swarmDemo: {
+      title:
+        "Demo bầy agent: các agent dựng lại bất kỳ website nào thành video",
+      description:
+        "Nhập địa chỉ website và xem một bầy con trỏ agent dựng lại nó từng phần tử một trên nền nhạc. Bạn nhận được một video kèm liên kết để chia sẻ.",
+    },
   },
   nav: {
     features: "Tính năng",
@@ -67,6 +73,13 @@ const messages: Messages = {
     selfHostingDescription: "Chạy trên Cloudflare của riêng bạn",
     community: "Cộng đồng",
     communityDescription: "Nhận trợ giúp và trò chuyện trên Discord",
+    products: "Sản phẩm",
+    swarmDemo: "Demo bầy agent",
+    swarmDemoDescription: "Các agent dựng lại bất kỳ website nào thành video",
+    extension: "Tiện ích Chrome",
+    extensionDescription: "Quay màn hình và chia sẻ liên kết",
+    agentRecorder: "Trình quay cho agent",
+    agentRecorderDescription: "Video mà agent AI của bạn tạo qua MCP",
     star: "Gắn sao trên GitHub",
     starCount: "Gắn sao trên GitHub ({stars})",
     themeToLight: "Chuyển sang giao diện sáng",
@@ -297,7 +310,7 @@ const messages: Messages = {
       chatgpt:
         "Trong ChatGPT trên web, mở Plugins, nhấn +, và chọn Add custom MCP server. Đặt tên là CaptureFlow, dán URL này, chọn OAuth, rồi cài plugin và đăng nhập. Cần gói Business, Enterprise hoặc Edu.",
       limits:
-        "Các cuộc trò chuyện quay trang web trong trình duyệt đám mây, không phải trên máy tính của bạn, và dùng số phút agent đám mây trong gói của bạn.",
+        "Các cuộc trò chuyện dựng video thuyết trình và hướng dẫn từ slide trên máy chủ của chúng tôi, không ghi màn hình máy tính của bạn, và dùng số phút agent đám mây trong gói của bạn.",
     },
   },
   modes: {
@@ -523,6 +536,51 @@ const messages: Messages = {
       sentTitle: "Đã gửi tin nhắn",
       sentBody: "Cảm ơn bạn. Chúng tôi sẽ phản hồi qua {email}.",
       back: "Về trang chủ",
+    },
+  },
+  swarmDemo: {
+    title: "Xem các agent dựng lại",
+    titleHighlight: "bất kỳ website nào",
+    subtitle:
+      "Nhập địa chỉ website. Một bầy con trỏ agent vẽ lại nó từng phần tử một trên nền nhạc, và bạn nhận được liên kết video để chia sẻ.",
+    url: "Địa chỉ website",
+    urlPlaceholder: "https://example.com",
+    generate: "Tạo demo",
+    generating: "Đang khởi động trình duyệt đám mây…",
+    check: "Kiểm tra trang web",
+    checking: "Đang kiểm tra trang web…",
+    previewNote:
+      "Đây là trang mà các agent sẽ dựng lại. Tạo demo khi thấy đúng.",
+    change: "Đổi địa chỉ",
+    note: "Đăng nhập để tạo. Mỗi demo dùng một đến hai phút agent đám mây trong gói của bạn và được lưu vào thư viện của bạn.",
+    howHeading: "Cách hoạt động",
+    how: {
+      type: {
+        title: "Nhập địa chỉ",
+        body: "Bất kỳ website công khai nào. Trang được tải trong trình duyệt đám mây và mọi tiêu đề, hình ảnh, nút bấm và thẻ đều được tìm ra.",
+      },
+      build: {
+        title: "Các agent dựng lại",
+        body: "Yêu cầu được gõ vào ô chat, rồi một bầy con trỏ đặt từng phần tử vào chỗ trong khi nhạc tăng dần tốc độ.",
+      },
+      share: {
+        title: "Nhận liên kết",
+        body: "Video mở trong thư viện của bạn ngay khi hoàn tất. Chia sẻ liên kết, tải tệp về hoặc đăng lên.",
+      },
+    },
+    errors: {
+      invalidUrl: "Nhập địa chỉ website như example.com.",
+      unreachable:
+        "Không thể truy cập trang web đó. Kiểm tra lại địa chỉ rồi thử lại.",
+      unavailable: "Máy chủ này không hỗ trợ demo.",
+      running:
+        "Một bản ghi của bạn vẫn đang chạy. Hãy đợi nó hoàn tất rồi thử lại.",
+      limit:
+        "Không gian làm việc này đã dùng hết số phút agent đám mây của tháng. Số phút sẽ được đặt lại vào ngày 1.",
+      recordings:
+        "Bạn đã dùng hết số bản ghi của gói miễn phí. Hãy xóa một bản ghi hoặc nâng cấp, rồi thử lại.",
+      busy: "Tất cả trình duyệt đám mây đang bận. Hãy thử lại sau vài phút.",
+      failed: "Không thể bắt đầu demo. Vui lòng thử lại.",
     },
   },
   enterprise: {
@@ -894,7 +952,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Agent quay trong trình duyệt đám mây",
+              label: "Bài thuyết trình của agent dựng trên đám mây",
               free: `${FREE_AGENT_MIN} phút mỗi tháng cho mỗi người`,
               light: `${LIGHT_AGENT_MIN} phút mỗi tháng cho mỗi thành viên`,
               pro: `${PRO_AGENT_MIN} phút mỗi tháng cho mỗi thành viên`,
@@ -912,7 +970,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Thuyết minh AI trong trình duyệt đám mây",
+              label: "Thuyết minh AI trong bài thuyết trình đám mây",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} phút mỗi tháng cho mỗi thành viên`,

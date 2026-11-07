@@ -54,6 +54,7 @@ describe("isLocalizedPath", () => {
   it("knows which pages are translated", () => {
     expect(isLocalizedPath("/")).toBe(true);
     expect(isLocalizedPath("/self-host-setup")).toBe(true);
+    expect(isLocalizedPath("/swarm-demo")).toBe(true);
     expect(isLocalizedPath("/blog/some-post")).toBe(false);
     expect(isLocalizedPath("/pricingx")).toBe(false);
   });
