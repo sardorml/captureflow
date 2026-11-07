@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  cloudFailureReport,
   hydrateCaptureReport,
   parseCaptureJson,
   trackHasAudio,
@@ -103,5 +104,13 @@ describe("trackHasAudio", () => {
 
   it("does not know without a report", () => {
     expect(trackHasAudio(null, "screen")).toBeNull();
+  });
+});
+
+describe("cloudFailureReport", () => {
+  it("round-trips through the stored JSON with its reason as a warning", () => {
+    const report = cloudFailureReport("container didn't start");
+    expect(parseCaptureJson(JSON.stringify(report))).toEqual(report);
+    expect(report.warnings).toEqual(["container didn't start"]);
   });
 });

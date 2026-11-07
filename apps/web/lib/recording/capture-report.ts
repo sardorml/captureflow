@@ -110,3 +110,15 @@ export function trackHasAudio(
   if (!capture) return null;
   return capture.audio.muxed === (track === "webcam" ? "webcam" : "aac");
 }
+
+// What a cloud recording that never produced a video leaves behind, so the failure has a trace on the recording.
+export function cloudFailureReport(reason: string): CaptureReport {
+  return {
+    userAgent: "CaptureFlow cloud recorder",
+    surface: null,
+    camera: { requested: false, acquired: false },
+    mic: { requested: false, acquired: false },
+    audio: { muxed: "none", reason: "no video was made" },
+    warnings: [reason.slice(0, MAX_TEXT)],
+  };
+}

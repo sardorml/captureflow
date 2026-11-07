@@ -49,6 +49,13 @@ type Env = {
 
 const DEMO_KEY = "demo";
 const DEMO_CHECK_SECONDS = 30;
+// A fresh container pulls the image a deploy just pushed, far slower than the library's 8-second default.
+const CONTAINER_START_MS = 120_000;
+const DEMO_ATTEMPTS = 3;
+
+function errorText(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
 
 // The cloud browser behind agent recordings (apps/recorder), one container
 // per session. It sleeps a minute past the recorder's own idle limit, and
@@ -94,14 +101,65 @@ export class RecorderContainer extends Container<Env> {
    * so its minutes stop counting and the next demo may start.
    */
   private async runDemo(request: Request, id: string) {
+    const body = await request.text();
+    let failure = "the demo stopped before its video was uploaded";
     try {
-      const res = await this.containerFetch(request);
-      if (!res.ok) console.warn(`[swarm-demo] ${id}: ${await res.text()}`);
+      for (let attempt = 1; attempt <= DEMO_ATTEMPTS; attempt++) {
+        const from = Date.now();
+        const started = await this.startAndWaitForPorts({
+          cancellationOptions: {
+            instanceGetTimeoutMS: CONTAINER_START_MS,
+            portReadyTimeoutMS: CONTAINER_START_MS,
+          },
+        }).then(
+          () => null,
+          (err: unknown) => errorText(err),
+        );
+        const took = `${Math.round((Date.now() - from) / 1000)}s`;
+        if (started !== null) {
+          failure = `the cloud browser didn't start (attempt ${attempt}, ${took}): ${started}`;
+          console.warn(`[swarm-demo] ${id} ${failure}`);
+          await this.stopAndWait();
+          continue;
+        }
+        console.log(
+          `[swarm-demo] ${id} container up in ${took}, attempt ${attempt}`,
+        );
+        const res = await this.containerFetch(
+          new Request(request.url, {
+            method: "POST",
+            headers: request.headers,
+            body,
+          }),
+        );
+        if (res.status === 503) {
+          failure = `the cloud browser was restarting (attempt ${attempt})`;
+          console.warn(`[swarm-demo] ${id} ${failure}`);
+          await this.stopAndWait();
+          continue;
+        }
+        if (res.ok) {
+          console.log(`[swarm-demo] ${id} done`);
+        } else {
+          failure = `the recorder failed: ${(await res.text()).slice(0, 160)}`;
+          console.warn(`[swarm-demo] ${id} ${failure}`);
+        }
+        return;
+      }
     } catch (err) {
-      console.warn(`[swarm-demo] ${id} failed:`, err);
+      failure = `the demo failed: ${errorText(err)}`;
+      console.warn(`[swarm-demo] ${id} ${failure}`);
     } finally {
       if (this.demoInFlight === id) this.demoInFlight = null;
-      await this.finishDemo(id);
+      await this.finishDemo(id, failure);
+    }
+  }
+
+  // A container that failed to start or is shutting down is replaced by a fresh one on the next start.
+  private async stopAndWait() {
+    await this.stop().catch(() => {});
+    for (let i = 0; i < 30 && this.ctx.container?.running; i++) {
+      await new Promise((r) => setTimeout(r, 1000));
     }
   }
 
@@ -130,11 +188,14 @@ export class RecorderContainer extends Container<Env> {
   }
 
   // The recording was made before the container started, so a demo that never ran leaves it pending.
-  private async finishDemo(id: string) {
+  private async finishDemo(
+    id: string,
+    failure = "the cloud browser stopped before the video was uploaded",
+  ) {
     if ((await this.ctx.storage.get(DEMO_KEY)) !== id) return;
     if (await this.demoRunning(id)) return;
     await this.ctx.storage.delete(DEMO_KEY);
-    await failPendingAgentRecording(this.env.DB, id).catch((err) =>
+    await failPendingAgentRecording(this.env.DB, id, failure).catch((err) =>
       console.error(`[swarm-demo] ${id} not failed:`, err),
     );
     await endAgentRecording(this.env.DB, id, Date.now()).catch((err) =>

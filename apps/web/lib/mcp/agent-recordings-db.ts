@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { cloudFailureReport } from "../recording/capture-report";
 import type { AgentUsage } from "@captureflow/quota";
 
 export const MAX_RECORDING_MS = 10 * 60_000;
@@ -136,18 +137,19 @@ export async function findRunningAgentRecording(
 }
 
 // Ends the session and revokes the token its upload used, in one batch.
-// The recording made for a session whose recorder never took it would stay pending forever.
+// The recording made for a session whose recorder never took it would stay pending forever; the reason is kept on it.
 export async function failPendingAgentRecording(
   db: D1Database,
   id: string,
+  reason: string,
 ): Promise<void> {
   await db
     .prepare(
-      `UPDATE recordings SET state = 'failed'
+      `UPDATE recordings SET state = 'failed', capture_json = ?2
         WHERE state = 'pending'
           AND slug = (SELECT slug FROM agent_recordings WHERE id = ?1)`,
     )
-    .bind(id)
+    .bind(id, JSON.stringify(cloudFailureReport(reason)))
     .run();
 }
 
