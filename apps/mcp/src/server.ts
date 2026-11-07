@@ -36,7 +36,7 @@ import {
 import { startScreenSession, type ScreenSession } from "./screen-session";
 import { KOKORO_VOICES, speak, warmVoice } from "./voice";
 
-export const VERSION = "0.1.0";
+export const VERSION = "0.2.0";
 
 const MAX_RECORDING_MS = 30 * 60_000;
 const IDLE_MS = 5 * 60_000;
