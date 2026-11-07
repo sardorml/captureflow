@@ -14,6 +14,9 @@ import { useEditorConfig } from "./use-editor-config";
 import { EditorInspector } from "./EditorInspector";
 import { EditorTimeline, type TrimPreview } from "./EditorTimeline";
 import { EditorTopBar } from "./EditorTopBar";
+import { useAppMessages } from "@/components/app-i18n-provider";
+import { recordingBackgroundImageFile } from "@/lib/recording-config";
+import { uploadRecordingBackgroundAction } from "@/app/actions";
 
 const TEXT_FIELD =
   "input:not([type=range],[type=checkbox],[type=radio],[type=color]), textarea, [contenteditable]:not([contenteditable=false])";
@@ -36,6 +39,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     viewCount,
     createdAt,
     initialConfig,
+    initialBackgroundImageUrl,
     initialTranscript,
     transcriptStatus,
     transcriptHasEdits,
@@ -55,6 +59,13 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
     setSelected(span && { span, from: "clip" });
   }, []);
   const [trimPreview, setTrimPreview] = useState<TrimPreview | null>(null);
+  const failedUpload = useAppMessages().actions.backgroundFailed;
+  const [backgroundImage, setBackgroundImage] = useState(() => ({
+    url: initialBackgroundImageUrl,
+    background: recordingBackgroundImageFile(initialConfig.background)
+      ? initialConfig.background
+      : null,
+  }));
   // Bumped whenever the server's captions may differ (a transcript edit or
   // a saved config, since cut lines are dropped from the captions), so the
   // track refetches.
@@ -199,6 +210,25 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
       <EditorInspector
         config={config}
         onConfig={update}
+        backgroundImage={{
+          ...backgroundImage,
+          upload: async (file) => {
+            const form = new FormData();
+            form.set("image", file);
+            const result = await uploadRecordingBackgroundAction(
+              slug,
+              form,
+            ).catch(() => null);
+            if (!result) return failedUpload;
+            if (result.error !== null) return result.error;
+            setBackgroundImage({
+              url: result.url,
+              background: result.background,
+            });
+            update({ background: result.background });
+            return null;
+          },
+        }}
         hasWebcam={!!webcamUrl}
         aspect={aspectFromPlaceholder(width, height)}
         details={{ slug, sizeBytes, durationMs, viewCount, createdAt }}
@@ -228,6 +258,7 @@ export function RecordingEditorImpl(props: RecordingEditorProps) {
             serverWidth={width}
             serverHeight={height}
             config={config}
+            backgroundImageUrl={backgroundImage.url}
             className="rounded-none"
             captionsUrl={
               initialTranscript

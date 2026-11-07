@@ -60,6 +60,8 @@ type Props = {
   serverHeight: number | null;
   // Persisted presentation config (bg, cam PiP corner + size, per-track mute defaults). On the edit page this is the LIVE config the sidebar mutates — changes apply immediately so the user previews exactly what the public viewer renders after Save.
   config: RecordingConfig;
+  // Where an uploaded background picture is served; the config only names the file.
+  backgroundImageUrl?: string | null;
   // Render slot over the time slider; the public viewer uses it to plot reaction dots.
   progressOverlay?: (info: ProgressOverlayInfo) => ReactNode;
   // Render slot over the whole player that stays visible when the controls hide.
@@ -104,6 +106,7 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
       serverWidth,
       serverHeight,
       config,
+      backgroundImageUrl,
       progressOverlay,
       floatingOverlay,
       belowPlayer,
@@ -258,7 +261,13 @@ export const RecordingPlayer = forwardRef<RecordingPlayerHandle, Props>(
               className={className}
               sizeStyle={sizeStyle}
               aspect={aspect}
-              background={config.background}
+              frame={{
+                background: config.background,
+                padding: config.padding,
+                radius: config.radius,
+                shadow: config.shadow,
+                imageUrl: backgroundImageUrl ?? null,
+              }}
               captionPrefs={captionPrefs}
               onCaptionPrefs={updateCaptionPrefs}
               webcam={

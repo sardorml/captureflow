@@ -12,7 +12,11 @@ import { viewerKeyFor } from "@/lib/recording/viewer-key";
 import { resolveTranscript } from "@/lib/recording/transcript";
 import { verifySession } from "@/lib/recording/verify-session";
 import { canViewResource } from "@/lib/visibility";
-import { viewerMediaUrl, withVersion } from "@/lib/recording/media-url";
+import {
+  backgroundImageUrlFor,
+  viewerMediaUrl,
+  withVersion,
+} from "@/lib/recording/media-url";
 import { parseRecordingConfigJson } from "@/lib/recording-config";
 import { isValidSlug } from "@/lib/recording/slug";
 import { APP_WEB_SITE_URL, PRODUCT_NAME, viewUrlFor } from "@/lib/site";
@@ -68,6 +72,7 @@ export default async function EmbedPage({
       getTranscript(id),
     ]);
   const { transcript } = resolveTranscript(transcriptRow);
+  const config = parseRecordingConfigJson(row.configJson);
 
   return (
     <EmbedPlayer
@@ -87,7 +92,8 @@ export default async function EmbedPage({
       serverDurationMs={row.durationMs}
       serverWidth={row.width}
       serverHeight={row.height}
-      config={parseRecordingConfigJson(row.configJson)}
+      config={config}
+      backgroundImageUrl={await backgroundImageUrlFor(row, config.background)}
       initialReactions={reactions}
       signedIn={!!visitor}
       shareUrl={viewUrlFor(id)}

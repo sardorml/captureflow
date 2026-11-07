@@ -809,6 +809,10 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "Slug em falta",
     recordingNotFound: "Gravação não encontrada",
+    backgroundMissing: "Escolha uma imagem para carregar",
+    backgroundTooLarge: "As imagens podem ter até 5 MB",
+    backgroundBadType: "Use uma imagem PNG, JPEG ou WebP",
+    backgroundFailed: "Não foi possível carregar a imagem. Tente novamente.",
     invalidVisibility: "Visibilidade inválida",
     deleteVideoFailed:
       "Não foi possível eliminar o ficheiro de vídeo: {reason}",
@@ -1236,6 +1240,9 @@ const messages: AppMessages = {
       gradients: "Gradientes",
       none: "Nenhum",
       noBackground: "Sem fundo",
+      upload: "Carregar imagem",
+      uploading: "A carregar…",
+      uploadedImage: "A sua imagem",
       solid: "Cor sólida",
       solidColor: "Cor sólida {color}",
       customColor: "Escolher uma cor personalizada",
@@ -1258,6 +1265,12 @@ const messages: AppMessages = {
         midnight: "Meia-noite",
         slate: "Ardósia",
       },
+    },
+    frame: {
+      title: "Moldura",
+      padding: "Margem",
+      corners: "Cantos",
+      shadow: "Sombra",
     },
     camera: {
       title: "Câmara",

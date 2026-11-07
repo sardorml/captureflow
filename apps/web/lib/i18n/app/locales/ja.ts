@@ -791,6 +791,11 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "slug がありません",
     recordingNotFound: "録画が見つかりません",
+    backgroundMissing: "アップロードする画像を選んでください",
+    backgroundTooLarge: "画像は5MBまでです",
+    backgroundBadType: "PNG、JPEG、WebPのいずれかの画像を使ってください",
+    backgroundFailed:
+      "画像をアップロードできませんでした。もう一度お試しください。",
     invalidVisibility: "公開範囲が無効です",
     deleteVideoFailed: "動画ファイルを削除できませんでした: {reason}",
     transcriptNotFound: "文字起こしが見つかりません",
@@ -1212,6 +1217,9 @@ const messages: AppMessages = {
       gradients: "グラデーション",
       none: "なし",
       noBackground: "背景なし",
+      upload: "画像をアップロード",
+      uploading: "アップロード中…",
+      uploadedImage: "アップロードした画像",
       solid: "単色",
       solidColor: "単色 {color}",
       customColor: "カスタムカラーを選択",
@@ -1234,6 +1242,12 @@ const messages: AppMessages = {
         midnight: "ミッドナイト",
         slate: "スレート",
       },
+    },
+    frame: {
+      title: "フレーム",
+      padding: "余白",
+      corners: "角の丸み",
+      shadow: "影",
     },
     camera: {
       title: "カメラ",

@@ -45,8 +45,12 @@ import {
 } from "@captureflow/shared/object-keys";
 import {
   hydrateRecordingConfig,
+  parseRecordingConfigJson,
+  recordingBackgroundImageFile,
+  recordingBackgroundImageKey,
   type RecordingConfig,
 } from "@/lib/recording-config";
+import { newStorageId, viewerMediaUrl } from "@/lib/recording/media-url";
 import { deleteObjectPrefix } from "@/lib/recording/r2";
 import { purgeCachedMedia } from "@/lib/recording/remove";
 import { revokeDeviceToken } from "@/lib/device-tokens";
@@ -170,15 +174,78 @@ export async function saveRecordingConfigAction(
   const cleanSlug = typeof slug === "string" ? slug.trim() : "";
   if (!cleanSlug) return { error: t.missingSlug };
   const config: RecordingConfig = hydrateRecordingConfig(raw);
+  const row = await getRecordingForUser(userId, cleanSlug);
+  if (!row) return { error: t.recordingNotFound };
   const ok = await updateRecordingConfigForUser(
     userId,
     cleanSlug,
     JSON.stringify(config),
   );
   if (!ok) return { error: t.recordingNotFound };
+  // A picture replaced by another upload is deleted; one swapped for a colour stays, so the editor can switch back to it.
+  const previous = recordingBackgroundImageFile(
+    parseRecordingConfigJson(row.configJson).background,
+  );
+  const next = recordingBackgroundImageFile(config.background);
+  if (previous && next && previous !== next) {
+    await deleteObject(recordingBackgroundImageKey(previous)).catch(() => {});
+  }
   revalidatePath(`/recordings/${cleanSlug}/edit`);
   revalidatePath("/");
   return { error: null };
+}
+
+const BACKGROUND_MAX_BYTES = 5 * 1024 * 1024;
+const BACKGROUND_MIME = new Map<string, string>([
+  ["image/png", "png"],
+  ["image/jpeg", "jpg"],
+  ["image/webp", "webp"],
+]);
+
+export type BackgroundUploadResult =
+  | { error: string; background: null; url: null }
+  | { error: null; background: string; url: string };
+
+// Stores a picture for the recording's background; saving the config is what puts it to use.
+export async function uploadRecordingBackgroundAction(
+  slug: string,
+  formData: FormData,
+): Promise<BackgroundUploadResult> {
+  const userId = await requireUserId();
+  const t = await actionCopy();
+  const fail = (error: string): BackgroundUploadResult => ({
+    error,
+    background: null,
+    url: null,
+  });
+  if (!isValidSlug(slug)) return fail(t.missingSlug);
+  const row = await getRecordingForUser(userId, slug);
+  if (!row) return fail(t.recordingNotFound);
+  const file = formData.get("image");
+  if (!(file instanceof Blob) || file.size === 0) {
+    return fail(t.backgroundMissing);
+  }
+  if (file.size > BACKGROUND_MAX_BYTES) return fail(t.backgroundTooLarge);
+  const ext = BACKGROUND_MIME.get(file.type);
+  if (!ext) return fail(t.backgroundBadType);
+  const name = `${newStorageId()}.${ext}`;
+  const key = recordingBackgroundImageKey(name);
+  try {
+    await putObject(
+      key,
+      (await file.arrayBuffer()) as ArrayBuffer,
+      file.type,
+      "public, max-age=31536000, immutable",
+    );
+  } catch (err) {
+    console.error("[background] upload failed", err);
+    return fail(t.backgroundFailed);
+  }
+  return {
+    error: null,
+    background: `image:${name}`,
+    url: await viewerMediaUrl(row, key),
+  };
 }
 
 export type TranscriptActionResult = {

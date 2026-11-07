@@ -803,6 +803,10 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "Slug ausente",
     recordingNotFound: "Gravação não encontrada",
+    backgroundMissing: "Escolha uma imagem para enviar",
+    backgroundTooLarge: "As imagens podem ter até 5 MB",
+    backgroundBadType: "Use uma imagem PNG, JPEG ou WebP",
+    backgroundFailed: "Não foi possível enviar a imagem. Tente de novo.",
     invalidVisibility: "Visibilidade inválida",
     deleteVideoFailed: "Não foi possível excluir o arquivo de vídeo: {reason}",
     transcriptNotFound: "Transcrição não encontrada",
@@ -1228,6 +1232,9 @@ const messages: AppMessages = {
       gradients: "Gradientes",
       none: "Nenhum",
       noBackground: "Sem fundo",
+      upload: "Enviar imagem",
+      uploading: "Enviando…",
+      uploadedImage: "Sua imagem",
       solid: "Sólido",
       solidColor: "Sólido {color}",
       customColor: "Escolher uma cor personalizada",
@@ -1250,6 +1257,12 @@ const messages: AppMessages = {
         midnight: "Meia-noite",
         slate: "Ardósia",
       },
+    },
+    frame: {
+      title: "Moldura",
+      padding: "Margem",
+      corners: "Cantos",
+      shadow: "Sombra",
     },
     camera: {
       title: "Câmera",

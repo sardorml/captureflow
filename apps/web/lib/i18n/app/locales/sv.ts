@@ -795,6 +795,10 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "Slug saknas",
     recordingNotFound: "Inspelningen hittades inte",
+    backgroundMissing: "Välj en bild att ladda upp",
+    backgroundTooLarge: "Bilder får vara högst 5 MB",
+    backgroundBadType: "Använd en PNG-, JPEG- eller WebP-bild",
+    backgroundFailed: "Bilden kunde inte laddas upp. Försök igen.",
     invalidVisibility: "Ogiltig synlighet",
     deleteVideoFailed: "Det gick inte att radera videofilen: {reason}",
     transcriptNotFound: "Transkriptionen hittades inte",
@@ -1216,6 +1220,9 @@ const messages: AppMessages = {
       gradients: "Övertoningar",
       none: "Ingen",
       noBackground: "Ingen bakgrund",
+      upload: "Ladda upp bild",
+      uploading: "Laddar upp…",
+      uploadedImage: "Din bild",
       solid: "Enfärgad",
       solidColor: "Enfärgad {color}",
       customColor: "Välj en egen färg",
@@ -1238,6 +1245,12 @@ const messages: AppMessages = {
         midnight: "Midnatt",
         slate: "Skiffer",
       },
+    },
+    frame: {
+      title: "Ram",
+      padding: "Marginal",
+      corners: "Hörn",
+      shadow: "Skugga",
     },
     camera: {
       title: "Kamera",

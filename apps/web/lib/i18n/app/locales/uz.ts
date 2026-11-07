@@ -807,6 +807,10 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "Slug koʻrsatilmagan",
     recordingNotFound: "Yozuv topilmadi",
+    backgroundMissing: "Yuklash uchun rasm tanlang",
+    backgroundTooLarge: "Rasm hajmi 5 MB dan oshmasligi kerak",
+    backgroundBadType: "PNG, JPEG yoki WebP rasmidan foydalaning",
+    backgroundFailed: "Rasmni yuklab bo‘lmadi. Qayta urinib ko‘ring.",
     invalidVisibility: "Koʻrinish qiymati notoʻgʻri",
     deleteVideoFailed: "Video faylni oʻchirib boʻlmadi: {reason}",
     transcriptNotFound: "Transkript topilmadi",
@@ -1229,6 +1233,9 @@ const messages: AppMessages = {
       gradients: "Gradientlar",
       none: "Yoʻq",
       noBackground: "Fonsiz",
+      upload: "Rasm yuklash",
+      uploading: "Yuklanmoqda…",
+      uploadedImage: "Sizning rasmingiz",
       solid: "Yaxlit rang",
       solidColor: "Yaxlit rang {color}",
       customColor: "Maxsus rang tanlash",
@@ -1251,6 +1258,12 @@ const messages: AppMessages = {
         midnight: "Yarim tun",
         slate: "Kulrang",
       },
+    },
+    frame: {
+      title: "Ramka",
+      padding: "Chekka",
+      corners: "Burchaklar",
+      shadow: "Soya",
     },
     camera: {
       title: "Kamera",

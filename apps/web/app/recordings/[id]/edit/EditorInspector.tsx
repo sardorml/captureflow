@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import {
   AudioControls,
   BackgroundPicker,
+  FrameControls,
   CameraPicker,
   DetailsList,
   type RecordingDetails,
@@ -29,6 +30,11 @@ import {
 type Props = {
   config: RecordingConfig;
   onConfig: (patch: Partial<RecordingConfig>) => void;
+  backgroundImage: {
+    url: string | null;
+    background: string | null;
+    upload: (file: File) => Promise<string | null>;
+  };
   hasWebcam: boolean;
   aspect: number;
   details: RecordingDetails;
@@ -47,7 +53,7 @@ const PANELS = [
 }[];
 
 const RAIL_ITEM_CLASS =
-  "flex w-full flex-col items-center gap-1 rounded-lg px-1 py-2 text-center text-[11px] leading-tight font-medium wrap-anywhere hyphens-auto text-fg-muted transition-colors outline-none hover:bg-tint hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-ring";
+  "flex w-full flex-col items-center gap-1 px-1 py-3 text-center text-[11px] leading-tight font-medium wrap-anywhere hyphens-auto text-fg-muted transition-colors outline-none hover:text-fg focus-visible:text-fg";
 const PANEL_CLASS = "flex min-h-0 flex-1 flex-col p-0 outline-hidden";
 
 /*
@@ -59,6 +65,7 @@ const PANEL_CLASS = "flex min-h-0 flex-1 flex-col p-0 outline-hidden";
 export function EditorInspector({
   config,
   onConfig,
+  backgroundImage,
   hasWebcam,
   aspect,
   details,
@@ -72,6 +79,9 @@ export function EditorInspector({
   const t = m.recordingEditor;
   const shownPanel =
     PANELS.find((p) => p.value === panel)?.value ?? PANELS[0].value;
+  const toggleLabel = open
+    ? t.panels.hide[shownPanel]
+    : t.panels.show[shownPanel];
 
   return (
     <TabsPrimitive.Root
@@ -98,8 +108,23 @@ export function EditorInspector({
                     <BackgroundPicker
                       background={config.background}
                       onChange={(bg) => onConfig({ background: bg })}
+                      imageUrl={backgroundImage.url}
+                      imageBackground={backgroundImage.background}
+                      onUpload={backgroundImage.upload}
                     />
                   </Section>
+                  {config.background !== "transparent" ? (
+                    <Section title={t.frame.title}>
+                      <FrameControls
+                        values={{
+                          padding: config.padding,
+                          radius: config.radius,
+                          shadow: config.shadow,
+                        }}
+                        onChange={onConfig}
+                      />
+                    </Section>
+                  ) : null}
                   {hasWebcam ? (
                     <Section title={t.camera.title}>
                       <CameraPicker
@@ -144,10 +169,10 @@ export function EditorInspector({
         {timeline}
       </div>
 
-      <div className="hidden w-16 shrink-0 flex-col justify-between border-l border-line bg-panel p-1.5 lg:flex">
+      <div className="hidden w-16 shrink-0 flex-col justify-between border-l border-line bg-panel pb-1 lg:flex">
         <TabsPrimitive.List
           aria-label={t.panels.label}
-          className="flex flex-col gap-1"
+          className="flex flex-col"
         >
           {PANELS.map(({ value, icon: Icon }) => (
             <TabsPrimitive.Trigger
@@ -169,6 +194,8 @@ export function EditorInspector({
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
+          aria-label={toggleLabel}
+          title={toggleLabel}
           className={RAIL_ITEM_CLASS}
         >
           {open ? (
@@ -176,7 +203,6 @@ export function EditorInspector({
           ) : (
             <PanelRightOpen className="size-5" aria-hidden />
           )}
-          {open ? t.panels.hide[shownPanel] : t.panels.show[shownPanel]}
         </button>
       </div>
     </TabsPrimitive.Root>

@@ -795,6 +795,10 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "Thiếu slug",
     recordingNotFound: "Không tìm thấy bản ghi",
+    backgroundMissing: "Chọn ảnh để tải lên",
+    backgroundTooLarge: "Ảnh có dung lượng tối đa 5 MB",
+    backgroundBadType: "Dùng ảnh PNG, JPEG hoặc WebP",
+    backgroundFailed: "Không tải được ảnh lên. Hãy thử lại.",
     invalidVisibility: "Chế độ hiển thị không hợp lệ",
     deleteVideoFailed: "Không xóa được tệp video: {reason}",
     transcriptNotFound: "Không tìm thấy bản chép lời",
@@ -1213,6 +1217,9 @@ const messages: AppMessages = {
       gradients: "Chuyển màu",
       none: "Không",
       noBackground: "Không có nền",
+      upload: "Tải ảnh lên",
+      uploading: "Đang tải lên…",
+      uploadedImage: "Ảnh của bạn",
       solid: "Màu trơn",
       solidColor: "Màu trơn {color}",
       customColor: "Chọn màu tùy chỉnh",
@@ -1235,6 +1242,12 @@ const messages: AppMessages = {
         midnight: "Nửa đêm",
         slate: "Xám đá",
       },
+    },
+    frame: {
+      title: "Khung",
+      padding: "Khoảng đệm",
+      corners: "Góc bo",
+      shadow: "Đổ bóng",
     },
     camera: {
       title: "Camera",

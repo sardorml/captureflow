@@ -1,6 +1,10 @@
 export const ACTIONS = {
   missingSlug: "Missing slug",
   recordingNotFound: "Recording not found",
+  backgroundMissing: "Choose an image to upload",
+  backgroundTooLarge: "Images can be up to 5 MB",
+  backgroundBadType: "Use a PNG, JPEG or WebP image",
+  backgroundFailed: "The image couldn't be uploaded. Try again.",
   invalidVisibility: "Invalid visibility",
   deleteVideoFailed: "Could not delete the video file: {reason}",
   transcriptNotFound: "Transcript not found",

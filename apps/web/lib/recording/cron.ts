@@ -247,7 +247,8 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
       `SELECT slug, storage_key AS storageKey, poster_key AS posterKey,
               poster_thumb_key AS posterThumbKey,
               webcam_storage_key AS webcamStorageKey, state,
-              size_bytes AS sizeBytes, webcam_size_bytes AS webcamSizeBytes
+              size_bytes AS sizeBytes, webcam_size_bytes AS webcamSizeBytes,
+              config_json AS configJson
          FROM recordings
         WHERE (state = 'ready' AND last_viewed_at < ?
                AND COALESCE(workspace_id, '') NOT IN (SELECT value FROM json_each(?)))
@@ -261,6 +262,7 @@ export async function runDailyRetentionSweep(env: CronEnv): Promise<void> {
         posterKey: string | null;
         posterThumbKey: string | null;
         webcamStorageKey: string | null;
+        configJson: string | null;
         state: string;
         sizeBytes: number;
         webcamSizeBytes: number;

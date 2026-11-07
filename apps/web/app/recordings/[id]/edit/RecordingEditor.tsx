@@ -17,6 +17,7 @@ import { EditorSkeleton } from "./EditorSkeleton";
 
 export type RecordingEditorProps = {
   slug: string;
+  initialBackgroundImageUrl: string | null;
   initialTitle: string | null;
   videoUrl: string;
   posterUrl?: string;

@@ -782,6 +782,10 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "슬러그가 없습니다",
     recordingNotFound: "녹화를 찾을 수 없습니다",
+    backgroundMissing: "업로드할 이미지를 선택하세요",
+    backgroundTooLarge: "이미지는 최대 5MB까지 가능합니다",
+    backgroundBadType: "PNG, JPEG 또는 WebP 이미지를 사용하세요",
+    backgroundFailed: "이미지를 업로드하지 못했습니다. 다시 시도하세요.",
     invalidVisibility: "올바르지 않은 공개 범위입니다",
     deleteVideoFailed: "영상 파일을 삭제하지 못했습니다: {reason}",
     transcriptNotFound: "스크립트를 찾을 수 없습니다",
@@ -1195,6 +1199,9 @@ const messages: AppMessages = {
       gradients: "그라데이션",
       none: "없음",
       noBackground: "배경 없음",
+      upload: "이미지 업로드",
+      uploading: "업로드 중…",
+      uploadedImage: "내 이미지",
       solid: "단색",
       solidColor: "단색 {color}",
       customColor: "사용자 지정 색상 선택",
@@ -1217,6 +1224,12 @@ const messages: AppMessages = {
         midnight: "미드나이트",
         slate: "슬레이트",
       },
+    },
+    frame: {
+      title: "프레임",
+      padding: "여백",
+      corners: "모서리",
+      shadow: "그림자",
     },
     camera: {
       title: "카메라",
