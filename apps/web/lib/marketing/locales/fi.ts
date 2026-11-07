@@ -85,6 +85,10 @@ const messages: Messages = {
     community: "Yhteisö",
     communityDescription: "Kysy apua ja keskustele Discordissa",
     products: "Tuotteet",
+    exploreProducts: "Tutustu CaptureFlow'hun",
+    plans: "Paketit",
+    exploreResources: "Tutustu resursseihin",
+    enterprise: "Yrityksille",
     swarmDemo: "Parvidemo",
     swarmDemoDescription:
       "Agentit rakentavat minkä tahansa sivuston uudelleen videolla",

@@ -65,6 +65,49 @@ body {
   animation: recording-icon-pop 750ms cubic-bezier(0.2, 0.7, 0.3, 1.05) both;
 }
 
+/* The landing nav's flyout menus; nav-flyout.tsx sets the timing variables. */
+@keyframes nav-part-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nav-part-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes nav-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-nav-part-in {
+  animation: nav-part-in var(--nav-duration) var(--nav-ease) var(--nav-delay)
+    both;
+}
+.animate-nav-part-out {
+  animation: nav-part-out var(--nav-duration) var(--nav-ease) both;
+}
+.animate-nav-fade-in {
+  animation: nav-fade-in var(--nav-duration) var(--nav-ease) both;
+}
+
 /* Reaction emoji rises from below the scrubber with a small overshoot.
    translateX(-50%) is preserved at every keyframe so the marker stays
    horizontally centered on its timestamp. */
@@ -229,6 +272,9 @@ body {
   .animate-rec-breathe,
   .animate-reveal,
   .animate-recording-icon-pop,
+  .animate-nav-part-in,
+  .animate-nav-part-out,
+  .animate-nav-fade-in,
   .animate-page-rise,
   .animate-beta-card,
   .animate-beta-confetti {

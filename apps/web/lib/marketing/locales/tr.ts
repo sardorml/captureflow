@@ -85,6 +85,10 @@ const messages: Messages = {
     community: "Topluluk",
     communityDescription: "Discord'da yardım alın ve sohbet edin",
     products: "Ürünler",
+    exploreProducts: "CaptureFlow'u keşfet",
+    plans: "Planlar",
+    exploreResources: "Kaynakları keşfet",
+    enterprise: "Kurumsal",
     swarmDemo: "Sürü demosu",
     swarmDemoDescription:
       "Ajanlar herhangi bir web sitesini videoda yeniden kuruyor",
