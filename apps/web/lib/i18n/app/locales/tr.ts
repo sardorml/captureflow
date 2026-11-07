@@ -914,7 +914,15 @@ const messages: AppMessages = {
       editDescription:
         "Düzenleyicide kırpın, kesin, görünümü değiştirin ve transkripti düzeltin.",
       downloadTitle: "Videoyu indir",
-      downloadDescription: "Kaydın tamamı, MP4 olarak.",
+      downloadDescription:
+        "Düzenlemelerinle MP4: arka plan, kamera ve kesimler.",
+      downloadRendering: "İşleniyor: %{percent}. Bu sekmeyi açık tut.",
+      downloadCancel: "İptal",
+      downloadFailed: "Video işlenemedi. Bunun yerine orijinali indir.",
+      downloadUnsupported:
+        "Bu tarayıcı video işleyemiyor. Bunun yerine orijinali indir.",
+      originalTitle: "Orijinali indir",
+      originalDescription: "Kaydın düzenlenmemiş, çekildiği hali.",
       copyEmbed: "Gömme kodunu kopyala",
       embedCopied: "Gömme kodu kopyalandı",
       embedDescription: "Oynatıcıyı herhangi bir web sayfasına yapıştırın.",
@@ -931,7 +939,7 @@ const messages: AppMessages = {
       label: "Kayıt kenar çubuğu",
       activityTab: "Etkinlik",
       transcriptTab: "Transkript",
-      toolsTab: "Araçlar",
+      toolsTab: "İşlemler",
     },
     you: "Siz",
     anonymous: "Anonim",

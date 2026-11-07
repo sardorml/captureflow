@@ -920,7 +920,16 @@ const messages: AppMessages = {
       editDescription:
         "Kürze, schneide, ändere das Aussehen und korrigiere das Transkript im Editor.",
       downloadTitle: "Video herunterladen",
-      downloadDescription: "Die gesamte Aufnahme als MP4.",
+      downloadDescription:
+        "Ein MP4 mit deinen Änderungen: Hintergrund, Kamera und Schnitte.",
+      downloadRendering: "Wird gerendert: {percent} %. Lass diesen Tab offen.",
+      downloadCancel: "Abbrechen",
+      downloadFailed:
+        "Das Video konnte nicht gerendert werden. Lade stattdessen das Original herunter.",
+      downloadUnsupported:
+        "Dieser Browser kann kein Video rendern. Lade stattdessen das Original herunter.",
+      originalTitle: "Original herunterladen",
+      originalDescription: "Die Aufnahme wie aufgenommen, ohne Änderungen.",
       copyEmbed: "Einbettungscode kopieren",
       embedCopied: "Einbettungscode kopiert",
       embedDescription: "Füge den Player in eine beliebige Webseite ein.",
@@ -937,7 +946,7 @@ const messages: AppMessages = {
       label: "Seitenleiste der Aufnahme",
       activityTab: "Aktivität",
       transcriptTab: "Transkript",
-      toolsTab: "Werkzeuge",
+      toolsTab: "Aktionen",
     },
     you: "Du",
     anonymous: "Anonym",

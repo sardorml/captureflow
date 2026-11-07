@@ -24,6 +24,7 @@ import type { RecordingVisibility } from "@/lib/recording/types";
 import {
   posterMimeOf,
   backgroundImageUrlFor,
+  exportSourcesFor,
   viewerMediaUrl,
   withVersion,
 } from "@/lib/recording/media-url";
@@ -318,10 +319,12 @@ export default async function RecordingPage({
       : Promise.resolve(null),
   ]);
   const recordingConfig = parseRecordingConfigJson(row.configJson);
-  const backgroundImageUrl = await backgroundImageUrlFor(
-    row,
-    recordingConfig.background,
-  );
+  const [backgroundImageUrl, exportSources] = await Promise.all([
+    backgroundImageUrlFor(row, recordingConfig.background),
+    isOwner
+      ? exportSourcesFor(row, recordingConfig.background)
+      : Promise.resolve(null),
+  ]);
   const summaryChapters = parseSummaryChaptersJson(row.summaryChaptersJson);
   const { transcript, status: transcriptStatus } =
     resolveTranscript(transcriptRow);
@@ -383,6 +386,7 @@ export default async function RecordingPage({
         serverHeight={row.height}
         config={recordingConfig}
         backgroundImageUrl={backgroundImageUrl}
+        exportSources={exportSources}
         initialReactions={reactions}
         initialComments={comments}
         viewer={

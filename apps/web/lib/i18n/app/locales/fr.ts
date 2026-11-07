@@ -924,7 +924,18 @@ const messages: AppMessages = {
       editDescription:
         "Raccourcissez, coupez, changez l’apparence et corrigez la transcription dans l’éditeur.",
       downloadTitle: "Télécharger la vidéo",
-      downloadDescription: "L’enregistrement complet au format MP4.",
+      downloadDescription:
+        "Un MP4 avec vos modifications : arrière-plan, caméra et coupes.",
+      downloadRendering:
+        "Rendu en cours : {percent} %. Gardez cet onglet ouvert.",
+      downloadCancel: "Annuler",
+      downloadFailed:
+        "Impossible de générer la vidéo. Téléchargez plutôt l’original.",
+      downloadUnsupported:
+        "Ce navigateur ne peut pas générer de vidéo. Téléchargez plutôt l’original.",
+      originalTitle: "Télécharger l’original",
+      originalDescription:
+        "L’enregistrement tel que capturé, sans modifications.",
       copyEmbed: "Copier le code d’intégration",
       embedCopied: "Code d’intégration copié",
       embedDescription: "Collez le lecteur dans n’importe quelle page web.",
@@ -941,7 +952,7 @@ const messages: AppMessages = {
       label: "Barre latérale de l’enregistrement",
       activityTab: "Activité",
       transcriptTab: "Transcription",
-      toolsTab: "Outils",
+      toolsTab: "Actions",
     },
     you: "Vous",
     anonymous: "Anonyme",

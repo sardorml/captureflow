@@ -78,7 +78,14 @@ export const VIEWER = {
     editDescription:
       "Trim, cut, change the look and fix the transcript in the editor.",
     downloadTitle: "Download video",
-    downloadDescription: "The full recording as an MP4.",
+    downloadDescription: "An MP4 with your edits: background, camera and cuts.",
+    downloadRendering: "Rendering {percent}%. Keep this tab open.",
+    downloadCancel: "Cancel",
+    downloadFailed: "Couldn't render the video. Download the original instead.",
+    downloadUnsupported:
+      "This browser can't render video. Download the original instead.",
+    originalTitle: "Download original",
+    originalDescription: "The recording as captured, without edits.",
     copyEmbed: "Copy embed code",
     embedCopied: "Embed code copied",
     embedDescription: "Paste the player into any web page.",

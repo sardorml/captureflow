@@ -894,7 +894,16 @@ const messages: AppMessages = {
       editDescription:
         "エディターでトリミング、カット、見た目の変更、文字起こしの修正ができます。",
       downloadTitle: "動画をダウンロード",
-      downloadDescription: "録画全体を MP4 として保存します。",
+      downloadDescription: "編集を反映した MP4(背景、カメラ、カット)。",
+      downloadRendering:
+        "レンダリング中 {percent}%。このタブを開いたままにしてください。",
+      downloadCancel: "キャンセル",
+      downloadFailed:
+        "動画をレンダリングできませんでした。代わりに元の動画をダウンロードしてください。",
+      downloadUnsupported:
+        "このブラウザでは動画をレンダリングできません。代わりに元の動画をダウンロードしてください。",
+      originalTitle: "元の動画をダウンロード",
+      originalDescription: "編集前の録画そのままです。",
       copyEmbed: "埋め込みコードをコピー",
       embedCopied: "埋め込みコードをコピーしました",
       embedDescription: "プレーヤーを任意のウェブページに貼り付けられます。",
@@ -911,7 +920,7 @@ const messages: AppMessages = {
       label: "録画のサイドバー",
       activityTab: "アクティビティ",
       transcriptTab: "文字起こし",
-      toolsTab: "ツール",
+      toolsTab: "アクション",
     },
     you: "あなた",
     anonymous: "匿名",

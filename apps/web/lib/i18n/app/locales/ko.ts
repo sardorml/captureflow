@@ -882,7 +882,15 @@ const messages: AppMessages = {
       editDescription:
         "편집기에서 다듬고, 잘라내고, 모양을 바꾸고, 자막을 고칩니다.",
       downloadTitle: "영상 다운로드",
-      downloadDescription: "전체 녹화를 MP4로 받습니다.",
+      downloadDescription: "편집 내용이 반영된 MP4: 배경, 카메라, 잘라낸 구간.",
+      downloadRendering: "렌더링 중 {percent}%. 이 탭을 열어 두세요.",
+      downloadCancel: "취소",
+      downloadFailed:
+        "동영상을 렌더링하지 못했습니다. 대신 원본을 다운로드하세요.",
+      downloadUnsupported:
+        "이 브라우저에서는 동영상을 렌더링할 수 없습니다. 대신 원본을 다운로드하세요.",
+      originalTitle: "원본 다운로드",
+      originalDescription: "편집하지 않은 녹화 원본입니다.",
       copyEmbed: "삽입 코드 복사",
       embedCopied: "삽입 코드 복사됨",
       embedDescription: "플레이어를 어떤 웹 페이지에든 붙여 넣으세요.",
@@ -899,7 +907,7 @@ const messages: AppMessages = {
       label: "녹화 사이드바",
       activityTab: "활동",
       transcriptTab: "스크립트",
-      toolsTab: "도구",
+      toolsTab: "작업",
     },
     you: "나",
     anonymous: "익명",

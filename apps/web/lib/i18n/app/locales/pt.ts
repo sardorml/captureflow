@@ -917,7 +917,17 @@ const messages: AppMessages = {
       editDescription:
         "Apare, corte, mude o aspeto e corrija a transcrição no editor.",
       downloadTitle: "Transferir vídeo",
-      downloadDescription: "A gravação completa em MP4.",
+      downloadDescription:
+        "Um MP4 com as suas edições: fundo, câmara e cortes.",
+      downloadRendering:
+        "A processar {percent}%. Mantenha este separador aberto.",
+      downloadCancel: "Cancelar",
+      downloadFailed:
+        "Não foi possível processar o vídeo. Transfira o original.",
+      downloadUnsupported:
+        "Este navegador não consegue processar vídeo. Transfira o original.",
+      originalTitle: "Transferir original",
+      originalDescription: "A gravação tal como foi captada, sem edições.",
       copyEmbed: "Copiar código de incorporação",
       embedCopied: "Código de incorporação copiado",
       embedDescription: "Cole o leitor em qualquer página web.",
@@ -934,7 +944,7 @@ const messages: AppMessages = {
       label: "Barra lateral da gravação",
       activityTab: "Atividade",
       transcriptTab: "Transcrição",
-      toolsTab: "Ferramentas",
+      toolsTab: "Ações",
     },
     you: "Você",
     anonymous: "Anónimo",

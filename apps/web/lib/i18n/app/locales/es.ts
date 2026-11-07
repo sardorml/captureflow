@@ -915,7 +915,15 @@ const messages: AppMessages = {
       editDescription:
         "Recorta, corta, cambia el aspecto y corrige la transcripción en el editor.",
       downloadTitle: "Descargar video",
-      downloadDescription: "La grabación completa en MP4.",
+      downloadDescription: "Un MP4 con tus cambios: fondo, cámara y cortes.",
+      downloadRendering: "Procesando {percent} %. Mantén esta pestaña abierta.",
+      downloadCancel: "Cancelar",
+      downloadFailed:
+        "No se pudo procesar el vídeo. Descarga el original en su lugar.",
+      downloadUnsupported:
+        "Este navegador no puede procesar vídeo. Descarga el original en su lugar.",
+      originalTitle: "Descargar original",
+      originalDescription: "La grabación tal como se capturó, sin cambios.",
       copyEmbed: "Copiar código de inserción",
       embedCopied: "Código de inserción copiado",
       embedDescription: "Pega el reproductor en cualquier página web.",
@@ -932,7 +940,7 @@ const messages: AppMessages = {
       label: "Barra lateral de la grabación",
       activityTab: "Actividad",
       transcriptTab: "Transcripción",
-      toolsTab: "Herramientas",
+      toolsTab: "Acciones",
     },
     you: "Tú",
     anonymous: "Anónimo",

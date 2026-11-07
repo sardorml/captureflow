@@ -900,7 +900,16 @@ const messages: AppMessages = {
       editDescription:
         "Trim, klipp, endre utseendet og rett opp transkripsjonen i redigeringsverktøyet.",
       downloadTitle: "Last ned videoen",
-      downloadDescription: "Hele opptaket som MP4.",
+      downloadDescription:
+        "En MP4 med endringene dine: bakgrunn, kamera og klipp.",
+      downloadRendering: "Gjengir {percent} %. Hold denne fanen åpen.",
+      downloadCancel: "Avbryt",
+      downloadFailed:
+        "Kunne ikke gjengi videoen. Last ned originalen i stedet.",
+      downloadUnsupported:
+        "Denne nettleseren kan ikke gjengi video. Last ned originalen i stedet.",
+      originalTitle: "Last ned original",
+      originalDescription: "Opptaket slik det ble tatt opp, uten endringer.",
       copyEmbed: "Kopier innbyggingskoden",
       embedCopied: "Innbyggingskoden er kopiert",
       embedDescription: "Lim inn spilleren på en hvilken som helst nettside.",
@@ -917,7 +926,7 @@ const messages: AppMessages = {
       label: "Sidepanel for opptaket",
       activityTab: "Aktivitet",
       transcriptTab: "Transkripsjon",
-      toolsTab: "Verktøy",
+      toolsTab: "Handlinger",
     },
     you: "Du",
     anonymous: "Anonym",

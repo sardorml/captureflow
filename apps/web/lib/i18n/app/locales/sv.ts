@@ -900,7 +900,16 @@ const messages: AppMessages = {
       editDescription:
         "Trimma, klipp, ändra utseendet och rätta transkriptionen i redigeraren.",
       downloadTitle: "Ladda ner video",
-      downloadDescription: "Hela inspelningen som MP4.",
+      downloadDescription:
+        "En MP4 med dina ändringar: bakgrund, kamera och klipp.",
+      downloadRendering: "Renderar {percent} %. Håll den här fliken öppen.",
+      downloadCancel: "Avbryt",
+      downloadFailed:
+        "Det gick inte att rendera videon. Ladda ner originalet i stället.",
+      downloadUnsupported:
+        "Den här webbläsaren kan inte rendera video. Ladda ner originalet i stället.",
+      originalTitle: "Ladda ner original",
+      originalDescription: "Inspelningen som den spelades in, utan ändringar.",
       copyEmbed: "Kopiera inbäddningskod",
       embedCopied: "Inbäddningskod kopierad",
       embedDescription: "Klistra in spelaren på valfri webbsida.",
@@ -917,7 +926,7 @@ const messages: AppMessages = {
       label: "Inspelningens sidofält",
       activityTab: "Aktivitet",
       transcriptTab: "Transkription",
-      toolsTab: "Verktyg",
+      toolsTab: "Åtgärder",
     },
     you: "Du",
     anonymous: "Anonym",

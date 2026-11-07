@@ -882,7 +882,15 @@ const messages: AppMessages = {
       editDescription:
         "ตัดต่อ ตัดส่วนออก เปลี่ยนรูปลักษณ์ และแก้ไขคำบรรยายในตัวแก้ไข",
       downloadTitle: "ดาวน์โหลดวิดีโอ",
-      downloadDescription: "การบันทึกทั้งหมดเป็นไฟล์ MP4",
+      downloadDescription:
+        "ไฟล์ MP4 พร้อมการแก้ไขของคุณ: พื้นหลัง กล้อง และส่วนที่ตัด",
+      downloadRendering: "กำลังเรนเดอร์ {percent}% โปรดเปิดแท็บนี้ไว้",
+      downloadCancel: "ยกเลิก",
+      downloadFailed: "เรนเดอร์วิดีโอไม่สำเร็จ ดาวน์โหลดต้นฉบับแทน",
+      downloadUnsupported:
+        "เบราว์เซอร์นี้เรนเดอร์วิดีโอไม่ได้ ดาวน์โหลดต้นฉบับแทน",
+      originalTitle: "ดาวน์โหลดต้นฉบับ",
+      originalDescription: "การบันทึกตามที่บันทึกไว้ ไม่มีการแก้ไข",
       copyEmbed: "คัดลอกโค้ดฝัง",
       embedCopied: "คัดลอกโค้ดฝังแล้ว",
       embedDescription: "วางเครื่องเล่นลงในหน้าเว็บใดก็ได้",
@@ -899,7 +907,7 @@ const messages: AppMessages = {
       label: "แถบด้านข้างของการบันทึก",
       activityTab: "กิจกรรม",
       transcriptTab: "บทถอดเสียง",
-      toolsTab: "เครื่องมือ",
+      toolsTab: "การดำเนินการ",
     },
     you: "คุณ",
     anonymous: "ไม่ระบุตัวตน",

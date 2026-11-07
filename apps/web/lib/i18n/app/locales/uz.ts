@@ -911,7 +911,16 @@ const messages: AppMessages = {
       editDescription:
         "Muharrirda qisqartiring, kesing, koʻrinishini oʻzgartiring va transkriptni tuzating.",
       downloadTitle: "Videoni yuklab olish",
-      downloadDescription: "Butun yozuv MP4 formatida.",
+      downloadDescription:
+        "Tahrirlaringiz bilan MP4: fon, kamera va kesilgan joylar.",
+      downloadRendering: "Tayyorlanmoqda: {percent}%. Bu varaqni yopmang.",
+      downloadCancel: "Bekor qilish",
+      downloadFailed:
+        "Videoni tayyorlab bo‘lmadi. Uning o‘rniga asl faylni yuklab oling.",
+      downloadUnsupported:
+        "Bu brauzer videoni tayyorlay olmaydi. Uning o‘rniga asl faylni yuklab oling.",
+      originalTitle: "Asl faylni yuklab olish",
+      originalDescription: "Yozuv tahrirsiz, yozib olinganidek.",
       copyEmbed: "Joylash kodini nusxalash",
       embedCopied: "Joylash kodi nusxalandi",
       embedDescription: "Pleyerni istalgan veb-sahifaga joylang.",
@@ -928,7 +937,7 @@ const messages: AppMessages = {
       label: "Yozuvning yon paneli",
       activityTab: "Faollik",
       transcriptTab: "Transkript",
-      toolsTab: "Asboblar",
+      toolsTab: "Amallar",
     },
     you: "Siz",
     anonymous: "Anonim",

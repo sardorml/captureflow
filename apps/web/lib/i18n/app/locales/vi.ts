@@ -898,7 +898,15 @@ const messages: AppMessages = {
       editDescription:
         "Cắt gọn, cắt bỏ, đổi giao diện và sửa bản chép lời trong trình chỉnh sửa.",
       downloadTitle: "Tải video xuống",
-      downloadDescription: "Toàn bộ bản ghi ở dạng MP4.",
+      downloadDescription:
+        "Tệp MP4 có các chỉnh sửa của bạn: nền, camera và đoạn cắt.",
+      downloadRendering: "Đang xử lý {percent}%. Hãy giữ thẻ này mở.",
+      downloadCancel: "Hủy",
+      downloadFailed: "Không thể xử lý video. Hãy tải bản gốc thay thế.",
+      downloadUnsupported:
+        "Trình duyệt này không thể xử lý video. Hãy tải bản gốc thay thế.",
+      originalTitle: "Tải bản gốc",
+      originalDescription: "Bản ghi như lúc quay, chưa chỉnh sửa.",
       copyEmbed: "Sao chép mã nhúng",
       embedCopied: "Đã sao chép mã nhúng",
       embedDescription: "Dán trình phát vào bất kỳ trang web nào.",
@@ -915,7 +923,7 @@ const messages: AppMessages = {
       label: "Thanh bên bản ghi",
       activityTab: "Hoạt động",
       transcriptTab: "Bản chép lời",
-      toolsTab: "Công cụ",
+      toolsTab: "Thao tác",
     },
     you: "Bạn",
     anonymous: "Ẩn danh",

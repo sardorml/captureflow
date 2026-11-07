@@ -4,6 +4,7 @@ import {
   recordingBackgroundImageFile,
   recordingBackgroundImageKey,
 } from "@/lib/recording-config";
+import type { ExportSources } from "./export-plan";
 import { publicUrlFor } from "./r2";
 
 /*
@@ -17,11 +18,36 @@ export async function viewerMediaUrl(
   storageKey: string,
 ): Promise<string> {
   if (row.visibility === "public") return publicUrlFor(storageKey);
+  return sealedMediaUrl(storageKey);
+}
+
+// Same-origin whatever the visibility, for media read by script (the CDN
+// sends no CORS headers).
+export async function sealedMediaUrl(storageKey: string): Promise<string> {
   const env = await getAppWebEnv();
   if (!env?.BETTER_AUTH_SECRET) {
     throw new Error("BETTER_AUTH_SECRET is required to link private media");
   }
   return `/api/r/m/${await sealMediaLink(env.BETTER_AUTH_SECRET, storageKey)}`;
+}
+
+export async function exportSourcesFor(
+  row: {
+    storageKey: string;
+    webcamStorageKey: string | null;
+    webcamState: string | null;
+  },
+  background: string,
+): Promise<ExportSources> {
+  const image = recordingBackgroundImageFile(background);
+  const [videoUrl, webcamUrl, backgroundImageUrl] = await Promise.all([
+    sealedMediaUrl(row.storageKey),
+    row.webcamStorageKey && row.webcamState === "ready"
+      ? sealedMediaUrl(row.webcamStorageKey)
+      : null,
+    image ? sealedMediaUrl(recordingBackgroundImageKey(image)) : null,
+  ]);
+  return { videoUrl, webcamUrl, backgroundImageUrl };
 }
 
 // Opaque, so a storage key can't be derived from the share link.

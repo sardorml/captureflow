@@ -917,7 +917,15 @@ const messages: AppMessages = {
       editDescription:
         "Accorcia, taglia, cambia l’aspetto e correggi la trascrizione nell’editor.",
       downloadTitle: "Scarica il video",
-      downloadDescription: "L'intera registrazione in formato MP4.",
+      downloadDescription:
+        "Un MP4 con le tue modifiche: sfondo, fotocamera e tagli.",
+      downloadRendering: "Rendering al {percent}%. Tieni aperta questa scheda.",
+      downloadCancel: "Annulla",
+      downloadFailed: "Impossibile creare il video. Scarica l'originale.",
+      downloadUnsupported:
+        "Questo browser non può creare video. Scarica l'originale.",
+      originalTitle: "Scarica l'originale",
+      originalDescription: "La registrazione così com'è, senza modifiche.",
       copyEmbed: "Copia codice di incorporamento",
       embedCopied: "Codice di incorporamento copiato",
       embedDescription: "Incolla il lettore in qualsiasi pagina web.",
@@ -934,7 +942,7 @@ const messages: AppMessages = {
       label: "Barra laterale della registrazione",
       activityTab: "Attività",
       transcriptTab: "Trascrizione",
-      toolsTab: "Strumenti",
+      toolsTab: "Azioni",
     },
     you: "Tu",
     anonymous: "Anonimo",

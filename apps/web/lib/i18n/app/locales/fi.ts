@@ -910,7 +910,15 @@ const messages: AppMessages = {
       editDescription:
         "Lyhennä, leikkaa, muuta ulkoasua ja korjaa tekstitys editorissa.",
       downloadTitle: "Lataa video",
-      downloadDescription: "Koko tallenne MP4-tiedostona.",
+      downloadDescription: "MP4 muokkauksineen: tausta, kamera ja leikkaukset.",
+      downloadRendering: "Renderöidään {percent} %. Pidä tämä välilehti auki.",
+      downloadCancel: "Peruuta",
+      downloadFailed:
+        "Videon renderöinti epäonnistui. Lataa alkuperäinen sen sijaan.",
+      downloadUnsupported:
+        "Tämä selain ei pysty renderöimään videota. Lataa alkuperäinen sen sijaan.",
+      originalTitle: "Lataa alkuperäinen",
+      originalDescription: "Tallenne sellaisenaan, ilman muokkauksia.",
       copyEmbed: "Kopioi upotuskoodi",
       embedCopied: "Upotuskoodi kopioitu",
       embedDescription: "Liitä soitin mille tahansa verkkosivulle.",
@@ -927,7 +935,7 @@ const messages: AppMessages = {
       label: "Tallenteen sivupalkki",
       activityTab: "Toiminta",
       transcriptTab: "Litterointi",
-      toolsTab: "Työkalut",
+      toolsTab: "Toiminnot",
     },
     you: "Sinä",
     anonymous: "Anonyymi",
