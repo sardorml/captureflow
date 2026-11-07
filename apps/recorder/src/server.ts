@@ -16,9 +16,12 @@ import { runDemo } from "./demo";
 const PORT = Number(process.env.PORT ?? 8080);
 const SECRET = process.env.RECORDER_SECRET ?? "";
 const MAX_BODY_BYTES = 8 * 1024 * 1024;
+// The platform kills the process 15 minutes after SIGTERM; running sessions get most of that to finish and upload.
+const DRAIN_MS = 14 * 60_000;
 
 const sessions = new Map<string, Session>();
 let browser: Promise<Browser> | null = null;
+let draining = false;
 
 function getBrowser(): Promise<Browser> {
   // The full build, not the headless shell: the shell has no H.264, and a page's videos are blank in it.
@@ -26,6 +29,7 @@ function getBrowser(): Promise<Browser> {
     .launch({
       channel: "chromium",
       headless: true,
+      handleSIGTERM: false,
       args: [
         "--disable-dev-shm-usage",
         "--autoplay-policy=no-user-gesture-required",
@@ -75,7 +79,16 @@ async function route(
 ): Promise<unknown> {
   const [root, id, verb] = path;
   if (root !== "sessions" || !id) throw new SessionError("Not found.");
+  if (method === "GET" && !verb) {
+    session(id);
+    return { running: true };
+  }
   if (method === "POST" && !verb) {
+    if (draining) {
+      throw new SessionError(
+        "The recorder is restarting. Try again in a minute.",
+      );
+    }
     if (sessions.has(id))
       throw new SessionError("That session already exists.");
     const { upload, ...rest } = (await body()) as Omit<
@@ -147,11 +160,26 @@ const server = createServer(async (req, res) => {
   }
 }).listen(PORT, () => console.log(`[recorder] listening on ${PORT}`));
 
-// The container is stopped with SIGTERM; Chromium has to go with it or it holds the port.
+// A rollout or the idle timer stops the container with SIGTERM. Sessions already
+// running finish and upload first, so a deploy never cuts a recording short;
+// then Chromium goes too, or it holds the port.
 process.on("SIGTERM", () => {
-  server.close();
-  void (browser ?? Promise.resolve(null))
-    .then((b) => b?.close())
-    .catch(() => {})
-    .finally(() => process.exit(0));
+  if (draining) return;
+  draining = true;
+  const until = Date.now() + DRAIN_MS;
+  console.log(
+    `[recorder] SIGTERM: finishing ${sessions.size} session(s) first`,
+  );
+  const exit = () => {
+    server.close();
+    void (browser ?? Promise.resolve(null))
+      .then((b) => b?.close())
+      .catch(() => {})
+      .finally(() => process.exit(0));
+  };
+  const wait = setInterval(() => {
+    if (sessions.size > 0 && Date.now() < until) return;
+    clearInterval(wait);
+    exit();
+  }, 1000);
 });
