@@ -566,7 +566,7 @@ const messages: Messages = {
     previewNote:
       "Ajanların yeniden kuracağı sayfa bu. Doğru görünüyorsa demoyu oluştur.",
     change: "Adresi değiştir",
-    note: "Oluşturmak için giriş yapın. Her demo planınızın bulut ajan dakikalarından bir iki dakika kullanır ve kitaplığınıza eklenir.",
+    note: "25 kayda kadar ücretsiz. Oluşturmak için giriş yapın. Her demo planınızın bulut ajan dakikalarından bir iki dakika kullanır ve kitaplığınıza eklenir.",
     howHeading: "Nasıl çalışır",
     how: {
       type: {

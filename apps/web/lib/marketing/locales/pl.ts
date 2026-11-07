@@ -549,7 +549,7 @@ const messages: Messages = {
     previewNote:
       "To jest strona, którą agenci odbudują. Wygeneruj demo, gdy wygląda dobrze.",
     change: "Zmień adres",
-    note: "Zaloguj się, aby wygenerować. Każde demo zużywa minutę lub dwie minut agenta w chmurze z twojego planu i trafia do twojej biblioteki.",
+    note: "Za darmo do 25 nagrań. Zaloguj się, aby wygenerować. Każde demo zużywa minutę lub dwie minut agenta w chmurze z twojego planu i trafia do twojej biblioteki.",
     howHeading: "Jak to działa",
     how: {
       type: {

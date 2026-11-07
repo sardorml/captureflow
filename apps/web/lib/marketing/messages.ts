@@ -549,7 +549,7 @@ export const MESSAGES = {
     previewNote:
       "This is the page the agents will rebuild. Generate the demo when it looks right.",
     change: "Change address",
-    note: "Sign in to generate. Each demo takes a minute or two of your plan's cloud agent minutes and lands in your library.",
+    note: "Free up to 25 recordings. Sign in to generate. Each demo takes a minute or two of your plan's cloud agent minutes and lands in your library.",
     howHeading: "How it works",
     how: {
       type: {

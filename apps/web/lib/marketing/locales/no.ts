@@ -556,7 +556,7 @@ const messages: Messages = {
     previewNote:
       "Dette er siden agentene bygger opp igjen. Lag demoen når den ser riktig ut.",
     change: "Endre adresse",
-    note: "Logg inn for å lage en demo. Hver demo bruker ett eller to av planens agentminutter i skyen og havner i biblioteket ditt.",
+    note: "Gratis opptil 25 opptak. Logg inn for å lage en demo. Hver demo bruker ett eller to av planens agentminutter i skyen og havner i biblioteket ditt.",
     howHeading: "Slik fungerer det",
     how: {
       type: {

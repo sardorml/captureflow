@@ -563,7 +563,7 @@ const messages: Messages = {
     previewNote:
       "Esta é a página que os agentes vão reconstruir. Gere a demo quando estiver certa.",
     change: "Mudar endereço",
-    note: "Faça login para gerar. Cada demo usa um ou dois minutos de agente na nuvem do seu plano e vai para a sua biblioteca.",
+    note: "Grátis até 25 gravações. Faça login para gerar. Cada demo usa um ou dois minutos de agente na nuvem do seu plano e vai para a sua biblioteca.",
     howHeading: "Como funciona",
     how: {
       type: {
