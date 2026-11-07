@@ -22,11 +22,13 @@ export type AgentInitRequest = {
 };
 
 // Who the recording uploads as: a device token minted for this one session.
+// `created` is a recording the caller already made, used instead of a new one.
 export type UploadCredentials = {
   apiBase: string;
   shareBase: string;
   deviceId: string;
   token: string;
+  created?: UploadInitResponse;
 };
 
 class ApiError extends Error {
@@ -80,8 +82,14 @@ export function createTransport(creds: UploadCredentials): AgentTransport {
       }),
       path,
     );
+  let created = creds.created;
   return {
-    init: (req) => postJson<UploadInitResponse>("/init", req),
+    async init(req) {
+      if (!created) return postJson<UploadInitResponse>("/init", req);
+      const made = created;
+      created = undefined;
+      return made;
+    },
     async uploadSegment(slug, stream, offset, bytes, signal) {
       const path = `/segment?slug=${encodeURIComponent(slug)}&stream=${stream}&offset=${offset}`;
       await parse(

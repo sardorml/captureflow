@@ -4,6 +4,7 @@ import { agentAllowanceLeft, startOfMonthUtc } from "@captureflow/quota";
 import type { AppWebBindings } from "../cf-env";
 import { issueDeviceToken } from "../device-tokens";
 import { getRecording } from "../recording/db";
+import { initRecording, parseInitRequest } from "../recording/init";
 import {
   countUserRecordingsInWorkspace,
   getWorkspaceEntitlement,
@@ -12,6 +13,7 @@ import { SITE_URL, viewUrlFor } from "../site";
 import {
   addNarratedChars,
   endAgentRecording,
+  failPendingAgentRecording,
   findRunningAgentRecording,
   getAgentUsage,
   getRunningAgentRecording,
@@ -154,19 +156,22 @@ function newSessionId(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function startAgentRecording(
+type StartArgs = {
+  title?: string;
+  visibility?: "public" | "workspace" | "private";
+  workspaceId?: string;
+  quality?: "standard" | "high";
+  // A shorter cap than the plan's leaves the clip more bytes per second.
+  maxDurationMs?: number;
+};
+
+// Checks the user may record now, then opens the session's row and the body that starts its container.
+async function prepareAgentRecording(
   db: D1Database,
   env: RecorderEnv,
   user: McpUser,
-  args: {
-    title?: string;
-    visibility?: "public" | "workspace" | "private";
-    workspaceId?: string;
-    quality?: "standard" | "high";
-    // A shorter cap than the plan's leaves the clip more bytes per second.
-    maxDurationMs?: number;
-  },
-): Promise<{ recording_id: string; max_minutes: number }> {
+  args: StartArgs,
+) {
   if (!env.RECORDER && !env.RECORDER_URL) {
     throw new LibraryError(
       "Recording isn't available on this server.",
@@ -220,26 +225,37 @@ export async function startAgentRecording(
     workspaceId,
     now,
   });
+  const start = {
+    title: args.title,
+    visibility: args.visibility,
+    workspaceId,
+    quality: args.quality,
+    maxDurationMs,
+    idleMs: IDLE_MS,
+    upload: {
+      apiBase: `${SITE_URL}/api/r`,
+      shareBase: SITE_URL,
+      deviceId: `agent-${id}`,
+      token: token.rawToken,
+    },
+  };
+  return { id, start };
+}
+
+export async function startAgentRecording(
+  db: D1Database,
+  env: RecorderEnv,
+  user: McpUser,
+  args: StartArgs,
+): Promise<{ recording_id: string; max_minutes: number }> {
+  const { id, start } = await prepareAgentRecording(db, env, user, args);
   try {
     const started = await callRecorder<{ slug: string; maxDurationMs: number }>(
       env,
       id,
       "POST",
       "",
-      {
-        title: args.title,
-        visibility: args.visibility,
-        workspaceId,
-        quality: args.quality,
-        maxDurationMs,
-        idleMs: IDLE_MS,
-        upload: {
-          apiBase: `${SITE_URL}/api/r`,
-          shareBase: SITE_URL,
-          deviceId: `agent-${id}`,
-          token: token.rawToken,
-        },
-      },
+      start,
     );
     await setAgentRecordingSlug(db, id, started.slug);
     return {
@@ -258,11 +274,12 @@ export async function startAgentRecording(
 }
 
 /*
- * The swarm demo from the public page: a presentation is started for the
- * user and the recorder runs the whole fixed script on its own, so no agent
- * drives it. The container's reply comes before the clip is done; the row
- * is ended by the Durable Object once the clip is uploaded, or here in
- * local dev where the container is reached directly.
+ * The swarm demo from the public page: the recorder runs the whole fixed
+ * script on its own, so no agent drives it. The recording is made here and
+ * handed to the container with the script, so the visitor is sent to its
+ * page at once instead of waiting out the container's cold start. The row
+ * is ended by the Durable Object once the clip is uploaded, or here in local
+ * dev where the container is reached directly.
  */
 export async function startSwarmDemo(
   db: D1Database,
@@ -270,28 +287,51 @@ export async function startSwarmDemo(
   user: McpUser,
   url: string,
 ): Promise<{ recording_id: string; url: string }> {
-  const host = new URL(url).host;
-  const started = await startAgentRecording(db, env, user, {
-    title: `${host} rebuilt by agents`,
+  const title = `${new URL(url).host} rebuilt by agents`;
+  const { id, start } = await prepareAgentRecording(db, env, user, {
+    title,
     quality: "high",
     maxDurationMs: DEMO_MAX_MS,
   });
-  const id = started.recording_id;
-  const row = await getRunningAgentRecording(db, user.userId, id);
-  if (!row?.slug) throw new LibraryError("The demo couldn't be started.");
   try {
+    const parsed = parseInitRequest({
+      contentType: "video/mp4",
+      source: "instant",
+      preset: "recording",
+      client: "agent",
+      hasWebcam: false,
+      title,
+      workspaceId: start.workspaceId,
+    });
+    if (parsed.kind === "error") throw new Error(parsed.error);
+    const made = await initRecording(
+      user.userId,
+      start.upload.deviceId,
+      parsed.init,
+    );
+    if (made.kind === "error") throw new LibraryError(made.error);
+    const { slug } = made.response;
+    await setAgentRecordingSlug(db, id, slug);
+    const demo = callRecorder(env, id, "POST", "demo", {
+      url,
+      start: { ...start, upload: { ...start.upload, created: made.response } },
+    });
     if (env.RECORDER_URL) {
-      void callRecorder(env, id, "POST", "demo", { url })
-        .catch((err) => console.warn("[swarm-demo] failed", err))
+      void demo
+        .catch((err) => {
+          console.warn("[swarm-demo] failed", err);
+          return failPendingAgentRecording(db, id);
+        })
         .finally(() => endAgentRecording(db, id, Date.now()));
     } else {
-      await callRecorder(env, id, "POST", "demo", { url });
+      await demo;
     }
+    return { recording_id: id, url: viewUrlFor(slug) };
   } catch (err) {
+    await failPendingAgentRecording(db, id);
     await endAgentRecording(db, id, Date.now());
     throw err;
   }
-  return { recording_id: id, url: viewUrlFor(row.slug) };
 }
 
 async function running(db: D1Database, user: McpUser, id: string) {

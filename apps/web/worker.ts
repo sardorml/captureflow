@@ -22,6 +22,7 @@ import {
 import { langOf, splitLocale } from "./lib/i18n/config";
 import {
   endAgentRecording,
+  failPendingAgentRecording,
   sweepAgentRecordings,
 } from "./lib/mcp/agent-recordings-db";
 import { hydrateTranscriptionJobMessage } from "./lib/recording/transcription";
@@ -108,23 +109,29 @@ export class RecorderContainer extends Container<Env> {
    */
   async checkDemo(id: string) {
     if ((await this.ctx.storage.get(DEMO_KEY)) !== id) return;
-    let running = false;
-    if (this.ctx.container?.running) {
-      const res = await this.containerFetch(
-        new Request(`http://recorder/sessions/${id}`, {
-          headers: { "x-recorder-secret": this.env.RECORDER_SECRET ?? "" },
-        }),
-      ).catch(() => null);
-      running = res?.ok ?? false;
-    }
-    if (!running) return this.finishDemo(id);
+    if (!(await this.demoRunning(id))) return this.finishDemo(id);
     this.renewActivityTimeout();
     await this.schedule(DEMO_CHECK_SECONDS, "checkDemo", id);
   }
 
+  private async demoRunning(id: string) {
+    if (!this.ctx.container?.running) return false;
+    const res = await this.containerFetch(
+      new Request(`http://recorder/sessions/${id}`, {
+        headers: { "x-recorder-secret": this.env.RECORDER_SECRET ?? "" },
+      }),
+    ).catch(() => null);
+    return res?.ok ?? false;
+  }
+
+  // The recording was made before the container started, so a demo that never ran leaves it pending.
   private async finishDemo(id: string) {
     if ((await this.ctx.storage.get(DEMO_KEY)) !== id) return;
+    if (await this.demoRunning(id)) return;
     await this.ctx.storage.delete(DEMO_KEY);
+    await failPendingAgentRecording(this.env.DB, id).catch((err) =>
+      console.error(`[swarm-demo] ${id} not failed:`, err),
+    );
     await endAgentRecording(this.env.DB, id, Date.now()).catch((err) =>
       console.error(`[swarm-demo] ${id} not ended:`, err),
     );
