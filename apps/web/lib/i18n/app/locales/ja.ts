@@ -24,6 +24,11 @@ const messages: AppMessages = {
     themeToLight: "ライトテーマに切り替え",
     themeToDark: "ダークテーマに切り替え",
     somethingWrong: "問題が発生しました。もう一度お試しください。",
+    pageFailed: "このページを読み込めませんでした。",
+    partFailed: "この部分を読み込めませんでした。",
+    failedBody:
+      "問題が発生しました。もう一度試すか、ページを再読み込みしてください。",
+    reload: "ページを再読み込み",
   },
   auth: {
     signedInAs: "{email} としてログイン中です。",

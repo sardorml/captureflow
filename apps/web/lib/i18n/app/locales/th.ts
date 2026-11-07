@@ -24,6 +24,10 @@ const messages: AppMessages = {
     themeToLight: "เปลี่ยนเป็นธีมสว่าง",
     themeToDark: "เปลี่ยนเป็นธีมมืด",
     somethingWrong: "เกิดข้อผิดพลาด ลองอีกครั้ง",
+    pageFailed: "ไม่สามารถโหลดหน้านี้ได้",
+    partFailed: "ไม่สามารถโหลดส่วนนี้ได้",
+    failedBody: "เกิดข้อผิดพลาด ลองอีกครั้งหรือโหลดหน้าใหม่",
+    reload: "โหลดหน้าใหม่",
   },
   auth: {
     signedInAs: "เข้าสู่ระบบในชื่อ {email}",

@@ -24,6 +24,11 @@ const messages: AppMessages = {
     themeToLight: "Zum hellen Design wechseln",
     themeToDark: "Zum dunklen Design wechseln",
     somethingWrong: "Etwas ist schiefgelaufen. Versuch es noch einmal.",
+    pageFailed: "Diese Seite konnte nicht geladen werden.",
+    partFailed: "Dieser Teil konnte nicht geladen werden.",
+    failedBody:
+      "Etwas ist schiefgelaufen. Versuch es noch einmal oder lade die Seite neu.",
+    reload: "Seite neu laden",
   },
   auth: {
     signedInAs: "Angemeldet als {email}.",

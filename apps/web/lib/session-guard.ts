@@ -7,6 +7,8 @@ import { getSessionCookie } from "better-auth/cookies";
 import { getAuth, type AuthInstance } from "./auth";
 import { renderTrace } from "./render-trace";
 import { withTimeout } from "./with-timeout";
+import { getSessionWithin } from "@/lib/session-read";
+import { SessionLookupStalled } from "@/lib/session-lookup";
 
 /*
  * getSession can throw on a stale cookie (deleted session row, rotated
@@ -26,10 +28,11 @@ export const loadSession = cache(async (): Promise<Session | null> => {
   const auth = await getAuth();
   trace("auth built");
   try {
-    const result = await auth.api.getSession({ headers: await headers() });
+    const result = await getSessionWithin(auth, await headers(), "page");
     trace("session read");
     return (result ?? null) as Session | null;
   } catch (err) {
+    if (err instanceof SessionLookupStalled) throw err;
     console.error("[auth] getSession threw:", err);
     return null;
   }
@@ -46,7 +49,11 @@ const REDIRECT_SESSION_TIMEOUT_MS = 3000;
  */
 export async function loadSessionForRedirect(): Promise<Session | null> {
   if (!getSessionCookie(await headers())) return null;
-  return withTimeout(loadSession(), REDIRECT_SESSION_TIMEOUT_MS, null);
+  return withTimeout(
+    loadSession().catch(() => null),
+    REDIRECT_SESSION_TIMEOUT_MS,
+    null,
+  );
 }
 
 // Route through /auth/clear (a Route Handler) to delete the stale cookie;

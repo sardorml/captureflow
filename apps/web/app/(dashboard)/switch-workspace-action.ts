@@ -9,10 +9,15 @@ import {
 } from "@captureflow/quota";
 import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { getSessionWithin } from "@/lib/session-read";
 
 export async function switchWorkspaceAction(formData: FormData): Promise<void> {
   const auth = await getAuth();
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSessionWithin(
+    auth,
+    await headers(),
+    "switch workspace",
+  );
   if (!session) redirect("/login");
 
   const env = await getAppWebEnv();

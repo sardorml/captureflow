@@ -7,6 +7,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppI18n } from "@/components/app-i18n";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { getAppI18n } from "@/lib/i18n/app/server";
 import { requireSession } from "@/lib/session-guard";
 import { Sidebar } from "./Sidebar";
@@ -38,9 +39,11 @@ export default async function DashboardLayout({
         className="h-svh overflow-hidden"
       >
         <div data-split="sidebar" className="contents">
-          <Suspense fallback={<SidebarSkeleton />}>
-            <Sidebar />
-          </Suspense>
+          <ErrorBoundary className="m-4 w-56">
+            <Suspense fallback={<SidebarSkeleton />}>
+              <Sidebar />
+            </Suspense>
+          </ErrorBoundary>
         </div>
         <SidebarInset className="min-w-0 overflow-hidden">
           <header className="flex h-16 shrink-0 items-center gap-2 px-4 md:px-6">
@@ -53,7 +56,9 @@ export default async function DashboardLayout({
               className="mr-2 data-vertical:h-4 data-vertical:self-auto"
             />
             <div data-split="top-bar" className="contents">
-              <TopBar session={session} />
+              <ErrorBoundary className="ml-auto border-0 p-0">
+                <TopBar session={session} />
+              </ErrorBoundary>
             </div>
           </header>
           <div className="min-h-0 flex-1 overflow-y-auto">

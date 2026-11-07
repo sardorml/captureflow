@@ -9,6 +9,7 @@ import { getAppI18n } from "@/lib/i18n/app/server";
 import { fmt } from "@/lib/i18n/format";
 import { deleteObject, putObject } from "@/lib/r2";
 import { CDN_BASE_URL } from "@/lib/site";
+import { getSessionWithin } from "@/lib/session-read";
 
 type FormState = { error: string | null; ok: string | null };
 
@@ -22,7 +23,11 @@ const AVATAR_MIME = new Map<string, string>([
 
 async function requireUserId(): Promise<string> {
   const auth = await getAuth();
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSessionWithin(
+    auth,
+    await headers(),
+    "account action",
+  );
   if (!session) redirect("/login");
   return session.user.id;
 }

@@ -320,7 +320,7 @@ export async function startSwarmDemo(
       void demo
         .catch((err) => {
           console.warn("[swarm-demo] failed", err);
-          return failPendingAgentRecording(db, id);
+          return failPendingAgentRecording(db, id, errorText(err));
         })
         .finally(() => endAgentRecording(db, id, Date.now()));
     } else {
@@ -328,10 +328,14 @@ export async function startSwarmDemo(
     }
     return { recording_id: id, url: viewUrlFor(slug) };
   } catch (err) {
-    await failPendingAgentRecording(db, id);
+    await failPendingAgentRecording(db, id, errorText(err));
     await endAgentRecording(db, id, Date.now());
     throw err;
   }
+}
+
+function errorText(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
 }
 
 async function running(db: D1Database, user: McpUser, id: string) {

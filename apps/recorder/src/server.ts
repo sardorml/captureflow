@@ -75,14 +75,13 @@ function session(id: string): Session {
   return s;
 }
 
+// Answered with 503, so the caller can start the session on a fresh container instead.
+class Restarting extends Error {}
+
 type StartBody = Omit<StartRequest, "output"> & { upload: UploadCredentials };
 
 async function begin(id: string, { upload, ...rest }: StartBody) {
-  if (draining) {
-    throw new SessionError(
-      "The recorder is restarting. Try again in a minute.",
-    );
-  }
+  if (draining) throw new Restarting();
   if (sessions.has(id) || starting.has(id)) {
     throw new SessionError("That session already exists.");
   }
@@ -178,6 +177,11 @@ const server = createServer(async (req, res) => {
     const path = url.pathname.split("/").filter(Boolean);
     send(200, await route(req.method ?? "GET", path, () => readJson(req)));
   } catch (err) {
+    if (err instanceof Restarting) {
+      return send(503, {
+        error: "The recorder is restarting. Try again in a minute.",
+      });
+    }
     if (err instanceof SessionError) return send(400, { error: err.message });
     console.error("[recorder]", err);
     send(500, { error: "The recorder failed. Try again." });

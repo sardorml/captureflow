@@ -24,6 +24,11 @@ const messages: AppMessages = {
     themeToLight: "Açık temaya geç",
     themeToDark: "Koyu temaya geç",
     somethingWrong: "Bir sorun oluştu. Tekrar deneyin.",
+    pageFailed: "Bu sayfa yüklenemedi.",
+    partFailed: "Bu bölüm yüklenemedi.",
+    failedBody:
+      "Bir şeyler ters gitti. Tekrar deneyin veya sayfayı yeniden yükleyin.",
+    reload: "Sayfayı yeniden yükle",
   },
   auth: {
     signedInAs: "{email} olarak giriş yapıldı.",

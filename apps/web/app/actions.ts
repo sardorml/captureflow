@@ -52,12 +52,13 @@ import { purgeCachedMedia } from "@/lib/recording/remove";
 import { revokeDeviceToken } from "@/lib/device-tokens";
 import { getAppI18n } from "@/lib/i18n/app/server";
 import { fmt } from "@/lib/i18n/format";
+import { getSessionWithin } from "@/lib/session-read";
 
 // Middleware only guards page requests; a forged/replayed direct action
 // invocation bypasses it, so every action re-checks the session here.
 async function requireUserId(): Promise<string> {
   const auth = await getAuth();
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSessionWithin(auth, await headers(), "action");
   if (!session) {
     redirect("/login");
   }

@@ -18,6 +18,7 @@ import type {
 import { ContentByline } from "../../_components/screenshot";
 import { PoweredBy } from "../../_components/powered-by";
 import { RecordingPlayer } from "./RecordingPlayer";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { initials } from "@/lib/format";
 import dynamic from "next/dynamic";
@@ -209,78 +210,92 @@ export function RecordingViewer({
           </div>
         </header>
         <div className="mx-auto flex w-full max-w-5xl flex-col py-6 max-lg:contents">
-          <RecordingPlayer
-            videoUrl={videoUrl}
-            posterUrl={posterUrl}
-            posterBlur={posterBlur}
-            webcamUrl={webcamUrl}
-            slug={slug}
-            initialReactions={initialReactions}
-            serverDurationMs={serverDurationMs}
-            serverWidth={serverWidth}
-            serverHeight={serverHeight}
-            config={config}
-            captionsUrl={
-              transcript ? `/api/r/transcript/${slug}/captions` : undefined
-            }
-            captionsLang={transcript?.language ?? undefined}
-            chapters={chapters}
-            comments={comments}
-            viewerSignedIn={signedIn}
-            onReactionAdded={onReactionAdded}
-            removedReactionIds={removedReactionIds}
-            onSignInRequested={goToSignIn}
-            handleRef={playerRef}
-            onCommentClick={signedIn ? focusComment : goToSignIn}
-            className="max-lg:order-1 max-lg:w-full! max-lg:rounded-none"
-          />
-          <div className="px-6 max-lg:order-4 max-lg:pb-6 lg:px-12">
-            <SummaryChapters
+          <ErrorBoundary className="aspect-video max-lg:order-1">
+            <RecordingPlayer
+              videoUrl={videoUrl}
+              posterUrl={posterUrl}
+              posterBlur={posterBlur}
+              webcamUrl={webcamUrl}
               slug={slug}
-              isOwner={isOwner}
-              initialSummary={initialSummary}
-              initialChapters={initialChapters}
-              onSeek={seekTo}
-              getCurrentMs={getCurrentMs}
-              onChaptersChange={setChapters}
+              initialReactions={initialReactions}
+              serverDurationMs={serverDurationMs}
+              serverWidth={serverWidth}
+              serverHeight={serverHeight}
+              config={config}
+              captionsUrl={
+                transcript ? `/api/r/transcript/${slug}/captions` : undefined
+              }
+              captionsLang={transcript?.language ?? undefined}
+              chapters={chapters}
+              comments={comments}
+              viewerSignedIn={signedIn}
+              onReactionAdded={onReactionAdded}
+              removedReactionIds={removedReactionIds}
+              onSignInRequested={goToSignIn}
+              handleRef={playerRef}
+              onCommentClick={signedIn ? focusComment : goToSignIn}
+              className="max-lg:order-1 max-lg:w-full! max-lg:rounded-none"
             />
+          </ErrorBoundary>
+          <div className="px-6 max-lg:order-4 max-lg:pb-6 lg:px-12">
+            <ErrorBoundary className="mt-6">
+              <SummaryChapters
+                slug={slug}
+                isOwner={isOwner}
+                initialSummary={initialSummary}
+                initialChapters={initialChapters}
+                onSeek={seekTo}
+                getCurrentMs={getCurrentMs}
+                onChaptersChange={setChapters}
+              />
+            </ErrorBoundary>
             <footer className="mt-8 flex justify-center border-t border-line pt-6">
               <PoweredBy />
             </footer>
           </div>
         </div>
       </main>
-      <ActivitySidebar
-        slug={slug}
-        initialReactions={initialReactions}
-        initialComments={initialComments}
-        liveReactions={liveReactions}
-        onReactionDeleted={onReactionDeleted}
-        onCommentsChange={setComments}
-        transcript={
-          <TranscriptPanel
-            slug={slug}
-            transcript={transcript}
-            status={transcriptStatus}
-            onSettled={onTranscriptSettled}
-            cuts={config.cuts}
-            isOwner={isOwner}
-            editUrl={editUrl}
-            onSeek={seekTo}
-            getCurrentMs={getCurrentMs}
-          />
-        }
-        editPanel={isOwner ? <EditPanel slug={slug} editUrl={editUrl} /> : null}
-        viewerSignedIn={signedIn}
-        viewerName={viewerName}
-        viewerUserId={viewer?.userId ?? null}
-        viewerImageUrl={viewer?.image ?? null}
-        isOwner={isOwner}
-        onSignIn={goToSignIn}
-        onSeek={seekTo}
-        getCurrentMs={getCurrentMs}
-        commentInputRef={commentInputRef}
-      />
+      <ErrorBoundary className="m-4 lg:w-80">
+        <ActivitySidebar
+          slug={slug}
+          initialReactions={initialReactions}
+          initialComments={initialComments}
+          liveReactions={liveReactions}
+          onReactionDeleted={onReactionDeleted}
+          onCommentsChange={setComments}
+          transcript={
+            <ErrorBoundary className="m-4">
+              <TranscriptPanel
+                slug={slug}
+                transcript={transcript}
+                status={transcriptStatus}
+                onSettled={onTranscriptSettled}
+                cuts={config.cuts}
+                isOwner={isOwner}
+                editUrl={editUrl}
+                onSeek={seekTo}
+                getCurrentMs={getCurrentMs}
+              />
+            </ErrorBoundary>
+          }
+          editPanel={
+            isOwner ? (
+              <ErrorBoundary className="m-4">
+                <EditPanel slug={slug} editUrl={editUrl} />
+              </ErrorBoundary>
+            ) : null
+          }
+          viewerSignedIn={signedIn}
+          viewerName={viewerName}
+          viewerUserId={viewer?.userId ?? null}
+          viewerImageUrl={viewer?.image ?? null}
+          isOwner={isOwner}
+          onSignIn={goToSignIn}
+          onSeek={seekTo}
+          getCurrentMs={getCurrentMs}
+          commentInputRef={commentInputRef}
+        />
+      </ErrorBoundary>
     </div>
   );
 }

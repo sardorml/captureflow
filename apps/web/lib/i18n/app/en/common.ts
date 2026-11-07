@@ -22,4 +22,8 @@ export const COMMON = {
   themeToLight: "Switch to light theme",
   themeToDark: "Switch to dark theme",
   somethingWrong: "Something went wrong. Try again.",
+  pageFailed: "This page couldn't load.",
+  partFailed: "This part couldn't load.",
+  failedBody: "Something went wrong. Try again, or reload the page.",
+  reload: "Reload page",
 } as const;

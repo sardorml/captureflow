@@ -24,6 +24,10 @@ const messages: AppMessages = {
     themeToLight: "Byt till ljust tema",
     themeToDark: "Byt till mörkt tema",
     somethingWrong: "Något gick fel. Försök igen.",
+    pageFailed: "Sidan kunde inte läsas in.",
+    partFailed: "Den här delen kunde inte läsas in.",
+    failedBody: "Något gick fel. Försök igen eller läs in sidan på nytt.",
+    reload: "Läs in sidan igen",
   },
   auth: {
     signedInAs: "Inloggad som {email}.",

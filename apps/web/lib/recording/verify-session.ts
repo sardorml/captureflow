@@ -3,6 +3,7 @@
 import { listWorkspacesForUser } from "@captureflow/quota";
 import { getAuth } from "@/lib/auth";
 import { getAppWebEnv } from "@/lib/cf-env";
+import { getSessionWithin } from "@/lib/session-read";
 
 export type VerifiedSession = {
   userId: string;
@@ -30,9 +31,11 @@ export async function verifySession(
   >;
   try {
     const auth = await getAuth();
-    session = await auth.api.getSession({
-      headers: headersFromCookie(cookieHeader),
-    });
+    session = await getSessionWithin(
+      auth,
+      headersFromCookie(cookieHeader),
+      "recording viewer",
+    );
   } catch (err) {
     console.error("verify-session: getSession threw", err);
     return "unknown";
