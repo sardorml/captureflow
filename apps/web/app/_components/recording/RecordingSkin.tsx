@@ -64,7 +64,11 @@ import { FramePreview } from "./FramePreview";
 import { useAfterLoad } from "./use-after-load";
 import { useFitStage } from "./use-fit-stage";
 import { useFrameStrip } from "./use-frame-strip";
-import { recordingBackgroundStyle } from "./layout";
+import {
+  recordingBackgroundStyle,
+  recordingFrameStyle,
+  type RecordingFrame,
+} from "./layout";
 import {
   WebcamBubble,
   webcamBubbleLayout,
@@ -91,7 +95,7 @@ export type RecordingSkinProps = {
   className?: string;
   sizeStyle: CSSProperties;
   aspect: number;
-  background: string;
+  frame: RecordingFrame;
   captionPrefs: CaptionPrefs;
   onCaptionPrefs: (patch: Partial<CaptionPrefs>) => void;
   webcam: RecordingWebcam | null;
@@ -151,7 +155,7 @@ export function RecordingSkin({
   className,
   sizeStyle,
   aspect,
-  background,
+  frame,
   captionPrefs,
   onCaptionPrefs,
   webcam,
@@ -196,7 +200,7 @@ export function RecordingSkin({
     }
   }, []);
   const timeline = useTimeline(serverDurationMs, cuts, showCuts);
-  const hasFrame = background !== "transparent";
+  const hasFrame = frame.background !== "transparent";
   const stage = useFitStage(hasFrame, aspect);
 
   return (
@@ -208,7 +212,6 @@ export function RecordingSkin({
       )}
       style={{
         ...(isFullscreen ? {} : sizeStyle),
-        ...recordingBackgroundStyle(background),
         ...(captionPrefs.position === "top" ? CAPTION_TOP : CAPTION_LIFT),
       }}
       data-theme="default"
@@ -217,21 +220,22 @@ export function RecordingSkin({
       data-caption-size={captionPrefs.size}
       data-caption-position={captionPrefs.position}
     >
-      {/* With a background the video shrinks 4% per side so the bg paints
-          as a visible frame; `transparent` fills edge-to-edge. The stage
-          keeps the video's aspect, centred, so the frame stays even in a box
-          of another shape (fullscreen, the editor's stage). */}
+      {/* With a background the video shrinks by the frame's padding so the bg
+          paints around it; `transparent` fills edge-to-edge. The stage
+          keeps the video's aspect, centred, and carries the background, so
+          the frame is the same in a box of another shape (fullscreen, the
+          editor's stage) as on the share page. */}
       <div
         ref={stage.ref}
-        className="absolute inset-0 m-auto"
-        style={stage.style}
+        className="absolute inset-0 m-auto rounded-[inherit] [container-type:inline-size]"
+        style={{
+          ...stage.style,
+          ...recordingBackgroundStyle(frame.background, frame.imageUrl),
+        }}
       >
         <div
-          className={
-            hasFrame
-              ? "absolute inset-[4%] overflow-hidden rounded-lg shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]"
-              : "absolute inset-0"
-          }
+          className={hasFrame ? "absolute overflow-hidden" : "absolute inset-0"}
+          style={hasFrame ? recordingFrameStyle(frame) : undefined}
         >
           {children}
           {/* The video's own poster paints as it downloads, strip by strip.

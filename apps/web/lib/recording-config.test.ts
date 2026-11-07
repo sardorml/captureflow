@@ -3,6 +3,7 @@ import {
   DEFAULT_RECORDING_CONFIG,
   hydrateRecordingConfig,
   parseRecordingConfigJson,
+  recordingBackgroundImageFile,
 } from "./recording-config";
 
 describe("hydrateRecordingConfig", () => {
@@ -32,6 +33,9 @@ describe("hydrateRecordingConfig", () => {
       }),
     ).toEqual({
       background: "violet",
+      padding: 4,
+      radius: 8,
+      shadow: 50,
       cameraCorner: "top-left",
       cameraPoint: { x: 0.25, y: 1 },
       cameraSize: "large",
@@ -60,5 +64,32 @@ describe("hydrateRecordingConfig", () => {
         null,
       );
     }
+  });
+
+  it("clamps the frame to its limits and keeps the defaults for junk", () => {
+    const config = hydrateRecordingConfig({
+      padding: 40,
+      radius: -3,
+      shadow: "lots",
+    });
+    expect([config.padding, config.radius, config.shadow]).toEqual([15, 0, 50]);
+    expect(hydrateRecordingConfig({ padding: 6.25 }).padding).toBe(6.3);
+  });
+
+  it("accepts an uploaded image background and nothing like a path", () => {
+    const file = `${"a".repeat(32)}.webp`;
+    expect(
+      hydrateRecordingConfig({ background: `image:${file}` }).background,
+    ).toBe(`image:${file}`);
+    for (const bad of [
+      "image:../secret.png",
+      `image:${"a".repeat(32)}.svg`,
+      `image:recordings/${file}`,
+    ]) {
+      expect(hydrateRecordingConfig({ background: bad }).background).toBe(
+        "transparent",
+      );
+    }
+    expect(recordingBackgroundImageFile("violet")).toBe(null);
   });
 });

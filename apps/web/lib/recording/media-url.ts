@@ -1,5 +1,9 @@
 import { getAppWebEnv } from "@/lib/cf-env";
 import { sealMediaLink } from "@/lib/media-link";
+import {
+  recordingBackgroundImageFile,
+  recordingBackgroundImageKey,
+} from "@/lib/recording-config";
 import { publicUrlFor } from "./r2";
 
 /*
@@ -37,4 +41,13 @@ export function posterMimeOf(posterKey: string | null): string {
   if (lower.endsWith(".png")) return "image/png";
   if (lower.endsWith(".webp")) return "image/webp";
   return "image/jpeg";
+}
+
+// Where the uploaded picture a background names is served, under the same rules as the recording's own media.
+export async function backgroundImageUrlFor(
+  row: { visibility: string },
+  background: string,
+): Promise<string | null> {
+  const file = recordingBackgroundImageFile(background);
+  return file ? viewerMediaUrl(row, recordingBackgroundImageKey(file)) : null;
 }

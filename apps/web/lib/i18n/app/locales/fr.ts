@@ -816,6 +816,10 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "Slug manquant",
     recordingNotFound: "Enregistrement introuvable",
+    backgroundMissing: "Choisissez une image à importer",
+    backgroundTooLarge: "Les images peuvent faire jusqu’à 5 Mo",
+    backgroundBadType: "Utilisez une image PNG, JPEG ou WebP",
+    backgroundFailed: "Impossible d’importer l’image. Réessayez.",
     invalidVisibility: "Visibilité non valide",
     deleteVideoFailed: "Impossible de supprimer le fichier vidéo : {reason}",
     transcriptNotFound: "Transcription introuvable",
@@ -1245,6 +1249,9 @@ const messages: AppMessages = {
       gradients: "Dégradés",
       none: "Aucun",
       noBackground: "Aucun arrière-plan",
+      upload: "Importer une image",
+      uploading: "Importation…",
+      uploadedImage: "Votre image",
       solid: "Uni",
       solidColor: "Couleur unie {color}",
       customColor: "Choisir une couleur personnalisée",
@@ -1267,6 +1274,12 @@ const messages: AppMessages = {
         midnight: "Minuit",
         slate: "Ardoise",
       },
+    },
+    frame: {
+      title: "Cadre",
+      padding: "Marge",
+      corners: "Coins",
+      shadow: "Ombre",
     },
     camera: {
       title: "Caméra",

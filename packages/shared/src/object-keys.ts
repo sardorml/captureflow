@@ -58,7 +58,31 @@ type RecordingObjects = {
   posterKey: string | null;
   posterThumbKey: string | null;
   webcamStorageKey: string | null;
+  configJson?: string | null;
 };
+
+const BACKGROUND_IMAGE = /^image:([0-9a-f]{32}\.(?:png|jpg|webp))$/;
+
+// The uploaded picture a recording's background names, or null when it isn't an image.
+export function backgroundImageFileOf(background: unknown): string | null {
+  return typeof background === "string"
+    ? (BACKGROUND_IMAGE.exec(background)?.[1] ?? null)
+    : null;
+}
+
+export function backgroundImageKeyFor(file: string): string {
+  return `recording-backgrounds/${file}`;
+}
+
+function backgroundImageKeyIn(configJson: string | null | undefined) {
+  if (!configJson) return null;
+  try {
+    const file = backgroundImageFileOf(JSON.parse(configJson)?.background);
+    return file ? backgroundImageKeyFor(file) : null;
+  } catch {
+    return null;
+  }
+}
 
 /*
  * The config/summary sidecar keys outlive migration 0007 (which moved those
@@ -76,6 +100,7 @@ export function objectKeysFor(row: RecordingObjects): string[] {
     summaryChaptersKeyFor(row.storageKey),
     waveformKeyFor(row.storageKey),
     row.webcamStorageKey && waveformKeyFor(row.webcamStorageKey),
+    backgroundImageKeyIn(row.configJson),
   ];
   return keys.filter((k): k is string => k !== null);
 }

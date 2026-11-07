@@ -51,6 +51,9 @@ export const RECORDING_EDITOR = {
     gradients: "Gradients",
     none: "None",
     noBackground: "No background",
+    upload: "Upload image",
+    uploading: "Uploading…",
+    uploadedImage: "Your image",
     solid: "Solid",
     solidColor: "Solid {color}",
     customColor: "Pick a custom color",
@@ -73,6 +76,12 @@ export const RECORDING_EDITOR = {
       midnight: "Midnight",
       slate: "Slate",
     },
+  },
+  frame: {
+    title: "Frame",
+    padding: "Padding",
+    corners: "Corners",
+    shadow: "Shadow",
   },
   camera: {
     title: "Camera",

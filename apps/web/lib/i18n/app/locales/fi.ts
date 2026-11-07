@@ -805,6 +805,10 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "Slug puuttuu",
     recordingNotFound: "Tallennetta ei löytynyt",
+    backgroundMissing: "Valitse ladattava kuva",
+    backgroundTooLarge: "Kuvan enimmäiskoko on 5 Mt",
+    backgroundBadType: "Käytä PNG-, JPEG- tai WebP-kuvaa",
+    backgroundFailed: "Kuvaa ei voitu ladata. Yritä uudelleen.",
     invalidVisibility: "Virheellinen näkyvyys",
     deleteVideoFailed: "Videotiedoston poisto ei onnistunut: {reason}",
     transcriptNotFound: "Litterointia ei löytynyt",
@@ -1226,6 +1230,9 @@ const messages: AppMessages = {
       gradients: "Liukuvärit",
       none: "Ei mitään",
       noBackground: "Ei taustaa",
+      upload: "Lataa kuva",
+      uploading: "Ladataan…",
+      uploadedImage: "Oma kuva",
       solid: "Yksivärinen",
       solidColor: "Yksivärinen {color}",
       customColor: "Valitse oma väri",
@@ -1248,6 +1255,12 @@ const messages: AppMessages = {
         midnight: "Keskiyö",
         slate: "Liuske",
       },
+    },
+    frame: {
+      title: "Kehys",
+      padding: "Reunus",
+      corners: "Kulmat",
+      shadow: "Varjo",
     },
     camera: {
       title: "Kamera",

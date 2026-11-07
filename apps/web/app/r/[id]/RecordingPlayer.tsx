@@ -25,6 +25,8 @@ import type {
 import {
   aspectFromPlaceholder,
   recordingBackgroundStyle,
+  recordingFrameStyle,
+  type RecordingFrame,
   sizeStyleForAspect,
 } from "../../_components/recording/layout";
 import { PosterLayer } from "../../_components/recording/PosterLayer";
@@ -52,6 +54,7 @@ type Props = {
   serverWidth: number | null;
   serverHeight: number | null;
   config: RecordingConfig;
+  backgroundImageUrl?: string | null;
   viewerSignedIn?: boolean;
   onReactionAdded?: (reaction: RecordingReaction) => void;
   // Reactions deleted elsewhere on the page (the activity sidebar).
@@ -89,7 +92,7 @@ type BaseProps = ComponentPropsWithoutRef<typeof BaseRecordingPlayer>;
 type ShellProps = {
   posterUrl?: string;
   posterBlur?: string | null;
-  background: RecordingConfig["background"];
+  frame: RecordingFrame;
   sizeStyle: CSSProperties;
   compact: boolean;
   className?: string;
@@ -133,30 +136,30 @@ function withHandleRef(Base: typeof BaseRecordingPlayer) {
 function PlayerShell({
   posterUrl,
   posterBlur,
-  background,
+  frame,
   sizeStyle,
   compact,
   className,
   below,
 }: ShellProps) {
-  const hasFrame = background !== "transparent";
+  const hasFrame = frame.background !== "transparent";
   return (
     <div className="flex flex-col items-center max-lg:contents">
       <div
         aria-busy="true"
         className={cn(
-          "relative block overflow-clip rounded-[var(--media-border-radius,16px)] bg-black max-sm:h-auto! max-sm:w-full!",
+          "relative block overflow-clip rounded-[var(--media-border-radius,16px)] bg-black [container-type:inline-size] max-sm:h-auto! max-sm:w-full!",
           compact && "rounded-none",
           className,
         )}
-        style={{ ...sizeStyle, ...recordingBackgroundStyle(background) }}
+        style={{
+          ...sizeStyle,
+          ...recordingBackgroundStyle(frame.background, frame.imageUrl),
+        }}
       >
         <div
-          className={
-            hasFrame
-              ? "absolute inset-[4%] overflow-hidden rounded-lg shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]"
-              : "absolute inset-0"
-          }
+          className={hasFrame ? "absolute overflow-hidden" : "absolute inset-0"}
+          style={hasFrame ? recordingFrameStyle(frame) : undefined}
         >
           {posterUrl ? (
             <PosterLayer posterUrl={posterUrl} posterBlur={posterBlur} />
@@ -187,6 +190,7 @@ export function RecordingPlayer({
   serverWidth,
   serverHeight,
   config,
+  backgroundImageUrl,
   viewerSignedIn = false,
   onReactionAdded,
   removedReactionIds,
@@ -322,7 +326,13 @@ export function RecordingPlayer({
   const shell: ShellProps = {
     posterUrl,
     posterBlur,
-    background: config.background,
+    frame: {
+      background: config.background,
+      padding: config.padding,
+      radius: config.radius,
+      shadow: config.shadow,
+      imageUrl: backgroundImageUrl ?? null,
+    },
     sizeStyle: sizeStyleForAspect(
       aspectFromPlaceholder(serverWidth, serverHeight),
       landscapeMaxHeightCss,
@@ -345,6 +355,7 @@ export function RecordingPlayer({
           serverWidth={serverWidth}
           serverHeight={serverHeight}
           config={config}
+          backgroundImageUrl={backgroundImageUrl}
           captionsUrl={captionsUrl}
           captionsLang={captionsLang}
           chapters={chapters}

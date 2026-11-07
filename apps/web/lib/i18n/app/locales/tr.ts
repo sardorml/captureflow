@@ -812,6 +812,10 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "Slug eksik",
     recordingNotFound: "Kayıt bulunamadı",
+    backgroundMissing: "Yüklenecek bir görsel seç",
+    backgroundTooLarge: "Görseller en fazla 5 MB olabilir",
+    backgroundBadType: "PNG, JPEG veya WebP görsel kullan",
+    backgroundFailed: "Görsel yüklenemedi. Tekrar dene.",
     invalidVisibility: "Geçersiz görünürlük",
     deleteVideoFailed: "Video dosyası silinemedi: {reason}",
     transcriptNotFound: "Transkript bulunamadı",
@@ -1229,6 +1233,9 @@ const messages: AppMessages = {
       gradients: "Gradyanlar",
       none: "Yok",
       noBackground: "Arka plan yok",
+      upload: "Görsel yükle",
+      uploading: "Yükleniyor…",
+      uploadedImage: "Görselin",
       solid: "Düz renk",
       solidColor: "Düz renk {color}",
       customColor: "Özel renk seç",
@@ -1251,6 +1258,12 @@ const messages: AppMessages = {
         midnight: "Gece yarısı",
         slate: "Füme",
       },
+    },
+    frame: {
+      title: "Çerçeve",
+      padding: "Boşluk",
+      corners: "Köşeler",
+      shadow: "Gölge",
     },
     camera: {
       title: "Kamera",

@@ -812,6 +812,11 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "Slug fehlt",
     recordingNotFound: "Aufnahme nicht gefunden",
+    backgroundMissing: "Wähle ein Bild zum Hochladen",
+    backgroundTooLarge: "Bilder dürfen höchstens 5 MB groß sein",
+    backgroundBadType: "Verwende ein PNG-, JPEG- oder WebP-Bild",
+    backgroundFailed:
+      "Das Bild konnte nicht hochgeladen werden. Versuch es noch einmal.",
     invalidVisibility: "Ungültige Sichtbarkeit",
     deleteVideoFailed: "Die Videodatei konnte nicht gelöscht werden: {reason}",
     transcriptNotFound: "Transkript nicht gefunden",
@@ -1238,6 +1243,9 @@ const messages: AppMessages = {
       gradients: "Verläufe",
       none: "Keiner",
       noBackground: "Kein Hintergrund",
+      upload: "Bild hochladen",
+      uploading: "Wird hochgeladen…",
+      uploadedImage: "Eigenes Bild",
       solid: "Einfarbig",
       solidColor: "Einfarbig {color}",
       customColor: "Eigene Farbe wählen",
@@ -1260,6 +1268,12 @@ const messages: AppMessages = {
         midnight: "Mitternacht",
         slate: "Schiefer",
       },
+    },
+    frame: {
+      title: "Rahmen",
+      padding: "Abstand",
+      corners: "Ecken",
+      shadow: "Schatten",
     },
     camera: {
       title: "Kamera",

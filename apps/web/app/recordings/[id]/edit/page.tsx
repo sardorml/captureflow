@@ -7,7 +7,11 @@ import { requireSessionOrStall } from "@/lib/session-guard";
 import { SessionStalled } from "@/components/session-stalled";
 import { AppI18n } from "@/components/app-i18n";
 import { getRecordingForUser } from "@/lib/recordings-db";
-import { parseRecordingConfigJson } from "@/lib/recording-config";
+import {
+  parseRecordingConfigJson,
+  recordingBackgroundImageFile,
+  recordingBackgroundImageKey,
+} from "@/lib/recording-config";
 import { getTranscript } from "@/lib/recording/db";
 import { resolveTranscript } from "@/lib/recording/transcript";
 import { CDN_BASE_URL, viewUrlFor } from "@/lib/site";
@@ -54,6 +58,7 @@ export default async function RecordingEditPage({
     recording.webcamStorageKey && recording.webcamState === "ready"
       ? `${CDN_BASE_URL}/${recording.webcamStorageKey}?v=${recording.webcamSizeBytes}`
       : null;
+  const backgroundFile = recordingBackgroundImageFile(initialConfig.background);
   const viewUrl = viewUrlFor(recording.slug);
   const theme = readThemeFromCookieHeader((await headers()).get("cookie"));
 
@@ -74,6 +79,11 @@ export default async function RecordingEditPage({
       createdAt={recording.createdAt}
       initialVisibility={recording.visibility}
       initialConfig={initialConfig}
+      initialBackgroundImageUrl={
+        backgroundFile
+          ? `${CDN_BASE_URL}/${recordingBackgroundImageKey(backgroundFile)}`
+          : null
+      }
       initialTranscript={transcript}
       transcriptStatus={transcriptStatus}
       transcriptHasEdits={hasEdits}

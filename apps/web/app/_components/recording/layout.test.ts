@@ -3,6 +3,7 @@ import {
   aspectFromPlaceholder,
   fitStageSize,
   recordingBackgroundStyle,
+  recordingFrameStyle,
   sizeStyleForAspect,
   clampWebcamPoint,
   webcamCornerClass,
@@ -145,5 +146,38 @@ describe("recordingBackgroundStyle", () => {
     expect(recordingBackgroundStyle("violet").background).toContain(
       "linear-gradient(",
     );
+  });
+});
+
+describe("recordingFrameStyle", () => {
+  it("draws today's frame at the defaults, in units of the frame's width", () => {
+    expect(recordingFrameStyle({ padding: 4, radius: 8, shadow: 50 })).toEqual({
+      inset: "4%",
+      borderRadius: "0.8cqw",
+      boxShadow: "0 2cqw 6cqw -2cqw rgba(0,0,0,0.5)",
+    });
+  });
+
+  it("drops a zero shadow", () => {
+    expect(recordingFrameStyle({ padding: 0, radius: 0, shadow: 0 })).toEqual({
+      inset: "0%",
+      borderRadius: "0cqw",
+      boxShadow: "none",
+    });
+  });
+});
+
+describe("recordingBackgroundStyle with an image", () => {
+  const image = `image:${"b".repeat(32)}.png`;
+  it("covers the frame with the uploaded picture", () => {
+    expect(recordingBackgroundStyle(image, "/m/x")).toMatchObject({
+      backgroundImage: 'url("/m/x")',
+      backgroundSize: "cover",
+    });
+  });
+  it("holds a neutral fill until the picture's address is known", () => {
+    expect(recordingBackgroundStyle(image)).toEqual({
+      backgroundColor: "#27272a",
+    });
   });
 });

@@ -1,3 +1,7 @@
+import {
+  backgroundImageFileOf,
+  backgroundImageKeyFor,
+} from "@captureflow/shared/object-keys";
 import { normalizeCuts, type RecordingCut } from "@/lib/recording/cuts";
 
 export type RecordingCameraCorner =
@@ -12,9 +16,12 @@ export type RecordingCameraSize = "small" | "medium" | "large";
 // dragging; null keeps the bubble in its corner.
 export type RecordingCameraPoint = { x: number; y: number };
 
-// `background` is a gradient preset key, a '#hex' fill, or 'transparent'.
+// `background` is a gradient preset key, a '#hex' fill, an uploaded 'image:<file>', or 'transparent'.
 export type RecordingConfig = {
   background: string;
+  padding: number;
+  radius: number;
+  shadow: number;
   cameraCorner: RecordingCameraCorner;
   cameraPoint: RecordingCameraPoint | null;
   cameraSize: RecordingCameraSize;
@@ -26,6 +33,9 @@ export type RecordingConfig = {
 
 export const DEFAULT_RECORDING_CONFIG: RecordingConfig = {
   background: "transparent",
+  padding: 4,
+  radius: 8,
+  shadow: 50,
   cameraCorner: "top-right",
   cameraPoint: null,
   cameraSize: "medium",
@@ -166,6 +176,21 @@ export const RECORDING_GRADIENT_PRESETS: Record<
   },
 };
 
+/*
+ * The frame around the video on a background, each in its own unit: padding
+ * is a percentage of the frame per side, radius is pixels at a 1000px-wide
+ * frame (it scales with the frame), shadow is a strength from 0 to 100.
+ */
+export const RECORDING_FRAME_LIMITS = {
+  padding: { min: 0, max: 15 },
+  radius: { min: 0, max: 40 },
+  shadow: { min: 0, max: 100 },
+} as const;
+
+// The uploaded file a background names, or null when it isn't an image.
+export const recordingBackgroundImageFile = backgroundImageFileOf;
+export const recordingBackgroundImageKey = backgroundImageKeyFor;
+
 export function isRecordingGradientKey(v: string): v is RecordingGradientKey {
   return (RECORDING_GRADIENT_KEYS as readonly string[]).includes(v);
 }
@@ -197,7 +222,8 @@ export function hydrateRecordingConfig(raw: unknown): RecordingConfig {
     typeof obj.background === "string" &&
     (obj.background === "transparent" ||
       isRecordingGradientKey(obj.background) ||
-      isRecordingHexColor(obj.background))
+      isRecordingHexColor(obj.background) ||
+      recordingBackgroundImageFile(obj.background) !== null)
       ? obj.background
       : DEFAULT_RECORDING_CONFIG.background;
   const corner = ((): RecordingCameraCorner => {
@@ -219,6 +245,9 @@ export function hydrateRecordingConfig(raw: unknown): RecordingConfig {
   })();
   return {
     background: bg,
+    padding: frameValue(obj.padding, "padding"),
+    radius: frameValue(obj.radius, "radius"),
+    shadow: frameValue(obj.shadow, "shadow"),
     cameraCorner: corner,
     cameraPoint: hydrateCameraPoint(obj.cameraPoint),
     cameraSize: size,
@@ -242,4 +271,15 @@ function hydrateCameraPoint(raw: unknown): RecordingCameraPoint | null {
   }
   const unit = (v: number): number => Math.min(1, Math.max(0, v));
   return { x: unit(x), y: unit(y) };
+}
+
+function frameValue(
+  raw: unknown,
+  field: keyof typeof RECORDING_FRAME_LIMITS,
+): number {
+  if (typeof raw !== "number" || !Number.isFinite(raw)) {
+    return DEFAULT_RECORDING_CONFIG[field];
+  }
+  const { min, max } = RECORDING_FRAME_LIMITS[field];
+  return Math.min(max, Math.max(min, Math.round(raw * 10) / 10));
 }

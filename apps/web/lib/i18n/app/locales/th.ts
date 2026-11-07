@@ -783,6 +783,10 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "ไม่มี slug",
     recordingNotFound: "ไม่พบการบันทึก",
+    backgroundMissing: "เลือกรูปภาพที่จะอัปโหลด",
+    backgroundTooLarge: "รูปภาพมีขนาดได้ไม่เกิน 5 MB",
+    backgroundBadType: "ใช้รูปภาพ PNG, JPEG หรือ WebP",
+    backgroundFailed: "อัปโหลดรูปภาพไม่สำเร็จ ลองอีกครั้ง",
     invalidVisibility: "การมองเห็นไม่ถูกต้อง",
     deleteVideoFailed: "ลบไฟล์วิดีโอไม่สำเร็จ: {reason}",
     transcriptNotFound: "ไม่พบบทถอดเสียง",
@@ -1194,6 +1198,9 @@ const messages: AppMessages = {
       gradients: "ไล่ระดับสี",
       none: "ไม่มี",
       noBackground: "ไม่มีพื้นหลัง",
+      upload: "อัปโหลดรูปภาพ",
+      uploading: "กำลังอัปโหลด…",
+      uploadedImage: "รูปภาพของคุณ",
       solid: "สีพื้น",
       solidColor: "สีพื้น {color}",
       customColor: "เลือกสีเอง",
@@ -1216,6 +1223,12 @@ const messages: AppMessages = {
         midnight: "เที่ยงคืน",
         slate: "หินชนวน",
       },
+    },
+    frame: {
+      title: "กรอบ",
+      padding: "ระยะขอบ",
+      corners: "มุม",
+      shadow: "เงา",
     },
     camera: {
       title: "กล้อง",

@@ -165,6 +165,9 @@ export function useEditorConfig(
 function shallowEqualConfig(a: RecordingConfig, b: RecordingConfig): boolean {
   return (
     a.background === b.background &&
+    a.padding === b.padding &&
+    a.radius === b.radius &&
+    a.shadow === b.shadow &&
     a.cameraCorner === b.cameraCorner &&
     a.cameraPoint?.x === b.cameraPoint?.x &&
     a.cameraPoint?.y === b.cameraPoint?.y &&

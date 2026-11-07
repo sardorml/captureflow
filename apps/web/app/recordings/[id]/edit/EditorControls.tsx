@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ImagePlus,
   Mic,
   MicOff,
   Video,
@@ -27,6 +28,7 @@ import {
   webcamSizeFraction,
 } from "@/app/_components/recording/layout";
 import {
+  RECORDING_FRAME_LIMITS,
   RECORDING_GRADIENT_KEYS,
   RECORDING_GRADIENT_PRESETS,
   isRecordingHexColor,
@@ -72,11 +74,26 @@ const FIRST_SOLIDS = SOLID_PALETTE.slice(0, SWATCHES_PER_ROW);
 export function BackgroundPicker({
   background,
   onChange,
+  imageUrl,
+  imageBackground,
+  onUpload,
 }: {
   background: string;
   onChange: (bg: string) => void;
+  imageUrl: string | null;
+  imageBackground: string | null;
+  onUpload: (file: File) => Promise<string | null>;
 }) {
   const t = useAppMessages().recordingEditor.background;
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  async function upload(file: File | undefined) {
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    setUploadError(await onUpload(file));
+    setUploading(false);
+  }
   const isSolid = (hex: string): boolean =>
     background.toLowerCase() === hex.toLowerCase();
   const inFirstRows =
@@ -145,6 +162,46 @@ export function BackgroundPicker({
           </label>
         )}
       </SwatchGroup>
+      <SwatchGroup label={t.uploadedImage}>
+        {imageUrl && imageBackground ? (
+          <Swatch
+            selected={background === imageBackground}
+            onClick={() => onChange(imageBackground)}
+            label={t.uploadedImage}
+            style={{
+              backgroundImage: `url("${imageUrl}")`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        ) : null}
+        <label
+          className={cn(
+            SWATCH_CLASS,
+            "cursor-pointer bg-tint text-fg-muted hover:text-fg",
+            uploading && "pointer-events-none animate-pulse",
+          )}
+          aria-label={uploading ? t.uploading : t.upload}
+          title={uploading ? t.uploading : t.upload}
+        >
+          <ImagePlus className="size-4" aria-hidden />
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="sr-only"
+            disabled={uploading}
+            onChange={(e) => {
+              void upload(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+        </label>
+      </SwatchGroup>
+      {uploadError ? (
+        <p role="alert" className="text-xs text-red-500">
+          {uploadError}
+        </p>
+      ) : null}
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -153,6 +210,45 @@ export function BackgroundPicker({
       >
         {expanded ? t.showLess : t.seeMore}
       </button>
+    </div>
+  );
+}
+
+type FrameField = keyof typeof RECORDING_FRAME_LIMITS;
+
+// The frame around the video on its background: how far it sits in, how round its corners are, how deep its shadow.
+export function FrameControls({
+  values,
+  onChange,
+}: {
+  values: Record<FrameField, number>;
+  onChange: (patch: Partial<Record<FrameField, number>>) => void;
+}) {
+  const t = useAppMessages().recordingEditor.frame;
+  const rows: { field: FrameField; label: string }[] = [
+    { field: "padding", label: t.padding },
+    { field: "radius", label: t.corners },
+    { field: "shadow", label: t.shadow },
+  ];
+  return (
+    <div className="flex flex-col gap-3">
+      {rows.map(({ field, label }) => (
+        <label key={field} className="flex items-center gap-3 text-sm">
+          <span className="w-20 shrink-0 text-fg-muted">{label}</span>
+          <input
+            type="range"
+            min={RECORDING_FRAME_LIMITS[field].min}
+            max={RECORDING_FRAME_LIMITS[field].max}
+            step={1}
+            value={values[field]}
+            onChange={(e) => onChange({ [field]: Number(e.target.value) })}
+            className="h-1.5 flex-1 cursor-pointer accent-primary"
+          />
+          <span className="w-8 shrink-0 text-right text-xs text-fg-muted tabular-nums">
+            {Math.round(values[field])}
+          </span>
+        </label>
+      ))}
     </div>
   );
 }

@@ -100,6 +100,7 @@ beforeEach(() => {
       webcam_storage_key TEXT, webcam_state TEXT DEFAULT 'none', state TEXT,
       last_viewed_at INTEGER, created_at INTEGER, user_id TEXT, workspace_id TEXT,
       size_bytes INTEGER DEFAULT 0, webcam_size_bytes INTEGER DEFAULT 0,
+      config_json TEXT,
       upload_id TEXT, webcam_upload_id TEXT);
     CREATE TABLE recording_upload_segments (slug TEXT, stream TEXT,
       byte_offset INTEGER, size INTEGER, received_at INTEGER);

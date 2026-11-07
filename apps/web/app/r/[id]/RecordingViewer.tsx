@@ -51,6 +51,7 @@ type Props = {
   serverWidth: number | null;
   serverHeight: number | null;
   config: RecordingConfig;
+  backgroundImageUrl: string | null;
   initialReactions: RecordingReaction[];
   initialComments: RecordingComment[];
   viewer: {
@@ -84,6 +85,7 @@ export function RecordingViewer({
   serverWidth,
   serverHeight,
   config,
+  backgroundImageUrl,
   initialReactions,
   initialComments,
   viewer,
@@ -222,6 +224,7 @@ export function RecordingViewer({
               serverWidth={serverWidth}
               serverHeight={serverHeight}
               config={config}
+              backgroundImageUrl={backgroundImageUrl}
               captionsUrl={
                 transcript ? `/api/r/transcript/${slug}/captions` : undefined
               }

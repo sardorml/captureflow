@@ -3,8 +3,10 @@ import {
   isRecordingGradientKey,
   isRecordingHexColor,
   RECORDING_GRADIENT_PRESETS,
+  recordingBackgroundImageFile,
   recordingGradientCss,
   type RecordingCameraCorner,
+  type RecordingConfig,
   type RecordingCameraPoint,
   type RecordingCameraSize,
 } from "@/lib/recording-config";
@@ -182,8 +184,21 @@ export function clampWebcamPoint(
 
 // `transparent` falls through to the skin's own background; object-contain
 // on the video means letterbox strips reveal this layer.
-export function recordingBackgroundStyle(background: string): CSSProperties {
+export function recordingBackgroundStyle(
+  background: string,
+  imageUrl: string | null = null,
+): CSSProperties {
   if (background === "transparent") return {};
+  if (recordingBackgroundImageFile(background)) {
+    return imageUrl
+      ? {
+          backgroundColor: IMAGE_PLACEHOLDER,
+          backgroundImage: `url("${imageUrl}")`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }
+      : { backgroundColor: IMAGE_PLACEHOLDER };
+  }
   if (isRecordingHexColor(background)) return { backgroundColor: background };
   if (isRecordingGradientKey(background)) {
     return {
@@ -193,4 +208,27 @@ export function recordingBackgroundStyle(background: string): CSSProperties {
     };
   }
   return {};
+}
+
+const IMAGE_PLACEHOLDER = "#27272a";
+
+export type RecordingFrame = Pick<
+  RecordingConfig,
+  "background" | "padding" | "radius" | "shadow"
+> & { imageUrl: string | null };
+
+// The video's box on the background. Corners and shadow are in units of the frame's width (its container), so the frame reads the same at any size and before anything is measured.
+export function recordingFrameStyle(
+  frame: Pick<RecordingFrame, "padding" | "radius" | "shadow">,
+): CSSProperties {
+  const s = frame.shadow / 100;
+  const cqw = (n: number) => `${Math.round((n / 10) * 1000) / 1000}cqw`;
+  return {
+    inset: `${frame.padding}%`,
+    borderRadius: cqw(frame.radius),
+    boxShadow:
+      s > 0
+        ? `0 ${cqw(40 * s)} ${cqw(120 * s)} ${cqw(-40 * s)} rgba(0,0,0,${s})`
+        : "none",
+  };
 }

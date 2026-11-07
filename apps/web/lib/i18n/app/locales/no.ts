@@ -797,6 +797,10 @@ const messages: AppMessages = {
   actions: {
     missingSlug: "Mangler slug",
     recordingNotFound: "Fant ikke opptaket",
+    backgroundMissing: "Velg et bilde å laste opp",
+    backgroundTooLarge: "Bilder kan være opptil 5 MB",
+    backgroundBadType: "Bruk et PNG-, JPEG- eller WebP-bilde",
+    backgroundFailed: "Bildet kunne ikke lastes opp. Prøv igjen.",
     invalidVisibility: "Ugyldig synlighet",
     deleteVideoFailed: "Kunne ikke slette videofilen: {reason}",
     transcriptNotFound: "Fant ikke transkripsjonen",
@@ -1217,6 +1221,9 @@ const messages: AppMessages = {
       gradients: "Gradienter",
       none: "Ingen",
       noBackground: "Ingen bakgrunn",
+      upload: "Last opp bilde",
+      uploading: "Laster opp…",
+      uploadedImage: "Ditt bilde",
       solid: "Ensfarget",
       solidColor: "Ensfarget {color}",
       customColor: "Velg en egen farge",
@@ -1239,6 +1246,12 @@ const messages: AppMessages = {
         midnight: "Midnatt",
         slate: "Skifer",
       },
+    },
+    frame: {
+      title: "Ramme",
+      padding: "Luft",
+      corners: "Hjørner",
+      shadow: "Skygge",
     },
     camera: {
       title: "Kamera",
