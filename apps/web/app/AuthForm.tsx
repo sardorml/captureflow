@@ -206,7 +206,7 @@ export function AuthForm({
           : m.auth.login.signInTitle;
 
   return (
-    <Card className="gap-0 rounded-2xl py-0 shadow-[0_8px_32px_-8px_rgb(0_0_0/0.12)]">
+    <Card className="gap-0 rounded-2xl bg-background py-0 shadow-[0_8px_32px_-8px_rgb(0_0_0/0.12)]">
       <CardHeader className="justify-items-center border-b px-6 pt-8 pb-6 text-center [.border-b]:pb-6">
         <Link href="/" aria-label="CaptureFlow" className="mb-4">
           <AppIcon size={44} />
@@ -261,7 +261,7 @@ export function AuthForm({
                 GitHub
               </Button>
             </div>
-            <FieldSeparator className="text-xs tracking-wide uppercase *:data-[slot=field-separator-content]:bg-card">
+            <FieldSeparator className="text-xs tracking-wide uppercase *:data-[slot=field-separator-content]:bg-background">
               {m.auth.login.or}
             </FieldSeparator>
             <form onSubmit={onEmailSubmit}>
@@ -449,7 +449,7 @@ export function AuthForm({
         )}
       </CardContent>
       <CardFooter className="justify-center px-4 py-3.5">
-        <FieldDescription className="text-center text-[13px]">
+        <FieldDescription className="text-center text-xs leading-relaxed">
           {fill(m.auth.login.terms, {
             terms: <Link href="/terms">{m.auth.login.termsLink}</Link>,
             privacy: <Link href="/privacy">{m.auth.login.privacyLink}</Link>,
