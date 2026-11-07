@@ -886,15 +886,13 @@ const messages: AppMessages = {
       preparingTitle: "Preparando tu grabación…",
       preparingDescription:
         "La subida aún está terminando. Esta página se actualiza sola cuando esté lista.",
+      generatingTitle: "Generando tu vídeo…",
+      generatingDescription:
+        "Puede tardar uno o dos minutos. La página se actualiza sola cuando esté listo.",
       failedTitle: "Esta grabación no terminó de subirse",
       failedDescription:
         "El enlace se creó, pero el video nunca llegó. Prueba el enlace de nuevo en un minuto o haz una grabación nueva.",
       comment: "Comentar",
-      activityTab: "Actividad",
-      transcriptTab: "Transcripción",
-      emptyTitle: "Aún no hay actividad",
-      emptyDescription:
-        "Las reacciones y los comentarios de los espectadores aparecerán aquí cuando la grabación esté lista.",
     },
     upgradeBanner: {
       message:
@@ -902,19 +900,9 @@ const messages: AppMessages = {
       usage: "other:{used} de {n} grabaciones usadas",
     },
     editPanel: {
-      makeEdits: "Hacer cambios",
-      status: {
-        idle: "Se guarda automáticamente",
-        saved: "Guardado",
-        error: "No se pudo guardar",
-      },
-      trimTitle: "Recortar y cortar",
-      trimDescription:
-        "Divide la línea de tiempo, corta secciones y corrige la transcripción.",
-      background: "Fondo",
-      camera: "Cámara",
-      audio: "Audio",
-      takeAction: "Realizar acciones",
+      editTitle: "Editar video",
+      editDescription:
+        "Recorta, corta, cambia el aspecto y corrige la transcripción en el editor.",
       downloadTitle: "Descargar video",
       downloadDescription: "La grabación completa en MP4.",
       copyEmbed: "Copiar código de inserción",
@@ -933,6 +921,7 @@ const messages: AppMessages = {
       label: "Barra lateral de la grabación",
       activityTab: "Actividad",
       transcriptTab: "Transcripción",
+      toolsTab: "Herramientas",
     },
     you: "Tú",
     anonymous: "Anónimo",

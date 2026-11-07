@@ -881,15 +881,13 @@ const messages: AppMessages = {
       preparingTitle: "Yozuvingiz tayyorlanmoqda…",
       preparingDescription:
         "Yuklash hali tugamadi. Tayyor boʻlgach, bu sahifa oʻzi yangilanadi.",
+      generatingTitle: "Videongiz tayyorlanmoqda…",
+      generatingDescription:
+        "Bu bir-ikki daqiqa olishi mumkin. Tayyor boʻlgach sahifa oʻzi yangilanadi.",
       failedTitle: "Bu yozuv oxirigacha yuklanmadi",
       failedDescription:
         "Havola yaratildi, lekin video yetib kelmadi. Bir daqiqadan soʻng havolani qayta ochib koʻring yoki yangisini yozib oling.",
       comment: "Fikr",
-      activityTab: "Faollik",
-      transcriptTab: "Transkript",
-      emptyTitle: "Hali faollik yoʻq",
-      emptyDescription:
-        "Yozuv tayyor boʻlgach, tomoshabinlarning reaksiya va fikrlari shu yerda chiqadi.",
     },
     upgradeBanner: {
       message:
@@ -897,19 +895,9 @@ const messages: AppMessages = {
       usage: "other:{n} ta yozuvdan {used} tasi ishlatildi",
     },
     editPanel: {
-      makeEdits: "Tahrirlash",
-      status: {
-        idle: "Avtomatik saqlanadi",
-        saved: "Saqlandi",
-        error: "Saqlab boʻlmadi",
-      },
-      trimTitle: "Qirqish va kesish",
-      trimDescription:
-        "Vaqt chizigʻini boʻling, qismlarni kesib tashlang va transkriptni tuzating.",
-      background: "Fon",
-      camera: "Kamera",
-      audio: "Audio",
-      takeAction: "Amallar",
+      editTitle: "Videoni tahrirlash",
+      editDescription:
+        "Muharrirda qisqartiring, kesing, koʻrinishini oʻzgartiring va transkriptni tuzating.",
       downloadTitle: "Videoni yuklab olish",
       downloadDescription: "Butun yozuv MP4 formatida.",
       copyEmbed: "Joylash kodini nusxalash",
@@ -928,6 +916,7 @@ const messages: AppMessages = {
       label: "Yozuvning yon paneli",
       activityTab: "Faollik",
       transcriptTab: "Transkript",
+      toolsTab: "Asboblar",
     },
     you: "Siz",
     anonymous: "Anonim",

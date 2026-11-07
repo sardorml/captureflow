@@ -14,7 +14,7 @@ export function ViewerNavSkeleton({ className }: { className?: string }) {
   return (
     <header
       className={cn(
-        "flex h-16 w-full items-center justify-between bg-canvas-2 px-4 sm:px-6",
+        "flex h-14 w-full items-center justify-between bg-canvas-2 px-4 sm:px-6",
         className,
       )}
     >
@@ -44,8 +44,8 @@ export function ViewerNavSkeleton({ className }: { className?: string }) {
 export function ViewerHeadlineSkeleton({ className }: { className?: string }) {
   return (
     <div className={className}>
-      <div className="flex h-9 items-center lg:h-8">
-        <Skeleton className="h-6 w-72 max-w-full rounded-md" />
+      <div className="flex h-8 items-center lg:h-7">
+        <Skeleton className="h-5 w-72 max-w-full rounded-md" />
       </div>
       <div className="mt-1 flex h-5 items-center">
         <Skeleton className="h-3.5 w-40 rounded" />

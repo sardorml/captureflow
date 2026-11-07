@@ -886,16 +886,14 @@ const messages: AppMessages = {
       preparingTitle: "Preparazione della registrazione…",
       preparingDescription:
         "Il caricamento è ancora in corso. Questa pagina si aggiorna da sola appena è pronta.",
+      generatingTitle: "Generazione del video…",
+      generatingDescription:
+        "Potrebbe volerci un minuto o due. La pagina si aggiorna da sola quando è pronto.",
       failedTitle:
         "Il caricamento di questa registrazione non è stato completato",
       failedDescription:
         "Il link è stato creato ma il video non è mai arrivato. Riprova il link tra un minuto, oppure fai una nuova registrazione.",
       comment: "Commenta",
-      activityTab: "Attività",
-      transcriptTab: "Trascrizione",
-      emptyTitle: "Ancora nessuna attività",
-      emptyDescription:
-        "Le reazioni e i commenti degli spettatori compariranno qui quando la registrazione sarà pronta.",
     },
     upgradeBanner: {
       message:
@@ -904,19 +902,9 @@ const messages: AppMessages = {
         "one:{used} di {n} registrazione usata|other:{used} di {n} registrazioni usate",
     },
     editPanel: {
-      makeEdits: "Apporta modifiche",
-      status: {
-        idle: "Salvataggio automatico",
-        saved: "Salvato",
-        error: "Impossibile salvare",
-      },
-      trimTitle: "Accorcia e taglia",
-      trimDescription:
-        "Dividi la timeline, taglia delle sezioni e correggi la trascrizione.",
-      background: "Sfondo",
-      camera: "Videocamera",
-      audio: "Audio",
-      takeAction: "Azioni",
+      editTitle: "Modifica video",
+      editDescription:
+        "Accorcia, taglia, cambia l’aspetto e correggi la trascrizione nell’editor.",
       downloadTitle: "Scarica il video",
       downloadDescription: "L'intera registrazione in formato MP4.",
       copyEmbed: "Copia codice di incorporamento",
@@ -935,6 +923,7 @@ const messages: AppMessages = {
       label: "Barra laterale della registrazione",
       activityTab: "Attività",
       transcriptTab: "Trascrizione",
+      toolsTab: "Strumenti",
     },
     you: "Tu",
     anonymous: "Anonimo",

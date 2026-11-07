@@ -889,15 +889,13 @@ const messages: AppMessages = {
       preparingTitle: "Deine Aufnahme wird vorbereitet…",
       preparingDescription:
         "Der Upload wird noch abgeschlossen. Diese Seite aktualisiert sich von selbst, sobald die Aufnahme bereit ist.",
+      generatingTitle: "Dein Video wird erstellt…",
+      generatingDescription:
+        "Das kann ein bis zwei Minuten dauern. Die Seite aktualisiert sich von selbst, sobald es fertig ist.",
       failedTitle: "Diese Aufnahme wurde nicht vollständig hochgeladen",
       failedDescription:
         "Der Link wurde erstellt, aber das Video ist nie angekommen. Versuch den Link in einer Minute noch einmal oder nimm neu auf.",
       comment: "Kommentieren",
-      activityTab: "Aktivität",
-      transcriptTab: "Transkript",
-      emptyTitle: "Noch keine Aktivität",
-      emptyDescription:
-        "Reaktionen und Kommentare von Betrachtern erscheinen hier, sobald die Aufnahme bereit ist.",
     },
     upgradeBanner: {
       message:
@@ -905,19 +903,9 @@ const messages: AppMessages = {
       usage: "other:{used} von {n} Aufnahmen genutzt",
     },
     editPanel: {
-      makeEdits: "Bearbeiten",
-      status: {
-        idle: "Wird automatisch gespeichert",
-        saved: "Gespeichert",
-        error: "Speichern fehlgeschlagen",
-      },
-      trimTitle: "Kürzen und schneiden",
-      trimDescription:
-        "Trenne die Timeline auf, schneide Abschnitte heraus und korrigiere das Transkript.",
-      background: "Hintergrund",
-      camera: "Kamera",
-      audio: "Audio",
-      takeAction: "Aktionen",
+      editTitle: "Video bearbeiten",
+      editDescription:
+        "Kürze, schneide, ändere das Aussehen und korrigiere das Transkript im Editor.",
       downloadTitle: "Video herunterladen",
       downloadDescription: "Die gesamte Aufnahme als MP4.",
       copyEmbed: "Einbettungscode kopieren",
@@ -936,6 +924,7 @@ const messages: AppMessages = {
       label: "Seitenleiste der Aufnahme",
       activityTab: "Aktivität",
       transcriptTab: "Transkript",
+      toolsTab: "Werkzeuge",
     },
     you: "Du",
     anonymous: "Anonym",

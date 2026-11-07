@@ -228,6 +228,19 @@ export default async function RecordingPage({
           createdAt={row.createdAt}
           viewCount={row.viewCount}
           isOwner={isOwner}
+          viewer={
+            visitor
+              ? {
+                  userId: visitor.userId,
+                  name: visitor.name,
+                  email: visitor.email,
+                  image: visitor.image,
+                }
+              : null
+          }
+          width={row.width ?? null}
+          height={row.height ?? null}
+          generated={row.client === "agent"}
         />
       </div>
     );

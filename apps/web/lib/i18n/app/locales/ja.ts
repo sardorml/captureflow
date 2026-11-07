@@ -863,15 +863,13 @@ const messages: AppMessages = {
       preparingTitle: "録画を準備しています…",
       preparingDescription:
         "アップロードはまだ完了していません。準備ができるとこのページは自動的に更新されます。",
+      generatingTitle: "動画を生成しています…",
+      generatingDescription:
+        "一、二分かかることがあります。準備ができると、このページは自動的に更新されます。",
       failedTitle: "この録画のアップロードは完了しませんでした",
       failedDescription:
         "リンクは作成されましたが、動画が届きませんでした。しばらくしてからリンクをもう一度開くか、新しく録画してください。",
       comment: "コメント",
-      activityTab: "アクティビティ",
-      transcriptTab: "文字起こし",
-      emptyTitle: "アクティビティはまだありません",
-      emptyDescription:
-        "録画の準備ができると、視聴者からのリアクションとコメントがここに表示されます。",
     },
     upgradeBanner: {
       message:
@@ -879,19 +877,9 @@ const messages: AppMessages = {
       usage: "other:{n} 件中 {used} 件の録画を使用",
     },
     editPanel: {
-      makeEdits: "編集する",
-      status: {
-        idle: "自動保存",
-        saved: "保存しました",
-        error: "保存できませんでした",
-      },
-      trimTitle: "トリミングとカット",
-      trimDescription:
-        "タイムラインを分割し、不要な部分をカットして、文字起こしを修正します。",
-      background: "背景",
-      camera: "カメラ",
-      audio: "音声",
-      takeAction: "操作",
+      editTitle: "動画を編集",
+      editDescription:
+        "エディターでトリミング、カット、見た目の変更、文字起こしの修正ができます。",
       downloadTitle: "動画をダウンロード",
       downloadDescription: "録画全体を MP4 として保存します。",
       copyEmbed: "埋め込みコードをコピー",
@@ -910,6 +898,7 @@ const messages: AppMessages = {
       label: "録画のサイドバー",
       activityTab: "アクティビティ",
       transcriptTab: "文字起こし",
+      toolsTab: "ツール",
     },
     you: "あなた",
     anonymous: "匿名",

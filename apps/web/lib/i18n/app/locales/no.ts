@@ -871,15 +871,13 @@ const messages: AppMessages = {
       preparingTitle: "Klargjør opptaket ditt…",
       preparingDescription:
         "Opplastingen er ikke helt ferdig. Siden oppdateres av seg selv når opptaket er klart.",
+      generatingTitle: "Lager videoen din…",
+      generatingDescription:
+        "Det kan ta et minutt eller to. Siden oppdaterer seg selv når den er klar.",
       failedTitle: "Dette opptaket ble ikke ferdig opplastet",
       failedDescription:
         "Lenken ble opprettet, men videoen kom aldri frem. Prøv lenken igjen om et minutt, eller lag et nytt opptak.",
       comment: "Kommenter",
-      activityTab: "Aktivitet",
-      transcriptTab: "Transkripsjon",
-      emptyTitle: "Ingen aktivitet ennå",
-      emptyDescription:
-        "Reaksjoner og kommentarer fra seere vises her når opptaket er klart.",
     },
     upgradeBanner: {
       message:
@@ -887,19 +885,9 @@ const messages: AppMessages = {
       usage: "one:{used} av {n} opptak brukt|other:{used} av {n} opptak brukt",
     },
     editPanel: {
-      makeEdits: "Gjør endringer",
-      status: {
-        idle: "Lagres automatisk",
-        saved: "Lagret",
-        error: "Kunne ikke lagre",
-      },
-      trimTitle: "Trim og klipp",
-      trimDescription:
-        "Del tidslinjen, klipp bort deler og rett opp transkripsjonen.",
-      background: "Bakgrunn",
-      camera: "Kamera",
-      audio: "Lyd",
-      takeAction: "Handlinger",
+      editTitle: "Rediger video",
+      editDescription:
+        "Trim, klipp, endre utseendet og rett opp transkripsjonen i redigeringsverktøyet.",
       downloadTitle: "Last ned videoen",
       downloadDescription: "Hele opptaket som MP4.",
       copyEmbed: "Kopier innbyggingskoden",
@@ -918,6 +906,7 @@ const messages: AppMessages = {
       label: "Sidepanel for opptaket",
       activityTab: "Aktivitet",
       transcriptTab: "Transkripsjon",
+      toolsTab: "Verktøy",
     },
     you: "Du",
     anonymous: "Anonym",

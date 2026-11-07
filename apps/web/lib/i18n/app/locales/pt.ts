@@ -887,15 +887,13 @@ const messages: AppMessages = {
       preparingTitle: "A preparar a sua gravação…",
       preparingDescription:
         "O carregamento ainda está a terminar. Esta página atualiza-se sozinha quando estiver pronta.",
+      generatingTitle: "A gerar o seu vídeo…",
+      generatingDescription:
+        "Pode demorar um ou dois minutos. A página atualiza-se sozinha quando estiver pronto.",
       failedTitle: "O carregamento desta gravação não foi concluído",
       failedDescription:
         "O link foi criado, mas o vídeo nunca chegou. Tente abrir o link novamente dentro de um minuto ou faça uma nova gravação.",
       comment: "Comentar",
-      activityTab: "Atividade",
-      transcriptTab: "Transcrição",
-      emptyTitle: "Ainda sem atividade",
-      emptyDescription:
-        "As reações e os comentários dos visualizadores aparecem aqui quando a gravação estiver pronta.",
     },
     upgradeBanner: {
       message:
@@ -904,19 +902,9 @@ const messages: AppMessages = {
         "one:{used} de {n} gravação utilizada|other:{used} de {n} gravações utilizadas",
     },
     editPanel: {
-      makeEdits: "Fazer edições",
-      status: {
-        idle: "Guardado automaticamente",
-        saved: "Guardado",
-        error: "Não foi possível guardar",
-      },
-      trimTitle: "Aparar e cortar",
-      trimDescription:
-        "Divida a linha de tempo, corte secções e corrija a transcrição.",
-      background: "Fundo",
-      camera: "Câmara",
-      audio: "Áudio",
-      takeAction: "Ações",
+      editTitle: "Editar vídeo",
+      editDescription:
+        "Apare, corte, mude o aspeto e corrija a transcrição no editor.",
       downloadTitle: "Transferir vídeo",
       downloadDescription: "A gravação completa em MP4.",
       copyEmbed: "Copiar código de incorporação",
@@ -935,6 +923,7 @@ const messages: AppMessages = {
       label: "Barra lateral da gravação",
       activityTab: "Atividade",
       transcriptTab: "Transcrição",
+      toolsTab: "Ferramentas",
     },
     you: "Você",
     anonymous: "Anónimo",

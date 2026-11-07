@@ -881,15 +881,13 @@ const messages: AppMessages = {
       preparingTitle: "Tallennettasi valmistellaan…",
       preparingDescription:
         "Lähetys on vielä kesken. Tämä sivu päivittyy itsestään, kun tallenne on valmis.",
+      generatingTitle: "Videota luodaan…",
+      generatingDescription:
+        "Tämä voi kestää minuutin tai kaksi. Sivu päivittyy itsestään, kun video on valmis.",
       failedTitle: "Tämän tallenteen lähetys jäi kesken",
       failedDescription:
         "Linkki luotiin, mutta video ei koskaan saapunut. Kokeile linkkiä uudelleen minuutin kuluttua tai tee uusi tallenne.",
       comment: "Kommentoi",
-      activityTab: "Toiminta",
-      transcriptTab: "Litterointi",
-      emptyTitle: "Ei vielä toimintaa",
-      emptyDescription:
-        "Katsojien reaktiot ja kommentit näkyvät täällä, kun tallenne on valmis.",
     },
     upgradeBanner: {
       message:
@@ -897,19 +895,9 @@ const messages: AppMessages = {
       usage: "other:{used}/{n} tallenteesta käytetty",
     },
     editPanel: {
-      makeEdits: "Tee muokkauksia",
-      status: {
-        idle: "Tallentuu automaattisesti",
-        saved: "Tallennettu",
-        error: "Tallennus ei onnistunut",
-      },
-      trimTitle: "Rajaa ja leikkaa",
-      trimDescription:
-        "Jaa aikajana osiin, leikkaa kohtia pois ja korjaa litterointia.",
-      background: "Tausta",
-      camera: "Kamera",
-      audio: "Ääni",
-      takeAction: "Toiminnot",
+      editTitle: "Muokkaa videota",
+      editDescription:
+        "Lyhennä, leikkaa, muuta ulkoasua ja korjaa tekstitys editorissa.",
       downloadTitle: "Lataa video",
       downloadDescription: "Koko tallenne MP4-tiedostona.",
       copyEmbed: "Kopioi upotuskoodi",
@@ -928,6 +916,7 @@ const messages: AppMessages = {
       label: "Tallenteen sivupalkki",
       activityTab: "Toiminta",
       transcriptTab: "Litterointi",
+      toolsTab: "Työkalut",
     },
     you: "Sinä",
     anonymous: "Anonyymi",

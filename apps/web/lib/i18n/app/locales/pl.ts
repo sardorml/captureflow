@@ -895,15 +895,13 @@ const messages: AppMessages = {
       preparingTitle: "Przygotowywanie twojego nagrania…",
       preparingDescription:
         "Przesyłanie jeszcze się kończy. Ta strona odświeży się sama, gdy nagranie będzie gotowe.",
+      generatingTitle: "Generowanie filmu…",
+      generatingDescription:
+        "Może to potrwać minutę lub dwie. Strona odświeży się sama, gdy film będzie gotowy.",
       failedTitle: "Przesyłanie tego nagrania nie zostało dokończone",
       failedDescription:
         "Link został utworzony, ale wideo nigdy nie dotarło. Spróbuj otworzyć link ponownie za minutę albo nagraj nowe.",
       comment: "Skomentuj",
-      activityTab: "Aktywność",
-      transcriptTab: "Transkrypcja",
-      emptyTitle: "Nie ma jeszcze aktywności",
-      emptyDescription:
-        "Reakcje i komentarze widzów pojawią się tutaj, gdy nagranie będzie gotowe.",
     },
     upgradeBanner: {
       message:
@@ -912,19 +910,9 @@ const messages: AppMessages = {
         "one:Wykorzystano {used} z {n} nagrania|few:Wykorzystano {used} z {n} nagrań|many:Wykorzystano {used} z {n} nagrań|other:Wykorzystano {used} z {n} nagrania",
     },
     editPanel: {
-      makeEdits: "Wprowadź zmiany",
-      status: {
-        idle: "Zapisywane automatycznie",
-        saved: "Zapisano",
-        error: "Nie udało się zapisać",
-      },
-      trimTitle: "Przytnij i wytnij",
-      trimDescription:
-        "Podziel oś czasu, wytnij fragmenty i popraw transkrypcję.",
-      background: "Tło",
-      camera: "Kamera",
-      audio: "Dźwięk",
-      takeAction: "Wykonaj działanie",
+      editTitle: "Edytuj wideo",
+      editDescription:
+        "Przytnij, wytnij, zmień wygląd i popraw transkrypcję w edytorze.",
       downloadTitle: "Pobierz wideo",
       downloadDescription: "Całe nagranie jako MP4.",
       copyEmbed: "Kopiuj kod osadzania",
@@ -943,6 +931,7 @@ const messages: AppMessages = {
       label: "Panel boczny nagrania",
       activityTab: "Aktywność",
       transcriptTab: "Transkrypcja",
+      toolsTab: "Narzędzia",
     },
     you: "Ty",
     anonymous: "Anonim",
