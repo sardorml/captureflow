@@ -853,15 +853,13 @@ const messages: AppMessages = {
       preparingTitle: "녹화를 준비하는 중…",
       preparingDescription:
         "업로드가 아직 끝나지 않았습니다. 준비되면 이 페이지가 자동으로 새로 고쳐집니다.",
+      generatingTitle: "동영상을 생성하고 있습니다…",
+      generatingDescription:
+        "일이 분 정도 걸릴 수 있습니다. 준비되면 이 페이지가 자동으로 새로고침됩니다.",
       failedTitle: "이 녹화는 업로드를 마치지 못했습니다",
       failedDescription:
         "링크는 만들어졌지만 영상이 도착하지 않았습니다. 잠시 후 링크를 다시 열거나 새로 녹화하세요.",
       comment: "댓글",
-      activityTab: "활동",
-      transcriptTab: "스크립트",
-      emptyTitle: "아직 활동이 없습니다",
-      emptyDescription:
-        "녹화가 준비되면 시청자의 반응과 댓글이 여기에 표시됩니다.",
     },
     upgradeBanner: {
       message:
@@ -869,19 +867,9 @@ const messages: AppMessages = {
       usage: "other:녹화 {n}개 중 {used}개 사용",
     },
     editPanel: {
-      makeEdits: "편집하기",
-      status: {
-        idle: "자동으로 저장됨",
-        saved: "저장됨",
-        error: "저장하지 못했습니다",
-      },
-      trimTitle: "자르기 및 컷 편집",
-      trimDescription:
-        "타임라인을 분할하고 구간을 잘라 내고 스크립트를 고칩니다.",
-      background: "배경",
-      camera: "카메라",
-      audio: "오디오",
-      takeAction: "작업",
+      editTitle: "영상 편집",
+      editDescription:
+        "편집기에서 다듬고, 잘라내고, 모양을 바꾸고, 자막을 고칩니다.",
       downloadTitle: "영상 다운로드",
       downloadDescription: "전체 녹화를 MP4로 받습니다.",
       copyEmbed: "삽입 코드 복사",
@@ -900,6 +888,7 @@ const messages: AppMessages = {
       label: "녹화 사이드바",
       activityTab: "활동",
       transcriptTab: "스크립트",
+      toolsTab: "도구",
     },
     you: "나",
     anonymous: "익명",

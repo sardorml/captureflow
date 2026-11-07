@@ -26,7 +26,7 @@ type Props = {
 };
 
 const HEADLINE_CLASS =
-  "text-3xl font-[600] tracking-tight text-neutral-100 lg:text-2xl";
+  "text-2xl font-medium tracking-tight text-neutral-100 lg:text-xl";
 
 export function EditableTitle({
   slug,

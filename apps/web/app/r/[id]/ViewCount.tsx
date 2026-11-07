@@ -25,7 +25,7 @@ type Props = {
 // The title row's hover box, so the two read as one row: same height and
 // corner radius, on the panel surface (white in light mode).
 const PILL_CLASS =
-  "inline-flex h-12 shrink-0 items-center rounded-xl bg-panel px-4 text-sm font-medium text-fg ring-1 ring-line lg:h-11";
+  "inline-flex h-11 shrink-0 items-center rounded-xl bg-panel px-4 text-sm font-medium text-fg ring-1 ring-line lg:h-10";
 
 function useViewsLabel(): (n: number) => string {
   const m = useAppMessages();

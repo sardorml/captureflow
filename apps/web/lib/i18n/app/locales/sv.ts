@@ -870,15 +870,13 @@ const messages: AppMessages = {
       preparingTitle: "Förbereder din inspelning…",
       preparingDescription:
         "Uppladdningen håller på att slutföras. Sidan uppdateras av sig själv när den är klar.",
+      generatingTitle: "Skapar din video…",
+      generatingDescription:
+        "Det kan ta en minut eller två. Sidan uppdateras av sig själv när den är klar.",
       failedTitle: "Uppladdningen av den här inspelningen slutfördes inte",
       failedDescription:
         "Länken skapades men videon kom aldrig fram. Prova länken igen om en minut, eller gör en ny inspelning.",
       comment: "Kommentera",
-      activityTab: "Aktivitet",
-      transcriptTab: "Transkription",
-      emptyTitle: "Ingen aktivitet än",
-      emptyDescription:
-        "Reaktioner och kommentarer från tittare visas här när inspelningen är klar.",
     },
     upgradeBanner: {
       message:
@@ -887,19 +885,9 @@ const messages: AppMessages = {
         "one:{used} av {n} inspelning använd|other:{used} av {n} inspelningar använda",
     },
     editPanel: {
-      makeEdits: "Gör ändringar",
-      status: {
-        idle: "Sparas automatiskt",
-        saved: "Sparat",
-        error: "Det gick inte att spara",
-      },
-      trimTitle: "Trimma och klipp",
-      trimDescription:
-        "Dela tidslinjen, klipp bort avsnitt och rätta transkriptionen.",
-      background: "Bakgrund",
-      camera: "Kamera",
-      audio: "Ljud",
-      takeAction: "Åtgärder",
+      editTitle: "Redigera video",
+      editDescription:
+        "Trimma, klipp, ändra utseendet och rätta transkriptionen i redigeraren.",
       downloadTitle: "Ladda ner video",
       downloadDescription: "Hela inspelningen som MP4.",
       copyEmbed: "Kopiera inbäddningskod",
@@ -918,6 +906,7 @@ const messages: AppMessages = {
       label: "Inspelningens sidofält",
       activityTab: "Aktivitet",
       transcriptTab: "Transkription",
+      toolsTab: "Verktyg",
     },
     you: "Du",
     anonymous: "Anonym",

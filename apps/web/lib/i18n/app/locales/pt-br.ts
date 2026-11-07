@@ -879,15 +879,13 @@ const messages: AppMessages = {
       preparingTitle: "Preparando sua gravação…",
       preparingDescription:
         "O envio ainda está terminando. Esta página se atualiza sozinha assim que a gravação estiver pronta.",
+      generatingTitle: "Gerando seu vídeo…",
+      generatingDescription:
+        "Isso pode levar um ou dois minutos. A página atualiza sozinha quando estiver pronto.",
       failedTitle: "O envio desta gravação não foi concluído",
       failedDescription:
         "O link foi criado, mas o vídeo nunca chegou. Tente o link de novo em um minuto ou faça uma nova gravação.",
       comment: "Comentar",
-      activityTab: "Atividade",
-      transcriptTab: "Transcrição",
-      emptyTitle: "Nenhuma atividade ainda",
-      emptyDescription:
-        "As reações e os comentários dos espectadores aparecerão aqui quando a gravação estiver pronta.",
     },
     upgradeBanner: {
       message:
@@ -896,19 +894,9 @@ const messages: AppMessages = {
         "one:{used} de {n} gravação usada|other:{used} de {n} gravações usadas",
     },
     editPanel: {
-      makeEdits: "Fazer edições",
-      status: {
-        idle: "Salvo automaticamente",
-        saved: "Salvo",
-        error: "Não foi possível salvar",
-      },
-      trimTitle: "Aparar e cortar",
-      trimDescription:
-        "Divida a linha do tempo, corte trechos e corrija a transcrição.",
-      background: "Fundo",
-      camera: "Câmera",
-      audio: "Áudio",
-      takeAction: "Ações",
+      editTitle: "Editar vídeo",
+      editDescription:
+        "Apare, corte, mude o visual e corrija a transcrição no editor.",
       downloadTitle: "Baixar vídeo",
       downloadDescription: "A gravação completa em MP4.",
       copyEmbed: "Copiar código de incorporação",
@@ -927,6 +915,7 @@ const messages: AppMessages = {
       label: "Barra lateral da gravação",
       activityTab: "Atividade",
       transcriptTab: "Transcrição",
+      toolsTab: "Ferramentas",
     },
     you: "Você",
     anonymous: "Anônimo",

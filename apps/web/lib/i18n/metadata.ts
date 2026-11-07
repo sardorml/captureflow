@@ -19,14 +19,19 @@ export const PAGE_PATHS: Record<MarketingPageId, string> = {
   download: "/download",
   enterprise: "/enterprise",
   selfHostSetup: "/self-host-setup",
+  swarmDemo: "/swarm-demo",
 };
 
-const OG_IMAGE = "/og-image.png?v=3";
+const OG_IMAGE = "/og-image.png?v=5";
+const PAGE_IMAGES: Partial<Record<MarketingPageId, string>> = {
+  swarmDemo: "/og-swarm-demo.png?v=1",
+};
 
 /*
  * Title, description, canonical and the hreflang set for one page in one
- * language. The home page and every translated page also get their own
- * social card text; the English inner pages keep the site-wide one.
+ * language. The home page, every translated page and any page with its own
+ * card image also get their own social card; other English inner pages keep
+ * the site-wide one.
  */
 export function pageMetadata(
   page: MarketingPageId,
@@ -43,7 +48,8 @@ export function pageMetadata(
     alternates: { canonical: url, languages: languageAlternates(path) },
   };
   if (home) metadata.robots = { index: true, follow: true };
-  if (!home && locale === DEFAULT_LOCALE) return metadata;
+  const image = PAGE_IMAGES[page] ?? OG_IMAGE;
+  if (!home && locale === DEFAULT_LOCALE && !PAGE_IMAGES[page]) return metadata;
   return {
     ...metadata,
     openGraph: {
@@ -53,13 +59,13 @@ export function pageMetadata(
       locale: ogLocaleOf(locale),
       title,
       description,
-      images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: title }],
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [OG_IMAGE],
+      images: [image],
       creator: X_CREATOR,
     },
   };

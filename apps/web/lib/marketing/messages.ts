@@ -53,6 +53,11 @@ export const MESSAGES = {
       description:
         "Have CaptureFlow set up on your company's own Cloudflare account: your domain, company-only sign-in, and a private Chrome extension for your team.",
     },
+    swarmDemo: {
+      title: "Swarm demo: agents rebuild any website on video",
+      description:
+        "Type a website address and watch a swarm of agent cursors rebuild it element by element, to music. You get a video with a link to share.",
+    },
   },
   nav: {
     features: "Features",
@@ -75,6 +80,13 @@ export const MESSAGES = {
     selfHostingDescription: "Run it on your own Cloudflare",
     community: "Community",
     communityDescription: "Get help and chat on Discord",
+    products: "Products",
+    swarmDemo: "Swarm demo",
+    swarmDemoDescription: "Agents rebuild any website on video",
+    extension: "Chrome extension",
+    extensionDescription: "Record your screen and share a link",
+    agentRecorder: "Recorder for agents",
+    agentRecorderDescription: "Videos your AI agent makes over MCP",
     star: "Star on GitHub",
     starCount: "Star on GitHub ({stars})",
     themeToLight: "Switch to light theme",
@@ -300,7 +312,7 @@ export const MESSAGES = {
       chatgpt:
         "In ChatGPT on the web, open Plugins, press +, and choose Add custom MCP server. Name it CaptureFlow, paste this URL, choose OAuth, then install the plugin and sign in. Needs a Business, Enterprise or Edu plan.",
       limits:
-        "Chats record websites in a cloud browser, not your computer, and use your plan's cloud agent minutes.",
+        "Chats build presentation and how-to videos from slides on our servers, not recordings of your computer, and use your plan's cloud agent minutes.",
     },
   },
   modes: {
@@ -521,6 +533,51 @@ export const MESSAGES = {
       sentTitle: "Message sent",
       sentBody: "Thanks. We'll get back to you at {email}.",
       back: "Back to home",
+    },
+  },
+  swarmDemo: {
+    title: "Watch agents rebuild",
+    titleHighlight: "any website",
+    subtitle:
+      "Type a website address. A swarm of agent cursors draws it back element by element, to music, and you get a video link to share.",
+    url: "Website address",
+    urlPlaceholder: "https://example.com",
+    generate: "Generate demo",
+    generating: "Starting a cloud browser…",
+    check: "Check website",
+    checking: "Checking the website…",
+    previewNote:
+      "This is the page the agents will rebuild. Generate the demo when it looks right.",
+    change: "Change address",
+    note: "Free up to 25 recordings. Sign in to generate. Each demo takes a minute or two of your plan's cloud agent minutes and lands in your library.",
+    howHeading: "How it works",
+    how: {
+      type: {
+        title: "Type an address",
+        body: "Any public website. The page is loaded in a cloud browser and every heading, picture, button and card is found.",
+      },
+      build: {
+        title: "Agents build it back",
+        body: "The request is typed into a chat box, then a swarm of cursors places each element while the music speeds up.",
+      },
+      share: {
+        title: "Get a link",
+        body: "The video opens in your library as soon as it's done. Share the link, download the file or post it.",
+      },
+    },
+    errors: {
+      invalidUrl: "Enter a website address like example.com.",
+      unreachable:
+        "That website couldn't be reached. Check the address and try again.",
+      unavailable: "Demos aren't available on this server.",
+      running:
+        "A recording of yours is still running. Wait for it to finish, then try again.",
+      limit:
+        "This workspace has used its cloud agent minutes for this month. They reset on the 1st.",
+      recordings:
+        "You've reached the free plan's recording limit. Delete a recording or upgrade, then try again.",
+      busy: "All cloud browsers are busy right now. Try again in a few minutes.",
+      failed: "The demo couldn't be started. Please try again.",
     },
   },
   enterprise: {
@@ -890,7 +947,7 @@ export const MESSAGES = {
               pro: true,
             },
             {
-              label: "Agent recordings in a cloud browser",
+              label: "Agent presentations made in the cloud",
               free: `${FREE_AGENT_MIN} min a month per person`,
               light: `${LIGHT_AGENT_MIN} min a month per member`,
               pro: `${PRO_AGENT_MIN} min a month per member`,
@@ -908,7 +965,7 @@ export const MESSAGES = {
               pro: true,
             },
             {
-              label: "AI voiceover in a cloud browser",
+              label: "AI voiceover in cloud presentations",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} min a month per member`,

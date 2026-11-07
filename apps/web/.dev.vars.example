@@ -134,3 +134,6 @@ APP_WEB_PUBLIC_URL=http://localhost:3000
 # @captureflow/recorder dev` instead. The secret must match the recorder's.
 RECORDER_URL=
 RECORDER_SECRET=
+# The swarm demo page's music, as a file path or an address the recorder
+# container fetches; the recorder reads it as RECORDER_MUSIC.
+RECORDER_MUSIC=

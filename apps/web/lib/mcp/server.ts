@@ -55,23 +55,6 @@ const sessionId = z
   .regex(/^[0-9a-f]{32}$/, "Not a recording_id")
   .describe("The recording_id start_recording returned.");
 
-const target = z
-  .object({
-    text: z
-      .string()
-      .min(1)
-      .max(200)
-      .optional()
-      .describe("The visible text or accessible name of the element."),
-    selector: z
-      .string()
-      .min(1)
-      .max(500)
-      .optional()
-      .describe("A CSS selector, when the text is ambiguous."),
-  })
-  .refine((t) => t.text || t.selector, "Give text or selector.");
-
 // A LibraryError is meant for the agent; anything else stays in the logs.
 async function run(
   work: () => Promise<unknown>,
@@ -97,15 +80,15 @@ async function run(
 }
 
 // Shown to the agent on connect: the defaults it follows when the user doesn't say.
-const INSTRUCTIONS = `CaptureFlow records screen videos people share as a link. You can read the user's library and record a cloud browser for them.
+const INSTRUCTIONS = `CaptureFlow makes presentation, how-to and walkthrough videos that people share as a link, and keeps the user's library of recordings. You build a video from slides and narration, from what the user tells or gives you.
 
-When you record:
-- The user's words always win. "No slides", "only an intro" or "no voice" override everything below.
-- Tutorials, demos, walkthroughs, onboarding and feature presentations: open with a slide (cover for a title, list for the steps), and end with a closing slide (statement or big_idea) that says what the viewer can do now. Before each major part of the demo, a short feature slide helps when there's more than one part.
-- A plain "record this page" or a quick capture: no slides.
-- Keep slides to a few seconds each and never let them outweigh the screen time. Short headline, one-sentence subtitle.
-- Plan the walkthrough before start_recording, move at a pace a viewer can follow, and stop as soon as it's done.
-- Narrate only when the user asks for a voice or voiceover. Then narrate every slide and every step, a sentence or two at a time.
+When you make a video:
+- The user's words always win. "No voice", "just three slides" or "no end card" override everything below.
+- Plan the whole deck before start_presentation: one idea per slide, in the order a viewer needs them, and stop as soon as the last slide has been seen.
+- Open with a cover slide. A how-to lists its steps on a list slide, then gives each step its own slide: an image slide with the user's screenshot and a callout on what to click, or a feature or statement slide when there is no picture. Code goes on a code slide with the lines that matter highlighted. Close with an end_card or statement that says what the viewer can do now.
+- Keep text short: a headline of a few words, a subtitle of one sentence. The slide is what the viewer reads, the narration is what they hear.
+- Narrate only when the user asks for a voice or voiceover. Then narrate every slide, a sentence or two per call, right after showing it. Without narration, wait 3 to 5 seconds on each slide so it can be read.
+- Only images at public http(s) addresses can be shown. Ask the user for a link when a screenshot isn't one.
 - Give the user the share link from stop_recording.`;
 
 function lookResult(value: unknown): CallToolResult {
@@ -145,15 +128,10 @@ const ANNOTATIONS = {
     destructiveHint: true,
     openWorldHint: false,
   },
+  // A slide can fetch an image from anywhere on the web.
   opensPage: {
     readOnlyHint: false,
     destructiveHint: false,
-    openWorldHint: true,
-  },
-  // A click or keypress on an arbitrary site can submit a form or delete something there.
-  actsOnPage: {
-    readOnlyHint: false,
-    destructiveHint: true,
     openWorldHint: true,
   },
 } as const;
@@ -260,29 +238,26 @@ export function createServer(
     run(() => actOnPage(db, env, user, recording_id, action));
 
   server.registerTool(
-    "start_recording",
+    "start_presentation",
     {
-      title: "Start a recording",
+      title: "Start a presentation",
       description:
-        "Opens the page in a cloud browser and starts recording it, with a visible cursor. " +
-        "Then call look to see the page, drive it with click, type, press, scroll, navigate and wait, " +
-        "put up show_slide for title or feature slides, " +
-        "narrate over it if asked for a voiceover, " +
-        "and call stop_recording for the share link. Only the actions and narration are recorded, not the time between calls. " +
-        "Plan the walkthrough, move at a pace a viewer can follow, and stop as soon as it's done. " +
-        "A recording ends on its own after 2 minutes without an action or at its length limit.",
+        "Starts a new video that is built from slides: a presentation, a how-to or a walkthrough. " +
+        "Then call show_slide for each slide in turn, narrate over each one if asked for a voiceover or wait a few seconds on it otherwise, " +
+        "call look to check how a slide came out, and call stop_recording for the share link. " +
+        "Only slides, waits and narration are recorded, not the time between calls. " +
+        "Plan the whole deck first, and stop as soon as the last slide has been seen. " +
+        "A video ends on its own after 2 minutes without a call or at its length limit.",
       inputSchema: {
-        url: z.string().url().max(2000),
         title: z.string().max(200).optional(),
         visibility: z.enum(["public", "workspace", "private"]).optional(),
         workspace_id: z.string().optional(),
       },
-      annotations: ANNOTATIONS.opensPage,
+      annotations: ANNOTATIONS.changesLibrary,
     },
-    ({ url, title, visibility, workspace_id }) =>
+    ({ title, visibility, workspace_id }) =>
       run(() =>
         startAgentRecording(db, env, user, {
-          url,
           title,
           visibility,
           workspaceId: workspace_id,
@@ -293,10 +268,9 @@ export function createServer(
   server.registerTool(
     "look",
     {
-      title: "Look at the page",
+      title: "Look at the video",
       description:
-        "A screenshot of what the recording shows right now, plus the page's URL, title and accessibility outline. " +
-        "Use the outline's names as click targets.",
+        "A screenshot of what the video shows right now, to check a slide came out as meant. Not recorded.",
       inputSchema: { recording_id: sessionId },
       annotations: ANNOTATIONS.readsPage,
     },
@@ -305,79 +279,11 @@ export function createServer(
   );
 
   server.registerTool(
-    "click",
-    {
-      title: "Click",
-      description: "Moves the cursor to an element and clicks it.",
-      inputSchema: { recording_id: sessionId, target },
-      annotations: ANNOTATIONS.actsOnPage,
-    },
-    ({ recording_id, target }) => act(recording_id, { type: "click", target }),
-  );
-
-  server.registerTool(
-    "type",
-    {
-      title: "Type",
-      description:
-        "Types text at a readable speed, into the target field if given, else wherever focus is. submit presses Enter after.",
-      inputSchema: {
-        recording_id: sessionId,
-        text: z.string().min(1).max(2000),
-        target: target.optional(),
-        submit: z.boolean().optional(),
-      },
-      annotations: ANNOTATIONS.actsOnPage,
-    },
-    ({ recording_id, text, target, submit }) =>
-      act(recording_id, { type: "type", text, target, submit }),
-  );
-
-  server.registerTool(
-    "press",
-    {
-      title: "Press a key",
-      description: "Presses a key or chord, like Enter, Escape, Tab or Meta+K.",
-      inputSchema: { recording_id: sessionId, key: z.string().min(1).max(40) },
-      annotations: ANNOTATIONS.actsOnPage,
-    },
-    ({ recording_id, key }) => act(recording_id, { type: "press", key }),
-  );
-
-  server.registerTool(
-    "scroll",
-    {
-      title: "Scroll",
-      description:
-        "Scrolls the page smoothly. amount is in screen heights, 0.8 by default.",
-      inputSchema: {
-        recording_id: sessionId,
-        direction: z.enum(["down", "up"]),
-        amount: z.number().min(0.1).max(5).optional(),
-      },
-      annotations: ANNOTATIONS.opensPage,
-    },
-    ({ recording_id, direction, amount }) =>
-      act(recording_id, { type: "scroll", direction, amount }),
-  );
-
-  server.registerTool(
-    "navigate",
-    {
-      title: "Go to a page",
-      description: "Loads another address in the recorded browser.",
-      inputSchema: { recording_id: sessionId, url: z.string().url().max(2000) },
-      annotations: ANNOTATIONS.opensPage,
-    },
-    ({ recording_id, url }) => act(recording_id, { type: "navigate", url }),
-  );
-
-  server.registerTool(
     "wait",
     {
       title: "Wait",
       description:
-        "Holds on the current view so a viewer can take it in, up to 10 seconds.",
+        "Holds on the current slide so a viewer can read it, up to 10 seconds.",
       inputSchema: {
         recording_id: sessionId,
         seconds: z.number().min(0.5).max(10),
@@ -392,13 +298,14 @@ export function createServer(
     {
       title: "Show a slide",
       description:
-        "Cuts the recording to a full-screen slide; call hide_slide to cut back to the page. Pick a layout: " +
+        "Cuts the video to the next full-screen slide, which stays up until the next one. Pick a layout: " +
         "cover (opening title + subtitle), list (title + numbered items, for steps or contents), " +
-        "statement (one big sentence + subtitle), feature (tag + title + subtitle, with up to 3 facts or an image), " +
-        "big_idea (a few huge words + a from/to caption). " +
+        "statement (one big sentence + subtitle), feature (tag + title + subtitle, with up to 3 facts or an image beside the text), " +
+        "image (a screenshot framed under a short title, with an optional caption and a callout ring on the part that matters), " +
+        "code (a code block under a short title, with the lines that matter highlighted), " +
+        "big_idea (a few huge words + a from/to caption), end_card (closing line with a button, for the last slide). " +
         "Keep text short: a headline of a few words, a subtitle of one sentence. " +
-        "Use section and page/total for a running top bar across a deck. " +
-        "Narrate over a slide if you like; clicks and typing while it's up happen unseen on the page underneath.",
+        "Use section and page/total for a running top bar across a deck. Each slide becomes a chapter.",
       inputSchema: {
         recording_id: sessionId,
         layout: z
@@ -450,8 +357,39 @@ export function createServer(
           .max(2000)
           .optional()
           .describe(
-            "For feature: a public http(s) image shown beside the text.",
+            "For image and feature: a public http(s) image, such as the user's screenshot.",
           ),
+        caption: z
+          .string()
+          .max(160)
+          .optional()
+          .describe("For image: one line under the picture."),
+        callout: z
+          .object({
+            x: z.number().min(0).max(100),
+            y: z.number().min(0).max(100),
+            w: z.number().min(1).max(100),
+            h: z.number().min(1).max(100),
+          })
+          .optional()
+          .describe(
+            "For image: the part to ring, as percentages of the picture's width and height from its top left.",
+          ),
+        code: z
+          .string()
+          .max(2000)
+          .optional()
+          .describe("For code: up to 18 lines of 90 columns."),
+        language: z
+          .string()
+          .max(24)
+          .optional()
+          .describe("For code: the label on the block, like 'ts'."),
+        lines: z
+          .string()
+          .max(60)
+          .optional()
+          .describe("For code: the lines to highlight, like '3-5, 8'."),
         section: z
           .string()
           .max(40)
@@ -463,6 +401,22 @@ export function createServer(
           .enum(SLIDE_THEMES)
           .optional()
           .describe("Overrides the layout's colour."),
+        highlight: z
+          .string()
+          .max(60)
+          .optional()
+          .describe("Words of the title to circle with a hand-drawn line."),
+        logo: z
+          .boolean()
+          .optional()
+          .describe(
+            "Shows the CaptureFlow logo on cover and end_card. Leave it off when the demo is of another product.",
+          ),
+        cta: z
+          .string()
+          .max(60)
+          .optional()
+          .describe("For end_card: the button's text."),
       },
       annotations: ANNOTATIONS.opensPage,
     },
@@ -474,23 +428,12 @@ export function createServer(
   );
 
   server.registerTool(
-    "hide_slide",
-    {
-      title: "Hide the slide",
-      description: "Cuts back from the slide to the page.",
-      inputSchema: { recording_id: sessionId },
-      annotations: ANNOTATIONS.changesLibrary,
-    },
-    ({ recording_id }) => act(recording_id, { type: "hide_slide" }),
-  );
-
-  server.registerTool(
     "narrate",
     {
       title: "Say something",
       description:
-        "Speaks the text as a voiceover in the recording and returns once it has been said. " +
-        "Narrate what the viewer is looking at, a sentence or two per call, then act. Pro plans only.",
+        "Speaks the text as a voiceover in the video and returns once it has been said. " +
+        "Narrate the slide that is up, a sentence or two per call. Pro plans only.",
       inputSchema: {
         recording_id: sessionId,
         text: z.string().min(1).max(600),
@@ -507,7 +450,7 @@ export function createServer(
     {
       title: "Stop and get the link",
       description:
-        "Ends the recording and returns its share link. Give the link to the user.",
+        "Ends the video and returns its share link. Give the link to the user.",
       inputSchema: { recording_id: sessionId },
       annotations: ANNOTATIONS.changesLibrary,
     },
@@ -518,8 +461,8 @@ export function createServer(
   server.registerTool(
     "cancel_recording",
     {
-      title: "Cancel a recording",
-      description: "Ends the recording and throws it away.",
+      title: "Cancel the video",
+      description: "Ends the video and throws it away.",
       inputSchema: { recording_id: sessionId },
       annotations: ANNOTATIONS.discardsRecording,
     },

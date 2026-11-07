@@ -3,6 +3,7 @@ export const ACTIVITY = {
     label: "Recording sidebar",
     activityTab: "Activity",
     transcriptTab: "Transcript",
+    toolsTab: "Tools",
   },
   you: "You",
   anonymous: "Anonymous",

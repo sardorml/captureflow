@@ -45,6 +45,11 @@ const messages: Messages = {
       description:
         "Få CaptureFlow installerat på ditt företags eget Cloudflare-konto: din domän, inloggning bara för företaget och ett privat Chrome-tillägg för ditt team.",
     },
+    swarmDemo: {
+      title: "Svärmdemo: agenter bygger om vilken webbplats som helst på video",
+      description:
+        "Skriv in en webbadress och se en svärm av agentmarkörer bygga om den element för element, till musik. Du får en video med en länk att dela.",
+    },
   },
   nav: {
     features: "Funktioner",
@@ -67,6 +72,14 @@ const messages: Messages = {
     selfHostingDescription: "Kör det på ditt eget Cloudflare-konto",
     community: "Community",
     communityDescription: "Få hjälp och chatta på Discord",
+    products: "Produkter",
+    swarmDemo: "Svärmdemo",
+    swarmDemoDescription:
+      "Agenter bygger om vilken webbplats som helst på video",
+    extension: "Chrome-tillägg",
+    extensionDescription: "Spela in skärmen och dela en länk",
+    agentRecorder: "Inspelare för agenter",
+    agentRecorderDescription: "Videor som din AI-agent gör via MCP",
     star: "Stjärnmärk på GitHub",
     starCount: "Stjärnmärk på GitHub ({stars})",
     themeToLight: "Byt till ljust tema",
@@ -308,7 +321,7 @@ const messages: Messages = {
       chatgpt:
         "I ChatGPT på webben öppnar du Plugins, trycker på + och väljer Add custom MCP server. Ge den namnet CaptureFlow, klistra in den här URL:en, välj OAuth, installera sedan pluginet och logga in. Kräver en Business-, Enterprise- eller Edu-plan.",
       limits:
-        "Chattar spelar in webbplatser i en molnwebbläsare, inte på din dator, och använder minuterna för molnagenter i din plan.",
+        "Chattar bygger presentations- och instruktionsvideor av bilder på våra servrar, inte inspelningar av din dator, och använder din plans agentminuter i molnet.",
     },
   },
   modes: {
@@ -532,6 +545,51 @@ const messages: Messages = {
       sentTitle: "Meddelandet är skickat",
       sentBody: "Tack. Vi återkommer till dig på {email}.",
       back: "Tillbaka till startsidan",
+    },
+  },
+  swarmDemo: {
+    title: "Se agenter bygga om",
+    titleHighlight: "vilken webbplats som helst",
+    subtitle:
+      "Skriv in en webbadress. En svärm av agentmarkörer ritar upp den igen element för element, till musik, och du får en videolänk att dela.",
+    url: "Webbadress",
+    urlPlaceholder: "https://example.com",
+    generate: "Skapa demo",
+    generating: "Startar en webbläsare i molnet…",
+    check: "Kontrollera webbplatsen",
+    checking: "Kontrollerar webbplatsen…",
+    previewNote:
+      "Det här är sidan som agenterna bygger upp igen. Skapa demon när den ser rätt ut.",
+    change: "Ändra adress",
+    note: "Gratis upp till 25 inspelningar. Logga in för att skapa. Varje demo tar en minut eller två av din plans agentminuter i molnet och hamnar i ditt bibliotek.",
+    howHeading: "Så fungerar det",
+    how: {
+      type: {
+        title: "Skriv in en adress",
+        body: "Vilken offentlig webbplats som helst. Sidan laddas i en webbläsare i molnet och varje rubrik, bild, knapp och kort hittas.",
+      },
+      build: {
+        title: "Agenterna bygger upp den igen",
+        body: "Förfrågan skrivs in i en chattruta, sedan placerar en svärm av markörer varje element medan musiken går allt snabbare.",
+      },
+      share: {
+        title: "Få en länk",
+        body: "Videon öppnas i ditt bibliotek så snart den är klar. Dela länken, ladda ner filen eller lägg upp den.",
+      },
+    },
+    errors: {
+      invalidUrl: "Ange en webbadress som example.com.",
+      unreachable:
+        "Webbplatsen gick inte att nå. Kontrollera adressen och försök igen.",
+      unavailable: "Demor är inte tillgängliga på den här servern.",
+      running:
+        "En av dina inspelningar pågår fortfarande. Vänta tills den är klar och försök igen.",
+      limit:
+        "Den här arbetsytan har använt sina agentminuter i molnet för den här månaden. De återställs den 1:a.",
+      recordings:
+        "Du har nått gratisplanens gräns för inspelningar. Ta bort en inspelning eller uppgradera och försök igen.",
+      busy: "Alla webbläsare i molnet är upptagna just nu. Försök igen om några minuter.",
+      failed: "Demon kunde inte startas. Försök igen.",
     },
   },
   enterprise: {
@@ -902,7 +960,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Agentinspelningar i en molnwebbläsare",
+              label: "Agentpresentationer gjorda i molnet",
               free: `${FREE_AGENT_MIN} min per månad per person`,
               light: `${LIGHT_AGENT_MIN} min per månad per medlem`,
               pro: `${PRO_AGENT_MIN} min per månad per medlem`,
@@ -920,7 +978,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "AI-berättarröst i en molnwebbläsare",
+              label: "AI-berättarröst i molnpresentationer",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} min per månad per medlem`,

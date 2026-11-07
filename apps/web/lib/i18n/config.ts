@@ -55,6 +55,7 @@ const LOCALIZED_SEGMENTS: ReadonlySet<string> = new Set([
   "features",
   "pricing",
   "self-host-setup",
+  "swarm-demo",
 ]);
 
 function firstSegment(path: string): string {

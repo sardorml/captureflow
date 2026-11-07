@@ -11,6 +11,7 @@
 - [CaptureFlow vs Loom](https://captureflow.dev/alternatives/loom): Feature and price comparison
 - [Enterprise](https://captureflow.dev/enterprise): Managed hosting for whole companies on custom terms with a single invoice
 - [Self-hosting setup service](https://captureflow.dev/self-host-setup): We set up CaptureFlow on a company's own Cloudflare account
+- [Swarm demo](https://captureflow.dev/swarm-demo): Type a website address and get a video of agent cursors rebuilding it
 
 ## Guides
 

@@ -43,7 +43,23 @@ export type LibraryRecording = {
   views: number;
 };
 
-export class LibraryError extends Error {}
+export type LibraryErrorCode =
+  | "failed"
+  | "unavailable"
+  | "running"
+  | "limit"
+  | "recordings"
+  | "busy";
+
+// The message is for an agent; the code lets a page pick its own words.
+export class LibraryError extends Error {
+  constructor(
+    message: string,
+    readonly code: LibraryErrorCode = "failed",
+  ) {
+    super(message);
+  }
+}
 
 export const LIST_PAGE_SIZE = 20;
 

@@ -157,6 +157,19 @@ body {
   --animate-brand-mark-spin: brand-mark-spin 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* The band of a TextShimmer crossing its text, right to left. */
+@keyframes text-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@theme {
+  --animate-text-shimmer: text-shimmer 2s linear infinite;
+}
+
 /* Beta ribbon: the card unfolds out of the corner the ribbon occupies, and the
    burst throws a handful of confetti chips along per-chip vectors the component
    sets inline. Both keyframes declare only `from`/`to` offsets from the natural

@@ -45,6 +45,12 @@ const messages: Messages = {
       description:
         "CaptureFlow'u şirketinizin kendi Cloudflare hesabına kurdurun: alan adınız, yalnızca şirkete özel giriş ve ekibiniz için özel bir Chrome uzantısı.",
     },
+    swarmDemo: {
+      title:
+        "Sürü demosu: ajanlar herhangi bir web sitesini videoda yeniden kuruyor",
+      description:
+        "Bir web sitesi adresi yazın ve bir ajan imleci sürüsünün onu müzik eşliğinde öğe öğe yeniden kurmasını izleyin. Paylaşabileceğiniz bir bağlantıyla birlikte bir video alırsınız.",
+    },
   },
   nav: {
     features: "Özellikler",
@@ -67,6 +73,15 @@ const messages: Messages = {
     selfHostingDescription: "Kendi Cloudflare hesabınızda çalıştırın",
     community: "Topluluk",
     communityDescription: "Discord'da yardım alın ve sohbet edin",
+    products: "Ürünler",
+    swarmDemo: "Sürü demosu",
+    swarmDemoDescription:
+      "Ajanlar herhangi bir web sitesini videoda yeniden kuruyor",
+    extension: "Chrome uzantısı",
+    extensionDescription: "Ekranınızı kaydedin ve bir bağlantı paylaşın",
+    agentRecorder: "Ajanlar için kaydedici",
+    agentRecorderDescription:
+      "Yapay zeka ajanınızın MCP üzerinden yaptığı videolar",
     star: "GitHub'da yıldız verin",
     starCount: "GitHub'da yıldız verin ({stars})",
     themeToLight: "Açık temaya geç",
@@ -306,7 +321,7 @@ const messages: Messages = {
       chatgpt:
         "Web'deki ChatGPT'de Plugins'i açın, + düğmesine basın ve Add custom MCP server'ı seçin. Adını CaptureFlow koyun, bu URL'yi yapıştırın, OAuth'u seçin, ardından eklentiyi yükleyin ve giriş yapın. Business, Enterprise veya Edu planı gerekir.",
       limits:
-        "Sohbetler bilgisayarınızı değil, bir bulut tarayıcısındaki web sitelerini kaydeder ve planınızın bulut ajan dakikalarını kullanır.",
+        "Sohbetler, bilgisayarınızın kaydı yerine sunucularımızda slaytlardan sunum ve nasıl yapılır videoları oluşturur ve planınızın bulut ajan dakikalarını kullanır.",
     },
   },
   modes: {
@@ -535,6 +550,50 @@ const messages: Messages = {
       sentTitle: "Mesaj gönderildi",
       sentBody: "Teşekkürler. Size {email} adresine yanıt vereceğiz.",
       back: "Ana sayfaya dönün",
+    },
+  },
+  swarmDemo: {
+    title: "Ajanlar yeniden kuruyor:",
+    titleHighlight: "istediğiniz her web sitesini",
+    subtitle:
+      "Bir web sitesi adresi yazın. Bir ajan imleci sürüsü onu müzik eşliğinde öğe öğe yeniden çizer ve paylaşabileceğiniz bir video bağlantısı alırsınız.",
+    url: "Web sitesi adresi",
+    urlPlaceholder: "https://example.com",
+    generate: "Demo oluşturun",
+    generating: "Bulut tarayıcı başlatılıyor…",
+    check: "Siteyi kontrol et",
+    checking: "Site kontrol ediliyor…",
+    previewNote:
+      "Ajanların yeniden kuracağı sayfa bu. Doğru görünüyorsa demoyu oluştur.",
+    change: "Adresi değiştir",
+    note: "25 kayda kadar ücretsiz. Oluşturmak için giriş yapın. Her demo planınızın bulut ajan dakikalarından bir iki dakika kullanır ve kitaplığınıza eklenir.",
+    howHeading: "Nasıl çalışır",
+    how: {
+      type: {
+        title: "Bir adres yazın",
+        body: "Herkese açık herhangi bir web sitesi. Sayfa bir bulut tarayıcıda yüklenir ve her başlık, resim, düğme ve kart bulunur.",
+      },
+      build: {
+        title: "Ajanlar yeniden kurar",
+        body: "İstek bir sohbet kutusuna yazılır, ardından bir imleç sürüsü müzik hızlanırken her öğeyi yerine koyar.",
+      },
+      share: {
+        title: "Bağlantıyı alın",
+        body: "Video biter bitmez kitaplığınızda açılır. Bağlantıyı paylaşın, dosyayı indirin veya yayınlayın.",
+      },
+    },
+    errors: {
+      invalidUrl: "example.com gibi bir web sitesi adresi girin.",
+      unreachable: "Bu siteye ulaşılamadı. Adresi kontrol edip tekrar dene.",
+      unavailable: "Bu sunucuda demo kullanılamıyor.",
+      running:
+        "Kayıtlarınızdan biri hâlâ sürüyor. Bitmesini bekleyip yeniden deneyin.",
+      limit:
+        "Bu çalışma alanı bu ayki bulut ajan dakikalarını kullandı. Ayın 1'inde yenilenir.",
+      recordings:
+        "Ücretsiz planın kayıt sınırına ulaştınız. Bir kaydı silin veya planı yükseltin, sonra tekrar deneyin.",
+      busy: "Tüm bulut tarayıcılar şu anda meşgul. Birkaç dakika sonra yeniden deneyin.",
+      failed: "Demo başlatılamadı. Lütfen yeniden deneyin.",
     },
   },
   enterprise: {
@@ -905,7 +964,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Bulut tarayıcısında ajan kayıtları",
+              label: "Bulutta hazırlanan ajan sunumları",
               free: `Kişi başına ayda ${FREE_AGENT_MIN} dk`,
               light: `Üye başına ayda ${LIGHT_AGENT_MIN} dk`,
               pro: `Üye başına ayda ${PRO_AGENT_MIN} dk`,
@@ -923,7 +982,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Bulut tarayıcısında yapay zeka seslendirmesi",
+              label: "Bulut sunumlarında yapay zekâ seslendirme",
               free: false,
               light: false,
               pro: `Üye başına ayda ${PRO_VOICEOVER_MIN} dk`,

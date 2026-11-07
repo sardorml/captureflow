@@ -45,6 +45,11 @@ const messages: Messages = {
       description:
         "Configuramos CaptureFlow en la cuenta de Cloudflare de tu empresa: tu dominio, inicio de sesión solo para tu empresa y una extensión de Chrome privada para tu equipo.",
     },
+    swarmDemo: {
+      title: "Demo de enjambre: agentes reconstruyen cualquier web en video",
+      description:
+        "Escribe la dirección de una web y mira cómo un enjambre de cursores de agentes la reconstruye elemento a elemento, con música. Obtienes un video con un enlace para compartir.",
+    },
   },
   nav: {
     features: "Funciones",
@@ -67,6 +72,13 @@ const messages: Messages = {
     selfHostingDescription: "Ejecútalo en tu propio Cloudflare",
     community: "Comunidad",
     communityDescription: "Recibe ayuda y conversa en Discord",
+    products: "Productos",
+    swarmDemo: "Demo de enjambre",
+    swarmDemoDescription: "Agentes reconstruyen cualquier web en video",
+    extension: "Extensión de Chrome",
+    extensionDescription: "Graba tu pantalla y comparte un enlace",
+    agentRecorder: "Grabadora para agentes",
+    agentRecorderDescription: "Videos que tu agente de IA crea por MCP",
     star: "Dar estrella en GitHub",
     starCount: "Dar estrella en GitHub ({stars})",
     themeToLight: "Cambiar a tema claro",
@@ -307,7 +319,7 @@ const messages: Messages = {
       chatgpt:
         "En ChatGPT en la web, abre «Plugins», haz clic en + y elige «Add custom MCP server». Ponle de nombre CaptureFlow, pega esta URL, elige OAuth, y luego instala el plugin e inicia sesión. Requiere un plan Business, Enterprise o Edu.",
       limits:
-        "Los chats graban sitios web en un navegador en la nube, no tu computadora, y consumen los minutos de agente en la nube de tu plan.",
+        "Los chats crean vídeos de presentación y tutoriales a partir de diapositivas en nuestros servidores, no grabaciones de tu ordenador, y consumen los minutos de agente en la nube de tu plan.",
     },
   },
   modes: {
@@ -532,6 +544,51 @@ const messages: Messages = {
       sentTitle: "Mensaje enviado",
       sentBody: "Gracias. Te responderemos a {email}.",
       back: "Volver al inicio",
+    },
+  },
+  swarmDemo: {
+    title: "Mira cómo los agentes reconstruyen",
+    titleHighlight: "cualquier web",
+    subtitle:
+      "Escribe la dirección de una web. Un enjambre de cursores de agentes la vuelve a dibujar elemento a elemento, con música, y obtienes un enlace de video para compartir.",
+    url: "Dirección de la web",
+    urlPlaceholder: "https://example.com",
+    generate: "Generar demo",
+    generating: "Iniciando un navegador en la nube…",
+    check: "Comprobar sitio web",
+    checking: "Comprobando el sitio web…",
+    previewNote:
+      "Esta es la página que los agentes reconstruirán. Genera la demo cuando se vea bien.",
+    change: "Cambiar dirección",
+    note: "Gratis hasta 25 grabaciones. Inicia sesión para generar. Cada demo consume uno o dos minutos de agente en la nube de tu plan y aparece en tu biblioteca.",
+    howHeading: "Cómo funciona",
+    how: {
+      type: {
+        title: "Escribe una dirección",
+        body: "Cualquier web pública. La página se carga en un navegador en la nube y se detectan todos los títulos, imágenes, botones y tarjetas.",
+      },
+      build: {
+        title: "Los agentes la reconstruyen",
+        body: "La petición se escribe en un cuadro de chat y luego un enjambre de cursores coloca cada elemento mientras la música se acelera.",
+      },
+      share: {
+        title: "Obtén un enlace",
+        body: "El video se abre en tu biblioteca en cuanto está listo. Comparte el enlace, descarga el archivo o publícalo.",
+      },
+    },
+    errors: {
+      invalidUrl: "Escribe una dirección web como example.com.",
+      unreachable:
+        "No se pudo acceder a ese sitio web. Revisa la dirección e inténtalo de nuevo.",
+      unavailable: "Las demos no están disponibles en este servidor.",
+      running:
+        "Una de tus grabaciones sigue en curso. Espera a que termine y vuelve a intentarlo.",
+      limit:
+        "Este espacio de trabajo ha agotado sus minutos de agente en la nube de este mes. Se renuevan el día 1.",
+      recordings:
+        "Has alcanzado el límite de grabaciones del plan gratuito. Elimina una grabación o mejora tu plan e inténtalo de nuevo.",
+      busy: "Todos los navegadores en la nube están ocupados ahora mismo. Vuelve a intentarlo en unos minutos.",
+      failed: "No se pudo iniciar la demo. Vuelve a intentarlo.",
     },
   },
   enterprise: {
@@ -902,7 +959,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Grabaciones de agente en un navegador en la nube",
+              label: "Presentaciones de agente creadas en la nube",
               free: `${FREE_AGENT_MIN} min al mes por persona`,
               light: `${LIGHT_AGENT_MIN} min al mes por miembro`,
               pro: `${PRO_AGENT_MIN} min al mes por miembro`,
@@ -920,7 +977,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Voz en off con IA en un navegador en la nube",
+              label: "Voz en off con IA en presentaciones en la nube",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} min al mes por miembro`,

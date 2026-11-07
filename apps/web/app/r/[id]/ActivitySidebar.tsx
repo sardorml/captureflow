@@ -433,7 +433,7 @@ export function ActivitySidebar({
             </TabsTrigger>
             {editPanel ? (
               <TabsTrigger value="edit" className={TAB_CLASS}>
-                {m.common.edit}
+                {m.activity.sidebar.toolsTab}
               </TabsTrigger>
             ) : null}
           </TabsList>

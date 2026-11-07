@@ -854,33 +854,22 @@ const messages: AppMessages = {
       preparingTitle: "กำลังเตรียมการบันทึกของคุณ…",
       preparingDescription:
         "การอัปโหลดยังไม่เสร็จ หน้านี้จะรีเฟรชเองเมื่อพร้อม",
+      generatingTitle: "กำลังสร้างวิดีโอของคุณ…",
+      generatingDescription:
+        "อาจใช้เวลาหนึ่งถึงสองนาที หน้านี้จะรีเฟรชเองเมื่อพร้อม",
       failedTitle: "การบันทึกนี้อัปโหลดไม่เสร็จ",
       failedDescription:
         "สร้างลิงก์แล้วแต่วิดีโอมาไม่ถึง ลองเปิดลิงก์อีกครั้งในอีกหนึ่งนาที หรือบันทึกใหม่",
       comment: "ความคิดเห็น",
-      activityTab: "กิจกรรม",
-      transcriptTab: "บทถอดเสียง",
-      emptyTitle: "ยังไม่มีกิจกรรม",
-      emptyDescription:
-        "รีแอ็กชันและความคิดเห็นจากผู้ชมจะแสดงที่นี่เมื่อการบันทึกพร้อม",
     },
     upgradeBanner: {
       message: "{usage}ในแพ็กเกจฟรี อัปเกรดเพื่อบันทึกได้ไม่จำกัดในคุณภาพเต็ม",
       usage: "other:ใช้การบันทึกไปแล้ว {used} จาก {n} รายการ",
     },
     editPanel: {
-      makeEdits: "แก้ไข",
-      status: {
-        idle: "บันทึกอัตโนมัติ",
-        saved: "บันทึกแล้ว",
-        error: "บันทึกไม่สำเร็จ",
-      },
-      trimTitle: "ตัดแต่งและตัดออก",
-      trimDescription: "แบ่งไทม์ไลน์ ตัดบางช่วงออก และแก้บทถอดเสียง",
-      background: "พื้นหลัง",
-      camera: "กล้อง",
-      audio: "เสียง",
-      takeAction: "ดำเนินการ",
+      editTitle: "แก้ไขวิดีโอ",
+      editDescription:
+        "ตัดต่อ ตัดส่วนออก เปลี่ยนรูปลักษณ์ และแก้ไขคำบรรยายในตัวแก้ไข",
       downloadTitle: "ดาวน์โหลดวิดีโอ",
       downloadDescription: "การบันทึกทั้งหมดเป็นไฟล์ MP4",
       copyEmbed: "คัดลอกโค้ดฝัง",
@@ -899,6 +888,7 @@ const messages: AppMessages = {
       label: "แถบด้านข้างของการบันทึก",
       activityTab: "กิจกรรม",
       transcriptTab: "บทถอดเสียง",
+      toolsTab: "เครื่องมือ",
     },
     you: "คุณ",
     anonymous: "ไม่ระบุตัวตน",

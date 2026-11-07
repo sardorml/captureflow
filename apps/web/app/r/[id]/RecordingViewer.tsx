@@ -20,7 +20,6 @@ import { PoweredBy } from "../../_components/powered-by";
 import { RecordingPlayer } from "./RecordingPlayer";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { initials } from "@/lib/format";
-import { useEditorConfig } from "@/app/recordings/[id]/edit/use-editor-config";
 import dynamic from "next/dynamic";
 import { withSplitLoaded } from "@/components/dev/split-loaded";
 import { ActivitySidebar } from "./ActivitySidebar";
@@ -83,7 +82,7 @@ export function RecordingViewer({
   serverDurationMs,
   serverWidth,
   serverHeight,
-  config: initialConfig,
+  config,
   initialReactions,
   initialComments,
   viewer,
@@ -119,13 +118,6 @@ export function RecordingViewer({
     },
     [],
   );
-  // Only the owner's Edit tab ever changes it; for everyone else this is the
-  // server's config as given.
-  const {
-    config,
-    update: updateConfig,
-    status: configStatus,
-  } = useEditorConfig(slug, initialConfig);
   const playerRef = useRef<RecordingPlayerHandle | null>(null);
   useSpaceTogglesPlayback(playerRef);
   const commentInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -186,7 +178,7 @@ export function RecordingViewer({
         <header className="sticky top-0 z-20 bg-panel max-lg:static max-lg:order-2">
           {/* Padded like the nav (px-4 sm:px-6) plus the drawer button's icon
               inset, so the title's left edge sits under the drawer icon. */}
-          <div className="px-6 py-5 sm:px-8">
+          <div className="px-6 py-3 sm:px-8">
             <div className="flex w-full gap-5 max-lg:flex-col max-lg:gap-3 lg:items-start">
               <div className="min-w-0 flex-1">
                 <EditableTitle
@@ -278,19 +270,7 @@ export function RecordingViewer({
             getCurrentMs={getCurrentMs}
           />
         }
-        editPanel={
-          isOwner ? (
-            <EditPanel
-              slug={slug}
-              editUrl={editUrl}
-              config={config}
-              onConfig={updateConfig}
-              status={configStatus}
-              hasWebcam={!!webcamUrl}
-              aspect={aspectFromPlaceholder(serverWidth, serverHeight)}
-            />
-          ) : null
-        }
+        editPanel={isOwner ? <EditPanel slug={slug} editUrl={editUrl} /> : null}
         viewerSignedIn={signedIn}
         viewerName={viewerName}
         viewerUserId={viewer?.userId ?? null}

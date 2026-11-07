@@ -4,7 +4,10 @@ import { agentAllowanceLeft, startOfMonthUtc } from "@captureflow/quota";
 import type { AppWebBindings } from "../cf-env";
 import { issueDeviceToken } from "../device-tokens";
 import { getRecording } from "../recording/db";
-import { getWorkspaceEntitlement } from "../recording/quota";
+import {
+  countUserRecordingsInWorkspace,
+  getWorkspaceEntitlement,
+} from "../recording/quota";
 import { SITE_URL, viewUrlFor } from "../site";
 import {
   addNarratedChars,
@@ -20,26 +23,25 @@ import {
 } from "./agent-recordings-db";
 import { LibraryError, resolveWorkspaceId, type McpUser } from "./library";
 
-export type Target = { text?: string; selector?: string };
+// A swarm demo is under a minute; a short cap gives its frames the plan's bytes at a high bitrate.
+const DEMO_MAX_MS = 75_000;
 
+// The cloud recorder makes presentations: slides and narration, no page to drive.
 export type RecorderAction =
-  | { type: "click"; target: Target }
-  | { type: "type"; text: string; target?: Target; submit?: boolean }
-  | { type: "press"; key: string }
-  | { type: "scroll"; direction: "down" | "up"; amount?: number }
-  | { type: "navigate"; url: string }
   | { type: "wait"; seconds: number }
-  | { type: "show_slide"; slide: Slide }
-  | { type: "hide_slide" };
+  | { type: "show_slide"; slide: Slide };
 
 export const SLIDE_LAYOUTS = [
   "cover",
   "list",
   "statement",
   "feature",
+  "image",
+  "code",
   "big_idea",
+  "end_card",
 ] as const;
-export const SLIDE_THEMES = ["navy", "blue", "cream"] as const;
+export const SLIDE_THEMES = ["white", "gray", "ink", "blue"] as const;
 
 export type Slide = {
   layout?: (typeof SLIDE_LAYOUTS)[number];
@@ -55,6 +57,14 @@ export type Slide = {
   from?: string;
   to?: string;
   imageUrl?: string;
+  caption?: string;
+  callout?: { x: number; y: number; w: number; h: number };
+  code?: string;
+  language?: string;
+  lines?: string;
+  highlight?: string;
+  logo?: boolean;
+  cta?: string;
 };
 
 export type PageLook = {
@@ -113,7 +123,10 @@ async function callRecorder<T>(
     const stub = env.RECORDER.get(env.RECORDER.idFromName(sessionId));
     res = await stub.fetch(new Request(`http://recorder${path}`, init));
   } else {
-    throw new LibraryError("Recording isn't available on this server.");
+    throw new LibraryError(
+      "Recording isn't available on this server.",
+      "unavailable",
+    );
   }
   const json = (await res.json().catch(() => ({}))) as { error?: string };
   if (res.status === 400) {
@@ -146,14 +159,19 @@ export async function startAgentRecording(
   env: RecorderEnv,
   user: McpUser,
   args: {
-    url: string;
     title?: string;
     visibility?: "public" | "workspace" | "private";
     workspaceId?: string;
+    quality?: "standard" | "high";
+    // A shorter cap than the plan's leaves the clip more bytes per second.
+    maxDurationMs?: number;
   },
 ): Promise<{ recording_id: string; max_minutes: number }> {
   if (!env.RECORDER && !env.RECORDER_URL) {
-    throw new LibraryError("Recording isn't available on this server.");
+    throw new LibraryError(
+      "Recording isn't available on this server.",
+      "unavailable",
+    );
   }
   const now = Date.now();
   const running = await findRunningAgentRecording(
@@ -164,16 +182,34 @@ export async function startAgentRecording(
   if (running) {
     throw new LibraryError(
       `You already have a recording running (recording_id ${running.id}). Stop or cancel it first.`,
+      "running",
     );
   }
   const workspaceId = await resolveWorkspaceId(user, args.workspaceId);
-  const { left } = await allowanceLeft(db, workspaceId);
+  const { entitlement, left } = await allowanceLeft(db, workspaceId);
   if (left.agentMs !== null && left.agentMs < 60_000) {
     throw new LibraryError(
       "This workspace has used its agent recording minutes for this month. They reset on the 1st.",
+      "limit",
     );
   }
-  const maxDurationMs = Math.min(MAX_RECORDING_MS, left.agentMs ?? Infinity);
+  // The upload would be refused at the end otherwise, after the whole clip was made.
+  const perPerson = entitlement?.recordingsPerPerson;
+  if (
+    perPerson != null &&
+    (await countUserRecordingsInWorkspace(workspaceId, user.userId)) >=
+      perPerson
+  ) {
+    throw new LibraryError(
+      `Free plan limit: ${perPerson} recordings per person. Delete a recording or upgrade, then try again.`,
+      "recordings",
+    );
+  }
+  const maxDurationMs = Math.min(
+    args.maxDurationMs ?? MAX_RECORDING_MS,
+    MAX_RECORDING_MS,
+    left.agentMs ?? Infinity,
+  );
 
   const id = newSessionId();
   const token = await issueDeviceToken(user.userId, "Agent recording");
@@ -191,10 +227,10 @@ export async function startAgentRecording(
       "POST",
       "",
       {
-        url: args.url,
         title: args.title,
         visibility: args.visibility,
         workspaceId,
+        quality: args.quality,
         maxDurationMs,
         idleMs: IDLE_MS,
         upload: {
@@ -216,8 +252,46 @@ export async function startAgentRecording(
     if (err instanceof LibraryError) throw err;
     throw new LibraryError(
       "Couldn't start a cloud browser; they may all be busy. Try again in a few minutes.",
+      "busy",
     );
   }
+}
+
+/*
+ * The swarm demo from the public page: a presentation is started for the
+ * user and the recorder runs the whole fixed script on its own, so no agent
+ * drives it. The container's reply comes before the clip is done; the row
+ * is ended by the Durable Object once the clip is uploaded, or here in
+ * local dev where the container is reached directly.
+ */
+export async function startSwarmDemo(
+  db: D1Database,
+  env: RecorderEnv,
+  user: McpUser,
+  url: string,
+): Promise<{ recording_id: string; url: string }> {
+  const host = new URL(url).host;
+  const started = await startAgentRecording(db, env, user, {
+    title: `${host} rebuilt by agents`,
+    quality: "high",
+    maxDurationMs: DEMO_MAX_MS,
+  });
+  const id = started.recording_id;
+  const row = await getRunningAgentRecording(db, user.userId, id);
+  if (!row?.slug) throw new LibraryError("The demo couldn't be started.");
+  try {
+    if (env.RECORDER_URL) {
+      void callRecorder(env, id, "POST", "demo", { url })
+        .catch((err) => console.warn("[swarm-demo] failed", err))
+        .finally(() => endAgentRecording(db, id, Date.now()));
+    } else {
+      await callRecorder(env, id, "POST", "demo", { url });
+    }
+  } catch (err) {
+    await endAgentRecording(db, id, Date.now());
+    throw err;
+  }
+  return { recording_id: id, url: viewUrlFor(row.slug) };
 }
 
 async function running(db: D1Database, user: McpUser, id: string) {

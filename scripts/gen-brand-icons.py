@@ -19,8 +19,7 @@ Pipeline (macOS only — needs Xcode's actool + iconutil):
      (matching how the web logos are framed) and upscale to a 1024 master.
   3. Derive every asset from the master: square logos, round logos (inscribed
      disc), maskable / apple-touch (gradient card + floating squircle), tray
-     discs, favicons, and the OG image (logo swapped in place over the dark
-     card). Also copy the .icon into the desktop build dir and rebuild the
+     discs and favicons. Also copy the .icon into the desktop build dir and rebuild the
      pre-26 fallback .icns.
 
 NOT touched: apps/desktop/resources/icon-dev.png (the amber dev-build icon).
@@ -195,9 +194,8 @@ def generate(master, icon_src):
     save_ico(master, WEB / "favicon.ico")
     log("web/ logos, maskable, apple-touch, favicon")
 
-    # OG image — swap the logo in place, keep the dark card + text + shadow.
-    swap_og(master, WEB / "og-image.png")
-    log("web/og-image.png (logo swapped in place)")
+    # The link preview card is rendered from the landing hero, which shows the new logo once the site serves it.
+    log("rerun scripts/gen-og-image.py for the link preview card")
 
     # Desktop recorder  (icon-dev.png deliberately left amber)
     square(master, 1024).save(DRES / "icon.png")
@@ -225,24 +223,6 @@ def generate(master, icon_src):
     for size in (16, 32, 48, 128):
         square(master, size).save(EXT / f"{size}.png")
     log("extension public/icon 16/32/48/128")
-
-
-def swap_og(master, og_path):
-    og = Image.open(og_path).convert("RGBA")
-    arr = np.array(og).astype(float)
-    r, g, b = arr[..., 0], arr[..., 1], arr[..., 2]
-    mx = np.maximum(np.maximum(r, g), b)
-    mn = np.minimum(np.minimum(r, g), b)
-    sat = (mx - mn) / (mx + 1e-6)
-    body = (sat > 0.35) & (mx > 80)        # the saturated blue logo on the dark card
-    ys, xs = np.where(body)
-    x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
-    side = max(x1 - x0 + 1, y1 - y0 + 1)
-    cx, cy = (x0 + x1 + 1) // 2, (y0 + y1 + 1) // 2
-    box = (cx - side // 2, cy - side // 2)
-    logo = master.resize((side, side), Image.LANCZOS)
-    og.alpha_composite(logo, box)
-    og.convert("RGB").save(og_path)
 
 
 def build_icns(master, out_icns):

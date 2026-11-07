@@ -884,15 +884,13 @@ const messages: AppMessages = {
       preparingTitle: "Kaydınız hazırlanıyor…",
       preparingDescription:
         "Yükleme hâlâ tamamlanıyor. Hazır olduğunda bu sayfa kendiliğinden yenilenir.",
+      generatingTitle: "Videonuz oluşturuluyor…",
+      generatingDescription:
+        "Bu bir iki dakika sürebilir. Hazır olduğunda sayfa kendiliğinden yenilenir.",
       failedTitle: "Bu kaydın yüklenmesi tamamlanmadı",
       failedDescription:
         "Bağlantı oluşturuldu ama video hiç ulaşmadı. Bağlantıyı bir dakika sonra tekrar deneyin veya yeni bir kayıt yapın.",
       comment: "Yorum yap",
-      activityTab: "Etkinlik",
-      transcriptTab: "Transkript",
-      emptyTitle: "Henüz etkinlik yok",
-      emptyDescription:
-        "Kayıt hazır olduğunda izleyicilerin tepkileri ve yorumları burada görünür.",
     },
     upgradeBanner: {
       message:
@@ -900,19 +898,9 @@ const messages: AppMessages = {
       usage: "other:{n} kayıttan {used} tanesi kullanıldı",
     },
     editPanel: {
-      makeEdits: "Düzenleme yap",
-      status: {
-        idle: "Otomatik kaydedilir",
-        saved: "Kaydedildi",
-        error: "Kaydedilemedi",
-      },
-      trimTitle: "Kırp ve kes",
-      trimDescription:
-        "Zaman çizelgesini bölün, parçaları kesip çıkarın ve transkripti düzeltin.",
-      background: "Arka plan",
-      camera: "Kamera",
-      audio: "Ses",
-      takeAction: "İşlem yap",
+      editTitle: "Videoyu düzenle",
+      editDescription:
+        "Düzenleyicide kırpın, kesin, görünümü değiştirin ve transkripti düzeltin.",
       downloadTitle: "Videoyu indir",
       downloadDescription: "Kaydın tamamı, MP4 olarak.",
       copyEmbed: "Gömme kodunu kopyala",
@@ -931,6 +919,7 @@ const messages: AppMessages = {
       label: "Kayıt kenar çubuğu",
       activityTab: "Etkinlik",
       transcriptTab: "Transkript",
+      toolsTab: "Araçlar",
     },
     you: "Siz",
     anonymous: "Anonim",

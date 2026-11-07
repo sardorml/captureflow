@@ -895,15 +895,13 @@ const messages: AppMessages = {
       preparingTitle: "Préparation de votre enregistrement…",
       preparingDescription:
         "L’envoi est en train de se terminer. Cette page s’actualise toute seule dès qu’il est prêt.",
+      generatingTitle: "Génération de votre vidéo…",
+      generatingDescription:
+        "Cela peut prendre une à deux minutes. La page se rafraîchit d’elle-même dès que c’est prêt.",
       failedTitle: "L’envoi de cet enregistrement n’a pas abouti",
       failedDescription:
         "Le lien a été créé, mais la vidéo n’est jamais arrivée. Réessayez le lien dans une minute ou faites un nouvel enregistrement.",
       comment: "Commenter",
-      activityTab: "Activité",
-      transcriptTab: "Transcription",
-      emptyTitle: "Aucune activité pour le moment",
-      emptyDescription:
-        "Les réactions et les commentaires des spectateurs apparaîtront ici une fois l’enregistrement prêt.",
     },
     upgradeBanner: {
       message:
@@ -911,19 +909,9 @@ const messages: AppMessages = {
       usage: "other:{used} enregistrements utilisés sur {n}",
     },
     editPanel: {
-      makeEdits: "Apporter des modifications",
-      status: {
-        idle: "Sauvegarde automatique",
-        saved: "Sauvegardé",
-        error: "Échec de la sauvegarde",
-      },
-      trimTitle: "Raccourcir et couper",
-      trimDescription:
-        "Scindez la timeline, coupez des passages et corrigez la transcription.",
-      background: "Arrière-plan",
-      camera: "Caméra",
-      audio: "Audio",
-      takeAction: "Actions",
+      editTitle: "Modifier la vidéo",
+      editDescription:
+        "Raccourcissez, coupez, changez l’apparence et corrigez la transcription dans l’éditeur.",
       downloadTitle: "Télécharger la vidéo",
       downloadDescription: "L’enregistrement complet au format MP4.",
       copyEmbed: "Copier le code d’intégration",
@@ -942,6 +930,7 @@ const messages: AppMessages = {
       label: "Barre latérale de l’enregistrement",
       activityTab: "Activité",
       transcriptTab: "Transcription",
+      toolsTab: "Outils",
     },
     you: "Vous",
     anonymous: "Anonyme",

@@ -1,6 +1,7 @@
 import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { DEFAULT_ZOOM } from "@captureflow/agent-recorder";
 
 export const DEFAULT_URL = "https://captureflow.dev";
 
@@ -16,6 +17,8 @@ export type Settings = {
   url: string;
   headless: boolean;
   viewport: { width: number; height: number };
+  zoom: number;
+  music: string | null;
   saveDir: string | null;
   ffmpeg: string | null;
   tts: TtsSettings;
@@ -49,6 +52,11 @@ function parseViewport(raw: string | undefined) {
   return m ? { width: Number(m[1]), height: Number(m[2]) } : null;
 }
 
+function parseZoom(raw: string | undefined) {
+  const n = Number(raw);
+  return raw && Number.isFinite(n) && n >= 1 && n <= 3 ? n : DEFAULT_ZOOM;
+}
+
 // Flags win over environment variables, which win over the defaults.
 export function readSettings(argv: string[], env: Env = process.env): Settings {
   const url = (flag(argv, "url") || env.CAPTUREFLOW_URL || DEFAULT_URL).replace(
@@ -68,6 +76,8 @@ export function readSettings(argv: string[], env: Env = process.env): Settings {
       width: 1920,
       height: 1080,
     },
+    zoom: parseZoom(env.CAPTUREFLOW_ZOOM),
+    music: env.CAPTUREFLOW_MUSIC || null,
     saveDir,
     ffmpeg: env.CAPTUREFLOW_FFMPEG || null,
     tts: {

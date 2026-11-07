@@ -47,7 +47,7 @@ const SECTIONS: LegalSection[] = [
     heading: "AI agents and the cloud browser",
     body: [
       "You can connect an AI agent, such as an MCP client, to your account. It signs in through CaptureFlow with your account. It can then list and search your recordings, read their details and transcripts, change who can view them, and make new recordings. What it reads goes to the agent you connected, under that agent's own privacy terms.",
-      "When an agent records for you, it opens the address it was given in a cloud browser on our servers, and that browser is used for that one recording only. It can't reach your computer, your own browser, or the accounts you are signed in to. The result is stored as one of your captures, and it shows whatever the agent opened or typed, so don't give an agent passwords or private details you don't want in the video.",
+      "When an agent makes a video for you, it renders the slides in a browser on our servers that is used for that one video only, loading any images from the links it was given. It can't reach your computer, your own browser, or the accounts you are signed in to. The result is stored as one of your captures, and it shows whatever the agent put on the slides, so don't give an agent passwords or private details you don't want in the video.",
       "A voiceover in the cloud browser sends the text to be spoken to Cloudflare Workers AI. Transcripts are also made there, from the recording's audio.",
     ],
   },

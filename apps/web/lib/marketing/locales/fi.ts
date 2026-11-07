@@ -45,6 +45,12 @@ const messages: Messages = {
       description:
         "Tilaa CaptureFlow'n asennus yrityksesi omalle Cloudflare-tilille: oma verkkotunnus, kirjautuminen vain yrityksen tunnuksilla ja yksityinen Chrome-laajennus tiimillesi.",
     },
+    swarmDemo: {
+      title:
+        "Parvidemo: agentit rakentavat minkä tahansa sivuston uudelleen videolla",
+      description:
+        "Kirjoita sivuston osoite ja katso, kuinka parvi agenttikursoreita rakentaa sen uudelleen elementti kerrallaan musiikin tahdissa. Saat videon ja jaettavan linkin.",
+    },
   },
   nav: {
     features: "Ominaisuudet",
@@ -67,6 +73,15 @@ const messages: Messages = {
     selfHostingDescription: "Käytä omalla Cloudflare-tililläsi",
     community: "Yhteisö",
     communityDescription: "Kysy apua ja keskustele Discordissa",
+    products: "Tuotteet",
+    swarmDemo: "Parvidemo",
+    swarmDemoDescription:
+      "Agentit rakentavat minkä tahansa sivuston uudelleen videolla",
+    extension: "Chrome-laajennus",
+    extensionDescription: "Tallenna näyttösi ja jaa linkki",
+    agentRecorder: "Tallennin agenteille",
+    agentRecorderDescription:
+      "Videot, jotka tekoälyagenttisi tekee MCP:n kautta",
     star: "Anna tähti GitHubissa",
     starCount: "Anna tähti GitHubissa ({stars})",
     themeToLight: "Vaihda vaaleaan teemaan",
@@ -306,7 +321,7 @@ const messages: Messages = {
       chatgpt:
         "Avaa ChatGPT:n verkkoversiossa Plugins, paina + ja valitse Add custom MCP server. Anna nimeksi CaptureFlow, liitä tämä URL-osoite, valitse OAuth, asenna sitten liitännäinen ja kirjaudu sisään. Vaatii Business-, Enterprise- tai Edu-tilauksen.",
       limits:
-        "Keskusteluissa tallennetaan verkkosivuja pilviselaimessa, ei tietokonettasi, ja ne käyttävät tilauksesi pilviagenttiminuutteja.",
+        "Chatit kokoavat esitys- ja ohjevideot dioista palvelimillamme, eivät tallenna tietokonettasi, ja käyttävät tilauksesi pilviagenttiminuutteja.",
     },
   },
   modes: {
@@ -530,6 +545,51 @@ const messages: Messages = {
       sentTitle: "Viesti lähetetty",
       sentBody: "Kiitos. Vastaamme sinulle osoitteeseen {email}.",
       back: "Takaisin etusivulle",
+    },
+  },
+  swarmDemo: {
+    title: "Katso, kuinka agentit rakentavat uudelleen",
+    titleHighlight: "minkä tahansa sivuston",
+    subtitle:
+      "Kirjoita sivuston osoite. Parvi agenttikursoreita piirtää sen takaisin elementti kerrallaan musiikin tahdissa, ja saat jaettavan videolinkin.",
+    url: "Sivuston osoite",
+    urlPlaceholder: "https://example.com",
+    generate: "Luo demo",
+    generating: "Käynnistetään pilviselainta…",
+    check: "Tarkista sivusto",
+    checking: "Tarkistetaan sivustoa…",
+    previewNote:
+      "Tämän sivun agentit rakentavat uudelleen. Luo demo, kun se näyttää oikealta.",
+    change: "Vaihda osoite",
+    note: "Ilmainen 25 tallenteeseen asti. Kirjaudu sisään luodaksesi demon. Jokainen demo kuluttaa minuutin tai pari tilauksesi pilviagenttiminuutteja ja ilmestyy kirjastoosi.",
+    howHeading: "Näin se toimii",
+    how: {
+      type: {
+        title: "Kirjoita osoite",
+        body: "Mikä tahansa julkinen sivusto. Sivu ladataan pilviselaimessa, ja jokainen otsikko, kuva, painike ja kortti tunnistetaan.",
+      },
+      build: {
+        title: "Agentit rakentavat sen takaisin",
+        body: "Pyyntö kirjoitetaan keskustelukenttään, minkä jälkeen parvi kursoreita asettaa jokaisen elementin paikalleen musiikin kiihtyessä.",
+      },
+      share: {
+        title: "Saat linkin",
+        body: "Video avautuu kirjastossasi heti, kun se on valmis. Jaa linkki, lataa tiedosto tai julkaise se.",
+      },
+    },
+    errors: {
+      invalidUrl: "Kirjoita sivuston osoite, esimerkiksi example.com.",
+      unreachable:
+        "Sivustoon ei saatu yhteyttä. Tarkista osoite ja yritä uudelleen.",
+      unavailable: "Demot eivät ole käytettävissä tällä palvelimella.",
+      running:
+        "Yksi tallenteistasi on vielä käynnissä. Odota, että se valmistuu, ja yritä sitten uudelleen.",
+      limit:
+        "Tämä työtila on käyttänyt tämän kuun pilviagenttiminuuttinsa. Ne nollautuvat kuun 1. päivänä.",
+      recordings:
+        "Ilmaisen paketin tallennusraja on täynnä. Poista tallenne tai päivitä paketti ja yritä uudelleen.",
+      busy: "Kaikki pilviselaimet ovat juuri nyt varattuja. Yritä uudelleen muutaman minuutin kuluttua.",
+      failed: "Demoa ei voitu käynnistää. Yritä uudelleen.",
     },
   },
   enterprise: {
@@ -900,7 +960,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Agenttitallenteet pilviselaimessa",
+              label: "Agentin esitykset pilvessä",
               free: `${FREE_AGENT_MIN} min kuukaudessa henkilöä kohden`,
               light: `${LIGHT_AGENT_MIN} min kuukaudessa jäsentä kohden`,
               pro: `${PRO_AGENT_MIN} min kuukaudessa jäsentä kohden`,
@@ -918,7 +978,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Tekoälyselostus pilviselaimessa",
+              label: "Tekoälyselostus pilviesityksissä",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} min kuukaudessa jäsentä kohden`,

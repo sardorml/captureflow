@@ -1,6 +1,6 @@
 {
   "name": "@captureflow/mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "AGPL-3.0-only",
   "description": "CaptureFlow's MCP server on your own machine: agents record your local browser, screen and apps, narrate, and share a link.",
   "type": "module",

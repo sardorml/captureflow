@@ -869,15 +869,13 @@ const messages: AppMessages = {
       preparingTitle: "Đang chuẩn bị bản ghi của bạn…",
       preparingDescription:
         "Quá trình tải lên vẫn đang hoàn tất. Trang này sẽ tự làm mới khi bản ghi sẵn sàng.",
+      generatingTitle: "Đang tạo video của bạn…",
+      generatingDescription:
+        "Có thể mất một hai phút. Trang sẽ tự làm mới khi video sẵn sàng.",
       failedTitle: "Bản ghi này chưa tải lên xong",
       failedDescription:
         "Liên kết đã được tạo nhưng video không đến nơi. Hãy thử lại liên kết sau một phút, hoặc quay một bản mới.",
       comment: "Bình luận",
-      activityTab: "Hoạt động",
-      transcriptTab: "Bản chép lời",
-      emptyTitle: "Chưa có hoạt động",
-      emptyDescription:
-        "Cảm xúc và bình luận của người xem sẽ hiện ở đây khi bản ghi sẵn sàng.",
     },
     upgradeBanner: {
       message:
@@ -885,19 +883,9 @@ const messages: AppMessages = {
       usage: "other:Đã dùng {used} trên {n} bản ghi",
     },
     editPanel: {
-      makeEdits: "Chỉnh sửa",
-      status: {
-        idle: "Tự động lưu",
-        saved: "Đã lưu",
-        error: "Không lưu được",
-      },
-      trimTitle: "Cắt gọn và cắt bỏ",
-      trimDescription:
-        "Tách dòng thời gian, cắt bỏ các đoạn và sửa bản chép lời.",
-      background: "Nền",
-      camera: "Camera",
-      audio: "Âm thanh",
-      takeAction: "Thao tác",
+      editTitle: "Chỉnh sửa video",
+      editDescription:
+        "Cắt gọn, cắt bỏ, đổi giao diện và sửa bản chép lời trong trình chỉnh sửa.",
       downloadTitle: "Tải video xuống",
       downloadDescription: "Toàn bộ bản ghi ở dạng MP4.",
       copyEmbed: "Sao chép mã nhúng",
@@ -916,6 +904,7 @@ const messages: AppMessages = {
       label: "Thanh bên bản ghi",
       activityTab: "Hoạt động",
       transcriptTab: "Bản chép lời",
+      toolsTab: "Công cụ",
     },
     you: "Bạn",
     anonymous: "Ẩn danh",

@@ -13,8 +13,10 @@ import {
 import { chromium, type Browser } from "playwright";
 import { z } from "zod";
 import {
+  deviceScaleArg,
   SessionError,
   startSession,
+  SWARM_LIMITS,
   type Action,
   type Chapter,
   type RecordingOutput,
@@ -34,7 +36,7 @@ import {
 import { startScreenSession, type ScreenSession } from "./screen-session";
 import { KOKORO_VOICES, speak, warmVoice } from "./voice";
 
-export const VERSION = "0.1.0";
+export const VERSION = "0.2.0";
 
 const MAX_RECORDING_MS = 30 * 60_000;
 const IDLE_MS = 5 * 60_000;
@@ -43,9 +45,12 @@ const SLIDE_LAYOUTS = [
   "list",
   "statement",
   "feature",
+  "image",
+  "code",
   "big_idea",
+  "end_card",
 ] as const;
-const SLIDE_THEMES = ["navy", "blue", "cream"] as const;
+const SLIDE_THEMES = ["white", "gray", "ink", "blue"] as const;
 
 class ToolError extends Error {}
 
@@ -60,6 +65,8 @@ const INSTRUCTIONS = `CaptureFlow records screen videos people share as a link. 
 Pick what to record:
 - A web app, including one on localhost: start_recording with its URL. You drive it with click, type, scroll and navigate.
 - Anything else on the computer (a terminal, a desktop app, the whole screen): list_screens, then start_screen_recording. It films what happens; do the work with your own tools while it runs.
+- A presentation, how-to or walkthrough made of slides alone (screenshots the user gave you, code, steps): start_presentation, then show_slide for each slide.
+- A website being built by a swarm of agents, for a demo or a teaser: start_presentation, then rebuild_website with the URL: the clip opens on the request being typed into a chat box and, with CAPTUREFLOW_MUSIC set, the music the agents build to. An end card after makes it a clip.
 
 When you record:
 - The user's words always win. "No slides", "only an intro" or "no voice" override everything below.
@@ -224,11 +231,13 @@ export function createLocalServer(settings: Settings) {
 
   async function launch(headless: boolean): Promise<Browser> {
     const args = ["--autoplay-policy=no-user-gesture-required"];
+    // A window on screen keeps the display's own scale.
+    if (headless) args.push(deviceScaleArg(settings.zoom));
     try {
       return await chromium.launch({ channel: "chrome", headless, args });
     } catch {
       try {
-        return await chromium.launch({ headless, args });
+        return await chromium.launch({ channel: "chromium", headless, args });
       } catch {
         throw new ToolError(
           "Couldn't start a browser. Install Google Chrome, or run `npx playwright install chromium` once.",
@@ -302,6 +311,7 @@ export function createLocalServer(settings: Settings) {
               workspaceId: workspace_id,
               width: settings.viewport.width,
               height: settings.viewport.height,
+              zoom: settings.zoom,
               maxDurationMs: MAX_RECORDING_MS,
               idleMs: IDLE_MS,
               output: out,
@@ -455,6 +465,63 @@ export function createLocalServer(settings: Settings) {
       },
     ),
     tool(
+      "start_presentation",
+      "Make a video from slides",
+      "Starts a video built from slides alone, with no page or screen behind them: a presentation, a how-to from the user's screenshots, or a walkthrough of code. " +
+        "Then call show_slide for each slide in turn, narrate over each one if asked for a voiceover or wait a few seconds on it otherwise, and stop_recording for the link. " +
+        "Ends on stop_recording, after 5 minutes without a call, or at 30 minutes.",
+      {
+        title: z.string().max(200).optional(),
+        visibility,
+        workspace_id: workspaceId,
+        voiceover: z
+          .boolean()
+          .optional()
+          .describe(
+            "Set when you'll narrate, so the voice loads while you set up.",
+          ),
+      },
+      async ({ title, visibility, workspace_id, voiceover }) => {
+        guardOne();
+        if (voiceover) warmVoice(settings.tts);
+        const out = await output("tab", title ?? "presentation");
+        const [browser, ffmpeg] = await Promise.all([
+          launch(true),
+          resolveFfmpeg(settings.ffmpeg),
+        ]);
+        try {
+          const session = await startSession(
+            browser,
+            {
+              title,
+              visibility,
+              workspaceId: workspace_id,
+              width: settings.viewport.width,
+              height: settings.viewport.height,
+              maxDurationMs: MAX_RECORDING_MS,
+              idleMs: IDLE_MS,
+              output: out,
+            },
+            { allowUrl: async () => true, ffmpegPath: ffmpeg },
+          );
+          const id = randomBytes(16).toString("hex");
+          live.set(id, {
+            kind: "browser",
+            session,
+            browser,
+            title: title ?? "Presentation",
+          });
+          return json({
+            recording_id: id,
+            max_minutes: Math.floor(session.maxDurationMs / 60_000),
+          });
+        } catch (err) {
+          await browser.close().catch(() => {});
+          throw err;
+        }
+      },
+    ),
+    tool(
       "look",
       "Look at the recording",
       "Returns a screenshot of what's being recorded, plus for a browser its URL, title and an accessibility outline to find elements by. Not recorded.",
@@ -533,10 +600,13 @@ export function createLocalServer(settings: Settings) {
     tool(
       "show_slide",
       "Show a slide",
-      "Cuts the recording to a full-screen slide; call hide_slide to cut back. Pick a layout: " +
+      "Cuts the recording to a full-screen slide; call hide_slide to cut back, or show the next slide. Pick a layout: " +
         "cover (opening title + subtitle), list (title + numbered items, for steps or contents), " +
-        "statement (one big sentence + subtitle), feature (tag + title + subtitle, with up to 3 facts or an image), " +
-        "big_idea (a few huge words + a from/to caption). Keep text short: a headline of a few words, a subtitle of one sentence. " +
+        "statement (one big sentence + subtitle), feature (tag + title + subtitle, with up to 3 facts or an image beside the text), " +
+        "image (a screenshot framed under a short title, with an optional caption and a callout ring on the part that matters), " +
+        "code (a code block under a short title, with the lines that matter highlighted), " +
+        "big_idea (a few huge words + a from/to caption), end_card (closing line with a button, for the last slide). " +
+        "Keep text short: a headline of a few words, a subtitle of one sentence. " +
         "Use section and page/total for a running top bar across a deck. Each slide becomes a chapter.",
       {
         recording_id: recordingId,
@@ -588,7 +658,40 @@ export function createLocalServer(settings: Settings) {
           .url()
           .max(2000)
           .optional()
-          .describe("For feature: an image shown beside the text."),
+          .describe(
+            "For image and feature: an http(s) image, such as the user's screenshot.",
+          ),
+        caption: z
+          .string()
+          .max(160)
+          .optional()
+          .describe("For image: one line under the picture."),
+        callout: z
+          .object({
+            x: z.number().min(0).max(100),
+            y: z.number().min(0).max(100),
+            w: z.number().min(1).max(100),
+            h: z.number().min(1).max(100),
+          })
+          .optional()
+          .describe(
+            "For image: the part to ring, as percentages of the picture's width and height from its top left.",
+          ),
+        code: z
+          .string()
+          .max(2000)
+          .optional()
+          .describe("For code: up to 18 lines of 90 columns."),
+        language: z
+          .string()
+          .max(24)
+          .optional()
+          .describe("For code: the label on the block, like 'ts'."),
+        lines: z
+          .string()
+          .max(60)
+          .optional()
+          .describe("For code: the lines to highlight, like '3-5, 8'."),
         section: z
           .string()
           .max(40)
@@ -600,6 +703,22 @@ export function createLocalServer(settings: Settings) {
           .enum(SLIDE_THEMES)
           .optional()
           .describe("Overrides the layout's colour."),
+        highlight: z
+          .string()
+          .max(60)
+          .optional()
+          .describe("Words of the title to circle with a hand-drawn line."),
+        logo: z
+          .boolean()
+          .optional()
+          .describe(
+            "Shows the CaptureFlow logo on cover and end_card. Leave it off when the demo is of another product.",
+          ),
+        cta: z
+          .string()
+          .max(60)
+          .optional()
+          .describe("For end_card: the button's text."),
       },
       ({ recording_id, image_url, ...slide }) =>
         act(recording_id, {
@@ -613,6 +732,77 @@ export function createLocalServer(settings: Settings) {
       "Cuts back from the slide to what's being recorded.",
       { recording_id: recordingId },
       ({ recording_id }) => act(recording_id, { type: "hide_slide" }),
+    ),
+    tool(
+      "rebuild_website",
+      "Rebuild a website with a swarm of agents",
+      "Plays the page being built from nothing by a swarm of coloured agent cursors on a design canvas: they type every heading and paragraph, drag out every picture and trace every button, with rulers and guides, until the real page stands complete and the canvas clears. " +
+        "Needs a recording from start_recording (leave url out to rebuild the page already open) or start_presentation. Narrate over it if asked; hide any slide first, or it plays unseen. " +
+        "Returns once the build has played and the finished page has been seen for a moment, so the next slide can follow right away: 12 to 40 seconds by default, depending on how much is on the page.",
+      {
+        recording_id: recordingId,
+        url: z
+          .string()
+          .url()
+          .max(2000)
+          .optional()
+          .describe(
+            "The page to rebuild. Defaults to the page the recording has open.",
+          ),
+        agents: z
+          .number()
+          .int()
+          .min(SWARM_LIMITS.agents.min)
+          .max(SWARM_LIMITS.agents.max)
+          .optional()
+          .describe(
+            `How many cursors work on it. Defaults to ${SWARM_LIMITS.agents.default}.`,
+          ),
+        seconds: z
+          .number()
+          .min(SWARM_LIMITS.seconds.min)
+          .max(SWARM_LIMITS.seconds.max)
+          .optional()
+          .describe(
+            `How long the build takes on screen, ${SWARM_LIMITS.seconds.min} to ${SWARM_LIMITS.seconds.max}. Leave it out to fit the page.`,
+          ),
+        prompt: z
+          .string()
+          .trim()
+          .max(120)
+          .optional()
+          .describe(
+            'The request typed into a chat box on the empty canvas before the agents set out; the keys are heard. Leave it out for "Rebuild <host>", or pass an empty string to begin with the agents.',
+          ),
+        music: z
+          .string()
+          .max(1000)
+          .optional()
+          .describe(
+            'Path to a music file on this computer to play under the build. It starts when the prompt is sent, at its own speed, and the agents work to its beat: both rise smoothly to four times the speed by the time four fifths of the page stands, hold there, and the music fades out as the build ends, before whatever comes next. Narration ducks it. Leave it out for the file set with CAPTUREFLOW_MUSIC; "none" builds in silence.',
+          ),
+      },
+      async ({ recording_id, url, agents, seconds, prompt, music }) => {
+        const entry = get(recording_id);
+        if (entry.kind !== "browser") {
+          throw new ToolError(
+            "rebuild_website needs a browser recording: start one with start_recording or start_presentation.",
+          );
+        }
+        const built = await entry.session.rebuild({
+          url,
+          agents,
+          seconds,
+          prompt,
+          music: music === "none" ? undefined : (music ?? settings.music),
+        });
+        return json({
+          ok: true,
+          elements: built.elements,
+          agents: built.agents,
+          elapsedSeconds: entry.session.elapsedSeconds,
+        });
+      },
     ),
     tool(
       "narrate",

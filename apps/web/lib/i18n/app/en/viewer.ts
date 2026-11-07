@@ -60,15 +60,13 @@ export const VIEWER = {
     preparingTitle: "Preparing your recording…",
     preparingDescription:
       "The upload is still finishing. This page refreshes on its own once it's ready.",
+    generatingTitle: "Generating your video…",
+    generatingDescription:
+      "This may take a minute or two. The page refreshes on its own once it's ready.",
     failedTitle: "This recording didn't finish uploading",
     failedDescription:
       "The link was created but the video never arrived. Try the link again in a minute, or record a fresh one.",
     comment: "Comment",
-    activityTab: "Activity",
-    transcriptTab: "Transcript",
-    emptyTitle: "No activity yet",
-    emptyDescription:
-      "Reactions and comments from viewers will show up here once the recording is ready.",
   },
   upgradeBanner: {
     message:
@@ -76,19 +74,9 @@ export const VIEWER = {
     usage: "other:{used} of {n} recordings used",
   },
   editPanel: {
-    makeEdits: "Make edits",
-    status: {
-      idle: "Saved automatically",
-      saved: "Saved",
-      error: "Couldn't save",
-    },
-    trimTitle: "Trim and cut",
-    trimDescription:
-      "Split the timeline, cut sections out and fix the transcript.",
-    background: "Background",
-    camera: "Camera",
-    audio: "Audio",
-    takeAction: "Take action",
+    editTitle: "Edit video",
+    editDescription:
+      "Trim, cut, change the look and fix the transcript in the editor.",
     downloadTitle: "Download video",
     downloadDescription: "The full recording as an MP4.",
     copyEmbed: "Copy embed code",

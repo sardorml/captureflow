@@ -251,13 +251,31 @@ export function Nav() {
   };
 
   /*
-   * In the bar the main links sit inline and the rest go under Resources; the
-   * drawer stacks them all as block links.
+   * In the bar the main links sit inline between the Products and Resources
+   * menus; the drawer stacks them all as block links.
    */
   const barLinks: MenuLink[] = [
     { label: m.nav.features, href: lh("/features") },
     { label: m.nav.pricing, href: lh("/pricing") },
     { label: m.nav.docs, href: DOCS_URL, external: true },
+  ];
+  const productLinks: TileLink[] = [
+    {
+      label: m.nav.swarmDemo,
+      href: lh("/swarm-demo"),
+      description: m.nav.swarmDemoDescription,
+    },
+    {
+      label: m.nav.extension,
+      href: lh("/download"),
+      description: m.nav.extensionDescription,
+    },
+    {
+      label: m.nav.agentRecorder,
+      href: `${DOCS_URL}/guide/local-agent`,
+      external: true,
+      description: m.nav.agentRecorderDescription,
+    },
   ];
   const moreLinks: TileLink[] = [
     {
@@ -283,7 +301,7 @@ export function Nav() {
       description: m.nav.communityDescription,
     },
   ];
-  const menuLinks = [...barLinks, ...moreLinks];
+  const menuLinks = [...productLinks, ...barLinks, ...moreLinks];
 
   return (
     <>
@@ -336,6 +354,9 @@ export function Nav() {
                 className="ml-3.5 hidden items-center md:flex"
                 onMouseLeave={() => setHovered(null)}
               >
+                <HoverSlot id="Products" hovered={hovered} onHover={setHovered}>
+                  <HoverMenu label={m.nav.products} links={productLinks} />
+                </HoverSlot>
                 {barLinks.map((link) => (
                   <HoverSlot
                     key={link.label}

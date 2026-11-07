@@ -45,6 +45,11 @@ const messages: Messages = {
       description:
         "Lass CaptureFlow im Cloudflare-Konto deines Unternehmens einrichten: eigene Domain, firmeninterne Anmeldung und eine private Chrome-Erweiterung für dein Team.",
     },
+    swarmDemo: {
+      title: "Schwarm-Demo: Agenten bauen jede Website auf Video nach",
+      description:
+        "Gib eine Website-Adresse ein und sieh zu, wie ein Schwarm aus Agenten-Cursorn sie Element für Element nachbaut, mit Musik. Du bekommst ein Video mit Link zum Teilen.",
+    },
   },
   nav: {
     features: "Funktionen",
@@ -67,6 +72,13 @@ const messages: Messages = {
     selfHostingDescription: "Betreibe es in deinem Cloudflare-Konto",
     community: "Community",
     communityDescription: "Hilfe und Austausch auf Discord",
+    products: "Produkte",
+    swarmDemo: "Schwarm-Demo",
+    swarmDemoDescription: "Agenten bauen jede Website auf Video nach",
+    extension: "Chrome-Erweiterung",
+    extensionDescription: "Bildschirm aufnehmen und Link teilen",
+    agentRecorder: "Recorder für Agenten",
+    agentRecorderDescription: "Videos, die dein KI-Agent über MCP erstellt",
     star: "Stern auf GitHub vergeben",
     starCount: "Stern auf GitHub vergeben ({stars})",
     themeToLight: "Zum hellen Design wechseln",
@@ -316,7 +328,7 @@ const messages: Messages = {
       chatgpt:
         "Öffne in ChatGPT im Web „Plugins“, drücke + und wähle „Add custom MCP server“. Nenne ihn CaptureFlow, füge diese URL ein, wähle OAuth, installiere dann das Plugin und melde dich an. Erfordert einen Business-, Enterprise- oder Edu-Tarif.",
       limits:
-        "Chats nehmen Websites in einem Cloud-Browser auf, nicht deinen Computer, und verbrauchen die Cloud-Agentenminuten deines Tarifs.",
+        "Chats erstellen Präsentations- und Anleitungsvideos aus Folien auf unseren Servern, keine Aufnahmen deines Computers, und verbrauchen die Cloud-Agentenminuten deines Tarifs.",
     },
   },
   modes: {
@@ -545,6 +557,52 @@ const messages: Messages = {
       sentTitle: "Nachricht gesendet",
       sentBody: "Danke. Wir melden uns unter {email} bei dir.",
       back: "Zur Startseite",
+    },
+  },
+  swarmDemo: {
+    title: "Sieh zu, wie Agenten",
+    titleHighlight: "jede Website nachbauen",
+    subtitle:
+      "Gib eine Website-Adresse ein. Ein Schwarm aus Agenten-Cursorn zeichnet sie Element für Element nach, mit Musik, und du bekommst einen Videolink zum Teilen.",
+    url: "Website-Adresse",
+    urlPlaceholder: "https://example.com",
+    generate: "Demo erstellen",
+    generating: "Cloud-Browser wird gestartet…",
+    check: "Website prüfen",
+    checking: "Website wird geprüft…",
+    previewNote:
+      "Diese Seite bauen die Agenten nach. Erstelle die Demo, wenn sie passt.",
+    change: "Adresse ändern",
+    note: "Kostenlos bis zu 25 Aufnahmen. Melde dich an, um eine Demo zu erstellen. Jede Demo verbraucht ein bis zwei Cloud-Agentenminuten deines Tarifs und landet in deiner Bibliothek.",
+    howHeading: "So funktioniert es",
+    how: {
+      type: {
+        title: "Adresse eingeben",
+        body: "Jede öffentliche Website. Die Seite wird in einem Cloud-Browser geladen, und jede Überschrift, jedes Bild, jeder Button und jede Karte wird erkannt.",
+      },
+      build: {
+        title: "Agenten bauen sie nach",
+        body: "Die Anfrage wird in ein Chatfeld getippt, dann setzt ein Schwarm aus Cursorn jedes Element an seinen Platz, während die Musik schneller wird.",
+      },
+      share: {
+        title: "Link erhalten",
+        body: "Das Video erscheint in deiner Bibliothek, sobald es fertig ist. Teile den Link, lade die Datei herunter oder poste sie.",
+      },
+    },
+    errors: {
+      invalidUrl: "Gib eine Website-Adresse wie example.com ein.",
+      unreachable:
+        "Diese Website ist nicht erreichbar. Prüfe die Adresse und versuch es erneut.",
+      unavailable: "Auf diesem Server sind keine Demos verfügbar.",
+      running:
+        "Eine deiner Aufnahmen läuft noch. Warte, bis sie fertig ist, und versuch es dann erneut.",
+      limit:
+        "Dieser Workspace hat seine Cloud-Agentenminuten für diesen Monat aufgebraucht. Sie werden am 1. zurückgesetzt.",
+      recordings:
+        "Du hast das Aufnahmelimit des Free-Plans erreicht. Lösche eine Aufnahme oder führe ein Upgrade durch und versuche es dann erneut.",
+      busy: "Alle Cloud-Browser sind gerade belegt. Versuch es in ein paar Minuten erneut.",
+      failed:
+        "Die Demo konnte nicht gestartet werden. Bitte versuch es erneut.",
     },
   },
   enterprise: {
@@ -916,7 +974,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "Agentenaufnahmen in einem Cloud-Browser",
+              label: "Agentenpräsentationen aus der Cloud",
               free: `${FREE_AGENT_MIN} Min. pro Monat und Person`,
               light: `${LIGHT_AGENT_MIN} Min. pro Monat und Mitglied`,
               pro: `${PRO_AGENT_MIN} Min. pro Monat und Mitglied`,
@@ -934,7 +992,7 @@ const messages: Messages = {
               pro: true,
             },
             {
-              label: "KI-Voiceover in einem Cloud-Browser",
+              label: "KI-Voiceover in Cloud-Präsentationen",
               free: false,
               light: false,
               pro: `${PRO_VOICEOVER_MIN} Min. pro Monat und Mitglied`,

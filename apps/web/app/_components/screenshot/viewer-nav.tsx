@@ -73,7 +73,7 @@ export function ViewerNav({
   return (
     <header
       className={cn(
-        "flex h-16 w-full items-center justify-between bg-canvas-2 px-4 sm:px-6",
+        "flex h-14 w-full items-center justify-between bg-canvas-2 px-4 sm:px-6",
         className,
       )}
     >
