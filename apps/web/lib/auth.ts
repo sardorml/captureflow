@@ -7,6 +7,7 @@ import { nextCookies } from "better-auth/next-js";
 import { mcp } from "better-auth/plugins";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { drizzle } from "drizzle-orm/d1";
+import { watchD1, type D1Watch } from "./d1-watch";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getInjectedEnv } from "@captureflow/selfhost/env-slot";
 import { ensurePersonalWorkspace, isSelfHosted } from "@captureflow/quota";
@@ -42,8 +43,9 @@ function buildAuth(
   baseURL?: string,
   waitUntil?: (promise: Promise<unknown>) => void,
 ) {
-  const db = env
-    ? drizzle(env.DB, { schema: authSchema })
+  const watch = env ? watchD1(env.DB) : null;
+  const db = watch
+    ? drizzle(watch.db, { schema: authSchema })
     : (drizzle({} as D1Database, { schema: authSchema }) as ReturnType<
         typeof drizzle
       >);
@@ -181,7 +183,24 @@ function buildAuth(
       },
     },
   } satisfies BetterAuthOptions;
-  return betterAuth(options);
+  const auth = betterAuth(options);
+  const io = { ready: false, watch };
+  auth.$context.then(
+    () => (io.ready = true),
+    () => (io.ready = true),
+  );
+  authIo.set(auth, io);
+  return auth;
+}
+
+const authIo = new WeakMap<object, { ready: boolean; watch: D1Watch | null }>();
+
+// What this request's auth is waiting on, for the session stall log.
+export function describeAuthIo(auth: object): string {
+  const io = authIo.get(auth);
+  if (!io) return "auth: unknown instance";
+  const context = io.ready ? "context ready" : "context still initializing";
+  return `${context}; ${io.watch?.describe() ?? "auth d1: not bound"}`;
 }
 
 export function signupBlockedMessage(domains: string[]): string {
