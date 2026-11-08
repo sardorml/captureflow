@@ -127,9 +127,9 @@ function buildAuth(
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,
     },
-    // nextCookies lets server actions set the auth cookies they produce
-    // (sign-out); mcp is the OAuth provider agents sign in through for /mcp.
-    plugins: [nextCookies(), mcp({ loginPage: "/mcp/sign-in" })],
+    // mcp is the OAuth provider agents sign in through for /mcp; nextCookies
+    // lets server actions set the auth cookies they produce and must be last.
+    plugins: [mcp({ loginPage: "/mcp/sign-in" }), nextCookies()],
     // Cookie is host-only so prod and preview (shared D1) stay isolated.
     // Do NOT re-enable crossSubDomainCookies with a .captureflow.dev domain.
     databaseHooks: {
