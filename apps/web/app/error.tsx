@@ -1,3 +1,3 @@
 "use client";
 
-export { RouteError as default } from "@/components/error-boundary";
+export { RouteError as default } from "@/components/route-error";
