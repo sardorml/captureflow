@@ -1,7 +1,7 @@
 "use client";
 
 import { DEFAULT_THEME, THEME_INIT_HTML } from "@captureflow/ui/theme";
-import { RouteError } from "@/components/error-boundary";
+import { RouteError } from "@/components/route-error";
 import "./globals.css";
 
 // Only when the root layout itself fails; it replaces that layout, so it brings its own document.

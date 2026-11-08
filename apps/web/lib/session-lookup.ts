@@ -3,8 +3,15 @@ import { withTimeout } from "./with-timeout";
 const ATTEMPT_MS = 2500;
 const ATTEMPTS = 2;
 
-// The lookup gave no answer at all, which is not the same as signed out: callers must not redirect to sign-in on it.
+export const SESSION_STALLED_DIGEST = "SESSION_LOOKUP_STALLED";
+
+/*
+ * The lookup gave no answer at all, which is not the same as signed out:
+ * callers must not redirect to sign-in on it. Next keeps a thrown error's own
+ * digest, so a route's error page can tell a stall from a crash.
+ */
 export class SessionLookupStalled extends Error {
+  readonly digest = SESSION_STALLED_DIGEST;
   constructor(label: string) {
     super(`Session lookup for ${label} stalled`);
     this.name = "SessionLookupStalled";

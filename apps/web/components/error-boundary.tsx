@@ -1,7 +1,6 @@
 "use client";
 
-import { Component, startTransition, useEffect, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { Component, useEffect, type ReactNode } from "react";
 import { TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppMessages } from "@/components/app-i18n-provider";
@@ -114,27 +113,4 @@ export class ErrorBoundary extends Component<
       />
     );
   }
-}
-
-// The body of a route's error.tsx: trying again also fetches the route's server data again.
-export function RouteError({
-  error,
-  reset,
-}: {
-  error: Error;
-  reset: () => void;
-}) {
-  const router = useRouter();
-  return (
-    <ErrorFallback
-      error={error}
-      scope="page"
-      reset={() =>
-        startTransition(() => {
-          router.refresh();
-          reset();
-        })
-      }
-    />
-  );
 }
