@@ -19,7 +19,7 @@ import { LOGIN_NEXT_HEADER } from "@/lib/login-next";
 export const config = {
   matcher: [
     // Bearer-token APIs are excluded so desktop bearer calls get a JSON 401, not a 302.
-    "/((?!_next/|favicon\\.ico|robots\\.txt|ingest/|api/auth|api/health|api/lemon-webhook|api/usage|api/verify-session|api/workspaces|api/request-access|api/github|api/r/|api/s/|r/|r$|s/|s$|signup|plan|privacy|terms|refund|security|auth/callback|auth/clear|invite|.*\\.[\\w]+$).*)",
+    "/((?!_next/|favicon\\.ico|robots\\.txt|ingest/|api/auth|api/health|api/lemon-webhook|api/usage|api/verify-session|api/extension/|api/workspaces|api/request-access|api/github|api/r/|api/s/|r/|r$|s/|s$|signup|plan|privacy|terms|refund|security|auth/callback|auth/clear|invite|.*\\.[\\w]+$).*)",
   ],
 };
 

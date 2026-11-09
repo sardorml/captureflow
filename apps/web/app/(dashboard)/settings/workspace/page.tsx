@@ -36,8 +36,15 @@ export default async function WorkspaceSettingsPage() {
       title={m.settings.workspace.general.title}
       description={m.settings.workspace.general.description}
     >
-      <WorkspaceNameForm initialName={workspace.name} />
-      <WorkspaceLogoForm logoUrl={logoUrl} workspaceName={workspace.name} />
+      <WorkspaceNameForm
+        key={`name-${workspace.id}`}
+        initialName={workspace.name}
+      />
+      <WorkspaceLogoForm
+        key={`logo-${workspace.id}`}
+        logoUrl={logoUrl}
+        workspaceName={workspace.name}
+      />
     </SettingsCard>
   );
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Spinner, Typography } from "@heroui/react";
-import { getAuthSession, setAuthSession } from "@/lib/auth/session";
+import { clearAuthSession, getAuthSession } from "@/lib/auth/session";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { uploadScreenshot } from "@/lib/api/screenshot";
 import { friendlyUploadError, isAuthFailure } from "@/lib/api/errors";
@@ -191,7 +191,7 @@ export function ScreenshotPanel() {
       await chrome.tabs.create({ url: res.viewUrl });
       setState({ kind: "idle" });
     } catch (err) {
-      if (isAuthFailure(err)) await setAuthSession(null);
+      if (isAuthFailure(err)) await clearAuthSession("revoked");
       setState({ kind: "error", detail: screenshotError(err) });
     }
   };

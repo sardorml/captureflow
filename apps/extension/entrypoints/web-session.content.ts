@@ -1,4 +1,5 @@
 import { sendMessage } from "@/lib/messaging";
+import type { AuthSession } from "@/lib/auth/session";
 import type { WebSession } from "@/lib/auth/sync";
 import { webOriginMatches } from "@/lib/web-origin";
 
@@ -53,6 +54,30 @@ async function readWebSession(): Promise<WebSession | null> {
     : null;
 }
 
+/*
+ * The website is signed in but the extension isn't: rather than send the user
+ * through a sign-in tab for an account the browser already has, ask the site
+ * for a token of its own. Null when the site is signed out too.
+ */
+async function fetchExtensionToken(): Promise<AuthSession | null> {
+  try {
+    const res = await fetch("/api/extension/token", {
+      method: "POST",
+      credentials: "same-origin",
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { token?: unknown; id?: unknown };
+    return typeof body.token === "string" &&
+      body.token.length >= 32 &&
+      typeof body.id === "string" &&
+      body.id.length > 0
+      ? { token: body.token, tokenId: body.id }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export default defineContentScript({
   matches: MATCHES,
   runAt: "document_idle",
@@ -61,8 +86,13 @@ export default defineContentScript({
       PRESENCE_ATTRIBUTE,
       chrome.runtime.id,
     );
-    if (!(await sendMessage("hasAuthSession", undefined))) return;
-    const web = await readWebSession();
-    if (web) await sendMessage("webSession", web);
+    if (await sendMessage("hasAuthSession", undefined)) {
+      const web = await readWebSession();
+      if (web) await sendMessage("webSession", web);
+      return;
+    }
+    if (!(await sendMessage("mayAdoptWebSession", undefined))) return;
+    const issued = await fetchExtensionToken();
+    if (issued) await sendMessage("adoptWebSession", issued);
   },
 });
