@@ -45,8 +45,14 @@ import {
   openSignInTab,
   parseExternalMessage,
 } from "@/lib/auth/handoff";
-import { getAuthSession, setAuthSession } from "@/lib/auth/session";
-import { reconcileAuthSession } from "@/lib/auth/sync";
+import {
+  clearAuthSession,
+  getAuthSession,
+  mayAdoptWebSession,
+  setAuthSession,
+  signOutByUser,
+} from "@/lib/auth/session";
+import { probeAuthSession, reconcileAuthSession } from "@/lib/auth/sync";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { WEB_BASE } from "@/lib/config";
 import {
@@ -694,7 +700,7 @@ export default defineBackground(() => {
 
   onMessage("openSignIn", () => openSignInTab());
 
-  onMessage("signOut", () => setAuthSession(null));
+  onMessage("signOut", () => signOutByUser());
 
   // The web-origin content script's reading of who this browser is signed in
   // as. Its matches already bound the sender; re-check anyway, since acting on
@@ -705,6 +711,16 @@ export default defineBackground(() => {
   onMessage("webSession", async ({ data, sender }) => {
     if (!isTrustedWebOrigin(sender?.url)) return;
     await reconcileAuthSession(data);
+  });
+
+  onMessage("mayAdoptWebSession", () => mayAdoptWebSession());
+
+  // A token the web-origin content script fetched for the signed-in website.
+  onMessage("adoptWebSession", async ({ data, sender }) => {
+    if (!isTrustedWebOrigin(sender?.url)) return;
+    if (!(await mayAdoptWebSession())) return;
+    await setAuthSession(data);
+    await probeAuthSession();
   });
 
   onMessage("setCameraBubble", ({ data }) =>
@@ -934,7 +950,7 @@ export default defineBackground(() => {
       !data.ok &&
       (data.code === "invalid_token" || data.code === "missing_token")
     ) {
-      await setAuthSession(null);
+      await clearAuthSession("revoked");
     }
   });
 });

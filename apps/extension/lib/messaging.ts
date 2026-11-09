@@ -1,5 +1,6 @@
 import { defineExtensionMessaging } from "@webext-core/messaging";
 import type { RecordingVisibility } from "./api/types";
+import type { AuthSession } from "./auth/session";
 import type { WebSession } from "./auth/sync";
 import type { PageArea } from "./overlay/area-select";
 import type {
@@ -52,6 +53,8 @@ type ProtocolMap = {
   // when signed out or unreachable.
   recordingLimits(): RecordingLimits | null;
   webSession(web: WebSession): void;
+  mayAdoptWebSession(): boolean;
+  adoptWebSession(session: AuthSession): void;
   setCameraBubble(input: { on: boolean; mic: boolean }): void;
   cameraStatus(input: { blocked: boolean }): void;
   ensureMediaGrant(): void;
