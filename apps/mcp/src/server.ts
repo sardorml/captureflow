@@ -25,7 +25,13 @@ import {
 import { loadCredentials, type Credentials, type Settings } from "./config";
 import { createLibrary } from "./library";
 import { startLogin } from "./login";
-import { formatAt, putReport, reportMarkdown, slugFromLink } from "./report";
+import {
+  formatAt,
+  putReport,
+  reportMarkdown,
+  slugFromLink,
+  summaryWithContext,
+} from "./report";
 import { resolveFfmpeg } from "./runtime";
 import {
   displayFor,
@@ -36,7 +42,7 @@ import {
 import { startScreenSession, type ScreenSession } from "./screen-session";
 import { KOKORO_VOICES, speak, warmVoice } from "./voice";
 
-export const VERSION = "0.2.0";
+export const VERSION = "0.3.0";
 
 const MAX_RECORDING_MS = 30 * 60_000;
 const IDLE_MS = 5 * 60_000;
@@ -75,7 +81,7 @@ When you record:
 - Keep slides to a few seconds each and never let them outweigh the screen time. Short headline, one-sentence subtitle.
 - Plan the walkthrough before you start, move at a pace a viewer can follow, and stop as soon as it's done.
 - Narrate only when the user asks for a voice or voiceover. Then narrate every slide and every step, a sentence or two at a time, and pass voiceover: true when you start so the voice is ready.
-- When the recording shows work you did (a fix, a feature, a test run), call create_report after stop_recording with a plain-text summary of what changed, what you checked and anything that failed.
+- When the recording shows work you did (a fix, a feature, a test run), call create_report after stop_recording with a plain-text summary of what changed, what you checked and anything that failed. For code changes or a bug, pass context too: the commit, the pull request or issue, the changes and the checks. It is added to the summary.
 - Give the user the link from stop_recording.`;
 
 const recordingId = z
@@ -879,8 +885,70 @@ export function createLocalServer(settings: Settings) {
           )
           .max(100)
           .optional(),
+        context: z
+          .object({
+            source: z
+              .object({
+                url: z
+                  .string()
+                  .max(500)
+                  .optional()
+                  .describe("The pull request, or the issue for a bug."),
+                branch: z.string().max(200).optional(),
+                sha: z
+                  .string()
+                  .max(40)
+                  .optional()
+                  .describe(
+                    "The commit that was recorded: git rev-parse HEAD.",
+                  ),
+                dirty: z
+                  .boolean()
+                  .optional()
+                  .describe("True when uncommitted changes were recorded too."),
+                issueUrl: z
+                  .string()
+                  .max(500)
+                  .optional()
+                  .describe("The issue a pull request or fix closes."),
+                reproUrl: z
+                  .string()
+                  .max(500)
+                  .optional()
+                  .describe("The recording of the bug a fix answers."),
+              })
+              .optional(),
+            changes: z
+              .array(
+                z.object({
+                  title: z.string().min(1).max(200),
+                  detail: z.string().max(500).optional(),
+                }),
+              )
+              .max(20)
+              .optional(),
+            checks: z
+              .array(
+                z.object({
+                  name: z.string().min(1).max(200),
+                  status: z.enum(["passed", "failed", "skipped"]),
+                  detail: z.string().max(500).optional(),
+                }),
+              )
+              .max(20)
+              .optional(),
+            notShown: z
+              .array(z.string().max(500))
+              .max(20)
+              .optional()
+              .describe("Changes the video does not show."),
+          })
+          .optional()
+          .describe(
+            "For a recording of code changes or a bug: the commit, the pull request or issue, the changes, the checks and what the video leaves out. Added to the summary as plain lines.",
+          ),
       },
-      async ({ recording, summary, chapters }) => {
+      async ({ recording, summary, chapters, context }) => {
         const isFile = recording.startsWith("file:");
         const key = isFile ? fileURLToPath(recording) : slugFromLink(recording);
         if (!key)
@@ -889,16 +957,12 @@ export function createLocalServer(settings: Settings) {
         const list = chapters
           ? chapters.map((c) => ({ ms: c.seconds * 1000, title: c.title }))
           : (known?.chapters ?? []);
+        const text = summaryWithContext(summary, context);
         if (isFile) {
           const md = key.replace(/\.mp4$/, ".md");
           await writeFile(
             md,
-            reportMarkdown(
-              known?.title ?? "Recording",
-              recording,
-              summary,
-              list,
-            ),
+            reportMarkdown(known?.title ?? "Recording", recording, text, list),
           );
           return json({ ok: true, report: md });
         }
@@ -906,7 +970,7 @@ export function createLocalServer(settings: Settings) {
           settings.url,
           await requireCredentials(),
           key,
-          summary,
+          text,
           list,
         );
         return json({ ok: true, url: recording });

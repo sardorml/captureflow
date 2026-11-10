@@ -1,6 +1,7 @@
 import { clearCredentials, loadCredentials, readSettings } from "./config";
 import { startLogin } from "./login";
 import { createLocalServer, VERSION } from "./server";
+import { installSkill } from "./skill";
 
 const HELP = `captureflow-mcp ${VERSION}: CaptureFlow's MCP server, on your own computer.
 
@@ -9,6 +10,8 @@ Usage:
   captureflow-mcp login        Sign in to CaptureFlow in your browser.
   captureflow-mcp logout       Forget this computer's sign-in.
   captureflow-mcp status       Show where recordings go and who's signed in.
+  captureflow-mcp install-skill   Add the /captureflow skill, which records a demo
+                               of a pull request or a bug, to Claude Code.
 
 Add it to Claude Code:
   claude mcp add captureflow -- npx -y @captureflow/mcp
@@ -18,6 +21,8 @@ Options:
   --no-browser        With login: print the sign-in link instead of opening it.
   --save-dir <dir>    Save recordings as MP4 files in <dir> instead of uploading.
   --url <url>         The CaptureFlow site (default https://captureflow.dev).
+  --project           With install-skill: add it to this project's .claude/skills.
+  --dir <dir>         With install-skill: add it to another agent's skills folder.
 
 Environment:
   CAPTUREFLOW_TTS        kokoro (default), system, or openai
@@ -69,6 +74,13 @@ async function main() {
     );
     console.log(
       `Voice: ${settings.tts.provider}${settings.tts.url ? ` (${settings.tts.url})` : ""}`,
+    );
+    return;
+  }
+  if (command === "install-skill") {
+    const path = await installSkill(argv);
+    console.log(
+      `Added the skill at ${path}.\nStart a new session, then type /captureflow on a branch to record its changes.`,
     );
     return;
   }
