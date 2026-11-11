@@ -16,7 +16,7 @@ import { createSharedClock } from "./shared-clock";
 
 // Chromium-only Insertable Streams API — not yet in TS's DOM lib.
 declare class MediaStreamTrackProcessor<T> {
-  constructor(init: { track: MediaStreamTrack });
+  constructor(init: { track: MediaStreamTrack; maxBufferSize?: number });
   readonly readable: ReadableStream<T>;
 }
 
@@ -32,6 +32,12 @@ const LUMA_SAMPLE = { width: 48, height: 27 };
 const MAX_ENCODE_QUEUE = 2;
 
 const AUDIO_BITRATE = 128_000;
+/*
+ * Mic buffers (10 ms each) the browser holds until they are read. Its default
+ * holds about 100 ms and drops the rest, so every longer stall of this thread
+ * cut a hole in the mic track; a slow machine lost a fifth of its audio.
+ */
+const AUDIO_QUEUE_BUFFERS = 1000;
 
 export type StreamRecorderLog = {
   info(message: string): void;
@@ -410,6 +416,7 @@ export async function startStreamRecorder(
   const audioReader = aac
     ? new MediaStreamTrackProcessor<AudioData>({
         track: micTrack!,
+        maxBufferSize: AUDIO_QUEUE_BUFFERS,
       }).readable.getReader()
     : null;
 
