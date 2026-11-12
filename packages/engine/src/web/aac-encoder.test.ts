@@ -53,6 +53,35 @@ describe("createFrameFeeder", () => {
     expect(frames.map((f) => f.pts)).toEqual([998]);
   });
 
+  it("keeps the count through capture times that wobble", () => {
+    const feeder = createFrameFeeder(4, 1, SAMPLE_RATE);
+    const wobbleUs = [0, 60, -90, 120, -40, 80, -110, 30];
+    const pts = wobbleUs.flatMap((wobble, i) =>
+      feeder
+        .push({
+          planes: [new Float32Array(4)],
+          frames: 4,
+          timestampUs: toUs(100 + i * 4) + wobble,
+        })
+        .map((f) => f.pts),
+    );
+    expect(pts).toEqual([100, 104, 108, 112, 116, 120, 124, 128]);
+  });
+
+  it("never steps back when buffers arrive in a burst", () => {
+    const feeder = createFrameFeeder(4, 1, SAMPLE_RATE);
+    const pts = [0, 1, 2, 3].flatMap(() =>
+      feeder
+        .push({
+          planes: [new Float32Array(4)],
+          frames: 4,
+          timestampUs: toUs(100),
+        })
+        .map((f) => f.pts),
+    );
+    expect(pts).toEqual([100, 104, 108, 112]);
+  });
+
   it("fills a missing plane with silence", () => {
     const feeder = createFrameFeeder(2, 2, SAMPLE_RATE);
     const [frame] = feeder.push({

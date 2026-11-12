@@ -37,11 +37,16 @@ export type FrameFeeder = {
   drain(): PcmFrame | null;
 };
 
+// How far a buffer may arrive after the running count before the count moves.
+const REANCHOR_FRAMES = 2;
+
 /*
  * Cuts the mic's planar buffers into interleaved encoder frames, each stamped
- * in samples with the capture time of its first sample. Buffers that follow
- * each other on the capture clock keep one running count; a jump past one
- * frame (a pause) re-anchors the count instead of dragging the frame times.
+ * in samples. The count runs on from the first buffer's capture time: a mic
+ * that went through Web Audio is stamped with the time it was rendered, which
+ * wobbles by several ms, and following that wobble cut gaps and overlaps into
+ * the file. Only a buffer well past the count (a pause, or audio lost before
+ * it got here) moves the count forward; it never steps back.
  */
 export function createFrameFeeder(
   frameSize: number,
@@ -52,6 +57,7 @@ export function createFrameFeeder(
   let pending = new Float32Array(frameSize * channels * 2);
   let pendingFrames = 0;
   let startUs = 0;
+  let started = false;
 
   const take = (): PcmFrame => {
     const pts = Math.round((startUs * sampleRate) / 1_000_000);
@@ -66,10 +72,11 @@ export function createFrameFeeder(
     push(input) {
       const predictedUs = startUs + (pendingFrames / sampleRate) * 1_000_000;
       if (
-        pendingFrames === 0 ||
-        Math.abs(input.timestampUs - predictedUs) > frameUs
+        !started ||
+        input.timestampUs - predictedUs > frameUs * REANCHOR_FRAMES
       ) {
         startUs = input.timestampUs - (pendingFrames / sampleRate) * 1_000_000;
+        started = true;
       }
       const needed = (pendingFrames + input.frames) * channels;
       if (needed > pending.length) {
