@@ -6,6 +6,7 @@ import { isValidSlug } from "@/lib/recording/slug";
 import { getCloudflareEnv } from "@/lib/recording/cf-env";
 import { shareImageLinkFor } from "@/lib/recording/share-image-link";
 import {
+  BACKGROUND_MAX_MEGAPIXELS,
   composeShareImage,
   decodeJpeg,
   type Rgba,
@@ -62,22 +63,25 @@ async function loadBackground(
   background: string,
 ): Promise<Rgba | null> {
   try {
-    const wallpaper = recordingWallpaperUrl(background, "full");
+    // The full wallpaper is 10 megapixels, and decoding it takes more memory than a Worker has.
+    const wallpaper = recordingWallpaperUrl(background, "share");
     if (wallpaper) {
       const res = await fetch(new URL(wallpaper, req.url));
-      return res.ok
-        ? decodeJpeg(new Uint8Array(await res.arrayBuffer()))
-        : null;
+      return res.ok ? decodeBackground(await res.arrayBuffer()) : null;
     }
     const file = recordingBackgroundImageFile(background);
     if (file) {
       const obj = await bucket.get(recordingBackgroundImageKey(file));
-      return obj ? decodeJpeg(new Uint8Array(await obj.arrayBuffer())) : null;
+      return obj ? decodeBackground(await obj.arrayBuffer()) : null;
     }
   } catch (err) {
     console.warn("[og] background failed:", err);
   }
   return null;
+}
+
+function decodeBackground(buffer: ArrayBuffer): Rgba | null {
+  return decodeJpeg(new Uint8Array(buffer), BACKGROUND_MAX_MEGAPIXELS);
 }
 
 function jpeg(body: BodyInit): Response {

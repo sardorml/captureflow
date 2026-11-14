@@ -65,12 +65,18 @@ export async function shareImageVersion(input: {
   ).join("");
 }
 
-export function decodeJpeg(bytes: Uint8Array): Rgba | null {
+// Decoding costs about 26 MB a megapixel, so a background is refused past this instead of running the Worker out of memory.
+export const BACKGROUND_MAX_MEGAPIXELS = 2.5;
+
+export function decodeJpeg(
+  bytes: Uint8Array,
+  maxMegapixels = MAX_MEGAPIXELS,
+): Rgba | null {
   try {
     return decode(bytes, {
       useTArray: true,
       formatAsRGBA: true,
-      maxResolutionInMP: MAX_MEGAPIXELS,
+      maxResolutionInMP: maxMegapixels,
     });
   } catch {
     return null;
