@@ -18,7 +18,11 @@ async function requestLocale(): Promise<Locale> {
     const chosen = parseLanguageChoice(jar.get(LANGUAGE_COOKIE)?.value);
     // A link preview shows the same text to everyone, so it stays English.
     if (!chosen && isCrawler(head.get("user-agent"))) return DEFAULT_LOCALE;
-    return preferredLocale({ chosen, country: head.get("cf-ipcountry") });
+    return preferredLocale({
+      chosen,
+      acceptLanguage: head.get("accept-language"),
+      country: head.get("cf-ipcountry"),
+    });
   } catch {
     // No request to read: a unit test, or a page rendered at build time.
     return DEFAULT_LOCALE;
