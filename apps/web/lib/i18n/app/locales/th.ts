@@ -891,6 +891,8 @@ const messages: AppMessages = {
         "เบราว์เซอร์นี้เรนเดอร์วิดีโอไม่ได้ ดาวน์โหลดต้นฉบับแทน",
       originalTitle: "ดาวน์โหลดต้นฉบับ",
       originalDescription: "การบันทึกตามที่บันทึกไว้ ไม่มีการแก้ไข",
+      captionsTitle: "ดาวน์โหลดคำบรรยาย",
+      captionsDescription: "ไฟล์ SRT สำหรับอัปโหลดพร้อมวิดีโอ เช่น บน X",
       copyEmbed: "คัดลอกโค้ดฝัง",
       embedCopied: "คัดลอกโค้ดฝังแล้ว",
       embedDescription: "วางเครื่องเล่นลงในหน้าเว็บใดก็ได้",

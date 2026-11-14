@@ -933,6 +933,9 @@ const messages: AppMessages = {
         "Ta przeglądarka nie może renderować wideo. Pobierz oryginał.",
       originalTitle: "Pobierz oryginał",
       originalDescription: "Nagranie w oryginalnej postaci, bez zmian.",
+      captionsTitle: "Pobierz napisy",
+      captionsDescription:
+        "Plik SRT do przesłania razem z filmem, na przykład na X.",
       copyEmbed: "Kopiuj kod osadzania",
       embedCopied: "Skopiowano kod osadzania",
       embedDescription: "Wklej odtwarzacz na dowolną stronę internetową.",

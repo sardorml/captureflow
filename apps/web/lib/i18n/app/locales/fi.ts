@@ -919,6 +919,9 @@ const messages: AppMessages = {
         "Tämä selain ei pysty renderöimään videota. Lataa alkuperäinen sen sijaan.",
       originalTitle: "Lataa alkuperäinen",
       originalDescription: "Tallenne sellaisenaan, ilman muokkauksia.",
+      captionsTitle: "Lataa tekstitykset",
+      captionsDescription:
+        "SRT-tiedosto, jonka voi ladata videon kanssa esimerkiksi X:ään.",
       copyEmbed: "Kopioi upotuskoodi",
       embedCopied: "Upotuskoodi kopioitu",
       embedDescription: "Liitä soitin mille tahansa verkkosivulle.",

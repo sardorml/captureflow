@@ -10,6 +10,7 @@ import {
   resolveTranscript,
   segmentWords,
   transcriptToCaptionVtt,
+  transcriptToSrt,
   transcriptToVtt,
 } from "./transcript";
 import type { RecordingTranscript, TranscriptRow } from "./types";
@@ -446,5 +447,61 @@ describe("transcriptToVtt", () => {
     expect(vtt).toContain("Hello\n");
     expect(vtt).not.toContain("there");
     expect(vtt).toContain("second phrase");
+  });
+});
+
+describe("transcriptToSrt", () => {
+  const transcript: RecordingTranscript = {
+    version: 1,
+    language: "en",
+    segments: [
+      {
+        id: "s1",
+        startMs: 0,
+        endMs: 1000,
+        text: "one two",
+        words: [
+          { text: "one", startMs: 0, endMs: 400 },
+          { text: "two", startMs: 500, endMs: 1000 },
+        ],
+      },
+      {
+        id: "s2",
+        startMs: 3000,
+        endMs: 3600,
+        text: "<three>",
+        words: [{ text: "<three>", startMs: 3000, endMs: 3600 }],
+      },
+    ],
+  };
+
+  it("writes one whole cue per caption, with comma milliseconds", () => {
+    expect(transcriptToSrt(transcript)).toBe(
+      [
+        "1",
+        "00:00:00,000 --> 00:00:01,400",
+        "one two",
+        "",
+        "2",
+        "00:00:03,000 --> 00:00:03,600",
+        "<three>",
+        "",
+      ].join("\n"),
+    );
+  });
+
+  it("times cues on the edited video and drops cut words", () => {
+    expect(transcriptToSrt(transcript, [{ startMs: 400, endMs: 2400 }])).toBe(
+      [
+        "1",
+        "00:00:00,000 --> 00:00:00,800",
+        "one",
+        "",
+        "2",
+        "00:00:01,000 --> 00:00:01,600",
+        "<three>",
+        "",
+      ].join("\n"),
+    );
   });
 });

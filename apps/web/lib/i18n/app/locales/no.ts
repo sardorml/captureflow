@@ -910,6 +910,9 @@ const messages: AppMessages = {
         "Denne nettleseren kan ikke gjengi video. Last ned originalen i stedet.",
       originalTitle: "Last ned original",
       originalDescription: "Opptaket slik det ble tatt opp, uten endringer.",
+      captionsTitle: "Last ned undertekster",
+      captionsDescription:
+        "En SRT-fil du kan laste opp sammen med videoen, for eksempel på X.",
       copyEmbed: "Kopier innbyggingskoden",
       embedCopied: "Innbyggingskoden er kopiert",
       embedDescription: "Lim inn spilleren på en hvilken som helst nettside.",

@@ -921,6 +921,9 @@ const messages: AppMessages = {
         "Bu brauzer videoni tayyorlay olmaydi. Uning o‘rniga asl faylni yuklab oling.",
       originalTitle: "Asl faylni yuklab olish",
       originalDescription: "Yozuv tahrirsiz, yozib olinganidek.",
+      captionsTitle: "Subtitrlarni yuklab olish",
+      captionsDescription:
+        "Video bilan birga yuklanadigan SRT fayl, masalan X uchun.",
       copyEmbed: "Joylash kodini nusxalash",
       embedCopied: "Joylash kodi nusxalandi",
       embedDescription: "Pleyerni istalgan veb-sahifaga joylang.",

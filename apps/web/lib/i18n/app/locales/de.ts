@@ -930,6 +930,9 @@ const messages: AppMessages = {
         "Dieser Browser kann kein Video rendern. Lade stattdessen das Original herunter.",
       originalTitle: "Original herunterladen",
       originalDescription: "Die Aufnahme wie aufgenommen, ohne Änderungen.",
+      captionsTitle: "Untertitel herunterladen",
+      captionsDescription:
+        "Eine SRT-Datei zum Hochladen mit dem Video, zum Beispiel auf X.",
       copyEmbed: "Einbettungscode kopieren",
       embedCopied: "Einbettungscode kopiert",
       embedDescription: "Füge den Player in eine beliebige Webseite ein.",
