@@ -130,7 +130,6 @@ const messages: Messages = {
     mcpCopy: "Sao chép",
     mcpCopied: "Đã sao chép",
     mcpAddToCursor: "Thêm vào Cursor",
-    badge: "Mã nguồn mở, chạy miễn phí trên {github}",
     noCreditCard: "Không cần thẻ tín dụng",
     teaser: {
       title: "Tự host được",

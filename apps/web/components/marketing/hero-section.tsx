@@ -7,7 +7,7 @@ import {
   DOWNLOAD_URL,
 } from "@/lib/marketing/constants";
 import { fill } from "@/lib/i18n/fill";
-import { MARKETING_SITE_URL, SOURCE_REPO_URL } from "@/lib/site";
+import { MARKETING_SITE_URL } from "@/lib/site";
 import { GlyphField } from "@/components/ui/glyph-field";
 import { TwoTone } from "./frame";
 import { WaitlistForm } from "./waitlist-form";
@@ -45,20 +45,7 @@ export function HeroSection() {
       />
       <div className="flex flex-col items-center px-6 pt-16 pb-20 text-center sm:pt-[90px] sm:pb-[104px]">
         <div ref={textRef} className="flex flex-col items-center">
-          <p className="mb-7 text-xs leading-4 text-fg-muted">
-            {fill(m.hero.badge, {
-              github: (
-                <a
-                  href={SOURCE_REPO_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-fg underline underline-offset-2"
-                >
-                  GitHub
-                </a>
-              ),
-            })}
-          </p>
+          <ProductHuntBadge />
           <h1 onClick={selectAndCopyWithLink} className={HERO_TITLE}>
             {/* The copy decides the line break; phones wrap on their own. */}
             {m.hero.title.split("\n").map((line) => (
@@ -133,6 +120,41 @@ export function HeroSection() {
         )}
       </div>
     </section>
+  );
+}
+
+const PRODUCT_HUNT_URL =
+  "https://www.producthunt.com/products/captureflow?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-captureflow";
+const PRODUCT_HUNT_BADGE =
+  "https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1281561";
+const PRODUCT_HUNT_ALT =
+  "CaptureFlow - Open-source screen recorder with instant share links | Product Hunt";
+
+function ProductHuntBadge() {
+  return (
+    <a
+      href={PRODUCT_HUNT_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mb-7"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`${PRODUCT_HUNT_BADGE}&theme=light`}
+        alt={PRODUCT_HUNT_ALT}
+        width={250}
+        height={54}
+        className="dark:hidden"
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`${PRODUCT_HUNT_BADGE}&theme=dark`}
+        alt={PRODUCT_HUNT_ALT}
+        width={250}
+        height={54}
+        className="hidden dark:block"
+      />
+    </a>
   );
 }
 

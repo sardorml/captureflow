@@ -129,7 +129,6 @@ const messages: Messages = {
     mcpCopy: "복사",
     mcpCopied: "복사됨",
     mcpAddToCursor: "Cursor에 추가",
-    badge: "오픈소스, {github}에서 무료로 실행",
     noCreditCard: "신용카드 필요 없음",
     teaser: {
       title: "셀프 호스팅 가능",

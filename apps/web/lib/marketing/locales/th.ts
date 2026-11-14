@@ -129,7 +129,6 @@ const messages: Messages = {
     mcpCopy: "คัดลอก",
     mcpCopied: "คัดลอกแล้ว",
     mcpAddToCursor: "เพิ่มใน Cursor",
-    badge: "โอเพนซอร์ส รันได้ฟรี บน {github}",
     noCreditCard: "ไม่ต้องใช้บัตรเครดิต",
     teaser: {
       title: "โฮสต์เองได้",
