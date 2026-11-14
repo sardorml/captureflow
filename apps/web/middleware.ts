@@ -44,11 +44,19 @@ function redirectTo(
  */
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  // English has no prefix, so /en/pricing is one address too many for a page.
+  // English has no prefix, so /en/pricing only records English as the choice.
   if (pathname.split("/")[1] === DEFAULT_LOCALE) {
-    const url = req.nextUrl.clone();
-    url.pathname = pathname.slice(DEFAULT_LOCALE.length + 1) || "/";
-    return NextResponse.redirect(url, 308);
+    const res = redirectTo(
+      req,
+      pathname.slice(DEFAULT_LOCALE.length + 1) || "/",
+      req.nextUrl.search,
+    );
+    res.cookies.set(LANGUAGE_COOKIE, DEFAULT_LOCALE, {
+      path: "/",
+      maxAge: LANGUAGE_COOKIE_MAX_AGE,
+      sameSite: "lax",
+    });
+    return res;
   }
   if (isMarketingRoute(pathname)) {
     if (splitLocale(pathname)[1] === "/" && getSessionCookie(req)) {
@@ -65,6 +73,7 @@ export function middleware(req: NextRequest) {
     if (isLocalizedPath(pathname)) {
       const locale = redirectLocale({
         chosen: parseLanguageChoice(req.cookies.get(LANGUAGE_COOKIE)?.value),
+        acceptLanguage: req.headers.get("accept-language"),
         country: req.headers.get("cf-ipcountry"),
         userAgent: req.headers.get("user-agent"),
       });

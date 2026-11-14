@@ -1,5 +1,6 @@
 import {
   DEFAULT_LOCALE,
+  isLocaleCode,
   LANGUAGE_OPTIONS,
   type Locale,
   type LocaleCode,
@@ -67,16 +68,54 @@ export function parseLanguageChoice(value: string | undefined): Locale | null {
   return LANGUAGE_OPTIONS.find((option) => option.code === value)?.code ?? null;
 }
 
-// The language a visitor reads: the one they picked, else their country's.
+/*
+ * The language the browser asks for first, from an Accept-Language header.
+ * A language the site isn't published in reads as English; no header gives
+ * null, so the country decides.
+ */
+export function browserLocale(
+  acceptLanguage: string | null,
+  country: string | null,
+): Locale | null {
+  const first = acceptLanguage
+    ?.split(",")
+    .map((part, index) => {
+      const [tag = "", ...params] = part.trim().split(";");
+      const q = params.find((p) => p.trim().startsWith("q="));
+      return {
+        tag: tag.toLowerCase(),
+        q: q ? Number(q.split("=")[1]) : 1,
+        index,
+      };
+    })
+    .filter(({ tag, q }) => tag && tag !== "*" && q > 0)
+    .sort((a, b) => b.q - a.q || a.index - b.index)[0]?.tag;
+  if (!first) return null;
+  const [language, region] = first.split("-");
+  if (language === "pt") {
+    if (region) return region === "br" ? "pt-br" : "pt";
+    return country?.toUpperCase() === "BR" ? "pt-br" : "pt";
+  }
+  if (language === "nb" || language === "nn") return "no";
+  return isLocaleCode(language) ? language : DEFAULT_LOCALE;
+}
+
+// The language a visitor reads: the one they picked, else their browser's,
+// else their country's.
 export function preferredLocale({
   chosen,
+  acceptLanguage,
   country,
 }: {
   chosen: Locale | null;
+  acceptLanguage: string | null;
   country: string | null;
 }): Locale {
   return (
-    chosen ?? COUNTRY_LOCALE[country?.toUpperCase() ?? ""] ?? DEFAULT_LOCALE
+    chosen ??
+    browserLocale(acceptLanguage, country) ??
+    COUNTRY_LOCALE[country?.toUpperCase() ?? ""] ??
+    DEFAULT_LOCALE
   );
 }
 
@@ -87,15 +126,17 @@ export function preferredLocale({
  */
 export function redirectLocale({
   chosen,
+  acceptLanguage,
   country,
   userAgent,
 }: {
   chosen: Locale | null;
+  acceptLanguage: string | null;
   country: string | null;
   userAgent: string | null;
 }): LocaleCode | null {
   if (isCrawler(userAgent)) return null;
-  const locale = preferredLocale({ chosen, country });
+  const locale = preferredLocale({ chosen, acceptLanguage, country });
   return locale === DEFAULT_LOCALE ? null : locale;
 }
 
