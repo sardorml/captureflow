@@ -65,6 +65,36 @@ After a recording, the agent can write a report on it: a short summary above
 the video of what it did, what it checked and anything that failed, plus
 chapters. You can edit both on the recording's page.
 
+## Record a pull request or a bug
+
+Install the `/captureflow` skill once:
+
+```sh
+npx -y @captureflow/mcp install-skill
+```
+
+It goes into Claude Code's skills for your user. Add `--project` to keep it in
+the repository's `.claude/skills` for the whole team, or `--dir <folder>` for
+another agent's skills folder.
+
+Then, on a branch:
+
+| Type                                | What you get                                                                                                |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `/captureflow`                      | A demo of the branch's changes: a slide per change, the change on screen, and the checks that ran.          |
+| `/captureflow bug <issue or words>` | The bug reproduced step by step, posted as a comment on the issue.                                          |
+| `/captureflow fix <recording link>` | The agent reads a recorded bug report, fixes it and records the fix.                                        |
+| `voice`, `no voice`, `no slides`    | Add to any of them. Without one, the agent narrates only when the change can't be followed from the screen. |
+| `no-attach`                         | Leaves the pull request and issue alone.                                                                    |
+
+The recording's summary lists the commit it was recorded at, the pull request
+or issue, each change, the checks, and what the video doesn't show. The agent adds one "Demo" block to
+the pull request description and replaces it when you record again, so the
+description always says which commit the demo is from.
+
+You need the [GitHub CLI](https://cli.github.com) signed in for the agent to
+read and update the pull request.
+
 ## Voiceover
 
 Narration is free on every plan and runs on your computer.

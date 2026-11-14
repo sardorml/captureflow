@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { decodeAudio, SessionError } from "@captureflow/agent-recorder";
 import type { TtsSettings } from "./config";
+import { respellForKokoro } from "./pronounce";
 import { ensurePackage, importInstalled } from "./runtime";
 
 const KOKORO_VERSION = "1.2.1";
@@ -184,7 +185,9 @@ export async function speak(
     try {
       warmVoice(tts);
       const model = await kokoro!;
-      const audio = await model.generate(text, { voice: chosen || "af_heart" });
+      const audio = await model.generate(respellForKokoro(text), {
+        voice: chosen || "af_heart",
+      });
       return {
         pcm: await decodeAudio(new Uint8Array(audio.toWav()), ffmpeg),
         provider: "kokoro",

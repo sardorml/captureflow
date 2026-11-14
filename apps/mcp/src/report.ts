@@ -25,6 +25,60 @@ export function formatAt(ms: number): string {
   return h ? `${h}:${mm.padStart(2, "0")}:${ss}` : `${mm}:${ss}`;
 }
 
+export type ReportContext = {
+  source?: {
+    url?: string;
+    branch?: string;
+    sha?: string;
+    dirty?: boolean;
+    issueUrl?: string;
+    reproUrl?: string;
+  };
+  changes?: { title: string; detail?: string }[];
+  checks?: {
+    name: string;
+    status: "passed" | "failed" | "skipped";
+    detail?: string;
+  }[];
+  notShown?: string[];
+};
+
+function section(heading: string, items: string[]): string[] {
+  return items.length ? ["", heading, ...items.map((i) => `- ${i}`)] : [];
+}
+
+// The site shows a summary as plain text and keeps line breaks and "- " lists.
+export function summaryWithContext(
+  summary: string,
+  context?: ReportContext,
+): string {
+  if (!context) return summary.trim();
+  const { source = {}, changes = [], checks = [], notShown = [] } = context;
+  const revision = [
+    source.sha &&
+      `Commit: ${source.sha}${source.dirty ? " (uncommitted changes)" : ""}`,
+    source.branch && `Branch: ${source.branch}`,
+    source.url && `Link: ${source.url}`,
+    source.issueUrl && `Issue: ${source.issueUrl}`,
+    source.reproUrl && `Bug recording: ${source.reproUrl}`,
+  ].filter((line): line is string => !!line);
+  return [
+    summary.trim(),
+    ...(revision.length ? ["", ...revision] : []),
+    ...section(
+      "Changes",
+      changes.map((c) => `${c.title}${c.detail ? `: ${c.detail}` : ""}`),
+    ),
+    ...section(
+      "Checks",
+      checks.map(
+        (c) => `${c.name}: ${c.status}${c.detail ? ` (${c.detail})` : ""}`,
+      ),
+    ),
+    ...section("Not shown", notShown),
+  ].join("\n");
+}
+
 export function reportMarkdown(
   title: string,
   video: string,

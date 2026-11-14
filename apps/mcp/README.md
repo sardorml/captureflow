@@ -13,6 +13,10 @@ Then ask: "Record a demo of the signup flow on localhost:3000, with a voiceover.
 - `npx @captureflow/mcp login` signs this computer in (the agent also starts
   this the first time it records).
 - `--save-dir <folder>` saves MP4 files instead of uploading, with no sign-in.
+- `npx @captureflow/mcp install-skill` adds the `/captureflow` skill to Claude
+  Code: type `/captureflow` on a branch to record a demo of its changes and
+  attach it to the pull request, or `/captureflow bug <issue>` to record a
+  reproduction.
 - `npx @captureflow/mcp --help` lists every option.
 
 Guide: https://docs.captureflow.dev/guide/local-agent
