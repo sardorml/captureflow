@@ -15,17 +15,48 @@ import { TwoTone } from "./frame";
 import { HERO_TITLE } from "./hero-section";
 import { useLocalizedHref, useMessages } from "./i18n-provider";
 
+type PageHeroPage =
+  | "features"
+  | "pricing"
+  | "faq"
+  | "chromeExtension"
+  | "agentRecorder";
+
 export function PageHero({
   page,
   action,
 }: {
-  page: "features" | "pricing" | "faq" | "chromeExtension" | "agentRecorder";
+  page: PageHeroPage;
+  action?: ReactNode;
+}) {
+  const { label, word, title, subtitle } = useMessages().pageHeroes[page];
+  return (
+    <PageHeroFrame
+      label={label}
+      word={word}
+      title={title}
+      subtitle={subtitle}
+      action={action}
+    />
+  );
+}
+
+export function PageHeroFrame({
+  label,
+  word,
+  title,
+  subtitle,
+  action,
+}: {
+  label: string;
+  word: string;
+  title: string;
+  subtitle?: string;
   action?: ReactNode;
 }) {
   const m = useMessages();
   const lh = useLocalizedHref();
   const textRef = useRef<HTMLDivElement>(null);
-  const { label, word, title, subtitle } = m.pageHeroes[page];
 
   return (
     <section className="relative isolate overflow-hidden">
@@ -50,9 +81,11 @@ export function PageHero({
             </BreadcrumbList>
           </Breadcrumb>
           <h1 className={HERO_TITLE}>{title}</h1>
-          <p className="mt-6 max-w-[720px] text-lg leading-7 text-balance sm:text-xl">
-            <TwoTone text={subtitle} />
-          </p>
+          {subtitle ? (
+            <p className="mt-6 max-w-[720px] text-lg leading-7 text-balance sm:text-xl">
+              <TwoTone text={subtitle} />
+            </p>
+          ) : null}
         </div>
         {action && <div className="-mt-4 mb-12">{action}</div>}
       </div>
