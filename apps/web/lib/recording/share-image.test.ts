@@ -67,6 +67,18 @@ describe("share image", () => {
     expect(near(at(out, 17, 10), [255, 0, 0])).toBe(true);
   });
 
+  it("refuses an image over the megapixel limit instead of decoding it", () => {
+    const jpeg = composeShareImage({
+      poster: solid(8, 8, [255, 255, 255]),
+      frame: { background: "#ff0000", padding: 0, radius: 0, shadow: 0 },
+      backgroundImage: null,
+      width: 160,
+      height: 90,
+    });
+    expect(decodeJpeg(jpeg, 0.01)).toBeNull();
+    expect(decodeJpeg(jpeg, 0.02)?.width).toBe(160);
+  });
+
   it("changes version when the frame changes", async () => {
     const base = {
       posterKey: "posters/a.jpg",

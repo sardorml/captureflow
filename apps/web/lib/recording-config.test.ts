@@ -120,11 +120,11 @@ describe("hydrateRecordingConfig", () => {
     }
   });
 
-  it("names a wallpaper only when both its files ship", () => {
+  it("names a wallpaper only when all its files ship", () => {
     for (const group of RECORDING_WALLPAPER_GROUPS) {
       for (const name of RECORDING_WALLPAPERS[group]) {
         const key = recordingWallpaperKey(group, name);
-        for (const size of ["full", "thumbnail"] as const) {
+        for (const size of ["full", "thumbnail", "share"] as const) {
           const url = recordingWallpaperUrl(key, size)!;
           expect(existsSync(join(PUBLIC_DIR, url))).toBe(true);
         }

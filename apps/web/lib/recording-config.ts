@@ -240,7 +240,7 @@ export function recordingWallpaperKey(
 
 export function recordingWallpaperUrl(
   background: string,
-  size: "full" | "thumbnail" = "full",
+  size: "full" | "thumbnail" | "share" = "full",
 ): string | null {
   const match = /^wallpaper:([a-z]+)\/([a-z0-9]+)$/.exec(background);
   if (!match) return null;
@@ -248,7 +248,7 @@ export function recordingWallpaperUrl(
   const names: readonly string[] | undefined =
     RECORDING_WALLPAPERS[group as RecordingWallpaperGroup];
   if (!names?.includes(name!)) return null;
-  return `/wallpapers/${group}/${name}${size === "thumbnail" ? "-thumbnail" : ""}.jpg`;
+  return `/wallpapers/${group}/${name}${size === "full" ? "" : `-${size}`}.jpg`;
 }
 
 // The uploaded file a background names, or null when it isn't an image.
