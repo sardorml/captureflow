@@ -32,6 +32,32 @@ connected, tell the user to run
 
 The user's words always win over the defaults here.
 
+## Start by telling the user
+
+Before anything else, say in one or two lines what you are about to record and
+that the link will follow, for example: "Recording a demo of PR #182. It takes
+a few minutes, so keep working and I'll post the link here."
+
+Then, if you can start a background agent (the Agent tool in Claude Code),
+hand it the request and tell it to read this file and follow steps 1 to 5, so
+the user is not blocked while it records. Without background agents, do every
+step yourself.
+
+As soon as the background agent has started, always tell the user so, in two
+or three lines: that it is recording in the background, what you asked it to
+show, whether it will have a voice, and what they will get at the end (the
+link, and the pull request or issue updated or not). For example: "It's
+recording in the background. I asked for a slide per change with a voiceover,
+and I'll add the link to PR #182 when it's done." When it finishes, do step 6
+yourself.
+
+A background agent cannot ask the user anything. When it would need an answer
+(a sign-in it has no account for, an app it cannot start, no recording tools
+in the session), it stops and reports exactly what is needed instead of
+guessing, and you pass that on. It records what is on disk and never switches
+branches, stashes or commits, unless the user asked for `fix` or for another
+pull request.
+
 ## 1. Gather
 
 Run these and keep the results:
@@ -123,7 +149,7 @@ Pick how to start:
 - Any `page` change: make sure the app is running (start its dev server the
   way the project documents if it is not, and wait until it answers), then
   `start_recording` with the first `show.url` and the brief's title. If the
-  app needs a sign-in you have no test account for, ask the user once.
+  app needs a sign-in you have no test account for, stop and say so.
 - Only `code` changes: `start_presentation`.
 - Only `screen` changes: `list_screens`, then `start_screen_recording` on the
   terminal or app, and do the work with your own tools while it films.
