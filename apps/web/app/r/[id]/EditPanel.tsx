@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Captions,
   Check,
   ChevronRight,
   Code2,
@@ -25,6 +26,7 @@ type Props = {
   title: string;
   config: RecordingConfig;
   exportSources: ExportSources | null;
+  hasTranscript: boolean;
 };
 
 type Render =
@@ -38,6 +40,7 @@ export function EditPanel({
   title,
   config,
   exportSources,
+  hasTranscript,
 }: Props) {
   const m = useAppMessages();
   const copy = m.viewer.editPanel;
@@ -147,6 +150,15 @@ export function EditPanel({
           icon={FileVideo}
           title={copy.originalTitle}
           description={copy.originalDescription}
+        />
+      ) : null}
+      {hasTranscript ? (
+        <ActionRow
+          href={`/api/r/transcript/${encodeURIComponent(slug)}/captions?format=srt`}
+          download
+          icon={Captions}
+          title={copy.captionsTitle}
+          description={copy.captionsDescription}
         />
       ) : null}
       <ActionRow

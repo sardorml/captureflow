@@ -1,4 +1,4 @@
-import { isInsideCut, type RecordingCut } from "./cuts";
+import { isInsideCut, toEditedMs, type RecordingCut } from "./cuts";
 import type {
   RecordingTranscript,
   TranscriptResponse,
@@ -295,6 +295,39 @@ export function transcriptToCaptionVtt(
         "",
       );
     });
+  });
+  return lines.join("\n");
+}
+
+function srtTime(ms: number): string {
+  return vttTime(ms).replace(".", ",");
+}
+
+/*
+ * Captions to upload beside the downloaded video: one cue per caption, whole,
+ * timed on the edited video (cuts closed up), since that is the file they go with.
+ */
+export function transcriptToSrt(
+  transcript: RecordingTranscript,
+  cuts: readonly RecordingCut[] = [],
+): string {
+  const groups = captionGroups(keptSegments(transcript.segments, cuts));
+  const lines: string[] = [];
+  groups.forEach((group, g) => {
+    const startMs = toEditedMs(group[0]!.startMs, cuts);
+    const spoken = toEditedMs(group[group.length - 1]!.endMs, cuts);
+    const next = groups[g + 1]?.[0];
+    const shown = Math.max(spoken, startMs + MIN_CAPTION_MS);
+    const endMs = next
+      ? Math.min(toEditedMs(next.startMs, cuts) - 1, shown + CAPTION_HOLD_MS)
+      : shown;
+    if (endMs <= startMs) return;
+    lines.push(
+      String(lines.length / 4 + 1),
+      `${srtTime(startMs)} --> ${srtTime(endMs)}`,
+      group.map((w) => w.text).join(" "),
+      "",
+    );
   });
   return lines.join("\n");
 }

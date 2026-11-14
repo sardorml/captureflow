@@ -924,6 +924,9 @@ const messages: AppMessages = {
         "Este navegador no puede procesar vídeo. Descarga el original en su lugar.",
       originalTitle: "Descargar original",
       originalDescription: "La grabación tal como se capturó, sin cambios.",
+      captionsTitle: "Descargar subtítulos",
+      captionsDescription:
+        "Un archivo SRT para subir junto con el vídeo, por ejemplo en X.",
       copyEmbed: "Copiar código de inserción",
       embedCopied: "Código de inserción copiado",
       embedDescription: "Pega el reproductor en cualquier página web.",

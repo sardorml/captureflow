@@ -936,6 +936,9 @@ const messages: AppMessages = {
       originalTitle: "Télécharger l’original",
       originalDescription:
         "L’enregistrement tel que capturé, sans modifications.",
+      captionsTitle: "Télécharger les sous-titres",
+      captionsDescription:
+        "Un fichier SRT à importer avec la vidéo, par exemple sur X.",
       copyEmbed: "Copier le code d’intégration",
       embedCopied: "Code d’intégration copié",
       embedDescription: "Collez le lecteur dans n’importe quelle page web.",

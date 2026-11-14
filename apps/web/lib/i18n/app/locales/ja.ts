@@ -904,6 +904,9 @@ const messages: AppMessages = {
         "このブラウザでは動画をレンダリングできません。代わりに元の動画をダウンロードしてください。",
       originalTitle: "元の動画をダウンロード",
       originalDescription: "編集前の録画そのままです。",
+      captionsTitle: "字幕をダウンロード",
+      captionsDescription:
+        "動画と一緒にアップロードできるSRTファイルです（Xなど）。",
       copyEmbed: "埋め込みコードをコピー",
       embedCopied: "埋め込みコードをコピーしました",
       embedDescription: "プレーヤーを任意のウェブページに貼り付けられます。",

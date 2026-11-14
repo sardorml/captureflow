@@ -926,6 +926,9 @@ const messages: AppMessages = {
         "Questo browser non può creare video. Scarica l'originale.",
       originalTitle: "Scarica l'originale",
       originalDescription: "La registrazione così com'è, senza modifiche.",
+      captionsTitle: "Scarica i sottotitoli",
+      captionsDescription:
+        "Un file SRT da caricare insieme al video, per esempio su X.",
       copyEmbed: "Copia codice di incorporamento",
       embedCopied: "Codice di incorporamento copiato",
       embedDescription: "Incolla il lettore in qualsiasi pagina web.",

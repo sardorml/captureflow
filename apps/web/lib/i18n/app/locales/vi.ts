@@ -907,6 +907,8 @@ const messages: AppMessages = {
         "Trình duyệt này không thể xử lý video. Hãy tải bản gốc thay thế.",
       originalTitle: "Tải bản gốc",
       originalDescription: "Bản ghi như lúc quay, chưa chỉnh sửa.",
+      captionsTitle: "Tải phụ đề",
+      captionsDescription: "Tệp SRT để tải lên cùng video, ví dụ trên X.",
       copyEmbed: "Sao chép mã nhúng",
       embedCopied: "Đã sao chép mã nhúng",
       embedDescription: "Dán trình phát vào bất kỳ trang web nào.",

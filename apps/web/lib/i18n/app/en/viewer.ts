@@ -86,6 +86,9 @@ export const VIEWER = {
       "This browser can't render video. Download the original instead.",
     originalTitle: "Download original",
     originalDescription: "The recording as captured, without edits.",
+    captionsTitle: "Download captions",
+    captionsDescription:
+      "An SRT file to upload with the video, for example on X.",
     copyEmbed: "Copy embed code",
     embedCopied: "Embed code copied",
     embedDescription: "Paste the player into any web page.",

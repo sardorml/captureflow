@@ -928,6 +928,9 @@ const messages: AppMessages = {
         "Este navegador não consegue processar vídeo. Transfira o original.",
       originalTitle: "Transferir original",
       originalDescription: "A gravação tal como foi captada, sem edições.",
+      captionsTitle: "Transferir legendas",
+      captionsDescription:
+        "Um ficheiro SRT para carregar com o vídeo, por exemplo no X.",
       copyEmbed: "Copiar código de incorporação",
       embedCopied: "Código de incorporação copiado",
       embedDescription: "Cole o leitor em qualquer página web.",

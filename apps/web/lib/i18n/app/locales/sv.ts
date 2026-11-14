@@ -910,6 +910,9 @@ const messages: AppMessages = {
         "Den här webbläsaren kan inte rendera video. Ladda ner originalet i stället.",
       originalTitle: "Ladda ner original",
       originalDescription: "Inspelningen som den spelades in, utan ändringar.",
+      captionsTitle: "Ladda ner undertexter",
+      captionsDescription:
+        "En SRT-fil att ladda upp tillsammans med videon, till exempel på X.",
       copyEmbed: "Kopiera inbäddningskod",
       embedCopied: "Inbäddningskod kopierad",
       embedDescription: "Klistra in spelaren på valfri webbsida.",

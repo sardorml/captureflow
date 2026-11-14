@@ -923,6 +923,9 @@ const messages: AppMessages = {
         "Bu tarayıcı video işleyemiyor. Bunun yerine orijinali indir.",
       originalTitle: "Orijinali indir",
       originalDescription: "Kaydın düzenlenmemiş, çekildiği hali.",
+      captionsTitle: "Altyazıları indir",
+      captionsDescription:
+        "Videoyla birlikte yüklenecek bir SRT dosyası, örneğin X'te.",
       copyEmbed: "Gömme kodunu kopyala",
       embedCopied: "Gömme kodu kopyalandı",
       embedDescription: "Oynatıcıyı herhangi bir web sayfasına yapıştırın.",

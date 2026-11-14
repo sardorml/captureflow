@@ -296,6 +296,7 @@ export function RecordingViewer({
                   title={headlineText}
                   config={config}
                   exportSources={exportSources}
+                  hasTranscript={!!transcript}
                 />
               </ErrorBoundary>
             ) : null

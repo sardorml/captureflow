@@ -891,6 +891,8 @@ const messages: AppMessages = {
         "이 브라우저에서는 동영상을 렌더링할 수 없습니다. 대신 원본을 다운로드하세요.",
       originalTitle: "원본 다운로드",
       originalDescription: "편집하지 않은 녹화 원본입니다.",
+      captionsTitle: "자막 다운로드",
+      captionsDescription: "X 등에 동영상과 함께 올릴 수 있는 SRT 파일입니다.",
       copyEmbed: "삽입 코드 복사",
       embedCopied: "삽입 코드 복사됨",
       embedDescription: "플레이어를 어떤 웹 페이지에든 붙여 넣으세요.",
