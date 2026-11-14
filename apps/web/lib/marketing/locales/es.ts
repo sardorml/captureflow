@@ -623,41 +623,17 @@ const messages: Messages = {
   enterprise: {
     title: "CaptureFlow para",
     titleHighlight: "tu empresa",
-    subtitle:
-      "El plan gestionado para empresas que quieren licencias para todos con condiciones acordadas una sola vez y una única factura.",
-    includedHeading: "Lo que añade el plan Empresas",
-    included: {
-      storage: {
-        title: "Almacenamiento a tu medida",
-        body: "Un espacio común dimensionado según lo que graba tu empresa, no una cuota por licencia.",
-      },
-      seats: {
-        title: "Licencias para todos",
-        body: "Un solo acuerdo cubre a toda la empresa, sin importar cuántas personas graben.",
-      },
-      roadmap: {
-        title: "Tus peticiones primero",
-        body: "Las funciones que pide tu equipo pasan al principio de nuestra lista.",
-      },
-      managed: {
-        title: "Totalmente gestionado",
-        body: "Nosotros lo alojamos y publicamos las actualizaciones, así que no tienes que ejecutar nada.",
-      },
-      billing: {
-        title: "Facturación anual",
-        body: "Paga una vez al año, a un precio acordado para tu empresa.",
-      },
-      support: {
-        title: "Línea directa con nosotros",
-        body: "Las preguntas llegan directamente a quienes construyen CaptureFlow.",
-      },
-    },
+    subtitle: "Cuéntanos sobre tu equipo y prepararemos un plan a tu medida.",
     everythingHeading: "Todo lo que recibe tu equipo",
     comingSoon: "Próximamente",
     everything: {
       extension: {
         title: "Extensión de Chrome",
         body: "Graba cualquier pestaña o pantalla, con un enlace listo al terminar.",
+      },
+      agents: {
+        title: "Grabación con agentes",
+        body: "Claude, ChatGPT o Cursor graban demos y errores por ti.",
       },
       mac: {
         title: "App para Mac",
@@ -678,6 +654,10 @@ const messages: Messages = {
       screenshots: {
         title: "Capturas de pantalla anotadas",
         body: "Marca una captura de pantalla con flechas, texto y desenfoque, y compártela como un enlace.",
+      },
+      transcripts: {
+        title: "Transcripciones",
+        body: "Cada grabación se transcribe, para que sea fácil de repasar y buscar.",
       },
     },
     formHeading: "Contáctanos",
@@ -1292,10 +1272,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Todos los derechos reservados.",
     openSource: "Código abierto bajo AGPL-3.0",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Volver al inicio",
   },
   waitlist: {
     errors: {

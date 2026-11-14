@@ -647,40 +647,17 @@ const messages: Messages = {
     title: "CaptureFlow pour",
     titleHighlight: "votre entreprise",
     subtitle:
-      "Le forfait géré pour les entreprises qui veulent des licences pour tous, à des conditions convenues une fois pour toutes, avec une facture unique.",
-    includedHeading: "Ce qu’apporte le forfait Entreprise",
-    included: {
-      storage: {
-        title: "Un stockage à votre mesure",
-        body: "Un volume adapté à ce que votre entreprise enregistre, et non un quota par licence.",
-      },
-      seats: {
-        title: "Des licences pour tous",
-        body: "Un seul contrat couvre toute l’entreprise, quel que soit le nombre de personnes qui enregistrent.",
-      },
-      roadmap: {
-        title: "Vos demandes en priorité",
-        body: "Les fonctionnalités demandées par votre équipe passent en tête de notre liste.",
-      },
-      managed: {
-        title: "Entièrement géré",
-        body: "Nous l’hébergeons et déployons les mises à jour : vous n’avez rien à faire tourner.",
-      },
-      billing: {
-        title: "Facturation annuelle",
-        body: "Payez une fois par an, à un prix convenu pour votre entreprise.",
-      },
-      support: {
-        title: "Une ligne directe avec nous",
-        body: "Vos questions arrivent directement aux personnes qui développent CaptureFlow.",
-      },
-    },
+      "Parlez-nous de votre équipe et nous trouverons ensemble l'offre qui vous convient.",
     everythingHeading: "Tout ce dont votre équipe dispose",
     comingSoon: "Bientôt disponible",
     everything: {
       extension: {
         title: "Extension Chrome",
         body: "Enregistrez n’importe quel onglet ou écran, avec un lien prêt dès que vous arrêtez.",
+      },
+      agents: {
+        title: "Enregistrement par agents",
+        body: "Claude, ChatGPT ou Cursor enregistrent démos et bugs pour vous.",
       },
       mac: {
         title: "Application Mac",
@@ -701,6 +678,10 @@ const messages: Messages = {
       screenshots: {
         title: "Captures d’écran annotées",
         body: "Annotez une capture d’écran avec des flèches, du texte et du floutage, et partagez-la par un lien.",
+      },
+      transcripts: {
+        title: "Transcriptions",
+        body: "Chaque enregistrement est transcrit, pour le parcourir et le rechercher facilement.",
       },
     },
     formHeading: "Contactez-nous",
@@ -1319,10 +1300,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Tous droits réservés.",
     openSource: "Open source sous licence AGPL-3.0",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Retour à l’accueil",
   },
   waitlist: {
     errors: {

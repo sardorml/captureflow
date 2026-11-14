@@ -626,41 +626,17 @@ const messages: Messages = {
   enterprise: {
     title: "CaptureFlow para",
     titleHighlight: "sua empresa",
-    subtitle:
-      "O plano gerenciado para empresas que querem licenças para todos em condições combinadas uma única vez, com uma só fatura.",
-    includedHeading: "O que o Enterprise adiciona",
-    included: {
-      storage: {
-        title: "Armazenamento sob medida",
-        body: "Um volume dimensionado para o quanto sua empresa grava, não uma cota por licença.",
-      },
-      seats: {
-        title: "Licenças para todos",
-        body: "Um contrato cobre a empresa inteira, não importa quantas pessoas gravem.",
-      },
-      roadmap: {
-        title: "Seus pedidos primeiro",
-        body: "Os recursos que sua equipe pede vão para o topo da nossa lista.",
-      },
-      managed: {
-        title: "Totalmente gerenciado",
-        body: "Nós hospedamos e publicamos as atualizações, então você não precisa manter nada.",
-      },
-      billing: {
-        title: "Cobrança anual",
-        body: "Pague uma vez por ano, com um preço combinado para sua empresa.",
-      },
-      support: {
-        title: "Contato direto conosco",
-        body: "As perguntas vão direto para quem desenvolve o CaptureFlow.",
-      },
-    },
+    subtitle: "Conte sobre sua equipe e a gente monta um plano sob medida.",
     everythingHeading: "Tudo o que sua equipe recebe",
     comingSoon: "Em breve",
     everything: {
       extension: {
         title: "Extensão do Chrome",
         body: "Grave qualquer aba ou tela, com um link pronto quando você parar.",
+      },
+      agents: {
+        title: "Gravação por agentes",
+        body: "Claude, ChatGPT ou Cursor gravam demos e bugs para você.",
       },
       mac: {
         title: "App para Mac",
@@ -681,6 +657,10 @@ const messages: Messages = {
       screenshots: {
         title: "Capturas de tela anotadas",
         body: "Marque uma captura de tela com setas, texto e desfoque e compartilhe como um link.",
+      },
+      transcripts: {
+        title: "Transcrições",
+        body: "Cada gravação é transcrita, então fica fácil de passar o olho e buscar.",
       },
     },
     formHeading: "Fale conosco",
@@ -1294,10 +1274,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Todos os direitos reservados.",
     openSource: "Código aberto sob a AGPL-3.0",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Voltar ao início",
   },
   waitlist: {
     errors: {

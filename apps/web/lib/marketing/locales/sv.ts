@@ -624,41 +624,17 @@ const messages: Messages = {
   enterprise: {
     title: "CaptureFlow för",
     titleHighlight: "ditt företag",
-    subtitle:
-      "Den hanterade planen för företag som vill ha licenser för alla på villkor som avtalas en gång, med en enda faktura.",
-    includedHeading: "Det här tillför Enterprise",
-    included: {
-      storage: {
-        title: "Lagring anpassad efter dig",
-        body: "En pool som är dimensionerad efter hur mycket ditt företag spelar in, inte en tilldelning per licens.",
-      },
-      seats: {
-        title: "Licenser för alla",
-        body: "Ett avtal täcker hela företaget, oavsett hur många som spelar in.",
-      },
-      roadmap: {
-        title: "Dina önskemål först",
-        body: "Funktioner som ditt team ber om hamnar högst upp på vår lista.",
-      },
-      managed: {
-        title: "Fullt hanterat",
-        body: "Vi står för driften och släpper uppdateringar, så du har inget att sköta själv.",
-      },
-      billing: {
-        title: "Årsfakturering",
-        body: "Betala en gång om året, till ett pris som avtalats för ditt företag.",
-      },
-      support: {
-        title: "En direktlinje till oss",
-        body: "Frågor går direkt till dem som bygger CaptureFlow.",
-      },
-    },
+    subtitle: "Berätta om ditt team så tar vi fram en plan som passar.",
     everythingHeading: "Allt ditt team får",
     comingSoon: "Kommer snart",
     everything: {
       extension: {
         title: "Chrome-tillägg",
         body: "Spela in valfri flik eller skärm, med en länk klar när du stoppar.",
+      },
+      agents: {
+        title: "Inspelning med agenter",
+        body: "Claude, ChatGPT eller Cursor spelar in demos och buggar åt dig.",
       },
       mac: {
         title: "Mac-app",
@@ -679,6 +655,10 @@ const messages: Messages = {
       screenshots: {
         title: "Skärmdumpar med markeringar",
         body: "Markera i en skärmdump med pilar, text och oskärpa och dela den som en länk.",
+      },
+      transcripts: {
+        title: "Transkriptioner",
+        body: "Varje inspelning transkriberas, så den är lätt att skumma och söka i.",
       },
     },
     formHeading: "Kontakta oss",
@@ -1291,10 +1271,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Alla rättigheter förbehållna.",
     openSource: "Öppen källkod under AGPL-3.0",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Tillbaka till startsidan",
   },
   waitlist: {
     errors: {

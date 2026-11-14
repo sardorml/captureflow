@@ -601,41 +601,17 @@ const messages: Messages = {
   enterprise: {
     title: "우리 회사를 위한",
     titleHighlight: "CaptureFlow",
-    subtitle:
-      "모든 구성원의 좌석을 한 번 합의한 조건으로, 하나의 청구서로 사용하려는 회사를 위한 관리형 요금제입니다.",
-    includedHeading: "엔터프라이즈에서 추가되는 것",
-    included: {
-      storage: {
-        title: "회사 규모에 맞춘 저장 공간",
-        body: "좌석별 할당량이 아니라 회사의 녹화량에 맞춘 저장 공간 풀입니다.",
-      },
-      seats: {
-        title: "모든 구성원의 좌석",
-        body: "녹화하는 사람이 몇 명이든 계약 하나로 회사 전체를 포함합니다.",
-      },
-      roadmap: {
-        title: "요청 사항 우선 반영",
-        body: "팀이 요청한 기능을 저희 목록의 맨 위로 올립니다.",
-      },
-      managed: {
-        title: "완전 관리형",
-        body: "호스팅과 업데이트를 저희가 맡으므로 직접 운영할 것이 없습니다.",
-      },
-      billing: {
-        title: "연간 결제",
-        body: "회사에 맞게 합의한 가격으로 일 년에 한 번 결제합니다.",
-      },
-      support: {
-        title: "직접 소통 창구",
-        body: "질문은 CaptureFlow를 만드는 사람들에게 바로 전달됩니다.",
-      },
-    },
+    subtitle: "팀에 대해 알려 주시면 맞는 플랜을 함께 정하겠습니다.",
     everythingHeading: "팀이 받는 모든 것",
     comingSoon: "곧 출시",
     everything: {
       extension: {
         title: "Chrome 확장 프로그램",
         body: "어떤 탭이나 화면이든 녹화하고, 중지하면 링크가 준비됩니다.",
+      },
+      agents: {
+        title: "에이전트 녹화",
+        body: "Claude, ChatGPT, Cursor가 데모와 버그를 대신 녹화합니다.",
       },
       mac: {
         title: "Mac 앱",
@@ -656,6 +632,10 @@ const messages: Messages = {
       screenshots: {
         title: "주석 스크린샷",
         body: "스크린샷에 화살표, 텍스트, 블러로 표시하고 링크로 공유하세요.",
+      },
+      transcripts: {
+        title: "녹취록",
+        body: "모든 녹화가 텍스트로 변환되어 훑어보고 검색하기 쉽습니다.",
       },
     },
     formHeading: "문의하기",
@@ -1260,10 +1240,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. 모든 권리 보유.",
     openSource: "AGPL-3.0 오픈소스",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "홈으로 돌아가기",
   },
   waitlist: {
     errors: {

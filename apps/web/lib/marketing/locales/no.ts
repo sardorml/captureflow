@@ -618,41 +618,17 @@ const messages: Messages = {
   enterprise: {
     title: "CaptureFlow for",
     titleHighlight: "bedriften din",
-    subtitle:
-      "Det driftede abonnementet for bedrifter som vil ha lisenser til alle på vilkår som avtales én gang, med én samlet faktura.",
-    includedHeading: "Dette får du med Enterprise",
-    included: {
-      storage: {
-        title: "Lagring tilpasset bedriften",
-        body: "En felles lagringspott tilpasset hvor mye bedriften tar opp, ikke en kvote per lisens.",
-      },
-      seats: {
-        title: "Lisenser til alle",
-        body: "Én avtale dekker hele bedriften, uansett hvor mange som tar opp.",
-      },
-      roadmap: {
-        title: "Dine ønsker først",
-        body: "Funksjoner teamet ditt ber om, flyttes øverst på listen vår.",
-      },
-      managed: {
-        title: "Fullt driftet",
-        body: "Vi hoster det og ruller ut oppdateringer, så du har ingenting å drifte selv.",
-      },
-      billing: {
-        title: "Årlig fakturering",
-        body: "Betal én gang i året, til en pris avtalt for bedriften din.",
-      },
-      support: {
-        title: "Direkte kontakt med oss",
-        body: "Spørsmål går rett til dem som bygger CaptureFlow.",
-      },
-    },
+    subtitle: "Fortell oss om teamet ditt, så finner vi en plan som passer.",
     everythingHeading: "Alt teamet ditt får",
     comingSoon: "Kommer snart",
     everything: {
       extension: {
         title: "Chrome-utvidelse",
         body: "Ta opp en fane eller hele skjermen, med en lenke klar når du stopper.",
+      },
+      agents: {
+        title: "Opptak med agenter",
+        body: "Claude, ChatGPT eller Cursor tar opp demoer og feil for deg.",
       },
       mac: {
         title: "Mac-app",
@@ -673,6 +649,10 @@ const messages: Messages = {
       screenshots: {
         title: "Skjermbilder med merknader",
         body: "Marker et skjermbilde med piler, tekst og sladd, og del det som en lenke.",
+      },
+      transcripts: {
+        title: "Transkripsjoner",
+        body: "Hvert opptak blir transkribert, så det er lett å skumlese og søke i.",
       },
     },
     formHeading: "Kontakt oss",
@@ -1284,10 +1264,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Alle rettigheter forbeholdt.",
     openSource: "Åpen kildekode under AGPL-3.0",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Tilbake til forsiden",
   },
   waitlist: {
     errors: {

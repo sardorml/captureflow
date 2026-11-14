@@ -613,40 +613,17 @@ const messages: Messages = {
     title: "CaptureFlow dla",
     titleHighlight: "twojej firmy",
     subtitle:
-      "Zarządzany plan dla firm, które chcą stanowisk dla wszystkich na raz uzgodnionych warunkach i z jedną fakturą.",
-    includedHeading: "Co dodaje Enterprise",
-    included: {
-      storage: {
-        title: "Miejsce dopasowane do ciebie",
-        body: "Pula dopasowana do tego, ile nagrywa twoja firma, a nie limit na stanowisko.",
-      },
-      seats: {
-        title: "Stanowiska dla wszystkich",
-        body: "Jedna umowa obejmuje całą firmę, niezależnie od tego, ile osób nagrywa.",
-      },
-      roadmap: {
-        title: "Twoje prośby w pierwszej kolejności",
-        body: "Funkcje, o które prosi twój zespół, trafiają na początek naszej listy.",
-      },
-      managed: {
-        title: "W pełni zarządzany",
-        body: "Hostujemy go i wdrażamy aktualizacje, więc niczego nie musisz utrzymywać.",
-      },
-      billing: {
-        title: "Rozliczenie roczne",
-        body: "Płacisz raz w roku, po cenie uzgodnionej dla twojej firmy.",
-      },
-      support: {
-        title: "Bezpośredni kontakt z nami",
-        body: "Pytania trafiają prosto do ludzi, którzy tworzą CaptureFlow.",
-      },
-    },
+      "Opowiedz nam o swoim zespole, a razem dobierzemy odpowiedni plan.",
     everythingHeading: "Wszystko, co dostaje twój zespół",
     comingSoon: "Wkrótce",
     everything: {
       extension: {
         title: "Rozszerzenie Chrome",
         body: "Nagrywaj dowolną kartę lub ekran, a link jest gotowy po zakończeniu.",
+      },
+      agents: {
+        title: "Nagrania przez agentów",
+        body: "Claude, ChatGPT lub Cursor nagrywają za Ciebie dema i błędy.",
       },
       mac: {
         title: "Aplikacja na Maca",
@@ -667,6 +644,10 @@ const messages: Messages = {
       screenshots: {
         title: "Zrzuty ekranu z adnotacjami",
         body: "Dodaj do zrzutu ekranu strzałki, tekst i rozmycie i udostępnij go jako link.",
+      },
+      transcripts: {
+        title: "Transkrypcje",
+        body: "Każde nagranie jest transkrybowane, więc łatwo je przejrzeć i przeszukać.",
       },
     },
     formHeading: "Skontaktuj się z nami",
@@ -1280,10 +1261,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Wszelkie prawa zastrzeżone.",
     openSource: "Open source na licencji AGPL-3.0",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Wróć na stronę główną",
   },
   waitlist: {
     errors: {

@@ -621,41 +621,17 @@ const messages: Messages = {
   enterprise: {
     title: "CaptureFlow per",
     titleHighlight: "la tua azienda",
-    subtitle:
-      "Il piano gestito per le aziende che vogliono licenze per tutti a condizioni concordate una volta sola, con un'unica fattura.",
-    includedHeading: "Cosa aggiunge Enterprise",
-    included: {
-      storage: {
-        title: "Archiviazione su misura",
-        body: "Uno spazio dimensionato su quanto registra la tua azienda, non una quota per licenza.",
-      },
-      seats: {
-        title: "Licenze per tutti",
-        body: "Un solo accordo copre tutta l'azienda, a prescindere da quante persone registrano.",
-      },
-      roadmap: {
-        title: "Le tue richieste per prime",
-        body: "Le funzionalità richieste dal tuo team passano in cima alla nostra lista.",
-      },
-      managed: {
-        title: "Completamente gestito",
-        body: "Lo ospitiamo noi e rilasciamo gli aggiornamenti, così non devi gestire nulla.",
-      },
-      billing: {
-        title: "Fatturazione annuale",
-        body: "Paghi una volta all'anno, a un prezzo concordato per la tua azienda.",
-      },
-      support: {
-        title: "Una linea diretta con noi",
-        body: "Le domande arrivano direttamente a chi sviluppa CaptureFlow.",
-      },
-    },
+    subtitle: "Raccontaci del tuo team e troveremo insieme il piano giusto.",
     everythingHeading: "Tutto ciò che riceve il tuo team",
     comingSoon: "In arrivo",
     everything: {
       extension: {
         title: "Estensione Chrome",
         body: "Registra qualsiasi scheda o schermo, con un link pronto quando ti fermi.",
+      },
+      agents: {
+        title: "Registrazione con agenti",
+        body: "Claude, ChatGPT o Cursor registrano demo e bug al posto tuo.",
       },
       mac: {
         title: "App per Mac",
@@ -676,6 +652,10 @@ const messages: Messages = {
       screenshots: {
         title: "Screenshot annotati",
         body: "Annota uno screenshot con frecce, testo e sfocatura e condividilo con un link.",
+      },
+      transcripts: {
+        title: "Trascrizioni",
+        body: "Ogni registrazione viene trascritta, così è facile scorrerla e cercarla.",
       },
     },
     formHeading: "Contattaci",
@@ -1289,10 +1269,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Tutti i diritti riservati.",
     openSource: "Open source con licenza AGPL-3.0",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Torna alla home",
   },
   waitlist: {
     errors: {
