@@ -132,7 +132,6 @@ const messages: Messages = {
     mcpCopy: "Kopyala",
     mcpCopied: "Kopyalandı",
     mcpAddToCursor: "Cursor'a ekle",
-    badge: "Açık kaynak, çalıştırması ücretsiz: {github}",
     noCreditCard: "Kredi kartı gerekmez",
     teaser: {
       title: "Kendiniz barındırabilirsiniz",

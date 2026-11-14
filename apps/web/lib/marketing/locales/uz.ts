@@ -130,7 +130,6 @@ const messages: Messages = {
     mcpCopy: "Nusxalash",
     mcpCopied: "Nusxalandi",
     mcpAddToCursor: "Cursorga qoʻshish",
-    badge: "Ochiq kodli, {github} orqali bepul ishga tushirish mumkin",
     noCreditCard: "Bank kartasi talab qilinmaydi",
     teaser: {
       title: "Mustaqil hosting mumkin",

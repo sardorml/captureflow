@@ -132,7 +132,6 @@ const messages: Messages = {
     mcpCopy: "Kopioi",
     mcpCopied: "Kopioitu",
     mcpAddToCursor: "Lisää Cursoriin",
-    badge: "Avointa lähdekoodia ja ilmainen käyttää: {github}",
     noCreditCard: "Luottokorttia ei tarvita",
     teaser: {
       title: "Itse ylläpidettävä",

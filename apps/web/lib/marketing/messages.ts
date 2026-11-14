@@ -137,7 +137,6 @@ export const MESSAGES = {
     mcpCopy: "Copy",
     mcpCopied: "Copied",
     mcpAddToCursor: "Add to Cursor",
-    badge: "Open source, free to run on {github}",
     noCreditCard: "No credit card required",
     teaser: {
       title: "Self-hostable",

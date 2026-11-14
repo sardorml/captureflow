@@ -129,7 +129,6 @@ const messages: Messages = {
     mcpCopy: "Copiar",
     mcpCopied: "Copiado",
     mcpAddToCursor: "Adicionar ao Cursor",
-    badge: "Código aberto e de utilização gratuita, no {github}",
     noCreditCard: "Sem cartão de crédito",
     teaser: {
       title: "Alojamento próprio",
