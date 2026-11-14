@@ -615,41 +615,17 @@ const messages: Messages = {
   enterprise: {
     title: "貴社のための",
     titleHighlight: "CaptureFlow",
-    subtitle:
-      "全員分のシートを一度合意した条件で使い、請求書をひとつにまとめたい企業向けのマネージドプランです。",
-    includedHeading: "エンタープライズで加わるもの",
-    included: {
-      storage: {
-        title: "貴社に合わせたストレージ",
-        body: "シート単位の割り当てではなく、貴社の録画量に合わせた容量をご用意します。",
-      },
-      seats: {
-        title: "全員分のシート",
-        body: "録画する人数にかかわらず、ひとつの契約で会社全体をカバーします。",
-      },
-      roadmap: {
-        title: "貴社の要望を優先",
-        body: "チームからの機能要望を、私たちのリストの最優先に置きます。",
-      },
-      managed: {
-        title: "フルマネージド",
-        body: "ホスティングと更新を私たちが行うので、運用の手間はありません。",
-      },
-      billing: {
-        title: "年間請求",
-        body: "貴社向けに合意した価格で、年に一度のお支払いです。",
-      },
-      support: {
-        title: "開発チームへの直通窓口",
-        body: "質問はCaptureFlowを作っている人に直接届きます。",
-      },
-    },
+    subtitle: "チームについて教えてください。最適なプランを一緒に考えます。",
     everythingHeading: "チームが使えるすべての機能",
     comingSoon: "近日公開",
     everything: {
       extension: {
         title: "Chrome拡張機能",
         body: "任意のタブや画面を録画し、停止するとリンクが用意されます。",
+      },
+      agents: {
+        title: "エージェントによる録画",
+        body: "Claude、ChatGPT、Cursorがデモやバグを録画します。",
       },
       mac: {
         title: "Macアプリ",
@@ -670,6 +646,10 @@ const messages: Messages = {
       screenshots: {
         title: "注釈付きスクリーンショット",
         body: "スクリーンショットに矢印、テキスト、ぼかしを加えて、リンクとして共有します。",
+      },
+      transcripts: {
+        title: "文字起こし",
+        body: "すべての録画が文字起こしされるので、ざっと読んだり検索したりできます。",
       },
     },
     formHeading: "お問い合わせ",
@@ -1278,10 +1258,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. 無断転載を禁じます。",
     openSource: "AGPL-3.0のもとでオープンソース",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "ホームに戻る",
   },
   waitlist: {
     errors: {

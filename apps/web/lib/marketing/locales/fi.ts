@@ -624,41 +624,17 @@ const messages: Messages = {
   enterprise: {
     title: "CaptureFlow",
     titleHighlight: "yrityksellesi",
-    subtitle:
-      "Ylläpidetty tilaus yrityksille, jotka haluavat käyttäjäpaikat kaikille kerralla sovituin ehdoin ja yhdellä laskulla.",
-    includedHeading: "Mitä Enterprise tuo lisää",
-    included: {
-      storage: {
-        title: "Sinulle mitoitettu tallennustila",
-        body: "Yhteinen tallennustila, joka mitoitetaan sen mukaan, kuinka paljon yrityksesi tallentaa, ei käyttäjäpaikkakohtainen kiintiö.",
-      },
-      seats: {
-        title: "Käyttäjäpaikat kaikille",
-        body: "Yksi sopimus kattaa koko yrityksen, tallentajien määrästä riippumatta.",
-      },
-      roadmap: {
-        title: "Sinun toiveesi ensin",
-        body: "Tiimisi pyytämät ominaisuudet nousevat listamme kärkeen.",
-      },
-      managed: {
-        title: "Täysin ylläpidetty",
-        body: "Me ylläpidämme palvelua ja julkaisemme päivitykset, joten sinun ei tarvitse ylläpitää mitään.",
-      },
-      billing: {
-        title: "Vuosilaskutus",
-        body: "Maksa kerran vuodessa yrityksellesi sovittuun hintaan.",
-      },
-      support: {
-        title: "Suora yhteys meihin",
-        body: "Kysymykset menevät suoraan CaptureFlow'n tekijöille.",
-      },
-    },
+    subtitle: "Kerro tiimistäsi, niin sovitaan sopiva suunnitelma.",
     everythingHeading: "Kaikki, mitä tiimisi saa",
     comingSoon: "Tulossa pian",
     everything: {
       extension: {
         title: "Chrome-laajennus",
         body: "Tallenna mikä tahansa välilehti tai näyttö, ja linkki on valmis, kun lopetat.",
+      },
+      agents: {
+        title: "Agenttien tallennukset",
+        body: "Claude, ChatGPT tai Cursor tallentaa demot ja bugit puolestasi.",
       },
       mac: {
         title: "Mac-sovellus",
@@ -679,6 +655,10 @@ const messages: Messages = {
       screenshots: {
         title: "Kuvakaappaukset merkinnöillä",
         body: "Lisää kuvakaappaukseen nuolia, tekstiä ja sumennusta ja jaa se linkkinä.",
+      },
+      transcripts: {
+        title: "Litteroinnit",
+        body: "Jokainen tallenne litteroidaan, joten sitä on helppo silmäillä ja hakea.",
       },
     },
     formHeading: "Ota yhteyttä",
@@ -1291,10 +1271,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Kaikki oikeudet pidätetään.",
     openSource: "Avointa lähdekoodia AGPL-3.0-lisenssillä",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Takaisin etusivulle",
   },
   waitlist: {
     errors: {

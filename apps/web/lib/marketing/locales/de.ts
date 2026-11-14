@@ -638,40 +638,17 @@ const messages: Messages = {
     title: "CaptureFlow für",
     titleHighlight: "dein Unternehmen",
     subtitle:
-      "Der gehostete Tarif für Unternehmen, die Plätze für alle möchten, zu einmal vereinbarten Konditionen und mit einer einzigen Rechnung.",
-    includedHeading: "Das bietet Enterprise zusätzlich",
-    included: {
-      storage: {
-        title: "Speicher nach deinem Bedarf",
-        body: "Ein Kontingent, das sich danach richtet, wie viel dein Unternehmen aufnimmt, nicht nach einem Volumen pro Platz.",
-      },
-      seats: {
-        title: "Plätze für alle",
-        body: "Eine Vereinbarung gilt für das ganze Unternehmen, egal wie viele Personen aufnehmen.",
-      },
-      roadmap: {
-        title: "Deine Wünsche zuerst",
-        body: "Funktionen, die sich dein Team wünscht, rücken an die Spitze unserer Liste.",
-      },
-      managed: {
-        title: "Vollständig von uns betrieben",
-        body: "Wir hosten es und liefern Updates aus, du musst also nichts selbst betreiben.",
-      },
-      billing: {
-        title: "Jährliche Abrechnung",
-        body: "Zahle einmal im Jahr, zu einem für dein Unternehmen vereinbarten Preis.",
-      },
-      support: {
-        title: "Ein direkter Draht zu uns",
-        body: "Fragen gehen direkt an die Menschen, die CaptureFlow entwickeln.",
-      },
-    },
+      "Erzählen Sie uns von Ihrem Team, und wir finden gemeinsam einen passenden Plan.",
     everythingHeading: "Alles, was dein Team bekommt",
     comingSoon: "Demnächst",
     everything: {
       extension: {
         title: "Chrome-Erweiterung",
         body: "Nimm einen beliebigen Tab oder Bildschirm auf, der Link ist fertig, sobald du stoppst.",
+      },
+      agents: {
+        title: "Aufnahmen durch Agents",
+        body: "Claude, ChatGPT oder Cursor nehmen Demos und Bugs für Sie auf.",
       },
       mac: {
         title: "Mac-App",
@@ -692,6 +669,10 @@ const messages: Messages = {
       screenshots: {
         title: "Annotierte Screenshots",
         body: "Markiere einen Screenshot mit Pfeilen, Text und Unschärfe und teile ihn als Link.",
+      },
+      transcripts: {
+        title: "Transkripte",
+        body: "Jede Aufnahme wird transkribiert, damit Sie sie schnell überfliegen und durchsuchen können.",
       },
     },
     formHeading: "Schreib uns",
@@ -1306,10 +1287,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Alle Rechte vorbehalten.",
     openSource: "Open Source unter AGPL-3.0",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Zur Startseite",
   },
   waitlist: {
     errors: {

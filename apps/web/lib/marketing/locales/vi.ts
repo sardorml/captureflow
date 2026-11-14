@@ -616,40 +616,17 @@ const messages: Messages = {
     title: "CaptureFlow cho",
     titleHighlight: "công ty bạn",
     subtitle:
-      "Gói được quản lý cho những công ty muốn có suất dùng cho mọi người theo điều khoản thỏa thuận một lần, với một hóa đơn duy nhất.",
-    includedHeading: "Gói Doanh nghiệp có thêm gì",
-    included: {
-      storage: {
-        title: "Dung lượng theo nhu cầu của bạn",
-        body: "Một kho dung lượng chung tính theo lượng video công ty bạn quay, không phải hạn mức theo từng suất dùng.",
-      },
-      seats: {
-        title: "Suất dùng cho mọi người",
-        body: "Một thỏa thuận áp dụng cho cả công ty, bất kể bao nhiêu người quay.",
-      },
-      roadmap: {
-        title: "Yêu cầu của bạn được ưu tiên",
-        body: "Tính năng nhóm của bạn yêu cầu sẽ được đưa lên đầu danh sách của chúng tôi.",
-      },
-      managed: {
-        title: "Quản lý toàn bộ",
-        body: "Chúng tôi host và phát hành bản cập nhật, nên bạn không phải vận hành gì cả.",
-      },
-      billing: {
-        title: "Thanh toán theo năm",
-        body: "Trả mỗi năm một lần, theo mức giá thỏa thuận riêng cho công ty bạn.",
-      },
-      support: {
-        title: "Liên hệ trực tiếp với chúng tôi",
-        body: "Câu hỏi được gửi thẳng đến những người xây dựng CaptureFlow.",
-      },
-    },
+      "Hãy cho chúng tôi biết về đội của bạn, chúng ta sẽ cùng chọn gói phù hợp.",
     everythingHeading: "Mọi thứ nhóm của bạn nhận được",
     comingSoon: "Sắp ra mắt",
     everything: {
       extension: {
         title: "Tiện ích Chrome",
         body: "Quay bất kỳ tab hay màn hình nào, liên kết sẵn sàng ngay khi bạn dừng.",
+      },
+      agents: {
+        title: "Ghi hình bằng agent",
+        body: "Claude, ChatGPT hoặc Cursor ghi lại demo và lỗi giúp bạn.",
       },
       mac: {
         title: "Ứng dụng Mac",
@@ -670,6 +647,10 @@ const messages: Messages = {
       screenshots: {
         title: "Ảnh chụp màn hình có chú thích",
         body: "Đánh dấu ảnh chụp màn hình bằng mũi tên, chữ và làm mờ, rồi chia sẻ bằng liên kết.",
+      },
+      transcripts: {
+        title: "Bản ghi lời thoại",
+        body: "Mỗi bản ghi đều được chuyển thành văn bản, dễ đọc lướt và tìm kiếm.",
       },
     },
     formHeading: "Liên hệ với chúng tôi",
@@ -1285,10 +1266,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Bảo lưu mọi quyền.",
     openSource: "Mã nguồn mở theo giấy phép AGPL-3.0",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Về trang chủ",
   },
   waitlist: {
     errors: {

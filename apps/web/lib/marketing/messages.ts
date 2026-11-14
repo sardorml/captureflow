@@ -612,41 +612,17 @@ export const MESSAGES = {
   enterprise: {
     title: "CaptureFlow for",
     titleHighlight: "your company",
-    subtitle:
-      "The managed plan for companies that want seats for everyone on terms agreed once, with a single invoice.",
-    includedHeading: "What Enterprise adds",
-    included: {
-      storage: {
-        title: "Storage sized to you",
-        body: "A pool sized to how much your company records, not a per-seat allowance.",
-      },
-      seats: {
-        title: "Seats for everyone",
-        body: "One agreement covers the whole company, however many people record.",
-      },
-      roadmap: {
-        title: "Your requests first",
-        body: "Features your team asks for move to the top of our list.",
-      },
-      managed: {
-        title: "Fully managed",
-        body: "We host it and ship updates, so there's nothing for you to run.",
-      },
-      billing: {
-        title: "Annual billing",
-        body: "Pay once a year, at a price agreed for your company.",
-      },
-      support: {
-        title: "A direct line to us",
-        body: "Questions go straight to the people who build CaptureFlow.",
-      },
-    },
+    subtitle: "Tell us about your team and we'll work out a plan that fits.",
     everythingHeading: "Everything your team gets",
     comingSoon: "Coming soon",
     everything: {
       extension: {
         title: "Chrome extension",
         body: "Record any tab or screen, with a link ready when you stop.",
+      },
+      agents: {
+        title: "Agent recording",
+        body: "Claude, ChatGPT or Cursor record demos and bugs for you.",
       },
       mac: {
         title: "Mac app",
@@ -667,6 +643,10 @@ export const MESSAGES = {
       screenshots: {
         title: "Annotated screenshots",
         body: "Mark up a screenshot with arrows, text and blur, and share it as a link.",
+      },
+      transcripts: {
+        title: "Transcripts",
+        body: "Every recording is transcribed, so it's easy to skim and search.",
       },
     },
     formHeading: "Contact us",
@@ -1278,10 +1258,6 @@ export const MESSAGES = {
     },
     rights: "© {year} CaptureFlow. All rights reserved.",
     openSource: "Open source under AGPL-3.0",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Back to home",
   },
   waitlist: {
     errors: {

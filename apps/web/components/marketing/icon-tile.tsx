@@ -7,6 +7,7 @@ export type IconTileItem = {
   key: string;
   title: string;
   body: string;
+  badge?: string;
   Icon: LucideIcon;
   color: string;
 };
@@ -29,7 +30,7 @@ const FADE_OUT: CSSProperties = {
 export function IconTileGrid({ items }: { items: readonly IconTileItem[] }) {
   return (
     <ul className={cn(FRAME_CELLS, "list-none grid-cols-2 lg:grid-cols-4")}>
-      {items.map(({ key, title, body, Icon, color }) => (
+      {items.map(({ key, title, body, badge, Icon, color }) => (
         <li key={key} className={cn(FRAME_CELL, FRAME_CARD, "relative h-40")}>
           <div
             aria-hidden
@@ -65,8 +66,13 @@ export function IconTileGrid({ items }: { items: readonly IconTileItem[] }) {
             />
           </div>
           <div className="relative p-5">
-            <h3 className="text-[15px] leading-5 font-medium text-fg-strong">
+            <h3 className="flex items-center gap-2 text-[15px] leading-5 font-medium text-fg-strong">
               {title}
+              {badge ? (
+                <span className="rounded-full bg-panel-2 px-2 py-0.5 text-[11px] leading-4 font-medium text-fg-muted">
+                  {badge}
+                </span>
+              ) : null}
             </h3>
             <p className="mt-0.5 text-xs leading-4 text-fg-muted">{body}</p>
           </div>

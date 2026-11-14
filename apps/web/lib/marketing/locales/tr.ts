@@ -628,41 +628,17 @@ const messages: Messages = {
   enterprise: {
     title: "Şirketiniz için",
     titleHighlight: "CaptureFlow",
-    subtitle:
-      "Herkes için lisansı, bir kez kararlaştırılan koşullarla ve tek faturayla isteyen şirketlere yönelik yönetilen plan.",
-    includedHeading: "Kurumsal planın ekledikleri",
-    included: {
-      storage: {
-        title: "Size göre boyutlandırılmış depolama",
-        body: "Kişi başına kota değil, şirketinizin ne kadar kayıt yaptığına göre boyutlandırılmış bir havuz.",
-      },
-      seats: {
-        title: "Herkes için lisans",
-        body: "Kaç kişi kayıt yaparsa yapsın, tek bir sözleşme tüm şirketi kapsar.",
-      },
-      roadmap: {
-        title: "Önce sizin istekleriniz",
-        body: "Ekibinizin istediği özellikler listemizin başına geçer.",
-      },
-      managed: {
-        title: "Tamamen yönetilen",
-        body: "Biz barındırır ve güncellemeleri yayınlarız; sizin çalıştırmanız gereken bir şey kalmaz.",
-      },
-      billing: {
-        title: "Yıllık faturalandırma",
-        body: "Şirketiniz için kararlaştırılan fiyatla yılda bir kez ödeyin.",
-      },
-      support: {
-        title: "Bize doğrudan ulaşın",
-        body: "Sorularınız doğrudan CaptureFlow'u geliştiren kişilere gider.",
-      },
-    },
+    subtitle: "Ekibinizden bahsedin, size uygun planı birlikte belirleyelim.",
     everythingHeading: "Ekibinizin sahip olacağı her şey",
     comingSoon: "Yakında",
     everything: {
       extension: {
         title: "Chrome uzantısı",
         body: "Herhangi bir sekmeyi veya ekranı kaydedin; durdurduğunuzda bağlantı hazır olur.",
+      },
+      agents: {
+        title: "Ajanlarla kayıt",
+        body: "Claude, ChatGPT veya Cursor demoları ve hataları sizin için kaydeder.",
       },
       mac: {
         title: "Mac uygulaması",
@@ -683,6 +659,10 @@ const messages: Messages = {
       screenshots: {
         title: "Açıklamalı ekran görüntüleri",
         body: "Ekran görüntüsünü oklar, metin ve bulanıklaştırmayla işaretleyin ve bağlantı olarak paylaşın.",
+      },
+      transcripts: {
+        title: "Transkriptler",
+        body: "Her kayıt metne dökülür, böylece göz atmak ve aramak kolaylaşır.",
       },
     },
     formHeading: "Bize ulaşın",
@@ -1296,10 +1276,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Tüm hakları saklıdır.",
     openSource: "AGPL-3.0 kapsamında açık kaynak",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Ana sayfaya dönün",
   },
   waitlist: {
     errors: {

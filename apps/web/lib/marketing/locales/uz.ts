@@ -619,41 +619,17 @@ const messages: Messages = {
   enterprise: {
     title: "CaptureFlow",
     titleHighlight: "kompaniyangiz uchun",
-    subtitle:
-      "Hammaga oʻrin, bir marta kelishilgan shartlar va yagona hisob-faktura kerak boʻlgan kompaniyalar uchun boshqariladigan tarif.",
-    includedHeading: "Korporativ tarif nimalarni qoʻshadi",
-    included: {
-      storage: {
-        title: "Sizga mos saqlash hajmi",
-        body: "Har bir oʻringa ajratilgan limit emas, kompaniyangiz qancha yozishiga moslangan umumiy hajm.",
-      },
-      seats: {
-        title: "Hammaga oʻrin",
-        body: "Qancha odam yozib olmasin, bitta shartnoma butun kompaniyani qamraydi.",
-      },
-      roadmap: {
-        title: "Avval sizning soʻrovlaringiz",
-        body: "Jamoangiz soʻragan imkoniyatlar roʻyxatimizning boshiga chiqadi.",
-      },
-      managed: {
-        title: "Toʻliq boshqariladi",
-        body: "Hosting va yangilanishlar bizda, sizga hech narsani yuritish kerak emas.",
-      },
-      billing: {
-        title: "Yillik toʻlov",
-        body: "Yiliga bir marta, kompaniyangiz uchun kelishilgan narxda toʻlaysiz.",
-      },
-      support: {
-        title: "Biz bilan bevosita aloqa",
-        body: "Savollar toʻgʻridan-toʻgʻri CaptureFlowni yaratayotgan odamlarga boradi.",
-      },
-    },
+    subtitle: "Jamoangiz haqida aytib bering, mos rejani birga tuzamiz.",
     everythingHeading: "Jamoangiz oladigan hamma narsa",
     comingSoon: "Tez kunda",
     everything: {
       extension: {
         title: "Chrome kengaytmasi",
         body: "Istalgan varaq yoki ekranni yozib oling, toʻxtatganingizda havola tayyor boʻladi.",
+      },
+      agents: {
+        title: "Agentlar bilan yozib olish",
+        body: "Claude, ChatGPT yoki Cursor siz uchun demo va xatolarni yozib oladi.",
       },
       mac: {
         title: "Mac ilovasi",
@@ -674,6 +650,10 @@ const messages: Messages = {
       screenshots: {
         title: "Izohli skrinshotlar",
         body: "Skrinshotni strelka, matn va xiralashtirish bilan belgilang va havola sifatida ulashing.",
+      },
+      transcripts: {
+        title: "Transkriptlar",
+        body: "Har bir yozuv matnga aylantiriladi, shuning uchun uni ko‘zdan kechirish va qidirish oson.",
       },
     },
     formHeading: "Biz bilan bogʻlaning",
@@ -1286,10 +1266,6 @@ const messages: Messages = {
     },
     rights: "© {year} CaptureFlow. Barcha huquqlar himoyalangan.",
     openSource: "AGPL-3.0 ostida ochiq kod",
-  },
-  pageShell: {
-    logoAlt: "CaptureFlow",
-    backToHome: "Bosh sahifaga qaytish",
   },
   waitlist: {
     errors: {
