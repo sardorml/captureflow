@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - Gravador de tela com link de compartilhamento",
       description:
-        "Grave sua tela e compartilhe um link com a equipe ou clientes. Gravador de tela de código aberto com transcrições por IA, capturas anotadas e auto-hospedagem na Cloudflare.",
+        "Grave demos, tutoriais e guias passo a passo você mesmo, ou deixe seu agente de IA gravar para você. Compartilhe cada gravação como um link que qualquer pessoa pode assistir.",
     },
     features: {
       title: "Recursos do gravador de tela",

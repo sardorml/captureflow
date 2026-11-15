@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - Paylaşılabilir Bağlantılı Ekran Kaydedici",
       description:
-        "Ekranınızı kaydedin, bağlantıyı ekibinizle veya müşterilerinizle paylaşın. Yapay zeka transkriptli, açıklamalı ekran görüntülü açık kaynak ekran kaydedici; Cloudflare'de kendiniz barındırın.",
+        "Demoları, nasıl yapılır videolarını ve adım adım anlatımları kendiniz kaydedin ya da yapay zekâ ajanınız sizin için kaydetsin. Her birini herkesin izleyebileceği bir bağlantı olarak paylaşın.",
     },
     features: {
       title: "Ekran kaydedici özellikleri",

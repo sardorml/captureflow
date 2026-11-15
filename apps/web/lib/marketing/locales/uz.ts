@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - Ekranni yozib olish va havola orqali ulashish",
       description:
-        "Ekranni yozib olib, havolasini jamoa yoki mijozlarga yuboring. SI transkriptlari va izohli skrinshotlari bor ochiq kodli dastur, Cloudflareda mustaqil hosting.",
+        "Demo, yoʻriqnoma va tanishtiruvlarni oʻzingiz yozib oling yoki SI agentingiz siz uchun yozib bersin. Har birini istalgan kishi koʻra oladigan havola sifatida ulashing.",
     },
     features: {
       title: "Ekranni yozib olish dasturi imkoniyatlari",

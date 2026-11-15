@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - Gravador de ecrã com links de partilha",
       description:
-        "Grave o ecrã e partilhe um link com a equipa ou clientes. Gravador de ecrã de código aberto com transcrições por IA e capturas anotadas, alojável na Cloudflare.",
+        "Grave demos, tutoriais e visitas guiadas por si, ou deixe o seu agente de IA gravá-los por si. Partilhe cada gravação como um link que qualquer pessoa pode ver.",
     },
     features: {
       title: "Funcionalidades do gravador de ecrã",

@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - Enregistreur d’écran avec liens de partage",
       description:
-        "Enregistrez votre écran et partagez un lien avec votre équipe ou vos clients. Enregistreur d’écran open source, transcriptions IA, captures d’écran annotées, auto-hébergeable sur Cloudflare.",
+        "Enregistrez vous-même vos démos, tutoriels et pas-à-pas, ou laissez votre agent IA les enregistrer pour vous. Partagez chaque vidéo par un lien que tout le monde peut regarder.",
     },
     features: {
       title: "Fonctionnalités de l’enregistreur d’écran",
