@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - Näytön tallennusohjelma ja jaettavat linkit",
       description:
-        "Tallenna näyttösi ja jaa linkki tiimille tai asiakkaille. Avoimen lähdekoodin näytön tallennusohjelma: tekoälylitteroinnit, kuvakaappaukset ja oma ylläpito Cloudflaressa.",
+        "Tallenna demot, ohjeet ja läpikäynnit itse, tai anna tekoälyagenttisi tallentaa ne puolestasi. Jaa jokainen linkkinä, jonka kuka tahansa voi katsoa.",
     },
     features: {
       title: "Näytön tallennusohjelman ominaisuudet",

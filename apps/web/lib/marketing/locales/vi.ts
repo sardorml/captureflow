@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - Phần mềm quay màn hình, chia sẻ bằng liên kết",
       description:
-        "Quay màn hình rồi gửi liên kết cho nhóm hay khách hàng. Phần mềm mã nguồn mở có bản chép lời AI và ảnh chụp màn hình có chú thích, tự host được trên Cloudflare.",
+        "Tự quay demo, video hướng dẫn và video giải thích từng bước, hoặc để AI agent của bạn quay thay bạn. Chia sẻ mỗi video bằng một liên kết mà ai cũng xem được.",
     },
     features: {
       title: "Tính năng của phần mềm quay màn hình",

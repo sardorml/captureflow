@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - Skärminspelare med delbara länkar",
       description:
-        "Spela in skärmen och dela en länk med teamet eller kunder. Skärminspelare med öppen källkod, AI-transkription och skärmdumpar med markeringar. Självhosta på Cloudflare.",
+        "Spela in demor, guider och genomgångar själv, eller låt din AI-agent spela in dem åt dig. Dela var och en som en länk som vem som helst kan titta på.",
     },
     features: {
       title: "Funktioner i skärminspelaren",

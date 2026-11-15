@@ -22,7 +22,7 @@ export const MESSAGES = {
     home: {
       title: "CaptureFlow - Screen Recorder with Shareable Links",
       description:
-        "Record your screen and share a link with your team or customers. An open-source screen recorder with AI transcripts and annotated screenshots, self-hostable on Cloudflare.",
+        "Record demos and how-tos yourself, or have your AI agent record them for you. Share each one as a link anyone can watch.",
     },
     features: {
       title: "Screen recorder features",

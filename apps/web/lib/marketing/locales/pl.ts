@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - nagrywanie ekranu z linkiem do udostępnienia",
       description:
-        "Nagraj ekran i wyślij link zespołowi lub klientom. Program open source do nagrywania ekranu: transkrypcje AI, zrzuty z adnotacjami, self-hosting na Cloudflare.",
+        "Nagrywaj dema, poradniki i omówienia samodzielnie albo pozwól, by nagrał je za Ciebie Twój agent AI. Każde nagranie udostępnisz jako link, który może obejrzeć każdy.",
     },
     features: {
       title: "Funkcje programu do nagrywania ekranu",

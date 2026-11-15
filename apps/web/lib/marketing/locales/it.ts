@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - Registratore schermo con link condivisibili",
       description:
-        "Registra lo schermo e condividi un link con team e clienti. Registratore open source con trascrizioni AI e screenshot annotati, in self-hosting su Cloudflare.",
+        "Registra demo, tutorial e guide passo passo in prima persona, oppure lascia che il tuo agente IA li registri per te. Condividi ogni registrazione con un link che chiunque può guardare.",
     },
     features: {
       title: "Funzionalità del registratore dello schermo",

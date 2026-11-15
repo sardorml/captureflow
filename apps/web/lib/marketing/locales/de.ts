@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - Screen Recorder mit teilbaren Links",
       description:
-        "Bildschirm aufnehmen und per Link mit Team oder Kunden teilen. Open-Source-Screen-Recorder mit KI-Transkripten und annotierten Screenshots, selbst hostbar auf Cloudflare.",
+        "Nimm Demos, Anleitungen und Walkthroughs selbst auf oder lass deinen KI-Agenten sie für dich aufnehmen. Teile jede Aufnahme als Link, den jeder ansehen kann.",
     },
     features: {
       title: "Funktionen des Screen Recorders",

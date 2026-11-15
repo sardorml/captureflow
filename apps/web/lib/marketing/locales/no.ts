@@ -14,7 +14,7 @@ const messages: Messages = {
     home: {
       title: "CaptureFlow - Skjermopptaker med delbare lenker",
       description:
-        "Ta opp skjermen og del en lenke med team og kunder. Skjermopptaker med åpen kildekode, AI-transkripsjoner og skjermbilder med merknader. Selvhost på Cloudflare.",
+        "Ta opp demoer, veiledninger og gjennomganger selv, eller la KI-agenten din ta dem opp for deg. Del hvert opptak som en lenke alle kan se.",
     },
     features: {
       title: "Funksjoner i skjermopptakeren",
