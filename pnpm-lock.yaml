@@ -562,6 +562,9 @@ importers:
       '@opennextjs/cloudflare':
         specifier: ^1.19.0
         version: 1.19.11(next@16.2.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(wrangler@4.100.0(@cloudflare/workers-types@4.20260615.1))
+      '@posthog/nextjs-config':
+        specifier: ^1.12.2
+        version: 1.12.2(next@16.2.9(@babel/core@7.29.7)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(posthog-js@1.449.2(@types/react@19.2.17)(react@19.2.7))(webpack@5.111.1(esbuild@0.27.3)(sharp@0.35.1))
       '@tabler/icons-react':
         specifier: ^3.50.0
         version: 3.50.0(react@19.2.7)
@@ -608,8 +611,8 @@ importers:
         specifier: ^16.2.0
         version: 16.2.9(@babel/core@7.29.7)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       posthog-js:
-        specifier: ^1.386.0
-        version: 1.386.8
+        specifier: ^1.449.2
+        version: 1.449.2(@types/react@19.2.17)(react@19.2.7)
       radix-ui:
         specifier: ^1.5.0
         version: 1.5.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -3289,11 +3292,40 @@ packages:
   '@poppinss/exception@1.2.3':
     resolution: {integrity: sha512-dCED+QRChTVatE9ibtoaxc+WkdzOSjYTKi/+uacHWIsfodVfpsueo3+DKpgU5Px8qXjgmXkSvhXvSCz3fnP9lw==}
 
+  '@posthog/browser-common@0.11.0':
+    resolution: {integrity: sha512-aNj0D10kN/Owa39iyfrwHKg3XGIQq2azbTVa34uzQHJvlcnHphqIYB24qD4qFZqYjDvn1fKhWPA06p79WHUDpw==}
+
+  '@posthog/cli@0.19.4':
+    resolution: {integrity: sha512-wDS1yNMfKYEVpWJNX0DVdmQA9//zQV6+I7Eq2NcgRL30g2TKzN/wAzob0iAI/ysibcON7D6o/LtBxfh+8JTGDw==}
+    engines: {node: '>=14.14', npm: '>=6'}
+    hasBin: true
+
   '@posthog/core@1.32.4':
     resolution: {integrity: sha512-xmc6JGLS+HK9gG354e3ws8wRQSQFaekI/QC/uwslokfG1csXjxW7xlGGipLS4juDJ1W1fVM6j2MeHyatmvF22w==}
 
+  '@posthog/core@1.67.3':
+    resolution: {integrity: sha512-BAVJB+ADAjFNBVZKCRbMi5+WMJaSFHHIEId0/ebvAwhOVIMmK4mVrktGGjx9zJBHLe82JdQVVRhpaOwLgoBMgA==}
+
+  '@posthog/nextjs-config@1.12.2':
+    resolution: {integrity: sha512-U5aZcbUn7onR87MWyAaET52HZtOiMWWIMNYZPsPGzOx8nslCdXyMpQId2B98kkrJN0J7KzXThjKZgEXVr/fPDA==}
+    engines: {node: ^20.20.0 || >=22.22.0}
+    peerDependencies:
+      next: '>12.1.0'
+      posthog-js: '>=1.438.5'
+
+  '@posthog/plugin-utils@2.0.1':
+    resolution: {integrity: sha512-ZiQfUcgY65EjF2vkqL4Aau6sx0aqvSWoXaGSGu9Solnmv6e6VRjQbAU0SCKbxpJxcEsCJof9vmvnrFTQIEOUAQ==}
+
   '@posthog/types@1.386.4':
     resolution: {integrity: sha512-UgE9+5+wkZg7yc2MpW5G32/6zYW8fAbXJkG8WGnrb4X8OKWzNa9cWeNCd82vKok+TSoRpM4qiYQFtBSpJS1dsw==}
+
+  '@posthog/types@1.425.1':
+    resolution: {integrity: sha512-mh7jyQ5lN+XCeOnMdYkBEFtO/G0TxeLOKTWNH6E6OZjxS4nVM0Tb2xQt+FG5DCFM9qzL2HmuX6A793TwlJVDvw==}
+
+  '@posthog/webpack-plugin@1.8.1':
+    resolution: {integrity: sha512-dV91fUcS41iAKXLiP1Dk/H9qHwE2v+RflfoMT6HVZ69pBY2aoLiW53DcKy1r75cx2KXWEpQhstUiy3G0w4kJwg==}
+    peerDependencies:
+      webpack: ^5
 
   '@preact/signals-core@1.14.4':
     resolution: {integrity: sha512-HNB6HYeYKhQbJ1aKl+YRjrS4+QWHLKX6qKoUsfS/m0vqzsVaEBiZiaKbG/e+NKk2ch5ALQr/ihWaMHxiCuuWHA==}
@@ -6108,6 +6140,9 @@ packages:
   dompurify@3.4.10:
     resolution: {integrity: sha512-0xzNv0e7oYC6yyuOGZIABPM4qtg3QxLFniDNPP4ZP90wR8Yq3zgwpRbrNiT4N3IKqDbbYFEJLV+JWEs19aZ//w==}
 
+  dompurify@3.4.18:
+    resolution: {integrity: sha512-ofe3wI/uNm68HInABYFJYqQxRw1EaKAjNdrFVKqjUY+UZurvNd2L/HuQe097s/4RivWiZyP6tT7aoT8atjfhwg==}
+
   domutils@3.2.2:
     resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
 
@@ -8272,6 +8307,17 @@ packages:
   posthog-js@1.386.8:
     resolution: {integrity: sha512-L4cJD1sleUULE7K4mZQI5wpS24NHGtNmFw1rPHruc579unVzHuooHiVDEHp/qyNnhNxtNE6alBTiVORbYnRTSw==}
 
+  posthog-js@1.449.2:
+    resolution: {integrity: sha512-vji+h92IHaLlFSEnRH1hwe8uLWGOdDUImmPXexj/+V7Xm7HTxIQisYE/Kom7Aaw4DRpzfdhQxiyAN1YVYR4G8Q==}
+    peerDependencies:
+      '@types/react': '>=16.8.0'
+      react: '>=16.8.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      react:
+        optional: true
+
   postject@1.0.0-alpha.6:
     resolution: {integrity: sha512-b9Eb8h2eVqNE8edvKdwqkrY6O7kAwmI8kcnBv1NScolYJbo59XUF0noFq+lxbC1yN20bmC0WBEbDC5H/7ASb0A==}
     engines: {node: '>=14.0.0'}
@@ -8287,6 +8333,14 @@ packages:
 
   preact@10.29.2:
     resolution: {integrity: sha512-7tNmwg/7mzzAoB/8kSg6Hl37JraAZw3Z3A0JSY7VXlZwo82Xn0G7wKbNNs2qoF4ZEEsQGTwDAroNdqKs1ofJxQ==}
+
+  preact@10.29.8:
+    resolution: {integrity: sha512-ej2aVZ+vZ8WO7tvlQWRM9N63A0KzF9q4mWJfDUHgYaIofWY9hu74QdnQrjoPMmZi2/nZ5gN0bJCQF49xQqx09Q==}
+    peerDependencies:
+      preact-render-to-string: '>=5'
+    peerDependenciesMeta:
+      preact-render-to-string:
+        optional: true
 
   prettier@3.8.4:
     resolution: {integrity: sha512-N2MylSdi48+5N/6S5j+maeHbUSIzzZ5uOcX5Hm4QpV8Dkb1HFjfAKTKX6yNPJQD9AhcT3ifHNB66tWTTJDi11Q==}
@@ -8720,6 +8774,11 @@ packages:
 
   semver@7.8.4:
     resolution: {integrity: sha512-rUCObTnP32Q08R2uuIrt7r9PlEonuTmtuXYcW6s5kjdlj3xbnwe+21yXptAUYcMAABLkYYTtnmzb3w3EDZfueA==}
+    engines: {node: '>=10'}
+    hasBin: true
+
+  semver@7.8.6:
+    resolution: {integrity: sha512-9lpSSU4Mly3mrtruwLs1eLK6+gzbzqeBFwRNjIjE+9LuDpWdYctrQlQ3ej1Ilgi7gknpsTRnPoLP8DpCHqHIJw==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -9622,6 +9681,12 @@ packages:
 
   web-vitals@5.3.0:
     resolution: {integrity: sha512-q6LWsLatGYZp5VGBIOvbTj6JBV2nOmC8KvWztXBmwJcfFAzhwKwbOxhUH306XY3CcaZDUlSmSuNPBsCn0bFu+g==}
+
+  web-vitals@6.2.1:
+    resolution: {integrity: sha512-rLcLXA2sx6+9dE88NHFubwTtGxpK4yYBLj6qHPdFoCaLr0cXGb4efOqtKLlm4loGA4OEKHIQKMKzZkKyOh5ctw==}
+
+  web-vitals@6.2.3:
+    resolution: {integrity: sha512-Dmy+vdO1UPMqXiAtZSNayhl4f794Bxfd94W4HIj2HlYtczEQfEOon969memlcpcHrTuOKLa5baFjX7WbgmOq+A==}
 
   webcrypto-core@1.9.2:
     resolution: {integrity: sha512-gsXecm82UQNlTBURJGuqOWy1Ww08S3kZUcr3aOJS02Pk0xLtkfeUAVC0u0xhgdonFme80edSJUIJyuvL/7250Q==}
@@ -12365,11 +12430,52 @@ snapshots:
 
   '@poppinss/exception@1.2.3': {}
 
+  '@posthog/browser-common@0.11.0':
+    dependencies:
+      '@posthog/core': 1.67.3
+      '@posthog/types': 1.425.1
+      dompurify: 3.4.18
+      preact: 10.29.8
+    transitivePeerDependencies:
+      - preact-render-to-string
+
+  '@posthog/cli@0.19.4':
+    dependencies:
+      detect-libc: 2.1.2
+
   '@posthog/core@1.32.4':
     dependencies:
       '@posthog/types': 1.386.4
 
+  '@posthog/core@1.67.3':
+    dependencies:
+      '@posthog/types': 1.425.1
+
+  '@posthog/nextjs-config@1.12.2(next@16.2.9(@babel/core@7.29.7)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(posthog-js@1.449.2(@types/react@19.2.17)(react@19.2.7))(webpack@5.111.1(esbuild@0.27.3)(sharp@0.35.1))':
+    dependencies:
+      '@posthog/cli': 0.19.4
+      '@posthog/plugin-utils': 2.0.1
+      '@posthog/webpack-plugin': 1.8.1(webpack@5.111.1(esbuild@0.27.3)(sharp@0.35.1))
+      next: 16.2.9(@babel/core@7.29.7)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      posthog-js: 1.449.2(@types/react@19.2.17)(react@19.2.7)
+      semver: 7.8.6
+    transitivePeerDependencies:
+      - webpack
+
+  '@posthog/plugin-utils@2.0.1':
+    dependencies:
+      cross-spawn: 7.0.6
+
   '@posthog/types@1.386.4': {}
+
+  '@posthog/types@1.425.1': {}
+
+  '@posthog/webpack-plugin@1.8.1(webpack@5.111.1(esbuild@0.27.3)(sharp@0.35.1))':
+    dependencies:
+      '@posthog/cli': 0.19.4
+      '@posthog/core': 1.67.3
+      '@posthog/plugin-utils': 2.0.1
+      webpack: 5.111.1(esbuild@0.27.3)(sharp@0.35.1)
 
   '@preact/signals-core@1.14.4': {}
 
@@ -15263,6 +15369,10 @@ snapshots:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
+  dompurify@3.4.18:
+    optionalDependencies:
+      '@types/trusted-types': 2.0.7
+
   domutils@3.2.2:
     dependencies:
       dom-serializer: 2.0.0
@@ -17677,6 +17787,24 @@ snapshots:
       query-selector-shadow-dom: 1.0.1
       web-vitals: 5.3.0
 
+  posthog-js@1.449.2(@types/react@19.2.17)(react@19.2.7):
+    dependencies:
+      '@posthog/browser-common': 0.11.0
+      '@posthog/core': 1.67.3
+      '@posthog/types': 1.425.1
+      core-js: 3.49.0
+      dompurify: 3.4.18
+      fflate: 0.4.8
+      preact: 10.29.8
+      query-selector-shadow-dom: 1.0.1
+      web-vitals: 6.2.3
+      web-vitals-soft-navs: web-vitals@6.2.1
+    optionalDependencies:
+      '@types/react': 19.2.17
+      react: 19.2.7
+    transitivePeerDependencies:
+      - preact-render-to-string
+
   postject@1.0.0-alpha.6:
     dependencies:
       commander: 9.5.0
@@ -17687,6 +17815,8 @@ snapshots:
   powershell-utils@0.2.1: {}
 
   preact@10.29.2: {}
+
+  preact@10.29.8: {}
 
   prettier@3.8.4: {}
 
@@ -18270,6 +18400,8 @@ snapshots:
   semver@7.7.4: {}
 
   semver@7.8.4: {}
+
+  semver@7.8.6: {}
 
   send@1.2.1:
     dependencies:
@@ -19329,6 +19461,10 @@ snapshots:
   web-streams-polyfill@4.0.0-beta.3: {}
 
   web-vitals@5.3.0: {}
+
+  web-vitals@6.2.1: {}
+
+  web-vitals@6.2.3: {}
 
   webcrypto-core@1.9.2:
     dependencies:
