@@ -36,6 +36,7 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@posthog/cli",
       "electron",
       "esbuild",
       "sharp",

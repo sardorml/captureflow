@@ -5,7 +5,7 @@ import { TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppMessages } from "@/components/app-i18n-provider";
 import { isChunkLoadError, shouldReload } from "@/lib/chunk-error";
-import { posthogIfLoaded } from "@/lib/posthog-client";
+import { loadPosthog } from "@/lib/posthog-client";
 import { cn } from "@/lib/utils";
 
 const RELOADED_AT_KEY = "captureflow_chunk_reload_at";
@@ -33,7 +33,7 @@ function recoverOrReport(error: Error): boolean {
     window.location.reload();
     return true;
   }
-  posthogIfLoaded()?.captureException(error);
+  void loadPosthog().then((posthog) => posthog?.captureException(error));
   console.error(error);
   return false;
 }

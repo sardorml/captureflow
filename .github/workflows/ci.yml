@@ -75,6 +75,9 @@ jobs:
   #                            Workers R2 Storage: Edit (the "Edit Cloudflare
   #                            Workers" template + D1 covers it).
   #   CLOUDFLARE_ACCOUNT_ID  — the Cloudflare account id.
+  #   POSTHOG_API_KEY        — optional personal API key for source-map uploads.
+  # Required repo variables for source-map uploads:
+  #   POSTHOG_PROJECT_ID and POSTHOG_HOST
   # Worker RUNTIME secrets (BETTER_AUTH_SECRET, OAuth keys, …) live in
   # Cloudflare via `wrangler secret put` and are NOT needed here — deploy only
   # publishes code + the bindings/vars/crons declared in wrangler.jsonc.
@@ -103,6 +106,10 @@ jobs:
       # the build job's migration check enforces that. Never apply them by hand.
       - name: Build worker
         run: pnpm --filter @captureflow/web cf:build
+        env:
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          POSTHOG_PROJECT_ID: ${{ vars.POSTHOG_PROJECT_ID }}
+          POSTHOG_HOST: ${{ vars.POSTHOG_HOST }}
       # The recorder container's image copies this bundle; wrangler builds the image on upload.
       - name: Build recorder bundle
         run: pnpm --filter @captureflow/recorder build

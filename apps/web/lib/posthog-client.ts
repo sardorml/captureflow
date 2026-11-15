@@ -30,7 +30,8 @@ export function loadPosthog(): Promise<PostHog | null> {
       capture_pageview: false,
       capture_pageleave: true,
       autocapture: true,
-      capture_exceptions: true,
+      // A dev server's hot reloads throw errors no visitor ever sees.
+      capture_exceptions: process.env.NODE_ENV === "production",
       disable_session_recording: true,
       // Each is a script of its own after the config loads.
       disable_surveys: true,
