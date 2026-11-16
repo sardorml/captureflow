@@ -34,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// The share page's player alone, for the extension to frame on GitHub.
+// The share page's player alone, for other sites to frame.
 export default async function EmbedPage({
   params,
 }: {
