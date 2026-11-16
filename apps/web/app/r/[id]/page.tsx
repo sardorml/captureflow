@@ -170,7 +170,8 @@ export async function generateMetadata({
       images: imageUrl ? [imageUrl] : undefined,
       players: [
         {
-          playerUrl: pageUrl,
+          // X frames this address, and only /embed allows framing.
+          playerUrl: embedUrlFor(id),
           streamUrl: videoUrl,
           width: row.width ?? 1280,
           height: row.height ?? 720,
