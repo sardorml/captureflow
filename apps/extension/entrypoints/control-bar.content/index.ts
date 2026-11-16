@@ -5,6 +5,7 @@ import {
   type RecordingStatus,
 } from "@/lib/storage";
 import { formatClock } from "@/lib/format";
+import { startBlurMode } from "@/lib/overlay/blur-mode";
 import {
   CONTROL_BAR_HOST_ID,
   RECORDER_FRAME_ID,
@@ -34,6 +35,7 @@ const STOP_ICON = `<svg viewBox="0 0 17 17" width="17" height="17" aria-hidden="
 const PAUSE_ICON = `<svg viewBox="0 0 15 17" width="15" height="17" aria-hidden="true"><rect width="6" height="17" rx="1.5" fill="currentColor"/><rect x="9" width="6" height="17" rx="1.5" fill="currentColor"/></svg>`;
 const RESUME_ICON = `<svg viewBox="0 0 15 17" width="15" height="17" aria-hidden="true"><path d="M1.5 1.6v13.8c0 .9 1 1.4 1.7.9l11-6.9c.7-.4.7-1.4 0-1.8l-11-6.9c-.7-.5-1.7 0-1.7.9z" fill="currentColor"/></svg>`;
 const RESTART_ICON = `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M2.5 10a7.5 7.5 0 1 0 2.3-5.4M2 2.6v4.6h4.6" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const BLUR_ICON = `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M10 2.5c2.8 3.2 5 6.1 5 8.8a5 5 0 0 1-10 0c0-2.7 2.2-5.6 5-8.8z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M10 7v10M12.5 10.5v5M7.5 10.5v5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-dasharray="1.2 2.2"/></svg>`;
 const DELETE_ICON = `<svg viewBox="0 0 15 15" width="15" height="15" aria-hidden="true"><path d="M1.5 1.5l12 12M13.5 1.5l-12 12" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>`;
 
 /*
@@ -228,6 +230,21 @@ function makeDraggable(host: HTMLElement, bar: HTMLElement): void {
   });
 }
 
+/*
+ * Blurring mid-recording pauses it, so the picking itself isn't in the video,
+ * and picks it back up on Done unless it was already paused. Started from the
+ * panel, Done brings the panel back.
+ */
+async function blurPage({ fromPanel }: { fromPanel: boolean }): Promise<void> {
+  const status = await getRecordingStatus();
+  const resume = status.kind === "recording";
+  if (resume) await sendMessage("pauseRecording", undefined);
+  startBlurMode(() => {
+    if (resume) void sendMessage("resumeRecording", undefined);
+    else if (fromPanel) void sendMessage("blurDone", undefined);
+  }, [CONTROL_BAR_HOST_ID, RECORDER_FRAME_ID, BUBBLE_FRAME_ID]);
+}
+
 function createBar(): Bar {
   const host = document.createElement("div");
   host.id = HOST_ID;
@@ -253,6 +270,9 @@ function createBar(): Bar {
   const pause = iconButton(PAUSE_ICON, "Pause", () =>
     sendMessage(paused ? "resumeRecording" : "pauseRecording", undefined),
   );
+  const blur = iconButton(BLUR_ICON, "Blur parts of the page", () => {
+    void blurPage({ fromPanel: false });
+  });
   const restart = iconButton(RESTART_ICON, "Restart recording", () =>
     sendMessage("restartRecording", undefined),
   );
@@ -263,7 +283,7 @@ function createBar(): Bar {
   const extra = document.createElement("div");
   extra.className = "extra";
   const extraInner = document.createElement("div");
-  extraInner.append(restart, del);
+  extraInner.append(blur, restart, del);
   extra.appendChild(extraInner);
   bar.append(stop, timer, pause, extra);
   makeDraggable(host, bar);
@@ -314,7 +334,7 @@ function createBar(): Bar {
       expand();
       pause.innerHTML = PAUSE_ICON;
       pause.title = "Pause";
-      for (const button of [stop, pause, restart, del]) {
+      for (const button of [stop, pause, blur, restart, del]) {
         button.disabled = true;
       }
       timer.classList.add("preview");
@@ -330,7 +350,7 @@ function createBar(): Bar {
       paused = status.kind === "paused";
       pause.innerHTML = paused ? RESUME_ICON : PAUSE_ICON;
       pause.title = paused ? "Resume" : "Pause";
-      for (const button of [stop, pause, restart, del]) {
+      for (const button of [stop, pause, blur, restart, del]) {
         button.disabled = false;
       }
       timer.classList.remove("preview");
@@ -479,6 +499,7 @@ export default defineContentScript({
       void getRecordingStatus().then(apply);
     });
     onMessage("nudgeControlBar", () => bar?.nudge());
+    onMessage("blurPage", () => void blurPage({ fromPanel: true }));
     onMessage("panelPreview", ({ data }) => {
       previewing = data;
       frameWatch.disconnect();
