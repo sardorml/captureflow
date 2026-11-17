@@ -6,6 +6,7 @@ import { FormCard } from "./_ui";
 const DEFAULTS = {
   recordings: FREE_TIER.recordingsPerPerson,
   minutes: FREE_TIER.maxRecordingMs / 60_000,
+  agentMinutes: FREE_TIER.agentMinutesPerPerson,
 };
 
 function describe(override: LimitOverride | null): string {
@@ -14,7 +15,8 @@ function describe(override: LimitOverride | null): string {
     override?.maxRecordingMs == null
       ? DEFAULTS.minutes
       : override.maxRecordingMs / 60_000;
-  return `${recordings} recordings of up to ${minutes} minutes each`;
+  const agent = override?.agentMinutes ?? DEFAULTS.agentMinutes;
+  return `${recordings} recordings of up to ${minutes} minutes each, and ${agent} agent recording minutes a month`;
 }
 
 export function LimitsCard({

@@ -14,14 +14,14 @@ export function LimitsForm({
   action: (prev: FormState, data: FormData) => Promise<FormState>;
   id: string;
   override: LimitOverride | null;
-  defaults: { recordings: number; minutes: number };
+  defaults: { recordings: number; minutes: number; agentMinutes: number };
 }) {
   const minutes =
     override?.maxRecordingMs == null ? null : override.maxRecordingMs / 60_000;
   return (
     <ActionForm action={action} submit="Save limits" busy="Saving…">
       <input type="hidden" name="id" value={id} />
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         <TextRow
           name="recordings"
           label="Recordings per person"
@@ -35,6 +35,13 @@ export function LimitsForm({
           inputMode="numeric"
           defaultValue={minutes?.toString() ?? ""}
           placeholder={`${defaults.minutes} (default)`}
+        />
+        <TextRow
+          name="agentMinutes"
+          label="Agent minutes a month"
+          inputMode="numeric"
+          defaultValue={override?.agentMinutes?.toString() ?? ""}
+          placeholder={`${defaults.agentMinutes} (default)`}
         />
       </div>
     </ActionForm>

@@ -5,11 +5,11 @@ import {
   FREE_TIER,
   applyLimitOverrides,
   countUserRecordingsInWorkspace,
+  getAgentUsage,
   ensurePersonalWorkspace,
   getLimitOverride,
-  getRecordingCountReset,
   getWorkspaceEntitlement,
-  resetRecordingCount,
+  resetAgentUsage,
   resolveWorkspaceEntitlement,
   setLimitOverride,
 } from "@captureflow/quota";
@@ -31,7 +31,7 @@ const team = resolveWorkspaceEntitlement({
 describe("applyLimitOverrides", () => {
   it("raises the count and the length, and sizes the bytes for the length", () => {
     const e = applyLimitOverrides(free, [
-      { recordings: 100, maxRecordingMs: 15 * MINUTE },
+      { recordings: 100, maxRecordingMs: 15 * MINUTE, agentMinutes: null },
     ]);
     expect(e.recordingsPerPerson).toBe(100);
     expect(e.maxRecordingMs).toBe(15 * MINUTE);
@@ -41,8 +41,8 @@ describe("applyLimitOverrides", () => {
 
   it("takes the larger of two overrides, field by field", () => {
     const e = applyLimitOverrides(free, [
-      { recordings: 60, maxRecordingMs: null },
-      { recordings: 40, maxRecordingMs: 10 * MINUTE },
+      { recordings: 60, maxRecordingMs: null, agentMinutes: null },
+      { recordings: 40, maxRecordingMs: 10 * MINUTE, agentMinutes: null },
     ]);
     expect(e.recordingsPerPerson).toBe(60);
     expect(e.maxRecordingMs).toBe(10 * MINUTE);
@@ -50,14 +50,26 @@ describe("applyLimitOverrides", () => {
 
   it("never lowers a limit and leaves blank fields at the default", () => {
     expect(
-      applyLimitOverrides(free, [{ recordings: 3, maxRecordingMs: MINUTE }]),
+      applyLimitOverrides(free, [
+        { recordings: 3, maxRecordingMs: MINUTE, agentMinutes: null },
+      ]),
     ).toEqual(free);
     expect(applyLimitOverrides(free, [])).toEqual(free);
   });
 
+  it("raises the monthly agent minutes", () => {
+    const e = applyLimitOverrides(free, [
+      { recordings: null, maxRecordingMs: null, agentMinutes: 120 },
+    ]);
+    expect(e.agentMinutes).toBe(120);
+    expect(e.recordingsPerPerson).toBe(free.recordingsPerPerson);
+  });
+
   it("leaves a paid workspace uncapped", () => {
     expect(
-      applyLimitOverrides(team, [{ recordings: 100, maxRecordingMs: MINUTE }]),
+      applyLimitOverrides(team, [
+        { recordings: 100, maxRecordingMs: MINUTE, agentMinutes: null },
+      ]),
     ).toEqual(team);
   });
 });
@@ -87,14 +99,14 @@ describe("limit overrides in the database", () => {
       db,
       "workspace",
       workspaceId,
-      { recordings: 50, maxRecordingMs: null },
+      { recordings: 50, maxRecordingMs: null, agentMinutes: null },
       "staff@example.com",
     );
     await setLimitOverride(
       db,
       "user",
       "pat",
-      { recordings: 200, maxRecordingMs: 20 * MINUTE },
+      { recordings: 200, maxRecordingMs: 20 * MINUTE, agentMinutes: null },
       "staff@example.com",
     );
 
@@ -119,26 +131,27 @@ describe("limit overrides in the database", () => {
       db,
       "user",
       "pat",
-      { recordings: 80, maxRecordingMs: null },
+      { recordings: 80, maxRecordingMs: null, agentMinutes: null },
       "staff@example.com",
     );
     await setLimitOverride(
       db,
       "user",
       "pat",
-      { recordings: null, maxRecordingMs: 10 * MINUTE },
+      { recordings: null, maxRecordingMs: 10 * MINUTE, agentMinutes: null },
       "staff@example.com",
     );
     expect(await getLimitOverride(db, "user", "pat")).toEqual({
       recordings: null,
       maxRecordingMs: 10 * MINUTE,
+      agentMinutes: null,
     });
 
     await setLimitOverride(
       db,
       "user",
       "pat",
-      { recordings: null, maxRecordingMs: null },
+      { recordings: null, maxRecordingMs: null, agentMinutes: null },
       "staff@example.com",
     );
     expect(await getLimitOverride(db, "user", "pat")).toBeNull();
@@ -153,38 +166,35 @@ describe("limit overrides in the database", () => {
       db,
       "user",
       "sam",
-      { recordings: 80, maxRecordingMs: null },
+      { recordings: 80, maxRecordingMs: null, agentMinutes: null },
       "staff@example.com",
     );
     await db.prepare(`DELETE FROM users WHERE id = 'sam'`).run();
     expect(await getLimitOverride(db, "user", "sam")).toBeNull();
   });
 
-  it("counts only recordings made after staff reset the count", async () => {
-    const record = (slug: string, createdAt: number) =>
+  it("counts only agent minutes used after staff reset the workspace's", async () => {
+    const run = (id: string, start: number, end: number) =>
       db
         .prepare(
-          `INSERT INTO recordings (slug, device_id, storage_key, source, preset, state, last_viewed_at, created_at, user_id, workspace_id)
-             VALUES (?1, 'dev', ?1, 'instant', 'recording', 'ready', ?2, ?2, 'pat', ?3)`,
+          `INSERT INTO agent_recordings (id, user_id, device_token_id, workspace_id, created_at, ended_at)
+             VALUES (?1, 'pat', 'token', ?2, ?3, ?4)`,
         )
-        .bind(slug, createdAt, workspaceId)
+        .bind(id, workspaceId, start, end)
         .run();
-    await record("old-1", 1_000);
-    await record("old-2", 2_000);
-    expect(await countUserRecordingsInWorkspace(db, workspaceId, "pat")).toBe(
-      2,
+    const now = Date.now();
+    await run("a1", now - 10 * MINUTE, now - 7 * MINUTE);
+    expect((await getAgentUsage(db, workspaceId, 0, now)).agentMs).toBe(
+      3 * MINUTE,
     );
 
-    await resetRecordingCount(db, "pat", "staff@example.com");
-    expect(await countUserRecordingsInWorkspace(db, workspaceId, "pat")).toBe(
-      0,
-    );
-    expect(await getRecordingCountReset(db, "pat")).toBeGreaterThan(2_000);
+    await resetAgentUsage(db, workspaceId, "staff@example.com");
+    expect((await getAgentUsage(db, workspaceId, 0, now)).agentMs).toBe(0);
 
-    await record("new-1", Date.now() + 1_000);
-    expect(await countUserRecordingsInWorkspace(db, workspaceId, "pat")).toBe(
-      1,
-    );
-    expect(await getRecordingCountReset(db, "sam")).toBeNull();
+    await run("a2", Date.now() + 1_000, Date.now() + 1_000 + MINUTE);
+    expect(
+      (await getAgentUsage(db, workspaceId, 0, Date.now() + 2 * MINUTE))
+        .agentMs,
+    ).toBe(MINUTE);
   });
 });

@@ -3,6 +3,7 @@ export {
   AGENT_MAX_RECORDING_MS,
   AGENT_SESSION_LIFETIME_MS,
   getAgentUsage,
+  resetAgentUsage,
 } from "./agent-usage";
 export {
   ACCOUNT_LIMITS,
@@ -13,8 +14,6 @@ export type { SelfHostEnv } from "./limits";
 export type { AccountLimits } from "./limits";
 export {
   countUserRecordingsInWorkspace,
-  getRecordingCountReset,
-  resetRecordingCount,
   totalStorageForWorkspace,
 } from "./totals";
 export {

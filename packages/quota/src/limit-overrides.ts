@@ -11,11 +11,16 @@ import type { WorkspaceEntitlement } from "./seat-plans";
 export type LimitOverride = {
   recordings: number | null;
   maxRecordingMs: number | null;
+  agentMinutes: number | null;
 };
 
 export type LimitOverrideScope = "user" | "workspace";
 
-export const LIMIT_OVERRIDE_MAX = { recordings: 10_000, minutes: 180 } as const;
+export const LIMIT_OVERRIDE_MAX = {
+  recordings: 10_000,
+  minutes: 180,
+  agentMinutes: 10_000,
+} as const;
 
 const TABLES: Record<LimitOverrideScope, { table: string; key: string }> = {
   user: { table: "user_limit_override", key: "user_id" },
@@ -25,11 +30,13 @@ const TABLES: Record<LimitOverrideScope, { table: string; key: string }> = {
 type OverrideRow = {
   recordings: number | null;
   max_recording_ms: number | null;
+  agent_minutes: number | null;
 };
 
 const fromRow = (row: OverrideRow): LimitOverride => ({
   recordings: row.recordings,
   maxRecordingMs: row.max_recording_ms,
+  agentMinutes: row.agent_minutes,
 });
 
 // An override only ever raises a cap: the largest value wins, and one below
@@ -49,6 +56,10 @@ export function applyLimitOverrides(
     entitlement.maxRecordingMs,
     overrides.map((o) => o.maxRecordingMs),
   );
+  const agentMinutes = raise(
+    entitlement.agentMinutes,
+    overrides.map((o) => o.agentMinutes),
+  );
   // The byte ceiling is sized for the length cap, so it grows with it.
   const maxRecordingBytes =
     entitlement.maxRecordingBytes === null ||
@@ -64,6 +75,7 @@ export function applyLimitOverrides(
     recordingsPerPerson,
     maxRecordingMs,
     maxRecordingBytes,
+    agentMinutes,
   };
 }
 
@@ -75,7 +87,7 @@ export async function getLimitOverride(
   const { table, key } = TABLES[scope];
   const row = await db
     .prepare(
-      `SELECT recordings, max_recording_ms FROM ${table} WHERE ${key} = ?1`,
+      `SELECT recordings, max_recording_ms, agent_minutes FROM ${table} WHERE ${key} = ?1`,
     )
     .bind(id)
     .first<OverrideRow>();
@@ -89,10 +101,10 @@ export async function listLimitOverrides(
 ): Promise<LimitOverride[]> {
   const { results } = await db
     .prepare(
-      `SELECT recordings, max_recording_ms FROM workspace_limit_override
+      `SELECT recordings, max_recording_ms, agent_minutes FROM workspace_limit_override
         WHERE workspace_id = ?1
        UNION ALL
-       SELECT recordings, max_recording_ms FROM user_limit_override
+       SELECT recordings, max_recording_ms, agent_minutes FROM user_limit_override
         WHERE user_id = ?2`,
     )
     .bind(args.workspaceId, args.userId ?? null)
@@ -100,7 +112,7 @@ export async function listLimitOverrides(
   return (results ?? []).map(fromRow);
 }
 
-// Clearing both fields removes the row, which puts the defaults back.
+// Clearing every field removes the row, which puts the defaults back.
 export async function setLimitOverride(
   db: D1Database,
   scope: LimitOverrideScope,
@@ -109,18 +121,23 @@ export async function setLimitOverride(
   updatedBy: string,
 ): Promise<void> {
   const { table, key } = TABLES[scope];
-  if (override.recordings === null && override.maxRecordingMs === null) {
+  if (
+    override.recordings === null &&
+    override.maxRecordingMs === null &&
+    override.agentMinutes === null
+  ) {
     await db.prepare(`DELETE FROM ${table} WHERE ${key} = ?1`).bind(id).run();
     return;
   }
   await db
     .prepare(
       `INSERT INTO ${table}
-         (${key}, recordings, max_recording_ms, updated_at, updated_by)
-         VALUES (?1, ?2, ?3, ?4, ?5)
+         (${key}, recordings, max_recording_ms, agent_minutes, updated_at, updated_by)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)
          ON CONFLICT (${key}) DO UPDATE SET
            recordings = excluded.recordings,
            max_recording_ms = excluded.max_recording_ms,
+           agent_minutes = excluded.agent_minutes,
            updated_at = excluded.updated_at,
            updated_by = excluded.updated_by`,
     )
@@ -128,6 +145,7 @@ export async function setLimitOverride(
       id,
       override.recordings,
       override.maxRecordingMs,
+      override.agentMinutes,
       Date.now(),
       updatedBy,
     )

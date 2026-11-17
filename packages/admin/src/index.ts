@@ -104,13 +104,12 @@ export {
   SEAT_PLANS,
   getLimitOverride,
   getSeatPlan,
-  getRecordingCountReset,
   isSelfHosted,
-  resetRecordingCount,
+  resetAgentUsage,
   setLimitOverride,
 } from "@captureflow/quota";
-export { listRecordingAllowances } from "./allowance";
-export type { RecordingAllowance } from "./allowance";
+export { listWorkspaceUsage } from "./allowance";
+export type { WorkspaceUsage } from "./allowance";
 export type { LimitOverride, SeatPlanId } from "@captureflow/quota";
 export type { SubscriptionStatus } from "@captureflow/quota";
 
