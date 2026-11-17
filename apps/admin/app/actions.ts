@@ -39,6 +39,7 @@ import {
   issueSession,
   loginScopeKeys,
   recordFailure,
+  resetRecordingCount,
   revokeUserAccess,
   setAdminStatus,
   setLimitOverride,
@@ -362,6 +363,32 @@ export async function setUserLimitsAction(
     return { error: "Unknown user." };
   }
   return saveLimits(env.DB, operator.email, "user", userId, formData);
+}
+
+// Starts the person's free-plan recording count over without deleting any
+// recordings: only ones made after this count toward the cap.
+export async function resetRecordingCountAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const operator = await requirePermission("users.write");
+  const env = await getAdminEnv();
+  if (!env?.DB) return { error: NO_DB };
+
+  const userId = hydrateUserId(formData.get("userId"));
+  if (!userId || !(await getAdminUser(env.DB, userId))) {
+    return { error: "Unknown user." };
+  }
+  await resetRecordingCount(env.DB, userId, operator.email);
+  await writeAudit(env.DB, {
+    actor: operator.email,
+    action: "user.recordings.reset",
+    targetType: "user",
+    targetId: userId,
+    detail: null,
+  });
+  revalidatePath(`/users/${userId}`);
+  return { error: null };
 }
 
 export async function setWorkspaceLimitsAction(

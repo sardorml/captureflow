@@ -4,9 +4,12 @@ import { join } from "node:path";
 import {
   FREE_TIER,
   applyLimitOverrides,
+  countUserRecordingsInWorkspace,
   ensurePersonalWorkspace,
   getLimitOverride,
+  getRecordingCountReset,
   getWorkspaceEntitlement,
+  resetRecordingCount,
   resolveWorkspaceEntitlement,
   setLimitOverride,
 } from "@captureflow/quota";
@@ -155,5 +158,33 @@ describe("limit overrides in the database", () => {
     );
     await db.prepare(`DELETE FROM users WHERE id = 'sam'`).run();
     expect(await getLimitOverride(db, "user", "sam")).toBeNull();
+  });
+
+  it("counts only recordings made after staff reset the count", async () => {
+    const record = (slug: string, createdAt: number) =>
+      db
+        .prepare(
+          `INSERT INTO recordings (slug, device_id, storage_key, source, preset, state, last_viewed_at, created_at, user_id, workspace_id)
+             VALUES (?1, 'dev', ?1, 'instant', 'recording', 'ready', ?2, ?2, 'pat', ?3)`,
+        )
+        .bind(slug, createdAt, workspaceId)
+        .run();
+    await record("old-1", 1_000);
+    await record("old-2", 2_000);
+    expect(await countUserRecordingsInWorkspace(db, workspaceId, "pat")).toBe(
+      2,
+    );
+
+    await resetRecordingCount(db, "pat", "staff@example.com");
+    expect(await countUserRecordingsInWorkspace(db, workspaceId, "pat")).toBe(
+      0,
+    );
+    expect(await getRecordingCountReset(db, "pat")).toBeGreaterThan(2_000);
+
+    await record("new-1", Date.now() + 1_000);
+    expect(await countUserRecordingsInWorkspace(db, workspaceId, "pat")).toBe(
+      1,
+    );
+    expect(await getRecordingCountReset(db, "sam")).toBeNull();
   });
 });

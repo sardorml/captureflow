@@ -22,10 +22,12 @@ import {
   can,
   getAdminUser,
   getLimitOverride,
+  getRecordingCountReset,
   getUserActivity,
   getUserTimeline,
   listAuditForTarget,
   listUserSubscriptions,
+  listRecordingAllowances,
   listUserWorkspaces,
   summarizeCapture,
   type AdminTimelineEvent,
@@ -54,6 +56,7 @@ import { setUserLimitsAction } from "../../actions";
 import { Feed, type FeedItem, type Hue } from "../../_dashboard";
 import { PanelTabs } from "../../_filters";
 import { LimitsCard } from "../../_limits-card";
+import { ResetRecordingCount } from "./ResetRecordingCount";
 import { SignOutEverywhere } from "./SignOutEverywhere";
 
 const TIMELINE_ICON: Record<AdminTimelineKind, [LucideIcon, Hue]> = {
@@ -187,17 +190,28 @@ export default async function UserPage({
   const env = await getAdminEnv();
   if (!env?.DB) notFound();
 
-  const [user, activity, timeline, subscriptions, workspaces, audit, limits] =
-    await Promise.all([
-      getAdminUser(env.DB, id),
-      getUserActivity(env.DB, id),
-      getUserTimeline(env.DB, id),
-      listUserSubscriptions(env.DB, id),
-      listUserWorkspaces(env.DB, id),
-      listAuditForTarget(env.DB, "user", id),
-      getLimitOverride(env.DB, "user", id),
-    ]);
+  const [
+    user,
+    activity,
+    timeline,
+    subscriptions,
+    workspaces,
+    audit,
+    limits,
+    countReset,
+  ] = await Promise.all([
+    getAdminUser(env.DB, id),
+    getUserActivity(env.DB, id),
+    getUserTimeline(env.DB, id),
+    listUserSubscriptions(env.DB, id),
+    listUserWorkspaces(env.DB, id),
+    listAuditForTarget(env.DB, "user", id),
+    getLimitOverride(env.DB, "user", id),
+    getRecordingCountReset(env.DB, id),
+  ]);
   if (!user) notFound();
+  const allowances = await listRecordingAllowances(env.DB, id, workspaces);
+  const mostUsed = Math.max(0, ...allowances.map((a) => a.used));
   const canWrite = can(operator.role, "users.write");
   const now = Date.now();
   const displayName = user.name || user.email;
@@ -438,6 +452,52 @@ export default async function UserPage({
         override={limits}
         canWrite={canWrite}
       />
+      <FormCard
+        title="Recordings used"
+        description={`Recordings this person has made against the free plan limit in each free workspace. Resetting starts the count over everywhere; their recordings stay.${
+          countReset
+            ? ` Last reset ${formatDate(countReset).slice(0, 10)}.`
+            : ""
+        }`}
+      >
+        {allowances.length === 0 ? (
+          <p className="text-fg-muted text-sm">
+            Not in any free workspace, so no limit applies.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {allowances.map((a) => (
+              <li key={a.workspaceId} className="flex flex-col gap-1.5">
+                <div className="flex justify-between gap-3 text-sm">
+                  <NextLink
+                    href={`/workspaces/${a.workspaceId}`}
+                    className="truncate hover:underline"
+                  >
+                    {a.workspaceName}
+                  </NextLink>
+                  <span
+                    className={`tabular-nums ${a.used >= a.limit ? "text-destructive" : "text-fg-muted"}`}
+                  >
+                    {a.used} of {a.limit}
+                    {a.used >= a.limit ? " · limit reached" : ""}
+                  </span>
+                </div>
+                <div className="bg-muted h-1.5 overflow-hidden rounded-full">
+                  <div
+                    className={`h-full rounded-full ${a.used >= a.limit ? "bg-destructive" : "bg-primary"}`}
+                    style={{
+                      width: `${Math.min(100, (a.used / a.limit) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {canWrite && allowances.length > 0 && (
+          <ResetRecordingCount userId={user.id} used={mostUsed} />
+        )}
+      </FormCard>
     </div>
   );
 

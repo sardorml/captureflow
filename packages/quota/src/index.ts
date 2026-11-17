@@ -7,6 +7,8 @@ export type { SelfHostEnv } from "./limits";
 export type { AccountLimits } from "./limits";
 export {
   countUserRecordingsInWorkspace,
+  getRecordingCountReset,
+  resetRecordingCount,
   totalStorageForWorkspace,
 } from "./totals";
 export {
