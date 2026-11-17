@@ -41,6 +41,8 @@ beforeEach(async () => {
       device_token_id TEXT NOT NULL, slug TEXT, created_at INTEGER NOT NULL,
       ended_at INTEGER, workspace_id TEXT,
       narrated_chars INTEGER NOT NULL DEFAULT 0);
+    CREATE TABLE workspace_agent_usage_reset (workspace_id TEXT PRIMARY KEY,
+      reset_at INTEGER NOT NULL, reset_by TEXT NOT NULL);
     INSERT INTO device_tokens (id) VALUES ('t-old'), ('t-new');
   `);
   db = d1(sqlite);
