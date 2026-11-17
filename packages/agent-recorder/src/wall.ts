@@ -11,3 +11,28 @@ export function looksLikeWall(title: string, bodyText: string): boolean {
     bodyText.trim().length < 20
   );
 }
+
+export type FullFrame = { srcdoc: string } | { src: string };
+
+/*
+ * Some site builders serve the whole site from one frame that fills the
+ * window, leaving only a badge on the page itself. Run in the page: the frame
+ * whose site should be rebuilt in place of the page, or null.
+ */
+export function findFullFrame(viewport: {
+  width: number;
+  height: number;
+}): FullFrame | null {
+  const covering = Array.from(document.querySelectorAll("iframe")).filter(
+    (f) => {
+      const r = f.getBoundingClientRect();
+      return (
+        r.width >= viewport.width * 0.9 && r.height >= viewport.height * 0.9
+      );
+    },
+  );
+  if (covering.length !== 1) return null;
+  const [frame] = covering;
+  if (frame.srcdoc) return { srcdoc: frame.srcdoc };
+  return /^https?:/.test(frame.src) ? { src: frame.src } : null;
+}
