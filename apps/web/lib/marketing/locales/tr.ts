@@ -594,6 +594,9 @@ const messages: Messages = {
     previewNote:
       "Ajanların yeniden kuracağı sayfa bu. Doğru görünüyorsa demoyu oluştur.",
     change: "Adresi değiştir",
+    theme: "Tema",
+    light: "Açık",
+    dark: "Koyu",
     note: "Ücretsiz oluşturmak için giriş yapın. Her demo kitaplığınıza eklenir.",
     noteSignedIn: "Ücretsiz oluşturun. Her demo kitaplığınıza eklenir.",
     howHeading: "Nasıl çalışır",

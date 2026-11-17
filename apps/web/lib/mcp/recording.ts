@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import type { DemoColorScheme } from "../swarm-demo";
 import { agentAllowanceLeft, startOfMonthUtc } from "@captureflow/quota";
 import type { AppWebBindings } from "../cf-env";
 import { issueDeviceToken } from "../device-tokens";
@@ -291,7 +292,7 @@ export async function startSwarmDemo(
   db: D1Database,
   env: RecorderEnv,
   user: McpUser,
-  url: string,
+  { url, colorScheme }: { url: string; colorScheme: DemoColorScheme },
   background: (task: Promise<unknown>) => void,
 ): Promise<{ recording_id: string; url: string }> {
   const title = `${new URL(url).host} rebuilt by agents`;
@@ -322,6 +323,7 @@ export async function startSwarmDemo(
     background(
       callRecorder(env, id, "POST", "demo", {
         url,
+        colorScheme,
         start: {
           ...start,
           upload: { ...start.upload, created: made.response },

@@ -611,6 +611,9 @@ const messages: Messages = {
     previewNote:
       "Voici la page que les agents vont reconstruire. Lancez la démo si elle vous convient.",
     change: "Changer d'adresse",
+    theme: "Thème",
+    light: "Clair",
+    dark: "Sombre",
     note: "Connectez-vous pour générer gratuitement. Chaque démo arrive dans votre bibliothèque.",
     noteSignedIn:
       "Générez gratuitement. Chaque démo arrive dans votre bibliothèque.",

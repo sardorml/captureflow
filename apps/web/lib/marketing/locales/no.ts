@@ -584,6 +584,9 @@ const messages: Messages = {
     previewNote:
       "Dette er siden agentene bygger opp igjen. Lag demoen når den ser riktig ut.",
     change: "Endre adresse",
+    theme: "Tema",
+    light: "Lyst",
+    dark: "Mørkt",
     note: "Logg inn for å lage en demo gratis. Hver demo havner i biblioteket ditt.",
     noteSignedIn: "Lag gratis. Hver demo havner i biblioteket ditt.",
     howHeading: "Slik fungerer det",

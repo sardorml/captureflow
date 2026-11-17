@@ -8,7 +8,12 @@ import {
 } from "@/lib/mcp/library";
 import { startSwarmDemo } from "@/lib/mcp/recording";
 import { loadSession } from "@/lib/session-guard";
-import { checkSite, hydrateDemoUrl, type SitePreview } from "@/lib/swarm-demo";
+import {
+  checkSite,
+  hydrateColorScheme,
+  hydrateDemoUrl,
+  type SitePreview,
+} from "@/lib/swarm-demo";
 
 export type SwarmDemoErrorCode =
   | LibraryErrorCode
@@ -37,8 +42,10 @@ export async function checkSwarmDemoAction(
 
 export async function startSwarmDemoAction(
   raw: unknown,
+  rawScheme?: unknown,
 ): Promise<SwarmDemoResult> {
   const url = hydrateDemoUrl(raw);
+  const colorScheme = hydrateColorScheme(rawScheme);
   if (!url) return { kind: "error", code: "invalidUrl" };
   const session = await loadSession();
   if (!session) return { kind: "login" };
@@ -46,9 +53,15 @@ export async function startSwarmDemoAction(
   if (!env?.DB) return { kind: "error", code: "unavailable" };
   try {
     const user = await loadMcpUser(env.DB, session.user.id);
-    const started = await startSwarmDemo(env.DB, env, user, url, (task) => {
-      void runInBackground(task);
-    });
+    const started = await startSwarmDemo(
+      env.DB,
+      env,
+      user,
+      { url, colorScheme },
+      (task) => {
+        void runInBackground(task);
+      },
+    );
     return { kind: "started", url: started.url };
   } catch (err) {
     if (err instanceof LibraryError) return { kind: "error", code: err.code };

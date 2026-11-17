@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { checkSite, hydrateDemoUrl, parseSitePreview } from "./swarm-demo";
+import {
+  checkSite,
+  followsSystemTheme,
+  hydrateDemoUrl,
+  parseSitePreview,
+} from "./swarm-demo";
 
 describe("hydrateDemoUrl", () => {
   it("accepts a bare host or a full address", () => {
@@ -53,6 +58,7 @@ describe("parseSitePreview", () => {
       description: "Social description",
       image: "https://example.com/img/social.png",
       icon: "https://example.com/touch.png",
+      followsTheme: false,
     });
   });
 
@@ -105,5 +111,67 @@ describe("checkSite", () => {
       throw new Error("ENOTFOUND");
     }) as unknown as typeof fetch;
     expect(await checkSite("https://nope.example/", fetchImpl)).toBeNull();
+  });
+});
+
+describe("followsSystemTheme", () => {
+  it("sees a media query, a theme script or a color-scheme tag", () => {
+    expect(
+      followsSystemTheme("@media (prefers-color-scheme: dark) { body {} }"),
+    ).toBe(true);
+    expect(
+      followsSystemTheme('matchMedia("(prefers-color-scheme:light)").matches'),
+    ).toBe(true);
+    expect(
+      followsSystemTheme('<meta name="color-scheme" content="light dark">'),
+    ).toBe(true);
+  });
+
+  it("ignores a page with one theme", () => {
+    expect(followsSystemTheme("<style>body{background:#000}</style>")).toBe(
+      false,
+    );
+    expect(
+      followsSystemTheme('<meta name="color-scheme" content="dark">'),
+    ).toBe(false);
+  });
+});
+
+describe("checkSite themes", () => {
+  const html = (body: string) =>
+    new Response(body, { headers: { "content-type": "text/html" } });
+
+  it("finds a theme script after the head", async () => {
+    const fetchImpl = (async () =>
+      html(
+        `<html><head><title>T</title></head><body>${"<p>x</p>".repeat(5_000)}<script>matchMedia("(prefers-color-scheme: dark)")</script></body></html>`,
+      )) as unknown as typeof fetch;
+    expect(
+      (await checkSite("https://example.com/", fetchImpl))?.followsTheme,
+    ).toBe(true);
+  });
+
+  it("finds the query in a linked stylesheet", async () => {
+    const fetchImpl = (async (input: string) =>
+      input.endsWith(".css")
+        ? new Response("@media (prefers-color-scheme: dark){:root{}}")
+        : html(
+            '<html><head><link rel="stylesheet" href="/app.css"></head><body></body></html>',
+          )) as unknown as typeof fetch;
+    expect(
+      (await checkSite("https://example.com/", fetchImpl))?.followsTheme,
+    ).toBe(true);
+  });
+
+  it("offers no choice for a page with one theme", async () => {
+    const fetchImpl = (async (input: string) =>
+      input.endsWith(".css")
+        ? new Response("body{color:#111}")
+        : html(
+            '<html><head><link rel="stylesheet" href="/app.css"></head><body></body></html>',
+          )) as unknown as typeof fetch;
+    expect(
+      (await checkSite("https://example.com/", fetchImpl))?.followsTheme,
+    ).toBe(false);
   });
 });

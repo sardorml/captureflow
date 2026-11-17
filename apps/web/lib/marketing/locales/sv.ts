@@ -589,6 +589,9 @@ const messages: Messages = {
     previewNote:
       "Det här är sidan som agenterna bygger upp igen. Skapa demon när den ser rätt ut.",
     change: "Ändra adress",
+    theme: "Tema",
+    light: "Ljust",
+    dark: "Mörkt",
     note: "Logga in för att skapa gratis. Varje demo hamnar i ditt bibliotek.",
     noteSignedIn: "Skapa gratis. Varje demo hamnar i ditt bibliotek.",
     howHeading: "Så fungerar det",

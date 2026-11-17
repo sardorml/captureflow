@@ -601,6 +601,9 @@ const messages: Messages = {
     previewNote:
       "Diese Seite bauen die Agenten nach. Erstelle die Demo, wenn sie passt.",
     change: "Adresse ändern",
+    theme: "Design",
+    light: "Hell",
+    dark: "Dunkel",
     note: "Melde dich an, um kostenlos eine Demo zu erstellen. Jede Demo landet in deiner Bibliothek.",
     noteSignedIn: "Kostenlos erstellen. Jede Demo landet in deiner Bibliothek.",
     howHeading: "So funktioniert es",

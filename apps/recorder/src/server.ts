@@ -138,16 +138,23 @@ async function route(
     return { ok: true, elapsedSeconds: session(id).elapsedSeconds };
   }
   if (method === "POST" && verb === "demo") {
-    const { url, start } = (await body()) as {
+    const { url, start, colorScheme } = (await body()) as {
       url?: unknown;
       start?: StartBody;
+      colorScheme?: unknown;
     };
     if (typeof url !== "string" || !url) {
       throw new SessionError("Give the url of the page to rebuild.");
     }
     if (start) await begin(id, start);
     try {
-      return await runDemo(session(id), url);
+      return await runDemo(
+        session(id),
+        url,
+        colorScheme === "dark" || colorScheme === "light"
+          ? colorScheme
+          : undefined,
+      );
     } finally {
       sessions.delete(id);
     }
