@@ -138,10 +138,14 @@ async function callRecorder<T>(
   return json as T;
 }
 
-async function allowanceLeft(db: D1Database, workspaceId: string) {
+async function allowanceLeft(
+  db: D1Database,
+  workspaceId: string,
+  userId: string,
+) {
   const now = Date.now();
   const [entitlement, usage] = await Promise.all([
-    getWorkspaceEntitlement(workspaceId),
+    getWorkspaceEntitlement(workspaceId, userId),
     getAgentUsage(db, workspaceId, startOfMonthUtc(now), now),
   ]);
   const left = entitlement
@@ -189,7 +193,11 @@ async function prepareAgentRecording(
       "running",
     );
   }
-  const { entitlement, left } = await allowanceLeft(db, workspaceId);
+  const { entitlement, left } = await allowanceLeft(
+    db,
+    workspaceId,
+    user.userId,
+  );
   if (left.agentMs !== null && left.agentMs < 60_000) {
     throw new LibraryError(
       "This workspace has used its agent recording minutes for this month. They reset on the 1st.",
@@ -416,7 +424,9 @@ export async function narrate(
   const workspaceId =
     row.workspaceId ??
     (row.slug ? (await getRecording(row.slug))?.workspaceId : null);
-  const allowance = workspaceId ? await allowanceLeft(db, workspaceId) : null;
+  const allowance = workspaceId
+    ? await allowanceLeft(db, workspaceId, user.userId)
+    : null;
   if (!allowance?.entitlement?.ai) {
     throw new LibraryError(
       "Voiceover is a Pro feature. The recording keeps going without it.",

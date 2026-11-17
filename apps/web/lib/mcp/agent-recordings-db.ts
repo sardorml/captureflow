@@ -1,12 +1,14 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { cloudFailureReport } from "../recording/capture-report";
-import type { AgentUsage } from "@captureflow/quota";
+import { AGENT_SESSION_LIFETIME_MS as SESSION_LIFETIME_MS } from "@captureflow/quota";
 
-export const MAX_RECORDING_MS = 10 * 60_000;
-export const IDLE_MS = 2 * 60_000;
-// Past this a session can't still be running: the recorder ends it at its length limit.
-export const SESSION_LIFETIME_MS = MAX_RECORDING_MS + IDLE_MS + 5 * 60_000;
+export {
+  AGENT_IDLE_MS as IDLE_MS,
+  AGENT_MAX_RECORDING_MS as MAX_RECORDING_MS,
+  AGENT_SESSION_LIFETIME_MS as SESSION_LIFETIME_MS,
+  getAgentUsage,
+} from "@captureflow/quota";
 
 export type AgentRecordingRow = {
   id: string;
@@ -53,29 +55,6 @@ export async function insertAgentRecording(
     )
     .bind(row.id, row.userId, row.deviceTokenId, row.workspaceId, row.now)
     .run();
-}
-
-// A running session counts up to now, and never past the length it can run.
-export async function getAgentUsage(
-  db: D1Database,
-  workspaceId: string,
-  since: number,
-  now: number,
-): Promise<AgentUsage> {
-  const row = await db
-    .prepare(
-      `SELECT
-         COALESCE(SUM(MIN(COALESCE(ended_at, ?3), created_at + ?4) - created_at), 0) AS agent_ms,
-         COALESCE(SUM(narrated_chars), 0) AS narrated_chars
-         FROM agent_recordings
-        WHERE workspace_id = ?1 AND created_at >= ?2`,
-    )
-    .bind(workspaceId, since, now, SESSION_LIFETIME_MS)
-    .first<{ agent_ms: number; narrated_chars: number }>();
-  return {
-    agentMs: Math.max(0, row?.agent_ms ?? 0),
-    narratedChars: row?.narrated_chars ?? 0,
-  };
 }
 
 export async function addNarratedChars(
