@@ -71,7 +71,10 @@ export type RebuildRequest = {
   screens?: number;
   prompt?: string;
   music?: string | null;
+  colorScheme?: ColorScheme;
 };
+
+export type ColorScheme = "light" | "dark";
 
 // Pages are drawn a little larger than life, so text reads at video size.
 export const DEFAULT_ZOOM = 1.3;
@@ -444,6 +447,10 @@ export async function startSession(
     let thaw = async () => {};
     // Getting the page ready isn't recorded, but on a slow machine it can outlast the idle stop.
     const prepared = rec.offCamera(async () => {
+      // Set before the page loads, so a site that follows the system theme starts in it.
+      if (req.colorScheme) {
+        await page.emulateMedia({ colorScheme: req.colorScheme });
+      }
       if (req.url) {
         if (!(await allowUrl(req.url))) {
           throw new SessionError(

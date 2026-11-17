@@ -14,6 +14,7 @@ export {
 export {
   startSession,
   type Action,
+  type ColorScheme,
   type RebuildRequest,
   DEFAULT_ZOOM,
   deviceScaleArg,

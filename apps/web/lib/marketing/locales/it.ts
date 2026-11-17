@@ -586,6 +586,9 @@ const messages: Messages = {
     previewNote:
       "Questa è la pagina che gli agenti ricostruiranno. Genera la demo quando ti sembra giusta.",
     change: "Cambia indirizzo",
+    theme: "Tema",
+    light: "Chiaro",
+    dark: "Scuro",
     note: "Accedi per generare gratis. Ogni demo finisce nella tua libreria.",
     noteSignedIn: "Genera gratis. Ogni demo finisce nella tua libreria.",
     howHeading: "Come funziona",

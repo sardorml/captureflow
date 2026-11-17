@@ -577,6 +577,9 @@ export const MESSAGES = {
     previewNote:
       "This is the page the agents will rebuild. Generate the demo when it looks right.",
     change: "Change address",
+    theme: "Theme",
+    light: "Light",
+    dark: "Dark",
     note: "Sign in to generate for free. Each demo lands in your library.",
     noteSignedIn: "Generate for free. Each demo lands in your library.",
     howHeading: "How it works",
